@@ -2,13 +2,14 @@
   "name": "pagopa-interop-catalog",
   "version": "1.0.0",
   "description": "PagoPA Interoperability service fot e-services management",
-  "main": "index.js",
+  "main": "dist",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint . -c .eslintrc.js --ext .ts,.tsx",
-    "lint-autofix": "eslint . -c .eslintrc.js --ext .ts,.tsx --fix",
-    "start": "nodemon --exec ts-node --esm ./src/server/app.ts"
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint-autofix": "eslint . --ext .ts,.tsx --fix",
+    "start": "nodemon --exec ts-node --esm ./src/server/app.ts",
+    "build": "tsc"
   },
   "keywords": [],
   "author": "",
