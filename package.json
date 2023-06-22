@@ -28,5 +28,5 @@
     "nodemon": "^2.0.22",
     "openapi-zod-client": "^1.7.1",
     "zod": "^3.21.4"
-  }
+  "packageManager": "pnpm@8.6.3"
 }
