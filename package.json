@@ -3,11 +3,12 @@
   "version": "1.0.0",
   "description": "PagoPA Interoperability service fot e-services management",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint . -c .eslintrc.js --ext .ts,.tsx",
     "lint-autofix": "eslint . -c .eslintrc.js --ext .ts,.tsx --fix",
-    "start": "nodemon --exec ts-node ./src/server/app.ts"    
+    "start": "nodemon --exec ts-node --esm ./src/server/app.ts"
   },
   "keywords": [],
   "author": "",
@@ -28,5 +29,6 @@
     "nodemon": "^2.0.22",
     "openapi-zod-client": "^1.7.1",
     "zod": "^3.21.4"
+  },
   "packageManager": "pnpm@8.6.3"
 }
