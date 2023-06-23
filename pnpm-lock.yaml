@@ -1,9 +1,5 @@
 lockfileVersion: '6.0'
 
-settings:
-  autoInstallPeers: true
-  excludeLinksFromLockfile: false
-
 dependencies:
   '@zodios/core':
     specifier: ^10.9.2
@@ -14,6 +10,9 @@ dependencies:
   axios:
     specifier: ^1.4.0
     version: 1.4.0
+  dotenv-flow:
+    specifier: ^3.2.0
+    version: 3.2.0
   express:
     specifier: ^4.18.2
     version: 4.18.2
@@ -34,6 +33,9 @@ devDependencies:
   '@types/axios':
     specifier: ^0.14.0
     version: 0.14.0
+  '@types/dotenv-flow':
+    specifier: ^3.2.0
+    version: 3.2.0
   '@types/express':
     specifier: ^4.17.17
     version: 4.17.17
@@ -496,6 +498,10 @@ packages:
     resolution: {integrity: sha512-cdeYyv4KWoEgpBISTxWvqYsVy444DOqehiF3fM3ne10AmJ62RSyNkUnxMJXHQWRQQX2eR94m5y1IZyDwBjV9FQ==}
     dependencies:
       '@types/node': 20.3.1
+    dev: true
+
+  /@types/dotenv-flow@3.2.0:
+    resolution: {integrity: sha512-A79hbPwocbYkcTwGcDOFbKDuqyVo5mLAz/6Iq465YZ7R7Go5bT1PIM8I2jlPQkaD9u9fbotGVLkUPhX+9XUHfw==}
     dev: true
 
   /@types/express-serve-static-core@4.17.35:
@@ -1210,6 +1216,18 @@ packages:
     dependencies:
       esutils: 2.0.3
     dev: true
+
+  /dotenv-flow@3.2.0:
+    resolution: {integrity: sha512-GEB6RrR4AbqDJvNSFrYHqZ33IKKbzkvLYiD5eo4+9aFXr4Y4G+QaFrB/fNp0y6McWBmvaPn3ZNjIufnj8irCtg==}
+    engines: {node: '>= 8.0.0'}
+    dependencies:
+      dotenv: 8.6.0
+    dev: false
+
+  /dotenv@8.6.0:
+    resolution: {integrity: sha512-IrPdXQsk2BbzvCBGBOTmmSH5SodmqZNt4ERAZDmW4CT+tL8VtvinqywuANaFu4bOMWki16nqf0e4oC0QIaDr/g==}
+    engines: {node: '>=10'}
+    dev: false
 
   /ee-first@1.1.1:
     resolution: {integrity: sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==}
@@ -3246,3 +3264,7 @@ packages:
   /zod@3.21.4:
     resolution: {integrity: sha512-m46AKbrzKVzOzs/DZgVnG5H55N1sv1M8qZU3A8RIKbs3mrACDNeIOeilDymVb2HdmP8uwshOCF4uJ8uM9rCqJw==}
     dev: false
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
