@@ -9,5 +9,6 @@
     "sort-keys": "off",
     "functional/prefer-readonly-type": "off",
     "@typescript-eslint/no-shadow": "off"
-  }
+  },
+  "ignorePatterns": ["**/src/model/generated/*.ts"]
 }
