@@ -1,8 +1,8 @@
 {
-  "extends": [
-    "@pagopa/eslint-config/strong"
-  ],
+  "extends": ["@pagopa/eslint-config/strong"],
   "rules": {
     // Any project level custom rule
+    "prefer-arrow/prefer-arrow-functions": "off",
+    "@typescript-eslint/no-explicit-any": "off"
   }
 }
