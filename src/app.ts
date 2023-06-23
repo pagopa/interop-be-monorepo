@@ -1,12 +1,8 @@
-import { zodiosApp, zodiosRouter } from "@zodios/express";
-import { api } from "../model/generated/api.ts";
+import { zodiosApp } from "@zodios/express";
+import healthRouter from "./routers/health.ts";
+import eservicesRouter from "./routers/catalog.ts";
 
 const app = zodiosApp();
-
-const catalogRouter = zodiosRouter(api.api);
-
-catalogRouter.get("/status", async (_, res) => res.status(200).end());
-
-app.use(catalogRouter);
+app.use(healthRouter, eservicesRouter);
 
 export default app;
