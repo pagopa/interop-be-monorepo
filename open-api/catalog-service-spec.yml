@@ -1,0 +1,846 @@
+openapi: 3.0.3
+info:
+  title: Catalog Process Micro Service
+  description: This service is the catalog process
+  version: "v1"
+  contact:
+    name: API Support
+    url: http://www.example.com/support
+    email: support@example.com
+  termsOfService: "http://swagger.io/terms/"
+  x-api-id: an x-api-id
+  x-summary: an x-summary
+servers:
+  - url: "/catalog/v1"
+    description: This service is the catalog process
+security:
+  - bearerAuth: []
+tags:
+  - name: process
+    description: Implements catalog process
+    externalDocs:
+      description: Find out more
+      url: http://swagger.io
+  - name: health
+    description: Verify service status
+    externalDocs:
+      description: Find out more
+      url: http://swagger.io
+paths:
+  /eservices:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - $ref: "#/components/parameters/IpAddress"
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Retrieve a list of E-Service
+      operationId: getEServices
+      parameters:
+        - in: query
+          name: name
+          schema:
+            type: string
+        - in: query
+          name: eservicesIds
+          description: comma separated sequence of EService IDs
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+        - in: query
+          name: producersIds
+          description: comma separated sequence of producers IDs
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+        - in: query
+          name: states
+          description: comma separated sequence of states
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/EServiceDescriptorState"
+            default: []
+          explode: false
+        - in: query
+          name: agreementStates
+          description: comma separated sequence of agreement states to filter the response with
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/AgreementState"
+            default: []
+          explode: false
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: A list of E-Service
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServices"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Create a new e-service
+      operationId: createEService
+      requestBody:
+        description: An E-Service seed
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceSeed"
+        required: true
+      responses:
+        "200":
+          description: EService created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Name Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /eservices/{eServiceId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - $ref: "#/components/parameters/IpAddress"
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Get an e-service
+      operationId: getEServiceById
+      parameters:
+        - name: eServiceId
+          in: path
+          description: The E-Service id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: E-Service retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "404":
+          description: E-Service not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    put:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Updates e-service general information
+      operationId: updateEServiceById
+      parameters:
+        - name: eServiceId
+          in: path
+          description: The E-Service id to update
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: An E-Service update seed containing the possible updatable fields
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateEServiceSeed"
+      responses:
+        "200":
+          description: E-Service updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "404":
+          description: E-Service not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Deletes an e-service
+      operationId: deleteEService
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: EService deleted
+        "400":
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /status:
+    get:
+      security: []
+      tags:
+        - health
+      summary: Health status endpoint
+      description: Return ok
+      operationId: getStatus
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+components:
+  parameters:
+    CorrelationIdHeader:
+      in: header
+      name: X-Correlation-Id
+      required: true
+      schema:
+        type: string
+    IpAddress:
+      in: header
+      name: X-Forwarded-For
+      schema:
+        type: string
+  schemas:
+    EServiceSeed:
+      type: object
+      required:
+        - name
+        - description
+        - technology
+        - attributes
+      properties:
+        name:
+          type: string
+          minLength: 5
+          maxLength: 60
+        description:
+          type: string
+          minLength: 10
+          maxLength: 250
+        technology:
+          $ref: "#/components/schemas/EServiceTechnology"
+        attributes:
+          $ref: "#/components/schemas/AttributesSeed"
+    UpdateEServiceSeed:
+      type: object
+      required:
+        - name
+        - description
+        - technology
+        - attributes
+      properties:
+        name:
+          type: string
+          minLength: 5
+          maxLength: 60
+        description:
+          type: string
+          minLength: 10
+          maxLength: 250
+        technology:
+          $ref: "#/components/schemas/EServiceTechnology"
+        attributes:
+          $ref: "#/components/schemas/AttributesSeed"
+    EServiceDescriptorSeed:
+      required:
+        - audience
+        - voucherLifespan
+        - dailyCallsPerConsumer
+        - dailyCallsTotal
+        - agreementApprovalPolicy
+      type: object
+      properties:
+        description:
+          type: string
+          minLength: 10
+          maxLength: 250
+        audience:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 250
+        voucherLifespan:
+          type: integer
+          format: int32
+          minimum: 60
+          maximum: 86400
+        dailyCallsPerConsumer:
+          description: "maximum number of daily calls that this descriptor can afford."
+          type: integer
+          format: int32
+          minimum: 0
+        dailyCallsTotal:
+          description: "total daily calls available for this e-service."
+          type: integer
+          format: int32
+          minimum: 0
+        agreementApprovalPolicy:
+          $ref: "#/components/schemas/AgreementApprovalPolicy"
+    UpdateEServiceDescriptorSeed:
+      required:
+        - audience
+        - voucherLifespan
+        - dailyCallsPerConsumer
+        - dailyCallsTotal
+        - agreementApprovalPolicy
+      type: object
+      properties:
+        description:
+          type: string
+          minLength: 10
+          maxLength: 250
+        audience:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 250
+        voucherLifespan:
+          type: integer
+          format: int32
+          minimum: 60
+          maximum: 86400
+        dailyCallsPerConsumer:
+          description: "maximum number of daily calls that this descriptor can afford."
+          type: integer
+          format: int32
+          minimum: 0
+        dailyCallsTotal:
+          description: "total daily calls available for this e-service."
+          type: integer
+          format: int32
+          minimum: 0
+        agreementApprovalPolicy:
+          $ref: "#/components/schemas/AgreementApprovalPolicy"
+    CreateEServiceDescriptorDocumentSeed:
+      required:
+        - documentId
+        - kind
+        - prettyName
+        - filePath
+        - fileName
+        - contentType
+        - checksum
+        - serverUrls
+      type: object
+      properties:
+        documentId:
+          type: string
+          format: uuid
+        kind:
+          $ref: "#/components/schemas/EServiceDocumentKind"
+        prettyName:
+          type: string
+        filePath:
+          type: string
+        fileName:
+          type: string
+        contentType:
+          type: string
+        checksum:
+          type: string
+        serverUrls:
+          type: array
+          items:
+            type: string
+    UpdateEServiceDescriptorDocumentSeed:
+      required:
+        - prettyName
+      type: object
+      properties:
+        prettyName:
+          type: string
+          minLength: 5
+          maxLength: 60
+    AttributesSeed:
+      properties:
+        certified:
+          type: array
+          items:
+            $ref: "#/components/schemas/AttributeSeed"
+        declared:
+          type: array
+          items:
+            $ref: "#/components/schemas/AttributeSeed"
+        verified:
+          type: array
+          items:
+            $ref: "#/components/schemas/AttributeSeed"
+      required:
+        - certified
+        - declared
+        - verified
+    AttributeSeed:
+      type: object
+      properties:
+        single:
+          $ref: "#/components/schemas/AttributeValueSeed"
+        group:
+          type: array
+          items:
+            $ref: "#/components/schemas/AttributeValueSeed"
+    AttributeValueSeed:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        explicitAttributeVerification:
+          type: boolean
+      required:
+        - id
+        - explicitAttributeVerification
+    AgreementApprovalPolicy:
+      type: string
+      description: |
+        EService Descriptor policy for new Agreements approval.
+        AUTOMATIC - the agreement will be automatically approved if Consumer attributes are met
+        MANUAL - the Producer must approve every agreement for this Descriptor.
+      enum:
+        - AUTOMATIC
+        - MANUAL
+    Organization:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+    EService:
+      type: object
+      required:
+        - id
+        - producerId
+        - name
+        - description
+        - technology
+        - attributes
+        - descriptors
+      properties:
+        id:
+          type: string
+          format: uuid
+        producerId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        technology:
+          $ref: "#/components/schemas/EServiceTechnology"
+        attributes:
+          $ref: "#/components/schemas/Attributes"
+        descriptors:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceDescriptor"
+    EServiceConsumers:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceConsumer"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
+    EServiceConsumer:
+      type: object
+      required:
+        - descriptorVersion
+        - descriptorState
+        - agreementState
+        - consumerName
+        - consumerExternalId
+      properties:
+        descriptorVersion:
+          type: integer
+          format: int32
+        descriptorState:
+          $ref: "#/components/schemas/EServiceDescriptorState"
+        agreementState:
+          $ref: "#/components/schemas/AgreementState"
+        consumerName:
+          type: string
+        consumerExternalId:
+          type: string
+    EServices:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/EService"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
+    EServiceDoc:
+      type: object
+      required:
+        - id
+        - name
+        - contentType
+        - prettyName
+        - path
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        contentType:
+          type: string
+        prettyName:
+          type: string
+        path:
+          type: string
+    EServiceDescriptor:
+      type: object
+      required:
+        - id
+        - version
+        - docs
+        - state
+        - creationDate
+        - audience
+        - voucherLifespan
+        - dailyCallsPerConsumer
+        - dailyCallsTotal
+        - agreementApprovalPolicy
+        - serverUrls
+      properties:
+        id:
+          type: string
+          format: uuid
+        version:
+          type: string
+        description:
+          type: string
+        audience:
+          type: array
+          items:
+            type: string
+        voucherLifespan:
+          type: integer
+          format: int32
+        dailyCallsPerConsumer:
+          description: "maximum number of daily calls that this descriptor can afford per consumer."
+          type: integer
+          format: int32
+          minimum: 0
+        dailyCallsTotal:
+          description: "total daily calls available for this e-service."
+          type: integer
+          format: int32
+          minimum: 0
+        interface:
+          $ref: "#/components/schemas/EServiceDoc"
+        docs:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceDoc"
+        state:
+          $ref: "#/components/schemas/EServiceDescriptorState"
+        agreementApprovalPolicy:
+          $ref: "#/components/schemas/AgreementApprovalPolicy"
+        serverUrls:
+          type: array
+          items:
+            type: string
+        publishedAt:
+          type: string
+          format: date-time
+        suspendedAt:
+          type: string
+          format: date-time
+        deprecatedAt:
+          type: string
+          format: date-time
+        archivedAt:
+          type: string
+          format: date-time
+    AttributeValue:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        explicitAttributeVerification:
+          type: boolean
+      required:
+        - id
+        - explicitAttributeVerification
+    Attribute:
+      type: object
+      properties:
+        single:
+          $ref: "#/components/schemas/AttributeValue"
+        group:
+          type: array
+          items:
+            $ref: "#/components/schemas/AttributeValue"
+    Attributes:
+      properties:
+        certified:
+          type: array
+          items:
+            $ref: "#/components/schemas/Attribute"
+        declared:
+          type: array
+          items:
+            $ref: "#/components/schemas/Attribute"
+        verified:
+          type: array
+          items:
+            $ref: "#/components/schemas/Attribute"
+      required:
+        - certified
+        - declared
+        - verified
+    FlatEService:
+      type: object
+      required:
+        - id
+        - producerId
+        - producerName
+        - name
+        - description
+        - certifiedAttributes
+      properties:
+        id:
+          type: string
+          format: uuid
+        producerId:
+          type: string
+          format: uuid
+        producerName:
+          type: string
+        name:
+          type: string
+        version:
+          type: string
+        description:
+          type: string
+        state:
+          $ref: "#/components/schemas/EServiceDescriptorState"
+        descriptorId:
+          type: string
+        agreement:
+          $ref: "#/components/schemas/FlatAgreement"
+        certifiedAttributes:
+          description: "contains a flat version of the certified attribute identifiers of this e-service"
+          type: array
+          items:
+            $ref: "#/components/schemas/FlatAttribute"
+    EServiceTechnology:
+      type: string
+      description: API Technology
+      enum:
+        - REST
+        - SOAP
+    EServiceDescriptorState:
+      type: string
+      description: EService Descriptor State
+      enum:
+        - DRAFT
+        - PUBLISHED
+        - DEPRECATED
+        - SUSPENDED
+        - ARCHIVED
+    EServiceDocumentKind:
+      type: string
+      description: EService Document Kind
+      enum:
+        - INTERFACE
+        - DOCUMENT
+    FlatEServices:
+      type: array
+      items:
+        $ref: "#/components/schemas/FlatEService"
+    FlatAgreement:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        state:
+          $ref: "#/components/schemas/AgreementState"
+      required:
+        - id
+        - state
+    FlatAttribute:
+      type: object
+      properties:
+        single:
+          $ref: "#/components/schemas/FlatAttributeValue"
+        group:
+          type: array
+          items:
+            $ref: "#/components/schemas/FlatAttributeValue"
+    FlatAttributeValue:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+      required:
+        - id
+    AgreementState:
+      type: string
+      description: Agreement State
+      enum:
+        - DRAFT
+        - PENDING
+        - ACTIVE
+        - SUSPENDED
+        - ARCHIVED
+        - MISSING_CERTIFIED_ATTRIBUTES
+        - REJECTED
+    Problem:
+      properties:
+        type:
+          description: URI reference of type definition
+          type: string
+        status:
+          description: The HTTP status code generated by the origin server for this occurrence of the problem.
+          example: 503
+          exclusiveMaximum: true
+          format: int32
+          maximum: 600
+          minimum: 100
+          type: integer
+        title:
+          description: A short, summary of the problem type. Written in english and readable
+          example: Service Unavailable
+          maxLength: 64
+          pattern: "^[ -~]{0,64}$"
+          type: string
+        correlationId:
+          description: Unique identifier of the request
+          example: "53af4f2d-0c87-41ef-a645-b726a821852b"
+          maxLength: 64
+          type: string
+        detail:
+          description: A human readable explanation of the problem.
+          example: Request took too long to complete.
+          maxLength: 4096
+          pattern: "^.{0,1024}$"
+          type: string
+        errors:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/ProblemError"
+      additionalProperties: false
+      required:
+        - type
+        - status
+        - title
+        - errors
+    ProblemError:
+      properties:
+        code:
+          description: Internal code of the error
+          example: 123-4567
+          minLength: 8
+          maxLength: 8
+          pattern: "^[0-9]{3}-[0-9]{4}$"
+          type: string
+        detail:
+          description: A human readable explanation specific to this occurrence of the problem.
+          example: Parameter not valid
+          maxLength: 4096
+          pattern: "^.{0,1024}$"
+          type: string
+      required:
+        - code
+        - detail
+  securitySchemes:
+    bearerAuth:
+      type: http
+      description: A bearer token in the format of a JWS and comformed to the specifications included in [RFC8725](https://tools.ietf.org/html/RFC8725).
+      scheme: bearer
+      bearerFormat: JWT
