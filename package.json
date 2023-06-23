@@ -10,7 +10,7 @@
     "lint-autofix": "eslint . --ext .ts,.tsx --fix",
     "format-check": "prettier --check src",
     "format-write": "prettier --write src",
-    "start": "nodemon --exec ts-node --esm ./src/server/app.ts",
+    "start": "nodemon --exec ts-node --esm ./src/index.ts",
     "build": "tsc",
     "db:start": "./scripts/db-start.sh",
     "db:stop": "./scripts/db-stop.sh",
