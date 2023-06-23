@@ -11,7 +11,10 @@
     "format-check": "prettier --check src",
     "format-write": "prettier --write src",
     "start": "nodemon --exec ts-node --esm ./src/server/app.ts",
-    "build": "tsc"
+    "build": "tsc",
+    "db:start": "./scripts/db-start.sh",
+    "db:stop": "./scripts/db-stop.sh",
+    "db:destroy": "./scripts/db-destroy.sh"
   },
   "keywords": [],
   "author": "",
