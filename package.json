@@ -12,6 +12,8 @@
     "format-write": "prettier --write src",
     "start": "nodemon --exec ts-node --esm ./src/index.ts",
     "build": "tsc",
+    "generate-model": "pnpm openapi-zod-client './open-api/catalog-service-spec.yml' -o './src/model/generated/api.ts'",
+    "clean-generated": "pnpm exec rm ./src/models/generated/api.ts",
     "db:start": "./scripts/db-start.sh",
     "db:stop": "./scripts/db-stop.sh",
     "db:destroy": "./scripts/db-destroy.sh"
