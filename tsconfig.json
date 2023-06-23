@@ -12,7 +12,9 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "skipLibCheck": true,
-    "outDir": "dist",
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "outDir": "dist"
   },
   "include": ["src"]
 }
