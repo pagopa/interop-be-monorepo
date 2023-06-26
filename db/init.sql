@@ -1,10 +1,10 @@
 create table event ( 
     sequence_num bigserial NOT NULL,
 
-    stream_id uuid NOT NULL,
+    stream_id varchar(128) NOT NULL,
     version bigint NOT NULL,
 
-    type text NOT NULL,
+    type varchar(128) NOT NULL,
     data jsonb NOT NULL,
     meta jsonb NOT NULL,
 

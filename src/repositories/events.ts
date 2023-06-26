@@ -2,7 +2,7 @@ import { DB } from "./db.js";
 import * as sql from "./sql/index.js";
 
 export type CreateEvent<D, M> = {
-  readonly streamType: string;
+  readonly streamId: string;
   readonly type: string;
   readonly data: D;
   readonly meta: M;
@@ -22,14 +22,15 @@ export class EventRepository {
 
     try {
       await this.db.tx(async (t) => {
-        const max: number =
-          (await t.oneOrNone<number>(sql.maxEventVersion, {
-            streamType: event.streamType,
-          })) ?? 0;
+        const data: { max: number } = await t.one(sql.maxEventVersion, {
+          stream_id: event.streamId,
+        });
+
+        const max: number = data.max != null ? data.max + 1 : 0;
 
         t.none(sql.insertEvent, {
-          streamType: event.streamType,
-          version: max + 1,
+          stream_id: event.streamId,
+          version: max,
           type: event.type,
           data: event.data,
           meta: event.meta,
