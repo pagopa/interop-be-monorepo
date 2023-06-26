@@ -1,3 +1,4 @@
+import { logger } from "../utilities/logger.js";
 import { DB } from "./db.js";
 import * as sql from "./sql/index.js";
 
@@ -34,7 +35,7 @@ export class EventRepository {
           });
         });
       } catch (error) {
-        console.error(error);
+        logger.error(error);
         throw error;
       }
     };
