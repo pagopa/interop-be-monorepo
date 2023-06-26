@@ -7,9 +7,6 @@
     "eqeqeq": "off",
     "no-console": "off",
     "@typescript-eslint/consistent-type-definitions": "off",
-    "@typescript-eslint/explicit-member-accessibility": "off",
-    "functional/no-let": "off",
-    "sort-keys": "off",
-    "@typescript-eslint/restrict-plus-operands": "off"
+    "sort-keys": "off"
   }
 }
