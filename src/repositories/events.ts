@@ -15,31 +15,30 @@ export class EventRepository {
     this.db = db;
   }
 
-  readonly createEvent: <D, M>(event: CreateEvent<D, M>) => Promise<void> =
-    async (event) => {
-      const logTimestamp = new Date();
+  public readonly createEvent: <D, M>(
+    event: CreateEvent<D, M>
+  ) => Promise<void> = async (event) => {
+    const logTimestamp = new Date();
 
-      try {
-        await this.db.tx(async (t) => {
-          let max = await t.oneOrNone<number>(sql.maxEventVersion, {
+    try {
+      await this.db.tx(async (t) => {
+        const max: number =
+          (await t.oneOrNone<number>(sql.maxEventVersion, {
             streamType: event.streamType,
-          });
-          if (max === null) {
-            max = 0;
-          }
+          })) ?? 0;
 
-          t.none(sql.insertEvent, {
-            streamType: event.streamType,
-            version: max + 1,
-            type: event.type,
-            data: event.data,
-            meta: event.meta,
-            log_date: logTimestamp,
-          });
+        t.none(sql.insertEvent, {
+          streamType: event.streamType,
+          version: max + 1,
+          type: event.type,
+          data: event.data,
+          meta: event.meta,
+          log_date: logTimestamp,
         });
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
-    };
+      });
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  };
 }
