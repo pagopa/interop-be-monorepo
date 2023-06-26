@@ -4,7 +4,6 @@
     // Any project level custom rule
     "prefer-arrow/prefer-arrow-functions": "off",
     "eqeqeq": ["error", "smart"],
-    "no-console": "off",
     "@typescript-eslint/consistent-type-definitions": "off",
     "sort-keys": "off",
     "functional/prefer-readonly-type": "off",

@@ -9,11 +9,13 @@ const Config = z
     HOST: APIEndpoint,
     PORT: z.coerce.number().min(1001),
     POSTGRESQL_URI: z.string(),
+    LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]),
   })
   .transform((c) => ({
-    dbURL: c.POSTGRESQL_URI,
     host: c.HOST,
     port: c.PORT,
+    dbURL: c.POSTGRESQL_URI,
+    logLevel: c.LOG_LEVEL,
   }));
 
 export const config = Config.parse(process.env);
