@@ -1,14 +1,18 @@
 import path from "path";
-import { IQueryFileOptions, QueryFile } from "pg-promise";
+import { fileURLToPath } from "url";
+import pgPromise from "pg-promise";
 
-function sql(file: string): QueryFile {
-  const fullPath: string = path.join(__dirname, file);
+const filename = fileURLToPath(import.meta.url);
+const dirname = path.dirname(filename);
 
-  const options: IQueryFileOptions = {
+function sql(file: string): pgPromise.QueryFile {
+  const fullPath: string = path.join(dirname, file);
+
+  const options: pgPromise.IQueryFileOptions = {
     minify: true,
   };
 
-  const query: QueryFile = new QueryFile(fullPath, options);
+  const query = new pgPromise.QueryFile(fullPath, options);
 
   if (query.error) {
     console.error(query.error);

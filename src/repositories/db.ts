@@ -1,5 +1,5 @@
 import { ConnectionString } from "connection-string";
-import pgPromise, { IDatabase } from "pg-promise";
+import pgPromise, { IDatabase, IInitOptions } from "pg-promise";
 import {
   IClient,
   IConnectionParameters,
@@ -10,10 +10,16 @@ import { EventRepository } from "./events.js";
 export type DB = IDatabase<IExtensions> & IExtensions;
 
 export interface IExtensions {
-  readonly events: EventRepository;
+  events: EventRepository;
 }
 
-const pgp = pgPromise();
+const queries: IInitOptions<IExtensions> = {
+  extend: (db: DB) => {
+    db.events = new EventRepository(db);
+  },
+};
+
+const pgp = pgPromise(queries);
 
 const conData = new ConnectionString(config.dbURL);
 
@@ -27,3 +33,4 @@ export const dbConfig: IConnectionParameters<IClient> = {
 };
 
 export const db = pgp(dbConfig) as DB;
+export const events = db.events;

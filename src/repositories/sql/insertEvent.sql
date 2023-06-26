@@ -1,5 +1,12 @@
 INSERT INTO
-  "event"
+  "event"(
+    "stream_id",
+    "version",
+    "type",
+    "data",
+    "meta",
+    "log_date"
+  )
 VALUES
   (
     $(stream_id),
@@ -7,5 +14,5 @@ VALUES
     $(type),
     $(data),
     $(meta),
-    $(log_date),
+    $(log_date)
   );
