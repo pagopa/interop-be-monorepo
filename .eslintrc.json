@@ -3,6 +3,13 @@
   "rules": {
     // Any project level custom rule
     "prefer-arrow/prefer-arrow-functions": "off",
-    "@typescript-eslint/no-explicit-any": "off"
+    "@typescript-eslint/no-explicit-any": "off",
+    "eqeqeq": "off",
+    "no-console": "off",
+    "@typescript-eslint/consistent-type-definitions": "off",
+    "@typescript-eslint/explicit-member-accessibility": "off",
+    "functional/no-let": "off",
+    "sort-keys": "off",
+    "@typescript-eslint/restrict-plus-operands": "off"
   }
 }
