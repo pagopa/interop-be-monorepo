@@ -15,6 +15,7 @@ export interface IExtensions {
 
 const queries: IInitOptions<IExtensions> = {
   extend: (db: DB) => {
+    /* eslint-disable functional/immutable-data */
     db.events = new EventRepository(db);
   },
 };
@@ -24,7 +25,7 @@ const pgp = pgPromise(queries);
 const conData = new ConnectionString(config.dbURL);
 
 export const dbConfig: IConnectionParameters<IClient> = {
-  database: conData.path != undefined ? conData.path[0] : "",
+  database: conData.path !== undefined ? conData.path[0] : "",
   host: conData.hostname,
   password: conData.password,
   port: conData.port,
