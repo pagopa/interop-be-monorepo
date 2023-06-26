@@ -4,8 +4,7 @@ INSERT INTO
     "version",
     "type",
     "data",
-    "meta",
-    "log_date"
+    "meta"
   )
 VALUES
   (
@@ -13,6 +12,5 @@ VALUES
     $(version),
     $(type),
     $(data),
-    $(meta),
-    $(log_date)
+    $(meta)
   );

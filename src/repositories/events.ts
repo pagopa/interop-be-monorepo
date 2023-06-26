@@ -18,8 +18,6 @@ export class EventRepository {
   public readonly createEvent: <D, M>(
     event: CreateEvent<D, M>
   ) => Promise<void> = async (event) => {
-    const logTimestamp = new Date();
-
     try {
       await this.db.tx(async (t) => {
         const data: { max: number } = await t.one(sql.maxEventVersion, {
@@ -28,13 +26,12 @@ export class EventRepository {
 
         const max: number = data.max != null ? data.max + 1 : 0;
 
-        t.none(sql.insertEvent, {
+        await t.none(sql.insertEvent, {
           stream_id: event.streamId,
           version: max,
           type: event.type,
           data: event.data,
           meta: event.meta,
-          log_date: logTimestamp,
         });
       });
     } catch (error) {
