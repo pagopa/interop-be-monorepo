@@ -7,14 +7,12 @@ dotenvFlow.config();
 const Config = z
   .object({
     HOST: APIEndpoint,
-    LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]),
     PORT: z.coerce.number().min(1001),
     POSTGRESQL_URI: z.string(),
   })
   .transform((c) => ({
     dbURL: c.POSTGRESQL_URI,
     host: c.HOST,
-    logLevel: c.LOG_LEVEL,
     port: c.PORT,
   }));
 
