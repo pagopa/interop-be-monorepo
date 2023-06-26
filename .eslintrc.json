@@ -3,8 +3,7 @@
   "rules": {
     // Any project level custom rule
     "prefer-arrow/prefer-arrow-functions": "off",
-    "@typescript-eslint/no-explicit-any": "off",
-    "eqeqeq": "off",
+    "eqeqeq": ["error", "smart"],
     "no-console": "off",
     "@typescript-eslint/consistent-type-definitions": "off",
     "sort-keys": "off",

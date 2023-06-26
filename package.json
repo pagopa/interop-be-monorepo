@@ -38,7 +38,6 @@
     "express": "^4.18.2",
     "nodemon": "^2.0.22",
     "openapi-zod-client": "^1.7.1",
-    "pg": "^8.11.0",
     "pg-promise": "^11.5.0",
     "zod": "^3.21.4"
   },
