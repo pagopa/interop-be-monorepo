@@ -10,8 +10,11 @@
     "lint-autofix": "eslint . --ext .ts,.tsx --fix",
     "format-check": "prettier --check src",
     "format-write": "prettier --write src",
-    "start": "nodemon --exec ts-node --esm ./src/server/app.ts",
-    "build": "tsc"
+    "start": "nodemon --exec ts-node --esm ./src/index.ts",
+    "build": "tsc",
+    "db:start": "./scripts/db-start.sh",
+    "db:stop": "./scripts/db-stop.sh",
+    "db:destroy": "./scripts/db-destroy.sh"
   },
   "keywords": [],
   "author": "",
@@ -19,6 +22,7 @@
   "devDependencies": {
     "@pagopa/eslint-config": "^3.0.0",
     "@types/axios": "^0.14.0",
+    "@types/dotenv-flow": "^3.2.0",
     "@types/express": "^4.17.17",
     "@types/node": "^20.3.1",
     "prettier": "^2.8.8",
@@ -29,9 +33,12 @@
     "@zodios/core": "^10.9.2",
     "@zodios/express": "^10.6.1",
     "axios": "^1.4.0",
+    "connection-string": "^4.3.6",
+    "dotenv-flow": "^3.2.0",
     "express": "^4.18.2",
     "nodemon": "^2.0.22",
     "openapi-zod-client": "^1.7.1",
+    "pg-promise": "^11.5.0",
     "zod": "^3.21.4"
   },
   "packageManager": "pnpm@8.6.3"
