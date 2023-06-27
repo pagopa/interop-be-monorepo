@@ -19,15 +19,12 @@ export class EventRepository {
     async (event) => {
       try {
         await this.db.tx(async (t) => {
-          const data = await t.oneOrNone<{ version: number } | null>(
-            sql.getEventVersion,
-            {
-              stream_id: event.streamId,
-              version: event.version,
-            }
-          );
+          const data = await t.oneOrNone(sql.checkEventVersionExists, {
+            stream_id: event.streamId,
+            version: event.version,
+          });
 
-          const newVersion = data != null ? data.version + 1 : 0;
+          const newVersion = data != null ? event.version + 1 : 0;
 
           await t.none(sql.insertEvent, {
             stream_id: event.streamId,
