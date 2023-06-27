@@ -1,7 +1,7 @@
 create table event ( 
     sequence_num bigserial NOT NULL,
 
-    stream_id text NOT NULL,
+    stream_id uuid NOT NULL,
     version bigint NOT NULL,
 
     type text NOT NULL,
