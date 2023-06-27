@@ -87,6 +87,32 @@ const EServiceSeed = z.object({
   technology: EServiceTechnology,
   attributes: AttributesSeed,
 });
+const ProblemError = z.object({
+  code: z
+    .string()
+    .min(8)
+    .max(8)
+    .regex(/^[0-9]{3}-[0-9]{4}$/),
+  detail: z
+    .string()
+    .max(4096)
+    .regex(/^.{0,1024}$/),
+});
+const Problem = z.object({
+  type: z.string(),
+  status: z.number().int().gte(100).lt(600),
+  title: z
+    .string()
+    .max(64)
+    .regex(/^[ -~]{0,64}$/),
+  correlationId: z.string().max(64).optional(),
+  detail: z
+    .string()
+    .max(4096)
+    .regex(/^.{0,1024}$/)
+    .optional(),
+  errors: z.array(ProblemError).min(1),
+});
 const UpdateEServiceSeed = z.object({
   name: z.string().min(5).max(60),
   description: z.string().min(10).max(250),
@@ -110,6 +136,8 @@ export const schemas = {
   AttributeSeed,
   AttributesSeed,
   EServiceSeed,
+  ProblemError,
+  Problem,
   UpdateEServiceSeed,
 };
 
@@ -194,12 +222,40 @@ const endpoints = makeApi([
       {
         status: 400,
         description: `Invalid input`,
-        schema: z.void(),
+        schema: z.object({
+          type: z.string(),
+          status: z.number().int().gte(100).lt(600),
+          title: z
+            .string()
+            .max(64)
+            .regex(/^[ -~]{0,64}$/),
+          correlationId: z.string().max(64).optional(),
+          detail: z
+            .string()
+            .max(4096)
+            .regex(/^.{0,1024}$/)
+            .optional(),
+          errors: z.array(ProblemError).min(1),
+        }),
       },
       {
         status: 409,
         description: `Name Conflict`,
-        schema: z.void(),
+        schema: z.object({
+          type: z.string(),
+          status: z.number().int().gte(100).lt(600),
+          title: z
+            .string()
+            .max(64)
+            .regex(/^[ -~]{0,64}$/),
+          correlationId: z.string().max(64).optional(),
+          detail: z
+            .string()
+            .max(4096)
+            .regex(/^.{0,1024}$/)
+            .optional(),
+          errors: z.array(ProblemError).min(1),
+        }),
       },
     ],
   },
@@ -229,12 +285,40 @@ const endpoints = makeApi([
       {
         status: 400,
         description: `Bad request`,
-        schema: z.void(),
+        schema: z.object({
+          type: z.string(),
+          status: z.number().int().gte(100).lt(600),
+          title: z
+            .string()
+            .max(64)
+            .regex(/^[ -~]{0,64}$/),
+          correlationId: z.string().max(64).optional(),
+          detail: z
+            .string()
+            .max(4096)
+            .regex(/^.{0,1024}$/)
+            .optional(),
+          errors: z.array(ProblemError).min(1),
+        }),
       },
       {
         status: 404,
         description: `E-Service not found`,
-        schema: z.void(),
+        schema: z.object({
+          type: z.string(),
+          status: z.number().int().gte(100).lt(600),
+          title: z
+            .string()
+            .max(64)
+            .regex(/^[ -~]{0,64}$/),
+          correlationId: z.string().max(64).optional(),
+          detail: z
+            .string()
+            .max(4096)
+            .regex(/^.{0,1024}$/)
+            .optional(),
+          errors: z.array(ProblemError).min(1),
+        }),
       },
     ],
   },
@@ -270,12 +354,40 @@ const endpoints = makeApi([
       {
         status: 400,
         description: `Bad request`,
-        schema: z.void(),
+        schema: z.object({
+          type: z.string(),
+          status: z.number().int().gte(100).lt(600),
+          title: z
+            .string()
+            .max(64)
+            .regex(/^[ -~]{0,64}$/),
+          correlationId: z.string().max(64).optional(),
+          detail: z
+            .string()
+            .max(4096)
+            .regex(/^.{0,1024}$/)
+            .optional(),
+          errors: z.array(ProblemError).min(1),
+        }),
       },
       {
         status: 404,
         description: `E-Service not found`,
-        schema: z.void(),
+        schema: z.object({
+          type: z.string(),
+          status: z.number().int().gte(100).lt(600),
+          title: z
+            .string()
+            .max(64)
+            .regex(/^[ -~]{0,64}$/),
+          correlationId: z.string().max(64).optional(),
+          detail: z
+            .string()
+            .max(4096)
+            .regex(/^.{0,1024}$/)
+            .optional(),
+          errors: z.array(ProblemError).min(1),
+        }),
       },
     ],
   },
@@ -305,12 +417,40 @@ const endpoints = makeApi([
       {
         status: 400,
         description: `Invalid input`,
-        schema: z.void(),
+        schema: z.object({
+          type: z.string(),
+          status: z.number().int().gte(100).lt(600),
+          title: z
+            .string()
+            .max(64)
+            .regex(/^[ -~]{0,64}$/),
+          correlationId: z.string().max(64).optional(),
+          detail: z
+            .string()
+            .max(4096)
+            .regex(/^.{0,1024}$/)
+            .optional(),
+          errors: z.array(ProblemError).min(1),
+        }),
       },
       {
         status: 404,
         description: `Not found`,
-        schema: z.void(),
+        schema: z.object({
+          type: z.string(),
+          status: z.number().int().gte(100).lt(600),
+          title: z
+            .string()
+            .max(64)
+            .regex(/^[ -~]{0,64}$/),
+          correlationId: z.string().max(64).optional(),
+          detail: z
+            .string()
+            .max(4096)
+            .regex(/^.{0,1024}$/)
+            .optional(),
+          errors: z.array(ProblemError).min(1),
+        }),
       },
     ],
   },
@@ -319,7 +459,21 @@ const endpoints = makeApi([
     path: "/status",
     description: `Return ok`,
     requestFormat: "json",
-    response: z.void(),
+    response: z.object({
+      type: z.string(),
+      status: z.number().int().gte(100).lt(600),
+      title: z
+        .string()
+        .max(64)
+        .regex(/^[ -~]{0,64}$/),
+      correlationId: z.string().max(64).optional(),
+      detail: z
+        .string()
+        .max(4096)
+        .regex(/^.{0,1024}$/)
+        .optional(),
+      errors: z.array(ProblemError).min(1),
+    }),
   },
 ]);
 

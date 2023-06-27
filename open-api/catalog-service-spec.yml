@@ -127,13 +127,13 @@ paths:
         "400":
           description: Invalid input
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Name Conflict
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}:
@@ -164,13 +164,13 @@ paths:
         "404":
           description: E-Service not found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
           description: Bad request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
     put:
@@ -204,13 +204,13 @@ paths:
         "404":
           description: E-Service not found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
           description: Bad request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
     delete:
@@ -234,13 +234,13 @@ paths:
         "400":
           description: Invalid input
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Not found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /status:
@@ -255,7 +255,7 @@ paths:
         "200":
           description: successful operation
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
 components:
