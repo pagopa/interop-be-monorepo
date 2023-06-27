@@ -4,29 +4,19 @@
  */
 import { z } from "zod";
 import * as api from "../generated/api.ts";
+import { ApiEServiceSeed } from "../generated/types.ts";
 
-// enum type should be shared between domain model and api model
-export type EServiceTechnology = z.infer<typeof api.schemas.EServiceTechnology>;
+export type EService = z.infer<typeof api.schemas.EService>;
+export type MaybeEservice = EService | undefined;
 
-export interface IEServiceSeed {
-  readonly name: string;
-  readonly description: string;
-  readonly technology: EServiceTechnology;
-  readonly attributes: IAttributesSeed;
-}
+export type EServiceSeed = z.infer<typeof api.schemas.EServiceSeed> & {
+  readonly producerId: string;
+};
 
-export interface IAttributesSeed {
-  readonly certified: ReadonlyArray<IAttributeSeed>;
-  readonly declared: ReadonlyArray<IAttributeSeed>;
-  readonly verified: ReadonlyArray<IAttributeSeed>;
-}
-
-export interface IAttributeSeed {
-  readonly single: IAttributeValueSeed | null;
-  readonly group: ReadonlyArray<IAttributeValueSeed> | null;
-}
-
-export interface IAttributeValueSeed {
-  readonly id: string;
-  readonly explicitAttributeVerification: boolean;
-}
+export const convertToClientEService = (
+  seed: ApiEServiceSeed,
+  producerId: string
+): EServiceSeed => ({
+  ...seed,
+  producerId,
+});
