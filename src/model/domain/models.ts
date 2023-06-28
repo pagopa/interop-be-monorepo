@@ -4,7 +4,7 @@
  */
 import { z } from "zod";
 import * as api from "../generated/api.js";
-import { ApiEServiceSeed } from "../generated/types.js";
+import { ApiEServiceSeed } from "../types.js";
 
 export type EService = z.infer<typeof api.schemas.EService> | undefined;
 
@@ -12,7 +12,7 @@ export type EServiceSeed = z.infer<typeof api.schemas.EServiceSeed> & {
   readonly producerId: string;
 };
 
-export const convertToClientEService = (
+export const convertToClientEServiceSeed = (
   seed: ApiEServiceSeed,
   producerId: string
 ): EServiceSeed => ({
