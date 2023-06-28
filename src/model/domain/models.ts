@@ -3,8 +3,8 @@
   This file will be removed once all models are converted from scala.
  */
 import { z } from "zod";
-import * as api from "../generated/api.ts";
-import { ApiEServiceSeed } from "../generated/types.ts";
+import * as api from "../generated/api.js";
+import { ApiEServiceSeed } from "../generated/types.js";
 
 export type EService = z.infer<typeof api.schemas.EService> | undefined;
 

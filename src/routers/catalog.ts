@@ -1,10 +1,10 @@
 import { zodiosRouter } from "@zodios/express";
-import { api } from "../model/generated/api.ts";
-import { catalogService } from "../services/catalogService.ts";
+import { api } from "../model/generated/api.js";
+import { catalogService } from "../services/CatalogService.js";
 import {
   ApiError,
   mapCatalogServiceErrorToApiError,
-} from "../model/generated/types.ts";
+} from "../model/generated/types.js";
 
 const eservicesRouter = zodiosRouter(api.api);
 
