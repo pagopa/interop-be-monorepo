@@ -1,7 +1,8 @@
 import { zodiosApp } from "@zodios/express";
+import healthRouter from "./routers/health.js";
+import eservicesRouter from "./routers/catalog.js";
 
 const app = zodiosApp();
-
-app.get("/health", (_, res) => res.status(200).send({ STATUS: "OK" }).end());
+app.use(healthRouter, eservicesRouter);
 
 export default app;

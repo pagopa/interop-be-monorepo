@@ -1,5 +1,9 @@
 lockfileVersion: '6.0'
 
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
 dependencies:
   '@zodios/core':
     specifier: ^10.9.2
@@ -28,6 +32,9 @@ dependencies:
   pg-promise:
     specifier: ^11.5.0
     version: 11.5.0
+  ts-pattern:
+    specifier: ^5.0.1
+    version: 5.0.1
   zod:
     specifier: ^3.21.4
     version: 3.21.4
@@ -2645,14 +2652,14 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
-  /pg-cloudflare@1.1.0:
-    resolution: {integrity: sha512-tGM8/s6frwuAIyRcJ6nWcIvd3+3NmUKIs6OjviIm1HPPFEt5MzQDOTBQyhPWg/m0kCl95M6gA1JaIXtS8KovOA==}
+  /pg-cloudflare@1.1.1:
+    resolution: {integrity: sha512-xWPagP/4B6BgFO+EKz3JONXv3YDgvkbVrGw2mTo3D6tVDQRh1e7cqVGvyR3BE+eQgAvx1XhW/iEASj4/jCWl3Q==}
     requiresBuild: true
     dev: false
     optional: true
 
-  /pg-connection-string@2.6.0:
-    resolution: {integrity: sha512-x14ibktcwlHKoHxx9X3uTVW9zIGR41ZB6QNhHb21OPNdCCO3NaRnpJuwKIQSR4u+Yqjx4HCvy7Hh7VSy1U4dGg==}
+  /pg-connection-string@2.6.1:
+    resolution: {integrity: sha512-w6ZzNu6oMmIzEAYVw+RLK0+nqHPt8K3ZnknKi+g48Ak2pr3dtljJW3o+D/n2zzCG07Zoe9VOX3aiKpj+BN0pjg==}
     dev: false
 
   /pg-int8@1.0.1:
@@ -2665,8 +2672,8 @@ packages:
     engines: {node: '>=12.0.0'}
     dev: false
 
-  /pg-pool@3.6.0(pg@8.11.0):
-    resolution: {integrity: sha512-clFRf2ksqd+F497kWFyM21tMjeikn60oGDmqMT8UBrynEwVEX/5R5xd2sdvdo1cZCFlguORNpVuqxIj+aK4cfQ==}
+  /pg-pool@3.6.1(pg@8.11.0):
+    resolution: {integrity: sha512-jizsIzhkIitxCGfPRzJn1ZdcosIt3pz9Sh3V01fm1vZnbnCMgmGl5wvGGdNN2EL9Rmb0EcFoCkixH4Pu+sP9Og==}
     peerDependencies:
       pg: '>=8.0'
     dependencies:
@@ -2711,13 +2718,13 @@ packages:
     dependencies:
       buffer-writer: 2.0.0
       packet-reader: 1.0.0
-      pg-connection-string: 2.6.0
-      pg-pool: 3.6.0(pg@8.11.0)
+      pg-connection-string: 2.6.1
+      pg-pool: 3.6.1(pg@8.11.0)
       pg-protocol: 1.6.0
       pg-types: 2.2.0
       pgpass: 1.0.5
     optionalDependencies:
-      pg-cloudflare: 1.1.0
+      pg-cloudflare: 1.1.1
     dev: false
 
   /pgpass@1.0.5:
@@ -3188,6 +3195,10 @@ packages:
     resolution: {integrity: sha512-pefrkcd4lmIVR0LA49Imjf9DYLK8vtWhqBPA3Ya1ir8xCW0O2yjL9dsCVvI7pCodLC5q7smNpEtDR2yVulQxOg==}
     dev: false
 
+  /ts-pattern@5.0.1:
+    resolution: {integrity: sha512-ZyNm28Lsg34Co5DS3e9DVyjlX2Y+2exkI4jqTKyU+9/OL6Y2fKOOuL8i+7no71o74C6mVS+UFoP3ekM3iCT1HQ==}
+    dev: false
+
   /ts-toolbelt@9.6.0:
     resolution: {integrity: sha512-nsZd8ZeNUzukXPlJmTBwUAuABDe/9qtVDelJeT/qW0ow3ZS3BsQJtNkan1802aM9Uf68/Y8ljw86Hu0h5IUW3w==}
     dev: false
@@ -3407,7 +3418,3 @@ packages:
   /zod@3.21.4:
     resolution: {integrity: sha512-m46AKbrzKVzOzs/DZgVnG5H55N1sv1M8qZU3A8RIKbs3mrACDNeIOeilDymVb2HdmP8uwshOCF4uJ8uM9rCqJw==}
     dev: false
-
-settings:
-  autoInstallPeers: true
-  excludeLinksFromLockfile: false

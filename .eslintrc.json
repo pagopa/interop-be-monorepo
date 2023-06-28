@@ -8,6 +8,8 @@
     "@typescript-eslint/consistent-type-definitions": "off",
     "sort-keys": "off",
     "functional/prefer-readonly-type": "off",
-    "@typescript-eslint/no-shadow": "off"
-  }
+    "@typescript-eslint/no-shadow": "off",
+    "extra-rules/no-commented-out-code": "off"
+  },
+  "ignorePatterns": ["**/src/model/generated/*.ts"]
 }
