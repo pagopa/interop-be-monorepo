@@ -2,7 +2,6 @@ import { CatalogProcessError, ErrorCode } from "../model/domain/errors.ts";
 import {
   EService,
   EServiceSeed,
-  MaybeEservice,
   convertToClientEService,
 } from "../model/domain/models.ts";
 import { ApiEServiceSeed } from "../model/generated/types.ts";
@@ -24,7 +23,7 @@ const mockSaveEService = async (eservice: EServiceSeed): Promise<EService> => ({
   descriptors: [],
   id: "6A568A80-1B05-48EA-A74A-9A4C1B825CFB",
 });
-const mockreadEServiceByName = async (_name: string): Promise<MaybeEservice> =>
+const mockreadEServiceByName = async (_name: string): Promise<EService> =>
   undefined;
 // =================================
 
@@ -37,7 +36,7 @@ export const catalogService: ICatalogService = {
       mockOrganizationID
     );
 
-    const mayBeService = await mockreadEServiceByName(eserviceSeed.name);
+    const eservice = await mockreadEServiceByName(eserviceSeed.name);
     if (mayBeService !== undefined) {
       throw new CatalogProcessError(
         `Error during EService creation with name ${eserviceSeed.name}`,

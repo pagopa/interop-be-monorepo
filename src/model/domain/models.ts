@@ -6,8 +6,7 @@ import { z } from "zod";
 import * as api from "../generated/api.ts";
 import { ApiEServiceSeed } from "../generated/types.ts";
 
-export type EService = z.infer<typeof api.schemas.EService>;
-export type MaybeEservice = EService | undefined;
+export type EService = z.infer<typeof api.schemas.EService> | undefined;
 
 export type EServiceSeed = z.infer<typeof api.schemas.EServiceSeed> & {
   readonly producerId: string;
