@@ -1,6 +1,7 @@
 import path from "path";
 import { fileURLToPath } from "url";
 import pgPromise from "pg-promise";
+import { logger } from "../../utilities/logger.js";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -15,7 +16,7 @@ function sql(file: string): pgPromise.QueryFile {
   const query = new pgPromise.QueryFile(fullPath, options);
 
   if (query.error) {
-    console.error(query.error);
+    logger.error(query.error);
   }
 
   return query;
