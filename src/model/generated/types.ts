@@ -1,7 +1,7 @@
 import { ZodiosBodyByPath, ZodiosErrorByPath } from "@zodios/core";
 import { P, match } from "ts-pattern";
-import { ErrorCode } from "../domain/errors.ts";
-import { api } from "./api.ts";
+import { ErrorCode } from "../domain/errors.js";
+import { api } from "./api.js";
 
 type Api = typeof api.api;
 export type ApiEServiceSeed = ZodiosBodyByPath<Api, "post", "/eservices">;

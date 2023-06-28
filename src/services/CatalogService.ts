@@ -1,10 +1,10 @@
-import { CatalogProcessError, ErrorCode } from "../model/domain/errors.ts";
+import { CatalogProcessError, ErrorCode } from "../model/domain/errors.js";
 import {
   EService,
   EServiceSeed,
   convertToClientEService,
-} from "../model/domain/models.ts";
-import { ApiEServiceSeed } from "../model/generated/types.ts";
+} from "../model/domain/models.js";
+import { ApiEServiceSeed } from "../model/generated/types.js";
 
 export interface ICatalogService {
   readonly createEService: (
@@ -37,7 +37,7 @@ export const catalogService: ICatalogService = {
     );
 
     const eservice = await mockreadEServiceByName(eserviceSeed.name);
-    if (mayBeService !== undefined) {
+    if (eservice !== undefined) {
       throw new CatalogProcessError(
         `Error during EService creation with name ${eserviceSeed.name}`,
         ErrorCode.DuplicateEserviceName
