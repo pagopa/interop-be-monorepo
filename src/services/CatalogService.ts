@@ -1,4 +1,10 @@
-import { CatalogProcessError, ErrorCode } from "../model/domain/errors.js";
+import {
+  CatalogProcessError,
+  ErrorCode,
+  eServiceCannotBeUpdated,
+  eServiceNotFound,
+  operationForbidden,
+} from "../model/domain/errors.js";
 import { convertToClientEServiceSeed } from "../model/domain/models.js";
 import { ApiEServiceSeed } from "../model/types.js";
 import { eserviceSeedToCreateEvent } from "../repositories/adapters/adapters.js";
@@ -26,5 +32,61 @@ export const catalogService = {
     }
 
     return eventRepository.createEvent(eserviceSeedToCreateEvent(eserviceSeed));
+  },
+  async updateEService(
+    eServiceId: string,
+    eservicesSeed: ApiEServiceSeed
+  ): Promise<void> {
+    const organizationId = await readModelGateway.getOrganizationID();
+    const eservice = await readModelGateway.getEServiceById(eServiceId);
+
+    if (eservice === undefined) {
+      throw eServiceNotFound(eServiceId);
+    }
+
+    if (eservice.producerId !== organizationId) {
+      throw operationForbidden;
+    }
+
+    if (
+      !(
+        eservice.descriptors.length === 0 ||
+        (eservice.descriptors.length === 1 &&
+          eservice.descriptors[0].state === "DRAFT")
+      )
+    ) {
+      throw eServiceCannotBeUpdated(eServiceId);
+    }
+
+    const eserviceSeed = convertToClientEServiceSeed(
+      eservicesSeed,
+      organizationId
+    );
+
+    await eventRepository.createEvent({
+      streamId: eServiceId,
+      version: await readModelGateway.getVersion(eServiceId),
+      type: "EServiceUpdated",
+      data: eserviceSeed,
+    });
+  },
+  async deleteEService(eServiceId: string): Promise<void> {
+    const organizationId = await readModelGateway.getOrganizationID();
+    const eservice = await readModelGateway.getEServiceById(eServiceId);
+
+    if (eservice === undefined) {
+      throw eServiceNotFound(eServiceId);
+    }
+
+    if (eservice.producerId !== organizationId) {
+      throw operationForbidden;
+    }
+
+    await eventRepository.createEvent({
+      streamId: eServiceId,
+      version: await readModelGateway.getVersion(eServiceId),
+      type: "EServiceDeleted",
+      data: {},
+    });
   },
 };
