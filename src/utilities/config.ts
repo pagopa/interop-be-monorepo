@@ -1,6 +1,6 @@
 import * as dotenvFlow from "dotenv-flow";
 import { z } from "zod";
-import { APIEndpoint } from "../models/apiEndpoint.js";
+import { APIEndpoint } from "../model/apiEndpoint.js";
 
 dotenvFlow.config();
 
