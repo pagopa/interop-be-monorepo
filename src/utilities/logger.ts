@@ -1,5 +1,4 @@
 import * as winston from "winston";
-import "winston-daily-rotate-file";
 import { config } from "./config.js";
 
 export const logger = winston.createLogger({

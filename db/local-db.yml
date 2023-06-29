@@ -6,7 +6,7 @@ services:
       - ./init.sql:/docker-entrypoint-initdb.d/01-init.sql
     image: postgres:14
     ports:
-      - 5432:5432
+      - 6001:5432
     environment:
       POSTGRES_DB: root
       POSTGRES_USER: root
