@@ -11,11 +11,11 @@ export interface ICatalogService {
 
 export const catalogService: ICatalogService = {
   async createEService(apiEservicesSeed: ApiEServiceSeed): Promise<void> {
-    const organizationtId = await readModelGateway.getOrganizationID();
+    const organizationId = await readModelGateway.getOrganizationID();
 
     const eserviceSeed = convertToClientEServiceSeed(
       apiEservicesSeed,
-      organizationtId
+      organizationId
     );
 
     const eservice = await readModelGateway.getEServiceByName(
