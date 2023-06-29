@@ -7,6 +7,6 @@ export const eserviceSeedToCreateEvent = (
 ): CreateEvent<EServiceSeed> => ({
   streamId: uuidv4(),
   version: 0,
-  type: "EServiceCreated",
+  type: "CatalogItemAdded", // TODO: change this value with properly event type definition
   data: eserviceSeed,
 });
