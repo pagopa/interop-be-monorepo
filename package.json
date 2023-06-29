@@ -43,6 +43,7 @@
     "openapi-zod-client": "^1.7.1",
     "pg-promise": "^11.5.0",
     "ts-pattern": "^5.0.1",
+    "uuidv4": "^6.2.13",
     "winston": "^3.9.0",
     "zod": "^3.21.4"
   },
