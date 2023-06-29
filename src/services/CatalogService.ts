@@ -3,22 +3,22 @@ import { convertToClientEServiceSeed } from "../model/domain/models.js";
 import { ApiEServiceSeed } from "../model/types.js";
 import { eserviceSeedToCreateEvent } from "../repositories/adapters/adapters.js";
 import { events } from "../repositories/db.js";
-import { ReadModelGateway } from "./ReadModelGateway.js";
+import { readModelGateway } from "./ReadModelGateway.js";
 
 export interface ICatalogService {
   readonly createEService: (apiEServicesSeed: ApiEServiceSeed) => Promise<void>;
 }
 
-export const CatalogService: ICatalogService = {
+export const catalogService: ICatalogService = {
   async createEService(apiEservicesSeed: ApiEServiceSeed): Promise<void> {
-    const organizationtId = await ReadModelGateway.getOrganizationID();
+    const organizationtId = await readModelGateway.getOrganizationID();
 
     const eserviceSeed = convertToClientEServiceSeed(
       apiEservicesSeed,
       organizationtId
     );
 
-    const eservice = await ReadModelGateway.getEServiceByName(
+    const eservice = await readModelGateway.getEServiceByName(
       eserviceSeed.name
     );
 

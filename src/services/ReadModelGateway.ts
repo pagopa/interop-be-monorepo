@@ -9,7 +9,7 @@ export interface IReadModelGateway {
   readonly getOrganizationID: () => Promise<string>;
 }
 
-export const ReadModelGateway: IReadModelGateway = {
+export const readModelGateway: IReadModelGateway = {
   getEServiceByName: async (_name: string): Promise<EService | undefined> =>
     undefined,
   getOrganizationID: async (): Promise<string> =>
