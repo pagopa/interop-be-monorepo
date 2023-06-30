@@ -2,14 +2,10 @@ import { CatalogProcessError, ErrorCode } from "../model/domain/errors.js";
 import { convertToClientEServiceSeed } from "../model/domain/models.js";
 import { ApiEServiceSeed } from "../model/types.js";
 import { eserviceSeedToCreateEvent } from "../repositories/adapters/adapters.js";
-import { events } from "../repositories/db.js";
+import { eventRepository } from "../repositories/events.js";
 import { readModelGateway } from "./ReadModelGateway.js";
 
-export interface ICatalogService {
-  readonly createEService: (apiEServicesSeed: ApiEServiceSeed) => Promise<void>;
-}
-
-export const catalogService: ICatalogService = {
+export const catalogService = {
   async createEService(apiEservicesSeed: ApiEServiceSeed): Promise<void> {
     const organizationId = await readModelGateway.getOrganizationID();
 
@@ -29,6 +25,6 @@ export const catalogService: ICatalogService = {
       );
     }
 
-    await events.createEvent(eserviceSeedToCreateEvent(eserviceSeed));
+    return eventRepository.createEvent(eserviceSeedToCreateEvent(eserviceSeed));
   },
 };
