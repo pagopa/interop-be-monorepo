@@ -5,6 +5,12 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
+  '@effect/data':
+    specifier: ^0.12.10
+    version: 0.12.10
+  '@effect/io':
+    specifier: ^0.28.0
+    version: 0.28.0
   '@zodios/core':
     specifier: ^10.9.2
     version: 10.9.2(axios@1.4.0)(zod@3.21.4)
@@ -338,6 +344,16 @@ packages:
       colorspace: 1.1.4
       enabled: 2.0.0
       kuler: 2.0.0
+    dev: false
+
+  /@effect/data@0.12.10:
+    resolution: {integrity: sha512-zIz/DgumH2LgGdr1Wc9ChET5JSG0k/G5kDc8rn4a6yIJ0v2d5rfnbRWIJO2fWmdFvc+128JyaBvYguIyz9JaAQ==}
+    dev: false
+
+  /@effect/io@0.28.0:
+    resolution: {integrity: sha512-FzGyTAoRZMsXsji6I45/lLDqqFxV38rEhqebhLiXc995tfIvS+xAHkiTN+nrLFadTP0JL0H4ystSz4kcYgTy5Q==}
+    dependencies:
+      '@effect/data': 0.12.10
     dev: false
 
   /@es-joy/jsdoccomment@0.36.1:
