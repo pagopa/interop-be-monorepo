@@ -1,6 +1,7 @@
 import {
   CatalogProcessError,
   ErrorCode,
+  eServiceCannotBeDeleted,
   eServiceCannotBeUpdated,
   eServiceNotFound,
   operationForbidden,
@@ -76,6 +77,10 @@ export const catalogService = {
 
     if (eservice === undefined) {
       throw eServiceNotFound(eServiceId);
+    }
+
+    if (eservice.descriptors.length > 0) {
+      throw eServiceCannotBeDeleted(eServiceId);
     }
 
     if (eservice.producerId !== organizationId) {

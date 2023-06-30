@@ -94,10 +94,10 @@ export function mapCatalogServiceErrorToApiError(error: unknown): ApiError {
       )
     )
     .with(
-      { code: ErrorCode.EServiceCannotBeUpdated, message: P.string },
+      { code: ErrorCode.EServiceCannotBeUpdatedOrDeleted, message: P.string },
       (error) =>
         makeApiProblem(
-          ErrorCode.EServiceCannotBeUpdated,
+          ErrorCode.EServiceCannotBeUpdatedOrDeleted,
           400,
           error.message,
           "EService cannot be updated"

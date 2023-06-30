@@ -2,7 +2,7 @@ export const ErrorCode = {
   DuplicateEserviceName: "0010",
   ContentTypeParsingError: "0001",
   EServiceNotFound: "0007",
-  EServiceCannotBeUpdated: "0009",
+  EServiceCannotBeUpdatedOrDeleted: "0009",
   OperationForbidden: "9989",
   UnexpectedError: "9999", // TODO: arbitrary error code retrieve it
 } as const;
@@ -35,6 +35,15 @@ export function eServiceCannotBeUpdated(
 ): CatalogProcessError {
   return new CatalogProcessError(
     `EService ${eServiceId} contains valid descriptors and cannot be updated`,
-    ErrorCode.EServiceCannotBeUpdated
+    ErrorCode.EServiceCannotBeUpdatedOrDeleted
+  );
+}
+
+export function eServiceCannotBeDeleted(
+  eServiceId: string
+): CatalogProcessError {
+  return new CatalogProcessError(
+    `EService ${eServiceId} contains descriptors and cannot be deleted`,
+    ErrorCode.EServiceCannotBeUpdatedOrDeleted
   );
 }
