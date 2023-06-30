@@ -1,26 +1,14 @@
 import { ConnectionString } from "connection-string";
-import pgPromise, { IDatabase, IInitOptions } from "pg-promise";
+import pgPromise, { IDatabase } from "pg-promise";
 import {
   IClient,
   IConnectionParameters,
 } from "pg-promise/typescript/pg-subset.js";
 import { config } from "../utilities/config.js";
-import { EventRepository } from "./events.js";
 
-export type DB = IDatabase<IExtensions> & IExtensions;
+export type DB = IDatabase<unknown>;
 
-export interface IExtensions {
-  events: EventRepository;
-}
-
-const queries: IInitOptions<IExtensions> = {
-  extend: (db: DB) => {
-    /* eslint-disable functional/immutable-data */
-    db.events = new EventRepository(db);
-  },
-};
-
-const pgp = pgPromise(queries);
+const pgp = pgPromise();
 
 const conData = new ConnectionString(config.dbURL);
 
@@ -33,5 +21,4 @@ export const dbConfig: IConnectionParameters<IClient> = {
   user: conData.user,
 };
 
-export const db = pgp(dbConfig) as DB;
-export const events = db.events;
+export const db = pgp(dbConfig);

@@ -40,7 +40,7 @@ export type Problem = {
   title: string;
   correlationId?: string;
   detail: string;
-  errors: Array<ProblemError>;
+  errors: ProblemError[];
 };
 
 export function makeApiProblem(
@@ -51,13 +51,13 @@ export function makeApiProblem(
 ): Problem {
   return {
     type: "https://docs.pagopa.it/interoperabilita-1/", // TODO change this with properly schema definition URI
-    title: title,
+    title,
     status: httpStatus,
-    detail: detail,
+    detail,
     errors: [
       {
         code: errorCode,
-        detail: detail,
+        detail,
       },
     ],
   };
@@ -65,17 +65,19 @@ export function makeApiProblem(
 
 export function mapCatalogServiceErrorToApiError(error: unknown): ApiError {
   return match<unknown, ApiError>(error)
-    .with({ code: ErrorCode.DuplicateEserviceName, message: P.string }, error =>
-      makeApiProblem(
-        ErrorCode.DuplicateEserviceName,
-        409,
-        error.message,
-        "Duplicated service name"
-      )
+    .with(
+      { code: ErrorCode.DuplicateEserviceName, message: P.string },
+      (error) =>
+        makeApiProblem(
+          ErrorCode.DuplicateEserviceName,
+          409,
+          error.message,
+          "Duplicated service name"
+        )
     )
     .with(
       { code: ErrorCode.ContentTypeParsingError, message: P.string },
-      error =>
+      (error) =>
         makeApiProblem(
           ErrorCode.ContentTypeParsingError,
           400,
@@ -85,7 +87,7 @@ export function mapCatalogServiceErrorToApiError(error: unknown): ApiError {
     )
     .with(
       { code: ErrorCode.ContentTypeParsingError, message: P.string },
-      error =>
+      (error) =>
         makeApiProblem(
           ErrorCode.ContentTypeParsingError,
           500,
