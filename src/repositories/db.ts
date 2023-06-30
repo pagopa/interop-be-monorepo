@@ -1,4 +1,5 @@
 import { ConnectionString } from "connection-string";
+import * as Context from "@effect/data/Context";
 import pgPromise, { IDatabase } from "pg-promise";
 import {
   IClient,
@@ -7,6 +8,8 @@ import {
 import { config } from "../utilities/config.js";
 
 export type DB = IDatabase<unknown>;
+
+export const DB = Context.Tag<DB>();
 
 const pgp = pgPromise();
 

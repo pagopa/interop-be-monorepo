@@ -1,6 +1,6 @@
 import { ZodiosBodyByPath, ZodiosErrorByPath } from "@zodios/core";
 import { P, match } from "ts-pattern";
-import { ErrorCode } from "./domain/errors.js";
+import { CatalogProcessError, ErrorCode } from "./domain/errors.js";
 import { api } from "./generated/api.js";
 
 type Api = typeof api.api;
@@ -89,29 +89,38 @@ export function mapAuthorizationErrorToApiError(error: unknown): ApiError {
     );
 }
 
-export function mapCatalogServiceErrorToApiError(error: unknown): ApiError {
-  return match<unknown, ApiError>(error)
-    .with(
-      { code: ErrorCode.DuplicateEserviceName, message: P.string },
-      (error) =>
-        makeApiProblem(
-          ErrorCode.DuplicateEserviceName,
-          409,
-          error.message,
-          "Duplicated service name"
-        )
+export function makeGenericErrorProblem(
+  message: string = "Unexpected error"
+): ApiError {
+  return makeApiProblem(
+    ErrorCode.GenericError,
+    500,
+    "Unexpected error",
+    message
+  );
+}
+
+export function mapCatalogServiceErrorToApiError(
+  error: CatalogProcessError
+): ApiError {
+  return match(error)
+    .with({ code: ErrorCode.DuplicateEserviceName }, (error) =>
+      makeApiProblem(
+        ErrorCode.DuplicateEserviceName,
+        409,
+        error.message,
+        "Duplicated service name"
+      )
     )
-    .with(
-      { code: ErrorCode.ContentTypeParsingError, message: P.string },
-      (error) =>
-        makeApiProblem(
-          ErrorCode.ContentTypeParsingError,
-          400,
-          error.message,
-          "Malformed request"
-        )
+    .with({ code: ErrorCode.ContentTypeParsingError }, (error) =>
+      makeApiProblem(
+        ErrorCode.ContentTypeParsingError,
+        400,
+        error.message,
+        "Malformed request"
+      )
     )
-    .with({ code: ErrorCode.EServiceNotFound, message: P.string }, (error) =>
+    .with({ code: ErrorCode.EServiceNotFound }, (error) =>
       makeApiProblem(
         ErrorCode.EServiceNotFound,
         404,
@@ -119,17 +128,15 @@ export function mapCatalogServiceErrorToApiError(error: unknown): ApiError {
         "EService not found"
       )
     )
-    .with(
-      { code: ErrorCode.EServiceCannotBeUpdatedOrDeleted, message: P.string },
-      (error) =>
-        makeApiProblem(
-          ErrorCode.EServiceCannotBeUpdatedOrDeleted,
-          400,
-          error.message,
-          "EService cannot be updated"
-        )
+    .with({ code: ErrorCode.EServiceCannotBeUpdatedOrDeleted }, (error) =>
+      makeApiProblem(
+        ErrorCode.EServiceCannotBeUpdatedOrDeleted,
+        400,
+        error.message,
+        "EService cannot be updated"
+      )
     )
-    .with({ code: ErrorCode.OperationForbidden, message: P.string }, (error) =>
+    .with({ code: ErrorCode.OperationForbidden }, (error) =>
       makeApiProblem(
         ErrorCode.OperationForbidden,
         400,
@@ -137,22 +144,22 @@ export function mapCatalogServiceErrorToApiError(error: unknown): ApiError {
         "Operation forbidden"
       )
     )
-    .with(
-      { code: ErrorCode.ContentTypeParsingError, message: P.string },
-      (error) =>
-        makeApiProblem(
-          ErrorCode.ContentTypeParsingError,
-          500,
-          error.message,
-          "Internal server error"
-        )
-    )
-    .otherwise(() =>
+    .with({ code: ErrorCode.ContentTypeParsingError }, (error) =>
       makeApiProblem(
-        ErrorCode.GenericError,
+        ErrorCode.ContentTypeParsingError,
         500,
-        "Generic error while processing catalog process error",
-        "Unexpected error"
+        error.message,
+        "Internal server error"
       )
-    );
+    )
+    .with(
+      { code: ErrorCode.MissingBearer },
+      { code: ErrorCode.MissingClaim },
+      { code: ErrorCode.MissingHeader },
+      (error) => makeApiProblem(error.code, 500, error.message, error.message)
+    )
+    .with({ code: ErrorCode.GenericError }, (error) =>
+      makeGenericErrorProblem(error.message)
+    )
+    .exhaustive();
 }

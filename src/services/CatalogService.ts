@@ -1,3 +1,4 @@
+import * as Effect from "@effect/io/Effect";
 import {
   CatalogProcessError,
   ErrorCode,
@@ -10,90 +11,104 @@ import { AuthData } from "../auth/authData.js";
 import { convertToClientEServiceSeed } from "../model/domain/models.js";
 import { ApiEServiceSeed } from "../model/types.js";
 import { eserviceSeedToCreateEvent } from "../repositories/adapters/adapters.js";
+import { DB } from "../repositories/db.js";
 import { eventRepository } from "../repositories/events.js";
 import { readModelGateway } from "./ReadModelGateway.js";
 
 export const catalogService = {
-  async createEService(
+  createEService(
     apiEservicesSeed: ApiEServiceSeed,
     authData: AuthData
-  ): Promise<void> {
-    const eserviceSeed = convertToClientEServiceSeed(
-      apiEservicesSeed,
-      authData.organizationId
-    );
-
-    const eservice = await readModelGateway.getEServiceByName(
-      eserviceSeed.name
-    );
-
-    if (eservice !== undefined) {
-      throw new CatalogProcessError(
-        `Error during EService creation with name ${eserviceSeed.name}`,
-        ErrorCode.DuplicateEserviceName
+  ): Effect.Effect<DB, CatalogProcessError, void> {
+    return Effect.gen(function* (_) {
+      const eserviceSeed = convertToClientEServiceSeed(
+        apiEservicesSeed,
+        authData.organizationId
       );
-    }
-
-    return eventRepository.createEvent(eserviceSeedToCreateEvent(eserviceSeed));
-  },
-  async updateEService(
-    eServiceId: string,
-    eservicesSeed: ApiEServiceSeed
-  ): Promise<void> {
-    const organizationId = await readModelGateway.getOrganizationID();
-    const eservice = await readModelGateway.getEServiceById(eServiceId);
-
-    if (eservice === undefined) {
-      throw eServiceNotFound(eServiceId);
-    }
-
-    if (eservice.producerId !== organizationId) {
-      throw operationForbidden;
-    }
-
-    if (
-      !(
-        eservice.descriptors.length === 0 ||
-        (eservice.descriptors.length === 1 &&
-          eservice.descriptors[0].state === "DRAFT")
-      )
-    ) {
-      throw eServiceCannotBeUpdated(eServiceId);
-    }
-
-    const eserviceSeed = convertToClientEServiceSeed(
-      eservicesSeed,
-      organizationId
-    );
-
-    await eventRepository.createEvent({
-      streamId: eServiceId,
-      version: eservice.version,
-      type: "EServiceUpdated",
-      data: eserviceSeed,
+      const eservice = yield* _(
+        readModelGateway.getEServiceByName(eserviceSeed.name)
+      );
+      return _(
+        Effect.noneOrFailWith(
+          eservice,
+          () =>
+            new CatalogProcessError(
+              `Error during EService creation with name ${eserviceSeed.name}`,
+              ErrorCode.DuplicateEserviceName
+            )
+        ),
+        Effect.flatMap(() =>
+          eventRepository.createEvent(eserviceSeedToCreateEvent(eserviceSeed))
+        )
+      );
     });
   },
-  async deleteEService(eServiceId: string): Promise<void> {
-    const organizationId = await readModelGateway.getOrganizationID();
-    const eservice = await readModelGateway.getEServiceById(eServiceId);
+  updateEService(
+    eServiceId: string,
+    eservicesSeed: ApiEServiceSeed
+  ): Effect.Effect<DB, CatalogProcessError, void> {
+    return Effect.gen(function* (_) {
+      const organizationId = yield* _(readModelGateway.getOrganizationID());
+      const eservice = yield* _(
+        readModelGateway.getEServiceById(eServiceId),
+        Effect.someOrFail(() => eServiceNotFound(eServiceId))
+      );
 
-    if (eservice === undefined) {
-      throw eServiceNotFound(eServiceId);
-    }
+      if (eservice.producerId !== organizationId) {
+        yield* _(Effect.fail(operationForbidden));
+      }
 
-    if (eservice.descriptors.length > 0) {
-      throw eServiceCannotBeDeleted(eServiceId);
-    }
+      if (
+        !(
+          eservice.descriptors.length === 0 ||
+          (eservice.descriptors.length === 1 &&
+            eservice.descriptors[0].state === "DRAFT")
+        )
+      ) {
+        yield* _(Effect.fail(eServiceCannotBeUpdated(eServiceId)));
+      }
 
-    if (eservice.producerId !== organizationId) {
-      throw operationForbidden;
-    }
+      const eserviceSeed = convertToClientEServiceSeed(
+        eservicesSeed,
+        organizationId
+      );
 
-    await eventRepository.createEvent({
-      streamId: eServiceId,
-      version: eservice.version,
-      type: "EServiceDeleted",
-      data: {},
+      yield* _(
+        eventRepository.createEvent({
+          streamId: eServiceId,
+          version: eservice.version,
+          type: "EServiceUpdated",
+          data: eserviceSeed,
+        })
+      );
+    });
+  },
+  deleteEService(
+    eServiceId: string
+  ): Effect.Effect<DB, CatalogProcessError, void> {
+    return Effect.gen(function* (_) {
+      const organizationId = yield* _(readModelGateway.getOrganizationID());
+      const eservice = yield* _(
+        readModelGateway.getEServiceById(eServiceId),
+        Effect.someOrFail(() => eServiceNotFound(eServiceId))
+      );
+
+      if (eservice.descriptors.length > 0) {
+        yield* _(Effect.fail(eServiceCannotBeDeleted(eServiceId)));
+      }
+
+      if (eservice.producerId !== organizationId) {
+        yield* _(Effect.fail(operationForbidden));
+      }
+
+      return yield* _(
+        eventRepository.createEvent({
+          streamId: eServiceId,
+          version: eservice.version,
+          type: "EServiceDeleted",
+          data: {},
+        })
+      );
     });
   },
 };
