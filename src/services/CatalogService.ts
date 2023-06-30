@@ -66,7 +66,7 @@ export const catalogService = {
 
     await eventRepository.createEvent({
       streamId: eServiceId,
-      version: await readModelGateway.getVersion(eServiceId),
+      version: eservice.version,
       type: "EServiceUpdated",
       data: eserviceSeed,
     });
@@ -89,7 +89,7 @@ export const catalogService = {
 
     await eventRepository.createEvent({
       streamId: eServiceId,
-      version: await readModelGateway.getVersion(eServiceId),
+      version: eservice.version,
       type: "EServiceDeleted",
       data: {},
     });
