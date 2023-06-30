@@ -85,6 +85,32 @@ export function mapCatalogServiceErrorToApiError(error: unknown): ApiError {
           "Malformed request"
         )
     )
+    .with({ code: ErrorCode.EServiceNotFound, message: P.string }, (error) =>
+      makeApiProblem(
+        ErrorCode.EServiceNotFound,
+        404,
+        error.message,
+        "EService not found"
+      )
+    )
+    .with(
+      { code: ErrorCode.EServiceCannotBeUpdated, message: P.string },
+      (error) =>
+        makeApiProblem(
+          ErrorCode.EServiceCannotBeUpdated,
+          400,
+          error.message,
+          "EService cannot be updated"
+        )
+    )
+    .with({ code: ErrorCode.OperationForbidden, message: P.string }, (error) =>
+      makeApiProblem(
+        ErrorCode.OperationForbidden,
+        400,
+        error.message,
+        "Operation forbidden"
+      )
+    )
     .with(
       { code: ErrorCode.ContentTypeParsingError, message: P.string },
       (error) =>
