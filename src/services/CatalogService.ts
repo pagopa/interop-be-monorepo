@@ -15,6 +15,13 @@ import { DB } from "../repositories/db.js";
 import { eventRepository } from "../repositories/events.js";
 import { readModelGateway } from "./ReadModelGateway.js";
 
+function repositoryErrorsToCatalogErrors(): CatalogProcessError {
+  return new CatalogProcessError(
+    "Error during EService creation",
+    ErrorCode.UnexpectedError
+  );
+}
+
 export const catalogService = {
   createEService(
     apiEservicesSeed: ApiEServiceSeed,
@@ -28,7 +35,7 @@ export const catalogService = {
       const eservice = yield* _(
         readModelGateway.getEServiceByName(eserviceSeed.name)
       );
-      return _(
+      yield* _(
         Effect.noneOrFailWith(
           eservice,
           () =>
@@ -36,10 +43,11 @@ export const catalogService = {
               `Error during EService creation with name ${eserviceSeed.name}`,
               ErrorCode.DuplicateEserviceName
             )
-        ),
-        Effect.flatMap(() =>
-          eventRepository.createEvent(eserviceSeedToCreateEvent(eserviceSeed))
         )
+      );
+      return yield* _(
+        eventRepository.createEvent(eserviceSeedToCreateEvent(eserviceSeed)),
+        Effect.mapError(repositoryErrorsToCatalogErrors)
       );
     });
   },
@@ -79,7 +87,8 @@ export const catalogService = {
           version: eservice.version,
           type: "EServiceUpdated",
           data: eserviceSeed,
-        })
+        }),
+        Effect.mapError(repositoryErrorsToCatalogErrors)
       );
     });
   },
@@ -107,7 +116,8 @@ export const catalogService = {
           version: eservice.version,
           type: "EServiceDeleted",
           data: {},
-        })
+        }),
+        Effect.mapError(repositoryErrorsToCatalogErrors)
       );
     });
   },
