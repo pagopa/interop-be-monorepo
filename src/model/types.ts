@@ -93,7 +93,7 @@ export function mapCatalogServiceErrorToApiError(error: unknown): ApiError {
   return match<unknown, ApiError>(error)
     .with(
       { code: ErrorCode.DuplicateEserviceName, message: P.string },
-      error =>
+      (error) =>
         makeApiProblem(
           ErrorCode.DuplicateEserviceName,
           409,
@@ -103,7 +103,7 @@ export function mapCatalogServiceErrorToApiError(error: unknown): ApiError {
     )
     .with(
       { code: ErrorCode.ContentTypeParsingError, message: P.string },
-      error =>
+      (error) =>
         makeApiProblem(
           ErrorCode.ContentTypeParsingError,
           400,
@@ -121,7 +121,7 @@ export function mapCatalogServiceErrorToApiError(error: unknown): ApiError {
     )
     .with(
       { code: ErrorCode.EServiceCannotBeUpdatedOrDeleted, message: P.string },
-      error =>
+      (error) =>
         makeApiProblem(
           ErrorCode.EServiceCannotBeUpdatedOrDeleted,
           400,
@@ -139,7 +139,7 @@ export function mapCatalogServiceErrorToApiError(error: unknown): ApiError {
     )
     .with(
       { code: ErrorCode.ContentTypeParsingError, message: P.string },
-      error =>
+      (error) =>
         makeApiProblem(
           ErrorCode.ContentTypeParsingError,
           500,
