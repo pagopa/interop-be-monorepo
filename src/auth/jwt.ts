@@ -2,10 +2,6 @@ import jwt from "jsonwebtoken";
 import { logger } from "../utilities/logger.js";
 import { AuthData, authJWTToken } from "./authData.js";
 
-export const JWTClaim = {
-  ORGANIZATION_ID_CLAIM: "organizationId",
-};
-
 export const readClaimsFromJwtToken = (jwtToken: string): AuthData | null => {
   const decoded = jwt.decode(jwtToken, { json: true });
   const token = authJWTToken.safeParse(decoded);
