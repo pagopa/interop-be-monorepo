@@ -18,7 +18,7 @@ import { readModelGateway } from "./ReadModelGateway.js";
 function repositoryErrorsToCatalogErrors(): CatalogProcessError {
   return new CatalogProcessError(
     "Error during EService creation",
-    ErrorCode.UnexpectedError
+    ErrorCode.GenericError
   );
 }
 
