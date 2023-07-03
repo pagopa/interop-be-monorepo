@@ -1,9 +1,9 @@
 import { ZodiosRouterContextRequestHandler } from "@zodios/express";
 import { match, P } from "ts-pattern";
+import { ExpressContext } from "./app.js";
 import { readClaimsFromJwtToken } from "./auth/jwt.js";
 import { CatalogProcessError, ErrorCode } from "./model/domain/errors.js";
 import { ApiError, mapCatalogServiceErrorToApiError } from "./model/types.js";
-import { ExpressContext } from "./app.js";
 
 export const authMiddleware: ZodiosRouterContextRequestHandler<
   ExpressContext
@@ -28,7 +28,7 @@ export const authMiddleware: ZodiosRouterContextRequestHandler<
           );
         }
 
-        if (authData && !authData.organizationId) {
+        if (!authData.organizationId) {
           throw new CatalogProcessError(
             `Claim ${bearer} has not been passed`,
             ErrorCode.MissingClaim
