@@ -1,7 +1,7 @@
 import * as expressWinston from "express-winston";
+import { zodiosApp } from "@zodios/express";
 import { logger } from "./utilities/logger.js";
 import { config } from "./utilities/config.js";
-import { zodiosApp } from "@zodios/express";
 import healthRouter from "./routers/health.js";
 import eservicesRouter from "./routers/catalog.js";
 
