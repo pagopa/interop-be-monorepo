@@ -17,7 +17,11 @@ eservicesRouter
   })
   .put("/eservices/:eServiceId", async (req, res) => {
     try {
-      await catalogService.updateEService(req.params.eServiceId, req.body);
+      await catalogService.updateEService(
+        req.params.eServiceId,
+        req.body,
+        req.authData
+      );
       return res.status(200).end();
     } catch (error) {
       const errorRes: ApiError = mapCatalogServiceErrorToApiError(error);
@@ -26,7 +30,7 @@ eservicesRouter
   })
   .delete("/eservices/:eServiceId", async (req, res) => {
     try {
-      await catalogService.deleteEService(req.params.eServiceId);
+      await catalogService.deleteEService(req.params.eServiceId, req.authData);
       return res.status(204).end();
     } catch (error) {
       const errorRes: ApiError = mapCatalogServiceErrorToApiError(error);
