@@ -3,7 +3,7 @@ import { match, P } from "ts-pattern";
 import { ExpressContext } from "./app.js";
 import { readClaimsFromJwtToken } from "./auth/jwt.js";
 import { CatalogProcessError, ErrorCode } from "./model/domain/errors.js";
-import { ApiError, mapCatalogServiceErrorToApiError } from "./model/types.js";
+import { ApiError, mapAuthorizationErrorToApiError } from "./model/types.js";
 
 export const authMiddleware: ZodiosRouterContextRequestHandler<
   ExpressContext
@@ -30,7 +30,7 @@ export const authMiddleware: ZodiosRouterContextRequestHandler<
 
         if (!authData.organizationId) {
           throw new CatalogProcessError(
-            `Claim ${bearer} has not been passed`,
+            `Claim organizationId has not been passed`,
             ErrorCode.MissingClaim
           );
         }
@@ -52,7 +52,7 @@ export const authMiddleware: ZodiosRouterContextRequestHandler<
         );
       });
   } catch (error) {
-    const errorRes: ApiError = mapCatalogServiceErrorToApiError(error);
+    const errorRes: ApiError = mapAuthorizationErrorToApiError(error);
     return res.status(errorRes.status).json(errorRes).end();
   }
 };
