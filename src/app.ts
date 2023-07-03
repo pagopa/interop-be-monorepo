@@ -1,15 +1,16 @@
 import { zodiosContext } from "@zodios/express";
 import * as expressWinston from "express-winston";
+import { authMiddleware } from "./authMiddleware.js";
+import { appContext } from "./context.js";
 import eservicesRouter from "./routers/catalog.js";
 import healthRouter from "./routers/health.js";
 import { config } from "./utilities/config.js";
 import { logger } from "./utilities/logger.js";
-import { authMiddleware } from "./authMiddleware.js";
-import { appContext } from "./context.js";
 
 const ctx = zodiosContext(appContext);
 const app = ctx.app();
 
+export type ZodiosContext = NonNullable<typeof ctx>;
 export type ExpressContext = NonNullable<typeof ctx.context>;
 
 app.use(
@@ -26,6 +27,6 @@ app.use(
 );
 
 app.use(authMiddleware);
-app.use(healthRouter, eservicesRouter);
+app.use(healthRouter, eservicesRouter(ctx));
 
 export default app;
