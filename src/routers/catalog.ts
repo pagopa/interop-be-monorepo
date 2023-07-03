@@ -1,9 +1,9 @@
-import * as express from "@zodios/express";
+import { zodiosRouter } from "@zodios/express";
 import { api } from "../model/generated/api.js";
 import { ApiError, mapCatalogServiceErrorToApiError } from "../model/types.js";
 import { catalogService } from "../services/CatalogService.js";
 
-const eservicesRouter = express.zodiosRouter(api.api);
+const eservicesRouter = zodiosRouter(api.api);
 
 eservicesRouter
   .post("/eservices", async (req, res) => {
