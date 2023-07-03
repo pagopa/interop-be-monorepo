@@ -74,7 +74,7 @@ export function mapAuthorizationErrorToApiError(error: unknown): ApiError {
       )
     )
     .with({ code: ErrorCode.MissingClaim, message: P.string }, (error) =>
-      makeApiProblem(ErrorCode.MissingBearer, 400, error.message, error.message)
+      makeApiProblem(ErrorCode.MissingClaim, 400, error.message, error.message)
     )
     .with({ code: ErrorCode.MissingHeader, message: P.string }, (error) =>
       makeApiProblem(ErrorCode.MissingHeader, 400, error.message, error.message)
