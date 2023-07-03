@@ -21,6 +21,7 @@ jobs:
           eslint: true
           eslint_extensions: "ts,tsx"
           prettier: true
+          prettier_dir: src
 
   build:
     name: Build
