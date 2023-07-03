@@ -6,6 +6,7 @@ import {
   eServiceNotFound,
   operationForbidden,
 } from "../model/domain/errors.js";
+import { AuthData } from "../auth/authData.js";
 import { convertToClientEServiceSeed } from "../model/domain/models.js";
 import { ApiEServiceSeed } from "../model/types.js";
 import { eserviceSeedToCreateEvent } from "../repositories/adapters/adapters.js";
@@ -13,12 +14,13 @@ import { eventRepository } from "../repositories/events.js";
 import { readModelGateway } from "./ReadModelGateway.js";
 
 export const catalogService = {
-  async createEService(apiEservicesSeed: ApiEServiceSeed): Promise<void> {
-    const organizationId = await readModelGateway.getOrganizationID();
-
+  async createEService(
+    apiEservicesSeed: ApiEServiceSeed,
+    authData: AuthData
+  ): Promise<void> {
     const eserviceSeed = convertToClientEServiceSeed(
       apiEservicesSeed,
-      organizationId
+      authData.organizationId
     );
 
     const eservice = await readModelGateway.getEServiceByName(
