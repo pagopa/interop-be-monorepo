@@ -13,6 +13,7 @@ import { ApiEServiceSeed } from "../model/types.js";
 import { eserviceSeedToCreateEvent } from "../repositories/adapters/adapters.js";
 import { DB } from "../repositories/db.js";
 import { eventRepository } from "../repositories/events.js";
+import { AuthDataCtx } from "../effectCtx.js";
 import { readModelGateway } from "./ReadModelGateway.js";
 
 function repositoryErrorsToCatalogErrors(): CatalogProcessError {
@@ -24,10 +25,10 @@ function repositoryErrorsToCatalogErrors(): CatalogProcessError {
 
 export const catalogService = {
   createEService(
-    apiEservicesSeed: ApiEServiceSeed,
-    authData: AuthData
-  ): Effect.Effect<DB, CatalogProcessError, void> {
+    apiEservicesSeed: ApiEServiceSeed
+  ): Effect.Effect<DB | AuthData, CatalogProcessError, void> {
     return Effect.gen(function* (_) {
+      const authData = yield* _(AuthDataCtx);
       const eserviceSeed = convertToClientEServiceSeed(
         apiEservicesSeed,
         authData.organizationId
@@ -54,15 +55,15 @@ export const catalogService = {
   updateEService(
     eServiceId: string,
     eservicesSeed: ApiEServiceSeed
-  ): Effect.Effect<DB, CatalogProcessError, void> {
+  ): Effect.Effect<DB | AuthData, CatalogProcessError, void> {
     return Effect.gen(function* (_) {
-      const organizationId = yield* _(readModelGateway.getOrganizationID());
+      const authData = yield* _(AuthDataCtx);
       const eservice = yield* _(
         readModelGateway.getEServiceById(eServiceId),
         Effect.someOrFail(() => eServiceNotFound(eServiceId))
       );
 
-      if (eservice.producerId !== organizationId) {
+      if (eservice.producerId !== authData.organizationId) {
         yield* _(Effect.fail(operationForbidden));
       }
 
@@ -78,7 +79,7 @@ export const catalogService = {
 
       const eserviceSeed = convertToClientEServiceSeed(
         eservicesSeed,
-        organizationId
+        authData.organizationId
       );
 
       yield* _(
@@ -94,9 +95,9 @@ export const catalogService = {
   },
   deleteEService(
     eServiceId: string
-  ): Effect.Effect<DB, CatalogProcessError, void> {
+  ): Effect.Effect<DB | AuthData, CatalogProcessError, void> {
     return Effect.gen(function* (_) {
-      const organizationId = yield* _(readModelGateway.getOrganizationID());
+      const authData = yield* _(AuthDataCtx);
       const eservice = yield* _(
         readModelGateway.getEServiceById(eServiceId),
         Effect.someOrFail(() => eServiceNotFound(eServiceId))
@@ -106,7 +107,7 @@ export const catalogService = {
         yield* _(Effect.fail(eServiceCannotBeDeleted(eServiceId)));
       }
 
-      if (eservice.producerId !== organizationId) {
+      if (eservice.producerId !== authData.organizationId) {
         yield* _(Effect.fail(operationForbidden));
       }
 

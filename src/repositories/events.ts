@@ -1,7 +1,8 @@
 import * as Effect from "@effect/io/Effect";
 import { logger } from "../utilities/logger.js";
-import * as sql from "./sql/index.js";
+import { DBCtx } from "../effectCtx.js";
 import { DB } from "./db.js";
+import * as sql from "./sql/index.js";
 
 export type CreateEvent<D> = {
   readonly streamId: string;
@@ -13,7 +14,7 @@ export type CreateEvent<D> = {
 export const eventRepository = {
   createEvent<D>(event: CreateEvent<D>): Effect.Effect<DB, unknown, void> {
     return Effect.gen(function* (_) {
-      const db = yield* _(DB);
+      const db = yield* _(DBCtx);
       return Effect.tryCatchPromise(
         async () => {
           try {
