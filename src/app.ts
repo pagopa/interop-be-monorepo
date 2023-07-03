@@ -7,7 +7,7 @@ import { logger } from "./utilities/logger.js";
 import { authMiddleware } from "./authMiddleware.js";
 import { appContext } from "./context.js";
 
-const ctx = zodiosContext(appContext);
+export const ctx = zodiosContext(appContext);
 const app = ctx.app();
 
 export type ExpressContext = NonNullable<typeof ctx.context>;
