@@ -39,7 +39,7 @@ export const authMiddleware: ZodiosRouterContextRequestHandler<
         req.authData = authData;
         next();
       })
-      .with(undefined, () => {
+      .with(P.nullish, () => {
         throw new CatalogProcessError(
           `Bearer token has not been passed`,
           ErrorCode.MissingBearer
