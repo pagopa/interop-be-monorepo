@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { authData } from "./auth/authData.js";
+import { AuthData } from "./auth/authData.js";
 
 export const appContext = z.object({
-  authData,
+  authData: AuthData,
 });
 
 export type AppContext = z.infer<typeof appContext>;
