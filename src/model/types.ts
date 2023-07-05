@@ -153,6 +153,16 @@ export function mapCatalogServiceErrorToApiError(error: unknown): ApiError {
           "Internal server error"
         )
     )
+    .with(
+      { code: ErrorCode.EServiceDescriptorNotFound, message: P.string },
+      (error) =>
+        makeApiProblem(
+          ErrorCode.EServiceDescriptorNotFound,
+          404,
+          error.message,
+          "EService descriptor not found"
+        )
+    )
     .otherwise(() =>
       makeApiProblem(
         ErrorCode.GenericError,
