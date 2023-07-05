@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 import { EServiceSeed } from "../../model/domain/models.js";
 import { CreateEvent } from "../events.js";
-import { CreateEServiceDescriptorDocumentSeed } from "../../model/types.js";
+import { ApiEServiceDescriptorDocumentSeed } from "../../model/types.js";
 
 export const eserviceSeedToCreateEvent = (
   eserviceSeed: EServiceSeed
@@ -12,14 +12,14 @@ export const eserviceSeedToCreateEvent = (
   data: eserviceSeed,
 });
 
-export const createEServiceDescriptorDocumentSeedToCreateEvent = (
+export const eserviceDescriptorDocumentSeedToCreateEvent = (
   eServiceId: string,
   descriptorId: string,
-  createEServiceDescriptorDocumentSeed: CreateEServiceDescriptorDocumentSeed
+  apiEServiceDescriptorDocumentSeed: ApiEServiceDescriptorDocumentSeed
 ): CreateEvent<{
   eServiceId: string;
   descriptorId: string;
-  createEServiceDescriptorDocumentSeed: CreateEServiceDescriptorDocumentSeed;
+  apiEServiceDescriptorDocumentSeed: ApiEServiceDescriptorDocumentSeed;
 }> => ({
   streamId: uuidv4(),
   version: 0,
@@ -27,6 +27,6 @@ export const createEServiceDescriptorDocumentSeedToCreateEvent = (
   data: {
     eServiceId,
     descriptorId,
-    createEServiceDescriptorDocumentSeed,
+    apiEServiceDescriptorDocumentSeed,
   },
 });
