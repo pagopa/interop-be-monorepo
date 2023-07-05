@@ -3,6 +3,7 @@ export const ErrorCode = {
   ContentTypeParsingError: "0001",
   EServiceNotFound: "0007",
   EServiceCannotBeUpdatedOrDeleted: "0009",
+  EServiceDescriptorNotFound: "0002",
   OperationForbidden: "9989",
   GenericError: "9991",
   MissingBearer: "9999",

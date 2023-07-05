@@ -6,6 +6,12 @@ import { api } from "./generated/api.js";
 type Api = typeof api.api;
 export type ApiEServiceSeed = ZodiosBodyByPath<Api, "post", "/eservices">;
 
+export type CreateEServiceDescriptorDocumentSeed = ZodiosBodyByPath<
+  Api,
+  "post",
+  "/eservices/:eServiceId/descriptors/:descriptorId/documents"
+>;
+
 export type ApiErrorInvalidInput = ZodiosErrorByPath<
   Api,
   "post",
