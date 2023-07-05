@@ -63,6 +63,32 @@ export function makeApiProblem(
   };
 }
 
+export function mapAuthorizationErrorToApiError(error: unknown): ApiError {
+  return match<unknown, ApiError>(error)
+    .with({ code: ErrorCode.MissingBearer, message: P.string }, (error) =>
+      makeApiProblem(
+        ErrorCode.MissingBearer,
+        400,
+        error.message,
+        "Bearer token has not been passed"
+      )
+    )
+    .with({ code: ErrorCode.MissingClaim, message: P.string }, (error) =>
+      makeApiProblem(ErrorCode.MissingClaim, 400, error.message, error.message)
+    )
+    .with({ code: ErrorCode.MissingHeader, message: P.string }, (error) =>
+      makeApiProblem(ErrorCode.MissingHeader, 400, error.message, error.message)
+    )
+    .otherwise(() =>
+      makeApiProblem(
+        ErrorCode.MissingHeader,
+        400,
+        "Generic error while processing authorization header",
+        "Unexpected error"
+      )
+    );
+}
+
 export function mapCatalogServiceErrorToApiError(error: unknown): ApiError {
   return match<unknown, ApiError>(error)
     .with(
@@ -123,7 +149,7 @@ export function mapCatalogServiceErrorToApiError(error: unknown): ApiError {
     )
     .otherwise(() =>
       makeApiProblem(
-        ErrorCode.ContentTypeParsingError,
+        ErrorCode.GenericError,
         500,
         "Generic error while processing catalog process error",
         "Unexpected error"
