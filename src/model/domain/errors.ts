@@ -4,7 +4,10 @@ export const ErrorCode = {
   EServiceNotFound: "0007",
   EServiceCannotBeUpdatedOrDeleted: "0009",
   OperationForbidden: "9989",
-  UnexpectedError: "9999", // TODO: arbitrary error code retrieve it
+  GenericError: "9991",
+  MissingBearer: "9999",
+  MissingClaim: "9990",
+  MissingHeader: "9994",
 } as const;
 
 export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];
