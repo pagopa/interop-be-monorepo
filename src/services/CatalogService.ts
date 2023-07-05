@@ -8,8 +8,14 @@ import {
 } from "../model/domain/errors.js";
 import { AuthData } from "../auth/authData.js";
 import { convertToClientEServiceSeed } from "../model/domain/models.js";
-import { ApiEServiceSeed } from "../model/types.js";
-import { eserviceSeedToCreateEvent } from "../repositories/adapters/adapters.js";
+import {
+  ApiEServiceSeed,
+  CreateEServiceDescriptorDocumentSeed,
+} from "../model/types.js";
+import {
+  createEServiceDescriptorDocumentSeedToCreateEvent,
+  eserviceSeedToCreateEvent,
+} from "../repositories/adapters/adapters.js";
 import { eventRepository } from "../repositories/events.js";
 import { readModelGateway } from "./ReadModelGateway.js";
 
@@ -94,5 +100,37 @@ export const catalogService = {
       type: "EServiceDeleted",
       data: {},
     });
+  },
+  async uploadDocument(
+    eServiceId: string,
+    descriptorId: string,
+    document: CreateEServiceDescriptorDocumentSeed,
+    authData: AuthData
+  ): Promise<void> {
+    const eservice = await readModelGateway.getEServiceById(eServiceId);
+
+    if (eservice === undefined) {
+      throw eServiceNotFound(eServiceId);
+    }
+
+    if (eservice.producerId !== authData.organizationId) {
+      throw operationForbidden;
+    }
+
+    const descriptor = eservice.descriptors.find((d) => d.id === descriptorId);
+    if (descriptor === undefined) {
+      throw new CatalogProcessError(
+        `Descriptor ${descriptorId} for EService ${eServiceId} not found`,
+        ErrorCode.EServiceDescriptorNotFound
+      );
+    }
+
+    await eventRepository.createEvent(
+      createEServiceDescriptorDocumentSeedToCreateEvent(
+        eServiceId,
+        descriptorId,
+        document
+      )
+    );
   },
 };

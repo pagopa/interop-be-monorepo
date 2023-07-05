@@ -44,7 +44,24 @@ const eservicesRouter = (
         const errorRes: ApiError = mapCatalogServiceErrorToApiError(error);
         return res.status(errorRes.status).json(errorRes).end();
       }
-    });
+    })
+    .post(
+      "/eservices/:eServiceId/descriptors/:descriptorId/documents",
+      async (req, res) => {
+        try {
+          await catalogService.uploadDocument(
+            req.params.eServiceId,
+            req.params.descriptorId,
+            req.body,
+            req.authData
+          );
+          return res.status(200).end();
+        } catch (error) {
+          const errorRes: ApiError = mapCatalogServiceErrorToApiError(error);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    );
 
   return eservicesRouter;
 };
