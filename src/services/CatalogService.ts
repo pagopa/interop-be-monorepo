@@ -10,10 +10,10 @@ import { AuthData } from "../auth/authData.js";
 import { convertToClientEServiceSeed } from "../model/domain/models.js";
 import {
   ApiEServiceSeed,
-  CreateEServiceDescriptorDocumentSeed,
+  ApiEServiceDescriptorDocumentSeed,
 } from "../model/types.js";
 import {
-  createEServiceDescriptorDocumentSeedToCreateEvent,
+  eserviceDescriptorDocumentSeedToCreateEvent,
   eserviceSeedToCreateEvent,
 } from "../repositories/adapters/adapters.js";
 import { eventRepository } from "../repositories/events.js";
@@ -104,7 +104,7 @@ export const catalogService = {
   async uploadDocument(
     eServiceId: string,
     descriptorId: string,
-    document: CreateEServiceDescriptorDocumentSeed,
+    document: ApiEServiceDescriptorDocumentSeed,
     authData: AuthData
   ): Promise<void> {
     const eservice = await readModelGateway.getEServiceById(eServiceId);
@@ -126,7 +126,7 @@ export const catalogService = {
     }
 
     await eventRepository.createEvent(
-      createEServiceDescriptorDocumentSeedToCreateEvent(
+      eserviceDescriptorDocumentSeedToCreateEvent(
         eServiceId,
         descriptorId,
         document
