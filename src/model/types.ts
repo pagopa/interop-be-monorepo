@@ -157,7 +157,17 @@ export function mapCatalogServiceErrorToApiError(error: unknown): ApiError {
       { code: ErrorCode.EServiceDescriptorNotFound, message: P.string },
       (error) =>
         makeApiProblem(
-          ErrorCode.EServiceDescriptorNotFound,
+          error.code,
+          404,
+          error.message,
+          "EService descriptor not found"
+        )
+    )
+    .with(
+      { code: ErrorCode.EServiceDocumentNotFound, message: P.string },
+      (error) =>
+        makeApiProblem(
+          ErrorCode.EServiceDocumentNotFound,
           404,
           error.message,
           "EService descriptor not found"

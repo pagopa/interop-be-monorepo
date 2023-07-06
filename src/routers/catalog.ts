@@ -61,6 +61,23 @@ const eservicesRouter = (
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
+    )
+    .delete(
+      "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId",
+      async (req, res) => {
+        try {
+          await catalogService.deleteDocument(
+            req.params.eServiceId,
+            req.params.descriptorId,
+            req.params.documentId,
+            req.authData
+          );
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes: ApiError = mapCatalogServiceErrorToApiError(error);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     );
 
   return eservicesRouter;

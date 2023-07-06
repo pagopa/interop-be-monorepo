@@ -11,4 +11,9 @@ export const readModelGateway = {
   async getEServiceByName(_name: string): Promise<EService | undefined> {
     return undefined;
   },
+  async getEServiceDescriptorDocumentById(
+    _id: string
+  ): Promise<EService | undefined> {
+    return undefined;
+  },
 };

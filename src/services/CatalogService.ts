@@ -17,6 +17,7 @@ import {
   eserviceSeedToCreateEvent,
 } from "../repositories/adapters/adapters.js";
 import { eventRepository } from "../repositories/events.js";
+import { fileManager } from "../utilities/fileManager.js";
 import { readModelGateway } from "./ReadModelGateway.js";
 
 export const catalogService = {
@@ -132,5 +133,45 @@ export const catalogService = {
         document
       )
     );
+  },
+  async deleteDocument(
+    eServiceId: string,
+    descriptorId: string,
+    documentId: string,
+    authData: AuthData
+  ): Promise<void> {
+    const eservice = await readModelGateway.getEServiceById(eServiceId);
+
+    if (eservice === undefined) {
+      throw eServiceNotFound(eServiceId);
+    }
+
+    if (eservice.producerId !== authData.organizationId) {
+      throw operationForbidden;
+    }
+
+    const document = await readModelGateway.getEServiceDescriptorDocumentById(
+      documentId
+    );
+
+    if (document === undefined) {
+      throw new CatalogProcessError(
+        `Document with id ${documentId} not found in EService ${eServiceId} / Descriptor ${descriptorId}`,
+        ErrorCode.EServiceDocumentNotFound
+      );
+    }
+
+    await fileManager.deleteFile(documentId);
+
+    await eventRepository.createEvent({
+      streamId: documentId,
+      version: document.version,
+      type: "DeleteCatalogItemDocument",
+      data: {
+        eServiceId,
+        descriptorId,
+        documentId,
+      },
+    });
   },
 };

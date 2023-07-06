@@ -4,6 +4,7 @@ export const ErrorCode = {
   EServiceNotFound: "0007",
   EServiceCannotBeUpdatedOrDeleted: "0009",
   EServiceDescriptorNotFound: "0002",
+  EServiceDocumentNotFound: "0003", // TODO: reorganize error codes
   OperationForbidden: "9989",
   GenericError: "9991",
   MissingBearer: "9999",
