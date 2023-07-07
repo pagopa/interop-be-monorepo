@@ -1,38 +1,78 @@
-export const ErrorCode = {
-  DuplicateEserviceName: "0010",
-  ContentTypeParsingError: "0001",
-  EServiceNotFound: "0007",
-  EServiceCannotBeUpdatedOrDeleted: "0009",
-  EServiceDescriptorNotFound: "0002",
-  EServiceDocumentNotFound: "0003", // TODO: reorganize error codes
-  OperationForbidden: "9989",
-  GenericError: "9991",
-  MissingBearer: "9999",
-  MissingClaim: "9990",
-  MissingHeader: "9994",
+export const ErrorTypes = {
+  DuplicateEserviceName: {
+    code: "0010",
+    httpStatus: 409,
+    title: "Duplicated service name",
+  },
+  ContentTypeParsingError: {
+    code: "0001",
+    httpStatus: 400,
+    title: "Malformed request",
+  },
+  EServiceNotFound: {
+    code: "0007",
+    httpStatus: 404,
+    title: "EService not found",
+  },
+  EServiceCannotBeUpdatedOrDeleted: {
+    code: "0009",
+    httpStatus: 400,
+    title: "EService cannot be updated or deleted",
+  },
+  EServiceDescriptorNotFound: {
+    code: "0002",
+    httpStatus: 404,
+    title: "EService descriptor not found",
+  },
+  EServiceDocumentNotFound: {
+    code: "0003",
+    httpStatus: 404,
+    title: "EService document not found",
+  }, // TODO: reorganize error codes
+  OperationForbidden: {
+    code: "9989",
+    httpStatus: 400,
+    title: "Operation forbidden",
+  },
+  GenericError: { code: "9991", httpStatus: 500, title: "Unexpected error" },
+  MissingBearer: {
+    code: "9999",
+    httpStatus: 400,
+    title: "Bearer token has not been passed",
+  },
+  MissingClaim: {
+    code: "9990",
+    httpStatus: 400,
+    title: "Claim has not been passed",
+  },
+  MissingHeader: {
+    code: "9994",
+    httpStatus: 400,
+    title: "Header has not been passed",
+  },
 } as const;
 
-export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];
+export type ErrorType = (typeof ErrorTypes)[keyof typeof ErrorTypes];
 
 export class CatalogProcessError extends Error {
-  public readonly code: ErrorCode;
+  public readonly type: ErrorType;
 
-  constructor(message: string, code: ErrorCode) {
+  constructor(message: string, type: ErrorType) {
     super(message);
-    this.code = code;
+    this.type = type;
   }
 }
 
 export function eServiceNotFound(eServiceId: string): CatalogProcessError {
   return new CatalogProcessError(
     `EService ${eServiceId} not found`,
-    ErrorCode.EServiceNotFound
+    ErrorTypes.EServiceNotFound
   );
 }
 
 export const operationForbidden = new CatalogProcessError(
   `Insufficient privileges`,
-  ErrorCode.OperationForbidden
+  ErrorTypes.OperationForbidden
 );
 
 export function eServiceCannotBeUpdated(
@@ -40,7 +80,7 @@ export function eServiceCannotBeUpdated(
 ): CatalogProcessError {
   return new CatalogProcessError(
     `EService ${eServiceId} contains valid descriptors and cannot be updated`,
-    ErrorCode.EServiceCannotBeUpdatedOrDeleted
+    ErrorTypes.EServiceCannotBeUpdatedOrDeleted
   );
 }
 
@@ -49,6 +89,6 @@ export function eServiceCannotBeDeleted(
 ): CatalogProcessError {
   return new CatalogProcessError(
     `EService ${eServiceId} contains descriptors and cannot be deleted`,
-    ErrorCode.EServiceCannotBeUpdatedOrDeleted
+    ErrorTypes.EServiceCannotBeUpdatedOrDeleted
   );
 }

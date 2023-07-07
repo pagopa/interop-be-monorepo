@@ -1,10 +1,10 @@
 import {
   CatalogProcessError,
-  ErrorCode,
   eServiceCannotBeDeleted,
   eServiceCannotBeUpdated,
   eServiceNotFound,
   operationForbidden,
+  ErrorTypes,
 } from "../model/domain/errors.js";
 import { AuthData } from "../auth/authData.js";
 import { convertToClientEServiceSeed } from "../model/domain/models.js";
@@ -38,7 +38,7 @@ export const catalogService = {
     if (eservice !== undefined) {
       throw new CatalogProcessError(
         `Error during EService creation with name ${eserviceSeed.name}`,
-        ErrorCode.DuplicateEserviceName
+        ErrorTypes.DuplicateEserviceName
       );
     }
 
@@ -123,7 +123,7 @@ export const catalogService = {
     if (descriptor === undefined) {
       throw new CatalogProcessError(
         `Descriptor ${descriptorId} for EService ${eServiceId} not found`,
-        ErrorCode.EServiceDescriptorNotFound
+        ErrorTypes.EServiceDescriptorNotFound
       );
     }
 
@@ -158,7 +158,7 @@ export const catalogService = {
     if (document === undefined) {
       throw new CatalogProcessError(
         `Document with id ${documentId} not found in EService ${eServiceId} / Descriptor ${descriptorId}`,
-        ErrorCode.EServiceDocumentNotFound
+        ErrorTypes.EServiceDocumentNotFound
       );
     }
 
@@ -196,7 +196,7 @@ export const catalogService = {
     if (descriptor === undefined) {
       throw new CatalogProcessError(
         `Descriptor ${descriptorId} for EService ${eServiceId} not found`,
-        ErrorCode.EServiceDescriptorNotFound
+        ErrorTypes.EServiceDescriptorNotFound
       );
     }
 
@@ -207,7 +207,7 @@ export const catalogService = {
     if (document === undefined) {
       throw new CatalogProcessError(
         `Document with id ${documentId} not found in EService ${eServiceId} / Descriptor ${descriptorId}`,
-        ErrorCode.EServiceDocumentNotFound
+        ErrorTypes.EServiceDocumentNotFound
       );
     }
 
@@ -223,17 +223,7 @@ export const catalogService = {
       data: {
         eServiceId,
         descriptorId,
-        documentId,
-        document: {
-          name: updatedDocument.name,
-          contentType: updatedDocument.contentType,
-          prettyName: updatedDocument.prettyName,
-          path: updatedDocument.path,
-          checksum: updatedDocument.checksum,
-          uploadDate: Date.now(),
-        },
-        isInterface: updatedDocument.isInInterface,
-        serverUrls: updatedDocument.serverUrls,
+        document: updatedDocument,
       },
     });
   },
