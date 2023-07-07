@@ -4,7 +4,10 @@
  */
 import { z } from "zod";
 import * as api from "../generated/api.js";
-import { ApiEServiceSeed } from "../types.js";
+import {
+  ApiEServiceDescriptorDocumentSeed,
+  ApiEServiceSeed,
+} from "../types.js";
 
 export type EService = z.infer<typeof api.schemas.EService> & {
   version: number;
@@ -14,10 +17,44 @@ export type EServiceSeed = z.infer<typeof api.schemas.EServiceSeed> & {
   readonly producerId: string;
 };
 
+export type EServiceDocument = {
+  readonly eServiceId: string;
+  readonly descriptorId: string;
+  readonly document: {
+    readonly name: string;
+    readonly contentType: string;
+    readonly prettyName: string;
+    readonly path: string;
+    readonly checksum: string;
+    readonly uploadDate: number;
+  };
+  readonly isInterface: boolean;
+  readonly serverUrls: string[];
+};
+
 export const convertToClientEServiceSeed = (
   seed: ApiEServiceSeed,
   producerId: string
 ): EServiceSeed => ({
   ...seed,
   producerId,
+});
+
+export const convertToDocumentEServiceSeed = (
+  eServiceId: string,
+  descriptorId: string,
+  apiEServiceDescriptorDocumentSeed: ApiEServiceDescriptorDocumentSeed
+): EServiceDocument => ({
+  eServiceId,
+  descriptorId,
+  document: {
+    name: apiEServiceDescriptorDocumentSeed.fileName,
+    contentType: apiEServiceDescriptorDocumentSeed.contentType,
+    prettyName: apiEServiceDescriptorDocumentSeed.prettyName,
+    path: apiEServiceDescriptorDocumentSeed.filePath,
+    checksum: apiEServiceDescriptorDocumentSeed.checksum,
+    uploadDate: Date.now(),
+  },
+  isInterface: apiEServiceDescriptorDocumentSeed.kind === "INTERFACE",
+  serverUrls: apiEServiceDescriptorDocumentSeed.serverUrls,
 });
