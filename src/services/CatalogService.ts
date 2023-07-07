@@ -11,6 +11,7 @@ import { convertToClientEServiceSeed } from "../model/domain/models.js";
 import {
   ApiEServiceSeed,
   ApiEServiceDescriptorDocumentSeed,
+  ApiEServiceDescriptorDocumentUpdateSeed,
 } from "../model/types.js";
 import {
   eserviceDescriptorDocumentSeedToCreateEvent,
@@ -171,6 +172,68 @@ export const catalogService = {
         eServiceId,
         descriptorId,
         documentId,
+      },
+    });
+  },
+  async updateDocument(
+    eServiceId: string,
+    descriptorId: string,
+    documentId: string,
+    apiEServiceDescriptorDocumentUpdateSeed: ApiEServiceDescriptorDocumentUpdateSeed,
+    authData: AuthData
+  ): Promise<void> {
+    const eservice = await readModelGateway.getEServiceById(eServiceId);
+
+    if (eservice === undefined) {
+      throw eServiceNotFound(eServiceId);
+    }
+
+    if (eservice.producerId !== authData.organizationId) {
+      throw operationForbidden;
+    }
+
+    const descriptor = eservice.descriptors.find((d) => d.id === descriptorId);
+    if (descriptor === undefined) {
+      throw new CatalogProcessError(
+        `Descriptor ${descriptorId} for EService ${eServiceId} not found`,
+        ErrorCode.EServiceDescriptorNotFound
+      );
+    }
+
+    const document = await readModelGateway.getEServiceDescriptorDocumentById(
+      documentId
+    );
+
+    if (document === undefined) {
+      throw new CatalogProcessError(
+        `Document with id ${documentId} not found in EService ${eServiceId} / Descriptor ${descriptorId}`,
+        ErrorCode.EServiceDocumentNotFound
+      );
+    }
+
+    const updatedDocument = {
+      ...document,
+      prettyName: apiEServiceDescriptorDocumentUpdateSeed.prettyName,
+    };
+
+    await eventRepository.createEvent({
+      streamId: documentId,
+      version: document.version,
+      type: "UpdateCatalogItemDocument",
+      data: {
+        eServiceId,
+        descriptorId,
+        documentId,
+        document: {
+          name: updatedDocument.name,
+          contentType: updatedDocument.contentType,
+          prettyName: updatedDocument.prettyName,
+          path: updatedDocument.path,
+          checksum: updatedDocument.checksum,
+          uploadDate: Date.now(),
+        },
+        isInterface: updatedDocument.isInInterface,
+        serverUrls: updatedDocument.serverUrls,
       },
     });
   },

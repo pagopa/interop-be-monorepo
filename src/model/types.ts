@@ -12,6 +12,12 @@ export type ApiEServiceDescriptorDocumentSeed = ZodiosBodyByPath<
   "/eservices/:eServiceId/descriptors/:descriptorId/documents"
 >;
 
+export type ApiEServiceDescriptorDocumentUpdateSeed = ZodiosBodyByPath<
+  Api,
+  "post",
+  "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId/update"
+>;
+
 export type ApiErrorInvalidInput = ZodiosErrorByPath<
   Api,
   "post",
