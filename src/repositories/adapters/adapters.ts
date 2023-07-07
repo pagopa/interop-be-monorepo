@@ -19,7 +19,16 @@ export const eserviceDescriptorDocumentSeedToCreateEvent = (
 ): CreateEvent<{
   eServiceId: string;
   descriptorId: string;
-  apiEServiceDescriptorDocumentSeed: ApiEServiceDescriptorDocumentSeed;
+  document: {
+    name: string;
+    contentType: string;
+    prettyName: string;
+    path: string;
+    checksum: string;
+    uploadDate: number;
+  };
+  isInterface: boolean;
+  serverUrls: string[];
 }> => ({
   streamId: uuidv4(),
   version: 0,
@@ -27,6 +36,15 @@ export const eserviceDescriptorDocumentSeedToCreateEvent = (
   data: {
     eServiceId,
     descriptorId,
-    apiEServiceDescriptorDocumentSeed,
+    document: {
+      name: apiEServiceDescriptorDocumentSeed.fileName,
+      contentType: apiEServiceDescriptorDocumentSeed.contentType,
+      prettyName: apiEServiceDescriptorDocumentSeed.prettyName,
+      path: apiEServiceDescriptorDocumentSeed.filePath,
+      checksum: apiEServiceDescriptorDocumentSeed.checksum,
+      uploadDate: Date.now(),
+    },
+    isInterface: apiEServiceDescriptorDocumentSeed.kind === "INTERFACE",
+    serverUrls: apiEServiceDescriptorDocumentSeed.serverUrls,
   },
 });
