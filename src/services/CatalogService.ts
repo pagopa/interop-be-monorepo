@@ -162,7 +162,7 @@ export const catalogService = {
       );
     }
 
-    await fileManager.deleteFile(documentId);
+    await fileManager.deleteFile(document.path);
 
     await eventRepository.createEvent({
       streamId: documentId,
