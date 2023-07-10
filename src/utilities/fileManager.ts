@@ -14,18 +14,25 @@ const mockFileManager: FileManager = {
   },
 };
 
-const s3FileManager: FileManager = {
-  deleteFile: async (path: string): Promise<void> => {
-    const client = new S3Client({ region: config.s3Region });
-
-    await client.send(
-      new DeleteObjectCommand({ Bucket: config.s3BucketName, Key: path })
-    );
-  },
+const s3FileManager = (): FileManager => {
+  const client = new S3Client({
+    credentials: {
+      accessKeyId: config.s3AccessKeyId as string,
+      secretAccessKey: config.s3SecretAccessKey as string,
+    },
+    region: config.s3Region,
+  });
+  return {
+    deleteFile: async (path: string): Promise<void> => {
+      await client.send(
+        new DeleteObjectCommand({ Bucket: config.s3BucketName, Key: path })
+      );
+    },
+  };
 };
 
 function initFileManager(): FileManager {
-  return config.mockFileManager ? mockFileManager : s3FileManager;
+  return config.mockFileManager ? mockFileManager : s3FileManager();
 }
 
 export const fileManager = initFileManager();
