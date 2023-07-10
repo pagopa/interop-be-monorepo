@@ -10,12 +10,25 @@ const Config = z
     PORT: z.coerce.number().min(1001),
     POSTGRESQL_URI: z.string(),
     LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]),
+    MOCK_FILE_MANAGER: z.coerce.boolean().default(false),
+    S3_REGION: z.string().optional(),
+    S3_BUCKET_NAME: z.string().optional(),
   })
   .transform((c) => ({
     host: c.HOST,
     port: c.PORT,
     dbURL: c.POSTGRESQL_URI,
     logLevel: c.LOG_LEVEL,
-  }));
+    mockFileManager: c.MOCK_FILE_MANAGER,
+    s3Region: c.S3_REGION,
+    s3BucketName: c.S3_BUCKET_NAME,
+  }))
+  .refine((c) =>
+    !c.mockFileManager &&
+    c.s3BucketName === undefined &&
+    c.s3Region === undefined
+      ? false
+      : true
+  );
 
 export const config = Config.parse(process.env);
