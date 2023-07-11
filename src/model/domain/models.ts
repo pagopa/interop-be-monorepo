@@ -40,7 +40,7 @@ export const convertToClientEServiceSeed = (
   producerId,
 });
 
-export const convertToDocumentEServiceSeed = (
+export const convertToDocumentEServiceEventData = (
   eServiceId: string,
   descriptorId: string,
   apiEServiceDescriptorDocumentSeed: ApiEServiceDescriptorDocumentSeed

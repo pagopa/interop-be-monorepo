@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from "uuid";
 import {
   EServiceDocument,
   EServiceSeed,
-  convertToDocumentEServiceSeed,
+  convertToDocumentEServiceEventData,
 } from "../../model/domain/models.js";
 import { CreateEvent } from "../events.js";
 import { ApiEServiceDescriptorDocumentSeed } from "../../model/types.js";
@@ -24,7 +24,7 @@ export const eserviceDescriptorDocumentSeedToCreateEvent = (
   streamId: uuidv4(),
   version: 0,
   type: "DocumentItemAdded", // TODO: change this value with properly event type definition
-  data: convertToDocumentEServiceSeed(
+  data: convertToDocumentEServiceEventData(
     eServiceId,
     descriptorId,
     apiEServiceDescriptorDocumentSeed

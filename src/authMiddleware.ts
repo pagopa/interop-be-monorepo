@@ -46,7 +46,7 @@ export const authMiddleware: ZodiosRouterContextRequestHandler<
         );
       });
   } catch (error) {
-    const errorRes: ApiError = makeApiError(error);
-    return res.status(errorRes.status).json(errorRes).end();
+    const apiError: ApiError = makeApiError(error);
+    return res.status(apiError.status).json(apiError).end();
   }
 };

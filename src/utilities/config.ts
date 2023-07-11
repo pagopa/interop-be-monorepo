@@ -29,10 +29,10 @@ const Config = z
   }))
   .refine((c) =>
     !c.mockFileManager &&
-    c.s3AccessKeyId === undefined &&
-    c.s3SecretAccessKey === undefined &&
-    c.s3BucketName === undefined &&
-    c.s3Region === undefined
+    (c.s3AccessKeyId === undefined ||
+      c.s3SecretAccessKey === undefined ||
+      c.s3BucketName === undefined ||
+      c.s3Region === undefined)
       ? false
       : true
   );
