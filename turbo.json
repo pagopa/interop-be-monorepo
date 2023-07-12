@@ -1,0 +1,26 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "pipeline": {
+    "start": {
+      "persistent": true,
+      "cache": false,
+      "dependsOn": ["db:start"]
+    },
+    "db:start": {
+      "cache": false
+    },
+    "build": {
+      "dependsOn": ["generate-model", "^build"],
+      "outputs": ["dist"]
+    },
+    "generate-model": {
+      "outputs": ["src/model/generated"]
+    },
+    "test": {},
+    "lint": {},
+    "lint:autofix": {},
+    "format:check": {},
+    "format:write": {}
+  },
+  "globalDependencies": ["tsconfig.json"]
+}
