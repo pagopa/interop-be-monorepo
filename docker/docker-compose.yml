@@ -1,6 +1,18 @@
 version: "3"
-name: pagopa-interop-be-event-consumer-poc
+name: pagopa-interop
 services:
+  catalog-event-store:
+    volumes:
+      - ./event-store-init.sql:/docker-entrypoint-initdb.d/01-init.sql
+    image: postgres:14
+    ports:
+      - 6001:5432
+    environment:
+      POSTGRES_DB: root
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+    command: -c 'max_connections=512' -c 'wal_level=logical'
+
   zookeeper:
     image: quay.io/debezium/zookeeper:2.3
     ports:
