@@ -1,10 +1,22 @@
 import { ZodiosBodyByPath, ZodiosErrorByPath } from "@zodios/core";
 import { P, match } from "ts-pattern";
-import { ErrorCode } from "./domain/errors.js";
+import { CatalogProcessError, ErrorTypes } from "./domain/errors.js";
 import { api } from "./generated/api.js";
 
 type Api = typeof api.api;
 export type ApiEServiceSeed = ZodiosBodyByPath<Api, "post", "/eservices">;
+
+export type ApiEServiceDescriptorDocumentSeed = ZodiosBodyByPath<
+  Api,
+  "post",
+  "/eservices/:eServiceId/descriptors/:descriptorId/documents"
+>;
+
+export type ApiEServiceDescriptorDocumentUpdateSeed = ZodiosBodyByPath<
+  Api,
+  "post",
+  "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId/update"
+>;
 
 export type ApiErrorInvalidInput = ZodiosErrorByPath<
   Api,
@@ -63,96 +75,25 @@ export function makeApiProblem(
   };
 }
 
-export function mapAuthorizationErrorToApiError(error: unknown): ApiError {
-  return match<unknown, ApiError>(error)
-    .with({ code: ErrorCode.MissingBearer, message: P.string }, (error) =>
-      makeApiProblem(
-        ErrorCode.MissingBearer,
-        400,
-        error.message,
-        "Bearer token has not been passed"
-      )
-    )
-    .with({ code: ErrorCode.MissingClaim, message: P.string }, (error) =>
-      makeApiProblem(ErrorCode.MissingClaim, 400, error.message, error.message)
-    )
-    .with({ code: ErrorCode.MissingHeader, message: P.string }, (error) =>
-      makeApiProblem(ErrorCode.MissingHeader, 400, error.message, error.message)
-    )
-    .otherwise(() =>
-      makeApiProblem(
-        ErrorCode.MissingHeader,
-        400,
-        "Generic error while processing authorization header",
-        "Unexpected error"
-      )
-    );
-}
+const servicePrefix = "catalog";
 
-export function mapCatalogServiceErrorToApiError(error: unknown): ApiError {
+export function makeApiError(error: unknown): ApiError {
   return match<unknown, ApiError>(error)
-    .with(
-      { code: ErrorCode.DuplicateEserviceName, message: P.string },
-      (error) =>
-        makeApiProblem(
-          ErrorCode.DuplicateEserviceName,
-          409,
-          error.message,
-          "Duplicated service name"
-        )
-    )
-    .with(
-      { code: ErrorCode.ContentTypeParsingError, message: P.string },
-      (error) =>
-        makeApiProblem(
-          ErrorCode.ContentTypeParsingError,
-          400,
-          error.message,
-          "Malformed request"
-        )
-    )
-    .with({ code: ErrorCode.EServiceNotFound, message: P.string }, (error) =>
+    .with(P.instanceOf(CatalogProcessError), (error) =>
       makeApiProblem(
-        ErrorCode.EServiceNotFound,
-        404,
-        error.message,
-        "EService not found"
+        error.type.code,
+        error.type.httpStatus,
+        error.type.title,
+        error.message
       )
-    )
-    .with(
-      { code: ErrorCode.EServiceCannotBeUpdatedOrDeleted, message: P.string },
-      (error) =>
-        makeApiProblem(
-          ErrorCode.EServiceCannotBeUpdatedOrDeleted,
-          400,
-          error.message,
-          "EService cannot be updated"
-        )
-    )
-    .with({ code: ErrorCode.OperationForbidden, message: P.string }, (error) =>
-      makeApiProblem(
-        ErrorCode.OperationForbidden,
-        400,
-        error.message,
-        "Operation forbidden"
-      )
-    )
-    .with(
-      { code: ErrorCode.ContentTypeParsingError, message: P.string },
-      (error) =>
-        makeApiProblem(
-          ErrorCode.ContentTypeParsingError,
-          500,
-          error.message,
-          "Internal server error"
-        )
     )
     .otherwise(() =>
       makeApiProblem(
-        ErrorCode.GenericError,
-        500,
-        "Generic error while processing catalog process error",
-        "Unexpected error"
+        `${servicePrefix}-${ErrorTypes.GenericError.code}`,
+        ErrorTypes.GenericError.httpStatus,
+        // eslint-disable-next-line sonarjs/no-duplicate-string
+        ErrorTypes.GenericError.title,
+        "Generic error while processing catalog process error"
       )
     );
 }
