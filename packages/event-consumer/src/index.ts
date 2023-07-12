@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { Kafka, KafkaMessage } from "kafkajs";
 import { MongoClient } from "mongodb";
+import { logger } from "./utilities/logger.js";
 
 const mongoUri = "mongodb://root:example@localhost:27017";
 const client = new MongoClient(mongoUri);
@@ -76,9 +77,9 @@ async function processMessage(message: KafkaMessage): Promise<void> {
         version: parsed.data.value.payload.after.version,
       },
     });
-    console.log("Read model was updated");
+    logger.info("Read model was updated");
   } else {
-    console.log(parsed.error);
+    logger.error(parsed.error);
   }
 }
 
