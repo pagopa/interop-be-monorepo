@@ -1,5 +1,6 @@
 import { ZodiosRouter } from "@zodios/express";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
+import { Response } from "express";
 import { ExpressContext, ZodiosContext } from "../app.js";
 import { api } from "../model/generated/api.js";
 import { ApiError, makeApiError } from "../model/types.js";
