@@ -1,17 +1,30 @@
-# pagopa-interop-catalog
+> NOTE: this repo is still a work in progress
+> Refer to https://github.com/pagopa/interop-be-catalog-process for the stable version of this service
 
-Catalog services
+# Interoperability - Catalog Process Micro Service
 
-Node version required >=node16
+## How to start
 
-Generate API models with
+To get started, you will need:
+
+- Node.js (https://nodejs.org/en/download/package-manager)
+- pnpm (https://pnpm.io/installation)
+- Docker (for local development, https://www.docker.com/get-started/)
+
+Then install the dependencies with
 
 ```
-pnpm generate-model
+pnpm install
 ```
 
-Run server on default port 3000
+## How to run the application in watch mode
 
 ```
 pnpm start
+```
+
+## How to run the tests
+
+```
+pnpm test
 ```
