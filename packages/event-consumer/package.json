@@ -15,7 +15,7 @@
     "build": "tsc",
     "infra:start": "./scripts/infra-start.sh",
     "infra:stop": "./scripts/infra-stop.sh",
-    "infra:destroy": "./scripts/infra-stop.sh"
+    "infra:destroy": "./scripts/infra-destroy.sh"
   },
   "keywords": [],
   "author": "",
