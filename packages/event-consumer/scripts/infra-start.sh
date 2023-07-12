@@ -1,6 +1,6 @@
 #!/bin/bash
 
-docker compose -f ./docker/docker-compose.yml up -d
+docker compose -f ../../docker/docker-compose.yml up -d zookeeper kafka connect readmodel mongo-express
 
 # wait until debezium is available
 while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' localhost:8083/connectors/)" != "200" ]]; do

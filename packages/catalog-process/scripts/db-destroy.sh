@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker compose -f ./db/local-db.yml down
+docker compose -f ../../docker/docker-compose.yml down catalog-event-store
