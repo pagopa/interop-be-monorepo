@@ -5,8 +5,8 @@ on:
   pull_request:
 
 jobs:
-  format-and-lint:
-    name: Format and Lint
+  formatting:
+    name: Check formatting
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -16,12 +16,20 @@ jobs:
       - uses: pnpm/action-setup@v2
         with:
           run_install: true
-      - uses: wearerequired/lint-action@v2
+      - run: pnpm format:check
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
-          eslint: true
-          eslint_extensions: "ts,tsx"
-          prettier: true
-          prettier_dir: src
+          node-version: 16
+      - uses: pnpm/action-setup@v2
+        with:
+          run_install: true
+      - run: pnpm lint
 
   build:
     name: Build
