@@ -4,7 +4,7 @@
     "start": {
       "persistent": true,
       "cache": false,
-      "dependsOn": ["db:start"]
+      "dependsOn": ["generate-model", "db:start"]
     },
     "db:start": {
       "cache": false
