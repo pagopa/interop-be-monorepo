@@ -13,6 +13,10 @@ const app = ctx.app();
 export type ZodiosContext = NonNullable<typeof ctx>;
 export type ExpressContext = NonNullable<typeof ctx.context>;
 
+// Disable the "X-Powered-By: Express" HTTP header for security reasons.
+// See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
+app.disable("x-powered-by");
+
 app.use(
   expressWinston.logger({
     winstonInstance: logger,
@@ -26,7 +30,10 @@ app.use(
   })
 );
 
+// NOTE(gabro): the order is relevant, authMiddleware must come *after* the routes
+// we want to be unauthenticated.
+app.use(healthRouter);
 app.use(authMiddleware);
-app.use(healthRouter, eservicesRouter(ctx));
+app.use(eservicesRouter(ctx));
 
 export default app;
