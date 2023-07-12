@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { Kafka, KafkaMessage } from "kafkajs";
 import { MongoClient } from "mongodb";
-import { logger } from "./utilities/logger.js";
+import { logger } from "pagopa-interop-commons";
 
 const mongoUri = "mongodb://root:example@localhost:27017";
 const client = new MongoClient(mongoUri);

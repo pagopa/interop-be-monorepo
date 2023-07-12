@@ -1,5 +1,6 @@
 import * as dotenvFlow from "dotenv-flow";
 import { z } from "zod";
+import { config as commonsConfig } from "pagopa-interop-commons";
 import { APIEndpoint } from "../model/apiEndpoint.js";
 
 dotenvFlow.config();
@@ -9,7 +10,6 @@ const Config = z
     HOST: APIEndpoint,
     PORT: z.coerce.number().min(1001),
     POSTGRESQL_URI: z.string(),
-    LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]),
     MOCK_FILE_MANAGER: z.coerce.boolean().default(false),
     S3_ACCESS_KEY_ID: z.string().optional(),
     S3_SECRET_ACCESS_KEY: z.string().optional(),
@@ -20,7 +20,6 @@ const Config = z
     host: c.HOST,
     port: c.PORT,
     dbURL: c.POSTGRESQL_URI,
-    logLevel: c.LOG_LEVEL,
     mockFileManager: c.MOCK_FILE_MANAGER,
     s3AccessKeyId: c.S3_ACCESS_KEY_ID,
     s3SecretAccessKey: c.S3_SECRET_ACCESS_KEY,
@@ -37,4 +36,7 @@ const Config = z
       : true
   );
 
-export const config = Config.parse(process.env);
+export const config = {
+  ...commonsConfig,
+  ...Config.parse(process.env),
+};
