@@ -4,9 +4,15 @@
     "start": {
       "persistent": true,
       "cache": false,
-      "dependsOn": ["generate-model", "db:start"]
+      "dependsOn": ["generate-model", "infra:start"]
     },
-    "db:start": {
+    "infra:start": {
+      "cache": false
+    },
+    "infra:stop": {
+      "cache": false
+    },
+    "infra:destroy": {
       "cache": false
     },
     "build": {

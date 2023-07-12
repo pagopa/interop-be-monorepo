@@ -1,7 +1,6 @@
 > NOTE: this repo is still a work in progress
-> Refer to https://github.com/pagopa/interop-be-catalog-process for the stable version of this service
 
-# Interoperability - Catalog Process Micro Service
+# Interoperability Monorepo
 
 ## How to start
 
@@ -17,10 +16,11 @@ Then install the dependencies with
 pnpm install
 ```
 
-## How to run the application in watch mode
+## How to run the services in watch mode
 
 ```
-pnpm start
+pnpm start:<service-name>
+# example: pnpm start:catalog
 ```
 
 ## How to run the tests
