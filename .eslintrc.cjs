@@ -14,5 +14,5 @@ module.exports = {
     "@typescript-eslint/no-shadow": "off",
     "extra-rules/no-commented-out-code": "off",
   },
-  ignorePatterns: ["**/src/model/generated/*.ts"],
+  ignorePatterns: [".eslintrc.cjs", "**/src/model/generated/*.ts"],
 };
