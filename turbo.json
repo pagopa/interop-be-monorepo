@@ -4,7 +4,7 @@
     "start": {
       "persistent": true,
       "cache": false,
-      "dependsOn": ["generate-model", "infra:start"]
+      "dependsOn": ["^build", "generate-model", "infra:start"]
     },
     "infra:start": {
       "cache": false
