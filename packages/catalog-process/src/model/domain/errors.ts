@@ -32,7 +32,7 @@ export const ErrorTypes = {
   OperationForbidden: {
     code: "9989",
     httpStatus: 400,
-    title: "Operation forbidden",
+    title: "Insufficient privileges",
   },
   GenericError: { code: "9991", httpStatus: 500, title: "Unexpected error" },
   MissingBearer: {
@@ -49,6 +49,21 @@ export const ErrorTypes = {
     code: "9994",
     httpStatus: 400,
     title: "Header has not been passed",
+  },
+  MissingSub: {
+    code: "9995",
+    httpStatus: 400,
+    title: "Subject has not been passed",
+  },
+  MissingUserId: {
+    code: "9996",
+    httpStatus: 400,
+    title: "Uid has not been passed",
+  },
+  InvalidDescriptorVersion: {
+    code: "0004",
+    httpStatus: 400,
+    title: "Version is not a valid descriptor version",
   },
 } as const;
 
@@ -90,5 +105,19 @@ export function eServiceCannotBeDeleted(
   return new CatalogProcessError(
     `EService ${eServiceId} contains descriptors and cannot be deleted`,
     ErrorTypes.EServiceCannotBeUpdatedOrDeleted
+  );
+}
+
+export function missingClaim(claimName: string): CatalogProcessError {
+  return new CatalogProcessError(
+    `Claim ${claimName} has not been passed`,
+    ErrorTypes.MissingClaim
+  );
+}
+
+export function missingHeader(headerName: string): CatalogProcessError {
+  return new CatalogProcessError(
+    `Header ${headerName} not existing in this request`,
+    ErrorTypes.MissingHeader
   );
 }
