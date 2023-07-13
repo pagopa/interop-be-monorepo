@@ -1,9 +1,13 @@
 import { ZodiosRouter } from "@zodios/express";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
+import { match } from "ts-pattern";
+import { z } from "zod";
+import { attribute } from "models";
 import { ExpressContext, ZodiosContext } from "../app.js";
 import { api } from "../model/generated/api.js";
 import { ApiError, makeApiError } from "../model/types.js";
 import { catalogService } from "../services/CatalogService.js";
+import { readModelGateway } from "../services/ReadModelGateway.js";
 
 const eservicesRouter = (
   ctx: ZodiosContext
@@ -13,6 +17,8 @@ const eservicesRouter = (
   eservicesRouter
     .get("/eservices", async (_, res) => {
       try {
+        await readModelGateway.getEServiceById("1");
+
         // const eServices = await catalogService.getEServices(req.authData);
         return res.status(200).end();
       } catch (error) {
@@ -31,13 +37,42 @@ const eservicesRouter = (
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
-    .get("/eservices/:eServiceId", async (_, res) => {
+    .get("/eservices/:eServiceId", async (req, res) => {
       try {
-        // const eService = await catalogService.getEService(
-        //   req.params.eServiceId,
-        //   req.authData
-        // );
-        return res.status(200).end();
+        const catalog = await readModelGateway.getEServiceById(
+          req.params.eServiceId
+        );
+
+        const mapAttribute = (a: z.infer<typeof attribute>) =>
+          match(a)
+            .with({ type: "SingleAttribute" }, (a) => ({
+              single: a.id,
+            }))
+            .with({ type: "GroupAttribute" }, (a) => ({
+              group: a.ids,
+            }))
+            .exhaustive();
+
+        if (catalog) {
+          return res
+            .status(200)
+            .json({
+              ...catalog,
+              descriptors: catalog.descriptors.map((descriptor) => ({
+                ...descriptor,
+                agreementApprovalPolicy:
+                  descriptor.agreementApprovalPolicy ?? "AUTOMATIC",
+                attributes: {
+                  certified: descriptor.attributes.certified.map(mapAttribute),
+                  declared: descriptor.attributes.declared.map(mapAttribute),
+                  verified: descriptor.attributes.verified.map(mapAttribute),
+                },
+              })),
+            })
+            .end();
+        } else {
+          return res.status(404).end();
+        }
       } catch (error) {
         const errorRes: ApiError = makeApiError(error);
         return res.status(errorRes.status).json(errorRes).end();
