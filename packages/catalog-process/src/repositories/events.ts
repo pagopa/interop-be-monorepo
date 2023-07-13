@@ -1,4 +1,4 @@
-import { logger } from "../utilities/logger.js";
+import { logger } from "pagopa-interop-commons";
 import { db } from "./db.js";
 import * as sql from "./sql/index.js";
 
