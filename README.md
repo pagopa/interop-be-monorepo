@@ -58,4 +58,7 @@ curl -X POST http://localhost:3000/eservices \
 ```
 
 You should see the event being processed by the consumer and the read model being updated.
+
 You can verify this by using Mongo Express, which is being started alongside the consumer and is available at http://localhost:8081/db/readmodel.
+
+Similarly, there is a Postgres web client that can be used to inspect the event stores at http://localhost:8082.

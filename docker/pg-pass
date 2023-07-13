@@ -1,0 +1,2 @@
+# hostname:port:database:username:password
+catalog-event-store:5432:root:root:root
