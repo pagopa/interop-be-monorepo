@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Catalog Event Store",
+      "Group": "Event Stores",
+      "Host": "catalog-event-store",
+      "Port": 5432,
+      "Username": "root",
+      "PassFile": "/pgadmin4/pgpass",
+      "SSLMode": "prefer",
+      "MaintenanceDB": "postgres"
+    }
+  }
+}
