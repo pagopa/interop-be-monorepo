@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { AuthData } from "./auth/authData.js";
+import { AuthData } from "../../commons/src/auth/authData.js";
 
 export const ctx = z.object({
   authData: AuthData,

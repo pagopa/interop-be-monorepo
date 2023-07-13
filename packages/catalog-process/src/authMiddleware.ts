@@ -1,18 +1,18 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/naming-convention */
 import { ZodiosRouterContextRequestHandler } from "@zodios/express";
+import { logger } from "pagopa-interop-commons";
 import { match, P } from "ts-pattern";
 import { z } from "zod";
-import { logger } from "pagopa-interop-commons";
+import { AuthData } from "../../commons/src/auth/authData.js";
+import { readAuthDataFromJwtToken } from "../../commons/src/auth/jwt.js";
 import { ExpressContext } from "./app.js";
-import { ApiError, makeApiError } from "./model/types.js";
-import { AuthData } from "./auth/authData.js";
-import { readAuthDataFromJwtToken } from "./auth/jwt.js";
 import {
   CatalogProcessError,
   ErrorTypes,
   missingHeader,
 } from "./model/domain/errors.js";
+import { ApiError, makeApiError } from "./model/types.js";
 
 const ipRegex = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
 
