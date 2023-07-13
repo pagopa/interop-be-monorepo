@@ -8,7 +8,7 @@ export const readAuthDataFromJwtToken = (
   const decoded = jwt.decode(jwtToken, { json: true });
   const token = AuthJWTToken.safeParse(decoded);
 
-  if (!token.success) {
+  if (token.success === false) {
     logger.error(`Error parsing token: ${JSON.stringify(token.error)}`);
     return new Error(token.error.message);
   } else {

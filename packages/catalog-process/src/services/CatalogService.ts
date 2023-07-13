@@ -1,23 +1,23 @@
 /* eslint-disable sonarjs/no-ignored-return */
-import { v4 as uuidv4 } from "uuid";
 import { logger } from "pagopa-interop-commons";
+import { v4 as uuidv4 } from "uuid";
+import { AuthData } from "../../../commons/src/auth/authData.js";
 import {
   CatalogProcessError,
+  ErrorTypes,
   eServiceCannotBeDeleted,
   eServiceCannotBeUpdated,
   eServiceNotFound,
   operationForbidden,
-  ErrorTypes,
 } from "../model/domain/errors.js";
-import { AuthData } from "../auth/authData.js";
 import {
   EServiceDescriptorSeed,
   convertToClientEServiceSeed,
 } from "../model/domain/models.js";
 import {
-  ApiEServiceSeed,
   ApiEServiceDescriptorDocumentSeed,
   ApiEServiceDescriptorDocumentUpdateSeed,
+  ApiEServiceSeed,
 } from "../model/types.js";
 import {
   descriptorSeedToCreateEvent,
