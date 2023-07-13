@@ -1,6 +1,9 @@
+/* eslint-disable functional/immutable-data */
+/* eslint-disable @typescript-eslint/naming-convention */
 import { ZodiosRouterContextRequestHandler } from "@zodios/express";
 import { match, P } from "ts-pattern";
 import { z } from "zod";
+import { logger } from "pagopa-interop-commons";
 import { ExpressContext } from "./app.js";
 import { ApiError, makeApiError } from "./model/types.js";
 import { AuthData } from "./auth/authData.js";
@@ -10,7 +13,6 @@ import {
   ErrorTypes,
   missingHeader,
 } from "./model/domain/errors.js";
-import { logger } from "./utilities/logger.js";
 
 const ipRegex = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
 
