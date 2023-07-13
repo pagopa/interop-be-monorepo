@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker compose -f ./db/local-db.yml stop
+docker compose -f ../../docker/docker-compose.yml stop catalog-event-store

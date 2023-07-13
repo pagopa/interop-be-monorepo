@@ -15,7 +15,7 @@ export const authMiddleware: ZodiosRouterContextRequestHandler<
         const authContent = auth.split(" ");
         if (authContent.length !== 2 || authContent[0] !== "Bearer") {
           throw new CatalogProcessError(
-            `Bearer token has not been passed`,
+            `No Bearer token provided`,
             ErrorTypes.MissingBearer
           );
         }

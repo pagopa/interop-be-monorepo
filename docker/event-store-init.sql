@@ -1,4 +1,4 @@
-create table event ( 
+create table event (
     sequence_num bigserial NOT NULL,
 
     stream_id uuid NOT NULL,
