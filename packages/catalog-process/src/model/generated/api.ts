@@ -74,7 +74,7 @@ const EServiceSeed = z.object({
   description: z.string().min(10).max(250),
   technology: EServiceTechnology,
 });
-const ReturnId = z.object({ id: z.string().uuid() });
+const ResourceId = z.object({ id: z.string().uuid() });
 const ProblemError = z.object({
   code: z
     .string()
@@ -175,7 +175,7 @@ export const schemas = {
   EService,
   EServices,
   EServiceSeed,
-  ReturnId,
+  ResourceId,
   ProblemError,
   Problem,
   UpdateEServiceSeed,
@@ -399,7 +399,7 @@ const endpoints = makeApi([
         schema: z.string(),
       },
     ],
-    response: z.object({ id: z.string().uuid() }),
+    response: z.void(),
     errors: [
       {
         status: 400,
@@ -746,7 +746,7 @@ const endpoints = makeApi([
         schema: z.string(),
       },
     ],
-    response: z.object({ id: z.string().uuid() }),
+    response: z.void(),
     errors: [
       {
         status: 400,
@@ -1181,7 +1181,7 @@ const endpoints = makeApi([
         schema: z.string(),
       },
     ],
-    response: z.object({ id: z.string().uuid() }),
+    response: z.void(),
     errors: [
       {
         status: 400,

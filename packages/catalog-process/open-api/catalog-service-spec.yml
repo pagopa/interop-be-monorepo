@@ -123,7 +123,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ReturnId"
+                $ref: "#/components/schemas/ResourceId"
         "400":
           description: Invalid input
           content:
@@ -197,10 +197,6 @@ paths:
       responses:
         "200":
           description: E-Service updated
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ReturnId"
         "404":
           description: E-Service not found
           content:
@@ -327,7 +323,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ReturnId"
+                $ref: "#/components/schemas/ResourceId"
         "400":
           description: Invalid input
           content:
@@ -409,10 +405,6 @@ paths:
       responses:
         "200":
           description: EService with draft descriptor updated.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ReturnId"
         "400":
           description: Invalid input
           content:
@@ -574,7 +566,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ReturnId"
+                $ref: "#/components/schemas/ResourceId"
         "400":
           description: Invalid input
           content:
@@ -624,7 +616,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ReturnId"
+                $ref: "#/components/schemas/ResourceId"
         "400":
           description: Invalid input
           content:
@@ -767,10 +759,6 @@ paths:
       responses:
         "200":
           description: EService Descriptor updated.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ReturnId"
         "404":
           description: EService not found
           content:
@@ -812,7 +800,7 @@ components:
       schema:
         type: string
   schemas:
-    ReturnId:
+    ResourceId:
       type: object
       required:
         - id

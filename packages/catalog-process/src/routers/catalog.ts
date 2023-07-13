@@ -22,12 +22,12 @@ const eservicesRouter = (
     })
     .put("/eservices/:eServiceId", async (req, res) => {
       try {
-        const id = await catalogService.updateEService(
+        await catalogService.updateEService(
           req.params.eServiceId,
           req.body,
           req.authData
         );
-        return res.status(200).json({ id }).end();
+        return res.status(200).end();
       } catch (error) {
         const errorRes: ApiError = makeApiError(error);
         return res.status(errorRes.status).json(errorRes).end();
@@ -83,14 +83,14 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId/update",
       async (req, res) => {
         try {
-          const id = await catalogService.updateDocument(
+          await catalogService.updateDocument(
             req.params.eServiceId,
             req.params.descriptorId,
             req.params.documentId,
             req.body,
             req.authData
           );
-          return res.status(200).json({ id }).end();
+          return res.status(200).end();
         } catch (error) {
           const errorRes: ApiError = makeApiError(error);
           return res.status(errorRes.status).json(errorRes).end();
