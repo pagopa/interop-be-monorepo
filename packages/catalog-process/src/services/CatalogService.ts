@@ -25,7 +25,7 @@ export const catalogService = {
   async createEService(
     apiEservicesSeed: ApiEServiceSeed,
     authData: AuthData
-  ): Promise<void> {
+  ): Promise<string> {
     const eserviceSeed = convertToClientEServiceSeed(
       apiEservicesSeed,
       authData.organizationId
@@ -108,7 +108,7 @@ export const catalogService = {
     descriptorId: string,
     document: ApiEServiceDescriptorDocumentSeed,
     authData: AuthData
-  ): Promise<void> {
+  ): Promise<string> {
     const eservice = await readModelGateway.getEServiceById(eServiceId);
 
     if (eservice === undefined) {
@@ -127,7 +127,7 @@ export const catalogService = {
       );
     }
 
-    await eventRepository.createEvent(
+    return await eventRepository.createEvent(
       eserviceDescriptorDocumentSeedToCreateEvent(
         eServiceId,
         descriptorId,
