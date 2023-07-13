@@ -1,3 +1,6 @@
+/* eslint-disable sonarjs/no-ignored-return */
+import { v4 as uuidv4 } from "uuid";
+import { logger } from "pagopa-interop-commons";
 import {
   CatalogProcessError,
   eServiceCannotBeDeleted,
@@ -8,7 +11,6 @@ import {
 } from "../model/domain/errors.js";
 import { AuthData } from "../auth/authData.js";
 import {
-  EServiceDescriptor,
   EServiceDescriptorSeed,
   convertToClientEServiceSeed,
 } from "../model/domain/models.js";
@@ -24,9 +26,8 @@ import {
 } from "../repositories/adapters/adapters.js";
 import { eventRepository } from "../repositories/events.js";
 import { fileManager } from "../utilities/fileManager.js";
-import { readModelGateway } from "./ReadModelGateway.js";
-import { v4 as uuidv4 } from "uuid";
 import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
+import { readModelGateway } from "./ReadModelGateway.js";
 
 export const catalogService = {
   async createEService(
@@ -238,7 +239,7 @@ export const catalogService = {
   async createDescriptor(
     eServiceId: string,
     eserviceDescriptorSeed: EServiceDescriptorSeed
-  ): Promise<EServiceDescriptor> {
+  ): Promise<string> {
     const eservice = await readModelGateway.getEServiceById(eServiceId);
     if (eservice === undefined) {
       throw eServiceNotFound(eServiceId);
@@ -253,6 +254,50 @@ export const catalogService = {
     );
 
     await eventRepository.createEvent(createCatalogDescriptor);
-    return createCatalogDescriptor.data;
+    return descriptorId;
+  },
+
+  async deleteDraftDescriptor(
+    eServiceId: string,
+    descriptorId: string
+  ): Promise<void> {
+    logger.info(
+      `Deleting draft Descriptor ${descriptorId} of EService ${eServiceId}`
+    );
+
+    const eservice = await readModelGateway.getEServiceById(eServiceId);
+    if (eservice === undefined) {
+      throw eServiceNotFound(eServiceId);
+    }
+
+    const descriptor = eservice.descriptors.find(
+      (d) => d.id === descriptorId && d.state === "DRAFT"
+    );
+
+    if (descriptor === undefined) {
+      throw new CatalogProcessError(
+        `Descriptor with id ${descriptorId} of EService ${eServiceId} not found`,
+        ErrorTypes.EServiceDescriptorNotFound
+      );
+    }
+
+    const interfacePath = descriptor.docs.find(
+      (doc) => doc.id === descriptorId
+    );
+    if (interfacePath !== undefined) {
+      await fileManager.deleteFile(interfacePath.path);
+    }
+
+    descriptor.docs.map(async (doc) => await fileManager.deleteFile(doc.path));
+
+    await eventRepository.createEvent({
+      streamId: eServiceId,
+      version: eservice.version,
+      type: "DeleteDraftDescriptor",
+      data: {
+        eServiceId,
+        descriptorId,
+      },
+    });
   },
 };
