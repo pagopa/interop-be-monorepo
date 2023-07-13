@@ -1,0 +1,32 @@
+{
+  "name": "pagopa-interop-commons",
+  "private": true,
+  "version": "1.0.0",
+  "description": "PagoPA Interoperability common utilities",
+  "main": "dist",
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:autofix": "eslint . --ext .ts,.tsx --fix",
+    "format:check": "prettier --check src",
+    "format:write": "prettier --write src",
+    "start": "node --watch --no-warnings --loader ts-node/esm ./src/index.ts",
+    "build": "tsc"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "dotenv-flow": "^3.2.0",
+    "winston": "^3.9.0",
+    "zod": "^3.21.4"
+  },
+  "devDependencies": {
+    "@types/dotenv-flow": "^3.2.0",
+    "@types/node": "^20.3.1",
+    "eslint": "^8.44.0",
+    "prettier": "^2.8.8",
+    "typescript": "^5.1.3"
+  }
+}

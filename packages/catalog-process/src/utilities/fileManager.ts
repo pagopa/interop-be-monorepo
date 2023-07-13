@@ -1,6 +1,6 @@
 import { DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { logger } from "pagopa-interop-commons";
 import { config } from "./config.js";
-import { logger } from "./logger.js";
 
 export type FileManager = {
   deleteFile: (path: string) => Promise<void>;
