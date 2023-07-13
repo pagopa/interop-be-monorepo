@@ -10,9 +10,9 @@ export type CreateEvent<D> = {
 };
 
 export const eventRepository = {
-  async createEvent<D>(event: CreateEvent<D>): Promise<void> {
+  async createEvent<D>(event: CreateEvent<D>): Promise<string> {
     try {
-      await db.tx(async (t) => {
+      return await db.tx(async (t) => {
         const data = await t.oneOrNone(sql.checkEventVersionExists, {
           stream_id: event.streamId,
           version: event.version,
@@ -26,6 +26,8 @@ export const eventRepository = {
           type: event.type,
           data: event.data,
         });
+
+        return event.streamId;
       });
     } catch (error) {
       logger.error(error);

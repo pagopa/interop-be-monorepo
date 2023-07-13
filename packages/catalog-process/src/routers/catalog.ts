@@ -13,8 +13,8 @@ const eservicesRouter = (
   eservicesRouter
     .post("/eservices", async (req, res) => {
       try {
-        await catalogService.createEService(req.body, req.authData);
-        return res.status(201).end();
+        const id = await catalogService.createEService(req.body, req.authData);
+        return res.status(201).json({ id }).end();
       } catch (error) {
         const errorRes: ApiError = makeApiError(error);
         return res.status(errorRes.status).json(errorRes).end();
@@ -22,12 +22,12 @@ const eservicesRouter = (
     })
     .put("/eservices/:eServiceId", async (req, res) => {
       try {
-        await catalogService.updateEService(
+        const id = await catalogService.updateEService(
           req.params.eServiceId,
           req.body,
           req.authData
         );
-        return res.status(200).end();
+        return res.status(200).json({ id }).end();
       } catch (error) {
         const errorRes: ApiError = makeApiError(error);
         return res.status(errorRes.status).json(errorRes).end();
@@ -49,13 +49,13 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/documents",
       async (req, res) => {
         try {
-          await catalogService.uploadDocument(
+          const id = await catalogService.uploadDocument(
             req.params.eServiceId,
             req.params.descriptorId,
             req.body,
             req.authData
           );
-          return res.status(200).end();
+          return res.status(200).json({ id }).end();
         } catch (error) {
           const errorRes: ApiError = makeApiError(error);
           return res.status(errorRes.status).json(errorRes).end();
@@ -83,14 +83,14 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId/update",
       async (req, res) => {
         try {
-          await catalogService.updateDocument(
+          const id = await catalogService.updateDocument(
             req.params.eServiceId,
             req.params.descriptorId,
             req.params.documentId,
             req.body,
             req.authData
           );
-          return res.status(200).end();
+          return res.status(200).json({ id }).end();
         } catch (error) {
           const errorRes: ApiError = makeApiError(error);
           return res.status(errorRes.status).json(errorRes).end();

@@ -25,7 +25,7 @@ export const catalogService = {
   async createEService(
     apiEservicesSeed: ApiEServiceSeed,
     authData: AuthData
-  ): Promise<void> {
+  ): Promise<string> {
     const eserviceSeed = convertToClientEServiceSeed(
       apiEservicesSeed,
       authData.organizationId
@@ -48,7 +48,7 @@ export const catalogService = {
     eServiceId: string,
     eservicesSeed: ApiEServiceSeed,
     authData: AuthData
-  ): Promise<void> {
+  ): Promise<string> {
     const eservice = await readModelGateway.getEServiceById(eServiceId);
 
     if (eservice === undefined) {
@@ -74,7 +74,7 @@ export const catalogService = {
       authData.organizationId
     );
 
-    await eventRepository.createEvent({
+    return await eventRepository.createEvent({
       streamId: eServiceId,
       version: eservice.version,
       type: "EServiceUpdated",
@@ -108,7 +108,7 @@ export const catalogService = {
     descriptorId: string,
     document: ApiEServiceDescriptorDocumentSeed,
     authData: AuthData
-  ): Promise<void> {
+  ): Promise<string> {
     const eservice = await readModelGateway.getEServiceById(eServiceId);
 
     if (eservice === undefined) {
@@ -127,7 +127,7 @@ export const catalogService = {
       );
     }
 
-    await eventRepository.createEvent(
+    return await eventRepository.createEvent(
       eserviceDescriptorDocumentSeedToCreateEvent(
         eServiceId,
         descriptorId,
@@ -181,7 +181,7 @@ export const catalogService = {
     documentId: string,
     apiEServiceDescriptorDocumentUpdateSeed: ApiEServiceDescriptorDocumentUpdateSeed,
     authData: AuthData
-  ): Promise<void> {
+  ): Promise<string> {
     const eservice = await readModelGateway.getEServiceById(eServiceId);
 
     if (eservice === undefined) {
@@ -216,7 +216,7 @@ export const catalogService = {
       prettyName: apiEServiceDescriptorDocumentUpdateSeed.prettyName,
     };
 
-    await eventRepository.createEvent({
+    return await eventRepository.createEvent({
       streamId: documentId,
       version: document.version,
       type: "UpdateCatalogItemDocument",
