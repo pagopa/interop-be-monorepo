@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { logger } from "../utilities/logger.js";
+import { logger } from "pagopa-interop-commons";
 import { AuthData, AuthJWTToken } from "./authData.js";
 
 export const readClaimsFromJwtToken = (jwtToken: string): AuthData | null => {

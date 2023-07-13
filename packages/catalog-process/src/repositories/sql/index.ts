@@ -1,7 +1,7 @@
 import path from "path";
 import { fileURLToPath } from "url";
 import pgPromise from "pg-promise";
-import { logger } from "../../utilities/logger.js";
+import { logger } from "pagopa-interop-commons";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);

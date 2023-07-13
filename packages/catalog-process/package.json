@@ -44,6 +44,7 @@
     "express-winston": "^4.2.0",
     "jsonwebtoken": "^9.0.0",
     "openapi-zod-client": "^1.7.1",
+    "pagopa-interop-commons": "workspace:*",
     "pg-promise": "^11.5.0",
     "ts-pattern": "^5.0.1",
     "uuid": "^9.0.0",
