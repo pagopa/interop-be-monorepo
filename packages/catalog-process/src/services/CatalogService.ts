@@ -48,7 +48,7 @@ export const catalogService = {
     eServiceId: string,
     eservicesSeed: ApiEServiceSeed,
     authData: AuthData
-  ): Promise<string> {
+  ): Promise<void> {
     const eservice = await readModelGateway.getEServiceById(eServiceId);
 
     if (eservice === undefined) {
@@ -74,7 +74,7 @@ export const catalogService = {
       authData.organizationId
     );
 
-    return await eventRepository.createEvent({
+    await eventRepository.createEvent({
       streamId: eServiceId,
       version: eservice.version,
       type: "EServiceUpdated",
@@ -181,7 +181,7 @@ export const catalogService = {
     documentId: string,
     apiEServiceDescriptorDocumentUpdateSeed: ApiEServiceDescriptorDocumentUpdateSeed,
     authData: AuthData
-  ): Promise<string> {
+  ): Promise<void> {
     const eservice = await readModelGateway.getEServiceById(eServiceId);
 
     if (eservice === undefined) {
@@ -216,7 +216,7 @@ export const catalogService = {
       prettyName: apiEServiceDescriptorDocumentUpdateSeed.prettyName,
     };
 
-    return await eventRepository.createEvent({
+    await eventRepository.createEvent({
       streamId: documentId,
       version: document.version,
       type: "UpdateCatalogItemDocument",
