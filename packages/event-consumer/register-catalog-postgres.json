@@ -1,0 +1,15 @@
+{
+    "name": "catalog-connector",
+    "config": {
+        "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+        "tasks.max": "1",
+        "database.hostname": "host.docker.internal",
+        "database.port": "6001",
+        "database.user": "root",
+        "database.password": "root",
+        "database.dbname" : "root",
+        "topic.prefix": "dbserver1",
+        "schema.include.list": "public",
+        "plugin.name": "pgoutput"
+    }
+}

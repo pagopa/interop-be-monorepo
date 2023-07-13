@@ -5,14 +5,17 @@
     "node": ">=18"
   },
   "scripts": {
-    "start": "turbo start",
+    "start:catalog": "turbo start --filter pagopa-interop-catalog-process",
+    "start:consumer": "turbo start --filter pagopa-interop-event-consumer",
     "test": "turbo test",
     "build": "turbo build",
     "lint": "turbo lint",
     "lint:autofix": "turbo lint:autofix",
     "format:check": "turbo format:check",
     "format:write": "turbo format:write",
-    "generate-model": "turbo generate-model"
+    "generate-model": "turbo generate-model",
+    "infra:stop": "turbo infra:stop",
+    "infra:destroy": "turbo infra:destroy"
   },
   "devDependencies": {
     "@tsconfig/node-lts": "^18.12.3",

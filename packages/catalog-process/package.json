@@ -1,5 +1,5 @@
 {
-  "name": "pagopa-interop-catalog",
+  "name": "pagopa-interop-catalog-process",
   "version": "1.0.0",
   "description": "PagoPA Interoperability service for e-services management",
   "main": "dist",
@@ -14,9 +14,9 @@
     "build": "tsc",
     "generate-model": "pnpm openapi-zod-client './open-api/catalog-service-spec.yml' -o './src/model/generated/api.ts'",
     "clean-generated": "pnpm exec rm ./src/models/generated/api.ts",
-    "db:start": "./scripts/db-start.sh",
-    "db:stop": "./scripts/db-stop.sh",
-    "db:destroy": "./scripts/db-destroy.sh"
+    "infra:start": "./scripts/db-start.sh",
+    "infra:stop": "./scripts/db-stop.sh",
+    "infra:destroy": "./scripts/db-destroy.sh"
   },
   "keywords": [],
   "author": "",
