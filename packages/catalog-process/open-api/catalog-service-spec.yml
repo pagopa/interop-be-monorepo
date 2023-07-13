@@ -123,7 +123,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EService"
+                $ref: "#/components/schemas/ReturnId"
         "400":
           description: Invalid input
           content:
@@ -200,7 +200,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EService"
+                $ref: "#/components/schemas/ReturnId"
         "404":
           description: E-Service not found
           content:
@@ -327,7 +327,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EServiceDescriptor"
+                $ref: "#/components/schemas/ReturnId"
         "400":
           description: Invalid input
           content:
@@ -412,7 +412,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EService"
+                $ref: "#/components/schemas/ReturnId"
         "400":
           description: Invalid input
           content:
@@ -574,7 +574,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EService"
+                $ref: "#/components/schemas/ReturnId"
         "400":
           description: Invalid input
           content:
@@ -624,7 +624,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EService"
+                $ref: "#/components/schemas/ReturnId"
         "400":
           description: Invalid input
           content:
@@ -770,7 +770,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EServiceDoc"
+                $ref: "#/components/schemas/ReturnId"
         "404":
           description: EService not found
           content:
@@ -812,6 +812,14 @@ components:
       schema:
         type: string
   schemas:
+    ReturnId:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          format: uuid
     EServiceSeed:
       type: object
       required:
