@@ -11,6 +11,14 @@ const eservicesRouter = (
   const eservicesRouter = ctx.router(api.api);
 
   eservicesRouter
+    .get("/eservices", async (_, res) => {
+      try {
+        // const eServices = await catalogService.getEServices(req.authData);
+        return res.status(200).end();
+      } catch (error) {
+        return res.status(200).end();
+      }
+    })
     .post("/eservices", async (req, res) => {
       try {
         const id = await catalogService.createEService(
@@ -18,6 +26,18 @@ const eservicesRouter = (
           req.ctx.authData
         );
         return res.status(201).json({ id }).end();
+      } catch (error) {
+        const errorRes: ApiError = makeApiError(error);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
+    .get("/eservices/:eServiceId", async (_, res) => {
+      try {
+        // const eService = await catalogService.getEService(
+        //   req.params.eServiceId,
+        //   req.authData
+        // );
+        return res.status(200).end();
       } catch (error) {
         const errorRes: ApiError = makeApiError(error);
         return res.status(errorRes.status).json(errorRes).end();
@@ -48,6 +68,35 @@ const eservicesRouter = (
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
+    .get("/eservices/:eServiceId/consumers", async (_, res) => {
+      try {
+        // const consumers = await catalogService.getConsumers(
+        //   req.params.eServiceId,
+        //   req.authData
+        // );
+        return res.status(200).end();
+      } catch (error) {
+        const errorRes: ApiError = makeApiError(error);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    })
+    .get(
+      "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId",
+      async (_, res) => {
+        try {
+          // const document = await catalogService.getDocument(
+          //   req.params.eServiceId,
+          //   req.params.descriptorId,
+          //   req.params.documentId,
+          //   req.authData
+          // );
+          return res.status(200).end();
+        } catch (error) {
+          const errorRes: ApiError = makeApiError(error);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/documents",
       async (req, res) => {
