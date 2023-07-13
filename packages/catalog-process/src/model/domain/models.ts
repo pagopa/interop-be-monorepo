@@ -32,6 +32,16 @@ export type EServiceDocument = {
   readonly serverUrls: string[];
 };
 
+export type EServiceDescriptorSeed = z.infer<
+  typeof api.schemas.EServiceDescriptorSeed
+>;
+
+export type EServiceDescriptorState = z.infer<
+  typeof api.schemas.EServiceDescriptorState
+>;
+
+export type EServiceDescriptor = z.infer<typeof api.schemas.EServiceDescriptor>;
+
 export const convertToClientEServiceSeed = (
   seed: ApiEServiceSeed,
   producerId: string
@@ -57,4 +67,28 @@ export const convertToDocumentEServiceEventData = (
   },
   isInterface: apiEServiceDescriptorDocumentSeed.kind === "INTERFACE",
   serverUrls: apiEServiceDescriptorDocumentSeed.serverUrls,
+});
+
+export const convertToDescriptorEServiceEventData = (
+  eserviceDescriptorSeed: EServiceDescriptorSeed,
+  descriptorId: string,
+  version: string
+): EServiceDescriptor => ({
+  id: descriptorId,
+  description: eserviceDescriptorSeed.description,
+  version: version,
+  interface: undefined,
+  docs: [],
+  state: "DRAFT",
+  voucherLifespan: eserviceDescriptorSeed.voucherLifespan,
+  audience: eserviceDescriptorSeed.audience,
+  dailyCallsPerConsumer: eserviceDescriptorSeed.dailyCallsPerConsumer,
+  dailyCallsTotal: eserviceDescriptorSeed.dailyCallsTotal,
+  agreementApprovalPolicy: eserviceDescriptorSeed.agreementApprovalPolicy,
+  serverUrls: [],
+  publishedAt: undefined,
+  suspendedAt: undefined,
+  deprecatedAt: undefined,
+  archivedAt: undefined,
+  attributes: eserviceDescriptorSeed.attributes,
 });
