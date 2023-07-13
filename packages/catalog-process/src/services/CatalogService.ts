@@ -7,19 +7,26 @@ import {
   ErrorTypes,
 } from "../model/domain/errors.js";
 import { AuthData } from "../auth/authData.js";
-import { convertToClientEServiceSeed } from "../model/domain/models.js";
+import {
+  EServiceDescriptor,
+  EServiceDescriptorSeed,
+  convertToClientEServiceSeed,
+} from "../model/domain/models.js";
 import {
   ApiEServiceSeed,
   ApiEServiceDescriptorDocumentSeed,
   ApiEServiceDescriptorDocumentUpdateSeed,
 } from "../model/types.js";
 import {
+  descriptorSeedToCreateEvent,
   eserviceDescriptorDocumentSeedToCreateEvent,
   eserviceSeedToCreateEvent,
 } from "../repositories/adapters/adapters.js";
 import { eventRepository } from "../repositories/events.js";
 import { fileManager } from "../utilities/fileManager.js";
 import { readModelGateway } from "./ReadModelGateway.js";
+import { v4 as uuidv4 } from "uuid";
+import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
 
 export const catalogService = {
   async createEService(
@@ -226,5 +233,26 @@ export const catalogService = {
         document: updatedDocument,
       },
     });
+  },
+
+  async createDescriptor(
+    eServiceId: string,
+    eserviceDescriptorSeed: EServiceDescriptorSeed
+  ): Promise<EServiceDescriptor> {
+    const eservice = await readModelGateway.getEServiceById(eServiceId);
+    if (eservice === undefined) {
+      throw eServiceNotFound(eServiceId);
+    }
+
+    const newVersion = nextDescriptorVersion(eservice);
+    const descriptorId = uuidv4();
+    const createCatalogDescriptor = descriptorSeedToCreateEvent(
+      descriptorId,
+      eserviceDescriptorSeed,
+      newVersion.toString()
+    );
+
+    await eventRepository.createEvent(createCatalogDescriptor);
+    return createCatalogDescriptor.data;
   },
 };

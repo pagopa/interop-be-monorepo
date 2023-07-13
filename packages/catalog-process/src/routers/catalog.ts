@@ -13,7 +13,10 @@ const eservicesRouter = (
   eservicesRouter
     .post("/eservices", async (req, res) => {
       try {
-        const id = await catalogService.createEService(req.body, req.authData);
+        const id = await catalogService.createEService(
+          req.body,
+          req.ctx.authData
+        );
         return res.status(201).json({ id }).end();
       } catch (error) {
         const errorRes: ApiError = makeApiError(error);
@@ -25,7 +28,7 @@ const eservicesRouter = (
         await catalogService.updateEService(
           req.params.eServiceId,
           req.body,
-          req.authData
+          req.ctx.authData
         );
         return res.status(200).end();
       } catch (error) {
@@ -37,7 +40,7 @@ const eservicesRouter = (
       try {
         await catalogService.deleteEService(
           req.params.eServiceId,
-          req.authData
+          req.ctx.authData
         );
         return res.status(204).end();
       } catch (error) {
@@ -53,7 +56,7 @@ const eservicesRouter = (
             req.params.eServiceId,
             req.params.descriptorId,
             req.body,
-            req.authData
+            req.ctx.authData
           );
           return res.status(200).json({ id }).end();
         } catch (error) {
@@ -70,7 +73,7 @@ const eservicesRouter = (
             req.params.eServiceId,
             req.params.descriptorId,
             req.params.documentId,
-            req.authData
+            req.ctx.authData
           );
           return res.status(204).end();
         } catch (error) {
@@ -88,7 +91,7 @@ const eservicesRouter = (
             req.params.descriptorId,
             req.params.documentId,
             req.body,
-            req.authData
+            req.ctx.authData
           );
           return res.status(200).end();
         } catch (error) {
@@ -96,7 +99,19 @@ const eservicesRouter = (
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
-    );
+    )
+    .post("/eservices/:eServiceId/descriptors", async (req, res) => {
+      try {
+        const descriptorId = await catalogService.createDescriptor(
+          req.params.eServiceId,
+          req.body
+        );
+        return res.status(201).json(descriptorId).end();
+      } catch (error) {
+        const errorRes: ApiError = makeApiError(error);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    });
 
   return eservicesRouter;
 };
