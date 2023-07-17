@@ -8,10 +8,12 @@ import {
   eServiceCannotBeDeleted,
   eServiceCannotBeUpdated,
   eServiceNotFound,
+  notValidDescriptor,
   operationForbidden,
 } from "../model/domain/errors.js";
 import {
   EServiceDescriptorSeed,
+  UpdateEServiceDescriptorSeed,
   convertToClientEServiceSeed,
 } from "../model/domain/models.js";
 import {
@@ -298,6 +300,61 @@ export const catalogService = {
         eServiceId,
         descriptorId,
       },
+    });
+  },
+
+  async updateDescriptor(
+    eServiceId: string,
+    descriptorId: string,
+    seed: UpdateEServiceDescriptorSeed,
+    authData: AuthData
+  ): Promise<void> {
+    const eservice = await readModelGateway.getEServiceById(eServiceId);
+    if (eservice === undefined) {
+      throw eServiceNotFound(eServiceId);
+    }
+
+    if (eservice.producerId !== authData.organizationId) {
+      throw operationForbidden;
+    }
+
+    const descriptor = eservice.descriptors.find((d) => d.id === descriptorId);
+    if (descriptor === undefined) {
+      throw new CatalogProcessError(
+        `Descriptor with id ${descriptorId} of EService ${eServiceId} not found`,
+        ErrorTypes.EServiceDescriptorNotFound
+      );
+    }
+
+    if (descriptor.state === "DRAFT") {
+      throw notValidDescriptor(descriptorId, descriptor.state.toString());
+    }
+
+    const updatedDescriptor = {
+      ...descriptor,
+      description: seed.description,
+      audience: seed.audience,
+      voucherLifeSpan: seed.voucherLifespan,
+      dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
+      state: "DRAFT",
+      dailyCallsTotal: seed.dailyCallsTotal,
+      agreementApprovalPolicy: seed.agreementApprovalPolicy,
+    };
+
+    const filteredDescriptor = eservice.descriptors.filter(
+      (d) => d.id !== descriptorId
+    );
+
+    const updatedEService = {
+      ...eservice,
+      descriptor: [...filteredDescriptor, updatedDescriptor],
+    };
+
+    await eventRepository.createEvent({
+      streamId: eServiceId,
+      version: eservice.version,
+      type: "UpdateDraftDescriptor",
+      data: updatedEService,
     });
   },
 };

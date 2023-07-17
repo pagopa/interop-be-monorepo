@@ -65,6 +65,11 @@ export const ErrorTypes = {
     httpStatus: 400,
     title: "Version is not a valid descriptor version",
   },
+  NotValidDescriptor: {
+    code: "0004",
+    httpStatus: 400,
+    title: "Not valid descriptor",
+  },
 } as const;
 
 export type ErrorType = (typeof ErrorTypes)[keyof typeof ErrorTypes];
@@ -119,5 +124,15 @@ export function missingHeader(headerName: string): CatalogProcessError {
   return new CatalogProcessError(
     `Header ${headerName} not existing in this request`,
     ErrorTypes.MissingHeader
+  );
+}
+
+export function notValidDescriptor(
+  descriptorId: string,
+  descriptorStatus: string
+): CatalogProcessError {
+  return new CatalogProcessError(
+    `Descriptor ${descriptorId} has a not valid status for this operation ${descriptorStatus}`,
+    ErrorTypes.NotValidDescriptor
   );
 }
