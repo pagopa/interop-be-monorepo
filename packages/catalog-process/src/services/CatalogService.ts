@@ -313,12 +313,12 @@ export const catalogService = {
       await fileManager.deleteFile(interfacePath.path);
     }
 
-    const deletDescriptorDocs = descriptor.docs.map((doc) =>
+    const deleteDescriptorDocs = descriptor.docs.map((doc) =>
       fileManager.deleteFile(doc.path)
     );
 
     try {
-      await Promise.allSettled(deletDescriptorDocs);
+      await Promise.allSettled(deleteDescriptorDocs);
     } catch (error) {
       logger.error(
         `Error deleting documents for descriptor ${descriptorId} : ${error}`
