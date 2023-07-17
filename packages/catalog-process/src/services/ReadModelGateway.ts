@@ -17,9 +17,24 @@ type EService = z.infer<typeof api.schemas.EService>;
 
 export const readModelGateway = {
   async getEServices(): Promise<CatalogItem[]> {
-    const data = await catalog.find({}).toArray();
+    const aggregationPipeline = [
+      {
+        $project: {
+          data: 1,
+          computedColumn: { $toLower: ["$data.name"] },
+        },
+      },
+      {
+        $sort: { computedColumn: 1 },
+      },
+    ];
 
-    const result = z.array(catalogItem).safeParse(data);
+    const data = await catalog
+      .aggregate(aggregationPipeline)
+      .sort({ lowerName: 1 })
+      .toArray();
+
+    const result = z.array(catalogItem).safeParse(data.map((d) => d.data));
     return result.success ? result.data : [];
   },
   async getEServiceById(id: string): Promise<CatalogItem | undefined> {
