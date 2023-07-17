@@ -16,6 +16,12 @@ const catalog = db.collection("catalog");
 type EService = z.infer<typeof api.schemas.EService>;
 
 export const readModelGateway = {
+  async getEServices(): Promise<Array<z.infer<typeof catalogItem>>> {
+    const data = await catalog.find({}).toArray();
+
+    const result = z.array(catalogItem).safeParse(data);
+    return result.success ? result.data : [];
+  },
   async getEServiceById(
     id: string
   ): Promise<z.infer<typeof catalogItem> | undefined> {

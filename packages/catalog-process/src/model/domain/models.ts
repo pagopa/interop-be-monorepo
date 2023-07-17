@@ -3,6 +3,8 @@
   This file will be removed once all models are converted from scala.
  */
 import { z } from "zod";
+import { attribute, catalogItem } from "models";
+import { match } from "ts-pattern";
 import * as api from "../generated/api.js";
 import {
   ApiEServiceDescriptorDocumentSeed,
@@ -96,3 +98,49 @@ export const convertToDescriptorEServiceEventData = (
   archivedAt: undefined,
   attributes: eserviceDescriptorSeed.attributes,
 });
+
+export const convertCatalogToEService = (
+  catalog: z.infer<typeof catalogItem>
+): z.infer<typeof api.schemas.EService> => {
+  const mapAttribute = (a: z.infer<typeof attribute>) =>
+    match(a)
+      .with({ type: "SingleAttribute" }, (a) => ({
+        single: a.id,
+      }))
+      .with({ type: "GroupAttribute" }, (a) => ({
+        group: a.ids,
+      }))
+      .exhaustive();
+
+  return {
+    id: catalog.id,
+    producerId: catalog.producerId,
+    name: catalog.name,
+    description: catalog.description,
+    technology: catalog.technology,
+    descriptors: catalog.descriptors.map((descriptor) => ({
+      id: descriptor.id,
+      version: descriptor.version,
+      description: descriptor.description,
+      audience: descriptor.audience,
+      voucherLifespan: descriptor.voucherLifespan,
+      dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
+      dailyCallsTotal: descriptor.dailyCallsTotal,
+      interface: descriptor.interface,
+      docs: descriptor.docs,
+      state: descriptor.state,
+      agreementApprovalPolicy:
+        descriptor.agreementApprovalPolicy ?? "AUTOMATIC",
+      serverUrls: descriptor.serverUrls,
+      publishedAt: descriptor.publishedAt,
+      suspendedAt: descriptor.suspendedAt,
+      deprecatedAt: descriptor.deprecatedAt,
+      archivedAt: descriptor.archivedAt,
+      attributes: {
+        certified: descriptor.attributes.certified.map(mapAttribute),
+        declared: descriptor.attributes.declared.map(mapAttribute),
+        verified: descriptor.attributes.verified.map(mapAttribute),
+      },
+    })),
+  };
+};
