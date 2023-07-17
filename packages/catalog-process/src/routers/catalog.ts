@@ -104,7 +104,8 @@ const eservicesRouter = (
       try {
         const id = await catalogService.createDescriptor(
           req.params.eServiceId,
-          req.body
+          req.body,
+          req.ctx.authData
         );
         return res.status(200).json({ id }).end();
       } catch (error) {
@@ -118,7 +119,8 @@ const eservicesRouter = (
         try {
           await catalogService.deleteDraftDescriptor(
             req.params.eServiceId,
-            req.params.descriptorId
+            req.params.descriptorId,
+            req.ctx.authData
           );
           return res.status(204).end();
         } catch (error) {

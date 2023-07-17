@@ -70,6 +70,11 @@ export const ErrorTypes = {
     httpStatus: 400,
     title: "Not valid descriptor",
   },
+  DraftDescriptorAlreadyExists: {
+    code: "0008",
+    httpStatus: 400,
+    title: "EService already contains a draft descriptor",
+  },
 } as const;
 
 export type ErrorType = (typeof ErrorTypes)[keyof typeof ErrorTypes];
@@ -134,5 +139,14 @@ export function notValidDescriptor(
   return new CatalogProcessError(
     `Descriptor ${descriptorId} has a not valid status for this operation ${descriptorStatus}`,
     ErrorTypes.NotValidDescriptor
+  );
+}
+
+export function draftDescriptorAlreadyExists(
+  eServiceId: string
+): CatalogProcessError {
+  return new CatalogProcessError(
+    `EService ${eServiceId} already contains a draft descriptor`,
+    ErrorTypes.DraftDescriptorAlreadyExists
   );
 }
