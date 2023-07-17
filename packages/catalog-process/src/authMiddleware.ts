@@ -27,7 +27,7 @@ type Headers = z.infer<typeof Headers>;
 export const authMiddleware: ZodiosRouterContextRequestHandler<
   ExpressContext
 > = (req, res, next) => {
-  const handleJwtToken = (headers: Headers) => {
+  const addCtxAuthData = (headers: Headers): void => {
     const authorizationHeader = headers.Authorization.split(" ");
     if (
       authorizationHeader.length !== 2 ||
@@ -77,7 +77,7 @@ export const authMiddleware: ZodiosRouterContextRequestHandler<
           "X-Correlation-Id": P.string,
           "X-Forwarded-For": P.string.regex(ipRegex).or(P.nullish),
         },
-        (headers) => handleJwtToken(headers)
+        (headers) => addCtxAuthData(headers)
       )
       .with(
         {
