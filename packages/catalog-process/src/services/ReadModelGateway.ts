@@ -5,19 +5,75 @@
 import { MongoClient } from "mongodb";
 import { z } from "zod";
 import { catalogItem, CatalogItem, Document } from "models";
+import { match } from "ts-pattern";
 import * as api from "../model/generated/api.js";
+import { AuthData } from "../auth/authData.js";
 
 const mongoUri = "mongodb://root:example@localhost:27017";
 const client = new MongoClient(mongoUri);
 
 const db = client.db("readmodel");
 const catalog = db.collection("catalog");
+const agreements = db.collection("agreements");
 
 type EService = z.infer<typeof api.schemas.EService>;
 
 export const readModelGateway = {
-  async getEServices(): Promise<CatalogItem[]> {
+  async getEServices(
+    authData: AuthData,
+    eservicesIds: string[],
+    producersIds: string[],
+    states: Array<
+      "DRAFT" | "PUBLISHED" | "DEPRECATED" | "SUSPENDED" | "ARCHIVED"
+    >,
+    agreementStates: Array<
+      | "DRAFT"
+      | "SUSPENDED"
+      | "ARCHIVED"
+      | "PENDING"
+      | "ACTIVE"
+      | "MISSING_CERTIFIED_ATTRIBUTES"
+      | "REJECTED"
+    >,
+    offset: number,
+    limit: number,
+    name?: { value: string; exactMatch: boolean }
+  ): Promise<CatalogItem[]> {
+    const ids = await match(agreementStates.length)
+      .with(0, () => eservicesIds)
+      .otherwise(async () =>
+        (
+          await this.listAgreements(
+            eservicesIds,
+            [authData.organizationId],
+            [],
+            agreementStates
+          )
+        ).map((a) => a.eserviceId)
+      );
+
+    if (agreementStates.length > 0 && ids.length === 0) {
+      return [];
+    }
+
+    const nameFilter = name
+      ? {
+          "data.name": {
+            $regex: name.exactMatch ? `^${name.value}$$` : name.value,
+            $options: "i",
+          },
+        }
+      : {};
+
     const aggregationPipeline = [
+      {
+        $match: {
+          nameFilter,
+          "data.descriptors": { $elemMatch: { state: { $in: states } } },
+          "data.id": { $in: ids },
+          "data.producerId": { $in: producersIds },
+        },
+      },
       {
         $project: {
           data: 1,
@@ -32,6 +88,8 @@ export const readModelGateway = {
     const data = await catalog
       .aggregate(aggregationPipeline)
       .sort({ lowerName: 1 })
+      .skip(offset)
+      .limit(limit)
       .toArray();
 
     const result = z.array(catalogItem).safeParse(data.map((d) => d.data));
@@ -79,5 +137,43 @@ export const readModelGateway = {
     return catalog?.descriptors
       .find((d) => d.id === descriptorId)
       ?.docs.find((d) => d.id === documentId);
+  },
+  async listAgreements(
+    eservicesIds: string[],
+    consumersIds: string[],
+    producersIds: string[],
+    states: Array<
+      | "DRAFT"
+      | "SUSPENDED"
+      | "ARCHIVED"
+      | "PENDING"
+      | "ACTIVE"
+      | "MISSING_CERTIFIED_ATTRIBUTES"
+      | "REJECTED"
+    >
+  ): Promise<Array<{ eserviceId: string }>> {
+    const aggregationPipeline = [
+      {
+        $match: {
+          "data.eserviceId": { $in: eservicesIds },
+          "data.consumerId": { $in: consumersIds },
+          "data.producerId": { $in: producersIds },
+          "data.state": { $elemMatch: { state: { $in: states } } },
+        },
+      },
+      {
+        $project: {
+          data: 1,
+        },
+      },
+      {
+        $sort: { "data.id": 1 },
+      },
+    ];
+    const data = await agreements.aggregate(aggregationPipeline).toArray();
+    const result = z
+      .array(z.object({ eserviceId: z.string() }))
+      .safeParse(data);
+    return result.success ? result.data : [];
   },
 };
