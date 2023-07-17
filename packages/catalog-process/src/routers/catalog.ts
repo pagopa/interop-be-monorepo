@@ -1,13 +1,11 @@
 import { ZodiosRouter } from "@zodios/express";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
-import { match } from "ts-pattern";
-import { z } from "zod";
-import { attribute } from "models";
 import { ExpressContext, ZodiosContext } from "../app.js";
 import { api } from "../model/generated/api.js";
 import { ApiError, makeApiError } from "../model/types.js";
 import { catalogService } from "../services/CatalogService.js";
 import { readModelGateway } from "../services/ReadModelGateway.js";
+import { convertCatalogToEService } from "../model/domain/models.js";
 
 const eservicesRouter = (
   ctx: ZodiosContext
@@ -17,12 +15,17 @@ const eservicesRouter = (
   eservicesRouter
     .get("/eservices", async (_, res) => {
       try {
-        await readModelGateway.getEServiceById("1");
+        const catalogs = await readModelGateway.getEServices();
 
-        // const eServices = await catalogService.getEServices(req.authData);
-        return res.status(200).end();
+        return res
+          .status(200)
+          .json({
+            results: catalogs.map(convertCatalogToEService),
+            totalCount: catalogs.length,
+          })
+          .end();
       } catch (error) {
-        return res.status(200).end();
+        return res.status(500).end();
       }
     })
     .post("/eservices", async (req, res) => {
@@ -43,33 +46,8 @@ const eservicesRouter = (
           req.params.eServiceId
         );
 
-        const mapAttribute = (a: z.infer<typeof attribute>) =>
-          match(a)
-            .with({ type: "SingleAttribute" }, (a) => ({
-              single: a.id,
-            }))
-            .with({ type: "GroupAttribute" }, (a) => ({
-              group: a.ids,
-            }))
-            .exhaustive();
-
         if (catalog) {
-          return res
-            .status(200)
-            .json({
-              ...catalog,
-              descriptors: catalog.descriptors.map((descriptor) => ({
-                ...descriptor,
-                agreementApprovalPolicy:
-                  descriptor.agreementApprovalPolicy ?? "AUTOMATIC",
-                attributes: {
-                  certified: descriptor.attributes.certified.map(mapAttribute),
-                  declared: descriptor.attributes.declared.map(mapAttribute),
-                  verified: descriptor.attributes.verified.map(mapAttribute),
-                },
-              })),
-            })
-            .end();
+          return res.status(200).json(convertCatalogToEService(catalog)).end();
         } else {
           return res.status(404).end();
         }
@@ -105,10 +83,6 @@ const eservicesRouter = (
     })
     .get("/eservices/:eServiceId/consumers", async (_, res) => {
       try {
-        // const consumers = await catalogService.getConsumers(
-        //   req.params.eServiceId,
-        //   req.authData
-        // );
         return res.status(200).end();
       } catch (error) {
         const errorRes: ApiError = makeApiError(error);
@@ -119,12 +93,6 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId",
       async (_, res) => {
         try {
-          // const document = await catalogService.getDocument(
-          //   req.params.eServiceId,
-          //   req.params.descriptorId,
-          //   req.params.documentId,
-          //   req.authData
-          // );
           return res.status(200).end();
         } catch (error) {
           const errorRes: ApiError = makeApiError(error);
