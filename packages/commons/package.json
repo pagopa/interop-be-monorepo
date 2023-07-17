@@ -19,11 +19,13 @@
   "license": "Apache-2.0",
   "dependencies": {
     "dotenv-flow": "^3.2.0",
+    "jsonwebtoken": "^9.0.0",
     "winston": "^3.9.0",
     "zod": "^3.21.4"
   },
   "devDependencies": {
     "@types/dotenv-flow": "^3.2.0",
+    "@types/jsonwebtoken": "^9.0.2",
     "@types/node": "^20.3.1",
     "eslint": "^8.44.0",
     "prettier": "^2.8.8",
