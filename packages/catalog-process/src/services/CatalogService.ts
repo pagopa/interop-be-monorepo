@@ -10,6 +10,7 @@ import {
   eServiceNotFound,
   notValidDescriptor,
   operationForbidden,
+  eServiceDocumentNotFound,
 } from "../model/domain/errors.js";
 import {
   EService,
@@ -188,10 +189,7 @@ export const catalogService = {
     );
 
     if (document === undefined) {
-      throw new CatalogProcessError(
-        `Document with id ${documentId} not found in EService ${eServiceId} / Descriptor ${descriptorId}`,
-        ErrorTypes.EServiceDocumentNotFound
-      );
+      throw eServiceDocumentNotFound(eServiceId, descriptorId, documentId);
     }
 
     await fileManager.deleteFile(document.path);
@@ -237,10 +235,7 @@ export const catalogService = {
     );
 
     if (document === undefined) {
-      throw new CatalogProcessError(
-        `Document with id ${documentId} not found in EService ${eServiceId} / Descriptor ${descriptorId}`,
-        ErrorTypes.EServiceDocumentNotFound
-      );
+      throw eServiceDocumentNotFound(eServiceId, descriptorId, documentId);
     }
 
     const updatedDocument = {
