@@ -150,3 +150,14 @@ export function draftDescriptorAlreadyExists(
     ErrorTypes.DraftDescriptorAlreadyExists
   );
 }
+
+export function eServiceDocumentNotFound(
+  eServiceId: string,
+  descriptorId: string,
+  documentId: string
+): CatalogProcessError {
+  return new CatalogProcessError(
+    `Document with id ${documentId} not found in EService ${eServiceId} / Descriptor ${descriptorId}`,
+    ErrorTypes.EServiceDocumentNotFound
+  );
+}

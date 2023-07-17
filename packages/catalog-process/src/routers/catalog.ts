@@ -6,6 +6,11 @@ import { ApiError, makeApiError } from "../model/types.js";
 import { catalogService } from "../services/CatalogService.js";
 import { readModelGateway } from "../services/ReadModelGateway.js";
 import { convertCatalogToEService } from "../model/domain/models.js";
+import { logger } from "../utilities/logger.js";
+import {
+  eServiceDocumentNotFound,
+  eServiceNotFound,
+} from "../model/domain/errors.js";
 
 const eservicesRouter = (
   ctx: ZodiosContext
@@ -49,7 +54,10 @@ const eservicesRouter = (
         if (catalog) {
           return res.status(200).json(convertCatalogToEService(catalog)).end();
         } else {
-          return res.status(404).end();
+          return res
+            .status(404)
+            .json(makeApiError(eServiceNotFound(req.params.eServiceId)))
+            .end();
         }
       } catch (error) {
         const errorRes: ApiError = makeApiError(error);
@@ -81,8 +89,20 @@ const eservicesRouter = (
         return res.status(errorRes.status).json(errorRes).end();
       }
     })
-    .get("/eservices/:eServiceId/consumers", async (_, res) => {
+    .get("/eservices/:eServiceId/consumers", async (req, res) => {
       try {
+        const eServiceId = req.params.eServiceId;
+        const offset = req.query.offset;
+        const limit = req.query.limit;
+
+        const consumers = await readModelGateway.getEServiceConsumers(
+          eServiceId,
+          offset,
+          limit
+        );
+
+        logger.info(consumers);
+
         return res.status(200).end();
       } catch (error) {
         const errorRes: ApiError = makeApiError(error);
@@ -91,9 +111,37 @@ const eservicesRouter = (
     })
     .get(
       "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId",
-      async (_, res) => {
+      async (req, res) => {
         try {
-          return res.status(200).end();
+          const { eServiceId, descriptorId, documentId } = req.params;
+
+          const document = await readModelGateway.getDocumentById(
+            eServiceId,
+            descriptorId,
+            documentId
+          );
+
+          if (document) {
+            return res
+              .status(200)
+              .json({
+                id: document.id,
+                name: document.name,
+                contentType: document.contentType,
+                prettyName: document.prettyName,
+                path: document.path,
+              })
+              .end();
+          } else {
+            return res
+              .status(404)
+              .json(
+                makeApiError(
+                  eServiceDocumentNotFound(eServiceId, descriptorId, documentId)
+                )
+              )
+              .end();
+          }
         } catch (error) {
           const errorRes: ApiError = makeApiError(error);
           return res.status(errorRes.status).json(errorRes).end();
