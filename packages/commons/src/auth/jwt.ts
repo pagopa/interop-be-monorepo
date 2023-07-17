@@ -1,11 +1,11 @@
-import jwt from "jsonwebtoken";
-import { logger } from "pagopa-interop-commons";
+import { decode } from "jsonwebtoken";
+import { logger } from "../index.js";
 import { AuthData, AuthJWTToken } from "./authData.js";
 
 export const readAuthDataFromJwtToken = (
   jwtToken: string
 ): AuthData | Error => {
-  const decoded = jwt.decode(jwtToken, { json: true });
+  const decoded = decode(jwtToken, { json: true });
   const token = AuthJWTToken.safeParse(decoded);
 
   if (token.success === false) {
