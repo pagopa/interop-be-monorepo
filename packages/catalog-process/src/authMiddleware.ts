@@ -1,4 +1,3 @@
-/* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/naming-convention */
 import { ZodiosRouterContextRequestHandler } from "@zodios/express";
 import { logger } from "pagopa-interop-commons";
@@ -53,8 +52,11 @@ export const authMiddleware: ZodiosRouterContextRequestHandler<
           sub: P.string,
         }),
         (claimsRes: AuthData) => {
+          // eslint-disable-next-line functional/immutable-data
           req.ctx.authData = claimsRes;
+          // eslint-disable-next-line functional/immutable-data
           req.ctx.correlationId = headers["X-Correlation-Id"];
+          // eslint-disable-next-line functional/immutable-data
           req.ctx.ip = headers["X-Forwarded-For"];
           next();
         }
