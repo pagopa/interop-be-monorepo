@@ -4,6 +4,7 @@ import { AuthData } from "../../../commons/src/auth/authData.js";
 import {
   CatalogProcessError,
   ErrorTypes,
+  draftDescriptorAlreadyExists,
   eServiceCannotBeDeleted,
   eServiceCannotBeUpdated,
   eServiceNotFound,
@@ -11,6 +12,7 @@ import {
   operationForbidden,
 } from "../model/domain/errors.js";
 import {
+  EService,
   EServiceDescriptorSeed,
   UpdateEServiceDescriptorSeed,
   convertToClientEServiceSeed,
@@ -29,6 +31,34 @@ import { eventRepository } from "../repositories/events.js";
 import { fileManager } from "../utilities/fileManager.js";
 import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
 import { readModelGateway } from "./ReadModelGateway.js";
+
+const assertRequesterAllowed = (
+  producerId: string,
+  requesterId: string
+): void => {
+  if (producerId !== requesterId) {
+    throw operationForbidden;
+  }
+};
+
+const retrieveEService = async (eServiceId: string): Promise<EService> => {
+  const eservice = await readModelGateway.getEServiceById(eServiceId);
+  if (eservice === undefined) {
+    throw eServiceNotFound(eServiceId);
+  }
+  return eservice;
+};
+
+const hasNotDraftDescriptor = (eService: EService): boolean => {
+  const hasNotDraftDescriptor = eService.descriptors.some(
+    (d) => d.state === "DRAFT",
+    0
+  );
+  if (!hasNotDraftDescriptor) {
+    throw draftDescriptorAlreadyExists(eService.id);
+  }
+  return hasNotDraftDescriptor;
+};
 
 export const catalogService = {
   async createEService(
@@ -58,15 +88,8 @@ export const catalogService = {
     eservicesSeed: ApiEServiceSeed,
     authData: AuthData
   ): Promise<void> {
-    const eservice = await readModelGateway.getEServiceById(eServiceId);
-
-    if (eservice === undefined) {
-      throw eServiceNotFound(eServiceId);
-    }
-
-    if (eservice.producerId !== authData.organizationId) {
-      throw operationForbidden;
-    }
+    const eservice = await retrieveEService(eServiceId);
+    assertRequesterAllowed(eservice.producerId, authData.organizationId);
 
     if (
       !(
@@ -239,12 +262,14 @@ export const catalogService = {
 
   async createDescriptor(
     eServiceId: string,
-    eserviceDescriptorSeed: EServiceDescriptorSeed
+    eserviceDescriptorSeed: EServiceDescriptorSeed,
+    authData: AuthData
   ): Promise<string> {
-    const eservice = await readModelGateway.getEServiceById(eServiceId);
-    if (eservice === undefined) {
-      throw eServiceNotFound(eServiceId);
-    }
+    logger.info(`Creating Descriptor for EService ${eServiceId}`);
+
+    const eservice = await retrieveEService(eServiceId);
+    assertRequesterAllowed(eservice.producerId, authData.organizationId);
+    hasNotDraftDescriptor(eservice);
 
     const newVersion = nextDescriptorVersion(eservice);
     const descriptorId = uuidv4();
@@ -260,16 +285,15 @@ export const catalogService = {
 
   async deleteDraftDescriptor(
     eServiceId: string,
-    descriptorId: string
+    descriptorId: string,
+    authData: AuthData
   ): Promise<void> {
     logger.info(
       `Deleting draft Descriptor ${descriptorId} of EService ${eServiceId}`
     );
 
-    const eservice = await readModelGateway.getEServiceById(eServiceId);
-    if (eservice === undefined) {
-      throw eServiceNotFound(eServiceId);
-    }
+    const eservice = await retrieveEService(eServiceId);
+    assertRequesterAllowed(eservice.producerId, authData.organizationId);
 
     const descriptor = eservice.descriptors.find(
       (d) => d.id === descriptorId && d.state === "DRAFT"
