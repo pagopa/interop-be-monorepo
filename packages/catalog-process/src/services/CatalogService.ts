@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/no-ignored-return */
 import { logger } from "pagopa-interop-commons";
 import { v4 as uuidv4 } from "uuid";
 import { AuthData } from "../../../commons/src/auth/authData.js";
@@ -290,7 +289,17 @@ export const catalogService = {
       await fileManager.deleteFile(interfacePath.path);
     }
 
-    descriptor.docs.map(async (doc) => await fileManager.deleteFile(doc.path));
+    const deletDescriptorDocs = descriptor.docs.map((doc) =>
+      fileManager.deleteFile(doc.path)
+    );
+
+    try {
+      await Promise.allSettled(deletDescriptorDocs);
+    } catch (error) {
+      logger.error(
+        `Error deleting documents for descriptor ${descriptorId} : ${error}`
+      );
+    }
 
     await eventRepository.createEvent({
       streamId: eServiceId,
