@@ -18,9 +18,28 @@ const eservicesRouter = (
   const eservicesRouter = ctx.router(api.api);
 
   eservicesRouter
-    .get("/eservices", async (_, res) => {
+    .get("/eservices", async (req, res) => {
       try {
-        const catalogs = await readModelGateway.getEServices();
+        const {
+          name,
+          eservicesIds,
+          producersIds,
+          states,
+          agreementStates,
+          offset,
+          limit,
+        } = req.query;
+
+        const catalogs = await readModelGateway.getEServices(
+          req.authData,
+          eservicesIds,
+          producersIds,
+          states,
+          agreementStates,
+          offset,
+          limit,
+          name ? { value: name, exactMatch: false } : undefined
+        );
 
         return res
           .status(200)
