@@ -42,6 +42,10 @@ export type EServiceDescriptorState = z.infer<
 
 export type EServiceDescriptor = z.infer<typeof api.schemas.EServiceDescriptor>;
 
+export type UpdateEServiceDescriptorSeed = z.infer<
+  typeof api.schemas.UpdateEServiceDescriptorSeed
+>;
+
 export const convertToClientEServiceSeed = (
   seed: ApiEServiceSeed,
   producerId: string
@@ -76,7 +80,7 @@ export const convertToDescriptorEServiceEventData = (
 ): EServiceDescriptor => ({
   id: descriptorId,
   description: eserviceDescriptorSeed.description,
-  version: version,
+  version,
   interface: undefined,
   docs: [],
   state: "DRAFT",

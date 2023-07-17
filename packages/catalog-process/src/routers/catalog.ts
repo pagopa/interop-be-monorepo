@@ -106,7 +106,7 @@ const eservicesRouter = (
           req.params.eServiceId,
           req.body
         );
-        return res.status(200).json({id}).end();
+        return res.status(200).json({ id }).end();
       } catch (error) {
         const errorRes: ApiError = makeApiError(error);
         return res.status(errorRes.status).json(errorRes).end();
@@ -121,6 +121,23 @@ const eservicesRouter = (
             req.params.descriptorId
           );
           return res.status(204).end();
+        } catch (error) {
+          const errorRes: ApiError = makeApiError(error);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
+    .put(
+      "/eservices/:eServiceId/descriptors/:descriptorId",
+      async (req, res) => {
+        try {
+          await catalogService.updateDescriptor(
+            req.params.eServiceId,
+            req.params.descriptorId,
+            req.body,
+            req.ctx.authData
+          );
+          return res.status(200).end();
         } catch (error) {
           const errorRes: ApiError = makeApiError(error);
           return res.status(errorRes.status).json(errorRes).end();
