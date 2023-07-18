@@ -3,7 +3,7 @@
   This file will be removed once all models are converted from scala.
  */
 import { z } from "zod";
-import { attribute, catalogItem } from "models";
+import { CatalogItem, attribute } from "models";
 import { match } from "ts-pattern";
 import * as api from "../generated/api.js";
 import {
@@ -100,7 +100,7 @@ export const convertToDescriptorEServiceEventData = (
 });
 
 export const convertCatalogToEService = (
-  catalog: z.infer<typeof catalogItem>
+  catalog: CatalogItem
 ): z.infer<typeof api.schemas.EService> => {
   const mapAttribute = (a: z.infer<typeof attribute>) =>
     match(a)
