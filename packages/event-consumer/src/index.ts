@@ -17,12 +17,15 @@ const kafka = new Kafka({
 const consumer = kafka.consumer({ groupId: "my-group" });
 await consumer.connect();
 
-// process.on("SIGINT", function () {
-//   consumer.disconnect().then(
-//     () => console.log("Disconnected"),
-//     (err) => console.log(err)
-//   );
-// });
+function exitGracefully(): void {
+  consumer.disconnect().finally(() => {
+    logger.info("Consumer disconnected");
+    process.exit(0);
+  });
+}
+
+process.on("SIGINT", exitGracefully);
+process.on("SIGTERM", exitGracefully);
 
 await consumer.subscribe({
   topics: ["catalog.public.event"],
