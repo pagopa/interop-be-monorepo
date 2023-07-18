@@ -1,0 +1,29 @@
+{
+  "name": "pagopa-interop-models",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PagoPA Interoperability models",
+  "main": "dist",
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:autofix": "eslint . --ext .ts,.tsx --fix",
+    "format:check": "prettier --check src",
+    "format:write": "prettier --write src",
+    "start": "node --watch --no-warnings --loader ts-node/esm ./src/index.ts",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "zod": "^3.21.4"
+  },
+  "devDependencies": {
+    "rimraf": "^5.0.1",
+    "typescript": "^5.1.3"
+  }
+}
