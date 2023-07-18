@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { AuthData } from "../../commons/src/auth/authData.js";
+import { AuthData } from "pagopa-interop-commons";
 
 export const ctx = z.object({
   authData: AuthData,

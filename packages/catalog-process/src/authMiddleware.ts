@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { ZodiosRouterContextRequestHandler } from "@zodios/express";
-import { logger } from "pagopa-interop-commons";
+import {
+  logger,
+  readAuthDataFromJwtToken,
+  AuthData,
+} from "pagopa-interop-commons";
 import { match, P } from "ts-pattern";
 import { z } from "zod";
-import { AuthData } from "../../commons/src/auth/authData.js";
-import { readAuthDataFromJwtToken } from "../../commons/src/auth/jwt.js";
 import { ExpressContext } from "./app.js";
 import {
   CatalogProcessError,
@@ -45,28 +47,21 @@ export const authMiddleware: ZodiosRouterContextRequestHandler<
     const authData = readAuthDataFromJwtToken(jwtToken);
 
     match(authData)
-      .with(
-        P.shape({
-          organizationId: P.string,
-          userId: P.string,
-          sub: P.string,
-        }),
-        (claimsRes: AuthData) => {
-          // eslint-disable-next-line functional/immutable-data
-          req.ctx.authData = claimsRes;
-          // eslint-disable-next-line functional/immutable-data
-          req.ctx.correlationId = headers["X-Correlation-Id"];
-          // eslint-disable-next-line functional/immutable-data
-          req.ctx.ip = headers["X-Forwarded-For"];
-          next();
-        }
-      )
       .with(P.instanceOf(Error), (err) => {
         logger.warn(`Invalid authentication provided: ${err.message}`);
         throw new CatalogProcessError(
           `Invalid claims: ${err.message}`,
           ErrorTypes.MissingClaim
         );
+      })
+      .otherwise((claimsRes: AuthData) => {
+        // eslint-disable-next-line functional/immutable-data
+        req.ctx.authData = claimsRes;
+        // eslint-disable-next-line functional/immutable-data
+        req.ctx.correlationId = headers["X-Correlation-Id"];
+        // eslint-disable-next-line functional/immutable-data
+        req.ctx.ip = headers["X-Forwarded-For"];
+        next();
       });
   };
 
