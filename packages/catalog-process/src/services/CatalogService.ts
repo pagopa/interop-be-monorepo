@@ -317,13 +317,11 @@ export const catalogService = {
       fileManager.deleteFile(doc.path)
     );
 
-    try {
-      await Promise.allSettled(deleteDescriptorDocs);
-    } catch (error) {
+    await Promise.all(deleteDescriptorDocs).catch((error) => {
       logger.error(
         `Error deleting documents for descriptor ${descriptorId} : ${error}`
       );
-    }
+    });
 
     await eventRepository.createEvent({
       streamId: eServiceId,
