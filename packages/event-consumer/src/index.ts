@@ -7,7 +7,7 @@ const mongoUri = "mongodb://root:example@localhost:27017";
 const client = new MongoClient(mongoUri);
 
 const db = client.db("readmodel");
-const catalog = db.collection("catalog");
+const catalog = db.collection("eservices");
 
 const kafka = new Kafka({
   clientId: "my-app",
