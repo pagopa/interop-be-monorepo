@@ -7,8 +7,8 @@ import {
   convertToDescriptorEServiceEventData,
   convertToDocumentEServiceEventData,
 } from "../../model/domain/models.js";
-import { CreateEvent } from "../events.js";
 import { ApiEServiceDescriptorDocumentSeed } from "../../model/types.js";
+import { CreateEvent } from "../EventRepository.js";
 
 export const eserviceSeedToCreateEvent = (
   eserviceSeed: EServiceSeed
