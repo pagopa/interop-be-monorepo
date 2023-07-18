@@ -6,7 +6,6 @@ import { ApiError, makeApiError } from "../model/types.js";
 import { catalogService } from "../services/CatalogService.js";
 import { readModelGateway } from "../services/ReadModelGateway.js";
 import { convertCatalogToEService } from "../model/domain/models.js";
-import { logger } from "../utilities/logger.js";
 import {
   eServiceDocumentNotFound,
   eServiceNotFound,
@@ -120,9 +119,19 @@ const eservicesRouter = (
           limit
         );
 
-        logger.info(consumers);
-
-        return res.status(200).end();
+        return res
+          .status(200)
+          .json({
+            results: consumers.map((c) => ({
+              descriptorVersion: parseInt(c.descriptorVersion, 10),
+              descriptorState: c.descriptorState,
+              agreementState: c.agreementState,
+              consumerName: c.consumerName,
+              consumerExternalId: c.consumerExternalId,
+            })),
+            totalCount: consumers.length,
+          })
+          .end();
       } catch (error) {
         const errorRes: ApiError = makeApiError(error);
         return res.status(errorRes.status).json(errorRes).end();
