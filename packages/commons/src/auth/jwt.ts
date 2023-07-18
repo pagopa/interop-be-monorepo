@@ -24,5 +24,4 @@ export const hasPermission = (
   permissions: string[],
   authData: AuthData
 ): boolean =>
-  authData.userRoles.filter((role: string) => permissions.includes(role))
-    .length > 0;
+  authData.userRoles.some((role: string) => permissions.includes(role));
