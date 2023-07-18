@@ -1,7 +1,3 @@
-/*  =======================================================================
-  IMPORTANT: This service mocks all operations performed throught read models
-===========================================================================  */
-
 import { MongoClient } from "mongodb";
 import { z } from "zod";
 import {
@@ -14,7 +10,6 @@ import {
   DescriptorState,
 } from "models";
 import { match } from "ts-pattern";
-import * as api from "../model/generated/api.js";
 import { AuthData } from "../auth/authData.js";
 import { Consumer, consumer } from "../model/domain/models.js";
 
@@ -25,10 +20,8 @@ const db = client.db("readmodel");
 const catalog = db.collection("eservices");
 const agreements = db.collection("agreements");
 
-type EService = z.infer<typeof api.schemas.EService>;
-
 export const readModelGateway = {
-  async getEServices(
+  async getCatalogItems(
     authData: AuthData,
     eservicesIds: string[],
     producersIds: string[],
@@ -94,7 +87,7 @@ export const readModelGateway = {
     const result = z.array(catalogItem).safeParse(data.map((d) => d.data));
     return result.success ? result.data : [];
   },
-  async getEServiceById(
+  async getCatalogItemById(
     id: string
   ): Promise<(CatalogItem & { version: number }) | undefined> {
     const data = await catalog.findOne(
@@ -113,9 +106,6 @@ export const readModelGateway = {
 
     return undefined;
   },
-  async getEServiceByName(_name: string): Promise<EService | undefined> {
-    return undefined;
-  },
   async getEServiceDescriptorDocumentById(_id: string): Promise<
     | {
         version: number;
@@ -131,7 +121,7 @@ export const readModelGateway = {
   > {
     return undefined;
   },
-  async getEServiceConsumers(
+  async getCatalogItemConsumers(
     eServiceId: string,
     offset: number,
     limit: number
@@ -222,7 +212,7 @@ export const readModelGateway = {
     descriptorId: string,
     documentId: string
   ): Promise<Document | undefined> {
-    const catalog = await this.getEServiceById(eServiceId);
+    const catalog = await this.getCatalogItemById(eServiceId);
     return catalog?.descriptors
       .find((d) => d.id === descriptorId)
       ?.docs.find((d) => d.id === documentId);

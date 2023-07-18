@@ -3,8 +3,8 @@ import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ExpressContext, ZodiosContext } from "../app.js";
 import { api } from "../model/generated/api.js";
 import { ApiError, makeApiError } from "../model/types.js";
-import { catalogService } from "../services/CatalogService.js";
-import { readModelGateway } from "../services/ReadModelGateway.js";
+import { catalogService } from "../services/catalogService.js";
+import { readModelGateway } from "../services/readModelGateway.js";
 import { convertCatalogToEService } from "../model/domain/models.js";
 import {
   eServiceDocumentNotFound,
@@ -29,7 +29,7 @@ const eservicesRouter = (
           limit,
         } = req.query;
 
-        const catalogs = await readModelGateway.getEServices(
+        const catalogs = await readModelGateway.getCatalogItems(
           req.authData,
           eservicesIds,
           producersIds,
@@ -65,7 +65,7 @@ const eservicesRouter = (
     })
     .get("/eservices/:eServiceId", async (req, res) => {
       try {
-        const catalog = await readModelGateway.getEServiceById(
+        const catalog = await readModelGateway.getCatalogItemById(
           req.params.eServiceId
         );
 
@@ -113,7 +113,7 @@ const eservicesRouter = (
         const offset = req.query.offset;
         const limit = req.query.limit;
 
-        const consumers = await readModelGateway.getEServiceConsumers(
+        const consumers = await readModelGateway.getCatalogItemConsumers(
           eServiceId,
           offset,
           limit
