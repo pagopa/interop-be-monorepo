@@ -3,7 +3,12 @@
   This file will be removed once all models are converted from scala.
  */
 import { z } from "zod";
-import { CatalogItem, attribute } from "models";
+import {
+  CatalogItem,
+  attribute,
+  descriptorState,
+  persistentAgreementState,
+} from "models";
 import { match } from "ts-pattern";
 import * as api from "../generated/api.js";
 import {
@@ -47,6 +52,16 @@ export type EServiceDescriptor = z.infer<typeof api.schemas.EServiceDescriptor>;
 export type UpdateEServiceDescriptorSeed = z.infer<
   typeof api.schemas.UpdateEServiceDescriptorSeed
 >;
+
+export const consumer = z.object({
+  descriptorVersion: z.string(),
+  descriptorState,
+  agreementState: persistentAgreementState,
+  consumerName: z.string(),
+  consumerExternalId: z.string(),
+});
+
+export type Consumer = z.infer<typeof consumer>;
 
 export const convertToClientEServiceSeed = (
   seed: ApiEServiceSeed,
