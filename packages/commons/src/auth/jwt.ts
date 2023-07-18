@@ -2,6 +2,28 @@ import { decode } from "jsonwebtoken";
 import { logger } from "../index.js";
 import { AuthData, AuthJWTToken } from "./authData.js";
 
+const getUserRoles = (token: AuthJWTToken): string[] => {
+  const rolesFromInteropClaim = token.data.role.split(",");
+  if (rolesFromInteropClaim !== 0) {
+    return rolesFromInteropClaim;
+  }
+
+  const userRolesStringFromInteropClaim = token.data["user-roles"].split(",");
+  if (userRolesStringFromInteropClaim !== 0) {
+    return userRolesStringFromInteropClaim;
+  }
+
+  const userRolesStringFromOrganizationClaim =
+    token.data.organization.roles.split(",");
+
+  if (userRolesStringFromOrganizationClaim !== 0) {
+    return userRolesStringFromOrganizationClaim;
+  }
+
+  logger.warn(`Unable to extract userRoles from claims`); // TODO: improve error logging
+  return [];
+};
+
 export const readAuthDataFromJwtToken = (
   jwtToken: string
 ): AuthData | Error => {
@@ -15,7 +37,7 @@ export const readAuthDataFromJwtToken = (
     return {
       organizationId: token.data.organizationId,
       userId: token.data.sub,
-      userRoles: token.data["user-roles"].split(","),
+      userRoles: getUserRoles(token.data),
     };
   }
 };
