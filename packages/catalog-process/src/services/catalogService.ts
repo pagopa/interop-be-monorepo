@@ -31,7 +31,7 @@ import {
 import { eventRepository } from "../repositories/events.js";
 import { fileManager } from "../utilities/fileManager.js";
 import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
-import { readModelGateway } from "./ReadModelGateway.js";
+import { readModelGateway } from "./readModelGateway.js";
 
 const assertRequesterAllowed = (
   producerId: string,
@@ -43,7 +43,7 @@ const assertRequesterAllowed = (
 };
 
 const retrieveEService = async (eServiceId: string): Promise<EService> => {
-  const eservice = await readModelGateway.getEServiceById(eServiceId);
+  const eservice = await readModelGateway.getCatalogItemById(eServiceId);
   if (eservice === undefined) {
     throw eServiceNotFound(eServiceId);
   }
@@ -71,11 +71,18 @@ export const catalogService = {
       authData.organizationId
     );
 
-    const eservice = await readModelGateway.getEServiceByName(
-      eserviceSeed.name
+    const eservice = await readModelGateway.getCatalogItems(
+      authData,
+      [],
+      [eserviceSeed.producerId],
+      [],
+      [],
+      0,
+      1,
+      { value: eserviceSeed.name, exactMatch: true }
     );
 
-    if (eservice !== undefined) {
+    if (eservice.length > 0) {
       throw new CatalogProcessError(
         `Error during EService creation with name ${eserviceSeed.name}`,
         ErrorTypes.DuplicateEserviceName
@@ -91,6 +98,10 @@ export const catalogService = {
   ): Promise<void> {
     const eservice = await retrieveEService(eServiceId);
     assertRequesterAllowed(eservice.producerId, authData.organizationId);
+
+    if (eservice.producerId !== authData.organizationId) {
+      throw operationForbidden;
+    }
 
     if (
       !(
@@ -115,7 +126,7 @@ export const catalogService = {
     });
   },
   async deleteEService(eServiceId: string, authData: AuthData): Promise<void> {
-    const eservice = await readModelGateway.getEServiceById(eServiceId);
+    const eservice = await readModelGateway.getCatalogItemById(eServiceId);
 
     if (eservice === undefined) {
       throw eServiceNotFound(eServiceId);
@@ -142,7 +153,7 @@ export const catalogService = {
     document: ApiEServiceDescriptorDocumentSeed,
     authData: AuthData
   ): Promise<string> {
-    const eservice = await readModelGateway.getEServiceById(eServiceId);
+    const eservice = await readModelGateway.getCatalogItemById(eServiceId);
 
     if (eservice === undefined) {
       throw eServiceNotFound(eServiceId);
@@ -174,7 +185,7 @@ export const catalogService = {
     documentId: string,
     authData: AuthData
   ): Promise<void> {
-    const eservice = await readModelGateway.getEServiceById(eServiceId);
+    const eservice = await readModelGateway.getCatalogItemById(eServiceId);
 
     if (eservice === undefined) {
       throw eServiceNotFound(eServiceId);
@@ -212,7 +223,7 @@ export const catalogService = {
     apiEServiceDescriptorDocumentUpdateSeed: ApiEServiceDescriptorDocumentUpdateSeed,
     authData: AuthData
   ): Promise<void> {
-    const eservice = await readModelGateway.getEServiceById(eServiceId);
+    const eservice = await readModelGateway.getCatalogItemById(eServiceId);
 
     if (eservice === undefined) {
       throw eServiceNotFound(eServiceId);
@@ -335,7 +346,7 @@ export const catalogService = {
     seed: UpdateEServiceDescriptorSeed,
     authData: AuthData
   ): Promise<void> {
-    const eservice = await readModelGateway.getEServiceById(eServiceId);
+    const eservice = await readModelGateway.getCatalogItemById(eServiceId);
     if (eservice === undefined) {
       throw eServiceNotFound(eServiceId);
     }
