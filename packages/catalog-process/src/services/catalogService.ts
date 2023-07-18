@@ -45,11 +45,11 @@ const assertRequesterAllowed = (
 const retrieveEService = async (
   eServiceId: string
 ): Promise<WithMetadata<CatalogItem>> => {
-  const eservice = await readModelGateway.getCatalogItemById(eServiceId);
-  if (eservice === undefined) {
+  const eService = await readModelGateway.getCatalogItemById(eServiceId);
+  if (eService === undefined) {
     throw eServiceNotFound(eServiceId);
   }
-  return eservice;
+  return eService;
 };
 
 const hasNotDraftDescriptor = (eService: CatalogItem): boolean => {
@@ -65,11 +65,11 @@ const hasNotDraftDescriptor = (eService: CatalogItem): boolean => {
 
 export const catalogService = {
   async createEService(
-    apiEservicesSeed: ApiEServiceSeed,
+    apiEServicesSeed: ApiEServiceSeed,
     authData: AuthData
   ): Promise<string> {
-    const eserviceSeed = convertToClientEServiceSeed(
-      apiEservicesSeed,
+    const eServiceSeed = convertToClientEServiceSeed(
+      apiEServicesSeed,
       authData.organizationId
     );
 
@@ -77,10 +77,10 @@ export const catalogService = {
       authData,
       {
         eservicesIds: [],
-        producersIds: [eserviceSeed.producerId],
+        producersIds: [eServiceSeed.producerId],
         states: [],
         agreementStates: [],
-        name: { value: eserviceSeed.name, exactMatch: true },
+        name: { value: eServiceSeed.name, exactMatch: true },
       },
       0,
       1
@@ -88,61 +88,61 @@ export const catalogService = {
 
     if (eservice.results.length > 0) {
       throw new CatalogProcessError(
-        `Error during EService creation with name ${eserviceSeed.name}`,
+        `Error during EService creation with name ${eServiceSeed.name}`,
         ErrorTypes.DuplicateEserviceName
       );
     }
 
-    return eventRepository.createEvent(eserviceSeedToCreateEvent(eserviceSeed));
+    return eventRepository.createEvent(eserviceSeedToCreateEvent(eServiceSeed));
   },
   async updateEService(
     eServiceId: string,
-    eservicesSeed: ApiEServiceSeed,
+    eServiceSeed: ApiEServiceSeed,
     authData: AuthData
   ): Promise<void> {
-    const eservice = await retrieveEService(eServiceId);
-    assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+    const eService = await retrieveEService(eServiceId);
+    assertRequesterAllowed(eService.data.producerId, authData.organizationId);
 
     if (
       !(
-        eservice.data.descriptors.length === 0 ||
-        (eservice.data.descriptors.length === 1 &&
-          eservice.data.descriptors[0].state === "DRAFT")
+        eService.data.descriptors.length === 0 ||
+        (eService.data.descriptors.length === 1 &&
+          eService.data.descriptors[0].state === "DRAFT")
       )
     ) {
       throw eServiceCannotBeUpdated(eServiceId);
     }
 
-    const eserviceSeed = convertToClientEServiceSeed(
-      eservicesSeed,
+    const updatedEServiceSeed = convertToClientEServiceSeed(
+      eServiceSeed,
       authData.organizationId
     );
 
     await eventRepository.createEvent({
       streamId: eServiceId,
-      version: eservice.metadata.version,
+      version: eService.metadata.version,
       type: "EServiceUpdated",
-      data: eserviceSeed,
+      data: updatedEServiceSeed,
     });
   },
   async deleteEService(eServiceId: string, authData: AuthData): Promise<void> {
-    const eservice = await readModelGateway.getCatalogItemById(eServiceId);
+    const eService = await readModelGateway.getCatalogItemById(eServiceId);
 
-    if (eservice === undefined) {
+    if (eService === undefined) {
       throw eServiceNotFound(eServiceId);
     }
 
-    if (eservice.data.descriptors.length > 0) {
+    if (eService.data.descriptors.length > 0) {
       throw eServiceCannotBeDeleted(eServiceId);
     }
 
-    if (eservice.data.producerId !== authData.organizationId) {
+    if (eService.data.producerId !== authData.organizationId) {
       throw operationForbidden;
     }
 
     await eventRepository.createEvent({
       streamId: eServiceId,
-      version: eservice.metadata.version,
+      version: eService.metadata.version,
       type: "EServiceDeleted",
       data: {},
     });
@@ -153,17 +153,17 @@ export const catalogService = {
     document: ApiEServiceDescriptorDocumentSeed,
     authData: AuthData
   ): Promise<string> {
-    const eservice = await readModelGateway.getCatalogItemById(eServiceId);
+    const eService = await readModelGateway.getCatalogItemById(eServiceId);
 
-    if (eservice === undefined) {
+    if (eService === undefined) {
       throw eServiceNotFound(eServiceId);
     }
 
-    if (eservice.data.producerId !== authData.organizationId) {
+    if (eService.data.producerId !== authData.organizationId) {
       throw operationForbidden;
     }
 
-    const descriptor = eservice.data.descriptors.find(
+    const descriptor = eService.data.descriptors.find(
       (d) => d.id === descriptorId
     );
     if (descriptor === undefined) {
@@ -187,13 +187,13 @@ export const catalogService = {
     documentId: string,
     authData: AuthData
   ): Promise<void> {
-    const eservice = await readModelGateway.getCatalogItemById(eServiceId);
+    const eService = await readModelGateway.getCatalogItemById(eServiceId);
 
-    if (eservice === undefined) {
+    if (eService === undefined) {
       throw eServiceNotFound(eServiceId);
     }
 
-    if (eservice.data.producerId !== authData.organizationId) {
+    if (eService.data.producerId !== authData.organizationId) {
       throw operationForbidden;
     }
 
@@ -225,17 +225,17 @@ export const catalogService = {
     apiEServiceDescriptorDocumentUpdateSeed: ApiEServiceDescriptorDocumentUpdateSeed,
     authData: AuthData
   ): Promise<void> {
-    const eservice = await readModelGateway.getCatalogItemById(eServiceId);
+    const eService = await readModelGateway.getCatalogItemById(eServiceId);
 
-    if (eservice === undefined) {
+    if (eService === undefined) {
       throw eServiceNotFound(eServiceId);
     }
 
-    if (eservice.data.producerId !== authData.organizationId) {
+    if (eService.data.producerId !== authData.organizationId) {
       throw operationForbidden;
     }
 
-    const descriptor = eservice.data.descriptors.find(
+    const descriptor = eService.data.descriptors.find(
       (d) => d.id === descriptorId
     );
     if (descriptor === undefined) {
@@ -277,11 +277,11 @@ export const catalogService = {
   ): Promise<string> {
     logger.info(`Creating Descriptor for EService ${eServiceId}`);
 
-    const eservice = await retrieveEService(eServiceId);
-    assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
-    hasNotDraftDescriptor(eservice.data);
+    const eService = await retrieveEService(eServiceId);
+    assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+    hasNotDraftDescriptor(eService.data);
 
-    const newVersion = nextDescriptorVersion(eservice.data);
+    const newVersion = nextDescriptorVersion(eService.data);
     const descriptorId = uuidv4();
     const createCatalogDescriptor = descriptorSeedToCreateEvent(
       descriptorId,
@@ -302,10 +302,10 @@ export const catalogService = {
       `Deleting draft Descriptor ${descriptorId} of EService ${eServiceId}`
     );
 
-    const eservice = await retrieveEService(eServiceId);
-    assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+    const eService = await retrieveEService(eServiceId);
+    assertRequesterAllowed(eService.data.producerId, authData.organizationId);
 
-    const descriptor = eservice.data.descriptors.find(
+    const descriptor = eService.data.descriptors.find(
       (d) => d.id === descriptorId && d.state === "DRAFT"
     );
 
@@ -335,7 +335,7 @@ export const catalogService = {
 
     await eventRepository.createEvent({
       streamId: eServiceId,
-      version: eservice.metadata.version,
+      version: eService.metadata.version,
       type: "DeleteDraftDescriptor",
       data: {
         eServiceId,
@@ -350,16 +350,16 @@ export const catalogService = {
     seed: UpdateEServiceDescriptorSeed,
     authData: AuthData
   ): Promise<void> {
-    const eservice = await readModelGateway.getCatalogItemById(eServiceId);
-    if (eservice === undefined) {
+    const eService = await readModelGateway.getCatalogItemById(eServiceId);
+    if (eService === undefined) {
       throw eServiceNotFound(eServiceId);
     }
 
-    if (eservice.data.producerId !== authData.organizationId) {
+    if (eService.data.producerId !== authData.organizationId) {
       throw operationForbidden;
     }
 
-    const descriptor = eservice.data.descriptors.find(
+    const descriptor = eService.data.descriptors.find(
       (d) => d.id === descriptorId
     );
     if (descriptor === undefined) {
@@ -384,18 +384,18 @@ export const catalogService = {
       agreementApprovalPolicy: seed.agreementApprovalPolicy,
     };
 
-    const filteredDescriptor = eservice.data.descriptors.filter(
+    const filteredDescriptor = eService.data.descriptors.filter(
       (d) => d.id !== descriptorId
     );
 
     const updatedEService = {
-      ...eservice,
+      ...eService,
       descriptor: [...filteredDescriptor, updatedDescriptor],
     };
 
     await eventRepository.createEvent({
       streamId: eServiceId,
-      version: eservice.metadata.version,
+      version: eService.metadata.version,
       type: "UpdateDraftDescriptor",
       data: updatedEService,
     });
