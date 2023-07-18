@@ -4,7 +4,15 @@
 
 import { MongoClient } from "mongodb";
 import { z } from "zod";
-import { catalogItem, CatalogItem, Document } from "models";
+import {
+  catalogItem,
+  CatalogItem,
+  Document,
+  persistentAgreement,
+  PersistentAgreement,
+  PersistentAgreementState,
+  DescriptorState,
+} from "models";
 import { match } from "ts-pattern";
 import * as api from "../model/generated/api.js";
 import { AuthData } from "../auth/authData.js";
@@ -13,7 +21,7 @@ const mongoUri = "mongodb://root:example@localhost:27017";
 const client = new MongoClient(mongoUri);
 
 const db = client.db("readmodel");
-const catalog = db.collection("catalog");
+const catalog = db.collection("eservices");
 const agreements = db.collection("agreements");
 
 type EService = z.infer<typeof api.schemas.EService>;
@@ -23,18 +31,8 @@ export const readModelGateway = {
     authData: AuthData,
     eservicesIds: string[],
     producersIds: string[],
-    states: Array<
-      "DRAFT" | "PUBLISHED" | "DEPRECATED" | "SUSPENDED" | "ARCHIVED"
-    >,
-    agreementStates: Array<
-      | "DRAFT"
-      | "SUSPENDED"
-      | "ARCHIVED"
-      | "PENDING"
-      | "ACTIVE"
-      | "MISSING_CERTIFIED_ATTRIBUTES"
-      | "REJECTED"
-    >,
+    states: DescriptorState[],
+    agreementStates: PersistentAgreementState[],
     offset: number,
     limit: number,
     name?: { value: string; exactMatch: boolean }
@@ -142,16 +140,8 @@ export const readModelGateway = {
     eservicesIds: string[],
     consumersIds: string[],
     producersIds: string[],
-    states: Array<
-      | "DRAFT"
-      | "SUSPENDED"
-      | "ARCHIVED"
-      | "PENDING"
-      | "ACTIVE"
-      | "MISSING_CERTIFIED_ATTRIBUTES"
-      | "REJECTED"
-    >
-  ): Promise<Array<{ eserviceId: string }>> {
+    states: PersistentAgreementState[]
+  ): Promise<PersistentAgreement[]> {
     const aggregationPipeline = [
       {
         $match: {
@@ -171,9 +161,7 @@ export const readModelGateway = {
       },
     ];
     const data = await agreements.aggregate(aggregationPipeline).toArray();
-    const result = z
-      .array(z.object({ eserviceId: z.string() }))
-      .safeParse(data);
+    const result = z.array(persistentAgreement).safeParse(data);
     return result.success ? result.data : [];
   },
 };
