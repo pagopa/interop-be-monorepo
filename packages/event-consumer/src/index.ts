@@ -26,7 +26,6 @@ await consumer.connect();
 
 await consumer.subscribe({
   topics: ["catalog.public.event"],
-  fromBeginning: true, // used now for testing, but I don't understand if it works, anyway should be false in real usage
 });
 
 const EServiceTechnology = z.enum(["REST", "SOAP"]);
