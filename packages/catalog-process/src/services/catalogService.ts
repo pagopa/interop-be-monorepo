@@ -1,6 +1,5 @@
-import { logger } from "pagopa-interop-commons";
+import { AuthData, logger } from "pagopa-interop-commons";
 import { v4 as uuidv4 } from "uuid";
-import { AuthData } from "pagopa-interop-commons";
 import { CatalogItem } from "pagopa-interop-models";
 import {
   CatalogProcessError,
@@ -24,12 +23,12 @@ import {
   ApiEServiceDescriptorDocumentUpdateSeed,
   ApiEServiceSeed,
 } from "../model/types.js";
+import { eventRepository } from "../repositories/EventRepository.js";
 import {
   descriptorSeedToCreateEvent,
   eserviceDescriptorDocumentSeedToCreateEvent,
   eserviceSeedToCreateEvent,
 } from "../repositories/adapters/adapters.js";
-import { eventRepository } from "../repositories/events.js";
 import { fileManager } from "../utilities/fileManager.js";
 import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
 import { readModelGateway } from "./readModelService.js";
