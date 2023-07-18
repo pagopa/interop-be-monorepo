@@ -12,12 +12,11 @@ import {
   PersistentAgreement,
   PersistentAgreementState,
   DescriptorState,
-  consumer,
-  Consumer,
 } from "models";
 import { match } from "ts-pattern";
 import * as api from "../model/generated/api.js";
 import { AuthData } from "../auth/authData.js";
+import { Consumer, consumer } from "../model/domain/models.js";
 
 const mongoUri = "mongodb://root:example@localhost:27017";
 const client = new MongoClient(mongoUri);
