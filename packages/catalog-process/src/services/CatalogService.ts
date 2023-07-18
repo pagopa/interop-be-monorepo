@@ -1,6 +1,6 @@
 import { logger } from "pagopa-interop-commons";
 import { v4 as uuidv4 } from "uuid";
-import { AuthData } from "../../../commons/src/auth/authData.js";
+import { AuthData } from "pagopa-interop-commons";
 import {
   CatalogProcessError,
   ErrorTypes,
