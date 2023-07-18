@@ -12,6 +12,8 @@ import {
   PersistentAgreement,
   PersistentAgreementState,
   DescriptorState,
+  consumer,
+  Consumer,
 } from "models";
 import { match } from "ts-pattern";
 import * as api from "../model/generated/api.js";
@@ -93,11 +95,24 @@ export const readModelGateway = {
     const result = z.array(catalogItem).safeParse(data.map((d) => d.data));
     return result.success ? result.data : [];
   },
-  async getEServiceById(id: string): Promise<CatalogItem | undefined> {
-    const data = await catalog.findOne({ id });
+  async getEServiceById(
+    id: string
+  ): Promise<(CatalogItem & { version: number }) | undefined> {
+    const data = await catalog.findOne(
+      { "data.id": id },
+      { projection: { data: true, version: true } }
+    );
 
-    const result = catalogItem.safeParse(data);
-    return result.success ? result.data : undefined;
+    if (data) {
+      const result = z
+        .object({ version: z.number(), data: catalogItem })
+        .safeParse(data);
+      return result.success
+        ? { ...result.data.data, version: result.data.version }
+        : undefined;
+    }
+
+    return undefined;
   },
   async getEServiceByName(_name: string): Promise<EService | undefined> {
     return undefined;
@@ -118,13 +133,90 @@ export const readModelGateway = {
     return undefined;
   },
   async getEServiceConsumers(
-    id: string,
+    eServiceId: string,
     offset: number,
     limit: number
-  ): Promise<unknown> {
-    const data = await catalog.find({ id }).skip(offset).limit(limit).toArray();
-    const result = catalogItem.safeParse(data);
-    return result.success ? result.data : 0;
+  ): Promise<Consumer[]> {
+    const aggregationPipeline = [
+      {
+        $match: {
+          "data.id": eServiceId,
+          "data.descriptors.state": {
+            $elemMatch: {
+              state: { $in: ["PUBLISHED", "DEPRECATED", "SUSPENDED"] },
+            },
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: "agreements",
+          localField: "data.id",
+          foreignField: "data.eserviceId",
+          as: "agreements",
+        },
+      },
+      {
+        $unwind: "$agreements",
+      },
+      {
+        $lookup: {
+          from: "tenants",
+          localField: "agreements.data.consumerId",
+          foreignField: "data.id",
+          as: "tenants",
+        },
+      },
+      { $unwind: "$tenants" },
+      {
+        $match: {
+          "agreements.data.state": { $in: ["ACTIVE", "SUSPENDED"] },
+        },
+      },
+      {
+        $addFields: {
+          validDescriptor: {
+            $filter: {
+              input: "$data.descriptors",
+              as: "fd",
+              cond: {
+                $eq: ["$$fd.id", "$agreements.data.descriptorId"],
+              },
+            },
+          },
+        },
+      },
+      {
+        $unwind: "$validDescriptor",
+      },
+      {
+        $match: {
+          validDescriptor: { $exists: true },
+        },
+      },
+      {
+        $project: {
+          descriptorVersion: "$validDescriptor.version",
+          descriptorState: "$validDescriptor.state",
+          agreementState: "$agreements.data.state",
+          consumerName: "$tenants.data.name",
+          consumerExternalId: "$tenants.data.externalId.value",
+          lowerName: { $toLower: ["$tenants.data.name"] },
+        },
+      },
+      {
+        $sort: { lowerName: 1 },
+      },
+    ];
+
+    const data = await catalog
+      .aggregate(aggregationPipeline)
+      .skip(offset)
+      .limit(limit)
+      .toArray();
+
+    const result = z.array(consumer).safeParse(data);
+    return result.success ? result.data : [];
   },
   async getDocumentById(
     eServiceId: string,
