@@ -3,12 +3,12 @@
     "config": {
         "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
         "tasks.max": "1",
-        "database.hostname": "host.docker.internal",
-        "database.port": "6001",
+        "database.hostname": "catalog-event-store",
+        "database.port": "5432",
         "database.user": "root",
         "database.password": "root",
         "database.dbname" : "root",
-        "topic.prefix": "dbserver1",
+        "topic.prefix": "catalog",
         "schema.include.list": "public",
         "plugin.name": "pgoutput"
     }

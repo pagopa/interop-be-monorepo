@@ -7,7 +7,7 @@ const mongoUri = "mongodb://root:example@localhost:27017";
 const client = new MongoClient(mongoUri);
 
 const db = client.db("readmodel");
-const catalog = db.collection("catalog");
+const catalog = db.collection("eservices");
 
 const kafka = new Kafka({
   clientId: "my-app",
@@ -17,16 +17,18 @@ const kafka = new Kafka({
 const consumer = kafka.consumer({ groupId: "my-group" });
 await consumer.connect();
 
-// process.on("SIGINT", function () {
-//   consumer.disconnect().then(
-//     () => console.log("Disconnected"),
-//     (err) => console.log(err)
-//   );
-// });
+function exitGracefully(): void {
+  consumer.disconnect().finally(() => {
+    logger.info("Consumer disconnected");
+    process.exit(0);
+  });
+}
+
+process.on("SIGINT", exitGracefully);
+process.on("SIGTERM", exitGracefully);
 
 await consumer.subscribe({
-  topics: ["dbserver1.public.event"],
-  fromBeginning: true, // used now for testing, but I don't understand if it works, anyway should be false in real usage
+  topics: ["catalog.public.event"],
 });
 
 const EServiceTechnology = z.enum(["REST", "SOAP"]);
