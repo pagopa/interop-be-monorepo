@@ -18,7 +18,7 @@ function register_connector () {
   while true; do
     local response=$(curl -s -o /dev/null -i -X POST -H "Accept:application/json" -H "Content-Type:application/json" -w "%{http_code}\n" -d "@$SCRIPT_DIR/$CONNECTOR_PATH" "$URL")
 
-    if [ "$response" -eq "200" ]; then
+    if [ "$response" -eq "201" ]; then
       echo "$SERVICE_NAME connector registered successfully"
       break
     elif [ "$response" -eq "409" ]; then
