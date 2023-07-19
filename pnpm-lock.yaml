@@ -102,6 +102,9 @@ importers:
       dotenv-flow:
         specifier: ^3.2.0
         version: 3.2.0
+      jsonwebtoken:
+        specifier: ^9.0.0
+        version: 9.0.0
       winston:
         specifier: ^3.9.0
         version: 3.9.0
@@ -112,6 +115,9 @@ importers:
       '@types/dotenv-flow':
         specifier: ^3.2.0
         version: 3.2.0
+      '@types/jsonwebtoken':
+        specifier: ^9.0.2
+        version: 9.0.2
       '@types/node':
         specifier: ^20.3.1
         version: 20.3.1
