@@ -10,7 +10,7 @@ import {
   DescriptorState,
 } from "models";
 import { match } from "ts-pattern";
-import { AuthData } from "../auth/authData.js";
+import { AuthData } from "pagopa-interop-commons";
 import { Consumer, consumer } from "../model/domain/models.js";
 
 const mongoUri = "mongodb://root:example@localhost:27017";

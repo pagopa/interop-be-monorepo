@@ -1,8 +1,8 @@
 import { z } from "zod";
+import { CatalogItem } from "models";
 import { CatalogProcessError, ErrorTypes } from "../model/domain/errors.js";
-import { EService } from "../model/domain/models.js";
 
-export const nextDescriptorVersion = (eservice: EService): string => {
+export const nextDescriptorVersion = (eservice: CatalogItem): string => {
   const currentVersion = eservice.descriptors.reduce((max, descriptor) => {
     const currentVersionNumber = z.number().safeParse(descriptor.version);
     if (!currentVersionNumber.success) {

@@ -30,7 +30,7 @@ const eservicesRouter = (
         } = req.query;
 
         const catalogs = await readModelGateway.getCatalogItems(
-          req.authData,
+          req.ctx.authData,
           eservicesIds,
           producersIds,
           states,
