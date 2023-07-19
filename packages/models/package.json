@@ -23,7 +23,8 @@
     "zod": "^3.21.4"
   },
   "devDependencies": {
-    "rimraf": "^5.0.1",
+    "eslint": "^8.44.0",
+    "prettier": "^2.8.8",
     "typescript": "^5.1.3"
   }
 }
