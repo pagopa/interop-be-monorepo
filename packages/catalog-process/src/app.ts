@@ -1,17 +1,18 @@
 import { zodiosContext } from "@zodios/express";
 import * as expressWinston from "express-winston";
 import { logger } from "pagopa-interop-commons";
+import { z } from "zod";
 import { authMiddleware } from "./authMiddleware.js";
-import { appContext } from "./context.js";
+import { ctx } from "./context.js";
 import eservicesRouter from "./routers/catalog.js";
 import healthRouter from "./routers/health.js";
 import { config } from "./utilities/config.js";
 
-const ctx = zodiosContext(appContext);
-const app = ctx.app();
+const zodiosCtx = zodiosContext(z.object({ ctx }));
+const app = zodiosCtx.app();
 
-export type ZodiosContext = NonNullable<typeof ctx>;
-export type ExpressContext = NonNullable<typeof ctx.context>;
+export type ZodiosContext = NonNullable<typeof zodiosCtx>;
+export type ExpressContext = NonNullable<typeof zodiosCtx.context>;
 
 // Disable the "X-Powered-By: Express" HTTP header for security reasons.
 // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
@@ -34,6 +35,6 @@ app.use(
 // we want to be unauthenticated.
 app.use(healthRouter);
 app.use(authMiddleware);
-app.use(eservicesRouter(ctx));
+app.use(eservicesRouter(zodiosCtx));
 
 export default app;

@@ -1,8 +1,10 @@
 import { z } from "zod";
-import { AuthData } from "./auth/authData.js";
+import { AuthData } from "pagopa-interop-commons";
 
-export const appContext = z.object({
+export const ctx = z.object({
   authData: AuthData,
+  correlationId: z.string().uuid(),
+  ip: z.string().ip().nullish(),
 });
 
-export type AppContext = z.infer<typeof appContext>;
+export type AppContext = z.infer<typeof ctx>;
