@@ -1,6 +1,7 @@
 import { logger } from "pagopa-interop-commons";
 import { v4 as uuidv4 } from "uuid";
 import { AuthData } from "pagopa-interop-commons";
+import { CatalogItem } from "models";
 import {
   CatalogProcessError,
   ErrorTypes,
@@ -13,7 +14,6 @@ import {
   eServiceDocumentNotFound,
 } from "../model/domain/errors.js";
 import {
-  EService,
   EServiceDescriptorSeed,
   UpdateEServiceDescriptorSeed,
   convertToClientEServiceSeed,
@@ -42,7 +42,9 @@ const assertRequesterAllowed = (
   }
 };
 
-const retrieveEService = async (eServiceId: string): Promise<EService> => {
+const retrieveEService = async (
+  eServiceId: string
+): Promise<CatalogItem & { version: number }> => {
   const eservice = await readModelGateway.getCatalogItemById(eServiceId);
   if (eservice === undefined) {
     throw eServiceNotFound(eServiceId);
@@ -50,7 +52,7 @@ const retrieveEService = async (eServiceId: string): Promise<EService> => {
   return eservice;
 };
 
-const hasNotDraftDescriptor = (eService: EService): boolean => {
+const hasNotDraftDescriptor = (eService: CatalogItem): boolean => {
   const hasNotDraftDescriptor = eService.descriptors.some(
     (d) => d.state === "DRAFT",
     0
