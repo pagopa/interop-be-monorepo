@@ -1,4 +1,4 @@
-import { decode } from "jsonwebtoken";
+import * as jwt from "jsonwebtoken";
 import { logger } from "../index.js";
 import { AuthData, AuthJWTToken } from "./authData.js";
 
@@ -27,7 +27,7 @@ const getUserRoles = (token: AuthJWTToken): string[] => {
 export const readAuthDataFromJwtToken = (
   jwtToken: string
 ): AuthData | Error => {
-  const decoded = decode(jwtToken, { json: true });
+  const decoded = jwt.decode(jwtToken, { json: true });
   const token = AuthJWTToken.safeParse(decoded);
 
   if (token.success === false) {
