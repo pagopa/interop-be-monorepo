@@ -1,6 +1,11 @@
-import { AuthData, logger } from "pagopa-interop-commons";
+import {
+  AuthData,
+  logger,
+  authorizationManagementServiceMock,
+} from "pagopa-interop-commons";
 import { v4 as uuidv4 } from "uuid";
 import { CatalogItem } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import {
   CatalogProcessError,
   ErrorTypes,
@@ -13,7 +18,10 @@ import {
   eServiceDocumentNotFound,
 } from "../model/domain/errors.js";
 import {
+  EService,
+  EServiceDescriptor,
   EServiceDescriptorSeed,
+  EServiceDescriptorState,
   UpdateEServiceDescriptorSeed,
   WithMetadata,
   convertToClientEServiceSeed,
@@ -42,6 +50,15 @@ const assertRequesterAllowed = (
   }
 };
 
+const assertDescriptorIsDraft = (
+  descriptor: EServiceDescriptor
+): EServiceDescriptor => {
+  if (descriptor.state !== "DRAFT") {
+    throw notValidDescriptor(descriptor.id, descriptor.state.toString());
+  }
+  return descriptor;
+};
+
 const retrieveEService = async (
   eServiceId: string
 ): Promise<WithMetadata<CatalogItem>> => {
@@ -50,6 +67,94 @@ const retrieveEService = async (
     throw eServiceNotFound(eServiceId);
   }
   return eService;
+};
+
+const retrieveDescriptor = async (
+  descriptorId: string,
+  eService: EService
+): Promise<EServiceDescriptor> => {
+  const descriptor = eService.descriptors.find(
+    (d) => d.id === descriptorId && d.state === "DRAFT"
+  );
+
+  if (descriptor === undefined) {
+    throw new CatalogProcessError(
+      `Descriptor with id ${descriptorId} of EService ${eService.id} not found`,
+      ErrorTypes.EServiceDescriptorNotFound
+    );
+  }
+
+  return descriptor;
+};
+
+const updateDescriptorState = (
+  descriptor: EServiceDescriptor,
+  updateESErviceDescriptorState: EServiceDescriptorState
+): EServiceDescriptor => {
+  const descriptorStateChanges = [
+    descriptor.state,
+    updateESErviceDescriptorState.toString(),
+  ];
+
+  return match(descriptorStateChanges)
+    .with(["DRAFT", "PUBLISHED"], () => ({
+      ...descriptor,
+      state: updateESErviceDescriptorState,
+      publishedAt: Date.now().toString(),
+    }))
+    .with(["PUBLISHED", "SUSPENDED"], () => ({
+      ...descriptor,
+      state: updateESErviceDescriptorState,
+      suspendedAt: Date.now().toString(),
+    }))
+    .with(["SUSPENDED", "PUBLISHED"], () => ({
+      ...descriptor,
+      state: updateESErviceDescriptorState,
+      suspendedAt: undefined,
+    }))
+    .with(["SUSPENDED", "DEPRECATED"], () => ({
+      ...descriptor,
+      state: updateESErviceDescriptorState,
+      suspendedAt: undefined,
+      deprecatedAt: Date.now().toString(),
+    }))
+    .with(["SUSPENDED", "ARCHIVED"], () => ({
+      ...descriptor,
+      state: updateESErviceDescriptorState,
+      suspendedAt: undefined,
+      archivedAt: Date.now().toString(),
+    }))
+    .with(["PUBLISHED", "ARCHIVED"], () => ({
+      ...descriptor,
+      state: updateESErviceDescriptorState,
+      archivedAt: Date.now().toString(),
+    }))
+    .with(["PUBLISHED", "DEPRECATED"], () => ({
+      ...descriptor,
+      state: updateESErviceDescriptorState,
+      deprecatedAt: Date.now().toString(),
+    }))
+    .otherwise(() => ({
+      ...descriptor,
+      state: updateESErviceDescriptorState,
+    }));
+};
+
+const deprecateDescriptor = async (
+  descriptor: EServiceDescriptor,
+  eService: EService
+): Promise<void> => {
+  logger.info(
+    `Deprecating Descriptor ${descriptor.id} of EService ${eService.id}`
+  );
+
+  const updatedDescriptor = updateDescriptorState(descriptor, "DEPRECATED");
+  await eventRepository.createEvent({
+    streamId: eService.id,
+    version: eService.version,
+    type: "DeprecateDescriptor",
+    data: updatedDescriptor,
+  });
 };
 
 const hasNotDraftDescriptor = (eService: CatalogItem): boolean => {
@@ -399,5 +504,39 @@ export const catalogService = {
       type: "UpdateDraftDescriptor",
       data: updatedEService,
     });
+  },
+
+  async publishDescriptor(
+    eServiceId: string,
+    descriptorId: string,
+    authData: AuthData
+  ): Promise<void> {
+    logger.info(
+      `Publishing Descriptor $descriptorId of EService ${eServiceId}`
+    );
+
+    const eService = await retrieveEService(eServiceId);
+    assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+
+    const descriptor = await retrieveDescriptor(descriptorId, eService.data);
+    assertDescriptorIsDraft(descriptor);
+
+    const currentActiveDescriptor = eService.data.descriptors.find(
+      (d) => d.state === "PUBLISHED"
+    ); // Must be at most one
+
+    const updatedDescriptor = updateDescriptorState(descriptor, "PUBLISHED");
+    if (currentActiveDescriptor !== undefined) {
+      await deprecateDescriptor(currentActiveDescriptor, eService.data);
+    }
+
+    await eventRepository.createEvent({
+      streamId: eServiceId,
+      version: eService.metadata.version,
+      type: "PublishDescriptor",
+      data: updatedDescriptor,
+    });
+
+    authorizationManagementServiceMock.updateStateOnClients();
   },
 };

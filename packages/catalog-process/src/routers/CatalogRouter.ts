@@ -278,6 +278,22 @@ const eservicesRouter = (
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
+    )
+    .post(
+      "/eservices/:eServiceId/descriptors/:descriptorId/publish",
+      async (req, res) => {
+        try {
+          await catalogService.publishDescriptor(
+            req.params.eServiceId,
+            req.params.descriptorId,
+            req.body
+          );
+          return res.status(200).end();
+        } catch (error) {
+          const errorRes: ApiError = makeApiError(error);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     );
   return eservicesRouter;
 };
