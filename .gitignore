@@ -40,4 +40,3 @@ node_modules/
 .history/
 
 **/dist
-**/lib

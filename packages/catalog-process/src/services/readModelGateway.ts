@@ -10,7 +10,7 @@ import {
   DescriptorState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { AuthData, logger } from "pagopa-interop-commons";
+import { AuthData } from "pagopa-interop-commons";
 
 import { Consumer, consumer } from "../model/domain/models.js";
 
@@ -55,10 +55,6 @@ export const readModelGateway = {
     if (agreementStates.length > 0 && ids.length === 0) {
       return [];
     }
-
-    logger.info(name);
-    logger.info(producersIds);
-    logger.info(states);
 
     const nameFilter = name
       ? {
