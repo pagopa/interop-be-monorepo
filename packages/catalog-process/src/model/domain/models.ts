@@ -16,6 +16,9 @@ import {
   ApiEServiceSeed,
 } from "../types.js";
 
+export type ListResult<T> = { results: T[]; totalCount: number };
+export const emptyListResult = { results: [], totalCount: 0 };
+
 export type EService = z.infer<typeof api.schemas.EService> & {
   version: number;
 };
