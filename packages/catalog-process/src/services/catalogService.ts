@@ -1,7 +1,7 @@
 import { logger } from "pagopa-interop-commons";
 import { v4 as uuidv4 } from "uuid";
 import { AuthData } from "pagopa-interop-commons";
-import { CatalogItem } from "models";
+import { CatalogItem } from "pagopa-interop-models";
 import {
   CatalogProcessError,
   ErrorTypes,

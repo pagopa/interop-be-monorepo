@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CatalogItem } from "models";
+import { CatalogItem } from "pagopa-interop-models";
 import { CatalogProcessError, ErrorTypes } from "../model/domain/errors.js";
 
 export const nextDescriptorVersion = (eservice: CatalogItem): string => {
