@@ -1,22 +1,22 @@
-import * as jwt from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { logger } from "../index.js";
 import { AuthData, AuthJWTToken } from "./authData.js";
 
 const getUserRoles = (token: AuthJWTToken): string[] => {
-  const rolesFromInteropClaim = token.data.role.split(",");
-  if (rolesFromInteropClaim !== 0) {
+  const rolesFromInteropClaim = token.role.split(",");
+  if (rolesFromInteropClaim.length !== 0) {
     return rolesFromInteropClaim;
   }
 
-  const userRolesStringFromInteropClaim = token.data["user-roles"].split(",");
-  if (userRolesStringFromInteropClaim !== 0) {
+  const userRolesStringFromInteropClaim = token["user-roles"].split(",");
+  if (userRolesStringFromInteropClaim.length !== 0) {
     return userRolesStringFromInteropClaim;
   }
 
   const userRolesStringFromOrganizationClaim =
     token.data.organization.roles.split(",");
 
-  if (userRolesStringFromOrganizationClaim !== 0) {
+  if (userRolesStringFromOrganizationClaim.length !== 0) {
     return userRolesStringFromOrganizationClaim;
   }
 
@@ -27,18 +27,23 @@ const getUserRoles = (token: AuthJWTToken): string[] => {
 export const readAuthDataFromJwtToken = (
   jwtToken: string
 ): AuthData | Error => {
-  const decoded = jwt.decode(jwtToken, { json: true });
-  const token = AuthJWTToken.safeParse(decoded);
+  try {
+    const decoded = jwt.decode(jwtToken, { json: true });
+    const token = AuthJWTToken.safeParse(decoded);
 
-  if (token.success === false) {
-    logger.error(`Error parsing token: ${JSON.stringify(token.error)}`);
-    return new Error(token.error.message);
-  } else {
-    return {
-      organizationId: token.data.organizationId,
-      userId: token.data.sub,
-      userRoles: getUserRoles(token.data),
-    };
+    if (token.success === false) {
+      logger.error(`Error parsing token: ${JSON.stringify(token.error)}`);
+      return new Error(token.error.message);
+    } else {
+      return {
+        organizationId: token.data.organizationId,
+        userId: token.data.sub,
+        userRoles: getUserRoles(token.data),
+      };
+    }
+  } catch (err) {
+    logger.error(`Unexpected error parsing token: ${err}`);
+    return new Error(`Unexpected error parsing token: ${err}`);
   }
 };
 
