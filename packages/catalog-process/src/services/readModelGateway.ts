@@ -8,7 +8,7 @@ import {
   PersistentAgreement,
   PersistentAgreementState,
   DescriptorState,
-} from "models";
+} from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { AuthData } from "pagopa-interop-commons";
 import { Consumer, consumer } from "../model/domain/models.js";

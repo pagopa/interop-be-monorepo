@@ -8,7 +8,7 @@ import {
   attribute,
   descriptorState,
   persistentAgreementState,
-} from "models";
+} from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import * as api from "../generated/api.js";
 import {

@@ -51,6 +51,6 @@
     "uuid": "^9.0.0",
     "winston": "^3.9.0",
     "zod": "^3.21.4",
-    "models": "workspace:*"
+    "pagopa-interop-models": "workspace:*"
   }
 }
