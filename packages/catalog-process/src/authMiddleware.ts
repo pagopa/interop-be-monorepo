@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { ZodiosRouterContextRequestHandler } from "@zodios/express";
 import {
+  AuthData,
   logger,
   readAuthDataFromJwtToken,
-  AuthData,
 } from "pagopa-interop-commons";
-import { match, P } from "ts-pattern";
+import { P, match } from "ts-pattern";
 import { z } from "zod";
 import { ExpressContext } from "./app.js";
 import {
@@ -18,9 +18,9 @@ import { ApiError, makeApiError } from "./model/types.js";
 const ipRegex = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
 
 const Headers = z.object({
-  Authorization: z.string(),
-  "X-Correlation-Id": z.string(),
-  "X-Forwarded-For": z.string().ip().optional(),
+  authorization: z.string(),
+  "x-correlation-id": z.string(),
+  "x-forwarded-for": z.string().ip().optional(),
 });
 
 type Headers = z.infer<typeof Headers>;
@@ -29,7 +29,7 @@ export const authMiddleware: ZodiosRouterContextRequestHandler<
   ExpressContext
 > = (req, res, next) => {
   const addCtxAuthData = (headers: Headers): void => {
-    const authorizationHeader = headers.Authorization.split(" ");
+    const authorizationHeader = headers.authorization.split(" ");
     if (
       authorizationHeader.length !== 2 ||
       authorizationHeader[0] !== "Bearer"
@@ -45,7 +45,6 @@ export const authMiddleware: ZodiosRouterContextRequestHandler<
 
     const jwtToken = authorizationHeader[1];
     const authData = readAuthDataFromJwtToken(jwtToken);
-
     match(authData)
       .with(P.instanceOf(Error), (err) => {
         logger.warn(`Invalid authentication provided: ${err.message}`);
@@ -56,11 +55,11 @@ export const authMiddleware: ZodiosRouterContextRequestHandler<
       })
       .otherwise((claimsRes: AuthData) => {
         // eslint-disable-next-line functional/immutable-data
-        req.ctx.authData = claimsRes;
-        // eslint-disable-next-line functional/immutable-data
-        req.ctx.correlationId = headers["X-Correlation-Id"];
-        // eslint-disable-next-line functional/immutable-data
-        req.ctx.ip = headers["X-Forwarded-For"];
+        req.ctx = {
+          authData: { ...claimsRes },
+          correlationId: headers["x-correlation-id"],
+          ip: headers["x-forwarded-for"],
+        };
         next();
       });
   };
@@ -70,17 +69,17 @@ export const authMiddleware: ZodiosRouterContextRequestHandler<
     return match(headers)
       .with(
         {
-          Authorization: P.string,
-          "X-Correlation-Id": P.string,
-          "X-Forwarded-For": P.string.regex(ipRegex).or(P.nullish),
+          authorization: P.string,
+          "x-correlation-id": P.string,
+          "x-forwarded-for": P.optional(P.string.regex(ipRegex)),
         },
         (headers) => addCtxAuthData(headers)
       )
       .with(
         {
-          Authorization: P.nullish,
-          "X-Correlation-Id": P._,
-          "X-Forwarded-For": P._,
+          authorization: P.nullish,
+          "x-correlation-id": P._,
+          "x-forwarded-for": P._,
         },
         () => {
           logger.warn(
@@ -95,11 +94,11 @@ export const authMiddleware: ZodiosRouterContextRequestHandler<
       )
       .with(
         {
-          Authorization: P.string,
-          "X-Correlation-Id": P.nullish,
-          "X-Forwarded-For": P._,
+          authorization: P.string,
+          "x-correlation-id": P.nullish,
+          "x-forwarded-for": P._,
         },
-        () => missingHeader("X-Correlation-Id")
+        () => missingHeader("x-correlation-id")
       )
       .otherwise(() => {
         throw new CatalogProcessError(
