@@ -43,8 +43,8 @@ const eservicesRouter = (
         return res
           .status(200)
           .json({
-            results: catalogs.map(convertCatalogToEService),
-            totalCount: catalogs.length,
+            results: catalogs.results.map(convertCatalogToEService),
+            totalCount: catalogs.totalCount,
           })
           .end();
       } catch (error) {
@@ -122,14 +122,14 @@ const eservicesRouter = (
         return res
           .status(200)
           .json({
-            results: consumers.map((c) => ({
+            results: consumers.results.map((c) => ({
               descriptorVersion: parseInt(c.descriptorVersion, 10),
               descriptorState: c.descriptorState,
               agreementState: c.agreementState,
               consumerName: c.consumerName,
               consumerExternalId: c.consumerExternalId,
             })),
-            totalCount: consumers.length,
+            totalCount: consumers.totalCount,
           })
           .end();
       } catch (error) {

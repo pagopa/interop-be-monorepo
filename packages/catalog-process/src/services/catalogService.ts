@@ -84,7 +84,7 @@ export const catalogService = {
       { value: eserviceSeed.name, exactMatch: true }
     );
 
-    if (eservice.length > 0) {
+    if (eservice.results.length > 0) {
       throw new CatalogProcessError(
         `Error during EService creation with name ${eserviceSeed.name}`,
         ErrorTypes.DuplicateEserviceName

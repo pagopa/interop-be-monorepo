@@ -12,7 +12,12 @@ import {
 import { match } from "ts-pattern";
 import { AuthData } from "pagopa-interop-commons";
 
-import { Consumer, consumer } from "../model/domain/models.js";
+import {
+  Consumer,
+  ListResult,
+  consumer,
+  emptyListResult,
+} from "../model/domain/models.js";
 
 const mongoUri = "mongodb://root:example@localhost:27017";
 const client = new MongoClient(mongoUri);
@@ -38,7 +43,7 @@ export const readModelGateway = {
     offset: number,
     limit: number,
     name?: { value: string; exactMatch: boolean }
-  ): Promise<CatalogItem[]> {
+  ): Promise<ListResult<CatalogItem>> {
     const ids = await match(agreementStates.length)
       .with(0, () => eservicesIds)
       .otherwise(async () =>
@@ -53,7 +58,7 @@ export const readModelGateway = {
       );
 
     if (agreementStates.length > 0 && ids.length === 0) {
-      return [];
+      return emptyListResult;
     }
 
     const nameFilter = name
@@ -90,14 +95,20 @@ export const readModelGateway = {
     ];
 
     const data = await catalog
-      .aggregate(aggregationPipeline)
-      .sort({ lowerName: 1 })
-      .skip(offset)
-      .limit(limit)
+      .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }])
       .toArray();
 
     const result = z.array(catalogItem).safeParse(data.map((d) => d.data));
-    return result.success ? result.data : [];
+    return result.success
+      ? {
+          results: result.data,
+          totalCount: (
+            await catalog
+              .aggregate([...aggregationPipeline, { $count: "count" }])
+              .toArray()
+          )[0].count as number,
+        }
+      : emptyListResult;
   },
   async getCatalogItemById(
     id: string
@@ -140,7 +151,7 @@ export const readModelGateway = {
     eServiceId: string,
     offset: number,
     limit: number
-  ): Promise<Consumer[]> {
+  ): Promise<ListResult<Consumer>> {
     const aggregationPipeline = [
       {
         $match: {
@@ -214,13 +225,20 @@ export const readModelGateway = {
     ];
 
     const data = await catalog
-      .aggregate(aggregationPipeline)
-      .skip(offset)
-      .limit(limit)
+      .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }])
       .toArray();
 
     const result = z.array(consumer).safeParse(data);
-    return result.success ? result.data : [];
+    return result.success
+      ? {
+          results: result.data,
+          totalCount: (
+            await catalog
+              .aggregate([...aggregationPipeline, { $count: "count" }])
+              .toArray()
+          )[0].count as number,
+        }
+      : emptyListResult;
   },
   async getDocumentById(
     eServiceId: string,
