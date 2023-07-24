@@ -92,15 +92,18 @@ export const readModelGateway = {
   ): Promise<(CatalogItem & { version: number }) | undefined> {
     const data = await catalog.findOne(
       { "data.id": id },
-      { projection: { data: true, version: true } }
+      { projection: { data: true, metadata: true } }
     );
 
     if (data) {
       const result = z
-        .object({ version: z.number(), data: catalogItem })
+        .object({
+          metadata: z.object({ version: z.number() }),
+          data: catalogItem,
+        })
         .safeParse(data);
       return result.success
-        ? { ...result.data.data, version: result.data.version }
+        ? { ...result.data.data, version: result.data.metadata.version }
         : undefined;
     }
 

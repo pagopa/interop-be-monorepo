@@ -73,9 +73,13 @@ async function processMessage(message: KafkaMessage): Promise<void> {
   const parsed = Message.safeParse(message);
   if (parsed.success) {
     await catalog.insertOne({
-      data: parsed.data.value.payload.after.data,
+      data: {
+        ...parsed.data.value.payload.after.data,
+        id: parsed.data.value.payload.after.stream_id,
+        descriptors: [],
+        createdAt: new Date(), // TODO: fix me, this data should arrive from the event
+      },
       metadata: {
-        stream_id: parsed.data.value.payload.after.stream_id,
         version: parsed.data.value.payload.after.version,
       },
     });
