@@ -4,7 +4,7 @@ import { ExpressContext, ZodiosContext } from "../app.js";
 import { api } from "../model/generated/api.js";
 import { ApiError, makeApiError } from "../model/types.js";
 import { catalogService } from "../services/catalogService.js";
-import { readModelGateway } from "../services/readModelGateway.js";
+import { readModelGateway } from "../services/readModelService.js";
 import { convertCatalogToEService } from "../model/domain/models.js";
 import {
   eServiceDocumentNotFound,

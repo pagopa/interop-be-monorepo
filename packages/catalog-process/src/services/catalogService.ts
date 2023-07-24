@@ -31,7 +31,7 @@ import {
 import { eventRepository } from "../repositories/events.js";
 import { fileManager } from "../utilities/fileManager.js";
 import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
-import { readModelGateway } from "./readModelGateway.js";
+import { readModelGateway } from "./readModelService.js";
 
 const assertRequesterAllowed = (
   producerId: string,
