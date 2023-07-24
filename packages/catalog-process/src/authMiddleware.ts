@@ -72,7 +72,6 @@ export const authMiddleware: ZodiosRouterContextRequestHandler<
           authorization: P.string,
           "x-correlation-id": P.string,
           "x-forwarded-for": P.optional(P.string.regex(ipRegex)),
-          // "x-forwarded-for": P.nullish.or(P.string.regex(ipRegex)),
         },
         (headers) => addCtxAuthData(headers)
       )
