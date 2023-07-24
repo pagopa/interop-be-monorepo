@@ -10,7 +10,8 @@ import {
   DescriptorState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { AuthData } from "pagopa-interop-commons";
+import { AuthData, logger } from "pagopa-interop-commons";
+
 import { Consumer, consumer } from "../model/domain/models.js";
 
 const mongoUri = "mongodb://root:example@localhost:27017";
@@ -19,6 +20,13 @@ const client = new MongoClient(mongoUri);
 const db = client.db("readmodel");
 const catalog = db.collection("eservices");
 const agreements = db.collection("agreements");
+
+function arrayToFilter<T, F extends object>(
+  array: T[],
+  f: (array: T[]) => F
+): F | undefined {
+  return array.length > 0 ? f(array) : undefined;
+}
 
 export const readModelGateway = {
   async getCatalogItems(
@@ -48,6 +56,10 @@ export const readModelGateway = {
       return [];
     }
 
+    logger.info(name);
+    logger.info(producersIds);
+    logger.info(states);
+
     const nameFilter = name
       ? {
           "data.name": {
@@ -60,10 +72,14 @@ export const readModelGateway = {
     const aggregationPipeline = [
       {
         $match: {
-          nameFilter,
-          "data.descriptors": { $elemMatch: { state: { $in: states } } },
-          "data.id": { $in: ids },
-          "data.producerId": { $in: producersIds },
+          ...nameFilter,
+          ...arrayToFilter(states, (states) => ({
+            "data.descriptors": { $elemMatch: { state: { $in: states } } },
+          })),
+          ...arrayToFilter(ids, (ids) => ({ "data.id": { $in: ids } })),
+          ...arrayToFilter(producersIds, (producersIds) => ({
+            "data.producerId": { $in: producersIds },
+          })),
         },
       },
       {
@@ -229,10 +245,18 @@ export const readModelGateway = {
     const aggregationPipeline = [
       {
         $match: {
-          "data.eserviceId": { $in: eservicesIds },
-          "data.consumerId": { $in: consumersIds },
-          "data.producerId": { $in: producersIds },
-          "data.state": { $elemMatch: { state: { $in: states } } },
+          ...arrayToFilter(eservicesIds, (eservicesIds) => ({
+            "data.eserviceId": { $in: eservicesIds },
+          })),
+          ...arrayToFilter(consumersIds, (consumersIds) => ({
+            "data.consumerId": { $in: consumersIds },
+          })),
+          ...arrayToFilter(producersIds, (producersIds) => ({
+            "data.producerId": { $in: producersIds },
+          })),
+          ...arrayToFilter(states, (states) => ({
+            "data.state": { $elemMatch: { state: { $in: states } } },
+          })),
         },
       },
       {
