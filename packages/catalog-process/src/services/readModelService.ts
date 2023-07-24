@@ -18,9 +18,9 @@ import {
   consumer,
   emptyListResult,
 } from "../model/domain/models.js";
+import { config } from "../utilities/config.js";
 
-const mongoUri = "mongodb://root:example@localhost:27017";
-const client = new MongoClient(mongoUri);
+const client = new MongoClient(config.mongoUri);
 
 const db = client.db("readmodel");
 const catalog = db.collection("eservices");
