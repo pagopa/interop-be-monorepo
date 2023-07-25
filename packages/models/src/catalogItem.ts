@@ -75,5 +75,6 @@ export const catalogItem = z.object({
 });
 
 export type DescriptorState = z.infer<typeof descriptorState>;
+export type Descriptor = z.infer<typeof descriptor>;
 export type CatalogItem = z.infer<typeof catalogItem>;
 export type Document = z.infer<typeof document>;
