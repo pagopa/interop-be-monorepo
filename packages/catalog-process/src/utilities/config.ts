@@ -15,6 +15,7 @@ const Config = z
     S3_SECRET_ACCESS_KEY: z.string().optional(),
     S3_REGION: z.string().optional(),
     S3_BUCKET_NAME: z.string().optional(),
+    ESERVICE_DOCS_PATH: z.string().optional(),
     MONGO_URI: z.string(),
   })
   .transform((c) => ({
@@ -26,6 +27,7 @@ const Config = z
     s3SecretAccessKey: c.S3_SECRET_ACCESS_KEY,
     s3Region: c.S3_REGION,
     s3BucketName: c.S3_BUCKET_NAME,
+    eserviceDocsPath: c.ESERVICE_DOCS_PATH,
     mongoUri: c.MONGO_URI,
   }))
   .refine((c) =>
