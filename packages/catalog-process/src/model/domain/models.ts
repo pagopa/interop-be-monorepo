@@ -19,6 +19,8 @@ import {
 export type ListResult<T> = { results: T[]; totalCount: number };
 export const emptyListResult = { results: [], totalCount: 0 };
 
+export type WithMetadata<T> = { data: T; metadata: { version: number } };
+
 export type EService = z.infer<typeof api.schemas.EService> & {
   version: number;
 };
@@ -120,7 +122,21 @@ export const convertToDescriptorEServiceEventData = (
 export const convertCatalogToEService = (
   catalog: CatalogItem
 ): z.infer<typeof api.schemas.EService> => {
-  const mapAttribute = (a: z.infer<typeof attribute>) =>
+  const mapAttribute = (
+    a: z.infer<typeof attribute>
+  ):
+    | {
+        single: {
+          id: string;
+          explicitAttributeVerification: boolean;
+        };
+      }
+    | {
+        group: Array<{
+          id: string;
+          explicitAttributeVerification: boolean;
+        }>;
+      } =>
     match(a)
       .with({ type: "SingleAttribute" }, (a) => ({
         single: a.id,

@@ -15,9 +15,7 @@ module.exports = {
     "extra-rules/no-commented-out-code": "off",
     "sonarjs/no-duplicate-string": "off",
     "max-lines-per-function": "off",
-    "@typescript-eslint/explicit-function-return-type": "off",
     "@typescript-eslint/naming-convention": "off",
-    "max-params": "off",
   },
   ignorePatterns: [".eslintrc.cjs", "**/src/model/generated/*.ts"],
 };
