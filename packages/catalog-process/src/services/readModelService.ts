@@ -1,4 +1,4 @@
-import { MongoClient } from "mongodb";
+import { AggregationCursor, MongoClient } from "mongodb";
 import { z } from "zod";
 import {
   catalogItem,
@@ -10,11 +10,12 @@ import {
   DescriptorState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { AuthData } from "pagopa-interop-commons";
+import { AuthData, logger } from "pagopa-interop-commons";
 
 import {
   Consumer,
   ListResult,
+  WithMetadata,
   consumer,
   emptyListResult,
 } from "../model/domain/models.js";
@@ -33,16 +34,42 @@ function arrayToFilter<T, F extends object>(
   return array.length > 0 ? f(array) : undefined;
 }
 
+async function getTotalCount(
+  query: AggregationCursor<Document>
+): Promise<number> {
+  const data = await query.toArray();
+  const result = z.array(z.object({ count: z.number() })).safeParse(data);
+
+  if (result.success && result.data.length > 0) {
+    return result.data[0].count;
+  }
+
+  logger.warn(
+    `Unable to get total count from aggregation pipeline: result ${JSON.stringify(
+      result
+    )} - data ${JSON.stringify(data)} `
+  );
+  return 0;
+}
+
 export const readModelGateway = {
   async getCatalogItems(
     authData: AuthData,
-    eservicesIds: string[],
-    producersIds: string[],
-    states: DescriptorState[],
-    agreementStates: PersistentAgreementState[],
+    {
+      eservicesIds,
+      producersIds,
+      states,
+      agreementStates,
+      name,
+    }: {
+      eservicesIds: string[];
+      producersIds: string[];
+      states: DescriptorState[];
+      agreementStates: PersistentAgreementState[];
+      name?: { value: string; exactMatch: boolean };
+    },
     offset: number,
-    limit: number,
-    name?: { value: string; exactMatch: boolean }
+    limit: number
   ): Promise<ListResult<CatalogItem>> {
     const ids = await match(agreementStates.length)
       .with(0, () => eservicesIds)
@@ -99,20 +126,26 @@ export const readModelGateway = {
       .toArray();
 
     const result = z.array(catalogItem).safeParse(data.map((d) => d.data));
-    return result.success
-      ? {
-          results: result.data,
-          totalCount: (
-            await catalog
-              .aggregate([...aggregationPipeline, { $count: "count" }])
-              .toArray()
-          )[0].count as number,
-        }
-      : emptyListResult;
+    if (!result.success) {
+      logger.warn(
+        `Unable to parse catalog items: result ${JSON.stringify(
+          result
+        )} - data ${JSON.stringify(data)} `
+      );
+
+      return emptyListResult;
+    }
+
+    return {
+      results: result.data,
+      totalCount: await getTotalCount(
+        catalog.aggregate([...aggregationPipeline, { $count: "count" }])
+      ),
+    };
   },
   async getCatalogItemById(
     id: string
-  ): Promise<(CatalogItem & { version: number }) | undefined> {
+  ): Promise<WithMetadata<CatalogItem> | undefined> {
     const data = await catalog.findOne(
       { "data.id": id },
       { projection: { data: true, metadata: true } }
@@ -125,9 +158,21 @@ export const readModelGateway = {
           data: catalogItem,
         })
         .safeParse(data);
-      return result.success
-        ? { ...result.data.data, version: result.data.metadata.version }
-        : undefined;
+
+      if (!result.success) {
+        logger.warn(
+          `Unable to parse catalog item: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+
+        return undefined;
+      }
+
+      return {
+        data: result.data.data,
+        metadata: { version: result.data.metadata.version },
+      };
     }
 
     return undefined;
@@ -229,16 +274,22 @@ export const readModelGateway = {
       .toArray();
 
     const result = z.array(consumer).safeParse(data);
-    return result.success
-      ? {
-          results: result.data,
-          totalCount: (
-            await catalog
-              .aggregate([...aggregationPipeline, { $count: "count" }])
-              .toArray()
-          )[0].count as number,
-        }
-      : emptyListResult;
+    if (!result.success) {
+      logger.warn(
+        `Unable to parse consumers: result ${JSON.stringify(
+          result
+        )} - data ${JSON.stringify(data)} `
+      );
+
+      return emptyListResult;
+    }
+
+    return {
+      results: result.data,
+      totalCount: await getTotalCount(
+        catalog.aggregate([...aggregationPipeline, { $count: "count" }])
+      ),
+    };
   },
   async getDocumentById(
     eServiceId: string,
@@ -246,7 +297,7 @@ export const readModelGateway = {
     documentId: string
   ): Promise<Document | undefined> {
     const catalog = await this.getCatalogItemById(eServiceId);
-    return catalog?.descriptors
+    return catalog?.data.descriptors
       .find((d) => d.id === descriptorId)
       ?.docs.find((d) => d.id === documentId);
   },
@@ -284,6 +335,17 @@ export const readModelGateway = {
     ];
     const data = await agreements.aggregate(aggregationPipeline).toArray();
     const result = z.array(persistentAgreement).safeParse(data);
-    return result.success ? result.data : [];
+
+    if (!result.success) {
+      logger.warn(
+        `Unable to parse agreements: result ${JSON.stringify(
+          result
+        )} - data ${JSON.stringify(data)} `
+      );
+
+      return [];
+    }
+
+    return result.data;
   },
 };

@@ -31,13 +31,15 @@ const eservicesRouter = (
 
         const catalogs = await readModelGateway.getCatalogItems(
           req.ctx.authData,
-          eservicesIds,
-          producersIds,
-          states,
-          agreementStates,
+          {
+            eservicesIds,
+            producersIds,
+            states,
+            agreementStates,
+            name: name ? { value: name, exactMatch: false } : undefined,
+          },
           offset,
-          limit,
-          name ? { value: name, exactMatch: false } : undefined
+          limit
         );
 
         return res
@@ -70,7 +72,10 @@ const eservicesRouter = (
         );
 
         if (catalog) {
-          return res.status(200).json(convertCatalogToEService(catalog)).end();
+          return res
+            .status(200)
+            .json(convertCatalogToEService(catalog.data))
+            .end();
         } else {
           return res
             .status(404)
