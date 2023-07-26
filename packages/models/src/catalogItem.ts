@@ -54,12 +54,12 @@ const descriptor = z.object({
   dailyCallsPerConsumer: z.number().int(),
   dailyCallsTotal: z.number().int(),
   agreementApprovalPolicy: z.enum(["MANUAL", "AUTOMATIC"]).optional(),
-  createdAt: z.string().datetime(),
+  createdAt: z.date(),
   serverUrls: z.array(z.string()),
-  publishedAt: z.string().datetime().optional(),
-  suspendedAt: z.string().datetime().optional(),
-  deprecatedAt: z.string().datetime().optional(),
-  archivedAt: z.string().datetime().optional(),
+  publishedAt: z.date().optional(),
+  suspendedAt: z.date().optional(),
+  deprecatedAt: z.date().optional(),
+  archivedAt: z.date().optional(),
   attributes,
 });
 
