@@ -533,7 +533,7 @@ export const catalogService = {
       data: updatedDescriptor,
     });
 
-    authorizationManagementServiceMock.updateStateOnClients();
+    await authorizationManagementServiceMock.updateStateOnClients();
   },
 
   async suspendDescriptor(
@@ -562,7 +562,7 @@ export const catalogService = {
       data: updatedDescriptor,
     });
 
-    authorizationManagementServiceMock.updateStateOnClients();
+    await authorizationManagementServiceMock.updateStateOnClients();
   },
 
   async activateDescriptor(
@@ -606,7 +606,7 @@ export const catalogService = {
       await deprecateDescriptor(descriptor, eService);
     }
 
-    authorizationManagementServiceMock.updateStateOnClients();
+    await authorizationManagementServiceMock.updateStateOnClients();
   },
 
   async cloneDescriptor(
@@ -724,6 +724,6 @@ export const catalogService = {
       data: updatedDescriptor,
     });
 
-    authorizationManagementServiceMock.updateStateOnClients();
+    await authorizationManagementServiceMock.updateStateOnClients();
   },
 };
