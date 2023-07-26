@@ -25,10 +25,8 @@ node_modules/
 # Output of 'npm pack'
 *.tgz
 
-
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test
-
 
 ### VisualStudioCode ###
 .vscode/*

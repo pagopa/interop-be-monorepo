@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
+import { CatalogItem } from "pagopa-interop-models";
 import {
   EServiceDescriptor,
   EServiceDescriptorSeed,
@@ -12,12 +13,20 @@ import { ApiEServiceDescriptorDocumentSeed } from "../../model/types.js";
 
 export const eserviceSeedToCreateEvent = (
   eserviceSeed: EServiceSeed
-): CreateEvent<EServiceSeed> => ({
-  streamId: uuidv4(),
-  version: 0,
-  type: "CatalogItemAdded", // TODO: change this value with properly event type definition
-  data: eserviceSeed,
-});
+): CreateEvent<CatalogItem> => {
+  const id = uuidv4();
+  return {
+    streamId: id,
+    version: 0,
+    type: "CatalogItemAdded", // TODO: change this value with properly event type definition
+    data: {
+      ...eserviceSeed,
+      id,
+      descriptors: [],
+      createdAt: new Date(),
+    },
+  };
+};
 
 export const eserviceDescriptorDocumentSeedToCreateEvent = (
   eServiceId: string,
