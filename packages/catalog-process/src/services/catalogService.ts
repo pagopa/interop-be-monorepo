@@ -18,8 +18,6 @@ import {
   eServiceDocumentNotFound,
 } from "../model/domain/errors.js";
 import {
-  EService,
-  EServiceDescriptor,
   EServiceDescriptorSeed,
   EServiceDescriptorState,
   UpdateEServiceDescriptorSeed,
@@ -50,9 +48,7 @@ const assertRequesterAllowed = (
   }
 };
 
-const assertDescriptorIsDraft = (
-  descriptor: EServiceDescriptor
-): EServiceDescriptor => {
+const assertDescriptorIsDraft = (descriptor: Descriptor): Descriptor => {
   if (descriptor.state !== "DRAFT") {
     throw notValidDescriptor(descriptor.id, descriptor.state.toString());
   }
@@ -71,15 +67,15 @@ const retrieveEService = async (
 
 const retrieveDescriptor = async (
   descriptorId: string,
-  eService: EService
+  eService: WithMetadata<CatalogItem>
 ): Promise<Descriptor> => {
-  const descriptor = eService.descriptors.find(
-    (d) => d.id === descriptorId && d.state === "DRAFT"
+  const descriptor = eService.data.descriptors.find(
+    (d: Descriptor) => d.id === descriptorId && d.state === "DRAFT"
   );
 
   if (descriptor === undefined) {
     throw new CatalogProcessError(
-      `Descriptor with id ${descriptorId} of EService ${eService.id} not found`,
+      `Descriptor with id ${descriptorId} of EService ${eService.data.id} not found`,
       ErrorTypes.EServiceDescriptorNotFound
     );
   }
@@ -88,9 +84,9 @@ const retrieveDescriptor = async (
 };
 
 const updateDescriptorState = (
-  descriptor: EServiceDescriptor,
+  descriptor: Descriptor,
   updateESErviceDescriptorState: EServiceDescriptorState
-): EServiceDescriptor => {
+): Descriptor => {
   const descriptorStateChanges = [
     descriptor.state,
     updateESErviceDescriptorState.toString(),
@@ -100,12 +96,12 @@ const updateDescriptorState = (
     .with(["DRAFT", "PUBLISHED"], () => ({
       ...descriptor,
       state: updateESErviceDescriptorState,
-      publishedAt: Date.now().toString(),
+      publishedAt: new Date(),
     }))
     .with(["PUBLISHED", "SUSPENDED"], () => ({
       ...descriptor,
       state: updateESErviceDescriptorState,
-      suspendedAt: Date.now().toString(),
+      suspendedAt: new Date(),
     }))
     .with(["SUSPENDED", "PUBLISHED"], () => ({
       ...descriptor,
@@ -116,23 +112,23 @@ const updateDescriptorState = (
       ...descriptor,
       state: updateESErviceDescriptorState,
       suspendedAt: undefined,
-      deprecatedAt: Date.now().toString(),
+      deprecatedAt: new Date(),
     }))
     .with(["SUSPENDED", "ARCHIVED"], () => ({
       ...descriptor,
       state: updateESErviceDescriptorState,
       suspendedAt: undefined,
-      archivedAt: Date.now().toString(),
+      archivedAt: new Date(),
     }))
     .with(["PUBLISHED", "ARCHIVED"], () => ({
       ...descriptor,
       state: updateESErviceDescriptorState,
-      archivedAt: Date.now().toString(),
+      archivedAt: new Date(),
     }))
     .with(["PUBLISHED", "DEPRECATED"], () => ({
       ...descriptor,
       state: updateESErviceDescriptorState,
-      deprecatedAt: Date.now().toString(),
+      deprecatedAt: new Date(),
     }))
     .otherwise(() => ({
       ...descriptor,
@@ -141,17 +137,17 @@ const updateDescriptorState = (
 };
 
 const deprecateDescriptor = async (
-  descriptor: EServiceDescriptor,
-  eService: EService
+  descriptor: Descriptor,
+  eService: WithMetadata<CatalogItem>
 ): Promise<void> => {
   logger.info(
-    `Deprecating Descriptor ${descriptor.id} of EService ${eService.id}`
+    `Deprecating Descriptor ${descriptor.id} of EService ${eService.data.id}`
   );
 
   const updatedDescriptor = updateDescriptorState(descriptor, "DEPRECATED");
   await eventRepository.createEvent({
-    streamId: eService.id,
-    version: eService.version,
+    streamId: eService.data.id,
+    version: eService.metadata.version,
     type: "DeprecateDescriptor",
     data: updatedDescriptor,
   });
@@ -518,7 +514,7 @@ export const catalogService = {
     const eService = await retrieveEService(eServiceId);
     assertRequesterAllowed(eService.data.producerId, authData.organizationId);
 
-    const descriptor = await retrieveDescriptor(descriptorId, eService.data);
+    const descriptor = await retrieveDescriptor(descriptorId, eService);
     assertDescriptorIsDraft(descriptor);
 
     const currentActiveDescriptor = eService.data.descriptors.find(
@@ -527,7 +523,7 @@ export const catalogService = {
 
     const updatedDescriptor = updateDescriptorState(descriptor, "PUBLISHED");
     if (currentActiveDescriptor !== undefined) {
-      await deprecateDescriptor(currentActiveDescriptor, eService.data);
+      await deprecateDescriptor(currentActiveDescriptor, eService);
     }
 
     await eventRepository.createEvent({
@@ -552,7 +548,7 @@ export const catalogService = {
     const eService = await retrieveEService(eServiceId);
     assertRequesterAllowed(eService.data.producerId, authData.organizationId);
 
-    const descriptor = await retrieveDescriptor(descriptorId, eService.data);
+    const descriptor = await retrieveDescriptor(descriptorId, eService);
     if (descriptor.state !== "DEPRECATED" && descriptor.state !== "PUBLISHED") {
       throw notValidDescriptor(descriptorId, descriptor.state.toString());
     }
@@ -581,7 +577,7 @@ export const catalogService = {
     const eService = await retrieveEService(eServiceId);
     assertRequesterAllowed(eService.data.producerId, authData.organizationId);
 
-    const descriptor = await retrieveDescriptor(descriptorId, eService.data);
+    const descriptor = await retrieveDescriptor(descriptorId, eService);
     if (descriptor.state !== "SUSPENDED") {
       throw notValidDescriptor(descriptorId, descriptor.state.toString());
     }
@@ -623,57 +619,62 @@ export const catalogService = {
     const eService = await retrieveEService(eServiceId);
     assertRequesterAllowed(eService.data.producerId, authData.organizationId);
 
-    const descriptor = await retrieveDescriptor(descriptorId, eService.data);
+    const descriptor = await retrieveDescriptor(descriptorId, eService);
 
     const sourceDocument = descriptor.docs[0];
     const clonedDocumentId = uuidv4();
 
     const clonedInterfacePath =
-      descriptor.interfacePath !== undefined
+      descriptor.interface !== undefined
         ? await fileManager.copy(
-            sourceDocument.path,
+            descriptor.interface.path,
             clonedDocumentId,
-            sourceDocument.name
+            descriptor.interface.name
           )
         : undefined;
 
-    const clonedInterfaceDocument: Document = {
-      id: clonedDocumentId,
-      name: sourceDocument.name,
-      contentType: sourceDocument.contentType,
-      prettyName: sourceDocument.prettyName,
-      path: clonedInterfacePath,
-      checksum: sourceDocument.checksum,
-      uploadDate: Date.now(),
-    };
+    const clonedInterfaceDocument: Document | undefined =
+      clonedInterfacePath !== undefined
+        ? {
+            id: clonedDocumentId,
+            name: sourceDocument.name,
+            contentType: sourceDocument.contentType,
+            prettyName: sourceDocument.prettyName,
+            path: clonedInterfacePath,
+            checksum: sourceDocument.checksum,
+            uploadDate: new Date(),
+          }
+        : undefined;
 
-    const clonedDocuments = descriptor.docs.map(async (doc: Document) => {
-      const clonedDocumentId = uuidv4();
-      const clonedPath = await fileManager.copy(
-        doc.path,
-        clonedDocumentId,
-        doc.name
-      );
-      const clonedDocument: Document = {
-        id: clonedDocumentId,
-        name: doc.name,
-        contentType: doc.contentType,
-        prettyName: doc.prettyName,
-        path: clonedPath,
-        checksum: doc.checksum,
-        uploadDate: Date.now(),
-      };
-      return clonedDocument;
-    });
+    const clonedDocuments = await Promise.all(
+      descriptor.docs.map(async (doc: Document) => {
+        const clonedDocumentId = uuidv4();
+        const clonedPath = await fileManager.copy(
+          doc.path,
+          clonedDocumentId,
+          doc.name
+        );
+        const clonedDocument: Document = {
+          id: clonedDocumentId,
+          name: doc.name,
+          contentType: doc.contentType,
+          prettyName: doc.prettyName,
+          path: clonedPath,
+          checksum: doc.checksum,
+          uploadDate: new Date(),
+        };
+        return clonedDocument;
+      })
+    );
 
     const draftCatalogItem: CatalogItem = {
       id: uuidv4(),
       producerId: eService.data.producerId,
-      name: `${eService.name} - clone`,
+      name: `${eService.data.name} - clone`,
       description: eService.data.description,
       technology: eService.data.technology,
-      attributes: eService.data.attributes,
-      createdAt: Date.now(),
+      attribute: eService.data.attribute,
+      createdAt: new Date(),
       descriptors: [
         {
           ...descriptor,
@@ -682,7 +683,7 @@ export const catalogService = {
           interface: clonedInterfaceDocument,
           docs: clonedDocuments,
           state: "DRAFT",
-          createdAt: Date.now(),
+          createdAt: new Date(),
           publishedAt: undefined,
           suspendedAt: undefined,
           deprecatedAt: undefined,
@@ -697,6 +698,8 @@ export const catalogService = {
       type: "ClonedCatalogItemAdded",
       data: draftCatalogItem,
     });
+
+    return draftCatalogItem;
   },
 
   async archiveDescriptor(
