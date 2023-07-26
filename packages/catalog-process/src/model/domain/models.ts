@@ -3,11 +3,23 @@
   This file will be removed once all models are converted from scala.
  */
 import { z } from "zod";
+import {
+  CatalogItem,
+  attribute,
+  descriptorState,
+  persistentAgreementState,
+} from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import * as api from "../generated/api.js";
 import {
   ApiEServiceDescriptorDocumentSeed,
   ApiEServiceSeed,
 } from "../types.js";
+
+export type ListResult<T> = { results: T[]; totalCount: number };
+export const emptyListResult = { results: [], totalCount: 0 };
+
+export type WithMetadata<T> = { data: T; metadata: { version: number } };
 
 export type EService = z.infer<typeof api.schemas.EService> & {
   version: number;
@@ -45,6 +57,16 @@ export type EServiceDescriptor = z.infer<typeof api.schemas.EServiceDescriptor>;
 export type UpdateEServiceDescriptorSeed = z.infer<
   typeof api.schemas.UpdateEServiceDescriptorSeed
 >;
+
+export const consumer = z.object({
+  descriptorVersion: z.string(),
+  descriptorState,
+  agreementState: persistentAgreementState,
+  consumerName: z.string(),
+  consumerExternalId: z.string(),
+});
+
+export type Consumer = z.infer<typeof consumer>;
 
 export const convertToClientEServiceSeed = (
   seed: ApiEServiceSeed,
@@ -96,3 +118,63 @@ export const convertToDescriptorEServiceEventData = (
   archivedAt: undefined,
   attributes: eserviceDescriptorSeed.attributes,
 });
+
+export const convertCatalogToEService = (
+  catalog: CatalogItem
+): z.infer<typeof api.schemas.EService> => {
+  const mapAttribute = (
+    a: z.infer<typeof attribute>
+  ):
+    | {
+        single: {
+          id: string;
+          explicitAttributeVerification: boolean;
+        };
+      }
+    | {
+        group: Array<{
+          id: string;
+          explicitAttributeVerification: boolean;
+        }>;
+      } =>
+    match(a)
+      .with({ type: "SingleAttribute" }, (a) => ({
+        single: a.id,
+      }))
+      .with({ type: "GroupAttribute" }, (a) => ({
+        group: a.ids,
+      }))
+      .exhaustive();
+
+  return {
+    id: catalog.id,
+    producerId: catalog.producerId,
+    name: catalog.name,
+    description: catalog.description,
+    technology: catalog.technology,
+    descriptors: catalog.descriptors.map((descriptor) => ({
+      id: descriptor.id,
+      version: descriptor.version,
+      description: descriptor.description,
+      audience: descriptor.audience,
+      voucherLifespan: descriptor.voucherLifespan,
+      dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
+      dailyCallsTotal: descriptor.dailyCallsTotal,
+      interface: descriptor.interface,
+      docs: descriptor.docs,
+      state: descriptor.state,
+      agreementApprovalPolicy:
+        descriptor.agreementApprovalPolicy ?? "AUTOMATIC",
+      serverUrls: descriptor.serverUrls,
+      publishedAt: descriptor.publishedAt,
+      suspendedAt: descriptor.suspendedAt,
+      deprecatedAt: descriptor.deprecatedAt,
+      archivedAt: descriptor.archivedAt,
+      attributes: {
+        certified: descriptor.attributes.certified.map(mapAttribute),
+        declared: descriptor.attributes.declared.map(mapAttribute),
+        verified: descriptor.attributes.verified.map(mapAttribute),
+      },
+    })),
+  };
+};

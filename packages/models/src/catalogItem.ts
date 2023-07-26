@@ -71,7 +71,7 @@ export const catalogItem = z.object({
   technology,
   attribute: attributes.optional(),
   descriptors: z.array(descriptor),
-  createdAt: z.date(),
+  createdAt: z.coerce.date(),
 });
 
 export type DescriptorState = z.infer<typeof descriptorState>;

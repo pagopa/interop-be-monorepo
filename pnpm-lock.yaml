@@ -40,12 +40,18 @@ importers:
       jsonwebtoken:
         specifier: ^9.0.0
         version: 9.0.0
+      mongodb:
+        specifier: 5.6.0
+        version: 5.6.0
       openapi-zod-client:
         specifier: ^1.7.1
         version: 1.7.1
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
       pg-promise:
         specifier: ^11.5.0
         version: 11.5.0
@@ -147,6 +153,9 @@ importers:
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
       ts-pattern:
         specifier: ^5.0.1
         version: 5.0.1
