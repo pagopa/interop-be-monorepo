@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* 
   This service is a mock for the AuthorizationManagementService it is used as entrypoint for authorization permission updates.
 */

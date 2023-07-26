@@ -1,4 +1,3 @@
-/* eslint-disable max-lines-per-function */
 import { ZodiosRouter } from "@zodios/express";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ExpressContext, ZodiosContext } from "../app.js";
