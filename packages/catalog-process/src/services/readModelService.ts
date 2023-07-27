@@ -192,7 +192,7 @@ export const readModelService = {
   > {
     return undefined;
   },
-  async getCatalogItemConsumers(
+  async getEServiceConsumers(
     eServiceId: string,
     offset: number,
     limit: number
