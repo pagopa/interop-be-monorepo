@@ -172,7 +172,7 @@ export const catalogService = {
       authData.organizationId
     );
 
-    const eservice = await readModelService.getCatalogItems(
+    const eservice = await readModelService.getEServices(
       authData,
       {
         eservicesIds: [],

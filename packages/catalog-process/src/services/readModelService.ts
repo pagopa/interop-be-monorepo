@@ -53,7 +53,7 @@ async function getTotalCount(
 }
 
 export const readModelService = {
-  async getCatalogItems(
+  async getEServices(
     authData: AuthData,
     {
       eservicesIds,
