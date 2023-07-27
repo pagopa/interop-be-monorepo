@@ -5,6 +5,7 @@ import {
   EServiceDescriptorSeed,
   EServiceDocument,
   EServiceSeed,
+  apiTechnologyTotechnology,
   convertToDescriptorEServiceEventData,
   convertToDocumentEServiceEventData,
 } from "../../model/domain/models.js";
@@ -20,8 +21,11 @@ export const eserviceSeedToCreateEvent = (
     version: 0,
     type: "CatalogItemAdded", // TODO: change this value with properly event type definition
     data: {
-      ...eserviceSeed,
+      name: eserviceSeed.name,
+      description: eserviceSeed.description,
+      technology: apiTechnologyTotechnology(eserviceSeed.technology),
       id,
+      producerId: eserviceSeed.producerId,
       descriptors: [],
       createdAt: new Date(),
     },

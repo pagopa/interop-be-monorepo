@@ -1,6 +1,34 @@
 import z from "zod";
 
-const Technology = z.enum(["REST", "SOAP"]);
+export const technology = { rest: "Rest", soap: "Soap" } as const;
+export const Technology = z.enum([
+  Object.values(technology)[0],
+  ...Object.values(technology).slice(1),
+]);
+export type Technology = z.infer<typeof Technology>;
+
+export const descriptorState = {
+  draft: "Draft",
+  published: "Published",
+  deprecated: "Deprecated",
+  suspended: "Suspended",
+  archived: "Archived",
+} as const;
+export const DescriptorState = z.enum([
+  Object.values(descriptorState)[0],
+  ...Object.values(descriptorState).slice(1),
+]);
+export type DescriptorState = z.infer<typeof DescriptorState>;
+
+export const agreementApprovalPolicy = {
+  manual: "Manual",
+  automatic: "Automatic",
+} as const;
+export const AgreementApprovalPolicy = z.enum([
+  Object.values(agreementApprovalPolicy)[0],
+  ...Object.values(agreementApprovalPolicy).slice(1),
+]);
+export type AgreementApprovalPolicy = z.infer<typeof AgreementApprovalPolicy>;
 
 const AttributeValue = z.object({
   id: z.string().uuid(),
@@ -23,6 +51,7 @@ const Attributes = z.object({
   declared: z.array(Attribute),
   verified: z.array(Attribute),
 });
+export type Attribute = z.infer<typeof Attribute>;
 
 export const Document = z.object({
   id: z.string().uuid(),
@@ -33,14 +62,7 @@ export const Document = z.object({
   checksum: z.string(),
   uploadDate: z.coerce.date(),
 });
-
-export const DescriptorState = z.enum([
-  "DRAFT",
-  "PUBLISHED",
-  "DEPRECATED",
-  "SUSPENDED",
-  "ARCHIVED",
-]);
+export type Document = z.infer<typeof Document>;
 
 const Descriptor = z.object({
   id: z.string().uuid(),
@@ -53,7 +75,7 @@ const Descriptor = z.object({
   voucherLifespan: z.number().int(),
   dailyCallsPerConsumer: z.number().int(),
   dailyCallsTotal: z.number().int(),
-  agreementApprovalPolicy: z.enum(["MANUAL", "AUTOMATIC"]).optional(),
+  agreementApprovalPolicy: AgreementApprovalPolicy.optional(),
   createdAt: z.coerce.date(),
   serverUrls: z.array(z.string()),
   publishedAt: z.coerce.date().optional(),
@@ -62,6 +84,7 @@ const Descriptor = z.object({
   archivedAt: z.coerce.date().optional(),
   attributes: Attributes,
 });
+export type Descriptor = z.infer<typeof Descriptor>;
 
 export const EService = z.object({
   id: z.string().uuid(),
@@ -73,9 +96,4 @@ export const EService = z.object({
   descriptors: z.array(Descriptor),
   createdAt: z.coerce.date(),
 });
-
-export type DescriptorState = z.infer<typeof DescriptorState>;
-export type Descriptor = z.infer<typeof Descriptor>;
 export type EService = z.infer<typeof EService>;
-export type Document = z.infer<typeof Document>;
-export type Attribute = z.infer<typeof Attribute>;

@@ -6,6 +6,8 @@ import {
   PersistentAgreementState,
   DescriptorState,
   EService,
+  descriptorState,
+  persistentAgreementState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { AuthData, logger } from "pagopa-interop-commons";
@@ -201,7 +203,13 @@ export const readModelService = {
           "data.id": eServiceId,
           "data.descriptors.state": {
             $elemMatch: {
-              state: { $in: ["PUBLISHED", "DEPRECATED", "SUSPENDED"] },
+              state: {
+                $in: [
+                  descriptorState.published,
+                  descriptorState.deprecated,
+                  descriptorState.suspended,
+                ],
+              },
             },
           },
         },
@@ -228,7 +236,12 @@ export const readModelService = {
       { $unwind: "$tenants" },
       {
         $match: {
-          "agreements.data.state": { $in: ["ACTIVE", "SUSPENDED"] },
+          "agreements.data.state": {
+            $in: [
+              persistentAgreementState.active,
+              persistentAgreementState.suspended,
+            ],
+          },
         },
       },
       {

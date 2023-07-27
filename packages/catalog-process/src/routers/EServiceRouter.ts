@@ -5,7 +5,13 @@ import { api } from "../model/generated/api.js";
 import { ApiError, makeApiError } from "../model/types.js";
 import { catalogService } from "../services/catalogService.js";
 import { readModelService } from "../services/readModelService.js";
-import { convertEServiceToApiEService } from "../model/domain/models.js";
+import {
+  agreementStateToApiAgreementState,
+  apiAgreementStateToAgreementState,
+  apiDescriptorStateToDescriptorState,
+  convertEServiceToApiEService,
+  descriptorStateToApiEServiceDescriptorState,
+} from "../model/domain/models.js";
 import {
   eServiceDocumentNotFound,
   eServiceNotFound,
@@ -34,8 +40,10 @@ const eservicesRouter = (
           {
             eservicesIds,
             producersIds,
-            states,
-            agreementStates,
+            states: states.map(apiDescriptorStateToDescriptorState),
+            agreementStates: agreementStates.map(
+              apiAgreementStateToAgreementState
+            ),
             name: name ? { value: name, exactMatch: false } : undefined,
           },
           offset,
@@ -129,8 +137,12 @@ const eservicesRouter = (
           .json({
             results: consumers.results.map((c) => ({
               descriptorVersion: parseInt(c.descriptorVersion, 10),
-              descriptorState: c.descriptorState,
-              agreementState: c.agreementState,
+              descriptorState: descriptorStateToApiEServiceDescriptorState(
+                c.descriptorState
+              ),
+              agreementState: agreementStateToApiAgreementState(
+                c.agreementState
+              ),
               consumerName: c.consumerName,
               consumerExternalId: c.consumerExternalId,
             })),

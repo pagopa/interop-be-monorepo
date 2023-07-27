@@ -1,14 +1,19 @@
 import z from "zod";
 
+export const persistentAgreementState = {
+  draft: "Draft",
+  suspended: "Suspended",
+  archived: "Archived",
+  pending: "Pending",
+  active: "Active",
+  missingCertifiedAttributes: "MissingCertifiedAttributes",
+  rejected: "Rejected",
+} as const;
 export const PersistentAgreementState = z.enum([
-  "DRAFT",
-  "SUSPENDED",
-  "ARCHIVED",
-  "PENDING",
-  "ACTIVE",
-  "MISSING_CERTIFIED_ATTRIBUTES",
-  "REJECTED",
+  Object.values(persistentAgreementState)[0],
+  ...Object.values(persistentAgreementState).slice(1),
 ]);
+export type PersistentAgreementState = z.infer<typeof PersistentAgreementState>;
 
 const PersistentAttribute = z.object({ id: z.string().uuid() });
 
@@ -58,6 +63,4 @@ export const PersistentAgreement = z.object({
   rejectionReason: z.string().optional(),
   suspendedAt: z.date().optional(),
 });
-
-export type PersistentAgreementState = z.infer<typeof PersistentAgreementState>;
 export type PersistentAgreement = z.infer<typeof PersistentAgreement>;
