@@ -4,8 +4,8 @@ import { ExpressContext, ZodiosContext } from "../app.js";
 import { api } from "../model/generated/api.js";
 import { ApiError, makeApiError } from "../model/types.js";
 import { catalogService } from "../services/catalogService.js";
-import { readModelGateway } from "../services/readModelService.js";
-import { convertCatalogToEService } from "../model/domain/models.js";
+import { readModelService } from "../services/readModelService.js";
+import { convertEServiceToApiEService } from "../model/domain/models.js";
 import {
   eServiceDocumentNotFound,
   eServiceNotFound,
@@ -29,7 +29,7 @@ const eservicesRouter = (
           limit,
         } = req.query;
 
-        const catalogs = await readModelGateway.getCatalogItems(
+        const catalogs = await readModelService.getCatalogItems(
           req.ctx.authData,
           {
             eservicesIds,
@@ -45,7 +45,7 @@ const eservicesRouter = (
         return res
           .status(200)
           .json({
-            results: catalogs.results.map(convertCatalogToEService),
+            results: catalogs.results.map(convertEServiceToApiEService),
             totalCount: catalogs.totalCount,
           })
           .end();
@@ -67,14 +67,14 @@ const eservicesRouter = (
     })
     .get("/eservices/:eServiceId", async (req, res) => {
       try {
-        const catalog = await readModelGateway.getCatalogItemById(
+        const eService = await readModelService.getEServiceById(
           req.params.eServiceId
         );
 
-        if (catalog) {
+        if (eService) {
           return res
             .status(200)
-            .json(convertCatalogToEService(catalog.data))
+            .json(convertEServiceToApiEService(eService.data))
             .end();
         } else {
           return res
@@ -118,7 +118,7 @@ const eservicesRouter = (
         const offset = req.query.offset;
         const limit = req.query.limit;
 
-        const consumers = await readModelGateway.getCatalogItemConsumers(
+        const consumers = await readModelService.getCatalogItemConsumers(
           eServiceId,
           offset,
           limit
@@ -148,7 +148,7 @@ const eservicesRouter = (
         try {
           const { eServiceId, descriptorId, documentId } = req.params;
 
-          const document = await readModelGateway.getDocumentById(
+          const document = await readModelService.getDocumentById(
             eServiceId,
             descriptorId,
             documentId

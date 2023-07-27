@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
-import { CatalogItem } from "pagopa-interop-models";
+import { EService } from "pagopa-interop-models";
 import {
   EServiceDescriptor,
   EServiceDescriptorSeed,
@@ -13,7 +13,7 @@ import { CreateEvent } from "../EventRepository.js";
 
 export const eserviceSeedToCreateEvent = (
   eserviceSeed: EServiceSeed
-): CreateEvent<CatalogItem> => {
+): CreateEvent<EService> => {
   const id = uuidv4();
   return {
     streamId: id,

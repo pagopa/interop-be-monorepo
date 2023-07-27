@@ -1,13 +1,11 @@
 import { AggregationCursor, MongoClient } from "mongodb";
 import { z } from "zod";
 import {
-  catalogItem,
-  CatalogItem,
   Document,
-  persistentAgreement,
   PersistentAgreement,
   PersistentAgreementState,
   DescriptorState,
+  EService,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { AuthData, logger } from "pagopa-interop-commons";
@@ -24,7 +22,7 @@ import { config } from "../utilities/config.js";
 const client = new MongoClient(config.mongoUri);
 
 const db = client.db("readmodel");
-const catalog = db.collection("eservices");
+const eservices = db.collection("eservices");
 const agreements = db.collection("agreements");
 
 function arrayToFilter<T, F extends object>(
@@ -52,7 +50,7 @@ async function getTotalCount(
   return 0;
 }
 
-export const readModelGateway = {
+export const readModelService = {
   async getCatalogItems(
     authData: AuthData,
     {
@@ -70,7 +68,7 @@ export const readModelGateway = {
     },
     offset: number,
     limit: number
-  ): Promise<ListResult<CatalogItem>> {
+  ): Promise<ListResult<EService>> {
     const ids = await match(agreementStates.length)
       .with(0, () => eservicesIds)
       .otherwise(async () =>
@@ -121,14 +119,14 @@ export const readModelGateway = {
       },
     ];
 
-    const data = await catalog
+    const data = await eservices
       .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }])
       .toArray();
 
-    const result = z.array(catalogItem).safeParse(data.map((d) => d.data));
+    const result = z.array(EService).safeParse(data.map((d) => d.data));
     if (!result.success) {
       logger.warn(
-        `Unable to parse catalog items: result ${JSON.stringify(
+        `Unable to parse eservices items: result ${JSON.stringify(
           result
         )} - data ${JSON.stringify(data)} `
       );
@@ -139,14 +137,14 @@ export const readModelGateway = {
     return {
       results: result.data,
       totalCount: await getTotalCount(
-        catalog.aggregate([...aggregationPipeline, { $count: "count" }])
+        eservices.aggregate([...aggregationPipeline, { $count: "count" }])
       ),
     };
   },
-  async getCatalogItemById(
+  async getEServiceById(
     id: string
-  ): Promise<WithMetadata<CatalogItem> | undefined> {
-    const data = await catalog.findOne(
+  ): Promise<WithMetadata<EService> | undefined> {
+    const data = await eservices.findOne(
       { "data.id": id },
       { projection: { data: true, metadata: true } }
     );
@@ -155,13 +153,13 @@ export const readModelGateway = {
       const result = z
         .object({
           metadata: z.object({ version: z.number() }),
-          data: catalogItem,
+          data: EService,
         })
         .safeParse(data);
 
       if (!result.success) {
         logger.warn(
-          `Unable to parse catalog item: result ${JSON.stringify(
+          `Unable to parse eservices item: result ${JSON.stringify(
             result
           )} - data ${JSON.stringify(data)} `
         );
@@ -269,7 +267,7 @@ export const readModelGateway = {
       },
     ];
 
-    const data = await catalog
+    const data = await eservices
       .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }])
       .toArray();
 
@@ -287,7 +285,7 @@ export const readModelGateway = {
     return {
       results: result.data,
       totalCount: await getTotalCount(
-        catalog.aggregate([...aggregationPipeline, { $count: "count" }])
+        eservices.aggregate([...aggregationPipeline, { $count: "count" }])
       ),
     };
   },
@@ -296,8 +294,8 @@ export const readModelGateway = {
     descriptorId: string,
     documentId: string
   ): Promise<Document | undefined> {
-    const catalog = await this.getCatalogItemById(eServiceId);
-    return catalog?.data.descriptors
+    const eService = await this.getEServiceById(eServiceId);
+    return eService?.data.descriptors
       .find((d) => d.id === descriptorId)
       ?.docs.find((d) => d.id === documentId);
   },
@@ -334,7 +332,7 @@ export const readModelGateway = {
       },
     ];
     const data = await agreements.aggregate(aggregationPipeline).toArray();
-    const result = z.array(persistentAgreement).safeParse(data);
+    const result = z.array(PersistentAgreement).safeParse(data);
 
     if (!result.success) {
       logger.warn(

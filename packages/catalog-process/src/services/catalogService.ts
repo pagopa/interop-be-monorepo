@@ -5,7 +5,7 @@ import {
 } from "pagopa-interop-commons";
 import { v4 as uuidv4 } from "uuid";
 import { match } from "ts-pattern";
-import { Document, Descriptor, CatalogItem } from "pagopa-interop-models";
+import { Document, Descriptor, EService } from "pagopa-interop-models";
 import {
   CatalogProcessError,
   ErrorTypes,
@@ -37,7 +37,7 @@ import {
 } from "../repositories/adapters/adapters.js";
 import { fileManager } from "../utilities/fileManager.js";
 import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
-import { readModelGateway } from "./readModelService.js";
+import { readModelService } from "./readModelService.js";
 
 const assertRequesterAllowed = (
   producerId: string,
@@ -50,8 +50,8 @@ const assertRequesterAllowed = (
 
 const retrieveEService = async (
   eServiceId: string
-): Promise<WithMetadata<CatalogItem>> => {
-  const eService = await readModelGateway.getCatalogItemById(eServiceId);
+): Promise<WithMetadata<EService>> => {
+  const eService = await readModelService.getEServiceById(eServiceId);
   if (eService === undefined) {
     throw eServiceNotFound(eServiceId);
   }
@@ -60,7 +60,7 @@ const retrieveEService = async (
 
 const retrieveDescriptor = async (
   descriptorId: string,
-  eService: WithMetadata<CatalogItem>
+  eService: WithMetadata<EService>
 ): Promise<Descriptor> => {
   const descriptor = eService.data.descriptors.find(
     (d: Descriptor) => d.id === descriptorId
@@ -128,7 +128,7 @@ const updateDescriptorState = (
 
 const deprecateDescriptor = async (
   descriptor: Descriptor,
-  eService: WithMetadata<CatalogItem>
+  eService: WithMetadata<EService>
 ): Promise<void> => {
   logger.info(
     `Deprecating Descriptor ${descriptor.id} of EService ${eService.data.id}`
@@ -143,7 +143,7 @@ const deprecateDescriptor = async (
   });
 };
 
-const hasNotDraftDescriptor = (eService: CatalogItem): boolean => {
+const hasNotDraftDescriptor = (eService: EService): boolean => {
   const hasNotDraftDescriptor = eService.descriptors.some(
     (d: Descriptor) => d.state === "DRAFT",
     0
@@ -164,7 +164,7 @@ export const catalogService = {
       authData.organizationId
     );
 
-    const eservice = await readModelGateway.getCatalogItems(
+    const eservice = await readModelService.getCatalogItems(
       authData,
       {
         eservicesIds: [],
@@ -217,7 +217,7 @@ export const catalogService = {
     });
   },
   async deleteEService(eServiceId: string, authData: AuthData): Promise<void> {
-    const eService = await readModelGateway.getCatalogItemById(eServiceId);
+    const eService = await readModelService.getEServiceById(eServiceId);
 
     if (eService === undefined) {
       throw eServiceNotFound(eServiceId);
@@ -244,7 +244,7 @@ export const catalogService = {
     document: ApiEServiceDescriptorDocumentSeed,
     authData: AuthData
   ): Promise<string> {
-    const eService = await readModelGateway.getCatalogItemById(eServiceId);
+    const eService = await readModelService.getEServiceById(eServiceId);
 
     if (eService === undefined) {
       throw eServiceNotFound(eServiceId);
@@ -278,7 +278,7 @@ export const catalogService = {
     documentId: string,
     authData: AuthData
   ): Promise<void> {
-    const eService = await readModelGateway.getCatalogItemById(eServiceId);
+    const eService = await readModelService.getEServiceById(eServiceId);
 
     if (eService === undefined) {
       throw eServiceNotFound(eServiceId);
@@ -288,7 +288,7 @@ export const catalogService = {
       throw operationForbidden;
     }
 
-    const document = await readModelGateway.getEServiceDescriptorDocumentById(
+    const document = await readModelService.getEServiceDescriptorDocumentById(
       documentId
     );
 
@@ -316,7 +316,7 @@ export const catalogService = {
     apiEServiceDescriptorDocumentUpdateSeed: ApiEServiceDescriptorDocumentUpdateSeed,
     authData: AuthData
   ): Promise<void> {
-    const eService = await readModelGateway.getCatalogItemById(eServiceId);
+    const eService = await readModelService.getEServiceById(eServiceId);
 
     if (eService === undefined) {
       throw eServiceNotFound(eServiceId);
@@ -336,7 +336,7 @@ export const catalogService = {
       );
     }
 
-    const document = await readModelGateway.getEServiceDescriptorDocumentById(
+    const document = await readModelService.getEServiceDescriptorDocumentById(
       documentId
     );
 
@@ -441,7 +441,7 @@ export const catalogService = {
     seed: UpdateEServiceDescriptorSeed,
     authData: AuthData
   ): Promise<void> {
-    const eService = await readModelGateway.getCatalogItemById(eServiceId);
+    const eService = await readModelService.getEServiceById(eServiceId);
     if (eService === undefined) {
       throw eServiceNotFound(eServiceId);
     }
@@ -605,7 +605,7 @@ export const catalogService = {
     eServiceId: string,
     descriptorId: string,
     authData: AuthData
-  ): Promise<CatalogItem> {
+  ): Promise<EService> {
     logger.info(`Cloning Descriptor ${descriptorId} of EService ${eServiceId}`);
 
     const eService = await retrieveEService(eServiceId);
@@ -659,7 +659,7 @@ export const catalogService = {
       })
     );
 
-    const draftCatalogItem: CatalogItem = {
+    const draftCatalogItem: EService = {
       id: uuidv4(),
       producerId: eService.data.producerId,
       name: `${eService.data.name} - clone`,
