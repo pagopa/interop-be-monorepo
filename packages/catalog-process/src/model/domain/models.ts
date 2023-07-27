@@ -4,10 +4,10 @@
  */
 import { z } from "zod";
 import {
-  CatalogItem,
-  attribute,
-  descriptorState,
-  persistentAgreementState,
+  EService,
+  Attribute,
+  DescriptorState,
+  PersistentAgreementState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import * as api from "../generated/api.js";
@@ -20,10 +20,6 @@ export type ListResult<T> = { results: T[]; totalCount: number };
 export const emptyListResult = { results: [], totalCount: 0 };
 
 export type WithMetadata<T> = { data: T; metadata: { version: number } };
-
-export type EService = z.infer<typeof api.schemas.EService> & {
-  version: number;
-};
 
 export type EServiceSeed = z.infer<typeof api.schemas.EServiceSeed> & {
   readonly producerId: string;
@@ -60,8 +56,8 @@ export type UpdateEServiceDescriptorSeed = z.infer<
 
 export const consumer = z.object({
   descriptorVersion: z.string(),
-  descriptorState,
-  agreementState: persistentAgreementState,
+  descriptorState: DescriptorState,
+  agreementState: PersistentAgreementState,
   consumerName: z.string(),
   consumerExternalId: z.string(),
 });
@@ -119,11 +115,11 @@ export const convertToDescriptorEServiceEventData = (
   attributes: eserviceDescriptorSeed.attributes,
 });
 
-export const convertCatalogToEService = (
-  catalog: CatalogItem
+export const convertEServiceToApiEService = (
+  eService: EService
 ): z.infer<typeof api.schemas.EService> => {
   const mapAttribute = (
-    a: z.infer<typeof attribute>
+    a: Attribute
   ):
     | {
         single: {
@@ -147,12 +143,12 @@ export const convertCatalogToEService = (
       .exhaustive();
 
   return {
-    id: catalog.id,
-    producerId: catalog.producerId,
-    name: catalog.name,
-    description: catalog.description,
-    technology: catalog.technology,
-    descriptors: catalog.descriptors.map((descriptor) => ({
+    id: eService.id,
+    producerId: eService.producerId,
+    name: eService.name,
+    description: eService.description,
+    technology: eService.technology,
+    descriptors: eService.descriptors.map((descriptor) => ({
       id: descriptor.id,
       version: descriptor.version,
       description: descriptor.description,

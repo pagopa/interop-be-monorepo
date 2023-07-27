@@ -1,6 +1,6 @@
 import z from "zod";
 
-export const persistentAgreementState = z.enum([
+export const PersistentAgreementState = z.enum([
   "DRAFT",
   "SUSPENDED",
   "ARCHIVED",
@@ -10,9 +10,9 @@ export const persistentAgreementState = z.enum([
   "REJECTED",
 ]);
 
-const persistentAttribute = z.object({ id: z.string().uuid() });
+const PersistentAttribute = z.object({ id: z.string().uuid() });
 
-const persistentAgreementDocument = z.object({
+const PersistentAgreementDocument = z.object({
   id: z.string().uuid(),
   name: z.string(),
   prettyName: z.string(),
@@ -21,43 +21,43 @@ const persistentAgreementDocument = z.object({
   createdAt: z.date(),
 });
 
-const persistentStamp = z.object({
+const PersistentStamp = z.object({
   who: z.string().uuid(),
   when: z.date(),
 });
 
-const persistentStamps = z.object({
-  submission: persistentStamp.optional(),
-  activation: persistentStamp.optional(),
-  rejection: persistentStamp.optional(),
-  suspensionByProducer: persistentStamp.optional(),
-  suspensionByConsumer: persistentStamp.optional(),
-  upgrade: persistentStamp.optional(),
-  archiving: persistentStamp.optional(),
+const PersistentStamps = z.object({
+  submission: PersistentStamp.optional(),
+  activation: PersistentStamp.optional(),
+  rejection: PersistentStamp.optional(),
+  suspensionByProducer: PersistentStamp.optional(),
+  suspensionByConsumer: PersistentStamp.optional(),
+  upgrade: PersistentStamp.optional(),
+  archiving: PersistentStamp.optional(),
 });
 
-export const persistentAgreement = z.object({
+export const PersistentAgreement = z.object({
   id: z.string().uuid(),
   eserviceId: z.string().uuid(),
   descriptorId: z.string().uuid(),
   producerId: z.string().uuid(),
   consumerId: z.string().uuid(),
-  state: persistentAgreementState,
-  verifiedAttributes: z.array(persistentAttribute),
-  certifiedAttributes: z.array(persistentAttribute),
-  declaredAttributes: z.array(persistentAttribute),
+  state: PersistentAgreementState,
+  verifiedAttributes: z.array(PersistentAttribute),
+  certifiedAttributes: z.array(PersistentAttribute),
+  declaredAttributes: z.array(PersistentAttribute),
   suspendedByConsumer: z.boolean().optional(),
   suspendedByProducer: z.boolean().optional(),
   suspendedByPlatform: z.boolean().optional(),
-  consumerDocuments: z.array(persistentAgreementDocument),
+  consumerDocuments: z.array(PersistentAgreementDocument),
   createdAt: z.date(),
   updatedAt: z.date().optional(),
   consumerNotes: z.string().optional(),
-  contract: persistentAgreementDocument.optional(),
-  stamps: persistentStamps,
+  contract: PersistentAgreementDocument.optional(),
+  stamps: PersistentStamps,
   rejectionReason: z.string().optional(),
   suspendedAt: z.date().optional(),
 });
 
-export type PersistentAgreementState = z.infer<typeof persistentAgreementState>;
-export type PersistentAgreement = z.infer<typeof persistentAgreement>;
+export type PersistentAgreementState = z.infer<typeof PersistentAgreementState>;
+export type PersistentAgreement = z.infer<typeof PersistentAgreement>;

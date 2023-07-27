@@ -2,13 +2,13 @@ import { z } from "zod";
 import { Kafka, KafkaMessage } from "kafkajs";
 import { MongoClient } from "mongodb";
 import { logger } from "pagopa-interop-commons";
-import { catalogItem } from "pagopa-interop-models";
+import { EService } from "pagopa-interop-models";
 
 const mongoUri = "mongodb://root:example@localhost:27017";
 const client = new MongoClient(mongoUri);
 
 const db = client.db("readmodel");
-const catalog = db.collection("eservices");
+const eservices = db.collection("eservices");
 
 const kafka = new Kafka({
   clientId: "my-app",
@@ -37,7 +37,7 @@ const Event = z.discriminatedUnion("type", [
     type: z.literal("CatalogItemAdded"),
     data: z.preprocess(
       (v) => (typeof v === "string" ? JSON.parse(v) : null),
-      catalogItem
+      EService
     ),
   }),
 ]);
@@ -66,7 +66,7 @@ const Message = z.object({
 async function processMessage(message: KafkaMessage): Promise<void> {
   const parsed = Message.safeParse(message);
   if (parsed.success) {
-    await catalog.insertOne({
+    await eservices.insertOne({
       data: parsed.data.value.payload.after.data,
       metadata: {
         version: parsed.data.value.payload.after.version,

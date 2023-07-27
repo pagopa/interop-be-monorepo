@@ -1,2 +1,2 @@
-export * from "./catalogItem.js";
+export * from "./eservice.js";
 export * from "./agreement.js";
