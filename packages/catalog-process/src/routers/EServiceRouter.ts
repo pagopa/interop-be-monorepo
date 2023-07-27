@@ -126,7 +126,7 @@ const eservicesRouter = (
         const offset = req.query.offset;
         const limit = req.query.limit;
 
-        const consumers = await readModelService.getCatalogItemConsumers(
+        const consumers = await readModelService.getEServiceConsumers(
           eServiceId,
           offset,
           limit
