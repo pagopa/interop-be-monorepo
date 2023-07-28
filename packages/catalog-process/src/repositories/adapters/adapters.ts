@@ -5,12 +5,12 @@ import {
   EServiceDescriptorSeed,
   EServiceDocument,
   EServiceSeed,
-  apiTechnologyTotechnology,
   convertToDescriptorEServiceEventData,
   convertToDocumentEServiceEventData,
 } from "../../model/domain/models.js";
 import { ApiEServiceDescriptorDocumentSeed } from "../../model/types.js";
 import { CreateEvent } from "../EventRepository.js";
+import { apiTechnologyTotechnology } from "../../model/domain/apiConverter.js";
 
 export const eserviceSeedToCreateEvent = (
   eserviceSeed: EServiceSeed

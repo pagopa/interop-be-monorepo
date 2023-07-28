@@ -9,9 +9,9 @@ import {
   agreementStateToApiAgreementState,
   apiAgreementStateToAgreementState,
   apiDescriptorStateToDescriptorState,
-  convertEServiceToApiEService,
   descriptorStateToApiEServiceDescriptorState,
-} from "../model/domain/models.js";
+  eServiceToApiEService,
+} from "../model/domain/apiConverter.js";
 import {
   eServiceDocumentNotFound,
   eServiceNotFound,
@@ -53,7 +53,7 @@ const eservicesRouter = (
         return res
           .status(200)
           .json({
-            results: catalogs.results.map(convertEServiceToApiEService),
+            results: catalogs.results.map(eServiceToApiEService),
             totalCount: catalogs.totalCount,
           })
           .end();
@@ -82,7 +82,7 @@ const eservicesRouter = (
         if (eService) {
           return res
             .status(200)
-            .json(convertEServiceToApiEService(eService.data))
+            .json(eServiceToApiEService(eService.data))
             .end();
         } else {
           return res
