@@ -353,7 +353,7 @@ const eservicesRouter = (
             req.params.descriptorId,
             req.ctx.authData
           );
-          return res.status(200).end();
+          return res.status(204).end();
         } catch (error) {
           const errorRes: ApiError = makeApiError(error);
           return res.status(errorRes.status).json(errorRes).end();
