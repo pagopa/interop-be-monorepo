@@ -78,54 +78,54 @@ const retrieveDescriptor = async (
 
 const updateDescriptorState = (
   descriptor: Descriptor,
-  updateESErviceDescriptorState: EServiceDescriptorState
+  newState: EServiceDescriptorState
 ): Descriptor => {
-  const descriptorStateChanges = [
+  const descriptorStateChange = [
     descriptor.state,
-    updateESErviceDescriptorState,
+    newState,
   ];
 
-  return match(descriptorStateChanges)
+  return match(descriptorStateChange)
     .with(["DRAFT", "PUBLISHED"], () => ({
       ...descriptor,
-      state: updateESErviceDescriptorState,
+      state: newState,
       publishedAt: new Date(),
     }))
     .with(["PUBLISHED", "SUSPENDED"], () => ({
       ...descriptor,
-      state: updateESErviceDescriptorState,
+      state: newState,
       suspendedAt: new Date(),
     }))
     .with(["SUSPENDED", "PUBLISHED"], () => ({
       ...descriptor,
-      state: updateESErviceDescriptorState,
+      state: newState,
       suspendedAt: undefined,
     }))
     .with(["SUSPENDED", "DEPRECATED"], () => ({
       ...descriptor,
-      state: updateESErviceDescriptorState,
+      state: newState,
       suspendedAt: undefined,
       deprecatedAt: new Date(),
     }))
     .with(["SUSPENDED", "ARCHIVED"], () => ({
       ...descriptor,
-      state: updateESErviceDescriptorState,
+      state: newState,
       suspendedAt: undefined,
       archivedAt: new Date(),
     }))
     .with(["PUBLISHED", "ARCHIVED"], () => ({
       ...descriptor,
-      state: updateESErviceDescriptorState,
+      state: newState,
       archivedAt: new Date(),
     }))
     .with(["PUBLISHED", "DEPRECATED"], () => ({
       ...descriptor,
-      state: updateESErviceDescriptorState,
+      state: newState,
       deprecatedAt: new Date(),
     }))
     .otherwise(() => ({
       ...descriptor,
-      state: updateESErviceDescriptorState,
+      state: newState,
     }));
 };
 
