@@ -48,13 +48,6 @@ const assertRequesterAllowed = (
   }
 };
 
-const assertDescriptorIsDraft = (descriptor: Descriptor): Descriptor => {
-  if (descriptor.state !== "DRAFT") {
-    throw notValidDescriptor(descriptor.id, descriptor.state.toString());
-  }
-  return descriptor;
-};
-
 const retrieveEService = async (
   eServiceId: string
 ): Promise<WithMetadata<CatalogItem>> => {
@@ -70,7 +63,7 @@ const retrieveDescriptor = async (
   eService: WithMetadata<CatalogItem>
 ): Promise<Descriptor> => {
   const descriptor = eService.data.descriptors.find(
-    (d: Descriptor) => d.id === descriptorId && d.state === "DRAFT"
+    (d: Descriptor) => d.id === descriptorId
   );
 
   if (descriptor === undefined) {
@@ -89,7 +82,7 @@ const updateDescriptorState = (
 ): Descriptor => {
   const descriptorStateChanges = [
     descriptor.state,
-    updateESErviceDescriptorState.toString(),
+    updateESErviceDescriptorState,
   ];
 
   return match(descriptorStateChanges)
@@ -155,7 +148,7 @@ const deprecateDescriptor = async (
 
 const hasNotDraftDescriptor = (eService: CatalogItem): boolean => {
   const hasNotDraftDescriptor = eService.descriptors.some(
-    (d) => d.state === "DRAFT",
+    (d: Descriptor) => d.state === "DRAFT",
     0
   );
   if (!hasNotDraftDescriptor) {
@@ -515,7 +508,9 @@ export const catalogService = {
     assertRequesterAllowed(eService.data.producerId, authData.organizationId);
 
     const descriptor = await retrieveDescriptor(descriptorId, eService);
-    assertDescriptorIsDraft(descriptor);
+    if (descriptor.state !== "DRAFT") {
+      throw notValidDescriptor(descriptor.id, descriptor.state.toString());
+    }
 
     const currentActiveDescriptor = eService.data.descriptors.find(
       (d: Descriptor) => d.state === "PUBLISHED"
