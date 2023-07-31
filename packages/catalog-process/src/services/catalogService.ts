@@ -80,10 +80,7 @@ const updateDescriptorState = (
   descriptor: Descriptor,
   newState: EServiceDescriptorState
 ): Descriptor => {
-  const descriptorStateChange = [
-    descriptor.state,
-    newState,
-  ];
+  const descriptorStateChange = [descriptor.state, newState];
 
   return match(descriptorStateChange)
     .with(["DRAFT", "PUBLISHED"], () => ({
