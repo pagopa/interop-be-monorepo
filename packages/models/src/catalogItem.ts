@@ -31,7 +31,7 @@ export const document = z.object({
   prettyName: z.string(),
   path: z.string(),
   checksum: z.string(),
-  uploadDate: z.date(),
+  uploadDate: z.coerce.date(),
 });
 
 export const descriptorState = z.enum([
@@ -54,12 +54,12 @@ const descriptor = z.object({
   dailyCallsPerConsumer: z.number().int(),
   dailyCallsTotal: z.number().int(),
   agreementApprovalPolicy: z.enum(["MANUAL", "AUTOMATIC"]).optional(),
-  createdAt: z.date(),
+  createdAt: z.coerce.date(),
   serverUrls: z.array(z.string()),
-  publishedAt: z.date().optional(),
-  suspendedAt: z.date().optional(),
-  deprecatedAt: z.date().optional(),
-  archivedAt: z.date().optional(),
+  publishedAt: z.coerce.date().optional(),
+  suspendedAt: z.coerce.date().optional(),
+  deprecatedAt: z.coerce.date().optional(),
+  archivedAt: z.coerce.date().optional(),
   attributes,
 });
 
