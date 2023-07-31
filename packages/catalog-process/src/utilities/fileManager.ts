@@ -60,10 +60,7 @@ const s3FileManager = (): FileManager => {
     ): Promise<string> => {
       logger.info(`Copying file ${filePathToCopy}`);
 
-      const eserviceDocsPath = config.eserviceDocsPath;
-      if (eserviceDocsPath === undefined) {
-        throw new Error("eserviceDocsPath configuration missing");
-      }
+      const eserviceDocsPath = config.eserviceDocsPath as string;
       const s3Key = buildS3Key(eserviceDocsPath, documentId, fileName);
 
       await client.send(
