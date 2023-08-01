@@ -11,4 +11,5 @@ const Config = z
     logLevel: c.LOG_LEVEL,
   }));
 
+export type Config = z.infer<typeof Config>;
 export const config = Config.parse(process.env);
