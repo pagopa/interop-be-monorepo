@@ -1,5 +1,6 @@
-import { v4 as uuidv4 } from "uuid";
 import { EService } from "pagopa-interop-models";
+import { v4 as uuidv4 } from "uuid";
+import { apiTechnologyToTechnology } from "../../model/domain/apiConverter.js";
 import {
   EServiceDescriptor,
   EServiceDescriptorSeed,
@@ -10,7 +11,6 @@ import {
 } from "../../model/domain/models.js";
 import { ApiEServiceDescriptorDocumentSeed } from "../../model/types.js";
 import { CreateEvent } from "../EventRepository.js";
-import { apiTechnologyTotechnology } from "../../model/domain/apiConverter.js";
 
 export const eserviceSeedToCreateEvent = (
   eserviceSeed: EServiceSeed
@@ -23,7 +23,7 @@ export const eserviceSeedToCreateEvent = (
     data: {
       name: eserviceSeed.name,
       description: eserviceSeed.description,
-      technology: apiTechnologyTotechnology(eserviceSeed.technology),
+      technology: apiTechnologyToTechnology(eserviceSeed.technology),
       id,
       producerId: eserviceSeed.producerId,
       descriptors: [],

@@ -27,7 +27,7 @@ export function technologyToApiTechnology(input: Technology): ApiTechnology {
     .exhaustive();
 }
 
-export function apiTechnologyTotechnology(input: ApiTechnology): Technology {
+export function apiTechnologyToTechnology(input: ApiTechnology): Technology {
   return match<ApiTechnology, Technology>(input)
     .with("REST", () => technology.rest)
     .with("SOAP", () => technology.soap)
