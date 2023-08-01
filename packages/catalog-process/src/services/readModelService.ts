@@ -24,7 +24,7 @@ import { config } from "../utilities/config.js";
 const client = new MongoClient(config.mongoUri);
 
 const db = client.db("readmodel");
-const eservices = db.collection("eservices");
+const eServices = db.collection("eservices");
 const agreements = db.collection("agreements");
 
 function arrayToFilter<T, F extends object>(
@@ -121,7 +121,7 @@ export const readModelService = {
       },
     ];
 
-    const data = await eservices
+    const data = await eServices
       .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }])
       .toArray();
 
@@ -139,14 +139,14 @@ export const readModelService = {
     return {
       results: result.data,
       totalCount: await getTotalCount(
-        eservices.aggregate([...aggregationPipeline, { $count: "count" }])
+        eServices.aggregate([...aggregationPipeline, { $count: "count" }])
       ),
     };
   },
   async getEServiceById(
     id: string
   ): Promise<WithMetadata<EService> | undefined> {
-    const data = await eservices.findOne(
+    const data = await eServices.findOne(
       { "data.id": id },
       { projection: { data: true, metadata: true } }
     );
@@ -280,7 +280,7 @@ export const readModelService = {
       },
     ];
 
-    const data = await eservices
+    const data = await eServices
       .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }])
       .toArray();
 
@@ -298,7 +298,7 @@ export const readModelService = {
     return {
       results: result.data,
       totalCount: await getTotalCount(
-        eservices.aggregate([...aggregationPipeline, { $count: "count" }])
+        eServices.aggregate([...aggregationPipeline, { $count: "count" }])
       ),
     };
   },
