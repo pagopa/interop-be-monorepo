@@ -166,10 +166,10 @@ export const convertCatalogToEService = (
       agreementApprovalPolicy:
         descriptor.agreementApprovalPolicy ?? "AUTOMATIC",
       serverUrls: descriptor.serverUrls,
-      publishedAt: descriptor.publishedAt,
-      suspendedAt: descriptor.suspendedAt,
-      deprecatedAt: descriptor.deprecatedAt,
-      archivedAt: descriptor.archivedAt,
+      publishedAt: descriptor.publishedAt?.toJSON(),
+      suspendedAt: descriptor.suspendedAt?.toJSON(),
+      deprecatedAt: descriptor.deprecatedAt?.toJSON(),
+      archivedAt: descriptor.archivedAt?.toJSON(),
       attributes: {
         certified: descriptor.attributes.certified.map(mapAttribute),
         declared: descriptor.attributes.declared.map(mapAttribute),

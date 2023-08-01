@@ -278,8 +278,88 @@ const eservicesRouter = (
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
+    )
+    .post(
+      "/eservices/:eServiceId/descriptors/:descriptorId/publish",
+      async (req, res) => {
+        try {
+          await catalogService.publishDescriptor(
+            req.params.eServiceId,
+            req.params.descriptorId,
+            req.ctx.authData
+          );
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes: ApiError = makeApiError(error);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
+    .post(
+      "/eservices/:eServiceId/descriptors/:descriptorId/suspend",
+      async (req, res) => {
+        try {
+          await catalogService.suspendDescriptor(
+            req.params.eServiceId,
+            req.params.descriptorId,
+            req.ctx.authData
+          );
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes: ApiError = makeApiError(error);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
+    .post(
+      "/eservices/:eServiceId/descriptors/:descriptorId/activate",
+      async (req, res) => {
+        try {
+          await catalogService.activateDescriptor(
+            req.params.eServiceId,
+            req.params.descriptorId,
+            req.ctx.authData
+          );
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes: ApiError = makeApiError(error);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
+    .post(
+      "/eservices/:eServiceId/descriptors/:descriptorId/clone",
+      async (req, res) => {
+        try {
+          const clonedEserviceByDescriptor =
+            await catalogService.cloneDescriptor(
+              req.params.eServiceId,
+              req.params.descriptorId,
+              req.ctx.authData
+            );
+          return res.status(200).json(clonedEserviceByDescriptor).end();
+        } catch (error) {
+          const errorRes: ApiError = makeApiError(error);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
+    .post(
+      "/eservices/:eServiceId/descriptors/:descriptorId/archive",
+      async (req, res) => {
+        try {
+          await catalogService.archiveDescriptor(
+            req.params.eServiceId,
+            req.params.descriptorId,
+            req.ctx.authData
+          );
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes: ApiError = makeApiError(error);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     );
-
   return eservicesRouter;
 };
 export default eservicesRouter;

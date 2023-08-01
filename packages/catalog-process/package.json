@@ -46,11 +46,11 @@
     "mongodb": "5.6.0",
     "openapi-zod-client": "^1.7.1",
     "pagopa-interop-commons": "workspace:*",
+    "pagopa-interop-models": "workspace:*",
     "pg-promise": "^11.5.0",
     "ts-pattern": "^5.0.1",
     "uuid": "^9.0.0",
     "winston": "^3.9.0",
-    "zod": "^3.21.4",
-    "pagopa-interop-models": "workspace:*"
+    "zod": "^3.21.4"
   }
 }
