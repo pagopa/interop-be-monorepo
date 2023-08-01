@@ -1,6 +1,9 @@
 import * as dotenvFlow from "dotenv-flow";
 import { z } from "zod";
-import { config as commonsConfig, CommonConfig } from "pagopa-interop-commons";
+import {
+  config as commonsConfig,
+  Config as CommonConfig,
+} from "pagopa-interop-commons";
 import { APIEndpoint } from "../model/apiEndpoint.js";
 
 dotenvFlow.config();
