@@ -33,8 +33,9 @@ const mockFileManager: FileManager = {
 };
 
 function initFileManager(): FileManager {
-  if (config.mockFileManager) return mockFileManager;
-  else {
+  if (config.mockFileManager) {
+    return mockFileManager;
+  } else {
     const {
       s3AccessKeyId,
       s3SecretAccessKey,
