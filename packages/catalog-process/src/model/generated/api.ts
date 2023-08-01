@@ -858,6 +858,74 @@ const endpoints = makeApi([
   },
   {
     method: "post",
+    path: "/eservices/:eServiceId/descriptors/:descriptorId/archive",
+    requestFormat: "json",
+    parameters: [
+      {
+        name: "X-Correlation-Id",
+        type: "Header",
+        schema: z.string(),
+      },
+      {
+        name: "X-Forwarded-For",
+        type: "Header",
+        schema: z.string().optional(),
+      },
+      {
+        name: "eServiceId",
+        type: "Path",
+        schema: z.string().uuid(),
+      },
+      {
+        name: "descriptorId",
+        type: "Path",
+        schema: z.string().uuid(),
+      },
+    ],
+    response: z.void(),
+    errors: [
+      {
+        status: 400,
+        description: `Invalid input`,
+        schema: z.object({
+          type: z.string(),
+          status: z.number().int().gte(100).lt(600),
+          title: z
+            .string()
+            .max(64)
+            .regex(/^[ -~]{0,64}$/),
+          correlationId: z.string().max(64).optional(),
+          detail: z
+            .string()
+            .max(4096)
+            .regex(/^.{0,1024}$/)
+            .optional(),
+          errors: z.array(ProblemError).min(1),
+        }),
+      },
+      {
+        status: 404,
+        description: `Not found`,
+        schema: z.object({
+          type: z.string(),
+          status: z.number().int().gte(100).lt(600),
+          title: z
+            .string()
+            .max(64)
+            .regex(/^[ -~]{0,64}$/),
+          correlationId: z.string().max(64).optional(),
+          detail: z
+            .string()
+            .max(4096)
+            .regex(/^.{0,1024}$/)
+            .optional(),
+          errors: z.array(ProblemError).min(1),
+        }),
+      },
+    ],
+  },
+  {
+    method: "post",
     path: "/eservices/:eServiceId/descriptors/:descriptorId/clone",
     requestFormat: "json",
     parameters: [

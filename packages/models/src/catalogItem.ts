@@ -31,7 +31,7 @@ export const document = z.object({
   prettyName: z.string(),
   path: z.string(),
   checksum: z.string(),
-  uploadDate: z.date(),
+  uploadDate: z.coerce.date(),
 });
 
 export const descriptorState = z.enum([
@@ -54,12 +54,12 @@ const descriptor = z.object({
   dailyCallsPerConsumer: z.number().int(),
   dailyCallsTotal: z.number().int(),
   agreementApprovalPolicy: z.enum(["MANUAL", "AUTOMATIC"]).optional(),
-  createdAt: z.string().datetime(),
+  createdAt: z.coerce.date(),
   serverUrls: z.array(z.string()),
-  publishedAt: z.string().datetime().optional(),
-  suspendedAt: z.string().datetime().optional(),
-  deprecatedAt: z.string().datetime().optional(),
-  archivedAt: z.string().datetime().optional(),
+  publishedAt: z.coerce.date().optional(),
+  suspendedAt: z.coerce.date().optional(),
+  deprecatedAt: z.coerce.date().optional(),
+  archivedAt: z.coerce.date().optional(),
   attributes,
 });
 
@@ -75,5 +75,6 @@ export const catalogItem = z.object({
 });
 
 export type DescriptorState = z.infer<typeof descriptorState>;
+export type Descriptor = z.infer<typeof descriptor>;
 export type CatalogItem = z.infer<typeof catalogItem>;
 export type Document = z.infer<typeof document>;
