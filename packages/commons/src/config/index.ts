@@ -10,5 +10,6 @@ const Config = z
   .transform((c) => ({
     logLevel: c.LOG_LEVEL,
   }));
-
+  
+export type CommonConfig = z.infer<typeof Config>;
 export const config = Config.parse(process.env);
