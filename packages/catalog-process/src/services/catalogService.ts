@@ -83,7 +83,7 @@ const retrieveDescriptor = async (
 
 const updateDescriptorState = (
   descriptor: Descriptor,
-  newState: EServiceDescriptorState
+  newState: DescriptorState
 ): Descriptor => {
   const descriptorStateChange = [descriptor.state, newState];
 
@@ -514,7 +514,7 @@ export const catalogService = {
     assertRequesterAllowed(eService.data.producerId, authData.organizationId);
 
     const descriptor = await retrieveDescriptor(descriptorId, eService);
-    if (descriptor.state !== "DRAFT") {
+    if (descriptor.state !== descriptorState.draft) {
       throw notValidDescriptor(descriptor.id, descriptor.state.toString());
     }
 
