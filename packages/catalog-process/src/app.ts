@@ -4,8 +4,8 @@ import { logger } from "pagopa-interop-commons";
 import { z } from "zod";
 import { authMiddleware } from "./authMiddleware.js";
 import { ctx } from "./context.js";
-import eservicesRouter from "./routers/CatalogRouter.js";
 import healthRouter from "./routers/HealthRouter.js";
+import eservicesRouter from "./routers/EServiceRouter.js";
 import { config } from "./utilities/config.js";
 
 const zodiosCtx = zodiosContext(z.object({ ctx }));

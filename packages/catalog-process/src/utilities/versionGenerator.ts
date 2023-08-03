@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { CatalogItem } from "pagopa-interop-models";
+import { EService } from "pagopa-interop-models";
 import { CatalogProcessError, ErrorTypes } from "../model/domain/errors.js";
 
-export const nextDescriptorVersion = (eservice: CatalogItem): string => {
+export const nextDescriptorVersion = (eservice: EService): string => {
   const currentVersion = eservice.descriptors.reduce((max, descriptor) => {
     const currentVersionNumber = z.number().safeParse(descriptor.version);
     if (!currentVersionNumber.success) {
