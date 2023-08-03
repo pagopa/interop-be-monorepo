@@ -1,5 +1,6 @@
+import { EService } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
-import { CatalogItem } from "pagopa-interop-models";
+import { apiTechnologyToTechnology } from "../../model/domain/apiConverter.js";
 import {
   EServiceDescriptor,
   EServiceDescriptorSeed,
@@ -13,15 +14,18 @@ import { CreateEvent } from "../EventRepository.js";
 
 export const eserviceSeedToCreateEvent = (
   eserviceSeed: EServiceSeed
-): CreateEvent<CatalogItem> => {
+): CreateEvent<EService> => {
   const id = uuidv4();
   return {
     streamId: id,
     version: 0,
     type: "CatalogItemAdded", // TODO: change this value with properly event type definition
     data: {
-      ...eserviceSeed,
+      name: eserviceSeed.name,
+      description: eserviceSeed.description,
+      technology: apiTechnologyToTechnology(eserviceSeed.technology),
       id,
+      producerId: eserviceSeed.producerId,
       descriptors: [],
       createdAt: new Date(),
     },

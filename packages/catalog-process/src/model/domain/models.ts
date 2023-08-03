@@ -4,12 +4,9 @@
  */
 import { z } from "zod";
 import {
-  CatalogItem,
-  attribute,
-  descriptorState,
-  persistentAgreementState,
+  DescriptorState,
+  PersistentAgreementState,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
 import * as api from "../generated/api.js";
 import {
   ApiEServiceDescriptorDocumentSeed,
@@ -20,10 +17,6 @@ export type ListResult<T> = { results: T[]; totalCount: number };
 export const emptyListResult = { results: [], totalCount: 0 };
 
 export type WithMetadata<T> = { data: T; metadata: { version: number } };
-
-export type EService = z.infer<typeof api.schemas.EService> & {
-  version: number;
-};
 
 export type EServiceSeed = z.infer<typeof api.schemas.EServiceSeed> & {
   readonly producerId: string;
@@ -52,6 +45,15 @@ export type EServiceDescriptorState = z.infer<
   typeof api.schemas.EServiceDescriptorState
 >;
 
+export type ApiTechnology = z.infer<typeof api.schemas.EServiceTechnology>;
+export type ApiEServiceDescriptorState = z.infer<
+  typeof api.schemas.EServiceDescriptorState
+>;
+export type ApiAgreementApprovalPolicy = z.infer<
+  typeof api.schemas.AgreementApprovalPolicy
+>;
+export type ApiAgreementState = z.infer<typeof api.schemas.AgreementState>;
+
 export type EServiceDescriptor = z.infer<typeof api.schemas.EServiceDescriptor>;
 
 export type UpdateEServiceDescriptorSeed = z.infer<
@@ -60,8 +62,8 @@ export type UpdateEServiceDescriptorSeed = z.infer<
 
 export const consumer = z.object({
   descriptorVersion: z.string(),
-  descriptorState,
-  agreementState: persistentAgreementState,
+  descriptorState: DescriptorState,
+  agreementState: PersistentAgreementState,
   consumerName: z.string(),
   consumerExternalId: z.string(),
 });
@@ -118,63 +120,3 @@ export const convertToDescriptorEServiceEventData = (
   archivedAt: undefined,
   attributes: eserviceDescriptorSeed.attributes,
 });
-
-export const convertCatalogToEService = (
-  catalog: CatalogItem
-): z.infer<typeof api.schemas.EService> => {
-  const mapAttribute = (
-    a: z.infer<typeof attribute>
-  ):
-    | {
-        single: {
-          id: string;
-          explicitAttributeVerification: boolean;
-        };
-      }
-    | {
-        group: Array<{
-          id: string;
-          explicitAttributeVerification: boolean;
-        }>;
-      } =>
-    match(a)
-      .with({ type: "SingleAttribute" }, (a) => ({
-        single: a.id,
-      }))
-      .with({ type: "GroupAttribute" }, (a) => ({
-        group: a.ids,
-      }))
-      .exhaustive();
-
-  return {
-    id: catalog.id,
-    producerId: catalog.producerId,
-    name: catalog.name,
-    description: catalog.description,
-    technology: catalog.technology,
-    descriptors: catalog.descriptors.map((descriptor) => ({
-      id: descriptor.id,
-      version: descriptor.version,
-      description: descriptor.description,
-      audience: descriptor.audience,
-      voucherLifespan: descriptor.voucherLifespan,
-      dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
-      dailyCallsTotal: descriptor.dailyCallsTotal,
-      interface: descriptor.interface,
-      docs: descriptor.docs,
-      state: descriptor.state,
-      agreementApprovalPolicy:
-        descriptor.agreementApprovalPolicy ?? "AUTOMATIC",
-      serverUrls: descriptor.serverUrls,
-      publishedAt: descriptor.publishedAt?.toJSON(),
-      suspendedAt: descriptor.suspendedAt?.toJSON(),
-      deprecatedAt: descriptor.deprecatedAt?.toJSON(),
-      archivedAt: descriptor.archivedAt?.toJSON(),
-      attributes: {
-        certified: descriptor.attributes.certified.map(mapAttribute),
-        declared: descriptor.attributes.declared.map(mapAttribute),
-        verified: descriptor.attributes.verified.map(mapAttribute),
-      },
-    })),
-  };
-};
