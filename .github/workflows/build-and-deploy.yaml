@@ -27,8 +27,8 @@ jobs:
         include:
           - image_name: catalog-process
             package_path: packages/catalog-process
-          # - package_name: event-consumer
-          #   package_path: packages/event-consumer
+          - package_name: event-consumer
+            package_path: packages/event-consumer
 
     steps:
       - name: Checkout repository
