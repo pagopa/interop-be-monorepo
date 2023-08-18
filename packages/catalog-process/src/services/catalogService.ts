@@ -38,10 +38,10 @@ import { eventRepository } from "../repositories/EventRepository.js";
 import {
   descriptorSeedToCreateEvent,
   eserviceDescriptorDocumentSeedToCreateEvent,
-  toCreateEventCatalogItemAdded,
-  toCreateEventCatalogItemDeleted,
-  toCreateEventCatalogItemDocumentDeleted,
-  toCreateEventCatalogItemDocumentUpdated,
+  toCreateEventEServiceAdded,
+  toCreateEventEServiceDeleted,
+  toCreateEventEServiceDocumentDeleted,
+  toCreateEventEServiceDocumentUpdated,
 } from "../repositories/toEvent.js";
 import { fileManager } from "../utilities/fileManager.js";
 import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
@@ -198,7 +198,7 @@ export const catalogService = {
     // return eventRepository.createEvent(eserviceSeedToCreateEvent(eServiceSeed));
 
     return eventRepository.createEvent1(
-      toCreateEventCatalogItemAdded(eServiceSeed)
+      toCreateEventEServiceAdded(eServiceSeed)
     );
   },
   async updateEService(
@@ -254,7 +254,7 @@ export const catalogService = {
     // });
 
     await eventRepository.createEvent1(
-      toCreateEventCatalogItemDeleted(eServiceId, eService.metadata.version)
+      toCreateEventEServiceDeleted(eServiceId, eService.metadata.version)
     );
   },
   async uploadDocument(
@@ -318,7 +318,7 @@ export const catalogService = {
     await fileManager.deleteFile(document.path);
 
     await eventRepository.createEvent1(
-      toCreateEventCatalogItemDocumentDeleted(
+      toCreateEventEServiceDocumentDeleted(
         eServiceId,
         eService.metadata.version,
         descriptorId,
@@ -367,13 +367,13 @@ export const catalogService = {
     };
 
     await eventRepository.createEvent1(
-      toCreateEventCatalogItemDocumentUpdated(
+      toCreateEventEServiceDocumentUpdated(
         eServiceId,
         eService.metadata.version,
         descriptorId,
         documentId,
         updatedDocument,
-        document.serverUrls
+        [] // document.serverUrls //TODO Fixme
       )
     );
   },
@@ -699,7 +699,7 @@ export const catalogService = {
       name: `${eService.data.name} - clone`,
       description: eService.data.description,
       technology: eService.data.technology,
-      attribute: eService.data.attribute,
+      attributes: eService.data.attributes,
       createdAt: new Date(),
       descriptors: [
         {

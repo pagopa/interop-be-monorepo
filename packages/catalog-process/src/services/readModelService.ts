@@ -177,19 +177,9 @@ export const readModelService = {
 
     return undefined;
   },
-  async getEServiceDescriptorDocumentById(_id: string): Promise<
-    | {
-        version: number;
-        prettyName: string;
-        name: string;
-        contentType: string;
-        path: string;
-        checksum: string;
-        serverUrls: string[];
-        isInInterface: boolean;
-      }
-    | undefined
-  > {
+  async getEServiceDescriptorDocumentById(
+    _id: string
+  ): Promise<Document | undefined> {
     return undefined;
   },
   async getEServiceConsumers(
