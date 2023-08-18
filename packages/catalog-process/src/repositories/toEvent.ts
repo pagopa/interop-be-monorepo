@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
-import { EService, Document } from "pagopa-interop-models";
+import { EService, Document, Attribute } from "pagopa-interop-models";
 import {
   EServiceDescriptor,
   EServiceDescriptorSeed,
@@ -9,7 +9,11 @@ import {
   convertToDocumentEServiceEventData,
 } from "../model/domain/models.js";
 import { ApiEServiceDescriptorDocumentSeed } from "../model/types.js";
-import { apiTechnologyToTechnology } from "../model/domain/apiConverter.js";
+import {
+  apiAgreementApprovalPolicyToAgreementApprovalPolicy,
+  apiAttributeToAttribute,
+  apiTechnologyToTechnology,
+} from "../model/domain/apiConverter.js";
 import { CreateEvent, CreateEvent1 } from "./EventRepository.js";
 
 const toEService = (
@@ -41,6 +45,100 @@ export const toCreateEventEServiceAdded = (
     },
   };
 };
+
+export const toCreateEventEServiceDocumentItemAdded = (
+  eServiceId: string,
+  descriptorId: string,
+  apiEServiceDescriptorDocumentSeed: ApiEServiceDescriptorDocumentSeed
+): CreateEvent1 => {
+  const streamId = uuidv4();
+  return {
+    streamId,
+    version: 0,
+    event: {
+      type: "EServiceDocumentAdded",
+      data: {
+        eServiceId,
+        descriptorId,
+        document: {
+          id: streamId,
+          name: apiEServiceDescriptorDocumentSeed.fileName,
+          contentType: apiEServiceDescriptorDocumentSeed.contentType,
+          prettyName: apiEServiceDescriptorDocumentSeed.prettyName,
+          path: apiEServiceDescriptorDocumentSeed.filePath,
+          checksum: apiEServiceDescriptorDocumentSeed.checksum,
+          uploadDate: new Date(),
+        },
+        isInterface: apiEServiceDescriptorDocumentSeed.kind === "INTERFACE",
+        serverUrls: apiEServiceDescriptorDocumentSeed.serverUrls,
+      },
+    },
+  };
+};
+
+export const toCreateEventEServiceDescriptorAdded = (
+  descriptorSeed: EServiceDescriptorSeed,
+  descriptorVersion: string
+): CreateEvent1 => {
+  const streamId = uuidv4();
+
+  const certifiedAttributes = descriptorSeed.attributes.certified
+    .map(apiAttributeToAttribute)
+    .filter((a): a is Attribute => a !== undefined);
+
+  return {
+    streamId,
+    version: 0,
+    event: {
+      type: "EServiceDescriptorAdded",
+      data: {
+        eServiceId: streamId,
+        eServiceDescriptor: {
+          id: streamId,
+          description: descriptorSeed.description,
+          version: descriptorVersion,
+          interface: undefined,
+          docs: [],
+          state: "Draft",
+          voucherLifespan: descriptorSeed.voucherLifespan,
+          audience: descriptorSeed.audience,
+          dailyCallsPerConsumer: descriptorSeed.dailyCallsPerConsumer,
+          dailyCallsTotal: descriptorSeed.dailyCallsTotal,
+          agreementApprovalPolicy:
+            apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+              descriptorSeed.agreementApprovalPolicy
+            ),
+          serverUrls: [],
+          publishedAt: undefined,
+          suspendedAt: undefined,
+          deprecatedAt: undefined,
+          archivedAt: undefined,
+          createdAt: new Date(),
+          attributes: {
+            certified: certifiedAttributes,
+            declared: [],
+            verified: [],
+          },
+        },
+      },
+    },
+  };
+};
+
+export const toCreateEventEServiceUpdated = (
+  streamId: string,
+  version: number,
+  updatedEServiceSeed: EServiceSeed
+): CreateEvent1 => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceUpdated",
+    data: {
+      eService: toEService(streamId, updatedEServiceSeed),
+    },
+  },
+});
 
 export const toCreateEventEServiceDocumentUpdated = ({
   streamId,
