@@ -154,12 +154,13 @@ const deprecateDescriptor = async (
     descriptor,
     descriptorState.deprecated
   );
-  await eventRepository.createEvent({
-    streamId: eService.data.id,
-    version: eService.metadata.version,
-    type: "DeprecateDescriptor",
-    data: updatedDescriptor,
-  });
+  await eventRepository.createEvent1(
+    toCreateEventEServiceDescriptorUpdated(
+      eService.data.id,
+      eService.metadata.version,
+      updatedDescriptor
+    )
+  );
 };
 
 const hasNotDraftDescriptor = (eService: EService): boolean => {
