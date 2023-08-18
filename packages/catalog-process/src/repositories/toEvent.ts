@@ -1,5 +1,10 @@
 import { v4 as uuidv4 } from "uuid";
-import { EService, Document, Attribute } from "pagopa-interop-models";
+import {
+  EService,
+  Document,
+  Attribute,
+  Descriptor,
+} from "pagopa-interop-models";
 import {
   EServiceDescriptor,
   EServiceDescriptorSeed,
@@ -166,6 +171,22 @@ export const toCreateEventEServiceDocumentUpdated = ({
       documentId,
       updatedDocument,
       serverUrls,
+    },
+  },
+});
+
+export const toCreateEventEServiceDescriptorUpdated = (
+  streamId: string,
+  version: number,
+  descriptor: Descriptor
+): CreateEvent1 => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceDescriptorUpdated",
+    data: {
+      eServiceId: streamId,
+      eServiceDescriptor: descriptor,
     },
   },
 });

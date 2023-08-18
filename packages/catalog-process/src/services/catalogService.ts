@@ -39,6 +39,7 @@ import {
   toCreateEventEServiceAdded,
   toCreateEventEServiceDeleted,
   toCreateEventEServiceDescriptorAdded,
+  toCreateEventEServiceDescriptorUpdated,
   toCreateEventEServiceDocumentDeleted,
   toCreateEventEServiceDocumentItemAdded,
   toCreateEventEServiceDocumentUpdated,
@@ -521,12 +522,13 @@ export const catalogService = {
       await deprecateDescriptor(currentActiveDescriptor, eService);
     }
 
-    await eventRepository.createEvent({
-      streamId: eServiceId,
-      version: eService.metadata.version,
-      type: "CatalogItemDescriptorUpdated",
-      data: updatedDescriptor,
-    });
+    await eventRepository.createEvent1(
+      toCreateEventEServiceDescriptorUpdated(
+        eServiceId,
+        eService.metadata.version,
+        updatedDescriptor
+      )
+    );
 
     await authorizationManagementServiceMock.updateStateOnClients();
   },
