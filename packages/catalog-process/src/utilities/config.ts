@@ -14,7 +14,15 @@ const FileManagerConfig = z
       MOCK_FILE_MANAGER: z.literal("true"),
     }),
     z.object({
-      MOCK_FILE_MANAGER: z.literal("false").optional(),
+      MOCK_FILE_MANAGER: z.literal("false"),
+      S3_ACCESS_KEY_ID: z.string(),
+      S3_SECRET_ACCESS_KEY: z.string(),
+      S3_REGION: z.string(),
+      S3_BUCKET_NAME: z.string(),
+      ESERVICE_DOCS_PATH: z.string(),
+    }),
+    z.object({
+      MOCK_FILE_MANAGER: z.undefined(),
       S3_ACCESS_KEY_ID: z.string(),
       S3_SECRET_ACCESS_KEY: z.string(),
       S3_REGION: z.string(),
