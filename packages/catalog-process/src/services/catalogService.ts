@@ -154,7 +154,7 @@ const deprecateDescriptor = async (
     descriptor,
     descriptorState.deprecated
   );
-  await eventRepository.createEvent1(
+  await eventRepository.createEvent(
     toCreateEventEServiceDescriptorUpdated(
       eService.data.id,
       eService.metadata.version,
@@ -204,7 +204,7 @@ export const catalogService = {
       );
     }
 
-    return eventRepository.createEvent1(
+    return eventRepository.createEvent(
       toCreateEventEServiceAdded(eServiceSeed)
     );
   },
@@ -234,7 +234,7 @@ export const catalogService = {
       producerId: authData.organizationId,
     };
 
-    await eventRepository.createEvent1(
+    await eventRepository.createEvent(
       toCreateEventEServiceUpdated(
         eServiceId,
         eService.metadata.version,
@@ -257,7 +257,7 @@ export const catalogService = {
       throw operationForbidden;
     }
 
-    await eventRepository.createEvent1(
+    await eventRepository.createEvent(
       toCreateEventEServiceDeleted(eServiceId, eService.metadata.version)
     );
   },
@@ -287,7 +287,7 @@ export const catalogService = {
       );
     }
 
-    return await eventRepository.createEvent1(
+    return await eventRepository.createEvent(
       toCreateEventEServiceDocumentItemAdded(eServiceId, descriptorId, document)
     );
   },
@@ -317,7 +317,7 @@ export const catalogService = {
 
     await fileManager.deleteFile(document.path);
 
-    await eventRepository.createEvent1(
+    await eventRepository.createEvent(
       toCreateEventEServiceDocumentDeleted(
         eServiceId,
         eService.metadata.version,
@@ -366,7 +366,7 @@ export const catalogService = {
       prettyName: apiEServiceDescriptorDocumentUpdateSeed.prettyName,
     };
 
-    await eventRepository.createEvent1(
+    await eventRepository.createEvent(
       toCreateEventEServiceDocumentUpdated({
         streamId: eServiceId,
         version: eService.metadata.version,
@@ -391,7 +391,7 @@ export const catalogService = {
 
     const newVersion = nextDescriptorVersion(eService.data);
 
-    return await eventRepository.createEvent1(
+    return await eventRepository.createEvent(
       toCreateEventEServiceDescriptorAdded(
         eserviceDescriptorSeed,
         newVersion.toString()
@@ -440,7 +440,7 @@ export const catalogService = {
       );
     });
 
-    await eventRepository.createEvent1(
+    await eventRepository.createEvent(
       toCreateEventEServiceWithDescriptorsDeleted(eService, descriptorId)
     );
   },
@@ -497,7 +497,7 @@ export const catalogService = {
       descriptors: [...filteredDescriptor, updatedDescriptor],
     };
 
-    await eventRepository.createEvent1(
+    await eventRepository.createEvent(
       toCreateEventEServiceUpdated(
         eServiceId,
         eService.metadata.version,
@@ -535,7 +535,7 @@ export const catalogService = {
       await deprecateDescriptor(currentActiveDescriptor, eService);
     }
 
-    await eventRepository.createEvent1(
+    await eventRepository.createEvent(
       toCreateEventEServiceDescriptorUpdated(
         eServiceId,
         eService.metadata.version,
@@ -571,7 +571,7 @@ export const catalogService = {
       descriptorState.suspended
     );
 
-    await eventRepository.createEvent1(
+    await eventRepository.createEvent(
       toCreateEventEServiceDescriptorUpdated(
         eServiceId,
         eService.metadata.version,
@@ -620,7 +620,7 @@ export const catalogService = {
       logger.info(
         `Publishing Descriptor ${descriptorId} of EService ${eServiceId}`
       );
-      await eventRepository.createEvent1(
+      await eventRepository.createEvent(
         toCreateEventEServiceDescriptorUpdated(
           eServiceId,
           eService.metadata.version,
@@ -717,7 +717,7 @@ export const catalogService = {
       ],
     };
 
-    await eventRepository.createEvent1(
+    await eventRepository.createEvent(
       toCreateEventClonedEServiceAdded(draftCatalogItem)
     );
 
@@ -742,7 +742,7 @@ export const catalogService = {
       descriptorState.archived
     );
 
-    await eventRepository.createEvent1(
+    await eventRepository.createEvent(
       toCreateEventEServiceDescriptorUpdated(
         eServiceId,
         eService.metadata.version,
