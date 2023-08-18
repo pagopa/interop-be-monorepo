@@ -5,6 +5,7 @@ import {
   EServiceDescriptorSeed,
   EServiceDocument,
   EServiceSeed,
+  WithMetadata,
   convertToDescriptorEServiceEventData,
   convertToDocumentEServiceEventData,
 } from "../model/domain/models.js";
@@ -197,6 +198,21 @@ export const toCreateEventEServiceDocumentDeleted = (
       eServiceId: streamId,
       descriptorId,
       documentId,
+    },
+  },
+});
+
+export const toCreateEventEServiceWithDescriptorsDeleted = (
+  eService: WithMetadata<EService>,
+  descriptorId: string
+): CreateEvent1 => ({
+  streamId: eService.data.id,
+  version: eService.metadata.version,
+  event: {
+    type: "EServiceWithDescriptorsDeleted",
+    data: {
+      eService: eService.data,
+      descriptorId,
     },
   },
 });

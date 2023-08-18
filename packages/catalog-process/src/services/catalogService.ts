@@ -43,6 +43,7 @@ import {
   toCreateEventEServiceDocumentItemAdded,
   toCreateEventEServiceDocumentUpdated,
   toCreateEventEServiceUpdated,
+  toCreateEventEServiceWithDescriptorsDeleted,
 } from "../repositories/toEvent.js";
 import { fileManager } from "../utilities/fileManager.js";
 import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
@@ -429,15 +430,9 @@ export const catalogService = {
       );
     });
 
-    await eventRepository.createEvent({
-      streamId: eServiceId,
-      version: eService.metadata.version,
-      type: "CatalogItemWithDescriptorsDeleted",
-      data: {
-        eServiceId,
-        descriptorId,
-      },
-    });
+    await eventRepository.createEvent1(
+      toCreateEventEServiceWithDescriptorsDeleted(eService, descriptorId)
+    );
   },
 
   async updateDescriptor(
