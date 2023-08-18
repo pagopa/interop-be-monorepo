@@ -1,5 +1,5 @@
 import { logger } from "pagopa-interop-commons";
-import { CatalogEvent } from "pagopa-interop-models";
+import { EServiceEvent } from "pagopa-interop-models";
 import { db } from "./db.js";
 import * as sql from "./sql/index.js";
 
@@ -12,7 +12,7 @@ export type CreateEvent<D> = {
 export type CreateEvent1 = {
   readonly streamId: string;
   readonly version: number;
-  readonly event: CatalogEvent;
+  readonly event: EServiceEvent;
 };
 
 export const eventRepository = {

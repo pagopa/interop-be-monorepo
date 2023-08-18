@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
-import { CatalogItem, Document } from "pagopa-interop-models";
+import { EService, Document } from "pagopa-interop-models";
 import {
   EServiceDescriptor,
   EServiceDescriptorSeed,
@@ -9,23 +9,24 @@ import {
   convertToDocumentEServiceEventData,
 } from "../model/domain/models.js";
 import { ApiEServiceDescriptorDocumentSeed } from "../model/types.js";
-import { CreateEvent, CreateEvent1 } from "./events.js";
+import { apiTechnologyToTechnology } from "../model/domain/apiConverter.js";
+import { CreateEvent, CreateEvent1 } from "./EventRepository.js";
 
-const toCatalogItem = (
+const toEService = (
   streamId: string,
   eServiceSeed: EServiceSeed
-): CatalogItem => ({
+): EService => ({
   id: streamId,
   producerId: eServiceSeed.producerId,
   name: eServiceSeed.name,
   description: eServiceSeed.description,
-  technology: eServiceSeed.technology, // TODO map enum case
+  technology: apiTechnologyToTechnology(eServiceSeed.technology), // TODO map enum case
   attributes: undefined,
   descriptors: [],
   createdAt: new Date(),
 });
 
-export const toCreateEventCatalogItemAdded = (
+export const toCreateEventEServiceAdded = (
   eServiceSeed: EServiceSeed
 ): CreateEvent1 => {
   const streamId = uuidv4();
@@ -33,15 +34,15 @@ export const toCreateEventCatalogItemAdded = (
     streamId,
     version: 0,
     event: {
-      type: "CatalogItemAdded",
+      type: "EServiceAdded",
       data: {
-        catalogItem: toCatalogItem(streamId, eServiceSeed),
+        eService: toEService(streamId, eServiceSeed),
       },
     },
   };
 };
 
-export const toCreateEventCatalogItemDocumentUpdated = (
+export const toCreateEventEServiceDocumentUpdated = (
   streamId: string,
   version: number,
   descriptorId: string,
@@ -52,7 +53,7 @@ export const toCreateEventCatalogItemDocumentUpdated = (
   streamId,
   version,
   event: {
-    type: "CatalogItemDocumentUpdated",
+    type: "EServiceDocumentUpdated",
     data: {
       eServiceId: streamId,
       descriptorId,
@@ -63,21 +64,21 @@ export const toCreateEventCatalogItemDocumentUpdated = (
   },
 });
 
-export const toCreateEventCatalogItemDeleted = (
+export const toCreateEventEServiceDeleted = (
   streamId: string,
   version: number
 ): CreateEvent1 => ({
   streamId,
   version,
   event: {
-    type: "CatalogItemDeleted",
+    type: "EServiceDeleted",
     data: {
-      catalogItemId: streamId,
+      eServiceId: streamId,
     },
   },
 });
 
-export const toCreateEventCatalogItemDocumentDeleted = (
+export const toCreateEventEServiceDocumentDeleted = (
   streamId: string,
   version: number,
   descriptorId: string,
@@ -86,7 +87,7 @@ export const toCreateEventCatalogItemDocumentDeleted = (
   streamId,
   version,
   event: {
-    type: "CatalogItemDocumentDeleted",
+    type: "EServiceDocumentDeleted",
     data: {
       eServiceId: streamId,
       descriptorId,
@@ -99,14 +100,15 @@ export const toCreateEventCatalogItemDocumentDeleted = (
 
 export const eserviceSeedToCreateEvent = (
   eserviceSeed: EServiceSeed
-): CreateEvent<CatalogItem> => {
+): CreateEvent<EService> => {
   const id = uuidv4();
   return {
     streamId: id,
     version: 0,
-    type: "CatalogItemAdded", // TODO: change this value with properly event type definition
+    type: "EServiceAdded", // TODO: change this value with properly event type definition
     data: {
       ...eserviceSeed,
+      technology: apiTechnologyToTechnology(eserviceSeed.technology), // TODO map enum case
       id,
       descriptors: [],
       createdAt: new Date(),

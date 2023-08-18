@@ -64,7 +64,7 @@ export const Document = z.object({
 });
 export type Document = z.infer<typeof Document>;
 
-const Descriptor = z.object({
+export const Descriptor = z.object({
   id: z.string().uuid(),
   version: z.string(),
   description: z.string().optional(),
