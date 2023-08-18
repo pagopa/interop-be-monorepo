@@ -11,6 +11,7 @@ import {
   EService,
   descriptorState,
   DescriptorState,
+  Attribute,
 } from "pagopa-interop-models";
 import {
   CatalogProcessError,
@@ -51,6 +52,7 @@ import { fileManager } from "../utilities/fileManager.js";
 import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
 import {
   apiAgreementApprovalPolicyToAgreementApprovalPolicy,
+  apiAttributeToAttribute,
   apiTechnologyToTechnology,
 } from "../model/domain/apiConverter.js";
 import { readModelService } from "./readModelService.js";
@@ -204,9 +206,18 @@ export const catalogService = {
       );
     }
 
-    return eventRepository.createEvent(
-      toCreateEventEServiceAdded(eServiceSeed)
-    );
+    const newEService: EService = {
+      id: uuidv4(),
+      producerId: eServiceSeed.producerId,
+      name: eServiceSeed.name,
+      description: eServiceSeed.description,
+      technology: apiTechnologyToTechnology(eServiceSeed.technology),
+      attributes: undefined,
+      descriptors: [],
+      createdAt: new Date(),
+    };
+
+    return eventRepository.createEvent(toCreateEventEServiceAdded(newEService));
   },
   async updateEService(
     eServiceId: string,
@@ -288,7 +299,24 @@ export const catalogService = {
     }
 
     return await eventRepository.createEvent(
-      toCreateEventEServiceDocumentItemAdded(eServiceId, descriptorId, document)
+      toCreateEventEServiceDocumentItemAdded(
+        eServiceId,
+        eService.metadata.version,
+        descriptorId,
+        {
+          newDocument: {
+            id: document.documentId,
+            name: document.fileName,
+            contentType: document.contentType,
+            prettyName: document.prettyName,
+            path: document.filePath,
+            checksum: document.checksum,
+            uploadDate: new Date(),
+          },
+          isInterface: document.kind === "INTERFACE",
+          serverUrls: document.serverUrls,
+        }
+      )
     );
   },
   async deleteDocument(
@@ -391,10 +419,43 @@ export const catalogService = {
 
     const newVersion = nextDescriptorVersion(eService.data);
 
+    const certifiedAttributes = eserviceDescriptorSeed.attributes.certified
+      .map(apiAttributeToAttribute)
+      .filter((a): a is Attribute => a !== undefined);
+
+    const newDescriptor: Descriptor = {
+      id: uuidv4(),
+      description: eserviceDescriptorSeed.description,
+      version: newVersion,
+      interface: undefined,
+      docs: [],
+      state: "Draft",
+      voucherLifespan: eserviceDescriptorSeed.voucherLifespan,
+      audience: eserviceDescriptorSeed.audience,
+      dailyCallsPerConsumer: eserviceDescriptorSeed.dailyCallsPerConsumer,
+      dailyCallsTotal: eserviceDescriptorSeed.dailyCallsTotal,
+      agreementApprovalPolicy:
+        apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+          eserviceDescriptorSeed.agreementApprovalPolicy
+        ),
+      serverUrls: [],
+      publishedAt: undefined,
+      suspendedAt: undefined,
+      deprecatedAt: undefined,
+      archivedAt: undefined,
+      createdAt: new Date(),
+      attributes: {
+        certified: certifiedAttributes,
+        declared: [],
+        verified: [],
+      },
+    };
+
     return await eventRepository.createEvent(
       toCreateEventEServiceDescriptorAdded(
-        eserviceDescriptorSeed,
-        newVersion.toString()
+        eService.data.id,
+        eService.metadata.version,
+        newDescriptor
       )
     );
   },

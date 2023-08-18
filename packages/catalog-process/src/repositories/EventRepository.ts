@@ -3,20 +3,14 @@ import { EServiceEvent } from "pagopa-interop-models";
 import { db } from "./db.js";
 import * as sql from "./sql/index.js";
 
-export type CreateEvent<D> = {
-  readonly streamId: string;
-  readonly version: number;
-  readonly type: string;
-  readonly data: D;
-};
-export type CreateEvent1 = {
+export type CreateEvent = {
   readonly streamId: string;
   readonly version: number;
   readonly event: EServiceEvent;
 };
 
 export const eventRepository = {
-  async createEvent(createEvent: CreateEvent1): Promise<string> {
+  async createEvent(createEvent: CreateEvent): Promise<string> {
     try {
       return await db.tx(async (t) => {
         const data = await t.oneOrNone(sql.checkEventVersionExists, {
