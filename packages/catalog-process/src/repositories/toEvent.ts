@@ -52,6 +52,22 @@ export const toCreateEventEServiceAdded = (
   };
 };
 
+export const toCreateEventClonedEServiceAdded = (
+  eService: EService
+): CreateEvent1 => {
+  const streamId = uuidv4();
+  return {
+    streamId,
+    version: 0,
+    event: {
+      type: "ClonedEServiceAdded",
+      data: {
+        eService,
+      },
+    },
+  };
+};
+
 export const toCreateEventEServiceDocumentItemAdded = (
   eServiceId: string,
   descriptorId: string,
@@ -134,14 +150,14 @@ export const toCreateEventEServiceDescriptorAdded = (
 export const toCreateEventEServiceUpdated = (
   streamId: string,
   version: number,
-  updatedEServiceSeed: EServiceSeed
+  updatedEService: EService
 ): CreateEvent1 => ({
   streamId,
   version,
   event: {
     type: "EServiceUpdated",
     data: {
-      eService: toEService(streamId, updatedEServiceSeed),
+      eService: updatedEService,
     },
   },
 });
