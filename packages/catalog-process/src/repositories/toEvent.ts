@@ -42,14 +42,21 @@ export const toCreateEventEServiceAdded = (
   };
 };
 
-export const toCreateEventEServiceDocumentUpdated = (
-  streamId: string,
-  version: number,
-  descriptorId: string,
-  documentId: string,
-  updatedDocument: Document,
-  serverUrls: string[]
-): CreateEvent1 => ({
+export const toCreateEventEServiceDocumentUpdated = ({
+  streamId,
+  version,
+  descriptorId,
+  documentId,
+  updatedDocument,
+  serverUrls,
+}: {
+  streamId: string;
+  version: number;
+  descriptorId: string;
+  documentId: string;
+  updatedDocument: Document;
+  serverUrls: string[];
+}): CreateEvent1 => ({
   streamId,
   version,
   event: {

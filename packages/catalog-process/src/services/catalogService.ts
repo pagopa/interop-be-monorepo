@@ -367,14 +367,14 @@ export const catalogService = {
     };
 
     await eventRepository.createEvent1(
-      toCreateEventEServiceDocumentUpdated(
-        eServiceId,
-        eService.metadata.version,
+      toCreateEventEServiceDocumentUpdated({
+        streamId: eServiceId,
+        version: eService.metadata.version,
         descriptorId,
         documentId,
         updatedDocument,
-        [] // document.serverUrls //TODO Fixme
-      )
+        serverUrls: descriptor.serverUrls,
+      })
     );
   },
 
