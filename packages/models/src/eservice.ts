@@ -92,7 +92,7 @@ export const EService = z.object({
   name: z.string(),
   description: z.string(),
   technology: Technology,
-  attribute: Attributes.optional(),
+  attributes: Attributes.optional(),
   descriptors: z.array(Descriptor),
   createdAt: z.coerce.date(),
 });
