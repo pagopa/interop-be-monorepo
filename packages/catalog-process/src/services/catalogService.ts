@@ -36,12 +36,13 @@ import {
 } from "../model/types.js";
 import { eventRepository } from "../repositories/EventRepository.js";
 import {
-  descriptorSeedToCreateEvent,
-  eserviceDescriptorDocumentSeedToCreateEvent,
   toCreateEventEServiceAdded,
   toCreateEventEServiceDeleted,
+  toCreateEventEServiceDescriptorAdded,
   toCreateEventEServiceDocumentDeleted,
+  toCreateEventEServiceDocumentItemAdded,
   toCreateEventEServiceDocumentUpdated,
+  toCreateEventEServiceUpdated,
 } from "../repositories/toEvent.js";
 import { fileManager } from "../utilities/fileManager.js";
 import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
@@ -195,8 +196,6 @@ export const catalogService = {
       );
     }
 
-    // return eventRepository.createEvent(eserviceSeedToCreateEvent(eServiceSeed));
-
     return eventRepository.createEvent1(
       toCreateEventEServiceAdded(eServiceSeed)
     );
@@ -224,12 +223,13 @@ export const catalogService = {
       authData.organizationId
     );
 
-    await eventRepository.createEvent({
-      streamId: eServiceId,
-      version: eService.metadata.version,
-      type: "EServiceUpdated",
-      data: updatedEServiceSeed,
-    });
+    await eventRepository.createEvent1(
+      toCreateEventEServiceUpdated(
+        eServiceId,
+        eService.metadata.version,
+        updatedEServiceSeed
+      )
+    );
   },
   async deleteEService(eServiceId: string, authData: AuthData): Promise<void> {
     const eService = await readModelService.getEServiceById(eServiceId);
@@ -245,13 +245,6 @@ export const catalogService = {
     if (eService.data.producerId !== authData.organizationId) {
       throw operationForbidden;
     }
-
-    // await eventRepository.createEvent({
-    //   streamId: eServiceId,
-    //   version: eService.metadata.version,
-    //   type: "EServiceDeleted",
-    //   data: {},
-    // });
 
     await eventRepository.createEvent1(
       toCreateEventEServiceDeleted(eServiceId, eService.metadata.version)
@@ -283,12 +276,8 @@ export const catalogService = {
       );
     }
 
-    return await eventRepository.createEvent(
-      eserviceDescriptorDocumentSeedToCreateEvent(
-        eServiceId,
-        descriptorId,
-        document
-      )
+    return await eventRepository.createEvent1(
+      toCreateEventEServiceDocumentItemAdded(eServiceId, descriptorId, document)
     );
   },
   async deleteDocument(
@@ -390,15 +379,13 @@ export const catalogService = {
     hasNotDraftDescriptor(eService.data);
 
     const newVersion = nextDescriptorVersion(eService.data);
-    const descriptorId = uuidv4();
-    const createCatalogDescriptor = descriptorSeedToCreateEvent(
-      descriptorId,
-      eserviceDescriptorSeed,
-      newVersion.toString()
-    );
 
-    await eventRepository.createEvent(createCatalogDescriptor);
-    return descriptorId;
+    return await eventRepository.createEvent1(
+      toCreateEventEServiceDescriptorAdded(
+        eserviceDescriptorSeed,
+        newVersion.toString()
+      )
+    );
   },
 
   async deleteDraftDescriptor(
