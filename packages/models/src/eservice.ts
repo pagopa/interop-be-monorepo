@@ -38,10 +38,10 @@ const AttributeValue = z.object({
 export const Attribute = z.union([
   z.object({
     id: AttributeValue,
-    ids: z.null(),
+    ids: z.undefined(),
   }),
   z.object({
-    id: z.null(),
+    id: z.undefined(),
     ids: z.array(AttributeValue).optional(),
   }),
 ]);
