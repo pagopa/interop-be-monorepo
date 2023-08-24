@@ -42,8 +42,8 @@ import {
   toCreateEventEServiceDeleted,
   toCreateEventEServiceDescriptorAdded,
   toCreateEventEServiceDescriptorUpdated,
+  toCreateEventEServiceDocumentAdded,
   toCreateEventEServiceDocumentDeleted,
-  toCreateEventEServiceDocumentItemAdded,
   toCreateEventEServiceDocumentUpdated,
   toCreateEventEServiceUpdated,
   toCreateEventEServiceWithDescriptorsDeleted,
@@ -299,7 +299,7 @@ export const catalogService = {
     }
 
     return await eventRepository.createEvent(
-      toCreateEventEServiceDocumentItemAdded(
+      toCreateEventEServiceDocumentAdded(
         eServiceId,
         eService.metadata.version,
         descriptorId,

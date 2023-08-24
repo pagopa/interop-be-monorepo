@@ -70,7 +70,7 @@ export type EServiceDescriptorUpdated = z.infer<
 >;
 
 export const MovedAttributesFromEserviceToDescriptors = z.object({
-  EService,
+  eService: EService,
 });
 export type MovedAttributesFromEserviceToDescriptors = z.infer<
   typeof MovedAttributesFromEserviceToDescriptors

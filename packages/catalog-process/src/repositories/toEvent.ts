@@ -33,7 +33,7 @@ export const toCreateEventClonedEServiceAdded = (
   };
 };
 
-export const toCreateEventEServiceDocumentItemAdded = (
+export const toCreateEventEServiceDocumentAdded = (
   streamId: string,
   version: number,
   descriptorId: string,
