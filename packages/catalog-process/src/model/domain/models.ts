@@ -54,6 +54,8 @@ export type ApiAgreementApprovalPolicy = z.infer<
 >;
 export type ApiAgreementState = z.infer<typeof api.schemas.AgreementState>;
 
+export type ApiAttribute = z.infer<typeof api.schemas.Attribute>;
+
 export type EServiceDescriptor = z.infer<typeof api.schemas.EServiceDescriptor>;
 
 export type UpdateEServiceDescriptorSeed = z.infer<

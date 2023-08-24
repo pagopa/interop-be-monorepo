@@ -64,7 +64,7 @@ export const Document = z.object({
 });
 export type Document = z.infer<typeof Document>;
 
-const Descriptor = z.object({
+export const Descriptor = z.object({
   id: z.string().uuid(),
   version: z.string(),
   description: z.string().optional(),
@@ -92,7 +92,7 @@ export const EService = z.object({
   name: z.string(),
   description: z.string(),
   technology: Technology,
-  attribute: Attributes.optional(),
+  attributes: Attributes.optional(),
   descriptors: z.array(Descriptor),
   createdAt: z.coerce.date(),
 });

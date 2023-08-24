@@ -1,33 +1,33 @@
 import { logger } from "pagopa-interop-commons";
+import { EServiceEvent } from "pagopa-interop-models";
 import { db } from "./db.js";
 import * as sql from "./sql/index.js";
 
-export type CreateEvent<D> = {
+export type CreateEvent = {
   readonly streamId: string;
   readonly version: number;
-  readonly type: string;
-  readonly data: D;
+  readonly event: EServiceEvent;
 };
 
 export const eventRepository = {
-  async createEvent<D>(event: CreateEvent<D>): Promise<string> {
+  async createEvent(createEvent: CreateEvent): Promise<string> {
     try {
       return await db.tx(async (t) => {
         const data = await t.oneOrNone(sql.checkEventVersionExists, {
-          stream_id: event.streamId,
-          version: event.version,
+          stream_id: createEvent.streamId,
+          version: createEvent.version,
         });
 
-        const newVersion = data != null ? event.version + 1 : 0;
+        const newVersion = data != null ? createEvent.version + 1 : 0;
 
         await t.none(sql.insertEvent, {
-          stream_id: event.streamId,
+          stream_id: createEvent.streamId,
           version: newVersion,
-          type: event.type,
-          data: event.data,
+          type: createEvent.event.type,
+          data: createEvent.event.data,
         });
 
-        return event.streamId;
+        return createEvent.streamId;
       });
     } catch (error) {
       logger.error(error);
