@@ -10,12 +10,13 @@ import {
   persistentAgreementState,
   technology,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
+import { P, match } from "ts-pattern";
 import { z } from "zod";
 import * as api from "../generated/api.js";
 import {
   ApiAgreementApprovalPolicy,
   ApiAgreementState,
+  ApiAttribute,
   ApiEServiceDescriptorState,
   ApiTechnology,
 } from "./models.js";
@@ -69,6 +70,15 @@ export function agreementApprovalPolicyToApiAgreementApprovalPolicy(
     .otherwise(() => "AUTOMATIC");
 }
 
+export function apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+  input: ApiAgreementApprovalPolicy
+): AgreementApprovalPolicy {
+  return match<ApiAgreementApprovalPolicy, AgreementApprovalPolicy>(input)
+    .with("AUTOMATIC", () => agreementApprovalPolicy.automatic)
+    .with("MANUAL", () => agreementApprovalPolicy.manual)
+    .exhaustive();
+}
+
 export function agreementStateToApiAgreementState(
   input: PersistentAgreementState
 ): ApiAgreementState {
@@ -103,64 +113,70 @@ export function apiAgreementStateToAgreementState(
     .exhaustive();
 }
 
+export function apiAttributeToAttribute(
+  input: ApiAttribute
+): Attribute | undefined {
+  return match<ApiAttribute, Attribute | undefined>(input)
+    .with({ single: P.not(P.nullish) }, (a) => ({
+      type: "SingleAttribute",
+      id: {
+        id: a.single.id,
+        explicitAttributeVerification: a.single.explicitAttributeVerification,
+      },
+    }))
+    .with({ group: P.not(P.nullish) }, (a) => ({
+      type: "GroupAttribute",
+      ids: a.group.map((id) => ({
+        id: id.id,
+        explicitAttributeVerification: id.explicitAttributeVerification,
+      })),
+    }))
+    .otherwise(() => undefined);
+}
+
+export function attributeToApiAttribute(input: Attribute): ApiAttribute {
+  return match(input)
+    .with({ type: "SingleAttribute" }, (a) => ({
+      single: a.id,
+    }))
+    .with({ type: "GroupAttribute" }, (a) => ({
+      group: a.ids,
+    }))
+    .exhaustive();
+}
+
 export const eServiceToApiEService = (
   eService: EService
-): z.infer<typeof api.schemas.EService> => {
-  const mapAttribute = (
-    a: Attribute
-  ):
-    | {
-        single: {
-          id: string;
-          explicitAttributeVerification: boolean;
-        };
-      }
-    | {
-        group: Array<{
-          id: string;
-          explicitAttributeVerification: boolean;
-        }>;
-      } =>
-    match(a)
-      .with({ type: "SingleAttribute" }, (a) => ({
-        single: a.id,
-      }))
-      .with({ type: "GroupAttribute" }, (a) => ({
-        group: a.ids,
-      }))
-      .exhaustive();
-
-  return {
-    id: eService.id,
-    producerId: eService.producerId,
-    name: eService.name,
-    description: eService.description,
-    technology: technologyToApiTechnology(eService.technology),
-    descriptors: eService.descriptors.map((descriptor) => ({
-      id: descriptor.id,
-      version: descriptor.version,
-      description: descriptor.description,
-      audience: descriptor.audience,
-      voucherLifespan: descriptor.voucherLifespan,
-      dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
-      dailyCallsTotal: descriptor.dailyCallsTotal,
-      interface: descriptor.interface,
-      docs: descriptor.docs,
-      state: descriptorStateToApiEServiceDescriptorState(descriptor.state),
-      agreementApprovalPolicy:
-        agreementApprovalPolicyToApiAgreementApprovalPolicy(
-          descriptor.agreementApprovalPolicy
-        ),
-      serverUrls: descriptor.serverUrls,
-      publishedAt: descriptor.publishedAt?.toJSON(),
-      suspendedAt: descriptor.suspendedAt?.toJSON(),
-      deprecatedAt: descriptor.deprecatedAt?.toJSON(),
-      archivedAt: descriptor.archivedAt?.toJSON(),
-      attributes: {
-        certified: descriptor.attributes.certified.map(mapAttribute),
-        declared: descriptor.attributes.declared.map(mapAttribute),
-        verified: descriptor.attributes.verified.map(mapAttribute),
-      },
-    })),
-  };
-};
+): z.infer<typeof api.schemas.EService> => ({
+  id: eService.id,
+  producerId: eService.producerId,
+  name: eService.name,
+  description: eService.description,
+  technology: technologyToApiTechnology(eService.technology),
+  descriptors: eService.descriptors.map((descriptor) => ({
+    id: descriptor.id,
+    version: descriptor.version,
+    description: descriptor.description,
+    audience: descriptor.audience,
+    voucherLifespan: descriptor.voucherLifespan,
+    dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
+    dailyCallsTotal: descriptor.dailyCallsTotal,
+    interface: descriptor.interface,
+    docs: descriptor.docs,
+    state: descriptorStateToApiEServiceDescriptorState(descriptor.state),
+    agreementApprovalPolicy:
+      agreementApprovalPolicyToApiAgreementApprovalPolicy(
+        descriptor.agreementApprovalPolicy
+      ),
+    serverUrls: descriptor.serverUrls,
+    publishedAt: descriptor.publishedAt?.toJSON(),
+    suspendedAt: descriptor.suspendedAt?.toJSON(),
+    deprecatedAt: descriptor.deprecatedAt?.toJSON(),
+    archivedAt: descriptor.archivedAt?.toJSON(),
+    attributes: {
+      certified: descriptor.attributes.certified.map(attributeToApiAttribute),
+      declared: descriptor.attributes.declared.map(attributeToApiAttribute),
+      verified: descriptor.attributes.verified.map(attributeToApiAttribute),
+    },
+  })),
+});
