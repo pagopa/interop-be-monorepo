@@ -134,16 +134,20 @@ export function apiAttributeToAttribute(
     .otherwise(() => undefined);
 }
 
-export function attributeToApiAttribute(input: Attribute): ApiAttribute {
+export function attributeToApiAttribute(
+  input: Attribute
+): ApiAttribute | undefined {
   return match(input)
-    .with({ type: "SingleAttribute" }, (a) => ({
-      single: a.id,
-    }))
-    .with({ type: "GroupAttribute" }, (a) => ({
+    .with({ ids: P.not(P.nullish) }, (a) => ({
       group: a.ids,
     }))
-    .exhaustive();
+    .with({ id: P.not(P.nullish) }, (a) => ({
+      single: a.id,
+    }))
+    .otherwise(() => undefined);
 }
+
+const filterUndefined = <T>(a: T | undefined): a is T => a !== undefined;
 
 export const eServiceToApiEService = (
   eService: EService
@@ -174,9 +178,15 @@ export const eServiceToApiEService = (
     deprecatedAt: descriptor.deprecatedAt?.toJSON(),
     archivedAt: descriptor.archivedAt?.toJSON(),
     attributes: {
-      certified: descriptor.attributes.certified.map(attributeToApiAttribute),
-      declared: descriptor.attributes.declared.map(attributeToApiAttribute),
-      verified: descriptor.attributes.verified.map(attributeToApiAttribute),
+      certified: descriptor.attributes.certified
+        .map(attributeToApiAttribute)
+        .filter(filterUndefined),
+      declared: descriptor.attributes.declared
+        .map(attributeToApiAttribute)
+        .filter(filterUndefined),
+      verified: descriptor.attributes.verified
+        .map(attributeToApiAttribute)
+        .filter(filterUndefined),
     },
   })),
 });
