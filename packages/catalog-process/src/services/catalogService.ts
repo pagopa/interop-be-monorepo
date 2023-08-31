@@ -179,15 +179,13 @@ const deprecateDescriptor = async (
   );
 };
 
-const hasNotDraftDescriptor = (eService: EService): boolean => {
-  const hasNotDraftDescriptor = eService.descriptors.some(
-    (d: Descriptor) => d.state === descriptorState.draft,
-    0
+const hasNotDraftDescriptor = (eService: EService): void => {
+  const hasDraftDescriptor = eService.descriptors.some(
+    (d: Descriptor) => d.state === descriptorState.draft
   );
-  if (!hasNotDraftDescriptor) {
+  if (hasDraftDescriptor) {
     throw draftDescriptorAlreadyExists(eService.id);
   }
-  return hasNotDraftDescriptor;
 };
 
 export const catalogService = {
@@ -304,50 +302,15 @@ export const catalogService = {
   ): Promise<string> {
     logger.info(`Creating Descriptor for EService ${eServiceId}`);
 
-    const eService = await retrieveEService(eServiceId);
-    assertRequesterAllowed(eService.data.producerId, authData.organizationId);
-    hasNotDraftDescriptor(eService.data);
-
-    const newVersion = nextDescriptorVersion(eService.data);
-
-    const certifiedAttributes = eserviceDescriptorSeed.attributes.certified
-      .map(apiAttributeToAttribute)
-      .filter((a): a is Attribute => a !== undefined);
-
-    const newDescriptor: Descriptor = {
-      id: uuidv4(),
-      description: eserviceDescriptorSeed.description,
-      version: newVersion,
-      interface: undefined,
-      docs: [],
-      state: "Draft",
-      voucherLifespan: eserviceDescriptorSeed.voucherLifespan,
-      audience: eserviceDescriptorSeed.audience,
-      dailyCallsPerConsumer: eserviceDescriptorSeed.dailyCallsPerConsumer,
-      dailyCallsTotal: eserviceDescriptorSeed.dailyCallsTotal,
-      agreementApprovalPolicy:
-        apiAgreementApprovalPolicyToAgreementApprovalPolicy(
-          eserviceDescriptorSeed.agreementApprovalPolicy
-        ),
-      serverUrls: [],
-      publishedAt: undefined,
-      suspendedAt: undefined,
-      deprecatedAt: undefined,
-      archivedAt: undefined,
-      createdAt: new Date(),
-      attributes: {
-        certified: certifiedAttributes,
-        declared: [],
-        verified: [],
-      },
-    };
+    const eService = await readModelService.getEServiceById(eServiceId);
 
     return await eventRepository.createEvent(
-      toCreateEventEServiceDescriptorAdded(
-        eService.data.id,
-        eService.metadata.version,
-        newDescriptor
-      )
+      createDescriptorLogic({
+        eServiceId,
+        eserviceDescriptorSeed,
+        authData,
+        eService,
+      })
     );
   },
 
@@ -915,4 +878,60 @@ export async function updateDocumentLogic({
     updatedDocument,
     serverUrls: descriptor.serverUrls,
   });
+}
+
+export function createDescriptorLogic({
+  eServiceId,
+  eserviceDescriptorSeed,
+  authData,
+  eService,
+}: {
+  eServiceId: string;
+  eserviceDescriptorSeed: EServiceDescriptorSeed;
+  authData: AuthData;
+  eService: WithMetadata<EService> | undefined;
+}): CreateEvent {
+  assertEServiceExist(eServiceId, eService);
+  assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+  hasNotDraftDescriptor(eService.data);
+
+  const newVersion = nextDescriptorVersion(eService.data);
+
+  const certifiedAttributes = eserviceDescriptorSeed.attributes.certified
+    .map(apiAttributeToAttribute)
+    .filter((a): a is Attribute => a !== undefined);
+
+  const newDescriptor: Descriptor = {
+    id: uuidv4(),
+    description: eserviceDescriptorSeed.description,
+    version: newVersion,
+    interface: undefined,
+    docs: [],
+    state: "Draft",
+    voucherLifespan: eserviceDescriptorSeed.voucherLifespan,
+    audience: eserviceDescriptorSeed.audience,
+    dailyCallsPerConsumer: eserviceDescriptorSeed.dailyCallsPerConsumer,
+    dailyCallsTotal: eserviceDescriptorSeed.dailyCallsTotal,
+    agreementApprovalPolicy:
+      apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+        eserviceDescriptorSeed.agreementApprovalPolicy
+      ),
+    serverUrls: [],
+    publishedAt: undefined,
+    suspendedAt: undefined,
+    deprecatedAt: undefined,
+    archivedAt: undefined,
+    createdAt: new Date(),
+    attributes: {
+      certified: certifiedAttributes,
+      declared: [],
+      verified: [],
+    },
+  };
+
+  return toCreateEventEServiceDescriptorAdded(
+    eService.data.id,
+    eService.metadata.version,
+    newDescriptor
+  );
 }

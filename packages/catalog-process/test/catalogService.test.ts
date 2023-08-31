@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { generateMock } from "@anatine/zod-mock";
-import { Descriptor, EService } from "pagopa-interop-models";
 import {
+  Attribute,
+  Descriptor,
+  EService,
+  descriptorState,
+} from "pagopa-interop-models";
+import {
+  createDescriptorLogic,
   createEserviceLogic,
   deleteDocumentLogic,
   deleteEserviceLogic,
@@ -10,6 +16,7 @@ import {
   uploadDocumentLogic,
 } from "../src/services/catalogService.js";
 import {
+  draftDescriptorAlreadyExists,
   eServiceCannotBeDeleted,
   eServiceCannotBeUpdated,
   eServiceDescriptorNotFound,
@@ -20,7 +27,13 @@ import {
 } from "../src/model/domain/errors.js";
 import * as api from "../src/model/generated/api.js";
 import { WithMetadata } from "../src/model/domain/models.js";
-import { apiTechnologyToTechnology } from "../src/model/domain/apiConverter.js";
+import {
+  apiAgreementApprovalPolicyToAgreementApprovalPolicy,
+  apiAttributeToAttribute,
+  apiTechnologyToTechnology,
+} from "../src/model/domain/apiConverter.js";
+
+const shuffle = <T>(array: T[]): T[] => array.sort(() => Math.random() - 0.5);
 
 const mockEservice: EService = generateMock(EService);
 const mockEserviceSeed = generateMock(api.schemas.EServiceSeed);
@@ -31,6 +44,7 @@ const mockDocument = generateMock(
 const mockUpdateDocumentSeed = generateMock(
   api.schemas.UpdateEServiceDescriptorDocumentSeed
 );
+const mockEserviceDescriptorSeed = generateMock(api.schemas.EServiceDescriptor);
 
 const authData = {
   organizationId: mockEservice.producerId,
@@ -481,6 +495,106 @@ describe("CatalogService", () => {
           getDocument: () => Promise.resolve(undefined),
         })
       ).rejects.toThrowError(eServiceNotFound(eServiceId));
+    });
+  });
+  describe("createDescriptor", () => {
+    it("create the descriptor", async () => {
+      const descriptors = shuffle(
+        mockEservice.descriptors.map((d, i) => ({
+          ...d,
+          state: descriptorState.archived,
+          version: i.toString(),
+        }))
+      );
+      const event = createDescriptorLogic({
+        eServiceId: mockEservice.id,
+        eserviceDescriptorSeed: mockEserviceDescriptorSeed,
+        authData,
+        eService: addMetadata({ ...mockEservice, descriptors }),
+      });
+      expect(event.event.type).toBe("EServiceDescriptorAdded");
+      expect(event.event.data).toMatchObject({
+        eServiceId: mockEservice.id,
+        eServiceDescriptor: {
+          id: (event.event.data as { eServiceDescriptor: { id: string } })
+            .eServiceDescriptor.id,
+          description: mockEserviceDescriptorSeed.description,
+          version: (descriptors.length - 1).toString(),
+          interface: undefined,
+          docs: [],
+          state: "Draft",
+          voucherLifespan: mockEserviceDescriptorSeed.voucherLifespan,
+          audience: mockEserviceDescriptorSeed.audience,
+          dailyCallsPerConsumer:
+            mockEserviceDescriptorSeed.dailyCallsPerConsumer,
+          dailyCallsTotal: mockEserviceDescriptorSeed.dailyCallsTotal,
+          agreementApprovalPolicy:
+            apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+              mockEserviceDescriptorSeed.agreementApprovalPolicy
+            ),
+          serverUrls: [],
+          publishedAt: undefined,
+          suspendedAt: undefined,
+          deprecatedAt: undefined,
+          archivedAt: undefined,
+          createdAt: (
+            event.event.data as { eServiceDescriptor: { createdAt: Date } }
+          ).eServiceDescriptor.createdAt,
+          attributes: {
+            certified: mockEserviceDescriptorSeed.attributes.certified
+              .map(apiAttributeToAttribute)
+              .filter((a): a is Attribute => a !== undefined),
+            declared: [],
+            verified: [],
+          },
+        },
+      });
+    });
+
+    it("returns an error if the eservice doesn't contains a draft descriptor", async () => {
+      expect(() =>
+        createDescriptorLogic({
+          eServiceId: mockEservice.id,
+          eserviceDescriptorSeed: mockEserviceDescriptorSeed,
+          authData,
+          eService: addMetadata({
+            ...mockEservice,
+            descriptors: [{ ...mockDescriptor, state: "Draft" }],
+          }),
+        })
+      ).toThrowError(draftDescriptorAlreadyExists(mockEservice.id));
+    });
+
+    it("returns an error if the authenticated organization is not the producer", async () => {
+      expect(() =>
+        createDescriptorLogic({
+          eServiceId: mockEservice.id,
+          eserviceDescriptorSeed: mockEserviceDescriptorSeed,
+          authData: {
+            ...authData,
+            organizationId: "other-org-id",
+          },
+          eService: addMetadata({
+            ...mockEservice,
+            producerId: "some-org-id",
+          }),
+        })
+      ).toThrowError(operationForbidden);
+    });
+
+    it("returns an error when the service does not exist", async () => {
+      const eServiceId = "not-existing-id";
+      expect(() =>
+        createDescriptorLogic({
+          eServiceId,
+          eserviceDescriptorSeed: mockEserviceDescriptorSeed,
+          authData: {
+            ...authData,
+            organizationId: "organizationId",
+          },
+          eService: undefined,
+        })
+      ).toThrowError(eServiceNotFound(eServiceId));
     });
   });
 });
