@@ -16,6 +16,7 @@ module.exports = {
     "sonarjs/no-duplicate-string": "off",
     "max-lines-per-function": "off",
     "@typescript-eslint/naming-convention": "off",
+    "@typescript-eslint/no-use-before-define": "off",
   },
   ignorePatterns: [
     ".eslintrc.cjs",
