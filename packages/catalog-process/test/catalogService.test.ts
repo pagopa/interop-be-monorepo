@@ -18,6 +18,7 @@ import {
   uploadDocumentLogic,
   publishDescriptorLogic,
   suspendDescriptorLogic,
+  archiveDescriptorLogic,
 } from "../src/services/catalogService.js";
 import {
   draftDescriptorAlreadyExists,
@@ -1000,6 +1001,85 @@ describe("CatalogService", () => {
           eService: addMetadata(eService),
         })
       ).toThrowError(notValidDescriptor(eService.descriptors[0].id, "Draft"));
+    });
+
+    it("returns an error if the authenticated organization is not the producer", async () => {
+      expect(() =>
+        suspendDescriptorLogic({
+          eServiceId: mockEservice.id,
+          descriptorId: mockEservice.descriptors[0].id,
+          authData: {
+            ...authData,
+            organizationId: "other-org-id",
+          },
+          eService: addMetadata({
+            ...mockEservice,
+            producerId: "some-org-id",
+          }),
+        })
+      ).toThrowError(operationForbidden);
+    });
+
+    it("returns an error when the service does not exist", async () => {
+      const eServiceId = "not-existing-id";
+      expect(() =>
+        suspendDescriptorLogic({
+          eServiceId,
+          descriptorId: mockEservice.descriptors[0].id,
+          authData: {
+            ...authData,
+            organizationId: "organizationId",
+          },
+          eService: undefined,
+        })
+      ).toThrowError(eServiceNotFound(eServiceId));
+    });
+  });
+  // TODO: implement
+  // describe("activateDescriptor", () => {
+  // });
+  // TODO: implement
+  // describe("cloneDescriptor", () => {
+  // });
+  describe("archiveDescriptor", () => {
+    it("archive the descriptor", async () => {
+      const eService: EService = {
+        ...mockEservice,
+        descriptors: [mockDescriptor],
+      };
+      const event = archiveDescriptorLogic({
+        eServiceId: eService.id,
+        descriptorId: eService.descriptors[0].id,
+        authData,
+        eService: addMetadata(eService),
+      });
+      expect(event.event.type).toBe("EServiceDescriptorUpdated");
+      expect(event.event.data).toMatchObject({
+        eServiceId: eService.id,
+        eServiceDescriptor: {
+          ...mockDescriptor,
+          state: "Archived",
+          archivedAt: (
+            event.event.data as { eServiceDescriptor: { archivedAt: Date } }
+          ).eServiceDescriptor.archivedAt,
+        },
+      });
+    });
+
+    it("returns an error if the eservice doesn't contains the descriptor", async () => {
+      const eService: EService = {
+        ...mockEservice,
+        descriptors: [mockDescriptor],
+      };
+      const descriptorId = "descriptor-not-present-id";
+      expect(() =>
+        archiveDescriptorLogic({
+          eServiceId: eService.id,
+          descriptorId,
+          authData,
+          eService: addMetadata(eService),
+        })
+      ).toThrowError(eServiceDescriptorNotFound(eService.id, descriptorId));
     });
 
     it("returns an error if the authenticated organization is not the producer", async () => {
