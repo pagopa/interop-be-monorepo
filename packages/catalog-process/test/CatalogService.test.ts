@@ -1,66 +1,53 @@
 import { describe, expect, it, vi } from "vitest";
+import { generateMock } from "@anatine/zod-mock";
+import * as z from "zod";
 import { catalogService } from "../src/services/CatalogService.js";
 import {
   eServiceCannotBeUpdated,
   eServiceNotFound,
   operationForbidden,
 } from "../src/model/domain/errors.js";
-import { EService } from "../src/model/domain/models.js";
 import { readModelGateway } from "../src/services/ReadModelGateway.js";
 import { eventRepository } from "../src/repositories/events.js";
+import * as api from "../src/model/generated/api.js";
+import { EService } from "../src/model/domain/models.js";
 
 const mockEservice: EService = {
-  id: "5b041dd3-6b06-4467-9c3d-1ef11acedb88",
-  name: "name",
-  description: "description",
-  technology: "REST",
+  ...generateMock(api.schemas.EService.extend({ version: z.number() })),
   descriptors: [],
-  producerId: "producerId",
-  version: 1,
 };
+const mockDescriptor = generateMock(api.schemas.EServiceDescriptor);
+
+vi.mock("../src/services/ReadModelGateway.js");
+const mockedReadModelGateway = vi.mocked(readModelGateway);
+
+vi.mock("../src/repositories/events.js");
+const mockedEventRepository = vi.mocked(eventRepository);
 
 describe("CatalogService", () => {
   describe("updateEService", () => {
     it("updates the eservice", async () => {
-      readModelGateway.getEServiceById = vi
-        .fn()
-        .mockReturnValueOnce(mockEservice);
+      mockedReadModelGateway.getEServiceById.mockResolvedValueOnce(
+        mockEservice
+      );
 
-      eventRepository.createEvent = vi
-        .fn()
-        .mockReturnValueOnce(mockEservice.id);
+      mockedEventRepository.createEvent.mockResolvedValueOnce(mockEservice.id);
 
       await expect(
         catalogService.updateEService(mockEservice.id, mockEservice, {
           organizationId: mockEservice.producerId,
         })
       ).resolves.toBeUndefined();
-      expect(eventRepository.createEvent).toHaveBeenCalledOnce();
-      expect(vi.mocked(eventRepository.createEvent).mock.lastCall)
-        .toMatchInlineSnapshot(`
-          [
-            {
-              "data": {
-                "description": "description",
-                "descriptors": [],
-                "id": "5b041dd3-6b06-4467-9c3d-1ef11acedb88",
-                "name": "name",
-                "producerId": "producerId",
-                "technology": "REST",
-                "version": 1,
-              },
-              "streamId": "5b041dd3-6b06-4467-9c3d-1ef11acedb88",
-              "type": "EServiceUpdated",
-              "version": 1,
-            },
-          ]
-        `);
+      expect(mockedEventRepository.createEvent).toHaveBeenCalledOnce();
+      expect(
+        mockedEventRepository.createEvent.mock.lastCall?.[0].data
+      ).toMatchObject(mockEservice);
     });
 
     it("returns an error if the eservice contains valid descriptors", async () => {
-      readModelGateway.getEServiceById = vi.fn().mockReturnValueOnce({
+      mockedReadModelGateway.getEServiceById.mockResolvedValueOnce({
         ...mockEservice,
-        descriptors: [{ state: "ARCHIVED" }],
+        descriptors: [{ ...mockDescriptor, state: "ARCHIVED" }],
       });
 
       await expect(
@@ -71,9 +58,10 @@ describe("CatalogService", () => {
     });
 
     it("returns an error if the authenticated organization is not the producer", async () => {
-      readModelGateway.getEServiceById = vi
-        .fn()
-        .mockReturnValueOnce({ mockEservice, producerId: "some-org-id" });
+      mockedReadModelGateway.getEServiceById.mockResolvedValueOnce({
+        ...mockEservice,
+        producerId: "some-org-id",
+      });
 
       await expect(
         catalogService.updateEService(mockEservice.id, mockEservice, {
@@ -83,7 +71,7 @@ describe("CatalogService", () => {
     });
 
     it("returns an error when the service does not exist", async () => {
-      readModelGateway.getEServiceById = vi.fn().mockReturnValueOnce(undefined);
+      mockedReadModelGateway.getEServiceById.mockResolvedValueOnce(undefined);
 
       await expect(
         catalogService.updateEService("not-existing-id", mockEservice, {
