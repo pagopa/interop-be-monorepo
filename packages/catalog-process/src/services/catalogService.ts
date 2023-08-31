@@ -61,6 +61,15 @@ import {
 } from "../model/domain/apiConverter.js";
 import { readModelService } from "./readModelService.js";
 
+function assertEServiceExist(
+  eServiceId: string,
+  eService: WithMetadata<EService> | undefined
+): asserts eService is NonNullable<WithMetadata<EService>> {
+  if (eService === undefined) {
+    throw eServiceNotFound(eServiceId);
+  }
+}
+
 const assertRequesterAllowed = (
   producerId: string,
   requesterId: string
@@ -204,36 +213,27 @@ export const catalogService = {
       })
     );
   },
+
   async updateEService(
     eServiceId: string,
     eServiceSeed: ApiEServiceSeed,
     authData: AuthData
   ): Promise<void> {
-    const eService = await retrieveEService(eServiceId);
+    const eService = await readModelService.getEServiceById(eServiceId);
 
     await eventRepository.createEvent(
       updateEserviceLogic({ eService, eServiceId, authData, eServiceSeed })
     );
   },
+
   async deleteEService(eServiceId: string, authData: AuthData): Promise<void> {
     const eService = await readModelService.getEServiceById(eServiceId);
 
-    if (eService === undefined) {
-      throw eServiceNotFound(eServiceId);
-    }
-
-    if (eService.data.descriptors.length > 0) {
-      throw eServiceCannotBeDeleted(eServiceId);
-    }
-
-    if (eService.data.producerId !== authData.organizationId) {
-      throw operationForbidden;
-    }
-
     await eventRepository.createEvent(
-      toCreateEventEServiceDeleted(eServiceId, eService.metadata.version)
+      deleteEserviceLogic({ eServiceId, authData, eService })
     );
   },
+
   async uploadDocument(
     eServiceId: string,
     descriptorId: string,
@@ -281,6 +281,7 @@ export const catalogService = {
       )
     );
   },
+
   async deleteDocument(
     eServiceId: string,
     descriptorId: string,
@@ -316,6 +317,7 @@ export const catalogService = {
       )
     );
   },
+
   async updateDocument(
     eServiceId: string,
     descriptorId: string,
@@ -810,11 +812,12 @@ export function updateEserviceLogic({
   authData,
   eServiceSeed,
 }: {
-  eService: WithMetadata<EService>;
+  eService: WithMetadata<EService> | undefined;
   eServiceId: string;
   authData: AuthData;
   eServiceSeed: ApiEServiceSeed;
 }): CreateEvent {
+  assertEServiceExist(eServiceId, eService);
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
 
   if (
@@ -840,4 +843,23 @@ export function updateEserviceLogic({
     eService.metadata.version,
     updatedEService
   );
+}
+
+export function deleteEserviceLogic({
+  eServiceId,
+  authData,
+  eService,
+}: {
+  eServiceId: string;
+  authData: AuthData;
+  eService: WithMetadata<EService> | undefined;
+}): CreateEvent {
+  assertEServiceExist(eServiceId, eService);
+  assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+
+  if (eService.data.descriptors.length > 0) {
+    throw eServiceCannotBeDeleted(eServiceId);
+  }
+
+  return toCreateEventEServiceDeleted(eServiceId, eService.metadata.version);
 }
