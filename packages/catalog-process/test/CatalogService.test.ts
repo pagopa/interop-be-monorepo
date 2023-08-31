@@ -1,14 +1,12 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { generateMock } from "@anatine/zod-mock";
 import * as z from "zod";
-import { catalogService } from "../src/services/CatalogService.js";
+import { updateEserviceLogic } from "../src/services/CatalogService.js";
 import {
   eServiceCannotBeUpdated,
   eServiceNotFound,
   operationForbidden,
 } from "../src/model/domain/errors.js";
-import { readModelGateway } from "../src/services/ReadModelGateway.js";
-import { eventRepository } from "../src/repositories/events.js";
 import * as api from "../src/model/generated/api.js";
 import { EService } from "../src/model/domain/models.js";
 
@@ -18,69 +16,64 @@ const mockEservice: EService = {
 };
 const mockDescriptor = generateMock(api.schemas.EServiceDescriptor);
 
-vi.mock("../src/services/ReadModelGateway.js");
-const mockedReadModelGateway = vi.mocked(readModelGateway);
-
-vi.mock("../src/repositories/events.js");
-const mockedEventRepository = vi.mocked(eventRepository);
-
 describe("CatalogService", () => {
   describe("updateEService", () => {
     it("updates the eservice", async () => {
-      mockedReadModelGateway.getEServiceById.mockResolvedValueOnce(
-        mockEservice
-      );
-
-      mockedEventRepository.createEvent.mockResolvedValueOnce(mockEservice.id);
-
-      await expect(
-        catalogService.updateEService(mockEservice.id, mockEservice, {
+      const event = updateEserviceLogic({
+        eservice: mockEservice,
+        eServiceId: mockEservice.id,
+        eserviceSeed: mockEservice,
+        authData: {
           organizationId: mockEservice.producerId,
-        })
-      ).resolves.toBeUndefined();
-      expect(mockedEventRepository.createEvent).toHaveBeenCalledOnce();
-      expect(mockedEventRepository.createEvent.mock.lastCall?.[0].type).toBe(
-        "EServiceUpdated"
-      );
-      expect(
-        mockedEventRepository.createEvent.mock.lastCall?.[0].data
-      ).toMatchObject(mockEservice);
+        },
+      });
+      expect(event.type).toBe("EServiceUpdated");
+      expect(event.data).toMatchObject(mockEservice);
     });
 
     it("returns an error if the eservice contains valid descriptors", async () => {
-      mockedReadModelGateway.getEServiceById.mockResolvedValueOnce({
-        ...mockEservice,
-        descriptors: [{ ...mockDescriptor, state: "ARCHIVED" }],
-      });
-
-      await expect(
-        catalogService.updateEService(mockEservice.id, mockEservice, {
-          organizationId: mockEservice.producerId,
+      expect(() =>
+        updateEserviceLogic({
+          eservice: {
+            ...mockEservice,
+            descriptors: [{ ...mockDescriptor, state: "ARCHIVED" }],
+          },
+          eServiceId: mockEservice.id,
+          authData: {
+            organizationId: mockEservice.producerId,
+          },
+          eserviceSeed: mockEservice,
         })
-      ).rejects.toThrowError(eServiceCannotBeUpdated(mockEservice.id));
+      ).toThrowError(eServiceCannotBeUpdated(mockEservice.id));
     });
 
     it("returns an error if the authenticated organization is not the producer", async () => {
-      mockedReadModelGateway.getEServiceById.mockResolvedValueOnce({
-        ...mockEservice,
-        producerId: "some-org-id",
-      });
-
-      await expect(
-        catalogService.updateEService(mockEservice.id, mockEservice, {
-          organizationId: "other-org-id",
+      expect(() =>
+        updateEserviceLogic({
+          eservice: {
+            ...mockEservice,
+            producerId: "some-org-id",
+          },
+          eServiceId: mockEservice.id,
+          eserviceSeed: mockEservice,
+          authData: {
+            organizationId: "other-org-id",
+          },
         })
-      ).rejects.toThrowError(operationForbidden);
+      ).toThrowError(operationForbidden);
     });
 
     it("returns an error when the service does not exist", async () => {
-      mockedReadModelGateway.getEServiceById.mockResolvedValueOnce(undefined);
-
-      await expect(
-        catalogService.updateEService("not-existing-id", mockEservice, {
-          organizationId: "organizationId",
+      expect(() =>
+        updateEserviceLogic({
+          eservice: undefined,
+          eServiceId: "not-existing-id",
+          eserviceSeed: mockEservice,
+          authData: {
+            organizationId: "organizationId",
+          },
         })
-      ).rejects.toThrowError(eServiceNotFound("not-existing-id"));
+      ).toThrowError(eServiceNotFound("not-existing-id"));
     });
   });
 });
