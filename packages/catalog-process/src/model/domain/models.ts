@@ -22,8 +22,6 @@ export type EServiceSeed = z.infer<typeof api.schemas.EServiceSeed> & {
   readonly producerId: string;
 };
 
-export type EServiceDescriptor = z.infer<typeof api.schemas.EServiceDescriptor>;
-
 export type EServiceDocument = {
   readonly eServiceId: string;
   readonly descriptorId: string;
