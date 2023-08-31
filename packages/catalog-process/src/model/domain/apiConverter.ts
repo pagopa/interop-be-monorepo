@@ -144,7 +144,7 @@ export function attributeToApiAttribute(
     .with({ id: P.not(P.nullish) }, (a) => ({
       single: a.id,
     }))
-    .otherwise(() => undefined);
+    .exhaustive();
 }
 
 const filterUndefined = <T>(a: T | undefined): a is T => a !== undefined;
