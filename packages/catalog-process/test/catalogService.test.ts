@@ -1128,20 +1128,28 @@ describe("CatalogService", () => {
         eService: addMetadata(eService),
       });
       expect(event.event.type).toBe("ClonedEServiceAdded");
-      const clonedDescriptor = event.event.data.eService.descriptors[0];
+      const clonedDescriptor = (
+        event.event.data as { eService: { descriptors: unknown[] } }
+      ).eService.descriptors[0] as {
+        id: string;
+        docs: Array<{ id: string; uploadDate: Date }>;
+        createdAt: Date;
+        interface: { id: string; uploadDate: Date };
+      };
       expect(event.event.data).toMatchObject({
         eService: {
           ...mockEservice,
           name: `${mockEservice.name} - clone`,
-          createdAt: event.event.data.eService.createdAt,
-          id: event.event.data.eService.id,
+          createdAt: (event.event.data as { eService: { createdAt: Date } })
+            .eService.createdAt,
+          id: (event.event.data as { eService: { id: string } }).eService.id,
           descriptors: [
             {
               ...mockDescriptor,
               id: clonedDescriptor.id,
               version: "1",
               state: "Draft",
-              createdAt: (clonedDescriptor as { createdAt: Date }).createdAt,
+              createdAt: clonedDescriptor.createdAt,
               docs: mockDescriptor.docs.map((d, i) => ({
                 ...d,
                 id: clonedDescriptor.docs[i].id,
