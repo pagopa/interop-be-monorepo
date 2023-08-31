@@ -5,6 +5,7 @@ import {
   createEserviceLogic,
   deleteDocumentLogic,
   deleteEserviceLogic,
+  updateDocumentLogic,
   updateEserviceLogic,
   uploadDocumentLogic,
 } from "../src/services/catalogService.js";
@@ -26,6 +27,9 @@ const mockEserviceSeed = generateMock(api.schemas.EServiceSeed);
 const mockDescriptor = generateMock(Descriptor);
 const mockDocument = generateMock(
   api.schemas.CreateEServiceDescriptorDocumentSeed
+);
+const mockUpdateDocumentSeed = generateMock(
+  api.schemas.UpdateEServiceDescriptorDocumentSeed
 );
 
 const authData = {
@@ -360,6 +364,121 @@ describe("CatalogService", () => {
           eService: undefined,
           getDocument: () => Promise.resolve(undefined),
           deleteRemoteFile: () => Promise.resolve(),
+        })
+      ).rejects.toThrowError(eServiceNotFound(eServiceId));
+    });
+  });
+  describe("updateDocument", () => {
+    it("update the document", async () => {
+      const refDate = new Date();
+      const event = await updateDocumentLogic({
+        eServiceId: mockEservice.id,
+        descriptorId: mockEservice.descriptors[0].id,
+        documentId: mockDocument.documentId,
+        apiEServiceDescriptorDocumentUpdateSeed: mockUpdateDocumentSeed,
+        authData,
+        eService: addMetadata(mockEservice),
+        getDocument: () =>
+          Promise.resolve({
+            id: mockDocument.documentId,
+            name: mockDocument.fileName,
+            contentType: mockDocument.contentType,
+            prettyName: mockDocument.prettyName,
+            path: mockDocument.filePath,
+            checksum: mockDocument.checksum,
+            uploadDate: refDate,
+          }),
+      });
+      expect(event.event.type).toBe("EServiceDocumentUpdated");
+      expect(event.event.data).toMatchObject({
+        eServiceId: mockEservice.id,
+        descriptorId: mockEservice.descriptors[0].id,
+        documentId: mockDocument.documentId,
+        updatedDocument: {
+          id: mockDocument.documentId,
+          name: mockDocument.fileName,
+          contentType: mockDocument.contentType,
+          prettyName: mockUpdateDocumentSeed.prettyName,
+          path: mockDocument.filePath,
+          checksum: mockDocument.checksum,
+          uploadDate: refDate,
+        },
+        serverUrls: mockEservice.descriptors[0].serverUrls,
+      });
+    });
+
+    it("returns an error if the eservice doesn't contains the descriptor", async () => {
+      const descriptorId = "descriptor-not-present-id";
+      await expect(() =>
+        updateDocumentLogic({
+          eServiceId: mockEservice.id,
+          descriptorId,
+          documentId: mockDocument.documentId,
+          apiEServiceDescriptorDocumentUpdateSeed: mockUpdateDocumentSeed,
+          authData,
+          eService: addMetadata(mockEservice),
+          getDocument: () => Promise.resolve(undefined),
+        })
+      ).rejects.toThrowError(
+        eServiceDescriptorNotFound(mockEservice.id, descriptorId)
+      );
+    });
+
+    it("returns an error if the eservice doesn't contains the document", async () => {
+      const documentId = "document-not-present-id";
+      await expect(() =>
+        updateDocumentLogic({
+          eServiceId: mockEservice.id,
+          descriptorId: mockEservice.descriptors[0].id,
+          documentId,
+          apiEServiceDescriptorDocumentUpdateSeed: mockUpdateDocumentSeed,
+          authData,
+          eService: addMetadata(mockEservice),
+          getDocument: () => Promise.resolve(undefined),
+        })
+      ).rejects.toThrowError(
+        eServiceDocumentNotFound(
+          mockEservice.id,
+          mockEservice.descriptors[0].id,
+          documentId
+        )
+      );
+    });
+
+    it("returns an error if the authenticated organization is not the producer", async () => {
+      await expect(() =>
+        updateDocumentLogic({
+          eServiceId: mockEservice.id,
+          descriptorId: mockEservice.descriptors[0].id,
+          documentId: mockDocument.documentId,
+          apiEServiceDescriptorDocumentUpdateSeed: mockUpdateDocumentSeed,
+          authData: {
+            ...authData,
+            organizationId: "other-org-id",
+          },
+          eService: addMetadata({
+            ...mockEservice,
+            producerId: "some-org-id",
+          }),
+          getDocument: () => Promise.resolve(undefined),
+        })
+      ).rejects.toThrowError(operationForbidden);
+    });
+
+    it("returns an error when the service does not exist", async () => {
+      const eServiceId = "not-existing-id";
+      await expect(() =>
+        updateDocumentLogic({
+          eServiceId,
+          descriptorId: mockEservice.descriptors[0].id,
+          documentId: mockDocument.documentId,
+          apiEServiceDescriptorDocumentUpdateSeed: mockUpdateDocumentSeed,
+          authData: {
+            ...authData,
+            organizationId: "organizationId",
+          },
+          eService: undefined,
+          getDocument: () => Promise.resolve(undefined),
         })
       ).rejects.toThrowError(eServiceNotFound(eServiceId));
     });
