@@ -16,6 +16,11 @@ import {
   eServiceDocumentNotFound,
   eServiceNotFound,
 } from "../model/domain/errors.js";
+import {
+  ApiAgreementState,
+  ApiEServiceDescriptorState,
+  Consumer,
+} from "../model/domain/models.js";
 
 const eservicesRouter = (
   ctx: ZodiosContext
@@ -132,27 +137,48 @@ const eservicesRouter = (
           limit
         );
 
+        // TODO : fix returnn types and remove this filtering
+        const validConsumers = consumers.results.reduce(
+          (
+            acc: Array<{
+              descriptorVersion: number;
+              descriptorState: ApiEServiceDescriptorState;
+              agreementState: ApiAgreementState;
+              consumerName: string;
+              consumerExternalId: string;
+            }>,
+            c: Consumer
+          ) => {
+            if (
+              c.descriptorVersion !== undefined &&
+              c.consumerName !== undefined &&
+              c.consumerExternalId !== undefined
+            ) {
+              return [
+                ...acc,
+                {
+                  descriptorVersion: parseInt(c.descriptorVersion, 10),
+                  descriptorState: descriptorStateToApiEServiceDescriptorState(
+                    c.descriptorState
+                  ),
+                  agreementState: agreementStateToApiAgreementState(
+                    c.agreementState
+                  ),
+                  consumerName: c.consumerName,
+                  consumerExternalId: c.consumerExternalId,
+                },
+              ];
+            }
+
+            return acc;
+          },
+          []
+        );
+
         return res
           .status(200)
           .json({
-            results: consumers.results
-              .filter(
-                (c) =>
-                  c.descriptorVersion !== undefined &&
-                  c.consumerName !== undefined &&
-                  c.consumerExternalId !== undefined
-              )
-              .map((c) => ({
-                descriptorVersion: parseInt(c.descriptorVersion!!, 10),
-                descriptorState: descriptorStateToApiEServiceDescriptorState(
-                  c.descriptorState
-                ),
-                agreementState: agreementStateToApiAgreementState(
-                  c.agreementState
-                ),
-                consumerName: c.consumerName!!,
-                consumerExternalId: c.consumerExternalId!!,
-              })),
+            results: validConsumers,
             totalCount: consumers.totalCount,
           })
           .end();
