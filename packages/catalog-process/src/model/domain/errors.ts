@@ -88,6 +88,15 @@ export class CatalogProcessError extends Error {
   }
 }
 
+export function eServiceDuplicate(
+  eServiceNameSeed: string
+): CatalogProcessError {
+  return new CatalogProcessError(
+    `Error during EService creation with name ${eServiceNameSeed}`,
+    ErrorTypes.DuplicateEserviceName
+  );
+}
+
 export function eServiceNotFound(eServiceId: string): CatalogProcessError {
   return new CatalogProcessError(
     `EService ${eServiceId} not found`,

@@ -23,12 +23,13 @@ import {
   notValidDescriptor,
   operationForbidden,
   eServiceDocumentNotFound,
+  eServiceDuplicate,
 } from "../model/domain/errors.js";
 import {
   EServiceDescriptorSeed,
+  ListResult,
   UpdateEServiceDescriptorSeed,
   WithMetadata,
-  convertToClientEServiceSeed,
 } from "../model/domain/models.js";
 import {
   ApiEServiceDescriptorDocumentSeed,
@@ -184,43 +185,24 @@ export const catalogService = {
     apiEServicesSeed: ApiEServiceSeed,
     authData: AuthData
   ): Promise<string> {
-    const eServiceSeed = convertToClientEServiceSeed(
-      apiEServicesSeed,
-      authData.organizationId
+    return eventRepository.createEvent(
+      createEserviceLogic({
+        eServices: await readModelService.getEServices(
+          authData,
+          {
+            eservicesIds: [],
+            producersIds: [authData.organizationId],
+            states: [],
+            agreementStates: [],
+            name: { value: apiEServicesSeed.name, exactMatch: true },
+          },
+          0,
+          1
+        ),
+        apiEServicesSeed,
+        authData,
+      })
     );
-
-    const eservice = await readModelService.getEServices(
-      authData,
-      {
-        eservicesIds: [],
-        producersIds: [eServiceSeed.producerId],
-        states: [],
-        agreementStates: [],
-        name: { value: eServiceSeed.name, exactMatch: true },
-      },
-      0,
-      1
-    );
-
-    if (eservice.results.length > 0) {
-      throw new CatalogProcessError(
-        `Error during EService creation with name ${eServiceSeed.name}`,
-        ErrorTypes.DuplicateEserviceName
-      );
-    }
-
-    const newEService: EService = {
-      id: uuidv4(),
-      producerId: eServiceSeed.producerId,
-      name: eServiceSeed.name,
-      description: eServiceSeed.description,
-      technology: apiTechnologyToTechnology(eServiceSeed.technology),
-      attributes: undefined,
-      descriptors: [],
-      createdAt: new Date(),
-    };
-
-    return eventRepository.createEvent(toCreateEventEServiceAdded(newEService));
   },
   async updateEService(
     eServiceId: string,
@@ -794,6 +776,33 @@ export const catalogService = {
     await authorizationManagementServiceMock.updateStateOnClients();
   },
 };
+
+export function createEserviceLogic({
+  eServices,
+  apiEServicesSeed,
+  authData,
+}: {
+  eServices: ListResult<EService>;
+  apiEServicesSeed: ApiEServiceSeed;
+  authData: AuthData;
+}): CreateEvent {
+  if (eServices.results.length > 0) {
+    throw eServiceDuplicate(apiEServicesSeed.name);
+  }
+
+  const newEService: EService = {
+    id: uuidv4(),
+    producerId: authData.organizationId,
+    name: apiEServicesSeed.name,
+    description: apiEServicesSeed.description,
+    technology: apiTechnologyToTechnology(apiEServicesSeed.technology),
+    attributes: undefined,
+    descriptors: [],
+    createdAt: new Date(),
+  };
+
+  return toCreateEventEServiceAdded(newEService);
+}
 
 export function updateEserviceLogic({
   eService,

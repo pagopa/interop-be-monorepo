@@ -8,10 +8,7 @@ import {
   PersistentAgreementState,
 } from "pagopa-interop-models";
 import * as api from "../generated/api.js";
-import {
-  ApiEServiceDescriptorDocumentSeed,
-  ApiEServiceSeed,
-} from "../types.js";
+import { ApiEServiceDescriptorDocumentSeed } from "../types.js";
 
 export type ListResult<T> = { results: T[]; totalCount: number };
 export const emptyListResult = { results: [], totalCount: 0 };
@@ -71,14 +68,6 @@ export const consumer = z.object({
 });
 
 export type Consumer = z.infer<typeof consumer>;
-
-export const convertToClientEServiceSeed = (
-  seed: ApiEServiceSeed,
-  producerId: string
-): EServiceSeed => ({
-  ...seed,
-  producerId,
-});
 
 export const convertToDocumentEServiceEventData = (
   eServiceId: string,

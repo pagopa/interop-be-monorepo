@@ -1,9 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { generateMock } from "@anatine/zod-mock";
 import { Descriptor, EService } from "pagopa-interop-models";
-import { updateEserviceLogic } from "../src/services/catalogService.js";
+import {
+  createEserviceLogic,
+  updateEserviceLogic,
+} from "../src/services/catalogService.js";
 import {
   eServiceCannotBeUpdated,
+  eServiceDuplicate,
   operationForbidden,
 } from "../src/model/domain/errors.js";
 import * as api from "../src/model/generated/api.js";
@@ -26,6 +30,44 @@ const addMetadata = (eService: EService): WithMetadata<EService> => ({
 });
 
 describe("CatalogService", () => {
+  describe("createEService", () => {
+    it("creates the eservice", async () => {
+      const eService = {
+        ...mockEservice,
+        attributes: undefined,
+        descriptors: [],
+      };
+
+      const event = createEserviceLogic({
+        eServices: { results: [], totalCount: 0 },
+        apiEServicesSeed: mockEserviceSeed,
+        authData,
+      });
+      expect(event.event.type).toBe("EServiceAdded");
+      expect(event.event.data).toMatchObject({
+        eService: {
+          ...eService,
+          id: event.streamId,
+          createdAt: (event.event.data as { eService: { createdAt: Date } })
+            .eService.createdAt,
+          description: mockEserviceSeed.description,
+          name: mockEserviceSeed.name,
+          technology: apiTechnologyToTechnology(mockEserviceSeed.technology),
+          producerId: authData.organizationId,
+        },
+      });
+    });
+
+    it("returns an error if the eservice list is not empty", async () => {
+      expect(() =>
+        createEserviceLogic({
+          eServices: { results: [mockEservice], totalCount: 1 },
+          apiEServicesSeed: mockEserviceSeed,
+          authData,
+        })
+      ).toThrowError(eServiceDuplicate(mockEserviceSeed.name));
+    });
+  });
   describe("updateEService", () => {
     it("updates the eservice", async () => {
       const eService = { ...mockEservice, descriptors: [] };
