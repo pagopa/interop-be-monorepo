@@ -135,17 +135,24 @@ const eservicesRouter = (
         return res
           .status(200)
           .json({
-            results: consumers.results.map((c) => ({
-              descriptorVersion: parseInt(c.descriptorVersion, 10),
-              descriptorState: descriptorStateToApiEServiceDescriptorState(
-                c.descriptorState
-              ),
-              agreementState: agreementStateToApiAgreementState(
-                c.agreementState
-              ),
-              consumerName: c.consumerName,
-              consumerExternalId: c.consumerExternalId,
-            })),
+            results: consumers.results
+              .filter(
+                (c) =>
+                  c.descriptorVersion !== undefined &&
+                  c.consumerName !== undefined &&
+                  c.consumerExternalId !== undefined
+              )
+              .map((c) => ({
+                descriptorVersion: parseInt(c.descriptorVersion!!, 10),
+                descriptorState: descriptorStateToApiEServiceDescriptorState(
+                  c.descriptorState
+                ),
+                agreementState: agreementStateToApiAgreementState(
+                  c.agreementState
+                ),
+                consumerName: c.consumerName!!,
+                consumerExternalId: c.consumerExternalId!!,
+              })),
             totalCount: consumers.totalCount,
           })
           .end();
