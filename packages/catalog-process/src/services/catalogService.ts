@@ -342,57 +342,15 @@ export const catalogService = {
     authData: AuthData
   ): Promise<void> {
     const eService = await readModelService.getEServiceById(eServiceId);
-    if (eService === undefined) {
-      throw eServiceNotFound(eServiceId);
-    }
-
-    if (eService.data.producerId !== authData.organizationId) {
-      throw operationForbidden;
-    }
-
-    const descriptor = eService.data.descriptors.find(
-      (d: Descriptor) => d.id === descriptorId
-    );
-    if (descriptor === undefined) {
-      throw new CatalogProcessError(
-        `Descriptor with id ${descriptorId} of EService ${eServiceId} not found`,
-        ErrorTypes.EServiceDescriptorNotFound
-      );
-    }
-
-    if (descriptor.state === descriptorState.draft) {
-      throw notValidDescriptor(descriptorId, descriptor.state.toString());
-    }
-
-    const updatedDescriptor: Descriptor = {
-      ...descriptor,
-      description: seed.description,
-      audience: seed.audience,
-      voucherLifespan: seed.voucherLifespan,
-      dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
-      state: "Draft",
-      dailyCallsTotal: seed.dailyCallsTotal,
-      agreementApprovalPolicy:
-        apiAgreementApprovalPolicyToAgreementApprovalPolicy(
-          seed.agreementApprovalPolicy
-        ),
-    };
-
-    const filteredDescriptor = eService.data.descriptors.filter(
-      (d: Descriptor) => d.id !== descriptorId
-    );
-
-    const updatedEService: EService = {
-      ...eService.data,
-      descriptors: [...filteredDescriptor, updatedDescriptor],
-    };
 
     await eventRepository.createEvent(
-      toCreateEventEServiceUpdated(
+      updateDescriptorLogic({
         eServiceId,
-        eService.metadata.version,
-        updatedEService
-      )
+        descriptorId,
+        seed,
+        authData,
+        eService,
+      })
     );
   },
 
@@ -954,4 +912,61 @@ export async function deleteDraftDescriptorLogic({
   });
 
   return toCreateEventEServiceWithDescriptorsDeleted(eService, descriptorId);
+}
+
+export function updateDescriptorLogic({
+  eServiceId,
+  descriptorId,
+  seed,
+  authData,
+  eService,
+}: {
+  eServiceId: string;
+  descriptorId: string;
+  seed: UpdateEServiceDescriptorSeed;
+  authData: AuthData;
+  eService: WithMetadata<EService> | undefined;
+}): CreateEvent {
+  assertEServiceExist(eServiceId, eService);
+  assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+
+  const descriptor = eService.data.descriptors.find(
+    (d: Descriptor) => d.id === descriptorId
+  );
+  if (descriptor === undefined) {
+    throw eServiceDescriptorNotFound(eServiceId, descriptorId);
+  }
+
+  if (descriptor.state !== descriptorState.draft) {
+    throw notValidDescriptor(descriptorId, descriptor.state.toString());
+  }
+
+  const updatedDescriptor: Descriptor = {
+    ...descriptor,
+    description: seed.description,
+    audience: seed.audience,
+    voucherLifespan: seed.voucherLifespan,
+    dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
+    state: "Draft",
+    dailyCallsTotal: seed.dailyCallsTotal,
+    agreementApprovalPolicy:
+      apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+        seed.agreementApprovalPolicy
+      ),
+  };
+
+  const filteredDescriptor = eService.data.descriptors.filter(
+    (d: Descriptor) => d.id !== descriptorId
+  );
+
+  const updatedEService: EService = {
+    ...eService.data,
+    descriptors: [...filteredDescriptor, updatedDescriptor],
+  };
+
+  return toCreateEventEServiceUpdated(
+    eServiceId,
+    eService.metadata.version,
+    updatedEService
+  );
 }
