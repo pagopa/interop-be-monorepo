@@ -3,11 +3,14 @@ import { generateMock } from "@anatine/zod-mock";
 import { Descriptor, EService } from "pagopa-interop-models";
 import {
   createEserviceLogic,
+  deleteEserviceLogic,
   updateEserviceLogic,
 } from "../src/services/catalogService.js";
 import {
+  eServiceCannotBeDeleted,
   eServiceCannotBeUpdated,
   eServiceDuplicate,
+  eServiceNotFound,
   operationForbidden,
 } from "../src/model/domain/errors.js";
 import * as api from "../src/model/generated/api.js";
@@ -121,18 +124,76 @@ describe("CatalogService", () => {
       ).toThrowError(operationForbidden);
     });
 
-    // it("returns an error when the service does not exist", async () => {
-    //   expect(() =>
-    //     updateEserviceLogic({
-    //       eService: undefined,
-    //       eServiceId: "not-existing-id",
-    //       eserviceSeed: mockEservice,
-    //       authData: {
-    //         ...authData,
-    //         organizationId: "organizationId",
-    //       },
-    //     })
-    //   ).toThrowError(eServiceNotFound("not-existing-id"));
-    // });
+    it("returns an error when the service does not exist", async () => {
+      expect(() =>
+        updateEserviceLogic({
+          eService: undefined,
+          eServiceId: "not-existing-id",
+          eServiceSeed: mockEserviceSeed,
+          authData: {
+            ...authData,
+            organizationId: "organizationId",
+          },
+        })
+      ).toThrowError(eServiceNotFound("not-existing-id"));
+    });
+  });
+  describe("deleteEService", () => {
+    it("delete the eservice", async () => {
+      const event = deleteEserviceLogic({
+        eServiceId: mockEservice.id,
+        authData,
+        eService: {
+          data: { ...mockEservice, descriptors: [] },
+          metadata: { version: 0 },
+        },
+      });
+      expect(event.event.type).toBe("EServiceDeleted");
+      expect(event.event.data).toMatchObject({
+        eServiceId: mockEservice.id,
+      });
+    });
+
+    it("returns an error if the eservice contains descriptors", async () => {
+      expect(() =>
+        deleteEserviceLogic({
+          eServiceId: mockEservice.id,
+          authData,
+          eService: addMetadata({
+            ...mockEservice,
+            descriptors: [{ ...mockDescriptor, state: "Archived" }],
+          }),
+        })
+      ).toThrowError(eServiceCannotBeDeleted(mockEservice.id));
+    });
+
+    it("returns an error if the authenticated organization is not the producer", async () => {
+      expect(() =>
+        deleteEserviceLogic({
+          eServiceId: mockEservice.id,
+          authData: {
+            ...authData,
+            organizationId: "other-org-id",
+          },
+          eService: addMetadata({
+            ...mockEservice,
+            producerId: "some-org-id",
+          }),
+        })
+      ).toThrowError(operationForbidden);
+    });
+
+    it("returns an error when the service does not exist", async () => {
+      expect(() =>
+        deleteEserviceLogic({
+          eServiceId: "not-existing-id",
+          authData: {
+            ...authData,
+            organizationId: "organizationId",
+          },
+          eService: undefined,
+        })
+      ).toThrowError(eServiceNotFound("not-existing-id"));
+    });
   });
 });
