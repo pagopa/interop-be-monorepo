@@ -323,40 +323,15 @@ export const catalogService = {
       `Deleting draft Descriptor ${descriptorId} of EService ${eServiceId}`
     );
 
-    const eService = await retrieveEService(eServiceId);
-    assertRequesterAllowed(eService.data.producerId, authData.organizationId);
-
-    const descriptor = eService.data.descriptors.find(
-      (d: Descriptor) =>
-        d.id === descriptorId && d.state === descriptorState.draft
-    );
-
-    if (descriptor === undefined) {
-      throw new CatalogProcessError(
-        `Descriptor with id ${descriptorId} of EService ${eServiceId} not found`,
-        ErrorTypes.EServiceDescriptorNotFound
-      );
-    }
-
-    const interfacePath = descriptor.docs.find(
-      (doc: Document) => doc.id === descriptorId
-    );
-    if (interfacePath !== undefined) {
-      await fileManager.deleteFile(interfacePath.path);
-    }
-
-    const deleteDescriptorDocs = descriptor.docs.map((doc: Document) =>
-      fileManager.deleteFile(doc.path)
-    );
-
-    await Promise.all(deleteDescriptorDocs).catch((error) => {
-      logger.error(
-        `Error deleting documents for descriptor ${descriptorId} : ${error}`
-      );
-    });
-
+    const eService = await readModelService.getEServiceById(eServiceId);
     await eventRepository.createEvent(
-      toCreateEventEServiceWithDescriptorsDeleted(eService, descriptorId)
+      await deleteDraftDescriptorLogic({
+        eServiceId,
+        descriptorId,
+        authData,
+        deleteFile: fileManager.deleteFile,
+        eService,
+      })
     );
   },
 
@@ -934,4 +909,49 @@ export function createDescriptorLogic({
     eService.metadata.version,
     newDescriptor
   );
+}
+
+export async function deleteDraftDescriptorLogic({
+  eServiceId,
+  descriptorId,
+  authData,
+  deleteFile,
+  eService,
+}: {
+  eServiceId: string;
+  descriptorId: string;
+  authData: AuthData;
+  deleteFile: (path: string) => Promise<void>;
+  eService: WithMetadata<EService> | undefined;
+}): Promise<CreateEvent> {
+  assertEServiceExist(eServiceId, eService);
+  assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+
+  const descriptor = eService.data.descriptors.find(
+    (d: Descriptor) =>
+      d.id === descriptorId && d.state === descriptorState.draft
+  );
+
+  if (descriptor === undefined) {
+    throw eServiceDescriptorNotFound(eServiceId, descriptorId);
+  }
+
+  const interfacePath = descriptor.docs.find(
+    (doc: Document) => doc.id === descriptorId
+  );
+  if (interfacePath !== undefined) {
+    await deleteFile(interfacePath.path);
+  }
+
+  const deleteDescriptorDocs = descriptor.docs.map((doc: Document) =>
+    deleteFile(doc.path)
+  );
+
+  await Promise.all(deleteDescriptorDocs).catch((error) => {
+    logger.error(
+      `Error deleting documents for descriptor ${descriptorId} : ${error}`
+    );
+  });
+
+  return toCreateEventEServiceWithDescriptorsDeleted(eService, descriptorId);
 }
