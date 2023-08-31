@@ -382,28 +382,15 @@ export const catalogService = {
       `Suspending Descriptor ${descriptorId} of EService ${eServiceId}`
     );
 
-    const eService = await retrieveEService(eServiceId);
-    assertRequesterAllowed(eService.data.producerId, authData.organizationId);
-
-    const descriptor = retrieveDescriptor(descriptorId, eService);
-    if (
-      descriptor.state !== descriptorState.deprecated &&
-      descriptor.state !== descriptorState.published
-    ) {
-      throw notValidDescriptor(descriptorId, descriptor.state.toString());
-    }
-
-    const updatedDescriptor = updateDescriptorState(
-      descriptor,
-      descriptorState.suspended
-    );
+    const eService = await readModelService.getEServiceById(eServiceId);
 
     await eventRepository.createEvent(
-      toCreateEventEServiceDescriptorUpdated(
+      suspendDescriptorLogic({
         eServiceId,
-        eService.metadata.version,
-        updatedDescriptor
-      )
+        descriptorId,
+        authData,
+        eService,
+      })
     );
 
     await authorizationManagementServiceMock.updateStateOnClients();
@@ -985,6 +972,40 @@ export async function publishDescriptorLogic({
   if (currentActiveDescriptor !== undefined) {
     await deprecateDescriptor(currentActiveDescriptor, eService);
   }
+
+  return toCreateEventEServiceDescriptorUpdated(
+    eServiceId,
+    eService.metadata.version,
+    updatedDescriptor
+  );
+}
+
+export function suspendDescriptorLogic({
+  eServiceId,
+  descriptorId,
+  authData,
+  eService,
+}: {
+  eServiceId: string;
+  descriptorId: string;
+  authData: AuthData;
+  eService: WithMetadata<EService> | undefined;
+}): CreateEvent {
+  assertEServiceExist(eServiceId, eService);
+  assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+
+  const descriptor = retrieveDescriptor(descriptorId, eService);
+  if (
+    descriptor.state !== descriptorState.deprecated &&
+    descriptor.state !== descriptorState.published
+  ) {
+    throw notValidDescriptor(descriptorId, descriptor.state.toString());
+  }
+
+  const updatedDescriptor = updateDescriptorState(
+    descriptor,
+    descriptorState.suspended
+  );
 
   return toCreateEventEServiceDescriptorUpdated(
     eServiceId,
