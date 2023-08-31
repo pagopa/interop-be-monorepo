@@ -1,10 +1,10 @@
 name: "Build & Deploy DEV"
 
-on: 
+on:
   push:
     branches:
       # - 'main'
-      - 'docker-services-ci'
+      - "docker-services-ci"
   #   paths:
   #     - 'packages/**'
   #     - '!packages/*/scripts/**'
