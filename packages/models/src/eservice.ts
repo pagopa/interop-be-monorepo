@@ -42,7 +42,7 @@ export const Attribute = z.union([
   }),
   z.object({
     id: z.undefined(),
-    ids: z.array(AttributeValue).optional(),
+    ids: z.array(AttributeValue),
   }),
 ]);
 
