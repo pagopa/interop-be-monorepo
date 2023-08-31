@@ -7,6 +7,7 @@ import {
 } from "../src/model/domain/errors.js";
 import { EService } from "../src/model/domain/models.js";
 import { readModelGateway } from "../src/services/ReadModelGateway.js";
+import { eventRepository } from "../src/repositories/events.js";
 
 const mockEservice: EService = {
   id: "5b041dd3-6b06-4467-9c3d-1ef11acedb88",
@@ -20,24 +21,61 @@ const mockEservice: EService = {
 
 describe("CatalogService", () => {
   describe("updateEService", () => {
+    it("updates the eservice", async () => {
+      readModelGateway.getEServiceById = vi
+        .fn()
+        .mockReturnValueOnce(mockEservice);
+
+      eventRepository.createEvent = vi
+        .fn()
+        .mockReturnValueOnce(mockEservice.id);
+
+      await expect(
+        catalogService.updateEService(mockEservice.id, mockEservice, {
+          organizationId: mockEservice.producerId,
+        })
+      ).resolves.toBeUndefined();
+      expect(eventRepository.createEvent).toHaveBeenCalledOnce();
+      expect(vi.mocked(eventRepository.createEvent).mock.lastCall)
+        .toMatchInlineSnapshot(`
+          [
+            {
+              "data": {
+                "description": "description",
+                "descriptors": [],
+                "id": "5b041dd3-6b06-4467-9c3d-1ef11acedb88",
+                "name": "name",
+                "producerId": "producerId",
+                "technology": "REST",
+                "version": 1,
+              },
+              "streamId": "5b041dd3-6b06-4467-9c3d-1ef11acedb88",
+              "type": "EServiceUpdated",
+              "version": 1,
+            },
+          ]
+        `);
+    });
+
     it("returns an error if the eservice contains valid descriptors", async () => {
       readModelGateway.getEServiceById = vi.fn().mockReturnValueOnce({
         ...mockEservice,
         descriptors: [{ state: "ARCHIVED" }],
       });
 
-      await expect(() =>
+      await expect(
         catalogService.updateEService(mockEservice.id, mockEservice, {
           organizationId: mockEservice.producerId,
         })
       ).rejects.toThrowError(eServiceCannotBeUpdated(mockEservice.id));
     });
+
     it("returns an error if the authenticated organization is not the producer", async () => {
       readModelGateway.getEServiceById = vi
         .fn()
         .mockReturnValueOnce({ mockEservice, producerId: "some-org-id" });
 
-      await expect(() =>
+      await expect(
         catalogService.updateEService(mockEservice.id, mockEservice, {
           organizationId: "other-org-id",
         })
@@ -47,7 +85,7 @@ describe("CatalogService", () => {
     it("returns an error when the service does not exist", async () => {
       readModelGateway.getEServiceById = vi.fn().mockReturnValueOnce(undefined);
 
-      await expect(() =>
+      await expect(
         catalogService.updateEService("not-existing-id", mockEservice, {
           organizationId: "organizationId",
         })
