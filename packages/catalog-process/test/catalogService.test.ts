@@ -16,6 +16,7 @@ import {
   updateDocumentLogic,
   updateEserviceLogic,
   uploadDocumentLogic,
+  publishDescriptorLogic,
 } from "../src/services/catalogService.js";
 import {
   draftDescriptorAlreadyExists,
@@ -604,7 +605,7 @@ describe("CatalogService", () => {
     });
   });
   describe("deleteDraftDescriptor", () => {
-    it("update the document", async () => {
+    it("update the descriptor", async () => {
       const eService: EService = {
         ...mockEservice,
         descriptors: [{ ...mockDescriptor, state: "Draft" }],
@@ -662,7 +663,6 @@ describe("CatalogService", () => {
         deleteDraftDescriptorLogic({
           eServiceId,
           descriptorId: mockEservice.descriptors[0].id,
-
           authData: {
             ...authData,
             organizationId: "organizationId",
@@ -780,6 +780,100 @@ describe("CatalogService", () => {
           eService: undefined,
         })
       ).toThrowError(eServiceNotFound(eServiceId));
+    });
+  });
+  describe("publishDescriptor", () => {
+    it("publish the descriptor", async () => {
+      const eService: EService = {
+        ...mockEservice,
+        descriptors: [{ ...mockDescriptor, state: "Draft" }],
+      };
+      const event = await publishDescriptorLogic({
+        eServiceId: eService.id,
+        descriptorId: eService.descriptors[0].id,
+        authData,
+        deprecateDescriptor: () => Promise.resolve(),
+        eService: addMetadata(eService),
+      });
+      expect(event.event.type).toBe("EServiceDescriptorUpdated");
+      expect(event.event.data).toMatchObject({
+        eServiceId: eService.id,
+        eServiceDescriptor: {
+          ...mockDescriptor,
+          publishedAt: (
+            event.event.data as { eServiceDescriptor: { publishedAt: Date } }
+          ).eServiceDescriptor.publishedAt,
+          state: "Published",
+        },
+      });
+    });
+
+    it("returns an error if the eservice doesn't contains the descriptor", async () => {
+      const descriptorId = "descriptor-not-present-id";
+      await expect(() =>
+        publishDescriptorLogic({
+          eServiceId: mockEservice.id,
+          descriptorId,
+          authData,
+          deprecateDescriptor: () => Promise.resolve(),
+          eService: addMetadata(mockEservice),
+        })
+      ).rejects.toThrowError(
+        eServiceDescriptorNotFound(mockEservice.id, descriptorId)
+      );
+    });
+
+    it("returns an error if the eservice target descriptor is not in a Draft state", async () => {
+      const descriptor: Descriptor = { ...mockDescriptor, state: "Published" };
+      const eService: EService = {
+        ...mockEservice,
+        descriptors: [descriptor],
+      };
+      await expect(() =>
+        publishDescriptorLogic({
+          eServiceId: eService.id,
+          descriptorId: eService.descriptors[0].id,
+          authData,
+          deprecateDescriptor: () => Promise.resolve(),
+          eService: addMetadata(eService),
+        })
+      ).rejects.toThrowError(
+        notValidDescriptor(eService.descriptors[0].id, "Published")
+      );
+    });
+
+    it("returns an error if the authenticated organization is not the producer", async () => {
+      await expect(() =>
+        publishDescriptorLogic({
+          eServiceId: mockEservice.id,
+          descriptorId: mockEservice.descriptors[0].id,
+          authData: {
+            ...authData,
+            organizationId: "other-org-id",
+          },
+          deprecateDescriptor: () => Promise.resolve(),
+          eService: addMetadata({
+            ...mockEservice,
+            producerId: "some-org-id",
+          }),
+        })
+      ).rejects.toThrowError(operationForbidden);
+    });
+
+    it("returns an error when the service does not exist", async () => {
+      const eServiceId = "not-existing-id";
+      await expect(() =>
+        publishDescriptorLogic({
+          eServiceId,
+          descriptorId: mockEservice.descriptors[0].id,
+          authData: {
+            ...authData,
+            organizationId: "organizationId",
+          },
+          deprecateDescriptor: () => Promise.resolve(),
+          eService: undefined,
+        })
+      ).rejects.toThrowError(eServiceNotFound(eServiceId));
     });
   });
 });
