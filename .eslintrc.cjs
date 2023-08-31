@@ -17,5 +17,9 @@ module.exports = {
     "max-lines-per-function": "off",
     "@typescript-eslint/naming-convention": "off",
   },
-  ignorePatterns: [".eslintrc.cjs", "**/src/model/generated/*.ts"],
+  ignorePatterns: [
+    ".eslintrc.cjs",
+    "vitest.config.ts",
+    "**/src/model/generated/*.ts",
+  ],
 };
