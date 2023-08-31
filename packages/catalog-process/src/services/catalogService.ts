@@ -284,45 +284,15 @@ export const catalogService = {
   ): Promise<void> {
     const eService = await readModelService.getEServiceById(eServiceId);
 
-    if (eService === undefined) {
-      throw eServiceNotFound(eServiceId);
-    }
-
-    if (eService.data.producerId !== authData.organizationId) {
-      throw operationForbidden;
-    }
-
-    const descriptor = eService.data.descriptors.find(
-      (d: Descriptor) => d.id === descriptorId
-    );
-    if (descriptor === undefined) {
-      throw new CatalogProcessError(
-        `Descriptor ${descriptorId} for EService ${eServiceId} not found`,
-        ErrorTypes.EServiceDescriptorNotFound
-      );
-    }
-
-    const document = await readModelService.getEServiceDescriptorDocumentById(
-      documentId
-    );
-
-    if (document === undefined) {
-      throw eServiceDocumentNotFound(eServiceId, descriptorId, documentId);
-    }
-
-    const updatedDocument = {
-      ...document,
-      prettyName: apiEServiceDescriptorDocumentUpdateSeed.prettyName,
-    };
-
     await eventRepository.createEvent(
-      toCreateEventEServiceDocumentUpdated({
-        streamId: eServiceId,
-        version: eService.metadata.version,
+      await updateDocumentLogic({
+        eServiceId,
         descriptorId,
         documentId,
-        updatedDocument,
-        serverUrls: descriptor.serverUrls,
+        apiEServiceDescriptorDocumentUpdateSeed,
+        authData,
+        eService,
+        getDocument: readModelService.getEServiceDescriptorDocumentById,
       })
     );
   },
@@ -897,4 +867,52 @@ export async function deleteDocumentLogic({
     descriptorId,
     documentId
   );
+}
+
+export async function updateDocumentLogic({
+  eServiceId,
+  descriptorId,
+  documentId,
+  apiEServiceDescriptorDocumentUpdateSeed,
+  authData,
+  eService,
+  getDocument,
+}: {
+  eServiceId: string;
+  descriptorId: string;
+  documentId: string;
+  apiEServiceDescriptorDocumentUpdateSeed: ApiEServiceDescriptorDocumentUpdateSeed;
+  authData: AuthData;
+  eService: WithMetadata<EService> | undefined;
+  getDocument: (documentId: string) => Promise<Document | undefined>;
+}): Promise<CreateEvent> {
+  assertEServiceExist(eServiceId, eService);
+  assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+
+  const descriptor = eService.data.descriptors.find(
+    (d: Descriptor) => d.id === descriptorId
+  );
+  if (descriptor === undefined) {
+    throw eServiceDescriptorNotFound(eServiceId, descriptorId);
+  }
+
+  const document = await getDocument(documentId);
+
+  if (document === undefined) {
+    throw eServiceDocumentNotFound(eServiceId, descriptorId, documentId);
+  }
+
+  const updatedDocument = {
+    ...document,
+    prettyName: apiEServiceDescriptorDocumentUpdateSeed.prettyName,
+  };
+
+  return toCreateEventEServiceDocumentUpdated({
+    streamId: eServiceId,
+    version: eService.metadata.version,
+    descriptorId,
+    documentId,
+    updatedDocument,
+    serverUrls: descriptor.serverUrls,
+  });
 }
