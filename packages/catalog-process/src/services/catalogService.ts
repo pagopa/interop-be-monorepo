@@ -35,7 +35,10 @@ import {
   ApiEServiceDescriptorDocumentUpdateSeed,
   ApiEServiceSeed,
 } from "../model/types.js";
-import { eventRepository } from "../repositories/EventRepository.js";
+import {
+  CreateEvent,
+  eventRepository,
+} from "../repositories/EventRepository.js";
 import {
   toCreateEventClonedEServiceAdded,
   toCreateEventEServiceAdded,
@@ -66,7 +69,7 @@ const assertRequesterAllowed = (
   }
 };
 
-const retrieveEService = async (
+export const retrieveEService = async (
   eServiceId: string
 ): Promise<WithMetadata<EService>> => {
   const eService = await readModelService.getEServiceById(eServiceId);
@@ -225,32 +228,9 @@ export const catalogService = {
     authData: AuthData
   ): Promise<void> {
     const eService = await retrieveEService(eServiceId);
-    assertRequesterAllowed(eService.data.producerId, authData.organizationId);
-
-    if (
-      !(
-        eService.data.descriptors.length === 0 ||
-        (eService.data.descriptors.length === 1 &&
-          eService.data.descriptors[0].state === descriptorState.draft)
-      )
-    ) {
-      throw eServiceCannotBeUpdated(eServiceId);
-    }
-
-    const updatedEService: EService = {
-      ...eService.data,
-      description: eServiceSeed.description,
-      name: eServiceSeed.name,
-      technology: apiTechnologyToTechnology(eServiceSeed.technology),
-      producerId: authData.organizationId,
-    };
 
     await eventRepository.createEvent(
-      toCreateEventEServiceUpdated(
-        eServiceId,
-        eService.metadata.version,
-        updatedEService
-      )
+      updateEserviceLogic({ eService, eServiceId, authData, eServiceSeed })
     );
   },
   async deleteEService(eServiceId: string, authData: AuthData): Promise<void> {
@@ -814,3 +794,41 @@ export const catalogService = {
     await authorizationManagementServiceMock.updateStateOnClients();
   },
 };
+
+export function updateEserviceLogic({
+  eService,
+  eServiceId,
+  authData,
+  eServiceSeed,
+}: {
+  eService: WithMetadata<EService>;
+  eServiceId: string;
+  authData: AuthData;
+  eServiceSeed: ApiEServiceSeed;
+}): CreateEvent {
+  assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+
+  if (
+    !(
+      eService.data.descriptors.length === 0 ||
+      (eService.data.descriptors.length === 1 &&
+        eService.data.descriptors[0].state === descriptorState.draft)
+    )
+  ) {
+    throw eServiceCannotBeUpdated(eServiceId);
+  }
+
+  const updatedEService: EService = {
+    ...eService.data,
+    description: eServiceSeed.description,
+    name: eServiceSeed.name,
+    technology: apiTechnologyToTechnology(eServiceSeed.technology),
+    producerId: authData.organizationId,
+  };
+
+  return toCreateEventEServiceUpdated(
+    eServiceId,
+    eService.metadata.version,
+    updatedEService
+  );
+}
