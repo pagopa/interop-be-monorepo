@@ -17,6 +17,7 @@ import {
   updateEserviceLogic,
   uploadDocumentLogic,
   publishDescriptorLogic,
+  suspendDescriptorLogic,
 } from "../src/services/catalogService.js";
 import {
   draftDescriptorAlreadyExists,
@@ -874,6 +875,124 @@ describe("CatalogService", () => {
           eService: undefined,
         })
       ).rejects.toThrowError(eServiceNotFound(eServiceId));
+    });
+  });
+  describe("suspendDescriptor", () => {
+    it("suspend the descriptor", async () => {
+      const publishedDescriptor: Descriptor = {
+        ...mockDescriptor,
+        state: "Published",
+      };
+      const deprecatedDescriptor: Descriptor = {
+        ...mockDescriptor,
+        state: "Deprecated",
+      };
+      const eService: EService = {
+        ...mockEservice,
+        descriptors: [publishedDescriptor, deprecatedDescriptor],
+      };
+      const event1 = suspendDescriptorLogic({
+        eServiceId: eService.id,
+        descriptorId: eService.descriptors[0].id,
+        authData,
+        eService: addMetadata(eService),
+      });
+      const event2 = suspendDescriptorLogic({
+        eServiceId: eService.id,
+        descriptorId: eService.descriptors[1].id,
+        authData,
+        eService: addMetadata(eService),
+      });
+      expect(event1.event.type).toBe("EServiceDescriptorUpdated");
+      expect(event1.event.data).toMatchObject({
+        eServiceId: eService.id,
+        eServiceDescriptor: {
+          ...publishedDescriptor,
+          state: "Suspended",
+          suspendedAt: (
+            event1.event.data as { eServiceDescriptor: { suspendedAt: Date } }
+          ).eServiceDescriptor.suspendedAt,
+        },
+      });
+      expect(event2.event.type).toBe("EServiceDescriptorUpdated");
+      expect(event2.event.data).toMatchObject({
+        eServiceId: eService.id,
+        eServiceDescriptor: {
+          ...deprecatedDescriptor,
+          state: "Suspended",
+          suspendedAt: (
+            event1.event.data as { eServiceDescriptor: { suspendedAt: Date } }
+          ).eServiceDescriptor.suspendedAt,
+        },
+      });
+    });
+
+    it("returns an error if the eservice doesn't contains the descriptor", async () => {
+      const descriptor: Descriptor = { ...mockDescriptor, state: "Published" };
+      const eService: EService = {
+        ...mockEservice,
+        descriptors: [descriptor],
+      };
+      const descriptorId = "descriptor-not-present-id";
+      expect(() =>
+        suspendDescriptorLogic({
+          eServiceId: eService.id,
+          descriptorId,
+          authData,
+          eService: addMetadata(eService),
+        })
+      ).toThrowError(eServiceDescriptorNotFound(eService.id, descriptorId));
+    });
+
+    it("returns an error if the eservice suspended descriptor is not in a Published or Deprecated state", async () => {
+      const descriptor: Descriptor = {
+        ...mockDescriptor,
+        state: "Draft",
+      };
+      const eService: EService = {
+        ...mockEservice,
+        descriptors: [descriptor],
+      };
+      expect(() =>
+        suspendDescriptorLogic({
+          eServiceId: eService.id,
+          descriptorId: eService.descriptors[0].id,
+          authData,
+          eService: addMetadata(eService),
+        })
+      ).toThrowError(notValidDescriptor(eService.descriptors[0].id, "Draft"));
+    });
+
+    it("returns an error if the authenticated organization is not the producer", async () => {
+      expect(() =>
+        suspendDescriptorLogic({
+          eServiceId: mockEservice.id,
+          descriptorId: mockEservice.descriptors[0].id,
+          authData: {
+            ...authData,
+            organizationId: "other-org-id",
+          },
+          eService: addMetadata({
+            ...mockEservice,
+            producerId: "some-org-id",
+          }),
+        })
+      ).toThrowError(operationForbidden);
+    });
+
+    it("returns an error when the service does not exist", async () => {
+      const eServiceId = "not-existing-id";
+      expect(() =>
+        suspendDescriptorLogic({
+          eServiceId,
+          descriptorId: mockEservice.descriptors[0].id,
+          authData: {
+            ...authData,
+            organizationId: "organizationId",
+          },
+          eService: undefined,
+        })
+      ).toThrowError(eServiceNotFound(eServiceId));
     });
   });
 });
