@@ -10,6 +10,7 @@ import {
   createDescriptorLogic,
   createEserviceLogic,
   deleteDocumentLogic,
+  deleteDraftDescriptorLogic,
   deleteEserviceLogic,
   updateDocumentLogic,
   updateEserviceLogic,
@@ -595,6 +596,76 @@ describe("CatalogService", () => {
           eService: undefined,
         })
       ).toThrowError(eServiceNotFound(eServiceId));
+    });
+  });
+  describe("deleteDraftDescriptor", () => {
+    it("update the document", async () => {
+      const eService: EService = {
+        ...mockEservice,
+        descriptors: [{ ...mockDescriptor, state: "Draft" }],
+      };
+      const event = await deleteDraftDescriptorLogic({
+        eServiceId: eService.id,
+        descriptorId: eService.descriptors[0].id,
+        authData,
+        deleteFile: () => Promise.resolve(),
+        eService: addMetadata(eService),
+      });
+      expect(event.event.type).toBe("EServiceWithDescriptorsDeleted");
+      expect(event.event.data).toMatchObject({
+        eService,
+        descriptorId: eService.descriptors[0].id,
+      });
+    });
+
+    it("returns an error if the eservice doesn't contains the descriptor", async () => {
+      const descriptorId = "descriptor-not-present-id";
+      await expect(() =>
+        deleteDraftDescriptorLogic({
+          eServiceId: mockEservice.id,
+          descriptorId,
+          authData,
+          deleteFile: () => Promise.resolve(),
+          eService: addMetadata(mockEservice),
+        })
+      ).rejects.toThrowError(
+        eServiceDescriptorNotFound(mockEservice.id, descriptorId)
+      );
+    });
+
+    it("returns an error if the authenticated organization is not the producer", async () => {
+      await expect(() =>
+        deleteDraftDescriptorLogic({
+          eServiceId: mockEservice.id,
+          descriptorId: mockEservice.descriptors[0].id,
+          authData: {
+            ...authData,
+            organizationId: "other-org-id",
+          },
+          deleteFile: () => Promise.resolve(),
+          eService: addMetadata({
+            ...mockEservice,
+            producerId: "some-org-id",
+          }),
+        })
+      ).rejects.toThrowError(operationForbidden);
+    });
+
+    it("returns an error when the service does not exist", async () => {
+      const eServiceId = "not-existing-id";
+      await expect(() =>
+        deleteDraftDescriptorLogic({
+          eServiceId,
+          descriptorId: mockEservice.descriptors[0].id,
+
+          authData: {
+            ...authData,
+            organizationId: "organizationId",
+          },
+          deleteFile: () => Promise.resolve(),
+          eService: undefined,
+        })
+      ).rejects.toThrowError(eServiceNotFound(eServiceId));
     });
   });
 });
