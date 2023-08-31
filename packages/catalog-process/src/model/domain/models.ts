@@ -1,4 +1,4 @@
-/* 
+/*
   NOTE: Temporary file to hold all the models imported from github packages
   This file will be removed once all models are converted from scala.
  */
@@ -21,6 +21,8 @@ export type WithMetadata<T> = { data: T; metadata: { version: number } };
 export type EServiceSeed = z.infer<typeof api.schemas.EServiceSeed> & {
   readonly producerId: string;
 };
+
+export type EServiceDescriptor = z.infer<typeof api.schemas.EServiceDescriptor>;
 
 export type EServiceDocument = {
   readonly eServiceId: string;
