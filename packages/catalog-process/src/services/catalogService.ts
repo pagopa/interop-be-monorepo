@@ -24,6 +24,7 @@ import {
   operationForbidden,
   eServiceDocumentNotFound,
   eServiceDuplicate,
+  eServiceDescriptorNotFound,
 } from "../model/domain/errors.js";
 import {
   EServiceDescriptorSeed,
@@ -242,43 +243,14 @@ export const catalogService = {
   ): Promise<string> {
     const eService = await readModelService.getEServiceById(eServiceId);
 
-    if (eService === undefined) {
-      throw eServiceNotFound(eServiceId);
-    }
-
-    if (eService.data.producerId !== authData.organizationId) {
-      throw operationForbidden;
-    }
-
-    const descriptor = eService.data.descriptors.find(
-      (d: Descriptor) => d.id === descriptorId
-    );
-    if (descriptor === undefined) {
-      throw new CatalogProcessError(
-        `Descriptor ${descriptorId} for EService ${eServiceId} not found`,
-        ErrorTypes.EServiceDescriptorNotFound
-      );
-    }
-
     return await eventRepository.createEvent(
-      toCreateEventEServiceDocumentAdded(
+      uploadDocumentLogic({
         eServiceId,
-        eService.metadata.version,
         descriptorId,
-        {
-          newDocument: {
-            id: document.documentId,
-            name: document.fileName,
-            contentType: document.contentType,
-            prettyName: document.prettyName,
-            path: document.filePath,
-            checksum: document.checksum,
-            uploadDate: new Date(),
-          },
-          isInterface: document.kind === "INTERFACE",
-          serverUrls: document.serverUrls,
-        }
-      )
+        document,
+        authData,
+        eService,
+      })
     );
   },
 
@@ -862,4 +834,47 @@ export function deleteEserviceLogic({
   }
 
   return toCreateEventEServiceDeleted(eServiceId, eService.metadata.version);
+}
+
+export function uploadDocumentLogic({
+  eServiceId,
+  descriptorId,
+  document,
+  authData,
+  eService,
+}: {
+  eServiceId: string;
+  descriptorId: string;
+  document: ApiEServiceDescriptorDocumentSeed;
+  authData: AuthData;
+  eService: WithMetadata<EService> | undefined;
+}): CreateEvent {
+  assertEServiceExist(eServiceId, eService);
+  assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+
+  const descriptor = eService.data.descriptors.find(
+    (d: Descriptor) => d.id === descriptorId
+  );
+  if (descriptor === undefined) {
+    throw eServiceDescriptorNotFound(eServiceId, descriptorId);
+  }
+
+  return toCreateEventEServiceDocumentAdded(
+    eServiceId,
+    eService.metadata.version,
+    descriptorId,
+    {
+      newDocument: {
+        id: document.documentId,
+        name: document.fileName,
+        contentType: document.contentType,
+        prettyName: document.prettyName,
+        path: document.filePath,
+        checksum: document.checksum,
+        uploadDate: new Date(),
+      },
+      isInterface: document.kind === "INTERFACE",
+      serverUrls: document.serverUrls,
+    }
+  );
 }

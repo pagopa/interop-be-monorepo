@@ -127,6 +127,16 @@ export function eServiceCannotBeDeleted(
   );
 }
 
+export function eServiceDescriptorNotFound(
+  eServiceId: string,
+  descriptorId: string
+): CatalogProcessError {
+  return new CatalogProcessError(
+    `Descriptor ${descriptorId} for EService ${eServiceId} not found`,
+    ErrorTypes.EServiceDescriptorNotFound
+  );
+}
+
 export function missingClaim(claimName: string): CatalogProcessError {
   return new CatalogProcessError(
     `Claim ${claimName} has not been passed`,

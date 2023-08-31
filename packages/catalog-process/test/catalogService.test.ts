@@ -5,10 +5,12 @@ import {
   createEserviceLogic,
   deleteEserviceLogic,
   updateEserviceLogic,
+  uploadDocumentLogic,
 } from "../src/services/catalogService.js";
 import {
   eServiceCannotBeDeleted,
   eServiceCannotBeUpdated,
+  eServiceDescriptorNotFound,
   eServiceDuplicate,
   eServiceNotFound,
   operationForbidden,
@@ -20,6 +22,9 @@ import { apiTechnologyToTechnology } from "../src/model/domain/apiConverter.js";
 const mockEservice: EService = generateMock(EService);
 const mockEserviceSeed = generateMock(api.schemas.EServiceSeed);
 const mockDescriptor = generateMock(Descriptor);
+const mockDocument = generateMock(
+  api.schemas.CreateEServiceDescriptorDocumentSeed
+);
 
 const authData = {
   organizationId: mockEservice.producerId,
@@ -125,17 +130,18 @@ describe("CatalogService", () => {
     });
 
     it("returns an error when the service does not exist", async () => {
+      const eServiceId = "not-existing-id";
       expect(() =>
         updateEserviceLogic({
           eService: undefined,
-          eServiceId: "not-existing-id",
+          eServiceId,
           eServiceSeed: mockEserviceSeed,
           authData: {
             ...authData,
             organizationId: "organizationId",
           },
         })
-      ).toThrowError(eServiceNotFound("not-existing-id"));
+      ).toThrowError(eServiceNotFound(eServiceId));
     });
   });
   describe("deleteEService", () => {
@@ -143,10 +149,7 @@ describe("CatalogService", () => {
       const event = deleteEserviceLogic({
         eServiceId: mockEservice.id,
         authData,
-        eService: {
-          data: { ...mockEservice, descriptors: [] },
-          metadata: { version: 0 },
-        },
+        eService: addMetadata({ ...mockEservice, descriptors: [] }),
       });
       expect(event.event.type).toBe("EServiceDeleted");
       expect(event.event.data).toMatchObject({
@@ -184,16 +187,92 @@ describe("CatalogService", () => {
     });
 
     it("returns an error when the service does not exist", async () => {
+      const eServiceId = "not-existing-id";
       expect(() =>
         deleteEserviceLogic({
-          eServiceId: "not-existing-id",
+          eServiceId,
           authData: {
             ...authData,
             organizationId: "organizationId",
           },
           eService: undefined,
         })
-      ).toThrowError(eServiceNotFound("not-existing-id"));
+      ).toThrowError(eServiceNotFound(eServiceId));
+    });
+  });
+  describe("uploadDocument", () => {
+    it("uploads the document", async () => {
+      const event = uploadDocumentLogic({
+        eServiceId: mockEservice.id,
+        descriptorId: mockEservice.descriptors[0].id,
+        document: mockDocument,
+        authData,
+        eService: addMetadata(mockEservice),
+      });
+      expect(event.event.type).toBe("EServiceDocumentAdded");
+      expect(event.event.data).toMatchObject({
+        eServiceId: mockEservice.id,
+        descriptorId: mockEservice.descriptors[0].id,
+        document: {
+          id: mockDocument.documentId,
+          name: mockDocument.fileName,
+          contentType: mockDocument.contentType,
+          prettyName: mockDocument.prettyName,
+          path: mockDocument.filePath,
+          checksum: mockDocument.checksum,
+          uploadDate: (event.event.data as { document: { uploadDate: Date } })
+            .document.uploadDate,
+        },
+        isInterface: mockDocument.kind === "INTERFACE",
+        serverUrls: mockDocument.serverUrls,
+      });
+    });
+
+    it("returns an error if the eservice doesn't contains the descriptor", async () => {
+      const descriptorId = "descriptor-not-present-id";
+      expect(() =>
+        uploadDocumentLogic({
+          eServiceId: mockEservice.id,
+          descriptorId,
+          document: mockDocument,
+          authData,
+          eService: addMetadata(mockEservice),
+        })
+      ).toThrowError(eServiceDescriptorNotFound(mockEservice.id, descriptorId));
+    });
+
+    it("returns an error if the authenticated organization is not the producer", async () => {
+      expect(() =>
+        uploadDocumentLogic({
+          eServiceId: mockEservice.id,
+          descriptorId: mockEservice.descriptors[0].id,
+          document: mockDocument,
+          authData: {
+            ...authData,
+            organizationId: "other-org-id",
+          },
+          eService: addMetadata({
+            ...mockEservice,
+            producerId: "some-org-id",
+          }),
+        })
+      ).toThrowError(operationForbidden);
+    });
+
+    it("returns an error when the service does not exist", async () => {
+      const eServiceId = "not-existing-id";
+      expect(() =>
+        uploadDocumentLogic({
+          eServiceId,
+          descriptorId: mockEservice.descriptors[0].id,
+          document: mockDocument,
+          authData: {
+            ...authData,
+            organizationId: "organizationId",
+          },
+          eService: undefined,
+        })
+      ).toThrowError(eServiceNotFound(eServiceId));
     });
   });
 });
