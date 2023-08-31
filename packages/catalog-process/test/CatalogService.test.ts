@@ -39,6 +39,9 @@ describe("CatalogService", () => {
         })
       ).resolves.toBeUndefined();
       expect(mockedEventRepository.createEvent).toHaveBeenCalledOnce();
+      expect(mockedEventRepository.createEvent.mock.lastCall?.[0].type).toBe(
+        "EServiceUpdated"
+      );
       expect(
         mockedEventRepository.createEvent.mock.lastCall?.[0].data
       ).toMatchObject(mockEservice);
