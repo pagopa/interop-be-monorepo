@@ -262,31 +262,16 @@ export const catalogService = {
   ): Promise<void> {
     const eService = await readModelService.getEServiceById(eServiceId);
 
-    if (eService === undefined) {
-      throw eServiceNotFound(eServiceId);
-    }
-
-    if (eService.data.producerId !== authData.organizationId) {
-      throw operationForbidden;
-    }
-
-    const document = await readModelService.getEServiceDescriptorDocumentById(
-      documentId
-    );
-
-    if (document === undefined) {
-      throw eServiceDocumentNotFound(eServiceId, descriptorId, documentId);
-    }
-
-    await fileManager.deleteFile(document.path);
-
     await eventRepository.createEvent(
-      toCreateEventEServiceDocumentDeleted(
+      await deleteDocumentLogic({
         eServiceId,
-        eService.metadata.version,
         descriptorId,
-        documentId
-      )
+        documentId,
+        authData,
+        eService,
+        getDocument: readModelService.getEServiceDescriptorDocumentById,
+        deleteRemoteFile: fileManager.deleteFile,
+      })
     );
   },
 
@@ -876,5 +861,40 @@ export function uploadDocumentLogic({
       isInterface: document.kind === "INTERFACE",
       serverUrls: document.serverUrls,
     }
+  );
+}
+
+export async function deleteDocumentLogic({
+  eServiceId,
+  descriptorId,
+  documentId,
+  authData,
+  eService,
+  getDocument,
+  deleteRemoteFile,
+}: {
+  eServiceId: string;
+  descriptorId: string;
+  documentId: string;
+  authData: AuthData;
+  eService: WithMetadata<EService> | undefined;
+  getDocument: (documentId: string) => Promise<Document | undefined>;
+  deleteRemoteFile: (path: string) => Promise<void>;
+}): Promise<CreateEvent> {
+  assertEServiceExist(eServiceId, eService);
+  assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+
+  const document = await getDocument(documentId);
+  if (document === undefined) {
+    throw eServiceDocumentNotFound(eServiceId, descriptorId, documentId);
+  }
+
+  await deleteRemoteFile(document.path);
+
+  return toCreateEventEServiceDocumentDeleted(
+    eServiceId,
+    eService.metadata.version,
+    descriptorId,
+    documentId
   );
 }

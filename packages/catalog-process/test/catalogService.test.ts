@@ -3,6 +3,7 @@ import { generateMock } from "@anatine/zod-mock";
 import { Descriptor, EService } from "pagopa-interop-models";
 import {
   createEserviceLogic,
+  deleteDocumentLogic,
   deleteEserviceLogic,
   updateEserviceLogic,
   uploadDocumentLogic,
@@ -11,6 +12,7 @@ import {
   eServiceCannotBeDeleted,
   eServiceCannotBeUpdated,
   eServiceDescriptorNotFound,
+  eServiceDocumentNotFound,
   eServiceDuplicate,
   eServiceNotFound,
   operationForbidden,
@@ -273,6 +275,93 @@ describe("CatalogService", () => {
           eService: undefined,
         })
       ).toThrowError(eServiceNotFound(eServiceId));
+    });
+  });
+  describe("deleteDocument", () => {
+    it("delete the document", async () => {
+      const event = await deleteDocumentLogic({
+        eServiceId: mockEservice.id,
+        descriptorId: mockEservice.descriptors[0].id,
+        documentId: mockDocument.documentId,
+        authData,
+        eService: addMetadata(mockEservice),
+        getDocument: () =>
+          Promise.resolve({
+            id: mockDocument.documentId,
+            name: mockDocument.fileName,
+            contentType: mockDocument.contentType,
+            prettyName: mockDocument.prettyName,
+            path: mockDocument.filePath,
+            checksum: mockDocument.checksum,
+            uploadDate: new Date(),
+          }),
+        deleteRemoteFile: () => Promise.resolve(),
+      });
+      expect(event.event.type).toBe("EServiceDocumentDeleted");
+      expect(event.event.data).toMatchObject({
+        eServiceId: mockEservice.id,
+        descriptorId: mockEservice.descriptors[0].id,
+        documentId: mockDocument.documentId,
+      });
+    });
+
+    it("returns an error if the eservice doesn't contains the document", async () => {
+      const documentId = "document-not-present-id";
+      await expect(() =>
+        deleteDocumentLogic({
+          eServiceId: mockEservice.id,
+          descriptorId: mockEservice.descriptors[0].id,
+          documentId,
+          authData,
+          eService: addMetadata(mockEservice),
+          getDocument: () => Promise.resolve(undefined),
+          deleteRemoteFile: () => Promise.resolve(),
+        })
+      ).rejects.toThrowError(
+        eServiceDocumentNotFound(
+          mockEservice.id,
+          mockEservice.descriptors[0].id,
+          documentId
+        )
+      );
+    });
+
+    it("returns an error if the authenticated organization is not the producer", async () => {
+      await expect(() =>
+        deleteDocumentLogic({
+          eServiceId: mockEservice.id,
+          descriptorId: mockEservice.descriptors[0].id,
+          documentId: mockDocument.documentId,
+          authData: {
+            ...authData,
+            organizationId: "other-org-id",
+          },
+          eService: addMetadata({
+            ...mockEservice,
+            producerId: "some-org-id",
+          }),
+          getDocument: () => Promise.resolve(undefined),
+          deleteRemoteFile: () => Promise.resolve(),
+        })
+      ).rejects.toThrowError(operationForbidden);
+    });
+
+    it("returns an error when the service does not exist", async () => {
+      const eServiceId = "not-existing-id";
+      await expect(() =>
+        deleteDocumentLogic({
+          eServiceId,
+          descriptorId: mockEservice.descriptors[0].id,
+          documentId: mockDocument.documentId,
+          authData: {
+            ...authData,
+            organizationId: "organizationId",
+          },
+          eService: undefined,
+          getDocument: () => Promise.resolve(undefined),
+          deleteRemoteFile: () => Promise.resolve(),
+        })
+      ).rejects.toThrowError(eServiceNotFound(eServiceId));
     });
   });
 });
