@@ -8,6 +8,7 @@ import {
 } from "../src/model/domain/errors.js";
 import * as api from "../src/model/generated/api.js";
 import { WithMetadata } from "../src/model/domain/models.js";
+import { apiTechnologyToTechnology } from "../src/model/domain/apiConverter.js";
 
 const mockEservice: EService = generateMock(EService);
 const mockEserviceSeed = generateMock(api.schemas.EServiceSeed);
@@ -27,14 +28,24 @@ const addMetadata = (eService: EService): WithMetadata<EService> => ({
 describe("CatalogService", () => {
   describe("updateEService", () => {
     it("updates the eservice", async () => {
+      const eService = { ...mockEservice, descriptors: [] };
+
       const event = updateEserviceLogic({
-        eService: addMetadata(mockEservice),
+        eService: addMetadata(eService),
         eServiceId: mockEservice.id,
         eServiceSeed: mockEserviceSeed,
         authData,
       });
       expect(event.event.type).toBe("EServiceUpdated");
-      expect(event.event.data).toMatchObject(mockEservice);
+      expect(event.event.data).toMatchObject({
+        eService: {
+          ...eService,
+          description: mockEserviceSeed.description,
+          name: mockEserviceSeed.name,
+          technology: apiTechnologyToTechnology(mockEserviceSeed.technology),
+          producerId: authData.organizationId,
+        },
+      });
     });
 
     it("returns an error if the eservice contains valid descriptors", async () => {
