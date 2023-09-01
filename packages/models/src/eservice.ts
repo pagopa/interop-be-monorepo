@@ -37,11 +37,11 @@ const AttributeValue = z.object({
 
 export const Attribute = z.union([
   z.object({
-    type: z.literal("SingleAttribute"),
     id: AttributeValue,
+    ids: z.undefined(),
   }),
   z.object({
-    type: z.literal("GroupAttribute"),
+    id: z.undefined(),
     ids: z.array(AttributeValue),
   }),
 ]);

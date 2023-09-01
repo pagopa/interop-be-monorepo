@@ -118,14 +118,12 @@ export function apiAttributeToAttribute(
 ): Attribute | undefined {
   return match<ApiAttribute, Attribute | undefined>(input)
     .with({ single: P.not(P.nullish) }, (a) => ({
-      type: "SingleAttribute",
       id: {
         id: a.single.id,
         explicitAttributeVerification: a.single.explicitAttributeVerification,
       },
     }))
     .with({ group: P.not(P.nullish) }, (a) => ({
-      type: "GroupAttribute",
       ids: a.group.map((id) => ({
         id: id.id,
         explicitAttributeVerification: id.explicitAttributeVerification,
@@ -136,11 +134,11 @@ export function apiAttributeToAttribute(
 
 export function attributeToApiAttribute(input: Attribute): ApiAttribute {
   return match(input)
-    .with({ type: "SingleAttribute" }, (a) => ({
-      single: a.id,
-    }))
-    .with({ type: "GroupAttribute" }, (a) => ({
+    .with({ ids: P.not(P.nullish) }, (a) => ({
       group: a.ids,
+    }))
+    .with({ id: P.not(P.nullish) }, (a) => ({
+      single: a.id,
     }))
     .exhaustive();
 }
