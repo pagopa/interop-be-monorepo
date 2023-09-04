@@ -3,11 +3,10 @@ name: "Build & Deploy DEV"
 on:
   push:
     branches:
-      # - 'main'
-      - "docker-services-ci"
-  #   paths:
-  #     - 'packages/**'
-  #     - '!packages/*/scripts/**'
+      - 'main'      
+    paths:
+      - 'packages/**'
+      - '!packages/*/scripts/**'
 
 env:
   REGISTRY: ghcr.io
