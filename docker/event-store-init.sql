@@ -5,7 +5,7 @@ create table event (
     version bigint NOT NULL,
 
     type text NOT NULL,
-    data jsonb NOT NULL,
+    data bytea NOT NULL,
 
     log_date timestamptz NOT NULL DEFAULT now(),
 

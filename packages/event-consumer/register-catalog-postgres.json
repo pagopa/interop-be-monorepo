@@ -7,9 +7,10 @@
         "database.port": "5432",
         "database.user": "root",
         "database.password": "root",
-        "database.dbname" : "root",
+        "database.dbname": "root",
         "topic.prefix": "catalog",
         "schema.include.list": "public",
-        "plugin.name": "pgoutput"
+        "plugin.name": "pgoutput",
+        "binary.handling.mode": "hex"
     }
 }

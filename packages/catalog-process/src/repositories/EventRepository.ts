@@ -1,5 +1,5 @@
 import { logger } from "pagopa-interop-commons";
-import { EServiceEvent } from "pagopa-interop-models";
+import { EServiceEvent, toBinaryData } from "pagopa-interop-models";
 import { db } from "./db.js";
 import * as sql from "./sql/index.js";
 
@@ -24,7 +24,7 @@ export const eventRepository = {
           stream_id: createEvent.streamId,
           version: newVersion,
           type: createEvent.event.type,
-          data: createEvent.event.data,
+          data: Buffer.from(toBinaryData(createEvent.event)),
         });
 
         return createEvent.streamId;
