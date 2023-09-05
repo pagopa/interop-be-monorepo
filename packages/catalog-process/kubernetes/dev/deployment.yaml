@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: interop-be-catalog-process-refactor-dev
+  labels:
+    app: interop-be-catalog-process-refactor-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: interop-be-catalog-process-refactor-dev
+  template:
+    metadata:
+      labels:
+        app: interop-be-catalog-process-refactor-dev
+    spec:
+      serviceAccountName: interop-be-catalog-process-refactor-dev
+      containers:
+      - name: interop-be-catalog-process-refactor-dev
+        image: ghcr.io/pagopa/catalog-process@${IMAGE_DIGEST}
+        imagePullPolicy: Always
+        ports:
+          - name: http
+            containerPort: 8080
+            protocol: TCP
+        resources:
+          requests:
+            cpu: 1.0
+            memory: 2Gi
+          limits:
+            cpu: 1.0
+            memory: 2Gi
+        livenessProbe:
+          httpGet:
+            path: /status
+            port: http
+          initialDelaySeconds: 15
+          periodSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /status
+            port: http
+          initialDelaySeconds: 15
+          periodSeconds: 5
+        env:
+          - name: FOO
+            value: BAR
