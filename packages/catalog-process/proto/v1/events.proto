@@ -1,0 +1,60 @@
+syntax = "proto2";
+
+import "v1/catalog-item.proto";
+
+message CatalogItemV1AddedV1 {
+  required CatalogItemV1 catalogItem = 1;
+}
+
+message ClonedCatalogItemV1AddedV1 {
+  required CatalogItemV1 catalogItem = 1;
+}
+
+message CatalogItemV1UpdatedV1 {
+  required CatalogItemV1 catalogItem = 1;
+}
+
+message CatalogItemWithDescriptorsDeletedV1 {
+  required CatalogItemV1 catalogItem = 1;
+  required string descriptorId = 2;
+}
+
+message CatalogItemDocumentUpdatedV1 {
+  required string eServiceId = 1;
+  required string descriptorId = 2;
+  required string documentId = 3;
+  required CatalogDocumentV1 updatedDocument = 4;
+  repeated string serverUrls = 5;
+}
+
+message CatalogItemDeletedV1 {
+  required string catalogItemId = 1;
+}
+
+message CatalogItemDocumentAddedV1 {
+  required string eServiceId = 1;
+  required string descriptorId = 2;
+  required CatalogDocumentV1 document = 3;
+  required bool isInterface = 4;
+  repeated string serverUrls = 5;
+}
+
+message CatalogItemDocumentDeletedV1 {
+  required string eServiceId = 1;
+  required string descriptorId = 2;
+  required string documentId = 3;
+}
+
+message CatalogItemDescriptorAddedV1 {
+  required string eServiceId = 1;
+  required CatalogDescriptorV1 catalogDescriptor = 2;
+}
+
+message CatalogItemDescriptorUpdatedV1 {
+  required string eServiceId = 1;
+  required CatalogDescriptorV1 catalogDescriptor = 2;
+}
+
+message MovedAttributesFromEserviceToDescriptorsV1 {
+  required CatalogItemV1 catalogItem = 1;
+}
