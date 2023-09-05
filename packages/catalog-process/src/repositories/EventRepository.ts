@@ -24,7 +24,7 @@ export const eventRepository = {
           stream_id: createEvent.streamId,
           version: newVersion,
           type: createEvent.event.type,
-          data: toBinaryData(createEvent.event),
+          data: Buffer.from(toBinaryData(createEvent.event)),
         });
 
         return createEvent.streamId;
