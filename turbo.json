@@ -1,32 +1,48 @@
 {
-  "$schema": "https://turbo.build/schema.json",
-  "pipeline": {
-    "start": {
-      "persistent": true,
-      "cache": false,
-      "dependsOn": ["^build", "generate-model", "infra:start"]
+    "$schema": "https://turbo.build/schema.json",
+    "pipeline": {
+        "start": {
+            "persistent": true,
+            "cache": false,
+            "dependsOn": [
+                "^build",
+                "generate-model",
+                "generate-protobuf",
+                "infra:start"
+            ]
+        },
+        "infra:start": {
+            "cache": false
+        },
+        "infra:stop": {
+            "cache": false
+        },
+        "infra:destroy": {
+            "cache": false
+        },
+        "build": {
+            "dependsOn": [
+                "generate-model",
+                "generate-protobuf",
+                "^build"
+            ],
+            "outputs": [
+                "dist"
+            ]
+        },
+        "generate-model": {
+            "outputs": [
+                "src/model/generated"
+            ]
+        },
+        "generate-protobuf": {},
+        "test": {},
+        "lint": {},
+        "lint:autofix": {},
+        "format:check": {},
+        "format:write": {}
     },
-    "infra:start": {
-      "cache": false
-    },
-    "infra:stop": {
-      "cache": false
-    },
-    "infra:destroy": {
-      "cache": false
-    },
-    "build": {
-      "dependsOn": ["generate-model", "^build"],
-      "outputs": ["dist"]
-    },
-    "generate-model": {
-      "outputs": ["src/model/generated"]
-    },
-    "test": {},
-    "lint": {},
-    "lint:autofix": {},
-    "format:check": {},
-    "format:write": {}
-  },
-  "globalDependencies": ["tsconfig.json"]
+    "globalDependencies": [
+        "tsconfig.json"
+    ]
 }

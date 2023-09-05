@@ -27,10 +27,7 @@ const toEServiceAttributeV1 = (a: Attribute): EServiceAttributeV1 =>
     .with({ ids: P.not(P.nullish) }, ({ ids }) => ({
       group: ids,
     }))
-    .otherwise(() => ({
-      id: undefined,
-      group: [],
-    }));
+    .exhaustive();
 
 const toDocumentV1 = (doc: Document): EServiceDocumentV1 => ({
   ...doc,
