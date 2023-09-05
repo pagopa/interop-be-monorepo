@@ -1,6 +1,3 @@
-// import z from "zod";
-// import { EService, Descriptor, Document } from "./eservice.js";
-
 import { match } from "ts-pattern";
 import {
   ClonedEServiceAddedV1,
