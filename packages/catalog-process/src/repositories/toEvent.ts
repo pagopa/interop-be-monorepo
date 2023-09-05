@@ -99,9 +99,7 @@ export const toCreateEventEServiceAdded = (eService: EService): CreateEvent => {
     version: 0,
     event: {
       type: "EServiceAdded",
-      data: {
-        eService: toEServiceV1(eService),
-      },
+      data: { eService: toEServiceV1(eService) },
     },
   };
 };

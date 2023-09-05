@@ -4,7 +4,6 @@
 import { match } from "ts-pattern";
 import {
   ClonedEServiceAddedV1,
-  EServiceAddedV1,
   EServiceUpdatedV1,
   EServiceWithDescriptorsDeletedV1,
   EServiceDocumentUpdatedV1,
@@ -14,6 +13,7 @@ import {
   EServiceDescriptorAddedV1,
   EServiceDescriptorUpdatedV1,
   MovedAttributesFromEserviceToDescriptorsV1,
+  EServiceAddedV1,
 } from "./gen/v1/events.js";
 
 export function toBinaryData(event: EServiceEvent): Uint8Array {
