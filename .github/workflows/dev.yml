@@ -1,0 +1,64 @@
+name: "Build & Deploy DEV"
+
+on:
+  push:
+    branches:
+      - 'main'      
+    paths:
+      - 'packages/**'
+      - '!packages/*/scripts/**'
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build_image:
+    name: Build ${{ matrix.image_name }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image_name: catalog-process
+            dockerfile_path: packages/catalog-process
+          - image_name: event-consumer
+            dockerfile_path: packages/event-consumer
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image_name }}
+          flavor: |
+            latest=auto
+            prefix=
+            suffix=
+          tags: |
+            type=ref,event=branch
+            type=ref,event=tag
+
+      - name: Build and push Docker image
+        id: build_push
+        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        with:
+          context: .
+          file: ${{ matrix.dockerfile_path }}/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

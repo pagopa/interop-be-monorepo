@@ -3,19 +3,20 @@ import { Kafka, KafkaMessage } from "kafkajs";
 import { MongoClient } from "mongodb";
 import { logger } from "pagopa-interop-commons";
 import { EService } from "pagopa-interop-models";
+import { config } from "./utilities/config.js";
 
-const mongoUri = "mongodb://root:example@localhost:27017";
-const client = new MongoClient(mongoUri);
+const defaultMongoUri = "mongodb://root:example@localhost:27017";
+const client = new MongoClient(config.mongoUri || defaultMongoUri);
 
 const db = client.db("readmodel");
 const eservices = db.collection("eservices");
 
 const kafka = new Kafka({
-  clientId: "my-app",
-  brokers: ["localhost:9092"],
+  clientId: config.kafkaClientId || "my-app",
+  brokers: [config.kafkaBrokers || "localhost:9092"],
 });
 
-const consumer = kafka.consumer({ groupId: "my-group" });
+const consumer = kafka.consumer({ groupId: config.kafkaGroupId || "my-group" });
 await consumer.connect();
 
 function exitGracefully(): void {
