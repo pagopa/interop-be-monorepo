@@ -1,37 +1,28 @@
-FROM node:18-alpine as base
+FROM node:18.17.1-slim as build
 
-ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
 
 WORKDIR /app
 COPY package.json /app/
 COPY pnpm-lock.yaml /app/
 COPY pnpm-workspace.yaml /app/
+
+COPY ./packages/catalog-process/package.json /app/packages/catalog-process/package.json
+COPY ./packages/commons/package.json /app/packages/commons/package.json
+COPY ./packages/models/package.json /app/packages/models/package.json
+
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+
 COPY tsconfig.json /app/
 COPY turbo.json /app/
-
 COPY ./packages/catalog-process /app/packages/catalog-process
 COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
 
-RUN pnpm i ts-node -w
-
-FROM base AS build
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
-
 RUN pnpm build
-
-FROM base AS common
-COPY --from=build /app/packages/commons/dist /app/packages/commons/dist
-COPY --from=build /app/packages/models/dist /app/packages/models/dist
-
-
-FROM common AS catalog-process
-COPY --from=build /app/packages/catalog-process/dist /app/packages/catalog-process/dist
 
 WORKDIR /app/packages/catalog-process
 EXPOSE 3000
 
-CMD [ "pnpm", "start" ]
+CMD [ "node", "." ]
 
