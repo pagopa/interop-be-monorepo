@@ -200,6 +200,9 @@ importers:
       '@protobuf-ts/runtime':
         specifier: ^2.9.1
         version: 2.9.1
+      ts-pattern:
+        specifier: ^5.0.1
+        version: 5.0.1
       zod:
         specifier: ^3.21.4
         version: 3.21.4

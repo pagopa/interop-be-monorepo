@@ -2,7 +2,7 @@ syntax = "proto2";
 
 import "v1/eservice.proto";
 
-message EServiceV1AddedV1 {
+message EServiceAddedV1 {
   required EServiceV1 eService = 1;
 }
 
