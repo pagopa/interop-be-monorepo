@@ -1,39 +1,39 @@
 syntax = "proto2";
 
-message CatalogItemV1 {
+message EServiceV1 {
   required string id = 1;
   required string producerId = 2;
   required string name = 3;
   required string description = 4;
-  required CatalogItemTechnologyV1 technology = 5;
-  optional CatalogAttributesV1 attributes = 6;
-  repeated CatalogDescriptorV1 descriptors = 7;
+  required EServiceTechnologyV1 technology = 5;
+  optional EServiceAttributesV1 attributes = 6;
+  repeated EServiceDescriptorV1 descriptors = 7;
   optional int64 createdAt = 8;
 }
 
-message CatalogAttributeValueV1 {
+message EServiceAttributeValueV1 {
   required string id = 1;
   required bool explicitAttributeVerification = 2;
 }
 
-message CatalogAttributeV1 {
-  optional CatalogAttributeValueV1 single = 1;
-  repeated CatalogAttributeValueV1 group = 2;
+message EServiceAttributeV1 {
+  optional EServiceAttributeValueV1 single = 1;
+  repeated EServiceAttributeValueV1 group = 2;
 }
 
-message CatalogAttributesV1 {
-  repeated CatalogAttributeV1 certified = 1;
-  repeated CatalogAttributeV1 declared = 2;
-  repeated CatalogAttributeV1 verified = 3;
+message EServiceAttributesV1 {
+  repeated EServiceAttributeV1 certified = 1;
+  repeated EServiceAttributeV1 declared = 2;
+  repeated EServiceAttributeV1 verified = 3;
 }
 
-message CatalogDescriptorV1 {
+message EServiceDescriptorV1 {
   required string id = 1;
   required string version = 2;
   optional string description = 3;
-  repeated CatalogDocumentV1 docs = 4;
-  required CatalogDescriptorStateV1 state = 5;
-  optional CatalogDocumentV1 interface = 6;
+  repeated EServiceDocumentV1 docs = 4;
+  required EServiceDescriptorStateV1 state = 5;
+  optional EServiceDocumentV1 interface = 6;
   repeated string audience = 7;
   required int32 voucherLifespan = 8;
   required int32 dailyCallsPerConsumer = 9;
@@ -45,10 +45,10 @@ message CatalogDescriptorV1 {
   optional int64 suspendedAt = 15;
   optional int64 deprecatedAt = 16;
   optional int64 archivedAt = 17;
-  optional CatalogAttributesV1 attributes = 18;
+  optional EServiceAttributesV1 attributes = 18;
 }
 
-message CatalogDocumentV1 {
+message EServiceDocumentV1 {
   required string id = 1;
   required string name = 2;
   required string contentType = 3;
@@ -58,7 +58,7 @@ message CatalogDocumentV1 {
   required string prettyName = 7;
 }
 
-enum CatalogDescriptorStateV1 {
+enum EServiceDescriptorStateV1 {
   DRAFT = 1;
   PUBLISHED = 2;
   DEPRECATED = 3;
@@ -66,7 +66,7 @@ enum CatalogDescriptorStateV1 {
   ARCHIVED = 5;
 }
 
-enum CatalogItemTechnologyV1 {
+enum EServiceTechnologyV1 {
   REST = 1;
   SOAP = 2;
 }
