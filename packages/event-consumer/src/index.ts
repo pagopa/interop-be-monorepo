@@ -2,7 +2,7 @@ import { z } from "zod";
 import { Kafka, KafkaMessage } from "kafkajs";
 import { MongoClient } from "mongodb";
 import { logger } from "pagopa-interop-commons";
-import { EService } from "pagopa-interop-models";
+import { EService, EServiceAddedV1 } from "pagopa-interop-models";
 import { config } from "./utilities/config.js";
 
 const defaultMongoUri = "mongodb://root:example@localhost:27017";
@@ -35,9 +35,9 @@ await consumer.subscribe({
 
 const Event = z.discriminatedUnion("type", [
   z.object({
-    type: z.literal("CatalogItemAdded"),
+    type: z.literal("EServiceAdded"),
     data: z.preprocess(
-      (v) => (typeof v === "string" ? JSON.parse(v) : null),
+      (v) => EServiceAddedV1.fromBinary(v as Uint8Array),
       EService
     ),
   }),
