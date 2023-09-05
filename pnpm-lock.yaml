@@ -20,6 +20,12 @@ importers:
       '@aws-sdk/client-s3':
         specifier: ^3.367.0
         version: 3.367.0
+      '@protobuf-ts/plugin':
+        specifier: ^2.9.0
+        version: 2.9.0
+      '@protobuf-ts/protoc':
+        specifier: ^2.9.0
+        version: 2.9.0
       '@zodios/core':
         specifier: ^10.9.2
         version: 10.9.2(axios@1.4.0)(zod@3.21.4)
@@ -1270,6 +1276,39 @@ packages:
       - tsutils
       - typescript
     dev: true
+
+  /@protobuf-ts/plugin-framework@2.9.0:
+    resolution: {integrity: sha512-/fgpwEgYeiazEpkp9S+iaxVXd6LCkfd2iCfsvHiiSz94DatwZGkhv/85ciq2vcZVwSeEagKoSKeinnQWYvTnxw==}
+    dependencies:
+      '@protobuf-ts/runtime': 2.9.0
+      typescript: 3.9.10
+    dev: false
+
+  /@protobuf-ts/plugin@2.9.0:
+    resolution: {integrity: sha512-SYHWyvobfYcm1tq5O9DVU0vPYLhm66l83ImGLZBME1bjtyVSZ06aVrAXr6mJrwAjmVBDN9TeoPqstk48zpMHjA==}
+    hasBin: true
+    dependencies:
+      '@protobuf-ts/plugin-framework': 2.9.0
+      '@protobuf-ts/protoc': 2.9.0
+      '@protobuf-ts/runtime': 2.9.0
+      '@protobuf-ts/runtime-rpc': 2.9.0
+      typescript: 3.9.10
+    dev: false
+
+  /@protobuf-ts/protoc@2.9.0:
+    resolution: {integrity: sha512-8mQmw+OVqrpaHgmErle8heE5Z1ktX2vmWJmvFORSTcHxMfqHLv8RKTRroC9pkBQRgUaSGSXmy7n4ItdZnz41dw==}
+    hasBin: true
+    dev: false
+
+  /@protobuf-ts/runtime-rpc@2.9.0:
+    resolution: {integrity: sha512-h2S86+u2cNJACjzbBubbjKmNrnXkTmJ9yJHW4t7ZVS9xdV1C68blsVIh3Su4ghR8Nlj0459FuIUTsjWR8hA/7g==}
+    dependencies:
+      '@protobuf-ts/runtime': 2.9.0
+    dev: false
+
+  /@protobuf-ts/runtime@2.9.0:
+    resolution: {integrity: sha512-DnJtLZFMglADv9jiawBmg0RaET4a6fNSAaAHuU6Ovw2ZhJ23ehIY0NrlYLS0Lc8HRH0S5rkLI1QF1A1h8uKUnA==}
+    dev: false
 
   /@smithy/abort-controller@1.0.2:
     resolution: {integrity: sha512-tb2h0b+JvMee+eAxTmhnyqyNk51UXIK949HnE14lFeezKsVJTB30maan+CO2IMwnig2wVYQH84B5qk6ylmKCuA==}
@@ -4772,6 +4811,12 @@ packages:
       for-each: 0.3.3
       is-typed-array: 1.1.10
     dev: true
+
+  /typescript@3.9.10:
+    resolution: {integrity: sha512-w6fIxVE/H1PkLKcCPsFqKE7Kv7QUwhU8qQY2MueZXWx5cPZdwFupLgKK3vntcK98BtNHZtAF4LA/yl2a7k8R6Q==}
+    engines: {node: '>=4.2.0'}
+    hasBin: true
+    dev: false
 
   /typescript@4.9.5:
     resolution: {integrity: sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==}
