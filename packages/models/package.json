@@ -14,17 +14,24 @@
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
     "start": "node --watch --no-warnings --loader ts-node/esm ./src/index.ts",
-    "build": "tsc"
+    "build": "tsc",
+    "generate-protobuf": "mkdirp ./src/gen && npx protoc --ts_opt=eslint_disable --ts_out ./src/gen --proto_path ./proto ./proto/v1/*.proto && tsc-esm-fix --src='src/gen/v1' --ext='.js'"
   },
   "keywords": [],
   "author": "",
   "license": "Apache-2.0",
   "dependencies": {
+    "@protobuf-ts/plugin": "^2.9.1",
+    "@protobuf-ts/protoc": "^2.9.1",
+    "@protobuf-ts/runtime": "^2.9.1",
+    "ts-pattern": "^5.0.1",
     "zod": "^3.21.4"
   },
   "devDependencies": {
     "eslint": "^8.44.0",
+    "mkdirp": "^3.0.1",
     "prettier": "^2.8.8",
+    "tsc-esm-fix": "^2.20.15",
     "typescript": "^5.1.3"
   }
 }

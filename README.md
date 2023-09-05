@@ -54,7 +54,7 @@ curl -X POST http://localhost:3000/eservices \
   -d '{ "name": "Example name", "description": "Example description", "technology": "REST", "attributes": { "certified": [], "declared": [], "verified": [] } }' \
   -H "Content-Type: application/json" \
   -H 'X-Correlation-Id: test' \
-  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmdhbml6YXRpb25JZCI6IjRENTU2OTZGLTE2QzAtNDk2OC04NTRCLTJCMTY2Mzk3RkMzMCIsInVzZXItcm9sZXMiOiJBZG1pbiJ9.zeHj5I2QnhfVenY36NwuElyQDo1NKc22Z3rJXSkli2s"
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmdhbml6YXRpb25JZCI6IjRENTU2OTZGLTE2QzAtNDk2OC04NTRCLTJCMTY2Mzk3RkMzMCIsInVzZXItcm9sZXMiOiJBZG1pbiIsInJvbGUiOiJBZG1pbiIsInN1YiI6IjBmZGEwMzNjLThlOGUtNDhhOS1hMGZjLWFiYmExZjcxMWZlZiIsIm9yZ2FuaXphdGlvbiI6eyJyb2xlcyI6IkFkbWluIn19._LUXo4r-YNeopF2lDAY1Jg205jcM9aOhLQoUtt7gsw8"
 ```
 
 You should see the event being processed by the consumer and the read model being updated.
