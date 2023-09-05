@@ -6,11 +6,11 @@ message EServiceV1AddedV1 {
   required EServiceV1 eService = 1;
 }
 
-message ClonedEServiceV1AddedV1 {
+message ClonedEServiceAddedV1 {
   required EServiceV1 eService = 1;
 }
 
-message EServiceV1UpdatedV1 {
+message EServiceUpdatedV1 {
   required EServiceV1 eService = 1;
 }
 
