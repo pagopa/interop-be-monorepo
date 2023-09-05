@@ -504,7 +504,7 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Suspend the selected descriptor.
+      summary: Activate the selected descriptor.
       operationId: activateDescriptor
       parameters:
         - name: eServiceId
