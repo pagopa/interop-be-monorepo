@@ -35,7 +35,11 @@
                 "src/model/generated"
             ]
         },
-        "generate-protobuf": {},
+        "generate-protobuf": {
+            "outputs": [
+                "src/gen"
+            ]
+        },
         "test": {},
         "lint": {},
         "lint:autofix": {},
