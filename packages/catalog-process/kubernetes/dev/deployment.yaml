@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: interop-be-catalog-process-refactor
+  namespace: dev-refactor
   labels:
     app: interop-be-catalog-process-refactor
 spec:
