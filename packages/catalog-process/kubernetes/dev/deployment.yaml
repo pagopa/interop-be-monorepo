@@ -17,7 +17,7 @@ spec:
       serviceAccountName: interop-be-catalog-process-refactor-dev
       containers:
       - name: interop-be-catalog-process-refactor-dev
-        image: ghcr.io/pagopa/catalog-process@${IMAGE_DIGEST}
+        image: ghcr.io/pagopa/catalog-process@$IMAGE_DIGEST
         imagePullPolicy: Always
         ports:
           - name: http
