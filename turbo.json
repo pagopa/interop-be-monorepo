@@ -40,7 +40,13 @@
         "src/gen"
       ]
     },
-    "test": {},
+    "test": {
+      "dependsOn": [
+        "generate-model",
+        "generate-protobuf",
+        "^test"
+      ]
+    },
     "lint": {},
     "lint:autofix": {},
     "format:check": {},
