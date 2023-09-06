@@ -40,6 +40,13 @@ import {
   apiAttributeToAttribute,
   apiTechnologyToTechnology,
 } from "../src/model/domain/apiConverter.js";
+import {
+  toAgreementApprovalPolicyV1,
+  toDescriptorV1,
+  toEServiceDescriptorStateV1,
+  toEServiceTechnologyV1,
+  toEServiceV1,
+} from "../src/repositories/toEvent.js";
 
 const shuffle = <T>(array: T[]): T[] => array.sort(() => Math.random() - 0.5);
 
@@ -85,13 +92,16 @@ describe("CatalogService", () => {
       expect(event.event.type).toBe("EServiceAdded");
       expect(event.event.data).toMatchObject({
         eService: {
-          ...eService,
+          ...toEServiceV1(eService),
           id: event.streamId,
-          createdAt: (event.event.data as { eService: { createdAt: Date } })
-            .eService.createdAt,
+          createdAt: (
+            event.event.data as unknown as { eService: { createdAt: Date } }
+          ).eService.createdAt,
           description: mockEserviceSeed.description,
           name: mockEserviceSeed.name,
-          technology: apiTechnologyToTechnology(mockEserviceSeed.technology),
+          technology: toEServiceTechnologyV1(
+            apiTechnologyToTechnology(mockEserviceSeed.technology)
+          ),
           producerId: authData.organizationId,
         },
       });
@@ -120,10 +130,12 @@ describe("CatalogService", () => {
       expect(event.event.type).toBe("EServiceUpdated");
       expect(event.event.data).toMatchObject({
         eService: {
-          ...eService,
+          ...toEServiceV1(eService),
           description: mockEserviceSeed.description,
           name: mockEserviceSeed.name,
-          technology: apiTechnologyToTechnology(mockEserviceSeed.technology),
+          technology: toEServiceTechnologyV1(
+            apiTechnologyToTechnology(mockEserviceSeed.technology)
+          ),
           producerId: authData.organizationId,
         },
       });
@@ -426,7 +438,7 @@ describe("CatalogService", () => {
           prettyName: mockUpdateDocumentSeed.prettyName,
           path: mockDocument.filePath,
           checksum: mockDocument.checksum,
-          uploadDate: refDate,
+          uploadDate: refDate.toISOString(),
         },
         serverUrls: mockEservice.descriptors[0].serverUrls,
       });
@@ -533,16 +545,17 @@ describe("CatalogService", () => {
           version: (descriptors.length - 1).toString(),
           interface: undefined,
           docs: [],
-          state: "Draft",
+          state: toEServiceDescriptorStateV1("Draft"),
           voucherLifespan: mockEserviceDescriptorSeed.voucherLifespan,
           audience: mockEserviceDescriptorSeed.audience,
           dailyCallsPerConsumer:
             mockEserviceDescriptorSeed.dailyCallsPerConsumer,
           dailyCallsTotal: mockEserviceDescriptorSeed.dailyCallsTotal,
-          agreementApprovalPolicy:
+          agreementApprovalPolicy: toAgreementApprovalPolicyV1(
             apiAgreementApprovalPolicyToAgreementApprovalPolicy(
               mockEserviceDescriptorSeed.agreementApprovalPolicy
-            ),
+            )
+          ),
           serverUrls: [],
           publishedAt: undefined,
           suspendedAt: undefined,
@@ -623,7 +636,7 @@ describe("CatalogService", () => {
       });
       expect(event.event.type).toBe("EServiceWithDescriptorsDeleted");
       expect(event.event.data).toMatchObject({
-        eService,
+        eService: toEServiceV1(eService),
         descriptorId: eService.descriptors[0].id,
       });
     });
@@ -694,21 +707,22 @@ describe("CatalogService", () => {
       expect(event.event.type).toBe("EServiceUpdated");
       expect(event.event.data).toMatchObject({
         eService: {
-          ...eService,
+          ...toEServiceV1(eService),
           descriptors: [
             {
-              ...descriptor,
+              ...toDescriptorV1(descriptor),
               description: mockUpdateDescriptorSeed.description,
               audience: mockUpdateDescriptorSeed.audience,
               voucherLifespan: mockUpdateDescriptorSeed.voucherLifespan,
               dailyCallsPerConsumer:
                 mockUpdateDescriptorSeed.dailyCallsPerConsumer,
-              state: "Draft",
+              state: toEServiceDescriptorStateV1("Draft"),
               dailyCallsTotal: mockUpdateDescriptorSeed.dailyCallsTotal,
-              agreementApprovalPolicy:
+              agreementApprovalPolicy: toAgreementApprovalPolicyV1(
                 apiAgreementApprovalPolicyToAgreementApprovalPolicy(
                   mockUpdateDescriptorSeed.agreementApprovalPolicy
-                ),
+                )
+              ),
             },
           ],
         },
@@ -802,11 +816,11 @@ describe("CatalogService", () => {
       expect(event[0].event.data).toMatchObject({
         eServiceId: eService.id,
         eServiceDescriptor: {
-          ...mockDescriptor,
+          ...toDescriptorV1(mockDescriptor),
           publishedAt: (
             event[0].event.data as { eServiceDescriptor: { publishedAt: Date } }
           ).eServiceDescriptor.publishedAt,
-          state: "Published",
+          state: toEServiceDescriptorStateV1("Published"),
         },
       });
     });
@@ -834,25 +848,25 @@ describe("CatalogService", () => {
       expect(event[0].event.data).toMatchObject({
         eServiceId: eService.id,
         eServiceDescriptor: {
-          ...mockDescriptor,
+          ...toDescriptorV1(mockDescriptor),
           id: publishedDescriptorId,
           deprecatedAt: (
             event[0].event.data as {
               eServiceDescriptor: { deprecatedAt: Date };
             }
           ).eServiceDescriptor.deprecatedAt,
-          state: "Deprecated",
+          state: toEServiceDescriptorStateV1("Deprecated"),
         },
       });
       expect(event[1].event.type).toBe("EServiceDescriptorUpdated");
       expect(event[1].event.data).toMatchObject({
         eServiceId: eService.id,
         eServiceDescriptor: {
-          ...mockDescriptor,
+          ...toDescriptorV1(mockDescriptor),
           publishedAt: (
             event[1].event.data as { eServiceDescriptor: { publishedAt: Date } }
           ).eServiceDescriptor.publishedAt,
-          state: "Published",
+          state: toEServiceDescriptorStateV1("Published"),
         },
       });
     });
@@ -949,8 +963,8 @@ describe("CatalogService", () => {
       expect(event1.event.data).toMatchObject({
         eServiceId: eService.id,
         eServiceDescriptor: {
-          ...publishedDescriptor,
-          state: "Suspended",
+          ...toDescriptorV1(publishedDescriptor),
+          state: toEServiceDescriptorStateV1("Suspended"),
           suspendedAt: (
             event1.event.data as { eServiceDescriptor: { suspendedAt: Date } }
           ).eServiceDescriptor.suspendedAt,
@@ -960,8 +974,8 @@ describe("CatalogService", () => {
       expect(event2.event.data).toMatchObject({
         eServiceId: eService.id,
         eServiceDescriptor: {
-          ...deprecatedDescriptor,
-          state: "Suspended",
+          ...toDescriptorV1(deprecatedDescriptor),
+          state: toEServiceDescriptorStateV1("Suspended"),
           suspendedAt: (
             event1.event.data as { eServiceDescriptor: { suspendedAt: Date } }
           ).eServiceDescriptor.suspendedAt,
@@ -1053,8 +1067,8 @@ describe("CatalogService", () => {
       expect(event.event.data).toMatchObject({
         eServiceId: eService.id,
         eServiceDescriptor: {
-          ...mockDescriptor,
-          state: "Published",
+          ...toDescriptorV1(mockDescriptor),
+          state: toEServiceDescriptorStateV1("Published"),
           version: "1",
           suspendedAt: (
             event.event.data as { eServiceDescriptor: { suspendedAt: Date } }
@@ -1120,6 +1134,8 @@ describe("CatalogService", () => {
         ...mockEservice,
         descriptors: [{ ...mockDescriptor, version: "1" }],
       };
+      const mockEserviceV1 = toEServiceV1(mockEservice);
+      const mockDescriptorV1 = toDescriptorV1(mockDescriptor);
       const { event } = await cloneDescriptorLogic({
         eServiceId: eService.id,
         descriptorId: eService.descriptors[0].id,
@@ -1138,26 +1154,27 @@ describe("CatalogService", () => {
       };
       expect(event.event.data).toMatchObject({
         eService: {
-          ...mockEservice,
-          name: `${mockEservice.name} - clone`,
-          createdAt: (event.event.data as { eService: { createdAt: Date } })
-            .eService.createdAt,
+          ...mockEserviceV1,
+          name: `${mockEserviceV1.name} - clone`,
+          createdAt: (
+            event.event.data as unknown as { eService: { createdAt: Date } }
+          ).eService.createdAt,
           id: (event.event.data as { eService: { id: string } }).eService.id,
           descriptors: [
             {
-              ...mockDescriptor,
+              ...mockDescriptorV1,
               id: clonedDescriptor.id,
               version: "1",
-              state: "Draft",
+              state: toEServiceDescriptorStateV1("Draft"),
               createdAt: clonedDescriptor.createdAt,
-              docs: mockDescriptor.docs.map((d, i) => ({
+              docs: mockDescriptorV1.docs.map((d, i) => ({
                 ...d,
                 id: clonedDescriptor.docs[i].id,
                 path: "",
                 uploadDate: clonedDescriptor.docs[i].uploadDate,
               })),
               interface: {
-                ...mockDescriptor.docs[0],
+                ...mockDescriptorV1.docs[0],
                 id: clonedDescriptor.interface.id,
                 path: "",
                 uploadDate: clonedDescriptor.interface.uploadDate,
@@ -1236,8 +1253,8 @@ describe("CatalogService", () => {
       expect(event.event.data).toMatchObject({
         eServiceId: eService.id,
         eServiceDescriptor: {
-          ...mockDescriptor,
-          state: "Archived",
+          ...toDescriptorV1(mockDescriptor),
+          state: toEServiceDescriptorStateV1("Archived"),
           archivedAt: (
             event.event.data as { eServiceDescriptor: { archivedAt: Date } }
           ).eServiceDescriptor.archivedAt,

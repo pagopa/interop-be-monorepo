@@ -1,4 +1,3 @@
-import { v4 as uuidv4 } from "uuid";
 import {
   EService,
   Document,
@@ -11,12 +10,43 @@ import {
   EServiceV1,
   EServiceDocumentV1,
   EServiceDescriptorV1,
+  AgreementApprovalPolicy,
+  DescriptorState,
+  Technology,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { WithMetadata } from "../model/domain/models.js";
 import { CreateEvent } from "./EventRepository.js";
 
-const toEServiceAttributeV1 = (a: Attribute): EServiceAttributeV1 =>
+export const toAgreementApprovalPolicyV1 = (
+  policy: AgreementApprovalPolicy | undefined
+): AgreementApprovalPolicyV1 =>
+  match(policy)
+    .with(P.nullish, () => AgreementApprovalPolicyV1.UNSPECIFIED$)
+    .with("Manual", () => AgreementApprovalPolicyV1.MANUAL)
+    .with("Automatic", () => AgreementApprovalPolicyV1.AUTOMATIC)
+    .exhaustive();
+
+export const toEServiceDescriptorStateV1 = (
+  state: DescriptorState
+): EServiceDescriptorStateV1 =>
+  match(state)
+    .with("Draft", () => EServiceDescriptorStateV1.DRAFT)
+    .with("Suspended", () => EServiceDescriptorStateV1.SUSPENDED)
+    .with("Archived", () => EServiceDescriptorStateV1.ARCHIVED)
+    .with("Published", () => EServiceDescriptorStateV1.PUBLISHED)
+    .with("Deprecated", () => EServiceDescriptorStateV1.DEPRECATED)
+    .exhaustive();
+
+export const toEServiceTechnologyV1 = (
+  technology: Technology
+): EServiceTechnologyV1 =>
+  match(technology)
+    .with("Rest", () => EServiceTechnologyV1.REST)
+    .with("Soap", () => EServiceTechnologyV1.SOAP)
+    .exhaustive();
+
+export const toEServiceAttributeV1 = (a: Attribute): EServiceAttributeV1 =>
   match<Attribute, EServiceAttributeV1>(a)
     .with(
       {
@@ -29,12 +59,12 @@ const toEServiceAttributeV1 = (a: Attribute): EServiceAttributeV1 =>
     }))
     .exhaustive();
 
-const toDocumentV1 = (doc: Document): EServiceDocumentV1 => ({
+export const toDocumentV1 = (doc: Document): EServiceDocumentV1 => ({
   ...doc,
   uploadDate: doc.uploadDate.toISOString(),
 });
 
-const toDescriptorV1 = (d: Descriptor): EServiceDescriptorV1 => ({
+export const toDescriptorV1 = (d: Descriptor): EServiceDescriptorV1 => ({
   ...d,
   attributes:
     d.attributes != null
@@ -45,13 +75,7 @@ const toDescriptorV1 = (d: Descriptor): EServiceDescriptorV1 => ({
         }
       : undefined,
   docs: d.docs.map(toDocumentV1),
-  state: match(d.state)
-    .with("Draft", () => EServiceDescriptorStateV1.DRAFT)
-    .with("Suspended", () => EServiceDescriptorStateV1.SUSPENDED)
-    .with("Archived", () => EServiceDescriptorStateV1.ARCHIVED)
-    .with("Published", () => EServiceDescriptorStateV1.PUBLISHED)
-    .with("Deprecated", () => EServiceDescriptorStateV1.DEPRECATED)
-    .exhaustive(),
+  state: toEServiceDescriptorStateV1(d.state),
   interface:
     d.interface != null
       ? {
@@ -59,11 +83,9 @@ const toDescriptorV1 = (d: Descriptor): EServiceDescriptorV1 => ({
           uploadDate: d.interface.uploadDate.toISOString(),
         }
       : undefined,
-  agreementApprovalPolicy: match(d.agreementApprovalPolicy)
-    .with(P.nullish, () => AgreementApprovalPolicyV1.UNSPECIFIED$)
-    .with("Manual", () => AgreementApprovalPolicyV1.MANUAL)
-    .with("Automatic", () => AgreementApprovalPolicyV1.AUTOMATIC)
-    .exhaustive(),
+  agreementApprovalPolicy: toAgreementApprovalPolicyV1(
+    d.agreementApprovalPolicy
+  ),
   createdAt: BigInt(d.createdAt.getTime()),
   publishedAt: d.publishedAt ? BigInt(d.publishedAt.getTime()) : undefined,
   suspendedAt: d.suspendedAt ? BigInt(d.suspendedAt.getTime()) : undefined,
@@ -71,12 +93,9 @@ const toDescriptorV1 = (d: Descriptor): EServiceDescriptorV1 => ({
   archivedAt: d.archivedAt ? BigInt(d.archivedAt.getTime()) : undefined,
 });
 
-const toEServiceV1 = (eService: EService): EServiceV1 => ({
+export const toEServiceV1 = (eService: EService): EServiceV1 => ({
   ...eService,
-  technology: match(eService.technology)
-    .with("Rest", () => EServiceTechnologyV1.REST)
-    .with("Soap", () => EServiceTechnologyV1.SOAP)
-    .exhaustive(),
+  technology: toEServiceTechnologyV1(eService.technology),
   attributes:
     eService.attributes != null
       ? {
@@ -89,33 +108,29 @@ const toEServiceV1 = (eService: EService): EServiceV1 => ({
   createdAt: BigInt(eService.createdAt.getTime()),
 });
 
-export const toCreateEventEServiceAdded = (eService: EService): CreateEvent => {
-  const streamId = uuidv4();
-  return {
-    streamId,
-    version: 0,
-    event: {
-      type: "EServiceAdded",
-      data: { eService: toEServiceV1(eService) },
-    },
-  };
-};
+export const toCreateEventEServiceAdded = (
+  eService: EService
+): CreateEvent => ({
+  streamId: eService.id,
+  version: 0,
+  event: {
+    type: "EServiceAdded",
+    data: { eService: toEServiceV1(eService) },
+  },
+});
 
 export const toCreateEventClonedEServiceAdded = (
   eService: EService
-): CreateEvent => {
-  const streamId = uuidv4();
-  return {
-    streamId,
-    version: 0,
-    event: {
-      type: "ClonedEServiceAdded",
-      data: {
-        eService: toEServiceV1(eService),
-      },
+): CreateEvent => ({
+  streamId: eService.id,
+  version: 0,
+  event: {
+    type: "ClonedEServiceAdded",
+    data: {
+      eService: toEServiceV1(eService),
     },
-  };
-};
+  },
+});
 
 export const toCreateEventEServiceDocumentAdded = (
   streamId: string,
