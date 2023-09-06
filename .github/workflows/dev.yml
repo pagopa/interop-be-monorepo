@@ -84,8 +84,8 @@ jobs:
       - name: Inject image digest
         working-directory: ${{ matrix.k8s_path }}
         run: |
-          IMAGE_DIGEST="${{ steps.build_push.outputs.digest }}"
-          envsubst '$IMAGE_DIGEST' < deployment.yaml
+          export IMAGE_DIGEST="${{ steps.build_push.outputs.digest }}"
+          envsubst '$IMAGE_DIGEST' < deployment.yaml | sponge deployment.yaml
 
       # - name: Kubectl apply
       #   working-directory: ${{ inputs.k8s_path }}
