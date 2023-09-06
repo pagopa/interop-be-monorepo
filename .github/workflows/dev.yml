@@ -12,7 +12,7 @@ env:
   REGISTRY: ghcr.io
 
 jobs:
-  build_image:
+  build_deploy_image:
     name: Build ${{ matrix.image_name }}
     runs-on: ubuntu-latest
     permissions:
@@ -24,8 +24,10 @@ jobs:
         include:
           - image_name: catalog-process
             dockerfile_path: packages/catalog-process
+            k8s_path: packages/catalog-process/kubernetes/dev
           - image_name: event-consumer
             dockerfile_path: packages/event-consumer
+            k8s_path: packages/catalog-process/kubernetes/dev
 
     steps:
       - name: Checkout repository
@@ -61,31 +63,6 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-      - name: Set job outputs
-        run: |
-          echo "${{ matrix.image_name }}_digest=${{ steps.build_push.outputs.digest }}" >> "$GITHUB_OUTPUT"
-
-  deploy_dev:
-    name: Deploy ${{ matrix.image_name }} DEV
-    runs-on: ubuntu-latest
-    needs: [build_image]
-    environment: dev
-    permissions:
-      contents: read
-      id-token: write
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - image_name: catalog-process
-            k8s_path: packages/catalog-process/kubernetes/dev
-          - image_name: event-consumer
-            k8s_path: packages/event-consumer/kubernetes/dev
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -105,15 +82,11 @@ jobs:
       - name: Inject image digest
         working-directory: ${{ matrix.k8s_path }}
         run: |
-          echo "outputs: ${{ needs.build_image.outputs }}"
-          IMAGE_DIGEST="${{ needs.build_image.outputs[format('{0}_digest', matrix.image_name)] }}"
-          echo "IMAGE_DIGEST=$IMAGE_DIGEST"
+          IMAGE_DIGEST="${{ steps.build_push.outputs.digest }}"
           envsubst '$IMAGE_DIGEST' < deployment.yaml
 
-      #
-      #
-      # - name: Kubectl Apply
-      #   working-directory: ${{ inputs.package_path }}
+      # - name: Kubectl apply
+      #   working-directory: ${{ inputs.k8s_path }}
       #   run: |
-      #     kubectl apply -f kubernetes/${{ inputs.environment }}/
-      #
+      #     kubectl apply -f .
+
