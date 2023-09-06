@@ -42,8 +42,7 @@
     },
     "test": {
       "dependsOn": [
-        "generate-model",
-        "generate-protobuf",
+        "build",
         "^test"
       ]
     },
