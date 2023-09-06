@@ -105,7 +105,7 @@ jobs:
       - name: Inject image digest
         working-directory: ${{ matrix.k8s_path }}
         run: |
-          echo "catalog-process digest: ${{ needs.build_image.outputs['catalog-process_digest'] }}"
+          echo "outputs: ${{ needs.build_image.outputs }}"
           IMAGE_DIGEST="${{ needs.build_image.outputs[format('{0}_digest', matrix.image_name)] }}"
           echo "IMAGE_DIGEST=$IMAGE_DIGEST"
           envsubst '$IMAGE_DIGEST' < deployment.yaml
