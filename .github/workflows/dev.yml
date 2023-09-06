@@ -91,7 +91,7 @@ jobs:
           mv deployment_injected.yaml deployment.yaml
 
       - name: Kubectl apply
-        working-directory: ${{ inputs.k8s_path }}
+        working-directory: ${{ matrix.k8s_path }}
         run: |
           kubectl apply -f .
 
