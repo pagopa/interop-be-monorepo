@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: interop-be-catalog-process-refactor-dev
+  name: interop-be-catalog-process-refactor
   labels:
-    app: interop-be-catalog-process-refactor-dev
+    app: interop-be-catalog-process-refactor
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: interop-be-catalog-process-refactor-dev
+      app: interop-be-catalog-process-refactor
   template:
     metadata:
       labels:
-        app: interop-be-catalog-process-refactor-dev
+        app: interop-be-catalog-process-refactor
     spec:
-      serviceAccountName: interop-be-catalog-process-refactor-dev
+      serviceAccountName: interop-be-catalog-process-refactor
       containers:
-      - name: interop-be-catalog-process-refactor-dev
+      - name: interop-be-catalog-process-refactor
         image: ghcr.io/pagopa/catalog-process@$IMAGE_DIGEST
         imagePullPolicy: Always
         ports:
