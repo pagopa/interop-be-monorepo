@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: interop-be-refactor-commons
+  namespace: dev-refactor
+data:
+  READ_MODEL_HOST: "interop-read-model-dev.cluster-c9zr6t2swdpb.eu-central-1.docdb.amazonaws.com"
+  PERSISTENCE_MANAGEMENT_HOST: "interop-persistence-management-dev.cluster-c9zr6t2swdpb.eu-central-1.rds.amazonaws.com"
