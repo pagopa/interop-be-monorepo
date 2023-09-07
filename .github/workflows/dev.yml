@@ -90,8 +90,12 @@ jobs:
           envsubst '$IMAGE_DIGEST' < deployment.yaml > deployment_injected.yaml
           mv deployment_injected.yaml deployment.yaml
 
-      - name: Kubectl apply
-        working-directory: ${{ matrix.k8s_path }}
+      - name: Kubectl apply commons
+        working-directory: packages/commons/kubernetes/dev
         run: |
           kubectl apply -f .
 
+      - name: Kubectl apply ${{ matrix.image_name }}
+        working-directory: ${{ matrix.k8s_path }}
+        run: |
+          kubectl apply -f .
