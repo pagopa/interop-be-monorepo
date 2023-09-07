@@ -29,7 +29,7 @@ jobs:
             k8s_path: packages/catalog-process/kubernetes/dev
           - image_name: event-consumer
             dockerfile_path: packages/event-consumer
-            k8s_path: packages/catalog-process/kubernetes/dev
+            k8s_path: packages/event-consumer/kubernetes/dev
 
     steps:
       - name: Checkout repository
