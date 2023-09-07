@@ -3,17 +3,17 @@ name: "Build & Deploy DEV"
 on:
   push:
     branches:
-      - 'k8s'
-    # paths:
-    #   - 'packages/**'
-    #   - '!packages/*/scripts/**'
+      - 'main'
+    paths:
+      - 'packages/**'
+      - '!packages/*/scripts/**'
 
 env:
   REGISTRY: ghcr.io
 
 jobs:
   build_deploy_image:
-    name: Build ${{ matrix.image_name }}
+    name: Build & Deploy ${{ matrix.image_name }}
     runs-on: ubuntu-latest
     environment: dev
     permissions:
