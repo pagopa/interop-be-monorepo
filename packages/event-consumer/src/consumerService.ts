@@ -1,5 +1,6 @@
 import { match } from "ts-pattern";
 import { MongoClient } from "mongodb";
+import { logger } from "pagopa-interop-commons";
 import { EventEnvelope } from "./model/models.js";
 import { config } from "./utilities/config.js";
 import {
@@ -23,6 +24,7 @@ const db = client.db(database);
 const eservices = db.collection("eservices");
 
 export async function handleMessage(message: EventEnvelope): Promise<void> {
+  logger.info(message);
   await match(message)
     .with({ type: "EServiceAdded" }, async (msg) => {
       await eservices.insertOne(
@@ -79,6 +81,9 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
                 id: msg.data.descriptorId,
               },
             },
+            $set: {
+              "metadata.version": msg.version,
+            },
           },
           { ignoreUndefined: true }
         )
@@ -115,6 +120,7 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
               ? fromDocumentV1(msg.data.updatedDocument)
               : undefined,
             "data.descriptors.$[descriptor].serverUrls": msg.data.serverUrls,
+            "metadata.version": msg.version,
           },
         },
         {
@@ -187,6 +193,9 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
               id: msg.data.documentId,
             },
           },
+          $set: {
+            "metadata.version": msg.version,
+          },
         },
         {
           arrayFilters: [
@@ -205,6 +214,7 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
           },
           $set: {
             "data.descriptors.$[descriptor].serverUrls": [],
+            "metadata.version": msg.version,
           },
         },
         {
@@ -226,8 +236,10 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
         await eservices.updateOne(
           { "data.id": msg.stream_id },
           {
-            $push: {
+            $set: {
               "metadata.version": msg.version,
+            },
+            $push: {
               "data.descriptors": msg.data.eServiceDescriptor
                 ? fromDescriptorV1(msg.data.eServiceDescriptor)
                 : undefined,
