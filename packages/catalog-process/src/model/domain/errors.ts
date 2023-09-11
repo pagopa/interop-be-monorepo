@@ -88,6 +88,15 @@ export class CatalogProcessError extends Error {
   }
 }
 
+export function eServiceDuplicate(
+  eServiceNameSeed: string
+): CatalogProcessError {
+  return new CatalogProcessError(
+    `Error during EService creation with name ${eServiceNameSeed}`,
+    ErrorTypes.DuplicateEserviceName
+  );
+}
+
 export function eServiceNotFound(eServiceId: string): CatalogProcessError {
   return new CatalogProcessError(
     `EService ${eServiceId} not found`,
@@ -115,6 +124,16 @@ export function eServiceCannotBeDeleted(
   return new CatalogProcessError(
     `EService ${eServiceId} contains descriptors and cannot be deleted`,
     ErrorTypes.EServiceCannotBeUpdatedOrDeleted
+  );
+}
+
+export function eServiceDescriptorNotFound(
+  eServiceId: string,
+  descriptorId: string
+): CatalogProcessError {
+  return new CatalogProcessError(
+    `Descriptor ${descriptorId} for EService ${eServiceId} not found`,
+    ErrorTypes.EServiceDescriptorNotFound
   );
 }
 
