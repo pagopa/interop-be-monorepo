@@ -326,7 +326,25 @@ describe("CatalogService", () => {
         descriptorId: mockEservice.descriptors[0].id,
         documentId: mockDocument.documentId,
         authData,
-        eService: addMetadata(mockEservice),
+        eService: addMetadata({
+          ...mockEservice,
+          descriptors: [
+            {
+              ...mockEservice.descriptors[0],
+              docs: [
+                {
+                  path: mockDocument.filePath,
+                  id: mockDocument.documentId,
+                  name: mockDocument.fileName,
+                  contentType: mockDocument.contentType,
+                  prettyName: mockDocument.prettyName,
+                  checksum: mockDocument.checksum,
+                  uploadDate: new Date(),
+                },
+              ],
+            },
+          ],
+        }),
         deleteRemoteFile: () => Promise.resolve(),
       });
       expect(event.event.type).toBe("EServiceDocumentDeleted");
@@ -402,7 +420,25 @@ describe("CatalogService", () => {
         documentId: mockDocument.documentId,
         apiEServiceDescriptorDocumentUpdateSeed: mockUpdateDocumentSeed,
         authData,
-        eService: addMetadata(mockEservice),
+        eService: addMetadata({
+          ...mockEservice,
+          descriptors: [
+            {
+              ...mockEservice.descriptors[0],
+              docs: [
+                {
+                  path: mockDocument.filePath,
+                  id: mockDocument.documentId,
+                  name: mockDocument.fileName,
+                  contentType: mockDocument.contentType,
+                  prettyName: mockDocument.prettyName,
+                  checksum: mockDocument.checksum,
+                  uploadDate: refDate,
+                },
+              ],
+            },
+          ],
+        }),
       });
       expect(event.event.type).toBe("EServiceDocumentUpdated");
       expect(event.event.data).toMatchObject({
