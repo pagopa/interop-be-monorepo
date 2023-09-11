@@ -5,11 +5,11 @@ import { handleMessage } from "./consumerService.js";
 import { config } from "./utilities/config.js";
 
 const kafka = new Kafka({
-  clientId: config.kafkaClientId || "my-app",
-  brokers: [config.kafkaBrokers || "localhost:9092"],
+  clientId: config.kafkaClientId,
+  brokers: [config.kafkaBrokers],
 });
 
-const consumer = kafka.consumer({ groupId: config.kafkaGroupId || "my-group" });
+const consumer = kafka.consumer({ groupId: config.kafkaGroupId });
 await consumer.connect();
 
 function exitGracefully(): void {

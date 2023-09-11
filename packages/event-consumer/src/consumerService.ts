@@ -21,7 +21,7 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
   await match(message)
     .with({ type: "EServiceAdded" }, async (msg) => {
       await eservices.insertOne({
-        data: msg.data,
+        data: msg.data.eService,
         metadata: {
           version: msg.version,
         },
@@ -31,7 +31,7 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
       { type: "ClonedEServiceAdded" },
       async (msg) =>
         await eservices.insertOne({
-          data: msg.data,
+          data: msg.data.eService,
           metadata: { version: msg.version },
         })
     )
