@@ -1,6 +1,7 @@
 import { match } from "ts-pattern";
-import { MongoClient } from "mongodb";
+import { Collection, MongoClient } from "mongodb";
 import { logger } from "pagopa-interop-commons";
+import { EService } from "pagopa-interop-models";
 import { EventEnvelope } from "./model/models.js";
 import { config } from "./utilities/config.js";
 import {
@@ -21,7 +22,10 @@ const mongoDBConectionURI = `mongodb://${username}:${password}@${host}:${port}`;
 const client = new MongoClient(mongoDBConectionURI);
 
 const db = client.db(database);
-const eservices = db.collection("eservices");
+const eservices: Collection<{
+  data: EService | undefined;
+  metadata: { version: number };
+}> = db.collection("eservices");
 
 export async function handleMessage(message: EventEnvelope): Promise<void> {
   logger.info(message);
@@ -156,7 +160,7 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
           {
             arrayFilters: [
               {
-                "descriptor.id": msg.data.document?.id,
+                "descriptor.id": msg.data.descriptorId,
               },
             ],
             ignoreUndefined: true,
@@ -168,6 +172,8 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
           {
             $set: {
               "metadata.version": msg.version,
+            },
+            $push: {
               "data.descriptors.$[descriptor].docs": msg.data.document
                 ? fromDocumentV1(msg.data.document)
                 : undefined,
@@ -176,7 +182,7 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
           {
             arrayFilters: [
               {
-                "descriptor.id": msg.data.document?.id,
+                "descriptor.id": msg.data.descriptorId,
               },
             ],
             ignoreUndefined: true,
@@ -189,7 +195,7 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
         { "data.id": msg.stream_id },
         {
           $pull: {
-            "data.descriptor.$[descriptor].docs": {
+            "data.descriptors.$[descriptor].docs": {
               id: msg.data.documentId,
             },
           },
@@ -220,9 +226,7 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
         {
           arrayFilters: [
             {
-              "descriptor.id": msg.data.documentId,
-            },
-            {
+              "descriptor.id": msg.data.descriptorId,
               "descriptor.interface.id": msg.data.documentId,
             },
           ],

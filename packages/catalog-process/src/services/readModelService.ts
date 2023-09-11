@@ -186,11 +186,6 @@ export const readModelService = {
 
     return undefined;
   },
-  async getEServiceDescriptorDocumentById(
-    _id: string
-  ): Promise<Document | undefined> {
-    return undefined;
-  },
   async getEServiceConsumers(
     eServiceId: string,
     offset: number,
