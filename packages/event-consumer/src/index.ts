@@ -1,23 +1,8 @@
-import { z } from "zod";
 import { Kafka, KafkaMessage } from "kafkajs";
-import { MongoClient } from "mongodb";
 import { logger } from "pagopa-interop-commons";
-import { EServiceAddedV1 } from "pagopa-interop-models";
+import { decodeKafkaMessage } from "./model/models.js";
+import { handleMessage } from "./consumerService.js";
 import { config } from "./utilities/config.js";
-
-const {
-  readModelDbUsername: username,
-  readModelDbPassword: password,
-  readModelDbHost: host,
-  readModelDbPort: port,
-  readModelDbName: database,
-} = config;
-
-const mongoDBConectionURI = `mongodb://${username}:${password}@${host}:${port}`;
-const client = new MongoClient(mongoDBConectionURI);
-
-const db = client.db(database);
-const eservices = db.collection("eservices");
 
 const kafka = new Kafka({
   clientId: config.kafkaClientId || "my-app",
@@ -41,48 +26,13 @@ await consumer.subscribe({
   topics: ["catalog.public.event"],
 });
 
-const Event = z.discriminatedUnion("type", [
-  z.object({
-    type: z.literal("EServiceAdded"),
-    data: z
-      .any()
-      .transform((v) => EServiceAddedV1.fromBinary(Buffer.from(v, "hex"))),
-  }),
-]);
-
-const EventEnvelope = z.intersection(
-  z.object({
-    sequence_num: z.number(),
-    stream_id: z.string().uuid(),
-    version: z.number(),
-  }),
-  Event
-);
-
-const DebeziumCreatePayload = z.object({
-  op: z.literal("c"),
-  after: EventEnvelope,
-});
-
-const Message = z.object({
-  value: z.preprocess(
-    (v) => (v != null ? JSON.parse(v.toString()) : null),
-    z.object({ payload: DebeziumCreatePayload })
-  ),
-});
-
 async function processMessage(message: KafkaMessage): Promise<void> {
-  const parsed = Message.safeParse(message);
-  if (parsed.success) {
-    await eservices.insertOne({
-      data: parsed.data.value.payload.after.data,
-      metadata: {
-        version: parsed.data.value.payload.after.version,
-      },
-    });
+  try {
+    await handleMessage(decodeKafkaMessage(message));
+
     logger.info("Read model was updated");
-  } else {
-    logger.error(parsed.error);
+  } catch (e) {
+    logger.error(e);
   }
 }
 

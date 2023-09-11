@@ -148,6 +148,9 @@ importers:
 
   packages/event-consumer:
     dependencies:
+      '@protobuf-ts/runtime':
+        specifier: ^2.9.1
+        version: 2.9.1
       connection-string:
         specifier: ^4.3.6
         version: 4.3.6
