@@ -5,10 +5,18 @@ import { logger } from "pagopa-interop-commons";
 import { EServiceAddedV1 } from "pagopa-interop-models";
 import { config } from "./utilities/config.js";
 
-const defaultMongoUri = "mongodb://root:example@localhost:27017";
-const client = new MongoClient(config.mongoUri || defaultMongoUri);
+const {
+  readModelDbUsername: username,
+  readModelDbPassword: password,
+  readModelDbHost: host,
+  readModelDbPort: port,
+  readModelDbName: database,
+} = config;
 
-const db = client.db("readmodel");
+const mongoDBConectionURI = `mongodb://${username}:${password}@${host}:${port}`;
+const client = new MongoClient(mongoDBConectionURI);
+
+const db = client.db(database);
 const eservices = db.collection("eservices");
 
 const kafka = new Kafka({

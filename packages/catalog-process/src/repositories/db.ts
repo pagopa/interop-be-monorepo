@@ -10,7 +10,18 @@ export type DB = IDatabase<unknown>;
 
 const pgp = pgPromise();
 
-const conData = new ConnectionString(config.dbURL);
+const {
+  eventStoreDbUsername: username,
+  eventStoreDbPassword: password,
+  eventStoreDbHost: host,
+  eventStoreDbPort: port,
+  eventStoreDbName: database,
+  eventStoreDbSchema: schema,
+} = config;
+
+const conData = new ConnectionString(
+  `postgresql://${username}:${password}@${host}:${port}/${database}?schema=${schema}`
+);
 
 export const dbConfig: IConnectionParameters<IClient> = {
   database: conData.path !== undefined ? conData.path[0] : "",
