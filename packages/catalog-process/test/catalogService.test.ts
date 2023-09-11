@@ -43,6 +43,7 @@ import {
 import {
   toAgreementApprovalPolicyV1,
   toDescriptorV1,
+  toEServiceAttributeV1,
   toEServiceDescriptorStateV1,
   toEServiceTechnologyV1,
   toEServiceV1,
@@ -567,7 +568,8 @@ describe("CatalogService", () => {
           attributes: {
             certified: mockEserviceDescriptorSeed.attributes.certified
               .map(apiAttributeToAttribute)
-              .filter((a): a is Attribute => a !== undefined),
+              .filter((a): a is Attribute => a !== undefined)
+              .map(toEServiceAttributeV1),
             declared: [],
             verified: [],
           },
