@@ -19,18 +19,18 @@ import { WithMetadata } from "../model/domain/models.js";
 import { CreateEvent } from "./EventRepository.js";
 
 export const toAgreementApprovalPolicyV1 = (
-  policy: AgreementApprovalPolicy | undefined
+  input: AgreementApprovalPolicy | undefined
 ): AgreementApprovalPolicyV1 =>
-  match(policy)
+  match(input)
     .with(P.nullish, () => AgreementApprovalPolicyV1.UNSPECIFIED$)
     .with("Manual", () => AgreementApprovalPolicyV1.MANUAL)
     .with("Automatic", () => AgreementApprovalPolicyV1.AUTOMATIC)
     .exhaustive();
 
 export const toEServiceDescriptorStateV1 = (
-  state: DescriptorState
+  input: DescriptorState
 ): EServiceDescriptorStateV1 =>
-  match(state)
+  match(input)
     .with("Draft", () => EServiceDescriptorStateV1.DRAFT)
     .with("Suspended", () => EServiceDescriptorStateV1.SUSPENDED)
     .with("Archived", () => EServiceDescriptorStateV1.ARCHIVED)
@@ -39,58 +39,56 @@ export const toEServiceDescriptorStateV1 = (
     .exhaustive();
 
 export const toEServiceTechnologyV1 = (
-  technology: Technology
+  input: Technology
 ): EServiceTechnologyV1 =>
-  match(technology)
+  match(input)
     .with("Rest", () => EServiceTechnologyV1.REST)
     .with("Soap", () => EServiceTechnologyV1.SOAP)
     .exhaustive();
 
-export const toEServiceAttributeV1 = (a: Attribute): EServiceAttributeV1 =>
-  match<Attribute, EServiceAttributeV1>(a)
+export const toEServiceAttributeV1 = (input: Attribute): EServiceAttributeV1 =>
+  match<Attribute, EServiceAttributeV1>(input)
     .with(
       {
         id: P.not(P.nullish),
       },
-      ({ id }) => ({ id, group: [] })
+      ({ id }) => ({ single: id, group: [] })
     )
     .with({ ids: P.not(P.nullish) }, ({ ids }) => ({
       group: ids,
     }))
     .exhaustive();
 
-export const toDocumentV1 = (doc: Document): EServiceDocumentV1 => ({
-  ...doc,
-  uploadDate: doc.uploadDate.toISOString(),
+export const toDocumentV1 = (input: Document): EServiceDocumentV1 => ({
+  ...input,
+  uploadDate: input.uploadDate.toISOString(),
 });
 
-export const toDescriptorV1 = (d: Descriptor): EServiceDescriptorV1 => ({
-  ...d,
-  attributes:
-    d.attributes != null
-      ? {
-          certified: d.attributes.certified.map(toEServiceAttributeV1),
-          declared: d.attributes.declared.map(toEServiceAttributeV1),
-          verified: d.attributes.verified.map(toEServiceAttributeV1),
-        }
-      : undefined,
-  docs: d.docs.map(toDocumentV1),
-  state: toEServiceDescriptorStateV1(d.state),
+export const toDescriptorV1 = (input: Descriptor): EServiceDescriptorV1 => ({
+  ...input,
+  attributes: {
+    certified: input.attributes.certified.map(toEServiceAttributeV1),
+    declared: input.attributes.declared.map(toEServiceAttributeV1),
+    verified: input.attributes.verified.map(toEServiceAttributeV1),
+  },
+  docs: input.docs.map(toDocumentV1),
+  state: toEServiceDescriptorStateV1(input.state),
   interface:
-    d.interface != null
-      ? {
-          ...d.interface,
-          uploadDate: d.interface.uploadDate.toISOString(),
-        }
-      : undefined,
+    input.interface != null ? toDocumentV1(input.interface) : undefined,
   agreementApprovalPolicy: toAgreementApprovalPolicyV1(
-    d.agreementApprovalPolicy
+    input.agreementApprovalPolicy
   ),
-  createdAt: BigInt(d.createdAt.getTime()),
-  publishedAt: d.publishedAt ? BigInt(d.publishedAt.getTime()) : undefined,
-  suspendedAt: d.suspendedAt ? BigInt(d.suspendedAt.getTime()) : undefined,
-  deprecatedAt: d.deprecatedAt ? BigInt(d.deprecatedAt.getTime()) : undefined,
-  archivedAt: d.archivedAt ? BigInt(d.archivedAt.getTime()) : undefined,
+  createdAt: BigInt(input.createdAt.getTime()),
+  publishedAt: input.publishedAt
+    ? BigInt(input.publishedAt.getTime())
+    : undefined,
+  suspendedAt: input.suspendedAt
+    ? BigInt(input.suspendedAt.getTime())
+    : undefined,
+  deprecatedAt: input.deprecatedAt
+    ? BigInt(input.deprecatedAt.getTime())
+    : undefined,
+  archivedAt: input.archivedAt ? BigInt(input.archivedAt.getTime()) : undefined,
 });
 
 export const toEServiceV1 = (eService: EService): EServiceV1 => ({
