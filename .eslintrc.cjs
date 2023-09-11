@@ -16,6 +16,11 @@ module.exports = {
     "sonarjs/no-duplicate-string": "off",
     "max-lines-per-function": "off",
     "@typescript-eslint/naming-convention": "off",
+    "@typescript-eslint/no-use-before-define": "off",
   },
-  ignorePatterns: [".eslintrc.cjs", "**/src/model/generated/*.ts"],
+  ignorePatterns: [
+    ".eslintrc.cjs",
+    "vitest.config.ts",
+    "**/src/model/generated/*.ts",
+  ],
 };
