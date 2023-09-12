@@ -66,12 +66,12 @@ spec:
                 configMapKeyRef:
                   name: interop-be-common-refactor
                   key: READMODEL_DB_PORT
-            - name: READ_MODEL_DB_USERNAME
+            - name: READMODEL_DB_USERNAME
               valueFrom:
                 secretKeyRef:
                   name: read-model
                   key: REFACTOR_USERNAME
-            - name: READ_MODEL_DB_PASSWORD
+            - name: READMODEL_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: read-model
