@@ -4,11 +4,7 @@ metadata:
   name: interop-be-refactor-catalog-process
   namespace: dev-refactor
 data:
-  READMODEL_DB_HOST: "interop-read-model-dev.cluster-c9zr6t2swdpb.eu-central-1.docdb.amazonaws.com"
-  READMODEL_DB_NAME: "read-model-refactor"
-  READMODEL_DB_PORT: 27017
   EVENTSTORE_DB_HOST: "interop-persistence-management-dev.cluster-c9zr6t2swdpb.eu-central-1.rds.amazonaws.com"
   EVENTSTORE_DB_NAME: "persistence_management_refactor"
   EVENTSTORE_DB_PORT: 6001
   MOCK_FILE_MANAGER: true
-  

@@ -31,6 +31,7 @@ spec:
             limits:
               cpu: 1.0
               memory: 2Gi
+          # TEMPORARY DISABLED - TO BE RE-ENABLED
           # livenessProbe:
           #   httpGet:
           #     path: /status
@@ -38,11 +39,11 @@ spec:
           #   initialDelaySeconds: 15
           #   periodSeconds: 5
           # readinessProbe:
-            httpGet:
-              path: /status
-              port: http
-            initialDelaySeconds: 15
-            periodSeconds: 5
+          #   httpGet:
+          #     path: /status
+          #     port: http
+          #   initialDelaySeconds: 15
+          #   periodSeconds: 5
           env:
             - name: HOST
               value: 0.0.0.0
@@ -50,21 +51,21 @@ spec:
               value: 3001
             - name: LOG_LEVEL
               value: info
-            - name: EVENTSTORE_DB_HOST
+            - name: READMODEL_DB_HOST
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-refactor-catalog-process
-                  key": EVENTSTORE_DB_HOST
-            - name: EVENTSTORE_DB_NAME
+                  name: interop-be-refactor-common-config
+                  key": READMODEL_DB_HOST
+            - name: READMODEL_DB_NAME
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-refactor-catalog-process
-                  key: EVENTSTORE_DB_NAME               
-            - name: EVENTSTORE_DB_PORT
+                  name: interop-be-refactor-common-config
+                  key: READMODEL_DB_NAME
+            - name: READMODEL_DB_PORT
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-refactor-catalog-process
-                  key: EVENTSTORE_DB_PORT           
+                  name: interop-be-refactor-common-config
+                  key: READMODEL_DB_PORT
             - name: KAFKA_CLIENT_ID
               valueFrom:
                 configMapKeyRef:

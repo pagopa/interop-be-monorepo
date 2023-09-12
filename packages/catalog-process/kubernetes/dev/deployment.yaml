@@ -73,15 +73,15 @@ spec:
             - name: READMODEL_DB_HOST
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-refactor-catalog-process
+                  name: interop-be-refactor-common-config
                   key: READMODEL_DB_HOST
             - name: READMODEL_DB_NAME
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-refactor-catalog-process
+                  name: interop-be-refactor-common-config
                   key: READMODEL_DB_NAME            
             - name: READMODEL_DB_PORT
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-refactor-catalog-process
+                  name: interop-be-refactor-common-config
                   key: READMODEL_DB_PORT
