@@ -55,7 +55,7 @@ spec:
               valueFrom:
                 configMapKeyRef:
                   name: interop-be-common-refactor
-                  key": READMODEL_DB_HOST
+                  key: READMODEL_DB_HOST
             - name: READMODEL_DB_NAME
               valueFrom:
                 configMapKeyRef:
