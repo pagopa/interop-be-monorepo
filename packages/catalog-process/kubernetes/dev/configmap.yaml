@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: interop-be-refactor-catalog-process
+  name: interop-be-catalog-process-refactor
   namespace: dev-refactor
 data:
   MOCK_FILE_MANAGER: true

@@ -53,22 +53,22 @@ spec:
             - name: MOCK_FILE_MANAGER
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-refactor-catalog-process
+                  name: interop-be-catalog-process-refactor
                   key: MOCK_FILE_MANAGER
             - name: EVENTSTORE_DB_HOST
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-refactor-common
+                  name: interop-be-common-refactor
                   key": EVENTSTORE_DB_HOST
             - name: EVENTSTORE_DB_NAME
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-refactor-common
+                  name: interop-be-common-refactor
                   key: EVENTSTORE_DB_NAME
             - name: EVENTSTORE_DB_PORT
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-refactor-common
+                  name: interop-be-common-refactor
                   key: EVENTSTORE_DB_PORT
             - name: EVENTSTORE_DB_USERNAME
               valueFrom:
@@ -83,17 +83,17 @@ spec:
             - name: READMODEL_DB_HOST
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-refactor-common
+                  name: interop-be-common-refactor
                   key: READMODEL_DB_HOST
             - name: READMODEL_DB_NAME
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-refactor-common
+                  name: interop-be-common-refactor
                   key: READMODEL_DB_NAME
             - name: READMODEL_DB_PORT
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-refactor-common
+                  name: interop-be-common-refactor
                   key: READMODEL_DB_PORT
             - name: READ_MODEL_DB_USERNAME
               valueFrom:

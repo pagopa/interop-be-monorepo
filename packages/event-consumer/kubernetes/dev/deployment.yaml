@@ -54,17 +54,17 @@ spec:
             - name: READMODEL_DB_HOST
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-refactor-common
+                  name: interop-be-common-refactor
                   key": READMODEL_DB_HOST
             - name: READMODEL_DB_NAME
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-refactor-common
+                  name: interop-be-common-refactor
                   key: READMODEL_DB_NAME
             - name: READMODEL_DB_PORT
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-refactor-common
+                  name: interop-be-common-refactor
                   key: READMODEL_DB_PORT
             - name: READ_MODEL_DB_USERNAME
               valueFrom:
@@ -79,15 +79,15 @@ spec:
             - name: KAFKA_CLIENT_ID
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-refactor-catalog-consumer
+                  name: interop-be-catalog-consumer-refactor
                   key: KAFKA_CLIENT_ID
             - name: KAFKA_GROUP_ID
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-refactor-catalog-consumer
+                  name: interop-be-catalog-consumer-refactor
                   key: KAFKA_GROUP_ID
             - name: KAFKA_BROKERS
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-refactor-common
+                  name: interop-be-catalog-consumer-refactor
                   key: KAFKA_BROKERS
