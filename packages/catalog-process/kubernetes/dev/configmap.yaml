@@ -4,4 +4,4 @@ metadata:
   name: interop-be-catalog-process-refactor
   namespace: dev-refactor
 data:
-  MOCK_FILE_MANAGER: true
+  MOCK_FILE_MANAGER: "true"
