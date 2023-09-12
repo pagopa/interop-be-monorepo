@@ -66,6 +66,16 @@ spec:
                 configMapKeyRef:
                   name: interop-be-refactor-common
                   key: READMODEL_DB_PORT
+            - name: READ_MODEL_DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: read-model
+                  key: REFACTOR_USERNAME
+            - name: READ_MODEL_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: read-model
+                  key: REFACTOR_USER_PASSWORD
             - name: KAFKA_CLIENT_ID
               valueFrom:
                 configMapKeyRef:
