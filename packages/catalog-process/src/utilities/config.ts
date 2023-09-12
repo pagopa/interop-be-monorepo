@@ -1,12 +1,9 @@
-import * as dotenvFlow from "dotenv-flow";
 import { z } from "zod";
 import {
   config as commonsConfig,
   Config as CommonConfig,
 } from "pagopa-interop-commons";
 import { APIEndpoint } from "../model/apiEndpoint.js";
-
-dotenvFlow.config();
 
 const FileManagerConfig = z
   .discriminatedUnion("MOCK_FILE_MANAGER", [
