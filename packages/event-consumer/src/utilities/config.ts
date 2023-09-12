@@ -5,10 +5,18 @@ dotenvFlow.config();
 
 const MongoConfig = z
   .object({
-    MONGO_URI: z.string(),
+    READMODEL_DB_HOST: z.string(),
+    READMODEL_DB_NAME: z.string(),
+    READMODEL_DB_USERNAME: z.string(),
+    READMODEL_DB_PASSWORD: z.string(),
+    READMODEL_DB_PORT: z.coerce.number().min(1001),
   })
   .transform((c) => ({
-    mongoUri: c.MONGO_URI,
+    readModelDbHost: c.READMODEL_DB_HOST,
+    readModelDbName: c.READMODEL_DB_NAME,
+    readModelDbUsername: c.READMODEL_DB_USERNAME,
+    readModelDbPassword: c.READMODEL_DB_PASSWORD,
+    readModelDbPort: c.READMODEL_DB_PORT,
   }));
 export type MongoConfig = z.infer<typeof MongoConfig>;
 

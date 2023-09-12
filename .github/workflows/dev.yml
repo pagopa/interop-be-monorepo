@@ -3,7 +3,7 @@ name: "Build & Deploy DEV"
 on:
   push:
     branches:
-      - 'main'      
+      - 'main'
     paths:
       - 'packages/**'
       - '!packages/*/scripts/**'
@@ -12,20 +12,24 @@ env:
   REGISTRY: ghcr.io
 
 jobs:
-  build_image:
-    name: Build ${{ matrix.image_name }}
+  build_deploy_image:
+    name: Build & Deploy ${{ matrix.image_name }}
     runs-on: ubuntu-latest
+    environment: dev
     permissions:
       contents: read
       packages: write
+      id-token: write
     strategy:
       fail-fast: false
       matrix:
         include:
           - image_name: catalog-process
             dockerfile_path: packages/catalog-process
+            k8s_path: packages/catalog-process/kubernetes/dev
           - image_name: event-consumer
             dockerfile_path: packages/event-consumer
+            k8s_path: packages/event-consumer/kubernetes/dev
 
     steps:
       - name: Checkout repository
@@ -60,3 +64,43 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+         aws-region: ${{ vars.AWS_REGION }}
+         role-to-assume: ${{ vars.IAM_ROLE_ARN }}
+         role-session-name: interop-be-monorepo-${{ github.run_number }}
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: ${{ vars.KUBECTL_VERSION}}
+
+      - name: Set kubeconfig
+        run: |
+          aws eks update-kubeconfig --region ${{ vars.AWS_REGION }} --name ${{ vars.EKS_CLUSTER_NAME }}
+
+      - name: Inject image digest
+        working-directory: ${{ matrix.k8s_path }}
+        run: |
+          set -euo pipefail
+
+          export IMAGE_DIGEST="${{ steps.build_push.outputs.digest }}"
+          envsubst '$IMAGE_DIGEST' < deployment.yaml > deployment_injected.yaml
+          mv deployment_injected.yaml deployment.yaml
+
+      - name: Kubectl apply commons
+        working-directory: kubernetes/common/dev
+        run: |
+          kubectl apply --namespace="${{ vars.NAMESPACE }}" -f .
+
+      - name: Kubectl apply ${{ matrix.image_name }}
+        working-directory: ${{ matrix.k8s_path }}
+        run: |
+          kubectl apply --namespace="${{ vars.NAMESPACE }}" -f .
+
+      - name: Wait for readiness
+        run: |
+          APP="interop-be-${{ matrix.image_name }}-refactor"
+          kubectl wait --for condition=Ready pod -l app="$APP" --namespace="${{ vars.NAMESPACE }}" --timeout=300s
