@@ -1,10 +1,13 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: interop-be-refactor-common-config
+  name: interop-be-refactor-common
   namespace: dev-refactor
 data:
   READMODEL_DB_HOST: "interop-read-model-dev.cluster-c9zr6t2swdpb.eu-central-1.docdb.amazonaws.com"
   READMODEL_DB_NAME: "read-model-refactor"
-  READMODEL_DB_PORT: 27017
-  
+  READMODEL_DB_PORT: "27017"
+  EVENTSTORE_DB_HOST: "interop-persistence-management-dev.cluster-c9zr6t2swdpb.eu-central-1.rds.amazonaws.com"
+  EVENTSTORE_DB_PORT: "5432"
+  EVENTSTORE_DB_NAME: "persistence_management_refactor"
+  KAFKA_BROKERS: "boot-yqksbq44.c3.kafka-serverless.eu-central-1.amazonaws.com:9098"

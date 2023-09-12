@@ -58,30 +58,30 @@ spec:
             - name: EVENTSTORE_DB_HOST
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-refactor-catalog-process
+                  name: interop-be-refactor-common
                   key": EVENTSTORE_DB_HOST
             - name: EVENTSTORE_DB_NAME
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-refactor-catalog-process
+                  name: interop-be-refactor-common
                   key: EVENTSTORE_DB_NAME
             - name: EVENTSTORE_DB_PORT
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-refactor-catalog-process
+                  name: interop-be-refactor-common
                   key: EVENTSTORE_DB_PORT
             - name: READMODEL_DB_HOST
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-refactor-common-config
+                  name: interop-be-refactor-common
                   key: READMODEL_DB_HOST
             - name: READMODEL_DB_NAME
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-refactor-common-config
+                  name: interop-be-refactor-common
                   key: READMODEL_DB_NAME
             - name: READMODEL_DB_PORT
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-refactor-common-config
+                  name: interop-be-refactor-common
                   key: READMODEL_DB_PORT

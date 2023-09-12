@@ -4,7 +4,4 @@ metadata:
   name: interop-be-refactor-catalog-process
   namespace: dev-refactor
 data:
-  EVENTSTORE_DB_HOST: "interop-persistence-management-dev.cluster-c9zr6t2swdpb.eu-central-1.rds.amazonaws.com"
-  EVENTSTORE_DB_NAME: "persistence_management_refactor"
-  EVENTSTORE_DB_PORT: 6001
   MOCK_FILE_MANAGER: true
