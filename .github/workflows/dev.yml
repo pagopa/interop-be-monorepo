@@ -93,9 +93,14 @@ jobs:
       - name: Kubectl apply commons
         working-directory: kubernetes/common/dev
         run: |
-          kubectl apply -f .
+          kubectl apply --namespace="${{ vars.NAMESPACE }}" -f .
 
       - name: Kubectl apply ${{ matrix.image_name }}
         working-directory: ${{ matrix.k8s_path }}
         run: |
-          kubectl apply -f .
+          kubectl apply --namespace="${{ vars.NAMESPACE }}" -f .
+
+      - name: Wait for readiness
+        run: |
+          APP="interop-be-${{ matrix.image_name }}-refactor"
+          kubectl wait --for condition=Ready pod -l app="$APP" --namespace="${{ vars.NAMESPACE }}" --timeout=300s
