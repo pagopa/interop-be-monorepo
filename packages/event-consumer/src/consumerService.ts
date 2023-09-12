@@ -25,36 +25,28 @@ const db = client.db(database);
 const eservices: Collection<{
   data: EService | undefined;
   metadata: { version: number };
-}> = db.collection("eservices");
+}> = db.collection("eservices", { ignoreUndefined: true });
 
 export async function handleMessage(message: EventEnvelope): Promise<void> {
   logger.info(message);
   await match(message)
     .with({ type: "EServiceAdded" }, async (msg) => {
-      await eservices.insertOne(
-        {
-          data: msg.data.eService
-            ? fromEServiceV1(msg.data.eService)
-            : undefined,
-          metadata: {
-            version: msg.version,
-          },
+      await eservices.insertOne({
+        data: msg.data.eService ? fromEServiceV1(msg.data.eService) : undefined,
+        metadata: {
+          version: msg.version,
         },
-        { ignoreUndefined: true }
-      );
+      });
     })
     .with(
       { type: "ClonedEServiceAdded" },
       async (msg) =>
-        await eservices.insertOne(
-          {
-            data: msg.data.eService
-              ? fromEServiceV1(msg.data.eService)
-              : undefined,
-            metadata: { version: msg.version },
-          },
-          { ignoreUndefined: true }
-        )
+        await eservices.insertOne({
+          data: msg.data.eService
+            ? fromEServiceV1(msg.data.eService)
+            : undefined,
+          metadata: { version: msg.version },
+        })
     )
     .with(
       { type: "EServiceUpdated" },
@@ -70,8 +62,7 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
                 version: msg.version,
               },
             },
-          },
-          { ignoreUndefined: true }
+          }
         )
     )
     .with(
@@ -88,8 +79,7 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
             $set: {
               "metadata.version": msg.version,
             },
-          },
-          { ignoreUndefined: true }
+          }
         )
     )
     .with({ type: "EServiceDocumentUpdated" }, async (msg) => {
@@ -108,8 +98,6 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
           arrayFilters: [
             {
               "descriptor.id": msg.data.descriptorId,
-            },
-            {
               "doc.id": msg.data.documentId,
             },
           ],
@@ -117,7 +105,9 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
         }
       );
       await eservices.updateOne(
-        { "data.id": msg.stream_id },
+        {
+          "data.id": msg.stream_id,
+        },
         {
           $set: {
             "data.descriptors.$[descriptor].interface": msg.data.updatedDocument
@@ -131,9 +121,10 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
           arrayFilters: [
             {
               "descriptor.id": msg.data.descriptorId,
-            },
-            {
-              "descriptor.interface.id": msg.data.documentId,
+              $or: [
+                { "descriptor.interface": { $exists: true } },
+                { "descriptor.interface.id": msg.data.documentId },
+              ],
             },
           ],
           ignoreUndefined: true,
@@ -248,8 +239,7 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
                 ? fromDescriptorV1(msg.data.eServiceDescriptor)
                 : undefined,
             },
-          },
-          { ignoreUndefined: true }
+          }
         )
     )
     .with(
@@ -287,8 +277,7 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
                 ? fromEServiceV1(msg.data.eService)
                 : undefined,
             },
-          },
-          { ignoreUndefined: true }
+          }
         )
     )
     .exhaustive();
