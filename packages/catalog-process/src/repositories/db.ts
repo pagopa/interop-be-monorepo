@@ -16,11 +16,10 @@ const {
   eventStoreDbHost: host,
   eventStoreDbPort: port,
   eventStoreDbName: database,
-  eventStoreDbSchema: schema,
 } = config;
 
 const conData = new ConnectionString(
-  `postgresql://${username}:${password}@${host}:${port}/${database}?schema=${schema}`
+  `postgresql://${username}:${password}@${host}:${port}/${database}`
 );
 
 export const dbConfig: IConnectionParameters<IClient> = {
