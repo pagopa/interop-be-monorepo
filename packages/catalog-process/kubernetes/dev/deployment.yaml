@@ -59,7 +59,7 @@ spec:
               valueFrom:
                 configMapKeyRef:
                   name: interop-be-common-refactor
-                  key": EVENTSTORE_DB_HOST
+                  key: EVENTSTORE_DB_HOST
             - name: EVENTSTORE_DB_NAME
               valueFrom:
                 configMapKeyRef:
