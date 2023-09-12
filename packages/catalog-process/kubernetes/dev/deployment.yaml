@@ -64,12 +64,12 @@ spec:
               valueFrom:
                 configMapKeyRef:
                   name: interop-be-refactor-catalog-process
-                  key: EVENTSTORE_DB_NAME               
+                  key: EVENTSTORE_DB_NAME
             - name: EVENTSTORE_DB_PORT
               valueFrom:
                 configMapKeyRef:
                   name: interop-be-refactor-catalog-process
-                  key: EVENTSTORE_DB_PORT           
+                  key: EVENTSTORE_DB_PORT
             - name: READMODEL_DB_HOST
               valueFrom:
                 configMapKeyRef:
@@ -79,7 +79,7 @@ spec:
               valueFrom:
                 configMapKeyRef:
                   name: interop-be-refactor-common-config
-                  key: READMODEL_DB_NAME            
+                  key: READMODEL_DB_NAME
             - name: READMODEL_DB_PORT
               valueFrom:
                 configMapKeyRef:

@@ -91,7 +91,7 @@ jobs:
           mv deployment_injected.yaml deployment.yaml
 
       - name: Kubectl apply commons
-        working-directory: packages/commons/kubernetes/dev
+        working-directory: kubernetes/common/dev
         run: |
           kubectl apply -f .
 
