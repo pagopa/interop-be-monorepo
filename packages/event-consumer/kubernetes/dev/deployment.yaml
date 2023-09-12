@@ -17,32 +17,66 @@ spec:
     spec:
       serviceAccountName: interop-be-event-consumer-refactor
       containers:
-      - name: interop-be-event-consumer-refactor
-        image: ghcr.io/pagopa/event-consumer@$IMAGE_DIGEST
-        imagePullPolicy: Always
-        ports:
-          - name: http
-            containerPort: 3000
-            protocol: TCP
-        resources:
-          requests:
-            cpu: 1.0
-            memory: 2Gi
-          limits:
-            cpu: 1.0
-            memory: 2Gi
-        livenessProbe:
-          httpGet:
-            path: /status
-            port: http
-          initialDelaySeconds: 15
-          periodSeconds: 5
-        readinessProbe:
-          httpGet:
-            path: /status
-            port: http
-          initialDelaySeconds: 15
-          periodSeconds: 5
-        env:
-          - name: FOO
-            value: BAR
+        - name: interop-be-event-consumer-refactor
+          image: ghcr.io/pagopa/event-consumer@$IMAGE_DIGEST
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          resources:
+            requests:
+              cpu: 1.0
+              memory: 2Gi
+            limits:
+              cpu: 1.0
+              memory: 2Gi
+          # livenessProbe:
+          #   httpGet:
+          #     path: /status
+          #     port: http
+          #   initialDelaySeconds: 15
+          #   periodSeconds: 5
+          # readinessProbe:
+            httpGet:
+              path: /status
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 5
+          env:
+            - name: HOST
+              value: 0.0.0.0
+            - name: PORT
+              value: 3001
+            - name: LOG_LEVEL
+              value: info
+            - name: EVENTSTORE_DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: interop-be-refactor-catalog-process
+                  key": EVENTSTORE_DB_HOST
+            - name: EVENTSTORE_DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: interop-be-refactor-catalog-process
+                  key: EVENTSTORE_DB_NAME               
+            - name: EVENTSTORE_DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: interop-be-refactor-catalog-process
+                  key: EVENTSTORE_DB_PORT           
+            - name: KAFKA_CLIENT_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: interop-be-refactor-catalog-consumer
+                  key: KAFKA_CLIENT_ID
+            - name: KAFKA_GROUP_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: interop-be-refactor-catalog-consumer
+                  key: KAFKA_GROUP_ID
+            - name: KAFKA_BROKERS
+              valueFrom:
+                configMapKeyRef:
+                  name: interop-be-refactor-catalog-consumer
+                  key: KAFKA_BROKERS
