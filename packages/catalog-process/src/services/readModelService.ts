@@ -21,9 +21,18 @@ import {
 } from "../model/domain/models.js";
 import { config } from "../utilities/config.js";
 
-const client = new MongoClient(config.mongoUri);
+const {
+  readModelDbUsername: username,
+  readModelDbPassword: password,
+  readModelDbHost: host,
+  readModelDbPort: port,
+  readModelDbName: database,
+} = config;
 
-const db = client.db("readmodel");
+const mongoDBConectionURI = `mongodb://${username}:${password}@${host}:${port}`;
+const client = new MongoClient(mongoDBConectionURI);
+
+const db = client.db(database);
 const eServices = db.collection("eservices");
 const agreements = db.collection("agreements");
 

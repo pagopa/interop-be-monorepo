@@ -50,16 +50,32 @@ const RequiredConfig = z
   .object({
     HOST: APIEndpoint,
     PORT: z.coerce.number().min(1001),
-    POSTGRESQL_URI: z.string(),
     MOCK_FILE_MANAGER: z.coerce.boolean().default(false),
-    MONGO_URI: z.string(),
+    EVENTSTORE_DB_HOST: z.string(),
+    EVENTSTORE_DB_NAME: z.string(),
+    EVENTSTORE_DB_USERNAME: z.string(),
+    EVENTSTORE_DB_PASSWORD: z.string(),
+    EVENTSTORE_DB_PORT: z.coerce.number().min(1001),
+    READMODEL_DB_HOST: z.string(),
+    READMODEL_DB_NAME: z.string(),
+    READMODEL_DB_USERNAME: z.string(),
+    READMODEL_DB_PASSWORD: z.string(),
+    READMODEL_DB_PORT: z.coerce.number().min(1001),
   })
   .transform((c) => ({
     host: c.HOST,
     port: c.PORT,
-    dbURL: c.POSTGRESQL_URI,
     mockFileManager: c.MOCK_FILE_MANAGER,
-    mongoUri: c.MONGO_URI,
+    eventStoreDbHost: c.EVENTSTORE_DB_HOST,
+    eventStoreDbName: c.EVENTSTORE_DB_NAME,
+    eventStoreDbUsername: c.EVENTSTORE_DB_USERNAME,
+    eventStoreDbPassword: c.EVENTSTORE_DB_PASSWORD,
+    eventStoreDbPort: c.EVENTSTORE_DB_PORT,
+    readModelDbHost: c.READMODEL_DB_HOST,
+    readModelDbName: c.READMODEL_DB_NAME,
+    readModelDbUsername: c.READMODEL_DB_USERNAME,
+    readModelDbPassword: c.READMODEL_DB_PASSWORD,
+    readModelDbPort: c.READMODEL_DB_PORT,
   }));
 
 export const Config = RequiredConfig.and(FileManagerConfig);
