@@ -16,4 +16,7 @@
 .git
 .gitignore
 .DS_Store
-*.md  
+*.md
+**/kubernetes
+**/test
+Dockerfile
