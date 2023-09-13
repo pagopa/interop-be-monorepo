@@ -101,7 +101,6 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
               "doc.id": msg.data.documentId,
             },
           ],
-          ignoreUndefined: true,
         }
       );
       await eservices.updateOne(
@@ -127,7 +126,6 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
               ],
             },
           ],
-          ignoreUndefined: true,
         }
       );
     })
@@ -154,7 +152,6 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
                 "descriptor.id": msg.data.descriptorId,
               },
             ],
-            ignoreUndefined: true,
           }
         );
       } else {
@@ -176,7 +173,6 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
                 "descriptor.id": msg.data.descriptorId,
               },
             ],
-            ignoreUndefined: true,
           }
         );
       }
@@ -200,7 +196,6 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
               "descriptor.id": msg.data.descriptorId,
             },
           ],
-          ignoreUndefined: true,
         }
       );
       await eservices.updateOne(
@@ -221,7 +216,6 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
               "descriptor.interface.id": msg.data.documentId,
             },
           ],
-          ignoreUndefined: true,
         }
       );
     })
@@ -261,7 +255,6 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
                 "descriptor.id": msg.data.eServiceDescriptor?.id,
               },
             ],
-            ignoreUndefined: true,
           }
         )
     )
