@@ -260,7 +260,6 @@ export const catalogService = {
         documentId,
         authData,
         eService,
-        getDocument: readModelService.getEServiceDescriptorDocumentById,
         deleteRemoteFile: fileManager.deleteFile,
       })
     );
@@ -283,7 +282,6 @@ export const catalogService = {
         apiEServiceDescriptorDocumentUpdateSeed,
         authData,
         eService,
-        getDocument: readModelService.getEServiceDescriptorDocumentById,
       })
     );
   },
@@ -596,7 +594,6 @@ export async function deleteDocumentLogic({
   documentId,
   authData,
   eService,
-  getDocument,
   deleteRemoteFile,
 }: {
   eServiceId: string;
@@ -604,13 +601,18 @@ export async function deleteDocumentLogic({
   documentId: string;
   authData: AuthData;
   eService: WithMetadata<EService> | undefined;
-  getDocument: (documentId: string) => Promise<Document | undefined>;
   deleteRemoteFile: (path: string) => Promise<void>;
 }): Promise<CreateEvent> {
   assertEServiceExist(eServiceId, eService);
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
 
-  const document = await getDocument(documentId);
+  const descriptor = eService.data.descriptors.find(
+    (d: Descriptor) => d.id === descriptorId
+  );
+
+  const document = (
+    descriptor ? [...descriptor.docs, descriptor.interface] : []
+  ).find((doc) => doc != null && doc.id === documentId);
   if (document === undefined) {
     throw eServiceDocumentNotFound(eServiceId, descriptorId, documentId);
   }
@@ -632,7 +634,6 @@ export async function updateDocumentLogic({
   apiEServiceDescriptorDocumentUpdateSeed,
   authData,
   eService,
-  getDocument,
 }: {
   eServiceId: string;
   descriptorId: string;
@@ -640,7 +641,6 @@ export async function updateDocumentLogic({
   apiEServiceDescriptorDocumentUpdateSeed: ApiEServiceDescriptorDocumentUpdateSeed;
   authData: AuthData;
   eService: WithMetadata<EService> | undefined;
-  getDocument: (documentId: string) => Promise<Document | undefined>;
 }): Promise<CreateEvent> {
   assertEServiceExist(eServiceId, eService);
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
@@ -652,7 +652,9 @@ export async function updateDocumentLogic({
     throw eServiceDescriptorNotFound(eServiceId, descriptorId);
   }
 
-  const document = await getDocument(documentId);
+  const document = (
+    descriptor ? [...descriptor.docs, descriptor.interface] : []
+  ).find((doc) => doc != null && doc.id === documentId);
 
   if (document === undefined) {
     throw eServiceDocumentNotFound(eServiceId, descriptorId, documentId);

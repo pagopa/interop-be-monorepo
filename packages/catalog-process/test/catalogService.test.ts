@@ -326,17 +326,25 @@ describe("CatalogService", () => {
         descriptorId: mockEservice.descriptors[0].id,
         documentId: mockDocument.documentId,
         authData,
-        eService: addMetadata(mockEservice),
-        getDocument: () =>
-          Promise.resolve({
-            id: mockDocument.documentId,
-            name: mockDocument.fileName,
-            contentType: mockDocument.contentType,
-            prettyName: mockDocument.prettyName,
-            path: mockDocument.filePath,
-            checksum: mockDocument.checksum,
-            uploadDate: new Date(),
-          }),
+        eService: addMetadata({
+          ...mockEservice,
+          descriptors: [
+            {
+              ...mockEservice.descriptors[0],
+              docs: [
+                {
+                  path: mockDocument.filePath,
+                  id: mockDocument.documentId,
+                  name: mockDocument.fileName,
+                  contentType: mockDocument.contentType,
+                  prettyName: mockDocument.prettyName,
+                  checksum: mockDocument.checksum,
+                  uploadDate: new Date(),
+                },
+              ],
+            },
+          ],
+        }),
         deleteRemoteFile: () => Promise.resolve(),
       });
       expect(event.event.type).toBe("EServiceDocumentDeleted");
@@ -356,7 +364,6 @@ describe("CatalogService", () => {
           documentId,
           authData,
           eService: addMetadata(mockEservice),
-          getDocument: () => Promise.resolve(undefined),
           deleteRemoteFile: () => Promise.resolve(),
         })
       ).rejects.toThrowError(
@@ -382,7 +389,6 @@ describe("CatalogService", () => {
             ...mockEservice,
             producerId: "some-org-id",
           }),
-          getDocument: () => Promise.resolve(undefined),
           deleteRemoteFile: () => Promise.resolve(),
         })
       ).rejects.toThrowError(operationForbidden);
@@ -400,7 +406,6 @@ describe("CatalogService", () => {
             organizationId: "organizationId",
           },
           eService: undefined,
-          getDocument: () => Promise.resolve(undefined),
           deleteRemoteFile: () => Promise.resolve(),
         })
       ).rejects.toThrowError(eServiceNotFound(eServiceId));
@@ -415,17 +420,25 @@ describe("CatalogService", () => {
         documentId: mockDocument.documentId,
         apiEServiceDescriptorDocumentUpdateSeed: mockUpdateDocumentSeed,
         authData,
-        eService: addMetadata(mockEservice),
-        getDocument: () =>
-          Promise.resolve({
-            id: mockDocument.documentId,
-            name: mockDocument.fileName,
-            contentType: mockDocument.contentType,
-            prettyName: mockDocument.prettyName,
-            path: mockDocument.filePath,
-            checksum: mockDocument.checksum,
-            uploadDate: refDate,
-          }),
+        eService: addMetadata({
+          ...mockEservice,
+          descriptors: [
+            {
+              ...mockEservice.descriptors[0],
+              docs: [
+                {
+                  path: mockDocument.filePath,
+                  id: mockDocument.documentId,
+                  name: mockDocument.fileName,
+                  contentType: mockDocument.contentType,
+                  prettyName: mockDocument.prettyName,
+                  checksum: mockDocument.checksum,
+                  uploadDate: refDate,
+                },
+              ],
+            },
+          ],
+        }),
       });
       expect(event.event.type).toBe("EServiceDocumentUpdated");
       expect(event.event.data).toMatchObject({
@@ -455,7 +468,6 @@ describe("CatalogService", () => {
           apiEServiceDescriptorDocumentUpdateSeed: mockUpdateDocumentSeed,
           authData,
           eService: addMetadata(mockEservice),
-          getDocument: () => Promise.resolve(undefined),
         })
       ).rejects.toThrowError(
         eServiceDescriptorNotFound(mockEservice.id, descriptorId)
@@ -472,7 +484,6 @@ describe("CatalogService", () => {
           apiEServiceDescriptorDocumentUpdateSeed: mockUpdateDocumentSeed,
           authData,
           eService: addMetadata(mockEservice),
-          getDocument: () => Promise.resolve(undefined),
         })
       ).rejects.toThrowError(
         eServiceDocumentNotFound(
@@ -498,7 +509,6 @@ describe("CatalogService", () => {
             ...mockEservice,
             producerId: "some-org-id",
           }),
-          getDocument: () => Promise.resolve(undefined),
         })
       ).rejects.toThrowError(operationForbidden);
     });
@@ -516,7 +526,6 @@ describe("CatalogService", () => {
             organizationId: "organizationId",
           },
           eService: undefined,
-          getDocument: () => Promise.resolve(undefined),
         })
       ).rejects.toThrowError(eServiceNotFound(eServiceId));
     });
