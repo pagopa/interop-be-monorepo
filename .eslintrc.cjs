@@ -2,7 +2,7 @@ module.exports = {
   extends: ["@pagopa/eslint-config/strong"],
   parserOptions: {
     tsconfigRootDir: __dirname,
-    project: ["./packages/*/tsconfig.json"],
+    project: ["./packages/*/tsconfig.json", "./packages/*/test/tsconfig.json"],
   },
   rules: {
     // Any project level custom rule
