@@ -103,4 +103,4 @@ jobs:
       - name: Wait for readiness
         run: |
           APP="interop-be-${{ matrix.image_name }}-refactor"
-          kubectl wait --for condition=Ready pod -l app="$APP" --namespace="${{ vars.NAMESPACE }}" --timeout=300s
+          kubectl wait "deployments/$APP" --for=condition=Available --timeout=300s --namespace="${{ vars.NAMESPACE }}"
