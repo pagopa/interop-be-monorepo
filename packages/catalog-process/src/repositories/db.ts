@@ -27,7 +27,9 @@ export const dbConfig: IConnectionParameters<IClient> = {
   host: conData.hostname,
   password: conData.password,
   port: conData.port,
-  ssl: false,
+  ssl: {
+    rejectUnauthorized: false,
+  },
   user: conData.user,
 };
 
