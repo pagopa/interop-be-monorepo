@@ -1,3 +1,5 @@
+import "dotenv-flow/config.js";
+
 import { describe, expect, it } from "vitest";
 import { generateMock } from "@anatine/zod-mock";
 import {
