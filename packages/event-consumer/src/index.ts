@@ -1,3 +1,5 @@
+import "dotenv-flow/config.js";
+
 import { Kafka, KafkaMessage } from "kafkajs";
 import { logger } from "pagopa-interop-commons";
 import { decodeKafkaMessage } from "./model/models.js";

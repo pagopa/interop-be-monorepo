@@ -1,7 +1,4 @@
-import * as dotenvFlow from "dotenv-flow";
 import { z } from "zod";
-
-dotenvFlow.config();
 
 const Config = z
   .object({
