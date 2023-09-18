@@ -20,6 +20,7 @@ import {
   emptyListResult,
 } from "../model/domain/models.js";
 import { config } from "../utilities/config.js";
+import { ErrorTypes } from "../model/domain/errors.js";
 
 const {
   readModelDbUsername: username,
@@ -58,7 +59,7 @@ async function getTotalCount(
       result
     )} - data ${JSON.stringify(data)} `
   );
-  return 0;
+  throw ErrorTypes.GenericError;
 }
 
 export const readModelService = {
@@ -142,7 +143,7 @@ export const readModelService = {
         )} - data ${JSON.stringify(data)} `
       );
 
-      return emptyListResult;
+      throw ErrorTypes.GenericError;
     }
 
     return {
@@ -175,7 +176,7 @@ export const readModelService = {
           )} - data ${JSON.stringify(data)} `
         );
 
-        return undefined;
+        throw ErrorTypes.GenericError;
       }
 
       return {
@@ -286,7 +287,7 @@ export const readModelService = {
         )} - data ${JSON.stringify(data)} `
       );
 
-      return emptyListResult;
+      throw ErrorTypes.GenericError;
     }
 
     return {
@@ -348,7 +349,7 @@ export const readModelService = {
         )} - data ${JSON.stringify(data)} `
       );
 
-      return [];
+      throw ErrorTypes.GenericError;
     }
 
     return result.data;
