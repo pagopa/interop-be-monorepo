@@ -990,7 +990,7 @@ describe("CatalogService", () => {
           ...toDescriptorV1(deprecatedDescriptor),
           state: toEServiceDescriptorStateV1("Suspended"),
           suspendedAt: (
-            event1.event.data as { eServiceDescriptor: { suspendedAt: Date } }
+            event2.event.data as { eServiceDescriptor: { suspendedAt: Date } }
           ).eServiceDescriptor.suspendedAt,
         },
       });
