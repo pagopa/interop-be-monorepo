@@ -48,38 +48,46 @@ export const readAuthDataFromJwtToken = (
   }
 };
 
-const clients = config.wellKnownUrls.map((url) =>
-  jwksClient({
-    jwksUri: url,
-  })
-);
+const clients = !config.skipJWTVerification
+  ? config.wellKnownUrls.map((url) =>
+      jwksClient({
+        jwksUri: url,
+      })
+    )
+  : undefined;
 
-const getKey = (header: JwtHeader, callback: SigningKeyCallback): void => {
-  for (const { client, last } of clients.map((c, i) => ({
-    client: c,
-    last: i === clients.length - 1,
-  }))) {
-    client.getSigningKey(header.kid, function (err, key) {
-      if (err && last) {
-        logger.error(`Error getting signing key: ${err}`);
-        return callback(err, undefined);
-      } else {
-        return callback(null, key?.getPublicKey());
-      }
-    });
-  }
-};
+const getKey =
+  (
+    clients: jwksClient.JwksClient[]
+  ): ((header: JwtHeader, callback: SigningKeyCallback) => void) =>
+  (header, callback) => {
+    for (const { client, last } of clients.map((c, i) => ({
+      client: c,
+      last: i === clients.length - 1,
+    }))) {
+      client.getSigningKey(header.kid, function (err, key) {
+        if (err && last) {
+          logger.error(`Error getting signing key: ${err}`);
+          return callback(err, undefined);
+        } else {
+          return callback(null, key?.getPublicKey());
+        }
+      });
+    }
+  };
 
 export const verifyJwtToken = (jwtToken: string): Promise<boolean> =>
-  new Promise((resolve, _reject) => {
-    jwt.verify(jwtToken, getKey, {}, function (err, _decoded) {
-      if (err) {
-        logger.error(`Error verifying token: ${err}`);
-        return resolve(false);
-      }
-      return resolve(true);
-    });
-  });
+  clients === undefined
+    ? Promise.resolve(true)
+    : new Promise((resolve, _reject) => {
+        jwt.verify(jwtToken, getKey(clients), {}, function (err, _decoded) {
+          if (err) {
+            logger.error(`Error verifying token: ${err}`);
+            return resolve(false);
+          }
+          return resolve(true);
+        });
+      });
 
 export const hasPermission = (
   permissions: string[],
