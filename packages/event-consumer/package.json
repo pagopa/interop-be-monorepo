@@ -30,7 +30,6 @@
   "dependencies": {
     "@jm18457/kafkajs-msk-iam-authentication-mechanism": "^3.1.2",
     "@protobuf-ts/runtime": "^2.9.1",
-    "aws-sdk": "^2.1457.0",
     "connection-string": "^4.3.6",
     "dotenv-flow": "^3.2.0",
     "kafkajs": "^2.2.4",
