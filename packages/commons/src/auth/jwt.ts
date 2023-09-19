@@ -1,5 +1,6 @@
-import jwt from "jsonwebtoken";
-import { logger } from "../index.js";
+import jwt, { JwtHeader, SigningKeyCallback } from "jsonwebtoken";
+import jwksClient from "jwks-rsa";
+import { config, logger } from "../index.js";
 import { AuthData, AuthJWTToken } from "./authData.js";
 
 const getUserRoles = (token: AuthJWTToken): string[] => {
@@ -46,6 +47,42 @@ export const readAuthDataFromJwtToken = (
     return new Error(`Unexpected error parsing token: ${err}`);
   }
 };
+
+const clients = config.wellKnownUrls.map((url) =>
+  jwksClient({
+    jwksUri: url,
+  })
+);
+
+const getKey = (header: JwtHeader, callback: SigningKeyCallback): void => {
+  // eslint-disable-next-line functional/no-let
+  let lastErr = null;
+
+  for (const client of clients) {
+    client.getSigningKey(header.kid, function (err, key) {
+      if (err) {
+        lastErr = err;
+      } else {
+        return callback(null, key?.getPublicKey());
+      }
+    });
+  }
+  if (lastErr) {
+    logger.error(`Error getting signing key: ${lastErr}`);
+    return callback(lastErr, undefined);
+  }
+};
+
+export const verifyJwtToken = (jwtToken: string): Promise<boolean> =>
+  new Promise((resolve, _reject) => {
+    jwt.verify(jwtToken, getKey, {}, function (err, _decoded) {
+      if (err) {
+        logger.error(`Error verifying token: ${err}`);
+        return resolve(false);
+      }
+      return resolve(true);
+    });
+  });
 
 export const hasPermission = (
   permissions: string[],
