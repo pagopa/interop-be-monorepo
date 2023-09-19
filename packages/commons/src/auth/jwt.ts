@@ -55,21 +55,18 @@ const clients = config.wellKnownUrls.map((url) =>
 );
 
 const getKey = (header: JwtHeader, callback: SigningKeyCallback): void => {
-  // eslint-disable-next-line functional/no-let
-  let lastErr = null;
-
-  for (const client of clients) {
+  for (const { client, last } of clients.map((c, i) => ({
+    client: c,
+    last: i === clients.length - 1,
+  }))) {
     client.getSigningKey(header.kid, function (err, key) {
-      if (err) {
-        lastErr = err;
+      if (err && last) {
+        logger.error(`Error getting signing key: ${err}`);
+        return callback(err, undefined);
       } else {
         return callback(null, key?.getPublicKey());
       }
     });
-  }
-  if (lastErr) {
-    logger.error(`Error getting signing key: ${lastErr}`);
-    return callback(lastErr, undefined);
   }
 };
 
