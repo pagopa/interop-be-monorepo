@@ -7,15 +7,21 @@ import { decodeKafkaMessage } from "./model/models.js";
 import { handleMessage } from "./consumerService.js";
 import { config } from "./utilities/config.js";
 
-const awsAuthMechanism = createMechanism({ region: "eu-central-1" });
+const kafkaConfig =
+  config.kafkaDisableAwsIamAuth === true
+    ? {
+        clientId: config.kafkaClientId,
+        brokers: [config.kafkaBrokers],
+        ssl: false,
+      }
+    : {
+        clientId: config.kafkaClientId,
+        brokers: [config.kafkaBrokers],
+        ssl: true,
+        sasl: createMechanism({ region: config.awsRegion }),
+      };
 
-const kafka = new Kafka({
-  clientId: config.kafkaClientId,
-  brokers: [config.kafkaBrokers],
-  ssl: true,
-  sasl: awsAuthMechanism,
-});
-
+const kafka = new Kafka(kafkaConfig);
 const consumer = kafka.consumer({ groupId: config.kafkaGroupId });
 await consumer.connect();
 
