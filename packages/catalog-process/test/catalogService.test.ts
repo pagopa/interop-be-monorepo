@@ -1,6 +1,3 @@
-import "dotenv-flow/config.js";
-
-import { describe, expect, it } from "vitest";
 import { generateMock } from "@anatine/zod-mock";
 import {
   Attribute,
@@ -8,22 +5,12 @@ import {
   EService,
   descriptorState,
 } from "pagopa-interop-models";
+import { describe, expect, it } from "vitest";
 import {
-  createDescriptorLogic,
-  createEserviceLogic,
-  deleteDocumentLogic,
-  deleteDraftDescriptorLogic,
-  deleteEserviceLogic,
-  updateDescriptorLogic,
-  updateDocumentLogic,
-  updateEserviceLogic,
-  uploadDocumentLogic,
-  publishDescriptorLogic,
-  suspendDescriptorLogic,
-  archiveDescriptorLogic,
-  activateDescriptorLogic,
-  cloneDescriptorLogic,
-} from "../src/services/catalogService.js";
+  apiAgreementApprovalPolicyToAgreementApprovalPolicy,
+  apiAttributeToAttribute,
+  apiTechnologyToTechnology,
+} from "../src/model/domain/apiConverter.js";
 import {
   draftDescriptorAlreadyExists,
   eServiceCannotBeDeleted,
@@ -35,13 +22,8 @@ import {
   notValidDescriptor,
   operationForbidden,
 } from "../src/model/domain/errors.js";
-import * as api from "../src/model/generated/api.js";
 import { WithMetadata } from "../src/model/domain/models.js";
-import {
-  apiAgreementApprovalPolicyToAgreementApprovalPolicy,
-  apiAttributeToAttribute,
-  apiTechnologyToTechnology,
-} from "../src/model/domain/apiConverter.js";
+import * as api from "../src/model/generated/api.js";
 import {
   toAgreementApprovalPolicyV1,
   toDescriptorV1,
@@ -50,6 +32,22 @@ import {
   toEServiceTechnologyV1,
   toEServiceV1,
 } from "../src/repositories/toEvent.js";
+import {
+  activateDescriptorLogic,
+  archiveDescriptorLogic,
+  cloneDescriptorLogic,
+  createDescriptorLogic,
+  createEserviceLogic,
+  deleteDocumentLogic,
+  deleteDraftDescriptorLogic,
+  deleteEserviceLogic,
+  publishDescriptorLogic,
+  suspendDescriptorLogic,
+  updateDescriptorLogic,
+  updateDocumentLogic,
+  updateEserviceLogic,
+  uploadDocumentLogic,
+} from "../src/services/catalogService.js";
 
 const shuffle = <T>(array: T[]): T[] => array.sort(() => Math.random() - 0.5);
 
