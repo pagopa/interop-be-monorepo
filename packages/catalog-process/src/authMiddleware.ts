@@ -50,7 +50,7 @@ export const authMiddleware: ZodiosRouterContextRequestHandler<
       logger.warn(`The jwt token is not valid`);
       throw new CatalogProcessError(
         "The jwt token is not valid",
-        ErrorTypes.MissingClaim // TODO: return correct error
+        ErrorTypes.Unauthorized
       );
     }
     const authData = readAuthDataFromJwtToken(jwtToken);
