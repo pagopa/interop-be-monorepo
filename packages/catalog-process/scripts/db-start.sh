@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker compose -f ../../docker/docker-compose.yml up -d  catalog-event-store pg-admin
+docker compose -f ../../docker/docker-compose.yml up -d  catalog-event-store pg-admin readmodel
