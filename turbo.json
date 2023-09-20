@@ -31,11 +31,14 @@
       ]
     },
     "generate-model": {
-      "outputs": [
-        "src/model/generated"
-      ]
+      "dependsOn": [
+        "^generate-model"
+      ]      
     },
     "generate-protobuf": {
+      "dependsOn": [
+        "^generate-protobuf"
+      ],
       "outputs": [
         "src/gen"
       ]
