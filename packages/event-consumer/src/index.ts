@@ -7,19 +7,18 @@ import { decodeKafkaMessage } from "./model/models.js";
 import { handleMessage } from "./consumerService.js";
 import { config } from "./utilities/config.js";
 
-const kafkaConfig =
-  config.kafkaDisableAwsIamAuth === true
-    ? {
-        clientId: config.kafkaClientId,
-        brokers: [config.kafkaBrokers],
-        ssl: false,
-      }
-    : {
-        clientId: config.kafkaClientId,
-        brokers: [config.kafkaBrokers],
-        ssl: true,
-        sasl: createMechanism({ region: config.awsRegion }),
-      };
+const kafkaConfig = config.kafkaDisableAwsIamAuth
+  ? {
+      clientId: config.kafkaClientId,
+      brokers: [config.kafkaBrokers],
+      ssl: false,
+    }
+  : {
+      clientId: config.kafkaClientId,
+      brokers: [config.kafkaBrokers],
+      ssl: true,
+      sasl: createMechanism({ region: config.awsRegion }),
+    };
 
 const kafka = new Kafka(kafkaConfig);
 const consumer = kafka.consumer({ groupId: config.kafkaGroupId });
