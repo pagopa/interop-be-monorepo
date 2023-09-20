@@ -30,16 +30,16 @@ const FileManagerConfig = z
   .transform((c) =>
     c.MOCK_FILE_MANAGER === "false"
       ? {
-        mockFileManager: false as const,
-        s3AccessKeyId: c.S3_ACCESS_KEY_ID,
-        s3SecretAccessKey: c.S3_SECRET_ACCESS_KEY,
-        s3Region: c.S3_REGION,
-        s3BucketName: c.S3_BUCKET_NAME,
-        eserviceDocsPath: c.ESERVICE_DOCS_PATH,
-      }
+          mockFileManager: false as const,
+          s3AccessKeyId: c.S3_ACCESS_KEY_ID,
+          s3SecretAccessKey: c.S3_SECRET_ACCESS_KEY,
+          s3Region: c.S3_REGION,
+          s3BucketName: c.S3_BUCKET_NAME,
+          eserviceDocsPath: c.ESERVICE_DOCS_PATH,
+        }
       : {
-        mockFileManager: true as const,
-      }
+          mockFileManager: true as const,
+        }
   );
 
 export type FileManagerConfig = z.infer<typeof FileManagerConfig>;
