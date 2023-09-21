@@ -4,8 +4,8 @@ import { logger } from "pagopa-interop-commons";
 import { z } from "zod";
 import { authMiddleware } from "./authMiddleware.js";
 import { ctx } from "./context.js";
-import healthRouter from "./routers/HealthRouter.js";
 import eservicesRouter from "./routers/EServiceRouter.js";
+import healthRouter from "./routers/HealthRouter.js";
 import { config } from "./utilities/config.js";
 
 const zodiosCtx = zodiosContext(z.object({ ctx }));
@@ -24,6 +24,7 @@ app.use(
     metaField: null,
     requestWhitelist:
       config.logLevel === "debug" ? ["body", "headers", "query"] : [],
+    ignoredRoutes: ["/status"],
     responseWhitelist:
       config.logLevel === "debug"
         ? ["body", "statusCode", "statusMessage"]
