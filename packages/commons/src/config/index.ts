@@ -10,7 +10,8 @@ const JWTConfig = z
       SKIP_JWT_VERIFICATION: z.literal("false"),
       WELL_KNOWN_URLS: z
         .string()
-        .transform((s) => s.split(",").map((s) => APIEndpoint.parse(s))),
+        .transform((s) => s.split(","))
+        .pipe(z.array(APIEndpoint)),
     }),
   ])
   .transform((c) =>
@@ -33,7 +34,7 @@ const RequiredConfig = z
     logLevel: c.LOG_LEVEL,
   }));
 
-const Config = RequiredConfig.and(JWTConfig);
+const Config = RequiredConfig.and(JWTConfig.optional());
 
 export type Config = z.infer<typeof Config>;
 export const config = Config.parse(process.env);
