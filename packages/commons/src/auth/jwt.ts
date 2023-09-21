@@ -4,18 +4,25 @@ import { config, logger } from "../index.js";
 import { AuthData, AuthJWTToken } from "./authData.js";
 
 const getUserRoles = (token: AuthJWTToken): string[] => {
-  const rolesFromInteropClaim = token.role.split(",");
-  if (rolesFromInteropClaim.length !== 0) {
+  const rolesFromInteropClaim = token.role;
+  if (
+    rolesFromInteropClaim !== undefined &&
+    rolesFromInteropClaim.length !== 0
+  ) {
     return rolesFromInteropClaim;
   }
 
-  const userRolesStringFromInteropClaim = token["user-roles"].split(",");
-  if (userRolesStringFromInteropClaim.length !== 0) {
+  const userRolesStringFromInteropClaim = token["user-roles"];
+  if (
+    userRolesStringFromInteropClaim !== undefined &&
+    userRolesStringFromInteropClaim.length !== 0
+  ) {
     return userRolesStringFromInteropClaim;
   }
 
-  const userRolesStringFromOrganizationClaim =
-    token.data.organization.roles.split(",");
+  const userRolesStringFromOrganizationClaim = token.organization.roles.map(
+    (role) => role.role
+  );
 
   if (userRolesStringFromOrganizationClaim.length !== 0) {
     return userRolesStringFromOrganizationClaim;
@@ -38,7 +45,12 @@ export const readAuthDataFromJwtToken = (
     } else {
       return {
         organizationId: token.data.organizationId,
-        userId: token.data.sub,
+        userId:
+          token.data.uid !== undefined
+            ? token.data.uid
+            : token.data.sub !== undefined
+            ? token.data.sub
+            : "",
         userRoles: getUserRoles(token.data),
       };
     }
