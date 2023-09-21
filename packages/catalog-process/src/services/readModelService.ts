@@ -54,7 +54,7 @@ async function getTotalCount(
     return result.data[0].count;
   }
 
-  logger.warn(
+  logger.error(
     `Unable to get total count from aggregation pipeline: result ${JSON.stringify(
       result
     )} - data ${JSON.stringify(data)} `
@@ -137,7 +137,7 @@ export const readModelService = {
 
     const result = z.array(EService).safeParse(data.map((d) => d.data));
     if (!result.success) {
-      logger.warn(
+      logger.error(
         `Unable to parse eservices items: result ${JSON.stringify(
           result
         )} - data ${JSON.stringify(data)} `
@@ -170,7 +170,7 @@ export const readModelService = {
         .safeParse(data);
 
       if (!result.success) {
-        logger.warn(
+        logger.error(
           `Unable to parse eservices item: result ${JSON.stringify(
             result
           )} - data ${JSON.stringify(data)} `
@@ -281,7 +281,7 @@ export const readModelService = {
 
     const result = z.array(consumer).safeParse(data);
     if (!result.success) {
-      logger.warn(
+      logger.error(
         `Unable to parse consumers: result ${JSON.stringify(
           result
         )} - data ${JSON.stringify(data)} `
@@ -343,7 +343,7 @@ export const readModelService = {
     const result = z.array(PersistentAgreement).safeParse(data);
 
     if (!result.success) {
-      logger.warn(
+      logger.error(
         `Unable to parse agreements: result ${JSON.stringify(
           result
         )} - data ${JSON.stringify(data)} `
