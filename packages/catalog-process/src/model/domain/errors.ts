@@ -61,7 +61,7 @@ export const ErrorTypes = {
     title: "Uid has not been passed",
   },
   Unauthorized: {
-    code: "9997",
+    code: "9991",
     httpStatus: 401,
     title: "Unauthorized",
   },
