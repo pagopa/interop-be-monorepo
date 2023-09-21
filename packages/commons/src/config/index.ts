@@ -46,7 +46,7 @@ const RequiredConfig = z
     wellKnownUrls: c.WELL_KNOWN_URLS,
   }));
 
-const Config = RequiredConfig.and(JWTConfig);
+const Config = RequiredConfig.and(JWTConfig.optional());
 
 export type Config = z.infer<typeof Config>;
 export const config = Config.parse(process.env);
