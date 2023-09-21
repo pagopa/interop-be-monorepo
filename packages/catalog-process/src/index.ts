@@ -1,5 +1,3 @@
-import "dotenv-flow/config.js";
-
 import { logger } from "pagopa-interop-commons";
 import { config } from "./utilities/config.js";
 import app from "./app.js";

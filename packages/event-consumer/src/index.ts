@@ -1,5 +1,3 @@
-import "dotenv-flow/config.js";
-
 import { Kafka, KafkaMessage } from "kafkajs";
 import { logger } from "pagopa-interop-commons";
 import { createMechanism } from "@jm18457/kafkajs-msk-iam-authentication-mechanism";
