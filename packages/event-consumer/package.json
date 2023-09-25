@@ -10,7 +10,7 @@
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
-    "start": "node --watch --no-warnings --loader ts-node/esm ./src/index.ts",
+    "start": "node --watch --no-warnings --loader ts-node/esm -r 'dotenv-flow/config' ./src/index.ts",
     "build": "tsc",
     "infra:start": "./scripts/infra-start.sh",
     "infra:stop": "./scripts/infra-stop.sh",
@@ -28,6 +28,7 @@
     "typescript": "^5.1.3"
   },
   "dependencies": {
+    "@jm18457/kafkajs-msk-iam-authentication-mechanism": "^3.1.2",
     "@protobuf-ts/runtime": "^2.9.1",
     "connection-string": "^4.3.6",
     "dotenv-flow": "^3.2.0",
