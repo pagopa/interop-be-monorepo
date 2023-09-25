@@ -2,8 +2,8 @@ import { z } from "zod";
 import {
   config as commonsConfig,
   Config as CommonConfig,
+  APIEndpoint,
 } from "pagopa-interop-commons";
-import { APIEndpoint } from "../model/apiEndpoint.js";
 
 const FileManagerConfig = z
   .discriminatedUnion("MOCK_FILE_MANAGER", [

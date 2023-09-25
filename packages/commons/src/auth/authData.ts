@@ -3,11 +3,21 @@ import { z } from "zod";
 
 export const AuthJWTToken = z.object({
   organizationId: z.string().uuid(),
-  "user-roles": z.string(),
-  role: z.string(),
-  sub: z.string().uuid(),
+  "user-roles": z
+    .string()
+    .optional()
+    .transform((val) => val?.split(",")),
+  role: z
+    .string()
+    .optional()
+    .transform((val) => val?.split(",")),
+  uid: z.string().uuid().optional(),
   organization: z.object({
-    roles: z.string(),
+    roles: z.array(
+      z.object({
+        role: z.string(),
+      })
+    ),
   }),
 });
 export type AuthJWTToken = z.infer<typeof AuthJWTToken> & JwtPayload;

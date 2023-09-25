@@ -60,6 +60,11 @@ export const ErrorTypes = {
     httpStatus: 400,
     title: "Uid has not been passed",
   },
+  Unauthorized: {
+    code: "9991",
+    httpStatus: 401,
+    title: "Unauthorized",
+  },
   InvalidDescriptorVersion: {
     code: "0004",
     httpStatus: 400,
