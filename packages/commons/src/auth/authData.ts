@@ -11,7 +11,6 @@ export const AuthJWTToken = z.object({
     .string()
     .optional()
     .transform((val) => val?.split(",")),
-  sub: z.string().uuid().optional(),
   uid: z.string().uuid().optional(),
   organization: z.object({
     roles: z.array(
