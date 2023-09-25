@@ -4,6 +4,7 @@ import {
   AuthData,
   logger,
   readAuthDataFromJwtToken,
+  verifyJwtToken,
 } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
 import { z } from "zod";
@@ -27,8 +28,8 @@ type Headers = z.infer<typeof Headers>;
 
 export const authMiddleware: ZodiosRouterContextRequestHandler<
   ExpressContext
-> = (req, res, next) => {
-  const addCtxAuthData = (headers: Headers): void => {
+> = async (req, res, next) => {
+  const addCtxAuthData = async (headers: Headers): Promise<void> => {
     const authorizationHeader = headers.authorization.split(" ");
     if (
       authorizationHeader.length !== 2 ||
@@ -44,6 +45,14 @@ export const authMiddleware: ZodiosRouterContextRequestHandler<
     }
 
     const jwtToken = authorizationHeader[1];
+    const valid = await verifyJwtToken(jwtToken);
+    if (!valid) {
+      logger.warn(`The jwt token is not valid`);
+      throw new CatalogProcessError(
+        "The jwt token is not valid",
+        ErrorTypes.Unauthorized
+      );
+    }
     const authData = readAuthDataFromJwtToken(jwtToken);
     match(authData)
       .with(P.instanceOf(Error), (err) => {
@@ -66,14 +75,14 @@ export const authMiddleware: ZodiosRouterContextRequestHandler<
 
   try {
     const headers = Headers.parse(req.headers);
-    return match(headers)
+    return await match(headers)
       .with(
         {
           authorization: P.string,
           "x-correlation-id": P.string,
           "x-forwarded-for": P.optional(P.string.regex(ipRegex)),
         },
-        (headers) => addCtxAuthData(headers)
+        async (headers) => await addCtxAuthData(headers)
       )
       .with(
         {
