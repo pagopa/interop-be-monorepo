@@ -1,16 +1,24 @@
-import "dotenv-flow/config.js";
-
 import { Kafka, KafkaMessage } from "kafkajs";
 import { logger } from "pagopa-interop-commons";
+import { createMechanism } from "@jm18457/kafkajs-msk-iam-authentication-mechanism";
 import { decodeKafkaMessage } from "./model/models.js";
 import { handleMessage } from "./consumerService.js";
 import { config } from "./utilities/config.js";
 
-const kafka = new Kafka({
-  clientId: config.kafkaClientId,
-  brokers: [config.kafkaBrokers],
-});
+const kafkaConfig = config.kafkaDisableAwsIamAuth
+  ? {
+      clientId: config.kafkaClientId,
+      brokers: [config.kafkaBrokers],
+      ssl: false,
+    }
+  : {
+      clientId: config.kafkaClientId,
+      brokers: [config.kafkaBrokers],
+      ssl: true,
+      sasl: createMechanism({ region: config.awsRegion }),
+    };
 
+const kafka = new Kafka(kafkaConfig);
 const consumer = kafka.consumer({ groupId: config.kafkaGroupId });
 await consumer.connect();
 
