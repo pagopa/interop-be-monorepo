@@ -45,12 +45,7 @@ export const readAuthDataFromJwtToken = (
     } else {
       return {
         organizationId: token.data.organizationId,
-        userId:
-          token.data.uid !== undefined
-            ? token.data.uid
-            : token.data.sub !== undefined
-            ? token.data.sub
-            : "",
+        userId: token.data.uid !== undefined ? token.data.uid : "",
         userRoles: getUserRoles(token.data),
       };
     }
