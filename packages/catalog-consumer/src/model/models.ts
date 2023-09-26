@@ -79,7 +79,7 @@ const EventEnvelope = z.intersection(
 export type EventEnvelope = z.infer<typeof EventEnvelope>;
 
 const DebeziumCreatePayload = z.object({
-  op: z.literal("c"),
+  op: z.literal("c").or(z.literal("r")),
   after: EventEnvelope,
 });
 
