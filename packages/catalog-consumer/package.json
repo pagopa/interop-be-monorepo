@@ -1,8 +1,8 @@
 {
-  "name": "pagopa-interop-event-consumer",
+  "name": "pagopa-interop-catalog-event-consumer",
   "private": true,
   "version": "1.0.0",
-  "description": "PagoPA Interoperability consumer service that updates the read model when events are stored",
+  "description": "PagoPA Interoperability catalog consumer service that updates the read model when events are stored",
   "main": "dist",
   "type": "module",
   "scripts": {
