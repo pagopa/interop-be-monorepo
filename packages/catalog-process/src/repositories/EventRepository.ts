@@ -30,7 +30,7 @@ export const eventRepository = {
         return createEvent.streamId;
       });
     } catch (error) {
-      logger.error(error);
+      logger.error(`Error creating event: ${error}`);
       throw error;
     }
   },
