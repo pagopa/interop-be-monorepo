@@ -1,12 +1,1 @@
-import * as winston from "winston";
-import { config } from "../config/index.js";
-
-export const logger = winston.createLogger({
-  level: config.logLevel,
-  transports: [new winston.transports.Console()],
-  format: winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.json()
-  ),
-  silent: process.env.NODE_ENV === "test",
-});
+export * from "./loggerMiddleware.js";
