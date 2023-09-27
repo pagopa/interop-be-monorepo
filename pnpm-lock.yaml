@@ -187,6 +187,9 @@ importers:
       jwks-rsa:
         specifier: ^3.0.1
         version: 3.0.1
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
       ts-pattern:
         specifier: ^5.0.1
         version: 5.0.1
