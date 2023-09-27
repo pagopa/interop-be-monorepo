@@ -31,10 +31,10 @@ pnpm test
 
 ## How to work locally with the read model
 
-First, start the `consumer` service by running
+First, start a consumer service by running (for example):
 
 ```
-pnpm start:consumer
+pnpm start:catalog-consumer
 ```
 
 This will start a local instance of Debezium (alongside with its requirements Zookeeper and Kafka) and a local MongoDB instance which will contain the read model.
