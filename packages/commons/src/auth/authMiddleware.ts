@@ -1,36 +1,37 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { ZodiosRouterContextRequestHandler } from "@zodios/express";
 import {
-  AuthData,
-  logger,
-  readAuthDataFromJwtToken,
-  verifyJwtToken,
-} from "pagopa-interop-commons";
-import { P, match } from "ts-pattern";
+  zodiosContext,
+  ZodiosRouterContextRequestHandler,
+} from "@zodios/express";
 import { z } from "zod";
-import { ExpressContext } from "./app.js";
+import { P, match } from "ts-pattern";
 import {
   CatalogProcessError,
   ErrorTypes,
   missingHeader,
-} from "./model/domain/errors.js";
-import { ApiError, makeApiError } from "./model/types.js";
+} from "../../../catalog-process/src/model/domain/errors.js";
+import {
+  ApiError,
+  makeApiError,
+} from "../../../catalog-process/src/model/types.js";
+import { logger } from "../logging/index.js";
+import { ctx } from "../context/index.js";
+import { AuthData } from "./authData.js";
+import { Headers } from "./headers.js";
+import { readAuthDataFromJwtToken, verifyJwtToken } from "./jwt.js";
 
-const ipRegex = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
-
-const Headers = z.object({
-  authorization: z.string(),
-  "x-correlation-id": z.string(),
-  "x-forwarded-for": z.string().ip().optional(),
-});
-
-type Headers = z.infer<typeof Headers>;
+const zodiosCtx = zodiosContext(z.object({ ctx }));
+export type ZodiosContext = NonNullable<typeof zodiosCtx>;
+export type ExpressContext = NonNullable<typeof zodiosCtx.context>;
 
 export const authMiddleware: ZodiosRouterContextRequestHandler<
   ExpressContext
-> = async (req, res, next) => {
-  const addCtxAuthData = async (headers: Headers): Promise<void> => {
-    const authorizationHeader = headers.authorization.split(" ");
+> = async (req, res, next): Promise<void | CatalogProcessError> => {
+  const addCtxAuthData = async (
+    authHeader: string,
+    correlationId: string
+  ): Promise<void | CatalogProcessError> => {
+    const authorizationHeader = authHeader.split(" ");
     if (
       authorizationHeader.length !== 2 ||
       authorizationHeader[0] !== "Bearer"
@@ -66,8 +67,7 @@ export const authMiddleware: ZodiosRouterContextRequestHandler<
         // eslint-disable-next-line functional/immutable-data
         req.ctx = {
           authData: { ...claimsRes },
-          correlationId: headers["x-correlation-id"],
-          ip: headers["x-forwarded-for"],
+          correlationId,
         };
         next();
       });
@@ -80,15 +80,17 @@ export const authMiddleware: ZodiosRouterContextRequestHandler<
         {
           authorization: P.string,
           "x-correlation-id": P.string,
-          "x-forwarded-for": P.optional(P.string.regex(ipRegex)),
         },
-        async (headers) => await addCtxAuthData(headers)
+        async (headers) =>
+          await addCtxAuthData(
+            headers.authorization,
+            headers["x-correlation-id"]
+          )
       )
       .with(
         {
           authorization: P.nullish,
           "x-correlation-id": P._,
-          "x-forwarded-for": P._,
         },
         () => {
           logger.warn(
@@ -105,7 +107,6 @@ export const authMiddleware: ZodiosRouterContextRequestHandler<
         {
           authorization: P.string,
           "x-correlation-id": P.nullish,
-          "x-forwarded-for": P._,
         },
         () => missingHeader("x-correlation-id")
       )
@@ -117,6 +118,6 @@ export const authMiddleware: ZodiosRouterContextRequestHandler<
       });
   } catch (error) {
     const apiError: ApiError = makeApiError(error);
-    return res.status(apiError.status).json(apiError).end();
+    res.status(apiError.status).json(apiError).end();
   }
 };
