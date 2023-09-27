@@ -1,10 +1,10 @@
-import { ZodiosRouter } from "@zodios/express";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
-import { ExpressContext, ZodiosContext } from "../app.js";
-import { api } from "../model/generated/api.js";
-import { ApiError, makeApiError } from "../model/types.js";
-import { catalogService } from "../services/catalogService.js";
-import { readModelService } from "../services/readModelService.js";
+import { ZodiosRouter } from "@zodios/express";
+import {
+  eServiceDocumentNotFound,
+  eServiceNotFound,
+} from "pagopa-interop-models";
+import { ExpressContext, ZodiosContext } from "pagopa-interop-commons";
 import {
   agreementStateToApiAgreementState,
   apiAgreementStateToAgreementState,
@@ -12,10 +12,10 @@ import {
   descriptorStateToApiEServiceDescriptorState,
   eServiceToApiEService,
 } from "../model/domain/apiConverter.js";
-import {
-  eServiceDocumentNotFound,
-  eServiceNotFound,
-} from "../model/domain/errors.js";
+import { api } from "../model/generated/api.js";
+import { ApiError, makeApiError } from "../model/types.js";
+import { catalogService } from "../services/catalogService.js";
+import { readModelService } from "../services/readModelService.js";
 
 const eservicesRouter = (
   ctx: ZodiosContext

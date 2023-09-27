@@ -1,6 +1,6 @@
 import { ZodiosBodyByPath, ZodiosErrorByPath } from "@zodios/core";
 import { P, match } from "ts-pattern";
-import { CatalogProcessError, ErrorTypes } from "./domain/errors.js";
+import { CatalogProcessError, ErrorTypes } from "pagopa-interop-models";
 import { api } from "./generated/api.js";
 
 type Api = typeof api.api;

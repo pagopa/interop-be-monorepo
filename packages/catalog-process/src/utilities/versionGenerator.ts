@@ -1,6 +1,9 @@
+import {
+  CatalogProcessError,
+  ErrorTypes,
+  EService,
+} from "pagopa-interop-models";
 import { z } from "zod";
-import { EService } from "pagopa-interop-models";
-import { CatalogProcessError, ErrorTypes } from "../model/domain/errors.js";
 
 export const nextDescriptorVersion = (eservice: EService): string => {
   const currentVersion = eservice.descriptors.reduce((max, descriptor) => {

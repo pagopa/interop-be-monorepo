@@ -1,16 +1,17 @@
 import { AggregationCursor, MongoClient } from "mongodb";
-import { z } from "zod";
+import { AuthData, logger } from "pagopa-interop-commons";
 import {
+  DescriptorState,
   Document,
+  EService,
+  ErrorTypes,
   PersistentAgreement,
   PersistentAgreementState,
-  DescriptorState,
-  EService,
   descriptorState,
   persistentAgreementState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { AuthData, logger } from "pagopa-interop-commons";
+import { z } from "zod";
 
 import {
   Consumer,
@@ -20,7 +21,6 @@ import {
   emptyListResult,
 } from "../model/domain/models.js";
 import { config } from "../utilities/config.js";
-import { ErrorTypes } from "../model/domain/errors.js";
 
 const {
   readModelDbUsername: username,
