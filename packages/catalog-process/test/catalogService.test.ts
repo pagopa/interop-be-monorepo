@@ -14,18 +14,8 @@ import {
   eServiceDuplicate,
   eServiceNotFound,
   notValidDescriptor,
-  operationForbidden,
-} from "../src/model/domain/errors.js";
-import { WithMetadata } from "../src/model/domain/models.js";
-import * as api from "../src/model/generated/api.js";
-import {
-  toAgreementApprovalPolicyV1,
-  toDescriptorV1,
-  toEServiceAttributeV1,
-  toEServiceDescriptorStateV1,
-  toEServiceTechnologyV1,
-  toEServiceV1,
-} from "../src/repositories/toEvent.js";
+} from "pagopa-interop-models";
+
 import {
   activateDescriptorLogic,
   archiveDescriptorLogic,
@@ -42,6 +32,16 @@ import {
   updateEserviceLogic,
   uploadDocumentLogic,
 } from "../src/services/catalogService.js";
+import * as api from "../src/model/generated/api.js";
+import { WithMetadata } from "../src/model/domain/models.js";
+import {
+  toAgreementApprovalPolicyV1,
+  toDescriptorV1,
+  toEServiceAttributeV1,
+  toEServiceDescriptorStateV1,
+  toEServiceTechnologyV1,
+  toEServiceV1,
+} from "../src/repositories/toEvent.js";
 
 const shuffle = <T>(array: T[]): T[] => array.sort(() => Math.random() - 0.5);
 
