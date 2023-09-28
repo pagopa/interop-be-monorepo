@@ -34,6 +34,7 @@ process.on("SIGTERM", exitGracefully);
 
 await consumer.subscribe({
   topics: ["catalog.public.event"],
+  fromBeginning: true,
 });
 
 async function processMessage(message: KafkaMessage): Promise<void> {
