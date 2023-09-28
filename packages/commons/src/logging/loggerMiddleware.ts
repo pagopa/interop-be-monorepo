@@ -19,7 +19,11 @@ export const customFormat = winston.format.printf(
 
 export const logger = winston.createLogger({
   level: config.logLevel,
-  transports: [new winston.transports.Console()],
+  transports: [
+    new winston.transports.Console({
+      stderrLevels: ["error"],
+    }),
+  ],
   format: winston.format.combine(
     winston.format.timestamp(),
     winston.format.json(),
