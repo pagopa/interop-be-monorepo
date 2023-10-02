@@ -83,15 +83,15 @@ export const fromDescriptorV1 = (input: EServiceDescriptorV1): Descriptor => ({
   attributes:
     input.attributes != null
       ? {
-        certified: input.attributes.certified.map(fromEServiceAttributeV1),
-        declared: input.attributes.declared.map(fromEServiceAttributeV1),
-        verified: input.attributes.verified.map(fromEServiceAttributeV1),
-      }
+          certified: input.attributes.certified.map(fromEServiceAttributeV1),
+          declared: input.attributes.declared.map(fromEServiceAttributeV1),
+          verified: input.attributes.verified.map(fromEServiceAttributeV1),
+        }
       : {
-        certified: [],
-        declared: [],
-        verified: [],
-      },
+          certified: [],
+          declared: [],
+          verified: [],
+        },
   docs: input.docs.map(fromDocumentV1),
   state: fromEServiceDescriptorStateV1(input.state),
   interface:
@@ -118,10 +118,10 @@ export const fromEServiceV1 = (input: EServiceV1): EService => ({
   attributes:
     input.attributes != null
       ? {
-        certified: input.attributes.certified.map(fromEServiceAttributeV1),
-        declared: input.attributes.declared.map(fromEServiceAttributeV1),
-        verified: input.attributes.verified.map(fromEServiceAttributeV1),
-      }
+          certified: input.attributes.certified.map(fromEServiceAttributeV1),
+          declared: input.attributes.declared.map(fromEServiceAttributeV1),
+          verified: input.attributes.verified.map(fromEServiceAttributeV1),
+        }
       : undefined,
   descriptors: input.descriptors.map(fromDescriptorV1),
   createdAt: new Date(Number(input.createdAt)),

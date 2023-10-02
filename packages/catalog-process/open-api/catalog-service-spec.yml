@@ -1251,41 +1251,6 @@ components:
         - certified
         - declared
         - verified
-    FlatEService:
-      type: object
-      required:
-        - id
-        - producerId
-        - producerName
-        - name
-        - description
-        - certifiedAttributes
-      properties:
-        id:
-          type: string
-          format: uuid
-        producerId:
-          type: string
-          format: uuid
-        producerName:
-          type: string
-        name:
-          type: string
-        version:
-          type: string
-        description:
-          type: string
-        state:
-          $ref: "#/components/schemas/EServiceDescriptorState"
-        descriptorId:
-          type: string
-        agreement:
-          $ref: "#/components/schemas/FlatAgreement"
-        certifiedAttributes:
-          description: "contains a flat version of the certified attribute identifiers of this e-service"
-          type: array
-          items:
-            $ref: "#/components/schemas/FlatAttribute"
     EServiceTechnology:
       type: string
       description: API Technology
@@ -1307,38 +1272,6 @@ components:
       enum:
         - INTERFACE
         - DOCUMENT
-    FlatEServices:
-      type: array
-      items:
-        $ref: "#/components/schemas/FlatEService"
-    FlatAgreement:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        state:
-          $ref: "#/components/schemas/AgreementState"
-      required:
-        - id
-        - state
-    FlatAttribute:
-      type: object
-      properties:
-        single:
-          $ref: "#/components/schemas/FlatAttributeValue"
-        group:
-          type: array
-          items:
-            $ref: "#/components/schemas/FlatAttributeValue"
-    FlatAttributeValue:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-      required:
-        - id
     AgreementState:
       type: string
       description: Agreement State
