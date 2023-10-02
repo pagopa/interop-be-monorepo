@@ -46,18 +46,14 @@ export const toEServiceTechnologyV1 = (
     .with("Soap", () => EServiceTechnologyV1.SOAP)
     .exhaustive();
 
-export const toEServiceAttributeV1 = (input: Attribute): EServiceAttributeV1 =>
-  match<Attribute, EServiceAttributeV1>(input)
-    .with(
-      {
-        id: P.not(P.nullish),
-      },
-      ({ id }) => ({ single: id, group: [] })
-    )
-    .with({ ids: P.not(P.nullish) }, ({ ids }) => ({
-      group: ids,
-    }))
-    .exhaustive();
+export const toEServiceAttributeV1 = (
+  input: Attribute[]
+): EServiceAttributeV1 => ({
+  group: input.map((i) => ({
+    id: i.id,
+    explicitAttributeVerification: i.explicitAttributeVerification,
+  })),
+});
 
 export const toDocumentV1 = (input: Document): EServiceDocumentV1 => ({
   ...input,

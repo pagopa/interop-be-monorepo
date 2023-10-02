@@ -1,6 +1,5 @@
 import {
   AgreementApprovalPolicy,
-  Attribute,
   DescriptorState,
   EService,
   PersistentAgreementState,
@@ -10,13 +9,12 @@ import {
   persistentAgreementState,
   technology,
 } from "pagopa-interop-models";
-import { P, match } from "ts-pattern";
+import { match } from "ts-pattern";
 import { z } from "zod";
 import * as api from "../generated/api.js";
 import {
   ApiAgreementApprovalPolicy,
   ApiAgreementState,
-  ApiAttribute,
   ApiEServiceDescriptorState,
   ApiTechnology,
 } from "./models.js";
@@ -113,36 +111,6 @@ export function apiAgreementStateToAgreementState(
     .exhaustive();
 }
 
-export function apiAttributeToAttribute(
-  input: ApiAttribute
-): Attribute | undefined {
-  return match<ApiAttribute, Attribute | undefined>(input)
-    .with({ single: P.not(P.nullish) }, (a) => ({
-      id: {
-        id: a.single.id,
-        explicitAttributeVerification: a.single.explicitAttributeVerification,
-      },
-    }))
-    .with({ group: P.not(P.nullish) }, (a) => ({
-      ids: a.group.map((id) => ({
-        id: id.id,
-        explicitAttributeVerification: id.explicitAttributeVerification,
-      })),
-    }))
-    .otherwise(() => undefined);
-}
-
-export function attributeToApiAttribute(input: Attribute): ApiAttribute {
-  return match(input)
-    .with({ ids: P.not(P.nullish) }, (a) => ({
-      group: a.ids,
-    }))
-    .with({ id: P.not(P.nullish) }, (a) => ({
-      single: a.id,
-    }))
-    .exhaustive();
-}
-
 export const eServiceToApiEService = (
   eService: EService
 ): z.infer<typeof api.schemas.EService> => ({
@@ -172,9 +140,9 @@ export const eServiceToApiEService = (
     deprecatedAt: descriptor.deprecatedAt?.toJSON(),
     archivedAt: descriptor.archivedAt?.toJSON(),
     attributes: {
-      certified: descriptor.attributes.certified.map(attributeToApiAttribute),
-      declared: descriptor.attributes.declared.map(attributeToApiAttribute),
-      verified: descriptor.attributes.verified.map(attributeToApiAttribute),
+      certified: descriptor.attributes.certified,
+      declared: descriptor.attributes.declared,
+      verified: descriptor.attributes.verified,
     },
   })),
 });

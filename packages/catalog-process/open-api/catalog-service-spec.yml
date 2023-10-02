@@ -1006,29 +1006,26 @@ components:
         certified:
           type: array
           items:
-            $ref: "#/components/schemas/AttributeSeed"
+            type: array
+            items:
+              $ref: "#/components/schemas/AttributeSeed"
         declared:
           type: array
           items:
-            $ref: "#/components/schemas/AttributeSeed"
+            type: array
+            items:
+              $ref: "#/components/schemas/AttributeSeed"
         verified:
           type: array
           items:
-            $ref: "#/components/schemas/AttributeSeed"
+            type: array
+            items:
+              $ref: "#/components/schemas/AttributeSeed"
       required:
         - certified
         - declared
         - verified
     AttributeSeed:
-      type: object
-      properties:
-        single:
-          $ref: "#/components/schemas/AttributeValueSeed"
-        group:
-          type: array
-          items:
-            $ref: "#/components/schemas/AttributeValueSeed"
-    AttributeValueSeed:
       type: object
       properties:
         id:
@@ -1219,7 +1216,7 @@ components:
           format: date-time
         attributes:
           $ref: "#/components/schemas/Attributes"
-    AttributeValue:
+    Attribute:
       type: object
       properties:
         id:
@@ -1230,29 +1227,26 @@ components:
       required:
         - id
         - explicitAttributeVerification
-    Attribute:
-      type: object
-      properties:
-        single:
-          $ref: "#/components/schemas/AttributeValue"
-        group:
-          type: array
-          items:
-            $ref: "#/components/schemas/AttributeValue"
     Attributes:
       properties:
         certified:
           type: array
           items:
-            $ref: "#/components/schemas/Attribute"
+            type: array
+            items:
+              $ref: "#/components/schemas/Attribute"
         declared:
           type: array
           items:
-            $ref: "#/components/schemas/Attribute"
+            type: array
+            items:
+              $ref: "#/components/schemas/Attribute"
         verified:
           type: array
           items:
-            $ref: "#/components/schemas/Attribute"
+            type: array
+            items:
+              $ref: "#/components/schemas/Attribute"
       required:
         - certified
         - declared
