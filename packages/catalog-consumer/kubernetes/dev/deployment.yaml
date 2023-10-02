@@ -15,7 +15,7 @@ spec:
       labels:
         app: interop-be-catalog-consumer-refactor
     spec:
-      serviceAccountName: interop-be-catalog-consumer-refactor
+      serviceAccountName: interop-be-event-consumer-refactor
       containers:
         - name: interop-be-catalog-consumer-refactor
           image: ghcr.io/pagopa/catalog-consumer@$IMAGE_DIGEST
