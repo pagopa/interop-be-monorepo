@@ -5,7 +5,7 @@ const JWTConfig = z.preprocess(
   (c) =>
     (c as { SKIP_JWT_VERIFICATION: string | undefined })
       .SKIP_JWT_VERIFICATION === undefined
-      ? { ...(c as object), SKIP_JWT_VERIFICATION: "true" }
+      ? { ...(c as object), SKIP_JWT_VERIFICATION: "false" }
       : c,
 
   z
