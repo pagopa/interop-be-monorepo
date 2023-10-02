@@ -1,24 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: interop-be-event-consumer-refactor
+  name: interop-be-catalog-consumer-refactor
   namespace: dev-refactor
   labels:
-    app: interop-be-event-consumer-refactor
+    app: interop-be-catalog-consumer-refactor
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: interop-be-event-consumer-refactor
+      app: interop-be-catalog-consumer-refactor
   template:
     metadata:
       labels:
-        app: interop-be-event-consumer-refactor
+        app: interop-be-catalog-consumer-refactor
     spec:
-      serviceAccountName: interop-be-event-consumer-refactor
+      serviceAccountName: interop-be-catalog-consumer-refactor
       containers:
-        - name: interop-be-event-consumer-refactor
-          image: ghcr.io/pagopa/event-consumer@$IMAGE_DIGEST
+        - name: interop-be-catalog-consumer-refactor
+          image: ghcr.io/pagopa/catalog-consumer@$IMAGE_DIGEST
           imagePullPolicy: Always
           ports:
             - name: http
