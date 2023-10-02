@@ -7,7 +7,7 @@ COPY package.json /app/
 COPY pnpm-lock.yaml /app/
 COPY pnpm-workspace.yaml /app/
 
-COPY ./packages/event-consumer/package.json /app/packages/event-consumer/package.json
+COPY ./packages/catalog-consumer/package.json /app/packages/catalog-consumer/package.json
 COPY ./packages/commons/package.json /app/packages/commons/package.json
 COPY ./packages/models/package.json /app/packages/models/package.json
 
@@ -15,13 +15,13 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
 COPY tsconfig.json /app/
 COPY turbo.json /app/
-COPY ./packages/event-consumer /app/packages/event-consumer
+COPY ./packages/catalog-consumer /app/packages/catalog-consumer
 COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
 
 RUN pnpm build
 
-WORKDIR /app/packages/event-consumer
+WORKDIR /app/packages/catalog-consumer
 EXPOSE 3000
 
 CMD ["node", "."]
