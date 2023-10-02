@@ -31,28 +31,47 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
   logger.info(message);
   await match(message)
     .with({ type: "EServiceAdded" }, async (msg) => {
-      await eservices.insertOne({
-        data: msg.data.eService ? fromEServiceV1(msg.data.eService) : undefined,
-        metadata: {
-          version: msg.version,
+      await eservices.updateOne(
+        {
+          "data.id": msg.stream_id,
         },
-      });
+        {
+          $setOnInsert: {
+            data: msg.data.eService
+              ? fromEServiceV1(msg.data.eService)
+              : undefined,
+            metadata: {
+              version: msg.version,
+            },
+          },
+        },
+        { upsert: true }
+      );
     })
     .with(
       { type: "ClonedEServiceAdded" },
       async (msg) =>
-        await eservices.insertOne({
-          data: msg.data.eService
-            ? fromEServiceV1(msg.data.eService)
-            : undefined,
-          metadata: { version: msg.version },
-        })
+        await eservices.updateOne(
+          { "data.id": msg.stream_id },
+          {
+            $setOnInsert: {
+              data: msg.data.eService
+                ? fromEServiceV1(msg.data.eService)
+                : undefined,
+              metadata: { version: msg.version },
+            },
+          },
+          { upsert: true }
+        )
     )
     .with(
       { type: "EServiceUpdated" },
       async (msg) =>
         await eservices.updateOne(
-          { "data.id": msg.stream_id },
+          {
+            "data.id": msg.stream_id,
+            "metadata.version": { $lt: msg.version },
+          },
           {
             $set: {
               data: msg.data.eService
@@ -69,7 +88,10 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
       { type: "EServiceWithDescriptorsDeleted" },
       async (msg) =>
         await eservices.updateOne(
-          { "data.id": msg.stream_id },
+          {
+            "data.id": msg.stream_id,
+            "metadata.version": { $lt: msg.version },
+          },
           {
             $pull: {
               "data.descriptors": {
@@ -84,7 +106,7 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
     )
     .with({ type: "EServiceDocumentUpdated" }, async (msg) => {
       await eservices.updateOne(
-        { "data.id": msg.stream_id },
+        { "data.id": msg.stream_id, "metadata.version": { $lt: msg.version } },
         {
           $set: {
             "metadata.version": msg.version,
@@ -106,6 +128,7 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
       await eservices.updateOne(
         {
           "data.id": msg.stream_id,
+          "metadata.version": { $lt: msg.version },
         },
         {
           $set: {
@@ -131,12 +154,19 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
     })
     .with(
       { type: "EServiceDeleted" },
-      async (msg) => await eservices.deleteOne({ "data.id": msg.stream_id })
+      async (msg) =>
+        await eservices.deleteOne({
+          "data.id": msg.stream_id,
+          "metadata.version": { $lt: msg.version },
+        })
     )
     .with({ type: "EServiceDocumentAdded" }, async (msg) => {
       if (msg.data.isInterface) {
         await eservices.updateMany(
-          { "data.id": msg.stream_id },
+          {
+            "data.id": msg.stream_id,
+            "metadata.version": { $lt: msg.version },
+          },
           {
             $set: {
               "metadata.version": msg.version,
@@ -156,7 +186,10 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
         );
       } else {
         await eservices.updateMany(
-          { "data.id": msg.stream_id },
+          {
+            "data.id": msg.stream_id,
+            "metadata.version": { $lt: msg.version },
+          },
           {
             $set: {
               "metadata.version": msg.version,
@@ -179,7 +212,7 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
     })
     .with({ type: "EServiceDocumentDeleted" }, async (msg) => {
       await eservices.updateOne(
-        { "data.id": msg.stream_id },
+        { "data.id": msg.stream_id, "metadata.version": { $lt: msg.version } },
         {
           $pull: {
             "data.descriptors.$[descriptor].docs": {
@@ -199,7 +232,7 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
         }
       );
       await eservices.updateOne(
-        { "data.id": msg.stream_id },
+        { "data.id": msg.stream_id, "metadata.version": { $lt: msg.version } },
         {
           $unset: {
             "data.descriptors.$[descriptor].interface": "",
@@ -223,7 +256,10 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
       { type: "EServiceDescriptorAdded" },
       async (msg) =>
         await eservices.updateOne(
-          { "data.id": msg.stream_id },
+          {
+            "data.id": msg.stream_id,
+            "metadata.version": { $lt: msg.version },
+          },
           {
             $set: {
               "metadata.version": msg.version,
@@ -240,7 +276,10 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
       { type: "EServiceDescriptorUpdated" },
       async (msg) =>
         await eservices.updateMany(
-          { "data.id": msg.stream_id },
+          {
+            "data.id": msg.stream_id,
+            "metadata.version": { $lt: msg.version },
+          },
           {
             $set: {
               "metadata.version": msg.version,
@@ -262,7 +301,10 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
       { type: "MovedAttributesFromEserviceToDescriptors" },
       async (msg) =>
         await eservices.updateOne(
-          { "data.id": msg.stream_id },
+          {
+            "data.id": msg.stream_id,
+            "metadata.version": { $lt: msg.version },
+          },
           {
             $set: {
               "metadata.version": msg.version,

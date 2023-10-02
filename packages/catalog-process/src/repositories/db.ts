@@ -16,6 +16,7 @@ const {
   eventStoreDbHost: host,
   eventStoreDbPort: port,
   eventStoreDbName: database,
+  eventStoreDbUseSSL: useSSL,
 } = config;
 
 const conData = new ConnectionString(
@@ -27,10 +28,8 @@ export const dbConfig: IConnectionParameters<IClient> = {
   host: conData.hostname,
   password: conData.password,
   port: conData.port,
-  ssl: {
-    rejectUnauthorized: false,
-  },
   user: conData.user,
+  ssl: useSSL ? { rejectUnauthorized: false } : undefined,
 };
 
 export const db = pgp(dbConfig);

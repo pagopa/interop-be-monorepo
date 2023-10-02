@@ -47,12 +47,17 @@ const RequiredConfig = z
   .object({
     HOST: APIEndpoint,
     PORT: z.coerce.number().min(1001),
-    MOCK_FILE_MANAGER: z.coerce.boolean().default(false),
+    MOCK_FILE_MANAGER: z
+      .enum(["true", "false"])
+      .transform((value) => value === "true"),
     EVENTSTORE_DB_HOST: z.string(),
     EVENTSTORE_DB_NAME: z.string(),
     EVENTSTORE_DB_USERNAME: z.string(),
     EVENTSTORE_DB_PASSWORD: z.string(),
     EVENTSTORE_DB_PORT: z.coerce.number().min(1001),
+    EVENTSTORE_DB_USE_SSL: z
+      .enum(["true", "false"])
+      .transform((value) => value === "true"),
     READMODEL_DB_HOST: z.string(),
     READMODEL_DB_NAME: z.string(),
     READMODEL_DB_USERNAME: z.string(),
@@ -68,6 +73,7 @@ const RequiredConfig = z
     eventStoreDbUsername: c.EVENTSTORE_DB_USERNAME,
     eventStoreDbPassword: c.EVENTSTORE_DB_PASSWORD,
     eventStoreDbPort: c.EVENTSTORE_DB_PORT,
+    eventStoreDbUseSSL: c.EVENTSTORE_DB_USE_SSL,
     readModelDbHost: c.READMODEL_DB_HOST,
     readModelDbName: c.READMODEL_DB_NAME,
     readModelDbUsername: c.READMODEL_DB_USERNAME,
