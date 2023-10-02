@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: interop-be-event-consumer-refactor
+  name: interop-be-catalog-consumer-refactor
   namespace: dev-refactor
 data:  
   KAFKA_CLIENT_ID: "dev-pagopa-interop-catalog"
