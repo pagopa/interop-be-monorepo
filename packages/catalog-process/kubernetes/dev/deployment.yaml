@@ -80,6 +80,11 @@ spec:
                 secretKeyRef:
                   name: persistence-management
                   key: REFACTOR_USER_PASSWORD
+            - name: EVENTSTORE_DB_USE_SSL
+              valueFrom:
+                configMapKeyRef:
+                  name: interop-be-catalog-process-refactor
+                  key: EVENTSTORE_DB_USE_SSL
             - name: READMODEL_DB_HOST
               valueFrom:
                 configMapKeyRef:
