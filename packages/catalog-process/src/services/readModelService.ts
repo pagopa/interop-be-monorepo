@@ -50,8 +50,8 @@ async function getTotalCount(
   const data = await query.toArray();
   const result = z.array(z.object({ count: z.number() })).safeParse(data);
 
-  if (result.success && result.data.length > 0) {
-    return result.data[0].count;
+  if (result.success) {
+    return result.data.length > 0 ? result.data[0].count : 0;
   }
 
   logger.error(
