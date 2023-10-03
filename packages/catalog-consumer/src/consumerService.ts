@@ -19,7 +19,9 @@ const {
 } = config;
 
 const mongoDBConectionURI = `mongodb://${username}:${password}@${host}:${port}`;
-const client = new MongoClient(mongoDBConectionURI);
+const client = new MongoClient(mongoDBConectionURI, {
+  retryWrites: false,
+});
 
 const db = client.db(database);
 const eservices: Collection<{
