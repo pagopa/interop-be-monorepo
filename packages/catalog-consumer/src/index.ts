@@ -43,7 +43,7 @@ async function processMessage(message: KafkaMessage): Promise<void> {
 
     logger.info("Read model was updated");
   } catch (e) {
-    logger.error(`Error during message handling ${e}`);
+    logger.error(`Error during message handling ${JSON.stringify(e)}`);
   }
 }
 
