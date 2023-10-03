@@ -84,10 +84,18 @@ const DebeziumCreatePayload = z.object({
 });
 
 const Message = z.object({
-  value: z.preprocess(
-    (v) => (v != null ? JSON.parse(v.toString()) : null),
-    z.object({ payload: DebeziumCreatePayload })
-  ),
+  value: z.preprocess((v) => {
+    if (v == null) {
+      return null;
+    }
+
+    const msg = JSON.parse(v.toString());
+    if (msg.payload) {
+      return { ...msg.payload };
+    } else {
+      return msg;
+    }
+  }, DebeziumCreatePayload),
 });
 
 export function decodeKafkaMessage(message: KafkaMessage): EventEnvelope {
@@ -95,5 +103,5 @@ export function decodeKafkaMessage(message: KafkaMessage): EventEnvelope {
   if (!parsed.success) {
     throw new Error("Invalid message: " + JSON.stringify(parsed.error));
   }
-  return parsed.data.value.payload.after;
+  return parsed.data.value.after;
 }
