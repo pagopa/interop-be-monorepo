@@ -58,18 +58,15 @@ export const fromEServiceTechnologyV1 = (
 
 export const fromEServiceAttributeV1 = (
   input: EServiceAttributeV1
-): Attribute =>
-  match<EServiceAttributeV1, Attribute>(input)
+): Attribute[] =>
+  match<EServiceAttributeV1, Attribute[]>(input)
     .with(
       {
         single: P.not(P.nullish),
       },
-      ({ single }) => ({ id: single, ids: undefined })
+      ({ single }) => [single]
     )
-    .otherwise(() => ({
-      id: undefined,
-      ids: input.group,
-    }));
+    .otherwise(() => input.group);
 
 export const fromDocumentV1 = (input: EServiceDocumentV1): Document => ({
   ...input,

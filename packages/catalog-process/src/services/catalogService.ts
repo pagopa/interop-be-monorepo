@@ -11,7 +11,6 @@ import {
   EService,
   descriptorState,
   DescriptorState,
-  Attribute,
 } from "pagopa-interop-models";
 import {
   draftDescriptorAlreadyExists,
@@ -55,7 +54,6 @@ import { fileManager } from "../utilities/fileManager.js";
 import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
 import {
   apiAgreementApprovalPolicyToAgreementApprovalPolicy,
-  apiAttributeToAttribute,
   apiTechnologyToTechnology,
 } from "../model/domain/apiConverter.js";
 import { readModelService } from "./readModelService.js";
@@ -692,9 +690,7 @@ export function createDescriptorLogic({
 
   const newVersion = nextDescriptorVersion(eService.data);
 
-  const certifiedAttributes = eserviceDescriptorSeed.attributes.certified
-    .map(apiAttributeToAttribute)
-    .filter((a): a is Attribute => a !== undefined);
+  const certifiedAttributes = eserviceDescriptorSeed.attributes.certified;
 
   const newDescriptor: Descriptor = {
     id: uuidv4(),
