@@ -1,7 +1,9 @@
 import { zodiosContext } from "@zodios/express";
 import { Response } from "express";
 import {
+  contextDataMiddleware,
   ctx,
+  globalContextMiddleware,
   loggerMiddleware,
   makeAuthMiddleware,
 } from "pagopa-interop-commons";
@@ -17,6 +19,8 @@ const app = zodiosCtx.app();
 // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
 app.disable("x-powered-by");
 
+app.use(globalContextMiddleware);
+app.use(contextDataMiddleware);
 app.use(loggerMiddleware);
 // NOTE(gabro): the order is relevant, authMiddleware must come *after* the routes
 // we want to be unauthenticated.
