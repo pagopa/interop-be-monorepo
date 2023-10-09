@@ -15,17 +15,17 @@ export type ExpressContext = NonNullable<typeof zodiosCtx.context>;
 app.disable("x-powered-by");
 
 app.use(
-    expressWinston.logger({
-        winstonInstance: logger,
-        metaField: null,
-        requestWhitelist:
-            config.logLevel === "debug" ? ["body", "headers", "query"] : [],
-        ignoredRoutes: ["/status"],
-        responseWhitelist:
-            config.logLevel === "debug"
-                ? ["body", "statusCode", "statusMessage"]
-                : [],
-    })
+  expressWinston.logger({
+    winstonInstance: logger,
+    metaField: null,
+    requestWhitelist:
+      config.logLevel === "debug" ? ["body", "headers", "query"] : [],
+    ignoredRoutes: ["/status"],
+    responseWhitelist:
+      config.logLevel === "debug"
+        ? ["body", "statusCode", "statusMessage"]
+        : [],
+  })
 );
 
 // NOTE(gabro): the order is relevant, authMiddleware must come *after* the routes
