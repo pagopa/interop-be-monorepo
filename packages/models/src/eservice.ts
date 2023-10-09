@@ -30,26 +30,15 @@ export const AgreementApprovalPolicy = z.enum([
 ]);
 export type AgreementApprovalPolicy = z.infer<typeof AgreementApprovalPolicy>;
 
-const AttributeValue = z.object({
+const Attribute = z.object({
   id: z.string().uuid(),
   explicitAttributeVerification: z.boolean(),
 });
 
-export const Attribute = z.union([
-  z.object({
-    id: AttributeValue,
-    ids: z.undefined(),
-  }),
-  z.object({
-    id: z.undefined(),
-    ids: z.array(AttributeValue),
-  }),
-]);
-
 const Attributes = z.object({
-  certified: z.array(Attribute),
-  declared: z.array(Attribute),
-  verified: z.array(Attribute),
+  certified: z.array(z.array(Attribute)),
+  declared: z.array(z.array(Attribute)),
+  verified: z.array(z.array(Attribute)),
 });
 export type Attribute = z.infer<typeof Attribute>;
 

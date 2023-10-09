@@ -1,14 +1,8 @@
 import { generateMock } from "@anatine/zod-mock";
-import {
-  Attribute,
-  Descriptor,
-  EService,
-  descriptorState,
-} from "pagopa-interop-models";
+import { Descriptor, EService, descriptorState } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import {
   apiAgreementApprovalPolicyToAgreementApprovalPolicy,
-  apiAttributeToAttribute,
   apiTechnologyToTechnology,
 } from "../src/model/domain/apiConverter.js";
 import {
@@ -575,10 +569,9 @@ describe("CatalogService", () => {
             event.event.data as { eServiceDescriptor: { createdAt: Date } }
           ).eServiceDescriptor.createdAt,
           attributes: {
-            certified: mockEserviceDescriptorSeed.attributes.certified
-              .map(apiAttributeToAttribute)
-              .filter((a): a is Attribute => a !== undefined)
-              .map(toEServiceAttributeV1),
+            certified: mockEserviceDescriptorSeed.attributes.certified.map(
+              toEServiceAttributeV1
+            ),
             declared: [],
             verified: [],
           },
