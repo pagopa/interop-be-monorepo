@@ -64,12 +64,7 @@ export const fromEServiceAttributeV1 = (
       {
         single: P.not(P.nullish),
       },
-      ({ single }) => [
-        {
-          id: single.id,
-          explicitAttributeVerification: single.explicitAttributeVerification,
-        },
-      ]
+      ({ single }) => [single]
     )
     .otherwise(() => input.group);
 
