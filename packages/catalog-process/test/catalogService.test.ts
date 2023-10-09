@@ -1,11 +1,9 @@
 import { generateMock } from "@anatine/zod-mock";
-import { Descriptor, EService, descriptorState } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import {
-  apiAgreementApprovalPolicyToAgreementApprovalPolicy,
-  apiTechnologyToTechnology,
-} from "../src/model/domain/apiConverter.js";
-import {
+  Descriptor,
+  EService,
+  descriptorState,
   draftDescriptorAlreadyExists,
   eServiceCannotBeDeleted,
   eServiceCannotBeUpdated,
@@ -14,8 +12,22 @@ import {
   eServiceDuplicate,
   eServiceNotFound,
   notValidDescriptor,
+  operationForbidden,
 } from "pagopa-interop-models";
-
+import {
+  apiAgreementApprovalPolicyToAgreementApprovalPolicy,
+  apiTechnologyToTechnology,
+} from "../src/model/domain/apiConverter.js";
+import { WithMetadata } from "../src/model/domain/models.js";
+import * as api from "../src/model/generated/api.js";
+import {
+  toAgreementApprovalPolicyV1,
+  toDescriptorV1,
+  toEServiceAttributeV1,
+  toEServiceDescriptorStateV1,
+  toEServiceTechnologyV1,
+  toEServiceV1,
+} from "../src/repositories/toEvent.js";
 import {
   activateDescriptorLogic,
   archiveDescriptorLogic,
@@ -32,16 +44,6 @@ import {
   updateEserviceLogic,
   uploadDocumentLogic,
 } from "../src/services/catalogService.js";
-import * as api from "../src/model/generated/api.js";
-import { WithMetadata } from "../src/model/domain/models.js";
-import {
-  toAgreementApprovalPolicyV1,
-  toDescriptorV1,
-  toEServiceAttributeV1,
-  toEServiceDescriptorStateV1,
-  toEServiceTechnologyV1,
-  toEServiceV1,
-} from "../src/repositories/toEvent.js";
 
 const shuffle = <T>(array: T[]): T[] => array.sort(() => Math.random() - 0.5);
 

@@ -9,8 +9,6 @@ import {
   Document,
   EService,
   descriptorState,
-} from "pagopa-interop-models";
-import {
   draftDescriptorAlreadyExists,
   eServiceCannotBeDeleted,
   eServiceCannotBeUpdated,
@@ -23,11 +21,6 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { v4 as uuidv4 } from "uuid";
-import {
-  apiAgreementApprovalPolicyToAgreementApprovalPolicy,
-  apiAttributeToAttribute,
-  apiTechnologyToTechnology,
-} from "../model/domain/apiConverter.js";
 import {
   EServiceDescriptorSeed,
   ListResult,
