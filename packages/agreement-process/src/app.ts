@@ -3,6 +3,7 @@ import * as expressWinston from "express-winston";
 import { logger } from "pagopa-interop-commons";
 import healthRouter from "./routers/HealthRouter.js";
 import { config } from "./utilities/config.js";
+import testPdfGenRouter from "./routers/TestPdfGen.js";
 
 const zodiosCtx = zodiosContext();
 const app = zodiosCtx.app();
@@ -31,5 +32,6 @@ app.use(
 // NOTE(gabro): the order is relevant, authMiddleware must come *after* the routes
 // we want to be unauthenticated.
 app.use(healthRouter);
+app.use(testPdfGenRouter);
 
 export default app;
