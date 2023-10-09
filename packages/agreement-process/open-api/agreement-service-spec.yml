@@ -42,6 +42,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /generatePDF:
+    get:
+      security: []
+      summary: Test generate pdf endpoint
+      description: Return ok
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
 components:
   parameters:
     CorrelationIdHeader:
