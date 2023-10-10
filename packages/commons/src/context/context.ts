@@ -2,14 +2,19 @@
 import { AsyncLocalStorage } from "async_hooks";
 import { NextFunction, Request, Response } from "express";
 import { z } from "zod";
+import { zodiosContext } from "@zodios/express";
 import { AuthData } from "../auth/authData.js";
 import { readHeaders } from "../auth/headers.js";
+
+export type ZodiosContext = NonNullable<typeof zodiosCtx>;
+export type ExpressContext = NonNullable<typeof zodiosCtx.context>;
 
 export const ctx = z.object({
   authData: AuthData,
   correlationId: z.string().uuid(),
 });
 
+export const zodiosCtx = zodiosContext(z.object({ ctx }));
 export type AppContext = z.infer<typeof ctx>;
 
 const globalStore = new AsyncLocalStorage<AppContext>();
