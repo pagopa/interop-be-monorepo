@@ -1,5 +1,6 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { Request, Response } from "express";
 import {
   eServiceDocumentNotFound,
   eServiceNotFound,
@@ -9,6 +10,8 @@ import {
   userRoles,
   ZodiosContext,
   authRoleMiddleware,
+  hasValidRoles,
+  UserRoles,
 } from "pagopa-interop-commons";
 import {
   agreementStateToApiAgreementState,
@@ -22,6 +25,20 @@ import { ApiError, makeApiError } from "../model/types.js";
 import { catalogService } from "../services/catalogService.js";
 import { readModelService } from "../services/readModelService.js";
 
+const roleValidation = (
+  req: Request,
+  res: Response,
+  admittedRoles: UserRoles[]
+): void => {
+  // ------------------------------------------------
+  // Temporary workaround authRoleMiddleware type signature doesn't support request with query params
+  const roleValidation = hasValidRoles(req, admittedRoles);
+  if (!roleValidation.isValid) {
+    const errorRes: ApiError = makeApiError(roleValidation.error);
+    res.status(errorRes.status).end();
+  }
+  // ------------------------------------------------
+};
 const eservicesRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
@@ -37,15 +54,20 @@ const eservicesRouter = (
   eservicesRouter
     .get(
       "/eservices",
-      authRoleMiddleware([
-        ADMIN_ROLE,
-        API_ROLE,
-        SECURITY_ROLE,
-        M2M_ROLE,
-        SUPPORT_ROLE,
-      ]),
+      // authRoleMiddleware([
+      //   ADMIN_ROLE,
+      //   API_ROLE,
+      //   SECURITY_ROLE,
+      //   M2M_ROLE,
+      //   SUPPORT_ROLE,
+      // ]),
       async (req, res) => {
         try {
+          roleValidation(
+            req as unknown as Request,
+            res as unknown as Response,
+            [ADMIN_ROLE, API_ROLE, SECURITY_ROLE, M2M_ROLE, SUPPORT_ROLE]
+          );
           const {
             name,
             eservicesIds,
@@ -166,15 +188,20 @@ const eservicesRouter = (
     )
     .get(
       "/eservices/:eServiceId/consumers",
-      authRoleMiddleware([
-        ADMIN_ROLE,
-        API_ROLE,
-        SECURITY_ROLE,
-        M2M_ROLE,
-        SUPPORT_ROLE,
-      ]),
+      // authRoleMiddleware([
+      //   ADMIN_ROLE,
+      //   API_ROLE,
+      //   SECURITY_ROLE,
+      //   M2M_ROLE,
+      //   SUPPORT_ROLE,
+      // ]),
       async (req, res) => {
         try {
+          roleValidation(
+            req as unknown as Request,
+            res as unknown as Response,
+            [ADMIN_ROLE, API_ROLE, SECURITY_ROLE, M2M_ROLE, SUPPORT_ROLE]
+          );
           const eServiceId = req.params.eServiceId;
           const offset = req.query.offset;
           const limit = req.query.limit;
