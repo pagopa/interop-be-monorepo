@@ -1,18 +1,15 @@
-import { zodiosContext } from "@zodios/express";
 import { Response } from "express";
 import {
   contextDataMiddleware,
-  ctx,
   globalContextMiddleware,
   loggerMiddleware,
   makeAuthMiddleware,
+  zodiosCtx,
 } from "pagopa-interop-commons";
-import { z } from "zod";
 import eservicesRouter from "./routers/EServiceRouter.js";
 import healthRouter from "./routers/HealthRouter.js";
 import { ApiError, makeApiError } from "./model/types.js";
 
-const zodiosCtx = zodiosContext(z.object({ ctx }));
 const app = zodiosCtx.app();
 
 // Disable the "X-Powered-By: Express" HTTP header for security reasons.
