@@ -185,3 +185,39 @@ export function eServiceDocumentNotFound(
     ErrorTypes.EServiceDocumentNotFound
   );
 }
+
+export type ProblemError = {
+  code: string;
+  detail: string;
+};
+
+export type Problem = {
+  type: string;
+  status: number;
+  title: string;
+  correlationId?: string;
+  detail: string;
+  errors: ProblemError[];
+};
+
+export function makeApiProblem(
+  errorCode: string,
+  httpStatus: number,
+  title: string,
+  detail: string,
+  correlationId?: string
+): Problem {
+  return {
+    type: "https://docs.pagopa.it/interoperabilita-1/", // TODO change this with properly schema definition URI
+    title,
+    status: httpStatus,
+    detail,
+    correlationId,
+    errors: [
+      {
+        code: errorCode,
+        detail,
+      },
+    ],
+  };
+}
