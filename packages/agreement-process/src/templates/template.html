@@ -39,49 +39,77 @@
 
   <!-- Intro legale -->
   <div class="legal-intro">
-    In data <strong>${todayDate}</strong> alle ore
-    <strong>${todayTime}</strong>, l’Infrastruttura ha ricevuto la richiesta
-    di fruizione contraddistinta da id <strong>${agreementId}</strong> (di
+    In data <strong>{{todayDate}}</strong> alle ore
+    <strong>{{todayTime}}</strong>, l’Infrastruttura ha ricevuto la richiesta
+    di fruizione contraddistinta da id <strong>{{agreementId}}</strong> (di
     seguito “Richiesta di Fruizione”), inviata dall’aderente
-    <strong>${consumerText}</strong> (di seguito “Fruitore”), tramite
-    l’operatore amministrativo <strong>${submitter}</strong>, per l’E-service
-    <strong>${eServiceName}</strong> reso disponibile dall’aderente
-    <strong>${producerText}</strong>
+    <strong>{{consumerText}}</strong> (di seguito “Fruitore”), tramite
+    l’operatore amministrativo <strong>{{submitter}}</strong>, per l’E-service
+    <strong>{{eServiceName}}</strong> reso disponibile dall’aderente
+    <strong>{{producerText}}</strong>
     (di seguito “Erogatore”) di cui il Fruitore soddisfa i seguenti requisiti
     di fruizione per lo stesso previsti dall’Erogatore.
   </div>
   <div class="content">
     <h2>Attributi dichiarati</h2>
 
-    ${declaredAttributes}
+    {{#declaredAttributes}}
+    <div>
+      In data <strong>{{date}}</strong> alle ore <strong>{{time}}</strong>,
+      l’Infrastruttura ha registrato la dichiarazione del Fruitore di
+      possedere il seguente attributo
+      <strong>{{clientAttributeName}}</strong> dichiarato ed avente il
+      seguente periodo di validità ________, necessario a soddisfare il
+      requisito di fruizione stabilito dall’Erogatore per l’accesso
+      all’E-service.
+    </div>
+    {{/declaredAttributes}}
 
     <h2>Attributi verificati</h2>
 
-    ${verifiedAttributes}
+    {{#verifiedAttributes}}
+    <div>
+      In data <strong>{{date}}</strong> alle ore <strong>{{time}}</strong>,
+      l’Infrastruttura ha registrato la dichiarazione del Fruitore di
+      possedere il seguente attributo
+      <strong>{{clientAttributeName}}</strong>, verificata dall’aderente
+      ________ OPPURE dall’Erogatore stesso in data <strong>{{date}}</strong>,
+      necessario a soddisfare il requisito di fruizione stabilito
+      dall’Erogatore per l’accesso all’E-service.
+    </div>
+    {{/verifiedAttributes}}
 
     <h2>Attributi certificati</h2>
 
-    ${certifiedAttributes}
+    {{#certifiedAttributes}}
+    <div>
+      In data <strong>{{date}}</strong> alle ore <strong>{{time}}</strong>,
+      l’Infrastruttura ha registrato il possesso da parte del Fruitore del
+      seguente attributo <strong>{{clientAttributeName}}</strong> certificato,
+      necessario a soddisfare il requisito di fruizione stabilito
+      dall’Erogatore per l’accesso all’E-service.
+    </div>
+    {{/certifiedAttributes}}
 
     <h2>Registrazione</h2>
 
     <div>
-      In data <strong>${submissionDate}</strong> alle ore
-      <strong>${submissionTime}</strong>, l’Infrastruttura ha trasmesso
+      In data <strong>{{submissionDate}}</strong> alle ore
+      <strong>{{submissionTime}}</strong>, l’Infrastruttura ha trasmesso
       all’Erogatore la Richiesta di Fruizione.
     </div>
 
     <div>
-      In data <strong>${activationDate}</strong> alle ore
-      <strong>${activationTime}</strong>, l’Infrastruttura ha ricevuto la
+      In data <strong>{{activationDate}}</strong> alle ore
+      <strong>{{activationTime}}</strong>, l’Infrastruttura ha ricevuto la
       dichiarazione di accettazione della Richiesta di Fruizione (di seguito
       “Dichiarazione Accettazione”) inviata dall’Erogatore, tramite
-      l’operatore amministrativo <strong>${activator}</strong>.
+      l’operatore amministrativo <strong>{{activator}}</strong>.
     </div>
 
     <div>
-      In data <strong>${activationDate}</strong> alle ore
-      <strong>${activationTime}</strong>, l’Infrastruttura ha comunicato al
+      In data <strong>{{activationDate}}</strong> alle ore
+      <strong>{{activationTime}}</strong>, l’Infrastruttura ha comunicato al
       Fruitore la Dichiarazione Accettazione inviata dall’Erogatore.
     </div>
   </div>
