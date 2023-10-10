@@ -1,5 +1,5 @@
 import { ZodiosRouterContextRequestHandler } from "@zodios/express";
-import { NextFunction, Request, Response } from "express";
+import { Request } from "express";
 import {
   CatalogProcessError,
   ErrorTypes,
@@ -11,49 +11,72 @@ import { ExpressContext, readHeaders } from "../index.js";
 import { UserRoles } from "./authData.js";
 import { readAuthDataFromJwtToken } from "./jwt.js";
 
-export const authRoleMiddleware: (
+type RoleValidation =
+  | {
+      isValid: false;
+      error: CatalogProcessError;
+    }
+  | { isValid: true };
+
+export const hasValidRoles = (
+  req: Request,
   admittedRoles: UserRoles[]
-) => ZodiosRouterContextRequestHandler<ExpressContext> =
-  (admittedRoles: UserRoles[]) =>
-  (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const jwtToken = req.headers.authorization?.split(" ")[1];
-      if (!jwtToken) {
-        throw new CatalogProcessError(
-          "The jwt token not found",
-          ErrorTypes.Unauthorized
-        );
-      }
-      const authData = readAuthDataFromJwtToken(jwtToken);
+): RoleValidation => {
+  const jwtToken = req.headers.authorization?.split(" ")[1];
+  if (!jwtToken) {
+    throw new CatalogProcessError(
+      "The jwt token not found",
+      ErrorTypes.Unauthorized
+    );
+  }
+  const authData = readAuthDataFromJwtToken(jwtToken);
 
-      if (authData instanceof Error) {
-        // throw new CatalogProcessError(authData.message, ErrorTypes.Unauthorized);
-        next();
-        return;
-      }
+  if (authData instanceof Error) {
+    return {
+      isValid: false,
+      error: new CatalogProcessError(authData.message, ErrorTypes.Unauthorized),
+    };
+  }
 
-      if (!authData.userRoles || authData.userRoles.length === 0) {
-        throw new CatalogProcessError(
-          "No user roles found to execute this request",
-          ErrorTypes.Unauthorized
-        );
-      }
+  if (!authData.userRoles || authData.userRoles.length === 0) {
+    return {
+      isValid: false,
+      error: new CatalogProcessError(
+        "No user roles found to execute this request",
+        ErrorTypes.Unauthorized
+      ),
+    };
+  }
 
-      const admittedRolesStr = admittedRoles.map((role) =>
-        role.toString().toLowerCase()
-      );
+  const admittedRolesStr = admittedRoles.map((role) =>
+    role.toString().toLowerCase()
+  );
 
-      const intersection = authData.userRoles.filter((value) =>
-        admittedRolesStr.includes(value)
-      );
+  const intersection = authData.userRoles.filter((value) =>
+    admittedRolesStr.includes(value)
+  );
 
-      if (intersection.length === 0) {
-        throw new CatalogProcessError(
+  return intersection.length > 0
+    ? { isValid: true }
+    : {
+        isValid: false,
+        error: new CatalogProcessError(
           `Invalid user roles (${authData.userRoles.join(
             ","
           )}) to execute this request`,
           ErrorTypes.Unauthorized
-        );
+        ),
+      };
+};
+
+export const authRoleMiddleware: (
+  admittedRoles: UserRoles[]
+) => ZodiosRouterContextRequestHandler<ExpressContext> =
+  (admittedRoles: UserRoles[]) => (req, res, next) => {
+    try {
+      const validationResult = hasValidRoles(req, admittedRoles);
+      if (!validationResult.isValid) {
+        throw validationResult.error;
       }
 
       return next();
