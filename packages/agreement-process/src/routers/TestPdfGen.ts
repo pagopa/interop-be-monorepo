@@ -3,12 +3,80 @@ import path from "path";
 import { fileURLToPath } from "url";
 import puppeteer from "puppeteer";
 import { zodiosRouter } from "@zodios/express";
+import Mustache from "mustache";
 import { api } from "../model/generated/api.js";
+import { logger } from "pagopa-interop-commons";
 
 const testPdfGenRouter = zodiosRouter(api.api);
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
+
+const data = {
+  todayDate: new Date(),
+  todayTime: new Date(),
+  agreementId: "123456789",
+  consumerText: "Consumer test",
+  submitter: "Submitter test",
+  eServiceName: "eService test",
+  producerText: "Producer test",
+  submissionDate: new Date(),
+  submissionTime: new Date(),
+  activationDate: new Date(),
+  activationTime: new Date(),
+  activator: "Activator test",
+  declaredAttributes: [
+    {
+      date: new Date(),
+      time: new Date(),
+      clientAttributeName: "Client attribute name test 1",
+    },
+    {
+      date: new Date(),
+      time: new Date(),
+      clientAttributeName: "Client attribute name test 2",
+    },
+    {
+      date: new Date(),
+      time: new Date(),
+      clientAttributeName: "Client attribute name test 3",
+    },
+  ],
+  verifiedAttributes: [
+    {
+      date: new Date(),
+      time: new Date(),
+      clientAttributeName: "Client attribute name test 1",
+    },
+    {
+      date: new Date(),
+      time: new Date(),
+      clientAttributeName: "Client attribute name test 2",
+    },
+    {
+      date: new Date(),
+      time: new Date(),
+      clientAttributeName: "Client attribute name test 3",
+    },
+  ],
+  certifiedAttributes: [
+    {
+      date: new Date(),
+      time: new Date(),
+      clientAttributeName: "Client attribute name test 1",
+    },
+    {
+      date: new Date(),
+      time: new Date(),
+      clientAttributeName: "Client attribute name test 2",
+    },
+    {
+      date: new Date(),
+      time: new Date(),
+      clientAttributeName: "Client attribute name test 3",
+    },
+  ],
+};
 
 testPdfGenRouter.get("/generatePDF", async (_, res) => {
   const outHtmlPath = path.resolve(dirname, "..", "templates", "test.html");
@@ -28,7 +96,8 @@ testPdfGenRouter.get("/generatePDF", async (_, res) => {
     '<link rel="stylesheet" href="style.css" />',
     `<style>${css}</style><script src="paged.polyfill.js"></script>`
   );
-  fs.writeFileSync(outHtmlPath, content);
+  const renderedContent = Mustache.render(content, data);
+  fs.writeFileSync(outHtmlPath, renderedContent);
 
   const browser = await puppeteer.launch({ headless: "new" });
   const page = await browser.newPage();
