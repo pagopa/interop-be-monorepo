@@ -4,7 +4,12 @@ import {
   eServiceDocumentNotFound,
   eServiceNotFound,
 } from "pagopa-interop-models";
-import { ExpressContext, ZodiosContext } from "pagopa-interop-commons";
+import {
+  ExpressContext,
+  userRoles,
+  ZodiosContext,
+  authRoleMiddleware,
+} from "pagopa-interop-commons";
 import {
   agreementStateToApiAgreementState,
   apiAgreementStateToAgreementState,
@@ -21,141 +26,191 @@ const eservicesRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const eservicesRouter = ctx.router(api.api);
-
+  const {
+    ADMIN_ROLE,
+    SECURITY_ROLE,
+    API_ROLE,
+    M2M_ROLE,
+    INTERNAL_ROLE,
+    SUPPORT_ROLE,
+  } = userRoles;
   eservicesRouter
-    .get("/eservices", async (req, res) => {
-      try {
-        const {
-          name,
-          eservicesIds,
-          producersIds,
-          states,
-          agreementStates,
-          offset,
-          limit,
-        } = req.query;
-
-        const catalogs = await readModelService.getEServices(
-          req.ctx.authData,
-          {
+    .get(
+      "/eservices",
+      authRoleMiddleware([
+        ADMIN_ROLE,
+        API_ROLE,
+        SECURITY_ROLE,
+        M2M_ROLE,
+        SUPPORT_ROLE,
+      ]),
+      async (req, res) => {
+        try {
+          const {
+            name,
             eservicesIds,
             producersIds,
-            states: states.map(apiDescriptorStateToDescriptorState),
-            agreementStates: agreementStates.map(
-              apiAgreementStateToAgreementState
-            ),
-            name: name ? { value: name, exactMatch: false } : undefined,
-          },
-          offset,
-          limit
-        );
+            states,
+            agreementStates,
+            offset,
+            limit,
+          } = req.query;
 
-        return res
-          .status(200)
-          .json({
-            results: catalogs.results.map(eServiceToApiEService),
-            totalCount: catalogs.totalCount,
-          })
-          .end();
-      } catch (error) {
-        return res.status(500).end();
-      }
-    })
-    .post("/eservices", async (req, res) => {
-      try {
-        const id = await catalogService.createEService(
-          req.body,
-          req.ctx.authData
-        );
-        return res.status(201).json({ id }).end();
-      } catch (error) {
-        const errorRes: ApiError = makeApiError(error);
-        return res.status(errorRes.status).json(errorRes).end();
-      }
-    })
-    .get("/eservices/:eServiceId", async (req, res) => {
-      try {
-        const eService = await readModelService.getEServiceById(
-          req.params.eServiceId
-        );
+          const catalogs = await readModelService.getEServices(
+            req.ctx.authData,
+            {
+              eservicesIds,
+              producersIds,
+              states: states.map(apiDescriptorStateToDescriptorState),
+              agreementStates: agreementStates.map(
+                apiAgreementStateToAgreementState
+              ),
+              name: name ? { value: name, exactMatch: false } : undefined,
+            },
+            offset,
+            limit
+          );
 
-        if (eService) {
           return res
             .status(200)
-            .json(eServiceToApiEService(eService.data))
+            .json({
+              results: catalogs.results.map(eServiceToApiEService),
+              totalCount: catalogs.totalCount,
+            })
             .end();
-        } else {
-          return res
-            .status(404)
-            .json(makeApiError(eServiceNotFound(req.params.eServiceId)))
-            .end();
+        } catch (error) {
+          return res.status(500).end();
         }
-      } catch (error) {
-        const errorRes: ApiError = makeApiError(error);
-        return res.status(errorRes.status).json(errorRes).end();
       }
-    })
-    .put("/eservices/:eServiceId", async (req, res) => {
-      try {
-        await catalogService.updateEService(
-          req.params.eServiceId,
-          req.body,
-          req.ctx.authData
-        );
-        return res.status(200).end();
-      } catch (error) {
-        const errorRes: ApiError = makeApiError(error);
-        return res.status(errorRes.status).json(errorRes).end();
+    )
+    .post(
+      "/eservices",
+      authRoleMiddleware([ADMIN_ROLE, API_ROLE]),
+      async (req, res) => {
+        try {
+          const id = await catalogService.createEService(
+            req.body,
+            req.ctx.authData
+          );
+          return res.status(201).json({ id }).end();
+        } catch (error) {
+          const errorRes: ApiError = makeApiError(error);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
       }
-    })
-    .delete("/eservices/:eServiceId", async (req, res) => {
-      try {
-        await catalogService.deleteEService(
-          req.params.eServiceId,
-          req.ctx.authData
-        );
-        return res.status(204).end();
-      } catch (error) {
-        const errorRes: ApiError = makeApiError(error);
-        return res.status(errorRes.status).json(errorRes).end();
-      }
-    })
-    .get("/eservices/:eServiceId/consumers", async (req, res) => {
-      try {
-        const eServiceId = req.params.eServiceId;
-        const offset = req.query.offset;
-        const limit = req.query.limit;
+    )
+    .get(
+      "/eservices/:eServiceId",
+      authRoleMiddleware([
+        ADMIN_ROLE,
+        API_ROLE,
+        SECURITY_ROLE,
+        M2M_ROLE,
+        SUPPORT_ROLE,
+      ]),
+      async (req, res) => {
+        try {
+          const eService = await readModelService.getEServiceById(
+            req.params.eServiceId
+          );
 
-        const consumers = await readModelService.getEServiceConsumers(
-          eServiceId,
-          offset,
-          limit
-        );
-
-        return res
-          .status(200)
-          .json({
-            results: consumers.results.map((c) => ({
-              descriptorVersion: parseInt(c.descriptorVersion, 10),
-              descriptorState: descriptorStateToApiEServiceDescriptorState(
-                c.descriptorState
-              ),
-              agreementState: agreementStateToApiAgreementState(
-                c.agreementState
-              ),
-              consumerName: c.consumerName,
-              consumerExternalId: c.consumerExternalId,
-            })),
-            totalCount: consumers.totalCount,
-          })
-          .end();
-      } catch (error) {
-        const errorRes: ApiError = makeApiError(error);
-        return res.status(errorRes.status).json(errorRes).end();
+          if (eService) {
+            return res
+              .status(200)
+              .json(eServiceToApiEService(eService.data))
+              .end();
+          } else {
+            return res
+              .status(404)
+              .json(makeApiError(eServiceNotFound(req.params.eServiceId)))
+              .end();
+          }
+        } catch (error) {
+          const errorRes: ApiError = makeApiError(error);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
       }
-    })
+    )
+    .put(
+      "/eservices/:eServiceId",
+      authRoleMiddleware([ADMIN_ROLE, API_ROLE]),
+      async (req, res) => {
+        try {
+          await catalogService.updateEService(
+            req.params.eServiceId,
+            req.body,
+            req.ctx.authData
+          );
+          return res.status(200).end();
+        } catch (error) {
+          const errorRes: ApiError = makeApiError(error);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
+    .delete(
+      "/eservices/:eServiceId",
+      authRoleMiddleware([ADMIN_ROLE, API_ROLE]),
+      async (req, res) => {
+        try {
+          await catalogService.deleteEService(
+            req.params.eServiceId,
+            req.ctx.authData
+          );
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes: ApiError = makeApiError(error);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
+    .get(
+      "/eservices/:eServiceId/consumers",
+      authRoleMiddleware([
+        ADMIN_ROLE,
+        API_ROLE,
+        SECURITY_ROLE,
+        M2M_ROLE,
+        SUPPORT_ROLE,
+      ]),
+      async (req, res) => {
+        try {
+          const eServiceId = req.params.eServiceId;
+          const offset = req.query.offset;
+          const limit = req.query.limit;
+
+          const consumers = await readModelService.getEServiceConsumers(
+            eServiceId,
+            offset,
+            limit
+          );
+
+          return res
+            .status(200)
+            .json({
+              results: consumers.results.map((c) => ({
+                descriptorVersion: parseInt(c.descriptorVersion, 10),
+                descriptorState: descriptorStateToApiEServiceDescriptorState(
+                  c.descriptorState
+                ),
+                agreementState: agreementStateToApiAgreementState(
+                  c.agreementState
+                ),
+                consumerName: c.consumerName,
+                consumerExternalId: c.consumerExternalId,
+              })),
+              totalCount: consumers.totalCount,
+            })
+            .end();
+        } catch (error) {
+          const errorRes: ApiError = makeApiError(error);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
     .get(
       "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId",
+      authRoleMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
           const { eServiceId, descriptorId, documentId } = req.params;
@@ -195,6 +250,7 @@ const eservicesRouter = (
     )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/documents",
+      authRoleMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
           const id = await catalogService.uploadDocument(
@@ -212,6 +268,7 @@ const eservicesRouter = (
     )
     .delete(
       "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId",
+      authRoleMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
           await catalogService.deleteDocument(
@@ -229,6 +286,7 @@ const eservicesRouter = (
     )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId/update",
+      authRoleMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
           await catalogService.updateDocument(
@@ -245,21 +303,26 @@ const eservicesRouter = (
         }
       }
     )
-    .post("/eservices/:eServiceId/descriptors", async (req, res) => {
-      try {
-        const id = await catalogService.createDescriptor(
-          req.params.eServiceId,
-          req.body,
-          req.ctx.authData
-        );
-        return res.status(200).json({ id }).end();
-      } catch (error) {
-        const errorRes: ApiError = makeApiError(error);
-        return res.status(errorRes.status).json(errorRes).end();
+    .post(
+      "/eservices/:eServiceId/descriptors",
+      authRoleMiddleware([ADMIN_ROLE, API_ROLE]),
+      async (req, res) => {
+        try {
+          const id = await catalogService.createDescriptor(
+            req.params.eServiceId,
+            req.body,
+            req.ctx.authData
+          );
+          return res.status(200).json({ id }).end();
+        } catch (error) {
+          const errorRes: ApiError = makeApiError(error);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
       }
-    })
+    )
     .delete(
       "/eservices/:eServiceId/descriptors/:descriptorId",
+      authRoleMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
           await catalogService.deleteDraftDescriptor(
@@ -276,6 +339,7 @@ const eservicesRouter = (
     )
     .put(
       "/eservices/:eServiceId/descriptors/:descriptorId",
+      authRoleMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
           await catalogService.updateDescriptor(
@@ -293,6 +357,7 @@ const eservicesRouter = (
     )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/publish",
+      authRoleMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
           await catalogService.publishDescriptor(
@@ -309,6 +374,7 @@ const eservicesRouter = (
     )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/suspend",
+      authRoleMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
           await catalogService.suspendDescriptor(
@@ -325,6 +391,7 @@ const eservicesRouter = (
     )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/activate",
+      authRoleMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
           await catalogService.activateDescriptor(
@@ -341,6 +408,7 @@ const eservicesRouter = (
     )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/clone",
+      authRoleMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
           const clonedEserviceByDescriptor =
@@ -358,6 +426,7 @@ const eservicesRouter = (
     )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/archive",
+      authRoleMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
         try {
           await catalogService.archiveDescriptor(
