@@ -1,8 +1,10 @@
 import { zodiosContext } from "@zodios/express";
-import * as expressWinston from "express-winston";
-import { logger } from "pagopa-interop-commons";
+import {
+  contextDataMiddleware,
+  globalContextMiddleware,
+  loggerMiddleware,
+} from "pagopa-interop-commons";
 import healthRouter from "./routers/HealthRouter.js";
-import { config } from "./utilities/config.js";
 
 const zodiosCtx = zodiosContext();
 const app = zodiosCtx.app();
@@ -14,19 +16,9 @@ export type ExpressContext = NonNullable<typeof zodiosCtx.context>;
 // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
 app.disable("x-powered-by");
 
-app.use(
-  expressWinston.logger({
-    winstonInstance: logger,
-    metaField: null,
-    requestWhitelist:
-      config.logLevel === "debug" ? ["body", "headers", "query"] : [],
-    ignoredRoutes: ["/status"],
-    responseWhitelist:
-      config.logLevel === "debug"
-        ? ["body", "statusCode", "statusMessage"]
-        : [],
-  })
-);
+app.use(globalContextMiddleware);
+app.use(contextDataMiddleware);
+app.use(loggerMiddleware);
 
 // NOTE(gabro): the order is relevant, authMiddleware must come *after* the routes
 // we want to be unauthenticated.
