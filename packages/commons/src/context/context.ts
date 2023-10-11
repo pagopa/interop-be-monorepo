@@ -32,7 +32,7 @@ export const globalContextMiddleware = (
   _res: Response,
   next: NextFunction
 ): void => {
-  globalStore.run(defaultAppContext, () => getContext());
+  globalStore.run(defaultAppContext, () => defaultAppContext);
   next();
 };
 
