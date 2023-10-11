@@ -1,4 +1,9 @@
-import { ZodiosRouterContextRequestHandler } from "@zodios/express";
+import {
+  ZodiosPathsByMethod,
+  ZodiosEndpointDefinition,
+  Method,
+} from "@zodios/core";
+import { ZodiosRequestHandler } from "@zodios/express";
 import { Request } from "express";
 import {
   CatalogProcessError,
@@ -7,7 +12,8 @@ import {
   makeApiProblem,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
-import { ExpressContext, readHeaders } from "../index.js";
+import { z } from "zod";
+import { readHeaders } from "../index.js";
 import { UserRoles } from "./authData.js";
 import { readAuthDataFromJwtToken } from "./jwt.js";
 
@@ -69,19 +75,34 @@ export const hasValidRoles = (
       };
 };
 
-export const authRoleMiddleware: (
-  admittedRoles: UserRoles[]
-) => ZodiosRouterContextRequestHandler<ExpressContext> =
-  (admittedRoles: UserRoles[]) => (req, res, next) => {
+type Middleware<
+  Api extends ZodiosEndpointDefinition[],
+  M extends Method,
+  Path extends ZodiosPathsByMethod<Api, M>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  Context extends z.ZodObject<any>
+> = ZodiosRequestHandler<Api, Context, M, Path>;
+
+export const authRoleMiddleware =
+  <
+    Api extends ZodiosEndpointDefinition[],
+    M extends Method,
+    Path extends ZodiosPathsByMethod<Api, M>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    Context extends z.ZodObject<any>
+  >(
+    admittedRoles: UserRoles[]
+  ): Middleware<Api, M, Path, Context> =>
+  (req, res, next) => {
     try {
-      const validationResult = hasValidRoles(req, admittedRoles);
+      const validationResult = hasValidRoles(req as Request, admittedRoles);
       if (!validationResult.isValid) {
         throw validationResult.error;
       }
 
       return next();
     } catch (err) {
-      const headers = readHeaders(req);
+      const headers = readHeaders(req as Request);
 
       const problem = match<unknown, Problem>(err)
         .with(P.instanceOf(CatalogProcessError), (error) =>
@@ -101,6 +122,17 @@ export const authRoleMiddleware: (
             "Generic error while processing catalog process error"
           )
         );
-      return res.status(problem.status).json(problem).end();
+
+      res.json();
+
+      return (
+        res
+          .status(problem.status)
+          // NOTE(gabro): this is fine, we don't need the type safety provided by Zod since this is a generic middleware.
+          // Preserving the type-level machinery to check the correctness of the json body wrt the status code is not worth the effort.
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .json(problem as any)
+          .end()
+      );
     }
   };

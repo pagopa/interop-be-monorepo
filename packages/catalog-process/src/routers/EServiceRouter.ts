@@ -54,20 +54,15 @@ const eservicesRouter = (
   eservicesRouter
     .get(
       "/eservices",
-      // authRoleMiddleware([
-      //   ADMIN_ROLE,
-      //   API_ROLE,
-      //   SECURITY_ROLE,
-      //   M2M_ROLE,
-      //   SUPPORT_ROLE,
-      // ]),
+      authRoleMiddleware([
+        ADMIN_ROLE,
+        API_ROLE,
+        SECURITY_ROLE,
+        M2M_ROLE,
+        SUPPORT_ROLE,
+      ]),
       async (req, res) => {
         try {
-          roleValidation(
-            req as unknown as Request,
-            res as unknown as Response,
-            [ADMIN_ROLE, API_ROLE, SECURITY_ROLE, M2M_ROLE, SUPPORT_ROLE]
-          );
           const {
             name,
             eservicesIds,
