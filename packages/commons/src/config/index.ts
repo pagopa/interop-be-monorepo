@@ -45,4 +45,16 @@ const RequiredConfig = z
 const Config = RequiredConfig.and(JWTConfig);
 
 export type Config = z.infer<typeof Config>;
+
+export const HTTPServerConfig = z
+  .object({
+    HOST: APIEndpoint,
+    PORT: z.coerce.number().min(1001),
+  })
+  .transform((c) => ({
+    host: c.HOST,
+    port: c.PORT,
+  }));
+export type HTTPServerConfig = z.infer<typeof HTTPServerConfig>;
+
 export const config = Config.parse(process.env);

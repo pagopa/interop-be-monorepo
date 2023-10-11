@@ -2,7 +2,7 @@ import { z } from "zod";
 import {
   config as commonsConfig,
   Config as CommonConfig,
-  APIEndpoint,
+  HTTPServerConfig,
 } from "pagopa-interop-commons";
 
 const FileManagerConfig = z
@@ -45,8 +45,6 @@ const FileManagerConfig = z
 export type FileManagerConfig = z.infer<typeof FileManagerConfig>;
 const RequiredConfig = z
   .object({
-    HOST: APIEndpoint,
-    PORT: z.coerce.number().min(1001),
     MOCK_FILE_MANAGER: z
       .enum(["true", "false"])
       .transform((value) => value === "true"),
@@ -65,8 +63,6 @@ const RequiredConfig = z
     READMODEL_DB_PORT: z.coerce.number().min(1001),
   })
   .transform((c) => ({
-    host: c.HOST,
-    port: c.PORT,
     mockFileManager: c.MOCK_FILE_MANAGER,
     eventStoreDbHost: c.EVENTSTORE_DB_HOST,
     eventStoreDbName: c.EVENTSTORE_DB_NAME,
@@ -81,7 +77,8 @@ const RequiredConfig = z
     readModelDbPort: c.READMODEL_DB_PORT,
   }));
 
-export const Config = RequiredConfig.and(FileManagerConfig);
+export const Config =
+  RequiredConfig.and(HTTPServerConfig).and(FileManagerConfig);
 export type Config = z.infer<typeof Config>;
 
 export const config: Config & CommonConfig = {
