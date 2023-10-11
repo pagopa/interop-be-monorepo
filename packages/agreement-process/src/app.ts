@@ -23,5 +23,6 @@ app.use(loggerMiddleware);
 // NOTE(gabro): the order is relevant, authMiddleware must come *after* the routes
 // we want to be unauthenticated.
 app.use(healthRouter);
+app.use(agreementRouter(zodiosCtx));
 
 export default app;
