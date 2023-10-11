@@ -13,7 +13,7 @@ export const ctx = z.object({
 export type AppContext = z.infer<typeof ctx>;
 
 const globalStore = new AsyncLocalStorage<AppContext>();
-const defaultAppContext = {
+const defaultAppContext: AppContext = {
   authData: {
     userId: "",
     organizationId: "",
