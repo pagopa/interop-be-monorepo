@@ -3,7 +3,6 @@ import {
   ZodiosEndpointDefinition,
   Method,
 } from "@zodios/core";
-import { ZodiosRequestHandler } from "@zodios/express";
 import { Request } from "express";
 import {
   CatalogProcessError,
@@ -13,6 +12,7 @@ import {
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { z } from "zod";
+import { Middleware } from "../types/middleware.js";
 import { readHeaders } from "../index.js";
 import { UserRoles } from "./authData.js";
 import { readAuthDataFromJwtToken } from "./jwt.js";
@@ -24,7 +24,7 @@ type RoleValidation =
     }
   | { isValid: true };
 
-export const hasValidRoles = (
+const hasValidRoles = (
   req: Request,
   admittedRoles: UserRoles[]
 ): RoleValidation => {
@@ -75,15 +75,7 @@ export const hasValidRoles = (
       };
 };
 
-type Middleware<
-  Api extends ZodiosEndpointDefinition[],
-  M extends Method,
-  Path extends ZodiosPathsByMethod<Api, M>,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  Context extends z.ZodObject<any>
-> = ZodiosRequestHandler<Api, Context, M, Path>;
-
-export const authRoleMiddleware =
+export const authorizationMiddleware =
   <
     Api extends ZodiosEndpointDefinition[],
     M extends Method,
@@ -123,14 +115,12 @@ export const authRoleMiddleware =
           )
         );
 
-      res.json();
-
       return (
         res
           .status(problem.status)
           // NOTE(gabro): this is fine, we don't need the type safety provided by Zod since this is a generic middleware.
           // Preserving the type-level machinery to check the correctness of the json body wrt the status code is not worth the effort.
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unnecessary-type-assertion
           .json(problem as any)
           .end()
       );

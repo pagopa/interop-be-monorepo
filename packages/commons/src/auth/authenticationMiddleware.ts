@@ -13,7 +13,7 @@ import { AuthData } from "./authData.js";
 import { Headers } from "./headers.js";
 import { readAuthDataFromJwtToken, verifyJwtToken } from "./jwt.js";
 
-export const makeAuthMiddleware: (
+export const authenticationMiddleware: (
   apiErrorHandler: (err: unknown, res: Response) => void
 ) => ZodiosRouterContextRequestHandler<ExpressContext> = (apiErrorHandler) => {
   const authMiddleware: ZodiosRouterContextRequestHandler<

@@ -1,6 +1,5 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
-import { Request, Response } from "express";
 import {
   eServiceDocumentNotFound,
   eServiceNotFound,
@@ -9,9 +8,7 @@ import {
   ExpressContext,
   userRoles,
   ZodiosContext,
-  authRoleMiddleware,
-  hasValidRoles,
-  UserRoles,
+  authorizationMiddleware,
 } from "pagopa-interop-commons";
 import {
   agreementStateToApiAgreementState,
@@ -25,20 +22,6 @@ import { ApiError, makeApiError } from "../model/types.js";
 import { catalogService } from "../services/catalogService.js";
 import { readModelService } from "../services/readModelService.js";
 
-const roleValidation = (
-  req: Request,
-  res: Response,
-  admittedRoles: UserRoles[]
-): void => {
-  // ------------------------------------------------
-  // Temporary workaround authRoleMiddleware type signature doesn't support request with query params
-  const roleValidation = hasValidRoles(req, admittedRoles);
-  if (!roleValidation.isValid) {
-    const errorRes: ApiError = makeApiError(roleValidation.error);
-    res.status(errorRes.status).end();
-  }
-  // ------------------------------------------------
-};
 const eservicesRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
@@ -54,7 +37,7 @@ const eservicesRouter = (
   eservicesRouter
     .get(
       "/eservices",
-      authRoleMiddleware([
+      authorizationMiddleware([
         ADMIN_ROLE,
         API_ROLE,
         SECURITY_ROLE,
@@ -102,7 +85,7 @@ const eservicesRouter = (
     )
     .post(
       "/eservices",
-      authRoleMiddleware([ADMIN_ROLE, API_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
           const id = await catalogService.createEService(
@@ -118,7 +101,7 @@ const eservicesRouter = (
     )
     .get(
       "/eservices/:eServiceId",
-      authRoleMiddleware([
+      authorizationMiddleware([
         ADMIN_ROLE,
         API_ROLE,
         SECURITY_ROLE,
@@ -150,7 +133,7 @@ const eservicesRouter = (
     )
     .put(
       "/eservices/:eServiceId",
-      authRoleMiddleware([ADMIN_ROLE, API_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
           await catalogService.updateEService(
@@ -167,7 +150,7 @@ const eservicesRouter = (
     )
     .delete(
       "/eservices/:eServiceId",
-      authRoleMiddleware([ADMIN_ROLE, API_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
           await catalogService.deleteEService(
@@ -183,20 +166,15 @@ const eservicesRouter = (
     )
     .get(
       "/eservices/:eServiceId/consumers",
-      // authRoleMiddleware([
-      //   ADMIN_ROLE,
-      //   API_ROLE,
-      //   SECURITY_ROLE,
-      //   M2M_ROLE,
-      //   SUPPORT_ROLE,
-      // ]),
+      authorizationMiddleware([
+        ADMIN_ROLE,
+        API_ROLE,
+        SECURITY_ROLE,
+        M2M_ROLE,
+        SUPPORT_ROLE,
+      ]),
       async (req, res) => {
         try {
-          roleValidation(
-            req as unknown as Request,
-            res as unknown as Response,
-            [ADMIN_ROLE, API_ROLE, SECURITY_ROLE, M2M_ROLE, SUPPORT_ROLE]
-          );
           const eServiceId = req.params.eServiceId;
           const offset = req.query.offset;
           const limit = req.query.limit;
@@ -232,7 +210,7 @@ const eservicesRouter = (
     )
     .get(
       "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId",
-      authRoleMiddleware([ADMIN_ROLE, API_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
           const { eServiceId, descriptorId, documentId } = req.params;
@@ -272,7 +250,7 @@ const eservicesRouter = (
     )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/documents",
-      authRoleMiddleware([ADMIN_ROLE, API_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
           const id = await catalogService.uploadDocument(
@@ -290,7 +268,7 @@ const eservicesRouter = (
     )
     .delete(
       "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId",
-      authRoleMiddleware([ADMIN_ROLE, API_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
           await catalogService.deleteDocument(
@@ -308,7 +286,7 @@ const eservicesRouter = (
     )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId/update",
-      authRoleMiddleware([ADMIN_ROLE, API_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
           await catalogService.updateDocument(
@@ -327,7 +305,7 @@ const eservicesRouter = (
     )
     .post(
       "/eservices/:eServiceId/descriptors",
-      authRoleMiddleware([ADMIN_ROLE, API_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
           const id = await catalogService.createDescriptor(
@@ -344,7 +322,7 @@ const eservicesRouter = (
     )
     .delete(
       "/eservices/:eServiceId/descriptors/:descriptorId",
-      authRoleMiddleware([ADMIN_ROLE, API_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
           await catalogService.deleteDraftDescriptor(
@@ -361,7 +339,7 @@ const eservicesRouter = (
     )
     .put(
       "/eservices/:eServiceId/descriptors/:descriptorId",
-      authRoleMiddleware([ADMIN_ROLE, API_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
           await catalogService.updateDescriptor(
@@ -379,7 +357,7 @@ const eservicesRouter = (
     )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/publish",
-      authRoleMiddleware([ADMIN_ROLE, API_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
           await catalogService.publishDescriptor(
@@ -396,7 +374,7 @@ const eservicesRouter = (
     )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/suspend",
-      authRoleMiddleware([ADMIN_ROLE, API_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
           await catalogService.suspendDescriptor(
@@ -413,7 +391,7 @@ const eservicesRouter = (
     )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/activate",
-      authRoleMiddleware([ADMIN_ROLE, API_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
           await catalogService.activateDescriptor(
@@ -430,7 +408,7 @@ const eservicesRouter = (
     )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/clone",
-      authRoleMiddleware([ADMIN_ROLE, API_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
           const clonedEserviceByDescriptor =
@@ -448,7 +426,7 @@ const eservicesRouter = (
     )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/archive",
-      authRoleMiddleware([INTERNAL_ROLE]),
+      authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
         try {
           await catalogService.archiveDescriptor(
