@@ -41,4 +41,4 @@ node_modules/
 
 **/dist
 packages/models/src/gen
-packages/catalog-process/src/model/generated
+packages/*/src/model/generated
