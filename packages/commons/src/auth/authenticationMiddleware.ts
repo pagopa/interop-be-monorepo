@@ -1,10 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {
-  zodiosContext,
-  ZodiosRouterContextRequestHandler,
-} from "@zodios/express";
+import { ZodiosRouterContextRequestHandler } from "@zodios/express";
 import { Response } from "express";
-import { z } from "zod";
 import { P, match } from "ts-pattern";
 import {
   CatalogProcessError,
@@ -12,16 +8,12 @@ import {
   missingHeader,
 } from "pagopa-interop-models";
 import { logger } from "../logging/index.js";
-import { ctx } from "../context/index.js";
+import { ExpressContext } from "../index.js";
 import { AuthData } from "./authData.js";
 import { Headers } from "./headers.js";
 import { readAuthDataFromJwtToken, verifyJwtToken } from "./jwt.js";
 
-const zodiosCtx = zodiosContext(z.object({ ctx }));
-export type ZodiosContext = NonNullable<typeof zodiosCtx>;
-export type ExpressContext = NonNullable<typeof zodiosCtx.context>;
-
-export const makeAuthMiddleware: (
+export const authenticationMiddleware: (
   apiErrorHandler: (err: unknown, res: Response) => void
 ) => ZodiosRouterContextRequestHandler<ExpressContext> = (apiErrorHandler) => {
   const authMiddleware: ZodiosRouterContextRequestHandler<

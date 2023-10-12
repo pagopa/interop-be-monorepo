@@ -230,12 +230,12 @@ importers:
 
   packages/commons:
     dependencies:
+      '@zodios/core':
+        specifier: ^10.9.2
+        version: 10.9.2(axios@1.4.0)(zod@3.21.4)
       '@zodios/express':
         specifier: ^10.6.1
         version: 10.6.1(@zodios/core@10.9.2)(express@4.18.2)(zod@3.21.4)
-      dotenv-flow:
-        specifier: ^3.2.0
-        version: 3.2.0
       express-winston:
         specifier: ^4.2.0
         version: 4.2.0(winston@3.9.0)
@@ -258,9 +258,6 @@ importers:
         specifier: ^3.21.4
         version: 3.21.4
     devDependencies:
-      '@types/dotenv-flow':
-        specifier: ^3.2.0
-        version: 3.2.0
       '@types/express':
         specifier: ^4.17.17
         version: 4.17.17

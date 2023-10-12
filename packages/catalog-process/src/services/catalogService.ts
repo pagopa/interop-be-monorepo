@@ -22,6 +22,10 @@ import {
 import { match } from "ts-pattern";
 import { v4 as uuidv4 } from "uuid";
 import {
+  apiAgreementApprovalPolicyToAgreementApprovalPolicy,
+  apiTechnologyToTechnology,
+} from "../model/domain/apiConverter.js";
+import {
   EServiceDescriptorSeed,
   ListResult,
   UpdateEServiceDescriptorSeed,
@@ -50,10 +54,6 @@ import {
 } from "../repositories/toEvent.js";
 import { fileManager } from "../utilities/fileManager.js";
 import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
-import {
-  apiAgreementApprovalPolicyToAgreementApprovalPolicy,
-  apiTechnologyToTechnology,
-} from "../model/domain/apiConverter.js";
 import { readModelService } from "./readModelService.js";
 
 function assertEServiceExist(
