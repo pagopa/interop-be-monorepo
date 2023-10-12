@@ -19,15 +19,7 @@ import {
   apiTechnologyToTechnology,
 } from "../src/model/domain/apiConverter.js";
 import { WithMetadata } from "../src/model/domain/models.js";
-import * as api from "../src/model/generated/api.js";
-import {
-  toAgreementApprovalPolicyV1,
-  toDescriptorV1,
-  toEServiceAttributeV1,
-  toEServiceDescriptorStateV1,
-  toEServiceTechnologyV1,
-  toEServiceV1,
-} from "../src/repositories/toEvent.js";
+
 import {
   activateDescriptorLogic,
   archiveDescriptorLogic,
@@ -44,6 +36,15 @@ import {
   updateEserviceLogic,
   uploadDocumentLogic,
 } from "../src/services/catalogService.js";
+import * as api from "../src/model/generated/api.js";
+import {
+  toAgreementApprovalPolicyV1,
+  toDescriptorV1,
+  toEServiceAttributeV1,
+  toEServiceDescriptorStateV1,
+  toEServiceTechnologyV1,
+  toEServiceV1,
+} from "../src/repositories/toEvent.js";
 
 const shuffle = <T>(array: T[]): T[] => array.sort(() => Math.random() - 0.5);
 

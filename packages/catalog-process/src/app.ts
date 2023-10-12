@@ -1,18 +1,15 @@
-import { zodiosContext } from "@zodios/express";
 import { Response } from "express";
 import {
   contextDataMiddleware,
-  ctx,
   globalContextMiddleware,
   loggerMiddleware,
-  makeAuthMiddleware,
+  authenticationMiddleware,
+  zodiosCtx,
 } from "pagopa-interop-commons";
-import { z } from "zod";
 import eservicesRouter from "./routers/EServiceRouter.js";
 import healthRouter from "./routers/HealthRouter.js";
 import { ApiError, makeApiError } from "./model/types.js";
 
-const zodiosCtx = zodiosContext(z.object({ ctx }));
 const app = zodiosCtx.app();
 
 // Disable the "X-Powered-By: Express" HTTP header for security reasons.
@@ -27,7 +24,7 @@ app.use(loggerMiddleware);
 app.use(healthRouter);
 app.use(
   // The following callback handles generic authorization errors with current service behaviour
-  makeAuthMiddleware((error: unknown, res: Response) => {
+  authenticationMiddleware((error: unknown, res: Response) => {
     const apiError: ApiError = makeApiError(error);
     res.status(apiError.status).json(apiError).end();
   })

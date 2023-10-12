@@ -1,16 +1,21 @@
 /* eslint-disable functional/immutable-data */
 import { AsyncLocalStorage } from "async_hooks";
 import { NextFunction, Request, Response } from "express";
+import { zodiosContext } from "@zodios/express";
 import { z } from "zod";
 import { AuthData } from "../auth/authData.js";
 import { readHeaders } from "../auth/headers.js";
+
+export type AppContext = z.infer<typeof ctx>;
+export type ZodiosContext = NonNullable<typeof zodiosCtx>;
+export type ExpressContext = NonNullable<typeof zodiosCtx.context>;
 
 export const ctx = z.object({
   authData: AuthData,
   correlationId: z.string().uuid(),
 });
 
-export type AppContext = z.infer<typeof ctx>;
+export const zodiosCtx = zodiosContext(z.object({ ctx }));
 
 const globalStore = new AsyncLocalStorage<AppContext>();
 const defaultAppContext: AppContext = {
