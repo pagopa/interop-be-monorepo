@@ -1,3 +1,4 @@
+/* eslint-disable max-classes-per-file */
 export const ErrorTypes = {
   DuplicateEserviceName: {
     code: "0010",
@@ -85,6 +86,15 @@ export const ErrorTypes = {
 export type ErrorType = (typeof ErrorTypes)[keyof typeof ErrorTypes];
 
 export class CatalogProcessError extends Error {
+  public readonly type: ErrorType;
+
+  constructor(message: string, type: ErrorType) {
+    super(message);
+    this.type = type;
+  }
+}
+
+export class AgreementProcessError extends Error {
   public readonly type: ErrorType;
 
   constructor(message: string, type: ErrorType) {
