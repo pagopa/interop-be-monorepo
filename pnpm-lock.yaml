@@ -172,15 +172,27 @@ importers:
 
   packages/commons:
     dependencies:
+      '@zodios/express':
+        specifier: ^10.6.1
+        version: 10.6.1(@zodios/core@10.9.2)(express@4.18.2)(zod@3.21.4)
       dotenv-flow:
         specifier: ^3.2.0
         version: 3.2.0
+      express-winston:
+        specifier: ^4.2.0
+        version: 4.2.0(winston@3.9.0)
       jsonwebtoken:
         specifier: ^9.0.0
         version: 9.0.0
       jwks-rsa:
         specifier: ^3.0.1
         version: 3.0.1
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      ts-pattern:
+        specifier: ^5.0.1
+        version: 5.0.1
       winston:
         specifier: ^3.9.0
         version: 3.9.0
@@ -191,6 +203,9 @@ importers:
       '@types/dotenv-flow':
         specifier: ^3.2.0
         version: 3.2.0
+      '@types/express':
+        specifier: ^4.17.17
+        version: 4.17.17
       '@types/jsonwebtoken':
         specifier: ^9.0.2
         version: 9.0.2
@@ -4318,7 +4333,7 @@ packages:
     dev: false
 
   /fresh@0.5.2:
-    resolution: {integrity: sha1-PYyt2Q2XZWn6g1qx+OSyOhBWBac=}
+    resolution: {integrity: sha512-zJ2mQYM18rEFOudeV4GShTGIQ7RbzA7ozbU9I/XBpm7kqgMywgmylMwXHxZJmkVoYkna9d2pVXVXPdYTP9ej8Q==}
     engines: {node: '>= 0.6'}
     dev: false
 
@@ -4978,7 +4993,7 @@ packages:
     dev: true
 
   /merge-descriptors@1.0.1:
-    resolution: {integrity: sha1-sAqqVW3YtEVoFQ7J0blT8/kMu2E=}
+    resolution: {integrity: sha512-cCi6g3/Zr1iqQi6ySbseM1Xvooa98N0w31jzUYrXPX2xqObmFGHJ0tQ5u74H3mVh7wLouTseZyYIq39g8cNp1w==}
     dev: false
 
   /merge2@1.4.1:
@@ -6286,7 +6301,7 @@ packages:
     dev: false
 
   /utils-merge@1.0.1:
-    resolution: {integrity: sha1-n5VxD1CiZ5R7LMwSR0HBAoQn5xM=}
+    resolution: {integrity: sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==}
     engines: {node: '>= 0.4.0'}
     dev: false
 

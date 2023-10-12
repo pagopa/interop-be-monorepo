@@ -1,28 +1,26 @@
 import {
   AuthData,
-  logger,
   authorizationManagementServiceMock,
+  logger,
 } from "pagopa-interop-commons";
-import { v4 as uuidv4 } from "uuid";
-import { match } from "ts-pattern";
 import {
-  Document,
   Descriptor,
+  DescriptorState,
+  Document,
   EService,
   descriptorState,
-  DescriptorState,
-} from "pagopa-interop-models";
-import {
   draftDescriptorAlreadyExists,
   eServiceCannotBeDeleted,
   eServiceCannotBeUpdated,
+  eServiceDescriptorNotFound,
+  eServiceDocumentNotFound,
+  eServiceDuplicate,
   eServiceNotFound,
   notValidDescriptor,
   operationForbidden,
-  eServiceDocumentNotFound,
-  eServiceDuplicate,
-  eServiceDescriptorNotFound,
-} from "../model/domain/errors.js";
+} from "pagopa-interop-models";
+import { match } from "ts-pattern";
+import { v4 as uuidv4 } from "uuid";
 import {
   EServiceDescriptorSeed,
   ListResult,

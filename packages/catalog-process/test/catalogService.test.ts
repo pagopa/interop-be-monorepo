@@ -1,11 +1,9 @@
 import { generateMock } from "@anatine/zod-mock";
-import { Descriptor, EService, descriptorState } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import {
-  apiAgreementApprovalPolicyToAgreementApprovalPolicy,
-  apiTechnologyToTechnology,
-} from "../src/model/domain/apiConverter.js";
-import {
+  Descriptor,
+  EService,
+  descriptorState,
   draftDescriptorAlreadyExists,
   eServiceCannotBeDeleted,
   eServiceCannotBeUpdated,
@@ -15,7 +13,11 @@ import {
   eServiceNotFound,
   notValidDescriptor,
   operationForbidden,
-} from "../src/model/domain/errors.js";
+} from "pagopa-interop-models";
+import {
+  apiAgreementApprovalPolicyToAgreementApprovalPolicy,
+  apiTechnologyToTechnology,
+} from "../src/model/domain/apiConverter.js";
 import { WithMetadata } from "../src/model/domain/models.js";
 import * as api from "../src/model/generated/api.js";
 import {
