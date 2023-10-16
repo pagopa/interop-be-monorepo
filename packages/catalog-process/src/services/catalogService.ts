@@ -18,6 +18,8 @@ import {
   eServiceNotFound,
   notValidDescriptor,
   operationForbidden,
+  ListResult,
+  WithMetadata,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { v4 as uuidv4 } from "uuid";
@@ -27,9 +29,7 @@ import {
 } from "../model/domain/apiConverter.js";
 import {
   EServiceDescriptorSeed,
-  ListResult,
   UpdateEServiceDescriptorSeed,
-  WithMetadata,
 } from "../model/domain/models.js";
 import {
   ApiEServiceDescriptorDocumentSeed,
