@@ -56,6 +56,6 @@ export const contextDataMiddleware = (
     };
 
     context.correlationId = headers?.correlationId;
-    next();
   }
+  next();
 };
