@@ -111,7 +111,7 @@ export const authorizationMiddleware =
             `${ErrorTypes.GenericError.code}`,
             ErrorTypes.GenericError.httpStatus,
             ErrorTypes.GenericError.title,
-            "Generic error while processing catalog process error"
+            "Generic error"
           )
         );
 
