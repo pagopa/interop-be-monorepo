@@ -10,11 +10,6 @@ import {
 import * as api from "../generated/api.js";
 import { ApiEServiceDescriptorDocumentSeed } from "../types.js";
 
-export type ListResult<T> = { results: T[]; totalCount: number };
-export const emptyListResult = { results: [], totalCount: 0 };
-
-export type WithMetadata<T> = { data: T; metadata: { version: number } };
-
 export type EServiceSeed = z.infer<typeof api.schemas.EServiceSeed> & {
   readonly producerId: string;
 };
