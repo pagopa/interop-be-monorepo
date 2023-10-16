@@ -17,7 +17,7 @@ export type PersistentAgreementState = z.infer<typeof PersistentAgreementState>;
 
 const PersistentAttribute = z.object({ id: z.string().uuid() });
 
-const PersistentAgreementDocument = z.object({
+export const PersistentAgreementDocument = z.object({
   id: z.string().uuid(),
   name: z.string(),
   prettyName: z.string(),
@@ -25,6 +25,9 @@ const PersistentAgreementDocument = z.object({
   path: z.string(),
   createdAt: z.date(),
 });
+export type PersistentAgreementDocument = z.infer<
+  typeof PersistentAgreementDocument
+>;
 
 const PersistentStamp = z.object({
   who: z.string().uuid(),

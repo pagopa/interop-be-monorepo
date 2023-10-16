@@ -196,6 +196,13 @@ export function eServiceDocumentNotFound(
   );
 }
 
+export function agreementNotFound(agreementId: string): AgreementProcessError {
+  return new AgreementProcessError(
+    `Agreement ${agreementId} not found`,
+    ErrorTypes.EServiceNotFound
+  );
+}
+
 export type ProblemError = {
   code: string;
   detail: string;
