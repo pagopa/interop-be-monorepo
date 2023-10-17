@@ -4,6 +4,7 @@ import {
   CatalogProcessError,
   ErrorTypes,
   Problem,
+  ProcessError,
   makeApiProblem,
 } from "pagopa-interop-models";
 import { api } from "./generated/api.js";
@@ -49,13 +50,16 @@ export type ApiError =
 
 export function makeApiError(error: unknown): ApiError {
   return match<unknown, ApiError>(error)
-    .with(P.instanceOf(CatalogProcessError), (error) =>
-      makeApiProblem(
-        error.type.code,
-        error.type.httpStatus,
-        error.type.title,
-        error.message
-      )
+    .with(
+      P.instanceOf(ProcessError),
+      P.instanceOf(CatalogProcessError),
+      (error) =>
+        makeApiProblem(
+          error.type.code,
+          error.type.httpStatus,
+          error.type.title,
+          error.message
+        )
     )
     .otherwise(() =>
       makeApiProblem(
