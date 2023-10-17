@@ -85,7 +85,7 @@ export const ErrorTypes = {
 
 export type ErrorType = (typeof ErrorTypes)[keyof typeof ErrorTypes];
 
-export class CatalogProcessError extends Error {
+export class ProcessError extends Error {
   public readonly type: ErrorType;
 
   constructor(message: string, type: ErrorType) {
@@ -94,14 +94,8 @@ export class CatalogProcessError extends Error {
   }
 }
 
-export class AgreementProcessError extends Error {
-  public readonly type: ErrorType;
-
-  constructor(message: string, type: ErrorType) {
-    super(message);
-    this.type = type;
-  }
-}
+export class CatalogProcessError extends ProcessError {}
+export class AgreementProcessError extends ProcessError {}
 
 export function eServiceDuplicate(
   eServiceNameSeed: string
