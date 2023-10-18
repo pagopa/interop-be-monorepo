@@ -8,7 +8,7 @@ import {
 } from "pagopa-interop-commons";
 import { agreementNotFound } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
-import { agreementToApiAgreement } from "../model/domain/toApiConverter.js";
+import { agreementToApiAgreement } from "../model/domain/apiConverter.js";
 import { agreementService } from "../services/agreementService.js";
 import { ApiError, makeApiError } from "../model/types.js";
 
