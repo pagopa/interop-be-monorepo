@@ -1,5 +1,5 @@
 create schema catalog;
-create table catalog.event (
+create table catalog.events (
     sequence_num bigserial NOT NULL,
 
     stream_id uuid NOT NULL,
@@ -15,7 +15,7 @@ create table catalog.event (
 );
 
 create schema agreement;
-create table agreement.event (
+create table agreement.events (
     sequence_num bigserial NOT NULL,
 
     stream_id uuid NOT NULL,

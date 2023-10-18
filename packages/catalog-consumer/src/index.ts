@@ -33,7 +33,7 @@ process.on("SIGINT", exitGracefully);
 process.on("SIGTERM", exitGracefully);
 
 await consumer.subscribe({
-  topics: ["event-store.catalog.event"],
+  topics: ["event-store.catalog.events"],
   fromBeginning: true,
 });
 

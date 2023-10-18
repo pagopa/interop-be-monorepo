@@ -1,5 +1,5 @@
 INSERT INTO
-  "event"(
+  "events"(
     "stream_id",
     "version",
     "type",
