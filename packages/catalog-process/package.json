@@ -14,10 +14,7 @@
     "build": "tsc && pnpm run copy-sql-files",
     "copy-sql-files": "cp ./src/repositories/sql/*.sql dist/repositories/sql",
     "generate-model": "mkdir -p ./src/model/generated && pnpm openapi-zod-client './open-api/catalog-service-spec.yml' -o './src/model/generated/api.ts'",
-    "clean-generated": "pnpm exec rm ./src/models/generated/api.ts",
-    "infra:start": "./scripts/db-start.sh",
-    "infra:stop": "./scripts/db-stop.sh",
-    "infra:destroy": "./scripts/db-destroy.sh"
+    "clean-generated": "pnpm exec rm ./src/models/generated/api.ts"
   },
   "keywords": [],
   "author": "",

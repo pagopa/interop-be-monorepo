@@ -8,7 +8,9 @@ import { config } from "../utilities/config.js";
 
 export type DB = IDatabase<unknown>;
 
-const pgp = pgPromise();
+const pgp = pgPromise({
+  schema: config.eventStoreDbSchema,
+});
 
 const {
   eventStoreDbUsername: username,
