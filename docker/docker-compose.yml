@@ -1,7 +1,7 @@
 version: "3"
 name: pagopa-interop
 services:
-  catalog-event-store:
+  event-store:
     volumes:
       - ./event-store-init.sql:/docker-entrypoint-initdb.d/01-init.sql
     image: postgres:14
