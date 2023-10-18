@@ -14,16 +14,19 @@
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
     "start": "node --watch --no-warnings --loader ts-node/esm ./src/index.ts",
-    "build": "tsc"
+    "build": "tsc && pnpm run copy-sql-files",
+    "copy-sql-files": "cp ./src/repositories/sql/*.sql dist/repositories/sql"
   },
   "license": "Apache-2.0",
   "dependencies": {
     "@zodios/core": "^10.9.2",
     "@zodios/express": "^10.6.1",
+    "connection-string": "^4.3.6",
     "express-winston": "^4.2.0",
     "jsonwebtoken": "^9.0.0",
     "jwks-rsa": "^3.0.1",
     "pagopa-interop-models": "workspace:*",
+    "pg-promise": "^11.5.0",
     "ts-pattern": "^5.0.1",
     "winston": "^3.9.0",
     "zod": "^3.21.4"
