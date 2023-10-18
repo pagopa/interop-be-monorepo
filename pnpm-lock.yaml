@@ -148,9 +148,6 @@ importers:
       axios:
         specifier: ^1.4.0
         version: 1.4.0
-      connection-string:
-        specifier: ^4.3.6
-        version: 4.3.6
       dotenv-flow:
         specifier: ^3.2.0
         version: 3.2.0
@@ -175,9 +172,6 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
-      pg-promise:
-        specifier: ^11.5.0
-        version: 11.5.0
       ts-pattern:
         specifier: ^5.0.1
         version: 5.0.1
@@ -239,6 +233,9 @@ importers:
       '@zodios/express':
         specifier: ^10.6.1
         version: 10.6.1(@zodios/core@10.9.2)(express@4.18.2)(zod@3.21.4)
+      connection-string:
+        specifier: ^4.3.6
+        version: 4.3.6
       express-winston:
         specifier: ^4.2.0
         version: 4.2.0(winston@3.9.0)
@@ -251,6 +248,9 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      pg-promise:
+        specifier: ^11.5.0
+        version: 11.5.0
       ts-pattern:
         specifier: ^5.0.1
         version: 5.0.1

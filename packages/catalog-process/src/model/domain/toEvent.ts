@@ -1,3 +1,4 @@
+import { CreateEvent } from "pagopa-interop-commons";
 import {
   EService,
   Document,
@@ -14,9 +15,9 @@ import {
   DescriptorState,
   Technology,
   WithMetadata,
+  EServiceEvent,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
-import { CreateEvent } from "./EventRepository.js";
 
 export const toAgreementApprovalPolicyV1 = (
   input: AgreementApprovalPolicy | undefined
@@ -104,7 +105,7 @@ export const toEServiceV1 = (eService: EService): EServiceV1 => ({
 
 export const toCreateEventEServiceAdded = (
   eService: EService
-): CreateEvent => ({
+): CreateEvent<EServiceEvent> => ({
   streamId: eService.id,
   version: 0,
   event: {
@@ -115,7 +116,7 @@ export const toCreateEventEServiceAdded = (
 
 export const toCreateEventClonedEServiceAdded = (
   eService: EService
-): CreateEvent => ({
+): CreateEvent<EServiceEvent> => ({
   streamId: eService.id,
   version: 0,
   event: {
@@ -135,7 +136,7 @@ export const toCreateEventEServiceDocumentAdded = (
     isInterface,
     serverUrls,
   }: { newDocument: Document; isInterface: boolean; serverUrls: string[] }
-): CreateEvent => ({
+): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
   event: {
@@ -154,7 +155,7 @@ export const toCreateEventEServiceDescriptorAdded = (
   streamId: string,
   version: number,
   newDescriptor: Descriptor
-): CreateEvent => ({
+): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
   event: {
@@ -170,7 +171,7 @@ export const toCreateEventEServiceUpdated = (
   streamId: string,
   version: number,
   updatedEService: EService
-): CreateEvent => ({
+): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
   event: {
@@ -195,7 +196,7 @@ export const toCreateEventEServiceDocumentUpdated = ({
   documentId: string;
   updatedDocument: Document;
   serverUrls: string[];
-}): CreateEvent => ({
+}): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
   event: {
@@ -214,7 +215,7 @@ export const toCreateEventEServiceDescriptorUpdated = (
   streamId: string,
   version: number,
   descriptor: Descriptor
-): CreateEvent => ({
+): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
   event: {
@@ -229,7 +230,7 @@ export const toCreateEventEServiceDescriptorUpdated = (
 export const toCreateEventEServiceDeleted = (
   streamId: string,
   version: number
-): CreateEvent => ({
+): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
   event: {
@@ -245,7 +246,7 @@ export const toCreateEventEServiceDocumentDeleted = (
   version: number,
   descriptorId: string,
   documentId: string
-): CreateEvent => ({
+): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
   event: {
@@ -261,7 +262,7 @@ export const toCreateEventEServiceDocumentDeleted = (
 export const toCreateEventEServiceWithDescriptorsDeleted = (
   eService: WithMetadata<EService>,
   descriptorId: string
-): CreateEvent => ({
+): CreateEvent<EServiceEvent> => ({
   streamId: eService.data.id,
   version: eService.metadata.version,
   event: {
