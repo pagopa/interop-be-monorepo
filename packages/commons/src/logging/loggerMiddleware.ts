@@ -29,6 +29,7 @@ export const customFormat = winston.format.printf(
     const { userId, organizationId, correlationId } = getLoggerMetadata();
 
     const lines = message
+      .toString()
       .split("\n")
       .map(
         (line: string) =>
