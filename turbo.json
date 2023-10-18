@@ -8,16 +8,16 @@
         "^build",
         "generate-model",
         "generate-protobuf",
-        "infra:start"
+        "//#infra:start"
       ]
     },
-    "infra:start": {
+    "//#infra:start": {
       "cache": false
     },
-    "infra:stop": {
+    "//#infra:stop": {
       "cache": false
     },
-    "infra:destroy": {
+    "//#infra:destroy": {
       "cache": false
     },
     "build": {
@@ -33,7 +33,7 @@
     "generate-model": {
       "dependsOn": [
         "^generate-model"
-      ]      
+      ]
     },
     "generate-protobuf": {
       "dependsOn": [
@@ -57,4 +57,4 @@
   "globalDependencies": [
     "tsconfig.json"
   ]
-}
+} 

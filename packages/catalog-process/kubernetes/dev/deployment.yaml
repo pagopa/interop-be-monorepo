@@ -80,6 +80,11 @@ spec:
                 secretKeyRef:
                   name: persistence-management
                   key: REFACTOR_USER_PASSWORD
+            - name: EVENTSTORE_DB_SCHEMA
+              valueFrom:
+                configMapKeyRef:
+                  name: interop-be-common-refactor
+                  key: EVENTSTORE_DB_SCHEMA
             - name: EVENTSTORE_DB_USE_SSL
               valueFrom:
                 configMapKeyRef:
