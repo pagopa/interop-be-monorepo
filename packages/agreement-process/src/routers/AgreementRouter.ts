@@ -1,7 +1,25 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
-import { ExpressContext, ZodiosContext } from "pagopa-interop-commons";
+import {
+  ExpressContext,
+  ZodiosContext,
+  userRoles,
+  authorizationMiddleware,
+} from "pagopa-interop-commons";
+import { agreementNotFound } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
+import { agreementToApiAgreement } from "../model/domain/apiConverter.js";
+import { agreementService } from "../services/agreementService.js";
+import { ApiError, makeApiError } from "../model/types.js";
+
+const {
+  ADMIN_ROLE,
+  SECURITY_ROLE,
+  API_ROLE,
+  M2M_ROLE,
+  INTERNAL_ROLE,
+  SUPPORT_ROLE,
+} = userRoles;
 
 const agreementRouter = (
   ctx: ZodiosContext
@@ -74,9 +92,38 @@ const agreementRouter = (
     res.status(501).send();
   });
 
-  agreementRouter.get("/agreements/:agreementId", async (_req, res) => {
-    res.status(501).send();
-  });
+  agreementRouter.get(
+    "/agreements/:agreementId",
+    authorizationMiddleware([
+      ADMIN_ROLE,
+      API_ROLE,
+      SECURITY_ROLE,
+      M2M_ROLE,
+      INTERNAL_ROLE,
+      SUPPORT_ROLE,
+    ]),
+    async (req, res) => {
+      try {
+        const agreement = await agreementService.getAgreementById(
+          req.params.agreementId
+        );
+        if (agreement) {
+          return res
+            .status(200)
+            .json(agreementToApiAgreement(agreement))
+            .send();
+        } else {
+          return res
+            .status(404)
+            .json(makeApiError(agreementNotFound(req.params.agreementId)))
+            .send();
+        }
+      } catch (error) {
+        const errorRes: ApiError = makeApiError(error);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    }
+  );
 
   agreementRouter.delete("/agreements/:agreementId", async (_req, res) => {
     res.status(501).send();

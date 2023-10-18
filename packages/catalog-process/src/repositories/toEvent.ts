@@ -13,9 +13,9 @@ import {
   AgreementApprovalPolicy,
   DescriptorState,
   Technology,
+  WithMetadata,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
-import { WithMetadata } from "../model/domain/models.js";
 import { CreateEvent } from "./EventRepository.js";
 
 export const toAgreementApprovalPolicyV1 = (

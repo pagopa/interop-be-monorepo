@@ -81,11 +81,16 @@ export const ErrorTypes = {
     httpStatus: 400,
     title: "EService already contains a draft descriptor",
   },
+  AgreementNotFound: {
+    code: "0009",
+    httpStatus: 404,
+    title: "Agreement not found",
+  },
 } as const;
 
 export type ErrorType = (typeof ErrorTypes)[keyof typeof ErrorTypes];
 
-export class CatalogProcessError extends Error {
+export class ProcessError extends Error {
   public readonly type: ErrorType;
 
   constructor(message: string, type: ErrorType) {
@@ -94,14 +99,8 @@ export class CatalogProcessError extends Error {
   }
 }
 
-export class AgreementProcessError extends Error {
-  public readonly type: ErrorType;
-
-  constructor(message: string, type: ErrorType) {
-    super(message);
-    this.type = type;
-  }
-}
+export class CatalogProcessError extends ProcessError {}
+export class AgreementProcessError extends ProcessError {}
 
 export function eServiceDuplicate(
   eServiceNameSeed: string
@@ -193,6 +192,13 @@ export function eServiceDocumentNotFound(
   return new CatalogProcessError(
     `Document with id ${documentId} not found in EService ${eServiceId} / Descriptor ${descriptorId}`,
     ErrorTypes.EServiceDocumentNotFound
+  );
+}
+
+export function agreementNotFound(agreementId: string): AgreementProcessError {
+  return new AgreementProcessError(
+    `Agreement ${agreementId} not found`,
+    ErrorTypes.AgreementNotFound
   );
 }
 

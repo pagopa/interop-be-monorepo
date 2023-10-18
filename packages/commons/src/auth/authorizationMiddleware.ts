@@ -5,7 +5,7 @@ import {
 } from "@zodios/core";
 import { Request } from "express";
 import {
-  CatalogProcessError,
+  ProcessError,
   ErrorTypes,
   Problem,
   makeApiProblem,
@@ -20,7 +20,7 @@ import { readAuthDataFromJwtToken } from "./jwt.js";
 type RoleValidation =
   | {
       isValid: false;
-      error: CatalogProcessError;
+      error: ProcessError;
     }
   | { isValid: true };
 
@@ -30,24 +30,21 @@ const hasValidRoles = (
 ): RoleValidation => {
   const jwtToken = req.headers.authorization?.split(" ")[1];
   if (!jwtToken) {
-    throw new CatalogProcessError(
-      "The jwt token not found",
-      ErrorTypes.Unauthorized
-    );
+    throw new ProcessError("The jwt token not found", ErrorTypes.Unauthorized);
   }
   const authData = readAuthDataFromJwtToken(jwtToken);
 
   if (authData instanceof Error) {
     return {
       isValid: false,
-      error: new CatalogProcessError(authData.message, ErrorTypes.Unauthorized),
+      error: new ProcessError(authData.message, ErrorTypes.Unauthorized),
     };
   }
 
   if (!authData.userRoles || authData.userRoles.length === 0) {
     return {
       isValid: false,
-      error: new CatalogProcessError(
+      error: new ProcessError(
         "No user roles found to execute this request",
         ErrorTypes.Unauthorized
       ),
@@ -66,7 +63,7 @@ const hasValidRoles = (
     ? { isValid: true }
     : {
         isValid: false,
-        error: new CatalogProcessError(
+        error: new ProcessError(
           `Invalid user roles (${authData.userRoles.join(
             ","
           )}) to execute this request`,
@@ -97,7 +94,7 @@ export const authorizationMiddleware =
       const headers = readHeaders(req as Request);
 
       const problem = match<unknown, Problem>(err)
-        .with(P.instanceOf(CatalogProcessError), (error) =>
+        .with(P.instanceOf(ProcessError), (error) =>
           makeApiProblem(
             error.type.code,
             error.type.httpStatus,
@@ -111,7 +108,7 @@ export const authorizationMiddleware =
             `${ErrorTypes.GenericError.code}`,
             ErrorTypes.GenericError.httpStatus,
             ErrorTypes.GenericError.title,
-            "Generic error while processing catalog process error"
+            "Generic error"
           )
         );
 
