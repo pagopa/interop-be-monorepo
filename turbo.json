@@ -12,12 +12,21 @@
       ]
     },
     "infra:start": {
+      "dependsOn": [
+        "^infra:start"
+      ],
       "cache": false
     },
     "infra:stop": {
+      "dependsOn": [
+        "^infra:stop"
+      ],
       "cache": false
     },
     "infra:destroy": {
+      "dependsOn": [
+        "^infra:destroy"
+      ],
       "cache": false
     },
     "build": {
@@ -33,7 +42,7 @@
     "generate-model": {
       "dependsOn": [
         "^generate-model"
-      ]      
+      ]
     },
     "generate-protobuf": {
       "dependsOn": [

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-docker compose -f ../../docker/docker-compose.yml up -d zookeeper kafka connect readmodel mongo-express
+docker compose -f ../../docker/docker-compose.yml up -d 
 
 # wait until debezium is available
 while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' localhost:8083/connectors/)" != "200" ]]; do
@@ -30,4 +30,4 @@ function register_connector () {
   done
 }
 
-register_connector "Catalog" "../register-catalog-postgres.json"
+register_connector "Catalog" "packages/catalog-consumer/register-catalog-postgres.json"
