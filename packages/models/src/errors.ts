@@ -81,6 +81,11 @@ export const ErrorTypes = {
     httpStatus: 400,
     title: "EService already contains a draft descriptor",
   },
+  AgreementNotFound: {
+    code: "0009",
+    httpStatus: 404,
+    title: "Agreement not found",
+  },
 } as const;
 
 export type ErrorType = (typeof ErrorTypes)[keyof typeof ErrorTypes];
@@ -193,7 +198,7 @@ export function eServiceDocumentNotFound(
 export function agreementNotFound(agreementId: string): AgreementProcessError {
   return new AgreementProcessError(
     `Agreement ${agreementId} not found`,
-    ErrorTypes.EServiceNotFound
+    ErrorTypes.AgreementNotFound
   );
 }
 
