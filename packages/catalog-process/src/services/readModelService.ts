@@ -15,7 +15,6 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
-
 import { Consumer, consumer } from "../model/domain/models.js";
 import { config } from "../utilities/config.js";
 
