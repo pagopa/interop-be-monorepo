@@ -44,7 +44,7 @@ import {
   toEServiceDescriptorStateV1,
   toEServiceTechnologyV1,
   toEServiceV1,
-} from "../src/repositories/toEvent.js";
+} from "../src/model/domain/toEvent.js";
 
 const shuffle = <T>(array: T[]): T[] => array.sort(() => Math.random() - 0.5);
 
