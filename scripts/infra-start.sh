@@ -7,11 +7,11 @@ while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' localhost:8083/connectors/)
   sleep 1
 done
 
-local URL="http://localhost:8083/connectors/"
+URL="http://localhost:8083/connectors/"
 
 # We need to wait until the service db to be available (whenever we stop getting 400 we know it's up)
 while true; do
-  local response=$(curl -s -o /dev/null -i -X POST -H "Accept:application/json" -H "Content-Type:application/json" -w "%{http_code}\n" -d "@register-connector-postgres.json" "$URL")
+  response=$(curl -s -o /dev/null -i -X POST -H "Accept:application/json" -H "Content-Type:application/json" -w "%{http_code}\n" -d "@register-connector-postgres.json" "$URL")
 
   if [ "$response" -eq "201" ]; then
     echo "Connector registered successfully"
