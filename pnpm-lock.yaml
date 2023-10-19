@@ -136,9 +136,6 @@ importers:
 
   packages/catalog-process:
     dependencies:
-      '@aws-sdk/client-s3':
-        specifier: ^3.367.0
-        version: 3.367.0
       '@zodios/core':
         specifier: ^10.9.2
         version: 10.9.2(axios@1.4.0)(zod@3.21.4)
