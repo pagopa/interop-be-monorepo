@@ -1,6 +1,8 @@
 syntax = "proto2";
 
-import "v1/eservice.proto";
+package eservice;
+
+import "v1/eservice/eservice.proto";
 
 message EServiceAddedV1 {
   required EServiceV1 eService = 1;
