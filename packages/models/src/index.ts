@@ -4,4 +4,6 @@ export * from "./eservice.js";
 export * from "./eserviceEvents.js";
 export * from "./gen/v1/eservice.js";
 export * from "./gen/v1/events.js";
+export * from "./gen/v1/agreement/events.js";
+export * from "./agreementEvents.js";
 export * from "./readModels/readModels.js";

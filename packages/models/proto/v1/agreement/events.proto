@@ -1,0 +1,5 @@
+syntax = "proto2";
+
+message AgreementDeletedV1 {
+  required string agreementId = 1;
+}
