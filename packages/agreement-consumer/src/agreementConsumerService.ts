@@ -10,7 +10,7 @@ const {
   readModelDbHost: host,
   readModelDbPort: port,
   readModelDbName: database,
-} = consumerConfig;
+} = consumerConfig();
 
 const mongoDBConectionURI = `mongodb://${username}:${password}@${host}:${port}`;
 const client = new MongoClient(mongoDBConectionURI, {

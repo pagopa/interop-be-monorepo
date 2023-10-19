@@ -1,6 +1,6 @@
 import * as expressWinston from "express-winston";
 import * as winston from "winston";
-import { config } from "../config/index.js";
+import { commonConfig } from "../config/commonConfig.js";
 import { getContext } from "../index.js";
 
 export type SessionMetaData = {
@@ -8,6 +8,8 @@ export type SessionMetaData = {
   organizationId: string | undefined;
   correlationId: string | undefined;
 };
+
+const config = commonConfig();
 
 const getLoggerMetadata = (): SessionMetaData => {
   const appContext = getContext();

@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { APIEndpoint } from "./../model/apiEndpoint.js";
+import { APIEndpoint } from "../model/apiEndpoint.js";
 
-const JWTConfig = z.preprocess(
+export const JWTConfig = z.preprocess(
   (c) =>
     (c as { SKIP_JWT_VERIFICATION: string | undefined })
       .SKIP_JWT_VERIFICATION === undefined
@@ -32,9 +32,9 @@ const JWTConfig = z.preprocess(
           }
     )
 );
-type JWTConfig = z.infer<typeof JWTConfig>;
+export type JWTConfig = z.infer<typeof JWTConfig>;
 
-const RequiredConfig = z
+export const LoggerConfig = z
   .object({
     LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]),
   })
@@ -42,9 +42,7 @@ const RequiredConfig = z
     logLevel: c.LOG_LEVEL,
   }));
 
-const Config = RequiredConfig.and(JWTConfig);
-
-export type Config = z.infer<typeof Config>;
+export type LoggerConfig = z.infer<typeof LoggerConfig>;
 
 export const HTTPServerConfig = z
   .object({
@@ -57,4 +55,8 @@ export const HTTPServerConfig = z
   }));
 export type HTTPServerConfig = z.infer<typeof HTTPServerConfig>;
 
-export const config = Config.parse(process.env);
+export const CommonConfig = HTTPServerConfig.and(LoggerConfig).and(JWTConfig);
+export type CommonConfig = z.infer<typeof CommonConfig>;
+
+export const commonConfig: () => CommonConfig = () =>
+  CommonConfig.parse(process.env);

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const MongoConfig = z
+export const ReadModelDbConfig = z
   .object({
     READMODEL_DB_HOST: z.string(),
     READMODEL_DB_NAME: z.string(),
@@ -15,9 +15,7 @@ export const MongoConfig = z
     readModelDbPassword: c.READMODEL_DB_PASSWORD,
     readModelDbPort: c.READMODEL_DB_PORT,
   }));
-export type MongoConfig = z.infer<typeof MongoConfig>;
 
-export const ReadModelDbConfig = MongoConfig;
 export type ReadModelDbConfig = z.infer<typeof ReadModelDbConfig>;
 
 export const readmodelDbConfig: ReadModelDbConfig = ReadModelDbConfig.parse(

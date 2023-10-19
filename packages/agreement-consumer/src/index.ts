@@ -5,21 +5,22 @@ import { createMechanism } from "@jm18457/kafkajs-msk-iam-authentication-mechani
 import { decodeKafkaMessage } from "./model/models.js";
 import { handleMessage } from "./agreementConsumerService.js";
 
-const kafkaConfig = consumerConfig.kafkaDisableAwsIamAuth
+const config = consumerConfig();
+const kafkaConfig = config.kafkaDisableAwsIamAuth
   ? {
-      clientId: consumerConfig.kafkaClientId,
-      brokers: [consumerConfig.kafkaBrokers],
+      clientId: config.kafkaClientId,
+      brokers: [config.kafkaBrokers],
       ssl: false,
     }
   : {
-      clientId: consumerConfig.kafkaClientId,
-      brokers: [consumerConfig.kafkaBrokers],
+      clientId: config.kafkaClientId,
+      brokers: [config.kafkaBrokers],
       ssl: true,
-      sasl: createMechanism({ region: consumerConfig.awsRegion }),
+      sasl: createMechanism({ region: config.awsRegion }),
     };
 
 const kafka = new Kafka(kafkaConfig);
-const consumer = kafka.consumer({ groupId: consumerConfig.kafkaGroupId });
+const consumer = kafka.consumer({ groupId: config.kafkaGroupId });
 await consumer.connect();
 
 function exitGracefully(): void {
