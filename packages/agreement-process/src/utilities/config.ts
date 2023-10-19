@@ -3,6 +3,7 @@ import {
   config as commonsConfig,
   Config as CommonConfig,
   HTTPServerConfig,
+  FileManagerConfig,
 } from "pagopa-interop-commons";
 
 const LocalConfig = z.object({}).transform(() => ({}));
@@ -38,7 +39,9 @@ const RequiredConfig = z
     readModelDbPort: c.READMODEL_DB_PORT,
   }));
 
-const Config = LocalConfig.and(HTTPServerConfig).and(RequiredConfig);
+const Config = LocalConfig.and(HTTPServerConfig)
+  .and(FileManagerConfig)
+  .and(RequiredConfig);
 export type Config = z.infer<typeof Config>;
 
 export const config: Config & CommonConfig = {

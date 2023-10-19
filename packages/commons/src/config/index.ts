@@ -34,6 +34,45 @@ const JWTConfig = z.preprocess(
 );
 type JWTConfig = z.infer<typeof JWTConfig>;
 
+export const FileManagerConfig = z
+  .discriminatedUnion("MOCK_FILE_MANAGER", [
+    z.object({
+      MOCK_FILE_MANAGER: z.literal("true"),
+    }),
+    z.object({
+      MOCK_FILE_MANAGER: z.literal("false"),
+      S3_ACCESS_KEY_ID: z.string(),
+      S3_SECRET_ACCESS_KEY: z.string(),
+      S3_REGION: z.string(),
+      S3_BUCKET_NAME: z.string(),
+      ESERVICE_DOCS_PATH: z.string(),
+    }),
+    z.object({
+      MOCK_FILE_MANAGER: z.undefined(),
+      S3_ACCESS_KEY_ID: z.string(),
+      S3_SECRET_ACCESS_KEY: z.string(),
+      S3_REGION: z.string(),
+      S3_BUCKET_NAME: z.string(),
+      ESERVICE_DOCS_PATH: z.string(),
+    }),
+  ])
+  .transform((c) =>
+    c.MOCK_FILE_MANAGER === "false"
+      ? {
+          mockFileManager: false as const,
+          s3AccessKeyId: c.S3_ACCESS_KEY_ID,
+          s3SecretAccessKey: c.S3_SECRET_ACCESS_KEY,
+          s3Region: c.S3_REGION,
+          s3BucketName: c.S3_BUCKET_NAME,
+          eserviceDocsPath: c.ESERVICE_DOCS_PATH,
+        }
+      : {
+          mockFileManager: true as const,
+        }
+  );
+
+export type FileManagerConfig = z.infer<typeof FileManagerConfig>;
+
 const RequiredConfig = z
   .object({
     LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]),

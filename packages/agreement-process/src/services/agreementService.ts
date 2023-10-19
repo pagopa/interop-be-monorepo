@@ -3,6 +3,7 @@ import {
   CreateEvent,
   eventRepository,
   initDB,
+  initFileManager,
   logger,
 } from "pagopa-interop-commons";
 import {
@@ -13,15 +14,14 @@ import {
   agreementEventToBinaryData,
   agreementNotFound,
   agreementNotInExpectedState,
-  eServiceCannotBeDeleted,
-  eServiceNotFound,
-  operationForbidden,
   operationNotAllowed,
   persistentAgreementState,
 } from "pagopa-interop-models";
 import { config } from "../utilities/config.js";
 import { toCreateEventAgreementDeleted } from "../model/domain/toEvent.js";
 import { readModelService } from "./readModelService.js";
+
+const fileManager = initFileManager(config);
 
 const repository = eventRepository(
   initDB({
@@ -70,20 +70,27 @@ export const agreementService = {
     const agreement = await readModelService.readAgreementById(agreementId);
 
     await repository.createEvent(
-      deleteAgreementLogic({ agreementId, authData, agreement })
+      await deleteAgreementLogic({
+        agreementId,
+        authData,
+        deleteFile: fileManager.deleteFile,
+        agreement,
+      })
     );
   },
 };
 
-export function deleteAgreementLogic({
+export async function deleteAgreementLogic({
   agreementId,
   authData,
+  deleteFile,
   agreement,
 }: {
   agreementId: string;
   authData: AuthData;
+  deleteFile: (path: string) => Promise<void>;
   agreement: WithMetadata<PersistentAgreement> | undefined;
-}): CreateEvent<AgreementEvent> {
+}): Promise<CreateEvent<AgreementEvent>> {
   assertAgreementExist(agreementId, agreement);
   assertRequesterIsConsumer(agreement.data.consumerId, authData.organizationId);
 
@@ -94,6 +101,10 @@ export function deleteAgreementLogic({
 
   if (!deletableStates.includes(agreement.data.state)) {
     throw agreementNotInExpectedState(agreementId, agreement.data.state);
+  }
+
+  for (const d of agreement.data.consumerDocuments) {
+    await deleteFile(d.path);
   }
 
   return toCreateEventAgreementDeleted(agreementId, agreement.metadata.version);
