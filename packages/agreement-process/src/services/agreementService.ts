@@ -11,9 +11,12 @@ import {
   PersistentAgreementState,
   WithMetadata,
   agreementEventToBinaryData,
+  agreementNotFound,
+  agreementNotInExpectedState,
   eServiceCannotBeDeleted,
   eServiceNotFound,
   operationForbidden,
+  operationNotAllowed,
   persistentAgreementState,
 } from "pagopa-interop-models";
 import { config } from "../utilities/config.js";
@@ -38,7 +41,7 @@ function assertAgreementExist(
   agreement: WithMetadata<PersistentAgreement> | undefined
 ): asserts agreement is NonNullable<WithMetadata<PersistentAgreement>> {
   if (agreement === undefined) {
-    throw eServiceNotFound(agreementId);
+    throw agreementNotFound(agreementId);
   }
 }
 
@@ -47,7 +50,7 @@ const assertRequesterIsConsumer = (
   requesterId: string
 ): void => {
   if (consumerId !== requesterId) {
-    throw operationForbidden;
+    throw operationNotAllowed(requesterId);
   }
 };
 
@@ -90,7 +93,7 @@ export function deleteAgreementLogic({
   ];
 
   if (!deletableStates.includes(agreement.data.state)) {
-    throw eServiceCannotBeDeleted(agreementId);
+    throw agreementNotInExpectedState(agreementId, agreement.data.state);
   }
 
   return toCreateEventAgreementDeleted(agreementId, agreement.metadata.version);
