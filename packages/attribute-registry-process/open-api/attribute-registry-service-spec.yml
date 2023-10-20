@@ -1,0 +1,590 @@
+openapi: 3.0.3
+info:
+  title: attribute registry Process Micro Service
+  description: Offers operations to retrieve attribute registry data
+  version: '{{version}}'
+  contact:
+    name: API Support
+    url: 'http://www.example.com/support'
+    email: support@example.com
+  termsOfService: 'http://swagger.io/terms/'
+  x-api-id: an x-api-id
+  x-summary: an x-summary
+servers:
+  - url: '/attribute-registry-process/{{version}}'
+    description: This service is the attribute registry process
+security:
+  - bearerAuth: []
+tags:
+  - name: attribute-registry
+    description: Implements attribute-registry process
+    externalDocs:
+      description: Find out more
+      url: 'http://swagger.io'
+  - name: health
+    description: Verify service status
+    externalDocs:
+      description: Find out more
+      url: 'http://swagger.io'
+paths:
+  '/certifiedAttributes':
+    parameters:
+      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: '#/components/parameters/IpAddress'
+    post:
+      summary: Creates certified attribute
+      tags:
+        - attribute
+      operationId: createCertifiedAttribute
+      responses:
+        '200':
+          description: Certified attribute created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attribute'
+        '400':
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      description: Creates the attribute passed as payload
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CertifiedAttributeSeed'
+        description: Contains the attribute data to save.
+  '/declaredAttributes':
+    parameters:
+      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: '#/components/parameters/IpAddress'
+    post:
+      summary: Creates declared attribute
+      tags:
+        - attribute
+      operationId: createDeclaredAttribute
+      responses:
+        '200':
+          description: Declared attribute created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attribute'
+        '400':
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      description: Creates the attribute passed as payload
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttributeSeed'
+        description: Contains the attribute data to save.
+  '/verifiedAttributes':
+    parameters:
+      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: '#/components/parameters/IpAddress'
+    post:
+      summary: Creates verified attribute
+      tags:
+        - attribute
+      operationId: createVerifiedAttribute
+      responses:
+        '200':
+          description: Verified attribute created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attribute'
+        '400':
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      description: Creates the attribute passed as payload
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttributeSeed'
+        description: Contains the attribute data to save.
+  '/internal/certifiedAttributes':
+    parameters:
+      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: '#/components/parameters/IpAddress'
+    post:
+      summary: Creates certified attribute for internal user
+      tags:
+        - attribute
+      operationId: createInternalCertifiedAttribute
+      responses:
+        '200':
+          description: Certified attribute created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attribute'
+        '400':
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      description: Creates the attribute passed as payload
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InternalCertifiedAttributeSeed'
+        description: Contains the attribute data to save.
+  '/attributes':
+    parameters:
+      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: '#/components/parameters/IpAddress'
+    get:
+      summary: Get attributes
+      operationId: getAttributes
+      description: 'returns attributes'
+      tags:
+        - attribute
+      parameters:
+        - in: query
+          name: name
+          description: Query to filter Attributes by name
+          schema:
+            type: string
+        - in: query
+          name: origin
+          description: Query to filter Attributes by origin
+          schema:
+            type: string
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+          required: true
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            minimum: 0
+          required: true
+        - in: query
+          name: kinds
+          description: Array of kinds
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/AttributeKind'
+          required: true
+      responses:
+        '200':
+          description: A List of Attributes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attributes'
+  '/attributes/name/{name}':
+    get:
+      summary: Get Attribute by name
+      tags:
+        - attribute
+      responses:
+        '200':
+          description: Attribute data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attribute'
+        '404':
+          description: Attribute not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      operationId: getAttributeByName
+      description: 'returns the attribute in the registry corresponding to name, if any.'
+    parameters:
+      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: '#/components/parameters/IpAddress'
+      - schema:
+          type: string
+        name: name
+        in: path
+        required: true
+        description: name of the attribute to lookup.
+  '/attributes/origin/{origin}/code/{code}':
+    parameters:
+      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: '#/components/parameters/IpAddress'
+      - schema:
+          type: string
+        name: origin
+        in: path
+        required: true
+        description: 'origin of the attribute to lookup (e.g.: IPA).'
+      - schema:
+          type: string
+        name: code
+        in: path
+        required: true
+        description: 'code of the attribute to lookup (e.g.: unique identifier of IPA).'
+    get:
+      summary: Get Attribute by origin and code
+      tags:
+        - attribute
+      responses:
+        '200':
+          description: Attribute data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attribute'
+        '404':
+          description: Attribute not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      operationId: getAttributeByOriginAndCode
+      description: 'returns the attribute in the registry corresponding to origin and code, if any.'
+  '/attributes/{attributeId}':
+    parameters:
+      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: '#/components/parameters/IpAddress'
+      - schema:
+          type: string
+          format: uuid
+        name: attributeId
+        in: path
+        required: true
+        description: registry identifier of the attribute to lookup.
+    get:
+      summary: Get Attribute
+      tags:
+        - attribute
+      responses:
+        '200':
+          description: Attribute data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attribute'
+        '404':
+          description: Attribute not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      operationId: getAttributeById
+      description: 'returns the attribute in the registry corresponding to attributeId, if any.'
+  '/bulk/attributes':
+    parameters:
+      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: '#/components/parameters/IpAddress'
+    post:
+      summary: 'returns the list of attributes for a given bulked ids request'
+      tags:
+        - attribute
+      operationId: getBulkedAttributes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+        description: 'a string representing the attribute ids concatenated by ","'
+      responses:
+        '200':
+          description: array of attributes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attributes'
+      description: Returns the list of attributes indicated in the request
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+          required: true
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            minimum: 0
+          required: true
+  /status:
+    get:
+      tags:
+        - health
+      summary: Health status endpoint
+      description: Return ok
+      operationId: getStatus
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+components:
+  parameters:
+    CorrelationIdHeader:
+      in: header
+      name: X-Correlation-Id
+      required: true
+      schema:
+        type: string
+    IpAddress:
+      in: header
+      name: X-Forwarded-For
+      schema:
+        type: string
+  schemas:
+    Problem:
+      properties:
+        type:
+          description: URI reference of type definition
+          type: string
+        status:
+          description: The HTTP status code generated by the origin server for this occurrence of the problem.
+          example: 503
+          exclusiveMaximum: true
+          format: int32
+          maximum: 600
+          minimum: 100
+          type: integer
+        title:
+          description: A short, summary of the problem type. Written in english and readable
+          example: Service Unavailable
+          maxLength: 64
+          pattern: '^[ -~]{0,64}$'
+          type: string
+        correlationId:
+          description: Unique identifier of the request
+          example: '53af4f2d-0c87-41ef-a645-b726a821852b'
+          maxLength: 64
+          type: string
+        detail:
+          description: A human readable explanation of the problem.
+          example: Request took too long to complete.
+          maxLength: 4096
+          pattern: '^.{0,1024}$'
+          type: string
+        errors:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ProblemError'
+      additionalProperties: false
+      required:
+        - type
+        - status
+        - title
+        - errors
+    ProblemError:
+      properties:
+        code:
+          description: Internal code of the error
+          example: 123-4567
+          minLength: 8
+          maxLength: 8
+          pattern: '^[0-9]{3}-[0-9]{4}$'
+          type: string
+        detail:
+          description: A human readable explanation specific to this occurrence of the problem.
+          example: Parameter not valid
+          maxLength: 4096
+          pattern: '^.{0,1024}$'
+          type: string
+      required:
+        - code
+        - detail
+    Attribute:
+      title: Attribute
+      type: object
+      description: Models the attribute registry entry as payload response
+      properties:
+        id:
+          type: string
+          description: uniquely identifies the attribute on the registry
+          format: uuid
+        code:
+          type: string
+          description: identifies the unique code of this attribute on the origin registry
+        kind:
+          description: Kind of the attribute. It's one of CERTIFIED, VERIFIED, DECLARED.
+          $ref: '#/components/schemas/AttributeKind'
+        description:
+          type: string
+        origin:
+          type: string
+          description: 'represents the origin of this attribute (e.g.: IPA, Normattiva, etc.)'
+        name:
+          type: string
+        creationTime:
+          type: string
+          format: date-time
+      required:
+        - id
+        - description
+        - kind
+        - name
+        - creationTime
+    AttributeKind:
+      type: string
+      enum:
+        - CERTIFIED
+        - DECLARED
+        - VERIFIED
+    CertifiedAttributeSeed:
+      title: AttributeSeed
+      type: object
+      description: Models the attribute registry entry as payload response
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 500
+        description:
+          type: string
+          minLength: 1
+          maxLength: 500
+        code:
+          type: string
+          minLength: 1
+          maxLength: 64
+          description: identifies the unique code of this attribute on the registry
+      required:
+        - description
+        - name
+        - code
+    InternalCertifiedAttributeSeed:
+      title: AttributeSeed
+      type: object
+      description: Models the attribute registry entry as payload response
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 500
+        description:
+          type: string
+          minLength: 1
+          maxLength: 500
+        origin:
+          type: string
+          minLength: 1
+          maxLength: 64
+          description: 'represents the origin of this attribute (e.g.: IPA, Normattiva, etc.)'
+        code:
+          type: string
+          minLength: 1
+          maxLength: 64
+          description: identifies the unique code of this attribute on the registry
+      required:
+        - description
+        - name
+        - origin
+        - code
+    AttributeSeed:
+      title: AttributeSeed
+      type: object
+      description: Models the attribute registry entry as payload response
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 500
+        description:
+          type: string
+          minLength: 1
+          maxLength: 500
+      required:
+        - description
+        - name
+    Attributes:
+      title: AttributesResponse
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Attribute'
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
+  securitySchemes:
+    bearerAuth:
+      type: http
+      description: 'A bearer token in the format of a JWS and comformed to the specifications included in [RFC8725](https://tools.ietf.org/html/RFC8725).'
+      scheme: bearer
+      bearerFormat: JWT
