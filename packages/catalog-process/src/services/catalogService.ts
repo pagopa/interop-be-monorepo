@@ -5,6 +5,7 @@ import {
   logger,
   eventRepository,
   initDB,
+  initFileManager,
 } from "pagopa-interop-commons";
 import {
   Descriptor,
@@ -53,10 +54,11 @@ import {
   toCreateEventEServiceUpdated,
   toCreateEventEServiceWithDescriptorsDeleted,
 } from "../model/domain/toEvent.js";
-import { fileManager } from "../utilities/fileManager.js";
 import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
 import { config } from "../utilities/config.js";
 import { readModelService } from "./readModelService.js";
+
+const fileManager = initFileManager(config);
 
 const repository = eventRepository(
   initDB({
