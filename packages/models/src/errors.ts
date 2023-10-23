@@ -101,6 +101,7 @@ export class ProcessError extends Error {
 
 export class CatalogProcessError extends ProcessError {}
 export class AgreementProcessError extends ProcessError {}
+export class AttributeProcessError extends ProcessError {}
 
 export function eServiceDuplicate(
   eServiceNameSeed: string
