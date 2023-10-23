@@ -13,7 +13,7 @@ import {
   MovedAttributesFromEserviceToDescriptorsV1,
 } from "../gen/v1/eservice/events.js";
 
-export function toBinaryData(event: EServiceEvent): Uint8Array {
+export function catalogEventToBinaryData(event: EServiceEvent): Uint8Array {
   return match(event)
     .with({ type: "EServiceAdded" }, ({ data }) =>
       EServiceAddedV1.toBinary(data)
