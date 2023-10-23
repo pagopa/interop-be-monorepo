@@ -1,7 +1,7 @@
 version: "3"
 name: pagopa-interop
 services:
-  catalog-event-store:
+  event-store:
     volumes:
       - ./event-store-init.sql:/docker-entrypoint-initdb.d/01-init.sql
     image: postgres:14
@@ -85,3 +85,14 @@ services:
       chmod 600 /var/lib/pgadmin/storage/root_example.com/pgpass;
       /entrypoint.sh
       "
+      services:
+  kafka-ui:
+    container_name: kafka-ui
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - 8084:8080
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092

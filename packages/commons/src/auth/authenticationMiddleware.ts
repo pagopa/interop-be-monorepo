@@ -1,14 +1,11 @@
+/* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/naming-convention */
 import { ZodiosRouterContextRequestHandler } from "@zodios/express";
 import { Response } from "express";
+import { ErrorTypes, ProcessError, missingHeader } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
-import {
-  CatalogProcessError,
-  ErrorTypes,
-  missingHeader,
-} from "pagopa-interop-models";
-import { logger } from "../logging/index.js";
 import { ExpressContext } from "../index.js";
+import { logger } from "../logging/index.js";
 import { AuthData } from "./authData.js";
 import { Headers } from "./headers.js";
 import { readAuthDataFromJwtToken, verifyJwtToken } from "./jwt.js";
@@ -31,7 +28,7 @@ export const authenticationMiddleware: (
         logger.warn(
           `No authentication has been provided for this call ${req.method} ${req.url}`
         );
-        throw new CatalogProcessError(
+        throw new ProcessError(
           "Authorization Illegal header key.",
           ErrorTypes.MissingBearer
         );
@@ -41,7 +38,7 @@ export const authenticationMiddleware: (
       const valid = await verifyJwtToken(jwtToken);
       if (!valid) {
         logger.warn(`The jwt token is not valid`);
-        throw new CatalogProcessError(
+        throw new ProcessError(
           "The jwt token is not valid",
           ErrorTypes.Unauthorized
         );
@@ -50,7 +47,7 @@ export const authenticationMiddleware: (
       match(authData)
         .with(P.instanceOf(Error), (err) => {
           logger.warn(`Invalid authentication provided: ${err.message}`);
-          throw new CatalogProcessError(
+          throw new ProcessError(
             `Invalid claims: ${err.message}`,
             ErrorTypes.MissingClaim
           );
@@ -66,8 +63,15 @@ export const authenticationMiddleware: (
     };
 
     try {
-      const headers = Headers.parse(req.headers);
-      return await match(headers)
+      const headers = Headers.safeParse(req.headers);
+      if (!headers.success) {
+        throw new ProcessError(
+          ErrorTypes.MissingHeader.title,
+          ErrorTypes.MissingHeader
+        );
+      }
+
+      return await match(headers.data)
         .with(
           {
             authorization: P.string,
@@ -89,7 +93,7 @@ export const authenticationMiddleware: (
               `No authentication has been provided for this call ${req.method} ${req.url}`
             );
 
-            throw new CatalogProcessError(
+            throw new ProcessError(
               `Bearer token has not been passed`,
               ErrorTypes.MissingBearer
             );
@@ -102,12 +106,15 @@ export const authenticationMiddleware: (
           },
           () => missingHeader("x-correlation-id")
         )
-        .otherwise(() => {
-          throw new CatalogProcessError(
-            ErrorTypes.MissingHeader.title,
-            ErrorTypes.MissingHeader
-          );
-        });
+        .otherwise(() =>
+          apiErrorHandler(
+            new ProcessError(
+              ErrorTypes.MissingHeader.title,
+              ErrorTypes.MissingHeader
+            ),
+            res
+          )
+        );
     } catch (error) {
       return apiErrorHandler(error, res);
     }

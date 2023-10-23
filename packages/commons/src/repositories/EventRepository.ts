@@ -1,16 +1,22 @@
-import { logger } from "pagopa-interop-commons";
-import { EServiceEvent, toBinaryData } from "pagopa-interop-models";
-import { db } from "./db.js";
+import { logger } from "../index.js";
+import { DB } from "./db.js";
 import * as sql from "./sql/index.js";
 
-export type CreateEvent = {
+export interface Event {
+  readonly type: string;
+}
+
+export type CreateEvent<T extends Event> = {
   readonly streamId: string;
   readonly version: number;
-  readonly event: EServiceEvent;
+  readonly event: T;
 };
 
-export const eventRepository = {
-  async createEvent(createEvent: CreateEvent): Promise<string> {
+export const eventRepository = <T extends Event>(
+  db: DB,
+  toBinaryData: (event: T) => Uint8Array
+): { createEvent: (createEvent: CreateEvent<T>) => Promise<string> } => ({
+  async createEvent(createEvent: CreateEvent<T>): Promise<string> {
     try {
       return await db.tx(async (t) => {
         const data = await t.oneOrNone(sql.checkEventVersionExists, {
@@ -34,4 +40,4 @@ export const eventRepository = {
       throw error;
     }
   },
-};
+});

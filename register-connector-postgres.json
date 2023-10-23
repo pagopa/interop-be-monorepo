@@ -1,15 +1,14 @@
 {
-    "name": "catalog-connector",
+    "name": "event-connector",
     "config": {
         "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
         "tasks.max": "1",
-        "database.hostname": "catalog-event-store",
+        "database.hostname": "event-store",
         "database.port": "5432",
         "database.user": "root",
         "database.password": "root",
         "database.dbname": "root",
-        "topic.prefix": "catalog",
-        "schema.include.list": "public",
+        "topic.prefix": "event-store",
         "plugin.name": "pgoutput",
         "binary.handling.mode": "hex",
         "key.converter": "org.apache.kafka.connect.json.JsonConverter",

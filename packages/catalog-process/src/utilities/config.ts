@@ -53,6 +53,7 @@ const RequiredConfig = z
     EVENTSTORE_DB_USERNAME: z.string(),
     EVENTSTORE_DB_PASSWORD: z.string(),
     EVENTSTORE_DB_PORT: z.coerce.number().min(1001),
+    EVENTSTORE_DB_SCHEMA: z.string(),
     EVENTSTORE_DB_USE_SSL: z
       .enum(["true", "false"])
       .transform((value) => value === "true"),
@@ -69,6 +70,7 @@ const RequiredConfig = z
     eventStoreDbUsername: c.EVENTSTORE_DB_USERNAME,
     eventStoreDbPassword: c.EVENTSTORE_DB_PASSWORD,
     eventStoreDbPort: c.EVENTSTORE_DB_PORT,
+    eventStoreDbSchema: c.EVENTSTORE_DB_SCHEMA,
     eventStoreDbUseSSL: c.EVENTSTORE_DB_USE_SSL,
     readModelDbHost: c.READMODEL_DB_HOST,
     readModelDbName: c.READMODEL_DB_NAME,
