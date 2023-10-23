@@ -35,7 +35,6 @@
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "ts-pattern": "^5.0.1",
-    "winston": "^3.9.0",
     "zod": "^3.21.4"
   }
 }
