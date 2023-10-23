@@ -3,8 +3,7 @@ import {
   DeleteObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
-import { logger } from "pagopa-interop-commons";
-import { config } from "./config.js";
+import { logger } from "./index.js";
 
 export type FileManager = {
   deleteFile: (path: string) => Promise<void>;
@@ -32,7 +31,20 @@ const mockFileManager: FileManager = {
   },
 };
 
-function initFileManager(): FileManager {
+export function initFileManager(
+  config:
+    | {
+        mockFileManager: true;
+      }
+    | {
+        mockFileManager: false;
+        s3AccessKeyId: string;
+        s3SecretAccessKey: string;
+        s3Region: string;
+        s3BucketName: string;
+        eserviceDocsPath: string;
+      }
+): FileManager {
   if (config.mockFileManager) {
     return mockFileManager;
   } else {
@@ -85,5 +97,3 @@ function initFileManager(): FileManager {
     };
   }
 }
-
-export const fileManager = initFileManager();
