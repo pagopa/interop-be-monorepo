@@ -1,8 +1,9 @@
 import { match } from "ts-pattern";
 import { Collection, MongoClient } from "mongodb";
 import { logger, consumerConfig } from "pagopa-interop-commons";
-import { AgreementV1 } from "pagopa-interop-models";
+import { PersistentAgreement } from "pagopa-interop-models";
 import { EventEnvelope } from "./model/models.js";
+import { fromAgreementV1 } from "./model/converter.js";
 
 const {
   readModelDbUsername: username,
@@ -18,22 +19,24 @@ const client = new MongoClient(mongoDBConectionURI, {
 });
 
 const db = client.db(database);
-const eservices: Collection<{
-  data: AgreementV1 | undefined;
+const agreements: Collection<{
+  data: PersistentAgreement | undefined;
   metadata: { version: number };
-}> = db.collection("eservices", { ignoreUndefined: true });
+}> = db.collection("agreement", { ignoreUndefined: true });
 
 export async function handleMessage(message: EventEnvelope): Promise<void> {
   logger.info(message);
   await match(message)
     .with({ type: "AgreementAdded" }, async (msg) => {
-      await eservices.updateOne(
+      await agreements.updateOne(
         {
           "data.id": msg.stream_id,
         },
         {
           $setOnInsert: {
-            data: msg.data.agreement,
+            data: msg.data.agreement
+              ? fromAgreementV1(msg.data.agreement)
+              : undefined,
             metadata: {
               version: msg.version,
             },
