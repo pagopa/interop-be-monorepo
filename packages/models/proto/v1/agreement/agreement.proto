@@ -26,8 +26,9 @@ message AgreementV1 {
 }
 
 message VerifiedAttributeV1 {
+  reserved 2, 3, 4, 5;
+
   required string id = 1;
-  // Places 2-5 are reserved for backward compatibility
 }
 
 message CertifiedAttributeV1 {
