@@ -11,7 +11,7 @@ import {
   EServiceUpdatedV1,
   EServiceWithDescriptorsDeletedV1,
   MovedAttributesFromEserviceToDescriptorsV1,
-} from "./gen/v1/eservice/events.js";
+} from "../gen/v1/eservice/events.js";
 
 export function toBinaryData(event: EServiceEvent): Uint8Array {
   return match(event)
