@@ -13,12 +13,12 @@ import {
   eServiceNotFound,
   notValidDescriptor,
   operationForbidden,
+  WithMetadata,
 } from "pagopa-interop-models";
 import {
   apiAgreementApprovalPolicyToAgreementApprovalPolicy,
   apiTechnologyToTechnology,
 } from "../src/model/domain/apiConverter.js";
-import { WithMetadata } from "../src/model/domain/models.js";
 
 import {
   activateDescriptorLogic,

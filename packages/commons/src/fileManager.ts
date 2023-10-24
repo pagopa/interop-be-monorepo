@@ -3,6 +3,7 @@ import {
   DeleteObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
+import { FileManagerConfig } from "./config/fileManagerConfig.js";
 import { logger } from "./index.js";
 
 export type FileManager = {
@@ -31,20 +32,7 @@ const mockFileManager: FileManager = {
   },
 };
 
-export function initFileManager(
-  config:
-    | {
-        mockFileManager: true;
-      }
-    | {
-        mockFileManager: false;
-        s3AccessKeyId: string;
-        s3SecretAccessKey: string;
-        s3Region: string;
-        s3BucketName: string;
-        eserviceDocsPath: string;
-      }
-): FileManager {
+export function initFileManager(config: FileManagerConfig): FileManager {
   if (config.mockFileManager) {
     return mockFileManager;
   } else {
@@ -53,7 +41,7 @@ export function initFileManager(
       s3SecretAccessKey,
       s3Region,
       s3BucketName,
-      eserviceDocsPath,
+      s3FilePath,
     } = config;
 
     const client = new S3Client({
@@ -83,7 +71,7 @@ export function initFileManager(
       ): Promise<string> => {
         logger.info(`Copying file ${filePathToCopy}`);
 
-        const s3Key = buildS3Key(eserviceDocsPath, documentId, fileName);
+        const s3Key = buildS3Key(s3FilePath, documentId, fileName);
 
         await client.send(
           new CopyObjectCommand({

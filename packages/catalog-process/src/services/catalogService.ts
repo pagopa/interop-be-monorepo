@@ -1,11 +1,11 @@
 import {
-  CreateEvent,
   AuthData,
+  CreateEvent,
   authorizationManagementServiceMock,
-  logger,
   eventRepository,
   initDB,
   initFileManager,
+  logger,
 } from "pagopa-interop-commons";
 import {
   Descriptor,
@@ -13,6 +13,9 @@ import {
   Document,
   EService,
   EServiceEvent,
+  ListResult,
+  WithMetadata,
+  catalogEventToBinaryData,
   descriptorState,
   draftDescriptorAlreadyExists,
   eServiceCannotBeDeleted,
@@ -23,9 +26,6 @@ import {
   eServiceNotFound,
   notValidDescriptor,
   operationForbidden,
-  ListResult,
-  WithMetadata,
-  toBinaryData,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { v4 as uuidv4 } from "uuid";
@@ -38,11 +38,6 @@ import {
   UpdateEServiceDescriptorSeed,
 } from "../model/domain/models.js";
 import {
-  ApiEServiceDescriptorDocumentSeed,
-  ApiEServiceDescriptorDocumentUpdateSeed,
-  ApiEServiceSeed,
-} from "../model/types.js";
-import {
   toCreateEventClonedEServiceAdded,
   toCreateEventEServiceAdded,
   toCreateEventEServiceDeleted,
@@ -54,8 +49,13 @@ import {
   toCreateEventEServiceUpdated,
   toCreateEventEServiceWithDescriptorsDeleted,
 } from "../model/domain/toEvent.js";
-import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
+import {
+  ApiEServiceDescriptorDocumentSeed,
+  ApiEServiceDescriptorDocumentUpdateSeed,
+  ApiEServiceSeed,
+} from "../model/types.js";
 import { config } from "../utilities/config.js";
+import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
 import { readModelService } from "./readModelService.js";
 
 const fileManager = initFileManager(config);
@@ -70,7 +70,7 @@ const repository = eventRepository(
     schema: config.eventStoreDbSchema,
     useSSL: config.eventStoreDbUseSSL,
   }),
-  toBinaryData
+  catalogEventToBinaryData
 );
 
 function assertEServiceExist(

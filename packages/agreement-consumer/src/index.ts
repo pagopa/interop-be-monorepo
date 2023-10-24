@@ -1,11 +1,11 @@
 import { Kafka, KafkaMessage } from "kafkajs";
-import { logger, consumerConfig } from "pagopa-interop-commons";
+import { consumerConfig, logger } from "pagopa-interop-commons";
 import { createMechanism } from "@jm18457/kafkajs-msk-iam-authentication-mechanism";
+
 import { decodeKafkaMessage } from "./model/models.js";
-import { handleMessage } from "./consumerService.js";
+import { handleMessage } from "./agreementConsumerService.js";
 
 const config = consumerConfig();
-
 const kafkaConfig = config.kafkaDisableAwsIamAuth
   ? {
       clientId: config.kafkaClientId,
@@ -34,7 +34,7 @@ process.on("SIGINT", exitGracefully);
 process.on("SIGTERM", exitGracefully);
 
 await consumer.subscribe({
-  topics: ["event-store.catalog.events"],
+  topics: ["event-store.agreement.events"],
   fromBeginning: true,
 });
 
