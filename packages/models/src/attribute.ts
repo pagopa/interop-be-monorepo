@@ -1,9 +1,9 @@
 import { z } from "zod";
 
 export const attributeKind = {
-  certified: "CERTIFIED",
-  verified: "VERIFIED",
-  declared: "DECLARED",
+  certified: "Certified",
+  verified: "Verified",
+  declared: "Declared",
 } as const;
 export const AttributeKind = z.enum([
   Object.values(attributeKind)[0],

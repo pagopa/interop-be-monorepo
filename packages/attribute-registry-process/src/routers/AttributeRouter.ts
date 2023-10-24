@@ -9,7 +9,10 @@ import {
 import { attributeNotFound } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
 import { readModelService } from "../services/readModelService.js";
-import { attributeToApiAttribute } from "../model/domain/apiConverter.js";
+import {
+  apiAttributeKindToAttributeKind,
+  attributeToApiAttribute,
+} from "../model/domain/apiConverter.js";
 import { ApiError, makeApiError } from "../model/types.js";
 
 const attributeRouter = (
@@ -40,7 +43,7 @@ const attributeRouter = (
 
           const attributes = await readModelService.getAttributes(
             {
-              kinds,
+              kinds: kinds.map(apiAttributeKindToAttributeKind),
               name,
               origin,
             },
