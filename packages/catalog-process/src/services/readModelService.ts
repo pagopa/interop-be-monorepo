@@ -1,5 +1,5 @@
 import { AggregationCursor, MongoClient } from "mongodb";
-import { AuthData, logger } from "pagopa-interop-commons";
+import { AuthData, logger, readmodelDbConfig } from "pagopa-interop-commons";
 import {
   DescriptorState,
   Document,
@@ -16,7 +16,6 @@ import {
 import { match } from "ts-pattern";
 import { z } from "zod";
 import { Consumer, consumer } from "../model/domain/models.js";
-import { config } from "../utilities/config.js";
 
 const {
   readModelDbUsername: username,
@@ -24,7 +23,7 @@ const {
   readModelDbHost: host,
   readModelDbPort: port,
   readModelDbName: database,
-} = config;
+} = readmodelDbConfig;
 
 const mongoDBConectionURI = `mongodb://${username}:${password}@${host}:${port}`;
 const client = new MongoClient(mongoDBConectionURI, {
