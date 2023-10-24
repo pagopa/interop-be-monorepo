@@ -70,6 +70,7 @@ export const readModelService = {
       ? {
           "data.name": {
             $regex: `^${name}$$`,
+            $regex: name,
           },
         }
       : {};
@@ -139,6 +140,7 @@ export const readModelService = {
       if (!result.success) {
         logger.error(
           `Unable to parse eservices item: result ${JSON.stringify(
+          `Unable to parse attribute item: result ${JSON.stringify(
             result
           )} - data ${JSON.stringify(data)} `
         );
