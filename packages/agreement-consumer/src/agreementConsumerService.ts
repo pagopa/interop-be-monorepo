@@ -22,7 +22,7 @@ const db = client.db(database);
 const agreements: Collection<{
   data: PersistentAgreement | undefined;
   metadata: { version: number };
-}> = db.collection("agreement", { ignoreUndefined: true });
+}> = db.collection("agreements", { ignoreUndefined: true });
 
 export async function handleMessage(message: EventEnvelope): Promise<void> {
   logger.info(message);
