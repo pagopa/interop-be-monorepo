@@ -47,6 +47,8 @@ export type ApiInternalServerError = Problem & {
 
 export type ApiError = Problem;
 
+export type ListResult<T> = { results: T[]; totalCount: number };
+
 export function makeApiError(error: unknown): ApiError {
   return match<unknown, ApiError>(error)
     .with(P.instanceOf(CatalogProcessError), (error) =>

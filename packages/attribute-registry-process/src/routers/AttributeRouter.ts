@@ -6,7 +6,11 @@ import {
   ZodiosContext,
   authorizationMiddleware,
 } from "pagopa-interop-commons";
+import { attributeNotFound } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
+import { readModelService } from "../services/readModelService.js";
+import { attributeToApiAttribute } from "../model/domain/apiConverter.js";
+import { ApiError, makeApiError } from "../model/types.js";
 
 const attributeRouter = (
   ctx: ZodiosContext
@@ -30,7 +34,31 @@ const attributeRouter = (
         M2M_ROLE,
         SUPPORT_ROLE,
       ]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const { limit, offset, kinds, name, origin } = req.query;
+
+          const attributes = await readModelService.getAttributes(
+            {
+              kinds,
+              name,
+              origin,
+            },
+            offset,
+            limit
+          );
+
+          return res
+            .status(200)
+            .json({
+              results: attributes.results.map(attributeToApiAttribute),
+              totalCount: attributes.totalCount,
+            })
+            .end();
+        } catch (error) {
+          return res.status(500).end();
+        }
+      }
     )
     .get(
       "/attributes/name/:name",
@@ -62,7 +90,28 @@ const attributeRouter = (
         M2M_ROLE,
         SUPPORT_ROLE,
       ]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const attribute = await readModelService.getAttributeById(
+            req.params.attributeId
+          );
+
+          if (attribute) {
+            return res
+              .status(200)
+              .json(attributeToApiAttribute(attribute.data))
+              .end();
+          } else {
+            return res
+              .status(404)
+              .json(makeApiError(attributeNotFound(req.params.attributeId)))
+              .end();
+          }
+        } catch (error) {
+          const errorRes: ApiError = makeApiError(error);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/bulk/attributes",

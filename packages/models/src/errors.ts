@@ -86,6 +86,11 @@ export const ErrorTypes = {
     httpStatus: 404,
     title: "Agreement not found",
   },
+  AttributeNotFound: {
+    code: "0010",
+    httpStatus: 404,
+    title: "Attribute not found",
+  },
 } as const;
 
 export type ErrorType = (typeof ErrorTypes)[keyof typeof ErrorTypes];
@@ -101,6 +106,7 @@ export class ProcessError extends Error {
 
 export class CatalogProcessError extends ProcessError {}
 export class AgreementProcessError extends ProcessError {}
+export class AttributeProcessError extends ProcessError {}
 
 export function eServiceDuplicate(
   eServiceNameSeed: string
@@ -199,6 +205,13 @@ export function agreementNotFound(agreementId: string): AgreementProcessError {
   return new AgreementProcessError(
     `Agreement ${agreementId} not found`,
     ErrorTypes.AgreementNotFound
+  );
+}
+
+export function attributeNotFound(attributeId: string): AttributeProcessError {
+  return new AttributeProcessError(
+    `Attribute ${attributeId} not found`,
+    ErrorTypes.AttributeNotFound
   );
 }
 
