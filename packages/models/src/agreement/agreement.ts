@@ -29,12 +29,13 @@ export type PersistentAgreementDocument = z.infer<
   typeof PersistentAgreementDocument
 >;
 
-const PersistentStamp = z.object({
+export const PersistentStamp = z.object({
   who: z.string().uuid(),
   when: z.date(),
 });
+export type PersistentStamp = z.infer<typeof PersistentStamp>;
 
-const PersistentStamps = z.object({
+export const PersistentStamps = z.object({
   submission: PersistentStamp.optional(),
   activation: PersistentStamp.optional(),
   rejection: PersistentStamp.optional(),
@@ -43,6 +44,7 @@ const PersistentStamps = z.object({
   upgrade: PersistentStamp.optional(),
   archiving: PersistentStamp.optional(),
 });
+export type PersistentStamps = z.infer<typeof PersistentStamps>;
 
 export const PersistentAgreement = z.object({
   id: z.string().uuid(),

@@ -19,6 +19,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.367.0",
     "@zodios/core": "^10.9.2",
     "@zodios/express": "^10.6.1",
     "connection-string": "^4.3.6",

@@ -83,7 +83,7 @@ spec:
             - name: EVENTSTORE_DB_SCHEMA
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-common-refactor
+                  name: interop-be-catalog-process-refactor
                   key: EVENTSTORE_DB_SCHEMA
             - name: EVENTSTORE_DB_USE_SSL
               valueFrom:

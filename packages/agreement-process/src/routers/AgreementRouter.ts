@@ -125,9 +125,22 @@ const agreementRouter = (
     }
   );
 
-  agreementRouter.delete("/agreements/:agreementId", async (_req, res) => {
-    res.status(501).send();
-  });
+  agreementRouter.delete(
+    "/agreements/:agreementId",
+    authorizationMiddleware([ADMIN_ROLE]),
+    async (req, res) => {
+      try {
+        await agreementService.deleteAgreementById(
+          req.params.agreementId,
+          req.ctx.authData
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes: ApiError = makeApiError(error);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    }
+  );
 
   agreementRouter.post("/agreements/:agreementId/update", async (_req, res) => {
     res.status(501).send();

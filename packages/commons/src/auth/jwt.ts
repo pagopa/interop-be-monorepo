@@ -1,8 +1,10 @@
 import jwt, { JwtHeader, SigningKeyCallback } from "jsonwebtoken";
 import jwksClient from "jwks-rsa";
+import { commonConfig } from "../config/commonConfig.js";
 import { logger } from "../index.js";
-import { config } from "../config/index.js";
 import { AuthData, AuthJWTToken } from "./authData.js";
+
+const config = commonConfig();
 
 const getUserRoles = (token: AuthJWTToken): string[] => {
   const rolesFromInteropClaim = token.role;
