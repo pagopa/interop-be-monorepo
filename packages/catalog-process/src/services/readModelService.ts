@@ -1,5 +1,10 @@
-import { AggregationCursor, MongoClient } from "mongodb";
-import { AuthData, logger, readmodelDbConfig } from "pagopa-interop-commons";
+import { AggregationCursor } from "mongodb";
+import {
+  AuthData,
+  logger,
+  readModelRepository,
+  readmodelDbConfig,
+} from "pagopa-interop-commons";
 import {
   DescriptorState,
   Document,
@@ -17,22 +22,7 @@ import { match } from "ts-pattern";
 import { z } from "zod";
 import { Consumer, consumer } from "../model/domain/models.js";
 
-const {
-  readModelDbUsername: username,
-  readModelDbPassword: password,
-  readModelDbHost: host,
-  readModelDbPort: port,
-  readModelDbName: database,
-} = readmodelDbConfig;
-
-const mongoDBConectionURI = `mongodb://${username}:${password}@${host}:${port}`;
-const client = new MongoClient(mongoDBConectionURI, {
-  retryWrites: false,
-});
-
-const db = client.db(database);
-const eServices = db.collection("eservices");
-const agreements = db.collection("agreements");
+const { eservices, agreements } = readModelRepository(readmodelDbConfig);
 
 function arrayToFilter<T, F extends object>(
   array: T[],
@@ -128,7 +118,7 @@ export const readModelService = {
       },
     ];
 
-    const data = await eServices
+    const data = await eservices
       .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }])
       .toArray();
 
@@ -146,14 +136,14 @@ export const readModelService = {
     return {
       results: result.data,
       totalCount: await getTotalCount(
-        eServices.aggregate([...aggregationPipeline, { $count: "count" }])
+        eservices.aggregate([...aggregationPipeline, { $count: "count" }])
       ),
     };
   },
   async getEServiceById(
     id: string
   ): Promise<WithMetadata<EService> | undefined> {
-    const data = await eServices.findOne(
+    const data = await eservices.findOne(
       { "data.id": id },
       { projection: { data: true, metadata: true } }
     );
@@ -272,7 +262,7 @@ export const readModelService = {
       },
     ];
 
-    const data = await eServices
+    const data = await eservices
       .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }])
       .toArray();
 
@@ -290,7 +280,7 @@ export const readModelService = {
     return {
       results: result.data,
       totalCount: await getTotalCount(
-        eServices.aggregate([...aggregationPipeline, { $count: "count" }])
+        eservices.aggregate([...aggregationPipeline, { $count: "count" }])
       ),
     };
   },

@@ -1,28 +1,13 @@
-import { MongoClient } from "mongodb";
-import { logger } from "pagopa-interop-commons";
+import { logger, readModelRepository } from "pagopa-interop-commons";
 import {
   ErrorTypes,
   PersistentAgreement,
   WithMetadata,
 } from "pagopa-interop-models";
-
 import { z } from "zod";
 import { config } from "../utilities/config.js";
 
-const {
-  readModelDbUsername: username,
-  readModelDbPassword: password,
-  readModelDbHost: host,
-  readModelDbPort: port,
-  readModelDbName: database,
-} = config;
-
-const mongoDBConectionURI = `mongodb://${username}:${password}@${host}:${port}`;
-const client = new MongoClient(mongoDBConectionURI, {
-  retryWrites: false,
-});
-const db = client.db(database);
-const agreements = db.collection("agreements");
+const { agreements } = readModelRepository(config);
 
 export const readModelService = {
   async readAgreementById(
