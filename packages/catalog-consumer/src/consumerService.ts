@@ -1,7 +1,9 @@
 import { match } from "ts-pattern";
-import { Collection, MongoClient } from "mongodb";
-import { logger, consumerConfig } from "pagopa-interop-commons";
-import { EService } from "pagopa-interop-models";
+import {
+  logger,
+  consumerConfig,
+  ReadModelRepository,
+} from "pagopa-interop-commons";
 import { EventEnvelope } from "./model/models.js";
 import {
   fromDescriptorV1,
@@ -9,24 +11,7 @@ import {
   fromEServiceV1,
 } from "./model/converter.js";
 
-const {
-  readModelDbUsername: username,
-  readModelDbPassword: password,
-  readModelDbHost: host,
-  readModelDbPort: port,
-  readModelDbName: database,
-} = consumerConfig();
-
-const mongoDBConectionURI = `mongodb://${username}:${password}@${host}:${port}`;
-const client = new MongoClient(mongoDBConectionURI, {
-  retryWrites: false,
-});
-
-const db = client.db(database);
-const eservices: Collection<{
-  data: EService | undefined;
-  metadata: { version: number };
-}> = db.collection("eservices", { ignoreUndefined: true });
+const { eservices } = ReadModelRepository.init(consumerConfig());
 
 export async function handleMessage(message: EventEnvelope): Promise<void> {
   logger.info(message);
