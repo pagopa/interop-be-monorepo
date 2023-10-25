@@ -30,7 +30,6 @@ paths:
   '/certifiedAttributes':
     parameters:
       - $ref: '#/components/parameters/CorrelationIdHeader'
-      - $ref: '#/components/parameters/IpAddress'
     post:
       summary: Creates certified attribute
       tags:
@@ -72,7 +71,6 @@ paths:
   '/declaredAttributes':
     parameters:
       - $ref: '#/components/parameters/CorrelationIdHeader'
-      - $ref: '#/components/parameters/IpAddress'
     post:
       summary: Creates declared attribute
       tags:
@@ -114,7 +112,6 @@ paths:
   '/verifiedAttributes':
     parameters:
       - $ref: '#/components/parameters/CorrelationIdHeader'
-      - $ref: '#/components/parameters/IpAddress'
     post:
       summary: Creates verified attribute
       tags:
@@ -156,7 +153,6 @@ paths:
   '/internal/certifiedAttributes':
     parameters:
       - $ref: '#/components/parameters/CorrelationIdHeader'
-      - $ref: '#/components/parameters/IpAddress'
     post:
       summary: Creates certified attribute for internal user
       tags:
@@ -198,7 +194,6 @@ paths:
   '/attributes':
     parameters:
       - $ref: '#/components/parameters/CorrelationIdHeader'
-      - $ref: '#/components/parameters/IpAddress'
     get:
       summary: Get attributes
       operationId: getAttributes
@@ -266,7 +261,6 @@ paths:
       description: 'returns the attribute in the registry corresponding to name, if any.'
     parameters:
       - $ref: '#/components/parameters/CorrelationIdHeader'
-      - $ref: '#/components/parameters/IpAddress'
       - schema:
           type: string
         name: name
@@ -276,7 +270,6 @@ paths:
   '/attributes/origin/{origin}/code/{code}':
     parameters:
       - $ref: '#/components/parameters/CorrelationIdHeader'
-      - $ref: '#/components/parameters/IpAddress'
       - schema:
           type: string
         name: origin
@@ -311,7 +304,6 @@ paths:
   '/attributes/{attributeId}':
     parameters:
       - $ref: '#/components/parameters/CorrelationIdHeader'
-      - $ref: '#/components/parameters/IpAddress'
       - schema:
           type: string
           format: uuid
@@ -341,7 +333,6 @@ paths:
   '/bulk/attributes':
     parameters:
       - $ref: '#/components/parameters/CorrelationIdHeader'
-      - $ref: '#/components/parameters/IpAddress'
     post:
       summary: 'returns the list of attributes for a given bulked ids request'
       tags:
@@ -398,11 +389,6 @@ components:
       in: header
       name: X-Correlation-Id
       required: true
-      schema:
-        type: string
-    IpAddress:
-      in: header
-      name: X-Forwarded-For
       schema:
         type: string
   schemas:
