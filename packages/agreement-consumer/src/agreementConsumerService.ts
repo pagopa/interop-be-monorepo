@@ -2,12 +2,12 @@ import { match } from "ts-pattern";
 import {
   logger,
   consumerConfig,
-  readModelRepository,
+  ReadModelRepository,
 } from "pagopa-interop-commons";
 import { EventEnvelope } from "./model/models.js";
 import { fromAgreementV1 } from "./model/converter.js";
 
-const { agreements } = readModelRepository(consumerConfig());
+const { agreements } = ReadModelRepository.init(consumerConfig());
 
 export async function handleMessage(message: EventEnvelope): Promise<void> {
   logger.info(message);

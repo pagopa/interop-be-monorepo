@@ -1,4 +1,4 @@
-import { logger, readModelRepository } from "pagopa-interop-commons";
+import { logger, ReadModelRepository } from "pagopa-interop-commons";
 import {
   ErrorTypes,
   PersistentAgreement,
@@ -7,7 +7,7 @@ import {
 import { z } from "zod";
 import { config } from "../utilities/config.js";
 
-const { agreements } = readModelRepository(config);
+const { agreements } = ReadModelRepository.init(config);
 
 export const readModelService = {
   async readAgreementById(

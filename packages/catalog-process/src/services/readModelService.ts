@@ -2,7 +2,7 @@ import { AggregationCursor } from "mongodb";
 import {
   AuthData,
   logger,
-  readModelRepository,
+  ReadModelRepository,
   readmodelDbConfig,
 } from "pagopa-interop-commons";
 import {
@@ -22,7 +22,7 @@ import { match } from "ts-pattern";
 import { z } from "zod";
 import { Consumer, consumer } from "../model/domain/models.js";
 
-const { eservices, agreements } = readModelRepository(readmodelDbConfig);
+const { eservices, agreements } = ReadModelRepository.init(readmodelDbConfig);
 
 function arrayToFilter<T, F extends object>(
   array: T[],
