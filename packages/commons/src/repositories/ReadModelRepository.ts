@@ -27,7 +27,7 @@ export class ReadModelRepository {
   }: ReadModelDbConfig) {
     const mongoDBConnectionURI = `mongodb://${username}:${password}@${host}:${port}`;
     this.client = new MongoClient(mongoDBConnectionURI, {
-      retryWrites: true,
+      retryWrites: false,
     });
     this.db = this.client.db(database);
     this.eservices = this.db.collection("eservices", { ignoreUndefined: true });
