@@ -75,9 +75,7 @@ export const readModelService = {
       : {};
     const originFilter = origin
       ? {
-          "data.origin": {
-            $regex: `^${origin}$$`,
-          },
+          "data.origin": origin,
         }
       : {};
     const aggregationPipeline = [
