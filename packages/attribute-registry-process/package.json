@@ -11,8 +11,7 @@
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
     "start": "node --watch --no-warnings --loader ts-node/esm -r 'dotenv-flow/config' ./src/index.ts",
-    "build": "tsc && pnpm run copy-sql-files",
-    "copy-sql-files": "echo TODO",
+    "build": "tsc",
     "generate-model": "mkdir -p ./src/model/generated && pnpm openapi-zod-client './open-api/attribute-registry-service-spec.yml' -o './src/model/generated/api.ts'",
     "clean-generated": "pnpm exec rm ./src/models/generated/api.ts"
   },
@@ -42,8 +41,6 @@
     "connection-string": "^4.3.6",
     "dotenv-flow": "^3.2.0",
     "express": "^4.18.2",
-    "express-winston": "^4.2.0",
-    "jsonwebtoken": "^9.0.0",
     "mongodb": "5.6.0",
     "openapi-zod-client": "^1.7.1",
     "pagopa-interop-commons": "workspace:*",
@@ -51,7 +48,6 @@
     "pg-promise": "^11.5.0",
     "ts-pattern": "^5.0.1",
     "uuid": "^9.0.0",
-    "winston": "^3.9.0",
     "zod": "^3.21.4"
   }
 }

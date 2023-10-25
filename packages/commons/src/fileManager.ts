@@ -3,8 +3,8 @@ import {
   DeleteObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
-import { logger } from "pagopa-interop-commons";
-import { config } from "./config.js";
+import { FileManagerConfig } from "./config/fileManagerConfig.js";
+import { logger } from "./index.js";
 
 export type FileManager = {
   deleteFile: (path: string) => Promise<void>;
@@ -32,7 +32,7 @@ const mockFileManager: FileManager = {
   },
 };
 
-function initFileManager(): FileManager {
+export function initFileManager(config: FileManagerConfig): FileManager {
   if (config.mockFileManager) {
     return mockFileManager;
   } else {
@@ -41,7 +41,7 @@ function initFileManager(): FileManager {
       s3SecretAccessKey,
       s3Region,
       s3BucketName,
-      eserviceDocsPath,
+      s3FilePath,
     } = config;
 
     const client = new S3Client({
@@ -71,7 +71,7 @@ function initFileManager(): FileManager {
       ): Promise<string> => {
         logger.info(`Copying file ${filePathToCopy}`);
 
-        const s3Key = buildS3Key(eserviceDocsPath, documentId, fileName);
+        const s3Key = buildS3Key(s3FilePath, documentId, fileName);
 
         await client.send(
           new CopyObjectCommand({
@@ -85,5 +85,3 @@ function initFileManager(): FileManager {
     };
   }
 }
-
-export const fileManager = initFileManager();

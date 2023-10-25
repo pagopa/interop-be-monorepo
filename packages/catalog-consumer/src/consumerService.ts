@@ -1,9 +1,8 @@
 import { match } from "ts-pattern";
 import { Collection, MongoClient } from "mongodb";
-import { logger } from "pagopa-interop-commons";
+import { logger, consumerConfig } from "pagopa-interop-commons";
 import { EService } from "pagopa-interop-models";
 import { EventEnvelope } from "./model/models.js";
-import { config } from "./utilities/config.js";
 import {
   fromDescriptorV1,
   fromDocumentV1,
@@ -16,7 +15,7 @@ const {
   readModelDbHost: host,
   readModelDbPort: port,
   readModelDbName: database,
-} = config;
+} = consumerConfig();
 
 const mongoDBConectionURI = `mongodb://${username}:${password}@${host}:${port}`;
 const client = new MongoClient(mongoDBConectionURI, {

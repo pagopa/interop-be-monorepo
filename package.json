@@ -8,6 +8,7 @@
     "start:catalog": "turbo start --filter pagopa-interop-catalog-process",
     "start:catalog-consumer": "turbo start --filter pagopa-interop-catalog-event-consumer",
     "start:agreement": "turbo start --filter pagopa-interop-agreement-process",
+    "start:agreement-consumer": "turbo start --filter pagopa-interop-agreement-event-consumer",
     "start:attribute": "turbo start --filter pagopa-interop-attribute-registry-process",
     "test": "turbo test",
     "build": "turbo build",

@@ -86,6 +86,16 @@ export const ErrorTypes = {
     httpStatus: 404,
     title: "Agreement not found",
   },
+  OperationNotAllowed: {
+    code: "0007",
+    httpStatus: 400,
+    title: "Operation not allowed",
+  },
+  AgreementNotInExpectedState: {
+    code: "0003",
+    httpStatus: 400,
+    title: "Agreement not in expected state",
+  },
   AttributeNotFound: {
     code: "0010",
     httpStatus: 404,
@@ -205,6 +215,25 @@ export function agreementNotFound(agreementId: string): AgreementProcessError {
   return new AgreementProcessError(
     `Agreement ${agreementId} not found`,
     ErrorTypes.AgreementNotFound
+  );
+}
+
+export function operationNotAllowed(
+  requesterId: string
+): AgreementProcessError {
+  return new AgreementProcessError(
+    `Operation not allowed by ${requesterId}`,
+    ErrorTypes.OperationNotAllowed
+  );
+}
+
+export function agreementNotInExpectedState(
+  agreementId: string,
+  state: string
+): AgreementProcessError {
+  return new AgreementProcessError(
+    `Agreement ${agreementId} not in expected state (current state: ${state})`,
+    ErrorTypes.AgreementNotInExpectedState
   );
 }
 

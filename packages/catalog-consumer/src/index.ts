@@ -1,9 +1,10 @@
 import { Kafka, KafkaMessage } from "kafkajs";
-import { logger } from "pagopa-interop-commons";
+import { logger, consumerConfig } from "pagopa-interop-commons";
 import { createMechanism } from "@jm18457/kafkajs-msk-iam-authentication-mechanism";
 import { decodeKafkaMessage } from "./model/models.js";
 import { handleMessage } from "./consumerService.js";
-import { config } from "./utilities/config.js";
+
+const config = consumerConfig();
 
 const kafkaConfig = config.kafkaDisableAwsIamAuth
   ? {

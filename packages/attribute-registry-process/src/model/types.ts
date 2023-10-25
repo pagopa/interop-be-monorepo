@@ -1,7 +1,7 @@
 import { ZodiosBodyByPath } from "@zodios/core";
 import { P, match } from "ts-pattern";
 import {
-  CatalogProcessError,
+  AttributeProcessError,
   ErrorTypes,
   Problem,
   makeApiProblem,
@@ -51,7 +51,7 @@ export type ListResult<T> = { results: T[]; totalCount: number };
 
 export function makeApiError(error: unknown): ApiError {
   return match<unknown, ApiError>(error)
-    .with(P.instanceOf(CatalogProcessError), (error) =>
+    .with(P.instanceOf(AttributeProcessError), (error) =>
       makeApiProblem(
         error.type.code,
         error.type.httpStatus,
