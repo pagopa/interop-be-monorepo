@@ -5,6 +5,7 @@ import { logger, ReadModelRepository } from "pagopa-interop-commons";
 import {
   EService,
   ErrorTypes,
+  ListResult,
   PersistentAgreement,
   PersistentAgreementState,
   WithMetadata,
@@ -120,6 +121,30 @@ const getAgreements = async (
 };
 
 export const readModelService = {
+  async listAgreements(
+    {
+      eServicesIds,
+      consumersIds,
+      producersIds,
+      descriptorsIds,
+      states,
+      showOnlyUpgradeable,
+    }: {
+      eServicesIds: string[]; 
+      consumersIds: string[];
+      producersIds: string[];
+      descriptorsIds: string[];
+      states: PersistentAgreementState[];
+      showOnlyUpgradeable: boolean;
+    },
+    limit: number,
+    offset: number
+  ): Promise<ListResult<PersistentAgreement>> {
+    return {
+      results: [],
+      totalCount: 0,
+    };
+  },
   async readAgreementById(
     agreementId: string
   ): Promise<WithMetadata<PersistentAgreement> | undefined> {
