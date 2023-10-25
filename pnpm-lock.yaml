@@ -32,9 +32,6 @@ importers:
       kafkajs:
         specifier: ^2.2.4
         version: 2.2.4
-      mongodb:
-        specifier: 5.6.0
-        version: 5.6.0
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -81,9 +78,6 @@ importers:
       express:
         specifier: ^4.18.2
         version: 4.18.2
-      mongodb:
-        specifier: 5.6.0
-        version: 5.6.0
       openapi-zod-client:
         specifier: ^1.7.1
         version: 1.7.1
@@ -139,9 +133,6 @@ importers:
       kafkajs:
         specifier: ^2.2.4
         version: 2.2.4
-      mongodb:
-        specifier: 5.6.0
-        version: 5.6.0
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -279,6 +270,9 @@ importers:
       jwks-rsa:
         specifier: ^3.0.1
         version: 3.0.1
+      mongodb:
+        specifier: 5.6.0
+        version: 5.6.0
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
