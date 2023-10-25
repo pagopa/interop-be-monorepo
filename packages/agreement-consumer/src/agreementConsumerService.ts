@@ -45,5 +45,11 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
         { upsert: true }
       );
     })
+    .with({ type: "AgreementDeleted" }, async (msg) => {
+      await agreements.deleteOne({
+        "data.id": msg.stream_id,
+        "metadata.version": { $lt: msg.version },
+      });
+    })
     .exhaustive();
 }
