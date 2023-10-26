@@ -81,7 +81,7 @@ const attributeRouter = (
           if (attribute) {
             return res
               .status(200)
-              .json(attributeToApiAttribute(attribute))
+              .json(attributeToApiAttribute(attribute.data))
               .end();
           } else {
             return res
@@ -112,7 +112,17 @@ const attributeRouter = (
             origin,
             code,
           });
-          return res.status(200).json(attributeToApiAttribute(attribute)).end();
+          if (attribute) {
+            return res
+              .status(200)
+              .json(attributeToApiAttribute(attribute.data))
+              .end();
+          } else {
+            return res
+              .status(404)
+              .json(makeApiError(attributeNotFound(req.params.code)))
+              .end();
+          }
         } catch (error) {
           return res.status(500).end();
         }

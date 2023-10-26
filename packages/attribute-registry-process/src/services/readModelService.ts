@@ -153,52 +153,79 @@ export const readModelService = {
     return undefined;
   },
 
-  async getAttributeByName(name: string): Promise<AttributeTmp> {
-    const data = await attributes.findOne({
-      "data.name": {
-        $regex: `^${name}$$`,
-        $options: "i",
-      },
-    });
-    const result = AttributeTmp.safeParse(data);
-    if (!result.success) {
-      logger.error(
-        `Unable to parse attribute item: result ${JSON.stringify(
-          result
-        )} - data ${JSON.stringify(data)} `
-      );
+  async getAttributeByName(
+    name: string
+  ): Promise<WithMetadata<AttributeTmp> | undefined> {
+    const data = await attributes.findOne(
+      { "data.name": name },
+      { projection: { data: true, metadata: true } }
+    );
 
-      throw ErrorTypes.GenericError;
+    if (data) {
+      const result = z
+        .object({
+          metadata: z.object({ version: z.number() }),
+          data: AttributeTmp,
+        })
+        .safeParse(data);
+
+      if (!result.success) {
+        logger.error(
+          `Unable to parse attribute item: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+
+        throw ErrorTypes.GenericError;
+      }
+
+      return {
+        data: result.data.data,
+        metadata: { version: result.data.metadata.version },
+      };
     }
-    return result.data;
+    return undefined;
   },
-
   async getAttributeByOriginAndCode({
     origin,
     code,
   }: {
     origin: string;
     code: string;
-  }): Promise<AttributeTmp> {
+  }): Promise<WithMetadata<AttributeTmp> | undefined> {
     const codeFilter = {
       "data.code": code,
     };
     const originFilter = {
       "data.origin": origin,
     };
-    const data = await attributes.findOne({
-      codeFilter,
-      originFilter,
-    });
-    const result = AttributeTmp.safeParse(data);
-    if (!result.success) {
-      logger.error(
-        `Unable to parse attribute item: result ${JSON.stringify(
-          result
-        )} - data ${JSON.stringify(data)} `
-      );
-      throw ErrorTypes.GenericError;
+    const data = await attributes.findOne(
+      {
+        codeFilter,
+        originFilter,
+      },
+      { projection: { data: true, metadata: true } }
+    );
+    if (data) {
+      const result = z
+        .object({
+          metadata: z.object({ version: z.number() }),
+          data: AttributeTmp,
+        })
+        .safeParse(data);
+      if (!result.success) {
+        logger.error(
+          `Unable to parse attribute item: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+        throw ErrorTypes.GenericError;
+      }
+      return {
+        data: result.data.data,
+        metadata: { version: result.data.metadata.version },
+      };
     }
-    return result.data;
+    return undefined;
   },
 };
