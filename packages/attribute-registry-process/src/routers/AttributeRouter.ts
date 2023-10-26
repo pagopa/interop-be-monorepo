@@ -72,8 +72,30 @@ const attributeRouter = (
         M2M_ROLE,
         SUPPORT_ROLE,
       ]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const attribute = await readModelService.getAttributeByName(
+            req.params.name
+          );
+
+          if (attribute) {
+            return res
+              .status(200)
+              .json(attributeToApiAttribute(attribute))
+              .end();
+          } else {
+            return res
+              .status(404)
+              .json(makeApiError(attributeNotFound(req.params.name)))
+              .end();
+          }
+        } catch (error) {
+          const errorRes: ApiError = makeApiError(error);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
+
     .get(
       "/attributes/origin/:origin/code/:code",
       authorizationMiddleware([
@@ -82,8 +104,21 @@ const attributeRouter = (
         M2M_ROLE,
         SUPPORT_ROLE,
       ]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const { origin, code } = req.query;
+
+          const attribute = await readModelService.getAttributeByOriginAndCode({
+            origin,
+            code,
+          });
+          return res.status(200).json(attributeToApiAttribute(attribute)).end();
+        } catch (error) {
+          return res.status(500).end();
+        }
+      }
     )
+
     .get(
       "/attributes/:attributeId",
       authorizationMiddleware([

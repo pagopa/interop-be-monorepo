@@ -152,4 +152,46 @@ export const readModelService = {
 
     return undefined;
   },
+
+  async getAttributeByName(name: string): Promise<AttributeTmp> {
+    const data = await attributes.findOne({ "data.name": name });
+    const result = AttributeTmp.safeParse(data);
+    if (!result.success) {
+      logger.error(
+        `Unable to parse attribute item: result ${JSON.stringify(
+          result
+        )} - data ${JSON.stringify(data)} `
+      );
+
+      throw ErrorTypes.GenericError;
+    }
+    return result.data;
+  },
+
+  async getAttributeByOriginAndCode({
+    origin,
+    code,
+  }: {
+    origin: string;
+    code: string;
+  }): Promise<AttributeTmp> {
+    const nameFilter = { "data.code": { $regex: code } };
+    const originFilter = {
+      "data.origin": origin,
+    };
+    const data = await attributes.findOne({
+      nameFilter,
+      originFilter,
+    });
+    const result = AttributeTmp.safeParse(data);
+    if (!result.success) {
+      logger.error(
+        `Unable to parse attribute item: result ${JSON.stringify(
+          result
+        )} - data ${JSON.stringify(data)} `
+      );
+      throw ErrorTypes.GenericError;
+    }
+    return result.data;
+  },
 };
