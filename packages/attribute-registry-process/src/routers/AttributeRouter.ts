@@ -106,7 +106,7 @@ const attributeRouter = (
       ]),
       async (req, res) => {
         try {
-          const { origin, code } = req.query;
+          const { origin, code } = req.params;
 
           const attribute = await readModelService.getAttributeByOriginAndCode({
             origin,

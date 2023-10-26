@@ -154,7 +154,12 @@ export const readModelService = {
   },
 
   async getAttributeByName(name: string): Promise<AttributeTmp> {
-    const data = await attributes.findOne({ "data.name": name });
+    const data = await attributes.findOne({
+      "data.name": {
+        $regex: `^${name}$$`,
+        $options: "i",
+      },
+    });
     const result = AttributeTmp.safeParse(data);
     if (!result.success) {
       logger.error(
@@ -175,12 +180,14 @@ export const readModelService = {
     origin: string;
     code: string;
   }): Promise<AttributeTmp> {
-    const nameFilter = { "data.code": { $regex: code } };
+    const codeFilter = {
+      "data.code": code,
+    };
     const originFilter = {
       "data.origin": origin,
     };
     const data = await attributes.findOne({
-      nameFilter,
+      codeFilter,
       originFilter,
     });
     const result = AttributeTmp.safeParse(data);
