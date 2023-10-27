@@ -101,6 +101,11 @@ export const ErrorTypes = {
     httpStatus: 404,
     title: "Attribute not found",
   },
+  DuplicateAttributeName: {
+    code: "0011",
+    httpStatus: 409,
+    title: "Duplicated attribute name",
+  },
 } as const;
 
 export type ErrorType = (typeof ErrorTypes)[keyof typeof ErrorTypes];
@@ -241,6 +246,15 @@ export function attributeNotFound(attributeId: string): AttributeProcessError {
   return new AttributeProcessError(
     `Attribute ${attributeId} not found`,
     ErrorTypes.AttributeNotFound
+  );
+}
+
+export function attributeDuplicate(
+  attributeNameSeed: string
+): AttributeProcessError {
+  return new AttributeProcessError(
+    `Error during Attribute creation with name ${attributeNameSeed}`,
+    ErrorTypes.DuplicateEserviceName
   );
 }
 
