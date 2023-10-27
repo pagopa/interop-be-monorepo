@@ -1,3 +1,4 @@
+import { AggregationCursor } from "mongodb";
 import { z } from "zod";
 import { logger, ReadModelRepository } from "pagopa-interop-commons";
 import {
@@ -7,10 +8,9 @@ import {
   ErrorTypes,
   WithMetadata,
 } from "pagopa-interop-models";
-import { config } from "../utilities/config.js";
 import { ListResult } from "../model/types.js";
-
 import { config } from "../utilities/config.js";
+
 const { attributes } = ReadModelRepository.init(config);
 
 function arrayToFilter<T, F extends object>(
