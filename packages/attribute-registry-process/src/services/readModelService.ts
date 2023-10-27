@@ -1,6 +1,5 @@
-import { AggregationCursor, MongoClient } from "mongodb";
 import { z } from "zod";
-import { logger } from "pagopa-interop-commons";
+import { logger, ReadModelRepository } from "pagopa-interop-commons";
 import {
   AttributeKind,
   AttributeTmp,
@@ -11,21 +10,8 @@ import {
 import { config } from "../utilities/config.js";
 import { ListResult } from "../model/types.js";
 
-const {
-  readModelDbUsername: username,
-  readModelDbPassword: password,
-  readModelDbHost: host,
-  readModelDbPort: port,
-  readModelDbName: database,
-} = config;
-
-const mongoDBConectionURI = `mongodb://${username}:${password}@${host}:${port}`;
-const client = new MongoClient(mongoDBConectionURI, {
-  retryWrites: false,
-});
-
-const db = client.db(database);
-const attributes = db.collection("attributes");
+import { config } from "../utilities/config.js";
+const { attributes } = ReadModelRepository.init(config);
 
 function arrayToFilter<T, F extends object>(
   array: T[],

@@ -5,7 +5,6 @@ export * from "./eservice/eservice.js";
 export * from "./eservice/eserviceEvents.js";
 export * from "./attribute/attribute.js";
 export * from "./attribute/attributeEvents.js";
-export * from "./attribute.js";
 export * from "./gen/v1/eservice/eservice.js";
 export * from "./gen/v1/eservice/events.js";
 export * from "./gen/v1/agreement/agreement.js";
