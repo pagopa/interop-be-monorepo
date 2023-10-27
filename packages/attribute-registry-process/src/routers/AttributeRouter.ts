@@ -14,6 +14,7 @@ import {
   attributeToApiAttribute,
 } from "../model/domain/apiConverter.js";
 import { ApiError, makeApiError } from "../model/types.js";
+import { attributeRegistryService } from "../services/attributeRegistryService.js";
 
 const attributeRouter = (
   ctx: ZodiosContext
@@ -135,7 +136,17 @@ const attributeRouter = (
     .post(
       "/declaredAttributes",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE, M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const result = await attributeRegistryService.createDeclaredAttribute(
+            req.body
+          );
+          return res.status(201).json(attributeToApiAttribute(result)).end();
+        } catch (error) {
+          const errorRes: ApiError = makeApiError(error);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/verifiedAttributes",
