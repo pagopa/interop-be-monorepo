@@ -120,7 +120,7 @@ const attributeRouter = (
           } else {
             return res
               .status(404)
-              .json(makeApiError(attributeNotFound(req.params.code)))
+              .json(makeApiError(attributeNotFound(`${origin}/${code}`)))
               .end();
           }
         } catch (error) {
