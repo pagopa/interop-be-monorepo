@@ -70,6 +70,7 @@ export const readModelService = {
       ? {
           "data.name": {
             $regex: name,
+            $options: "i",
           },
         }
       : {};
@@ -157,7 +158,12 @@ export const readModelService = {
     name: string
   ): Promise<WithMetadata<AttributeTmp> | undefined> {
     const data = await attributes.findOne(
-      { "data.name": name },
+      {
+        "data.name": {
+          $regex: `^${name}$$`,
+          $options: "i",
+        },
+      },
       { projection: { data: true, metadata: true } }
     );
 
