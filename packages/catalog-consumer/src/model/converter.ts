@@ -21,40 +21,52 @@ import { P, match } from "ts-pattern";
 
 export const fromAgreementApprovalPolicyV1 = (
   input: AgreementApprovalPolicyV1 | undefined
-): AgreementApprovalPolicy | undefined =>
-  match(input)
-    .with(AgreementApprovalPolicyV1.UNSPECIFIED$, () => undefined)
-    .with(
-      AgreementApprovalPolicyV1.MANUAL,
-      () => agreementApprovalPolicy.manual
-    )
-    .with(
-      AgreementApprovalPolicyV1.AUTOMATIC,
-      () => agreementApprovalPolicy.automatic
-    )
-    .otherwise(() => undefined);
+): AgreementApprovalPolicy | undefined => {
+  if (input == null) {
+    return undefined;
+  }
+
+  switch (input) {
+    case AgreementApprovalPolicyV1.MANUAL:
+      return agreementApprovalPolicy.manual;
+    case AgreementApprovalPolicyV1.AUTOMATIC:
+      return agreementApprovalPolicy.automatic;
+    case AgreementApprovalPolicyV1.UNSPECIFIED$:
+      throw new Error("Unspecified agreement approval policy");
+  }
+};
 
 export const fromEServiceDescriptorStateV1 = (
   input: EServiceDescriptorStateV1
-): DescriptorState =>
-  match(input)
-    .with(EServiceDescriptorStateV1.DRAFT, () => descriptorState.draft)
-    .with(EServiceDescriptorStateV1.SUSPENDED, () => descriptorState.suspended)
-    .with(EServiceDescriptorStateV1.ARCHIVED, () => descriptorState.archived)
-    .with(EServiceDescriptorStateV1.PUBLISHED, () => descriptorState.published)
-    .with(
-      EServiceDescriptorStateV1.DEPRECATED,
-      () => descriptorState.deprecated
-    )
-    .otherwise(() => descriptorState.draft);
+): DescriptorState => {
+  switch (input) {
+    case EServiceDescriptorStateV1.DRAFT:
+      return descriptorState.draft;
+    case EServiceDescriptorStateV1.SUSPENDED:
+      return descriptorState.suspended;
+    case EServiceDescriptorStateV1.ARCHIVED:
+      return descriptorState.archived;
+    case EServiceDescriptorStateV1.PUBLISHED:
+      return descriptorState.published;
+    case EServiceDescriptorStateV1.DEPRECATED:
+      return descriptorState.deprecated;
+    case EServiceDescriptorStateV1.UNSPECIFIED$:
+      throw new Error("Unspecified descriptor state");
+  }
+};
 
 export const fromEServiceTechnologyV1 = (
   input: EServiceTechnologyV1
-): Technology =>
-  match(input)
-    .with(EServiceTechnologyV1.REST, () => technology.rest)
-    .with(EServiceTechnologyV1.SOAP, () => technology.soap)
-    .otherwise(() => technology.rest);
+): Technology => {
+  switch (input) {
+    case EServiceTechnologyV1.REST:
+      return technology.rest;
+    case EServiceTechnologyV1.SOAP:
+      return technology.soap;
+    case EServiceTechnologyV1.UNSPECIFIED$:
+      throw new Error("Unspecified technology");
+  }
+};
 
 export const fromEServiceAttributeV1 = (
   input: EServiceAttributeV1
