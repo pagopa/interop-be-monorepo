@@ -171,7 +171,26 @@ const attributeRouter = (
         M2M_ROLE,
         SUPPORT_ROLE,
       ]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const { limit, offset } = req.query;
+
+        try {
+          const attributes = await readModelService.getAttributesByIds(
+            req.body,
+            limit,
+            offset
+          );
+          return res
+            .status(200)
+            .json({
+              results: attributes.results.map(attributeToApiAttribute),
+              totalCount: attributes.totalCount,
+            })
+            .end();
+        } catch (error) {
+          return res.status(500).end();
+        }
+      }
     )
     .post(
       "/certifiedAttributes",
