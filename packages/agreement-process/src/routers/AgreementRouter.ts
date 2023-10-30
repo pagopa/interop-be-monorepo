@@ -76,9 +76,22 @@ const agreementRouter = (
     }
   );
 
-  agreementRouter.post("/agreements", async (_req, res) => {
-    res.status(501).send();
-  });
+  agreementRouter.post(
+    "/agreements",
+    authorizationMiddleware([ADMIN_ROLE]),
+    async (req, res) => {
+      try {
+        const id = await agreementService.createAgreement(
+          req.body,
+          req.ctx.authData
+        );
+        return res.status(201).json({ id }).send();
+      } catch (error) {
+        const errorRes: ApiError = makeApiError(error);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    }
+  );
 
   agreementRouter.get("/agreements", async (_req, res) => {
     res.status(501).send();
