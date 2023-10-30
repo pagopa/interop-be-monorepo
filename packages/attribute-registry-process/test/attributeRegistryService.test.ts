@@ -4,36 +4,32 @@ import { generateMock } from "@anatine/zod-mock";
 import {
   AttributeKind,
   AttributeTmp,
-  attributeDuplicate
-} from "pagopa-interop-models"
+  attributeDuplicate,
+} from "pagopa-interop-models";
 
-import {
-  createDeclaredAttributeLogic
-} from "../src/services/attributeRegistryService.js"
+import { createDeclaredAttributeLogic } from "../src/services/attributeRegistryService.js";
 import * as api from "../src/model/generated/api.js";
 import { toCreateEventDeclaredAttributeAdded } from "../src/model/domain/toEvent.js";
-import {
-  toDeclaredAttributeV1
-} from "../src/model/domain/toEvent.js";
+import { toDeclaredAttributeV1 } from "../src/model/domain/toEvent.js";
 
-const mockAttribute: AttributeTmp = generateMock(AttributeTmp)
-const mockDeclaredAttributeSeed = generateMock(api.schemas.AttributeSeed)
+const mockAttribute: AttributeTmp = generateMock(AttributeTmp);
+const mockDeclaredAttributeSeed = generateMock(api.schemas.AttributeSeed);
 describe("AttributeResistryService", () => {
   describe("create a declared attribute", () => {
     it("creates the attribute", async () => {
       const attribute = {
         ...mockAttribute,
-        kind: AttributeKind.Enum.Declared
-      }
+        kind: AttributeKind.Enum.Declared,
+      };
 
       const declaredAttributeLogic = createDeclaredAttributeLogic({
         attributes: { results: [], totalCount: 0 },
-        apiDeclaredAttributeSeed: mockDeclaredAttributeSeed
+        apiDeclaredAttributeSeed: mockDeclaredAttributeSeed,
       });
 
-      expect(declaredAttributeLogic.kind).toBe(attribute.kind)
+      expect(declaredAttributeLogic.kind).toBe(attribute.kind);
 
-      const event = toCreateEventDeclaredAttributeAdded(declaredAttributeLogic)
+      const event = toCreateEventDeclaredAttributeAdded(declaredAttributeLogic);
       expect(event.event.data).toMatchObject({
         attribute: {
           ...toDeclaredAttributeV1(attribute),
@@ -44,17 +40,17 @@ describe("AttributeResistryService", () => {
             event.event.data as unknown as { attribute: { creationTime: Date } }
           ).attribute.creationTime,
           code: undefined,
-          origin: undefined
-        }
-      })
-    })
+          origin: undefined,
+        },
+      });
+    });
     it("returns an error if the attributes list is not empty", async () => {
       expect(() =>
         createDeclaredAttributeLogic({
           attributes: { results: [mockAttribute], totalCount: 1 },
-          apiDeclaredAttributeSeed: mockDeclaredAttributeSeed
+          apiDeclaredAttributeSeed: mockDeclaredAttributeSeed,
         })
       ).toThrowError(attributeDuplicate(mockDeclaredAttributeSeed.name));
     });
-  })
+  });
 });
