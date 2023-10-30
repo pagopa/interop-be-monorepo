@@ -34,13 +34,14 @@ const Attribute = z.object({
   id: z.string().uuid(),
   explicitAttributeVerification: z.boolean(),
 });
+export type Attribute = z.infer<typeof Attribute>;
 
 const Attributes = z.object({
   certified: z.array(z.array(Attribute)),
   declared: z.array(z.array(Attribute)),
   verified: z.array(z.array(Attribute)),
 });
-export type Attribute = z.infer<typeof Attribute>;
+export type Attributes = z.infer<typeof Attributes>;
 
 export const Document = z.object({
   id: z.string().uuid(),
