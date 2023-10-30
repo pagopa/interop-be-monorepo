@@ -1,6 +1,6 @@
-import { AggregationCursor, MongoClient } from "mongodb";
+import { AggregationCursor } from "mongodb";
 import { z } from "zod";
-import { logger } from "pagopa-interop-commons";
+import { logger, ReadModelRepository } from "pagopa-interop-commons";
 import {
   AttributeKind,
   AttributeTmp,
@@ -8,24 +8,10 @@ import {
   ErrorTypes,
   WithMetadata,
 } from "pagopa-interop-models";
-import { config } from "../utilities/config.js";
 import { ListResult } from "../model/types.js";
+import { config } from "../utilities/config.js";
 
-const {
-  readModelDbUsername: username,
-  readModelDbPassword: password,
-  readModelDbHost: host,
-  readModelDbPort: port,
-  readModelDbName: database,
-} = config;
-
-const mongoDBConectionURI = `mongodb://${username}:${password}@${host}:${port}`;
-const client = new MongoClient(mongoDBConectionURI, {
-  retryWrites: false,
-});
-
-const db = client.db(database);
-const attributes = db.collection("attributes");
+const { attributes } = ReadModelRepository.init(config);
 
 function arrayToFilter<T, F extends object>(
   array: T[],
@@ -70,6 +56,7 @@ export const readModelService = {
       ? {
           "data.name": {
             $regex: name,
+            $options: "i",
           },
         }
       : {};
@@ -150,6 +137,87 @@ export const readModelService = {
       };
     }
 
+    return undefined;
+  },
+
+  async getAttributeByName(
+    name: string
+  ): Promise<WithMetadata<AttributeTmp> | undefined> {
+    const data = await attributes.findOne(
+      {
+        "data.name": {
+          $regex: `^${name}$$`,
+          $options: "i",
+        },
+      },
+      { projection: { data: true, metadata: true } }
+    );
+
+    if (data) {
+      const result = z
+        .object({
+          metadata: z.object({ version: z.number() }),
+          data: AttributeTmp,
+        })
+        .safeParse(data);
+
+      if (!result.success) {
+        logger.error(
+          `Unable to parse attribute item: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+
+        throw ErrorTypes.GenericError;
+      }
+
+      return {
+        data: result.data.data,
+        metadata: { version: result.data.metadata.version },
+      };
+    }
+    return undefined;
+  },
+  async getAttributeByOriginAndCode({
+    origin,
+    code,
+  }: {
+    origin: string;
+    code: string;
+  }): Promise<WithMetadata<AttributeTmp> | undefined> {
+    const codeFilter = {
+      "data.code": code,
+    };
+    const originFilter = {
+      "data.origin": origin,
+    };
+    const data = await attributes.findOne(
+      {
+        codeFilter,
+        originFilter,
+      },
+      { projection: { data: true, metadata: true } }
+    );
+    if (data) {
+      const result = z
+        .object({
+          metadata: z.object({ version: z.number() }),
+          data: AttributeTmp,
+        })
+        .safeParse(data);
+      if (!result.success) {
+        logger.error(
+          `Unable to parse attribute item: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+        throw ErrorTypes.GenericError;
+      }
+      return {
+        data: result.data.data,
+        metadata: { version: result.data.metadata.version },
+      };
+    }
     return undefined;
   },
 };

@@ -1,28 +1,13 @@
 import { match } from "ts-pattern";
-import { Collection, MongoClient } from "mongodb";
-import { logger, consumerConfig } from "pagopa-interop-commons";
-import { PersistentAttribute } from "pagopa-interop-models";
+import {
+  logger,
+  consumerConfig,
+  ReadModelRepository,
+} from "pagopa-interop-commons";
 import { EventEnvelope } from "./model/models.js";
 import { fromAttributeV1 } from "./model/converter.js";
 
-const {
-  readModelDbUsername: username,
-  readModelDbPassword: password,
-  readModelDbHost: host,
-  readModelDbPort: port,
-  readModelDbName: database,
-} = consumerConfig();
-
-const mongoDBConectionURI = `mongodb://${username}:${password}@${host}:${port}`;
-const client = new MongoClient(mongoDBConectionURI, {
-  retryWrites: false,
-});
-
-const db = client.db(database);
-const attributes: Collection<{
-  data: PersistentAttribute | undefined;
-  metadata: { version: number };
-}> = db.collection("attributes", { ignoreUndefined: true });
+const { attributes } = ReadModelRepository.init(consumerConfig());
 
 export async function handleMessage(message: EventEnvelope): Promise<void> {
   logger.info(message);

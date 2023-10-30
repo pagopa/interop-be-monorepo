@@ -14,7 +14,9 @@ export const fromAttributeKind = (
     .with(AttributeKindV1.CERTIFIED, () => persistentAttributeKind.certified)
     .with(AttributeKindV1.DECLARED, () => persistentAttributeKind.declared)
     .with(AttributeKindV1.VERIFIED, () => persistentAttributeKind.verified)
-    .otherwise(() => persistentAttributeKind.declared); // TODO check for exhaustive match
+    .otherwise(() => {
+      throw new Error(`Invalid AttributeKind: ${JSON.stringify(input)}`); // Force exhaustive match
+    });
 
 export const fromAttributeV1 = (input: AttributeV1): PersistentAttribute => ({
   ...input,
