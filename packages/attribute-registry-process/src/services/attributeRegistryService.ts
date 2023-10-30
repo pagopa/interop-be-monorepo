@@ -9,9 +9,12 @@ import {
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import { config } from "../utilities/config.js";
-import { ApiDeclaredAttributeSeed } from "../model/types.js";
+import {
+  ApiDeclaredAttributeSeed,
+  ApiVerifiedAttributeSeed,
+} from "../model/types.js";
 import { apiAttributeKindToAttributeKind } from "../model/domain/apiConverter.js";
-import { toCreateEventDeclaredAttributeAdded } from "../model/domain/toEvent.js";
+import { toCreateEventAttributeAdded } from "../model/domain/toEvent.js";
 import { readModelService } from "./readModelService.js";
 
 const repository = eventRepository(
@@ -45,6 +48,23 @@ export const attributeRegistryService = {
       })
     );
   },
+  async createVerifiedAttribute(
+    apiVerifiedAttributeSeed: ApiVerifiedAttributeSeed
+  ): Promise<string> {
+    return repository.createEvent(
+      createVerifiedAttributeLogic({
+        attributes: await readModelService.getAttributes(
+          {
+            kinds: [AttributeKind.Enum.Verified],
+            name: apiVerifiedAttributeSeed.name,
+          },
+          0,
+          1
+        ),
+        apiVerifiedAttributeSeed,
+      })
+    );
+  },
 };
 
 export function createDeclaredAttributeLogic({
@@ -68,5 +88,29 @@ export function createDeclaredAttributeLogic({
     origin: undefined,
   };
 
-  return toCreateEventDeclaredAttributeAdded(newDeclaredAttribute);
+  return toCreateEventAttributeAdded(newDeclaredAttribute);
+}
+
+export function createVerifiedAttributeLogic({
+  attributes,
+  apiVerifiedAttributeSeed,
+}: {
+  attributes: ListResult<AttributeTmp>;
+  apiVerifiedAttributeSeed: ApiVerifiedAttributeSeed;
+}): CreateEvent<AttributeEvent> {
+  if (attributes.results.length > 0) {
+    throw attributeDuplicate(apiVerifiedAttributeSeed.name);
+  }
+
+  const newVerifiedAttribute: AttributeTmp = {
+    id: uuidv4(),
+    kind: apiAttributeKindToAttributeKind("VERIFIED"),
+    name: apiVerifiedAttributeSeed.name,
+    description: apiVerifiedAttributeSeed.description,
+    creationTime: new Date(),
+    code: undefined,
+    origin: undefined,
+  };
+
+  return toCreateEventAttributeAdded(newVerifiedAttribute);
 }

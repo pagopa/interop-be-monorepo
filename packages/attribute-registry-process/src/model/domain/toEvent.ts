@@ -8,9 +8,7 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
-export const toDeclaredAttributeV1 = (
-  attribute: AttributeTmp
-): AttributeV1 => ({
+export const toAttributeV1 = (attribute: AttributeTmp): AttributeV1 => ({
   ...attribute,
   kind: toAttributeKindV1(attribute.kind),
   creationTime: String(attribute.creationTime.getTime()),
@@ -23,13 +21,13 @@ export const toAttributeKindV1 = (input: AttributeKind): AttributeKindV1 =>
     .with("Certified", () => AttributeKindV1.CERTIFIED)
     .exhaustive();
 
-export const toCreateEventDeclaredAttributeAdded = (
+export const toCreateEventAttributeAdded = (
   attribute: AttributeTmp
 ): CreateEvent<AttributeEvent> => ({
   streamId: attribute.id,
   version: 0,
   event: {
     type: "AttributeAdded",
-    data: { attribute: toDeclaredAttributeV1(attribute) },
+    data: { attribute: toAttributeV1(attribute) },
   },
 });

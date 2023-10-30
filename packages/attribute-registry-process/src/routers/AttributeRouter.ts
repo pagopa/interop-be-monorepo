@@ -151,7 +151,17 @@ const attributeRouter = (
     .post(
       "/verifiedAttributes",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE, M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const id = await attributeRegistryService.createVerifiedAttribute(
+            req.body
+          );
+          return res.status(201).json({ id }).end();
+        } catch (error) {
+          const errorRes: ApiError = makeApiError(error);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/internal/certifiedAttributes",
