@@ -138,10 +138,10 @@ const attributeRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE, M2M_ROLE]),
       async (req, res) => {
         try {
-          const result = await attributeRegistryService.createDeclaredAttribute(
+          const id = await attributeRegistryService.createDeclaredAttribute(
             req.body
           );
-          return res.status(201).json(attributeToApiAttribute(result)).end();
+          return res.status(201).json({ id }).end();
         } catch (error) {
           const errorRes: ApiError = makeApiError(error);
           return res.status(errorRes.status).json(errorRes).end();

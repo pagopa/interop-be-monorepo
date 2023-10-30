@@ -82,7 +82,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Attribute'
+                $ref: "#/components/schemas/ResourceId"
         '400':
           description: Bad Request
           content:
@@ -392,6 +392,14 @@ components:
       schema:
         type: string
   schemas:
+    ResourceId:
+        type: object
+        required:
+          - id
+        properties:
+          id:
+            type: string
+            format: uuid
     Problem:
       properties:
         type:

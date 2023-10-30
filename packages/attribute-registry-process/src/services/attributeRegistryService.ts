@@ -1,5 +1,6 @@
-import { eventRepository, initDB } from "pagopa-interop-commons";
+import { CreateEvent, eventRepository, initDB } from "pagopa-interop-commons";
 import {
+  AttributeEvent,
   AttributeKind,
   AttributeTmp,
   ListResult,
@@ -29,25 +30,20 @@ const repository = eventRepository(
 export const attributeRegistryService = {
   async createDeclaredAttribute(
     apiDeclaredAttributeSeed: ApiDeclaredAttributeSeed
-  ): Promise<AttributeTmp> {
-    const createAttributeLogic = createDeclaredAttributeLogic({
-      attributes: await readModelService.getAttributes(
-        {
-          kinds: [AttributeKind.Enum.Declared],
-          name: apiDeclaredAttributeSeed.name,
-        },
-        0,
-        1
-      ),
-      apiDeclaredAttributeSeed,
-    });
-    const id = await repository.createEvent(
-      toCreateEventDeclaredAttributeAdded(createAttributeLogic)
+  ): Promise<string> {
+    return repository.createEvent(
+      createDeclaredAttributeLogic({
+        attributes: await readModelService.getAttributes(
+          {
+            kinds: [AttributeKind.Enum.Declared],
+            name: apiDeclaredAttributeSeed.name,
+          },
+          0,
+          1
+        ),
+        apiDeclaredAttributeSeed,
+      })
     );
-    return {
-      ...createAttributeLogic,
-      id,
-    };
   },
 };
 
@@ -57,7 +53,7 @@ export function createDeclaredAttributeLogic({
 }: {
   attributes: ListResult<AttributeTmp>;
   apiDeclaredAttributeSeed: ApiDeclaredAttributeSeed;
-}): AttributeTmp {
+}): CreateEvent<AttributeEvent> {
   if (attributes.results.length > 0) {
     throw attributeDuplicate(apiDeclaredAttributeSeed.name);
   }
@@ -72,5 +68,5 @@ export function createDeclaredAttributeLogic({
     origin: undefined,
   };
 
-  return newDeclaredAttribute;
+  return toCreateEventDeclaredAttributeAdded(newDeclaredAttribute);
 }
