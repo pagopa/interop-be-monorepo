@@ -42,13 +42,13 @@ async function getTotalCount(
 type FilterCriteria =
   | { type: "ids"; data: string[] }
   | {
-    type: "values";
-    data: {
-      kinds: AttributeKind[];
-      name?: string | undefined;
-      origin?: string | undefined;
+      type: "values";
+      data: {
+        kinds: AttributeKind[];
+        name?: string | undefined;
+        origin?: string | undefined;
+      };
     };
-  };
 
 export const readModelService = {
   async getAttributes(
@@ -71,16 +71,16 @@ export const readModelService = {
       .with({ type: "values" }, ({ data: { kinds, name, origin } }) => {
         const nameFilter = name
           ? {
-            "data.name": {
-              $regex: name,
-              $options: "i",
-            },
-          }
+              "data.name": {
+                $regex: name,
+                $options: "i",
+              },
+            }
           : {};
         const originFilter = origin
           ? {
-            "data.origin": origin,
-          }
+              "data.origin": origin,
+            }
           : {};
         return [
           {
