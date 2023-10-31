@@ -1,0 +1,21 @@
+syntax = "proto2";
+
+package tenant;
+
+import "v1/tenant/tenant.proto";
+
+
+message TenantStateV1 {
+  repeated TenantsV1 tenants = 1;
+  repeated TenantMappingV1 selcareMappings = 2;
+}
+
+message TenantsV1 {
+  required string key = 1;
+  required TenantV1 value = 2;
+}
+
+message TenantMappingV1 {
+  required string selfcareId = 1;
+  required string tenantId = 2;
+}
