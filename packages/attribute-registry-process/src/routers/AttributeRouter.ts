@@ -179,6 +179,8 @@ const attributeRouter = (
             req.body,
             limit,
             offset
+            offset,
+            limit
           );
           return res
             .status(200)
