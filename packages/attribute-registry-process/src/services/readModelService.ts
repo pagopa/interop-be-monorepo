@@ -8,9 +8,9 @@ import {
   ErrorTypes,
   WithMetadata,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import { ListResult } from "../model/types.js";
 import { config } from "../utilities/config.js";
-import { match } from "ts-pattern";
 
 const { attributes } = ReadModelRepository.init(config);
 
@@ -57,17 +57,15 @@ export const readModelService = {
     limit: number
   ): Promise<ListResult<AttributeTmp>> {
     const aggregationPipeline = match(filter)
-      .with({ type: "ids" }, ({ data: ids }) => {
-        return [
-          {
-            $match: {
-              "data.id": {
-                $in: ids,
-              },
+      .with({ type: "ids" }, ({ data: ids }) => [
+        {
+          $match: {
+            "data.id": {
+              $in: ids,
             },
           },
-        ];
-      })
+        },
+      ])
       .with({ type: "values" }, ({ data: { kinds, name, origin } }) => {
         const nameFilter = name
           ? {
