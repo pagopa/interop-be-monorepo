@@ -6,6 +6,8 @@ module.exports = {
   },
   rules: {
     // Any project level custom rule
+    "@typescript-eslint/switch-exhaustiveness-check": "error",
+    "default-case": "off",
     "prefer-arrow/prefer-arrow-functions": "off",
     eqeqeq: ["error", "smart"],
     "@typescript-eslint/consistent-type-definitions": "off",
