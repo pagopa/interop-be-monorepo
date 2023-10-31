@@ -129,19 +129,27 @@ export const fromTenantAttributesV1 = (
     });
 
 export const fromTenantV1 = (input: TenantV1): PersistentTenant => {
-  const result: PersistentTenant = {
+  /**
+   * The `externalId` field is required in the TenantV1 protobuf model but
+   * for some reasons the @protobuf-ts/protoc library generates it as optional.
+   * This issue has been reported here: https://github.com/timostamm/protobuf-ts/issues/340
+   */
+  if (!input.externalId) {
+    throw new Error(
+      `Error while deserializing TenantV1 (${input.id}): missing externalId`
+    );
+  }
+
+  return {
     id: input.id,
     selfcareId: input.selfcareId,
     name: input.name ?? "",
     createdAt: new Date(Number(input.createdAt)),
     attributes: input.attributes.map(fromTenantAttributesV1),
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    externalId: input.externalId!, // TODO: we need to handle the case when externalId is undefined
+    externalId: input.externalId,
     features: input.features.map(fromTenantFeatureV1),
     mails: input.mails.map(fromTenantMailV1),
     kind: input.kind ? fromTenantKindV1(input.kind) : undefined,
     updatedAt: input.updatedAt ? new Date(Number(input.updatedAt)) : undefined,
   };
-
-  return result;
 };
