@@ -6,9 +6,8 @@ import {
 } from "pagopa-interop-commons";
 import {
   AttributeEvent,
-  AttributeKind,
   AttributeTmp,
-  ListResult,
+  WithMetadata,
   attributeDuplicate,
   attributeEventToBinaryData,
   originNotCompliant,
@@ -47,13 +46,8 @@ export const attributeRegistryService = {
 
     return repository.createEvent(
       createDeclaredAttributeLogic({
-        attributes: await readModelService.getAttributes(
-          {
-            kinds: [AttributeKind.Enum.Declared],
-            name: apiDeclaredAttributeSeed.name,
-          },
-          0,
-          1
+        attribute: await readModelService.getAttributeByName(
+          apiDeclaredAttributeSeed.name
         ),
         apiDeclaredAttributeSeed,
       })
@@ -69,13 +63,8 @@ export const attributeRegistryService = {
 
     return repository.createEvent(
       createVerifiedAttributeLogic({
-        attributes: await readModelService.getAttributes(
-          {
-            kinds: [AttributeKind.Enum.Verified],
-            name: apiVerifiedAttributeSeed.name,
-          },
-          0,
-          1
+        attribute: await readModelService.getAttributeByName(
+          apiVerifiedAttributeSeed.name
         ),
         apiVerifiedAttributeSeed,
       })
@@ -84,13 +73,13 @@ export const attributeRegistryService = {
 };
 
 export function createDeclaredAttributeLogic({
-  attributes,
+  attribute,
   apiDeclaredAttributeSeed,
 }: {
-  attributes: ListResult<AttributeTmp>;
+  attribute: WithMetadata<AttributeTmp> | undefined;
   apiDeclaredAttributeSeed: ApiDeclaredAttributeSeed;
 }): CreateEvent<AttributeEvent> {
-  if (attributes.results.length > 0) {
+  if (attribute) {
     throw attributeDuplicate(apiDeclaredAttributeSeed.name);
   }
 
@@ -108,13 +97,13 @@ export function createDeclaredAttributeLogic({
 }
 
 export function createVerifiedAttributeLogic({
-  attributes,
+  attribute,
   apiVerifiedAttributeSeed,
 }: {
-  attributes: ListResult<AttributeTmp>;
+  attribute: WithMetadata<AttributeTmp> | undefined;
   apiVerifiedAttributeSeed: ApiVerifiedAttributeSeed;
 }): CreateEvent<AttributeEvent> {
-  if (attributes.results.length > 0) {
+  if (attribute) {
     throw attributeDuplicate(apiVerifiedAttributeSeed.name);
   }
 
