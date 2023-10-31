@@ -143,7 +143,9 @@ export async function createAgreementLogic(
     throw tenantIdNotFound(authData.organizationId);
   }
 
-  validateCertifiedAttributes(descriptor, consumer.data);
+  if (eservice.data.producerId !== consumer.data.id) {
+    validateCertifiedAttributes(descriptor, consumer.data);
+  }
 
   const agreementSeed: PersistentAgreement = {
     id: uuidv4(),
