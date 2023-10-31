@@ -203,7 +203,8 @@ const attributeRouter = (
       async (req, res) => {
         try {
           const id = await attributeRegistryService.createDeclaredAttribute(
-            req.body
+            req.body,
+            req.ctx.authData
           );
           return res.status(201).json({ id }).end();
         } catch (error) {
@@ -218,7 +219,8 @@ const attributeRouter = (
       async (req, res) => {
         try {
           const id = await attributeRegistryService.createVerifiedAttribute(
-            req.body
+            req.body,
+            req.ctx.authData
           );
           return res.status(201).json({ id }).end();
         } catch (error) {

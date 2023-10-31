@@ -106,6 +106,11 @@ export const ErrorTypes = {
     httpStatus: 409,
     title: "Duplicated attribute name",
   },
+  OriginNotCompliant: {
+    code: "0012",
+    httpStatus: 400,
+    title: "Origin is not compliant",
+  },
 } as const;
 
 export type ErrorType = (typeof ErrorTypes)[keyof typeof ErrorTypes];
@@ -292,4 +297,11 @@ export function makeApiProblem(
       },
     ],
   };
+}
+
+export function originNotCompliant(origin: string): AttributeProcessError {
+  return new AttributeProcessError(
+    `Requester has not origin ${origin}`,
+    ErrorTypes.OriginNotCompliant
+  );
 }

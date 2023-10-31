@@ -1,4 +1,9 @@
-import { CreateEvent, eventRepository, initDB } from "pagopa-interop-commons";
+import {
+  AuthData,
+  CreateEvent,
+  eventRepository,
+  initDB,
+} from "pagopa-interop-commons";
 import {
   AttributeEvent,
   AttributeKind,
@@ -6,6 +11,7 @@ import {
   ListResult,
   attributeDuplicate,
   attributeEventToBinaryData,
+  originNotCompliant,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import { config } from "../utilities/config.js";
@@ -32,8 +38,13 @@ const repository = eventRepository(
 
 export const attributeRegistryService = {
   async createDeclaredAttribute(
-    apiDeclaredAttributeSeed: ApiDeclaredAttributeSeed
+    apiDeclaredAttributeSeed: ApiDeclaredAttributeSeed,
+    authData: AuthData
   ): Promise<string> {
+    if (authData.externalId.origin !== "IPA") {
+      throw originNotCompliant("IPA");
+    }
+
     return repository.createEvent(
       createDeclaredAttributeLogic({
         attributes: await readModelService.getAttributes(
@@ -49,8 +60,13 @@ export const attributeRegistryService = {
     );
   },
   async createVerifiedAttribute(
-    apiVerifiedAttributeSeed: ApiVerifiedAttributeSeed
+    apiVerifiedAttributeSeed: ApiVerifiedAttributeSeed,
+    authData: AuthData
   ): Promise<string> {
+    if (authData.externalId.origin !== "IPA") {
+      throw originNotCompliant("IPA");
+    }
+
     return repository.createEvent(
       createVerifiedAttributeLogic({
         attributes: await readModelService.getAttributes(
