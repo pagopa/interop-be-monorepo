@@ -35,9 +35,9 @@ const getAgreementsFilters = (
     }),
     ...(attributeId && {
       $or: [
-        { "data.certifiedAttributes.id": { $elemMatch: { id: attributeId } } },
-        { "data.declaredAttributes.id": { $elemMatch: { id: attributeId } } },
-        { "data.verifiedAttributes.id": { $elemMatch: { id: attributeId } } },
+        { "data.certifiedAttributes": { $elemMatch: { id: attributeId } } },
+        { "data.declaredAttributes": { $elemMatch: { id: attributeId } } },
+        { "data.verifiedAttributes": { $elemMatch: { id: attributeId } } },
       ],
     }),
   };
