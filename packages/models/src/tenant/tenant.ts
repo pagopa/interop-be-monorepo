@@ -1,6 +1,14 @@
 import { z } from "zod";
 
-export const PersistentTenantKind = z.enum(["PA", "GSP", "PRIVATE"]);
+export const persistentTenantKind = {
+  pa: "PA",
+  gsp: "GSP",
+  private: "PRIVATE",
+} as const;
+export const PersistentTenantKind = z.enum([
+  Object.values(persistentTenantKind)[0],
+  ...Object.values(persistentTenantKind).slice(1),
+]);
 export type PersistentTenantKind = z.infer<typeof PersistentTenantKind>;
 
 export const PersistentExternalId = z.object({
@@ -39,30 +47,32 @@ export type PersistentTenantCertifiedAttribute = z.infer<
   typeof PersistentTenantCertifiedAttribute
 >;
 
-export const PersistentTenantVerified = z.object({
-  id: z.string().uuid(),
+export const PersistentTenantVerifier = z.object({
+  id: z.string(),
   verificationDate: z.coerce.date(),
+  expirationDate: z.coerce.date().optional(),
+  extensionDate: z.coerce.date().optional(),
 });
-export type PersistentTenantVerified = z.infer<typeof PersistentTenantVerified>;
+export type PersistentTenantVerifier = z.infer<typeof PersistentTenantVerifier>;
 
-export const PersistenTenantRevoker = z.object({
+export const PersistentTenantRevoker = z.object({
   expirationDate: z.coerce.date().optional(),
   extensionDate: z.coerce.date().optional(),
   id: z.string().uuid(),
   revocationDate: z.coerce.date(),
   verificationDate: z.coerce.date(),
 });
-export type PersistenTenantRevoker = z.infer<typeof PersistenTenantRevoker>;
+export type PersistentTenantRevoker = z.infer<typeof PersistentTenantRevoker>;
 
-export const PersistentTenantVerifiedAttribute = z.object({
+export const PersistentTenantVerifierAttribute = z.object({
   assignmentTimestamp: z.coerce.date(),
   id: z.string().uuid(),
   type: z.literal("PersistentVerifiedAttribute"),
-  verifiedBy: z.array(PersistentTenantVerified).optional(),
-  revokedBy: z.array(PersistenTenantRevoker).optional(),
+  verifiedBy: z.array(PersistentTenantVerifier).optional(),
+  revokedBy: z.array(PersistentTenantRevoker).optional(),
 });
-export type PersistentTenantVerifiedAttribute = z.infer<
-  typeof PersistentTenantVerifiedAttribute
+export type PersistentTenantVerifierAttribute = z.infer<
+  typeof PersistentTenantVerifierAttribute
 >;
 
 export const PersistentTenantDeclaredAttribute = z.object({
@@ -76,14 +86,20 @@ export type PersistentTenantDeclaredAttribute = z.infer<
 
 export const PersistentTenantAttribute = z.union([
   PersistentTenantCertifiedAttribute,
-  PersistentTenantVerifiedAttribute,
+  PersistentTenantVerifierAttribute,
   PersistentTenantDeclaredAttribute,
 ]);
 export type PersistentTenantAttribute = z.infer<
   typeof PersistentTenantAttribute
 >;
 
-export const PersistentTenantMailKind = z.enum(["CONTACT_EMAIL"]);
+export const persistentTenantMailKind = {
+  contactMail: "CONTACT_MAIL",
+} as const;
+export const PersistentTenantMailKind = z.enum([
+  Object.values(persistentTenantMailKind)[0],
+  ...Object.values(persistentTenantMailKind).slice(1),
+]);
 export type PersistentTenantMailKind = z.infer<typeof PersistentTenantMailKind>;
 
 export const PersistentTenantMail = z.object({
