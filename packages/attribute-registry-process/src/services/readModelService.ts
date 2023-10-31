@@ -10,6 +10,7 @@ import {
 } from "pagopa-interop-models";
 import { ListResult } from "../model/types.js";
 import { config } from "../utilities/config.js";
+import { match } from "ts-pattern";
 
 const { attributes } = ReadModelRepository.init(config);
 
@@ -38,53 +39,72 @@ async function getTotalCount(
   throw ErrorTypes.GenericError;
 }
 
-export const readModelService = {
-  async getAttributes(
-    {
-      kinds,
-      name,
-      origin,
-    }: {
+type FilterCriteria =
+  | { type: "ids"; data: string[] }
+  | {
+    type: "values";
+    data: {
       kinds: AttributeKind[];
       name?: string | undefined;
       origin?: string | undefined;
-    },
+    };
+  };
+
+export const readModelService = {
+  async getAttributes(
+    filter: FilterCriteria,
     offset: number,
     limit: number
   ): Promise<ListResult<AttributeTmp>> {
-    const nameFilter = name
-      ? {
-          "data.name": {
-            $regex: name,
-            $options: "i",
+    const aggregationPipeline = match(filter)
+      .with({ type: "ids" }, ({ data: ids }) => {
+        return [
+          {
+            $match: {
+              "data.id": {
+                $in: ids,
+              },
+            },
           },
-        }
-      : {};
-    const originFilter = origin
-      ? {
-          "data.origin": origin,
-        }
-      : {};
-    const aggregationPipeline = [
-      {
-        $match: {
-          ...nameFilter,
-          ...originFilter,
-          ...arrayToFilter(kinds, (kinds) => ({
-            "data.kind": { $in: kinds },
-          })),
-        },
-      },
-      {
-        $project: {
-          data: 1,
-          computedColumn: { $toLower: ["$data.name"] },
-        },
-      },
-      {
-        $sort: { computedColumn: 1 },
-      },
-    ];
+        ];
+      })
+      .with({ type: "values" }, ({ data: { kinds, name, origin } }) => {
+        const nameFilter = name
+          ? {
+            "data.name": {
+              $regex: name,
+              $options: "i",
+            },
+          }
+          : {};
+        const originFilter = origin
+          ? {
+            "data.origin": origin,
+          }
+          : {};
+        return [
+          {
+            $match: {
+              ...nameFilter,
+              ...originFilter,
+              ...arrayToFilter(kinds, (kinds) => ({
+                "data.kind": { $in: kinds },
+              })),
+            },
+          },
+          {
+            $project: {
+              data: 1,
+              computedColumn: { $toLower: ["$data.name"] },
+            },
+          },
+          {
+            $sort: { computedColumn: 1 },
+          },
+        ];
+      })
+      .exhaustive();
+
     const data = await attributes
       .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }])
       .toArray();
@@ -138,41 +158,6 @@ export const readModelService = {
     }
 
     return undefined;
-  },
-
-  async getAttributesByIds(
-    ids: string[],
-    limit: number,
-    offset: number
-  ): Promise<ListResult<AttributeTmp>> {
-    const aggregationPipeline = [
-      {
-        $match: {
-          "data.id": {
-            $in: ids,
-          },
-        },
-      },
-    ];
-    const data = await attributes
-      .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }])
-      .toArray();
-
-    const result = z.array(AttributeTmp).safeParse(data.map((d) => d.data));
-    if (!result.success) {
-      logger.error(
-        `Unable to parse attributes items: result ${JSON.stringify(
-          result
-        )} - data ${JSON.stringify(data)} `
-      );
-      throw ErrorTypes.GenericError;
-    }
-    return {
-      results: result.data,
-      totalCount: await getTotalCount(
-        attributes.aggregate([...aggregationPipeline, { $count: "count" }])
-      ),
-    };
   },
 
   async getAttributeByName(
