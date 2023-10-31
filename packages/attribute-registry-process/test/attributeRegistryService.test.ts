@@ -4,6 +4,7 @@ import { generateMock } from "@anatine/zod-mock";
 import {
   AttributeKind,
   AttributeTmp,
+  WithMetadata,
   attributeDuplicate,
 } from "pagopa-interop-models";
 
@@ -18,6 +19,11 @@ import {
 } from "../src/model/domain/toEvent.js";
 
 const mockAttribute: AttributeTmp = generateMock(AttributeTmp);
+const addMetadata = (attribute: AttributeTmp): WithMetadata<AttributeTmp> => ({
+  data: attribute,
+  metadata: { version: 0 },
+});
+
 const mockAttributeSeed = generateMock(api.schemas.AttributeSeed);
 describe("AttributeResistryService", () => {
   describe("create a declared attribute", () => {
@@ -28,7 +34,7 @@ describe("AttributeResistryService", () => {
       };
 
       const event = createDeclaredAttributeLogic({
-        attributes: { results: [], totalCount: 0 },
+        attribute: undefined,
         apiDeclaredAttributeSeed: mockAttributeSeed,
       });
       expect(event.event.type).toBe("AttributeAdded");
@@ -50,7 +56,7 @@ describe("AttributeResistryService", () => {
     it("returns an error if the attributes list is not empty", async () => {
       expect(() =>
         createDeclaredAttributeLogic({
-          attributes: { results: [mockAttribute], totalCount: 1 },
+          attribute: addMetadata(mockAttribute),
           apiDeclaredAttributeSeed: mockAttributeSeed,
         })
       ).toThrowError(attributeDuplicate(mockAttributeSeed.name));
@@ -64,7 +70,7 @@ describe("AttributeResistryService", () => {
       };
 
       const event = createVerifiedAttributeLogic({
-        attributes: { results: [], totalCount: 0 },
+        attribute: undefined,
         apiVerifiedAttributeSeed: mockAttributeSeed,
       });
       expect(event.event.type).toBe("AttributeAdded");
@@ -86,7 +92,7 @@ describe("AttributeResistryService", () => {
     it("returns an error if the attributes list is not empty", async () => {
       expect(() =>
         createVerifiedAttributeLogic({
-          attributes: { results: [mockAttribute], totalCount: 1 },
+          attribute: addMetadata(mockAttribute),
           apiVerifiedAttributeSeed: mockAttributeSeed,
         })
       ).toThrowError(attributeDuplicate(mockAttributeSeed.name));
