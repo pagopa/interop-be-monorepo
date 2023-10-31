@@ -64,7 +64,7 @@ export const TenantAttribute = z.discriminatedUnion("type", [
     revocationTimestamp: z.date().optional(),
   }),
   z.object({
-    type: z.literal("declared"),
+    type: z.literal("verified"),
     id: z.string().uuid(),
     assignmentTimestamp: z.date(),
     verifiedBy: z.array(PersistentTenantVerifier),
