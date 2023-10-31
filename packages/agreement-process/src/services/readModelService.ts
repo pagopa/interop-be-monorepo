@@ -1,3 +1,5 @@
+/* eslint-disable no-constant-condition */
+/* eslint-disable functional/no-let */
 /* eslint-disable max-params */
 import { logger, ReadModelRepository } from "pagopa-interop-commons";
 import {
@@ -49,20 +51,34 @@ const getAllAgreements = async (
   descriptorId: string | undefined,
   agreementStates: PersistentAgreementState[],
   attributeId: string | undefined
-): Promise<PersistentAgreement[]> =>
-  /* TODO: (Viktor-K) this method is partially implemented, it should be completed with a pagination mechanism TBD
-  folding more chunks in this list in the same way of https://github.com/pagopa/interop-be-agreement-process/blob/66781549a6db2470d8c407965b7561d1fe493107/src/main/scala/it/pagopa/interop/agreementprocess/service/impl/AgreementManagementServiceImpl.scala#L78
-  */
-  await getAgreements(
-    producerId,
-    consumerId,
-    eserviceId,
-    descriptorId,
-    agreementStates,
-    attributeId,
-    0,
-    50
-  );
+): Promise<PersistentAgreement[]> => {
+  const limit = 50;
+  let offset = 0;
+  let results: PersistentAgreement[] = [];
+
+  while (true) {
+    const agreementsChunk = await getAgreements(
+      producerId,
+      consumerId,
+      eserviceId,
+      descriptorId,
+      agreementStates,
+      attributeId,
+      offset,
+      limit
+    );
+
+    results = results.concat(agreementsChunk);
+
+    if (agreementsChunk.length < limit) {
+      break;
+    }
+
+    offset += limit;
+  }
+
+  return results;
+};
 
 const getAgreements = async (
   producerId: string | undefined,
