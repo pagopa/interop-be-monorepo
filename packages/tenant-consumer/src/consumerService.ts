@@ -1,4 +1,4 @@
-// import { match  } from "ts-pattern";
+import { match } from "ts-pattern";
 import {
   logger,
   // consumerConfig,
@@ -6,9 +6,25 @@ import {
 } from "pagopa-interop-commons";
 import { EventEnvelope } from "./model/models.js";
 
-// const { eservices } = ReadModelRepository.init(consumerConfig());
+// const { tenants } = ReadModelRepository.init(consumerConfig());
 
 export async function handleMessage(message: EventEnvelope): Promise<void> {
   logger.info(message);
-  // await match(message).exhaustive(); // TODO
+  await match(message)
+    .with({ type: "TenantCreated" }, async (_msg) => {
+      logger.info("TODO");
+    })
+    .with({ type: "TenantDeleted" }, async (_msg) => {
+      logger.info("TODO");
+    })
+    .with({ type: "TenantUpdated" }, async (_msg) => {
+      logger.info("TODO");
+    })
+    .with({ type: "SelfcareMappingCreated" }, async (_msg) => {
+      logger.info("TODO");
+    })
+    .with({ type: "SelfcareMappingDeleted" }, async (_msg) => {
+      logger.info("TODO");
+    })
+    .exhaustive();
 }
