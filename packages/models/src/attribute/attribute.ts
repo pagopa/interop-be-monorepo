@@ -1,24 +1,24 @@
 import z from "zod";
 
-export const persistentAttributeKind = {
+export const attributeKind = {
   certified: "Certified",
   declared: "Declared",
   verified: "Verified",
 } as const;
-export const PersistentAttributeKind = z.enum([
-  Object.values(persistentAttributeKind)[0],
-  ...Object.values(persistentAttributeKind).slice(1),
+export const AttributeKind = z.enum([
+  Object.values(attributeKind)[0],
+  ...Object.values(attributeKind).slice(1),
 ]);
-export type PersistentAttributeKind = z.infer<typeof PersistentAttributeKind>;
+export type AttributeKind = z.infer<typeof AttributeKind>;
 
-const PersistentAttribute = z.object({
+const attributeTmp = z.object({
   id: z.string().uuid(),
   code: z.string().optional(),
   origin: z.string().optional(),
-  kind: PersistentAttributeKind,
+  kind: AttributeKind,
   description: z.string(),
   name: z.string(),
   creationTime: z.date(),
 });
 
-export type PersistentAttribute = z.infer<typeof PersistentAttribute>;
+export type AttributeTmp = z.infer<typeof attributeTmp>;
