@@ -48,8 +48,8 @@ export const readModelService = {
     }: {
       ids?: string[];
       kinds: AttributeKind[];
-      name?: string | undefined;
-      origin?: string | undefined;
+      name?: string;
+      origin?: string;
     },
     offset: number,
     limit: number
@@ -195,16 +195,10 @@ export const readModelService = {
     origin: string;
     code: string;
   }): Promise<WithMetadata<AttributeTmp> | undefined> {
-    const codeFilter = {
-      "data.code": code,
-    };
-    const originFilter = {
-      "data.origin": origin,
-    };
     const data = await attributes.findOne(
       {
-        codeFilter,
-        originFilter,
+        "data.code": code,
+        "data.origin": origin,
       },
       { projection: { data: true, metadata: true } }
     );
