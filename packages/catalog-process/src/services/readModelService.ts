@@ -1,4 +1,3 @@
-import { AggregationCursor } from "mongodb";
 import {
   AuthData,
   logger,
@@ -29,24 +28,6 @@ function arrayToFilter<T, F extends object>(
   f: (array: T[]) => F
 ): F | undefined {
   return array.length > 0 ? f(array) : undefined;
-}
-
-async function getTotalCount(
-  query: AggregationCursor<Document>
-): Promise<number> {
-  const data = await query.toArray();
-  const result = z.array(z.object({ count: z.number() })).safeParse(data);
-
-  if (result.success) {
-    return result.data.length > 0 ? result.data[0].count : 0;
-  }
-
-  logger.error(
-    `Unable to get total count from aggregation pipeline: result ${JSON.stringify(
-      result
-    )} - data ${JSON.stringify(data)} `
-  );
-  throw ErrorTypes.GenericError;
 }
 
 export const readModelService = {
@@ -135,7 +116,7 @@ export const readModelService = {
 
     return {
       results: result.data,
-      totalCount: await getTotalCount(
+      totalCount: await ReadModelRepository.getTotalCount(
         eservices.aggregate([...aggregationPipeline, { $count: "count" }])
       ),
     };
@@ -279,7 +260,7 @@ export const readModelService = {
 
     return {
       results: result.data,
-      totalCount: await getTotalCount(
+      totalCount: await ReadModelRepository.getTotalCount(
         eservices.aggregate([...aggregationPipeline, { $count: "count" }])
       ),
     };

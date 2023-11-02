@@ -10,11 +10,64 @@ import {
   PersistentAgreementState,
   WithMetadata,
   Tenant,
+  persistentAgreementState,
+  descriptorState,
 } from "pagopa-interop-models";
 import { z } from "zod";
+import { match, P } from "ts-pattern";
 import { config } from "../utilities/config.js";
 
 const { agreements, eservices, tenants } = ReadModelRepository.init(config);
+
+const listAgreementsFilters = (
+  eServicesIds: string[],
+  consumersIds: string[],
+  producersIds: string[],
+  descriptorsIds: string[],
+  states: PersistentAgreementState[],
+  showOnlyUpgradeable: boolean
+): object => {
+  const upgradeableStates = [
+    persistentAgreementState.draft,
+    persistentAgreementState.active,
+    persistentAgreementState.suspended,
+  ];
+  match(states)
+    .with(
+      P.when((states) => states.length === 0 && showOnlyUpgradeable),
+      () => upgradeableStates
+    )
+    .with(
+      P.when((states) => states.length > 0 && showOnlyUpgradeable),
+      () =>
+        upgradeableStates.filter(
+          (s1) => states.some((s2) => s1 === s2) !== undefined
+        )
+    )
+    .otherwise(() => states);
+
+  const filters = {
+    ...(eServicesIds.length > 0 && {
+      "data.eserviceId": { $in: eServicesIds },
+    }),
+    ...(consumersIds.length > 0 && {
+      "data.consumerId": { $in: consumersIds },
+    }),
+    ...(producersIds.length > 0 && {
+      "data.producerId": { $in: producersIds },
+    }),
+    ...(descriptorsIds.length > 0 && {
+      "data.descriptorId": { $in: descriptorsIds },
+    }),
+    ...(states.length > 0 && {
+      "data.state": {
+        $in: states,
+      },
+    }),
+  };
+
+  return { $match: filters };
+};
 
 const getAgreementsFilters = (
   producerId: string | undefined,
@@ -130,7 +183,7 @@ export const readModelService = {
       states,
       showOnlyUpgradeable,
     }: {
-      eServicesIds: string[]; 
+      eServicesIds: string[];
       consumersIds: string[];
       producersIds: string[];
       descriptorsIds: string[];
@@ -140,9 +193,109 @@ export const readModelService = {
     limit: number,
     offset: number
   ): Promise<ListResult<PersistentAgreement>> {
+    const aggregationPipeline = [
+      listAgreementsFilters(
+        eServicesIds,
+        consumersIds,
+        producersIds,
+        descriptorsIds,
+        states,
+        showOnlyUpgradeable
+      ),
+      {
+        $lookup: {
+          from: "eservices",
+          localField: "data.eserviceId",
+          foreignField: "data.id",
+          as: "eservices",
+        },
+      },
+      {
+        $unwind: "$eservices",
+      },
+      ...(showOnlyUpgradeable
+        ? [
+            {
+              $addFields: {
+                currentDescriptor: {
+                  $filter: {
+                    input: "$eservices.data.descriptors",
+                    as: "descr",
+                    cond: {
+                      $eq: ["$$descr.id", "$data.descriptorId"],
+                    },
+                  },
+                },
+              },
+            },
+            {
+              $unwind: "$currentDescriptor",
+            },
+            {
+              $addFields: {
+                upgradableDescriptor: {
+                  $filter: {
+                    input: "$eservices.data.descriptors",
+                    as: "upgradable",
+                    cond: {
+                      $and: [
+                        {
+                          $gt: [
+                            "$$upgradable.activatedAt",
+                            "$currentDescriptor.activatedAt",
+                          ],
+                        },
+                        {
+                          $in: [
+                            "$$upgradable.state",
+                            [
+                              descriptorState.published,
+                              descriptorState.suspended,
+                            ],
+                          ],
+                        },
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+          ]
+        : []),
+      {
+        $project: {
+          data: 1,
+          eservices: 1,
+          lowerName: { $toLower: "$eservices.data.name" },
+        },
+      },
+      {
+        $sort: { lowerName: 1 },
+      },
+    ];
+
+    const data = await agreements
+      .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }])
+      .toArray();
+
+    const result = z
+      .array(PersistentAgreement)
+      .safeParse(data.map((d) => d.data));
+    if (!result.success) {
+      logger.error(
+        `Unable to parse agreements items: result ${JSON.stringify(
+          result
+        )} - data ${JSON.stringify(data)} `
+      );
+
+      throw ErrorTypes.GenericError;
+    }
+
     return {
-      results: [],
-      totalCount: 0,
+      results: result.data,
+      totalCount: await ReadModelRepository.getTotalCount(
+        eservices.aggregate([...aggregationPipeline, { $count: "count" }])
+      ),
     };
   },
   async readAgreementById(
