@@ -8,7 +8,7 @@ import {
 } from "pagopa-interop-commons";
 import { agreementNotFound } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
-import { agreementToApiAgreement } from "../model/domain/apiConverter.js";
+import { agreementToApiAgreement, apiAgreementStateToAgreementState } from "../model/domain/apiConverter.js";
 import { agreementService } from "../services/agreementService.js";
 import { ApiError, makeApiError } from "../model/types.js";
 
@@ -93,9 +93,43 @@ const agreementRouter = (
     }
   );
 
-  agreementRouter.get("/agreements", async (_req, res) => {
-    res.status(501).send();
-  });
+  agreementRouter.get(
+    "/agreements",
+    authorizationMiddleware([
+      ADMIN_ROLE,
+      API_ROLE,
+      SECURITY_ROLE,
+      M2M_ROLE,
+      SUPPORT_ROLE,
+    ]),
+    async (req, res) => {
+      try {
+        const agreements = await agreementService.getAgreements(
+          {
+            eServicesIds: req.query.eservicesIds,
+            consumersIds: req.query.consumersIds,
+            producersIds: req.query.producersIds,
+            descriptorsIds: req.query.descriptorsIds,
+            states: req.query.states.map(apiAgreementStateToAgreementState),
+            showOnlyUpgradeable: req.query.showOnlyUpgradeable || false,
+          },
+          req.query.limit,
+          req.query.offset
+        );
+
+        return res
+          .status(200)
+          .json({
+            results: agreements.results.map(agreementToApiAgreement),
+            totalCount: agreements.totalCount,
+          })
+          .end();
+      } catch (error) {
+        const errorRes: ApiError = makeApiError(error);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    }
+  );
 
   agreementRouter.get("/producers", async (_req, res) => {
     res.status(501).send();

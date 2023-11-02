@@ -16,6 +16,7 @@ import {
   persistentAgreementState,
   tenantIdNotFound,
   agreementEServiceNotFound,
+  ListResult,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import { config } from "../utilities/config.js";
@@ -49,6 +50,22 @@ const repository = eventRepository(
 );
 
 export const agreementService = {
+  async getAgreements(
+    filters: {
+      eServicesIds: string[];
+      consumersIds: string[];
+      producersIds: string[];
+      descriptorsIds: string[];
+      states: PersistentAgreementState[];
+      showOnlyUpgradeable: boolean;
+    },
+    limit: number,
+    offset: number
+  ): Promise<ListResult<PersistentAgreement>> {
+    logger.info("Retrieving agreements");
+    return await readModelService.listAgreements(filters, limit, offset);
+  },
+
   async getAgreementById(
     agreementId: string
   ): Promise<PersistentAgreement | undefined> {
