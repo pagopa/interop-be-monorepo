@@ -46,10 +46,9 @@ export const attributeRegistryService = {
 
     return repository.createEvent(
       createDeclaredAttributeLogic({
-        attribute: await readModelService.getAttribute({
-          type: "name",
-          data: apiDeclaredAttributeSeed.name,
-        }),
+        attribute: await readModelService.getAttributeByName(
+          apiDeclaredAttributeSeed.name
+        ),
         apiDeclaredAttributeSeed,
       })
     );
@@ -64,10 +63,9 @@ export const attributeRegistryService = {
 
     return repository.createEvent(
       createVerifiedAttributeLogic({
-        attribute: await readModelService.getAttribute({
-          type: "name",
-          data: apiVerifiedAttributeSeed.name,
-        }),
+        attribute: await readModelService.getAttributeByName(
+          apiVerifiedAttributeSeed.name
+        ),
         apiVerifiedAttributeSeed,
       })
     );

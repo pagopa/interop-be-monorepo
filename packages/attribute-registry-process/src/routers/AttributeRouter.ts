@@ -44,12 +44,9 @@ const attributeRouter = (
 
           const attributes = await readModelService.getAttributes(
             {
-              type: "values",
-              data: {
-                kinds: kinds.map(apiAttributeKindToAttributeKind),
-                name,
-                origin,
-              },
+              kinds: kinds.map(apiAttributeKindToAttributeKind),
+              name,
+              origin,
             },
             offset,
             limit
@@ -78,10 +75,9 @@ const attributeRouter = (
       ]),
       async (req, res) => {
         try {
-          const attribute = await readModelService.getAttribute({
-            type: "name",
-            data: req.params.name,
-          });
+          const attribute = await readModelService.getAttributeByName(
+            req.params.name
+          );
 
           if (attribute) {
             return res
@@ -113,12 +109,9 @@ const attributeRouter = (
         try {
           const { origin, code } = req.params;
 
-          const attribute = await readModelService.getAttribute({
-            type: "origin-code",
-            data: {
-              origin,
-              code,
-            },
+          const attribute = await readModelService.getAttributeByOriginAndCode({
+            origin,
+            code,
           });
           if (attribute) {
             return res
@@ -148,10 +141,9 @@ const attributeRouter = (
       ]),
       async (req, res) => {
         try {
-          const attribute = await readModelService.getAttribute({
-            type: "id",
-            data: req.params.attributeId,
-          });
+          const attribute = await readModelService.getAttributeById(
+            req.params.attributeId
+          );
 
           if (attribute) {
             return res
@@ -183,11 +175,8 @@ const attributeRouter = (
         const { limit, offset } = req.query;
 
         try {
-          const attributes = await readModelService.getAttributes(
-            {
-              type: "ids",
-              data: req.body,
-            },
+          const attributes = await readModelService.getAttributesByIds(
+            req.body,
             offset,
             limit
           );

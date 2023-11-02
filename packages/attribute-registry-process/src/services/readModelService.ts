@@ -8,7 +8,6 @@ import {
   ErrorTypes,
   WithMetadata,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
 import { ListResult } from "../model/types.js";
 import { config } from "../utilities/config.js";
 
@@ -39,81 +38,53 @@ async function getTotalCount(
   throw ErrorTypes.GenericError;
 }
 
-type FilterCriteria =
-  | { type: "ids"; data: string[] }
-  | {
-      type: "values";
-      data: {
-        kinds: AttributeKind[];
-        name?: string | undefined;
-        origin?: string | undefined;
-      };
-    };
-
-type FindCriteriaSpecific =
-  | { type: "id"; data: string }
-  | { type: "name"; data: string }
-  | {
-      type: "origin-code";
-      data: {
-        origin: string;
-        code: string;
-      };
-    };
-
 export const readModelService = {
   async getAttributes(
-    filter: FilterCriteria,
+    {
+      kinds,
+      name,
+      origin,
+    }: {
+      kinds: AttributeKind[];
+      name?: string | undefined;
+      origin?: string | undefined;
+    },
     offset: number,
     limit: number
   ): Promise<ListResult<AttributeTmp>> {
-    const aggregationPipeline = match(filter)
-      .with({ type: "ids" }, ({ data: ids }) => [
-        {
-          $match: {
-            "data.id": {
-              $in: ids,
-            },
+    const nameFilter = name
+      ? {
+          "data.name": {
+            $regex: name,
+            $options: "i",
           },
+        }
+      : {};
+    const originFilter = origin
+      ? {
+          "data.origin": origin,
+        }
+      : {};
+    const aggregationPipeline = [
+      {
+        $match: {
+          ...nameFilter,
+          ...originFilter,
+          ...arrayToFilter(kinds, (kinds) => ({
+            "data.kind": { $in: kinds },
+          })),
         },
-      ])
-      .with({ type: "values" }, ({ data: { kinds, name, origin } }) => {
-        const nameFilter = name
-          ? {
-              "data.name": {
-                $regex: name,
-                $options: "i",
-              },
-            }
-          : {};
-        const originFilter = origin
-          ? {
-              "data.origin": origin,
-            }
-          : {};
-        return [
-          {
-            $match: {
-              ...nameFilter,
-              ...originFilter,
-              ...arrayToFilter(kinds, (kinds) => ({
-                "data.kind": { $in: kinds },
-              })),
-            },
-          },
-          {
-            $project: {
-              data: 1,
-              computedColumn: { $toLower: ["$data.name"] },
-            },
-          },
-          {
-            $sort: { computedColumn: 1 },
-          },
-        ];
-      })
-      .exhaustive();
-
+      },
+      {
+        $project: {
+          data: 1,
+          computedColumn: { $toLower: ["$data.name"] },
+        },
+      },
+      {
+        $sort: { computedColumn: 1 },
+      },
+    ];
     const data = await attributes
       .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }])
       .toArray();
@@ -134,28 +105,13 @@ export const readModelService = {
     };
   },
 
-  async getAttribute(
-    filter: FindCriteriaSpecific
+  async getAttributeById(
+    id: string
   ): Promise<WithMetadata<AttributeTmp> | undefined> {
-    const findCriteria = match(filter)
-      .with({ type: "id" }, ({ data }) => ({
-        "data.id": data,
-      }))
-      .with({ type: "name" }, ({ data }) => ({
-        "data.name": {
-          $regex: `^${data}$$`,
-          $options: "i",
-        },
-      }))
-      .with({ type: "origin-code" }, ({ data }) => ({
-        "data.code": data.code,
-        "data.origin": data.origin,
-      }))
-      .exhaustive();
-
-    const data = await attributes.findOne(findCriteria, {
-      projection: { data: true, metadata: true },
-    });
+    const data = await attributes.findOne(
+      { "data.id": id },
+      { projection: { data: true, metadata: true } }
+    );
 
     if (data) {
       const result = z
@@ -175,6 +131,123 @@ export const readModelService = {
         throw ErrorTypes.GenericError;
       }
 
+      return {
+        data: result.data.data,
+        metadata: { version: result.data.metadata.version },
+      };
+    }
+
+    return undefined;
+  },
+
+  async getAttributesByIds(
+    ids: string[],
+    offset: number,
+    limit: number
+  ): Promise<ListResult<AttributeTmp>> {
+    const aggregationPipeline = [
+      {
+        $match: {
+          "data.id": {
+            $in: ids,
+          },
+        },
+      },
+    ];
+    const data = await attributes
+      .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }])
+      .toArray();
+
+    const result = z.array(AttributeTmp).safeParse(data.map((d) => d.data));
+    if (!result.success) {
+      logger.error(
+        `Unable to parse attributes items: result ${JSON.stringify(
+          result
+        )} - data ${JSON.stringify(data)} `
+      );
+      throw ErrorTypes.GenericError;
+    }
+    return {
+      results: result.data,
+      totalCount: await getTotalCount(
+        attributes.aggregate([...aggregationPipeline, { $count: "count" }])
+      ),
+    };
+  },
+
+  async getAttributeByName(
+    name: string
+  ): Promise<WithMetadata<AttributeTmp> | undefined> {
+    const data = await attributes.findOne(
+      {
+        "data.name": {
+          $regex: `^${name}$$`,
+          $options: "i",
+        },
+      },
+      { projection: { data: true, metadata: true } }
+    );
+
+    if (data) {
+      const result = z
+        .object({
+          metadata: z.object({ version: z.number() }),
+          data: AttributeTmp,
+        })
+        .safeParse(data);
+
+      if (!result.success) {
+        logger.error(
+          `Unable to parse attribute item: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+
+        throw ErrorTypes.GenericError;
+      }
+
+      return {
+        data: result.data.data,
+        metadata: { version: result.data.metadata.version },
+      };
+    }
+    return undefined;
+  },
+  async getAttributeByOriginAndCode({
+    origin,
+    code,
+  }: {
+    origin: string;
+    code: string;
+  }): Promise<WithMetadata<AttributeTmp> | undefined> {
+    const codeFilter = {
+      "data.code": code,
+    };
+    const originFilter = {
+      "data.origin": origin,
+    };
+    const data = await attributes.findOne(
+      {
+        codeFilter,
+        originFilter,
+      },
+      { projection: { data: true, metadata: true } }
+    );
+    if (data) {
+      const result = z
+        .object({
+          metadata: z.object({ version: z.number() }),
+          data: AttributeTmp,
+        })
+        .safeParse(data);
+      if (!result.success) {
+        logger.error(
+          `Unable to parse attribute item: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+        throw ErrorTypes.GenericError;
+      }
       return {
         data: result.data.data,
         metadata: { version: result.data.metadata.version },
