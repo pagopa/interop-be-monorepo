@@ -5,18 +5,21 @@ import {
   PersistentAttributeKind,
   persistentAttributeKind,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
 
 export const fromAttributeKind = (
   input: AttributeKindV1
-): PersistentAttributeKind =>
-  match(input)
-    .with(AttributeKindV1.CERTIFIED, () => persistentAttributeKind.certified)
-    .with(AttributeKindV1.DECLARED, () => persistentAttributeKind.declared)
-    .with(AttributeKindV1.VERIFIED, () => persistentAttributeKind.verified)
-    .otherwise(() => {
-      throw new Error(`Invalid AttributeKind: ${JSON.stringify(input)}`); // Force exhaustive match
-    });
+): PersistentAttributeKind => {
+  switch (input) {
+    case AttributeKindV1.CERTIFIED:
+      return persistentAttributeKind.certified;
+    case AttributeKindV1.DECLARED:
+      return persistentAttributeKind.declared;
+    case AttributeKindV1.VERIFIED:
+      return persistentAttributeKind.verified;
+    case AttributeKindV1.UNSPECIFIED$:
+      throw new Error(`Unspecified AttributeKind: ${JSON.stringify(input)}`); // Force exhaustive match
+  }
+};
 
 export const fromAttributeV1 = (input: AttributeV1): PersistentAttribute => ({
   ...input,
