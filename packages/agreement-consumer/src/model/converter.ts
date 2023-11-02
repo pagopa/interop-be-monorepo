@@ -11,7 +11,6 @@ import {
   StampsV1,
   StampV1,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
 
 export const fromDocumentV1 = (
   input: AgreementDocumentV1
@@ -48,18 +47,26 @@ export const fromAgreementStamps = (
 
 export const fromAgreementState = (
   input: AgreementStateV1
-): PersistentAgreementState =>
-  match(input)
-    .with(AgreementStateV1.ACTIVE, () => persistentAgreementState.active)
-    .with(AgreementStateV1.SUSPENDED, () => persistentAgreementState.suspended)
-    .with(AgreementStateV1.ARCHIVED, () => persistentAgreementState.archived)
-    .with(AgreementStateV1.PENDING, () => persistentAgreementState.pending)
-    .with(
-      AgreementStateV1.MISSING_CERTIFIED_ATTRIBUTES,
-      () => persistentAgreementState.missingCertifiedAttributes
-    )
-    .with(AgreementStateV1.REJECTED, () => persistentAgreementState.rejected)
-    .otherwise(() => persistentAgreementState.draft);
+): PersistentAgreementState => {
+  switch (input) {
+    case AgreementStateV1.ACTIVE:
+      return persistentAgreementState.active;
+    case AgreementStateV1.SUSPENDED:
+      return persistentAgreementState.suspended;
+    case AgreementStateV1.ARCHIVED:
+      return persistentAgreementState.archived;
+    case AgreementStateV1.DRAFT:
+      return persistentAgreementState.draft;
+    case AgreementStateV1.PENDING:
+      return persistentAgreementState.pending;
+    case AgreementStateV1.MISSING_CERTIFIED_ATTRIBUTES:
+      return persistentAgreementState.missingCertifiedAttributes;
+    case AgreementStateV1.REJECTED:
+      return persistentAgreementState.rejected;
+    case AgreementStateV1.UNSPECIFIED$:
+      throw new Error("Unspecified agreement state");
+  }
+};
 
 export const fromAgreementV1 = (input: AgreementV1): PersistentAgreement => ({
   ...input,
