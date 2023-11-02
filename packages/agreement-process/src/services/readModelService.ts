@@ -260,6 +260,11 @@ export const readModelService = {
                 },
               },
             },
+            {
+              $match: {
+                upgradableDescriptor: { $ne: [] },
+              },
+            },
           ]
         : []),
       {
