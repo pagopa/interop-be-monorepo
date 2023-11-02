@@ -46,8 +46,8 @@ export const readModelService = {
       origin,
     }: {
       kinds: AttributeKind[];
-      name?: string | undefined;
-      origin?: string | undefined;
+      name?: string;
+      origin?: string;
     },
     offset: number,
     limit: number
