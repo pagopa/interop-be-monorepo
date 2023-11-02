@@ -50,6 +50,17 @@ type FilterCriteria =
       };
     };
 
+type FindCriteriaSpecific =
+  | { type: "id"; data: string }
+  | { type: "name"; data: string }
+  | {
+      type: "origin-code";
+      data: {
+        origin: string;
+        code: string;
+      };
+    };
+
 export const readModelService = {
   async getAttributes(
     filter: FilterCriteria,
@@ -123,53 +134,28 @@ export const readModelService = {
     };
   },
 
-  async getAttributeById(
-    id: string
+  async getAttribute(
+    filter: FindCriteriaSpecific
   ): Promise<WithMetadata<AttributeTmp> | undefined> {
-    const data = await attributes.findOne(
-      { "data.id": id },
-      { projection: { data: true, metadata: true } }
-    );
-
-    if (data) {
-      const result = z
-        .object({
-          metadata: z.object({ version: z.number() }),
-          data: AttributeTmp,
-        })
-        .safeParse(data);
-
-      if (!result.success) {
-        logger.error(
-          `Unable to parse attribute item: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
-        );
-
-        throw ErrorTypes.GenericError;
-      }
-
-      return {
-        data: result.data.data,
-        metadata: { version: result.data.metadata.version },
-      };
-    }
-
-    return undefined;
-  },
-
-  async getAttributeByName(
-    name: string
-  ): Promise<WithMetadata<AttributeTmp> | undefined> {
-    const data = await attributes.findOne(
-      {
+    const findCriteria = match(filter)
+      .with({ type: "id" }, ({ data }) => ({
+        "data.id": data,
+      }))
+      .with({ type: "name" }, ({ data }) => ({
         "data.name": {
-          $regex: `^${name}$$`,
+          $regex: `^${data}$$`,
           $options: "i",
         },
-      },
-      { projection: { data: true, metadata: true } }
-    );
+      }))
+      .with({ type: "origin-code" }, ({ data }) => ({
+        "data.code": data.code,
+        "data.origin": data.origin,
+      }))
+      .exhaustive();
+
+    const data = await attributes.findOne(findCriteria, {
+      projection: { data: true, metadata: true },
+    });
 
     if (data) {
       const result = z
@@ -189,48 +175,6 @@ export const readModelService = {
         throw ErrorTypes.GenericError;
       }
 
-      return {
-        data: result.data.data,
-        metadata: { version: result.data.metadata.version },
-      };
-    }
-    return undefined;
-  },
-  async getAttributeByOriginAndCode({
-    origin,
-    code,
-  }: {
-    origin: string;
-    code: string;
-  }): Promise<WithMetadata<AttributeTmp> | undefined> {
-    const codeFilter = {
-      "data.code": code,
-    };
-    const originFilter = {
-      "data.origin": origin,
-    };
-    const data = await attributes.findOne(
-      {
-        codeFilter,
-        originFilter,
-      },
-      { projection: { data: true, metadata: true } }
-    );
-    if (data) {
-      const result = z
-        .object({
-          metadata: z.object({ version: z.number() }),
-          data: AttributeTmp,
-        })
-        .safeParse(data);
-      if (!result.success) {
-        logger.error(
-          `Unable to parse attribute item: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
-        );
-        throw ErrorTypes.GenericError;
-      }
       return {
         data: result.data.data,
         metadata: { version: result.data.metadata.version },
