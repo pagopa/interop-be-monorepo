@@ -41,10 +41,12 @@ async function getTotalCount(
 export const readModelService = {
   async getAttributes(
     {
+      ids,
       kinds,
       name,
       origin,
     }: {
+      ids?: string[];
       kinds: AttributeKind[];
       name?: string | undefined;
       origin?: string | undefined;
@@ -52,6 +54,13 @@ export const readModelService = {
     offset: number,
     limit: number
   ): Promise<ListResult<AttributeTmp>> {
+    const idsFilter = ids
+      ? {
+          "data.id": {
+            $in: ids,
+          },
+        }
+      : {};
     const nameFilter = name
       ? {
           "data.name": {
@@ -68,6 +77,7 @@ export const readModelService = {
     const aggregationPipeline = [
       {
         $match: {
+          ...idsFilter,
           ...nameFilter,
           ...originFilter,
           ...arrayToFilter(kinds, (kinds) => ({
@@ -138,41 +148,6 @@ export const readModelService = {
     }
 
     return undefined;
-  },
-
-  async getAttributesByIds(
-    ids: string[],
-    offset: number,
-    limit: number
-  ): Promise<ListResult<AttributeTmp>> {
-    const aggregationPipeline = [
-      {
-        $match: {
-          "data.id": {
-            $in: ids,
-          },
-        },
-      },
-    ];
-    const data = await attributes
-      .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }])
-      .toArray();
-
-    const result = z.array(AttributeTmp).safeParse(data.map((d) => d.data));
-    if (!result.success) {
-      logger.error(
-        `Unable to parse attributes items: result ${JSON.stringify(
-          result
-        )} - data ${JSON.stringify(data)} `
-      );
-      throw ErrorTypes.GenericError;
-    }
-    return {
-      results: result.data,
-      totalCount: await getTotalCount(
-        attributes.aggregate([...aggregationPipeline, { $count: "count" }])
-      ),
-    };
   },
 
   async getAttributeByName(
