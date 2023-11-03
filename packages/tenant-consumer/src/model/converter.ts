@@ -8,15 +8,15 @@ import {
   TenantV1,
   TenantVerifierV1,
   TenantFeatureV1,
-  TenantFeature,
   TenantMailV1,
-  TenantMail,
+  Mail,
   TenantMailKindV1,
-  TenantMailKind,
-  tenantMailKind,
+  MailKind,
+  mailKind,
   TenantKindV1,
   TenantKind,
   tenantKind,
+  TenantFeatureCertifier,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -33,26 +33,28 @@ export const fromTenantKindV1 = (input: TenantKindV1): TenantKind => {
   }
 };
 
-export const fromTenantMailKindV1 = (
-  input: TenantMailKindV1
-): TenantMailKind => {
+export const fromTenantMailKindV1 = (input: TenantMailKindV1): MailKind => {
   switch (input) {
     case TenantMailKindV1.CONTACT_EMAIL:
-      return tenantMailKind.contactMail;
+      return mailKind.contactMail;
     case TenantMailKindV1.UNSPECIFIED$:
       throw new Error("Unspecified tenant mail kind");
   }
 };
 
-export const fromTenantMailV1 = (input: TenantMailV1): TenantMail => ({
+export const fromTenantMailV1 = (input: TenantMailV1): Mail => ({
   address: input.address,
   description: input.description,
   createdAt: new Date(Number(input.createdAt)),
   kind: fromTenantMailKindV1(input.kind),
 });
 
-export const fromTenantFeatureV1 = (input: TenantFeatureV1): TenantFeature =>
-  match<TenantFeatureV1["sealedValue"], TenantFeature>(input.sealedValue)
+export const fromTenantFeatureV1 = (
+  input: TenantFeatureV1
+): TenantFeatureCertifier =>
+  match<TenantFeatureV1["sealedValue"], TenantFeatureCertifier>(
+    input.sealedValue
+  )
     .with({ oneofKind: "certifier" }, ({ certifier }) => ({
       type: "Certifier",
       certifierId: certifier.certifierId,
