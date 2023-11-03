@@ -1,33 +1,33 @@
 import {
-  PersistentTenant,
-  PersistentTenantAttribute,
-  PersistentTenantVerifier,
-  PersistentTenantRevoker,
+  Tenant,
+  TenantAttribute,
+  TenantVerifier,
+  TenantRevoker,
   TenantAttributeV1,
   TenantRevokerV1,
   TenantV1,
   TenantVerifierV1,
   TenantFeatureV1,
-  PersistentTenantFeature,
+  TenantFeature,
   TenantMailV1,
-  PersistentTenantMail,
+  TenantMail,
   TenantMailKindV1,
-  PersistentTenantMailKind,
-  persistentTenantMailKind,
+  TenantMailKind,
+  tenantMailKind,
   TenantKindV1,
-  PersistentTenantKind,
-  persistentTenantKind,
+  TenantKind,
+  tenantKind,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
-export const fromTenantKindV1 = (input: TenantKindV1): PersistentTenantKind => {
+export const fromTenantKindV1 = (input: TenantKindV1): TenantKind => {
   switch (input) {
     case TenantKindV1.GSP:
-      return persistentTenantKind.gsp;
+      return tenantKind.gsp;
     case TenantKindV1.PA:
-      return persistentTenantKind.pa;
+      return tenantKind.pa;
     case TenantKindV1.PRIVATE:
-      return persistentTenantKind.private;
+      return tenantKind.private;
     case TenantKindV1.UNSPECIFIED$:
       throw new Error("Unspecified tenant kind");
   }
@@ -35,42 +35,36 @@ export const fromTenantKindV1 = (input: TenantKindV1): PersistentTenantKind => {
 
 export const fromTenantMailKindV1 = (
   input: TenantMailKindV1
-): PersistentTenantMailKind => {
+): TenantMailKind => {
   switch (input) {
     case TenantMailKindV1.CONTACT_EMAIL:
-      return persistentTenantMailKind.contactMail;
+      return tenantMailKind.contactMail;
     case TenantMailKindV1.UNSPECIFIED$:
       throw new Error("Unspecified tenant mail kind");
   }
 };
 
-export const fromTenantMailV1 = (
-  input: TenantMailV1
-): PersistentTenantMail => ({
+export const fromTenantMailV1 = (input: TenantMailV1): TenantMail => ({
   address: input.address,
   description: input.description,
   createdAt: new Date(Number(input.createdAt)),
   kind: fromTenantMailKindV1(input.kind),
 });
 
-export const fromTenantFeatureV1 = (
-  input: TenantFeatureV1
-): PersistentTenantFeature =>
-  match<TenantFeatureV1["sealedValue"], PersistentTenantFeature>(
-    input.sealedValue
-  )
+export const fromTenantFeatureV1 = (input: TenantFeatureV1): TenantFeature =>
+  match<TenantFeatureV1["sealedValue"], TenantFeature>(input.sealedValue)
     .with({ oneofKind: "certifier" }, ({ certifier }) => ({
-      type: "PersistentCertifier",
+      type: "Certifier",
       certifierId: certifier.certifierId,
     }))
     .with({ oneofKind: undefined }, () => {
-      throw new Error("Unable to deserialize PersistentTenantFeature");
+      throw new Error("Unable to deserialize TenantFeature");
     })
     .exhaustive();
 
 export const fromTenantVerifierV1 = (
   input: TenantVerifierV1
-): PersistentTenantVerifier => ({
+): TenantVerifier => ({
   id: input.id,
   verificationDate: new Date(Number(input.verificationDate)),
   expirationDate: input.expirationDate
@@ -81,9 +75,7 @@ export const fromTenantVerifierV1 = (
     : undefined,
 });
 
-export const fromTenantRevokerV1 = (
-  input: TenantRevokerV1
-): PersistentTenantRevoker => ({
+export const fromTenantRevokerV1 = (input: TenantRevokerV1): TenantRevoker => ({
   id: input.id,
   expirationDate: input.expirationDate
     ? new Date(Number(input.expirationDate))
@@ -97,16 +89,14 @@ export const fromTenantRevokerV1 = (
 
 export const fromTenantAttributesV1 = (
   input: TenantAttributeV1
-): PersistentTenantAttribute =>
-  match<TenantAttributeV1["sealedValue"], PersistentTenantAttribute>(
-    input.sealedValue
-  )
+): TenantAttribute =>
+  match<TenantAttributeV1["sealedValue"], TenantAttribute>(input.sealedValue)
     .with({ oneofKind: "certifiedAttribute" }, ({ certifiedAttribute }) => ({
       id: certifiedAttribute.id,
       assignmentTimestamp: new Date(
         Number(certifiedAttribute.assignmentTimestamp)
       ),
-      type: "PersistentCertifiedAttribute",
+      type: "CertifiedAttribute",
     }))
     .with({ oneofKind: "verifiedAttribute" }, ({ verifiedAttribute }) => ({
       id: verifiedAttribute.id,
@@ -115,20 +105,20 @@ export const fromTenantAttributesV1 = (
       ),
       verifiedBy: verifiedAttribute.verifiedBy.map(fromTenantVerifierV1),
       revokedBy: verifiedAttribute.revokedBy.map(fromTenantRevokerV1),
-      type: "PersistentVerifiedAttribute",
+      type: "VerifiedAttribute",
     }))
     .with({ oneofKind: "declaredAttribute" }, ({ declaredAttribute }) => ({
       id: declaredAttribute.id,
       assignmentTimestamp: new Date(
         Number(declaredAttribute.assignmentTimestamp)
       ),
-      type: "PersistentDeclaredAttribute",
+      type: "DeclaredAttribute",
     }))
     .otherwise(() => {
       throw new Error("Booom"); // Ported "as is" from Scala codebase :D
     });
 
-export const fromTenantV1 = (input: TenantV1): PersistentTenant => {
+export const fromTenantV1 = (input: TenantV1): Tenant => {
   /**
    * The `externalId` field is required in the TenantV1 protobuf model but
    * for some reasons the @protobuf-ts/protoc library generates it as optional.

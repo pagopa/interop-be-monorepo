@@ -1,8 +1,4 @@
-import {
-  EService,
-  PersistentAgreement,
-  PersistentTenant,
-} from "pagopa-interop-models";
+import { EService, PersistentAgreement, Tenant } from "pagopa-interop-models";
 import { Collection, Db, MongoClient } from "mongodb";
 import { ReadModelDbConfig } from "../index.js";
 
@@ -20,7 +16,7 @@ export class ReadModelRepository {
   }>;
 
   public tenants: Collection<{
-    data: PersistentTenant;
+    data: Tenant;
     metadata: { version: number };
   }>;
 
