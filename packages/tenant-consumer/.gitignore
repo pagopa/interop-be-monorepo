@@ -1,0 +1,44 @@
+# Created by https://www.toptal.com/developers/gitignore/api/node,visualstudiocode
+# Edit at https://www.toptal.com/developers/gitignore?templates=node,visualstudiocode
+
+### Node ###
+# Logs
+logs
+*.log
+.pnpm-debug.log*
+
+# Dependency directories
+node_modules/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional stylelint cache
+.stylelintcache
+
+# Output of 'npm pack'
+*.tgz
+
+
+# Stores VSCode versions used for testing VSCode extensions
+.vscode-test
+
+
+### VisualStudioCode ###
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+
+# Local History for Visual Studio Code
+.history/
+
+dist
