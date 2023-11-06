@@ -30,7 +30,6 @@ paths:
   /internal/tenants:
     parameters:
       - $ref: '#/components/parameters/CorrelationIdHeader'
-      - $ref: '#/components/parameters/IpAddress'
     post:
       tags:
         - tenant
@@ -60,7 +59,6 @@ paths:
   /internal/origin/{tOrigin}/externalId/{tExternalId}/attributes/origin/{aOrigin}/externalId/{aExternalId}:
     parameters:
       - $ref: '#/components/parameters/CorrelationIdHeader'
-      - $ref: '#/components/parameters/IpAddress'
       - name: tOrigin
         in: path
         description: the origin of the tenant
@@ -128,7 +126,6 @@ paths:
   /m2m/tenants:
     parameters:
       - $ref: '#/components/parameters/CorrelationIdHeader'
-      - $ref: '#/components/parameters/IpAddress'
     post:
       tags:
         - tenant
@@ -164,7 +161,6 @@ paths:
   /m2m/origin/{origin}/externalId/{externalId}/attributes/{code}:
     parameters:
       - $ref: '#/components/parameters/CorrelationIdHeader'
-      - $ref: '#/components/parameters/IpAddress'
       - name: origin
         in: path
         description: the origin of the tenant
@@ -212,7 +208,6 @@ paths:
   /selfcare/tenants:
     parameters:
       - $ref: '#/components/parameters/CorrelationIdHeader'
-      - $ref: '#/components/parameters/IpAddress'
     post:
       tags:
         - tenant
@@ -242,7 +237,6 @@ paths:
   /consumers:
     parameters:
       - $ref: '#/components/parameters/CorrelationIdHeader'
-      - $ref: '#/components/parameters/IpAddress'
       - in: query
         name: name
         schema:
@@ -283,7 +277,6 @@ paths:
   /producers:
     parameters:
       - $ref: '#/components/parameters/CorrelationIdHeader'
-      - $ref: '#/components/parameters/IpAddress'
       - in: query
         name: name
         schema:
@@ -324,7 +317,6 @@ paths:
   /tenants:
     parameters:
       - $ref: '#/components/parameters/CorrelationIdHeader'
-      - $ref: '#/components/parameters/IpAddress'
       - in: query
         name: name
         schema:
@@ -365,7 +357,6 @@ paths:
   /tenants/selfcare/{selfcareId}:
     parameters:
       - $ref: '#/components/parameters/CorrelationIdHeader'
-      - $ref: '#/components/parameters/IpAddress'
       - name: selfcareId
         in: path
         description: the selfcare id
@@ -394,7 +385,6 @@ paths:
   /tenants/{id}:
     parameters:
       - $ref: '#/components/parameters/CorrelationIdHeader'
-      - $ref: '#/components/parameters/IpAddress'
       - name: id
         in: path
         description: the tenant id
@@ -447,7 +437,6 @@ paths:
   /tenants/origin/{origin}/code/{code}:
     parameters:
       - $ref: '#/components/parameters/CorrelationIdHeader'
-      - $ref: '#/components/parameters/IpAddress'
       - name: origin
         in: path
         description: the tenant origin
@@ -481,7 +470,6 @@ paths:
   /tenants/attributes/declared:
     parameters:
       - $ref: '#/components/parameters/CorrelationIdHeader'
-      - $ref: '#/components/parameters/IpAddress'
     post:
       tags:
         - tenant
@@ -509,7 +497,6 @@ paths:
   /tenants/attributes/declared/{attributeId}:
     parameters:
       - $ref: '#/components/parameters/CorrelationIdHeader'
-      - $ref: '#/components/parameters/IpAddress'
       - name: attributeId
         in: path
         description: Attribute id
@@ -544,7 +531,6 @@ paths:
   /tenants/{tenantId}/attributes/verified:
     parameters:
       - $ref: '#/components/parameters/CorrelationIdHeader'
-      - $ref: '#/components/parameters/IpAddress'
       - name: tenantId
         in: path
         description: Tenant id which attribute needs to be verified
@@ -585,7 +571,6 @@ paths:
   /tenants/{tenantId}/attributes/verified/{attributeId}:
     parameters:
       - $ref: '#/components/parameters/CorrelationIdHeader'
-      - $ref: '#/components/parameters/IpAddress'
       - name: tenantId
         in: path
         description: Tenant id which attribute needs to be verified
@@ -669,7 +654,6 @@ paths:
   /tenants/{tenantId}/attributes/verified/{attributeId}/verifier/{verifierId}:
     parameters:
       - $ref: '#/components/parameters/CorrelationIdHeader'
-      - $ref: '#/components/parameters/IpAddress'
       - name: tenantId
         in: path
         description: Tenant id which attribute needs to be verified
@@ -742,11 +726,6 @@ components:
       in: header
       name: X-Correlation-Id
       required: true
-      schema:
-        type: string
-    IpAddress:
-      in: header
-      name: X-Forwarded-For
       schema:
         type: string
   schemas:
