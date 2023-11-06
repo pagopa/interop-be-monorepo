@@ -6,7 +6,11 @@ import {
   ZodiosContext,
   authorizationMiddleware,
 } from "pagopa-interop-commons";
+import { tenantNotFound } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
+import { tenantToApiTenant } from "../model/domain/apiConverter.js";
+import { ApiError, makeApiError } from "../model/types.js";
+import { readModelService } from "../services/readModelService.js";
 
 const tenantsRouter = (
   ctx: ZodiosContext
@@ -60,7 +64,23 @@ const tenantsRouter = (
         SECURITY_ROLE,
         SUPPORT_ROLE,
       ]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const tenant = await readModelService.getTenant(req.params.id);
+
+          if (tenant) {
+            return res.status(200).json(tenantToApiTenant(tenant.data)).end();
+          } else {
+            return res
+              .status(404)
+              .json(makeApiError(tenantNotFound(req.params.id)))
+              .end();
+          }
+        } catch (error) {
+          const errorRes: ApiError = makeApiError(error);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get(
       "/tenants/origin/:origin/code/:code",
@@ -71,8 +91,28 @@ const tenantsRouter = (
         SECURITY_ROLE,
         SUPPORT_ROLE,
       ]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const { origin, code } = req.params;
+
+          const tenant = await readModelService.getTenantByExternalId({
+            origin,
+            code,
+          });
+          if (tenant) {
+            return res.status(200).json(tenantToApiTenant(tenant.data)).end();
+          } else {
+            return res
+              .status(404)
+              .json(makeApiError(tenantNotFound(`${origin}/${code}`)))
+              .end();
+          }
+        } catch (error) {
+          return res.status(500).end();
+        }
+      }
     )
+
     .get(
       "/tenants/selfcare/:selfcareId",
       authorizationMiddleware([
@@ -83,7 +123,25 @@ const tenantsRouter = (
         INTERNAL_ROLE,
         SUPPORT_ROLE,
       ]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const tenant = await readModelService.getTenantBySelfcareId(
+            req.params.selfcareId
+          );
+
+          if (tenant) {
+            return res.status(200).json(tenantToApiTenant(tenant.data)).end();
+          } else {
+            return res
+              .status(404)
+              .json(makeApiError(tenantNotFound(req.params.selfcareId)))
+              .end();
+          }
+        } catch (error) {
+          const errorRes: ApiError = makeApiError(error);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/internal/tenants",

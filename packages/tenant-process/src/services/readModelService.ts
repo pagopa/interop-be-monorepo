@@ -1,10 +1,10 @@
-// import { z } from "zod";
-// import { logger, ReadModelRepository } from "pagopa-interop-commons";
-// import { ErrorTypes, WithMetadata } from "pagopa-interop-models";
-// import { config } from "../utilities/config.js";
-// import { PersistentTenant } from "./../../../models/src/tenant/tenant.js";
+import { z } from "zod";
+import { logger, ReadModelRepository } from "pagopa-interop-commons";
+import { ErrorTypes, WithMetadata } from "pagopa-interop-models";
+import { Tenant } from "pagopa-interop-models";
+import { config } from "../utilities/config.js";
 
-// const { tenants } = ReadModelRepository.init(config);
+const { tenants } = ReadModelRepository.init(config);
 
 /*
 function arrayToFilter<T, F extends object>(
@@ -33,4 +33,108 @@ async function getTotalCount(
 }
 */
 
-export const readModelService = {};
+export const readModelService = {
+  async getTenant(id: string): Promise<WithMetadata<Tenant> | undefined> {
+    const data = await tenants.findOne(
+      { "data.id": id },
+      { projection: { data: true, metadata: true } }
+    );
+    if (data) {
+      const result = z
+        .object({
+          metadata: z.object({ version: z.number() }),
+          data: Tenant,
+        })
+        .safeParse(data);
+
+      if (!result.success) {
+        logger.error(
+          `Unable to parse tenant item: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+
+        throw ErrorTypes.GenericError;
+      }
+
+      return {
+        data: result.data.data,
+        metadata: { version: result.data.metadata.version },
+      };
+    }
+
+    return undefined;
+  },
+
+  async getTenantByExternalId({
+    origin,
+    code,
+  }: {
+    origin: string;
+    code: string;
+  }): Promise<WithMetadata<Tenant> | undefined> {
+    const data = await tenants.findOne(
+      {
+        "data.externalId.value": code,
+        "data.externalId.origin": origin,
+      },
+      { projection: { data: true, metadata: true } }
+    );
+    if (data) {
+      const result = z
+        .object({
+          metadata: z.object({ version: z.number() }),
+          data: Tenant,
+        })
+        .safeParse(data);
+      if (!result.success) {
+        logger.error(
+          `Unable to parse tenant item: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+        throw ErrorTypes.GenericError;
+      }
+      return {
+        data: result.data.data,
+        metadata: { version: result.data.metadata.version },
+      };
+    }
+    return undefined;
+  },
+
+  async getTenantBySelfcareId(
+    selfcareId: string
+  ): Promise<WithMetadata<Tenant> | undefined> {
+    const data = await tenants.findOne(
+      { "data.selfcareId": selfcareId },
+      { projection: { data: true, metadata: true } }
+    );
+
+    if (data) {
+      const result = z
+        .object({
+          metadata: z.object({ version: z.number() }),
+          data: Tenant,
+        })
+        .safeParse(data);
+
+      if (!result.success) {
+        logger.error(
+          `Unable to parse tenant item: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+
+        throw ErrorTypes.GenericError;
+      }
+
+      return {
+        data: result.data.data,
+        metadata: { version: result.data.metadata.version },
+      };
+    }
+
+    return undefined;
+  },
+};

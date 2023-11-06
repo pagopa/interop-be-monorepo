@@ -96,6 +96,11 @@ export const ErrorTypes = {
     httpStatus: 400,
     title: "Agreement not in expected state",
   },
+  TenantNotFound: {
+    code: "0011",
+    httpStatus: 404,
+    title: "Tenant not found",
+  },
 } as const;
 
 export type ErrorType = (typeof ErrorTypes)[keyof typeof ErrorTypes];
@@ -210,6 +215,13 @@ export function agreementNotFound(agreementId: string): AgreementProcessError {
   return new AgreementProcessError(
     `Agreement ${agreementId} not found`,
     ErrorTypes.AgreementNotFound
+  );
+}
+
+export function tenantNotFound(tenantId: string): TenantProcessError {
+  return new TenantProcessError(
+    `Tenant ${tenantId} not found`,
+    ErrorTypes.TenantNotFound
   );
 }
 
