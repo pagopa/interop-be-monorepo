@@ -7,6 +7,8 @@ import {
   authorizationMiddleware,
 } from "pagopa-interop-commons";
 import { api } from "../model/generated/api.js";
+import { readModelService } from "../services/readModelService.js";
+import { tenantToApiTenant } from "../model/domain/apiConverter.js";
 
 const tenantsRouter = (
   ctx: ZodiosContext
@@ -29,7 +31,24 @@ const tenantsRouter = (
         SECURITY_ROLE,
         SUPPORT_ROLE,
       ]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const { name, offset, limit } = req.query;
+          const consumers = await readModelService.getConsumers(
+            name,
+            req.ctx.authData.organizationId,
+            offset,
+            limit
+          );
+
+          return res.status(200).json({
+            results: consumers.results.map(tenantToApiTenant),
+            totalCount: consumers.totalCount,
+          });
+        } catch (error) {
+          return res.status(500).send();
+        }
+      }
     )
     .get(
       "/producers",
@@ -39,7 +58,24 @@ const tenantsRouter = (
         SECURITY_ROLE,
         SUPPORT_ROLE,
       ]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const { name, offset, limit } = req.query;
+          const producers = await readModelService.getConsumers(
+            name,
+            req.ctx.authData.organizationId,
+            offset,
+            limit
+          );
+
+          return res.status(200).json({
+            results: producers.results.map(tenantToApiTenant),
+            totalCount: producers.totalCount,
+          });
+        } catch (error) {
+          return res.status(500).send();
+        }
+      }
     )
     .get(
       "/tenants",
