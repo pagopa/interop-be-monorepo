@@ -4,33 +4,38 @@ import {
   PersistentAgreement,
   Tenant,
 } from "pagopa-interop-models";
-import {
-  AggregationCursor,
-  Collection,
-  Db,
-  Document,
-  MongoClient,
-} from "mongodb";
+import { Collection, Db, MongoClient } from "mongodb";
 import { z } from "zod";
 import { ReadModelDbConfig, logger } from "../index.js";
+
+export type EServiceCollection = Collection<{
+  data: EService | undefined;
+  metadata: { version: number };
+}>;
+
+export type AgreementCollection = Collection<{
+  data: PersistentAgreement;
+  metadata: { version: number };
+}>;
+
+export type TenantCollection = Collection<{
+  data: Tenant;
+  metadata: { version: number };
+}>;
+
+export type Collections =
+  | EServiceCollection
+  | AgreementCollection
+  | TenantCollection;
 
 export class ReadModelRepository {
   private static instance: ReadModelRepository;
 
-  public eservices: Collection<{
-    data: EService | undefined;
-    metadata: { version: number };
-  }>;
+  public eservices: EServiceCollection;
 
-  public agreements: Collection<{
-    data: PersistentAgreement;
-    metadata: { version: number };
-  }>;
+  public agreements: AgreementCollection;
 
-  public tenants: Collection<{
-    data: Tenant;
-    metadata: { version: number };
-  }>;
+  public tenants: TenantCollection;
 
   private client: MongoClient;
   private db: Db;
@@ -64,8 +69,11 @@ export class ReadModelRepository {
   }
 
   public static async getTotalCount(
-    query: AggregationCursor<Document>
+    collection: Collections,
+    aggregation: object[]
   ): Promise<number> {
+    const query = collection.aggregate([...aggregation, { $count: "count" }]);
+
     const data = await query.toArray();
     const result = z.array(z.object({ count: z.number() })).safeParse(data);
 

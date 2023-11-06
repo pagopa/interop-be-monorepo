@@ -299,7 +299,8 @@ export const readModelService = {
     return {
       results: result.data,
       totalCount: await ReadModelRepository.getTotalCount(
-        eservices.aggregate([...aggregationPipeline, { $count: "count" }])
+        eservices,
+        aggregationPipeline
       ),
     };
   },
