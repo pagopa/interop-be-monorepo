@@ -21,7 +21,12 @@ export const TenantFeatureCertifier = z.object({
   type: z.literal("Certifier"),
   certifierId: z.string(),
 });
+
 export type TenantFeatureCertifier = z.infer<typeof TenantFeatureCertifier>;
+
+export const TenantFeature = TenantFeatureCertifier; // It will be extended with other features, we will use this union to discriminate them
+
+export type TenantFeature = z.infer<typeof TenantFeature>;
 
 export const TenantCertifiedAttribute = z.object({
   assignmentTimestamp: z.coerce.date(),
@@ -93,7 +98,7 @@ export const Tenant = z.object({
   kind: TenantKind.optional(),
   selfcareId: z.string().optional(),
   externalId: ExternalId,
-  features: z.array(TenantFeatureCertifier),
+  features: z.array(TenantFeature),
   attributes: z.array(TenantAttribute),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date().optional(),

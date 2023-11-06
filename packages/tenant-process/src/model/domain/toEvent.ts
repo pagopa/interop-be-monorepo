@@ -4,7 +4,7 @@ import {
   Tenant,
   TenantAttribute,
   TenantAttributeV1,
-  TenantFeatureCertifier,
+  TenantFeature,
   TenantFeatureV1,
   TenantKind,
   TenantKindV1,
@@ -19,15 +19,17 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
-export function toFeatureV1(feature: TenantFeatureCertifier): TenantFeatureV1 {
-  return {
-    sealedValue: {
-      oneofKind: "certifier",
-      certifier: {
-        certifierId: feature.certifierId,
+export function toFeatureV1(feature: TenantFeature): TenantFeatureV1 {
+  return match<TenantFeature, TenantFeatureV1>(feature)
+    .with({ type: "Certifier" }, (feature) => ({
+      sealedValue: {
+        oneofKind: "certifier",
+        certifier: {
+          certifierId: feature.certifierId,
+        },
       },
-    },
-  };
+    }))
+    .exhaustive();
 }
 
 export function toTenantVerifierV1(verifier: TenantVerifier): TenantVerifierV1 {
