@@ -14,8 +14,8 @@ import {
   agreementEventToBinaryData,
   agreementNotInExpectedState,
   persistentAgreementState,
-  eServiceNotFound,
   tenantIdNotFound,
+  agreementEServiceNotFound,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import { config } from "../utilities/config.js";
@@ -126,7 +126,7 @@ export async function createAgreementLogic(
   const eservice = await readModelService.getEServiceById(agreement.eserviceId);
 
   if (!eservice) {
-    throw eServiceNotFound(agreement.eserviceId);
+    throw agreementEServiceNotFound(agreement.eserviceId);
   }
 
   const descriptor = validateCreationOnDescriptor(

@@ -100,8 +100,13 @@ export const ErrorTypes = {
   },
   AgreementAlreadyExists: {
     code: "0011",
-    httpStatus: 404,
+    httpStatus: 409,
     title: "Agreement already exists",
+  },
+  AgreementESerivceNotFound: {
+    code: "0007",
+    httpStatus: 400,
+    title: "EService not found",
   },
   OperationNotAllowed: {
     code: "0007",
@@ -121,6 +126,12 @@ export const ErrorTypes = {
   TenantIdNotFound: {
     code: "0020",
     httpStatus: 404,
+    title: "Tenant not found",
+  },
+  // TODO: refactor this error code when diffent building strategy are implemented
+  TenantIdNotFoundException: {
+    code: "0020",
+    httpStatus: 500,
     title: "Tenant not found",
   },
 } as const;
@@ -152,6 +163,15 @@ export function eServiceNotFound(eServiceId: string): CatalogProcessError {
   return new CatalogProcessError(
     `EService ${eServiceId} not found`,
     ErrorTypes.EServiceNotFound
+  );
+}
+
+export function agreementEServiceNotFound(
+  eServiceId: string
+): AgreementProcessError {
+  return new AgreementProcessError(
+    `EService ${eServiceId} not found`,
+    ErrorTypes.AgreementESerivceNotFound
   );
 }
 
