@@ -30,17 +30,18 @@ export const AgreementApprovalPolicy = z.enum([
 ]);
 export type AgreementApprovalPolicy = z.infer<typeof AgreementApprovalPolicy>;
 
-const Attribute = z.object({
+const EServiceAttribute = z.object({
   id: z.string().uuid(),
   explicitAttributeVerification: z.boolean(),
 });
+export type EServiceAttribute = z.infer<typeof EServiceAttribute>;
 
-const Attributes = z.object({
-  certified: z.array(z.array(Attribute)),
-  declared: z.array(z.array(Attribute)),
-  verified: z.array(z.array(Attribute)),
+const EServiceAttributes = z.object({
+  certified: z.array(z.array(EServiceAttribute)),
+  declared: z.array(z.array(EServiceAttribute)),
+  verified: z.array(z.array(EServiceAttribute)),
 });
-export type Attribute = z.infer<typeof Attribute>;
+export type EserviceAttributes = z.infer<typeof EServiceAttributes>;
 
 export const Document = z.object({
   id: z.string().uuid(),
@@ -71,7 +72,7 @@ export const Descriptor = z.object({
   suspendedAt: z.coerce.date().optional(),
   deprecatedAt: z.coerce.date().optional(),
   archivedAt: z.coerce.date().optional(),
-  attributes: Attributes,
+  attributes: EServiceAttributes,
 });
 export type Descriptor = z.infer<typeof Descriptor>;
 
@@ -81,7 +82,7 @@ export const EService = z.object({
   name: z.string(),
   description: z.string(),
   technology: Technology,
-  attributes: Attributes.optional(),
+  attributes: EServiceAttributes.optional(),
   descriptors: z.array(Descriptor),
   createdAt: z.coerce.date(),
 });
