@@ -134,6 +134,11 @@ export const ErrorTypes = {
     httpStatus: 500,
     title: "Tenant not found",
   },
+  AuthenticationSaslFailed: {
+    code: "9000",
+    httpStatus: 500,
+    title: "SASL authentication fails",
+  },
 } as const;
 
 export type ErrorType = (typeof ErrorTypes)[keyof typeof ErrorTypes];
@@ -324,6 +329,13 @@ export function tenantIdNotFound(tenantId: string): AgreementProcessError {
   return new AgreementProcessError(
     `Tenant ${tenantId} not found`,
     ErrorTypes.TenantIdNotFound
+  );
+}
+
+export function authenticationSaslFailed(message: string): ProcessError {
+  return new ProcessError(
+    `SALS Authentication fails with this error : ${message}`,
+    ErrorTypes.AuthenticationSaslFailed
   );
 }
 
