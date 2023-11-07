@@ -85,7 +85,7 @@ const agreementRouter = (
           req.body,
           req.ctx.authData
         );
-        return res.status(201).json({ id }).send();
+        return res.status(200).json({ id }).send();
       } catch (error) {
         const errorRes: ApiError = makeApiError(error);
         return res.status(errorRes.status).json(errorRes).end();
