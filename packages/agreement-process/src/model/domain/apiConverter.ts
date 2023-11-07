@@ -9,7 +9,7 @@ import {
   ApiAgreement,
   ApiAgreementDocument,
   ApiAgreementState,
-} from "./models.js";
+} from "../types.js";
 
 export function agreementStateToApiAgreementState(
   input: PersistentAgreementState

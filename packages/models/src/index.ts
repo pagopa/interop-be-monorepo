@@ -3,6 +3,7 @@ export * from "./agreement/agreementEvents.js";
 export * from "./errors.js";
 export * from "./eservice/eservice.js";
 export * from "./eservice/eserviceEvents.js";
+export * from "./tenant/tenant.js";
 export * from "./gen/v1/eservice/eservice.js";
 export * from "./gen/v1/eservice/events.js";
 export * from "./gen/v1/agreement/agreement.js";
