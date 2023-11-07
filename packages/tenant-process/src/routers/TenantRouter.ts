@@ -66,7 +66,7 @@ const tenantsRouter = (
       ]),
       async (req, res) => {
         try {
-          const tenant = await readModelService.getTenant(req.params.id);
+          const tenant = await readModelService.getTenantById(req.params.id);
 
           if (tenant) {
             return res.status(200).json(tenantToApiTenant(tenant.data)).end();

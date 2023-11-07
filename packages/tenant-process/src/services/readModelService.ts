@@ -6,39 +6,21 @@ import { config } from "../utilities/config.js";
 
 const { tenants } = ReadModelRepository.init(config);
 
-/*
-function arrayToFilter<T, F extends object>(
-  array: T[],
-  f: (array: T[]) => F
-): F | undefined {
-  return array.length > 0 ? f(array) : undefined;
-}
-
-async function getTotalCount(
-  query: AggregationCursor<Document>
-): Promise<number> {
-  const data = await query.toArray();
-  const result = z.array(z.object({ count: z.number() })).safeParse(data);
-
-  if (result.success) {
-    return result.data.length > 0 ? result.data[0].count : 0;
-  }
-
-  logger.error(
-    `Unable to get total count from aggregation pipeline: result ${JSON.stringify(
-      result
-    )} - data ${JSON.stringify(data)} `
-  );
-  throw ErrorTypes.GenericError;
-}
-*/
+type TenantInput =
+  | { "data.id": string }
+  | {
+      "data.externalId.value": string;
+      "data.externalId.origin": string;
+    }
+  | { "data.selfcareId": string };
 
 export const readModelService = {
-  async getTenant(id: string): Promise<WithMetadata<Tenant> | undefined> {
-    const data = await tenants.findOne(
-      { "data.id": id },
-      { projection: { data: true, metadata: true } }
-    );
+  async getTenant(
+    inputObject: TenantInput
+  ): Promise<WithMetadata<Tenant> | undefined> {
+    const data = await tenants.findOne(inputObject, {
+      projection: { data: true, metadata: true },
+    });
     if (data) {
       const result = z
         .object({
@@ -46,24 +28,24 @@ export const readModelService = {
           data: Tenant,
         })
         .safeParse(data);
-
       if (!result.success) {
         logger.error(
           `Unable to parse tenant item: result ${JSON.stringify(
             result
           )} - data ${JSON.stringify(data)} `
         );
-
         throw ErrorTypes.GenericError;
       }
-
       return {
         data: result.data.data,
         metadata: { version: result.data.metadata.version },
       };
     }
-
     return undefined;
+  },
+
+  async getTenantById(id: string): Promise<WithMetadata<Tenant> | undefined> {
+    return this.getTenant({ "data.id": id });
   },
 
   async getTenantByExternalId({
@@ -73,68 +55,15 @@ export const readModelService = {
     origin: string;
     code: string;
   }): Promise<WithMetadata<Tenant> | undefined> {
-    const data = await tenants.findOne(
-      {
-        "data.externalId.value": code,
-        "data.externalId.origin": origin,
-      },
-      { projection: { data: true, metadata: true } }
-    );
-    if (data) {
-      const result = z
-        .object({
-          metadata: z.object({ version: z.number() }),
-          data: Tenant,
-        })
-        .safeParse(data);
-      if (!result.success) {
-        logger.error(
-          `Unable to parse tenant item: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
-        );
-        throw ErrorTypes.GenericError;
-      }
-      return {
-        data: result.data.data,
-        metadata: { version: result.data.metadata.version },
-      };
-    }
-    return undefined;
+    return this.getTenant({
+      "data.externalId.value": code,
+      "data.externalId.origin": origin,
+    });
   },
 
   async getTenantBySelfcareId(
     selfcareId: string
   ): Promise<WithMetadata<Tenant> | undefined> {
-    const data = await tenants.findOne(
-      { "data.selfcareId": selfcareId },
-      { projection: { data: true, metadata: true } }
-    );
-
-    if (data) {
-      const result = z
-        .object({
-          metadata: z.object({ version: z.number() }),
-          data: Tenant,
-        })
-        .safeParse(data);
-
-      if (!result.success) {
-        logger.error(
-          `Unable to parse tenant item: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
-        );
-
-        throw ErrorTypes.GenericError;
-      }
-
-      return {
-        data: result.data.data,
-        metadata: { version: result.data.metadata.version },
-      };
-    }
-
-    return undefined;
+    return this.getTenant({ "data.selfcareId": selfcareId });
   },
 };
