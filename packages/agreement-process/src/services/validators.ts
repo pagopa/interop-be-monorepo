@@ -1,6 +1,4 @@
 import {
-  Attribute,
-  Attributes,
   Descriptor,
   DescriptorState,
   EService,
@@ -22,38 +20,6 @@ import {
 import { ApiAgreementPayload } from "../model/types.js";
 import { readModelService } from "./readModelService.js";
 
-const validateLatestDescriptor = (
-  eService: EService,
-  descriptorId: string,
-  allowedStates: DescriptorState[]
-): Descriptor => {
-  const recentActiveDescriptor = eService.descriptors
-    .filter((d) => d.state !== descriptorState.draft)
-    .sort((a, b) => Number(a.version) - Number(b.version))
-    .find((d) => d.id === descriptorId);
-
-  if (!recentActiveDescriptor) {
-    throw notLatestEServiceDescriptor(descriptorId);
-  }
-  validateDescriptorState(
-    eService.id,
-    descriptorId,
-    recentActiveDescriptor.state,
-    allowedStates
-  );
-
-  return recentActiveDescriptor;
-};
-
-const attributesSatisfied = (
-  requested: Attribute[][],
-  assigned: string[]
-): boolean =>
-  requested.every((attributeList) => {
-    const attributes = attributeList.map((a) => a.id);
-    return attributes.filter((a) => assigned.includes(a)).length > 0;
-  });
-
 const validateDescriptorState = (
   eserviceId: string,
   descriptorId: string,
@@ -65,29 +31,49 @@ const validateDescriptorState = (
   }
 };
 
-const certifiedAttributesSatisfied = (
-  eServiceAttributes: Attributes,
-  consumerAttributes: TenantAttribute[]
-): boolean =>
-  attributesSatisfied(
-    eServiceAttributes.certified,
-    consumerAttributes
-      .filter((a) => a.type === "certified" && !a.revocationTimestamp)
-      .map((a) => a.id)
+const validateLatestDescriptor = (
+  eService: EService,
+  descriptorId: string,
+  allowedStates: DescriptorState[]
+): Descriptor => {
+  const recentActiveDescriptors = eService.descriptors
+    .filter((d) => d.state !== descriptorState.draft && d.id === descriptorId)
+    .sort((a, b) => Number(b.version) - Number(a.version));
+
+  if (recentActiveDescriptors.length < 1) {
+    throw notLatestEServiceDescriptor(descriptorId);
+  }
+
+  const recentActiveDescriptor = recentActiveDescriptors[0];
+  validateDescriptorState(
+    eService.id,
+    descriptorId,
+    recentActiveDescriptor.state,
+    allowedStates
   );
+
+  return recentActiveDescriptor;
+};
 
 const certifiedAttributesDescriptorSatisfied = (
   descriptor: Descriptor,
   consumerAttributes: TenantAttribute[]
 ): boolean => {
-  const certifiedAttributes = consumerAttributes.filter(
-    (a) => a.type === tenantAttributeType.CERTIFIED
-  );
+  const descriptorAttributes = descriptor.attributes.certified;
+  const consumerCertifiedAttributesIds = consumerAttributes
+    .filter(
+      (att) =>
+        att.type === tenantAttributeType.CERTIFIED && !att.revocationTimestamp
+    )
+    .map((a) => a.id);
 
-  return certifiedAttributesSatisfied(
-    descriptor.attributes,
-    certifiedAttributes
-  );
+  return descriptorAttributes.every((attributeList) => {
+    const attributes = attributeList.map((a) => a.id);
+    return (
+      attributes.filter((a) => consumerCertifiedAttributesIds.includes(a))
+        .length > 0
+    );
+  });
 };
 
 const verifyConflictingAgreements = async (
