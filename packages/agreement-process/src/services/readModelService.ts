@@ -109,7 +109,7 @@ const getAgreements = async (
 
   if (!result.success) {
     logger.error(
-      `Unable to parse eservices items: result ${JSON.stringify(
+      `Unable to parse agreements items: result ${JSON.stringify(
         result
       )} - data ${JSON.stringify(data)} `
     );
