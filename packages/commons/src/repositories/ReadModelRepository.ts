@@ -1,6 +1,7 @@
 import {
   Agreement,
   EService,
+  EService,
   Tenant,
   genericError,
 } from "pagopa-interop-models";
