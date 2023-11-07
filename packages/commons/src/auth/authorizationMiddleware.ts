@@ -5,10 +5,11 @@ import {
 } from "@zodios/core";
 import { Request } from "express";
 import {
-  ProcessError,
-  ErrorTypes,
   Problem,
   makeApiProblem,
+  genericError,
+  ApiError,
+  unauthorizedError,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { z } from "zod";
@@ -20,7 +21,7 @@ import { readAuthDataFromJwtToken } from "./jwt.js";
 type RoleValidation =
   | {
       isValid: false;
-      error: ProcessError;
+      error: ApiError;
     }
   | { isValid: true };
 
@@ -30,24 +31,21 @@ const hasValidRoles = (
 ): RoleValidation => {
   const jwtToken = req.headers.authorization?.split(" ")[1];
   if (!jwtToken) {
-    throw new ProcessError("The jwt token not found", ErrorTypes.Unauthorized);
+    throw unauthorizedError("The jwt token not found");
   }
   const authData = readAuthDataFromJwtToken(jwtToken);
 
   if (authData instanceof Error) {
     return {
       isValid: false,
-      error: new ProcessError(authData.message, ErrorTypes.Unauthorized),
+      error: unauthorizedError(authData.message),
     };
   }
 
   if (!authData.userRoles || authData.userRoles.length === 0) {
     return {
       isValid: false,
-      error: new ProcessError(
-        "No user roles found to execute this request",
-        ErrorTypes.Unauthorized
-      ),
+      error: unauthorizedError("No user roles found to execute this request"),
     };
   }
 
@@ -63,11 +61,10 @@ const hasValidRoles = (
     ? { isValid: true }
     : {
         isValid: false,
-        error: new ProcessError(
+        error: unauthorizedError(
           `Invalid user roles (${authData.userRoles.join(
             ","
-          )}) to execute this request`,
-          ErrorTypes.Unauthorized
+          )}) to execute this request`
         ),
       };
 };
@@ -92,25 +89,21 @@ export const authorizationMiddleware =
       return next();
     } catch (err) {
       const headers = readHeaders(req as Request);
-
       const problem = match<unknown, Problem>(err)
-        .with(P.instanceOf(ProcessError), (error) =>
-          makeApiProblem(
-            error.type.code,
-            error.type.httpStatus,
-            error.type.title,
-            error.message,
-            headers?.correlationId
-          )
+        .with(
+          {
+            code: P.string,
+            httpStatus: P.number,
+            title: P.string,
+            detail: P.string,
+          },
+          (error) =>
+            makeApiProblem({
+              ...error,
+              correlationId: headers?.correlationId,
+            })
         )
-        .otherwise(() =>
-          makeApiProblem(
-            `${ErrorTypes.GenericError.code}`,
-            ErrorTypes.GenericError.httpStatus,
-            ErrorTypes.GenericError.title,
-            "Generic error"
-          )
-        );
+        .otherwise(() => makeApiProblem(genericError("Generic error")));
 
       return (
         res

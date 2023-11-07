@@ -2,7 +2,12 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { ZodiosRouterContextRequestHandler } from "@zodios/express";
 import { Response } from "express";
-import { ErrorTypes, ProcessError, missingHeader } from "pagopa-interop-models";
+import {
+  missingBearer,
+  missingClaim,
+  missingHeader,
+  unauthorizedError,
+} from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { ExpressContext } from "../index.js";
 import { logger } from "../logging/index.js";
@@ -28,29 +33,20 @@ export const authenticationMiddleware: (
         logger.warn(
           `No authentication has been provided for this call ${req.method} ${req.url}`
         );
-        throw new ProcessError(
-          "Authorization Illegal header key.",
-          ErrorTypes.MissingBearer
-        );
+        throw missingBearer();
       }
 
       const jwtToken = authorizationHeader[1];
       const valid = await verifyJwtToken(jwtToken);
       if (!valid) {
         logger.warn(`The jwt token is not valid`);
-        throw new ProcessError(
-          "The jwt token is not valid",
-          ErrorTypes.Unauthorized
-        );
+        throw unauthorizedError("The jwt token is not valid");
       }
       const authData = readAuthDataFromJwtToken(jwtToken);
       match(authData)
         .with(P.instanceOf(Error), (err) => {
           logger.warn(`Invalid authentication provided: ${err.message}`);
-          throw new ProcessError(
-            `Invalid claims: ${err.message}`,
-            ErrorTypes.MissingClaim
-          );
+          throw missingClaim(`Invalid claims: ${err.message}`);
         })
         .otherwise((claimsRes: AuthData) => {
           // eslint-disable-next-line functional/immutable-data
@@ -65,10 +61,7 @@ export const authenticationMiddleware: (
     try {
       const headers = Headers.safeParse(req.headers);
       if (!headers.success) {
-        throw new ProcessError(
-          ErrorTypes.MissingHeader.title,
-          ErrorTypes.MissingHeader
-        );
+        throw missingHeader();
       }
 
       return await match(headers.data)
@@ -93,10 +86,7 @@ export const authenticationMiddleware: (
               `No authentication has been provided for this call ${req.method} ${req.url}`
             );
 
-            throw new ProcessError(
-              `Bearer token has not been passed`,
-              ErrorTypes.MissingBearer
-            );
+            throw missingBearer();
           }
         )
         .with(
@@ -106,15 +96,7 @@ export const authenticationMiddleware: (
           },
           () => missingHeader("x-correlation-id")
         )
-        .otherwise(() =>
-          apiErrorHandler(
-            new ProcessError(
-              ErrorTypes.MissingHeader.title,
-              ErrorTypes.MissingHeader
-            ),
-            res
-          )
-        );
+        .otherwise(() => apiErrorHandler(missingHeader(), res));
     } catch (error) {
       return apiErrorHandler(error, res);
     }

@@ -11,11 +11,8 @@ import {
   AgreementEvent,
   AgreementState,
   WithMetadata,
-  agreementEServiceNotFound,
   agreementEventToBinaryData,
-  agreementNotInExpectedState,
   agreementState,
-  tenantIdNotFound,
   ListResult,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
@@ -24,6 +21,11 @@ import {
   toCreateEventAgreementAdded,
   toCreateEventAgreementDeleted,
 } from "../model/domain/toEvent.js";
+import {
+  agreementEServiceNotFound,
+  agreementNotInExpectedState,
+  tenantIdNotFound,
+} from "../model/domain/errors.js";
 import { ApiAgreementPayload } from "../model/types.js";
 import { readModelService } from "./readModelService.js";
 import {

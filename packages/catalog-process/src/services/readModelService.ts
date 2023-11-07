@@ -8,7 +8,6 @@ import {
   DescriptorState,
   Document,
   EService,
-  ErrorTypes,
   Agreement,
   AgreementState,
   descriptorState,
@@ -16,6 +15,7 @@ import {
   ListResult,
   WithMetadata,
   emptyListResult,
+  genericError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
@@ -111,7 +111,7 @@ export const readModelService = {
         )} - data ${JSON.stringify(data)} `
       );
 
-      throw ErrorTypes.GenericError;
+      throw genericError("Unable to parse eservices items");
     }
 
     return {
@@ -145,7 +145,7 @@ export const readModelService = {
           )} - data ${JSON.stringify(data)} `
         );
 
-        throw ErrorTypes.GenericError;
+        throw genericError("Unable to parse eservices item");
       }
 
       return {
@@ -253,7 +253,7 @@ export const readModelService = {
         )} - data ${JSON.stringify(data)} `
       );
 
-      throw ErrorTypes.GenericError;
+      throw genericError("Unable to parse consumers");
     }
 
     return {
@@ -316,7 +316,7 @@ export const readModelService = {
         )} - data ${JSON.stringify(data)} `
       );
 
-      throw ErrorTypes.GenericError;
+      throw genericError("Unable to parse agreements");
     }
 
     return result.data;

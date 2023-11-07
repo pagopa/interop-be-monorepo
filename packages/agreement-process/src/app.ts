@@ -1,3 +1,4 @@
+import { makeApiProblem } from "pagopa-interop-models";
 import {
   authenticationMiddleware,
   contextDataMiddleware,
@@ -8,7 +9,6 @@ import {
 import { Response } from "express";
 import healthRouter from "./routers/HealthRouter.js";
 import agreementRouter from "./routers/AgreementRouter.js";
-import { ApiError, makeApiError } from "./model/types.js";
 
 const app = zodiosCtx.app();
 
@@ -26,7 +26,7 @@ app.use(healthRouter);
 app.use(
   // The following callback handles generic authorization errors with current service behaviour
   authenticationMiddleware((error: unknown, res: Response) => {
-    const apiError: ApiError = makeApiError(error);
+    const apiError = makeApiProblem(error);
     res.status(apiError.status).json(apiError).end();
   })
 );
