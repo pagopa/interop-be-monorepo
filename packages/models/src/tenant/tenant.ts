@@ -50,26 +50,35 @@ export const PersistentTenantVerifier = z.object({
 });
 export type PersistentTenantVerifier = z.infer<typeof PersistentTenantVerifier>;
 
+export const CertifiedTenantAttribute = z.object({
+  type: z.literal("certified"),
+  id: z.string().uuid(),
+  assignmentTimestamp: z.date(),
+  revocationTimestamp: z.date().optional(),
+});
+export type CertifiedTenantAttribute = z.infer<typeof CertifiedTenantAttribute>;
+
+export const DeclaredTenantAttribute = z.object({
+  type: z.literal("declared"),
+  id: z.string().uuid(),
+  assignmentTimestamp: z.date(),
+  revocationTimestamp: z.date().optional(),
+});
+export type DeclaredTenantAttribute = z.infer<typeof DeclaredTenantAttribute>;
+
+export const VerifiedTenantAttribute = z.object({
+  type: z.literal("verified"),
+  id: z.string().uuid(),
+  assignmentTimestamp: z.date(),
+  verifiedBy: z.array(PersistentTenantVerifier),
+  revokedBy: z.array(PersistentTenantRevoker),
+});
+export type VerifiedTenantAttribute = z.infer<typeof VerifiedTenantAttribute>;
+
 export const TenantAttribute = z.discriminatedUnion("type", [
-  z.object({
-    type: z.literal("certified"),
-    id: z.string().uuid(),
-    assignmentTimestamp: z.date(),
-    revocationTimestamp: z.date().optional(),
-  }),
-  z.object({
-    type: z.literal("declared"),
-    id: z.string().uuid(),
-    assignmentTimestamp: z.date(),
-    revocationTimestamp: z.date().optional(),
-  }),
-  z.object({
-    type: z.literal("verified"),
-    id: z.string().uuid(),
-    assignmentTimestamp: z.date(),
-    verifiedBy: z.array(PersistentTenantVerifier),
-    revokedBy: z.array(PersistentTenantRevoker),
-  }),
+  CertifiedTenantAttribute,
+  DeclaredTenantAttribute,
+  VerifiedTenantAttribute,
 ]);
 
 export type TenantAttribute = z.infer<typeof TenantAttribute>;

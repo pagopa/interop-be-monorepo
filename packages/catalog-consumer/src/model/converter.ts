@@ -1,7 +1,7 @@
 import {
   AgreementApprovalPolicy,
   AgreementApprovalPolicyV1,
-  Attribute,
+  EServiceAttribute,
   Descriptor,
   DescriptorState,
   Document,
@@ -58,8 +58,8 @@ export const fromEServiceTechnologyV1 = (
 
 export const fromEServiceAttributeV1 = (
   input: EServiceAttributeV1
-): Attribute[] =>
-  match<EServiceAttributeV1, Attribute[]>(input)
+): EServiceAttribute[] =>
+  match<EServiceAttributeV1, EServiceAttribute[]>(input)
     .with(
       {
         single: P.not(P.nullish),

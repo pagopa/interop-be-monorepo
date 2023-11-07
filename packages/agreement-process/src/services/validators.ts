@@ -1,11 +1,12 @@
 import {
+  CertifiedTenantAttribute,
   Descriptor,
   DescriptorState,
   EService,
+  EServiceAttribute,
   PersistentAgreement,
   PersistentAgreementState,
   Tenant,
-  TenantAttribute,
   WithMetadata,
   agreementAlreadyExists,
   agreementNotFound,
@@ -59,15 +60,11 @@ const validateLatestDescriptor = (
 };
 
 const certifiedAttributesDescriptorSatisfied = (
-  descriptor: Descriptor,
-  consumerAttributes: TenantAttribute[]
+  descriptorAttributes: EServiceAttribute[][],
+  consumerAttributes: CertifiedTenantAttribute[]
 ): boolean => {
-  const descriptorAttributes = descriptor.attributes.certified;
   const consumerCertifiedAttributesIds = consumerAttributes
-    .filter(
-      (att) =>
-        att.type === tenantAttributeType.CERTIFIED && !att.revocationTimestamp
-    )
+    .filter((a) => !a.revocationTimestamp)
     .map((a) => a.id);
 
   return descriptorAttributes.every((attributeList) => {
@@ -146,8 +143,15 @@ export const validateCertifiedAttributes = (
   descriptor: Descriptor,
   consumer: Tenant
 ): void => {
+  const certifiedAttributes = consumer.attributes.filter(
+    (e) => e.type === tenantAttributeType.CERTIFIED
+  ) as CertifiedTenantAttribute[];
+
   if (
-    !certifiedAttributesDescriptorSatisfied(descriptor, consumer.attributes)
+    !certifiedAttributesDescriptorSatisfied(
+      descriptor.attributes.certified,
+      certifiedAttributes
+    )
   ) {
     throw missingCertifiedAttributesError(descriptor.id, consumer.id);
   }
