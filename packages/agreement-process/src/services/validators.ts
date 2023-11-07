@@ -37,10 +37,13 @@ const validateLatestDescriptor = (
   allowedStates: DescriptorState[]
 ): Descriptor => {
   const recentActiveDescriptors = eService.descriptors
-    .filter((d) => d.state !== descriptorState.draft && d.id === descriptorId)
+    .filter((d) => d.state !== descriptorState.draft)
     .sort((a, b) => Number(b.version) - Number(a.version));
 
-  if (recentActiveDescriptors.length < 1) {
+  if (
+    recentActiveDescriptors.length < 1 ||
+    recentActiveDescriptors[0].id !== descriptorId
+  ) {
     throw notLatestEServiceDescriptor(descriptorId);
   }
 
