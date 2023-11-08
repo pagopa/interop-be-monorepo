@@ -8,4 +8,19 @@ export const authorizationManagementServiceMock = {
     // TODO : [https://buildo.atlassian.net/browse/PPA-25] handle the update of the state on the clients
     return Promise.resolve();
   },
+  async updateAgreementAndEServiceStates(
+    _eserviceId: string,
+    _consumerId: string,
+    _payload: {
+      agreementId: string;
+      agreementState: "active" | "inactive";
+      descriptorId: string;
+      audience: string[];
+      voucherLifespan: number;
+      eserviceState: "active" | "inactive";
+    }
+  ): Promise<void> {
+    // TODO :
+    return Promise.resolve();
+  },
 };
