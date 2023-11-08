@@ -6,7 +6,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   AttributeEvent,
-  AttributeTmp,
+  Attribute,
   WithMetadata,
   attributeDuplicate,
   attributeEventToBinaryData,
@@ -18,7 +18,7 @@ import {
   ApiDeclaredAttributeSeed,
   ApiVerifiedAttributeSeed,
 } from "../model/types.js";
-import { apiAttributeKindToAttributeKind } from "../model/domain/apiConverter.js";
+import { toAttributeKind } from "../model/domain/apiConverter.js";
 import { toCreateEventAttributeAdded } from "../model/domain/toEvent.js";
 import { readModelService } from "./readModelService.js";
 
@@ -76,16 +76,16 @@ export function createDeclaredAttributeLogic({
   attribute,
   apiDeclaredAttributeSeed,
 }: {
-  attribute: WithMetadata<AttributeTmp> | undefined;
+  attribute: WithMetadata<Attribute> | undefined;
   apiDeclaredAttributeSeed: ApiDeclaredAttributeSeed;
 }): CreateEvent<AttributeEvent> {
   if (attribute) {
     throw attributeDuplicate(apiDeclaredAttributeSeed.name);
   }
 
-  const newDeclaredAttribute: AttributeTmp = {
+  const newDeclaredAttribute: Attribute = {
     id: uuidv4(),
-    kind: apiAttributeKindToAttributeKind("DECLARED"),
+    kind: toAttributeKind("DECLARED"),
     name: apiDeclaredAttributeSeed.name,
     description: apiDeclaredAttributeSeed.description,
     creationTime: new Date(),
@@ -100,16 +100,16 @@ export function createVerifiedAttributeLogic({
   attribute,
   apiVerifiedAttributeSeed,
 }: {
-  attribute: WithMetadata<AttributeTmp> | undefined;
+  attribute: WithMetadata<Attribute> | undefined;
   apiVerifiedAttributeSeed: ApiVerifiedAttributeSeed;
 }): CreateEvent<AttributeEvent> {
   if (attribute) {
     throw attributeDuplicate(apiVerifiedAttributeSeed.name);
   }
 
-  const newVerifiedAttribute: AttributeTmp = {
+  const newVerifiedAttribute: Attribute = {
     id: uuidv4(),
-    kind: apiAttributeKindToAttributeKind("VERIFIED"),
+    kind: toAttributeKind("VERIFIED"),
     name: apiVerifiedAttributeSeed.name,
     description: apiVerifiedAttributeSeed.description,
     creationTime: new Date(),

@@ -34,7 +34,7 @@ export const readModelService = {
     },
     offset: number,
     limit: number
-  ): Promise<ListResult<AttributeTmp>> {
+  ): Promise<ListResult<Attribute>> {
     const idsFilter = ids
       ? {
           "data.id": {

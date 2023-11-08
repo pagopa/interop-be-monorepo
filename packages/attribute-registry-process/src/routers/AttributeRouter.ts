@@ -45,7 +45,6 @@ const attributeRouter = (
           const attributes = await readModelService.getAttributes(
             {
               ids: undefined,
-              kinds: kinds.map(apiAttributeKindToAttributeKind),
               kinds: kinds.map(toAttributeKind),
               name,
               origin,
@@ -180,7 +179,7 @@ const attributeRouter = (
           return res
             .status(200)
             .json({
-              results: attributes.results.map(attributeToApiAttribute),
+              results: attributes.results.map(toApiAttribute),
               totalCount: attributes.totalCount,
             })
             .end();

@@ -3,12 +3,12 @@ import {
   AttributeEvent,
   AttributeKind,
   AttributeKindV1,
-  AttributeTmp,
+  Attribute,
   AttributeV1,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
-export const toAttributeV1 = (attribute: AttributeTmp): AttributeV1 => ({
+export const toAttributeV1 = (attribute: Attribute): AttributeV1 => ({
   ...attribute,
   kind: toAttributeKindV1(attribute.kind),
   creationTime: String(attribute.creationTime.getTime()),
@@ -22,7 +22,7 @@ export const toAttributeKindV1 = (input: AttributeKind): AttributeKindV1 =>
     .exhaustive();
 
 export const toCreateEventAttributeAdded = (
-  attribute: AttributeTmp
+  attribute: Attribute
 ): CreateEvent<AttributeEvent> => ({
   streamId: attribute.id,
   version: 0,

@@ -3,7 +3,7 @@ import { generateMock } from "@anatine/zod-mock";
 
 import {
   AttributeKind,
-  AttributeTmp,
+  Attribute,
   WithMetadata,
   attributeDuplicate,
 } from "pagopa-interop-models";
@@ -18,8 +18,8 @@ import {
   toAttributeV1,
 } from "../src/model/domain/toEvent.js";
 
-const mockAttribute: AttributeTmp = generateMock(AttributeTmp);
-const addMetadata = (attribute: AttributeTmp): WithMetadata<AttributeTmp> => ({
+const mockAttribute: Attribute = generateMock(Attribute);
+const addMetadata = (attribute: Attribute): WithMetadata<Attribute> => ({
   data: attribute,
   metadata: { version: 0 },
 });
