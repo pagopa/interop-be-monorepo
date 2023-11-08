@@ -1,8 +1,4 @@
-import {
-  AttributeKind,
-  AttributeTmp,
-  attributeKind,
-} from "pagopa-interop-models";
+import { AttributeKind, Attribute, attributeKind } from "pagopa-interop-models";
 import { z } from "zod";
 import { match } from "ts-pattern";
 import * as api from "../generated/api.js";
@@ -27,7 +23,7 @@ export const apiAttributeKindToAttributeKind = (
     .exhaustive();
 
 export const attributeToApiAttribute = (
-  attribute: AttributeTmp
+  attribute: Attribute
 ): z.infer<typeof api.schemas.Attribute> => ({
   id: attribute.id,
   name: attribute.name,

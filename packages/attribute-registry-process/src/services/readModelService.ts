@@ -3,10 +3,11 @@ import { z } from "zod";
 import { logger, ReadModelRepository } from "pagopa-interop-commons";
 import {
   AttributeKind,
-  AttributeTmp,
+  Attribute,
   Document,
   ErrorTypes,
   WithMetadata,
+  attribute,
 } from "pagopa-interop-models";
 import { ListResult } from "../model/types.js";
 import { config } from "../utilities/config.js";
@@ -51,7 +52,7 @@ export const readModelService = {
     },
     offset: number,
     limit: number
-  ): Promise<ListResult<AttributeTmp>> {
+  ): Promise<ListResult<Attribute>> {
     const nameFilter = name
       ? {
           "data.name": {
@@ -88,7 +89,7 @@ export const readModelService = {
     const data = await attributes
       .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }])
       .toArray();
-    const result = z.array(AttributeTmp).safeParse(data.map((d) => d.data));
+    const result = z.array(attribute).safeParse(data.map((d) => d.data));
     if (!result.success) {
       logger.error(
         `Unable to parse attributes items: result ${JSON.stringify(
@@ -107,7 +108,7 @@ export const readModelService = {
 
   async getAttributeById(
     id: string
-  ): Promise<WithMetadata<AttributeTmp> | undefined> {
+  ): Promise<WithMetadata<Attribute> | undefined> {
     const data = await attributes.findOne(
       { "data.id": id },
       { projection: { data: true, metadata: true } }
@@ -117,7 +118,7 @@ export const readModelService = {
       const result = z
         .object({
           metadata: z.object({ version: z.number() }),
-          data: AttributeTmp,
+          data: attribute,
         })
         .safeParse(data);
 
@@ -142,7 +143,7 @@ export const readModelService = {
 
   async getAttributeByName(
     name: string
-  ): Promise<WithMetadata<AttributeTmp> | undefined> {
+  ): Promise<WithMetadata<Attribute> | undefined> {
     const data = await attributes.findOne(
       {
         "data.name": {
@@ -157,7 +158,7 @@ export const readModelService = {
       const result = z
         .object({
           metadata: z.object({ version: z.number() }),
-          data: AttributeTmp,
+          data: attribute,
         })
         .safeParse(data);
 
@@ -184,7 +185,7 @@ export const readModelService = {
   }: {
     origin: string;
     code: string;
-  }): Promise<WithMetadata<AttributeTmp> | undefined> {
+  }): Promise<WithMetadata<Attribute> | undefined> {
     const data = await attributes.findOne(
       {
         "data.code": code,
@@ -196,7 +197,7 @@ export const readModelService = {
       const result = z
         .object({
           metadata: z.object({ version: z.number() }),
-          data: AttributeTmp,
+          data: attribute,
         })
         .safeParse(data);
       if (!result.success) {
