@@ -183,7 +183,7 @@ export const readModelService = {
       {
         $match: {
           "data.id": eServiceId,
-          "data.descriptors.state": {
+          "data.descriptors": {
             $elemMatch: {
               state: {
                 $in: [

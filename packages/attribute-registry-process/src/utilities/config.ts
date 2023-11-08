@@ -5,11 +5,11 @@ import {
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-const CataloProcessConfig =
+const AttributeRegistryConfig =
   CommonConfig.and(ReadModelDbConfig).and(EventStoreConfig);
 
-export type CatalogProcessConfig = z.infer<typeof CataloProcessConfig>;
+export type AttributeRegistryConfig = z.infer<typeof AttributeRegistryConfig>;
 
-export const config: CatalogProcessConfig = {
-  ...CataloProcessConfig.parse(process.env),
+export const config: AttributeRegistryConfig = {
+  ...AttributeRegistryConfig.parse(process.env),
 };
