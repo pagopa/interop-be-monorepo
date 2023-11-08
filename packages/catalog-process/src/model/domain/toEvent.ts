@@ -5,7 +5,7 @@ import {
   Descriptor,
   EServiceTechnologyV1,
   EServiceAttributeV1,
-  Attribute,
+  EServiceAttribute,
   EServiceDescriptorStateV1,
   AgreementApprovalPolicyV1,
   EServiceV1,
@@ -48,7 +48,7 @@ export const toEServiceTechnologyV1 = (
     .exhaustive();
 
 export const toEServiceAttributeV1 = (
-  input: Attribute[]
+  input: EServiceAttribute[]
 ): EServiceAttributeV1 => ({
   group: input.map((i) => ({
     id: i.id,

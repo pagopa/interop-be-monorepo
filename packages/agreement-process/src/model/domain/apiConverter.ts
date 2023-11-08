@@ -9,7 +9,7 @@ import {
   ApiAgreement,
   ApiAgreementDocument,
   ApiAgreementState,
-} from "./models.js";
+} from "../types.js";
 
 export function agreementStateToApiAgreementState(
   input: PersistentAgreementState
@@ -24,6 +24,23 @@ export function agreementStateToApiAgreementState(
     .with(
       persistentAgreementState.missingCertifiedAttributes,
       () => "MISSING_CERTIFIED_ATTRIBUTES"
+    )
+    .exhaustive();
+}
+
+export function apiAgreementStateToAgreementState(
+  input: ApiAgreementState
+): PersistentAgreementState {
+  return match<ApiAgreementState, PersistentAgreementState>(input)
+    .with("PENDING", () => persistentAgreementState.pending)
+    .with("REJECTED", () => persistentAgreementState.rejected)
+    .with("ACTIVE", () => persistentAgreementState.active)
+    .with("SUSPENDED", () => persistentAgreementState.suspended)
+    .with("ARCHIVED", () => persistentAgreementState.archived)
+    .with("DRAFT", () => persistentAgreementState.draft)
+    .with(
+      "MISSING_CERTIFIED_ATTRIBUTES",
+      () => persistentAgreementState.missingCertifiedAttributes
     )
     .exhaustive();
 }
