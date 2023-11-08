@@ -50,7 +50,6 @@ const handleExit = (consumer: Consumer): void => {
 const initConsumer = async (
   config: ConsumerConfig,
   topic: string,
-  fromBeginning: boolean,
   consumerHandler: (message: KafkaMessage) => Promise<void>
 ): Promise<Consumer> => {
   logger.info(`Consumer connecting to topics [${config.kafkaBrokers}]`);
@@ -81,7 +80,7 @@ const initConsumer = async (
 
   await consumer.subscribe({
     topics: [topic],
-    fromBeginning,
+    fromBeginning: true,
   });
 
   await consumer.run({
@@ -95,14 +94,14 @@ export const runConsumer = async (
   topic: string,
   consumerHandler: (message: KafkaMessage) => Promise<void>
 ): Promise<void> => {
-  let consumer = await initConsumer(config, topic, true, consumerHandler);
+  let consumer = await initConsumer(config, topic, consumerHandler);
 
   do {
     await consumer.disconnect().finally(() => {
       logger.info("Consumer disconnected");
     });
 
-    consumer = await initConsumer(config, topic, false, consumerHandler);
+    consumer = await initConsumer(config, topic, consumerHandler);
 
     await new Promise((resolve) =>
       setTimeout(
