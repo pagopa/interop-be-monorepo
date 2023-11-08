@@ -1,4 +1,3 @@
-/* eslint-disable functional/no-let */
 /* eslint-disable no-constant-condition */
 export * from "./constants.js";
 export * from "./create-authenticator.js";
@@ -94,14 +93,8 @@ export const runConsumer = async (
   topic: string[],
   consumerHandler: (message: KafkaMessage) => Promise<void>
 ): Promise<void> => {
-  let consumer = await initConsumer(config, topic, consumerHandler);
-
   do {
-    await consumer.disconnect().finally(() => {
-      logger.info("Consumer disconnected");
-    });
-
-    consumer = await initConsumer(config, topic, consumerHandler);
+    const consumer = await initConsumer(config, topic, consumerHandler);
 
     await new Promise((resolve) =>
       setTimeout(
@@ -109,5 +102,9 @@ export const runConsumer = async (
         DEFAULT_AUTHENTICATION_TIMEOUT - REAUTHENTICATION_THRESHOLD
       )
     );
+
+    await consumer.disconnect().finally(() => {
+      logger.info("Consumer disconnected");
+    });
   } while (true);
 };
