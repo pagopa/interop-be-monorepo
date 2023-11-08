@@ -1,24 +1,35 @@
-import { EService, PersistentAgreement, Tenant } from "pagopa-interop-models";
+import {
+  EService,
+  ErrorTypes,
+  PersistentAgreement,
+  Tenant,
+} from "pagopa-interop-models";
 import { Collection, Db, MongoClient } from "mongodb";
-import { ReadModelDbConfig } from "../index.js";
+import { z } from "zod";
+import { ReadModelDbConfig, logger } from "../index.js";
+
+type GenericCollection<T> = Collection<{
+  data: T;
+  metadata: { version: number };
+}>;
+
+export type EServiceCollection = GenericCollection<EService | undefined>;
+export type AgreementCollection = GenericCollection<PersistentAgreement>;
+export type TenantCollection = GenericCollection<Tenant>;
+
+export type Collections =
+  | EServiceCollection
+  | AgreementCollection
+  | TenantCollection;
 
 export class ReadModelRepository {
   private static instance: ReadModelRepository;
 
-  public eservices: Collection<{
-    data: EService | undefined;
-    metadata: { version: number };
-  }>;
+  public eservices: EServiceCollection;
 
-  public agreements: Collection<{
-    data: PersistentAgreement;
-    metadata: { version: number };
-  }>;
+  public agreements: AgreementCollection;
 
-  public tenants: Collection<{
-    data: Tenant;
-    metadata: { version: number };
-  }>;
+  public tenants: TenantCollection;
 
   private client: MongoClient;
   private db: Db;
@@ -49,5 +60,26 @@ export class ReadModelRepository {
     }
 
     return ReadModelRepository.instance;
+  }
+
+  public static async getTotalCount(
+    collection: Collections,
+    aggregation: object[]
+  ): Promise<number> {
+    const query = collection.aggregate([...aggregation, { $count: "count" }]);
+
+    const data = await query.toArray();
+    const result = z.array(z.object({ count: z.number() })).safeParse(data);
+
+    if (result.success) {
+      return result.data.length > 0 ? result.data[0].count : 0;
+    }
+
+    logger.error(
+      `Unable to get total count from aggregation pipeline: result ${JSON.stringify(
+        result
+      )} - data ${JSON.stringify(data)} `
+    );
+    throw ErrorTypes.GenericError;
   }
 }
