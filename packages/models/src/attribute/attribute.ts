@@ -11,7 +11,7 @@ export const AttributeKind = z.enum([
 ]);
 export type AttributeKind = z.infer<typeof AttributeKind>;
 
-export const attribute = z.object({
+export const Attribute = z.object({
   id: z.string().uuid(),
   code: z.string().optional(),
   kind: AttributeKind,
@@ -21,4 +21,4 @@ export const attribute = z.object({
   creationTime: z.coerce.date(),
 });
 
-export type Attribute = z.infer<typeof attribute>;
+export type Attribute = z.infer<typeof Attribute>;

@@ -7,7 +7,6 @@ import {
   Document,
   ErrorTypes,
   WithMetadata,
-  attribute,
 } from "pagopa-interop-models";
 import { ListResult } from "../model/types.js";
 import { config } from "../utilities/config.js";
@@ -89,7 +88,7 @@ export const readModelService = {
     const data = await attributes
       .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }])
       .toArray();
-    const result = z.array(attribute).safeParse(data.map((d) => d.data));
+    const result = z.array(Attribute).safeParse(data.map((d) => d.data));
     if (!result.success) {
       logger.error(
         `Unable to parse attributes items: result ${JSON.stringify(
@@ -118,7 +117,7 @@ export const readModelService = {
       const result = z
         .object({
           metadata: z.object({ version: z.number() }),
-          data: attribute,
+          data: Attribute,
         })
         .safeParse(data);
 
@@ -158,7 +157,7 @@ export const readModelService = {
       const result = z
         .object({
           metadata: z.object({ version: z.number() }),
-          data: attribute,
+          data: Attribute,
         })
         .safeParse(data);
 
@@ -197,7 +196,7 @@ export const readModelService = {
       const result = z
         .object({
           metadata: z.object({ version: z.number() }),
-          data: attribute,
+          data: Attribute,
         })
         .safeParse(data);
       if (!result.success) {
