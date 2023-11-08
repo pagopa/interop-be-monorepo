@@ -90,18 +90,13 @@ export const authorizationMiddleware =
     } catch (err) {
       const headers = readHeaders(req as Request);
       const problem = match<unknown, Problem>(err)
-        .with(
-          {
-            code: P.string,
-            httpStatus: P.number,
-            title: P.string,
-            detail: P.string,
-          },
-          (error) =>
-            makeApiProblem({
+        .with(P.instanceOf(ApiError), (error) =>
+          makeApiProblem(
+            new ApiError({
               ...error,
               correlationId: headers?.correlationId,
             })
+          )
         )
         .otherwise(() => makeApiProblem(genericError("Generic error")));
 

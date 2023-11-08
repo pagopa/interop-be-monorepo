@@ -66,35 +66,8 @@ export function makeApiProblem(error: unknown): Problem {
   });
 
   return match<unknown, Problem>(error)
-    .with(
-      {
-        code: P.string,
-        httpStatus: P.number,
-        title: P.string,
-        detail: P.string,
-        correlationId: P.string.optional(),
-      },
-      (error) =>
-        makeProblem(
-          new ApiError({
-            code: error.code,
-            httpStatus: error.httpStatus,
-            title: error.title,
-            detail: error.detail,
-            correlationId: error.correlationId,
-          })
-        )
-    )
-    .otherwise(() =>
-      makeProblem(
-        new ApiError({
-          code: "9991",
-          httpStatus: 500,
-          title: "Unexpected error",
-          detail: "Generic error",
-        })
-      )
-    );
+    .with(P.instanceOf(ApiError), (error) => makeProblem(error))
+    .otherwise(() => makeProblem(genericError("Unexpected error")));
 }
 
 export function authenticationSaslFailed(message: string): ApiError {
@@ -145,11 +118,9 @@ export function missingHeader(headerName?: string): ApiError {
   });
 }
 
-export function missingBearer(): ApiError {
-  return new ApiError({
-    detail: `Authorization Illegal header key.`,
-    code: "9999",
-    httpStatus: 400,
-    title: "Bearer token has not been passed",
-  });
-}
+export const missingBearer: ApiError = new ApiError({
+  detail: `Authorization Illegal header key.`,
+  code: "9999",
+  httpStatus: 400,
+  title: "Bearer token has not been passed",
+});

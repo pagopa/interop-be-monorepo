@@ -4,7 +4,6 @@ import {
   Descriptor,
   EService,
   descriptorState,
-  eServiceNotFound,
   WithMetadata,
 } from "pagopa-interop-models";
 import {
@@ -43,6 +42,7 @@ import {
   eServiceDescriptorNotFound,
   eServiceDocumentNotFound,
   eServiceDuplicate,
+  eServiceNotFound,
   notValidDescriptor,
   operationForbidden,
 } from "../src/model/domain/errors.js";

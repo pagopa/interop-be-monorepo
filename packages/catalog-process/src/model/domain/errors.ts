@@ -1,28 +1,10 @@
 import { ApiError } from "pagopa-interop-models";
 
-const duplicateEserviceName = {
-  code: "0010",
-  httpStatus: 409,
-  title: "Duplicated service name",
-};
-
 const eserviceCannotBeUpdatedOrDeleted = {
   code: "0009",
   httpStatus: 400,
   title: "EService cannot be updated or deleted",
 };
-
-const eserviceDescriptorNotFound = {
-  code: "0002",
-  httpStatus: 404,
-  title: "EService descriptor not found",
-};
-
-const eserviceDocumentNotFound = {
-  code: "0003",
-  httpStatus: 404,
-  title: "EService document not found",
-}; // TODO: reorganize error codes
 
 export function eServiceNotFound(eServiceId: string): ApiError {
   return new ApiError({
@@ -36,7 +18,9 @@ export function eServiceNotFound(eServiceId: string): ApiError {
 export function eServiceDuplicate(eServiceNameSeed: string): ApiError {
   return new ApiError({
     detail: `ApiError during EService creation with name ${eServiceNameSeed}`,
-    ...duplicateEserviceName,
+    code: "0010",
+    httpStatus: 409,
+    title: "Duplicated service name",
   });
 }
 
@@ -67,7 +51,9 @@ export function eServiceDescriptorNotFound(
 ): ApiError {
   return new ApiError({
     detail: `Descriptor ${descriptorId} for EService ${eServiceId} not found`,
-    ...eserviceDescriptorNotFound,
+    code: "0002",
+    httpStatus: 404,
+    title: "EService descriptor not found",
   });
 }
 
@@ -78,7 +64,9 @@ export function eServiceDocumentNotFound(
 ): ApiError {
   return new ApiError({
     detail: `Document with id ${documentId} not found in EService ${eServiceId} / Descriptor ${descriptorId}`,
-    ...eserviceDocumentNotFound,
+    code: "0003",
+    httpStatus: 404,
+    title: "EService document not found",
   });
 }
 

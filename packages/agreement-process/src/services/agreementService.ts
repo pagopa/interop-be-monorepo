@@ -22,8 +22,8 @@ import {
   toCreateEventAgreementDeleted,
 } from "../model/domain/toEvent.js";
 import {
-  agreementEServiceNotFound,
   agreementNotInExpectedState,
+  eServiceNotFound,
   tenantIdNotFound,
 } from "../model/domain/errors.js";
 import { ApiAgreementPayload } from "../model/types.js";
@@ -142,7 +142,7 @@ export async function createAgreementLogic(
   const eservice = await readModelService.getEServiceById(agreement.eserviceId);
 
   if (!eservice) {
-    throw agreementEServiceNotFound(agreement.eserviceId);
+    throw eServiceNotFound(agreement.eserviceId);
   }
 
   const descriptor = validateCreationOnDescriptor(

@@ -33,7 +33,7 @@ export const authenticationMiddleware: (
         logger.warn(
           `No authentication has been provided for this call ${req.method} ${req.url}`
         );
-        throw missingBearer();
+        throw missingBearer;
       }
 
       const jwtToken = authorizationHeader[1];
@@ -86,7 +86,7 @@ export const authenticationMiddleware: (
               `No authentication has been provided for this call ${req.method} ${req.url}`
             );
 
-            throw missingBearer();
+            throw missingBearer;
           }
         )
         .with(
