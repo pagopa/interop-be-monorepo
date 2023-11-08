@@ -1,42 +1,10 @@
-import { Kafka, KafkaMessage } from "kafkajs";
+import { KafkaMessage } from "kafkajs";
 import { consumerConfig, logger } from "pagopa-interop-commons";
-import { createMechanism } from "@jm18457/kafkajs-msk-iam-authentication-mechanism";
-
+import { runConsumer } from "kafka-iam-auth";
 import { decodeKafkaMessage } from "./model/models.js";
 import { handleMessage } from "./agreementConsumerService.js";
 
 const config = consumerConfig();
-const kafkaConfig = config.kafkaDisableAwsIamAuth
-  ? {
-      clientId: config.kafkaClientId,
-      brokers: [config.kafkaBrokers],
-      ssl: false,
-    }
-  : {
-      clientId: config.kafkaClientId,
-      brokers: [config.kafkaBrokers],
-      ssl: true,
-      sasl: createMechanism({ region: config.awsRegion }),
-    };
-
-const kafka = new Kafka(kafkaConfig);
-const consumer = kafka.consumer({ groupId: config.kafkaGroupId });
-await consumer.connect();
-
-function exitGracefully(): void {
-  consumer.disconnect().finally(() => {
-    logger.info("Consumer disconnected");
-    process.exit(0);
-  });
-}
-
-process.on("SIGINT", exitGracefully);
-process.on("SIGTERM", exitGracefully);
-
-await consumer.subscribe({
-  topics: ["event-store.agreement.events"],
-  fromBeginning: true,
-});
 
 async function processMessage(message: KafkaMessage): Promise<void> {
   try {
@@ -48,6 +16,6 @@ async function processMessage(message: KafkaMessage): Promise<void> {
   }
 }
 
-await consumer.run({
-  eachMessage: ({ message }) => processMessage(message),
-});
+await runConsumer(config, "event-store.agreement.events", processMessage).catch(
+  logger.error
+);
