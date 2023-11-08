@@ -2,7 +2,7 @@ import {
   EService,
   PersistentAgreement,
   Tenant,
-  AttributeTmp,
+  Attribute,
 } from "pagopa-interop-models";
 import { Collection, Db, MongoClient } from "mongodb";
 import { ReadModelDbConfig } from "../index.js";
@@ -26,7 +26,7 @@ export class ReadModelRepository {
   }>;
 
   public attributes: Collection<{
-    data: AttributeTmp;
+    data: Attribute;
     metadata: { version: number };
   }>;
 
