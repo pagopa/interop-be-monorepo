@@ -28,6 +28,23 @@ export function agreementStateToApiAgreementState(
     .exhaustive();
 }
 
+export function apiAgreementStateToAgreementState(
+  input: ApiAgreementState
+): PersistentAgreementState {
+  return match<ApiAgreementState, PersistentAgreementState>(input)
+    .with("PENDING", () => persistentAgreementState.pending)
+    .with("REJECTED", () => persistentAgreementState.rejected)
+    .with("ACTIVE", () => persistentAgreementState.active)
+    .with("SUSPENDED", () => persistentAgreementState.suspended)
+    .with("ARCHIVED", () => persistentAgreementState.archived)
+    .with("DRAFT", () => persistentAgreementState.draft)
+    .with(
+      "MISSING_CERTIFIED_ATTRIBUTES",
+      () => persistentAgreementState.missingCertifiedAttributes
+    )
+    .exhaustive();
+}
+
 export const agreementDocumentToApiAgreementDocument = (
   input: PersistentAgreementDocument
 ): ApiAgreementDocument => ({
