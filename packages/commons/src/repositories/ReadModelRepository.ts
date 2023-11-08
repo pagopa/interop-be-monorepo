@@ -39,9 +39,7 @@ export class ReadModelRepository {
     this.agreements = this.db.collection("agreements", {
       ignoreUndefined: true,
     });
-    this.tenants = this.db.collection("tenants", {
-      ignoreUndefined: true,
-    });
+    this.tenants = this.db.collection("tenants", { ignoreUndefined: true });
   }
 
   public static init(config: ReadModelDbConfig): ReadModelRepository {
