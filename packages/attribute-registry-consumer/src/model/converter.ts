@@ -3,7 +3,7 @@ import {
   AttributeV1,
   AttributeKind,
   attributeKind,
-  AttributeTmp,
+  Attribute,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -16,7 +16,7 @@ export const fromAttributeKind = (input: AttributeKindV1): AttributeKind =>
       throw new Error(`Invalid AttributeKind: ${JSON.stringify(input)}`); // Force exhaustive match
     });
 
-export const fromAttributeV1 = (input: AttributeV1): AttributeTmp => ({
+export const fromAttributeV1 = (input: AttributeV1): Attribute => ({
   ...input,
   kind: fromAttributeKind(input.kind),
   creationTime: new Date(Number(input.creationTime)),
