@@ -22,7 +22,7 @@ import {
   notLatestEServiceDescriptor,
   operationNotAllowed,
 } from "../model/domain/errors.js";
-import { ReadModelService } from "./readModelService.js";
+import { AgreementQuery } from "./readmodel/agreementQuery.js";
 
 const validateDescriptorState = (
   eserviceId: string,
@@ -80,19 +80,16 @@ const certifiedAttributesDescriptorSatisfied = (
 };
 
 const verifyConflictingAgreements = async (
-  readModelService: ReadModelService,
+  agreementQuery: AgreementQuery,
   consumerId: string,
   eserviceId: string,
   conflictingStates: AgreementState[]
 ): Promise<void> => {
-  const agreements = await readModelService.getAgreements(
-    undefined,
+  const agreements = await agreementQuery.getAgreements({
     consumerId,
     eserviceId,
-    undefined,
-    conflictingStates,
-    undefined
-  );
+    agreementStates: conflictingStates,
+  });
 
   if (agreements.length > 0) {
     throw agreementAlreadyExists(consumerId, eserviceId);
@@ -126,7 +123,7 @@ export const validateCreationOnDescriptor = (
 };
 
 export const verifyCreationConflictingAgreements = async (
-  readModelService: ReadModelService,
+  agreementQuery: AgreementQuery,
   organizationId: string,
   agreement: ApiAgreementPayload
 ): Promise<void> => {
@@ -138,7 +135,7 @@ export const verifyCreationConflictingAgreements = async (
     agreementState.suspended,
   ];
   await verifyConflictingAgreements(
-    readModelService,
+    agreementQuery,
     organizationId,
     agreement.eserviceId,
     conflictingStates

@@ -2,14 +2,21 @@ import { ApiError, DescriptorState } from "pagopa-interop-models";
 
 const errorCodes = {
   missingCertifiedAttributesError: "0001",
+  agreementSubmissionFailed: "0002",
   agreementNotInExpectedState: "0003",
   descriptorNotInExpectedState: "0004",
+  operationNotAllowed: "0005",
   eServiceNotFound: "0007",
-  operationNotAllowed: "0007",
+  agreementSubmitOperationNotAllowed: "0008",
   agreementNotFound: "0009",
   agreementAlreadyExists: "0011",
+  agreementDescriptorNotFound: "0014",
+  agreementStampNotFound: "0015",
+  agreementMissingUserInfo: "0016",
+  agreementSelfcareIdNotFound: "0019",
   tenantIdNotFound: "0020",
   notLatestEServiceDescriptor: "0021",
+  consumerWithNotValidEmail: "0024",
 };
 
 export function eServiceNotFound(
@@ -102,11 +109,85 @@ export function agreementNotInExpectedState(
   });
 }
 
-export function tenantIdNotFound(tenantId: string): ApiError {
+export function tenantIdNotFound(
+  httpStatus: number,
+  tenantId: string
+): ApiError {
   return new ApiError({
     detail: `Tenant ${tenantId} not found`,
     code: errorCodes.tenantIdNotFound,
-    httpStatus: 404,
+    httpStatus,
     title: "Tenant not found",
+  });
+}
+
+export function agreementSubmissionFailed(agreementId: string): ApiError {
+  return new ApiError({
+    detail: `Unable to activate agreement ${agreementId}. Please check if attributes requirements and suspension flags are satisfied`,
+    code: errorCodes.agreementSubmissionFailed,
+    httpStatus: 400,
+    title: "Unable to activate agreement $agreementId",
+  });
+}
+
+export function consumerWithNotValidEmail(
+  agreementId: string,
+  tenantId: string
+): ApiError {
+  return new ApiError({
+    detail: `Agreement ${agreementId} has a consumer tenant ${tenantId} with no valid email`,
+    code: errorCodes.consumerWithNotValidEmail,
+    httpStatus: 400,
+    title: "Agreement with invalid consumer email",
+  });
+}
+
+export function agreementStampNotFound(stamp: string): ApiError {
+  return new ApiError({
+    detail: `Agreement stamp ${stamp} not found`,
+    code: errorCodes.agreementStampNotFound,
+    httpStatus: 500,
+    title: "Stamp not found",
+  });
+}
+
+export function agreementMissingUserInfo(userId: string): ApiError {
+  return new ApiError({
+    detail: `Some mandatory info are missing for user ${userId}`,
+    code: errorCodes.agreementMissingUserInfo,
+    httpStatus: 500,
+    title: "Some mandatory info are missing for user",
+  });
+}
+
+export function agreementSelfcareIdNotFound(tenantId: string): ApiError {
+  return new ApiError({
+    detail: `Selfcare id not found for tenant ${tenantId}`,
+    code: errorCodes.agreementSelfcareIdNotFound,
+    httpStatus: 500,
+    title: "Selfcare id not found for tenant",
+  });
+}
+
+export function agreementDescriptorNotFound(
+  eserviceId: string,
+  descriptorId: string
+): ApiError {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} not found in EService ${eserviceId}`,
+    code: errorCodes.agreementDescriptorNotFound,
+    httpStatus: 500,
+    title: "Descriptor not found",
+  });
+}
+
+export function agreementSubmitOperationNotAllowed(
+  requesterId: string
+): ApiError {
+  return new ApiError({
+    detail: `Operation not allowed by ${requesterId}`,
+    code: errorCodes.agreementSubmitOperationNotAllowed,
+    httpStatus: 403,
+    title: "Operation not allowed",
   });
 }

@@ -51,6 +51,28 @@ type ExtractQueryKeysFromRecord<
 }[keyof T];
 
 /**
+ * Extracts all queryable fields without the "data" prefix
+ *
+ * @example
+ * type Test = {
+ * a: string;
+ *   b: {
+ *     c: string;
+ *   }
+ *   d: {
+ *     e: string;
+ *   }[]
+ * }
+ *
+ * type DataFields = RemoveDataPrefix<MongoQueryKeys<Test>>;
+ * //      ^ "a" | "b" | "b.c" | "d" | "d.e"
+ *
+ */
+export type RemoveDataPrefix<T extends string> = T extends `data.${infer U}`
+  ? U
+  : never;
+
+/**
  * Extracts recursively all the possible document db query keys from an object
  *
  * @example
@@ -67,7 +89,7 @@ type ExtractQueryKeysFromRecord<
  * type Result = MongoQueryKeys<Test>;
  * //      ^ "data.a" | "data.b" | "data.b.c" | "data.d" | "data.d.e"
  */
-type MongoQueryKeys<T, TPrefix extends string = "data"> = NonNullable<
+export type MongoQueryKeys<T, TPrefix extends string = "data"> = NonNullable<
   | TPrefix
   | (T extends unknown[]
       ? MongoQueryKeys<T[number], TPrefix>
