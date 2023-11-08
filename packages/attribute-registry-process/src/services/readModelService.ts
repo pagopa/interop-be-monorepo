@@ -19,6 +19,35 @@ function arrayToFilter<T, F extends object>(
   return array.length > 0 ? f(array) : undefined;
 }
 
+async function getAttribute(
+  filter: Filter<{ data: Attribute }>
+): Promise<WithMetadata<Attribute> | undefined> {
+  const data = await attributes.findOne(filter, {
+    projection: { data: true, metadata: true },
+  });
+  if (data) {
+    const result = z
+      .object({
+        metadata: z.object({ version: z.number() }),
+        data: Attribute,
+      })
+      .safeParse(data);
+    if (!result.success) {
+      logger.error(
+        `Unable to parse attribute item: result ${JSON.stringify(
+          result
+        )} - data ${JSON.stringify(data)} `
+      );
+      throw ErrorTypes.GenericError;
+    }
+    return {
+      data: result.data.data,
+      metadata: { version: result.data.metadata.version },
+    };
+  }
+  return undefined;
+}
+
 export const readModelService = {
   async getAttributes(
     {
@@ -87,44 +116,16 @@ export const readModelService = {
     };
   },
 
-  async getAttribute(
-    filter: Filter<{ data: Attribute }>
-  ): Promise<WithMetadata<Attribute> | undefined> {
-    const data = await attributes.findOne(filter, {
-      projection: { data: true, metadata: true },
-    });
-    if (data) {
-      const result = z
-        .object({
-          metadata: z.object({ version: z.number() }),
-          data: Attribute,
-        })
-        .safeParse(data);
-      if (!result.success) {
-        logger.error(
-          `Unable to parse attribute item: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
-        );
-        throw ErrorTypes.GenericError;
-      }
-      return {
-        data: result.data.data,
-        metadata: { version: result.data.metadata.version },
-      };
-    }
-    return undefined;
-  },
   async getAttributeById(
     id: string
   ): Promise<WithMetadata<Attribute> | undefined> {
-    return this.getAttribute({ "data.id": id });
+    return getAttribute({ "data.id": id });
   },
 
   async getAttributeByName(
     name: string
   ): Promise<WithMetadata<Attribute> | undefined> {
-    return this.getAttribute({
+    return getAttribute({
       "data.name": {
         $regex: `^${name}$$`,
         $options: "i",
@@ -138,7 +139,7 @@ export const readModelService = {
     origin: string;
     code: string;
   }): Promise<WithMetadata<Attribute> | undefined> {
-    return this.getAttribute({
+    return getAttribute({
       "data.origin": origin,
       "data.code": code,
     });
