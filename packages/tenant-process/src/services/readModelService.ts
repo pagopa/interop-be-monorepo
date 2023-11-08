@@ -33,9 +33,9 @@ async function getTotalCount(
   throw ErrorTypes.GenericError;
 }
 
-function listTenantsFilters(name: string | undefined) {
+function listTenantsFilters(name: string | undefined): object[] {
   const nameFilter =
-    name && name != ""
+    name && name !== ""
       ? {
           "data.name": {
             $regex: name,
@@ -56,7 +56,10 @@ export const aggregateAndBuildResult = async (
   aggregationPipeline: Document[],
   offset: number,
   limit: number
-) => {
+): Promise<{
+  results: Tenant[];
+  totalCount: number;
+}> => {
   const data = await tenants
     .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }])
     .toArray();
