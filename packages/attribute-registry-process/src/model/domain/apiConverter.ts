@@ -4,7 +4,7 @@ import { match } from "ts-pattern";
 import * as api from "../generated/api.js";
 import { ApiAttributeKind } from "./models.js";
 
-export const attributeKindToApiAttributeKind = (
+export const toApiAttributeKind = (
   input: AttributeKind
 ): ApiAttributeKind =>
   match<AttributeKind, ApiAttributeKind>(input)
@@ -13,7 +13,7 @@ export const attributeKindToApiAttributeKind = (
     .with(attributeKind.declared, () => "DECLARED")
     .exhaustive();
 
-export const apiAttributeKindToAttributeKind = (
+export const toAttributeKind = (
   input: ApiAttributeKind
 ): AttributeKind =>
   match<ApiAttributeKind, AttributeKind>(input)
@@ -22,12 +22,12 @@ export const apiAttributeKindToAttributeKind = (
     .with("DECLARED", () => attributeKind.declared)
     .exhaustive();
 
-export const attributeToApiAttribute = (
+export const toApiAttribute = (
   attribute: Attribute
 ): z.infer<typeof api.schemas.Attribute> => ({
   id: attribute.id,
   name: attribute.name,
-  kind: attributeKindToApiAttributeKind(attribute.kind),
+  kind: toApiAttributeKind(attribute.kind),
   description: attribute.description,
   creationTime: attribute.creationTime.toJSON(),
   code: attribute.code,

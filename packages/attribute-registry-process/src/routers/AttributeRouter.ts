@@ -10,8 +10,8 @@ import { attributeNotFound } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
 import { readModelService } from "../services/readModelService.js";
 import {
-  apiAttributeKindToAttributeKind,
-  attributeToApiAttribute,
+  toAttributeKind,
+  toApiAttribute,
 } from "../model/domain/apiConverter.js";
 import { ApiError, makeApiError } from "../model/types.js";
 
@@ -43,7 +43,7 @@ const attributeRouter = (
 
           const attributes = await readModelService.getAttributes(
             {
-              kinds: kinds.map(apiAttributeKindToAttributeKind),
+              kinds: kinds.map(toAttributeKind),
               name,
               origin,
             },
@@ -54,7 +54,7 @@ const attributeRouter = (
           return res
             .status(200)
             .json({
-              results: attributes.results.map(attributeToApiAttribute),
+              results: attributes.results.map(toApiAttribute),
               totalCount: attributes.totalCount,
             })
             .end();
@@ -79,10 +79,7 @@ const attributeRouter = (
           );
 
           if (attribute) {
-            return res
-              .status(200)
-              .json(attributeToApiAttribute(attribute.data))
-              .end();
+            return res.status(200).json(toApiAttribute(attribute.data)).end();
           } else {
             return res
               .status(404)
@@ -113,10 +110,7 @@ const attributeRouter = (
             code,
           });
           if (attribute) {
-            return res
-              .status(200)
-              .json(attributeToApiAttribute(attribute.data))
-              .end();
+            return res.status(200).json(toApiAttribute(attribute.data)).end();
           } else {
             return res
               .status(404)
@@ -146,10 +140,7 @@ const attributeRouter = (
           );
 
           if (attribute) {
-            return res
-              .status(200)
-              .json(attributeToApiAttribute(attribute.data))
-              .end();
+            return res.status(200).json(toApiAttribute(attribute.data)).end();
           } else {
             return res
               .status(404)
