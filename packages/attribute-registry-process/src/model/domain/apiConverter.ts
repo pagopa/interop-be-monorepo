@@ -4,18 +4,14 @@ import { match } from "ts-pattern";
 import * as api from "../generated/api.js";
 import { ApiAttributeKind } from "./models.js";
 
-export const toApiAttributeKind = (
-  input: AttributeKind
-): ApiAttributeKind =>
+export const toApiAttributeKind = (input: AttributeKind): ApiAttributeKind =>
   match<AttributeKind, ApiAttributeKind>(input)
     .with(attributeKind.certified, () => "CERTIFIED")
     .with(attributeKind.verified, () => "VERIFIED")
     .with(attributeKind.declared, () => "DECLARED")
     .exhaustive();
 
-export const toAttributeKind = (
-  input: ApiAttributeKind
-): AttributeKind =>
+export const toAttributeKind = (input: ApiAttributeKind): AttributeKind =>
   match<ApiAttributeKind, AttributeKind>(input)
     .with("CERTIFIED", () => attributeKind.certified)
     .with("VERIFIED", () => attributeKind.verified)
