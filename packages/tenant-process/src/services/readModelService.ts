@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { logger, ReadModelRepository } from "pagopa-interop-commons";
 import { ErrorTypes, ListResult, Tenant } from "pagopa-interop-models";
-import { config } from "../utilities/config.js";
 import { AggregationCursor, Document } from "mongodb";
+import { config } from "../utilities/config.js";
 
 const { tenants } = ReadModelRepository.init(config);
 
