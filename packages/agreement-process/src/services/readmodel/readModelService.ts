@@ -1,94 +1,106 @@
 /* eslint-disable no-constant-condition */
 /* eslint-disable functional/no-let */
-/* eslint-disable max-params */
 import {
-  AgreementCollection,
   logger,
   ReadModelRepository,
+  ReadModelFilter,
+  RemoveDataPrefix,
+  MongoQueryKeys,
+  AgreementCollection,
 } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementState,
-  ListResult,
-  WithMetadata,
   agreementState,
   descriptorState,
   EService,
-  Tenant,
   genericError,
+  ListResult,
+  Tenant,
+  WithMetadata,
 } from "pagopa-interop-models";
-import { z } from "zod";
 import { match, P } from "ts-pattern";
-import { AgreementProcessConfig } from "../utilities/config.js";
+import { z } from "zod";
+import { AgreementProcessConfig } from "../../utilities/config.js";
 
-const listAgreementsFilters = (
-  eServicesIds: string[],
-  consumersIds: string[],
-  producersIds: string[],
-  descriptorsIds: string[],
-  states: AgreementState[],
-  showOnlyUpgradeable: boolean
-): object => {
+export type AgreementQueryFilters = {
+  producerId?: string | string[];
+  consumerId?: string | string[];
+  eserviceId?: string | string[];
+  descriptorId?: string | string[];
+  agreementStates?: AgreementState[];
+  attributeId?: string | string[];
+  showOnlyUpgradeable?: boolean;
+};
+
+type AgreementDataFields = RemoveDataPrefix<MongoQueryKeys<Agreement>>;
+
+const makeFilter = (
+  fieldName: AgreementDataFields,
+  value: string | string[] | undefined
+): ReadModelFilter<Agreement> | undefined =>
+  match(value)
+    .with(P.nullish, () => undefined)
+    .with(P.string, () => ({
+      [`data.${fieldName}`]: value,
+    }))
+    .with(P.array(P.string), () => ({ [`data.${fieldName}`]: { $in: value } }))
+    .otherwise(() => {
+      logger.error(
+        `Unable to build filter for field ${fieldName} and value ${value}`
+      );
+      return undefined;
+    });
+
+const getAgreementsFilters = (
+  filters: AgreementQueryFilters
+): { $match: object } => {
   const upgradeableStates = [
     agreementState.draft,
     agreementState.active,
     agreementState.suspended,
   ];
-  match(states)
+
+  const {
+    attributeId,
+    producerId,
+    consumerId,
+    eserviceId,
+    descriptorId,
+    agreementStates,
+    showOnlyUpgradeable,
+  } = filters;
+
+  const agreementStatesFilters = match(agreementStates)
+    .with(P.nullish, () => (showOnlyUpgradeable ? upgradeableStates : []))
     .with(
-      P.when((states) => states.length === 0 && showOnlyUpgradeable),
+      P.when(
+        (agreementStates) => agreementStates.length === 0 && showOnlyUpgradeable
+      ),
       () => upgradeableStates
     )
     .with(
-      P.when((states) => states.length > 0 && showOnlyUpgradeable),
-      () =>
+      P.when(
+        (agreementStates) => agreementStates.length > 0 && showOnlyUpgradeable
+      ),
+      (agreementStates) =>
         upgradeableStates.filter(
-          (s1) => states.some((s2) => s1 === s2) !== undefined
+          (s1) => agreementStates.some((s2) => s1 === s2) !== undefined
         )
     )
-    .otherwise(() => states);
+    .otherwise((agreementStates) => agreementStates);
 
-  const filters = {
-    ...(eServicesIds.length > 0 && {
-      "data.eserviceId": { $in: eServicesIds },
-    }),
-    ...(consumersIds.length > 0 && {
-      "data.consumerId": { $in: consumersIds },
-    }),
-    ...(producersIds.length > 0 && {
-      "data.producerId": { $in: producersIds },
-    }),
-    ...(descriptorsIds.length > 0 && {
-      "data.descriptorId": { $in: descriptorsIds },
-    }),
-    ...(states.length > 0 && {
-      "data.state": {
-        $in: states,
-      },
-    }),
-  };
-
-  return { $match: filters };
-};
-
-const getAgreementsFilters = (
-  producerId: string | undefined,
-  consumerId: string | undefined,
-  eserviceId: string | undefined,
-  descriptorId: string | undefined,
-  agreementStates: AgreementState[],
-  attributeId: string | undefined
-): object => {
-  const filters = {
-    ...(producerId && { "data.producerId": producerId }),
-    ...(consumerId && { "data.consumerId": consumerId }),
-    ...(eserviceId && { "data.eserviceId": eserviceId }),
-    ...(descriptorId && { "data.descriptorId": descriptorId }),
-    ...(agreementStates.length > 0 && {
-      "data.state": {
-        $in: agreementStates.map((s) => s.toString()),
-      },
-    }),
+  const queryFilters = {
+    ...makeFilter("producerId", producerId),
+    ...makeFilter("consumerId", consumerId),
+    ...makeFilter("eserviceId", eserviceId),
+    ...makeFilter("descriptorId", descriptorId),
+    ...(agreementStatesFilters &&
+      agreementStatesFilters.length > 0 && {
+        "data.state": {
+          $in: agreementStatesFilters.map((s) => s.toString()),
+        },
+      }),
     ...(attributeId && {
       $or: [
         { "data.certifiedAttributes": { $elemMatch: { id: attributeId } } },
@@ -97,17 +109,12 @@ const getAgreementsFilters = (
       ],
     }),
   };
-  return { $match: filters };
+  return { $match: queryFilters };
 };
 
-const getAllAgreements = async (
+export const getAllAgreements = async (
   agreements: AgreementCollection,
-  producerId: string | undefined,
-  consumerId: string | undefined,
-  eserviceId: string | undefined,
-  descriptorId: string | undefined,
-  agreementStates: AgreementState[],
-  attributeId: string | undefined
+  filters: AgreementQueryFilters
 ): Promise<Agreement[]> => {
   const limit = 50;
   let offset = 0;
@@ -116,12 +123,7 @@ const getAllAgreements = async (
   while (true) {
     const agreementsChunk = await getAgreements(
       agreements,
-      producerId,
-      consumerId,
-      eserviceId,
-      descriptorId,
-      agreementStates,
-      attributeId,
+      filters,
       offset,
       limit
     );
@@ -140,25 +142,13 @@ const getAllAgreements = async (
 
 const getAgreements = async (
   agreements: AgreementCollection,
-  producerId: string | undefined,
-  consumerId: string | undefined,
-  eserviceId: string | undefined,
-  descriptorId: string | undefined,
-  agreementStates: AgreementState[],
-  attributeId: string | undefined,
+  filters: AgreementQueryFilters,
   offset: number,
   limit: number
 ): Promise<Agreement[]> => {
   const data = await agreements
     .aggregate([
-      getAgreementsFilters(
-        producerId,
-        consumerId,
-        eserviceId,
-        descriptorId,
-        agreementStates,
-        attributeId
-      ),
+      getAgreementsFilters(filters),
       { $skip: offset },
       { $limit: limit },
     ])
@@ -186,33 +176,12 @@ export function readModelServiceBuilder(config: AgreementProcessConfig) {
   const tenants = readModelRepository.tenants;
   return {
     async listAgreements(
-      {
-        eServicesIds,
-        consumersIds,
-        producersIds,
-        descriptorsIds,
-        states,
-        showOnlyUpgradeable,
-      }: {
-        eServicesIds: string[];
-        consumersIds: string[];
-        producersIds: string[];
-        descriptorsIds: string[];
-        states: AgreementState[];
-        showOnlyUpgradeable: boolean;
-      },
+      filters: AgreementQueryFilters,
       limit: number,
       offset: number
     ): Promise<ListResult<Agreement>> {
       const aggregationPipeline = [
-        listAgreementsFilters(
-          eServicesIds,
-          consumersIds,
-          producersIds,
-          descriptorsIds,
-          states,
-          showOnlyUpgradeable
-        ),
+        getAgreementsFilters(filters),
         {
           $lookup: {
             from: "eservices",
@@ -224,7 +193,7 @@ export function readModelServiceBuilder(config: AgreementProcessConfig) {
         {
           $unwind: "$eservices",
         },
-        ...(showOnlyUpgradeable
+        ...(filters.showOnlyUpgradeable
           ? [
               {
                 $addFields: {
@@ -344,23 +313,8 @@ export function readModelServiceBuilder(config: AgreementProcessConfig) {
 
       return undefined;
     },
-    async getAgreements(
-      producerId: string | undefined,
-      consumerId: string | undefined,
-      eserviceId: string | undefined,
-      descriptorId: string | undefined,
-      agreementStates: AgreementState[],
-      attributeId: string | undefined
-    ): Promise<Agreement[]> {
-      return getAllAgreements(
-        agreements,
-        producerId,
-        consumerId,
-        eserviceId,
-        descriptorId,
-        agreementStates,
-        attributeId
-      );
+    async getAgreements(filters: AgreementQueryFilters): Promise<Agreement[]> {
+      return getAllAgreements(agreements, filters);
     },
     async getEServiceById(
       id: string

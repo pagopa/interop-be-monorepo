@@ -15,10 +15,23 @@ import {
 import { config } from "../utilities/config.js";
 import { agreementNotFound } from "../model/domain/errors.js";
 import { agreementServiceBuilder } from "../services/agreementService.js";
-import { readModelServiceBuilder } from "../services/readModelService.js";
+import { agreementQueryBuilder } from "../services/readmodel/agreementQuery.js";
+import { tenantQueryBuilder } from "../services/readmodel/tenantQuery.js";
+import { eserviceQueryBuilder } from "../services/readmodel/eserviceQuery.js";
+import { readModelServiceBuilder } from "../services/readmodel/readModelService.js";
 
 const readModelService = readModelServiceBuilder(config);
-const agreementService = agreementServiceBuilder(config, readModelService);
+
+const agreementQuery = agreementQueryBuilder(readModelService);
+const tenantQuery = tenantQueryBuilder(readModelService);
+const eserviceQuery = eserviceQueryBuilder(readModelService);
+
+const agreementService = agreementServiceBuilder(
+  config,
+  agreementQuery,
+  tenantQuery,
+  eserviceQuery
+);
 
 const {
   ADMIN_ROLE,
@@ -34,9 +47,22 @@ const agreementRouter = (
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const agreementRouter = ctx.router(api.api);
 
-  agreementRouter.post("/agreements/:agreementId/submit", async (_req, res) => {
-    res.status(501).send();
-  });
+  agreementRouter.post(
+    "/agreements/:agreementId/submit",
+    authorizationMiddleware([ADMIN_ROLE]),
+    async (req, res) => {
+      try {
+        const id = await agreementService.submitAgreement(
+          req.params.agreementId,
+          req.body
+        );
+        return res.status(200).json({ id }).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(error);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    }
+  );
 
   agreementRouter.post(
     "/agreements/:agreementId/activate",
@@ -114,11 +140,13 @@ const agreementRouter = (
       try {
         const agreements = await agreementService.getAgreements(
           {
-            eServicesIds: req.query.eservicesIds,
-            consumersIds: req.query.consumersIds,
-            producersIds: req.query.producersIds,
-            descriptorsIds: req.query.descriptorsIds,
-            states: req.query.states.map(apiAgreementStateToAgreementState),
+            eserviceId: req.query.eservicesIds,
+            consumerId: req.query.consumersIds,
+            producerId: req.query.producersIds,
+            descriptorId: req.query.descriptorsIds,
+            agreementStates: req.query.states.map(
+              apiAgreementStateToAgreementState
+            ),
             showOnlyUpgradeable: req.query.showOnlyUpgradeable || false,
           },
           req.query.limit,
