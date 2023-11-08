@@ -49,10 +49,10 @@ const handleExit = (consumer: Consumer): void => {
 
 const initConsumer = async (
   config: ConsumerConfig,
-  topic: string,
+  topics: string[],
   consumerHandler: (message: KafkaMessage) => Promise<void>
 ): Promise<Consumer> => {
-  logger.info(`Consumer connecting to topics [${config.kafkaBrokers}]`);
+  logger.info(`Consumer connecting to topics [${JSON.stringify(topics)}]`);
 
   const kafkaConfig = config.kafkaDisableAwsIamAuth
     ? {
@@ -79,7 +79,7 @@ const initConsumer = async (
   logger.info("Consumer connected");
 
   await consumer.subscribe({
-    topics: [topic],
+    topics,
     fromBeginning: true,
   });
 
@@ -91,7 +91,7 @@ const initConsumer = async (
 
 export const runConsumer = async (
   config: ConsumerConfig,
-  topic: string,
+  topic: string[],
   consumerHandler: (message: KafkaMessage) => Promise<void>
 ): Promise<void> => {
   let consumer = await initConsumer(config, topic, consumerHandler);

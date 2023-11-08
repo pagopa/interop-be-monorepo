@@ -16,6 +16,8 @@ async function processMessage(message: KafkaMessage): Promise<void> {
   }
 }
 
-await runConsumer(config, "event-store.agreement.events", processMessage).catch(
-  logger.error
-);
+await runConsumer(
+  config,
+  ["event-store.agreement.events"],
+  processMessage
+).catch(logger.error);
