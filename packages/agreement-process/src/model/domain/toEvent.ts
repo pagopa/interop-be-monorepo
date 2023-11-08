@@ -97,3 +97,18 @@ export function toCreateEventAgreementAdded(
     },
   };
 }
+
+export function toCreateEventAgreementUpdated(
+  agreement: PersistentAgreement
+): CreateEvent<AgreementEvent> {
+  return {
+    streamId: agreement.id,
+    version: 0,
+    event: {
+      type: "AgreementUpdated",
+      data: {
+        agreement: toAgreementV1(agreement),
+      },
+    },
+  };
+}
