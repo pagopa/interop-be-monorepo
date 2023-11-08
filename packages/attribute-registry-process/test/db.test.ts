@@ -1,11 +1,11 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { GenericContainer } from "testcontainers";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
+import { ReadModelRepository } from "pagopa-interop-commons";
+import { v4 as uuidv4 } from "uuid";
 import { config } from "../src/utilities/config.js";
 import { attributeRegistryService } from "../src/services/attributeRegistryService.js";
 import { readModelService } from "../src/services/readModelService.js";
-import { ReadModelRepository } from "pagopa-interop-commons";
-import { v4 as uuidv4 } from "uuid";
 
 describe("database test", () => {
   beforeAll(async () => {
@@ -65,7 +65,7 @@ const addOneAttribute = (id: string) => {
 
   return attributes.insertOne({
     data: {
-      id: id,
+      id,
       name: "name",
       kind: "Certified",
       description: "description",
