@@ -24,6 +24,15 @@ const eserviceDocumentNotFound = {
   title: "EService document not found",
 }; // TODO: reorganize error codes
 
+export function eServiceNotFound(eServiceId: string): ApiError {
+  return new ApiError({
+    detail: `EService ${eServiceId} not found`,
+    code: "0007",
+    httpStatus: 404,
+    title: "EService not found",
+  });
+}
+
 export function eServiceDuplicate(eServiceNameSeed: string): ApiError {
   return new ApiError({
     detail: `ApiError during EService creation with name ${eServiceNameSeed}`,

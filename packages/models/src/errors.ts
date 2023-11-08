@@ -153,12 +153,3 @@ export function missingBearer(): ApiError {
     title: "Bearer token has not been passed",
   });
 }
-
-export function eServiceNotFound(eServiceId: string): ApiError {
-  return new ApiError({
-    detail: `EService ${eServiceId} not found`,
-    code: "0007",
-    httpStatus: 404,
-    title: "EService not found",
-  });
-}

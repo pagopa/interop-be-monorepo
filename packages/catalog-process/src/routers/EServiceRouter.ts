@@ -1,6 +1,6 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
-import { eServiceNotFound, makeApiProblem } from "pagopa-interop-models";
+import { makeApiProblem } from "pagopa-interop-models";
 import {
   ExpressContext,
   userRoles,
@@ -17,7 +17,10 @@ import {
 import { api } from "../model/generated/api.js";
 import { catalogService } from "../services/catalogService.js";
 import { readModelService } from "../services/readModelService.js";
-import { eServiceDocumentNotFound } from "../model/domain/errors.js";
+import {
+  eServiceNotFound,
+  eServiceDocumentNotFound,
+} from "../model/domain/errors.js";
 
 const eservicesRouter = (
   ctx: ZodiosContext
