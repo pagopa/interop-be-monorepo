@@ -3,6 +3,7 @@ import { GenericContainer } from "testcontainers";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import { ReadModelRepository } from "pagopa-interop-commons";
 import { v4 as uuidv4 } from "uuid";
+import { Document } from "mongodb";
 import { config } from "../src/utilities/config.js";
 import { attributeRegistryService } from "../src/services/attributeRegistryService.js";
 import { readModelService } from "../src/services/readModelService.js";
@@ -60,7 +61,7 @@ describe("database test", () => {
   });
 });
 
-const addOneAttribute = (id: string) => {
+const addOneAttribute = (id: string): Promise<Document> => {
   const { attributes } = ReadModelRepository.init(config);
 
   return attributes.insertOne({
