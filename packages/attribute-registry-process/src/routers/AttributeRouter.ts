@@ -124,7 +124,8 @@ const attributeRouter = (
               .end();
           }
         } catch (error) {
-          return res.status(500).end();
+          const errorRes: ApiError = makeApiError(error);
+          return res.status(errorRes.status).json(errorRes).end();
         }
       }
     )
