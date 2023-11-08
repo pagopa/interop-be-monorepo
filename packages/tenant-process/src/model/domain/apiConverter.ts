@@ -3,13 +3,13 @@ import {
   Tenant,
   TenantKind,
   tenantKind,
-  TenantFeatureCertifier,
   TenantAttribute,
   TenantVerifier,
   TenantRevoker,
   Mail,
   MailKind,
   mailKind,
+  TenantFeature,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
@@ -43,11 +43,13 @@ export function tenantExternalIdToApiTenantExternalId(
 }
 
 export function tenantFeatureToApiTenantFeature(
-  input: TenantFeatureCertifier
+  input: TenantFeature
 ): ApiTenantFeature {
-  return match<TenantFeatureCertifier, ApiTenantFeature>(input)
-    .with({ type: "Certifier" }, ({ certifierId }) => ({
-      certifier: { certifierId },
+  return match<TenantFeature, ApiTenantFeature>(input)
+    .with({ type: "Certifier" }, (feature) => ({
+      certifier: {
+        certifierId: feature.certifierId,
+      },
     }))
     .exhaustive();
 }
