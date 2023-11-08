@@ -7,6 +7,8 @@ import {
   authorizationMiddleware,
 } from "pagopa-interop-commons";
 import { api } from "../model/generated/api.js";
+import { readModelService } from "../services/readModelService.js";
+import { tenantToApiTenant } from "../model/domain/apiConverter.js";
 
 const tenantsRouter = (
   ctx: ZodiosContext
@@ -49,8 +51,25 @@ const tenantsRouter = (
         SECURITY_ROLE,
         SUPPORT_ROLE,
       ]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const { name, offset, limit } = req.query;
+          const tenants = await readModelService.getTenants(
+            name,
+            offset,
+            limit
+          );
+
+          return res.status(200).json({
+            results: tenants.results.map(tenantToApiTenant),
+            totalCount: tenants.totalCount,
+          });
+        } catch (error) {
+          return res.status(500).send();
+        }
+      }
     )
+
     .get(
       "/tenants/:id",
       authorizationMiddleware([

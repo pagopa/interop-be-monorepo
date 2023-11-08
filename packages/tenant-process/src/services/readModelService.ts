@@ -1,18 +1,15 @@
-// import { z } from "zod";
-// import { logger, ReadModelRepository } from "pagopa-interop-commons";
-// import { ErrorTypes, WithMetadata } from "pagopa-interop-models";
-// import { config } from "../utilities/config.js";
-// import { PersistentTenant } from "./../../../models/src/tenant/tenant.js";
+import { z } from "zod";
+import { logger, ReadModelRepository } from "pagopa-interop-commons";
+import {
+  Document,
+  ErrorTypes,
+  ListResult,
+  Tenant,
+} from "pagopa-interop-models";
+import { AggregationCursor, Filter } from "mongodb";
+import { config } from "../utilities/config.js";
 
-// const { tenants } = ReadModelRepository.init(config);
-
-/*
-function arrayToFilter<T, F extends object>(
-  array: T[],
-  f: (array: T[]) => F
-): F | undefined {
-  return array.length > 0 ? f(array) : undefined;
-}
+const { tenants } = ReadModelRepository.init(config);
 
 async function getTotalCount(
   query: AggregationCursor<Document>
@@ -31,6 +28,64 @@ async function getTotalCount(
   );
   throw ErrorTypes.GenericError;
 }
-*/
 
-export const readModelService = {};
+function listTenantsFilters(
+  name: string | undefined
+): [Filter<{ data: Tenant }>, Filter<{ data: Tenant }>] {
+  const nameFilter =
+    name && name !== ""
+      ? {
+          "data.name": {
+            $regex: name,
+            $options: "i",
+          },
+        }
+      : {};
+
+  const withSelfcareIdFilter = {
+    "data.selfcareId": {
+      $exists: true,
+    },
+  };
+  return [nameFilter, withSelfcareIdFilter];
+}
+
+export const readModelService = {
+  async getTenants(
+    name: string | undefined,
+    offset: number,
+    limit: number
+  ): Promise<ListResult<Tenant>> {
+    const query = listTenantsFilters(name);
+
+    const filterPipeline = [{ $match: query }];
+
+    const data = await tenants
+      .aggregate([
+        ...filterPipeline,
+        { $skip: offset },
+        { $limit: limit },
+        { $project: { data: 1, lowerName: { $toLower: "$data.name" } } },
+        { $sort: { lowerName: 1 } },
+      ])
+      .toArray();
+
+    const result = z.array(Tenant).safeParse(data.map((d) => d.data));
+    if (!result.success) {
+      logger.error(
+        `Unable to parse tenant items: result ${JSON.stringify(
+          result
+        )} - data ${JSON.stringify(data)} `
+      );
+
+      throw ErrorTypes.GenericError;
+    }
+
+    return {
+      results: result.data,
+      totalCount: await getTotalCount(
+        tenants.aggregate([...filterPipeline, { $count: "count" }])
+      ),
+    };
+  },
+};
