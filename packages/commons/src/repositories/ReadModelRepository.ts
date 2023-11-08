@@ -8,20 +8,14 @@ import { Collection, Db, MongoClient } from "mongodb";
 import { z } from "zod";
 import { ReadModelDbConfig, logger } from "../index.js";
 
-export type EServiceCollection = Collection<{
-  data: EService | undefined;
+type GenericCollection<T> = Collection<{
+  data: T;
   metadata: { version: number };
 }>;
 
-export type AgreementCollection = Collection<{
-  data: PersistentAgreement;
-  metadata: { version: number };
-}>;
-
-export type TenantCollection = Collection<{
-  data: Tenant;
-  metadata: { version: number };
-}>;
+export type EServiceCollection = GenericCollection<EService | undefined>;
+export type AgreementCollection = GenericCollection<PersistentAgreement>;
+export type TenantCollection = GenericCollection<Tenant>;
 
 export type Collections =
   | EServiceCollection
