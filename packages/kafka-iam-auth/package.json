@@ -23,10 +23,10 @@
     "crypto": "^1.0.1",
     "kafkajs": "^2.2.4",
     "pagopa-interop-commons": "workspace:^",
-    "pagopa-interop-models": "workspace:*",
-    "typescript": "5.1.3"
+    "pagopa-interop-models": "workspace:*"
   },
   "devDependencies": {
-    "@aws-sdk/types": "^3.433.0"
+    "@aws-sdk/types": "^3.433.0",
+    "typescript": "5.1.3"
   }
 }
