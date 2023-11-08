@@ -1,6 +1,7 @@
 import {
   EService,
   PersistentAgreement,
+  Tenant,
   AttributeTmp,
 } from "pagopa-interop-models";
 import { Collection, Db, MongoClient } from "mongodb";
@@ -16,6 +17,11 @@ export class ReadModelRepository {
 
   public agreements: Collection<{
     data: PersistentAgreement;
+    metadata: { version: number };
+  }>;
+
+  public tenants: Collection<{
+    data: Tenant;
     metadata: { version: number };
   }>;
 
@@ -43,6 +49,7 @@ export class ReadModelRepository {
     this.agreements = this.db.collection("agreements", {
       ignoreUndefined: true,
     });
+    this.tenants = this.db.collection("tenants", { ignoreUndefined: true });
     this.attributes = this.db.collection("attributes", {
       ignoreUndefined: true,
     });
