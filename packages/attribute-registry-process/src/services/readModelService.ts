@@ -1,4 +1,4 @@
-import { AggregationCursor } from "mongodb";
+import { AggregationCursor, Filter } from "mongodb";
 import { z } from "zod";
 import { logger, ReadModelRepository } from "pagopa-interop-commons";
 import {
@@ -105,14 +105,12 @@ export const readModelService = {
     };
   },
 
-  async getAttributeById(
-    id: string
+  async getAttribute(
+    filter: Filter<{ data: Attribute }>
   ): Promise<WithMetadata<Attribute> | undefined> {
-    const data = await attributes.findOne(
-      { "data.id": id },
-      { projection: { data: true, metadata: true } }
-    );
-
+    const data = await attributes.findOne(filter, {
+      projection: { data: true, metadata: true },
+    });
     if (data) {
       const result = z
         .object({
@@ -120,63 +118,36 @@ export const readModelService = {
           data: Attribute,
         })
         .safeParse(data);
-
       if (!result.success) {
         logger.error(
           `Unable to parse attribute item: result ${JSON.stringify(
             result
           )} - data ${JSON.stringify(data)} `
         );
-
         throw ErrorTypes.GenericError;
       }
-
       return {
         data: result.data.data,
         metadata: { version: result.data.metadata.version },
       };
     }
-
     return undefined;
+  },
+  async getAttributeById(
+    id: string
+  ): Promise<WithMetadata<Attribute> | undefined> {
+    return this.getAttribute({ "data.id": id });
   },
 
   async getAttributeByName(
     name: string
   ): Promise<WithMetadata<Attribute> | undefined> {
-    const data = await attributes.findOne(
-      {
-        "data.name": {
-          $regex: `^${name}$$`,
-          $options: "i",
-        },
+    return this.getAttribute({
+      "data.name": {
+        $regex: `^${name}$$`,
+        $options: "i",
       },
-      { projection: { data: true, metadata: true } }
-    );
-
-    if (data) {
-      const result = z
-        .object({
-          metadata: z.object({ version: z.number() }),
-          data: Attribute,
-        })
-        .safeParse(data);
-
-      if (!result.success) {
-        logger.error(
-          `Unable to parse attribute item: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
-        );
-
-        throw ErrorTypes.GenericError;
-      }
-
-      return {
-        data: result.data.data,
-        metadata: { version: result.data.metadata.version },
-      };
-    }
-    return undefined;
+    });
   },
   async getAttributeByOriginAndCode({
     origin,
@@ -185,33 +156,9 @@ export const readModelService = {
     origin: string;
     code: string;
   }): Promise<WithMetadata<Attribute> | undefined> {
-    const data = await attributes.findOne(
-      {
-        "data.code": code,
-        "data.origin": origin,
-      },
-      { projection: { data: true, metadata: true } }
-    );
-    if (data) {
-      const result = z
-        .object({
-          metadata: z.object({ version: z.number() }),
-          data: Attribute,
-        })
-        .safeParse(data);
-      if (!result.success) {
-        logger.error(
-          `Unable to parse attribute item: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
-        );
-        throw ErrorTypes.GenericError;
-      }
-      return {
-        data: result.data.data,
-        metadata: { version: result.data.metadata.version },
-      };
-    }
-    return undefined;
+    return this.getAttribute({
+      "data.origin": origin,
+      "data.code": code,
+    });
   },
 };
