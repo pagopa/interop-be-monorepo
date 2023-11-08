@@ -52,6 +52,18 @@ export function notLatestEServiceDescriptor(
   });
 }
 
+export function descriptorNotFound(
+  eServiceId: string,
+  descriptorId: string
+): ApiError {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} not found in EService ${eServiceId}`,
+    code: "0014",
+    httpStatus: 500,
+    title: "Descriptor not found",
+  });
+}
+
 export function descriptorNotInExpectedState(
   eServiceId: string,
   descriptorId: string,
@@ -170,5 +182,27 @@ export function agreementDescriptorNotFound(
     detail: `Descriptor ${descriptorId} not found in EService ${eserviceId}`,
     code: "agreementDescriptorNotFound",
     title: "Descriptor not found",
+  });
+}
+
+export function publishedDescriptorNotFound(
+  eserviceId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Published descriptor not found in EService ${eserviceId}`,
+    code: "0012",
+    title: "Published descriptor not found",
+  });
+}
+
+export function unexpectedVersionFormat(
+  eserviceId: string,
+  descriptorId: string
+): ApiError {
+  return new ApiError({
+    detail: `Version in not an Int for descriptor ${descriptorId} of EService ${eserviceId}`,
+    code: "0013",
+    httpStatus: 500,
+    title: "Unexpected version format",
   });
 }
