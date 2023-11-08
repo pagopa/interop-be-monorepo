@@ -6,9 +6,9 @@ import {
   TenantAttribute,
   TenantVerifier,
   TenantRevoker,
-  Mail,
-  MailKind,
-  mailKind,
+  TenantMail,
+  TenantMailKind,
+  tenantMailKind,
   TenantFeature,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -27,9 +27,9 @@ import {
 
 export function tenantKindToApiTenantKind(input: TenantKind): ApiTenantKind {
   return match<TenantKind, ApiTenantKind>(input)
-    .with(tenantKind.gsp, () => "GSP")
-    .with(tenantKind.pa, () => "PA")
-    .with(tenantKind.private, () => "PRIVATE")
+    .with(tenantKind.GSP, () => "GSP")
+    .with(tenantKind.PA, () => "PA")
+    .with(tenantKind.PRIVATE, () => "PRIVATE")
     .exhaustive();
 }
 
@@ -81,14 +81,14 @@ export function tenantAttributeToApiTenantAttribute(
   input: TenantAttribute
 ): ApiTenantAttribute {
   return match<TenantAttribute, ApiTenantAttribute>(input)
-    .with({ type: "CertifiedAttribute" }, (attribute) => ({
+    .with({ type: "certified" }, (attribute) => ({
       certified: {
         id: attribute.id,
         assignmentTimestamp: attribute.assignmentTimestamp.toJSON(),
         revocationTimestamp: attribute.revocationTimestamp?.toJSON(),
       },
     }))
-    .with({ type: "VerifiedAttribute" }, (attribute) => ({
+    .with({ type: "verified" }, (attribute) => ({
       verified: {
         id: attribute.id,
         assignmentTimestamp: attribute.assignmentTimestamp.toJSON(),
@@ -96,7 +96,7 @@ export function tenantAttributeToApiTenantAttribute(
         revokedBy: attribute.revokedBy.map(tenantRevokerToApiTenantRevoker),
       },
     }))
-    .with({ type: "DeclaredAttribute" }, (attribute) => ({
+    .with({ type: "declared" }, (attribute) => ({
       declared: {
         id: attribute.id,
         assignmentTimestamp: attribute.assignmentTimestamp.toJSON(),
@@ -105,13 +105,13 @@ export function tenantAttributeToApiTenantAttribute(
     .exhaustive();
 }
 
-export function mailKindToApiMailKind(kind: MailKind): ApiMailKind {
-  return match(kind)
-    .with(mailKind.contactMail, () => MailKind.Enum.CONTACT_EMAIL)
+export function mailKindToApiMailKind(kind: TenantMailKind): ApiMailKind {
+  return match<TenantMailKind, ApiMailKind>(kind)
+    .with(tenantMailKind.ContactEmail, () => "CONTACT_EMAIL")
     .exhaustive();
 }
 
-export function mailToApiMail(mail: Mail): ApiMail {
+export function mailToApiMail(mail: TenantMail): ApiMail {
   return {
     kind: mailKindToApiMailKind(mail.kind),
     address: mail.address,
