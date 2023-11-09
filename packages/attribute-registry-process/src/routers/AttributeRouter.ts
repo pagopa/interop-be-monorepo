@@ -42,16 +42,14 @@ const attributeRouter = (
         try {
           const { limit, offset, kinds, name, origin } = req.query;
 
-          const attributes = await readModelService.getAttributes(
-            {
-              ids: undefined,
+          const attributes =
+            await readModelService.getAttributesByKindsNameOrigin({
               kinds: kinds.map(toAttributeKind),
               name,
               origin,
-            },
-            offset,
-            limit
-          );
+              offset,
+              limit,
+            });
 
           return res
             .status(200)
@@ -168,14 +166,11 @@ const attributeRouter = (
         const { limit, offset } = req.query;
 
         try {
-          const attributes = await readModelService.getAttributes(
-            {
-              ids: req.body,
-              kinds: [],
-            },
+          const attributes = await readModelService.getAttributesByIds({
+            ids: req.body,
             offset,
-            limit
-          );
+            limit,
+          });
           return res
             .status(200)
             .json({
