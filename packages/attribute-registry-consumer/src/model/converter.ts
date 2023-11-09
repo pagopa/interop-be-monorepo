@@ -7,7 +7,7 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
-export const fromAttributeKind = (input: AttributeKindV1): AttributeKind =>
+export const fromAttributeKindV1 = (input: AttributeKindV1): AttributeKind =>
   match(input)
     .with(AttributeKindV1.CERTIFIED, () => attributeKind.certified)
     .with(AttributeKindV1.DECLARED, () => attributeKind.declared)
@@ -18,6 +18,6 @@ export const fromAttributeKind = (input: AttributeKindV1): AttributeKind =>
 
 export const fromAttributeV1 = (input: AttributeV1): Attribute => ({
   ...input,
-  kind: fromAttributeKind(input.kind),
+  kind: fromAttributeKindV1(input.kind),
   creationTime: new Date(Number(input.creationTime)),
 });
