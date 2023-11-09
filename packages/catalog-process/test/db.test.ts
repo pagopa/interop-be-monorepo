@@ -1,8 +1,10 @@
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
 // import { PostgreSqlContainer } from "@testcontainers/postgresql";
-import { GenericContainer } from "testcontainers";
-import { ReadModelRepository } from "pagopa-interop-commons";
 import { config } from "../src/utilities/config.js";
+import {
+  ReadModelRepository,
+  SingletonMongodbContainer,
+} from "pagopa-interop-commons";
 
 describe("database test", async () => {
   // const postgresDB = initDB({
@@ -30,14 +32,8 @@ describe("database test", async () => {
     //   .withReuse()
     //   .start();
 
-    await new GenericContainer("mongo:6.0.7")
-      .withEnvironment({
-        MONGO_INITDB_DATABASE: "readmodel",
-        MONGO_INITDB_ROOT_USERNAME: "root",
-        MONGO_INITDB_ROOT_PASSWORD: "example",
-      })
-      .withExposedPorts({ container: 27017, host: 27017 })
-      .start();
+    const container = SingletonMongodbContainer.init();
+    await container.start();
   });
 
   afterEach(async () => {
