@@ -355,7 +355,7 @@ export function attributeDuplicate(
 ): AttributeProcessError {
   return new AttributeProcessError(
     `Error during Attribute creation with name ${attributeNameSeed}`,
-    ErrorTypes.DuplicateEserviceName
+    ErrorTypes.DuplicateAttributeName
   );
 }
 
