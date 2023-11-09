@@ -18,6 +18,7 @@ describe("database test", () => {
     schema: config.eventStoreDbSchema,
     useSSL: config.eventStoreDbUseSSL,
   });
+
   beforeAll(async () => {
     await new PostgreSqlContainer("postgres:14")
       .withUsername(config.eventStoreDbUsername)
@@ -51,31 +52,72 @@ describe("database test", () => {
     postgresDB.none("TRUNCATE TABLE attribute.events");
   });
 
-  it("should write on event-store", async () => {
-    const id = await attributeRegistryService.createDeclaredAttribute(
-      {
-        name: "name",
-        description: "description",
-      },
-      {
-        organizationId: "organization-id",
-        externalId: {
-          origin: "IPA",
-          value: "123456",
+  describe("attribute creation", () => {
+    it("should write on event-store for the creation of a declared attribute", async () => {
+      const id = await attributeRegistryService.createDeclaredAttribute(
+        {
+          name: "name",
+          description: "description",
         },
-        userId: uuidv4(),
-        userRoles: [],
-      }
-    );
-    expect(id).toBeDefined();
+        {
+          organizationId: "organization-id",
+          externalId: {
+            origin: "IPA",
+            value: "123456",
+          },
+          userId: uuidv4(),
+          userRoles: [],
+        }
+      );
+      expect(id).toBeDefined();
+    });
+    it("should write on event-store for the creation of a verified attribute", async () => {
+      const id = await attributeRegistryService.createVerifiedAttribute(
+        {
+          name: "name",
+          description: "description",
+        },
+        {
+          organizationId: "organization-id",
+          externalId: {
+            origin: "IPA",
+            value: "123456",
+          },
+          userId: uuidv4(),
+          userRoles: [],
+        }
+      );
+      expect(id).toBeDefined();
+    });
   });
 
-  it("should write and read on readmodel", async () => {
-    const id = uuidv4();
-    await addOneAttribute(id);
-    const res = await readModelService.getAttributeById(id);
-    expect(res?.data.name).toBe("name");
-    expect(res?.data.description).toBe("description");
+  describe("get an attribute by id", () => {
+    it("should get the attribute if it exists", async () => {
+      const id = uuidv4();
+      await addOneAttribute(id);
+      const attribute = await readModelService.getAttributeById(id);
+      expect(attribute?.data.name).toBe("name");
+      expect(attribute?.data.description).toBe("description");
+    });
+    it("should not get the attribute if it doesn't exist", async () => {
+      const id = uuidv4();
+      const attribute = await readModelService.getAttributeById(id);
+      expect(attribute).toBeUndefined();
+    });
+  });
+
+  describe("should get an attribute by name", () => {
+    it("should get the attribute if it exists", async () => {
+      const id = uuidv4();
+      await addOneAttribute(id);
+      const attribute = await readModelService.getAttributeByName("name");
+      expect(attribute?.data.name).toBe("name");
+      expect(attribute?.data.description).toBe("description");
+    });
+    it("should not get the attribute if it doesn't exist", async () => {
+      const attribute = await readModelService.getAttributeByName("name");
+      expect(attribute).toBeUndefined();
+    });
   });
 });
 
