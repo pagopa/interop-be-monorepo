@@ -27,6 +27,7 @@ describe("database test", async () => {
         },
       ])
       .withExposedPorts({ container: 5432, host: config.eventStoreDbPort })
+      .withReuse()
       .start();
 
     await new GenericContainer("mongo:6.0.7")
@@ -36,6 +37,7 @@ describe("database test", async () => {
         MONGO_INITDB_ROOT_PASSWORD: "example",
       })
       .withExposedPorts({ container: 27017, host: 27017 })
+      .withReuse()
       .start();
   });
 
