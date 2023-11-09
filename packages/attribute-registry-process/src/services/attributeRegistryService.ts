@@ -11,6 +11,7 @@ import {
   attributeDuplicate,
   attributeEventToBinaryData,
   originNotCompliant,
+  attributeKind,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import { config } from "../utilities/config.js";
@@ -18,7 +19,6 @@ import {
   ApiDeclaredAttributeSeed,
   ApiVerifiedAttributeSeed,
 } from "../model/types.js";
-import { toAttributeKind } from "../model/domain/apiConverter.js";
 import { toCreateEventAttributeAdded } from "../model/domain/toEvent.js";
 import { readModelService } from "./readModelService.js";
 
@@ -85,7 +85,7 @@ export function createDeclaredAttributeLogic({
 
   const newDeclaredAttribute: Attribute = {
     id: uuidv4(),
-    kind: toAttributeKind("DECLARED"),
+    kind: attributeKind.declared,
     name: apiDeclaredAttributeSeed.name,
     description: apiDeclaredAttributeSeed.description,
     creationTime: new Date(),
@@ -109,7 +109,7 @@ export function createVerifiedAttributeLogic({
 
   const newVerifiedAttribute: Attribute = {
     id: uuidv4(),
-    kind: toAttributeKind("VERIFIED"),
+    kind: attributeKind.verified,
     name: apiVerifiedAttributeSeed.name,
     description: apiVerifiedAttributeSeed.description,
     creationTime: new Date(),

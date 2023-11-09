@@ -11,7 +11,7 @@ import { match } from "ts-pattern";
 export const toAttributeV1 = (attribute: Attribute): AttributeV1 => ({
   ...attribute,
   kind: toAttributeKindV1(attribute.kind),
-  creationTime: String(attribute.creationTime.getTime()),
+  creationTime: attribute.creationTime.toISOString(),
 });
 
 export const toAttributeKindV1 = (input: AttributeKind): AttributeKindV1 =>

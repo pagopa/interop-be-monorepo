@@ -197,7 +197,7 @@ const attributeRouter = (
             req.body,
             req.ctx.authData
           );
-          return res.status(201).json({ id }).end();
+          return res.status(200).json({ id }).end();
         } catch (error) {
           const errorRes: ApiError = makeApiError(error);
           return res.status(errorRes.status).json(errorRes).end();
@@ -213,7 +213,7 @@ const attributeRouter = (
             req.body,
             req.ctx.authData
           );
-          return res.status(201).json({ id }).end();
+          return res.status(200).json({ id }).end();
         } catch (error) {
           const errorRes: ApiError = makeApiError(error);
           return res.status(errorRes.status).json(errorRes).end();
