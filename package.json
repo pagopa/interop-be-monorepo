@@ -10,6 +10,7 @@
     "start:agreement": "turbo start --filter pagopa-interop-agreement-process",
     "start:agreement-consumer": "turbo start --filter pagopa-interop-agreement-event-consumer",
     "test": "turbo test",
+    "test:db": "turbo test:db",
     "build": "turbo build",
     "lint": "turbo lint",
     "lint:autofix": "turbo lint:autofix",

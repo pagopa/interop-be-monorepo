@@ -21,40 +21,26 @@
       "cache": false
     },
     "build": {
-      "dependsOn": [
-        "generate-model",
-        "generate-protobuf",
-        "^build"
-      ],
-      "outputs": [
-        "dist"
-      ]
+      "dependsOn": ["generate-model", "generate-protobuf", "^build"],
+      "outputs": ["dist"]
     },
     "generate-model": {
-      "dependsOn": [
-        "^generate-model"
-      ]
+      "dependsOn": ["^generate-model"]
     },
     "generate-protobuf": {
-      "dependsOn": [
-        "^generate-protobuf"
-      ],
-      "outputs": [
-        "src/gen"
-      ]
+      "dependsOn": ["^generate-protobuf"],
+      "outputs": ["src/gen"]
     },
     "test": {
-      "dependsOn": [
-        "build",
-        "^test"
-      ]
+      "dependsOn": ["build", "^test"]
+    },
+    "test:db": {
+      "dependsOn": ["build", "^test:db"]
     },
     "lint": {},
     "lint:autofix": {},
     "format:check": {},
     "format:write": {}
   },
-  "globalDependencies": [
-    "tsconfig.json"
-  ]
-} 
+  "globalDependencies": ["tsconfig.json"]
+}
