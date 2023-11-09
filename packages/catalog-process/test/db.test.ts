@@ -1,10 +1,11 @@
-import { afterEach, beforeAll, describe, expect, it } from "vitest";
+import { afterEach, beforeAll, afterAll, describe, expect, it } from "vitest";
 // import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import { config } from "../src/utilities/config.js";
 import {
   ReadModelRepository,
   SingletonMongodbContainer,
 } from "pagopa-interop-commons";
+import { StartedTestContainer } from "testcontainers";
 
 describe("database test", async () => {
   // const postgresDB = initDB({
@@ -16,6 +17,8 @@ describe("database test", async () => {
   //   schema: config.eventStoreDbSchema,
   //   useSSL: config.eventStoreDbUseSSL,
   // });
+
+  let container: StartedTestContainer;
 
   beforeAll(async () => {
     // await new PostgreSqlContainer("postgres:14")
@@ -32,8 +35,7 @@ describe("database test", async () => {
     //   .withReuse()
     //   .start();
 
-    const container = SingletonMongodbContainer.init();
-    await container.start();
+    container = await SingletonMongodbContainer.init().start();
   });
 
   afterEach(async () => {
@@ -41,6 +43,10 @@ describe("database test", async () => {
     await eservices.deleteMany({});
 
     // await postgresDB.none("TRUNCATE TABLE catalog.events RESTART IDENTITY");
+  });
+
+  afterAll(() => {
+    container.stop();
   });
 
   describe("TO DO", () => {
