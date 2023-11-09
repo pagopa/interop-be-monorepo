@@ -21,10 +21,7 @@ app.use(loggerMiddleware);
 // NOTE(gabro): the order is relevant, authMiddleware must come *after* the routes
 // we want to be unauthenticated.
 app.use(healthRouter);
-app.use(
-  // The following callback handles generic authorization errors with current service behaviour
-  authenticationMiddleware()
-);
+app.use(authenticationMiddleware());
 app.use(agreementRouter(zodiosCtx));
 
 export default app;

@@ -71,12 +71,12 @@ export function makeApiProblem(error: unknown): Problem {
 }
 
 export function authenticationSaslFailed(message: string): ApiError {
-  return {
+  return new ApiError({
     code: "9000",
     httpStatus: 500,
     title: "SASL authentication fails",
     detail: `SALS Authentication fails with this error : ${message}`,
-  };
+  });
 }
 
 export function genericError(details: string): ApiError {
