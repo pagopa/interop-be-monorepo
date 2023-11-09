@@ -5,6 +5,8 @@
   "main": "dist",
   "type": "module",
   "scripts": {
+    "test": "vitest",
+    "test:db": "vitest db",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
