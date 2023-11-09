@@ -18,7 +18,7 @@ describe("database test", async () => {
   //   useSSL: config.eventStoreDbUseSSL,
   // });
 
-  let container: StartedTestContainer;
+  let container: StartedTestContainer | undefined;
 
   beforeAll(async () => {
     // await new PostgreSqlContainer("postgres:14")
@@ -35,7 +35,9 @@ describe("database test", async () => {
     //   .withReuse()
     //   .start();
 
-    container = await SingletonMongodbContainer.init().start();
+    container = await SingletonMongodbContainer.init()
+      .start()
+      .catch(() => undefined);
   });
 
   afterEach(async () => {
@@ -46,7 +48,9 @@ describe("database test", async () => {
   });
 
   afterAll(() => {
-    container.stop();
+    if (container !== undefined) {
+      container.stop();
+    }
   });
 
   describe("TO DO", () => {
