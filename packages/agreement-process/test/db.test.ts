@@ -1,8 +1,8 @@
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
-import { config } from "../src/utilities/config.js";
 import { GenericContainer } from "testcontainers";
 import { ReadModelRepository, initDB } from "pagopa-interop-commons";
+import { config } from "../src/utilities/config.js";
 
 describe("database test", async () => {
   const postgresDB = initDB({
@@ -43,7 +43,7 @@ describe("database test", async () => {
     const { agreements } = ReadModelRepository.init(config);
     await agreements.deleteMany({});
 
-    postgresDB.none("TRUNCATE TABLE agreement.events RESTART IDENTITY");
+    await postgresDB.none("TRUNCATE TABLE agreement.events RESTART IDENTITY");
   });
 
   describe("TO DO", () => {
