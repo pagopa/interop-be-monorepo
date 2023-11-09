@@ -106,7 +106,7 @@ describe("database test", () => {
     });
   });
 
-  describe("should get an attribute by name", () => {
+  describe("get an attribute by name", () => {
     it("should get the attribute if it exists", async () => {
       const id = uuidv4();
       await addOneAttribute(id);
