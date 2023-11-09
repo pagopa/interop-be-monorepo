@@ -49,7 +49,7 @@ describe("database test", () => {
     const { attributes } = ReadModelRepository.init(config);
     await attributes.deleteMany({});
 
-    postgresDB.none("TRUNCATE TABLE attribute.events");
+    postgresDB.none("TRUNCATE TABLE attribute.events RESTART IDENTITY");
   });
 
   describe("attribute creation", () => {
@@ -70,6 +70,14 @@ describe("database test", () => {
         }
       );
       expect(id).toBeDefined();
+
+      const writtenEvent = await postgresDB.one(
+        "SELECT * FROM attribute.events WHERE stream_id = $1",
+        [id]
+      );
+      expect(writtenEvent.stream_id).toBe(id);
+      expect(writtenEvent.version).toBe("0");
+      expect(writtenEvent.type).toBe("AttributeAdded");
     });
     it("should write on event-store for the creation of a verified attribute", async () => {
       const id = await attributeRegistryService.createVerifiedAttribute(
