@@ -49,7 +49,7 @@ describe("database test", () => {
     const { attributes } = ReadModelRepository.init(config);
     await attributes.deleteMany({});
 
-    postgresDB.none("TRUNCATE TABLE attribute.events RESTART IDENTITY");
+    await postgresDB.none("TRUNCATE TABLE attribute.events RESTART IDENTITY");
   });
 
   describe("attribute creation", () => {
