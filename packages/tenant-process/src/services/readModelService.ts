@@ -2,17 +2,18 @@ import { z } from "zod";
 import { logger, ReadModelRepository } from "pagopa-interop-commons";
 import { ErrorTypes, WithMetadata } from "pagopa-interop-models";
 import { Tenant } from "pagopa-interop-models";
-import { Filter } from "mongodb";
 import { config } from "../utilities/config.js";
+import { MongoDBFilter } from "../utilities/types.js";
 
 const { tenants } = ReadModelRepository.init(config);
 
 async function getTenant(
-  filter: Filter<{ data: Tenant }>
+  filter: MongoDBFilter<Tenant>
 ): Promise<WithMetadata<Tenant> | undefined> {
   const data = await tenants.findOne(filter, {
     projection: { data: true, metadata: true },
   });
+
   if (data) {
     const result = z
       .object({
