@@ -37,7 +37,6 @@ describe("database test", async () => {
         MONGO_INITDB_ROOT_PASSWORD: "example",
       })
       .withExposedPorts({ container: 27017, host: 27017 })
-      .withReuse()
       .start();
   });
 
