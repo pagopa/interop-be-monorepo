@@ -1,5 +1,3 @@
-import { Response } from "express";
-import { makeApiProblem } from "pagopa-interop-models";
 import {
   contextDataMiddleware,
   globalContextMiddleware,
@@ -24,10 +22,7 @@ app.use(loggerMiddleware);
 app.use(healthRouter);
 app.use(
   // The following callback handles generic authorization errors with current service behaviour
-  authenticationMiddleware((error: unknown, res: Response) => {
-    const apiError = makeApiProblem(error);
-    res.status(apiError.status).json(apiError).end();
-  })
+  authenticationMiddleware()
 );
 app.use(eservicesRouter(zodiosCtx));
 
