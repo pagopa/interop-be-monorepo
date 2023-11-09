@@ -1,7 +1,7 @@
-import { beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, afterEach, describe, expect, it } from "vitest";
 import { GenericContainer } from "testcontainers";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
-import { ReadModelRepository } from "pagopa-interop-commons";
+import { ReadModelRepository, initDB } from "pagopa-interop-commons";
 import { v4 as uuidv4 } from "uuid";
 import { Document } from "mongodb";
 import { config } from "../src/utilities/config.js";
@@ -9,6 +9,15 @@ import { attributeRegistryService } from "../src/services/attributeRegistryServi
 import { readModelService } from "../src/services/readModelService.js";
 
 describe("database test", () => {
+  const postgresDB = initDB({
+    username: config.eventStoreDbUsername,
+    password: config.eventStoreDbPassword,
+    host: config.eventStoreDbHost,
+    port: config.eventStoreDbPort,
+    database: config.eventStoreDbName,
+    schema: config.eventStoreDbSchema,
+    useSSL: config.eventStoreDbUseSSL,
+  });
   beforeAll(async () => {
     await new PostgreSqlContainer("postgres:14")
       .withUsername(config.eventStoreDbUsername)
@@ -21,6 +30,7 @@ describe("database test", () => {
         },
       ])
       .withExposedPorts({ container: 5432, host: config.eventStoreDbPort })
+      .withReuse()
       .start();
 
     await new GenericContainer("mongo:6.0.7")
@@ -30,7 +40,15 @@ describe("database test", () => {
         MONGO_INITDB_ROOT_PASSWORD: "example",
       })
       .withExposedPorts({ container: 27017, host: 27017 })
+      .withReuse()
       .start();
+  });
+
+  afterEach(async () => {
+    const { attributes } = ReadModelRepository.init(config);
+    await attributes.deleteMany({});
+
+    postgresDB.none("TRUNCATE TABLE attribute.events");
   });
 
   it("should write on event-store", async () => {
