@@ -20,6 +20,7 @@ import { config } from "../utilities/config.js";
 import {
   ApiCertifiedAttributeSeed,
   ApiDeclaredAttributeSeed,
+  ApiInternalCertifiedAttributeSeed,
   ApiVerifiedAttributeSeed,
 } from "../model/types.js";
 import { toCreateEventAttributeAdded } from "../model/domain/toEvent.js";
@@ -87,6 +88,19 @@ export const attributeRegistryService = {
         ),
         apiCertifiedAttributeSeed,
         certifier,
+      })
+    );
+  },
+  async createInternalCertifiedAttribute(
+    apiInternalCertifiedAttributeSeed: ApiInternalCertifiedAttributeSeed
+  ): Promise<string> {
+    return repository.createEvent(
+      createInternalCertifiedAttributeLogic({
+        attribute: await readModelService.getAttributeByCodeAndName(
+          apiInternalCertifiedAttributeSeed.code,
+          apiInternalCertifiedAttributeSeed.name
+        ),
+        apiInternalCertifiedAttributeSeed,
       })
     );
   },
@@ -181,4 +195,28 @@ async function getCertifier(tenantId: string): Promise<string> {
   } else {
     throw OrganizationIsNotACertifier(tenantId);
   }
+}
+
+export function createInternalCertifiedAttributeLogic({
+  attribute,
+  apiInternalCertifiedAttributeSeed,
+}: {
+  attribute: WithMetadata<Attribute> | undefined;
+  apiInternalCertifiedAttributeSeed: ApiInternalCertifiedAttributeSeed;
+}): CreateEvent<AttributeEvent> {
+  if (attribute) {
+    throw attributeDuplicate(apiInternalCertifiedAttributeSeed.name);
+  }
+
+  const newInternalCertifiedAttribute: Attribute = {
+    id: uuidv4(),
+    kind: attributeKind.certified,
+    name: apiInternalCertifiedAttributeSeed.name,
+    description: apiInternalCertifiedAttributeSeed.description,
+    creationTime: new Date(),
+    code: apiInternalCertifiedAttributeSeed.origin,
+    origin: apiInternalCertifiedAttributeSeed.code,
+  };
+
+  return toCreateEventAttributeAdded(newInternalCertifiedAttribute);
 }

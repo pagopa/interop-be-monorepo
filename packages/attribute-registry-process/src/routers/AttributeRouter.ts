@@ -234,7 +234,18 @@ const attributeRouter = (
     .post(
       "/internal/certifiedAttributes",
       authorizationMiddleware([INTERNAL_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const id =
+            await attributeRegistryService.createInternalCertifiedAttribute(
+              req.body
+            );
+          return res.status(200).json({ id }).end();
+        } catch (error) {
+          const errorRes: ApiError = makeApiError(error);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     );
 
   return attributeRouter;
