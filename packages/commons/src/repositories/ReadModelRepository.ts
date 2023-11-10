@@ -1,9 +1,4 @@
-import {
-  EService,
-  ErrorTypes,
-  PersistentAgreement,
-  Tenant,
-} from "pagopa-interop-models";
+import { Agreement, EService, ErrorTypes, Tenant } from "pagopa-interop-models";
 import { Collection, Db, MongoClient } from "mongodb";
 import { z } from "zod";
 import { ReadModelDbConfig, logger } from "../index.js";
@@ -14,7 +9,7 @@ type GenericCollection<T> = Collection<{
 }>;
 
 export type EServiceCollection = GenericCollection<EService | undefined>;
-export type AgreementCollection = GenericCollection<PersistentAgreement>;
+export type AgreementCollection = GenericCollection<Agreement>;
 export type TenantCollection = GenericCollection<Tenant>;
 
 export type Collections =
