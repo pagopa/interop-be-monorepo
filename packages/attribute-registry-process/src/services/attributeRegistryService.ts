@@ -214,8 +214,8 @@ export function createInternalCertifiedAttributeLogic({
     name: apiInternalCertifiedAttributeSeed.name,
     description: apiInternalCertifiedAttributeSeed.description,
     creationTime: new Date(),
-    code: apiInternalCertifiedAttributeSeed.origin,
-    origin: apiInternalCertifiedAttributeSeed.code,
+    code: apiInternalCertifiedAttributeSeed.code,
+    origin: apiInternalCertifiedAttributeSeed.origin,
   };
 
   return toCreateEventAttributeAdded(newInternalCertifiedAttribute);

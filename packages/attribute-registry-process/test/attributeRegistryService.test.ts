@@ -150,8 +150,6 @@ describe("AttributeResistryService", () => {
       const attribute = {
         ...mockAttribute,
         kind: AttributeKind.Enum.Certified,
-        code: mockInternalCertifiedAttributeSeed.code,
-        origin: mockInternalCertifiedAttributeSeed.origin,
       };
 
       const event = createInternalCertifiedAttributeLogic({
