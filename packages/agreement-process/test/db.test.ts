@@ -2,11 +2,11 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 // import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import {
   ReadModelRepository,
-  SingletonMongodbContainer,
+  getMongodbContainer,
 } from "pagopa-interop-commons";
 
-import { config } from "../src/utilities/config.js";
 import { StartedTestContainer } from "testcontainers";
+import { config } from "../src/utilities/config.js";
 
 describe("database test", async () => {
   // const postgresDB = initDB({
@@ -19,7 +19,7 @@ describe("database test", async () => {
   //   useSSL: config.eventStoreDbUseSSL,
   // });
 
-  let container: StartedTestContainer | undefined;
+  let mongodbContainer: StartedTestContainer | undefined;
 
   beforeAll(async () => {
     // await new PostgreSqlContainer("postgres:14")
@@ -36,7 +36,7 @@ describe("database test", async () => {
     //   .withReuse()
     //   .start();
 
-    container = await SingletonMongodbContainer.init()
+    mongodbContainer = await getMongodbContainer()
       .start()
       .catch(() => undefined);
   });
@@ -48,15 +48,17 @@ describe("database test", async () => {
     // await postgresDB.none("TRUNCATE TABLE agreement.events RESTART IDENTITY");
   });
 
-  afterAll(() => {
-    if (container !== undefined) {
-      container.stop();
-    }
-  });
-
   describe("TO DO", () => {
     it("TO DO", () => {
       expect(1).toBe(1);
     });
+  });
+
+  afterAll(async () => {
+    if (mongodbContainer !== undefined) {
+      await mongodbContainer.stop({
+        remove: true,
+      });
+    }
   });
 });
