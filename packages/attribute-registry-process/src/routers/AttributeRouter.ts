@@ -186,7 +186,18 @@ const attributeRouter = (
     .post(
       "/certifiedAttributes",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE, M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const id = await attributeRegistryService.createCertifiedAttribute(
+            req.body,
+            req.ctx.authData
+          );
+          return res.status(200).json({ id }).end();
+        } catch (error) {
+          const errorRes: ApiError = makeApiError(error);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/declaredAttributes",

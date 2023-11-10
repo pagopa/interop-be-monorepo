@@ -12,10 +12,13 @@ import {
   attributeEventToBinaryData,
   originNotCompliant,
   attributeKind,
+  tenantIdNotFound,
+  OrganizationIsNotACertifier,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import { config } from "../utilities/config.js";
 import {
+  ApiCertifiedAttributeSeed,
   ApiDeclaredAttributeSeed,
   ApiVerifiedAttributeSeed,
 } from "../model/types.js";
@@ -70,6 +73,23 @@ export const attributeRegistryService = {
       })
     );
   },
+  async createCertifiedAttribute(
+    apiCertifiedAttributeSeed: ApiCertifiedAttributeSeed,
+    authData: AuthData
+  ): Promise<string> {
+    const certifier = await getCertifier(authData.organizationId);
+
+    return repository.createEvent(
+      createCertifiedAttributeLogic({
+        attribute: await readModelService.getAttributeByCodeAndName(
+          apiCertifiedAttributeSeed.code,
+          apiCertifiedAttributeSeed.name
+        ),
+        apiCertifiedAttributeSeed,
+        certifier,
+      })
+    );
+  },
 };
 
 export function createDeclaredAttributeLogic({
@@ -118,4 +138,47 @@ export function createVerifiedAttributeLogic({
   };
 
   return toCreateEventAttributeAdded(newVerifiedAttribute);
+}
+
+export function createCertifiedAttributeLogic({
+  attribute,
+  apiCertifiedAttributeSeed,
+  certifier,
+}: {
+  attribute: WithMetadata<Attribute> | undefined;
+  apiCertifiedAttributeSeed: ApiCertifiedAttributeSeed;
+  certifier: string;
+}): CreateEvent<AttributeEvent> {
+  if (attribute) {
+    throw attributeDuplicate(apiCertifiedAttributeSeed.name);
+  }
+
+  const newCertifiedAttribute: Attribute = {
+    id: uuidv4(),
+    kind: attributeKind.certified,
+    name: apiCertifiedAttributeSeed.name,
+    description: apiCertifiedAttributeSeed.description,
+    creationTime: new Date(),
+    code: undefined,
+    origin: certifier,
+  };
+
+  return toCreateEventAttributeAdded(newCertifiedAttribute);
+}
+
+async function getCertifier(tenantId: string): Promise<string> {
+  const tenant = await readModelService.getTenantById(tenantId);
+  if (!tenant) {
+    throw tenantIdNotFound(tenantId);
+  }
+  const certifier = tenant.data.features
+    .filter((f) => f.type === "Certifier")
+    .map((f) => f.certifierId)
+    .find((id) => id.trim().length > 0);
+
+  if (certifier) {
+    return certifier;
+  } else {
+    throw OrganizationIsNotACertifier(tenantId);
+  }
 }

@@ -6,11 +6,12 @@ import {
   Attribute,
   ErrorTypes,
   WithMetadata,
+  Tenant,
 } from "pagopa-interop-models";
 import { ListResult } from "../model/types.js";
 import { config } from "../utilities/config.js";
 
-const { attributes } = ReadModelRepository.init(config);
+const { attributes, tenants } = ReadModelRepository.init(config);
 
 function arrayToFilter<T, F extends object>(
   array: T[],
@@ -189,5 +190,50 @@ export const readModelService = {
       "data.origin": origin,
       "data.code": code,
     });
+  },
+  async getAttributeByCodeAndName(
+    code: string,
+    name: string
+  ): Promise<WithMetadata<Attribute> | undefined> {
+    return getAttribute({
+      "data.code": code,
+      "data.name": {
+        $regex: `^${name}$$`,
+        $options: "i",
+      },
+    });
+  },
+  async getTenantById(
+    tenantId: string
+  ): Promise<WithMetadata<Tenant> | undefined> {
+    const data = await tenants.findOne(
+      { "data.id": tenantId },
+      { projection: { data: true, metadata: true } }
+    );
+
+    if (data) {
+      const result = z
+        .object({
+          metadata: z.object({ version: z.number() }),
+          data: Tenant,
+        })
+        .safeParse(data);
+
+      if (!result.success) {
+        logger.error(
+          `Unable to parse tenant item: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+
+        throw ErrorTypes.GenericError;
+      }
+
+      return {
+        data: result.data.data,
+        metadata: { version: result.data.metadata.version },
+      };
+    }
+    return undefined;
   },
 };

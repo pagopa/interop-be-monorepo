@@ -16,9 +16,15 @@ export const ExternalId = z.object({
   value: z.string(),
 });
 
-export const TenantFeature = z.object({
-  certifierId: z.string().uuid(),
+export const TenantFeatureCertifier = z.object({
+  type: z.literal("Certifier"),
+  certifierId: z.string(),
 });
+
+export type TenantFeatureCertifier = z.infer<typeof TenantFeatureCertifier>;
+
+export const TenantFeature = TenantFeatureCertifier; // It will be extended with other features, we will use this union to discriminate them
+
 export type TenantFeature = z.infer<typeof TenantFeature>;
 
 export const tenantAttributeType = {

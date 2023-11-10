@@ -149,6 +149,11 @@ export const ErrorTypes = {
     httpStatus: 400,
     title: "Origin is not compliant",
   },
+  OrganizationIsNotACertifier: {
+    code: "0013",
+    httpStatus: 400,
+    title: "Organization is not a certifier",
+  },
 } as const;
 
 export type ErrorType = (typeof ErrorTypes)[keyof typeof ErrorTypes];
@@ -399,5 +404,14 @@ export function originNotCompliant(origin: string): AttributeProcessError {
   return new AttributeProcessError(
     `Requester has not origin ${origin}`,
     ErrorTypes.OriginNotCompliant
+  );
+}
+
+export function OrganizationIsNotACertifier(
+  tenantId: string
+): AttributeProcessError {
+  return new AttributeProcessError(
+    `Tenant ${tenantId} is not a Certifier`,
+    ErrorTypes.OrganizationIsNotACertifier
   );
 }
