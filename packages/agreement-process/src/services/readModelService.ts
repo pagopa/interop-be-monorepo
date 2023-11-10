@@ -3,15 +3,15 @@
 /* eslint-disable max-params */
 import { logger, ReadModelRepository } from "pagopa-interop-commons";
 import {
-  EService,
+  Agreement,
+  AgreementState,
   ErrorTypes,
   ListResult,
-  PersistentAgreement,
-  PersistentAgreementState,
   WithMetadata,
-  Tenant,
-  persistentAgreementState,
+  agreementState,
   descriptorState,
+  EService,
+  Tenant,
 } from "pagopa-interop-models";
 import { z } from "zod";
 import { match, P } from "ts-pattern";
@@ -24,13 +24,13 @@ const listAgreementsFilters = (
   consumersIds: string[],
   producersIds: string[],
   descriptorsIds: string[],
-  states: PersistentAgreementState[],
+  states: AgreementState[],
   showOnlyUpgradeable: boolean
 ): object => {
   const upgradeableStates = [
-    persistentAgreementState.draft,
-    persistentAgreementState.active,
-    persistentAgreementState.suspended,
+    agreementState.draft,
+    agreementState.active,
+    agreementState.suspended,
   ];
   match(states)
     .with(
@@ -74,7 +74,7 @@ const getAgreementsFilters = (
   consumerId: string | undefined,
   eserviceId: string | undefined,
   descriptorId: string | undefined,
-  agreementStates: PersistentAgreementState[],
+  agreementStates: AgreementState[],
   attributeId: string | undefined
 ): object => {
   const filters = {
@@ -103,12 +103,12 @@ const getAllAgreements = async (
   consumerId: string | undefined,
   eserviceId: string | undefined,
   descriptorId: string | undefined,
-  agreementStates: PersistentAgreementState[],
+  agreementStates: AgreementState[],
   attributeId: string | undefined
-): Promise<PersistentAgreement[]> => {
+): Promise<Agreement[]> => {
   const limit = 50;
   let offset = 0;
-  let results: PersistentAgreement[] = [];
+  let results: Agreement[] = [];
 
   while (true) {
     const agreementsChunk = await getAgreements(
@@ -139,11 +139,11 @@ const getAgreements = async (
   consumerId: string | undefined,
   eserviceId: string | undefined,
   descriptorId: string | undefined,
-  agreementStates: PersistentAgreementState[],
+  agreementStates: AgreementState[],
   attributeId: string | undefined,
   offset: number,
   limit: number
-): Promise<PersistentAgreement[]> => {
+): Promise<Agreement[]> => {
   const data = await agreements
     .aggregate([
       getAgreementsFilters(
@@ -159,7 +159,7 @@ const getAgreements = async (
     ])
     .toArray();
 
-  const result = z.array(PersistentAgreement).safeParse(data);
+  const result = z.array(Agreement).safeParse(data);
 
   if (!result.success) {
     logger.error(
@@ -187,12 +187,12 @@ export const readModelService = {
       consumersIds: string[];
       producersIds: string[];
       descriptorsIds: string[];
-      states: PersistentAgreementState[];
+      states: AgreementState[];
       showOnlyUpgradeable: boolean;
     },
     limit: number,
     offset: number
-  ): Promise<ListResult<PersistentAgreement>> {
+  ): Promise<ListResult<Agreement>> {
     const aggregationPipeline = [
       listAgreementsFilters(
         eServicesIds,
@@ -283,9 +283,7 @@ export const readModelService = {
       .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }])
       .toArray();
 
-    const result = z
-      .array(PersistentAgreement)
-      .safeParse(data.map((d) => d.data));
+    const result = z.array(Agreement).safeParse(data.map((d) => d.data));
     if (!result.success) {
       logger.error(
         `Unable to parse agreements items: result ${JSON.stringify(
@@ -306,7 +304,7 @@ export const readModelService = {
   },
   async readAgreementById(
     agreementId: string
-  ): Promise<WithMetadata<PersistentAgreement> | undefined> {
+  ): Promise<WithMetadata<Agreement> | undefined> {
     const data = await agreements.findOne(
       { "data.id": agreementId },
       { projection: { data: true, metadata: true } }
@@ -315,7 +313,7 @@ export const readModelService = {
     if (data) {
       const result = z
         .object({
-          data: PersistentAgreement,
+          data: Agreement,
           metadata: z.object({ version: z.number() }),
         })
         .safeParse(data);
@@ -336,9 +334,9 @@ export const readModelService = {
     consumerId: string | undefined,
     eserviceId: string | undefined,
     descriptorId: string | undefined,
-    agreementStates: PersistentAgreementState[],
+    agreementStates: AgreementState[],
     attributeId: string | undefined
-  ): Promise<PersistentAgreement[]> {
+  ): Promise<Agreement[]> {
     return getAllAgreements(
       producerId,
       consumerId,

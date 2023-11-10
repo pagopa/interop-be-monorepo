@@ -1,22 +1,20 @@
 import { match } from "ts-pattern";
 import { CreateEvent } from "pagopa-interop-commons";
 import {
-  PersistentAgreement,
-  PersistentAgreementState,
+  Agreement,
+  AgreementDocument,
+  AgreementDocumentV1,
   AgreementEvent,
+  AgreementState,
   AgreementStateV1,
   AgreementV1,
-  PersistentAgreementDocument,
-  AgreementDocumentV1,
-  StampsV1,
+  AgreementStamp,
   StampV1,
-  PersistentStamps,
-  PersistentStamp,
+  AgreementStamps,
+  StampsV1,
 } from "pagopa-interop-models";
 
-export const toAgreementStateV1 = (
-  state: PersistentAgreementState
-): AgreementStateV1 =>
+export const toAgreementStateV1 = (state: AgreementState): AgreementStateV1 =>
   match(state)
     .with("Draft", () => AgreementStateV1.DRAFT)
     .with("Suspended", () => AgreementStateV1.SUSPENDED)
@@ -31,18 +29,18 @@ export const toAgreementStateV1 = (
     .exhaustive();
 
 export const toAgreementDocumentV1 = (
-  input: PersistentAgreementDocument
+  input: AgreementDocument
 ): AgreementDocumentV1 => ({
   ...input,
   createdAt: BigInt(input.createdAt.getTime()),
 });
 
-export const toStampV1 = (input: PersistentStamp): StampV1 => ({
+export const toStampV1 = (input: AgreementStamp): StampV1 => ({
   ...input,
   when: BigInt(input.when.getTime()),
 });
 
-export const toStampsV1 = (input: PersistentStamps): StampsV1 => ({
+export const toStampsV1 = (input: AgreementStamps): StampsV1 => ({
   submission: input.submission ? toStampV1(input.submission) : undefined,
   activation: input.activation ? toStampV1(input.activation) : undefined,
   rejection: input.rejection ? toStampV1(input.rejection) : undefined,
@@ -56,7 +54,7 @@ export const toStampsV1 = (input: PersistentStamps): StampsV1 => ({
     : undefined,
 });
 
-export const toAgreementV1 = (input: PersistentAgreement): AgreementV1 => ({
+export const toAgreementV1 = (input: Agreement): AgreementV1 => ({
   ...input,
   state: toAgreementStateV1(input.state),
   createdAt: BigInt(input.createdAt.getTime()),
@@ -86,7 +84,7 @@ export function toCreateEventAgreementDeleted(
 }
 
 export function toCreateEventAgreementAdded(
-  agreement: PersistentAgreement
+  agreement: Agreement
 ): CreateEvent<AgreementEvent> {
   return {
     streamId: agreement.id,
