@@ -7,15 +7,16 @@ import {
   logger,
 } from "pagopa-interop-commons";
 import {
+  Agreement,
   AgreementEvent,
-  PersistentAgreement,
-  PersistentAgreementState,
+  AgreementState,
   WithMetadata,
+  agreementEServiceNotFound,
   agreementEventToBinaryData,
   agreementNotInExpectedState,
-  persistentAgreementState,
+  agreementState,
   tenantIdNotFound,
-  agreementEServiceNotFound,
+  ListResult,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import { config } from "../utilities/config.js";
@@ -49,9 +50,22 @@ const repository = eventRepository(
 );
 
 export const agreementService = {
-  async getAgreementById(
-    agreementId: string
-  ): Promise<PersistentAgreement | undefined> {
+  async getAgreements(
+    filters: {
+      eServicesIds: string[];
+      consumersIds: string[];
+      producersIds: string[];
+      descriptorsIds: string[];
+      states: AgreementState[];
+      showOnlyUpgradeable: boolean;
+    },
+    limit: number,
+    offset: number
+  ): Promise<ListResult<Agreement>> {
+    logger.info("Retrieving agreements");
+    return await readModelService.listAgreements(filters, limit, offset);
+  },
+  async getAgreementById(agreementId: string): Promise<Agreement | undefined> {
     logger.info(`Retrieving agreement by id ${agreementId}`);
 
     const agreement = await readModelService.readAgreementById(agreementId);
@@ -95,14 +109,14 @@ export async function deleteAgreementLogic({
   agreementId: string;
   authData: AuthData;
   deleteFile: (path: string) => Promise<void>;
-  agreement: WithMetadata<PersistentAgreement> | undefined;
+  agreement: WithMetadata<Agreement> | undefined;
 }): Promise<CreateEvent<AgreementEvent>> {
   assertAgreementExist(agreementId, agreement);
   assertRequesterIsConsumer(agreement.data.consumerId, authData.organizationId);
 
-  const deletableStates: PersistentAgreementState[] = [
-    persistentAgreementState.draft,
-    persistentAgreementState.missingCertifiedAttributes,
+  const deletableStates: AgreementState[] = [
+    agreementState.draft,
+    agreementState.missingCertifiedAttributes,
   ];
 
   if (!deletableStates.includes(agreement.data.state)) {
@@ -147,13 +161,13 @@ export async function createAgreementLogic(
     validateCertifiedAttributes(descriptor, consumer.data);
   }
 
-  const agreementSeed: PersistentAgreement = {
+  const agreementSeed: Agreement = {
     id: uuidv4(),
     eserviceId: agreement.eserviceId,
     descriptorId: agreement.descriptorId,
     producerId: eservice.data.producerId,
     consumerId: authData.organizationId,
-    state: persistentAgreementState.draft,
+    state: agreementState.draft,
     verifiedAttributes: [],
     certifiedAttributes: [],
     declaredAttributes: [],

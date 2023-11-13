@@ -3,10 +3,7 @@
   This file will be removed once all models are converted from scala.
  */
 import { z } from "zod";
-import {
-  DescriptorState,
-  PersistentAgreementState,
-} from "pagopa-interop-models";
+import { DescriptorState, AgreementState } from "pagopa-interop-models";
 import * as api from "../generated/api.js";
 import { ApiEServiceDescriptorDocumentSeed } from "../types.js";
 
@@ -57,7 +54,7 @@ export type UpdateEServiceDescriptorSeed = z.infer<
 export const consumer = z.object({
   descriptorVersion: z.string(),
   descriptorState: DescriptorState,
-  agreementState: PersistentAgreementState,
+  agreementState: AgreementState,
   consumerName: z.string(),
   consumerExternalId: z.string(),
 });
