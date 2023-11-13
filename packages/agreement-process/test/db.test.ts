@@ -66,9 +66,14 @@ describe("database test", async () => {
     // await postgresDB.none("TRUNCATE TABLE tenant.events RESTART IDENTITY");
   });
 
-  describe("TO DO", () => {
+  describe("TO DO 1", () => {
     it("TO DO", () => {
       expect(1).toBe(1);
+    });
+  });
+  describe("TO DO 2", () => {
+    it("TO DO", () => {
+      expect(2).toBe(2);
     });
   });
 });
