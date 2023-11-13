@@ -16,12 +16,12 @@ import {
 import { ApiError, makeApiError } from "../model/types.js";
 import { AttributeRegistryService } from "../services/attributeRegistryService.js";
 
+const readModelService = new ReadModelService();
+const attributeRegistryService = new AttributeRegistryService();
+
 const attributeRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const readModelService = new ReadModelService();
-  const attributeRegistryService = new AttributeRegistryService();
-
   const attributeRouter = ctx.router(api.api);
   const {
     ADMIN_ROLE,
