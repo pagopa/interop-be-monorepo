@@ -70,9 +70,17 @@ export function makeApiProblem(error: unknown): Problem {
     .otherwise(() => makeProblem(genericError("Unexpected error")));
 }
 
+const errorCodes = {
+  authenticationSaslFailed: "9000",
+  missingClaim: "9990",
+  genericError: "9991",
+  unauthorizedError: "9991",
+  missingHeader: "9994",
+};
+
 export function authenticationSaslFailed(message: string): ApiError {
   return new ApiError({
-    code: "9000",
+    code: errorCodes.authenticationSaslFailed,
     httpStatus: 500,
     title: "SASL authentication fails",
     detail: `SALS Authentication fails with this error : ${message}`,
@@ -82,7 +90,7 @@ export function authenticationSaslFailed(message: string): ApiError {
 export function genericError(details: string): ApiError {
   return new ApiError({
     detail: details,
-    code: `9991`,
+    code: errorCodes.genericError,
     httpStatus: 500,
     title: "Unexpected error",
   });
@@ -91,7 +99,7 @@ export function genericError(details: string): ApiError {
 export function unauthorizedError(details: string): ApiError {
   return new ApiError({
     detail: details,
-    code: `9991`,
+    code: errorCodes.unauthorizedError,
     httpStatus: 401,
     title: "Unauthorized",
   });
@@ -100,7 +108,7 @@ export function unauthorizedError(details: string): ApiError {
 export function missingClaim(claimName: string): ApiError {
   return new ApiError({
     detail: `Claim ${claimName} has not been passed`,
-    code: "9990",
+    code: errorCodes.missingClaim,
     httpStatus: 400,
     title: "Claim has not been passed",
   });
@@ -112,7 +120,7 @@ export function missingHeader(headerName?: string): ApiError {
     detail: headerName
       ? `Header ${headerName} not existing in this request`
       : title,
-    code: "9994",
+    code: errorCodes.missingHeader,
     httpStatus: 400,
     title,
   });
@@ -120,7 +128,7 @@ export function missingHeader(headerName?: string): ApiError {
 
 export const missingBearer: ApiError = new ApiError({
   detail: `Authorization Illegal header key.`,
-  code: "9999",
+  code: errorCodes.missingHeader,
   httpStatus: 400,
   title: "Bearer token has not been passed",
 });

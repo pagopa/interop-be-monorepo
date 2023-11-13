@@ -1,7 +1,18 @@
 import { ApiError } from "pagopa-interop-models";
 
+const errorCodes = {
+  eServiceDescriptorNotFound: "0002",
+  eServiceDocumentNotFound: "0003",
+  notValidDescriptor: "0004",
+  eServiceNotFound: "0007",
+  draftDescriptorAlreadyExists: "0008",
+  eserviceCannotBeUpdatedOrDeleted: "0009",
+  eServiceDuplicate: "0010",
+  operationForbidden: "9989",
+};
+
 const eserviceCannotBeUpdatedOrDeleted = {
-  code: "0009",
+  code: errorCodes.eserviceCannotBeUpdatedOrDeleted,
   httpStatus: 400,
   title: "EService cannot be updated or deleted",
 };
@@ -9,7 +20,7 @@ const eserviceCannotBeUpdatedOrDeleted = {
 export function eServiceNotFound(eServiceId: string): ApiError {
   return new ApiError({
     detail: `EService ${eServiceId} not found`,
-    code: "0007",
+    code: errorCodes.eServiceNotFound,
     httpStatus: 404,
     title: "EService not found",
   });
@@ -18,7 +29,7 @@ export function eServiceNotFound(eServiceId: string): ApiError {
 export function eServiceDuplicate(eServiceNameSeed: string): ApiError {
   return new ApiError({
     detail: `ApiError during EService creation with name ${eServiceNameSeed}`,
-    code: "0010",
+    code: errorCodes.eServiceDuplicate,
     httpStatus: 409,
     title: "Duplicated service name",
   });
@@ -26,7 +37,7 @@ export function eServiceDuplicate(eServiceNameSeed: string): ApiError {
 
 export const operationForbidden = new ApiError({
   detail: `Insufficient privileges`,
-  code: "9989",
+  code: errorCodes.operationForbidden,
   httpStatus: 400,
   title: "Insufficient privileges",
 });
@@ -51,7 +62,7 @@ export function eServiceDescriptorNotFound(
 ): ApiError {
   return new ApiError({
     detail: `Descriptor ${descriptorId} for EService ${eServiceId} not found`,
-    code: "0002",
+    code: errorCodes.eServiceDescriptorNotFound,
     httpStatus: 404,
     title: "EService descriptor not found",
   });
@@ -64,7 +75,7 @@ export function eServiceDocumentNotFound(
 ): ApiError {
   return new ApiError({
     detail: `Document with id ${documentId} not found in EService ${eServiceId} / Descriptor ${descriptorId}`,
-    code: "0003",
+    code: errorCodes.eServiceDocumentNotFound,
     httpStatus: 404,
     title: "EService document not found",
   });
@@ -76,7 +87,7 @@ export function notValidDescriptor(
 ): ApiError {
   return new ApiError({
     detail: `Descriptor ${descriptorId} has a not valid status for this operation ${descriptorStatus}`,
-    code: "0004",
+    code: errorCodes.notValidDescriptor,
     httpStatus: 400,
     title: "Not valid descriptor",
   });
@@ -85,7 +96,7 @@ export function notValidDescriptor(
 export function draftDescriptorAlreadyExists(eServiceId: string): ApiError {
   return new ApiError({
     detail: `EService ${eServiceId} already contains a draft descriptor`,
-    code: "0008",
+    code: errorCodes.draftDescriptorAlreadyExists,
     httpStatus: 400,
     title: "EService already contains a draft descriptor",
   });
@@ -94,7 +105,7 @@ export function draftDescriptorAlreadyExists(eServiceId: string): ApiError {
 export function invalidDescriptorVersion(details: string): ApiError {
   return new ApiError({
     detail: details,
-    code: "0004",
+    code: errorCodes.notValidDescriptor,
     httpStatus: 400,
     title: "Version is not a valid descriptor version",
   });
