@@ -9,40 +9,42 @@ import {
   TenantVerifierV1,
   TenantFeatureV1,
   TenantMailV1,
-  Mail,
+  TenantMail,
   TenantMailKindV1,
-  MailKind,
-  mailKind,
+  TenantMailKind,
   TenantKindV1,
   TenantKind,
   tenantKind,
   TenantFeatureCertifier,
+  tenantMailKind,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
 export const fromTenantKindV1 = (input: TenantKindV1): TenantKind => {
   switch (input) {
     case TenantKindV1.GSP:
-      return tenantKind.gsp;
+      return tenantKind.GSP;
     case TenantKindV1.PA:
-      return tenantKind.pa;
+      return tenantKind.PA;
     case TenantKindV1.PRIVATE:
-      return tenantKind.private;
+      return tenantKind.PRIVATE;
     case TenantKindV1.UNSPECIFIED$:
       throw new Error("Unspecified tenant kind");
   }
 };
 
-export const fromTenantMailKindV1 = (input: TenantMailKindV1): MailKind => {
+export const fromTenantMailKindV1 = (
+  input: TenantMailKindV1
+): TenantMailKind => {
   switch (input) {
     case TenantMailKindV1.CONTACT_EMAIL:
-      return mailKind.contactMail;
+      return tenantMailKind.ContactEmail;
     case TenantMailKindV1.UNSPECIFIED$:
       throw new Error("Unspecified tenant mail kind");
   }
 };
 
-export const fromTenantMailV1 = (input: TenantMailV1): Mail => ({
+export const fromTenantMailV1 = (input: TenantMailV1): TenantMail => ({
   address: input.address,
   description: input.description,
   createdAt: new Date(Number(input.createdAt)),
@@ -98,7 +100,7 @@ export const fromTenantAttributesV1 = (
       assignmentTimestamp: new Date(
         Number(certifiedAttribute.assignmentTimestamp)
       ),
-      type: "CertifiedAttribute",
+      type: "certified",
     }))
     .with({ oneofKind: "verifiedAttribute" }, ({ verifiedAttribute }) => ({
       id: verifiedAttribute.id,
@@ -107,14 +109,14 @@ export const fromTenantAttributesV1 = (
       ),
       verifiedBy: verifiedAttribute.verifiedBy.map(fromTenantVerifierV1),
       revokedBy: verifiedAttribute.revokedBy.map(fromTenantRevokerV1),
-      type: "VerifiedAttribute",
+      type: "verified",
     }))
     .with({ oneofKind: "declaredAttribute" }, ({ declaredAttribute }) => ({
       id: declaredAttribute.id,
       assignmentTimestamp: new Date(
         Number(declaredAttribute.assignmentTimestamp)
       ),
-      type: "DeclaredAttribute",
+      type: "declared",
     }))
     .otherwise(() => {
       throw new Error("Booom"); // Ported "as is" from Scala codebase :D
