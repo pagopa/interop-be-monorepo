@@ -10,8 +10,7 @@ import {
 } from "pagopa-interop-models";
 import { ListResult } from "../model/types.js";
 import { config } from "../utilities/config.js";
-
-const { attributes } = ReadModelRepository.init(config);
+import { Collection } from "mongodb";
 
 function arrayToFilter<T, F extends object>(
   array: T[],
@@ -38,7 +37,20 @@ async function getTotalCount(
   throw ErrorTypes.GenericError;
 }
 
-export const readModelService = {
+export class ReadModelService {
+  attributes: Collection<{
+    data: AttributeTmp;
+    metadata: { version: number };
+  }>;
+  public constructor(
+    attributes?: Collection<{
+      data: AttributeTmp;
+      metadata: { version: number };
+    }>
+  ) {
+    this.attributes = attributes || ReadModelRepository.init(config).attributes;
+  }
+
   async getAttributes(
     {
       ids,
@@ -95,7 +107,7 @@ export const readModelService = {
         $sort: { computedColumn: 1 },
       },
     ];
-    const data = await attributes
+    const data = await this.attributes
       .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }])
       .toArray();
     const result = z.array(AttributeTmp).safeParse(data.map((d) => d.data));
@@ -110,15 +122,15 @@ export const readModelService = {
     return {
       results: result.data,
       totalCount: await getTotalCount(
-        attributes.aggregate([...aggregationPipeline, { $count: "count" }])
+        this.attributes.aggregate([...aggregationPipeline, { $count: "count" }])
       ),
     };
-  },
+  }
 
   async getAttributeById(
     id: string
   ): Promise<WithMetadata<AttributeTmp> | undefined> {
-    const data = await attributes.findOne(
+    const data = await this.attributes.findOne(
       { "data.id": id },
       { projection: { data: true, metadata: true } }
     );
@@ -148,12 +160,12 @@ export const readModelService = {
     }
 
     return undefined;
-  },
+  }
 
   async getAttributeByName(
     name: string
   ): Promise<WithMetadata<AttributeTmp> | undefined> {
-    const data = await attributes.findOne(
+    const data = await this.attributes.findOne(
       {
         "data.name": {
           $regex: `^${name}$$`,
@@ -187,7 +199,8 @@ export const readModelService = {
       };
     }
     return undefined;
-  },
+  }
+
   async getAttributeByOriginAndCode({
     origin,
     code,
@@ -195,7 +208,7 @@ export const readModelService = {
     origin: string;
     code: string;
   }): Promise<WithMetadata<AttributeTmp> | undefined> {
-    const data = await attributes.findOne(
+    const data = await this.attributes.findOne(
       {
         "data.code": code,
         "data.origin": origin,
@@ -223,5 +236,5 @@ export const readModelService = {
       };
     }
     return undefined;
-  },
-};
+  }
+}
