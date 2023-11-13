@@ -31,7 +31,7 @@ async function getTotalCount(
 
 function listTenantsFilters(
   name: string | undefined
-): [Filter<{ data: Tenant }>, Filter<{ data: Tenant }>] {
+): Filter<{ data: Tenant }> {
   const nameFilter =
     name && name !== ""
       ? {
@@ -47,7 +47,10 @@ function listTenantsFilters(
       $exists: true,
     },
   };
-  return [nameFilter, withSelfcareIdFilter];
+  return {
+    ...nameFilter,
+    ...withSelfcareIdFilter,
+  };
 }
 
 export const readModelService = {
@@ -57,17 +60,13 @@ export const readModelService = {
     limit: number
   ): Promise<ListResult<Tenant>> {
     const query = listTenantsFilters(name);
-
-    const filterPipeline = [{ $match: query }];
-
+    const aggregationPipeline = [
+      { $match: query },
+      { $project: { data: 1, lowerName: { $toLower: "$data.name" } } },
+      { $sort: { lowerName: 1 } },
+    ];
     const data = await tenants
-      .aggregate([
-        ...filterPipeline,
-        { $skip: offset },
-        { $limit: limit },
-        { $project: { data: 1, lowerName: { $toLower: "$data.name" } } },
-        { $sort: { lowerName: 1 } },
-      ])
+      .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }])
       .toArray();
 
     const result = z.array(Tenant).safeParse(data.map((d) => d.data));
@@ -84,7 +83,7 @@ export const readModelService = {
     return {
       results: result.data,
       totalCount: await getTotalCount(
-        tenants.aggregate([...filterPipeline, { $count: "count" }])
+        tenants.aggregate([...aggregationPipeline, { $count: "count" }])
       ),
     };
   },

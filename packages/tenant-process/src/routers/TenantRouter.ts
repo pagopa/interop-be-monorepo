@@ -9,6 +9,7 @@ import {
 import { api } from "../model/generated/api.js";
 import { readModelService } from "../services/readModelService.js";
 import { tenantToApiTenant } from "../model/domain/apiConverter.js";
+import { ApiError, makeApiError } from "../model/types.js";
 
 const tenantsRouter = (
   ctx: ZodiosContext
@@ -65,7 +66,8 @@ const tenantsRouter = (
             totalCount: tenants.totalCount,
           });
         } catch (error) {
-          return res.status(500).send();
+          const errorRes: ApiError = makeApiError(error);
+          return res.status(errorRes.status).json(errorRes).end();
         }
       }
     )
