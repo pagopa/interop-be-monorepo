@@ -35,11 +35,11 @@ describe("database test", () => {
 
     await new GenericContainer("mongo:6.0.7")
       .withEnvironment({
-        MONGO_INITDB_DATABASE: "readmodel",
-        MONGO_INITDB_ROOT_USERNAME: "root",
-        MONGO_INITDB_ROOT_PASSWORD: "example",
+        MONGO_INITDB_DATABASE: config.readModelDbName,
+        MONGO_INITDB_ROOT_USERNAME: config.readModelDbUsername,
+        MONGO_INITDB_ROOT_PASSWORD: config.readModelDbPassword,
       })
-      .withExposedPorts({ container: 27017, host: 27017 })
+      .withExposedPorts({ container: 27017, host: config.readModelDbPort })
       .start();
   });
 
