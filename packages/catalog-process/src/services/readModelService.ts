@@ -145,7 +145,7 @@ export const readModelService = {
           )} - data ${JSON.stringify(data)} `
         );
 
-        throw genericError("Unable to parse eservices item");
+        throw genericError(`Unable to parse eservice ${id}`);
       }
 
       return {

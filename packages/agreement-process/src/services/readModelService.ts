@@ -167,7 +167,7 @@ const getAgreements = async (
         result
       )} - data ${JSON.stringify(data)} `
     );
-    throw genericError("Unable to parse eservices items");
+    throw genericError("Unable to parse agreements items");
   }
 
   return result.data;
@@ -369,7 +369,7 @@ export const readModelService = {
           )} - data ${JSON.stringify(data)} `
         );
 
-        throw genericError("Unable to parse eservices item");
+        throw genericError(`Unable to parse eservice ${id}`);
       }
 
       return {
@@ -403,7 +403,7 @@ export const readModelService = {
           )} - data ${JSON.stringify(data)} `
         );
 
-        throw genericError("Unable to parse tenant item");
+        throw genericError(`Unable to parse tenant ${tenantId}`);
       }
 
       return {

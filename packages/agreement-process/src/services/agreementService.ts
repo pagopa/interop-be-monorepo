@@ -142,7 +142,7 @@ export async function createAgreementLogic(
   const eservice = await readModelService.getEServiceById(agreement.eserviceId);
 
   if (!eservice) {
-    throw eServiceNotFound(agreement.eserviceId);
+    throw eServiceNotFound(400, agreement.eserviceId);
   }
 
   const descriptor = validateCreationOnDescriptor(

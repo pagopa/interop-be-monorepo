@@ -1,10 +1,13 @@
 import { ApiError, DescriptorState } from "pagopa-interop-models";
 
-export function eServiceNotFound(eServiceId: string): ApiError {
+export function eServiceNotFound(
+  httpStatus: number,
+  eServiceId: string
+): ApiError {
   return new ApiError({
     detail: `EService ${eServiceId} not found`,
     code: "0007",
-    httpStatus: 400,
+    httpStatus,
     title: "EService not found",
   });
 }
