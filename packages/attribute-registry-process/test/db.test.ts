@@ -1,6 +1,3 @@
-import { describe, expect, it } from "vitest";
-
-/*
 import { beforeAll, afterEach, describe, expect, it } from "vitest";
 import { GenericContainer } from "testcontainers";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
@@ -164,11 +161,3 @@ const addOneAttribute = (id: string): Promise<Document> => {
     },
   });
 };
-
-*/
-
-describe("test", () => {
-  it("test 1", () => {
-    expect(1).toBe(1);
-  });
-});
