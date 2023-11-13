@@ -98,7 +98,13 @@ export const authorizationMiddleware =
             })
           )
         )
-        .otherwise(() => makeApiProblem(genericError("Generic error")));
+        .otherwise(() =>
+          makeApiProblem(
+            genericError(
+              "An unexpected error occurred during authorization checks"
+            )
+          )
+        );
 
       return (
         res
