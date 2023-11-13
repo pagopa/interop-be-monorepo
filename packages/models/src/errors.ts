@@ -101,6 +101,11 @@ export const ErrorTypes = {
     httpStatus: 404,
     title: "Tenant not found",
   },
+  SelfcareIdNotFound: {
+    code: "0012",
+    httpStatus: 404,
+    title: "Selfacare Id not found",
+  },
 } as const;
 
 export type ErrorType = (typeof ErrorTypes)[keyof typeof ErrorTypes];
@@ -222,6 +227,13 @@ export function tenantNotFound(tenantId: string): TenantProcessError {
   return new TenantProcessError(
     `Tenant ${tenantId} not found`,
     ErrorTypes.TenantNotFound
+  );
+}
+
+export function selfcareIdNotFound(selfcareId: string): TenantProcessError {
+  return new TenantProcessError(
+    `Selfcare id ${selfcareId} not found`,
+    ErrorTypes.SelfcareIdNotFound
   );
 }
 

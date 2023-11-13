@@ -6,7 +6,7 @@ import {
   ZodiosContext,
   authorizationMiddleware,
 } from "pagopa-interop-commons";
-import { tenantNotFound } from "pagopa-interop-models";
+import { tenantNotFound, selfcareIdNotFound } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
 import { tenantToApiTenant } from "../model/domain/apiConverter.js";
 import { ApiError, makeApiError } from "../model/types.js";
@@ -134,7 +134,7 @@ const tenantsRouter = (
           } else {
             return res
               .status(404)
-              .json(makeApiError(tenantNotFound(req.params.selfcareId)))
+              .json(makeApiError(selfcareIdNotFound(req.params.selfcareId)))
               .end();
           }
         } catch (error) {
