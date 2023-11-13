@@ -134,6 +134,16 @@ export const ErrorTypes = {
     httpStatus: 500,
     title: "Tenant not found",
   },
+  InvalidAttributeStructure: {
+    code: "0022",
+    httpStatus: 400,
+    title: "Invalid attribute structure",
+  },
+  AttributeNotFound: {
+    code: "0023",
+    httpStatus: 404,
+    title: "Attribute not found",
+  },
 } as const;
 
 export type ErrorType = (typeof ErrorTypes)[keyof typeof ErrorTypes];
@@ -325,6 +335,18 @@ export function tenantIdNotFound(tenantId: string): AgreementProcessError {
   return new AgreementProcessError(
     `Tenant ${tenantId} not found`,
     ErrorTypes.TenantIdNotFound
+  );
+}
+export function InvalidAttributeStructure(): TenantProcessError {
+  return new TenantProcessError(
+    `Invalid attribute structure`,
+    ErrorTypes.InvalidAttributeStructure
+  );
+}
+export function AttributeNotFound(attributeId: string): TenantProcessError {
+  return new TenantProcessError(
+    `Attribute ${attributeId} not found`,
+    ErrorTypes.AttributeNotFound
   );
 }
 
