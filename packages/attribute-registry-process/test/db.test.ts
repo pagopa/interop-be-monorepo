@@ -4,23 +4,23 @@ import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import { ReadModelRepository, initDB } from "pagopa-interop-commons";
 import { v4 as uuidv4 } from "uuid";
 import { Document } from "mongodb";
+import { Collection } from "mongodb";
+import { AttributeTmp } from "pagopa-interop-models";
+import { IDatabase } from "pg-promise";
 import { config } from "../src/utilities/config.js";
-import { attributeRegistryService } from "../src/services/attributeRegistryService.js";
-import { readModelService } from "../src/services/readModelService.js";
+import { AttributeRegistryService } from "../src/services/attributeRegistryService.js";
+import { ReadModelService } from "../src/services/readModelService.js";
 
 describe("database test", () => {
-  const postgresDB = initDB({
-    username: config.eventStoreDbUsername,
-    password: config.eventStoreDbPassword,
-    host: config.eventStoreDbHost,
-    port: config.eventStoreDbPort,
-    database: config.eventStoreDbName,
-    schema: config.eventStoreDbSchema,
-    useSSL: config.eventStoreDbUseSSL,
-  });
-
+  let attributes: Collection<{
+    data: AttributeTmp;
+    metadata: { version: number };
+  }>;
+  let readModelService: ReadModelService;
+  let attributeRegistryService: AttributeRegistryService;
+  let postgresDB: IDatabase<unknown>;
   beforeAll(async () => {
-    await new PostgreSqlContainer("postgres:14")
+    const postgreSqlContainer = await new PostgreSqlContainer("postgres:14")
       .withUsername(config.eventStoreDbUsername)
       .withPassword(config.eventStoreDbPassword)
       .withDatabase(config.eventStoreDbName)
@@ -30,23 +30,39 @@ describe("database test", () => {
           target: "/docker-entrypoint-initdb.d/01-init.sql",
         },
       ])
-      .withExposedPorts({ container: 5432, host: config.eventStoreDbPort })
+      .withExposedPorts(5432)
       .start();
 
-    await new GenericContainer("mongo:6.0.7")
+    const mongodbContainer = await new GenericContainer("mongo:6.0.7")
       .withEnvironment({
         MONGO_INITDB_DATABASE: config.readModelDbName,
         MONGO_INITDB_ROOT_USERNAME: config.readModelDbUsername,
         MONGO_INITDB_ROOT_PASSWORD: config.readModelDbPassword,
       })
-      .withExposedPorts({ container: 27017, host: config.readModelDbPort })
+      .withExposedPorts(27017)
       .start();
+
+    config.readModelDbPort = mongodbContainer.getMappedPort(27017);
+    attributes = ReadModelRepository.init(config).attributes;
+    readModelService = new ReadModelService(attributes);
+    attributeRegistryService = new AttributeRegistryService(
+      readModelService,
+      postgreSqlContainer.getMappedPort(5432)
+    );
+
+    postgresDB = initDB({
+      username: config.eventStoreDbUsername,
+      password: config.eventStoreDbPassword,
+      host: config.eventStoreDbHost,
+      port: postgreSqlContainer.getMappedPort(5432),
+      database: config.eventStoreDbName,
+      schema: config.eventStoreDbSchema,
+      useSSL: config.eventStoreDbUseSSL,
+    });
   });
 
   afterEach(async () => {
-    const { attributes } = ReadModelRepository.init(config);
     await attributes.deleteMany({});
-
     await postgresDB.none("TRUNCATE TABLE attribute.events RESTART IDENTITY");
   });
 

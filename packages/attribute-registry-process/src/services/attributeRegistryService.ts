@@ -20,23 +20,29 @@ import {
 } from "../model/types.js";
 import { apiAttributeKindToAttributeKind } from "../model/domain/apiConverter.js";
 import { toCreateEventAttributeAdded } from "../model/domain/toEvent.js";
-import { readModelService } from "./readModelService.js";
+import { ReadModelService } from "./readModelService.js";
 
-const repository = eventRepository(
-  initDB({
-    username: config.eventStoreDbUsername,
-    password: config.eventStoreDbPassword,
-    host: config.eventStoreDbHost,
-    port: config.eventStoreDbPort,
-    database: config.eventStoreDbName,
-    schema: config.eventStoreDbSchema,
-    useSSL: config.eventStoreDbUseSSL,
-  }),
-  attributeEventToBinaryData
-);
+export class AttributeRegistryService {
+  private readModelService: ReadModelService;
+  private repository;
+  constructor(readModelService?: ReadModelService, port?: number) {
+    this.readModelService = readModelService || new ReadModelService();
 
-export const attributeRegistryService = {
-  async createDeclaredAttribute(
+    this.repository = eventRepository(
+      initDB({
+        username: config.eventStoreDbUsername,
+        password: config.eventStoreDbPassword,
+        host: config.eventStoreDbHost,
+        port: port || config.eventStoreDbPort,
+        database: config.eventStoreDbName,
+        schema: config.eventStoreDbSchema,
+        useSSL: config.eventStoreDbUseSSL,
+      }),
+      attributeEventToBinaryData
+    );
+  }
+
+  public async createDeclaredAttribute(
     apiDeclaredAttributeSeed: ApiDeclaredAttributeSeed,
     authData: AuthData
   ): Promise<string> {
@@ -44,16 +50,16 @@ export const attributeRegistryService = {
       throw originNotCompliant("IPA");
     }
 
-    return repository.createEvent(
+    return this.repository.createEvent(
       createDeclaredAttributeLogic({
-        attribute: await readModelService.getAttributeByName(
+        attribute: await this.readModelService.getAttributeByName(
           apiDeclaredAttributeSeed.name
         ),
         apiDeclaredAttributeSeed,
       })
     );
-  },
-  async createVerifiedAttribute(
+  }
+  public async createVerifiedAttribute(
     apiVerifiedAttributeSeed: ApiVerifiedAttributeSeed,
     authData: AuthData
   ): Promise<string> {
@@ -61,16 +67,16 @@ export const attributeRegistryService = {
       throw originNotCompliant("IPA");
     }
 
-    return repository.createEvent(
+    return this.repository.createEvent(
       createVerifiedAttributeLogic({
-        attribute: await readModelService.getAttributeByName(
+        attribute: await this.readModelService.getAttributeByName(
           apiVerifiedAttributeSeed.name
         ),
         apiVerifiedAttributeSeed,
       })
     );
-  },
-};
+  }
+}
 
 export function createDeclaredAttributeLogic({
   attribute,
