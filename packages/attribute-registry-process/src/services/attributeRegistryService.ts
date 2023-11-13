@@ -20,28 +20,22 @@ import {
 } from "../model/types.js";
 import { apiAttributeKindToAttributeKind } from "../model/domain/apiConverter.js";
 import { toCreateEventAttributeAdded } from "../model/domain/toEvent.js";
-import { ReadModelService } from "./readModelService.js";
+import { readModelService } from "./readModelService.js";
 
-export class AttributeRegistryService {
-  readModelService: ReadModelService;
-  repository;
-  constructor(readModelService?: ReadModelService, port?: number) {
-    this.readModelService = readModelService || new ReadModelService();
+const repository = eventRepository(
+  initDB({
+    username: config.eventStoreDbUsername,
+    password: config.eventStoreDbPassword,
+    host: config.eventStoreDbHost,
+    port: config.eventStoreDbPort,
+    database: config.eventStoreDbName,
+    schema: config.eventStoreDbSchema,
+    useSSL: config.eventStoreDbUseSSL,
+  }),
+  attributeEventToBinaryData
+);
 
-    this.repository = eventRepository(
-      initDB({
-        username: config.eventStoreDbUsername,
-        password: config.eventStoreDbPassword,
-        host: config.eventStoreDbHost,
-        port: port || config.eventStoreDbPort,
-        database: config.eventStoreDbName,
-        schema: config.eventStoreDbSchema,
-        useSSL: config.eventStoreDbUseSSL,
-      }),
-      attributeEventToBinaryData
-    );
-  }
-
+export const attributeRegistryService = {
   async createDeclaredAttribute(
     apiDeclaredAttributeSeed: ApiDeclaredAttributeSeed,
     authData: AuthData
@@ -50,15 +44,15 @@ export class AttributeRegistryService {
       throw originNotCompliant("IPA");
     }
 
-    return this.repository.createEvent(
+    return repository.createEvent(
       createDeclaredAttributeLogic({
-        attribute: await this.readModelService.getAttributeByName(
+        attribute: await readModelService.getAttributeByName(
           apiDeclaredAttributeSeed.name
         ),
         apiDeclaredAttributeSeed,
       })
     );
-  }
+  },
   async createVerifiedAttribute(
     apiVerifiedAttributeSeed: ApiVerifiedAttributeSeed,
     authData: AuthData
@@ -67,16 +61,16 @@ export class AttributeRegistryService {
       throw originNotCompliant("IPA");
     }
 
-    return this.repository.createEvent(
+    return repository.createEvent(
       createVerifiedAttributeLogic({
-        attribute: await this.readModelService.getAttributeByName(
+        attribute: await readModelService.getAttributeByName(
           apiVerifiedAttributeSeed.name
         ),
         apiVerifiedAttributeSeed,
       })
     );
-  }
-}
+  },
+};
 
 export function createDeclaredAttributeLogic({
   attribute,
