@@ -42,10 +42,10 @@ export class AttributeRegistryService {
     );
   }
 
-  public createDeclaredAttribute = async (
+  public async createDeclaredAttribute(
     apiDeclaredAttributeSeed: ApiDeclaredAttributeSeed,
     authData: AuthData
-  ): Promise<string> => {
+  ): Promise<string> {
     if (authData.externalId.origin !== "IPA") {
       throw originNotCompliant("IPA");
     }
@@ -58,11 +58,11 @@ export class AttributeRegistryService {
         apiDeclaredAttributeSeed,
       })
     );
-  };
-  public createVerifiedAttribute = async (
+  }
+  public async createVerifiedAttribute(
     apiVerifiedAttributeSeed: ApiVerifiedAttributeSeed,
     authData: AuthData
-  ): Promise<string> => {
+  ): Promise<string> {
     if (authData.externalId.origin !== "IPA") {
       throw originNotCompliant("IPA");
     }
@@ -75,7 +75,7 @@ export class AttributeRegistryService {
         apiVerifiedAttributeSeed,
       })
     );
-  };
+  }
 }
 
 export function createDeclaredAttributeLogic({
