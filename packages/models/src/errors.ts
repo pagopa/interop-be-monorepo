@@ -232,7 +232,7 @@ export function tenantNotFound(tenantId: string): TenantProcessError {
 
 export function selfcareIdNotFound(selfcareId: string): TenantProcessError {
   return new TenantProcessError(
-    `Selfcare id ${selfcareId} not found`,
+    `Tenant with selfcare id ${selfcareId} not found in the catalog`,
     ErrorTypes.SelfcareIdNotFound
   );
 }
