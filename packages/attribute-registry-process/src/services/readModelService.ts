@@ -51,7 +51,7 @@ export class ReadModelService {
     this.attributes = attributes || ReadModelRepository.init(config).attributes;
   }
 
-  public async getAttributes(
+  public getAttributes = async (
     {
       ids,
       kinds,
@@ -65,7 +65,7 @@ export class ReadModelService {
     },
     offset: number,
     limit: number
-  ): Promise<ListResult<AttributeTmp>> {
+  ): Promise<ListResult<AttributeTmp>> => {
     const idsFilter = ids
       ? {
           "data.id": {
@@ -125,11 +125,11 @@ export class ReadModelService {
         this.attributes.aggregate([...aggregationPipeline, { $count: "count" }])
       ),
     };
-  }
+  };
 
-  public async getAttributeById(
+  public getAttributeById = async (
     id: string
-  ): Promise<WithMetadata<AttributeTmp> | undefined> {
+  ): Promise<WithMetadata<AttributeTmp> | undefined> => {
     const data = await this.attributes.findOne(
       { "data.id": id },
       { projection: { data: true, metadata: true } }
@@ -160,11 +160,11 @@ export class ReadModelService {
     }
 
     return undefined;
-  }
+  };
 
-  public async getAttributeByName(
+  public getAttributeByName = async (
     name: string
-  ): Promise<WithMetadata<AttributeTmp> | undefined> {
+  ): Promise<WithMetadata<AttributeTmp> | undefined> => {
     const data = await this.attributes.findOne(
       {
         "data.name": {
@@ -199,15 +199,15 @@ export class ReadModelService {
       };
     }
     return undefined;
-  }
+  };
 
-  public async getAttributeByOriginAndCode({
+  public getAttributeByOriginAndCode = async ({
     origin,
     code,
   }: {
     origin: string;
     code: string;
-  }): Promise<WithMetadata<AttributeTmp> | undefined> {
+  }): Promise<WithMetadata<AttributeTmp> | undefined> => {
     const data = await this.attributes.findOne(
       {
         "data.code": code,
@@ -236,5 +236,5 @@ export class ReadModelService {
       };
     }
     return undefined;
-  }
+  };
 }
