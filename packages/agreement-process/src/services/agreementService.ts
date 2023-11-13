@@ -7,19 +7,32 @@ import {
   logger,
 } from "pagopa-interop-commons";
 import {
+  Agreement,
   AgreementEvent,
-  PersistentAgreement,
-  PersistentAgreementState,
+  AgreementState,
   WithMetadata,
+  agreementEServiceNotFound,
   agreementEventToBinaryData,
-  agreementNotFound,
   agreementNotInExpectedState,
-  operationNotAllowed,
-  persistentAgreementState,
+  agreementState,
+  tenantIdNotFound,
+  ListResult,
 } from "pagopa-interop-models";
+import { v4 as uuidv4 } from "uuid";
 import { config } from "../utilities/config.js";
-import { toCreateEventAgreementDeleted } from "../model/domain/toEvent.js";
+import {
+  toCreateEventAgreementAdded,
+  toCreateEventAgreementDeleted,
+} from "../model/domain/toEvent.js";
+import { ApiAgreementPayload } from "../model/types.js";
 import { readModelService } from "./readModelService.js";
+import {
+  assertAgreementExist,
+  assertRequesterIsConsumer,
+  validateCertifiedAttributes,
+  validateCreationOnDescriptor,
+  verifyCreationConflictingAgreements,
+} from "./validators.js";
 
 const fileManager = initFileManager(config);
 
@@ -36,33 +49,40 @@ const repository = eventRepository(
   agreementEventToBinaryData
 );
 
-function assertAgreementExist(
-  agreementId: string,
-  agreement: WithMetadata<PersistentAgreement> | undefined
-): asserts agreement is NonNullable<WithMetadata<PersistentAgreement>> {
-  if (agreement === undefined) {
-    throw agreementNotFound(agreementId);
-  }
-}
-
-const assertRequesterIsConsumer = (
-  consumerId: string,
-  requesterId: string
-): void => {
-  if (consumerId !== requesterId) {
-    throw operationNotAllowed(requesterId);
-  }
-};
-
 export const agreementService = {
-  async getAgreementById(
-    agreementId: string
-  ): Promise<PersistentAgreement | undefined> {
+  async getAgreements(
+    filters: {
+      eServicesIds: string[];
+      consumersIds: string[];
+      producersIds: string[];
+      descriptorsIds: string[];
+      states: AgreementState[];
+      showOnlyUpgradeable: boolean;
+    },
+    limit: number,
+    offset: number
+  ): Promise<ListResult<Agreement>> {
+    logger.info("Retrieving agreements");
+    return await readModelService.listAgreements(filters, limit, offset);
+  },
+  async getAgreementById(agreementId: string): Promise<Agreement | undefined> {
     logger.info(`Retrieving agreement by id ${agreementId}`);
 
     const agreement = await readModelService.readAgreementById(agreementId);
     return agreement?.data;
   },
+
+  async createAgreement(
+    agreement: ApiAgreementPayload,
+    authData: AuthData
+  ): Promise<string> {
+    const createAgreementEvent = await createAgreementLogic(
+      agreement,
+      authData
+    );
+    return await repository.createEvent(createAgreementEvent);
+  },
+
   async deleteAgreementById(
     agreementId: string,
     authData: AuthData
@@ -89,14 +109,14 @@ export async function deleteAgreementLogic({
   agreementId: string;
   authData: AuthData;
   deleteFile: (path: string) => Promise<void>;
-  agreement: WithMetadata<PersistentAgreement> | undefined;
+  agreement: WithMetadata<Agreement> | undefined;
 }): Promise<CreateEvent<AgreementEvent>> {
   assertAgreementExist(agreementId, agreement);
   assertRequesterIsConsumer(agreement.data.consumerId, authData.organizationId);
 
-  const deletableStates: PersistentAgreementState[] = [
-    persistentAgreementState.draft,
-    persistentAgreementState.missingCertifiedAttributes,
+  const deletableStates: AgreementState[] = [
+    agreementState.draft,
+    agreementState.missingCertifiedAttributes,
   ];
 
   if (!deletableStates.includes(agreement.data.state)) {
@@ -108,4 +128,69 @@ export async function deleteAgreementLogic({
   }
 
   return toCreateEventAgreementDeleted(agreementId, agreement.metadata.version);
+}
+
+export async function createAgreementLogic(
+  agreement: ApiAgreementPayload,
+  authData: AuthData
+): Promise<CreateEvent<AgreementEvent>> {
+  logger.info(
+    `Creating agreement for EService ${agreement.eserviceId} and Descriptor ${agreement.descriptorId}`
+  );
+  const eservice = await readModelService.getEServiceById(agreement.eserviceId);
+
+  if (!eservice) {
+    throw agreementEServiceNotFound(agreement.eserviceId);
+  }
+
+  const descriptor = validateCreationOnDescriptor(
+    eservice.data,
+    agreement.descriptorId
+  );
+
+  await verifyCreationConflictingAgreements(authData.organizationId, agreement);
+  const consumer = await readModelService.getTenantById(
+    authData.organizationId
+  );
+
+  if (!consumer) {
+    throw tenantIdNotFound(authData.organizationId);
+  }
+
+  if (eservice.data.producerId !== consumer.data.id) {
+    validateCertifiedAttributes(descriptor, consumer.data);
+  }
+
+  const agreementSeed: Agreement = {
+    id: uuidv4(),
+    eserviceId: agreement.eserviceId,
+    descriptorId: agreement.descriptorId,
+    producerId: eservice.data.producerId,
+    consumerId: authData.organizationId,
+    state: agreementState.draft,
+    verifiedAttributes: [],
+    certifiedAttributes: [],
+    declaredAttributes: [],
+    suspendedByConsumer: undefined,
+    suspendedByProducer: undefined,
+    suspendedByPlatform: undefined,
+    consumerDocuments: [],
+    createdAt: new Date(),
+    updatedAt: undefined,
+    consumerNotes: undefined,
+    contract: undefined,
+    stamps: {
+      submission: undefined,
+      activation: undefined,
+      rejection: undefined,
+      suspensionByProducer: undefined,
+      suspensionByConsumer: undefined,
+      upgrade: undefined,
+      archiving: undefined,
+    },
+    rejectionReason: undefined,
+    suspendedAt: undefined,
+  };
+
+  return toCreateEventAgreementAdded(agreementSeed);
 }
