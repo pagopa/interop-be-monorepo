@@ -1,13 +1,7 @@
 /* eslint-disable no-constant-condition */
 /* eslint-disable functional/no-let */
 /* eslint-disable max-params */
-import {
-  AgreementCollection,
-  EServiceCollection,
-  logger,
-  ReadModelRepository,
-  TenantCollection,
-} from "pagopa-interop-commons";
+import { logger, ReadModelRepository } from "pagopa-interop-commons";
 import {
   EService,
   ErrorTypes,
@@ -22,6 +16,8 @@ import {
 import { z } from "zod";
 import { match, P } from "ts-pattern";
 import { config } from "../utilities/config.js";
+
+const { agreements, eservices, tenants } = ReadModelRepository.init(config);
 
 const listAgreementsFilters = (
   eServicesIds: string[],
@@ -103,7 +99,6 @@ const getAgreementsFilters = (
 };
 
 const getAllAgreements = async (
-  agreements: AgreementCollection,
   producerId: string | undefined,
   consumerId: string | undefined,
   eserviceId: string | undefined,
@@ -117,7 +112,6 @@ const getAllAgreements = async (
 
   while (true) {
     const agreementsChunk = await getAgreements(
-      agreements,
       producerId,
       consumerId,
       eserviceId,
@@ -141,7 +135,6 @@ const getAllAgreements = async (
 };
 
 const getAgreements = async (
-  agreements: AgreementCollection,
   producerId: string | undefined,
   consumerId: string | undefined,
   eserviceId: string | undefined,
@@ -180,22 +173,8 @@ const getAgreements = async (
   return result.data;
 };
 
-export class ReadModelService {
-  private agreements: AgreementCollection;
-  private eservices: EServiceCollection;
-  private tenants: TenantCollection;
-
-  constructor(
-    agreements?: AgreementCollection,
-    eservices?: EServiceCollection,
-    tenants?: TenantCollection
-  ) {
-    this.agreements = agreements || ReadModelRepository.init(config).agreements;
-    this.eservices = eservices || ReadModelRepository.init(config).eservices;
-    this.tenants = tenants || ReadModelRepository.init(config).tenants;
-  }
-
-  public async listAgreements(
+export const readModelService = {
+  async listAgreements(
     {
       eServicesIds,
       consumersIds,
@@ -300,7 +279,7 @@ export class ReadModelService {
       },
     ];
 
-    const data = await this.agreements
+    const data = await agreements
       .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }])
       .toArray();
 
@@ -320,16 +299,15 @@ export class ReadModelService {
     return {
       results: result.data,
       totalCount: await ReadModelRepository.getTotalCount(
-        this.eservices,
+        eservices,
         aggregationPipeline
       ),
     };
-  }
-
-  public async readAgreementById(
+  },
+  async readAgreementById(
     agreementId: string
   ): Promise<WithMetadata<PersistentAgreement> | undefined> {
-    const data = await this.agreements.findOne(
+    const data = await agreements.findOne(
       { "data.id": agreementId },
       { projection: { data: true, metadata: true } }
     );
@@ -352,9 +330,8 @@ export class ReadModelService {
     }
 
     return undefined;
-  }
-
-  public async getAgreements(
+  },
+  async getAgreements(
     producerId: string | undefined,
     consumerId: string | undefined,
     eserviceId: string | undefined,
@@ -363,7 +340,6 @@ export class ReadModelService {
     attributeId: string | undefined
   ): Promise<PersistentAgreement[]> {
     return getAllAgreements(
-      this.agreements,
       producerId,
       consumerId,
       eserviceId,
@@ -371,12 +347,11 @@ export class ReadModelService {
       agreementStates,
       attributeId
     );
-  }
-
-  public async getEServiceById(
+  },
+  async getEServiceById(
     id: string
   ): Promise<WithMetadata<EService> | undefined> {
-    const data = await this.eservices.findOne(
+    const data = await eservices.findOne(
       { "data.id": id },
       { projection: { data: true, metadata: true } }
     );
@@ -406,12 +381,11 @@ export class ReadModelService {
     }
 
     return undefined;
-  }
-
-  public async getTenantById(
+  },
+  async getTenantById(
     tenantId: string
   ): Promise<WithMetadata<Tenant> | undefined> {
-    const data = await this.tenants.findOne(
+    const data = await tenants.findOne(
       { "data.id": tenantId },
       { projection: { data: true, metadata: true } }
     );
@@ -440,5 +414,5 @@ export class ReadModelService {
       };
     }
     return undefined;
-  }
-}
+  },
+};

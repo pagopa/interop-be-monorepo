@@ -56,9 +56,22 @@ import {
 } from "../model/types.js";
 import { config } from "../utilities/config.js";
 import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
-import { ReadModelService } from "./readModelService.js";
+import { readModelService } from "./readModelService.js";
 
 const fileManager = initFileManager(config);
+
+const repository = eventRepository(
+  initDB({
+    username: config.eventStoreDbUsername,
+    password: config.eventStoreDbPassword,
+    host: config.eventStoreDbHost,
+    port: config.eventStoreDbPort,
+    database: config.eventStoreDbName,
+    schema: config.eventStoreDbSchema,
+    useSSL: config.eventStoreDbUseSSL,
+  }),
+  catalogEventToBinaryData
+);
 
 function assertEServiceExist(
   eServiceId: string,
@@ -79,7 +92,6 @@ const assertRequesterAllowed = (
 };
 
 export const retrieveEService = async (
-  readModelService: ReadModelService,
   eServiceId: string
 ): Promise<WithMetadata<EService>> => {
   const eService = await readModelService.getEServiceById(eServiceId);
@@ -182,35 +194,14 @@ const hasNotDraftDescriptor = (eService: EService): void => {
   }
 };
 
-export class CatalogService {
-  private readModelService: ReadModelService;
-  private repository;
-  constructor(
-    readModelService?: ReadModelService,
-    eventStoreCustomPort?: number
-  ) {
-    this.readModelService = readModelService || new ReadModelService();
-
-    this.repository = eventRepository(
-      initDB({
-        username: config.eventStoreDbUsername,
-        password: config.eventStoreDbPassword,
-        host: config.eventStoreDbHost,
-        port: eventStoreCustomPort || config.eventStoreDbPort,
-        database: config.eventStoreDbName,
-        schema: config.eventStoreDbSchema,
-        useSSL: config.eventStoreDbUseSSL,
-      }),
-      catalogEventToBinaryData
-    );
-  }
-  public async createEService(
+export const catalogService = {
+  async createEService(
     apiEServicesSeed: ApiEServiceSeed,
     authData: AuthData
   ): Promise<string> {
-    return this.repository.createEvent(
+    return repository.createEvent(
       createEserviceLogic({
-        eServices: await this.readModelService.getEServices(
+        eServices: await readModelService.getEServices(
           authData,
           {
             eservicesIds: [],
@@ -226,40 +217,37 @@ export class CatalogService {
         authData,
       })
     );
-  }
+  },
 
-  public async updateEService(
+  async updateEService(
     eServiceId: string,
     eServiceSeed: ApiEServiceSeed,
     authData: AuthData
   ): Promise<void> {
-    const eService = await this.readModelService.getEServiceById(eServiceId);
+    const eService = await readModelService.getEServiceById(eServiceId);
 
-    await this.repository.createEvent(
+    await repository.createEvent(
       updateEserviceLogic({ eService, eServiceId, authData, eServiceSeed })
     );
-  }
+  },
 
-  public async deleteEService(
-    eServiceId: string,
-    authData: AuthData
-  ): Promise<void> {
-    const eService = await this.readModelService.getEServiceById(eServiceId);
+  async deleteEService(eServiceId: string, authData: AuthData): Promise<void> {
+    const eService = await readModelService.getEServiceById(eServiceId);
 
-    await this.repository.createEvent(
+    await repository.createEvent(
       deleteEserviceLogic({ eServiceId, authData, eService })
     );
-  }
+  },
 
-  public async uploadDocument(
+  async uploadDocument(
     eServiceId: string,
     descriptorId: string,
     document: ApiEServiceDescriptorDocumentSeed,
     authData: AuthData
   ): Promise<string> {
-    const eService = await this.readModelService.getEServiceById(eServiceId);
+    const eService = await readModelService.getEServiceById(eServiceId);
 
-    return await this.repository.createEvent(
+    return await repository.createEvent(
       uploadDocumentLogic({
         eServiceId,
         descriptorId,
@@ -268,17 +256,17 @@ export class CatalogService {
         eService,
       })
     );
-  }
+  },
 
-  public async deleteDocument(
+  async deleteDocument(
     eServiceId: string,
     descriptorId: string,
     documentId: string,
     authData: AuthData
   ): Promise<void> {
-    const eService = await this.readModelService.getEServiceById(eServiceId);
+    const eService = await readModelService.getEServiceById(eServiceId);
 
-    await this.repository.createEvent(
+    await repository.createEvent(
       await deleteDocumentLogic({
         eServiceId,
         descriptorId,
@@ -288,18 +276,18 @@ export class CatalogService {
         deleteRemoteFile: fileManager.deleteFile,
       })
     );
-  }
+  },
 
-  public async updateDocument(
+  async updateDocument(
     eServiceId: string,
     descriptorId: string,
     documentId: string,
     apiEServiceDescriptorDocumentUpdateSeed: ApiEServiceDescriptorDocumentUpdateSeed,
     authData: AuthData
   ): Promise<void> {
-    const eService = await this.readModelService.getEServiceById(eServiceId);
+    const eService = await readModelService.getEServiceById(eServiceId);
 
-    await this.repository.createEvent(
+    await repository.createEvent(
       await updateDocumentLogic({
         eServiceId,
         descriptorId,
@@ -309,18 +297,18 @@ export class CatalogService {
         eService,
       })
     );
-  }
+  },
 
-  public async createDescriptor(
+  async createDescriptor(
     eServiceId: string,
     eserviceDescriptorSeed: EServiceDescriptorSeed,
     authData: AuthData
   ): Promise<string> {
     logger.info(`Creating Descriptor for EService ${eServiceId}`);
 
-    const eService = await this.readModelService.getEServiceById(eServiceId);
+    const eService = await readModelService.getEServiceById(eServiceId);
 
-    return await this.repository.createEvent(
+    return await repository.createEvent(
       createDescriptorLogic({
         eServiceId,
         eserviceDescriptorSeed,
@@ -328,9 +316,9 @@ export class CatalogService {
         eService,
       })
     );
-  }
+  },
 
-  public async deleteDraftDescriptor(
+  async deleteDraftDescriptor(
     eServiceId: string,
     descriptorId: string,
     authData: AuthData
@@ -339,8 +327,8 @@ export class CatalogService {
       `Deleting draft Descriptor ${descriptorId} of EService ${eServiceId}`
     );
 
-    const eService = await this.readModelService.getEServiceById(eServiceId);
-    await this.repository.createEvent(
+    const eService = await readModelService.getEServiceById(eServiceId);
+    await repository.createEvent(
       await deleteDraftDescriptorLogic({
         eServiceId,
         descriptorId,
@@ -349,17 +337,17 @@ export class CatalogService {
         eService,
       })
     );
-  }
+  },
 
-  public async updateDescriptor(
+  async updateDescriptor(
     eServiceId: string,
     descriptorId: string,
     seed: UpdateEServiceDescriptorSeed,
     authData: AuthData
   ): Promise<void> {
-    const eService = await this.readModelService.getEServiceById(eServiceId);
+    const eService = await readModelService.getEServiceById(eServiceId);
 
-    await this.repository.createEvent(
+    await repository.createEvent(
       updateDescriptorLogic({
         eServiceId,
         descriptorId,
@@ -368,9 +356,9 @@ export class CatalogService {
         eService,
       })
     );
-  }
+  },
 
-  public async publishDescriptor(
+  async publishDescriptor(
     eServiceId: string,
     descriptorId: string,
     authData: AuthData
@@ -379,7 +367,7 @@ export class CatalogService {
       `Publishing Descriptor $descriptorId of EService ${eServiceId}`
     );
 
-    const eService = await this.readModelService.getEServiceById(eServiceId);
+    const eService = await readModelService.getEServiceById(eServiceId);
 
     for (const event of publishDescriptorLogic({
       eServiceId,
@@ -387,13 +375,13 @@ export class CatalogService {
       authData,
       eService,
     })) {
-      await this.repository.createEvent(event);
+      await repository.createEvent(event);
     }
 
     await authorizationManagementServiceMock.updateStateOnClients();
-  }
+  },
 
-  public async suspendDescriptor(
+  async suspendDescriptor(
     eServiceId: string,
     descriptorId: string,
     authData: AuthData
@@ -402,9 +390,9 @@ export class CatalogService {
       `Suspending Descriptor ${descriptorId} of EService ${eServiceId}`
     );
 
-    const eService = await this.readModelService.getEServiceById(eServiceId);
+    const eService = await readModelService.getEServiceById(eServiceId);
 
-    await this.repository.createEvent(
+    await repository.createEvent(
       suspendDescriptorLogic({
         eServiceId,
         descriptorId,
@@ -414,9 +402,9 @@ export class CatalogService {
     );
 
     await authorizationManagementServiceMock.updateStateOnClients();
-  }
+  },
 
-  public async activateDescriptor(
+  async activateDescriptor(
     eServiceId: string,
     descriptorId: string,
     authData: AuthData
@@ -425,9 +413,9 @@ export class CatalogService {
       `Activating descriptor ${descriptorId} for EService ${eServiceId}`
     );
 
-    const eService = await this.readModelService.getEServiceById(eServiceId);
+    const eService = await readModelService.getEServiceById(eServiceId);
 
-    await this.repository.createEvent(
+    await repository.createEvent(
       activateDescriptorLogic({
         eServiceId,
         descriptorId,
@@ -437,16 +425,16 @@ export class CatalogService {
     );
 
     await authorizationManagementServiceMock.updateStateOnClients();
-  }
+  },
 
-  public async cloneDescriptor(
+  async cloneDescriptor(
     eServiceId: string,
     descriptorId: string,
     authData: AuthData
   ): Promise<EService> {
     logger.info(`Cloning Descriptor ${descriptorId} of EService ${eServiceId}`);
 
-    const eService = await this.readModelService.getEServiceById(eServiceId);
+    const eService = await readModelService.getEServiceById(eServiceId);
 
     const { eService: draftEService, event } = await cloneDescriptorLogic({
       eServiceId,
@@ -456,12 +444,12 @@ export class CatalogService {
       eService,
     });
 
-    await this.repository.createEvent(event);
+    await repository.createEvent(event);
 
     return draftEService;
-  }
+  },
 
-  public async archiveDescriptor(
+  async archiveDescriptor(
     eServiceId: string,
     descriptorId: string,
     authData: AuthData
@@ -470,9 +458,9 @@ export class CatalogService {
       `Archiving descriptor ${descriptorId} of EService ${eServiceId}`
     );
 
-    const eService = await this.readModelService.getEServiceById(eServiceId);
+    const eService = await readModelService.getEServiceById(eServiceId);
 
-    await this.repository.createEvent(
+    await repository.createEvent(
       archiveDescriptorLogic({
         eServiceId,
         descriptorId,
@@ -482,8 +470,8 @@ export class CatalogService {
     );
 
     await authorizationManagementServiceMock.updateStateOnClients();
-  }
-}
+  },
+};
 
 export function createEserviceLogic({
   eServices,

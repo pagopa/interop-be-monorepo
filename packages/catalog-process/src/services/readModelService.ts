@@ -2,8 +2,7 @@ import {
   AuthData,
   logger,
   ReadModelRepository,
-  EServiceCollection,
-  AgreementCollection,
+  readmodelDbConfig,
 } from "pagopa-interop-commons";
 import {
   DescriptorState,
@@ -21,7 +20,8 @@ import {
 import { match } from "ts-pattern";
 import { z } from "zod";
 import { Consumer, consumer } from "../model/domain/models.js";
-import { config } from "../utilities/config.js";
+
+const { eservices, agreements } = ReadModelRepository.init(readmodelDbConfig);
 
 function arrayToFilter<T, F extends object>(
   array: T[],
@@ -30,17 +30,8 @@ function arrayToFilter<T, F extends object>(
   return array.length > 0 ? f(array) : undefined;
 }
 
-export class ReadModelService {
-  private eservices: EServiceCollection;
-  private agreements: AgreementCollection;
-  constructor(
-    eservices?: EServiceCollection,
-    agreements?: AgreementCollection
-  ) {
-    this.eservices = eservices || ReadModelRepository.init(config).eservices;
-    this.agreements = agreements || ReadModelRepository.init(config).agreements;
-  }
-  public async getEServices(
+export const readModelService = {
+  async getEServices(
     authData: AuthData,
     {
       eservicesIds,
@@ -108,7 +99,7 @@ export class ReadModelService {
       },
     ];
 
-    const data = await this.eservices
+    const data = await eservices
       .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }])
       .toArray();
 
@@ -126,16 +117,15 @@ export class ReadModelService {
     return {
       results: result.data,
       totalCount: await ReadModelRepository.getTotalCount(
-        this.eservices,
+        eservices,
         aggregationPipeline
       ),
     };
-  }
-
-  public async getEServiceById(
+  },
+  async getEServiceById(
     id: string
   ): Promise<WithMetadata<EService> | undefined> {
-    const data = await this.eservices.findOne(
+    const data = await eservices.findOne(
       { "data.id": id },
       { projection: { data: true, metadata: true } }
     );
@@ -165,9 +155,8 @@ export class ReadModelService {
     }
 
     return undefined;
-  }
-
-  public async getEServiceConsumers(
+  },
+  async getEServiceConsumers(
     eServiceId: string,
     offset: number,
     limit: number
@@ -255,7 +244,7 @@ export class ReadModelService {
       },
     ];
 
-    const data = await this.eservices
+    const data = await eservices
       .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }])
       .toArray();
 
@@ -273,13 +262,12 @@ export class ReadModelService {
     return {
       results: result.data,
       totalCount: await ReadModelRepository.getTotalCount(
-        this.eservices,
+        eservices,
         aggregationPipeline
       ),
     };
-  }
-
-  public async getDocumentById(
+  },
+  async getDocumentById(
     eServiceId: string,
     descriptorId: string,
     documentId: string
@@ -288,9 +276,8 @@ export class ReadModelService {
     return eService?.data.descriptors
       .find((d) => d.id === descriptorId)
       ?.docs.find((d) => d.id === documentId);
-  }
-
-  public async listAgreements(
+  },
+  async listAgreements(
     eservicesIds: string[],
     consumersIds: string[],
     producersIds: string[],
@@ -322,7 +309,7 @@ export class ReadModelService {
         $sort: { "data.id": 1 },
       },
     ];
-    const data = await this.agreements.aggregate(aggregationPipeline).toArray();
+    const data = await agreements.aggregate(aggregationPipeline).toArray();
     const result = z.array(PersistentAgreement).safeParse(data);
 
     if (!result.success) {
@@ -336,5 +323,5 @@ export class ReadModelService {
     }
 
     return result.data;
-  }
-}
+  },
+};
