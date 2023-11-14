@@ -19,8 +19,11 @@ import {
 } from "../model/domain/apiConverter.js";
 import { api } from "../model/generated/api.js";
 import { ApiError, makeApiError } from "../model/types.js";
-import { catalogService } from "../services/catalogService.js";
-import { readModelService } from "../services/readModelService.js";
+import { ReadModelService } from "../services/readModelService.js";
+import { CatalogService } from "../services/catalogService.js";
+
+const readModelService = new ReadModelService();
+const catalogService = new CatalogService();
 
 const eservicesRouter = (
   ctx: ZodiosContext
