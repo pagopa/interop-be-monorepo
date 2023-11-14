@@ -1,8 +1,8 @@
 import {
-  PersistentAgreement,
-  PersistentAgreementDocument,
-  PersistentAgreementState,
-  persistentAgreementState,
+  Agreement,
+  AgreementState,
+  AgreementDocument,
+  agreementState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -12,17 +12,17 @@ import {
 } from "../types.js";
 
 export function agreementStateToApiAgreementState(
-  input: PersistentAgreementState
+  input: AgreementState
 ): ApiAgreementState {
-  return match<PersistentAgreementState, ApiAgreementState>(input)
-    .with(persistentAgreementState.pending, () => "PENDING")
-    .with(persistentAgreementState.rejected, () => "REJECTED")
-    .with(persistentAgreementState.active, () => "ACTIVE")
-    .with(persistentAgreementState.suspended, () => "SUSPENDED")
-    .with(persistentAgreementState.archived, () => "ARCHIVED")
-    .with(persistentAgreementState.draft, () => "DRAFT")
+  return match<AgreementState, ApiAgreementState>(input)
+    .with(agreementState.pending, () => "PENDING")
+    .with(agreementState.rejected, () => "REJECTED")
+    .with(agreementState.active, () => "ACTIVE")
+    .with(agreementState.suspended, () => "SUSPENDED")
+    .with(agreementState.archived, () => "ARCHIVED")
+    .with(agreementState.draft, () => "DRAFT")
     .with(
-      persistentAgreementState.missingCertifiedAttributes,
+      agreementState.missingCertifiedAttributes,
       () => "MISSING_CERTIFIED_ATTRIBUTES"
     )
     .exhaustive();
@@ -30,23 +30,23 @@ export function agreementStateToApiAgreementState(
 
 export function apiAgreementStateToAgreementState(
   input: ApiAgreementState
-): PersistentAgreementState {
-  return match<ApiAgreementState, PersistentAgreementState>(input)
-    .with("PENDING", () => persistentAgreementState.pending)
-    .with("REJECTED", () => persistentAgreementState.rejected)
-    .with("ACTIVE", () => persistentAgreementState.active)
-    .with("SUSPENDED", () => persistentAgreementState.suspended)
-    .with("ARCHIVED", () => persistentAgreementState.archived)
-    .with("DRAFT", () => persistentAgreementState.draft)
+): AgreementState {
+  return match<ApiAgreementState, AgreementState>(input)
+    .with("PENDING", () => agreementState.pending)
+    .with("REJECTED", () => agreementState.rejected)
+    .with("ACTIVE", () => agreementState.active)
+    .with("SUSPENDED", () => agreementState.suspended)
+    .with("ARCHIVED", () => agreementState.archived)
+    .with("DRAFT", () => agreementState.draft)
     .with(
       "MISSING_CERTIFIED_ATTRIBUTES",
-      () => persistentAgreementState.missingCertifiedAttributes
+      () => agreementState.missingCertifiedAttributes
     )
     .exhaustive();
 }
 
 export const agreementDocumentToApiAgreementDocument = (
-  input: PersistentAgreementDocument
+  input: AgreementDocument
 ): ApiAgreementDocument => ({
   id: input.id,
   name: input.name,
@@ -57,7 +57,7 @@ export const agreementDocumentToApiAgreementDocument = (
 });
 
 export const agreementToApiAgreement = (
-  agreement: PersistentAgreement
+  agreement: Agreement
 ): ApiAgreement => ({
   id: agreement.id,
   eserviceId: agreement.eserviceId,
