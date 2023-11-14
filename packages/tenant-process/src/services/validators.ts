@@ -7,7 +7,6 @@ import {
   //   operationForbidden,
   tenantIdNotFound,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
 
 export function assertTenantExist(
   tenantId: string,
