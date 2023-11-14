@@ -1,4 +1,4 @@
-import { Agreement, EService, ErrorTypes, Tenant } from "pagopa-interop-models";
+import { EService, Agreement, Tenant } from "pagopa-interop-models";
 import { Collection, Db, MongoClient } from "mongodb";
 import { z } from "zod";
 import { ReadModelDbConfig, logger } from "../index.js";
@@ -45,7 +45,12 @@ export class ReadModelRepository {
     this.agreements = this.db.collection("agreements", {
       ignoreUndefined: true,
     });
-    this.tenants = this.db.collection("tenants", { ignoreUndefined: true });
+    this.tenants = this.db.collection("tenants", {
+      ignoreUndefined: true,
+    });
+    this.attributes = this.db.collection("attributes", {
+      ignoreUndefined: true,
+    });
   }
 
   public static init(config: ReadModelDbConfig): ReadModelRepository {
