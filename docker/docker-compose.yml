@@ -85,7 +85,6 @@ services:
       chmod 600 /var/lib/pgadmin/storage/root_example.com/pgpass;
       /entrypoint.sh
       "
-      services:
   kafka-ui:
     container_name: kafka-ui
     image: provectuslabs/kafka-ui:latest

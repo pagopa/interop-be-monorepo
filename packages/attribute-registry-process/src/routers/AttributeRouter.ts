@@ -10,8 +10,8 @@ import { attributeNotFound } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
 import { readModelService } from "../services/readModelService.js";
 import {
-  apiAttributeKindToAttributeKind,
-  attributeToApiAttribute,
+  toAttributeKind,
+  toApiAttribute,
 } from "../model/domain/apiConverter.js";
 import { ApiError, makeApiError } from "../model/types.js";
 import { attributeRegistryService } from "../services/attributeRegistryService.js";
@@ -42,21 +42,19 @@ const attributeRouter = (
         try {
           const { limit, offset, kinds, name, origin } = req.query;
 
-          const attributes = await readModelService.getAttributes(
-            {
-              ids: undefined,
-              kinds: kinds.map(apiAttributeKindToAttributeKind),
+          const attributes =
+            await readModelService.getAttributesByKindsNameOrigin({
+              kinds: kinds.map(toAttributeKind),
               name,
               origin,
-            },
-            offset,
-            limit
-          );
+              offset,
+              limit,
+            });
 
           return res
             .status(200)
             .json({
-              results: attributes.results.map(attributeToApiAttribute),
+              results: attributes.results.map(toApiAttribute),
               totalCount: attributes.totalCount,
             })
             .end();
@@ -81,10 +79,7 @@ const attributeRouter = (
           );
 
           if (attribute) {
-            return res
-              .status(200)
-              .json(attributeToApiAttribute(attribute.data))
-              .end();
+            return res.status(200).json(toApiAttribute(attribute.data)).end();
           } else {
             return res
               .status(404)
@@ -115,10 +110,7 @@ const attributeRouter = (
             code,
           });
           if (attribute) {
-            return res
-              .status(200)
-              .json(attributeToApiAttribute(attribute.data))
-              .end();
+            return res.status(200).json(toApiAttribute(attribute.data)).end();
           } else {
             return res
               .status(404)
@@ -126,7 +118,8 @@ const attributeRouter = (
               .end();
           }
         } catch (error) {
-          return res.status(500).end();
+          const errorRes: ApiError = makeApiError(error);
+          return res.status(errorRes.status).json(errorRes).end();
         }
       }
     )
@@ -147,10 +140,7 @@ const attributeRouter = (
           );
 
           if (attribute) {
-            return res
-              .status(200)
-              .json(attributeToApiAttribute(attribute.data))
-              .end();
+            return res.status(200).json(toApiAttribute(attribute.data)).end();
           } else {
             return res
               .status(404)
@@ -176,18 +166,15 @@ const attributeRouter = (
         const { limit, offset } = req.query;
 
         try {
-          const attributes = await readModelService.getAttributes(
-            {
-              ids: req.body,
-              kinds: [],
-            },
+          const attributes = await readModelService.getAttributesByIds({
+            ids: req.body,
             offset,
-            limit
-          );
+            limit,
+          });
           return res
             .status(200)
             .json({
-              results: attributes.results.map(attributeToApiAttribute),
+              results: attributes.results.map(toApiAttribute),
               totalCount: attributes.totalCount,
             })
             .end();
@@ -210,7 +197,7 @@ const attributeRouter = (
             req.body,
             req.ctx.authData
           );
-          return res.status(201).json({ id }).end();
+          return res.status(200).json({ id }).end();
         } catch (error) {
           const errorRes: ApiError = makeApiError(error);
           return res.status(errorRes.status).json(errorRes).end();
@@ -226,7 +213,7 @@ const attributeRouter = (
             req.body,
             req.ctx.authData
           );
-          return res.status(201).json({ id }).end();
+          return res.status(200).json({ id }).end();
         } catch (error) {
           const errorRes: ApiError = makeApiError(error);
           return res.status(errorRes.status).json(errorRes).end();

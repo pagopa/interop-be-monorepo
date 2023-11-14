@@ -65,7 +65,7 @@ export function makeApiError(error: unknown): ApiError {
         ErrorTypes.GenericError.httpStatus,
         // eslint-disable-next-line sonarjs/no-duplicate-string
         ErrorTypes.GenericError.title,
-        "Generic error while processing catalog process error"
+        "Generic error while processing attribute registry error"
       )
     );
 }
