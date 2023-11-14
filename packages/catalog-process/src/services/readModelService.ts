@@ -23,13 +23,6 @@ import { Consumer, consumer } from "../model/domain/models.js";
 
 const { eservices, agreements } = ReadModelRepository.init(readmodelDbConfig);
 
-function arrayToFilter<T, F extends object>(
-  array: T[],
-  f: (array: T[]) => F
-): F | undefined {
-  return array.length > 0 ? f(array) : undefined;
-}
-
 export const readModelService = {
   async getEServices(
     authData: AuthData,
@@ -79,13 +72,18 @@ export const readModelService = {
       {
         $match: {
           ...nameFilter,
-          ...arrayToFilter(states, (states) => ({
+          ...ReadModelRepository.arrayToFilter(states, (states) => ({
             "data.descriptors": { $elemMatch: { state: { $in: states } } },
           })),
-          ...arrayToFilter(ids, (ids) => ({ "data.id": { $in: ids } })),
-          ...arrayToFilter(producersIds, (producersIds) => ({
-            "data.producerId": { $in: producersIds },
+          ...ReadModelRepository.arrayToFilter(ids, (ids) => ({
+            "data.id": { $in: ids },
           })),
+          ...ReadModelRepository.arrayToFilter(
+            producersIds,
+            (producersIds) => ({
+              "data.producerId": { $in: producersIds },
+            })
+          ),
         },
       },
       {
@@ -286,16 +284,25 @@ export const readModelService = {
     const aggregationPipeline = [
       {
         $match: {
-          ...arrayToFilter(eservicesIds, (eservicesIds) => ({
-            "data.eserviceId": { $in: eservicesIds },
-          })),
-          ...arrayToFilter(consumersIds, (consumersIds) => ({
-            "data.consumerId": { $in: consumersIds },
-          })),
-          ...arrayToFilter(producersIds, (producersIds) => ({
-            "data.producerId": { $in: producersIds },
-          })),
-          ...arrayToFilter(states, (states) => ({
+          ...ReadModelRepository.arrayToFilter(
+            eservicesIds,
+            (eservicesIds) => ({
+              "data.eserviceId": { $in: eservicesIds },
+            })
+          ),
+          ...ReadModelRepository.arrayToFilter(
+            consumersIds,
+            (consumersIds) => ({
+              "data.consumerId": { $in: consumersIds },
+            })
+          ),
+          ...ReadModelRepository.arrayToFilter(
+            producersIds,
+            (producersIds) => ({
+              "data.producerId": { $in: producersIds },
+            })
+          ),
+          ...ReadModelRepository.arrayToFilter(states, (states) => ({
             "data.state": { $elemMatch: { state: { $in: states } } },
           })),
         },

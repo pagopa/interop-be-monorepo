@@ -70,6 +70,13 @@ export class ReadModelRepository {
     return ReadModelRepository.instance;
   }
 
+  public static arrayToFilter<T, F extends object>(
+    array: T[],
+    f: (array: T[]) => F
+  ): F | undefined {
+    return array.length > 0 ? f(array) : undefined;
+  }
+
   public static async getTotalCount(
     collection: Collections,
     aggregation: object[]
