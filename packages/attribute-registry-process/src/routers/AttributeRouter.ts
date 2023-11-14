@@ -8,13 +8,16 @@ import {
 } from "pagopa-interop-commons";
 import { attributeNotFound } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
-import { readModelService } from "../services/readModelService.js";
+import { ReadModelService } from "../services/readModelService.js";
 import {
   toAttributeKind,
   toApiAttribute,
 } from "../model/domain/apiConverter.js";
 import { ApiError, makeApiError } from "../model/types.js";
-import { attributeRegistryService } from "../services/attributeRegistryService.js";
+import { AttributeRegistryService } from "../services/attributeRegistryService.js";
+
+const readModelService = new ReadModelService();
+const attributeRegistryService = new AttributeRegistryService();
 
 const attributeRouter = (
   ctx: ZodiosContext

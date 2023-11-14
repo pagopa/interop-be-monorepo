@@ -1,6 +1,10 @@
 import { Filter } from "mongodb";
 import { z } from "zod";
-import { logger, ReadModelRepository } from "pagopa-interop-commons";
+import {
+  AttributeCollection,
+  logger,
+  ReadModelRepository,
+} from "pagopa-interop-commons";
 import {
   AttributeKind,
   Attribute,
@@ -10,8 +14,6 @@ import {
 import { ListResult } from "../model/types.js";
 import { config } from "../utilities/config.js";
 
-const { attributes } = ReadModelRepository.init(config);
-
 function arrayToFilter<T, F extends object>(
   array: T[],
   f: (array: T[]) => F
@@ -19,67 +21,13 @@ function arrayToFilter<T, F extends object>(
   return array.length > 0 ? f(array) : undefined;
 }
 
-async function getAttribute(
-  filter: Filter<{ data: Attribute }>
-): Promise<WithMetadata<Attribute> | undefined> {
-  const data = await attributes.findOne(filter, {
-    projection: { data: true, metadata: true },
-  });
-  if (data) {
-    const result = z
-      .object({
-        metadata: z.object({ version: z.number() }),
-        data: Attribute,
-      })
-      .safeParse(data);
-    if (!result.success) {
-      logger.error(
-        `Unable to parse attribute item: result ${JSON.stringify(
-          result
-        )} - data ${JSON.stringify(data)} `
-      );
-      throw ErrorTypes.GenericError;
-    }
-    return {
-      data: result.data.data,
-      metadata: { version: result.data.metadata.version },
-    };
+export class ReadModelService {
+  private attributes: AttributeCollection;
+  constructor(attributes?: AttributeCollection) {
+    this.attributes = attributes || ReadModelRepository.init(config).attributes;
   }
-  return undefined;
-}
 
-async function getAttributes({
-  aggregationPipeline,
-  offset,
-  limit,
-}: {
-  aggregationPipeline: object[];
-  offset: number;
-  limit: number;
-}): Promise<ListResult<Attribute>> {
-  const data = await attributes
-    .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }])
-    .toArray();
-  const result = z.array(Attribute).safeParse(data.map((d) => d.data));
-  if (!result.success) {
-    logger.error(
-      `Unable to parse attributes items: result ${JSON.stringify(
-        result
-      )} - data ${JSON.stringify(data)} `
-    );
-    throw ErrorTypes.GenericError;
-  }
-  return {
-    results: result.data,
-    totalCount: await ReadModelRepository.getTotalCount(
-      attributes,
-      aggregationPipeline
-    ),
-  };
-}
-
-export const readModelService = {
-  async getAttributesByIds({
+  public async getAttributesByIds({
     ids,
     offset,
     limit,
@@ -88,7 +36,7 @@ export const readModelService = {
     offset: number;
     limit: number;
   }): Promise<ListResult<Attribute>> {
-    return getAttributes({
+    return this.getAttributes({
       aggregationPipeline: [
         {
           $match: {
@@ -110,8 +58,9 @@ export const readModelService = {
       offset,
       limit,
     });
-  },
-  async getAttributesByKindsNameOrigin({
+  }
+
+  public async getAttributesByKindsNameOrigin({
     kinds,
     name,
     origin,
@@ -157,37 +106,99 @@ export const readModelService = {
         $sort: { computedColumn: 1 },
       },
     ];
-    return getAttributes({
+    return this.getAttributes({
       aggregationPipeline,
       offset,
       limit,
     });
-  },
-  async getAttributeById(
+  }
+
+  public async getAttributeById(
     id: string
   ): Promise<WithMetadata<Attribute> | undefined> {
-    return getAttribute({ "data.id": id });
-  },
-  async getAttributeByName(
+    return this.getAttribute({ "data.id": id });
+  }
+
+  public async getAttributeByName(
     name: string
   ): Promise<WithMetadata<Attribute> | undefined> {
-    return getAttribute({
+    return this.getAttribute({
       "data.name": {
         $regex: `^${name}$$`,
         $options: "i",
       },
     });
-  },
-  async getAttributeByOriginAndCode({
+  }
+
+  public async getAttributeByOriginAndCode({
     origin,
     code,
   }: {
     origin: string;
     code: string;
   }): Promise<WithMetadata<Attribute> | undefined> {
-    return getAttribute({
+    return this.getAttribute({
       "data.origin": origin,
       "data.code": code,
     });
-  },
-};
+  }
+
+  private async getAttribute(
+    filter: Filter<{ data: Attribute }>
+  ): Promise<WithMetadata<Attribute> | undefined> {
+    const data = await this.attributes.findOne(filter, {
+      projection: { data: true, metadata: true },
+    });
+    if (data) {
+      const result = z
+        .object({
+          metadata: z.object({ version: z.number() }),
+          data: Attribute,
+        })
+        .safeParse(data);
+      if (!result.success) {
+        logger.error(
+          `Unable to parse attribute item: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+        throw ErrorTypes.GenericError;
+      }
+      return {
+        data: result.data.data,
+        metadata: { version: result.data.metadata.version },
+      };
+    }
+    return undefined;
+  }
+
+  private async getAttributes({
+    aggregationPipeline,
+    offset,
+    limit,
+  }: {
+    aggregationPipeline: object[];
+    offset: number;
+    limit: number;
+  }): Promise<ListResult<Attribute>> {
+    const data = await this.attributes
+      .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }])
+      .toArray();
+    const result = z.array(Attribute).safeParse(data.map((d) => d.data));
+    if (!result.success) {
+      logger.error(
+        `Unable to parse attributes items: result ${JSON.stringify(
+          result
+        )} - data ${JSON.stringify(data)} `
+      );
+      throw ErrorTypes.GenericError;
+    }
+    return {
+      results: result.data,
+      totalCount: await ReadModelRepository.getTotalCount(
+        this.attributes,
+        aggregationPipeline
+      ),
+    };
+  }
+}
