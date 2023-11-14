@@ -25,7 +25,7 @@ import {
   toCreateEventAgreementDeleted,
 } from "../model/domain/toEvent.js";
 import { ApiAgreementPayload } from "../model/types.js";
-import { readModelService } from "./readModelService.js";
+import { ReadModelService } from "./readModelService.js";
 import {
   assertAgreementExist,
   assertRequesterIsConsumer,
@@ -36,21 +36,30 @@ import {
 
 const fileManager = initFileManager(config);
 
-const repository = eventRepository(
-  initDB({
-    username: config.eventStoreDbUsername,
-    password: config.eventStoreDbPassword,
-    host: config.eventStoreDbHost,
-    port: config.eventStoreDbPort,
-    database: config.eventStoreDbName,
-    schema: config.eventStoreDbSchema,
-    useSSL: config.eventStoreDbUseSSL,
-  }),
-  agreementEventToBinaryData
-);
+export class AgreementService {
+  private readModelService: ReadModelService;
+  private repository;
 
-export const agreementService = {
-  async getAgreements(
+  constructor(
+    readModelService?: ReadModelService,
+    eventStoreCustomPort?: number
+  ) {
+    this.readModelService = readModelService || new ReadModelService();
+    this.repository = eventRepository(
+      initDB({
+        username: config.eventStoreDbUsername,
+        password: config.eventStoreDbPassword,
+        host: config.eventStoreDbHost,
+        port: eventStoreCustomPort || config.eventStoreDbPort,
+        database: config.eventStoreDbName,
+        schema: config.eventStoreDbSchema,
+        useSSL: config.eventStoreDbUseSSL,
+      }),
+      agreementEventToBinaryData
+    );
+  }
+
+  public async getAgreements(
     filters: {
       eServicesIds: string[];
       consumersIds: string[];
@@ -63,33 +72,41 @@ export const agreementService = {
     offset: number
   ): Promise<ListResult<Agreement>> {
     logger.info("Retrieving agreements");
-    return await readModelService.listAgreements(filters, limit, offset);
-  },
-  async getAgreementById(agreementId: string): Promise<Agreement | undefined> {
+    return await this.readModelService.listAgreements(filters, limit, offset);
+  }
+
+  public async getAgreementById(
+    agreementId: string
+  ): Promise<Agreement | undefined> {
     logger.info(`Retrieving agreement by id ${agreementId}`);
 
-    const agreement = await readModelService.readAgreementById(agreementId);
+    const agreement = await this.readModelService.readAgreementById(
+      agreementId
+    );
     return agreement?.data;
-  },
+  }
 
-  async createAgreement(
+  public async createAgreement(
     agreement: ApiAgreementPayload,
     authData: AuthData
   ): Promise<string> {
     const createAgreementEvent = await createAgreementLogic(
+      this.readModelService,
       agreement,
       authData
     );
-    return await repository.createEvent(createAgreementEvent);
-  },
+    return await this.repository.createEvent(createAgreementEvent);
+  }
 
-  async deleteAgreementById(
+  public async deleteAgreementById(
     agreementId: string,
     authData: AuthData
   ): Promise<void> {
-    const agreement = await readModelService.readAgreementById(agreementId);
+    const agreement = await this.readModelService.readAgreementById(
+      agreementId
+    );
 
-    await repository.createEvent(
+    await this.repository.createEvent(
       await deleteAgreementLogic({
         agreementId,
         authData,
@@ -97,8 +114,8 @@ export const agreementService = {
         agreement,
       })
     );
-  },
-};
+  }
+}
 
 export async function deleteAgreementLogic({
   agreementId,
@@ -131,6 +148,7 @@ export async function deleteAgreementLogic({
 }
 
 export async function createAgreementLogic(
+  readModelService: ReadModelService,
   agreement: ApiAgreementPayload,
   authData: AuthData
 ): Promise<CreateEvent<AgreementEvent>> {

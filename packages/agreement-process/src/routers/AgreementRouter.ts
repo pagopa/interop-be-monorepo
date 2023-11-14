@@ -12,8 +12,10 @@ import {
   agreementToApiAgreement,
   apiAgreementStateToAgreementState,
 } from "../model/domain/apiConverter.js";
-import { agreementService } from "../services/agreementService.js";
 import { ApiError, makeApiError } from "../model/types.js";
+import { AgreementService } from "../services/agreementService.js";
+
+const agreementService = new AgreementService();
 
 const {
   ADMIN_ROLE,
