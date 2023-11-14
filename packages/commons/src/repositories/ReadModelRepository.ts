@@ -1,4 +1,10 @@
-import { EService, Agreement, Tenant } from "pagopa-interop-models";
+import {
+  EService,
+  Agreement,
+  Tenant,
+  Attribute,
+  ErrorTypes,
+} from "pagopa-interop-models";
 import { Collection, Db, MongoClient } from "mongodb";
 import { z } from "zod";
 import { ReadModelDbConfig, logger } from "../index.js";
@@ -11,11 +17,13 @@ type GenericCollection<T> = Collection<{
 export type EServiceCollection = GenericCollection<EService | undefined>;
 export type AgreementCollection = GenericCollection<Agreement>;
 export type TenantCollection = GenericCollection<Tenant>;
+export type AttributeCollection = GenericCollection<Attribute>;
 
 export type Collections =
   | EServiceCollection
   | AgreementCollection
-  | TenantCollection;
+  | TenantCollection
+  | AttributeCollection;
 
 export class ReadModelRepository {
   private static instance: ReadModelRepository;
@@ -25,6 +33,8 @@ export class ReadModelRepository {
   public agreements: AgreementCollection;
 
   public tenants: TenantCollection;
+
+  public attributes: AttributeCollection;
 
   private client: MongoClient;
   private db: Db;

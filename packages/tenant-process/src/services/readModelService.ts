@@ -8,7 +8,7 @@ import {
 import { z } from "zod";
 import { config } from "../utilities/config.js";
 
-const { tenants } = ReadModelRepository.init(config);
+const { tenants, attributes } = ReadModelRepository.init(config);
 
 export const readModelService = {
   async getTenantById(
