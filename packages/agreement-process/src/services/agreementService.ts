@@ -166,7 +166,11 @@ export async function createAgreementLogic(
     agreement.descriptorId
   );
 
-  await verifyCreationConflictingAgreements(authData.organizationId, agreement);
+  await verifyCreationConflictingAgreements(
+    readModelService,
+    authData.organizationId,
+    agreement
+  );
   const consumer = await readModelService.getTenantById(
     authData.organizationId
   );
