@@ -1,4 +1,5 @@
 // import { AuthData, userRoles } from "pagopa-interop-commons";
+import { match } from "ts-pattern";
 import {
   ExternalId,
   Tenant,
@@ -6,6 +7,7 @@ import {
   WithMetadata,
   //   operationForbidden,
   tenantIdNotFound,
+  tenantKind,
 } from "pagopa-interop-models";
 
 export function assertTenantExist(
@@ -25,34 +27,21 @@ export function getTenantKind(
   attributes: ExternalId[],
   externalId: ExternalId
 ): TenantKind {
-  if (
-    externalId.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER &&
-    attributes.some(
-      (attr) =>
-        attr.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER &&
-        (attr.value === PUBLIC_SERVICES_MANAGERS ||
-          attr.value === CONTRACT_AUTHORITY_PUBLIC_SERVICES_MANAGERS)
+  return match(externalId.origin)
+    .with(
+      PUBLIC_ADMINISTRATIONS_IDENTIFIER,
+      // condition to be satisfied
+      (origin) =>
+        attributes.some(
+          (attr) =>
+            attr.origin === origin &&
+            (attr.value === PUBLIC_SERVICES_MANAGERS ||
+              attr.value === CONTRACT_AUTHORITY_PUBLIC_SERVICES_MANAGERS)
+        ),
+      () => tenantKind.GSP
     )
-  ) {
-    return TenantKind.enum.GSP;
-  } else {
-    return TenantKind.enum.PRIVATE;
-  }
-
-  // return match(externalId.origin)
-  //   .with(
-  //     PUBLIC_ADMINISTRATIONS_IDENTIFIER,
-  //     () => {
-  //       attributes.some(
-  //         (attr) =>
-  //           attr.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER &&
-  //           (attr.value === PUBLIC_SERVICES_MANAGERS ||
-  //             attr.value === CONTRACT_AUTHORITY_PUBLIC_SERVICES_MANAGERS)
-  //       );
-  //     },
-  //     () => TenantKind.enum.GSP
-  //   )
-  //   .otherwise(() => TenantKind.enum.PRIVATE);
+    .with(PUBLIC_ADMINISTRATIONS_IDENTIFIER, () => tenantKind.PA)
+    .otherwise(() => tenantKind.PRIVATE);
 }
 
 // async function assertRequesterAllowed(
