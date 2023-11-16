@@ -588,6 +588,14 @@ packages:
       tslib: 1.14.1
     dev: false
 
+  /@aws-crypto/sha256-js@4.0.0:
+    resolution: {integrity: sha512-MHGJyjE7TX9aaqXj7zk2ppnFUOhaDs5sP+HtNS0evOxn72c+5njUmyJmpGd7TfyoDznZlHMmdo/xGUdu2NIjNQ==}
+    dependencies:
+      '@aws-crypto/util': 4.0.0
+      '@aws-sdk/types': 3.433.0
+      tslib: 1.14.1
+    dev: false
+
   /@aws-crypto/sha256-js@5.2.0:
     resolution: {integrity: sha512-FFQQyu7edu4ufvIZ+OadFpHHOt+eSTBaYaki44c+akjg7qZg9oOQeLlk77F6tSYqjDAFClrHJk9tMf0HdVyOvA==}
     engines: {node: '>=16.0.0'}
@@ -607,6 +615,14 @@ packages:
     resolution: {integrity: sha512-2OJlpeJpCR48CC8r+uKVChzs9Iungj9wkZrl8Z041DWEWvyIHILYKCPNzJghKsivj+S3mLo6BVc7mBNzdxA46w==}
     dependencies:
       '@aws-sdk/types': 3.418.0
+      '@aws-sdk/util-utf8-browser': 3.259.0
+      tslib: 1.14.1
+    dev: false
+
+  /@aws-crypto/util@4.0.0:
+    resolution: {integrity: sha512-2EnmPy2gsFZ6m8bwUQN4jq+IyXV3quHAcwPOS6ZA3k+geujiqI8aRokO2kFJe+idJ/P3v4qWI186rVMo0+zLDQ==}
+    dependencies:
+      '@aws-sdk/types': 3.433.0
       '@aws-sdk/util-utf8-browser': 3.259.0
       tslib: 1.14.1
     dev: false
@@ -1192,6 +1208,15 @@ packages:
       '@aws-sdk/chunked-blob-reader': 3.310.0
       '@aws-sdk/chunked-blob-reader-native': 3.310.0
       '@aws-sdk/types': 3.357.0
+      tslib: 2.6.2
+    dev: false
+
+  /@aws-sdk/hash-node@3.374.0:
+    resolution: {integrity: sha512-5GmU64bwoQhkebMv7NzHa+Mw+p7ZmrKz9e3A6hKClxVGeZFE/+jME46gMuFYzO0iz3WqX4CCzUVOhNbS0x8EMQ==}
+    engines: {node: '>=14.0.0'}
+    deprecated: This package has moved to @smithy/hash-node
+    dependencies:
+      '@smithy/hash-node': 1.0.2
       tslib: 2.6.2
     dev: false
 
@@ -2133,6 +2158,17 @@ packages:
     dependencies:
       '@sinclair/typebox': 0.27.8
     dev: true
+
+  /@jm18457/kafkajs-msk-iam-authentication-mechanism@3.1.2:
+    resolution: {integrity: sha512-83mdXHMbu1HJDyldJRuJyjtI8MjfCDc10tG3uzRxuvOlgz3hJdqv5E7hYtPcLy26ceTqnRUSzw7rGwLI346bYw==}
+    dependencies:
+      '@aws-crypto/sha256-js': 4.0.0
+      '@aws-sdk/credential-providers': 3.441.0
+      '@aws-sdk/hash-node': 3.374.0
+      '@aws-sdk/signature-v4': 3.374.0
+    transitivePeerDependencies:
+      - aws-crt
+    dev: false
 
   /@jridgewell/gen-mapping@0.3.3:
     resolution: {integrity: sha512-HLhSWOLRi875zjjMG/r+Nv0oCW8umGb0BgEhyX3dDX3egwZtB8PqLnjz3yedt8R5StBrzcg4aBpnh8UA9D1BoQ==}
