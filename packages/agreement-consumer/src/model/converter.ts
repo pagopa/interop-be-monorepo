@@ -1,27 +1,27 @@
 import {
+  Agreement,
+  AgreementDocument,
   AgreementDocumentV1,
+  AgreementState,
   AgreementStateV1,
   AgreementV1,
-  PersistentAgreement,
-  PersistentAgreementDocument,
-  PersistentAgreementState,
-  persistentAgreementState,
-  PersistentStamps,
-  PersistentStamp,
-  StampsV1,
   StampV1,
+  AgreementStamp,
+  StampsV1,
+  AgreementStamps,
+  agreementState,
 } from "pagopa-interop-models";
 
 export const fromDocumentV1 = (
   input: AgreementDocumentV1
-): PersistentAgreementDocument => ({
+): AgreementDocument => ({
   ...input,
   createdAt: new Date(Number(input.createdAt)),
 });
 
 export const fromAgreementStamp = (
   input: StampV1 | undefined
-): PersistentStamp | undefined =>
+): AgreementStamp | undefined =>
   input
     ? {
         ...input,
@@ -31,7 +31,7 @@ export const fromAgreementStamp = (
 
 export const fromAgreementStamps = (
   input: StampsV1 | undefined
-): PersistentStamps | undefined =>
+): AgreementStamps | undefined =>
   input
     ? {
         ...input,
@@ -45,30 +45,28 @@ export const fromAgreementStamps = (
       }
     : undefined;
 
-export const fromAgreementState = (
-  input: AgreementStateV1
-): PersistentAgreementState => {
+export const fromAgreementState = (input: AgreementStateV1): AgreementState => {
   switch (input) {
     case AgreementStateV1.ACTIVE:
-      return persistentAgreementState.active;
+      return agreementState.active;
     case AgreementStateV1.SUSPENDED:
-      return persistentAgreementState.suspended;
+      return agreementState.suspended;
     case AgreementStateV1.ARCHIVED:
-      return persistentAgreementState.archived;
+      return agreementState.archived;
     case AgreementStateV1.DRAFT:
-      return persistentAgreementState.draft;
+      return agreementState.draft;
     case AgreementStateV1.PENDING:
-      return persistentAgreementState.pending;
+      return agreementState.pending;
     case AgreementStateV1.MISSING_CERTIFIED_ATTRIBUTES:
-      return persistentAgreementState.missingCertifiedAttributes;
+      return agreementState.missingCertifiedAttributes;
     case AgreementStateV1.REJECTED:
-      return persistentAgreementState.rejected;
+      return agreementState.rejected;
     case AgreementStateV1.UNSPECIFIED$:
       throw new Error("Unspecified agreement state");
   }
 };
 
-export const fromAgreementV1 = (input: AgreementV1): PersistentAgreement => ({
+export const fromAgreementV1 = (input: AgreementV1): Agreement => ({
   ...input,
   state: fromAgreementState(input.state),
   createdAt: new Date(Number(input.createdAt)),

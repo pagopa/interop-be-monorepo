@@ -1,20 +1,23 @@
-import { z } from "zod";
+import z from "zod";
 
 export const tenantKind = {
-  pa: "PA",
-  gsp: "GSP",
-  private: "PRIVATE",
+  PA: "PA",
+  GSP: "GSP",
+  PRIVATE: "PRIVATE",
 } as const;
+
 export const TenantKind = z.enum([
   Object.values(tenantKind)[0],
   ...Object.values(tenantKind).slice(1),
 ]);
+
 export type TenantKind = z.infer<typeof TenantKind>;
 
 export const ExternalId = z.object({
   origin: z.string(),
   value: z.string(),
 });
+
 export type ExternalId = z.infer<typeof ExternalId>;
 
 export const TenantFeatureCertifier = z.object({
@@ -28,13 +31,18 @@ export const TenantFeature = TenantFeatureCertifier; // It will be extended with
 
 export type TenantFeature = z.infer<typeof TenantFeature>;
 
-export const TenantCertifiedAttribute = z.object({
-  assignmentTimestamp: z.coerce.date(),
-  id: z.string().uuid(),
-  type: z.literal("CertifiedAttribute"),
-  revocationTimestamp: z.coerce.date().optional(),
-});
-export type TenantCertifiedAttribute = z.infer<typeof TenantCertifiedAttribute>;
+export const tenantAttributeType = {
+  CERTIFIED: "certified",
+  DECLARED: "declared",
+  VERIFIED: "verified",
+} as const;
+
+export const TenantAttributeType = z.enum([
+  Object.values(tenantAttributeType)[0],
+  ...Object.values(tenantAttributeType).slice(1),
+]);
+
+export type TenantAttributeType = z.infer<typeof TenantAttributeType>;
 
 export const TenantVerifier = z.object({
   id: z.string(),
@@ -53,45 +61,54 @@ export const TenantRevoker = z.object({
 });
 export type TenantRevoker = z.infer<typeof TenantRevoker>;
 
-export const TenantVerifierAttribute = z.object({
+export const CertifiedTenantAttribute = z.object({
   assignmentTimestamp: z.coerce.date(),
   id: z.string().uuid(),
-  type: z.literal("VerifiedAttribute"),
+  type: z.literal(tenantAttributeType.CERTIFIED),
+  revocationTimestamp: z.coerce.date().optional(),
+});
+export type CertifiedTenantAttribute = z.infer<typeof CertifiedTenantAttribute>;
+
+export const VerifiedTenantAttribute = z.object({
+  assignmentTimestamp: z.coerce.date(),
+  id: z.string().uuid(),
+  type: z.literal(tenantAttributeType.VERIFIED),
   verifiedBy: z.array(TenantVerifier),
   revokedBy: z.array(TenantRevoker),
 });
-export type TenantVerifierAttribute = z.infer<typeof TenantVerifierAttribute>;
+export type VerifiedTenantAttribute = z.infer<typeof VerifiedTenantAttribute>;
 
-export const TenantDeclaredAttribute = z.object({
+export const DeclaredTenantAttribute = z.object({
   assignmentTimestamp: z.coerce.date(),
   id: z.string().uuid(),
-  type: z.literal("DeclaredAttribute"),
+  type: z.literal(tenantAttributeType.DECLARED),
 });
-export type TenantDeclaredAttribute = z.infer<typeof TenantDeclaredAttribute>;
+export type DeclaredTenantAttribute = z.infer<typeof DeclaredTenantAttribute>;
 
-export const TenantAttribute = z.union([
-  TenantCertifiedAttribute,
-  TenantVerifierAttribute,
-  TenantDeclaredAttribute,
+export const TenantAttribute = z.discriminatedUnion("type", [
+  CertifiedTenantAttribute,
+  VerifiedTenantAttribute,
+  DeclaredTenantAttribute,
 ]);
+
 export type TenantAttribute = z.infer<typeof TenantAttribute>;
 
-export const mailKind = {
-  contactMail: "CONTACT_EMAIL",
+export const tenantMailKind = {
+  ContactEmail: "ContactEmail",
 } as const;
-export const MailKind = z.enum([
-  Object.values(mailKind)[0],
-  ...Object.values(mailKind).slice(1),
+export const TenantMailKind = z.enum([
+  Object.values(tenantMailKind)[0],
+  ...Object.values(tenantMailKind).slice(1),
 ]);
-export type MailKind = z.infer<typeof MailKind>;
+export type TenantMailKind = z.infer<typeof TenantMailKind>;
 
-export const Mail = z.object({
-  kind: MailKind,
+export const TenantMail = z.object({
+  kind: TenantMailKind,
   address: z.string(),
   description: z.string().optional(),
-  createdAt: z.coerce.date(),
+  createdAt: z.date(),
 });
-export type Mail = z.infer<typeof Mail>;
+export type TenantMail = z.infer<typeof TenantMail>;
 
 export const Tenant = z.object({
   id: z.string().uuid(),
@@ -100,9 +117,10 @@ export const Tenant = z.object({
   externalId: ExternalId,
   features: z.array(TenantFeature),
   attributes: z.array(TenantAttribute),
-  createdAt: z.coerce.date(),
-  updatedAt: z.coerce.date().optional(),
-  mails: z.array(Mail),
+  createdAt: z.date(),
+  updatedAt: z.date().optional(),
+  mails: z.array(TenantMail),
   name: z.string(),
 });
+
 export type Tenant = z.infer<typeof Tenant>;
