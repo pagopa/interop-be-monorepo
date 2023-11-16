@@ -14,13 +14,6 @@ import {
 import { ListResult } from "../model/types.js";
 import { config } from "../utilities/config.js";
 
-function arrayToFilter<T, F extends object>(
-  array: T[],
-  f: (array: T[]) => F
-): F | undefined {
-  return array.length > 0 ? f(array) : undefined;
-}
-
 export class ReadModelService {
   private attributes: AttributeCollection;
   constructor(attributes?: AttributeCollection) {
@@ -91,7 +84,7 @@ export class ReadModelService {
         $match: {
           ...nameFilter,
           ...originFilter,
-          ...arrayToFilter(kinds, (kinds) => ({
+          ...ReadModelRepository.arrayToFilter(kinds, (kinds) => ({
             "data.kind": { $in: kinds },
           })),
         },
