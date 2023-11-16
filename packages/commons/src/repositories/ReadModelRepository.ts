@@ -1,9 +1,9 @@
 import {
+  Agreement,
+  Attribute,
   EService,
   ErrorTypes,
-  PersistentAgreement,
   Tenant,
-  Attribute,
 } from "pagopa-interop-models";
 import { Collection, Db, MongoClient } from "mongodb";
 import { z } from "zod";
@@ -15,7 +15,7 @@ type GenericCollection<T> = Collection<{
 }>;
 
 export type EServiceCollection = GenericCollection<EService | undefined>;
-export type AgreementCollection = GenericCollection<PersistentAgreement>;
+export type AgreementCollection = GenericCollection<Agreement>;
 export type TenantCollection = GenericCollection<Tenant>;
 export type AttributeCollection = GenericCollection<Attribute>;
 
@@ -68,6 +68,13 @@ export class ReadModelRepository {
     }
 
     return ReadModelRepository.instance;
+  }
+
+  public static arrayToFilter<T, F extends object>(
+    array: T[],
+    f: (array: T[]) => F
+  ): F | undefined {
+    return array.length > 0 ? f(array) : undefined;
   }
 
   public static async getTotalCount(

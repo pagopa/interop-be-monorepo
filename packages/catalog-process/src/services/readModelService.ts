@@ -9,10 +9,10 @@ import {
   Document,
   EService,
   ErrorTypes,
-  PersistentAgreement,
-  PersistentAgreementState,
+  Agreement,
+  AgreementState,
   descriptorState,
-  persistentAgreementState,
+  agreementState,
   ListResult,
   WithMetadata,
   emptyListResult,
@@ -43,7 +43,7 @@ export const readModelService = {
       eservicesIds: string[];
       producersIds: string[];
       states: DescriptorState[];
-      agreementStates: PersistentAgreementState[];
+      agreementStates: AgreementState[];
       name?: { value: string; exactMatch: boolean };
     },
     offset: number,
@@ -201,10 +201,7 @@ export const readModelService = {
       {
         $match: {
           "agreements.data.state": {
-            $in: [
-              persistentAgreementState.active,
-              persistentAgreementState.suspended,
-            ],
+            $in: [agreementState.active, agreementState.suspended],
           },
         },
       },
@@ -281,8 +278,8 @@ export const readModelService = {
     eservicesIds: string[],
     consumersIds: string[],
     producersIds: string[],
-    states: PersistentAgreementState[]
-  ): Promise<PersistentAgreement[]> {
+    states: AgreementState[]
+  ): Promise<Agreement[]> {
     const aggregationPipeline = [
       {
         $match: {
@@ -310,7 +307,7 @@ export const readModelService = {
       },
     ];
     const data = await agreements.aggregate(aggregationPipeline).toArray();
-    const result = z.array(PersistentAgreement).safeParse(data);
+    const result = z.array(Agreement).safeParse(data);
 
     if (!result.success) {
       logger.error(

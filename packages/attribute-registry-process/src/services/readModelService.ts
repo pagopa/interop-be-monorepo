@@ -12,13 +12,6 @@ import { config } from "../utilities/config.js";
 
 const { attributes } = ReadModelRepository.init(config);
 
-function arrayToFilter<T, F extends object>(
-  array: T[],
-  f: (array: T[]) => F
-): F | undefined {
-  return array.length > 0 ? f(array) : undefined;
-}
-
 async function getAttribute(
   filter: Filter<{ data: Attribute }>
 ): Promise<WithMetadata<Attribute> | undefined> {
@@ -142,7 +135,7 @@ export const readModelService = {
         $match: {
           ...nameFilter,
           ...originFilter,
-          ...arrayToFilter(kinds, (kinds) => ({
+          ...ReadModelRepository.arrayToFilter(kinds, (kinds) => ({
             "data.kind": { $in: kinds },
           })),
         },
