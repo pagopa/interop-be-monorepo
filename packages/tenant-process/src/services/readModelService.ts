@@ -52,7 +52,7 @@ function listTenantsFilters(name: string | undefined): object[] {
   return [nameFilter, withSelfcareIdFilter];
 }
 
-export const aggregateAndBuildResult = async (
+export const getTenants = async (
   aggregationPipeline: Document[],
   offset: number,
   limit: number
@@ -113,7 +113,7 @@ export const readModelService = {
       { $sort: { lowerName: 1 } },
     ];
 
-    return aggregateAndBuildResult(aggregationPipeline, offset, limit);
+    return getTenants(aggregationPipeline, offset, limit);
   },
   async getProducers(
     name: string | undefined,
@@ -136,6 +136,6 @@ export const readModelService = {
       { $sort: { lowerName: 1 } },
     ];
 
-    return aggregateAndBuildResult(aggregationPipeline, offset, limit);
+    return getTenants(aggregationPipeline, offset, limit);
   },
 };
