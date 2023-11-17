@@ -21,7 +21,7 @@ import {
 } from "pagopa-interop-models";
 import { z } from "zod";
 import { match, P } from "ts-pattern";
-import { config } from "../utilities/config.js";
+import { AgreementProcessConfig } from "../utilities/config.js";
 
 const listAgreementsFilters = (
   eServicesIds: string[],
@@ -185,14 +185,11 @@ export class ReadModelService {
   private eservices: EServiceCollection;
   private tenants: TenantCollection;
 
-  constructor(
-    agreements?: AgreementCollection,
-    eservices?: EServiceCollection,
-    tenants?: TenantCollection
-  ) {
-    this.agreements = agreements || ReadModelRepository.init(config).agreements;
-    this.eservices = eservices || ReadModelRepository.init(config).eservices;
-    this.tenants = tenants || ReadModelRepository.init(config).tenants;
+  constructor(config: AgreementProcessConfig) {
+    const readModelRepository = ReadModelRepository.init(config);
+    this.agreements = readModelRepository.agreements;
+    this.eservices = readModelRepository.eservices;
+    this.tenants = readModelRepository.tenants;
   }
   public async listAgreements(
     {

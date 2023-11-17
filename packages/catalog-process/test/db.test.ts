@@ -35,20 +35,20 @@ describe("database test", async () => {
       password: config.readModelDbPassword,
     }).start();
 
+    config.eventStoreDbPort = postgreSqlContainer.getMappedPort(5432);
     config.readModelDbPort = mongodbContainer.getMappedPort(27017);
-    eservices = ReadModelRepository.init(config).eservices;
-    agreements = ReadModelRepository.init(config).agreements;
-    readModelService = new ReadModelService(eservices, agreements);
-    catalogService = new CatalogService(
-      readModelService,
-      postgreSqlContainer.getMappedPort(5432)
-    );
+
+    const readModelRepository = ReadModelRepository.init(config);
+    eservices = readModelRepository.eservices;
+    agreements = readModelRepository.agreements;
+    readModelService = new ReadModelService(config);
+    catalogService = new CatalogService(readModelService, config);
 
     postgresDB = initDB({
       username: config.eventStoreDbUsername,
       password: config.eventStoreDbPassword,
       host: config.eventStoreDbHost,
-      port: postgreSqlContainer.getMappedPort(5432),
+      port: config.eventStoreDbPort,
       database: config.eventStoreDbName,
       schema: config.eventStoreDbSchema,
       useSSL: config.eventStoreDbUseSSL,

@@ -21,7 +21,7 @@ import {
 import { match } from "ts-pattern";
 import { z } from "zod";
 import { Consumer, consumer } from "../model/domain/models.js";
-import { config } from "../utilities/config.js";
+import { CatalogProcessConfig } from "../utilities/config.js";
 
 function arrayToFilter<T, F extends object>(
   array: T[],
@@ -34,12 +34,10 @@ export class ReadModelService {
   private eservices: EServiceCollection;
   private agreements: AgreementCollection;
 
-  constructor(
-    eservices?: EServiceCollection,
-    agreements?: AgreementCollection
-  ) {
-    this.eservices = eservices || ReadModelRepository.init(config).eservices;
-    this.agreements = agreements || ReadModelRepository.init(config).agreements;
+  constructor(config: CatalogProcessConfig) {
+    const readModelRepository = ReadModelRepository.init(config);
+    this.eservices = readModelRepository.eservices;
+    this.agreements = readModelRepository.agreements;
   }
 
   public async getEServices(

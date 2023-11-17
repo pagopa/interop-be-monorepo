@@ -38,22 +38,22 @@ describe("database test", async () => {
       password: config.readModelDbPassword,
     }).start();
 
+    config.eventStoreDbPort = postgreSqlContainer.getMappedPort(5432);
     config.readModelDbPort = mongodbContainer.getMappedPort(27017);
-    agreements = ReadModelRepository.init(config).agreements;
-    eservices = ReadModelRepository.init(config).eservices;
-    tenants = ReadModelRepository.init(config).tenants;
 
-    readModelService = new ReadModelService(agreements, eservices, tenants);
-    agreementService = new AgreementService(
-      readModelService,
-      postgreSqlContainer.getMappedPort(5432)
-    );
+    const readModelRepository = ReadModelRepository.init(config);
+    agreements = readModelRepository.agreements;
+    eservices = readModelRepository.eservices;
+    tenants = readModelRepository.tenants;
+
+    readModelService = new ReadModelService(config);
+    agreementService = new AgreementService(readModelService, config);
 
     postgresDB = initDB({
       username: config.eventStoreDbUsername,
       password: config.eventStoreDbPassword,
       host: config.eventStoreDbHost,
-      port: postgreSqlContainer.getMappedPort(5432),
+      port: config.eventStoreDbPort,
       database: config.eventStoreDbName,
       schema: config.eventStoreDbSchema,
       useSSL: config.eventStoreDbUseSSL,

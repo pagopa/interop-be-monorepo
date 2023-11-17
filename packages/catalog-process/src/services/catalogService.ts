@@ -54,7 +54,7 @@ import {
   ApiEServiceDescriptorDocumentUpdateSeed,
   ApiEServiceSeed,
 } from "../model/types.js";
-import { config } from "../utilities/config.js";
+import { CatalogProcessConfig, config } from "../utilities/config.js";
 import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -187,16 +187,16 @@ export class CatalogService {
   private repository;
 
   constructor(
-    readModelService?: ReadModelService,
-    eventStoreCustomPort?: number
+    readModelService: ReadModelService,
+    config: CatalogProcessConfig
   ) {
-    this.readModelService = readModelService || new ReadModelService();
+    this.readModelService = readModelService;
     this.repository = eventRepository(
       initDB({
         username: config.eventStoreDbUsername,
         password: config.eventStoreDbPassword,
         host: config.eventStoreDbHost,
-        port: eventStoreCustomPort || config.eventStoreDbPort,
+        port: config.eventStoreDbPort,
         database: config.eventStoreDbName,
         schema: config.eventStoreDbSchema,
         useSSL: config.eventStoreDbUseSSL,

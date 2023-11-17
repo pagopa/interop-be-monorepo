@@ -14,8 +14,11 @@ import {
 } from "../model/domain/apiConverter.js";
 import { ApiError, makeApiError } from "../model/types.js";
 import { AgreementService } from "../services/agreementService.js";
+import { ReadModelService } from "../services/readModelService.js";
+import { config } from "../utilities/config.js";
 
-const agreementService = new AgreementService();
+const readModelService = new ReadModelService(config);
+const agreementService = new AgreementService(readModelService, config);
 
 const {
   ADMIN_ROLE,

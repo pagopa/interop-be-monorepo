@@ -21,9 +21,10 @@ import { api } from "../model/generated/api.js";
 import { ApiError, makeApiError } from "../model/types.js";
 import { ReadModelService } from "../services/readModelService.js";
 import { CatalogService } from "../services/catalogService.js";
+import { config } from "../utilities/config.js";
 
-const readModelService = new ReadModelService();
-const catalogService = new CatalogService();
+const readModelService = new ReadModelService(config);
+const catalogService = new CatalogService(readModelService, config);
 
 const eservicesRouter = (
   ctx: ZodiosContext

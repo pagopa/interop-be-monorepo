@@ -19,7 +19,7 @@ import {
   ListResult,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
-import { config } from "../utilities/config.js";
+import { AgreementProcessConfig, config } from "../utilities/config.js";
 import {
   toCreateEventAgreementAdded,
   toCreateEventAgreementDeleted,
@@ -41,16 +41,16 @@ export class AgreementService {
   private repository;
 
   constructor(
-    readModelService?: ReadModelService,
-    eventStoreCustomPort?: number
+    readModelService: ReadModelService,
+    config: AgreementProcessConfig
   ) {
-    this.readModelService = readModelService || new ReadModelService();
+    this.readModelService = readModelService;
     this.repository = eventRepository(
       initDB({
         username: config.eventStoreDbUsername,
         password: config.eventStoreDbPassword,
         host: config.eventStoreDbHost,
-        port: eventStoreCustomPort || config.eventStoreDbPort,
+        port: config.eventStoreDbPort,
         database: config.eventStoreDbName,
         schema: config.eventStoreDbSchema,
         useSSL: config.eventStoreDbUseSSL,
