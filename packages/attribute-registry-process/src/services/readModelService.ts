@@ -211,29 +211,29 @@ export const readModelService = {
       { projection: { data: true, metadata: true } }
     );
 
-    if (data) {
-      const result = z
-        .object({
-          metadata: z.object({ version: z.number() }),
-          data: Tenant,
-        })
-        .safeParse(data);
-
-      if (!result.success) {
-        logger.error(
-          `Unable to parse tenant item: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
-        );
-
-        throw ErrorTypes.GenericError;
-      }
-
-      return {
-        data: result.data.data,
-        metadata: { version: result.data.metadata.version },
-      };
+ if (!data) {
+      return undefined;
     }
-    return undefined;
-  },
+
+    const result = z
+      .object({
+        metadata: z.object({ version: z.number() }),
+        data: Tenant,
+      })
+      .safeParse(data);
+
+    if (!result.success) {
+      logger.error(
+        `Unable to parse tenant item: result ${JSON.stringify(
+          result
+        )} - data ${JSON.stringify(data)} `
+      );
+
+      throw ErrorTypes.GenericError;
+    }
+
+    return {
+      data: result.data.data,
+      metadata: { version: result.data.metadata.version },
+    };
 };

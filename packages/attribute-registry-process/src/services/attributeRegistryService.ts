@@ -180,21 +180,20 @@ export function createCertifiedAttributeLogic({
   return toCreateEventAttributeAdded(newCertifiedAttribute);
 }
 
-async function getCertifier(tenantId: string): Promise<string> {
+async function getCertifierId(tenantId: string): Promise<string> {
   const tenant = await readModelService.getTenantById(tenantId);
   if (!tenant) {
     throw tenantIdNotFound(tenantId);
   }
+
   const certifier = tenant.data.features
-    .filter((f) => f.type === "Certifier")
-    .map((f) => f.certifierId)
-    .find((id) => id.trim().length > 0);
+    .filter(({ type }) => type === "Certifier")
+    .find(({ certifierId }) => certifierId.trim().length > 0);
 
   if (certifier) {
-    return certifier;
-  } else {
-    throw OrganizationIsNotACertifier(tenantId);
+    return certifier.certifierId;
   }
+  throw OrganizationIsNotACertifier(tenantId);
 }
 
 export function createInternalCertifiedAttributeLogic({
