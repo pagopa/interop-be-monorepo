@@ -5,7 +5,7 @@ export * from "./create-mechanism.js";
 export * from "./create-payload.js";
 export * from "./create-sasl-authentication-request.js";
 export * from "./create-sasl-authentication-response.js";
-import { Consumer, Kafka, KafkaMessage } from "kafkajs";
+import { Consumer, Kafka, EachMessagePayload } from "kafkajs";
 import { ConsumerConfig, logger } from "pagopa-interop-commons";
 import { createMechanism } from "./create-mechanism.js";
 
@@ -49,7 +49,7 @@ const handleExit = (consumer: Consumer): void => {
 const initConsumer = async (
   config: ConsumerConfig,
   topics: string[],
-  consumerHandler: (message: KafkaMessage) => Promise<void>
+  consumerHandler: (payload: EachMessagePayload) => Promise<void>
 ): Promise<Consumer> => {
   logger.info(`Consumer connecting to topics [${JSON.stringify(topics)}]`);
 
@@ -83,18 +83,21 @@ const initConsumer = async (
   });
 
   await consumer.run({
-    eachMessage: ({ message }) => consumerHandler(message),
+    eachMessage: consumerHandler,
   });
   return consumer;
 };
 
 export const runConsumer = async (
   config: ConsumerConfig,
-  topic: string[],
-  consumerHandler: (message: KafkaMessage) => Promise<void>
+  consumerHandler: (messagePayload: EachMessagePayload) => Promise<void>
 ): Promise<void> => {
   do {
-    const consumer = await initConsumer(config, topic, consumerHandler);
+    const consumer = await initConsumer(
+      config,
+      config.kafkaTopics,
+      consumerHandler
+    );
 
     await new Promise((resolve) =>
       setTimeout(
