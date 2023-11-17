@@ -2,21 +2,20 @@
 import { beforeAll, afterEach, describe, expect, it } from "vitest";
 import { GenericContainer } from "testcontainers";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
-import { ReadModelRepository, initDB } from "pagopa-interop-commons";
+import {
+  AttributeCollection,
+  ReadModelRepository,
+  initDB,
+} from "pagopa-interop-commons";
 import { v4 as uuidv4 } from "uuid";
 import { Document } from "mongodb";
-import { Collection } from "mongodb";
-import { Attribute } from "pagopa-interop-models";
 import { IDatabase } from "pg-promise";
 import { config } from "../src/utilities/config.js";
 import { AttributeRegistryService } from "../src/services/attributeRegistryService.js";
 import { ReadModelService } from "../src/services/readModelService.js";
 
 describe("database test", () => {
-  let attributes: Collection<{
-    data: Attribute;
-    metadata: { version: number };
-  }>;
+  let attributes: AttributeCollection;
   let readModelService: ReadModelService;
   let attributeRegistryService: AttributeRegistryService;
   let postgresDB: IDatabase<unknown>;
