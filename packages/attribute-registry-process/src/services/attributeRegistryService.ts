@@ -78,14 +78,20 @@ export const attributeRegistryService = {
     apiCertifiedAttributeSeed: ApiCertifiedAttributeSeed,
     authData: AuthData
   ): Promise<string> {
-    const certifier = await getCertifier(authData.organizationId);
+    const certifierPromise = getCertifierId(authData.organizationId);
+    const attributePromise = readModelService.getAttributeByCodeAndName(
+      apiCertifiedAttributeSeed.code,
+      apiCertifiedAttributeSeed.name
+    );
+
+    const [certifier, attribute] = await Promise.all([
+      certifierPromise,
+      attributePromise,
+    ]);
 
     return repository.createEvent(
       createCertifiedAttributeLogic({
-        attribute: await readModelService.getAttributeByCodeAndName(
-          apiCertifiedAttributeSeed.code,
-          apiCertifiedAttributeSeed.name
-        ),
+        attribute,
         apiCertifiedAttributeSeed,
         certifier,
       })

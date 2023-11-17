@@ -204,7 +204,7 @@ export const readModelService = {
       { projection: { data: true, metadata: true } }
     );
 
- if (!data) {
+    if (!data) {
       return undefined;
     }
 
@@ -229,4 +229,5 @@ export const readModelService = {
       data: result.data.data,
       metadata: { version: result.data.metadata.version },
     };
+  },
 };
