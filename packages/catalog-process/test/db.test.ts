@@ -1,4 +1,6 @@
 /* eslint-disable functional/no-let */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
 import {
   AgreementCollection,
@@ -10,14 +12,14 @@ import {
 } from "pagopa-interop-commons";
 import { IDatabase } from "pg-promise";
 import { config } from "../src/utilities/config.js";
-// import { ReadModelService } from "../src/services/readModelService.js";
-// import { CatalogService } from "../src/services/catalogService.js";
+import { ReadModelService } from "../src/services/readModelService.js";
+import { CatalogService } from "../src/services/catalogService.js";
 
 describe("database test", async () => {
   let eservices: EServiceCollection;
   let agreements: AgreementCollection;
-  // let readModelService: ReadModelService;
-  // let catalogService: CatalogService;
+  let readModelService: ReadModelService;
+  let catalogService: CatalogService;
   let postgresDB: IDatabase<unknown>;
 
   beforeAll(async () => {
@@ -36,11 +38,11 @@ describe("database test", async () => {
     config.readModelDbPort = mongodbContainer.getMappedPort(27017);
     eservices = ReadModelRepository.init(config).eservices;
     agreements = ReadModelRepository.init(config).agreements;
-    // readModelService = new ReadModelService(eservices, agreements);
-    // catalogService = new CatalogService(
-    //   readModelService,
-    //   postgreSqlContainer.getMappedPort(5432)
-    // );
+    readModelService = new ReadModelService(eservices, agreements);
+    catalogService = new CatalogService(
+      readModelService,
+      postgreSqlContainer.getMappedPort(5432)
+    );
 
     postgresDB = initDB({
       username: config.eventStoreDbUsername,
