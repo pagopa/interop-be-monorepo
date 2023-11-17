@@ -42,12 +42,13 @@ describe("database test", () => {
       .withExposedPorts(27017)
       .start();
 
+    config.eventStoreDbPort = postgreSqlContainer.getMappedPort(5432);
     config.readModelDbPort = mongodbContainer.getMappedPort(27017);
     attributes = ReadModelRepository.init(config).attributes;
-    readModelService = new ReadModelService(attributes);
+    readModelService = new ReadModelService(config);
     attributeRegistryService = new AttributeRegistryService(
       readModelService,
-      postgreSqlContainer.getMappedPort(5432)
+      config
     );
 
     postgresDB = initDB({

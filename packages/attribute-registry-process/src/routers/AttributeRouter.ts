@@ -15,9 +15,13 @@ import {
 } from "../model/domain/apiConverter.js";
 import { ApiError, makeApiError } from "../model/types.js";
 import { AttributeRegistryService } from "../services/attributeRegistryService.js";
+import { config } from "../utilities/config.js";
 
-const readModelService = new ReadModelService();
-const attributeRegistryService = new AttributeRegistryService();
+const readModelService = new ReadModelService(config);
+const attributeRegistryService = new AttributeRegistryService(
+  readModelService,
+  config
+);
 
 const attributeRouter = (
   ctx: ZodiosContext

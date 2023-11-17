@@ -12,12 +12,12 @@ import {
   WithMetadata,
 } from "pagopa-interop-models";
 import { ListResult } from "../model/types.js";
-import { config } from "../utilities/config.js";
+import { AttributeRegistryConfig } from "../utilities/config.js";
 
 export class ReadModelService {
   private attributes: AttributeCollection;
-  constructor(attributes?: AttributeCollection) {
-    this.attributes = attributes || ReadModelRepository.init(config).attributes;
+  constructor(config: AttributeRegistryConfig) {
+    this.attributes = ReadModelRepository.init(config).attributes;
   }
 
   public async getAttributesByIds({
