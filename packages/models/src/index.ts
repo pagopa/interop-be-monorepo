@@ -12,5 +12,4 @@ export * from "./gen/v1/agreement/events.js";
 export * from "./gen/v1/agreement/state.js";
 export * from "./gen/v1/tenant/tenant.js";
 export * from "./gen/v1/tenant/events.js";
-export * from "./gen/v1/tenant/state.js";
 export * from "./readModels/readModels.js";
