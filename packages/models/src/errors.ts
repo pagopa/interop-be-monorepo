@@ -1,4 +1,6 @@
 /* eslint-disable max-classes-per-file */
+import { DescriptorState } from "./eservice/eservice.js";
+
 export const ErrorTypes = {
   DuplicateEserviceName: {
     code: "0010",
@@ -81,10 +83,30 @@ export const ErrorTypes = {
     httpStatus: 400,
     title: "EService already contains a draft descriptor",
   },
+  NotLatestEServiceDescriptor: {
+    code: "0021",
+    httpStatus: 400,
+    title: "Descriptor provided is not the latest descriptor",
+  },
+  DescriptorNotInExpectedState: {
+    code: "0004",
+    httpStatus: 400,
+    title: "Descriptor not in expected state",
+  },
   AgreementNotFound: {
     code: "0009",
     httpStatus: 404,
     title: "Agreement not found",
+  },
+  AgreementAlreadyExists: {
+    code: "0011",
+    httpStatus: 409,
+    title: "Agreement already exists",
+  },
+  AgreementESerivceNotFound: {
+    code: "0007",
+    httpStatus: 400,
+    title: "EService not found",
   },
   OperationNotAllowed: {
     code: "0007",
@@ -105,6 +127,27 @@ export const ErrorTypes = {
     code: "0012",
     httpStatus: 404,
     title: "Selfacare Id not found",
+  },
+  MissingCertifiedAttributes: {
+    code: "0001",
+    httpStatus: 400,
+    title: `Required certified attribute is missing`,
+  },
+  TenantIdNotFound: {
+    code: "0020",
+    httpStatus: 404,
+    title: "Tenant not found",
+  },
+  // TODO: refactor this error code when diffent building strategy are implemented
+  TenantIdNotFoundException: {
+    code: "0020",
+    httpStatus: 500,
+    title: "Tenant not found",
+  },
+  AuthenticationSaslFailed: {
+    code: "9000",
+    httpStatus: 500,
+    title: "SASL authentication fails",
   },
 } as const;
 
@@ -136,6 +179,15 @@ export function eServiceNotFound(eServiceId: string): CatalogProcessError {
   return new CatalogProcessError(
     `EService ${eServiceId} not found`,
     ErrorTypes.EServiceNotFound
+  );
+}
+
+export function agreementEServiceNotFound(
+  eServiceId: string
+): AgreementProcessError {
+  return new AgreementProcessError(
+    `EService ${eServiceId} not found`,
+    ErrorTypes.AgreementESerivceNotFound
   );
 }
 
@@ -205,6 +257,38 @@ export function draftDescriptorAlreadyExists(
   );
 }
 
+export function notLatestEServiceDescriptor(
+  descriptorId: string
+): AgreementProcessError {
+  return new AgreementProcessError(
+    `Descriptor with descriptorId: ${descriptorId} is not the latest descriptor`,
+    ErrorTypes.NotLatestEServiceDescriptor
+  );
+}
+
+export function descriptorNotInExpectedState(
+  eServiceId: string,
+  descriptorId: string,
+  allowedStates: DescriptorState[]
+): AgreementProcessError {
+  return new AgreementProcessError(
+    `Descriptor ${descriptorId} of EService ${eServiceId} has not status in ${allowedStates.join(
+      ","
+    )}`,
+    ErrorTypes.DescriptorNotInExpectedState
+  );
+}
+
+export function missingCertifiedAttributesError(
+  descriptorId: string,
+  consumerId: string
+): AgreementProcessError {
+  return new AgreementProcessError(
+    `Required certified attribute is missing. Descriptor ${descriptorId}, Consumer: ${consumerId}`,
+    ErrorTypes.MissingCertifiedAttributes
+  );
+}
+
 export function eServiceDocumentNotFound(
   eServiceId: string,
   descriptorId: string,
@@ -237,6 +321,16 @@ export function selfcareIdNotFound(selfcareId: string): TenantProcessError {
   );
 }
 
+export function agreementAlreadyExists(
+  consumerId: string,
+  eServiceId: string
+): AgreementProcessError {
+  return new AgreementProcessError(
+    `Agreement already exists for Consumer = ${consumerId}, EService = ${eServiceId}`,
+    ErrorTypes.AgreementAlreadyExists
+  );
+}
+
 export function operationNotAllowed(
   requesterId: string
 ): AgreementProcessError {
@@ -253,6 +347,20 @@ export function agreementNotInExpectedState(
   return new AgreementProcessError(
     `Agreement ${agreementId} not in expected state (current state: ${state})`,
     ErrorTypes.AgreementNotInExpectedState
+  );
+}
+
+export function tenantIdNotFound(tenantId: string): AgreementProcessError {
+  return new AgreementProcessError(
+    `Tenant ${tenantId} not found`,
+    ErrorTypes.TenantIdNotFound
+  );
+}
+
+export function authenticationSaslFailed(message: string): ProcessError {
+  return new ProcessError(
+    `SALS Authentication fails with this error : ${message}`,
+    ErrorTypes.AuthenticationSaslFailed
   );
 }
 

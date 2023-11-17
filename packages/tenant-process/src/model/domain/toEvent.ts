@@ -1,6 +1,6 @@
 import {
-  Mail,
-  MailKind,
+  TenantMail,
+  TenantMailKind,
   Tenant,
   TenantAttribute,
   TenantAttributeV1,
@@ -15,7 +15,8 @@ import {
   TenantV1,
   TenantVerifier,
   TenantVerifierV1,
-  mailKind,
+  tenantMailKind,
+  tenantKind,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -61,7 +62,7 @@ export function toTenantRevokerV1(revoker: TenantRevoker): TenantRevokerV1 {
 
 export function toAttributeV1(input: TenantAttribute): TenantAttributeV1 {
   return match<TenantAttribute, TenantAttributeV1>(input)
-    .with({ type: "CertifiedAttribute" }, (attribute) => ({
+    .with({ type: "certified" }, (attribute) => ({
       sealedValue: {
         oneofKind: "certifiedAttribute",
         certifiedAttribute: {
@@ -73,7 +74,7 @@ export function toAttributeV1(input: TenantAttribute): TenantAttributeV1 {
         },
       },
     }))
-    .with({ type: "VerifiedAttribute" }, (attribute) => ({
+    .with({ type: "verified" }, (attribute) => ({
       sealedValue: {
         oneofKind: "verifiedAttribute",
         verifiedAttribute: {
@@ -84,7 +85,7 @@ export function toAttributeV1(input: TenantAttribute): TenantAttributeV1 {
         },
       },
     }))
-    .with({ type: "DeclaredAttribute" }, (attribute) => ({
+    .with({ type: "declared" }, (attribute) => ({
       sealedValue: {
         oneofKind: "declaredAttribute",
         declaredAttribute: {
@@ -96,7 +97,7 @@ export function toAttributeV1(input: TenantAttribute): TenantAttributeV1 {
     .exhaustive();
 }
 
-export function toTenantMailV1(mail: Mail): TenantMailV1 {
+export function toTenantMailV1(mail: TenantMail): TenantMailV1 {
   return {
     kind: toTenantMailKindV1(mail.kind),
     address: mail.address,
@@ -105,17 +106,17 @@ export function toTenantMailV1(mail: Mail): TenantMailV1 {
   };
 }
 
-export function toTenantMailKindV1(kind: MailKind): TenantMailKindV1 {
+export function toTenantMailKindV1(kind: TenantMailKind): TenantMailKindV1 {
   return match(kind)
-    .with(mailKind.contactMail, () => TenantMailKindV1.CONTACT_EMAIL)
+    .with(tenantMailKind.ContactEmail, () => TenantMailKindV1.CONTACT_EMAIL)
     .exhaustive();
 }
 
 export function toTenantKindV1(input: TenantKind): TenantKindV1 {
   return match<TenantKind, TenantKindV1>(input)
-    .with("GSP", () => TenantKindV1.GSP)
-    .with("PA", () => TenantKindV1.PA)
-    .with("PRIVATE", () => TenantKindV1.PRIVATE)
+    .with(tenantKind.GSP, () => TenantKindV1.GSP)
+    .with(tenantKind.PA, () => TenantKindV1.PA)
+    .with(tenantKind.PRIVATE, () => TenantKindV1.PRIVATE)
     .exhaustive();
 }
 

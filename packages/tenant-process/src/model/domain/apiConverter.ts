@@ -6,9 +6,9 @@ import {
   TenantAttribute,
   TenantVerifier,
   TenantRevoker,
-  Mail,
-  MailKind,
-  mailKind,
+  TenantMail,
+  TenantMailKind,
+  tenantMailKind,
   TenantFeature,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -25,26 +25,22 @@ import {
   ApiMailKind,
 } from "./models.js";
 
-export function tenantKindToApiTenantKind(input: TenantKind): ApiTenantKind {
+export function toApiTenantKind(input: TenantKind): ApiTenantKind {
   return match<TenantKind, ApiTenantKind>(input)
-    .with(tenantKind.gsp, () => "GSP")
-    .with(tenantKind.pa, () => "PA")
-    .with(tenantKind.private, () => "PRIVATE")
+    .with(tenantKind.GSP, () => "GSP")
+    .with(tenantKind.PA, () => "PA")
+    .with(tenantKind.PRIVATE, () => "PRIVATE")
     .exhaustive();
 }
 
-export function tenantExternalIdToApiTenantExternalId(
-  input: ExternalId
-): ApiExternalId {
+export function toApiTenantExternalId(input: ExternalId): ApiExternalId {
   return {
     origin: input.origin,
     value: input.value,
   };
 }
 
-export function tenantFeatureToApiTenantFeature(
-  input: TenantFeature
-): ApiTenantFeature {
+export function toApiTenantFeature(input: TenantFeature): ApiTenantFeature {
   return match<TenantFeature, ApiTenantFeature>(input)
     .with({ type: "Certifier" }, (feature) => ({
       certifier: {
@@ -54,7 +50,7 @@ export function tenantFeatureToApiTenantFeature(
     .exhaustive();
 }
 
-export function tenantVerifierToApiTenantVerifier(
+export function toApiTenantVerifier(
   verifier: TenantVerifier
 ): ApiTenantVerifier {
   return {
@@ -65,9 +61,7 @@ export function tenantVerifierToApiTenantVerifier(
   };
 }
 
-export function tenantRevokerToApiTenantRevoker(
-  revoker: TenantRevoker
-): ApiTenantRevoker {
+export function toApiTenantRevoker(revoker: TenantRevoker): ApiTenantRevoker {
   return {
     id: revoker.id,
     verificationDate: revoker.verificationDate.toJSON(),
@@ -77,26 +71,26 @@ export function tenantRevokerToApiTenantRevoker(
   };
 }
 
-export function tenantAttributeToApiTenantAttribute(
+export function toApiTenantAttribute(
   input: TenantAttribute
 ): ApiTenantAttribute {
   return match<TenantAttribute, ApiTenantAttribute>(input)
-    .with({ type: "CertifiedAttribute" }, (attribute) => ({
+    .with({ type: "certified" }, (attribute) => ({
       certified: {
         id: attribute.id,
         assignmentTimestamp: attribute.assignmentTimestamp.toJSON(),
         revocationTimestamp: attribute.revocationTimestamp?.toJSON(),
       },
     }))
-    .with({ type: "VerifiedAttribute" }, (attribute) => ({
+    .with({ type: "verified" }, (attribute) => ({
       verified: {
         id: attribute.id,
         assignmentTimestamp: attribute.assignmentTimestamp.toJSON(),
-        verifiedBy: attribute.verifiedBy.map(tenantVerifierToApiTenantVerifier),
-        revokedBy: attribute.revokedBy.map(tenantRevokerToApiTenantRevoker),
+        verifiedBy: attribute.verifiedBy.map(toApiTenantVerifier),
+        revokedBy: attribute.revokedBy.map(toApiTenantRevoker),
       },
     }))
-    .with({ type: "DeclaredAttribute" }, (attribute) => ({
+    .with({ type: "declared" }, (attribute) => ({
       declared: {
         id: attribute.id,
         assignmentTimestamp: attribute.assignmentTimestamp.toJSON(),
@@ -105,15 +99,15 @@ export function tenantAttributeToApiTenantAttribute(
     .exhaustive();
 }
 
-export function mailKindToApiMailKind(kind: MailKind): ApiMailKind {
-  return match(kind)
-    .with(mailKind.contactMail, () => MailKind.Enum.CONTACT_EMAIL)
+export function toApiMailKind(kind: TenantMailKind): ApiMailKind {
+  return match<TenantMailKind, ApiMailKind>(kind)
+    .with(tenantMailKind.ContactEmail, () => "CONTACT_EMAIL")
     .exhaustive();
 }
 
-export function mailToApiMail(mail: Mail): ApiMail {
+export function toApiMail(mail: TenantMail): ApiMail {
   return {
-    kind: mailKindToApiMailKind(mail.kind),
+    kind: toApiMailKind(mail.kind),
     address: mail.address,
     createdAt: mail.createdAt.toJSON(),
     description: mail.description ?? undefined,
@@ -124,13 +118,13 @@ export const tenantToApiTenant = (
   tenant: Tenant
 ): z.infer<typeof api.schemas.Tenant> => ({
   id: tenant.id,
-  kind: tenant.kind ? tenantKindToApiTenantKind(tenant.kind) : undefined,
+  kind: tenant.kind ? toApiTenantKind(tenant.kind) : undefined,
   selfcareId: tenant.selfcareId ?? undefined,
-  externalId: tenantExternalIdToApiTenantExternalId(tenant.externalId),
-  features: tenant.features.map(tenantFeatureToApiTenantFeature),
-  attributes: tenant.attributes.map(tenantAttributeToApiTenantAttribute),
+  externalId: toApiTenantExternalId(tenant.externalId),
+  features: tenant.features.map(toApiTenantFeature),
+  attributes: tenant.attributes.map(toApiTenantAttribute),
   createdAt: tenant.createdAt.toJSON(),
   updatedAt: tenant.updatedAt?.toJSON(),
-  mails: tenant.mails.map(mailToApiMail),
+  mails: tenant.mails.map(toApiMail),
   name: tenant.name,
 });
