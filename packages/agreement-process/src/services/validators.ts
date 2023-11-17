@@ -4,18 +4,18 @@ import {
   DescriptorState,
   EService,
   EServiceAttribute,
-  PersistentAgreement,
-  PersistentAgreementState,
   Tenant,
   WithMetadata,
   agreementAlreadyExists,
   agreementNotFound,
+  Agreement,
+  AgreementState,
+  agreementState,
   descriptorNotInExpectedState,
   descriptorState,
   missingCertifiedAttributesError,
   notLatestEServiceDescriptor,
   operationNotAllowed,
-  persistentAgreementState,
   tenantAttributeType,
 } from "pagopa-interop-models";
 import { ApiAgreementPayload } from "../model/types.js";
@@ -79,7 +79,7 @@ const certifiedAttributesDescriptorSatisfied = (
 const verifyConflictingAgreements = async (
   consumerId: string,
   eserviceId: string,
-  conflictingStates: PersistentAgreementState[]
+  conflictingStates: AgreementState[]
 ): Promise<void> => {
   const agreements = await readModelService.getAgreements(
     undefined,
@@ -97,8 +97,8 @@ const verifyConflictingAgreements = async (
 
 export function assertAgreementExist(
   agreementId: string,
-  agreement: WithMetadata<PersistentAgreement> | undefined
-): asserts agreement is NonNullable<WithMetadata<PersistentAgreement>> {
+  agreement: WithMetadata<Agreement> | undefined
+): asserts agreement is NonNullable<WithMetadata<Agreement>> {
   if (agreement === undefined) {
     throw agreementNotFound(agreementId);
   }
@@ -125,12 +125,12 @@ export const verifyCreationConflictingAgreements = async (
   organizationId: string,
   agreement: ApiAgreementPayload
 ): Promise<void> => {
-  const conflictingStates: PersistentAgreementState[] = [
-    persistentAgreementState.draft,
-    persistentAgreementState.pending,
-    persistentAgreementState.missingCertifiedAttributes,
-    persistentAgreementState.active,
-    persistentAgreementState.suspended,
+  const conflictingStates: AgreementState[] = [
+    agreementState.draft,
+    agreementState.pending,
+    agreementState.missingCertifiedAttributes,
+    agreementState.active,
+    agreementState.suspended,
   ];
   await verifyConflictingAgreements(
     organizationId,

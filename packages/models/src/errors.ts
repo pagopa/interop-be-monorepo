@@ -149,6 +149,11 @@ export const ErrorTypes = {
     httpStatus: 400,
     title: "Origin is not compliant",
   },
+  AuthenticationSaslFailed: {
+    code: "9000",
+    httpStatus: 500,
+    title: "SASL authentication fails",
+  },
   OrganizationIsNotACertifier: {
     code: "0013",
     httpStatus: 400,
@@ -352,6 +357,12 @@ export function attributeNotFound(attributeId: string): AttributeProcessError {
   return new AttributeProcessError(
     `Attribute ${attributeId} not found`,
     ErrorTypes.AttributeNotFound
+  );
+}
+export function authenticationSaslFailed(message: string): ProcessError {
+  return new ProcessError(
+    `SALS Authentication fails with this error : ${message}`,
+    ErrorTypes.AuthenticationSaslFailed
   );
 }
 
