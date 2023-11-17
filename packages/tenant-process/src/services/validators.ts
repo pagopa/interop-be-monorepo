@@ -1,6 +1,8 @@
 // import { AuthData, userRoles } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
 import {
+  AgreementState,
+  ErrorTypes,
   ExternalId,
   Tenant,
   TenantKind,
@@ -9,6 +11,7 @@ import {
   tenantIdNotFound,
   tenantKind,
 } from "pagopa-interop-models";
+import { readModelService } from "./readModelService.js";
 
 export function assertTenantExist(
   tenantId: string,
@@ -42,6 +45,49 @@ export function getTenantKind(
     )
     .with(PUBLIC_ADMINISTRATIONS_IDENTIFIER, () => tenantKind.PA)
     .otherwise(() => tenantKind.PRIVATE);
+}
+
+export async function assertVerifiedAttributeOperationAllowed(
+  producerId: string,
+  consumerId: string,
+  attributeId: string,
+  states: AgreementState[]
+): Promise<void> {
+  const agreements = await readModelService.getAgreements(
+    producerId,
+    consumerId,
+    states
+  );
+  const descriptorIds = agreements.map((agreement) => agreement.descriptorId);
+  const eServices = await Promise.all(
+    agreements.map((agreement) => {
+      const eService = readModelService.getEServiceById(agreement.eserviceId);
+      if (eService === undefined) {
+        throw ErrorTypes.GenericError;
+      } else {
+        return eService;
+      }
+    })
+  );
+
+  const attributeIds = new Set<string>(
+    eServices.flatMap((eService) => {
+      if (eService === undefined) {
+        throw ErrorTypes.GenericError;
+      } else {
+        return eService.data.descriptors
+          .filter((descriptor) => descriptorIds.includes(descriptor.id))
+          .flatMap((descriptor) => descriptor.attributes.verified)
+          .flatMap((attributes) => attributes.map((attribute) => attribute.id));
+      }
+    })
+  );
+
+  if (!attributeIds.has(attributeId)) {
+    throw ErrorTypes.GenericError;
+  } else {
+    return Promise.resolve();
+  }
 }
 
 // async function assertRequesterAllowed(
