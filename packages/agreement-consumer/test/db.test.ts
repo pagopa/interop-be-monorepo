@@ -40,7 +40,7 @@ describe("database test", async () => {
       const id = uuidv4();
       const newAgreement: AgreementAddedV1 = {
         agreement: {
-          id: uuidv4(),
+          id: id,
           eserviceId: uuidv4(),
           descriptorId: uuidv4(),
           producerId: uuidv4(),
@@ -55,7 +55,7 @@ describe("database test", async () => {
       };
       const message: EventEnvelope = {
         sequence_num: 1,
-        stream_id: uuidv4(),
+        stream_id: id,
         version: 1,
         type: "AgreementAdded",
         data: newAgreement,

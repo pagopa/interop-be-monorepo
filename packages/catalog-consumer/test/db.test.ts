@@ -40,7 +40,7 @@ describe("database test", async () => {
       const id = uuidv4();
       const newEService: EServiceAddedV1 = {
         eService: {
-          id: uuidv4(),
+          id: id,
           producerId: uuidv4(),
           name: "name",
           description: "description",
@@ -50,7 +50,7 @@ describe("database test", async () => {
       };
       const message: EventEnvelope = {
         sequence_num: 1,
-        stream_id: uuidv4(),
+        stream_id: id,
         version: 1,
         type: "EServiceAdded",
         data: newEService,
