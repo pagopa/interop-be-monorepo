@@ -6,7 +6,7 @@ import { handleMessage } from "./consumerService.js";
 
 async function processMessage(message: KafkaMessage): Promise<void> {
   try {
-    await handleMessage(decodeKafkaMessage(message));
+    await handleMessage(decodeKafkaMessage(message), config);
     logger.info("Read model was updated");
   } catch (e) {
     logger.error(`Error during message handling ${e}`);
