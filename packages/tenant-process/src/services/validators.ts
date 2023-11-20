@@ -4,8 +4,12 @@ import { AuthData, userRoles } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
 import {
   AgreementState,
+  Attribute,
+  AttributeNotFound,
+  ErrorTypes,
   ExternalId,
   Tenant,
+  TenantAttribute,
   TenantKind,
   TenantProcessError,
   WithMetadata,
@@ -110,4 +114,37 @@ async function assertResourceAllowed(
   if (!roles.includes(userRoles.INTERNAL_ROLE)) {
     throw operationForbidden;
   }
+}
+
+export async function getTenantKindLoadingCertifiedAttributes(
+  attributes: TenantAttribute[],
+  externalId: ExternalId
+): Promise<TenantKind> {
+  function getCertifiedAttributesIds(attributes: TenantAttribute[]): string[] {
+    return attributes.flatMap((attr) =>
+      attr.type === "certified" ? attr.id : []
+    );
+  }
+
+  // maybe we can abstract this and place it in commons? or delete?
+  function notUndefinedValue(value: string | undefined): string {
+    return value !== undefined ? value : "";
+  }
+
+  // metadata nedded?
+  function convertAttributes(
+    attributes: Array<WithMetadata<Attribute>>
+  ): ExternalId[] {
+    return attributes.map((attr) => ({
+      // if origin or code is a void string, he created a valid new ExternalId?
+      // in that case, we throw an Error intaed of void string?
+      origin: notUndefinedValue(attr.data.origin),
+      value: notUndefinedValue(attr.data.code),
+    }));
+  }
+
+  const attributesIds = getCertifiedAttributesIds(attributes);
+  const attrs = await readModelService.getAttributesById(attributesIds);
+  const extIds = convertAttributes(attrs);
+  return getTenantKind(extIds, externalId);
 }
