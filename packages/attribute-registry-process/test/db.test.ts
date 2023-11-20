@@ -150,23 +150,21 @@ describe("database test", () => {
       expect(attribute).toBeUndefined();
     });
   });
+
+  const addOneAttribute = (id: string): Promise<Document> => {
+    return attributes.insertOne({
+      data: {
+        id,
+        name: "name",
+        kind: "Certified",
+        description: "description",
+        creationTime: new Date(),
+        code: undefined,
+        origin: undefined,
+      },
+      metadata: {
+        version: 0,
+      },
+    });
+  };
 });
-
-const addOneAttribute = (id: string): Promise<Document> => {
-  const { attributes } = ReadModelRepository.init(config);
-
-  return attributes.insertOne({
-    data: {
-      id,
-      name: "name",
-      kind: "Certified",
-      description: "description",
-      creationTime: new Date(),
-      code: undefined,
-      origin: undefined,
-    },
-    metadata: {
-      version: 0,
-    },
-  });
-};
