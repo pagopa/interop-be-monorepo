@@ -111,6 +111,14 @@ describe("database test", () => {
         }
       );
       expect(id).toBeDefined();
+
+      const writtenEvent = await postgresDB.one(
+        "SELECT * FROM attribute.events WHERE stream_id = $1",
+        [id]
+      );
+      expect(writtenEvent.stream_id).toBe(id);
+      expect(writtenEvent.version).toBe("0");
+      expect(writtenEvent.type).toBe("AttributeAdded");
     });
   });
 
