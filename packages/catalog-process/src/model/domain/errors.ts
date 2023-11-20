@@ -8,7 +8,6 @@ const errorCodes = {
   draftDescriptorAlreadyExists: "0008",
   eserviceCannotBeUpdatedOrDeleted: "0009",
   eServiceDuplicate: "0010",
-  operationForbidden: "9989",
 };
 
 const eserviceCannotBeUpdatedOrDeleted = {
@@ -34,13 +33,6 @@ export function eServiceDuplicate(eServiceNameSeed: string): ApiError {
     title: "Duplicated service name",
   });
 }
-
-export const operationForbidden = new ApiError({
-  detail: `Insufficient privileges`,
-  code: errorCodes.operationForbidden,
-  httpStatus: 400,
-  title: "Insufficient privileges",
-});
 
 export function eServiceCannotBeUpdated(eServiceId: string): ApiError {
   return new ApiError({

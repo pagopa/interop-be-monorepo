@@ -17,6 +17,7 @@ import {
   WithMetadata,
   catalogEventToBinaryData,
   descriptorState,
+  operationForbidden,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { v4 as uuidv4 } from "uuid";
@@ -55,7 +56,6 @@ import {
   eServiceDocumentNotFound,
   eServiceDuplicate,
   notValidDescriptor,
-  operationForbidden,
   eServiceNotFound,
 } from "../model/domain/errors.js";
 import { readModelService } from "./readModelService.js";

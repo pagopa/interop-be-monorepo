@@ -52,7 +52,7 @@ export function makeApiProblem(error: unknown): Problem {
     detail,
     correlationId,
   }: ApiError): Problem => ({
-    type: "https://docs.pagopa.it/interoperabilita-1/", // TODO change this with properly schema definition URI
+    type: "about:blank",
     title,
     status: httpStatus,
     detail,
@@ -72,6 +72,7 @@ export function makeApiProblem(error: unknown): Problem {
 
 const errorCodes = {
   authenticationSaslFailed: "9000",
+  operationForbidden: "9989",
   missingClaim: "9990",
   genericError: "9991",
   unauthorizedError: "9991",
@@ -109,7 +110,7 @@ export function missingClaim(claimName: string): ApiError {
   return new ApiError({
     detail: `Claim ${claimName} has not been passed`,
     code: errorCodes.missingClaim,
-    httpStatus: 400,
+    httpStatus: 500,
     title: "Claim has not been passed",
   });
 }
@@ -129,6 +130,13 @@ export function missingHeader(headerName?: string): ApiError {
 export const missingBearer: ApiError = new ApiError({
   detail: `Authorization Illegal header key.`,
   code: errorCodes.missingHeader,
-  httpStatus: 400,
+  httpStatus: 401,
   title: "Bearer token has not been passed",
+});
+
+export const operationForbidden = new ApiError({
+  detail: `Insufficient privileges`,
+  code: errorCodes.operationForbidden,
+  httpStatus: 403,
+  title: "Insufficient privileges",
 });
