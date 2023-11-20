@@ -151,8 +151,8 @@ describe("database test", () => {
     });
   });
 
-  const addOneAttribute = (id: string): Promise<Document> => {
-    return attributes.insertOne({
+  const addOneAttribute = (id: string): Promise<Document> =>
+    attributes.insertOne({
       data: {
         id,
         name: "name",
@@ -166,5 +166,4 @@ describe("database test", () => {
         version: 0,
       },
     });
-  };
 });
