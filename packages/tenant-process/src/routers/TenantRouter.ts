@@ -61,9 +61,8 @@ const tenantsRouter = (
       async (req, res) => {
         try {
           const { name, offset, limit } = req.query;
-          const producers = await readModelService.getConsumers(
+          const producers = await readModelService.getProducers(
             name,
-            req.ctx.authData.organizationId,
             offset,
             limit
           );
