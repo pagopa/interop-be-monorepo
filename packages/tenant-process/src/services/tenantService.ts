@@ -59,7 +59,7 @@ export async function updateTenantLogic({
 }): Promise<CreateEvent<TenantEvent>> {
   assertTenantExist(tenantId, tenant);
 
-  const attribute = await readModelService.getAttributeById(attributeId);
+  const attribute = await readModelService.getTenantAttributeById(attributeId);
   if (!attribute) {
     throw AttributeNotFound(attributeId);
   }

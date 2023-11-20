@@ -22,8 +22,8 @@ const { tenants, attributes, agreements, eservices } =
   ReadModelRepository.init(config);
 
 const getAgreementsFilters = (
-  producerId: string | undefined,
-  consumerId: string | undefined,
+  producerId: string,
+  consumerId: string,
   agreementStates: AgreementState[]
 ): object => {
   const filters = {
@@ -39,8 +39,8 @@ const getAgreementsFilters = (
 };
 
 const getAllAgreements = async (
-  producerId: string | undefined,
-  consumerId: string | undefined,
+  producerId: string,
+  consumerId: string,
   agreementStates: AgreementState[]
 ): Promise<Agreement[]> => {
   const limit = 50;
@@ -69,8 +69,8 @@ const getAllAgreements = async (
 };
 
 const getAgreementsConst = async (
-  producerId: string | undefined,
-  consumerId: string | undefined,
+  producerId: string,
+  consumerId: string,
   agreementStates: AgreementState[],
   offset: number,
   limit: number
@@ -132,20 +132,65 @@ async function getAttributeByExternalCode(
     throw AttributeNotFound(`${origin}/${code}`);
   }
 }
+
+async function getAttributeById(
+  attributeId: string
+): Promise<WithMetadata<Attribute>> {
+  const data = await attributes.findOne(
+    { "data.id": attributeId },
+    { projection: { data: true, metadata: true } }
+  );
+
+  if (data) {
+    const result = z
+      .object({
+        metadata: z.object({ version: z.number() }),
+        data: Attribute,
+      })
+      .safeParse(data);
+
+    if (!result.success) {
+      logger.error(
+        `Unable to parse tenant item: result ${JSON.stringify(
+          result
+        )} - data ${JSON.stringify(data)} `
+      );
+
+      throw ErrorTypes.GenericError;
+    }
+
+    return {
+      data: result.data.data,
+      metadata: { version: result.data.metadata.version },
+    };
+  } else {
+    throw AttributeNotFound(attributeId);
+  }
+}
+
 export const readModelService = {
   async getAgreements(
-    producerId: string | undefined,
-    consumerId: string | undefined,
+    producerId: string,
+    consumerId: string,
     agreementStates: AgreementState[]
   ): Promise<Agreement[]> {
     return getAllAgreements(producerId, consumerId, agreementStates);
   },
 
-  async getAttributes(
+  async getAttributesByExternalCode(
     attributes: ExternalId[]
   ): Promise<Array<WithMetadata<Attribute>>> {
     const promiseAttribute = attributes.map((attribute) =>
       getAttributeByExternalCode(attribute.origin, attribute.value)
+    );
+    return Promise.all(promiseAttribute);
+  },
+
+  async getAttributesById(
+    attributesIds: string[]
+  ): Promise<Array<WithMetadata<Attribute>>> {
+    const promiseAttribute = attributesIds.map((attributeId) =>
+      getAttributeById(attributeId)
     );
     return Promise.all(promiseAttribute);
   },
@@ -219,7 +264,7 @@ export const readModelService = {
     return undefined;
   },
 
-  async getAttributeById(
+  async getTenantAttributeById(
     attributeId: string
   ): Promise<WithMetadata<TenantAttribute> | undefined> {
     const data = await tenants.findOne(
