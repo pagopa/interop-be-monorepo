@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { logger, ReadModelRepository } from "pagopa-interop-commons";
 import {
-  AgreementState,
+  agreementState,
   ErrorTypes,
   ListResult,
   Tenant,
@@ -120,10 +120,7 @@ export const readModelService = {
             { "agreements.data.producerId": producerId },
             {
               "agreements.data.state": {
-                $in: [
-                  AgreementState.enum.Active,
-                  AgreementState.enum.Suspended,
-                ],
+                $in: [agreementState.active, agreementState.suspended],
               },
             },
           ],
