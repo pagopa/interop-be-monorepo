@@ -390,6 +390,9 @@ importers:
       dotenv-flow:
         specifier: ^3.2.0
         version: 3.2.0
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
       kafkajs:
         specifier: ^2.2.4
         version: 2.2.4
