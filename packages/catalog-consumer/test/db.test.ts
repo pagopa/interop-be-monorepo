@@ -40,7 +40,7 @@ describe("database test", async () => {
       const id = uuidv4();
       const newEService: EServiceAddedV1 = {
         eService: {
-          id: id,
+          id,
           producerId: uuidv4(),
           name: "name",
           description: "description",

@@ -40,7 +40,7 @@ describe("database test", async () => {
       const id = uuidv4();
       const newAgreement: AgreementAddedV1 = {
         agreement: {
-          id: id,
+          id,
           eserviceId: uuidv4(),
           descriptorId: uuidv4(),
           producerId: uuidv4(),
