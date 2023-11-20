@@ -1,15 +1,18 @@
 import { match } from "ts-pattern";
 import {
   logger,
-  consumerConfig,
   ReadModelRepository,
+  ConsumerConfig,
 } from "pagopa-interop-commons";
 import { EventEnvelope } from "./model/models.js";
 import { fromAttributeV1 } from "./model/converter.js";
 
-const { attributes } = ReadModelRepository.init(consumerConfig());
+export async function handleMessage(
+  message: EventEnvelope,
+  config: ConsumerConfig
+): Promise<void> {
+  const { attributes } = ReadModelRepository.init(config);
 
-export async function handleMessage(message: EventEnvelope): Promise<void> {
   logger.info(message);
   await match(message)
     .with({ type: "AttributeAdded" }, async (msg) => {
