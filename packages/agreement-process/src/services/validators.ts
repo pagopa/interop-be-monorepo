@@ -162,8 +162,8 @@ export const validateCertifiedAttributes = (
 
 export const assertExpectedState = (
   agreementId: string,
-  agreementState: PersistentAgreementState,
-  expectedStates: PersistentAgreementState[]
+  agreementState: AgreementState,
+  expectedStates: AgreementState[]
 ): void => {
   if (!expectedStates.includes(agreementState)) {
     throw agreementNotInExpectedState(agreementId, agreementState);

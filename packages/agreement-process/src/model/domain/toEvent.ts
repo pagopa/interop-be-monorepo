@@ -99,7 +99,7 @@ export function toCreateEventAgreementAdded(
 }
 
 export function toCreateEventAgreementUpdated(
-  agreement: PersistentAgreement
+  agreement: Agreement
 ): CreateEvent<AgreementEvent> {
   return {
     streamId: agreement.id,

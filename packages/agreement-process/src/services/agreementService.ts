@@ -224,7 +224,7 @@ export async function updateAgreementLogic({
   agreementId: string;
   agreement: ApiAgreementUpdatePayload;
   authData: AuthData;
-  agreementToBeUpdated: WithMetadata<PersistentAgreement> | undefined;
+  agreementToBeUpdated: WithMetadata<Agreement> | undefined;
 }): Promise<CreateEvent<AgreementEvent>> {
   assertAgreementExist(agreementId, agreementToBeUpdated);
   assertRequesterIsConsumer(
@@ -232,9 +232,7 @@ export async function updateAgreementLogic({
     authData.organizationId
   );
 
-  const updatableStates: PersistentAgreementState[] = [
-    persistentAgreementState.draft,
-  ];
+  const updatableStates: AgreementState[] = [agreementState.draft];
 
   assertExpectedState(
     agreementId,
@@ -242,7 +240,7 @@ export async function updateAgreementLogic({
     updatableStates
   );
 
-  const agreementUpdated: PersistentAgreement = {
+  const agreementUpdated: Agreement = {
     ...agreementToBeUpdated.data,
     consumerNotes: agreement.consumerNotes,
   };
