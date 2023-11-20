@@ -34,12 +34,12 @@ const tenantsRouter = (
       async (req, res) => {
         try {
           const { name, offset, limit } = req.query;
-          const consumers = await readModelService.getConsumers(
+          const consumers = await readModelService.getConsumers({
             name,
-            req.ctx.authData.organizationId,
+            producerId: req.ctx.authData.organizationId,
             offset,
-            limit
-          );
+            limit,
+          });
 
           return res.status(200).json({
             results: consumers.results.map(tenantToApiTenant),
@@ -61,11 +61,11 @@ const tenantsRouter = (
       async (req, res) => {
         try {
           const { name, offset, limit } = req.query;
-          const producers = await readModelService.getProducers(
+          const producers = await readModelService.getProducers({
             name,
             offset,
-            limit
-          );
+            limit,
+          });
 
           return res.status(200).json({
             results: producers.results.map(tenantToApiTenant),

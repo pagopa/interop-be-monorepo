@@ -34,15 +34,14 @@ async function getTotalCount(
 }
 
 function listTenantsFilters(name: string | undefined): object[] {
-  const nameFilter =
-    name && name !== ""
-      ? {
-          "data.name": {
-            $regex: name,
-            $options: "i",
-          },
-        }
-      : {};
+  const nameFilter = name
+    ? {
+        "data.name": {
+          $regex: name,
+          $options: "i",
+        },
+      }
+    : {};
 
   const withSelfcareIdFilter = {
     "data.selfcareId": {
@@ -52,11 +51,15 @@ function listTenantsFilters(name: string | undefined): object[] {
   return [nameFilter, withSelfcareIdFilter];
 }
 
-export const getTenants = async (
-  aggregationPipeline: Document[],
-  offset: number,
-  limit: number
-): Promise<{
+export const getTenants = async ({
+  aggregationPipeline,
+  offset,
+  limit,
+}: {
+  aggregationPipeline: Document[];
+  offset: number;
+  limit: number;
+}): Promise<{
   results: Tenant[];
   totalCount: number;
 }> => {
@@ -83,12 +86,17 @@ export const getTenants = async (
 };
 
 export const readModelService = {
-  async getConsumers(
-    name: string | undefined,
-    producerId: string,
-    offset: number,
-    limit: number
-  ): Promise<ListResult<Tenant>> {
+  async getConsumers({
+    name,
+    producerId,
+    offset,
+    limit,
+  }: {
+    name: string | undefined;
+    producerId: string;
+    offset: number;
+    limit: number;
+  }): Promise<ListResult<Tenant>> {
     const query = listTenantsFilters(name);
 
     const aggregationPipeline = [
@@ -113,13 +121,17 @@ export const readModelService = {
       { $sort: { lowerName: 1 } },
     ];
 
-    return getTenants(aggregationPipeline, offset, limit);
+    return getTenants({ aggregationPipeline, offset, limit });
   },
-  async getProducers(
-    name: string | undefined,
-    offset: number,
-    limit: number
-  ): Promise<ListResult<Tenant>> {
+  async getProducers({
+    name,
+    offset,
+    limit,
+  }: {
+    name: string | undefined;
+    offset: number;
+    limit: number;
+  }): Promise<ListResult<Tenant>> {
     const query = listTenantsFilters(name);
     const aggregationPipeline = [
       { $match: query },
@@ -136,6 +148,6 @@ export const readModelService = {
       { $sort: { lowerName: 1 } },
     ];
 
-    return getTenants(aggregationPipeline, offset, limit);
+    return getTenants({ aggregationPipeline, offset, limit });
   },
 };
