@@ -43,7 +43,7 @@ describe("database test", async () => {
       const id = uuidv4();
       const newAttribute: AttributeAddedV1 = {
         attribute: {
-          id: id,
+          id,
           kind: AttributeKindV1.DECLARED,
           name: "name",
           description: "description",
