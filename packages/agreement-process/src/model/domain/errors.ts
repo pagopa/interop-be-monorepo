@@ -12,11 +12,15 @@ const errorCodes = {
   operationNotAllowed: "0005",
   eServiceNotFound: "0007",
   agreementNotFound: "0009",
-  agreementAlreadyExists: "0011",
+  agreementAlreadyExists: "0010",
   agreementDescriptorNotFound: "0014",
   agreementStampNotFound: "0015",
   agreementMissingUserInfo: "0016",
   agreementSelfcareIdNotFound: "0019",
+  noNewerDescriptor: "0011",
+  publishedDescriptorNotFound: "0012",
+  unexpectedVersionFormat: "0013",
+  descriptorNotFound: "0014",
   tenantIdNotFound: "0020",
   notLatestEServiceDescriptor: "0021",
   consumerWithNotValidEmail: "0024",
@@ -55,11 +59,10 @@ export function notLatestEServiceDescriptor(
 export function descriptorNotFound(
   eServiceId: string,
   descriptorId: string
-): ApiError {
+): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Descriptor ${descriptorId} not found in EService ${eServiceId}`,
-    code: "0014",
-    httpStatus: 500,
+    code: "descriptorNotFound",
     title: "Descriptor not found",
   });
 }
@@ -190,7 +193,7 @@ export function publishedDescriptorNotFound(
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Published descriptor not found in EService ${eserviceId}`,
-    code: "0012",
+    code: "publishedDescriptorNotFound",
     title: "Published descriptor not found",
   });
 }
@@ -198,11 +201,21 @@ export function publishedDescriptorNotFound(
 export function unexpectedVersionFormat(
   eserviceId: string,
   descriptorId: string
-): ApiError {
+): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Version in not an Int for descriptor ${descriptorId} of EService ${eserviceId}`,
-    code: "0013",
-    httpStatus: 500,
+    code: "unexpectedVersionFormat",
     title: "Unexpected version format",
+  });
+}
+
+export function noNewerDescriptor(
+  eserviceId: string,
+  descriptorId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No newer descriptor in EService ${eserviceId} exists for upgrade. Current descriptor ${descriptorId}`,
+    code: "noNewerDescriptor",
+    title: "Agreement cannot be upgraded",
   });
 }

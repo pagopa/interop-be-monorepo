@@ -26,6 +26,7 @@ import {
   deleteAgreementErrorMapper,
   submitAgreementErrorMapper,
   updateAgreementErrorMapper,
+  upgradeAgreementErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -270,8 +271,19 @@ const agreementRouter = (
 
   agreementRouter.post(
     "/agreements/:agreementId/upgrade",
-    async (_req, res) => {
-      res.status(501).send();
+    authorizationMiddleware([ADMIN_ROLE]),
+    async (req, res) => {
+      try {
+        await agreementService.upgradeAgreement(
+          req.params.agreementId,
+          req.ctx.authData
+        );
+
+        return res.status(200).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, upgradeAgreementErrorMapper);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
     }
   );
 
