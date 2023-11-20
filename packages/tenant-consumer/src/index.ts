@@ -11,11 +11,11 @@ async function processMessage({
   try {
     await handleMessage(decodeKafkaMessage(message));
     logger.info(
-      `Read model was updated in partition number ${partition}, with offset ${message.offset}`
+      `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
     );
   } catch (e) {
     logger.error(
-      `Error during message handling in partition number ${partition}, with offset ${message.offset}, ${e}`
+      `Error during message handling. Partition number: ${partition}. Offset: ${message.offset}, ${e}`
     );
   }
 }
