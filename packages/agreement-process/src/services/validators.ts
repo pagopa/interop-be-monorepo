@@ -6,19 +6,21 @@ import {
   EServiceAttribute,
   Tenant,
   WithMetadata,
-  agreementAlreadyExists,
-  agreementNotFound,
   Agreement,
   AgreementState,
   agreementState,
-  descriptorNotInExpectedState,
+  tenantAttributeType,
   descriptorState,
+} from "pagopa-interop-models";
+import { ApiAgreementPayload } from "../model/types.js";
+import {
+  agreementAlreadyExists,
+  agreementNotFound,
+  descriptorNotInExpectedState,
   missingCertifiedAttributesError,
   notLatestEServiceDescriptor,
   operationNotAllowed,
-  tenantAttributeType,
-} from "pagopa-interop-models";
-import { ApiAgreementPayload } from "../model/types.js";
+} from "../model/domain/errors.js";
 import { readModelService } from "./readModelService.js";
 
 const validateDescriptorState = (
