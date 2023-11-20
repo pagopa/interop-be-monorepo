@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { logger, ReadModelRepository } from "pagopa-interop-commons";
-import { ErrorTypes, ListResult, Tenant } from "pagopa-interop-models";
+import {
+  AgreementState,
+  ErrorTypes,
+  ListResult,
+  Tenant,
+} from "pagopa-interop-models";
 import { AggregationCursor, Document } from "mongodb";
 import { config } from "../utilities/config.js";
 
@@ -113,7 +118,14 @@ export const readModelService = {
         $match: {
           $and: [
             { "agreements.data.producerId": producerId },
-            { "agreements.data.state": { $in: ["Active", "Suspended"] } },
+            {
+              "agreements.data.state": {
+                $in: [
+                  AgreementState.enum.Active,
+                  AgreementState.enum.Suspended,
+                ],
+              },
+            },
           ],
         },
       },
