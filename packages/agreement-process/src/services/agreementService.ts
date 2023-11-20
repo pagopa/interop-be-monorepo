@@ -19,13 +19,10 @@ import {
   Tenant,
   EService,
   descriptorState,
-  ApiError,
-  Agreement,
   AgreementStamp,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import {
-  ErrorCodes,
   descriptorNotFound,
   unexpectedVersionFormat,
 } from "../model/domain/errors.js";
@@ -152,6 +149,30 @@ export function agreementServiceBuilder(
       }
 
       return agreementId;
+    },
+    async upgradeAgreement(
+      agreementId: string,
+      authData: AuthData
+    ): Promise<void> {
+      const agreement = await agreementQuery.getAgreementById(agreementId);
+      const tenant = agreement
+        ? await tenantQuery.getTenantById(agreement.data.consumerId)
+        : undefined;
+      const eservice = agreement
+        ? await eserviceQuery.getEServiceById(agreement.data.eserviceId)
+        : undefined;
+
+      const events = await upgradeAgreementLogic({
+        agreementId,
+        authData,
+        agreementToBeUpgraded: agreement,
+        tenant,
+        eservice,
+      });
+
+      for (const event of events) {
+        await repository.createEvent(event);
+      }
     },
   };
 }
@@ -347,11 +368,7 @@ export async function upgradeAgreementLogic({
   }
 
   if (latestDescriptorVersion <= currentVersion) {
-    throw new ApiError<ErrorCodes>({
-      detail: `No newer descriptor in EService ${eservice.data.id} exists for upgrade. Current descriptor ${currentDescriptor.id}`,
-      code: "agreementAlreadyExists",
-      title: "Agreement cannot be upgraded",
-    });
+    throw noNewerDescriptor(eservice.data.id, currentDescriptor.id);
   }
 
   // newDescriptor
@@ -371,11 +388,7 @@ export async function upgradeAgreementLogic({
 
   const valid = attributesSatisfied(descriptor.attributes.certified, assigned);
   if (!valid) {
-    throw new ApiError<ErrorCodes>({
-      detail: `Required certified attribute is missing. Descriptor ${descriptor.id}, Consumer ${tenant.data.id}`,
-      code: "missingCertifiedAttributesError",
-      title: "Agreement cannot be upgraded",
-    });
+    throw missingCertifiedAttributesError(descriptor.id, tenant.data.id);
   }
 
   const verified = tenant.data.attributes
@@ -454,16 +467,8 @@ export async function upgradeAgreementLogic({
       toCreateEventAgreementAdded(upgraded),
     ];
   } else {
-    //createNewDraftAgreement
+    // createNewDraftAgreement
   }
 
-  const agreementUpgraded: Agreement = {
-    ...agreement.data,
-    state: agreementState.missingCertifiedAttributes,
-  };
-
-  return toCreateEventAgreementUpdated(
-    agreementUpgraded,
-    agreementToBeUpgraded.metadata.version
-  );
+  return [];
 }
