@@ -6,14 +6,14 @@ import {
   userRoles,
   authorizationMiddleware,
 } from "pagopa-interop-commons";
-import { agreementNotFound } from "pagopa-interop-models";
+import { makeApiProblem } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
 import {
   agreementToApiAgreement,
   apiAgreementStateToAgreementState,
 } from "../model/domain/apiConverter.js";
 import { agreementService } from "../services/agreementService.js";
-import { ApiError, makeApiError } from "../model/types.js";
+import { agreementNotFound } from "../model/domain/errors.js";
 
 const {
   ADMIN_ROLE,
@@ -90,7 +90,7 @@ const agreementRouter = (
         );
         return res.status(200).json({ id }).send();
       } catch (error) {
-        const errorRes: ApiError = makeApiError(error);
+        const errorRes = makeApiProblem(error);
         return res.status(errorRes.status).json(errorRes).end();
       }
     }
@@ -128,7 +128,7 @@ const agreementRouter = (
           })
           .end();
       } catch (error) {
-        const errorRes: ApiError = makeApiError(error);
+        const errorRes = makeApiProblem(error);
         return res.status(errorRes.status).json(errorRes).end();
       }
     }
@@ -165,11 +165,11 @@ const agreementRouter = (
         } else {
           return res
             .status(404)
-            .json(makeApiError(agreementNotFound(req.params.agreementId)))
+            .json(makeApiProblem(agreementNotFound(req.params.agreementId)))
             .send();
         }
       } catch (error) {
-        const errorRes: ApiError = makeApiError(error);
+        const errorRes = makeApiProblem(error);
         return res.status(errorRes.status).json(errorRes).end();
       }
     }
@@ -186,7 +186,7 @@ const agreementRouter = (
         );
         return res.status(204).send();
       } catch (error) {
-        const errorRes: ApiError = makeApiError(error);
+        const errorRes = makeApiProblem(error);
         return res.status(errorRes.status).json(errorRes).end();
       }
     }
