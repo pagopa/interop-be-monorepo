@@ -1,13 +1,16 @@
-// import { AuthData, userRoles } from "pagopa-interop-commons";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+// TO BE REMOVED IN THE FUTURE
+import { AuthData, userRoles } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
 import {
   AgreementState,
-  ErrorTypes,
   ExternalId,
   Tenant,
   TenantKind,
+  TenantProcessError,
   WithMetadata,
-  //   operationForbidden,
+  eServiceNotFound,
+  operationForbidden,
   tenantIdNotFound,
   tenantKind,
 } from "pagopa-interop-models";
@@ -51,7 +54,8 @@ export async function assertVerifiedAttributeOperationAllowed(
   producerId: string,
   consumerId: string,
   attributeId: string,
-  states: AgreementState[]
+  states: AgreementState[],
+  error: TenantProcessError
 ): Promise<void> {
   const agreements = await readModelService.getAgreements(
     producerId,
@@ -60,55 +64,50 @@ export async function assertVerifiedAttributeOperationAllowed(
   );
   const descriptorIds = agreements.map((agreement) => agreement.descriptorId);
   const eServices = await Promise.all(
-    agreements.map((agreement) => {
-      const eService = readModelService.getEServiceById(agreement.eserviceId);
-      if (eService === undefined) {
-        throw ErrorTypes.GenericError;
-      } else {
-        return eService;
-      }
-    })
+    agreements.map(
+      (agreement) =>
+        readModelService.getEServiceById(agreement.eserviceId) ??
+        Promise.reject(eServiceNotFound(agreement.eserviceId))
+    )
   );
 
   const attributeIds = new Set<string>(
-    eServices.flatMap((eService) => {
-      if (eService === undefined) {
-        throw ErrorTypes.GenericError;
-      } else {
-        return eService.data.descriptors
-          .filter((descriptor) => descriptorIds.includes(descriptor.id))
-          .flatMap((descriptor) => descriptor.attributes.verified)
-          .flatMap((attributes) => attributes.map((attribute) => attribute.id));
-      }
-    })
+    eServices.flatMap((eService) =>
+      eService
+        ? eService.data.descriptors
+            .filter((descriptor) => descriptorIds.includes(descriptor.id))
+            .flatMap((descriptor) => descriptor.attributes.verified)
+            .flatMap((attributes) =>
+              attributes.map((attribute) => attribute.id)
+            )
+        : []
+    )
   );
 
   if (!attributeIds.has(attributeId)) {
-    throw ErrorTypes.GenericError;
-  } else {
-    return Promise.resolve();
+    throw error;
   }
 }
 
-// async function assertRequesterAllowed(
-//   resourceId: string,
-//   requesterId: string
-// ): Promise<void> {
-//   if (resourceId !== requesterId) {
-//     throw operationForbidden;
-//   }
-// }
+async function assertRequesterAllowed(
+  resourceId: string,
+  requesterId: string
+): Promise<void> {
+  if (resourceId !== requesterId) {
+    throw operationForbidden;
+  }
+}
 
-// async function assertResourceAllowed(
-//   resourceId: string,
-//   authData: AuthData
-// ): Promise<void> {
-//   const roles = authData.userRoles;
-//   const organizationId = authData.organizationId;
+async function assertResourceAllowed(
+  resourceId: string,
+  authData: AuthData
+): Promise<void> {
+  const roles = authData.userRoles;
+  const organizationId = authData.organizationId;
 
-//   await assertRequesterAllowed(resourceId, organizationId);
+  await assertRequesterAllowed(resourceId, organizationId);
 
-//   if (!roles.includes(userRoles.INTERNAL_ROLE)) {
-//     throw operationForbidden;
-//   }
-// }
+  if (!roles.includes(userRoles.INTERNAL_ROLE)) {
+    throw operationForbidden;
+  }
+}
