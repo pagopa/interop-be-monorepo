@@ -9,10 +9,10 @@ import {
   consumerConfig,
   getMongodbContainer,
 } from "pagopa-interop-commons";
-import { handleMessage } from "../src/consumerService.js";
 import { EServiceAddedV1, EServiceTechnologyV1 } from "pagopa-interop-models";
-import { EventEnvelope } from "../src/model/models.js";
 import { v4 as uuidv4 } from "uuid";
+import { handleMessage } from "../src/consumerService.js";
+import { EventEnvelope } from "../src/model/models.js";
 
 describe("database test", async () => {
   let eservices: EServiceCollection;
