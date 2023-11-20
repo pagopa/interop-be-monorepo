@@ -19,6 +19,10 @@ const Event = z.discriminatedUnion("type", [
     type: z.literal("AgreementDeleted"),
     data: protobufDecoder(AgreementDeletedV1),
   }),
+  z.object({
+    type: z.literal("AgreementUpdated"),
+    data: protobufDecoder(AgreementAddedV1),
+  }),
 ]);
 
 const EventEnvelope = z.intersection(
