@@ -10,3 +10,9 @@ export type ApiAgreementState = z.infer<typeof schemas.AgreementState>;
 export type ApiAgreementDocument = z.infer<typeof schemas.Document>;
 
 export type ApiAgreementPayload = ZodiosBodyByPath<Api, "post", "/agreements">;
+
+export type ApiAgreementUpdatePayload = ZodiosBodyByPath<
+  Api,
+  "post",
+  "/agreements/:agreementId/update"
+>;
