@@ -132,6 +132,17 @@ export const toTenantV1 = (tenant: Tenant): TenantV1 => ({
   kind: tenant.kind ? toTenantKindV1(tenant.kind) : undefined,
 });
 
+export const toCreateEventTenantAdded = (
+  tenant: Tenant
+): CreateEvent<TenantEvent> => ({
+  streamId: tenant.id,
+  version: 0,
+  event: {
+    type: "TenantCreated",
+    data: { tenant: toTenantV1(tenant) },
+  },
+});
+
 export const toCreateEventTenantUpdated = (
   streamId: string,
   version: number,
