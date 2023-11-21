@@ -87,43 +87,44 @@ export const tenantService = {
   async updateTenantAttribute(
     tenantId: string,
     attributeId: string,
-    tenantAttribute: TenantAttribute
+    newAttribute: TenantAttribute
   ): Promise<string> {
-    if (!tenantAttribute || tenantAttribute.id !== attributeId) {
+    if (!newAttribute || newAttribute.id !== attributeId) {
       throw InvalidAttributeStructure;
     }
 
-    const tenant = await readModelService.getTenantById(tenantId);
-
     return await repository.createEvent(
       await updateTenantLogic({
-        tenant,
         tenantId,
         attributeId,
+        newAttribute,
       })
     );
   },
 };
 
 export async function updateTenantLogic({
-  tenant,
   tenantId,
   attributeId,
+  newAttribute,
 }: {
-  tenant: WithMetadata<Tenant> | undefined;
   tenantId: string;
   attributeId: string;
+  newAttribute: TenantAttribute;
 }): Promise<CreateEvent<TenantEvent>> {
+  const tenant = await readModelService.getTenantById(tenantId);
   assertTenantExist(tenantId, tenant);
 
-  const attribute = await readModelService.getTenantAttributeById(attributeId);
-  if (!attribute) {
+  const attributeExists = tenant.data.attributes.some(
+    (attribute) => attribute.id === attributeId
+  );
+  if (!attributeExists) {
     throw AttributeNotFound(attributeId);
   }
 
-  const updatedAttributes: TenantAttribute[] = [
-    attribute.data,
-    ...tenant.data.attributes.filter((a) => a.id !== attribute.data.id),
+  const updatedAttributes = [
+    newAttribute,
+    ...tenant.data.attributes.filter((a) => a.id !== newAttribute.id),
   ];
 
   const newTenant: Tenant = {
