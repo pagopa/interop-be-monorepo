@@ -3,27 +3,23 @@ import { P, match } from "ts-pattern";
 
 export class ApiError extends Error {
   public code: string;
-  public httpStatus: number;
   public title: string;
   public detail: string;
   public correlationId?: string;
 
   constructor({
     code,
-    httpStatus,
     title,
     detail,
     correlationId,
   }: {
     code: string;
-    httpStatus: number;
     title: string;
     detail: string;
     correlationId?: string;
   }) {
     super();
     this.code = code;
-    this.httpStatus = httpStatus;
     this.title = title;
     this.detail = detail;
     this.correlationId = correlationId;
@@ -44,14 +40,14 @@ export type Problem = {
   errors: ProblemError[];
 };
 
-export function makeApiProblem(error: unknown): Problem {
-  const makeProblem = ({
-    code,
-    httpStatus,
-    title,
-    detail,
-    correlationId,
-  }: ApiError): Problem => ({
+export function makeApiProblem(
+  error: unknown,
+  httpMapper: (apiError: ApiError) => number
+): Problem {
+  const makeProblem = (
+    httpStatus: number,
+    { code, title, detail, correlationId }: ApiError
+  ): Problem => ({
     type: "about:blank",
     title,
     status: httpStatus,
@@ -66,11 +62,13 @@ export function makeApiProblem(error: unknown): Problem {
   });
 
   return match<unknown, Problem>(error)
-    .with(P.instanceOf(ApiError), (error) => makeProblem(error))
-    .otherwise(() => makeProblem(genericError("Unexpected error")));
+    .with(P.instanceOf(ApiError), (error) =>
+      makeProblem(httpMapper(error), error)
+    )
+    .otherwise(() => makeProblem(500, genericError("Unexpected error")));
 }
 
-const errorCodes = {
+export const errorCodes = {
   authenticationSaslFailed: "9000",
   operationForbidden: "9989",
   missingClaim: "9990",
@@ -82,7 +80,6 @@ const errorCodes = {
 export function authenticationSaslFailed(message: string): ApiError {
   return new ApiError({
     code: errorCodes.authenticationSaslFailed,
-    httpStatus: 500,
     title: "SASL authentication fails",
     detail: `SALS Authentication fails with this error : ${message}`,
   });
@@ -92,7 +89,6 @@ export function genericError(details: string): ApiError {
   return new ApiError({
     detail: details,
     code: errorCodes.genericError,
-    httpStatus: 500,
     title: "Unexpected error",
   });
 }
@@ -101,7 +97,6 @@ export function unauthorizedError(details: string): ApiError {
   return new ApiError({
     detail: details,
     code: errorCodes.unauthorizedError,
-    httpStatus: 401,
     title: "Unauthorized",
   });
 }
@@ -110,7 +105,6 @@ export function missingClaim(claimName: string): ApiError {
   return new ApiError({
     detail: `Claim ${claimName} has not been passed`,
     code: errorCodes.missingClaim,
-    httpStatus: 500,
     title: "Claim has not been passed",
   });
 }
@@ -122,7 +116,6 @@ export function missingHeader(headerName?: string): ApiError {
       ? `Header ${headerName} not existing in this request`
       : title,
     code: errorCodes.missingHeader,
-    httpStatus: 400,
     title,
   });
 }
@@ -130,13 +123,11 @@ export function missingHeader(headerName?: string): ApiError {
 export const missingBearer: ApiError = new ApiError({
   detail: `Authorization Illegal header key.`,
   code: errorCodes.missingHeader,
-  httpStatus: 401,
   title: "Bearer token has not been passed",
 });
 
 export const operationForbidden = new ApiError({
   detail: `Insufficient privileges`,
   code: errorCodes.operationForbidden,
-  httpStatus: 403,
   title: "Insufficient privileges",
 });

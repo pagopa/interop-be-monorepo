@@ -1,8 +1,7 @@
-/* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/naming-convention */
 import { ZodiosRouterContextRequestHandler } from "@zodios/express";
-import { Response } from "express";
 import {
+  errorCodes,
   makeApiProblem,
   missingBearer,
   missingClaim,
@@ -15,11 +14,6 @@ import { logger } from "../logging/index.js";
 import { AuthData } from "./authData.js";
 import { Headers } from "./headers.js";
 import { readAuthDataFromJwtToken, verifyJwtToken } from "./jwt.js";
-
-export const apiErrorHandler = (error: unknown, res: Response): void => {
-  const apiError = makeApiProblem(error);
-  res.status(apiError.status).json(apiError).end();
-};
 
 export const authenticationMiddleware: () => ZodiosRouterContextRequestHandler<ExpressContext> =
   () => {
@@ -99,11 +93,22 @@ export const authenticationMiddleware: () => ZodiosRouterContextRequestHandler<E
               authorization: P.string,
               "x-correlation-id": P.nullish,
             },
-            () => missingHeader("x-correlation-id")
+            () => {
+              throw missingHeader("x-correlation-id");
+            }
           )
-          .otherwise(() => apiErrorHandler(missingHeader(), res));
+          .otherwise(() => {
+            throw missingHeader();
+          });
       } catch (error) {
-        return apiErrorHandler(error, res);
+        const problem = makeApiProblem(error, (err) =>
+          match(err.code)
+            .with(errorCodes.unauthorizedError, () => 401)
+            .with(errorCodes.operationForbidden, () => 403)
+            .with(errorCodes.missingHeader, () => 400)
+            .otherwise(() => 500)
+        );
+        return res.status(problem.status).json(problem).end();
       }
     };
 

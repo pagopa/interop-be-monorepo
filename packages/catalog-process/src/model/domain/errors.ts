@@ -1,6 +1,6 @@
 import { ApiError } from "pagopa-interop-models";
 
-const errorCodes = {
+export cconst errorCodes = {
   eServiceDescriptorNotFound: "0002",
   eServiceDocumentNotFound: "0003",
   notValidDescriptor: "0004",

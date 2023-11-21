@@ -10,6 +10,7 @@ import {
   genericError,
   ApiError,
   unauthorizedError,
+  errorCodes,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { z } from "zod";
@@ -95,14 +96,16 @@ export const authorizationMiddleware =
             new ApiError({
               ...error,
               correlationId: headers?.correlationId,
-            })
+            }),
+            (error) => (error.code === errorCodes.unauthorizedError ? 401 : 500)
           )
         )
         .otherwise(() =>
           makeApiProblem(
             genericError(
               "An unexpected error occurred during authorization checks"
-            )
+            ),
+            () => 500
           )
         );
 

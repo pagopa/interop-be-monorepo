@@ -1,5 +1,6 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { match } from "ts-pattern";
 import { makeApiProblem } from "pagopa-interop-models";
 import {
   ExpressContext,
@@ -19,6 +20,7 @@ import {
 import { api } from "../model/generated/api.js";
 import { config } from "../utilities/config.js";
 import {
+  errorCodes,
   eServiceNotFound,
   eServiceDocumentNotFound,
 } from "../model/domain/errors.js";
@@ -114,7 +116,11 @@ const eservicesRouter = (
           );
           return res.status(201).json({ id }).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error);
+          const errorRes = makeApiProblem(error, (error) =>
+            match(error.code)
+              .with(errorCodes.eServiceDuplicate, () => 409)
+              .otherwise(() => 500)
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
