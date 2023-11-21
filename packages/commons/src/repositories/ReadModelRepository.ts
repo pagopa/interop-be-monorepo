@@ -1,5 +1,6 @@
 import {
   Agreement,
+  Attribute,
   EService,
   Tenant,
   genericError,
