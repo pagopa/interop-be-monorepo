@@ -4,10 +4,10 @@ import { logger, ReadModelRepository } from "pagopa-interop-commons";
 import {
   AttributeKind,
   Attribute,
-  ErrorTypes,
   WithMetadata,
+  genericError,
+  ListResult,
 } from "pagopa-interop-models";
-import { ListResult } from "../model/types.js";
 import { config } from "../utilities/config.js";
 
 const { attributes } = ReadModelRepository.init(config);
@@ -31,7 +31,7 @@ async function getAttribute(
           result
         )} - data ${JSON.stringify(data)} `
       );
-      throw ErrorTypes.GenericError;
+      throw genericError("Unable to parse attributes items");
     }
     return {
       data: result.data.data,
@@ -98,7 +98,7 @@ export const readModelService = {
           result
         )} - data ${JSON.stringify(data)} `
       );
-      throw ErrorTypes.GenericError;
+      throw genericError("Unable to parse attributes items");
     }
     return {
       results: result.data,
