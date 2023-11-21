@@ -6,10 +6,24 @@ import {
   makeApiProblem,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
+import { ZodiosBodyByPath } from "@zodios/core";
+import { api } from "./generated/api.js";
 
 const servicePrefix = "tenant";
 
 export type ApiError = Problem;
+type Api = typeof api.api;
+export type ApiSelfcareTenantSeed = ZodiosBodyByPath<
+  Api,
+  "post",
+  "/selfcare/tenants"
+>;
+export type ApiM2MTenantSeed = ZodiosBodyByPath<Api, "post", "/m2m/tenants">;
+export type ApiInternalTenantSeed = ZodiosBodyByPath<
+  Api,
+  "post",
+  "/internal/tenants"
+>;
 
 export function makeApiError(error: unknown): ApiError {
   return match<unknown, ApiError>(error)

@@ -144,6 +144,11 @@ export const ErrorTypes = {
     httpStatus: 404,
     title: "Attribute not found",
   },
+  DuplicateTenantName: {
+    code: "0024",
+    httpStatus: 409,
+    title: "Duplicated tenant name",
+  },
 } as const;
 
 export type ErrorType = (typeof ErrorTypes)[keyof typeof ErrorTypes];
@@ -347,6 +352,13 @@ export function AttributeNotFound(attributeId: string): TenantProcessError {
   return new TenantProcessError(
     `Attribute ${attributeId} not found`,
     ErrorTypes.AttributeNotFound
+  );
+}
+
+export function tenantDuplicate(teanantNameSeed: string): TenantProcessError {
+  return new TenantProcessError(
+    `Error during Tenant creation with name ${teanantNameSeed}`,
+    ErrorTypes.DuplicateTenantName
   );
 }
 
