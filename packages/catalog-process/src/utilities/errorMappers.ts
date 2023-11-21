@@ -116,3 +116,15 @@ export const cloneEServiceByDescriptorErrorMapper = (error: ApiError): number =>
     )
     .with(commonErrorCodes.operationForbidden, () => 403)
     .otherwise(() => 500);
+
+// eslint-disable-next-line sonarjs/no-identical-functions
+export const archiveDescriptorErrorMapper = (error: ApiError): number =>
+  match(error.code)
+    .with(
+      errorCodes.eServiceNotFound,
+      errorCodes.eServiceDescriptorNotFound,
+      () => 404
+    )
+    .with(errorCodes.notValidDescriptor, () => 400)
+    .with(commonErrorCodes.operationForbidden, () => 403)
+    .otherwise(() => 500);

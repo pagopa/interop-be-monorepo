@@ -27,6 +27,7 @@ import { readModelServiceBuilder } from "../services/readModelService.js";
 import { catalogServiceBuilder } from "../services/catalogService.js";
 import {
   activateDescriptorErrorMapper,
+  archiveDescriptorErrorMapper,
   cloneEServiceByDescriptorErrorMapper,
   createDescriptorErrorMapper,
   createEServiceErrorMapper,
@@ -493,7 +494,7 @@ const eservicesRouter = (
           );
           return res.status(204).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, () => 500);
+          const errorRes = makeApiProblem(error, archiveDescriptorErrorMapper);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
