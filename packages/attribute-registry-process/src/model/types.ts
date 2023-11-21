@@ -37,5 +37,3 @@ export type ApiInternalCertifiedAttributeSeed = ZodiosBodyByPath<
 export type ApiInternalServerError = Problem & {
   status: 500;
 };
-
-export type ApiError = Problem;
