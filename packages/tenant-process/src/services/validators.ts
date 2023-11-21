@@ -126,22 +126,19 @@ export async function getTenantKindLoadingCertifiedAttributes(
     );
   }
 
-  // maybe we can abstract this and place it in commons? or delete?
-  function notUndefinedValue(value: string | undefined): string {
-    return value !== undefined ? value : "";
-  }
-
-  // metadata nedded?
-  function convertAttributes(
+  const convertAttributes = (
     attributes: Array<WithMetadata<Attribute>>
-  ): ExternalId[] {
-    return attributes.map((attr) => ({
-      // if origin or code is a void string, he created a valid new ExternalId?
-      // in that case, we throw an Error intaed of void string?
-      origin: notUndefinedValue(attr.data.origin),
-      value: notUndefinedValue(attr.data.code),
-    }));
-  }
+  ): ExternalId[] =>
+    attributes.flatMap((attr) => {
+      const origin = attr.data.origin;
+      const code = attr.data.code;
+
+      if (origin !== undefined && code !== undefined) {
+        return { origin, value: code } as ExternalId;
+      } else {
+        return [];
+      }
+    });
 
   const attributesIds = getCertifiedAttributesIds(attributes);
   const attrs = await readModelService.getAttributesById(attributesIds);
