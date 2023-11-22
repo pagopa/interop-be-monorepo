@@ -22,6 +22,11 @@ import { tenantQueryBuilder } from "../services/readmodel/tenantQuery.js";
 import { eserviceQueryBuilder } from "../services/readmodel/eserviceQuery.js";
 import { attributeQueryBuilder } from "../services/readmodel/attributeQuery.js";
 import { readModelServiceBuilder } from "../services/readmodel/readModelService.js";
+import {
+  createAgreementErrorMapper,
+  deleteAgreementErrorMapper,
+  updateAgreementErrorMapper,
+} from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
@@ -135,7 +140,7 @@ const agreementRouter = (
         );
         return res.status(200).json({ id }).send();
       } catch (error) {
-        const errorRes = makeApiProblem(error);
+        const errorRes = makeApiProblem(error, createAgreementErrorMapper);
         return res.status(errorRes.status).json(errorRes).end();
       }
     }
@@ -175,7 +180,7 @@ const agreementRouter = (
           })
           .end();
       } catch (error) {
-        const errorRes = makeApiProblem(error);
+        const errorRes = makeApiProblem(error, () => 500);
         return res.status(errorRes.status).json(errorRes).end();
       }
     }
@@ -212,11 +217,16 @@ const agreementRouter = (
         } else {
           return res
             .status(404)
-            .json(makeApiProblem(agreementNotFound(req.params.agreementId)))
+            .json(
+              makeApiProblem(
+                agreementNotFound(req.params.agreementId),
+                () => 404
+              )
+            )
             .send();
         }
       } catch (error) {
-        const errorRes = makeApiProblem(error);
+        const errorRes = makeApiProblem(error, () => 500);
         return res.status(errorRes.status).json(errorRes).end();
       }
     }
@@ -233,7 +243,7 @@ const agreementRouter = (
         );
         return res.status(204).send();
       } catch (error) {
-        const errorRes = makeApiProblem(error);
+        const errorRes = makeApiProblem(error, deleteAgreementErrorMapper);
         return res.status(errorRes.status).json(errorRes).end();
       }
     }
@@ -252,7 +262,7 @@ const agreementRouter = (
 
         return res.status(200).send();
       } catch (error) {
-        const errorRes = makeApiProblem(error);
+        const errorRes = makeApiProblem(error, updateAgreementErrorMapper);
         return res.status(errorRes.status).json(errorRes).end();
       }
     }

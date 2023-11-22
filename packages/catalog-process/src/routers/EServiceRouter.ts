@@ -1,6 +1,5 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
-import { match } from "ts-pattern";
 import { makeApiProblem } from "pagopa-interop-models";
 import {
   ExpressContext,
@@ -19,10 +18,6 @@ import {
 } from "../model/domain/apiConverter.js";
 import { api } from "../model/generated/api.js";
 import { config } from "../utilities/config.js";
-import {
-  eServiceNotFound,
-  eServiceDocumentNotFound,
-} from "../model/domain/errors.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { catalogServiceBuilder } from "../services/catalogService.js";
 import {
@@ -40,6 +35,10 @@ import {
   updateDescriptorErrorMapper,
   updateEServiceErrorMapper,
 } from "../utilities/errorMappers.js";
+import {
+  eServiceDocumentNotFound,
+  eServiceNotFound,
+} from "../model/domain/errors.js";
 
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)

@@ -185,7 +185,7 @@ export async function createAgreementLogic(
   const eservice = await eserviceQuery.getEServiceById(agreement.eserviceId);
 
   if (!eservice) {
-    throw eServiceNotFound(400, agreement.eserviceId);
+    throw eServiceNotFound(agreement.eserviceId);
   }
 
   const descriptor = validateCreationOnDescriptor(
@@ -201,7 +201,7 @@ export async function createAgreementLogic(
   const consumer = await tenantQuery.getTenantById(authData.organizationId);
 
   if (!consumer) {
-    throw tenantIdNotFound(404, authData.organizationId);
+    throw tenantIdNotFound(authData.organizationId);
   }
 
   if (eservice.data.producerId !== consumer.data.id) {
