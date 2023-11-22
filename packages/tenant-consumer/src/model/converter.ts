@@ -17,6 +17,8 @@ import {
   tenantKind,
   TenantFeatureCertifier,
   tenantMailKind,
+  ExternalId,
+  genericError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -128,8 +130,9 @@ export const fromTenantV1 = (input: TenantV1): Tenant => {
    * for some reasons the @protobuf-ts/protoc library generates it as optional.
    * This issue has been reported here: https://github.com/timostamm/protobuf-ts/issues/340
    */
-  if (!input.externalId) {
-    throw new Error(
+  const externalId = ExternalId.safeParse(input.externalId);
+  if (!externalId.success) {
+    throw genericError(
       `Error while deserializing TenantV1 (${input.id}): missing externalId`
     );
   }
@@ -140,7 +143,7 @@ export const fromTenantV1 = (input: TenantV1): Tenant => {
     name: input.name ?? "",
     createdAt: new Date(Number(input.createdAt)),
     attributes: input.attributes.map(fromTenantAttributesV1),
-    externalId: input.externalId,
+    externalId: externalId.data,
     features: input.features.map(fromTenantFeatureV1),
     mails: input.mails.map(fromTenantMailV1),
     kind: input.kind ? fromTenantKindV1(input.kind) : undefined,
