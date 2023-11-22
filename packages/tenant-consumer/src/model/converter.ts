@@ -47,8 +47,7 @@ export const fromTenantMailKindV1 = (
 };
 
 export const fromTenantMailV1 = (input: TenantMailV1): TenantMail => ({
-  address: input.address,
-  description: input.description,
+  ...input,
   createdAt: new Date(Number(input.createdAt)),
   kind: fromTenantMailKindV1(input.kind),
 });
@@ -71,7 +70,7 @@ export const fromTenantFeatureV1 = (
 export const fromTenantVerifierV1 = (
   input: TenantVerifierV1
 ): TenantVerifier => ({
-  id: input.id,
+  ...input,
   verificationDate: new Date(Number(input.verificationDate)),
   expirationDate: input.expirationDate
     ? new Date(Number(input.expirationDate))
@@ -82,7 +81,7 @@ export const fromTenantVerifierV1 = (
 });
 
 export const fromTenantRevokerV1 = (input: TenantRevokerV1): TenantRevoker => ({
-  id: input.id,
+  ...input,
   expirationDate: input.expirationDate
     ? new Date(Number(input.expirationDate))
     : undefined,
@@ -95,34 +94,43 @@ export const fromTenantRevokerV1 = (input: TenantRevokerV1): TenantRevoker => ({
 
 export const fromTenantAttributesV1 = (
   input: TenantAttributeV1
-): TenantAttribute =>
-  match<TenantAttributeV1["sealedValue"], TenantAttribute>(input.sealedValue)
-    .with({ oneofKind: "certifiedAttribute" }, ({ certifiedAttribute }) => ({
-      id: certifiedAttribute.id,
-      assignmentTimestamp: new Date(
-        Number(certifiedAttribute.assignmentTimestamp)
-      ),
-      type: "certified",
-    }))
-    .with({ oneofKind: "verifiedAttribute" }, ({ verifiedAttribute }) => ({
-      id: verifiedAttribute.id,
-      assignmentTimestamp: new Date(
-        Number(verifiedAttribute.assignmentTimestamp)
-      ),
-      verifiedBy: verifiedAttribute.verifiedBy.map(fromTenantVerifierV1),
-      revokedBy: verifiedAttribute.revokedBy.map(fromTenantRevokerV1),
-      type: "verified",
-    }))
-    .with({ oneofKind: "declaredAttribute" }, ({ declaredAttribute }) => ({
-      id: declaredAttribute.id,
-      assignmentTimestamp: new Date(
-        Number(declaredAttribute.assignmentTimestamp)
-      ),
-      type: "declared",
-    }))
-    .otherwise(() => {
-      throw new Error("Booom"); // Ported "as is" from Scala codebase :D
-    });
+): TenantAttribute => {
+  const { sealedValue } = input;
+
+  switch (sealedValue.oneofKind) {
+    case "certifiedAttribute":
+      const { certifiedAttribute } = sealedValue;
+      return {
+        id: certifiedAttribute.id,
+        assignmentTimestamp: new Date(
+          Number(certifiedAttribute.assignmentTimestamp)
+        ),
+        type: "certified",
+      };
+    case "verifiedAttribute":
+      const { verifiedAttribute } = sealedValue;
+      return {
+        id: verifiedAttribute.id,
+        assignmentTimestamp: new Date(
+          Number(verifiedAttribute.assignmentTimestamp)
+        ),
+        verifiedBy: verifiedAttribute.verifiedBy.map(fromTenantVerifierV1),
+        revokedBy: verifiedAttribute.revokedBy.map(fromTenantRevokerV1),
+        type: "verified",
+      };
+    case "declaredAttribute":
+      const { declaredAttribute } = sealedValue;
+      return {
+        id: declaredAttribute.id,
+        assignmentTimestamp: new Date(
+          Number(declaredAttribute.assignmentTimestamp)
+        ),
+        type: "declared",
+      };
+    case undefined:
+      throw genericError("Undefined attribute kind");
+  }
+};
 
 export const fromTenantV1 = (input: TenantV1): Tenant => {
   /**
@@ -138,8 +146,7 @@ export const fromTenantV1 = (input: TenantV1): Tenant => {
   }
 
   return {
-    id: input.id,
-    selfcareId: input.selfcareId,
+    ...input,
     name: input.name ?? "",
     createdAt: new Date(Number(input.createdAt)),
     attributes: input.attributes.map(fromTenantAttributesV1),
