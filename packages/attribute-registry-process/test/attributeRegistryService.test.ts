@@ -1,12 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { generateMock } from "@anatine/zod-mock";
 
-import {
-  AttributeKind,
-  Attribute,
-  WithMetadata,
-  attributeDuplicate,
-} from "pagopa-interop-models";
+import { AttributeKind, Attribute, WithMetadata } from "pagopa-interop-models";
 
 import {
   createDeclaredAttributeLogic,
@@ -17,6 +12,7 @@ import {
   toAttributeKindV1,
   toAttributeV1,
 } from "../src/model/domain/toEvent.js";
+import { attributeDuplicate } from "../src/model/domain/errors.js";
 
 const mockAttribute: Attribute = generateMock(Attribute);
 const addMetadata = (attribute: Attribute): WithMetadata<Attribute> => ({
