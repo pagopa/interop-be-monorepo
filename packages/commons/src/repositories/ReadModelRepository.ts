@@ -5,7 +5,13 @@ import {
   Tenant,
   genericError,
 } from "pagopa-interop-models";
-import { Collection, Db, MongoClient, Document, Filter, WithId } from "mongodb";
+import {
+  Collection,
+  Db,
+  MongoClient,
+  WithId,
+  RootFilterOperators,
+} from "mongodb";
 import { z } from "zod";
 import { ReadModelDbConfig, logger } from "../index.js";
 
@@ -71,25 +77,22 @@ type MongoQueryKeys<T, TPrefix extends string = "data"> = NonNullable<
 >;
 
 /**
+ * RootFilterOperators extends the mongodb Document type.
+ * The Document type, being { [key: string]: any }, permits the object to have any key.
+ * This type is used to narrow the Document type to only the keys that can be used to query the read model.
+ */
+type NarrowRootFilterOperators<TSchema> = Pick<
+  RootFilterOperators<WithId<{ data: TSchema }["data"]>>,
+  "$and" | "$nor" | "$or" | "$text" | "$where" | "$comment"
+>;
+
+/**
  * Type of the filter that can be used to query the read model.
  * It extends the mongodb filter type by adding all the possible model query keys.
  */
 export type ReadModelFilter<TSchema> = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [P in MongoQueryKeys<WithId<{ data: TSchema }["data"]>>]?: any; // We should find a better typing here!
-} & {
-  $and?: Array<Filter<{ data: TSchema }>>;
-  $nor?: Array<Filter<{ data: TSchema }>>;
-  $or?: Array<Filter<{ data: TSchema }>>;
-  $text?: {
-    $search: string;
-    $language?: string;
-    $caseSensitive?: boolean;
-    $diacriticSensitive?: boolean;
-  };
-  $where?: string | ((this: { data: TSchema }) => boolean);
-  $comment?: string | Document;
-};
+  [P in MongoQueryKeys<WithId<{ data: TSchema }["data"]>>]?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+} & NarrowRootFilterOperators<TSchema>;
 
 export class ReadModelRepository {
   private static instance: ReadModelRepository;
