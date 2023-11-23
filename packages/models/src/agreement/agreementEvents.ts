@@ -2,6 +2,7 @@ import { match } from "ts-pattern";
 import {
   AgreementAddedV1,
   AgreementDeletedV1,
+  AgreementUpdatedV1,
 } from "../gen/v1/agreement/events.js";
 
 export function agreementEventToBinaryData(event: AgreementEvent): Uint8Array {
@@ -12,11 +13,15 @@ export function agreementEventToBinaryData(event: AgreementEvent): Uint8Array {
     .with({ type: "AgreementAdded" }, ({ data }) =>
       AgreementAddedV1.toBinary(data)
     )
+    .with({ type: "AgreementUpdated" }, ({ data }) =>
+      AgreementUpdatedV1.toBinary(data)
+    )
     .exhaustive();
 }
 
 export type AgreementEvent =
   | { type: "AgreementAdded"; data: AgreementAddedV1 }
+  | { type: "AgreementUpdated"; data: AgreementUpdatedV1 }
   | {
       type: "AgreementDeleted";
       data: AgreementDeletedV1;
