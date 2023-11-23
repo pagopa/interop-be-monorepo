@@ -2,7 +2,6 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "outDir": "dist",
-    "noUnusedLocals": false //TODO Remove this line when ReadModelService is completed
   },
   "include": ["src"]
 }
