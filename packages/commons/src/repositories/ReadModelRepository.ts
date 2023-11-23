@@ -1,4 +1,10 @@
-import { Agreement, EService, ErrorTypes, Tenant } from "pagopa-interop-models";
+import {
+  Agreement,
+  Attribute,
+  EService,
+  Tenant,
+  genericError,
+} from "pagopa-interop-models";
 import { Collection, Db, MongoClient, Document, Filter, WithId } from "mongodb";
 import { z } from "zod";
 import { ReadModelDbConfig, logger } from "../index.js";
@@ -11,11 +17,13 @@ type GenericCollection<T> = Collection<{
 export type EServiceCollection = GenericCollection<EService | undefined>;
 export type AgreementCollection = GenericCollection<Agreement>;
 export type TenantCollection = GenericCollection<Tenant>;
+export type AttributeCollection = GenericCollection<Attribute>;
 
 export type Collections =
   | EServiceCollection
   | AgreementCollection
-  | TenantCollection;
+  | TenantCollection
+  | AttributeCollection;
 
 type BuildQueryKey<TPrefix extends string, TKey> = `${TPrefix}.${TKey &
   string}`;
@@ -92,6 +100,8 @@ export class ReadModelRepository {
 
   public tenants: TenantCollection;
 
+  public attributes: AttributeCollection;
+
   private client: MongoClient;
   private db: Db;
 
@@ -112,6 +122,9 @@ export class ReadModelRepository {
       ignoreUndefined: true,
     });
     this.tenants = this.db.collection("tenants", { ignoreUndefined: true });
+    this.attributes = this.db.collection("attributes", {
+      ignoreUndefined: true,
+    });
   }
 
   public static init(config: ReadModelDbConfig): ReadModelRepository {
@@ -141,6 +154,6 @@ export class ReadModelRepository {
         result
       )} - data ${JSON.stringify(data)} `
     );
-    throw ErrorTypes.GenericError;
+    throw genericError("Unable to get total count from aggregation pipeline");
   }
 }

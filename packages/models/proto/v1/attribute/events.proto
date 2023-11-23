@@ -1,0 +1,14 @@
+syntax = "proto2";
+
+package attribute;
+
+import "v1/attribute/attribute.proto";
+
+message AttributeAddedV1 {
+  required AttributeV1 attribute = 1;
+}
+
+message AttributeDeletedV1 {
+  required string id = 1;
+}
+
