@@ -27,7 +27,7 @@ export function attributeDuplicate(attributeName: string): ApiError {
 export function originNotCompliant(origin: string): ApiError {
   return new ApiError({
     detail: `Requester has not origin ${origin}`,
-    code: errorCodes.attributeDuplicate,
+    code: errorCodes.originNotCompliant,
     httpStatus: 409,
     title: "Origin is not compliant",
   });
