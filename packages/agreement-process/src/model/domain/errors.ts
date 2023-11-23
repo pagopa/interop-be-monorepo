@@ -2,6 +2,7 @@ import {
   ApiError,
   DescriptorState,
   makeApiProblemBuilder,
+  AgreementState,
 } from "pagopa-interop-models";
 
 const errorCodes = {
@@ -12,7 +13,7 @@ const errorCodes = {
   eServiceNotFound: "0005",
   contractAlreadyExists: "0006",
   operationNotAllowed: "0007",
-  agreementActtivationFailed: "0008",
+  agreementActivationFailed: "0008",
   agreementNotFound: "0009",
   agreementAlreadyExists: "0010",
   noNewerDescriptor: "0011",
@@ -22,13 +23,14 @@ const errorCodes = {
   stampNotFound: "0015",
   missingUserInfo: "0016",
   documentNotFound: "0017",
-  documentChangeNotAllowed: "0018",
+  documentsChangeNotAllowed: "0018",
   selfcareIdNotFound: "0019",
   tenantIdNotFound: "0020",
   notLatestEServiceDescriptor: "0021",
   attributeNotFound: "0022",
   invalidAttributeStructure: "0023",
   consumerWithNotValidEmail: "0024",
+  agreementDocumentAlreadyExists: "0025",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -113,6 +115,26 @@ export function operationNotAllowed(requesterId: string): ApiError<ErrorCodes> {
     detail: `Operation not allowed by ${requesterId}`,
     code: "operationNotAllowed",
     title: "Operation not allowed",
+  });
+}
+
+export function documentsChangeNotAllowed(
+  state: AgreementState
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The requested operation on consumer documents is not allowed on agreement with state ${state}`,
+    code: "documentsChangeNotAllowed",
+    title: "Operation not allowed on consumer documents",
+  });
+}
+
+export function agreementDocumentAlreadyExists(
+  agreementId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Agreement document for ${agreementId} already exists`,
+    code: "agreementDocumentAlreadyExists",
+    title: "Agreement document already exists",
   });
 }
 
