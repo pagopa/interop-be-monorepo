@@ -1,9 +1,9 @@
 import {
-  EService,
   Agreement,
-  Tenant,
   Attribute,
-  ErrorTypes,
+  EService,
+  Tenant,
+  genericError,
 } from "pagopa-interop-models";
 import { Collection, Db, MongoClient } from "mongodb";
 import { z } from "zod";
@@ -55,9 +55,7 @@ export class ReadModelRepository {
     this.agreements = this.db.collection("agreements", {
       ignoreUndefined: true,
     });
-    this.tenants = this.db.collection("tenants", {
-      ignoreUndefined: true,
-    });
+    this.tenants = this.db.collection("tenants", { ignoreUndefined: true });
     this.attributes = this.db.collection("attributes", {
       ignoreUndefined: true,
     });
@@ -90,6 +88,6 @@ export class ReadModelRepository {
         result
       )} - data ${JSON.stringify(data)} `
     );
-    throw ErrorTypes.GenericError;
+    throw genericError("Unable to get total count from aggregation pipeline");
   }
 }

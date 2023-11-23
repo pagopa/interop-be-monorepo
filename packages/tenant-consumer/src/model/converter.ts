@@ -17,6 +17,8 @@ import {
   tenantKind,
   TenantFeatureCertifier,
   tenantMailKind,
+  ExternalId,
+  genericError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -45,8 +47,7 @@ export const fromTenantMailKindV1 = (
 };
 
 export const fromTenantMailV1 = (input: TenantMailV1): TenantMail => ({
-  address: input.address,
-  description: input.description,
+  ...input,
   createdAt: new Date(Number(input.createdAt)),
   kind: fromTenantMailKindV1(input.kind),
 });
@@ -69,7 +70,7 @@ export const fromTenantFeatureV1 = (
 export const fromTenantVerifierV1 = (
   input: TenantVerifierV1
 ): TenantVerifier => ({
-  id: input.id,
+  ...input,
   verificationDate: new Date(Number(input.verificationDate)),
   expirationDate: input.expirationDate
     ? new Date(Number(input.expirationDate))
@@ -80,7 +81,7 @@ export const fromTenantVerifierV1 = (
 });
 
 export const fromTenantRevokerV1 = (input: TenantRevokerV1): TenantRevoker => ({
-  id: input.id,
+  ...input,
   expirationDate: input.expirationDate
     ? new Date(Number(input.expirationDate))
     : undefined,
@@ -93,34 +94,43 @@ export const fromTenantRevokerV1 = (input: TenantRevokerV1): TenantRevoker => ({
 
 export const fromTenantAttributesV1 = (
   input: TenantAttributeV1
-): TenantAttribute =>
-  match<TenantAttributeV1["sealedValue"], TenantAttribute>(input.sealedValue)
-    .with({ oneofKind: "certifiedAttribute" }, ({ certifiedAttribute }) => ({
-      id: certifiedAttribute.id,
-      assignmentTimestamp: new Date(
-        Number(certifiedAttribute.assignmentTimestamp)
-      ),
-      type: "certified",
-    }))
-    .with({ oneofKind: "verifiedAttribute" }, ({ verifiedAttribute }) => ({
-      id: verifiedAttribute.id,
-      assignmentTimestamp: new Date(
-        Number(verifiedAttribute.assignmentTimestamp)
-      ),
-      verifiedBy: verifiedAttribute.verifiedBy.map(fromTenantVerifierV1),
-      revokedBy: verifiedAttribute.revokedBy.map(fromTenantRevokerV1),
-      type: "verified",
-    }))
-    .with({ oneofKind: "declaredAttribute" }, ({ declaredAttribute }) => ({
-      id: declaredAttribute.id,
-      assignmentTimestamp: new Date(
-        Number(declaredAttribute.assignmentTimestamp)
-      ),
-      type: "declared",
-    }))
-    .otherwise(() => {
-      throw new Error("Booom"); // Ported "as is" from Scala codebase :D
-    });
+): TenantAttribute => {
+  const { sealedValue } = input;
+
+  switch (sealedValue.oneofKind) {
+    case "certifiedAttribute":
+      const { certifiedAttribute } = sealedValue;
+      return {
+        id: certifiedAttribute.id,
+        assignmentTimestamp: new Date(
+          Number(certifiedAttribute.assignmentTimestamp)
+        ),
+        type: "certified",
+      };
+    case "verifiedAttribute":
+      const { verifiedAttribute } = sealedValue;
+      return {
+        id: verifiedAttribute.id,
+        assignmentTimestamp: new Date(
+          Number(verifiedAttribute.assignmentTimestamp)
+        ),
+        verifiedBy: verifiedAttribute.verifiedBy.map(fromTenantVerifierV1),
+        revokedBy: verifiedAttribute.revokedBy.map(fromTenantRevokerV1),
+        type: "verified",
+      };
+    case "declaredAttribute":
+      const { declaredAttribute } = sealedValue;
+      return {
+        id: declaredAttribute.id,
+        assignmentTimestamp: new Date(
+          Number(declaredAttribute.assignmentTimestamp)
+        ),
+        type: "declared",
+      };
+    case undefined:
+      throw genericError("Undefined attribute kind");
+  }
+};
 
 export const fromTenantV1 = (input: TenantV1): Tenant => {
   /**
@@ -128,19 +138,19 @@ export const fromTenantV1 = (input: TenantV1): Tenant => {
    * for some reasons the @protobuf-ts/protoc library generates it as optional.
    * This issue has been reported here: https://github.com/timostamm/protobuf-ts/issues/340
    */
-  if (!input.externalId) {
-    throw new Error(
+  const externalId = ExternalId.safeParse(input.externalId);
+  if (!externalId.success) {
+    throw genericError(
       `Error while deserializing TenantV1 (${input.id}): missing externalId`
     );
   }
 
   return {
-    id: input.id,
-    selfcareId: input.selfcareId,
+    ...input,
     name: input.name ?? "",
     createdAt: new Date(Number(input.createdAt)),
     attributes: input.attributes.map(fromTenantAttributesV1),
-    externalId: input.externalId,
+    externalId: externalId.data,
     features: input.features.map(fromTenantFeatureV1),
     mails: input.mails.map(fromTenantMailV1),
     kind: input.kind ? fromTenantKindV1(input.kind) : undefined,

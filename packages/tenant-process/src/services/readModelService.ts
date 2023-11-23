@@ -3,19 +3,18 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { logger, ReadModelRepository } from "pagopa-interop-commons";
 import {
-  ErrorTypes,
   WithMetadata,
   Tenant,
-  TenantAttribute,
   Attribute,
   ExternalId,
-  AttributeNotFound,
   AgreementState,
   Agreement,
   EService,
+  genericError,
 } from "pagopa-interop-models";
 import { z } from "zod";
 import { config } from "../utilities/config.js";
+import { attributeNotFound } from "../model/domain/errors.js";
 
 const { tenants, attributes, agreements, eservices } =
   ReadModelRepository.init(config);
@@ -90,7 +89,7 @@ const getAgreementsConst = async (
         result
       )} - data ${JSON.stringify(data)} `
     );
-    throw ErrorTypes.GenericError;
+    throw genericError("Unable to parse agreements items");
   }
 
   return result.data;
@@ -119,7 +118,7 @@ async function getAttributeByExternalId(
         )} - data ${JSON.stringify(data)} `
       );
 
-      throw ErrorTypes.GenericError;
+      throw genericError("Unable to parse tenant item");
     }
 
     return {
@@ -127,7 +126,7 @@ async function getAttributeByExternalId(
       metadata: { version: result.data.metadata.version },
     };
   } else {
-    throw AttributeNotFound(`${externalId.origin}/${externalId.value}`);
+    throw attributeNotFound(`${externalId.origin}/${externalId.value}`);
   }
 }
 
@@ -154,7 +153,7 @@ async function getAttributeById(
         )} - data ${JSON.stringify(data)} `
       );
 
-      throw ErrorTypes.GenericError;
+      throw genericError("Unable to parse tenant item");
     }
 
     return {
@@ -162,7 +161,7 @@ async function getAttributeById(
       metadata: { version: result.data.metadata.version },
     };
   } else {
-    throw AttributeNotFound(attributeId);
+    throw attributeNotFound(attributeId);
   }
 }
 
@@ -216,7 +215,7 @@ export const readModelService = {
           )} - data ${JSON.stringify(data)} `
         );
 
-        throw ErrorTypes.GenericError;
+        throw genericError("Unable to parse eservices item");
       }
 
       return {
@@ -251,7 +250,7 @@ export const readModelService = {
           )} - data ${JSON.stringify(data)} `
         );
 
-        throw ErrorTypes.GenericError;
+        throw genericError("Unable to parse tenant item");
       }
 
       return {
@@ -289,7 +288,7 @@ export const readModelService = {
             result
           )} - data ${JSON.stringify(data)} `
         );
-        throw ErrorTypes.GenericError;
+        throw genericError("Unable to parse tenant item");
       }
       return {
         data: result.data.data,

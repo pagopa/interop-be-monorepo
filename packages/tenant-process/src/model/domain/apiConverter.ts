@@ -114,7 +114,7 @@ export function toApiMail(mail: TenantMail): ApiMail {
   };
 }
 
-export const tenantToApiTenant = (
+export const toApiTenant = (
   tenant: Tenant
 ): z.infer<typeof api.schemas.Tenant> => ({
   id: tenant.id,

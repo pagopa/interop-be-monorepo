@@ -1,23 +1,18 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-// TO BE REMOVED IN THE FUTURE
 import { AuthData, userRoles } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
 import {
   AgreementState,
+  ApiError,
   Attribute,
-  AttributeNotFound,
-  ErrorTypes,
   ExternalId,
   Tenant,
   TenantAttribute,
   TenantKind,
-  TenantProcessError,
   WithMetadata,
-  eServiceNotFound,
   operationForbidden,
-  tenantIdNotFound,
   tenantKind,
 } from "pagopa-interop-models";
+import { eServiceNotFound, tenantNotFound } from "../model/domain/errors.js";
 import { readModelService } from "./readModelService.js";
 
 export function assertTenantExist(
@@ -25,7 +20,7 @@ export function assertTenantExist(
   tenant: WithMetadata<Tenant> | undefined
 ): asserts tenant is NonNullable<WithMetadata<Tenant>> {
   if (tenant === undefined) {
-    throw tenantIdNotFound(tenantId);
+    throw tenantNotFound(tenantId);
   }
 }
 
@@ -59,7 +54,7 @@ export async function assertVerifiedAttributeOperationAllowed(
   consumerId: string,
   attributeId: string,
   states: AgreementState[],
-  error: TenantProcessError
+  error: ApiError
 ): Promise<void> {
   const agreements = await readModelService.getAgreements(
     producerId,
@@ -102,7 +97,7 @@ async function assertRequesterAllowed(
   }
 }
 
-async function assertResourceAllowed(
+export async function assertResourceAllowed(
   resourceId: string,
   authData: AuthData
 ): Promise<void> {

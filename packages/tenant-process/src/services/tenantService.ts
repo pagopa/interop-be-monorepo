@@ -1,8 +1,6 @@
 import { CreateEvent, eventRepository, initDB } from "pagopa-interop-commons";
 import {
-  AttributeNotFound,
   ExternalId,
-  InvalidAttributeStructure,
   Tenant,
   TenantAttribute,
   TenantEvent,
@@ -11,7 +9,6 @@ import {
   TenantMail,
   WithMetadata,
   tenantAttributeType,
-  tenantDuplicate,
   tenantEventToBinaryData,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
@@ -25,6 +22,11 @@ import {
   ApiM2MTenantSeed,
   ApiSelfcareTenantSeed,
 } from "../model/types.js";
+import {
+  invalidAttributeStructure,
+  attributeNotFound,
+  tenantDuplicate,
+} from "../model/domain/errors.js";
 import { assertTenantExist } from "./validators.js";
 import { readModelService } from "./readModelService.js";
 
@@ -75,7 +77,7 @@ export const tenantService = {
     newAttribute: TenantAttribute
   ): Promise<string> {
     if (!newAttribute || newAttribute.id !== attributeId) {
-      throw InvalidAttributeStructure;
+      throw invalidAttributeStructure;
     }
 
     return await repository.createEvent(
@@ -128,7 +130,7 @@ export async function updateTenantAttributeLogic({
     (attribute) => attribute.id === attributeId
   );
   if (!attributeExists) {
-    throw AttributeNotFound(attributeId);
+    throw attributeNotFound(attributeId);
   }
 
   const updatedAttributes = [
