@@ -8,12 +8,8 @@ import {
   AttributeEvent,
   Attribute,
   WithMetadata,
-  attributeDuplicate,
   attributeEventToBinaryData,
-  originNotCompliant,
   attributeKind,
-  tenantIdNotFound,
-  OrganizationIsNotACertifier,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import { config } from "../utilities/config.js";
@@ -24,6 +20,12 @@ import {
   ApiVerifiedAttributeSeed,
 } from "../model/types.js";
 import { toCreateEventAttributeAdded } from "../model/domain/toEvent.js";
+import {
+  OrganizationIsNotACertifier,
+  attributeDuplicate,
+  originNotCompliant,
+  tenantNotFound,
+} from "../model/domain/errors.js";
 import { readModelService } from "./readModelService.js";
 
 const repository = eventRepository(
@@ -189,7 +191,7 @@ export function createCertifiedAttributeLogic({
 async function getCertifierId(tenantId: string): Promise<string> {
   const tenant = await readModelService.getTenantById(tenantId);
   if (!tenant) {
-    throw tenantIdNotFound(tenantId);
+    throw tenantNotFound(tenantId);
   }
 
   const certifier = tenant.data.features
