@@ -48,4 +48,7 @@ export type AgreementEvent =
       type: "AgreementContractAdded";
       data: AgreementContractAddedV1;
     }
-  | AgreementConsumerDocumentAdded;
+  | {
+      type: "AgreementConsumerDocumentAdded";
+      data: AgreementConsumerDocumentAddedV1;
+    };
