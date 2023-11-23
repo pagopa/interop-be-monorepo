@@ -1,0 +1,19 @@
+syntax = "proto2";
+
+package attribute;
+
+message AttributeV1 {
+  required string id = 1;
+  optional string code = 2;
+  optional string origin = 3;
+  required AttributeKindV1 kind = 4;
+  required string name = 5;
+  required string description = 6;
+  required string creationTime = 7;
+}
+
+enum AttributeKindV1 {
+  CERTIFIED = 1;
+  DECLARED = 2;
+  VERIFIED = 3;
+}
