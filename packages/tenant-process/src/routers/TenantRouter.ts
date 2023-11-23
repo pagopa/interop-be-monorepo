@@ -6,11 +6,11 @@ import {
   ZodiosContext,
   authorizationMiddleware,
 } from "pagopa-interop-commons";
-import { tenantNotFound, selfcareIdNotFound } from "pagopa-interop-models";
+import { makeApiProblem } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
-import { tenantToApiTenant } from "../model/domain/apiConverter.js";
-import { ApiError, makeApiError } from "../model/types.js";
+import { toApiTenant } from "../model/domain/apiConverter.js";
 import { readModelService } from "../services/readModelService.js";
+import { selfcareIdNotFound, tenantNotFound } from "../model/domain/errors.js";
 
 const tenantsRouter = (
   ctx: ZodiosContext
@@ -69,15 +69,15 @@ const tenantsRouter = (
           const tenant = await readModelService.getTenantById(req.params.id);
 
           if (tenant) {
-            return res.status(200).json(tenantToApiTenant(tenant.data)).end();
+            return res.status(200).json(toApiTenant(tenant.data)).end();
           } else {
             return res
               .status(404)
-              .json(makeApiError(tenantNotFound(req.params.id)))
+              .json(makeApiProblem(tenantNotFound(req.params.id)))
               .end();
           }
         } catch (error) {
-          const errorRes: ApiError = makeApiError(error);
+          const errorRes = makeApiProblem(error);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -100,11 +100,11 @@ const tenantsRouter = (
             code,
           });
           if (tenant) {
-            return res.status(200).json(tenantToApiTenant(tenant.data)).end();
+            return res.status(200).json(toApiTenant(tenant.data)).end();
           } else {
             return res
               .status(404)
-              .json(makeApiError(tenantNotFound(`${origin}/${code}`)))
+              .json(makeApiProblem(tenantNotFound(`${origin}/${code}`)))
               .end();
           }
         } catch (error) {
@@ -130,15 +130,15 @@ const tenantsRouter = (
           );
 
           if (tenant) {
-            return res.status(200).json(tenantToApiTenant(tenant.data)).end();
+            return res.status(200).json(toApiTenant(tenant.data)).end();
           } else {
             return res
               .status(404)
-              .json(makeApiError(selfcareIdNotFound(req.params.selfcareId)))
+              .json(makeApiProblem(selfcareIdNotFound(req.params.selfcareId)))
               .end();
           }
         } catch (error) {
-          const errorRes: ApiError = makeApiError(error);
+          const errorRes = makeApiProblem(error);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }

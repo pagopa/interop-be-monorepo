@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { logger, ReadModelRepository } from "pagopa-interop-commons";
-import { ErrorTypes, WithMetadata } from "pagopa-interop-models";
+import { genericError, WithMetadata } from "pagopa-interop-models";
 import { Tenant } from "pagopa-interop-models";
 import { config } from "../utilities/config.js";
 import { MongoDBFilter } from "../utilities/types.js";
@@ -27,7 +27,7 @@ async function getTenant(
           result
         )} - data ${JSON.stringify(data)} `
       );
-      throw ErrorTypes.GenericError;
+      throw genericError("Unable to parse tenant item");
     }
     return {
       data: result.data.data,
