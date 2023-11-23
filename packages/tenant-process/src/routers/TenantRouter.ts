@@ -10,7 +10,10 @@ import { makeApiProblem } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
 import { toApiTenant } from "../model/domain/apiConverter.js";
 import { readModelService } from "../services/readModelService.js";
-import { selfcareIdNotFound, tenantNotFound } from "../model/domain/errors.js";
+import {
+  tenantBySelfcateIdNotFound,
+  tenantNotFound,
+} from "../model/domain/errors.js";
 
 const tenantsRouter = (
   ctx: ZodiosContext
@@ -134,7 +137,11 @@ const tenantsRouter = (
           } else {
             return res
               .status(404)
-              .json(makeApiProblem(selfcareIdNotFound(req.params.selfcareId)))
+              .json(
+                makeApiProblem(
+                  tenantBySelfcateIdNotFound(req.params.selfcareId)
+                )
+              )
               .end();
           }
         } catch (error) {

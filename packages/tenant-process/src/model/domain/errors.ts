@@ -2,7 +2,7 @@ import { ApiError } from "pagopa-interop-models";
 
 const errorCodes = {
   tenantNotFound: "0001",
-  selfcareIdNotFound: "0002",
+  tenantBySelfcateIdNotFound: "0002",
 };
 
 export function tenantNotFound(tenantId: string): ApiError {
@@ -14,10 +14,10 @@ export function tenantNotFound(tenantId: string): ApiError {
   });
 }
 
-export function selfcareIdNotFound(selfcareId: string): ApiError {
+export function tenantBySelfcateIdNotFound(selfcareId: string): ApiError {
   return new ApiError({
     detail: `Tenant with selfcareId ${selfcareId} not found in the catalog`,
-    code: errorCodes.selfcareIdNotFound,
+    code: errorCodes.tenantBySelfcateIdNotFound,
     httpStatus: 404,
     title: "Tenant with selfcareId not found",
   });
