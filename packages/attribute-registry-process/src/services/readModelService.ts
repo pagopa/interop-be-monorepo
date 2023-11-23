@@ -18,7 +18,9 @@ async function getAttribute(
   const data = await attributes.findOne(filter, {
     projection: { data: true, metadata: true },
   });
-  if (data) {
+  if (!data) {
+    return undefined;
+  }
     const result = z
       .object({
         metadata: z.object({ version: z.number() }),
@@ -36,10 +38,7 @@ async function getAttribute(
     return {
       data: result.data.data,
       metadata: { version: result.data.metadata.version },
-    };
-  }
-  return undefined;
-}
+    };}
 
 export const readModelService = {
   async getAttributes(
