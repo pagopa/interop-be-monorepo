@@ -5,17 +5,19 @@ import {
   attributeKind,
   Attribute,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
 
-export const fromAttributeKindV1 = (input: AttributeKindV1): AttributeKind =>
-  match(input)
-    .with(AttributeKindV1.CERTIFIED, () => attributeKind.certified)
-    .with(AttributeKindV1.DECLARED, () => attributeKind.declared)
-    .with(AttributeKindV1.VERIFIED, () => attributeKind.verified)
-    .otherwise(() => {
-      throw new Error(`Invalid AttributeKind: ${JSON.stringify(input)}`); // Force exhaustive match
-    });
-
+export const fromAttributeKindV1 = (input: AttributeKindV1): AttributeKind => {
+  switch (input) {
+    case AttributeKindV1.CERTIFIED:
+      return attributeKind.certified;
+    case AttributeKindV1.DECLARED:
+      return attributeKind.declared;
+    case AttributeKindV1.VERIFIED:
+      return attributeKind.verified;
+    case AttributeKindV1.UNSPECIFIED$:
+      throw new Error("Unspecified attribute kind");
+  }
+};
 export const fromAttributeV1 = (input: AttributeV1): Attribute => ({
   ...input,
   kind: fromAttributeKindV1(input.kind),
