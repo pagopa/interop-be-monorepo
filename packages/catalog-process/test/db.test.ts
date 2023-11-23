@@ -98,9 +98,9 @@ describe("database test", async () => {
       expect(writtenEvent.type).toBe("EServiceAdded");
     });
     it("should not write on event-store if eservice already exists", async () => {
-      const organizationId = uuidv4();
+      const { eServiceId, organizationId } = ids();
       await addOneEService({
-        id: uuidv4(),
+        id: eServiceId,
         producerId: organizationId,
       });
       expect(
@@ -118,8 +118,7 @@ describe("database test", async () => {
 
   describe("eService update", () => {
     it("should write on event-store for the update of an eService", async () => {
-      const eServiceId = uuidv4();
-      const organizationId = uuidv4();
+      const { eServiceId, organizationId } = ids();
       await addOneEService({
         id: eServiceId,
         producerId: organizationId,
@@ -140,8 +139,7 @@ describe("database test", async () => {
       expect(writtenEvent.type).toBe("EServiceUpdated");
     });
     it("should throw an error if the eService doesn't exist", async () => {
-      const eServiceId = uuidv4();
-      const organizationId = uuidv4();
+      const { eServiceId, organizationId } = ids();
       expect(
         catalogService.updateEService(
           eServiceId,
@@ -155,9 +153,7 @@ describe("database test", async () => {
       ).rejects.toThrowError(eServiceNotFound(eServiceId));
     });
     it("should throw an error if the requester is not allowed", async () => {
-      const eServiceId = uuidv4();
-      const organizationId = uuidv4();
-      const requesterId = uuidv4();
+      const { eServiceId, organizationId, requesterId } = ids();
       await addOneEService({
         id: eServiceId,
         producerId: organizationId,
@@ -175,8 +171,7 @@ describe("database test", async () => {
       ).rejects.toThrowError(operationForbidden);
     });
     it("should throw an error if the eservice's descriptor is not in draft", async () => {
-      const eServiceId = uuidv4();
-      const organizationId = uuidv4();
+      const { eServiceId, organizationId } = ids();
       await addOneEService({
         id: eServiceId,
         producerId: organizationId,
@@ -198,8 +193,7 @@ describe("database test", async () => {
 
   describe("eService deletion", () => {
     it("should write on event-store for the deletion of an eService", async () => {
-      const eServiceId = uuidv4();
-      const organizationId = uuidv4();
+      const { eServiceId, organizationId } = ids();
       await addOneEService({
         id: eServiceId,
         producerId: organizationId,
@@ -216,17 +210,13 @@ describe("database test", async () => {
       expect(writtenEvent.type).toBe("EServiceDeleted");
     });
     it("should throw an error if the eService doesn't exist", () => {
-      const eServiceId = uuidv4();
-      const organizationId = uuidv4();
-
+      const { eServiceId, organizationId } = ids();
       expect(
         catalogService.deleteEService(eServiceId, buildAuthData(organizationId))
       ).rejects.toThrowError(eServiceNotFound(eServiceId));
     });
     it("should throw an error if the requester is not allowed", async () => {
-      const eServiceId = uuidv4();
-      const organizationId = uuidv4();
-      const requesterId = uuidv4();
+      const { eServiceId, organizationId, requesterId } = ids();
       await addOneEService({
         id: eServiceId,
         producerId: organizationId,
@@ -236,8 +226,7 @@ describe("database test", async () => {
       ).rejects.toThrowError(operationForbidden);
     });
     it("should throw an error if the eService has a descriptor", async () => {
-      const eServiceId = uuidv4();
-      const organizationId = uuidv4();
+      const { eServiceId, organizationId } = ids();
       await addOneEService({
         id: eServiceId,
         producerId: organizationId,
@@ -250,8 +239,7 @@ describe("database test", async () => {
 
   describe("create descriptor", async () => {
     it("should write in event-store for the creation of a descriptor", async () => {
-      const eServiceId = uuidv4();
-      const organizationId = uuidv4();
+      const { eServiceId, organizationId } = ids();
       await addOneEService({
         id: eServiceId,
         producerId: organizationId,
@@ -264,8 +252,7 @@ describe("database test", async () => {
       );
     });
     it("should throw an error if a draft descriptor already exists", async () => {
-      const eServiceId = uuidv4();
-      const organizationId = uuidv4();
+      const { eServiceId, organizationId } = ids();
       await addOneEService({
         id: eServiceId,
         producerId: organizationId,
@@ -279,8 +266,7 @@ describe("database test", async () => {
       ).rejects.toThrowError(draftDescriptorAlreadyExists(eServiceId));
     });
     it("should throw an error if the eService doesn't exist", async () => {
-      const eServiceId = uuidv4();
-      const organizationId = uuidv4();
+      const { eServiceId, organizationId } = ids();
 
       expect(
         catalogService.createDescriptor(
@@ -291,9 +277,7 @@ describe("database test", async () => {
       ).rejects.toThrowError(eServiceNotFound(eServiceId));
     });
     it("should throw an error if the requester is not allowed", async () => {
-      const eServiceId = uuidv4();
-      const organizationId = uuidv4();
-      const requesterId = uuidv4();
+      const { eServiceId, organizationId, requesterId } = ids();
       await addOneEService({
         id: eServiceId,
         producerId: organizationId,
@@ -309,9 +293,7 @@ describe("database test", async () => {
   });
   describe("delete draft descriptor", () => {
     it("should write on event-store for the deletion of a draft descriptor", async () => {
-      const eServiceId = uuidv4();
-      const organizationId = uuidv4();
-      const descriptorId = uuidv4();
+      const { eServiceId, organizationId, descriptorId } = ids();
       await addOneEService({
         id: eServiceId,
         producerId: organizationId,
@@ -329,9 +311,7 @@ describe("database test", async () => {
       expect(writtenEvent.type).toBe("EServiceWithDescriptorsDeleted");
     });
     it("should throw an error if the eService doesn't exist", () => {
-      const eServiceId = uuidv4();
-      const organizationId = uuidv4();
-      const descriptorId = uuidv4();
+      const { eServiceId, organizationId, descriptorId } = ids();
 
       expect(
         catalogService.deleteDraftDescriptor(
@@ -342,10 +322,7 @@ describe("database test", async () => {
       ).rejects.toThrowError(eServiceNotFound(eServiceId));
     });
     it("should throw an error if the requester is not allowed", async () => {
-      const eServiceId = uuidv4();
-      const organizationId = uuidv4();
-      const requesterId = uuidv4();
-      const descriptorId = uuidv4();
+      const { eServiceId, organizationId, requesterId, descriptorId } = ids();
       await addOneEService({
         id: eServiceId,
         producerId: organizationId,
@@ -362,9 +339,7 @@ describe("database test", async () => {
   });
   describe("update descriptor", () => {
     it("should write on event-store for the update of a descriptor", async () => {
-      const eServiceId = uuidv4();
-      const organizationId = uuidv4();
-      const descriptorId = uuidv4();
+      const { eServiceId, organizationId, descriptorId } = ids();
       const updatedDescriptor = buildDescriptorSeed();
       updatedDescriptor.dailyCallsTotal = 200;
       await addOneEService({
@@ -384,9 +359,7 @@ describe("database test", async () => {
       expect(writtenEvent.type).toBe("EServiceUpdated");
     });
     it("should throw an error if the eService doesn't exist", () => {
-      const eServiceId = uuidv4();
-      const organizationId = uuidv4();
-      const descriptorId = uuidv4();
+      const { eServiceId, organizationId, descriptorId } = ids();
       const updatedDescriptor = buildDescriptorSeed();
       updatedDescriptor.dailyCallsTotal = 200;
       expect(
@@ -399,10 +372,7 @@ describe("database test", async () => {
       ).rejects.toThrowError(eServiceNotFound(eServiceId));
     });
     it("should throw an error if the requester is not allowed", async () => {
-      const eServiceId = uuidv4();
-      const organizationId = uuidv4();
-      const requesterId = uuidv4();
-      const descriptorId = uuidv4();
+      const { eServiceId, organizationId, requesterId, descriptorId } = ids();
       const updatedDescriptor = buildDescriptorSeed();
       updatedDescriptor.dailyCallsTotal = 200;
       await addOneEService({
@@ -552,4 +522,12 @@ describe("database test", async () => {
         [eServiceId]
       )
     )[0];
+
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const ids = () => ({
+    eServiceId: uuidv4(),
+    organizationId: uuidv4(),
+    descriptorId: uuidv4(),
+    requesterId: uuidv4(),
+  });
 });
