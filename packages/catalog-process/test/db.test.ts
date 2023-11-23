@@ -274,7 +274,7 @@ describe("database test", async () => {
       });
       await catalogService.createDescriptor(
         eServiceId,
-        buildDescriptorSeed,
+        buildDescriptorSeed(),
         buildAuthData(organizationId)
       );
     });
@@ -289,7 +289,7 @@ describe("database test", async () => {
         async () =>
           await catalogService.createDescriptor(
             eServiceId,
-            buildDescriptorSeed,
+            buildDescriptorSeed(),
             buildAuthData(organizationId)
           )
       ).rejects.toThrowError(draftDescriptorAlreadyExists(eServiceId));
@@ -302,7 +302,7 @@ describe("database test", async () => {
         async () =>
           await catalogService.createDescriptor(
             eServiceId,
-            buildDescriptorSeed,
+            buildDescriptorSeed(),
             buildAuthData(organizationId)
           )
       ).rejects.toThrowError(eServiceNotFound(eServiceId));
@@ -319,7 +319,7 @@ describe("database test", async () => {
         async () =>
           await catalogService.createDescriptor(
             eServiceId,
-            buildDescriptorSeed,
+            buildDescriptorSeed(),
             buildAuthData(requesterId)
           )
       ).rejects.toThrowError(operationForbidden);
@@ -375,6 +375,68 @@ describe("database test", async () => {
           await catalogService.deleteDraftDescriptor(
             eServiceId,
             descriptorId,
+            buildAuthData(requesterId)
+          )
+      ).rejects.toThrowError(operationForbidden);
+    });
+  });
+  describe("update descriptor", () => {
+    it("should write on event-store for the update of a descriptor", async () => {
+      const eServiceId = uuidv4();
+      const organizationId = uuidv4();
+      const descriptorId = uuidv4();
+      const updatedDescriptor = buildDescriptorSeed();
+      updatedDescriptor.dailyCallsTotal = 200;
+      await addOneEService({
+        id: eServiceId,
+        producerId: organizationId,
+        descriptorId,
+      });
+      await catalogService.updateDescriptor(
+        eServiceId,
+        descriptorId,
+        updatedDescriptor,
+        buildAuthData(organizationId)
+      );
+      const writtenEvent = await readLastEventByStreamId(eServiceId);
+      expect(writtenEvent.stream_id).toBe(eServiceId);
+      expect(writtenEvent.version).toBe("1");
+      expect(writtenEvent.type).toBe("EServiceUpdated");
+    });
+    it("should throw an error if the eService doesn't exist", () => {
+      const eServiceId = uuidv4();
+      const organizationId = uuidv4();
+      const descriptorId = uuidv4();
+      const updatedDescriptor = buildDescriptorSeed();
+      updatedDescriptor.dailyCallsTotal = 200;
+      expect(
+        async () =>
+          await catalogService.updateDescriptor(
+            eServiceId,
+            descriptorId,
+            updatedDescriptor,
+            buildAuthData(organizationId)
+          )
+      ).rejects.toThrowError(eServiceNotFound(eServiceId));
+    });
+    it("should throw an error if the requester is not allowed", async () => {
+      const eServiceId = uuidv4();
+      const organizationId = uuidv4();
+      const requesterId = uuidv4();
+      const descriptorId = uuidv4();
+      const updatedDescriptor = buildDescriptorSeed();
+      updatedDescriptor.dailyCallsTotal = 200;
+      await addOneEService({
+        id: eServiceId,
+        producerId: organizationId,
+        descriptorId,
+      });
+      expect(
+        async () =>
+          await catalogService.updateDescriptor(
+            eServiceId,
+            descriptorId,
+            updatedDescriptor,
             buildAuthData(requesterId)
           )
       ).rejects.toThrowError(operationForbidden);
@@ -491,18 +553,18 @@ describe("database test", async () => {
     userRoles: [],
   });
 
-  const buildDescriptorSeed: EServiceDescriptorSeed = {
+  const buildDescriptorSeed = (): EServiceDescriptorSeed => ({
     audience: [],
     voucherLifespan: 0,
-    dailyCallsPerConsumer: 0,
-    dailyCallsTotal: 0,
+    dailyCallsPerConsumer: 10,
+    dailyCallsTotal: 100,
     agreementApprovalPolicy: "AUTOMATIC",
     attributes: {
       certified: [],
       declared: [],
       verified: [],
     },
-  };
+  });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const readLastEventByStreamId = async (eServiceId: string): Promise<any> =>
