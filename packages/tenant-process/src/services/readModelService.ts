@@ -3,12 +3,18 @@ import { logger, ReadModelRepository } from "pagopa-interop-commons";
 import { genericError, WithMetadata } from "pagopa-interop-models";
 import { Tenant } from "pagopa-interop-models";
 import { config } from "../utilities/config.js";
-import { MongoDBFilter } from "../utilities/types.js";
-
 const { tenants } = ReadModelRepository.init(config);
 
+type TenantInput =
+  | { "data.id": string }
+  | {
+      "data.externalId.value": string;
+      "data.externalId.origin": string;
+    }
+  | { "data.selfcareId": string };
+
 async function getTenant(
-  filter: MongoDBFilter<Tenant>
+  filter: TenantInput
 ): Promise<WithMetadata<Tenant> | undefined> {
   const data = await tenants.findOne(filter, {
     projection: { data: true, metadata: true },
