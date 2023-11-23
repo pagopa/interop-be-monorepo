@@ -10,13 +10,11 @@ import {
   TenantKind,
   TenantMail,
   WithMetadata,
-  attributeKind,
   tenantAttributeType,
   tenantDuplicate,
   tenantEventToBinaryData,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
-import { match } from "ts-pattern";
 import { config } from "../utilities/config.js";
 import {
   toCreateEventTenantAdded,
@@ -55,27 +53,12 @@ export const tenantService = {
     const attributes = await readModelService.getAttributesByExternalIds(
       attributesExternalIds
     );
-    const tenantAttributes: TenantAttribute[] = attributes.map((attribute) =>
-      match(attribute.data.kind)
-        .with(attributeKind.certified, () => ({
-          type: tenantAttributeType.CERTIFIED,
-          id: attribute.data.id,
-          assignmentTimestamp: new Date(),
-        }))
-        .with(attributeKind.verified, () => ({
-          type: tenantAttributeType.VERIFIED,
-          id: attribute.data.id,
-          assignmentTimestamp: new Date(),
-          verifiedBy: [],
-          revokedBy: [],
-        }))
-        .with(attributeKind.declared, () => ({
-          type: tenantAttributeType.DECLARED,
-          id: attribute.data.id,
-          assignmentTimestamp: new Date(),
-        }))
-        .exhaustive()
-    );
+    const tenantAttributes: TenantAttribute[] = attributes.map((attribute) => ({
+      type: tenantAttributeType.CERTIFIED, // All attributes here are certified
+      id: attribute.data.id,
+      assignmentTimestamp: new Date(),
+    }));
+
     return repository.createEvent(
       createTenantLogic({
         tenant: await readModelService.getTenantByName(apiTenantSeed.name),
@@ -184,7 +167,7 @@ export async function updateTenantLogic({
 
   const newTenant: Tenant = {
     ...tenant.data,
-    ...(selfcareId && { selfcareId }),
+    selfcareId,
     features,
     mails,
     kind,
