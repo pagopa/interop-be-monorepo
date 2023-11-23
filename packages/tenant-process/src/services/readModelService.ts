@@ -5,7 +5,7 @@ import { Tenant } from "pagopa-interop-models";
 import { config } from "../utilities/config.js";
 const { tenants } = ReadModelRepository.init(config);
 
-type TenantInput =
+type TenantFilter =
   | { "data.id": string }
   | {
       "data.externalId.value": string;
@@ -14,7 +14,7 @@ type TenantInput =
   | { "data.selfcareId": string };
 
 async function getTenant(
-  filter: TenantInput
+  filter: TenantFilter
 ): Promise<WithMetadata<Tenant> | undefined> {
   const data = await tenants.findOne(filter, {
     projection: { data: true, metadata: true },
