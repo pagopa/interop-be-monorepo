@@ -18,27 +18,27 @@ async function getAttribute(
   const data = await attributes.findOne(filter, {
     projection: { data: true, metadata: true },
   });
-  if (data) {
-    const result = z
-      .object({
-        metadata: z.object({ version: z.number() }),
-        data: Attribute,
-      })
-      .safeParse(data);
-    if (!result.success) {
-      logger.error(
-        `Unable to parse attribute item: result ${JSON.stringify(
-          result
-        )} - data ${JSON.stringify(data)} `
-      );
-      throw genericError("Unable to parse attributes items");
-    }
-    return {
-      data: result.data.data,
-      metadata: { version: result.data.metadata.version },
-    };
+  if (!data) {
+    return undefined;
   }
-  return undefined;
+  const result = z
+    .object({
+      metadata: z.object({ version: z.number() }),
+      data: Attribute,
+    })
+    .safeParse(data);
+  if (!result.success) {
+    logger.error(
+      `Unable to parse attribute item: result ${JSON.stringify(
+        result
+      )} - data ${JSON.stringify(data)} `
+    );
+    throw genericError("Unable to parse attributes items");
+  }
+  return {
+    data: result.data.data,
+    metadata: { version: result.data.metadata.version },
+  };
 }
 
 async function getAttributes({
