@@ -1,19 +1,19 @@
-import { match } from "ts-pattern";
 import { CreateEvent } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementDocument,
   AgreementDocumentV1,
   AgreementEvent,
+  AgreementStamp,
+  AgreementStamps,
   AgreementState,
   AgreementStateV1,
   AgreementV1,
-  AgreementStamp,
   StampV1,
-  AgreementStamps,
   StampsV1,
   AgreementUpdateEvent,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 
 export const toAgreementStateV1 = (state: AgreementState): AgreementStateV1 =>
   match(state)

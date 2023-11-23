@@ -5,6 +5,7 @@ import {
   AgreementAddedV1,
   AgreementConsumerDocumentAddedV1,
   AgreementDeletedV1,
+  AgreementUpdatedV1,
 } from "pagopa-interop-models";
 import { KafkaMessage } from "kafkajs";
 
@@ -25,7 +26,11 @@ const Event = z.discriminatedUnion("type", [
   }),
   z.object({
     type: z.literal("AgreementUpdated"),
-    data: protobufDecoder(AgreementAddedV1),
+    data: protobufDecoder(AgreementUpdatedV1),
+  }),
+  z.object({
+    type: z.literal("AgreementConsumerDocumentAdded"),
+    data: protobufDecoder(AgreementConsumerDocumentAddedV1),
   }),
   z.object({
     type: z.literal("AgreementConsumerDocumentAdded"),
