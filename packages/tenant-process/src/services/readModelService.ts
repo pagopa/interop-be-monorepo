@@ -1,6 +1,3 @@
-/* eslint-disable no-constant-condition */
-/* eslint-disable functional/no-let */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { logger, ReadModelRepository } from "pagopa-interop-commons";
 import {
   WithMetadata,
@@ -42,9 +39,12 @@ const getAllAgreements = async (
   agreementStates: AgreementState[]
 ): Promise<Agreement[]> => {
   const limit = 50;
+  // eslint-disable-next-line functional/no-let
   let offset = 0;
+  // eslint-disable-next-line functional/no-let
   let results: Agreement[] = [];
 
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     const agreementsChunk = await getAgreementsConst(
       producerId,
@@ -103,7 +103,9 @@ async function getAttributeByExternalId(
     { projection: { data: true, metadata: true } }
   );
 
-  if (data) {
+  if (!data) {
+    throw attributeNotFound(`${externalId.origin}/${externalId.value}`);
+  } else {
     const result = z
       .object({
         metadata: z.object({ version: z.number() }),
@@ -125,8 +127,6 @@ async function getAttributeByExternalId(
       data: result.data.data,
       metadata: { version: result.data.metadata.version },
     };
-  } else {
-    throw attributeNotFound(`${externalId.origin}/${externalId.value}`);
   }
 }
 
@@ -138,7 +138,9 @@ async function getAttributeById(
     { projection: { data: true, metadata: true } }
   );
 
-  if (data) {
+  if (!data) {
+    throw attributeNotFound(attributeId);
+  } else {
     const result = z
       .object({
         metadata: z.object({ version: z.number() }),
@@ -160,8 +162,6 @@ async function getAttributeById(
       data: result.data.data,
       metadata: { version: result.data.metadata.version },
     };
-  } else {
-    throw attributeNotFound(attributeId);
   }
 }
 
@@ -200,7 +200,9 @@ export const readModelService = {
       { projection: { data: true, metadata: true } }
     );
 
-    if (data) {
+    if (!data) {
+      return undefined;
+    } else {
       const result = z
         .object({
           metadata: z.object({ version: z.number() }),
@@ -223,8 +225,6 @@ export const readModelService = {
         metadata: { version: result.data.metadata.version },
       };
     }
-
-    return undefined;
   },
 
   async getTenantById(
@@ -235,7 +235,9 @@ export const readModelService = {
       { projection: { data: true, metadata: true } }
     );
 
-    if (data) {
+    if (!data) {
+      return undefined;
+    } else {
       const result = z
         .object({
           metadata: z.object({ version: z.number() }),
@@ -258,7 +260,6 @@ export const readModelService = {
         metadata: { version: result.data.metadata.version },
       };
     }
-    return undefined;
   },
 
   async getTenantByName(
@@ -275,7 +276,9 @@ export const readModelService = {
         projection: { data: true, metadata: true },
       }
     );
-    if (data) {
+    if (!data) {
+      return undefined;
+    } else {
       const result = z
         .object({
           metadata: z.object({ version: z.number() }),
@@ -295,6 +298,5 @@ export const readModelService = {
         metadata: { version: result.data.metadata.version },
       };
     }
-    return undefined;
   },
 };

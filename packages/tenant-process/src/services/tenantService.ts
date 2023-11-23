@@ -27,7 +27,7 @@ import {
   attributeNotFound,
   tenantDuplicate,
 } from "../model/domain/errors.js";
-import { assertTenantExist } from "./validators.js";
+import { assertAttributeExists, assertTenantExist } from "./validators.js";
 import { readModelService } from "./readModelService.js";
 
 const repository = eventRepository(
@@ -125,7 +125,7 @@ export async function updateTenantAttributeLogic({
 }): Promise<CreateEvent<TenantEvent>> {
   const tenant = await readModelService.getTenantById(tenantId);
   assertTenantExist(tenantId, tenant);
-
+  assertAttributeExists(attributeId, tenant.data.attributes);
   const attributeExists = tenant.data.attributes.some(
     (attribute) => attribute.id === attributeId
   );
