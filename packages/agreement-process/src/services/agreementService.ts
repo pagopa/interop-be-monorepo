@@ -312,13 +312,13 @@ export async function upgradeAgreementLogic({
   authData,
   agreementToBeUpgraded,
   tenant,
-  eservice,
+  getEService,
 }: {
   agreementId: string;
   authData: AuthData;
   agreementToBeUpgraded: WithMetadata<Agreement> | undefined;
   tenant: WithMetadata<Tenant> | undefined;
-  eservice: WithMetadata<EService> | undefined;
+  getEService: () => Promise<WithMetadata<EService> | undefined>;
 }): Promise<Array<CreateEvent<AgreementEvent>>> {
   assertTenantExist(authData.organizationId, tenant);
   assertAgreementExist(agreementId, agreementToBeUpgraded);
@@ -338,6 +338,7 @@ export async function upgradeAgreementLogic({
     upgradableStates
   );
 
+  const eservice = await getEService();
   assertEServiceExist(agreementToBeUpgraded.data.eserviceId, eservice);
 
   const descriptor = eservice.data.descriptors.find(
