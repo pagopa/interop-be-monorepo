@@ -94,8 +94,19 @@ const agreementRouter = (
 
   agreementRouter.post(
     "/agreements/:agreementId/consumer-documents",
-    async (_req, res) => {
-      res.status(501).send();
+    authorizationMiddleware([ADMIN_ROLE]),
+    async (req, res) => {
+      try {
+        const id = await agreementService.addConsumerDocument(
+          req.params.agreementId,
+          req.body
+        );
+
+        return res.status(200).json({ id }).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, createAgreementErrorMapper);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
     }
   );
 
