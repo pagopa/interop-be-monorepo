@@ -1,0 +1,14 @@
+syntax = "proto2";
+
+package attribute;
+
+import "v1/attribute/attribute.proto";
+
+message StateV1 {
+  repeated StateEntryV1 attributes = 1;
+}
+
+message StateEntryV1 {
+  required string key = 1;
+  required AttributeV1 value = 2;
+}
