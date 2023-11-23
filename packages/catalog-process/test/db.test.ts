@@ -103,16 +103,16 @@ describe("database test", async () => {
         id: uuidv4(),
         producerId: organizationId,
       });
-      expect(async () => {
-        await catalogService.createEService(
+      expect(
+        catalogService.createEService(
           {
             name: "name",
             description: "description",
             technology: "REST",
           },
           buildAuthData(organizationId)
-        );
-      }).rejects.toThrowError(eServiceDuplicate("name"));
+        )
+      ).rejects.toThrowError(eServiceDuplicate("name"));
     });
   });
 
@@ -143,16 +143,15 @@ describe("database test", async () => {
       const eServiceId = uuidv4();
       const organizationId = uuidv4();
       expect(
-        async () =>
-          await catalogService.updateEService(
-            eServiceId,
-            {
-              name: "name",
-              description: "description",
-              technology: "REST",
-            },
-            buildAuthData(organizationId)
-          )
+        catalogService.updateEService(
+          eServiceId,
+          {
+            name: "name",
+            description: "description",
+            technology: "REST",
+          },
+          buildAuthData(organizationId)
+        )
       ).rejects.toThrowError(eServiceNotFound(eServiceId));
     });
     it("should throw an error if the requester is not allowed", async () => {
@@ -164,16 +163,15 @@ describe("database test", async () => {
         producerId: organizationId,
       });
       expect(
-        async () =>
-          await catalogService.updateEService(
-            eServiceId,
-            {
-              name: "name",
-              description: "description",
-              technology: "REST",
-            },
-            buildAuthData(requesterId)
-          )
+        catalogService.updateEService(
+          eServiceId,
+          {
+            name: "name",
+            description: "description",
+            technology: "REST",
+          },
+          buildAuthData(requesterId)
+        )
       ).rejects.toThrowError(operationForbidden);
     });
     it("should throw an error if the eservice's descriptor is not in draft", async () => {
@@ -185,16 +183,15 @@ describe("database test", async () => {
         draftDescriptor: false,
       });
       expect(
-        async () =>
-          await catalogService.updateEService(
-            eServiceId,
-            {
-              name: "name",
-              description: "description",
-              technology: "REST",
-            },
-            buildAuthData(organizationId)
-          )
+        catalogService.updateEService(
+          eServiceId,
+          {
+            name: "name",
+            description: "description",
+            technology: "REST",
+          },
+          buildAuthData(organizationId)
+        )
       ).rejects.toThrowError(eServiceCannotBeUpdated(eServiceId));
     });
   });
@@ -223,11 +220,7 @@ describe("database test", async () => {
       const organizationId = uuidv4();
 
       expect(
-        async () =>
-          await catalogService.deleteEService(
-            eServiceId,
-            buildAuthData(organizationId)
-          )
+        catalogService.deleteEService(eServiceId, buildAuthData(organizationId))
       ).rejects.toThrowError(eServiceNotFound(eServiceId));
     });
     it("should throw an error if the requester is not allowed", async () => {
@@ -239,11 +232,7 @@ describe("database test", async () => {
         producerId: organizationId,
       });
       expect(
-        async () =>
-          await catalogService.deleteEService(
-            eServiceId,
-            buildAuthData(requesterId)
-          )
+        catalogService.deleteEService(eServiceId, buildAuthData(requesterId))
       ).rejects.toThrowError(operationForbidden);
     });
     it("should throw an error if the eService has a descriptor", async () => {
@@ -254,11 +243,7 @@ describe("database test", async () => {
         producerId: organizationId,
       });
       expect(
-        async () =>
-          await catalogService.deleteEService(
-            eServiceId,
-            buildAuthData(organizationId)
-          )
+        catalogService.deleteEService(eServiceId, buildAuthData(organizationId))
       ).rejects.toThrowError(eServiceCannotBeDeleted(eServiceId));
     });
   });
@@ -286,12 +271,11 @@ describe("database test", async () => {
         producerId: organizationId,
       });
       expect(
-        async () =>
-          await catalogService.createDescriptor(
-            eServiceId,
-            buildDescriptorSeed(),
-            buildAuthData(organizationId)
-          )
+        catalogService.createDescriptor(
+          eServiceId,
+          buildDescriptorSeed(),
+          buildAuthData(organizationId)
+        )
       ).rejects.toThrowError(draftDescriptorAlreadyExists(eServiceId));
     });
     it("should throw an error if the eService doesn't exist", async () => {
@@ -299,12 +283,11 @@ describe("database test", async () => {
       const organizationId = uuidv4();
 
       expect(
-        async () =>
-          await catalogService.createDescriptor(
-            eServiceId,
-            buildDescriptorSeed(),
-            buildAuthData(organizationId)
-          )
+        catalogService.createDescriptor(
+          eServiceId,
+          buildDescriptorSeed(),
+          buildAuthData(organizationId)
+        )
       ).rejects.toThrowError(eServiceNotFound(eServiceId));
     });
     it("should throw an error if the requester is not allowed", async () => {
@@ -316,12 +299,11 @@ describe("database test", async () => {
         producerId: organizationId,
       });
       expect(
-        async () =>
-          await catalogService.createDescriptor(
-            eServiceId,
-            buildDescriptorSeed(),
-            buildAuthData(requesterId)
-          )
+        catalogService.createDescriptor(
+          eServiceId,
+          buildDescriptorSeed(),
+          buildAuthData(requesterId)
+        )
       ).rejects.toThrowError(operationForbidden);
     });
   });
@@ -352,12 +334,11 @@ describe("database test", async () => {
       const descriptorId = uuidv4();
 
       expect(
-        async () =>
-          await catalogService.deleteDraftDescriptor(
-            eServiceId,
-            descriptorId,
-            buildAuthData(organizationId)
-          )
+        catalogService.deleteDraftDescriptor(
+          eServiceId,
+          descriptorId,
+          buildAuthData(organizationId)
+        )
       ).rejects.toThrowError(eServiceNotFound(eServiceId));
     });
     it("should throw an error if the requester is not allowed", async () => {
@@ -371,12 +352,11 @@ describe("database test", async () => {
         descriptorId,
       });
       expect(
-        async () =>
-          await catalogService.deleteDraftDescriptor(
-            eServiceId,
-            descriptorId,
-            buildAuthData(requesterId)
-          )
+        catalogService.deleteDraftDescriptor(
+          eServiceId,
+          descriptorId,
+          buildAuthData(requesterId)
+        )
       ).rejects.toThrowError(operationForbidden);
     });
   });
@@ -410,13 +390,12 @@ describe("database test", async () => {
       const updatedDescriptor = buildDescriptorSeed();
       updatedDescriptor.dailyCallsTotal = 200;
       expect(
-        async () =>
-          await catalogService.updateDescriptor(
-            eServiceId,
-            descriptorId,
-            updatedDescriptor,
-            buildAuthData(organizationId)
-          )
+        catalogService.updateDescriptor(
+          eServiceId,
+          descriptorId,
+          updatedDescriptor,
+          buildAuthData(organizationId)
+        )
       ).rejects.toThrowError(eServiceNotFound(eServiceId));
     });
     it("should throw an error if the requester is not allowed", async () => {
@@ -432,13 +411,12 @@ describe("database test", async () => {
         descriptorId,
       });
       expect(
-        async () =>
-          await catalogService.updateDescriptor(
-            eServiceId,
-            descriptorId,
-            updatedDescriptor,
-            buildAuthData(requesterId)
-          )
+        catalogService.updateDescriptor(
+          eServiceId,
+          descriptorId,
+          updatedDescriptor,
+          buildAuthData(requesterId)
+        )
       ).rejects.toThrowError(operationForbidden);
     });
   });
