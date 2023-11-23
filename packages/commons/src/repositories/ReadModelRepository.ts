@@ -2,8 +2,8 @@ import {
   Agreement,
   Attribute,
   EService,
-  ErrorTypes,
   Tenant,
+  genericError,
 } from "pagopa-interop-models";
 import { Collection, Db, MongoClient } from "mongodb";
 import { z } from "zod";
@@ -95,6 +95,6 @@ export class ReadModelRepository {
         result
       )} - data ${JSON.stringify(data)} `
     );
-    throw ErrorTypes.GenericError;
+    throw genericError("Unable to get total count from aggregation pipeline");
   }
 }

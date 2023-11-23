@@ -8,10 +8,10 @@ import {
 import {
   AttributeKind,
   Attribute,
-  ErrorTypes,
   WithMetadata,
+  ListResult,
+  genericError,
 } from "pagopa-interop-models";
-import { ListResult } from "../model/types.js";
 import { AttributeRegistryConfig } from "../utilities/config.js";
 
 export class ReadModelService {
@@ -155,7 +155,7 @@ export class ReadModelService {
             result
           )} - data ${JSON.stringify(data)} `
         );
-        throw ErrorTypes.GenericError;
+        throw genericError("Unable to parse attribute item");
       }
       return {
         data: result.data.data,
@@ -184,7 +184,7 @@ export class ReadModelService {
           result
         )} - data ${JSON.stringify(data)} `
       );
-      throw ErrorTypes.GenericError;
+      throw genericError("Unable to parse attribute items");
     }
     return {
       results: result.data,

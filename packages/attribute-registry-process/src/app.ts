@@ -1,4 +1,3 @@
-import { Response } from "express";
 import {
   contextDataMiddleware,
   globalContextMiddleware,
@@ -8,7 +7,6 @@ import {
 } from "pagopa-interop-commons";
 import attributeRouter from "./routers/AttributeRouter.js";
 import healthRouter from "./routers/HealthRouter.js";
-import { ApiError, makeApiError } from "./model/types.js";
 
 const app = zodiosCtx.app();
 
@@ -22,13 +20,7 @@ app.use(loggerMiddleware);
 // NOTE(gabro): the order is relevant, authMiddleware must come *after* the routes
 // we want to be unauthenticated.
 app.use(healthRouter);
-app.use(
-  // The following callback handles generic authorization errors with current service behaviour
-  authenticationMiddleware((error: unknown, res: Response) => {
-    const apiError: ApiError = makeApiError(error);
-    res.status(apiError.status).json(apiError).end();
-  })
-);
+app.use(authenticationMiddleware());
 app.use(attributeRouter(zodiosCtx));
 
 export default app;

@@ -8,9 +8,7 @@ import {
   AttributeEvent,
   Attribute,
   WithMetadata,
-  attributeDuplicate,
   attributeEventToBinaryData,
-  originNotCompliant,
   attributeKind,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
@@ -20,6 +18,10 @@ import {
   ApiVerifiedAttributeSeed,
 } from "../model/types.js";
 import { toCreateEventAttributeAdded } from "../model/domain/toEvent.js";
+import {
+  attributeDuplicate,
+  originNotCompliant,
+} from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
 export class AttributeRegistryService {
