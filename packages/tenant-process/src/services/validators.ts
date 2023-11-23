@@ -12,7 +12,11 @@ import {
   operationForbidden,
   tenantKind,
 } from "pagopa-interop-models";
-import { eServiceNotFound, tenantNotFound } from "../model/domain/errors.js";
+import {
+  attributeNotFound,
+  eServiceNotFound,
+  tenantNotFound,
+} from "../model/domain/errors.js";
 import { readModelService } from "./readModelService.js";
 
 export function assertTenantExist(
@@ -21,6 +25,15 @@ export function assertTenantExist(
 ): asserts tenant is NonNullable<WithMetadata<Tenant>> {
   if (tenant === undefined) {
     throw tenantNotFound(tenantId);
+  }
+}
+
+export function assertAttributeExists(
+  attributeId: string,
+  attributes: TenantAttribute[]
+): asserts attributes is NonNullable<TenantAttribute[]> {
+  if (!attributes.some((attr) => attr.id === attributeId)) {
+    throw attributeNotFound(attributeId);
   }
 }
 
