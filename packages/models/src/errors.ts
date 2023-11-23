@@ -70,14 +70,6 @@ export function makeApiProblem(error: unknown): Problem {
     .otherwise(() => makeProblem(genericError("Unexpected error")));
 }
 
-/* 
-export function originNotCompliant(origin: string): AttributeProcessError {
-  return new AttributeProcessError(
-    `Requester has not origin ${origin}`,
-    ErrorTypes.OriginNotCompliant
-  );
-}
-*/
 const errorCodes = {
   authenticationSaslFailed: "9000",
   operationForbidden: "9989",
