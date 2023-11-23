@@ -2,7 +2,7 @@ import { z } from "zod";
 import { logger, ReadModelRepository } from "pagopa-interop-commons";
 import {
   agreementState,
-  ErrorTypes,
+  genericError,
   ListResult,
   Tenant,
 } from "pagopa-interop-models";
@@ -53,7 +53,7 @@ export const getTenants = async ({
         result
       )} - data ${JSON.stringify(data)} `
     );
-    throw ErrorTypes.GenericError;
+    throw genericError("Unable to parse tenants items");
   }
   return {
     results: result.data,
