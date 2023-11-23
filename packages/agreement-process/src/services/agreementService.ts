@@ -4,6 +4,7 @@ import {
   CreateEvent,
   DB,
   eventRepository,
+  getContext,
   initFileManager,
   logger,
 } from "pagopa-interop-commons";
@@ -26,16 +27,20 @@ import {
   descriptorNotFound,
   noNewerDescriptor,
   unexpectedVersionFormat,
+  publishedDescriptorNotFound,
+  agreementDocumentAlreadyExists,
+  agreementNotFound,
 } from "../model/domain/errors.js";
+
 import {
   toCreateEventAgreementAdded,
   toCreateEventAgreementConsumerDocumentAdded,
   toCreateEventAgreementDeleted,
   toCreateEventAgreementUpdated,
 } from "../model/domain/toEvent.js";
-import { publishedDescriptorNotFound } from "../model/domain/errors.js";
 import {
   assertAgreementExist,
+  assertCanWorkOnConsumerDocuments,
   assertEServiceExist,
   assertExpectedState,
   assertRequesterIsConsumer,
@@ -51,8 +56,10 @@ import {
   ApiAgreementPayload,
   ApiAgreementSubmissionPayload,
   ApiAgreementUpdatePayload,
+  ApiAgreementDocumentSeed,
 } from "../model/types.js";
 import { config } from "../utilities/config.js";
+import { apiAgreementDocumentToAgreementDocument } from "../model/domain/apiConverter.js";
 import { contractBuilder } from "./agreementContractBuilder.js";
 import { submitAgreementLogic } from "./agreementSubmissionProcessor.js";
 import { AgreementQuery } from "./readmodel/agreementQuery.js";
@@ -172,6 +179,19 @@ export function agreementServiceBuilder(
       for (const event of events) {
         await repository.createEvent(event);
       }
+    },
+    async addConsumerDocument(
+      agreementId: string,
+      documentSeed: ApiAgreementDocumentSeed
+    ): Promise<string> {
+      logger.info(`Adding a consumer document to agreement ${agreementId}`);
+
+      const addDocumentEvent = await addConsumerDocumentLogic(
+        agreementId,
+        documentSeed,
+        agreementQuery
+      );
+      return await repository.createEvent(addDocumentEvent);
     },
   };
 }
@@ -498,4 +518,33 @@ export async function upgradeAgreementLogic({
 
     return [createEvent, ...docEvents];
   }
+}
+
+export async function addConsumerDocumentLogic(
+  agreementId: string,
+  payload: ApiAgreementDocumentSeed,
+  agreementQuery: AgreementQuery
+): Promise<CreateEvent<AgreementEvent>> {
+  const { organizationId } = getContext().authData;
+  const agreement = await agreementQuery.getAgreementById(agreementId);
+  if (!agreement) {
+    throw agreementNotFound(agreementId);
+  }
+
+  assertRequesterIsConsumer(organizationId, agreement.data.consumerId);
+  assertCanWorkOnConsumerDocuments(agreement.data.state);
+
+  const existentDocument = agreement.data.consumerDocuments.find(
+    (d) => d.id === payload.id
+  );
+
+  if (existentDocument) {
+    throw agreementDocumentAlreadyExists(agreementId);
+  }
+
+  return toCreateEventAgreementConsumerDocumentAdded(
+    agreementId,
+    apiAgreementDocumentToAgreementDocument(payload),
+    agreement.metadata.version
+  );
 }

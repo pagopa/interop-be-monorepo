@@ -28,6 +28,7 @@ import {
   agreementSubmissionFailed,
   descriptorNotInExpectedState,
   eServiceNotFound,
+  documentsChangeNotAllowed,
   missingCertifiedAttributesError,
   notLatestEServiceDescriptor,
   operationNotAllowed,
@@ -95,6 +96,13 @@ export function assertTenantExist(
     throw tenantIdNotFound(tenantId);
   }
 }
+export const assertCanWorkOnConsumerDocuments = (
+  state: AgreementState
+): void => {
+  if (state !== agreementState.draft && state !== agreementState.pending) {
+    throw documentsChangeNotAllowed(state);
+  }
+};
 
 /* =========  VALIDATIONS ========= */
 
