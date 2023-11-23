@@ -6,7 +6,9 @@ import {
   Tenant,
   TenantAttribute,
   TenantEvent,
+  TenantFeature,
   TenantKind,
+  TenantMail,
   WithMetadata,
   attributeKind,
   tenantAttributeType,
@@ -94,16 +96,40 @@ export const tenantService = {
     }
 
     return await repository.createEvent(
-      await updateTenantLogic({
+      await updateTenantAttributeLogic({
         tenantId,
         attributeId,
         newAttribute,
       })
     );
   },
+
+  async updateTenant({
+    tenantId,
+    selfcareId,
+    features,
+    mails,
+    kind,
+  }: {
+    tenantId: string;
+    selfcareId: string | undefined;
+    features: TenantFeature[];
+    mails: TenantMail[];
+    kind: TenantKind;
+  }): Promise<string> {
+    return await repository.createEvent(
+      await updateTenantLogic({
+        tenantId,
+        selfcareId,
+        features,
+        mails,
+        kind,
+      })
+    );
+  },
 };
 
-export async function updateTenantLogic({
+export async function updateTenantAttributeLogic({
   tenantId,
   attributeId,
   newAttribute,
@@ -130,6 +156,38 @@ export async function updateTenantLogic({
   const newTenant: Tenant = {
     ...tenant.data,
     attributes: updatedAttributes,
+    updatedAt: new Date(),
+  };
+
+  return toCreateEventTenantUpdated(
+    tenantId,
+    tenant.metadata.version,
+    newTenant
+  );
+}
+
+export async function updateTenantLogic({
+  tenantId,
+  selfcareId,
+  features,
+  mails,
+  kind,
+}: {
+  tenantId: string;
+  selfcareId: string | undefined;
+  features: TenantFeature[];
+  mails: TenantMail[];
+  kind: TenantKind;
+}): Promise<CreateEvent<TenantEvent>> {
+  const tenant = await readModelService.getTenantById(tenantId);
+  assertTenantExist(tenantId, tenant);
+
+  const newTenant: Tenant = {
+    ...tenant.data,
+    ...(selfcareId && { selfcareId }),
+    features,
+    mails,
+    kind,
     updatedAt: new Date(),
   };
 
