@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { ZodiosRouterContextRequestHandler } from "@zodios/express";
 import {
-  errorCodes,
-  makeApiProblem,
+  makeApiProblemBuilder,
   missingBearer,
   missingClaim,
   missingHeader,
@@ -14,6 +13,8 @@ import { logger } from "../logging/index.js";
 import { AuthData } from "./authData.js";
 import { Headers } from "./headers.js";
 import { readAuthDataFromJwtToken, verifyJwtToken } from "./jwt.js";
+
+const makeApiProblem = makeApiProblemBuilder({});
 
 export const authenticationMiddleware: () => ZodiosRouterContextRequestHandler<ExpressContext> =
   () => {
@@ -103,9 +104,9 @@ export const authenticationMiddleware: () => ZodiosRouterContextRequestHandler<E
       } catch (error) {
         const problem = makeApiProblem(error, (err) =>
           match(err.code)
-            .with(errorCodes.unauthorizedError, () => 401)
-            .with(errorCodes.operationForbidden, () => 403)
-            .with(errorCodes.missingHeader, () => 400)
+            .with("unauthorizedError", () => 401)
+            .with("operationForbidden", () => 403)
+            .with("missingHeader", () => 400)
             .otherwise(() => 500)
         );
         return res.status(problem.status).json(problem).end();

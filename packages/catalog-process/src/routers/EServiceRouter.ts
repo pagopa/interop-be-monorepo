@@ -1,6 +1,5 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
-import { makeApiProblem } from "pagopa-interop-models";
 import {
   ExpressContext,
   userRoles,
@@ -20,6 +19,13 @@ import { api } from "../model/generated/api.js";
 import { config } from "../utilities/config.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { catalogServiceBuilder } from "../services/catalogService.js";
+import { catalogService } from "../services/catalogService.js";
+import { readModelService } from "../services/readModelService.js";
+import {
+  makeApiProblem,
+  eServiceNotFound,
+  eServiceDocumentNotFound,
+} from "../model/domain/errors.js";
 import {
   activateDescriptorErrorMapper,
   archiveDescriptorErrorMapper,

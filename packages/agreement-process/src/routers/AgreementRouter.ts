@@ -8,14 +8,12 @@ import {
   initDB,
   ReadModelRepository,
 } from "pagopa-interop-commons";
-import { makeApiProblem } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
 import {
   agreementToApiAgreement,
   apiAgreementStateToAgreementState,
 } from "../model/domain/apiConverter.js";
 import { config } from "../utilities/config.js";
-import { agreementNotFound } from "../model/domain/errors.js";
 import { agreementServiceBuilder } from "../services/agreementService.js";
 import { agreementQueryBuilder } from "../services/readmodel/agreementQuery.js";
 import { tenantQueryBuilder } from "../services/readmodel/tenantQuery.js";
@@ -25,8 +23,10 @@ import { readModelServiceBuilder } from "../services/readmodel/readModelService.
 import {
   createAgreementErrorMapper,
   deleteAgreementErrorMapper,
+  submitAgreementErrorMapper,
   updateAgreementErrorMapper,
 } from "../utilities/errorMappers.js";
+import { agreementNotFound, makeApiProblem } from "../model/domain/errors.js";
 
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
@@ -77,7 +77,7 @@ const agreementRouter = (
         );
         return res.status(200).json({ id }).end();
       } catch (error) {
-        const errorRes = makeApiProblem(error);
+        const errorRes = makeApiProblem(error, submitAgreementErrorMapper);
         return res.status(errorRes.status).json(errorRes).end();
       }
     }

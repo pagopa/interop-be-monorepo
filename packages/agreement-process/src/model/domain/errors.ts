@@ -1,6 +1,10 @@
-import { ApiError, DescriptorState } from "pagopa-interop-models";
+import {
+  ApiError,
+  DescriptorState,
+  makeApiProblemBuilder,
+} from "pagopa-interop-models";
 
-export const errorCodes = {
+const errorCodes = {
   missingCertifiedAttributesError: "0001",
   agreementSubmissionFailed: "0002",
   agreementNotInExpectedState: "0003",
@@ -18,26 +22,32 @@ export const errorCodes = {
   consumerWithNotValidEmail: "0024",
 };
 
-export function eServiceNotFound(eServiceId: string): ApiError {
+export type ErrorCodes = keyof typeof errorCodes;
+
+export const makeApiProblem = makeApiProblemBuilder(errorCodes);
+
+export function eServiceNotFound(eServiceId: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `EService ${eServiceId} not found`,
-    code: errorCodes.eServiceNotFound,
+    code: "eServiceNotFound",
     title: "EService not found",
   });
 }
 
-export function agreementNotFound(agreementId: string): ApiError {
+export function agreementNotFound(agreementId: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Agreement ${agreementId} not found`,
-    code: errorCodes.agreementNotFound,
+    code: "agreementNotFound",
     title: "Agreement not found",
   });
 }
 
-export function notLatestEServiceDescriptor(descriptorId: string): ApiError {
+export function notLatestEServiceDescriptor(
+  descriptorId: string
+): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Descriptor with descriptorId: ${descriptorId} is not the latest descriptor`,
-    code: errorCodes.notLatestEServiceDescriptor,
+    code: "notLatestEServiceDescriptor",
     title: "Descriptor provided is not the latest descriptor",
   });
 }
@@ -46,12 +56,12 @@ export function descriptorNotInExpectedState(
   eServiceId: string,
   descriptorId: string,
   allowedStates: DescriptorState[]
-): ApiError {
+): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Descriptor ${descriptorId} of EService ${eServiceId} has not status in ${allowedStates.join(
       ","
     )}`,
-    code: errorCodes.descriptorNotInExpectedState,
+    code: "descriptorNotInExpectedState",
     title: "Descriptor not in expected state",
   });
 }
@@ -59,10 +69,10 @@ export function descriptorNotInExpectedState(
 export function missingCertifiedAttributesError(
   descriptorId: string,
   consumerId: string
-): ApiError {
+): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Required certified attribute is missing. Descriptor ${descriptorId}, Consumer: ${consumerId}`,
-    code: errorCodes.missingCertifiedAttributesError,
+    code: "missingCertifiedAttributesError",
     title: `Required certified attribute is missing`,
   });
 }
@@ -70,18 +80,18 @@ export function missingCertifiedAttributesError(
 export function agreementAlreadyExists(
   consumerId: string,
   eServiceId: string
-): ApiError {
+): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Agreement already exists for Consumer = ${consumerId}, EService = ${eServiceId}`,
-    code: errorCodes.agreementAlreadyExists,
+    code: "agreementAlreadyExists",
     title: "Agreement already exists",
   });
 }
 
-export function operationNotAllowed(requesterId: string): ApiError {
+export function operationNotAllowed(requesterId: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Operation not allowed by ${requesterId}`,
-    code: errorCodes.operationNotAllowed,
+    code: "operationNotAllowed",
     title: "Operation not allowed",
   });
 }
@@ -89,18 +99,18 @@ export function operationNotAllowed(requesterId: string): ApiError {
 export function agreementNotInExpectedState(
   agreementId: string,
   state: string
-): ApiError {
+): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Agreement ${agreementId} not in expected state (current state: ${state})`,
-    code: errorCodes.agreementNotInExpectedState,
+    code: "agreementNotInExpectedState",
     title: "Agreement not in expected state",
   });
 }
 
-export function tenantIdNotFound(tenantId: string): ApiError {
+export function tenantIdNotFound(tenantId: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant ${tenantId} not found`,
-    code: errorCodes.tenantIdNotFound,
+    code: "tenantIdNotFound",
     title: "Tenant not found",
   });
 }
