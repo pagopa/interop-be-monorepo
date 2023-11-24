@@ -103,7 +103,7 @@ const tenantsRouter = (
           });
           return res.status(200).json({ id }).send();
         } catch (error) {
-          return res.status(501).send();
+          return res.status(500).send();
         }
       }
     )
