@@ -126,7 +126,7 @@ describe("AttributeResistryService", () => {
           creationTime: (
             event.event.data as unknown as { attribute: { creationTime: Date } }
           ).attribute.creationTime,
-          code: undefined,
+          code: mockCertifiedAttributeSeed.code,
           origin: "certifier",
         },
       });
