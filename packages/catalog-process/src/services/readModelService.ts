@@ -24,13 +24,6 @@ import { Consumer, consumer } from "../model/domain/models.js";
 
 const { eservices, agreements } = ReadModelRepository.init(readmodelDbConfig);
 
-function getConditionalFilter<T>(
-  condition: boolean,
-  filter: ReadModelFilter<T>
-): ReadModelFilter<T> {
-  return condition ? filter : {};
-}
-
 export const readModelService = {
   async getEServices(
     authData: AuthData,
@@ -63,7 +56,7 @@ export const readModelService = {
         ).map((a) => a.eserviceId)
       );
 
-    if (agreementStates.length > 0 && ids.length === 0) {
+    if (agreementStates && ids.length === 0) {
       return emptyListResult;
     }
 
@@ -80,13 +73,13 @@ export const readModelService = {
       {
         $match: {
           ...nameFilter,
-          ...getConditionalFilter(states.length > 0, {
+          ...ReadModelRepository.arrayToFilter(states, {
             "data.descriptors": { $elemMatch: { state: { $in: states } } },
           }),
-          ...getConditionalFilter(ids.length > 0, {
+          ...ReadModelRepository.arrayToFilter(ids, {
             "data.id": { $in: ids },
           }),
-          ...getConditionalFilter(producersIds.length > 0, {
+          ...ReadModelRepository.arrayToFilter(producersIds, {
             "data.producerId": { $in: producersIds },
           }),
         } satisfies ReadModelFilter<EService>,
@@ -286,16 +279,16 @@ export const readModelService = {
     const aggregationPipeline = [
       {
         $match: {
-          ...getConditionalFilter(eservicesIds.length > 0, {
+          ...ReadModelRepository.arrayToFilter(eservicesIds, {
             "data.eserviceId": { $in: eservicesIds },
           }),
-          ...getConditionalFilter(consumersIds.length > 0, {
+          ...ReadModelRepository.arrayToFilter(consumersIds, {
             "data.consumerId": { $in: consumersIds },
           }),
-          ...getConditionalFilter(producersIds.length > 0, {
+          ...ReadModelRepository.arrayToFilter(producersIds, {
             "data.producerId": { $in: producersIds },
           }),
-          ...getConditionalFilter(states.length > 0, {
+          ...ReadModelRepository.arrayToFilter(states, {
             "data.state": { $elemMatch: { state: { $in: states } } },
           }),
         } satisfies ReadModelFilter<Agreement>,

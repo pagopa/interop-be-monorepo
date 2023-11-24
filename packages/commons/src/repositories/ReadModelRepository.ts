@@ -139,6 +139,13 @@ export class ReadModelRepository {
     return ReadModelRepository.instance;
   }
 
+  public static arrayToFilter<T>(
+    array: unknown[],
+    filter: ReadModelFilter<T>
+  ): ReadModelFilter<T> {
+    return array.length > 0 ? filter : {};
+  }
+
   public static async getTotalCount(
     collection: Collections,
     aggregation: object[]
