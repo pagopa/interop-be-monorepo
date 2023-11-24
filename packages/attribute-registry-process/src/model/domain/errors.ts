@@ -28,7 +28,7 @@ export function originNotCompliant(origin: string): ApiError {
   return new ApiError({
     detail: `Requester has not origin ${origin}`,
     code: errorCodes.originNotCompliant,
-    httpStatus: 409,
+    httpStatus: 400,
     title: "Origin is not compliant",
   });
 }
