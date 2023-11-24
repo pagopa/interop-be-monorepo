@@ -91,33 +91,6 @@ export const tenantService = {
       })
     );
   },
-
-  async updateTenant({
-    tenantId,
-    selfcareId,
-    features,
-    mails,
-    kind,
-  }: {
-    tenantId: string;
-    selfcareId: string | undefined;
-    features: TenantFeature[];
-    mails: TenantMail[];
-    kind: TenantKind;
-  }): Promise<string> {
-    const tenant = await readModelService.getTenantById(tenantId);
-    assertTenantExists(tenantId, tenant);
-
-    return await repository.createEvent(
-      await updateTenantLogic({
-        tenant,
-        selfcareId,
-        features,
-        mails,
-        kind,
-      })
-    );
-  },
 };
 
 export async function updateTenantAttributeLogic({
