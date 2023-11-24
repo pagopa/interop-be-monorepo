@@ -56,7 +56,7 @@ export const readModelService = {
         ).map((a) => a.eserviceId)
       );
 
-    if (agreementStates && ids.length === 0) {
+    if (agreementStates.length > 0 && ids.length === 0) {
       return emptyListResult;
     }
 
