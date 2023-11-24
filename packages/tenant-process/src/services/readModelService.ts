@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { logger, ReadModelRepository } from "pagopa-interop-commons";
-import { ErrorTypes, ListResult, Tenant } from "pagopa-interop-models";
+import { genericError, ListResult, Tenant } from "pagopa-interop-models";
 import { Filter } from "mongodb";
 import { config } from "../utilities/config.js";
 
@@ -54,7 +54,7 @@ export const readModelService = {
         )} - data ${JSON.stringify(data)} `
       );
 
-      throw ErrorTypes.GenericError;
+      throw genericError("Unable to parse agreements items");
     }
 
     return {

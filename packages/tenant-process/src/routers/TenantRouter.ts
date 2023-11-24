@@ -6,10 +6,10 @@ import {
   ZodiosContext,
   authorizationMiddleware,
 } from "pagopa-interop-commons";
+import { makeApiProblem } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
 import { readModelService } from "../services/readModelService.js";
-import { tenantToApiTenant } from "../model/domain/apiConverter.js";
-import { ApiError, makeApiError } from "../model/types.js";
+import { toApiTenant } from "../model/domain/apiConverter.js";
 
 const tenantsRouter = (
   ctx: ZodiosContext
@@ -62,11 +62,11 @@ const tenantsRouter = (
           );
 
           return res.status(200).json({
-            results: tenants.results.map(tenantToApiTenant),
+            results: tenants.results.map(toApiTenant),
             totalCount: tenants.totalCount,
           });
         } catch (error) {
-          const errorRes: ApiError = makeApiError(error);
+          const errorRes = makeApiProblem(error);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
