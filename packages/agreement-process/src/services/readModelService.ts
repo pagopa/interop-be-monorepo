@@ -11,13 +11,13 @@ import {
 import {
   Agreement,
   AgreementState,
-  ErrorTypes,
   ListResult,
   WithMetadata,
   agreementState,
   descriptorState,
   EService,
   Tenant,
+  genericError,
 } from "pagopa-interop-models";
 import { z } from "zod";
 import { match, P } from "ts-pattern";
@@ -174,7 +174,7 @@ const getAgreements = async (
         result
       )} - data ${JSON.stringify(data)} `
     );
-    throw ErrorTypes.GenericError;
+    throw genericError("Unable to parse agreements items");
   }
 
   return result.data;
@@ -308,7 +308,7 @@ export class ReadModelService {
         )} - data ${JSON.stringify(data)} `
       );
 
-      throw ErrorTypes.GenericError;
+      throw genericError("Unable to parse agreements items");
     }
 
     return {
@@ -337,7 +337,7 @@ export class ReadModelService {
         .safeParse(data);
       if (!result.success) {
         logger.error(`Agreement ${agreementId} not found`);
-        throw ErrorTypes.GenericError;
+        throw genericError(`Agreement ${agreementId} not found`);
       }
       return {
         data: result.data.data,
@@ -390,7 +390,7 @@ export class ReadModelService {
           )} - data ${JSON.stringify(data)} `
         );
 
-        throw ErrorTypes.GenericError;
+        throw genericError(`Unable to parse eservice ${id}`);
       }
 
       return {
@@ -425,7 +425,7 @@ export class ReadModelService {
           )} - data ${JSON.stringify(data)} `
         );
 
-        throw ErrorTypes.GenericError;
+        throw genericError(`Unable to parse tenant ${tenantId}`);
       }
 
       return {

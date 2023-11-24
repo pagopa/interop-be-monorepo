@@ -17,14 +17,6 @@ import {
   WithMetadata,
   catalogEventToBinaryData,
   descriptorState,
-  draftDescriptorAlreadyExists,
-  eServiceCannotBeDeleted,
-  eServiceCannotBeUpdated,
-  eServiceDescriptorNotFound,
-  eServiceDocumentNotFound,
-  eServiceDuplicate,
-  eServiceNotFound,
-  notValidDescriptor,
   operationForbidden,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -56,6 +48,16 @@ import {
 } from "../model/types.js";
 import { CatalogProcessConfig, config } from "../utilities/config.js";
 import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
+import {
+  draftDescriptorAlreadyExists,
+  eServiceCannotBeDeleted,
+  eServiceCannotBeUpdated,
+  eServiceDescriptorNotFound,
+  eServiceDocumentNotFound,
+  eServiceDuplicate,
+  notValidDescriptor,
+  eServiceNotFound,
+} from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
 const fileManager = initFileManager(config);
