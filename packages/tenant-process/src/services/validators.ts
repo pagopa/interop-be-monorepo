@@ -19,7 +19,7 @@ import {
 } from "../model/domain/errors.js";
 import { readModelService } from "./readModelService.js";
 
-export function assertTenantExist(
+export function assertTenantExists(
   tenantId: string,
   tenant: WithMetadata<Tenant> | undefined
 ): asserts tenant is NonNullable<WithMetadata<Tenant>> {
