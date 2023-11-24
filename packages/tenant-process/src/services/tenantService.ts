@@ -1,4 +1,9 @@
-import { CreateEvent, eventRepository, initDB } from "pagopa-interop-commons";
+import {
+  AuthData,
+  CreateEvent,
+  eventRepository,
+  initDB,
+} from "pagopa-interop-commons";
 import {
   ExternalId,
   Tenant,
@@ -10,6 +15,7 @@ import {
   WithMetadata,
   tenantAttributeType,
   tenantEventToBinaryData,
+  tenantMailKind,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import { config } from "../utilities/config.js";
@@ -21,13 +27,19 @@ import {
   ApiInternalTenantSeed,
   ApiM2MTenantSeed,
   ApiSelfcareTenantSeed,
+  ApiTenantMailsSeed,
 } from "../model/types.js";
 import {
   invalidAttributeStructure,
   attributeNotFound,
   tenantDuplicate,
 } from "../model/domain/errors.js";
-import { assertAttributeExists, assertTenantExist } from "./validators.js";
+import {
+  assertAttributeExists,
+  assertResourceAllowed,
+  assertTenantExist,
+  getTenantKindLoadingCertifiedAttributes,
+} from "./validators.js";
 import { readModelService } from "./readModelService.js";
 
 const repository = eventRepository(
@@ -111,6 +123,39 @@ export const tenantService = {
         kind,
       })
     );
+  },
+
+  async updateTenantMails({
+    tenantId,
+    mailsSeed,
+    authData,
+  }: {
+    tenantId: string;
+    mailsSeed: ApiTenantMailsSeed;
+    authData: AuthData;
+  }) {
+    assertResourceAllowed(tenantId, authData);
+    const tenant = await readModelService.getTenantById(tenantId);
+    assertTenantExist(tenantId, tenant);
+    const tenantKind =
+      tenant.data.kind ||
+      (await getTenantKindLoadingCertifiedAttributes(
+        tenant.data.attributes,
+        tenant.data.externalId
+      ));
+    const tenantMails: TenantMail[] = mailsSeed.mails.map((mail) => ({
+      ...mail,
+      kind: tenantMailKind.ContactEmail,
+      createdAt: new Date(),
+    }));
+
+    return this.updateTenant({
+      tenantId: tenantId,
+      selfcareId: tenant.data.selfcareId,
+      features: tenant.data.features,
+      kind: tenantKind,
+      mails: tenantMails,
+    });
   },
 };
 

@@ -7,6 +7,7 @@ import {
   authorizationMiddleware,
 } from "pagopa-interop-commons";
 import { api } from "../model/generated/api.js";
+import { tenantService } from "../services/tenantService.js";
 
 const tenantsRouter = (
   ctx: ZodiosContext
@@ -93,7 +94,18 @@ const tenantsRouter = (
     .post(
       "/tenants/:id",
       authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const id = await tenantService.updateTenantMails({
+            tenantId: req.params.id,
+            mailsSeed: req.body,
+            authData: req.ctx.authData,
+          });
+          return res.status(200).json({ id }).send();
+        } catch (error) {
+          return res.status(501).send();
+        }
+      }
     )
     .post(
       "/internal/origin/:tOrigin/externalId/:tExternalId/attributes/origin/:aOrigin/externalId/:aExternalId",
