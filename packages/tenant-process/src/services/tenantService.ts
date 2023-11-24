@@ -9,13 +9,10 @@ import {
   Tenant,
   TenantAttribute,
   TenantEvent,
-  TenantFeature,
   TenantKind,
-  TenantMail,
   WithMetadata,
   tenantAttributeType,
   tenantEventToBinaryData,
-  tenantMailKind,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import { config } from "../utilities/config.js";
@@ -34,6 +31,7 @@ import {
   attributeNotFound,
   tenantDuplicate,
 } from "../model/domain/errors.js";
+import { toTenantMails } from "../model/domain/apiConverter.js";
 import {
   assertAttributeExists,
   assertResourceAllowed,
@@ -104,33 +102,6 @@ export const tenantService = {
     );
   },
 
-  async updateTenant({
-    tenantId,
-    selfcareId,
-    features,
-    mails,
-    kind,
-  }: {
-    tenantId: string;
-    selfcareId: string | undefined;
-    features: TenantFeature[];
-    mails: TenantMail[];
-    kind: TenantKind;
-  }): Promise<string> {
-    const tenant = await readModelService.getTenantById(tenantId);
-    assertTenantExists(tenantId, tenant);
-
-    return await repository.createEvent(
-      await updateTenantLogic({
-        tenant,
-        selfcareId,
-        features,
-        mails,
-        kind,
-      })
-    );
-  },
-
   async updateTenantMails({
     tenantId,
     mailsSeed,
@@ -139,8 +110,8 @@ export const tenantService = {
     tenantId: string;
     mailsSeed: ApiTenantMailsSeed;
     authData: AuthData;
-  }) {
-    assertResourceAllowed(tenantId, authData);
+  }): Promise<string> {
+    await assertResourceAllowed(tenantId, authData);
     const tenant = await readModelService.getTenantById(tenantId);
     assertTenantExists(tenantId, tenant);
     const tenantKind =
@@ -149,19 +120,14 @@ export const tenantService = {
         tenant.data.attributes,
         tenant.data.externalId
       ));
-    const tenantMails: TenantMail[] = mailsSeed.mails.map((mail) => ({
-      ...mail,
-      kind: tenantMailKind.ContactEmail,
-      createdAt: new Date(),
-    }));
 
-    return this.updateTenant({
-      tenantId: tenantId,
-      selfcareId: tenant.data.selfcareId,
-      features: tenant.data.features,
-      kind: tenantKind,
-      mails: tenantMails,
-    });
+    return await repository.createEvent(
+      await updateTenantLogic({
+        tenant,
+        mailsSeed,
+        kind: tenantKind,
+      })
+    );
   },
 };
 
@@ -187,7 +153,7 @@ export async function updateTenantAttributeLogic({
     ...tenant.data.attributes.filter((a) => a.id !== newAttribute.id),
   ];
 
-  const newTenant: Tenant = {
+  const updatedTenant: Tenant = {
     ...tenant.data,
     attributes: updatedAttributes,
     updatedAt: new Date(),
@@ -196,28 +162,22 @@ export async function updateTenantAttributeLogic({
   return toCreateEventTenantUpdated(
     tenant.data.id,
     tenant.metadata.version,
-    newTenant
+    updatedTenant
   );
 }
 
 export async function updateTenantLogic({
   tenant,
-  selfcareId,
-  features,
-  mails,
+  mailsSeed,
   kind,
 }: {
   tenant: WithMetadata<Tenant>;
-  selfcareId: string | undefined;
-  features: TenantFeature[];
-  mails: TenantMail[];
+  mailsSeed: ApiTenantMailsSeed;
   kind: TenantKind;
 }): Promise<CreateEvent<TenantEvent>> {
-  const newTenant: Tenant = {
+  const updatedTenant: Tenant = {
     ...tenant.data,
-    selfcareId,
-    features,
-    mails,
+    mails: toTenantMails(mailsSeed),
     kind,
     updatedAt: new Date(),
   };
@@ -225,7 +185,7 @@ export async function updateTenantLogic({
   return toCreateEventTenantUpdated(
     tenant.data.id,
     tenant.metadata.version,
-    newTenant
+    updatedTenant
   );
 }
 
