@@ -37,7 +37,7 @@ import {
 import {
   assertAttributeExists,
   assertResourceAllowed,
-  assertTenantExist,
+  assertTenantExists,
   getTenantKindLoadingCertifiedAttributes,
 } from "./validators.js";
 import { readModelService } from "./readModelService.js";
@@ -88,13 +88,16 @@ export const tenantService = {
     attributeId: string,
     newAttribute: TenantAttribute
   ): Promise<string> {
+    const tenant = await readModelService.getTenantById(tenantId);
+    assertTenantExists(tenantId, tenant);
+
     if (!newAttribute || newAttribute.id !== attributeId) {
       throw invalidAttributeStructure;
     }
 
     return await repository.createEvent(
       await updateTenantAttributeLogic({
-        tenantId,
+        tenant,
         attributeId,
         newAttribute,
       })
@@ -114,9 +117,12 @@ export const tenantService = {
     mails: TenantMail[];
     kind: TenantKind;
   }): Promise<string> {
+    const tenant = await readModelService.getTenantById(tenantId);
+    assertTenantExists(tenantId, tenant);
+
     return await repository.createEvent(
       await updateTenantLogic({
-        tenantId,
+        tenant,
         selfcareId,
         features,
         mails,
@@ -136,7 +142,7 @@ export const tenantService = {
   }) {
     assertResourceAllowed(tenantId, authData);
     const tenant = await readModelService.getTenantById(tenantId);
-    assertTenantExist(tenantId, tenant);
+    assertTenantExists(tenantId, tenant);
     const tenantKind =
       tenant.data.kind ||
       (await getTenantKindLoadingCertifiedAttributes(
@@ -160,16 +166,14 @@ export const tenantService = {
 };
 
 export async function updateTenantAttributeLogic({
-  tenantId,
+  tenant,
   attributeId,
   newAttribute,
 }: {
-  tenantId: string;
+  tenant: WithMetadata<Tenant>;
   attributeId: string;
   newAttribute: TenantAttribute;
 }): Promise<CreateEvent<TenantEvent>> {
-  const tenant = await readModelService.getTenantById(tenantId);
-  assertTenantExist(tenantId, tenant);
   assertAttributeExists(attributeId, tenant.data.attributes);
   const attributeExists = tenant.data.attributes.some(
     (attribute) => attribute.id === attributeId
@@ -190,28 +194,25 @@ export async function updateTenantAttributeLogic({
   };
 
   return toCreateEventTenantUpdated(
-    tenantId,
+    tenant.data.id,
     tenant.metadata.version,
     newTenant
   );
 }
 
 export async function updateTenantLogic({
-  tenantId,
+  tenant,
   selfcareId,
   features,
   mails,
   kind,
 }: {
-  tenantId: string;
+  tenant: WithMetadata<Tenant>;
   selfcareId: string | undefined;
   features: TenantFeature[];
   mails: TenantMail[];
   kind: TenantKind;
 }): Promise<CreateEvent<TenantEvent>> {
-  const tenant = await readModelService.getTenantById(tenantId);
-  assertTenantExist(tenantId, tenant);
-
   const newTenant: Tenant = {
     ...tenant.data,
     selfcareId,
@@ -222,7 +223,7 @@ export async function updateTenantLogic({
   };
 
   return toCreateEventTenantUpdated(
-    tenantId,
+    tenant.data.id,
     tenant.metadata.version,
     newTenant
   );
