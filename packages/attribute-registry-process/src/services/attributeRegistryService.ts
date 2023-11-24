@@ -181,7 +181,7 @@ export function createCertifiedAttributeLogic({
     name: apiCertifiedAttributeSeed.name,
     description: apiCertifiedAttributeSeed.description,
     creationTime: new Date(),
-    code: undefined,
+    code: apiCertifiedAttributeSeed.code,
     origin: certifier,
   };
 

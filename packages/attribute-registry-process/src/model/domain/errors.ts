@@ -39,7 +39,7 @@ export function tenantNotFound(tenantId: string): ApiError {
   return new ApiError({
     detail: `Tenant ${tenantId} not found`,
     code: errorCodes.tenantNotFound,
-    httpStatus: 404,
+    httpStatus: 500,
     title: "Tenant not found",
   });
 }
@@ -48,7 +48,7 @@ export function OrganizationIsNotACertifier(tenantId: string): ApiError {
   return new ApiError({
     detail: `Tenant ${tenantId} is not a Certifier`,
     code: errorCodes.OrganizationIsNotACertifier,
-    httpStatus: 400,
+    httpStatus: 403,
     title: "Organization is not a certifier",
   });
 }

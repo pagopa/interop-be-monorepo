@@ -189,7 +189,10 @@ export const readModelService = {
     name: string
   ): Promise<WithMetadata<Attribute> | undefined> {
     return getAttribute({
-      "data.code": code,
+      "data.code": {
+        $regex: `^${code}$$`,
+        $options: "i",
+      },
       "data.name": {
         $regex: `^${name}$$`,
         $options: "i",
