@@ -165,6 +165,43 @@ async function getAttributeById(
   }
 }
 
+async function getTenant(
+  filter:
+    | { "data.id": string }
+    | { "data.name": object }
+    | { "data.externalId.code": string; "data.externalId.origin": string }
+): Promise<WithMetadata<Tenant> | undefined> {
+  const data = await tenants.findOne(filter, {
+    projection: { data: true, metadata: true },
+  });
+
+  if (!data) {
+    return undefined;
+  } else {
+    const result = z
+      .object({
+        metadata: z.object({ version: z.number() }),
+        data: Tenant,
+      })
+      .safeParse(data);
+
+    if (!result.success) {
+      logger.error(
+        `Unable to parse tenant item: result ${JSON.stringify(
+          result
+        )} - data ${JSON.stringify(data)} `
+      );
+
+      throw genericError("Unable to parse tenant item");
+    }
+
+    return {
+      data: result.data.data,
+      metadata: { version: result.data.metadata.version },
+    };
+  }
+}
+
 export const readModelService = {
   async getAgreements(
     producerId: string,
@@ -230,111 +267,26 @@ export const readModelService = {
   async getTenantById(
     tenantId: string
   ): Promise<WithMetadata<Tenant> | undefined> {
-    const data = await tenants.findOne(
-      { "data.id": tenantId },
-      { projection: { data: true, metadata: true } }
-    );
-
-    if (!data) {
-      return undefined;
-    } else {
-      const result = z
-        .object({
-          metadata: z.object({ version: z.number() }),
-          data: Tenant,
-        })
-        .safeParse(data);
-
-      if (!result.success) {
-        logger.error(
-          `Unable to parse tenant item: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
-        );
-
-        throw genericError("Unable to parse tenant item");
-      }
-
-      return {
-        data: result.data.data,
-        metadata: { version: result.data.metadata.version },
-      };
-    }
+    return getTenant({ "data.id": tenantId });
   },
 
   async getTenantByName(
     name: string
   ): Promise<WithMetadata<Tenant> | undefined> {
-    const data = await tenants.findOne(
-      {
-        "data.name": {
-          $regex: `^${name}$$`,
-          $options: "i",
-        },
+    return getTenant({
+      "data.name": {
+        $regex: `^${name}$$`,
+        $options: "i",
       },
-      {
-        projection: { data: true, metadata: true },
-      }
-    );
-    if (!data) {
-      return undefined;
-    } else {
-      const result = z
-        .object({
-          metadata: z.object({ version: z.number() }),
-          data: Tenant,
-        })
-        .safeParse(data);
-      if (!result.success) {
-        logger.error(
-          `Unable to parse tenant item: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
-        );
-        throw genericError("Unable to parse tenant item");
-      }
-      return {
-        data: result.data.data,
-        metadata: { version: result.data.metadata.version },
-      };
-    }
+    });
   },
 
   async getTenantByExternalId(
     tenantExternalId: ExternalId
   ): Promise<WithMetadata<Tenant> | undefined> {
-    const data = await tenants.findOne(
-      {
-        "data.externalId.code": tenantExternalId.value,
-        "data.externalId.origin": tenantExternalId.origin,
-      },
-      { projection: { data: true, metadata: true } }
-    );
-
-    if (!data) {
-      return undefined;
-    } else {
-      const result = z
-        .object({
-          metadata: z.object({ version: z.number() }),
-          data: Tenant,
-        })
-        .safeParse(data);
-
-      if (!result.success) {
-        logger.error(
-          `Unable to parse tenant item: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
-        );
-
-        throw genericError("Unable to parse tenant item");
-      }
-
-      return {
-        data: result.data.data,
-        metadata: { version: result.data.metadata.version },
-      };
-    }
+    return getTenant({
+      "data.externalId.code": tenantExternalId.value,
+      "data.externalId.origin": tenantExternalId.origin,
+    });
   },
 };
