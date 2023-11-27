@@ -5,6 +5,7 @@ import {
   initDB,
 } from "pagopa-interop-commons";
 import {
+  Attribute,
   ExternalId,
   Tenant,
   TenantAttribute,
@@ -62,21 +63,17 @@ export const tenantService = {
     attributesExternalIds: ExternalId[],
     kind: TenantKind
   ): Promise<string> {
-    const attributes = await readModelService.getAttributesByExternalIds(
-      attributesExternalIds
-    );
-    const tenantAttributes: TenantAttribute[] = attributes.map((attribute) => ({
-      type: tenantAttributeType.CERTIFIED, // All attributes here are certified
-      id: attribute.data.id,
-      assignmentTimestamp: new Date(),
-    }));
+    const [attributes, tenant] = await Promise.all([
+      readModelService.getAttributesByExternalIds(attributesExternalIds),
+      readModelService.getTenantByName(apiTenantSeed.name),
+    ]);
 
     return repository.createEvent(
       createTenantLogic({
-        tenant: await readModelService.getTenantByName(apiTenantSeed.name),
+        tenant,
         apiTenantSeed,
         kind,
-        tenantAttributes,
+        attributes,
       })
     );
   },
@@ -87,15 +84,11 @@ export const tenantService = {
     newAttribute: TenantAttribute
   ): Promise<string> {
     const tenant = await readModelService.getTenantById(tenantId);
-    assertTenantExists(tenantId, tenant);
-
-    if (!newAttribute || newAttribute.id !== attributeId) {
-      throw invalidAttributeStructure;
-    }
 
     return await repository.createEvent(
       await updateTenantAttributeLogic({
         tenant,
+        tenantId,
         attributeId,
         newAttribute,
       })
@@ -133,13 +126,19 @@ export const tenantService = {
 
 export async function updateTenantAttributeLogic({
   tenant,
+  tenantId,
   attributeId,
   newAttribute,
 }: {
-  tenant: WithMetadata<Tenant>;
+  tenant: WithMetadata<Tenant> | undefined;
+  tenantId: string;
   attributeId: string;
   newAttribute: TenantAttribute;
 }): Promise<CreateEvent<TenantEvent>> {
+  assertTenantExists(tenantId, tenant);
+  if (!newAttribute || newAttribute.id !== attributeId) {
+    throw invalidAttributeStructure;
+  }
   assertAttributeExists(attributeId, tenant.data.attributes);
   const attributeExists = tenant.data.attributes.some(
     (attribute) => attribute.id === attributeId
@@ -193,7 +192,7 @@ export function createTenantLogic({
   tenant,
   apiTenantSeed,
   kind,
-  tenantAttributes,
+  attributes,
 }: {
   tenant: WithMetadata<Tenant> | undefined;
   apiTenantSeed:
@@ -201,11 +200,17 @@ export function createTenantLogic({
     | ApiM2MTenantSeed
     | ApiInternalTenantSeed;
   kind: TenantKind;
-  tenantAttributes: TenantAttribute[];
+  attributes: Array<WithMetadata<Attribute>>;
 }): CreateEvent<TenantEvent> {
   if (tenant) {
     throw tenantDuplicate(apiTenantSeed.name);
   }
+
+  const tenantAttributes: TenantAttribute[] = attributes.map((attribute) => ({
+    type: tenantAttributeType.CERTIFIED, // All attributes here are certified
+    id: attribute.data.id,
+    assignmentTimestamp: new Date(),
+  }));
 
   const newTenant: Tenant = {
     id: uuidv4(),
