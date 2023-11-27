@@ -3,6 +3,7 @@ import {
   logger,
   ReadModelRepository,
   readmodelDbConfig,
+  ReadModelFilter,
 } from "pagopa-interop-commons";
 import {
   DescriptorState,
@@ -22,13 +23,6 @@ import { z } from "zod";
 import { Consumer, consumer } from "../model/domain/models.js";
 
 const { eservices, agreements } = ReadModelRepository.init(readmodelDbConfig);
-
-function arrayToFilter<T, F extends object>(
-  array: T[],
-  f: (array: T[]) => F
-): F | undefined {
-  return array.length > 0 ? f(array) : undefined;
-}
 
 export const readModelService = {
   async getEServices(
@@ -66,7 +60,7 @@ export const readModelService = {
       return emptyListResult;
     }
 
-    const nameFilter = name
+    const nameFilter: ReadModelFilter<EService> = name
       ? {
           "data.name": {
             $regex: name.exactMatch ? `^${name.value}$$` : name.value,
@@ -79,14 +73,16 @@ export const readModelService = {
       {
         $match: {
           ...nameFilter,
-          ...arrayToFilter(states, (states) => ({
+          ...ReadModelRepository.arrayToFilter(states, {
             "data.descriptors": { $elemMatch: { state: { $in: states } } },
-          })),
-          ...arrayToFilter(ids, (ids) => ({ "data.id": { $in: ids } })),
-          ...arrayToFilter(producersIds, (producersIds) => ({
+          }),
+          ...ReadModelRepository.arrayToFilter(ids, {
+            "data.id": { $in: ids },
+          }),
+          ...ReadModelRepository.arrayToFilter(producersIds, {
             "data.producerId": { $in: producersIds },
-          })),
-        },
+          }),
+        } satisfies ReadModelFilter<EService>,
       },
       {
         $project: {
@@ -126,7 +122,7 @@ export const readModelService = {
     id: string
   ): Promise<WithMetadata<EService> | undefined> {
     const data = await eservices.findOne(
-      { "data.id": id },
+      { "data.id": id } satisfies ReadModelFilter<EService>,
       { projection: { data: true, metadata: true } }
     );
 
@@ -176,7 +172,7 @@ export const readModelService = {
               },
             },
           },
-        },
+        } satisfies ReadModelFilter<EService>,
       },
       {
         $lookup: {
@@ -283,19 +279,19 @@ export const readModelService = {
     const aggregationPipeline = [
       {
         $match: {
-          ...arrayToFilter(eservicesIds, (eservicesIds) => ({
+          ...ReadModelRepository.arrayToFilter(eservicesIds, {
             "data.eserviceId": { $in: eservicesIds },
-          })),
-          ...arrayToFilter(consumersIds, (consumersIds) => ({
+          }),
+          ...ReadModelRepository.arrayToFilter(consumersIds, {
             "data.consumerId": { $in: consumersIds },
-          })),
-          ...arrayToFilter(producersIds, (producersIds) => ({
+          }),
+          ...ReadModelRepository.arrayToFilter(producersIds, {
             "data.producerId": { $in: producersIds },
-          })),
-          ...arrayToFilter(states, (states) => ({
+          }),
+          ...ReadModelRepository.arrayToFilter(states, {
             "data.state": { $elemMatch: { state: { $in: states } } },
-          })),
-        },
+          }),
+        } satisfies ReadModelFilter<Agreement>,
       },
       {
         $project: {
