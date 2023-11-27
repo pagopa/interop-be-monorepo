@@ -1,37 +1,36 @@
 import { z } from "zod";
-import { logger, ReadModelRepository } from "pagopa-interop-commons";
+import {
+  logger,
+  ReadModelFilter,
+  ReadModelRepository,
+} from "pagopa-interop-commons";
 import { genericError, WithMetadata } from "pagopa-interop-models";
 import { Tenant } from "pagopa-interop-models";
 import { config } from "../utilities/config.js";
 const { tenants } = ReadModelRepository.init(config);
 
-type TenantFilter =
-  | { "data.id": string }
-  | {
-      "data.externalId.value": string;
-      "data.externalId.origin": string;
+async function getTenant({
+  data: filter,
+}: ReadModelFilter<Tenant>): Promise<WithMetadata<Tenant> | undefined> {
+  const dataTenant = await tenants.findOne(
+    { data: filter } satisfies ReadModelFilter<Tenant>,
+    {
+      projection: { dataTenant: true, metadata: true },
     }
-  | { "data.selfcareId": string };
+  );
 
-async function getTenant(
-  filter: TenantFilter
-): Promise<WithMetadata<Tenant> | undefined> {
-  const data = await tenants.findOne(filter, {
-    projection: { data: true, metadata: true },
-  });
-
-  if (data) {
+  if (dataTenant) {
     const result = z
       .object({
         metadata: z.object({ version: z.number() }),
         data: Tenant,
       })
-      .safeParse(data);
+      .safeParse(dataTenant);
     if (!result.success) {
       logger.error(
         `Unable to parse tenant item: result ${JSON.stringify(
           result
-        )} - data ${JSON.stringify(data)} `
+        )} - data ${JSON.stringify(dataTenant)} `
       );
       throw genericError("Unable to parse tenant item");
     }
