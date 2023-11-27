@@ -299,4 +299,42 @@ export const readModelService = {
       };
     }
   },
+
+  async getTenantByExternalId(
+    tenantExternalId: ExternalId
+  ): Promise<WithMetadata<Tenant> | undefined> {
+    const data = await tenants.findOne(
+      {
+        "data.externalId.code": tenantExternalId.value,
+        "data.externalId.origin": tenantExternalId.origin,
+      },
+      { projection: { data: true, metadata: true } }
+    );
+
+    if (!data) {
+      return undefined;
+    } else {
+      const result = z
+        .object({
+          metadata: z.object({ version: z.number() }),
+          data: Tenant,
+        })
+        .safeParse(data);
+
+      if (!result.success) {
+        logger.error(
+          `Unable to parse tenant item: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+
+        throw genericError("Unable to parse tenant item");
+      }
+
+      return {
+        data: result.data.data,
+        metadata: { version: result.data.metadata.version },
+      };
+    }
+  },
 };
