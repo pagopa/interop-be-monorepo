@@ -3,10 +3,8 @@
 /* eslint-disable max-params */
 import {
   AgreementCollection,
-  EServiceCollection,
   logger,
   ReadModelRepository,
-  TenantCollection,
 } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -180,259 +178,258 @@ const getAgreements = async (
   return result.data;
 };
 
-export class ReadModelService {
-  private agreements: AgreementCollection;
-  private eservices: EServiceCollection;
-  private tenants: TenantCollection;
-
-  constructor(config: AgreementProcessConfig) {
-    const readModelRepository = ReadModelRepository.init(config);
-    this.agreements = readModelRepository.agreements;
-    this.eservices = readModelRepository.eservices;
-    this.tenants = readModelRepository.tenants;
-  }
-  public async listAgreements(
-    {
-      eServicesIds,
-      consumersIds,
-      producersIds,
-      descriptorsIds,
-      states,
-      showOnlyUpgradeable,
-    }: {
-      eServicesIds: string[];
-      consumersIds: string[];
-      producersIds: string[];
-      descriptorsIds: string[];
-      states: AgreementState[];
-      showOnlyUpgradeable: boolean;
-    },
-    limit: number,
-    offset: number
-  ): Promise<ListResult<Agreement>> {
-    const aggregationPipeline = [
-      listAgreementsFilters(
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export function readModelServiceBuilder(config: AgreementProcessConfig) {
+  const readModelRepository = ReadModelRepository.init(config);
+  const agreements = readModelRepository.agreements;
+  const eservices = readModelRepository.eservices;
+  const tenants = readModelRepository.tenants;
+  return {
+    async listAgreements(
+      {
         eServicesIds,
         consumersIds,
         producersIds,
         descriptorsIds,
         states,
-        showOnlyUpgradeable
-      ),
-      {
-        $lookup: {
-          from: "eservices",
-          localField: "data.eserviceId",
-          foreignField: "data.id",
-          as: "eservices",
+        showOnlyUpgradeable,
+      }: {
+        eServicesIds: string[];
+        consumersIds: string[];
+        producersIds: string[];
+        descriptorsIds: string[];
+        states: AgreementState[];
+        showOnlyUpgradeable: boolean;
+      },
+      limit: number,
+      offset: number
+    ): Promise<ListResult<Agreement>> {
+      const aggregationPipeline = [
+        listAgreementsFilters(
+          eServicesIds,
+          consumersIds,
+          producersIds,
+          descriptorsIds,
+          states,
+          showOnlyUpgradeable
+        ),
+        {
+          $lookup: {
+            from: "eservices",
+            localField: "data.eserviceId",
+            foreignField: "data.id",
+            as: "eservices",
+          },
         },
-      },
-      {
-        $unwind: "$eservices",
-      },
-      ...(showOnlyUpgradeable
-        ? [
-            {
-              $addFields: {
-                currentDescriptor: {
-                  $filter: {
-                    input: "$eservices.data.descriptors",
-                    as: "descr",
-                    cond: {
-                      $eq: ["$$descr.id", "$data.descriptorId"],
+        {
+          $unwind: "$eservices",
+        },
+        ...(showOnlyUpgradeable
+          ? [
+              {
+                $addFields: {
+                  currentDescriptor: {
+                    $filter: {
+                      input: "$eservices.data.descriptors",
+                      as: "descr",
+                      cond: {
+                        $eq: ["$$descr.id", "$data.descriptorId"],
+                      },
                     },
                   },
                 },
               },
-            },
-            {
-              $unwind: "$currentDescriptor",
-            },
-            {
-              $addFields: {
-                upgradableDescriptor: {
-                  $filter: {
-                    input: "$eservices.data.descriptors",
-                    as: "upgradable",
-                    cond: {
-                      $and: [
-                        {
-                          $gt: [
-                            "$$upgradable.activatedAt",
-                            "$currentDescriptor.activatedAt",
-                          ],
-                        },
-                        {
-                          $in: [
-                            "$$upgradable.state",
-                            [
-                              descriptorState.published,
-                              descriptorState.suspended,
+              {
+                $unwind: "$currentDescriptor",
+              },
+              {
+                $addFields: {
+                  upgradableDescriptor: {
+                    $filter: {
+                      input: "$eservices.data.descriptors",
+                      as: "upgradable",
+                      cond: {
+                        $and: [
+                          {
+                            $gt: [
+                              "$$upgradable.activatedAt",
+                              "$currentDescriptor.activatedAt",
                             ],
-                          ],
-                        },
-                      ],
+                          },
+                          {
+                            $in: [
+                              "$$upgradable.state",
+                              [
+                                descriptorState.published,
+                                descriptorState.suspended,
+                              ],
+                            ],
+                          },
+                        ],
+                      },
                     },
                   },
                 },
               },
-            },
-            {
-              $match: {
-                upgradableDescriptor: { $ne: [] },
+              {
+                $match: {
+                  upgradableDescriptor: { $ne: [] },
+                },
               },
-            },
-          ]
-        : []),
-      {
-        $project: {
-          data: 1,
-          eservices: 1,
-          lowerName: { $toLower: "$eservices.data.name" },
+            ]
+          : []),
+        {
+          $project: {
+            data: 1,
+            eservices: 1,
+            lowerName: { $toLower: "$eservices.data.name" },
+          },
         },
-      },
-      {
-        $sort: { lowerName: 1 },
-      },
-    ];
+        {
+          $sort: { lowerName: 1 },
+        },
+      ];
 
-    const data = await this.agreements
-      .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }])
-      .toArray();
+      const data = await agreements
+        .aggregate([
+          ...aggregationPipeline,
+          { $skip: offset },
+          { $limit: limit },
+        ])
+        .toArray();
 
-    const result = z.array(Agreement).safeParse(data.map((d) => d.data));
-    if (!result.success) {
-      logger.error(
-        `Unable to parse agreements items: result ${JSON.stringify(
-          result
-        )} - data ${JSON.stringify(data)} `
+      const result = z.array(Agreement).safeParse(data.map((d) => d.data));
+      if (!result.success) {
+        logger.error(
+          `Unable to parse agreements items: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+
+        throw genericError("Unable to parse agreements items");
+      }
+
+      return {
+        results: result.data,
+        totalCount: await ReadModelRepository.getTotalCount(
+          eservices,
+          aggregationPipeline
+        ),
+      };
+    },
+    async readAgreementById(
+      agreementId: string
+    ): Promise<WithMetadata<Agreement> | undefined> {
+      const data = await agreements.findOne(
+        { "data.id": agreementId },
+        { projection: { data: true, metadata: true } }
       );
 
-      throw genericError("Unable to parse agreements items");
-    }
-
-    return {
-      results: result.data,
-      totalCount: await ReadModelRepository.getTotalCount(
-        this.eservices,
-        aggregationPipeline
-      ),
-    };
-  }
-
-  public async readAgreementById(
-    agreementId: string
-  ): Promise<WithMetadata<Agreement> | undefined> {
-    const data = await this.agreements.findOne(
-      { "data.id": agreementId },
-      { projection: { data: true, metadata: true } }
-    );
-
-    if (data) {
-      const result = z
-        .object({
-          data: Agreement,
-          metadata: z.object({ version: z.number() }),
-        })
-        .safeParse(data);
-      if (!result.success) {
-        logger.error(`Agreement ${agreementId} not found`);
-        throw genericError(`Agreement ${agreementId} not found`);
-      }
-      return {
-        data: result.data.data,
-        metadata: { version: result.data.metadata.version },
-      };
-    }
-
-    return undefined;
-  }
-
-  public async getAgreements(
-    producerId: string | undefined,
-    consumerId: string | undefined,
-    eserviceId: string | undefined,
-    descriptorId: string | undefined,
-    agreementStates: AgreementState[],
-    attributeId: string | undefined
-  ): Promise<Agreement[]> {
-    return getAllAgreements(
-      this.agreements,
-      producerId,
-      consumerId,
-      eserviceId,
-      descriptorId,
-      agreementStates,
-      attributeId
-    );
-  }
-
-  public async getEServiceById(
-    id: string
-  ): Promise<WithMetadata<EService> | undefined> {
-    const data = await this.eservices.findOne(
-      { "data.id": id },
-      { projection: { data: true, metadata: true } }
-    );
-
-    if (data) {
-      const result = z
-        .object({
-          metadata: z.object({ version: z.number() }),
-          data: EService,
-        })
-        .safeParse(data);
-
-      if (!result.success) {
-        logger.error(
-          `Unable to parse eservices item: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
-        );
-
-        throw genericError(`Unable to parse eservice ${id}`);
+      if (data) {
+        const result = z
+          .object({
+            data: Agreement,
+            metadata: z.object({ version: z.number() }),
+          })
+          .safeParse(data);
+        if (!result.success) {
+          logger.error(`Agreement ${agreementId} not found`);
+          throw genericError(`Agreement ${agreementId} not found`);
+        }
+        return {
+          data: result.data.data,
+          metadata: { version: result.data.metadata.version },
+        };
       }
 
-      return {
-        data: result.data.data,
-        metadata: { version: result.data.metadata.version },
-      };
-    }
+      return undefined;
+    },
+    async getAgreements(
+      producerId: string | undefined,
+      consumerId: string | undefined,
+      eserviceId: string | undefined,
+      descriptorId: string | undefined,
+      agreementStates: AgreementState[],
+      attributeId: string | undefined
+    ): Promise<Agreement[]> {
+      return getAllAgreements(
+        agreements,
+        producerId,
+        consumerId,
+        eserviceId,
+        descriptorId,
+        agreementStates,
+        attributeId
+      );
+    },
+    async getEServiceById(
+      id: string
+    ): Promise<WithMetadata<EService> | undefined> {
+      const data = await eservices.findOne(
+        { "data.id": id },
+        { projection: { data: true, metadata: true } }
+      );
 
-    return undefined;
-  }
+      if (data) {
+        const result = z
+          .object({
+            metadata: z.object({ version: z.number() }),
+            data: EService,
+          })
+          .safeParse(data);
 
-  public async getTenantById(
-    tenantId: string
-  ): Promise<WithMetadata<Tenant> | undefined> {
-    const data = await this.tenants.findOne(
-      { "data.id": tenantId },
-      { projection: { data: true, metadata: true } }
-    );
+        if (!result.success) {
+          logger.error(
+            `Unable to parse eservices item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
 
-    if (data) {
-      const result = z
-        .object({
-          metadata: z.object({ version: z.number() }),
-          data: Tenant,
-        })
-        .safeParse(data);
+          throw genericError(`Unable to parse eservice ${id}`);
+        }
 
-      if (!result.success) {
-        logger.error(
-          `Unable to parse tenant item: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
-        );
-
-        throw genericError(`Unable to parse tenant ${tenantId}`);
+        return {
+          data: result.data.data,
+          metadata: { version: result.data.metadata.version },
+        };
       }
 
-      return {
-        data: result.data.data,
-        metadata: { version: result.data.metadata.version },
-      };
-    }
-    return undefined;
-  }
+      return undefined;
+    },
+    async getTenantById(
+      tenantId: string
+    ): Promise<WithMetadata<Tenant> | undefined> {
+      const data = await tenants.findOne(
+        { "data.id": tenantId },
+        { projection: { data: true, metadata: true } }
+      );
+
+      if (data) {
+        const result = z
+          .object({
+            metadata: z.object({ version: z.number() }),
+            data: Tenant,
+          })
+          .safeParse(data);
+
+        if (!result.success) {
+          logger.error(
+            `Unable to parse tenant item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+
+          throw genericError(`Unable to parse tenant ${tenantId}`);
+        }
+
+        return {
+          data: result.data.data,
+          metadata: { version: result.data.metadata.version },
+        };
+      }
+      return undefined;
+    },
+  };
 }
+
+export type ReadModelService = typeof readModelServiceBuilder;

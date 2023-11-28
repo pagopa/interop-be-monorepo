@@ -11,9 +11,9 @@ import {
   AgreementEvent,
   AgreementState,
   WithMetadata,
-  agreementEventToBinaryData,
   agreementState,
   ListResult,
+  agreementEventToBinaryData,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import { AgreementProcessConfig, config } from "../utilities/config.js";
@@ -27,7 +27,6 @@ import {
   ApiAgreementPayload,
   ApiAgreementUpdatePayload,
 } from "../model/types.js";
-import { ReadModelService } from "./readModelService.js";
 
 import {
   assertAgreementExist,
@@ -37,108 +36,100 @@ import {
   validateCreationOnDescriptor,
   verifyCreationConflictingAgreements,
 } from "./validators.js";
+import {
+  ReadModelService,
+  readModelServiceBuilder,
+} from "./readModelService.js";
 
 const fileManager = initFileManager(config);
 
-export class AgreementService {
-  private readModelService: ReadModelService;
-  private repository;
-
-  constructor(
-    readModelService: ReadModelService,
-    config: AgreementProcessConfig
-  ) {
-    this.readModelService = readModelService;
-    this.repository = eventRepository(
-      initDB({
-        username: config.eventStoreDbUsername,
-        password: config.eventStoreDbPassword,
-        host: config.eventStoreDbHost,
-        port: config.eventStoreDbPort,
-        database: config.eventStoreDbName,
-        schema: config.eventStoreDbSchema,
-        useSSL: config.eventStoreDbUseSSL,
-      }),
-      agreementEventToBinaryData
-    );
-  }
-
-  public async getAgreements(
-    filters: {
-      eServicesIds: string[];
-      consumersIds: string[];
-      producersIds: string[];
-      descriptorsIds: string[];
-      states: AgreementState[];
-      showOnlyUpgradeable: boolean;
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export function agreementServiceBuilder(config: AgreementProcessConfig) {
+  const readModelService = readModelServiceBuilder(config);
+  const repository = eventRepository(
+    initDB({
+      username: config.eventStoreDbUsername,
+      password: config.eventStoreDbPassword,
+      host: config.eventStoreDbHost,
+      port: config.eventStoreDbPort,
+      database: config.eventStoreDbName,
+      schema: config.eventStoreDbSchema,
+      useSSL: config.eventStoreDbUseSSL,
+    }),
+    agreementEventToBinaryData
+  );
+  return {
+    async getAgreements(
+      filters: {
+        eServicesIds: string[];
+        consumersIds: string[];
+        producersIds: string[];
+        descriptorsIds: string[];
+        states: AgreementState[];
+        showOnlyUpgradeable: boolean;
+      },
+      limit: number,
+      offset: number
+    ): Promise<ListResult<Agreement>> {
+      logger.info("Retrieving agreements");
+      return await readModelService.listAgreements(filters, limit, offset);
     },
-    limit: number,
-    offset: number
-  ): Promise<ListResult<Agreement>> {
-    logger.info("Retrieving agreements");
-    return await this.readModelService.listAgreements(filters, limit, offset);
-  }
+    async getAgreementById(
+      agreementId: string
+    ): Promise<Agreement | undefined> {
+      logger.info(`Retrieving agreement by id ${agreementId}`);
 
-  public async getAgreementById(
-    agreementId: string
-  ): Promise<Agreement | undefined> {
-    logger.info(`Retrieving agreement by id ${agreementId}`);
-
-    const agreement = await this.readModelService.readAgreementById(
-      agreementId
-    );
-    return agreement?.data;
-  }
-
-  public async createAgreement(
-    agreement: ApiAgreementPayload,
-    authData: AuthData
-  ): Promise<string> {
-    const createAgreementEvent = await createAgreementLogic(
-      this.readModelService,
-      agreement,
-      authData
-    );
-    return await this.repository.createEvent(createAgreementEvent);
-  }
-
-  public async updateAgreement(
-    agreementId: string,
-    agreement: ApiAgreementUpdatePayload,
-    authData: AuthData
-  ): Promise<void> {
-    const agreementToBeUpdated = await this.readModelService.readAgreementById(
-      agreementId
-    );
-
-    await this.repository.createEvent(
-      await updateAgreementLogic({
-        agreementId,
+      const agreement = await readModelService.readAgreementById(agreementId);
+      return agreement?.data;
+    },
+    async createAgreement(
+      agreement: ApiAgreementPayload,
+      authData: AuthData
+    ): Promise<string> {
+      const createAgreementEvent = await createAgreementLogic(
+        readModelService,
         agreement,
-        authData,
-        agreementToBeUpdated,
-      })
-    );
-  }
+        authData
+      );
+      return await repository.createEvent(createAgreementEvent);
+    },
+    async updateAgreement(
+      agreementId: string,
+      agreement: ApiAgreementUpdatePayload,
+      authData: AuthData
+    ): Promise<void> {
+      const agreementToBeUpdated = await readModelService.readAgreementById(
+        agreementId
+      );
 
-  public async deleteAgreementById(
-    agreementId: string,
-    authData: AuthData
-  ): Promise<void> {
-    const agreement = await this.readModelService.readAgreementById(
-      agreementId
-    );
+      await repository.createEvent(
+        await updateAgreementLogic({
+          agreementId,
+          agreement,
+          authData,
+          agreementToBeUpdated,
+        })
+      );
+    },
+    async deleteAgreementById(
+      agreementId: string,
+      authData: AuthData
+    ): Promise<void> {
+      const agreement = await readModelService.readAgreementById(agreementId);
 
-    await this.repository.createEvent(
-      await deleteAgreementLogic({
-        agreementId,
-        authData,
-        deleteFile: fileManager.deleteFile,
-        agreement,
-      })
-    );
-  }
+      await repository.createEvent(
+        await deleteAgreementLogic({
+          agreementId,
+          authData,
+          deleteFile: fileManager.deleteFile,
+          agreement,
+        })
+      );
+    },
+  };
 }
+
+export type AgreementService = typeof agreementServiceBuilder;
 
 export async function deleteAgreementLogic({
   agreementId,

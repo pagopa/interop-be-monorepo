@@ -15,16 +15,16 @@ import {
   eServiceToApiEService,
 } from "../model/domain/apiConverter.js";
 import { api } from "../model/generated/api.js";
-import { ReadModelService } from "../services/readModelService.js";
-import { CatalogService } from "../services/catalogService.js";
 import { config } from "../utilities/config.js";
-
-const readModelService = new ReadModelService(config);
-const catalogService = new CatalogService(readModelService, config);
 import {
   eServiceNotFound,
   eServiceDocumentNotFound,
 } from "../model/domain/errors.js";
+import { readModelServiceBuilder } from "../services/readModelService.js";
+import { catalogServiceBuilder } from "../services/catalogService.js";
+
+const readModelService = readModelServiceBuilder(config);
+const catalogService = catalogServiceBuilder(config);
 
 const eservicesRouter = (
   ctx: ZodiosContext

@@ -12,14 +12,14 @@ import {
 } from "pagopa-interop-commons";
 import { IDatabase } from "pg-promise";
 import { config } from "../src/utilities/config.js";
-import { ReadModelService } from "../src/services/readModelService.js";
-import { CatalogService } from "../src/services/catalogService.js";
+import { readModelServiceBuilder } from "../src/services/readModelService.js";
+import { catalogServiceBuilder } from "../src/services/catalogService.js";
 
 describe("database test", async () => {
   let eservices: EServiceCollection;
   let agreements: AgreementCollection;
-  let readModelService: ReadModelService;
-  let catalogService: CatalogService;
+  let readModelService;
+  let catalogService;
   let postgresDB: IDatabase<unknown>;
 
   beforeAll(async () => {
@@ -41,8 +41,8 @@ describe("database test", async () => {
     const readModelRepository = ReadModelRepository.init(config);
     eservices = readModelRepository.eservices;
     agreements = readModelRepository.agreements;
-    readModelService = new ReadModelService(config);
-    catalogService = new CatalogService(readModelService, config);
+    readModelService = readModelServiceBuilder(config);
+    catalogService = catalogServiceBuilder(config);
 
     postgresDB = initDB({
       username: config.eventStoreDbUsername,
