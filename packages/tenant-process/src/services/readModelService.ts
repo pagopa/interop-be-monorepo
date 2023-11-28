@@ -33,16 +33,20 @@ export const getTenants = async ({
   aggregationPipeline,
   offset,
   limit,
+  allowDiskUse = false,
 }: {
   aggregationPipeline: Document[];
   offset: number;
   limit: number;
+  allowDiskUse?: boolean;
 }): Promise<{
   results: Tenant[];
   totalCount: number;
 }> => {
   const data = await tenants
-    .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }])
+    .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }], {
+      allowDiskUse,
+    })
     .toArray();
 
   const result = z.array(Tenant).safeParse(data.map((d) => d.data));
@@ -59,7 +63,8 @@ export const getTenants = async ({
     results: result.data,
     totalCount: await ReadModelRepository.getTotalCount(
       tenants,
-      aggregationPipeline
+      aggregationPipeline,
+      allowDiskUse
     ),
   };
 };
@@ -104,7 +109,12 @@ export const readModelService = {
       { $sort: { lowerName: 1 } },
     ];
 
-    return getTenants({ aggregationPipeline, offset, limit });
+    return getTenants({
+      aggregationPipeline,
+      offset,
+      limit,
+      allowDiskUse: true,
+    });
   },
   async getProducers({
     name,
@@ -131,6 +141,11 @@ export const readModelService = {
       { $sort: { lowerName: 1 } },
     ];
 
-    return getTenants({ aggregationPipeline, offset, limit });
+    return getTenants({
+      aggregationPipeline,
+      offset,
+      limit,
+      allowDiskUse: true,
+    });
   },
 };
