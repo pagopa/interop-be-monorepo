@@ -1,6 +1,10 @@
 import { Filter } from "mongodb";
 import { z } from "zod";
-import { logger, ReadModelRepository } from "pagopa-interop-commons";
+import {
+  logger,
+  ReadModelFilter,
+  ReadModelRepository,
+} from "pagopa-interop-commons";
 import {
   AttributeKind,
   Attribute,
@@ -73,10 +77,10 @@ export const readModelService = {
         $match: {
           ...nameFilter,
           ...originFilter,
-          ...ReadModelRepository.arrayToFilter(kinds, (kinds) => ({
+          ...ReadModelRepository.arrayToFilter(kinds, {
             "data.kind": { $in: kinds },
-          })),
-        },
+          }),
+        } satisfies ReadModelFilter<Attribute>,
       },
       {
         $project: {
