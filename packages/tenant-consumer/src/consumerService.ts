@@ -3,8 +3,6 @@ import {
   ReadModelRepository,
   consumerConfig,
   logger,
-  // consumerConfig,
-  // ReadModelRepository,
 } from "pagopa-interop-commons";
 import { EventEnvelope } from "./model/models.js";
 import { fromTenantV1 } from "./model/converter.js";
