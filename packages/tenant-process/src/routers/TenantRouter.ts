@@ -8,7 +8,7 @@ import {
 } from "pagopa-interop-commons";
 import { api } from "../model/generated/api.js";
 import { readModelService } from "../services/readModelService.js";
-import { tenantToApiTenant } from "../model/domain/apiConverter.js";
+import { toApiTenant } from "../model/domain/apiConverter.js";
 
 const tenantsRouter = (
   ctx: ZodiosContext
@@ -42,7 +42,7 @@ const tenantsRouter = (
           });
 
           return res.status(200).json({
-            results: consumers.results.map(tenantToApiTenant),
+            results: consumers.results.map(toApiTenant),
             totalCount: consumers.totalCount,
           });
         } catch (error) {
@@ -68,7 +68,7 @@ const tenantsRouter = (
           });
 
           return res.status(200).json({
-            results: producers.results.map(tenantToApiTenant),
+            results: producers.results.map(toApiTenant),
             totalCount: producers.totalCount,
           });
         } catch (error) {
