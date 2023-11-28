@@ -6,6 +6,7 @@ import {
   ZodiosContext,
   authorizationMiddleware,
 } from "pagopa-interop-commons";
+import { makeApiProblem } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
 import { tenantService } from "../services/tenantService.js";
 
@@ -103,7 +104,8 @@ const tenantsRouter = (
           });
           return res.status(200).json({ id }).send();
         } catch (error) {
-          return res.status(500).send();
+          const errorRes = makeApiProblem(error);
+          return res.status(errorRes.status).json(errorRes).end();
         }
       }
     )
