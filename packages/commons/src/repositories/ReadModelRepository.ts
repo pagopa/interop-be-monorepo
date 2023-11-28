@@ -68,7 +68,7 @@ export class ReadModelRepository {
     allowDiskUse: boolean = false
   ): Promise<number> {
     const query = collection.aggregate([...aggregation, { $count: "count" }], {
-      allowDiskUse: allowDiskUse,
+      allowDiskUse,
     });
 
     const data = await query.toArray();
