@@ -84,8 +84,8 @@ const assertRequesterAllowed = (
 };
 
 export const retrieveEService = async (
-  readModelService: ReadModelService,
-  eServiceId: string
+  eServiceId: string,
+  readModelService: ReadModelService
 ): Promise<WithMetadata<EService>> => {
   const eService = await readModelService.getEServiceById(eServiceId);
   if (eService === undefined) {
@@ -188,7 +188,6 @@ const hasNotDraftDescriptor = (eService: EService): void => {
 };
 
 export function catalogServiceBuilder(config: CatalogProcessConfig) {
-  const readModelService = readModelServiceBuilder(config);
   const repository = eventRepository(
     initDB({
       username: config.eventStoreDbUsername,
@@ -201,6 +200,7 @@ export function catalogServiceBuilder(config: CatalogProcessConfig) {
     }),
     catalogEventToBinaryData
   );
+  const readModelService = readModelServiceBuilder(config);
   return {
     async createEService(
       apiEServicesSeed: ApiEServiceSeed,
@@ -225,6 +225,7 @@ export function catalogServiceBuilder(config: CatalogProcessConfig) {
         })
       );
     },
+
     async updateEService(
       eServiceId: string,
       eServiceSeed: ApiEServiceSeed,
@@ -236,6 +237,7 @@ export function catalogServiceBuilder(config: CatalogProcessConfig) {
         updateEserviceLogic({ eService, eServiceId, authData, eServiceSeed })
       );
     },
+
     async deleteEService(
       eServiceId: string,
       authData: AuthData
@@ -246,6 +248,7 @@ export function catalogServiceBuilder(config: CatalogProcessConfig) {
         deleteEserviceLogic({ eServiceId, authData, eService })
       );
     },
+
     async uploadDocument(
       eServiceId: string,
       descriptorId: string,
@@ -264,6 +267,7 @@ export function catalogServiceBuilder(config: CatalogProcessConfig) {
         })
       );
     },
+
     async deleteDocument(
       eServiceId: string,
       descriptorId: string,
@@ -283,6 +287,7 @@ export function catalogServiceBuilder(config: CatalogProcessConfig) {
         })
       );
     },
+
     async updateDocument(
       eServiceId: string,
       descriptorId: string,
@@ -303,6 +308,7 @@ export function catalogServiceBuilder(config: CatalogProcessConfig) {
         })
       );
     },
+
     async createDescriptor(
       eServiceId: string,
       eserviceDescriptorSeed: EServiceDescriptorSeed,
@@ -321,6 +327,7 @@ export function catalogServiceBuilder(config: CatalogProcessConfig) {
         })
       );
     },
+
     async deleteDraftDescriptor(
       eServiceId: string,
       descriptorId: string,
@@ -341,6 +348,7 @@ export function catalogServiceBuilder(config: CatalogProcessConfig) {
         })
       );
     },
+
     async updateDescriptor(
       eServiceId: string,
       descriptorId: string,
@@ -359,6 +367,7 @@ export function catalogServiceBuilder(config: CatalogProcessConfig) {
         })
       );
     },
+
     async publishDescriptor(
       eServiceId: string,
       descriptorId: string,
@@ -381,6 +390,7 @@ export function catalogServiceBuilder(config: CatalogProcessConfig) {
 
       await authorizationManagementServiceMock.updateStateOnClients();
     },
+
     async suspendDescriptor(
       eServiceId: string,
       descriptorId: string,
@@ -403,6 +413,7 @@ export function catalogServiceBuilder(config: CatalogProcessConfig) {
 
       await authorizationManagementServiceMock.updateStateOnClients();
     },
+
     async activateDescriptor(
       eServiceId: string,
       descriptorId: string,
@@ -425,6 +436,7 @@ export function catalogServiceBuilder(config: CatalogProcessConfig) {
 
       await authorizationManagementServiceMock.updateStateOnClients();
     },
+
     async cloneDescriptor(
       eServiceId: string,
       descriptorId: string,
@@ -448,6 +460,7 @@ export function catalogServiceBuilder(config: CatalogProcessConfig) {
 
       return draftEService;
     },
+
     async archiveDescriptor(
       eServiceId: string,
       descriptorId: string,
@@ -472,8 +485,6 @@ export function catalogServiceBuilder(config: CatalogProcessConfig) {
     },
   };
 }
-
-export type CatalogService = typeof catalogServiceBuilder;
 
 export function createEserviceLogic({
   eServices,
@@ -1096,3 +1107,5 @@ export function archiveDescriptorLogic({
     updatedDescriptor
   );
 }
+
+export type CatalogService = typeof catalogServiceBuilder;
