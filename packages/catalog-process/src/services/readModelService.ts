@@ -22,6 +22,7 @@ import { z } from "zod";
 import { Consumer, consumer } from "../model/domain/models.js";
 import { CatalogProcessConfig } from "../utilities/config.js";
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(config: CatalogProcessConfig) {
   const readModelRepository = ReadModelRepository.init(config);
   const eservices = readModelRepository.eservices;
@@ -330,4 +331,4 @@ export function readModelServiceBuilder(config: CatalogProcessConfig) {
   };
 }
 
-export type ReadModelService = typeof readModelServiceBuilder;
+export type ReadModelService = ReturnType<typeof readModelServiceBuilder>;

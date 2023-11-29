@@ -432,4 +432,4 @@ export function readModelServiceBuilder(config: AgreementProcessConfig) {
   };
 }
 
-export type ReadModelService = typeof readModelServiceBuilder;
+export type ReadModelService = ReturnType<typeof readModelServiceBuilder>;

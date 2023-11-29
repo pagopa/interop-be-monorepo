@@ -129,7 +129,7 @@ export function agreementServiceBuilder(config: AgreementProcessConfig) {
   };
 }
 
-export type AgreementService = typeof agreementServiceBuilder;
+export type AgreementService = ReturnType<typeof agreementServiceBuilder>;
 
 export async function deleteAgreementLogic({
   agreementId,

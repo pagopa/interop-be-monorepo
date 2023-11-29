@@ -187,6 +187,7 @@ const hasNotDraftDescriptor = (eService: EService): void => {
   }
 };
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function catalogServiceBuilder(config: CatalogProcessConfig) {
   const repository = eventRepository(
     initDB({
@@ -1108,4 +1109,4 @@ export function archiveDescriptorLogic({
   );
 }
 
-export type CatalogService = typeof catalogServiceBuilder;
+export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
