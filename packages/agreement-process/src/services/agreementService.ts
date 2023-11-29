@@ -522,3 +522,69 @@ export async function upgradeAgreementLogic({
     };
   }
 }
+
+export async function cloneAgreementLogics({
+  agreementId,
+  authData,
+  agreementToBeCloned,
+  tenant,
+  getEService,
+}: {
+  agreementId: string;
+  authData: AuthData;
+  agreementToBeCloned: WithMetadata<Agreement> | undefined;
+  tenant: () => Promise<WithMetadata<Tenant> | undefined>;
+  getEService: () => Promise<WithMetadata<EService> | undefined>;
+}): Promise<CreateEvent<AgreementEvent>> {
+  assertAgreementExist(agreementId, agreementToBeCloned);
+  assertRequesterIsConsumer(
+    authData.organizationId,
+    agreementToBeCloned.data.consumerId
+  );
+
+  assertExpectedState(agreementId, agreementToBeCloned.data.state, [
+    agreementState.rejected,
+  ]);
+
+  const eservice = await getEService();
+  assertEServiceExist(agreementToBeCloned.data.eserviceId, eservice);
+
+  const consumer = await tenant();
+  assertTenantExist(agreementToBeCloned.data.consumerId, consumer);
+
+  const descriptor = eservice.data.descriptors.find(
+    (d) => d.id === agreementToBeCloned.data.descriptorId
+  );
+  if (descriptor === undefined) {
+    throw descriptorNotFound(
+      eservice.data.id,
+      agreementToBeCloned.data.descriptorId
+    );
+  }
+
+  validateCertifiedAttributes(descriptor, consumer.data);
+
+  const newAgreement = await createAgreementLogic(
+    {
+      eserviceId: agreementToBeCloned.data.eserviceId,
+      descriptorId: agreementToBeCloned.data.descriptorId,
+    },
+    authData,
+    consumer,
+    eservice
+  );
+
+  for (const doc of agreementToBeCloned.data.consumerDocuments) {
+    await fileManager.copy(
+      config.storageContainer,
+      `${config.consumerDocumentsPath}/${newAgreement.streamId}`,
+      doc.path,
+      uuidv4(),
+      doc.name
+    );
+  }
+
+  // todo add consumer document
+
+  return newAgreement;
+}
