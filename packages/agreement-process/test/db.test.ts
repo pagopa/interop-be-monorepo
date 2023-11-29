@@ -47,7 +47,7 @@ describe("database test", async () => {
     tenants = readModelRepository.tenants;
 
     readModelService = readModelServiceBuilder(config);
-    agreementService = agreementServiceBuilder(config);
+    agreementService = agreementServiceBuilder(config, readModelService);
 
     postgresDB = initDB({
       username: config.eventStoreDbUsername,

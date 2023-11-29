@@ -58,10 +58,7 @@ import {
   notValidDescriptor,
   eServiceNotFound,
 } from "../model/domain/errors.js";
-import {
-  ReadModelService,
-  readModelServiceBuilder,
-} from "./readModelService.js";
+import { ReadModelService } from "./readModelService.js";
 
 const fileManager = initFileManager(config);
 
@@ -188,7 +185,10 @@ const hasNotDraftDescriptor = (eService: EService): void => {
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function catalogServiceBuilder(config: CatalogProcessConfig) {
+export function catalogServiceBuilder(
+  config: CatalogProcessConfig,
+  readModelService: ReadModelService
+) {
   const repository = eventRepository(
     initDB({
       username: config.eventStoreDbUsername,
@@ -201,7 +201,6 @@ export function catalogServiceBuilder(config: CatalogProcessConfig) {
     }),
     catalogEventToBinaryData
   );
-  const readModelService = readModelServiceBuilder(config);
   return {
     async createEService(
       apiEServicesSeed: ApiEServiceSeed,

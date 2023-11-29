@@ -24,7 +24,7 @@ import { readModelServiceBuilder } from "../services/readModelService.js";
 import { catalogServiceBuilder } from "../services/catalogService.js";
 
 const readModelService = readModelServiceBuilder(config);
-const catalogService = catalogServiceBuilder(config);
+const catalogService = catalogServiceBuilder(config, readModelService);
 
 const eservicesRouter = (
   ctx: ZodiosContext
