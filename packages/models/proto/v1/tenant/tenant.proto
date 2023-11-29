@@ -1,0 +1,92 @@
+syntax = "proto2";
+
+package tenant;
+
+message TenantV1 {
+  required string id = 1;
+  optional string selfcareId = 2;
+  required ExternalIdV1 externalId = 3;
+  repeated TenantFeatureV1 features = 4;
+  repeated TenantAttributeV1 attributes = 5;
+  required int64 createdAt = 6;
+  optional int64 updatedAt = 7;
+  repeated TenantMailV1 mails = 8;
+  optional string name = 9;
+  optional TenantKindV1 kind = 10;
+}
+
+enum TenantKindV1 {
+  PA = 1;
+  GSP = 2;
+  PRIVATE = 3;
+}
+
+message TenantMailV1 {
+  required TenantMailKindV1 kind = 1;
+  required string address = 2;
+  required int64 createdAt = 3;
+  optional string description = 4;
+}
+
+enum TenantMailKindV1 {
+  CONTACT_EMAIL = 1;
+}
+
+message TenantFeatureV1 {
+  oneof sealed_value {
+    CertifierV1 certifier = 1;
+  }
+}
+
+message CertifierV1 {
+  required string certifierId = 1;
+}
+
+message TenantVerifierV1 {
+  reserved 3;
+  required string id = 1;
+  required int64 verificationDate = 2;
+  optional int64 expirationDate = 4;
+  optional int64 extensionDate = 5;
+}
+
+message TenantRevokerV1 {
+  reserved 3;
+  required string id = 1;
+  required int64 verificationDate = 2;
+  optional int64 expirationDate = 4;
+  optional int64 extensionDate = 5;
+  required int64 revocationDate = 6;
+}
+
+message ExternalIdV1 {
+  required string origin = 1;
+  required string value = 2;
+}
+
+message TenantCertifiedAttributeV1 {
+  required string id = 1;
+  required int64 assignmentTimestamp = 2;
+  optional int64 revocationTimestamp = 3;
+}
+
+message TenantDeclaredAttributeV1 {
+  required string id = 1;
+  required int64 assignmentTimestamp = 2;
+  optional int64 revocationTimestamp = 3;
+}
+
+message TenantVerifiedAttributeV1 {
+  required string id = 1;
+  required int64 assignmentTimestamp = 2;
+  repeated TenantVerifierV1 verifiedBy = 3;
+  repeated TenantRevokerV1 revokedBy = 4;
+}
+
+message TenantAttributeV1 {
+  oneof sealed_value {
+    TenantCertifiedAttributeV1 certifiedAttribute = 1;
+    TenantDeclaredAttributeV1 declaredAttribute = 2;
+    TenantVerifiedAttributeV1 verifiedAttribute = 3;
+  }
+}
