@@ -47,6 +47,7 @@ import {
   verifyConflictingAgreements,
   verifyCreationConflictingAgreements,
 } from "../model/domain/validators.js";
+import { CompactOrganization } from "../model/domain/models.js";
 import {
   ApiAgreementPayload,
   ApiAgreementSubmissionPayload,
@@ -60,16 +61,18 @@ import { AttributeQuery } from "./readmodel/attributeQuery.js";
 import { EserviceQuery } from "./readmodel/eserviceQuery.js";
 import { AgreementQueryFilters } from "./readmodel/readModelService.js";
 import { TenantQuery } from "./readmodel/tenantQuery.js";
+import { ConsumerQuery } from "./readmodel/consumerQuery.js";
 
 const fileManager = initFileManager(config);
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function agreementServiceBuilder(
   dbInstance: DB,
   agreementQuery: AgreementQuery,
   tenantQuery: TenantQuery,
   eserviceQuery: EserviceQuery,
-  attributeQuery: AttributeQuery
+  attributeQuery: AttributeQuery,
+  consumerQuery: ConsumerQuery
 ) {
   const repository = eventRepository(dbInstance, agreementEventToBinaryData);
   return {
@@ -101,6 +104,14 @@ export function agreementServiceBuilder(
         tenantQuery
       );
       return await repository.createEvent(createAgreementEvent);
+    },
+    async getConsumers(
+      name: string | undefined,
+      limit: number,
+      offset: number
+    ): Promise<ListResult<CompactOrganization>> {
+      logger.info("Retrieving consumers");
+      return await consumerQuery.listConsumers(name, limit, offset);
     },
     async updateAgreement(
       agreementId: string,
