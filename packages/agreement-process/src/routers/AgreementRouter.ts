@@ -19,6 +19,7 @@ import { agreementQueryBuilder } from "../services/readmodel/agreementQuery.js";
 import { tenantQueryBuilder } from "../services/readmodel/tenantQuery.js";
 import { eserviceQueryBuilder } from "../services/readmodel/eserviceQuery.js";
 import { attributeQueryBuilder } from "../services/readmodel/attributeQuery.js";
+import { consumerQueryBuilder } from "../services/readmodel/consumerQuery.js";
 import { readModelServiceBuilder } from "../services/readmodel/readModelService.js";
 import { agreementNotFound, makeApiProblem } from "../model/domain/errors.js";
 import {
@@ -36,6 +37,7 @@ const agreementQuery = agreementQueryBuilder(readModelService);
 const tenantQuery = tenantQueryBuilder(readModelService);
 const eserviceQuery = eserviceQueryBuilder(readModelService);
 const attributeQuery = attributeQueryBuilder(readModelService);
+const consumerQuery = consumerQueryBuilder(readModelService);
 
 const agreementService = agreementServiceBuilder(
   initDB({
@@ -50,7 +52,8 @@ const agreementService = agreementServiceBuilder(
   agreementQuery,
   tenantQuery,
   eserviceQuery,
-  attributeQuery
+  attributeQuery,
+  consumerQuery
 );
 
 const {
@@ -191,9 +194,35 @@ const agreementRouter = (
     res.status(501).send();
   });
 
-  agreementRouter.get("/consumers", async (_req, res) => {
-    res.status(501).send();
-  });
+  agreementRouter.get(
+    "/consumers",
+    authorizationMiddleware([
+      ADMIN_ROLE,
+      API_ROLE,
+      SECURITY_ROLE,
+      SUPPORT_ROLE,
+    ]),
+    async (req, res) => {
+      try {
+        const consumers = await agreementService.getConsumers(
+          req.query.consumerName,
+          req.query.limit,
+          req.query.offset
+        );
+
+        return res
+          .status(200)
+          .json({
+            results: consumers.results,
+            totalCount: consumers.totalCount,
+          })
+          .end();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, () => 500);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    }
+  );
 
   agreementRouter.get(
     "/agreements/:agreementId",
