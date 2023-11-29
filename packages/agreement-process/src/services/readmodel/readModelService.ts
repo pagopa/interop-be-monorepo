@@ -25,6 +25,7 @@ import {
 import { P, match } from "ts-pattern";
 import { z } from "zod";
 import { Filter } from "mongodb";
+import { CompactOrganization } from "../../model/domain/models.js";
 
 export type AgreementQueryFilters = {
   producerId?: string | string[];
@@ -433,6 +434,80 @@ export function readModelServiceBuilder(
       id: string
     ): Promise<WithMetadata<Attribute> | undefined> {
       return getAttribute(attributes, { "data.id": id });
+    },
+    async listConsumers(
+      name: string | undefined,
+      limit: number,
+      offset: number
+    ): Promise<ListResult<CompactOrganization>> {
+      const aggregationPipeline = [
+        {
+          $lookup: {
+            from: "tenants",
+            localField: "data.consumerId",
+            foreignField: "data.id",
+            as: "tenants",
+          },
+        },
+        {
+          $unwind: {
+            path: "$tenants",
+            preserveNullAndEmptyArrays: false,
+          },
+        },
+        {
+          $match: {
+            ...(name && {
+              "data.name": { $regex: new RegExp(name || "", "i") },
+            }),
+          },
+        },
+        {
+          group: {
+            _id: "$$data.consumerId",
+            tenantId: { $first: "$$data.consumerId" },
+            tenantName: { $fist: "$tenants.data.name" },
+          },
+        },
+        {
+          $project: {
+            data: { id: "$tenantId", name: "$tenantName" },
+            lowerName: { $toLower: "$tenantName" },
+          },
+        },
+        {
+          $sort: { lowerName: 1 },
+        },
+      ];
+
+      const data = await agreements
+        .aggregate([
+          ...aggregationPipeline,
+          { $skip: offset },
+          { $limit: limit },
+        ])
+        .toArray();
+
+      const result = z
+        .array(CompactOrganization)
+        .safeParse(data.map((d) => d.data));
+      if (!result.success) {
+        logger.error(
+          `Unable to parse compact organization items: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+
+        throw genericError("Unable to parse compact organization items");
+      }
+
+      return {
+        results: result.data,
+        totalCount: await ReadModelRepository.getTotalCount(
+          agreements,
+          aggregationPipeline
+        ),
+      };
     },
   };
 }
