@@ -1,23 +1,17 @@
 import { z } from "zod";
-import {
-  logger,
-  ReadModelFilter,
-  ReadModelRepository,
-} from "pagopa-interop-commons";
+import { logger, ReadModelRepository } from "pagopa-interop-commons";
 import { genericError, WithMetadata } from "pagopa-interop-models";
 import { Tenant } from "pagopa-interop-models";
+import { Filter, WithId } from "mongodb";
 import { config } from "../utilities/config.js";
 const { tenants } = ReadModelRepository.init(config);
 
-async function getTenant({
-  data: filter,
-}: ReadModelFilter<Tenant>): Promise<WithMetadata<Tenant> | undefined> {
-  const dataTenant = await tenants.findOne(
-    { data: filter } satisfies ReadModelFilter<Tenant>,
-    {
-      projection: { dataTenant: true, metadata: true },
-    }
-  );
+async function getTenant(
+  filter: Filter<WithId<WithMetadata<Tenant>>>
+): Promise<WithMetadata<Tenant> | undefined> {
+  const dataTenant = await tenants.findOne(filter, {
+    projection: { dataTenant: true, metadata: true },
+  });
 
   if (dataTenant) {
     const result = z
