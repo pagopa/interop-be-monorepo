@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-identical-functions */
 import { ApiError, CommonErrorCodes } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { ErrorCodes as LocalErrorCodes } from "../model/domain/errors.js";
@@ -55,7 +56,6 @@ export const createDescriptorErrorMapper = (
 
 export const deleteDraftDescriptorErrorMapper = (
   error: ApiError<ErrorCodes>
-  // eslint-disable-next-line sonarjs/no-identical-functions
 ): number =>
   match(error.code)
     .with("eServiceNotFound", "eServiceDescriptorNotFound", () => 404)
@@ -91,7 +91,6 @@ export const suspendDescriptorErrorMapper = (
 
 export const activateDescriptorErrorMapper = (
   error: ApiError<ErrorCodes>
-  // eslint-disable-next-line sonarjs/no-identical-functions
 ): number =>
   match(error.code)
     .with("eServiceNotFound", "eServiceDescriptorNotFound", () => 404)
@@ -101,7 +100,6 @@ export const activateDescriptorErrorMapper = (
 
 export const cloneEServiceByDescriptorErrorMapper = (
   error: ApiError<ErrorCodes>
-  // eslint-disable-next-line sonarjs/no-identical-functions
 ): number =>
   match(error.code)
     .with("eServiceNotFound", "eServiceDescriptorNotFound", () => 404)
@@ -110,7 +108,6 @@ export const cloneEServiceByDescriptorErrorMapper = (
 
 export const archiveDescriptorErrorMapper = (
   error: ApiError<ErrorCodes>
-  // eslint-disable-next-line sonarjs/no-identical-functions
 ): number =>
   match(error.code)
     .with("eServiceNotFound", "eServiceDescriptorNotFound", () => 404)
