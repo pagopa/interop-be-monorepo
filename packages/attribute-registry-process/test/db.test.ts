@@ -11,8 +11,14 @@ import { v4 as uuidv4 } from "uuid";
 import { Document } from "mongodb";
 import { IDatabase } from "pg-promise";
 import { config } from "../src/utilities/config.js";
-import { AttributeRegistryService } from "../src/services/attributeRegistryService.js";
-import { ReadModelService } from "../src/services/readModelService.js";
+import {
+  AttributeRegistryService,
+  attributeRegistryServiceBuilder,
+} from "../src/services/attributeRegistryService.js";
+import {
+  ReadModelService,
+  readModelServiceBuilder,
+} from "../src/services/readModelService.js";
 
 describe("database test", () => {
   let attributes: AttributeCollection;
@@ -45,10 +51,10 @@ describe("database test", () => {
     config.eventStoreDbPort = postgreSqlContainer.getMappedPort(5432);
     config.readModelDbPort = mongodbContainer.getMappedPort(27017);
     attributes = ReadModelRepository.init(config).attributes;
-    readModelService = new ReadModelService(config);
-    attributeRegistryService = new AttributeRegistryService(
-      readModelService,
-      config
+    readModelService = readModelServiceBuilder(config);
+    attributeRegistryService = attributeRegistryServiceBuilder(
+      config,
+      readModelService
     );
 
     postgresDB = initDB({

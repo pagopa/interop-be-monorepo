@@ -8,19 +8,19 @@ import {
 } from "pagopa-interop-commons";
 import { makeApiProblem } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
-import { ReadModelService } from "../services/readModelService.js";
+import { readModelServiceBuilder } from "../services/readModelService.js";
 import {
   toAttributeKind,
   toApiAttribute,
 } from "../model/domain/apiConverter.js";
 import { config } from "../utilities/config.js";
-import { AttributeRegistryService } from "../services/attributeRegistryService.js";
 import { attributeNotFound } from "../model/domain/errors.js";
+import { attributeRegistryServiceBuilder } from "../services/attributeRegistryService.js";
 
-const readModelService = new ReadModelService(config);
-const attributeRegistryService = new AttributeRegistryService(
-  readModelService,
-  config
+const readModelService = readModelServiceBuilder(config);
+const attributeRegistryService = attributeRegistryServiceBuilder(
+  config,
+  readModelService
 );
 
 const attributeRouter = (
