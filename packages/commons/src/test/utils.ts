@@ -10,7 +10,7 @@ export const getMongodbContainer = ({
   password: string;
   dbName: string;
 }): GenericContainer =>
-  new GenericContainer("mongo:6.0.7")
+  new GenericContainer("mongo:4.0.0")
     .withEnvironment({
       MONGO_INITDB_DATABASE: dbName,
       MONGO_INITDB_ROOT_USERNAME: username,
