@@ -67,7 +67,6 @@ describe("database test", async () => {
 
     await postgresDB.none("TRUNCATE TABLE agreement.events RESTART IDENTITY");
     await postgresDB.none("TRUNCATE TABLE catalog.events RESTART IDENTITY");
-    await postgresDB.none("TRUNCATE TABLE tenant.events RESTART IDENTITY");
   });
 
   describe("TO DO", () => {
