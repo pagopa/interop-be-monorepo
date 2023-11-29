@@ -187,7 +187,7 @@ export async function deleteAgreementLogic({
 }: {
   agreementId: string;
   authData: AuthData;
-  deleteFile: (path: string) => Promise<void>;
+  deleteFile: (container: string, path: string) => Promise<void>;
   agreement: WithMetadata<Agreement> | undefined;
 }): Promise<CreateEvent<AgreementEvent>> {
   assertAgreementExist(agreementId, agreement);
@@ -201,7 +201,7 @@ export async function deleteAgreementLogic({
   assertExpectedState(agreementId, agreement.data.state, deletableStates);
 
   for (const d of agreement.data.consumerDocuments) {
-    await deleteFile(d.path);
+    await deleteFile(config.storageContainer, d.path);
   }
 
   return toCreateEventAgreementDeleted(agreementId, agreement.metadata.version);
@@ -307,6 +307,7 @@ export async function updateAgreementLogic({
   );
 }
 
+// eslint-disable-next-line sonarjs/cognitive-complexity
 export async function upgradeAgreementLogic({
   agreementId,
   authData,
@@ -341,16 +342,16 @@ export async function upgradeAgreementLogic({
   const eservice = await getEService();
   assertEServiceExist(agreementToBeUpgraded.data.eserviceId, eservice);
 
-  const descriptor = eservice.data.descriptors.find(
+  const newDescriptor = eservice.data.descriptors.find(
     (d) => d.state === descriptorState.published
   );
-  if (descriptor === undefined) {
+  if (newDescriptor === undefined) {
     throw publishedDescriptorNotFound(agreementToBeUpgraded.data.eserviceId);
   }
 
-  const latestDescriptorVersion = z.number().safeParse(descriptor.version);
+  const latestDescriptorVersion = z.number().safeParse(newDescriptor.version);
   if (!latestDescriptorVersion.success) {
-    throw unexpectedVersionFormat(eservice.data.id, descriptor.id);
+    throw unexpectedVersionFormat(eservice.data.id, newDescriptor.id);
   }
 
   const currentDescriptor = eservice.data.descriptors.find(
@@ -372,8 +373,6 @@ export async function upgradeAgreementLogic({
     throw noNewerDescriptor(eservice.data.id, currentDescriptor.id);
   }
 
-  // newDescriptor
-
   const attributesSatisfied = (
     requested: Array<Array<{ id: string }>>,
     assigned: string[]
@@ -387,9 +386,12 @@ export async function upgradeAgreementLogic({
     .filter((a) => a.assignmentTimestamp !== undefined)
     .map((a) => a.id);
 
-  const valid = attributesSatisfied(descriptor.attributes.certified, assigned);
+  const valid = attributesSatisfied(
+    newDescriptor.attributes.certified,
+    assigned
+  );
   if (!valid) {
-    throw missingCertifiedAttributesError(descriptor.id, tenant.data.id);
+    throw missingCertifiedAttributesError(newDescriptor.id, tenant.data.id);
   }
 
   const verified = tenant.data.attributes
@@ -405,14 +407,14 @@ export async function upgradeAgreementLogic({
     )
     .map((a) => a.id);
   const verifiedValid = attributesSatisfied(
-    descriptor.attributes.verified,
+    newDescriptor.attributes.verified,
     verified
   );
   const declared = tenant.data.attributes
     .filter((a) => a.type === "declared" && a.revocationTimestamp === undefined)
     .map((a) => a.id);
   const declaredValid = attributesSatisfied(
-    descriptor.attributes.declared,
+    newDescriptor.attributes.declared,
     declared
   );
   if (verifiedValid && declaredValid) {
@@ -432,7 +434,7 @@ export async function upgradeAgreementLogic({
     const upgraded: Agreement = {
       ...agreementToBeUpgraded.data,
       id: uuidv4(),
-      descriptorId: descriptor.id,
+      descriptorId: newDescriptor.id,
       createdAt: new Date(),
       updatedAt: undefined,
       rejectionReason: undefined,
@@ -449,12 +451,12 @@ export async function upgradeAgreementLogic({
         agreementId: upgraded.id,
         agreementState:
           upgraded.state === agreementState.active ? "active" : "inactive",
-        descriptorId: descriptor.id,
-        audience: descriptor.audience,
-        voucherLifespan: descriptor.voucherLifespan,
+        descriptorId: newDescriptor.id,
+        audience: newDescriptor.audience,
+        voucherLifespan: newDescriptor.voucherLifespan,
         eserviceState:
-          descriptor.state === descriptorState.published ||
-          descriptor.state === descriptorState.deprecated
+          newDescriptor.state === descriptorState.published ||
+          newDescriptor.state === descriptorState.deprecated
             ? "active"
             : "inactive",
       }
@@ -469,6 +471,30 @@ export async function upgradeAgreementLogic({
     ];
   } else {
     // createNewDraftAgreement
+    await verifyConflictingAgreements(
+      agreementToBeUpgraded.data.consumerId,
+      agreementToBeUpgraded.data.eserviceId,
+      [agreementState.draft]
+    );
+    const createEvent = await createAgreementLogic(
+      {
+        eserviceId: agreementToBeUpgraded.data.eserviceId,
+        descriptorId: newDescriptor.id,
+      },
+      authData,
+      tenant,
+      eservice
+    );
+
+    for (const doc of agreementToBeUpgraded.data.consumerDocuments) {
+      await fileManager.copy(
+        config.storageContainer,
+        `${config.consumerDocumentsPath}/${createEvent.streamId}`,
+        doc.path,
+        uuidv4(),
+        doc.name
+      );
+    }
   }
 
   return [];
