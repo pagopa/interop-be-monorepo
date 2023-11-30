@@ -13,6 +13,7 @@ import {
   toAttributeKind,
   toApiAttribute,
 } from "../model/domain/apiConverter.js";
+import { attributeRegistryService } from "../services/attributeRegistryService.js";
 import { attributeNotFound } from "../model/domain/errors.js";
 
 const attributeRouter = (
@@ -40,16 +41,14 @@ const attributeRouter = (
       async (req, res) => {
         try {
           const { limit, offset, kinds, name, origin } = req.query;
-
-          const attributes = await readModelService.getAttributes(
-            {
+          const attributes =
+            await readModelService.getAttributesByKindsNameOrigin({
               kinds: kinds.map(toAttributeKind),
               name,
               origin,
-            },
-            offset,
-            limit
-          );
+              offset,
+              limit,
+            });
 
           return res
             .status(200)
@@ -162,7 +161,26 @@ const attributeRouter = (
         M2M_ROLE,
         SUPPORT_ROLE,
       ]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const { limit, offset } = req.query;
+
+        try {
+          const attributes = await readModelService.getAttributesByIds({
+            ids: req.body,
+            offset,
+            limit,
+          });
+          return res
+            .status(200)
+            .json({
+              results: attributes.results.map(toApiAttribute),
+              totalCount: attributes.totalCount,
+            })
+            .end();
+        } catch (error) {
+          return res.status(500).end();
+        }
+      }
     )
     .post(
       "/certifiedAttributes",
@@ -172,12 +190,34 @@ const attributeRouter = (
     .post(
       "/declaredAttributes",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE, M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const id = await attributeRegistryService.createDeclaredAttribute(
+            req.body,
+            req.ctx.authData
+          );
+          return res.status(200).json({ id }).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(error);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/verifiedAttributes",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE, M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const id = await attributeRegistryService.createVerifiedAttribute(
+            req.body,
+            req.ctx.authData
+          );
+          return res.status(200).json({ id }).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(error);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/internal/certifiedAttributes",
