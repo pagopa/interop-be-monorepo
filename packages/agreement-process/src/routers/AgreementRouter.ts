@@ -12,8 +12,13 @@ import {
   agreementToApiAgreement,
   apiAgreementStateToAgreementState,
 } from "../model/domain/apiConverter.js";
-import { agreementService } from "../services/agreementService.js";
+import { config } from "../utilities/config.js";
 import { agreementNotFound } from "../model/domain/errors.js";
+import { agreementServiceBuilder } from "../services/agreementService.js";
+import { readModelServiceBuilder } from "../services/readModelService.js";
+
+const readModelService = readModelServiceBuilder(config);
+const agreementService = agreementServiceBuilder(config, readModelService);
 
 const {
   ADMIN_ROLE,
