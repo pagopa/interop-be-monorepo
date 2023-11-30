@@ -5,7 +5,13 @@ import {
   Tenant,
   genericError,
 } from "pagopa-interop-models";
-import { Collection, Db, MongoClient } from "mongodb";
+import {
+  Collection,
+  Db,
+  MongoClient,
+  WithId,
+  RootFilterOperators,
+} from "mongodb";
 import { z } from "zod";
 import { ReadModelDbConfig, logger } from "../index.js";
 
@@ -24,6 +30,69 @@ export type Collections =
   | AgreementCollection
   | TenantCollection
   | AttributeCollection;
+
+type BuildQueryKey<TPrefix extends string, TKey> = `${TPrefix}.${TKey &
+  string}`;
+type BuilIndexedQueryKey<TPrefix extends string, TKey> = `${TPrefix}.${TKey &
+  string}.${number}`;
+
+type ExtractQueryKeysFromRecord<
+  T extends Record<string, unknown>,
+  TPrefix extends string
+> = {
+  [TKey in keyof T]: T[TKey] extends Record<string, unknown>
+    ? MongoQueryKeys<T[TKey], BuildQueryKey<TPrefix, TKey>>
+    : T[TKey] extends unknown[]
+    ? MongoQueryKeys<
+        T[TKey],
+        BuildQueryKey<TPrefix, TKey> | BuilIndexedQueryKey<TPrefix, TKey>
+      >
+    : BuildQueryKey<TPrefix, TKey>;
+}[keyof T];
+
+/**
+ * Extracts recursively all the possible document db query keys from an object
+ *
+ * @example
+ * type Test = {
+ *   a: string;
+ *   b: {
+ *     c: string;
+ *   }
+ *   d: {
+ *     e: string;
+ *   }[]
+ * }
+ *
+ * type Result = MongoQueryKeys<Test>;
+ * //      ^ "data.a" | "data.b" | "data.b.c" | "data.d" | "data.d.e"
+ */
+type MongoQueryKeys<T, TPrefix extends string = "data"> = NonNullable<
+  | TPrefix
+  | (T extends unknown[]
+      ? MongoQueryKeys<T[number], TPrefix>
+      : T extends Record<string, unknown>
+      ? ExtractQueryKeysFromRecord<T, TPrefix>
+      : never)
+>;
+
+/**
+ * RootFilterOperators extends the mongodb Document type.
+ * The Document type, being { [key: string]: any }, permits the object to have any key.
+ * This type is used to narrow the Document type to only the keys that can be used to query the read model.
+ */
+type NarrowRootFilterOperators<TSchema> = Pick<
+  RootFilterOperators<WithId<{ data: TSchema }["data"]>>,
+  "$and" | "$nor" | "$or" | "$text" | "$where" | "$comment"
+>;
+
+/**
+ * Type of the filter that can be used to query the read model.
+ * It extends the mongodb filter type by adding all the possible model query keys.
+ */
+export type ReadModelFilter<TSchema> = {
+  [P in MongoQueryKeys<WithId<{ data: TSchema }["data"]>>]?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+} & NarrowRootFilterOperators<TSchema>;
 
 export class ReadModelRepository {
   private static instance: ReadModelRepository;
@@ -70,11 +139,11 @@ export class ReadModelRepository {
     return ReadModelRepository.instance;
   }
 
-  public static arrayToFilter<T, F extends object>(
-    array: T[],
-    f: (array: T[]) => F
-  ): F | undefined {
-    return array.length > 0 ? f(array) : undefined;
+  public static arrayToFilter<T>(
+    array: unknown[],
+    filter: ReadModelFilter<T>
+  ): ReadModelFilter<T> {
+    return array.length > 0 ? filter : {};
   }
 
   public static async getTotalCount(
