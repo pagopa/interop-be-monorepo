@@ -11,23 +11,26 @@ import {
   AgreementEvent,
   AgreementState,
   WithMetadata,
-  agreementEServiceNotFound,
-  agreementEventToBinaryData,
-  agreementNotInExpectedState,
   agreementState,
-  tenantIdNotFound,
   ListResult,
+  agreementEventToBinaryData,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import { AgreementProcessConfig, config } from "../utilities/config.js";
 import {
   toCreateEventAgreementAdded,
   toCreateEventAgreementDeleted,
+  toCreateEventAgreementUpdated,
 } from "../model/domain/toEvent.js";
-import { ApiAgreementPayload } from "../model/types.js";
+import { eServiceNotFound, tenantIdNotFound } from "../model/domain/errors.js";
+import {
+  ApiAgreementPayload,
+  ApiAgreementUpdatePayload,
+} from "../model/types.js";
 import { ReadModelService } from "./readModelService.js";
 import {
   assertAgreementExist,
+  assertExpectedState,
   assertRequesterIsConsumer,
   validateCertifiedAttributes,
   validateCreationOnDescriptor,
@@ -36,86 +39,95 @@ import {
 
 const fileManager = initFileManager(config);
 
-export class AgreementService {
-  private readModelService: ReadModelService;
-  private repository;
-
-  constructor(
-    readModelService: ReadModelService,
-    config: AgreementProcessConfig
-  ) {
-    this.readModelService = readModelService;
-    this.repository = eventRepository(
-      initDB({
-        username: config.eventStoreDbUsername,
-        password: config.eventStoreDbPassword,
-        host: config.eventStoreDbHost,
-        port: config.eventStoreDbPort,
-        database: config.eventStoreDbName,
-        schema: config.eventStoreDbSchema,
-        useSSL: config.eventStoreDbUseSSL,
-      }),
-      agreementEventToBinaryData
-    );
-  }
-
-  public async getAgreements(
-    filters: {
-      eServicesIds: string[];
-      consumersIds: string[];
-      producersIds: string[];
-      descriptorsIds: string[];
-      states: AgreementState[];
-      showOnlyUpgradeable: boolean;
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export function agreementServiceBuilder(
+  config: AgreementProcessConfig,
+  readModelService: ReadModelService
+) {
+  const repository = eventRepository(
+    initDB({
+      username: config.eventStoreDbUsername,
+      password: config.eventStoreDbPassword,
+      host: config.eventStoreDbHost,
+      port: config.eventStoreDbPort,
+      database: config.eventStoreDbName,
+      schema: config.eventStoreDbSchema,
+      useSSL: config.eventStoreDbUseSSL,
+    }),
+    agreementEventToBinaryData
+  );
+  return {
+    async getAgreements(
+      filters: {
+        eServicesIds: string[];
+        consumersIds: string[];
+        producersIds: string[];
+        descriptorsIds: string[];
+        states: AgreementState[];
+        showOnlyUpgradeable: boolean;
+      },
+      limit: number,
+      offset: number
+    ): Promise<ListResult<Agreement>> {
+      logger.info("Retrieving agreements");
+      return await readModelService.listAgreements(filters, limit, offset);
     },
-    limit: number,
-    offset: number
-  ): Promise<ListResult<Agreement>> {
-    logger.info("Retrieving agreements");
-    return await this.readModelService.listAgreements(filters, limit, offset);
-  }
+    async getAgreementById(
+      agreementId: string
+    ): Promise<Agreement | undefined> {
+      logger.info(`Retrieving agreement by id ${agreementId}`);
 
-  public async getAgreementById(
-    agreementId: string
-  ): Promise<Agreement | undefined> {
-    logger.info(`Retrieving agreement by id ${agreementId}`);
-
-    const agreement = await this.readModelService.readAgreementById(
-      agreementId
-    );
-    return agreement?.data;
-  }
-
-  public async createAgreement(
-    agreement: ApiAgreementPayload,
-    authData: AuthData
-  ): Promise<string> {
-    const createAgreementEvent = await createAgreementLogic(
-      this.readModelService,
-      agreement,
-      authData
-    );
-    return await this.repository.createEvent(createAgreementEvent);
-  }
-
-  public async deleteAgreementById(
-    agreementId: string,
-    authData: AuthData
-  ): Promise<void> {
-    const agreement = await this.readModelService.readAgreementById(
-      agreementId
-    );
-
-    await this.repository.createEvent(
-      await deleteAgreementLogic({
-        agreementId,
-        authData,
-        deleteFile: fileManager.deleteFile,
+      const agreement = await readModelService.readAgreementById(agreementId);
+      return agreement?.data;
+    },
+    async createAgreement(
+      agreement: ApiAgreementPayload,
+      authData: AuthData
+    ): Promise<string> {
+      const createAgreementEvent = await createAgreementLogic(
+        readModelService,
         agreement,
-      })
-    );
-  }
+        authData
+      );
+      return await repository.createEvent(createAgreementEvent);
+    },
+    async updateAgreement(
+      agreementId: string,
+      agreement: ApiAgreementUpdatePayload,
+      authData: AuthData
+    ): Promise<void> {
+      const agreementToBeUpdated = await readModelService.readAgreementById(
+        agreementId
+      );
+
+      await repository.createEvent(
+        await updateAgreementLogic({
+          agreementId,
+          agreement,
+          authData,
+          agreementToBeUpdated,
+        })
+      );
+    },
+    async deleteAgreementById(
+      agreementId: string,
+      authData: AuthData
+    ): Promise<void> {
+      const agreement = await readModelService.readAgreementById(agreementId);
+
+      await repository.createEvent(
+        await deleteAgreementLogic({
+          agreementId,
+          authData,
+          deleteFile: fileManager.deleteFile,
+          agreement,
+        })
+      );
+    },
+  };
 }
+
+export type AgreementService = ReturnType<typeof agreementServiceBuilder>;
 
 export async function deleteAgreementLogic({
   agreementId,
@@ -136,9 +148,7 @@ export async function deleteAgreementLogic({
     agreementState.missingCertifiedAttributes,
   ];
 
-  if (!deletableStates.includes(agreement.data.state)) {
-    throw agreementNotInExpectedState(agreementId, agreement.data.state);
-  }
+  assertExpectedState(agreementId, agreement.data.state, deletableStates);
 
   for (const d of agreement.data.consumerDocuments) {
     await deleteFile(d.path);
@@ -158,7 +168,7 @@ export async function createAgreementLogic(
   const eservice = await readModelService.getEServiceById(agreement.eserviceId);
 
   if (!eservice) {
-    throw agreementEServiceNotFound(agreement.eserviceId);
+    throw eServiceNotFound(400, agreement.eserviceId);
   }
 
   const descriptor = validateCreationOnDescriptor(
@@ -215,4 +225,37 @@ export async function createAgreementLogic(
   };
 
   return toCreateEventAgreementAdded(agreementSeed);
+}
+
+export async function updateAgreementLogic({
+  agreementId,
+  agreement,
+  authData,
+  agreementToBeUpdated,
+}: {
+  agreementId: string;
+  agreement: ApiAgreementUpdatePayload;
+  authData: AuthData;
+  agreementToBeUpdated: WithMetadata<Agreement> | undefined;
+}): Promise<CreateEvent<AgreementEvent>> {
+  assertAgreementExist(agreementId, agreementToBeUpdated);
+  assertRequesterIsConsumer(
+    agreementToBeUpdated.data.consumerId,
+    authData.organizationId
+  );
+
+  const updatableStates: AgreementState[] = [agreementState.draft];
+
+  assertExpectedState(
+    agreementId,
+    agreementToBeUpdated.data.state,
+    updatableStates
+  );
+
+  const agreementUpdated: Agreement = {
+    ...agreementToBeUpdated.data,
+    consumerNotes: agreement.consumerNotes,
+  };
+
+  return toCreateEventAgreementUpdated(agreementUpdated);
 }

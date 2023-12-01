@@ -1,15 +1,12 @@
 /* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
 import {
   AgreementCollection,
   AuthData,
   EServiceCollection,
   ReadModelRepository,
-  getMongodbContainer,
-  getPostgreSqlContainer,
   initDB,
 } from "pagopa-interop-commons";
 import { IDatabase } from "pg-promise";
@@ -19,19 +16,29 @@ import {
   EServiceEvent,
   catalogEventToBinaryData,
   descriptorState,
+  operationForbidden,
+  technology,
+} from "pagopa-interop-models";
+import { PostgreSqlContainer } from "@testcontainers/postgresql";
+import { GenericContainer } from "testcontainers";
+import { config } from "../src/utilities/config.js";
+import { toEServiceV1 } from "../src/model/domain/toEvent.js";
+import { EServiceDescriptorSeed } from "../src/model/domain/models.js";
+import {
+  ReadModelService,
+  readModelServiceBuilder,
+} from "../src/services/readModelService.js";
+import {
+  CatalogService,
+  catalogServiceBuilder,
+} from "../src/services/catalogService.js";
+import {
   draftDescriptorAlreadyExists,
   eServiceCannotBeDeleted,
   eServiceCannotBeUpdated,
   eServiceDuplicate,
   eServiceNotFound,
-  operationForbidden,
-  technology,
-} from "pagopa-interop-models";
-import { config } from "../src/utilities/config.js";
-import { ReadModelService } from "../src/services/readModelService.js";
-import { CatalogService } from "../src/services/catalogService.js";
-import { toEServiceV1 } from "../src/model/domain/toEvent.js";
-import { EServiceDescriptorSeed } from "../src/model/domain/models.js";
+} from "../src/model/domain/errors.js";
 
 describe("database test", async () => {
   let eservices: EServiceCollection;
@@ -41,17 +48,27 @@ describe("database test", async () => {
   let postgresDB: IDatabase<unknown>;
 
   beforeAll(async () => {
-    const postgreSqlContainer = await getPostgreSqlContainer({
-      dbName: config.eventStoreDbName,
-      username: config.eventStoreDbUsername,
-      password: config.eventStoreDbPassword,
-    }).start();
+    const postgreSqlContainer = await new PostgreSqlContainer("postgres:14")
+      .withUsername(config.eventStoreDbUsername)
+      .withPassword(config.eventStoreDbPassword)
+      .withDatabase(config.eventStoreDbName)
+      .withCopyFilesToContainer([
+        {
+          source: "../../docker/event-store-init.sql",
+          target: "/docker-entrypoint-initdb.d/01-init.sql",
+        },
+      ])
+      .withExposedPorts(5432)
+      .start();
 
-    const mongodbContainer = await getMongodbContainer({
-      dbName: config.readModelDbName,
-      username: config.readModelDbUsername,
-      password: config.readModelDbPassword,
-    }).start();
+    const mongodbContainer = await new GenericContainer("mongo:4.0.0")
+      .withEnvironment({
+        MONGO_INITDB_DATABASE: config.readModelDbName,
+        MONGO_INITDB_ROOT_USERNAME: config.readModelDbUsername,
+        MONGO_INITDB_ROOT_PASSWORD: config.readModelDbPassword,
+      })
+      .withExposedPorts(27017)
+      .start();
 
     config.eventStoreDbPort = postgreSqlContainer.getMappedPort(5432);
     config.readModelDbPort = mongodbContainer.getMappedPort(27017);
@@ -59,8 +76,8 @@ describe("database test", async () => {
     const readModelRepository = ReadModelRepository.init(config);
     eservices = readModelRepository.eservices;
     agreements = readModelRepository.agreements;
-    readModelService = new ReadModelService(config);
-    catalogService = new CatalogService(readModelService, config);
+    readModelService = readModelServiceBuilder(config);
+    catalogService = catalogServiceBuilder(config, readModelService);
 
     postgresDB = initDB({
       username: config.eventStoreDbUsername,
