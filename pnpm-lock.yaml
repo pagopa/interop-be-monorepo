@@ -100,6 +100,9 @@ importers:
       '@pagopa/eslint-config':
         specifier: ^3.0.0
         version: 3.0.0(typescript@5.1.3)
+      '@testcontainers/postgresql':
+        specifier: ^10.2.2
+        version: 10.2.2
       '@types/dotenv-flow':
         specifier: ^3.2.0
         version: 3.2.0
@@ -118,6 +121,9 @@ importers:
       prettier:
         specifier: ^2.8.8
         version: 2.8.8
+      testcontainers:
+        specifier: ^10.2.2
+        version: 10.2.2
       ts-node:
         specifier: ^10.9.1
         version: 10.9.1(@types/node@20.3.1)(typescript@5.1.3)
@@ -234,6 +240,9 @@ importers:
       '@pagopa/eslint-config':
         specifier: ^3.0.0
         version: 3.0.0(typescript@5.1.3)
+      '@testcontainers/postgresql':
+        specifier: ^10.2.2
+        version: 10.2.2
       '@types/axios':
         specifier: ^0.14.0
         version: 0.14.0
@@ -255,6 +264,9 @@ importers:
       prettier:
         specifier: ^2.8.8
         version: 2.8.8
+      testcontainers:
+        specifier: ^10.2.2
+        version: 10.2.2
       ts-node:
         specifier: ^10.9.1
         version: 10.9.1(@types/node@20.3.1)(typescript@5.1.3)
@@ -362,6 +374,9 @@ importers:
       '@pagopa/eslint-config':
         specifier: ^3.0.0
         version: 3.0.0(typescript@5.1.3)
+      '@testcontainers/postgresql':
+        specifier: ^10.2.2
+        version: 10.2.2
       '@types/axios':
         specifier: ^0.14.0
         version: 0.14.0
@@ -386,6 +401,9 @@ importers:
       prettier:
         specifier: ^2.8.8
         version: 2.8.8
+      testcontainers:
+        specifier: ^10.2.2
+        version: 10.2.2
       ts-node:
         specifier: ^10.9.1
         version: 10.9.1(@types/node@20.3.1)(typescript@5.1.3)
@@ -438,9 +456,6 @@ importers:
         specifier: ^3.21.4
         version: 3.21.4
     devDependencies:
-      '@testcontainers/postgresql':
-        specifier: ^10.2.2
-        version: 10.2.2
       '@types/express':
         specifier: ^4.17.17
         version: 4.17.17
@@ -456,9 +471,6 @@ importers:
       prettier:
         specifier: ^2.8.8
         version: 2.8.8
-      testcontainers:
-        specifier: ^10.2.2
-        version: 10.2.2
       typescript:
         specifier: ^5.1.3
         version: 5.1.3
@@ -3387,8 +3399,8 @@ packages:
       '@types/mime': 3.0.1
       '@types/node': 20.3.1
 
-  /@types/ssh2-streams@0.1.12:
-    resolution: {integrity: sha512-Sy8tpEmCce4Tq0oSOYdfqaBpA3hDM8SoxoFh5vzFsu2oL+znzGz8oVWW7xb4K920yYMUY+PIG31qZnFMfPWNCg==}
+  /@types/ssh2-streams@0.1.11:
+    resolution: {integrity: sha512-UVM27UaKdWpkO96VfA4A5v0fViRoiO5VzAMiYi+z66tAobfWBA8VbEKCGZpmZRkZpUIr8XnnoHpzsNPFWaEP8w==}
     dependencies:
       '@types/node': 20.3.1
     dev: true
@@ -3397,7 +3409,7 @@ packages:
     resolution: {integrity: sha512-lbLLlXxdCZOSJMCInKH2+9V/77ET2J6NPQHpFI0kda61Dd1KglJs+fPQBchizmzYSOJBgdTajhPqBO1xxLywvg==}
     dependencies:
       '@types/node': 20.3.1
-      '@types/ssh2-streams': 0.1.12
+      '@types/ssh2-streams': 0.1.11
     dev: true
 
   /@types/triple-beam@1.3.2:
@@ -6099,8 +6111,8 @@ packages:
     resolution: {integrity: sha512-Dp6zGqpTdETdR63lehJYPeIOqpiNBNtc7BpWSLrOje7UaIsE5aY92r/AunQA7rsXvet3lrJ3JnZX29UPTKXyKQ==}
     dev: true
 
-  /pg-cloudflare@1.1.0:
-    resolution: {integrity: sha512-tGM8/s6frwuAIyRcJ6nWcIvd3+3NmUKIs6OjviIm1HPPFEt5MzQDOTBQyhPWg/m0kCl95M6gA1JaIXtS8KovOA==}
+  /pg-cloudflare@1.1.1:
+    resolution: {integrity: sha512-xWPagP/4B6BgFO+EKz3JONXv3YDgvkbVrGw2mTo3D6tVDQRh1e7cqVGvyR3BE+eQgAvx1XhW/iEASj4/jCWl3Q==}
     requiresBuild: true
     optional: true
 
@@ -6163,7 +6175,7 @@ packages:
       pg-types: 2.2.0
       pgpass: 1.0.5
     optionalDependencies:
-      pg-cloudflare: 1.1.0
+      pg-cloudflare: 1.1.1
 
   /pgpass@1.0.5:
     resolution: {integrity: sha512-FdW9r/jQZhSeohs1Z3sI1yxFQNFvMcnmfuj4WBMUTxOrAyLMaTcE1aAMBiTlbMNaXvBCQuVi0R7hd8udDSP7ug==}
