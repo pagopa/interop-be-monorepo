@@ -59,11 +59,11 @@ const tenantsRouter = (
       async (req, res) => {
         try {
           const { name, offset, limit } = req.query;
-          const tenants = await readModelService.getTenants(
+          const tenants = await readModelService.getTenants({
             name,
             offset,
-            limit
-          );
+            limit,
+          });
 
           return res.status(200).json({
             results: tenants.results.map(toApiTenant),

@@ -14,15 +14,14 @@ const { tenants } = ReadModelRepository.init(config);
 function listTenantsFilters(
   name: string | undefined
 ): Filter<{ data: Tenant }> {
-  const nameFilter =
-    name && name !== ""
-      ? {
-          "data.name": {
-            $regex: name,
-            $options: "i",
-          },
-        }
-      : {};
+  const nameFilter = name
+    ? {
+        "data.name": {
+          $regex: name,
+          $options: "i",
+        },
+      }
+    : {};
 
   const withSelfcareIdFilter = {
     "data.selfcareId": {
@@ -66,11 +65,15 @@ async function getTenant(
 }
 
 export const readModelService = {
-  async getTenants(
-    name: string | undefined,
-    offset: number,
-    limit: number
-  ): Promise<ListResult<Tenant>> {
+  async getTenants({
+    name,
+    offset,
+    limit,
+  }: {
+    name: string | undefined;
+    offset: number;
+    limit: number;
+  }): Promise<ListResult<Tenant>> {
     const query = listTenantsFilters(name);
     const aggregationPipeline = [
       { $match: query },
