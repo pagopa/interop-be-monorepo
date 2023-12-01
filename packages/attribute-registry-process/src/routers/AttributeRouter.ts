@@ -48,7 +48,6 @@ const attributeRouter = (
       async (req, res) => {
         try {
           const { limit, offset, kinds, name, origin } = req.query;
-
           const attributes =
             await readModelService.getAttributesByKindsNameOrigin({
               kinds: kinds.map(toAttributeKind),

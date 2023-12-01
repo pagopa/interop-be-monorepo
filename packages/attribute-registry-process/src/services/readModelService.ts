@@ -3,6 +3,7 @@ import { z } from "zod";
 import {
   AttributeCollection,
   logger,
+  ReadModelFilter,
   ReadModelRepository,
 } from "pagopa-interop-commons";
 import {
@@ -145,10 +146,10 @@ export function readModelServiceBuilder(config: AttributeRegistryConfig) {
           $match: {
             ...nameFilter,
             ...originFilter,
-            ...ReadModelRepository.arrayToFilter(kinds, (kinds) => ({
+            ...ReadModelRepository.arrayToFilter(kinds, {
               "data.kind": { $in: kinds },
-            })),
-          },
+            }),
+          } satisfies ReadModelFilter<Attribute>,
         },
         {
           $project: {

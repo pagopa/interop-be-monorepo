@@ -12,7 +12,7 @@ COPY ./packages/commons/package.json /app/packages/commons/package.json
 COPY ./packages/models/package.json /app/packages/models/package.json
 COPY ./packages/kafka-iam-auth/package.json /app/packages/kafka-iam-auth/package.json
 
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --no-optional --frozen-lockfile
 
 COPY tsconfig.json /app/
 COPY turbo.json /app/
