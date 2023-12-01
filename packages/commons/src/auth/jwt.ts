@@ -50,6 +50,7 @@ export const readAuthDataFromJwtToken = (
         organizationId: token.data.organizationId,
         userId: token.data.uid !== undefined ? token.data.uid : "",
         userRoles: getUserRoles(token.data),
+        externalId: token.data.externalId,
       };
     }
   } catch (err) {
