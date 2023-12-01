@@ -34,6 +34,10 @@ export const AuthJWTToken = z.object({
       })
     ),
   }),
+  externalId: z.object({
+    origin: z.string(),
+    value: z.string(),
+  }),
 });
 export type AuthJWTToken = z.infer<typeof AuthJWTToken> & JwtPayload;
 
@@ -41,5 +45,9 @@ export const AuthData = z.object({
   organizationId: z.string().uuid(),
   userId: z.string().uuid(),
   userRoles: z.array(z.string()),
+  externalId: z.object({
+    origin: z.string(),
+    value: z.string(),
+  }),
 });
 export type AuthData = z.infer<typeof AuthData>;

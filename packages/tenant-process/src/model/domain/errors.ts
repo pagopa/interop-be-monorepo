@@ -6,6 +6,7 @@ const errorCodes = {
   tenantDuplicate: "0003",
   tenantNotFound: "0004",
   eServiceNotFound: "0005",
+  tenantBySelfcateIdNotFound: "0006",
 };
 
 export function attributeNotFound(identifier: string): ApiError {
@@ -50,5 +51,14 @@ export function eServiceNotFound(eServiceId: string): ApiError {
     code: errorCodes.eServiceNotFound,
     httpStatus: 404,
     title: "EService not found",
+  });
+}
+
+export function tenantBySelfcateIdNotFound(selfcareId: string): ApiError {
+  return new ApiError({
+    detail: `Tenant with selfcareId ${selfcareId} not found in the catalog`,
+    code: errorCodes.tenantBySelfcateIdNotFound,
+    httpStatus: 404,
+    title: "Tenant with selfcareId not found",
   });
 }
