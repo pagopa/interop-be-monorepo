@@ -221,7 +221,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Tenant'
+                $ref: '#/components/schemas/ResourceId'
         '409':
           description: Selfcare Id is already assigned and is different from the request
           content:

@@ -12,8 +12,21 @@ const { tenants } = ReadModelRepository.init(consumerConfig());
 export async function handleMessage(message: EventEnvelope): Promise<void> {
   logger.info(message);
   await match(message)
-    .with({ type: "TenantCreated" }, async (_msg) => {
-      logger.info("TODO");
+    .with({ type: "TenantCreated" }, async (msg) => {
+      await tenants.updateOne(
+        {
+          "data.id": msg.stream_id,
+        },
+        {
+          $setOnInsert: {
+            data: msg.data.tenant ? fromTenantV1(msg.data.tenant) : undefined,
+            metadata: {
+              version: msg.version,
+            },
+          },
+        },
+        { upsert: true }
+      );
     })
     .with({ type: "TenantDeleted" }, async (_msg) => {
       logger.info("TODO");
