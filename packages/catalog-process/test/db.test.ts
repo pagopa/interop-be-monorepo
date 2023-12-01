@@ -6,11 +6,11 @@ import {
   AgreementCollection,
   EServiceCollection,
   ReadModelRepository,
-  getMongodbContainer,
-  getPostgreSqlContainer,
   initDB,
 } from "pagopa-interop-commons";
 import { IDatabase } from "pg-promise";
+import { PostgreSqlContainer } from "@testcontainers/postgresql";
+import { GenericContainer } from "testcontainers";
 import { config } from "../src/utilities/config.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
@@ -23,17 +23,27 @@ describe("database test", async () => {
   let postgresDB: IDatabase<unknown>;
 
   beforeAll(async () => {
-    const postgreSqlContainer = await getPostgreSqlContainer({
-      dbName: config.eventStoreDbName,
-      username: config.eventStoreDbUsername,
-      password: config.eventStoreDbPassword,
-    }).start();
+    const postgreSqlContainer = await new PostgreSqlContainer("postgres:14")
+      .withUsername(config.eventStoreDbUsername)
+      .withPassword(config.eventStoreDbPassword)
+      .withDatabase(config.eventStoreDbName)
+      .withCopyFilesToContainer([
+        {
+          source: "../../docker/event-store-init.sql",
+          target: "/docker-entrypoint-initdb.d/01-init.sql",
+        },
+      ])
+      .withExposedPorts(5432)
+      .start();
 
-    const mongodbContainer = await getMongodbContainer({
-      dbName: config.readModelDbName,
-      username: config.readModelDbUsername,
-      password: config.readModelDbPassword,
-    }).start();
+    const mongodbContainer = await new GenericContainer("mongo:6.0.7")
+      .withEnvironment({
+        MONGO_INITDB_DATABASE: config.readModelDbName,
+        MONGO_INITDB_ROOT_USERNAME: config.readModelDbUsername,
+        MONGO_INITDB_ROOT_PASSWORD: config.readModelDbPassword,
+      })
+      .withExposedPorts(27017)
+      .start();
 
     config.eventStoreDbPort = postgreSqlContainer.getMappedPort(5432);
     config.readModelDbPort = mongodbContainer.getMappedPort(27017);
