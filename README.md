@@ -54,7 +54,7 @@ curl -X POST http://localhost:3000/eservices \
   -d '{ "name": "Example name", "description": "Example description", "technology": "REST", "attributes": { "certified": [], "declared": [], "verified": [] } }' \
   -H "Content-Type: application/json" \
   -H 'X-Correlation-Id: test' \
-  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmdhbml6YXRpb25JZCI6IjRENTU2OTZGLTE2QzAtNDk2OC04NTRCLTJCMTY2Mzk3RkMzMCIsInVzZXItcm9sZXMiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsInVpZCI6IjBmZGEwMzNjLThlOGUtNDhhOS1hMGZjLWFiYmExZjcxMWZlZiIsIm9yZ2FuaXphdGlvbiI6eyJyb2xlcyI6W3sicm9sZSI6IkFkbWluIn1dfX0.z3gb7V70mT-mC6nPHA32bHO3QwYsqpHsxB6_Ah8xlf4" 
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmdhbml6YXRpb25JZCI6IjRENTU2OTZGLTE2QzAtNDk2OC04NTRCLTJCMTY2Mzk3RkMzMCIsInVzZXItcm9sZXMiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsInVpZCI6IjBmZGEwMzNjLThlOGUtNDhhOS1hMGZjLWFiYmExZjcxMWZlZiIsIm9yZ2FuaXphdGlvbiI6eyJyb2xlcyI6W3sicm9sZSI6IkFkbWluIn1dfSwiZXh0ZXJuYWxJZCI6eyJvcmlnaW4iOiJJUEEiLCJ2YWx1ZSI6IjEyMzQ1NiJ9fQ.308Ulfu4JXXMhqsWo26MIWWhv8tp3sdl-pU5gN_SIX4" 
 ```
 
 You should see the event being processed by the consumer and the read model being updated.

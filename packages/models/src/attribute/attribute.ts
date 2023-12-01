@@ -2,8 +2,8 @@ import z from "zod";
 
 export const attributeKind = {
   certified: "Certified",
-  declared: "Declared",
   verified: "Verified",
+  declared: "Declared",
 } as const;
 export const AttributeKind = z.enum([
   Object.values(attributeKind)[0],
@@ -14,11 +14,11 @@ export type AttributeKind = z.infer<typeof AttributeKind>;
 export const Attribute = z.object({
   id: z.string().uuid(),
   code: z.string().optional(),
-  origin: z.string().optional(),
   kind: AttributeKind,
   description: z.string(),
+  origin: z.string().optional(),
   name: z.string(),
-  creationTime: z.date(),
+  creationTime: z.coerce.date(),
 });
 
 export type Attribute = z.infer<typeof Attribute>;
