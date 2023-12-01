@@ -49,6 +49,12 @@
         "^test"
       ]
     },
+    "test:it": {
+      "dependsOn": [
+        "build",
+        "^test:it"
+      ]
+    },
     "lint": {},
     "lint:autofix": {},
     "format:check": {},
@@ -57,4 +63,4 @@
   "globalDependencies": [
     "tsconfig.json"
   ]
-} 
+}

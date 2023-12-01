@@ -8,13 +8,20 @@ import {
 } from "pagopa-interop-commons";
 import { makeApiProblem } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
-import { readModelService } from "../services/readModelService.js";
+import { readModelServiceBuilder } from "../services/readModelService.js";
 import {
   toAttributeKind,
   toApiAttribute,
 } from "../model/domain/apiConverter.js";
-import { attributeRegistryService } from "../services/attributeRegistryService.js";
+import { config } from "../utilities/config.js";
 import { attributeNotFound } from "../model/domain/errors.js";
+import { attributeRegistryServiceBuilder } from "../services/attributeRegistryService.js";
+
+const readModelService = readModelServiceBuilder(config);
+const attributeRegistryService = attributeRegistryServiceBuilder(
+  config,
+  readModelService
+);
 
 const attributeRouter = (
   ctx: ZodiosContext
@@ -41,7 +48,6 @@ const attributeRouter = (
       async (req, res) => {
         try {
           const { limit, offset, kinds, name, origin } = req.query;
-
           const attributes =
             await readModelService.getAttributesByKindsNameOrigin({
               kinds: kinds.map(toAttributeKind),

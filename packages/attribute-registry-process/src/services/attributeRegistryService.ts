@@ -12,7 +12,7 @@ import {
   attributeKind,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
-import { config } from "../utilities/config.js";
+import { AttributeRegistryConfig } from "../utilities/config.js";
 import {
   ApiCertifiedAttributeSeed,
   ApiDeclaredAttributeSeed,
@@ -26,93 +26,118 @@ import {
   originNotCompliant,
   tenantNotFound,
 } from "../model/domain/errors.js";
-import { readModelService } from "./readModelService.js";
+import { ReadModelService } from "./readModelService.js";
 
-const repository = eventRepository(
-  initDB({
-    username: config.eventStoreDbUsername,
-    password: config.eventStoreDbPassword,
-    host: config.eventStoreDbHost,
-    port: config.eventStoreDbPort,
-    database: config.eventStoreDbName,
-    schema: config.eventStoreDbSchema,
-    useSSL: config.eventStoreDbUseSSL,
-  }),
-  attributeEventToBinaryData
-);
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export function attributeRegistryServiceBuilder(
+  config: AttributeRegistryConfig,
+  readModelService: ReadModelService
+) {
+  const repository = eventRepository(
+    initDB({
+      username: config.eventStoreDbUsername,
+      password: config.eventStoreDbPassword,
+      host: config.eventStoreDbHost,
+      port: config.eventStoreDbPort,
+      database: config.eventStoreDbName,
+      schema: config.eventStoreDbSchema,
+      useSSL: config.eventStoreDbUseSSL,
+    }),
+    attributeEventToBinaryData
+  );
+  return {
+    async createDeclaredAttribute(
+      apiDeclaredAttributeSeed: ApiDeclaredAttributeSeed,
+      authData: AuthData
+    ): Promise<string> {
+      if (authData.externalId.origin !== "IPA") {
+        throw originNotCompliant("IPA");
+      }
 
-export const attributeRegistryService = {
-  async createDeclaredAttribute(
-    apiDeclaredAttributeSeed: ApiDeclaredAttributeSeed,
-    authData: AuthData
-  ): Promise<string> {
-    if (authData.externalId.origin !== "IPA") {
-      throw originNotCompliant("IPA");
-    }
+      return repository.createEvent(
+        createDeclaredAttributeLogic({
+          attribute: await readModelService.getAttributeByName(
+            apiDeclaredAttributeSeed.name
+          ),
+          apiDeclaredAttributeSeed,
+        })
+      );
+    },
 
-    return repository.createEvent(
-      createDeclaredAttributeLogic({
-        attribute: await readModelService.getAttributeByName(
-          apiDeclaredAttributeSeed.name
-        ),
-        apiDeclaredAttributeSeed,
-      })
-    );
-  },
-  async createVerifiedAttribute(
-    apiVerifiedAttributeSeed: ApiVerifiedAttributeSeed,
-    authData: AuthData
-  ): Promise<string> {
-    if (authData.externalId.origin !== "IPA") {
-      throw originNotCompliant("IPA");
-    }
+    async createVerifiedAttribute(
+      apiVerifiedAttributeSeed: ApiVerifiedAttributeSeed,
+      authData: AuthData
+    ): Promise<string> {
+      if (authData.externalId.origin !== "IPA") {
+        throw originNotCompliant("IPA");
+      }
 
-    return repository.createEvent(
-      createVerifiedAttributeLogic({
-        attribute: await readModelService.getAttributeByName(
-          apiVerifiedAttributeSeed.name
-        ),
-        apiVerifiedAttributeSeed,
-      })
-    );
-  },
-  async createCertifiedAttribute(
-    apiCertifiedAttributeSeed: ApiCertifiedAttributeSeed,
-    authData: AuthData
-  ): Promise<string> {
-    const certifierPromise = getCertifierId(authData.organizationId);
-    const attributePromise = readModelService.getAttributeByCodeAndName(
-      apiCertifiedAttributeSeed.code,
-      apiCertifiedAttributeSeed.name
-    );
+      return repository.createEvent(
+        createVerifiedAttributeLogic({
+          attribute: await readModelService.getAttributeByName(
+            apiVerifiedAttributeSeed.name
+          ),
+          apiVerifiedAttributeSeed,
+        })
+      );
+    },
+    async getCertifierId(tenantId: string): Promise<string> {
+      const tenant = await readModelService.getTenantById(tenantId);
+      if (!tenant) {
+        throw tenantNotFound(tenantId);
+      }
 
-    const [certifier, attribute] = await Promise.all([
-      certifierPromise,
-      attributePromise,
-    ]);
+      const certifier = tenant.data.features
+        .filter(({ type }) => type === "Certifier")
+        .find(({ certifierId }) => certifierId.trim().length > 0);
 
-    return repository.createEvent(
-      createCertifiedAttributeLogic({
-        attribute,
-        apiCertifiedAttributeSeed,
-        certifier,
-      })
-    );
-  },
-  async createInternalCertifiedAttribute(
-    apiInternalCertifiedAttributeSeed: ApiInternalCertifiedAttributeSeed
-  ): Promise<string> {
-    return repository.createEvent(
-      createInternalCertifiedAttributeLogic({
-        attribute: await readModelService.getAttributeByCodeAndName(
-          apiInternalCertifiedAttributeSeed.code,
-          apiInternalCertifiedAttributeSeed.name
-        ),
-        apiInternalCertifiedAttributeSeed,
-      })
-    );
-  },
-};
+      if (certifier) {
+        return certifier.certifierId;
+      }
+      throw OrganizationIsNotACertifier(tenantId);
+    },
+    async createCertifiedAttribute(
+      apiCertifiedAttributeSeed: ApiCertifiedAttributeSeed,
+      authData: AuthData
+    ): Promise<string> {
+      const certifierPromise = this.getCertifierId(authData.organizationId);
+      const attributePromise = readModelService.getAttributeByCodeAndName(
+        apiCertifiedAttributeSeed.code,
+        apiCertifiedAttributeSeed.name
+      );
+
+      const [certifier, attribute] = await Promise.all([
+        certifierPromise,
+        attributePromise,
+      ]);
+
+      return repository.createEvent(
+        createCertifiedAttributeLogic({
+          attribute,
+          apiCertifiedAttributeSeed,
+          certifier,
+        })
+      );
+    },
+    async createInternalCertifiedAttribute(
+      apiInternalCertifiedAttributeSeed: ApiInternalCertifiedAttributeSeed
+    ): Promise<string> {
+      return repository.createEvent(
+        createInternalCertifiedAttributeLogic({
+          attribute: await readModelService.getAttributeByCodeAndName(
+            apiInternalCertifiedAttributeSeed.code,
+            apiInternalCertifiedAttributeSeed.name
+          ),
+          apiInternalCertifiedAttributeSeed,
+        })
+      );
+    },
+  };
+}
+
+export type AttributeRegistryService = ReturnType<
+  typeof attributeRegistryServiceBuilder
+>;
 
 export function createDeclaredAttributeLogic({
   attribute,
@@ -186,22 +211,6 @@ export function createCertifiedAttributeLogic({
   };
 
   return toCreateEventAttributeAdded(newCertifiedAttribute);
-}
-
-async function getCertifierId(tenantId: string): Promise<string> {
-  const tenant = await readModelService.getTenantById(tenantId);
-  if (!tenant) {
-    throw tenantNotFound(tenantId);
-  }
-
-  const certifier = tenant.data.features
-    .filter(({ type }) => type === "Certifier")
-    .find(({ certifierId }) => certifierId.trim().length > 0);
-
-  if (certifier) {
-    return certifier.certifierId;
-  }
-  throw OrganizationIsNotACertifier(tenantId);
 }
 
 export function createInternalCertifiedAttributeLogic({
