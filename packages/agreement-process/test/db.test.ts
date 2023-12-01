@@ -39,7 +39,7 @@ describe("database test", async () => {
       .withExposedPorts(5432)
       .start();
 
-    const mongodbContainer = await new GenericContainer("mongo:6.0.7")
+    const mongodbContainer = await new GenericContainer("mongo:4.0.0")
       .withEnvironment({
         MONGO_INITDB_DATABASE: config.readModelDbName,
         MONGO_INITDB_ROOT_USERNAME: config.readModelDbUsername,
