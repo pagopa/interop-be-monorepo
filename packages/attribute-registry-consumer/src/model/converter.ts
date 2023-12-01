@@ -21,5 +21,5 @@ export const fromAttributeKindV1 = (input: AttributeKindV1): AttributeKind => {
 export const fromAttributeV1 = (input: AttributeV1): Attribute => ({
   ...input,
   kind: fromAttributeKindV1(input.kind),
-  creationTime: new Date(Number(input.creationTime)),
+  creationTime: new Date(input.creationTime),
 });
