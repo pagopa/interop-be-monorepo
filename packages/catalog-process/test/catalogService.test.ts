@@ -5,6 +5,7 @@ import {
   EService,
   descriptorState,
   WithMetadata,
+  operationForbidden,
 } from "pagopa-interop-models";
 import {
   apiAgreementApprovalPolicyToAgreementApprovalPolicy,
@@ -44,7 +45,6 @@ import {
   eServiceDuplicate,
   eServiceNotFound,
   notValidDescriptor,
-  operationForbidden,
 } from "../src/model/domain/errors.js";
 
 const shuffle = <T>(array: T[]): T[] => array.sort(() => Math.random() - 0.5);
