@@ -6,6 +6,7 @@ const errorCodes = {
   tenantDuplicate: "0003",
   tenantNotFound: "0004",
   eServiceNotFound: "0005",
+  selfcareIdConflict: "0006",
 };
 
 export function attributeNotFound(identifier: string): ApiError {
@@ -50,5 +51,22 @@ export function eServiceNotFound(eServiceId: string): ApiError {
     code: errorCodes.eServiceNotFound,
     httpStatus: 404,
     title: "EService not found",
+  });
+}
+
+export function selfcareIdConflict({
+  tenantId,
+  existingSelfcareId,
+  newSelfcareId,
+}: {
+  tenantId: string;
+  existingSelfcareId: string;
+  newSelfcareId: string;
+}): ApiError {
+  return new ApiError({
+    detail: `Conflict on Tenant SelfCareId update for tenant ${tenantId}: old value ${existingSelfcareId} - new value ${newSelfcareId}`,
+    code: errorCodes.selfcareIdConflict,
+    httpStatus: 500,
+    title: "Selfcare id conflict",
   });
 }

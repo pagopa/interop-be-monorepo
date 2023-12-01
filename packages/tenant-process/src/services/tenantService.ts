@@ -31,6 +31,7 @@ import {
   invalidAttributeStructure,
   attributeNotFound,
   tenantDuplicate,
+  selfcareIdConflict,
 } from "../model/domain/errors.js";
 import { toTenantMails } from "../model/domain/apiConverter.js";
 import {
@@ -122,7 +123,87 @@ export const tenantService = {
       })
     );
   },
+
+  async selfcareUpsertTenant({
+    tenantSeed,
+    authData,
+  }: {
+    tenantSeed: ApiSelfcareTenantSeed;
+    authData: AuthData;
+  }): Promise<string> {
+    const existingTenant = await readModelService.getTenantByExternalId(
+      tenantSeed.externalId
+    );
+    if (existingTenant) {
+      await assertResourceAllowed(existingTenant.data.id, authData);
+      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+        existingTenant.data.attributes,
+        existingTenant.data.externalId
+      );
+      existingTenant.data.kind = tenantKind;
+      const updatedTenant = updateSelfCareId(existingTenant.data, tenantSeed);
+
+      return await repository.createEvent(
+        toCreateEventTenantUpdated(
+          existingTenant.data.id,
+          existingTenant.metadata.version,
+          updatedTenant
+        )
+      );
+    } else {
+      /*
+      const attributesIds: ExternalId[] = [];
+      const attributes = await readModelService.getAttributesByExternalIds(
+        attributesIds
+      );
+      const tenantAttributes: TenantAttribute[] = attributes.map(
+        (attribute) => ({
+          type: tenantAttributeType.CERTIFIED, // All attributes here are certified
+          id: attribute.data.id,
+          assignmentTimestamp: new Date(),
+        })
+      );
+      const kind = await getTenantKindLoadingCertifiedAttributes(
+        tenantAttributes,
+        tenantSeed.externalId
+      );
+      */
+      const newTenant: Tenant = {
+        id: uuidv4(),
+        name: tenantSeed.name,
+        attributes: [],
+        externalId: tenantSeed.externalId,
+        features: [],
+        mails: [],
+        selfcareId: tenantSeed.selfcareId,
+        createdAt: new Date(),
+      };
+      return await repository.createEvent(toCreateEventTenantAdded(newTenant));
+    }
+  },
 };
+
+function updateSelfCareId(
+  tenant: Tenant,
+  tenantSeed: ApiSelfcareTenantSeed
+): Tenant {
+  if (!tenant.selfcareId) {
+    return {
+      ...tenant,
+      selfcareId: tenantSeed.selfcareId,
+      updatedAt: new Date(),
+    };
+  } else {
+    if (tenant.selfcareId !== tenantSeed.selfcareId) {
+      throw selfcareIdConflict({
+        tenantId: tenant.id,
+        existingSelfcareId: tenant.selfcareId,
+        newSelfcareId: tenantSeed.selfcareId,
+      });
+    }
+    return tenant;
+  }
+}
 
 export async function updateTenantAttributeLogic({
   tenant,
