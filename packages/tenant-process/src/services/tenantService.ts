@@ -29,7 +29,6 @@ import {
 } from "../model/types.js";
 import {
   invalidAttributeStructure,
-  attributeNotFound,
   tenantDuplicate,
 } from "../model/domain/errors.js";
 import { toTenantMails } from "../model/domain/apiConverter.js";
@@ -140,12 +139,6 @@ export async function updateTenantAttributeLogic({
     throw invalidAttributeStructure;
   }
   assertAttributeExists(attributeId, tenant.data.attributes);
-  const attributeExists = tenant.data.attributes.some(
-    (attribute) => attribute.id === attributeId
-  );
-  if (!attributeExists) {
-    throw attributeNotFound(attributeId);
-  }
 
   const updatedAttributes = [
     newAttribute,
