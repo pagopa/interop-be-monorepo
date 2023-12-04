@@ -8,35 +8,45 @@ import {
   EServiceCollection,
   ReadModelRepository,
   TenantCollection,
-  getMongodbContainer,
-  getPostgreSqlContainer,
   initDB,
 } from "pagopa-interop-commons";
 import { IDatabase } from "pg-promise";
+import { PostgreSqlContainer } from "@testcontainers/postgresql";
+import { GenericContainer } from "testcontainers";
 import { config } from "../src/utilities/config.js";
-import { ReadModelService } from "../src/services/readModelService.js";
-import { AgreementService } from "../src/services/agreementService.js";
+import { readModelServiceBuilder } from "../src/services/readModelService.js";
+import { agreementServiceBuilder } from "../src/services/agreementService.js";
 
 describe("database test", async () => {
   let agreements: AgreementCollection;
   let eservices: EServiceCollection;
   let tenants: TenantCollection;
-  let readModelService: ReadModelService;
-  let agreementService: AgreementService;
+  let readModelService;
+  let agreementService;
   let postgresDB: IDatabase<unknown>;
 
   beforeAll(async () => {
-    const postgreSqlContainer = await getPostgreSqlContainer({
-      dbName: config.eventStoreDbName,
-      username: config.eventStoreDbUsername,
-      password: config.eventStoreDbPassword,
-    }).start();
+    const postgreSqlContainer = await new PostgreSqlContainer("postgres:14")
+      .withUsername(config.eventStoreDbUsername)
+      .withPassword(config.eventStoreDbPassword)
+      .withDatabase(config.eventStoreDbName)
+      .withCopyFilesToContainer([
+        {
+          source: "../../docker/event-store-init.sql",
+          target: "/docker-entrypoint-initdb.d/01-init.sql",
+        },
+      ])
+      .withExposedPorts(5432)
+      .start();
 
-    const mongodbContainer = await getMongodbContainer({
-      dbName: config.readModelDbName,
-      username: config.readModelDbUsername,
-      password: config.readModelDbPassword,
-    }).start();
+    const mongodbContainer = await new GenericContainer("mongo:4.0.0")
+      .withEnvironment({
+        MONGO_INITDB_DATABASE: config.readModelDbName,
+        MONGO_INITDB_ROOT_USERNAME: config.readModelDbUsername,
+        MONGO_INITDB_ROOT_PASSWORD: config.readModelDbPassword,
+      })
+      .withExposedPorts(27017)
+      .start();
 
     config.eventStoreDbPort = postgreSqlContainer.getMappedPort(5432);
     config.readModelDbPort = mongodbContainer.getMappedPort(27017);
@@ -46,8 +56,8 @@ describe("database test", async () => {
     eservices = readModelRepository.eservices;
     tenants = readModelRepository.tenants;
 
-    readModelService = new ReadModelService(config);
-    agreementService = new AgreementService(readModelService, config);
+    readModelService = readModelServiceBuilder(config);
+    agreementService = agreementServiceBuilder(config, readModelService);
 
     postgresDB = initDB({
       username: config.eventStoreDbUsername,
@@ -67,7 +77,6 @@ describe("database test", async () => {
 
     await postgresDB.none("TRUNCATE TABLE agreement.events RESTART IDENTITY");
     await postgresDB.none("TRUNCATE TABLE catalog.events RESTART IDENTITY");
-    // await postgresDB.none("TRUNCATE TABLE tenant.events RESTART IDENTITY");
   });
 
   describe("TO DO", () => {

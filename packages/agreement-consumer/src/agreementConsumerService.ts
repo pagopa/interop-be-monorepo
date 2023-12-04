@@ -39,5 +39,23 @@ export async function handleMessage(
         "metadata.version": { $lt: msg.version },
       });
     })
+    .with({ type: "AgreementUpdated" }, async (msg) => {
+      await agreements.updateOne(
+        {
+          "data.id": msg.stream_id,
+          "metadata.version": { $lt: msg.version },
+        },
+        {
+          $set: {
+            data: msg.data.agreement
+              ? fromAgreementV1(msg.data.agreement)
+              : undefined,
+            metadata: {
+              version: msg.version,
+            },
+          },
+        }
+      );
+    })
     .exhaustive();
 }

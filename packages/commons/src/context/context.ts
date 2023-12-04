@@ -23,6 +23,10 @@ const defaultAppContext: AppContext = {
     userId: "",
     organizationId: "",
     userRoles: [],
+    externalId: {
+      origin: "",
+      value: "",
+    },
   },
   correlationId: "",
 };
@@ -53,6 +57,7 @@ export const contextDataMiddleware = (
       userId: headers.userId,
       organizationId: headers.organizationId,
       userRoles: headers.userRoles,
+      externalId: headers.externalId,
     };
 
     context.correlationId = headers?.correlationId;

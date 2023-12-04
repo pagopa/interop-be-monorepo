@@ -49,10 +49,10 @@
         "^test"
       ]
     },
-    "test:db": {
+    "test:it": {
       "dependsOn": [
         "build",
-        "^test:db"
+        "^test:it"
       ]
     },
     "lint": {},

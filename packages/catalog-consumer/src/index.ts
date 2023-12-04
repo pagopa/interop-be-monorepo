@@ -1,19 +1,25 @@
-import { KafkaMessage } from "kafkajs";
+import { EachMessagePayload } from "kafkajs";
 import { logger, consumerConfig } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
 import { decodeKafkaMessage } from "./model/models.js";
 import { handleMessage } from "./consumerService.js";
 
-async function processMessage(message: KafkaMessage): Promise<void> {
+const config = consumerConfig();
+
+async function processMessage({
+  message,
+  partition,
+}: EachMessagePayload): Promise<void> {
   try {
     await handleMessage(decodeKafkaMessage(message), config);
-    logger.info("Read model was updated");
+    logger.info(
+      `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
+    );
   } catch (e) {
-    logger.error(`Error during message handling ${e}`);
+    logger.error(
+      `Error during message handling. Partition number: ${partition}. Offset: ${message.offset}, ${e}`
+    );
   }
 }
 
-const config = consumerConfig();
-await runConsumer(config, ["event-store.catalog.events"], processMessage).catch(
-  logger.error
-);
+await runConsumer(config, processMessage).catch(logger.error);
