@@ -7,13 +7,17 @@ import {
   AuthData,
   EServiceCollection,
   ReadModelRepository,
+  TenantCollection,
   initDB,
 } from "pagopa-interop-commons";
 import { IDatabase } from "pg-promise";
 import { v4 as uuidv4 } from "uuid";
 import {
+  Agreement,
   EService,
   EServiceEvent,
+  Tenant,
+  agreementState,
   catalogEventToBinaryData,
   descriptorState,
   operationForbidden,
@@ -44,6 +48,7 @@ import {
 describe("database test", async () => {
   let eservices: EServiceCollection;
   let agreements: AgreementCollection;
+  let tenants: TenantCollection;
   let readModelService: ReadModelService;
   let catalogService: CatalogService;
   let postgresDB: IDatabase<unknown>;
@@ -77,6 +82,7 @@ describe("database test", async () => {
     const readModelRepository = ReadModelRepository.init(config);
     eservices = readModelRepository.eservices;
     agreements = readModelRepository.agreements;
+    tenants = readModelRepository.tenants;
     readModelService = readModelServiceBuilder(config);
     catalogService = catalogServiceBuilder(config, readModelService);
 
@@ -94,6 +100,7 @@ describe("database test", async () => {
   afterEach(async () => {
     await eservices.deleteMany({});
     await agreements.deleteMany({});
+    await tenants.deleteMany({});
 
     await postgresDB.none("TRUNCATE TABLE catalog.events RESTART IDENTITY");
     await postgresDB.none("TRUNCATE TABLE agreement.events RESTART IDENTITY");
@@ -210,7 +217,7 @@ describe("database test", async () => {
       });
     });
 
-    describe("delete eService", () => {
+    describe("delete eService deletion", () => {
       it("should write on event-store for the deletion of an eService", async () => {
         const { eServiceId, organizationId } = ids();
         await addOneEService({
@@ -642,8 +649,74 @@ describe("database test", async () => {
 
   describe("ReadModel Service", () => {
     describe("getEservices", () => {
-      it("To Do", () => {
-        expect(1).toBe(1);
+      it("Should get eServices based on the given parameters", async () => {
+        const {
+          eServiceId,
+          eServiceId2,
+          eServiceId3,
+          eServiceId4,
+          organizationId,
+          organizationId2,
+        } = ids();
+        await addOneEService({
+          id: eServiceId,
+          producerId: organizationId,
+          descriptorIsDraft: false,
+        });
+        await addOneEService({
+          id: eServiceId2,
+          producerId: organizationId,
+          descriptorIsDraft: false,
+        });
+        await addOneEService({
+          id: eServiceId3,
+          producerId: organizationId,
+          descriptorIsDraft: false,
+        });
+        await addOneEService({
+          id: eServiceId4,
+          producerId: organizationId2,
+          descriptorIsDraft: true,
+        });
+
+        const result1 = await readModelService.getEServices(
+          buildAuthData(organizationId),
+          {
+            eservicesIds: [eServiceId, eServiceId2],
+            producersIds: [],
+            states: [],
+            agreementStates: [],
+          },
+          0,
+          50
+        );
+        const result2 = await readModelService.getEServices(
+          buildAuthData(organizationId),
+          {
+            eservicesIds: [],
+            producersIds: [organizationId],
+            states: [],
+            agreementStates: [],
+          },
+          0,
+          50
+        );
+        const result3 = await readModelService.getEServices(
+          buildAuthData(organizationId),
+          {
+            eservicesIds: [],
+            producersIds: [],
+            states: ["Draft"],
+            agreementStates: [],
+          },
+          0,
+          50
+        );
+        // TO DO test with other parameters configuration
+        expect(result1.totalCount).toBe(2);
+        expect(result2.totalCount).toBe(3);
+        expect(result3.totalCount).toBe(1);
+        // TO DO compare fields
       });
     });
     describe("getEServiceById", () => {
@@ -665,8 +738,29 @@ describe("database test", async () => {
       });
     });
     describe("getEserviceConsumers", () => {
-      it("should get the consumers of the given eService", () => {
-        expect(1).toBe(1);
+      it("should get the consumers of the given eService", async () => {
+        const { eServiceId, organizationId, descriptorId, tenantId } = ids();
+        await addOneEService({
+          id: eServiceId,
+          producerId: organizationId,
+          descriptorId: descriptorId,
+          descriptorIsDraft: false,
+        });
+        await addOneTenant(tenantId);
+        await addOneAgreement({
+          eServiceId,
+          descriptorId,
+          producerId: organizationId,
+          consumerId: tenantId,
+        });
+
+        const result = await readModelService.getEServiceConsumers(
+          eServiceId,
+          0,
+          50
+        );
+        expect(result.totalCount).toBe(1);
+        expect(result.results[0].consumerName).toBe("A tenant");
       });
       it("should not get any consumers, if no one is using the given eService", async () => {
         const { eServiceId, organizationId } = ids();
@@ -765,15 +859,87 @@ describe("database test", async () => {
     });
   };
 
+  const writeAgreementInReadmodel = async (
+    agreement: Agreement
+  ): Promise<void> => {
+    await agreements.insertOne({
+      data: agreement,
+      metadata: {
+        version: 0,
+      },
+    });
+  };
+
+  const writeTenantInReadmodel = async (tenant: Tenant) => {
+    await tenants.insertOne({
+      data: tenant,
+      metadata: {
+        version: 0,
+      },
+    });
+  };
+
+  const addOneTenant = async (tenantId: string) => {
+    const tenant: Tenant = {
+      name: "A tenant",
+      id: tenantId,
+      createdAt: new Date(),
+      attributes: [],
+      externalId: {
+        value: "",
+        origin: "",
+      },
+      features: [],
+      mails: [],
+    };
+    await writeTenantInReadmodel(tenant);
+  };
+
+  const addOneAgreement = async ({
+    eServiceId,
+    descriptorId,
+    producerId,
+    consumerId,
+  }: {
+    eServiceId: string;
+    descriptorId: string;
+    producerId: string;
+    consumerId: string;
+  }) => {
+    const agreement: Agreement = {
+      id: uuidv4(),
+      createdAt: new Date(),
+      eserviceId: eServiceId,
+      descriptorId: descriptorId,
+      producerId: producerId,
+      consumerId: consumerId,
+      state: agreementState.active,
+      verifiedAttributes: [],
+      certifiedAttributes: [],
+      declaredAttributes: [],
+      consumerDocuments: [],
+      stamps: {
+        submission: undefined,
+        activation: undefined,
+        rejection: undefined,
+        suspensionByProducer: undefined,
+        suspensionByConsumer: undefined,
+        upgrade: undefined,
+        archiving: undefined,
+      },
+    };
+    await writeAgreementInReadmodel(agreement);
+  };
+
   const addOneEService = async ({
     id,
-    producerId,
+    producerId = uuidv4(),
     descriptorIsDraft = true,
     withDescriptors = true,
     descriptorId = uuidv4(),
   }: {
     id: string;
-    producerId: string;
+    producerId?: string;
     descriptorIsDraft?: boolean;
     withDescriptors?: boolean;
     descriptorId?: string;
@@ -824,8 +990,13 @@ describe("database test", async () => {
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const ids = () => ({
     eServiceId: uuidv4(),
+    eServiceId2: uuidv4(),
+    eServiceId3: uuidv4(),
+    eServiceId4: uuidv4(),
     organizationId: uuidv4(),
+    organizationId2: uuidv4(),
     descriptorId: uuidv4(),
     requesterId: uuidv4(),
+    tenantId: uuidv4(),
   });
 });
