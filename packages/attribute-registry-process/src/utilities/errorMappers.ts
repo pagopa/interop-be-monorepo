@@ -42,4 +42,3 @@ export const createVerifiedAttributesErrorMapper = (
   match(error.code)
     .with("originNotCompliant", () => 403)
     .otherwise(() => 500);
-
