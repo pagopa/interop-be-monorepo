@@ -104,8 +104,8 @@ describe("database test", async () => {
       it("should write on event-store for the creation of an eService", async () => {
         const id = await catalogService.createEService(
           {
-            name: "name",
-            description: "description",
+            name: "eService name",
+            description: "eService description",
             technology: "REST",
           },
           buildAuthData()
@@ -125,13 +125,13 @@ describe("database test", async () => {
         expect(
           catalogService.createEService(
             {
-              name: "name",
-              description: "description",
+              name: "eService name",
+              description: "eService description",
               technology: "REST",
             },
             buildAuthData(organizationId)
           )
-        ).rejects.toThrowError(eServiceDuplicate("name"));
+        ).rejects.toThrowError(eServiceDuplicate("eService name"));
       });
     });
 
@@ -145,8 +145,8 @@ describe("database test", async () => {
         await catalogService.updateEService(
           eServiceId,
           {
-            name: "name",
-            description: "description",
+            name: "eService new name",
+            description: "eService description",
             technology: "REST",
           },
           buildAuthData(organizationId)
@@ -163,8 +163,8 @@ describe("database test", async () => {
           catalogService.updateEService(
             eServiceId,
             {
-              name: "name",
-              description: "description",
+              name: "eService new name",
+              description: "eService description",
               technology: "REST",
             },
             buildAuthData(organizationId)
@@ -181,8 +181,8 @@ describe("database test", async () => {
           catalogService.updateEService(
             eServiceId,
             {
-              name: "name",
-              description: "description",
+              name: "eService new name",
+              description: "eService description",
               technology: "REST",
             },
             buildAuthData(requesterId)
@@ -200,8 +200,8 @@ describe("database test", async () => {
           catalogService.updateEService(
             eServiceId,
             {
-              name: "name",
-              description: "description",
+              name: "eService new name",
+              description: "eService description",
               technology: "REST",
             },
             buildAuthData(organizationId)
@@ -608,7 +608,7 @@ describe("database test", async () => {
       });
     });
     describe("archive descriptor", () => {
-      it("should write on event-store for the archiviation of a descriptor", () => {
+      it("should write on event-store for the archiving of a descriptor", () => {
         expect(1).toBe(1);
       });
       it("should throw an error if the eService doesn't exist", () => {
@@ -647,19 +647,40 @@ describe("database test", async () => {
       });
     });
     describe("getEServiceById", () => {
-      it("should get the eService if it exists", () => {
-        expect(1).toBe(1);
+      it("should get the eService if it exists", async () => {
+        const { eServiceId, organizationId } = ids();
+        await addOneEService({
+          id: eServiceId,
+          producerId: organizationId,
+        });
+        const eService = await readModelService.getEServiceById(eServiceId);
+        expect(eService?.data.name).toBe("eService name");
+        expect(eService?.data.description).toBe("eService description");
       });
-      it("should not get the eService if it doesn't exist", () => {
-        expect(1).toBe(1);
+      it("should not get the eService if it doesn't exist", async () => {
+        const { eServiceId } = ids();
+
+        const eService = await readModelService.getEServiceById(eServiceId);
+        expect(eService).toBeUndefined();
       });
     });
     describe("getEserviceConsumers", () => {
       it("should get the consumers of the given eService", () => {
         expect(1).toBe(1);
       });
-      it("should not get any consumers, if no one is using the given eService", () => {
-        expect(1).toBe(1);
+      it("should not get any consumers, if no one is using the given eService", async () => {
+        const { eServiceId, organizationId } = ids();
+        await addOneEService({
+          id: eServiceId,
+          producerId: organizationId,
+        });
+        const consumers = await readModelService.getEServiceConsumers(
+          eServiceId,
+          0,
+          50
+        );
+        expect(consumers.results).toStrictEqual([]);
+        expect(consumers.totalCount).toBe(0);
       });
     });
   });
@@ -678,8 +699,8 @@ describe("database test", async () => {
     descriptorId: string;
   }): EService => ({
     id,
-    name: "name",
-    description: "description",
+    name: "eService name",
+    description: "eService description",
     createdAt: new Date(),
     producerId,
     technology: technology.rest,
