@@ -192,7 +192,18 @@ const attributeRouter = (
     .post(
       "/certifiedAttributes",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE, M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const id = await attributeRegistryService.createCertifiedAttribute(
+            req.body,
+            req.ctx.authData
+          );
+          return res.status(200).json({ id }).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(error);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/declaredAttributes",
@@ -229,7 +240,18 @@ const attributeRouter = (
     .post(
       "/internal/certifiedAttributes",
       authorizationMiddleware([INTERNAL_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const id =
+            await attributeRegistryService.createInternalCertifiedAttribute(
+              req.body
+            );
+          return res.status(200).json({ id }).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(error);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     );
 
   return attributeRouter;

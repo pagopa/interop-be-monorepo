@@ -4,6 +4,8 @@ const errorCodes = {
   attributeNotFound: "0001",
   attributeDuplicate: "0002",
   originNotCompliant: "0003",
+  tenantNotFound: "0004",
+  OrganizationIsNotACertifier: "0005",
 };
 
 export function attributeNotFound(identifier: string): ApiError {
@@ -30,5 +32,23 @@ export function originNotCompliant(origin: string): ApiError {
     code: errorCodes.originNotCompliant,
     httpStatus: 400,
     title: "Origin is not compliant",
+  });
+}
+
+export function tenantNotFound(tenantId: string): ApiError {
+  return new ApiError({
+    detail: `Tenant ${tenantId} not found`,
+    code: errorCodes.tenantNotFound,
+    httpStatus: 500,
+    title: "Tenant not found",
+  });
+}
+
+export function OrganizationIsNotACertifier(tenantId: string): ApiError {
+  return new ApiError({
+    detail: `Tenant ${tenantId} is not a Certifier`,
+    code: errorCodes.OrganizationIsNotACertifier,
+    httpStatus: 403,
+    title: "Organization is not a certifier",
   });
 }
