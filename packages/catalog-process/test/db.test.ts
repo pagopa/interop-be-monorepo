@@ -100,7 +100,7 @@ describe("database test", async () => {
   });
 
   describe("Catalog service", () => {
-    describe("eService creation", () => {
+    describe("create eService", () => {
       it("should write on event-store for the creation of an eService", async () => {
         const id = await catalogService.createEService(
           {
@@ -135,7 +135,7 @@ describe("database test", async () => {
       });
     });
 
-    describe("eService update", () => {
+    describe("update eService", () => {
       it("should write on event-store for the update of an eService", async () => {
         const { eServiceId, organizationId } = ids();
         await addOneEService({
@@ -210,7 +210,7 @@ describe("database test", async () => {
       });
     });
 
-    describe("eService deletion", () => {
+    describe("delete eService", () => {
       it("should write on event-store for the deletion of an eService", async () => {
         const { eServiceId, organizationId } = ids();
         await addOneEService({
