@@ -743,7 +743,7 @@ describe("database test", async () => {
         await addOneEService({
           id: eServiceId,
           producerId: organizationId,
-          descriptorId: descriptorId,
+          descriptorId,
           descriptorIsDraft: false,
         });
         await addOneTenant(tenantId);
@@ -870,7 +870,7 @@ describe("database test", async () => {
     });
   };
 
-  const writeTenantInReadmodel = async (tenant: Tenant) => {
+  const writeTenantInReadmodel = async (tenant: Tenant): Promise<void> => {
     await tenants.insertOne({
       data: tenant,
       metadata: {
@@ -879,7 +879,7 @@ describe("database test", async () => {
     });
   };
 
-  const addOneTenant = async (tenantId: string) => {
+  const addOneTenant = async (tenantId: string): Promise<void> => {
     const tenant: Tenant = {
       name: "A tenant",
       id: tenantId,
@@ -905,14 +905,14 @@ describe("database test", async () => {
     descriptorId: string;
     producerId: string;
     consumerId: string;
-  }) => {
+  }): Promise<void> => {
     const agreement: Agreement = {
       id: uuidv4(),
       createdAt: new Date(),
       eserviceId: eServiceId,
-      descriptorId: descriptorId,
-      producerId: producerId,
-      consumerId: consumerId,
+      descriptorId,
+      producerId,
+      consumerId,
       state: agreementState.active,
       verifiedAttributes: [],
       certifiedAttributes: [],
