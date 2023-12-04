@@ -419,10 +419,30 @@ describe("database test", async () => {
         expect(1).toBe(1);
       });
       it("should throw an error if the eService doesn't exist", () => {
-        expect(1).toBe(1);
+        const { eServiceId, organizationId, descriptorId } = ids();
+
+        expect(
+          catalogService.publishDescriptor(
+            eServiceId,
+            descriptorId,
+            buildAuthData(organizationId)
+          )
+        ).rejects.toThrowError(eServiceNotFound(eServiceId));
       });
-      it("should throw an error if requester is not allowed", () => {
-        expect(1).toBe(1);
+      it("should throw an error if requester is not allowed", async () => {
+        const { eServiceId, organizationId, requesterId, descriptorId } = ids();
+        await addOneEService({
+          id: eServiceId,
+          producerId: organizationId,
+          descriptorId,
+        });
+        expect(
+          catalogService.publishDescriptor(
+            eServiceId,
+            descriptorId,
+            buildAuthData(requesterId)
+          )
+        ).rejects.toThrowError(eServiceNotFound(eServiceId));
       });
       it("should throw an error if the descriptor is not valid", () => {
         expect(1).toBe(1);
@@ -433,10 +453,30 @@ describe("database test", async () => {
         expect(1).toBe(1);
       });
       it("should throw an error if the eService doesn't exist", () => {
-        expect(1).toBe(1);
+        const { eServiceId, organizationId, descriptorId } = ids();
+
+        expect(
+          catalogService.suspendDescriptor(
+            eServiceId,
+            descriptorId,
+            buildAuthData(organizationId)
+          )
+        ).rejects.toThrowError(eServiceNotFound(eServiceId));
       });
-      it("should throw an error if requester is not allowed", () => {
-        expect(1).toBe(1);
+      it("should throw an error if requester is not allowed", async () => {
+        const { eServiceId, organizationId, requesterId, descriptorId } = ids();
+        await addOneEService({
+          id: eServiceId,
+          producerId: organizationId,
+          descriptorId,
+        });
+        expect(
+          catalogService.suspendDescriptor(
+            eServiceId,
+            descriptorId,
+            buildAuthData(requesterId)
+          )
+        ).rejects.toThrowError(eServiceNotFound(eServiceId));
       });
       it("should throw an error if the descriptor is not valid", () => {
         expect(1).toBe(1);
@@ -447,10 +487,30 @@ describe("database test", async () => {
         expect(1).toBe(1);
       });
       it("should throw an error if the eService doesn't exist", () => {
-        expect(1).toBe(1);
+        const { eServiceId, organizationId, descriptorId } = ids();
+
+        expect(
+          catalogService.activateDescriptor(
+            eServiceId,
+            descriptorId,
+            buildAuthData(organizationId)
+          )
+        ).rejects.toThrowError(eServiceNotFound(eServiceId));
       });
-      it("should throw an error if requester is not allowed", () => {
-        expect(1).toBe(1);
+      it("should throw an error if requester is not allowed", async () => {
+        const { eServiceId, organizationId, requesterId, descriptorId } = ids();
+        await addOneEService({
+          id: eServiceId,
+          producerId: organizationId,
+          descriptorId,
+        });
+        expect(
+          catalogService.activateDescriptor(
+            eServiceId,
+            descriptorId,
+            buildAuthData(requesterId)
+          )
+        ).rejects.toThrowError(eServiceNotFound(eServiceId));
       });
       it("should throw an error if the descriptor is not valid", () => {
         expect(1).toBe(1);
@@ -466,10 +526,30 @@ describe("database test", async () => {
         expect(1).toBe(1);
       });
       it("should throw an error if the eService doesn't exist", () => {
-        expect(1).toBe(1);
+        const { eServiceId, organizationId, descriptorId } = ids();
+
+        expect(
+          catalogService.archiveDescriptor(
+            eServiceId,
+            descriptorId,
+            buildAuthData(organizationId)
+          )
+        ).rejects.toThrowError(eServiceNotFound(eServiceId));
       });
-      it("should throw an error if requester is not allowed", () => {
-        expect(1).toBe(1);
+      it("should throw an error if requester is not allowed", async () => {
+        const { eServiceId, organizationId, requesterId, descriptorId } = ids();
+        await addOneEService({
+          id: eServiceId,
+          producerId: organizationId,
+          descriptorId,
+        });
+        expect(
+          catalogService.archiveDescriptor(
+            eServiceId,
+            descriptorId,
+            buildAuthData(requesterId)
+          )
+        ).rejects.toThrowError(eServiceNotFound(eServiceId));
       });
       it("should throw an error if the descriptor is not valid", () => {
         expect(1).toBe(1);
