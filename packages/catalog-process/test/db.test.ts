@@ -582,8 +582,23 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(eServiceNotFound(eServiceId));
       });
-      it("should throw an error if the descriptor is not valid", () => {
-        expect(1).toBe(1);
+      it("should throw an error if the descriptor is not valid", async () => {
+        const { eServiceId, organizationId, descriptorId } = ids();
+        await addOneEService({
+          id: eServiceId,
+          producerId: organizationId,
+          descriptorId,
+          descriptorIsDraft: true,
+        });
+        expect(
+          catalogService.activateDescriptor(
+            eServiceId,
+            descriptorId,
+            buildAuthData(organizationId)
+          )
+        ).rejects.toThrowError(
+          notValidDescriptor(descriptorId, descriptorState.draft)
+        );
       });
     });
 
@@ -621,9 +636,6 @@ describe("database test", async () => {
             buildAuthData(requesterId)
           )
         ).rejects.toThrowError(eServiceNotFound(eServiceId));
-      });
-      it("should throw an error if the descriptor is not valid", () => {
-        expect(1).toBe(1);
       });
     });
   });
