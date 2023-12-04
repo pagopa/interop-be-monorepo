@@ -8,9 +8,7 @@ import {
   AttributeEvent,
   Attribute,
   WithMetadata,
-  attributeDuplicate,
   attributeEventToBinaryData,
-  originNotCompliant,
   attributeKind,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
@@ -20,66 +18,71 @@ import {
   ApiVerifiedAttributeSeed,
 } from "../model/types.js";
 import { toCreateEventAttributeAdded } from "../model/domain/toEvent.js";
+import {
+  attributeDuplicate,
+  originNotCompliant,
+} from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
-export class AttributeRegistryService {
-  private readModelService: ReadModelService;
-  private repository;
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export function attributeRegistryServiceBuilder(
+  config: AttributeRegistryConfig,
+  readModelService: ReadModelService
+) {
+  const repository = eventRepository(
+    initDB({
+      username: config.eventStoreDbUsername,
+      password: config.eventStoreDbPassword,
+      host: config.eventStoreDbHost,
+      port: config.eventStoreDbPort,
+      database: config.eventStoreDbName,
+      schema: config.eventStoreDbSchema,
+      useSSL: config.eventStoreDbUseSSL,
+    }),
+    attributeEventToBinaryData
+  );
+  return {
+    async createDeclaredAttribute(
+      apiDeclaredAttributeSeed: ApiDeclaredAttributeSeed,
+      authData: AuthData
+    ): Promise<string> {
+      if (authData.externalId.origin !== "IPA") {
+        throw originNotCompliant("IPA");
+      }
 
-  constructor(
-    readModelService: ReadModelService,
-    config: AttributeRegistryConfig
-  ) {
-    this.readModelService = readModelService;
-    this.repository = eventRepository(
-      initDB({
-        username: config.eventStoreDbUsername,
-        password: config.eventStoreDbPassword,
-        host: config.eventStoreDbHost,
-        port: config.eventStoreDbPort,
-        database: config.eventStoreDbName,
-        schema: config.eventStoreDbSchema,
-        useSSL: config.eventStoreDbUseSSL,
-      }),
-      attributeEventToBinaryData
-    );
-  }
-  public async createDeclaredAttribute(
-    apiDeclaredAttributeSeed: ApiDeclaredAttributeSeed,
-    authData: AuthData
-  ): Promise<string> {
-    if (authData.externalId.origin !== "IPA") {
-      throw originNotCompliant("IPA");
-    }
+      return repository.createEvent(
+        createDeclaredAttributeLogic({
+          attribute: await readModelService.getAttributeByName(
+            apiDeclaredAttributeSeed.name
+          ),
+          apiDeclaredAttributeSeed,
+        })
+      );
+    },
 
-    return this.repository.createEvent(
-      createDeclaredAttributeLogic({
-        attribute: await this.readModelService.getAttributeByName(
-          apiDeclaredAttributeSeed.name
-        ),
-        apiDeclaredAttributeSeed,
-      })
-    );
-  }
+    async createVerifiedAttribute(
+      apiVerifiedAttributeSeed: ApiVerifiedAttributeSeed,
+      authData: AuthData
+    ): Promise<string> {
+      if (authData.externalId.origin !== "IPA") {
+        throw originNotCompliant("IPA");
+      }
 
-  public async createVerifiedAttribute(
-    apiVerifiedAttributeSeed: ApiVerifiedAttributeSeed,
-    authData: AuthData
-  ): Promise<string> {
-    if (authData.externalId.origin !== "IPA") {
-      throw originNotCompliant("IPA");
-    }
-
-    return this.repository.createEvent(
-      createVerifiedAttributeLogic({
-        attribute: await this.readModelService.getAttributeByName(
-          apiVerifiedAttributeSeed.name
-        ),
-        apiVerifiedAttributeSeed,
-      })
-    );
-  }
+      return repository.createEvent(
+        createVerifiedAttributeLogic({
+          attribute: await readModelService.getAttributeByName(
+            apiVerifiedAttributeSeed.name
+          ),
+          apiVerifiedAttributeSeed,
+        })
+      );
+    },
+  };
 }
+
+export type AttributeRegistryService = ReturnType<
+  typeof attributeRegistryServiceBuilder
+>;
 
 export function createDeclaredAttributeLogic({
   attribute,

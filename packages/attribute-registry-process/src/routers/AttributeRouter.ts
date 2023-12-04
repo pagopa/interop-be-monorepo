@@ -6,21 +6,21 @@ import {
   ZodiosContext,
   authorizationMiddleware,
 } from "pagopa-interop-commons";
-import { attributeNotFound } from "pagopa-interop-models";
+import { makeApiProblem } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
-import { ReadModelService } from "../services/readModelService.js";
+import { readModelServiceBuilder } from "../services/readModelService.js";
 import {
   toAttributeKind,
   toApiAttribute,
 } from "../model/domain/apiConverter.js";
-import { ApiError, makeApiError } from "../model/types.js";
-import { AttributeRegistryService } from "../services/attributeRegistryService.js";
 import { config } from "../utilities/config.js";
+import { attributeNotFound } from "../model/domain/errors.js";
+import { attributeRegistryServiceBuilder } from "../services/attributeRegistryService.js";
 
-const readModelService = new ReadModelService(config);
-const attributeRegistryService = new AttributeRegistryService(
-  readModelService,
-  config
+const readModelService = readModelServiceBuilder(config);
+const attributeRegistryService = attributeRegistryServiceBuilder(
+  config,
+  readModelService
 );
 
 const attributeRouter = (
@@ -48,7 +48,6 @@ const attributeRouter = (
       async (req, res) => {
         try {
           const { limit, offset, kinds, name, origin } = req.query;
-
           const attributes =
             await readModelService.getAttributesByKindsNameOrigin({
               kinds: kinds.map(toAttributeKind),
@@ -90,11 +89,11 @@ const attributeRouter = (
           } else {
             return res
               .status(404)
-              .json(makeApiError(attributeNotFound(req.params.name)))
+              .json(makeApiProblem(attributeNotFound(req.params.name)))
               .end();
           }
         } catch (error) {
-          const errorRes: ApiError = makeApiError(error);
+          const errorRes = makeApiProblem(error);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -121,11 +120,11 @@ const attributeRouter = (
           } else {
             return res
               .status(404)
-              .json(makeApiError(attributeNotFound(`${origin}/${code}`)))
+              .json(makeApiProblem(attributeNotFound(`${origin}/${code}`)))
               .end();
           }
         } catch (error) {
-          const errorRes: ApiError = makeApiError(error);
+          const errorRes = makeApiProblem(error);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -151,11 +150,11 @@ const attributeRouter = (
           } else {
             return res
               .status(404)
-              .json(makeApiError(attributeNotFound(req.params.attributeId)))
+              .json(makeApiProblem(attributeNotFound(req.params.attributeId)))
               .end();
           }
         } catch (error) {
-          const errorRes: ApiError = makeApiError(error);
+          const errorRes = makeApiProblem(error);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -206,7 +205,7 @@ const attributeRouter = (
           );
           return res.status(200).json({ id }).end();
         } catch (error) {
-          const errorRes: ApiError = makeApiError(error);
+          const errorRes = makeApiProblem(error);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -222,7 +221,7 @@ const attributeRouter = (
           );
           return res.status(200).json({ id }).end();
         } catch (error) {
-          const errorRes: ApiError = makeApiError(error);
+          const errorRes = makeApiProblem(error);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }

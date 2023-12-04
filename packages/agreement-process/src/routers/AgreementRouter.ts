@@ -6,14 +6,19 @@ import {
   userRoles,
   authorizationMiddleware,
 } from "pagopa-interop-commons";
-import { agreementNotFound } from "pagopa-interop-models";
+import { makeApiProblem } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
 import {
   agreementToApiAgreement,
   apiAgreementStateToAgreementState,
 } from "../model/domain/apiConverter.js";
-import { agreementService } from "../services/agreementService.js";
-import { ApiError, makeApiError } from "../model/types.js";
+import { config } from "../utilities/config.js";
+import { agreementNotFound } from "../model/domain/errors.js";
+import { agreementServiceBuilder } from "../services/agreementService.js";
+import { readModelServiceBuilder } from "../services/readModelService.js";
+
+const readModelService = readModelServiceBuilder(config);
+const agreementService = agreementServiceBuilder(config, readModelService);
 
 const {
   ADMIN_ROLE,
@@ -90,7 +95,7 @@ const agreementRouter = (
         );
         return res.status(200).json({ id }).send();
       } catch (error) {
-        const errorRes: ApiError = makeApiError(error);
+        const errorRes = makeApiProblem(error);
         return res.status(errorRes.status).json(errorRes).end();
       }
     }
@@ -128,7 +133,7 @@ const agreementRouter = (
           })
           .end();
       } catch (error) {
-        const errorRes: ApiError = makeApiError(error);
+        const errorRes = makeApiProblem(error);
         return res.status(errorRes.status).json(errorRes).end();
       }
     }
@@ -165,11 +170,11 @@ const agreementRouter = (
         } else {
           return res
             .status(404)
-            .json(makeApiError(agreementNotFound(req.params.agreementId)))
+            .json(makeApiProblem(agreementNotFound(req.params.agreementId)))
             .send();
         }
       } catch (error) {
-        const errorRes: ApiError = makeApiError(error);
+        const errorRes = makeApiProblem(error);
         return res.status(errorRes.status).json(errorRes).end();
       }
     }
@@ -186,15 +191,30 @@ const agreementRouter = (
         );
         return res.status(204).send();
       } catch (error) {
-        const errorRes: ApiError = makeApiError(error);
+        const errorRes = makeApiProblem(error);
         return res.status(errorRes.status).json(errorRes).end();
       }
     }
   );
 
-  agreementRouter.post("/agreements/:agreementId/update", async (_req, res) => {
-    res.status(501).send();
-  });
+  agreementRouter.post(
+    "/agreements/:agreementId/update",
+    authorizationMiddleware([ADMIN_ROLE]),
+    async (req, res) => {
+      try {
+        await agreementService.updateAgreement(
+          req.params.agreementId,
+          req.body,
+          req.ctx.authData
+        );
+
+        return res.status(200).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(error);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    }
+  );
 
   agreementRouter.post(
     "/agreements/:agreementId/upgrade",

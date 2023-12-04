@@ -11,8 +11,14 @@ import { v4 as uuidv4 } from "uuid";
 import { Document } from "mongodb";
 import { IDatabase } from "pg-promise";
 import { config } from "../src/utilities/config.js";
-import { AttributeRegistryService } from "../src/services/attributeRegistryService.js";
-import { ReadModelService } from "../src/services/readModelService.js";
+import {
+  AttributeRegistryService,
+  attributeRegistryServiceBuilder,
+} from "../src/services/attributeRegistryService.js";
+import {
+  ReadModelService,
+  readModelServiceBuilder,
+} from "../src/services/readModelService.js";
 
 describe("database test", () => {
   let attributes: AttributeCollection;
@@ -33,7 +39,7 @@ describe("database test", () => {
       .withExposedPorts(5432)
       .start();
 
-    const mongodbContainer = await new GenericContainer("mongo:6.0.7")
+    const mongodbContainer = await new GenericContainer("mongo:4.0.0")
       .withEnvironment({
         MONGO_INITDB_DATABASE: config.readModelDbName,
         MONGO_INITDB_ROOT_USERNAME: config.readModelDbUsername,
@@ -45,10 +51,10 @@ describe("database test", () => {
     config.eventStoreDbPort = postgreSqlContainer.getMappedPort(5432);
     config.readModelDbPort = mongodbContainer.getMappedPort(27017);
     attributes = ReadModelRepository.init(config).attributes;
-    readModelService = new ReadModelService(config);
-    attributeRegistryService = new AttributeRegistryService(
-      readModelService,
-      config
+    readModelService = readModelServiceBuilder(config);
+    attributeRegistryService = attributeRegistryServiceBuilder(
+      config,
+      readModelService
     );
 
     postgresDB = initDB({
@@ -111,6 +117,14 @@ describe("database test", () => {
         }
       );
       expect(id).toBeDefined();
+
+      const writtenEvent = await postgresDB.one(
+        "SELECT * FROM attribute.events WHERE stream_id = $1",
+        [id]
+      );
+      expect(writtenEvent.stream_id).toBe(id);
+      expect(writtenEvent.version).toBe("0");
+      expect(writtenEvent.type).toBe("AttributeAdded");
     });
   });
 
@@ -142,23 +156,20 @@ describe("database test", () => {
       expect(attribute).toBeUndefined();
     });
   });
+
+  const addOneAttribute = (id: string): Promise<Document> =>
+    attributes.insertOne({
+      data: {
+        id,
+        name: "name",
+        kind: "Certified",
+        description: "description",
+        creationTime: new Date(),
+        code: undefined,
+        origin: undefined,
+      },
+      metadata: {
+        version: 0,
+      },
+    });
 });
-
-const addOneAttribute = (id: string): Promise<Document> => {
-  const { attributes } = ReadModelRepository.init(config);
-
-  return attributes.insertOne({
-    data: {
-      id,
-      name: "name",
-      kind: "Certified",
-      description: "description",
-      creationTime: new Date(),
-      code: undefined,
-      origin: undefined,
-    },
-    metadata: {
-      version: 0,
-    },
-  });
-};

@@ -4,22 +4,13 @@ import {
   Descriptor,
   EService,
   descriptorState,
-  draftDescriptorAlreadyExists,
-  eServiceCannotBeDeleted,
-  eServiceCannotBeUpdated,
-  eServiceDescriptorNotFound,
-  eServiceDocumentNotFound,
-  eServiceDuplicate,
-  eServiceNotFound,
-  notValidDescriptor,
-  operationForbidden,
   WithMetadata,
+  operationForbidden,
 } from "pagopa-interop-models";
 import {
   apiAgreementApprovalPolicyToAgreementApprovalPolicy,
   apiTechnologyToTechnology,
 } from "../src/model/domain/apiConverter.js";
-
 import {
   activateDescriptorLogic,
   archiveDescriptorLogic,
@@ -45,6 +36,16 @@ import {
   toEServiceTechnologyV1,
   toEServiceV1,
 } from "../src/model/domain/toEvent.js";
+import {
+  draftDescriptorAlreadyExists,
+  eServiceCannotBeDeleted,
+  eServiceCannotBeUpdated,
+  eServiceDescriptorNotFound,
+  eServiceDocumentNotFound,
+  eServiceDuplicate,
+  eServiceNotFound,
+  notValidDescriptor,
+} from "../src/model/domain/errors.js";
 
 const shuffle = <T>(array: T[]): T[] => array.sort(() => Math.random() - 0.5);
 
