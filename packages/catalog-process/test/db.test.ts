@@ -262,7 +262,7 @@ describe("database test", async () => {
     });
 
     describe("create descriptor", async () => {
-      it("should write in event-store for the creation of a descriptor", async () => {
+      it("should write on event-store for the creation of a descriptor", async () => {
         const { eServiceId, organizationId } = ids();
         await addOneEService({
           id: eServiceId,
@@ -415,17 +415,44 @@ describe("database test", async () => {
       });
     });
     describe("publish descriptor", () => {
-      it("To Do", () => {
+      it("should write on event-store for the publication of a descriptor", () => {
+        expect(1).toBe(1);
+      });
+      it("should throw an error if the eService doesn't exist", () => {
+        expect(1).toBe(1);
+      });
+      it("should throw an error if requester is not allowed", () => {
+        expect(1).toBe(1);
+      });
+      it("should throw an error if the descriptor is not valid", () => {
         expect(1).toBe(1);
       });
     });
     describe("suspend descriptor", () => {
-      it("To Do", () => {
+      it("should write on event-store for the suspension of a descriptor", () => {
+        expect(1).toBe(1);
+      });
+      it("should throw an error if the eService doesn't exist", () => {
+        expect(1).toBe(1);
+      });
+      it("should throw an error if requester is not allowed", () => {
+        expect(1).toBe(1);
+      });
+      it("should throw an error if the descriptor is not valid", () => {
         expect(1).toBe(1);
       });
     });
     describe("activate descriptor", () => {
-      it("To Do", () => {
+      it("should write on event-store for the activation of a descriptor", () => {
+        expect(1).toBe(1);
+      });
+      it("should throw an error if the eService doesn't exist", () => {
+        expect(1).toBe(1);
+      });
+      it("should throw an error if requester is not allowed", () => {
+        expect(1).toBe(1);
+      });
+      it("should throw an error if the descriptor is not valid", () => {
         expect(1).toBe(1);
       });
     });
@@ -435,7 +462,16 @@ describe("database test", async () => {
       });
     });
     describe("archive descriptor", () => {
-      it("To Do", () => {
+      it("should write on event-store for the archiviation of a descriptor", () => {
+        expect(1).toBe(1);
+      });
+      it("should throw an error if the eService doesn't exist", () => {
+        expect(1).toBe(1);
+      });
+      it("should throw an error if requester is not allowed", () => {
+        expect(1).toBe(1);
+      });
+      it("should throw an error if the descriptor is not valid", () => {
         expect(1).toBe(1);
       });
     });
@@ -447,12 +483,18 @@ describe("database test", async () => {
       });
     });
     describe("getEServiceById", () => {
-      it("To Do", () => {
+      it("should get the eService if it exists", () => {
+        expect(1).toBe(1);
+      });
+      it("should not get the eService if it doesn't exist", () => {
         expect(1).toBe(1);
       });
     });
     describe("getEserviceConsumers", () => {
-      it("To Do", () => {
+      it("should get the consumers of the given eService", () => {
+        expect(1).toBe(1);
+      });
+      it("should not get any consumers, if no one is using the given eService", () => {
         expect(1).toBe(1);
       });
     });
