@@ -316,6 +316,7 @@ describe("database test", async () => {
         ).rejects.toThrowError(operationForbidden);
       });
     });
+
     describe("update descriptor", () => {
       it("should write on event-store for the update of a descriptor", async () => {
         const { eServiceId, organizationId, descriptorId } = ids();
@@ -369,6 +370,7 @@ describe("database test", async () => {
         ).rejects.toThrowError(operationForbidden);
       });
     });
+
     describe("delete draft descriptor", () => {
       it("should write on event-store for the deletion of a draft descriptor", async () => {
         const { eServiceId, organizationId, descriptorId } = ids();
@@ -417,6 +419,7 @@ describe("database test", async () => {
         ).rejects.toThrowError(operationForbidden);
       });
     });
+
     describe("publish descriptor", () => {
       it("should write on event-store for the publication of a descriptor", async () => {
         const { eServiceId, organizationId, descriptorId } = ids();
@@ -481,6 +484,7 @@ describe("database test", async () => {
         ).rejects.toThrowError(notValidDescriptor(descriptorId, "Draft"));
       });
     });
+
     describe("suspend descriptor", () => {
       it("should write on event-store for the suspension of a descriptor", async () => {
         const { eServiceId, organizationId, descriptorId } = ids();
@@ -547,6 +551,7 @@ describe("database test", async () => {
         );
       });
     });
+
     describe("activate descriptor", () => {
       it("should write on event-store for the activation of a descriptor", () => {
         expect(1).toBe(1);
@@ -581,6 +586,7 @@ describe("database test", async () => {
         expect(1).toBe(1);
       });
     });
+
     describe("clone descriptor", () => {
       it("To Do", () => {
         expect(1).toBe(1);
@@ -621,7 +627,8 @@ describe("database test", async () => {
       });
     });
   });
-  describe("ReadModelService", () => {
+
+  describe("ReadModel Service", () => {
     describe("getEservices", () => {
       it("To Do", () => {
         expect(1).toBe(1);
