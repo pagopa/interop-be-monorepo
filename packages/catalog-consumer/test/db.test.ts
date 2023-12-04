@@ -7,10 +7,10 @@ import {
   EServiceCollection,
   ReadModelRepository,
   consumerConfig,
-  getMongodbContainer,
 } from "pagopa-interop-commons";
 import { EServiceAddedV1, EServiceTechnologyV1 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
+import { GenericContainer } from "testcontainers";
 import { handleMessage } from "../src/consumerService.js";
 import { EventEnvelope } from "../src/model/models.js";
 
@@ -19,11 +19,14 @@ describe("database test", async () => {
 
   const config = consumerConfig();
   beforeAll(async () => {
-    const mongodbContainer = await getMongodbContainer({
-      dbName: config.readModelDbName,
-      username: config.readModelDbUsername,
-      password: config.readModelDbPassword,
-    }).start();
+    const mongodbContainer = await new GenericContainer("mongo:4.0.0")
+      .withEnvironment({
+        MONGO_INITDB_DATABASE: config.readModelDbName,
+        MONGO_INITDB_ROOT_USERNAME: config.readModelDbUsername,
+        MONGO_INITDB_ROOT_PASSWORD: config.readModelDbPassword,
+      })
+      .withExposedPorts(27017)
+      .start();
 
     config.readModelDbPort = mongodbContainer.getMappedPort(27017);
 

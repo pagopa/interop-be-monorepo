@@ -27,7 +27,6 @@ import {
   ApiAgreementPayload,
   ApiAgreementUpdatePayload,
 } from "../model/types.js";
-import { ReadModelService } from "./readModelService.js";
 import {
   assertAgreementExist,
   assertExpectedState,
@@ -36,6 +35,7 @@ import {
   validateCreationOnDescriptor,
   verifyCreationConflictingAgreements,
 } from "./validators.js";
+import { ReadModelService } from "./readModelService.js";
 
 const fileManager = initFileManager(config);
 
