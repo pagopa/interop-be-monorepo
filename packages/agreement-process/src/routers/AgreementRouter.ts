@@ -20,6 +20,7 @@ import { tenantQueryBuilder } from "../services/readmodel/tenantQuery.js";
 import { eserviceQueryBuilder } from "../services/readmodel/eserviceQuery.js";
 import { attributeQueryBuilder } from "../services/readmodel/attributeQuery.js";
 import { readModelServiceBuilder } from "../services/readmodel/readModelService.js";
+import { agreementNotFound, makeApiProblem } from "../model/domain/errors.js";
 import {
   createAgreementErrorMapper,
   deleteAgreementErrorMapper,

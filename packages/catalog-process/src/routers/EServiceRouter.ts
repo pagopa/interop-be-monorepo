@@ -19,8 +19,6 @@ import { api } from "../model/generated/api.js";
 import { config } from "../utilities/config.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { catalogServiceBuilder } from "../services/catalogService.js";
-import { catalogService } from "../services/catalogService.js";
-import { readModelService } from "../services/readModelService.js";
 import {
   makeApiProblem,
   eServiceNotFound,
@@ -41,10 +39,6 @@ import {
   updateDescriptorErrorMapper,
   updateEServiceErrorMapper,
 } from "../utilities/errorMappers.js";
-import {
-  eServiceDocumentNotFound,
-  eServiceNotFound,
-} from "../model/domain/errors.js";
 
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
