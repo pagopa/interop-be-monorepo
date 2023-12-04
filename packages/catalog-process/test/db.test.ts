@@ -716,7 +716,7 @@ describe("database test", async () => {
         expect(result1.totalCount).toBe(2);
         expect(result2.totalCount).toBe(3);
         expect(result3.totalCount).toBe(1);
-        // TO DO compare fields
+        // TO DO check the properties in the results
       });
     });
     describe("getEServiceById", () => {
