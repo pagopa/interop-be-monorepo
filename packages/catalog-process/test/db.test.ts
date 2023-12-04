@@ -38,6 +38,7 @@ import {
   eServiceCannotBeUpdated,
   eServiceDuplicate,
   eServiceNotFound,
+  notValidDescriptor,
 } from "../src/model/domain/errors.js";
 
 describe("database test", async () => {
@@ -193,7 +194,7 @@ describe("database test", async () => {
         await addOneEService({
           id: eServiceId,
           producerId: organizationId,
-          draftDescriptor: false,
+          descriptorIsDraft: false,
         });
         expect(
           catalogService.updateEService(
@@ -215,7 +216,7 @@ describe("database test", async () => {
         await addOneEService({
           id: eServiceId,
           producerId: organizationId,
-          draftDescriptor: false,
+          descriptorIsDraft: false,
           withDescriptors: false,
         });
         await catalogService.deleteEService(
@@ -375,6 +376,7 @@ describe("database test", async () => {
           id: eServiceId,
           producerId: organizationId,
           descriptorId,
+          descriptorIsDraft: true,
         });
         await catalogService.deleteDraftDescriptor(
           eServiceId,
@@ -404,6 +406,7 @@ describe("database test", async () => {
           id: eServiceId,
           producerId: organizationId,
           descriptorId,
+          descriptorIsDraft: true,
         });
         expect(
           catalogService.deleteDraftDescriptor(
@@ -415,8 +418,24 @@ describe("database test", async () => {
       });
     });
     describe("publish descriptor", () => {
-      it("should write on event-store for the publication of a descriptor", () => {
-        expect(1).toBe(1);
+      it("should write on event-store for the publication of a descriptor", async () => {
+        const { eServiceId, organizationId, descriptorId } = ids();
+        await addOneEService({
+          id: eServiceId,
+          producerId: organizationId,
+          descriptorId,
+          descriptorIsDraft: true,
+        });
+        await catalogService.publishDescriptor(
+          eServiceId,
+          descriptorId,
+          buildAuthData(organizationId)
+        );
+
+        const writtenEvent = await readLastEventByStreamId(eServiceId);
+        expect(writtenEvent.stream_id).toBe(eServiceId);
+        expect(writtenEvent.version).toBe("1");
+        expect(writtenEvent.type).toBe("EServiceDescriptorUpdated");
       });
       it("should throw an error if the eService doesn't exist", () => {
         const { eServiceId, organizationId, descriptorId } = ids();
@@ -435,6 +454,7 @@ describe("database test", async () => {
           id: eServiceId,
           producerId: organizationId,
           descriptorId,
+          descriptorIsDraft: true,
         });
         expect(
           catalogService.publishDescriptor(
@@ -444,13 +464,42 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(eServiceNotFound(eServiceId));
       });
-      it("should throw an error if the descriptor is not valid", () => {
-        expect(1).toBe(1);
+      it("should throw an error if the descriptor is not valid", async () => {
+        const { eServiceId, organizationId, descriptorId } = ids();
+        await addOneEService({
+          id: eServiceId,
+          producerId: organizationId,
+          descriptorId,
+          descriptorIsDraft: false,
+        });
+        expect(
+          catalogService.publishDescriptor(
+            eServiceId,
+            descriptorId,
+            buildAuthData(organizationId)
+          )
+        ).rejects.toThrowError(notValidDescriptor(descriptorId, "Draft"));
       });
     });
     describe("suspend descriptor", () => {
-      it("should write on event-store for the suspension of a descriptor", () => {
-        expect(1).toBe(1);
+      it("should write on event-store for the suspension of a descriptor", async () => {
+        const { eServiceId, organizationId, descriptorId } = ids();
+        await addOneEService({
+          id: eServiceId,
+          producerId: organizationId,
+          descriptorId,
+          descriptorIsDraft: false,
+        });
+        await catalogService.suspendDescriptor(
+          eServiceId,
+          descriptorId,
+          buildAuthData(organizationId)
+        );
+
+        const writtenEvent = await readLastEventByStreamId(eServiceId);
+        expect(writtenEvent.stream_id).toBe(eServiceId);
+        expect(writtenEvent.version).toBe("1");
+        expect(writtenEvent.type).toBe("EServiceDescriptorUpdated");
       });
       it("should throw an error if the eService doesn't exist", () => {
         const { eServiceId, organizationId, descriptorId } = ids();
@@ -469,6 +518,7 @@ describe("database test", async () => {
           id: eServiceId,
           producerId: organizationId,
           descriptorId,
+          descriptorIsDraft: false,
         });
         expect(
           catalogService.suspendDescriptor(
@@ -478,8 +528,23 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(eServiceNotFound(eServiceId));
       });
-      it("should throw an error if the descriptor is not valid", () => {
-        expect(1).toBe(1);
+      it("should throw an error if the descriptor is not valid", async () => {
+        const { eServiceId, organizationId, descriptorId } = ids();
+        await addOneEService({
+          id: eServiceId,
+          producerId: organizationId,
+          descriptorId,
+          descriptorIsDraft: true,
+        });
+        expect(
+          catalogService.suspendDescriptor(
+            eServiceId,
+            descriptorId,
+            buildAuthData(organizationId)
+          )
+        ).rejects.toThrowError(
+          notValidDescriptor(descriptorId, descriptorState.draft)
+        );
       });
     });
     describe("activate descriptor", () => {
@@ -583,13 +648,13 @@ describe("database test", async () => {
   const buildEService = ({
     id,
     producerId,
-    draftDescriptor,
+    descriptorIsDraft,
     withDescriptors,
     descriptorId,
   }: {
     id: string;
     producerId: string;
-    draftDescriptor: boolean;
+    descriptorIsDraft: boolean;
     withDescriptors: boolean;
     descriptorId: string;
   }): EService => ({
@@ -605,7 +670,7 @@ describe("database test", async () => {
             id: descriptorId,
             version: "1",
             docs: [],
-            state: draftDescriptor
+            state: descriptorIsDraft
               ? descriptorState.draft
               : descriptorState.published,
             audience: [],
@@ -663,20 +728,20 @@ describe("database test", async () => {
   const addOneEService = async ({
     id,
     producerId,
-    draftDescriptor = true,
+    descriptorIsDraft = true,
     withDescriptors = true,
     descriptorId = uuidv4(),
   }: {
     id: string;
     producerId: string;
-    draftDescriptor?: boolean;
+    descriptorIsDraft?: boolean;
     withDescriptors?: boolean;
     descriptorId?: string;
   }): Promise<void> => {
     const eService = buildEService({
       id,
       producerId,
-      draftDescriptor,
+      descriptorIsDraft,
       withDescriptors,
       descriptorId,
     });
