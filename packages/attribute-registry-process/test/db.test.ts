@@ -102,7 +102,7 @@ describe("database test", () => {
         expect(writtenEvent.type).toBe("AttributeAdded");
       });
       it("should not write on event-store if the attribute already exists", () => {
-        //TO DO
+        // TO DO
         expect(1).toBe(1);
       });
     });
@@ -134,25 +134,25 @@ describe("database test", () => {
         expect(writtenEvent.type).toBe("AttributeAdded");
       });
       it("should not write on event-store if the attribute already exists", () => {
-        //TO DO
+        // TO DO
         expect(1).toBe(1);
       });
     });
     describe("certified attribute creation", () => {
       it("should write on event-store for the creation of a certified attribute", async () => {
-        //TO DO
+        // TO DO
         expect(1).toBe(1);
       });
       it("should not write on event-store if the attribute already exists", () => {
-        //TO DO
+        // TO DO
         expect(1).toBe(1);
       });
       it("should not write on event-store if the organization is not a certifier", () => {
-        //TO DO
+        // TO DO
         expect(1).toBe(1);
       });
       it("should not write on event-store if the certifier is not found", () => {
-        //TO DO
+        // TO DO
         expect(1).toBe(1);
       });
     });
@@ -160,41 +160,41 @@ describe("database test", () => {
     describe("readModelService", () => {
       describe("getAttributesByIds", () => {
         it("should get the attributes if they exist", () => {
-          //TO DO
+          // TO DO
           expect(1).toBe(1);
         });
         it("should not get the attributes if they don't exist", () => {
-          //TO DO
+          // TO DO
           expect(1).toBe(1);
         });
         it("should not get any attributes if the requested ids list is empty", () => {
-          //TO DO
+          // TO DO
           expect(1).toBe(1);
         });
       });
       describe("getAttributesByKindsNameOrigin", () => {
         it("should get the attributes if they exists (parameters: kinds, name, origin)", () => {
-          //TO DO
+          // TO DO
           expect(1).toBe(1);
         });
         it("should get the attributes if they exists (parameters: kinds only)", () => {
-          //TO DO
+          // TO DO
           expect(1).toBe(1);
         });
         it("should get the attributes if they exists (parameters: name only)", () => {
-          //TO DO
+          // TO DO
           expect(1).toBe(1);
         });
         it("should get the attributes if they exists (parameters: origin only)", () => {
-          //TO DO
+          // TO DO
           expect(1).toBe(1);
         });
         it("should get all he attributes if no parameter is passed", () => {
-          //TO DO
+          // TO DO
           expect(1).toBe(1);
         });
         it("should not get the attributes if they don't exist", () => {
-          //TO DO
+          // TO DO
           expect(1).toBe(1);
         });
       });
@@ -227,11 +227,11 @@ describe("database test", () => {
       });
       describe("getAttributeByOriginAndCode", () => {
         it("should get the attribute if it exists", async () => {
-          //TO DO
+          // TO DO
           expect(1).toBe(1);
         });
         it("should not get the attribute if it doesn't exist", async () => {
-          //TO DO
+          // TO DO
           expect(1).toBe(1);
         });
       });
