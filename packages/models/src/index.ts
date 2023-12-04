@@ -4,7 +4,6 @@ export * from "./errors.js";
 export * from "./eservice/eservice.js";
 export * from "./eservice/eserviceEvents.js";
 export * from "./tenant/tenant.js";
-export * from "./attribute/attribute.js";
 export * from "./tenant/tenantEvents.js";
 export * from "./attribute/attribute.js";
 export * from "./attribute/attributeEvents.js";

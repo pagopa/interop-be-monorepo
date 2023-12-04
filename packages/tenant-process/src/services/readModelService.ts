@@ -1,4 +1,12 @@
-import { logger, ReadModelRepository } from "pagopa-interop-commons";
+import { WithId } from "mongodb";
+import { Filter } from "mongodb";
+import {
+  AgreementCollection,
+  AttributeCollection,
+  logger,
+  ReadModelRepository,
+  TenantCollection,
+} from "pagopa-interop-commons";
 import {
   WithMetadata,
   Tenant,
@@ -10,11 +18,8 @@ import {
   genericError,
 } from "pagopa-interop-models";
 import { z } from "zod";
-import { config } from "../utilities/config.js";
+import { TenantProcessConfig } from "../utilities/config.js";
 import { attributeNotFound } from "../model/domain/errors.js";
-
-const { tenants, attributes, agreements, eservices } =
-  ReadModelRepository.init(config);
 
 const getAgreementsFilters = (
   producerId: string,
@@ -34,6 +39,7 @@ const getAgreementsFilters = (
 };
 
 const getAllAgreements = async (
+  agreements: AgreementCollection,
   producerId: string,
   consumerId: string,
   agreementStates: AgreementState[]
@@ -46,7 +52,8 @@ const getAllAgreements = async (
 
   // eslint-disable-next-line no-constant-condition
   while (true) {
-    const agreementsChunk = await getAgreementsConst(
+    const agreementsChunk = await getAgreementsChunk(
+      agreements,
       producerId,
       consumerId,
       agreementStates,
@@ -66,12 +73,45 @@ const getAllAgreements = async (
   return results;
 };
 
-const getAgreementsConst = async (
+async function getAttribute(
+  attributes: AttributeCollection,
+  filter: Filter<WithId<WithMetadata<Attribute>>>
+): Promise<WithMetadata<Attribute> | undefined> {
+  const data = await attributes.findOne(filter, {
+    projection: { data: true, metadata: true },
+  });
+  if (!data) {
+    return undefined;
+  } else {
+    const result = z
+      .object({
+        metadata: z.object({ version: z.number() }),
+        data: Attribute,
+      })
+      .safeParse(data);
+    if (!result.success) {
+      logger.error(
+        `Unable to parse attribute item: result ${JSON.stringify(
+          result
+        )} - data ${JSON.stringify(data)} `
+      );
+      throw genericError("Unable to parse attribute item");
+    }
+    return {
+      data: result.data.data,
+      metadata: { version: result.data.metadata.version },
+    };
+  }
+}
+
+const getAgreementsChunk = async (
+  agreements: AgreementCollection,
   producerId: string,
   consumerId: string,
   agreementStates: AgreementState[],
   offset: number,
   limit: number
+  // eslint-disable-next-line max-params
 ): Promise<Agreement[]> => {
   const data = await agreements
     .aggregate([
@@ -95,81 +135,9 @@ const getAgreementsConst = async (
   return result.data;
 };
 
-async function getAttributeByExternalId(
-  externalId: ExternalId
-): Promise<WithMetadata<Attribute>> {
-  const data = await attributes.findOne(
-    { "data.origin": externalId.origin, "data.code": externalId.value },
-    { projection: { data: true, metadata: true } }
-  );
-
-  if (!data) {
-    throw attributeNotFound(`${externalId.origin}/${externalId.value}`);
-  } else {
-    const result = z
-      .object({
-        metadata: z.object({ version: z.number() }),
-        data: Attribute,
-      })
-      .safeParse(data);
-
-    if (!result.success) {
-      logger.error(
-        `Unable to parse tenant item: result ${JSON.stringify(
-          result
-        )} - data ${JSON.stringify(data)} `
-      );
-
-      throw genericError("Unable to parse tenant item");
-    }
-
-    return {
-      data: result.data.data,
-      metadata: { version: result.data.metadata.version },
-    };
-  }
-}
-
-async function getAttributeById(
-  attributeId: string
-): Promise<WithMetadata<Attribute>> {
-  const data = await attributes.findOne(
-    { "data.id": attributeId },
-    { projection: { data: true, metadata: true } }
-  );
-
-  if (!data) {
-    throw attributeNotFound(attributeId);
-  } else {
-    const result = z
-      .object({
-        metadata: z.object({ version: z.number() }),
-        data: Attribute,
-      })
-      .safeParse(data);
-
-    if (!result.success) {
-      logger.error(
-        `Unable to parse tenant item: result ${JSON.stringify(
-          result
-        )} - data ${JSON.stringify(data)} `
-      );
-
-      throw genericError("Unable to parse tenant item");
-    }
-
-    return {
-      data: result.data.data,
-      metadata: { version: result.data.metadata.version },
-    };
-  }
-}
-
 async function getTenant(
-  filter:
-    | { "data.id": string }
-    | { "data.name": object }
-    | { "data.externalId.code": string; "data.externalId.origin": string }
+  tenants: TenantCollection,
+  filter: Filter<WithId<WithMetadata<Tenant>>>
 ): Promise<WithMetadata<Tenant> | undefined> {
   const data = await tenants.findOne(filter, {
     projection: { data: true, metadata: true },
@@ -202,91 +170,128 @@ async function getTenant(
   }
 }
 
-export const readModelService = {
-  async getAgreements(
-    producerId: string,
-    consumerId: string,
-    agreementStates: AgreementState[]
-  ): Promise<Agreement[]> {
-    return getAllAgreements(producerId, consumerId, agreementStates);
-  },
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export function readModelServiceBuilder(config: TenantProcessConfig) {
+  const { attributes, agreements, eservices, tenants } =
+    ReadModelRepository.init(config);
 
-  async getAttributesByExternalIds(
-    externalIds: ExternalId[]
-  ): Promise<Array<WithMetadata<Attribute>>> {
-    const attributesPromises = externalIds.map((externalId) =>
-      getAttributeByExternalId(externalId)
-    );
-    return Promise.all(attributesPromises);
-  },
-
-  async getAttributesById(
-    attributesIds: string[]
-  ): Promise<Array<WithMetadata<Attribute>>> {
-    const promiseAttribute = attributesIds.map((attributeId) =>
-      getAttributeById(attributeId)
-    );
-    return Promise.all(promiseAttribute);
-  },
-
-  async getEServiceById(
-    id: string
-  ): Promise<WithMetadata<EService> | undefined> {
-    const data = await eservices.findOne(
-      { "data.id": id },
-      { projection: { data: true, metadata: true } }
-    );
-
-    if (!data) {
-      return undefined;
-    } else {
-      const result = z
-        .object({
-          metadata: z.object({ version: z.number() }),
-          data: EService,
-        })
-        .safeParse(data);
-
-      if (!result.success) {
-        logger.error(
-          `Unable to parse eservices item: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
-        );
-
-        throw genericError("Unable to parse eservices item");
-      }
-
-      return {
-        data: result.data.data,
-        metadata: { version: result.data.metadata.version },
+  return {
+    async getAttributesByExternalIds(
+      externalIds: ExternalId[]
+    ): Promise<Array<WithMetadata<Attribute>>> {
+      const fetchAttributeByExternalId = async (
+        externalId: ExternalId
+      ): Promise<WithMetadata<Attribute>> => {
+        const data = await getAttribute(attributes, {
+          "data.origin": externalId.origin,
+          "data.code": externalId.value,
+        });
+        if (!data) {
+          throw attributeNotFound(`${externalId.origin}/${externalId.value}`);
+        }
+        return data;
       };
-    }
-  },
 
-  async getTenantById(
-    tenantId: string
-  ): Promise<WithMetadata<Tenant> | undefined> {
-    return getTenant({ "data.id": tenantId });
-  },
+      const attributesPromises = externalIds.map(fetchAttributeByExternalId);
+      return Promise.all(attributesPromises);
+    },
 
-  async getTenantByName(
-    name: string
-  ): Promise<WithMetadata<Tenant> | undefined> {
-    return getTenant({
-      "data.name": {
-        $regex: `^${name}$$`,
-        $options: "i",
-      },
-    });
-  },
+    async getAttributesById(
+      attributeIds: string[]
+    ): Promise<Array<WithMetadata<Attribute>>> {
+      const fetchAttributeById = async (
+        id: string
+      ): Promise<WithMetadata<Attribute>> => {
+        const data = await getAttribute(attributes, { "data.id": id });
+        if (!data) {
+          throw attributeNotFound(id);
+        }
+        return data;
+      };
 
-  async getTenantByExternalId(
-    tenantExternalId: ExternalId
-  ): Promise<WithMetadata<Tenant> | undefined> {
-    return getTenant({
-      "data.externalId.code": tenantExternalId.value,
-      "data.externalId.origin": tenantExternalId.origin,
-    });
-  },
-};
+      const attributePromises = attributeIds.map(fetchAttributeById);
+      return Promise.all(attributePromises);
+    },
+    async getAgreements(
+      producerId: string,
+      consumerId: string,
+      agreementStates: AgreementState[]
+    ): Promise<Agreement[]> {
+      return getAllAgreements(
+        agreements,
+        producerId,
+        consumerId,
+        agreementStates
+      );
+    },
+
+    async getEServiceById(
+      id: string
+    ): Promise<WithMetadata<EService> | undefined> {
+      const data = await eservices.findOne(
+        { "data.id": id },
+        { projection: { data: true, metadata: true } }
+      );
+
+      if (!data) {
+        return undefined;
+      } else {
+        const result = z
+          .object({
+            metadata: z.object({ version: z.number() }),
+            data: EService,
+          })
+          .safeParse(data);
+
+        if (!result.success) {
+          logger.error(
+            `Unable to parse eservices item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+
+          throw genericError("Unable to parse eservices item");
+        }
+
+        return {
+          data: result.data.data,
+          metadata: { version: result.data.metadata.version },
+        };
+      }
+    },
+
+    async getTenantById(
+      tenantId: string
+    ): Promise<WithMetadata<Tenant> | undefined> {
+      return getTenant(tenants, { "data.id": tenantId });
+    },
+
+    async getTenantByName(
+      name: string
+    ): Promise<WithMetadata<Tenant> | undefined> {
+      return getTenant(tenants, {
+        "data.name": {
+          $regex: `^${name}$$`,
+          $options: "i",
+        },
+      });
+    },
+
+    async getTenantByExternalId(
+      tenantExternalId: ExternalId
+    ): Promise<WithMetadata<Tenant> | undefined> {
+      return getTenant(tenants, {
+        "data.externalId.code": tenantExternalId.value,
+        "data.externalId.origin": tenantExternalId.origin,
+      });
+    },
+
+    async getTenantBySelfcareId(
+      selfcareId: string
+    ): Promise<WithMetadata<Tenant> | undefined> {
+      return getTenant(tenants, { "data.selfcareId": selfcareId });
+    },
+  };
+}
+
+export type ReadModelService = ReturnType<typeof readModelServiceBuilder>;

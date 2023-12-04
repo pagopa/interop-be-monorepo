@@ -22,7 +22,7 @@ import {
   notLatestEServiceDescriptor,
   operationNotAllowed,
 } from "../model/domain/errors.js";
-import { readModelService } from "./readModelService.js";
+import { ReadModelService } from "./readModelService.js";
 
 const validateDescriptorState = (
   eserviceId: string,
@@ -80,6 +80,7 @@ const certifiedAttributesDescriptorSatisfied = (
 };
 
 const verifyConflictingAgreements = async (
+  readModelService: ReadModelService,
   consumerId: string,
   eserviceId: string,
   conflictingStates: AgreementState[]
@@ -125,6 +126,7 @@ export const validateCreationOnDescriptor = (
 };
 
 export const verifyCreationConflictingAgreements = async (
+  readModelService: ReadModelService,
   organizationId: string,
   agreement: ApiAgreementPayload
 ): Promise<void> => {
@@ -136,6 +138,7 @@ export const verifyCreationConflictingAgreements = async (
     agreementState.suspended,
   ];
   await verifyConflictingAgreements(
+    readModelService,
     organizationId,
     agreement.eserviceId,
     conflictingStates

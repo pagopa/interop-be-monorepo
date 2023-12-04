@@ -17,7 +17,7 @@ import {
   eServiceNotFound,
   tenantNotFound,
 } from "../model/domain/errors.js";
-import { readModelService } from "./readModelService.js";
+import { ReadModelService } from "./readModelService.js";
 
 export function assertTenantExists(
   tenantId: string,
@@ -62,7 +62,9 @@ export function getTenantKind(
     .otherwise(() => tenantKind.PRIVATE);
 }
 
+// eslint-disable-next-line max-params
 export async function assertVerifiedAttributeOperationAllowed(
+  readModelService: ReadModelService,
   producerId: string,
   consumerId: string,
   attributeId: string,
@@ -125,6 +127,7 @@ export async function assertResourceAllowed(
 }
 
 export async function getTenantKindLoadingCertifiedAttributes(
+  readModelService: ReadModelService,
   attributes: TenantAttribute[],
   externalId: ExternalId
 ): Promise<TenantKind> {
