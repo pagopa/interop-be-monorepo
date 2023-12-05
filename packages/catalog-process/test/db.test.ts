@@ -217,7 +217,7 @@ describe("database test", async () => {
       });
     });
 
-    describe("delete eService deletion", () => {
+    describe("delete eService", () => {
       it("should write on event-store for the deletion of an eService", async () => {
         const { eServiceId, organizationId } = ids();
         await addOneEService({
@@ -982,7 +982,7 @@ describe("database test", async () => {
   const readLastEventByStreamId = async (eServiceId: string): Promise<any> =>
     (
       await postgresDB.many(
-        "SELECT * FROM catalog.events WHERE stream_id = $1 ORDER BY version DESC",
+        "SELECT * FROM catalog.events WHERE stream_id = $1 ORDER BY sequence_num DESC",
         [eServiceId]
       )
     )[0];
