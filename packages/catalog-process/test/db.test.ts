@@ -641,7 +641,7 @@ describe("database test", async () => {
             descriptorId,
             buildAuthData(requesterId)
           )
-        ).rejects.toThrowError(eServiceNotFound(eServiceId));
+        ).rejects.toThrowError(operationForbidden);
       });
     });
   });
