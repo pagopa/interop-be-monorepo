@@ -17,17 +17,14 @@ import {
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import { AgreementProcessConfig } from "../utilities/config.js";
-import { apiAgreementDocumentToAgreementDocument } from "../model/domain/apiConverter.js";
 import { eServiceNotFound, tenantIdNotFound } from "../model/domain/errors.js";
 import {
   toCreateEventAgreementAdded,
-  toCreateEventAgreementContractAdded,
   toCreateEventAgreementDeleted,
   toCreateEventAgreementUpdated,
 } from "../model/domain/toEvent.js";
 
 import {
-  ApiAgreementDocumentSeed,
   ApiAgreementPayload,
   ApiAgreementSubmissionPayload,
   ApiAgreementUpdatePayload,
@@ -132,36 +129,25 @@ export function agreementServiceBuilder(
         })
       );
     },
-    async addAgreementContract(
-      agreementId: string,
-      seed: ApiAgreementDocumentSeed
-    ): Promise<void> {
-      const addAgreementcontract = await addAgreementContractLogic(
-        agreementId,
-        seed
-      );
-      await repository.createEvent(addAgreementcontract);
-    },
     async submitAgreement(
       agreementId: string,
       payload: ApiAgreementSubmissionPayload
     ): Promise<string> {
       logger.info("Submitting agreement");
-      const updateResults = await submitAgreementLogic(
+      const updatesEvents = await submitAgreementLogic(
         agreementId,
         payload,
         constractBuilder,
         eserviceQuery,
         agreementQuery,
-        tenantQuery,
-        this.addAgreementContract
+        tenantQuery
       );
 
-      await Promise.all(
-        updateResults.events.map((e) => repository.createEvent(e))
-      );
+      for (const event of updatesEvents) {
+        await repository.createEvent(event);
+      }
 
-      return updateResults.updatedAgreement.id;
+      return agreementId;
     },
   };
 }
@@ -296,17 +282,8 @@ export async function updateAgreementLogic({
     consumerNotes: agreement.consumerNotes,
   };
 
-  return toCreateEventAgreementUpdated(agreementUpdated);
-}
-
-export async function addAgreementContractLogic(
-  agreementId: string,
-  seed: ApiAgreementDocumentSeed
-): Promise<CreateEvent<AgreementEvent>> {
-  logger.info(`Adding contract ${seed.id} to Agreement ${agreementId}`);
-
-  return toCreateEventAgreementContractAdded(
-    agreementId,
-    apiAgreementDocumentToAgreementDocument(seed)
+  return toCreateEventAgreementUpdated(
+    agreementUpdated,
+    agreementToBeUpdated.metadata.version
   );
 }

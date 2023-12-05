@@ -1,25 +1,26 @@
 /* eslint-disable no-constant-condition */
 /* eslint-disable functional/no-let */
 import {
-  logger,
-  ReadModelRepository,
-  ReadModelFilter,
-  RemoveDataPrefix,
-  MongoQueryKeys,
   AgreementCollection,
+  MongoQueryKeys,
+  ReadModelFilter,
+  ReadModelRepository,
+  RemoveDataPrefix,
+  Metadata,
+  logger,
 } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementState,
-  agreementState,
-  descriptorState,
   EService,
-  genericError,
   ListResult,
   Tenant,
   WithMetadata,
+  agreementState,
+  descriptorState,
+  genericError,
 } from "pagopa-interop-models";
-import { match, P } from "ts-pattern";
+import { P, match } from "ts-pattern";
 import { z } from "zod";
 import { AgreementProcessConfig } from "../../utilities/config.js";
 
@@ -115,13 +116,13 @@ const getAgreementsFilters = (
 export const getAllAgreements = async (
   agreements: AgreementCollection,
   filters: AgreementQueryFilters
-): Promise<Agreement[]> => {
+): Promise<Array<WithMetadata<Agreement>>> => {
   const limit = 50;
   let offset = 0;
-  let results: Agreement[] = [];
+  let results: Array<WithMetadata<Agreement>> = [];
 
   while (true) {
-    const agreementsChunk = await getAgreements(
+    const agreementsChunk: Array<WithMetadata<Agreement>> = await getAgreements(
       agreements,
       filters,
       offset,
@@ -145,7 +146,7 @@ const getAgreements = async (
   filters: AgreementQueryFilters,
   offset: number,
   limit: number
-): Promise<Agreement[]> => {
+): Promise<Array<WithMetadata<Agreement>>> => {
   const data = await agreements
     .aggregate([
       getAgreementsFilters(filters),
@@ -154,7 +155,14 @@ const getAgreements = async (
     ])
     .toArray();
 
-  const result = z.array(Agreement).safeParse(data);
+  const result = z
+    .array(
+      z.object({
+        data: Agreement,
+        metadata: Metadata,
+      })
+    )
+    .safeParse(data);
 
   if (!result.success) {
     logger.error(
@@ -313,7 +321,9 @@ export function readModelServiceBuilder(config: AgreementProcessConfig) {
 
       return undefined;
     },
-    async getAgreements(filters: AgreementQueryFilters): Promise<Agreement[]> {
+    async getAgreements(
+      filters: AgreementQueryFilters
+    ): Promise<Array<WithMetadata<Agreement>>> {
       return getAllAgreements(agreements, filters);
     },
     async getEServiceById(

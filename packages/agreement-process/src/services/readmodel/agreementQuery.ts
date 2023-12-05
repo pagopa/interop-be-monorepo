@@ -8,7 +8,9 @@ export function agreementQueryBuilder(readModelService: ReadModelService) {
       id: string
     ): Promise<WithMetadata<Agreement> | undefined> =>
       await readModelService.readAgreementById(id),
-    getAgreements: (filters: AgreementQueryFilters): Promise<Agreement[]> =>
+    getAgreements: (
+      filters: AgreementQueryFilters
+    ): Promise<Array<WithMetadata<Agreement>>> =>
       readModelService.getAgreements(filters),
     listAgreements: (
       filters: AgreementQueryFilters,

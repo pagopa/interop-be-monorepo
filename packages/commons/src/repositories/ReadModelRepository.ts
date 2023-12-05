@@ -15,9 +15,12 @@ import {
 import { z } from "zod";
 import { ReadModelDbConfig, logger } from "../index.js";
 
+export const Metadata = z.object({ version: z.number() });
+export type Metadata = z.infer<typeof Metadata>;
+
 type GenericCollection<T> = Collection<{
   data: T;
-  metadata: { version: number };
+  metadata: Metadata;
 }>;
 
 export type EServiceCollection = GenericCollection<EService | undefined>;

@@ -6,7 +6,6 @@ import {
   AgreementStamp,
   AgreementStamps,
   AgreementState,
-  AgreementUpdateEvent,
   Descriptor,
   EService,
   Tenant,
@@ -14,6 +13,8 @@ import {
   agreementAttributeType,
   agreementState,
   tenantMailKind,
+  WithMetadata,
+  AgreementEvent,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -33,23 +34,20 @@ import {
   validateSubmitOnDescriptor,
   verifySubmissionConflictingAgreements,
 } from "../model/domain/validators.js";
-import {
-  ApiAgreementDocumentSeed,
-  ApiAgreementSubmissionPayload,
-} from "../model/types.js";
+import { ApiAgreementSubmissionPayload } from "../model/types.js";
 import { agreementStateByFlags, nextState } from "./ageementStateProcessor.js";
-import { ContractBuilder } from "./agreementContractBuilder.js";
+import {
+  ContractBuilder,
+  addAgreementContractLogic,
+} from "./agreementContractBuilder.js";
 import { AgreementQuery } from "./readmodel/agreementQuery.js";
 import { EserviceQuery } from "./readmodel/eserviceQuery.js";
 import { TenantQuery } from "./readmodel/tenantQuery.js";
 
 export type AgremeentSubmissionResults = {
-  events: Array<CreateEvent<AgreementUpdateEvent>>;
-  updatedAgreement: Agreement;
-};
-export type AgremeentSubmissionResult = {
-  event: CreateEvent<AgreementUpdateEvent>;
-  updatedAgreement: Agreement;
+  events: Array<CreateEvent<AgreementEvent>>;
+  initAgreement: Agreement;
+  version: number;
 };
 
 export async function submitAgreementLogic(
@@ -58,43 +56,40 @@ export async function submitAgreementLogic(
   constractBuilder: ContractBuilder,
   eserviceQuery: EserviceQuery,
   agreementQuery: AgreementQuery,
-  tenantQuery: TenantQuery,
-  addContract: (
-    agreementId: string,
-    seed: ApiAgreementDocumentSeed
-  ) => Promise<void>
-): Promise<AgremeentSubmissionResults> {
+  tenantQuery: TenantQuery
+): Promise<Array<CreateEvent<AgreementEvent>>> {
   logger.info(`Submitting agreement ${agreementId}`);
   const {
     authData: { organizationId },
   } = getContext();
 
-  const agreement = (await agreementQuery.getAgreementById(agreementId))?.data;
+  const agreement = await agreementQuery.getAgreementById(agreementId);
 
   if (!agreement) {
     throw agreementNotFound(agreementId);
   }
 
-  assertRequesterIsConsumer(organizationId, agreement.consumerId);
-  assertSubmittableState(agreement.state, agreement.id);
-  await verifySubmissionConflictingAgreements(agreement, agreementQuery);
+  assertRequesterIsConsumer(organizationId, agreement.data.consumerId);
+  assertSubmittableState(agreement.data.state, agreement.data.id);
+  await verifySubmissionConflictingAgreements(agreement.data, agreementQuery);
 
-  const eservice = (await eserviceQuery.getEServiceById(agreement.eserviceId))
-    ?.data;
+  const eservice = (
+    await eserviceQuery.getEServiceById(agreement.data.eserviceId)
+  )?.data;
   if (!eservice) {
-    throw eServiceNotFound(500, agreement.eserviceId);
+    throw eServiceNotFound(500, agreement.data.eserviceId);
   }
 
   const descriptor = await validateSubmitOnDescriptor(
     eservice,
-    agreement.descriptorId
+    agreement.data.descriptorId
   );
 
-  const consumer = (await tenantQuery.getTenantById(agreement.consumerId))
+  const consumer = (await tenantQuery.getTenantById(agreement.data.consumerId))
     ?.data;
 
   if (!consumer) {
-    throw tenantIdNotFound(500, agreement.consumerId);
+    throw tenantIdNotFound(500, agreement.data.consumerId);
   }
 
   return await submitAgreement(
@@ -105,25 +100,21 @@ export async function submitAgreementLogic(
     payload,
     agreementQuery,
     tenantQuery,
-    constractBuilder,
-    addContract
+    constractBuilder
   );
 }
 
 const submitAgreement = async (
-  agreement: Agreement,
+  agreementData: WithMetadata<Agreement>,
   eService: EService,
   descriptor: Descriptor,
   consumer: Tenant,
   payload: ApiAgreementSubmissionPayload,
   agreementQuery: AgreementQuery,
   tenantQuery: TenantQuery,
-  constractBuilder: ContractBuilder,
-  addContract: (
-    agreementId: string,
-    seed: ApiAgreementDocumentSeed
-  ) => Promise<void>
-): Promise<AgremeentSubmissionResults> => {
+  constractBuilder: ContractBuilder
+): Promise<Array<CreateEvent<AgreementEvent>>> => {
+  const agreement = agreementData.data;
   const { authData } = getContext();
   const nextStateByAttributes = nextState(agreement, descriptor, consumer);
   const suspendedByPlatform = suspendedByPlatformFlag(nextStateByAttributes);
@@ -154,12 +145,15 @@ const submitAgreement = async (
     suspendedByPlatform
   );
 
-  const updatedAgreementResult = await updateAgreementWithSeed(
-    agreement.id,
-    updateSeed,
-    agreementQuery
+  const updatedAgreement = {
+    ...agreement,
+    ...updateSeed,
+  };
+
+  const updatedAgreementEvent = toCreateEventAgreementUpdated(
+    updatedAgreement,
+    agreementData.metadata.version
   );
-  const updatedAgreement = updatedAgreementResult.updatedAgreement;
 
   const agreements = (
     await agreementQuery.getAgreements({
@@ -168,94 +162,109 @@ const submitAgreement = async (
       eserviceId: agreement.eserviceId,
       agreementStates: [agreementState.active, agreementState.suspended],
     })
-  ).filter((a: Agreement) => a.id !== agreement.id);
+  ).filter((a: WithMetadata<Agreement>) => a.data.id !== agreement.id);
 
-  const agremeentUpdateEvents: Array<CreateEvent<AgreementUpdateEvent>> =
+  const relatedAgreementUpdates: Array<CreateEvent<AgreementEvent>> =
     isActiveOrSuspended(newState)
       ? await Promise.all(
-          agreements.map(async (a: Agreement) => {
-            const updateSeed: UpdateAgreementSeed = {
-              state: agreementState.archived,
-              certifiedAttributes: a.certifiedAttributes.map((ca) => ({
-                type: agreementAttributeType.CERTIFIED,
-                id: ca.id,
-              })),
-              declaredAttributes: a.declaredAttributes.map((da) => ({
-                type: agreementAttributeType.DECLARED,
-                id: da.id,
-              })),
-              verifiedAttributes: a.verifiedAttributes.map((va) => ({
-                type: agreementAttributeType.VERIFIED,
-                id: va.id,
-              })),
-              stamps: {
-                ...a.stamps,
-                archiving: {
-                  who: authData.userId,
-                  when: utcToZonedTime(new Date(), "Etc/UTC"),
+          agreements.map(
+            async (
+              agreement: WithMetadata<Agreement>
+            ): Promise<CreateEvent<AgreementEvent>> => {
+              const updateSeed: UpdateAgreementSeed = {
+                state: agreementState.archived,
+                certifiedAttributes: agreement.data.certifiedAttributes.map(
+                  (ca) => ({
+                    type: agreementAttributeType.CERTIFIED,
+                    id: ca.id,
+                  })
+                ),
+                declaredAttributes: agreement.data.declaredAttributes.map(
+                  (da) => ({
+                    type: agreementAttributeType.DECLARED,
+                    id: da.id,
+                  })
+                ),
+                verifiedAttributes: agreement.data.verifiedAttributes.map(
+                  (va) => ({
+                    type: agreementAttributeType.VERIFIED,
+                    id: va.id,
+                  })
+                ),
+                stamps: {
+                  ...agreement.data.stamps,
+                  archiving: {
+                    who: authData.userId,
+                    when: utcToZonedTime(new Date(), "Etc/UTC"),
+                  },
                 },
-              },
-            };
+              };
 
-            return (
-              await updateAgreementWithSeed(
-                agreement.id,
-                updateSeed,
-                agreementQuery
-              )
-            ).event;
-          })
+              return toCreateEventAgreementUpdated(
+                {
+                  ...agreement.data,
+                  ...updateSeed,
+                },
+                agreement.metadata.version
+              );
+            }
+          )
         )
       : [];
 
-  if (
-    updatedAgreement.state === agreementState.active &&
-    agreements.length === 0
-  ) {
-    await createContract(
-      updatedAgreement,
-      eService,
-      consumer,
-      updateSeed,
-      tenantQuery,
-      constractBuilder,
-      addContract
-    );
-  }
+  const createContractEvents: Array<CreateEvent<AgreementEvent>> =
+    updatedAgreement.state === agreementState.active && agreements.length === 0
+      ? [
+          await createContract(
+            updatedAgreement,
+            updatedAgreementEvent.version + 1,
+            eService,
+            consumer,
+            updateSeed,
+            tenantQuery,
+            constractBuilder
+          ),
+        ]
+      : [];
 
-  return {
-    events: [updatedAgreementResult.event, ...agremeentUpdateEvents],
-    updatedAgreement,
-  };
+  return [
+    updatedAgreementEvent,
+    ...relatedAgreementUpdates,
+    ...createContractEvents,
+  ];
 };
 
 const createContract = async (
   agreement: Agreement,
+  agreementVersionNumer: number,
   eservice: EService,
   consumer: Tenant,
   seed: UpdateAgreementSeed,
   tenantQuery: TenantQuery,
-  constractBuilder: ContractBuilder,
-  addContract: (
-    agreementId: string,
-    seed: ApiAgreementDocumentSeed
-  ) => Promise<void>
-): Promise<void> => {
+  constractBuilder: ContractBuilder
+): Promise<CreateEvent<AgreementEvent>> => {
   const producer = await tenantQuery.getTenantById(agreement.consumerId);
 
   if (!producer?.data) {
     throw tenantIdNotFound(500, agreement.consumerId);
   }
 
-  const agreementdocumentSeed = await constractBuilder.createContract(
-    agreement,
-    eservice,
-    consumer,
-    producer.data,
-    seed
-  );
+  const agreementdocumentSeed = {
+    ...(await constractBuilder.createContract(
+      agreement,
+      eservice,
+      consumer,
+      producer.data,
+      seed
+    )),
+    createdAt: utcToZonedTime(new Date(), "Etc/UTC"),
+  };
 
-  await addContract(agreement.id, agreementdocumentSeed);
+  return addAgreementContractLogic(
+    agreement.id,
+    agreementdocumentSeed,
+    agreementVersionNumer
+  );
 };
 
 const validateConsumerEmail = async (
@@ -338,27 +347,3 @@ const calculateStamps = (
     .otherwise(() => {
       throw agreementNotInExpectedState(agreement.id, state);
     });
-
-const updateAgreementWithSeed = async (
-  agreementId: string,
-  agreement: UpdateAgreementSeed,
-  agreementQuery: AgreementQuery
-): Promise<AgremeentSubmissionResult> => {
-  const previousAgreement = await agreementQuery.getAgreementById(agreementId);
-
-  if (!previousAgreement) {
-    throw agreementNotFound(agreementId);
-  }
-
-  const updatedAgreement = {
-    ...previousAgreement.data,
-    ...agreement,
-  };
-
-  return {
-    event: toCreateEventAgreementUpdated(
-      updatedAgreement
-    ) as CreateEvent<AgreementUpdateEvent>,
-    updatedAgreement,
-  };
-};
