@@ -21,7 +21,7 @@ export class ApiError extends Error {
     detail: string;
     correlationId?: string;
   }) {
-    super();
+    super(detail);
     this.code = code;
     this.httpStatus = httpStatus;
     this.title = title;
