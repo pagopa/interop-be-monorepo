@@ -18,16 +18,19 @@ import {
   toCreateEventTenantAdded,
   toCreateEventTenantUpdated,
 } from "../model/domain/toEvent.js";
+import { UpdateVerifiedTenantAttributeSeed } from "../model/domain/models.js";
 import {
   ApiInternalTenantSeed,
   ApiM2MTenantSeed,
   ApiSelfcareTenantSeed,
 } from "../model/types.js";
+import { tenantDuplicate } from "../model/domain/errors.js";
 import {
-  invalidAttributeStructure,
-  tenantDuplicate,
-} from "../model/domain/errors.js";
-import { assertAttributeExists, assertTenantExists } from "./validators.js";
+  assertOrganizationIsInVerifiers,
+  assertTenantExists,
+  assertValidExpirationDate,
+  assertVerifiedAttributeExistsInTenant,
+} from "./validators.js";
 import { readModelService } from "./readModelService.js";
 
 const repository = eventRepository(
@@ -67,40 +70,70 @@ export const tenantService = {
     );
   },
 
-  async updateTenantAttribute(
-    tenantId: string,
-    attributeId: string,
-    newAttribute: TenantAttribute
-  ): Promise<string> {
+  async updateTenantVerifiedAttribute({
+    verifierId,
+    tenantId,
+    attributeId,
+    updateVerifiedTenantAttributeSeed,
+  }: {
+    verifierId: string;
+    tenantId: string;
+    attributeId: string;
+    updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed;
+  }): Promise<void> {
     const tenant = await readModelService.getTenantById(tenantId);
 
-    return await repository.createEvent(
-      await updateTenantAttributeLogic({
+    await repository.createEvent(
+      await updateTenantVerifiedAttributeLogic({
+        verifierId,
         tenant,
         tenantId,
         attributeId,
-        newAttribute,
+        updateVerifiedTenantAttributeSeed,
       })
     );
   },
 };
 
-export async function updateTenantAttributeLogic({
+export async function updateTenantVerifiedAttributeLogic({
+  verifierId,
   tenant,
   tenantId,
   attributeId,
-  newAttribute,
+  updateVerifiedTenantAttributeSeed,
 }: {
+  verifierId: string;
   tenant: WithMetadata<Tenant> | undefined;
   tenantId: string;
   attributeId: string;
-  newAttribute: TenantAttribute;
+  updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed;
 }): Promise<CreateEvent<TenantEvent>> {
   assertTenantExists(tenantId, tenant);
-  if (!newAttribute || newAttribute.id !== attributeId) {
-    throw invalidAttributeStructure;
-  }
-  assertAttributeExists(attributeId, tenant.data.attributes);
+
+  const expirationDate = updateVerifiedTenantAttributeSeed.expirationDate
+    ? new Date(updateVerifiedTenantAttributeSeed.expirationDate)
+    : undefined;
+
+  assertValidExpirationDate(expirationDate);
+
+  const attribute = tenant?.data.attributes.find(
+    (att) => att.id === attributeId
+  );
+
+  assertVerifiedAttributeExistsInTenant(attributeId, attribute, tenant.data);
+  assertOrganizationIsInVerifiers(verifierId, tenantId, attribute);
+
+  const newAttribute: Extract<TenantAttribute, { type: "verified" }> = {
+    ...attribute,
+    verifiedBy: attribute.verifiedBy.map((v) =>
+      v.id === verifierId
+        ? {
+            ...v,
+            expirationDate,
+          }
+        : v
+    ),
+  };
 
   const updatedAttributes = [
     newAttribute,

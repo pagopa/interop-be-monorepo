@@ -9,13 +9,18 @@ import {
   TenantAttribute,
   TenantKind,
   WithMetadata,
+  genericError,
   operationForbidden,
+  tenantAttributeType,
   tenantKind,
 } from "pagopa-interop-models";
 import {
   attributeNotFound,
   eServiceNotFound,
+  expirationDateCannotBeInThePast,
+  organizationNotFoundInVerifiers,
   tenantNotFound,
+  verifiedAttributeNotFoundInTenant,
 } from "../model/domain/errors.js";
 import { readModelService } from "./readModelService.js";
 
@@ -34,6 +39,46 @@ export function assertAttributeExists(
 ): asserts attributes is NonNullable<TenantAttribute[]> {
   if (!attributes.some((attr) => attr.id === attributeId)) {
     throw attributeNotFound(attributeId);
+  }
+}
+
+export function assertValidExpirationDate(
+  expirationDate: Date | undefined
+): void {
+  if (!expirationDate) {
+    return;
+  }
+
+  const isValidDate = !isNaN(expirationDate.getTime());
+
+  if (!isValidDate) {
+    throw genericError(`Invalid date format for expirationDate`);
+  }
+
+  if (expirationDate < new Date()) {
+    throw expirationDateCannotBeInThePast(expirationDate);
+  }
+}
+
+export function assertVerifiedAttributeExistsInTenant(
+  attributeId: string,
+  attribute: TenantAttribute | undefined,
+  tenant: Tenant
+): asserts attribute is NonNullable<
+  Extract<TenantAttribute, { type: "verified" }>
+> {
+  if (!attribute || attribute.type !== tenantAttributeType.VERIFIED) {
+    throw verifiedAttributeNotFoundInTenant(tenant.id, attributeId);
+  }
+}
+
+export function assertOrganizationIsInVerifiers(
+  verifierId: string,
+  tenantId: string,
+  attribute: Extract<TenantAttribute, { type: "verified" }>
+): void {
+  if (!attribute.verifiedBy.some((v) => v.id === verifierId)) {
+    throw organizationNotFoundInVerifiers(verifierId, tenantId, attribute.id);
   }
 }
 

@@ -6,6 +6,10 @@ const errorCodes = {
   tenantDuplicate: "0003",
   tenantNotFound: "0004",
   eServiceNotFound: "0005",
+  verifiedAttributeNotFoundInTenant: "0006",
+  expirationDateNotFoundInVerifier: "0007",
+  expirationDateCannotBeInThePast: "0008",
+  organizationNotFoundInVerifiers: "0009",
 };
 
 export function attributeNotFound(identifier: string): ApiError {
@@ -50,5 +54,52 @@ export function eServiceNotFound(eServiceId: string): ApiError {
     code: errorCodes.eServiceNotFound,
     httpStatus: 404,
     title: "EService not found",
+  });
+}
+
+export function verifiedAttributeNotFoundInTenant(
+  tenantId: string,
+  attributeId: string
+): ApiError {
+  return new ApiError({
+    detail: `Verified attribute ${attributeId} not found in tenant ${tenantId}`,
+    code: errorCodes.verifiedAttributeNotFoundInTenant,
+    httpStatus: 404,
+    title: "Verified attribute not found in tenant",
+  });
+}
+
+export function expirationDateNotFoundInVerifier(
+  tenantId: string,
+  attributeId: string,
+  verifierId: string
+): ApiError {
+  return new ApiError({
+    detail: `ExpirationDate not found in verifier ${verifierId} for Tenant ${tenantId} and attribute ${attributeId}`,
+    code: errorCodes.expirationDateNotFoundInVerifier,
+    httpStatus: 400,
+    title: "Expiration date not found in verifier",
+  });
+}
+
+export function expirationDateCannotBeInThePast(date: Date): ApiError {
+  return new ApiError({
+    detail: `Expiration date ${date} cannot be in the past`,
+    code: errorCodes.expirationDateCannotBeInThePast,
+    httpStatus: 400,
+    title: "Expiration date cannot be in the past",
+  });
+}
+
+export function organizationNotFoundInVerifiers(
+  requesterId: string,
+  tenantId: string,
+  attributeId: string
+): ApiError {
+  return new ApiError({
+    detail: `Organization ${requesterId} not found in verifier for Tenant ${tenantId} and attribute ${attributeId}`,
+    code: errorCodes.organizationNotFoundInVerifiers,
+    httpStatus: 403,
+    title: "Organization not found in verifiers",
   });
 }

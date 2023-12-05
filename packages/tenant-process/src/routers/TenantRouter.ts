@@ -6,7 +6,9 @@ import {
   ZodiosContext,
   authorizationMiddleware,
 } from "pagopa-interop-commons";
+import { makeApiProblem } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
+import { tenantService } from "../services/tenantService.js";
 
 const tenantsRouter = (
   ctx: ZodiosContext
@@ -123,7 +125,21 @@ const tenantsRouter = (
     .post(
       "/tenants/:tenantId/attributes/verified/:attributeId",
       authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const { tenantId, attributeId } = req.params;
+          await tenantService.updateTenantVerifiedAttribute({
+            verifierId: req.ctx.authData.organizationId, // [QUESTION]: userId or organizationId?
+            tenantId,
+            attributeId,
+            updateVerifiedTenantAttributeSeed: req.body,
+          });
+          return res.status(200).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(error);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/tenants/:tenantId/attributes/verified/:attributeId/verifier/:verifierId",
