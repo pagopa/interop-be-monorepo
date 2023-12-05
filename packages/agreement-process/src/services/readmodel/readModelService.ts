@@ -8,10 +8,12 @@ import {
   RemoveDataPrefix,
   Metadata,
   logger,
+  AttributeCollection,
 } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementState,
+  Attribute,
   EService,
   ListResult,
   Tenant,
@@ -22,7 +24,7 @@ import {
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { z } from "zod";
-import { AgreementProcessConfig } from "../../utilities/config.js";
+import { Filter } from "mongodb";
 
 export type AgreementQueryFilters = {
   producerId?: string | string[];
@@ -176,12 +178,44 @@ const getAgreements = async (
   return result.data;
 };
 
+async function getAttribute(
+  attributes: AttributeCollection,
+  filter: Filter<{ data: Attribute }>
+): Promise<WithMetadata<Attribute> | undefined> {
+  const data = await attributes.findOne(filter, {
+    projection: { data: true, metadata: true },
+  });
+  if (data) {
+    const result = z
+      .object({
+        metadata: z.object({ version: z.number() }),
+        data: Attribute,
+      })
+      .safeParse(data);
+    if (!result.success) {
+      logger.error(
+        `Unable to parse attribute item: result ${JSON.stringify(
+          result
+        )} - data ${JSON.stringify(data)} `
+      );
+      throw genericError("Unable to parse attribute item");
+    }
+    return {
+      data: result.data.data,
+      metadata: { version: result.data.metadata.version },
+    };
+  }
+  return undefined;
+}
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function readModelServiceBuilder(config: AgreementProcessConfig) {
-  const readModelRepository = ReadModelRepository.init(config);
+export function readModelServiceBuilder(
+  readModelRepository: ReadModelRepository
+) {
   const agreements = readModelRepository.agreements;
   const eservices = readModelRepository.eservices;
   const tenants = readModelRepository.tenants;
+  const attributes = readModelRepository.attributes;
   return {
     async listAgreements(
       filters: AgreementQueryFilters,
@@ -392,6 +426,11 @@ export function readModelServiceBuilder(config: AgreementProcessConfig) {
         };
       }
       return undefined;
+    },
+    async getAttributeById(
+      id: string
+    ): Promise<WithMetadata<Attribute> | undefined> {
+      return getAttribute(attributes, { "data.id": id });
     },
   };
 }

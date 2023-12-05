@@ -5,6 +5,8 @@ import {
   ZodiosContext,
   userRoles,
   authorizationMiddleware,
+  initDB,
+  ReadModelRepository,
 } from "pagopa-interop-commons";
 import { makeApiProblem } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
@@ -18,19 +20,31 @@ import { agreementServiceBuilder } from "../services/agreementService.js";
 import { agreementQueryBuilder } from "../services/readmodel/agreementQuery.js";
 import { tenantQueryBuilder } from "../services/readmodel/tenantQuery.js";
 import { eserviceQueryBuilder } from "../services/readmodel/eserviceQuery.js";
+import { attributeQueryBuilder } from "../services/readmodel/attributeQuery.js";
 import { readModelServiceBuilder } from "../services/readmodel/readModelService.js";
 
-const readModelService = readModelServiceBuilder(config);
-
+const readModelService = readModelServiceBuilder(
+  ReadModelRepository.init(config)
+);
 const agreementQuery = agreementQueryBuilder(readModelService);
 const tenantQuery = tenantQueryBuilder(readModelService);
 const eserviceQuery = eserviceQueryBuilder(readModelService);
+const attributeQuery = attributeQueryBuilder(readModelService);
 
 const agreementService = agreementServiceBuilder(
-  config,
+  initDB({
+    username: config.eventStoreDbUsername,
+    password: config.eventStoreDbPassword,
+    host: config.eventStoreDbHost,
+    port: config.eventStoreDbPort,
+    database: config.eventStoreDbName,
+    schema: config.eventStoreDbSchema,
+    useSSL: config.eventStoreDbUseSSL,
+  }),
   agreementQuery,
   tenantQuery,
-  eserviceQuery
+  eserviceQuery,
+  attributeQuery
 );
 
 const {

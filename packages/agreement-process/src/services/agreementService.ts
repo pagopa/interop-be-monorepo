@@ -1,8 +1,8 @@
 import {
   AuthData,
   CreateEvent,
+  DB,
   eventRepository,
-  initDB,
   initFileManager,
   logger,
 } from "pagopa-interop-commons";
@@ -12,11 +12,10 @@ import {
   AgreementState,
   ListResult,
   WithMetadata,
-  agreementState,
   agreementEventToBinaryData,
+  agreementState,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
-import { AgreementProcessConfig } from "../utilities/config.js";
 import { eServiceNotFound, tenantIdNotFound } from "../model/domain/errors.js";
 import {
   toCreateEventAgreementAdded,
@@ -30,6 +29,12 @@ import {
   ApiAgreementUpdatePayload,
 } from "../model/types.js";
 import { config } from "../utilities/config.js";
+import { submitAgreementLogic } from "./agreementSubmissionProcessor.js";
+import { AgreementQuery } from "./readmodel/agreementQuery.js";
+import { AttributeQuery } from "./readmodel/attributeQuery.js";
+import { EserviceQuery } from "./readmodel/eserviceQuery.js";
+import { AgreementQueryFilters } from "./readmodel/readModelService.js";
+import { TenantQuery } from "./readmodel/tenantQuery.js";
 import {
   assertAgreementExist,
   assertExpectedState,
@@ -38,34 +43,19 @@ import {
   validateCreationOnDescriptor,
   verifyCreationConflictingAgreements,
 } from "./validators.js";
-import { AgreementQuery } from "./readmodel/agreementQuery.js";
-import { EserviceQuery } from "./readmodel/eserviceQuery.js";
-import { TenantQuery } from "./readmodel/tenantQuery.js";
-import { submitAgreementLogic } from "./agreementSubmissionProcessor.js";
-import { constractBuilder } from "./agreementContractBuilder.js";
-import { AgreementQueryFilters } from "./readmodel/readModelService.js";
+import { contractBuilder } from "./agreementContractBuilder.js";
 
 const fileManager = initFileManager(config);
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function agreementServiceBuilder(
-  config: AgreementProcessConfig,
+  dbInstance: DB,
   agreementQuery: AgreementQuery,
   tenantQuery: TenantQuery,
-  eserviceQuery: EserviceQuery
+  eserviceQuery: EserviceQuery,
+  attributeQuery: AttributeQuery
 ) {
-  const repository = eventRepository(
-    initDB({
-      username: config.eventStoreDbUsername,
-      password: config.eventStoreDbPassword,
-      host: config.eventStoreDbHost,
-      port: config.eventStoreDbPort,
-      database: config.eventStoreDbName,
-      schema: config.eventStoreDbSchema,
-      useSSL: config.eventStoreDbUseSSL,
-    }),
-    agreementEventToBinaryData
-  );
+  const repository = eventRepository(dbInstance, agreementEventToBinaryData);
   return {
     async getAgreements(
       filters: AgreementQueryFilters,
@@ -137,7 +127,7 @@ export function agreementServiceBuilder(
       const updatesEvents = await submitAgreementLogic(
         agreementId,
         payload,
-        constractBuilder,
+        contractBuilder(attributeQuery),
         eserviceQuery,
         agreementQuery,
         tenantQuery

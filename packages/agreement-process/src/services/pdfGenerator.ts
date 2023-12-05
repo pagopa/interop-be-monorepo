@@ -1,3 +1,4 @@
+/* eslint-disable max-params */
 /*
   IMPORTANT
   TODO: This service is a mock for the PDF generator it is used as entrypoint for the PDF generation.
@@ -31,13 +32,14 @@ import {
 } from "../model/domain/errors.js";
 import { ApiAgreementDocumentSeed } from "../model/types.js";
 import { config } from "../utilities/config.js";
-import { attributesQuery } from "./readmodel/attributeQuery.js";
+import { AttributeQuery } from "./readmodel/attributeQuery.js";
 
 const fileManager = initFileManager(config);
 
 const getAttributeInvolved = async (
   consumer: Tenant,
-  seed: UpdateAgreementSeed
+  seed: UpdateAgreementSeed,
+  attributeQuery: AttributeQuery
 ): Promise<AgreementInvolvedAttributes> => {
   const getAgreementAttributeByType = async <
     T extends
@@ -54,7 +56,7 @@ const getAttributeInvolved = async (
 
     return Promise.all(
       attributes.map(async (attr) => {
-        const att = await attributesQuery.getAttributeById(attr.id);
+        const att = await attributeQuery.getAttributeById(attr.id);
         if (!att?.data) {
           throw genericError(`Attribute ${attr.id} not found`);
         }
@@ -127,11 +129,13 @@ const getPdfPayload = async (
   eService: EService,
   consumer: Tenant,
   producer: Tenant,
-  seed: UpdateAgreementSeed
+  seed: UpdateAgreementSeed,
+  attributeQuery: AttributeQuery
 ): Promise<PDFPayload> => {
   const { certified, declared, verified } = await getAttributeInvolved(
     consumer,
-    seed
+    seed,
+    attributeQuery
   );
   const [submitter, submissionTimestamp] = await getSubmissionInfo(seed);
   const [activator, activationTimestamp] = await getActivationInfo(seed);
@@ -183,7 +187,8 @@ export const pdfGenerator = {
     eService: EService,
     consumer: Tenant,
     producer: Tenant,
-    seed: UpdateAgreementSeed
+    seed: UpdateAgreementSeed,
+    attributeQuery: AttributeQuery
   ): Promise<ApiAgreementDocumentSeed> => {
     const documentId = uuidv4();
     const prettyName = "Richiesta di fruizione";
@@ -196,7 +201,8 @@ export const pdfGenerator = {
       eService,
       consumer,
       producer,
-      seed
+      seed,
+      attributeQuery
     );
     const document = await create(agreementTemplateMock, pdfPayload);
 

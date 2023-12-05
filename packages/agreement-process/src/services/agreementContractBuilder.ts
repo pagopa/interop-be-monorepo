@@ -4,6 +4,7 @@
   of developed service in this PR https://github.com/pagopa/interop-be-monorepo/pull/83
 */
 
+import { CreateEvent, logger } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementDocument,
@@ -12,12 +13,13 @@ import {
   Tenant,
   UpdateAgreementSeed,
 } from "pagopa-interop-models";
-import { CreateEvent, logger } from "pagopa-interop-commons";
-import { ApiAgreementDocumentSeed } from "../model/types.js";
 import { toCreateEventAgreementContractAdded } from "../model/domain/toEvent.js";
+import { ApiAgreementDocumentSeed } from "../model/types.js";
 import { pdfGenerator } from "./pdfGenerator.js";
+import { AttributeQuery } from "./readmodel/attributeQuery.js";
 
-export const constractBuilder = {
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export const contractBuilder = (attributeQuery: AttributeQuery) => ({
   createContract: async (
     agreement: Agreement,
     eService: EService,
@@ -30,11 +32,12 @@ export const constractBuilder = {
       eService,
       consumer,
       producer,
-      seed
+      seed,
+      attributeQuery
     ),
-};
+});
 
-export type ContractBuilder = typeof constractBuilder;
+export type ContractBuilder = ReturnType<typeof contractBuilder>;
 
 export async function addAgreementContractLogic(
   agreementId: string,
