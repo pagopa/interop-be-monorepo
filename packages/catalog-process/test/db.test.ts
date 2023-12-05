@@ -633,8 +633,23 @@ describe("database test", async () => {
       });
     });
     describe("archive descriptor", () => {
-      it("should write on event-store for the archiving of a descriptor", () => {
-        expect(1).toBe(1);
+      it("should write on event-store for the archiving of a descriptor", async () => {
+        const { eServiceId, organizationId, descriptorId } = ids();
+        await addOneEService({
+          id: eServiceId,
+          producerId: organizationId,
+          descriptorId,
+        });
+        await catalogService.archiveDescriptor(
+          eServiceId,
+          descriptorId,
+          buildAuthData(organizationId)
+        );
+
+        const writtenEvent = await readLastEventByStreamId(eServiceId);
+        expect(writtenEvent.stream_id).toBe(eServiceId);
+        expect(writtenEvent.version).toBe("1");
+        expect(writtenEvent.type).toBe("EServiceDescriptorUpdated");
       });
       it("should throw eServiceNotFound if the eService doesn't exist", () => {
         const { eServiceId, organizationId, descriptorId } = ids();
