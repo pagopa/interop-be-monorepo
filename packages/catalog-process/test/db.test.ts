@@ -123,7 +123,7 @@ describe("database test", async () => {
         expect(writtenEvent.version).toBe("0");
         expect(writtenEvent.type).toBe("EServiceAdded");
       });
-      it("should not write on event-store if eservice already exists", async () => {
+      it("should throw eServiceDuplicate if the eService already exists", async () => {
         const { eServiceId, organizationId } = ids();
         await addOneEService({
           id: eServiceId,
@@ -164,7 +164,7 @@ describe("database test", async () => {
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("EServiceUpdated");
       });
-      it("should throw an error if the eService doesn't exist", async () => {
+      it("should throw eServiceNotFound if the eService doesn't exist", async () => {
         const { eServiceId, organizationId } = ids();
         expect(
           catalogService.updateEService(
@@ -178,7 +178,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(eServiceNotFound(eServiceId));
       });
-      it("should throw an error if the requester is not allowed", async () => {
+      it("should throw operationForbidden if the requester is not allowed", async () => {
         const { eServiceId, organizationId, requesterId } = ids();
         await addOneEService({
           id: eServiceId,
@@ -196,7 +196,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(operationForbidden);
       });
-      it("should throw an error if the eservice's descriptor is not in draft", async () => {
+      it("should throw eServiceCannotBeUpdated if the eService's descriptor is not in draft", async () => {
         const { eServiceId, organizationId } = ids();
         await addOneEService({
           id: eServiceId,
@@ -235,7 +235,7 @@ describe("database test", async () => {
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("EServiceDeleted");
       });
-      it("should throw an error if the eService doesn't exist", () => {
+      it("should throw eServiceNotFound if the eService doesn't exist", () => {
         const { eServiceId, organizationId } = ids();
         expect(
           catalogService.deleteEService(
@@ -244,7 +244,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(eServiceNotFound(eServiceId));
       });
-      it("should throw an error if the requester is not allowed", async () => {
+      it("should throw operationForbidden if the requester is not allowed", async () => {
         const { eServiceId, organizationId, requesterId } = ids();
         await addOneEService({
           id: eServiceId,
@@ -254,7 +254,7 @@ describe("database test", async () => {
           catalogService.deleteEService(eServiceId, buildAuthData(requesterId))
         ).rejects.toThrowError(operationForbidden);
       });
-      it("should throw an error if the eService has a descriptor", async () => {
+      it("should throw eServiceCannotBeDeleted if the eService has a descriptor", async () => {
         const { eServiceId, organizationId } = ids();
         await addOneEService({
           id: eServiceId,
@@ -283,7 +283,7 @@ describe("database test", async () => {
           buildAuthData(organizationId)
         );
       });
-      it("should throw an error if a draft descriptor already exists", async () => {
+      it("should throw draftDescriptorAlreadyExists if a draft descriptor already exists", async () => {
         const { eServiceId, organizationId } = ids();
         await addOneEService({
           id: eServiceId,
@@ -297,7 +297,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(draftDescriptorAlreadyExists(eServiceId));
       });
-      it("should throw an error if the eService doesn't exist", async () => {
+      it("should throw eServiceNotFound if the eService doesn't exist", async () => {
         const { eServiceId, organizationId } = ids();
 
         expect(
@@ -308,7 +308,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(eServiceNotFound(eServiceId));
       });
-      it("should throw an error if the requester is not allowed", async () => {
+      it("should throw operationForbidden if the requester is not allowed", async () => {
         const { eServiceId, organizationId, requesterId } = ids();
         await addOneEService({
           id: eServiceId,
@@ -345,7 +345,7 @@ describe("database test", async () => {
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("EServiceUpdated");
       });
-      it("should throw an error if the eService doesn't exist", () => {
+      it("should throw eServiceNotFound if the eService doesn't exist", () => {
         const { eServiceId, organizationId, descriptorId } = ids();
         const updatedDescriptor = buildDescriptorSeed();
         updatedDescriptor.dailyCallsTotal = 200;
@@ -358,7 +358,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(eServiceNotFound(eServiceId));
       });
-      it("should throw an error if the requester is not allowed", async () => {
+      it("should throw operationForbidden if the requester is not allowed", async () => {
         const { eServiceId, organizationId, requesterId, descriptorId } = ids();
         const updatedDescriptor = buildDescriptorSeed();
         updatedDescriptor.dailyCallsTotal = 200;
@@ -398,7 +398,7 @@ describe("database test", async () => {
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("EServiceWithDescriptorsDeleted");
       });
-      it("should throw an error if the eService doesn't exist", () => {
+      it("should throw eServiceNotFound if the eService doesn't exist", () => {
         const { eServiceId, organizationId, descriptorId } = ids();
 
         expect(
@@ -409,7 +409,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(eServiceNotFound(eServiceId));
       });
-      it("should throw an error if the requester is not allowed", async () => {
+      it("should throw operationForbidden if the requester is not allowed", async () => {
         const { eServiceId, organizationId, requesterId, descriptorId } = ids();
         await addOneEService({
           id: eServiceId,
@@ -447,10 +447,9 @@ describe("database test", async () => {
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("EServiceDescriptorUpdated");
       });
-      it("should throw an error if the eService doesn't exist", () => {
+      it("should throw an eServiceNotFound if the eService doesn't exist", async () => {
         const { eServiceId, organizationId, descriptorId } = ids();
-
-        expect(
+        await expect(
           catalogService.publishDescriptor(
             eServiceId,
             descriptorId,
@@ -458,7 +457,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(eServiceNotFound(eServiceId));
       });
-      it("should throw an error if requester is not allowed", async () => {
+      it("should throw eServiceNotFound if requester is not allowed", async () => {
         const { eServiceId, organizationId, requesterId, descriptorId } = ids();
         await addOneEService({
           id: eServiceId,
@@ -474,7 +473,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(eServiceNotFound(eServiceId));
       });
-      it("should throw an error if the descriptor is not valid", async () => {
+      it("should throw notValidDescriptor if the descriptor is not valid", async () => {
         const { eServiceId, organizationId, descriptorId } = ids();
         await addOneEService({
           id: eServiceId,
@@ -512,7 +511,7 @@ describe("database test", async () => {
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("EServiceDescriptorUpdated");
       });
-      it("should throw an error if the eService doesn't exist", () => {
+      it("should throw eServiceNotFound if the eService doesn't exist", () => {
         const { eServiceId, organizationId, descriptorId } = ids();
 
         expect(
@@ -523,7 +522,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(eServiceNotFound(eServiceId));
       });
-      it("should throw an error if requester is not allowed", async () => {
+      it("should throw eServiceNotFound if requester is not allowed", async () => {
         const { eServiceId, organizationId, requesterId, descriptorId } = ids();
         await addOneEService({
           id: eServiceId,
@@ -539,7 +538,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(eServiceNotFound(eServiceId));
       });
-      it("should throw an error if the descriptor is not valid", async () => {
+      it("should throw notValidDescriptor if the descriptor is not valid", async () => {
         const { eServiceId, organizationId, descriptorId } = ids();
         await addOneEService({
           id: eServiceId,
@@ -563,7 +562,7 @@ describe("database test", async () => {
       it("should write on event-store for the activation of a descriptor", () => {
         expect(1).toBe(1);
       });
-      it("should throw an error if the eService doesn't exist", () => {
+      it("should throw eServiceNotFound if the eService doesn't exist", () => {
         const { eServiceId, organizationId, descriptorId } = ids();
 
         expect(
@@ -574,7 +573,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(eServiceNotFound(eServiceId));
       });
-      it("should throw an error if requester is not allowed", async () => {
+      it("should throw eServiceNotFound if requester is not allowed", async () => {
         const { eServiceId, organizationId, requesterId, descriptorId } = ids();
         await addOneEService({
           id: eServiceId,
@@ -589,7 +588,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(eServiceNotFound(eServiceId));
       });
-      it("should throw an error if the descriptor is not valid", async () => {
+      it("should throw notValidDescriptor if the descriptor is not valid", async () => {
         const { eServiceId, organizationId, descriptorId } = ids();
         await addOneEService({
           id: eServiceId,
@@ -618,7 +617,7 @@ describe("database test", async () => {
       it("should write on event-store for the archiving of a descriptor", () => {
         expect(1).toBe(1);
       });
-      it("should throw an error if the eService doesn't exist", () => {
+      it("should throw eServiceNotFound if the eService doesn't exist", () => {
         const { eServiceId, organizationId, descriptorId } = ids();
 
         expect(
@@ -629,7 +628,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(eServiceNotFound(eServiceId));
       });
-      it("should throw an error if requester is not allowed", async () => {
+      it("should throw operationForbidden if requester is not allowed", async () => {
         const { eServiceId, organizationId, requesterId, descriptorId } = ids();
         await addOneEService({
           id: eServiceId,
