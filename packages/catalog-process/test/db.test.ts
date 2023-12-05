@@ -457,7 +457,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(eServiceNotFound(eServiceId));
       });
-      it("should throw eServiceNotFound if requester is not allowed", async () => {
+      it("should throw operationForbidden if requester is not allowed", async () => {
         const { eServiceId, organizationId, requesterId, descriptorId } = ids();
         await addOneEService({
           id: eServiceId,
@@ -471,7 +471,7 @@ describe("database test", async () => {
             descriptorId,
             buildAuthData(requesterId)
           )
-        ).rejects.toThrowError(eServiceNotFound(eServiceId));
+        ).rejects.toThrowError(operationForbidden);
       });
       it("should throw notValidDescriptor if the descriptor is not valid", async () => {
         const { eServiceId, organizationId, descriptorId } = ids();
@@ -487,7 +487,9 @@ describe("database test", async () => {
             descriptorId,
             buildAuthData(organizationId)
           )
-        ).rejects.toThrowError(notValidDescriptor(descriptorId, "Draft"));
+        ).rejects.toThrowError(
+          notValidDescriptor(descriptorId, descriptorState.published)
+        );
       });
     });
 
@@ -522,7 +524,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(eServiceNotFound(eServiceId));
       });
-      it("should throw eServiceNotFound if requester is not allowed", async () => {
+      it("should throw operationForbidden if requester is not allowed", async () => {
         const { eServiceId, organizationId, requesterId, descriptorId } = ids();
         await addOneEService({
           id: eServiceId,
@@ -536,7 +538,7 @@ describe("database test", async () => {
             descriptorId,
             buildAuthData(requesterId)
           )
-        ).rejects.toThrowError(eServiceNotFound(eServiceId));
+        ).rejects.toThrowError(operationForbidden);
       });
       it("should throw notValidDescriptor if the descriptor is not valid", async () => {
         const { eServiceId, organizationId, descriptorId } = ids();
@@ -573,7 +575,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(eServiceNotFound(eServiceId));
       });
-      it("should throw eServiceNotFound if requester is not allowed", async () => {
+      it("should throw operationForbidden if requester is not allowed", async () => {
         const { eServiceId, organizationId, requesterId, descriptorId } = ids();
         await addOneEService({
           id: eServiceId,
@@ -586,7 +588,7 @@ describe("database test", async () => {
             descriptorId,
             buildAuthData(requesterId)
           )
-        ).rejects.toThrowError(eServiceNotFound(eServiceId));
+        ).rejects.toThrowError(operationForbidden);
       });
       it("should throw notValidDescriptor if the descriptor is not valid", async () => {
         const { eServiceId, organizationId, descriptorId } = ids();
