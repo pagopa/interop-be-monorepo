@@ -157,11 +157,12 @@ const updateDescriptorState = (
 };
 
 const deprecateDescriptor = (
-  descriptor: Descriptor,
-  eService: WithMetadata<EService>
+  streamId: string,
+  version: number,
+  descriptor: Descriptor
 ): CreateEvent<EServiceEvent> => {
   logger.info(
-    `Deprecating Descriptor ${descriptor.id} of EService ${eService.data.id}`
+    `Deprecating Descriptor ${descriptor.id} of EService ${streamId}`
   );
 
   const updatedDescriptor = updateDescriptorState(
@@ -169,8 +170,8 @@ const deprecateDescriptor = (
     descriptorState.deprecated
   );
   return toCreateEventEServiceDescriptorUpdated(
-    eService.data.id,
-    eService.metadata.version,
+    streamId,
+    version,
     updatedDescriptor
   );
 };
@@ -885,19 +886,27 @@ export function publishDescriptorLogic({
     descriptorState.published
   );
 
-  const updateEvent = toCreateEventEServiceDescriptorUpdated(
-    eServiceId,
-    eService.metadata.version,
-    updatedDescriptor
-  );
-
   if (currentActiveDescriptor !== undefined) {
     return [
-      deprecateDescriptor(currentActiveDescriptor, eService),
-      updateEvent,
+      deprecateDescriptor(
+        eService.data.id,
+        eService.metadata.version,
+        currentActiveDescriptor
+      ),
+      toCreateEventEServiceDescriptorUpdated(
+        eServiceId,
+        eService.metadata.version + 1,
+        updatedDescriptor
+      ),
     ];
   } else {
-    return [updateEvent];
+    return [
+      toCreateEventEServiceDescriptorUpdated(
+        eServiceId,
+        eService.metadata.version,
+        updatedDescriptor
+      ),
+    ];
   }
 }
 
@@ -982,7 +991,11 @@ export function activateDescriptorLogic({
       updatedDescriptor
     );
   } else {
-    return deprecateDescriptor(descriptor, eService);
+    return deprecateDescriptor(
+      eServiceId,
+      eService.metadata.version,
+      descriptor
+    );
   }
 }
 
