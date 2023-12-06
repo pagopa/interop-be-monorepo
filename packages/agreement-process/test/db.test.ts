@@ -19,6 +19,7 @@ import { readModelServiceBuilder } from "../src/services/readmodel/readModelServ
 import { agreementQueryBuilder } from "../src/services/readmodel/agreementQuery.js";
 import { tenantQueryBuilder } from "../src/services/readmodel/tenantQuery.js";
 import { eserviceQueryBuilder } from "../src/services/readmodel/eserviceQuery.js";
+import { attributeQueryBuilder } from "../src/services/readmodel/attributeQuery.js";
 
 describe("database test", async () => {
   let agreements: AgreementCollection;
@@ -65,6 +66,7 @@ describe("database test", async () => {
     const eserviceQuery = eserviceQueryBuilder(readModelService);
     const agreementQuery = agreementQueryBuilder(readModelService);
     const tenantQuery = tenantQueryBuilder(readModelService);
+    const attributeQuery = attributeQueryBuilder(readModelService);
 
     postgresDB = initDB({
       username: config.eventStoreDbUsername,
@@ -80,7 +82,8 @@ describe("database test", async () => {
       postgresDB,
       agreementQuery,
       tenantQuery,
-      eserviceQuery
+      eserviceQuery,
+      attributeQuery
     );
   });
 
