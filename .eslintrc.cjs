@@ -24,5 +24,6 @@ module.exports = {
     ".eslintrc.cjs",
     "vitest.config.ts",
     "**/src/model/generated/*.ts",
+    "**/dist"
   ],
 };
