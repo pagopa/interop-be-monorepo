@@ -1047,7 +1047,7 @@ describe("database test", async () => {
     });
   };
 
-  const _addOneTenant = async (tenantId: string): Promise<Tenant> => {
+  const addOneTenant = async (tenantId: string): Promise<Tenant> => {
     const tenant: Tenant = {
       name: "A tenant",
       id: tenantId,
@@ -1064,7 +1064,7 @@ describe("database test", async () => {
     return tenant;
   };
 
-  const addOneTenant = async (tenantId: string): Promise<Tenant> => {
+  const _addOneTenant = async (tenantId: string): Promise<Tenant> => {
     const tenant = generateMock(Tenant);
     tenant.id = tenantId;
     tenant.createdAt = new Date();
@@ -1072,7 +1072,7 @@ describe("database test", async () => {
     return tenant;
   };
 
-  const _addOneAgreement = async ({
+  const addOneAgreement = async ({
     eServiceId,
     descriptorId,
     producerId,
@@ -1108,7 +1108,7 @@ describe("database test", async () => {
     await writeAgreementInReadmodel(agreement);
   };
 
-  const addOneAgreement = async ({
+  const _addOneAgreement = async ({
     eServiceId,
     descriptorId,
     producerId,
@@ -1212,7 +1212,7 @@ describe("database test", async () => {
     descriptors: [],
   });
 
-  const _getMockDescriptor = (id?: string): Descriptor => ({
+  const getMockDescriptor = (id?: string): Descriptor => ({
     id: id || uuidv4(),
     version: "0",
     docs: [],
@@ -1231,7 +1231,7 @@ describe("database test", async () => {
     },
   });
 
-  const getMockDescriptor = (id?: string): Descriptor => {
+  const _getMockDescriptor = (id?: string): Descriptor => {
     const descriptor = generateMock(Descriptor);
     if (id) {
       descriptor.id = id;
