@@ -808,7 +808,6 @@ describe("database test", async () => {
     let mockEService4: EService;
     let mockEService5: EService;
     let mockEService6: EService;
-    let mockEService7: EService;
 
     beforeEach(() => {
       mockEService1 = getMockEService();
@@ -817,7 +816,6 @@ describe("database test", async () => {
       mockEService4 = getMockEService();
       mockEService5 = getMockEService();
       mockEService6 = getMockEService();
-      mockEService7 = getMockEService();
     });
     describe("getEservices", () => {
       it("Should get eServices based on the given parameters", async () => {
@@ -826,6 +824,8 @@ describe("database test", async () => {
           eServiceId2,
           eServiceId3,
           eServiceId4,
+          eServiceId5,
+          eServiceId6,
           organizationId,
           organizationId2,
         } = ids();
@@ -841,7 +841,7 @@ describe("database test", async () => {
         mockEService2.producerId = organizationId;
         mockEService2.name = "eservice 002";
         const descriptor2 = getMockDescriptor();
-        descriptor2.state = descriptorState.published;
+        descriptor2.state = descriptorState.draft;
         mockEService2.descriptors = [descriptor2];
         await addOneEService(mockEService2);
 
@@ -861,6 +861,21 @@ describe("database test", async () => {
         mockEService4.descriptors = [descriptor4];
         await addOneEService(mockEService4);
 
+        mockEService5.id = eServiceId5;
+        mockEService5.producerId = organizationId2;
+        mockEService5.name = "eservice 005";
+        const descriptor5 = getMockDescriptor();
+        descriptor5.state = descriptorState.published;
+        mockEService5.descriptors = [descriptor5];
+        await addOneEService(mockEService5);
+
+        mockEService6.id = eServiceId6;
+        mockEService6.producerId = organizationId2;
+        mockEService6.name = "eservice 006";
+        const descriptor6 = getMockDescriptor();
+        descriptor6.state = descriptorState.draft;
+        mockEService6.descriptors = [descriptor6];
+        await addOneEService(mockEService6);
         const result1 = await readModelService.getEServices(
           buildAuthData(organizationId),
           {
@@ -894,6 +909,17 @@ describe("database test", async () => {
           0,
           50
         );
+        const result4 = await readModelService.getEServices(
+          buildAuthData(organizationId),
+          {
+            eservicesIds: [],
+            producersIds: [organizationId2],
+            states: ["Draft"],
+            agreementStates: [],
+          },
+          0,
+          50
+        );
         // TO DO test with other parameters configuration
         expect(result1.totalCount).toBe(2);
         expect(result1.results).toEqual([mockEService1, mockEService2]);
@@ -903,8 +929,14 @@ describe("database test", async () => {
           mockEService2,
           mockEService3,
         ]);
-        expect(result3.totalCount).toBe(1);
-        expect(result3.results).toEqual([mockEService4]);
+        expect(result3.totalCount).toBe(3);
+        expect(result3.results).toEqual([
+          mockEService2,
+          mockEService4,
+          mockEService6,
+        ]);
+        expect(result4.totalCount).toBe(2);
+        expect(result4.results).toEqual([mockEService4, mockEService6]);
       });
     });
     describe("getEServiceById", () => {
@@ -1187,6 +1219,8 @@ describe("database test", async () => {
     eServiceId2: uuidv4(),
     eServiceId3: uuidv4(),
     eServiceId4: uuidv4(),
+    eServiceId5: uuidv4(),
+    eServiceId6: uuidv4(),
     organizationId: uuidv4(),
     organizationId2: uuidv4(),
     descriptorId: uuidv4(),
