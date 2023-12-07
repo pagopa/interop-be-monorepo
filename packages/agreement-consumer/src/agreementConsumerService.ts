@@ -1,18 +1,12 @@
 import { match } from "ts-pattern";
-import {
-  logger,
-  ReadModelRepository,
-  ConsumerConfig,
-} from "pagopa-interop-commons";
+import { logger, AgreementCollection } from "pagopa-interop-commons";
 import { EventEnvelope } from "./model/models.js";
 import { fromAgreementV1 } from "./model/converter.js";
 
 export async function handleMessage(
   message: EventEnvelope,
-  config: ConsumerConfig
+  agreements: AgreementCollection
 ): Promise<void> {
-  const agreements = ReadModelRepository.init(config).agreements;
-
   logger.info(message);
   await match(message)
     .with({ type: "AgreementAdded" }, async (msg) => {

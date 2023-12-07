@@ -63,7 +63,7 @@ describe("database test", async () => {
         type: "AgreementAdded",
         data: newAgreement,
       };
-      await handleMessage(message, config);
+      await handleMessage(message, agreements);
 
       const agreement = await agreements.findOne({
         "data.id": id.toString,
