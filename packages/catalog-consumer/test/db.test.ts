@@ -58,7 +58,7 @@ describe("database test", async () => {
         type: "EServiceAdded",
         data: newEService,
       };
-      await handleMessage(message, config);
+      await handleMessage(message, eservices);
 
       const eservice = await eservices.findOne({
         "data.id": id.toString,
