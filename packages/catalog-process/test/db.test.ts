@@ -283,6 +283,8 @@ describe("database test", async () => {
           buildDescriptorSeed(),
           buildAuthData(organizationId)
         );
+
+        //TO DO check file manager thing
       });
       it("should throw draftDescriptorAlreadyExists if a draft descriptor already exists", async () => {
         const { eServiceId, organizationId } = ids();
@@ -458,7 +460,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(eServiceNotFound(eServiceId));
       });
-      it("should throw operationForbidden if requester is not allowed", async () => {
+      it("should throw operationForbidden if the requester is not allowed", async () => {
         const { eServiceId, organizationId, requesterId, descriptorId } = ids();
         await addOneEService({
           id: eServiceId,
@@ -525,7 +527,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(eServiceNotFound(eServiceId));
       });
-      it("should throw operationForbidden if requester is not allowed", async () => {
+      it("should throw operationForbidden if the requester is not allowed", async () => {
         const { eServiceId, organizationId, requesterId, descriptorId } = ids();
         await addOneEService({
           id: eServiceId,
@@ -592,7 +594,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(eServiceNotFound(eServiceId));
       });
-      it("should throw operationForbidden if requester is not allowed", async () => {
+      it("should throw operationForbidden if the requester is not allowed", async () => {
         const { eServiceId, organizationId, requesterId, descriptorId } = ids();
         await addOneEService({
           id: eServiceId,
@@ -628,7 +630,7 @@ describe("database test", async () => {
     });
 
     describe("clone descriptor", () => {
-      it("To Do", () => {
+      it("TO DO implement after understanding file manager", () => {
         expect(1).toBe(1);
       });
     });
@@ -662,7 +664,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(eServiceNotFound(eServiceId));
       });
-      it("should throw operationForbidden if requester is not allowed", async () => {
+      it("should throw operationForbidden if the requester is not allowed", async () => {
         const { eServiceId, organizationId, requesterId, descriptorId } = ids();
         await addOneEService({
           id: eServiceId,
@@ -679,6 +681,16 @@ describe("database test", async () => {
       });
     });
   });
+
+  /*
+  TO DO add tests for
+  
+  delete Document
+  upload document
+  update document
+
+  do they involve file manager?
+  */
 
   describe("ReadModel Service", () => {
     describe("getEservices", () => {
@@ -759,6 +771,7 @@ describe("database test", async () => {
           id: eServiceId,
           producerId: organizationId,
         });
+        // TO DO add more
         const eService = await readModelService.getEServiceById(eServiceId);
         expect(eService?.data.name).toBe("eService name");
         expect(eService?.data.description).toBe("eService description");
