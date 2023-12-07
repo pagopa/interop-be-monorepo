@@ -6,10 +6,11 @@ const errorCodes = {
   tenantDuplicate: "0003",
   tenantNotFound: "0004",
   eServiceNotFound: "0005",
-  verifiedAttributeNotFoundInTenant: "0006",
-  expirationDateNotFoundInVerifier: "0007",
-  expirationDateCannotBeInThePast: "0008",
-  organizationNotFoundInVerifiers: "0009",
+  tenantBySelfcateIdNotFound: "0006",
+  verifiedAttributeNotFoundInTenant: "0007",
+  expirationDateNotFoundInVerifier: "0008",
+  expirationDateCannotBeInThePast: "0009",
+  organizationNotFoundInVerifiers: "0010",
 };
 
 export function attributeNotFound(identifier: string): ApiError {
@@ -101,5 +102,14 @@ export function organizationNotFoundInVerifiers(
     code: errorCodes.organizationNotFoundInVerifiers,
     httpStatus: 403,
     title: "Organization not found in verifiers",
+  });
+}
+
+export function tenantBySelfcateIdNotFound(selfcareId: string): ApiError {
+  return new ApiError({
+    detail: `Tenant with selfcareId ${selfcareId} not found in the catalog`,
+    code: errorCodes.tenantBySelfcateIdNotFound,
+    httpStatus: 404,
+    title: "Tenant with selfcareId not found",
   });
 }

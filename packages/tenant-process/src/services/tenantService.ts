@@ -13,7 +13,7 @@ import {
   tenantEventToBinaryData,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
-import { config } from "../utilities/config.js";
+import { TenantProcessConfig } from "../utilities/config.js";
 import {
   toCreateEventTenantAdded,
   toCreateEventTenantUpdated,
@@ -31,71 +31,76 @@ import {
   assertValidExpirationDate,
   assertVerifiedAttributeExistsInTenant,
 } from "./validators.js";
-import { readModelService } from "./readModelService.js";
+import { ReadModelService } from "./readModelService.js";
 
-const repository = eventRepository(
-  initDB({
-    username: config.eventStoreDbUsername,
-    password: config.eventStoreDbPassword,
-    host: config.eventStoreDbHost,
-    port: config.eventStoreDbPort,
-    database: config.eventStoreDbName,
-    schema: config.eventStoreDbSchema,
-    useSSL: config.eventStoreDbUseSSL,
-  }),
-  tenantEventToBinaryData
-);
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export function tenantServiceBuilder(
+  config: TenantProcessConfig,
+  readModelService: ReadModelService
+) {
+  const repository = eventRepository(
+    initDB({
+      username: config.eventStoreDbUsername,
+      password: config.eventStoreDbPassword,
+      host: config.eventStoreDbHost,
+      port: config.eventStoreDbPort,
+      database: config.eventStoreDbName,
+      schema: config.eventStoreDbSchema,
+      useSSL: config.eventStoreDbUseSSL,
+    }),
+    tenantEventToBinaryData
+  );
+  return {
+    async createTenant(
+      apiTenantSeed:
+        | ApiSelfcareTenantSeed
+        | ApiM2MTenantSeed
+        | ApiInternalTenantSeed,
+      attributesExternalIds: ExternalId[],
+      kind: TenantKind
+    ): Promise<string> {
+      const [attributes, tenant] = await Promise.all([
+        readModelService.getAttributesByExternalIds(attributesExternalIds),
+        readModelService.getTenantByName(apiTenantSeed.name),
+      ]);
 
-export const tenantService = {
-  async createTenant(
-    apiTenantSeed:
-      | ApiSelfcareTenantSeed
-      | ApiM2MTenantSeed
-      | ApiInternalTenantSeed,
-    attributesExternalIds: ExternalId[],
-    kind: TenantKind
-  ): Promise<string> {
-    const [attributes, tenant] = await Promise.all([
-      readModelService.getAttributesByExternalIds(attributesExternalIds),
-      readModelService.getTenantByName(apiTenantSeed.name),
-    ]);
+      return repository.createEvent(
+        createTenantLogic({
+          tenant,
+          apiTenantSeed,
+          kind,
+          attributes,
+        })
+      );
+    },
 
-    return repository.createEvent(
-      createTenantLogic({
-        tenant,
-        apiTenantSeed,
-        kind,
-        attributes,
-      })
-    );
-  },
+    async updateTenantVerifiedAttribute({
+      verifierId,
+      tenantId,
+      attributeId,
+      updateVerifiedTenantAttributeSeed,
+    }: {
+      verifierId: string;
+      tenantId: string;
+      attributeId: string;
+      updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed;
+    }): Promise<void> {
+      const tenant = await readModelService.getTenantById(tenantId);
 
-  async updateTenantVerifiedAttribute({
-    verifierId,
-    tenantId,
-    attributeId,
-    updateVerifiedTenantAttributeSeed,
-  }: {
-    verifierId: string;
-    tenantId: string;
-    attributeId: string;
-    updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed;
-  }): Promise<void> {
-    const tenant = await readModelService.getTenantById(tenantId);
+      await repository.createEvent(
+        await updateTenantVerifiedAttributeLogic({
+          verifierId,
+          tenant,
+          tenantId,
+          attributeId,
+          updateVerifiedTenantAttributeSeed,
+        })
+      );
+    },
+  };
+}
 
-    await repository.createEvent(
-      await updateTenantVerifiedAttributeLogic({
-        verifierId,
-        tenant,
-        tenantId,
-        attributeId,
-        updateVerifiedTenantAttributeSeed,
-      })
-    );
-  },
-};
-
-export async function updateTenantVerifiedAttributeLogic({
+async function updateTenantVerifiedAttributeLogic({
   verifierId,
   tenant,
   tenantId,
