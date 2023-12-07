@@ -1,11 +1,16 @@
 import { Kafka, KafkaMessage } from "kafkajs";
-import { consumerConfig, logger } from "pagopa-interop-commons";
+import {
+  ReadModelRepository,
+  consumerConfig,
+  logger,
+} from "pagopa-interop-commons";
 import { createMechanism } from "@jm18457/kafkajs-msk-iam-authentication-mechanism";
 
 import { decodeKafkaMessage } from "./model/models.js";
 import { handleMessage } from "./attributeRegistryConsumerService.js";
 
 const config = consumerConfig();
+const { attributes } = ReadModelRepository.init(config);
 const kafkaConfig = config.kafkaDisableAwsIamAuth
   ? {
       clientId: config.kafkaClientId,
@@ -40,7 +45,7 @@ await consumer.subscribe({
 
 async function processMessage(message: KafkaMessage): Promise<void> {
   try {
-    await handleMessage(decodeKafkaMessage(message), config);
+    await handleMessage(decodeKafkaMessage(message), attributes);
 
     logger.info("Read model was updated");
   } catch (e) {

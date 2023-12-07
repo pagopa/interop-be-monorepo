@@ -57,7 +57,7 @@ describe("database test", async () => {
         type: "AttributeAdded",
         data: newAttribute,
       };
-      await handleMessage(message, config);
+      await handleMessage(message, attributes);
 
       const attribute = await attributes.findOne({
         "data.id": id.toString,
