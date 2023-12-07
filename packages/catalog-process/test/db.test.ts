@@ -1024,12 +1024,10 @@ describe("database test", async () => {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const readLastEventByStreamId = async (eServiceId: string): Promise<any> =>
-    (
-      await postgresDB.many(
-        "SELECT * FROM catalog.events WHERE stream_id = $1 ORDER BY sequence_num DESC",
-        [eServiceId]
-      )
-    )[0];
+    await postgresDB.one(
+      "SELECT * FROM catalog.events WHERE stream_id = $1 ORDER BY sequence_num DESC LIMIT 1",
+      [eServiceId]
+    );
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const ids = () => ({
