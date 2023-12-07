@@ -123,7 +123,7 @@ export async function updateTenantVerifiedAttributeLogic({
   assertVerifiedAttributeExistsInTenant(attributeId, attribute, tenant.data);
   assertOrganizationIsInVerifiers(verifierId, tenantId, attribute);
 
-  const newAttribute: Extract<TenantAttribute, { type: "verified" }> = {
+  const newAttribute: TenantAttribute = {
     ...attribute,
     verifiedBy: attribute.verifiedBy.map((v) =>
       v.id === verifierId
@@ -135,14 +135,12 @@ export async function updateTenantVerifiedAttributeLogic({
     ),
   };
 
-  const updatedAttributes = [
-    newAttribute,
-    ...tenant.data.attributes.filter((a) => a.id !== newAttribute.id),
-  ];
-
   const newTenant: Tenant = {
     ...tenant.data,
-    attributes: updatedAttributes,
+    attributes: [
+      newAttribute,
+      ...tenant.data.attributes.filter((a) => a.id !== newAttribute.id),
+    ],
     updatedAt: new Date(),
   };
 
