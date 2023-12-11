@@ -1,7 +1,5 @@
 /* eslint-disable functional/no-let */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-/* eslint-disable no-underscore-dangle */
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import {
   AgreementCollection,
