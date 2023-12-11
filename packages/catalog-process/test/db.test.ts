@@ -1302,17 +1302,6 @@ describe("database test", async () => {
     return tenant;
   };
 
-  const _addOneTenant = async (tenantId: string): Promise<Tenant> => {
-    const mockTenant = generateMock(Tenant);
-    const tenant: Tenant = {
-      ...mockTenant,
-      id: tenantId,
-      createdAt: new Date(),
-    };
-    await writeTenantInReadmodel(tenant);
-    return tenant;
-  };
-
   const addOneAgreement = async ({
     eServiceId,
     descriptorId,
@@ -1345,30 +1334,6 @@ describe("database test", async () => {
         upgrade: undefined,
         archiving: undefined,
       },
-    };
-    await writeAgreementInReadmodel(agreement);
-  };
-
-  const _addOneAgreement = async ({
-    eServiceId,
-    descriptorId,
-    producerId,
-    consumerId,
-  }: {
-    eServiceId: string;
-    descriptorId: string;
-    producerId: string;
-    consumerId: string;
-  }): Promise<void> => {
-    const mockAgreement = generateMock(Agreement);
-    const agreement: Agreement = {
-      ...mockAgreement,
-      createdAt: new Date(),
-      state: agreementState.active,
-      eserviceId: eServiceId,
-      descriptorId,
-      producerId,
-      consumerId,
     };
     await writeAgreementInReadmodel(agreement);
   };
@@ -1427,17 +1392,6 @@ describe("database test", async () => {
     tenantId: uuidv4(),
   });
 
-  const _getMockEService = (): EService => {
-    const mockEService = generateMock(EService);
-    const eService: EService = {
-      ...mockEService,
-      createdAt: new Date(),
-      descriptors: [],
-      technology: technology.rest,
-    };
-    return eService;
-  };
-
   const getMockEService = (): EService => ({
     id: uuidv4(),
     name: "eService name",
@@ -1466,20 +1420,6 @@ describe("database test", async () => {
       declared: [],
     },
   });
-
-  const _getMockDescriptor = (id?: string): Descriptor => {
-    const mockDescriptor = generateMock(Descriptor);
-    const descriptor: Descriptor = {
-      ...mockDescriptor,
-      ...(id && { id }),
-      voucherLifespan: 60,
-      dailyCallsPerConsumer: 10,
-      dailyCallsTotal: 1000,
-      agreementApprovalPolicy: "Automatic",
-      version: "0",
-    };
-    return descriptor;
-  };
 
   function decode<I extends object>({
     messageType,
