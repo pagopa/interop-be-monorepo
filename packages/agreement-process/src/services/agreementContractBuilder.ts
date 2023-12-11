@@ -1,9 +1,3 @@
-/*
-  IMPORTANT
-  TODO: This is temporary attribute service for readmodel, it must be removed in favor 
-  of developed service in this PR https://github.com/pagopa/interop-be-monorepo/pull/83
-*/
-
 import { CreateEvent, logger } from "pagopa-interop-commons";
 import {
   Agreement,

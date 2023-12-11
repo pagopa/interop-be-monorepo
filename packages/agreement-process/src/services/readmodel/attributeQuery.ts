@@ -1,8 +1,3 @@
-/* 
-  This file is incomplete it should be integrated or replaced with development:
-  in this PR https://github.com/pagopa/interop-be-monorepo/pull/83
-  use method `getAttributeById` will be exposed by readmodelService instead of direct query
-*/
 import { Attribute, WithMetadata } from "pagopa-interop-models";
 import { ReadModelService } from "./readModelService.js";
 
