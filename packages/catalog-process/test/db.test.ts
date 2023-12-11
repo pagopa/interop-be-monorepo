@@ -122,19 +122,21 @@ describe("database test", async () => {
     });
     describe("create eService", () => {
       it("should write on event-store for the creation of an eService", async () => {
+        const { organizationId } = ids();
         const id = await catalogService.createEService(
           {
             name: mockEService.name,
             description: mockEService.description,
             technology: "REST",
           },
-          buildAuthData()
+          buildAuthData(organizationId)
         );
 
         const eService: EService = {
           ...mockEService,
           id,
           technology: "Rest",
+          producerId: organizationId,
         };
 
         expect(id).toBeDefined();
@@ -154,6 +156,7 @@ describe("database test", async () => {
         expect(writtenPayload.eService?.technology).toBe(
           expectedEServiceV1.technology
         );
+        expect(writtenPayload.eService?.producerId).toBe(organizationId);
       });
       it("should throw eServiceDuplicate if the eService already exists", async () => {
         const { eServiceId, organizationId } = ids();
