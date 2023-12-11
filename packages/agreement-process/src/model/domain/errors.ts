@@ -115,10 +115,12 @@ export function tenantIdNotFound(tenantId: string): ApiError<ErrorCodes> {
   });
 }
 
-export function agreementSubmissionFailed(agreementId: string): ApiError {
+export function agreementSubmissionFailed(
+  agreementId: string
+): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Unable to activate agreement ${agreementId}. Please check if attributes requirements and suspension flags are satisfied`,
-    code: errorCodes.agreementSubmissionFailed,
+    code: "agreementSubmissionFailed",
     title: "Unable to activate agreement",
   });
 }
@@ -126,34 +128,36 @@ export function agreementSubmissionFailed(agreementId: string): ApiError {
 export function consumerWithNotValidEmail(
   agreementId: string,
   tenantId: string
-): ApiError {
+): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Agreement ${agreementId} has a consumer tenant ${tenantId} with no valid email`,
-    code: errorCodes.consumerWithNotValidEmail,
+    code: "consumerWithNotValidEmail",
     title: "Agreement with invalid consumer email",
   });
 }
 
-export function agreementStampNotFound(stamp: string): ApiError {
+export function agreementStampNotFound(stamp: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Agreement stamp ${stamp} not found`,
-    code: errorCodes.agreementStampNotFound,
+    code: "agreementStampNotFound",
     title: "Stamp not found",
   });
 }
 
-export function agreementMissingUserInfo(userId: string): ApiError {
+export function agreementMissingUserInfo(userId: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Some mandatory info are missing for user ${userId}`,
-    code: errorCodes.agreementMissingUserInfo,
+    code: "agreementMissingUserInfo",
     title: "Some mandatory info are missing for user",
   });
 }
 
-export function agreementSelfcareIdNotFound(tenantId: string): ApiError {
+export function agreementSelfcareIdNotFound(
+  tenantId: string
+): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Selfcare id not found for tenant ${tenantId}`,
-    code: errorCodes.agreementSelfcareIdNotFound,
+    code: "agreementSelfcareIdNotFound",
     title: "Selfcare id not found for tenant",
   });
 }
@@ -161,20 +165,10 @@ export function agreementSelfcareIdNotFound(tenantId: string): ApiError {
 export function agreementDescriptorNotFound(
   eserviceId: string,
   descriptorId: string
-): ApiError {
+): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Descriptor ${descriptorId} not found in EService ${eserviceId}`,
-    code: errorCodes.agreementDescriptorNotFound,
+    code: "agreementDescriptorNotFound",
     title: "Descriptor not found",
-  });
-}
-
-export function agreementSubmitOperationNotAllowed(
-  requesterId: string
-): ApiError {
-  return new ApiError({
-    detail: `Operation not allowed by ${requesterId}`,
-    code: errorCodes.agreementSubmitOperationNotAllowed,
-    title: "Operation not allowed",
   });
 }

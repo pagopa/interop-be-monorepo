@@ -27,7 +27,6 @@ import {
   submitAgreementErrorMapper,
   updateAgreementErrorMapper,
 } from "../utilities/errorMappers.js";
-import { agreementNotFound, makeApiProblem } from "../model/domain/errors.js";
 
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
