@@ -164,7 +164,7 @@ const submitAgreement = async (
     })
   ).filter((a: WithMetadata<Agreement>) => a.data.id !== agreement.id);
 
-  const relatedAgreementUpdates: Array<CreateEvent<AgreementEvent>> =
+  const archivedAgreementsUpdates: Array<CreateEvent<AgreementEvent>> =
     isActiveOrSuspended(newState)
       ? await Promise.all(
           agreements.map(
@@ -229,7 +229,7 @@ const submitAgreement = async (
 
   return [
     updatedAgreementEvent,
-    ...relatedAgreementUpdates,
+    ...archivedAgreementsUpdates,
     ...createContractEvents,
   ];
 };
