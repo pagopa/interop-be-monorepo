@@ -943,17 +943,22 @@ describe("database test", async () => {
         ).rejects.toThrowError(operationForbidden);
       });
     });
+    describe("upload Document", () => {
+      it("TO DO implement after understanding file manager", () => {
+        expect(1).toBe(1);
+      });
+    });
+    describe("delete Document", () => {
+      it("TO DO implement after understanding file manager", () => {
+        expect(1).toBe(1);
+      });
+    });
+    describe("update Document", () => {
+      it("TO DO implement after understanding file manager", () => {
+        expect(1).toBe(1);
+      });
+    });
   });
-
-  /*
-  TO DO add tests for
-  
-  uploadDocument
-  deleteDocument
-  updateDocument
-
-  do they involve file manager?
-  */
 
   describe("ReadModel Service", () => {
     let mockEService1: EService;
