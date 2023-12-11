@@ -22,7 +22,7 @@ const {
   rejected,
 } = agreementState;
 
-const nextStateToDraft = (
+const nextStateFromDraft = (
   agreement: Agreement,
   descriptor: Descriptor,
   tenant: Tenant
@@ -47,7 +47,7 @@ const nextStateToDraft = (
   return draft;
 };
 
-const nextStateToPending = (
+const nextStateFromPending = (
   agreement: Agreement,
   descriptor: Descriptor,
   tenant: Tenant
@@ -64,7 +64,7 @@ const nextStateToPending = (
   return active;
 };
 
-const nextStateToActiveOrSuspended = (
+const nextStateFromActiveOrSuspended = (
   agreement: Agreement,
   descriptor: Descriptor,
   tenant: Tenant
@@ -82,7 +82,7 @@ const nextStateToActiveOrSuspended = (
   return suspended;
 };
 
-const nextStateToMissingCertifiedAttributes = (
+const nextStateFromMissingCertifiedAttributes = (
   descriptor: Descriptor,
   tenant: Tenant
 ): AgreementState => {
@@ -99,17 +99,17 @@ export const nextState = (
 ): AgreementState =>
   match(agreement.state)
     .with(agreementState.draft, () =>
-      nextStateToDraft(agreement, descriptor, tenant)
+      nextStateFromDraft(agreement, descriptor, tenant)
     )
     .with(agreementState.pending, () =>
-      nextStateToPending(agreement, descriptor, tenant)
+      nextStateFromPending(agreement, descriptor, tenant)
     )
     .with(agreementState.active, agreementState.suspended, () =>
-      nextStateToActiveOrSuspended(agreement, descriptor, tenant)
+      nextStateFromActiveOrSuspended(agreement, descriptor, tenant)
     )
     .with(agreementState.archived, () => archived)
     .with(agreementState.missingCertifiedAttributes, () =>
-      nextStateToMissingCertifiedAttributes(descriptor, tenant)
+      nextStateFromMissingCertifiedAttributes(descriptor, tenant)
     )
     .with(agreementState.rejected, () => rejected)
     .exhaustive();
