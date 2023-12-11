@@ -5,14 +5,12 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import {
   AgreementCollection,
-  AuthData,
   EServiceCollection,
   ReadModelRepository,
   TenantCollection,
   initDB,
 } from "pagopa-interop-commons";
 import { IDatabase } from "pg-promise";
-import { v4 as uuidv4 } from "uuid";
 import {
   Agreement,
   Descriptor,
@@ -20,20 +18,14 @@ import {
   EServiceAddedV1,
   EServiceDeletedV1,
   EServiceDescriptorUpdatedV1,
-  EServiceEvent,
   EServiceUpdatedV1,
   EServiceWithDescriptorsDeletedV1,
   Tenant,
-  agreementState,
-  catalogEventToBinaryData,
   descriptorState,
   operationForbidden,
-  technology,
 } from "pagopa-interop-models";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import { GenericContainer } from "testcontainers";
-import { generateMock } from "@anatine/zod-mock";
-import { MessageType } from "@protobuf-ts/runtime";
 import { config } from "../src/utilities/config.js";
 import { toDescriptorV1, toEServiceV1 } from "../src/model/domain/toEvent.js";
 import { EServiceDescriptorSeed } from "../src/model/domain/models.js";
@@ -53,6 +45,20 @@ import {
   eServiceNotFound,
   notValidDescriptor,
 } from "../src/model/domain/errors.js";
+import {
+  buildAuthData,
+  buildDescriptorSeed,
+  decode,
+  getMockAgreement,
+  getMockDescriptor,
+  getMockEService,
+  getMockTenant,
+  ids,
+  writeAgreementInReadmodel,
+  writeEServiceInEventstore,
+  writeEServiceInReadmodel,
+  writeTenantInReadmodel,
+} from "./utils.js";
 
 describe("database test", async () => {
   let eservices: EServiceCollection;
@@ -1188,13 +1194,15 @@ describe("database test", async () => {
         };
         await addOneEService(eService1);
 
-        const tenant = await addOneTenant(tenantId);
-        await addOneAgreement({
+        const tenant = getMockTenant(tenantId);
+        await addOneTenant(tenant);
+        const agreement = getMockAgreement({
           eServiceId,
           descriptorId,
           producerId: organizationId,
           consumerId: tenantId,
         });
+        await addOneAgreement(agreement);
 
         const result = await readModelService.getEServiceConsumers(
           eServiceId,
@@ -1229,146 +1237,18 @@ describe("database test", async () => {
     });
   });
 
-  const writeEServiceInEventstore = async (
-    eService: EService
-  ): Promise<void> => {
-    const eServiceEvent: EServiceEvent = {
-      type: "EServiceAdded",
-      data: { eService: toEServiceV1(eService) },
-    };
-    const eventToWrite = {
-      stream_id: eServiceEvent.data.eService?.id,
-      version: 0,
-      type: eServiceEvent.type,
-      data: Buffer.from(catalogEventToBinaryData(eServiceEvent)),
-    };
-
-    await postgresDB.none(
-      "INSERT INTO catalog.events(stream_id, version, type, data) VALUES ($1, $2, $3, $4)",
-      [
-        eventToWrite.stream_id,
-        eventToWrite.version,
-        eventToWrite.type,
-        eventToWrite.data,
-      ]
-    );
-  };
-
-  const writeEServiceInReadmodel = async (
-    eService: EService
-  ): Promise<void> => {
-    await eservices.insertOne({
-      data: eService,
-      metadata: {
-        version: 0,
-      },
-    });
-  };
-
-  const writeAgreementInReadmodel = async (
-    agreement: Agreement
-  ): Promise<void> => {
-    await agreements.insertOne({
-      data: agreement,
-      metadata: {
-        version: 0,
-      },
-    });
-  };
-
-  const writeTenantInReadmodel = async (tenant: Tenant): Promise<void> => {
-    await tenants.insertOne({
-      data: tenant,
-      metadata: {
-        version: 0,
-      },
-    });
-  };
-
-  const addOneTenant = async (tenantId: string): Promise<Tenant> => {
-    const tenant: Tenant = {
-      name: "A tenant",
-      id: tenantId,
-      createdAt: new Date(),
-      attributes: [],
-      externalId: {
-        value: "123456",
-        origin: "IPA",
-      },
-      features: [],
-      mails: [],
-    };
-    await writeTenantInReadmodel(tenant);
-    return tenant;
-  };
-
-  const addOneAgreement = async ({
-    eServiceId,
-    descriptorId,
-    producerId,
-    consumerId,
-  }: {
-    eServiceId: string;
-    descriptorId: string;
-    producerId: string;
-    consumerId: string;
-  }): Promise<void> => {
-    const agreement: Agreement = {
-      id: uuidv4(),
-      createdAt: new Date(),
-      eserviceId: eServiceId,
-      descriptorId,
-      producerId,
-      consumerId,
-      state: agreementState.active,
-      verifiedAttributes: [],
-      certifiedAttributes: [],
-      declaredAttributes: [],
-      consumerDocuments: [],
-      stamps: {
-        submission: undefined,
-        activation: undefined,
-        rejection: undefined,
-        suspensionByProducer: undefined,
-        suspensionByConsumer: undefined,
-        upgrade: undefined,
-        archiving: undefined,
-      },
-    };
-    await writeAgreementInReadmodel(agreement);
-  };
-
   const addOneEService = async (eService: EService): Promise<void> => {
-    await writeEServiceInEventstore(eService);
-    await writeEServiceInReadmodel(eService);
-    // return eService;
+    await writeEServiceInEventstore(eService, postgresDB);
+    await writeEServiceInReadmodel(eService, eservices);
   };
 
-  const buildAuthData = (organizationId?: string): AuthData => ({
-    organizationId: organizationId || uuidv4(),
-    userId: uuidv4(),
-    userRoles: [],
-    externalId: {
-      value: "123456",
-      origin: "IPA",
-    },
-  });
+  const addOneTenant = async (tenant: Tenant): Promise<void> => {
+    await writeTenantInReadmodel(tenant, tenants);
+  };
 
-  const buildDescriptorSeed = (
-    descriptor: Descriptor
-  ): EServiceDescriptorSeed => ({
-    audience: descriptor.audience,
-    voucherLifespan: descriptor.voucherLifespan,
-    dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
-    dailyCallsTotal: descriptor.dailyCallsTotal,
-    agreementApprovalPolicy: "AUTOMATIC",
-    description: descriptor.description,
-    attributes: {
-      certified: [],
-      declared: [],
-      verified: [],
-    },
-  });
+  const addOneAgreement = async (agreement: Agreement): Promise<void> => {
+    await writeAgreementInReadmodel(agreement, agreements);
+  };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const readLastEventByStreamId = async (eServiceId: string): Promise<any> =>
@@ -1376,58 +1256,4 @@ describe("database test", async () => {
       "SELECT * FROM catalog.events WHERE stream_id = $1 ORDER BY sequence_num DESC LIMIT 1",
       [eServiceId]
     );
-
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  const ids = () => ({
-    eServiceId: uuidv4(),
-    eServiceId2: uuidv4(),
-    eServiceId3: uuidv4(),
-    eServiceId4: uuidv4(),
-    eServiceId5: uuidv4(),
-    eServiceId6: uuidv4(),
-    organizationId: uuidv4(),
-    organizationId2: uuidv4(),
-    descriptorId: uuidv4(),
-    requesterId: uuidv4(),
-    tenantId: uuidv4(),
-  });
-
-  const getMockEService = (): EService => ({
-    id: uuidv4(),
-    name: "eService name",
-    description: "eService description",
-    createdAt: new Date(),
-    producerId: uuidv4(),
-    technology: technology.rest,
-    descriptors: [],
-  });
-
-  const getMockDescriptor = (id?: string): Descriptor => ({
-    id: id || uuidv4(),
-    version: "0",
-    docs: [],
-    state: descriptorState.draft,
-    audience: [],
-    voucherLifespan: 60,
-    dailyCallsPerConsumer: 10,
-    dailyCallsTotal: 1000,
-    createdAt: new Date(),
-    serverUrls: ["pagopa.it"],
-    agreementApprovalPolicy: "Automatic",
-    attributes: {
-      certified: [],
-      verified: [],
-      declared: [],
-    },
-  });
-
-  function decode<I extends object>({
-    messageType,
-    payload,
-  }: {
-    messageType: MessageType<I>;
-    payload: any; // eslint-disable-line @typescript-eslint/no-explicit-any
-  }): I {
-    return messageType.fromBinary(Buffer.from(payload, "hex"));
-  }
 });
