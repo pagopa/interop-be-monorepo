@@ -126,7 +126,7 @@ export function agreementSubmissionFailed(agreementId: string): ApiError {
     detail: `Unable to activate agreement ${agreementId}. Please check if attributes requirements and suspension flags are satisfied`,
     code: errorCodes.agreementSubmissionFailed,
     httpStatus: 400,
-    title: "Unable to activate agreement $agreementId",
+    title: "Unable to activate agreement",
   });
 }
 
