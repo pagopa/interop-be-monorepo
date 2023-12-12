@@ -29,7 +29,6 @@ import {
   writeAttributeInEventstore,
   writeAttributeInReadmodel,
 } from "./utils.js";
-import { toAttributeV1 } from "../src/model/domain/toEvent.js";
 
 describe("database test", () => {
   let attributes: AttributeCollection;
