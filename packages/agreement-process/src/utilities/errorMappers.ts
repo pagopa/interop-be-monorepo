@@ -86,3 +86,10 @@ export const upgradeAgreementErrorMapper = (
     )
     .with("operationNotAllowed", () => 403)
     .otherwise(() => 500);
+
+export const getConsumerDocumentErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("documentNotFound", () => 404)
+    .otherwise(() => 500);
