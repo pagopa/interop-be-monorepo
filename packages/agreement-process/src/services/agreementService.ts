@@ -194,9 +194,9 @@ export async function createAgreementLogic(
   );
 
   await verifyCreationConflictingAgreements(
-    agreementQuery,
     authData.organizationId,
-    agreement
+    agreement,
+    agreementQuery
   );
   const consumer = await tenantQuery.getTenantById(authData.organizationId);
 
