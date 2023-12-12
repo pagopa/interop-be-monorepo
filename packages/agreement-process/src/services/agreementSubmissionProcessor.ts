@@ -246,10 +246,10 @@ const createContract = async (
   tenantQuery: TenantQuery,
   constractBuilder: ContractBuilder
 ): Promise<CreateEvent<AgreementEvent>> => {
-  const producer = await tenantQuery.getTenantById(agreement.consumerId);
+  const producer = await tenantQuery.getTenantById(agreement.producerId);
 
   if (!producer?.data) {
-    throw tenantIdNotFound(500, agreement.consumerId);
+    throw tenantIdNotFound(500, agreement.producerId);
   }
 
   const agreementdocumentSeed = {
