@@ -37,7 +37,7 @@ const nextStateFromDraft = (
   if (
     descriptor.agreementApprovalPolicy?.includes("Automatic") &&
     declaredAttributesSatisfied(descriptor, tenant) &&
-    verifiedAttributesSatisfied(agreement, descriptor, tenant)
+    verifiedAttributesSatisfied(agreement.producerId, descriptor, tenant)
   ) {
     return active;
   }
@@ -58,7 +58,7 @@ const nextStateFromPending = (
   if (!declaredAttributesSatisfied(descriptor, tenant)) {
     return draft;
   }
-  if (!verifiedAttributesSatisfied(agreement, descriptor, tenant)) {
+  if (!verifiedAttributesSatisfied(agreement.producerId, descriptor, tenant)) {
     return pending;
   }
   return active;
@@ -75,7 +75,7 @@ const nextStateFromActiveOrSuspended = (
   if (
     certifiedAttributesSatisfied(descriptor, tenant) &&
     declaredAttributesSatisfied(descriptor, tenant) &&
-    verifiedAttributesSatisfied(agreement, descriptor, tenant)
+    verifiedAttributesSatisfied(agreement.producerId, descriptor, tenant)
   ) {
     return active;
   }

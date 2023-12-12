@@ -32,6 +32,52 @@ import {
   operationNotAllowed,
 } from "./errors.js";
 
+type NotRevocableTenantAttribute = Pick<VerifiedTenantAttribute, "id">;
+type RevocableTenantAttribute =
+  | Pick<CertifiedTenantAttribute, "id" | "revocationTimestamp">
+  | Pick<DeclaredTenantAttribute, "id" | "revocationTimestamp">;
+
+/* ========= ASSERTIONS ========= */
+
+export function assertAgreementExist(
+  agreementId: string,
+  agreement: WithMetadata<Agreement> | undefined
+): asserts agreement is NonNullable<WithMetadata<Agreement>> {
+  if (agreement === undefined) {
+    throw agreementNotFound(agreementId);
+  }
+}
+
+export const assertRequesterIsConsumer = (
+  consumerId: string,
+  requesterId: string
+): void => {
+  if (consumerId !== requesterId) {
+    throw operationNotAllowed(requesterId);
+  }
+};
+
+export const assertSubmittableState = (
+  state: AgreementState,
+  agreementId: string
+): void => {
+  if (state !== agreementState.draft) {
+    throw agreementNotInExpectedState(agreementId, state);
+  }
+};
+
+export const assertExpectedState = (
+  agreementId: string,
+  agreementState: AgreementState,
+  expectedStates: AgreementState[]
+): void => {
+  if (!expectedStates.includes(agreementState)) {
+    throw agreementNotInExpectedState(agreementId, agreementState);
+  }
+};
+
+/* =========  VALIDATIONS ========= */
+
 const validateDescriptorState = (
   eserviceId: string,
   descriptorId: string,
@@ -70,78 +116,6 @@ const validateLatestDescriptor = (
   return recentActiveDescriptor;
 };
 
-type NotRevocableTenantAttribute = Pick<VerifiedTenantAttribute, "id">;
-type RevocableTenantAttribute =
-  | Pick<CertifiedTenantAttribute, "id" | "revocationTimestamp">
-  | Pick<DeclaredTenantAttribute, "id" | "revocationTimestamp">;
-
-const notRevocatedTenantAttributesFilter = <
-  T extends RevocableTenantAttribute | NotRevocableTenantAttribute
->(
-  att: T[]
-): ((a: T) => boolean) =>
-  match(att)
-    .with(
-      P.array({ revocationTimestamp: P.instanceOf(Date) }),
-      () =>
-        (a: RevocableTenantAttribute): boolean =>
-          !a.revocationTimestamp
-    )
-    .otherwise(() => () => true);
-
-const attributesSatisfied = <
-  T extends RevocableTenantAttribute | NotRevocableTenantAttribute
->(
-  descriptorAttributes: EServiceAttribute[][],
-  consumerAttributes: T[]
-): boolean => {
-  const notRevocatedAttributeIds = consumerAttributes
-    .filter(notRevocatedTenantAttributesFilter(consumerAttributes))
-    .map((a) => a.id);
-
-  return descriptorAttributes.every((attributeList) => {
-    const attributes = attributeList.map((a) => a.id);
-    return (
-      attributes.filter((a) => notRevocatedAttributeIds.includes(a)).length > 0
-    );
-  });
-};
-
-const verifyConflictingAgreements = async (
-  consumerId: string,
-  eserviceId: string,
-  conflictingStates: AgreementState[],
-  agreementQuery: AgreementQuery
-): Promise<void> => {
-  const agreements = await agreementQuery.getAgreements({
-    consumerId,
-    eserviceId,
-    agreementStates: conflictingStates,
-  });
-
-  if (agreements.length > 0) {
-    throw agreementAlreadyExists(consumerId, eserviceId);
-  }
-};
-
-export function assertAgreementExist(
-  agreementId: string,
-  agreement: WithMetadata<Agreement> | undefined
-): asserts agreement is NonNullable<WithMetadata<Agreement>> {
-  if (agreement === undefined) {
-    throw agreementNotFound(agreementId);
-  }
-}
-
-export const assertRequesterIsConsumer = (
-  consumerId: string,
-  requesterId: string
-): void => {
-  if (consumerId !== requesterId) {
-    throw operationNotAllowed(requesterId);
-  }
-};
-
 export const validateCreationOnDescriptor = (
   eservice: EService,
   descriptorId: string
@@ -170,6 +144,22 @@ export const verifyCreationConflictingAgreements = async (
   );
 };
 
+export const verifySubmissionConflictingAgreements = async (
+  agreement: Agreement,
+  agreementQuery: AgreementQuery
+): Promise<void> => {
+  const conflictingStates: AgreementState[] = [
+    agreementState.pending,
+    agreementState.missingCertifiedAttributes,
+  ];
+  await verifyConflictingAgreements(
+    agreement.consumerId,
+    agreement.eserviceId,
+    conflictingStates,
+    agreementQuery
+  );
+};
+
 export const validateCertifiedAttributes = (
   descriptor: Descriptor,
   consumer: Tenant
@@ -179,15 +169,26 @@ export const validateCertifiedAttributes = (
   }
 };
 
-export const assertExpectedState = (
+export const validateSubmitOnDescriptor = async (
+  eservice: EService,
+  descriptorId: string
+): Promise<Descriptor> => {
+  const allowedStatus: DescriptorState[] = [
+    descriptorState.published,
+    descriptorState.suspended,
+  ];
+  return validateLatestDescriptor(eservice, descriptorId, allowedStatus);
+};
+
+export const validateActiveOrPendingAgreement = (
   agreementId: string,
-  agreementState: AgreementState,
-  expectedStates: AgreementState[]
+  state: AgreementState
 ): void => {
-  if (!expectedStates.includes(agreementState)) {
-    throw agreementNotInExpectedState(agreementId, agreementState);
+  if (agreementState.active !== state && agreementState.pending !== state) {
+    throw agreementSubmissionFailed(agreementId);
   }
 };
+
 export const certifiedAttributesSatisfied = (
   descriptor: Descriptor,
   tenant: Tenant
@@ -217,23 +218,13 @@ export const declaredAttributesSatisfied = (
 };
 
 export const verifiedAttributesSatisfied = (
-  agreement: Agreement,
+  producerId: string,
   descriptor: Descriptor,
   tenant: Tenant
 ): boolean => {
-  const verifiedAttributes = tenant.attributes.filter(
-    (e) => e.type === tenantAttributeType.VERIFIED
-  ) as VerifiedTenantAttribute[];
-
-  const producersAttributesNotExpired = verifiedAttributes.filter(
-    (a: VerifiedTenantAttribute) =>
-      a
-        ? a.verifiedBy.find(
-            (v) =>
-              v.id === agreement.producerId &&
-              (!v.extensionDate || v.extensionDate > new Date())
-          )
-        : false
+  const producersAttributesNotExpired = filterVerifiedAttributes(
+    producerId,
+    tenant
   );
 
   return attributesSatisfied(
@@ -241,6 +232,43 @@ export const verifiedAttributesSatisfied = (
     producersAttributesNotExpired
   );
 };
+
+const verifyConflictingAgreements = async (
+  consumerId: string,
+  eserviceId: string,
+  conflictingStates: AgreementState[],
+  agreementQuery: AgreementQuery
+): Promise<void> => {
+  const agreements = await agreementQuery.getAgreements({
+    consumerId,
+    eserviceId,
+    agreementStates: conflictingStates,
+  });
+
+  if (agreements.length > 0) {
+    throw agreementAlreadyExists(consumerId, eserviceId);
+  }
+};
+
+const attributesSatisfied = <
+  T extends RevocableTenantAttribute | NotRevocableTenantAttribute
+>(
+  descriptorAttributes: EServiceAttribute[][],
+  consumerAttributes: T[]
+): boolean => {
+  const notRevocatedAttributeIds = consumerAttributes
+    .filter(notRevocatedTenantAttributesFilter(consumerAttributes))
+    .map((a) => a.id);
+
+  return descriptorAttributes.every((attributeList) => {
+    const attributes = attributeList.map((a) => a.id);
+    return (
+      attributes.filter((a) => notRevocatedAttributeIds.includes(a)).length > 0
+    );
+  });
+};
+
+/* ========= MATCHERS ========= */
 
 const matchingAttributes = (
   eServiceAttributes: EServiceAttribute[][],
@@ -291,63 +319,46 @@ export const matchingVerifiedAttributes = (
   descriptor: Descriptor,
   consumer: Tenant
 ): VerifiedAgreementAttribute[] => {
-  const attributes = consumer.attributes
-    .filter(
-      (a) =>
-        a.type === tenantAttributeType.VERIFIED &&
-        a.verifiedBy.find((v) => v.id === eService.producerId)
+  const verifiedAttributes = filterVerifiedAttributes(
+    eService.producerId,
+    consumer
+  ).map((a) => a.id);
+
+  return matchingAttributes(
+    descriptor.attributes.verified,
+    verifiedAttributes
+  ).map((id) => ({
+    type: agreementAttributeType.VERIFIED,
+    id,
+  }));
+};
+
+/* ========= FILTERS ========= */
+
+export const filterVerifiedAttributes = (
+  producerId: string,
+  tenant: Tenant
+): VerifiedTenantAttribute[] =>
+  tenant.attributes.filter(
+    (att) =>
+      att.type === tenantAttributeType.VERIFIED &&
+      att.verifiedBy.find(
+        (v) =>
+          v.id === producerId &&
+          (!v.extensionDate || v.extensionDate > new Date())
+      )
+  ) as VerifiedTenantAttribute[];
+
+const notRevocatedTenantAttributesFilter = <
+  T extends RevocableTenantAttribute | NotRevocableTenantAttribute
+>(
+  att: T[]
+): ((a: T) => boolean) =>
+  match(att)
+    .with(
+      P.array({ revocationTimestamp: P.instanceOf(Date) }),
+      () =>
+        (a: RevocableTenantAttribute): boolean =>
+          !a.revocationTimestamp
     )
-    .map((a) => a.id);
-
-  return matchingAttributes(descriptor.attributes.verified, attributes).map(
-    (id) => ({
-      type: agreementAttributeType.VERIFIED,
-      id,
-    })
-  );
-};
-
-export const assertSubmittableState = (
-  state: AgreementState,
-  agreementId: string
-): void => {
-  if (state !== agreementState.draft) {
-    throw agreementNotInExpectedState(agreementId, state);
-  }
-};
-
-export const verifySubmissionConflictingAgreements = async (
-  agreement: Agreement,
-  agreementQuery: AgreementQuery
-): Promise<void> => {
-  const conflictingStates: AgreementState[] = [
-    agreementState.pending,
-    agreementState.missingCertifiedAttributes,
-  ];
-  await verifyConflictingAgreements(
-    agreement.consumerId,
-    agreement.eserviceId,
-    conflictingStates,
-    agreementQuery
-  );
-};
-
-export const validateSubmitOnDescriptor = async (
-  eservice: EService,
-  descriptorId: string
-): Promise<Descriptor> => {
-  const allowedStatus: DescriptorState[] = [
-    descriptorState.published,
-    descriptorState.suspended,
-  ];
-  return validateLatestDescriptor(eservice, descriptorId, allowedStatus);
-};
-
-export const validateActiveOrPendingAgreement = (
-  agreementId: string,
-  state: AgreementState
-): void => {
-  if (agreementState.active !== state && agreementState.pending !== state) {
-    throw agreementSubmissionFailed(agreementId);
-  }
-};
+    .otherwise(() => () => true);
