@@ -9,7 +9,11 @@ import {
 } from "pagopa-interop-commons";
 import { v4 as uuidv4 } from "uuid";
 import { IDatabase } from "pg-promise";
-import { Attribute } from "pagopa-interop-models";
+import {
+  Attribute,
+  AttributeAddedV1,
+  attributeKind,
+} from "pagopa-interop-models";
 import { config } from "../src/utilities/config.js";
 import {
   AttributeRegistryService,
@@ -20,10 +24,12 @@ import {
   readModelServiceBuilder,
 } from "../src/services/readModelService.js";
 import {
+  decode,
   getMockAttribute,
   writeAttributeInEventstore,
   writeAttributeInReadmodel,
 } from "./utils.js";
+import { toAttributeV1 } from "../src/model/domain/toEvent.js";
 
 describe("database test", () => {
   let attributes: AttributeCollection;
@@ -87,11 +93,11 @@ describe("database test", () => {
       it("should write on event-store for the creation of a declared attribute", async () => {
         const id = await attributeRegistryService.createDeclaredAttribute(
           {
-            name: "name",
-            description: "description",
+            name: mockAttribute.name,
+            description: mockAttribute.description,
           },
           {
-            organizationId: "organization-id",
+            organizationId: uuidv4(),
             externalId: {
               origin: "IPA",
               value: "123456",
@@ -102,13 +108,23 @@ describe("database test", () => {
         );
         expect(id).toBeDefined();
 
-        const writtenEvent = await postgresDB.one(
-          "SELECT * FROM attribute.events WHERE stream_id = $1",
-          [id]
-        );
+        const attribute: Attribute = {
+          ...mockAttribute,
+          id,
+          kind: attributeKind.declared,
+        };
+
+        const writtenEvent = await readLastEventByStreamId(id);
         expect(writtenEvent.stream_id).toBe(id);
         expect(writtenEvent.version).toBe("0");
         expect(writtenEvent.type).toBe("AttributeAdded");
+        const writtenPayload = decode({
+          messageType: AttributeAddedV1,
+          payload: writtenEvent.data,
+        });
+
+        expect(writtenPayload.attribute?.id).toBe(attribute.id);
+        // TO DO check entire payload
       });
       it("should not write on event-store if the attribute already exists", () => {
         // TO DO
@@ -134,10 +150,7 @@ describe("database test", () => {
         );
         expect(id).toBeDefined();
 
-        const writtenEvent = await postgresDB.one(
-          "SELECT * FROM attribute.events WHERE stream_id = $1",
-          [id]
-        );
+        const writtenEvent = await readLastEventByStreamId(id);
         expect(writtenEvent.stream_id).toBe(id);
         expect(writtenEvent.version).toBe("0");
         expect(writtenEvent.type).toBe("AttributeAdded");
@@ -369,12 +382,10 @@ describe("database test", () => {
     await writeAttributeInReadmodel(attribute, attributes);
   };
 
-  /*
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const readLastEventByStreamId = async (attributeId: string): Promise<any> =>
     await postgresDB.one(
       "SELECT * FROM attribute.events WHERE stream_id = $1 ORDER BY sequence_num DESC LIMIT 1",
       [attributeId]
     );
-  */
 });
