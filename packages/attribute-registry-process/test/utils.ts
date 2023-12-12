@@ -25,7 +25,7 @@ export const writeAttributeInEventstore = async (
   };
 
   await postgresDB.none(
-    "INSERT INTO catalog.events(stream_id, version, type, data) VALUES ($1, $2, $3, $4)",
+    "INSERT INTO attribute.events(stream_id, version, type, data) VALUES ($1, $2, $3, $4)",
     [
       eventToWrite.stream_id,
       eventToWrite.version,
