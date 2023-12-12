@@ -31,6 +31,7 @@ import {
   matchingCertifiedAttributes,
   matchingDeclaredAttributes,
   matchingVerifiedAttributes,
+  validateActiveOrPendingAgreement,
   validateSubmitOnDescriptor,
   verifySubmissionConflictingAgreements,
 } from "../model/domain/validators.js";
@@ -211,6 +212,8 @@ const submitAgreement = async (
           )
         )
       : [];
+
+  validateActiveOrPendingAgreement(agreement.id, newState);
 
   const createContractEvents: Array<CreateEvent<AgreementEvent>> =
     updatedAgreement.state === agreementState.active && agreements.length === 0

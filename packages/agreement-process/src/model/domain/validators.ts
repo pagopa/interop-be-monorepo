@@ -25,6 +25,7 @@ import {
   agreementAlreadyExists,
   agreementNotFound,
   agreementNotInExpectedState,
+  agreementSubmissionFailed,
   descriptorNotInExpectedState,
   missingCertifiedAttributesError,
   notLatestEServiceDescriptor,
@@ -338,4 +339,13 @@ export const validateSubmitOnDescriptor = async (
     descriptorState.suspended,
   ];
   return validateLatestDescriptor(eservice, descriptorId, allowedStatus);
+};
+
+export const validateActiveOrPendingAgreement = (
+  agreementId: string,
+  state: AgreementState
+): void => {
+  if (agreementState.active !== state && agreementState.pending !== state) {
+    throw agreementSubmissionFailed(agreementId);
+  }
 };
