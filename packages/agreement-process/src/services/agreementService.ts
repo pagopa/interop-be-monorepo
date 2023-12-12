@@ -61,12 +61,12 @@ import {
 } from "../model/types.js";
 import { config } from "../utilities/config.js";
 import { apiAgreementDocumentToAgreementDocument } from "../model/domain/apiConverter.js";
+import { AttributeQuery } from "./readmodel/attributeQuery.js";
+import { AgreementQueryFilters } from "./readmodel/readModelService.js";
 import { contractBuilder } from "./agreementContractBuilder.js";
 import { submitAgreementLogic } from "./agreementSubmissionProcessor.js";
 import { AgreementQuery } from "./readmodel/agreementQuery.js";
-import { AttributeQuery } from "./readmodel/attributeQuery.js";
 import { EserviceQuery } from "./readmodel/eserviceQuery.js";
-import { AgreementQueryFilters } from "./readmodel/readModelService.js";
 import { TenantQuery } from "./readmodel/tenantQuery.js";
 
 const fileManager = initFileManager(config);

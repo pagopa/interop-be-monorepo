@@ -15,6 +15,37 @@ export const AgreementState = z.enum([
 ]);
 export type AgreementState = z.infer<typeof AgreementState>;
 
+export const agreementActivableStates: AgreementState[] = [
+  agreementState.pending,
+  agreementState.suspended,
+];
+export const agreementSuspendableStates: AgreementState[] = [
+  agreementState.active,
+  agreementState.suspended,
+];
+export const agreementArchivableStates: AgreementState[] = [
+  agreementState.active,
+  agreementState.suspended,
+];
+export const agreementSubmittableStates: AgreementState[] = [
+  agreementState.draft,
+];
+export const agreementUpdateableStates: AgreementState[] = [
+  agreementState.draft,
+];
+export const agreementUpgradableStates: AgreementState[] = [
+  agreementState.active,
+  agreementState.suspended,
+];
+export const agreementRejectableStates: AgreementState[] = [
+  agreementState.pending,
+];
+
+export const agreementDeletableStates: AgreementState[] = [
+  agreementState.draft,
+  agreementState.missingCertifiedAttributes,
+];
+
 export const agreementAttributeType = {
   CERTIFIED: "Certified",
   VERIFIED: "Verified",
@@ -157,14 +188,4 @@ export type AgreementInvolvedAttributes = z.infer<
 
 export const agreementUpdatableStates: AgreementState[] = [
   agreementState.draft,
-];
-
-export const agreementUpgradableStates: AgreementState[] = [
-  agreementState.active,
-  agreementState.suspended,
-];
-
-export const agreementDeletableStates: AgreementState[] = [
-  agreementState.draft,
-  agreementState.missingCertifiedAttributes,
 ];

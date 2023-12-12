@@ -17,11 +17,13 @@ import {
   agreementState,
   descriptorState,
   tenantAttributeType,
+  agreementActivableStates,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { AgreementQuery } from "../../services/readmodel/agreementQuery.js";
 import { ApiAgreementPayload } from "../types.js";
 import {
+  agreementActivationFailed,
   agreementAlreadyExists,
   agreementNotFound,
   agreementNotInExpectedState,
@@ -122,6 +124,12 @@ export const assertCanWorkOnConsumerDocuments = (
 ): void => {
   if (state !== agreementState.draft && state !== agreementState.pending) {
     throw documentsChangeNotAllowed(state);
+  }
+};
+
+export const assertActivableState = (agreement: Agreement): void => {
+  if (!agreementActivableStates.includes(agreement.state)) {
+    throw agreementNotInExpectedState(agreement.id, agreement.state);
   }
 };
 
@@ -299,6 +307,46 @@ export const verifyConflictingAgreements = async (
   }
 };
 
+export const verifyConsumerDoesNotActivatePending = (
+  agreement: Agreement,
+  requesterId: string
+): void => {
+  const activationPendingAllowed =
+    agreement.state === agreementState.pending &&
+    agreement.consumerId === requesterId &&
+    agreement.producerId !== agreement.consumerId;
+  if (!activationPendingAllowed) {
+    throw operationNotAllowed(requesterId);
+  }
+};
+
+export const verifyAgreementActivation = (agreement: Agreement): void => {
+  const admittedStates: AgreementState[] = [
+    agreementState.pending,
+    agreementState.suspended,
+  ];
+  if (!admittedStates.includes(agreement.state)) {
+    throw agreementNotInExpectedState(agreement.id, agreement.state);
+  }
+};
+
+export const validateActivationOnDescriptor = (
+  eservice: EService,
+  descriptor: Descriptor
+): void => {
+  const allowedStatus: DescriptorState[] = [
+    descriptorState.published,
+    descriptorState.deprecated,
+    descriptorState.suspended,
+  ];
+  return validateDescriptorState(
+    eservice.id,
+    descriptor.id,
+    descriptor.state,
+    allowedStatus
+  );
+};
+
 const attributesSatisfied = <
   T extends RevocableTenantAttribute | NotRevocableTenantAttribute
 >(
@@ -411,3 +459,12 @@ const notRevocatedTenantAttributesFilter = <
           !a.revocationTimestamp
     )
     .otherwise(() => () => true);
+
+const failOnActivationFailure = (
+  newState: AgreementState,
+  agreement: Agreement
+): void => {
+  if (failureStates.includes(newState)) {
+    throw agreementActivationFailed(agreement.id);
+  }
+};

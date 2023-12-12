@@ -89,8 +89,17 @@ const agreementRouter = (
 
   agreementRouter.post(
     "/agreements/:agreementId/activate",
-    async (_req, res) => {
-      res.status(501).send();
+    authorizationMiddleware([ADMIN_ROLE]),
+    async (req, res) => {
+      try {
+        const agreement = await agreementService.activateAgreement(
+          req.params.agreementId
+        );
+        return res.status(200).json(agreementToApiAgreement(agreement)).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(error);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
     }
   );
 

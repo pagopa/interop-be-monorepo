@@ -1,11 +1,13 @@
 import {
   Agreement,
+  AgreementStamp,
   AgreementState,
   Descriptor,
   Tenant,
   agreementState,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
+import { utcToZonedTime } from "date-fns-tz";
 import {
   certifiedAttributesSatisfied,
   declaredAttributesSatisfied,
@@ -139,3 +141,53 @@ export const agreementStateByFlags = (
       () => agreementState.suspended
     )
     .otherwise(() => stateByAttribute);
+
+export const suspendedByPlatformFlag = (state: AgreementState): boolean =>
+  state === agreementState.suspended ||
+  state === agreementState.missingCertifiedAttributes;
+
+export const suspendedByConsumerFlag = (
+  agreement: Agreement,
+  requesterOrgId: string,
+  destinationState: AgreementState
+): boolean | undefined =>
+  requesterOrgId === agreement.consumerId
+    ? destinationState === agreementState.suspended
+    : agreement.suspendedByConsumer;
+
+export const suspendedByProducerFlag = (
+  agreement: Agreement,
+  requesterOrgId: string,
+  destinationState: AgreementState
+): boolean | undefined =>
+  requesterOrgId === agreement.producerId
+    ? destinationState === agreementState.suspended
+    : agreement.suspendedByProducer;
+
+export const suspendedByConsumerStamp = (
+  agreement: Agreement,
+  requesterOrgId: string,
+  destinationState: AgreementState,
+  userId: string
+): AgreementStamp | undefined =>
+  match([requesterOrgId, destinationState])
+    .with([agreement.consumerId, agreementState.suspended], () => ({
+      who: userId,
+      when: utcToZonedTime(new Date(), "Etc/UTC"),
+    }))
+    .with([agreement.consumerId, P.any], () => undefined)
+    .otherwise(() => agreement.stamps.suspensionByConsumer);
+
+export const suspendedByProducerStamp = (
+  agreement: Agreement,
+  requesterOrgId: string,
+  destinationState: AgreementState,
+  userId: string
+): AgreementStamp | undefined =>
+  match([requesterOrgId, destinationState])
+    .with([agreement.producerId, agreementState.suspended], () => ({
+      who: userId,
+      when: utcToZonedTime(new Date(), "Etc/UTC"),
+    }))
+    .with([agreement.producerId, P.any], () => undefined)
+    .otherwise(() => agreement.stamps.suspensionByProducer);

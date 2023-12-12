@@ -178,6 +178,16 @@ export function agreementSubmissionFailed(
   });
 }
 
+export function agreementActivationFailed(
+  agreementId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    code: "agreementActivationFailed",
+    title: "Unable to activate agreement",
+    detail: `Unable to activate agreement ${agreementId}. Please check if attributes requirements and suspension flags are satisfied`,
+  });
+}
+
 export function consumerWithNotValidEmail(
   agreementId: string,
   tenantId: string

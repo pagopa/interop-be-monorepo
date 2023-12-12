@@ -36,12 +36,16 @@ import {
   verifySubmissionConflictingAgreements,
 } from "../model/domain/validators.js";
 import { ApiAgreementSubmissionPayload } from "../model/types.js";
-import { agreementStateByFlags, nextState } from "./ageementStateProcessor.js";
+import {
+  agreementStateByFlags,
+  nextState,
+  suspendedByPlatformFlag,
+} from "./ageementStateProcessor.js";
+import { AgreementQuery } from "./readmodel/agreementQuery.js";
 import {
   ContractBuilder,
   addAgreementContractLogic,
 } from "./agreementContractBuilder.js";
-import { AgreementQuery } from "./readmodel/agreementQuery.js";
 import { EserviceQuery } from "./readmodel/eserviceQuery.js";
 import { TenantQuery } from "./readmodel/tenantQuery.js";
 
@@ -329,10 +333,6 @@ const getUpdateSeed = (
         consumerNotes: payload.consumerNotes,
         stamps,
       };
-
-const suspendedByPlatformFlag = (fsmState: AgreementState): boolean =>
-  fsmState === agreementState.suspended ||
-  fsmState === agreementState.missingCertifiedAttributes;
 
 const isActiveOrSuspended = (state: AgreementState): boolean =>
   state === agreementState.active || state === agreementState.suspended;
