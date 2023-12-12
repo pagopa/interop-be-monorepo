@@ -69,6 +69,26 @@ export const assertRequesterIsConsumer = (
   }
 };
 
+export function assertRequesterIsProducer(
+  requesterId: string,
+  agreement: Agreement
+): void {
+  if (agreement.producerId !== requesterId) {
+    throw operationNotAllowed(requesterId);
+  }
+}
+
+export const assertRequesterIsConsumerOrProducer = (
+  requesterId: string,
+  agreement: Agreement
+): void => {
+  try {
+    assertRequesterIsConsumer(requesterId, agreement.consumerId);
+  } catch (error) {
+    assertRequesterIsProducer(requesterId, agreement);
+  }
+};
+
 export const assertSubmittableState = (
   state: AgreementState,
   agreementId: string
@@ -96,6 +116,7 @@ export function assertTenantExist(
     throw tenantIdNotFound(tenantId);
   }
 }
+
 export const assertCanWorkOnConsumerDocuments = (
   state: AgreementState
 ): void => {

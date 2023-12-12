@@ -9,6 +9,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   Agreement,
+  AgreementDocument,
   AgreementEvent,
   ListResult,
   WithMetadata,
@@ -28,6 +29,7 @@ import {
   unexpectedVersionFormat,
   publishedDescriptorNotFound,
   agreementDocumentAlreadyExists,
+  agreementDocumentNotFound,
 } from "../model/domain/errors.js";
 
 import {
@@ -42,6 +44,7 @@ import {
   assertEServiceExist,
   assertExpectedState,
   assertRequesterIsConsumer,
+  assertRequesterIsConsumerOrProducer,
   assertTenantExist,
   declaredAttributesSatisfied,
   validateCertifiedAttributes,
@@ -192,6 +195,29 @@ export function agreementServiceBuilder(
         authData
       );
       return await repository.createEvent(addDocumentEvent);
+    },
+    async getAgreementConsumerDocument(
+      agreementId: string,
+      documentId: string
+    ): Promise<AgreementDocument> {
+      const { organizationId } = getContext().authData;
+
+      logger.info(
+        `Retrieving consumer document ${documentId} from agreement ${agreementId}`
+      );
+      const agreement = await agreementQuery.getAgreementById(agreementId);
+      assertAgreementExist(agreementId, agreement);
+      assertRequesterIsConsumerOrProducer(organizationId, agreement.data);
+
+      const document = agreement.data.consumerDocuments.find(
+        (d) => d.id === documentId
+      );
+
+      if (!document) {
+        throw agreementDocumentNotFound(documentId, agreementId);
+      }
+
+      return document;
     },
   };
 }
