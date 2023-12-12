@@ -1,5 +1,5 @@
 /* eslint-disable functional/no-let */
-import { beforeAll, afterEach, describe, expect, it } from "vitest";
+import { beforeAll, afterEach, describe, expect, it, beforeEach } from "vitest";
 import { GenericContainer } from "testcontainers";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import {
@@ -8,8 +8,8 @@ import {
   initDB,
 } from "pagopa-interop-commons";
 import { v4 as uuidv4 } from "uuid";
-import { Document } from "mongodb";
 import { IDatabase } from "pg-promise";
+import { Attribute } from "pagopa-interop-models";
 import { config } from "../src/utilities/config.js";
 import {
   AttributeRegistryService,
@@ -19,6 +19,11 @@ import {
   ReadModelService,
   readModelServiceBuilder,
 } from "../src/services/readModelService.js";
+import {
+  getMockAttribute,
+  writeAttributeInEventstore,
+  writeAttributeInReadmodel,
+} from "./utils.js";
 
 describe("database test", () => {
   let attributes: AttributeCollection;
@@ -74,6 +79,10 @@ describe("database test", () => {
   });
 
   describe("attributeRegistryService", () => {
+    let mockAttribute: Attribute;
+    beforeEach(() => {
+      mockAttribute = getMockAttribute();
+    });
     describe("declared attribute creation", () => {
       it("should write on event-store for the creation of a declared attribute", async () => {
         const id = await attributeRegistryService.createDeclaredAttribute(
@@ -159,17 +168,100 @@ describe("database test", () => {
 
     describe("readModelService", () => {
       describe("getAttributesByIds", () => {
-        it("should get the attributes if they exist", () => {
-          // TO DO
-          expect(1).toBe(1);
+        it("should get the attributes if they exist", async () => {
+          const attribute1 = {
+            ...mockAttribute,
+            id: uuidv4(),
+            name: "attribute 001",
+          };
+          await addOneAttribute(attribute1);
+
+          const attribute2 = {
+            ...mockAttribute,
+            id: uuidv4(),
+            name: "attribute 002",
+          };
+          await addOneAttribute(attribute2);
+
+          const attribute3 = {
+            ...mockAttribute,
+            id: uuidv4(),
+            name: "attribute 003",
+          };
+          await addOneAttribute(attribute3);
+
+          const attribute4 = {
+            ...mockAttribute,
+            id: uuidv4(),
+            name: "attribute 004",
+          };
+          await addOneAttribute(attribute4);
+
+          const attribute5 = {
+            ...mockAttribute,
+            id: uuidv4(),
+            name: "attribute 005",
+          };
+          await addOneAttribute(attribute5);
+
+          const attribute6 = {
+            ...mockAttribute,
+            id: uuidv4(),
+            name: "attribute 006",
+          };
+          await addOneAttribute(attribute6);
+
+          const result = await readModelService.getAttributesByIds({
+            ids: [attribute1.id, attribute2.id, attribute3.id],
+            offset: 0,
+            limit: 50,
+          });
+
+          expect(result.totalCount).toBe(3);
+          expect(result.results).toEqual([attribute1, attribute2, attribute3]);
         });
-        it("should not get the attributes if they don't exist", () => {
-          // TO DO
-          expect(1).toBe(1);
+        it("should not get the attributes if they don't exist", async () => {
+          const attribute1 = {
+            ...mockAttribute,
+            id: uuidv4(),
+            name: "attribute 001",
+          };
+          const result = await readModelService.getAttributesByIds({
+            ids: [attribute1.id],
+            offset: 0,
+            limit: 50,
+          });
+          expect(result.totalCount).toBe(0);
+          expect(result.results).toEqual([]);
         });
-        it("should not get any attributes if the requested ids list is empty", () => {
-          // TO DO
-          expect(1).toBe(1);
+        it("should not get any attributes if the requested ids list is empty", async () => {
+          const attribute1 = {
+            ...mockAttribute,
+            id: uuidv4(),
+            name: "attribute 001",
+          };
+          await addOneAttribute(attribute1);
+
+          const attribute2 = {
+            ...mockAttribute,
+            id: uuidv4(),
+            name: "attribute 002",
+          };
+          await addOneAttribute(attribute2);
+
+          const attribute3 = {
+            ...mockAttribute,
+            id: uuidv4(),
+            name: "attribute 003",
+          };
+          await addOneAttribute(attribute3);
+          const result = await readModelService.getAttributesByIds({
+            ids: [],
+            offset: 0,
+            limit: 50,
+          });
+          expect(result.totalCount).toBe(0);
+          expect(result.results).toEqual([]);
         });
       });
       describe("getAttributesByKindsNameOrigin", () => {
@@ -200,11 +292,31 @@ describe("database test", () => {
       });
       describe("get an attribute by id", () => {
         it("should get the attribute if it exists", async () => {
-          const id = uuidv4();
-          await addOneAttribute(id);
-          const attribute = await readModelService.getAttributeById(id);
-          expect(attribute?.data.name).toBe("name");
-          expect(attribute?.data.description).toBe("description");
+          const expectedAttribute1 = {
+            ...mockAttribute,
+            id: uuidv4(),
+            name: "attribute 001",
+          };
+          await addOneAttribute(expectedAttribute1);
+
+          const expectedAttribute2 = {
+            ...mockAttribute,
+            id: uuidv4(),
+            name: "attribute 002",
+          };
+          await addOneAttribute(expectedAttribute2);
+
+          const expectedAttribute3 = {
+            ...mockAttribute,
+            id: uuidv4(),
+            name: "attribute 003",
+          };
+          await addOneAttribute(expectedAttribute3);
+
+          const attribute = await readModelService.getAttributeById(
+            expectedAttribute1.id
+          );
+          expect(attribute?.data).toEqual(expectedAttribute1);
         });
         it("should not get the attribute if it doesn't exist", async () => {
           const id = uuidv4();
@@ -214,11 +326,12 @@ describe("database test", () => {
       });
       describe("get an attribute by name", () => {
         it("should get the attribute if it exists", async () => {
-          const id = uuidv4();
-          await addOneAttribute(id);
-          const attribute = await readModelService.getAttributeByName("name");
-          expect(attribute?.data.name).toBe("name");
-          expect(attribute?.data.description).toBe("description");
+          const expectedAttribute = mockAttribute;
+          await addOneAttribute(expectedAttribute);
+          const attribute = await readModelService.getAttributeByName(
+            expectedAttribute.name
+          );
+          expect(attribute?.data).toEqual(expectedAttribute);
         });
         it("should not get the attribute if it doesn't exist", async () => {
           const attribute = await readModelService.getAttributeByName("name");
@@ -227,30 +340,41 @@ describe("database test", () => {
       });
       describe("getAttributeByOriginAndCode", () => {
         it("should get the attribute if it exists", async () => {
-          // TO DO
-          expect(1).toBe(1);
+          const expectedAttribute = {
+            ...mockAttribute,
+            origin: "IPA",
+            code: "123456",
+          };
+
+          await addOneAttribute(expectedAttribute);
+          const attribute = await readModelService.getAttributeByOriginAndCode({
+            origin: expectedAttribute.origin,
+            code: expectedAttribute.code,
+          });
+          expect(attribute?.data).toEqual(expectedAttribute);
         });
         it("should not get the attribute if it doesn't exist", async () => {
-          // TO DO
-          expect(1).toBe(1);
+          const attribute = await readModelService.getAttributeByOriginAndCode({
+            origin: "IPA",
+            code: "123456",
+          });
+          expect(attribute).toBeUndefined();
         });
       });
     });
   });
 
-  const addOneAttribute = (id: string): Promise<Document> =>
-    attributes.insertOne({
-      data: {
-        id,
-        name: "name",
-        kind: "Certified",
-        description: "description",
-        creationTime: new Date(),
-        code: undefined,
-        origin: undefined,
-      },
-      metadata: {
-        version: 0,
-      },
-    });
+  const addOneAttribute = async (attribute: Attribute): Promise<void> => {
+    await writeAttributeInEventstore(attribute, postgresDB);
+    await writeAttributeInReadmodel(attribute, attributes);
+  };
+
+  /*
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const readLastEventByStreamId = async (attributeId: string): Promise<any> =>
+    await postgresDB.one(
+      "SELECT * FROM attribute.events WHERE stream_id = $1 ORDER BY sequence_num DESC LIMIT 1",
+      [attributeId]
+    );
+  */
 });
