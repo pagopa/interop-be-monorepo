@@ -19,8 +19,8 @@ import {
   tenantAttributeType,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
-import { ApiAgreementPayload } from "../types.js";
 import { AgreementQuery } from "../../services/readmodel/agreementQuery.js";
+import { ApiAgreementPayload } from "../types.js";
 import {
   agreementAlreadyExists,
   agreementNotFound,
@@ -222,16 +222,18 @@ export const verifiedAttributesSatisfied = (
   tenant: Tenant
 ): boolean => {
   const verifiedAttributes = tenant.attributes.filter(
-    (e) => e.type === tenantAttributeType.DECLARED
+    (e) => e.type === tenantAttributeType.VERIFIED
   ) as VerifiedTenantAttribute[];
 
   const producersAttributesNotExpired = verifiedAttributes.filter(
-    (a): boolean =>
-      !!a.verifiedBy.find(
-        (v) =>
-          v.id === agreement.producerId &&
-          (!v.extensionDate || v.extensionDate > new Date())
-      )
+    (a: VerifiedTenantAttribute) =>
+      a
+        ? a.verifiedBy.find(
+            (v) =>
+              v.id === agreement.producerId &&
+              (!v.extensionDate || v.extensionDate > new Date())
+          )
+        : false
   );
 
   return attributesSatisfied(

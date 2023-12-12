@@ -29,12 +29,6 @@ import {
   ApiAgreementUpdatePayload,
 } from "../model/types.js";
 import { config } from "../utilities/config.js";
-import { submitAgreementLogic } from "./agreementSubmissionProcessor.js";
-import { AgreementQuery } from "./readmodel/agreementQuery.js";
-import { AttributeQuery } from "./readmodel/attributeQuery.js";
-import { EserviceQuery } from "./readmodel/eserviceQuery.js";
-import { AgreementQueryFilters } from "./readmodel/readModelService.js";
-import { TenantQuery } from "./readmodel/tenantQuery.js";
 import {
   assertAgreementExist,
   assertExpectedState,
@@ -42,7 +36,13 @@ import {
   validateCertifiedAttributes,
   validateCreationOnDescriptor,
   verifyCreationConflictingAgreements,
-} from "./validators.js";
+} from "../model/domain/validators.js";
+import { submitAgreementLogic } from "./agreementSubmissionProcessor.js";
+import { AgreementQuery } from "./readmodel/agreementQuery.js";
+import { AttributeQuery } from "./readmodel/attributeQuery.js";
+import { EserviceQuery } from "./readmodel/eserviceQuery.js";
+import { AgreementQueryFilters } from "./readmodel/readModelService.js";
+import { TenantQuery } from "./readmodel/tenantQuery.js";
 import { contractBuilder } from "./agreementContractBuilder.js";
 
 const fileManager = initFileManager(config);
