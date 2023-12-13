@@ -215,6 +215,13 @@ const submitAgreement = async (
 
   validateActiveOrPendingAgreement(agreement.id, newState);
 
+  /* 
+    NOTE (@Viktor-K)
+    The 'createContractEvents' array contains events related to contract creation or updates to the same agreement (identified by the same stream ID) 
+    as the previous events collected in 'updatedAgreementEvent.'
+    To ensure proper event versioning progression, we need to manually increment the version by '+1.' 
+    This incrementation should reflect the next expected version at the moment when the 'create-contract-event' was processed, not when it was initially created."
+    */
   const createContractEvents: Array<CreateEvent<AgreementEvent>> =
     updatedAgreement.state === agreementState.active && agreements.length === 0
       ? [
