@@ -83,7 +83,7 @@ export const writeTenantInReadmodel = async (
   });
 };
 
-export const buildAuthData = (organizationId?: string): AuthData => ({
+export const getMockAuthData = (organizationId?: string): AuthData => ({
   organizationId: organizationId || uuidv4(),
   userId: uuidv4(),
   userRoles: [],
