@@ -231,7 +231,7 @@ describe("database test", async () => {
         ).rejects.toThrowError(operationForbidden);
       });
 
-      it("should throw eServiceCannotBeUpdated if the eService's descriptor is not in draft", async () => {
+      it("should throw eServiceCannotBeUpdated if the eService's descriptor is not in draft state", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.published,
@@ -587,7 +587,7 @@ describe("database test", async () => {
         ).rejects.toThrowError(operationForbidden);
       });
 
-      it("should throw notValidDescriptor if the descriptor is published state", async () => {
+      it("should throw notValidDescriptor if the descriptor is in published state", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.published,
