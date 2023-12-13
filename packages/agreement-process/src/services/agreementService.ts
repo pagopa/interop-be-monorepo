@@ -526,16 +526,27 @@ export async function upgradeAgreementLogic({
 export async function cloneAgreementLogics({
   agreementId,
   authData,
-  agreementToBeCloned,
-  tenant,
-  getEService,
+  agreementQuery,
+  tenantQuery,
+  eserviceQuery,
+  fileCopy,
 }: {
   agreementId: string;
   authData: AuthData;
-  agreementToBeCloned: WithMetadata<Agreement> | undefined;
-  tenant: () => Promise<WithMetadata<Tenant> | undefined>;
-  getEService: () => Promise<WithMetadata<EService> | undefined>;
-}): Promise<CreateEvent<AgreementEvent>> {
+  agreementQuery: AgreementQuery;
+  tenantQuery: TenantQuery;
+  eserviceQuery: EserviceQuery;
+  fileCopy: (
+    container: string,
+    sourcePath: string,
+    destinationPath: string,
+    destinationFileName: string,
+    docName: string
+  ) => Promise<string>;
+}): Promise<Array<CreateEvent<AgreementEvent>>> {
+  const agreementToBeCloned = await agreementQuery.getAgreementById(
+    agreementId
+  );
   assertAgreementExist(agreementId, agreementToBeCloned);
   assertRequesterIsConsumer(
     authData.organizationId,
@@ -546,10 +557,14 @@ export async function cloneAgreementLogics({
     agreementState.rejected,
   ]);
 
-  const eservice = await getEService();
+  const eservice = await eserviceQuery.getEServiceById(
+    agreementToBeCloned.data.eserviceId
+  );
   assertEServiceExist(agreementToBeCloned.data.eserviceId, eservice);
 
-  const consumer = await tenant();
+  const consumer = await tenantQuery.getTenantById(
+    agreementToBeCloned.data.consumerId
+  );
   assertTenantExist(agreementToBeCloned.data.consumerId, consumer);
 
   const descriptor = eservice.data.descriptors.find(
@@ -570,21 +585,17 @@ export async function cloneAgreementLogics({
       descriptorId: agreementToBeCloned.data.descriptorId,
     },
     authData,
-    consumer,
-    eservice
+    agreementQuery,
+    eserviceQuery,
+    tenantQuery
   );
 
-  for (const doc of agreementToBeCloned.data.consumerDocuments) {
-    await fileManager.copy(
-      config.storageContainer,
-      `${config.consumerDocumentsPath}/${newAgreement.streamId}`,
-      doc.path,
-      uuidv4(),
-      doc.name
-    );
-  }
+  const docEvents = await createAndCopyDocumentsForClonedAgreement(
+    newAgreement.streamId,
+    agreementToBeCloned.data,
+    0,
+    fileCopy
+  );
 
-  // todo add consumer document
-
-  return newAgreement;
+  return [newAgreement, ...docEvents];
 }
