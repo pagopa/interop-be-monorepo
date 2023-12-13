@@ -31,6 +31,7 @@ import {
   missingCertifiedAttributesError,
   notLatestEServiceDescriptor,
   operationNotAllowed,
+  tenantIdNotFound,
 } from "./errors.js";
 
 type NotRevocableTenantAttribute = Pick<VerifiedTenantAttribute, "id">;
@@ -252,7 +253,7 @@ export const verifiedAttributesSatisfied = (
   );
 };
 
-const verifyConflictingAgreements = async (
+export const verifyConflictingAgreements = async (
   consumerId: string,
   eserviceId: string,
   conflictingStates: AgreementState[],
