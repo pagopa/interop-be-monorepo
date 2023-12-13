@@ -30,6 +30,12 @@ jobs:
           - image_name: catalog-consumer
             dockerfile_path: packages/catalog-consumer
             k8s_path: packages/catalog-consumer/kubernetes/dev
+          - image_name: agreement-process
+            dockerfile_path: packages/agreement-process
+            k8s_path: packages/agreement-process/kubernetes/dev
+          - image_name: agreement-consumer
+            dockerfile_path: packages/agreement-consumer
+            k8s_path: packages/agreement-consumer/kubernetes/dev
 
     steps:
       - name: Checkout repository
