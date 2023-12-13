@@ -78,7 +78,7 @@ export async function submitAgreementLogic(
     await eserviceQuery.getEServiceById(agreement.data.eserviceId)
   )?.data;
   if (!eservice) {
-    throw eServiceNotFound(500, agreement.data.eserviceId);
+    throw eServiceNotFound(agreement.data.eserviceId);
   }
 
   const descriptor = await validateSubmitOnDescriptor(
@@ -90,7 +90,7 @@ export async function submitAgreementLogic(
     ?.data;
 
   if (!consumer) {
-    throw tenantIdNotFound(500, agreement.data.consumerId);
+    throw tenantIdNotFound(agreement.data.consumerId);
   }
 
   return await submitAgreement(
@@ -256,7 +256,7 @@ const createContract = async (
   const producer = await tenantQuery.getTenantById(agreement.producerId);
 
   if (!producer?.data) {
-    throw tenantIdNotFound(500, agreement.producerId);
+    throw tenantIdNotFound(agreement.producerId);
   }
 
   const agreementdocumentSeed = {
