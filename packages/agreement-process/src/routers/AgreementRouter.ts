@@ -8,20 +8,25 @@ import {
   initDB,
   ReadModelRepository,
 } from "pagopa-interop-commons";
-import { makeApiProblem } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
 import {
   agreementToApiAgreement,
   apiAgreementStateToAgreementState,
 } from "../model/domain/apiConverter.js";
 import { config } from "../utilities/config.js";
-import { agreementNotFound } from "../model/domain/errors.js";
 import { agreementServiceBuilder } from "../services/agreementService.js";
 import { agreementQueryBuilder } from "../services/readmodel/agreementQuery.js";
 import { tenantQueryBuilder } from "../services/readmodel/tenantQuery.js";
 import { eserviceQueryBuilder } from "../services/readmodel/eserviceQuery.js";
 import { attributeQueryBuilder } from "../services/readmodel/attributeQuery.js";
 import { readModelServiceBuilder } from "../services/readmodel/readModelService.js";
+import { agreementNotFound, makeApiProblem } from "../model/domain/errors.js";
+import {
+  createAgreementErrorMapper,
+  deleteAgreementErrorMapper,
+  submitAgreementErrorMapper,
+  updateAgreementErrorMapper,
+} from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
@@ -72,7 +77,7 @@ const agreementRouter = (
         );
         return res.status(200).json({ id }).end();
       } catch (error) {
-        const errorRes = makeApiProblem(error);
+        const errorRes = makeApiProblem(error, submitAgreementErrorMapper);
         return res.status(errorRes.status).json(errorRes).end();
       }
     }
@@ -135,7 +140,7 @@ const agreementRouter = (
         );
         return res.status(200).json({ id }).send();
       } catch (error) {
-        const errorRes = makeApiProblem(error);
+        const errorRes = makeApiProblem(error, createAgreementErrorMapper);
         return res.status(errorRes.status).json(errorRes).end();
       }
     }
@@ -175,7 +180,7 @@ const agreementRouter = (
           })
           .end();
       } catch (error) {
-        const errorRes = makeApiProblem(error);
+        const errorRes = makeApiProblem(error, () => 500);
         return res.status(errorRes.status).json(errorRes).end();
       }
     }
@@ -212,11 +217,16 @@ const agreementRouter = (
         } else {
           return res
             .status(404)
-            .json(makeApiProblem(agreementNotFound(req.params.agreementId)))
+            .json(
+              makeApiProblem(
+                agreementNotFound(req.params.agreementId),
+                () => 404
+              )
+            )
             .send();
         }
       } catch (error) {
-        const errorRes = makeApiProblem(error);
+        const errorRes = makeApiProblem(error, () => 500);
         return res.status(errorRes.status).json(errorRes).end();
       }
     }
@@ -233,7 +243,7 @@ const agreementRouter = (
         );
         return res.status(204).send();
       } catch (error) {
-        const errorRes = makeApiProblem(error);
+        const errorRes = makeApiProblem(error, deleteAgreementErrorMapper);
         return res.status(errorRes.status).json(errorRes).end();
       }
     }
@@ -252,7 +262,7 @@ const agreementRouter = (
 
         return res.status(200).send();
       } catch (error) {
-        const errorRes = makeApiProblem(error);
+        const errorRes = makeApiProblem(error, updateAgreementErrorMapper);
         return res.status(errorRes.status).json(errorRes).end();
       }
     }

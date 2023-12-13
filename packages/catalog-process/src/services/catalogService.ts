@@ -57,6 +57,7 @@ import {
   eServiceDuplicate,
   notValidDescriptor,
   eServiceNotFound,
+  eServiceDescriptorWithoutInterface,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -864,6 +865,10 @@ export function publishDescriptorLogic({
   const descriptor = retrieveDescriptor(descriptorId, eService);
   if (descriptor.state !== descriptorState.draft) {
     throw notValidDescriptor(descriptor.id, descriptor.state.toString());
+  }
+
+  if (descriptor.interface === undefined) {
+    throw eServiceDescriptorWithoutInterface(descriptor.id);
   }
 
   const currentActiveDescriptor = eService.data.descriptors.find(
