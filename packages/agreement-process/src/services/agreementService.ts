@@ -16,14 +16,14 @@ import {
   WithMetadata,
   agreementEventToBinaryData,
   agreementState,
-  Tenant,
-  EService,
   descriptorState,
   AgreementStamp,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import {
   descriptorNotFound,
+  missingCertifiedAttributesError,
+  noNewerDescriptor,
   unexpectedVersionFormat,
 } from "../model/domain/errors.js";
 import {
@@ -154,20 +154,13 @@ export function agreementServiceBuilder(
       agreementId: string,
       authData: AuthData
     ): Promise<void> {
-      const agreement = await agreementQuery.getAgreementById(agreementId);
-      const tenant = agreement
-        ? await tenantQuery.getTenantById(agreement.data.consumerId)
-        : undefined;
-      const eservice = agreement
-        ? await eserviceQuery.getEServiceById(agreement.data.eserviceId)
-        : undefined;
-
+      logger.info("Upgrading agreement");
       const events = await upgradeAgreementLogic({
         agreementId,
         authData,
-        agreementToBeUpgraded: agreement,
-        tenant,
-        eservice,
+        agreementQuery,
+        eserviceQuery,
+        tenantQuery,
       });
 
       for (const event of events) {
@@ -311,16 +304,20 @@ export async function updateAgreementLogic({
 export async function upgradeAgreementLogic({
   agreementId,
   authData,
-  agreementToBeUpgraded,
-  tenant,
-  getEService,
+  agreementQuery,
+  eserviceQuery,
+  tenantQuery,
 }: {
   agreementId: string;
   authData: AuthData;
-  agreementToBeUpgraded: WithMetadata<Agreement> | undefined;
-  tenant: WithMetadata<Tenant> | undefined;
-  getEService: () => Promise<WithMetadata<EService> | undefined>;
+  agreementQuery: AgreementQuery;
+  eserviceQuery: EserviceQuery;
+  tenantQuery: TenantQuery;
 }): Promise<Array<CreateEvent<AgreementEvent>>> {
+  const agreementToBeUpgraded = await agreementQuery.getAgreementById(
+    agreementId
+  );
+  const tenant = await tenantQuery.getTenantById(authData.organizationId);
   assertTenantExist(authData.organizationId, tenant);
   assertAgreementExist(agreementId, agreementToBeUpgraded);
   assertRequesterIsConsumer(
@@ -339,7 +336,9 @@ export async function upgradeAgreementLogic({
     upgradableStates
   );
 
-  const eservice = await getEService();
+  const eservice = await eserviceQuery.getEServiceById(
+    agreementToBeUpgraded.data.eserviceId
+  );
   assertEServiceExist(agreementToBeUpgraded.data.eserviceId, eservice);
 
   const newDescriptor = eservice.data.descriptors.find(
@@ -472,6 +471,7 @@ export async function upgradeAgreementLogic({
   } else {
     // createNewDraftAgreement
     await verifyConflictingAgreements(
+      agreementQuery,
       agreementToBeUpgraded.data.consumerId,
       agreementToBeUpgraded.data.eserviceId,
       [agreementState.draft]
@@ -482,8 +482,9 @@ export async function upgradeAgreementLogic({
         descriptorId: newDescriptor.id,
       },
       authData,
-      tenant,
-      eservice
+      agreementQuery,
+      eserviceQuery,
+      tenantQuery
     );
 
     for (const doc of agreementToBeUpgraded.data.consumerDocuments) {
