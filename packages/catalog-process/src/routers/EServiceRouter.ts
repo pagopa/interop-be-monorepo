@@ -6,6 +6,8 @@ import {
   userRoles,
   ZodiosContext,
   authorizationMiddleware,
+  ReadModelRepository,
+  initDB,
 } from "pagopa-interop-commons";
 import {
   agreementStateToApiAgreementState,
@@ -23,8 +25,22 @@ import {
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { catalogServiceBuilder } from "../services/catalogService.js";
 
-const readModelService = readModelServiceBuilder(config);
-const catalogService = catalogServiceBuilder(config, readModelService);
+const readModelService = readModelServiceBuilder(
+  ReadModelRepository.init(config)
+);
+
+const catalogService = catalogServiceBuilder(
+  initDB({
+    username: config.eventStoreDbUsername,
+    password: config.eventStoreDbPassword,
+    host: config.eventStoreDbHost,
+    port: config.eventStoreDbPort,
+    database: config.eventStoreDbName,
+    schema: config.eventStoreDbSchema,
+    useSSL: config.eventStoreDbUseSSL,
+  }),
+  readModelService
+);
 
 const eservicesRouter = (
   ctx: ZodiosContext

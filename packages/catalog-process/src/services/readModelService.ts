@@ -20,11 +20,11 @@ import {
 import { match } from "ts-pattern";
 import { z } from "zod";
 import { Consumer, consumer } from "../model/domain/models.js";
-import { CatalogProcessConfig } from "../utilities/config.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function readModelServiceBuilder(config: CatalogProcessConfig) {
-  const readModelRepository = ReadModelRepository.init(config);
+export function readModelServiceBuilder(
+  readModelRepository: ReadModelRepository
+) {
   const eservices = readModelRepository.eservices;
   const agreements = readModelRepository.agreements;
   return {
