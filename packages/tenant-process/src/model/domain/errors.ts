@@ -7,6 +7,9 @@ const errorCodes = {
   tenantNotFound: "0004",
   eServiceNotFound: "0005",
   tenantBySelfcateIdNotFound: "0006",
+  VerifiedAttributeNotFoundInTenant: "0007",
+  OrganizationNotFoundInVerifiers: "0008",
+  ExpirationDateNotFoundInVerifier: "0009",
 };
 
 export function attributeNotFound(identifier: string): ApiError {
@@ -60,5 +63,43 @@ export function tenantBySelfcateIdNotFound(selfcareId: string): ApiError {
     code: errorCodes.tenantBySelfcateIdNotFound,
     httpStatus: 404,
     title: "Tenant with selfcareId not found",
+  });
+}
+
+export function VerifiedAttributeNotFoundInTenant(
+  attributeId: string,
+  tenantId: string
+): ApiError {
+  return new ApiError({
+    detail: `Verified Attribute ${attributeId} not found in tenant ${tenantId}`,
+    code: errorCodes.VerifiedAttributeNotFoundInTenant,
+    httpStatus: 404,
+    title: "Verified Attribute not found",
+  });
+}
+
+export function OrganizationNotFoundInVerifiers(
+  requesterId: string,
+  attributeId: string,
+  tenantId: string
+): ApiError {
+  return new ApiError({
+    detail: `Organization ${requesterId} not found in verifier for Tenant ${tenantId} and attribute ${attributeId}`,
+    code: errorCodes.OrganizationNotFoundInVerifiers,
+    httpStatus: 404,
+    title: "Organization not found in verifier",
+  });
+}
+
+export function ExpirationDateNotFoundInVerifier(
+  verifierId: string,
+  attributeId: string,
+  tenantId: string
+): ApiError {
+  return new ApiError({
+    detail: `ExpirationDate not found in verifier ${verifierId} for Tenant ${tenantId} and attribute ${attributeId}`,
+    code: errorCodes.ExpirationDateNotFoundInVerifier,
+    httpStatus: 404,
+    title: "ExpirationDate not found in verifier",
   });
 }

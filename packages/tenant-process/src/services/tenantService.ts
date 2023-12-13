@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { CreateEvent, eventRepository, initDB } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -8,6 +10,8 @@ import {
   TenantFeature,
   TenantKind,
   TenantMail,
+  TenantVerifier,
+  VerifiedTenantAttribute,
   WithMetadata,
   tenantAttributeType,
   tenantEventToBinaryData,
@@ -24,6 +28,9 @@ import {
   ApiSelfcareTenantSeed,
 } from "../model/types.js";
 import {
+  ExpirationDateNotFoundInVerifier,
+  OrganizationNotFoundInVerifiers,
+  VerifiedAttributeNotFoundInTenant,
   invalidAttributeStructure,
   tenantDuplicate,
 } from "../model/domain/errors.js";
@@ -84,6 +91,22 @@ export function tenantServiceBuilder(
           tenantId,
           attributeId,
           newAttribute,
+        })
+      );
+    },
+    async updateVerifiedAttributeExtensionDate(
+      tenantId: string,
+      attributeId: string,
+      verifierId: string
+    ): Promise<string> {
+      const tenant = await readModelService.getTenantById(tenantId);
+
+      return await repository.createEvent(
+        await updateVerifiedAttributeExtensionDateLogic({
+          tenantId,
+          attributeId,
+          verifierId,
+          tenant,
         })
       );
     },
@@ -189,4 +212,76 @@ export function createTenantLogic({
   };
 
   return toCreateEventTenantAdded(newTenant);
+}
+
+export async function updateVerifiedAttributeExtensionDateLogic({
+  tenantId,
+  attributeId,
+  verifierId,
+  tenant,
+}: {
+  tenantId: string;
+  attributeId: string;
+  verifierId: string;
+  tenant: WithMetadata<Tenant> | undefined;
+}): Promise<CreateEvent<TenantEvent>> {
+  assertTenantExists(tenantId, tenant);
+
+  const verifiedTenantAttribute = tenant.data.attributes.find(
+    (attr) => attr.id === attributeId && attr.type === "verified"
+  ) as VerifiedTenantAttribute;
+
+  if (!verifiedTenantAttribute) {
+    VerifiedAttributeNotFoundInTenant(tenantId, attributeId);
+  }
+
+  const tenantVerifier = verifiedTenantAttribute.verifiedBy.find(
+    (verifier) => verifier.id === verifierId
+  );
+
+  if (!tenantVerifier) {
+    OrganizationNotFoundInVerifiers(verifierId, tenantId, attributeId);
+  }
+
+  if (!tenantVerifier?.expirationDate) {
+    ExpirationDateNotFoundInVerifier(tenantId, attributeId, verifierId);
+  }
+
+  const extensionDate =
+    tenantVerifier?.extensionDate ?? tenantVerifier?.expirationDate;
+
+  const updatedVerifiedBy: TenantVerifier[] =
+    verifiedTenantAttribute.verifiedBy.map((verifier) => {
+      if (verifier.id === tenantVerifier?.id) {
+        return {
+          ...tenantVerifier,
+          extensionDate,
+        };
+      }
+      return verifier;
+    });
+
+  const updatedVerifiedAttribute: VerifiedTenantAttribute = {
+    ...verifiedTenantAttribute,
+    verifiedBy: updatedVerifiedBy,
+  };
+
+  const updatedAttributes: TenantAttribute[] = tenant.data.attributes.map(
+    (attr) => {
+      if (attr.id === updatedVerifiedAttribute.id) {
+        return updatedVerifiedAttribute;
+      }
+      return attr;
+    }
+  );
+  const newTenant: Tenant = {
+    ...tenant.data,
+    attributes: updatedAttributes,
+  };
+
+  return toCreateEventTenantUpdated(
+    tenant.data.id,
+    tenant.metadata.version,
+    newTenant
+  );
 }
