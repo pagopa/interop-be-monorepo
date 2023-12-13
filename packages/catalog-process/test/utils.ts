@@ -109,21 +109,6 @@ export const buildDescriptorSeed = (
   },
 });
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export const ids = () => ({
-  eServiceId: uuidv4(),
-  eServiceId2: uuidv4(),
-  eServiceId3: uuidv4(),
-  eServiceId4: uuidv4(),
-  eServiceId5: uuidv4(),
-  eServiceId6: uuidv4(),
-  organizationId: uuidv4(),
-  organizationId2: uuidv4(),
-  descriptorId: uuidv4(),
-  requesterId: uuidv4(),
-  tenantId: uuidv4(),
-});
-
 export const getMockEService = (): EService => ({
   id: uuidv4(),
   name: "eService name",
@@ -132,10 +117,11 @@ export const getMockEService = (): EService => ({
   producerId: uuidv4(),
   technology: technology.rest,
   descriptors: [],
+  attributes: undefined,
 });
 
-export const getMockDescriptor = (id?: string): Descriptor => ({
-  id: id || uuidv4(),
+export const getMockDescriptor = (): Descriptor => ({
+  id: uuidv4(),
   version: "0",
   docs: [],
   state: descriptorState.draft,
@@ -153,9 +139,9 @@ export const getMockDescriptor = (id?: string): Descriptor => ({
   },
 });
 
-export const getMockTenant = (tenantId: string): Tenant => ({
+export const getMockTenant = (): Tenant => ({
   name: "A tenant",
-  id: tenantId,
+  id: uuidv4(),
   createdAt: new Date(),
   attributes: [],
   externalId: {

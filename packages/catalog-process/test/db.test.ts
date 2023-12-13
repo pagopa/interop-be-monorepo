@@ -1,6 +1,6 @@
 /* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeAll, describe, expect, it } from "vitest";
 import {
   AgreementCollection,
   EServiceCollection,
@@ -22,6 +22,7 @@ import {
   descriptorState,
   operationForbidden,
 } from "pagopa-interop-models";
+import { v4 as uuidv4 } from "uuid";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import { GenericContainer } from "testcontainers";
 import { config } from "../src/utilities/config.js";
@@ -51,12 +52,15 @@ import {
   getMockDescriptor,
   getMockEService,
   getMockTenant,
-  ids,
   writeAgreementInReadmodel,
   writeEServiceInEventstore,
   writeEServiceInReadmodel,
   writeTenantInReadmodel,
 } from "./utils.js";
+
+const mockEService = getMockEService();
+const mockDescriptor = getMockDescriptor();
+const mockAuthData = buildAuthData(mockEService.producerId);
 
 describe("database test", async () => {
   let eservices: EServiceCollection;
@@ -120,28 +124,16 @@ describe("database test", async () => {
   });
 
   describe("Catalog service", () => {
-    let mockEService: EService;
-    beforeEach(() => {
-      mockEService = getMockEService();
-    });
     describe("create eService", () => {
       it("should write on event-store for the creation of an eService", async () => {
-        const { organizationId } = ids();
         const id = await catalogService.createEService(
           {
             name: mockEService.name,
             description: mockEService.description,
             technology: "REST",
           },
-          buildAuthData(organizationId)
+          mockAuthData
         );
-
-        const eService: EService = {
-          ...mockEService,
-          id,
-          technology: "Rest",
-          producerId: organizationId,
-        };
 
         expect(id).toBeDefined();
         const writtenEvent = await readLastEventByStreamId(id);
@@ -152,75 +144,65 @@ describe("database test", async () => {
           messageType: EServiceAddedV1,
           payload: writtenEvent.data,
         });
-        const expectedEServiceV1 = toEServiceV1(eService);
-        expect(writtenPayload.eService?.name).toBe(expectedEServiceV1.name);
-        expect(writtenPayload.eService?.description).toBe(
-          expectedEServiceV1.description
-        );
-        expect(writtenPayload.eService?.technology).toBe(
-          expectedEServiceV1.technology
-        );
-        expect(writtenPayload.eService?.producerId).toBe(organizationId);
-      });
-      it("should throw eServiceDuplicate if the eService already exists", async () => {
-        const { eServiceId, organizationId } = ids();
+
         const eService: EService = {
           ...mockEService,
-          id: eServiceId,
-          producerId: organizationId,
+          createdAt: new Date(Number(writtenPayload.eService?.createdAt)),
+          id,
+          producerId: mockAuthData.organizationId,
         };
-        await addOneEService(eService);
+
+        expect(writtenPayload.eService).toEqual(toEServiceV1(eService));
+      });
+
+      it("should throw eServiceDuplicate if the eService already exists", async () => {
+        await addOneEService(mockEService);
         expect(
           catalogService.createEService(
             {
-              name: eService.name,
-              description: eService.description,
+              name: mockEService.name,
+              description: mockEService.description,
               technology: "REST",
             },
-            buildAuthData(organizationId)
+            mockAuthData
           )
-        ).rejects.toThrowError(eServiceDuplicate(eService.name));
+        ).rejects.toThrowError(eServiceDuplicate(mockEService.name));
       });
     });
 
     describe("update eService", () => {
       it("should write on event-store for the update of an eService", async () => {
-        const { eServiceId, organizationId } = ids();
-        const eService: EService = {
-          ...mockEService,
-          id: eServiceId,
-          producerId: organizationId,
-        };
         const updatedName = "eService new name";
-        await addOneEService(eService);
+        await addOneEService(mockEService);
         await catalogService.updateEService(
-          eServiceId,
+          mockEService.id,
           {
             name: updatedName,
             description: mockEService.description,
             technology: "REST",
           },
-          buildAuthData(organizationId)
+          mockAuthData
         );
 
         const updatedEService = {
-          ...eService,
+          ...mockEService,
           name: updatedName,
         };
 
-        const writtenEvent = await readLastEventByStreamId(eServiceId);
-        expect(writtenEvent.stream_id).toBe(eServiceId);
+        const writtenEvent = await readLastEventByStreamId(mockEService.id);
+        expect(writtenEvent.stream_id).toBe(mockEService.id);
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("EServiceUpdated");
         const writtenPayload = decode({
           messageType: EServiceUpdatedV1,
           payload: writtenEvent.data,
         });
-        const expectedEServiceV1 = toEServiceV1(updatedEService);
-        expect(writtenPayload.eService).toEqual(expectedEServiceV1);
+
+        expect(writtenPayload.eService).toEqual(toEServiceV1(updatedEService));
       });
+
       it("should throw eServiceNotFound if the eService doesn't exist", async () => {
-        const { eServiceId, organizationId } = ids();
+        const eServiceId = uuidv4();
         expect(
           catalogService.updateEService(
             eServiceId,
@@ -229,122 +211,95 @@ describe("database test", async () => {
               description: "eService description",
               technology: "REST",
             },
-            buildAuthData(organizationId)
+            mockAuthData
           )
         ).rejects.toThrowError(eServiceNotFound(eServiceId));
       });
+
       it("should throw operationForbidden if the requester is not allowed", async () => {
-        const { eServiceId, organizationId, requesterId } = ids();
-        const eService: EService = {
-          ...mockEService,
-          id: eServiceId,
-          producerId: organizationId,
-        };
-        await addOneEService(eService);
+        await addOneEService(mockEService);
 
         expect(
           catalogService.updateEService(
-            eServiceId,
+            mockEService.id,
             {
               name: "eService new name",
               description: "eService description",
               technology: "REST",
             },
-            buildAuthData(requesterId)
+            { ...mockAuthData, organizationId: uuidv4() }
           )
         ).rejects.toThrowError(operationForbidden);
       });
-      it("should throw eServiceCannotBeUpdated if the eService's descriptor is not in draft", async () => {
-        const { eServiceId, organizationId } = ids();
 
+      it("should throw eServiceCannotBeUpdated if the eService's descriptor is not in draft", async () => {
         const descriptor: Descriptor = {
-          ...getMockDescriptor(),
+          ...mockDescriptor,
           state: descriptorState.published,
         };
         const eService: EService = {
           ...mockEService,
-          id: eServiceId,
-          producerId: organizationId,
           descriptors: [descriptor],
         };
         await addOneEService(eService);
         expect(
           catalogService.updateEService(
-            eServiceId,
+            eService.id,
             {
               name: "eService new name",
               description: "eService description",
               technology: "REST",
             },
-            buildAuthData(organizationId)
+            mockAuthData
           )
-        ).rejects.toThrowError(eServiceCannotBeUpdated(eServiceId));
+        ).rejects.toThrowError(eServiceCannotBeUpdated(eService.id));
       });
     });
 
     describe("delete eService", () => {
       it("should write on event-store for the deletion of an eService", async () => {
-        const { eServiceId, organizationId } = ids();
-        const eService: EService = {
-          ...mockEService,
-          id: eServiceId,
-          producerId: organizationId,
-        };
-        await addOneEService(eService);
-        await catalogService.deleteEService(
-          eServiceId,
-          buildAuthData(organizationId)
-        );
-        const writtenEvent = await readLastEventByStreamId(eServiceId);
-        expect(writtenEvent.stream_id).toBe(eServiceId);
+        await addOneEService(mockEService);
+        await catalogService.deleteEService(mockEService.id, mockAuthData);
+        const writtenEvent = await readLastEventByStreamId(mockEService.id);
+        expect(writtenEvent.stream_id).toBe(mockEService.id);
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("EServiceDeleted");
         const writtenPayload = decode({
           messageType: EServiceDeletedV1,
           payload: writtenEvent.data,
         });
-        expect(writtenPayload.eServiceId).toBe(eServiceId);
+        expect(writtenPayload.eServiceId).toBe(mockEService.id);
       });
+
       it("should throw eServiceNotFound if the eService doesn't exist", () => {
-        const { eServiceId, organizationId } = ids();
         expect(
-          catalogService.deleteEService(
-            eServiceId,
-            buildAuthData(organizationId)
-          )
-        ).rejects.toThrowError(eServiceNotFound(eServiceId));
+          catalogService.deleteEService(mockEService.id, mockAuthData)
+        ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
+
       it("should throw operationForbidden if the requester is not allowed", async () => {
-        const { eServiceId, organizationId, requesterId } = ids();
-        const eService: EService = {
-          ...mockEService,
-          id: eServiceId,
-          producerId: organizationId,
-        };
-        await addOneEService(eService);
+        await addOneEService(mockEService);
         expect(
-          catalogService.deleteEService(eServiceId, buildAuthData(requesterId))
+          catalogService.deleteEService(mockEService.id, {
+            ...mockAuthData,
+            organizationId: uuidv4(),
+          })
         ).rejects.toThrowError(operationForbidden);
       });
+
       it("should throw eServiceCannotBeDeleted if the eService has a descriptor", async () => {
-        const { eServiceId, organizationId } = ids();
         const descriptor: Descriptor = {
-          ...getMockDescriptor(),
+          ...mockDescriptor,
           state: descriptorState.published,
         };
         const eService: EService = {
           ...mockEService,
-          id: eServiceId,
-          producerId: organizationId,
           descriptors: [descriptor],
         };
         await addOneEService(eService);
         expect(
-          catalogService.deleteEService(
-            eServiceId,
-            buildAuthData(organizationId)
-          )
-        ).rejects.toThrowError(eServiceCannotBeDeleted(eServiceId));
+          catalogService.deleteEService(eService.id, mockAuthData)
+        ).rejects.toThrowError(eServiceCannotBeDeleted(eService.id));
       });
     });
 
@@ -368,56 +323,53 @@ describe("database test", async () => {
       });
       */
       it("should throw draftDescriptorAlreadyExists if a draft descriptor already exists", async () => {
-        const { eServiceId, organizationId } = ids();
         const descriptor: Descriptor = {
-          ...getMockDescriptor(),
+          ...mockDescriptor,
           state: descriptorState.draft,
         };
         const eService: EService = {
           ...mockEService,
-          id: eServiceId,
-          producerId: organizationId,
           descriptors: [descriptor],
         };
 
         await addOneEService(eService);
         expect(
           catalogService.createDescriptor(
-            eServiceId,
+            eService.id,
             buildDescriptorSeed(descriptor),
-            buildAuthData(organizationId)
+            mockAuthData
           )
-        ).rejects.toThrowError(draftDescriptorAlreadyExists(eServiceId));
+        ).rejects.toThrowError(draftDescriptorAlreadyExists(eService.id));
       });
+
       it("should throw eServiceNotFound if the eService doesn't exist", async () => {
-        const { eServiceId, organizationId } = ids();
-        const descriptor = getMockDescriptor();
         expect(
           catalogService.createDescriptor(
-            eServiceId,
-            buildDescriptorSeed(descriptor),
-            buildAuthData(organizationId)
+            mockEService.id,
+            buildDescriptorSeed(mockDescriptor),
+            mockAuthData
           )
-        ).rejects.toThrowError(eServiceNotFound(eServiceId));
+        ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
+
       it("should throw operationForbidden if the requester is not allowed", async () => {
-        const { eServiceId, organizationId, requesterId } = ids();
         const descriptor: Descriptor = {
-          ...getMockDescriptor(),
+          ...mockDescriptor,
           state: descriptorState.published,
         };
         const eService: EService = {
           ...mockEService,
-          id: eServiceId,
-          producerId: organizationId,
           descriptors: [descriptor],
         };
         await addOneEService(eService);
         expect(
           catalogService.createDescriptor(
-            eServiceId,
+            eService.id,
             buildDescriptorSeed(descriptor),
-            buildAuthData(requesterId)
+            {
+              ...mockAuthData,
+              organizationId: uuidv4(),
+            }
           )
         ).rejects.toThrowError(operationForbidden);
       });
@@ -425,16 +377,12 @@ describe("database test", async () => {
 
     describe("update descriptor", () => {
       it("should write on event-store for the update of a descriptor", async () => {
-        const { eServiceId, organizationId, descriptorId } = ids();
-
         const descriptor: Descriptor = {
-          ...getMockDescriptor(descriptorId),
+          ...mockDescriptor,
           state: descriptorState.draft,
         };
         const eService: EService = {
           ...mockEService,
-          id: eServiceId,
-          producerId: organizationId,
           descriptors: [descriptor],
         };
         await addOneEService(eService);
@@ -454,48 +402,44 @@ describe("database test", async () => {
           ],
         };
         await catalogService.updateDescriptor(
-          eServiceId,
-          descriptorId,
+          eService.id,
+          descriptor.id,
           updatedDescriptorSeed,
-          buildAuthData(organizationId)
+          mockAuthData
         );
-        const writtenEvent = await readLastEventByStreamId(eServiceId);
-        expect(writtenEvent.stream_id).toBe(eServiceId);
+        const writtenEvent = await readLastEventByStreamId(eService.id);
+        expect(writtenEvent.stream_id).toBe(eService.id);
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("EServiceUpdated");
         const writtenPayload = decode({
           messageType: EServiceUpdatedV1,
           payload: writtenEvent.data,
         });
-        const expectedEServiceV1 = toEServiceV1(updatedEService);
-        expect(writtenPayload.eService).toEqual(expectedEServiceV1);
+        expect(writtenPayload.eService).toEqual(toEServiceV1(updatedEService));
       });
+
       it("should throw eServiceNotFound if the eService doesn't exist", () => {
-        const { eServiceId, organizationId, descriptorId } = ids();
         const descriptor: Descriptor = {
-          ...getMockDescriptor(descriptorId),
+          ...mockDescriptor,
           state: descriptorState.published,
         };
         expect(
           catalogService.updateDescriptor(
-            eServiceId,
-            descriptorId,
+            mockEService.id,
+            descriptor.id,
             buildDescriptorSeed(descriptor),
-            buildAuthData(organizationId)
+            mockAuthData
           )
-        ).rejects.toThrowError(eServiceNotFound(eServiceId));
+        ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
-      it("should throw operationForbidden if the requester is not allowed", async () => {
-        const { eServiceId, organizationId, requesterId, descriptorId } = ids();
 
+      it("should throw operationForbidden if the requester is not allowed", async () => {
         const descriptor: Descriptor = {
-          ...getMockDescriptor(descriptorId),
+          ...mockDescriptor,
           state: descriptorState.draft,
         };
         const eService: EService = {
           ...mockEService,
-          id: eServiceId,
-          producerId: organizationId,
           descriptors: [descriptor],
         };
         await addOneEService(eService);
@@ -506,10 +450,13 @@ describe("database test", async () => {
         };
         expect(
           catalogService.updateDescriptor(
-            eServiceId,
-            descriptorId,
+            eService.id,
+            descriptor.id,
             buildDescriptorSeed(updatedDescriptor),
-            buildAuthData(requesterId)
+            {
+              ...mockAuthData,
+              organizationId: uuidv4(),
+            }
           )
         ).rejects.toThrowError(operationForbidden);
       });
@@ -517,278 +464,257 @@ describe("database test", async () => {
 
     describe("delete draft descriptor", () => {
       it("should write on event-store for the deletion of a draft descriptor", async () => {
-        const { eServiceId, organizationId, descriptorId } = ids();
         const descriptor: Descriptor = {
-          ...getMockDescriptor(descriptorId),
+          ...mockDescriptor,
           state: descriptorState.draft,
         };
         const eService: EService = {
           ...mockEService,
-          id: eServiceId,
-          producerId: organizationId,
           descriptors: [descriptor],
         };
         await addOneEService(eService);
 
         await catalogService.deleteDraftDescriptor(
-          eServiceId,
-          descriptorId,
-          buildAuthData(organizationId)
+          eService.id,
+          descriptor.id,
+          buildAuthData(eService.producerId)
         );
 
-        const writtenEvent = await readLastEventByStreamId(eServiceId);
-        expect(writtenEvent.stream_id).toBe(eServiceId);
+        const writtenEvent = await readLastEventByStreamId(eService.id);
+        expect(writtenEvent.stream_id).toBe(eService.id);
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("EServiceWithDescriptorsDeleted");
         const writtenPayload = decode({
           messageType: EServiceWithDescriptorsDeletedV1,
           payload: writtenEvent.data,
         });
-        const expectedEServiceV1 = toEServiceV1(eService);
-        expect(writtenPayload.eService).toEqual(expectedEServiceV1);
-        expect(writtenPayload.descriptorId).toEqual(descriptorId);
+        expect(writtenPayload.eService).toEqual(toEServiceV1(eService));
+        expect(writtenPayload.descriptorId).toEqual(descriptor.id);
       });
-      it("should throw eServiceNotFound if the eService doesn't exist", () => {
-        const { eServiceId, organizationId, descriptorId } = ids();
 
+      it("should throw eServiceNotFound if the eService doesn't exist", () => {
         expect(
           catalogService.deleteDraftDescriptor(
-            eServiceId,
-            descriptorId,
-            buildAuthData(organizationId)
+            mockEService.id,
+            mockDescriptor.id,
+            mockAuthData
           )
-        ).rejects.toThrowError(eServiceNotFound(eServiceId));
+        ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
+
       it("should throw operationForbidden if the requester is not allowed", async () => {
-        const { eServiceId, organizationId, requesterId, descriptorId } = ids();
         const descriptor: Descriptor = {
-          ...getMockDescriptor(descriptorId),
+          ...mockDescriptor,
           state: descriptorState.draft,
         };
         const eService: EService = {
           ...mockEService,
-          id: eServiceId,
-          producerId: organizationId,
           descriptors: [descriptor],
         };
         await addOneEService(eService);
         expect(
-          catalogService.deleteDraftDescriptor(
-            eServiceId,
-            descriptorId,
-            buildAuthData(requesterId)
-          )
+          catalogService.deleteDraftDescriptor(eService.id, descriptor.id, {
+            ...mockAuthData,
+            organizationId: uuidv4(),
+          })
         ).rejects.toThrowError(operationForbidden);
       });
     });
 
     describe("publish descriptor", () => {
       it("should write on event-store for the publication of a descriptor", async () => {
-        const { eServiceId, organizationId, descriptorId } = ids();
         const descriptor: Descriptor = {
-          ...getMockDescriptor(descriptorId),
+          ...mockDescriptor,
           state: descriptorState.draft,
         };
         const eService: EService = {
           ...mockEService,
-          id: eServiceId,
-          producerId: organizationId,
           descriptors: [descriptor],
         };
         await addOneEService(eService);
         await catalogService.publishDescriptor(
-          eServiceId,
-          descriptorId,
-          buildAuthData(organizationId)
+          eService.id,
+          descriptor.id,
+          buildAuthData(eService.producerId)
         );
 
-        const updatedDescriptor = {
-          ...descriptor,
-          state: descriptorState.published,
-        };
-        const writtenEvent = await readLastEventByStreamId(eServiceId);
-        expect(writtenEvent.stream_id).toBe(eServiceId);
+        const writtenEvent = await readLastEventByStreamId(eService.id);
+        expect(writtenEvent.stream_id).toBe(eService.id);
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("EServiceDescriptorUpdated");
         const writtenPayload = decode({
           messageType: EServiceDescriptorUpdatedV1,
           payload: writtenEvent.data,
         });
+
+        const updatedDescriptor: Descriptor = {
+          ...descriptor,
+          publishedAt: new Date(
+            Number(writtenPayload.eServiceDescriptor?.publishedAt)
+          ),
+          state: descriptorState.published,
+        };
+
         const expectedDescriptorV1 = toDescriptorV1(updatedDescriptor);
-        expect(writtenPayload.eServiceId).toEqual(eServiceId);
-        expect(writtenPayload.eServiceDescriptor?.state).toEqual(
-          expectedDescriptorV1.state
-        );
+        expect(writtenPayload.eServiceId).toEqual(eService.id);
+        expect(writtenPayload.eServiceDescriptor).toEqual(expectedDescriptorV1);
       });
+
       it("should throw an eServiceNotFound if the eService doesn't exist", async () => {
-        const { eServiceId, organizationId, descriptorId } = ids();
         await expect(
           catalogService.publishDescriptor(
-            eServiceId,
-            descriptorId,
-            buildAuthData(organizationId)
+            mockEService.id,
+            mockDescriptor.id,
+            mockAuthData
           )
-        ).rejects.toThrowError(eServiceNotFound(eServiceId));
+        ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
+
       it("should throw operationForbidden if the requester is not allowed", async () => {
-        const { eServiceId, organizationId, requesterId, descriptorId } = ids();
         const descriptor: Descriptor = {
-          ...getMockDescriptor(descriptorId),
+          ...mockDescriptor,
           state: descriptorState.draft,
         };
         const eService: EService = {
           ...mockEService,
-          id: eServiceId,
-          producerId: organizationId,
           descriptors: [descriptor],
         };
         await addOneEService(eService);
         expect(
-          catalogService.publishDescriptor(
-            eServiceId,
-            descriptorId,
-            buildAuthData(requesterId)
-          )
+          catalogService.publishDescriptor(eService.id, descriptor.id, {
+            ...mockAuthData,
+            organizationId: uuidv4(),
+          })
         ).rejects.toThrowError(operationForbidden);
       });
+
       it("should throw notValidDescriptor if the descriptor is published state", async () => {
-        const { eServiceId, organizationId, descriptorId } = ids();
         const descriptor: Descriptor = {
-          ...getMockDescriptor(descriptorId),
+          ...mockDescriptor,
           state: descriptorState.published,
         };
         const eService: EService = {
           ...mockEService,
-          id: eServiceId,
-          producerId: organizationId,
           descriptors: [descriptor],
         };
         await addOneEService(eService);
         expect(
           catalogService.publishDescriptor(
-            eServiceId,
-            descriptorId,
-            buildAuthData(organizationId)
+            eService.id,
+            descriptor.id,
+            mockAuthData
           )
         ).rejects.toThrowError(
-          notValidDescriptor(descriptorId, descriptorState.published)
+          notValidDescriptor(descriptor.id, descriptorState.published)
         );
       });
     });
 
     describe("suspend descriptor", () => {
       it("should write on event-store for the suspension of a descriptor", async () => {
-        const { eServiceId, organizationId, descriptorId } = ids();
         const descriptor: Descriptor = {
-          ...getMockDescriptor(descriptorId),
+          ...mockDescriptor,
           state: descriptorState.published,
         };
         const eService: EService = {
           ...mockEService,
-          id: eServiceId,
-          producerId: organizationId,
           descriptors: [descriptor],
         };
         await addOneEService(eService);
         await catalogService.suspendDescriptor(
-          eServiceId,
-          descriptorId,
-          buildAuthData(organizationId)
+          eService.id,
+          descriptor.id,
+          mockAuthData
         );
 
-        const updatedDescriptor = {
-          ...descriptor,
-          state: descriptorState.suspended,
-        };
-        const writtenEvent = await readLastEventByStreamId(eServiceId);
-        expect(writtenEvent.stream_id).toBe(eServiceId);
+        const writtenEvent = await readLastEventByStreamId(eService.id);
+        expect(writtenEvent.stream_id).toBe(eService.id);
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("EServiceDescriptorUpdated");
         const writtenPayload = decode({
           messageType: EServiceDescriptorUpdatedV1,
           payload: writtenEvent.data,
         });
-        const expectedDescriptorV1 = toDescriptorV1(updatedDescriptor);
-        expect(writtenPayload.eServiceId).toEqual(eServiceId);
-        expect(writtenPayload.eServiceDescriptor?.state).toEqual(
-          expectedDescriptorV1.state
+
+        const updatedDescriptor = {
+          ...descriptor,
+          state: descriptorState.suspended,
+          suspendedAt: new Date(
+            Number(writtenPayload.eServiceDescriptor?.suspendedAt)
+          ),
+        };
+
+        expect(writtenPayload.eServiceId).toEqual(eService.id);
+        expect(writtenPayload.eServiceDescriptor).toEqual(
+          toDescriptorV1(updatedDescriptor)
         );
       });
-      it("should throw eServiceNotFound if the eService doesn't exist", () => {
-        const { eServiceId, organizationId, descriptorId } = ids();
 
+      it("should throw eServiceNotFound if the eService doesn't exist", () => {
         expect(
           catalogService.suspendDescriptor(
-            eServiceId,
-            descriptorId,
-            buildAuthData(organizationId)
+            mockEService.id,
+            mockDescriptor.id,
+            mockAuthData
           )
-        ).rejects.toThrowError(eServiceNotFound(eServiceId));
+        ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
+
       it("should throw operationForbidden if the requester is not allowed", async () => {
-        const { eServiceId, organizationId, requesterId, descriptorId } = ids();
         const descriptor: Descriptor = {
-          ...getMockDescriptor(descriptorId),
+          ...mockDescriptor,
           state: descriptorState.published,
         };
         const eService: EService = {
           ...mockEService,
-          id: eServiceId,
-          producerId: organizationId,
           descriptors: [descriptor],
         };
         await addOneEService(eService);
         expect(
-          catalogService.suspendDescriptor(
-            eServiceId,
-            descriptorId,
-            buildAuthData(requesterId)
-          )
+          catalogService.suspendDescriptor(eService.id, descriptor.id, {
+            ...mockAuthData,
+            organizationId: uuidv4(),
+          })
         ).rejects.toThrowError(operationForbidden);
       });
+
       it("should throw notValidDescriptor if the descriptor is in draft state", async () => {
-        const { eServiceId, organizationId, descriptorId } = ids();
         const descriptor: Descriptor = {
-          ...getMockDescriptor(descriptorId),
+          ...mockDescriptor,
           state: descriptorState.draft,
         };
         const eService: EService = {
           ...mockEService,
-          id: eServiceId,
-          producerId: organizationId,
           descriptors: [descriptor],
         };
         await addOneEService(eService);
         expect(
           catalogService.suspendDescriptor(
-            eServiceId,
-            descriptorId,
-            buildAuthData(organizationId)
+            eService.id,
+            descriptor.id,
+            mockAuthData
           )
         ).rejects.toThrowError(
-          notValidDescriptor(descriptorId, descriptorState.draft)
+          notValidDescriptor(descriptor.id, descriptorState.draft)
         );
       });
     });
 
     describe("activate descriptor", () => {
       it("should write on event-store for the activation of a descriptor", async () => {
-        const { eServiceId, organizationId, descriptorId } = ids();
         const descriptor: Descriptor = {
-          ...getMockDescriptor(descriptorId),
+          ...mockDescriptor,
           state: descriptorState.suspended,
         };
         const eService: EService = {
           ...mockEService,
-          id: eServiceId,
-          producerId: organizationId,
           descriptors: [descriptor],
         };
         await addOneEService(eService);
         await catalogService.activateDescriptor(
-          eServiceId,
-          descriptorId,
-          buildAuthData(organizationId)
+          eService.id,
+          descriptor.id,
+          mockAuthData
         );
 
         const updatedDescriptor = {
@@ -796,73 +722,66 @@ describe("database test", async () => {
           state: descriptorState.published,
         };
 
-        const writtenEvent = await readLastEventByStreamId(eServiceId);
-        expect(writtenEvent.stream_id).toBe(eServiceId);
+        const writtenEvent = await readLastEventByStreamId(eService.id);
+        expect(writtenEvent.stream_id).toBe(eService.id);
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("EServiceDescriptorUpdated");
         const writtenPayload = decode({
           messageType: EServiceDescriptorUpdatedV1,
           payload: writtenEvent.data,
         });
-        const expectedDescriptorV1 = toDescriptorV1(updatedDescriptor);
-        expect(writtenPayload.eServiceId).toEqual(eServiceId);
-        expect(writtenPayload.eServiceDescriptor?.state).toEqual(
-          expectedDescriptorV1.state
+        expect(writtenPayload.eServiceDescriptor).toEqual(
+          toDescriptorV1(updatedDescriptor)
         );
+        expect(writtenPayload.eServiceId).toEqual(eService.id);
       });
-      it("should throw eServiceNotFound if the eService doesn't exist", () => {
-        const { eServiceId, organizationId, descriptorId } = ids();
 
+      it("should throw eServiceNotFound if the eService doesn't exist", () => {
         expect(
           catalogService.activateDescriptor(
-            eServiceId,
-            descriptorId,
-            buildAuthData(organizationId)
+            mockEService.id,
+            mockDescriptor.id,
+            mockAuthData
           )
-        ).rejects.toThrowError(eServiceNotFound(eServiceId));
+        ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
+
       it("should throw operationForbidden if the requester is not allowed", async () => {
-        const { eServiceId, organizationId, requesterId, descriptorId } = ids();
         const descriptor: Descriptor = {
-          ...getMockDescriptor(descriptorId),
+          ...mockDescriptor,
           state: descriptorState.suspended,
         };
         const eService: EService = {
           ...mockEService,
-          id: eServiceId,
-          producerId: organizationId,
           descriptors: [descriptor],
         };
         await addOneEService(eService);
         expect(
-          catalogService.activateDescriptor(
-            eServiceId,
-            descriptorId,
-            buildAuthData(requesterId)
-          )
+          catalogService.activateDescriptor(eService.id, descriptor.id, {
+            ...mockAuthData,
+            organizationId: uuidv4(),
+          })
         ).rejects.toThrowError(operationForbidden);
       });
-      it("should throw notValidDescriptor if the descriptor is si draft state", async () => {
-        const { eServiceId, organizationId, descriptorId } = ids();
+
+      it("should throw notValidDescriptor if the descriptor is in draft state", async () => {
         const descriptor: Descriptor = {
-          ...getMockDescriptor(descriptorId),
+          ...mockDescriptor,
           state: descriptorState.draft,
         };
         const eService: EService = {
           ...mockEService,
-          id: eServiceId,
-          producerId: organizationId,
           descriptors: [descriptor],
         };
         await addOneEService(eService);
         expect(
           catalogService.activateDescriptor(
-            eServiceId,
-            descriptorId,
-            buildAuthData(organizationId)
+            mockEService.id,
+            mockDescriptor.id,
+            mockAuthData
           )
         ).rejects.toThrowError(
-          notValidDescriptor(descriptorId, descriptorState.draft)
+          notValidDescriptor(descriptor.id, descriptorState.draft)
         );
       });
     });
@@ -872,87 +791,88 @@ describe("database test", async () => {
         expect(1).toBe(1);
       });
     });
+
     describe("archive descriptor", () => {
       it("should write on event-store for the archiving of a descriptor", async () => {
-        const { eServiceId, organizationId, descriptorId } = ids();
         const descriptor: Descriptor = {
-          ...getMockDescriptor(descriptorId),
+          ...mockDescriptor,
           state: descriptorState.suspended,
         };
         const eService: EService = {
           ...mockEService,
-          id: eServiceId,
-          producerId: organizationId,
           descriptors: [descriptor],
         };
         await addOneEService(eService);
         await catalogService.archiveDescriptor(
-          eServiceId,
-          descriptorId,
-          buildAuthData(organizationId)
+          eService.id,
+          descriptor.id,
+          mockAuthData
         );
 
-        const updatedDescriptor = {
-          ...descriptor,
-          state: descriptorState.archived,
-        };
-        const writtenEvent = await readLastEventByStreamId(eServiceId);
-        expect(writtenEvent.stream_id).toBe(eServiceId);
+        const writtenEvent = await readLastEventByStreamId(eService.id);
+        expect(writtenEvent.stream_id).toBe(eService.id);
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("EServiceDescriptorUpdated");
         const writtenPayload = decode({
           messageType: EServiceDescriptorUpdatedV1,
           payload: writtenEvent.data,
         });
-        const expectedDescriptorV1 = toDescriptorV1(updatedDescriptor);
-        expect(writtenPayload.eServiceId).toEqual(eServiceId);
-        expect(writtenPayload.eServiceDescriptor?.state).toEqual(
-          expectedDescriptorV1.state
-        );
-      });
-      it("should throw eServiceNotFound if the eService doesn't exist", () => {
-        const { eServiceId, organizationId, descriptorId } = ids();
 
+        const updatedDescriptor = {
+          ...descriptor,
+          state: descriptorState.archived,
+          archivedAt: new Date(
+            Number(writtenPayload.eServiceDescriptor?.archivedAt)
+          ),
+        };
+
+        expect(writtenPayload.eServiceDescriptor).toEqual(
+          toDescriptorV1(updatedDescriptor)
+        );
+        expect(writtenPayload.eServiceId).toEqual(eService.id);
+      });
+
+      it("should throw eServiceNotFound if the eService doesn't exist", () => {
         expect(
           catalogService.archiveDescriptor(
-            eServiceId,
-            descriptorId,
-            buildAuthData(organizationId)
+            mockEService.id,
+            mockDescriptor.id,
+            mockAuthData
           )
-        ).rejects.toThrowError(eServiceNotFound(eServiceId));
+        ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
+
       it("should throw operationForbidden if the requester is not allowed", async () => {
-        const { eServiceId, organizationId, requesterId, descriptorId } = ids();
         const descriptor: Descriptor = {
-          ...getMockDescriptor(descriptorId),
+          ...mockDescriptor,
           state: descriptorState.suspended,
         };
         const eService: EService = {
           ...mockEService,
-          id: eServiceId,
-          producerId: organizationId,
           descriptors: [descriptor],
         };
         await addOneEService(eService);
         expect(
-          catalogService.archiveDescriptor(
-            eServiceId,
-            descriptorId,
-            buildAuthData(requesterId)
-          )
+          catalogService.archiveDescriptor(eService.id, descriptor.id, {
+            ...mockAuthData,
+            organizationId: uuidv4(),
+          })
         ).rejects.toThrowError(operationForbidden);
       });
     });
+
     describe("upload Document", () => {
       it("TO DO implement after understanding file manager", () => {
         expect(1).toBe(1);
       });
     });
+
     describe("delete Document", () => {
       it("TO DO implement after understanding file manager", () => {
         expect(1).toBe(1);
       });
     });
+
     describe("update Document", () => {
       it("TO DO implement after understanding file manager", () => {
         expect(1).toBe(1);
@@ -961,79 +881,59 @@ describe("database test", async () => {
   });
 
   describe("ReadModel Service", () => {
-    let mockEService1: EService;
-    let mockEService2: EService;
-    let mockEService3: EService;
-    let mockEService4: EService;
-    let mockEService5: EService;
-    let mockEService6: EService;
-
-    beforeEach(() => {
-      mockEService1 = getMockEService();
-      mockEService2 = getMockEService();
-      mockEService3 = getMockEService();
-      mockEService4 = getMockEService();
-      mockEService5 = getMockEService();
-      mockEService6 = getMockEService();
-    });
     describe("getEservices", () => {
       it("Should get eServices based on the given parameters", async () => {
-        const {
-          eServiceId,
-          eServiceId2,
-          eServiceId3,
-          eServiceId4,
-          eServiceId5,
-          eServiceId6,
-          organizationId,
-          organizationId2,
-        } = ids();
+        const [organizationId1, organizationId2] = [uuidv4(), uuidv4()];
         const descriptor1: Descriptor = {
-          ...getMockDescriptor(),
+          ...mockDescriptor,
+          id: uuidv4(),
           state: descriptorState.published,
         };
         const eService1: EService = {
-          ...mockEService1,
-          id: eServiceId,
+          ...mockEService,
+          id: uuidv4(),
           name: "eService 001",
-          producerId: organizationId,
           descriptors: [descriptor1],
+          producerId: organizationId1,
         };
         await addOneEService(eService1);
 
         const descriptor2: Descriptor = {
-          ...getMockDescriptor(),
+          ...mockDescriptor,
+          id: uuidv4(),
           state: descriptorState.draft,
         };
         const eService2: EService = {
-          ...mockEService2,
-          id: eServiceId2,
+          ...mockEService,
+          id: uuidv4(),
           name: "eService 002",
-          producerId: organizationId,
           descriptors: [descriptor2],
+          producerId: organizationId1,
         };
         await addOneEService(eService2);
 
         const descriptor3: Descriptor = {
-          ...getMockDescriptor(),
+          ...mockDescriptor,
+          id: uuidv4(),
           state: descriptorState.published,
         };
         const eService3: EService = {
-          ...mockEService3,
-          id: eServiceId3,
+          ...mockEService,
+          id: uuidv4(),
           name: "eService 003",
-          producerId: organizationId,
           descriptors: [descriptor3],
+          producerId: organizationId1,
         };
         await addOneEService(eService3);
 
         const descriptor4: Descriptor = {
-          ...getMockDescriptor(),
+          ...mockDescriptor,
+          id: uuidv4(),
           state: descriptorState.draft,
         };
         const eService4: EService = {
-          ...mockEService4,
-          id: eServiceId4,
+          ...mockEService,
+          id: uuidv4(),
           name: "eService 004",
           producerId: organizationId2,
           descriptors: [descriptor4],
@@ -1041,12 +941,13 @@ describe("database test", async () => {
         await addOneEService(eService4);
 
         const descriptor5: Descriptor = {
-          ...getMockDescriptor(),
+          ...mockDescriptor,
+          id: uuidv4(),
           state: descriptorState.published,
         };
         const eService5: EService = {
-          ...mockEService5,
-          id: eServiceId5,
+          ...mockEService,
+          id: uuidv4(),
           name: "eService 005",
           producerId: organizationId2,
           descriptors: [descriptor5],
@@ -1054,12 +955,13 @@ describe("database test", async () => {
         await addOneEService(eService5);
 
         const descriptor6: Descriptor = {
-          ...getMockDescriptor(),
+          ...mockDescriptor,
+          id: uuidv4(),
           state: descriptorState.draft,
         };
         const eService6: EService = {
-          ...mockEService6,
-          id: eServiceId6,
+          ...mockEService,
+          id: uuidv4(),
           name: "eService 006",
           producerId: organizationId2,
           descriptors: [descriptor6],
@@ -1067,9 +969,9 @@ describe("database test", async () => {
         await addOneEService(eService6);
 
         const result1 = await readModelService.getEServices(
-          buildAuthData(organizationId),
+          mockAuthData,
           {
-            eservicesIds: [eServiceId, eServiceId2],
+            eservicesIds: [eService1.id, eService2.id],
             producersIds: [],
             states: [],
             agreementStates: [],
@@ -1078,10 +980,10 @@ describe("database test", async () => {
           50
         );
         const result2 = await readModelService.getEServices(
-          buildAuthData(organizationId),
+          mockAuthData,
           {
             eservicesIds: [],
-            producersIds: [organizationId],
+            producersIds: [organizationId1],
             states: [],
             agreementStates: [],
           },
@@ -1089,7 +991,7 @@ describe("database test", async () => {
           50
         );
         const result3 = await readModelService.getEServices(
-          buildAuthData(organizationId),
+          mockAuthData,
           {
             eservicesIds: [],
             producersIds: [],
@@ -1100,7 +1002,7 @@ describe("database test", async () => {
           50
         );
         const result4 = await readModelService.getEServices(
-          buildAuthData(organizationId),
+          mockAuthData,
           {
             eservicesIds: [],
             producersIds: [organizationId2],
@@ -1121,116 +1023,100 @@ describe("database test", async () => {
         expect(result4.results).toEqual([eService4, eService6]);
       });
     });
+
     describe("getEServiceById", () => {
       it("should get the eService if it exists", async () => {
-        const { eServiceId, eServiceId2, eServiceId3, organizationId } = ids();
-
         const descriptor1: Descriptor = {
-          ...getMockDescriptor(),
+          ...mockDescriptor,
           state: descriptorState.published,
         };
         const eService1: EService = {
-          ...mockEService1,
-          id: eServiceId,
+          ...mockEService,
+          id: uuidv4(),
           name: "eService 001",
-          producerId: organizationId,
           descriptors: [descriptor1],
         };
         await addOneEService(eService1);
 
         const descriptor2: Descriptor = {
-          ...getMockDescriptor(),
+          ...mockDescriptor,
           state: descriptorState.published,
         };
         const eService2: EService = {
-          ...mockEService2,
-          id: eServiceId2,
+          ...mockEService,
+          id: uuidv4(),
           name: "eService 002",
-          producerId: organizationId,
           descriptors: [descriptor2],
         };
         await addOneEService(eService2);
 
         const descriptor3: Descriptor = {
-          ...getMockDescriptor(),
+          ...mockDescriptor,
           state: descriptorState.published,
         };
         const eService3: EService = {
-          ...mockEService1,
-          id: eServiceId3,
+          ...mockEService,
+          id: uuidv4(),
           name: "eService 003",
-          producerId: organizationId,
           descriptors: [descriptor3],
         };
         await addOneEService(eService3);
 
-        const eService = await readModelService.getEServiceById(eServiceId);
+        const eService = await readModelService.getEServiceById(eService1.id);
         expect(eService?.data).toEqual(eService1);
       });
+
       it("should not get the eService if it doesn't exist", async () => {
-        const { eServiceId, eServiceId2, organizationId } = ids();
+        await addOneEService(mockEService);
 
-        const eService1: EService = {
-          ...mockEService1,
-          id: eServiceId,
-          name: "eService 001",
-          producerId: organizationId,
-        };
-        await addOneEService(eService1);
-
-        const eService = await readModelService.getEServiceById(eServiceId2);
+        const eService = await readModelService.getEServiceById(uuidv4());
         expect(eService).toBeUndefined();
       });
     });
+
     describe("getEserviceConsumers", () => {
       it("should get the consumers of the given eService", async () => {
-        const { eServiceId, organizationId, descriptorId, tenantId } = ids();
         const descriptor1: Descriptor = {
-          ...getMockDescriptor(descriptorId),
+          ...mockDescriptor,
           state: descriptorState.published,
         };
         const eService1: EService = {
-          ...mockEService1,
-          id: eServiceId,
-          producerId: organizationId,
+          ...mockEService,
           descriptors: [descriptor1],
         };
         await addOneEService(eService1);
-
-        const tenant = getMockTenant(tenantId);
+        const tenant = getMockTenant();
         await addOneTenant(tenant);
         const agreement = getMockAgreement({
-          eServiceId,
-          descriptorId,
-          producerId: organizationId,
-          consumerId: tenantId,
+          eServiceId: eService1.id,
+          descriptorId: descriptor1.id,
+          producerId: eService1.producerId,
+          consumerId: tenant.id,
         });
         await addOneAgreement(agreement);
 
         const result = await readModelService.getEServiceConsumers(
-          eServiceId,
+          eService1.id,
           0,
           50
         );
         expect(result.totalCount).toBe(1);
         expect(result.results[0].consumerName).toBe(tenant.name);
       });
+
       it("should not get any consumers, if no one is using the given eService", async () => {
-        const { eServiceId, organizationId } = ids();
         const descriptor1: Descriptor = {
-          ...getMockDescriptor(),
+          ...mockDescriptor,
           state: descriptorState.published,
         };
         const eService1: EService = {
-          ...mockEService1,
-          id: eServiceId,
-          producerId: organizationId,
+          ...mockEService,
           descriptors: [descriptor1],
         };
         await addOneEService(eService1);
 
         const consumers = await readModelService.getEServiceConsumers(
-          eServiceId,
+          eService1.id,
           0,
           50
         );
