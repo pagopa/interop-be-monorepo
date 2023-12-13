@@ -22,7 +22,6 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import {
   descriptorNotFound,
-  missingCertifiedAttributesError,
   noNewerDescriptor,
   unexpectedVersionFormat,
 } from "../model/domain/errors.js";
@@ -38,8 +37,11 @@ import {
   assertExpectedState,
   assertRequesterIsConsumer,
   assertTenantExist,
+  declaredAttributesSatisfied,
   validateCertifiedAttributes,
   validateCreationOnDescriptor,
+  verifiedAttributesSatisfied,
+  verifyConflictingAgreements,
   verifyCreationConflictingAgreements,
 } from "../model/domain/validators.js";
 import {
@@ -372,50 +374,16 @@ export async function upgradeAgreementLogic({
     throw noNewerDescriptor(eservice.data.id, currentDescriptor.id);
   }
 
-  const attributesSatisfied = (
-    requested: Array<Array<{ id: string }>>,
-    assigned: string[]
-  ): boolean => {
-    const mapped = requested.map((a) => a.map((v) => v.id));
-    return !mapped.some((a) => a.some((a) => assigned.includes(a)));
-  };
+  validateCertifiedAttributes(newDescriptor, tenant.data);
 
-  const assigned = tenant.data.attributes
-    .filter((a) => a.type === "certified")
-    .filter((a) => a.assignmentTimestamp !== undefined)
-    .map((a) => a.id);
+  const verifiedValid = verifiedAttributesSatisfied(
+    agreementToBeUpgraded.data.producerId,
+    newDescriptor,
+    tenant.data
+  );
 
-  const valid = attributesSatisfied(
-    newDescriptor.attributes.certified,
-    assigned
-  );
-  if (!valid) {
-    throw missingCertifiedAttributesError(newDescriptor.id, tenant.data.id);
-  }
+  const declaredValid = declaredAttributesSatisfied(newDescriptor, tenant.data);
 
-  const verified = tenant.data.attributes
-    .filter(
-      (a) =>
-        a.type === "verified" &&
-        a.verifiedBy.some(
-          (v) =>
-            v.id === agreementToBeUpgraded.data.producerId &&
-            (v.extensionDate === undefined ||
-              v.extensionDate.getTime() > new Date().getTime())
-        )
-    )
-    .map((a) => a.id);
-  const verifiedValid = attributesSatisfied(
-    newDescriptor.attributes.verified,
-    verified
-  );
-  const declared = tenant.data.attributes
-    .filter((a) => a.type === "declared" && a.revocationTimestamp === undefined)
-    .map((a) => a.id);
-  const declaredValid = attributesSatisfied(
-    newDescriptor.attributes.declared,
-    declared
-  );
   if (verifiedValid && declaredValid) {
     // upgradeAgreement
     const stamp: AgreementStamp = {
@@ -471,10 +439,10 @@ export async function upgradeAgreementLogic({
   } else {
     // createNewDraftAgreement
     await verifyConflictingAgreements(
-      agreementQuery,
       agreementToBeUpgraded.data.consumerId,
       agreementToBeUpgraded.data.eserviceId,
-      [agreementState.draft]
+      [agreementState.draft],
+      agreementQuery
     );
     const createEvent = await createAgreementLogic(
       {
