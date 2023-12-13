@@ -149,7 +149,6 @@ describe("database test", async () => {
           ...mockEService,
           createdAt: new Date(Number(writtenPayload.eService?.createdAt)),
           id,
-          producerId: mockAuthData.organizationId,
         };
 
         expect(writtenPayload.eService).toEqual(toEServiceV1(eService));
