@@ -1,9 +1,9 @@
 import {
   AuthData,
   CreateEvent,
+  DB,
   authorizationManagementServiceMock,
   eventRepository,
-  initDB,
   initFileManager,
   logger,
 } from "pagopa-interop-commons";
@@ -46,7 +46,7 @@ import {
   ApiEServiceDescriptorDocumentUpdateSeed,
   ApiEServiceSeed,
 } from "../model/types.js";
-import { CatalogProcessConfig, config } from "../utilities/config.js";
+import { config } from "../utilities/config.js";
 import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
 import {
   draftDescriptorAlreadyExists,
@@ -187,21 +187,10 @@ const hasNotDraftDescriptor = (eService: EService): void => {
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function catalogServiceBuilder(
-  config: CatalogProcessConfig,
+  dbInstance: DB,
   readModelService: ReadModelService
 ) {
-  const repository = eventRepository(
-    initDB({
-      username: config.eventStoreDbUsername,
-      password: config.eventStoreDbPassword,
-      host: config.eventStoreDbHost,
-      port: config.eventStoreDbPort,
-      database: config.eventStoreDbName,
-      schema: config.eventStoreDbSchema,
-      useSSL: config.eventStoreDbUseSSL,
-    }),
-    catalogEventToBinaryData
-  );
+  const repository = eventRepository(dbInstance, catalogEventToBinaryData);
   return {
     async createEService(
       apiEServicesSeed: ApiEServiceSeed,
