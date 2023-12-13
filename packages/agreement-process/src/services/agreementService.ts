@@ -24,12 +24,6 @@ import {
 } from "../model/domain/toEvent.js";
 
 import {
-  ApiAgreementPayload,
-  ApiAgreementSubmissionPayload,
-  ApiAgreementUpdatePayload,
-} from "../model/types.js";
-import { config } from "../utilities/config.js";
-import {
   assertAgreementExist,
   assertExpectedState,
   assertRequesterIsConsumer,
@@ -37,13 +31,19 @@ import {
   validateCreationOnDescriptor,
   verifyCreationConflictingAgreements,
 } from "../model/domain/validators.js";
+import {
+  ApiAgreementPayload,
+  ApiAgreementSubmissionPayload,
+  ApiAgreementUpdatePayload,
+} from "../model/types.js";
+import { config } from "../utilities/config.js";
+import { contractBuilder } from "./agreementContractBuilder.js";
 import { submitAgreementLogic } from "./agreementSubmissionProcessor.js";
 import { AgreementQuery } from "./readmodel/agreementQuery.js";
 import { AttributeQuery } from "./readmodel/attributeQuery.js";
 import { EserviceQuery } from "./readmodel/eserviceQuery.js";
 import { AgreementQueryFilters } from "./readmodel/readModelService.js";
 import { TenantQuery } from "./readmodel/tenantQuery.js";
-import { contractBuilder } from "./agreementContractBuilder.js";
 
 const fileManager = initFileManager(config);
 
@@ -63,7 +63,7 @@ export function agreementServiceBuilder(
       offset: number
     ): Promise<ListResult<Agreement>> {
       logger.info("Retrieving agreements");
-      return await agreementQuery.listAgreements(filters, limit, offset);
+      return await agreementQuery.getAgreements(filters, limit, offset);
     },
     async getAgreementById(
       agreementId: string

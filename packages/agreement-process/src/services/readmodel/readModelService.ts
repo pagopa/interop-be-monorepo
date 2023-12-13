@@ -217,7 +217,7 @@ export function readModelServiceBuilder(
   const tenants = readModelRepository.tenants;
   const attributes = readModelRepository.attributes;
   return {
-    async listAgreements(
+    async getAgreements(
       filters: AgreementQueryFilters,
       limit: number,
       offset: number
@@ -355,7 +355,7 @@ export function readModelServiceBuilder(
 
       return undefined;
     },
-    async getAgreements(
+    async getAllAgreements(
       filters: AgreementQueryFilters
     ): Promise<Array<WithMetadata<Agreement>>> {
       return getAllAgreements(agreements, filters);

@@ -239,7 +239,7 @@ const verifyConflictingAgreements = async (
   conflictingStates: AgreementState[],
   agreementQuery: AgreementQuery
 ): Promise<void> => {
-  const agreements = await agreementQuery.getAgreements({
+  const agreements = await agreementQuery.getAllAgreements({
     consumerId,
     eserviceId,
     agreementStates: conflictingStates,

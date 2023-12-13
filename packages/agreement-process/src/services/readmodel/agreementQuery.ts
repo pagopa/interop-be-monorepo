@@ -8,16 +8,16 @@ export function agreementQueryBuilder(readModelService: ReadModelService) {
       id: string
     ): Promise<WithMetadata<Agreement> | undefined> =>
       await readModelService.readAgreementById(id),
-    getAgreements: (
+    getAllAgreements: (
       filters: AgreementQueryFilters
     ): Promise<Array<WithMetadata<Agreement>>> =>
-      readModelService.getAgreements(filters),
-    listAgreements: (
+      readModelService.getAllAgreements(filters),
+    getAgreements: (
       filters: AgreementQueryFilters,
       limit: number,
       offset: number
     ): Promise<ListResult<Agreement>> =>
-      readModelService.listAgreements(filters, limit, offset),
+      readModelService.getAgreements(filters, limit, offset),
   };
 }
 

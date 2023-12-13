@@ -3,6 +3,7 @@ import { utcToZonedTime } from "date-fns-tz";
 import { CreateEvent, getContext, logger } from "pagopa-interop-commons";
 import {
   Agreement,
+  AgreementEvent,
   AgreementStamp,
   AgreementStamps,
   AgreementState,
@@ -10,11 +11,10 @@ import {
   EService,
   Tenant,
   UpdateAgreementSeed,
+  WithMetadata,
   agreementAttributeType,
   agreementState,
   tenantMailKind,
-  WithMetadata,
-  AgreementEvent,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -157,7 +157,7 @@ const submitAgreement = async (
   );
 
   const agreements = (
-    await agreementQuery.getAgreements({
+    await agreementQuery.getAllAgreements({
       producerId: agreement.producerId,
       consumerId: agreement.consumerId,
       eserviceId: agreement.eserviceId,
