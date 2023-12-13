@@ -99,9 +99,7 @@ describe("database test", async () => {
     eservices = readModelRepository.eservices;
     agreements = readModelRepository.agreements;
     tenants = readModelRepository.tenants;
-    readModelService = readModelServiceBuilder(config);
-    catalogService = catalogServiceBuilder(config, readModelService);
-
+    readModelService = readModelServiceBuilder(readModelRepository);
     postgresDB = initDB({
       username: config.eventStoreDbUsername,
       password: config.eventStoreDbPassword,
@@ -111,6 +109,9 @@ describe("database test", async () => {
       schema: config.eventStoreDbSchema,
       useSSL: config.eventStoreDbUseSSL,
     });
+    catalogService = catalogServiceBuilder(postgresDB, readModelService);
+
+    catalogService = catalogServiceBuilder(postgresDB, readModelService);
   });
 
   afterEach(async () => {

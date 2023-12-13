@@ -1,29 +1,25 @@
 /* eslint-disable max-classes-per-file */
 import { P, match } from "ts-pattern";
 
-export class ApiError extends Error {
-  public code: string;
-  public httpStatus: number;
+export class ApiError<T> extends Error {
+  public code: T;
   public title: string;
   public detail: string;
   public correlationId?: string;
 
   constructor({
     code,
-    httpStatus,
     title,
     detail,
     correlationId,
   }: {
-    code: string;
-    httpStatus: number;
+    code: T;
     title: string;
     detail: string;
     correlationId?: string;
   }) {
     super(detail);
     this.code = code;
-    this.httpStatus = httpStatus;
     this.title = title;
     this.detail = detail;
     this.correlationId = correlationId;
@@ -44,30 +40,37 @@ export type Problem = {
   errors: ProblemError[];
 };
 
-export function makeApiProblem(error: unknown): Problem {
-  const makeProblem = ({
-    code,
-    httpStatus,
-    title,
-    detail,
-    correlationId,
-  }: ApiError): Problem => ({
-    type: "about:blank",
-    title,
-    status: httpStatus,
-    detail,
-    correlationId,
-    errors: [
-      {
-        code,
-        detail,
-      },
-    ],
-  });
+export function makeApiProblemBuilder<T extends string>(errors: {
+  [K in T]: string;
+}): (
+  error: unknown,
+  httpMapper: (apiError: ApiError<T | CommonErrorCodes>) => number
+) => Problem {
+  const allErrors = { ...errorCodes, ...errors };
+  return (error, httpMapper) => {
+    const makeProblem = (
+      httpStatus: number,
+      { code, title, detail, correlationId }: ApiError<T | CommonErrorCodes>
+    ): Problem => ({
+      type: "about:blank",
+      title,
+      status: httpStatus,
+      detail,
+      correlationId,
+      errors: [
+        {
+          code: allErrors[code],
+          detail,
+        },
+      ],
+    });
 
-  return match<unknown, Problem>(error)
-    .with(P.instanceOf(ApiError), (error) => makeProblem(error))
-    .otherwise(() => makeProblem(genericError("Unexpected error")));
+    return match<unknown, Problem>(error)
+      .with(P.instanceOf(ApiError<T | CommonErrorCodes>), (error) =>
+        makeProblem(httpMapper(error), error)
+      )
+      .otherwise(() => makeProblem(500, genericError("Unexpected error")));
+  };
 }
 
 const errorCodes = {
@@ -77,66 +80,63 @@ const errorCodes = {
   genericError: "9991",
   unauthorizedError: "9991",
   missingHeader: "9994",
-};
+} as const;
 
-export function authenticationSaslFailed(message: string): ApiError {
+export type CommonErrorCodes = keyof typeof errorCodes;
+
+export function authenticationSaslFailed(
+  message: string
+): ApiError<CommonErrorCodes> {
   return new ApiError({
-    code: errorCodes.authenticationSaslFailed,
-    httpStatus: 500,
+    code: "authenticationSaslFailed",
     title: "SASL authentication fails",
     detail: `SALS Authentication fails with this error : ${message}`,
   });
 }
 
-export function genericError(details: string): ApiError {
+export function genericError(details: string): ApiError<CommonErrorCodes> {
   return new ApiError({
     detail: details,
-    code: errorCodes.genericError,
-    httpStatus: 500,
+    code: "genericError",
     title: "Unexpected error",
   });
 }
 
-export function unauthorizedError(details: string): ApiError {
+export function unauthorizedError(details: string): ApiError<CommonErrorCodes> {
   return new ApiError({
     detail: details,
-    code: errorCodes.unauthorizedError,
-    httpStatus: 401,
+    code: "unauthorizedError",
     title: "Unauthorized",
   });
 }
 
-export function missingClaim(claimName: string): ApiError {
+export function missingClaim(claimName: string): ApiError<CommonErrorCodes> {
   return new ApiError({
     detail: `Claim ${claimName} has not been passed`,
-    code: errorCodes.missingClaim,
-    httpStatus: 500,
+    code: "missingClaim",
     title: "Claim has not been passed",
   });
 }
 
-export function missingHeader(headerName?: string): ApiError {
+export function missingHeader(headerName?: string): ApiError<CommonErrorCodes> {
   const title = "Header has not been passed";
   return new ApiError({
     detail: headerName
       ? `Header ${headerName} not existing in this request`
       : title,
-    code: errorCodes.missingHeader,
-    httpStatus: 400,
+    code: "missingHeader",
     title,
   });
 }
 
-export const missingBearer: ApiError = new ApiError({
+export const missingBearer: ApiError<CommonErrorCodes> = new ApiError({
   detail: `Authorization Illegal header key.`,
-  code: errorCodes.missingHeader,
-  httpStatus: 401,
+  code: "missingHeader",
   title: "Bearer token has not been passed",
 });
 
-export const operationForbidden = new ApiError({
+export const operationForbidden: ApiError<CommonErrorCodes> = new ApiError({
   detail: `Insufficient privileges`,
-  code: errorCodes.operationForbidden,
-  httpStatus: 403,
+  code: "operationForbidden",
   title: "Insufficient privileges",
 });
