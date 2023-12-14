@@ -38,20 +38,20 @@ export function originNotCompliant(origin: string): ApiError<ErrorCodes> {
   });
 }
 
-export function tenantNotFound(tenantId: string): ApiError {
+export function tenantNotFound(tenantId: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant ${tenantId} not found`,
-    code: errorCodes.tenantNotFound,
-    httpStatus: 500,
+    code: "tenantNotFound",
     title: "Tenant not found",
   });
 }
 
-export function OrganizationIsNotACertifier(tenantId: string): ApiError {
+export function OrganizationIsNotACertifier(
+  tenantId: string
+): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant ${tenantId} is not a Certifier`,
-    code: errorCodes.OrganizationIsNotACertifier,
-    httpStatus: 403,
+    code: "OrganizationIsNotACertifier",
     title: "Organization is not a certifier",
   });
 }

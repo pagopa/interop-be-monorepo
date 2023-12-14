@@ -16,6 +16,10 @@ import { config } from "../utilities/config.js";
 import { attributeNotFound, makeApiProblem } from "../model/domain/errors.js";
 import { attributeRegistryServiceBuilder } from "../services/attributeRegistryService.js";
 import {
+  createCertifiedAttributesErrorMapper,
+  createDeclaredAttributesErrorMapper,
+  createInternalCertifiedAttributesErrorMapper,
+  createVerifiedAttributesErrorMapper,
   getAttributeByIdErrorMapper,
   getAttributeByOriginAndCodeErrorMapper,
   getAttributesByNameErrorMapper,
@@ -216,7 +220,10 @@ const attributeRouter = (
           );
           return res.status(200).json({ id }).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error);
+          const errorRes = makeApiProblem(
+            error,
+            createCertifiedAttributesErrorMapper
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -232,7 +239,10 @@ const attributeRouter = (
           );
           return res.status(200).json({ id }).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, getAttributeByIdErrorMapper);
+          const errorRes = makeApiProblem(
+            error,
+            createDeclaredAttributesErrorMapper
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -248,7 +258,10 @@ const attributeRouter = (
           );
           return res.status(200).json({ id }).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, getAttributeByIdErrorMapper);
+          const errorRes = makeApiProblem(
+            error,
+            createVerifiedAttributesErrorMapper
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -264,7 +277,10 @@ const attributeRouter = (
             );
           return res.status(200).json({ id }).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error);
+          const errorRes = makeApiProblem(
+            error,
+            createInternalCertifiedAttributesErrorMapper
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
