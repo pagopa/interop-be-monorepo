@@ -15,6 +15,7 @@ import {
   EService,
   EServiceAddedV1,
   EServiceDeletedV1,
+  EServiceDescriptorAddedV1,
   EServiceDescriptorUpdatedV1,
   EServiceUpdatedV1,
   EServiceWithDescriptorsDeletedV1,
@@ -26,7 +27,11 @@ import { v4 as uuidv4 } from "uuid";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import { GenericContainer } from "testcontainers";
 import { config } from "../src/utilities/config.js";
-import { toDescriptorV1, toEServiceV1 } from "../src/model/domain/toEvent.js";
+import {
+  toDescriptorV1,
+  toEServiceDescriptorStateV1,
+  toEServiceV1,
+} from "../src/model/domain/toEvent.js";
 import { EServiceDescriptorSeed } from "../src/model/domain/models.js";
 import {
   ReadModelService,
@@ -307,24 +312,26 @@ describe("database test", async () => {
     });
 
     describe("create descriptor", async () => {
-      /*
-      // TO DO check file manager thing
       it("should write on event-store for the creation of a descriptor", async () => {
-        const { eServiceId, organizationId } = ids();
-        const eService: EService = {
-          ...mockEService,
-          id: eServiceId,
-          producerId: organizationId,
-        };
-        const descriptor = getMockDescriptor();
-        await addOneEService(eService);
+        await addOneEService(mockEService);
         await catalogService.createDescriptor(
-          eServiceId,
-          buildDescriptorSeed(descriptor),
-          getMockAuthData(organizationId)
+          mockEService.id,
+          buildDescriptorSeed(mockDescriptor),
+          getMockAuthData(mockEService.producerId)
+        );
+        const writtenEvent = await readLastEventByStreamId(mockEService.id);
+        expect(writtenEvent.stream_id).toBe(mockEService.id);
+        expect(writtenEvent.version).toBe("1");
+        expect(writtenEvent.type).toBe("EServiceDescriptorAdded");
+        const writtenPayload = decode({
+          messageType: EServiceDescriptorAddedV1,
+          payload: writtenEvent.data,
+        });
+        expect(writtenPayload.eServiceId).toEqual(mockEService.id);
+        expect(writtenPayload.eServiceDescriptor?.state).toEqual(
+          toEServiceDescriptorStateV1(descriptorState.draft)
         );
       });
-      */
       it("should throw draftDescriptorAlreadyExists if a draft descriptor already exists", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
