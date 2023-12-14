@@ -453,7 +453,7 @@ describe("database test", async () => {
 
         const updatedDescriptor = {
           ...descriptor,
-          dailyCallsTotal: 15,
+          dailyCallsTotal: 200,
         };
         expect(
           catalogService.updateDescriptor(
