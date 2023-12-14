@@ -40,6 +40,7 @@ import {
   draftDescriptorAlreadyExists,
   eServiceCannotBeDeleted,
   eServiceCannotBeUpdated,
+  eServiceDescriptorWithoutInterface,
   eServiceDuplicate,
   eServiceNotFound,
   notValidDescriptor,
@@ -525,6 +526,15 @@ describe("database test", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
+          interface: {
+            name: "interface name",
+            path: "pagopa.it",
+            id: uuidv4(),
+            prettyName: "",
+            contentType: "json",
+            checksum: uuidv4(),
+            uploadDate: new Date(),
+          },
         };
         const eService: EService = {
           ...mockEService,
@@ -606,6 +616,28 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(
           notValidDescriptor(descriptor.id, descriptorState.published)
+        );
+      });
+
+      it("should throw eServiceDescriptorWithoutInterface if the descriptor doesn't have an interface", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eService);
+
+        expect(
+          catalogService.publishDescriptor(
+            eService.id,
+            descriptor.id,
+            getMockAuthData(eService.producerId)
+          )
+        ).rejects.toThrowError(
+          eServiceDescriptorWithoutInterface(descriptor.id)
         );
       });
     });
