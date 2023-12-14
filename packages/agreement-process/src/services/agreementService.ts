@@ -20,6 +20,7 @@ import {
   AgreementStamp,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
+import { utcToZonedTime } from "date-fns-tz";
 import {
   descriptorNotFound,
   noNewerDescriptor,
@@ -27,6 +28,7 @@ import {
 } from "../model/domain/errors.js";
 import {
   toCreateEventAgreementAdded,
+  toCreateEventAgreementConsumerDocumentAdded,
   toCreateEventAgreementDeleted,
   toCreateEventAgreementUpdated,
 } from "../model/domain/toEvent.js";
@@ -163,6 +165,7 @@ export function agreementServiceBuilder(
         agreementQuery,
         eserviceQuery,
         tenantQuery,
+        fileCopy: fileManager.copy,
       });
 
       for (const event of events) {
@@ -173,6 +176,49 @@ export function agreementServiceBuilder(
 }
 
 export type AgreementService = ReturnType<typeof agreementServiceBuilder>;
+
+async function createAndCopyDocumentsForClonedAgreement(
+  newAgreementId: string,
+  clonedAgreement: Agreement,
+  startingVersion: number,
+  fileCopy: (
+    container: string,
+    sourcePath: string,
+    destinationPath: string,
+    destinationFileName: string,
+    docName: string
+  ) => Promise<string>
+): Promise<Array<CreateEvent<AgreementEvent>>> {
+  const docs = await Promise.all(
+    clonedAgreement.consumerDocuments.map(async (d) => {
+      const newId = uuidv4();
+      return {
+        newId,
+        newPath: await fileCopy(
+          config.storageContainer,
+          `${config.consumerDocumentsPath}/${newAgreementId}`,
+          d.path,
+          newId,
+          d.name
+        ),
+      };
+    })
+  );
+  return docs.map((d, i) =>
+    toCreateEventAgreementConsumerDocumentAdded(
+      newAgreementId,
+      {
+        id: d.newId,
+        name: clonedAgreement.consumerDocuments[i].name,
+        prettyName: clonedAgreement.consumerDocuments[i].prettyName,
+        contentType: clonedAgreement.consumerDocuments[i].contentType,
+        path: d.newPath,
+        createdAt: utcToZonedTime(new Date(), "ETC/UTC"),
+      },
+      startingVersion + i
+    )
+  );
+}
 
 export async function deleteAgreementLogic({
   agreementId,
@@ -309,12 +355,20 @@ export async function upgradeAgreementLogic({
   agreementQuery,
   eserviceQuery,
   tenantQuery,
+  fileCopy,
 }: {
   agreementId: string;
   authData: AuthData;
   agreementQuery: AgreementQuery;
   eserviceQuery: EserviceQuery;
   tenantQuery: TenantQuery;
+  fileCopy: (
+    container: string,
+    sourcePath: string,
+    destinationPath: string,
+    destinationFileName: string,
+    docName: string
+  ) => Promise<string>;
 }): Promise<Array<CreateEvent<AgreementEvent>>> {
   const agreementToBeUpgraded = await agreementQuery.getAgreementById(
     agreementId
@@ -455,16 +509,13 @@ export async function upgradeAgreementLogic({
       tenantQuery
     );
 
-    for (const doc of agreementToBeUpgraded.data.consumerDocuments) {
-      await fileManager.copy(
-        config.storageContainer,
-        `${config.consumerDocumentsPath}/${createEvent.streamId}`,
-        doc.path,
-        uuidv4(),
-        doc.name
-      );
-    }
-  }
+    const docEvents = await createAndCopyDocumentsForClonedAgreement(
+      createEvent.streamId,
+      agreementToBeUpgraded.data,
+      1,
+      fileCopy
+    );
 
-  return [];
+    return [createEvent, ...docEvents];
+  }
 }
