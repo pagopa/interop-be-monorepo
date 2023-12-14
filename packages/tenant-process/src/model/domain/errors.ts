@@ -1,4 +1,4 @@
-import { ApiError } from "pagopa-interop-models";
+import { ApiError, makeApiProblemBuilder } from "pagopa-interop-models";
 
 const errorCodes = {
   attributeNotFound: "0001",
@@ -9,56 +9,56 @@ const errorCodes = {
   tenantBySelfcateIdNotFound: "0006",
 };
 
-export function attributeNotFound(identifier: string): ApiError {
+export type ErrorCodes = keyof typeof errorCodes;
+
+export const makeApiProblem = makeApiProblemBuilder(errorCodes);
+
+export function attributeNotFound(identifier: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Attribute ${identifier} not found`,
-    code: errorCodes.attributeNotFound,
-    httpStatus: 404,
+    code: "attributeNotFound",
     title: "Attribute not found",
   });
 }
 
-export function invalidAttributeStructure(): ApiError {
+export function invalidAttributeStructure(): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Invalid attribute structure`,
-    code: errorCodes.invalidAttributeStructure,
-    httpStatus: 400,
+    code: "invalidAttributeStructure",
     title: "Invalid attribute structure",
   });
 }
 
-export function tenantDuplicate(teanantName: string): ApiError {
+export function tenantDuplicate(teanantName: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant ${teanantName} already exists`,
-    code: errorCodes.tenantDuplicate,
-    httpStatus: 409,
+    code: "tenantDuplicate",
     title: "Duplicated tenant name",
   });
 }
 
-export function tenantNotFound(tenantId: string): ApiError {
+export function tenantNotFound(tenantId: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant ${tenantId} not found`,
-    code: errorCodes.tenantNotFound,
-    httpStatus: 404,
+    code: "tenantNotFound",
     title: "Tenant not found",
   });
 }
 
-export function eServiceNotFound(eServiceId: string): ApiError {
+export function eServiceNotFound(eServiceId: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `EService ${eServiceId} not found`,
-    code: errorCodes.eServiceNotFound,
-    httpStatus: 404,
+    code: "eServiceNotFound",
     title: "EService not found",
   });
 }
 
-export function tenantBySelfcateIdNotFound(selfcareId: string): ApiError {
+export function tenantBySelfcateIdNotFound(
+  selfcareId: string
+): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant with selfcareId ${selfcareId} not found in the catalog`,
-    code: errorCodes.tenantBySelfcateIdNotFound,
-    httpStatus: 404,
+    code: "tenantBySelfcateIdNotFound",
     title: "Tenant with selfcareId not found",
   });
 }
