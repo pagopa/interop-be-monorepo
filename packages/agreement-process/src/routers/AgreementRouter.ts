@@ -22,6 +22,7 @@ import { attributeQueryBuilder } from "../services/readmodel/attributeQuery.js";
 import { readModelServiceBuilder } from "../services/readmodel/readModelService.js";
 import { agreementNotFound, makeApiProblem } from "../model/domain/errors.js";
 import {
+  addConsumerDocumentErrorMapper,
   createAgreementErrorMapper,
   deleteAgreementErrorMapper,
   submitAgreementErrorMapper,
@@ -103,7 +104,7 @@ const agreementRouter = (
 
         return res.status(200).json({ id }).send();
       } catch (error) {
-        const errorRes = makeApiProblem(error, createAgreementErrorMapper);
+        const errorRes = makeApiProblem(error, addConsumerDocumentErrorMapper);
         return res.status(errorRes.status).json(errorRes).end();
       }
     }
