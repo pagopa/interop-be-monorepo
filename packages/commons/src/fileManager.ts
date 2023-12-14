@@ -13,6 +13,11 @@ export type FileManager = {
     documentId: string,
     fileName: string
   ) => Promise<string>;
+  storeBytes: (
+    documentId: string,
+    documentName: string,
+    byteArray: Uint8Array
+  ) => Promise<string>;
 };
 
 const mockFileManager: FileManager = {
@@ -29,6 +34,14 @@ const mockFileManager: FileManager = {
   ): Promise<string> => {
     logger.info(`Mock Copying file ${filePathToCopy}`);
     return Promise.resolve("");
+  },
+  storeBytes: async (
+    _documentId: string,
+    _documentName: string,
+    _byteArray: Uint8Array
+  ): Promise<string> => {
+    logger.info(`Mock Storing bytes`);
+    return Promise.resolve("mock/path/to/file");
   },
 };
 
@@ -81,6 +94,14 @@ export function initFileManager(config: FileManagerConfig): FileManager {
           })
         );
         return Promise.resolve(s3Key);
+      },
+      storeBytes: async (
+        _documentId: string,
+        _documentName: string,
+        _byteArray: Uint8Array
+      ): Promise<string> => {
+        logger.info(`Mock Storing bytes`);
+        return Promise.resolve("mock/path/to/file");
       },
     };
   }
