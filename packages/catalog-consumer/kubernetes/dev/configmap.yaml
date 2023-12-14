@@ -7,3 +7,4 @@ data:
   KAFKA_CLIENT_ID: "dev-pagopa-interop-catalog"
   KAFKA_GROUP_ID: "catalog.public.event"
   KAFKA_BROKERS: "boot-yqksbq44.c3.kafka-serverless.eu-central-1.amazonaws.com:9098"
+  KAFKA_TOPICS: "event-store.catalog.events"

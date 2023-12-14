@@ -101,3 +101,8 @@ spec:
                 configMapKeyRef:
                   name: interop-be-catalog-consumer-refactor
                   key: KAFKA_BROKERS
+            - name: 
+              valueFrom:
+                configMapKeyRef:
+                  name: interop-be-catalog-consumer-refactor
+                  key: KAFKA_TOPICS
