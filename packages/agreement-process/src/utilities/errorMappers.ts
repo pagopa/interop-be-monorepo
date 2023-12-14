@@ -64,6 +64,15 @@ export const addConsumerDocumentErrorMapper = (
     .with("agreementDocumentAlreadyExists", () => 409)
     .otherwise(() => 500);
 
+export const addConsumerDocumentErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("agreementNotFound", () => 404)
+    .with("operationNotAllowed", "documentsChangeNotAllowed", () => 403)
+    .with("agreementDocumentAlreadyExists", () => 500)
+    .otherwise(() => 500);
+
 export const upgradeAgreementErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
