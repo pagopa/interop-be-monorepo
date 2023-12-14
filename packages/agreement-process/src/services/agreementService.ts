@@ -5,7 +5,6 @@ import {
   DB,
   eventRepository,
   initFileManager,
-  authorizationManagementServiceMock,
   logger,
 } from "pagopa-interop-commons";
 import {
@@ -403,8 +402,9 @@ export async function upgradeAgreementLogic({
   if (newDescriptor === undefined) {
     throw publishedDescriptorNotFound(agreementToBeUpgraded.data.eserviceId);
   }
-
-  const latestDescriptorVersion = z.number().safeParse(newDescriptor.version);
+  const latestDescriptorVersion = z
+    .preprocess((x) => Number(x), z.number())
+    .safeParse(newDescriptor.version);
   if (!latestDescriptorVersion.success) {
     throw unexpectedVersionFormat(eservice.data.id, newDescriptor.id);
   }
@@ -419,12 +419,14 @@ export async function upgradeAgreementLogic({
     );
   }
 
-  const currentVersion = z.number().safeParse(currentDescriptor.version);
+  const currentVersion = z
+    .preprocess((x) => Number(x), z.number())
+    .safeParse(currentDescriptor.version);
   if (!currentVersion.success) {
     throw unexpectedVersionFormat(eservice.data.id, currentDescriptor.id);
   }
 
-  if (latestDescriptorVersion <= currentVersion) {
+  if (latestDescriptorVersion.data <= currentVersion.data) {
     throw noNewerDescriptor(eservice.data.id, currentDescriptor.id);
   }
 
@@ -464,24 +466,6 @@ export async function upgradeAgreementLogic({
         upgrade: stamp,
       },
     };
-
-    await authorizationManagementServiceMock.updateAgreementAndEServiceStates(
-      upgraded.eserviceId,
-      upgraded.consumerId,
-      {
-        agreementId: upgraded.id,
-        agreementState:
-          upgraded.state === agreementState.active ? "active" : "inactive",
-        descriptorId: newDescriptor.id,
-        audience: newDescriptor.audience,
-        voucherLifespan: newDescriptor.voucherLifespan,
-        eserviceState:
-          newDescriptor.state === descriptorState.published ||
-          newDescriptor.state === descriptorState.deprecated
-            ? "active"
-            : "inactive",
-      }
-    );
 
     return [
       toCreateEventAgreementUpdated(
