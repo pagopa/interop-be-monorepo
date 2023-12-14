@@ -28,13 +28,16 @@ import {
   ApiSelfcareTenantSeed,
 } from "../model/types.js";
 import {
-  ExpirationDateNotFoundInVerifier,
-  OrganizationNotFoundInVerifiers,
-  VerifiedAttributeNotFoundInTenant,
   invalidAttributeStructure,
   tenantDuplicate,
 } from "../model/domain/errors.js";
-import { assertAttributeExists, assertTenantExists } from "./validators.js";
+import {
+  assertAttributeExists,
+  assertExpirationDateExist,
+  assertOrganizationVerifierExist,
+  assertTenantExists,
+  assertVerifiedTenantAttributeExist,
+} from "./validators.js";
 import { ReadModelService } from "./readModelService.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -227,28 +230,31 @@ export async function updateVerifiedAttributeExtensionDateLogic({
 }): Promise<CreateEvent<TenantEvent>> {
   assertTenantExists(tenantId, tenant);
 
-  const verifiedTenantAttribute = tenant.data.attributes.find(
-    (attr) => attr.id === attributeId && attr.type === "verified"
-  ) as VerifiedTenantAttribute;
+  const verifiedTenantAttribute = tenant.data.attributes
+    .filter((att) => att.type === tenantAttributeType.VERIFIED)
+    .find((att) => att.id === attributeId) as VerifiedTenantAttribute;
 
-  if (!verifiedTenantAttribute) {
-    VerifiedAttributeNotFoundInTenant(tenantId, attributeId);
-  }
+  assertVerifiedTenantAttributeExist(
+    tenantId,
+    attributeId,
+    verifiedTenantAttribute
+  );
 
   const tenantVerifier = verifiedTenantAttribute.verifiedBy.find(
     (verifier) => verifier.id === verifierId
   );
 
-  if (!tenantVerifier) {
-    OrganizationNotFoundInVerifiers(verifierId, tenantId, attributeId);
-  }
+  assertOrganizationVerifierExist(
+    verifierId,
+    tenantId,
+    attributeId,
+    tenantVerifier
+  );
 
-  if (!tenantVerifier?.expirationDate) {
-    ExpirationDateNotFoundInVerifier(tenantId, attributeId, verifierId);
-  }
+  assertExpirationDateExist(tenantId, attributeId, verifierId, tenantVerifier);
 
   const extensionDate =
-    tenantVerifier?.extensionDate ?? tenantVerifier?.expirationDate;
+    tenantVerifier.extensionDate ?? tenantVerifier.expirationDate;
 
   const updatedVerifiedBy: TenantVerifier[] =
     verifiedTenantAttribute.verifiedBy.map((verifier) => {
