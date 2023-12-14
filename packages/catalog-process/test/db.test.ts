@@ -111,8 +111,6 @@ describe("database test", async () => {
       useSSL: config.eventStoreDbUseSSL,
     });
     catalogService = catalogServiceBuilder(postgresDB, readModelService);
-
-    catalogService = catalogServiceBuilder(postgresDB, readModelService);
   });
 
   afterEach(async () => {
