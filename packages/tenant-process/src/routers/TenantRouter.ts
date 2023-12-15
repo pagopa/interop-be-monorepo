@@ -17,6 +17,7 @@ import {
   getTenantByExternalIdErrorMapper,
   getTenantByIdErrorMapper,
   getTenantBySelfcareIdErrorMapper,
+  updateVerifiedAttributeExtensionDateErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { tenantServiceBuilder } from "../services/tenantService.js";
@@ -227,7 +228,10 @@ const tenantsRouter = (
           );
           return res.status(200).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error);
+          const errorRes = makeApiProblem(
+            error,
+            updateVerifiedAttributeExtensionDateErrorMapper
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
