@@ -3,6 +3,7 @@ import {
   AgreementAddedV1,
   AgreementDeletedV1,
   AgreementUpdatedV1,
+  AgreementContractAddedV1,
 } from "../gen/v1/agreement/events.js";
 
 export function agreementEventToBinaryData(event: AgreementEvent): Uint8Array {
@@ -16,13 +17,25 @@ export function agreementEventToBinaryData(event: AgreementEvent): Uint8Array {
     .with({ type: "AgreementUpdated" }, ({ data }) =>
       AgreementUpdatedV1.toBinary(data)
     )
+    .with({ type: "AgreementContractAdded" }, ({ data }) =>
+      AgreementContractAddedV1.toBinary(data)
+    )
     .exhaustive();
 }
 
+export type AgreementUpdateEvent = {
+  type: "AgreementUpdated";
+  data: AgreementUpdatedV1;
+};
+
 export type AgreementEvent =
   | { type: "AgreementAdded"; data: AgreementAddedV1 }
-  | { type: "AgreementUpdated"; data: AgreementUpdatedV1 }
+  | AgreementUpdateEvent
   | {
       type: "AgreementDeleted";
       data: AgreementDeletedV1;
+    }
+  | {
+      type: "AgreementContractAdded";
+      data: AgreementContractAddedV1;
     };

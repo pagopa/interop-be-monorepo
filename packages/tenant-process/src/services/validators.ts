@@ -15,9 +15,10 @@ import {
   tenantKind,
 } from "pagopa-interop-models";
 import {
-  ExpirationDateNotFoundInVerifier,
-  OrganizationNotFoundInVerifiers,
-  VerifiedAttributeNotFoundInTenant,
+  expirationDateNotFoundInVerifier,
+  organizationNotFoundInVerifiers,
+  verifiedAttributeNotFoundInTenant,
+  ErrorCodes,
   attributeNotFound,
   eServiceNotFound,
   tenantNotFound,
@@ -39,7 +40,7 @@ export function assertVerifiedTenantAttributeExist(
   verifiedTenantAttribute: VerifiedTenantAttribute
 ): asserts verifiedTenantAttribute is NonNullable<VerifiedTenantAttribute> {
   if (verifiedTenantAttribute === undefined) {
-    VerifiedAttributeNotFoundInTenant(tenantId, attributeId);
+    verifiedAttributeNotFoundInTenant(tenantId, attributeId);
   }
 }
 
@@ -50,7 +51,7 @@ export function assertOrganizationVerifierExist(
   tenantVerifier: TenantVerifier | undefined
 ): asserts tenantVerifier is NonNullable<TenantVerifier> {
   if (tenantVerifier === undefined) {
-    OrganizationNotFoundInVerifiers(verifierId, tenantId, attributeId);
+    organizationNotFoundInVerifiers(verifierId, tenantId, attributeId);
   }
 }
 
@@ -61,7 +62,7 @@ export function assertExpirationDateExist(
   tenantVerifier: TenantVerifier | undefined
 ): asserts tenantVerifier is NonNullable<TenantVerifier> {
   if (tenantVerifier?.expirationDate === undefined) {
-    ExpirationDateNotFoundInVerifier(tenantId, attributeId, verifierId);
+    expirationDateNotFoundInVerifier(tenantId, attributeId, verifierId);
   }
 }
 
@@ -106,7 +107,7 @@ export async function assertVerifiedAttributeOperationAllowed(
   consumerId: string,
   attributeId: string,
   states: AgreementState[],
-  error: ApiError
+  error: ApiError<ErrorCodes>
 ): Promise<void> {
   const agreements = await readModelService.getAgreements(
     producerId,

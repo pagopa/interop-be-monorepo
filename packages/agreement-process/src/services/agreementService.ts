@@ -1,8 +1,8 @@
 import {
   AuthData,
   CreateEvent,
+  DB,
   eventRepository,
-  initDB,
   initFileManager,
   logger,
 } from "pagopa-interop-commons";
@@ -10,23 +10,18 @@ import {
   Agreement,
   AgreementEvent,
   AgreementState,
-  WithMetadata,
-  agreementState,
   ListResult,
+  WithMetadata,
   agreementEventToBinaryData,
+  agreementState,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
-import { AgreementProcessConfig, config } from "../utilities/config.js";
+import { eServiceNotFound, tenantIdNotFound } from "../model/domain/errors.js";
 import {
   toCreateEventAgreementAdded,
   toCreateEventAgreementDeleted,
   toCreateEventAgreementUpdated,
 } from "../model/domain/toEvent.js";
-import { eServiceNotFound, tenantIdNotFound } from "../model/domain/errors.js";
-import {
-  ApiAgreementPayload,
-  ApiAgreementUpdatePayload,
-} from "../model/types.js";
 
 import {
   assertAgreementExist,
@@ -35,50 +30,47 @@ import {
   validateCertifiedAttributes,
   validateCreationOnDescriptor,
   verifyCreationConflictingAgreements,
-} from "./validators.js";
-import { ReadModelService } from "./readModelService.js";
+} from "../model/domain/validators.js";
+import {
+  ApiAgreementPayload,
+  ApiAgreementSubmissionPayload,
+  ApiAgreementUpdatePayload,
+} from "../model/types.js";
+import { config } from "../utilities/config.js";
+import { contractBuilder } from "./agreementContractBuilder.js";
+import { submitAgreementLogic } from "./agreementSubmissionProcessor.js";
+import { AgreementQuery } from "./readmodel/agreementQuery.js";
+import { AttributeQuery } from "./readmodel/attributeQuery.js";
+import { EserviceQuery } from "./readmodel/eserviceQuery.js";
+import { AgreementQueryFilters } from "./readmodel/readModelService.js";
+import { TenantQuery } from "./readmodel/tenantQuery.js";
 
 const fileManager = initFileManager(config);
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function agreementServiceBuilder(
-  config: AgreementProcessConfig,
-  readModelService: ReadModelService
+  dbInstance: DB,
+  agreementQuery: AgreementQuery,
+  tenantQuery: TenantQuery,
+  eserviceQuery: EserviceQuery,
+  attributeQuery: AttributeQuery
 ) {
-  const repository = eventRepository(
-    initDB({
-      username: config.eventStoreDbUsername,
-      password: config.eventStoreDbPassword,
-      host: config.eventStoreDbHost,
-      port: config.eventStoreDbPort,
-      database: config.eventStoreDbName,
-      schema: config.eventStoreDbSchema,
-      useSSL: config.eventStoreDbUseSSL,
-    }),
-    agreementEventToBinaryData
-  );
+  const repository = eventRepository(dbInstance, agreementEventToBinaryData);
   return {
     async getAgreements(
-      filters: {
-        eServicesIds: string[];
-        consumersIds: string[];
-        producersIds: string[];
-        descriptorsIds: string[];
-        states: AgreementState[];
-        showOnlyUpgradeable: boolean;
-      },
+      filters: AgreementQueryFilters,
       limit: number,
       offset: number
     ): Promise<ListResult<Agreement>> {
       logger.info("Retrieving agreements");
-      return await readModelService.listAgreements(filters, limit, offset);
+      return await agreementQuery.getAgreements(filters, limit, offset);
     },
     async getAgreementById(
       agreementId: string
     ): Promise<Agreement | undefined> {
       logger.info(`Retrieving agreement by id ${agreementId}`);
 
-      const agreement = await readModelService.readAgreementById(agreementId);
+      const agreement = await agreementQuery.getAgreementById(agreementId);
       return agreement?.data;
     },
     async createAgreement(
@@ -86,9 +78,11 @@ export function agreementServiceBuilder(
       authData: AuthData
     ): Promise<string> {
       const createAgreementEvent = await createAgreementLogic(
-        readModelService,
         agreement,
-        authData
+        authData,
+        agreementQuery,
+        eserviceQuery,
+        tenantQuery
       );
       return await repository.createEvent(createAgreementEvent);
     },
@@ -97,7 +91,7 @@ export function agreementServiceBuilder(
       agreement: ApiAgreementUpdatePayload,
       authData: AuthData
     ): Promise<void> {
-      const agreementToBeUpdated = await readModelService.readAgreementById(
+      const agreementToBeUpdated = await agreementQuery.getAgreementById(
         agreementId
       );
 
@@ -114,7 +108,7 @@ export function agreementServiceBuilder(
       agreementId: string,
       authData: AuthData
     ): Promise<void> {
-      const agreement = await readModelService.readAgreementById(agreementId);
+      const agreement = await agreementQuery.getAgreementById(agreementId);
 
       await repository.createEvent(
         await deleteAgreementLogic({
@@ -124,6 +118,26 @@ export function agreementServiceBuilder(
           agreement,
         })
       );
+    },
+    async submitAgreement(
+      agreementId: string,
+      payload: ApiAgreementSubmissionPayload
+    ): Promise<string> {
+      logger.info("Submitting agreement");
+      const updatesEvents = await submitAgreementLogic(
+        agreementId,
+        payload,
+        contractBuilder(attributeQuery),
+        eserviceQuery,
+        agreementQuery,
+        tenantQuery
+      );
+
+      for (const event of updatesEvents) {
+        await repository.createEvent(event);
+      }
+
+      return agreementId;
     },
   };
 }
@@ -159,17 +173,19 @@ export async function deleteAgreementLogic({
 }
 
 export async function createAgreementLogic(
-  readModelService: ReadModelService,
   agreement: ApiAgreementPayload,
-  authData: AuthData
+  authData: AuthData,
+  agreementQuery: AgreementQuery,
+  eserviceQuery: EserviceQuery,
+  tenantQuery: TenantQuery
 ): Promise<CreateEvent<AgreementEvent>> {
   logger.info(
     `Creating agreement for EService ${agreement.eserviceId} and Descriptor ${agreement.descriptorId}`
   );
-  const eservice = await readModelService.getEServiceById(agreement.eserviceId);
+  const eservice = await eserviceQuery.getEServiceById(agreement.eserviceId);
 
   if (!eservice) {
-    throw eServiceNotFound(400, agreement.eserviceId);
+    throw eServiceNotFound(agreement.eserviceId);
   }
 
   const descriptor = validateCreationOnDescriptor(
@@ -178,13 +194,11 @@ export async function createAgreementLogic(
   );
 
   await verifyCreationConflictingAgreements(
-    readModelService,
     authData.organizationId,
-    agreement
+    agreement,
+    agreementQuery
   );
-  const consumer = await readModelService.getTenantById(
-    authData.organizationId
-  );
+  const consumer = await tenantQuery.getTenantById(authData.organizationId);
 
   if (!consumer) {
     throw tenantIdNotFound(authData.organizationId);
@@ -258,5 +272,8 @@ export async function updateAgreementLogic({
     consumerNotes: agreement.consumerNotes,
   };
 
-  return toCreateEventAgreementUpdated(agreementUpdated);
+  return toCreateEventAgreementUpdated(
+    agreementUpdated,
+    agreementToBeUpdated.metadata.version
+  );
 }
