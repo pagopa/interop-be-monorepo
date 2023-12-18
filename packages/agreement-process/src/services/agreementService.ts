@@ -196,6 +196,24 @@ export function agreementServiceBuilder(
 
       return streamId;
     },
+    async cloneAgreement(
+      agreementId: string,
+      authData: AuthData
+    ): Promise<void> {
+      logger.info("Cloning agreement");
+      const events = await cloneAgreementLogics({
+        agreementId,
+        authData,
+        agreementQuery,
+        eserviceQuery,
+        tenantQuery,
+        fileCopy: fileManager.copy,
+      });
+
+      for (const event of events) {
+        await repository.createEvent(event);
+      }
+    },
   };
 }
 
