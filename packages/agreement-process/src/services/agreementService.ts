@@ -10,13 +10,15 @@ import {
 import {
   Agreement,
   AgreementEvent,
-  AgreementState,
   ListResult,
   WithMetadata,
   agreementEventToBinaryData,
   agreementState,
   descriptorState,
   AgreementStamp,
+  agreementUpgradableStates,
+  agreementDeletableStates,
+  agreementUpdatableStates,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import { utcToZonedTime } from "date-fns-tz";
@@ -233,12 +235,11 @@ export async function deleteAgreementLogic({
   assertAgreementExist(agreementId, agreement);
   assertRequesterIsConsumer(agreement.data.consumerId, authData.organizationId);
 
-  const deletableStates: AgreementState[] = [
-    agreementState.draft,
-    agreementState.missingCertifiedAttributes,
-  ];
-
-  assertExpectedState(agreementId, agreement.data.state, deletableStates);
+  assertExpectedState(
+    agreementId,
+    agreement.data.state,
+    agreementDeletableStates
+  );
 
   for (const d of agreement.data.consumerDocuments) {
     await deleteFile(config.storageContainer, d.path);
@@ -328,12 +329,10 @@ export async function updateAgreementLogic({
     authData.organizationId
   );
 
-  const updatableStates: AgreementState[] = [agreementState.draft];
-
   assertExpectedState(
     agreementId,
     agreementToBeUpdated.data.state,
-    updatableStates
+    agreementUpdatableStates
   );
 
   const agreementUpdated: Agreement = {
@@ -380,15 +379,10 @@ export async function upgradeAgreementLogic({
     authData.organizationId
   );
 
-  const upgradableStates: AgreementState[] = [
-    agreementState.active,
-    agreementState.suspended,
-  ];
-
   assertExpectedState(
     agreementId,
     agreementToBeUpgraded.data.state,
-    upgradableStates
+    agreementUpgradableStates
   );
 
   const eservice = await eserviceQuery.getEServiceById(
@@ -430,7 +424,9 @@ export async function upgradeAgreementLogic({
     throw noNewerDescriptor(eservice.data.id, currentDescriptor.id);
   }
 
-  validateCertifiedAttributes(newDescriptor, tenant.data);
+  if (eservice.data.producerId !== authData.organizationId) {
+    validateCertifiedAttributes(newDescriptor, tenant.data);
+  }
 
   const verifiedValid = verifiedAttributesSatisfied(
     agreementToBeUpgraded.data.producerId,

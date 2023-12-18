@@ -1,4 +1,5 @@
 export * from "./agreement/agreement.js";
+export * from "./agreement/agreementUtils.js";
 export * from "./agreement/agreementEvents.js";
 export * from "./attribute/attribute.js";
 export * from "./errors.js";
