@@ -2,7 +2,6 @@ import {
   AuthData,
   CreateEvent,
   DB,
-  authorizationManagementServiceMock,
   eventRepository,
   initFileManager,
   logger,
@@ -378,8 +377,6 @@ export function catalogServiceBuilder(
       })) {
         await repository.createEvent(event);
       }
-
-      await authorizationManagementServiceMock.updateStateOnClients();
     },
 
     async suspendDescriptor(
@@ -401,8 +398,6 @@ export function catalogServiceBuilder(
           eService,
         })
       );
-
-      await authorizationManagementServiceMock.updateStateOnClients();
     },
 
     async activateDescriptor(
@@ -424,8 +419,6 @@ export function catalogServiceBuilder(
           eService,
         })
       );
-
-      await authorizationManagementServiceMock.updateStateOnClients();
     },
 
     async cloneDescriptor(
@@ -471,8 +464,6 @@ export function catalogServiceBuilder(
           eService,
         })
       );
-
-      await authorizationManagementServiceMock.updateStateOnClients();
     },
   };
 }
