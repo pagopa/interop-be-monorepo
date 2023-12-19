@@ -19,10 +19,12 @@ import {
   agreementUpgradableStates,
   agreementDeletableStates,
   agreementUpdatableStates,
+  agreementCloningConflictingStates,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import { utcToZonedTime } from "date-fns-tz";
 import {
+  agreementAlreadyExists,
   descriptorNotFound,
   noNewerDescriptor,
   unexpectedVersionFormat,
@@ -201,7 +203,7 @@ export function agreementServiceBuilder(
       authData: AuthData
     ): Promise<void> {
       logger.info("Cloning agreement");
-      const events = await cloneAgreementLogics({
+      const events = await cloneAgreementLogic({
         agreementId,
         authData,
         agreementQuery,
@@ -541,7 +543,7 @@ export async function upgradeAgreementLogic({
   }
 }
 
-export async function cloneAgreementLogics({
+export async function cloneAgreementLogic({
   agreementId,
   authData,
   agreementQuery,
@@ -579,6 +581,18 @@ export async function cloneAgreementLogics({
     agreementToBeCloned.data.eserviceId
   );
   assertEServiceExist(agreementToBeCloned.data.eserviceId, eservice);
+
+  const activeAgreement = await agreementQuery.getAllAgreements({
+    consumerId: authData.organizationId,
+    eserviceId: agreementToBeCloned.data.eserviceId,
+    agreementStates: agreementCloningConflictingStates,
+  });
+  if (activeAgreement.length > 0) {
+    throw agreementAlreadyExists(
+      authData.organizationId,
+      agreementToBeCloned.data.eserviceId
+    );
+  }
 
   const consumer = await tenantQuery.getTenantById(
     agreementToBeCloned.data.consumerId
