@@ -2,7 +2,7 @@
   "editor.formatOnSave": true,
   "prettier.requireConfig": false,
   "editor.codeActionsOnSave": {
-    "source.fixAll": true
+    "source.fixAll": "explicit"
   },
   "typescript.tsdk": "node_modules/typescript/lib"
 }
