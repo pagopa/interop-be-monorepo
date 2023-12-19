@@ -27,11 +27,7 @@ import { v4 as uuidv4 } from "uuid";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import { GenericContainer } from "testcontainers";
 import { config } from "../src/utilities/config.js";
-import {
-  toDescriptorV1,
-  toEServiceDescriptorStateV1,
-  toEServiceV1,
-} from "../src/model/domain/toEvent.js";
+import { toDescriptorV1, toEServiceV1 } from "../src/model/domain/toEvent.js";
 import { EServiceDescriptorSeed } from "../src/model/domain/models.js";
 import {
   ReadModelService,
@@ -327,11 +323,21 @@ describe("database test", async () => {
           messageType: EServiceDescriptorAddedV1,
           payload: writtenEvent.data,
         });
+
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          createdAt: new Date(
+            Number(writtenPayload.eServiceDescriptor?.createdAt)
+          ),
+          id: writtenPayload.eServiceDescriptor?.id,
+        };
+
         expect(writtenPayload.eServiceId).toEqual(mockEService.id);
-        expect(writtenPayload.eServiceDescriptor?.state).toEqual(
-          toEServiceDescriptorStateV1(descriptorState.draft)
+        expect(writtenPayload.eServiceDescriptor).toEqual(
+          toDescriptorV1(descriptor)
         );
       });
+
       it("should throw draftDescriptorAlreadyExists if a draft descriptor already exists", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
