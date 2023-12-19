@@ -197,7 +197,7 @@ const tenantsRouter = (
         try {
           const { tenantId, attributeId } = req.params;
           await tenantService.updateTenantVerifiedAttribute({
-            verifierId: req.ctx.authData.organizationId, // [QUESTION]: userId or organizationId?
+            verifierId: req.ctx.authData.organizationId,
             tenantId,
             attributeId,
             updateVerifiedTenantAttributeSeed: req.body,
