@@ -29,7 +29,6 @@ import {
   unexpectedVersionFormat,
   publishedDescriptorNotFound,
   agreementDocumentAlreadyExists,
-  agreementNotFound,
 } from "../model/domain/errors.js";
 
 import {
@@ -527,10 +526,8 @@ export async function addConsumerDocumentLogic(
 ): Promise<CreateEvent<AgreementEvent>> {
   const { organizationId } = getContext().authData;
   const agreement = await agreementQuery.getAgreementById(agreementId);
-  if (!agreement) {
-    throw agreementNotFound(agreementId);
-  }
 
+  assertAgreementExist(agreementId, agreement);
   assertRequesterIsConsumer(organizationId, agreement.data.consumerId);
   assertCanWorkOnConsumerDocuments(agreement.data.state);
 
