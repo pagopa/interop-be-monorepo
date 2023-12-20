@@ -7,7 +7,7 @@ COPY package.json /app/
 COPY pnpm-lock.yaml /app/
 COPY pnpm-workspace.yaml /app/
 
-COPY ./packages/agreement-consumer/package.json /app/packages/agreement-consumer/package.json
+COPY ./packages/agreement-readmodel-writer/package.json /app/packages/agreement-readmodel-writer/package.json
 COPY ./packages/commons/package.json /app/packages/commons/package.json
 COPY ./packages/models/package.json /app/packages/models/package.json
 COPY ./packages/kafka-iam-auth/package.json /app/packages/kafka-iam-auth/package.json
@@ -16,14 +16,14 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
 COPY tsconfig.json /app/
 COPY turbo.json /app/
-COPY ./packages/agreement-consumer /app/packages/agreement-consumer
+COPY ./packages/agreement-readmodel-writer /app/packages/agreement-readmodel-writer
 COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
 COPY ./packages/kafka-iam-auth /app/packages/kafka-iam-auth
 
 RUN pnpm build
 
-WORKDIR /app/packages/agreement-consumer
+WORKDIR /app/packages/agreement-readmodel-writer
 EXPOSE 3000
 
 CMD ["node", "."]

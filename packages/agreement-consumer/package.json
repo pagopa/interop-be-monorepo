@@ -1,5 +1,5 @@
 {
-  "name": "pagopa-interop-agreement-event-consumer",
+  "name": "pagopa-interop-agreement-readmodel-writer",
   "private": true,
   "version": "1.0.0",
   "description": "PagoPA Interoperability agreement consumer service that updates the read model when events are stored",

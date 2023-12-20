@@ -1,5 +1,5 @@
 {
-  "name": "pagopa-interop-catalog-event-consumer",
+  "name": "pagopa-interop-catalog-readmodel-writer",
   "private": true,
   "version": "1.0.0",
   "description": "PagoPA Interoperability catalog consumer service that updates the read model when events are stored",
