@@ -100,7 +100,8 @@ const agreementRouter = (
       try {
         const id = await agreementService.addConsumerDocument(
           req.params.agreementId,
-          req.body
+          req.body,
+          req.ctx.authData
         );
 
         return res.status(200).json({ id }).send();
