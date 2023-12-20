@@ -118,6 +118,47 @@ const getAgreementsFilters = (
   return { $match: queryFilters };
 };
 
+const getTenantsPipeline = (
+  tenantName: string | undefined,
+  tenantIdField: Extract<AgreementDataFields, "producerId" | "consumerId">
+): object[] => [
+  {
+    $lookup: {
+      from: "tenants",
+      localField: `data.${tenantIdField}`,
+      foreignField: "data.id",
+      as: "tenants",
+    },
+  },
+  {
+    $unwind: {
+      path: "$tenants",
+      preserveNullAndEmptyArrays: false,
+    },
+  },
+  {
+    $match: {
+      "tenants.data.name": { $regex: new RegExp(tenantName || "", "i") },
+    },
+  },
+  {
+    $group: {
+      _id: `$data.${tenantIdField}`,
+      tenantId: { $first: `$data.${tenantIdField}` },
+      tenantName: { $first: "$tenants.data.name" },
+    },
+  },
+  {
+    $project: {
+      data: { id: "$tenantId", name: "$tenantName" },
+      lowerName: { $toLower: "$tenantName" },
+    },
+  },
+  {
+    $sort: { lowerName: 1 },
+  },
+];
+
 export const getAllAgreements = async (
   agreements: AgreementCollection,
   filters: AgreementQueryFilters
@@ -209,6 +250,41 @@ async function getAttribute(
     };
   }
   return undefined;
+}
+
+async function listTenants(
+  agreements: AgreementCollection,
+  tenantName: string | undefined,
+  tenantIdField: "producerId" | "consumerId",
+  limit: number,
+  offset: number
+): Promise<ListResult<CompactOrganization>> {
+  const aggregationPipeline = getTenantsPipeline(tenantName, tenantIdField);
+
+  const data = await agreements
+    .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }])
+    .toArray();
+
+  const result = z
+    .array(CompactOrganization)
+    .safeParse(data.map((d) => d.data));
+  if (!result.success) {
+    logger.error(
+      `Unable to parse compact organization items: result ${JSON.stringify(
+        result
+      )} - data ${JSON.stringify(data)} `
+    );
+
+    throw genericError("Unable to parse compact organization items");
+  }
+
+  return {
+    results: result.data,
+    totalCount: await ReadModelRepository.getTotalCount(
+      agreements,
+      aggregationPipeline
+    ),
+  };
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -440,72 +516,14 @@ export function readModelServiceBuilder(
       limit: number,
       offset: number
     ): Promise<ListResult<CompactOrganization>> {
-      const aggregationPipeline = [
-        {
-          $lookup: {
-            from: "tenants",
-            localField: "data.consumerId",
-            foreignField: "data.id",
-            as: "tenants",
-          },
-        },
-        {
-          $unwind: {
-            path: "$tenants",
-            preserveNullAndEmptyArrays: false,
-          },
-        },
-        {
-          $match: {
-            "tenants.data.name": { $regex: new RegExp(name || "", "i") },
-          },
-        },
-        {
-          $group: {
-            _id: "$data.consumerId",
-            tenantId: { $first: "$data.consumerId" },
-            tenantName: { $first: "$tenants.data.name" },
-          },
-        },
-        {
-          $project: {
-            data: { id: "$tenantId", name: "$tenantName" },
-            lowerName: { $toLower: "$tenantName" },
-          },
-        },
-        {
-          $sort: { lowerName: 1 },
-        },
-      ];
-
-      const data = await agreements
-        .aggregate([
-          ...aggregationPipeline,
-          { $skip: offset },
-          { $limit: limit },
-        ])
-        .toArray();
-
-      const result = z
-        .array(CompactOrganization)
-        .safeParse(data.map((d) => d.data));
-      if (!result.success) {
-        logger.error(
-          `Unable to parse compact organization items: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
-        );
-
-        throw genericError("Unable to parse compact organization items");
-      }
-
-      return {
-        results: result.data,
-        totalCount: await ReadModelRepository.getTotalCount(
-          agreements,
-          aggregationPipeline
-        ),
-      };
+      return listTenants(agreements, name, "consumerId", limit, offset);
+    },
+    async listProducers(
+      name: string | undefined,
+      limit: number,
+      offset: number
+    ): Promise<ListResult<CompactOrganization>> {
+      return listTenants(agreements, name, "producerId", limit, offset);
     },
   };
 }
