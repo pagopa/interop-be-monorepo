@@ -222,6 +222,23 @@ export function agreementServiceBuilder(
 
       return streamId;
     },
+    async rejectAgreement(
+      agreementId: string,
+      rejectionReason: string,
+      authData: AuthData
+    ): Promise<void> {
+      logger.info("Rejecting agreement");
+      await repository.createEvent(
+        await rejectAreementLogic({
+          agreementId,
+          rejectionReason,
+          authData,
+          agreementQuery,
+          tenantQuery,
+          eserviceQuery,
+        })
+      );
+    },
   };
 }
 
