@@ -244,9 +244,10 @@ export function agreementServiceBuilder(
     },
     async getAgreementConsumerDocument(
       agreementId: string,
-      documentId: string
+      documentId: string,
+      authData: AuthData
     ): Promise<AgreementDocument> {
-      const { organizationId } = getContext().authData;
+      const { organizationId } = authData;
 
       logger.info(
         `Retrieving consumer document ${documentId} from agreement ${agreementId}`

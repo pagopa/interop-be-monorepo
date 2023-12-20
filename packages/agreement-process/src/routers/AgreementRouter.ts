@@ -121,7 +121,8 @@ const agreementRouter = (
       try {
         const document = await agreementService.getAgreementConsumerDocument(
           req.params.agreementId,
-          req.params.documentId
+          req.params.documentId,
+          req.ctx.authData
         );
         return res
           .status(200)
