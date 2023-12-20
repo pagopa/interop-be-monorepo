@@ -10,13 +10,14 @@ import { api } from "../model/generated/api.js";
 import { toApiTenant } from "../model/domain/apiConverter.js";
 import {
   makeApiProblem,
-  tenantBySelfcateIdNotFound,
+  tenantBySelfcareIdNotFound,
   tenantNotFound,
 } from "../model/domain/errors.js";
 import {
   getTenantByExternalIdErrorMapper,
   getTenantByIdErrorMapper,
   getTenantBySelfcareIdErrorMapper,
+  updateTenantVerifiedAttributeErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../utilities/config.js";
@@ -159,7 +160,7 @@ const tenantsRouter = (
               .status(404)
               .json(
                 makeApiProblem(
-                  tenantBySelfcateIdNotFound(req.params.selfcareId),
+                  tenantBySelfcareIdNotFound(req.params.selfcareId),
                   getTenantBySelfcareIdErrorMapper
                 )
               )
@@ -223,7 +224,10 @@ const tenantsRouter = (
           });
           return res.status(200).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error);
+          const errorRes = makeApiProblem(
+            error,
+            updateTenantVerifiedAttributeErrorMapper
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
