@@ -204,7 +204,7 @@ const agreementRouter = (
     ]),
     async (req, res) => {
       try {
-        const consumers = await agreementService.getConsumers(
+        const consumers = await agreementService.getAgreementConsumers(
           req.query.consumerName,
           req.query.limit,
           req.query.offset

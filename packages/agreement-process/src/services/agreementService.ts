@@ -105,7 +105,7 @@ export function agreementServiceBuilder(
       );
       return await repository.createEvent(createAgreementEvent);
     },
-    async getConsumers(
+    async getAgreementConsumers(
       name: string | undefined,
       limit: number,
       offset: number
