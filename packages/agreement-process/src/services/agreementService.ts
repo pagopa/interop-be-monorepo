@@ -4,7 +4,6 @@ import {
   CreateEvent,
   DB,
   eventRepository,
-  getContext,
   initFileManager,
   logger,
 } from "pagopa-interop-commons";
@@ -181,14 +180,16 @@ export function agreementServiceBuilder(
     },
     async addConsumerDocument(
       agreementId: string,
-      documentSeed: ApiAgreementDocumentSeed
+      documentSeed: ApiAgreementDocumentSeed,
+      authData: AuthData
     ): Promise<string> {
       logger.info(`Adding a consumer document to agreement ${agreementId}`);
 
       const addDocumentEvent = await addConsumerDocumentLogic(
         agreementId,
         documentSeed,
-        agreementQuery
+        agreementQuery,
+        authData
       );
       return await repository.createEvent(addDocumentEvent);
     },
@@ -522,9 +523,10 @@ export async function upgradeAgreementLogic({
 export async function addConsumerDocumentLogic(
   agreementId: string,
   payload: ApiAgreementDocumentSeed,
-  agreementQuery: AgreementQuery
+  agreementQuery: AgreementQuery,
+  authData: AuthData
 ): Promise<CreateEvent<AgreementEvent>> {
-  const { organizationId } = getContext().authData;
+  const { organizationId } = authData;
   const agreement = await agreementQuery.getAgreementById(agreementId);
 
   assertAgreementExist(agreementId, agreement);
