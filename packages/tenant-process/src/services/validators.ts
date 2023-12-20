@@ -15,6 +15,7 @@ import {
   tenantKind,
 } from "pagopa-interop-models";
 import {
+  ErrorCodes,
   attributeNotFound,
   eServiceNotFound,
   expirationDateCannotBeInThePast,
@@ -114,7 +115,7 @@ export async function assertVerifiedAttributeOperationAllowed(
   consumerId: string,
   attributeId: string,
   states: AgreementState[],
-  error: ApiError
+  error: ApiError<ErrorCodes>
 ): Promise<void> {
   const agreements = await readModelService.getAgreements(
     producerId,

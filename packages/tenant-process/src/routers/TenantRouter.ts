@@ -6,13 +6,18 @@ import {
   ZodiosContext,
   authorizationMiddleware,
 } from "pagopa-interop-commons";
-import { makeApiProblem } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
 import { toApiTenant } from "../model/domain/apiConverter.js";
 import {
+  makeApiProblem,
   tenantBySelfcateIdNotFound,
   tenantNotFound,
 } from "../model/domain/errors.js";
+import {
+  getTenantByExternalIdErrorMapper,
+  getTenantByIdErrorMapper,
+  getTenantBySelfcareIdErrorMapper,
+} from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../utilities/config.js";
 import { tenantServiceBuilder } from "../services/tenantService.js";
@@ -81,11 +86,16 @@ const tenantsRouter = (
           } else {
             return res
               .status(404)
-              .json(makeApiProblem(tenantNotFound(req.params.id)))
+              .json(
+                makeApiProblem(
+                  tenantNotFound(req.params.id),
+                  getTenantByIdErrorMapper
+                )
+              )
               .end();
           }
         } catch (error) {
-          const errorRes = makeApiProblem(error);
+          const errorRes = makeApiProblem(error, getTenantByIdErrorMapper);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -112,7 +122,12 @@ const tenantsRouter = (
           } else {
             return res
               .status(404)
-              .json(makeApiProblem(tenantNotFound(`${origin}/${code}`)))
+              .json(
+                makeApiProblem(
+                  tenantNotFound(`${origin}/${code}`),
+                  getTenantByExternalIdErrorMapper
+                )
+              )
               .end();
           }
         } catch (error) {
@@ -144,13 +159,17 @@ const tenantsRouter = (
               .status(404)
               .json(
                 makeApiProblem(
-                  tenantBySelfcateIdNotFound(req.params.selfcareId)
+                  tenantBySelfcateIdNotFound(req.params.selfcareId),
+                  getTenantBySelfcareIdErrorMapper
                 )
               )
               .end();
           }
         } catch (error) {
-          const errorRes = makeApiProblem(error);
+          const errorRes = makeApiProblem(
+            error,
+            getTenantBySelfcareIdErrorMapper
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
