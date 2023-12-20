@@ -19,7 +19,6 @@ import { agreementQueryBuilder } from "../services/readmodel/agreementQuery.js";
 import { tenantQueryBuilder } from "../services/readmodel/tenantQuery.js";
 import { eserviceQueryBuilder } from "../services/readmodel/eserviceQuery.js";
 import { attributeQueryBuilder } from "../services/readmodel/attributeQuery.js";
-import { consumerQueryBuilder } from "../services/readmodel/consumerQuery.js";
 import { readModelServiceBuilder } from "../services/readmodel/readModelService.js";
 import { agreementNotFound, makeApiProblem } from "../model/domain/errors.js";
 import {
@@ -37,7 +36,6 @@ const agreementQuery = agreementQueryBuilder(readModelService);
 const tenantQuery = tenantQueryBuilder(readModelService);
 const eserviceQuery = eserviceQueryBuilder(readModelService);
 const attributeQuery = attributeQueryBuilder(readModelService);
-const consumerQuery = consumerQueryBuilder(readModelService);
 
 const agreementService = agreementServiceBuilder(
   initDB({
@@ -52,8 +50,7 @@ const agreementService = agreementServiceBuilder(
   agreementQuery,
   tenantQuery,
   eserviceQuery,
-  attributeQuery,
-  consumerQuery
+  attributeQuery
 );
 
 const {

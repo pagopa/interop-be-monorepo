@@ -61,7 +61,6 @@ import { AttributeQuery } from "./readmodel/attributeQuery.js";
 import { EserviceQuery } from "./readmodel/eserviceQuery.js";
 import { AgreementQueryFilters } from "./readmodel/readModelService.js";
 import { TenantQuery } from "./readmodel/tenantQuery.js";
-import { ConsumerQuery } from "./readmodel/consumerQuery.js";
 
 const fileManager = initFileManager(config);
 
@@ -71,8 +70,7 @@ export function agreementServiceBuilder(
   agreementQuery: AgreementQuery,
   tenantQuery: TenantQuery,
   eserviceQuery: EserviceQuery,
-  attributeQuery: AttributeQuery,
-  consumerQuery: ConsumerQuery
+  attributeQuery: AttributeQuery
 ) {
   const repository = eventRepository(dbInstance, agreementEventToBinaryData);
   return {
@@ -111,7 +109,7 @@ export function agreementServiceBuilder(
       offset: number
     ): Promise<ListResult<CompactOrganization>> {
       logger.info("Retrieving consumers");
-      return await consumerQuery.listConsumers(name, limit, offset);
+      return await agreementQuery.listConsumers(name, limit, offset);
     },
     async updateAgreement(
       agreementId: string,
