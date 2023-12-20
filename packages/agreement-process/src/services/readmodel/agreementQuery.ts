@@ -25,6 +25,12 @@ export function agreementQueryBuilder(readModelService: ReadModelService) {
       offset: number
     ): Promise<ListResult<CompactOrganization>> =>
       readModelService.listConsumers(name, limit, offset),
+    listProducers: (
+      name: string | undefined,
+      limit: number,
+      offset: number
+    ): Promise<ListResult<CompactOrganization>> =>
+      readModelService.listProducers(name, limit, offset),
   };
 }
 
