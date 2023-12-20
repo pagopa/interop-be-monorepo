@@ -136,3 +136,12 @@ export const removeConsumerDocumentErrorMapper = (
       () => HTTP_STATUS_FORBIDDEN
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const rejectAgreementErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("agreementNotFound", () => 404)
+    .with("agreementNotInExpectedState", () => 400)
+    .with("operationNotAllowed", () => 403)
+    .otherwise(() => 500);
