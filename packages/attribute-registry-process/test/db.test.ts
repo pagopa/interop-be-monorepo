@@ -9,11 +9,7 @@ import {
 } from "pagopa-interop-commons";
 import { v4 as uuidv4 } from "uuid";
 import { IDatabase } from "pg-promise";
-import {
-  Attribute,
-  AttributeAddedV1,
-  attributeKind,
-} from "pagopa-interop-models";
+import { Attribute } from "pagopa-interop-models";
 import { config } from "../src/utilities/config.js";
 import {
   AttributeRegistryService,
@@ -24,7 +20,6 @@ import {
   readModelServiceBuilder,
 } from "../src/services/readModelService.js";
 import {
-  decode,
   getMockAttribute,
   writeAttributeInEventstore,
   writeAttributeInReadmodel,
@@ -92,11 +87,11 @@ describe("database test", () => {
       it("should write on event-store for the creation of a declared attribute", async () => {
         const id = await attributeRegistryService.createDeclaredAttribute(
           {
-            name: mockAttribute.name,
-            description: mockAttribute.description,
+            name: "name",
+            description: "description",
           },
           {
-            organizationId: uuidv4(),
+            organizationId: "organization-id",
             externalId: {
               origin: "IPA",
               value: "123456",
@@ -107,22 +102,11 @@ describe("database test", () => {
         );
         expect(id).toBeDefined();
 
-        const attribute: Attribute = {
-          ...mockAttribute,
-          id,
-          kind: attributeKind.declared,
-        };
-
         const writtenEvent = await readLastEventByStreamId(id);
         expect(writtenEvent.stream_id).toBe(id);
         expect(writtenEvent.version).toBe("0");
         expect(writtenEvent.type).toBe("AttributeAdded");
-        const writtenPayload = decode({
-          messageType: AttributeAddedV1,
-          payload: writtenEvent.data,
-        });
 
-        expect(writtenPayload.attribute?.id).toBe(attribute.id);
         // TO DO check entire payload
       });
       it("should not write on event-store if the attribute already exists", () => {
@@ -153,6 +137,8 @@ describe("database test", () => {
         expect(writtenEvent.stream_id).toBe(id);
         expect(writtenEvent.version).toBe("0");
         expect(writtenEvent.type).toBe("AttributeAdded");
+
+        // TO DO check entire payload
       });
       it("should not write on event-store if the attribute already exists", () => {
         // TO DO

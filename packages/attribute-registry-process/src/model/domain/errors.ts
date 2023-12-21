@@ -1,6 +1,6 @@
-import { ApiError } from "pagopa-interop-models";
+import { ApiError, makeApiProblemBuilder } from "pagopa-interop-models";
 
-const errorCodes = {
+export const errorCodes = {
   attributeNotFound: "0001",
   attributeDuplicate: "0002",
   originNotCompliant: "0003",
@@ -8,47 +8,50 @@ const errorCodes = {
   OrganizationIsNotACertifier: "0005",
 };
 
-export function attributeNotFound(identifier: string): ApiError {
+export type ErrorCodes = keyof typeof errorCodes;
+
+export const makeApiProblem = makeApiProblemBuilder(errorCodes);
+
+export function attributeNotFound(identifier: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Attribute ${identifier} not found`,
-    code: errorCodes.attributeNotFound,
-    httpStatus: 404,
+    code: "attributeNotFound",
     title: "Attribute not found",
   });
 }
 
-export function attributeDuplicate(attributeName: string): ApiError {
+export function attributeDuplicate(
+  attributeName: string
+): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `ApiError during Attribute creation with name ${attributeName}`,
-    code: errorCodes.attributeDuplicate,
-    httpStatus: 409,
+    code: "attributeDuplicate",
     title: "Duplicated attribute name",
   });
 }
 
-export function originNotCompliant(origin: string): ApiError {
+export function originNotCompliant(origin: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Requester has not origin ${origin}`,
-    code: errorCodes.originNotCompliant,
-    httpStatus: 400,
+    code: "originNotCompliant",
     title: "Origin is not compliant",
   });
 }
 
-export function tenantNotFound(tenantId: string): ApiError {
+export function tenantNotFound(tenantId: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant ${tenantId} not found`,
-    code: errorCodes.tenantNotFound,
-    httpStatus: 500,
+    code: "tenantNotFound",
     title: "Tenant not found",
   });
 }
 
-export function OrganizationIsNotACertifier(tenantId: string): ApiError {
+export function OrganizationIsNotACertifier(
+  tenantId: string
+): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant ${tenantId} is not a Certifier`,
-    code: errorCodes.OrganizationIsNotACertifier,
-    httpStatus: 403,
+    code: "OrganizationIsNotACertifier",
     title: "Organization is not a certifier",
   });
 }
