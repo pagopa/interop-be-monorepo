@@ -181,12 +181,12 @@ const agreementRouter = (
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
       try {
-        await agreementService.rejectAgreement(
+        const id = await agreementService.rejectAgreement(
           req.params.agreementId,
           req.body.reason,
           req.ctx.authData
         );
-        return res.status(200).send();
+        return res.status(200).json({ id }).send();
       } catch (error) {
         const errorRes = makeApiProblem(error, rejectAgreementErrorMapper);
         return res.status(errorRes.status).json(errorRes).end();
