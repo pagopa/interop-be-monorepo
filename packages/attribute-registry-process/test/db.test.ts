@@ -324,12 +324,11 @@ describe("database test", () => {
       });
       describe("get an attribute by name", () => {
         it("should get the attribute if it exists", async () => {
-          const expectedAttribute = mockAttribute;
-          await addOneAttribute(expectedAttribute);
+          await addOneAttribute(mockAttribute);
           const attribute = await readModelService.getAttributeByName(
-            expectedAttribute.name
+            mockAttribute.name
           );
-          expect(attribute?.data).toEqual(expectedAttribute);
+          expect(attribute?.data).toEqual(mockAttribute);
         });
         it("should not get the attribute if it doesn't exist", async () => {
           const attribute = await readModelService.getAttributeByName("name");
