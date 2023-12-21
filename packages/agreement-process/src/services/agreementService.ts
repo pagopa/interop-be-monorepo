@@ -226,7 +226,7 @@ export function agreementServiceBuilder(
       agreementId: string,
       rejectionReason: string,
       authData: AuthData
-    ): Promise<void> {
+    ): Promise<string> {
       logger.info("Rejecting agreement");
       await repository.createEvent(
         await rejectAreementLogic({
@@ -238,6 +238,8 @@ export function agreementServiceBuilder(
           eserviceQuery,
         })
       );
+
+      return agreementId;
     },
   };
 }
