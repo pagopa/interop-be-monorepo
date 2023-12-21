@@ -13,3 +13,4 @@ export type ApiInternalTenantSeed = ZodiosBodyByPath<
   "post",
   "/internal/tenants"
 >;
+export type ApiTenantMailsSeed = ZodiosBodyByPath<Api, "post", "/tenants/:id">;
