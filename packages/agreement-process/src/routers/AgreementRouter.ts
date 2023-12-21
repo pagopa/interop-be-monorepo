@@ -274,12 +274,12 @@ const agreementRouter = (
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
       try {
-        await agreementService.upgradeAgreement(
+        const id = await agreementService.upgradeAgreement(
           req.params.agreementId,
           req.ctx.authData
         );
 
-        return res.status(200).send();
+        return res.status(200).json({ id }).send();
       } catch (error) {
         const errorRes = makeApiProblem(error, upgradeAgreementErrorMapper);
         return res.status(errorRes.status).json(errorRes).end();

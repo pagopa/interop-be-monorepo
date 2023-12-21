@@ -158,9 +158,9 @@ export function agreementServiceBuilder(
     async upgradeAgreement(
       agreementId: string,
       authData: AuthData
-    ): Promise<void> {
+    ): Promise<string> {
       logger.info("Upgrading agreement");
-      const events = await upgradeAgreementLogic({
+      const { streamId, events } = await upgradeAgreementLogic({
         agreementId,
         authData,
         agreementQuery,
@@ -172,6 +172,8 @@ export function agreementServiceBuilder(
       for (const event of events) {
         await repository.createEvent(event);
       }
+
+      return streamId;
     },
   };
 }
@@ -367,7 +369,7 @@ export async function upgradeAgreementLogic({
     destinationFileName: string,
     docName: string
   ) => Promise<string>;
-}): Promise<Array<CreateEvent<AgreementEvent>>> {
+}): Promise<{ streamId: string; events: Array<CreateEvent<AgreementEvent>> }> {
   const agreementToBeUpgraded = await agreementQuery.getAgreementById(
     agreementId
   );
@@ -463,13 +465,16 @@ export async function upgradeAgreementLogic({
       },
     };
 
-    return [
-      toCreateEventAgreementUpdated(
-        deactivated,
-        agreementToBeUpgraded.metadata.version
-      ),
-      toCreateEventAgreementAdded(upgraded),
-    ];
+    return {
+      streamId: upgraded.id,
+      events: [
+        toCreateEventAgreementUpdated(
+          deactivated,
+          agreementToBeUpgraded.metadata.version
+        ),
+        toCreateEventAgreementAdded(upgraded),
+      ],
+    };
   } else {
     // createNewDraftAgreement
     await verifyConflictingAgreements(
@@ -496,6 +501,9 @@ export async function upgradeAgreementLogic({
       fileCopy
     );
 
-    return [createEvent, ...docEvents];
+    return {
+      streamId: createEvent.streamId,
+      events: [createEvent, ...docEvents],
+    };
   }
 }
