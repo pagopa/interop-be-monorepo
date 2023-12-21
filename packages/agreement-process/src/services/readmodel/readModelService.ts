@@ -24,7 +24,7 @@ import {
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { z } from "zod";
-import { Filter } from "mongodb";
+import { Document, Filter } from "mongodb";
 import { CompactOrganization } from "../../model/domain/models.js";
 
 export type AgreementQueryFilters = {
@@ -56,9 +56,7 @@ const makeFilter = (
       return undefined;
     });
 
-const getAgreementsFilters = (
-  filters: AgreementQueryFilters
-): { $match: object } => {
+const getAgreementsFilters = (filters: AgreementQueryFilters): Document => {
   const upgradeableStates = [
     agreementState.draft,
     agreementState.active,
@@ -116,10 +114,10 @@ const getAgreementsFilters = (
   return { $match: queryFilters };
 };
 
-const getTenantsPipeline = (
+const getTenantsByNamePipeline = (
   tenantName: string | undefined,
   tenantIdField: Extract<AgreementDataFields, "producerId" | "consumerId">
-): object[] => [
+): Document[] => [
   {
     $lookup: {
       from: "tenants",
@@ -257,7 +255,10 @@ async function searchTenantsByName(
   limit: number,
   offset: number
 ): Promise<ListResult<CompactOrganization>> {
-  const aggregationPipeline = getTenantsPipeline(tenantName, tenantIdField);
+  const aggregationPipeline = getTenantsByNamePipeline(
+    tenantName,
+    tenantIdField
+  );
 
   const data = await agreements
     .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }])
