@@ -230,6 +230,8 @@ describe("database test", () => {
           );
           expect(attribute?.data.name).toBe("name");
           expect(attribute?.data.description).toBe("description");
+
+          // TO DO check entire object
         });
         it("should not get the attribute if it doesn't exist", async () => {
           const attribute = await readModelService.getAttributeByName("name");
