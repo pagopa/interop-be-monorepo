@@ -455,15 +455,13 @@ export function readModelServiceBuilder(
         },
         {
           $match: {
-            ...(name && {
-              "data.name": { $regex: new RegExp(name || "", "i") },
-            }),
+            "tenants.data.name": { $regex: new RegExp(name || "", "i") },
           },
         },
         {
-          group: {
-            _id: "$$data.consumerId",
-            tenantId: { $first: "$$data.consumerId" },
+          $group: {
+            _id: "$data.consumerId",
+            tenantId: { $first: "$data.consumerId" },
             tenantName: { $first: "$tenants.data.name" },
           },
         },
