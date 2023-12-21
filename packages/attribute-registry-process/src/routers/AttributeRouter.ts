@@ -6,7 +6,6 @@ import {
   ZodiosContext,
   authorizationMiddleware,
 } from "pagopa-interop-commons";
-import { makeApiProblem } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import {
@@ -14,8 +13,17 @@ import {
   toApiAttribute,
 } from "../model/domain/apiConverter.js";
 import { config } from "../utilities/config.js";
-import { attributeNotFound } from "../model/domain/errors.js";
+import { attributeNotFound, makeApiProblem } from "../model/domain/errors.js";
 import { attributeRegistryServiceBuilder } from "../services/attributeRegistryService.js";
+import {
+  createCertifiedAttributesErrorMapper,
+  createDeclaredAttributesErrorMapper,
+  createInternalCertifiedAttributesErrorMapper,
+  createVerifiedAttributesErrorMapper,
+  getAttributeByIdErrorMapper,
+  getAttributeByOriginAndCodeErrorMapper,
+  getAttributesByNameErrorMapper,
+} from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(config);
 const attributeRegistryService = attributeRegistryServiceBuilder(
@@ -87,13 +95,17 @@ const attributeRouter = (
           if (attribute) {
             return res.status(200).json(toApiAttribute(attribute.data)).end();
           } else {
-            return res
-              .status(404)
-              .json(makeApiProblem(attributeNotFound(req.params.name)))
-              .end();
+            const errorRes = makeApiProblem(
+              attributeNotFound,
+              getAttributesByNameErrorMapper
+            );
+            return res.status(errorRes.status).json(errorRes).end();
           }
         } catch (error) {
-          const errorRes = makeApiProblem(error);
+          const errorRes = makeApiProblem(
+            error,
+            getAttributesByNameErrorMapper
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -118,13 +130,17 @@ const attributeRouter = (
           if (attribute) {
             return res.status(200).json(toApiAttribute(attribute.data)).end();
           } else {
-            return res
-              .status(404)
-              .json(makeApiProblem(attributeNotFound(`${origin}/${code}`)))
-              .end();
+            const errorRes = makeApiProblem(
+              attributeNotFound(`${origin}/${code}`),
+              getAttributeByOriginAndCodeErrorMapper
+            );
+            return res.status(errorRes.status).json(errorRes).end();
           }
         } catch (error) {
-          const errorRes = makeApiProblem(error);
+          const errorRes = makeApiProblem(
+            error,
+            getAttributeByOriginAndCodeErrorMapper
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -148,13 +164,17 @@ const attributeRouter = (
           if (attribute) {
             return res.status(200).json(toApiAttribute(attribute.data)).end();
           } else {
-            return res
-              .status(404)
-              .json(makeApiProblem(attributeNotFound(req.params.attributeId)))
-              .end();
+            const errorRes = makeApiProblem(
+              attributeNotFound(req.params.attributeId),
+              getAttributeByIdErrorMapper
+            );
+            return res.status(errorRes.status).json(errorRes).end();
           }
         } catch (error) {
-          const errorRes = makeApiProblem(error);
+          const errorRes = makeApiProblem(
+            attributeNotFound(req.params.attributeId),
+            getAttributeByIdErrorMapper
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -200,7 +220,10 @@ const attributeRouter = (
           );
           return res.status(200).json({ id }).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error);
+          const errorRes = makeApiProblem(
+            error,
+            createCertifiedAttributesErrorMapper
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -216,7 +239,10 @@ const attributeRouter = (
           );
           return res.status(200).json({ id }).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error);
+          const errorRes = makeApiProblem(
+            error,
+            createDeclaredAttributesErrorMapper
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -232,7 +258,10 @@ const attributeRouter = (
           );
           return res.status(200).json({ id }).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error);
+          const errorRes = makeApiProblem(
+            error,
+            createVerifiedAttributesErrorMapper
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -248,7 +277,10 @@ const attributeRouter = (
             );
           return res.status(200).json({ id }).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error);
+          const errorRes = makeApiProblem(
+            error,
+            createInternalCertifiedAttributesErrorMapper
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
