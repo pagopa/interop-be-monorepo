@@ -29,7 +29,7 @@ export const updateVerifiedAttributeExtensionDateErrorMapper = (
 ): number =>
   match(error.code)
     .with("verifiedAttributeNotFoundInTenant", () => 404)
-    .with("organizationNotFoundInVerifiers", () => 404)
-    .with("expirationDateNotFoundInVerifier", () => 404)
+    .with("organizationNotFoundInVerifiers", () => 403)
+    .with("extensionDateNotFoundInVerifier", () => 400)
     .with("tenantNotFound", () => 404)
     .otherwise(() => 500);

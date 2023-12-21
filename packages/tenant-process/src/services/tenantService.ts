@@ -10,8 +10,6 @@ import {
   TenantFeature,
   TenantKind,
   TenantMail,
-  TenantVerifier,
-  VerifiedTenantAttribute,
   WithMetadata,
   tenantAttributeType,
   tenantEventToBinaryData,
@@ -33,10 +31,10 @@ import {
 } from "../model/domain/errors.js";
 import {
   assertAttributeExists,
-  assertExpirationDateExist,
+  assertExtantionDateExist,
   assertOrganizationVerifierExist,
   assertTenantExists,
-  assertVerifiedTenantAttributeExist,
+  assertVerifiedAttributeExistsInTenant,
 } from "./validators.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -230,17 +228,13 @@ export async function updateVerifiedAttributeExtensionDateLogic({
 }): Promise<CreateEvent<TenantEvent>> {
   assertTenantExists(tenantId, tenant);
 
-  const verifiedTenantAttribute = tenant.data.attributes
-    .filter((att) => att.type === tenantAttributeType.VERIFIED)
-    .find((att) => att.id === attributeId) as VerifiedTenantAttribute;
-
-  assertVerifiedTenantAttributeExist(
-    tenantId,
-    attributeId,
-    verifiedTenantAttribute
+  const attribute = tenant?.data.attributes.find(
+    (att) => att.id === attributeId
   );
 
-  const tenantVerifier = verifiedTenantAttribute.verifiedBy.find(
+  assertVerifiedAttributeExistsInTenant(tenantId, attribute, tenant);
+
+  const tenantVerifier = attribute.verifiedBy.find(
     (verifier) => verifier.id === verifierId
   );
 
@@ -251,38 +245,30 @@ export async function updateVerifiedAttributeExtensionDateLogic({
     tenantVerifier
   );
 
-  assertExpirationDateExist(tenantId, attributeId, verifierId, tenantVerifier);
+  assertExtantionDateExist(tenantId, attributeId, verifierId, tenantVerifier);
 
   const extensionDate =
     tenantVerifier.extensionDate ?? tenantVerifier.expirationDate;
 
-  const updatedVerifiedBy: TenantVerifier[] =
-    verifiedTenantAttribute.verifiedBy.map((verifier) => {
-      if (verifier.id === tenantVerifier?.id) {
-        return {
-          ...tenantVerifier,
-          extensionDate,
-        };
-      }
-      return verifier;
-    });
-
-  const updatedVerifiedAttribute: VerifiedTenantAttribute = {
-    ...verifiedTenantAttribute,
-    verifiedBy: updatedVerifiedBy,
+  const newAttribute: TenantAttribute = {
+    ...attribute,
+    verifiedBy: attribute.verifiedBy.map((v) =>
+      v.id === verifierId
+        ? {
+            ...v,
+            extensionDate,
+          }
+        : v
+    ),
   };
 
-  const updatedAttributes: TenantAttribute[] = tenant.data.attributes.map(
-    (attr) => {
-      if (attr.id === updatedVerifiedAttribute.id) {
-        return updatedVerifiedAttribute;
-      }
-      return attr;
-    }
-  );
   const newTenant: Tenant = {
     ...tenant.data,
-    attributes: updatedAttributes,
+    attributes: [
+      newAttribute,
+      ...tenant.data.attributes.filter((a) => a.id !== newAttribute.id),
+    ],
+    updatedAt: new Date(),
   };
 
   return toCreateEventTenantUpdated(

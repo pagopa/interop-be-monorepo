@@ -9,13 +9,13 @@ import {
   TenantAttribute,
   TenantKind,
   TenantVerifier,
-  VerifiedTenantAttribute,
   WithMetadata,
   operationForbidden,
+  tenantAttributeType,
   tenantKind,
 } from "pagopa-interop-models";
 import {
-  expirationDateNotFoundInVerifier,
+  extensionDateNotFoundInVerifier,
   organizationNotFoundInVerifiers,
   verifiedAttributeNotFoundInTenant,
   ErrorCodes,
@@ -34,13 +34,15 @@ export function assertTenantExists(
   }
 }
 
-export function assertVerifiedTenantAttributeExist(
-  tenantId: string,
+export function assertVerifiedAttributeExistsInTenant(
   attributeId: string,
-  verifiedTenantAttribute: VerifiedTenantAttribute
-): asserts verifiedTenantAttribute is NonNullable<VerifiedTenantAttribute> {
-  if (verifiedTenantAttribute === undefined) {
-    verifiedAttributeNotFoundInTenant(tenantId, attributeId);
+  attribute: TenantAttribute | undefined,
+  tenant: WithMetadata<Tenant>
+): asserts attribute is NonNullable<
+  Extract<TenantAttribute, { type: "verified" }>
+> {
+  if (!attribute || attribute.type !== tenantAttributeType.VERIFIED) {
+    throw verifiedAttributeNotFoundInTenant(tenant.data.id, attributeId);
   }
 }
 
@@ -55,14 +57,14 @@ export function assertOrganizationVerifierExist(
   }
 }
 
-export function assertExpirationDateExist(
+export function assertExtantionDateExist(
   tenantId: string,
   attributeId: string,
   verifierId: string,
   tenantVerifier: TenantVerifier | undefined
 ): asserts tenantVerifier is NonNullable<TenantVerifier> {
   if (tenantVerifier?.expirationDate === undefined) {
-    expirationDateNotFoundInVerifier(tenantId, attributeId, verifierId);
+    extensionDateNotFoundInVerifier(tenantId, attributeId, verifierId);
   }
 }
 
