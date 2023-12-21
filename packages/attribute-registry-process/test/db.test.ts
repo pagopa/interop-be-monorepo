@@ -221,22 +221,50 @@ describe("database test", () => {
       });
       describe("get an attribute by id", () => {
         it("should get the attribute if it exists", async () => {
-          // TO DO
-          expect(1).toBe(1);
+          const expectedAttribute1 = {
+            ...mockAttribute,
+            id: uuidv4(),
+            name: "attribute 001",
+          };
+          await addOneAttribute(expectedAttribute1);
+
+          const expectedAttribute2 = {
+            ...mockAttribute,
+            id: uuidv4(),
+            name: "attribute 002",
+          };
+          await addOneAttribute(expectedAttribute2);
+
+          const expectedAttribute3 = {
+            ...mockAttribute,
+            id: uuidv4(),
+            name: "attribute 003",
+          };
+          await addOneAttribute(expectedAttribute3);
+
+          const attribute = await readModelService.getAttributeById(
+            expectedAttribute1.id
+          );
+          expect(attribute?.data).toEqual(expectedAttribute1);
         });
         it("should not get the attribute if it doesn't exist", async () => {
-          // TO DO
-          expect(1).toBe(1);
+          const id = uuidv4();
+          const attribute = await readModelService.getAttributeById(id);
+          expect(attribute).toBeUndefined();
         });
       });
       describe("get an attribute by name", () => {
         it("should get the attribute if it exists", async () => {
-          // TO DO
-          expect(1).toBe(1);
+          const expectedAttribute = mockAttribute;
+          await addOneAttribute(expectedAttribute);
+          const attribute = await readModelService.getAttributeByName(
+            expectedAttribute.name
+          );
+          expect(attribute?.data).toEqual(expectedAttribute);
         });
         it("should not get the attribute if it doesn't exist", async () => {
-          // TO DO
-          expect(1).toBe(1);
+          const attribute = await readModelService.getAttributeByName("name");
+          expect(attribute).toBeUndefined();
         });
       });
       describe("getAttributeByOriginAndCode", () => {
