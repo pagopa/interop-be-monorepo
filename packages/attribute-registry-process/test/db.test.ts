@@ -263,23 +263,23 @@ describe("database test", () => {
         });
       });
       describe("getAttributesByKindsNameOrigin", () => {
-        it("should get the attributes if they exists (parameters: kinds, name, origin)", () => {
+        it("should get the attributes if they exist (parameters: kinds, name, origin)", () => {
           // TO DO
           expect(1).toBe(1);
         });
-        it("should get the attributes if they exists (parameters: kinds only)", () => {
+        it("should get the attributes if they exist (parameters: kinds only)", () => {
           // TO DO
           expect(1).toBe(1);
         });
-        it("should get the attributes if they exists (parameters: name only)", () => {
+        it("should get the attributes if they exist (parameters: name only)", () => {
           // TO DO
           expect(1).toBe(1);
         });
-        it("should get the attributes if they exists (parameters: origin only)", () => {
+        it("should get the attributes if they exist (parameters: origin only)", () => {
           // TO DO
           expect(1).toBe(1);
         });
-        it("should get all he attributes if no parameter is passed", () => {
+        it("should get all the attributes if no parameter is passed", () => {
           // TO DO
           expect(1).toBe(1);
         });
