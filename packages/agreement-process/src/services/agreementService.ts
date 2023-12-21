@@ -201,9 +201,9 @@ export function agreementServiceBuilder(
     async cloneAgreement(
       agreementId: string,
       authData: AuthData
-    ): Promise<void> {
+    ): Promise<string> {
       logger.info("Cloning agreement");
-      const events = await cloneAgreementLogic({
+      const { streamId, events } = await cloneAgreementLogic({
         agreementId,
         authData,
         agreementQuery,
@@ -215,6 +215,8 @@ export function agreementServiceBuilder(
       for (const event of events) {
         await repository.createEvent(event);
       }
+
+      return streamId;
     },
   };
 }
@@ -563,7 +565,7 @@ export async function cloneAgreementLogic({
     destinationFileName: string,
     docName: string
   ) => Promise<string>;
-}): Promise<Array<CreateEvent<AgreementEvent>>> {
+}): Promise<{ streamId: string; events: Array<CreateEvent<AgreementEvent>> }> {
   const agreementToBeCloned = await agreementQuery.getAgreementById(
     agreementId
   );
@@ -629,5 +631,8 @@ export async function cloneAgreementLogic({
     fileCopy
   );
 
-  return [newAgreement, ...docEvents];
+  return {
+    streamId: newAgreement.streamId,
+    events: [newAgreement, ...docEvents],
+  };
 }
