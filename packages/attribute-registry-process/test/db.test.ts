@@ -252,7 +252,7 @@ describe("database test", () => {
     });
   });
 
-  // eslint-disable-next-line no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const addOneAttribute = async (attribute: Attribute): Promise<void> => {
     await writeAttributeInEventstore(attribute, postgresDB);
     await writeAttributeInReadmodel(attribute, attributes);
