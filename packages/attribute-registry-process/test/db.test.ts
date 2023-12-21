@@ -228,8 +228,8 @@ describe("database test", () => {
           const attribute = await readModelService.getAttributeByName(
             mockAttribute.name
           );
-          expect(attribute?.data.name).toBe("name");
-          expect(attribute?.data.description).toBe("description");
+          expect(attribute?.data.name).toBe(mockAttribute.name);
+          expect(attribute?.data.description).toBe(mockAttribute.description);
 
           // TO DO check entire object
         });
