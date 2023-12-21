@@ -252,7 +252,7 @@ async function getAttribute(
   return undefined;
 }
 
-async function listTenants(
+async function searchTenantsByName(
   agreements: AgreementCollection,
   tenantName: string | undefined,
   tenantIdField: "producerId" | "consumerId",
@@ -516,14 +516,14 @@ export function readModelServiceBuilder(
       limit: number,
       offset: number
     ): Promise<ListResult<CompactOrganization>> {
-      return listTenants(agreements, name, "consumerId", limit, offset);
+      return searchTenantsByName(agreements, name, "consumerId", limit, offset);
     },
     async listProducers(
       name: string | undefined,
       limit: number,
       offset: number
     ): Promise<ListResult<CompactOrganization>> {
-      return listTenants(agreements, name, "producerId", limit, offset);
+      return searchTenantsByName(agreements, name, "producerId", limit, offset);
     },
   };
 }
