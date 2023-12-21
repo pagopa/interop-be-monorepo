@@ -137,6 +137,8 @@ describe("database test", () => {
         expect(writtenEvent.stream_id).toBe(id);
         expect(writtenEvent.version).toBe("0");
         expect(writtenEvent.type).toBe("AttributeAdded");
+
+        // TO DO check entire payload
       });
       it("should not write on event-store if the attribute already exists", () => {
         // TO DO
@@ -211,6 +213,8 @@ describe("database test", () => {
           );
           expect(attribute?.data.name).toBe(mockAttribute.name);
           expect(attribute?.data.description).toBe(mockAttribute.description);
+
+          // TO DO check entire object
         });
         it("should not get the attribute if it doesn't exist", async () => {
           const id = uuidv4();
