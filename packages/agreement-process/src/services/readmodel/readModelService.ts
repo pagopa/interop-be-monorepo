@@ -464,7 +464,7 @@ export function readModelServiceBuilder(
           group: {
             _id: "$$data.consumerId",
             tenantId: { $first: "$$data.consumerId" },
-            tenantName: { $fist: "$tenants.data.name" },
+            tenantName: { $first: "$tenants.data.name" },
           },
         },
         {
