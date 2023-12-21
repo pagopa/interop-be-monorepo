@@ -2,7 +2,7 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { afterEach, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import {
   AgreementCollection,
   EServiceCollection,
@@ -12,10 +12,14 @@ import {
 } from "pagopa-interop-commons";
 import { IDatabase } from "pg-promise";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
-import { GenericContainer } from "testcontainers";
+import { GenericContainer, StartedTestContainer } from "testcontainers";
 import { config } from "../src/utilities/config.js";
-import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
+import { readModelServiceBuilder } from "../src/services/readmodel/readModelService.js";
+import { agreementQueryBuilder } from "../src/services/readmodel/agreementQuery.js";
+import { tenantQueryBuilder } from "../src/services/readmodel/tenantQuery.js";
+import { eserviceQueryBuilder } from "../src/services/readmodel/eserviceQuery.js";
+import { attributeQueryBuilder } from "../src/services/readmodel/attributeQuery.js";
 
 describe("database test", async () => {
   let agreements: AgreementCollection;
@@ -24,9 +28,11 @@ describe("database test", async () => {
   let readModelService;
   let agreementService;
   let postgresDB: IDatabase<unknown>;
+  let postgreSqlContainer: StartedTestContainer;
+  let mongodbContainer: StartedTestContainer;
 
   beforeAll(async () => {
-    const postgreSqlContainer = await new PostgreSqlContainer("postgres:14")
+    postgreSqlContainer = await new PostgreSqlContainer("postgres:14")
       .withUsername(config.eventStoreDbUsername)
       .withPassword(config.eventStoreDbPassword)
       .withDatabase(config.eventStoreDbName)
@@ -39,7 +45,7 @@ describe("database test", async () => {
       .withExposedPorts(5432)
       .start();
 
-    const mongodbContainer = await new GenericContainer("mongo:4.0.0")
+    mongodbContainer = await new GenericContainer("mongo:4.0.0")
       .withEnvironment({
         MONGO_INITDB_DATABASE: config.readModelDbName,
         MONGO_INITDB_ROOT_USERNAME: config.readModelDbUsername,
@@ -56,8 +62,11 @@ describe("database test", async () => {
     eservices = readModelRepository.eservices;
     tenants = readModelRepository.tenants;
 
-    readModelService = readModelServiceBuilder(config);
-    agreementService = agreementServiceBuilder(config, readModelService);
+    readModelService = readModelServiceBuilder(readModelRepository);
+    const eserviceQuery = eserviceQueryBuilder(readModelService);
+    const agreementQuery = agreementQueryBuilder(readModelService);
+    const tenantQuery = tenantQueryBuilder(readModelService);
+    const attributeQuery = attributeQueryBuilder(readModelService);
 
     postgresDB = initDB({
       username: config.eventStoreDbUsername,
@@ -68,6 +77,14 @@ describe("database test", async () => {
       schema: config.eventStoreDbSchema,
       useSSL: config.eventStoreDbUseSSL,
     });
+
+    agreementService = agreementServiceBuilder(
+      postgresDB,
+      agreementQuery,
+      tenantQuery,
+      eserviceQuery,
+      attributeQuery
+    );
   });
 
   afterEach(async () => {
@@ -77,6 +94,11 @@ describe("database test", async () => {
 
     await postgresDB.none("TRUNCATE TABLE agreement.events RESTART IDENTITY");
     await postgresDB.none("TRUNCATE TABLE catalog.events RESTART IDENTITY");
+  });
+
+  afterAll(async () => {
+    await postgreSqlContainer.stop();
+    await mongodbContainer.stop();
   });
 
   describe("TO DO", () => {

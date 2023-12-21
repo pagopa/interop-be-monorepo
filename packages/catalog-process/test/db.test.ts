@@ -51,8 +51,7 @@ describe("database test", async () => {
     const readModelRepository = ReadModelRepository.init(config);
     eservices = readModelRepository.eservices;
     agreements = readModelRepository.agreements;
-    readModelService = readModelServiceBuilder(config);
-    catalogService = catalogServiceBuilder(config, readModelService);
+    readModelService = readModelServiceBuilder(readModelRepository);
 
     postgresDB = initDB({
       username: config.eventStoreDbUsername,
@@ -63,6 +62,7 @@ describe("database test", async () => {
       schema: config.eventStoreDbSchema,
       useSSL: config.eventStoreDbUseSSL,
     });
+    catalogService = catalogServiceBuilder(postgresDB, readModelService);
   });
 
   afterEach(async () => {
