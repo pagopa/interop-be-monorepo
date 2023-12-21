@@ -20,7 +20,6 @@ import {
   readModelServiceBuilder,
 } from "../src/services/readModelService.js";
 import {
-  decode,
   getMockAttribute,
   writeAttributeInEventstore,
   writeAttributeInReadmodel,
