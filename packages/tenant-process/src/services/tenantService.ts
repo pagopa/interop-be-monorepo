@@ -89,6 +89,9 @@ export function tenantServiceBuilder(
     },
   };
 }
+
+export type TenantService = ReturnType<typeof tenantServiceBuilder>;
+
 export async function updateTenantAttributeLogic({
   tenant,
   tenantId,
