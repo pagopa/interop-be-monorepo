@@ -29,14 +29,6 @@ export function assertTenantExists(
   }
 }
 
-export function assertAttributeExists(
-  attributeId: string,
-  attributes: TenantAttribute[]
-): asserts attributes is NonNullable<TenantAttribute[]> {
-  if (!attributes.some((attr) => attr.id === attributeId)) {
-    throw attributeNotFound(attributeId);
-  }
-}
 
 const PUBLIC_ADMINISTRATIONS_IDENTIFIER = "IPA";
 const CONTRACT_AUTHORITY_PUBLIC_SERVICES_MANAGERS = "SAG";
