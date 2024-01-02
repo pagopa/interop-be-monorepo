@@ -161,7 +161,7 @@ export function agreementServiceBuilder(
       agreementId: string,
       payload: ApiAgreementSubmissionPayload
     ): Promise<string> {
-      logger.info("Submitting agreement");
+      logger.info(`Submitting agreement ${agreementId}`);
       const updatesEvents = await submitAgreementLogic(
         agreementId,
         payload,
@@ -181,7 +181,7 @@ export function agreementServiceBuilder(
       agreementId: string,
       authData: AuthData
     ): Promise<string> {
-      logger.info("Upgrading agreement");
+      logger.info(`Upgrading agreement ${agreementId}`);
       const { streamId, events } = await upgradeAgreementLogic({
         agreementId,
         authData,
