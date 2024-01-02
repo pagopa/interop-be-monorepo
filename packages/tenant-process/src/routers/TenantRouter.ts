@@ -61,8 +61,26 @@ const tenantsRouter = (
         SECURITY_ROLE,
         SUPPORT_ROLE,
       ]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const { name, offset, limit } = req.query;
+          const tenants = await readModelService.getTenants({
+            name,
+            offset,
+            limit,
+          });
+
+          return res.status(200).json({
+            results: tenants.results.map(toApiTenant),
+            totalCount: tenants.totalCount,
+          });
+        } catch (error) {
+          const errorRes = makeApiProblem(error);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
+
     .get(
       "/tenants/:id",
       authorizationMiddleware([
