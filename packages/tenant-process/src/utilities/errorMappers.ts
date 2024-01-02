@@ -30,7 +30,6 @@ export const updateTenantVerifiedAttributeErrorMapper = (
   match(error.code)
     .with("tenantNotFound", () => 404)
     .with("verifiedAttributeNotFoundInTenant", () => 404)
-    .with("expirationDateNotFoundInVerifier", () => 400)
     .with("expirationDateCannotBeInThePast", () => 400)
     .with("organizationNotFoundInVerifiers", () => 403)
     .otherwise(() => 500);
