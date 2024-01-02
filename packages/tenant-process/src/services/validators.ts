@@ -15,13 +15,13 @@ import {
   tenantKind,
 } from "pagopa-interop-models";
 import {
-  extensionDateNotFoundInVerifier,
   organizationNotFoundInVerifiers,
   verifiedAttributeNotFoundInTenant,
   ErrorCodes,
   attributeNotFound,
   eServiceNotFound,
   tenantNotFound,
+  expirationDateNotFoundInVerifier,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -57,14 +57,14 @@ export function assertOrganizationVerifierExist(
   }
 }
 
-export function assertExtentionDateExist(
+export function assertExpirationDateExist(
   tenantId: string,
   attributeId: string,
   verifierId: string,
   tenantVerifier: TenantVerifier | undefined
 ): asserts tenantVerifier is NonNullable<TenantVerifier> {
   if (tenantVerifier?.expirationDate === undefined) {
-    extensionDateNotFoundInVerifier(tenantId, attributeId, verifierId);
+    expirationDateNotFoundInVerifier(tenantId, attributeId, verifierId);
   }
 }
 
