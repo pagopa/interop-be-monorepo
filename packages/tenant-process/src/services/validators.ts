@@ -64,12 +64,12 @@ export function assertValidExpirationDate(
 export function assertVerifiedAttributeExistsInTenant(
   attributeId: string,
   attribute: TenantAttribute | undefined,
-  tenant: Tenant
+  tenantId: string
 ): asserts attribute is NonNullable<
   Extract<TenantAttribute, { type: "verified" }>
 > {
   if (!attribute || attribute.type !== tenantAttributeType.VERIFIED) {
-    throw verifiedAttributeNotFoundInTenant(tenant.id, attributeId);
+    throw verifiedAttributeNotFoundInTenant(tenantId, attributeId);
   }
 }
 
