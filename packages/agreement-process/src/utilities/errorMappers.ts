@@ -68,3 +68,12 @@ export const upgradeAgreementErrorMapper = (
     )
     .with("operationNotAllowed", () => 403)
     .otherwise(() => 500);
+
+export const suspendAgreementErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("agreementNotFound", () => 404)
+    .with("operationNotAllowed", () => 403)
+    .with("agreementNotInExpectedState", () => 400)
+    .otherwise(() => 500);

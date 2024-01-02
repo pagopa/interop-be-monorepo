@@ -168,3 +168,8 @@ export const agreementDeletableStates: AgreementState[] = [
   agreementState.draft,
   agreementState.missingCertifiedAttributes,
 ];
+
+export const agreementSuspendableStates: AgreementState[] = [
+  agreementState.active,
+  agreementState.suspended,
+];

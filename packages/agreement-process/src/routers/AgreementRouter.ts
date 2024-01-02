@@ -25,6 +25,7 @@ import {
   createAgreementErrorMapper,
   deleteAgreementErrorMapper,
   submitAgreementErrorMapper,
+  suspendAgreementErrorMapper,
   updateAgreementErrorMapper,
   upgradeAgreementErrorMapper,
 } from "../utilities/errorMappers.js";
@@ -114,8 +115,18 @@ const agreementRouter = (
 
   agreementRouter.post(
     "/agreements/:agreementId/suspend",
-    async (_req, res) => {
-      res.status(501).send();
+    authorizationMiddleware([ADMIN_ROLE]),
+    async (req, res) => {
+      try {
+        const id = await agreementService.suspendAgreement(
+          req.params.agreementId,
+          req.ctx.authData
+        );
+        return res.status(200).json({ id }).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, suspendAgreementErrorMapper);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
     }
   );
 
