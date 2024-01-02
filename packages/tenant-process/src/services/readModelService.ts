@@ -122,28 +122,12 @@ export const readModelService = {
       { $project: { data: 1, lowerName: { $toLower: "$data.name" } } },
       { $sort: { lowerName: 1 } },
     ];
-    const data = await tenants
-      .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }])
-      .toArray();
 
-    const result = z.array(Tenant).safeParse(data.map((d) => d.data));
-    if (!result.success) {
-      logger.error(
-        `Unable to parse tenant items: result ${JSON.stringify(
-          result
-        )} - data ${JSON.stringify(data)} `
-      );
-
-      throw genericError("Unable to parse agreements items");
-    }
-
-    return {
-      results: result.data,
-      totalCount: await ReadModelRepository.getTotalCount(
-        tenants,
-        aggregationPipeline
-      ),
-    };
+    return getTenants({
+      aggregationPipeline,
+      offset,
+      limit,
+    });
   },
 
   async getTenantById(id: string): Promise<WithMetadata<Tenant> | undefined> {
@@ -168,6 +152,7 @@ export const readModelService = {
   ): Promise<WithMetadata<Tenant> | undefined> {
     return getTenant({ "data.selfcareId": selfcareId });
   },
+
   async getConsumers({
     name,
     producerId,
@@ -214,6 +199,7 @@ export const readModelService = {
       allowDiskUse: true,
     });
   },
+
   async getProducers({
     name,
     offset,
