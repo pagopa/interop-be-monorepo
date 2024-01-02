@@ -42,3 +42,17 @@ export const createVerifiedAttributesErrorMapper = (
   match(error.code)
     .with("originNotCompliant", () => 403)
     .otherwise(() => 500);
+
+export const createCertifiedAttributesErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("OrganizationIsNotACertifier", () => 403)
+    .otherwise(() => 500);
+
+export const createInternalCertifiedAttributesErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("OrganizationIsNotACertifier", () => 403)
+    .otherwise(() => 500);

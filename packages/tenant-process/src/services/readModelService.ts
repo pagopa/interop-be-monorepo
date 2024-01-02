@@ -7,12 +7,14 @@ import {
   Tenant,
   WithMetadata,
 } from "pagopa-interop-models";
-import { Document } from "mongodb";
 import { Filter, WithId } from "mongodb";
 import { config } from "../utilities/config.js";
+
 const { tenants } = ReadModelRepository.init(config);
 
-function listTenantsFilters(name: string | undefined): object[] {
+function listTenantsFilters(
+  name: string | undefined
+): Filter<{ data: Tenant }> {
   const nameFilter = name
     ? {
         "data.name": {
@@ -27,7 +29,11 @@ function listTenantsFilters(name: string | undefined): object[] {
       $exists: true,
     },
   };
-  return [nameFilter, withSelfcareIdFilter];
+
+  return {
+    ...nameFilter,
+    ...withSelfcareIdFilter,
+  };
 }
 
 export const getTenants = async ({
@@ -36,7 +42,7 @@ export const getTenants = async ({
   limit,
   allowDiskUse = false,
 }: {
-  aggregationPipeline: Document[];
+  aggregationPipeline: Array<Filter<Tenant>>;
   offset: number;
   limit: number;
   allowDiskUse?: boolean;
@@ -101,6 +107,45 @@ async function getTenant(
 }
 
 export const readModelService = {
+  async getTenants({
+    name,
+    offset,
+    limit,
+  }: {
+    name: string | undefined;
+    offset: number;
+    limit: number;
+  }): Promise<ListResult<Tenant>> {
+    const query = listTenantsFilters(name);
+    const aggregationPipeline = [
+      { $match: query },
+      { $project: { data: 1, lowerName: { $toLower: "$data.name" } } },
+      { $sort: { lowerName: 1 } },
+    ];
+    const data = await tenants
+      .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }])
+      .toArray();
+
+    const result = z.array(Tenant).safeParse(data.map((d) => d.data));
+    if (!result.success) {
+      logger.error(
+        `Unable to parse tenant items: result ${JSON.stringify(
+          result
+        )} - data ${JSON.stringify(data)} `
+      );
+
+      throw genericError("Unable to parse agreements items");
+    }
+
+    return {
+      results: result.data,
+      totalCount: await ReadModelRepository.getTotalCount(
+        tenants,
+        aggregationPipeline
+      ),
+    };
+  },
+
   async getTenantById(id: string): Promise<WithMetadata<Tenant> | undefined> {
     return getTenant({ "data.id": id });
   },
