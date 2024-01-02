@@ -47,7 +47,9 @@ const makeFilter = (
     .with(P.string, () => ({
       [`data.${fieldName}`]: value,
     }))
-    .with(P.array(P.string), () => ({ [`data.${fieldName}`]: { $in: value } }))
+    .with(P.array(P.string), (a) =>
+      a.length === 0 ? undefined : { [`data.${fieldName}`]: { $in: value } }
+    )
     .otherwise(() => {
       logger.error(
         `Unable to build filter for field ${fieldName} and value ${value}`
@@ -323,7 +325,7 @@ export function readModelServiceBuilder(
       return {
         results: result.data,
         totalCount: await ReadModelRepository.getTotalCount(
-          eservices,
+          agreements,
           aggregationPipeline
         ),
       };
