@@ -62,7 +62,7 @@ export function assertVerifiedAttributeExistsInTenant(
   }
 }
 
-export function assertOrganizationIsInVerifiers(
+export function assertOrganizationIsInAttributeVerifiers(
   verifierId: string,
   tenantId: string,
   attribute: Extract<TenantAttribute, { type: "verified" }>

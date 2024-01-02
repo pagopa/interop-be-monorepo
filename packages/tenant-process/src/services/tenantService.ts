@@ -26,7 +26,7 @@ import {
 } from "../model/types.js";
 import { tenantDuplicate } from "../model/domain/errors.js";
 import {
-  assertOrganizationIsInVerifiers,
+  assertOrganizationIsInAttributeVerifiers,
   assertTenantExists,
   assertValidExpirationDate,
   assertVerifiedAttributeExistsInTenant,
@@ -126,7 +126,7 @@ async function updateTenantVerifiedAttributeLogic({
   );
 
   assertVerifiedAttributeExistsInTenant(attributeId, attribute, tenant.data.id);
-  assertOrganizationIsInVerifiers(verifierId, tenantId, attribute);
+  assertOrganizationIsInAttributeVerifiers(verifierId, tenantId, attribute);
 
   const updatedAttribute: TenantAttribute = {
     ...attribute,
