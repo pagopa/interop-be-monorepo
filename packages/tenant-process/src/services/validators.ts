@@ -9,7 +9,6 @@ import {
   TenantAttribute,
   TenantKind,
   WithMetadata,
-  genericError,
   operationForbidden,
   tenantAttributeType,
   tenantKind,
@@ -46,17 +45,7 @@ export function assertAttributeExists(
 export function assertValidExpirationDate(
   expirationDate: Date | undefined
 ): void {
-  if (!expirationDate) {
-    return;
-  }
-
-  const isValidDate = !isNaN(expirationDate.getTime());
-
-  if (!isValidDate) {
-    throw genericError(`Invalid date format for expirationDate`);
-  }
-
-  if (expirationDate < new Date()) {
+  if (expirationDate && expirationDate < new Date()) {
     throw expirationDateCannotBeInThePast(expirationDate);
   }
 }
