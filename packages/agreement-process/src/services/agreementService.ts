@@ -70,6 +70,7 @@ import { AttributeQuery } from "./readmodel/attributeQuery.js";
 import { EserviceQuery } from "./readmodel/eserviceQuery.js";
 import { AgreementQueryFilters } from "./readmodel/readModelService.js";
 import { TenantQuery } from "./readmodel/tenantQuery.js";
+import { suspendAgreementLogic } from "./agreementSuspensionProcessor.js";
 
 const fileManager = initFileManager(config);
 
@@ -261,6 +262,23 @@ export function agreementServiceBuilder(
       }
 
       return document;
+    },
+    async suspendAgreement(
+      agreementId: Agreement["id"],
+      authData: AuthData
+    ): Promise<Agreement["id"]> {
+      logger.info(`Suspending agreement ${agreementId}`);
+      await repository.createEvent(
+        await suspendAgreementLogic({
+          agreementId,
+          authData,
+          agreementQuery,
+          tenantQuery,
+          eserviceQuery,
+        })
+      );
+
+      return agreementId;
     },
   };
 }

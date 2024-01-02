@@ -36,7 +36,11 @@ import {
   verifySubmissionConflictingAgreements,
 } from "../model/domain/validators.js";
 import { ApiAgreementSubmissionPayload } from "../model/types.js";
-import { agreementStateByFlags, nextState } from "./agreementStateProcessor.js";
+import {
+  agreementStateByFlags,
+  nextState,
+  suspendedByPlatformFlag,
+} from "./agreementStateProcessor.js";
 import {
   ContractBuilder,
   addAgreementContractLogic,
@@ -331,10 +335,6 @@ const getUpdateSeed = (
         consumerNotes: payload.consumerNotes,
         stamps,
       };
-
-const suspendedByPlatformFlag = (fsmState: AgreementState): boolean =>
-  fsmState === agreementState.suspended ||
-  fsmState === agreementState.missingCertifiedAttributes;
 
 const isActiveOrSuspended = (state: AgreementState): boolean =>
   state === agreementState.active || state === agreementState.suspended;

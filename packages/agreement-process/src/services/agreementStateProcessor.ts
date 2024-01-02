@@ -139,3 +139,25 @@ export const agreementStateByFlags = (
       () => agreementState.suspended
     )
     .otherwise(() => stateByAttribute);
+
+export const suspendedByPlatformFlag = (fsmState: AgreementState): boolean =>
+  fsmState === agreementState.suspended ||
+  fsmState === agreementState.missingCertifiedAttributes;
+
+export const suspendedByConsumerFlag = (
+  agreement: Agreement,
+  requesterOrgId: Tenant["id"],
+  destinationState: AgreementState
+): boolean | undefined =>
+  requesterOrgId === agreement.consumerId
+    ? destinationState === agreementState.suspended
+    : agreement.suspendedByConsumer;
+
+export const suspendedByProducerFlag = (
+  agreement: Agreement,
+  requesterOrgId: Tenant["id"],
+  destinationState: AgreementState
+): boolean | undefined =>
+  requesterOrgId === agreement.producerId
+    ? destinationState === agreementState.suspended
+    : agreement.suspendedByProducer;

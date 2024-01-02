@@ -173,6 +173,9 @@ export const agreementCloningConflictingStates: AgreementState[] = [
   agreementState.draft,
   agreementState.pending,
   agreementState.missingCertifiedAttributes,
+];
+
+export const agreementSuspendableStates: AgreementState[] = [
   agreementState.active,
   agreementState.suspended,
 ];
