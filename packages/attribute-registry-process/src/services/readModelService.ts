@@ -1,10 +1,11 @@
-import { Filter } from "mongodb";
+import { Filter, WithId } from "mongodb";
 import { z } from "zod";
 import {
   AttributeCollection,
   logger,
   ReadModelFilter,
   ReadModelRepository,
+  TenantCollection,
 } from "pagopa-interop-commons";
 import {
   AttributeKind,
@@ -12,17 +13,20 @@ import {
   WithMetadata,
   ListResult,
   genericError,
+  Tenant,
 } from "pagopa-interop-models";
 import { AttributeRegistryConfig } from "../utilities/config.js";
 
 async function getAttribute(
   attributes: AttributeCollection,
-  filter: Filter<{ data: Attribute }>
+  filter: Filter<WithId<WithMetadata<Attribute>>>
 ): Promise<WithMetadata<Attribute> | undefined> {
   const data = await attributes.findOne(filter, {
     projection: { data: true, metadata: true },
   });
-  if (data) {
+  if (!data) {
+    return undefined;
+  } else {
     const result = z
       .object({
         metadata: z.object({ version: z.number() }),
@@ -42,7 +46,41 @@ async function getAttribute(
       metadata: { version: result.data.metadata.version },
     };
   }
-  return undefined;
+}
+
+async function getTenant(
+  tenants: TenantCollection,
+  filter: Filter<WithId<WithMetadata<Tenant>>>
+): Promise<WithMetadata<Tenant> | undefined> {
+  const data = await tenants.findOne(filter, {
+    projection: { data: true, metadata: true },
+  });
+
+  if (!data) {
+    return undefined;
+  } else {
+    const result = z
+      .object({
+        metadata: z.object({ version: z.number() }),
+        data: Tenant,
+      })
+      .safeParse(data);
+
+    if (!result.success) {
+      logger.error(
+        `Unable to parse tenant item: result ${JSON.stringify(
+          result
+        )} - data ${JSON.stringify(data)} `
+      );
+
+      throw genericError("Unable to parse tenant item");
+    }
+
+    return {
+      data: result.data.data,
+      metadata: { version: result.data.metadata.version },
+    };
+  }
 }
 
 async function getAttributes({
@@ -79,7 +117,7 @@ async function getAttributes({
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(config: AttributeRegistryConfig) {
-  const { attributes } = ReadModelRepository.init(config);
+  const { attributes, tenants } = ReadModelRepository.init(config);
   return {
     async getAttributesByIds({
       ids,
@@ -197,6 +235,27 @@ export function readModelServiceBuilder(config: AttributeRegistryConfig) {
         "data.origin": origin,
         "data.code": code,
       });
+    },
+
+    async getAttributeByCodeAndName(
+      code: string,
+      name: string
+    ): Promise<WithMetadata<Attribute> | undefined> {
+      return getAttribute(attributes, {
+        "data.code": {
+          $regex: `^${code}$$`,
+          $options: "i",
+        },
+        "data.name": {
+          $regex: `^${name}$$`,
+          $options: "i",
+        },
+      });
+    },
+    async getTenantById(
+      tenantId: string
+    ): Promise<WithMetadata<Tenant> | undefined> {
+      return getTenant(tenants, { "data.id": tenantId });
     },
   };
 }
