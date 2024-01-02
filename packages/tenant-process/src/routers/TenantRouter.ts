@@ -75,8 +75,7 @@ const tenantsRouter = (
             totalCount: tenants.totalCount,
           });
         } catch (error) {
-          const errorRes = makeApiProblem(error);
-          return res.status(errorRes.status).json(errorRes).end();
+          return res.status(500).end();
         }
       }
     )
