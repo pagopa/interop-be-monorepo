@@ -170,7 +170,7 @@ export function agreementServiceBuilder(
       agreementId: string,
       payload: ApiAgreementSubmissionPayload
     ): Promise<string> {
-      logger.info("Submitting agreement");
+      logger.info(`Submitting agreement ${agreementId}`);
       const updatesEvents = await submitAgreementLogic(
         agreementId,
         payload,
