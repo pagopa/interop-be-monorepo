@@ -140,7 +140,7 @@ async function updateTenantVerifiedAttributeLogic({
     ),
   };
 
-  const newTenant: Tenant = {
+  const updatedTenant: Tenant = {
     ...tenant.data,
     attributes: [
       newAttribute,
