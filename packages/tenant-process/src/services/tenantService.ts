@@ -143,8 +143,8 @@ async function updateTenantVerifiedAttributeLogic({
   const updatedTenant: Tenant = {
     ...tenant.data,
     attributes: [
-      newAttribute,
-      ...tenant.data.attributes.filter((a) => a.id !== newAttribute.id),
+      updatedAttribute,
+      ...tenant.data.attributes.filter((a) => a.id !== updatedAttribute.id),
     ],
     updatedAt: new Date(),
   };
@@ -152,7 +152,7 @@ async function updateTenantVerifiedAttributeLogic({
   return toCreateEventTenantUpdated(
     tenant.data.id,
     tenant.metadata.version,
-    newTenant
+    updatedTenant
   );
 }
 
