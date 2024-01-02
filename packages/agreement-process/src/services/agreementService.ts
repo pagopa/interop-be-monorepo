@@ -22,7 +22,6 @@ import {
   toCreateEventAgreementDeleted,
   toCreateEventAgreementUpdated,
 } from "../model/domain/toEvent.js";
-
 import {
   assertAgreementExist,
   assertExpectedState,
