@@ -60,7 +60,11 @@ export const submitAgreementErrorMapper = (
     )
     .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("operationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
-    .with("agreementAlreadyExists","contractAlreadyExists" () => HTTP_STATUS_CONFLICT)
+    .with(
+      "agreementAlreadyExists",
+      "contractAlreadyExists",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const addConsumerDocumentErrorMapper = (

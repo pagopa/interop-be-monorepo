@@ -71,10 +71,10 @@ export const assertRequesterIsConsumer = (
 };
 
 export function assertRequesterIsProducer(
-  requesterId: string,
-  agreement: Agreement
+  producerId: string,
+  requesterId: string
 ): void {
-  if (agreement.producerId !== requesterId) {
+  if (producerId !== requesterId) {
     throw operationNotAllowed(requesterId);
   }
 }
@@ -84,9 +84,9 @@ export const assertRequesterIsConsumerOrProducer = (
   agreement: Agreement
 ): void => {
   try {
-    assertRequesterIsConsumer(requesterId, agreement.consumerId);
+    assertRequesterIsConsumer(agreement.consumerId, requesterId);
   } catch (error) {
-    assertRequesterIsProducer(requesterId, agreement);
+    assertRequesterIsProducer(agreement.producerId, requesterId);
   }
 };
 
