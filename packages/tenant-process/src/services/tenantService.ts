@@ -31,7 +31,7 @@ import {
 } from "../model/domain/errors.js";
 import {
   assertAttributeExists,
-  assertExtantionDateExist,
+  assertExtentionDateExist,
   assertOrganizationVerifierExist,
   assertTenantExists,
   assertVerifiedAttributeExistsInTenant,
@@ -245,7 +245,7 @@ export async function updateVerifiedAttributeExtensionDateLogic({
     tenantVerifier
   );
 
-  assertExtantionDateExist(tenantId, attributeId, verifierId, tenantVerifier);
+  assertExtentionDateExist(tenantId, attributeId, verifierId, tenantVerifier);
 
   const extensionDate =
     tenantVerifier.extensionDate ?? tenantVerifier.expirationDate;

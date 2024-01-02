@@ -57,7 +57,7 @@ export function assertOrganizationVerifierExist(
   }
 }
 
-export function assertExtantionDateExist(
+export function assertExtentionDateExist(
   tenantId: string,
   attributeId: string,
   verifierId: string,
