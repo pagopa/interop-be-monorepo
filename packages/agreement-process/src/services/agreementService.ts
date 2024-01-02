@@ -549,11 +549,10 @@ export async function addConsumerDocumentLogic(
   agreementQuery: AgreementQuery,
   authData: AuthData
 ): Promise<CreateEvent<AgreementEvent>> {
-  const { organizationId } = authData;
   const agreement = await agreementQuery.getAgreementById(agreementId);
 
   assertAgreementExist(agreementId, agreement);
-  assertRequesterIsConsumer(organizationId, agreement.data.consumerId);
+  assertRequesterIsConsumer(agreement.data, authData);
   assertCanWorkOnConsumerDocuments(agreement.data.state);
 
   const existentDocument = agreement.data.consumerDocuments.find(

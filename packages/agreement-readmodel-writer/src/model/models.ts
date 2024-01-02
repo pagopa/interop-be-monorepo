@@ -34,10 +34,6 @@ const Event = z.discriminatedUnion("type", [
     data: protobufDecoder(AgreementConsumerDocumentAddedV1),
   }),
   z.object({
-    type: z.literal("AgreementConsumerDocumentAdded"),
-    data: protobufDecoder(AgreementConsumerDocumentAddedV1),
-  }),
-  z.object({
     type: z.literal("AgreementContractAdded"),
     data: protobufDecoder(AgreementContractAddedV1),
   }),
