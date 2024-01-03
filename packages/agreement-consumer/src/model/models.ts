@@ -1,7 +1,11 @@
 import { z, ZodAny, ZodTransformer } from "zod";
 
 import { MessageType } from "@protobuf-ts/runtime";
-import { AgreementAddedV1, AgreementDeletedV1 } from "pagopa-interop-models";
+import {
+  AgreementAddedV1,
+  AgreementConsumerDocumentAddedV1,
+  AgreementDeletedV1,
+} from "pagopa-interop-models";
 import { KafkaMessage } from "kafkajs";
 
 function protobufDecoder<I extends object>(
@@ -22,6 +26,10 @@ const Event = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("AgreementUpdated"),
     data: protobufDecoder(AgreementAddedV1),
+  }),
+  z.object({
+    type: z.literal("AgreementConsumerDocumentAdded"),
+    data: protobufDecoder(AgreementConsumerDocumentAddedV1),
   }),
 ]);
 

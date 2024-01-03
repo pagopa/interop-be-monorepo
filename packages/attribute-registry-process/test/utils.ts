@@ -58,12 +58,12 @@ export const getMockAttribute = (): Attribute => ({
   origin: undefined,
 });
 
-export function decode<I extends object>({
+export function decodeProtobufPayload<I extends object>({
   messageType,
   payload,
 }: {
   messageType: MessageType<I>;
-  payload: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  payload: Parameters<typeof Buffer.from>[0];
 }): I {
   return messageType.fromBinary(Buffer.from(payload, "hex"));
 }
