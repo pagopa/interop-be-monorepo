@@ -2,6 +2,7 @@ import {
   Attribute,
   AttributeEvent,
   attributeEventToBinaryData,
+  attributeKind,
 } from "pagopa-interop-models";
 import { IDatabase } from "pg-promise";
 import { AttributeCollection } from "pagopa-interop-commons";
@@ -50,7 +51,7 @@ export const writeAttributeInReadmodel = async (
 export const getMockAttribute = (): Attribute => ({
   id: uuidv4(),
   name: "attribute name",
-  kind: "Certified",
+  kind: attributeKind.certified,
   description: "attribute dscription",
   creationTime: new Date(),
   code: undefined,

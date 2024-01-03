@@ -1,5 +1,5 @@
 /* eslint-disable functional/no-let */
-import { beforeAll, afterEach, describe, expect, it, beforeEach } from "vitest";
+import { beforeAll, afterEach, describe, expect, it } from "vitest";
 import { GenericContainer } from "testcontainers";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import {
@@ -24,6 +24,8 @@ import {
   writeAttributeInEventstore,
   writeAttributeInReadmodel,
 } from "./utils.js";
+
+const mockAttribute = getMockAttribute();
 
 describe("database test", () => {
   let attributes: AttributeCollection;
@@ -79,10 +81,6 @@ describe("database test", () => {
   });
 
   describe("attributeRegistryService", () => {
-    let mockAttribute: Attribute;
-    beforeEach(() => {
-      mockAttribute = getMockAttribute();
-    });
     describe("declared attribute creation", () => {
       it("should write on event-store for the creation of a declared attribute", async () => {
         const id = await attributeRegistryService.createDeclaredAttribute(
@@ -211,10 +209,7 @@ describe("database test", () => {
           const attribute = await readModelService.getAttributeById(
             mockAttribute.id
           );
-          expect(attribute?.data.name).toBe(mockAttribute.name);
-          expect(attribute?.data.description).toBe(mockAttribute.description);
-
-          // TO DO check entire object
+          expect(attribute?.data).toEqual(mockAttribute);
         });
         it("should not get the attribute if it doesn't exist", async () => {
           const id = uuidv4();
@@ -228,10 +223,7 @@ describe("database test", () => {
           const attribute = await readModelService.getAttributeByName(
             mockAttribute.name
           );
-          expect(attribute?.data.name).toBe(mockAttribute.name);
-          expect(attribute?.data.description).toBe(mockAttribute.description);
-
-          // TO DO check entire object
+          expect(attribute?.data).toEqual(mockAttribute);
         });
         it("should not get the attribute if it doesn't exist", async () => {
           const attribute = await readModelService.getAttributeByName("name");
