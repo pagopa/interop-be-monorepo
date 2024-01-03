@@ -15,7 +15,6 @@ import {
   agreementEventToBinaryData,
   agreementState,
   descriptorState,
-  AgreementStamp,
   agreementUpgradableStates,
   agreementDeletableStates,
   agreementUpdatableStates,
@@ -62,6 +61,7 @@ import { EserviceQuery } from "./readmodel/eserviceQuery.js";
 import { AgreementQueryFilters } from "./readmodel/readModelService.js";
 import { TenantQuery } from "./readmodel/tenantQuery.js";
 import { suspendAgreementLogic } from "./agreementSuspensionProcessor.js";
+import { createStamp } from "./agreementStampUtils.js";
 
 const fileManager = initFileManager(config);
 
@@ -473,10 +473,7 @@ export async function upgradeAgreementLogic({
 
   if (verifiedValid && declaredValid) {
     // upgradeAgreement
-    const stamp: AgreementStamp = {
-      who: authData.organizationId,
-      when: new Date(),
-    };
+    const stamp = createStamp(authData);
     const archived: Agreement = {
       ...agreementToBeUpgraded.data,
       state: agreementState.archived,

@@ -49,6 +49,7 @@ import {
 import { AgreementQuery } from "./readmodel/agreementQuery.js";
 import { EserviceQuery } from "./readmodel/eserviceQuery.js";
 import { TenantQuery } from "./readmodel/tenantQuery.js";
+import { createStamp } from "./agreementStampUtils.js";
 
 export type AgremeentSubmissionResults = {
   events: Array<CreateEvent<AgreementEvent>>;
@@ -133,10 +134,7 @@ const submitAgreement = async (
   if (agreement.state === agreementState.draft) {
     await validateConsumerEmail(agreement, tenantQuery);
   }
-  const stamp: AgreementStamp = {
-    who: authData.userId,
-    when: utcToZonedTime(new Date(), "Etc/UTC"),
-  };
+  const stamp = createStamp(authData);
   const stamps = calculateStamps(agreement, newState, stamp);
   const updateSeed = getUpdateSeed(
     descriptor,
@@ -197,10 +195,7 @@ const submitAgreement = async (
                 ),
                 stamps: {
                   ...agreement.data.stamps,
-                  archiving: {
-                    who: authData.userId,
-                    when: utcToZonedTime(new Date(), "Etc/UTC"),
-                  },
+                  archiving: createStamp(authData),
                 },
               };
 
