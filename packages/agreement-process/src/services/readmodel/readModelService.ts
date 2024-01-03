@@ -24,7 +24,7 @@ import {
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { z } from "zod";
-import { Document, Filter } from "mongodb";
+import { Filter } from "mongodb";
 import { CompactOrganization } from "../../model/domain/models.js";
 
 export type AgreementQueryFilters = {
@@ -115,47 +115,6 @@ const getAgreementsFilters = (
   };
   return { $match: queryFilters };
 };
-
-const getTenantsByNamePipeline = (
-  tenantName: string | undefined,
-  tenantIdField: Extract<AgreementDataFields, "producerId" | "consumerId">
-): Document[] => [
-  {
-    $lookup: {
-      from: "tenants",
-      localField: `data.${tenantIdField}`,
-      foreignField: "data.id",
-      as: "tenants",
-    },
-  },
-  {
-    $unwind: {
-      path: "$tenants",
-      preserveNullAndEmptyArrays: false,
-    },
-  },
-  {
-    $match: {
-      "tenants.data.name": { $regex: new RegExp(tenantName || "", "i") },
-    },
-  },
-  {
-    $group: {
-      _id: `$data.${tenantIdField}`,
-      tenantId: { $first: `$data.${tenantIdField}` },
-      tenantName: { $first: "$tenants.data.name" },
-    },
-  },
-  {
-    $project: {
-      data: { id: "$tenantId", name: "$tenantName" },
-      lowerName: { $toLower: "$tenantName" },
-    },
-  },
-  {
-    $sort: { lowerName: 1 },
-  },
-];
 
 export const getAllAgreements = async (
   agreements: AgreementCollection,
@@ -257,15 +216,35 @@ async function searchTenantsByName(
   limit: number,
   offset: number
 ): Promise<ListResult<CompactOrganization>> {
-  const aggregationPipeline = getTenantsByNamePipeline(
-    tenantName,
-    tenantIdField
-  );
+  const aggregation = agreements
+    .aggregate()
+    .lookup({
+      from: "tenants",
+      localField: `data.${tenantIdField}`,
+      foreignField: "data.id",
+      as: "tenants",
+    })
+    .unwind({
+      path: "$tenants",
+      preserveNullAndEmptyArrays: false,
+    })
+    .match({
+      "tenants.data.name": { $regex: new RegExp(tenantName || "", "i") },
+    })
+    .group({
+      _id: `$data.${tenantIdField}`,
+      tenantId: { $first: `$data.${tenantIdField}` },
+      tenantName: { $first: "$tenants.data.name" },
+    })
+    .project({
+      data: { id: "$tenantId", name: "$tenantName" },
+      lowerName: { $toLower: "$tenantName" },
+    })
+    .sort({ lowerName: 1 })
+    .skip(offset)
+    .limit(limit);
 
-  const data = await agreements
-    .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }])
-    .toArray();
-
+  const data = await aggregation.toArray();
   const result = z
     .array(CompactOrganization)
     .safeParse(data.map((d) => d.data));
@@ -283,7 +262,7 @@ async function searchTenantsByName(
     results: result.data,
     totalCount: await ReadModelRepository.getTotalCount(
       agreements,
-      aggregationPipeline
+      aggregation.pipeline
     ),
   };
 }
