@@ -9,16 +9,25 @@ const errorCodes = {
   agreementSubmissionFailed: "0002",
   agreementNotInExpectedState: "0003",
   descriptorNotInExpectedState: "0004",
-  operationNotAllowed: "0005",
-  eServiceNotFound: "0007",
+  eServiceNotFound: "0005",
+  submitAgreementError: "0006",
+  operationNotAllowed: "0007",
+  agreementActtivationFailed: "0008",
   agreementNotFound: "0009",
-  agreementAlreadyExists: "0011",
-  agreementDescriptorNotFound: "0014",
-  agreementStampNotFound: "0015",
-  agreementMissingUserInfo: "0016",
-  agreementSelfcareIdNotFound: "0019",
+  agreementAlreadyExists: "0010",
+  noNewerDescriptor: "0011",
+  publishedDescriptorNotFound: "0012",
+  unexpectedVersionFormat: "0013",
+  descriptorNotFound: "0014",
+  stampNotFound: "0015",
+  missingUserInfo: "0016",
+  documentNotFound: "0017",
+  documentChangeNotAllowed: "0018",
+  selfcareIdNotFound: "0019",
   tenantIdNotFound: "0020",
   notLatestEServiceDescriptor: "0021",
+  attributeNotFound: "0022",
+  invalidAttributeStructure: "0023",
   consumerWithNotValidEmail: "0024",
 };
 
@@ -49,6 +58,17 @@ export function notLatestEServiceDescriptor(
     detail: `Descriptor with descriptorId: ${descriptorId} is not the latest descriptor`,
     code: "notLatestEServiceDescriptor",
     title: "Descriptor provided is not the latest descriptor",
+  });
+}
+
+export function descriptorNotFound(
+  eServiceId: string,
+  descriptorId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} not found in EService ${eServiceId}`,
+    code: "descriptorNotFound",
+    title: "Descriptor not found",
   });
 }
 
@@ -139,7 +159,7 @@ export function consumerWithNotValidEmail(
 export function agreementStampNotFound(stamp: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Agreement stamp ${stamp} not found`,
-    code: "agreementStampNotFound",
+    code: "stampNotFound",
     title: "Stamp not found",
   });
 }
@@ -147,7 +167,7 @@ export function agreementStampNotFound(stamp: string): ApiError<ErrorCodes> {
 export function agreementMissingUserInfo(userId: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Some mandatory info are missing for user ${userId}`,
-    code: "agreementMissingUserInfo",
+    code: "missingUserInfo",
     title: "Some mandatory info are missing for user",
   });
 }
@@ -157,18 +177,39 @@ export function agreementSelfcareIdNotFound(
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Selfcare id not found for tenant ${tenantId}`,
-    code: "agreementSelfcareIdNotFound",
+    code: "selfcareIdNotFound",
     title: "Selfcare id not found for tenant",
   });
 }
 
-export function agreementDescriptorNotFound(
+export function publishedDescriptorNotFound(
+  eserviceId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Published descriptor not found in EService ${eserviceId}`,
+    code: "publishedDescriptorNotFound",
+    title: "Published descriptor not found",
+  });
+}
+
+export function unexpectedVersionFormat(
   eserviceId: string,
   descriptorId: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Descriptor ${descriptorId} not found in EService ${eserviceId}`,
-    code: "agreementDescriptorNotFound",
-    title: "Descriptor not found",
+    detail: `Version in not an Int for descriptor ${descriptorId} of EService ${eserviceId}`,
+    code: "unexpectedVersionFormat",
+    title: "Unexpected version format",
+  });
+}
+
+export function noNewerDescriptor(
+  eserviceId: string,
+  descriptorId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No newer descriptor in EService ${eserviceId} exists for upgrade. Current descriptor ${descriptorId}`,
+    code: "noNewerDescriptor",
+    title: "Agreement cannot be upgraded",
   });
 }

@@ -2,7 +2,6 @@ import {
   AuthData,
   CreateEvent,
   DB,
-  authorizationManagementServiceMock,
   eventRepository,
   initFileManager,
   logger,
@@ -378,8 +377,6 @@ export function catalogServiceBuilder(
       })) {
         await repository.createEvent(event);
       }
-
-      await authorizationManagementServiceMock.updateStateOnClients();
     },
 
     async suspendDescriptor(
@@ -401,8 +398,6 @@ export function catalogServiceBuilder(
           eService,
         })
       );
-
-      await authorizationManagementServiceMock.updateStateOnClients();
     },
 
     async activateDescriptor(
@@ -424,8 +419,6 @@ export function catalogServiceBuilder(
           eService,
         })
       );
-
-      await authorizationManagementServiceMock.updateStateOnClients();
     },
 
     async cloneDescriptor(
@@ -471,8 +464,6 @@ export function catalogServiceBuilder(
           eService,
         })
       );
-
-      await authorizationManagementServiceMock.updateStateOnClients();
     },
   };
 }
@@ -618,7 +609,7 @@ export async function deleteDocumentLogic({
   documentId: string;
   authData: AuthData;
   eService: WithMetadata<EService> | undefined;
-  deleteRemoteFile: (path: string) => Promise<void>;
+  deleteRemoteFile: (container: string, path: string) => Promise<void>;
 }): Promise<CreateEvent<EServiceEvent>> {
   assertEServiceExist(eServiceId, eService);
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
@@ -634,7 +625,7 @@ export async function deleteDocumentLogic({
     throw eServiceDocumentNotFound(eServiceId, descriptorId, documentId);
   }
 
-  await deleteRemoteFile(document.path);
+  await deleteRemoteFile(config.storageContainer, document.path);
 
   return toCreateEventEServiceDocumentDeleted(
     eServiceId,
@@ -756,7 +747,7 @@ export async function deleteDraftDescriptorLogic({
   eServiceId: string;
   descriptorId: string;
   authData: AuthData;
-  deleteFile: (path: string) => Promise<void>;
+  deleteFile: (container: string, path: string) => Promise<void>;
   eService: WithMetadata<EService> | undefined;
 }): Promise<CreateEvent<EServiceEvent>> {
   assertEServiceExist(eServiceId, eService);
@@ -775,11 +766,11 @@ export async function deleteDraftDescriptorLogic({
     (doc: Document) => doc.id === descriptorId
   );
   if (interfacePath !== undefined) {
-    await deleteFile(interfacePath.path);
+    await deleteFile(config.storageContainer, interfacePath.path);
   }
 
   const deleteDescriptorDocs = descriptor.docs.map((doc: Document) =>
-    deleteFile(doc.path)
+    deleteFile(config.storageContainer, doc.path)
   );
 
   await Promise.all(deleteDescriptorDocs).catch((error) => {
@@ -1003,7 +994,13 @@ export async function cloneDescriptorLogic({
   eServiceId: string;
   descriptorId: string;
   authData: AuthData;
-  copyFile: (path: string, id: string, name: string) => Promise<string>;
+  copyFile: (
+    container: string,
+    docPath: string,
+    path: string,
+    id: string,
+    name: string
+  ) => Promise<string>;
   eService: WithMetadata<EService> | undefined;
 }): Promise<{ eService: EService; event: CreateEvent<EServiceEvent> }> {
   assertEServiceExist(eServiceId, eService);
@@ -1017,6 +1014,8 @@ export async function cloneDescriptorLogic({
   const clonedInterfacePath =
     descriptor.interface !== undefined
       ? await copyFile(
+          config.storageContainer,
+          config.eserviceDocumentsPath,
           descriptor.interface.path,
           clonedDocumentId,
           descriptor.interface.name
@@ -1039,7 +1038,9 @@ export async function cloneDescriptorLogic({
   const clonedDocuments = await Promise.all(
     descriptor.docs.map(async (doc: Document) => {
       const clonedDocumentId = uuidv4();
-      const clonedPath = await fileManager.copy(
+      const clonedPath = await copyFile(
+        config.storageContainer,
+        config.eserviceDocumentsPath,
         doc.path,
         clonedDocumentId,
         doc.name

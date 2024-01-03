@@ -7,8 +7,10 @@ import { FileManagerConfig } from "./config/fileManagerConfig.js";
 import { logger } from "./index.js";
 
 export type FileManager = {
-  deleteFile: (path: string) => Promise<void>;
+  deleteFile: (container: string, path: string) => Promise<void>;
   copy: (
+    container: string,
+    path: string,
     filePathToCopy: string,
     documentId: string,
     fileName: string
@@ -21,18 +23,22 @@ export type FileManager = {
 };
 
 const mockFileManager: FileManager = {
-  deleteFile: async (path: string): Promise<void> => {
-    logger.info(`Deleting file ${path}`);
+  deleteFile: async (container: string, path: string): Promise<void> => {
+    logger.info(`Deleting file ${path} from container ${container}`);
 
     return Promise.resolve();
   },
 
   copy: async (
+    container: string,
+    _path: string,
     filePathToCopy: string,
     _documentId: string,
     _fileName: string
   ): Promise<string> => {
-    logger.info(`Mock Copying file ${filePathToCopy}`);
+    logger.info(
+      `Mock Copying file ${filePathToCopy} from container ${container}`
+    );
     return Promise.resolve("");
   },
   storeBytes: async (
@@ -49,13 +55,7 @@ export function initFileManager(config: FileManagerConfig): FileManager {
   if (config.mockFileManager) {
     return mockFileManager;
   } else {
-    const {
-      s3AccessKeyId,
-      s3SecretAccessKey,
-      s3Region,
-      s3BucketName,
-      s3FilePath,
-    } = config;
+    const { s3AccessKeyId, s3SecretAccessKey, s3Region } = config;
 
     const client = new S3Client({
       credentials: {
@@ -72,24 +72,26 @@ export function initFileManager(config: FileManagerConfig): FileManager {
     ): string => `${path}/${resourceId}/${fileName}`;
 
     return {
-      deleteFile: async (path: string): Promise<void> => {
+      deleteFile: async (container: string, path: string): Promise<void> => {
         await client.send(
-          new DeleteObjectCommand({ Bucket: s3BucketName, Key: path })
+          new DeleteObjectCommand({ Bucket: container, Key: path })
         );
       },
       copy: async (
+        container: string,
+        path: string,
         filePathToCopy: string,
         documentId: string,
         fileName: string
       ): Promise<string> => {
         logger.info(`Copying file ${filePathToCopy}`);
 
-        const s3Key = buildS3Key(s3FilePath, documentId, fileName);
+        const s3Key = buildS3Key(path, documentId, fileName);
 
         await client.send(
           new CopyObjectCommand({
-            CopySource: `${config.s3BucketName}/${filePathToCopy}`,
-            Bucket: config.s3BucketName,
+            Bucket: container,
+            CopySource: `${container}/${filePathToCopy}`,
             Key: s3Key,
           })
         );
