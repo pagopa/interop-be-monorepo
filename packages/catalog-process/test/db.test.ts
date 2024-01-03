@@ -48,7 +48,7 @@ import {
 } from "../src/model/domain/errors.js";
 import {
   buildDescriptorSeed,
-  decode,
+  decodeProtobufPayload,
   getMockAgreement,
   getMockAuthData,
   getMockDescriptor,
@@ -140,7 +140,7 @@ describe("database test", async () => {
         expect(writtenEvent.stream_id).toBe(id);
         expect(writtenEvent.version).toBe("0");
         expect(writtenEvent.type).toBe("EServiceAdded");
-        const writtenPayload = decode({
+        const writtenPayload = decodeProtobufPayload({
           messageType: EServiceAddedV1,
           payload: writtenEvent.data,
         });
@@ -192,7 +192,7 @@ describe("database test", async () => {
         expect(writtenEvent.stream_id).toBe(mockEService.id);
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("EServiceUpdated");
-        const writtenPayload = decode({
+        const writtenPayload = decodeProtobufPayload({
           messageType: EServiceUpdatedV1,
           payload: writtenEvent.data,
         });
@@ -265,7 +265,7 @@ describe("database test", async () => {
         expect(writtenEvent.stream_id).toBe(mockEService.id);
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("EServiceDeleted");
-        const writtenPayload = decode({
+        const writtenPayload = decodeProtobufPayload({
           messageType: EServiceDeletedV1,
           payload: writtenEvent.data,
         });
@@ -319,7 +319,7 @@ describe("database test", async () => {
         expect(writtenEvent.stream_id).toBe(mockEService.id);
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("EServiceDescriptorAdded");
-        const writtenPayload = decode({
+        const writtenPayload = decodeProtobufPayload({
           messageType: EServiceDescriptorAddedV1,
           payload: writtenEvent.data,
         });
@@ -329,7 +329,8 @@ describe("database test", async () => {
           createdAt: new Date(
             Number(writtenPayload.eServiceDescriptor?.createdAt)
           ),
-          id: writtenPayload.eServiceDescriptor?.id,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          id: writtenPayload.eServiceDescriptor!.id,
         };
 
         expect(writtenPayload.eServiceId).toEqual(mockEService.id);
@@ -424,7 +425,7 @@ describe("database test", async () => {
         expect(writtenEvent.stream_id).toBe(eService.id);
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("EServiceUpdated");
-        const writtenPayload = decode({
+        const writtenPayload = decodeProtobufPayload({
           messageType: EServiceUpdatedV1,
           payload: writtenEvent.data,
         });
@@ -494,7 +495,7 @@ describe("database test", async () => {
         expect(writtenEvent.stream_id).toBe(eService.id);
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("EServiceWithDescriptorsDeleted");
-        const writtenPayload = decode({
+        const writtenPayload = decodeProtobufPayload({
           messageType: EServiceWithDescriptorsDeletedV1,
           payload: writtenEvent.data,
         });
@@ -562,7 +563,7 @@ describe("database test", async () => {
         expect(writtenEvent.stream_id).toBe(eService.id);
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("EServiceDescriptorUpdated");
-        const writtenPayload = decode({
+        const writtenPayload = decodeProtobufPayload({
           messageType: EServiceDescriptorUpdatedV1,
           payload: writtenEvent.data,
         });
@@ -674,7 +675,7 @@ describe("database test", async () => {
         expect(writtenEvent.stream_id).toBe(eService.id);
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("EServiceDescriptorUpdated");
-        const writtenPayload = decode({
+        const writtenPayload = decodeProtobufPayload({
           messageType: EServiceDescriptorUpdatedV1,
           payload: writtenEvent.data,
         });
@@ -770,7 +771,7 @@ describe("database test", async () => {
         expect(writtenEvent.stream_id).toBe(eService.id);
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("EServiceDescriptorUpdated");
-        const writtenPayload = decode({
+        const writtenPayload = decodeProtobufPayload({
           messageType: EServiceDescriptorUpdatedV1,
           payload: writtenEvent.data,
         });
@@ -858,7 +859,7 @@ describe("database test", async () => {
         expect(writtenEvent.stream_id).toBe(eService.id);
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("EServiceDescriptorUpdated");
-        const writtenPayload = decode({
+        const writtenPayload = decodeProtobufPayload({
           messageType: EServiceDescriptorUpdatedV1,
           payload: writtenEvent.data,
         });
