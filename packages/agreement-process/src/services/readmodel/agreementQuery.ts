@@ -19,7 +19,7 @@ export function agreementQueryBuilder(readModelService: ReadModelService) {
       offset: number
     ): Promise<ListResult<Agreement>> =>
       readModelService.getAgreements(filters, limit, offset),
-    listConsumers: (
+    getConsumers: (
       name: string | undefined,
       limit: number,
       offset: number
