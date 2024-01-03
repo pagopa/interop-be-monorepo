@@ -9,7 +9,7 @@ import {
 } from "pagopa-interop-commons";
 import { v4 as uuidv4 } from "uuid";
 import { IDatabase } from "pg-promise";
-import { Attribute, attributeKind } from "pagopa-interop-models";
+import { Attribute, AttributeKind, attributeKind } from "pagopa-interop-models";
 import { config } from "../src/utilities/config.js";
 import {
   AttributeRegistryService,
@@ -217,13 +217,8 @@ describe("database test", () => {
           expect(result.results).toEqual([attribute1, attribute2, attribute3]);
         });
         it("should not get the attributes if they don't exist", async () => {
-          const attribute1 = {
-            ...mockAttribute,
-            id: uuidv4(),
-            name: "attribute 001",
-          };
           const result = await readModelService.getAttributesByIds({
-            ids: [attribute1.id],
+            ids: [uuidv4()],
             offset: 0,
             limit: 50,
           });
@@ -314,7 +309,7 @@ describe("database test", () => {
         });
         it("should get the attributes if they exist (parameters: kinds, name, origin)", async () => {
           const result = await readModelService.getAttributesByKindsNameOrigin({
-            kinds: ["Verified"],
+            kinds: [attributeKind.verified],
             name: "attribute 004",
             origin: "IPA",
             offset: 0,
@@ -325,7 +320,7 @@ describe("database test", () => {
         });
         it("should get the attributes if they exist (parameters: kinds only)", async () => {
           const result = await readModelService.getAttributesByKindsNameOrigin({
-            kinds: ["Declared"],
+            kinds: [attributeKind.declared],
             offset: 0,
             limit: 50,
           });
@@ -378,33 +373,33 @@ describe("database test", () => {
           expect(result.results).toEqual([]);
         });
       });
-      describe("get an attribute by id", () => {
+      describe("getAttributeById", () => {
         it("should get the attribute if it exists", async () => {
-          const expectedAttribute1 = {
+          const attribute1 = {
             ...mockAttribute,
             id: uuidv4(),
             name: "attribute 001",
           };
-          await addOneAttribute(expectedAttribute1);
+          await addOneAttribute(attribute1);
 
-          const expectedAttribute2 = {
+          const attribute2 = {
             ...mockAttribute,
             id: uuidv4(),
             name: "attribute 002",
           };
-          await addOneAttribute(expectedAttribute2);
+          await addOneAttribute(attribute2);
 
-          const expectedAttribute3 = {
+          const attribute3 = {
             ...mockAttribute,
             id: uuidv4(),
             name: "attribute 003",
           };
-          await addOneAttribute(expectedAttribute3);
+          await addOneAttribute(attribute3);
 
           const attribute = await readModelService.getAttributeById(
-            expectedAttribute1.id
+            attribute1.id
           );
-          expect(attribute?.data).toEqual(expectedAttribute1);
+          expect(attribute?.data).toEqual(attribute1);
         });
         it("should not get the attribute if it doesn't exist", async () => {
           const id = uuidv4();
@@ -412,15 +407,40 @@ describe("database test", () => {
           expect(attribute).toBeUndefined();
         });
       });
-      describe("get an attribute by name", () => {
+      describe("getAttributeByName", () => {
         it("should get the attribute if it exists", async () => {
-          await addOneAttribute(mockAttribute);
+          const attribute1 = {
+            ...mockAttribute,
+            id: uuidv4(),
+            name: "attribute 001",
+          };
+          await addOneAttribute(attribute1);
+
+          const attribute2 = {
+            ...mockAttribute,
+            id: uuidv4(),
+            name: "attribute 002",
+          };
+          await addOneAttribute(attribute2);
+
+          const attribute3 = {
+            ...mockAttribute,
+            id: uuidv4(),
+            name: "attribute 003",
+          };
+          await addOneAttribute(attribute3);
           const attribute = await readModelService.getAttributeByName(
-            mockAttribute.name
+            attribute1.name
           );
-          expect(attribute?.data).toEqual(mockAttribute);
+          expect(attribute?.data).toEqual(attribute1);
         });
         it("should not get the attribute if it doesn't exist", async () => {
+          const attribute1 = {
+            ...mockAttribute,
+            id: uuidv4(),
+            name: "attribute 001",
+          };
+          await addOneAttribute(attribute1);
           const attribute = await readModelService.getAttributeByName("name");
           expect(attribute).toBeUndefined();
         });
