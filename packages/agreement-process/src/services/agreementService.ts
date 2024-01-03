@@ -444,7 +444,7 @@ export async function upgradeAgreementLogic({
       who: authData.organizationId,
       when: new Date(),
     };
-    const deactivated: Agreement = {
+    const archived: Agreement = {
       ...agreementToBeUpgraded.data,
       state: agreementState.archived,
       stamps: {
@@ -469,7 +469,7 @@ export async function upgradeAgreementLogic({
       streamId: upgraded.id,
       events: [
         toCreateEventAgreementUpdated(
-          deactivated,
+          archived,
           agreementToBeUpgraded.metadata.version
         ),
         toCreateEventAgreementAdded(upgraded),
