@@ -23,7 +23,7 @@ type GenericCollection<T> = Collection<{
   metadata: Metadata;
 }>;
 
-export type EServiceCollection = GenericCollection<EService | undefined>;
+export type EServiceCollection = GenericCollection<EService>;
 export type AgreementCollection = GenericCollection<Agreement>;
 export type TenantCollection = GenericCollection<Tenant>;
 export type AttributeCollection = GenericCollection<Attribute>;

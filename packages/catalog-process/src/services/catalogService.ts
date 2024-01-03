@@ -13,7 +13,6 @@ import {
   Document,
   EService,
   EServiceEvent,
-  ListResult,
   WithMetadata,
   catalogEventToBinaryData,
   descriptorState,
@@ -199,18 +198,10 @@ export function catalogServiceBuilder(
     ): Promise<string> {
       return repository.createEvent(
         createEserviceLogic({
-          eServices: await readModelService.getEServices(
-            authData,
-            {
-              eservicesIds: [],
-              producersIds: [authData.organizationId],
-              states: [],
-              agreementStates: [],
-              name: { value: apiEServicesSeed.name, exactMatch: true },
-            },
-            0,
-            1
-          ),
+          eService: await readModelService.getEServiceByNameAndProducerId({
+            name: apiEServicesSeed.name,
+            producerId: authData.organizationId,
+          }),
           apiEServicesSeed,
           authData,
         })
@@ -478,15 +469,15 @@ export function catalogServiceBuilder(
 }
 
 export function createEserviceLogic({
-  eServices,
+  eService,
   apiEServicesSeed,
   authData,
 }: {
-  eServices: ListResult<EService>;
+  eService: WithMetadata<EService> | undefined;
   apiEServicesSeed: ApiEServiceSeed;
   authData: AuthData;
 }): CreateEvent<EServiceEvent> {
-  if (eServices.results.length > 0) {
+  if (eService) {
     throw eServiceDuplicate(apiEServicesSeed.name);
   }
 
