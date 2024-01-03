@@ -27,9 +27,11 @@ import {
   agreementNotInExpectedState,
   agreementSubmissionFailed,
   descriptorNotInExpectedState,
+  eServiceNotFound,
   missingCertifiedAttributesError,
   notLatestEServiceDescriptor,
   operationNotAllowed,
+  tenantIdNotFound,
 } from "./errors.js";
 
 type NotRevocableTenantAttribute = Pick<VerifiedTenantAttribute, "id">;
@@ -45,6 +47,15 @@ export function assertAgreementExist(
 ): asserts agreement is NonNullable<WithMetadata<Agreement>> {
   if (agreement === undefined) {
     throw agreementNotFound(agreementId);
+  }
+}
+
+export function assertEServiceExist(
+  eServiceId: string,
+  eService: WithMetadata<EService> | undefined
+): asserts eService is NonNullable<WithMetadata<EService>> {
+  if (eService === undefined) {
+    throw eServiceNotFound(eServiceId);
   }
 }
 
@@ -75,6 +86,15 @@ export const assertExpectedState = (
     throw agreementNotInExpectedState(agreementId, agreementState);
   }
 };
+
+export function assertTenantExist(
+  tenantId: string,
+  tenant: WithMetadata<Tenant> | undefined
+): asserts tenant is NonNullable<WithMetadata<Tenant>> {
+  if (tenant === undefined) {
+    throw tenantIdNotFound(tenantId);
+  }
+}
 
 /* =========  VALIDATIONS ========= */
 
@@ -233,7 +253,7 @@ export const verifiedAttributesSatisfied = (
   );
 };
 
-const verifyConflictingAgreements = async (
+export const verifyConflictingAgreements = async (
   consumerId: string,
   eserviceId: string,
   conflictingStates: AgreementState[],
