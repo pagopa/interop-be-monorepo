@@ -9,7 +9,7 @@ import {
 } from "pagopa-interop-commons";
 import { v4 as uuidv4 } from "uuid";
 import { IDatabase } from "pg-promise";
-import { Attribute, AttributeKind, attributeKind } from "pagopa-interop-models";
+import { Attribute, attributeKind } from "pagopa-interop-models";
 import { config } from "../src/utilities/config.js";
 import {
   AttributeRegistryService,
