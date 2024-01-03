@@ -33,6 +33,7 @@ import {
   suspendedByPlatformFlag,
   suspendedByProducerFlag,
 } from "./agreementStateProcessor.js";
+import { createStamp } from "./agreementStampUtils.js";
 
 export async function suspendAgreementLogic({
   agreementId,
@@ -97,10 +98,7 @@ export async function suspendAgreementLogic({
     suspendedByPlatform
   );
 
-  const stamp: AgreementStamp = {
-    who: authData.userId,
-    when: utcToZonedTime(new Date(), "Etc/UTC"),
-  };
+  const stamp = createStamp(authData);
 
   const suspensionByProducerStamp = suspendedByProducerStamp(
     agreement.data,
