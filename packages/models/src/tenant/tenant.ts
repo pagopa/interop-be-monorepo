@@ -107,7 +107,7 @@ export const TenantMail = z.object({
   kind: TenantMailKind,
   address: z.string(),
   description: z.string().optional(),
-  createdAt: z.date(),
+  createdAt: z.coerce.date(),
 });
 export type TenantMail = z.infer<typeof TenantMail>;
 
@@ -118,8 +118,8 @@ export const Tenant = z.object({
   externalId: ExternalId,
   features: z.array(TenantFeature),
   attributes: z.array(TenantAttribute),
-  createdAt: z.date(),
-  updatedAt: z.date().optional(),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date().optional(),
   mails: z.array(TenantMail),
   name: z.string(),
 });

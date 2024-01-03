@@ -24,3 +24,7 @@ export type ApiTenant = z.infer<typeof api.schemas.Tenant>;
 export type ApiExternalId = z.infer<typeof api.schemas.ExternalId>;
 
 export type ApiTenantFeature = z.infer<typeof api.schemas.TenantFeature>;
+
+export type UpdateVerifiedTenantAttributeSeed = z.infer<
+  typeof api.schemas.UpdateVerifiedTenantAttributeSeed
+>;
