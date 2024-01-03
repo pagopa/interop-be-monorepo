@@ -23,3 +23,13 @@ export const getTenantBySelfcareIdErrorMapper = (
   match(error.code)
     .with("tenantBySelfcateIdNotFound", () => 404)
     .otherwise(() => 500);
+
+export const updateVerifiedAttributeExtensionDateErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("verifiedAttributeNotFoundInTenant", () => 404)
+    .with("organizationNotFoundInVerifiers", () => 403)
+    .with("expirationDateNotFoundInVerifier", () => 400)
+    .with("tenantNotFound", () => 404)
+    .otherwise(() => 500);
