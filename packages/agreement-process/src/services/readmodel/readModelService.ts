@@ -58,7 +58,9 @@ const makeFilter = (
       return undefined;
     });
 
-const getAgreementsFilters = (filters: AgreementQueryFilters): Document => {
+const getAgreementsFilters = (
+  filters: AgreementQueryFilters
+): { $match: object } => {
   const upgradeableStates = [
     agreementState.draft,
     agreementState.active,
