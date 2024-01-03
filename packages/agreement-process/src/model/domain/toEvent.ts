@@ -132,3 +132,21 @@ export function toCreateEventAgreementContractAdded(
     },
   };
 }
+
+export function toCreateEventAgreementConsumerDocumentAdded(
+  agreementId: string,
+  agreementDocument: AgreementDocument,
+  version: number
+): CreateEvent<AgreementEvent> {
+  return {
+    streamId: agreementId,
+    version,
+    event: {
+      type: "AgreementConsumerDocumentAdded",
+      data: {
+        agreementId,
+        document: toAgreementDocumentV1(agreementDocument),
+      },
+    },
+  };
+}
