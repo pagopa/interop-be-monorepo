@@ -111,7 +111,7 @@ export function agreementServiceBuilder(
       logger.info(
         `Retrieving producers from agreements with producer name ${producerName}`
       );
-      return await agreementQuery.listProducers(producerName, limit, offset);
+      return await agreementQuery.getProducers(producerName, limit, offset);
     },
     async getAgreementConsumers(
       consumerName: string | undefined,
