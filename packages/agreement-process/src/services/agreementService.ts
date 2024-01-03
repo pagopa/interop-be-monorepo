@@ -103,13 +103,25 @@ export function agreementServiceBuilder(
       );
       return await repository.createEvent(createAgreementEvent);
     },
-    async getAgreementConsumers(
-      name: string | undefined,
+    async getAgreementProducers(
+      producerName: string | undefined,
       limit: number,
       offset: number
     ): Promise<ListResult<CompactOrganization>> {
-      logger.info("Retrieving consumers");
-      return await agreementQuery.getConsumers(name, limit, offset);
+      logger.info(
+        `Retrieving producers from agreements with producer name ${producerName}`
+      );
+      return await agreementQuery.getProducers(producerName, limit, offset);
+    },
+    async getAgreementConsumers(
+      consumerName: string | undefined,
+      limit: number,
+      offset: number
+    ): Promise<ListResult<CompactOrganization>> {
+      logger.info(
+        `Retrieving consumers from agreements with consumer name ${consumerName}`
+      );
+      return await agreementQuery.getConsumers(consumerName, limit, offset);
     },
     async updateAgreement(
       agreementId: string,
