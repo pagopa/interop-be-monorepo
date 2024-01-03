@@ -163,50 +163,80 @@ describe("database test", () => {
     });
 
     describe("readModelService", () => {
+      let attribute1: Attribute;
+      let attribute2: Attribute;
+      let attribute3: Attribute;
+      let attribute4: Attribute;
+      let attribute5: Attribute;
+      let attribute6: Attribute;
+      let attribute7: Attribute;
+
+      beforeEach(async () => {
+        attribute1 = {
+          ...mockAttribute,
+          id: uuidv4(),
+          name: "attribute 001 test",
+          kind: attributeKind.certified,
+          origin: "IPA",
+          code: "12345A",
+        };
+        await addOneAttribute(attribute1);
+
+        attribute2 = {
+          ...mockAttribute,
+          id: uuidv4(),
+          name: "attribute 002 test",
+          kind: attributeKind.certified,
+          origin: "IPA",
+          code: "12345B",
+        };
+        await addOneAttribute(attribute2);
+
+        attribute3 = {
+          ...mockAttribute,
+          id: uuidv4(),
+          name: "attribute 003 test",
+          kind: attributeKind.certified,
+          origin: "IPA",
+          code: "12345C",
+        };
+        await addOneAttribute(attribute3);
+
+        attribute4 = {
+          ...mockAttribute,
+          id: uuidv4(),
+          name: "attribute 004",
+          kind: attributeKind.declared,
+        };
+        await addOneAttribute(attribute4);
+
+        attribute5 = {
+          ...mockAttribute,
+          id: uuidv4(),
+          name: "attribute 005",
+          kind: attributeKind.declared,
+        };
+        await addOneAttribute(attribute5);
+
+        attribute6 = {
+          ...mockAttribute,
+          id: uuidv4(),
+          name: "attribute 006",
+          kind: attributeKind.verified,
+        };
+        await addOneAttribute(attribute6);
+
+        attribute7 = {
+          ...mockAttribute,
+          id: uuidv4(),
+          name: "attribute 007",
+          kind: attributeKind.verified,
+        };
+        await addOneAttribute(attribute7);
+      });
+
       describe("getAttributesByIds", () => {
         it("should get the attributes if they exist", async () => {
-          const attribute1 = {
-            ...mockAttribute,
-            id: uuidv4(),
-            name: "attribute 001",
-          };
-          await addOneAttribute(attribute1);
-
-          const attribute2 = {
-            ...mockAttribute,
-            id: uuidv4(),
-            name: "attribute 002",
-          };
-          await addOneAttribute(attribute2);
-
-          const attribute3 = {
-            ...mockAttribute,
-            id: uuidv4(),
-            name: "attribute 003",
-          };
-          await addOneAttribute(attribute3);
-
-          const attribute4 = {
-            ...mockAttribute,
-            id: uuidv4(),
-            name: "attribute 004",
-          };
-          await addOneAttribute(attribute4);
-
-          const attribute5 = {
-            ...mockAttribute,
-            id: uuidv4(),
-            name: "attribute 005",
-          };
-          await addOneAttribute(attribute5);
-
-          const attribute6 = {
-            ...mockAttribute,
-            id: uuidv4(),
-            name: "attribute 006",
-          };
-          await addOneAttribute(attribute6);
-
           const result = await readModelService.getAttributesByIds({
             ids: [attribute1.id, attribute2.id, attribute3.id],
             offset: 0,
@@ -218,7 +248,7 @@ describe("database test", () => {
         });
         it("should not get the attributes if they don't exist", async () => {
           const result = await readModelService.getAttributesByIds({
-            ids: [uuidv4()],
+            ids: [uuidv4(), uuidv4()],
             offset: 0,
             limit: 50,
           });
@@ -226,26 +256,6 @@ describe("database test", () => {
           expect(result.results).toEqual([]);
         });
         it("should not get any attributes if the requested ids list is empty", async () => {
-          const attribute1 = {
-            ...mockAttribute,
-            id: uuidv4(),
-            name: "attribute 001",
-          };
-          await addOneAttribute(attribute1);
-
-          const attribute2 = {
-            ...mockAttribute,
-            id: uuidv4(),
-            name: "attribute 002",
-          };
-          await addOneAttribute(attribute2);
-
-          const attribute3 = {
-            ...mockAttribute,
-            id: uuidv4(),
-            name: "attribute 003",
-          };
-          await addOneAttribute(attribute3);
           const result = await readModelService.getAttributesByIds({
             ids: [],
             offset: 0,
@@ -256,67 +266,16 @@ describe("database test", () => {
         });
       });
       describe("getAttributesByKindsNameOrigin", () => {
-        let attribute1: Attribute;
-        let attribute2: Attribute;
-        let attribute3: Attribute;
-        let attribute4: Attribute;
-        let attribute5: Attribute;
-
-        beforeEach(async () => {
-          attribute1 = {
-            ...mockAttribute,
-            id: uuidv4(),
-            name: "attribute 001 test",
-            kind: attributeKind.certified,
-          };
-          await addOneAttribute(attribute1);
-
-          attribute2 = {
-            ...mockAttribute,
-            id: uuidv4(),
-            name: "attribute 002 test",
-            kind: attributeKind.declared,
-          };
-          await addOneAttribute(attribute2);
-
-          attribute3 = {
-            ...mockAttribute,
-            id: uuidv4(),
-            name: "attribute 003",
-            kind: attributeKind.declared,
-          };
-          await addOneAttribute(attribute3);
-
-          attribute4 = {
-            ...mockAttribute,
-            id: uuidv4(),
-            name: "attribute 004",
-            kind: attributeKind.verified,
-            origin: "IPA",
-            code: "123456",
-          };
-          await addOneAttribute(attribute4);
-
-          attribute5 = {
-            ...mockAttribute,
-            id: uuidv4(),
-            name: "attribute 005",
-            kind: attributeKind.verified,
-            origin: "IPA",
-            code: "654321",
-          };
-          await addOneAttribute(attribute5);
-        });
         it("should get the attributes if they exist (parameters: kinds, name, origin)", async () => {
           const result = await readModelService.getAttributesByKindsNameOrigin({
-            kinds: [attributeKind.verified],
-            name: "attribute 004",
+            kinds: [attributeKind.certified],
+            name: "test",
             origin: "IPA",
             offset: 0,
             limit: 50,
           });
-          expect(result.totalCount).toBe(1);
-          expect(result.results).toEqual([attribute4]);
+          expect(result.totalCount).toBe(3);
+          expect(result.results).toEqual([attribute1, attribute2, attribute3]);
         });
         it("should get the attributes if they exist (parameters: kinds only)", async () => {
           const result = await readModelService.getAttributesByKindsNameOrigin({
@@ -325,7 +284,7 @@ describe("database test", () => {
             limit: 50,
           });
           expect(result.totalCount).toBe(2);
-          expect(result.results).toEqual([attribute2, attribute3]);
+          expect(result.results).toEqual([attribute4, attribute5]);
         });
         it("should get the attributes if they exist (parameters: name only)", async () => {
           const result = await readModelService.getAttributesByKindsNameOrigin({
@@ -334,8 +293,8 @@ describe("database test", () => {
             offset: 0,
             limit: 50,
           });
-          expect(result.totalCount).toBe(2);
-          expect(result.results).toEqual([attribute1, attribute2]);
+          expect(result.totalCount).toBe(3);
+          expect(result.results).toEqual([attribute1, attribute2, attribute3]);
         });
         it("should get the attributes if they exist (parameters: origin only)", async () => {
           const result = await readModelService.getAttributesByKindsNameOrigin({
@@ -344,8 +303,8 @@ describe("database test", () => {
             offset: 0,
             limit: 50,
           });
-          expect(result.totalCount).toBe(2);
-          expect(result.results).toEqual([attribute4, attribute5]);
+          expect(result.totalCount).toBe(3);
+          expect(result.results).toEqual([attribute1, attribute2, attribute3]);
         });
         it("should get all the attributes if no parameter is passed", async () => {
           const result = await readModelService.getAttributesByKindsNameOrigin({
@@ -353,13 +312,15 @@ describe("database test", () => {
             offset: 0,
             limit: 50,
           });
-          expect(result.totalCount).toBe(5);
+          expect(result.totalCount).toBe(7);
           expect(result.results).toEqual([
             attribute1,
             attribute2,
             attribute3,
             attribute4,
             attribute5,
+            attribute6,
+            attribute7,
           ]);
         });
         it("should not get the attributes if they don't exist", async () => {
@@ -375,95 +336,42 @@ describe("database test", () => {
       });
       describe("getAttributeById", () => {
         it("should get the attribute if it exists", async () => {
-          const attribute1 = {
-            ...mockAttribute,
-            id: uuidv4(),
-            name: "attribute 001",
-          };
-          await addOneAttribute(attribute1);
-
-          const attribute2 = {
-            ...mockAttribute,
-            id: uuidv4(),
-            name: "attribute 002",
-          };
-          await addOneAttribute(attribute2);
-
-          const attribute3 = {
-            ...mockAttribute,
-            id: uuidv4(),
-            name: "attribute 003",
-          };
-          await addOneAttribute(attribute3);
-
           const attribute = await readModelService.getAttributeById(
             attribute1.id
           );
           expect(attribute?.data).toEqual(attribute1);
         });
         it("should not get the attribute if it doesn't exist", async () => {
-          const id = uuidv4();
-          const attribute = await readModelService.getAttributeById(id);
+          const attribute = await readModelService.getAttributeById(uuidv4());
           expect(attribute).toBeUndefined();
         });
       });
       describe("getAttributeByName", () => {
         it("should get the attribute if it exists", async () => {
-          const attribute1 = {
-            ...mockAttribute,
-            id: uuidv4(),
-            name: "attribute 001",
-          };
-          await addOneAttribute(attribute1);
-
-          const attribute2 = {
-            ...mockAttribute,
-            id: uuidv4(),
-            name: "attribute 002",
-          };
-          await addOneAttribute(attribute2);
-
-          const attribute3 = {
-            ...mockAttribute,
-            id: uuidv4(),
-            name: "attribute 003",
-          };
-          await addOneAttribute(attribute3);
           const attribute = await readModelService.getAttributeByName(
             attribute1.name
           );
           expect(attribute?.data).toEqual(attribute1);
         });
         it("should not get the attribute if it doesn't exist", async () => {
-          const attribute1 = {
-            ...mockAttribute,
-            id: uuidv4(),
-            name: "attribute 001",
-          };
-          await addOneAttribute(attribute1);
-          const attribute = await readModelService.getAttributeByName("name");
+          const attribute = await readModelService.getAttributeByName(
+            "not-existing"
+          );
           expect(attribute).toBeUndefined();
         });
       });
       describe("getAttributeByOriginAndCode", () => {
         it("should get the attribute if it exists", async () => {
-          const expectedAttribute = {
-            ...mockAttribute,
-            origin: "IPA",
-            code: "123456",
-          };
-
-          await addOneAttribute(expectedAttribute);
           const attribute = await readModelService.getAttributeByOriginAndCode({
-            origin: expectedAttribute.origin,
-            code: expectedAttribute.code,
+            origin: "IPA",
+            code: "12345A",
           });
-          expect(attribute?.data).toEqual(expectedAttribute);
+          expect(attribute?.data).toEqual(attribute1);
         });
         it("should not get the attribute if it doesn't exist", async () => {
           const attribute = await readModelService.getAttributeByOriginAndCode({
             origin: "IPA",
-            code: "123456",
+            code: "12345D",
           });
           expect(attribute).toBeUndefined();
         });
