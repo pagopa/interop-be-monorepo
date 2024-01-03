@@ -109,7 +109,7 @@ export function agreementServiceBuilder(
       offset: number
     ): Promise<ListResult<CompactOrganization>> {
       logger.info("Retrieving consumers");
-      return await agreementQuery.listConsumers(name, limit, offset);
+      return await agreementQuery.getConsumers(name, limit, offset);
     },
     async updateAgreement(
       agreementId: string,
