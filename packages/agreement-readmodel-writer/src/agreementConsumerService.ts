@@ -74,5 +74,23 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
         }
       );
     })
+    .with({ type: "AgreementContractAdded" }, async (msg) => {
+      await agreements.updateOne(
+        {
+          "data.id": msg.stream_id,
+          "metadata.version": { $lt: msg.version },
+        },
+        {
+          $set: {
+            "data.contract": msg.data.contract
+              ? fromDocumentV1(msg.data.contract)
+              : undefined,
+            metadata: {
+              version: msg.version,
+            },
+          },
+        }
+      );
+    })
     .exhaustive();
 }

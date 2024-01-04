@@ -10,7 +10,7 @@ const errorCodes = {
   agreementNotInExpectedState: "0003",
   descriptorNotInExpectedState: "0004",
   eServiceNotFound: "0005",
-  submitAgreementError: "0006",
+  contractAlreadyExists: "0006",
   operationNotAllowed: "0007",
   agreementActtivationFailed: "0008",
   agreementNotFound: "0009",
@@ -142,6 +142,16 @@ export function agreementSubmissionFailed(
     detail: `Unable to activate agreement ${agreementId}. Please check if attributes requirements and suspension flags are satisfied`,
     code: "agreementSubmissionFailed",
     title: "Unable to activate agreement",
+  });
+}
+
+export function contractAlreadyExists(
+  agreementId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Agreement document for ${agreementId} already exists`,
+    code: "contractAlreadyExists",
+    title: "Contract already exists",
   });
 }
 
