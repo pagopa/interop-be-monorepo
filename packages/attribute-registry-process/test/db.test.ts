@@ -119,10 +119,10 @@ describe("database test", () => {
 
         const attribute: Attribute = {
           ...mockAttribute,
+          id,
           kind: attributeKind.declared,
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           creationTime: new Date(writtenPayload.attribute!.creationTime),
-          id,
         };
 
         expect(writtenPayload.attribute).toEqual(toAttributeV1(attribute));
@@ -183,10 +183,10 @@ describe("database test", () => {
 
         const attribute: Attribute = {
           ...mockAttribute,
+          id,
           kind: attributeKind.verified,
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           creationTime: new Date(writtenPayload.attribute!.creationTime),
-          id,
         };
 
         expect(writtenPayload.attribute).toEqual(toAttributeV1(attribute));
