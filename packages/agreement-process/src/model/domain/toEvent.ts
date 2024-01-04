@@ -11,7 +11,6 @@ import {
   AgreementV1,
   StampV1,
   StampsV1,
-  AgreementUpdateEvent,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -102,7 +101,7 @@ export function toCreateEventAgreementAdded(
 export function toCreateEventAgreementUpdated(
   agreement: Agreement,
   version: number
-): CreateEvent<AgreementUpdateEvent> {
+): CreateEvent<AgreementEvent> {
   return {
     streamId: agreement.id,
     version,
