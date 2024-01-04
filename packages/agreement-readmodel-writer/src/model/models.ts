@@ -1,50 +1,15 @@
-import { z, ZodAny, ZodTransformer } from "zod";
-
-import { MessageType } from "@protobuf-ts/runtime";
-import {
-  AgreementAddedV1,
-  AgreementConsumerDocumentAddedV1,
-  AgreementContractAddedV1,
-  AgreementDeletedV1,
-} from "pagopa-interop-models";
+import { z } from "zod";
 import { KafkaMessage } from "kafkajs";
+import { AgreementEvent } from "pagopa-interop-models";
 
-function protobufDecoder<I extends object>(
-  decoder: MessageType<I>
-): ZodTransformer<ZodAny, I> {
-  return z.any().transform((v) => decoder.fromBinary(Buffer.from(v, "hex")));
-}
-
-const Event = z.discriminatedUnion("type", [
-  z.object({
-    type: z.literal("AgreementAdded"),
-    data: protobufDecoder(AgreementAddedV1),
-  }),
-  z.object({
-    type: z.literal("AgreementDeleted"),
-    data: protobufDecoder(AgreementDeletedV1),
-  }),
-  z.object({
-    type: z.literal("AgreementUpdated"),
-    data: protobufDecoder(AgreementAddedV1),
-  }),
-  z.object({
-    type: z.literal("AgreementConsumerDocumentAdded"),
-    data: protobufDecoder(AgreementConsumerDocumentAddedV1),
-  }),
-  z.object({
-    type: z.literal("AgreementContractAdded"),
-    data: protobufDecoder(AgreementContractAddedV1),
-  }),
-]);
-
+// TODO Also everything else in this file is duplicated and could be moved to pagopa-interop-models
 const EventEnvelope = z.intersection(
   z.object({
     sequence_num: z.number(),
     stream_id: z.string().uuid(),
     version: z.number(),
   }),
-  Event
+  AgreementEvent
 );
 export type EventEnvelope = z.infer<typeof EventEnvelope>;
 

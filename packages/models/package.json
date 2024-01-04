@@ -24,6 +24,7 @@
     "@protobuf-ts/plugin": "^2.9.1",
     "@protobuf-ts/protoc": "^2.9.1",
     "@protobuf-ts/runtime": "^2.9.1",
+    "@types/node": "^20.3.1",
     "ts-pattern": "^5.0.1",
     "zod": "^3.21.4"
   },

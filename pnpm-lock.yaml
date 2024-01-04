@@ -526,6 +526,9 @@ importers:
       '@protobuf-ts/runtime':
         specifier: ^2.9.1
         version: 2.9.1
+      '@types/node':
+        specifier: ^20.3.1
+        version: 20.3.1
       ts-pattern:
         specifier: ^5.0.1
         version: 5.0.1

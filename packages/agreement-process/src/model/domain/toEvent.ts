@@ -12,7 +12,6 @@ import {
   StampV1,
   AgreementStamps,
   StampsV1,
-  AgreementUpdateEvent,
 } from "pagopa-interop-models";
 
 export const toAgreementStateV1 = (state: AgreementState): AgreementStateV1 =>
@@ -102,7 +101,7 @@ export function toCreateEventAgreementAdded(
 export function toCreateEventAgreementUpdated(
   agreement: Agreement,
   version: number
-): CreateEvent<AgreementUpdateEvent> {
+): CreateEvent<AgreementEvent> {
   return {
     streamId: agreement.id,
     version,
