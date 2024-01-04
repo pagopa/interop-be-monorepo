@@ -21,6 +21,7 @@ import {
   agreementNotFound,
   agreementNotInExpectedState,
   consumerWithNotValidEmail,
+  contractAlreadyExists,
   eServiceNotFound,
   tenantIdNotFound,
 } from "../model/domain/errors.js";
@@ -213,11 +214,11 @@ const submitAgreement = async (
 
   validateActiveOrPendingAgreement(agreement.id, newState);
 
-  /* 
+  /*
     NOTE (@Viktor-K)
-    The 'createContractEvents' array contains events related to contract creation or updates to the same agreement (identified by the same stream ID) 
+    The 'createContractEvents' array contains events related to contract creation or updates to the same agreement (identified by the same stream ID)
     as the previous events collected in 'updatedAgreementEvent.'
-    To ensure proper event versioning progression, we need to manually increment the version by '+1.' 
+    To ensure proper event versioning progression, we need to manually increment the version by '+1.'
     This incrementation should reflect the next expected version at the moment when the 'create-contract-event' was processed, not when it was initially created."
     */
   const createContractEvents: Array<CreateEvent<AgreementEvent>> =
@@ -255,6 +256,10 @@ const createContract = async (
 
   if (!producer?.data) {
     throw tenantIdNotFound(agreement.producerId);
+  }
+
+  if (agreement.contract) {
+    throw contractAlreadyExists(agreement.id);
   }
 
   const agreementdocumentSeed = {
