@@ -19,7 +19,7 @@ spec:
       containers:
         - name: interop-be-catalog-process-refactor
           image: ghcr.io/pagopa/catalog-process@$IMAGE_DIGEST
-          imagePullPolicy: Always          
+          imagePullPolicy: Always
           resources:
             requests:
               cpu: 1.0
@@ -121,3 +121,13 @@ spec:
                 secretKeyRef:
                   name: read-model
                   key: REFACTOR_USER_PASSWORD
+            - name: STORAGE_CONTAINER
+              valueFrom:
+                configMapKeyRef:
+                  name: interop-be-catalog-process-refactor
+                  key: STORAGE_CONTAINER
+            - name: ESERVICE_DOCUMENTS_PATH
+              valueFrom:
+                configMapKeyRef:
+                  name: interop-be-catalog-process-refactor
+                  key: ESERVICE_DOCUMENTS_PATH
