@@ -130,3 +130,8 @@ spec:
                 configMapKeyRef:
                   name: interop-be-agreement-process-refactor
                   key: CONSUMER_DOCUMENTS_PATH
+            - name: STORAGE_CONTAINER
+              valueFrom:
+                configMapKeyRef:
+                  name: interop-be-agreement-process-refactor
+                  key: STORAGE_CONTAINER
