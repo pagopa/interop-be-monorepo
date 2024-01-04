@@ -101,7 +101,7 @@ spec:
                 configMapKeyRef:
                   name: interop-be-catalog-readmodel-writer
                   key: KAFKA_BROKERS
-            - name:
+            - name: KAFKA_TOPICS
               valueFrom:
                 configMapKeyRef:
                   name: interop-be-catalog-readmodel-writer
