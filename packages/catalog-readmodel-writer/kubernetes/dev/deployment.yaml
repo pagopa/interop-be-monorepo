@@ -1,24 +1,24 @@
-apiVersion: apps/v1
+apiVersion: v1
 kind: Deployment
 metadata:
-  name: interop-be-catalog-consumer-refactor
+  name: interop-be-catalog-readmodel-writer
   namespace: dev-refactor
   labels:
-    app: interop-be-catalog-consumer-refactor
+    app: interop-be-catalog-readmodel-writer
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: interop-be-catalog-consumer-refactor
+      app: interop-be-catalog-readmodel-writer
   template:
     metadata:
       labels:
-        app: interop-be-catalog-consumer-refactor
+        app: interop-be-catalog-readmodel-writer
     spec:
-      serviceAccountName: interop-be-catalog-consumer-refactor
+      serviceAccountName: interop-be-catalog-readmodel-writer
       containers:
-        - name: interop-be-catalog-consumer-refactor
-          image: ghcr.io/pagopa/catalog-consumer@$IMAGE_DIGEST
+        - name: interop-be-catalog-readmodel-writer
+          image: ghcr.io/pagopa/catalog-readmodel-writer@$IMAGE_DIGEST
           imagePullPolicy: Always
           ports:
             - name: http
@@ -89,15 +89,20 @@ spec:
             - name: KAFKA_CLIENT_ID
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-catalog-consumer-refactor
+                  name: interop-be-catalog-readmodel-writer
                   key: KAFKA_CLIENT_ID
             - name: KAFKA_GROUP_ID
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-catalog-consumer-refactor
+                  name: interop-be-catalog-readmodel-writer
                   key: KAFKA_GROUP_ID
             - name: KAFKA_BROKERS
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-catalog-consumer-refactor
+                  name: interop-be-catalog-readmodel-writer
                   key: KAFKA_BROKERS
+            - name:
+              valueFrom:
+                configMapKeyRef:
+                  name: interop-be-catalog-readmodel-writer
+                  key: KAFKA_TOPICS
