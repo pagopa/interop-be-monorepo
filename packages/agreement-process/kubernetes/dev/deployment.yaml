@@ -125,3 +125,8 @@ spec:
                 secretKeyRef:
                   name: read-model
                   key: REFACTOR_USER_PASSWORD
+            - name: CONSUMER_DOCUMENTS_PATH
+              valueFrom:
+                configMapKeyRef:
+                  name: interop-be-agreement-process-refactor
+                  key: CONSUMER_DOCUMENTS_PATH

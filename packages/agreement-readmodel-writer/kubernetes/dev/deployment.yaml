@@ -97,3 +97,8 @@ spec:
                 configMapKeyRef:
                   name: interop-be-agreement-readmodel-writer
                   key: KAFKA_BROKERS
+            - name: KAFKA_TOPICS
+              valueFrom:
+                configMapKeyRef:
+                  name: interop-be-agreement-readmodel-writer
+                  key: KAFKA_TOPICS
