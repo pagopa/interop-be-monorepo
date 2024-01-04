@@ -36,7 +36,7 @@ import {
   verifySubmissionConflictingAgreements,
 } from "../model/domain/validators.js";
 import { ApiAgreementSubmissionPayload } from "../model/types.js";
-import { agreementStateByFlags, nextState } from "./ageementStateProcessor.js";
+import { agreementStateByFlags, nextState } from "./agreementStateProcessor.js";
 import {
   ContractBuilder,
   addAgreementContractLogic,
