@@ -256,7 +256,7 @@ export async function deleteAgreementLogic({
   agreement: WithMetadata<Agreement> | undefined;
 }): Promise<CreateEvent<AgreementEvent>> {
   assertAgreementExist(agreementId, agreement);
-  assertRequesterIsConsumer(agreement.data.consumerId, authData.organizationId);
+  assertRequesterIsConsumer(agreement.data, authData);
 
   assertExpectedState(
     agreementId,
@@ -347,10 +347,7 @@ export async function updateAgreementLogic({
   agreementToBeUpdated: WithMetadata<Agreement> | undefined;
 }): Promise<CreateEvent<AgreementEvent>> {
   assertAgreementExist(agreementId, agreementToBeUpdated);
-  assertRequesterIsConsumer(
-    agreementToBeUpdated.data.consumerId,
-    authData.organizationId
-  );
+  assertRequesterIsConsumer(agreementToBeUpdated.data, authData);
 
   assertExpectedState(
     agreementId,
@@ -397,10 +394,7 @@ export async function upgradeAgreementLogic({
   const tenant = await tenantQuery.getTenantById(authData.organizationId);
   assertTenantExist(authData.organizationId, tenant);
   assertAgreementExist(agreementId, agreementToBeUpgraded);
-  assertRequesterIsConsumer(
-    agreementToBeUpgraded.data.consumerId,
-    authData.organizationId
-  );
+  assertRequesterIsConsumer(agreementToBeUpgraded.data, authData);
 
   assertExpectedState(
     agreementId,

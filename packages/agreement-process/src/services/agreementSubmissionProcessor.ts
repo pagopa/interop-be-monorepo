@@ -60,9 +60,7 @@ export async function submitAgreementLogic(
   tenantQuery: TenantQuery
 ): Promise<Array<CreateEvent<AgreementEvent>>> {
   logger.info(`Submitting agreement ${agreementId}`);
-  const {
-    authData: { organizationId },
-  } = getContext();
+  const { authData } = getContext();
 
   const agreement = await agreementQuery.getAgreementById(agreementId);
 
@@ -70,7 +68,7 @@ export async function submitAgreementLogic(
     throw agreementNotFound(agreementId);
   }
 
-  assertRequesterIsConsumer(organizationId, agreement.data.consumerId);
+  assertRequesterIsConsumer(agreement.data, authData);
   assertSubmittableState(agreement.data.state, agreement.data.id);
   await verifySubmissionConflictingAgreements(agreement.data, agreementQuery);
 
