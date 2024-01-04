@@ -2,14 +2,10 @@ import { AuthData, CreateEvent } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementEvent,
-  AgreementStamp,
-  AgreementState,
-  Tenant,
   UpdateAgreementSeed,
   agreementState,
   agreementSuspendableStates,
 } from "pagopa-interop-models";
-import { P, match } from "ts-pattern";
 import { utcToZonedTime } from "date-fns-tz";
 import {
   assertAgreementExist,
@@ -33,7 +29,11 @@ import {
   suspendedByPlatformFlag,
   suspendedByProducerFlag,
 } from "./agreementStateProcessor.js";
-import { createStamp } from "./agreementStampUtils.js";
+import {
+  createStamp,
+  suspendedByConsumerStamp,
+  suspendedByProducerStamp,
+} from "./agreementStampUtils.js";
 
 export async function suspendAgreementLogic({
   agreementId,
@@ -83,12 +83,12 @@ export async function suspendAgreementLogic({
   const suspendedByConsumer = suspendedByConsumerFlag(
     agreement.data,
     authData.organizationId,
-    nextStateByAttributes
+    agreementState.suspended
   );
   const suspendedByProducer = suspendedByProducerFlag(
     agreement.data,
     authData.organizationId,
-    nextStateByAttributes
+    agreementState.suspended
   );
   const suspendedByPlatform = suspendedByPlatformFlag(nextStateByAttributes);
   const newState = agreementStateByFlags(
@@ -103,14 +103,14 @@ export async function suspendAgreementLogic({
   const suspensionByProducerStamp = suspendedByProducerStamp(
     agreement.data,
     authData.organizationId,
-    newState,
+    agreementState.suspended,
     stamp
   );
 
   const suspensionByConsumerStamp = suspendedByConsumerStamp(
     agreement.data,
     authData.organizationId,
-    newState,
+    agreementState.suspended,
     stamp
   );
 
@@ -145,25 +145,3 @@ export async function suspendAgreementLogic({
     agreement.metadata.version
   );
 }
-
-const suspendedByConsumerStamp = (
-  agreement: Agreement,
-  requesterOrgId: Tenant["id"],
-  destinationState: AgreementState,
-  stamp: AgreementStamp
-): AgreementStamp | undefined =>
-  match([requesterOrgId, destinationState])
-    .with([agreement.consumerId, agreementState.suspended], () => stamp)
-    .with([agreement.consumerId, P.any], () => undefined)
-    .otherwise(() => agreement.stamps.suspensionByConsumer);
-
-const suspendedByProducerStamp = (
-  agreement: Agreement,
-  requesterOrgId: Tenant["id"],
-  destinationState: AgreementState,
-  stamp: AgreementStamp
-): AgreementStamp | undefined =>
-  match([requesterOrgId, destinationState])
-    .with([agreement.producerId, agreementState.suspended], () => stamp)
-    .with([agreement.producerId, P.any], () => undefined)
-    .otherwise(() => agreement.stamps.suspensionByProducer);
