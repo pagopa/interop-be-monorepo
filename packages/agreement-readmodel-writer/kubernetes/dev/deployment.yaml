@@ -1,24 +1,24 @@
 apiVersion: v1
 kind: Deployment
 metadata:
-  name: interop-be-tenant-consumer-refactor
+  name: interop-be-agreement-readmodel-writer
   namespace: dev-refactor
   labels:
-    app: interop-be-tenant-consumer-refactor
+    app: interop-be-agreement-readmodel-writer
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: interop-be-tenant-consumer-refactor
+      app: interop-be-agreement-readmodel-writer
   template:
     metadata:
       labels:
-        app: interop-be-tenant-consumer-refactor
+        app: interop-be-agreement-readmodel-writer
     spec:
-      serviceAccountName: interop-be-tenant-consumer-refactor
+      serviceAccountName: interop-be-agreement-readmodel-writer
       containers:
-        - name: interop-be-tenant-consumer-refactor
-          image: ghcr.io/pagopa/tenant-consumer@$IMAGE_DIGEST
+        - name: interop-be-agreement-readmodel-writer
+          image: ghcr.io/pagopa/agreement-readmodel-writer@$IMAGE_DIGEST
           imagePullPolicy: Always
           resources:
             requests:
@@ -85,15 +85,15 @@ spec:
             - name: KAFKA_CLIENT_ID
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-tenant-consumer-refactor
+                  name: interop-be-agreement-readmodel-writer
                   key: KAFKA_CLIENT_ID
             - name: KAFKA_GROUP_ID
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-tenant-consumer-refactor
+                  name: interop-be-agreement-readmodel-writer
                   key: KAFKA_GROUP_ID
             - name: KAFKA_BROKERS
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-tenant-consumer-refactor
+                  name: interop-be-agreement-readmodel-writer
                   key: KAFKA_BROKERS
