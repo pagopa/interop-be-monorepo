@@ -1,4 +1,3 @@
-export * from "./AuthorizationManagmentService.js";
 export * from "./authData.js";
 export * from "./authenticationMiddleware.js";
 export * from "./authorizationMiddleware.js";
