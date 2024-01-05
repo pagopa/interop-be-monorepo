@@ -187,13 +187,65 @@ const agreementRouter = (
     }
   );
 
-  agreementRouter.get("/producers", async (_req, res) => {
-    res.status(501).send();
-  });
+  agreementRouter.get(
+    "/producers",
+    authorizationMiddleware([
+      ADMIN_ROLE,
+      API_ROLE,
+      SECURITY_ROLE,
+      SUPPORT_ROLE,
+    ]),
+    async (req, res) => {
+      try {
+        const producers = await agreementService.getAgreementProducers(
+          req.query.producerName,
+          req.query.limit,
+          req.query.offset
+        );
 
-  agreementRouter.get("/consumers", async (_req, res) => {
-    res.status(501).send();
-  });
+        return res
+          .status(200)
+          .json({
+            results: producers.results,
+            totalCount: producers.totalCount,
+          })
+          .end();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, () => 500);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    }
+  );
+
+  agreementRouter.get(
+    "/consumers",
+    authorizationMiddleware([
+      ADMIN_ROLE,
+      API_ROLE,
+      SECURITY_ROLE,
+      SUPPORT_ROLE,
+    ]),
+    async (req, res) => {
+      try {
+        const consumers = await agreementService.getAgreementConsumers(
+          req.query.consumerName,
+          req.query.limit,
+          req.query.offset
+        );
+
+        return res
+          .status(200)
+          .json({
+            results: consumers.results,
+            totalCount: consumers.totalCount,
+          })
+          .end();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, () => 500);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    }
+  );
 
   agreementRouter.get(
     "/agreements/:agreementId",

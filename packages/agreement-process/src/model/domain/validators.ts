@@ -19,6 +19,7 @@ import {
   tenantAttributeType,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
+import { AuthData } from "pagopa-interop-commons";
 import { AgreementQuery } from "../../services/readmodel/agreementQuery.js";
 import { ApiAgreementPayload } from "../types.js";
 import {
@@ -60,11 +61,11 @@ export function assertEServiceExist(
 }
 
 export const assertRequesterIsConsumer = (
-  consumerId: string,
-  requesterId: string
+  agreement: Agreement,
+  authData: AuthData
 ): void => {
-  if (consumerId !== requesterId) {
-    throw operationNotAllowed(requesterId);
+  if (authData.organizationId !== agreement.consumerId) {
+    throw operationNotAllowed(authData.organizationId);
   }
 };
 

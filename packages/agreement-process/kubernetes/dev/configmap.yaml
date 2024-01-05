@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: interop-be-agreement-process-refactor
+  namespace: dev-refactor
+data:
+  MOCK_FILE_MANAGER: "true"
+  EVENTSTORE_DB_USE_SSL: "true"
+  EVENTSTORE_DB_SCHEMA: "agreement"
+  CONSUMER_DOCUMENTS_PATH: ""
+  STORAGE_CONTAINER: ""

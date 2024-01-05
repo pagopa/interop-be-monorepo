@@ -52,7 +52,7 @@ export const submitAgreementErrorMapper = (
     )
     .with("agreementNotFound", () => 404)
     .with("operationNotAllowed", () => 403)
-    .with("agreementAlreadyExists", () => 409)
+    .with("agreementAlreadyExists", "contractAlreadyExists", () => 409)
     .otherwise(() => 500);
 
 export const upgradeAgreementErrorMapper = (
