@@ -7,22 +7,21 @@ COPY package.json /app/
 COPY pnpm-lock.yaml /app/
 COPY pnpm-workspace.yaml /app/
 
-COPY ./packages/attribute-registry-consumer/package.json /app/packages/attribute-registry-consumer/package.json
+COPY ./packages/attribute-registry-process/package.json /app/packages/attribute-registry-process/package.json
 COPY ./packages/commons/package.json /app/packages/commons/package.json
 COPY ./packages/models/package.json /app/packages/models/package.json
-COPY ./packages/kafka-iam-auth/package.json /app/packages/kafka-iam-auth/package.json
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
 COPY tsconfig.json /app/
 COPY turbo.json /app/
-COPY ./packages/attribute-registry-consumer /app/packages/attribute-registry-consumer
+COPY ./packages/attribute-registry-process /app/packages/attribute-registry-process
 COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
 
 RUN pnpm build
 
-WORKDIR /app/packages/attribute-registry-consumer
+WORKDIR /app/packages/attribute-registry-process
 EXPOSE 3000
 
-CMD ["node", "."]
+CMD [ "node", "." ]
