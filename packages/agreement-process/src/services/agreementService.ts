@@ -47,6 +47,7 @@ import {
   verifyConflictingAgreements,
   verifyCreationConflictingAgreements,
 } from "../model/domain/validators.js";
+import { CompactOrganization } from "../model/domain/models.js";
 import {
   ApiAgreementPayload,
   ApiAgreementSubmissionPayload,
@@ -63,7 +64,7 @@ import { TenantQuery } from "./readmodel/tenantQuery.js";
 
 const fileManager = initFileManager(config);
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function agreementServiceBuilder(
   dbInstance: DB,
   agreementQuery: AgreementQuery,
@@ -101,6 +102,26 @@ export function agreementServiceBuilder(
         tenantQuery
       );
       return await repository.createEvent(createAgreementEvent);
+    },
+    async getAgreementProducers(
+      producerName: string | undefined,
+      limit: number,
+      offset: number
+    ): Promise<ListResult<CompactOrganization>> {
+      logger.info(
+        `Retrieving producers from agreements with producer name ${producerName}`
+      );
+      return await agreementQuery.getProducers(producerName, limit, offset);
+    },
+    async getAgreementConsumers(
+      consumerName: string | undefined,
+      limit: number,
+      offset: number
+    ): Promise<ListResult<CompactOrganization>> {
+      logger.info(
+        `Retrieving consumers from agreements with consumer name ${consumerName}`
+      );
+      return await agreementQuery.getConsumers(consumerName, limit, offset);
     },
     async updateAgreement(
       agreementId: string,
