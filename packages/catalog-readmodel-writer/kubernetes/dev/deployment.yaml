@@ -1,4 +1,4 @@
-apiVersion: v1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: interop-be-catalog-readmodel-writer
@@ -101,7 +101,7 @@ spec:
                 configMapKeyRef:
                   name: interop-be-catalog-readmodel-writer
                   key: KAFKA_BROKERS
-            - name:
+            - name: KAFKA_TOPICS
               valueFrom:
                 configMapKeyRef:
                   name: interop-be-catalog-readmodel-writer
