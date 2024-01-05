@@ -18,7 +18,7 @@ export class ApiError<T> extends Error {
     detail: string;
     correlationId?: string;
   }) {
-    super();
+    super(detail);
     this.code = code;
     this.title = title;
     this.detail = detail;
