@@ -12,8 +12,7 @@ import {
   TenantFeature,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { z } from "zod";
-import * as api from "../generated/api.js";
+
 import {
   ApiExternalId,
   ApiTenantFeature,
@@ -23,6 +22,7 @@ import {
   ApiTenantRevoker,
   ApiMail,
   ApiMailKind,
+  ApiTenant,
 } from "./models.js";
 
 export function toApiTenantKind(input: TenantKind): ApiTenantKind {
@@ -114,17 +114,17 @@ export function toApiMail(mail: TenantMail): ApiMail {
   };
 }
 
-export const toApiTenant = (
-  tenant: Tenant
-): z.infer<typeof api.schemas.Tenant> => ({
-  id: tenant.id,
-  kind: tenant.kind ? toApiTenantKind(tenant.kind) : undefined,
-  selfcareId: tenant.selfcareId ?? undefined,
-  externalId: toApiTenantExternalId(tenant.externalId),
-  features: tenant.features.map(toApiTenantFeature),
-  attributes: tenant.attributes.map(toApiTenantAttribute),
-  createdAt: tenant.createdAt.toJSON(),
-  updatedAt: tenant.updatedAt?.toJSON(),
-  mails: tenant.mails.map(toApiMail),
-  name: tenant.name,
-});
+export function toApiTenant(tenant: Tenant): ApiTenant {
+  return {
+    id: tenant.id,
+    kind: tenant.kind ? toApiTenantKind(tenant.kind) : undefined,
+    selfcareId: tenant.selfcareId ?? undefined,
+    externalId: toApiTenantExternalId(tenant.externalId),
+    features: tenant.features.map(toApiTenantFeature),
+    attributes: tenant.attributes.map(toApiTenantAttribute),
+    createdAt: tenant.createdAt.toJSON(),
+    updatedAt: tenant.updatedAt?.toJSON(),
+    mails: tenant.mails.map(toApiMail),
+    name: tenant.name,
+  };
+}

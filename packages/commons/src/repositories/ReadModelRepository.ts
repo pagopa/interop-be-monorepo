@@ -173,9 +173,12 @@ export class ReadModelRepository {
 
   public static async getTotalCount(
     collection: Collections,
-    aggregation: object[]
+    aggregation: object[],
+    allowDiskUse: boolean = false
   ): Promise<number> {
-    const query = collection.aggregate([...aggregation, { $count: "count" }]);
+    const query = collection.aggregate([...aggregation, { $count: "count" }], {
+      allowDiskUse,
+    });
 
     const data = await query.toArray();
     const result = z.array(z.object({ count: z.number() })).safeParse(data);
