@@ -331,9 +331,9 @@ export function agreementServiceBuilder(
       rejectionReason: string,
       authData: AuthData
     ): Promise<string> {
-      logger.info("Rejecting agreement");
+      logger.info(`Rejecting agreement ${agreementId}`);
       await repository.createEvent(
-        await rejectAreementLogic({
+        await rejectAgreementLogic({
           agreementId,
           rejectionReason,
           authData,
@@ -758,7 +758,7 @@ export async function cloneAgreementLogic({
   };
 }
 
-export async function rejectAreementLogic({
+export async function rejectAgreementLogic({
   agreementId,
   rejectionReason,
   authData,
