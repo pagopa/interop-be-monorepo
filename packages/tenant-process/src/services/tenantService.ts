@@ -96,34 +96,6 @@ export const tenantService = {
     );
   },
 
-  async updateTenantMails({
-    tenantId,
-    mailsSeed,
-    authData,
-  }: {
-    tenantId: string;
-    mailsSeed: ApiTenantMailsSeed;
-    authData: AuthData;
-  }): Promise<string> {
-    await assertResourceAllowed(tenantId, authData);
-    const tenant = await readModelService.getTenantById(tenantId);
-    assertTenantExists(tenantId, tenant);
-    const tenantKind =
-      tenant.data.kind ||
-      (await getTenantKindLoadingCertifiedAttributes(
-        tenant.data.attributes,
-        tenant.data.externalId
-      ));
-
-    return await repository.createEvent(
-      await updateTenantLogic({
-        tenant,
-        mailsSeed,
-        kind: tenantKind,
-      })
-    );
-  },
-
   async selfcareUpsertTenant({
     tenantSeed,
     authData,

@@ -95,19 +95,7 @@ const tenantsRouter = (
     .post(
       "/tenants/:id",
       authorizationMiddleware([ADMIN_ROLE]),
-      async (req, res) => {
-        try {
-          const id = await tenantService.updateTenantMails({
-            tenantId: req.params.id,
-            mailsSeed: req.body,
-            authData: req.ctx.authData,
-          });
-          return res.status(200).json({ id }).send();
-        } catch (error) {
-          const errorRes = makeApiProblem(error);
-          return res.status(errorRes.status).json(errorRes).end();
-        }
-      }
+      async (_req, res) => res.status(501).send()
     )
     .post(
       "/internal/origin/:tOrigin/externalId/:tExternalId/attributes/origin/:aOrigin/externalId/:aExternalId",
