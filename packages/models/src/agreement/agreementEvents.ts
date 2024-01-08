@@ -40,6 +40,7 @@ export type AgreementConsumerDocumentAdded = {
 export type AgreementEvent =
   | { type: "AgreementAdded"; data: AgreementAddedV1 }
   | AgreementUpdateEvent
+  | AgreementConsumerDocumentAdded
   | {
       type: "AgreementDeleted";
       data: AgreementDeletedV1;
@@ -47,5 +48,4 @@ export type AgreementEvent =
   | {
       type: "AgreementContractAdded";
       data: AgreementContractAddedV1;
-    }
-  | AgreementConsumerDocumentAdded;
+    };
