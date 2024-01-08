@@ -227,9 +227,9 @@ export function agreementServiceBuilder(
       rejectionReason: string,
       authData: AuthData
     ): Promise<string> {
-      logger.info("Rejecting agreement");
+      logger.info(`Rejecting agreement ${agreementId}`);
       await repository.createEvent(
-        await rejectAreementLogic({
+        await rejectAgreementLogic({
           agreementId,
           rejectionReason,
           authData,
@@ -657,7 +657,7 @@ export async function cloneAgreementLogic({
   };
 }
 
-export async function rejectAreementLogic({
+export async function rejectAgreementLogic({
   agreementId,
   rejectionReason,
   authData,
@@ -677,10 +677,7 @@ export async function rejectAreementLogic({
   );
   assertAgreementExist(agreementId, agreementToBeRejected);
 
-  assertRequesterIsProducer(
-    agreementToBeRejected.data
-    authData,
-  );
+  assertRequesterIsProducer(agreementToBeRejected.data, authData);
 
   assertExpectedState(agreementId, agreementToBeRejected.data.state, [
     agreementState.pending,
@@ -707,8 +704,8 @@ export async function rejectAreementLogic({
   }
 
   const stamp: AgreementStamp = {
-    who: authData.organizationId,
-    when: new Date(),
+    who: authData.userId,
+    when: utcToZonedTime(new Date(), "Etc/UTC"),
   };
   const rejected: Agreement = {
     ...agreementToBeRejected.data,
