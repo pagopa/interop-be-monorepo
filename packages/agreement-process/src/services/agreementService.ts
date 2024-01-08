@@ -224,14 +224,12 @@ export function agreementServiceBuilder(
       documentId: string,
       authData: AuthData
     ): Promise<AgreementDocument> {
-      const { organizationId } = authData;
-
       logger.info(
         `Retrieving consumer document ${documentId} from agreement ${agreementId}`
       );
       const agreement = await agreementQuery.getAgreementById(agreementId);
       assertAgreementExist(agreementId, agreement);
-      assertRequesterIsConsumerOrProducer(organizationId, agreement.data);
+      assertRequesterIsConsumerOrProducer(agreement.data, authData);
 
       const document = agreement.data.consumerDocuments.find(
         (d) => d.id === documentId
