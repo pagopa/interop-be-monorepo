@@ -37,6 +37,7 @@ import {
   assertAttributeExists,
   assertResourceAllowed,
   assertTenantExists,
+  getTenantKind,
   getTenantKindLoadingCertifiedAttributes,
 } from "./validators.js";
 import { readModelService } from "./readModelService.js";
@@ -139,8 +140,18 @@ export const tenantService = {
         existingTenant.data.attributes,
         existingTenant.data.externalId
       );
-      existingTenant.data.kind = tenantKind;
-      const updatedTenant = updateSelfCareId(existingTenant.data, tenantSeed);
+
+      const updatedSelfcareId = evaluateNewSelfcareId({
+        tenant: existingTenant.data,
+        newSelfcareId: tenantSeed.selfcareId,
+      });
+
+      const updatedTenant: Tenant = {
+        ...existingTenant.data,
+        kind: tenantKind,
+        selfcareId: updatedSelfcareId,
+        updatedAt: new Date(),
+      };
 
       return await repository.createEvent(
         toCreateEventTenantUpdated(
@@ -150,23 +161,6 @@ export const tenantService = {
         )
       );
     } else {
-      /*
-      const attributesIds: ExternalId[] = [];
-      const attributes = await readModelService.getAttributesByExternalIds(
-        attributesIds
-      );
-      const tenantAttributes: TenantAttribute[] = attributes.map(
-        (attribute) => ({
-          type: tenantAttributeType.CERTIFIED, // All attributes here are certified
-          id: attribute.data.id,
-          assignmentTimestamp: new Date(),
-        })
-      );
-      const kind = await getTenantKindLoadingCertifiedAttributes(
-        tenantAttributes,
-        tenantSeed.externalId
-      );
-      */
       const newTenant: Tenant = {
         id: uuidv4(),
         name: tenantSeed.name,
@@ -175,6 +169,7 @@ export const tenantService = {
         features: [],
         mails: [],
         selfcareId: tenantSeed.selfcareId,
+        kind: getTenantKind([], tenantSeed.externalId),
         createdAt: new Date(),
       };
       return await repository.createEvent(toCreateEventTenantAdded(newTenant));
@@ -182,25 +177,24 @@ export const tenantService = {
   },
 };
 
-function updateSelfCareId(
-  tenant: Tenant,
-  tenantSeed: ApiSelfcareTenantSeed
-): Tenant {
+function evaluateNewSelfcareId({
+  tenant,
+  newSelfcareId,
+}: {
+  tenant: Tenant;
+  newSelfcareId: string;
+}): string {
   if (!tenant.selfcareId) {
-    return {
-      ...tenant,
-      selfcareId: tenantSeed.selfcareId,
-      updatedAt: new Date(),
-    };
+    return newSelfcareId;
   } else {
-    if (tenant.selfcareId !== tenantSeed.selfcareId) {
+    if (tenant.selfcareId !== newSelfcareId) {
       throw selfcareIdConflict({
         tenantId: tenant.id,
         existingSelfcareId: tenant.selfcareId,
-        newSelfcareId: tenantSeed.selfcareId,
+        newSelfcareId,
       });
     }
-    return tenant;
+    return tenant.selfcareId;
   }
 }
 
