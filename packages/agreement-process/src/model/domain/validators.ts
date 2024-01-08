@@ -88,7 +88,7 @@ export const assertRequesterIsConsumerOrProducer = (
   } catch (error) {
     assertRequesterIsProducer(agreement, authData);
   }
-};
+}
 
 export const assertSubmittableState = (
   state: AgreementState,
