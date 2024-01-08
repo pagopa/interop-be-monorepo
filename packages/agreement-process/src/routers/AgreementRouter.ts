@@ -25,6 +25,7 @@ import {
   cloneAgreementErrorMapper,
   createAgreementErrorMapper,
   deleteAgreementErrorMapper,
+  rejectAgreementErrorMapper,
   submitAgreementErrorMapper,
   updateAgreementErrorMapper,
   upgradeAgreementErrorMapper,
@@ -120,9 +121,23 @@ const agreementRouter = (
     }
   );
 
-  agreementRouter.post("/agreements/:agreementId/reject", async (_req, res) => {
-    res.status(501).send();
-  });
+  agreementRouter.post(
+    "/agreements/:agreementId/reject",
+    authorizationMiddleware([ADMIN_ROLE]),
+    async (req, res) => {
+      try {
+        const id = await agreementService.rejectAgreement(
+          req.params.agreementId,
+          req.body.reason,
+          req.ctx.authData
+        );
+        return res.status(200).json({ id }).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, rejectAgreementErrorMapper);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    }
+  );
 
   agreementRouter.post(
     "/agreements/:agreementId/archive",

@@ -41,8 +41,12 @@ import {
   assertEServiceExist,
   assertExpectedState,
   assertRequesterIsConsumer,
+  assertRequesterIsProducer,
   assertTenantExist,
   declaredAttributesSatisfied,
+  matchingCertifiedAttributes,
+  matchingDeclaredAttributes,
+  matchingVerifiedAttributes,
   validateCertifiedAttributes,
   validateCreationOnDescriptor,
   verifiedAttributesSatisfied,
@@ -217,6 +221,25 @@ export function agreementServiceBuilder(
       }
 
       return streamId;
+    },
+    async rejectAgreement(
+      agreementId: string,
+      rejectionReason: string,
+      authData: AuthData
+    ): Promise<string> {
+      logger.info(`Rejecting agreement ${agreementId}`);
+      await repository.createEvent(
+        await rejectAgreementLogic({
+          agreementId,
+          rejectionReason,
+          authData,
+          agreementQuery,
+          tenantQuery,
+          eserviceQuery,
+        })
+      );
+
+      return agreementId;
     },
   };
 }
@@ -632,4 +655,80 @@ export async function cloneAgreementLogic({
     streamId: newAgreement.streamId,
     events: [newAgreement, ...docEvents],
   };
+}
+
+export async function rejectAgreementLogic({
+  agreementId,
+  rejectionReason,
+  authData,
+  agreementQuery,
+  tenantQuery,
+  eserviceQuery,
+}: {
+  agreementId: string;
+  rejectionReason: string;
+  authData: AuthData;
+  agreementQuery: AgreementQuery;
+  tenantQuery: TenantQuery;
+  eserviceQuery: EserviceQuery;
+}): Promise<CreateEvent<AgreementEvent>> {
+  const agreementToBeRejected = await agreementQuery.getAgreementById(
+    agreementId
+  );
+  assertAgreementExist(agreementId, agreementToBeRejected);
+
+  assertRequesterIsProducer(agreementToBeRejected.data, authData);
+
+  assertExpectedState(agreementId, agreementToBeRejected.data.state, [
+    agreementState.pending,
+  ]);
+
+  const eservice = await eserviceQuery.getEServiceById(
+    agreementToBeRejected.data.eserviceId
+  );
+  assertEServiceExist(agreementToBeRejected.data.eserviceId, eservice);
+
+  const consumer = await tenantQuery.getTenantById(
+    agreementToBeRejected.data.consumerId
+  );
+  assertTenantExist(agreementToBeRejected.data.consumerId, consumer);
+
+  const descriptor = eservice.data.descriptors.find(
+    (d) => d.id === agreementToBeRejected.data.descriptorId
+  );
+  if (descriptor === undefined) {
+    throw descriptorNotFound(
+      eservice.data.id,
+      agreementToBeRejected.data.descriptorId
+    );
+  }
+
+  const stamp: AgreementStamp = {
+    who: authData.userId,
+    when: utcToZonedTime(new Date(), "Etc/UTC"),
+  };
+  const rejected: Agreement = {
+    ...agreementToBeRejected.data,
+    state: agreementState.rejected,
+    certifiedAttributes: matchingCertifiedAttributes(descriptor, consumer.data),
+    declaredAttributes: matchingDeclaredAttributes(descriptor, consumer.data),
+    verifiedAttributes: matchingVerifiedAttributes(
+      eservice.data,
+      descriptor,
+      consumer.data
+    ),
+    rejectionReason,
+    suspendedByConsumer: undefined,
+    suspendedByProducer: undefined,
+    suspendedByPlatform: undefined,
+    stamps: {
+      ...agreementToBeRejected.data.stamps,
+      rejection: stamp,
+    },
+  };
+
+  return toCreateEventAgreementUpdated(
+    rejected,
+    agreementToBeRejected.metadata.version
+  );
 }

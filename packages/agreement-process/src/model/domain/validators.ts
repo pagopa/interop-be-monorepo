@@ -69,6 +69,15 @@ export const assertRequesterIsConsumer = (
   }
 };
 
+export const assertRequesterIsProducer = (
+  agreement: Agreement,
+  authData: AuthData
+): void => {
+  if (authData.organizationId !== agreement.producerId) {
+    throw operationNotAllowed(authData.organizationId);
+  }
+};
+
 export const assertSubmittableState = (
   state: AgreementState,
   agreementId: string
