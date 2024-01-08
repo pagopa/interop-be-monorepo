@@ -71,22 +71,22 @@ export const assertRequesterIsConsumer = (
 };
 
 export function assertRequesterIsProducer(
-  producerId: string,
-  requesterId: string
+  agreement: Agreement,
+  authData: AuthData
 ): void {
-  if (producerId !== requesterId) {
-    throw operationNotAllowed(requesterId);
+  if (authData.organizationId !== agreement.producerId) {
+    throw operationNotAllowed(authData.organizationId);
   }
 }
 
 export const assertRequesterIsConsumerOrProducer = (
-  requesterId: string,
-  agreement: Agreement
+  agreement: Agreement,
+  authData: AuthData
 ): void => {
   try {
-    assertRequesterIsConsumer(agreement.consumerId, requesterId);
+    assertRequesterIsConsumer(agreement, authData);
   } catch (error) {
-    assertRequesterIsProducer(agreement.producerId, requesterId);
+    assertRequesterIsProducer(agreement, authData);
   }
 };
 
