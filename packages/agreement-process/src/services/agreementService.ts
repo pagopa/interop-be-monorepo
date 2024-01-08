@@ -182,7 +182,7 @@ export function agreementServiceBuilder(
       agreementId: string,
       authData: AuthData
     ): Promise<string> {
-      logger.info("Upgrading agreement");
+      logger.info(`Upgrading agreement ${agreementId}`);
       const { streamId, events } = await upgradeAgreementLogic({
         agreementId,
         authData,
@@ -202,7 +202,7 @@ export function agreementServiceBuilder(
       agreementId: string,
       authData: AuthData
     ): Promise<string> {
-      logger.info("Cloning agreement");
+      logger.info(`Cloning agreement ${agreementId}`);
       const { streamId, events } = await cloneAgreementLogic({
         agreementId,
         authData,
@@ -570,10 +570,7 @@ export async function cloneAgreementLogic({
     agreementId
   );
   assertAgreementExist(agreementId, agreementToBeCloned);
-  assertRequesterIsConsumer(
-    authData.organizationId,
-    agreementToBeCloned.data.consumerId
-  );
+  assertRequesterIsConsumer(agreementToBeCloned.data, authData);
 
   assertExpectedState(agreementId, agreementToBeCloned.data.state, [
     agreementState.rejected,
