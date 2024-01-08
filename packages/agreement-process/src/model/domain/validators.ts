@@ -70,11 +70,11 @@ export const assertRequesterIsConsumer = (
 };
 
 export const assertRequesterIsProducer = (
-  requesterId: string,
-  agreement: Agreement
+  agreement: Agreement,
+  authData: AuthData
 ): void => {
-  if (requesterId !== agreement.producerId) {
-    throw operationNotAllowed(requesterId);
+  if (authData.organizationId !== agreement.producerId) {
+    throw operationNotAllowed(authData.organizationId);
   }
 };
 

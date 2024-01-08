@@ -678,8 +678,8 @@ export async function rejectAreementLogic({
   assertAgreementExist(agreementId, agreementToBeRejected);
 
   assertRequesterIsProducer(
-    authData.organizationId,
     agreementToBeRejected.data
+    authData,
   );
 
   assertExpectedState(agreementId, agreementToBeRejected.data.state, [
