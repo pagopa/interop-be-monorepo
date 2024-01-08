@@ -22,6 +22,7 @@ import { attributeQueryBuilder } from "../services/readmodel/attributeQuery.js";
 import { readModelServiceBuilder } from "../services/readmodel/readModelService.js";
 import { agreementNotFound, makeApiProblem } from "../model/domain/errors.js";
 import {
+  cloneAgreementErrorMapper,
   createAgreementErrorMapper,
   deleteAgreementErrorMapper,
   submitAgreementErrorMapper,
@@ -339,9 +340,23 @@ const agreementRouter = (
     }
   );
 
-  agreementRouter.post("/agreements/:agreementId/clone", async (_req, res) => {
-    res.status(501).send();
-  });
+  agreementRouter.post(
+    "/agreements/:agreementId/clone",
+    authorizationMiddleware([ADMIN_ROLE]),
+    async (req, res) => {
+      try {
+        const id = await agreementService.cloneAgreement(
+          req.params.agreementId,
+          req.ctx.authData
+        );
+
+        return res.status(200).json({ id }).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, cloneAgreementErrorMapper);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    }
+  );
 
   agreementRouter.post("/compute/agreementsState", async (_req, res) => {
     res.status(501).send();
