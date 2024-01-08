@@ -25,14 +25,12 @@ import {
   ApiInternalTenantSeed,
   ApiM2MTenantSeed,
   ApiSelfcareTenantSeed,
-  ApiTenantMailsSeed,
 } from "../model/types.js";
 import {
   invalidAttributeStructure,
   tenantDuplicate,
   selfcareIdConflict,
 } from "../model/domain/errors.js";
-import { toTenantMails } from "../model/domain/apiConverter.js";
 import {
   assertAttributeExists,
   assertResourceAllowed,
@@ -195,29 +193,6 @@ export async function updateTenantAttributeLogic({
   const updatedTenant: Tenant = {
     ...tenant.data,
     attributes: updatedAttributes,
-    updatedAt: new Date(),
-  };
-
-  return toCreateEventTenantUpdated(
-    tenant.data.id,
-    tenant.metadata.version,
-    updatedTenant
-  );
-}
-
-export async function updateTenantLogic({
-  tenant,
-  mailsSeed,
-  kind,
-}: {
-  tenant: WithMetadata<Tenant>;
-  mailsSeed: ApiTenantMailsSeed;
-  kind: TenantKind;
-}): Promise<CreateEvent<TenantEvent>> {
-  const updatedTenant: Tenant = {
-    ...tenant.data,
-    mails: toTenantMails(mailsSeed),
-    kind,
     updatedAt: new Date(),
   };
 
