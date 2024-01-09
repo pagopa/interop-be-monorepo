@@ -98,16 +98,16 @@ export const cloneAgreementErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("agreementNotFound", () => 404)
+    .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
       "agreementNotInExpectedState",
       "missingCertifiedAttributesError",
       "eServiceNotFound",
-      () => 400
+      () => HTTP_STATUS_BAD_REQUEST
     )
-    .with("agreementAlreadyExists", () => 409)
-    .with("operationNotAllowed", () => 403)
-    .otherwise(() => 500);
+    .with("agreementAlreadyExists", () => HTTP_STATUS_CONFLICT)
+    .with("operationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getConsumerDocumentErrorMapper = (
   error: ApiError<ErrorCodes>
