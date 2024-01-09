@@ -40,7 +40,7 @@ export function tenantServiceBuilder(
     tenantEventToBinaryData
   );
   return {
-    async updateTenantMails({
+    async updateTenant({
       tenantId,
       mailsSeed,
       authData,
