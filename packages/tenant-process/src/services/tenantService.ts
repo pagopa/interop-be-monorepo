@@ -1,40 +1,15 @@
-import {
-  AuthData,
-  CreateEvent,
-  eventRepository,
-  initDB,
-} from "pagopa-interop-commons";
-import {
-  Attribute,
-  ExternalId,
-  Tenant,
-  TenantAttribute,
-  TenantEvent,
-  TenantKind,
-  WithMetadata,
-  tenantAttributeType,
-  tenantEventToBinaryData,
-} from "pagopa-interop-models";
+import { AuthData, eventRepository, initDB } from "pagopa-interop-commons";
+import { Tenant, tenantEventToBinaryData } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import { TenantProcessConfig } from "../utilities/config.js";
 import {
   toCreateEventTenantAdded,
   toCreateEventTenantUpdated,
 } from "../model/domain/toEvent.js";
+import { ApiSelfcareTenantSeed } from "../model/types.js";
+import { selfcareIdConflict } from "../model/domain/errors.js";
 import {
-  ApiInternalTenantSeed,
-  ApiM2MTenantSeed,
-  ApiSelfcareTenantSeed,
-} from "../model/types.js";
-import {
-  invalidAttributeStructure,
-  tenantDuplicate,
-  selfcareIdConflict,
-} from "../model/domain/errors.js";
-import {
-  assertAttributeExists,
   assertResourceAllowed,
-  assertTenantExists,
   getTenantKind,
   getTenantKindLoadingCertifiedAttributes,
 } from "./validators.js";
@@ -59,46 +34,6 @@ export function tenantServiceBuilder(
   );
 
   return {
-    async createTenant(
-      apiTenantSeed:
-        | ApiSelfcareTenantSeed
-        | ApiM2MTenantSeed
-        | ApiInternalTenantSeed,
-      attributesExternalIds: ExternalId[],
-      kind: TenantKind
-    ): Promise<string> {
-      const [attributes, tenant] = await Promise.all([
-        readModelService.getAttributesByExternalIds(attributesExternalIds),
-        readModelService.getTenantByName(apiTenantSeed.name),
-      ]);
-
-      return repository.createEvent(
-        createTenantLogic({
-          tenant,
-          apiTenantSeed,
-          kind,
-          attributes,
-        })
-      );
-    },
-
-    async updateTenantAttribute(
-      tenantId: string,
-      attributeId: string,
-      newAttribute: TenantAttribute
-    ): Promise<string> {
-      const tenant = await readModelService.getTenantById(tenantId);
-
-      return await repository.createEvent(
-        await updateTenantAttributeLogic({
-          tenant,
-          tenantId,
-          attributeId,
-          newAttribute,
-        })
-      );
-    },
-
     async selfcareUpsertTenant({
       tenantSeed,
       authData,
@@ -177,77 +112,4 @@ function evaluateNewSelfcareId({
     }
     return tenant.selfcareId;
   }
-}
-
-export async function updateTenantAttributeLogic({
-  tenant,
-  tenantId,
-  attributeId,
-  newAttribute,
-}: {
-  tenant: WithMetadata<Tenant> | undefined;
-  tenantId: string;
-  attributeId: string;
-  newAttribute: TenantAttribute;
-}): Promise<CreateEvent<TenantEvent>> {
-  assertTenantExists(tenantId, tenant);
-  if (!newAttribute || newAttribute.id !== attributeId) {
-    throw invalidAttributeStructure;
-  }
-  assertAttributeExists(attributeId, tenant.data.attributes);
-
-  const updatedAttributes = [
-    newAttribute,
-    ...tenant.data.attributes.filter((a) => a.id !== newAttribute.id),
-  ];
-
-  const updatedTenant: Tenant = {
-    ...tenant.data,
-    attributes: updatedAttributes,
-    updatedAt: new Date(),
-  };
-
-  return toCreateEventTenantUpdated(
-    tenant.data.id,
-    tenant.metadata.version,
-    updatedTenant
-  );
-}
-
-export function createTenantLogic({
-  tenant,
-  apiTenantSeed,
-  kind,
-  attributes,
-}: {
-  tenant: WithMetadata<Tenant> | undefined;
-  apiTenantSeed:
-    | ApiSelfcareTenantSeed
-    | ApiM2MTenantSeed
-    | ApiInternalTenantSeed;
-  kind: TenantKind;
-  attributes: Array<WithMetadata<Attribute>>;
-}): CreateEvent<TenantEvent> {
-  if (tenant) {
-    throw tenantDuplicate(apiTenantSeed.name);
-  }
-
-  const tenantAttributes: TenantAttribute[] = attributes.map((attribute) => ({
-    type: tenantAttributeType.CERTIFIED, // All attributes here are certified
-    id: attribute.data.id,
-    assignmentTimestamp: new Date(),
-  }));
-
-  const newTenant: Tenant = {
-    id: uuidv4(),
-    name: apiTenantSeed.name,
-    attributes: tenantAttributes,
-    externalId: apiTenantSeed.externalId,
-    features: [],
-    mails: [],
-    createdAt: new Date(),
-    kind,
-  };
-
-  return toCreateEventTenantAdded(newTenant);
 }
