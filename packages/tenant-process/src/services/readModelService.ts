@@ -1,5 +1,3 @@
-import { WithId } from "mongodb";
-import { Filter } from "mongodb";
 import {
   AgreementCollection,
   AttributeCollection,
@@ -16,10 +14,35 @@ import {
   Agreement,
   EService,
   genericError,
+  ListResult,
 } from "pagopa-interop-models";
 import { z } from "zod";
-import { TenantProcessConfig } from "../utilities/config.js";
+import { Filter, WithId } from "mongodb";
 import { attributeNotFound } from "../model/domain/errors.js";
+import { TenantProcessConfig } from "../utilities/config.js";
+
+function listTenantsFilters(
+  name: string | undefined
+): Filter<{ data: Tenant }> {
+  const nameFilter = name
+    ? {
+        "data.name": {
+          $regex: name,
+          $options: "i",
+        },
+      }
+    : {};
+
+  const withSelfcareIdFilter = {
+    "data.selfcareId": {
+      $exists: true,
+    },
+  };
+  return {
+    ...nameFilter,
+    ...withSelfcareIdFilter,
+  };
+}
 
 const getAgreementsFilters = (
   producerId: string,
@@ -174,8 +197,79 @@ async function getTenant(
 export function readModelServiceBuilder(config: TenantProcessConfig) {
   const { attributes, agreements, eservices, tenants } =
     ReadModelRepository.init(config);
-
   return {
+    async getTenants({
+      name,
+      offset,
+      limit,
+    }: {
+      name: string | undefined;
+      offset: number;
+      limit: number;
+    }): Promise<ListResult<Tenant>> {
+      const query = listTenantsFilters(name);
+      const aggregationPipeline = [
+        { $match: query },
+        { $project: { data: 1, lowerName: { $toLower: "$data.name" } } },
+        { $sort: { lowerName: 1 } },
+      ];
+      const data = await tenants
+        .aggregate([
+          ...aggregationPipeline,
+          { $skip: offset },
+          { $limit: limit },
+        ])
+        .toArray();
+
+      const result = z.array(Tenant).safeParse(data.map((d) => d.data));
+      if (!result.success) {
+        logger.error(
+          `Unable to parse tenant items: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+
+        throw genericError("Unable to parse agreements items");
+      }
+
+      return {
+        results: result.data,
+        totalCount: await ReadModelRepository.getTotalCount(
+          tenants,
+          aggregationPipeline
+        ),
+      };
+    },
+
+    async getTenantById(id: string): Promise<WithMetadata<Tenant> | undefined> {
+      return getTenant(tenants, { "data.id": id });
+    },
+
+    async getTenantByName(
+      name: string
+    ): Promise<WithMetadata<Tenant> | undefined> {
+      return getTenant(tenants, {
+        "data.name": {
+          $regex: `^${name}$$`,
+          $options: "i",
+        },
+      });
+    },
+
+    async getTenantByExternalId(
+      externalId: ExternalId
+    ): Promise<WithMetadata<Tenant> | undefined> {
+      return getTenant(tenants, {
+        "data.externalId.value": externalId.value,
+        "data.externalId.origin": externalId.origin,
+      });
+    },
+
+    async getTenantBySelfcareId(
+      selfcareId: string
+    ): Promise<WithMetadata<Tenant> | undefined> {
+      return getTenant(tenants, { "data.selfcareId": selfcareId });
+    },
     async getAttributesByExternalIds(
       externalIds: ExternalId[]
     ): Promise<Array<WithMetadata<Attribute>>> {
@@ -258,38 +352,6 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
           metadata: { version: result.data.metadata.version },
         };
       }
-    },
-
-    async getTenantById(
-      tenantId: string
-    ): Promise<WithMetadata<Tenant> | undefined> {
-      return getTenant(tenants, { "data.id": tenantId });
-    },
-
-    async getTenantByName(
-      name: string
-    ): Promise<WithMetadata<Tenant> | undefined> {
-      return getTenant(tenants, {
-        "data.name": {
-          $regex: `^${name}$$`,
-          $options: "i",
-        },
-      });
-    },
-
-    async getTenantByExternalId(
-      tenantExternalId: ExternalId
-    ): Promise<WithMetadata<Tenant> | undefined> {
-      return getTenant(tenants, {
-        "data.externalId.code": tenantExternalId.value,
-        "data.externalId.origin": tenantExternalId.origin,
-      });
-    },
-
-    async getTenantBySelfcareId(
-      selfcareId: string
-    ): Promise<WithMetadata<Tenant> | undefined> {
-      return getTenant(tenants, { "data.selfcareId": selfcareId });
     },
   };
 }
