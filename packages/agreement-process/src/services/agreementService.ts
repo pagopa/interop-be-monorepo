@@ -28,16 +28,19 @@ import {
   descriptorNotFound,
   noNewerDescriptor,
   unexpectedVersionFormat,
+  publishedDescriptorNotFound,
+  agreementDocumentAlreadyExists,
 } from "../model/domain/errors.js";
+
 import {
   toCreateEventAgreementAdded,
   toCreateEventAgreementConsumerDocumentAdded,
   toCreateEventAgreementDeleted,
   toCreateEventAgreementUpdated,
 } from "../model/domain/toEvent.js";
-import { publishedDescriptorNotFound } from "../model/domain/errors.js";
 import {
   assertAgreementExist,
+  assertCanWorkOnConsumerDocuments,
   assertEServiceExist,
   assertExpectedState,
   assertRequesterIsConsumer,
@@ -54,8 +57,10 @@ import {
   ApiAgreementPayload,
   ApiAgreementSubmissionPayload,
   ApiAgreementUpdatePayload,
+  ApiAgreementDocumentSeed,
 } from "../model/types.js";
 import { config } from "../utilities/config.js";
+import { apiAgreementDocumentToAgreementDocument } from "../model/domain/apiConverter.js";
 import { contractBuilder } from "./agreementContractBuilder.js";
 import { submitAgreementLogic } from "./agreementSubmissionProcessor.js";
 import { AgreementQuery } from "./readmodel/agreementQuery.js";
@@ -217,6 +222,21 @@ export function agreementServiceBuilder(
       }
 
       return streamId;
+    },
+    async addConsumerDocument(
+      agreementId: string,
+      documentSeed: ApiAgreementDocumentSeed,
+      authData: AuthData
+    ): Promise<string> {
+      logger.info(`Adding a consumer document to agreement ${agreementId}`);
+
+      const addDocumentEvent = await addConsumerDocumentLogic(
+        agreementId,
+        documentSeed,
+        agreementQuery,
+        authData
+      );
+      return await repository.createEvent(addDocumentEvent);
     },
   };
 }
@@ -632,4 +652,31 @@ export async function cloneAgreementLogic({
     streamId: newAgreement.streamId,
     events: [newAgreement, ...docEvents],
   };
+}
+
+export async function addConsumerDocumentLogic(
+  agreementId: string,
+  payload: ApiAgreementDocumentSeed,
+  agreementQuery: AgreementQuery,
+  authData: AuthData
+): Promise<CreateEvent<AgreementEvent>> {
+  const agreement = await agreementQuery.getAgreementById(agreementId);
+
+  assertAgreementExist(agreementId, agreement);
+  assertRequesterIsConsumer(agreement.data, authData);
+  assertCanWorkOnConsumerDocuments(agreement.data.state);
+
+  const existentDocument = agreement.data.consumerDocuments.find(
+    (d) => d.id === payload.id
+  );
+
+  if (existentDocument) {
+    throw agreementDocumentAlreadyExists(agreementId);
+  }
+
+  return toCreateEventAgreementConsumerDocumentAdded(
+    agreementId,
+    apiAgreementDocumentToAgreementDocument(payload),
+    agreement.metadata.version
+  );
 }

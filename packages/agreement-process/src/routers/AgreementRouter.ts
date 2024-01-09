@@ -23,6 +23,7 @@ import { readModelServiceBuilder } from "../services/readmodel/readModelService.
 import { agreementNotFound, makeApiProblem } from "../model/domain/errors.js";
 import {
   cloneAgreementErrorMapper,
+  addConsumerDocumentErrorMapper,
   createAgreementErrorMapper,
   deleteAgreementErrorMapper,
   submitAgreementErrorMapper,
@@ -94,8 +95,20 @@ const agreementRouter = (
 
   agreementRouter.post(
     "/agreements/:agreementId/consumer-documents",
-    async (_req, res) => {
-      res.status(501).send();
+    authorizationMiddleware([ADMIN_ROLE]),
+    async (req, res) => {
+      try {
+        const id = await agreementService.addConsumerDocument(
+          req.params.agreementId,
+          req.body,
+          req.ctx.authData
+        );
+
+        return res.status(200).json({ id }).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, addConsumerDocumentErrorMapper);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
     }
   );
 
