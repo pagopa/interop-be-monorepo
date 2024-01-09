@@ -1,11 +1,12 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
-import { makeApiProblem } from "pagopa-interop-models";
 import {
   ExpressContext,
   userRoles,
   ZodiosContext,
   authorizationMiddleware,
+  ReadModelRepository,
+  initDB,
 } from "pagopa-interop-commons";
 import {
   agreementStateToApiAgreementState,
@@ -15,12 +16,46 @@ import {
   eServiceToApiEService,
 } from "../model/domain/apiConverter.js";
 import { api } from "../model/generated/api.js";
-import { catalogService } from "../services/catalogService.js";
-import { readModelService } from "../services/readModelService.js";
+import { config } from "../utilities/config.js";
+import { readModelServiceBuilder } from "../services/readModelService.js";
+import { catalogServiceBuilder } from "../services/catalogService.js";
 import {
+  makeApiProblem,
   eServiceNotFound,
   eServiceDocumentNotFound,
 } from "../model/domain/errors.js";
+import {
+  activateDescriptorErrorMapper,
+  archiveDescriptorErrorMapper,
+  cloneEServiceByDescriptorErrorMapper,
+  createDescriptorErrorMapper,
+  createEServiceErrorMapper,
+  deleteDraftDescriptorErrorMapper,
+  deleteEServiceErrorMapper,
+  documentCreateErrorMapper,
+  documentUpdateDeleteErrorMapper,
+  publishDescriptorErrorMapper,
+  suspendDescriptorErrorMapper,
+  updateDescriptorErrorMapper,
+  updateEServiceErrorMapper,
+} from "../utilities/errorMappers.js";
+
+const readModelService = readModelServiceBuilder(
+  ReadModelRepository.init(config)
+);
+
+const catalogService = catalogServiceBuilder(
+  initDB({
+    username: config.eventStoreDbUsername,
+    password: config.eventStoreDbPassword,
+    host: config.eventStoreDbHost,
+    port: config.eventStoreDbPort,
+    database: config.eventStoreDbName,
+    schema: config.eventStoreDbSchema,
+    useSSL: config.eventStoreDbUseSSL,
+  }),
+  readModelService
+);
 
 const eservicesRouter = (
   ctx: ZodiosContext
@@ -94,7 +129,7 @@ const eservicesRouter = (
           );
           return res.status(201).json({ id }).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error);
+          const errorRes = makeApiProblem(error, createEServiceErrorMapper);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -122,11 +157,16 @@ const eservicesRouter = (
           } else {
             return res
               .status(404)
-              .json(makeApiProblem(eServiceNotFound(req.params.eServiceId)))
+              .json(
+                makeApiProblem(
+                  eServiceNotFound(req.params.eServiceId),
+                  () => 404
+                )
+              )
               .end();
           }
         } catch (error) {
-          const errorRes = makeApiProblem(error);
+          const errorRes = makeApiProblem(error, () => 500);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -143,7 +183,7 @@ const eservicesRouter = (
           );
           return res.status(200).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error);
+          const errorRes = makeApiProblem(error, updateEServiceErrorMapper);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -159,7 +199,7 @@ const eservicesRouter = (
           );
           return res.status(204).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error);
+          const errorRes = makeApiProblem(error, deleteEServiceErrorMapper);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -203,7 +243,7 @@ const eservicesRouter = (
             })
             .end();
         } catch (error) {
-          const errorRes = makeApiProblem(error);
+          const errorRes = makeApiProblem(error, () => 500);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -237,13 +277,18 @@ const eservicesRouter = (
               .status(404)
               .json(
                 makeApiProblem(
-                  eServiceDocumentNotFound(eServiceId, descriptorId, documentId)
+                  eServiceDocumentNotFound(
+                    eServiceId,
+                    descriptorId,
+                    documentId
+                  ),
+                  () => 404
                 )
               )
               .end();
           }
         } catch (error) {
-          const errorRes = makeApiProblem(error);
+          const errorRes = makeApiProblem(error, () => 500);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -261,7 +306,7 @@ const eservicesRouter = (
           );
           return res.status(200).json({ id }).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error);
+          const errorRes = makeApiProblem(error, documentCreateErrorMapper);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -279,7 +324,10 @@ const eservicesRouter = (
           );
           return res.status(204).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error);
+          const errorRes = makeApiProblem(
+            error,
+            documentUpdateDeleteErrorMapper
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -298,7 +346,10 @@ const eservicesRouter = (
           );
           return res.status(200).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error);
+          const errorRes = makeApiProblem(
+            error,
+            documentUpdateDeleteErrorMapper
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -315,7 +366,7 @@ const eservicesRouter = (
           );
           return res.status(200).json({ id }).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error);
+          const errorRes = makeApiProblem(error, createDescriptorErrorMapper);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -332,7 +383,10 @@ const eservicesRouter = (
           );
           return res.status(204).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error);
+          const errorRes = makeApiProblem(
+            error,
+            deleteDraftDescriptorErrorMapper
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -350,7 +404,7 @@ const eservicesRouter = (
           );
           return res.status(200).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error);
+          const errorRes = makeApiProblem(error, updateDescriptorErrorMapper);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -367,7 +421,7 @@ const eservicesRouter = (
           );
           return res.status(204).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error);
+          const errorRes = makeApiProblem(error, publishDescriptorErrorMapper);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -384,7 +438,7 @@ const eservicesRouter = (
           );
           return res.status(204).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error);
+          const errorRes = makeApiProblem(error, suspendDescriptorErrorMapper);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -401,7 +455,7 @@ const eservicesRouter = (
           );
           return res.status(204).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error);
+          const errorRes = makeApiProblem(error, activateDescriptorErrorMapper);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -419,7 +473,10 @@ const eservicesRouter = (
             );
           return res.status(200).json(clonedEserviceByDescriptor).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error);
+          const errorRes = makeApiProblem(
+            error,
+            cloneEServiceByDescriptorErrorMapper
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -436,7 +493,7 @@ const eservicesRouter = (
           );
           return res.status(204).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error);
+          const errorRes = makeApiProblem(error, archiveDescriptorErrorMapper);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }

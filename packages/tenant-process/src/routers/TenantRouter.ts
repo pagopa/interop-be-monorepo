@@ -6,9 +6,24 @@ import {
   ZodiosContext,
   authorizationMiddleware,
 } from "pagopa-interop-commons";
-import { makeApiProblem } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
 import { tenantService } from "../services/tenantService.js";
+import { toApiTenant } from "../model/domain/apiConverter.js";
+import {
+  makeApiProblem,
+  tenantBySelfcateIdNotFound,
+  tenantNotFound,
+} from "../model/domain/errors.js";
+import {
+  getTenantByExternalIdErrorMapper,
+  getTenantByIdErrorMapper,
+  getTenantBySelfcareIdErrorMapper,
+  selfcareUpsertTenantErrorMapper,
+} from "../utilities/errorMappers.js";
+import { readModelServiceBuilder } from "../services/readModelService.js";
+import { config } from "../utilities/config.js";
+
+const readModelService = readModelServiceBuilder(config);
 
 const tenantsRouter = (
   ctx: ZodiosContext
@@ -51,8 +66,25 @@ const tenantsRouter = (
         SECURITY_ROLE,
         SUPPORT_ROLE,
       ]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const { name, offset, limit } = req.query;
+          const tenants = await readModelService.getTenants({
+            name,
+            offset,
+            limit,
+          });
+
+          return res.status(200).json({
+            results: tenants.results.map(toApiTenant),
+            totalCount: tenants.totalCount,
+          });
+        } catch (error) {
+          return res.status(500).end();
+        }
+      }
     )
+
     .get(
       "/tenants/:id",
       authorizationMiddleware([
@@ -62,7 +94,28 @@ const tenantsRouter = (
         SECURITY_ROLE,
         SUPPORT_ROLE,
       ]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const tenant = await readModelService.getTenantById(req.params.id);
+
+          if (tenant) {
+            return res.status(200).json(toApiTenant(tenant.data)).end();
+          } else {
+            return res
+              .status(404)
+              .json(
+                makeApiProblem(
+                  tenantNotFound(req.params.id),
+                  getTenantByIdErrorMapper
+                )
+              )
+              .end();
+          }
+        } catch (error) {
+          const errorRes = makeApiProblem(error, getTenantByIdErrorMapper);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get(
       "/tenants/origin/:origin/code/:code",
@@ -73,8 +126,33 @@ const tenantsRouter = (
         SECURITY_ROLE,
         SUPPORT_ROLE,
       ]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const { origin, code } = req.params;
+
+          const tenant = await readModelService.getTenantByExternalId({
+            value: code,
+            origin,
+          });
+          if (tenant) {
+            return res.status(200).json(toApiTenant(tenant.data)).end();
+          } else {
+            return res
+              .status(404)
+              .json(
+                makeApiProblem(
+                  tenantNotFound(`${origin}/${code}`),
+                  getTenantByExternalIdErrorMapper
+                )
+              )
+              .end();
+          }
+        } catch (error) {
+          return res.status(500).end();
+        }
+      }
     )
+
     .get(
       "/tenants/selfcare/:selfcareId",
       authorizationMiddleware([
@@ -85,7 +163,33 @@ const tenantsRouter = (
         INTERNAL_ROLE,
         SUPPORT_ROLE,
       ]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const tenant = await readModelService.getTenantBySelfcareId(
+            req.params.selfcareId
+          );
+
+          if (tenant) {
+            return res.status(200).json(toApiTenant(tenant.data)).end();
+          } else {
+            return res
+              .status(404)
+              .json(
+                makeApiProblem(
+                  tenantBySelfcateIdNotFound(req.params.selfcareId),
+                  getTenantBySelfcareIdErrorMapper
+                )
+              )
+              .end();
+          }
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getTenantBySelfcareIdErrorMapper
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/internal/tenants",
@@ -123,7 +227,10 @@ const tenantsRouter = (
           });
           return res.status(200).json({ id }).send();
         } catch (error) {
-          const errorRes = makeApiProblem(error);
+          const errorRes = makeApiProblem(
+            error,
+            selfcareUpsertTenantErrorMapper
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
