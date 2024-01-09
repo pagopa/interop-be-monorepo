@@ -81,23 +81,6 @@ export function tenantServiceBuilder(
       );
     },
 
-    async updateTenantAttribute(
-      tenantId: string,
-      attributeId: string,
-      newAttribute: TenantAttribute
-    ): Promise<string> {
-      const tenant = await readModelService.getTenantById(tenantId);
-
-      return await repository.createEvent(
-        await updateTenantAttributeLogic({
-          tenant,
-          tenantId,
-          attributeId,
-          newAttribute,
-        })
-      );
-    },
-
     async updateTenantMails({
       tenantId,
       mailsSeed,
@@ -127,41 +110,6 @@ export function tenantServiceBuilder(
       );
     },
   };
-}
-
-export async function updateTenantAttributeLogic({
-  tenant,
-  tenantId,
-  attributeId,
-  newAttribute,
-}: {
-  tenant: WithMetadata<Tenant> | undefined;
-  tenantId: string;
-  attributeId: string;
-  newAttribute: TenantAttribute;
-}): Promise<CreateEvent<TenantEvent>> {
-  assertTenantExists(tenantId, tenant);
-  if (!newAttribute || newAttribute.id !== attributeId) {
-    throw invalidAttributeStructure;
-  }
-  assertAttributeExists(attributeId, tenant.data.attributes);
-
-  const updatedAttributes = [
-    newAttribute,
-    ...tenant.data.attributes.filter((a) => a.id !== newAttribute.id),
-  ];
-
-  const updatedTenant: Tenant = {
-    ...tenant.data,
-    attributes: updatedAttributes,
-    updatedAt: new Date(),
-  };
-
-  return toCreateEventTenantUpdated(
-    tenant.data.id,
-    tenant.metadata.version,
-    updatedTenant
-  );
 }
 
 export async function updateTenantLogic({
