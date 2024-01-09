@@ -22,10 +22,12 @@ import { attributeQueryBuilder } from "../services/readmodel/attributeQuery.js";
 import { readModelServiceBuilder } from "../services/readmodel/readModelService.js";
 import { agreementNotFound, makeApiProblem } from "../model/domain/errors.js";
 import {
+  cloneAgreementErrorMapper,
   createAgreementErrorMapper,
   deleteAgreementErrorMapper,
   submitAgreementErrorMapper,
   updateAgreementErrorMapper,
+  upgradeAgreementErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -186,13 +188,65 @@ const agreementRouter = (
     }
   );
 
-  agreementRouter.get("/producers", async (_req, res) => {
-    res.status(501).send();
-  });
+  agreementRouter.get(
+    "/producers",
+    authorizationMiddleware([
+      ADMIN_ROLE,
+      API_ROLE,
+      SECURITY_ROLE,
+      SUPPORT_ROLE,
+    ]),
+    async (req, res) => {
+      try {
+        const producers = await agreementService.getAgreementProducers(
+          req.query.producerName,
+          req.query.limit,
+          req.query.offset
+        );
 
-  agreementRouter.get("/consumers", async (_req, res) => {
-    res.status(501).send();
-  });
+        return res
+          .status(200)
+          .json({
+            results: producers.results,
+            totalCount: producers.totalCount,
+          })
+          .end();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, () => 500);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    }
+  );
+
+  agreementRouter.get(
+    "/consumers",
+    authorizationMiddleware([
+      ADMIN_ROLE,
+      API_ROLE,
+      SECURITY_ROLE,
+      SUPPORT_ROLE,
+    ]),
+    async (req, res) => {
+      try {
+        const consumers = await agreementService.getAgreementConsumers(
+          req.query.consumerName,
+          req.query.limit,
+          req.query.offset
+        );
+
+        return res
+          .status(200)
+          .json({
+            results: consumers.results,
+            totalCount: consumers.totalCount,
+          })
+          .end();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, () => 500);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    }
+  );
 
   agreementRouter.get(
     "/agreements/:agreementId",
@@ -270,14 +324,39 @@ const agreementRouter = (
 
   agreementRouter.post(
     "/agreements/:agreementId/upgrade",
-    async (_req, res) => {
-      res.status(501).send();
+    authorizationMiddleware([ADMIN_ROLE]),
+    async (req, res) => {
+      try {
+        const id = await agreementService.upgradeAgreement(
+          req.params.agreementId,
+          req.ctx.authData
+        );
+
+        return res.status(200).json({ id }).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, upgradeAgreementErrorMapper);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
     }
   );
 
-  agreementRouter.post("/agreements/:agreementId/clone", async (_req, res) => {
-    res.status(501).send();
-  });
+  agreementRouter.post(
+    "/agreements/:agreementId/clone",
+    authorizationMiddleware([ADMIN_ROLE]),
+    async (req, res) => {
+      try {
+        const id = await agreementService.cloneAgreement(
+          req.params.agreementId,
+          req.ctx.authData
+        );
+
+        return res.status(200).json({ id }).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, cloneAgreementErrorMapper);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    }
+  );
 
   agreementRouter.post("/compute/agreementsState", async (_req, res) => {
     res.status(501).send();

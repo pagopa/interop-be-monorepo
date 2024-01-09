@@ -1,24 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: interop-be-catalog-process-refactor
+  name: interop-be-agreement-process-refactor
   namespace: dev-refactor
   labels:
-    app: interop-be-catalog-process-refactor
+    app: interop-be-agreement-process-refactor
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: interop-be-catalog-process-refactor
+      app: interop-be-agreement-process-refactor
   template:
     metadata:
       labels:
-        app: interop-be-catalog-process-refactor
+        app: interop-be-agreement-process-refactor
     spec:
-      serviceAccountName: interop-be-catalog-process-refactor
+      serviceAccountName: interop-be-agreement-process-refactor
       containers:
-        - name: interop-be-catalog-process-refactor
-          image: ghcr.io/pagopa/catalog-process@$IMAGE_DIGEST
+        - name: interop-be-agreement-process-refactor
+          image: ghcr.io/pagopa/agreement-process@$IMAGE_DIGEST
           imagePullPolicy: Always
           ports:
             - name: http
@@ -53,7 +53,7 @@ spec:
             - name: MOCK_FILE_MANAGER
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-catalog-process-refactor
+                  name: interop-be-agreement-process-refactor
                   key: MOCK_FILE_MANAGER
             - name: EVENTSTORE_DB_HOST
               valueFrom:
@@ -83,12 +83,12 @@ spec:
             - name: EVENTSTORE_DB_SCHEMA
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-catalog-process-refactor
+                  name: interop-be-agreement-process-refactor
                   key: EVENTSTORE_DB_SCHEMA
             - name: EVENTSTORE_DB_USE_SSL
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-catalog-process-refactor
+                  name: interop-be-agreement-process-refactor
                   key: EVENTSTORE_DB_USE_SSL
             - name: READMODEL_DB_HOST
               valueFrom:
@@ -125,13 +125,13 @@ spec:
                 secretKeyRef:
                   name: read-model
                   key: REFACTOR_USER_PASSWORD
+            - name: CONSUMER_DOCUMENTS_PATH
+              valueFrom:
+                configMapKeyRef:
+                  name: interop-be-agreement-process-refactor
+                  key: CONSUMER_DOCUMENTS_PATH
             - name: STORAGE_CONTAINER
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-catalog-process-refactor
+                  name: interop-be-agreement-process-refactor
                   key: STORAGE_CONTAINER
-            - name: ESERVICE_DOCUMENTS_PATH
-              valueFrom:
-                configMapKeyRef:
-                  name: interop-be-catalog-process-refactor
-                  key: ESERVICE_DOCUMENTS_PATH

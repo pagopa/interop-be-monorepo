@@ -52,5 +52,34 @@ export const submitAgreementErrorMapper = (
     )
     .with("agreementNotFound", () => 404)
     .with("operationNotAllowed", () => 403)
+    .with("agreementAlreadyExists", "contractAlreadyExists", () => 409)
+    .otherwise(() => 500);
+
+export const upgradeAgreementErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("agreementNotFound", () => 404)
+    .with(
+      "agreementNotInExpectedState",
+      "publishedDescriptorNotFound",
+      "noNewerDescriptor",
+      () => 400
+    )
+    .with("operationNotAllowed", () => 403)
+    .otherwise(() => 500);
+
+export const cloneAgreementErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("agreementNotFound", () => 404)
+    .with(
+      "agreementNotInExpectedState",
+      "missingCertifiedAttributesError",
+      "eServiceNotFound",
+      () => 400
+    )
     .with("agreementAlreadyExists", () => 409)
+    .with("operationNotAllowed", () => 403)
     .otherwise(() => 500);
