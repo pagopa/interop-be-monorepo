@@ -1,8 +1,6 @@
 import { AuthData, userRoles } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
 import {
-  AgreementState,
-  ApiError,
   Attribute,
   ExternalId,
   Tenant,
@@ -12,11 +10,7 @@ import {
   operationForbidden,
   tenantKind,
 } from "pagopa-interop-models";
-import {
-  attributeNotFound,
-  eServiceNotFound,
-  tenantNotFound,
-} from "../model/domain/errors.js";
+import { tenantNotFound } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
 export function assertTenantExists(
@@ -25,15 +19,6 @@ export function assertTenantExists(
 ): asserts tenant is NonNullable<WithMetadata<Tenant>> {
   if (tenant === undefined) {
     throw tenantNotFound(tenantId);
-  }
-}
-
-export function assertAttributeExists(
-  attributeId: string,
-  attributes: TenantAttribute[]
-): asserts attributes is NonNullable<TenantAttribute[]> {
-  if (!attributes.some((attr) => attr.id === attributeId)) {
-    throw attributeNotFound(attributeId);
   }
 }
 
@@ -60,47 +45,6 @@ export function getTenantKind(
     )
     .with(PUBLIC_ADMINISTRATIONS_IDENTIFIER, () => tenantKind.PA)
     .otherwise(() => tenantKind.PRIVATE);
-}
-
-// eslint-disable-next-line max-params
-export async function assertVerifiedAttributeOperationAllowed(
-  readModelService: ReadModelService,
-  producerId: string,
-  consumerId: string,
-  attributeId: string,
-  states: AgreementState[],
-  error: ApiError
-): Promise<void> {
-  const agreements = await readModelService.getAgreements(
-    producerId,
-    consumerId,
-    states
-  );
-  const descriptorIds = agreements.map((agreement) => agreement.descriptorId);
-  const eServices = await Promise.all(
-    agreements.map(
-      (agreement) =>
-        readModelService.getEServiceById(agreement.eserviceId) ??
-        Promise.reject(eServiceNotFound(agreement.eserviceId))
-    )
-  );
-
-  const attributeIds = new Set<string>(
-    eServices.flatMap((eService) =>
-      eService
-        ? eService.data.descriptors
-            .filter((descriptor) => descriptorIds.includes(descriptor.id))
-            .flatMap((descriptor) => descriptor.attributes.verified)
-            .flatMap((attributes) =>
-              attributes.map((attribute) => attribute.id)
-            )
-        : []
-    )
-  );
-
-  if (!attributeIds.has(attributeId)) {
-    throw error;
-  }
 }
 
 async function assertRequesterAllowed(

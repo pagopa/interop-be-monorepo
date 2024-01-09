@@ -71,17 +71,18 @@ export type CertifiedTenantAttribute = z.infer<typeof CertifiedTenantAttribute>;
 
 export const VerifiedTenantAttribute = z.object({
   assignmentTimestamp: z.coerce.date(),
-  id: z.string().uuid(),
   type: z.literal(tenantAttributeType.VERIFIED),
+  id: z.string().uuid(),
   verifiedBy: z.array(TenantVerifier),
   revokedBy: z.array(TenantRevoker),
 });
 export type VerifiedTenantAttribute = z.infer<typeof VerifiedTenantAttribute>;
 
 export const DeclaredTenantAttribute = z.object({
-  assignmentTimestamp: z.coerce.date(),
-  id: z.string().uuid(),
   type: z.literal(tenantAttributeType.DECLARED),
+  id: z.string().uuid(),
+  assignmentTimestamp: z.date(),
+  revocationTimestamp: z.date().optional(),
 });
 export type DeclaredTenantAttribute = z.infer<typeof DeclaredTenantAttribute>;
 
