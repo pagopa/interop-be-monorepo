@@ -10,6 +10,7 @@ import {
 } from "pagopa-interop-commons";
 import { api } from "../model/generated/api.js";
 import {
+  agreementDocumentToApiAgreementDocument,
   agreementToApiAgreement,
   apiAgreementStateToAgreementState,
 } from "../model/domain/apiConverter.js";
@@ -26,6 +27,7 @@ import {
   addConsumerDocumentErrorMapper,
   createAgreementErrorMapper,
   deleteAgreementErrorMapper,
+  getConsumerDocumentErrorMapper,
   submitAgreementErrorMapper,
   updateAgreementErrorMapper,
   upgradeAgreementErrorMapper,
@@ -114,8 +116,22 @@ const agreementRouter = (
 
   agreementRouter.get(
     "/agreements/:agreementId/consumer-documents/:documentId",
-    async (_req, res) => {
-      res.status(501).send();
+    authorizationMiddleware([ADMIN_ROLE, SUPPORT_ROLE]),
+    async (req, res) => {
+      try {
+        const document = await agreementService.getAgreementConsumerDocument(
+          req.params.agreementId,
+          req.params.documentId,
+          req.ctx.authData
+        );
+        return res
+          .status(200)
+          .json(agreementDocumentToApiAgreementDocument(document))
+          .send();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, getConsumerDocumentErrorMapper);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
     }
   );
 

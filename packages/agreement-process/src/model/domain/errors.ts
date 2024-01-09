@@ -138,6 +138,17 @@ export function agreementDocumentAlreadyExists(
   });
 }
 
+export function agreementDocumentNotFound(
+  documentId: string,
+  agreementId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Document ${documentId} in agreement ${agreementId} not found`,
+    code: "documentNotFound",
+    title: "Document not found",
+  });
+}
+
 export function agreementNotInExpectedState(
   agreementId: string,
   state: string
