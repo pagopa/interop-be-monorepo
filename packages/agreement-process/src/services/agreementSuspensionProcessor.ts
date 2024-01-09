@@ -6,7 +6,6 @@ import {
   agreementState,
   agreementSuspendableStates,
 } from "pagopa-interop-models";
-import { utcToZonedTime } from "date-fns-tz";
 import {
   assertAgreementExist,
   assertEServiceExist,
@@ -131,8 +130,7 @@ export async function suspendAgreementLogic({
       suspensionByConsumer: suspensionByConsumerStamp,
       suspensionByProducer: suspensionByProducerStamp,
     },
-    suspendedAt:
-      agreement.data.suspendedAt ?? utcToZonedTime(new Date(), "Etc/UTC"),
+    suspendedAt: agreement.data.suspendedAt ?? new Date(),
   };
 
   const updatedAgreement: Agreement = {
