@@ -208,7 +208,7 @@ const tenantsRouter = (
           });
           return res.status(200).json({ id }).send();
         } catch (error) {
-          const errorRes = makeApiProblem(error);
+          const errorRes = makeApiProblem(error, () => 500);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
