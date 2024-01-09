@@ -201,7 +201,7 @@ const tenantsRouter = (
       authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
         try {
-          const id = await tenantService.updateTenantMails({
+          const id = await tenantService.updateTenant({
             tenantId: req.params.id,
             mailsSeed: req.body,
             authData: req.ctx.authData,
