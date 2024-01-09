@@ -32,6 +32,7 @@ import {
   suspendAgreementErrorMapper,
   updateAgreementErrorMapper,
   upgradeAgreementErrorMapper,
+  removeConsumerDocumentErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -138,8 +139,21 @@ const agreementRouter = (
 
   agreementRouter.delete(
     "/agreements/:agreementId/consumer-documents/:documentId",
-    async (_req, res) => {
-      res.status(501).send();
+    authorizationMiddleware([ADMIN_ROLE]),
+    async (req, res) => {
+      try {
+        await agreementService.removeAgreementConsumerDocument(
+          req.params.agreementId,
+          req.params.documentId,
+          req.ctx.authData
+        );
+        return res.status(204).send();
+      }
+      catch (error) {
+        const errorRes = makeApiProblem(error, removeConsumerDocumentErrorMapper);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+
     }
   );
 
