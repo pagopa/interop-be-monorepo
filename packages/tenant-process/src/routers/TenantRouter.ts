@@ -7,7 +7,6 @@ import {
   authorizationMiddleware,
 } from "pagopa-interop-commons";
 import { api } from "../model/generated/api.js";
-import { tenantService } from "../services/tenantService.js";
 import { toApiTenant } from "../model/domain/apiConverter.js";
 import {
   makeApiProblem,
@@ -22,8 +21,10 @@ import {
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../utilities/config.js";
+import { tenantServiceBuilder } from "../services/tenantService.js";
 
 const readModelService = readModelServiceBuilder(config);
+const tenantService = tenantServiceBuilder(config, readModelService);
 
 const tenantsRouter = (
   ctx: ZodiosContext
