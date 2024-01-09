@@ -1,4 +1,3 @@
-import { utcToZonedTime } from "date-fns-tz";
 import { AuthData } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -11,7 +10,7 @@ import { P, match } from "ts-pattern";
 
 export const createStamp = (authData: AuthData): AgreementStamp => ({
   who: authData.userId,
-  when: utcToZonedTime(new Date(), "Etc/UTC"),
+  when: new Date(),
 });
 
 export const suspendedByConsumerStamp = (
