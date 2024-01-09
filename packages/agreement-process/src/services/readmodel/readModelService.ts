@@ -24,7 +24,8 @@ import {
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { z } from "zod";
-import { Filter } from "mongodb";
+import { Document, Filter } from "mongodb";
+import { CompactOrganization } from "../../model/domain/models.js";
 
 export type AgreementQueryFilters = {
   producerId?: string | string[];
@@ -117,6 +118,47 @@ const getAgreementsFilters = (
   return { $match: queryFilters };
 };
 
+const getTenantsByNamePipeline = (
+  tenantName: string | undefined,
+  tenantIdField: Extract<AgreementDataFields, "producerId" | "consumerId">
+): Document[] => [
+  {
+    $lookup: {
+      from: "tenants",
+      localField: `data.${tenantIdField}`,
+      foreignField: "data.id",
+      as: "tenants",
+    },
+  },
+  {
+    $unwind: {
+      path: "$tenants",
+      preserveNullAndEmptyArrays: false,
+    },
+  },
+  {
+    $match: {
+      "tenants.data.name": { $regex: new RegExp(tenantName || "", "i") },
+    },
+  },
+  {
+    $group: {
+      _id: `$data.${tenantIdField}`,
+      tenantId: { $first: `$data.${tenantIdField}` },
+      tenantName: { $first: "$tenants.data.name" },
+    },
+  },
+  {
+    $project: {
+      data: { id: "$tenantId", name: "$tenantName" },
+      lowerName: { $toLower: "$tenantName" },
+    },
+  },
+  {
+    $sort: { lowerName: 1 },
+  },
+];
+
 export const getAllAgreements = async (
   agreements: AgreementCollection,
   filters: AgreementQueryFilters
@@ -208,6 +250,44 @@ async function getAttribute(
     };
   }
   return undefined;
+}
+
+async function searchTenantsByName(
+  agreements: AgreementCollection,
+  tenantName: string | undefined,
+  tenantIdField: "producerId" | "consumerId",
+  limit: number,
+  offset: number
+): Promise<ListResult<CompactOrganization>> {
+  const aggregationPipeline = getTenantsByNamePipeline(
+    tenantName,
+    tenantIdField
+  );
+
+  const data = await agreements
+    .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }])
+    .toArray();
+
+  const result = z
+    .array(CompactOrganization)
+    .safeParse(data.map((d) => d.data));
+  if (!result.success) {
+    logger.error(
+      `Unable to parse compact organization items: result ${JSON.stringify(
+        result
+      )} - data ${JSON.stringify(data)} `
+    );
+
+    throw genericError("Unable to parse compact organization items");
+  }
+
+  return {
+    results: result.data,
+    totalCount: await ReadModelRepository.getTotalCount(
+      agreements,
+      aggregationPipeline
+    ),
+  };
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -433,6 +513,20 @@ export function readModelServiceBuilder(
       id: string
     ): Promise<WithMetadata<Attribute> | undefined> {
       return getAttribute(attributes, { "data.id": id });
+    },
+    async listConsumers(
+      name: string | undefined,
+      limit: number,
+      offset: number
+    ): Promise<ListResult<CompactOrganization>> {
+      return searchTenantsByName(agreements, name, "consumerId", limit, offset);
+    },
+    async listProducers(
+      name: string | undefined,
+      limit: number,
+      offset: number
+    ): Promise<ListResult<CompactOrganization>> {
+      return searchTenantsByName(agreements, name, "producerId", limit, offset);
     },
   };
 }
