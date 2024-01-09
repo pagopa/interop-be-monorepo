@@ -23,3 +23,10 @@ export const getTenantBySelfcareIdErrorMapper = (
   match(error.code)
     .with("tenantBySelfcateIdNotFound", () => 404)
     .otherwise(() => 500);
+
+export const selfcareUpsertTenantErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("selfcareIdConflict", () => 500)
+    .otherwise(() => 500);
