@@ -29,6 +29,7 @@ import {
   agreementSubmissionFailed,
   descriptorNotInExpectedState,
   eServiceNotFound,
+  documentsChangeNotAllowed,
   missingCertifiedAttributesError,
   notLatestEServiceDescriptor,
   operationNotAllowed,
@@ -69,6 +70,26 @@ export const assertRequesterIsConsumer = (
   }
 };
 
+export function assertRequesterIsProducer(
+  agreement: Agreement,
+  authData: AuthData
+): void {
+  if (authData.organizationId !== agreement.producerId) {
+    throw operationNotAllowed(authData.organizationId);
+  }
+}
+
+export const assertRequesterIsConsumerOrProducer = (
+  agreement: Agreement,
+  authData: AuthData
+): void => {
+  try {
+    assertRequesterIsConsumer(agreement, authData);
+  } catch (error) {
+    assertRequesterIsProducer(agreement, authData);
+  }
+};
+
 export const assertSubmittableState = (
   state: AgreementState,
   agreementId: string
@@ -96,6 +117,14 @@ export function assertTenantExist(
     throw tenantIdNotFound(tenantId);
   }
 }
+
+export const assertCanWorkOnConsumerDocuments = (
+  state: AgreementState
+): void => {
+  if (state !== agreementState.draft && state !== agreementState.pending) {
+    throw documentsChangeNotAllowed(state);
+  }
+};
 
 /* =========  VALIDATIONS ========= */
 
