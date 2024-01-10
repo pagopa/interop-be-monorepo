@@ -337,6 +337,9 @@ importers:
       '@pagopa/eslint-config':
         specifier: ^3.0.0
         version: 3.0.0(typescript@5.1.3)
+      '@protobuf-ts/runtime':
+        specifier: ^2.9.1
+        version: 2.9.1
       '@testcontainers/postgresql':
         specifier: ^10.2.2
         version: 10.2.2
@@ -2493,7 +2496,6 @@ packages:
 
   /@protobuf-ts/runtime@2.9.1:
     resolution: {integrity: sha512-ZTc8b+pQ6bwxZa3qg9/IO/M/brRkvr0tic9cSGgAsDByfPrtatT2300wTIRLDk8X9WTW1tT+FhyqmcrbMHTeww==}
-    dev: false
 
   /@sinclair/typebox@0.27.8:
     resolution: {integrity: sha512-+Fj43pSMwJs4KRrH/938Uf+uAELIgVBmQzg/q1YG10djyfA3TnrU8N8XzqCh/okZdszqBQTZf96idMfE5lnwTA==}
@@ -3421,8 +3423,8 @@ packages:
       '@types/mime': 3.0.1
       '@types/node': 20.3.1
 
-  /@types/ssh2-streams@0.1.11:
-    resolution: {integrity: sha512-UVM27UaKdWpkO96VfA4A5v0fViRoiO5VzAMiYi+z66tAobfWBA8VbEKCGZpmZRkZpUIr8XnnoHpzsNPFWaEP8w==}
+  /@types/ssh2-streams@0.1.12:
+    resolution: {integrity: sha512-Sy8tpEmCce4Tq0oSOYdfqaBpA3hDM8SoxoFh5vzFsu2oL+znzGz8oVWW7xb4K920yYMUY+PIG31qZnFMfPWNCg==}
     dependencies:
       '@types/node': 20.3.1
     dev: true
@@ -3431,7 +3433,7 @@ packages:
     resolution: {integrity: sha512-lbLLlXxdCZOSJMCInKH2+9V/77ET2J6NPQHpFI0kda61Dd1KglJs+fPQBchizmzYSOJBgdTajhPqBO1xxLywvg==}
     dependencies:
       '@types/node': 20.3.1
-      '@types/ssh2-streams': 0.1.11
+      '@types/ssh2-streams': 0.1.12
     dev: true
 
   /@types/triple-beam@1.3.2:
