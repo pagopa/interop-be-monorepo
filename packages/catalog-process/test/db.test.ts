@@ -55,10 +55,6 @@ import {
   getMockDescriptor,
   getMockEService,
   getMockTenant,
-  writeAgreementInReadmodel,
-  writeEServiceInEventstore,
-  writeEServiceInReadmodel,
-  writeTenantInReadmodel,
   readLastEventByStreamId,
 } from "./utils.js";
 
