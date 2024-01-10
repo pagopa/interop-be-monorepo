@@ -44,7 +44,24 @@ const tenantsRouter = (
         SECURITY_ROLE,
         SUPPORT_ROLE,
       ]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const { name, offset, limit } = req.query;
+          const consumers = await readModelService.getConsumers({
+            name,
+            producerId: req.ctx.authData.organizationId,
+            offset,
+            limit,
+          });
+
+          return res.status(200).json({
+            results: consumers.results.map(toApiTenant),
+            totalCount: consumers.totalCount,
+          });
+        } catch (error) {
+          return res.status(500).send();
+        }
+      }
     )
     .get(
       "/producers",
@@ -54,7 +71,23 @@ const tenantsRouter = (
         SECURITY_ROLE,
         SUPPORT_ROLE,
       ]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const { name, offset, limit } = req.query;
+          const producers = await readModelService.getProducers({
+            name,
+            offset,
+            limit,
+          });
+
+          return res.status(200).json({
+            results: producers.results.map(toApiTenant),
+            totalCount: producers.totalCount,
+          });
+        } catch (error) {
+          return res.status(500).send();
+        }
+      }
     )
     .get(
       "/tenants",
@@ -67,7 +100,7 @@ const tenantsRouter = (
       async (req, res) => {
         try {
           const { name, offset, limit } = req.query;
-          const tenants = await readModelService.getTenants({
+          const tenants = await readModelService.getTenantsByName({
             name,
             offset,
             limit,

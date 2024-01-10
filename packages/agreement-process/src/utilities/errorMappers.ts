@@ -1,9 +1,17 @@
 /* eslint-disable sonarjs/no-identical-functions */
+import { constants } from "http2";
 import { ApiError, CommonErrorCodes } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { ErrorCodes as LocalErrorCodes } from "../model/domain/errors.js";
-
 type ErrorCodes = LocalErrorCodes | CommonErrorCodes;
+
+const {
+  HTTP_STATUS_INTERNAL_SERVER_ERROR,
+  HTTP_STATUS_BAD_REQUEST,
+  HTTP_STATUS_FORBIDDEN,
+  HTTP_STATUS_NOT_FOUND,
+  HTTP_STATUS_CONFLICT,
+} = constants;
 
 export const createAgreementErrorMapper = (
   error: ApiError<ErrorCodes>
@@ -14,28 +22,28 @@ export const createAgreementErrorMapper = (
       "descriptorNotInExpectedState",
       "missingCertifiedAttributesError",
       "eServiceNotFound",
-      () => 400
+      () => HTTP_STATUS_BAD_REQUEST
     )
-    .with("agreementAlreadyExists", () => 409)
-    .otherwise(() => 500);
+    .with("agreementAlreadyExists", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const deleteAgreementErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("agreementNotFound", () => 404)
-    .with("agreementNotInExpectedState", () => 400)
-    .with("operationNotAllowed", () => 403)
-    .otherwise(() => 500);
+    .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("agreementNotInExpectedState", () => HTTP_STATUS_BAD_REQUEST)
+    .with("operationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const updateAgreementErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("agreementNotFound", () => 404)
-    .with("agreementNotInExpectedState", () => 400)
-    .with("operationNotAllowed", () => 403)
-    .otherwise(() => 500);
+    .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("agreementNotInExpectedState", () => HTTP_STATUS_BAD_REQUEST)
+    .with("operationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const submitAgreementErrorMapper = (
   error: ApiError<ErrorCodes>
@@ -48,9 +56,62 @@ export const submitAgreementErrorMapper = (
       "agreementSubmissionFailed",
       "missingCertifiedAttributesError",
       "descriptorNotInExpectedState",
-      () => 400
+      () => HTTP_STATUS_BAD_REQUEST
     )
-    .with("agreementNotFound", () => 404)
-    .with("operationNotAllowed", () => 403)
-    .with("agreementAlreadyExists", () => 409)
-    .otherwise(() => 500);
+    .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("operationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "agreementAlreadyExists",
+      "contractAlreadyExists",
+      () => HTTP_STATUS_CONFLICT
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const addConsumerDocumentErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "operationNotAllowed",
+      "documentsChangeNotAllowed",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with("agreementDocumentAlreadyExists", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const upgradeAgreementErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "agreementNotInExpectedState",
+      "publishedDescriptorNotFound",
+      "noNewerDescriptor",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with("operationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const cloneAgreementErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "agreementNotInExpectedState",
+      "missingCertifiedAttributesError",
+      "eServiceNotFound",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with("agreementAlreadyExists", () => HTTP_STATUS_CONFLICT)
+    .with("operationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getConsumerDocumentErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("documentNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
