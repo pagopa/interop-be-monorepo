@@ -154,7 +154,7 @@ describe("database test", async () => {
         expect(writtenPayload.eService).toEqual(toEServiceV1(eService));
       });
 
-      it("should throw eServiceDuplicate if the eService already exists", async () => {
+      it("should throw eServiceDuplicate if an eService with the same name already exists", async () => {
         await addOneEService(mockEService);
         expect(
           catalogService.createEService(
@@ -214,7 +214,7 @@ describe("database test", async () => {
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
 
-      it("should throw operationForbidden if the requester is not allowed", async () => {
+      it("should throw operationForbidden if the requester is not the producer", async () => {
         await addOneEService(mockEService);
 
         expect(
@@ -230,7 +230,7 @@ describe("database test", async () => {
         ).rejects.toThrowError(operationForbidden);
       });
 
-      it("should throw eServiceCannotBeUpdated if the eService's descriptor is not in draft state", async () => {
+      it("should throw eServiceCannotBeUpdated if the eService descriptor is not in draft state", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.published,
@@ -281,7 +281,7 @@ describe("database test", async () => {
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
 
-      it("should throw operationForbidden if the requester is not allowed", async () => {
+      it("should throw operationForbidden if the requester is not the producer", async () => {
         await addOneEService(mockEService);
         expect(
           catalogService.deleteEService(mockEService.id, getMockAuthData())
@@ -369,7 +369,7 @@ describe("database test", async () => {
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
 
-      it("should throw operationForbidden if the requester is not allowed", async () => {
+      it("should throw operationForbidden if the requester is not the producer", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.published,
@@ -447,7 +447,7 @@ describe("database test", async () => {
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
 
-      it("should throw operationForbidden if the requester is not allowed", async () => {
+      it("should throw operationForbidden if the requester is not the producer", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
@@ -513,7 +513,7 @@ describe("database test", async () => {
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
 
-      it("should throw operationForbidden if the requester is not allowed", async () => {
+      it("should throw operationForbidden if the requester is not the producer", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
@@ -591,7 +591,7 @@ describe("database test", async () => {
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
 
-      it("should throw operationForbidden if the requester is not allowed", async () => {
+      it("should throw operationForbidden if the requester is not the producer", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
@@ -704,7 +704,7 @@ describe("database test", async () => {
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
 
-      it("should throw operationForbidden if the requester is not allowed", async () => {
+      it("should throw operationForbidden if the requester is not the producer", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.published,
@@ -791,7 +791,7 @@ describe("database test", async () => {
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
 
-      it("should throw operationForbidden if the requester is not allowed", async () => {
+      it("should throw operationForbidden if the requester is not the producer", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.suspended,
@@ -888,7 +888,7 @@ describe("database test", async () => {
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
 
-      it("should throw operationForbidden if the requester is not allowed", async () => {
+      it("should throw operationForbidden if the requester is not the producer", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.suspended,
