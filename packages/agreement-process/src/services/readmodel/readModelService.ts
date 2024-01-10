@@ -548,8 +548,10 @@ export function readModelServiceBuilder(
           },
         },
         {
-          $unwind: "$eservices",
-          preserveNullAndEmptyArrays: false,
+          $unwind: {
+            path: "$eservices",
+            preserveNullAndEmptyArrays: false,
+          },
         },
         {
           $match: {
