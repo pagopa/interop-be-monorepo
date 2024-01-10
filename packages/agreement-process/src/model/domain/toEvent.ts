@@ -163,7 +163,7 @@ export function toCreateEventAgreementConsumerDocumentRemoved(
       type: "AgreementConsumerDocumentRemoved",
       data: {
         agreementId,
-        documentId, 
+        documentId,
       },
     },
   };

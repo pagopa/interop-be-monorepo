@@ -148,12 +148,13 @@ const agreementRouter = (
           req.ctx.authData
         );
         return res.status(204).send();
-      }
-      catch (error) {
-        const errorRes = makeApiProblem(error, removeConsumerDocumentErrorMapper);
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          removeConsumerDocumentErrorMapper
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
-
     }
   );
 

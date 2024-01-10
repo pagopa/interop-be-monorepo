@@ -52,10 +52,10 @@ export type AgreementEvent =
   | AgreementConsumerDocumentAdded
   | AgreementConsumerDocumentRemoved
   | {
-    type: "AgreementDeleted";
-    data: AgreementDeletedV1;
-  }
+      type: "AgreementDeleted";
+      data: AgreementDeletedV1;
+    }
   | {
-    type: "AgreementContractAdded";
-    data: AgreementContractAddedV1;
-  };
+      type: "AgreementContractAdded";
+      data: AgreementContractAddedV1;
+    };
