@@ -194,3 +194,35 @@ export function decodeProtobufPayload<I extends object>({
 }): I {
   return messageType.fromBinary(Buffer.from(payload, "hex"));
 }
+
+export const addOneEService = async (
+  eService: EService,
+  postgresDB: IDatabase<unknown>,
+  eservices: EServiceCollection
+): Promise<void> => {
+  await writeEServiceInEventstore(eService, postgresDB);
+  await writeEServiceInReadmodel(eService, eservices);
+};
+
+export const addOneTenant = async (
+  tenant: Tenant,
+  tenants: TenantCollection
+): Promise<void> => {
+  await writeTenantInReadmodel(tenant, tenants);
+};
+
+export const addOneAgreement = async (
+  agreement: Agreement,
+  agreements: AgreementCollection
+): Promise<void> => {
+  await writeAgreementInReadmodel(agreement, agreements);
+};
+
+export const readLastEventByStreamId = async (
+  eServiceId: string,
+  postgresDB: IDatabase<unknown>
+): Promise<any> => // eslint-disable-line @typescript-eslint/no-explicit-any
+  await postgresDB.one(
+    "SELECT * FROM catalog.events WHERE stream_id = $1 ORDER BY sequence_num DESC LIMIT 1",
+    [eServiceId]
+  );
