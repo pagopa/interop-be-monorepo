@@ -10,7 +10,6 @@ import {
 } from "pagopa-interop-commons";
 import { IDatabase } from "pg-promise";
 import {
-  Agreement,
   Descriptor,
   EService,
   EServiceAddedV1,
@@ -19,7 +18,6 @@ import {
   EServiceDescriptorUpdatedV1,
   EServiceUpdatedV1,
   EServiceWithDescriptorsDeletedV1,
-  Tenant,
   descriptorState,
   operationForbidden,
 } from "pagopa-interop-models";
@@ -47,6 +45,9 @@ import {
   notValidDescriptor,
 } from "../src/model/domain/errors.js";
 import {
+  addOneAgreement,
+  addOneEService,
+  addOneTenant,
   buildDescriptorSeed,
   decodeProtobufPayload,
   getMockAgreement,
@@ -58,6 +59,7 @@ import {
   writeEServiceInEventstore,
   writeEServiceInReadmodel,
   writeTenantInReadmodel,
+  readLastEventByStreamId,
 } from "./utils.js";
 
 const mockEService = getMockEService();
@@ -136,7 +138,7 @@ describe("database test", async () => {
         );
 
         expect(id).toBeDefined();
-        const writtenEvent = await readLastEventByStreamId(id);
+        const writtenEvent = await readLastEventByStreamId(id, postgresDB);
         expect(writtenEvent.stream_id).toBe(id);
         expect(writtenEvent.version).toBe("0");
         expect(writtenEvent.type).toBe("EServiceAdded");
@@ -154,8 +156,8 @@ describe("database test", async () => {
         expect(writtenPayload.eService).toEqual(toEServiceV1(eService));
       });
 
-      it("should throw eServiceDuplicate if the eService already exists", async () => {
-        await addOneEService(mockEService);
+      it("should throw eServiceDuplicate if an eService with the same name already exists", async () => {
+        await addOneEService(mockEService, postgresDB, eservices);
         expect(
           catalogService.createEService(
             {
@@ -172,7 +174,7 @@ describe("database test", async () => {
     describe("update eService", () => {
       it("should write on event-store for the update of an eService", async () => {
         const updatedName = "eService new name";
-        await addOneEService(mockEService);
+        await addOneEService(mockEService, postgresDB, eservices);
         await catalogService.updateEService(
           mockEService.id,
           {
@@ -188,7 +190,10 @@ describe("database test", async () => {
           name: updatedName,
         };
 
-        const writtenEvent = await readLastEventByStreamId(mockEService.id);
+        const writtenEvent = await readLastEventByStreamId(
+          mockEService.id,
+          postgresDB
+        );
         expect(writtenEvent.stream_id).toBe(mockEService.id);
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("EServiceUpdated");
@@ -214,8 +219,8 @@ describe("database test", async () => {
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
 
-      it("should throw operationForbidden if the requester is not allowed", async () => {
-        await addOneEService(mockEService);
+      it("should throw operationForbidden if the requester is not the producer", async () => {
+        await addOneEService(mockEService, postgresDB, eservices);
 
         expect(
           catalogService.updateEService(
@@ -230,7 +235,7 @@ describe("database test", async () => {
         ).rejects.toThrowError(operationForbidden);
       });
 
-      it("should throw eServiceCannotBeUpdated if the eService's descriptor is not in draft state", async () => {
+      it("should throw eServiceCannotBeUpdated if the eService descriptor is not in draft state", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.published,
@@ -239,7 +244,7 @@ describe("database test", async () => {
           ...mockEService,
           descriptors: [descriptor],
         };
-        await addOneEService(eService);
+        await addOneEService(eService, postgresDB, eservices);
         expect(
           catalogService.updateEService(
             eService.id,
@@ -256,12 +261,15 @@ describe("database test", async () => {
 
     describe("delete eService", () => {
       it("should write on event-store for the deletion of an eService", async () => {
-        await addOneEService(mockEService);
+        await addOneEService(mockEService, postgresDB, eservices);
         await catalogService.deleteEService(
           mockEService.id,
           getMockAuthData(mockEService.producerId)
         );
-        const writtenEvent = await readLastEventByStreamId(mockEService.id);
+        const writtenEvent = await readLastEventByStreamId(
+          mockEService.id,
+          postgresDB
+        );
         expect(writtenEvent.stream_id).toBe(mockEService.id);
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("EServiceDeleted");
@@ -281,8 +289,8 @@ describe("database test", async () => {
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
 
-      it("should throw operationForbidden if the requester is not allowed", async () => {
-        await addOneEService(mockEService);
+      it("should throw operationForbidden if the requester is not the producer", async () => {
+        await addOneEService(mockEService, postgresDB, eservices);
         expect(
           catalogService.deleteEService(mockEService.id, getMockAuthData())
         ).rejects.toThrowError(operationForbidden);
@@ -297,7 +305,7 @@ describe("database test", async () => {
           ...mockEService,
           descriptors: [descriptor],
         };
-        await addOneEService(eService);
+        await addOneEService(eService, postgresDB, eservices);
         expect(
           catalogService.deleteEService(
             eService.id,
@@ -309,13 +317,16 @@ describe("database test", async () => {
 
     describe("create descriptor", async () => {
       it("should write on event-store for the creation of a descriptor", async () => {
-        await addOneEService(mockEService);
+        await addOneEService(mockEService, postgresDB, eservices);
         await catalogService.createDescriptor(
           mockEService.id,
           buildDescriptorSeed(mockDescriptor),
           getMockAuthData(mockEService.producerId)
         );
-        const writtenEvent = await readLastEventByStreamId(mockEService.id);
+        const writtenEvent = await readLastEventByStreamId(
+          mockEService.id,
+          postgresDB
+        );
         expect(writtenEvent.stream_id).toBe(mockEService.id);
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("EServiceDescriptorAdded");
@@ -349,7 +360,7 @@ describe("database test", async () => {
           descriptors: [descriptor],
         };
 
-        await addOneEService(eService);
+        await addOneEService(eService, postgresDB, eservices);
         expect(
           catalogService.createDescriptor(
             eService.id,
@@ -369,7 +380,7 @@ describe("database test", async () => {
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
 
-      it("should throw operationForbidden if the requester is not allowed", async () => {
+      it("should throw operationForbidden if the requester is not the producer", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.published,
@@ -378,7 +389,7 @@ describe("database test", async () => {
           ...mockEService,
           descriptors: [descriptor],
         };
-        await addOneEService(eService);
+        await addOneEService(eService, postgresDB, eservices);
         expect(
           catalogService.createDescriptor(
             eService.id,
@@ -399,7 +410,7 @@ describe("database test", async () => {
           ...mockEService,
           descriptors: [descriptor],
         };
-        await addOneEService(eService);
+        await addOneEService(eService, postgresDB, eservices);
 
         const updatedDescriptorSeed: EServiceDescriptorSeed = {
           ...buildDescriptorSeed(descriptor),
@@ -421,7 +432,10 @@ describe("database test", async () => {
           updatedDescriptorSeed,
           getMockAuthData(eService.producerId)
         );
-        const writtenEvent = await readLastEventByStreamId(eService.id);
+        const writtenEvent = await readLastEventByStreamId(
+          eService.id,
+          postgresDB
+        );
         expect(writtenEvent.stream_id).toBe(eService.id);
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("EServiceUpdated");
@@ -447,7 +461,7 @@ describe("database test", async () => {
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
 
-      it("should throw operationForbidden if the requester is not allowed", async () => {
+      it("should throw operationForbidden if the requester is not the producer", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
@@ -456,7 +470,7 @@ describe("database test", async () => {
           ...mockEService,
           descriptors: [descriptor],
         };
-        await addOneEService(eService);
+        await addOneEService(eService, postgresDB, eservices);
 
         const updatedDescriptor = {
           ...descriptor,
@@ -483,7 +497,7 @@ describe("database test", async () => {
           ...mockEService,
           descriptors: [descriptor],
         };
-        await addOneEService(eService);
+        await addOneEService(eService, postgresDB, eservices);
 
         await catalogService.deleteDraftDescriptor(
           eService.id,
@@ -491,7 +505,10 @@ describe("database test", async () => {
           getMockAuthData(eService.producerId)
         );
 
-        const writtenEvent = await readLastEventByStreamId(eService.id);
+        const writtenEvent = await readLastEventByStreamId(
+          eService.id,
+          postgresDB
+        );
         expect(writtenEvent.stream_id).toBe(eService.id);
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("EServiceWithDescriptorsDeleted");
@@ -513,7 +530,7 @@ describe("database test", async () => {
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
 
-      it("should throw operationForbidden if the requester is not allowed", async () => {
+      it("should throw operationForbidden if the requester is not the producer", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
@@ -522,7 +539,7 @@ describe("database test", async () => {
           ...mockEService,
           descriptors: [descriptor],
         };
-        await addOneEService(eService);
+        await addOneEService(eService, postgresDB, eservices);
         expect(
           catalogService.deleteDraftDescriptor(
             eService.id,
@@ -552,14 +569,17 @@ describe("database test", async () => {
           ...mockEService,
           descriptors: [descriptor],
         };
-        await addOneEService(eService);
+        await addOneEService(eService, postgresDB, eservices);
         await catalogService.publishDescriptor(
           eService.id,
           descriptor.id,
           getMockAuthData(eService.producerId)
         );
 
-        const writtenEvent = await readLastEventByStreamId(eService.id);
+        const writtenEvent = await readLastEventByStreamId(
+          eService.id,
+          postgresDB
+        );
         expect(writtenEvent.stream_id).toBe(eService.id);
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("EServiceDescriptorUpdated");
@@ -591,7 +611,7 @@ describe("database test", async () => {
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
 
-      it("should throw operationForbidden if the requester is not allowed", async () => {
+      it("should throw operationForbidden if the requester is not the producer", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
@@ -600,7 +620,7 @@ describe("database test", async () => {
           ...mockEService,
           descriptors: [descriptor],
         };
-        await addOneEService(eService);
+        await addOneEService(eService, postgresDB, eservices);
         expect(
           catalogService.publishDescriptor(
             eService.id,
@@ -619,7 +639,7 @@ describe("database test", async () => {
           ...mockEService,
           descriptors: [descriptor],
         };
-        await addOneEService(eService);
+        await addOneEService(eService, postgresDB, eservices);
         expect(
           catalogService.publishDescriptor(
             eService.id,
@@ -640,7 +660,7 @@ describe("database test", async () => {
           ...mockEService,
           descriptors: [descriptor],
         };
-        await addOneEService(eService);
+        await addOneEService(eService, postgresDB, eservices);
 
         expect(
           catalogService.publishDescriptor(
@@ -664,14 +684,17 @@ describe("database test", async () => {
           ...mockEService,
           descriptors: [descriptor],
         };
-        await addOneEService(eService);
+        await addOneEService(eService, postgresDB, eservices);
         await catalogService.suspendDescriptor(
           eService.id,
           descriptor.id,
           getMockAuthData(eService.producerId)
         );
 
-        const writtenEvent = await readLastEventByStreamId(eService.id);
+        const writtenEvent = await readLastEventByStreamId(
+          eService.id,
+          postgresDB
+        );
         expect(writtenEvent.stream_id).toBe(eService.id);
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("EServiceDescriptorUpdated");
@@ -704,7 +727,7 @@ describe("database test", async () => {
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
 
-      it("should throw operationForbidden if the requester is not allowed", async () => {
+      it("should throw operationForbidden if the requester is not the producer", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.published,
@@ -713,7 +736,7 @@ describe("database test", async () => {
           ...mockEService,
           descriptors: [descriptor],
         };
-        await addOneEService(eService);
+        await addOneEService(eService, postgresDB, eservices);
         expect(
           catalogService.suspendDescriptor(
             eService.id,
@@ -732,7 +755,7 @@ describe("database test", async () => {
           ...mockEService,
           descriptors: [descriptor],
         };
-        await addOneEService(eService);
+        await addOneEService(eService, postgresDB, eservices);
         expect(
           catalogService.suspendDescriptor(
             eService.id,
@@ -755,7 +778,7 @@ describe("database test", async () => {
           ...mockEService,
           descriptors: [descriptor],
         };
-        await addOneEService(eService);
+        await addOneEService(eService, postgresDB, eservices);
         await catalogService.activateDescriptor(
           eService.id,
           descriptor.id,
@@ -767,7 +790,10 @@ describe("database test", async () => {
           state: descriptorState.published,
         };
 
-        const writtenEvent = await readLastEventByStreamId(eService.id);
+        const writtenEvent = await readLastEventByStreamId(
+          eService.id,
+          postgresDB
+        );
         expect(writtenEvent.stream_id).toBe(eService.id);
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("EServiceDescriptorUpdated");
@@ -791,7 +817,7 @@ describe("database test", async () => {
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
 
-      it("should throw operationForbidden if the requester is not allowed", async () => {
+      it("should throw operationForbidden if the requester is not the producer", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.suspended,
@@ -800,7 +826,7 @@ describe("database test", async () => {
           ...mockEService,
           descriptors: [descriptor],
         };
-        await addOneEService(eService);
+        await addOneEService(eService, postgresDB, eservices);
         expect(
           catalogService.activateDescriptor(
             eService.id,
@@ -819,7 +845,7 @@ describe("database test", async () => {
           ...mockEService,
           descriptors: [descriptor],
         };
-        await addOneEService(eService);
+        await addOneEService(eService, postgresDB, eservices);
         expect(
           catalogService.activateDescriptor(
             mockEService.id,
@@ -848,14 +874,17 @@ describe("database test", async () => {
           ...mockEService,
           descriptors: [descriptor],
         };
-        await addOneEService(eService);
+        await addOneEService(eService, postgresDB, eservices);
         await catalogService.archiveDescriptor(
           eService.id,
           descriptor.id,
           getMockAuthData(eService.producerId)
         );
 
-        const writtenEvent = await readLastEventByStreamId(eService.id);
+        const writtenEvent = await readLastEventByStreamId(
+          eService.id,
+          postgresDB
+        );
         expect(writtenEvent.stream_id).toBe(eService.id);
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("EServiceDescriptorUpdated");
@@ -888,7 +917,7 @@ describe("database test", async () => {
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
 
-      it("should throw operationForbidden if the requester is not allowed", async () => {
+      it("should throw operationForbidden if the requester is not the producer", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.suspended,
@@ -897,7 +926,7 @@ describe("database test", async () => {
           ...mockEService,
           descriptors: [descriptor],
         };
-        await addOneEService(eService);
+        await addOneEService(eService, postgresDB, eservices);
         expect(
           catalogService.archiveDescriptor(
             eService.id,
@@ -943,7 +972,7 @@ describe("database test", async () => {
           descriptors: [descriptor1],
           producerId: organizationId1,
         };
-        await addOneEService(eService1);
+        await addOneEService(eService1, postgresDB, eservices);
 
         const descriptor2: Descriptor = {
           ...mockDescriptor,
@@ -957,7 +986,7 @@ describe("database test", async () => {
           descriptors: [descriptor2],
           producerId: organizationId1,
         };
-        await addOneEService(eService2);
+        await addOneEService(eService2, postgresDB, eservices);
 
         const descriptor3: Descriptor = {
           ...mockDescriptor,
@@ -971,7 +1000,7 @@ describe("database test", async () => {
           descriptors: [descriptor3],
           producerId: organizationId1,
         };
-        await addOneEService(eService3);
+        await addOneEService(eService3, postgresDB, eservices);
 
         const descriptor4: Descriptor = {
           ...mockDescriptor,
@@ -985,7 +1014,7 @@ describe("database test", async () => {
           producerId: organizationId2,
           descriptors: [descriptor4],
         };
-        await addOneEService(eService4);
+        await addOneEService(eService4, postgresDB, eservices);
 
         const descriptor5: Descriptor = {
           ...mockDescriptor,
@@ -999,7 +1028,7 @@ describe("database test", async () => {
           producerId: organizationId2,
           descriptors: [descriptor5],
         };
-        await addOneEService(eService5);
+        await addOneEService(eService5, postgresDB, eservices);
 
         const descriptor6: Descriptor = {
           ...mockDescriptor,
@@ -1013,7 +1042,253 @@ describe("database test", async () => {
           producerId: organizationId2,
           descriptors: [descriptor6],
         };
-        await addOneEService(eService6);
+        await addOneEService(eService6, postgresDB, eservices);
+
+        const result1 = await readModelService.getEServices(
+          getMockAuthData(),
+          {
+            eservicesIds: [eService1.id, eService2.id],
+            producersIds: [],
+            states: [],
+            agreementStates: [],
+          },
+          0,
+          50
+        );
+        const result2 = await readModelService.getEServices(
+          getMockAuthData(),
+          {
+            eservicesIds: [],
+            producersIds: [organizationId1],
+            states: [],
+            agreementStates: [],
+          },
+          0,
+          50
+        );
+        const result3 = await readModelService.getEServices(
+          getMockAuthData(),
+          {
+            eservicesIds: [],
+            producersIds: [],
+            states: ["Draft"],
+            agreementStates: [],
+          },
+          0,
+          50
+        );
+        const result4 = await readModelService.getEServices(
+          getMockAuthData(),
+          {
+            eservicesIds: [],
+            producersIds: [organizationId2],
+            states: ["Draft"],
+            agreementStates: [],
+          },
+          0,
+          50
+        );
+        // TO DO test with other parameters configuration
+        expect(result1.totalCount).toBe(2);
+        expect(result1.results).toEqual([eService1, eService2]);
+        expect(result2.totalCount).toBe(3);
+        expect(result2.results).toEqual([eService1, eService2, eService3]);
+        expect(result3.totalCount).toBe(3);
+        expect(result3.results).toEqual([eService2, eService4, eService6]);
+        expect(result4.totalCount).toBe(2);
+        expect(result4.results).toEqual([eService4, eService6]);
+      });
+    });
+
+    describe("getEServiceById", () => {
+      it("should get the eService if it exists", async () => {
+        const descriptor1: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.published,
+        };
+        const eService1: EService = {
+          ...mockEService,
+          id: uuidv4(),
+          name: "eService 001",
+          descriptors: [descriptor1],
+        };
+        await addOneEService(eService1, postgresDB, eservices);
+
+        const descriptor2: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.published,
+        };
+        const eService2: EService = {
+          ...mockEService,
+          id: uuidv4(),
+          name: "eService 002",
+          descriptors: [descriptor2],
+        };
+        await addOneEService(eService2, postgresDB, eservices);
+
+        const descriptor3: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.published,
+        };
+        const eService3: EService = {
+          ...mockEService,
+          id: uuidv4(),
+          name: "eService 003",
+          descriptors: [descriptor3],
+        };
+        await addOneEService(eService3, postgresDB, eservices);
+
+        const eService = await readModelService.getEServiceById(eService1.id);
+        expect(eService?.data).toEqual(eService1);
+      });
+
+      it("should not get the eService if it doesn't exist", async () => {
+        await addOneEService(mockEService, postgresDB, eservices);
+
+        const eService = await readModelService.getEServiceById(uuidv4());
+        expect(eService).toBeUndefined();
+      });
+    });
+
+    describe("getEserviceConsumers", () => {
+      it("should get the consumers of the given eService", async () => {
+        const descriptor1: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.published,
+        };
+        const eService1: EService = {
+          ...mockEService,
+          descriptors: [descriptor1],
+        };
+        await addOneEService(eService1, postgresDB, eservices);
+        const tenant = getMockTenant();
+        await addOneTenant(tenant, tenants);
+        const agreement = getMockAgreement({
+          eServiceId: eService1.id,
+          descriptorId: descriptor1.id,
+          producerId: eService1.producerId,
+          consumerId: tenant.id,
+        });
+        await addOneAgreement(agreement, agreements);
+
+        const result = await readModelService.getEServiceConsumers(
+          eService1.id,
+          0,
+          50
+        );
+        expect(result.totalCount).toBe(1);
+        expect(result.results[0].consumerName).toBe(tenant.name);
+      });
+
+      it("should not get any consumers, if no one is using the given eService", async () => {
+        const descriptor1: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.published,
+        };
+        const eService1: EService = {
+          ...mockEService,
+          descriptors: [descriptor1],
+        };
+        await addOneEService(eService1, postgresDB, eservices);
+
+        const consumers = await readModelService.getEServiceConsumers(
+          eService1.id,
+          0,
+          50
+        );
+        expect(consumers.results).toStrictEqual([]);
+        expect(consumers.totalCount).toBe(0);
+      });
+    });
+  });
+
+  describe("ReadModel Service", () => {
+    describe("getEservices", () => {
+      it("Should get eServices based on the given parameters", async () => {
+        const [organizationId1, organizationId2] = [uuidv4(), uuidv4()];
+        const descriptor1: Descriptor = {
+          ...mockDescriptor,
+          id: uuidv4(),
+          state: descriptorState.published,
+        };
+        const eService1: EService = {
+          ...mockEService,
+          id: uuidv4(),
+          name: "eService 001",
+          descriptors: [descriptor1],
+          producerId: organizationId1,
+        };
+        await addOneEService(eService1, postgresDB, eservices);
+
+        const descriptor2: Descriptor = {
+          ...mockDescriptor,
+          id: uuidv4(),
+          state: descriptorState.draft,
+        };
+        const eService2: EService = {
+          ...mockEService,
+          id: uuidv4(),
+          name: "eService 002",
+          descriptors: [descriptor2],
+          producerId: organizationId1,
+        };
+        await addOneEService(eService2, postgresDB, eservices);
+
+        const descriptor3: Descriptor = {
+          ...mockDescriptor,
+          id: uuidv4(),
+          state: descriptorState.published,
+        };
+        const eService3: EService = {
+          ...mockEService,
+          id: uuidv4(),
+          name: "eService 003",
+          descriptors: [descriptor3],
+          producerId: organizationId1,
+        };
+        await addOneEService(eService3, postgresDB, eservices);
+
+        const descriptor4: Descriptor = {
+          ...mockDescriptor,
+          id: uuidv4(),
+          state: descriptorState.draft,
+        };
+        const eService4: EService = {
+          ...mockEService,
+          id: uuidv4(),
+          name: "eService 004",
+          producerId: organizationId2,
+          descriptors: [descriptor4],
+        };
+        await addOneEService(eService4, postgresDB, eservices);
+
+        const descriptor5: Descriptor = {
+          ...mockDescriptor,
+          id: uuidv4(),
+          state: descriptorState.published,
+        };
+        const eService5: EService = {
+          ...mockEService,
+          id: uuidv4(),
+          name: "eService 005",
+          producerId: organizationId2,
+          descriptors: [descriptor5],
+        };
+        await addOneEService(eService5, postgresDB, eservices);
+
+        const descriptor6: Descriptor = {
+          ...mockDescriptor,
+          id: uuidv4(),
+          state: descriptorState.draft,
+        };
+        const eService6: EService = {
+          ...mockEService,
+          id: uuidv4(),
+          name: "eService 006",
+          producerId: organizationId2,
+          descriptors: [descriptor6],
+        };
+        await addOneEService(eService6, postgresDB, eservices);
 
         const result1 = await readModelService.getEServices(
           getMockAuthData(),
@@ -1081,7 +1356,7 @@ describe("database test", async () => {
           name: "eService 001",
           producerId: organizationId1,
         };
-        await addOneEService(eService1);
+        await addOneEService(eService1, postgresDB, eservices);
 
         const eService2: EService = {
           ...mockEService,
@@ -1089,7 +1364,7 @@ describe("database test", async () => {
           name: "eService 002",
           producerId: organizationId1,
         };
-        await addOneEService(eService2);
+        await addOneEService(eService2, postgresDB, eservices);
 
         const eService3: EService = {
           ...mockEService,
@@ -1097,7 +1372,7 @@ describe("database test", async () => {
           name: "eService 001",
           producerId: organizationId2,
         };
-        await addOneEService(eService3);
+        await addOneEService(eService3, postgresDB, eservices);
 
         const eService = await readModelService.getEServiceByNameAndProducerId({
           name: "eService 001",
@@ -1113,7 +1388,7 @@ describe("database test", async () => {
           name: "eService 001",
           producerId: organizationId,
         };
-        await addOneEService(eService1);
+        await addOneEService(eService1, postgresDB, eservices);
 
         const eService2: EService = {
           ...mockEService,
@@ -1121,7 +1396,7 @@ describe("database test", async () => {
           name: "eService 002",
           producerId: organizationId,
         };
-        await addOneEService(eService2);
+        await addOneEService(eService2, postgresDB, eservices);
 
         const eService = await readModelService.getEServiceByNameAndProducerId({
           name: "not-existing",
@@ -1143,7 +1418,7 @@ describe("database test", async () => {
           name: "eService 001",
           descriptors: [descriptor1],
         };
-        await addOneEService(eService1);
+        await addOneEService(eService1, postgresDB, eservices);
 
         const descriptor2: Descriptor = {
           ...mockDescriptor,
@@ -1155,7 +1430,7 @@ describe("database test", async () => {
           name: "eService 002",
           descriptors: [descriptor2],
         };
-        await addOneEService(eService2);
+        await addOneEService(eService2, postgresDB, eservices);
 
         const descriptor3: Descriptor = {
           ...mockDescriptor,
@@ -1167,14 +1442,14 @@ describe("database test", async () => {
           name: "eService 003",
           descriptors: [descriptor3],
         };
-        await addOneEService(eService3);
+        await addOneEService(eService3, postgresDB, eservices);
 
         const eService = await readModelService.getEServiceById(eService1.id);
         expect(eService?.data).toEqual(eService1);
       });
 
       it("should not get the eService if it doesn't exist", async () => {
-        await addOneEService(mockEService);
+        await addOneEService(mockEService, postgresDB, eservices);
 
         const eService = await readModelService.getEServiceById(uuidv4());
         expect(eService).toBeUndefined();
@@ -1191,16 +1466,16 @@ describe("database test", async () => {
           ...mockEService,
           descriptors: [descriptor1],
         };
-        await addOneEService(eService1);
+        await addOneEService(eService1, postgresDB, eservices);
         const tenant = getMockTenant();
-        await addOneTenant(tenant);
+        await addOneTenant(tenant, tenants);
         const agreement = getMockAgreement({
           eServiceId: eService1.id,
           descriptorId: descriptor1.id,
           producerId: eService1.producerId,
           consumerId: tenant.id,
         });
-        await addOneAgreement(agreement);
+        await addOneAgreement(agreement, agreements);
 
         const result = await readModelService.getEServiceConsumers(
           eService1.id,
@@ -1220,7 +1495,7 @@ describe("database test", async () => {
           ...mockEService,
           descriptors: [descriptor1],
         };
-        await addOneEService(eService1);
+        await addOneEService(eService1, postgresDB, eservices);
 
         const consumers = await readModelService.getEServiceConsumers(
           eService1.id,
@@ -1232,24 +1507,4 @@ describe("database test", async () => {
       });
     });
   });
-
-  const addOneEService = async (eService: EService): Promise<void> => {
-    await writeEServiceInEventstore(eService, postgresDB);
-    await writeEServiceInReadmodel(eService, eservices);
-  };
-
-  const addOneTenant = async (tenant: Tenant): Promise<void> => {
-    await writeTenantInReadmodel(tenant, tenants);
-  };
-
-  const addOneAgreement = async (agreement: Agreement): Promise<void> => {
-    await writeAgreementInReadmodel(agreement, agreements);
-  };
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const readLastEventByStreamId = async (eServiceId: string): Promise<any> =>
-    await postgresDB.one(
-      "SELECT * FROM catalog.events WHERE stream_id = $1 ORDER BY sequence_num DESC LIMIT 1",
-      [eServiceId]
-    );
 });
