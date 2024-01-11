@@ -32,6 +32,7 @@ import {
   decodeProtobufPayload,
   getMockAttribute,
   getMockTenant,
+  getMockAuthData,
   writeAttributeInEventstore,
   writeAttributeInReadmodel,
   writeTenantInReadmodel,
@@ -103,15 +104,7 @@ describe("database test", () => {
             name: mockAttribute.name,
             description: mockAttribute.description,
           },
-          {
-            organizationId: uuidv4(),
-            externalId: {
-              origin: "IPA",
-              value: "123456",
-            },
-            userId: uuidv4(),
-            userRoles: [],
-          }
+          getMockAuthData()
         );
         expect(id).toBeDefined();
 
@@ -146,15 +139,7 @@ describe("database test", () => {
               name: attribute.name,
               description: attribute.description,
             },
-            {
-              organizationId: uuidv4(),
-              externalId: {
-                origin: "IPA",
-                value: "123456",
-              },
-              userId: uuidv4(),
-              userRoles: [],
-            }
+            getMockAuthData()
           )
         ).rejects.toThrowError(attributeDuplicate(attribute.name));
       });
@@ -166,15 +151,7 @@ describe("database test", () => {
             name: mockAttribute.name,
             description: mockAttribute.description,
           },
-          {
-            organizationId: uuidv4(),
-            externalId: {
-              origin: "IPA",
-              value: "123456",
-            },
-            userId: uuidv4(),
-            userRoles: [],
-          }
+          getMockAuthData()
         );
         expect(id).toBeDefined();
 
@@ -210,15 +187,7 @@ describe("database test", () => {
               name: attribute.name,
               description: attribute.description,
             },
-            {
-              organizationId: uuidv4(),
-              externalId: {
-                origin: "IPA",
-                value: "123456",
-              },
-              userId: uuidv4(),
-              userRoles: [],
-            }
+            getMockAuthData()
           )
         ).rejects.toThrowError(attributeDuplicate(attribute.name));
       });

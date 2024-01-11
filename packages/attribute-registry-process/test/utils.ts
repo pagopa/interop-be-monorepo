@@ -6,7 +6,11 @@ import {
   attributeKind,
 } from "pagopa-interop-models";
 import { IDatabase } from "pg-promise";
-import { AttributeCollection, TenantCollection } from "pagopa-interop-commons";
+import {
+  AttributeCollection,
+  AuthData,
+  TenantCollection,
+} from "pagopa-interop-commons";
 import { v4 as uuidv4 } from "uuid";
 import { MessageType } from "@protobuf-ts/runtime";
 import { toAttributeV1 } from "../src/model/domain/toEvent.js";
@@ -82,6 +86,16 @@ export const getMockTenant = (): Tenant => ({
   },
   features: [],
   mails: [],
+});
+
+export const getMockAuthData = (organizationId?: string): AuthData => ({
+  organizationId: organizationId || uuidv4(),
+  userId: uuidv4(),
+  userRoles: [],
+  externalId: {
+    value: "123456",
+    origin: "IPA",
+  },
 });
 
 export function decodeProtobufPayload<I extends object>({
