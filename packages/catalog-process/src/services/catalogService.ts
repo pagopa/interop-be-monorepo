@@ -789,12 +789,7 @@ export function updateDescriptorLogic({
   assertEServiceExist(eServiceId, eService);
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
 
-  const descriptor = eService.data.descriptors.find(
-    (d: Descriptor) => d.id === descriptorId
-  );
-  if (descriptor === undefined) {
-    throw eServiceDescriptorNotFound(eServiceId, descriptorId);
-  }
+  const descriptor = retrieveDescriptor(descriptorId, eService);
 
   if (descriptor.state !== descriptorState.draft) {
     throw notValidDescriptor(descriptorId, descriptor.state.toString());
