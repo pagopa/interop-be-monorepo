@@ -17,17 +17,22 @@ import {
   agreementState,
   descriptorState,
   tenantAttributeType,
+  agreementActivableStates,
+  agreementActivationFailureStates,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { AuthData } from "pagopa-interop-commons";
 import { AgreementQuery } from "../../services/readmodel/agreementQuery.js";
 import { ApiAgreementPayload } from "../types.js";
 import {
+  agreementActivationFailed,
   agreementAlreadyExists,
   agreementNotFound,
   agreementNotInExpectedState,
   agreementSubmissionFailed,
+  descriptorNotFound,
   descriptorNotInExpectedState,
+  documentChangeNotAllowed,
   eServiceNotFound,
   documentsChangeNotAllowed,
   missingCertifiedAttributesError,
@@ -123,7 +128,13 @@ export const assertCanWorkOnConsumerDocuments = (
   state: AgreementState
 ): void => {
   if (state !== agreementState.draft && state !== agreementState.pending) {
-    throw documentsChangeNotAllowed(state);
+    throw documentChangeNotAllowed(state);
+  }
+};
+
+export const assertActivableState = (agreement: Agreement): void => {
+  if (!agreementActivableStates.includes(agreement.state)) {
+    throw agreementNotInExpectedState(agreement.id, agreement.state);
   }
 };
 
@@ -140,8 +151,8 @@ export function assertDescriptorExist(
 /* =========  VALIDATIONS ========= */
 
 const validateDescriptorState = (
-  eserviceId: string,
-  descriptorId: string,
+  eserviceId: EService["id"],
+  descriptorId: Descriptor["id"],
   descriptorState: DescriptorState,
   allowedStates: DescriptorState[]
 ): void => {
@@ -311,6 +322,44 @@ export const verifyConflictingAgreements = async (
   }
 };
 
+export const verifyConsumerDoesNotActivatePending = (
+  agreement: Agreement,
+  authData: AuthData
+): void => {
+  const activationPendingAllowed =
+    agreement.state === agreementState.pending &&
+    agreement.consumerId === authData.organizationId &&
+    agreement.producerId !== agreement.consumerId;
+  if (!activationPendingAllowed) {
+    throw operationNotAllowed(authData.organizationId);
+  }
+};
+
+export const validateActivationOnDescriptor = (
+  eservice: EService,
+  descriptorId: Descriptor["id"]
+): Descriptor => {
+  const allowedStatus: DescriptorState[] = [
+    descriptorState.published,
+    descriptorState.deprecated,
+    descriptorState.suspended,
+  ];
+
+  const descriptor = eservice.descriptors.find((d) => d.id === descriptorId);
+  if (!descriptor) {
+    throw descriptorNotFound(eservice.id, descriptorId);
+  }
+
+  validateDescriptorState(
+    eservice.id,
+    descriptor.id,
+    descriptor.state,
+    allowedStatus
+  );
+
+  return descriptor;
+};
+
 const attributesSatisfied = <
   T extends RevocableTenantAttribute | NotRevocableTenantAttribute
 >(
@@ -423,3 +472,12 @@ const notRevocatedTenantAttributesFilter = <
           !a.revocationTimestamp
     )
     .otherwise(() => () => true);
+
+export const failOnActivationFailure = (
+  newState: AgreementState,
+  agreement: Agreement
+): void => {
+  if (agreementActivationFailureStates.includes(newState)) {
+    throw agreementActivationFailed(agreement.id);
+  }
+};
