@@ -1,5 +1,4 @@
 /* eslint-disable max-params */
-import { utcToZonedTime } from "date-fns-tz";
 import { CreateEvent, getContext, logger } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -131,7 +130,7 @@ const submitAgreement = async (
   }
   const stamp: AgreementStamp = {
     who: authData.userId,
-    when: utcToZonedTime(new Date(), "Etc/UTC"),
+    when: new Date(),
   };
   const stamps = calculateStamps(agreement, newState, stamp);
   const updateSeed = getUpdateSeed(
@@ -195,7 +194,7 @@ const submitAgreement = async (
                   ...agreement.data.stamps,
                   archiving: {
                     who: authData.userId,
-                    when: utcToZonedTime(new Date(), "Etc/UTC"),
+                    when: new Date(),
                   },
                 },
               };
@@ -270,7 +269,7 @@ const createContract = async (
       producer.data,
       seed
     )),
-    createdAt: utcToZonedTime(new Date(), "Etc/UTC"),
+    createdAt: new Date(),
   };
 
   return addAgreementContractLogic(
