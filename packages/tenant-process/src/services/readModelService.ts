@@ -1,5 +1,4 @@
 import {
-  AgreementCollection,
   AttributeCollection,
   logger,
   ReadModelRepository,
@@ -10,8 +9,6 @@ import {
   Tenant,
   Attribute,
   ExternalId,
-  AgreementState,
-  Agreement,
   EService,
   genericError,
   ListResult,
@@ -88,58 +85,6 @@ export const getTenants = async ({
   };
 };
 
-const getAgreementsFilters = (
-  producerId: string,
-  consumerId: string,
-  agreementStates: AgreementState[]
-): object => {
-  const filters = {
-    ...(producerId && { "data.producerId": producerId }),
-    ...(consumerId && { "data.consumerId": consumerId }),
-    ...(agreementStates.length > 0 && {
-      "data.state": {
-        $in: agreementStates.map((s) => s.toString()),
-      },
-    }),
-  };
-  return { $match: filters };
-};
-
-const getAllAgreements = async (
-  agreements: AgreementCollection,
-  producerId: string,
-  consumerId: string,
-  agreementStates: AgreementState[]
-): Promise<Agreement[]> => {
-  const limit = 50;
-  // eslint-disable-next-line functional/no-let
-  let offset = 0;
-  // eslint-disable-next-line functional/no-let
-  let results: Agreement[] = [];
-
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
-    const agreementsChunk = await getAgreementsChunk(
-      agreements,
-      producerId,
-      consumerId,
-      agreementStates,
-      offset,
-      limit
-    );
-
-    results = results.concat(agreementsChunk);
-
-    if (agreementsChunk.length < limit) {
-      break;
-    }
-
-    offset += limit;
-  }
-
-  return results;
-};
-
 async function getAttribute(
   attributes: AttributeCollection,
   filter: Filter<WithId<WithMetadata<Attribute>>>
@@ -170,37 +115,6 @@ async function getAttribute(
     };
   }
 }
-
-const getAgreementsChunk = async (
-  agreements: AgreementCollection,
-  producerId: string,
-  consumerId: string,
-  agreementStates: AgreementState[],
-  offset: number,
-  limit: number
-  // eslint-disable-next-line max-params
-): Promise<Agreement[]> => {
-  const data = await agreements
-    .aggregate([
-      getAgreementsFilters(producerId, consumerId, agreementStates),
-      { $skip: offset },
-      { $limit: limit },
-    ])
-    .toArray();
-
-  const result = z.array(Agreement).safeParse(data);
-
-  if (!result.success) {
-    logger.error(
-      `Unable to parse agreements items: result ${JSON.stringify(
-        result
-      )} - data ${JSON.stringify(data)} `
-    );
-    throw genericError("Unable to parse agreements items");
-  }
-
-  return result.data;
-};
 
 async function getTenant(
   tenants: TenantCollection,
@@ -239,8 +153,7 @@ async function getTenant(
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(config: TenantProcessConfig) {
-  const { attributes, agreements, eservices, tenants } =
-    ReadModelRepository.init(config);
+  const { attributes, eservices, tenants } = ReadModelRepository.init(config);
   return {
     async getTenantsByName({
       name,
@@ -412,18 +325,6 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
 
       const attributePromises = attributeIds.map(fetchAttributeById);
       return Promise.all(attributePromises);
-    },
-    async getAgreements(
-      producerId: string,
-      consumerId: string,
-      agreementStates: AgreementState[]
-    ): Promise<Agreement[]> {
-      return getAllAgreements(
-        agreements,
-        producerId,
-        consumerId,
-        agreementStates
-      );
     },
 
     async getEServiceById(
