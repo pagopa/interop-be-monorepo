@@ -776,16 +776,67 @@ describe("database test", async () => {
         );
       });
 
-      it("TO DO should throw notValidDescriptor if the descriptor is in deprecated state", () => {
-        expect(1).toBe(1);
+      it("should throw notValidDescriptor if the descriptor is in deprecated state", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.deprecated,
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+        expect(
+          catalogService.publishDescriptor(
+            eService.id,
+            descriptor.id,
+            getMockAuthData(eService.producerId)
+          )
+        ).rejects.toThrowError(
+          notValidDescriptor(descriptor.id, descriptorState.deprecated)
+        );
       });
 
-      it("TO DO should throw notValidDescriptor if the descriptor is in suspended state", () => {
-        expect(1).toBe(1);
+      it("should throw notValidDescriptor if the descriptor is in suspended state", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.suspended,
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+        expect(
+          catalogService.publishDescriptor(
+            eService.id,
+            descriptor.id,
+            getMockAuthData(eService.producerId)
+          )
+        ).rejects.toThrowError(
+          notValidDescriptor(descriptor.id, descriptorState.suspended)
+        );
       });
 
-      it("TO DO should throw notValidDescriptor if the descriptor is in archived state", () => {
-        expect(1).toBe(1);
+      it("should throw notValidDescriptor if the descriptor is in archived state", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.archived,
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+        expect(
+          catalogService.publishDescriptor(
+            eService.id,
+            descriptor.id,
+            getMockAuthData(eService.producerId)
+          )
+        ).rejects.toThrowError(
+          notValidDescriptor(descriptor.id, descriptorState.archived)
+        );
       });
 
       it("should throw eServiceDescriptorWithoutInterface if the descriptor doesn't have an interface", async () => {
