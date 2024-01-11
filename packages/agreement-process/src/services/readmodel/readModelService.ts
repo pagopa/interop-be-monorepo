@@ -538,6 +538,9 @@ export function readModelServiceBuilder(
       limit: number,
       offset: number
     ): Promise<ListResult<CompactEService>> {
+      const consumerFilter = makeFilter("consumerId", consumerIds);
+      const producerFilter = makeFilter("producerId", producerIds);
+
       const aggregationPipeline = [
         {
           $lookup: {
@@ -558,8 +561,8 @@ export function readModelServiceBuilder(
             "eservices.data.name": {
               $regex: new RegExp(eServiceName || "", "i"),
             },
-            "data.consumerId": { $in: consumerIds },
-            "data.producerId": { $in: producerIds },
+            consumerFilter,
+            producerFilter,
           },
         },
         {
