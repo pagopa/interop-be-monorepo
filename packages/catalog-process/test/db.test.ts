@@ -597,7 +597,7 @@ describe("database test", async () => {
         expect(writtenPayload.eServiceDescriptor).toEqual(expectedDescriptorV1);
       });
 
-      it("should throw an eServiceNotFound if the eService doesn't exist", async () => {
+      it("should throw eServiceNotFound if the eService doesn't exist", async () => {
         await expect(
           catalogService.publishDescriptor(
             mockEService.id,
