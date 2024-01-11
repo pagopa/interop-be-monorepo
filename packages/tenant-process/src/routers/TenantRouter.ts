@@ -6,14 +6,19 @@ import {
   ZodiosContext,
   authorizationMiddleware,
 } from "pagopa-interop-commons";
-import { makeApiProblem } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
 import { toApiTenant } from "../model/domain/apiConverter.js";
 import { readModelService } from "../services/readModelService.js";
 import {
+  makeApiProblem,
   tenantBySelfcateIdNotFound,
   tenantNotFound,
 } from "../model/domain/errors.js";
+import {
+  getTenantByExternalIdErrorMapper,
+  getTenantByIdErrorMapper,
+  getTenantBySelfcareIdErrorMapper,
+} from "../utilities/errorMappers.js";
 
 const tenantsRouter = (
   ctx: ZodiosContext
@@ -36,7 +41,24 @@ const tenantsRouter = (
         SECURITY_ROLE,
         SUPPORT_ROLE,
       ]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const { name, offset, limit } = req.query;
+          const consumers = await readModelService.getConsumers({
+            name,
+            producerId: req.ctx.authData.organizationId,
+            offset,
+            limit,
+          });
+
+          return res.status(200).json({
+            results: consumers.results.map(toApiTenant),
+            totalCount: consumers.totalCount,
+          });
+        } catch (error) {
+          return res.status(500).send();
+        }
+      }
     )
     .get(
       "/producers",
@@ -46,7 +68,23 @@ const tenantsRouter = (
         SECURITY_ROLE,
         SUPPORT_ROLE,
       ]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const { name, offset, limit } = req.query;
+          const producers = await readModelService.getProducers({
+            name,
+            offset,
+            limit,
+          });
+
+          return res.status(200).json({
+            results: producers.results.map(toApiTenant),
+            totalCount: producers.totalCount,
+          });
+        } catch (error) {
+          return res.status(500).send();
+        }
+      }
     )
     .get(
       "/tenants",
@@ -56,8 +94,25 @@ const tenantsRouter = (
         SECURITY_ROLE,
         SUPPORT_ROLE,
       ]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const { name, offset, limit } = req.query;
+          const tenants = await readModelService.getTenants({
+            name,
+            offset,
+            limit,
+          });
+
+          return res.status(200).json({
+            results: tenants.results.map(toApiTenant),
+            totalCount: tenants.totalCount,
+          });
+        } catch (error) {
+          return res.status(500).end();
+        }
+      }
     )
+
     .get(
       "/tenants/:id",
       authorizationMiddleware([
@@ -76,11 +131,16 @@ const tenantsRouter = (
           } else {
             return res
               .status(404)
-              .json(makeApiProblem(tenantNotFound(req.params.id)))
+              .json(
+                makeApiProblem(
+                  tenantNotFound(req.params.id),
+                  getTenantByIdErrorMapper
+                )
+              )
               .end();
           }
         } catch (error) {
-          const errorRes = makeApiProblem(error);
+          const errorRes = makeApiProblem(error, getTenantByIdErrorMapper);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -107,7 +167,12 @@ const tenantsRouter = (
           } else {
             return res
               .status(404)
-              .json(makeApiProblem(tenantNotFound(`${origin}/${code}`)))
+              .json(
+                makeApiProblem(
+                  tenantNotFound(`${origin}/${code}`),
+                  getTenantByExternalIdErrorMapper
+                )
+              )
               .end();
           }
         } catch (error) {
@@ -139,13 +204,17 @@ const tenantsRouter = (
               .status(404)
               .json(
                 makeApiProblem(
-                  tenantBySelfcateIdNotFound(req.params.selfcareId)
+                  tenantBySelfcateIdNotFound(req.params.selfcareId),
+                  getTenantBySelfcareIdErrorMapper
                 )
               )
               .end();
           }
         } catch (error) {
-          const errorRes = makeApiProblem(error);
+          const errorRes = makeApiProblem(
+            error,
+            getTenantBySelfcareIdErrorMapper
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }

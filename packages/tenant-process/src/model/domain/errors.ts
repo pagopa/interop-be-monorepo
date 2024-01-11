@@ -1,24 +1,28 @@
-import { ApiError } from "pagopa-interop-models";
+import { ApiError, makeApiProblemBuilder } from "pagopa-interop-models";
 
 const errorCodes = {
   tenantNotFound: "0001",
   tenantBySelfcateIdNotFound: "0002",
 };
 
-export function tenantNotFound(tenantId: string): ApiError {
+export type ErrorCodes = keyof typeof errorCodes;
+
+export const makeApiProblem = makeApiProblemBuilder(errorCodes);
+
+export function tenantNotFound(tenantId: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant ${tenantId} not found`,
-    code: errorCodes.tenantNotFound,
-    httpStatus: 404,
+    code: "tenantNotFound",
     title: "Tenant not found",
   });
 }
 
-export function tenantBySelfcateIdNotFound(selfcareId: string): ApiError {
+export function tenantBySelfcateIdNotFound(
+  selfcareId: string
+): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant with selfcareId ${selfcareId} not found in the catalog`,
-    code: errorCodes.tenantBySelfcateIdNotFound,
-    httpStatus: 404,
+    code: "tenantBySelfcateIdNotFound",
     title: "Tenant with selfcareId not found",
   });
 }

@@ -41,3 +41,5 @@ export const eventRepository = <T extends Event>(
     }
   },
 });
+
+export type EventRepository = typeof eventRepository;
