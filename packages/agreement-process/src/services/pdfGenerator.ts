@@ -8,7 +8,6 @@
 import fs from "fs";
 import path from "path";
 
-import { utcToZonedTime } from "date-fns-tz";
 import { selfcareServiceMock, initFileManager } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -175,11 +174,7 @@ const agreementTemplateMock = fs
 const createAgreementDocumentName = (
   consumerId: string,
   producerId: string
-): string =>
-  `${consumerId}_${producerId}_${utcToZonedTime(
-    new Date(),
-    "Etc/UTC"
-  )}_agreement_contract.pdf`;
+): string => `${consumerId}_${producerId}_${new Date()}_agreement_contract.pdf`;
 
 export const pdfGenerator = {
   createDocumentSeed: async (

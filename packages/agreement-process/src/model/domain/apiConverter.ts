@@ -5,7 +5,6 @@ import {
   agreementState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { utcToZonedTime } from "date-fns-tz";
 
 import {
   ApiAgreement,
@@ -95,5 +94,5 @@ export const apiAgreementDocumentToAgreementDocument = (
   prettyName: input.prettyName,
   contentType: input.contentType,
   path: input.path,
-  createdAt: utcToZonedTime(new Date(), "Etc/UTC"),
+  createdAt: new Date(),
 });

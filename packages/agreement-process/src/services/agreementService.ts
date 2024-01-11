@@ -23,7 +23,6 @@ import {
   agreementCloningConflictingStates,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
-import { utcToZonedTime } from "date-fns-tz";
 import {
   agreementAlreadyExists,
   descriptorNotFound,
@@ -304,7 +303,7 @@ async function createAndCopyDocumentsForClonedAgreement(
         prettyName: clonedAgreement.consumerDocuments[i].prettyName,
         contentType: clonedAgreement.consumerDocuments[i].contentType,
         path: d.newPath,
-        createdAt: utcToZonedTime(new Date(), "ETC/UTC"),
+        createdAt: new Date(),
       },
       startingVersion + i
     )
