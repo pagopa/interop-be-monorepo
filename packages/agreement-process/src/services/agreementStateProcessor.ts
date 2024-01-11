@@ -1,16 +1,19 @@
 import {
   Agreement,
+  AgreementStamp,
   AgreementState,
   Descriptor,
   Tenant,
   agreementState,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
+import { AuthData } from "pagopa-interop-commons";
 import {
   certifiedAttributesSatisfied,
   declaredAttributesSatisfied,
   verifiedAttributesSatisfied,
 } from "../model/domain/validators.js";
+import { createStamp } from "./agreementStampUtils.js";
 
 const {
   draft,
@@ -161,3 +164,27 @@ export const suspendedByProducerFlag = (
   requesterOrgId === agreement.producerId
     ? destinationState === agreementState.suspended
     : agreement.suspendedByProducer;
+
+export const suspendedByConsumerStamp = (
+  agreement: Agreement,
+  destinationState: AgreementState,
+  authData: AuthData
+): AgreementStamp | undefined =>
+  match([authData.organizationId, destinationState])
+    .with([agreement.consumerId, agreementState.suspended], () =>
+      createStamp(authData)
+    )
+    .with([agreement.consumerId, P.any], () => undefined)
+    .otherwise(() => agreement.stamps.suspensionByConsumer);
+
+export const suspendedByProducerStamp = (
+  agreement: Agreement,
+  destinationState: AgreementState,
+  authData: AuthData
+): AgreementStamp | undefined =>
+  match([authData.organizationId, destinationState])
+    .with([agreement.producerId, agreementState.suspended], () =>
+      createStamp(authData)
+    )
+    .with([agreement.producerId, P.any], () => undefined)
+    .otherwise(() => agreement.stamps.suspensionByProducer);
