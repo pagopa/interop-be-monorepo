@@ -6,10 +6,11 @@ import {
 import { Request } from "express";
 import {
   Problem,
-  makeApiProblem,
+  makeApiProblemBuilder,
   genericError,
   ApiError,
   unauthorizedError,
+  CommonErrorCodes,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { z } from "zod";
@@ -21,9 +22,11 @@ import { readAuthDataFromJwtToken } from "./jwt.js";
 type RoleValidation =
   | {
       isValid: false;
-      error: ApiError;
+      error: ApiError<CommonErrorCodes>;
     }
   | { isValid: true };
+
+const makeApiProblem = makeApiProblemBuilder({});
 
 const hasValidRoles = (
   req: Request,
@@ -95,14 +98,16 @@ export const authorizationMiddleware =
             new ApiError({
               ...error,
               correlationId: headers?.correlationId,
-            })
+            }),
+            (error) => (error.code === "unauthorizedError" ? 401 : 500)
           )
         )
         .otherwise(() =>
           makeApiProblem(
             genericError(
               "An unexpected error occurred during authorization checks"
-            )
+            ),
+            () => 500
           )
         );
 

@@ -14,13 +14,17 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import { AttributeRegistryConfig } from "../utilities/config.js";
 import {
+  ApiCertifiedAttributeSeed,
   ApiDeclaredAttributeSeed,
+  ApiInternalCertifiedAttributeSeed,
   ApiVerifiedAttributeSeed,
 } from "../model/types.js";
 import { toCreateEventAttributeAdded } from "../model/domain/toEvent.js";
 import {
+  OrganizationIsNotACertifier,
   attributeDuplicate,
   originNotCompliant,
+  tenantNotFound,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -77,6 +81,57 @@ export function attributeRegistryServiceBuilder(
         })
       );
     },
+    async getCertifierId(tenantId: string): Promise<string> {
+      const tenant = await readModelService.getTenantById(tenantId);
+      if (!tenant) {
+        throw tenantNotFound(tenantId);
+      }
+
+      const certifier = tenant.data.features
+        .filter(({ type }) => type === "Certifier")
+        .find(({ certifierId }) => certifierId.trim().length > 0);
+
+      if (certifier) {
+        return certifier.certifierId;
+      }
+      throw OrganizationIsNotACertifier(tenantId);
+    },
+    async createCertifiedAttribute(
+      apiCertifiedAttributeSeed: ApiCertifiedAttributeSeed,
+      authData: AuthData
+    ): Promise<string> {
+      const certifierPromise = this.getCertifierId(authData.organizationId);
+      const attributePromise = readModelService.getAttributeByCodeAndName(
+        apiCertifiedAttributeSeed.code,
+        apiCertifiedAttributeSeed.name
+      );
+
+      const [certifier, attribute] = await Promise.all([
+        certifierPromise,
+        attributePromise,
+      ]);
+
+      return repository.createEvent(
+        createCertifiedAttributeLogic({
+          attribute,
+          apiCertifiedAttributeSeed,
+          certifier,
+        })
+      );
+    },
+    async createInternalCertifiedAttribute(
+      apiInternalCertifiedAttributeSeed: ApiInternalCertifiedAttributeSeed
+    ): Promise<string> {
+      return repository.createEvent(
+        createInternalCertifiedAttributeLogic({
+          attribute: await readModelService.getAttributeByCodeAndName(
+            apiInternalCertifiedAttributeSeed.code,
+            apiInternalCertifiedAttributeSeed.name
+          ),
+          apiInternalCertifiedAttributeSeed,
+        })
+      );
+    },
   };
 }
 
@@ -130,4 +185,54 @@ export function createVerifiedAttributeLogic({
   };
 
   return toCreateEventAttributeAdded(newVerifiedAttribute);
+}
+
+export function createCertifiedAttributeLogic({
+  attribute,
+  apiCertifiedAttributeSeed,
+  certifier,
+}: {
+  attribute: WithMetadata<Attribute> | undefined;
+  apiCertifiedAttributeSeed: ApiCertifiedAttributeSeed;
+  certifier: string;
+}): CreateEvent<AttributeEvent> {
+  if (attribute) {
+    throw attributeDuplicate(apiCertifiedAttributeSeed.name);
+  }
+
+  const newCertifiedAttribute: Attribute = {
+    id: uuidv4(),
+    kind: attributeKind.certified,
+    name: apiCertifiedAttributeSeed.name,
+    description: apiCertifiedAttributeSeed.description,
+    creationTime: new Date(),
+    code: apiCertifiedAttributeSeed.code,
+    origin: certifier,
+  };
+
+  return toCreateEventAttributeAdded(newCertifiedAttribute);
+}
+
+export function createInternalCertifiedAttributeLogic({
+  attribute,
+  apiInternalCertifiedAttributeSeed,
+}: {
+  attribute: WithMetadata<Attribute> | undefined;
+  apiInternalCertifiedAttributeSeed: ApiInternalCertifiedAttributeSeed;
+}): CreateEvent<AttributeEvent> {
+  if (attribute) {
+    throw attributeDuplicate(apiInternalCertifiedAttributeSeed.name);
+  }
+
+  const newInternalCertifiedAttribute: Attribute = {
+    id: uuidv4(),
+    kind: attributeKind.certified,
+    name: apiInternalCertifiedAttributeSeed.name,
+    description: apiInternalCertifiedAttributeSeed.description,
+    creationTime: new Date(),
+    code: apiInternalCertifiedAttributeSeed.code,
+    origin: apiInternalCertifiedAttributeSeed.origin,
+  };
+
+  return toCreateEventAttributeAdded(newInternalCertifiedAttribute);
 }
