@@ -15,9 +15,12 @@ import {
 import { z } from "zod";
 import { ReadModelDbConfig, logger } from "../index.js";
 
+export const Metadata = z.object({ version: z.number() });
+export type Metadata = z.infer<typeof Metadata>;
+
 type GenericCollection<T> = Collection<{
   data: T;
-  metadata: { version: number };
+  metadata: Metadata;
 }>;
 
 export type EServiceCollection = GenericCollection<EService | undefined>;
@@ -51,6 +54,28 @@ type ExtractQueryKeysFromRecord<
 }[keyof T];
 
 /**
+ * Extracts all queryable fields without the "data" prefix
+ *
+ * @example
+ * type Test = {
+ * a: string;
+ *   b: {
+ *     c: string;
+ *   }
+ *   d: {
+ *     e: string;
+ *   }[]
+ * }
+ *
+ * type DataFields = RemoveDataPrefix<MongoQueryKeys<Test>>;
+ * //      ^ "a" | "b" | "b.c" | "d" | "d.e"
+ *
+ */
+export type RemoveDataPrefix<T extends string> = T extends `data.${infer U}`
+  ? U
+  : never;
+
+/**
  * Extracts recursively all the possible document db query keys from an object
  *
  * @example
@@ -67,7 +92,7 @@ type ExtractQueryKeysFromRecord<
  * type Result = MongoQueryKeys<Test>;
  * //      ^ "data.a" | "data.b" | "data.b.c" | "data.d" | "data.d.e"
  */
-type MongoQueryKeys<T, TPrefix extends string = "data"> = NonNullable<
+export type MongoQueryKeys<T, TPrefix extends string = "data"> = NonNullable<
   | TPrefix
   | (T extends unknown[]
       ? MongoQueryKeys<T[number], TPrefix>
@@ -148,9 +173,12 @@ export class ReadModelRepository {
 
   public static async getTotalCount(
     collection: Collections,
-    aggregation: object[]
+    aggregation: object[],
+    allowDiskUse: boolean = false
   ): Promise<number> {
-    const query = collection.aggregate([...aggregation, { $count: "count" }]);
+    const query = collection.aggregate([...aggregation, { $count: "count" }], {
+      allowDiskUse,
+    });
 
     const data = await query.toArray();
     const result = z.array(z.object({ count: z.number() })).safeParse(data);
