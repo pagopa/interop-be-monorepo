@@ -125,7 +125,7 @@ describe("database test", () => {
           ...mockAttribute,
           kind: attributeKind.declared,
         };
-        await addOneAttribute(attribute, attributes);
+        await addOneAttribute(attribute, postgresDB, attributes);
         expect(
           attributeRegistryService.createDeclaredAttribute(
             {
