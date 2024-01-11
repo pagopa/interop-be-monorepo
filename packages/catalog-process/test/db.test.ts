@@ -477,20 +477,96 @@ describe("database test", async () => {
         );
       });
 
-      it("TO DO should throw notValidDescriptor if the descriptor is in published state", () => {
-        expect(1).toBe(1);
+      it("should throw notValidDescriptor if the descriptor is in published state", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.published,
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+
+        expect(
+          catalogService.updateDescriptor(
+            eService.id,
+            descriptor.id,
+            buildDescriptorSeed(descriptor),
+            getMockAuthData(eService.producerId)
+          )
+        ).rejects.toThrowError(
+          notValidDescriptor(mockDescriptor.id, descriptorState.published)
+        );
       });
 
-      it("TO DO should throw notValidDescriptor if the descriptor is in deprecated state", () => {
-        expect(1).toBe(1);
+      it("should throw notValidDescriptor if the descriptor is in deprecated state", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.deprecated,
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+
+        expect(
+          catalogService.updateDescriptor(
+            eService.id,
+            descriptor.id,
+            buildDescriptorSeed(descriptor),
+            getMockAuthData(eService.producerId)
+          )
+        ).rejects.toThrowError(
+          notValidDescriptor(mockDescriptor.id, descriptorState.deprecated)
+        );
       });
 
-      it("TO DO should throw notValidDescriptor if the descriptor is in suspended state", () => {
-        expect(1).toBe(1);
+      it("should throw notValidDescriptor if the descriptor is in suspended state", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.suspended,
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+
+        expect(
+          catalogService.updateDescriptor(
+            eService.id,
+            descriptor.id,
+            buildDescriptorSeed(descriptor),
+            getMockAuthData(eService.producerId)
+          )
+        ).rejects.toThrowError(
+          notValidDescriptor(mockDescriptor.id, descriptorState.suspended)
+        );
       });
 
-      it("TO DO should throw notValidDescriptor if the descriptor is in archived state", () => {
-        expect(1).toBe(1);
+      it("should throw notValidDescriptor if the descriptor is in archived state", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.archived,
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+
+        expect(
+          catalogService.updateDescriptor(
+            eService.id,
+            descriptor.id,
+            buildDescriptorSeed(descriptor),
+            getMockAuthData(eService.producerId)
+          )
+        ).rejects.toThrowError(
+          notValidDescriptor(mockDescriptor.id, descriptorState.archived)
+        );
       });
 
       it("should throw operationForbidden if the requester is not the producer", async () => {
@@ -643,8 +719,21 @@ describe("database test", async () => {
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
 
-      it("TO DO should throw eServiceDescriptorNotFound if the descriptor doesn't exist", async () => {
-        expect(1).toBe(1);
+      it("should throw eServiceDescriptorNotFound if the descriptor doesn't exist", async () => {
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+        expect(
+          catalogService.publishDescriptor(
+            eService.id,
+            mockDescriptor.id,
+            getMockAuthData(eService.producerId)
+          )
+        ).rejects.toThrowError(
+          eServiceDescriptorNotFound(eService.id, mockDescriptor.id)
+        );
       });
 
       it("should throw operationForbidden if the requester is not the producer", async () => {
@@ -794,8 +883,22 @@ describe("database test", async () => {
         ).rejects.toThrowError(operationForbidden);
       });
 
-      it("should throw eServiceDescriptorNotFound if the descriptor doesn't exist", () => {
-        expect(1).toBe(1);
+      it("should throw eServiceDescriptorNotFound if the descriptor doesn't exist", async () => {
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+
+        expect(
+          catalogService.suspendDescriptor(
+            mockEService.id,
+            mockDescriptor.id,
+            getMockAuthData(mockEService.producerId)
+          )
+        ).rejects.toThrowError(
+          eServiceDescriptorNotFound(eService.id, mockDescriptor.id)
+        );
       });
 
       it("should throw notValidDescriptor if the descriptor is in draft state", async () => {
@@ -911,8 +1014,22 @@ describe("database test", async () => {
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
 
-      it("should throw eServiceDescriptorNotFound if the descriptor doesn't exist", () => {
-        expect(1).toBe(1);
+      it("should throw eServiceDescriptorNotFound if the descriptor doesn't exist", async () => {
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+
+        expect(
+          catalogService.activateDescriptor(
+            mockEService.id,
+            mockDescriptor.id,
+            getMockAuthData(mockEService.producerId)
+          )
+        ).rejects.toThrowError(
+          eServiceDescriptorNotFound(eService.id, mockDescriptor.id)
+        );
       });
 
       it("should throw operationForbidden if the requester is not the producer", async () => {
@@ -1078,8 +1195,22 @@ describe("database test", async () => {
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
 
-      it("should throw eServiceDescriptorNotFound if the descriptor doesn't exist", () => {
-        expect(1).toBe(1);
+      it("should throw eServiceDescriptorNotFound if the descriptor doesn't exist", async () => {
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+
+        expect(
+          catalogService.archiveDescriptor(
+            mockEService.id,
+            mockDescriptor.id,
+            getMockAuthData(mockEService.producerId)
+          )
+        ).rejects.toThrowError(
+          eServiceDescriptorNotFound(eService.id, mockDescriptor.id)
+        );
       });
 
       it("should throw operationForbidden if the requester is not the producer", async () => {
