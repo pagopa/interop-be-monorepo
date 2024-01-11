@@ -29,6 +29,7 @@ import { toAttributeV1 } from "../src/model/domain/toEvent.js";
 import {
   decodeProtobufPayload,
   getMockAttribute,
+  getMockAuthData,
   writeAttributeInEventstore,
   writeAttributeInReadmodel,
 } from "./utils.js";
@@ -96,15 +97,7 @@ describe("database test", () => {
             name: mockAttribute.name,
             description: mockAttribute.description,
           },
-          {
-            organizationId: uuidv4(),
-            externalId: {
-              origin: "IPA",
-              value: "123456",
-            },
-            userId: uuidv4(),
-            userRoles: [],
-          }
+          getMockAuthData()
         );
         expect(id).toBeDefined();
 
@@ -139,15 +132,7 @@ describe("database test", () => {
               name: attribute.name,
               description: attribute.description,
             },
-            {
-              organizationId: uuidv4(),
-              externalId: {
-                origin: "IPA",
-                value: "123456",
-              },
-              userId: uuidv4(),
-              userRoles: [],
-            }
+            getMockAuthData()
           )
         ).rejects.toThrowError(attributeDuplicate(attribute.name));
       });
@@ -159,15 +144,7 @@ describe("database test", () => {
             name: mockAttribute.name,
             description: mockAttribute.description,
           },
-          {
-            organizationId: uuidv4(),
-            externalId: {
-              origin: "IPA",
-              value: "123456",
-            },
-            userId: uuidv4(),
-            userRoles: [],
-          }
+          getMockAuthData()
         );
         expect(id).toBeDefined();
 
@@ -203,15 +180,7 @@ describe("database test", () => {
               name: attribute.name,
               description: attribute.description,
             },
-            {
-              organizationId: uuidv4(),
-              externalId: {
-                origin: "IPA",
-                value: "123456",
-              },
-              userId: uuidv4(),
-              userRoles: [],
-            }
+            getMockAuthData()
           )
         ).rejects.toThrowError(attributeDuplicate(attribute.name));
       });
