@@ -74,7 +74,7 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
         }
       );
     })
-    .with({ type: "AgreementConsumerDocumentDeleted" }, async (msg) => {
+    .with({ type: "AgreementConsumerDocumentRemoved" }, async (msg) => {
       await agreements.updateOne(
         {
           "data.id": msg.stream_id,
