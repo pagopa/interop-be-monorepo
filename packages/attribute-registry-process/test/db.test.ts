@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable functional/no-let */
 import { beforeAll, afterEach, describe, expect, it, beforeEach } from "vitest";
 import { GenericContainer } from "testcontainers";
@@ -9,7 +10,11 @@ import {
 } from "pagopa-interop-commons";
 import { v4 as uuidv4 } from "uuid";
 import { IDatabase } from "pg-promise";
-import { Attribute, attributeKind } from "pagopa-interop-models";
+import {
+  Attribute,
+  AttributeAddedV1,
+  attributeKind,
+} from "pagopa-interop-models";
 import { config } from "../src/utilities/config.js";
 import {
   AttributeRegistryService,
@@ -19,8 +24,12 @@ import {
   ReadModelService,
   readModelServiceBuilder,
 } from "../src/services/readModelService.js";
+import { attributeDuplicate } from "../src/model/domain/errors.js";
+import { toAttributeV1 } from "../src/model/domain/toEvent.js";
 import {
+  decodeProtobufPayload,
   getMockAttribute,
+  getMockAuthData,
   writeAttributeInEventstore,
   writeAttributeInReadmodel,
 } from "./utils.js";
@@ -85,18 +94,10 @@ describe("database test", () => {
       it("should write on event-store for the creation of a declared attribute", async () => {
         const id = await attributeRegistryService.createDeclaredAttribute(
           {
-            name: "name",
-            description: "description",
+            name: mockAttribute.name,
+            description: mockAttribute.description,
           },
-          {
-            organizationId: "organization-id",
-            externalId: {
-              origin: "IPA",
-              value: "123456",
-            },
-            userId: uuidv4(),
-            userRoles: [],
-          }
+          getMockAuthData()
         );
         expect(id).toBeDefined();
 
@@ -104,30 +105,46 @@ describe("database test", () => {
         expect(writtenEvent.stream_id).toBe(id);
         expect(writtenEvent.version).toBe("0");
         expect(writtenEvent.type).toBe("AttributeAdded");
+        const writtenPayload = decodeProtobufPayload({
+          messageType: AttributeAddedV1,
+          payload: writtenEvent.data,
+        });
 
-        // TO DO check entire payload
+        const attribute: Attribute = {
+          ...mockAttribute,
+          id,
+          kind: attributeKind.declared,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          creationTime: new Date(writtenPayload.attribute!.creationTime),
+        };
+
+        expect(writtenPayload.attribute).toEqual(toAttributeV1(attribute));
       });
-      it("should not write on event-store if the attribute already exists", () => {
-        // TO DO
-        expect(1).toBe(1);
+      it("should not write on event-store if the attribute already exists", async () => {
+        const attribute = {
+          ...mockAttribute,
+          kind: attributeKind.declared,
+        };
+        await addOneAttribute(attribute);
+        expect(
+          attributeRegistryService.createDeclaredAttribute(
+            {
+              name: attribute.name,
+              description: attribute.description,
+            },
+            getMockAuthData()
+          )
+        ).rejects.toThrowError(attributeDuplicate(attribute.name));
       });
     });
     describe("verified attribute creation", () => {
       it("should write on event-store for the creation of a verified attribute", async () => {
         const id = await attributeRegistryService.createVerifiedAttribute(
           {
-            name: "name",
-            description: "description",
+            name: mockAttribute.name,
+            description: mockAttribute.description,
           },
-          {
-            organizationId: "organization-id",
-            externalId: {
-              origin: "IPA",
-              value: "123456",
-            },
-            userId: uuidv4(),
-            userRoles: [],
-          }
+          getMockAuthData()
         );
         expect(id).toBeDefined();
 
@@ -136,11 +153,36 @@ describe("database test", () => {
         expect(writtenEvent.version).toBe("0");
         expect(writtenEvent.type).toBe("AttributeAdded");
 
-        // TO DO check entire payload
+        const writtenPayload = decodeProtobufPayload({
+          messageType: AttributeAddedV1,
+          payload: writtenEvent.data,
+        });
+
+        const attribute: Attribute = {
+          ...mockAttribute,
+          id,
+          kind: attributeKind.verified,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          creationTime: new Date(writtenPayload.attribute!.creationTime),
+        };
+
+        expect(writtenPayload.attribute).toEqual(toAttributeV1(attribute));
       });
-      it("should not write on event-store if the attribute already exists", () => {
-        // TO DO
-        expect(1).toBe(1);
+      it("should not write on event-store if the attribute already exists", async () => {
+        const attribute = {
+          ...mockAttribute,
+          kind: attributeKind.verified,
+        };
+        await addOneAttribute(attribute);
+        expect(
+          attributeRegistryService.createVerifiedAttribute(
+            {
+              name: attribute.name,
+              description: attribute.description,
+            },
+            getMockAuthData()
+          )
+        ).rejects.toThrowError(attributeDuplicate(attribute.name));
       });
     });
     describe("certified attribute creation", () => {
