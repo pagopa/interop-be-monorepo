@@ -1,11 +1,12 @@
 import {
   Attribute,
   AttributeEvent,
+  Tenant,
   attributeEventToBinaryData,
   attributeKind,
 } from "pagopa-interop-models";
 import { IDatabase } from "pg-promise";
-import { AttributeCollection } from "pagopa-interop-commons";
+import { AttributeCollection, TenantCollection } from "pagopa-interop-commons";
 import { v4 as uuidv4 } from "uuid";
 import { MessageType } from "@protobuf-ts/runtime";
 import { toAttributeV1 } from "../src/model/domain/toEvent.js";
@@ -48,14 +49,39 @@ export const writeAttributeInReadmodel = async (
   });
 };
 
+export const writeTenantInReadmodel = async (
+  tenant: Tenant,
+  tenants: TenantCollection
+): Promise<void> => {
+  await tenants.insertOne({
+    data: tenant,
+    metadata: {
+      version: 0,
+    },
+  });
+};
+
 export const getMockAttribute = (): Attribute => ({
   id: uuidv4(),
   name: "attribute name",
   kind: attributeKind.certified,
   description: "attribute dscription",
   creationTime: new Date(),
-  code: undefined,
+  code: "code",
   origin: undefined,
+});
+
+export const getMockTenant = (): Tenant => ({
+  name: "tenant_Name",
+  id: uuidv4(),
+  createdAt: new Date(),
+  attributes: [],
+  externalId: {
+    value: "1234",
+    origin: "IPA",
+  },
+  features: [],
+  mails: [],
 });
 
 export function decodeProtobufPayload<I extends object>({

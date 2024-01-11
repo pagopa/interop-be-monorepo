@@ -6,6 +6,7 @@ import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import {
   AttributeCollection,
   ReadModelRepository,
+  TenantCollection,
   initDB,
 } from "pagopa-interop-commons";
 import { v4 as uuidv4 } from "uuid";
@@ -13,6 +14,7 @@ import { IDatabase } from "pg-promise";
 import {
   Attribute,
   AttributeAddedV1,
+  Tenant,
   attributeKind,
 } from "pagopa-interop-models";
 import { config } from "../src/utilities/config.js";
@@ -29,14 +31,18 @@ import { toAttributeV1 } from "../src/model/domain/toEvent.js";
 import {
   decodeProtobufPayload,
   getMockAttribute,
+  getMockTenant,
   writeAttributeInEventstore,
   writeAttributeInReadmodel,
+  writeTenantInReadmodel,
 } from "./utils.js";
 
 const mockAttribute = getMockAttribute();
+const mockTenant = getMockTenant();
 
 describe("database test", () => {
   let attributes: AttributeCollection;
+  let tenants: TenantCollection;
   let readModelService: ReadModelService;
   let attributeRegistryService: AttributeRegistryService;
   let postgresDB: IDatabase<unknown>;
@@ -66,6 +72,7 @@ describe("database test", () => {
     config.eventStoreDbPort = postgreSqlContainer.getMappedPort(5432);
     config.readModelDbPort = mongodbContainer.getMappedPort(27017);
     attributes = ReadModelRepository.init(config).attributes;
+    tenants = ReadModelRepository.init(config).tenants;
     readModelService = readModelServiceBuilder(config);
     attributeRegistryService = attributeRegistryServiceBuilder(
       config,
@@ -218,8 +225,58 @@ describe("database test", () => {
     });
     describe("certified attribute creation", () => {
       it("should write on event-store for the creation of a certified attribute", async () => {
-        // TO DO
-        expect(1).toBe(1);
+        const tenant: Tenant = {
+          ...mockTenant,
+          features: [
+            {
+              type: "Certifier",
+              certifierId: uuidv4(),
+            },
+          ],
+        };
+
+        addOneTenant(tenant);
+
+        // const organizationId = await attributeRegistryService.getCertifierId(
+        //   tenant.id
+        // );
+        const id = await attributeRegistryService.createCertifiedAttribute(
+          {
+            name: mockAttribute.name,
+            code: mockAttribute.code!,
+            description: mockAttribute.description,
+          },
+          {
+            // eslint-disable-next-line object-shorthand
+            organizationId: tenant.id,
+            externalId: {
+              origin: "IPA",
+              value: "123456",
+            },
+            userId: uuidv4(),
+            userRoles: [],
+          }
+        );
+        expect(id).toBeDefined();
+
+        const writtenEvent = await readLastEventByStreamId(id);
+        expect(writtenEvent.stream_id).toBe(id);
+        expect(writtenEvent.version).toBe("0");
+        expect(writtenEvent.type).toBe("AttributeAdded");
+        const writtenPayload = decodeProtobufPayload({
+          messageType: AttributeAddedV1,
+          payload: writtenEvent.data,
+        });
+
+        const attribute: Attribute = {
+          ...mockAttribute,
+          id,
+          kind: attributeKind.certified,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          creationTime: new Date(writtenPayload.attribute!.creationTime),
+        };
+
+        expect(writtenPayload.attribute).toEqual(toAttributeV1(attribute));
       });
       it("should not write on event-store if the attribute already exists", () => {
         // TO DO
@@ -457,6 +514,9 @@ describe("database test", () => {
     await writeAttributeInReadmodel(attribute, attributes);
   };
 
+  const addOneTenant = async (tenant: Tenant): Promise<void> => {
+    await writeTenantInReadmodel(tenant, tenants);
+  };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const readLastEventByStreamId = async (attributeId: string): Promise<any> =>
     await postgresDB.one(
