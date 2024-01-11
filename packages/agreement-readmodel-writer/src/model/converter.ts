@@ -70,7 +70,7 @@ export const fromAgreementV1 = (input: AgreementV1): Agreement => ({
   ...input,
   state: fromAgreementState(input.state),
   createdAt: new Date(Number(input.createdAt)),
-  updatedAt: new Date(Number(input.updatedAt)),
+  updatedAt: input.updatedAt ? new Date(Number(input.updatedAt)) : undefined,
   suspendedAt: input.suspendedAt
     ? new Date(Number(input.suspendedAt))
     : undefined,

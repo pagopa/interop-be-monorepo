@@ -1,5 +1,4 @@
 /* eslint-disable max-params */
-import { utcToZonedTime } from "date-fns-tz";
 import { CreateEvent, getContext, logger } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -21,6 +20,7 @@ import {
   agreementNotFound,
   agreementNotInExpectedState,
   consumerWithNotValidEmail,
+  contractAlreadyExists,
   eServiceNotFound,
   tenantIdNotFound,
 } from "../model/domain/errors.js";
@@ -36,7 +36,7 @@ import {
   verifySubmissionConflictingAgreements,
 } from "../model/domain/validators.js";
 import { ApiAgreementSubmissionPayload } from "../model/types.js";
-import { agreementStateByFlags, nextState } from "./ageementStateProcessor.js";
+import { agreementStateByFlags, nextState } from "./agreementStateProcessor.js";
 import {
   ContractBuilder,
   addAgreementContractLogic,
@@ -60,9 +60,7 @@ export async function submitAgreementLogic(
   tenantQuery: TenantQuery
 ): Promise<Array<CreateEvent<AgreementEvent>>> {
   logger.info(`Submitting agreement ${agreementId}`);
-  const {
-    authData: { organizationId },
-  } = getContext();
+  const { authData } = getContext();
 
   const agreement = await agreementQuery.getAgreementById(agreementId);
 
@@ -70,7 +68,7 @@ export async function submitAgreementLogic(
     throw agreementNotFound(agreementId);
   }
 
-  assertRequesterIsConsumer(organizationId, agreement.data.consumerId);
+  assertRequesterIsConsumer(agreement.data, authData);
   assertSubmittableState(agreement.data.state, agreement.data.id);
   await verifySubmissionConflictingAgreements(agreement.data, agreementQuery);
 
@@ -132,7 +130,7 @@ const submitAgreement = async (
   }
   const stamp: AgreementStamp = {
     who: authData.userId,
-    when: utcToZonedTime(new Date(), "Etc/UTC"),
+    when: new Date(),
   };
   const stamps = calculateStamps(agreement, newState, stamp);
   const updateSeed = getUpdateSeed(
@@ -196,7 +194,7 @@ const submitAgreement = async (
                   ...agreement.data.stamps,
                   archiving: {
                     who: authData.userId,
-                    when: utcToZonedTime(new Date(), "Etc/UTC"),
+                    when: new Date(),
                   },
                 },
               };
@@ -215,11 +213,11 @@ const submitAgreement = async (
 
   validateActiveOrPendingAgreement(agreement.id, newState);
 
-  /* 
+  /*
     NOTE (@Viktor-K)
-    The 'createContractEvents' array contains events related to contract creation or updates to the same agreement (identified by the same stream ID) 
+    The 'createContractEvents' array contains events related to contract creation or updates to the same agreement (identified by the same stream ID)
     as the previous events collected in 'updatedAgreementEvent.'
-    To ensure proper event versioning progression, we need to manually increment the version by '+1.' 
+    To ensure proper event versioning progression, we need to manually increment the version by '+1.'
     This incrementation should reflect the next expected version at the moment when the 'create-contract-event' was processed, not when it was initially created."
     */
   const createContractEvents: Array<CreateEvent<AgreementEvent>> =
@@ -259,6 +257,10 @@ const createContract = async (
     throw tenantIdNotFound(agreement.producerId);
   }
 
+  if (agreement.contract) {
+    throw contractAlreadyExists(agreement.id);
+  }
+
   const agreementdocumentSeed = {
     ...(await constractBuilder.createContract(
       agreement,
@@ -267,7 +269,7 @@ const createContract = async (
       producer.data,
       seed
     )),
-    createdAt: utcToZonedTime(new Date(), "Etc/UTC"),
+    createdAt: new Date(),
   };
 
   return addAgreementContractLogic(
