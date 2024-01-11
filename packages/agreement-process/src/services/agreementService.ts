@@ -68,12 +68,12 @@ import {
   ApiAgreementDocumentSeed,
 } from "../model/types.js";
 import { config } from "../utilities/config.js";
+import { AttributeQuery } from "./readmodel/attributeQuery.js";
+import { AgreementQueryFilters } from "./readmodel/readModelService.js";
 import { contractBuilder } from "./agreementContractBuilder.js";
 import { submitAgreementLogic } from "./agreementSubmissionProcessor.js";
 import { AgreementQuery } from "./readmodel/agreementQuery.js";
-import { AttributeQuery } from "./readmodel/attributeQuery.js";
 import { EserviceQuery } from "./readmodel/eserviceQuery.js";
-import { AgreementQueryFilters } from "./readmodel/readModelService.js";
 import { TenantQuery } from "./readmodel/tenantQuery.js";
 import { suspendAgreementLogic } from "./agreementSuspensionProcessor.js";
 import { createStamp } from "./agreementStampUtils.js";
@@ -81,6 +81,7 @@ import {
   removeAgreementConsumerDocumentLogic,
   addConsumerDocumentLogic,
 } from "./agreementConsumerDocumentProcessor.js";
+import { activateAgreementLogic } from "./agreementActivationProcessor.js";
 
 const fileManager = initFileManager(config);
 
@@ -344,7 +345,23 @@ export function agreementServiceBuilder(
           eserviceQuery,
         })
       );
+    },
+    async activateAgreement(
+      agreementId: Agreement["id"],
+      authData: AuthData
+    ): Promise<Agreement["id"]> {
+      const updatesEvents = await activateAgreementLogic(
+        agreementId,
+        agreementQuery,
+        eserviceQuery,
+        tenantQuery,
+        attributeQuery,
+        authData
+      );
 
+      for (const event of updatesEvents) {
+        await repository.createEvent(event);
+      }
       return agreementId;
     },
   };
