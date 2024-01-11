@@ -1,5 +1,5 @@
 /* eslint-disable functional/no-let */
-import { beforeAll, afterEach, describe, expect, it } from "vitest";
+import { beforeAll, afterEach, describe, expect, it, beforeEach } from "vitest";
 import { GenericContainer } from "testcontainers";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import {
@@ -9,7 +9,7 @@ import {
 } from "pagopa-interop-commons";
 import { v4 as uuidv4 } from "uuid";
 import { IDatabase } from "pg-promise";
-import { Attribute } from "pagopa-interop-models";
+import { Attribute, attributeKind } from "pagopa-interop-models";
 import { config } from "../src/utilities/config.js";
 import {
   AttributeRegistryService,
@@ -163,81 +163,217 @@ describe("database test", () => {
     });
 
     describe("readModelService", () => {
+      let attribute1: Attribute;
+      let attribute2: Attribute;
+      let attribute3: Attribute;
+      let attribute4: Attribute;
+      let attribute5: Attribute;
+      let attribute6: Attribute;
+      let attribute7: Attribute;
+
+      beforeEach(async () => {
+        attribute1 = {
+          ...mockAttribute,
+          id: uuidv4(),
+          name: "attribute 001 test",
+          kind: attributeKind.certified,
+          origin: "IPA",
+          code: "12345A",
+        };
+        await addOneAttribute(attribute1);
+
+        attribute2 = {
+          ...mockAttribute,
+          id: uuidv4(),
+          name: "attribute 002 test",
+          kind: attributeKind.certified,
+          origin: "IPA",
+          code: "12345B",
+        };
+        await addOneAttribute(attribute2);
+
+        attribute3 = {
+          ...mockAttribute,
+          id: uuidv4(),
+          name: "attribute 003 test",
+          kind: attributeKind.certified,
+          origin: "IPA",
+          code: "12345C",
+        };
+        await addOneAttribute(attribute3);
+
+        attribute4 = {
+          ...mockAttribute,
+          id: uuidv4(),
+          name: "attribute 004",
+          kind: attributeKind.declared,
+        };
+        await addOneAttribute(attribute4);
+
+        attribute5 = {
+          ...mockAttribute,
+          id: uuidv4(),
+          name: "attribute 005",
+          kind: attributeKind.declared,
+        };
+        await addOneAttribute(attribute5);
+
+        attribute6 = {
+          ...mockAttribute,
+          id: uuidv4(),
+          name: "attribute 006",
+          kind: attributeKind.verified,
+        };
+        await addOneAttribute(attribute6);
+
+        attribute7 = {
+          ...mockAttribute,
+          id: uuidv4(),
+          name: "attribute 007",
+          kind: attributeKind.verified,
+        };
+        await addOneAttribute(attribute7);
+      });
+
       describe("getAttributesByIds", () => {
         it("should get the attributes if they exist", async () => {
-          // TO DO
-          expect(1).toBe(1);
+          const result = await readModelService.getAttributesByIds({
+            ids: [attribute1.id, attribute2.id, attribute3.id],
+            offset: 0,
+            limit: 50,
+          });
+
+          expect(result.totalCount).toBe(3);
+          expect(result.results).toEqual([attribute1, attribute2, attribute3]);
         });
         it("should not get the attributes if they don't exist", async () => {
-          // TO DO
-          expect(1).toBe(1);
+          const result = await readModelService.getAttributesByIds({
+            ids: [uuidv4(), uuidv4()],
+            offset: 0,
+            limit: 50,
+          });
+          expect(result.totalCount).toBe(0);
+          expect(result.results).toEqual([]);
         });
         it("should not get any attributes if the requested ids list is empty", async () => {
-          // TO DO
-          expect(1).toBe(1);
+          const result = await readModelService.getAttributesByIds({
+            ids: [],
+            offset: 0,
+            limit: 50,
+          });
+          expect(result.totalCount).toBe(0);
+          expect(result.results).toEqual([]);
         });
       });
       describe("getAttributesByKindsNameOrigin", () => {
-        it("should get the attributes if they exist (parameters: kinds, name, origin)", () => {
-          // TO DO
-          expect(1).toBe(1);
+        it("should get the attributes if they exist (parameters: kinds, name, origin)", async () => {
+          const result = await readModelService.getAttributesByKindsNameOrigin({
+            kinds: [attributeKind.certified],
+            name: "test",
+            origin: "IPA",
+            offset: 0,
+            limit: 50,
+          });
+          expect(result.totalCount).toBe(3);
+          expect(result.results).toEqual([attribute1, attribute2, attribute3]);
         });
-        it("should get the attributes if they exist (parameters: kinds only)", () => {
-          // TO DO
-          expect(1).toBe(1);
+        it("should get the attributes if they exist (parameters: kinds only)", async () => {
+          const result = await readModelService.getAttributesByKindsNameOrigin({
+            kinds: [attributeKind.declared],
+            offset: 0,
+            limit: 50,
+          });
+          expect(result.totalCount).toBe(2);
+          expect(result.results).toEqual([attribute4, attribute5]);
         });
-        it("should get the attributes if they exist (parameters: name only)", () => {
-          // TO DO
-          expect(1).toBe(1);
+        it("should get the attributes if they exist (parameters: name only)", async () => {
+          const result = await readModelService.getAttributesByKindsNameOrigin({
+            kinds: [],
+            name: "test",
+            offset: 0,
+            limit: 50,
+          });
+          expect(result.totalCount).toBe(3);
+          expect(result.results).toEqual([attribute1, attribute2, attribute3]);
         });
-        it("should get the attributes if they exist (parameters: origin only)", () => {
-          // TO DO
-          expect(1).toBe(1);
+        it("should get the attributes if they exist (parameters: origin only)", async () => {
+          const result = await readModelService.getAttributesByKindsNameOrigin({
+            kinds: [],
+            origin: "IPA",
+            offset: 0,
+            limit: 50,
+          });
+          expect(result.totalCount).toBe(3);
+          expect(result.results).toEqual([attribute1, attribute2, attribute3]);
         });
-        it("should get all the attributes if no parameter is passed", () => {
-          // TO DO
-          expect(1).toBe(1);
+        it("should get all the attributes if no parameter is passed", async () => {
+          const result = await readModelService.getAttributesByKindsNameOrigin({
+            kinds: [],
+            offset: 0,
+            limit: 50,
+          });
+          expect(result.totalCount).toBe(7);
+          expect(result.results).toEqual([
+            attribute1,
+            attribute2,
+            attribute3,
+            attribute4,
+            attribute5,
+            attribute6,
+            attribute7,
+          ]);
         });
-        it("should not get the attributes if they don't exist", () => {
-          // TO DO
-          expect(1).toBe(1);
+        it("should not get the attributes if they don't exist", async () => {
+          const result = await readModelService.getAttributesByKindsNameOrigin({
+            kinds: [],
+            name: "latest attribute",
+            offset: 0,
+            limit: 50,
+          });
+          expect(result.totalCount).toBe(0);
+          expect(result.results).toEqual([]);
         });
       });
-      describe("get an attribute by id", () => {
+      describe("getAttributeById", () => {
         it("should get the attribute if it exists", async () => {
-          await addOneAttribute(mockAttribute);
           const attribute = await readModelService.getAttributeById(
-            mockAttribute.id
+            attribute1.id
           );
-          expect(attribute?.data).toEqual(mockAttribute);
+          expect(attribute?.data).toEqual(attribute1);
         });
         it("should not get the attribute if it doesn't exist", async () => {
-          const id = uuidv4();
-          const attribute = await readModelService.getAttributeById(id);
+          const attribute = await readModelService.getAttributeById(uuidv4());
           expect(attribute).toBeUndefined();
         });
       });
-      describe("get an attribute by name", () => {
+      describe("getAttributeByName", () => {
         it("should get the attribute if it exists", async () => {
-          await addOneAttribute(mockAttribute);
           const attribute = await readModelService.getAttributeByName(
-            mockAttribute.name
+            attribute1.name
           );
-          expect(attribute?.data).toEqual(mockAttribute);
+          expect(attribute?.data).toEqual(attribute1);
         });
         it("should not get the attribute if it doesn't exist", async () => {
-          const attribute = await readModelService.getAttributeByName("name");
+          const attribute = await readModelService.getAttributeByName(
+            "not-existing"
+          );
           expect(attribute).toBeUndefined();
         });
       });
       describe("getAttributeByOriginAndCode", () => {
         it("should get the attribute if it exists", async () => {
-          // TO DO
-          expect(1).toBe(1);
+          const attribute = await readModelService.getAttributeByOriginAndCode({
+            origin: "IPA",
+            code: "12345A",
+          });
+          expect(attribute?.data).toEqual(attribute1);
         });
         it("should not get the attribute if it doesn't exist", async () => {
-          // TO DO
-          expect(1).toBe(1);
+          const attribute = await readModelService.getAttributeByOriginAndCode({
+            origin: "IPA",
+            code: "12345D",
+          });
+          expect(attribute).toBeUndefined();
         });
       });
     });
