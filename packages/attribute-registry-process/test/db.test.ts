@@ -29,11 +29,12 @@ import {
 import { attributeDuplicate } from "../src/model/domain/errors.js";
 import { toAttributeV1 } from "../src/model/domain/toEvent.js";
 import {
+  addOneAttribute,
+  addOneTenant,
   decodeProtobufPayload,
   getMockAttribute,
   getMockTenant,
   getMockAuthData,
-  addOneAttribute,
   readLastEventByStreamId,
 } from "./utils.js";
 
@@ -203,7 +204,7 @@ describe("database test", () => {
           ],
         };
 
-        addOneTenant(tenant);
+        addOneTenant(tenant, tenants);
 
         // const organizationId = await attributeRegistryService.getCertifierId(
         //   tenant.id

@@ -87,7 +87,7 @@ export const getMockAttribute = (): Attribute => ({
   kind: attributeKind.certified,
   description: "attribute dscription",
   creationTime: new Date(),
-  code: "code",
+  code: undefined,
   origin: undefined,
 });
 
