@@ -19,6 +19,7 @@ import {
   tenantAttributeType,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
+import { AuthData } from "pagopa-interop-commons";
 import { AgreementQuery } from "../../services/readmodel/agreementQuery.js";
 import { ApiAgreementPayload } from "../types.js";
 import {
@@ -27,9 +28,12 @@ import {
   agreementNotInExpectedState,
   agreementSubmissionFailed,
   descriptorNotInExpectedState,
+  eServiceNotFound,
+  documentsChangeNotAllowed,
   missingCertifiedAttributesError,
   notLatestEServiceDescriptor,
   operationNotAllowed,
+  tenantIdNotFound,
 } from "./errors.js";
 
 type NotRevocableTenantAttribute = Pick<VerifiedTenantAttribute, "id">;
@@ -48,12 +52,41 @@ export function assertAgreementExist(
   }
 }
 
+export function assertEServiceExist(
+  eServiceId: string,
+  eService: WithMetadata<EService> | undefined
+): asserts eService is NonNullable<WithMetadata<EService>> {
+  if (eService === undefined) {
+    throw eServiceNotFound(eServiceId);
+  }
+}
+
 export const assertRequesterIsConsumer = (
-  consumerId: string,
-  requesterId: string
+  agreement: Agreement,
+  authData: AuthData
 ): void => {
-  if (consumerId !== requesterId) {
-    throw operationNotAllowed(requesterId);
+  if (authData.organizationId !== agreement.consumerId) {
+    throw operationNotAllowed(authData.organizationId);
+  }
+};
+
+export function assertRequesterIsProducer(
+  agreement: Agreement,
+  authData: AuthData
+): void {
+  if (authData.organizationId !== agreement.producerId) {
+    throw operationNotAllowed(authData.organizationId);
+  }
+}
+
+export const assertRequesterIsConsumerOrProducer = (
+  agreement: Agreement,
+  authData: AuthData
+): void => {
+  try {
+    assertRequesterIsConsumer(agreement, authData);
+  } catch (error) {
+    assertRequesterIsProducer(agreement, authData);
   }
 };
 
@@ -73,6 +106,23 @@ export const assertExpectedState = (
 ): void => {
   if (!expectedStates.includes(agreementState)) {
     throw agreementNotInExpectedState(agreementId, agreementState);
+  }
+};
+
+export function assertTenantExist(
+  tenantId: string,
+  tenant: WithMetadata<Tenant> | undefined
+): asserts tenant is NonNullable<WithMetadata<Tenant>> {
+  if (tenant === undefined) {
+    throw tenantIdNotFound(tenantId);
+  }
+}
+
+export const assertCanWorkOnConsumerDocuments = (
+  state: AgreementState
+): void => {
+  if (state !== agreementState.draft && state !== agreementState.pending) {
+    throw documentsChangeNotAllowed(state);
   }
 };
 
@@ -233,7 +283,7 @@ export const verifiedAttributesSatisfied = (
   );
 };
 
-const verifyConflictingAgreements = async (
+export const verifyConflictingAgreements = async (
   consumerId: string,
   eserviceId: string,
   conflictingStates: AgreementState[],
