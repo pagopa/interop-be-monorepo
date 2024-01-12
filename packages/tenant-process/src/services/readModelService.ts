@@ -9,10 +9,10 @@ import {
   Tenant,
   Attribute,
   ExternalId,
-  genericError,
-  agreementState,
   EService,
+  genericError,
   ListResult,
+  agreementState,
 } from "pagopa-interop-models";
 import { z } from "zod";
 import { Filter, WithId } from "mongodb";
@@ -42,6 +42,7 @@ function listTenantsFilters(
     ...withSelfcareIdFilter,
   };
 }
+
 export const getTenants = async ({
   tenants,
   aggregationPipeline,
