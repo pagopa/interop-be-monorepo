@@ -412,18 +412,6 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
       const attributePromises = attributeIds.map(fetchAttributeById);
       return Promise.all(attributePromises);
     },
-    async getAgreements(
-      producerId: string,
-      consumerId: string,
-      agreementStates: AgreementState[]
-    ): Promise<Agreement[]> {
-      return getAllAgreements(
-        agreements,
-        producerId,
-        consumerId,
-        agreementStates
-      );
-    },
 
     async getEServiceById(
       id: string
