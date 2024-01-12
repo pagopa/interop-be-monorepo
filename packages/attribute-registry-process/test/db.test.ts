@@ -93,6 +93,7 @@ describe("database test", () => {
 
   afterEach(async () => {
     await attributes.deleteMany({});
+    await tenants.deleteMany({});
     await postgresDB.none("TRUNCATE TABLE attribute.events RESTART IDENTITY");
   });
 
@@ -204,7 +205,7 @@ describe("database test", () => {
           ],
         };
 
-        addOneTenant(tenant, tenants);
+        await addOneTenant(tenant, tenants);
 
         // const organizationId = await attributeRegistryService.getCertifierId(
         //   tenant.id

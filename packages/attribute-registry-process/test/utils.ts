@@ -85,7 +85,7 @@ export const getMockAttribute = (): Attribute => ({
   id: uuidv4(),
   name: "attribute name",
   kind: attributeKind.certified,
-  description: "attribute dscription",
+  description: "attribute description",
   creationTime: new Date(),
   code: undefined,
   origin: undefined,
