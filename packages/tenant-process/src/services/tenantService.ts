@@ -2,35 +2,15 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { CreateEvent, eventRepository, initDB } from "pagopa-interop-commons";
 import {
-  Attribute,
-  ExternalId,
   Tenant,
   TenantAttribute,
   TenantEvent,
-  TenantFeature,
-  TenantKind,
-  TenantMail,
   WithMetadata,
-  tenantAttributeType,
   tenantEventToBinaryData,
 } from "pagopa-interop-models";
-import { v4 as uuidv4 } from "uuid";
 import { TenantProcessConfig } from "../utilities/config.js";
+import { toCreateEventTenantUpdated } from "../model/domain/toEvent.js";
 import {
-  toCreateEventTenantAdded,
-  toCreateEventTenantUpdated,
-} from "../model/domain/toEvent.js";
-import {
-  ApiInternalTenantSeed,
-  ApiM2MTenantSeed,
-  ApiSelfcareTenantSeed,
-} from "../model/types.js";
-import {
-  invalidAttributeStructure,
-  tenantDuplicate,
-} from "../model/domain/errors.js";
-import {
-  assertAttributeExists,
   assertExpirationDateExist,
   assertOrganizationVerifierExist,
   assertTenantExists,
