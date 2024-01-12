@@ -1,16 +1,23 @@
-import { z } from "zod";
-import { logger, ReadModelRepository } from "pagopa-interop-commons";
 import {
-  agreementState,
+  AttributeCollection,
+  logger,
+  ReadModelRepository,
+  TenantCollection,
+} from "pagopa-interop-commons";
+import {
+  WithMetadata,
+  Tenant,
+  Attribute,
+  ExternalId,
+  EService,
   genericError,
   ListResult,
-  Tenant,
-  WithMetadata,
+  agreementState,
 } from "pagopa-interop-models";
+import { z } from "zod";
 import { Filter, WithId } from "mongodb";
-import { config } from "../utilities/config.js";
-
-const { tenants } = ReadModelRepository.init(config);
+import { attributeNotFound } from "../model/domain/errors.js";
+import { TenantProcessConfig } from "../utilities/config.js";
 
 function listTenantsFilters(
   name: string | undefined
@@ -37,11 +44,13 @@ function listTenantsFilters(
 }
 
 export const getTenants = async ({
+  tenants,
   aggregationPipeline,
   offset,
   limit,
   allowDiskUse = false,
 }: {
+  tenants: TenantCollection;
   aggregationPipeline: Array<Filter<Tenant>>;
   offset: number;
   limit: number;
@@ -76,160 +85,283 @@ export const getTenants = async ({
   };
 };
 
-async function getTenant(
-  filter: Filter<WithId<WithMetadata<Tenant>>>
-): Promise<WithMetadata<Tenant> | undefined> {
-  const dataTenant = await tenants.findOne(filter, {
-    projection: { dataTenant: true, metadata: true },
+async function getAttribute(
+  attributes: AttributeCollection,
+  filter: Filter<WithId<WithMetadata<Attribute>>>
+): Promise<WithMetadata<Attribute> | undefined> {
+  const data = await attributes.findOne(filter, {
+    projection: { data: true, metadata: true },
   });
-
-  if (dataTenant) {
+  if (!data) {
+    return undefined;
+  } else {
     const result = z
       .object({
         metadata: z.object({ version: z.number() }),
-        data: Tenant,
+        data: Attribute,
       })
-      .safeParse(dataTenant);
+      .safeParse(data);
     if (!result.success) {
       logger.error(
-        `Unable to parse tenant item: result ${JSON.stringify(
+        `Unable to parse attribute item: result ${JSON.stringify(
           result
-        )} - data ${JSON.stringify(dataTenant)} `
+        )} - data ${JSON.stringify(data)} `
       );
-      throw genericError("Unable to parse tenant item");
+      throw genericError("Unable to parse attribute item");
     }
     return {
       data: result.data.data,
       metadata: { version: result.data.metadata.version },
     };
   }
-  return undefined;
 }
 
-export const readModelService = {
-  async getTenants({
-    name,
-    offset,
-    limit,
-  }: {
-    name: string | undefined;
-    offset: number;
-    limit: number;
-  }): Promise<ListResult<Tenant>> {
-    const query = listTenantsFilters(name);
-    const aggregationPipeline = [
-      { $match: query },
-      { $project: { data: 1, lowerName: { $toLower: "$data.name" } } },
-      { $sort: { lowerName: 1 } },
-    ];
+async function getTenant(
+  tenants: TenantCollection,
+  filter: Filter<WithId<WithMetadata<Tenant>>>
+): Promise<WithMetadata<Tenant> | undefined> {
+  const data = await tenants.findOne(filter, {
+    projection: { data: true, metadata: true },
+  });
 
-    return getTenants({
-      aggregationPipeline,
+  if (!data) {
+    return undefined;
+  } else {
+    const result = z
+      .object({
+        metadata: z.object({ version: z.number() }),
+        data: Tenant,
+      })
+      .safeParse(data);
+
+    if (!result.success) {
+      logger.error(
+        `Unable to parse tenant item: result ${JSON.stringify(
+          result
+        )} - data ${JSON.stringify(data)} `
+      );
+
+      throw genericError("Unable to parse tenant item");
+    }
+
+    return {
+      data: result.data.data,
+      metadata: { version: result.data.metadata.version },
+    };
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export function readModelServiceBuilder(config: TenantProcessConfig) {
+  const { attributes, eservices, tenants } = ReadModelRepository.init(config);
+  return {
+    async getTenantsByName({
+      name,
       offset,
       limit,
-    });
-  },
+    }: {
+      name: string | undefined;
+      offset: number;
+      limit: number;
+    }): Promise<ListResult<Tenant>> {
+      const query = listTenantsFilters(name);
+      const aggregationPipeline = [
+        { $match: query },
+        { $project: { data: 1, lowerName: { $toLower: "$data.name" } } },
+        { $sort: { lowerName: 1 } },
+      ];
 
-  async getTenantById(id: string): Promise<WithMetadata<Tenant> | undefined> {
-    return getTenant({ "data.id": id });
-  },
+      return getTenants({
+        tenants,
+        aggregationPipeline,
+        offset,
+        limit,
+      });
+    },
 
-  async getTenantByExternalId({
-    origin,
-    code,
-  }: {
-    origin: string;
-    code: string;
-  }): Promise<WithMetadata<Tenant> | undefined> {
-    return getTenant({
-      "data.externalId.value": code,
-      "data.externalId.origin": origin,
-    });
-  },
+    async getTenantById(id: string): Promise<WithMetadata<Tenant> | undefined> {
+      return getTenant(tenants, { "data.id": id });
+    },
 
-  async getTenantBySelfcareId(
-    selfcareId: string
-  ): Promise<WithMetadata<Tenant> | undefined> {
-    return getTenant({ "data.selfcareId": selfcareId });
-  },
-
-  async getConsumers({
-    name,
-    producerId,
-    offset,
-    limit,
-  }: {
-    name: string | undefined;
-    producerId: string;
-    offset: number;
-    limit: number;
-  }): Promise<ListResult<Tenant>> {
-    const query = listTenantsFilters(name);
-
-    const aggregationPipeline = [
-      { $match: query },
-      {
-        $lookup: {
-          from: "agreements",
-          localField: "data.id",
-          foreignField: "data.consumerId",
-          as: "agreements",
+    async getTenantByName(
+      name: string
+    ): Promise<WithMetadata<Tenant> | undefined> {
+      return getTenant(tenants, {
+        "data.name": {
+          $regex: `^${name}$$`,
+          $options: "i",
         },
-      },
-      {
-        $match: {
-          $and: [
-            { "agreements.data.producerId": producerId },
-            {
-              "agreements.data.state": {
-                $in: [agreementState.active, agreementState.suspended],
+      });
+    },
+
+    async getTenantByExternalId(
+      externalId: ExternalId
+    ): Promise<WithMetadata<Tenant> | undefined> {
+      return getTenant(tenants, {
+        "data.externalId.value": externalId.value,
+        "data.externalId.origin": externalId.origin,
+      });
+    },
+
+    async getTenantBySelfcareId(
+      selfcareId: string
+    ): Promise<WithMetadata<Tenant> | undefined> {
+      return getTenant(tenants, { "data.selfcareId": selfcareId });
+    },
+
+    async getConsumers({
+      name,
+      producerId,
+      offset,
+      limit,
+    }: {
+      name: string | undefined;
+      producerId: string;
+      offset: number;
+      limit: number;
+    }): Promise<ListResult<Tenant>> {
+      const query = listTenantsFilters(name);
+
+      const aggregationPipeline = [
+        { $match: query },
+        {
+          $lookup: {
+            from: "agreements",
+            localField: "data.id",
+            foreignField: "data.consumerId",
+            as: "agreements",
+          },
+        },
+        {
+          $match: {
+            $and: [
+              { "agreements.data.producerId": producerId },
+              {
+                "agreements.data.state": {
+                  $in: [agreementState.active, agreementState.suspended],
+                },
               },
-            },
-          ],
+            ],
+          },
         },
-      },
-      { $project: { data: 1, lowerName: { $toLower: "$data.name" } } },
-      { $sort: { lowerName: 1 } },
-    ];
+        { $project: { data: 1, lowerName: { $toLower: "$data.name" } } },
+        { $sort: { lowerName: 1 } },
+      ];
 
-    return getTenants({
-      aggregationPipeline,
+      return getTenants({
+        tenants,
+        aggregationPipeline,
+        offset,
+        limit,
+        allowDiskUse: true,
+      });
+    },
+
+    async getProducers({
+      name,
       offset,
       limit,
-      allowDiskUse: true,
-    });
-  },
-
-  async getProducers({
-    name,
-    offset,
-    limit,
-  }: {
-    name: string | undefined;
-    offset: number;
-    limit: number;
-  }): Promise<ListResult<Tenant>> {
-    const query = listTenantsFilters(name);
-    const aggregationPipeline = [
-      { $match: query },
-      {
-        $lookup: {
-          from: "eservices",
-          localField: "data.id",
-          foreignField: "data.producerId",
-          as: "eservices",
+    }: {
+      name: string | undefined;
+      offset: number;
+      limit: number;
+    }): Promise<ListResult<Tenant>> {
+      const query = listTenantsFilters(name);
+      const aggregationPipeline = [
+        { $match: query },
+        {
+          $lookup: {
+            from: "eservices",
+            localField: "data.id",
+            foreignField: "data.producerId",
+            as: "eservices",
+          },
         },
-      },
-      { $match: { eservices: { $not: { $size: 0 } } } },
-      { $project: { data: 1, lowerName: { $toLower: "$data.name" } } },
-      { $sort: { lowerName: 1 } },
-    ];
+        { $match: { eservices: { $not: { $size: 0 } } } },
+        { $project: { data: 1, lowerName: { $toLower: "$data.name" } } },
+        { $sort: { lowerName: 1 } },
+      ];
 
-    return getTenants({
-      aggregationPipeline,
-      offset,
-      limit,
-      allowDiskUse: true,
-    });
-  },
-};
+      return getTenants({
+        tenants,
+        aggregationPipeline,
+        offset,
+        limit,
+        allowDiskUse: true,
+      });
+    },
+    async getAttributesByExternalIds(
+      externalIds: ExternalId[]
+    ): Promise<Array<WithMetadata<Attribute>>> {
+      const fetchAttributeByExternalId = async (
+        externalId: ExternalId
+      ): Promise<WithMetadata<Attribute>> => {
+        const data = await getAttribute(attributes, {
+          "data.origin": externalId.origin,
+          "data.code": externalId.value,
+        });
+        if (!data) {
+          throw attributeNotFound(`${externalId.origin}/${externalId.value}`);
+        }
+        return data;
+      };
+
+      const attributesPromises = externalIds.map(fetchAttributeByExternalId);
+      return Promise.all(attributesPromises);
+    },
+
+    async getAttributesById(
+      attributeIds: string[]
+    ): Promise<Array<WithMetadata<Attribute>>> {
+      const fetchAttributeById = async (
+        id: string
+      ): Promise<WithMetadata<Attribute>> => {
+        const data = await getAttribute(attributes, { "data.id": id });
+        if (!data) {
+          throw attributeNotFound(id);
+        }
+        return data;
+      };
+
+      const attributePromises = attributeIds.map(fetchAttributeById);
+      return Promise.all(attributePromises);
+    },
+
+    async getEServiceById(
+      id: string
+    ): Promise<WithMetadata<EService> | undefined> {
+      const data = await eservices.findOne(
+        { "data.id": id },
+        { projection: { data: true, metadata: true } }
+      );
+
+      if (!data) {
+        return undefined;
+      } else {
+        const result = z
+          .object({
+            metadata: z.object({ version: z.number() }),
+            data: EService,
+          })
+          .safeParse(data);
+
+        if (!result.success) {
+          logger.error(
+            `Unable to parse eservices item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+
+          throw genericError("Unable to parse eservices item");
+        }
+
+        return {
+          data: result.data.data,
+          metadata: { version: result.data.metadata.version },
+        };
+      }
+    },
+  };
+}
+
+export type ReadModelService = ReturnType<typeof readModelServiceBuilder>;

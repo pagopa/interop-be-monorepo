@@ -1,3 +1,4 @@
+import { CreateEvent } from "pagopa-interop-commons";
 import {
   TenantMail,
   TenantMailKind,
@@ -17,6 +18,7 @@ import {
   TenantVerifierV1,
   tenantMailKind,
   tenantKind,
+  TenantEvent,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -128,4 +130,30 @@ export const toTenantV1 = (tenant: Tenant): TenantV1 => ({
   updatedAt: tenant.updatedAt ? BigInt(tenant.updatedAt.getTime()) : undefined,
   mails: tenant.mails.map(toTenantMailV1),
   kind: tenant.kind ? toTenantKindV1(tenant.kind) : undefined,
+});
+
+export const toCreateEventTenantAdded = (
+  tenant: Tenant
+): CreateEvent<TenantEvent> => ({
+  streamId: tenant.id,
+  version: 0,
+  event: {
+    type: "TenantCreated",
+    data: { tenant: toTenantV1(tenant) },
+  },
+});
+
+export const toCreateEventTenantUpdated = (
+  streamId: string,
+  version: number,
+  updatedTenant: Tenant
+): CreateEvent<TenantEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "TenantUpdated",
+    data: {
+      tenant: toTenantV1(updatedTenant),
+    },
+  },
 });
