@@ -299,6 +299,76 @@ describe("database test", () => {
         ).rejects.toThrowError(tenantNotFound(mockTenant.id));
       });
     });
+    describe("certified attribute internal creation", () => {
+      it("should write on event-store for the internal creation of a certified attribute", async () => {
+        const tenant: Tenant = {
+          ...mockTenant,
+          features: [
+            {
+              type: "Certifier",
+              certifierId: uuidv4(),
+            },
+          ],
+        };
+
+        await addOneTenant(tenant, tenants);
+
+        const id =
+          await attributeRegistryService.createInternalCertifiedAttribute({
+            name: mockAttribute.name,
+            code: mockAttribute.code!,
+            origin: tenant.features[0].certifierId,
+            description: mockAttribute.description,
+          });
+        expect(id).toBeDefined();
+
+        const writtenEvent = await readLastEventByStreamId(id, postgresDB);
+        expect(writtenEvent.stream_id).toBe(id);
+        expect(writtenEvent.version).toBe("0");
+        expect(writtenEvent.type).toBe("AttributeAdded");
+        const writtenPayload = decodeProtobufPayload({
+          messageType: AttributeAddedV1,
+          payload: writtenEvent.data,
+        });
+
+        const attribute: Attribute = {
+          ...mockAttribute,
+          id,
+          kind: attributeKind.certified,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          creationTime: new Date(writtenPayload.attribute!.creationTime),
+          origin: tenant.features[0].certifierId,
+        };
+        expect(writtenPayload.attribute).toEqual(toAttributeV1(attribute));
+      });
+      it("should throw attributeDuplicate if the attribute already exists", async () => {
+        const attribute = {
+          ...mockAttribute,
+          code: "123456",
+        };
+
+        const tenant: Tenant = {
+          ...mockTenant,
+          features: [
+            {
+              type: "Certifier",
+              certifierId: uuidv4(),
+            },
+          ],
+        };
+
+        await addOneTenant(tenant, tenants);
+        await addOneAttribute(attribute, postgresDB, attributes);
+        expect(
+          attributeRegistryService.createInternalCertifiedAttribute({
+            name: attribute.name,
+            code: attribute.code,
+            origin: tenant.features[0].certifierId,
+            description: attribute.description,
+          })
+        ).rejects.toThrowError(attributeDuplicate(attribute.name));
+      });
+    });
 
     describe("readModelService", () => {
       let attribute1: Attribute;
