@@ -2,7 +2,7 @@ import { EachMessagePayload } from "kafkajs";
 import { logger, consumerConfig } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
 import { decodeKafkaMessage } from "./model/models.js";
-import { handleMessage } from "./tenantConsumerService.js";
+import { handleMessage } from "./consumerService.js";
 
 async function processMessage({
   message,
