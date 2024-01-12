@@ -9,6 +9,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   Agreement,
+  AgreementDocument,
   AgreementEvent,
   ListResult,
   WithMetadata,
@@ -19,26 +20,32 @@ import {
   agreementUpgradableStates,
   agreementDeletableStates,
   agreementUpdatableStates,
+  agreementCloningConflictingStates,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
-import { utcToZonedTime } from "date-fns-tz";
 import {
+  agreementAlreadyExists,
   descriptorNotFound,
   noNewerDescriptor,
   unexpectedVersionFormat,
+  publishedDescriptorNotFound,
+  agreementDocumentAlreadyExists,
+  agreementDocumentNotFound,
 } from "../model/domain/errors.js";
+
 import {
   toCreateEventAgreementAdded,
   toCreateEventAgreementConsumerDocumentAdded,
   toCreateEventAgreementDeleted,
   toCreateEventAgreementUpdated,
 } from "../model/domain/toEvent.js";
-import { publishedDescriptorNotFound } from "../model/domain/errors.js";
 import {
   assertAgreementExist,
+  assertCanWorkOnConsumerDocuments,
   assertEServiceExist,
   assertExpectedState,
   assertRequesterIsConsumer,
+  assertRequesterIsConsumerOrProducer,
   assertTenantExist,
   declaredAttributesSatisfied,
   validateCertifiedAttributes,
@@ -52,8 +59,10 @@ import {
   ApiAgreementPayload,
   ApiAgreementSubmissionPayload,
   ApiAgreementUpdatePayload,
+  ApiAgreementDocumentSeed,
 } from "../model/types.js";
 import { config } from "../utilities/config.js";
+import { apiAgreementDocumentToAgreementDocument } from "../model/domain/apiConverter.js";
 import { contractBuilder } from "./agreementContractBuilder.js";
 import { submitAgreementLogic } from "./agreementSubmissionProcessor.js";
 import { AgreementQuery } from "./readmodel/agreementQuery.js";
@@ -180,7 +189,7 @@ export function agreementServiceBuilder(
       agreementId: string,
       authData: AuthData
     ): Promise<string> {
-      logger.info("Upgrading agreement");
+      logger.info(`Upgrading agreement ${agreementId}`);
       const { streamId, events } = await upgradeAgreementLogic({
         agreementId,
         authData,
@@ -195,6 +204,63 @@ export function agreementServiceBuilder(
       }
 
       return streamId;
+    },
+    async cloneAgreement(
+      agreementId: string,
+      authData: AuthData
+    ): Promise<string> {
+      logger.info(`Cloning agreement ${agreementId}`);
+      const { streamId, events } = await cloneAgreementLogic({
+        agreementId,
+        authData,
+        agreementQuery,
+        eserviceQuery,
+        tenantQuery,
+        fileCopy: fileManager.copy,
+      });
+
+      for (const event of events) {
+        await repository.createEvent(event);
+      }
+
+      return streamId;
+    },
+    async addConsumerDocument(
+      agreementId: string,
+      documentSeed: ApiAgreementDocumentSeed,
+      authData: AuthData
+    ): Promise<string> {
+      logger.info(`Adding a consumer document to agreement ${agreementId}`);
+
+      const addDocumentEvent = await addConsumerDocumentLogic(
+        agreementId,
+        documentSeed,
+        agreementQuery,
+        authData
+      );
+      return await repository.createEvent(addDocumentEvent);
+    },
+    async getAgreementConsumerDocument(
+      agreementId: string,
+      documentId: string,
+      authData: AuthData
+    ): Promise<AgreementDocument> {
+      logger.info(
+        `Retrieving consumer document ${documentId} from agreement ${agreementId}`
+      );
+      const agreement = await agreementQuery.getAgreementById(agreementId);
+      assertAgreementExist(agreementId, agreement);
+      assertRequesterIsConsumerOrProducer(agreement.data, authData);
+
+      const document = agreement.data.consumerDocuments.find(
+        (d) => d.id === documentId
+      );
+
+      if (!document) {
+        throw agreementDocumentNotFound(documentId, agreementId);
+      }
+
+      return document;
     },
   };
 }
@@ -237,7 +303,7 @@ async function createAndCopyDocumentsForClonedAgreement(
         prettyName: clonedAgreement.consumerDocuments[i].prettyName,
         contentType: clonedAgreement.consumerDocuments[i].contentType,
         path: d.newPath,
-        createdAt: utcToZonedTime(new Date(), "ETC/UTC"),
+        createdAt: new Date(),
       },
       startingVersion + i
     )
@@ -521,4 +587,120 @@ export async function upgradeAgreementLogic({
       events: [createEvent, ...docEvents],
     };
   }
+}
+
+export async function cloneAgreementLogic({
+  agreementId,
+  authData,
+  agreementQuery,
+  tenantQuery,
+  eserviceQuery,
+  fileCopy,
+}: {
+  agreementId: string;
+  authData: AuthData;
+  agreementQuery: AgreementQuery;
+  tenantQuery: TenantQuery;
+  eserviceQuery: EserviceQuery;
+  fileCopy: (
+    container: string,
+    sourcePath: string,
+    destinationPath: string,
+    destinationFileName: string,
+    docName: string
+  ) => Promise<string>;
+}): Promise<{ streamId: string; events: Array<CreateEvent<AgreementEvent>> }> {
+  const agreementToBeCloned = await agreementQuery.getAgreementById(
+    agreementId
+  );
+  assertAgreementExist(agreementId, agreementToBeCloned);
+  assertRequesterIsConsumer(agreementToBeCloned.data, authData);
+
+  assertExpectedState(agreementId, agreementToBeCloned.data.state, [
+    agreementState.rejected,
+  ]);
+
+  const eservice = await eserviceQuery.getEServiceById(
+    agreementToBeCloned.data.eserviceId
+  );
+  assertEServiceExist(agreementToBeCloned.data.eserviceId, eservice);
+
+  const activeAgreement = await agreementQuery.getAllAgreements({
+    consumerId: authData.organizationId,
+    eserviceId: agreementToBeCloned.data.eserviceId,
+    agreementStates: agreementCloningConflictingStates,
+  });
+  if (activeAgreement.length > 0) {
+    throw agreementAlreadyExists(
+      authData.organizationId,
+      agreementToBeCloned.data.eserviceId
+    );
+  }
+
+  const consumer = await tenantQuery.getTenantById(
+    agreementToBeCloned.data.consumerId
+  );
+  assertTenantExist(agreementToBeCloned.data.consumerId, consumer);
+
+  const descriptor = eservice.data.descriptors.find(
+    (d) => d.id === agreementToBeCloned.data.descriptorId
+  );
+  if (descriptor === undefined) {
+    throw descriptorNotFound(
+      eservice.data.id,
+      agreementToBeCloned.data.descriptorId
+    );
+  }
+
+  validateCertifiedAttributes(descriptor, consumer.data);
+
+  const newAgreement = await createAgreementLogic(
+    {
+      eserviceId: agreementToBeCloned.data.eserviceId,
+      descriptorId: agreementToBeCloned.data.descriptorId,
+    },
+    authData,
+    agreementQuery,
+    eserviceQuery,
+    tenantQuery
+  );
+
+  const docEvents = await createAndCopyDocumentsForClonedAgreement(
+    newAgreement.streamId,
+    agreementToBeCloned.data,
+    0,
+    fileCopy
+  );
+
+  return {
+    streamId: newAgreement.streamId,
+    events: [newAgreement, ...docEvents],
+  };
+}
+
+export async function addConsumerDocumentLogic(
+  agreementId: string,
+  payload: ApiAgreementDocumentSeed,
+  agreementQuery: AgreementQuery,
+  authData: AuthData
+): Promise<CreateEvent<AgreementEvent>> {
+  const agreement = await agreementQuery.getAgreementById(agreementId);
+
+  assertAgreementExist(agreementId, agreement);
+  assertRequesterIsConsumer(agreement.data, authData);
+  assertCanWorkOnConsumerDocuments(agreement.data.state);
+
+  const existentDocument = agreement.data.consumerDocuments.find(
+    (d) => d.id === payload.id
+  );
+
+  if (existentDocument) {
+    throw agreementDocumentAlreadyExists(agreementId);
+  }
+
+  return toCreateEventAgreementConsumerDocumentAdded(
+    agreementId,
+    apiAgreementDocumentToAgreementDocument(payload),
+    agreement.metadata.version
+  );
 }

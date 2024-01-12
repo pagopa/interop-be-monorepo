@@ -33,9 +33,8 @@ import {
   getMockAttribute,
   getMockTenant,
   getMockAuthData,
-  writeAttributeInEventstore,
-  writeAttributeInReadmodel,
-  writeTenantInReadmodel,
+  addOneAttribute,
+  readLastEventByStreamId,
 } from "./utils.js";
 
 const mockAttribute = getMockAttribute();
@@ -108,7 +107,7 @@ describe("database test", () => {
         );
         expect(id).toBeDefined();
 
-        const writtenEvent = await readLastEventByStreamId(id);
+        const writtenEvent = await readLastEventByStreamId(id, postgresDB);
         expect(writtenEvent.stream_id).toBe(id);
         expect(writtenEvent.version).toBe("0");
         expect(writtenEvent.type).toBe("AttributeAdded");
@@ -132,7 +131,7 @@ describe("database test", () => {
           ...mockAttribute,
           kind: attributeKind.declared,
         };
-        await addOneAttribute(attribute);
+        await addOneAttribute(attribute, postgresDB, attributes);
         expect(
           attributeRegistryService.createDeclaredAttribute(
             {
@@ -155,7 +154,7 @@ describe("database test", () => {
         );
         expect(id).toBeDefined();
 
-        const writtenEvent = await readLastEventByStreamId(id);
+        const writtenEvent = await readLastEventByStreamId(id, postgresDB);
         expect(writtenEvent.stream_id).toBe(id);
         expect(writtenEvent.version).toBe("0");
         expect(writtenEvent.type).toBe("AttributeAdded");
@@ -180,7 +179,7 @@ describe("database test", () => {
           ...mockAttribute,
           kind: attributeKind.verified,
         };
-        await addOneAttribute(attribute);
+        await addOneAttribute(attribute, postgresDB, attributes);
         expect(
           attributeRegistryService.createVerifiedAttribute(
             {
@@ -219,7 +218,7 @@ describe("database test", () => {
         );
         expect(id).toBeDefined();
 
-        const writtenEvent = await readLastEventByStreamId(id);
+        const writtenEvent = await readLastEventByStreamId(id, postgresDB);
         expect(writtenEvent.stream_id).toBe(id);
         expect(writtenEvent.version).toBe("0");
         expect(writtenEvent.type).toBe("AttributeAdded");
@@ -269,7 +268,7 @@ describe("database test", () => {
           origin: "IPA",
           code: "12345A",
         };
-        await addOneAttribute(attribute1);
+        await addOneAttribute(attribute1, postgresDB, attributes);
 
         attribute2 = {
           ...mockAttribute,
@@ -279,7 +278,7 @@ describe("database test", () => {
           origin: "IPA",
           code: "12345B",
         };
-        await addOneAttribute(attribute2);
+        await addOneAttribute(attribute2, postgresDB, attributes);
 
         attribute3 = {
           ...mockAttribute,
@@ -289,7 +288,7 @@ describe("database test", () => {
           origin: "IPA",
           code: "12345C",
         };
-        await addOneAttribute(attribute3);
+        await addOneAttribute(attribute3, postgresDB, attributes);
 
         attribute4 = {
           ...mockAttribute,
@@ -297,7 +296,7 @@ describe("database test", () => {
           name: "attribute 004",
           kind: attributeKind.declared,
         };
-        await addOneAttribute(attribute4);
+        await addOneAttribute(attribute4, postgresDB, attributes);
 
         attribute5 = {
           ...mockAttribute,
@@ -305,7 +304,7 @@ describe("database test", () => {
           name: "attribute 005",
           kind: attributeKind.declared,
         };
-        await addOneAttribute(attribute5);
+        await addOneAttribute(attribute5, postgresDB, attributes);
 
         attribute6 = {
           ...mockAttribute,
@@ -313,7 +312,7 @@ describe("database test", () => {
           name: "attribute 006",
           kind: attributeKind.verified,
         };
-        await addOneAttribute(attribute6);
+        await addOneAttribute(attribute6, postgresDB, attributes);
 
         attribute7 = {
           ...mockAttribute,
@@ -321,7 +320,7 @@ describe("database test", () => {
           name: "attribute 007",
           kind: attributeKind.verified,
         };
-        await addOneAttribute(attribute7);
+        await addOneAttribute(attribute7, postgresDB, attributes);
       });
 
       describe("getAttributesByIds", () => {
@@ -467,19 +466,4 @@ describe("database test", () => {
       });
     });
   });
-
-  const addOneAttribute = async (attribute: Attribute): Promise<void> => {
-    await writeAttributeInEventstore(attribute, postgresDB);
-    await writeAttributeInReadmodel(attribute, attributes);
-  };
-
-  const addOneTenant = async (tenant: Tenant): Promise<void> => {
-    await writeTenantInReadmodel(tenant, tenants);
-  };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const readLastEventByStreamId = async (attributeId: string): Promise<any> =>
-    await postgresDB.one(
-      "SELECT * FROM attribute.events WHERE stream_id = $1 ORDER BY sequence_num DESC LIMIT 1",
-      [attributeId]
-    );
 });

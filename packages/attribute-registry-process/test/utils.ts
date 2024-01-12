@@ -65,6 +65,22 @@ export const writeTenantInReadmodel = async (
   });
 };
 
+export const addOneAttribute = async (
+  attribute: Attribute,
+  postgresDB: IDatabase<unknown>,
+  attributes: AttributeCollection
+): Promise<void> => {
+  await writeAttributeInEventstore(attribute, postgresDB);
+  await writeAttributeInReadmodel(attribute, attributes);
+};
+
+export const addOneTenant = async (
+  tenant: Tenant,
+  tenants: TenantCollection
+): Promise<void> => {
+  await writeTenantInReadmodel(tenant, tenants);
+};
+
 export const getMockAttribute = (): Attribute => ({
   id: uuidv4(),
   name: "attribute name",
@@ -97,6 +113,15 @@ export const getMockAuthData = (organizationId?: string): AuthData => ({
     origin: "IPA",
   },
 });
+
+export const readLastEventByStreamId = async (
+  attributeId: string,
+  postgresDB: IDatabase<unknown>
+): Promise<any> => // eslint-disable-line @typescript-eslint/no-explicit-any
+  await postgresDB.one(
+    "SELECT * FROM attribute.events WHERE stream_id = $1 ORDER BY sequence_num DESC LIMIT 1",
+    [attributeId]
+  );
 
 export function decodeProtobufPayload<I extends object>({
   messageType,
