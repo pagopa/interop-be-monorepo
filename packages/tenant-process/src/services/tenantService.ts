@@ -90,7 +90,7 @@ export async function updateVerifiedAttributeExtensionDateLogic({
   const extensionDate =
     tenantVerifier.extensionDate ?? tenantVerifier.expirationDate;
 
-  const newAttribute: TenantAttribute = {
+  const updatedAttribute: TenantAttribute = {
     ...attribute,
     verifiedBy: attribute.verifiedBy.map((v) =>
       v.id === verifierId
@@ -102,11 +102,11 @@ export async function updateVerifiedAttributeExtensionDateLogic({
     ),
   };
 
-  const newTenant: Tenant = {
+  const updatedTenant: Tenant = {
     ...tenant.data,
     attributes: [
-      newAttribute,
-      ...tenant.data.attributes.filter((a) => a.id !== newAttribute.id),
+      updatedAttribute,
+      ...tenant.data.attributes.filter((a) => a.id !== updatedAttribute.id),
     ],
     updatedAt: new Date(),
   };
@@ -114,6 +114,6 @@ export async function updateVerifiedAttributeExtensionDateLogic({
   return toCreateEventTenantUpdated(
     tenant.data.id,
     tenant.metadata.version,
-    newTenant
+    updatedTenant
   );
 }
