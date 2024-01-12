@@ -3,7 +3,6 @@ import {
   ApiError,
   DescriptorState,
   makeApiProblemBuilder,
-  AgreementState,
 } from "pagopa-interop-models";
 
 const errorCodes = {
@@ -273,7 +272,7 @@ export function documentChangeNotAllowed(
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `The requested operation on consumer documents is not allowed on agreement with state ${state}`,
-    code: "documentChangeNotAllowed",
+    code: "documentsChangeNotAllowed",
     title: "Document change not allowed",
   });
 }

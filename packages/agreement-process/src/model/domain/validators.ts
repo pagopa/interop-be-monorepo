@@ -34,7 +34,6 @@ import {
   descriptorNotInExpectedState,
   documentChangeNotAllowed,
   eServiceNotFound,
-  documentsChangeNotAllowed,
   missingCertifiedAttributesError,
   notLatestEServiceDescriptor,
   operationNotAllowed,
