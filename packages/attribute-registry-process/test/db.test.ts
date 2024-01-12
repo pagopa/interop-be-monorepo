@@ -214,6 +214,7 @@ describe("database test", () => {
         const id = await attributeRegistryService.createCertifiedAttribute(
           {
             name: mockAttribute.name,
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             code: mockAttribute.code!,
             description: mockAttribute.description,
           },
@@ -316,6 +317,7 @@ describe("database test", () => {
         const id =
           await attributeRegistryService.createInternalCertifiedAttribute({
             name: mockAttribute.name,
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             code: mockAttribute.code!,
             origin: tenant.features[0].certifierId,
             description: mockAttribute.description,
