@@ -215,16 +215,7 @@ describe("database test", () => {
             code: mockAttribute.code!,
             description: mockAttribute.description,
           },
-          {
-            // eslint-disable-next-line object-shorthand
-            organizationId: tenant.id,
-            externalId: {
-              origin: "IPA",
-              value: "123456",
-            },
-            userId: uuidv4(),
-            userRoles: [],
-          }
+          getMockAuthData(tenant.id)
         );
         expect(id).toBeDefined();
 
@@ -244,7 +235,6 @@ describe("database test", () => {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           creationTime: new Date(writtenPayload.attribute!.creationTime),
         };
-
         expect(writtenPayload.attribute).toEqual(toAttributeV1(attribute));
       });
       it("should not write on event-store if the attribute already exists", () => {
