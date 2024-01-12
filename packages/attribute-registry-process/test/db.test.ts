@@ -26,7 +26,11 @@ import {
   ReadModelService,
   readModelServiceBuilder,
 } from "../src/services/readModelService.js";
-import { attributeDuplicate } from "../src/model/domain/errors.js";
+import {
+  OrganizationIsNotACertifier,
+  attributeDuplicate,
+  tenantNotFound,
+} from "../src/model/domain/errors.js";
 import { toAttributeV1 } from "../src/model/domain/toEvent.js";
 import {
   addOneAttribute,
@@ -207,9 +211,6 @@ describe("database test", () => {
 
         await addOneTenant(tenant, tenants);
 
-        // const organizationId = await attributeRegistryService.getCertifierId(
-        //   tenant.id
-        // );
         const id = await attributeRegistryService.createCertifiedAttribute(
           {
             name: mockAttribute.name,
@@ -235,20 +236,67 @@ describe("database test", () => {
           kind: attributeKind.certified,
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           creationTime: new Date(writtenPayload.attribute!.creationTime),
+          origin: tenant.features[0].certifierId,
         };
         expect(writtenPayload.attribute).toEqual(toAttributeV1(attribute));
       });
-      it("should not write on event-store if the attribute already exists", () => {
-        // TO DO
-        expect(1).toBe(1);
+      it("should throw attributeDuplicate if the attribute already exists", async () => {
+        const attribute = {
+          ...mockAttribute,
+          code: "123456",
+        };
+
+        const tenant: Tenant = {
+          ...mockTenant,
+          features: [
+            {
+              type: "Certifier",
+              certifierId: uuidv4(),
+            },
+          ],
+        };
+
+        await addOneTenant(tenant, tenants);
+        await addOneAttribute(attribute, postgresDB, attributes);
+        expect(
+          attributeRegistryService.createCertifiedAttribute(
+            {
+              name: attribute.name,
+              code: attribute.code,
+              description: attribute.description,
+            },
+            getMockAuthData(tenant.id)
+          )
+        ).rejects.toThrowError(attributeDuplicate(attribute.name));
       });
-      it("should not write on event-store if the organization is not a certifier", () => {
-        // TO DO
-        expect(1).toBe(1);
+      it("should throw OrganizationIsNotACertifier if the organization is not a certifier", async () => {
+        await addOneTenant(mockTenant, tenants);
+        await addOneAttribute(mockAttribute, postgresDB, attributes);
+        expect(
+          attributeRegistryService.createCertifiedAttribute(
+            {
+              name: mockAttribute.name,
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              code: mockAttribute.code!,
+              description: mockAttribute.description,
+            },
+            getMockAuthData(mockTenant.id)
+          )
+        ).rejects.toThrowError(OrganizationIsNotACertifier(mockTenant.id));
       });
-      it("should not write on event-store if the certifier is not found", () => {
-        // TO DO
-        expect(1).toBe(1);
+      it("should throw tenantNotFound if the certifier is not found", async () => {
+        await addOneAttribute(mockAttribute, postgresDB, attributes);
+        expect(
+          attributeRegistryService.createCertifiedAttribute(
+            {
+              name: mockAttribute.name,
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              code: mockAttribute.code!,
+              description: mockAttribute.description,
+            },
+            getMockAuthData(mockTenant.id)
+          )
+        ).rejects.toThrowError(tenantNotFound(mockTenant.id));
       });
     });
 
