@@ -437,25 +437,9 @@ export async function createAgreementLogic(
     verifiedAttributes: [],
     certifiedAttributes: [],
     declaredAttributes: [],
-    suspendedByConsumer: undefined,
-    suspendedByProducer: undefined,
-    suspendedByPlatform: undefined,
     consumerDocuments: [],
     createdAt: new Date(),
-    updatedAt: undefined,
-    consumerNotes: undefined,
-    contract: undefined,
-    stamps: {
-      submission: undefined,
-      activation: undefined,
-      rejection: undefined,
-      suspensionByProducer: undefined,
-      suspensionByConsumer: undefined,
-      upgrade: undefined,
-      archiving: undefined,
-    },
-    rejectionReason: undefined,
-    suspendedAt: undefined,
+    stamps: {},
   };
 
   return toCreateEventAgreementAdded(agreementSeed);
