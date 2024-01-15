@@ -29,6 +29,7 @@ import {
   deleteAgreementErrorMapper,
   getConsumerDocumentErrorMapper,
   submitAgreementErrorMapper,
+  suspendAgreementErrorMapper,
   updateAgreementErrorMapper,
   upgradeAgreementErrorMapper,
 } from "../utilities/errorMappers.js";
@@ -144,8 +145,18 @@ const agreementRouter = (
 
   agreementRouter.post(
     "/agreements/:agreementId/suspend",
-    async (_req, res) => {
-      res.status(501).send();
+    authorizationMiddleware([ADMIN_ROLE]),
+    async (req, res) => {
+      try {
+        const id = await agreementService.suspendAgreement(
+          req.params.agreementId,
+          req.ctx.authData
+        );
+        return res.status(200).json({ id }).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, suspendAgreementErrorMapper);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
     }
   );
 
@@ -391,9 +402,37 @@ const agreementRouter = (
     res.status(501).send();
   });
 
-  agreementRouter.get("/agreements/filter/eservices", async (_req, res) => {
-    res.status(501).send();
-  });
+  agreementRouter.get(
+    "/agreements/filter/eservices",
+    authorizationMiddleware([
+      ADMIN_ROLE,
+      API_ROLE,
+      SECURITY_ROLE,
+      SUPPORT_ROLE,
+    ]),
+    async (req, res) => {
+      try {
+        const eservices = await agreementService.getAgreementEServices(
+          req.query.eServiceName,
+          req.query.consumersIds,
+          req.query.producersIds,
+          req.query.limit,
+          req.query.offset
+        );
+
+        return res
+          .status(200)
+          .json({
+            results: eservices.results,
+            totalCount: eservices.totalCount,
+          })
+          .end();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, () => 500);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    }
+  );
 
   return agreementRouter;
 };
