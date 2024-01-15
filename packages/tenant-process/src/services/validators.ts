@@ -108,16 +108,12 @@ export function evaluateNewSelfcareId({
   tenant: Tenant;
   newSelfcareId: string;
 }): string {
-  if (!tenant.selfcareId) {
-    return newSelfcareId;
-  } else {
-    if (tenant.selfcareId !== newSelfcareId) {
-      throw selfcareIdConflict({
-        tenantId: tenant.id,
-        existingSelfcareId: tenant.selfcareId,
-        newSelfcareId,
-      });
-    }
-    return tenant.selfcareId;
+  if (tenant.selfcareId && tenant.selfcareId !== newSelfcareId) {
+    throw selfcareIdConflict({
+      tenantId: tenant.id,
+      existingSelfcareId: tenant.selfcareId,
+      newSelfcareId,
+    });
   }
+  return newSelfcareId;
 }
