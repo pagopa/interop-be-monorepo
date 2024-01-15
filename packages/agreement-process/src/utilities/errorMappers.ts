@@ -120,7 +120,7 @@ export const suspendAgreementErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("agreementNotFound", "documentNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("operationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .with("agreementNotInExpectedState", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
