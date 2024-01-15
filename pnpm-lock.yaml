@@ -529,6 +529,9 @@ importers:
       '@types/node':
         specifier: ^20.3.1
         version: 20.3.1
+      kafkajs:
+        specifier: ^2.2.4
+        version: 2.2.4
       ts-pattern:
         specifier: ^5.0.1
         version: 5.0.1
