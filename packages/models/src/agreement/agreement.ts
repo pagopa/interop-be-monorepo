@@ -154,3 +154,25 @@ export const AgreementInvolvedAttributes = z.object({
 export type AgreementInvolvedAttributes = z.infer<
   typeof AgreementInvolvedAttributes
 >;
+
+export const agreementUpdatableStates: AgreementState[] = [
+  agreementState.draft,
+];
+
+export const agreementUpgradableStates: AgreementState[] = [
+  agreementState.active,
+  agreementState.suspended,
+];
+
+export const agreementDeletableStates: AgreementState[] = [
+  agreementState.draft,
+  agreementState.missingCertifiedAttributes,
+];
+
+export const agreementCloningConflictingStates: AgreementState[] = [
+  agreementState.draft,
+  agreementState.pending,
+  agreementState.missingCertifiedAttributes,
+  agreementState.active,
+  agreementState.suspended,
+];

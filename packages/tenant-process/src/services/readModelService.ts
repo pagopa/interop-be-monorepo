@@ -1,5 +1,4 @@
 import {
-  AgreementCollection,
   AttributeCollection,
   logger,
   ReadModelRepository,
@@ -10,11 +9,10 @@ import {
   Tenant,
   Attribute,
   ExternalId,
-  AgreementState,
-  Agreement,
   EService,
   genericError,
   ListResult,
+  agreementState,
 } from "pagopa-interop-models";
 import { z } from "zod";
 import { Filter, WithId } from "mongodb";
@@ -38,62 +36,53 @@ function listTenantsFilters(
       $exists: true,
     },
   };
+
   return {
     ...nameFilter,
     ...withSelfcareIdFilter,
   };
 }
 
-const getAgreementsFilters = (
-  producerId: string,
-  consumerId: string,
-  agreementStates: AgreementState[]
-): object => {
-  const filters = {
-    ...(producerId && { "data.producerId": producerId }),
-    ...(consumerId && { "data.consumerId": consumerId }),
-    ...(agreementStates.length > 0 && {
-      "data.state": {
-        $in: agreementStates.map((s) => s.toString()),
-      },
-    }),
-  };
-  return { $match: filters };
-};
+export const getTenants = async ({
+  tenants,
+  aggregationPipeline,
+  offset,
+  limit,
+  allowDiskUse = false,
+}: {
+  tenants: TenantCollection;
+  aggregationPipeline: Array<Filter<Tenant>>;
+  offset: number;
+  limit: number;
+  allowDiskUse?: boolean;
+}): Promise<{
+  results: Tenant[];
+  totalCount: number;
+}> => {
+  const data = await tenants
+    .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }], {
+      allowDiskUse,
+    })
+    .toArray();
 
-const getAllAgreements = async (
-  agreements: AgreementCollection,
-  producerId: string,
-  consumerId: string,
-  agreementStates: AgreementState[]
-): Promise<Agreement[]> => {
-  const limit = 50;
-  // eslint-disable-next-line functional/no-let
-  let offset = 0;
-  // eslint-disable-next-line functional/no-let
-  let results: Agreement[] = [];
+  const result = z.array(Tenant).safeParse(data.map((d) => d.data));
 
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
-    const agreementsChunk = await getAgreementsChunk(
-      agreements,
-      producerId,
-      consumerId,
-      agreementStates,
-      offset,
-      limit
+  if (!result.success) {
+    logger.error(
+      `Unable to parse tenants items: result ${JSON.stringify(
+        result
+      )} - data ${JSON.stringify(data)} `
     );
-
-    results = results.concat(agreementsChunk);
-
-    if (agreementsChunk.length < limit) {
-      break;
-    }
-
-    offset += limit;
+    throw genericError("Unable to parse tenants items");
   }
-
-  return results;
+  return {
+    results: result.data,
+    totalCount: await ReadModelRepository.getTotalCount(
+      tenants,
+      aggregationPipeline,
+      allowDiskUse
+    ),
+  };
 };
 
 async function getAttribute(
@@ -126,37 +115,6 @@ async function getAttribute(
     };
   }
 }
-
-const getAgreementsChunk = async (
-  agreements: AgreementCollection,
-  producerId: string,
-  consumerId: string,
-  agreementStates: AgreementState[],
-  offset: number,
-  limit: number
-  // eslint-disable-next-line max-params
-): Promise<Agreement[]> => {
-  const data = await agreements
-    .aggregate([
-      getAgreementsFilters(producerId, consumerId, agreementStates),
-      { $skip: offset },
-      { $limit: limit },
-    ])
-    .toArray();
-
-  const result = z.array(Agreement).safeParse(data);
-
-  if (!result.success) {
-    logger.error(
-      `Unable to parse agreements items: result ${JSON.stringify(
-        result
-      )} - data ${JSON.stringify(data)} `
-    );
-    throw genericError("Unable to parse agreements items");
-  }
-
-  return result.data;
-};
 
 async function getTenant(
   tenants: TenantCollection,
@@ -195,10 +153,9 @@ async function getTenant(
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(config: TenantProcessConfig) {
-  const { attributes, agreements, eservices, tenants } =
-    ReadModelRepository.init(config);
+  const { attributes, eservices, tenants } = ReadModelRepository.init(config);
   return {
-    async getTenants({
+    async getTenantsByName({
       name,
       offset,
       limit,
@@ -213,32 +170,13 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
         { $project: { data: 1, lowerName: { $toLower: "$data.name" } } },
         { $sort: { lowerName: 1 } },
       ];
-      const data = await tenants
-        .aggregate([
-          ...aggregationPipeline,
-          { $skip: offset },
-          { $limit: limit },
-        ])
-        .toArray();
 
-      const result = z.array(Tenant).safeParse(data.map((d) => d.data));
-      if (!result.success) {
-        logger.error(
-          `Unable to parse tenant items: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
-        );
-
-        throw genericError("Unable to parse agreements items");
-      }
-
-      return {
-        results: result.data,
-        totalCount: await ReadModelRepository.getTotalCount(
-          tenants,
-          aggregationPipeline
-        ),
-      };
+      return getTenants({
+        tenants,
+        aggregationPipeline,
+        offset,
+        limit,
+      });
     },
 
     async getTenantById(id: string): Promise<WithMetadata<Tenant> | undefined> {
@@ -269,6 +207,88 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
       selfcareId: string
     ): Promise<WithMetadata<Tenant> | undefined> {
       return getTenant(tenants, { "data.selfcareId": selfcareId });
+    },
+
+    async getConsumers({
+      name,
+      producerId,
+      offset,
+      limit,
+    }: {
+      name: string | undefined;
+      producerId: string;
+      offset: number;
+      limit: number;
+    }): Promise<ListResult<Tenant>> {
+      const query = listTenantsFilters(name);
+
+      const aggregationPipeline = [
+        { $match: query },
+        {
+          $lookup: {
+            from: "agreements",
+            localField: "data.id",
+            foreignField: "data.consumerId",
+            as: "agreements",
+          },
+        },
+        {
+          $match: {
+            $and: [
+              { "agreements.data.producerId": producerId },
+              {
+                "agreements.data.state": {
+                  $in: [agreementState.active, agreementState.suspended],
+                },
+              },
+            ],
+          },
+        },
+        { $project: { data: 1, lowerName: { $toLower: "$data.name" } } },
+        { $sort: { lowerName: 1 } },
+      ];
+
+      return getTenants({
+        tenants,
+        aggregationPipeline,
+        offset,
+        limit,
+        allowDiskUse: true,
+      });
+    },
+
+    async getProducers({
+      name,
+      offset,
+      limit,
+    }: {
+      name: string | undefined;
+      offset: number;
+      limit: number;
+    }): Promise<ListResult<Tenant>> {
+      const query = listTenantsFilters(name);
+      const aggregationPipeline = [
+        { $match: query },
+        {
+          $lookup: {
+            from: "eservices",
+            localField: "data.id",
+            foreignField: "data.producerId",
+            as: "eservices",
+          },
+        },
+        { $match: { eservices: { $not: { $size: 0 } } } },
+        { $project: { data: 1, lowerName: { $toLower: "$data.name" } } },
+        { $sort: { lowerName: 1 } },
+      ];
+
+      return getTenants({
+        tenants,
+        aggregationPipeline,
+        offset,
+        limit,
+        allowDiskUse: true,
+      });
     },
     async getAttributesByExternalIds(
       externalIds: ExternalId[]
@@ -305,18 +325,6 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
 
       const attributePromises = attributeIds.map(fetchAttributeById);
       return Promise.all(attributePromises);
-    },
-    async getAgreements(
-      producerId: string,
-      consumerId: string,
-      agreementStates: AgreementState[]
-    ): Promise<Agreement[]> {
-      return getAllAgreements(
-        agreements,
-        producerId,
-        consumerId,
-        agreementStates
-      );
     },
 
     async getEServiceById(

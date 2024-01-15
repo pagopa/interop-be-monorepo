@@ -1,19 +1,19 @@
-import { match } from "ts-pattern";
 import { CreateEvent } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementDocument,
   AgreementDocumentV1,
   AgreementEvent,
+  AgreementStamp,
+  AgreementStamps,
   AgreementState,
   AgreementStateV1,
   AgreementV1,
-  AgreementStamp,
   StampV1,
-  AgreementStamps,
   StampsV1,
   AgreementUpdateEvent,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 
 export const toAgreementStateV1 = (state: AgreementState): AgreementStateV1 =>
   match(state)
@@ -128,6 +128,24 @@ export function toCreateEventAgreementContractAdded(
       data: {
         agreementId,
         contract: toAgreementDocumentV1(agreementDocument),
+      },
+    },
+  };
+}
+
+export function toCreateEventAgreementConsumerDocumentAdded(
+  agreementId: string,
+  agreementDocument: AgreementDocument,
+  version: number
+): CreateEvent<AgreementEvent> {
+  return {
+    streamId: agreementId,
+    version,
+    event: {
+      type: "AgreementConsumerDocumentAdded",
+      data: {
+        agreementId,
+        document: toAgreementDocumentV1(agreementDocument),
       },
     },
   };
