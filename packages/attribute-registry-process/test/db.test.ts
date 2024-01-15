@@ -76,13 +76,10 @@ describe("database test", () => {
 
     config.eventStoreDbPort = postgreSqlContainer.getMappedPort(5432);
     config.readModelDbPort = mongodbContainer.getMappedPort(27017);
-    attributes = ReadModelRepository.init(config).attributes;
-    tenants = ReadModelRepository.init(config).tenants;
-    readModelService = readModelServiceBuilder(config);
-    attributeRegistryService = attributeRegistryServiceBuilder(
-      config,
-      readModelService
-    );
+    const readModelRepository = ReadModelRepository.init(config);
+    attributes = readModelRepository.attributes;
+    tenants = readModelRepository.tenants;
+    readModelService = readModelServiceBuilder(readModelRepository);
 
     postgresDB = initDB({
       username: config.eventStoreDbUsername,
@@ -93,6 +90,11 @@ describe("database test", () => {
       schema: config.eventStoreDbSchema,
       useSSL: config.eventStoreDbUseSSL,
     });
+
+    attributeRegistryService = attributeRegistryServiceBuilder(
+      postgresDB,
+      readModelService
+    );
   });
 
   afterEach(async () => {

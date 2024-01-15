@@ -1,8 +1,8 @@
 import {
   AuthData,
   CreateEvent,
+  DB,
   eventRepository,
-  initDB,
 } from "pagopa-interop-commons";
 import {
   AttributeEvent,
@@ -12,7 +12,6 @@ import {
   attributeKind,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
-import { AttributeRegistryConfig } from "../utilities/config.js";
 import {
   ApiCertifiedAttributeSeed,
   ApiDeclaredAttributeSeed,
@@ -30,21 +29,11 @@ import { ReadModelService } from "./readModelService.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function attributeRegistryServiceBuilder(
-  config: AttributeRegistryConfig,
+  dbInstance: DB,
   readModelService: ReadModelService
 ) {
-  const repository = eventRepository(
-    initDB({
-      username: config.eventStoreDbUsername,
-      password: config.eventStoreDbPassword,
-      host: config.eventStoreDbHost,
-      port: config.eventStoreDbPort,
-      database: config.eventStoreDbName,
-      schema: config.eventStoreDbSchema,
-      useSSL: config.eventStoreDbUseSSL,
-    }),
-    attributeEventToBinaryData
-  );
+  const repository = eventRepository(dbInstance, attributeEventToBinaryData);
+
   return {
     async createDeclaredAttribute(
       apiDeclaredAttributeSeed: ApiDeclaredAttributeSeed,

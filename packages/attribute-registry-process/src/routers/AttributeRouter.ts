@@ -5,6 +5,8 @@ import {
   userRoles,
   ZodiosContext,
   authorizationMiddleware,
+  ReadModelRepository,
+  initDB,
 } from "pagopa-interop-commons";
 import { api } from "../model/generated/api.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
@@ -25,9 +27,18 @@ import {
   getAttributesByNameErrorMapper,
 } from "../utilities/errorMappers.js";
 
-const readModelService = readModelServiceBuilder(config);
+const readModelRepository = ReadModelRepository.init(config);
+const readModelService = readModelServiceBuilder(readModelRepository);
 const attributeRegistryService = attributeRegistryServiceBuilder(
-  config,
+  initDB({
+    username: config.eventStoreDbUsername,
+    password: config.eventStoreDbPassword,
+    host: config.eventStoreDbHost,
+    port: config.eventStoreDbPort,
+    database: config.eventStoreDbName,
+    schema: config.eventStoreDbSchema,
+    useSSL: config.eventStoreDbUseSSL,
+  }),
   readModelService
 );
 
