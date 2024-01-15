@@ -12,8 +12,6 @@ import {
   TenantFeature,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { z } from "zod";
-import * as api from "../generated/api.js";
 import { ApiTenantMailsSeed } from "../types.js";
 import {
   ApiExternalId,
