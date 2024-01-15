@@ -569,12 +569,7 @@ export function uploadDocumentLogic({
   assertEServiceExist(eServiceId, eService);
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
 
-  const descriptor = eService.data.descriptors.find(
-    (d: Descriptor) => d.id === descriptorId
-  );
-  if (descriptor === undefined) {
-    throw eServiceDescriptorNotFound(eServiceId, descriptorId);
-  }
+  retrieveDescriptor(descriptorId, eService);
 
   return toCreateEventEServiceDocumentAdded(
     eServiceId,
@@ -614,9 +609,7 @@ export async function deleteDocumentLogic({
   assertEServiceExist(eServiceId, eService);
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
 
-  const descriptor = eService.data.descriptors.find(
-    (d: Descriptor) => d.id === descriptorId
-  );
+  const descriptor = retrieveDescriptor(descriptorId, eService);
 
   const document = (
     descriptor ? [...descriptor.docs, descriptor.interface] : []
@@ -653,12 +646,7 @@ export async function updateDocumentLogic({
   assertEServiceExist(eServiceId, eService);
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
 
-  const descriptor = eService.data.descriptors.find(
-    (d: Descriptor) => d.id === descriptorId
-  );
-  if (descriptor === undefined) {
-    throw eServiceDescriptorNotFound(eServiceId, descriptorId);
-  }
+  const descriptor = retrieveDescriptor(descriptorId, eService);
 
   const document = (
     descriptor ? [...descriptor.docs, descriptor.interface] : []
