@@ -1,9 +1,14 @@
 import { AuthData, CreateEvent } from "pagopa-interop-commons";
-import { ApiAgreementDocumentSeed } from "../model/types.js";
-import { AgreementQuery } from "./readmodel/agreementQuery.js";
 import { AgreementEvent } from "pagopa-interop-models";
-import { agreementDocumentAlreadyExists, agreementDocumentNotFound } from "../model/domain/errors.js";
-import { toCreateEventAgreementConsumerDocumentAdded, toCreateEventAgreementConsumerDocumentRemoved } from "../model/domain/toEvent.js";
+import { ApiAgreementDocumentSeed } from "../model/types.js";
+import {
+  agreementDocumentAlreadyExists,
+  agreementDocumentNotFound,
+} from "../model/domain/errors.js";
+import {
+  toCreateEventAgreementConsumerDocumentAdded,
+  toCreateEventAgreementConsumerDocumentRemoved,
+} from "../model/domain/toEvent.js";
 import { apiAgreementDocumentToAgreementDocument } from "../model/domain/apiConverter.js";
 import {
   assertAgreementExist,
@@ -11,6 +16,7 @@ import {
   assertRequesterIsConsumer,
 } from "../model/domain/validators.js";
 import { config } from "../utilities/config.js";
+import { AgreementQuery } from "./readmodel/agreementQuery.js";
 
 export async function addConsumerDocumentLogic(
   agreementId: string,
