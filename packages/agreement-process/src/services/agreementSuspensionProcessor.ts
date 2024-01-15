@@ -12,8 +12,8 @@ import {
   assertExpectedState,
   assertRequesterIsConsumerOrProducer,
   assertTenantExist,
+  assertDescriptorExist,
 } from "../model/domain/validators.js";
-import { descriptorNotFound } from "../model/domain/errors.js";
 import { toCreateEventAgreementUpdated } from "../model/domain/toEvent.js";
 import { AgreementQuery } from "./readmodel/agreementQuery.js";
 import { TenantQuery } from "./readmodel/tenantQuery.js";
@@ -66,9 +66,11 @@ export async function suspendAgreementLogic({
   const descriptor = eService.data.descriptors.find(
     (d) => d.id === agreement.data.descriptorId
   );
-  if (descriptor === undefined) {
-    throw descriptorNotFound(eService.data.id, agreement.data.descriptorId);
-  }
+  assertDescriptorExist(
+    eService.data.id,
+    agreement.data.descriptorId,
+    descriptor
+  );
 
   const nextStateByAttributes = nextState(
     agreement.data,
