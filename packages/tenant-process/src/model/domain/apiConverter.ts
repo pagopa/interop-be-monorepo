@@ -121,15 +121,6 @@ export function toApiMail(mail: TenantMail): ApiMail {
   };
 }
 
-export function toTenantMails(apiMailsSeed: ApiTenantMailsSeed): TenantMail[] {
-  return apiMailsSeed.mails.map((email) => ({
-    kind: toTenantMailKind(email.kind),
-    address: email.address,
-    createdAt: new Date(),
-    description: email.description ?? undefined,
-  }));
-}
-
 export const toApiTenant = (
   tenant: Tenant
 ): z.infer<typeof api.schemas.Tenant> => ({
@@ -144,3 +135,12 @@ export const toApiTenant = (
   mails: tenant.mails.map(toApiMail),
   name: tenant.name,
 });
+
+export function toTenantMails(apiMailsSeed: ApiTenantMailsSeed): TenantMail[] {
+  return apiMailsSeed.mails.map((email) => ({
+    kind: toTenantMailKind(email.kind),
+    address: email.address,
+    createdAt: new Date(),
+    description: email.description ?? undefined,
+  }));
+}
