@@ -74,6 +74,26 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
         }
       );
     })
+    .with({ type: "AgreementConsumerDocumentRemoved" }, async (msg) => {
+      await agreements.updateOne(
+        {
+          "data.id": msg.stream_id,
+          "metadata.version": { $lt: msg.version },
+        },
+        {
+          $pull: {
+            "data.consumerDocuments": {
+              id: msg.data.documentId,
+            },
+          },
+          $set: {
+            metadata: {
+              version: msg.version,
+            },
+          },
+        }
+      );
+    })
     .with({ type: "AgreementContractAdded" }, async (msg) => {
       await agreements.updateOne(
         {
