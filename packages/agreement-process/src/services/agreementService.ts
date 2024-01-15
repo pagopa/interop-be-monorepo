@@ -28,7 +28,6 @@ import {
   noNewerDescriptor,
   unexpectedVersionFormat,
   publishedDescriptorNotFound,
-  agreementDocumentAlreadyExists,
   agreementDocumentNotFound,
 } from "../model/domain/errors.js";
 
@@ -40,7 +39,6 @@ import {
 } from "../model/domain/toEvent.js";
 import {
   assertAgreementExist,
-  assertCanWorkOnConsumerDocuments,
   assertEServiceExist,
   assertExpectedState,
   assertRequesterIsConsumer,
@@ -64,7 +62,6 @@ import {
   ApiAgreementDocumentSeed,
 } from "../model/types.js";
 import { config } from "../utilities/config.js";
-import { apiAgreementDocumentToAgreementDocument } from "../model/domain/apiConverter.js";
 import { contractBuilder } from "./agreementContractBuilder.js";
 import { submitAgreementLogic } from "./agreementSubmissionProcessor.js";
 import { AgreementQuery } from "./readmodel/agreementQuery.js";
@@ -74,6 +71,10 @@ import { AgreementQueryFilters } from "./readmodel/readModelService.js";
 import { TenantQuery } from "./readmodel/tenantQuery.js";
 import { suspendAgreementLogic } from "./agreementSuspensionProcessor.js";
 import { createStamp } from "./agreementStampUtils.js";
+import {
+  removeAgreementConsumerDocumentLogic,
+  addConsumerDocumentLogic,
+} from "./agreementConsumerDocumentProcessor.js";
 
 const fileManager = initFileManager(config);
 
@@ -301,6 +302,25 @@ export function agreementServiceBuilder(
         limit,
         offset
       );
+    },
+    async removeAgreementConsumerDocument(
+      agreementId: string,
+      documentId: string,
+      authData: AuthData
+    ): Promise<string> {
+      logger.info(
+        `Removing consumer document ${documentId} from agreement ${agreementId}`
+      );
+
+      const removeDocumentEvent = await removeAgreementConsumerDocumentLogic(
+        agreementId,
+        documentId,
+        agreementQuery,
+        authData,
+        fileManager.deleteFile
+      );
+
+      return await repository.createEvent(removeDocumentEvent);
     },
   };
 }
@@ -713,31 +733,4 @@ export async function cloneAgreementLogic({
     streamId: newAgreement.streamId,
     events: [newAgreement, ...docEvents],
   };
-}
-
-export async function addConsumerDocumentLogic(
-  agreementId: string,
-  payload: ApiAgreementDocumentSeed,
-  agreementQuery: AgreementQuery,
-  authData: AuthData
-): Promise<CreateEvent<AgreementEvent>> {
-  const agreement = await agreementQuery.getAgreementById(agreementId);
-
-  assertAgreementExist(agreementId, agreement);
-  assertRequesterIsConsumer(agreement.data, authData);
-  assertCanWorkOnConsumerDocuments(agreement.data.state);
-
-  const existentDocument = agreement.data.consumerDocuments.find(
-    (d) => d.id === payload.id
-  );
-
-  if (existentDocument) {
-    throw agreementDocumentAlreadyExists(agreementId);
-  }
-
-  return toCreateEventAgreementConsumerDocumentAdded(
-    agreementId,
-    apiAgreementDocumentToAgreementDocument(payload),
-    agreement.metadata.version
-  );
 }
