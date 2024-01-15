@@ -16,7 +16,6 @@ import {
   agreementEventToBinaryData,
   agreementState,
   descriptorState,
-  AgreementStamp,
   agreementUpgradableStates,
   agreementDeletableStates,
   agreementUpdatableStates,
@@ -29,7 +28,6 @@ import {
   noNewerDescriptor,
   unexpectedVersionFormat,
   publishedDescriptorNotFound,
-  agreementDocumentAlreadyExists,
   agreementDocumentNotFound,
 } from "../model/domain/errors.js";
 
@@ -41,7 +39,6 @@ import {
 } from "../model/domain/toEvent.js";
 import {
   assertAgreementExist,
-  assertCanWorkOnConsumerDocuments,
   assertEServiceExist,
   assertExpectedState,
   assertRequesterIsConsumer,
@@ -54,7 +51,10 @@ import {
   verifyConflictingAgreements,
   verifyCreationConflictingAgreements,
 } from "../model/domain/validators.js";
-import { CompactOrganization } from "../model/domain/models.js";
+import {
+  CompactEService,
+  CompactOrganization,
+} from "../model/domain/models.js";
 import {
   ApiAgreementPayload,
   ApiAgreementSubmissionPayload,
@@ -62,7 +62,6 @@ import {
   ApiAgreementDocumentSeed,
 } from "../model/types.js";
 import { config } from "../utilities/config.js";
-import { apiAgreementDocumentToAgreementDocument } from "../model/domain/apiConverter.js";
 import { contractBuilder } from "./agreementContractBuilder.js";
 import { submitAgreementLogic } from "./agreementSubmissionProcessor.js";
 import { AgreementQuery } from "./readmodel/agreementQuery.js";
@@ -70,6 +69,12 @@ import { AttributeQuery } from "./readmodel/attributeQuery.js";
 import { EserviceQuery } from "./readmodel/eserviceQuery.js";
 import { AgreementQueryFilters } from "./readmodel/readModelService.js";
 import { TenantQuery } from "./readmodel/tenantQuery.js";
+import { suspendAgreementLogic } from "./agreementSuspensionProcessor.js";
+import { createStamp } from "./agreementStampUtils.js";
+import {
+  removeAgreementConsumerDocumentLogic,
+  addConsumerDocumentLogic,
+} from "./agreementConsumerDocumentProcessor.js";
 
 const fileManager = initFileManager(config);
 
@@ -169,7 +174,7 @@ export function agreementServiceBuilder(
       agreementId: string,
       payload: ApiAgreementSubmissionPayload
     ): Promise<string> {
-      logger.info("Submitting agreement");
+      logger.info(`Submitting agreement ${agreementId}`);
       const updatesEvents = await submitAgreementLogic(
         agreementId,
         payload,
@@ -261,6 +266,61 @@ export function agreementServiceBuilder(
       }
 
       return document;
+    },
+    async suspendAgreement(
+      agreementId: Agreement["id"],
+      authData: AuthData
+    ): Promise<Agreement["id"]> {
+      logger.info(`Suspending agreement ${agreementId}`);
+      await repository.createEvent(
+        await suspendAgreementLogic({
+          agreementId,
+          authData,
+          agreementQuery,
+          tenantQuery,
+          eserviceQuery,
+        })
+      );
+
+      return agreementId;
+    },
+    async getAgreementEServices(
+      eServiceName: string | undefined,
+      consumerIds: string[],
+      producerIds: string[],
+      limit: number,
+      offset: number
+    ): Promise<ListResult<CompactEService>> {
+      logger.info(
+        `Retrieving EServices with consumers ${consumerIds}, producers ${producerIds}`
+      );
+
+      return await agreementQuery.getEServices(
+        eServiceName,
+        consumerIds,
+        producerIds,
+        limit,
+        offset
+      );
+    },
+    async removeAgreementConsumerDocument(
+      agreementId: string,
+      documentId: string,
+      authData: AuthData
+    ): Promise<string> {
+      logger.info(
+        `Removing consumer document ${documentId} from agreement ${agreementId}`
+      );
+
+      const removeDocumentEvent = await removeAgreementConsumerDocumentLogic(
+        agreementId,
+        documentId,
+        agreementQuery,
+        authData,
+        fileManager.deleteFile
+      );
+
+      return await repository.createEvent(removeDocumentEvent);
     },
   };
 }
@@ -521,10 +581,7 @@ export async function upgradeAgreementLogic({
 
   if (verifiedValid && declaredValid) {
     // upgradeAgreement
-    const stamp: AgreementStamp = {
-      who: authData.organizationId,
-      when: new Date(),
-    };
+    const stamp = createStamp(authData);
     const archived: Agreement = {
       ...agreementToBeUpgraded.data,
       state: agreementState.archived,
@@ -676,31 +733,4 @@ export async function cloneAgreementLogic({
     streamId: newAgreement.streamId,
     events: [newAgreement, ...docEvents],
   };
-}
-
-export async function addConsumerDocumentLogic(
-  agreementId: string,
-  payload: ApiAgreementDocumentSeed,
-  agreementQuery: AgreementQuery,
-  authData: AuthData
-): Promise<CreateEvent<AgreementEvent>> {
-  const agreement = await agreementQuery.getAgreementById(agreementId);
-
-  assertAgreementExist(agreementId, agreement);
-  assertRequesterIsConsumer(agreement.data, authData);
-  assertCanWorkOnConsumerDocuments(agreement.data.state);
-
-  const existentDocument = agreement.data.consumerDocuments.find(
-    (d) => d.id === payload.id
-  );
-
-  if (existentDocument) {
-    throw agreementDocumentAlreadyExists(agreementId);
-  }
-
-  return toCreateEventAgreementConsumerDocumentAdded(
-    agreementId,
-    apiAgreementDocumentToAgreementDocument(payload),
-    agreement.metadata.version
-  );
 }
