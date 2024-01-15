@@ -36,6 +36,13 @@ jobs:
           - image_name: agreement-readmodel-writer
             dockerfile_path: packages/agreement-readmodel-writer
             k8s_path: packages/agreement-readmodel-writer/kubernetes/dev
+          - image_name: tenant-process
+            dockerfile_path: packages/tenant-process
+            k8s_path: packages/tenant-process/kubernetes/dev
+          - image_name: tenant-readmodel-writer
+            dockerfile_path: packages/tenant-readmodel-writer
+            k8s_path: packages/tenant-readmodel-writer/kubernetes/dev
+
 
     steps:
       - name: Checkout repository
