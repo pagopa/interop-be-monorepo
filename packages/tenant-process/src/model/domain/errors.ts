@@ -7,7 +7,8 @@ const errorCodes = {
   tenantNotFound: "0004",
   eServiceNotFound: "0005",
   tenantBySelfcateIdNotFound: "0006",
-  selfcareIdConflict: "0007",
+  operationForbidden: "0007",
+  selfcareIdConflict: "0008",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
