@@ -53,7 +53,10 @@ import {
   verifyConflictingAgreements,
   verifyCreationConflictingAgreements,
 } from "../model/domain/validators.js";
-import { CompactOrganization } from "../model/domain/models.js";
+import {
+  CompactEService,
+  CompactOrganization,
+} from "../model/domain/models.js";
 import {
   ApiAgreementPayload,
   ApiAgreementSubmissionPayload,
@@ -279,6 +282,25 @@ export function agreementServiceBuilder(
       );
 
       return agreementId;
+    },
+    async getAgreementEServices(
+      eServiceName: string | undefined,
+      consumerIds: string[],
+      producerIds: string[],
+      limit: number,
+      offset: number
+    ): Promise<ListResult<CompactEService>> {
+      logger.info(
+        `Retrieving EServices with consumers ${consumerIds}, producers ${producerIds}`
+      );
+
+      return await agreementQuery.getEServices(
+        eServiceName,
+        consumerIds,
+        producerIds,
+        limit,
+        offset
+      );
     },
   };
 }
