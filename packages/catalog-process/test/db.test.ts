@@ -41,6 +41,7 @@ import {
   eServiceCannotBeUpdated,
   eServiceDescriptorNotFound,
   eServiceDescriptorWithoutInterface,
+  eServiceDocumentNotFound,
   eServiceDuplicate,
   eServiceNotFound,
   notValidDescriptor,
@@ -50,10 +51,12 @@ import {
   addOneEService,
   addOneTenant,
   buildDescriptorSeed,
+  buildInterfaceSeed,
   decodeProtobufPayload,
   getMockAgreement,
   getMockAuthData,
   getMockDescriptor,
+  getMockDocument,
   getMockEService,
   getMockTenant,
   readLastEventByStreamId,
@@ -61,6 +64,7 @@ import {
 
 const mockEService = getMockEService();
 const mockDescriptor = getMockDescriptor();
+const mockDocument = getMockDocument();
 
 describe("database test", async () => {
   let eservices: EServiceCollection;
@@ -1188,8 +1192,51 @@ describe("database test", async () => {
     });
 
     describe("clone descriptor", () => {
-      it("TO DO implement after understanding file manager", () => {
+      it("TO DO should write on event-store for the cloning of a descriptor", () => {
         expect(1).toBe(1);
+      });
+      it("should throw eServiceNotFound if the eService doesn't exist", () => {
+        expect(
+          catalogService.cloneDescriptor(
+            mockEService.id,
+            mockDescriptor.id,
+            getMockAuthData()
+          )
+        ).rejects.toThrowError(eServiceNotFound(mockEService.id));
+      });
+      it("should throw operationForbidden if the requester is not the producer", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+        expect(
+          catalogService.cloneDescriptor(
+            mockEService.id,
+            mockDescriptor.id,
+            getMockAuthData()
+          )
+        ).rejects.toThrowError(operationForbidden);
+      });
+      it("should throw eServiceDescriptorNotFound if the descriptor doesn't exist", async () => {
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+        expect(
+          catalogService.cloneDescriptor(
+            mockEService.id,
+            mockDescriptor.id,
+            getMockAuthData(eService.producerId)
+          )
+        ).rejects.toThrowError(
+          eServiceDescriptorNotFound(eService.id, mockDescriptor.id)
+        );
       });
     });
 
@@ -1267,7 +1314,7 @@ describe("database test", async () => {
       it("should throw operationForbidden if the requester is not the producer", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
-          state: descriptorState.suspended,
+          state: descriptorState.draft,
         };
         const eService: EService = {
           ...mockEService,
@@ -1285,20 +1332,211 @@ describe("database test", async () => {
     });
 
     describe("upload Document", () => {
-      it("TO DO implement after understanding file manager", () => {
+      it("TO DO should write on event-store for the upload of a document", () => {
         expect(1).toBe(1);
+      });
+      it("should throw eServiceNotFound if the eService doesn't exist", () => {
+        expect(
+          catalogService.uploadDocument(
+            mockEService.id,
+            mockDescriptor.id,
+            buildInterfaceSeed(),
+            getMockAuthData()
+          )
+        ).rejects.toThrowError(eServiceNotFound(mockEService.id));
+      });
+      it("should throw operationForbidden if the requester is not the producer", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+
+        expect(
+          catalogService.uploadDocument(
+            eService.id,
+            descriptor.id,
+            buildInterfaceSeed(),
+            getMockAuthData()
+          )
+        ).rejects.toThrowError(operationForbidden);
+      });
+      it("should throw eServiceDescriptorNotFound if the descriptor doesn't exist", async () => {
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+        expect(
+          catalogService.uploadDocument(
+            eService.id,
+            mockDescriptor.id,
+            buildInterfaceSeed(),
+            getMockAuthData(eService.producerId)
+          )
+        ).rejects.toThrowError(
+          eServiceDescriptorNotFound(eService.id, mockDescriptor.id)
+        );
       });
     });
 
     describe("delete Document", () => {
-      it("TO DO implement after understanding file manager", () => {
+      it("TO DO should write on event-store for the deletion of a document", () => {
         expect(1).toBe(1);
+      });
+      it("should throw eServiceNotFound if the eService doesn't exist", async () => {
+        expect(
+          catalogService.deleteDocument(
+            mockEService.id,
+            mockDescriptor.id,
+            mockDocument.id,
+            getMockAuthData()
+          )
+        ).rejects.toThrowError(eServiceNotFound(mockEService.id));
+      });
+      it("should throw operationForbidden if the requester is not the producer", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+          docs: [mockDocument],
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+        expect(
+          catalogService.deleteDocument(
+            eService.id,
+            descriptor.id,
+            mockDocument.id,
+            getMockAuthData()
+          )
+        ).rejects.toThrowError(operationForbidden);
+      });
+      it("should throw eServiceDescriptorNotFound if the descriptor doesn't exist", async () => {
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+
+        expect(
+          catalogService.deleteDocument(
+            eService.id,
+            mockDescriptor.id,
+            mockDocument.id,
+            getMockAuthData(eService.producerId)
+          )
+        ).rejects.toThrowError(
+          eServiceDescriptorNotFound(eService.id, mockDescriptor.id)
+        );
+      });
+      it("should throw eServiceDocumentNotFound if the document doesn't exist", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+          docs: [],
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+
+        expect(
+          catalogService.deleteDocument(
+            eService.id,
+            descriptor.id,
+            mockDocument.id,
+            getMockAuthData(eService.producerId)
+          )
+        ).rejects.toThrowError(
+          eServiceDocumentNotFound(eService.id, descriptor.id, mockDocument.id)
+        );
       });
     });
 
     describe("update Document", () => {
-      it("TO DO implement after understanding file manager", () => {
+      it("TO DO should write on event-store for the update of a document", () => {
         expect(1).toBe(1);
+      });
+      it("should throw eServiceNotFound if the eService doesn't exist", async () => {
+        expect(
+          catalogService.updateDocument(
+            mockEService.id,
+            mockDescriptor.id,
+            mockDocument.id,
+            { prettyName: "updated prettyName" },
+            getMockAuthData()
+          )
+        ).rejects.toThrowError(eServiceNotFound(mockEService.id));
+      });
+      it("should throw operationForbidden if the requester is not the producer", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+          docs: [mockDocument],
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+        expect(
+          catalogService.updateDocument(
+            eService.id,
+            descriptor.id,
+            mockDocument.id,
+            { prettyName: "updated prettyName" },
+            getMockAuthData()
+          )
+        ).rejects.toThrowError(operationForbidden);
+      });
+      it("should throw eServiceDescriptorNotFound if the descriptor doesn't exist", async () => {
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+        expect(
+          catalogService.updateDocument(
+            eService.id,
+            mockDescriptor.id,
+            uuidv4(),
+            { prettyName: "updated prettyName" },
+            getMockAuthData(eService.producerId)
+          )
+        ).rejects.toThrowError(
+          eServiceDescriptorNotFound(eService.id, mockDescriptor.id)
+        );
+      });
+      it("should throw eServiceDocumentNotFound if the document doesn't exist", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+          docs: [],
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+        expect(
+          catalogService.updateDocument(
+            eService.id,
+            descriptor.id,
+            mockDocument.id,
+            { prettyName: "updated prettyName" },
+            getMockAuthData(eService.producerId)
+          )
+        ).rejects.toThrowError(
+          eServiceDocumentNotFound(eService.id, descriptor.id, mockDocument.id)
+        );
       });
     });
   });

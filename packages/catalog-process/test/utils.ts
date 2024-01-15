@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from "uuid";
 import {
   Agreement,
   Descriptor,
+  Document,
   EService,
   EServiceEvent,
   Tenant,
@@ -20,6 +21,7 @@ import {
 import { MessageType } from "@protobuf-ts/runtime";
 import { toEServiceV1 } from "../src/model/domain/toEvent.js";
 import { EServiceDescriptorSeed } from "../src/model/domain/models.js";
+import { ApiEServiceDescriptorDocumentSeed } from "../src/model/types.js";
 
 export const writeEServiceInEventstore = async (
   eService: EService,
@@ -137,6 +139,27 @@ export const getMockDescriptor = (): Descriptor => ({
     verified: [],
     declared: [],
   },
+});
+
+export const buildInterfaceSeed = (): ApiEServiceDescriptorDocumentSeed => ({
+  contentType: "json",
+  prettyName: "prettyName",
+  serverUrls: ["pagopa.it"],
+  documentId: "string",
+  kind: "INTERFACE",
+  filePath: "filePath",
+  fileName: "fileName",
+  checksum: "checksum",
+});
+
+export const getMockDocument = (): Document => ({
+  name: "document name",
+  path: "document path",
+  id: uuidv4(),
+  prettyName: "pretty name",
+  contentType: "json",
+  checksum: uuidv4(),
+  uploadDate: new Date(),
 });
 
 export const getMockTenant = (): Tenant => ({
