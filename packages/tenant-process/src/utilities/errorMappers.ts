@@ -6,7 +6,11 @@ import { ErrorCodes as LocalErrorCodes } from "../model/domain/errors.js";
 
 type ErrorCodes = LocalErrorCodes | CommonErrorCodes;
 
-const { HTTP_STATUS_INTERNAL_SERVER_ERROR, HTTP_STATUS_NOT_FOUND } = constants;
+const {
+  HTTP_STATUS_INTERNAL_SERVER_ERROR,
+  HTTP_STATUS_NOT_FOUND,
+  HTTP_STATUS_FORBIDDEN,
+} = constants;
 
 export const getTenantByIdErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
@@ -24,11 +28,11 @@ export const getTenantBySelfcareIdErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("tenantBySelfcareIdNotFound", () => 404)
-    .otherwise(() => 500);
+    .with("tenantBySelfcareIdNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const updateTenantErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
-    .with("operationForbidden", () => 403)
-    .with("tenantNotFound", () => 404)
-    .otherwise(() => 500);
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
