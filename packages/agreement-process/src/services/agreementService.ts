@@ -719,26 +719,33 @@ export async function cloneAgreementLogic({
 
   validateCertifiedAttributes(descriptor, consumer.data);
 
-  const newAgreement = await createAgreementLogic(
-    {
-      eserviceId: agreementToBeCloned.data.eserviceId,
-      descriptorId: agreementToBeCloned.data.descriptorId,
-    },
-    authData,
-    agreementQuery,
-    eserviceQuery,
-    tenantQuery
-  );
+  const newAgreement: Agreement = {
+    eserviceId: agreementToBeCloned.data.eserviceId,
+    descriptorId: agreementToBeCloned.data.descriptorId,
+    producerId: agreementToBeCloned.data.producerId,
+    consumerId: agreementToBeCloned.data.consumerId,
+    consumerNotes: agreementToBeCloned.data.consumerNotes,
+    verifiedAttributes: [],
+    certifiedAttributes: [],
+    declaredAttributes: [],
+    id: uuidv4(),
+    state: agreementState.draft,
+    createdAt: new Date(),
+    consumerDocuments: [],
+    stamps: {},
+  };
+
+  const createEvent = toCreateEventAgreementAdded(newAgreement);
 
   const docEvents = await createAndCopyDocumentsForClonedAgreement(
-    newAgreement.streamId,
+    createEvent.streamId,
     agreementToBeCloned.data,
     0,
     fileCopy
   );
 
   return {
-    streamId: newAgreement.streamId,
-    events: [newAgreement, ...docEvents],
+    streamId: createEvent.streamId,
+    events: [createEvent, ...docEvents],
   };
 }
