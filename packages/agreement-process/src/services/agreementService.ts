@@ -607,6 +607,7 @@ export async function upgradeAgreementLogic({
     );
 
     const newAgreement: Agreement = {
+      id: uuidv4(),
       eserviceId: agreementToBeUpgraded.data.eserviceId,
       descriptorId: newDescriptor.id,
       producerId: agreementToBeUpgraded.data.producerId,
@@ -615,7 +616,6 @@ export async function upgradeAgreementLogic({
       certifiedAttributes: agreementToBeUpgraded.data.certifiedAttributes,
       declaredAttributes: agreementToBeUpgraded.data.declaredAttributes,
       consumerNotes: agreementToBeUpgraded.data.consumerNotes,
-      id: uuidv4(),
       state: agreementState.draft,
       createdAt: new Date(),
       consumerDocuments: [],
