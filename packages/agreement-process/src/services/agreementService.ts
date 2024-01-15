@@ -16,7 +16,6 @@ import {
   agreementEventToBinaryData,
   agreementState,
   descriptorState,
-  AgreementStamp,
   agreementUpgradableStates,
   agreementDeletableStates,
   agreementUpdatableStates,
@@ -70,6 +69,8 @@ import { AttributeQuery } from "./readmodel/attributeQuery.js";
 import { EserviceQuery } from "./readmodel/eserviceQuery.js";
 import { AgreementQueryFilters } from "./readmodel/readModelService.js";
 import { TenantQuery } from "./readmodel/tenantQuery.js";
+import { suspendAgreementLogic } from "./agreementSuspensionProcessor.js";
+import { createStamp } from "./agreementStampUtils.js";
 
 const fileManager = initFileManager(config);
 
@@ -169,7 +170,7 @@ export function agreementServiceBuilder(
       agreementId: string,
       payload: ApiAgreementSubmissionPayload
     ): Promise<string> {
-      logger.info("Submitting agreement");
+      logger.info(`Submitting agreement ${agreementId}`);
       const updatesEvents = await submitAgreementLogic(
         agreementId,
         payload,
@@ -261,6 +262,23 @@ export function agreementServiceBuilder(
       }
 
       return document;
+    },
+    async suspendAgreement(
+      agreementId: Agreement["id"],
+      authData: AuthData
+    ): Promise<Agreement["id"]> {
+      logger.info(`Suspending agreement ${agreementId}`);
+      await repository.createEvent(
+        await suspendAgreementLogic({
+          agreementId,
+          authData,
+          agreementQuery,
+          tenantQuery,
+          eserviceQuery,
+        })
+      );
+
+      return agreementId;
     },
   };
 }
@@ -521,10 +539,7 @@ export async function upgradeAgreementLogic({
 
   if (verifiedValid && declaredValid) {
     // upgradeAgreement
-    const stamp: AgreementStamp = {
-      who: authData.organizationId,
-      when: new Date(),
-    };
+    const stamp = createStamp(authData);
     const archived: Agreement = {
       ...agreementToBeUpgraded.data,
       state: agreementState.archived,
