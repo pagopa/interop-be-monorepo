@@ -30,16 +30,18 @@ import {
   agreementStateByFlags,
   nextState,
   suspendedByConsumerFlag,
-  suspendedByConsumerStamp,
   suspendedByPlatformFlag,
   suspendedByProducerFlag,
-  suspendedByProducerStamp,
 } from "./agreementStateProcessor.js";
 import { contractBuilder } from "./agreementContractBuilder.js";
 import { AgreementQuery } from "./readmodel/agreementQuery.js";
 import { EserviceQuery } from "./readmodel/eserviceQuery.js";
 import { TenantQuery } from "./readmodel/tenantQuery.js";
-import { createStamp } from "./agreementStampUtils.js";
+import {
+  createStamp,
+  suspendedByConsumerStamp,
+  suspendedByProducerStamp,
+} from "./agreementStampUtils.js";
 import { AttributeQuery } from "./readmodel/attributeQuery.js";
 
 export async function activateAgreementLogic(
@@ -149,13 +151,15 @@ async function activateAgreement(
           ...agreement.stamps,
           suspensionByConsumer: suspendedByConsumerStamp(
             agreement,
+            authData.organizationId,
             agreementState.active,
-            authData
+            createStamp(authData)
           ),
           suspensionByProducer: suspendedByProducerStamp(
             agreement,
+            authData.organizationId,
             agreementState.active,
-            authData
+            createStamp(authData)
           ),
         },
         suspendedAt:
