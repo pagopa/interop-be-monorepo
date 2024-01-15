@@ -1,5 +1,6 @@
 import { match } from "ts-pattern";
 import { z } from "zod";
+import { KafkaMessage } from "kafkajs";
 import {
   AgreementAddedV1,
   AgreementDeletedV1,
@@ -8,7 +9,13 @@ import {
   AgreementConsumerDocumentAddedV1,
   AgreementConsumerDocumentRemovedV1,
 } from "../gen/v1/agreement/events.js";
-import { protobufDecoder } from "../protobuf/protobuf.js";
+import { protobufDecoder } from "../readModels/protobuf.js";
+import {
+  DebeziumCreatePayload,
+  EventEnvelope,
+  Message,
+  decodeKafkaMessage,
+} from "../index.js";
 
 export function agreementEventToBinaryData(event: AgreementEvent): Uint8Array {
   return match(event)
@@ -60,3 +67,16 @@ export const AgreementEvent = z.discriminatedUnion("type", [
   }),
 ]);
 export type AgreementEvent = z.infer<typeof AgreementEvent>;
+
+export const AgreementEventEnvelope = EventEnvelope(AgreementEvent);
+export type AgreementEventEnvelope = z.infer<typeof AgreementEventEnvelope>;
+
+const DebeziumCreateAgreementPayload = DebeziumCreatePayload(
+  AgreementEventEnvelope
+);
+
+export const AgreementMessage = Message(DebeziumCreateAgreementPayload);
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export const decodeKafkaAgreementMessage = (message: KafkaMessage) =>
+  decodeKafkaMessage(message, AgreementMessage);

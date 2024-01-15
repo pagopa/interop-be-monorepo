@@ -5,5 +5,5 @@
     "declarationMap": true,
     "outDir": "dist"
   },
-  "include": ["src"]
+  "include": ["src", "protobuf"]
 }

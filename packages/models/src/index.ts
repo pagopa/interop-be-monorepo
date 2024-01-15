@@ -22,3 +22,5 @@ export * from "./gen/v1/tenant/events.js";
 export * from "./gen/v1/attribute/attribute.js";
 export * from "./gen/v1/attribute/events.js";
 export * from "./readModels/readModels.js";
+export * from "./readModels/events.js";
+export * from "./readModels/protobuf.js";
