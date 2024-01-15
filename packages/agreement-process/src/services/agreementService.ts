@@ -704,6 +704,7 @@ export async function cloneAgreementLogic({
   validateCertifiedAttributes(descriptor, consumer.data);
 
   const newAgreement: Agreement = {
+    id: uuidv4(),
     eserviceId: agreementToBeCloned.data.eserviceId,
     descriptorId: agreementToBeCloned.data.descriptorId,
     producerId: agreementToBeCloned.data.producerId,
@@ -712,7 +713,6 @@ export async function cloneAgreementLogic({
     verifiedAttributes: [],
     certifiedAttributes: [],
     declaredAttributes: [],
-    id: uuidv4(),
     state: agreementState.draft,
     createdAt: new Date(),
     consumerDocuments: [],
