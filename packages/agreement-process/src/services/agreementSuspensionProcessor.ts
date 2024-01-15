@@ -12,9 +12,6 @@ import {
   assertExpectedState,
   assertRequesterIsConsumerOrProducer,
   assertTenantExist,
-  matchingCertifiedAttributes,
-  matchingDeclaredAttributes,
-  matchingVerifiedAttributes,
 } from "../model/domain/validators.js";
 import { descriptorNotFound } from "../model/domain/errors.js";
 import { toCreateEventAgreementUpdated } from "../model/domain/toEvent.js";
@@ -115,13 +112,6 @@ export async function suspendAgreementLogic({
 
   const updateSeed: UpdateAgreementSeed = {
     state: newState,
-    certifiedAttributes: matchingCertifiedAttributes(descriptor, consumer.data),
-    declaredAttributes: matchingDeclaredAttributes(descriptor, consumer.data),
-    verifiedAttributes: matchingVerifiedAttributes(
-      eService.data,
-      descriptor,
-      consumer.data
-    ),
     suspendedByConsumer,
     suspendedByProducer,
     suspendedByPlatform,
