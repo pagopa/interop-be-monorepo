@@ -10,7 +10,6 @@ import {
   agreementArchivableStates,
   WithMetadata,
   AgreementEvent,
-  agreementAttributeType,
   AgreementUpdateEvent,
 } from "pagopa-interop-models";
 import {
@@ -143,18 +142,6 @@ async function activateAgreement(
       }
     : {
         state: newState,
-        certifiedAttributes: agreement.certifiedAttributes.map((a) => ({
-          id: a.id,
-          type: agreementAttributeType.CERTIFIED,
-        })),
-        declaredAttributes: agreement.declaredAttributes.map((a) => ({
-          id: a.id,
-          type: agreementAttributeType.DECLARED,
-        })),
-        verifiedAttributes: agreement.verifiedAttributes.map((a) => ({
-          id: a.id,
-          type: agreementAttributeType.VERIFIED,
-        })),
         suspendedByConsumer,
         suspendedByProducer,
         suspendedByPlatform,
