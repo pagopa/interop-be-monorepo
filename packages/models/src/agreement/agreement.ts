@@ -107,9 +107,9 @@ export type Agreement = z.infer<typeof Agreement>;
 
 export const UpdateAgreementSeed = z.object({
   state: AgreementState,
-  certifiedAttributes: z.array(CertifiedAgreementAttribute),
-  declaredAttributes: z.array(DeclaredAgreementAttribute),
-  verifiedAttributes: z.array(VerifiedAgreementAttribute),
+  certifiedAttributes: z.optional(z.array(CertifiedAgreementAttribute)),
+  declaredAttributes: z.optional(z.array(DeclaredAgreementAttribute)),
+  verifiedAttributes: z.optional(z.array(VerifiedAgreementAttribute)),
   suspendedByConsumer: z.boolean().optional(),
   suspendedByProducer: z.boolean().optional(),
   suspendedByPlatform: z.boolean().optional(),
@@ -173,6 +173,11 @@ export const agreementCloningConflictingStates: AgreementState[] = [
   agreementState.draft,
   agreementState.pending,
   agreementState.missingCertifiedAttributes,
+  agreementState.active,
+  agreementState.suspended,
+];
+
+export const agreementSuspendableStates: AgreementState[] = [
   agreementState.active,
   agreementState.suspended,
 ];
