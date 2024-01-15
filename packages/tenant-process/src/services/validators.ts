@@ -10,7 +10,7 @@ import {
   operationForbidden,
   tenantKind,
 } from "pagopa-interop-models";
-import { tenantNotFound } from "../model/domain/errors.js";
+import { selfcareIdConflict, tenantNotFound } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
 export function assertTenantExists(
@@ -99,4 +99,25 @@ export async function getTenantKindLoadingCertifiedAttributes(
   const attrs = await readModelService.getAttributesById(attributesIds);
   const extIds = convertAttributes(attrs);
   return getTenantKind(extIds, externalId);
+}
+
+export function evaluateNewSelfcareId({
+  tenant,
+  newSelfcareId,
+}: {
+  tenant: Tenant;
+  newSelfcareId: string;
+}): string {
+  if (!tenant.selfcareId) {
+    return newSelfcareId;
+  } else {
+    if (tenant.selfcareId !== newSelfcareId) {
+      throw selfcareIdConflict({
+        tenantId: tenant.id,
+        existingSelfcareId: tenant.selfcareId,
+        newSelfcareId,
+      });
+    }
+    return tenant.selfcareId;
+  }
 }

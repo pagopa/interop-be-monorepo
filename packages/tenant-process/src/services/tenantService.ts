@@ -7,9 +7,9 @@ import {
   toCreateEventTenantUpdated,
 } from "../model/domain/toEvent.js";
 import { ApiSelfcareTenantSeed } from "../model/types.js";
-import { selfcareIdConflict } from "../model/domain/errors.js";
 import {
   assertResourceAllowed,
+  evaluateNewSelfcareId,
   getTenantKind,
   getTenantKindLoadingCertifiedAttributes,
 } from "./validators.js";
@@ -46,16 +46,17 @@ export function tenantServiceBuilder(
       );
       if (existingTenant) {
         await assertResourceAllowed(existingTenant.data.id, authData);
-        const tenantKind = await getTenantKindLoadingCertifiedAttributes(
-          readModelService,
-          existingTenant.data.attributes,
-          existingTenant.data.externalId
-        );
 
         const updatedSelfcareId = evaluateNewSelfcareId({
           tenant: existingTenant.data,
           newSelfcareId: tenantSeed.selfcareId,
         });
+
+        const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+          readModelService,
+          existingTenant.data.attributes,
+          existingTenant.data.externalId
+        );
 
         const updatedTenant: Tenant = {
           ...existingTenant.data,
@@ -92,24 +93,3 @@ export function tenantServiceBuilder(
 }
 
 export type TenantService = ReturnType<typeof tenantServiceBuilder>;
-
-function evaluateNewSelfcareId({
-  tenant,
-  newSelfcareId,
-}: {
-  tenant: Tenant;
-  newSelfcareId: string;
-}): string {
-  if (!tenant.selfcareId) {
-    return newSelfcareId;
-  } else {
-    if (tenant.selfcareId !== newSelfcareId) {
-      throw selfcareIdConflict({
-        tenantId: tenant.id,
-        existingSelfcareId: tenant.selfcareId,
-        newSelfcareId,
-      });
-    }
-    return tenant.selfcareId;
-  }
-}

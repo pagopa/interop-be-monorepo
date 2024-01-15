@@ -6,7 +6,11 @@ import { ErrorCodes as LocalErrorCodes } from "../model/domain/errors.js";
 
 type ErrorCodes = LocalErrorCodes | CommonErrorCodes;
 
-const { HTTP_STATUS_INTERNAL_SERVER_ERROR, HTTP_STATUS_NOT_FOUND } = constants;
+const {
+  HTTP_STATUS_INTERNAL_SERVER_ERROR,
+  HTTP_STATUS_NOT_FOUND,
+  HTTP_STATUS_CONFLICT,
+} = constants;
 
 export const getTenantByIdErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
@@ -31,5 +35,5 @@ export const selfcareUpsertTenantErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("selfcareIdConflict", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
+    .with("selfcareIdConflict", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
