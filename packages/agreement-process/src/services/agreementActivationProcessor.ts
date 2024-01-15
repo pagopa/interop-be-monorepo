@@ -185,16 +185,16 @@ async function activateAgreement(
     );
   }
 
-  const archieveEvents = await archieveRelatedToAgreements(
+  const archiveEvents = await archiveRelatedToAgreements(
     agreement,
     authData,
     agreementQuery
   );
 
-  return [updateAgreementEvent, ...archieveEvents];
+  return [updateAgreementEvent, ...archiveEvents];
 }
 
-const archieveRelatedToAgreements = async (
+const archiveRelatedToAgreements = async (
   agreement: Agreement,
   authData: AuthData,
   agreementQuery: AgreementQuery

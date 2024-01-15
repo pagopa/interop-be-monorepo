@@ -338,7 +338,7 @@ export const validateActivationOnDescriptor = (
   eservice: EService,
   descriptorId: Descriptor["id"]
 ): Descriptor => {
-  const allowedStatus: DescriptorState[] = [
+  const allowedState: DescriptorState[] = [
     descriptorState.published,
     descriptorState.deprecated,
     descriptorState.suspended,
@@ -353,7 +353,7 @@ export const validateActivationOnDescriptor = (
     eservice.id,
     descriptor.id,
     descriptor.state,
-    allowedStatus
+    allowedState
   );
 
   return descriptor;
