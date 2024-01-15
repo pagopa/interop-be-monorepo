@@ -36,7 +36,11 @@ import {
   verifySubmissionConflictingAgreements,
 } from "../model/domain/validators.js";
 import { ApiAgreementSubmissionPayload } from "../model/types.js";
-import { agreementStateByFlags, nextState } from "./agreementStateProcessor.js";
+import {
+  agreementStateByFlags,
+  nextState,
+  suspendedByPlatformFlag,
+} from "./agreementStateProcessor.js";
 import {
   ContractBuilder,
   addAgreementContractLogic,
@@ -44,6 +48,7 @@ import {
 import { AgreementQuery } from "./readmodel/agreementQuery.js";
 import { EserviceQuery } from "./readmodel/eserviceQuery.js";
 import { TenantQuery } from "./readmodel/tenantQuery.js";
+import { createStamp } from "./agreementStampUtils.js";
 
 export type AgremeentSubmissionResults = {
   events: Array<CreateEvent<AgreementEvent>>;
@@ -128,10 +133,7 @@ const submitAgreement = async (
   if (agreement.state === agreementState.draft) {
     await validateConsumerEmail(agreement, tenantQuery);
   }
-  const stamp: AgreementStamp = {
-    who: authData.userId,
-    when: new Date(),
-  };
+  const stamp = createStamp(authData);
   const stamps = calculateStamps(agreement, newState, stamp);
   const updateSeed = getUpdateSeed(
     descriptor,
@@ -192,10 +194,7 @@ const submitAgreement = async (
                 ),
                 stamps: {
                   ...agreement.data.stamps,
-                  archiving: {
-                    who: authData.userId,
-                    when: new Date(),
-                  },
+                  archiving: createStamp(authData),
                 },
               };
 
@@ -331,10 +330,6 @@ const getUpdateSeed = (
         consumerNotes: payload.consumerNotes,
         stamps,
       };
-
-const suspendedByPlatformFlag = (fsmState: AgreementState): boolean =>
-  fsmState === agreementState.suspended ||
-  fsmState === agreementState.missingCertifiedAttributes;
 
 const isActiveOrSuspended = (state: AgreementState): boolean =>
   state === agreementState.active || state === agreementState.suspended;
