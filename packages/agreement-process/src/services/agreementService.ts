@@ -45,6 +45,7 @@ import {
   assertRequesterIsConsumerOrProducer,
   assertRequesterIsProducer,
   assertTenantExist,
+  assertDescriptorExist,
   declaredAttributesSatisfied,
   matchingCertifiedAttributes,
   matchingDeclaredAttributes,
@@ -725,12 +726,11 @@ export async function cloneAgreementLogic({
   const descriptor = eservice.data.descriptors.find(
     (d) => d.id === agreementToBeCloned.data.descriptorId
   );
-  if (descriptor === undefined) {
-    throw descriptorNotFound(
-      eservice.data.id,
-      agreementToBeCloned.data.descriptorId
-    );
-  }
+  assertDescriptorExist(
+    eservice.data.id,
+    agreementToBeCloned.data.descriptorId,
+    descriptor
+  );
 
   validateCertifiedAttributes(descriptor, consumer.data);
 
@@ -797,12 +797,11 @@ export async function rejectAgreementLogic({
   const descriptor = eservice.data.descriptors.find(
     (d) => d.id === agreementToBeRejected.data.descriptorId
   );
-  if (descriptor === undefined) {
-    throw descriptorNotFound(
-      eservice.data.id,
-      agreementToBeRejected.data.descriptorId
-    );
-  }
+  assertDescriptorExist(
+    eservice.data.id,
+    agreementToBeRejected.data.descriptorId,
+    descriptor
+  );
 
   const stamp = createStamp(authData);
   const rejected: Agreement = {
