@@ -345,6 +345,7 @@ export function agreementServiceBuilder(
           eserviceQuery,
         })
       );
+      return agreementId;
     },
     async activateAgreement(
       agreementId: Agreement["id"],

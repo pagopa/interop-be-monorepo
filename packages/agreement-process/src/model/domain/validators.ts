@@ -38,7 +38,6 @@ import {
   notLatestEServiceDescriptor,
   operationNotAllowed,
   tenantIdNotFound,
-  descriptorNotFound,
 } from "./errors.js";
 
 type NotRevocableTenantAttribute = Pick<VerifiedTenantAttribute, "id">;
@@ -325,11 +324,11 @@ export const verifyConsumerDoesNotActivatePending = (
   agreement: Agreement,
   authData: AuthData
 ): void => {
-  const activationPendingAllowed =
+  const activationPendingNotAllowed =
     agreement.state === agreementState.pending &&
     agreement.consumerId === authData.organizationId &&
     agreement.producerId !== agreement.consumerId;
-  if (!activationPendingAllowed) {
+  if (activationPendingNotAllowed) {
     throw operationNotAllowed(authData.organizationId);
   }
 };
