@@ -47,7 +47,7 @@ export function tenantServiceBuilder(
       if (existingTenant) {
         await assertResourceAllowed(existingTenant.data.id, authData);
 
-        const updatedSelfcareId = evaluateNewSelfcareId({
+        evaluateNewSelfcareId({
           tenant: existingTenant.data,
           newSelfcareId: tenantSeed.selfcareId,
         });
@@ -61,7 +61,7 @@ export function tenantServiceBuilder(
         const updatedTenant: Tenant = {
           ...existingTenant.data,
           kind: tenantKind,
-          selfcareId: updatedSelfcareId,
+          selfcareId: tenantSeed.selfcareId,
           updatedAt: new Date(),
         };
 
