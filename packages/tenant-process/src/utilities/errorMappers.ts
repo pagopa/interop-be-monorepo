@@ -21,5 +21,11 @@ export const getTenantBySelfcareIdErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("tenantBySelfcateIdNotFound", () => 404)
+    .with("tenantBySelfcareIdNotFound", () => 404)
+    .otherwise(() => 500);
+
+export const updateTenantErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with("operationForbidden", () => 403)
+    .with("tenantNotFound", () => 404)
     .otherwise(() => 500);

@@ -17,6 +17,7 @@ import {
   getTenantByExternalIdErrorMapper,
   getTenantByIdErrorMapper,
   getTenantBySelfcareIdErrorMapper,
+  updateTenantErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../utilities/config.js";
@@ -208,7 +209,7 @@ const tenantsRouter = (
           });
           return res.status(200).json({ id }).send();
         } catch (error) {
-          const errorRes = makeApiProblem(error, () => 500);
+          const errorRes = makeApiProblem(error, updateTenantErrorMapper);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
