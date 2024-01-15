@@ -621,16 +621,24 @@ export async function upgradeAgreementLogic({
       [agreementState.draft],
       agreementQuery
     );
-    const createEvent = await createAgreementLogic(
-      {
-        eserviceId: agreementToBeUpgraded.data.eserviceId,
-        descriptorId: newDescriptor.id,
-      },
-      authData,
-      agreementQuery,
-      eserviceQuery,
-      tenantQuery
-    );
+
+    const newAgreement: Agreement = {
+      eserviceId: agreementToBeUpgraded.data.eserviceId,
+      descriptorId: newDescriptor.id,
+      producerId: agreementToBeUpgraded.data.producerId,
+      consumerId: agreementToBeUpgraded.data.consumerId,
+      verifiedAttributes: agreementToBeUpgraded.data.verifiedAttributes,
+      certifiedAttributes: agreementToBeUpgraded.data.certifiedAttributes,
+      declaredAttributes: agreementToBeUpgraded.data.declaredAttributes,
+      consumerNotes: agreementToBeUpgraded.data.consumerNotes,
+      id: uuidv4(),
+      state: agreementState.draft,
+      createdAt: new Date(),
+      consumerDocuments: [],
+      stamps: {},
+    };
+
+    const createEvent = toCreateEventAgreementAdded(newAgreement);
 
     const docEvents = await createAndCopyDocumentsForClonedAgreement(
       createEvent.streamId,
