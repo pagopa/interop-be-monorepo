@@ -20,6 +20,7 @@ import {
   agreementDeletableStates,
   agreementUpdatableStates,
   agreementCloningConflictingStates,
+  agreementRejectableStates,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -780,9 +781,11 @@ export async function rejectAgreementLogic({
 
   assertRequesterIsProducer(agreementToBeRejected.data, authData);
 
-  assertExpectedState(agreementId, agreementToBeRejected.data.state, [
-    agreementState.pending,
-  ]);
+  assertExpectedState(
+    agreementId,
+    agreementToBeRejected.data.state,
+    agreementRejectableStates
+  );
 
   const eservice = await eserviceQuery.getEServiceById(
     agreementToBeRejected.data.eserviceId
