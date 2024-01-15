@@ -6,7 +6,8 @@ const errorCodes = {
   tenantDuplicate: "0003",
   tenantNotFound: "0004",
   eServiceNotFound: "0005",
-  tenantBySelfcateIdNotFound: "0006",
+  tenantBySelfcareIdNotFound: "0006",
+  operationForbidden: "0007",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -58,7 +59,7 @@ export function tenantBySelfcateIdNotFound(
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant with selfcareId ${selfcareId} not found in the catalog`,
-    code: "tenantBySelfcateIdNotFound",
+    code: "tenantBySelfcareIdNotFound",
     title: "Tenant with selfcareId not found",
   });
 }

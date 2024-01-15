@@ -12,7 +12,7 @@ import {
   TenantFeature,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-
+import { ApiTenantMailsSeed } from "../types.js";
 import {
   ApiExternalId,
   ApiTenantFeature,
@@ -105,6 +105,12 @@ export function toApiMailKind(kind: TenantMailKind): ApiMailKind {
     .exhaustive();
 }
 
+export function toTenantMailKind(apiMailKind: ApiMailKind): TenantMailKind {
+  return match(apiMailKind)
+    .with("CONTACT_EMAIL", () => tenantMailKind.ContactEmail)
+    .exhaustive();
+}
+
 export function toApiMail(mail: TenantMail): ApiMail {
   return {
     kind: toApiMailKind(mail.kind),
@@ -127,4 +133,13 @@ export function toApiTenant(tenant: Tenant): ApiTenant {
     mails: tenant.mails.map(toApiMail),
     name: tenant.name,
   };
+}
+
+export function toTenantMails(apiMailsSeed: ApiTenantMailsSeed): TenantMail[] {
+  return apiMailsSeed.mails.map((email) => ({
+    kind: toTenantMailKind(email.kind),
+    address: email.address,
+    createdAt: new Date(),
+    description: email.description ?? undefined,
+  }));
 }

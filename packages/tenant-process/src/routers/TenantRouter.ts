@@ -17,11 +17,14 @@ import {
   getTenantByExternalIdErrorMapper,
   getTenantByIdErrorMapper,
   getTenantBySelfcareIdErrorMapper,
+  updateTenantErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../utilities/config.js";
+import { tenantServiceBuilder } from "../services/tenantService.js";
 
 const readModelService = readModelServiceBuilder(config);
+const tenantService = tenantServiceBuilder(config, readModelService);
 
 const tenantsRouter = (
   ctx: ZodiosContext
@@ -230,7 +233,19 @@ const tenantsRouter = (
     .post(
       "/tenants/:id",
       authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const id = await tenantService.updateTenant({
+            tenantId: req.params.id,
+            mailsSeed: req.body,
+            authData: req.ctx.authData,
+          });
+          return res.status(200).json({ id }).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, updateTenantErrorMapper);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/internal/origin/:tOrigin/externalId/:tExternalId/attributes/origin/:aOrigin/externalId/:aExternalId",
