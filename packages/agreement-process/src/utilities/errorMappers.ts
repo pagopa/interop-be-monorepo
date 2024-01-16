@@ -145,3 +145,19 @@ export const rejectAgreementErrorMapper = (
     .with("agreementNotInExpectedState", () => HTTP_STATUS_BAD_REQUEST)
     .with("operationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const activateAgreementErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "notLatestEServiceDescriptor",
+      "agreementNotInExpectedState",
+      "agreementActivationFailed",
+      "descriptorNotInExpectedState",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("operationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .with("agreementAlreadyExists", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
