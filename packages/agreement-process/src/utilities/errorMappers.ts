@@ -115,3 +115,33 @@ export const getConsumerDocumentErrorMapper = (
   match(error.code)
     .with("documentNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const suspendAgreementErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("operationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .with("agreementNotInExpectedState", () => HTTP_STATUS_BAD_REQUEST)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const removeConsumerDocumentErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("documentNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "operationNotAllowed",
+      "documentsChangeNotAllowed",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const rejectAgreementErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("agreementNotInExpectedState", () => HTTP_STATUS_BAD_REQUEST)
+    .with("operationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

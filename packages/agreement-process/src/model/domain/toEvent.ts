@@ -150,3 +150,21 @@ export function toCreateEventAgreementConsumerDocumentAdded(
     },
   };
 }
+
+export function toCreateEventAgreementConsumerDocumentRemoved(
+  agreementId: string,
+  documentId: string,
+  version: number
+): CreateEvent<AgreementEvent> {
+  return {
+    streamId: agreementId,
+    version,
+    event: {
+      type: "AgreementConsumerDocumentRemoved",
+      data: {
+        agreementId,
+        documentId,
+      },
+    },
+  };
+}
