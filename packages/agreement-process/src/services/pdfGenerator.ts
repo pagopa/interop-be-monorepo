@@ -21,6 +21,7 @@ import {
   tenantAttributeType,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
+import { match } from "ts-pattern";
 import {
   agreementMissingUserInfo,
   agreementStampNotFound,
@@ -50,7 +51,12 @@ const getAttributeInvolved = async (
   >(
     type: TenantAttributeType
   ): Promise<Array<[AgreementAttribute, T]>> => {
-    const seedAttributes = (seed.certifiedAttributes ?? []).map((ca) => ca.id);
+    const seedAttributes = match(type)
+      .with(tenantAttributeType.CERTIFIED, () => seed.certifiedAttributes || [])
+      .with(tenantAttributeType.DECLARED, () => seed.declaredAttributes || [])
+      .with(tenantAttributeType.VERIFIED, () => seed.verifiedAttributes || [])
+      .exhaustive()
+      .map((ca) => ca.id);
     const attributes = consumer.attributes.filter(
       (a) => a.type === type && seedAttributes.includes(a.id)
     );
@@ -203,7 +209,7 @@ export const pdfGenerator = {
     );
     const document = await create(agreementTemplateMock, pdfPayload);
 
-    /* 
+    /*
       TODO : this method should be respect this behaviours https://github.com/pagopa/interop-be-agreement-process/blob/66781549a6db2470d8c407965b7561d1fe493107/src/main/scala/it/pagopa/interop/agreementprocess/service/AgreementContractCreator.scala#L57
       handled with task https://pagopa.atlassian.net/browse/IMN-138
     */
