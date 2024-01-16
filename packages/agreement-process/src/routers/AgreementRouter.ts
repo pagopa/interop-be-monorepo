@@ -8,6 +8,7 @@ import {
   initDB,
   ReadModelRepository,
 } from "pagopa-interop-commons";
+import { Agreement } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
 import {
   agreementDocumentToApiAgreementDocument,
@@ -25,6 +26,7 @@ import { agreementNotFound, makeApiProblem } from "../model/domain/errors.js";
 import {
   cloneAgreementErrorMapper,
   addConsumerDocumentErrorMapper,
+  activateAgreementErrorMapper,
   createAgreementErrorMapper,
   deleteAgreementErrorMapper,
   getConsumerDocumentErrorMapper,
@@ -93,8 +95,20 @@ const agreementRouter = (
 
   agreementRouter.post(
     "/agreements/:agreementId/activate",
-    async (_req, res) => {
-      res.status(501).send();
+    authorizationMiddleware([ADMIN_ROLE]),
+    async (req, res) => {
+      try {
+        const agreementId: Agreement["id"] =
+          await agreementService.activateAgreement(
+            req.params.agreementId,
+            req.ctx.authData
+          );
+
+        return res.status(200).json({ id: agreementId }).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, activateAgreementErrorMapper);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
     }
   );
 
