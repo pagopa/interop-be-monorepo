@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
@@ -10,12 +11,16 @@ import {
 } from "pagopa-interop-commons";
 import { IDatabase } from "pg-promise";
 import {
+  ClonedEServiceAddedV1,
   Descriptor,
   EService,
   EServiceAddedV1,
   EServiceDeletedV1,
   EServiceDescriptorAddedV1,
   EServiceDescriptorUpdatedV1,
+  EServiceDocumentAddedV1,
+  EServiceDocumentDeletedV1,
+  EServiceDocumentUpdatedV1,
   EServiceUpdatedV1,
   EServiceWithDescriptorsDeletedV1,
   descriptorState,
@@ -1192,8 +1197,36 @@ describe("database test", async () => {
     });
 
     describe("clone descriptor", () => {
-      it("TO DO should write on event-store for the cloning of a descriptor", () => {
-        expect(1).toBe(1);
+      it("should write on event-store for the cloning of a descriptor", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+          interface: getMockDocument(),
+          docs: [getMockDocument()],
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+        const newEService = await catalogService.cloneDescriptor(
+          eService.id,
+          descriptor.id,
+          getMockAuthData(eService.producerId)
+        );
+
+        const writtenEvent = await readLastEventByStreamId(
+          newEService.id,
+          postgresDB
+        );
+        expect(writtenEvent.stream_id).toBe(newEService.id);
+        expect(writtenEvent.version).toBe("0");
+        expect(writtenEvent.type).toBe("ClonedEServiceAdded");
+        const writtenPayload = decodeProtobufPayload({
+          messageType: ClonedEServiceAddedV1,
+          payload: writtenEvent.data,
+        });
+        // TO DO check entire payload
       });
       it("should throw eServiceNotFound if the eService doesn't exist", () => {
         expect(
@@ -1216,8 +1249,8 @@ describe("database test", async () => {
         await addOneEService(eService, postgresDB, eservices);
         expect(
           catalogService.cloneDescriptor(
-            mockEService.id,
-            mockDescriptor.id,
+            eService.id,
+            descriptor.id,
             getMockAuthData()
           )
         ).rejects.toThrowError(operationForbidden);
@@ -1332,8 +1365,36 @@ describe("database test", async () => {
     });
 
     describe("upload Document", () => {
-      it("TO DO should write on event-store for the upload of a document", () => {
-        expect(1).toBe(1);
+      it("should write on event-store for the upload of a document", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+
+        await catalogService.uploadDocument(
+          eService.id,
+          descriptor.id,
+          buildInterfaceSeed(),
+          getMockAuthData(eService.producerId)
+        );
+
+        const writtenEvent = await readLastEventByStreamId(
+          eService.id,
+          postgresDB
+        );
+        expect(writtenEvent.stream_id).toBe(eService.id);
+        expect(writtenEvent.version).toBe("1");
+        expect(writtenEvent.type).toBe("EServiceDocumentAdded");
+        const writtenPayload = decodeProtobufPayload({
+          messageType: EServiceDocumentAddedV1,
+          payload: writtenEvent.data,
+        });
+        // TO DO check entire payload
       });
       it("should throw eServiceNotFound if the eService doesn't exist", () => {
         expect(
@@ -1385,8 +1446,35 @@ describe("database test", async () => {
     });
 
     describe("delete Document", () => {
-      it("TO DO should write on event-store for the deletion of a document", () => {
-        expect(1).toBe(1);
+      it("should write on event-store for the deletion of a document", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+          docs: [mockDocument],
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+        await catalogService.deleteDocument(
+          eService.id,
+          descriptor.id,
+          mockDocument.id,
+          getMockAuthData(eService.producerId)
+        );
+        const writtenEvent = await readLastEventByStreamId(
+          eService.id,
+          postgresDB
+        );
+        expect(writtenEvent.stream_id).toBe(eService.id);
+        expect(writtenEvent.version).toBe("1");
+        expect(writtenEvent.type).toBe("EServiceDocumentDeleted");
+        const writtenPayload = decodeProtobufPayload({
+          messageType: EServiceDocumentDeletedV1,
+          payload: writtenEvent.data,
+        });
+        // TO DO check entire payload
       });
       it("should throw eServiceNotFound if the eService doesn't exist", async () => {
         expect(
@@ -1462,8 +1550,36 @@ describe("database test", async () => {
     });
 
     describe("update Document", () => {
-      it("TO DO should write on event-store for the update of a document", () => {
-        expect(1).toBe(1);
+      it("should write on event-store for the update of a document", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+          docs: [mockDocument],
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+        await catalogService.updateDocument(
+          eService.id,
+          descriptor.id,
+          mockDocument.id,
+          { prettyName: "updated prettyName" },
+          getMockAuthData(eService.producerId)
+        );
+        const writtenEvent = await readLastEventByStreamId(
+          eService.id,
+          postgresDB
+        );
+        expect(writtenEvent.stream_id).toBe(eService.id);
+        expect(writtenEvent.version).toBe("1");
+        expect(writtenEvent.type).toBe("EServiceDocumentUpdated");
+        const writtenPayload = decodeProtobufPayload({
+          messageType: EServiceDocumentUpdatedV1,
+          payload: writtenEvent.data,
+        });
+        // TO DO check entire payload
       });
       it("should throw eServiceNotFound if the eService doesn't exist", async () => {
         expect(
