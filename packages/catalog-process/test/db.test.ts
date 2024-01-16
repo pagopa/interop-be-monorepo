@@ -1096,6 +1096,66 @@ describe("database test", async () => {
       });
     });
 
+    describe("getEServiceByNameAndProducerId", () => {
+      it("should get the eService if it matches the name and the producerId", async () => {
+        const organizationId1 = uuidv4();
+        const organizationId2 = uuidv4();
+        const eService1: EService = {
+          ...mockEService,
+          id: uuidv4(),
+          name: "eService 001",
+          producerId: organizationId1,
+        };
+        await addOneEService(eService1, postgresDB, eservices);
+
+        const eService2: EService = {
+          ...mockEService,
+          id: uuidv4(),
+          name: "eService 002",
+          producerId: organizationId1,
+        };
+        await addOneEService(eService2, postgresDB, eservices);
+
+        const eService3: EService = {
+          ...mockEService,
+          id: uuidv4(),
+          name: "eService 001",
+          producerId: organizationId2,
+        };
+        await addOneEService(eService3, postgresDB, eservices);
+
+        const eService = await readModelService.getEServiceByNameAndProducerId({
+          name: "eService 001",
+          producerId: organizationId1,
+        });
+        expect(eService?.data).toEqual(eService1);
+      });
+      it("should not get the eService if it doesn't exist", async () => {
+        const organizationId = uuidv4();
+        const eService1: EService = {
+          ...mockEService,
+          id: uuidv4(),
+          name: "eService 001",
+          producerId: organizationId,
+        };
+        await addOneEService(eService1, postgresDB, eservices);
+
+        const eService2: EService = {
+          ...mockEService,
+          id: uuidv4(),
+          name: "eService 002",
+          producerId: organizationId,
+        };
+        await addOneEService(eService2, postgresDB, eservices);
+
+        const eService = await readModelService.getEServiceByNameAndProducerId({
+          name: "not-existing",
+          producerId: organizationId,
+        });
+        expect(eService).toBeUndefined();
+      });
+    });
+
     describe("getEServiceById", () => {
       it("should get the eService if it exists", async () => {
         const descriptor1: Descriptor = {
