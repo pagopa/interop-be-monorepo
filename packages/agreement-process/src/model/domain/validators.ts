@@ -34,6 +34,7 @@ import {
   notLatestEServiceDescriptor,
   operationNotAllowed,
   tenantIdNotFound,
+  descriptorNotFound,
 } from "./errors.js";
 
 type NotRevocableTenantAttribute = Pick<VerifiedTenantAttribute, "id">;
@@ -125,6 +126,16 @@ export const assertCanWorkOnConsumerDocuments = (
     throw documentsChangeNotAllowed(state);
   }
 };
+
+export function assertDescriptorExist(
+  eserviceId: string,
+  descriptorId: string,
+  descriptor: Descriptor | undefined
+): asserts descriptor is NonNullable<Descriptor> {
+  if (descriptor === undefined) {
+    throw descriptorNotFound(eserviceId, descriptorId);
+  }
+}
 
 /* =========  VALIDATIONS ========= */
 

@@ -7,6 +7,7 @@ import {
   WithMetadata,
   operationForbidden,
 } from "pagopa-interop-models";
+import { AuthData } from "pagopa-interop-commons";
 import {
   apiAgreementApprovalPolicyToAgreementApprovalPolicy,
   apiTechnologyToTechnology,
@@ -63,10 +64,14 @@ const mockUpdateDescriptorSeed = generateMock(
   api.schemas.EServiceDescriptorSeed
 );
 
-const authData = {
+const authData: AuthData = {
   organizationId: mockEservice.producerId,
   userId: "userId",
   userRoles: ["ADMIN"],
+  externalId: {
+    origin: "IPA",
+    value: "123456",
+  },
 };
 
 const addMetadata = (eService: EService): WithMetadata<EService> => ({
@@ -84,7 +89,7 @@ describe("CatalogService", () => {
       };
 
       const event = createEserviceLogic({
-        eServices: { results: [], totalCount: 0 },
+        eService: undefined,
         apiEServicesSeed: mockEserviceSeed,
         authData,
       });
@@ -109,7 +114,7 @@ describe("CatalogService", () => {
     it("returns an error if the eservice list is not empty", async () => {
       expect(() =>
         createEserviceLogic({
-          eServices: { results: [mockEservice], totalCount: 1 },
+          eService: addMetadata(mockEservice),
           apiEServicesSeed: mockEserviceSeed,
           authData,
         })
