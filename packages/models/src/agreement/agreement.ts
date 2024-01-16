@@ -181,3 +181,7 @@ export const agreementSuspendableStates: AgreementState[] = [
   agreementState.active,
   agreementState.suspended,
 ];
+
+export const agreementRejectableStates: AgreementState[] = [
+  agreementState.pending,
+];
