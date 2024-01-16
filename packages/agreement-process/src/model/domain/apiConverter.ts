@@ -3,6 +3,7 @@ import {
   AgreementState,
   AgreementDocument,
   agreementState,
+  AgreementDocumentId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -89,7 +90,7 @@ export const agreementToApiAgreement = (
 export const apiAgreementDocumentToAgreementDocument = (
   input: ApiAgreementDocumentSeed
 ): AgreementDocument => ({
-  id: input.id,
+  id: input.id as AgreementDocumentId,
   name: input.name,
   prettyName: input.prettyName,
   contentType: input.contentType,

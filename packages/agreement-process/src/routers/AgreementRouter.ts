@@ -8,7 +8,11 @@ import {
   initDB,
   ReadModelRepository,
 } from "pagopa-interop-commons";
-import { Agreement } from "pagopa-interop-models";
+import {
+  Agreement,
+  AgreementDocumentId,
+  AgreementId,
+} from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
 import {
   agreementDocumentToApiAgreementDocument,
@@ -83,7 +87,7 @@ const agreementRouter = (
     async (req, res) => {
       try {
         const id = await agreementService.submitAgreement(
-          req.params.agreementId,
+          req.params.agreementId as AgreementId,
           req.body
         );
         return res.status(200).json({ id }).end();
@@ -119,7 +123,7 @@ const agreementRouter = (
     async (req, res) => {
       try {
         const id = await agreementService.addConsumerDocument(
-          req.params.agreementId,
+          req.params.agreementId as AgreementId,
           req.body,
           req.ctx.authData
         );
@@ -138,8 +142,8 @@ const agreementRouter = (
     async (req, res) => {
       try {
         const document = await agreementService.getAgreementConsumerDocument(
-          req.params.agreementId,
-          req.params.documentId,
+          req.params.agreementId as AgreementId,
+          req.params.documentId as AgreementDocumentId,
           req.ctx.authData
         );
         return res
@@ -159,8 +163,8 @@ const agreementRouter = (
     async (req, res) => {
       try {
         await agreementService.removeAgreementConsumerDocument(
-          req.params.agreementId,
-          req.params.documentId,
+          req.params.agreementId as AgreementId,
+          req.params.documentId as AgreementDocumentId,
           req.ctx.authData
         );
         return res.status(204).send();
@@ -180,7 +184,7 @@ const agreementRouter = (
     async (req, res) => {
       try {
         const id = await agreementService.suspendAgreement(
-          req.params.agreementId,
+          req.params.agreementId as AgreementId,
           req.ctx.authData
         );
         return res.status(200).json({ id }).send();
@@ -197,7 +201,7 @@ const agreementRouter = (
     async (req, res) => {
       try {
         const id = await agreementService.rejectAgreement(
-          req.params.agreementId,
+          req.params.agreementId as AgreementId,
           req.body.reason,
           req.ctx.authData
         );
@@ -356,7 +360,7 @@ const agreementRouter = (
     async (req, res) => {
       try {
         const agreement = await agreementService.getAgreementById(
-          req.params.agreementId
+          req.params.agreementId as AgreementId
         );
         if (agreement) {
           return res
@@ -387,7 +391,7 @@ const agreementRouter = (
     async (req, res) => {
       try {
         await agreementService.deleteAgreementById(
-          req.params.agreementId,
+          req.params.agreementId as AgreementId,
           req.ctx.authData
         );
         return res.status(204).send();
@@ -404,7 +408,7 @@ const agreementRouter = (
     async (req, res) => {
       try {
         await agreementService.updateAgreement(
-          req.params.agreementId,
+          req.params.agreementId as AgreementId,
           req.body,
           req.ctx.authData
         );
@@ -423,7 +427,7 @@ const agreementRouter = (
     async (req, res) => {
       try {
         const id = await agreementService.upgradeAgreement(
-          req.params.agreementId,
+          req.params.agreementId as AgreementId,
           req.ctx.authData
         );
 
@@ -441,7 +445,7 @@ const agreementRouter = (
     async (req, res) => {
       try {
         const id = await agreementService.cloneAgreement(
-          req.params.agreementId,
+          req.params.agreementId as AgreementId,
           req.ctx.authData
         );
 

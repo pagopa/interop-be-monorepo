@@ -7,6 +7,7 @@ import {
   logger,
 } from "pagopa-interop-commons";
 import {
+  AttributeId,
   Descriptor,
   DescriptorState,
   Document,
@@ -715,7 +716,12 @@ export function createDescriptorLogic({
     archivedAt: undefined,
     createdAt: new Date(),
     attributes: {
-      certified: certifiedAttributes,
+      certified: certifiedAttributes.map((a) =>
+        a.map((a) => ({
+          ...a,
+          id: a.id as AttributeId,
+        }))
+      ),
       declared: [],
       verified: [],
     },

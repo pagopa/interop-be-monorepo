@@ -16,6 +16,7 @@ import {
   agreementApprovalPolicy,
   descriptorState,
   technology,
+  AttributeId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 
@@ -76,9 +77,11 @@ export const fromEServiceAttributeV1 = (
       {
         single: P.not(P.nullish),
       },
-      ({ single }) => [single]
+      ({ single }) => [{ ...single, id: single.id as AttributeId }]
     )
-    .otherwise(() => input.group);
+    .otherwise(() =>
+      input.group.map((a) => ({ ...a, id: a.id as AttributeId }))
+    );
 
 export const fromDocumentV1 = (input: EServiceDocumentV1): Document => ({
   ...input,

@@ -12,8 +12,11 @@ import {
 } from "pagopa-interop-commons";
 import {
   Agreement,
+  AttributeId,
+  AgreementId,
   AgreementState,
   Attribute,
+  DescriptorId,
   EService,
   ListResult,
   Tenant,
@@ -34,9 +37,9 @@ export type AgreementQueryFilters = {
   producerId?: string | string[];
   consumerId?: string | string[];
   eserviceId?: string | string[];
-  descriptorId?: string | string[];
+  descriptorId?: DescriptorId | string[];
   agreementStates?: AgreementState[];
-  attributeId?: string | string[];
+  attributeId?: AttributeId | string[];
   showOnlyUpgradeable?: boolean;
 };
 
@@ -380,7 +383,7 @@ export function readModelServiceBuilder(
       };
     },
     async readAgreementById(
-      agreementId: string
+      agreementId: AgreementId
     ): Promise<WithMetadata<Agreement> | undefined> {
       const data = await agreements.findOne(
         { "data.id": agreementId },

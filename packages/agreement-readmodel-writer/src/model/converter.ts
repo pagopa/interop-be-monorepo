@@ -10,12 +10,17 @@ import {
   StampsV1,
   AgreementStamps,
   agreementState,
+  AgreementDocumentId,
+  AgreementId,
+  DescriptorId,
+  AttributeId,
 } from "pagopa-interop-models";
 
 export const fromDocumentV1 = (
   input: AgreementDocumentV1
 ): AgreementDocument => ({
   ...input,
+  id: input.id as AgreementDocumentId,
   createdAt: new Date(Number(input.createdAt)),
 });
 
@@ -68,6 +73,20 @@ export const fromAgreementState = (input: AgreementStateV1): AgreementState => {
 
 export const fromAgreementV1 = (input: AgreementV1): Agreement => ({
   ...input,
+  id: input.id as AgreementId,
+  descriptorId: input.descriptorId as DescriptorId,
+  certifiedAttributes: input.certifiedAttributes.map((a) => ({
+    ...a,
+    id: AttributeId.parse(a.id),
+  })),
+  declaredAttributes: input.declaredAttributes.map((a) => ({
+    ...a,
+    id: AttributeId.parse(a.id),
+  })),
+  verifiedAttributes: input.verifiedAttributes.map((a) => ({
+    ...a,
+    id: AttributeId.parse(a.id),
+  })),
   state: fromAgreementState(input.state),
   createdAt: new Date(Number(input.createdAt)),
   updatedAt: input.updatedAt ? new Date(Number(input.updatedAt)) : undefined,

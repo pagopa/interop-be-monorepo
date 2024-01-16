@@ -1,6 +1,7 @@
 import {
   Agreement,
   AgreementState,
+  AttributeId,
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
   Descriptor,
@@ -381,8 +382,8 @@ const attributesSatisfied = <
 
 const matchingAttributes = (
   eServiceAttributes: EServiceAttribute[][],
-  consumerAttributes: string[]
-): string[] =>
+  consumerAttributes: AttributeId[]
+): AttributeId[] =>
   eServiceAttributes
     .flatMap((atts) => atts.map((att) => att.id))
     .filter((att) => consumerAttributes.includes(att));

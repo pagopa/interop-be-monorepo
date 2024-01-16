@@ -8,6 +8,7 @@ import {
   logger,
 } from "pagopa-interop-commons";
 import {
+  generateId,
   Agreement,
   AgreementDocument,
   AgreementEvent,
@@ -22,8 +23,10 @@ import {
   agreementCloningConflictingStates,
   agreementRejectableStates,
   AgreementUpdateEvent,
+  AgreementDocumentId,
+  DescriptorId,
+  AgreementId,
 } from "pagopa-interop-models";
-import { v4 as uuidv4 } from "uuid";
 import {
   agreementAlreadyExists,
   descriptorNotFound,
@@ -105,7 +108,7 @@ export function agreementServiceBuilder(
       return await agreementQuery.getAgreements(filters, limit, offset);
     },
     async getAgreementById(
-      agreementId: string
+      agreementId: AgreementId
     ): Promise<Agreement | undefined> {
       logger.info(`Retrieving agreement by id ${agreementId}`);
 
@@ -146,7 +149,7 @@ export function agreementServiceBuilder(
       return await agreementQuery.getConsumers(consumerName, limit, offset);
     },
     async updateAgreement(
-      agreementId: string,
+      agreementId: AgreementId,
       agreement: ApiAgreementUpdatePayload,
       authData: AuthData
     ): Promise<void> {
@@ -164,7 +167,7 @@ export function agreementServiceBuilder(
       );
     },
     async deleteAgreementById(
-      agreementId: string,
+      agreementId: AgreementId,
       authData: AuthData
     ): Promise<void> {
       const agreement = await agreementQuery.getAgreementById(agreementId);
@@ -179,7 +182,7 @@ export function agreementServiceBuilder(
       );
     },
     async submitAgreement(
-      agreementId: string,
+      agreementId: AgreementId,
       payload: ApiAgreementSubmissionPayload
     ): Promise<string> {
       logger.info(`Submitting agreement ${agreementId}`);
@@ -199,7 +202,7 @@ export function agreementServiceBuilder(
       return agreementId;
     },
     async upgradeAgreement(
-      agreementId: string,
+      agreementId: AgreementId,
       authData: AuthData
     ): Promise<string> {
       logger.info(`Upgrading agreement ${agreementId}`);
@@ -219,7 +222,7 @@ export function agreementServiceBuilder(
       return streamId;
     },
     async cloneAgreement(
-      agreementId: string,
+      agreementId: AgreementId,
       authData: AuthData
     ): Promise<string> {
       logger.info(`Cloning agreement ${agreementId}`);
@@ -239,7 +242,7 @@ export function agreementServiceBuilder(
       return streamId;
     },
     async addConsumerDocument(
-      agreementId: string,
+      agreementId: AgreementId,
       documentSeed: ApiAgreementDocumentSeed,
       authData: AuthData
     ): Promise<string> {
@@ -254,8 +257,8 @@ export function agreementServiceBuilder(
       return await repository.createEvent(addDocumentEvent);
     },
     async getAgreementConsumerDocument(
-      agreementId: string,
-      documentId: string,
+      agreementId: AgreementId,
+      documentId: AgreementDocumentId,
       authData: AuthData
     ): Promise<AgreementDocument> {
       logger.info(
@@ -276,9 +279,9 @@ export function agreementServiceBuilder(
       return document;
     },
     async suspendAgreement(
-      agreementId: Agreement["id"],
+      agreementId: AgreementId,
       authData: AuthData
-    ): Promise<Agreement["id"]> {
+    ): Promise<AgreementId> {
       logger.info(`Suspending agreement ${agreementId}`);
       await repository.createEvent(
         await suspendAgreementLogic({
@@ -312,8 +315,8 @@ export function agreementServiceBuilder(
       );
     },
     async removeAgreementConsumerDocument(
-      agreementId: string,
-      documentId: string,
+      agreementId: AgreementId,
+      documentId: AgreementDocumentId,
       authData: AuthData
     ): Promise<string> {
       logger.info(
@@ -331,7 +334,7 @@ export function agreementServiceBuilder(
       return await repository.createEvent(removeDocumentEvent);
     },
     async rejectAgreement(
-      agreementId: string,
+      agreementId: AgreementId,
       rejectionReason: string,
       authData: AuthData
     ): Promise<string> {
@@ -367,7 +370,7 @@ export function agreementServiceBuilder(
       return agreementId;
     },
     async archiveAgreement(
-      agreementId: string,
+      agreementId: AgreementId,
       authData: AuthData
     ): Promise<Agreement["id"]> {
       logger.info(`Archiving agreement ${agreementId}`);
@@ -397,7 +400,7 @@ async function createAndCopyDocumentsForClonedAgreement(
 ): Promise<Array<CreateEvent<AgreementEvent>>> {
   const docs = await Promise.all(
     clonedAgreement.consumerDocuments.map(async (d) => {
-      const newId = uuidv4();
+      const newId: AgreementDocumentId = generateId();
       return {
         newId,
         newPath: await fileCopy(
@@ -484,9 +487,9 @@ export async function createAgreementLogic(
   }
 
   const agreementSeed: Agreement = {
-    id: uuidv4(),
+    id: generateId(),
     eserviceId: agreement.eserviceId,
-    descriptorId: agreement.descriptorId,
+    descriptorId: agreement.descriptorId as DescriptorId,
     producerId: eservice.data.producerId,
     consumerId: authData.organizationId,
     state: agreementState.draft,
@@ -541,7 +544,7 @@ export async function upgradeAgreementLogic({
   tenantQuery,
   fileCopy,
 }: {
-  agreementId: string;
+  agreementId: AgreementId;
   authData: AuthData;
   agreementQuery: AgreementQuery;
   eserviceQuery: EserviceQuery;
@@ -632,8 +635,8 @@ export async function upgradeAgreementLogic({
     };
     const upgraded: Agreement = {
       ...agreementToBeUpgraded.data,
-      id: uuidv4(),
-      descriptorId: newDescriptor.id,
+      id: generateId(),
+      descriptorId: newDescriptor.id as DescriptorId,
       createdAt: new Date(),
       updatedAt: undefined,
       rejectionReason: undefined,
@@ -663,9 +666,9 @@ export async function upgradeAgreementLogic({
     );
 
     const newAgreement: Agreement = {
-      id: uuidv4(),
+      id: generateId(),
       eserviceId: agreementToBeUpgraded.data.eserviceId,
-      descriptorId: newDescriptor.id,
+      descriptorId: unsafeBrandedId(newDescriptor.id),
       producerId: agreementToBeUpgraded.data.producerId,
       consumerId: agreementToBeUpgraded.data.consumerId,
       verifiedAttributes: agreementToBeUpgraded.data.verifiedAttributes,
@@ -702,7 +705,7 @@ export async function cloneAgreementLogic({
   eserviceQuery,
   fileCopy,
 }: {
-  agreementId: string;
+  agreementId: AgreementId;
   authData: AuthData;
   agreementQuery: AgreementQuery;
   tenantQuery: TenantQuery;
@@ -759,7 +762,7 @@ export async function cloneAgreementLogic({
   validateCertifiedAttributes(descriptor, consumer.data);
 
   const newAgreement: Agreement = {
-    id: uuidv4(),
+    id: generateId(),
     eserviceId: agreementToBeCloned.data.eserviceId,
     descriptorId: agreementToBeCloned.data.descriptorId,
     producerId: agreementToBeCloned.data.producerId,
@@ -797,7 +800,7 @@ export async function rejectAgreementLogic({
   tenantQuery,
   eserviceQuery,
 }: {
-  agreementId: string;
+  agreementId: AgreementId;
   rejectionReason: string;
   authData: AuthData;
   agreementQuery: AgreementQuery;

@@ -2,7 +2,9 @@
 import { CreateEvent, getContext, logger } from "pagopa-interop-commons";
 import {
   Agreement,
+  AgreementDocumentId,
   AgreementEvent,
+  AgreementId,
   AgreementStamp,
   AgreementStamps,
   AgreementState,
@@ -56,7 +58,7 @@ export type AgremeentSubmissionResults = {
 };
 
 export async function submitAgreementLogic(
-  agreementId: string,
+  agreementId: AgreementId,
   payload: ApiAgreementSubmissionPayload,
   constractBuilder: ContractBuilder,
   eserviceQuery: EserviceQuery,
@@ -241,14 +243,16 @@ const createContract = async (
     throw contractAlreadyExists(agreement.id);
   }
 
+  const newContract = await constractBuilder.createContract(
+    agreement,
+    eservice,
+    consumer,
+    producer.data,
+    seed
+  );
   const agreementdocumentSeed = {
-    ...(await constractBuilder.createContract(
-      agreement,
-      eservice,
-      consumer,
-      producer.data,
-      seed
-    )),
+    ...newContract,
+    id: newContract.id as AgreementDocumentId,
     createdAt: new Date(),
   };
 
