@@ -13,14 +13,10 @@ import {
   Agreement,
   AgreementAttribute,
   AgreementInvolvedAttributes,
-  CertifiedAgreementAttribute,
-  DeclaredAgreementAttribute,
   EService,
   PDFPayload,
   Tenant,
   TenantAttributeType,
-  UpdateAgreementSeed,
-  VerifiedAgreementAttribute,
   genericError,
   tenantAttributeType,
 } from "pagopa-interop-models";
@@ -31,6 +27,12 @@ import {
 } from "../model/domain/errors.js";
 import { ApiAgreementDocumentSeed } from "../model/types.js";
 import { config } from "../utilities/config.js";
+import {
+  CertifiedAgreementAttribute,
+  DeclaredAgreementAttribute,
+  UpdateAgreementSeed,
+  VerifiedAgreementAttribute,
+} from "../model/domain/models.js";
 import { AttributeQuery } from "./readmodel/attributeQuery.js";
 
 const fileManager = initFileManager(config);

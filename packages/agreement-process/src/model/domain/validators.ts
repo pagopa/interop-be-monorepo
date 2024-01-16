@@ -1,19 +1,15 @@
 import {
   Agreement,
   AgreementState,
-  CertifiedAgreementAttribute,
   CertifiedTenantAttribute,
-  DeclaredAgreementAttribute,
   DeclaredTenantAttribute,
   Descriptor,
   DescriptorState,
   EService,
   EServiceAttribute,
   Tenant,
-  VerifiedAgreementAttribute,
   VerifiedTenantAttribute,
   WithMetadata,
-  agreementAttributeType,
   agreementState,
   descriptorState,
   tenantAttributeType,
@@ -39,6 +35,11 @@ import {
   operationNotAllowed,
   tenantIdNotFound,
 } from "./errors.js";
+import {
+  CertifiedAgreementAttribute,
+  DeclaredAgreementAttribute,
+  VerifiedAgreementAttribute,
+} from "./models.js";
 
 type NotRevocableTenantAttribute = Pick<VerifiedTenantAttribute, "id">;
 type RevocableTenantAttribute =
@@ -397,10 +398,7 @@ export const matchingCertifiedAttributes = (
     .map((a) => a.id);
 
   return matchingAttributes(descriptor.attributes.certified, attributes).map(
-    (id) => ({
-      type: agreementAttributeType.CERTIFIED,
-      id,
-    })
+    (id) => ({ id } as CertifiedAgreementAttribute)
   );
 };
 
@@ -415,10 +413,7 @@ export const matchingDeclaredAttributes = (
     .map((a) => a.id);
 
   return matchingAttributes(descriptor.attributes.declared, attributes).map(
-    (id) => ({
-      type: agreementAttributeType.DECLARED,
-      id,
-    })
+    (id) => ({ id } as DeclaredAgreementAttribute)
   );
 };
 
@@ -435,10 +430,7 @@ export const matchingVerifiedAttributes = (
   return matchingAttributes(
     descriptor.attributes.verified,
     verifiedAttributes
-  ).map((id) => ({
-    type: agreementAttributeType.VERIFIED,
-    id,
-  }));
+  ).map((id) => ({ id } as VerifiedAgreementAttribute));
 };
 
 /* ========= FILTERS ========= */
