@@ -63,10 +63,8 @@ export async function assertResourceAllowed(
   const roles = authData.userRoles;
   const organizationId = authData.organizationId;
 
-  await assertRequesterAllowed(resourceId, organizationId);
-
   if (!roles.includes(userRoles.INTERNAL_ROLE)) {
-    throw operationForbidden;
+    return await assertRequesterAllowed(resourceId, organizationId);
   }
 }
 
