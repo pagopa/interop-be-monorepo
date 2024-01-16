@@ -365,6 +365,39 @@ export function agreementServiceBuilder(
       }
       return agreementId;
     },
+    async archiveAgreement(
+      agreementId: string,
+      authData: AuthData
+    ): Promise<Agreement["id"]> {
+      logger.info(`Archiving agreement ${agreementId}`);
+
+      const agreement = await agreementQuery.getAgreementById(agreementId);
+      assertAgreementExist(agreementId, agreement);
+      assertRequesterIsConsumer(agreement.data, authData);
+
+      const updateSeed = {
+        ...agreement.data,
+        state: agreementState.archived,
+        stamps: {
+          ...agreement.data.stamps,
+          archiving: createStamp(authData),
+        },
+      };
+
+      const updatedAgreement = {
+        ...agreement.data,
+        ...updateSeed,
+      };
+
+      await repository.createEvent(
+        toCreateEventAgreementUpdated(
+          updatedAgreement,
+          agreement.metadata.version
+        )
+      );
+
+      return agreementId;
+    },
   };
 }
 
