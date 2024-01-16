@@ -56,12 +56,13 @@ export function assertExpirationDateExist(
   tenantId: string,
   attributeId: string,
   verifierId: string,
-  tenantVerifier: TenantVerifier | undefined
-): asserts tenantVerifier is NonNullable<TenantVerifier> {
-  if (tenantVerifier?.expirationDate === undefined) {
+  expirationDate: Date | undefined
+): asserts expirationDate is Date {
+  if (expirationDate === undefined) {
     expirationDateNotFoundInVerifier(tenantId, attributeId, verifierId);
   }
 }
+
 const PUBLIC_ADMINISTRATIONS_IDENTIFIER = "IPA";
 const CONTRACT_AUTHORITY_PUBLIC_SERVICES_MANAGERS = "SAG";
 const PUBLIC_SERVICES_MANAGERS = "L37";

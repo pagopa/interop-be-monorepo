@@ -74,7 +74,7 @@ export async function updateVerifiedAttributeExtensionDateLogic({
 
   assertVerifiedAttributeExistsInTenant(tenantId, attribute, tenant);
 
-  const tenantVerifier = attribute.verifiedBy.find(
+  const oldVerifier = attribute.verifiedBy.find(
     (verifier) => verifier.id === verifierId
   );
 
@@ -82,13 +82,24 @@ export async function updateVerifiedAttributeExtensionDateLogic({
     verifierId,
     tenantId,
     attributeId,
-    tenantVerifier
+    oldVerifier
   );
 
-  assertExpirationDateExist(tenantId, attributeId, verifierId, tenantVerifier);
+  assertExpirationDateExist(
+    tenantId,
+    attributeId,
+    verifierId,
+    oldVerifier.expirationDate
+  );
 
-  const extensionDate =
-    tenantVerifier.extensionDate ?? tenantVerifier.expirationDate;
+  const oldExtensionDate =
+    oldVerifier.extensionDate ?? oldVerifier.expirationDate;
+
+  const extensionDate = new Date(
+    oldExtensionDate.getTime() +
+      (oldVerifier.expirationDate.getTime() -
+        oldVerifier.verificationDate.getTime())
+  );
 
   const updatedAttribute: TenantAttribute = {
     ...attribute,
