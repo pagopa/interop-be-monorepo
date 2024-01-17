@@ -7,11 +7,11 @@ const errorCodes = {
   tenantNotFound: "0004",
   eServiceNotFound: "0005",
   tenantBySelfcateIdNotFound: "0006",
-  verifiedAttributeNotFoundInTenant: "0007",
-  organizationNotFoundInVerifiers: "0008",
-  expirationDateNotFoundInVerifier: "0009",
-  operationForbidden: "0010",
-  selfcareIdConflict: "0011",
+  operationForbidden: "0007",
+  selfcareIdConflict: "0008",
+  verifiedAttributeNotFoundInTenant: "0009",
+  organizationNotFoundInVerifiers: "0010",
+  expirationDateNotFoundInVerifier: "0011",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
