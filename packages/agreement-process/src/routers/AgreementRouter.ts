@@ -36,6 +36,7 @@ import {
   updateAgreementErrorMapper,
   upgradeAgreementErrorMapper,
   removeConsumerDocumentErrorMapper,
+  archiveAgreementErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -210,8 +211,18 @@ const agreementRouter = (
 
   agreementRouter.post(
     "/agreements/:agreementId/archive",
-    async (_req, res) => {
-      res.status(501).send();
+    authorizationMiddleware([ADMIN_ROLE]),
+    async (req, res) => {
+      try {
+        const agreementId = await agreementService.archiveAgreement(
+          req.params.agreementId,
+          req.ctx.authData
+        );
+        return res.status(200).send({ id: agreementId });
+      } catch (error) {
+        const errorRes = makeApiProblem(error, archiveAgreementErrorMapper);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
     }
   );
 
