@@ -13,11 +13,13 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
+  attributeNotFound,
+  expirationDateCannotBeInThePast,
   organizationNotFoundInVerifiers,
-  verifiedAttributeNotFoundInTenant,
   tenantNotFound,
-  expirationDateNotFoundInVerifier,
+  verifiedAttributeNotFoundInTenant,
   selfcareIdConflict,
+  expirationDateNotFoundInVerifier,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -139,6 +141,33 @@ export async function getTenantKindLoadingCertifiedAttributes(
   const attrs = await readModelService.getAttributesById(attributesIds);
   const extIds = convertAttributes(attrs);
   return getTenantKind(extIds, externalId);
+}
+
+export function assertAttributeExists(
+  attributeId: string,
+  attributes: TenantAttribute[]
+): asserts attributes is NonNullable<TenantAttribute[]> {
+  if (!attributes.some((attr) => attr.id === attributeId)) {
+    throw attributeNotFound(attributeId);
+  }
+}
+
+export function assertValidExpirationDate(
+  expirationDate: Date | undefined
+): void {
+  if (expirationDate && expirationDate < new Date()) {
+    throw expirationDateCannotBeInThePast(expirationDate);
+  }
+}
+
+export function assertOrganizationIsInAttributeVerifiers(
+  verifierId: string,
+  tenantId: string,
+  attribute: Extract<TenantAttribute, { type: "verified" }>
+): void {
+  if (!attribute.verifiedBy.some((v) => v.id === verifierId)) {
+    throw organizationNotFoundInVerifiers(verifierId, tenantId, attribute.id);
+  }
 }
 
 export function evaluateNewSelfcareId({
