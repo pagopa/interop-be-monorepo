@@ -319,7 +319,7 @@ export function readModelServiceBuilder(
               "data.producerId": { $in: producersIds },
             }),
             ...ReadModelRepository.arrayToFilter(states, {
-              "data.state": { $elemMatch: { state: { $in: states } } },
+              "data.state": { $in: states },
             }),
           } satisfies ReadModelFilter<Agreement>,
         },
@@ -333,7 +333,7 @@ export function readModelServiceBuilder(
         },
       ];
       const data = await agreements.aggregate(aggregationPipeline).toArray();
-      const result = z.array(Agreement).safeParse(data);
+      const result = z.array(Agreement).safeParse(data.map((a) => a.data));
 
       if (!result.success) {
         logger.error(
