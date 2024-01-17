@@ -18,10 +18,11 @@ import {
   getTenantByIdErrorMapper,
   getTenantBySelfcareIdErrorMapper,
   updateVerifiedAttributeExtensionDateErrorMapper,
+  selfcareUpsertTenantErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
-import { tenantServiceBuilder } from "../services/tenantService.js";
 import { config } from "../utilities/config.js";
+import { tenantServiceBuilder } from "../services/tenantService.js";
 
 const readModelService = readModelServiceBuilder(config);
 const tenantService = tenantServiceBuilder(config, readModelService);
@@ -253,7 +254,21 @@ const tenantsRouter = (
         SECURITY_ROLE,
         INTERNAL_ROLE,
       ]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const id = await tenantService.selfcareUpsertTenant({
+            tenantSeed: req.body,
+            authData: req.ctx.authData,
+          });
+          return res.status(200).json({ id }).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            selfcareUpsertTenantErrorMapper
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/tenants/:tenantId/attributes/verified",

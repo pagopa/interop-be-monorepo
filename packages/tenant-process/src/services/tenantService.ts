@@ -1,6 +1,9 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { CreateEvent, eventRepository, initDB } from "pagopa-interop-commons";
+import {
+  AuthData,
+  CreateEvent,
+  eventRepository,
+  initDB,
+} from "pagopa-interop-commons";
 import {
   Tenant,
   TenantAttribute,
@@ -8,13 +11,22 @@ import {
   WithMetadata,
   tenantEventToBinaryData,
 } from "pagopa-interop-models";
+import { v4 as uuidv4 } from "uuid";
 import { TenantProcessConfig } from "../utilities/config.js";
-import { toCreateEventTenantUpdated } from "../model/domain/toEvent.js";
+import {
+  toCreateEventTenantAdded,
+  toCreateEventTenantUpdated,
+} from "../model/domain/toEvent.js";
+import { ApiSelfcareTenantSeed } from "../model/types.js";
 import {
   assertExpirationDateExist,
   assertOrganizationVerifierExist,
+  assertResourceAllowed,
   assertTenantExists,
   assertVerifiedAttributeExistsInTenant,
+  evaluateNewSelfcareId,
+  getTenantKind,
+  getTenantKindLoadingCertifiedAttributes,
 } from "./validators.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -52,8 +64,66 @@ export function tenantServiceBuilder(
         })
       );
     },
+
+    async selfcareUpsertTenant({
+      tenantSeed,
+      authData,
+    }: {
+      tenantSeed: ApiSelfcareTenantSeed;
+      authData: AuthData;
+    }): Promise<string> {
+      const existingTenant = await readModelService.getTenantByExternalId(
+        tenantSeed.externalId
+      );
+      if (existingTenant) {
+        await assertResourceAllowed(existingTenant.data.id, authData);
+
+        evaluateNewSelfcareId({
+          tenant: existingTenant.data,
+          newSelfcareId: tenantSeed.selfcareId,
+        });
+
+        const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+          readModelService,
+          existingTenant.data.attributes,
+          existingTenant.data.externalId
+        );
+
+        const updatedTenant: Tenant = {
+          ...existingTenant.data,
+          kind: tenantKind,
+          selfcareId: tenantSeed.selfcareId,
+          updatedAt: new Date(),
+        };
+
+        return await repository.createEvent(
+          toCreateEventTenantUpdated(
+            existingTenant.data.id,
+            existingTenant.metadata.version,
+            updatedTenant
+          )
+        );
+      } else {
+        const newTenant: Tenant = {
+          id: uuidv4(),
+          name: tenantSeed.name,
+          attributes: [],
+          externalId: tenantSeed.externalId,
+          features: [],
+          mails: [],
+          selfcareId: tenantSeed.selfcareId,
+          kind: getTenantKind([], tenantSeed.externalId),
+          createdAt: new Date(),
+        };
+        return await repository.createEvent(
+          toCreateEventTenantAdded(newTenant)
+        );
+      }
+    },
   };
 }
+
+export type TenantService = ReturnType<typeof tenantServiceBuilder>;
 
 export async function updateVerifiedAttributeExtensionDateLogic({
   tenantId,
