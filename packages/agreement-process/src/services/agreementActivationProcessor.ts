@@ -5,7 +5,6 @@ import {
   Descriptor,
   EService,
   Tenant,
-  UpdateAgreementSeed,
   agreementState,
   agreementArchivableStates,
   WithMetadata,
@@ -26,6 +25,7 @@ import {
   assertEServiceExist,
 } from "../model/domain/validators.js";
 import { toCreateEventAgreementUpdated } from "../model/domain/toEvent.js";
+import { UpdateAgreementSeed } from "../model/domain/models.js";
 import {
   agreementStateByFlags,
   nextState,

@@ -9,9 +9,7 @@ import {
   Descriptor,
   EService,
   Tenant,
-  UpdateAgreementSeed,
   WithMetadata,
-  agreementAttributeType,
   agreementState,
   tenantMailKind,
 } from "pagopa-interop-models";
@@ -36,6 +34,7 @@ import {
   verifySubmissionConflictingAgreements,
 } from "../model/domain/validators.js";
 import { ApiAgreementSubmissionPayload } from "../model/types.js";
+import { UpdateAgreementSeed } from "../model/domain/models.js";
 import {
   agreementStateByFlags,
   nextState,
@@ -174,24 +173,6 @@ const submitAgreement = async (
             ): Promise<CreateEvent<AgreementEvent>> => {
               const updateSeed: UpdateAgreementSeed = {
                 state: agreementState.archived,
-                certifiedAttributes: agreement.data.certifiedAttributes.map(
-                  (ca) => ({
-                    type: agreementAttributeType.CERTIFIED,
-                    id: ca.id,
-                  })
-                ),
-                declaredAttributes: agreement.data.declaredAttributes.map(
-                  (da) => ({
-                    type: agreementAttributeType.DECLARED,
-                    id: da.id,
-                  })
-                ),
-                verifiedAttributes: agreement.data.verifiedAttributes.map(
-                  (va) => ({
-                    type: agreementAttributeType.VERIFIED,
-                    id: va.id,
-                  })
-                ),
                 stamps: {
                   ...agreement.data.stamps,
                   archiving: createStamp(authData),
