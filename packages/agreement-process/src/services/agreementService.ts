@@ -20,6 +20,7 @@ import {
   agreementDeletableStates,
   agreementUpdatableStates,
   agreementCloningConflictingStates,
+  agreementRejectableStates,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -43,8 +44,13 @@ import {
   assertExpectedState,
   assertRequesterIsConsumer,
   assertRequesterIsConsumerOrProducer,
+  assertRequesterIsProducer,
   assertTenantExist,
+  assertDescriptorExist,
   declaredAttributesSatisfied,
+  matchingCertifiedAttributes,
+  matchingDeclaredAttributes,
+  matchingVerifiedAttributes,
   validateCertifiedAttributes,
   validateCreationOnDescriptor,
   verifiedAttributesSatisfied,
@@ -62,12 +68,12 @@ import {
   ApiAgreementDocumentSeed,
 } from "../model/types.js";
 import { config } from "../utilities/config.js";
+import { AttributeQuery } from "./readmodel/attributeQuery.js";
+import { AgreementQueryFilters } from "./readmodel/readModelService.js";
 import { contractBuilder } from "./agreementContractBuilder.js";
 import { submitAgreementLogic } from "./agreementSubmissionProcessor.js";
 import { AgreementQuery } from "./readmodel/agreementQuery.js";
-import { AttributeQuery } from "./readmodel/attributeQuery.js";
 import { EserviceQuery } from "./readmodel/eserviceQuery.js";
-import { AgreementQueryFilters } from "./readmodel/readModelService.js";
 import { TenantQuery } from "./readmodel/tenantQuery.js";
 import { suspendAgreementLogic } from "./agreementSuspensionProcessor.js";
 import { createStamp } from "./agreementStampUtils.js";
@@ -75,6 +81,7 @@ import {
   removeAgreementConsumerDocumentLogic,
   addConsumerDocumentLogic,
 } from "./agreementConsumerDocumentProcessor.js";
+import { activateAgreementLogic } from "./agreementActivationProcessor.js";
 
 const fileManager = initFileManager(config);
 
@@ -321,6 +328,42 @@ export function agreementServiceBuilder(
       );
 
       return await repository.createEvent(removeDocumentEvent);
+    },
+    async rejectAgreement(
+      agreementId: string,
+      rejectionReason: string,
+      authData: AuthData
+    ): Promise<string> {
+      logger.info(`Rejecting agreement ${agreementId}`);
+      await repository.createEvent(
+        await rejectAgreementLogic({
+          agreementId,
+          rejectionReason,
+          authData,
+          agreementQuery,
+          tenantQuery,
+          eserviceQuery,
+        })
+      );
+      return agreementId;
+    },
+    async activateAgreement(
+      agreementId: Agreement["id"],
+      authData: AuthData
+    ): Promise<Agreement["id"]> {
+      const updatesEvents = await activateAgreementLogic(
+        agreementId,
+        agreementQuery,
+        eserviceQuery,
+        tenantQuery,
+        attributeQuery,
+        authData
+      );
+
+      for (const event of updatesEvents) {
+        await repository.createEvent(event);
+      }
+      return agreementId;
     },
   };
 }
@@ -702,12 +745,11 @@ export async function cloneAgreementLogic({
   const descriptor = eservice.data.descriptors.find(
     (d) => d.id === agreementToBeCloned.data.descriptorId
   );
-  if (descriptor === undefined) {
-    throw descriptorNotFound(
-      eservice.data.id,
-      agreementToBeCloned.data.descriptorId
-    );
-  }
+  assertDescriptorExist(
+    eservice.data.id,
+    agreementToBeCloned.data.descriptorId,
+    descriptor
+  );
 
   validateCertifiedAttributes(descriptor, consumer.data);
 
@@ -733,4 +775,78 @@ export async function cloneAgreementLogic({
     streamId: newAgreement.streamId,
     events: [newAgreement, ...docEvents],
   };
+}
+
+export async function rejectAgreementLogic({
+  agreementId,
+  rejectionReason,
+  authData,
+  agreementQuery,
+  tenantQuery,
+  eserviceQuery,
+}: {
+  agreementId: string;
+  rejectionReason: string;
+  authData: AuthData;
+  agreementQuery: AgreementQuery;
+  tenantQuery: TenantQuery;
+  eserviceQuery: EserviceQuery;
+}): Promise<CreateEvent<AgreementEvent>> {
+  const agreementToBeRejected = await agreementQuery.getAgreementById(
+    agreementId
+  );
+  assertAgreementExist(agreementId, agreementToBeRejected);
+
+  assertRequesterIsProducer(agreementToBeRejected.data, authData);
+
+  assertExpectedState(
+    agreementId,
+    agreementToBeRejected.data.state,
+    agreementRejectableStates
+  );
+
+  const eservice = await eserviceQuery.getEServiceById(
+    agreementToBeRejected.data.eserviceId
+  );
+  assertEServiceExist(agreementToBeRejected.data.eserviceId, eservice);
+
+  const consumer = await tenantQuery.getTenantById(
+    agreementToBeRejected.data.consumerId
+  );
+  assertTenantExist(agreementToBeRejected.data.consumerId, consumer);
+
+  const descriptor = eservice.data.descriptors.find(
+    (d) => d.id === agreementToBeRejected.data.descriptorId
+  );
+  assertDescriptorExist(
+    eservice.data.id,
+    agreementToBeRejected.data.descriptorId,
+    descriptor
+  );
+
+  const stamp = createStamp(authData);
+  const rejected: Agreement = {
+    ...agreementToBeRejected.data,
+    state: agreementState.rejected,
+    certifiedAttributes: matchingCertifiedAttributes(descriptor, consumer.data),
+    declaredAttributes: matchingDeclaredAttributes(descriptor, consumer.data),
+    verifiedAttributes: matchingVerifiedAttributes(
+      eservice.data,
+      descriptor,
+      consumer.data
+    ),
+    rejectionReason,
+    suspendedByConsumer: undefined,
+    suspendedByProducer: undefined,
+    suspendedByPlatform: undefined,
+    stamps: {
+      ...agreementToBeRejected.data.stamps,
+      rejection: stamp,
+    },
+  };
+
+  return toCreateEventAgreementUpdated(
+    rejected,
+    agreementToBeRejected.metadata.version
+  );
 }

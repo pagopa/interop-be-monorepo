@@ -41,11 +41,11 @@ import {
   nextState,
   suspendedByPlatformFlag,
 } from "./agreementStateProcessor.js";
+import { AgreementQuery } from "./readmodel/agreementQuery.js";
 import {
   ContractBuilder,
   addAgreementContractLogic,
 } from "./agreementContractBuilder.js";
-import { AgreementQuery } from "./readmodel/agreementQuery.js";
 import { EserviceQuery } from "./readmodel/eserviceQuery.js";
 import { TenantQuery } from "./readmodel/tenantQuery.js";
 import { createStamp } from "./agreementStampUtils.js";

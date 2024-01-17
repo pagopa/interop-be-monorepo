@@ -3,6 +3,7 @@ import {
   logger,
   ReadModelRepository,
   ReadModelFilter,
+  EServiceCollection,
 } from "pagopa-interop-commons";
 import {
   DescriptorState,
@@ -19,7 +20,39 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
+import { Filter, WithId } from "mongodb";
 import { Consumer, consumer } from "../model/domain/models.js";
+
+async function getEService(
+  eservices: EServiceCollection,
+  filter: Filter<WithId<WithMetadata<EService>>>
+): Promise<WithMetadata<EService> | undefined> {
+  const data = await eservices.findOne(filter, {
+    projection: { data: true, metadata: true },
+  });
+  if (!data) {
+    return undefined;
+  } else {
+    const result = z
+      .object({
+        metadata: z.object({ version: z.number() }),
+        data: EService,
+      })
+      .safeParse(data);
+    if (!result.success) {
+      logger.error(
+        `Unable to parse eService item: result ${JSON.stringify(
+          result
+        )} - data ${JSON.stringify(data)} `
+      );
+      throw genericError("Unable to parse eService item");
+    }
+    return {
+      data: result.data.data,
+      metadata: { version: result.data.metadata.version },
+    };
+  }
+}
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(
@@ -41,7 +74,7 @@ export function readModelServiceBuilder(
         producersIds: string[];
         states: DescriptorState[];
         agreementStates: AgreementState[];
-        name?: { value: string; exactMatch: boolean };
+        name?: string;
       },
       offset: number,
       limit: number
@@ -66,7 +99,7 @@ export function readModelServiceBuilder(
       const nameFilter: ReadModelFilter<EService> = name
         ? {
             "data.name": {
-              $regex: name.exactMatch ? `^${name.value}$$` : name.value,
+              $regex: name,
               $options: "i",
             },
           }
@@ -125,39 +158,25 @@ export function readModelServiceBuilder(
         ),
       };
     },
+    async getEServiceByNameAndProducerId({
+      name,
+      producerId,
+    }: {
+      name: string;
+      producerId: string;
+    }): Promise<WithMetadata<EService> | undefined> {
+      return getEService(eservices, {
+        "data.name": {
+          $regex: `^${name}$$`,
+          $options: "i",
+        },
+        "data.producerId": producerId,
+      });
+    },
     async getEServiceById(
       id: string
     ): Promise<WithMetadata<EService> | undefined> {
-      const data = await eservices.findOne(
-        { "data.id": id } satisfies ReadModelFilter<EService>,
-        { projection: { data: true, metadata: true } }
-      );
-
-      if (data) {
-        const result = z
-          .object({
-            metadata: z.object({ version: z.number() }),
-            data: EService,
-          })
-          .safeParse(data);
-
-        if (!result.success) {
-          logger.error(
-            `Unable to parse eservices item: result ${JSON.stringify(
-              result
-            )} - data ${JSON.stringify(data)} `
-          );
-
-          throw genericError(`Unable to parse eservice ${id}`);
-        }
-
-        return {
-          data: result.data.data,
-          metadata: { version: result.data.metadata.version },
-        };
-      }
-
-      return undefined;
+      return getEService(eservices, { "data.id": id });
     },
     async getEServiceConsumers(
       eServiceId: string,
