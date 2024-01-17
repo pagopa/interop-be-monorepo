@@ -100,7 +100,7 @@ const eservicesRouter = (
               agreementStates: agreementStates.map(
                 apiAgreementStateToAgreementState
               ),
-              name: name ? { value: name, exactMatch: false } : undefined,
+              name,
             },
             offset,
             limit

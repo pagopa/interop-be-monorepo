@@ -7,9 +7,11 @@ const errorCodes = {
   tenantNotFound: "0004",
   eServiceNotFound: "0005",
   tenantBySelfcareIdNotFound: "0006",
-  verifiedAttributeNotFoundInTenant: "0007",
-  expirationDateCannotBeInThePast: "0008",
-  organizationNotFoundInVerifiers: "0009",
+  operationForbidden: "0007",
+  selfcareIdConflict: "0008",
+  verifiedAttributeNotFoundInTenant: "0009",
+  expirationDateCannotBeInThePast: "0010",
+  organizationNotFoundInVerifiers: "0011",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -96,5 +98,21 @@ export function tenantBySelfcareIdNotFound(
     detail: `Tenant with selfcareId ${selfcareId} not found`,
     code: "tenantBySelfcareIdNotFound",
     title: "Tenant with selfcareId not found",
+  });
+}
+
+export function selfcareIdConflict({
+  tenantId,
+  existingSelfcareId,
+  newSelfcareId,
+}: {
+  tenantId: string;
+  existingSelfcareId: string;
+  newSelfcareId: string;
+}): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Conflict on Tenant SelfCareId update for tenant ${tenantId}: old value ${existingSelfcareId} - new value ${newSelfcareId}`,
+    code: "selfcareIdConflict",
+    title: "Selfcare id conflict",
   });
 }

@@ -11,6 +11,7 @@ const {
   HTTP_STATUS_NOT_FOUND,
   HTTP_STATUS_FORBIDDEN,
   HTTP_STATUS_BAD_REQUEST,
+  HTTP_STATUS_CONFLICT,
 } = constants;
 
 export const getTenantByIdErrorMapper = (error: ApiError<ErrorCodes>): number =>
@@ -40,4 +41,12 @@ export const updateTenantVerifiedAttributeErrorMapper = (
     .with("verifiedAttributeNotFoundInTenant", () => HTTP_STATUS_NOT_FOUND)
     .with("expirationDateCannotBeInThePast", () => HTTP_STATUS_BAD_REQUEST)
     .with("organizationNotFoundInVerifiers", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const selfcareUpsertTenantErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with("selfcareIdConflict", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

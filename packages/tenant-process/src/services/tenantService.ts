@@ -1,4 +1,9 @@
-import { CreateEvent, eventRepository, initDB } from "pagopa-interop-commons";
+import {
+  AuthData,
+  CreateEvent,
+  eventRepository,
+  initDB,
+} from "pagopa-interop-commons";
 import {
   Attribute,
   ExternalId,
@@ -30,6 +35,10 @@ import {
   assertTenantExists,
   assertValidExpirationDate,
   assertVerifiedAttributeExistsInTenant,
+  assertResourceAllowed,
+  evaluateNewSelfcareId,
+  getTenantKind,
+  getTenantKindLoadingCertifiedAttributes,
 } from "./validators.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -96,6 +105,62 @@ export function tenantServiceBuilder(
           updateVerifiedTenantAttributeSeed,
         })
       );
+    },
+
+    async selfcareUpsertTenant({
+      tenantSeed,
+      authData,
+    }: {
+      tenantSeed: ApiSelfcareTenantSeed;
+      authData: AuthData;
+    }): Promise<string> {
+      const existingTenant = await readModelService.getTenantByExternalId(
+        tenantSeed.externalId
+      );
+      if (existingTenant) {
+        await assertResourceAllowed(existingTenant.data.id, authData);
+
+        evaluateNewSelfcareId({
+          tenant: existingTenant.data,
+          newSelfcareId: tenantSeed.selfcareId,
+        });
+
+        const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+          readModelService,
+          existingTenant.data.attributes,
+          existingTenant.data.externalId
+        );
+
+        const updatedTenant: Tenant = {
+          ...existingTenant.data,
+          kind: tenantKind,
+          selfcareId: tenantSeed.selfcareId,
+          updatedAt: new Date(),
+        };
+
+        return await repository.createEvent(
+          toCreateEventTenantUpdated(
+            existingTenant.data.id,
+            existingTenant.metadata.version,
+            updatedTenant
+          )
+        );
+      } else {
+        const newTenant: Tenant = {
+          id: uuidv4(),
+          name: tenantSeed.name,
+          attributes: [],
+          externalId: tenantSeed.externalId,
+          features: [],
+          mails: [],
+          selfcareId: tenantSeed.selfcareId,
+          kind: getTenantKind([], tenantSeed.externalId),
+          createdAt: new Date(),
+        };
+        return await repository.createEvent(
+          toCreateEventTenantAdded(newTenant)
+        );
+      }
     },
   };
 }
@@ -222,3 +287,4 @@ export function createTenantLogic({
 
   return toCreateEventTenantAdded(newTenant);
 }
+export type TenantService = ReturnType<typeof tenantServiceBuilder>;
