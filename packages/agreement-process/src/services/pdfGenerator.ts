@@ -48,7 +48,7 @@ const getAttributeInvolved = async (
   >(
     type: TenantAttributeType
   ): Promise<Array<[AgreementAttribute, T]>> => {
-    const seedAttributes = seed.certifiedAttributes.map((ca) => ca.id);
+    const seedAttributes = (seed.certifiedAttributes ?? []).map((ca) => ca.id);
     const attributes = consumer.attributes.filter(
       (a) => a.type === type && seedAttributes.includes(a.id)
     );
