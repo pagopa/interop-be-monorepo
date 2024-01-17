@@ -1,7 +1,6 @@
-import { AuthData, eventRepository, initDB } from "pagopa-interop-commons";
+import { AuthData, DB, eventRepository } from "pagopa-interop-commons";
 import { Tenant, tenantEventToBinaryData } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
-import { TenantProcessConfig } from "../utilities/config.js";
 import {
   toCreateEventTenantAdded,
   toCreateEventTenantUpdated,
@@ -17,21 +16,10 @@ import { ReadModelService } from "./readModelService.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantServiceBuilder(
-  config: TenantProcessConfig,
+  dbInstance: DB,
   readModelService: ReadModelService
 ) {
-  const repository = eventRepository(
-    initDB({
-      username: config.eventStoreDbUsername,
-      password: config.eventStoreDbPassword,
-      host: config.eventStoreDbHost,
-      port: config.eventStoreDbPort,
-      database: config.eventStoreDbName,
-      schema: config.eventStoreDbSchema,
-      useSSL: config.eventStoreDbUseSSL,
-    }),
-    tenantEventToBinaryData
-  );
+  const repository = eventRepository(dbInstance, tenantEventToBinaryData);
 
   return {
     async selfcareUpsertTenant({
