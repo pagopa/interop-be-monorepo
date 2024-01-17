@@ -480,25 +480,9 @@ export async function createAgreementLogic(
     verifiedAttributes: [],
     certifiedAttributes: [],
     declaredAttributes: [],
-    suspendedByConsumer: undefined,
-    suspendedByProducer: undefined,
-    suspendedByPlatform: undefined,
     consumerDocuments: [],
     createdAt: new Date(),
-    updatedAt: undefined,
-    consumerNotes: undefined,
-    contract: undefined,
-    stamps: {
-      submission: undefined,
-      activation: undefined,
-      rejection: undefined,
-      suspensionByProducer: undefined,
-      suspensionByConsumer: undefined,
-      upgrade: undefined,
-      archiving: undefined,
-    },
-    rejectionReason: undefined,
-    suspendedAt: undefined,
+    stamps: {},
   };
 
   return toCreateEventAgreementAdded(agreementSeed);
@@ -664,16 +648,24 @@ export async function upgradeAgreementLogic({
       [agreementState.draft],
       agreementQuery
     );
-    const createEvent = await createAgreementLogic(
-      {
-        eserviceId: agreementToBeUpgraded.data.eserviceId,
-        descriptorId: newDescriptor.id,
-      },
-      authData,
-      agreementQuery,
-      eserviceQuery,
-      tenantQuery
-    );
+
+    const newAgreement: Agreement = {
+      id: uuidv4(),
+      eserviceId: agreementToBeUpgraded.data.eserviceId,
+      descriptorId: newDescriptor.id,
+      producerId: agreementToBeUpgraded.data.producerId,
+      consumerId: agreementToBeUpgraded.data.consumerId,
+      verifiedAttributes: agreementToBeUpgraded.data.verifiedAttributes,
+      certifiedAttributes: agreementToBeUpgraded.data.certifiedAttributes,
+      declaredAttributes: agreementToBeUpgraded.data.declaredAttributes,
+      consumerNotes: agreementToBeUpgraded.data.consumerNotes,
+      state: agreementState.draft,
+      createdAt: new Date(),
+      consumerDocuments: [],
+      stamps: {},
+    };
+
+    const createEvent = toCreateEventAgreementAdded(newAgreement);
 
     const docEvents = await createAndCopyDocumentsForClonedAgreement(
       createEvent.streamId,
@@ -753,27 +745,34 @@ export async function cloneAgreementLogic({
 
   validateCertifiedAttributes(descriptor, consumer.data);
 
-  const newAgreement = await createAgreementLogic(
-    {
-      eserviceId: agreementToBeCloned.data.eserviceId,
-      descriptorId: agreementToBeCloned.data.descriptorId,
-    },
-    authData,
-    agreementQuery,
-    eserviceQuery,
-    tenantQuery
-  );
+  const newAgreement: Agreement = {
+    id: uuidv4(),
+    eserviceId: agreementToBeCloned.data.eserviceId,
+    descriptorId: agreementToBeCloned.data.descriptorId,
+    producerId: agreementToBeCloned.data.producerId,
+    consumerId: agreementToBeCloned.data.consumerId,
+    consumerNotes: agreementToBeCloned.data.consumerNotes,
+    verifiedAttributes: [],
+    certifiedAttributes: [],
+    declaredAttributes: [],
+    state: agreementState.draft,
+    createdAt: new Date(),
+    consumerDocuments: [],
+    stamps: {},
+  };
+
+  const createEvent = toCreateEventAgreementAdded(newAgreement);
 
   const docEvents = await createAndCopyDocumentsForClonedAgreement(
-    newAgreement.streamId,
+    createEvent.streamId,
     agreementToBeCloned.data,
     0,
     fileCopy
   );
 
   return {
-    streamId: newAgreement.streamId,
-    events: [newAgreement, ...docEvents],
+    streamId: createEvent.streamId,
+    events: [createEvent, ...docEvents],
   };
 }
 
