@@ -6,9 +6,12 @@ const errorCodes = {
   tenantDuplicate: "0003",
   tenantNotFound: "0004",
   eServiceNotFound: "0005",
-  tenantBySelfcateIdNotFound: "0006",
+  tenantBySelfcareIdNotFound: "0006",
   operationForbidden: "0007",
   selfcareIdConflict: "0008",
+  verifiedAttributeNotFoundInTenant: "0009",
+  expirationDateCannotBeInThePast: "0010",
+  organizationNotFoundInVerifiers: "0011",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -55,12 +58,45 @@ export function eServiceNotFound(eServiceId: string): ApiError<ErrorCodes> {
   });
 }
 
-export function tenantBySelfcateIdNotFound(
+export function verifiedAttributeNotFoundInTenant(
+  tenantId: string,
+  attributeId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Verified attribute ${attributeId} not found in tenant ${tenantId}`,
+    code: "verifiedAttributeNotFoundInTenant",
+    title: "Verified attribute not found in tenant",
+  });
+}
+
+export function expirationDateCannotBeInThePast(
+  date: Date
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Expiration date ${date} cannot be in the past`,
+    code: "expirationDateCannotBeInThePast",
+    title: "Expiration date cannot be in the past",
+  });
+}
+
+export function organizationNotFoundInVerifiers(
+  requesterId: string,
+  tenantId: string,
+  attributeId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Organization ${requesterId} not found in verifier for Tenant ${tenantId} and attribute ${attributeId}`,
+    code: "organizationNotFoundInVerifiers",
+    title: "Organization not found in verifiers",
+  });
+}
+
+export function tenantBySelfcareIdNotFound(
   selfcareId: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Tenant with selfcareId ${selfcareId} not found in the catalog`,
-    code: "tenantBySelfcateIdNotFound",
+    detail: `Tenant with selfcareId ${selfcareId} not found`,
+    code: "tenantBySelfcareIdNotFound",
     title: "Tenant with selfcareId not found",
   });
 }
