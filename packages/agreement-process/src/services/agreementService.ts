@@ -21,6 +21,7 @@ import {
   agreementUpdatableStates,
   agreementCloningConflictingStates,
   agreementRejectableStates,
+  AgreementUpdateEvent,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -363,6 +364,18 @@ export function agreementServiceBuilder(
       for (const event of updatesEvents) {
         await repository.createEvent(event);
       }
+      return agreementId;
+    },
+    async archiveAgreement(
+      agreementId: string,
+      authData: AuthData
+    ): Promise<Agreement["id"]> {
+      logger.info(`Archiving agreement ${agreementId}`);
+
+      await repository.createEvent(
+        await archiveAgreementLogic(agreementId, authData, agreementQuery)
+      );
+
       return agreementId;
     },
   };
@@ -847,5 +860,34 @@ export async function rejectAgreementLogic({
   return toCreateEventAgreementUpdated(
     rejected,
     agreementToBeRejected.metadata.version
+  );
+}
+
+export async function archiveAgreementLogic(
+  agreementId: Agreement["id"],
+  authData: AuthData,
+  agreementQuery: AgreementQuery
+): Promise<CreateEvent<AgreementUpdateEvent>> {
+  const agreement = await agreementQuery.getAgreementById(agreementId);
+  assertAgreementExist(agreementId, agreement);
+  assertRequesterIsConsumer(agreement.data, authData);
+
+  const updateSeed = {
+    ...agreement.data,
+    state: agreementState.archived,
+    stamps: {
+      ...agreement.data.stamps,
+      archiving: createStamp(authData),
+    },
+  };
+
+  const updatedAgreement = {
+    ...agreement.data,
+    ...updateSeed,
+  };
+
+  return toCreateEventAgreementUpdated(
+    updatedAgreement,
+    agreement.metadata.version
   );
 }
