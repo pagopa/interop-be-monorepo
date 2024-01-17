@@ -17,7 +17,13 @@ export const DescriptorId = z.string().uuid().brand("DescriptorId");
 export type DescriptorId = z.infer<typeof DescriptorId>;
 
 export function generateId<
-  T extends AgreementId | AgreementDocumentId | DescriptorId
+  T extends AgreementId | AgreementDocumentId | DescriptorId | AttributeId
 >(): T {
   return uuidv4() as T;
+}
+
+export function unsafeBrandId<
+  T extends AgreementId | AgreementDocumentId | DescriptorId | AttributeId
+>(id: string): T {
+  return id as T;
 }

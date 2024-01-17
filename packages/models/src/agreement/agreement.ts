@@ -68,7 +68,7 @@ export const agreementCloningConflictingStates: AgreementState[] = [
   agreementState.suspended,
 ];
 
-const AgreementAttribute = z.object({ id: AttributeId });
+export const AgreementAttribute = z.object({ id: AttributeId });
 export type AgreementAttribute = z.infer<typeof AgreementAttribute>;
 
 export const AgreementDocument = z.object({

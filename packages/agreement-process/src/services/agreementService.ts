@@ -24,8 +24,8 @@ import {
   agreementRejectableStates,
   AgreementUpdateEvent,
   AgreementDocumentId,
-  DescriptorId,
   AgreementId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import {
   agreementAlreadyExists,
@@ -489,7 +489,7 @@ export async function createAgreementLogic(
   const agreementSeed: Agreement = {
     id: generateId(),
     eserviceId: agreement.eserviceId,
-    descriptorId: agreement.descriptorId as DescriptorId,
+    descriptorId: unsafeBrandId(agreement.descriptorId),
     producerId: eservice.data.producerId,
     consumerId: authData.organizationId,
     state: agreementState.draft,
@@ -636,7 +636,7 @@ export async function upgradeAgreementLogic({
     const upgraded: Agreement = {
       ...agreementToBeUpgraded.data,
       id: generateId(),
-      descriptorId: newDescriptor.id as DescriptorId,
+      descriptorId: unsafeBrandId(newDescriptor.id),
       createdAt: new Date(),
       updatedAt: undefined,
       rejectionReason: undefined,
@@ -668,7 +668,7 @@ export async function upgradeAgreementLogic({
     const newAgreement: Agreement = {
       id: generateId(),
       eserviceId: agreementToBeUpgraded.data.eserviceId,
-      descriptorId: unsafeBrandedId(newDescriptor.id),
+      descriptorId: unsafeBrandId(newDescriptor.id),
       producerId: agreementToBeUpgraded.data.producerId,
       consumerId: agreementToBeUpgraded.data.consumerId,
       verifiedAttributes: agreementToBeUpgraded.data.verifiedAttributes,

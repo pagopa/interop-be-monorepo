@@ -7,7 +7,6 @@ import {
   logger,
 } from "pagopa-interop-commons";
 import {
-  AttributeId,
   Descriptor,
   DescriptorState,
   Document,
@@ -17,6 +16,7 @@ import {
   catalogEventToBinaryData,
   descriptorState,
   operationForbidden,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { v4 as uuidv4 } from "uuid";
@@ -719,7 +719,7 @@ export function createDescriptorLogic({
       certified: certifiedAttributes.map((a) =>
         a.map((a) => ({
           ...a,
-          id: a.id as AttributeId,
+          id: unsafeBrandId(a.id),
         }))
       ),
       declared: [],

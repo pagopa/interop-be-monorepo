@@ -10,6 +10,7 @@ import {
   WithMetadata,
   AgreementEvent,
   AgreementUpdateEvent,
+  AgreementId,
 } from "pagopa-interop-models";
 import {
   assertAgreementExist,
@@ -45,7 +46,7 @@ import {
 import { AttributeQuery } from "./readmodel/attributeQuery.js";
 
 export async function activateAgreementLogic(
-  agreementId: string,
+  agreementId: AgreementId,
   agreementQuery: AgreementQuery,
   eserviceQuery: EserviceQuery,
   tenantQuery: TenantQuery,

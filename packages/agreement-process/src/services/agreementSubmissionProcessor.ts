@@ -2,7 +2,7 @@
 import { CreateEvent, getContext, logger } from "pagopa-interop-commons";
 import {
   Agreement,
-  AgreementDocumentId,
+  AgreementDocument,
   AgreementEvent,
   AgreementId,
   AgreementStamp,
@@ -14,6 +14,7 @@ import {
   WithMetadata,
   agreementState,
   tenantMailKind,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -250,9 +251,9 @@ const createContract = async (
     producer.data,
     seed
   );
-  const agreementdocumentSeed = {
+  const agreementdocumentSeed: AgreementDocument = {
     ...newContract,
-    id: newContract.id as AgreementDocumentId,
+    id: unsafeBrandId(newContract.id),
     createdAt: new Date(),
   };
 

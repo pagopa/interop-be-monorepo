@@ -8,11 +8,7 @@ import {
   initDB,
   ReadModelRepository,
 } from "pagopa-interop-commons";
-import {
-  Agreement,
-  AgreementDocumentId,
-  AgreementId,
-} from "pagopa-interop-models";
+import { Agreement, unsafeBrandId } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
 import {
   agreementDocumentToApiAgreementDocument,
@@ -87,7 +83,7 @@ const agreementRouter = (
     async (req, res) => {
       try {
         const id = await agreementService.submitAgreement(
-          req.params.agreementId as AgreementId,
+          unsafeBrandId(req.params.agreementId),
           req.body
         );
         return res.status(200).json({ id }).end();
@@ -105,7 +101,7 @@ const agreementRouter = (
       try {
         const agreementId: Agreement["id"] =
           await agreementService.activateAgreement(
-            req.params.agreementId,
+            unsafeBrandId(req.params.agreementId),
             req.ctx.authData
           );
 
@@ -123,7 +119,7 @@ const agreementRouter = (
     async (req, res) => {
       try {
         const id = await agreementService.addConsumerDocument(
-          req.params.agreementId as AgreementId,
+          unsafeBrandId(req.params.agreementId),
           req.body,
           req.ctx.authData
         );
@@ -142,8 +138,8 @@ const agreementRouter = (
     async (req, res) => {
       try {
         const document = await agreementService.getAgreementConsumerDocument(
-          req.params.agreementId as AgreementId,
-          req.params.documentId as AgreementDocumentId,
+          unsafeBrandId(req.params.agreementId),
+          unsafeBrandId(req.params.documentId),
           req.ctx.authData
         );
         return res
@@ -163,8 +159,8 @@ const agreementRouter = (
     async (req, res) => {
       try {
         await agreementService.removeAgreementConsumerDocument(
-          req.params.agreementId as AgreementId,
-          req.params.documentId as AgreementDocumentId,
+          unsafeBrandId(req.params.agreementId),
+          unsafeBrandId(req.params.documentId),
           req.ctx.authData
         );
         return res.status(204).send();
@@ -184,7 +180,7 @@ const agreementRouter = (
     async (req, res) => {
       try {
         const id = await agreementService.suspendAgreement(
-          req.params.agreementId as AgreementId,
+          unsafeBrandId(req.params.agreementId),
           req.ctx.authData
         );
         return res.status(200).json({ id }).send();
@@ -201,7 +197,7 @@ const agreementRouter = (
     async (req, res) => {
       try {
         const id = await agreementService.rejectAgreement(
-          req.params.agreementId as AgreementId,
+          unsafeBrandId(req.params.agreementId),
           req.body.reason,
           req.ctx.authData
         );
@@ -219,7 +215,7 @@ const agreementRouter = (
     async (req, res) => {
       try {
         const agreementId = await agreementService.archiveAgreement(
-          req.params.agreementId,
+          unsafeBrandId(req.params.agreementId),
           req.ctx.authData
         );
         return res.status(200).send({ id: agreementId });
@@ -360,7 +356,7 @@ const agreementRouter = (
     async (req, res) => {
       try {
         const agreement = await agreementService.getAgreementById(
-          req.params.agreementId as AgreementId
+          unsafeBrandId(req.params.agreementId)
         );
         if (agreement) {
           return res
@@ -391,7 +387,7 @@ const agreementRouter = (
     async (req, res) => {
       try {
         await agreementService.deleteAgreementById(
-          req.params.agreementId as AgreementId,
+          unsafeBrandId(req.params.agreementId),
           req.ctx.authData
         );
         return res.status(204).send();
@@ -408,7 +404,7 @@ const agreementRouter = (
     async (req, res) => {
       try {
         await agreementService.updateAgreement(
-          req.params.agreementId as AgreementId,
+          unsafeBrandId(req.params.agreementId),
           req.body,
           req.ctx.authData
         );
@@ -427,7 +423,7 @@ const agreementRouter = (
     async (req, res) => {
       try {
         const id = await agreementService.upgradeAgreement(
-          req.params.agreementId as AgreementId,
+          unsafeBrandId(req.params.agreementId),
           req.ctx.authData
         );
 
@@ -445,7 +441,7 @@ const agreementRouter = (
     async (req, res) => {
       try {
         const id = await agreementService.cloneAgreement(
-          req.params.agreementId as AgreementId,
+          unsafeBrandId(req.params.agreementId),
           req.ctx.authData
         );
 
