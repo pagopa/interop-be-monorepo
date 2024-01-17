@@ -602,9 +602,9 @@ export async function deleteDocumentLogic({
 
   const descriptor = retrieveDescriptor(descriptorId, eService);
 
-  const document = (
-    descriptor ? [...descriptor.docs, descriptor.interface] : []
-  ).find((doc) => doc != null && doc.id === documentId);
+  const document = [...descriptor.docs, descriptor.interface].find(
+    (doc) => doc != null && doc.id === documentId
+  );
   if (document === undefined) {
     throw eServiceDocumentNotFound(eServiceId, descriptorId, documentId);
   }
