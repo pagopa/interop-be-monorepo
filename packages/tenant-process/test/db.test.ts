@@ -51,10 +51,8 @@ describe("database test", () => {
 
     config.eventStoreDbPort = postgreSqlContainer.getMappedPort(5432);
     config.readModelDbPort = mongodbContainer.getMappedPort(27017);
-    tenants = ReadModelRepository.init(config).tenants;
+    ({ tenants } = ReadModelRepository.init(config));
     readModelService = readModelServiceBuilder(config);
-    tenantService = tenantServiceBuilder(config, readModelService);
-
     postgresDB = initDB({
       username: config.eventStoreDbUsername,
       password: config.eventStoreDbPassword,
@@ -64,6 +62,7 @@ describe("database test", () => {
       schema: config.eventStoreDbSchema,
       useSSL: config.eventStoreDbUseSSL,
     });
+    tenantService = tenantServiceBuilder(postgresDB, readModelService);
   });
 
   afterEach(async () => {
