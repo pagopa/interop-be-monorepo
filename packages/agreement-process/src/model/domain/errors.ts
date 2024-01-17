@@ -1,8 +1,8 @@
 import {
+  AgreementState,
   ApiError,
   DescriptorState,
   makeApiProblemBuilder,
-  AgreementState,
 } from "pagopa-interop-models";
 
 const errorCodes = {
@@ -188,6 +188,16 @@ export function contractAlreadyExists(
   });
 }
 
+export function agreementActivationFailed(
+  agreementId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    code: "agreementActivationFailed",
+    title: "Unable to activate agreement",
+    detail: `Unable to activate agreement ${agreementId}. Please check if attributes requirements and suspension flags are satisfied`,
+  });
+}
+
 export function consumerWithNotValidEmail(
   agreementId: string,
   tenantId: string
@@ -254,5 +264,15 @@ export function noNewerDescriptor(
     detail: `No newer descriptor in EService ${eserviceId} exists for upgrade. Current descriptor ${descriptorId}`,
     code: "noNewerDescriptor",
     title: "Agreement cannot be upgraded",
+  });
+}
+
+export function documentChangeNotAllowed(
+  state: AgreementState
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The requested operation on consumer documents is not allowed on agreement with state ${state}`,
+    code: "documentsChangeNotAllowed",
+    title: "Document change not allowed",
   });
 }
