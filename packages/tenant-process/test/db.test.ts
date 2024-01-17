@@ -16,11 +16,15 @@ import {
   ReadModelService,
   readModelServiceBuilder,
 } from "../src/services/readModelService.js";
+import {
+  TenantService,
+  tenantServiceBuilder,
+} from "../src/services/tenantService.js";
 
 describe("database test", () => {
   let tenants: TenantCollection;
   let readModelService: ReadModelService;
-  // let tenantService: TenantService;
+  let tenantService: TenantService;
   let postgresDB: IDatabase<unknown>;
   beforeAll(async () => {
     const postgreSqlContainer = await new PostgreSqlContainer("postgres:14")
@@ -49,7 +53,7 @@ describe("database test", () => {
     config.readModelDbPort = mongodbContainer.getMappedPort(27017);
     tenants = ReadModelRepository.init(config).tenants;
     readModelService = readModelServiceBuilder(config);
-    // tenantService = tenantServiceBuilder(config, readModelService);
+    tenantService = tenantServiceBuilder(config, readModelService);
 
     postgresDB = initDB({
       username: config.eventStoreDbUsername,
