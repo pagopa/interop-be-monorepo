@@ -208,7 +208,7 @@ async function updateTenantVerifiedAttributeLogic({
     (att) => att.id === attributeId
   );
 
-  assertVerifiedAttributeExistsInTenant(attributeId, attribute, tenant.data.id);
+  assertVerifiedAttributeExistsInTenant(attributeId, attribute, tenant);
   assertOrganizationIsInAttributeVerifiers(verifierId, tenantId, attribute);
 
   const updatedAttribute: TenantAttribute = {
