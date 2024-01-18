@@ -90,6 +90,7 @@ export const fromDocumentV1 = (input: EServiceDocumentV1): Document => ({
 
 export const fromDescriptorV1 = (input: EServiceDescriptorV1): Descriptor => ({
   ...input,
+  id: unsafeBrandId(input.id),
   attributes:
     input.attributes != null
       ? {

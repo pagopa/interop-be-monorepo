@@ -387,7 +387,7 @@ export function agreementServiceBuilder(
 export type AgreementService = ReturnType<typeof agreementServiceBuilder>;
 
 async function createAndCopyDocumentsForClonedAgreement(
-  newAgreementId: string,
+  newAgreementId: AgreementId,
   clonedAgreement: Agreement,
   startingVersion: number,
   fileCopy: (
@@ -435,7 +435,7 @@ export async function deleteAgreementLogic({
   deleteFile,
   agreement,
 }: {
-  agreementId: string;
+  agreementId: AgreementId;
   authData: AuthData;
   deleteFile: (container: string, path: string) => Promise<void>;
   agreement: WithMetadata<Agreement> | undefined;
@@ -471,7 +471,7 @@ export async function createAgreementLogic(
 
   const descriptor = validateCreationOnDescriptor(
     eservice.data,
-    agreement.descriptorId
+    unsafeBrandId(agreement.descriptorId)
   );
 
   await verifyCreationConflictingAgreements(
@@ -510,7 +510,7 @@ export async function updateAgreementLogic({
   authData,
   agreementToBeUpdated,
 }: {
-  agreementId: string;
+  agreementId: AgreementId;
   agreement: ApiAgreementUpdatePayload;
   authData: AuthData;
   agreementToBeUpdated: WithMetadata<Agreement> | undefined;
@@ -684,7 +684,7 @@ export async function upgradeAgreementLogic({
     const createEvent = toCreateEventAgreementAdded(newAgreement);
 
     const docEvents = await createAndCopyDocumentsForClonedAgreement(
-      createEvent.streamId,
+      newAgreement.id,
       agreementToBeUpgraded.data,
       1,
       fileCopy
@@ -780,7 +780,7 @@ export async function cloneAgreementLogic({
   const createEvent = toCreateEventAgreementAdded(newAgreement);
 
   const docEvents = await createAndCopyDocumentsForClonedAgreement(
-    createEvent.streamId,
+    newAgreement.id,
     agreementToBeCloned.data,
     0,
     fileCopy

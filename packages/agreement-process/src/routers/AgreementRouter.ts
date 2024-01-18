@@ -370,7 +370,7 @@ const agreementRouter = (
             .status(404)
             .json(
               makeApiProblem(
-                agreementNotFound(req.params.agreementId),
+                agreementNotFound(unsafeBrandId(req.params.agreementId)),
                 () => 404
               )
             )
