@@ -15,19 +15,25 @@ export const REAUTHENTICATION_THRESHOLD = 20 * 1000;
 const errorTypes = ["unhandledRejection", "uncaughtException"];
 const signalTraps = ["SIGTERM", "SIGINT", "SIGUSR2"];
 
-const handleExit = (consumer: Consumer): void => {
+const processExit = (existStatusCode: number = 1): void => {
+  logger.info(`Process exit with code ${existStatusCode}`);
+  process.exit(existStatusCode);
+};
+
+const errorEventsListener = (consumer: Consumer): void => {
   errorTypes.forEach((type) => {
     process.on(type, async (e) => {
       try {
-        logger.info(`process.on ${type}`);
-        logger.error(e);
+        logger.error(`Error ${type} intercepted; Error detail: ${e}`);
         await consumer.disconnect().finally(() => {
-          logger.info("Consumer disconnected");
-          process.exit(0);
+          logger.info("Consumer disconnected properly");
         });
-        process.exit(0);
-      } catch (_) {
-        process.exit(1);
+        processExit();
+      } catch (e) {
+        logger.error(
+          `Something was wrong during consumer disconnection with event type ${type}; Error detail: ${e}`
+        );
+        processExit();
       }
     });
   });
@@ -36,8 +42,8 @@ const handleExit = (consumer: Consumer): void => {
     process.once(type, async () => {
       try {
         await consumer.disconnect().finally(() => {
-          logger.info("Consumer disconnected");
-          process.exit(0);
+          logger.info("Consumer disconnected properly");
+          processExit();
         });
       } finally {
         process.kill(process.pid, type);
@@ -71,9 +77,22 @@ const initConsumer = async (
       };
 
   const kafka = new Kafka(kafkaConfig);
-  const consumer = kafka.consumer({ groupId: config.kafkaGroupId });
 
-  handleExit(consumer);
+  const consumer = kafka.consumer({
+    groupId: config.kafkaGroupId,
+    retry: {
+      initialRetryTime: 100,
+      maxRetryTime: 3000,
+      retries: 3,
+      restartOnFailure: (error) => {
+        logger.error(`Error during restart service: ${error.message}`);
+        return Promise.resolve(false);
+      },
+    },
+  });
+
+  kafkaEventsListener(consumer);
+  errorEventsListener(consumer);
 
   await consumer.connect();
   logger.info("Consumer connected");
@@ -82,6 +101,13 @@ const initConsumer = async (
     topics: config.kafkaTopics,
     fromBeginning: true,
   });
+
+  const topicExists = await validateTopicMetadata(kafka, config.kafkaTopics);
+  if (!topicExists) {
+    processExit();
+  }
+
+  logger.info(`Consumer subscribed topic ${config.kafkaTopics}`);
 
   await consumer.run({
     eachMessage: consumerHandler,
@@ -107,4 +133,52 @@ export const runConsumer = async (
       logger.info("Consumer disconnected");
     });
   } while (true);
+};
+
+const kafkaEventsListener = (consumer: Consumer): void => {
+  consumer.on(consumer.events.DISCONNECT, () => {
+    logger.info(`Consumer has disconnected.`);
+  });
+
+  consumer.on(consumer.events.STOP, (e) => {
+    logger.info(`Consumer has stopped ${JSON.stringify(e)}.`);
+  });
+
+  consumer.on(consumer.events.CRASH, (e) => {
+    logger.error(`Error Consumer crashed ${JSON.stringify(e)}.`);
+    processExit();
+  });
+
+  consumer.on(consumer.events.REQUEST_TIMEOUT, (e) => {
+    logger.error(
+      `Error Request to a broker has timed out : ${JSON.stringify(e)}.`
+    );
+  });
+};
+
+const validateTopicMetadata = async (
+  kafka: Kafka,
+  topicNames: string[]
+): Promise<boolean> => {
+  logger.info(`Validating Topics[${JSON.stringify(topicNames)}] ...`);
+
+  const admin = kafka.admin();
+  await admin.connect();
+
+  try {
+    const { topics } = await admin.fetchTopicMetadata({
+      topics: [...topicNames],
+    });
+    logger.info(`Topic metadata: ${JSON.stringify(topics)} `);
+    await admin.disconnect();
+    return true;
+  } catch (e) {
+    await admin.disconnect();
+    logger.error(
+      `Impossible to subscribe! error during topic's metadata fetching: ${JSON.stringify(
+        e
+      )}`
+    );
+    return false;
+  }
 };
