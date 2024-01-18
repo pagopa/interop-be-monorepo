@@ -31,7 +31,7 @@ export const AgreementApprovalPolicy = z.enum([
 ]);
 export type AgreementApprovalPolicy = z.infer<typeof AgreementApprovalPolicy>;
 
-const EServiceAttribute = z.object({
+export const EServiceAttribute = z.object({
   id: AttributeId,
   explicitAttributeVerification: z.boolean(),
 });
