@@ -9,11 +9,11 @@ import {
 import {
   CompactOrganization,
   CompactEService,
-} from "../src/model/domain/models.js";
+} from "../../src/model/domain/models.js";
 import {
   ReadModelService,
   AgreementQueryFilters,
-} from "../src/services/readmodel/readModelService.js";
+} from "../../src/services/readmodel/readModelService.js";
 
 export class ReadModelServiceMock {
   public agreements: Agreement[] = [];
