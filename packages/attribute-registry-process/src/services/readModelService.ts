@@ -116,8 +116,8 @@ async function getAttributes({
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
 ) {
-  const attributes = readModelRepository.attributes;
-  const tenants = readModelRepository.tenants;
+  const { attributes, tenants } = readModelRepository;
+
   return {
     async getAttributesByIds({
       ids,

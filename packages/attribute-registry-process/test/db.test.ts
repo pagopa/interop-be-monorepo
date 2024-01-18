@@ -77,8 +77,7 @@ describe("database test", () => {
     config.eventStoreDbPort = postgreSqlContainer.getMappedPort(5432);
     config.readModelDbPort = mongodbContainer.getMappedPort(27017);
     const readModelRepository = ReadModelRepository.init(config);
-    attributes = readModelRepository.attributes;
-    tenants = readModelRepository.tenants;
+    ({ attributes, tenants } = readModelRepository);
     readModelService = readModelServiceBuilder(readModelRepository);
 
     postgresDB = initDB({
