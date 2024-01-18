@@ -6,8 +6,10 @@ import {
   Attribute,
   Descriptor,
   EService,
+  EServiceAttribute,
   ListResult,
   Tenant,
+  TenantAttribute,
   WithMetadata,
 } from "pagopa-interop-models";
 import { generateMock } from "@anatine/zod-mock";
@@ -160,30 +162,92 @@ const authDataMock: AuthData = {
 
 describe("AgreementService", () => {
   describe("createAgreement", () => {
-    it("should create an Agreement when producer and consumer are the same tenant", async () => {
-      const agreementProducerAndConsumer: Tenant = generateMock(Tenant);
+    it("should create an Agreement when eService producer and Agreement consumer are the same tenant", async () => {
+      const eserviceProducer: Tenant = generateMock(Tenant);
       const descriptor: Descriptor = {
         ...generateMock(Descriptor),
         state: "Published",
       };
       const eservice: EService = {
         ...generateMock(EService),
-        producerId: agreementProducerAndConsumer.id,
+        producerId: eserviceProducer.id,
         descriptors: [descriptor],
       };
-
       eServices = [eservice];
-      tenants = [agreementProducerAndConsumer, agreementProducerAndConsumer];
+      tenants = [eserviceProducer];
 
       const authData: AuthData = {
         ...authDataMock,
-        organizationId: agreementProducerAndConsumer.id,
+        organizationId: eserviceProducer.id,
       };
       const apiAgreementPayload: ApiAgreementPayload = {
         eserviceId: eservice.id,
         descriptorId: eservice.descriptors[0].id,
       };
 
+      const createEvent = await createAgreementLogic(
+        apiAgreementPayload,
+        authData,
+        agreementQueryMock,
+        eserviceQueryMock,
+        tenantQueryMock
+      );
+      expect(createEvent.event.type).toBe("AgreementAdded");
+      expect(createEvent.event.data).toMatchObject({
+        agreement: {
+          id: createEvent.streamId,
+          eserviceId: apiAgreementPayload.eserviceId,
+          descriptorId: apiAgreementPayload.descriptorId,
+          producerId: eservice.producerId,
+          consumerId: authData.organizationId,
+        },
+      });
+    });
+
+    it("should create an Agreement when eService producer and Agreement consumer are different tenants", async () => {
+      const eserviceProducer: Tenant = generateMock(Tenant);
+
+      // In this case, the consumer must have a not revoked certified attribute
+      const certifiedTenantAttribute: TenantAttribute = {
+        ...generateMock(TenantAttribute),
+        type: "certified",
+        revocationTimestamp: undefined,
+      };
+      const consumer: Tenant = {
+        ...generateMock(Tenant),
+        attributes: [certifiedTenantAttribute],
+      };
+
+      // The same attribute must be present in the eService Descriptor certified attributes
+      const certifiedDescriptorAttribute: EServiceAttribute = {
+        ...generateMock(EServiceAttribute),
+        id: certifiedTenantAttribute.id,
+      };
+      const descriptor: Descriptor = {
+        ...generateMock(Descriptor),
+        state: "Published",
+        attributes: {
+          certified: [[certifiedDescriptorAttribute]],
+          declared: [],
+          verified: [],
+        },
+      };
+      const eservice: EService = {
+        ...generateMock(EService),
+        producerId: eserviceProducer.id,
+        descriptors: [descriptor],
+      };
+      eServices = [eservice];
+      tenants = [eserviceProducer, consumer];
+
+      const authData: AuthData = {
+        ...authDataMock,
+        organizationId: consumer.id, // different from eserviceProducer
+      };
+      const apiAgreementPayload: ApiAgreementPayload = {
+        eserviceId: eservice.id,
+        descriptorId: eservice.descriptors[0].id,
+      };
       const createEvent = await createAgreementLogic(
         apiAgreementPayload,
         authData,
