@@ -37,9 +37,9 @@ export type AgreementQueryFilters = {
   producerId?: string | string[];
   consumerId?: string | string[];
   eserviceId?: string | string[];
-  descriptorId?: DescriptorId | string[];
+  descriptorId?: DescriptorId | DescriptorId[];
   agreementStates?: AgreementState[];
-  attributeId?: AttributeId | string[];
+  attributeId?: AttributeId | AttributeId[];
   showOnlyUpgradeable?: boolean;
 };
 

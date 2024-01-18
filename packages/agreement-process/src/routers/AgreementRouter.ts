@@ -8,7 +8,7 @@ import {
   initDB,
   ReadModelRepository,
 } from "pagopa-interop-commons";
-import { Agreement, unsafeBrandId } from "pagopa-interop-models";
+import { Agreement, DescriptorId, unsafeBrandId } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
 import {
   agreementDocumentToApiAgreementDocument,
@@ -259,7 +259,9 @@ const agreementRouter = (
             eserviceId: req.query.eservicesIds,
             consumerId: req.query.consumersIds,
             producerId: req.query.producersIds,
-            descriptorId: req.query.descriptorsIds,
+            descriptorId: req.query.descriptorsIds.map(
+              unsafeBrandId<DescriptorId>
+            ),
             agreementStates: req.query.states.map(
               apiAgreementStateToAgreementState
             ),
