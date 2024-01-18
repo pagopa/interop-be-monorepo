@@ -162,46 +162,12 @@ const getTenantsByNamePipeline = (
   },
 ];
 
-export const getAllAgreements = async (
+const getAllAgreements = async (
   agreements: AgreementCollection,
   filters: AgreementQueryFilters
 ): Promise<Array<WithMetadata<Agreement>>> => {
-  const limit = 50;
-  let offset = 0;
-  let results: Array<WithMetadata<Agreement>> = [];
-
-  while (true) {
-    const agreementsChunk: Array<WithMetadata<Agreement>> = await getAgreements(
-      agreements,
-      filters,
-      offset,
-      limit
-    );
-
-    results = results.concat(agreementsChunk);
-
-    if (agreementsChunk.length < limit) {
-      break;
-    }
-
-    offset += limit;
-  }
-
-  return results;
-};
-
-const getAgreements = async (
-  agreements: AgreementCollection,
-  filters: AgreementQueryFilters,
-  offset: number,
-  limit: number
-): Promise<Array<WithMetadata<Agreement>>> => {
   const data = await agreements
-    .aggregate([
-      getAgreementsFilters(filters),
-      { $skip: offset },
-      { $limit: limit },
-    ])
+    .aggregate([getAgreementsFilters(filters)])
     .toArray();
 
   const result = z
