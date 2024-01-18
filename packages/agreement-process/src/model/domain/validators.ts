@@ -309,17 +309,6 @@ export const validateActiveOrPendingAgreement = (
   }
 };
 
-const attributesSatisfied = (
-  descriptorAttributes: EServiceAttribute[][],
-  consumerAttributeIds: Array<TenantAttribute["id"]>
-): boolean =>
-  descriptorAttributes.every((attributeList) => {
-    const attributes = attributeList.map((a) => a.id);
-    return (
-      attributes.filter((a) => consumerAttributeIds.includes(a)).length > 0
-    );
-  });
-
 export const certifiedAttributesSatisfied = (
   descriptor: Descriptor,
   tenant: Tenant
@@ -415,6 +404,17 @@ export const validateActivationOnDescriptor = (
 
   return descriptor;
 };
+
+const attributesSatisfied = (
+  descriptorAttributes: EServiceAttribute[][],
+  consumerAttributeIds: Array<TenantAttribute["id"]>
+): boolean =>
+  descriptorAttributes.every((attributeList) => {
+    const attributes = attributeList.map((a) => a.id);
+    return (
+      attributes.filter((a) => consumerAttributeIds.includes(a)).length > 0
+    );
+  });
 
 export const failOnActivationFailure = (
   newState: AgreementState,

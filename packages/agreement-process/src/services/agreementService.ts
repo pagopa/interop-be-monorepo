@@ -20,7 +20,6 @@ import {
   AgreementUpdateEvent,
   AgreementDocumentId,
   AgreementId,
-  unsafeBrandId,
 } from "pagopa-interop-models";
 import {
   agreementAlreadyExists,
@@ -51,10 +50,8 @@ import {
   matchingDeclaredAttributes,
   matchingVerifiedAttributes,
   validateCertifiedAttributes,
-  validateCreationOnDescriptor,
   verifiedAttributesSatisfied,
   verifyConflictingAgreements,
-  verifyCreationConflictingAgreements,
   agreementDeletableStates,
   agreementUpdatableStates,
   agreementUpgradableStates,
@@ -64,11 +61,6 @@ import {
 import {
   CompactEService,
   CompactOrganization,
-  agreementCloningConflictingStates,
-  agreementDeletableStates,
-  agreementRejectableStates,
-  agreementUpdatableStates,
-  agreementUpgradableStates,
 } from "../model/domain/models.js";
 import {
   ApiAgreementPayload,
@@ -91,6 +83,7 @@ import {
   addConsumerDocumentLogic,
 } from "./agreementConsumerDocumentProcessor.js";
 import { activateAgreementLogic } from "./agreementActivationProcessor.js";
+import { createAgreementLogic } from "./agreementCreationProcessor.js";
 
 const fileManager = initFileManager(config);
 
@@ -465,51 +458,6 @@ export async function deleteAgreementLogic({
   }
 
   return toCreateEventAgreementDeleted(agreementId, agreement.metadata.version);
-}
-
-export async function createAgreementLogic(
-  agreement: ApiAgreementPayload,
-  authData: AuthData,
-  agreementQuery: AgreementQuery,
-  eserviceQuery: EserviceQuery,
-  tenantQuery: TenantQuery
-): Promise<CreateEvent<AgreementEvent>> {
-  const eservice = await eserviceQuery.getEServiceById(agreement.eserviceId);
-  assertEServiceExist(unsafeBrandId(agreement.eserviceId), eservice);
-
-  const descriptor = validateCreationOnDescriptor(
-    eservice.data,
-    unsafeBrandId(agreement.descriptorId)
-  );
-
-  await verifyCreationConflictingAgreements(
-    authData.organizationId,
-    agreement,
-    agreementQuery
-  );
-  const consumer = await tenantQuery.getTenantById(authData.organizationId);
-  assertTenantExist(authData.organizationId, consumer);
-
-  if (eservice.data.producerId !== consumer.data.id) {
-    validateCertifiedAttributes(descriptor, consumer.data);
-  }
-
-  const agreementSeed: Agreement = {
-    id: generateId(),
-    eserviceId: unsafeBrandId(agreement.eserviceId),
-    descriptorId: unsafeBrandId(agreement.descriptorId),
-    producerId: eservice.data.producerId,
-    consumerId: authData.organizationId,
-    state: agreementState.draft,
-    verifiedAttributes: [],
-    certifiedAttributes: [],
-    declaredAttributes: [],
-    consumerDocuments: [],
-    createdAt: new Date(),
-    stamps: {},
-  };
-
-  return toCreateEventAgreementAdded(agreementSeed);
 }
 
 export async function updateAgreementLogic({
