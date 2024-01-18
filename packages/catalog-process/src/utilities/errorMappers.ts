@@ -56,6 +56,7 @@ export const documentUpdateDeleteErrorMapper = (
   match(error.code)
     .with(
       "eServiceNotFound",
+      "eServiceDescriptorNotFound",
       "eServiceDocumentNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
