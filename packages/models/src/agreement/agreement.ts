@@ -15,6 +15,53 @@ export const AgreementState = z.enum([
 ]);
 export type AgreementState = z.infer<typeof AgreementState>;
 
+export const agreementActivableStates: AgreementState[] = [
+  agreementState.pending,
+  agreementState.suspended,
+];
+export const agreementSuspendableStates: AgreementState[] = [
+  agreementState.active,
+  agreementState.suspended,
+];
+export const agreementArchivableStates: AgreementState[] = [
+  agreementState.active,
+  agreementState.suspended,
+];
+export const agreementSubmittableStates: AgreementState[] = [
+  agreementState.draft,
+];
+
+export const agreementUpdatableStates: AgreementState[] = [
+  agreementState.draft,
+];
+
+export const agreementUpgradableStates: AgreementState[] = [
+  agreementState.active,
+  agreementState.suspended,
+];
+export const agreementRejectableStates: AgreementState[] = [
+  agreementState.pending,
+];
+
+export const agreementDeletableStates: AgreementState[] = [
+  agreementState.draft,
+  agreementState.missingCertifiedAttributes,
+];
+
+export const agreementActivationFailureStates: AgreementState[] = [
+  agreementState.draft,
+  agreementState.pending,
+  agreementState.missingCertifiedAttributes,
+];
+
+export const agreementCloningConflictingStates: AgreementState[] = [
+  agreementState.draft,
+  agreementState.pending,
+  agreementState.missingCertifiedAttributes,
+  agreementState.active,
+  agreementState.suspended,
+];
+
 export const agreementAttributeType = {
   CERTIFIED: "Certified",
   VERIFIED: "Verified",
@@ -107,9 +154,9 @@ export type Agreement = z.infer<typeof Agreement>;
 
 export const UpdateAgreementSeed = z.object({
   state: AgreementState,
-  certifiedAttributes: z.array(CertifiedAgreementAttribute),
-  declaredAttributes: z.array(DeclaredAgreementAttribute),
-  verifiedAttributes: z.array(VerifiedAgreementAttribute),
+  certifiedAttributes: z.optional(z.array(CertifiedAgreementAttribute)),
+  declaredAttributes: z.optional(z.array(DeclaredAgreementAttribute)),
+  verifiedAttributes: z.optional(z.array(VerifiedAgreementAttribute)),
   suspendedByConsumer: z.boolean().optional(),
   suspendedByProducer: z.boolean().optional(),
   suspendedByPlatform: z.boolean().optional(),
@@ -154,25 +201,3 @@ export const AgreementInvolvedAttributes = z.object({
 export type AgreementInvolvedAttributes = z.infer<
   typeof AgreementInvolvedAttributes
 >;
-
-export const agreementUpdatableStates: AgreementState[] = [
-  agreementState.draft,
-];
-
-export const agreementUpgradableStates: AgreementState[] = [
-  agreementState.active,
-  agreementState.suspended,
-];
-
-export const agreementDeletableStates: AgreementState[] = [
-  agreementState.draft,
-  agreementState.missingCertifiedAttributes,
-];
-
-export const agreementCloningConflictingStates: AgreementState[] = [
-  agreementState.draft,
-  agreementState.pending,
-  agreementState.missingCertifiedAttributes,
-  agreementState.active,
-  agreementState.suspended,
-];

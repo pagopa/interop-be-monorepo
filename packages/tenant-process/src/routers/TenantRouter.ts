@@ -8,17 +8,24 @@ import {
 } from "pagopa-interop-commons";
 import { api } from "../model/generated/api.js";
 import { toApiTenant } from "../model/domain/apiConverter.js";
-import { readModelService } from "../services/readModelService.js";
 import {
   makeApiProblem,
-  tenantBySelfcateIdNotFound,
+  tenantBySelfcareIdNotFound,
   tenantNotFound,
 } from "../model/domain/errors.js";
 import {
   getTenantByExternalIdErrorMapper,
   getTenantByIdErrorMapper,
   getTenantBySelfcareIdErrorMapper,
+  updateTenantVerifiedAttributeErrorMapper,
+  selfcareUpsertTenantErrorMapper,
 } from "../utilities/errorMappers.js";
+import { readModelServiceBuilder } from "../services/readModelService.js";
+import { config } from "../utilities/config.js";
+import { tenantServiceBuilder } from "../services/tenantService.js";
+
+const readModelService = readModelServiceBuilder(config);
+const tenantService = tenantServiceBuilder(config, readModelService);
 
 const tenantsRouter = (
   ctx: ZodiosContext
@@ -97,7 +104,7 @@ const tenantsRouter = (
       async (req, res) => {
         try {
           const { name, offset, limit } = req.query;
-          const tenants = await readModelService.getTenants({
+          const tenants = await readModelService.getTenantsByName({
             name,
             offset,
             limit,
@@ -159,8 +166,8 @@ const tenantsRouter = (
           const { origin, code } = req.params;
 
           const tenant = await readModelService.getTenantByExternalId({
+            value: code,
             origin,
-            code,
           });
           if (tenant) {
             return res.status(200).json(toApiTenant(tenant.data)).end();
@@ -204,7 +211,7 @@ const tenantsRouter = (
               .status(404)
               .json(
                 makeApiProblem(
-                  tenantBySelfcateIdNotFound(req.params.selfcareId),
+                  tenantBySelfcareIdNotFound(req.params.selfcareId),
                   getTenantBySelfcareIdErrorMapper
                 )
               )
@@ -247,7 +254,21 @@ const tenantsRouter = (
         SECURITY_ROLE,
         INTERNAL_ROLE,
       ]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const id = await tenantService.selfcareUpsertTenant({
+            tenantSeed: req.body,
+            authData: req.ctx.authData,
+          });
+          return res.status(200).json({ id }).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            selfcareUpsertTenantErrorMapper
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/tenants/:tenantId/attributes/verified",
@@ -257,7 +278,24 @@ const tenantsRouter = (
     .post(
       "/tenants/:tenantId/attributes/verified/:attributeId",
       authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const { tenantId, attributeId } = req.params;
+          await tenantService.updateTenantVerifiedAttribute({
+            verifierId: req.ctx.authData.organizationId,
+            tenantId,
+            attributeId,
+            updateVerifiedTenantAttributeSeed: req.body,
+          });
+          return res.status(200).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateTenantVerifiedAttributeErrorMapper
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/tenants/:tenantId/attributes/verified/:attributeId/verifier/:verifierId",
