@@ -245,6 +245,7 @@ describe("database test", async () => {
       it("should throw eServiceCannotBeUpdated if the eService descriptor is in published state", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
+          interface: mockDocument,
           state: descriptorState.published,
         };
         const eService: EService = {
@@ -311,6 +312,7 @@ describe("database test", async () => {
       it("should throw eServiceCannotBeUpdated if the eService descriptor is in deprecated state", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
+          interface: mockDocument,
           state: descriptorState.deprecated,
         };
         const eService: EService = {
@@ -372,6 +374,7 @@ describe("database test", async () => {
       it("should throw eServiceCannotBeDeleted if the eService has a descriptor", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
+          interface: mockDocument,
           state: descriptorState.published,
         };
         const eService: EService = {
@@ -456,6 +459,7 @@ describe("database test", async () => {
       it("should throw operationForbidden if the requester is not the producer", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
+          interface: mockDocument,
           state: descriptorState.published,
         };
         const eService: EService = {
@@ -522,6 +526,7 @@ describe("database test", async () => {
       it("should throw eServiceNotFound if the eService doesn't exist", () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
+          interface: mockDocument,
           state: descriptorState.published,
         };
         expect(
@@ -556,6 +561,7 @@ describe("database test", async () => {
       it("should throw notValidDescriptor if the descriptor is in published state", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
+          interface: mockDocument,
           state: descriptorState.published,
         };
         const eService: EService = {
@@ -579,6 +585,7 @@ describe("database test", async () => {
       it("should throw notValidDescriptor if the descriptor is in deprecated state", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
+          interface: mockDocument,
           state: descriptorState.deprecated,
         };
         const eService: EService = {
@@ -851,6 +858,7 @@ describe("database test", async () => {
       it("should throw notValidDescriptor if the descriptor is in published state", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
+          interface: mockDocument,
           state: descriptorState.published,
         };
         const eService: EService = {
@@ -872,6 +880,7 @@ describe("database test", async () => {
       it("should throw notValidDescriptor if the descriptor is in deprecated state", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
+          interface: mockDocument,
           state: descriptorState.deprecated,
         };
         const eService: EService = {
@@ -1011,6 +1020,7 @@ describe("database test", async () => {
       it("should throw operationForbidden if the requester is not the producer", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
+          interface: mockDocument,
           state: descriptorState.published,
         };
         const eService: EService = {
@@ -1219,6 +1229,7 @@ describe("database test", async () => {
       it("should throw notValidDescriptor if the descriptor is in published state", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
+          interface: mockDocument,
           state: descriptorState.published,
         };
         const eService: EService = {
@@ -1240,6 +1251,7 @@ describe("database test", async () => {
       it("should throw notValidDescriptor if the descriptor is in deprecated state", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
+          interface: mockDocument,
           state: descriptorState.deprecated,
         };
         const eService: EService = {
@@ -1761,6 +1773,7 @@ describe("database test", async () => {
         const descriptor1: Descriptor = {
           ...mockDescriptor,
           id: uuidv4(),
+          interface: mockDocument,
           state: descriptorState.published,
         };
         eService1 = {
@@ -1789,6 +1802,7 @@ describe("database test", async () => {
         const descriptor3: Descriptor = {
           ...mockDescriptor,
           id: uuidv4(),
+          interface: mockDocument,
           state: descriptorState.published,
         };
         eService3 = {
@@ -1817,6 +1831,7 @@ describe("database test", async () => {
         const descriptor5: Descriptor = {
           ...mockDescriptor,
           id: uuidv4(),
+          interface: mockDocument,
           state: descriptorState.published,
         };
         eService5 = {
@@ -2103,6 +2118,7 @@ describe("database test", async () => {
       it("should get the eService if it exists", async () => {
         const descriptor1: Descriptor = {
           ...mockDescriptor,
+          interface: mockDocument,
           state: descriptorState.published,
         };
         const eService1: EService = {
@@ -2115,6 +2131,7 @@ describe("database test", async () => {
 
         const descriptor2: Descriptor = {
           ...mockDescriptor,
+          interface: mockDocument,
           state: descriptorState.published,
         };
         const eService2: EService = {
@@ -2127,6 +2144,7 @@ describe("database test", async () => {
 
         const descriptor3: Descriptor = {
           ...mockDescriptor,
+          interface: mockDocument,
           state: descriptorState.published,
         };
         const eService3: EService = {
@@ -2153,6 +2171,7 @@ describe("database test", async () => {
       it("should get the consumers of the given eService", async () => {
         const descriptor1: Descriptor = {
           ...mockDescriptor,
+          interface: mockDocument,
           state: descriptorState.published,
         };
         const eService1: EService = {
@@ -2182,6 +2201,7 @@ describe("database test", async () => {
       it("should not get any consumers, if no one is using the given eService", async () => {
         const descriptor1: Descriptor = {
           ...mockDescriptor,
+          interface: mockDocument,
           state: descriptorState.published,
         };
         const eService1: EService = {
