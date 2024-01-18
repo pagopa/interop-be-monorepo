@@ -61,6 +61,7 @@ export const getMockTenant = (): Tenant => ({
   id: uuidv4(),
   createdAt: new Date(),
   attributes: [],
+  selfcareId: uuidv4(),
   externalId: {
     value: "123456",
     origin: "IPA",
