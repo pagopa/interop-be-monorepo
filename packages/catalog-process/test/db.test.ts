@@ -426,7 +426,6 @@ describe("database test", async () => {
           id: writtenPayload.eServiceDescriptor!.id,
           serverUrls: [],
         };
-        console.log(writtenPayload.eServiceDescriptor);
 
         expect(writtenPayload.eServiceId).toEqual(mockEService.id);
         expect(writtenPayload.eServiceDescriptor).toEqual(
