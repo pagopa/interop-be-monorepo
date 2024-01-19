@@ -124,7 +124,7 @@ export const getMockEService = (): EService => ({
 
 export const getMockDescriptor = (): Descriptor => ({
   id: uuidv4(),
-  version: "0",
+  version: "1",
   docs: [],
   state: descriptorState.draft,
   audience: [],
@@ -132,7 +132,7 @@ export const getMockDescriptor = (): Descriptor => ({
   dailyCallsPerConsumer: 10,
   dailyCallsTotal: 1000,
   createdAt: new Date(),
-  serverUrls: [],
+  serverUrls: ["pagopa.it"],
   agreementApprovalPolicy: "Automatic",
   attributes: {
     certified: [],
@@ -145,7 +145,7 @@ export const buildInterfaceSeed = (): ApiEServiceDescriptorDocumentSeed => ({
   contentType: "json",
   prettyName: "prettyName",
   serverUrls: ["pagopa.it"],
-  documentId: "string",
+  documentId: uuidv4(),
   kind: "INTERFACE",
   filePath: "filePath",
   fileName: "fileName",
@@ -153,10 +153,10 @@ export const buildInterfaceSeed = (): ApiEServiceDescriptorDocumentSeed => ({
 });
 
 export const getMockDocument = (): Document => ({
-  name: "document name",
-  path: "document path",
+  name: "fileName",
+  path: "filePath",
   id: uuidv4(),
-  prettyName: "pretty name",
+  prettyName: "prettyName",
   contentType: "json",
   checksum: uuidv4(),
   uploadDate: new Date(),

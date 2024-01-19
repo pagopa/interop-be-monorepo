@@ -1,6 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */ // TO DO remove this line after all the tests are completed
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-floating-promises */
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import {
   AgreementCollection,
@@ -13,6 +15,7 @@ import { IDatabase } from "pg-promise";
 import {
   ClonedEServiceAddedV1,
   Descriptor,
+  Document,
   EService,
   EServiceAddedV1,
   EServiceDeletedV1,
@@ -31,7 +34,11 @@ import { v4 as uuidv4 } from "uuid";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import { GenericContainer } from "testcontainers";
 import { config } from "../src/utilities/config.js";
-import { toDescriptorV1, toEServiceV1 } from "../src/model/domain/toEvent.js";
+import {
+  toDescriptorV1,
+  toDocumentV1,
+  toEServiceV1,
+} from "../src/model/domain/toEvent.js";
 import { EServiceDescriptorSeed } from "../src/model/domain/models.js";
 import {
   ReadModelService,
@@ -57,13 +64,13 @@ import {
   addOneEService,
   addOneTenant,
   buildDescriptorSeed,
-  buildInterfaceSeed,
   decodeProtobufPayload,
   getMockAgreement,
   getMockAuthData,
   getMockDescriptor,
   getMockDocument,
   getMockEService,
+  buildInterfaceSeed,
   getMockTenant,
   readLastEventByStreamId,
 } from "./utils.js";
@@ -416,9 +423,10 @@ describe("database test", async () => {
           createdAt: new Date(
             Number(writtenPayload.eServiceDescriptor?.createdAt)
           ),
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           id: writtenPayload.eServiceDescriptor!.id,
+          serverUrls: [],
         };
+        console.log(writtenPayload.eServiceDescriptor);
 
         expect(writtenPayload.eServiceId).toEqual(mockEService.id);
         expect(writtenPayload.eServiceDescriptor).toEqual(
@@ -1322,7 +1330,40 @@ describe("database test", async () => {
           messageType: ClonedEServiceAddedV1,
           payload: writtenEvent.data,
         });
-        // TO DO check entire payload
+
+        const expectedInterface: Document = {
+          ...mockDocument,
+          id: writtenPayload.eService!.descriptors[0].interface!.id,
+          uploadDate: new Date(
+            writtenPayload.eService!.descriptors[0].docs[0].uploadDate
+          ),
+          path: writtenPayload.eService!.descriptors[0].interface!.path,
+        };
+        const expectedDocument: Document = {
+          ...mockDocument,
+          id: writtenPayload.eService!.descriptors[0].docs[0].id,
+          uploadDate: new Date(
+            writtenPayload.eService!.descriptors[0].docs[0].uploadDate
+          ),
+          path: writtenPayload.eService!.descriptors[0].docs[0].path,
+        };
+        const expectedDescriptor: Descriptor = {
+          ...descriptor,
+          id: writtenPayload.eService!.descriptors[0].id,
+          interface: expectedInterface,
+          createdAt: new Date(
+            Number(writtenPayload.eService?.descriptors[0].createdAt)
+          ),
+          docs: [expectedDocument],
+        };
+        const expectedEService: EService = {
+          ...eService,
+          id: writtenPayload.eService!.id,
+          name: `${eService.name} - clone`,
+          descriptors: [expectedDescriptor],
+          createdAt: new Date(Number(writtenPayload.eService?.createdAt)),
+        };
+        expect(writtenPayload.eService).toEqual(toEServiceV1(expectedEService));
       });
       it("should throw eServiceNotFound if the eService doesn't exist", () => {
         expect(
@@ -1490,7 +1531,21 @@ describe("database test", async () => {
           messageType: EServiceDocumentAddedV1,
           payload: writtenEvent.data,
         });
-        // TO DO check entire payload
+
+        expect(writtenPayload.eServiceId).toEqual(eService.id);
+        expect(writtenPayload.descriptorId).toEqual(descriptor.id);
+        expect(writtenPayload.isInterface).toEqual(true);
+        expect(writtenPayload.serverUrls).toEqual(
+          buildInterfaceSeed().serverUrls
+        );
+
+        const expectedDocument = {
+          ...mockDocument,
+          id: writtenPayload.document!.id,
+          checksum: writtenPayload.document!.checksum,
+          uploadDate: new Date(writtenPayload.document!.uploadDate),
+        };
+        expect(writtenPayload.document).toEqual(toDocumentV1(expectedDocument));
       });
       it("should throw eServiceNotFound if the eService doesn't exist", () => {
         expect(
@@ -1570,7 +1625,10 @@ describe("database test", async () => {
           messageType: EServiceDocumentDeletedV1,
           payload: writtenEvent.data,
         });
-        // TO DO check entire payload
+
+        expect(writtenPayload.eServiceId).toEqual(eService.id);
+        expect(writtenPayload.descriptorId).toEqual(descriptor.id);
+        expect(writtenPayload.documentId).toEqual(mockDocument.id);
       });
       it("should throw eServiceNotFound if the eService doesn't exist", async () => {
         expect(
@@ -1675,7 +1733,21 @@ describe("database test", async () => {
           messageType: EServiceDocumentUpdatedV1,
           payload: writtenEvent.data,
         });
-        // TO DO check entire payload
+
+        expect(writtenPayload.eServiceId).toEqual(eService.id);
+        expect(writtenPayload.descriptorId).toEqual(descriptor.id);
+        expect(writtenPayload.documentId).toEqual(mockDocument.id);
+        expect(writtenPayload.serverUrls).toEqual(
+          buildInterfaceSeed().serverUrls
+        );
+
+        const expectedDocument = {
+          ...mockDocument,
+          prettyName: "updated prettyName",
+        };
+        expect(writtenPayload.updatedDocument).toEqual(
+          toDocumentV1(expectedDocument)
+        );
       });
       it("should throw eServiceNotFound if the eService doesn't exist", async () => {
         expect(
