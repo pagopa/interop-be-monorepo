@@ -275,6 +275,7 @@ describe("database test", async () => {
       it("should throw eServiceCannotBeUpdated if the eService descriptor is in archived state", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
+          interface: mockDocument,
           state: descriptorState.archived,
         };
         const eService: EService = {
@@ -297,6 +298,7 @@ describe("database test", async () => {
       it("should throw eServiceCannotBeUpdated if the eService descriptor is in suspended state", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
+          interface: mockDocument,
           state: descriptorState.suspended,
         };
         const eService: EService = {
@@ -616,6 +618,7 @@ describe("database test", async () => {
       it("should throw notValidDescriptor if the descriptor is in suspended state", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
+          interface: mockDocument,
           state: descriptorState.suspended,
         };
         const eService: EService = {
@@ -639,6 +642,7 @@ describe("database test", async () => {
       it("should throw notValidDescriptor if the descriptor is in archived state", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
+          interface: mockDocument,
           state: descriptorState.archived,
         };
         const eService: EService = {
@@ -909,6 +913,7 @@ describe("database test", async () => {
       it("should throw notValidDescriptor if the descriptor is in suspended state", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
+          interface: mockDocument,
           state: descriptorState.suspended,
         };
         const eService: EService = {
@@ -930,6 +935,7 @@ describe("database test", async () => {
       it("should throw notValidDescriptor if the descriptor is in archived state", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
+          interface: mockDocument,
           state: descriptorState.archived,
         };
         const eService: EService = {
@@ -975,6 +981,7 @@ describe("database test", async () => {
       it("should write on event-store for the suspension of a descriptor", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
+          interface: mockDocument,
           state: descriptorState.published,
         };
         const eService: EService = {
@@ -1086,6 +1093,7 @@ describe("database test", async () => {
       it("should throw notValidDescriptor if the descriptor is in suspended state", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
+          interface: mockDocument,
           state: descriptorState.suspended,
         };
         const eService: EService = {
@@ -1107,6 +1115,7 @@ describe("database test", async () => {
       it("should throw notValidDescriptor if the descriptor is in archived state", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
+          interface: mockDocument,
           state: descriptorState.archived,
         };
         const eService: EService = {
@@ -1130,6 +1139,7 @@ describe("database test", async () => {
       it("should write on event-store for the activation of a descriptor", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
+          interface: mockDocument,
           state: descriptorState.suspended,
         };
         const eService: EService = {
@@ -1196,6 +1206,7 @@ describe("database test", async () => {
       it("should throw operationForbidden if the requester is not the producer", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
+          interface: mockDocument,
           state: descriptorState.suspended,
         };
         const eService: EService = {
@@ -1280,6 +1291,7 @@ describe("database test", async () => {
       it("should throw notValidDescriptor if the descriptor is in archived state", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
+          interface: mockDocument,
           state: descriptorState.archived,
         };
         const eService: EService = {
@@ -1413,6 +1425,7 @@ describe("database test", async () => {
       it("should write on event-store for the archiving of a descriptor", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
+          interface: mockDocument,
           state: descriptorState.suspended,
         };
         const eService: EService = {
