@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable functional/no-let */
 import { beforeAll, afterEach, describe, expect, it, beforeEach } from "vitest";
@@ -127,7 +128,6 @@ describe("database test", () => {
           ...mockAttribute,
           id,
           kind: attributeKind.declared,
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           creationTime: new Date(writtenPayload.attribute!.creationTime),
         };
 
@@ -175,7 +175,6 @@ describe("database test", () => {
           ...mockAttribute,
           id,
           kind: attributeKind.verified,
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           creationTime: new Date(writtenPayload.attribute!.creationTime),
         };
 
@@ -215,7 +214,6 @@ describe("database test", () => {
         const id = await attributeRegistryService.createCertifiedAttribute(
           {
             name: mockAttribute.name,
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             code: mockAttribute.code!,
             description: mockAttribute.description,
           },
@@ -236,7 +234,6 @@ describe("database test", () => {
           ...mockAttribute,
           id,
           kind: attributeKind.certified,
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           creationTime: new Date(writtenPayload.attribute!.creationTime),
           origin: tenant.features[0].certifierId,
         };
@@ -278,7 +275,6 @@ describe("database test", () => {
           attributeRegistryService.createCertifiedAttribute(
             {
               name: mockAttribute.name,
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               code: mockAttribute.code!,
               description: mockAttribute.description,
             },
@@ -292,7 +288,6 @@ describe("database test", () => {
           attributeRegistryService.createCertifiedAttribute(
             {
               name: mockAttribute.name,
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               code: mockAttribute.code!,
               description: mockAttribute.description,
             },
@@ -318,7 +313,6 @@ describe("database test", () => {
         const id =
           await attributeRegistryService.createInternalCertifiedAttribute({
             name: mockAttribute.name,
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             code: mockAttribute.code!,
             origin: tenant.features[0].certifierId,
             description: mockAttribute.description,
@@ -338,7 +332,6 @@ describe("database test", () => {
           ...mockAttribute,
           id,
           kind: attributeKind.certified,
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           creationTime: new Date(writtenPayload.attribute!.creationTime),
           origin: tenant.features[0].certifierId,
         };
