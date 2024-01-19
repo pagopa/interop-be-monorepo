@@ -258,15 +258,15 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
     },
 
     async getProducers({
-      name,
+      producerName,
       offset,
       limit,
     }: {
-      name: string | undefined;
+      producerName: string | undefined;
       offset: number;
       limit: number;
     }): Promise<ListResult<Tenant>> {
-      const query = listTenantsFilters(name);
+      const query = listTenantsFilters(producerName);
       const aggregationPipeline = [
         { $match: query },
         {
