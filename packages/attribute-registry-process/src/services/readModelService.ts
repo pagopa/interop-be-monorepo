@@ -14,8 +14,6 @@ import {
   genericError,
   Tenant,
 } from "pagopa-interop-models";
-import { AttributeRegistryConfig } from "../utilities/config.js";
-
 async function getAttribute(
   attributes: AttributeCollection,
   filter: Filter<WithId<WithMetadata<Attribute>>>
@@ -115,8 +113,11 @@ async function getAttributes({
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function readModelServiceBuilder(config: AttributeRegistryConfig) {
-  const { attributes, tenants } = ReadModelRepository.init(config);
+export function readModelServiceBuilder(
+  readModelRepository: ReadModelRepository
+) {
+  const { attributes, tenants } = readModelRepository;
+
   return {
     async getAttributesByIds({
       ids,

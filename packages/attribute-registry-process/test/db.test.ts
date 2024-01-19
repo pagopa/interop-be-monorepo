@@ -6,6 +6,7 @@ import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import {
   AttributeCollection,
   ReadModelRepository,
+  TenantCollection,
   initDB,
 } from "pagopa-interop-commons";
 import { v4 as uuidv4 } from "uuid";
@@ -13,6 +14,7 @@ import { IDatabase } from "pg-promise";
 import {
   Attribute,
   AttributeAddedV1,
+  Tenant,
   attributeKind,
 } from "pagopa-interop-models";
 import { config } from "../src/utilities/config.js";
@@ -24,20 +26,28 @@ import {
   ReadModelService,
   readModelServiceBuilder,
 } from "../src/services/readModelService.js";
-import { attributeDuplicate } from "../src/model/domain/errors.js";
+import {
+  OrganizationIsNotACertifier,
+  attributeDuplicate,
+  tenantNotFound,
+} from "../src/model/domain/errors.js";
 import { toAttributeV1 } from "../src/model/domain/toEvent.js";
 import {
   addOneAttribute,
+  addOneTenant,
   decodeProtobufPayload,
   getMockAttribute,
+  getMockTenant,
   getMockAuthData,
   readLastEventByStreamId,
 } from "./utils.js";
 
 const mockAttribute = getMockAttribute();
+const mockTenant = getMockTenant();
 
 describe("database test", () => {
   let attributes: AttributeCollection;
+  let tenants: TenantCollection;
   let readModelService: ReadModelService;
   let attributeRegistryService: AttributeRegistryService;
   let postgresDB: IDatabase<unknown>;
@@ -66,12 +76,9 @@ describe("database test", () => {
 
     config.eventStoreDbPort = postgreSqlContainer.getMappedPort(5432);
     config.readModelDbPort = mongodbContainer.getMappedPort(27017);
-    attributes = ReadModelRepository.init(config).attributes;
-    readModelService = readModelServiceBuilder(config);
-    attributeRegistryService = attributeRegistryServiceBuilder(
-      config,
-      readModelService
-    );
+    const readModelRepository = ReadModelRepository.init(config);
+    ({ attributes, tenants } = readModelRepository);
+    readModelService = readModelServiceBuilder(readModelRepository);
 
     postgresDB = initDB({
       username: config.eventStoreDbUsername,
@@ -82,10 +89,16 @@ describe("database test", () => {
       schema: config.eventStoreDbSchema,
       useSSL: config.eventStoreDbUseSSL,
     });
+
+    attributeRegistryService = attributeRegistryServiceBuilder(
+      postgresDB,
+      readModelService
+    );
   });
 
   afterEach(async () => {
     await attributes.deleteMany({});
+    await tenants.deleteMany({});
     await postgresDB.none("TRUNCATE TABLE attribute.events RESTART IDENTITY");
   });
 
@@ -187,20 +200,176 @@ describe("database test", () => {
     });
     describe("certified attribute creation", () => {
       it("should write on event-store for the creation of a certified attribute", async () => {
-        // TO DO
-        expect(1).toBe(1);
+        const tenant: Tenant = {
+          ...mockTenant,
+          features: [
+            {
+              type: "Certifier",
+              certifierId: uuidv4(),
+            },
+          ],
+        };
+
+        await addOneTenant(tenant, tenants);
+
+        const id = await attributeRegistryService.createCertifiedAttribute(
+          {
+            name: mockAttribute.name,
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            code: mockAttribute.code!,
+            description: mockAttribute.description,
+          },
+          getMockAuthData(tenant.id)
+        );
+        expect(id).toBeDefined();
+
+        const writtenEvent = await readLastEventByStreamId(id, postgresDB);
+        expect(writtenEvent.stream_id).toBe(id);
+        expect(writtenEvent.version).toBe("0");
+        expect(writtenEvent.type).toBe("AttributeAdded");
+        const writtenPayload = decodeProtobufPayload({
+          messageType: AttributeAddedV1,
+          payload: writtenEvent.data,
+        });
+
+        const attribute: Attribute = {
+          ...mockAttribute,
+          id,
+          kind: attributeKind.certified,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          creationTime: new Date(writtenPayload.attribute!.creationTime),
+          origin: tenant.features[0].certifierId,
+        };
+        expect(writtenPayload.attribute).toEqual(toAttributeV1(attribute));
       });
-      it("should not write on event-store if the attribute already exists", () => {
-        // TO DO
-        expect(1).toBe(1);
+      it("should throw attributeDuplicate if the attribute already exists", async () => {
+        const attribute = {
+          ...mockAttribute,
+          code: "123456",
+        };
+
+        const tenant: Tenant = {
+          ...mockTenant,
+          features: [
+            {
+              type: "Certifier",
+              certifierId: uuidv4(),
+            },
+          ],
+        };
+
+        await addOneTenant(tenant, tenants);
+        await addOneAttribute(attribute, postgresDB, attributes);
+        expect(
+          attributeRegistryService.createCertifiedAttribute(
+            {
+              name: attribute.name,
+              code: attribute.code,
+              description: attribute.description,
+            },
+            getMockAuthData(tenant.id)
+          )
+        ).rejects.toThrowError(attributeDuplicate(attribute.name));
       });
-      it("should not write on event-store if the organization is not a certifier", () => {
-        // TO DO
-        expect(1).toBe(1);
+      it("should throw OrganizationIsNotACertifier if the organization is not a certifier", async () => {
+        await addOneTenant(mockTenant, tenants);
+        await addOneAttribute(mockAttribute, postgresDB, attributes);
+        expect(
+          attributeRegistryService.createCertifiedAttribute(
+            {
+              name: mockAttribute.name,
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              code: mockAttribute.code!,
+              description: mockAttribute.description,
+            },
+            getMockAuthData(mockTenant.id)
+          )
+        ).rejects.toThrowError(OrganizationIsNotACertifier(mockTenant.id));
       });
-      it("should not write on event-store if the certifier is not found", () => {
-        // TO DO
-        expect(1).toBe(1);
+      it("should throw tenantNotFound if the certifier is not found", async () => {
+        await addOneAttribute(mockAttribute, postgresDB, attributes);
+        expect(
+          attributeRegistryService.createCertifiedAttribute(
+            {
+              name: mockAttribute.name,
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              code: mockAttribute.code!,
+              description: mockAttribute.description,
+            },
+            getMockAuthData(mockTenant.id)
+          )
+        ).rejects.toThrowError(tenantNotFound(mockTenant.id));
+      });
+    });
+    describe("certified attribute internal creation", () => {
+      it("should write on event-store for the internal creation of a certified attribute", async () => {
+        const tenant: Tenant = {
+          ...mockTenant,
+          features: [
+            {
+              type: "Certifier",
+              certifierId: uuidv4(),
+            },
+          ],
+        };
+
+        await addOneTenant(tenant, tenants);
+
+        const id =
+          await attributeRegistryService.createInternalCertifiedAttribute({
+            name: mockAttribute.name,
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            code: mockAttribute.code!,
+            origin: tenant.features[0].certifierId,
+            description: mockAttribute.description,
+          });
+        expect(id).toBeDefined();
+
+        const writtenEvent = await readLastEventByStreamId(id, postgresDB);
+        expect(writtenEvent.stream_id).toBe(id);
+        expect(writtenEvent.version).toBe("0");
+        expect(writtenEvent.type).toBe("AttributeAdded");
+        const writtenPayload = decodeProtobufPayload({
+          messageType: AttributeAddedV1,
+          payload: writtenEvent.data,
+        });
+
+        const attribute: Attribute = {
+          ...mockAttribute,
+          id,
+          kind: attributeKind.certified,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          creationTime: new Date(writtenPayload.attribute!.creationTime),
+          origin: tenant.features[0].certifierId,
+        };
+        expect(writtenPayload.attribute).toEqual(toAttributeV1(attribute));
+      });
+      it("should throw attributeDuplicate if the attribute already exists", async () => {
+        const attribute = {
+          ...mockAttribute,
+          code: "123456",
+        };
+
+        const tenant: Tenant = {
+          ...mockTenant,
+          features: [
+            {
+              type: "Certifier",
+              certifierId: uuidv4(),
+            },
+          ],
+        };
+
+        await addOneTenant(tenant, tenants);
+        await addOneAttribute(attribute, postgresDB, attributes);
+        expect(
+          attributeRegistryService.createInternalCertifiedAttribute({
+            name: attribute.name,
+            code: attribute.code,
+            origin: tenant.features[0].certifierId,
+            description: attribute.description,
+          })
+        ).rejects.toThrowError(attributeDuplicate(attribute.name));
       });
     });
 
