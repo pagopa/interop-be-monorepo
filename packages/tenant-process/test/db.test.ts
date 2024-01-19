@@ -214,7 +214,7 @@ describe("database test", async () => {
         await addOneAgreement(agreementEservice3, agreements);
 
         const result1 = await readModelService.getConsumers({
-          name: tenant1.name,
+          consumerName: tenant1.name,
           producerId: organizationId,
           offset: 0,
           limit: 50,
@@ -301,7 +301,7 @@ describe("database test", async () => {
         await addOneTenant(tenant3, postgresDB, tenants);
 
         const result1 = await readModelService.getConsumers({
-          name: tenant1.name,
+          consumerName: tenant1.name,
           producerId: organizationId,
           offset: 0,
           limit: 50,
