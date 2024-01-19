@@ -12,6 +12,7 @@ const errorCodes = {
   verifiedAttributeNotFoundInTenant: "0009",
   expirationDateCannotBeInThePast: "0010",
   organizationNotFoundInVerifiers: "0011",
+  expirationDateNotFoundInVerifier: "0012",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -101,6 +102,17 @@ export function tenantBySelfcareIdNotFound(
   });
 }
 
+export function expirationDateNotFoundInVerifier(
+  verifierId: string,
+  attributeId: string,
+  tenantId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `ExpirationDate not found in verifier ${verifierId} for Tenant ${tenantId} and attribute ${attributeId}`,
+    code: "expirationDateNotFoundInVerifier",
+    title: "ExpirationDate not found in verifier",
+  });
+}
 export function selfcareIdConflict({
   tenantId,
   existingSelfcareId,
