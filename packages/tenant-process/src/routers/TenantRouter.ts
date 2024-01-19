@@ -91,7 +91,7 @@ const tenantsRouter = (
         try {
           const { name, offset, limit } = req.query;
           const producers = await readModelService.getProducers({
-            name,
+            producerName: name,
             offset,
             limit,
           });
