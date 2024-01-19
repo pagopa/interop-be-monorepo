@@ -1,16 +1,17 @@
 import { AuthData, userRoles } from "pagopa-interop-commons";
-import { match } from "ts-pattern";
 import {
   Attribute,
   ExternalId,
   Tenant,
   TenantAttribute,
   TenantKind,
+  TenantVerifier,
   WithMetadata,
   operationForbidden,
   tenantAttributeType,
   tenantKind,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import {
   attributeNotFound,
   expirationDateCannotBeInThePast,
@@ -18,8 +19,52 @@ import {
   tenantNotFound,
   verifiedAttributeNotFoundInTenant,
   selfcareIdConflict,
+  expirationDateNotFoundInVerifier,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
+
+export function assertTenantExists(
+  tenantId: string,
+  tenant: WithMetadata<Tenant> | undefined
+): asserts tenant is NonNullable<WithMetadata<Tenant>> {
+  if (tenant === undefined) {
+    throw tenantNotFound(tenantId);
+  }
+}
+
+export function assertVerifiedAttributeExistsInTenant(
+  attributeId: string,
+  attribute: TenantAttribute | undefined,
+  tenant: WithMetadata<Tenant>
+): asserts attribute is NonNullable<
+  Extract<TenantAttribute, { type: "verified" }>
+> {
+  if (!attribute || attribute.type !== tenantAttributeType.VERIFIED) {
+    throw verifiedAttributeNotFoundInTenant(tenant.data.id, attributeId);
+  }
+}
+
+export function assertOrganizationVerifierExist(
+  verifierId: string,
+  tenantId: string,
+  attributeId: string,
+  tenantVerifier: TenantVerifier | undefined
+): asserts tenantVerifier is NonNullable<TenantVerifier> {
+  if (tenantVerifier === undefined) {
+    organizationNotFoundInVerifiers(verifierId, tenantId, attributeId);
+  }
+}
+
+export function assertExpirationDateExist(
+  tenantId: string,
+  attributeId: string,
+  verifierId: string,
+  expirationDate: Date | undefined
+): asserts expirationDate is Date {
+  if (expirationDate === undefined) {
+    expirationDateNotFoundInVerifier(tenantId, attributeId, verifierId);
+  }
+}
 
 const PUBLIC_ADMINISTRATIONS_IDENTIFIER = "IPA";
 const CONTRACT_AUTHORITY_PUBLIC_SERVICES_MANAGERS = "SAG";
@@ -98,15 +143,6 @@ export async function getTenantKindLoadingCertifiedAttributes(
   return getTenantKind(extIds, externalId);
 }
 
-export function assertTenantExists(
-  tenantId: string,
-  tenant: WithMetadata<Tenant> | undefined
-): asserts tenant is NonNullable<WithMetadata<Tenant>> {
-  if (tenant === undefined) {
-    throw tenantNotFound(tenantId);
-  }
-}
-
 export function assertAttributeExists(
   attributeId: string,
   attributes: TenantAttribute[]
@@ -121,18 +157,6 @@ export function assertValidExpirationDate(
 ): void {
   if (expirationDate && expirationDate < new Date()) {
     throw expirationDateCannotBeInThePast(expirationDate);
-  }
-}
-
-export function assertVerifiedAttributeExistsInTenant(
-  attributeId: string,
-  attribute: TenantAttribute | undefined,
-  tenantId: string
-): asserts attribute is NonNullable<
-  Extract<TenantAttribute, { type: "verified" }>
-> {
-  if (!attribute || attribute.type !== tenantAttributeType.VERIFIED) {
-    throw verifiedAttributeNotFoundInTenant(tenantId, attributeId);
   }
 }
 

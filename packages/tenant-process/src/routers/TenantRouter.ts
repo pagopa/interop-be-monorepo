@@ -17,6 +17,7 @@ import {
   getTenantByExternalIdErrorMapper,
   getTenantByIdErrorMapper,
   getTenantBySelfcareIdErrorMapper,
+  updateVerifiedAttributeExtensionDateErrorMapper,
   updateTenantVerifiedAttributeErrorMapper,
   selfcareUpsertTenantErrorMapper,
 } from "../utilities/errorMappers.js";
@@ -300,7 +301,23 @@ const tenantsRouter = (
     .post(
       "/tenants/:tenantId/attributes/verified/:attributeId/verifier/:verifierId",
       authorizationMiddleware([INTERNAL_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const { tenantId, attributeId, verifierId } = req.params;
+          await tenantService.updateVerifiedAttributeExtensionDate(
+            tenantId,
+            attributeId,
+            verifierId
+          );
+          return res.status(200).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateVerifiedAttributeExtensionDateErrorMapper
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/tenants/attributes/declared",
