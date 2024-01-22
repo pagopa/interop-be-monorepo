@@ -17,6 +17,7 @@ import {
   WithMetadata,
   emptyListResult,
   genericError,
+  DescriptorId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
@@ -292,7 +293,7 @@ export function readModelServiceBuilder(
     },
     async getDocumentById(
       eServiceId: string,
-      descriptorId: string,
+      descriptorId: DescriptorId,
       documentId: string
     ): Promise<Document | undefined> {
       const eService = await this.getEServiceById(eServiceId);

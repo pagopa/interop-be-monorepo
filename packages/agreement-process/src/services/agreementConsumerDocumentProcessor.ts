@@ -1,5 +1,9 @@
 import { AuthData, CreateEvent } from "pagopa-interop-commons";
-import { AgreementEvent } from "pagopa-interop-models";
+import {
+  AgreementDocumentId,
+  AgreementEvent,
+  AgreementId,
+} from "pagopa-interop-models";
 import { ApiAgreementDocumentSeed } from "../model/types.js";
 import {
   agreementDocumentAlreadyExists,
@@ -19,7 +23,7 @@ import { config } from "../utilities/config.js";
 import { AgreementQuery } from "./readmodel/agreementQuery.js";
 
 export async function addConsumerDocumentLogic(
-  agreementId: string,
+  agreementId: AgreementId,
   payload: ApiAgreementDocumentSeed,
   agreementQuery: AgreementQuery,
   authData: AuthData
@@ -46,8 +50,8 @@ export async function addConsumerDocumentLogic(
 }
 
 export async function removeAgreementConsumerDocumentLogic(
-  agreementId: string,
-  documentId: string,
+  agreementId: AgreementId,
+  documentId: AgreementDocumentId,
   agreementQuery: AgreementQuery,
   authData: AuthData,
   fileRemove: (container: string, path: string) => Promise<void>

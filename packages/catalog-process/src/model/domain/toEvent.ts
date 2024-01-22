@@ -16,6 +16,7 @@ import {
   Technology,
   WithMetadata,
   EServiceEvent,
+  DescriptorId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 
@@ -130,7 +131,7 @@ export const toCreateEventClonedEServiceAdded = (
 export const toCreateEventEServiceDocumentAdded = (
   streamId: string,
   version: number,
-  descriptorId: string,
+  descriptorId: DescriptorId,
   {
     newDocument,
     isInterface,
@@ -192,7 +193,7 @@ export const toCreateEventEServiceDocumentUpdated = ({
 }: {
   streamId: string;
   version: number;
-  descriptorId: string;
+  descriptorId: DescriptorId;
   documentId: string;
   updatedDocument: Document;
   serverUrls: string[];
@@ -244,7 +245,7 @@ export const toCreateEventEServiceDeleted = (
 export const toCreateEventEServiceDocumentDeleted = (
   streamId: string,
   version: number,
-  descriptorId: string,
+  descriptorId: DescriptorId,
   documentId: string
 ): CreateEvent<EServiceEvent> => ({
   streamId,
@@ -261,7 +262,7 @@ export const toCreateEventEServiceDocumentDeleted = (
 
 export const toCreateEventEServiceWithDescriptorsDeleted = (
   eService: WithMetadata<EService>,
-  descriptorId: string
+  descriptorId: DescriptorId
 ): CreateEvent<EServiceEvent> => ({
   streamId: eService.data.id,
   version: eService.metadata.version,
