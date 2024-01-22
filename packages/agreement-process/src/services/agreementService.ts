@@ -636,7 +636,7 @@ export async function upgradeAgreementLogic({
     const upgraded: Agreement = {
       ...agreementToBeUpgraded.data,
       id: generateId(),
-      descriptorId: unsafeBrandId(newDescriptor.id),
+      descriptorId: newDescriptor.id,
       createdAt: new Date(),
       updatedAt: undefined,
       rejectionReason: undefined,
@@ -668,7 +668,7 @@ export async function upgradeAgreementLogic({
     const newAgreement: Agreement = {
       id: generateId(),
       eserviceId: agreementToBeUpgraded.data.eserviceId,
-      descriptorId: unsafeBrandId(newDescriptor.id),
+      descriptorId: newDescriptor.id,
       producerId: agreementToBeUpgraded.data.producerId,
       consumerId: agreementToBeUpgraded.data.consumerId,
       verifiedAttributes: agreementToBeUpgraded.data.verifiedAttributes,
