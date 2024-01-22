@@ -204,7 +204,7 @@ describe("CatalogService", () => {
       });
       expect(event.event.type).toBe("EServiceDeleted");
       expect(event.event.data).toMatchObject({
-        eserviceId: mockEservice.id,
+        eServiceId: mockEservice.id,
       });
     });
 
@@ -262,7 +262,7 @@ describe("CatalogService", () => {
       });
       expect(event.event.type).toBe("EServiceDocumentAdded");
       expect(event.event.data).toMatchObject({
-        eserviceId: mockEservice.id,
+        eServiceId: mockEservice.id,
         descriptorId: mockEservice.descriptors[0].id,
         document: {
           id: mockDocument.documentId,
@@ -358,7 +358,7 @@ describe("CatalogService", () => {
       });
       expect(event.event.type).toBe("EServiceDocumentDeleted");
       expect(event.event.data).toMatchObject({
-        eserviceId: mockEservice.id,
+        eServiceId: mockEservice.id,
         descriptorId: mockEservice.descriptors[0].id,
         documentId: mockDocument.documentId,
       });
@@ -451,7 +451,7 @@ describe("CatalogService", () => {
       });
       expect(event.event.type).toBe("EServiceDocumentUpdated");
       expect(event.event.data).toMatchObject({
-        eserviceId: mockEservice.id,
+        eServiceId: mockEservice.id,
         descriptorId: mockEservice.descriptors[0].id,
         documentId: mockDocument.documentId,
         updatedDocument: {
@@ -558,7 +558,7 @@ describe("CatalogService", () => {
       });
       expect(event.event.type).toBe("EServiceDescriptorAdded");
       expect(event.event.data).toMatchObject({
-        eserviceId: mockEservice.id,
+        eServiceId: mockEservice.id,
         eServiceDescriptor: {
           id: (event.event.data as { eServiceDescriptor: { id: string } })
             .eServiceDescriptor.id,
@@ -841,7 +841,7 @@ describe("CatalogService", () => {
       });
       expect(event[0].event.type).toBe("EServiceDescriptorUpdated");
       expect(event[0].event.data).toMatchObject({
-        eserviceId: eService.id,
+        eServiceId: eService.id,
         eServiceDescriptor: {
           ...toDescriptorV1(mockDescriptor),
           publishedAt: (
@@ -875,7 +875,7 @@ describe("CatalogService", () => {
       });
       expect(event[0].event.type).toBe("EServiceDescriptorUpdated");
       expect(event[0].event.data).toMatchObject({
-        eserviceId: eService.id,
+        eServiceId: eService.id,
         eServiceDescriptor: {
           ...toDescriptorV1(mockDescriptor),
           id: publishedDescriptorId,
@@ -889,7 +889,7 @@ describe("CatalogService", () => {
       });
       expect(event[1].event.type).toBe("EServiceDescriptorUpdated");
       expect(event[1].event.data).toMatchObject({
-        eserviceId: eService.id,
+        eServiceId: eService.id,
         eServiceDescriptor: {
           ...toDescriptorV1(mockDescriptor),
           publishedAt: (
@@ -992,7 +992,7 @@ describe("CatalogService", () => {
       });
       expect(event1.event.type).toBe("EServiceDescriptorUpdated");
       expect(event1.event.data).toMatchObject({
-        eserviceId: eService.id,
+        eServiceId: eService.id,
         eServiceDescriptor: {
           ...toDescriptorV1(publishedDescriptor),
           state: toEServiceDescriptorStateV1("Suspended"),
@@ -1003,7 +1003,7 @@ describe("CatalogService", () => {
       });
       expect(event2.event.type).toBe("EServiceDescriptorUpdated");
       expect(event2.event.data).toMatchObject({
-        eserviceId: eService.id,
+        eServiceId: eService.id,
         eServiceDescriptor: {
           ...toDescriptorV1(deprecatedDescriptor),
           state: toEServiceDescriptorStateV1("Suspended"),
@@ -1098,7 +1098,7 @@ describe("CatalogService", () => {
       });
       expect(event.event.type).toBe("EServiceDescriptorUpdated");
       expect(event.event.data).toMatchObject({
-        eserviceId: eService.id,
+        eServiceId: eService.id,
         eServiceDescriptor: {
           ...toDescriptorV1(mockDescriptor),
           state: toEServiceDescriptorStateV1("Published"),
@@ -1286,7 +1286,7 @@ describe("CatalogService", () => {
       });
       expect(event.event.type).toBe("EServiceDescriptorUpdated");
       expect(event.event.data).toMatchObject({
-        eserviceId: eService.id,
+        eServiceId: eService.id,
         eServiceDescriptor: {
           ...toDescriptorV1(mockDescriptor),
           state: toEServiceDescriptorStateV1("Archived"),
