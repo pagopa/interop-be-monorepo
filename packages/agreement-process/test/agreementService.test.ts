@@ -14,18 +14,7 @@ import { tenantQueryBuilder } from "../src/services/readmodel/tenantQuery.js";
 import { eserviceQueryBuilder } from "../src/services/readmodel/eserviceQuery.js";
 import { createAgreementLogic } from "../src/services/agreementCreationProcessor.js";
 import { ApiAgreementPayload } from "../src/model/types.js";
-import { ReadModelServiceMock } from "./utils/readModelServiceMock.js";
-
-const readModelServiceMock = new ReadModelServiceMock();
-const agreementQueryMock = agreementQueryBuilder(
-  readModelServiceMock.queryFunctions()
-);
-const tenantQueryMock = tenantQueryBuilder(
-  readModelServiceMock.queryFunctions()
-);
-const eserviceQueryMock = eserviceQueryBuilder(
-  readModelServiceMock.queryFunctions()
-);
+import { ReadModelService } from "../src/services/readmodel/readModelService.js";
 
 const authDataMock: AuthData = {
   organizationId: "organizationId",
@@ -50,8 +39,17 @@ describe("AgreementService", () => {
         producerId: eserviceProducer.id,
         descriptors: [descriptor],
       };
-      readModelServiceMock.eServices = [eservice];
-      readModelServiceMock.tenants = [eserviceProducer];
+      const agreementQueryMock = agreementQueryBuilder({
+        getAllAgreements: () => Promise.resolve([]),
+      } as unknown as ReadModelService);
+
+      const eserviceQueryMock = eserviceQueryBuilder({
+        getEServiceById: () => Promise.resolve({ data: eservice }),
+      } as unknown as ReadModelService);
+
+      const tenantQueryMock = tenantQueryBuilder({
+        getTenantById: () => Promise.resolve({ data: eserviceProducer }),
+      } as unknown as ReadModelService);
 
       const authData: AuthData = {
         ...authDataMock,
@@ -114,8 +112,20 @@ describe("AgreementService", () => {
         producerId: eserviceProducer.id,
         descriptors: [descriptor],
       };
-      readModelServiceMock.eServices = [eservice];
-      readModelServiceMock.tenants = [eserviceProducer, consumer];
+      const agreementQueryMock = agreementQueryBuilder({
+        getAllAgreements: () => Promise.resolve([]),
+      } as unknown as ReadModelService);
+
+      const eserviceQueryMock = eserviceQueryBuilder({
+        getEServiceById: () => Promise.resolve({ data: eservice }),
+      } as unknown as ReadModelService);
+
+      const tenantQueryMock = tenantQueryBuilder({
+        getTenantById: (id: Tenant["id"]) =>
+          Promise.resolve({
+            data: id === eserviceProducer.id ? eserviceProducer : consumer,
+          }),
+      } as unknown as ReadModelService);
 
       const authData: AuthData = {
         ...authDataMock,
