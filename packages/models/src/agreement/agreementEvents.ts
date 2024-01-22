@@ -1,6 +1,5 @@
 import { match } from "ts-pattern";
 import { z } from "zod";
-import { KafkaMessage } from "kafkajs";
 import {
   AgreementAddedV1,
   AgreementDeletedV1,
@@ -10,7 +9,7 @@ import {
   AgreementConsumerDocumentRemovedV1,
 } from "../gen/v1/agreement/events.js";
 import { protobufDecoder } from "../protobuf/protobuf.js";
-import { EventEnvelope, decodeKafkaMessage } from "../index.js";
+import { EventEnvelope } from "../index.js";
 
 export function agreementEventToBinaryData(event: AgreementEvent): Uint8Array {
   return match(event)
@@ -65,9 +64,3 @@ export type AgreementEvent = z.infer<typeof AgreementEvent>;
 
 export const AgreementEventEnvelope = EventEnvelope(AgreementEvent);
 export type AgreementEventEnvelope = z.infer<typeof AgreementEventEnvelope>;
-
-export function decodeKafkaAgreementMessage(
-  message: KafkaMessage
-): AgreementEventEnvelope {
-  return decodeKafkaMessage(message, AgreementEvent);
-}
