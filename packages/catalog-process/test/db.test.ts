@@ -28,7 +28,9 @@ import {
   EServiceWithDescriptorsDeletedV1,
   Tenant,
   descriptorState,
+  generateId,
   operationForbidden,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
@@ -425,7 +427,7 @@ describe("database test", async () => {
           createdAt: new Date(
             Number(writtenPayload.eServiceDescriptor?.createdAt)
           ),
-          id: writtenPayload.eServiceDescriptor!.id,
+          id: unsafeBrandId(writtenPayload.eServiceDescriptor!.id),
           serverUrls: [],
         };
 
@@ -1360,7 +1362,7 @@ describe("database test", async () => {
         };
         const expectedDescriptor: Descriptor = {
           ...descriptor,
-          id: writtenPayload.eService!.descriptors[0].id,
+          id: unsafeBrandId(writtenPayload.eService!.descriptors[0].id),
           interface: expectedInterface,
           createdAt: new Date(
             Number(writtenPayload.eService?.descriptors[0].createdAt)
@@ -1856,7 +1858,7 @@ describe("database test", async () => {
 
         const descriptor1: Descriptor = {
           ...mockDescriptor,
-          id: uuidv4(),
+          id: generateId(),
           interface: mockDocument,
           state: descriptorState.published,
         };
@@ -1871,7 +1873,7 @@ describe("database test", async () => {
 
         const descriptor2: Descriptor = {
           ...mockDescriptor,
-          id: uuidv4(),
+          id: generateId(),
           state: descriptorState.draft,
         };
         eService2 = {
@@ -1885,7 +1887,7 @@ describe("database test", async () => {
 
         const descriptor3: Descriptor = {
           ...mockDescriptor,
-          id: uuidv4(),
+          id: generateId(),
           interface: mockDocument,
           state: descriptorState.published,
         };
@@ -1900,7 +1902,7 @@ describe("database test", async () => {
 
         const descriptor4: Descriptor = {
           ...mockDescriptor,
-          id: uuidv4(),
+          id: generateId(),
           state: descriptorState.draft,
         };
         eService4 = {
@@ -1914,7 +1916,7 @@ describe("database test", async () => {
 
         const descriptor5: Descriptor = {
           ...mockDescriptor,
-          id: uuidv4(),
+          id: generateId(),
           interface: mockDocument,
           state: descriptorState.published,
         };
@@ -1929,7 +1931,7 @@ describe("database test", async () => {
 
         const descriptor6: Descriptor = {
           ...mockDescriptor,
-          id: uuidv4(),
+          id: generateId(),
           state: descriptorState.draft,
         };
         eService6 = {
@@ -2335,7 +2337,7 @@ describe("database test", async () => {
         await addOneEService(eService, postgresDB, eservices);
         const result = await readModelService.getDocumentById(
           eService.id,
-          uuidv4(),
+          generateId(),
           uuidv4()
         );
         expect(result).toBeUndefined();
