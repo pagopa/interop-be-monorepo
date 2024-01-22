@@ -3,7 +3,12 @@ import {
   Agreement,
   AgreementDocument,
   AgreementDocumentV1,
-  AgreementEvent,
+  AgreementEventAdded,
+  AgreementEventConsumerDocumentAdded,
+  AgreementEventConsumerDocumentRemoved,
+  AgreementEventContractAdded,
+  AgreementEventDeleted,
+  AgreementEventUpdated,
   AgreementStamp,
   AgreementStamps,
   AgreementState,
@@ -70,7 +75,7 @@ export const toAgreementV1 = (input: Agreement): AgreementV1 => ({
 export function toCreateEventAgreementDeleted(
   streamId: string,
   version: number
-): CreateEvent<AgreementEvent> {
+): CreateEvent<AgreementEventDeleted> {
   return {
     streamId,
     version,
@@ -85,7 +90,7 @@ export function toCreateEventAgreementDeleted(
 
 export function toCreateEventAgreementAdded(
   agreement: Agreement
-): CreateEvent<AgreementEvent> {
+): CreateEvent<AgreementEventAdded> {
   return {
     streamId: agreement.id,
     version: 0,
@@ -101,7 +106,7 @@ export function toCreateEventAgreementAdded(
 export function toCreateEventAgreementUpdated(
   agreement: Agreement,
   version: number
-): CreateEvent<AgreementEvent> {
+): CreateEvent<AgreementEventUpdated> {
   return {
     streamId: agreement.id,
     version,
@@ -118,7 +123,7 @@ export function toCreateEventAgreementContractAdded(
   agreementId: string,
   agreementDocument: AgreementDocument,
   version: number
-): CreateEvent<AgreementEvent> {
+): CreateEvent<AgreementEventContractAdded> {
   return {
     streamId: agreementId,
     version,
@@ -136,7 +141,7 @@ export function toCreateEventAgreementConsumerDocumentAdded(
   agreementId: string,
   agreementDocument: AgreementDocument,
   version: number
-): CreateEvent<AgreementEvent> {
+): CreateEvent<AgreementEventConsumerDocumentAdded> {
   return {
     streamId: agreementId,
     version,
@@ -154,7 +159,7 @@ export function toCreateEventAgreementConsumerDocumentRemoved(
   agreementId: string,
   documentId: string,
   version: number
-): CreateEvent<AgreementEvent> {
+): CreateEvent<AgreementEventConsumerDocumentRemoved> {
   return {
     streamId: agreementId,
     version,
