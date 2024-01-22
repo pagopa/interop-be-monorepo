@@ -4,12 +4,14 @@ import {
   consumerConfig,
   ReadModelRepository,
 } from "pagopa-interop-commons";
-import { EventEnvelope } from "./model/models.js";
+import { AgreementEventEnvelope } from "pagopa-interop-models";
 import { fromAgreementV1, fromDocumentV1 } from "./model/converter.js";
 
 const { agreements } = ReadModelRepository.init(consumerConfig());
 
-export async function handleMessage(message: EventEnvelope): Promise<void> {
+export async function handleMessage(
+  message: AgreementEventEnvelope
+): Promise<void> {
   logger.info(message);
   await match(message)
     .with({ type: "AgreementAdded" }, async (msg) => {
