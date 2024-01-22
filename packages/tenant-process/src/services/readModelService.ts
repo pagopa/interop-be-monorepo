@@ -13,6 +13,7 @@ import {
   genericError,
   ListResult,
   agreementState,
+  AttributeId,
 } from "pagopa-interop-models";
 import { z } from "zod";
 import { Filter, WithId } from "mongodb";
@@ -311,7 +312,7 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
     },
 
     async getAttributesById(
-      attributeIds: string[]
+      attributeIds: AttributeId[]
     ): Promise<Array<WithMetadata<Attribute>>> {
       const fetchAttributeById = async (
         id: string

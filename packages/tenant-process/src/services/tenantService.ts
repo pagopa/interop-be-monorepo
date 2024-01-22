@@ -6,6 +6,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   Attribute,
+  AttributeId,
   ExternalId,
   Tenant,
   TenantAttribute,
@@ -64,7 +65,7 @@ export function tenantServiceBuilder(
   return {
     async updateVerifiedAttributeExtensionDate(
       tenantId: string,
-      attributeId: string,
+      attributeId: AttributeId,
       verifierId: string
     ): Promise<string> {
       const tenant = await readModelService.getTenantById(tenantId);
@@ -109,7 +110,7 @@ export function tenantServiceBuilder(
     }: {
       verifierId: string;
       tenantId: string;
-      attributeId: string;
+      attributeId: AttributeId;
       updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed;
     }): Promise<void> {
       const tenant = await readModelService.getTenantById(tenantId);
@@ -193,7 +194,7 @@ async function updateTenantVerifiedAttributeLogic({
   verifierId: string;
   tenant: WithMetadata<Tenant> | undefined;
   tenantId: string;
-  attributeId: string;
+  attributeId: AttributeId;
   updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed;
 }): Promise<CreateEvent<TenantEvent>> {
   assertTenantExists(tenantId, tenant);
@@ -314,7 +315,7 @@ export async function updateVerifiedAttributeExtensionDateLogic({
   tenant,
 }: {
   tenantId: string;
-  attributeId: string;
+  attributeId: AttributeId;
   verifierId: string;
   tenant: WithMetadata<Tenant> | undefined;
 }): Promise<CreateEvent<TenantEvent>> {
@@ -324,7 +325,7 @@ export async function updateVerifiedAttributeExtensionDateLogic({
     (att) => att.id === attributeId
   );
 
-  assertVerifiedAttributeExistsInTenant(tenantId, attribute, tenant);
+  assertVerifiedAttributeExistsInTenant(attributeId, attribute, tenant);
 
   const oldVerifier = attribute.verifiedBy.find(
     (verifier) => verifier.id === verifierId

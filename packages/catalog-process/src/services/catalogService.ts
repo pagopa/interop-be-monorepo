@@ -8,6 +8,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   Descriptor,
+  DescriptorId,
   DescriptorState,
   Document,
   EService,
@@ -15,7 +16,9 @@ import {
   WithMetadata,
   catalogEventToBinaryData,
   descriptorState,
+  generateId,
   operationForbidden,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { v4 as uuidv4 } from "uuid";
@@ -91,7 +94,7 @@ export const retrieveEService = async (
 };
 
 const retrieveDescriptor = (
-  descriptorId: string,
+  descriptorId: DescriptorId,
   eService: WithMetadata<EService>
 ): Descriptor => {
   const descriptor = eService.data.descriptors.find(
@@ -232,7 +235,7 @@ export function catalogServiceBuilder(
 
     async uploadDocument(
       eServiceId: string,
-      descriptorId: string,
+      descriptorId: DescriptorId,
       document: ApiEServiceDescriptorDocumentSeed,
       authData: AuthData
     ): Promise<string> {
@@ -251,7 +254,7 @@ export function catalogServiceBuilder(
 
     async deleteDocument(
       eServiceId: string,
-      descriptorId: string,
+      descriptorId: DescriptorId,
       documentId: string,
       authData: AuthData
     ): Promise<void> {
@@ -271,7 +274,7 @@ export function catalogServiceBuilder(
 
     async updateDocument(
       eServiceId: string,
-      descriptorId: string,
+      descriptorId: DescriptorId,
       documentId: string,
       apiEServiceDescriptorDocumentUpdateSeed: ApiEServiceDescriptorDocumentUpdateSeed,
       authData: AuthData
@@ -311,7 +314,7 @@ export function catalogServiceBuilder(
 
     async deleteDraftDescriptor(
       eServiceId: string,
-      descriptorId: string,
+      descriptorId: DescriptorId,
       authData: AuthData
     ): Promise<void> {
       logger.info(
@@ -332,7 +335,7 @@ export function catalogServiceBuilder(
 
     async updateDescriptor(
       eServiceId: string,
-      descriptorId: string,
+      descriptorId: DescriptorId,
       seed: UpdateEServiceDescriptorSeed,
       authData: AuthData
     ): Promise<void> {
@@ -351,7 +354,7 @@ export function catalogServiceBuilder(
 
     async publishDescriptor(
       eServiceId: string,
-      descriptorId: string,
+      descriptorId: DescriptorId,
       authData: AuthData
     ): Promise<void> {
       logger.info(
@@ -372,7 +375,7 @@ export function catalogServiceBuilder(
 
     async suspendDescriptor(
       eServiceId: string,
-      descriptorId: string,
+      descriptorId: DescriptorId,
       authData: AuthData
     ): Promise<void> {
       logger.info(
@@ -393,7 +396,7 @@ export function catalogServiceBuilder(
 
     async activateDescriptor(
       eServiceId: string,
-      descriptorId: string,
+      descriptorId: DescriptorId,
       authData: AuthData
     ): Promise<void> {
       logger.info(
@@ -414,7 +417,7 @@ export function catalogServiceBuilder(
 
     async cloneDescriptor(
       eServiceId: string,
-      descriptorId: string,
+      descriptorId: DescriptorId,
       authData: AuthData
     ): Promise<EService> {
       logger.info(
@@ -438,7 +441,7 @@ export function catalogServiceBuilder(
 
     async archiveDescriptor(
       eServiceId: string,
-      descriptorId: string,
+      descriptorId: DescriptorId,
       authData: AuthData
     ): Promise<void> {
       logger.info(
@@ -552,7 +555,7 @@ export function uploadDocumentLogic({
   eService,
 }: {
   eServiceId: string;
-  descriptorId: string;
+  descriptorId: DescriptorId;
   document: ApiEServiceDescriptorDocumentSeed;
   authData: AuthData;
   eService: WithMetadata<EService> | undefined;
@@ -596,7 +599,7 @@ export async function deleteDocumentLogic({
   deleteRemoteFile,
 }: {
   eServiceId: string;
-  descriptorId: string;
+  descriptorId: DescriptorId;
   documentId: string;
   authData: AuthData;
   eService: WithMetadata<EService> | undefined;
@@ -635,7 +638,7 @@ export async function updateDocumentLogic({
   eService,
 }: {
   eServiceId: string;
-  descriptorId: string;
+  descriptorId: DescriptorId;
   documentId: string;
   apiEServiceDescriptorDocumentUpdateSeed: ApiEServiceDescriptorDocumentUpdateSeed;
   authData: AuthData;
@@ -694,7 +697,7 @@ export function createDescriptorLogic({
   const certifiedAttributes = eserviceDescriptorSeed.attributes.certified;
 
   const newDescriptor: Descriptor = {
-    id: uuidv4(),
+    id: generateId(),
     description: eserviceDescriptorSeed.description,
     version: newVersion,
     interface: undefined,
@@ -715,7 +718,12 @@ export function createDescriptorLogic({
     archivedAt: undefined,
     createdAt: new Date(),
     attributes: {
-      certified: certifiedAttributes,
+      certified: certifiedAttributes.map((a) =>
+        a.map((a) => ({
+          ...a,
+          id: unsafeBrandId(a.id),
+        }))
+      ),
       declared: [],
       verified: [],
     },
@@ -736,7 +744,7 @@ export async function deleteDraftDescriptorLogic({
   eService,
 }: {
   eServiceId: string;
-  descriptorId: string;
+  descriptorId: DescriptorId;
   authData: AuthData;
   deleteFile: (container: string, path: string) => Promise<void>;
   eService: WithMetadata<EService> | undefined;
@@ -781,7 +789,7 @@ export function updateDescriptorLogic({
   eService,
 }: {
   eServiceId: string;
-  descriptorId: string;
+  descriptorId: DescriptorId;
   seed: UpdateEServiceDescriptorSeed;
   authData: AuthData;
   eService: WithMetadata<EService> | undefined;
@@ -837,7 +845,7 @@ export function publishDescriptorLogic({
   eService,
 }: {
   eServiceId: string;
-  descriptorId: string;
+  descriptorId: DescriptorId;
   authData: AuthData;
   eService: WithMetadata<EService> | undefined;
 }): Array<CreateEvent<EServiceEvent>> {
@@ -893,7 +901,7 @@ export function suspendDescriptorLogic({
   eService,
 }: {
   eServiceId: string;
-  descriptorId: string;
+  descriptorId: DescriptorId;
   authData: AuthData;
   eService: WithMetadata<EService> | undefined;
 }): CreateEvent<EServiceEvent> {
@@ -927,7 +935,7 @@ export function activateDescriptorLogic({
   eService,
 }: {
   eServiceId: string;
-  descriptorId: string;
+  descriptorId: DescriptorId;
   authData: AuthData;
   eService: WithMetadata<EService> | undefined;
 }): CreateEvent<EServiceEvent> {
@@ -983,7 +991,7 @@ export async function cloneDescriptorLogic({
   eService,
 }: {
   eServiceId: string;
-  descriptorId: string;
+  descriptorId: DescriptorId;
   authData: AuthData;
   copyFile: (
     container: string,
@@ -1060,7 +1068,7 @@ export async function cloneDescriptorLogic({
     descriptors: [
       {
         ...descriptor,
-        id: uuidv4(),
+        id: generateId(),
         version: "1",
         interface: clonedInterfaceDocument,
         docs: clonedDocuments,
@@ -1087,7 +1095,7 @@ export function archiveDescriptorLogic({
   eService,
 }: {
   eServiceId: string;
-  descriptorId: string;
+  descriptorId: DescriptorId;
   authData: AuthData;
   eService: WithMetadata<EService> | undefined;
 }): CreateEvent<EServiceEvent> {
