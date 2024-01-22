@@ -539,7 +539,7 @@ describe("CatalogService", () => {
         mockEservice.descriptors.map((d, i) => ({
           ...d,
           state: descriptorState.archived,
-          version: i.toString(),
+          version: (i + 1).toString(),
         }))
       );
       const event = createDescriptorLogic({
@@ -555,7 +555,7 @@ describe("CatalogService", () => {
           id: (event.event.data as { eServiceDescriptor: { id: string } })
             .eServiceDescriptor.id,
           description: mockEserviceDescriptorSeed.description,
-          version: (descriptors.length - 1).toString(),
+          version: descriptors.length.toString(),
           interface: undefined,
           docs: [],
           state: toEServiceDescriptorStateV1("Draft"),
