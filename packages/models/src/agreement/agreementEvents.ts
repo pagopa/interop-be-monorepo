@@ -34,55 +34,55 @@ export function agreementEventToBinaryData(event: AgreementEvent): Uint8Array {
     .exhaustive();
 }
 
-const AgreementEventAdded = z.object({
+const AgreementAddEvent = z.object({
   type: z.literal("AgreementAdded"),
   data: protobufDecoder(AgreementAddedV1),
 });
-export type AgreementEventAdded = z.infer<typeof AgreementEventAdded>;
+export type AgreementAddEvent = z.infer<typeof AgreementAddEvent>;
 
-export const AgreementEventDeleted = z.object({
+export const AgreementDeleteEvent = z.object({
   type: z.literal("AgreementDeleted"),
   data: protobufDecoder(AgreementDeletedV1),
 });
-export type AgreementEventDeleted = z.infer<typeof AgreementEventDeleted>;
+export type AgreementDeleteEvent = z.infer<typeof AgreementDeleteEvent>;
 
-export const AgreementEventUpdated = z.object({
+export const AgreementUpdateEvent = z.object({
   type: z.literal("AgreementUpdated"),
   data: protobufDecoder(AgreementUpdatedV1),
 });
-export type AgreementEventUpdated = z.infer<typeof AgreementEventUpdated>;
+export type AgreementUpdateEvent = z.infer<typeof AgreementUpdateEvent>;
 
-export const AgreementEventConsumerDocumentAdded = z.object({
+export const AgreementAddConsumerDocumentEvent = z.object({
   type: z.literal("AgreementConsumerDocumentAdded"),
   data: protobufDecoder(AgreementConsumerDocumentAddedV1),
 });
-export type AgreementEventConsumerDocumentAdded = z.infer<
-  typeof AgreementEventConsumerDocumentAdded
+export type AgreementAddConsumerDocumentEvent = z.infer<
+  typeof AgreementAddConsumerDocumentEvent
 >;
 
-export const AgreementEventConsumerDocumentRemoved = z.object({
+export const AgreementRemoveConsumerDocumentEvent = z.object({
   type: z.literal("AgreementConsumerDocumentRemoved"),
   data: protobufDecoder(AgreementConsumerDocumentRemovedV1),
 });
-export type AgreementEventConsumerDocumentRemoved = z.infer<
-  typeof AgreementEventConsumerDocumentRemoved
+export type AgreementRemoveConsumerDocumentEvent = z.infer<
+  typeof AgreementRemoveConsumerDocumentEvent
 >;
 
-export const AgreementEventContractAdded = z.object({
+export const AgreementAddContractEvent = z.object({
   type: z.literal("AgreementContractAdded"),
   data: protobufDecoder(AgreementContractAddedV1),
 });
-export type AgreementEventContractAdded = z.infer<
-  typeof AgreementEventContractAdded
+export type AgreementAddContractEvent = z.infer<
+  typeof AgreementAddContractEvent
 >;
 
 export const AgreementEvent = z.discriminatedUnion("type", [
-  AgreementEventAdded,
-  AgreementEventDeleted,
-  AgreementEventUpdated,
-  AgreementEventConsumerDocumentAdded,
-  AgreementEventConsumerDocumentRemoved,
-  AgreementEventContractAdded,
+  AgreementAddEvent,
+  AgreementDeleteEvent,
+  AgreementUpdateEvent,
+  AgreementAddConsumerDocumentEvent,
+  AgreementRemoveConsumerDocumentEvent,
+  AgreementAddContractEvent,
 ]);
 export type AgreementEvent = z.infer<typeof AgreementEvent>;
 

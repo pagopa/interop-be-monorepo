@@ -10,6 +10,7 @@ import {
   agreementArchivableStates,
   WithMetadata,
   AgreementEvent,
+  AgreementUpdateEvent,
 } from "pagopa-interop-models";
 import {
   assertAgreementExist,
@@ -201,7 +202,7 @@ const archiveRelatedToAgreements = async (
   agreement: Agreement,
   authData: AuthData,
   agreementQuery: AgreementQuery
-): Promise<Array<CreateEvent<AgreementEvent>>> => {
+): Promise<Array<CreateEvent<AgreementUpdateEvent>>> => {
   const existingAgreements = await agreementQuery.getAllAgreements({
     consumerId: agreement.consumerId,
     eserviceId: agreement.eserviceId,
