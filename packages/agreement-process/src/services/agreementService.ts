@@ -21,6 +21,7 @@ import {
   agreementUpdatableStates,
   agreementCloningConflictingStates,
   agreementRejectableStates,
+  AgreementUpdateEvent,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -68,12 +69,12 @@ import {
   ApiAgreementDocumentSeed,
 } from "../model/types.js";
 import { config } from "../utilities/config.js";
+import { AttributeQuery } from "./readmodel/attributeQuery.js";
+import { AgreementQueryFilters } from "./readmodel/readModelService.js";
 import { contractBuilder } from "./agreementContractBuilder.js";
 import { submitAgreementLogic } from "./agreementSubmissionProcessor.js";
 import { AgreementQuery } from "./readmodel/agreementQuery.js";
-import { AttributeQuery } from "./readmodel/attributeQuery.js";
 import { EserviceQuery } from "./readmodel/eserviceQuery.js";
-import { AgreementQueryFilters } from "./readmodel/readModelService.js";
 import { TenantQuery } from "./readmodel/tenantQuery.js";
 import { suspendAgreementLogic } from "./agreementSuspensionProcessor.js";
 import { createStamp } from "./agreementStampUtils.js";
@@ -81,6 +82,7 @@ import {
   removeAgreementConsumerDocumentLogic,
   addConsumerDocumentLogic,
 } from "./agreementConsumerDocumentProcessor.js";
+import { activateAgreementLogic } from "./agreementActivationProcessor.js";
 
 const fileManager = initFileManager(config);
 
@@ -344,6 +346,35 @@ export function agreementServiceBuilder(
           eserviceQuery,
         })
       );
+      return agreementId;
+    },
+    async activateAgreement(
+      agreementId: Agreement["id"],
+      authData: AuthData
+    ): Promise<Agreement["id"]> {
+      const updatesEvents = await activateAgreementLogic(
+        agreementId,
+        agreementQuery,
+        eserviceQuery,
+        tenantQuery,
+        attributeQuery,
+        authData
+      );
+
+      for (const event of updatesEvents) {
+        await repository.createEvent(event);
+      }
+      return agreementId;
+    },
+    async archiveAgreement(
+      agreementId: string,
+      authData: AuthData
+    ): Promise<Agreement["id"]> {
+      logger.info(`Archiving agreement ${agreementId}`);
+
+      await repository.createEvent(
+        await archiveAgreementLogic(agreementId, authData, agreementQuery)
+      );
 
       return agreementId;
     },
@@ -462,25 +493,9 @@ export async function createAgreementLogic(
     verifiedAttributes: [],
     certifiedAttributes: [],
     declaredAttributes: [],
-    suspendedByConsumer: undefined,
-    suspendedByProducer: undefined,
-    suspendedByPlatform: undefined,
     consumerDocuments: [],
     createdAt: new Date(),
-    updatedAt: undefined,
-    consumerNotes: undefined,
-    contract: undefined,
-    stamps: {
-      submission: undefined,
-      activation: undefined,
-      rejection: undefined,
-      suspensionByProducer: undefined,
-      suspensionByConsumer: undefined,
-      upgrade: undefined,
-      archiving: undefined,
-    },
-    rejectionReason: undefined,
-    suspendedAt: undefined,
+    stamps: {},
   };
 
   return toCreateEventAgreementAdded(agreementSeed);
@@ -646,16 +661,24 @@ export async function upgradeAgreementLogic({
       [agreementState.draft],
       agreementQuery
     );
-    const createEvent = await createAgreementLogic(
-      {
-        eserviceId: agreementToBeUpgraded.data.eserviceId,
-        descriptorId: newDescriptor.id,
-      },
-      authData,
-      agreementQuery,
-      eserviceQuery,
-      tenantQuery
-    );
+
+    const newAgreement: Agreement = {
+      id: uuidv4(),
+      eserviceId: agreementToBeUpgraded.data.eserviceId,
+      descriptorId: newDescriptor.id,
+      producerId: agreementToBeUpgraded.data.producerId,
+      consumerId: agreementToBeUpgraded.data.consumerId,
+      verifiedAttributes: agreementToBeUpgraded.data.verifiedAttributes,
+      certifiedAttributes: agreementToBeUpgraded.data.certifiedAttributes,
+      declaredAttributes: agreementToBeUpgraded.data.declaredAttributes,
+      consumerNotes: agreementToBeUpgraded.data.consumerNotes,
+      state: agreementState.draft,
+      createdAt: new Date(),
+      consumerDocuments: [],
+      stamps: {},
+    };
+
+    const createEvent = toCreateEventAgreementAdded(newAgreement);
 
     const docEvents = await createAndCopyDocumentsForClonedAgreement(
       createEvent.streamId,
@@ -735,27 +758,34 @@ export async function cloneAgreementLogic({
 
   validateCertifiedAttributes(descriptor, consumer.data);
 
-  const newAgreement = await createAgreementLogic(
-    {
-      eserviceId: agreementToBeCloned.data.eserviceId,
-      descriptorId: agreementToBeCloned.data.descriptorId,
-    },
-    authData,
-    agreementQuery,
-    eserviceQuery,
-    tenantQuery
-  );
+  const newAgreement: Agreement = {
+    id: uuidv4(),
+    eserviceId: agreementToBeCloned.data.eserviceId,
+    descriptorId: agreementToBeCloned.data.descriptorId,
+    producerId: agreementToBeCloned.data.producerId,
+    consumerId: agreementToBeCloned.data.consumerId,
+    consumerNotes: agreementToBeCloned.data.consumerNotes,
+    verifiedAttributes: [],
+    certifiedAttributes: [],
+    declaredAttributes: [],
+    state: agreementState.draft,
+    createdAt: new Date(),
+    consumerDocuments: [],
+    stamps: {},
+  };
+
+  const createEvent = toCreateEventAgreementAdded(newAgreement);
 
   const docEvents = await createAndCopyDocumentsForClonedAgreement(
-    newAgreement.streamId,
+    createEvent.streamId,
     agreementToBeCloned.data,
     0,
     fileCopy
   );
 
   return {
-    streamId: newAgreement.streamId,
-    events: [newAgreement, ...docEvents],
+    streamId: createEvent.streamId,
+    events: [createEvent, ...docEvents],
   };
 }
 
@@ -830,5 +860,34 @@ export async function rejectAgreementLogic({
   return toCreateEventAgreementUpdated(
     rejected,
     agreementToBeRejected.metadata.version
+  );
+}
+
+export async function archiveAgreementLogic(
+  agreementId: Agreement["id"],
+  authData: AuthData,
+  agreementQuery: AgreementQuery
+): Promise<CreateEvent<AgreementUpdateEvent>> {
+  const agreement = await agreementQuery.getAgreementById(agreementId);
+  assertAgreementExist(agreementId, agreement);
+  assertRequesterIsConsumer(agreement.data, authData);
+
+  const updateSeed = {
+    ...agreement.data,
+    state: agreementState.archived,
+    stamps: {
+      ...agreement.data.stamps,
+      archiving: createStamp(authData),
+    },
+  };
+
+  const updatedAgreement = {
+    ...agreement.data,
+    ...updateSeed,
+  };
+
+  return toCreateEventAgreementUpdated(
+    updatedAgreement,
+    agreement.metadata.version
   );
 }

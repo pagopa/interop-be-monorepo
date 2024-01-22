@@ -1,16 +1,26 @@
 import { AuthData, userRoles } from "pagopa-interop-commons";
-import { match } from "ts-pattern";
 import {
   Attribute,
   ExternalId,
   Tenant,
   TenantAttribute,
   TenantKind,
+  TenantVerifier,
   WithMetadata,
   operationForbidden,
+  tenantAttributeType,
   tenantKind,
 } from "pagopa-interop-models";
-import { selfcareIdConflict, tenantNotFound } from "../model/domain/errors.js";
+import { match } from "ts-pattern";
+import {
+  attributeNotFound,
+  expirationDateCannotBeInThePast,
+  organizationNotFoundInVerifiers,
+  tenantNotFound,
+  verifiedAttributeNotFoundInTenant,
+  selfcareIdConflict,
+  expirationDateNotFoundInVerifier,
+} from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
 export function assertTenantExists(
@@ -19,6 +29,40 @@ export function assertTenantExists(
 ): asserts tenant is NonNullable<WithMetadata<Tenant>> {
   if (tenant === undefined) {
     throw tenantNotFound(tenantId);
+  }
+}
+
+export function assertVerifiedAttributeExistsInTenant(
+  attributeId: string,
+  attribute: TenantAttribute | undefined,
+  tenant: WithMetadata<Tenant>
+): asserts attribute is NonNullable<
+  Extract<TenantAttribute, { type: "verified" }>
+> {
+  if (!attribute || attribute.type !== tenantAttributeType.VERIFIED) {
+    throw verifiedAttributeNotFoundInTenant(tenant.data.id, attributeId);
+  }
+}
+
+export function assertOrganizationVerifierExist(
+  verifierId: string,
+  tenantId: string,
+  attributeId: string,
+  tenantVerifier: TenantVerifier | undefined
+): asserts tenantVerifier is NonNullable<TenantVerifier> {
+  if (tenantVerifier === undefined) {
+    organizationNotFoundInVerifiers(verifierId, tenantId, attributeId);
+  }
+}
+
+export function assertExpirationDateExist(
+  tenantId: string,
+  attributeId: string,
+  verifierId: string,
+  expirationDate: Date | undefined
+): asserts expirationDate is Date {
+  if (expirationDate === undefined) {
+    expirationDateNotFoundInVerifier(tenantId, attributeId, verifierId);
   }
 }
 
@@ -97,6 +141,33 @@ export async function getTenantKindLoadingCertifiedAttributes(
   const attrs = await readModelService.getAttributesById(attributesIds);
   const extIds = convertAttributes(attrs);
   return getTenantKind(extIds, externalId);
+}
+
+export function assertAttributeExists(
+  attributeId: string,
+  attributes: TenantAttribute[]
+): asserts attributes is NonNullable<TenantAttribute[]> {
+  if (!attributes.some((attr) => attr.id === attributeId)) {
+    throw attributeNotFound(attributeId);
+  }
+}
+
+export function assertValidExpirationDate(
+  expirationDate: Date | undefined
+): void {
+  if (expirationDate && expirationDate < new Date()) {
+    throw expirationDateCannotBeInThePast(expirationDate);
+  }
+}
+
+export function assertOrganizationIsInAttributeVerifiers(
+  verifierId: string,
+  tenantId: string,
+  attribute: Extract<TenantAttribute, { type: "verified" }>
+): void {
+  if (!attribute.verifiedBy.some((v) => v.id === verifierId)) {
+    throw organizationNotFoundInVerifiers(verifierId, tenantId, attribute.id);
+  }
 }
 
 export function evaluateNewSelfcareId({

@@ -10,13 +10,15 @@ import { api } from "../model/generated/api.js";
 import { toApiTenant } from "../model/domain/apiConverter.js";
 import {
   makeApiProblem,
-  tenantBySelfcateIdNotFound,
+  tenantBySelfcareIdNotFound,
   tenantNotFound,
 } from "../model/domain/errors.js";
 import {
   getTenantByExternalIdErrorMapper,
   getTenantByIdErrorMapper,
   getTenantBySelfcareIdErrorMapper,
+  updateVerifiedAttributeExtensionDateErrorMapper,
+  updateTenantVerifiedAttributeErrorMapper,
   selfcareUpsertTenantErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
@@ -210,7 +212,7 @@ const tenantsRouter = (
               .status(404)
               .json(
                 makeApiProblem(
-                  tenantBySelfcateIdNotFound(req.params.selfcareId),
+                  tenantBySelfcareIdNotFound(req.params.selfcareId),
                   getTenantBySelfcareIdErrorMapper
                 )
               )
@@ -277,12 +279,45 @@ const tenantsRouter = (
     .post(
       "/tenants/:tenantId/attributes/verified/:attributeId",
       authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const { tenantId, attributeId } = req.params;
+          await tenantService.updateTenantVerifiedAttribute({
+            verifierId: req.ctx.authData.organizationId,
+            tenantId,
+            attributeId,
+            updateVerifiedTenantAttributeSeed: req.body,
+          });
+          return res.status(200).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateTenantVerifiedAttributeErrorMapper
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/tenants/:tenantId/attributes/verified/:attributeId/verifier/:verifierId",
       authorizationMiddleware([INTERNAL_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const { tenantId, attributeId, verifierId } = req.params;
+          await tenantService.updateVerifiedAttributeExtensionDate(
+            tenantId,
+            attributeId,
+            verifierId
+          );
+          return res.status(200).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateVerifiedAttributeExtensionDateErrorMapper
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/tenants/attributes/declared",
