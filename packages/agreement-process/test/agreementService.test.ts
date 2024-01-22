@@ -7,16 +7,17 @@ import {
   Tenant,
   TenantAttribute,
   agreementState,
+  generateId,
 } from "pagopa-interop-models";
 import { generateMock } from "@anatine/zod-mock";
 import { AuthData } from "pagopa-interop-commons";
-import { agreementQueryBuilder } from "../src/services/readmodel/agreementQuery.js";
-import { tenantQueryBuilder } from "../src/services/readmodel/tenantQuery.js";
-import { eserviceQueryBuilder } from "../src/services/readmodel/eserviceQuery.js";
+import { AgreementQuery } from "../src/services/readmodel/agreementQuery.js";
+import { TenantQuery } from "../src/services/readmodel/tenantQuery.js";
+import { EserviceQuery } from "../src/services/readmodel/eserviceQuery.js";
 import { createAgreementLogic } from "../src/services/agreementCreationProcessor.js";
 import { ApiAgreementPayload } from "../src/model/types.js";
-import { ReadModelService } from "../src/services/readmodel/readModelService.js";
 import { toAgreementStateV1 } from "../src/model/domain/toEvent.js";
+import { eServiceNotFound } from "../src/model/domain/errors.js";
 import { expectPastTimestamp } from "./utils/utils.js";
 
 const authDataMock: AuthData = {
@@ -42,17 +43,18 @@ describe("AgreementService", () => {
         producerId: eserviceProducer.id,
         descriptors: [descriptor],
       };
-      const agreementQueryMock = agreementQueryBuilder({
+
+      const agreementQueryMock = {
         getAllAgreements: () => Promise.resolve([]),
-      } as unknown as ReadModelService);
+      } as unknown as AgreementQuery;
 
-      const eserviceQueryMock = eserviceQueryBuilder({
+      const eserviceQueryMock = {
         getEServiceById: () => Promise.resolve({ data: eservice }),
-      } as unknown as ReadModelService);
+      } as unknown as EserviceQuery;
 
-      const tenantQueryMock = tenantQueryBuilder({
+      const tenantQueryMock = {
         getTenantById: () => Promise.resolve({ data: eserviceProducer }),
-      } as unknown as ReadModelService);
+      } as unknown as TenantQuery;
 
       const authData: AuthData = {
         ...authDataMock,
@@ -127,20 +129,20 @@ describe("AgreementService", () => {
         producerId: eserviceProducer.id,
         descriptors: [descriptor],
       };
-      const agreementQueryMock = agreementQueryBuilder({
+      const agreementQueryMock = {
         getAllAgreements: () => Promise.resolve([]),
-      } as unknown as ReadModelService);
+      } as unknown as AgreementQuery;
 
-      const eserviceQueryMock = eserviceQueryBuilder({
+      const eserviceQueryMock = {
         getEServiceById: () => Promise.resolve({ data: eservice }),
-      } as unknown as ReadModelService);
+      } as unknown as EserviceQuery;
 
-      const tenantQueryMock = tenantQueryBuilder({
+      const tenantQueryMock = {
         getTenantById: (id: Tenant["id"]) =>
           Promise.resolve({
             data: id === eserviceProducer.id ? eserviceProducer : consumer,
           }),
-      } as unknown as ReadModelService);
+      } as unknown as TenantQuery;
 
       const authData: AuthData = {
         ...authDataMock,
@@ -180,6 +182,32 @@ describe("AgreementService", () => {
         .property("agreement")
         .property("createdAt")
         .satisfy(expectPastTimestamp);
+    });
+    it("should throw an error when EService does not exist", async () => {
+      const agreementQueryMock = {} as AgreementQuery;
+      const tenantQueryMock = {} as TenantQuery;
+      const eserviceQueryMock = {
+        getEServiceById: () => undefined,
+      } as unknown as EserviceQuery;
+
+      const authData: AuthData = {
+        ...authDataMock,
+        organizationId: "organizationId",
+      };
+      const apiAgreementPayload: ApiAgreementPayload = {
+        eserviceId: generateId(),
+        descriptorId: generateId(),
+      };
+
+      await expect(() =>
+        createAgreementLogic(
+          apiAgreementPayload,
+          authData,
+          agreementQueryMock,
+          eserviceQueryMock,
+          tenantQueryMock
+        )
+      ).rejects.toThrowError(eServiceNotFound(apiAgreementPayload.eserviceId));
     });
   });
 });
