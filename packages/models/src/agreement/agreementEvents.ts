@@ -9,7 +9,7 @@ import {
   AgreementConsumerDocumentAddedV1,
   AgreementConsumerDocumentRemovedV1,
 } from "../gen/v1/agreement/events.js";
-import { protobufDecoder } from "../readModels/protobuf.js";
+import { protobufDecoder } from "../protobuf/protobuf.js";
 import { EventEnvelope, decodeKafkaMessage } from "../index.js";
 
 export function agreementEventToBinaryData(event: AgreementEvent): Uint8Array {
