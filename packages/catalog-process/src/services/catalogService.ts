@@ -732,13 +732,10 @@ export async function deleteDraftDescriptorLogic({
   assertEServiceExist(eServiceId, eService);
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
 
-  const descriptor = eService.data.descriptors.find(
-    (d: Descriptor) =>
-      d.id === descriptorId && d.state === descriptorState.draft
-  );
+  const descriptor = retrieveDescriptor(descriptorId, eService);
 
-  if (descriptor === undefined) {
-    throw eServiceDescriptorNotFound(eServiceId, descriptorId);
+  if (descriptor.state !== descriptorState.draft) {
+    throw notValidDescriptor(descriptorId, descriptor.state.toString());
   }
 
   const interfacePath = descriptor.docs.find(
