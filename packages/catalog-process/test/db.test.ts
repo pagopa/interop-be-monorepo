@@ -1363,6 +1363,7 @@ describe("database test", async () => {
         const expectedDescriptor: Descriptor = {
           ...descriptor,
           id: unsafeBrandId(writtenPayload.eService!.descriptors[0].id),
+          version: "1",
           interface: expectedInterface,
           createdAt: new Date(
             Number(writtenPayload.eService?.descriptors[0].createdAt)
