@@ -1,4 +1,5 @@
 import z from "zod";
+import { AttributeId, DescriptorId } from "../brandedIds.js";
 
 export const technology = { rest: "Rest", soap: "Soap" } as const;
 export const Technology = z.enum([
@@ -31,7 +32,7 @@ export const AgreementApprovalPolicy = z.enum([
 export type AgreementApprovalPolicy = z.infer<typeof AgreementApprovalPolicy>;
 
 const EServiceAttribute = z.object({
-  id: z.string().uuid(),
+  id: AttributeId,
   explicitAttributeVerification: z.boolean(),
 });
 export type EServiceAttribute = z.infer<typeof EServiceAttribute>;
@@ -55,7 +56,7 @@ export const Document = z.object({
 export type Document = z.infer<typeof Document>;
 
 export const Descriptor = z.object({
-  id: z.string().uuid(),
+  id: DescriptorId,
   version: z.string(),
   description: z.string().optional(),
   interface: Document.optional(),

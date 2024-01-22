@@ -1,4 +1,8 @@
-import { ApiError, makeApiProblemBuilder } from "pagopa-interop-models";
+import {
+  ApiError,
+  AttributeId,
+  makeApiProblemBuilder,
+} from "pagopa-interop-models";
 
 const errorCodes = {
   attributeNotFound: "0001",
@@ -61,7 +65,7 @@ export function eServiceNotFound(eServiceId: string): ApiError<ErrorCodes> {
 
 export function verifiedAttributeNotFoundInTenant(
   tenantId: string,
-  attributeId: string
+  attributeId: AttributeId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Verified attribute ${attributeId} not found in tenant ${tenantId}`,
@@ -83,7 +87,7 @@ export function expirationDateCannotBeInThePast(
 export function organizationNotFoundInVerifiers(
   requesterId: string,
   tenantId: string,
-  attributeId: string
+  attributeId: AttributeId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Organization ${requesterId} not found in verifier for Tenant ${tenantId} and attribute ${attributeId}`,

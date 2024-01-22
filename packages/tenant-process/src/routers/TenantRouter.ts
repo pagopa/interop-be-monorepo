@@ -6,6 +6,7 @@ import {
   ZodiosContext,
   authorizationMiddleware,
 } from "pagopa-interop-commons";
+import { unsafeBrandId } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
 import { toApiTenant } from "../model/domain/apiConverter.js";
 import {
@@ -285,7 +286,7 @@ const tenantsRouter = (
           await tenantService.updateTenantVerifiedAttribute({
             verifierId: req.ctx.authData.organizationId,
             tenantId,
-            attributeId,
+            attributeId: unsafeBrandId(attributeId),
             updateVerifiedTenantAttributeSeed: req.body,
           });
           return res.status(200).end();
@@ -306,7 +307,7 @@ const tenantsRouter = (
           const { tenantId, attributeId, verifierId } = req.params;
           await tenantService.updateVerifiedAttributeExtensionDate(
             tenantId,
-            attributeId,
+            unsafeBrandId(attributeId),
             verifierId
           );
           return res.status(200).end();

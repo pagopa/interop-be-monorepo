@@ -1,6 +1,7 @@
 export * from "./protobuf/protobuf.js";
 export * from "./readModels/events.js";
 export * from "./readModels/readModels.js";
+export * from "./brandedIds.js";
 export * from "./agreement/agreement.js";
 export * from "./agreement/agreementEvents.js";
 export * from "./attribute/attribute.js";

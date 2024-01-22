@@ -7,7 +7,6 @@ import {
   AgreementDeleteEvent,
   AgreementDocument,
   AgreementDocumentV1,
-  AgreementRemoveConsumerDocumentEvent,
   AgreementStamp,
   AgreementStamps,
   AgreementState,
@@ -16,6 +15,9 @@ import {
   AgreementV1,
   StampV1,
   StampsV1,
+  AgreementId,
+  AgreementDocumentId,
+  AgreementRemoveConsumerDocumentEvent,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -120,7 +122,7 @@ export function toCreateEventAgreementUpdated(
 }
 
 export function toCreateEventAgreementContractAdded(
-  agreementId: string,
+  agreementId: AgreementId,
   agreementDocument: AgreementDocument,
   version: number
 ): CreateEvent<AgreementAddContractEvent> {
@@ -138,7 +140,7 @@ export function toCreateEventAgreementContractAdded(
 }
 
 export function toCreateEventAgreementConsumerDocumentAdded(
-  agreementId: string,
+  agreementId: AgreementId,
   agreementDocument: AgreementDocument,
   version: number
 ): CreateEvent<AgreementAddConsumerDocumentEvent> {
@@ -156,8 +158,8 @@ export function toCreateEventAgreementConsumerDocumentAdded(
 }
 
 export function toCreateEventAgreementConsumerDocumentRemoved(
-  agreementId: string,
-  documentId: string,
+  agreementId: AgreementId,
+  documentId: AgreementDocumentId,
   version: number
 ): CreateEvent<AgreementRemoveConsumerDocumentEvent> {
   return {
