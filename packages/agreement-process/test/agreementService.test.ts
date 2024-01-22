@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-identical-functions */
 /* eslint-disable functional/immutable-data */
 import { describe, expect, it } from "vitest";
 import {
@@ -8,6 +9,7 @@ import {
   TenantAttribute,
   agreementState,
   generateId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { generateMock } from "@anatine/zod-mock";
 import { AuthData } from "pagopa-interop-commons";
@@ -17,7 +19,11 @@ import { EserviceQuery } from "../src/services/readmodel/eserviceQuery.js";
 import { createAgreementLogic } from "../src/services/agreementCreationProcessor.js";
 import { ApiAgreementPayload } from "../src/model/types.js";
 import { toAgreementStateV1 } from "../src/model/domain/toEvent.js";
-import { eServiceNotFound } from "../src/model/domain/errors.js";
+import {
+  descriptorNotInExpectedState,
+  eServiceNotFound,
+  notLatestEServiceDescriptor,
+} from "../src/model/domain/errors.js";
 import { expectPastTimestamp } from "./utils/utils.js";
 
 const authDataMock: AuthData = {
@@ -183,6 +189,7 @@ describe("AgreementService", () => {
         .property("createdAt")
         .satisfy(expectPastTimestamp);
     });
+
     it("should throw an error when EService does not exist", async () => {
       const agreementQueryMock = {} as AgreementQuery;
       const tenantQueryMock = {} as TenantQuery;
@@ -192,7 +199,7 @@ describe("AgreementService", () => {
 
       const authData: AuthData = {
         ...authDataMock,
-        organizationId: "organizationId",
+        organizationId: generateId(),
       };
       const apiAgreementPayload: ApiAgreementPayload = {
         eserviceId: generateId(),
@@ -208,6 +215,187 @@ describe("AgreementService", () => {
           tenantQueryMock
         )
       ).rejects.toThrowError(eServiceNotFound(apiAgreementPayload.eserviceId));
+    });
+
+    it("should throw an error when EService has no Descriptor", async () => {
+      const eserviceProducer: Tenant = generateMock(Tenant);
+      const eservice: EService = {
+        ...generateMock(EService),
+        producerId: eserviceProducer.id,
+        descriptors: [],
+      };
+
+      const agreementQueryMock = {} as AgreementQuery;
+      const tenantQueryMock = {} as TenantQuery;
+      const eserviceQueryMock = {
+        getEServiceById: () => Promise.resolve({ data: eservice }),
+      } as unknown as EserviceQuery;
+
+      const authData: AuthData = {
+        ...authDataMock,
+        organizationId: eserviceProducer.id,
+      };
+      const apiAgreementPayload: ApiAgreementPayload = {
+        eserviceId: eservice.id,
+        descriptorId: generateId(),
+      };
+
+      await expect(() =>
+        createAgreementLogic(
+          apiAgreementPayload,
+          authData,
+          agreementQueryMock,
+          eserviceQueryMock,
+          tenantQueryMock
+        )
+      ).rejects.toThrowError(
+        notLatestEServiceDescriptor(
+          unsafeBrandId(apiAgreementPayload.descriptorId)
+        )
+      );
+    });
+
+    it("should throw an error when EService Descriptor is not the latest non-Draft Descriptor", async () => {
+      const eserviceProducer: Tenant = generateMock(Tenant);
+      const descriptor0: Descriptor = {
+        ...generateMock(Descriptor),
+        version: "0",
+        state: "Deprecated",
+      };
+      const descriptor1: Descriptor = {
+        ...generateMock(Descriptor),
+        version: "1",
+        state: "Published",
+      };
+      const eservice: EService = {
+        ...generateMock(EService),
+        producerId: eserviceProducer.id,
+        descriptors: [descriptor0, descriptor1],
+      };
+
+      const agreementQueryMock = {} as AgreementQuery;
+      const tenantQueryMock = {} as TenantQuery;
+      const eserviceQueryMock = {
+        getEServiceById: () => Promise.resolve({ data: eservice }),
+      } as unknown as EserviceQuery;
+
+      const authData: AuthData = {
+        ...authDataMock,
+        organizationId: eserviceProducer.id,
+      };
+      const apiAgreementPayload: ApiAgreementPayload = {
+        eserviceId: eservice.id,
+        descriptorId: descriptor0.id,
+      };
+
+      await expect(() =>
+        createAgreementLogic(
+          apiAgreementPayload,
+          authData,
+          agreementQueryMock,
+          eserviceQueryMock,
+          tenantQueryMock
+        )
+      ).rejects.toThrowError(
+        notLatestEServiceDescriptor(
+          unsafeBrandId(apiAgreementPayload.descriptorId)
+        )
+      );
+    });
+
+    it("should throw an error when EService latest non-Draft Descriptor is not published", async () => {
+      const eserviceProducer: Tenant = generateMock(Tenant);
+      const descriptor: Descriptor = {
+        ...generateMock(Descriptor),
+        version: "0",
+        state: "Deprecated",
+      };
+      const eservice: EService = {
+        ...generateMock(EService),
+        producerId: eserviceProducer.id,
+        descriptors: [descriptor],
+      };
+
+      const agreementQueryMock = {} as AgreementQuery;
+      const tenantQueryMock = {} as TenantQuery;
+      const eserviceQueryMock = {
+        getEServiceById: () => Promise.resolve({ data: eservice }),
+      } as unknown as EserviceQuery;
+
+      const authData: AuthData = {
+        ...authDataMock,
+        organizationId: eserviceProducer.id,
+      };
+      const apiAgreementPayload: ApiAgreementPayload = {
+        eserviceId: eservice.id,
+        descriptorId: descriptor.id,
+      };
+
+      await expect(() =>
+        createAgreementLogic(
+          apiAgreementPayload,
+          authData,
+          agreementQueryMock,
+          eserviceQueryMock,
+          tenantQueryMock
+        )
+      ).rejects.toThrowError(
+        descriptorNotInExpectedState(eservice.id, descriptor.id, ["Published"])
+      );
+    });
+
+    it("should create an Agreement when EService latest descriptors are Draft, and the latest non-Draft is Published", async () => {
+      const eserviceProducer: Tenant = generateMock(Tenant);
+      const descriptor0: Descriptor = {
+        ...generateMock(Descriptor),
+        version: "0",
+        state: "Published",
+      };
+      const descriptor1: Descriptor = {
+        ...generateMock(Descriptor),
+        version: "1",
+        state: "Draft",
+      };
+      const descriptor2: Descriptor = {
+        ...generateMock(Descriptor),
+        version: "2",
+        state: "Draft",
+      };
+      const eservice: EService = {
+        ...generateMock(EService),
+        producerId: eserviceProducer.id,
+        descriptors: [descriptor0, descriptor1, descriptor2],
+      };
+
+      const agreementQueryMock = {
+        getAllAgreements: () => Promise.resolve([]),
+      } as unknown as AgreementQuery;
+
+      const eserviceQueryMock = {
+        getEServiceById: () => Promise.resolve({ data: eservice }),
+      } as unknown as EserviceQuery;
+
+      const tenantQueryMock = {
+        getTenantById: () => Promise.resolve({ data: eserviceProducer }),
+      } as unknown as TenantQuery;
+
+      const authData: AuthData = {
+        ...authDataMock,
+        organizationId: eserviceProducer.id,
+      };
+      const apiAgreementPayload: ApiAgreementPayload = {
+        eserviceId: eservice.id,
+        descriptorId: descriptor0.id,
+      };
+
+      const createEvent = await createAgreementLogic(
+        apiAgreementPayload,
+        authData,
+        agreementQueryMock,
+        eserviceQueryMock,
+        tenantQueryMock
+      );
+      expect(createEvent.event.type).toBe("AgreementAdded");
     });
   });
 });
