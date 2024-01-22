@@ -12,10 +12,9 @@ export const EventEnvelope = <TEventZodType extends z.ZodType>(
     }),
     event
   );
-type EventEnvelopeT<TEventZodType extends z.ZodType> = ReturnType<
-  typeof EventEnvelope<TEventZodType>
+export type EventEnvelope<TEvent> = z.infer<
+  ReturnType<typeof EventEnvelope<z.ZodType<TEvent>>>
 >;
-export type EventEnvelope<TEvent> = z.infer<EventEnvelopeT<z.ZodType<TEvent>>>;
 
 export const DebeziumCreatePayload = <TEventZodType extends z.ZodType>(
   event: TEventZodType
@@ -24,11 +23,8 @@ export const DebeziumCreatePayload = <TEventZodType extends z.ZodType>(
     op: z.enum(["c", "r"]),
     after: EventEnvelope(event),
   });
-type DebeziumCreatePayloadT<TEventZodType extends z.ZodType> = ReturnType<
-  typeof DebeziumCreatePayload<TEventZodType>
->;
 export type DebeziumCreatePayload<TEvent> = z.infer<
-  DebeziumCreatePayloadT<z.ZodType<TEvent>>
+  ReturnType<typeof DebeziumCreatePayload<z.ZodType<TEvent>>>
 >;
 
 export const Message = <TEventZodType extends z.ZodType>(
@@ -40,7 +36,6 @@ export const Message = <TEventZodType extends z.ZodType>(
       DebeziumCreatePayload(EventEnvelope(event))
     ),
   });
-type MessageT<TEventZodType extends z.ZodType> = ReturnType<
-  typeof Message<TEventZodType>
+export type Message<TEvent> = z.infer<
+  ReturnType<typeof Message<z.ZodType<TEvent>>>
 >;
-export type Message<TEvent> = z.infer<MessageT<z.ZodType<TEvent>>>;
