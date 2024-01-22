@@ -122,7 +122,7 @@ export const getMockEService = (): EService => ({
 
 export const getMockDescriptor = (): Descriptor => ({
   id: uuidv4(),
-  version: "0",
+  version: "1",
   docs: [],
   state: descriptorState.draft,
   audience: [],
