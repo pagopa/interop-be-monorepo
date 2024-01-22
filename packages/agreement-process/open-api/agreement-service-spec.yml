@@ -63,7 +63,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#components/schemas/AgreementSubmissionPayload"
+              $ref: "#/components/schemas/AgreementSubmissionPayload"
         description: payload for agreement submission
         required: true
       responses:

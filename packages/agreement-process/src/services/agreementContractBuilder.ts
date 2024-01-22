@@ -3,6 +3,7 @@ import {
   Agreement,
   AgreementDocument,
   AgreementEvent,
+  AgreementId,
   EService,
   Tenant,
 } from "pagopa-interop-models";
@@ -34,7 +35,7 @@ export const contractBuilder = (attributeQuery: AttributeQuery) => ({
 export type ContractBuilder = ReturnType<typeof contractBuilder>;
 
 export async function addAgreementContractLogic(
-  agreementId: string,
+  agreementId: AgreementId,
   agreementDocument: AgreementDocument,
   version: number
 ): Promise<CreateEvent<AgreementEvent>> {

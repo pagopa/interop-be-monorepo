@@ -1,6 +1,7 @@
 import { AuthData, userRoles } from "pagopa-interop-commons";
 import {
   Attribute,
+  AttributeId,
   ExternalId,
   Tenant,
   TenantAttribute,
@@ -33,7 +34,7 @@ export function assertTenantExists(
 }
 
 export function assertVerifiedAttributeExistsInTenant(
-  attributeId: string,
+  attributeId: AttributeId,
   attribute: TenantAttribute | undefined,
   tenant: WithMetadata<Tenant>
 ): asserts attribute is NonNullable<
@@ -47,7 +48,7 @@ export function assertVerifiedAttributeExistsInTenant(
 export function assertOrganizationVerifierExist(
   verifierId: string,
   tenantId: string,
-  attributeId: string,
+  attributeId: AttributeId,
   tenantVerifier: TenantVerifier | undefined
 ): asserts tenantVerifier is NonNullable<TenantVerifier> {
   if (tenantVerifier === undefined) {
@@ -117,7 +118,9 @@ export async function getTenantKindLoadingCertifiedAttributes(
   attributes: TenantAttribute[],
   externalId: ExternalId
 ): Promise<TenantKind> {
-  function getCertifiedAttributesIds(attributes: TenantAttribute[]): string[] {
+  function getCertifiedAttributesIds(
+    attributes: TenantAttribute[]
+  ): AttributeId[] {
     return attributes.flatMap((attr) =>
       attr.type === "certified" ? attr.id : []
     );
@@ -144,7 +147,7 @@ export async function getTenantKindLoadingCertifiedAttributes(
 }
 
 export function assertAttributeExists(
-  attributeId: string,
+  attributeId: AttributeId,
   attributes: TenantAttribute[]
 ): asserts attributes is NonNullable<TenantAttribute[]> {
   if (!attributes.some((attr) => attr.id === attributeId)) {
