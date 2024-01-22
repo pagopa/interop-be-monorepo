@@ -6,6 +6,7 @@ import {
   EServiceAttribute,
   Tenant,
   TenantAttribute,
+  agreementState,
 } from "pagopa-interop-models";
 import { generateMock } from "@anatine/zod-mock";
 import { AuthData } from "pagopa-interop-commons";
@@ -15,6 +16,8 @@ import { eserviceQueryBuilder } from "../src/services/readmodel/eserviceQuery.js
 import { createAgreementLogic } from "../src/services/agreementCreationProcessor.js";
 import { ApiAgreementPayload } from "../src/model/types.js";
 import { ReadModelService } from "../src/services/readmodel/readModelService.js";
+import { toAgreementStateV1 } from "../src/model/domain/toEvent.js";
+import { expectPastTimestamp } from "./utils/utils.js";
 
 const authDataMock: AuthData = {
   organizationId: "organizationId",
@@ -73,10 +76,22 @@ describe("AgreementService", () => {
           id: createEvent.streamId,
           eserviceId: apiAgreementPayload.eserviceId,
           descriptorId: apiAgreementPayload.descriptorId,
-          producerId: eservice.producerId,
-          consumerId: authData.organizationId,
+          producerId: eserviceProducer.id,
+          consumerId: eserviceProducer.id,
+          state: toAgreementStateV1(agreementState.draft),
+          verifiedAttributes: [],
+          certifiedAttributes: [],
+          declaredAttributes: [],
+          consumerDocuments: [],
+          stamps: {},
+          contract: undefined,
+          createdAt: expect.any(BigInt),
         },
       });
+      expect(createEvent.event.data)
+        .property("agreement")
+        .property("createdAt")
+        .satisfy(expectPastTimestamp);
     });
 
     it("should create an Agreement when eService producer and Agreement consumer are different tenants", async () => {
@@ -142,16 +157,29 @@ describe("AgreementService", () => {
         eserviceQueryMock,
         tenantQueryMock
       );
+
       expect(createEvent.event.type).toBe("AgreementAdded");
       expect(createEvent.event.data).toMatchObject({
         agreement: {
           id: createEvent.streamId,
           eserviceId: apiAgreementPayload.eserviceId,
           descriptorId: apiAgreementPayload.descriptorId,
-          producerId: eservice.producerId,
-          consumerId: authData.organizationId,
+          producerId: eserviceProducer.id,
+          consumerId: consumer.id,
+          state: toAgreementStateV1(agreementState.draft),
+          verifiedAttributes: [],
+          certifiedAttributes: [],
+          declaredAttributes: [],
+          consumerDocuments: [],
+          stamps: {},
+          contract: undefined,
+          createdAt: expect.any(BigInt),
         },
       });
+      expect(createEvent.event.data)
+        .property("agreement")
+        .property("createdAt")
+        .satisfy(expectPastTimestamp);
     });
   });
 });
