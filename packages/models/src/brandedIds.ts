@@ -18,10 +18,19 @@ export type DescriptorId = z.infer<typeof DescriptorId>;
 
 type IDS = AgreementId | AgreementDocumentId | DescriptorId | AttributeId;
 
+// This function is used to generate a new ID for a new object
+// it infers the type of the ID based on how is used the result
+// the 'as' is used to cast the uuid string to the inferred type
 export function generateId<T extends IDS>(): T {
   return uuidv4() as T;
 }
 
+// This function is used to get a branded ID from a string
+// it's an unsafe function because it doesn't check if the string
+// is a valid uuid and it doen't check if the string rappresent
+// a valid ID for the type.
+// The user of this function must be sure that the string is a valid
+// uuid and that the string rappresent a valid ID for the type
 export function unsafeBrandId<T extends IDS>(id: string): T {
   return id as T;
 }
