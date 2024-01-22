@@ -1,6 +1,7 @@
 import {
   ApiError,
   AttributeId,
+  EServiceId,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 
@@ -55,9 +56,9 @@ export function tenantNotFound(tenantId: string): ApiError<ErrorCodes> {
   });
 }
 
-export function eServiceNotFound(eServiceId: string): ApiError<ErrorCodes> {
+export function eServiceNotFound(eserviceId: EServiceId): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `EService ${eServiceId} not found`,
+    detail: `EService ${eserviceId} not found`,
     code: "eServiceNotFound",
     title: "EService not found",
   });
