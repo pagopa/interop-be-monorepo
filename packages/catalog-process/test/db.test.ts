@@ -2109,7 +2109,7 @@ describe("database test", async () => {
         expect(result.totalCount).toBe(0);
         expect(result.results).toEqual([]);
       });
-      it("should get the eServices if they exist (pagination: offset)", async () => {
+      it("should get the eServices if they exist (pagination: limit)", async () => {
         const result = await readModelService.getEServices(
           getMockAuthData(),
           {
