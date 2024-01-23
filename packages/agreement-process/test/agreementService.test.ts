@@ -2,11 +2,13 @@
 /* eslint-disable functional/immutable-data */
 import { describe, expect, it } from "vitest";
 import {
+  Agreement,
   Descriptor,
   EService,
   EServiceAttribute,
   Tenant,
   TenantAttribute,
+  agreementCreationConflictingStates,
   agreementState,
   generateId,
   unsafeBrandId,
@@ -20,11 +22,12 @@ import { createAgreementLogic } from "../src/services/agreementCreationProcessor
 import { ApiAgreementPayload } from "../src/model/types.js";
 import { toAgreementStateV1 } from "../src/model/domain/toEvent.js";
 import {
+  agreementAlreadyExists,
   descriptorNotInExpectedState,
   eServiceNotFound,
   notLatestEServiceDescriptor,
 } from "../src/model/domain/errors.js";
-import { expectPastTimestamp } from "./utils/utils.js";
+import { expectPastTimestamp, randomArrayItem } from "./utils/utils.js";
 
 const authDataMock: AuthData = {
   organizationId: "organizationId",
@@ -39,14 +42,14 @@ const authDataMock: AuthData = {
 describe("AgreementService", () => {
   describe("createAgreement", () => {
     it("should create an Agreement when eService producer and Agreement consumer are the same tenant", async () => {
-      const eserviceProducer: Tenant = generateMock(Tenant);
+      const tenant: Tenant = generateMock(Tenant);
       const descriptor: Descriptor = {
         ...generateMock(Descriptor),
         state: "Published",
       };
       const eservice: EService = {
         ...generateMock(EService),
-        producerId: eserviceProducer.id,
+        producerId: tenant.id,
         descriptors: [descriptor],
       };
 
@@ -59,12 +62,12 @@ describe("AgreementService", () => {
       } as unknown as EserviceQuery;
 
       const tenantQueryMock = {
-        getTenantById: () => Promise.resolve({ data: eserviceProducer }),
+        getTenantById: () => Promise.resolve({ data: tenant }),
       } as unknown as TenantQuery;
 
       const authData: AuthData = {
         ...authDataMock,
-        organizationId: eserviceProducer.id,
+        organizationId: tenant.id,
       };
       const apiAgreementPayload: ApiAgreementPayload = {
         eserviceId: eservice.id,
@@ -84,8 +87,8 @@ describe("AgreementService", () => {
           id: createEvent.streamId,
           eserviceId: apiAgreementPayload.eserviceId,
           descriptorId: apiAgreementPayload.descriptorId,
-          producerId: eserviceProducer.id,
-          consumerId: eserviceProducer.id,
+          producerId: tenant.id,
+          consumerId: tenant.id,
           state: toAgreementStateV1(agreementState.draft),
           verifiedAttributes: [],
           certifiedAttributes: [],
@@ -190,7 +193,7 @@ describe("AgreementService", () => {
         .satisfy(expectPastTimestamp);
     });
 
-    it("should throw an error when EService does not exist", async () => {
+    it("should throw an eServiceNotFound error when EService does not exist", async () => {
       const agreementQueryMock = {} as AgreementQuery;
       const tenantQueryMock = {} as TenantQuery;
       const eserviceQueryMock = {
@@ -217,11 +220,9 @@ describe("AgreementService", () => {
       ).rejects.toThrowError(eServiceNotFound(apiAgreementPayload.eserviceId));
     });
 
-    it("should throw an error when EService has no Descriptor", async () => {
-      const eserviceProducer: Tenant = generateMock(Tenant);
+    it("should throw a notLatestEServiceDescriptor error when EService has no Descriptor", async () => {
       const eservice: EService = {
         ...generateMock(EService),
-        producerId: eserviceProducer.id,
         descriptors: [],
       };
 
@@ -233,7 +234,7 @@ describe("AgreementService", () => {
 
       const authData: AuthData = {
         ...authDataMock,
-        organizationId: eserviceProducer.id,
+        organizationId: generateId(),
       };
       const apiAgreementPayload: ApiAgreementPayload = {
         eserviceId: eservice.id,
@@ -255,8 +256,7 @@ describe("AgreementService", () => {
       );
     });
 
-    it("should throw an error when EService Descriptor is not the latest non-Draft Descriptor", async () => {
-      const eserviceProducer: Tenant = generateMock(Tenant);
+    it("should throw a notLatestEServiceDescriptor error when EService Descriptor is not the latest non-Draft Descriptor", async () => {
       const descriptor0: Descriptor = {
         ...generateMock(Descriptor),
         version: "0",
@@ -269,7 +269,6 @@ describe("AgreementService", () => {
       };
       const eservice: EService = {
         ...generateMock(EService),
-        producerId: eserviceProducer.id,
         descriptors: [descriptor0, descriptor1],
       };
 
@@ -281,7 +280,7 @@ describe("AgreementService", () => {
 
       const authData: AuthData = {
         ...authDataMock,
-        organizationId: eserviceProducer.id,
+        organizationId: generateId(),
       };
       const apiAgreementPayload: ApiAgreementPayload = {
         eserviceId: eservice.id,
@@ -303,8 +302,7 @@ describe("AgreementService", () => {
       );
     });
 
-    it("should throw an error when EService latest non-Draft Descriptor is not published", async () => {
-      const eserviceProducer: Tenant = generateMock(Tenant);
+    it("should throw a descriptorNotInExpectedState error when EService latest non-Draft Descriptor is not published", async () => {
       const descriptor: Descriptor = {
         ...generateMock(Descriptor),
         version: "0",
@@ -312,7 +310,6 @@ describe("AgreementService", () => {
       };
       const eservice: EService = {
         ...generateMock(EService),
-        producerId: eserviceProducer.id,
         descriptors: [descriptor],
       };
 
@@ -324,7 +321,7 @@ describe("AgreementService", () => {
 
       const authData: AuthData = {
         ...authDataMock,
-        organizationId: eserviceProducer.id,
+        organizationId: generateId(),
       };
       const apiAgreementPayload: ApiAgreementPayload = {
         eserviceId: eservice.id,
@@ -345,7 +342,7 @@ describe("AgreementService", () => {
     });
 
     it("should create an Agreement when EService latest descriptors are Draft, and the latest non-Draft is Published", async () => {
-      const eserviceProducer: Tenant = generateMock(Tenant);
+      const tenant: Tenant = generateMock(Tenant);
       const descriptor0: Descriptor = {
         ...generateMock(Descriptor),
         version: "0",
@@ -363,7 +360,7 @@ describe("AgreementService", () => {
       };
       const eservice: EService = {
         ...generateMock(EService),
-        producerId: eserviceProducer.id,
+        producerId: tenant.id,
         descriptors: [descriptor0, descriptor1, descriptor2],
       };
 
@@ -376,12 +373,12 @@ describe("AgreementService", () => {
       } as unknown as EserviceQuery;
 
       const tenantQueryMock = {
-        getTenantById: () => Promise.resolve({ data: eserviceProducer }),
+        getTenantById: () => Promise.resolve({ data: tenant }),
       } as unknown as TenantQuery;
 
       const authData: AuthData = {
         ...authDataMock,
-        organizationId: eserviceProducer.id,
+        organizationId: tenant.id,
       };
       const apiAgreementPayload: ApiAgreementPayload = {
         eserviceId: eservice.id,
@@ -396,6 +393,50 @@ describe("AgreementService", () => {
         tenantQueryMock
       );
       expect(createEvent.event.type).toBe("AgreementAdded");
+    });
+    it("should throw an agreementAlreadyExists error when a non-Archived and non-Rejected agreement already exists for the same EService and Consumer", async () => {
+      const consumer: Tenant = generateMock(Tenant);
+      const descriptor: Descriptor = {
+        ...generateMock(Descriptor),
+        state: "Published",
+      };
+      const eservice: EService = {
+        ...generateMock(EService),
+        descriptors: [descriptor],
+      };
+
+      const conflictingAgreement: Agreement = {
+        ...generateMock(Agreement),
+        eserviceId: eservice.id,
+        consumerId: consumer.id,
+        state: randomArrayItem(agreementCreationConflictingStates),
+      };
+      const agreementQueryMock = {
+        getAllAgreements: () => Promise.resolve([conflictingAgreement]),
+      } as unknown as AgreementQuery;
+      const tenantQueryMock = {} as TenantQuery;
+      const eserviceQueryMock = {
+        getEServiceById: () => Promise.resolve({ data: eservice }),
+      } as unknown as EserviceQuery;
+
+      const authData: AuthData = {
+        ...authDataMock,
+        organizationId: consumer.id,
+      };
+      const apiAgreementPayload: ApiAgreementPayload = {
+        eserviceId: eservice.id,
+        descriptorId: descriptor.id,
+      };
+
+      await expect(() =>
+        createAgreementLogic(
+          apiAgreementPayload,
+          authData,
+          agreementQueryMock,
+          eserviceQueryMock,
+          tenantQueryMock
+        )
+      ).rejects.toThrowError(agreementAlreadyExists(consumer.id, eservice.id));
     });
   });
 });
