@@ -5,12 +5,12 @@ import {
   Descriptor,
   EService,
   Tenant,
-  UpdateAgreementSeed,
   agreementState,
   agreementArchivableStates,
   WithMetadata,
   AgreementEvent,
   AgreementUpdateEvent,
+  AgreementId,
 } from "pagopa-interop-models";
 import {
   assertAgreementExist,
@@ -26,6 +26,7 @@ import {
   assertEServiceExist,
 } from "../model/domain/validators.js";
 import { toCreateEventAgreementUpdated } from "../model/domain/toEvent.js";
+import { UpdateAgreementSeed } from "../model/domain/models.js";
 import {
   agreementStateByFlags,
   nextState,
@@ -45,7 +46,7 @@ import {
 import { AttributeQuery } from "./readmodel/attributeQuery.js";
 
 export async function activateAgreementLogic(
-  agreementId: string,
+  agreementId: AgreementId,
   agreementQuery: AgreementQuery,
   eserviceQuery: EserviceQuery,
   tenantQuery: TenantQuery,

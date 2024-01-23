@@ -10,8 +10,8 @@ import {
   WithMetadata,
   attributeEventToBinaryData,
   attributeKind,
+  generateId,
 } from "pagopa-interop-models";
-import { v4 as uuidv4 } from "uuid";
 import {
   ApiCertifiedAttributeSeed,
   ApiDeclaredAttributeSeed,
@@ -140,7 +140,7 @@ export function createDeclaredAttributeLogic({
   }
 
   const newDeclaredAttribute: Attribute = {
-    id: uuidv4(),
+    id: generateId(),
     kind: attributeKind.declared,
     name: apiDeclaredAttributeSeed.name,
     description: apiDeclaredAttributeSeed.description,
@@ -164,7 +164,7 @@ export function createVerifiedAttributeLogic({
   }
 
   const newVerifiedAttribute: Attribute = {
-    id: uuidv4(),
+    id: generateId(),
     kind: attributeKind.verified,
     name: apiVerifiedAttributeSeed.name,
     description: apiVerifiedAttributeSeed.description,
@@ -190,7 +190,7 @@ export function createCertifiedAttributeLogic({
   }
 
   const newCertifiedAttribute: Attribute = {
-    id: uuidv4(),
+    id: generateId(),
     kind: attributeKind.certified,
     name: apiCertifiedAttributeSeed.name,
     description: apiCertifiedAttributeSeed.description,
@@ -214,7 +214,7 @@ export function createInternalCertifiedAttributeLogic({
   }
 
   const newInternalCertifiedAttribute: Attribute = {
-    id: uuidv4(),
+    id: generateId(),
     kind: attributeKind.certified,
     name: apiInternalCertifiedAttributeSeed.name,
     description: apiInternalCertifiedAttributeSeed.description,

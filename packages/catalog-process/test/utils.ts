@@ -9,12 +9,14 @@ import { v4 as uuidv4 } from "uuid";
 import {
   Agreement,
   Descriptor,
+  DescriptorId,
   EService,
   EServiceEvent,
   Tenant,
   agreementState,
   catalogEventToBinaryData,
   descriptorState,
+  generateId,
   technology,
 } from "pagopa-interop-models";
 import { MessageType } from "@protobuf-ts/runtime";
@@ -121,7 +123,7 @@ export const getMockEService = (): EService => ({
 });
 
 export const getMockDescriptor = (): Descriptor => ({
-  id: uuidv4(),
+  id: generateId(),
   version: "0",
   docs: [],
   state: descriptorState.draft,
@@ -159,11 +161,11 @@ export const getMockAgreement = ({
   consumerId,
 }: {
   eServiceId: string;
-  descriptorId: string;
+  descriptorId: DescriptorId;
   producerId: string;
   consumerId: string;
 }): Agreement => ({
-  id: uuidv4(),
+  id: generateId(),
   createdAt: new Date(),
   eserviceId: eServiceId,
   descriptorId,

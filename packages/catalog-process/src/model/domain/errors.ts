@@ -1,4 +1,8 @@
-import { ApiError, makeApiProblemBuilder } from "pagopa-interop-models";
+import {
+  ApiError,
+  DescriptorId,
+  makeApiProblemBuilder,
+} from "pagopa-interop-models";
 
 export const errorCodes = {
   eServiceDescriptorNotFound: "0002",
@@ -61,7 +65,7 @@ export function eServiceCannotBeDeleted(
 
 export function eServiceDescriptorNotFound(
   eServiceId: string,
-  descriptorId: string
+  descriptorId: DescriptorId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Descriptor ${descriptorId} for EService ${eServiceId} not found`,
@@ -72,7 +76,7 @@ export function eServiceDescriptorNotFound(
 
 export function eServiceDocumentNotFound(
   eServiceId: string,
-  descriptorId: string,
+  descriptorId: DescriptorId,
   documentId: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
@@ -83,7 +87,7 @@ export function eServiceDocumentNotFound(
 }
 
 export function notValidDescriptor(
-  descriptorId: string,
+  descriptorId: DescriptorId,
   descriptorStatus: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
@@ -94,7 +98,7 @@ export function notValidDescriptor(
 }
 
 export function eServiceDescriptorWithoutInterface(
-  descriptorId: string
+  descriptorId: DescriptorId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Descriptor ${descriptorId} does not have an interface`,

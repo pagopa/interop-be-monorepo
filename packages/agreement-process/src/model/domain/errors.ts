@@ -1,6 +1,9 @@
 import {
+  AgreementDocumentId,
+  AgreementId,
   AgreementState,
   ApiError,
+  DescriptorId,
   DescriptorState,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
@@ -45,7 +48,9 @@ export function eServiceNotFound(eServiceId: string): ApiError<ErrorCodes> {
   });
 }
 
-export function agreementNotFound(agreementId: string): ApiError<ErrorCodes> {
+export function agreementNotFound(
+  agreementId: AgreementId
+): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Agreement ${agreementId} not found`,
     code: "agreementNotFound",
@@ -54,7 +59,7 @@ export function agreementNotFound(agreementId: string): ApiError<ErrorCodes> {
 }
 
 export function notLatestEServiceDescriptor(
-  descriptorId: string
+  descriptorId: DescriptorId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Descriptor with descriptorId: ${descriptorId} is not the latest descriptor`,
@@ -65,7 +70,7 @@ export function notLatestEServiceDescriptor(
 
 export function descriptorNotFound(
   eServiceId: string,
-  descriptorId: string
+  descriptorId: DescriptorId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Descriptor ${descriptorId} not found in EService ${eServiceId}`,
@@ -76,7 +81,7 @@ export function descriptorNotFound(
 
 export function descriptorNotInExpectedState(
   eServiceId: string,
-  descriptorId: string,
+  descriptorId: DescriptorId,
   allowedStates: DescriptorState[]
 ): ApiError<ErrorCodes> {
   return new ApiError({
@@ -89,7 +94,7 @@ export function descriptorNotInExpectedState(
 }
 
 export function missingCertifiedAttributesError(
-  descriptorId: string,
+  descriptorId: DescriptorId,
   consumerId: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
@@ -129,7 +134,7 @@ export function documentsChangeNotAllowed(
 }
 
 export function agreementDocumentAlreadyExists(
-  agreementId: string
+  agreementId: AgreementId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Agreement document for ${agreementId} already exists`,
@@ -139,8 +144,8 @@ export function agreementDocumentAlreadyExists(
 }
 
 export function agreementDocumentNotFound(
-  documentId: string,
-  agreementId: string
+  documentId: AgreementDocumentId,
+  agreementId: AgreementId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Document ${documentId} in agreement ${agreementId} not found`,
@@ -150,7 +155,7 @@ export function agreementDocumentNotFound(
 }
 
 export function agreementNotInExpectedState(
-  agreementId: string,
+  agreementId: AgreementId,
   state: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
@@ -169,7 +174,7 @@ export function tenantIdNotFound(tenantId: string): ApiError<ErrorCodes> {
 }
 
 export function agreementSubmissionFailed(
-  agreementId: string
+  agreementId: AgreementId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Unable to activate agreement ${agreementId}. Please check if attributes requirements and suspension flags are satisfied`,
@@ -179,7 +184,7 @@ export function agreementSubmissionFailed(
 }
 
 export function contractAlreadyExists(
-  agreementId: string
+  agreementId: AgreementId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Agreement document for ${agreementId} already exists`,
@@ -189,7 +194,7 @@ export function contractAlreadyExists(
 }
 
 export function agreementActivationFailed(
-  agreementId: string
+  agreementId: AgreementId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     code: "agreementActivationFailed",
@@ -199,7 +204,7 @@ export function agreementActivationFailed(
 }
 
 export function consumerWithNotValidEmail(
-  agreementId: string,
+  agreementId: AgreementId,
   tenantId: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
@@ -247,7 +252,7 @@ export function publishedDescriptorNotFound(
 
 export function unexpectedVersionFormat(
   eserviceId: string,
-  descriptorId: string
+  descriptorId: DescriptorId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Version in not an Int for descriptor ${descriptorId} of EService ${eserviceId}`,
@@ -258,7 +263,7 @@ export function unexpectedVersionFormat(
 
 export function noNewerDescriptor(
   eserviceId: string,
-  descriptorId: string
+  descriptorId: DescriptorId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `No newer descriptor in EService ${eserviceId} exists for upgrade. Current descriptor ${descriptorId}`,

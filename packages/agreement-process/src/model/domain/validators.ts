@@ -1,24 +1,23 @@
 import {
   Agreement,
   AgreementState,
-  CertifiedAgreementAttribute,
+  AttributeId,
   CertifiedTenantAttribute,
-  DeclaredAgreementAttribute,
   DeclaredTenantAttribute,
   Descriptor,
   DescriptorState,
   EService,
   EServiceAttribute,
   Tenant,
-  VerifiedAgreementAttribute,
   VerifiedTenantAttribute,
   WithMetadata,
-  agreementAttributeType,
   agreementState,
   descriptorState,
   tenantAttributeType,
   agreementActivableStates,
   agreementActivationFailureStates,
+  AgreementId,
+  DescriptorId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { AuthData } from "pagopa-interop-commons";
@@ -39,6 +38,11 @@ import {
   operationNotAllowed,
   tenantIdNotFound,
 } from "./errors.js";
+import {
+  CertifiedAgreementAttribute,
+  DeclaredAgreementAttribute,
+  VerifiedAgreementAttribute,
+} from "./models.js";
 
 type NotRevocableTenantAttribute = Pick<VerifiedTenantAttribute, "id">;
 type RevocableTenantAttribute =
@@ -48,7 +52,7 @@ type RevocableTenantAttribute =
 /* ========= ASSERTIONS ========= */
 
 export function assertAgreementExist(
-  agreementId: string,
+  agreementId: AgreementId,
   agreement: WithMetadata<Agreement> | undefined
 ): asserts agreement is NonNullable<WithMetadata<Agreement>> {
   if (agreement === undefined) {
@@ -96,7 +100,7 @@ export const assertRequesterIsConsumerOrProducer = (
 
 export const assertSubmittableState = (
   state: AgreementState,
-  agreementId: string
+  agreementId: AgreementId
 ): void => {
   if (state !== agreementState.draft) {
     throw agreementNotInExpectedState(agreementId, state);
@@ -104,7 +108,7 @@ export const assertSubmittableState = (
 };
 
 export const assertExpectedState = (
-  agreementId: string,
+  agreementId: AgreementId,
   agreementState: AgreementState,
   expectedStates: AgreementState[]
 ): void => {
@@ -138,7 +142,7 @@ export const assertActivableState = (agreement: Agreement): void => {
 
 export function assertDescriptorExist(
   eserviceId: string,
-  descriptorId: string,
+  descriptorId: DescriptorId,
   descriptor: Descriptor | undefined
 ): asserts descriptor is NonNullable<Descriptor> {
   if (descriptor === undefined) {
@@ -161,7 +165,7 @@ const validateDescriptorState = (
 
 const validateLatestDescriptor = (
   eService: EService,
-  descriptorId: string,
+  descriptorId: DescriptorId,
   allowedStates: DescriptorState[]
 ): Descriptor => {
   const recentActiveDescriptors = eService.descriptors
@@ -188,7 +192,7 @@ const validateLatestDescriptor = (
 
 export const validateCreationOnDescriptor = (
   eservice: EService,
-  descriptorId: string
+  descriptorId: DescriptorId
 ): Descriptor => {
   const allowedStatus = [descriptorState.published];
   return validateLatestDescriptor(eservice, descriptorId, allowedStatus);
@@ -241,7 +245,7 @@ export const validateCertifiedAttributes = (
 
 export const validateSubmitOnDescriptor = async (
   eservice: EService,
-  descriptorId: string
+  descriptorId: DescriptorId
 ): Promise<Descriptor> => {
   const allowedStatus: DescriptorState[] = [
     descriptorState.published,
@@ -251,7 +255,7 @@ export const validateSubmitOnDescriptor = async (
 };
 
 export const validateActiveOrPendingAgreement = (
-  agreementId: string,
+  agreementId: AgreementId,
   state: AgreementState
 ): void => {
   if (agreementState.active !== state && agreementState.pending !== state) {
@@ -380,8 +384,8 @@ const attributesSatisfied = <
 
 const matchingAttributes = (
   eServiceAttributes: EServiceAttribute[][],
-  consumerAttributes: string[]
-): string[] =>
+  consumerAttributes: AttributeId[]
+): AttributeId[] =>
   eServiceAttributes
     .flatMap((atts) => atts.map((att) => att.id))
     .filter((att) => consumerAttributes.includes(att));
@@ -397,10 +401,7 @@ export const matchingCertifiedAttributes = (
     .map((a) => a.id);
 
   return matchingAttributes(descriptor.attributes.certified, attributes).map(
-    (id) => ({
-      type: agreementAttributeType.CERTIFIED,
-      id,
-    })
+    (id) => ({ id } as CertifiedAgreementAttribute)
   );
 };
 
@@ -415,10 +416,7 @@ export const matchingDeclaredAttributes = (
     .map((a) => a.id);
 
   return matchingAttributes(descriptor.attributes.declared, attributes).map(
-    (id) => ({
-      type: agreementAttributeType.DECLARED,
-      id,
-    })
+    (id) => ({ id } as DeclaredAgreementAttribute)
   );
 };
 
@@ -435,10 +433,7 @@ export const matchingVerifiedAttributes = (
   return matchingAttributes(
     descriptor.attributes.verified,
     verifiedAttributes
-  ).map((id) => ({
-    type: agreementAttributeType.VERIFIED,
-    id,
-  }));
+  ).map((id) => ({ id } as VerifiedAgreementAttribute));
 };
 
 /* ========= FILTERS ========= */
