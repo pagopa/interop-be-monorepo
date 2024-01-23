@@ -18,6 +18,8 @@ import {
   agreementActivationFailureStates,
   AgreementId,
   DescriptorId,
+  agreementCreationConflictingStates,
+  agreementSubmissionConflictingStates,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { AuthData } from "pagopa-interop-commons";
@@ -203,17 +205,10 @@ export const verifyCreationConflictingAgreements = async (
   agreement: ApiAgreementPayload,
   agreementQuery: AgreementQuery
 ): Promise<void> => {
-  const conflictingStates: AgreementState[] = [
-    agreementState.draft,
-    agreementState.pending,
-    agreementState.missingCertifiedAttributes,
-    agreementState.active,
-    agreementState.suspended,
-  ];
   await verifyConflictingAgreements(
     organizationId,
     agreement.eserviceId,
-    conflictingStates,
+    agreementCreationConflictingStates,
     agreementQuery
   );
 };
@@ -222,14 +217,10 @@ export const verifySubmissionConflictingAgreements = async (
   agreement: Agreement,
   agreementQuery: AgreementQuery
 ): Promise<void> => {
-  const conflictingStates: AgreementState[] = [
-    agreementState.pending,
-    agreementState.missingCertifiedAttributes,
-  ];
   await verifyConflictingAgreements(
     agreement.consumerId,
     agreement.eserviceId,
-    conflictingStates,
+    agreementSubmissionConflictingStates,
     agreementQuery
   );
 };

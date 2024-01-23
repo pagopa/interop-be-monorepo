@@ -68,6 +68,19 @@ export const agreementCloningConflictingStates: AgreementState[] = [
   agreementState.suspended,
 ];
 
+export const agreementCreationConflictingStates: AgreementState[] = [
+  agreementState.draft,
+  agreementState.pending,
+  agreementState.missingCertifiedAttributes,
+  agreementState.active,
+  agreementState.suspended,
+];
+
+export const agreementSubmissionConflictingStates: AgreementState[] = [
+  agreementState.pending,
+  agreementState.missingCertifiedAttributes,
+];
+
 export const AgreementAttribute = z.object({ id: AttributeId });
 export type AgreementAttribute = z.infer<typeof AgreementAttribute>;
 
