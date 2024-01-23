@@ -41,7 +41,7 @@ export const notDraftDescriptorStates = Object.values(descriptorState).filter(
 
 describe("AgreementService", () => {
   describe("createAgreement (success cases)", () => {
-    it("should create an Agreement when EService producer and Agreement consumer are the same tenant", async () => {
+    it("should create an Agreement when EService producer and Agreement consumer are the same Tenant", async () => {
       const tenant: Tenant = generateMock(Tenant);
       const descriptor: Descriptor = {
         ...generateMock(Descriptor),
@@ -109,7 +109,7 @@ describe("AgreementService", () => {
         .satisfy(expectPastTimestamp);
     });
 
-    it("should create an Agreement when EService producer and Agreement consumer are different tenants and consumer has all Descriptor certified attributes not revoked", async () => {
+    it("should create an Agreement when EService producer and Agreement consumer are different Tenants, and the consumer has all Descriptor certified Attributes not revoked", async () => {
       const eserviceProducer: Tenant = generateMock(Tenant);
 
       // Descriptor has two certified attributes
@@ -192,7 +192,7 @@ describe("AgreementService", () => {
       expect(createEvent.event.type).toBe("AgreementAdded");
     });
 
-    it("should create an Agreement when EService producer and Agreement consumer are different tenants and Descriptor has no certified attributes", async () => {
+    it("should create an Agreement when EService producer and Agreement consumer are different Tenants, and the Descriptor has no certified Attributes", async () => {
       const eserviceProducer: Tenant = generateMock(Tenant);
       const consumer: Tenant = generateMock(Tenant);
 
@@ -265,7 +265,7 @@ describe("AgreementService", () => {
         .property("createdAt")
         .satisfy(expectPastTimestamp);
     });
-    it("should create an Agreement when EService latest descriptors are Draft, and the latest non-Draft is Published", async () => {
+    it("should create an Agreement when EService's latest Descriptors are draft, and the latest non-draft Descriptor is published", async () => {
       const tenant: Tenant = generateMock(Tenant);
       const descriptor0: Descriptor = {
         ...generateMock(Descriptor),
@@ -318,7 +318,7 @@ describe("AgreementService", () => {
       );
       expect(createEvent.event.type).toBe("AgreementAdded");
     });
-    it("should create an Agreement when Agreements in non-conflicting states exist for the same EService and Consumer", async () => {
+    it("should create an Agreement when Agreements in non-conflicting states exist for the same EService and consumer", async () => {
       const tenant: Tenant = generateMock(Tenant);
       const descriptor: Descriptor = {
         ...generateMock(Descriptor),
@@ -379,7 +379,7 @@ describe("AgreementService", () => {
     });
   });
   describe("createAgreement (error cases)", () => {
-    it("should throw an eServiceNotFound error when EService does not exist", async () => {
+    it("should throw an eServiceNotFound error when the EService does not exist", async () => {
       const agreementQueryMock = {} as AgreementQuery;
       const tenantQueryMock = {} as TenantQuery;
       const eserviceQueryMock = {
@@ -406,7 +406,7 @@ describe("AgreementService", () => {
       ).rejects.toThrowError(eServiceNotFound(apiAgreementPayload.eserviceId));
     });
 
-    it("should throw a notLatestEServiceDescriptor error when EService has no Descriptor", async () => {
+    it("should throw a notLatestEServiceDescriptor error when the EService has no Descriptor", async () => {
       const eservice: EService = {
         ...generateMock(EService),
         descriptors: [],
@@ -442,7 +442,7 @@ describe("AgreementService", () => {
       );
     });
 
-    it("should throw a notLatestEServiceDescriptor error when EService Descriptor is not the latest non-Draft Descriptor", async () => {
+    it("should throw a notLatestEServiceDescriptor error when the EService Descriptor is not the latest non-draft Descriptor", async () => {
       const descriptor0: Descriptor = {
         ...generateMock(Descriptor),
         version: "0",
@@ -488,7 +488,7 @@ describe("AgreementService", () => {
       );
     });
 
-    it("should throw a descriptorNotInExpectedState error when EService latest non-Draft Descriptor is not published", async () => {
+    it("should throw a descriptorNotInExpectedState error when the EService's latest non-draft Descriptor is not published", async () => {
       const descriptor: Descriptor = {
         ...generateMock(Descriptor),
         version: "0",
@@ -535,7 +535,7 @@ describe("AgreementService", () => {
       );
     });
 
-    it("should throw an agreementAlreadyExists error when an Agreement in a conflicting state already exists for the same EService and Consumer", async () => {
+    it("should throw an agreementAlreadyExists error when an Agreement in a conflicting state already exists for the same EService and consumer", async () => {
       const consumer: Tenant = generateMock(Tenant);
       const descriptor: Descriptor = {
         ...generateMock(Descriptor),
@@ -628,7 +628,7 @@ describe("AgreementService", () => {
         )
       ).rejects.toThrowError(tenantIdNotFound(consumer.id));
     });
-    it("should throw a missingCertifiedAttributesError error when EService producer and Agreement consumer are different tenants and consumer is missing a Descriptor certified Attribute", async () => {
+    it("should throw a missingCertifiedAttributesError error when the EService producer and Agreement consumer are different Tenants, and the consumer is missing a Descriptor certified Attribute", async () => {
       const eserviceProducer: Tenant = generateMock(Tenant);
 
       // Descriptor has two certified attributes
@@ -704,7 +704,7 @@ describe("AgreementService", () => {
         missingCertifiedAttributesError(descriptor.id, consumer.id)
       );
     });
-    it("should throw a missingCertifiedAttributesError error when EService producer and Agreement consumer are different tenants and consumer has a Descriptor certified Attribute revoked", async () => {
+    it("should throw a missingCertifiedAttributesError error when the EService producer and Agreement consumer are different Tenants, and the consumer has a Descriptor certified Attribute revoked", async () => {
       const eserviceProducer: Tenant = generateMock(Tenant);
 
       // Descriptor has two certified attributes
