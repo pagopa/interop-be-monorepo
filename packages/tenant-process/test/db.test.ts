@@ -91,6 +91,7 @@ describe("database test", async () => {
   afterEach(async () => {
     await tenants.deleteMany({});
     await agreements.deleteMany({});
+    await eservices.deleteMany({});
     await postgresDB.none("TRUNCATE TABLE tenant.events RESTART IDENTITY");
   });
 
