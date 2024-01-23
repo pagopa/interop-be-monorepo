@@ -470,16 +470,20 @@ describe("database test", async () => {
       });
     });
     describe("getProducers", () => {
+      const mockTenant = getMockTenant();
+      const organizationProducerId1 = uuidv4();
+      const organizationProducerId2 = uuidv4();
+      const tenantProducer1: Tenant = {
+        ...mockTenant,
+        id: organizationProducerId1,
+        name: "A tenantProducer1",
+      };
+      const tenantProducer2: Tenant = {
+        ...mockTenant,
+        id: organizationProducerId2,
+        name: "A tenantProducer2",
+      };
       it("should get producers", async () => {
-        const organizationProducerId1 = uuidv4();
-        const organizationProducerId2 = uuidv4();
-        const mockTenant = getMockTenant();
-
-        const tenantProducer1: Tenant = {
-          ...mockTenant,
-          id: organizationProducerId1,
-          name: "A tenantProducer",
-        };
         await addOneTenant(tenantProducer1, postgresDB, tenants);
 
         const descriptor1: Descriptor = {
@@ -496,11 +500,6 @@ describe("database test", async () => {
         };
         await addOneEService(eService1, eservices);
 
-        const tenantProducer2: Tenant = {
-          ...mockTenant,
-          id: organizationProducerId2,
-          name: "A tenantProducer2",
-        };
         await addOneTenant(tenantProducer2, postgresDB, tenants);
 
         const descriptor2: Descriptor = {
@@ -526,15 +525,6 @@ describe("database test", async () => {
         expect(producers.results).toEqual([tenantProducer1, tenantProducer2]);
       });
       it("should get producers by name", async () => {
-        const organizationProducerId1 = uuidv4();
-        const organizationProducerId2 = uuidv4();
-        const mockTenant = getMockTenant();
-
-        const tenantProducer1: Tenant = {
-          ...mockTenant,
-          id: organizationProducerId1,
-          name: "A tenantProducer1",
-        };
         await addOneTenant(tenantProducer1, postgresDB, tenants);
 
         const descriptor1: Descriptor = {
@@ -551,11 +541,6 @@ describe("database test", async () => {
         };
         await addOneEService(eService1, eservices);
 
-        const tenantProducer2: Tenant = {
-          ...mockTenant,
-          id: organizationProducerId2,
-          name: "A tenantProducer2",
-        };
         await addOneTenant(tenantProducer2, postgresDB, tenants);
 
         const descriptor2: Descriptor = {
@@ -581,16 +566,7 @@ describe("database test", async () => {
         expect(producers.results).toEqual([tenantProducer1]);
       });
       it("should not get any tenants if no one matches the requested name", async () => {
-        const organizationProducerId1 = uuidv4();
-        const organizationProducerId2 = uuidv4();
         const consumerId1 = uuidv4();
-        const mockTenant = getMockTenant();
-
-        const tenantProducer1: Tenant = {
-          ...mockTenant,
-          id: organizationProducerId1,
-          name: "A tenantProducer1",
-        };
         await addOneTenant(tenantProducer1, postgresDB, tenants);
 
         const descriptor1: Descriptor = {
@@ -616,11 +592,6 @@ describe("database test", async () => {
 
         await addOneAgreement(agreementEservice1, agreements);
 
-        const tenantProducer2: Tenant = {
-          ...mockTenant,
-          id: uuidv4(),
-          name: "A tenantProducer2",
-        };
         await addOneTenant(tenantProducer2, postgresDB, tenants);
 
         const descriptor2: Descriptor = {
@@ -655,8 +626,6 @@ describe("database test", async () => {
         expect(producers.results).toEqual([]);
       });
       it("should not get any tenants if no one is in DB", async () => {
-        const organizationProducerId1 = uuidv4();
-        const organizationProducerId2 = uuidv4();
         const consumerId1 = uuidv4();
 
         const descriptor1: Descriptor = {
@@ -703,6 +672,108 @@ describe("database test", async () => {
         });
         expect(producers.totalCount).toBe(0);
         expect(producers.results).toEqual([]);
+      });
+    });
+    describe("getTenants", () => {
+      const mockTenant = getMockTenant();
+      const tenant1: Tenant = {
+        ...mockTenant,
+        id: uuidv4(),
+        name: "A tenant1",
+      };
+      const tenant2: Tenant = {
+        ...mockTenant,
+        id: uuidv4(),
+        name: "A tenant2",
+      };
+      const tenant3: Tenant = {
+        ...mockTenant,
+        id: uuidv4(),
+        name: "A tenant3",
+      };
+      const tenant4: Tenant = {
+        ...mockTenant,
+        id: uuidv4(),
+        name: "A tenant4",
+      };
+      const tenant5: Tenant = {
+        ...mockTenant,
+        id: uuidv4(),
+        name: "A tenant5",
+      };
+      it("should get tenants", async () => {
+        await addOneTenant(tenant1, postgresDB, tenants);
+        await addOneTenant(tenant2, postgresDB, tenants);
+        await addOneTenant(tenant3, postgresDB, tenants);
+
+        const tenantsByName = await readModelService.getTenantsByName({
+          name: undefined,
+          offset: 0,
+          limit: 50,
+        });
+        expect(tenantsByName.totalCount).toBe(3);
+        expect(tenantsByName.results).toEqual([tenant1, tenant2, tenant3]);
+      });
+      it("should get tenants by name", async () => {
+        await addOneTenant(tenant1, postgresDB, tenants);
+
+        await addOneTenant(tenant2, postgresDB, tenants);
+
+        const tenantsByName = await readModelService.getTenantsByName({
+          name: "A tenant1",
+          offset: 0,
+          limit: 50,
+        });
+        expect(tenantsByName.totalCount).toBe(1);
+        expect(tenantsByName.results).toEqual([tenant1]);
+      });
+      it("should not get tenants if there are not any tenants", async () => {
+        const tenantsByName = await readModelService.getTenantsByName({
+          name: undefined,
+          offset: 0,
+          limit: 50,
+        });
+        expect(tenantsByName.totalCount).toBe(0);
+        expect(tenantsByName.results).toEqual([]);
+      });
+      it("should not get tenants if the name does not match", async () => {
+        await addOneTenant(tenant1, postgresDB, tenants);
+
+        await addOneTenant(tenant2, postgresDB, tenants);
+
+        const tenantsByName = await readModelService.getTenantsByName({
+          name: "A tenant6",
+          offset: 0,
+          limit: 50,
+        });
+        expect(tenantsByName.totalCount).toBe(0);
+        expect(tenantsByName.results).toEqual([]);
+      });
+      it("Should get tenants (pagination: limit)", async () => {
+        await addOneTenant(tenant1, postgresDB, tenants);
+        await addOneTenant(tenant2, postgresDB, tenants);
+        await addOneTenant(tenant3, postgresDB, tenants);
+        await addOneTenant(tenant4, postgresDB, tenants);
+        await addOneTenant(tenant5, postgresDB, tenants);
+        const tenantsByName = await readModelService.getTenantsByName({
+          name: undefined,
+          offset: 0,
+          limit: 4,
+        });
+        expect(tenantsByName.results.length).toBe(4);
+      });
+      it("Should get tenants (pagination: offset, limit)", async () => {
+        await addOneTenant(tenant1, postgresDB, tenants);
+        await addOneTenant(tenant2, postgresDB, tenants);
+        await addOneTenant(tenant3, postgresDB, tenants);
+        await addOneTenant(tenant4, postgresDB, tenants);
+        await addOneTenant(tenant5, postgresDB, tenants);
+        const tenantsByName = await readModelService.getTenantsByName({
+          name: undefined,
+          offset: 4,
+          limit: 4,
+        });
+        expect(tenantsByName.results.length).toBe(1);
       });
     });
     describe("getTenantById", () => {
