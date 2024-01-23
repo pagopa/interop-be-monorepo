@@ -703,5 +703,87 @@ describe("AgreementService", () => {
         missingCertifiedAttributesError(descriptor.id, consumer.id)
       );
     });
+    it("should throw a missingCertifiedAttributesError error when EService producer and Agreement consumer are different tenants and consumer has a Descriptor certified Attribute revoked", async () => {
+      const eserviceProducer: Tenant = generateMock(Tenant);
+
+      // Descriptor has two certified attributes
+      const certifiedDescriptorAttribute1: EServiceAttribute =
+        generateMock(EServiceAttribute);
+      const certifiedDescriptorAttribute2: EServiceAttribute =
+        generateMock(EServiceAttribute);
+
+      const descriptor: Descriptor = {
+        ...generateMock(Descriptor),
+        state: descriptorState.published,
+        attributes: {
+          certified: [
+            [certifiedDescriptorAttribute1],
+            [certifiedDescriptorAttribute2],
+          ],
+          declared: [],
+          verified: [],
+        },
+      };
+
+      // In this case, the consumer has one of the two certified attributes revoked
+      const certifiedTenantAttribute1: TenantAttribute = {
+        id: certifiedDescriptorAttribute1.id,
+        type: tenantAttributeType.CERTIFIED,
+        revocationTimestamp: new Date(),
+        assignmentTimestamp: new Date(),
+      };
+      const certifiedTenantAttribute2: TenantAttribute = {
+        id: certifiedDescriptorAttribute2.id,
+        type: tenantAttributeType.CERTIFIED,
+        revocationTimestamp: undefined,
+        assignmentTimestamp: new Date(),
+      };
+      const consumer: Tenant = {
+        ...generateMock(Tenant),
+        attributes: [certifiedTenantAttribute1, certifiedTenantAttribute2],
+      };
+
+      const eservice: EService = {
+        ...generateMock(EService),
+        producerId: eserviceProducer.id,
+        descriptors: [descriptor],
+      };
+      const agreementQueryMock = {
+        getAllAgreements: () => Promise.resolve([]),
+      } as unknown as AgreementQuery;
+
+      const eserviceQueryMock = {
+        getEServiceById: () => Promise.resolve({ data: eservice }),
+      } as unknown as EserviceQuery;
+
+      const tenantQueryMock = {
+        // to make sure that the logic fetches the correct tenant
+        getTenantById: (id: Tenant["id"]) =>
+          Promise.resolve({
+            data: id === eserviceProducer.id ? eserviceProducer : consumer,
+          }),
+      } as unknown as TenantQuery;
+
+      const authData: AuthData = {
+        ...generateMock(AuthData),
+        organizationId: consumer.id,
+      };
+      const apiAgreementPayload: ApiAgreementPayload = {
+        eserviceId: eservice.id,
+        descriptorId: eservice.descriptors[0].id,
+      };
+
+      await expect(() =>
+        createAgreementLogic(
+          apiAgreementPayload,
+          authData,
+          agreementQueryMock,
+          eserviceQueryMock,
+          tenantQueryMock
+        )
+      ).rejects.toThrowError(
+        missingCertifiedAttributesError(descriptor.id, consumer.id)
+      );
+    });
   });
 });

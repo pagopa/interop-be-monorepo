@@ -20,8 +20,9 @@ import {
   DescriptorId,
   agreementCreationConflictingStates,
   agreementSubmissionConflictingStates,
+  TenantAttribute,
 } from "pagopa-interop-models";
-import { P, match } from "ts-pattern";
+import { match } from "ts-pattern";
 import { AuthData } from "pagopa-interop-commons";
 import { AgreementQuery } from "../../services/readmodel/agreementQuery.js";
 import { ApiAgreementPayload } from "../types.js";
@@ -45,11 +46,6 @@ import {
   DeclaredAgreementAttribute,
   VerifiedAgreementAttribute,
 } from "./models.js";
-
-type NotRevocableTenantAttribute = Pick<VerifiedTenantAttribute, "id">;
-type RevocableTenantAttribute =
-  | Pick<CertifiedTenantAttribute, "id" | "revocationTimestamp">
-  | Pick<DeclaredTenantAttribute, "id" | "revocationTimestamp">;
 
 /* ========= ASSERTIONS ========= */
 
@@ -353,15 +349,13 @@ export const validateActivationOnDescriptor = (
   return descriptor;
 };
 
-const attributesSatisfied = <
-  T extends RevocableTenantAttribute | NotRevocableTenantAttribute
->(
+const attributesSatisfied = (
   descriptorAttributes: EServiceAttribute[][],
-  consumerAttributes: T[]
+  consumerAttributes: TenantAttribute[]
 ): boolean => {
-  const notRevocatedAttributeIds = consumerAttributes
-    .filter(notRevocatedTenantAttributesFilter(consumerAttributes))
-    .map((a) => a.id);
+  const notRevocatedAttributeIds = filterNotRevocatedAttributes(
+    consumerAttributes
+  ).map((a) => a.id);
 
   return descriptorAttributes.every((attributeList) => {
     const attributes = attributeList.map((a) => a.id);
@@ -443,25 +437,19 @@ export const filterVerifiedAttributes = (
       )
   ) as VerifiedTenantAttribute[];
 
-const notRevocatedTenantAttributesFilter = <
-  T extends RevocableTenantAttribute | NotRevocableTenantAttribute
->(
-  att: T[]
-): ((a: T) => boolean) =>
-  match(att)
-    .with(
-      P.array({ revocationTimestamp: P.instanceOf(Date) }),
-      () =>
-        (a: RevocableTenantAttribute): boolean =>
-          !a.revocationTimestamp
-    )
-    .otherwise(() => () => true);
-
-export const failOnActivationFailure = (
-  newState: AgreementState,
-  agreement: Agreement
-): void => {
-  if (agreementActivationFailureStates.includes(newState)) {
-    throw agreementActivationFailed(agreement.id);
-  }
-};
+const filterNotRevocatedAttributes = (
+  consumerAttributes: TenantAttribute[]
+): TenantAttribute[] =>
+  consumerAttributes.filter((att) =>
+    match(att)
+      .with(
+        { type: tenantAttributeType.CERTIFIED },
+        (a) => !a.revocationTimestamp
+      )
+      .with(
+        { type: tenantAttributeType.DECLARED },
+        (a) => !a.revocationTimestamp
+      )
+      .with({ type: tenantAttributeType.VERIFIED }, () => true)
+      .exhaustive()
+  );
