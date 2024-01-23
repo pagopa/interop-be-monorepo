@@ -40,7 +40,7 @@ export const notDraftDescriptorStates = Object.values(descriptorState).filter(
 );
 
 describe("AgreementService", () => {
-  describe("createAgreement", () => {
+  describe("createAgreement (success cases)", () => {
     it("should create an Agreement when EService producer and Agreement consumer are the same tenant", async () => {
       const tenant: Tenant = generateMock(Tenant);
       const descriptor: Descriptor = {
@@ -265,7 +265,120 @@ describe("AgreementService", () => {
         .property("createdAt")
         .satisfy(expectPastTimestamp);
     });
+    it("should create an Agreement when EService latest descriptors are Draft, and the latest non-Draft is Published", async () => {
+      const tenant: Tenant = generateMock(Tenant);
+      const descriptor0: Descriptor = {
+        ...generateMock(Descriptor),
+        version: "0",
+        state: descriptorState.published,
+      };
+      const descriptor1: Descriptor = {
+        ...generateMock(Descriptor),
+        version: "1",
+        state: descriptorState.draft,
+      };
+      const descriptor2: Descriptor = {
+        ...generateMock(Descriptor),
+        version: "2",
+        state: descriptorState.draft,
+      };
+      const eservice: EService = {
+        ...generateMock(EService),
+        producerId: tenant.id,
+        descriptors: [descriptor0, descriptor1, descriptor2],
+      };
 
+      const agreementQueryMock = {
+        getAllAgreements: () => Promise.resolve([]),
+      } as unknown as AgreementQuery;
+
+      const eserviceQueryMock = {
+        getEServiceById: () => Promise.resolve({ data: eservice }),
+      } as unknown as EserviceQuery;
+
+      const tenantQueryMock = {
+        getTenantById: () => Promise.resolve({ data: tenant }),
+      } as unknown as TenantQuery;
+
+      const authData: AuthData = {
+        ...generateMock(AuthData),
+        organizationId: tenant.id,
+      };
+      const apiAgreementPayload: ApiAgreementPayload = {
+        eserviceId: eservice.id,
+        descriptorId: descriptor0.id,
+      };
+
+      const createEvent = await createAgreementLogic(
+        apiAgreementPayload,
+        authData,
+        agreementQueryMock,
+        eserviceQueryMock,
+        tenantQueryMock
+      );
+      expect(createEvent.event.type).toBe("AgreementAdded");
+    });
+    it("should create an Agreement when Agreements in non-conflicting states exist for the same EService and Consumer", async () => {
+      const tenant: Tenant = generateMock(Tenant);
+      const descriptor: Descriptor = {
+        ...generateMock(Descriptor),
+        state: descriptorState.published,
+      };
+      const eservice: EService = {
+        ...generateMock(EService),
+        producerId: tenant.id,
+        descriptors: [descriptor],
+      };
+      const otherAgreement: Agreement = {
+        ...generateMock(Agreement),
+        eserviceId: eservice.id,
+        consumerId: tenant.id,
+        state: randomArrayItem(
+          Object.values(agreementState).filter(
+            (state) => !agreementCreationConflictingStates.includes(state)
+          )
+        ),
+      };
+      const agreementQueryMock = {
+        getAllAgreements: (filters: AgreementQueryFilters) =>
+          Promise.resolve(
+            // to test that the logic passees the correct filters
+            [otherAgreement].filter(
+              (agreement) =>
+                filters.agreementStates?.includes(agreement.state) &&
+                filters.consumerId === tenant.id &&
+                filters.eserviceId === eservice.id
+            )
+          ),
+      } as unknown as AgreementQuery;
+      const eserviceQueryMock = {
+        getEServiceById: () => Promise.resolve({ data: eservice }),
+      } as unknown as EserviceQuery;
+
+      const tenantQueryMock = {
+        getTenantById: () => Promise.resolve({ data: tenant }),
+      } as unknown as TenantQuery;
+
+      const authData: AuthData = {
+        ...generateMock(AuthData),
+        organizationId: tenant.id,
+      };
+      const apiAgreementPayload: ApiAgreementPayload = {
+        eserviceId: eservice.id,
+        descriptorId: descriptor.id,
+      };
+
+      const createEvent = await createAgreementLogic(
+        apiAgreementPayload,
+        authData,
+        agreementQueryMock,
+        eserviceQueryMock,
+        tenantQueryMock
+      );
+      expect(createEvent.event.type).toBe("AgreementAdded");
+    });
+  });
+  describe("createAgreement (error cases)", () => {
     it("should throw an eServiceNotFound error when EService does not exist", async () => {
       const agreementQueryMock = {} as AgreementQuery;
       const tenantQueryMock = {} as TenantQuery;
@@ -422,59 +535,6 @@ describe("AgreementService", () => {
       );
     });
 
-    it("should create an Agreement when EService latest descriptors are Draft, and the latest non-Draft is Published", async () => {
-      const tenant: Tenant = generateMock(Tenant);
-      const descriptor0: Descriptor = {
-        ...generateMock(Descriptor),
-        version: "0",
-        state: descriptorState.published,
-      };
-      const descriptor1: Descriptor = {
-        ...generateMock(Descriptor),
-        version: "1",
-        state: descriptorState.draft,
-      };
-      const descriptor2: Descriptor = {
-        ...generateMock(Descriptor),
-        version: "2",
-        state: descriptorState.draft,
-      };
-      const eservice: EService = {
-        ...generateMock(EService),
-        producerId: tenant.id,
-        descriptors: [descriptor0, descriptor1, descriptor2],
-      };
-
-      const agreementQueryMock = {
-        getAllAgreements: () => Promise.resolve([]),
-      } as unknown as AgreementQuery;
-
-      const eserviceQueryMock = {
-        getEServiceById: () => Promise.resolve({ data: eservice }),
-      } as unknown as EserviceQuery;
-
-      const tenantQueryMock = {
-        getTenantById: () => Promise.resolve({ data: tenant }),
-      } as unknown as TenantQuery;
-
-      const authData: AuthData = {
-        ...generateMock(AuthData),
-        organizationId: tenant.id,
-      };
-      const apiAgreementPayload: ApiAgreementPayload = {
-        eserviceId: eservice.id,
-        descriptorId: descriptor0.id,
-      };
-
-      const createEvent = await createAgreementLogic(
-        apiAgreementPayload,
-        authData,
-        agreementQueryMock,
-        eserviceQueryMock,
-        tenantQueryMock
-      );
-      expect(createEvent.event.type).toBe("AgreementAdded");
-    });
     it("should throw an agreementAlreadyExists error when an Agreement in a conflicting state already exists for the same EService and Consumer", async () => {
       const consumer: Tenant = generateMock(Tenant);
       const descriptor: Descriptor = {
@@ -528,66 +588,7 @@ describe("AgreementService", () => {
         )
       ).rejects.toThrowError(agreementAlreadyExists(consumer.id, eservice.id));
     });
-    it("should create an Agreement when Agreements in non-conflicting states exist for the same EService and Consumer", async () => {
-      const tenant: Tenant = generateMock(Tenant);
-      const descriptor: Descriptor = {
-        ...generateMock(Descriptor),
-        state: descriptorState.published,
-      };
-      const eservice: EService = {
-        ...generateMock(EService),
-        producerId: tenant.id,
-        descriptors: [descriptor],
-      };
-      const otherAgreement: Agreement = {
-        ...generateMock(Agreement),
-        eserviceId: eservice.id,
-        consumerId: tenant.id,
-        state: randomArrayItem(
-          Object.values(agreementState).filter(
-            (state) => !agreementCreationConflictingStates.includes(state)
-          )
-        ),
-      };
-      const agreementQueryMock = {
-        getAllAgreements: (filters: AgreementQueryFilters) =>
-          Promise.resolve(
-            // to test that the logic passees the correct filters
-            [otherAgreement].filter(
-              (agreement) =>
-                filters.agreementStates?.includes(agreement.state) &&
-                filters.consumerId === tenant.id &&
-                filters.eserviceId === eservice.id
-            )
-          ),
-      } as unknown as AgreementQuery;
-      const eserviceQueryMock = {
-        getEServiceById: () => Promise.resolve({ data: eservice }),
-      } as unknown as EserviceQuery;
-
-      const tenantQueryMock = {
-        getTenantById: () => Promise.resolve({ data: tenant }),
-      } as unknown as TenantQuery;
-
-      const authData: AuthData = {
-        ...generateMock(AuthData),
-        organizationId: tenant.id,
-      };
-      const apiAgreementPayload: ApiAgreementPayload = {
-        eserviceId: eservice.id,
-        descriptorId: descriptor.id,
-      };
-
-      const createEvent = await createAgreementLogic(
-        apiAgreementPayload,
-        authData,
-        agreementQueryMock,
-        eserviceQueryMock,
-        tenantQueryMock
-      );
-      expect(createEvent.event.type).toBe("AgreementAdded");
-    });
-    it("should throw a tenantIdNotFound error when a the consumer Tenant does not exist", async () => {
+    it("should throw a tenantIdNotFound error when the consumer Tenant does not exist", async () => {
       const consumer: Tenant = generateMock(Tenant);
       const descriptor: Descriptor = {
         ...generateMock(Descriptor),
