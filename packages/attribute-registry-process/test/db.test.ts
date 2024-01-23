@@ -135,7 +135,7 @@ describe("database test", () => {
 
         expect(writtenPayload.attribute).toEqual(toAttributeV1(attribute));
       });
-      it("should not write on event-store if the attribute already exists", async () => {
+      it("should throw attributeDuplicate if an attribute with the same name already exists", async () => {
         const attribute = {
           ...mockAttribute,
           kind: attributeKind.declared,
@@ -182,7 +182,7 @@ describe("database test", () => {
 
         expect(writtenPayload.attribute).toEqual(toAttributeV1(attribute));
       });
-      it("should not write on event-store if the attribute already exists", async () => {
+      it("should throw attributeDuplicate if an attribute with the same name already exists", async () => {
         const attribute = {
           ...mockAttribute,
           kind: attributeKind.verified,
@@ -241,7 +241,7 @@ describe("database test", () => {
         };
         expect(writtenPayload.attribute).toEqual(toAttributeV1(attribute));
       });
-      it("should throw attributeDuplicate if the attribute already exists", async () => {
+      it("should throw attributeDuplicate if an attribute with the same name and code already exists", async () => {
         const attribute = {
           ...mockAttribute,
           code: "123456",
@@ -339,7 +339,7 @@ describe("database test", () => {
         };
         expect(writtenPayload.attribute).toEqual(toAttributeV1(attribute));
       });
-      it("should throw attributeDuplicate if the attribute already exists", async () => {
+      it("should throw attributeDuplicate if an attribute with the same name and code already exists", async () => {
         const attribute = {
           ...mockAttribute,
           code: "123456",
