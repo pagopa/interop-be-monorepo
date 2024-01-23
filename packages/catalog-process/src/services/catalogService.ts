@@ -12,6 +12,7 @@ import {
   DescriptorState,
   Document,
   EService,
+  EServiceDocumentId,
   EServiceEvent,
   EServiceId,
   WithMetadata,
@@ -22,7 +23,6 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { v4 as uuidv4 } from "uuid";
 import {
   apiAgreementApprovalPolicyToAgreementApprovalPolicy,
   apiTechnologyToTechnology,
@@ -258,7 +258,7 @@ export function catalogServiceBuilder(
     async deleteDocument(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      documentId: string,
+      documentId: EServiceDocumentId,
       authData: AuthData
     ): Promise<void> {
       const eService = await readModelService.getEServiceById(eserviceId);
@@ -278,7 +278,7 @@ export function catalogServiceBuilder(
     async updateDocument(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      documentId: string,
+      documentId: EServiceDocumentId,
       apiEServiceDescriptorDocumentUpdateSeed: ApiEServiceDescriptorDocumentUpdateSeed,
       authData: AuthData
     ): Promise<void> {
@@ -579,7 +579,7 @@ export function uploadDocumentLogic({
     descriptorId,
     {
       newDocument: {
-        id: document.documentId,
+        id: unsafeBrandId(document.documentId),
         name: document.fileName,
         contentType: document.contentType,
         prettyName: document.prettyName,
@@ -603,7 +603,7 @@ export async function deleteDocumentLogic({
 }: {
   eserviceId: EServiceId;
   descriptorId: DescriptorId;
-  documentId: string;
+  documentId: EServiceDocumentId;
   authData: AuthData;
   eService: WithMetadata<EService> | undefined;
   deleteRemoteFile: (container: string, path: string) => Promise<void>;
@@ -642,7 +642,7 @@ export async function updateDocumentLogic({
 }: {
   eserviceId: EServiceId;
   descriptorId: DescriptorId;
-  documentId: string;
+  documentId: EServiceDocumentId;
   apiEServiceDescriptorDocumentUpdateSeed: ApiEServiceDescriptorDocumentUpdateSeed;
   authData: AuthData;
   eService: WithMetadata<EService> | undefined;
@@ -764,9 +764,7 @@ export async function deleteDraftDescriptorLogic({
     throw eServiceDescriptorNotFound(eserviceId, descriptorId);
   }
 
-  const interfacePath = descriptor.docs.find(
-    (doc: Document) => doc.id === descriptorId
-  );
+  const interfacePath = descriptor.interface;
   if (interfacePath !== undefined) {
     await deleteFile(config.storageContainer, interfacePath.path);
   }
@@ -1011,7 +1009,7 @@ export async function cloneDescriptorLogic({
   const descriptor = retrieveDescriptor(descriptorId, eService);
 
   const sourceDocument = descriptor.docs[0];
-  const clonedDocumentId = uuidv4();
+  const clonedDocumentId = generateId<EServiceDocumentId>();
 
   const clonedInterfacePath =
     descriptor.interface !== undefined
@@ -1039,7 +1037,7 @@ export async function cloneDescriptorLogic({
 
   const clonedDocuments = await Promise.all(
     descriptor.docs.map(async (doc: Document) => {
-      const clonedDocumentId = uuidv4();
+      const clonedDocumentId = generateId<EServiceDocumentId>();
       const clonedPath = await copyFile(
         config.storageContainer,
         config.eserviceDocumentsPath,

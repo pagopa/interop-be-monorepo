@@ -1,6 +1,7 @@
 import {
   ApiError,
   DescriptorId,
+  EServiceDocumentId,
   EServiceId,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
@@ -78,7 +79,7 @@ export function eServiceDescriptorNotFound(
 export function eServiceDocumentNotFound(
   eserviceId: EServiceId,
   descriptorId: DescriptorId,
-  documentId: string
+  documentId: EServiceDocumentId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Document with id ${documentId} not found in EService ${eserviceId} / Descriptor ${descriptorId}`,

@@ -333,7 +333,7 @@ describe("CatalogService", () => {
       const event = await deleteDocumentLogic({
         eserviceId: mockEservice.id,
         descriptorId: mockEservice.descriptors[0].id,
-        documentId: mockDocument.documentId,
+        documentId: unsafeBrandId(mockDocument.documentId),
         authData,
         eService: addMetadata({
           ...mockEservice,
@@ -343,7 +343,7 @@ describe("CatalogService", () => {
               docs: [
                 {
                   path: mockDocument.filePath,
-                  id: mockDocument.documentId,
+                  id: unsafeBrandId(mockDocument.documentId),
                   name: mockDocument.fileName,
                   contentType: mockDocument.contentType,
                   prettyName: mockDocument.prettyName,
@@ -370,7 +370,7 @@ describe("CatalogService", () => {
         deleteDocumentLogic({
           eserviceId: mockEservice.id,
           descriptorId: mockEservice.descriptors[0].id,
-          documentId,
+          documentId: unsafeBrandId(documentId),
           authData,
           eService: addMetadata(mockEservice),
           deleteRemoteFile: () => Promise.resolve(),
@@ -379,7 +379,7 @@ describe("CatalogService", () => {
         eServiceDocumentNotFound(
           mockEservice.id,
           mockEservice.descriptors[0].id,
-          documentId
+          unsafeBrandId(documentId)
         )
       );
     });
@@ -389,7 +389,7 @@ describe("CatalogService", () => {
         deleteDocumentLogic({
           eserviceId: mockEservice.id,
           descriptorId: mockEservice.descriptors[0].id,
-          documentId: mockDocument.documentId,
+          documentId: unsafeBrandId(mockDocument.documentId),
           authData: {
             ...authData,
             organizationId: "other-org-id",
@@ -409,7 +409,7 @@ describe("CatalogService", () => {
         deleteDocumentLogic({
           eserviceId,
           descriptorId: mockEservice.descriptors[0].id,
-          documentId: mockDocument.documentId,
+          documentId: unsafeBrandId(mockDocument.documentId),
           authData: {
             ...authData,
             organizationId: "organizationId",
@@ -426,7 +426,7 @@ describe("CatalogService", () => {
       const event = await updateDocumentLogic({
         eserviceId: mockEservice.id,
         descriptorId: mockEservice.descriptors[0].id,
-        documentId: mockDocument.documentId,
+        documentId: unsafeBrandId(mockDocument.documentId),
         apiEServiceDescriptorDocumentUpdateSeed: mockUpdateDocumentSeed,
         authData,
         eService: addMetadata({
@@ -437,7 +437,7 @@ describe("CatalogService", () => {
               docs: [
                 {
                   path: mockDocument.filePath,
-                  id: mockDocument.documentId,
+                  id: unsafeBrandId(mockDocument.documentId),
                   name: mockDocument.fileName,
                   contentType: mockDocument.contentType,
                   prettyName: mockDocument.prettyName,
@@ -475,7 +475,7 @@ describe("CatalogService", () => {
         updateDocumentLogic({
           eserviceId: mockEservice.id,
           descriptorId,
-          documentId: mockDocument.documentId,
+          documentId: unsafeBrandId(mockDocument.documentId),
           apiEServiceDescriptorDocumentUpdateSeed: mockUpdateDocumentSeed,
           authData,
           eService: addMetadata(mockEservice),
@@ -491,7 +491,7 @@ describe("CatalogService", () => {
         updateDocumentLogic({
           eserviceId: mockEservice.id,
           descriptorId: mockEservice.descriptors[0].id,
-          documentId,
+          documentId: unsafeBrandId(documentId),
           apiEServiceDescriptorDocumentUpdateSeed: mockUpdateDocumentSeed,
           authData,
           eService: addMetadata(mockEservice),
@@ -500,7 +500,7 @@ describe("CatalogService", () => {
         eServiceDocumentNotFound(
           mockEservice.id,
           mockEservice.descriptors[0].id,
-          documentId
+          unsafeBrandId(documentId)
         )
       );
     });
@@ -510,7 +510,7 @@ describe("CatalogService", () => {
         updateDocumentLogic({
           eserviceId: mockEservice.id,
           descriptorId: mockEservice.descriptors[0].id,
-          documentId: mockDocument.documentId,
+          documentId: unsafeBrandId(mockDocument.documentId),
           apiEServiceDescriptorDocumentUpdateSeed: mockUpdateDocumentSeed,
           authData: {
             ...authData,
@@ -530,7 +530,7 @@ describe("CatalogService", () => {
         updateDocumentLogic({
           eserviceId,
           descriptorId: mockEservice.descriptors[0].id,
-          documentId: mockDocument.documentId,
+          documentId: unsafeBrandId(mockDocument.documentId),
           apiEServiceDescriptorDocumentUpdateSeed: mockUpdateDocumentSeed,
           authData: {
             ...authData,

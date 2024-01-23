@@ -4,6 +4,9 @@ import { v4 as uuidv4 } from "uuid";
 export const EServiceId = z.string().uuid().brand("EServiceId");
 export type EServiceId = z.infer<typeof EServiceId>;
 
+export const EServiceDocumentId = z.string().uuid().brand("EServiceDocumentId");
+export type EServiceDocumentId = z.infer<typeof EServiceDocumentId>;
+
 export const AgreementId = z.string().uuid().brand("AgreementId");
 export type AgreementId = z.infer<typeof AgreementId>;
 
@@ -21,6 +24,7 @@ export type DescriptorId = z.infer<typeof DescriptorId>;
 
 type IDS =
   | EServiceId
+  | EServiceDocumentId
   | AgreementId
   | AgreementDocumentId
   | DescriptorId

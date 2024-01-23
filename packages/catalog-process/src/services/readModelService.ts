@@ -19,6 +19,7 @@ import {
   genericError,
   DescriptorId,
   EServiceId,
+  EServiceDocumentId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
@@ -295,7 +296,7 @@ export function readModelServiceBuilder(
     async getDocumentById(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      documentId: string
+      documentId: EServiceDocumentId
     ): Promise<Document | undefined> {
       const eService = await this.getEServiceById(eserviceId);
       return eService?.data.descriptors

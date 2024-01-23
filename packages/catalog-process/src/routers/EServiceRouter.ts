@@ -259,7 +259,7 @@ const eservicesRouter = (
           const document = await readModelService.getDocumentById(
             unsafeBrandId(eServiceId),
             unsafeBrandId(descriptorId),
-            documentId
+            unsafeBrandId(documentId)
           );
 
           if (document) {
@@ -281,7 +281,7 @@ const eservicesRouter = (
                   eServiceDocumentNotFound(
                     unsafeBrandId(eServiceId),
                     unsafeBrandId(descriptorId),
-                    documentId
+                    unsafeBrandId(documentId)
                   ),
                   () => 404
                 )
@@ -320,7 +320,7 @@ const eservicesRouter = (
           await catalogService.deleteDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
-            req.params.documentId,
+            unsafeBrandId(req.params.documentId),
             req.ctx.authData
           );
           return res.status(204).end();
@@ -341,7 +341,7 @@ const eservicesRouter = (
           await catalogService.updateDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
-            req.params.documentId,
+            unsafeBrandId(req.params.documentId),
             req.body,
             req.ctx.authData
           );

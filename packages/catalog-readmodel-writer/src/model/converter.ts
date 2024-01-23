@@ -85,6 +85,7 @@ export const fromEServiceAttributeV1 = (
 
 export const fromDocumentV1 = (input: EServiceDocumentV1): Document => ({
   ...input,
+  id: unsafeBrandId(input.id),
   uploadDate: new Date(input.uploadDate),
 });
 
