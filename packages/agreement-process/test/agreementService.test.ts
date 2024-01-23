@@ -27,6 +27,7 @@ import {
   descriptorNotInExpectedState,
   eServiceNotFound,
   notLatestEServiceDescriptor,
+  tenantIdNotFound,
 } from "../src/model/domain/errors.js";
 import { AgreementQueryFilters } from "../src/services/readmodel/readModelService.js";
 import {
@@ -308,7 +309,13 @@ describe("AgreementService", () => {
       const descriptor: Descriptor = {
         ...generateMock(Descriptor),
         version: "0",
-        state: randomArrayItem(notPublishedDescriptorStates),
+        state: randomArrayItem(
+          Object.values(descriptorState).filter(
+            (state) =>
+              state !== descriptorState.published &&
+              state !== descriptorState.draft
+          )
+        ),
       };
       const eservice: EService = {
         ...generateMock(EService),
@@ -509,6 +516,46 @@ describe("AgreementService", () => {
         tenantQueryMock
       );
       expect(createEvent.event.type).toBe("AgreementAdded");
+    });
+    it("should throw a tenantIdNotFound error when a the consumer Tenant does not exist", async () => {
+      const consumer: Tenant = generateMock(Tenant);
+      const descriptor: Descriptor = {
+        ...generateMock(Descriptor),
+        state: descriptorState.published,
+      };
+      const eservice: EService = {
+        ...generateMock(EService),
+        descriptors: [descriptor],
+      };
+
+      const agreementQueryMock = {
+        getAllAgreements: () => Promise.resolve([]),
+      } as unknown as AgreementQuery;
+      const tenantQueryMock = {
+        getTenantById: () => undefined,
+      } as unknown as TenantQuery;
+      const eserviceQueryMock = {
+        getEServiceById: () => Promise.resolve({ data: eservice }),
+      } as unknown as EserviceQuery;
+
+      const authData: AuthData = {
+        ...generateMock(AuthData),
+        organizationId: consumer.id,
+      };
+      const apiAgreementPayload: ApiAgreementPayload = {
+        eserviceId: eservice.id,
+        descriptorId: descriptor.id,
+      };
+
+      await expect(() =>
+        createAgreementLogic(
+          apiAgreementPayload,
+          authData,
+          agreementQueryMock,
+          eserviceQueryMock,
+          tenantQueryMock
+        )
+      ).rejects.toThrowError(tenantIdNotFound(consumer.id));
     });
   });
 });
