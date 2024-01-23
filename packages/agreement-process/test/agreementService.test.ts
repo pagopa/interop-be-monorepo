@@ -12,6 +12,7 @@ import {
   agreementState,
   descriptorState,
   generateId,
+  tenantAttributeType,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { generateMock } from "@anatine/zod-mock";
@@ -30,12 +31,11 @@ import {
   tenantIdNotFound,
 } from "../src/model/domain/errors.js";
 import { AgreementQueryFilters } from "../src/services/readmodel/readModelService.js";
-import {
-  expectPastTimestamp,
-  notDraftDescriptorStates,
-  notPublishedDescriptorStates,
-  randomArrayItem,
-} from "./utils/utils.js";
+import { expectPastTimestamp, randomArrayItem } from "./utils/utils.js";
+
+export const notDraftDescriptorStates = Object.values(descriptorState).filter(
+  (state) => state !== descriptorState.draft
+);
 
 describe("AgreementService", () => {
   describe("createAgreement", () => {
@@ -43,7 +43,7 @@ describe("AgreementService", () => {
       const tenant: Tenant = generateMock(Tenant);
       const descriptor: Descriptor = {
         ...generateMock(Descriptor),
-        state: "Published",
+        state: descriptorState.published,
       };
       const eservice: EService = {
         ...generateMock(EService),
@@ -113,7 +113,7 @@ describe("AgreementService", () => {
       // In this case, the consumer must have a not revoked certified attribute
       const certifiedTenantAttribute: TenantAttribute = {
         ...generateMock(TenantAttribute),
-        type: "certified",
+        type: tenantAttributeType.CERTIFIED,
         revocationTimestamp: undefined,
       };
       const consumer: Tenant = {
@@ -128,7 +128,7 @@ describe("AgreementService", () => {
       };
       const descriptor: Descriptor = {
         ...generateMock(Descriptor),
-        state: "Published",
+        state: descriptorState.published,
         attributes: {
           certified: [[certifiedDescriptorAttribute]],
           declared: [],
