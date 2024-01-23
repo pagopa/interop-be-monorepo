@@ -365,6 +365,15 @@ const attributesSatisfied = (
   });
 };
 
+export const failOnActivationFailure = (
+  newState: AgreementState,
+  agreement: Agreement
+): void => {
+  if (agreementActivationFailureStates.includes(newState)) {
+    throw agreementActivationFailed(agreement.id);
+  }
+};
+
 /* ========= MATCHERS ========= */
 
 const matchingAttributes = (
