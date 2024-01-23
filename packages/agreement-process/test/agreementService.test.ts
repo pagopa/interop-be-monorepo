@@ -122,12 +122,11 @@ describe("AgreementService", () => {
         ...generateMock(Descriptor),
         state: descriptorState.published,
         attributes: {
+          ...generateMock(Descriptor).attributes,
           certified: [
             [certifiedDescriptorAttribute1],
             [certifiedDescriptorAttribute2],
           ],
-          declared: [],
-          verified: [],
         },
       };
 
@@ -146,7 +145,11 @@ describe("AgreementService", () => {
       };
       const consumer: Tenant = {
         ...generateMock(Tenant),
-        attributes: [certifiedTenantAttribute1, certifiedTenantAttribute2],
+        attributes: [
+          ...generateMock(Tenant).attributes,
+          certifiedTenantAttribute1,
+          certifiedTenantAttribute2,
+        ],
       };
 
       const eservice: EService = {
@@ -197,10 +200,9 @@ describe("AgreementService", () => {
         ...generateMock(Descriptor),
         state: descriptorState.published,
         attributes: {
+          ...generateMock(Descriptor).attributes,
           // Descriptor has no certified attributes - no requirements for the consumer
           certified: [],
-          declared: [],
-          verified: [],
         },
       };
       const eservice: EService = {
@@ -634,16 +636,16 @@ describe("AgreementService", () => {
       const certifiedDescriptorAttribute2: EServiceAttribute =
         generateMock(EServiceAttribute);
 
-      const _descriptor: Descriptor = generateMock(Descriptor);
       const descriptor: Descriptor = {
-        ..._descriptor,
+        ...generateMock(Descriptor),
         state: descriptorState.published,
         attributes: {
-          ..._descriptor.attributes,
           certified: [
             [certifiedDescriptorAttribute1],
             [certifiedDescriptorAttribute2],
           ],
+          declared: [],
+          verified: [],
         },
       };
 
