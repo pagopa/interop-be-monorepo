@@ -17,6 +17,8 @@ import {
   AttributeAddedV1,
   Tenant,
   attributeKind,
+  generateId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { config } from "../src/utilities/config.js";
 import {
@@ -126,7 +128,7 @@ describe("database test", () => {
 
         const attribute: Attribute = {
           ...mockAttribute,
-          id,
+          id: unsafeBrandId(id),
           kind: attributeKind.declared,
           creationTime: new Date(writtenPayload.attribute!.creationTime),
         };
@@ -173,7 +175,7 @@ describe("database test", () => {
 
         const attribute: Attribute = {
           ...mockAttribute,
-          id,
+          id: unsafeBrandId(id),
           kind: attributeKind.verified,
           creationTime: new Date(writtenPayload.attribute!.creationTime),
         };
@@ -232,7 +234,7 @@ describe("database test", () => {
 
         const attribute: Attribute = {
           ...mockAttribute,
-          id,
+          id: unsafeBrandId(id),
           kind: attributeKind.certified,
           creationTime: new Date(writtenPayload.attribute!.creationTime),
           origin: tenant.features[0].certifierId,
@@ -330,7 +332,7 @@ describe("database test", () => {
 
         const attribute: Attribute = {
           ...mockAttribute,
-          id,
+          id: unsafeBrandId(id),
           kind: attributeKind.certified,
           creationTime: new Date(writtenPayload.attribute!.creationTime),
           origin: tenant.features[0].certifierId,
@@ -378,7 +380,7 @@ describe("database test", () => {
       beforeEach(async () => {
         attribute1 = {
           ...mockAttribute,
-          id: uuidv4(),
+          id: generateId(),
           name: "attribute 001 test",
           kind: attributeKind.certified,
           origin: "IPA",
@@ -388,7 +390,7 @@ describe("database test", () => {
 
         attribute2 = {
           ...mockAttribute,
-          id: uuidv4(),
+          id: generateId(),
           name: "attribute 002 test",
           kind: attributeKind.certified,
           origin: "IPA",
@@ -398,7 +400,7 @@ describe("database test", () => {
 
         attribute3 = {
           ...mockAttribute,
-          id: uuidv4(),
+          id: generateId(),
           name: "attribute 003 test",
           kind: attributeKind.certified,
           origin: "IPA",
@@ -408,7 +410,7 @@ describe("database test", () => {
 
         attribute4 = {
           ...mockAttribute,
-          id: uuidv4(),
+          id: generateId(),
           name: "attribute 004",
           kind: attributeKind.declared,
         };
@@ -416,7 +418,7 @@ describe("database test", () => {
 
         attribute5 = {
           ...mockAttribute,
-          id: uuidv4(),
+          id: generateId(),
           name: "attribute 005",
           kind: attributeKind.declared,
         };
@@ -424,7 +426,7 @@ describe("database test", () => {
 
         attribute6 = {
           ...mockAttribute,
-          id: uuidv4(),
+          id: generateId(),
           name: "attribute 006",
           kind: attributeKind.verified,
         };
@@ -432,7 +434,7 @@ describe("database test", () => {
 
         attribute7 = {
           ...mockAttribute,
-          id: uuidv4(),
+          id: generateId(),
           name: "attribute 007",
           kind: attributeKind.verified,
         };
