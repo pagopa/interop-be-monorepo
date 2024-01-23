@@ -529,6 +529,24 @@ describe("database test", () => {
             attribute7,
           ]);
         });
+        it("should get the attributes if no parameter is passed (pagination: limit)", async () => {
+          const result = await readModelService.getAttributesByKindsNameOrigin({
+            kinds: [],
+            offset: 0,
+            limit: 5,
+          });
+          expect(result.totalCount).toBe(7);
+          expect(result.results.length).toBe(5);
+        });
+        it("should get the attributes if no parameter is passed (pagination: offset, limit)", async () => {
+          const result = await readModelService.getAttributesByKindsNameOrigin({
+            kinds: [],
+            offset: 5,
+            limit: 5,
+          });
+          expect(result.totalCount).toBe(7);
+          expect(result.results.length).toBe(2);
+        });
         it("should not get the attributes if they don't exist", async () => {
           const result = await readModelService.getAttributesByKindsNameOrigin({
             kinds: [],
