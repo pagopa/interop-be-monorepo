@@ -882,8 +882,137 @@ describe("database test", async () => {
       });
     });
     describe("getTenantById", () => {
-      it("TO DO", () => {
-        expect(2).toBe(2);
+      const consumerId1 = uuidv4();
+      const consumerId2 = uuidv4();
+      const consumerId3 = uuidv4();
+      const mockTenant = getMockTenant();
+
+      const tenant1: Tenant = {
+        ...mockTenant,
+        id: consumerId1,
+        name: "A tenant1",
+      };
+      const tenant2: Tenant = {
+        ...mockTenant,
+        id: consumerId2,
+        name: "A tenant2",
+      };
+      const tenant3: Tenant = {
+        ...mockTenant,
+        id: consumerId3,
+        name: "A tenant3",
+      };
+      it("should get the tenant by ID", async () => {
+        await addOneTenant(tenant1, postgresDB, tenants);
+        await addOneTenant(tenant2, postgresDB, tenants);
+        await addOneTenant(tenant3, postgresDB, tenants);
+        const tenantById = await readModelService.getTenantById(tenant1.id);
+        expect(tenantById?.data.id).toEqual(tenant1.id);
+      });
+      it("should not get the tenant by ID", async () => {
+        await addOneTenant(tenant1, postgresDB, tenants);
+        await addOneTenant(tenant2, postgresDB, tenants);
+        await addOneTenant(tenant3, postgresDB, tenants);
+        const tenantById = await readModelService.getTenantById(uuidv4());
+        expect(tenantById?.data.id).toBeUndefined();
+      });
+      it("should not get the tenant by ID if it isn't in DB", async () => {
+        const tenantById = await readModelService.getTenantById(tenant1.id);
+        expect(tenantById?.data.id).toBeUndefined();
+      });
+    });
+    describe("getTenantBySelfcareId", () => {
+      const consumerId1 = uuidv4();
+      const consumerId2 = uuidv4();
+      const consumerId3 = uuidv4();
+      const mockTenant = getMockTenant();
+
+      const tenant1: Tenant = {
+        ...mockTenant,
+        id: consumerId1,
+        name: "A tenant1",
+      };
+      const tenant2: Tenant = {
+        ...mockTenant,
+        id: consumerId2,
+        name: "A tenant2",
+      };
+      const tenant3: Tenant = {
+        ...mockTenant,
+        id: consumerId3,
+        name: "A tenant3",
+      };
+      const selfcareId =
+        tenant1.selfcareId !== undefined ? tenant1.selfcareId : uuidv4();
+      it("should get the tenant by selfcareId", async () => {
+        await addOneTenant(tenant1, postgresDB, tenants);
+        await addOneTenant(tenant2, postgresDB, tenants);
+        await addOneTenant(tenant3, postgresDB, tenants);
+        const tenantBySelfcareId = await readModelService.getTenantBySelfcareId(
+          selfcareId
+        );
+        expect(tenantBySelfcareId?.data.selfcareId).toEqual(tenant1.selfcareId);
+      });
+      it("should not get the tenant by selfcareId", async () => {
+        await addOneTenant(tenant1, postgresDB, tenants);
+        await addOneTenant(tenant2, postgresDB, tenants);
+        await addOneTenant(tenant3, postgresDB, tenants);
+        const tenantBySelfcareId = await readModelService.getTenantBySelfcareId(
+          uuidv4()
+        );
+        expect(tenantBySelfcareId?.data.selfcareId).toBeUndefined();
+      });
+      it("should not get the tenant by selfcareId if it isn't in DB", async () => {
+        const tenantBySelfcareId = await readModelService.getTenantBySelfcareId(
+          selfcareId
+        );
+        expect(tenantBySelfcareId?.data.selfcareId).toBeUndefined();
+      });
+    });
+    describe("getTenantByExternalId", () => {
+      const consumerId1 = uuidv4();
+      const consumerId2 = uuidv4();
+      const consumerId3 = uuidv4();
+      const mockTenant = getMockTenant();
+
+      const tenant1: Tenant = {
+        ...mockTenant,
+        id: consumerId1,
+        name: "A tenant1",
+      };
+      const tenant2: Tenant = {
+        ...mockTenant,
+        id: consumerId2,
+        name: "A tenant2",
+      };
+      const tenant3: Tenant = {
+        ...mockTenant,
+        id: consumerId3,
+        name: "A tenant3",
+      };
+      it("should get the tenant by externalId", async () => {
+        await addOneTenant(tenant1, postgresDB, tenants);
+        await addOneTenant(tenant2, postgresDB, tenants);
+        await addOneTenant(tenant3, postgresDB, tenants);
+        const tenantByExternalId = await readModelService.getTenantByExternalId(
+          { value: tenant1.externalId.value, origin: tenant1.externalId.origin }
+        );
+        expect(tenantByExternalId?.data.externalId).toEqual(tenant1.externalId);
+      });
+      it("should not get the tenant by externalId", async () => {
+        await addOneTenant(tenant1, postgresDB, tenants);
+        await addOneTenant(tenant2, postgresDB, tenants);
+        await addOneTenant(tenant3, postgresDB, tenants);
+        const tenantByExternalId = await readModelService.getTenantByExternalId(
+          { value: "value", origin: "origin" }
+        );
+        expect(tenantByExternalId?.data.externalId).toBeUndefined();
+      });
+      it("should not get the tenant by externalId if it isn't in DB", async () => {
+        const tenantByExternalId = await readModelService.getTenantByExternalId(
+          { value: tenant1.externalId.value, origin: tenant1.externalId.origin }
+        );
+        expect(tenantByExternalId?.data.externalId).toBeUndefined();
       });
     });
   });
