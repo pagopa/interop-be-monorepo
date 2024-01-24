@@ -907,7 +907,7 @@ describe("database test", async () => {
         await addOneTenant(tenant2, postgresDB, tenants);
         await addOneTenant(tenant3, postgresDB, tenants);
         const tenantById = await readModelService.getTenantById(tenant1.id);
-        expect(tenantById?.data.id).toEqual(tenant1.id);
+        expect(tenantById?.data).toEqual(tenant1);
       });
       it("should not get the tenant by ID", async () => {
         await addOneTenant(tenant1, postgresDB, tenants);
@@ -951,7 +951,7 @@ describe("database test", async () => {
         const tenantBySelfcareId = await readModelService.getTenantBySelfcareId(
           selfcareId
         );
-        expect(tenantBySelfcareId?.data.selfcareId).toEqual(tenant1.selfcareId);
+        expect(tenantBySelfcareId?.data).toEqual(tenant1);
       });
       it("should not get the tenant by selfcareId", async () => {
         await addOneTenant(tenant1, postgresDB, tenants);
@@ -997,7 +997,7 @@ describe("database test", async () => {
         const tenantByExternalId = await readModelService.getTenantByExternalId(
           { value: tenant1.externalId.value, origin: tenant1.externalId.origin }
         );
-        expect(tenantByExternalId?.data.externalId).toEqual(tenant1.externalId);
+        expect(tenantByExternalId?.data).toEqual(tenant1);
       });
       it("should not get the tenant by externalId", async () => {
         await addOneTenant(tenant1, postgresDB, tenants);
