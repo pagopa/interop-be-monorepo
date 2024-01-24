@@ -432,6 +432,8 @@ export function catalogServiceBuilder(
         authData,
         copyFile: fileManager.copy,
         eService,
+        getEServiceByNameAndProducerId:
+          readModelService.getEServiceByNameAndProducerId,
       });
 
       await repository.createEvent(event);
@@ -969,6 +971,7 @@ export async function cloneDescriptorLogic({
   authData,
   copyFile,
   eService,
+  getEServiceByNameAndProducerId,
 }: {
   eServiceId: string;
   descriptorId: DescriptorId;
@@ -981,12 +984,33 @@ export async function cloneDescriptorLogic({
     name: string
   ) => Promise<string>;
   eService: WithMetadata<EService> | undefined;
+  getEServiceByNameAndProducerId: ({
+    name,
+    producerId,
+  }: {
+    name: string;
+    producerId: string;
+  }) => Promise<WithMetadata<EService> | undefined>;
 }): Promise<{ eService: EService; event: CreateEvent<EServiceEvent> }> {
   assertEServiceExist(eServiceId, eService);
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
 
-  const descriptor = retrieveDescriptor(descriptorId, eService);
+  const currentDate = new Date();
+  const formattedDateAndTime = `${currentDate.toLocaleDateString(
+    "it-IT"
+  )} ${currentDate.toLocaleTimeString("it-IT")}`;
+  const clonedEServiceName = `${eService.data.name} - clone - ${formattedDateAndTime}`;
 
+  if (
+    await getEServiceByNameAndProducerId({
+      name: clonedEServiceName,
+      producerId: authData.organizationId,
+    })
+  ) {
+    throw eServiceDuplicate(clonedEServiceName);
+  }
+
+  const descriptor = retrieveDescriptor(descriptorId, eService);
   const sourceDocument = descriptor.docs[0];
   const clonedDocumentId = uuidv4();
 
@@ -1040,7 +1064,7 @@ export async function cloneDescriptorLogic({
   const draftCatalogItem: EService = {
     id: uuidv4(),
     producerId: eService.data.producerId,
-    name: `${eService.data.name} - clone`,
+    name: clonedEServiceName,
     description: eService.data.description,
     technology: eService.data.technology,
     attributes: eService.data.attributes,
