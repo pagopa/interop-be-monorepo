@@ -17,7 +17,11 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { generateMock } from "@anatine/zod-mock";
-import { AuthData } from "pagopa-interop-commons";
+import {
+  AuthData,
+  expectPastTimestamp,
+  randomArrayItem,
+} from "pagopa-interop-commons";
 import { AgreementQuery } from "../src/services/readmodel/agreementQuery.js";
 import { TenantQuery } from "../src/services/readmodel/tenantQuery.js";
 import { EserviceQuery } from "../src/services/readmodel/eserviceQuery.js";
@@ -33,7 +37,6 @@ import {
   tenantIdNotFound,
 } from "../src/model/domain/errors.js";
 import { AgreementQueryFilters } from "../src/services/readmodel/readModelService.js";
-import { expectPastTimestamp, randomArrayItem } from "./utils/utils.js";
 
 export const notDraftDescriptorStates = Object.values(descriptorState).filter(
   (state) => state !== descriptorState.draft

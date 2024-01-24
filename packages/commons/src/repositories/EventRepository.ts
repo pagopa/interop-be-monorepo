@@ -12,6 +12,13 @@ export type CreateEvent<T extends Event> = {
   readonly event: T;
 };
 
+export type StoredEvent = {
+  stream_id: string;
+  version: string;
+  type: Event["type"];
+  data: Buffer;
+};
+
 export const eventRepository = <T extends Event>(
   db: DB,
   toBinaryData: (event: T) => Uint8Array

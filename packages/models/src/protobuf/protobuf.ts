@@ -6,3 +6,13 @@ export function protobufDecoder<I extends object>(
 ): ZodTransformer<ZodAny, I> {
   return z.any().transform((v) => decoder.fromBinary(Buffer.from(v, "hex")));
 }
+
+export function decodeProtobufPayload<I extends object>({
+  messageType,
+  payload,
+}: {
+  messageType: MessageType<I>;
+  payload: Parameters<typeof Buffer.from>[0];
+}): I {
+  return messageType.fromBinary(Buffer.from(payload, "hex"));
+}
