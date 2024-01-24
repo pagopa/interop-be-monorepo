@@ -6,6 +6,7 @@ import {
   DescriptorId,
   DescriptorState,
   EServiceId,
+  TenantId,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 
@@ -96,7 +97,7 @@ export function descriptorNotInExpectedState(
 
 export function missingCertifiedAttributesError(
   descriptorId: DescriptorId,
-  consumerId: string
+  consumerId: TenantId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Required certified attribute is missing. Descriptor ${descriptorId}, Consumer: ${consumerId}`,
@@ -106,7 +107,7 @@ export function missingCertifiedAttributesError(
 }
 
 export function agreementAlreadyExists(
-  consumerId: string,
+  consumerId: TenantId,
   eserviceId: EServiceId
 ): ApiError<ErrorCodes> {
   return new ApiError({

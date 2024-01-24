@@ -20,6 +20,7 @@ import {
   DescriptorId,
   EServiceId,
   unsafeBrandId,
+  TenantId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { AuthData } from "pagopa-interop-commons";
@@ -201,7 +202,7 @@ export const validateCreationOnDescriptor = (
 };
 
 export const verifyCreationConflictingAgreements = async (
-  organizationId: string,
+  organizationId: TenantId,
   agreement: ApiAgreementPayload,
   agreementQuery: AgreementQuery
 ): Promise<void> => {
@@ -294,7 +295,7 @@ export const declaredAttributesSatisfied = (
 };
 
 export const verifiedAttributesSatisfied = (
-  producerId: string,
+  producerId: TenantId,
   descriptor: Descriptor,
   tenant: Tenant
 ): boolean => {
@@ -310,7 +311,7 @@ export const verifiedAttributesSatisfied = (
 };
 
 export const verifyConflictingAgreements = async (
-  consumerId: string,
+  consumerId: TenantId,
   eserviceId: EServiceId,
   conflictingStates: AgreementState[],
   agreementQuery: AgreementQuery
@@ -441,7 +442,7 @@ export const matchingVerifiedAttributes = (
 /* ========= FILTERS ========= */
 
 export const filterVerifiedAttributes = (
-  producerId: string,
+  producerId: TenantId,
   tenant: Tenant
 ): VerifiedTenantAttribute[] =>
   tenant.attributes.filter(

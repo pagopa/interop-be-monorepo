@@ -36,7 +36,7 @@
     "openapi-zod-client": "1.15.1",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
-    "ts-pattern": "^5.0.1",
+    "ts-pattern": "^5.0.6",
     "uuid": "^9.0.0",
     "zod": "^3.21.4"
   }

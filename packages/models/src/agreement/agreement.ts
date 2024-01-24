@@ -5,6 +5,7 @@ import {
   AgreementId,
   DescriptorId,
   EServiceId,
+  TenantId,
 } from "./../brandedIds.js";
 
 export const agreementState = {
@@ -103,8 +104,9 @@ export const Agreement = z.object({
   id: AgreementId,
   eserviceId: EServiceId,
   descriptorId: DescriptorId,
-  producerId: z.string().uuid(),
-  consumerId: z.string().uuid(),
+  // TODO: refine these types to avoid confusion between producer and consumer
+  producerId: TenantId,
+  consumerId: TenantId,
   state: AgreementState,
   verifiedAttributes: z.array(AgreementAttribute),
   certifiedAttributes: z.array(AgreementAttribute),

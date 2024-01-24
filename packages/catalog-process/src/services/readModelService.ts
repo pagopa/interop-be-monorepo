@@ -20,6 +20,7 @@ import {
   DescriptorId,
   EServiceId,
   EServiceDocumentId,
+  TenantId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
@@ -166,7 +167,7 @@ export function readModelServiceBuilder(
       producerId,
     }: {
       name: string;
-      producerId: string;
+      producerId: TenantId;
     }): Promise<WithMetadata<EService> | undefined> {
       return getEService(eservices, {
         "data.name": {
@@ -177,7 +178,7 @@ export function readModelServiceBuilder(
       });
     },
     async getEServiceById(
-      id: string
+      id: EServiceId
     ): Promise<WithMetadata<EService> | undefined> {
       return getEService(eservices, { "data.id": id });
     },

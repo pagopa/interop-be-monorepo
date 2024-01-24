@@ -14,6 +14,8 @@ import {
   ListResult,
   agreementState,
   AttributeId,
+  TenantId,
+  EServiceId,
 } from "pagopa-interop-models";
 import { z } from "zod";
 import { Filter, WithId } from "mongodb";
@@ -180,7 +182,9 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
       });
     },
 
-    async getTenantById(id: string): Promise<WithMetadata<Tenant> | undefined> {
+    async getTenantById(
+      id: TenantId
+    ): Promise<WithMetadata<Tenant> | undefined> {
       return getTenant(tenants, { "data.id": id });
     },
 
@@ -217,7 +221,7 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
       limit,
     }: {
       name: string | undefined;
-      producerId: string;
+      producerId: TenantId;
       offset: number;
       limit: number;
     }): Promise<ListResult<Tenant>> {
@@ -329,7 +333,7 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
     },
 
     async getEServiceById(
-      id: string
+      id: EServiceId
     ): Promise<WithMetadata<EService> | undefined> {
       const data = await eservices.findOne(
         { "data.id": id },

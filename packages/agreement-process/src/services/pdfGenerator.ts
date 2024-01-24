@@ -17,6 +17,7 @@ import {
   PDFPayload,
   Tenant,
   TenantAttributeType,
+  TenantId,
   genericError,
   tenantAttributeType,
 } from "pagopa-interop-models";
@@ -180,14 +181,16 @@ const agreementTemplateMock = fs
   .toString();
 
 const createAgreementDocumentName = (
-  consumerId: string,
-  producerId: string
+  // TODO: refine these type to avoid confusion between producer and consumer
+  consumerId: TenantId,
+  producerId: TenantId
 ): string => `${consumerId}_${producerId}_${new Date()}_agreement_contract.pdf`;
 
 export const pdfGenerator = {
   createDocumentSeed: async (
     agreement: Agreement,
     eService: EService,
+    // TODO: refine these types to avoid confusion between producer and consumer
     consumer: Tenant,
     producer: Tenant,
     seed: UpdateAgreementSeed,
