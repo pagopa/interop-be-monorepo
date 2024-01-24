@@ -1,5 +1,5 @@
 import { generateMock } from "@anatine/zod-mock";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   Descriptor,
   EService,
@@ -1143,6 +1143,9 @@ describe("CatalogService", () => {
   });
   describe("cloneDescriptor", () => {
     it("clone the eService", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date());
+
       const eService: EService = {
         ...mockEservice,
         descriptors: [{ ...mockDescriptor, version: "1" }],
@@ -1155,6 +1158,7 @@ describe("CatalogService", () => {
         authData,
         copyFile: () => Promise.resolve(""),
         eService: addMetadata(eService),
+        getEServiceByNameAndProducerId: () => Promise.resolve(undefined),
       });
       expect(event.event.type).toBe("ClonedEServiceAdded");
       const clonedDescriptor = (
@@ -1165,10 +1169,15 @@ describe("CatalogService", () => {
         createdAt: Date;
         interface: { id: string; uploadDate: Date };
       };
+      const currentDate = new Date();
       expect(event.event.data).toMatchObject({
         eService: {
           ...mockEserviceV1,
-          name: `${mockEserviceV1.name} - clone`,
+          name: `${
+            mockEserviceV1.name
+          } - clone - ${currentDate.toLocaleDateString(
+            "it-IT"
+          )} ${currentDate.toLocaleTimeString("it-IT")}`,
           createdAt: (
             event.event.data as unknown as { eService: { createdAt: Date } }
           ).eService.createdAt,
@@ -1200,6 +1209,7 @@ describe("CatalogService", () => {
           ],
         },
       });
+      vi.useRealTimers();
     });
 
     it("returns an error if the eservice doesn't contains the descriptor", async () => {
