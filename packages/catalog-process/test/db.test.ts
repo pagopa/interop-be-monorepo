@@ -259,6 +259,36 @@ describe("database test", async () => {
         ).rejects.toThrowError(operationForbidden);
       });
 
+      it("should throw eServiceDuplicate if the updated name is already in use", async () => {
+        const eService1: EService = {
+          ...mockEService,
+          id: generateId(),
+          descriptors: [],
+        };
+        const eService2: EService = {
+          ...mockEService,
+          id: generateId(),
+          name: "eService name already in use",
+          descriptors: [],
+        };
+        await addOneEService(eService1, postgresDB, eservices);
+        await addOneEService(eService2, postgresDB, eservices);
+
+        expect(
+          catalogService.updateEService(
+            eService1.id,
+            {
+              name: "eService name already in use",
+              description: "eService description",
+              technology: "REST",
+            },
+            getMockAuthData(eService1.producerId)
+          )
+        ).rejects.toThrowError(
+          eServiceDuplicate("eService name already in use")
+        );
+      });
+
       it("should throw eServiceCannotBeUpdated if the eService descriptor is in published state", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
