@@ -181,7 +181,6 @@ const agreementTemplateMock = fs
   .toString();
 
 const createAgreementDocumentName = (
-  // TODO: refine these type to avoid confusion between producer and consumer
   consumerId: TenantId,
   producerId: TenantId
 ): string => `${consumerId}_${producerId}_${new Date()}_agreement_contract.pdf`;
@@ -190,7 +189,6 @@ export const pdfGenerator = {
   createDocumentSeed: async (
     agreement: Agreement,
     eService: EService,
-    // TODO: refine these types to avoid confusion between producer and consumer
     consumer: Tenant,
     producer: Tenant,
     seed: UpdateAgreementSeed,

@@ -164,7 +164,6 @@ export const getMockAgreement = ({
 }: {
   eserviceId: EServiceId;
   descriptorId: DescriptorId;
-  // TODO: refine these types to avoid confusion between producer and consumerc
   producerId: TenantId;
   consumerId: TenantId;
 }): Agreement => ({

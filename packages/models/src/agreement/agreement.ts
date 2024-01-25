@@ -104,7 +104,6 @@ export const Agreement = z.object({
   id: AgreementId,
   eserviceId: EServiceId,
   descriptorId: DescriptorId,
-  // TODO: refine these types to avoid confusion between producer and consumer
   producerId: TenantId,
   consumerId: TenantId,
   state: AgreementState,
