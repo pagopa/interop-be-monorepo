@@ -254,17 +254,25 @@ describe("CatalogService", () => {
   });
   describe("uploadDocument", () => {
     it("uploads the document", async () => {
+      const descriptor = {
+        ...mockDescriptor,
+        state: descriptorState.draft,
+      };
+      const eService = {
+        ...mockEservice,
+        descriptors: [descriptor],
+      };
       const event = uploadDocumentLogic({
-        eServiceId: mockEservice.id,
-        descriptorId: mockEservice.descriptors[0].id,
+        eServiceId: eService.id,
+        descriptorId: eService.descriptors[0].id,
         document: mockDocument,
         authData,
-        eService: addMetadata(mockEservice),
+        eService: addMetadata(eService),
       });
       expect(event.event.type).toBe("EServiceDocumentAdded");
       expect(event.event.data).toMatchObject({
-        eServiceId: mockEservice.id,
-        descriptorId: mockEservice.descriptors[0].id,
+        eServiceId: eService.id,
+        descriptorId: eService.descriptors[0].id,
         document: {
           id: mockDocument.documentId,
           name: mockDocument.fileName,
