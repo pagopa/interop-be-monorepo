@@ -1,0 +1,2989 @@
+openapi: 3.0.0
+info:
+  title: User API
+  version: 1.0.0
+  description: A simple user API
+paths:
+  /eservices:
+    get:
+      operationId: getEServices
+      tags:
+        - eservices
+      parameters:
+        - name: X-Correlation-Id
+          in: header
+          schema:
+            type: string
+          required: true
+        - name: X-Forwarded-For
+          in: header
+          schema:
+            type: string
+          required: false
+        - name: name
+          in: query
+          schema:
+            type: string
+          required: false
+        - name: eservicesIds[]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+            default: []
+          required: false
+        - name: producersIds[]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+            default: []
+          required: false
+        - name: states[]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: &a2
+                - DRAFT
+                - PUBLISHED
+                - DEPRECATED
+                - SUSPENDED
+                - ARCHIVED
+            default: []
+          required: false
+        - name: agreementStates[]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: &a8
+                - DRAFT
+                - PENDING
+                - ACTIVE
+                - SUSPENDED
+                - ARCHIVED
+                - MISSING_CERTIFIED_ATTRIBUTES
+                - REJECTED
+            default: []
+          required: false
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+          required: true
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+          required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        producerId:
+                          type: string
+                          format: uuid
+                        name:
+                          type: string
+                        description:
+                          type: string
+                        technology:
+                          type: string
+                          enum: &a4
+                            - REST
+                            - SOAP
+                        descriptors:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              id:
+                                type: string
+                                format: uuid
+                              version:
+                                type: string
+                              description:
+                                type: string
+                              audience:
+                                type: array
+                                items:
+                                  type: string
+                              voucherLifespan:
+                                type: integer
+                              dailyCallsPerConsumer:
+                                type: integer
+                                minimum: 0
+                              dailyCallsTotal:
+                                type: integer
+                                minimum: 0
+                              interface: &a1
+                                type: object
+                                properties:
+                                  id:
+                                    type: string
+                                    format: uuid
+                                  name:
+                                    type: string
+                                  contentType:
+                                    type: string
+                                  prettyName:
+                                    type: string
+                                  path:
+                                    type: string
+                                required:
+                                  - id
+                                  - name
+                                  - contentType
+                                  - prettyName
+                                  - path
+                                additionalProperties: true
+                              docs:
+                                type: array
+                                items: *a1
+                              state:
+                                type: string
+                                enum: *a2
+                              agreementApprovalPolicy:
+                                type: string
+                                enum: &a6
+                                  - AUTOMATIC
+                                  - MANUAL
+                              serverUrls:
+                                type: array
+                                items:
+                                  type: string
+                              publishedAt:
+                                type: string
+                              suspendedAt:
+                                type: string
+                              deprecatedAt:
+                                type: string
+                              archivedAt:
+                                type: string
+                              attributes:
+                                type: object
+                                properties:
+                                  certified:
+                                    type: array
+                                    items:
+                                      type: array
+                                      items: &a3
+                                        type: object
+                                        properties:
+                                          id:
+                                            type: string
+                                            format: uuid
+                                          explicitAttributeVerification:
+                                            type: boolean
+                                        required:
+                                          - id
+                                          - explicitAttributeVerification
+                                        additionalProperties: true
+                                  declared:
+                                    type: array
+                                    items:
+                                      type: array
+                                      items: *a3
+                                  verified:
+                                    type: array
+                                    items:
+                                      type: array
+                                      items: *a3
+                                required:
+                                  - certified
+                                  - declared
+                                  - verified
+                                additionalProperties: true
+                            required:
+                              - id
+                              - version
+                              - audience
+                              - voucherLifespan
+                              - dailyCallsPerConsumer
+                              - dailyCallsTotal
+                              - docs
+                              - state
+                              - agreementApprovalPolicy
+                              - serverUrls
+                              - attributes
+                            additionalProperties: true
+                      required:
+                        - id
+                        - producerId
+                        - name
+                        - description
+                        - technology
+                        - descriptors
+                      additionalProperties: true
+                  totalCount:
+                    type: integer
+                required:
+                  - results
+                  - totalCount
+                additionalProperties: true
+    post:
+      operationId: createEService
+      tags:
+        - eservices
+      requestBody:
+        description: An E-Service seed
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 5
+                  maxLength: 60
+                description:
+                  type: string
+                  minLength: 10
+                  maxLength: 250
+                technology:
+                  type: string
+                  enum: *a4
+              required:
+                - name
+                - description
+                - technology
+              additionalProperties: true
+      parameters:
+        - name: X-Correlation-Id
+          in: header
+          schema:
+            type: string
+          required: true
+        - name: X-Forwarded-For
+          in: header
+          schema:
+            type: string
+          required: false
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                required:
+                  - id
+                additionalProperties: true
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  status:
+                    type: integer
+                    minimum: 100
+                    exclusiveMaximum: true
+                    maximum: 600
+                  title:
+                    type: string
+                    maxLength: 64
+                    pattern: ^[ -~]{0,64}$
+                  correlationId:
+                    type: string
+                    maxLength: 64
+                  detail:
+                    type: string
+                    maxLength: 4096
+                    pattern: ^.{0,1024}$
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          minLength: 8
+                          maxLength: 8
+                          pattern: ^[0-9]{3}-[0-9]{4}$
+                        detail:
+                          type: string
+                          maxLength: 4096
+                          pattern: ^.{0,1024}$
+                      required:
+                        - code
+                        - detail
+                      additionalProperties: true
+                    minItems: 1
+                required:
+                  - type
+                  - status
+                  - title
+                  - errors
+                additionalProperties: false
+        "409":
+          description: Name Conflict
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  status:
+                    type: integer
+                    minimum: 100
+                    exclusiveMaximum: true
+                    maximum: 600
+                  title:
+                    type: string
+                    maxLength: 64
+                    pattern: ^[ -~]{0,64}$
+                  correlationId:
+                    type: string
+                    maxLength: 64
+                  detail:
+                    type: string
+                    maxLength: 4096
+                    pattern: ^.{0,1024}$
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          minLength: 8
+                          maxLength: 8
+                          pattern: ^[0-9]{3}-[0-9]{4}$
+                        detail:
+                          type: string
+                          maxLength: 4096
+                          pattern: ^.{0,1024}$
+                      required:
+                        - code
+                        - detail
+                      additionalProperties: true
+                    minItems: 1
+                required:
+                  - type
+                  - status
+                  - title
+                  - errors
+                additionalProperties: false
+  /eservices/{eServiceId}:
+    get:
+      operationId: getEServiceById
+      tags:
+        - eservices
+      parameters:
+        - name: eServiceId
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: X-Correlation-Id
+          in: header
+          schema:
+            type: string
+          required: true
+        - name: X-Forwarded-For
+          in: header
+          schema:
+            type: string
+          required: false
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  producerId:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                  description:
+                    type: string
+                  technology:
+                    type: string
+                    enum: *a4
+                  descriptors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        version:
+                          type: string
+                        description:
+                          type: string
+                        audience:
+                          type: array
+                          items:
+                            type: string
+                        voucherLifespan:
+                          type: integer
+                        dailyCallsPerConsumer:
+                          type: integer
+                          minimum: 0
+                        dailyCallsTotal:
+                          type: integer
+                          minimum: 0
+                        interface: &a5
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              format: uuid
+                            name:
+                              type: string
+                            contentType:
+                              type: string
+                            prettyName:
+                              type: string
+                            path:
+                              type: string
+                          required:
+                            - id
+                            - name
+                            - contentType
+                            - prettyName
+                            - path
+                          additionalProperties: true
+                        docs:
+                          type: array
+                          items: *a5
+                        state:
+                          type: string
+                          enum: *a2
+                        agreementApprovalPolicy:
+                          type: string
+                          enum: *a6
+                        serverUrls:
+                          type: array
+                          items:
+                            type: string
+                        publishedAt:
+                          type: string
+                        suspendedAt:
+                          type: string
+                        deprecatedAt:
+                          type: string
+                        archivedAt:
+                          type: string
+                        attributes:
+                          type: object
+                          properties:
+                            certified:
+                              type: array
+                              items:
+                                type: array
+                                items: &a7
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: string
+                                      format: uuid
+                                    explicitAttributeVerification:
+                                      type: boolean
+                                  required:
+                                    - id
+                                    - explicitAttributeVerification
+                                  additionalProperties: true
+                            declared:
+                              type: array
+                              items:
+                                type: array
+                                items: *a7
+                            verified:
+                              type: array
+                              items:
+                                type: array
+                                items: *a7
+                          required:
+                            - certified
+                            - declared
+                            - verified
+                          additionalProperties: true
+                      required:
+                        - id
+                        - version
+                        - audience
+                        - voucherLifespan
+                        - dailyCallsPerConsumer
+                        - dailyCallsTotal
+                        - docs
+                        - state
+                        - agreementApprovalPolicy
+                        - serverUrls
+                        - attributes
+                      additionalProperties: true
+                required:
+                  - id
+                  - producerId
+                  - name
+                  - description
+                  - technology
+                  - descriptors
+                additionalProperties: true
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  status:
+                    type: integer
+                    minimum: 100
+                    exclusiveMaximum: true
+                    maximum: 600
+                  title:
+                    type: string
+                    maxLength: 64
+                    pattern: ^[ -~]{0,64}$
+                  correlationId:
+                    type: string
+                    maxLength: 64
+                  detail:
+                    type: string
+                    maxLength: 4096
+                    pattern: ^.{0,1024}$
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          minLength: 8
+                          maxLength: 8
+                          pattern: ^[0-9]{3}-[0-9]{4}$
+                        detail:
+                          type: string
+                          maxLength: 4096
+                          pattern: ^.{0,1024}$
+                      required:
+                        - code
+                        - detail
+                      additionalProperties: true
+                    minItems: 1
+                required:
+                  - type
+                  - status
+                  - title
+                  - errors
+                additionalProperties: false
+        "404":
+          description: E-Service not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  status:
+                    type: integer
+                    minimum: 100
+                    exclusiveMaximum: true
+                    maximum: 600
+                  title:
+                    type: string
+                    maxLength: 64
+                    pattern: ^[ -~]{0,64}$
+                  correlationId:
+                    type: string
+                    maxLength: 64
+                  detail:
+                    type: string
+                    maxLength: 4096
+                    pattern: ^.{0,1024}$
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          minLength: 8
+                          maxLength: 8
+                          pattern: ^[0-9]{3}-[0-9]{4}$
+                        detail:
+                          type: string
+                          maxLength: 4096
+                          pattern: ^.{0,1024}$
+                      required:
+                        - code
+                        - detail
+                      additionalProperties: true
+                    minItems: 1
+                required:
+                  - type
+                  - status
+                  - title
+                  - errors
+                additionalProperties: false
+    put:
+      operationId: updateEServiceById
+      tags:
+        - eservices
+      requestBody:
+        description: An E-Service update seed containing the possible updatable fields
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 5
+                  maxLength: 60
+                description:
+                  type: string
+                  minLength: 10
+                  maxLength: 250
+                technology:
+                  type: string
+                  enum: *a4
+              required:
+                - name
+                - description
+                - technology
+              additionalProperties: true
+      parameters:
+        - name: eServiceId
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: X-Correlation-Id
+          in: header
+          schema:
+            type: string
+          required: true
+        - name: X-Forwarded-For
+          in: header
+          schema:
+            type: string
+          required: false
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json: {}
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  status:
+                    type: integer
+                    minimum: 100
+                    exclusiveMaximum: true
+                    maximum: 600
+                  title:
+                    type: string
+                    maxLength: 64
+                    pattern: ^[ -~]{0,64}$
+                  correlationId:
+                    type: string
+                    maxLength: 64
+                  detail:
+                    type: string
+                    maxLength: 4096
+                    pattern: ^.{0,1024}$
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          minLength: 8
+                          maxLength: 8
+                          pattern: ^[0-9]{3}-[0-9]{4}$
+                        detail:
+                          type: string
+                          maxLength: 4096
+                          pattern: ^.{0,1024}$
+                      required:
+                        - code
+                        - detail
+                      additionalProperties: true
+                    minItems: 1
+                required:
+                  - type
+                  - status
+                  - title
+                  - errors
+                additionalProperties: false
+        "404":
+          description: E-Service not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  status:
+                    type: integer
+                    minimum: 100
+                    exclusiveMaximum: true
+                    maximum: 600
+                  title:
+                    type: string
+                    maxLength: 64
+                    pattern: ^[ -~]{0,64}$
+                  correlationId:
+                    type: string
+                    maxLength: 64
+                  detail:
+                    type: string
+                    maxLength: 4096
+                    pattern: ^.{0,1024}$
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          minLength: 8
+                          maxLength: 8
+                          pattern: ^[0-9]{3}-[0-9]{4}$
+                        detail:
+                          type: string
+                          maxLength: 4096
+                          pattern: ^.{0,1024}$
+                      required:
+                        - code
+                        - detail
+                      additionalProperties: true
+                    minItems: 1
+                required:
+                  - type
+                  - status
+                  - title
+                  - errors
+                additionalProperties: false
+    delete:
+      operationId: deleteEService
+      tags:
+        - eservices
+      parameters:
+        - name: eServiceId
+          in: path
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - name: X-Correlation-Id
+          in: header
+          schema:
+            type: string
+          required: true
+        - name: X-Forwarded-For
+          in: header
+          schema:
+            type: string
+          required: false
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json: {}
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  status:
+                    type: integer
+                    minimum: 100
+                    exclusiveMaximum: true
+                    maximum: 600
+                  title:
+                    type: string
+                    maxLength: 64
+                    pattern: ^[ -~]{0,64}$
+                  correlationId:
+                    type: string
+                    maxLength: 64
+                  detail:
+                    type: string
+                    maxLength: 4096
+                    pattern: ^.{0,1024}$
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          minLength: 8
+                          maxLength: 8
+                          pattern: ^[0-9]{3}-[0-9]{4}$
+                        detail:
+                          type: string
+                          maxLength: 4096
+                          pattern: ^.{0,1024}$
+                      required:
+                        - code
+                        - detail
+                      additionalProperties: true
+                    minItems: 1
+                required:
+                  - type
+                  - status
+                  - title
+                  - errors
+                additionalProperties: false
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  status:
+                    type: integer
+                    minimum: 100
+                    exclusiveMaximum: true
+                    maximum: 600
+                  title:
+                    type: string
+                    maxLength: 64
+                    pattern: ^[ -~]{0,64}$
+                  correlationId:
+                    type: string
+                    maxLength: 64
+                  detail:
+                    type: string
+                    maxLength: 4096
+                    pattern: ^.{0,1024}$
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          minLength: 8
+                          maxLength: 8
+                          pattern: ^[0-9]{3}-[0-9]{4}$
+                        detail:
+                          type: string
+                          maxLength: 4096
+                          pattern: ^.{0,1024}$
+                      required:
+                        - code
+                        - detail
+                      additionalProperties: true
+                    minItems: 1
+                required:
+                  - type
+                  - status
+                  - title
+                  - errors
+                additionalProperties: false
+  /eservices/{eServiceId}/consumers:
+    get:
+      operationId: getEServiceConsumers
+      tags:
+        - consumers
+      parameters:
+        - name: eServiceId
+          in: path
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - name: X-Correlation-Id
+          in: header
+          schema:
+            type: string
+          required: true
+        - name: X-Forwarded-For
+          in: header
+          schema:
+            type: string
+          required: false
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+          required: true
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+          required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        descriptorVersion:
+                          type: integer
+                        descriptorState:
+                          type: string
+                          enum: *a2
+                        agreementState:
+                          type: string
+                          enum: *a8
+                        consumerName:
+                          type: string
+                        consumerExternalId:
+                          type: string
+                      required:
+                        - descriptorVersion
+                        - descriptorState
+                        - agreementState
+                        - consumerName
+                        - consumerExternalId
+                      additionalProperties: true
+                  totalCount:
+                    type: integer
+                required:
+                  - results
+                  - totalCount
+                additionalProperties: true
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  status:
+                    type: integer
+                    minimum: 100
+                    exclusiveMaximum: true
+                    maximum: 600
+                  title:
+                    type: string
+                    maxLength: 64
+                    pattern: ^[ -~]{0,64}$
+                  correlationId:
+                    type: string
+                    maxLength: 64
+                  detail:
+                    type: string
+                    maxLength: 4096
+                    pattern: ^.{0,1024}$
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          minLength: 8
+                          maxLength: 8
+                          pattern: ^[0-9]{3}-[0-9]{4}$
+                        detail:
+                          type: string
+                          maxLength: 4096
+                          pattern: ^.{0,1024}$
+                      required:
+                        - code
+                        - detail
+                      additionalProperties: true
+                    minItems: 1
+                required:
+                  - type
+                  - status
+                  - title
+                  - errors
+                additionalProperties: false
+        "404":
+          description: E-Service not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  status:
+                    type: integer
+                    minimum: 100
+                    exclusiveMaximum: true
+                    maximum: 600
+                  title:
+                    type: string
+                    maxLength: 64
+                    pattern: ^[ -~]{0,64}$
+                  correlationId:
+                    type: string
+                    maxLength: 64
+                  detail:
+                    type: string
+                    maxLength: 4096
+                    pattern: ^.{0,1024}$
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          minLength: 8
+                          maxLength: 8
+                          pattern: ^[0-9]{3}-[0-9]{4}$
+                        detail:
+                          type: string
+                          maxLength: 4096
+                          pattern: ^.{0,1024}$
+                      required:
+                        - code
+                        - detail
+                      additionalProperties: true
+                    minItems: 1
+                required:
+                  - type
+                  - status
+                  - title
+                  - errors
+                additionalProperties: false
+  /eservices/{eServiceId}/descriptors:
+    post:
+      operationId: createDescriptor
+      tags:
+        - descriptors
+      requestBody:
+        description: An E-Service Descriptor seed
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                description:
+                  type: string
+                  minLength: 10
+                  maxLength: 250
+                audience:
+                  type: array
+                  items:
+                    type: string
+                voucherLifespan:
+                  type: integer
+                  minimum: 60
+                  maximum: 86400
+                dailyCallsPerConsumer:
+                  type: integer
+                  minimum: 0
+                dailyCallsTotal:
+                  type: integer
+                  minimum: 0
+                agreementApprovalPolicy:
+                  type: string
+                  enum: *a6
+                attributes:
+                  type: object
+                  properties:
+                    certified:
+                      type: array
+                      items:
+                        type: array
+                        items: &a9
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              format: uuid
+                            explicitAttributeVerification:
+                              type: boolean
+                          required:
+                            - id
+                            - explicitAttributeVerification
+                          additionalProperties: true
+                    declared:
+                      type: array
+                      items:
+                        type: array
+                        items: *a9
+                    verified:
+                      type: array
+                      items:
+                        type: array
+                        items: *a9
+                  required:
+                    - certified
+                    - declared
+                    - verified
+                  additionalProperties: true
+              required:
+                - audience
+                - voucherLifespan
+                - dailyCallsPerConsumer
+                - dailyCallsTotal
+                - agreementApprovalPolicy
+                - attributes
+              additionalProperties: true
+      parameters:
+        - name: eServiceId
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: X-Correlation-Id
+          in: header
+          schema:
+            type: string
+          required: true
+        - name: X-Forwarded-For
+          in: header
+          schema:
+            type: string
+          required: false
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                required:
+                  - id
+                additionalProperties: true
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  status:
+                    type: integer
+                    minimum: 100
+                    exclusiveMaximum: true
+                    maximum: 600
+                  title:
+                    type: string
+                    maxLength: 64
+                    pattern: ^[ -~]{0,64}$
+                  correlationId:
+                    type: string
+                    maxLength: 64
+                  detail:
+                    type: string
+                    maxLength: 4096
+                    pattern: ^.{0,1024}$
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          minLength: 8
+                          maxLength: 8
+                          pattern: ^[0-9]{3}-[0-9]{4}$
+                        detail:
+                          type: string
+                          maxLength: 4096
+                          pattern: ^.{0,1024}$
+                      required:
+                        - code
+                        - detail
+                      additionalProperties: true
+                    minItems: 1
+                required:
+                  - type
+                  - status
+                  - title
+                  - errors
+                additionalProperties: false
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  status:
+                    type: integer
+                    minimum: 100
+                    exclusiveMaximum: true
+                    maximum: 600
+                  title:
+                    type: string
+                    maxLength: 64
+                    pattern: ^[ -~]{0,64}$
+                  correlationId:
+                    type: string
+                    maxLength: 64
+                  detail:
+                    type: string
+                    maxLength: 4096
+                    pattern: ^.{0,1024}$
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          minLength: 8
+                          maxLength: 8
+                          pattern: ^[0-9]{3}-[0-9]{4}$
+                        detail:
+                          type: string
+                          maxLength: 4096
+                          pattern: ^.{0,1024}$
+                      required:
+                        - code
+                        - detail
+                      additionalProperties: true
+                    minItems: 1
+                required:
+                  - type
+                  - status
+                  - title
+                  - errors
+                additionalProperties: false
+  /eservices/{eServiceId}/descriptors/{descriptorId}:
+    delete:
+      operationId: deleteDraft
+      tags:
+        - descriptors
+      parameters:
+        - name: eServiceId
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: descriptorId
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: X-Correlation-Id
+          in: header
+          schema:
+            type: string
+          required: true
+        - name: X-Forwarded-For
+          in: header
+          schema:
+            type: string
+          required: false
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json: {}
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  status:
+                    type: integer
+                    minimum: 100
+                    exclusiveMaximum: true
+                    maximum: 600
+                  title:
+                    type: string
+                    maxLength: 64
+                    pattern: ^[ -~]{0,64}$
+                  correlationId:
+                    type: string
+                    maxLength: 64
+                  detail:
+                    type: string
+                    maxLength: 4096
+                    pattern: ^.{0,1024}$
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          minLength: 8
+                          maxLength: 8
+                          pattern: ^[0-9]{3}-[0-9]{4}$
+                        detail:
+                          type: string
+                          maxLength: 4096
+                          pattern: ^.{0,1024}$
+                      required:
+                        - code
+                        - detail
+                      additionalProperties: true
+                    minItems: 1
+                required:
+                  - type
+                  - status
+                  - title
+                  - errors
+                additionalProperties: false
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  status:
+                    type: integer
+                    minimum: 100
+                    exclusiveMaximum: true
+                    maximum: 600
+                  title:
+                    type: string
+                    maxLength: 64
+                    pattern: ^[ -~]{0,64}$
+                  correlationId:
+                    type: string
+                    maxLength: 64
+                  detail:
+                    type: string
+                    maxLength: 4096
+                    pattern: ^.{0,1024}$
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          minLength: 8
+                          maxLength: 8
+                          pattern: ^[0-9]{3}-[0-9]{4}$
+                        detail:
+                          type: string
+                          maxLength: 4096
+                          pattern: ^.{0,1024}$
+                      required:
+                        - code
+                        - detail
+                      additionalProperties: true
+                    minItems: 1
+                required:
+                  - type
+                  - status
+                  - title
+                  - errors
+                additionalProperties: false
+    put:
+      operationId: updateDraftDescriptor
+      tags:
+        - descriptors
+      requestBody:
+        description: An E-Service Descriptor seed
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                description:
+                  type: string
+                  minLength: 10
+                  maxLength: 250
+                audience:
+                  type: array
+                  items:
+                    type: string
+                voucherLifespan:
+                  type: integer
+                  minimum: 60
+                  maximum: 86400
+                dailyCallsPerConsumer:
+                  type: integer
+                  minimum: 0
+                dailyCallsTotal:
+                  type: integer
+                  minimum: 0
+                agreementApprovalPolicy:
+                  type: string
+                  enum: *a6
+                attributes:
+                  type: object
+                  properties:
+                    certified:
+                      type: array
+                      items:
+                        type: array
+                        items: &a10
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              format: uuid
+                            explicitAttributeVerification:
+                              type: boolean
+                          required:
+                            - id
+                            - explicitAttributeVerification
+                          additionalProperties: true
+                    declared:
+                      type: array
+                      items:
+                        type: array
+                        items: *a10
+                    verified:
+                      type: array
+                      items:
+                        type: array
+                        items: *a10
+                  required:
+                    - certified
+                    - declared
+                    - verified
+                  additionalProperties: true
+              required:
+                - audience
+                - voucherLifespan
+                - dailyCallsPerConsumer
+                - dailyCallsTotal
+                - agreementApprovalPolicy
+                - attributes
+              additionalProperties: true
+      parameters:
+        - name: eServiceId
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: descriptorId
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: X-Correlation-Id
+          in: header
+          schema:
+            type: string
+          required: true
+        - name: X-Forwarded-For
+          in: header
+          schema:
+            type: string
+          required: false
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json: {}
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  status:
+                    type: integer
+                    minimum: 100
+                    exclusiveMaximum: true
+                    maximum: 600
+                  title:
+                    type: string
+                    maxLength: 64
+                    pattern: ^[ -~]{0,64}$
+                  correlationId:
+                    type: string
+                    maxLength: 64
+                  detail:
+                    type: string
+                    maxLength: 4096
+                    pattern: ^.{0,1024}$
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          minLength: 8
+                          maxLength: 8
+                          pattern: ^[0-9]{3}-[0-9]{4}$
+                        detail:
+                          type: string
+                          maxLength: 4096
+                          pattern: ^.{0,1024}$
+                      required:
+                        - code
+                        - detail
+                      additionalProperties: true
+                    minItems: 1
+                required:
+                  - type
+                  - status
+                  - title
+                  - errors
+                additionalProperties: false
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  status:
+                    type: integer
+                    minimum: 100
+                    exclusiveMaximum: true
+                    maximum: 600
+                  title:
+                    type: string
+                    maxLength: 64
+                    pattern: ^[ -~]{0,64}$
+                  correlationId:
+                    type: string
+                    maxLength: 64
+                  detail:
+                    type: string
+                    maxLength: 4096
+                    pattern: ^.{0,1024}$
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          minLength: 8
+                          maxLength: 8
+                          pattern: ^[0-9]{3}-[0-9]{4}$
+                        detail:
+                          type: string
+                          maxLength: 4096
+                          pattern: ^.{0,1024}$
+                      required:
+                        - code
+                        - detail
+                      additionalProperties: true
+                    minItems: 1
+                required:
+                  - type
+                  - status
+                  - title
+                  - errors
+                additionalProperties: false
+  /eservices/{eServiceId}/descriptors/{descriptorId}/activate:
+    post:
+      operationId: activateDescriptor
+      tags:
+        - activate
+      parameters:
+        - name: eServiceId
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: descriptorId
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: X-Correlation-Id
+          in: header
+          schema:
+            type: string
+          required: true
+        - name: X-Forwarded-For
+          in: header
+          schema:
+            type: string
+          required: false
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json: {}
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  status:
+                    type: integer
+                    minimum: 100
+                    exclusiveMaximum: true
+                    maximum: 600
+                  title:
+                    type: string
+                    maxLength: 64
+                    pattern: ^[ -~]{0,64}$
+                  correlationId:
+                    type: string
+                    maxLength: 64
+                  detail:
+                    type: string
+                    maxLength: 4096
+                    pattern: ^.{0,1024}$
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          minLength: 8
+                          maxLength: 8
+                          pattern: ^[0-9]{3}-[0-9]{4}$
+                        detail:
+                          type: string
+                          maxLength: 4096
+                          pattern: ^.{0,1024}$
+                      required:
+                        - code
+                        - detail
+                      additionalProperties: true
+                    minItems: 1
+                required:
+                  - type
+                  - status
+                  - title
+                  - errors
+                additionalProperties: false
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  status:
+                    type: integer
+                    minimum: 100
+                    exclusiveMaximum: true
+                    maximum: 600
+                  title:
+                    type: string
+                    maxLength: 64
+                    pattern: ^[ -~]{0,64}$
+                  correlationId:
+                    type: string
+                    maxLength: 64
+                  detail:
+                    type: string
+                    maxLength: 4096
+                    pattern: ^.{0,1024}$
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          minLength: 8
+                          maxLength: 8
+                          pattern: ^[0-9]{3}-[0-9]{4}$
+                        detail:
+                          type: string
+                          maxLength: 4096
+                          pattern: ^.{0,1024}$
+                      required:
+                        - code
+                        - detail
+                      additionalProperties: true
+                    minItems: 1
+                required:
+                  - type
+                  - status
+                  - title
+                  - errors
+                additionalProperties: false
+  /eservices/{eServiceId}/descriptors/{descriptorId}/archive:
+    post:
+      operationId: archiveDescriptor
+      tags:
+        - archive
+      parameters:
+        - name: eServiceId
+          in: path
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - name: descriptorId
+          in: path
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - name: X-Correlation-Id
+          in: header
+          schema:
+            type: string
+          required: true
+        - name: X-Forwarded-For
+          in: header
+          schema:
+            type: string
+          required: false
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json: {}
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  status:
+                    type: integer
+                    minimum: 100
+                    exclusiveMaximum: true
+                    maximum: 600
+                  title:
+                    type: string
+                    maxLength: 64
+                    pattern: ^[ -~]{0,64}$
+                  correlationId:
+                    type: string
+                    maxLength: 64
+                  detail:
+                    type: string
+                    maxLength: 4096
+                    pattern: ^.{0,1024}$
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          minLength: 8
+                          maxLength: 8
+                          pattern: ^[0-9]{3}-[0-9]{4}$
+                        detail:
+                          type: string
+                          maxLength: 4096
+                          pattern: ^.{0,1024}$
+                      required:
+                        - code
+                        - detail
+                      additionalProperties: true
+                    minItems: 1
+                required:
+                  - type
+                  - status
+                  - title
+                  - errors
+                additionalProperties: false
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  status:
+                    type: integer
+                    minimum: 100
+                    exclusiveMaximum: true
+                    maximum: 600
+                  title:
+                    type: string
+                    maxLength: 64
+                    pattern: ^[ -~]{0,64}$
+                  correlationId:
+                    type: string
+                    maxLength: 64
+                  detail:
+                    type: string
+                    maxLength: 4096
+                    pattern: ^.{0,1024}$
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          minLength: 8
+                          maxLength: 8
+                          pattern: ^[0-9]{3}-[0-9]{4}$
+                        detail:
+                          type: string
+                          maxLength: 4096
+                          pattern: ^.{0,1024}$
+                      required:
+                        - code
+                        - detail
+                      additionalProperties: true
+                    minItems: 1
+                required:
+                  - type
+                  - status
+                  - title
+                  - errors
+                additionalProperties: false
+  /eservices/{eServiceId}/descriptors/{descriptorId}/clone:
+    post:
+      operationId: cloneEServiceByDescriptor
+      tags:
+        - clone
+      parameters:
+        - name: eServiceId
+          in: path
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - name: descriptorId
+          in: path
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - name: X-Correlation-Id
+          in: header
+          schema:
+            type: string
+          required: true
+        - name: X-Forwarded-For
+          in: header
+          schema:
+            type: string
+          required: false
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                required:
+                  - id
+                additionalProperties: true
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  status:
+                    type: integer
+                    minimum: 100
+                    exclusiveMaximum: true
+                    maximum: 600
+                  title:
+                    type: string
+                    maxLength: 64
+                    pattern: ^[ -~]{0,64}$
+                  correlationId:
+                    type: string
+                    maxLength: 64
+                  detail:
+                    type: string
+                    maxLength: 4096
+                    pattern: ^.{0,1024}$
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          minLength: 8
+                          maxLength: 8
+                          pattern: ^[0-9]{3}-[0-9]{4}$
+                        detail:
+                          type: string
+                          maxLength: 4096
+                          pattern: ^.{0,1024}$
+                      required:
+                        - code
+                        - detail
+                      additionalProperties: true
+                    minItems: 1
+                required:
+                  - type
+                  - status
+                  - title
+                  - errors
+                additionalProperties: false
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  status:
+                    type: integer
+                    minimum: 100
+                    exclusiveMaximum: true
+                    maximum: 600
+                  title:
+                    type: string
+                    maxLength: 64
+                    pattern: ^[ -~]{0,64}$
+                  correlationId:
+                    type: string
+                    maxLength: 64
+                  detail:
+                    type: string
+                    maxLength: 4096
+                    pattern: ^.{0,1024}$
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          minLength: 8
+                          maxLength: 8
+                          pattern: ^[0-9]{3}-[0-9]{4}$
+                        detail:
+                          type: string
+                          maxLength: 4096
+                          pattern: ^.{0,1024}$
+                      required:
+                        - code
+                        - detail
+                      additionalProperties: true
+                    minItems: 1
+                required:
+                  - type
+                  - status
+                  - title
+                  - errors
+                additionalProperties: false
+  /eservices/{eServiceId}/descriptors/{descriptorId}/documents:
+    post:
+      operationId: createEServiceDocument
+      tags:
+        - documents
+      requestBody:
+        description: E-Service document
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                documentId:
+                  type: string
+                  format: uuid
+                kind:
+                  type: string
+                  enum:
+                    - INTERFACE
+                    - DOCUMENT
+                prettyName:
+                  type: string
+                filePath:
+                  type: string
+                fileName:
+                  type: string
+                contentType:
+                  type: string
+                checksum:
+                  type: string
+                serverUrls:
+                  type: array
+                  items:
+                    type: string
+              required:
+                - documentId
+                - kind
+                - prettyName
+                - filePath
+                - fileName
+                - contentType
+                - checksum
+                - serverUrls
+              additionalProperties: true
+      parameters:
+        - name: eServiceId
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: descriptorId
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: X-Correlation-Id
+          in: header
+          schema:
+            type: string
+          required: true
+        - name: X-Forwarded-For
+          in: header
+          schema:
+            type: string
+          required: false
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                required:
+                  - id
+                additionalProperties: true
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  status:
+                    type: integer
+                    minimum: 100
+                    exclusiveMaximum: true
+                    maximum: 600
+                  title:
+                    type: string
+                    maxLength: 64
+                    pattern: ^[ -~]{0,64}$
+                  correlationId:
+                    type: string
+                    maxLength: 64
+                  detail:
+                    type: string
+                    maxLength: 4096
+                    pattern: ^.{0,1024}$
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          minLength: 8
+                          maxLength: 8
+                          pattern: ^[0-9]{3}-[0-9]{4}$
+                        detail:
+                          type: string
+                          maxLength: 4096
+                          pattern: ^.{0,1024}$
+                      required:
+                        - code
+                        - detail
+                      additionalProperties: true
+                    minItems: 1
+                required:
+                  - type
+                  - status
+                  - title
+                  - errors
+                additionalProperties: false
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  status:
+                    type: integer
+                    minimum: 100
+                    exclusiveMaximum: true
+                    maximum: 600
+                  title:
+                    type: string
+                    maxLength: 64
+                    pattern: ^[ -~]{0,64}$
+                  correlationId:
+                    type: string
+                    maxLength: 64
+                  detail:
+                    type: string
+                    maxLength: 4096
+                    pattern: ^.{0,1024}$
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          minLength: 8
+                          maxLength: 8
+                          pattern: ^[0-9]{3}-[0-9]{4}$
+                        detail:
+                          type: string
+                          maxLength: 4096
+                          pattern: ^.{0,1024}$
+                      required:
+                        - code
+                        - detail
+                      additionalProperties: true
+                    minItems: 1
+                required:
+                  - type
+                  - status
+                  - title
+                  - errors
+                additionalProperties: false
+  /eservices/{eServiceId}/descriptors/{descriptorId}/documents/{documentId}:
+    get:
+      operationId: getEServiceDocumentById
+      tags:
+        - documents
+      parameters:
+        - name: eServiceId
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: descriptorId
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: documentId
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: X-Correlation-Id
+          in: header
+          schema:
+            type: string
+          required: true
+        - name: X-Forwarded-For
+          in: header
+          schema:
+            type: string
+          required: false
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                  contentType:
+                    type: string
+                  prettyName:
+                    type: string
+                  path:
+                    type: string
+                required:
+                  - id
+                  - name
+                  - contentType
+                  - prettyName
+                  - path
+                additionalProperties: true
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  status:
+                    type: integer
+                    minimum: 100
+                    exclusiveMaximum: true
+                    maximum: 600
+                  title:
+                    type: string
+                    maxLength: 64
+                    pattern: ^[ -~]{0,64}$
+                  correlationId:
+                    type: string
+                    maxLength: 64
+                  detail:
+                    type: string
+                    maxLength: 4096
+                    pattern: ^.{0,1024}$
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          minLength: 8
+                          maxLength: 8
+                          pattern: ^[0-9]{3}-[0-9]{4}$
+                        detail:
+                          type: string
+                          maxLength: 4096
+                          pattern: ^.{0,1024}$
+                      required:
+                        - code
+                        - detail
+                      additionalProperties: true
+                    minItems: 1
+                required:
+                  - type
+                  - status
+                  - title
+                  - errors
+                additionalProperties: false
+        "404":
+          description: EService not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  status:
+                    type: integer
+                    minimum: 100
+                    exclusiveMaximum: true
+                    maximum: 600
+                  title:
+                    type: string
+                    maxLength: 64
+                    pattern: ^[ -~]{0,64}$
+                  correlationId:
+                    type: string
+                    maxLength: 64
+                  detail:
+                    type: string
+                    maxLength: 4096
+                    pattern: ^.{0,1024}$
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          minLength: 8
+                          maxLength: 8
+                          pattern: ^[0-9]{3}-[0-9]{4}$
+                        detail:
+                          type: string
+                          maxLength: 4096
+                          pattern: ^.{0,1024}$
+                      required:
+                        - code
+                        - detail
+                      additionalProperties: true
+                    minItems: 1
+                required:
+                  - type
+                  - status
+                  - title
+                  - errors
+                additionalProperties: false
+    delete:
+      operationId: deleteEServiceDocumentById
+      tags:
+        - documents
+      parameters:
+        - name: eServiceId
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: descriptorId
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: documentId
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: X-Correlation-Id
+          in: header
+          schema:
+            type: string
+          required: true
+        - name: X-Forwarded-For
+          in: header
+          schema:
+            type: string
+          required: false
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json: {}
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  status:
+                    type: integer
+                    minimum: 100
+                    exclusiveMaximum: true
+                    maximum: 600
+                  title:
+                    type: string
+                    maxLength: 64
+                    pattern: ^[ -~]{0,64}$
+                  correlationId:
+                    type: string
+                    maxLength: 64
+                  detail:
+                    type: string
+                    maxLength: 4096
+                    pattern: ^.{0,1024}$
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          minLength: 8
+                          maxLength: 8
+                          pattern: ^[0-9]{3}-[0-9]{4}$
+                        detail:
+                          type: string
+                          maxLength: 4096
+                          pattern: ^.{0,1024}$
+                      required:
+                        - code
+                        - detail
+                      additionalProperties: true
+                    minItems: 1
+                required:
+                  - type
+                  - status
+                  - title
+                  - errors
+                additionalProperties: false
+        "404":
+          description: E-Service descriptor document not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  status:
+                    type: integer
+                    minimum: 100
+                    exclusiveMaximum: true
+                    maximum: 600
+                  title:
+                    type: string
+                    maxLength: 64
+                    pattern: ^[ -~]{0,64}$
+                  correlationId:
+                    type: string
+                    maxLength: 64
+                  detail:
+                    type: string
+                    maxLength: 4096
+                    pattern: ^.{0,1024}$
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          minLength: 8
+                          maxLength: 8
+                          pattern: ^[0-9]{3}-[0-9]{4}$
+                        detail:
+                          type: string
+                          maxLength: 4096
+                          pattern: ^.{0,1024}$
+                      required:
+                        - code
+                        - detail
+                      additionalProperties: true
+                    minItems: 1
+                required:
+                  - type
+                  - status
+                  - title
+                  - errors
+                additionalProperties: false
+  /eservices/{eServiceId}/descriptors/{descriptorId}/documents/{documentId}/update:
+    post:
+      operationId: updateEServiceDocumentById
+      tags:
+        - update
+      requestBody:
+        description: A payload containing the possible document updatable fields
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                prettyName:
+                  type: string
+                  minLength: 5
+                  maxLength: 60
+              required:
+                - prettyName
+              additionalProperties: true
+      parameters:
+        - name: eServiceId
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: descriptorId
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: documentId
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: X-Correlation-Id
+          in: header
+          schema:
+            type: string
+          required: true
+        - name: X-Forwarded-For
+          in: header
+          schema:
+            type: string
+          required: false
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json: {}
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  status:
+                    type: integer
+                    minimum: 100
+                    exclusiveMaximum: true
+                    maximum: 600
+                  title:
+                    type: string
+                    maxLength: 64
+                    pattern: ^[ -~]{0,64}$
+                  correlationId:
+                    type: string
+                    maxLength: 64
+                  detail:
+                    type: string
+                    maxLength: 4096
+                    pattern: ^.{0,1024}$
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          minLength: 8
+                          maxLength: 8
+                          pattern: ^[0-9]{3}-[0-9]{4}$
+                        detail:
+                          type: string
+                          maxLength: 4096
+                          pattern: ^.{0,1024}$
+                      required:
+                        - code
+                        - detail
+                      additionalProperties: true
+                    minItems: 1
+                required:
+                  - type
+                  - status
+                  - title
+                  - errors
+                additionalProperties: false
+        "404":
+          description: EService not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  status:
+                    type: integer
+                    minimum: 100
+                    exclusiveMaximum: true
+                    maximum: 600
+                  title:
+                    type: string
+                    maxLength: 64
+                    pattern: ^[ -~]{0,64}$
+                  correlationId:
+                    type: string
+                    maxLength: 64
+                  detail:
+                    type: string
+                    maxLength: 4096
+                    pattern: ^.{0,1024}$
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          minLength: 8
+                          maxLength: 8
+                          pattern: ^[0-9]{3}-[0-9]{4}$
+                        detail:
+                          type: string
+                          maxLength: 4096
+                          pattern: ^.{0,1024}$
+                      required:
+                        - code
+                        - detail
+                      additionalProperties: true
+                    minItems: 1
+                required:
+                  - type
+                  - status
+                  - title
+                  - errors
+                additionalProperties: false
+  /eservices/{eServiceId}/descriptors/{descriptorId}/publish:
+    post:
+      operationId: publishDescriptor
+      tags:
+        - publish
+      parameters:
+        - name: eServiceId
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: descriptorId
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: X-Correlation-Id
+          in: header
+          schema:
+            type: string
+          required: true
+        - name: X-Forwarded-For
+          in: header
+          schema:
+            type: string
+          required: false
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json: {}
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  status:
+                    type: integer
+                    minimum: 100
+                    exclusiveMaximum: true
+                    maximum: 600
+                  title:
+                    type: string
+                    maxLength: 64
+                    pattern: ^[ -~]{0,64}$
+                  correlationId:
+                    type: string
+                    maxLength: 64
+                  detail:
+                    type: string
+                    maxLength: 4096
+                    pattern: ^.{0,1024}$
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          minLength: 8
+                          maxLength: 8
+                          pattern: ^[0-9]{3}-[0-9]{4}$
+                        detail:
+                          type: string
+                          maxLength: 4096
+                          pattern: ^.{0,1024}$
+                      required:
+                        - code
+                        - detail
+                      additionalProperties: true
+                    minItems: 1
+                required:
+                  - type
+                  - status
+                  - title
+                  - errors
+                additionalProperties: false
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  status:
+                    type: integer
+                    minimum: 100
+                    exclusiveMaximum: true
+                    maximum: 600
+                  title:
+                    type: string
+                    maxLength: 64
+                    pattern: ^[ -~]{0,64}$
+                  correlationId:
+                    type: string
+                    maxLength: 64
+                  detail:
+                    type: string
+                    maxLength: 4096
+                    pattern: ^.{0,1024}$
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          minLength: 8
+                          maxLength: 8
+                          pattern: ^[0-9]{3}-[0-9]{4}$
+                        detail:
+                          type: string
+                          maxLength: 4096
+                          pattern: ^.{0,1024}$
+                      required:
+                        - code
+                        - detail
+                      additionalProperties: true
+                    minItems: 1
+                required:
+                  - type
+                  - status
+                  - title
+                  - errors
+                additionalProperties: false
+  /eservices/{eServiceId}/descriptors/{descriptorId}/suspend:
+    post:
+      operationId: suspendDescriptor
+      tags:
+        - suspend
+      parameters:
+        - name: eServiceId
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: descriptorId
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: X-Correlation-Id
+          in: header
+          schema:
+            type: string
+          required: true
+        - name: X-Forwarded-For
+          in: header
+          schema:
+            type: string
+          required: false
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json: {}
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  status:
+                    type: integer
+                    minimum: 100
+                    exclusiveMaximum: true
+                    maximum: 600
+                  title:
+                    type: string
+                    maxLength: 64
+                    pattern: ^[ -~]{0,64}$
+                  correlationId:
+                    type: string
+                    maxLength: 64
+                  detail:
+                    type: string
+                    maxLength: 4096
+                    pattern: ^.{0,1024}$
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          minLength: 8
+                          maxLength: 8
+                          pattern: ^[0-9]{3}-[0-9]{4}$
+                        detail:
+                          type: string
+                          maxLength: 4096
+                          pattern: ^.{0,1024}$
+                      required:
+                        - code
+                        - detail
+                      additionalProperties: true
+                    minItems: 1
+                required:
+                  - type
+                  - status
+                  - title
+                  - errors
+                additionalProperties: false
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  status:
+                    type: integer
+                    minimum: 100
+                    exclusiveMaximum: true
+                    maximum: 600
+                  title:
+                    type: string
+                    maxLength: 64
+                    pattern: ^[ -~]{0,64}$
+                  correlationId:
+                    type: string
+                    maxLength: 64
+                  detail:
+                    type: string
+                    maxLength: 4096
+                    pattern: ^.{0,1024}$
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          minLength: 8
+                          maxLength: 8
+                          pattern: ^[0-9]{3}-[0-9]{4}$
+                        detail:
+                          type: string
+                          maxLength: 4096
+                          pattern: ^.{0,1024}$
+                      required:
+                        - code
+                        - detail
+                      additionalProperties: true
+                    minItems: 1
+                required:
+                  - type
+                  - status
+                  - title
+                  - errors
+                additionalProperties: false
+  /status:
+    get:
+      operationId: getStatus
+      summary: Return ok
+      description: Return ok
+      tags:
+        - status
+      parameters: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  status:
+                    type: integer
+                    minimum: 100
+                    exclusiveMaximum: true
+                    maximum: 600
+                  title:
+                    type: string
+                    maxLength: 64
+                    pattern: ^[ -~]{0,64}$
+                  correlationId:
+                    type: string
+                    maxLength: 64
+                  detail:
+                    type: string
+                    maxLength: 4096
+                    pattern: ^.{0,1024}$
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          minLength: 8
+                          maxLength: 8
+                          pattern: ^[0-9]{3}-[0-9]{4}$
+                        detail:
+                          type: string
+                          maxLength: 4096
+                          pattern: ^.{0,1024}$
+                      required:
+                        - code
+                        - detail
+                      additionalProperties: true
+                    minItems: 1
+                required:
+                  - type
+                  - status
+                  - title
+                  - errors
+                additionalProperties: false
