@@ -337,16 +337,25 @@ describe("CatalogService", () => {
   });
   describe("deleteDocument", () => {
     it("delete the document", async () => {
+      const descriptor = {
+        ...mockDescriptor,
+        state: descriptorState.draft,
+        docs: [mockDocument],
+      };
+      const eService = {
+        ...mockEservice,
+        descriptors: [descriptor],
+      };
       const event = await deleteDocumentLogic({
-        eServiceId: mockEservice.id,
-        descriptorId: mockEservice.descriptors[0].id,
+        eServiceId: eService.id,
+        descriptorId: eService.descriptors[0].id,
         documentId: mockDocument.documentId,
         authData,
         eService: addMetadata({
-          ...mockEservice,
+          ...eService,
           descriptors: [
             {
-              ...mockEservice.descriptors[0],
+              ...eService.descriptors[0],
               docs: [
                 {
                   path: mockDocument.filePath,
@@ -365,27 +374,36 @@ describe("CatalogService", () => {
       });
       expect(event.event.type).toBe("EServiceDocumentDeleted");
       expect(event.event.data).toMatchObject({
-        eServiceId: mockEservice.id,
-        descriptorId: mockEservice.descriptors[0].id,
+        eServiceId: eService.id,
+        descriptorId: eService.descriptors[0].id,
         documentId: mockDocument.documentId,
       });
     });
 
-    it("returns an error if the eservice doesn't contains the document", async () => {
+    it("returns an error if the eservice doesn't contain the document", async () => {
+      const descriptor = {
+        ...mockDescriptor,
+        state: descriptorState.draft,
+        docs: [],
+      };
+      const eService = {
+        ...mockEservice,
+        descriptors: [descriptor],
+      };
       const documentId = "document-not-present-id";
       await expect(() =>
         deleteDocumentLogic({
-          eServiceId: mockEservice.id,
-          descriptorId: mockEservice.descriptors[0].id,
+          eServiceId: eService.id,
+          descriptorId: eService.descriptors[0].id,
           documentId,
           authData,
-          eService: addMetadata(mockEservice),
+          eService: addMetadata(eService),
           deleteRemoteFile: () => Promise.resolve(),
         })
       ).rejects.toThrowError(
         eServiceDocumentNotFound(
-          mockEservice.id,
-          mockEservice.descriptors[0].id,
+          eService.id,
+          eService.descriptors[0].id,
           documentId
         )
       );
