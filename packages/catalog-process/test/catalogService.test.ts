@@ -256,6 +256,7 @@ describe("CatalogService", () => {
     it("uploads the document", async () => {
       const descriptor = {
         ...mockDescriptor,
+        interface: undefined,
         state: descriptorState.draft,
       };
       const eService = {
