@@ -67,6 +67,7 @@ import {
   eServiceDocumentNotFound,
   eServiceDuplicate,
   eServiceNotFound,
+  interfaceAlreadyExists,
   notValidDescriptor,
 } from "../src/model/domain/errors.js";
 import {
@@ -1779,6 +1780,26 @@ describe("database test", async () => {
         ).rejects.toThrowError(
           notValidDescriptor(descriptor.id, descriptorState.suspended)
         );
+      });
+      it("should throw interfaceAlreadyExists if the descriptor already contains an interface", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          interface: mockDocument,
+          state: descriptorState.draft,
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+        expect(
+          catalogService.uploadDocument(
+            eService.id,
+            mockDescriptor.id,
+            buildInterfaceSeed(),
+            getMockAuthData(eService.producerId)
+          )
+        ).rejects.toThrowError(interfaceAlreadyExists(descriptor.id));
       });
     });
 
