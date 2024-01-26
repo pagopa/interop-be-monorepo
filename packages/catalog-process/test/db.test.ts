@@ -1062,7 +1062,7 @@ describe("database test", async () => {
 
         expect(
           catalogService.suspendDescriptor(
-            mockEService.id,
+            eService.id,
             mockDescriptor.id,
             getMockAuthData(mockEService.producerId)
           )
@@ -1196,9 +1196,9 @@ describe("database test", async () => {
 
         expect(
           catalogService.activateDescriptor(
-            mockEService.id,
+            eService.id,
             mockDescriptor.id,
-            getMockAuthData(mockEService.producerId)
+            getMockAuthData(eService.producerId)
           )
         ).rejects.toThrowError(
           eServiceDescriptorNotFound(eService.id, mockDescriptor.id)
@@ -1487,7 +1487,7 @@ describe("database test", async () => {
 
         expect(
           catalogService.archiveDescriptor(
-            mockEService.id,
+            eService.id,
             mockDescriptor.id,
             getMockAuthData(mockEService.producerId)
           )
