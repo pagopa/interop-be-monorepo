@@ -634,6 +634,10 @@ export async function deleteDocumentLogic({
 
   const descriptor = retrieveDescriptor(descriptorId, eService);
 
+  if (descriptor.state !== descriptorState.draft) {
+    throw notValidDescriptor(descriptor.id, descriptor.state);
+  }
+
   const document = [...descriptor.docs, descriptor.interface].find(
     (doc) => doc != null && doc.id === documentId
   );
