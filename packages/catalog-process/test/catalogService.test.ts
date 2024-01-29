@@ -348,14 +348,14 @@ describe("CatalogService", () => {
       };
       const event = await deleteDocumentLogic({
         eServiceId: eService.id,
-        descriptorId: eService.descriptors[0].id,
+        descriptorId: descriptor.id,
         documentId: mockDocument.documentId,
         authData,
         eService: addMetadata({
           ...eService,
           descriptors: [
             {
-              ...eService.descriptors[0],
+              ...descriptor,
               docs: [
                 {
                   path: mockDocument.filePath,
@@ -375,7 +375,7 @@ describe("CatalogService", () => {
       expect(event.event.type).toBe("EServiceDocumentDeleted");
       expect(event.event.data).toMatchObject({
         eServiceId: eService.id,
-        descriptorId: eService.descriptors[0].id,
+        descriptorId: descriptor.id,
         documentId: mockDocument.documentId,
       });
     });
@@ -394,18 +394,14 @@ describe("CatalogService", () => {
       await expect(() =>
         deleteDocumentLogic({
           eServiceId: eService.id,
-          descriptorId: eService.descriptors[0].id,
+          descriptorId: descriptor.id,
           documentId,
           authData,
           eService: addMetadata(eService),
           deleteRemoteFile: () => Promise.resolve(),
         })
       ).rejects.toThrowError(
-        eServiceDocumentNotFound(
-          eService.id,
-          eService.descriptors[0].id,
-          documentId
-        )
+        eServiceDocumentNotFound(eService.id, descriptor.id, documentId)
       );
     });
 
