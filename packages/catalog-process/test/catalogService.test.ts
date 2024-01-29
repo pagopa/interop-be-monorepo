@@ -126,7 +126,7 @@ describe("CatalogService", () => {
     it("updates the eservice", async () => {
       const eService = { ...mockEservice, descriptors: [] };
 
-      const event = await updateEserviceLogic({
+      const event = updateEserviceLogic({
         eService: addMetadata(eService),
         eServiceId: mockEservice.id,
         eServiceSeed: mockEserviceSeed,
