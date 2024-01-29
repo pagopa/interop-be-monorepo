@@ -908,7 +908,7 @@ describe("database test", async () => {
         id: uuidv4(),
         name: "A tenant5",
       };
-      it("should get tenants", async () => {
+      it("should get all the tenants with no filter", async () => {
         await addOneTenant(tenant1, postgresDB, tenants);
         await addOneTenant(tenant2, postgresDB, tenants);
         await addOneTenant(tenant3, postgresDB, tenants);
