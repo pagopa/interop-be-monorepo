@@ -159,7 +159,7 @@ describe("CatalogService", () => {
           eServiceSeed: mockEserviceSeed,
           eServiceWithSameName: undefined,
         })
-      ).rejects.toThrowError(eServiceCannotBeUpdated(mockEservice.id));
+      ).toThrowError(eServiceCannotBeUpdated(mockEservice.id));
     });
 
     it("returns an error if the authenticated organization is not the producer", async () => {
@@ -177,7 +177,7 @@ describe("CatalogService", () => {
           },
           eServiceWithSameName: undefined,
         })
-      ).rejects.toThrowError(operationForbidden);
+      ).toThrowError(operationForbidden);
     });
 
     it("returns an error when the service does not exist", async () => {
@@ -193,7 +193,7 @@ describe("CatalogService", () => {
           },
           eServiceWithSameName: undefined,
         })
-      ).rejects.toThrowError(eServiceNotFound(eServiceId));
+      ).toThrowError(eServiceNotFound(eServiceId));
     });
   });
   describe("deleteEService", () => {
