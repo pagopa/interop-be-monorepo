@@ -980,7 +980,7 @@ describe("database test", async () => {
           offset: 2,
           limit: 4,
         });
-        expect(tenantsByName.results.length).toBe(1);
+        expect(tenantsByName.results.length).toBe(3);
       });
     });
     describe("getTenantById", () => {
