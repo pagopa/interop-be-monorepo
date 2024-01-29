@@ -131,7 +131,7 @@ describe("CatalogService", () => {
         eServiceId: mockEservice.id,
         eServiceSeed: mockEserviceSeed,
         authData,
-        getEServiceByNameAndProducerId: () => Promise.resolve(undefined),
+        eServiceWithSameName: undefined,
       });
       expect(event.event.type).toBe("EServiceUpdated");
       expect(event.event.data).toMatchObject({
@@ -157,7 +157,7 @@ describe("CatalogService", () => {
           eServiceId: mockEservice.id,
           authData,
           eServiceSeed: mockEserviceSeed,
-          getEServiceByNameAndProducerId: () => Promise.resolve(undefined),
+          eServiceWithSameName: undefined,
         })
       ).rejects.toThrowError(eServiceCannotBeUpdated(mockEservice.id));
     });
@@ -175,7 +175,7 @@ describe("CatalogService", () => {
             ...authData,
             organizationId: "other-org-id",
           },
-          getEServiceByNameAndProducerId: () => Promise.resolve(undefined),
+          eServiceWithSameName: undefined,
         })
       ).rejects.toThrowError(operationForbidden);
     });
@@ -191,7 +191,7 @@ describe("CatalogService", () => {
             ...authData,
             organizationId: "organizationId",
           },
-          getEServiceByNameAndProducerId: () => Promise.resolve(undefined),
+          eServiceWithSameName: undefined,
         })
       ).rejects.toThrowError(eServiceNotFound(eServiceId));
     });
@@ -264,7 +264,7 @@ describe("CatalogService", () => {
       };
       const event = uploadDocumentLogic({
         eServiceId: eService.id,
-        descriptorId: eService.descriptors[0].id,
+        descriptorId: descriptor.id,
         document: mockDocument,
         authData,
         eService: addMetadata(eService),
@@ -272,7 +272,7 @@ describe("CatalogService", () => {
       expect(event.event.type).toBe("EServiceDocumentAdded");
       expect(event.event.data).toMatchObject({
         eServiceId: eService.id,
-        descriptorId: eService.descriptors[0].id,
+        descriptorId: descriptor.id,
         document: {
           id: mockDocument.documentId,
           name: mockDocument.fileName,
