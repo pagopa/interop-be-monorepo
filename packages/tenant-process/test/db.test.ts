@@ -977,7 +977,7 @@ describe("database test", async () => {
         await addOneTenant(tenant5, postgresDB, tenants);
         const tenantsByName = await readModelService.getTenantsByName({
           name: undefined,
-          offset: 4,
+          offset: 2,
           limit: 4,
         });
         expect(tenantsByName.results.length).toBe(1);
