@@ -969,7 +969,7 @@ describe("database test", async () => {
         });
         expect(tenantsByName.results.length).toBe(4);
       });
-      it("Should get tenants (pagination: offset, limit)", async () => {
+      it("Should get a maximun number of tenants based on a specified limit and offset", async () => {
         await addOneTenant(tenant1, postgresDB, tenants);
         await addOneTenant(tenant2, postgresDB, tenants);
         await addOneTenant(tenant3, postgresDB, tenants);
