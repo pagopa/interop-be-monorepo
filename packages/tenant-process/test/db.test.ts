@@ -956,7 +956,7 @@ describe("database test", async () => {
         expect(tenantsByName.totalCount).toBe(0);
         expect(tenantsByName.results).toEqual([]);
       });
-      it("Should get tenants (pagination: limit)", async () => {
+      it("Should get a maximun number of tenants based on a specified limit", async () => {
         await addOneTenant(tenant1, postgresDB, tenants);
         await addOneTenant(tenant2, postgresDB, tenants);
         await addOneTenant(tenant3, postgresDB, tenants);
