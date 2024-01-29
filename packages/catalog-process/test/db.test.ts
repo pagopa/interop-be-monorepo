@@ -1710,7 +1710,7 @@ describe("database test", async () => {
         expect(
           catalogService.uploadDocument(
             eService.id,
-            mockDescriptor.id,
+            descriptor.id,
             buildInterfaceSeed(),
             getMockAuthData(eService.producerId)
           )
@@ -1731,7 +1731,7 @@ describe("database test", async () => {
         expect(
           catalogService.uploadDocument(
             eService.id,
-            mockDescriptor.id,
+            descriptor.id,
             buildInterfaceSeed(),
             getMockAuthData(eService.producerId)
           )
@@ -1752,7 +1752,7 @@ describe("database test", async () => {
         expect(
           catalogService.uploadDocument(
             eService.id,
-            mockDescriptor.id,
+            descriptor.id,
             buildInterfaceSeed(),
             getMockAuthData(eService.producerId)
           )
@@ -1773,7 +1773,7 @@ describe("database test", async () => {
         expect(
           catalogService.uploadDocument(
             eService.id,
-            mockDescriptor.id,
+            descriptor.id,
             buildInterfaceSeed(),
             getMockAuthData(eService.producerId)
           )
