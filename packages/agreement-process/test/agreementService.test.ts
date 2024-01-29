@@ -41,7 +41,7 @@ export const notDraftDescriptorStates = Object.values(descriptorState).filter(
 
 describe("AgreementService", () => {
   describe("createAgreement (success cases)", () => {
-    it("should create an Agreement when EService producer and Agreement consumer are the same Tenant", async () => {
+    it("succeed when EService Producer and Agreement Consumer are the same, even on unmet attributes", async () => {
       const tenant: Tenant = generateMock(Tenant);
       const descriptor: Descriptor = {
         ...generateMock(Descriptor),
@@ -109,7 +109,7 @@ describe("AgreementService", () => {
         .satisfy(expectPastTimestamp);
     });
 
-    it("should create an Agreement when EService producer and Agreement consumer are different Tenants, and the consumer has all Descriptor certified Attributes not revoked", async () => {
+    it("should succeed when EService producer and Agreement consumer are different Tenants, and the consumer has all Descriptor certified Attributes not revoked", async () => {
       const eserviceProducer: Tenant = generateMock(Tenant);
 
       // Descriptor has two certified attributes
@@ -192,7 +192,7 @@ describe("AgreementService", () => {
       expect(createEvent.event.type).toBe("AgreementAdded");
     });
 
-    it("should create an Agreement when EService producer and Agreement consumer are different Tenants, and the Descriptor has no certified Attributes", async () => {
+    it("should succeed when EService producer and Agreement consumer are different Tenants, and the Descriptor has no certified Attributes", async () => {
       const eserviceProducer: Tenant = generateMock(Tenant);
       const consumer: Tenant = generateMock(Tenant);
 
@@ -265,7 +265,7 @@ describe("AgreementService", () => {
         .property("createdAt")
         .satisfy(expectPastTimestamp);
     });
-    it("should create an Agreement when EService's latest Descriptors are draft, and the latest non-draft Descriptor is published", async () => {
+    it("should succeed when EService's latest Descriptors are draft, and the latest non-draft Descriptor is published", async () => {
       const tenant: Tenant = generateMock(Tenant);
       const descriptor0: Descriptor = {
         ...generateMock(Descriptor),
@@ -318,7 +318,7 @@ describe("AgreementService", () => {
       );
       expect(createEvent.event.type).toBe("AgreementAdded");
     });
-    it("should create an Agreement when Agreements in non-conflicting states exist for the same EService and consumer", async () => {
+    it("should succeed when Agreements in non-conflicting states exist for the same EService and consumer", async () => {
       const tenant: Tenant = generateMock(Tenant);
       const descriptor: Descriptor = {
         ...generateMock(Descriptor),
