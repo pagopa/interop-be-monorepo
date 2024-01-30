@@ -7,6 +7,7 @@ import {
   Descriptor,
   EService,
   EServiceAttribute,
+  EServiceId,
   Tenant,
   TenantAttribute,
   agreementCreationConflictingStates,
@@ -406,7 +407,11 @@ describe("AgreementService", () => {
           eserviceQueryMock,
           tenantQueryMock
         )
-      ).rejects.toThrowError(eServiceNotFound(apiAgreementPayload.eserviceId));
+      ).rejects.toThrowError(
+        eServiceNotFound(
+          unsafeBrandId<EServiceId>(apiAgreementPayload.eserviceId)
+        )
+      );
     });
 
     it("should throw a notLatestEServiceDescriptor error when the EService has no Descriptor", async () => {

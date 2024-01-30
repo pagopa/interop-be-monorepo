@@ -27,6 +27,7 @@ import {
   Descriptor,
   DescriptorId,
   EService,
+  EServiceId,
   Tenant,
   TenantAttribute,
   agreementState,
@@ -126,7 +127,7 @@ describe("AgreementService Integration Test", async () => {
 
   describe("createAgreement (success cases)", () => {
     it("succeed when EService Producer and Agreement Consumer are the same, even on unmet attributes", async () => {
-      const eserviceId = uuidv4();
+      const eserviceId = generateId<EServiceId>();
       const descriptorId = generateId<DescriptorId>();
       const authData = getRandomAuthData();
 

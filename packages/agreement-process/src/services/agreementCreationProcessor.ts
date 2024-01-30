@@ -30,7 +30,7 @@ export async function createAgreementLogic(
     `Creating agreement for EService ${agreement.eserviceId} and Descriptor ${agreement.descriptorId}`
   );
   const eservice = await eserviceQuery.getEServiceById(agreement.eserviceId);
-  assertEServiceExist(agreement.eserviceId, eservice);
+  assertEServiceExist(unsafeBrandId(agreement.eserviceId), eservice);
 
   const descriptor = validateCreationOnDescriptor(
     eservice.data,
@@ -51,7 +51,7 @@ export async function createAgreementLogic(
 
   const agreementSeed: Agreement = {
     id: generateId(),
-    eserviceId: agreement.eserviceId,
+    eserviceId: unsafeBrandId(agreement.eserviceId),
     descriptorId: unsafeBrandId(agreement.descriptorId),
     producerId: eservice.data.producerId,
     consumerId: authData.organizationId,
