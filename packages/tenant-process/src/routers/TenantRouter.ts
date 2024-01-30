@@ -12,6 +12,7 @@ import { toApiTenant } from "../model/domain/apiConverter.js";
 import {
   makeApiProblem,
   tenantBySelfcareIdNotFound,
+  tenantFromExternalIdNotFound,
   tenantNotFound,
 } from "../model/domain/errors.js";
 import {
@@ -180,8 +181,7 @@ const tenantsRouter = (
               .status(404)
               .json(
                 makeApiProblem(
-                  // TODO create a dedicated error. origin/code is not a valid TenantId
-                  tenantNotFound(unsafeBrandId(`${origin}/${code}`)),
+                  tenantFromExternalIdNotFound(origin, code),
                   getTenantByExternalIdErrorMapper
                 )
               )

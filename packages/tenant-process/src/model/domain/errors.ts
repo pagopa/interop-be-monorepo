@@ -57,6 +57,17 @@ export function tenantNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
   });
 }
 
+export function tenantFromExternalIdNotFound(
+  origin: string,
+  code: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant with externalId ${origin}/${code} not found`,
+    code: "tenantNotFound",
+    title: "Tenant not found",
+  });
+}
+
 export function eServiceNotFound(eserviceId: EServiceId): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `EService ${eserviceId} not found`,
