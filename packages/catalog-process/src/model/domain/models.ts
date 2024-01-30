@@ -7,6 +7,7 @@ import {
   DescriptorState,
   AgreementState,
   DescriptorId,
+  EServiceId,
 } from "pagopa-interop-models";
 import * as api from "../generated/api.js";
 import { ApiEServiceDescriptorDocumentSeed } from "../types.js";
@@ -16,7 +17,7 @@ export type EServiceSeed = z.infer<typeof api.schemas.EServiceSeed> & {
 };
 
 export type EServiceDocument = {
-  readonly eServiceId: string;
+  readonly eserviceId: EServiceId;
   readonly descriptorId: DescriptorId;
   readonly document: {
     readonly name: string;
@@ -66,11 +67,11 @@ export const consumer = z.object({
 export type Consumer = z.infer<typeof consumer>;
 
 export const convertToDocumentEServiceEventData = (
-  eServiceId: string,
+  eserviceId: EServiceId,
   descriptorId: DescriptorId,
   apiEServiceDescriptorDocumentSeed: ApiEServiceDescriptorDocumentSeed
 ): EServiceDocument => ({
-  eServiceId,
+  eserviceId,
   descriptorId,
   document: {
     name: apiEServiceDescriptorDocumentSeed.fileName,
