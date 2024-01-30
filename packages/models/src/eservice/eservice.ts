@@ -4,6 +4,7 @@ import {
   DescriptorId,
   EServiceDocumentId,
   EServiceId,
+  TenantId,
 } from "../brandedIds.js";
 
 export const technology = { rest: "Rest", soap: "Soap" } as const;
@@ -84,7 +85,7 @@ export type Descriptor = z.infer<typeof Descriptor>;
 
 export const EService = z.object({
   id: EServiceId,
-  producerId: z.string().uuid(),
+  producerId: TenantId,
   name: z.string(),
   description: z.string(),
   technology: Technology,

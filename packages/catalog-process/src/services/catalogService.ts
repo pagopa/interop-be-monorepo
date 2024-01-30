@@ -15,6 +15,7 @@ import {
   EServiceDocumentId,
   EServiceEvent,
   EServiceId,
+  TenantId,
   WithMetadata,
   catalogEventToBinaryData,
   descriptorState,
@@ -75,8 +76,8 @@ function assertEServiceExist(
 }
 
 const assertRequesterAllowed = (
-  producerId: string,
-  requesterId: string
+  producerId: TenantId,
+  requesterId: TenantId
 ): void => {
   if (producerId !== requesterId) {
     throw operationForbidden;

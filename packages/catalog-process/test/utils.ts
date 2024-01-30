@@ -14,6 +14,7 @@ import {
   EServiceEvent,
   EServiceId,
   Tenant,
+  TenantId,
   agreementState,
   catalogEventToBinaryData,
   descriptorState,
@@ -144,7 +145,7 @@ export const getMockDescriptor = (): Descriptor => ({
 
 export const getMockTenant = (): Tenant => ({
   name: "A tenant",
-  id: uuidv4(),
+  id: generateId(),
   createdAt: new Date(),
   attributes: [],
   externalId: {
@@ -163,8 +164,8 @@ export const getMockAgreement = ({
 }: {
   eserviceId: EServiceId;
   descriptorId: DescriptorId;
-  producerId: string;
-  consumerId: string;
+  producerId: TenantId;
+  consumerId: TenantId;
 }): Agreement => ({
   id: generateId(),
   createdAt: new Date(),
