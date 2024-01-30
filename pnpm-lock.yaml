@@ -474,6 +474,9 @@ importers:
         specifier: ^3.21.4
         version: 3.21.4
     devDependencies:
+      '@anatine/zod-mock':
+        specifier: ^3.13.1
+        version: 3.13.1(@faker-js/faker@8.0.2)
       '@testcontainers/postgresql':
         specifier: ^10.2.2
         version: 10.2.2

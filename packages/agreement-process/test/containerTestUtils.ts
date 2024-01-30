@@ -1,6 +1,9 @@
-import { GenericContainer, StartedTestContainer } from "testcontainers";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
-import { EventStoreConfig, ReadModelDbConfig } from "../index.js";
+import { GenericContainer, StartedTestContainer } from "testcontainers";
+import {
+  EventStoreConfig,
+  ReadModelDbConfig,
+} from "../../commons/src/index.js";
 
 export const TETS_MONGO_DB_PORT = 27017;
 export const TEST_MONGO_DB_VERSION = "mongo:4.0.0";
