@@ -18,6 +18,8 @@ import {
   emptyListResult,
   genericError,
   DescriptorId,
+  EServiceId,
+  EServiceDocumentId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
@@ -180,14 +182,14 @@ export function readModelServiceBuilder(
       return getEService(eservices, { "data.id": id });
     },
     async getEServiceConsumers(
-      eServiceId: string,
+      eserviceId: EServiceId,
       offset: number,
       limit: number
     ): Promise<ListResult<Consumer>> {
       const aggregationPipeline = [
         {
           $match: {
-            "data.id": eServiceId,
+            "data.id": eserviceId,
             "data.descriptors": {
               $elemMatch: {
                 state: {
@@ -292,11 +294,11 @@ export function readModelServiceBuilder(
       };
     },
     async getDocumentById(
-      eServiceId: string,
+      eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      documentId: string
+      documentId: EServiceDocumentId
     ): Promise<Document | undefined> {
-      const eService = await this.getEServiceById(eServiceId);
+      const eService = await this.getEServiceById(eserviceId);
       return eService?.data.descriptors
         .find((d) => d.id === descriptorId)
         ?.docs.find((d) => d.id === documentId);

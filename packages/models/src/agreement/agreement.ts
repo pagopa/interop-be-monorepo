@@ -4,6 +4,7 @@ import {
   AgreementDocumentId,
   AgreementId,
   DescriptorId,
+  EServiceId,
 } from "./../brandedIds.js";
 
 export const agreementState = {
@@ -100,7 +101,7 @@ export type AgreementStamps = z.infer<typeof AgreementStamps>;
 
 export const Agreement = z.object({
   id: AgreementId,
-  eserviceId: z.string().uuid(),
+  eserviceId: EServiceId,
   descriptorId: DescriptorId,
   producerId: z.string().uuid(),
   consumerId: z.string().uuid(),
