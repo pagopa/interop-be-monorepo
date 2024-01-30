@@ -22,7 +22,7 @@ const globalStore = new AsyncLocalStorage<AppContext>();
 const defaultAppContext: AppContext = {
   authData: {
     userId: "",
-    // TODO: this is a workaround to avoid to change the type
+    // this is a workaround to avoid to change the type
     // from TenantId to TenantId | undefined
     organizationId: unsafeBrandId(""),
     userRoles: [],
