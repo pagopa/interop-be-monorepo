@@ -147,7 +147,7 @@ const eservicesRouter = (
       async (req, res) => {
         try {
           const eService = await readModelService.getEServiceById(
-            req.params.eServiceId
+            unsafeBrandId(req.params.eServiceId)
           );
 
           if (eService) {

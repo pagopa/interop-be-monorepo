@@ -129,6 +129,7 @@ export const fromDescriptorV1 = (input: EServiceDescriptorV1): Descriptor => ({
 export const fromEServiceV1 = (input: EServiceV1): EService => ({
   ...input,
   id: unsafeBrandId(input.id),
+  producerId: unsafeBrandId(input.producerId),
   technology: fromEServiceTechnologyV1(input.technology),
   attributes:
     input.attributes != null

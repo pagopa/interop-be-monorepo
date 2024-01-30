@@ -2,6 +2,7 @@ import {
   ApiError,
   AttributeId,
   EServiceId,
+  TenantId,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 
@@ -48,9 +49,20 @@ export function tenantDuplicate(teanantName: string): ApiError<ErrorCodes> {
   });
 }
 
-export function tenantNotFound(tenantId: string): ApiError<ErrorCodes> {
+export function tenantNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant ${tenantId} not found`,
+    code: "tenantNotFound",
+    title: "Tenant not found",
+  });
+}
+
+export function tenantFromExternalIdNotFound(
+  origin: string,
+  code: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant with externalId ${origin}/${code} not found`,
     code: "tenantNotFound",
     title: "Tenant not found",
   });
@@ -65,7 +77,7 @@ export function eServiceNotFound(eserviceId: EServiceId): ApiError<ErrorCodes> {
 }
 
 export function verifiedAttributeNotFoundInTenant(
-  tenantId: string,
+  tenantId: TenantId,
   attributeId: AttributeId
 ): ApiError<ErrorCodes> {
   return new ApiError({
@@ -87,7 +99,7 @@ export function expirationDateCannotBeInThePast(
 
 export function organizationNotFoundInVerifiers(
   requesterId: string,
-  tenantId: string,
+  tenantId: TenantId,
   attributeId: AttributeId
 ): ApiError<ErrorCodes> {
   return new ApiError({
@@ -110,7 +122,7 @@ export function tenantBySelfcareIdNotFound(
 export function expirationDateNotFoundInVerifier(
   verifierId: string,
   attributeId: string,
-  tenantId: string
+  tenantId: TenantId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `ExpirationDate not found in verifier ${verifierId} for Tenant ${tenantId} and attribute ${attributeId}`,
@@ -123,7 +135,7 @@ export function selfcareIdConflict({
   existingSelfcareId,
   newSelfcareId,
 }: {
-  tenantId: string;
+  tenantId: TenantId;
   existingSelfcareId: string;
   newSelfcareId: string;
 }): ApiError<ErrorCodes> {
