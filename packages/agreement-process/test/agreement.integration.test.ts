@@ -76,7 +76,6 @@ import {
   TEST_POSTGRES_DB_PORT,
   TETS_MONGO_DB_PORT,
 } from "./containerTestUtils.js";
-import { notDraftDescriptorStates } from "./agreementService.test.js";
 
 describe("AgreementService Integration Test", async () => {
   let agreements: AgreementCollection;
@@ -480,6 +479,9 @@ describe("AgreementService Integration Test", async () => {
     it("should throw a notLatestEServiceDescriptor error when the EService Descriptor is not the latest non-draft Descriptor", async () => {
       const authData = getRandomAuthData();
       const eserviceId = generateId<EServiceId>();
+      const notDraftDescriptorStates = Object.values(descriptorState).filter(
+        (state) => state !== descriptorState.draft
+      );
 
       const descriptor0: Descriptor = {
         ...buildDescriptorPublished(),
