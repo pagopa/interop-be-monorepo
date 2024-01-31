@@ -87,6 +87,17 @@ describe("AgreementService Integration Test", async () => {
   let postgreSqlContainer: StartedTestContainer;
   let mongodbContainer: StartedTestContainer;
 
+  /**
+   * Executes the generic agreement expectation for agreement creation process,
+   * and return the created AgreementV1 object to be used for further checks.
+   *
+   * @param agreementId - The ID of the agreement.
+   * @param expectedEserviceId - The expected e-service ID of the agreement.
+   * @param expectedDescriptorId - The expected descriptor ID of the agreement.
+   * @param expectedProducerId - The expected producer ID of the agreement.
+   * @param expectedConsumerId - The expected consumer ID of the agreement.
+   * @returns A Promise that resolves return the created AgreementV1 object.
+   */
   const expectedAgreementCreation = async (
     agreementId: AgreementId | undefined,
     expectedEserviceId: EServiceId,
