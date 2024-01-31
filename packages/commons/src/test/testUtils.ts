@@ -16,6 +16,7 @@ import {
   agreementState,
   descriptorState,
   generateId,
+  tenantAttributeType,
 } from "pagopa-interop-models";
 import { generateMock } from "@anatine/zod-mock";
 import { AuthData } from "../index.js";
@@ -89,6 +90,8 @@ export const buildCertifiedTenantAttribute = (
 ): CertifiedTenantAttribute => ({
   ...generateMock(CertifiedTenantAttribute),
   id: attributeId,
+  type: tenantAttributeType.CERTIFIED,
+  revocationTimestamp: undefined,
 });
 
 export const buildCertifiedTenantAttributes = (
