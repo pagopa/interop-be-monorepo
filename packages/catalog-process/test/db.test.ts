@@ -2108,7 +2108,7 @@ describe("database test", async () => {
         expect(
           catalogService.updateDocument(
             eService.id,
-            mockDescriptor.id,
+            descriptor.id,
             uuidv4(),
             { prettyName: "updated prettyName" },
             getMockAuthData(eService.producerId)
@@ -2131,7 +2131,7 @@ describe("database test", async () => {
         expect(
           catalogService.updateDocument(
             eService.id,
-            mockDescriptor.id,
+            descriptor.id,
             uuidv4(),
             { prettyName: "updated prettyName" },
             getMockAuthData(eService.producerId)
@@ -2154,7 +2154,7 @@ describe("database test", async () => {
         expect(
           catalogService.updateDocument(
             eService.id,
-            mockDescriptor.id,
+            descriptor.id,
             uuidv4(),
             { prettyName: "updated prettyName" },
             getMockAuthData(eService.producerId)
@@ -2177,7 +2177,7 @@ describe("database test", async () => {
         expect(
           catalogService.updateDocument(
             eService.id,
-            mockDescriptor.id,
+            descriptor.id,
             uuidv4(),
             { prettyName: "updated prettyName" },
             getMockAuthData(eService.producerId)
