@@ -23,6 +23,7 @@ import {
   buildDeclaredTenantAttribute,
   buildCertifiedTenantAttribute,
   buildAgreementWithValidCreationState,
+  randomArrayItem,
 } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -38,6 +39,7 @@ import {
   Tenant,
   TenantAttribute,
   TenantId,
+  agreementCreationConflictingStates,
   agreementState,
   descriptorState,
   generateId,
@@ -61,11 +63,20 @@ import { tenantQueryBuilder } from "../src/services/readmodel/tenantQuery.js";
 import { config } from "../src/utilities/config.js";
 import { toAgreementStateV1 } from "../src/model/domain/toEvent.js";
 import {
+  agreementAlreadyExists,
+  descriptorNotInExpectedState,
+  eServiceNotFound,
+  missingCertifiedAttributesError,
+  notLatestEServiceDescriptor,
+  tenantIdNotFound,
+} from "../src/model/domain/errors.js";
+import {
   startMongoDBContainer,
   startPostgresDBContainer,
   TEST_POSTGRES_DB_PORT,
   TETS_MONGO_DB_PORT,
 } from "./containerTestUtils.js";
+import { notDraftDescriptorStates } from "./agreementService.test.js";
 
 describe("AgreementService Integration Test", async () => {
   let agreements: AgreementCollection;
@@ -418,6 +429,296 @@ describe("AgreementService Integration Test", async () => {
         descriptor.id,
         tenant.id,
         tenant.id
+      );
+    });
+  });
+
+  describe("createAgreement (failure cases)", () => {
+    it("should throw an eServiceNotFound error when the EService does not exist", async () => {
+      const authData = getRandomAuthData();
+      const eserviceId = generateId<EServiceId>();
+      const descriptorId = generateId<DescriptorId>();
+
+      const apiAgreementPayload: ApiAgreementPayload = {
+        eserviceId,
+        descriptorId,
+      };
+
+      await expect(
+        agreementService.createAgreement(apiAgreementPayload, authData)
+      ).rejects.toThrowError(
+        eServiceNotFound(unsafeBrandId(apiAgreementPayload.eserviceId))
+      );
+    });
+
+    it("should throw a notLatestEServiceDescriptor error when the EService has no Descriptor", async () => {
+      const authData = getRandomAuthData();
+      const eserviceId = generateId<EServiceId>();
+
+      const eservice = buildEService(
+        eserviceId,
+        unsafeBrandId<TenantId>(authData.userId),
+        []
+      );
+
+      await writeInReadmodel<EService>(eservice, eservices);
+
+      const apiAgreementPayload: ApiAgreementPayload = {
+        eserviceId,
+        descriptorId: generateId<DescriptorId>(),
+      };
+
+      await expect(
+        agreementService.createAgreement(apiAgreementPayload, authData)
+      ).rejects.toThrowError(
+        notLatestEServiceDescriptor(
+          unsafeBrandId(apiAgreementPayload.descriptorId)
+        )
+      );
+    });
+
+    it("should throw a notLatestEServiceDescriptor error when the EService Descriptor is not the latest non-draft Descriptor", async () => {
+      const authData = getRandomAuthData();
+      const eserviceId = generateId<EServiceId>();
+
+      const descriptor0: Descriptor = {
+        ...buildDescriptorPublished(),
+        version: "0",
+        state: randomArrayItem(notDraftDescriptorStates),
+      };
+      const descriptor1: Descriptor = {
+        ...buildDescriptorPublished(),
+        version: "1",
+        state: randomArrayItem(notDraftDescriptorStates),
+      };
+
+      const eservice = buildEService(eserviceId, authData.organizationId, [
+        descriptor0,
+        descriptor1,
+      ]);
+
+      await writeInReadmodel<EService>(eservice, eservices);
+      await writeInReadmodel<Tenant>(
+        buildTenant(unsafeBrandId<TenantId>(authData.userId)),
+        tenants
+      );
+
+      const apiAgreementPayload: ApiAgreementPayload = {
+        eserviceId,
+        descriptorId: descriptor0.id,
+      };
+
+      await expect(
+        agreementService.createAgreement(apiAgreementPayload, authData)
+      ).rejects.toThrowError(
+        notLatestEServiceDescriptor(
+          unsafeBrandId(apiAgreementPayload.descriptorId)
+        )
+      );
+    });
+
+    it("should throw a descriptorNotInExpectedState error when the EService's latest non-draft Descriptor is not published", async () => {
+      const authData = getRandomAuthData();
+      const eserviceId = generateId<EServiceId>();
+
+      const descriptor: Descriptor = {
+        ...buildDescriptorPublished(),
+        version: "0",
+        state: randomArrayItem(
+          Object.values(descriptorState).filter(
+            (state) =>
+              state !== descriptorState.published &&
+              state !== descriptorState.draft
+          )
+        ),
+      };
+
+      const eservice = buildEService(eserviceId, authData.organizationId, [
+        descriptor,
+      ]);
+
+      await writeInReadmodel<EService>(eservice, eservices);
+      await writeInReadmodel<Tenant>(
+        buildTenant(unsafeBrandId<TenantId>(authData.userId)),
+        tenants
+      );
+
+      const apiAgreementPayload: ApiAgreementPayload = {
+        eserviceId,
+        descriptorId: descriptor.id,
+      };
+
+      await expect(
+        agreementService.createAgreement(apiAgreementPayload, authData)
+      ).rejects.toThrowError(
+        descriptorNotInExpectedState(eservice.id, descriptor.id, [
+          descriptorState.published,
+        ])
+      );
+    });
+
+    it("should throw an agreementAlreadyExists error when an Agreement in a conflicting state already exists for the same EService and consumer", async () => {
+      const consumer: Tenant = buildTenant();
+      const descriptor: Descriptor = buildDescriptorPublished();
+
+      const eservice = buildEService(generateId<EServiceId>(), consumer.id, [
+        descriptor,
+      ]);
+
+      const conflictingAgreement = {
+        ...buildAgreementWithValidCreationState(eservice.id, consumer.id),
+        state: randomArrayItem(agreementCreationConflictingStates),
+      };
+
+      await writeInReadmodel<Tenant>(consumer, tenants);
+      await writeInReadmodel<EService>(eservice, eservices);
+      await writeInReadmodel<Agreement>(conflictingAgreement, agreements);
+
+      const authData = getRandomAuthData(consumer.id);
+      const apiAgreementPayload: ApiAgreementPayload = {
+        eserviceId: eservice.id,
+        descriptorId: descriptor.id,
+      };
+
+      await expect(
+        agreementService.createAgreement(apiAgreementPayload, authData)
+      ).rejects.toThrowError(agreementAlreadyExists(consumer.id, eservice.id));
+    });
+
+    it("should throw a tenantIdNotFound error when the consumer Tenant does not exist", async () => {
+      const consumer: Tenant = buildTenant();
+      const descriptor: Descriptor = buildDescriptorPublished();
+
+      const eservice = buildEService(
+        generateId<EServiceId>(),
+        generateId<TenantId>(),
+        [descriptor]
+      );
+
+      await writeInReadmodel<EService>(eservice, eservices);
+
+      const authData = getRandomAuthData(consumer.id);
+      const apiAgreementPayload: ApiAgreementPayload = {
+        eserviceId: eservice.id,
+        descriptorId: descriptor.id,
+      };
+
+      await expect(() =>
+        agreementService.createAgreement(apiAgreementPayload, authData)
+      ).rejects.toThrowError(tenantIdNotFound(consumer.id));
+    });
+
+    it("should throw a missingCertifiedAttributesError error when the EService producer and Agreement consumer are different Tenants, and the consumer is missing a Descriptor certified Attribute", async () => {
+      const eserviceProducer: Tenant = buildTenant();
+
+      // Descriptor has two certified attributes
+      const certifiedDescriptorAttribute1: EServiceAttribute =
+        buildEServiceAttribute();
+      const certifiedDescriptorAttribute2: EServiceAttribute =
+        buildEServiceAttribute();
+
+      const descriptor = {
+        ...buildDescriptorPublished(generateId<DescriptorId>()),
+        attributes: {
+          certified: [
+            [certifiedDescriptorAttribute1],
+            [certifiedDescriptorAttribute2],
+          ],
+          verified: [],
+          declared: [],
+        },
+      };
+
+      // In this case, the consumer is missing one of the two certified attributes
+      const certifiedTenantAttribute1: TenantAttribute =
+        buildCertifiedTenantAttribute(certifiedDescriptorAttribute1.id);
+
+      const consumer = {
+        ...buildTenant(),
+        attributes: [certifiedTenantAttribute1],
+      };
+
+      const eservice = buildEService(
+        generateId<EServiceId>(),
+        eserviceProducer.id,
+        [descriptor]
+      );
+
+      await writeInReadmodel<Tenant>(eserviceProducer, tenants);
+      await writeInReadmodel<Tenant>(consumer, tenants);
+      await writeInReadmodel<EService>(eservice, eservices);
+
+      const authData = getRandomAuthData(consumer.id);
+      const apiAgreementPayload: ApiAgreementPayload = {
+        eserviceId: eservice.id,
+        descriptorId: eservice.descriptors[0].id,
+      };
+
+      await expect(
+        agreementService.createAgreement(apiAgreementPayload, authData)
+      ).rejects.toThrowError(
+        missingCertifiedAttributesError(descriptor.id, consumer.id)
+      );
+    });
+
+    it("should throw a missingCertifiedAttributesError error when the EService producer and Agreement consumer are different Tenants, and the consumer has a Descriptor certified Attribute revoked", async () => {
+      const eserviceProducer: Tenant = buildTenant();
+
+      // Descriptor has two certified attributes
+      const certifiedDescriptorAttribute1: EServiceAttribute =
+        buildEServiceAttribute();
+      const certifiedDescriptorAttribute2: EServiceAttribute =
+        buildEServiceAttribute();
+
+      const descriptor: Descriptor = {
+        ...buildDescriptorPublished(),
+        attributes: {
+          certified: [
+            [certifiedDescriptorAttribute1],
+            [certifiedDescriptorAttribute2],
+          ],
+          declared: [],
+          verified: [],
+        },
+      };
+
+      const eservice = buildEService(
+        generateId<EServiceId>(),
+        eserviceProducer.id,
+        [descriptor]
+      );
+
+      // In this case, the consumer has one of the two certified attributes revoked
+      const certifiedTenantAttribute1: TenantAttribute = {
+        ...buildCertifiedTenantAttribute(certifiedDescriptorAttribute1.id),
+        revocationTimestamp: new Date(),
+        assignmentTimestamp: new Date(),
+      };
+      const certifiedTenantAttribute2: TenantAttribute = {
+        ...buildCertifiedTenantAttribute(certifiedDescriptorAttribute2.id),
+        revocationTimestamp: undefined,
+        assignmentTimestamp: new Date(),
+      };
+
+      const consumer = {
+        ...buildTenant(),
+        attributes: [certifiedTenantAttribute1, certifiedTenantAttribute2],
+      };
+
+      await writeInReadmodel<Tenant>(eserviceProducer, tenants);
+      await writeInReadmodel<Tenant>(consumer, tenants);
+      await writeInReadmodel<EService>(eservice, eservices);
+
+      const authData = getRandomAuthData(consumer.id);
+      const apiAgreementPayload: ApiAgreementPayload = {
+        eserviceId: eservice.id,
+        descriptorId: eservice.descriptors[0].id,
+      };
+
+      await expect(
+        agreementService.createAgreement(apiAgreementPayload, authData)
+      ).rejects.toThrowError(
+        missingCertifiedAttributesError(descriptor.id, consumer.id)
       );
     });
   });
