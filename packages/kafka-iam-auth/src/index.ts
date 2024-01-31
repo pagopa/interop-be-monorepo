@@ -31,7 +31,7 @@ const errorEventsListener = (consumer: Consumer): void => {
         processExit();
       } catch (e) {
         logger.error(
-          `Something was wrong during consumer disconnection with event type ${type}; Error detail: ${e}`
+          `Unexpected error on consumer disconnection with event type ${type}; Error detail: ${e}`
         );
         processExit();
       }
@@ -175,7 +175,7 @@ const validateTopicMetadata = async (
   } catch (e) {
     await admin.disconnect();
     logger.error(
-      `Impossible to subscribe! error during topic's metadata fetching: ${JSON.stringify(
+      `Unable to subscribe! Error during topic metadata fetch: ${JSON.stringify(
         e
       )}`
     );
