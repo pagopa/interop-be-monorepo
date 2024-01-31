@@ -52,6 +52,27 @@ const errorEventsListener = (consumer: Consumer): void => {
   });
 };
 
+const kafkaEventsListener = (consumer: Consumer): void => {
+  consumer.on(consumer.events.DISCONNECT, () => {
+    logger.info(`Consumer has disconnected.`);
+  });
+
+  consumer.on(consumer.events.STOP, (e) => {
+    logger.info(`Consumer has stopped ${JSON.stringify(e)}.`);
+  });
+
+  consumer.on(consumer.events.CRASH, (e) => {
+    logger.error(`Error Consumer crashed ${JSON.stringify(e)}.`);
+    processExit();
+  });
+
+  consumer.on(consumer.events.REQUEST_TIMEOUT, (e) => {
+    logger.error(
+      `Error Request to a broker has timed out : ${JSON.stringify(e)}.`
+    );
+  });
+};
+
 const initConsumer = async (
   config: ConsumerConfig,
   consumerHandler: (payload: EachMessagePayload) => Promise<void>
@@ -97,15 +118,15 @@ const initConsumer = async (
   await consumer.connect();
   logger.info("Consumer connected");
 
-  await consumer.subscribe({
-    topics: config.kafkaTopics,
-    fromBeginning: true,
-  });
-
   const topicExists = await validateTopicMetadata(kafka, config.kafkaTopics);
   if (!topicExists) {
     processExit();
   }
+
+  await consumer.subscribe({
+    topics: config.kafkaTopics,
+    fromBeginning: true,
+  });
 
   logger.info(`Consumer subscribed topic ${config.kafkaTopics}`);
 
@@ -120,47 +141,31 @@ export const runConsumer = async (
   consumerHandler: (messagePayload: EachMessagePayload) => Promise<void>
 ): Promise<void> => {
   do {
-    const consumer = await initConsumer(config, consumerHandler);
+    try {
+      const consumer = await initConsumer(config, consumerHandler);
 
-    await new Promise((resolve) =>
-      setTimeout(
-        resolve,
-        DEFAULT_AUTHENTICATION_TIMEOUT - REAUTHENTICATION_THRESHOLD
-      )
-    );
+      await new Promise((resolve) =>
+        setTimeout(
+          resolve,
+          DEFAULT_AUTHENTICATION_TIMEOUT - REAUTHENTICATION_THRESHOLD
+        )
+      );
 
-    await consumer.disconnect().finally(() => {
-      logger.info("Consumer disconnected");
-    });
+      await consumer.disconnect().finally(() => {
+        logger.info("Consumer disconnected");
+      });
+    } catch (e) {
+      logger.error(`Generic error occurs during consumer initialization: ${e}`);
+      processExit();
+    }
   } while (true);
 };
 
-const kafkaEventsListener = (consumer: Consumer): void => {
-  consumer.on(consumer.events.DISCONNECT, () => {
-    logger.info(`Consumer has disconnected.`);
-  });
-
-  consumer.on(consumer.events.STOP, (e) => {
-    logger.info(`Consumer has stopped ${JSON.stringify(e)}.`);
-  });
-
-  consumer.on(consumer.events.CRASH, (e) => {
-    logger.error(`Error Consumer crashed ${JSON.stringify(e)}.`);
-    processExit();
-  });
-
-  consumer.on(consumer.events.REQUEST_TIMEOUT, (e) => {
-    logger.error(
-      `Error Request to a broker has timed out : ${JSON.stringify(e)}.`
-    );
-  });
-};
-
-const validateTopicMetadata = async (
+export const validateTopicMetadata = async (
   kafka: Kafka,
   topicNames: string[]
 ): Promise<boolean> => {
-  logger.info(`Validating Topics[${JSON.stringify(topicNames)}] ...`);
+  logger.info(`Check topics [${JSON.stringify(topicNames)}] existence...`);
 
   const admin = kafka.admin();
   await admin.connect();
