@@ -289,7 +289,7 @@ describe("CatalogService", () => {
       });
     });
 
-    it("returns an error if the eservice doesn't contains the descriptor", async () => {
+    it("returns an error if the eservice doesn't contain the descriptor", async () => {
       const descriptorId = "descriptor-not-present-id";
       expect(() =>
         uploadDocumentLogic({
@@ -445,17 +445,27 @@ describe("CatalogService", () => {
   describe("updateDocument", () => {
     it("update the document", async () => {
       const refDate = new Date();
+      const descriptor = {
+        ...mockDescriptor,
+        interface: undefined,
+        state: descriptorState.draft,
+        docs: [mockDocument],
+      };
+      const eService = {
+        ...mockEservice,
+        descriptors: [descriptor],
+      };
       const event = await updateDocumentLogic({
-        eServiceId: mockEservice.id,
-        descriptorId: mockEservice.descriptors[0].id,
-        documentId: mockDocument.documentId,
+        eServiceId: eService.id,
+        descriptorId: descriptor.id,
+        documentId: descriptor.docs[0].documentId,
         apiEServiceDescriptorDocumentUpdateSeed: mockUpdateDocumentSeed,
         authData,
         eService: addMetadata({
-          ...mockEservice,
+          ...eService,
           descriptors: [
             {
-              ...mockEservice.descriptors[0],
+              ...descriptor,
               docs: [
                 {
                   path: mockDocument.filePath,
@@ -473,8 +483,8 @@ describe("CatalogService", () => {
       });
       expect(event.event.type).toBe("EServiceDocumentUpdated");
       expect(event.event.data).toMatchObject({
-        eServiceId: mockEservice.id,
-        descriptorId: mockEservice.descriptors[0].id,
+        eServiceId: eService.id,
+        descriptorId: descriptor.id,
         documentId: mockDocument.documentId,
         updatedDocument: {
           id: mockDocument.documentId,
@@ -485,11 +495,11 @@ describe("CatalogService", () => {
           checksum: mockDocument.checksum,
           uploadDate: refDate.toISOString(),
         },
-        serverUrls: mockEservice.descriptors[0].serverUrls,
+        serverUrls: descriptor.serverUrls,
       });
     });
 
-    it("returns an error if the eservice doesn't contains the descriptor", async () => {
+    it("returns an error if the eservice doesn't contain the descriptor", async () => {
       const descriptorId = "descriptor-not-present-id";
       await expect(() =>
         updateDocumentLogic({
@@ -505,23 +515,29 @@ describe("CatalogService", () => {
       );
     });
 
-    it("returns an error if the eservice doesn't contains the document", async () => {
+    it("returns an error if the eservice doesn't contain the document", async () => {
       const documentId = "document-not-present-id";
+      const descriptor: Descriptor = {
+        ...mockDescriptor,
+        interface: undefined,
+        state: descriptorState.draft,
+        docs: [mockDocument],
+      };
+      const eService: EService = {
+        ...mockEservice,
+        descriptors: [descriptor],
+      };
       await expect(() =>
         updateDocumentLogic({
-          eServiceId: mockEservice.id,
-          descriptorId: mockEservice.descriptors[0].id,
+          eServiceId: eService.id,
+          descriptorId: descriptor.id,
           documentId,
           apiEServiceDescriptorDocumentUpdateSeed: mockUpdateDocumentSeed,
           authData,
-          eService: addMetadata(mockEservice),
+          eService: addMetadata(eService),
         })
       ).rejects.toThrowError(
-        eServiceDocumentNotFound(
-          mockEservice.id,
-          mockEservice.descriptors[0].id,
-          documentId
-        )
+        eServiceDocumentNotFound(eService.id, descriptor.id, documentId)
       );
     });
 
@@ -616,7 +632,7 @@ describe("CatalogService", () => {
       });
     });
 
-    it("returns an error if the eservice doesn't contains a draft descriptor", async () => {
+    it("returns an error if the eservice doesn't contain a draft descriptor", async () => {
       expect(() =>
         createDescriptorLogic({
           eServiceId: mockEservice.id,
@@ -682,7 +698,7 @@ describe("CatalogService", () => {
       });
     });
 
-    it("returns an error if the eservice doesn't contains the descriptor", async () => {
+    it("returns an error if the eservice doesn't contain the descriptor", async () => {
       const descriptorId = "descriptor-not-present-id";
       await expect(() =>
         deleteDraftDescriptorLogic({
@@ -770,7 +786,7 @@ describe("CatalogService", () => {
       });
     });
 
-    it("returns an error if the eservice doesn't contains the descriptor", async () => {
+    it("returns an error if the eservice doesn't contain the descriptor", async () => {
       const descriptor: Descriptor = { ...mockDescriptor, state: "Draft" };
       const eService: EService = {
         ...mockEservice,
@@ -912,7 +928,7 @@ describe("CatalogService", () => {
       });
     });
 
-    it("returns an error if the eservice doesn't contains the descriptor", async () => {
+    it("returns an error if the eservice doesn't contain the descriptor", async () => {
       const descriptorId = "descriptor-not-present-id";
       expect(() =>
         publishDescriptorLogic({
@@ -1024,7 +1040,7 @@ describe("CatalogService", () => {
       });
     });
 
-    it("returns an error if the eservice doesn't contains the descriptor", async () => {
+    it("returns an error if the eservice doesn't contain the descriptor", async () => {
       const descriptor: Descriptor = { ...mockDescriptor, state: "Published" };
       const eService: EService = {
         ...mockEservice,
@@ -1240,7 +1256,7 @@ describe("CatalogService", () => {
       vi.useRealTimers();
     });
 
-    it("returns an error if the eservice doesn't contains the descriptor", async () => {
+    it("returns an error if the eservice doesn't contain the descriptor", async () => {
       const eService: EService = {
         ...mockEservice,
         descriptors: [mockDescriptor],
@@ -1316,7 +1332,7 @@ describe("CatalogService", () => {
       });
     });
 
-    it("returns an error if the eservice doesn't contains the descriptor", async () => {
+    it("returns an error if the eservice doesn't contain the descriptor", async () => {
       const eService: EService = {
         ...mockEservice,
         descriptors: [mockDescriptor],
