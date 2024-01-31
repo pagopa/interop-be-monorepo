@@ -219,7 +219,7 @@ export function catalogServiceBuilder(
       const eService = await readModelService.getEServiceById(eServiceId);
 
       await repository.createEvent(
-        await updateEserviceLogic({
+        updateEserviceLogic({
           eService,
           eServiceId,
           authData,
@@ -502,7 +502,7 @@ export function createEserviceLogic({
   return toCreateEventEServiceAdded(newEService);
 }
 
-export async function updateEserviceLogic({
+export function updateEserviceLogic({
   eService,
   eServiceId,
   authData,
@@ -514,7 +514,7 @@ export async function updateEserviceLogic({
   authData: AuthData;
   eServiceSeed: ApiEServiceSeed;
   eServiceWithSameName: WithMetadata<EService> | undefined;
-}): Promise<CreateEvent<EServiceEvent>> {
+}): CreateEvent<EServiceEvent> {
   assertEServiceExist(eServiceId, eService);
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
 
