@@ -12,13 +12,14 @@ import {
   TenantAttribute,
   TenantEvent,
   TenantFeature,
+  TenantId,
   TenantKind,
   TenantMail,
   WithMetadata,
+  generateId,
   tenantAttributeType,
   tenantEventToBinaryData,
 } from "pagopa-interop-models";
-import { v4 as uuidv4 } from "uuid";
 import { TenantProcessConfig } from "../utilities/config.js";
 import {
   toCreateEventTenantAdded,
@@ -64,7 +65,7 @@ export function tenantServiceBuilder(
   );
   return {
     async updateVerifiedAttributeExtensionDate(
-      tenantId: string,
+      tenantId: TenantId,
       attributeId: AttributeId,
       verifierId: string
     ): Promise<string> {
@@ -109,7 +110,7 @@ export function tenantServiceBuilder(
       updateVerifiedTenantAttributeSeed,
     }: {
       verifierId: string;
-      tenantId: string;
+      tenantId: TenantId;
       attributeId: AttributeId;
       updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed;
     }): Promise<void> {
@@ -166,7 +167,7 @@ export function tenantServiceBuilder(
         );
       } else {
         const newTenant: Tenant = {
-          id: uuidv4(),
+          id: generateId(),
           name: tenantSeed.name,
           attributes: [],
           externalId: tenantSeed.externalId,
@@ -193,7 +194,7 @@ async function updateTenantVerifiedAttributeLogic({
 }: {
   verifierId: string;
   tenant: WithMetadata<Tenant> | undefined;
-  tenantId: string;
+  tenantId: TenantId;
   attributeId: AttributeId;
   updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed;
 }): Promise<CreateEvent<TenantEvent>> {
@@ -294,7 +295,7 @@ export function createTenantLogic({
   }));
 
   const newTenant: Tenant = {
-    id: uuidv4(),
+    id: generateId(),
     name: apiTenantSeed.name,
     attributes: tenantAttributes,
     externalId: apiTenantSeed.externalId,
@@ -314,7 +315,7 @@ export async function updateVerifiedAttributeExtensionDateLogic({
   verifierId,
   tenant,
 }: {
-  tenantId: string;
+  tenantId: TenantId;
   attributeId: AttributeId;
   verifierId: string;
   tenant: WithMetadata<Tenant> | undefined;
