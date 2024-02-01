@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package eservice;
+package eservice.v2;
 
 import "v2/eservice/eservice.proto";
 
