@@ -214,30 +214,21 @@ describe("AgreementService Integration Test", async () => {
   });
 
   describe("createAgreement (success cases)", () => {
-    it("succeed when EService Producer and Agreement Consumer are the same, even on unmet attributes", async () => {
+    it("succeeds when EService Producer and Agreement Consumer are the same, even on unmet attributes", async () => {
       const authData = getRandomAuthData();
       const eserviceId = generateId<EServiceId>();
       const descriptorId = generateId<DescriptorId>();
       const attributeId = generateId<AttributeId>();
 
       const descriptor = buildDescriptorPublished(descriptorId, [
-        buildEServiceAttribute(attributeId),
+        [buildEServiceAttribute(attributeId)],
       ]);
       const eservice = buildEService(
         eserviceId,
-        unsafeBrandId<TenantId>(authData.userId),
+        unsafeBrandId<TenantId>(authData.organizationId),
         [descriptor]
       );
-      const tenant = buildTenant(
-        authData.organizationId,
-        unsafeBrandId<TenantId>(authData.externalId.value),
-        [
-          {
-            ...buildCertifiedTenantAttribute(attributeId),
-            revocationTimestamp: undefined,
-          },
-        ]
-      );
+      const tenant = buildTenant(authData.organizationId);
 
       await writeInReadmodel<EService>(eservice, eservices);
       await writeInReadmodel<Tenant>(tenant, tenants);
@@ -255,7 +246,7 @@ describe("AgreementService Integration Test", async () => {
         unsafeBrandId<AgreementId>(createdAgreementId),
         eserviceId,
         descriptorId,
-        unsafeBrandId(authData.userId),
+        unsafeBrandId(authData.organizationId),
         tenant.id
       );
     });
@@ -270,8 +261,8 @@ describe("AgreementService Integration Test", async () => {
         buildEServiceAttribute();
 
       const descriptor = buildDescriptorPublished(generateId<DescriptorId>(), [
-        certifiedDescriptorAttribute1,
-        certifiedDescriptorAttribute2,
+        [certifiedDescriptorAttribute1],
+        [certifiedDescriptorAttribute2],
       ]);
 
       const certifiedTenantAttribute1: TenantAttribute = {
@@ -284,15 +275,11 @@ describe("AgreementService Integration Test", async () => {
         revocationTimestamp: undefined,
       };
 
-      const consumer = buildTenant(
-        authData.organizationId,
-        unsafeBrandId<TenantId>(authData.externalId.value),
-        [
-          buildDeclaredTenantAttribute(),
-          certifiedTenantAttribute1,
-          certifiedTenantAttribute2,
-        ]
-      );
+      const consumer = buildTenant(authData.organizationId, [
+        buildDeclaredTenantAttribute(),
+        certifiedTenantAttribute1,
+        certifiedTenantAttribute2,
+      ]);
 
       const eservice = buildEService(
         generateId<EServiceId>(),
@@ -467,7 +454,7 @@ describe("AgreementService Integration Test", async () => {
 
       const eservice = buildEService(
         eserviceId,
-        unsafeBrandId<TenantId>(authData.userId),
+        unsafeBrandId<TenantId>(authData.organizationId),
         []
       );
 
@@ -512,7 +499,7 @@ describe("AgreementService Integration Test", async () => {
 
       await writeInReadmodel<EService>(eservice, eservices);
       await writeInReadmodel<Tenant>(
-        buildTenant(unsafeBrandId<TenantId>(authData.userId)),
+        buildTenant(unsafeBrandId<TenantId>(authData.organizationId)),
         tenants
       );
 
@@ -552,7 +539,7 @@ describe("AgreementService Integration Test", async () => {
 
       await writeInReadmodel<EService>(eservice, eservices);
       await writeInReadmodel<Tenant>(
-        buildTenant(unsafeBrandId<TenantId>(authData.userId)),
+        buildTenant(unsafeBrandId<TenantId>(authData.organizationId)),
         tenants
       );
 
@@ -631,15 +618,10 @@ describe("AgreementService Integration Test", async () => {
         buildEServiceAttribute();
 
       const descriptor = {
-        ...buildDescriptorPublished(generateId<DescriptorId>()),
-        attributes: {
-          certified: [
-            [certifiedDescriptorAttribute1],
-            [certifiedDescriptorAttribute2],
-          ],
-          verified: [],
-          declared: [],
-        },
+        ...buildDescriptorPublished(generateId<DescriptorId>(), [
+          [certifiedDescriptorAttribute1],
+          [certifiedDescriptorAttribute2],
+        ]),
       };
 
       // In this case, the consumer is missing one of the two certified attributes
@@ -683,17 +665,10 @@ describe("AgreementService Integration Test", async () => {
       const certifiedDescriptorAttribute2: EServiceAttribute =
         buildEServiceAttribute();
 
-      const descriptor: Descriptor = {
-        ...buildDescriptorPublished(),
-        attributes: {
-          certified: [
-            [certifiedDescriptorAttribute1],
-            [certifiedDescriptorAttribute2],
-          ],
-          declared: [],
-          verified: [],
-        },
-      };
+      const descriptor: Descriptor = buildDescriptorPublished(
+        generateId<DescriptorId>(),
+        [[certifiedDescriptorAttribute1], [certifiedDescriptorAttribute2]]
+      );
 
       const eservice = buildEService(
         generateId<EServiceId>(),

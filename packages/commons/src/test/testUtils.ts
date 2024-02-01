@@ -19,6 +19,7 @@ import {
   tenantAttributeType,
 } from "pagopa-interop-models";
 import { generateMock } from "@anatine/zod-mock";
+import { v4 as uuidv4 } from "uuid";
 import { AuthData } from "../index.js";
 
 export function expectPastTimestamp(timestamp: bigint): boolean {
@@ -40,17 +41,17 @@ export const getRandomAuthData = (
 
 export const buildDescriptorPublished = (
   descriptorId: DescriptorId = generateId<DescriptorId>(),
-  certifiedAttributes: EServiceAttribute[] = [],
-  declaredAttributes: EServiceAttribute[] = [],
-  verifiedAttributes: EServiceAttribute[] = []
+  certifiedAttributes: EServiceAttribute[][] = [],
+  declaredAttributes: EServiceAttribute[][] = [],
+  verifiedAttributes: EServiceAttribute[][] = []
 ): Descriptor => ({
   ...generateMock(Descriptor),
   id: descriptorId,
   state: descriptorState.published,
   attributes: {
-    certified: certifiedAttributes.length ? [certifiedAttributes] : [],
-    declared: declaredAttributes.length ? [declaredAttributes] : [],
-    verified: declaredAttributes.length ? [verifiedAttributes] : [],
+    certified: certifiedAttributes,
+    declared: declaredAttributes,
+    verified: verifiedAttributes,
   },
 });
 
@@ -111,13 +112,12 @@ export const buildDeclaredTenantAttributes = (num: number): TenantAttribute[] =>
 
 export const buildTenant = (
   tenantId: TenantId = generateId<TenantId>(),
-  externalId: TenantId = generateId<TenantId>(),
   attributes: TenantAttribute[] = []
 ): Tenant => ({
   ...generateMock(Tenant),
   id: tenantId,
   externalId: {
-    value: externalId,
+    value: uuidv4(),
     origin: "EXT",
   },
   attributes,

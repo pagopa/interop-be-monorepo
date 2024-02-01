@@ -20,6 +20,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.367.0",
+    "@types/uuid": "^9.0.2",
     "@zodios/core": "^10.9.2",
     "@zodios/express": "^10.6.1",
     "connection-string": "^4.3.6",
@@ -31,6 +32,7 @@
     "pagopa-interop-models": "workspace:*",
     "pg-promise": "^11.5.0",
     "ts-pattern": "^5.0.6",
+    "uuid": "^9.0.0",
     "winston": "^3.9.0",
     "zod": "^3.21.4"
   },
