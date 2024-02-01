@@ -119,6 +119,9 @@ export function agreementServiceBuilder(
       agreement: ApiAgreementPayload,
       authData: AuthData
     ): Promise<string> {
+      logger.info(
+        `Creating agreement for EService ${agreement.eserviceId} and Descriptor ${agreement.descriptorId}`
+      );
       const createAgreementEvent = await createAgreementLogic(
         agreement,
         authData,
@@ -153,6 +156,7 @@ export function agreementServiceBuilder(
       agreement: ApiAgreementUpdatePayload,
       authData: AuthData
     ): Promise<void> {
+      logger.info(`Updating agreement ${agreementId}`);
       const agreementToBeUpdated = await agreementQuery.getAgreementById(
         agreementId
       );
@@ -170,6 +174,7 @@ export function agreementServiceBuilder(
       agreementId: AgreementId,
       authData: AuthData
     ): Promise<void> {
+      logger.info(`Deleting agreement ${agreementId}`);
       const agreement = await agreementQuery.getAgreementById(agreementId);
 
       await repository.createEvent(
@@ -355,6 +360,7 @@ export function agreementServiceBuilder(
       agreementId: Agreement["id"],
       authData: AuthData
     ): Promise<Agreement["id"]> {
+      logger.info(`Activating agreement ${agreementId}`);
       const updatesEvents = await activateAgreementLogic(
         agreementId,
         agreementQuery,
@@ -463,11 +469,8 @@ export async function createAgreementLogic(
   eserviceQuery: EserviceQuery,
   tenantQuery: TenantQuery
 ): Promise<CreateEvent<AgreementEvent>> {
-  logger.info(
-    `Creating agreement for EService ${agreement.eserviceId} and Descriptor ${agreement.descriptorId}`
-  );
   const eservice = await eserviceQuery.getEServiceById(agreement.eserviceId);
-  assertEServiceExist(agreement.eserviceId, eservice);
+  assertEServiceExist(unsafeBrandId(agreement.eserviceId), eservice);
 
   const descriptor = validateCreationOnDescriptor(
     eservice.data,
@@ -488,7 +491,7 @@ export async function createAgreementLogic(
 
   const agreementSeed: Agreement = {
     id: generateId(),
-    eserviceId: agreement.eserviceId,
+    eserviceId: unsafeBrandId(agreement.eserviceId),
     descriptorId: unsafeBrandId(agreement.descriptorId),
     producerId: eservice.data.producerId,
     consumerId: authData.organizationId,

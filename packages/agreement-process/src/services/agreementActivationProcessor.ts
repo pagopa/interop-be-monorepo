@@ -1,5 +1,5 @@
 /* eslint-disable max-params */
-import { AuthData, CreateEvent, logger } from "pagopa-interop-commons";
+import { AuthData, CreateEvent } from "pagopa-interop-commons";
 import {
   Agreement,
   Descriptor,
@@ -53,8 +53,6 @@ export async function activateAgreementLogic(
   attributeQuery: AttributeQuery,
   authData: AuthData
 ): Promise<Array<CreateEvent<AgreementEvent>>> {
-  logger.info(`Activating agreement ${agreementId}`);
-
   const agreement = await agreementQuery.getAgreementById(agreementId);
   assertAgreementExist(agreementId, agreement);
 
