@@ -1,10 +1,10 @@
+import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import {
-  logger,
-  consumerConfig,
   decodeKafkaMessage,
+  logger,
+  readModelWriterConfig,
 } from "pagopa-interop-commons";
-import { runConsumer } from "kafka-iam-auth";
 import { EServiceEvent } from "pagopa-interop-models";
 
 async function processMessage({
@@ -26,5 +26,5 @@ async function processMessage({
   }
 }
 
-const config = consumerConfig();
+const config = readModelWriterConfig();
 await runConsumer(config, processMessage).catch(logger.error);
