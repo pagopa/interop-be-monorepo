@@ -119,6 +119,16 @@ describe("database test", async () => {
       id: uuidv4(),
       name: "A tenant3",
     };
+    const tenant4: Tenant = {
+      ...mockTenant,
+      id: uuidv4(),
+      name: "A tenant4",
+    };
+    const tenant5: Tenant = {
+      ...mockTenant,
+      id: uuidv4(),
+      name: "A tenant5",
+    };
     describe("getConsumers", () => {
       it("should get the tenants consuming any of the eservices of a specific producerId", async () => {
         await addOneTenant(tenant1, postgresDB, tenants);
@@ -846,32 +856,6 @@ describe("database test", async () => {
       });
     });
     describe("getTenants", () => {
-      const mockTenant = getMockTenant();
-      const tenant1: Tenant = {
-        ...mockTenant,
-        id: uuidv4(),
-        name: "A tenant1",
-      };
-      const tenant2: Tenant = {
-        ...mockTenant,
-        id: uuidv4(),
-        name: "A tenant2",
-      };
-      const tenant3: Tenant = {
-        ...mockTenant,
-        id: uuidv4(),
-        name: "A tenant3",
-      };
-      const tenant4: Tenant = {
-        ...mockTenant,
-        id: uuidv4(),
-        name: "A tenant4",
-      };
-      const tenant5: Tenant = {
-        ...mockTenant,
-        id: uuidv4(),
-        name: "A tenant5",
-      };
       it("should get all the tenants with no filter", async () => {
         await addOneTenant(tenant1, postgresDB, tenants);
         await addOneTenant(tenant2, postgresDB, tenants);
