@@ -527,7 +527,10 @@ export function updateEserviceLogic({
     throw eServiceCannotBeUpdated(eServiceId);
   }
 
-  if (eServiceWithSameName) {
+  if (
+    eServiceWithSameName &&
+    eServiceWithSameName.data.id !== eService.data.id
+  ) {
     throw eServiceDuplicate(eServiceSeed.name);
   }
 
