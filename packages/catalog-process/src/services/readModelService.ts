@@ -4,7 +4,6 @@ import {
   ReadModelRepository,
   ReadModelFilter,
   EServiceCollection,
-  AttributeCollection,
 } from "pagopa-interop-commons";
 import {
   DescriptorState,
@@ -15,7 +14,6 @@ import {
   descriptorState,
   agreementState,
   ListResult,
-  WithMetadata,
   emptyListResult,
   genericError,
   DescriptorId,
@@ -64,6 +62,7 @@ export function readModelServiceBuilder(
 ) {
   const eservices = readModelRepository.eservices;
   const agreements = readModelRepository.agreements;
+  const attributes = readModelRepository.attributes;
   return {
     async getEServices(
       authData: AuthData,
@@ -351,41 +350,40 @@ export function readModelServiceBuilder(
 
       return result.data;
     },
-  };
-}
 
-export async function getAttributeById(
-  attributes: AttributeCollection,
-  attributeId: string
-): Promise<WithMetadata<Attribute> | undefined> {
-  const data = await attributes.findOne(
-    { "data.id": attributeId },
-    {
-      projection: { data: true, metadata: true },
-    }
-  );
-  if (!data) {
-    return undefined;
-  } else {
-    const result = z
-      .object({
-        metadata: z.object({ version: z.number() }),
-        data: Attribute,
-      })
-      .safeParse(data);
-    if (!result.success) {
-      logger.error(
-        `Unable to parse attribute item: result ${JSON.stringify(
-          result
-        )} - data ${JSON.stringify(data)} `
+    async getAttributeById(
+      attributeId: string
+    ): Promise<WithMetadata<Attribute> | undefined> {
+      const data = await attributes.findOne(
+        { "data.id": attributeId },
+        {
+          projection: { data: true, metadata: true },
+        }
       );
-      throw genericError("Unable to parse attribute item");
-    }
-    return {
-      data: result.data.data,
-      metadata: { version: result.data.metadata.version },
-    };
-  }
+      if (!data) {
+        return undefined;
+      } else {
+        const result = z
+          .object({
+            metadata: z.object({ version: z.number() }),
+            data: Attribute,
+          })
+          .safeParse(data);
+        if (!result.success) {
+          logger.error(
+            `Unable to parse attribute item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+          throw genericError("Unable to parse attribute item");
+        }
+        return {
+          data: result.data.data,
+          metadata: { version: result.data.metadata.version },
+        };
+      }
+    },
+  };
 }
 
 export type ReadModelService = ReturnType<typeof readModelServiceBuilder>;

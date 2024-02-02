@@ -7,6 +7,7 @@ import {
   logger,
 } from "pagopa-interop-commons";
 import {
+  Attribute,
   Descriptor,
   DescriptorId,
   DescriptorState,
@@ -60,6 +61,7 @@ import {
   eServiceNotFound,
   eServiceDescriptorWithoutInterface,
   interfaceAlreadyExists,
+  attributeNotFound,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -309,17 +311,14 @@ export function catalogServiceBuilder(
       logger.info(`Creating Descriptor for EService ${eServiceId}`);
 
       const eService = await readModelService.getEServiceById(eServiceId);
-      const attributesIds = [
-        ...eserviceDescriptorSeed.attributes.certified,
-        ...eserviceDescriptorSeed.attributes.declared,
-        ...eserviceDescriptorSeed.attributes.verified,
-      ];
+
       return await repository.createEvent(
         createDescriptorLogic({
           eServiceId,
           eserviceDescriptorSeed,
           authData,
           eService,
+          getAttributeById: readModelService.getAttributeById,
         })
       );
     },
@@ -712,11 +711,15 @@ export function createDescriptorLogic({
   eserviceDescriptorSeed,
   authData,
   eService,
+  getAttributeById,
 }: {
   eServiceId: string;
   eserviceDescriptorSeed: EServiceDescriptorSeed;
   authData: AuthData;
   eService: WithMetadata<EService> | undefined;
+  getAttributeById: (
+    id: string
+  ) => Promise<WithMetadata<Attribute> | undefined>;
 }): CreateEvent<EServiceEvent> {
   assertEServiceExist(eServiceId, eService);
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
@@ -725,6 +728,21 @@ export function createDescriptorLogic({
   const newVersion = nextDescriptorVersion(eService.data);
 
   const certifiedAttributes = eserviceDescriptorSeed.attributes.certified;
+  const declaredAttributes = eserviceDescriptorSeed.attributes.declared;
+  const verifiedAttributes = eserviceDescriptorSeed.attributes.verified;
+
+  const attributesSeeds = [
+    ...certifiedAttributes.flat(),
+    ...declaredAttributes.flat(),
+    ...verifiedAttributes.flat(),
+  ];
+
+  attributesSeeds.forEach(async (attributeSeed) => {
+    const attribute = await getAttributeById(attributeSeed.id);
+    if (attribute === undefined) {
+      throw attributeNotFound(attributeSeed.id);
+    }
+  });
 
   const newDescriptor: Descriptor = {
     id: generateId(),
@@ -754,8 +772,20 @@ export function createDescriptorLogic({
           id: unsafeBrandId(a.id),
         }))
       ),
-      declared: [],
-      verified: [],
+      // eslint-disable-next-line sonarjs/no-identical-functions
+      declared: declaredAttributes.map((a) =>
+        a.map((a) => ({
+          ...a,
+          id: unsafeBrandId(a.id),
+        }))
+      ),
+      // eslint-disable-next-line sonarjs/no-identical-functions
+      verified: verifiedAttributes.map((a) =>
+        a.map((a) => ({
+          ...a,
+          id: unsafeBrandId(a.id),
+        }))
+      ),
     },
   };
 
