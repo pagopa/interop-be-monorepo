@@ -1,6 +1,7 @@
 /* eslint-disable functional/no-let */
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-floating-promises */
 
 import { beforeAll, afterEach, describe, expect, it, vi } from "vitest";
 import { GenericContainer } from "testcontainers";
