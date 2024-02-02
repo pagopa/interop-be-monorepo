@@ -33,7 +33,6 @@ import * as api from "../src/model/generated/api.js";
 import {
   toAgreementApprovalPolicyV1,
   toDescriptorV1,
-  toEServiceAttributeV1,
   toEServiceDescriptorStateV1,
   toEServiceTechnologyV1,
   toEServiceV1,
