@@ -863,18 +863,14 @@ describe("database test", async () => {
         await addOneTenant(tenant1, postgresDB, tenants);
         await addOneTenant(tenant2, postgresDB, tenants);
         await addOneTenant(tenant3, postgresDB, tenants);
-        const selfcareId =
-          tenant1.selfcareId !== undefined ? tenant1.selfcareId : uuidv4();
         const tenantBySelfcareId = await readModelService.getTenantBySelfcareId(
-          selfcareId
+          tenant1.selfcareId ?? uuidv4()
         );
         expect(tenantBySelfcareId?.data).toEqual(tenant1);
       });
       it("should not get the tenant by selfcareId if it isn't in DB", async () => {
-        const selfcareId =
-          tenant1.selfcareId !== undefined ? tenant1.selfcareId : uuidv4();
         const tenantBySelfcareId = await readModelService.getTenantBySelfcareId(
-          selfcareId
+          tenant1.selfcareId ?? uuidv4()
         );
         expect(tenantBySelfcareId?.data.selfcareId).toBeUndefined();
       });
