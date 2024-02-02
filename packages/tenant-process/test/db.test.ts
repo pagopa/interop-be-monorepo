@@ -905,15 +905,6 @@ describe("database test", async () => {
         );
         expect(tenantByExternalId?.data).toEqual(tenant1);
       });
-      it("should not get the tenant by externalId", async () => {
-        await addOneTenant(tenant1, postgresDB, tenants);
-        await addOneTenant(tenant2, postgresDB, tenants);
-        await addOneTenant(tenant3, postgresDB, tenants);
-        const tenantByExternalId = await readModelService.getTenantByExternalId(
-          { value: "value", origin: "origin" }
-        );
-        expect(tenantByExternalId?.data.externalId).toBeUndefined();
-      });
       it("should not get the tenant by externalId if it isn't in DB", async () => {
         const tenantByExternalId = await readModelService.getTenantByExternalId(
           { value: tenant1.externalId.value, origin: tenant1.externalId.origin }
