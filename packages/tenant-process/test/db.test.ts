@@ -241,29 +241,22 @@ describe("database test", async () => {
     });
   });
   describe("readModelService", () => {
+    const tenant1: Tenant = {
+      ...mockTenant,
+      id: uuidv4(),
+      name: "A tenant1",
+    };
+    const tenant2: Tenant = {
+      ...mockTenant,
+      id: uuidv4(),
+      name: "A tenant2",
+    };
+    const tenant3: Tenant = {
+      ...mockTenant,
+      id: uuidv4(),
+      name: "A tenant3",
+    };
     describe("getConsumers", () => {
-      const organizationProducerId = uuidv4();
-      const consumerId1 = uuidv4();
-      const consumerId2 = uuidv4();
-      const consumerId3 = uuidv4();
-      const mockTenant = getMockTenant();
-
-      const tenant1: Tenant = {
-        ...mockTenant,
-        id: consumerId1,
-        name: "A tenant1",
-      };
-      const tenant2: Tenant = {
-        ...mockTenant,
-        id: consumerId2,
-        name: "A tenant2",
-      };
-      const tenant3: Tenant = {
-        ...mockTenant,
-        id: consumerId3,
-        name: "A tenant3",
-      };
-
       it("should get the tenants consuming any of the eservices of a specific producerId", async () => {
         await addOneTenant(tenant1, postgresDB, tenants);
 
@@ -277,15 +270,14 @@ describe("database test", async () => {
           id: uuidv4(),
           name: "A",
           descriptors: [descriptor1],
-          producerId: organizationProducerId,
         };
         await addOneEService(eService1, eservices);
 
         const agreementEservice1 = getMockAgreement({
           eServiceId: eService1.id,
           descriptorId: descriptor1.id,
-          producerId: organizationProducerId,
-          consumerId: consumerId1,
+          producerId: eService1.producerId,
+          consumerId: tenant1.id,
         });
         await addOneAgreement(agreementEservice1, agreements);
 
@@ -301,15 +293,15 @@ describe("database test", async () => {
           id: uuidv4(),
           name: "B",
           descriptors: [descriptor2],
-          producerId: organizationProducerId,
+          producerId: eService1.producerId,
         };
         await addOneEService(eService2, eservices);
 
         const agreementEservice2 = getMockAgreement({
           eServiceId: eService2.id,
           descriptorId: descriptor2.id,
-          producerId: organizationProducerId,
-          consumerId: consumerId2,
+          producerId: eService2.producerId,
+          consumerId: tenant2.id,
         });
         await addOneAgreement(agreementEservice2, agreements);
 
@@ -325,21 +317,21 @@ describe("database test", async () => {
           id: uuidv4(),
           name: "C",
           descriptors: [descriptor3],
-          producerId: organizationProducerId,
+          producerId: eService1.producerId,
         };
         await addOneEService(eService3, eservices);
 
         const agreementEservice3 = getMockAgreement({
           eServiceId: eService3.id,
           descriptorId: descriptor3.id,
-          producerId: organizationProducerId,
-          consumerId: consumerId3,
+          producerId: eService3.producerId,
+          consumerId: tenant3.id,
         });
         await addOneAgreement(agreementEservice3, agreements);
 
         const consumers = await readModelService.getConsumers({
           consumerName: undefined,
-          producerId: organizationProducerId,
+          producerId: eService1.producerId,
           offset: 0,
           limit: 50,
         });
@@ -359,15 +351,14 @@ describe("database test", async () => {
           id: uuidv4(),
           name: "A",
           descriptors: [descriptor1],
-          producerId: organizationProducerId,
         };
         await addOneEService(eService1, eservices);
 
         const agreementEservice1 = getMockAgreement({
           eServiceId: eService1.id,
           descriptorId: descriptor1.id,
-          producerId: organizationProducerId,
-          consumerId: consumerId1,
+          producerId: eService1.producerId,
+          consumerId: tenant1.id,
         });
         await addOneAgreement(agreementEservice1, agreements);
 
@@ -383,15 +374,15 @@ describe("database test", async () => {
           id: uuidv4(),
           name: "B",
           descriptors: [descriptor2],
-          producerId: organizationProducerId,
+          producerId: eService1.producerId,
         };
         await addOneEService(eService2, eservices);
 
         const agreementEservice2 = getMockAgreement({
           eServiceId: eService2.id,
           descriptorId: descriptor2.id,
-          producerId: organizationProducerId,
-          consumerId: consumerId2,
+          producerId: eService2.producerId,
+          consumerId: tenant2.id,
         });
         await addOneAgreement(agreementEservice2, agreements);
 
@@ -407,21 +398,21 @@ describe("database test", async () => {
           id: uuidv4(),
           name: "C",
           descriptors: [descriptor3],
-          producerId: organizationProducerId,
+          producerId: eService1.producerId,
         };
         await addOneEService(eService3, eservices);
 
         const agreementEservice3 = getMockAgreement({
           eServiceId: eService3.id,
           descriptorId: descriptor3.id,
-          producerId: organizationProducerId,
-          consumerId: consumerId3,
+          producerId: eService3.producerId,
+          consumerId: tenant3.id,
         });
         await addOneAgreement(agreementEservice3, agreements);
 
         const consumers = await readModelService.getConsumers({
           consumerName: tenant1.name,
-          producerId: organizationProducerId,
+          producerId: eService1.producerId,
           offset: 0,
           limit: 50,
         });
@@ -441,7 +432,6 @@ describe("database test", async () => {
           id: uuidv4(),
           name: "A",
           descriptors: [descriptor1],
-          producerId: organizationProducerId,
         };
         await addOneEService(eService1, eservices);
 
@@ -457,7 +447,7 @@ describe("database test", async () => {
           id: uuidv4(),
           name: "B",
           descriptors: [descriptor2],
-          producerId: organizationProducerId,
+          producerId: eService1.producerId,
         };
         await addOneEService(eService2, eservices);
 
@@ -473,13 +463,13 @@ describe("database test", async () => {
           id: uuidv4(),
           name: "C",
           descriptors: [descriptor3],
-          producerId: organizationProducerId,
+          producerId: eService1.producerId,
         };
         await addOneEService(eService3, eservices);
 
         const consumers = await readModelService.getConsumers({
           consumerName: undefined,
-          producerId: organizationProducerId,
+          producerId: eService1.producerId,
           offset: 0,
           limit: 50,
         });
@@ -499,7 +489,6 @@ describe("database test", async () => {
           id: uuidv4(),
           name: "A",
           descriptors: [descriptor1],
-          producerId: organizationProducerId,
         };
         await addOneEService(eService1, eservices);
 
@@ -515,7 +504,7 @@ describe("database test", async () => {
           id: uuidv4(),
           name: "B",
           descriptors: [descriptor2],
-          producerId: organizationProducerId,
+          producerId: eService1.producerId,
         };
         await addOneEService(eService2, eservices);
 
@@ -531,13 +520,13 @@ describe("database test", async () => {
           id: uuidv4(),
           name: "C",
           descriptors: [descriptor3],
-          producerId: organizationProducerId,
+          producerId: eService1.producerId,
         };
         await addOneEService(eService3, eservices);
 
         const consumers = await readModelService.getConsumers({
           consumerName: "A tenant4",
-          producerId: organizationProducerId,
+          producerId: eService1.producerId,
           offset: 0,
           limit: 50,
         });
@@ -557,15 +546,14 @@ describe("database test", async () => {
           id: uuidv4(),
           name: "A",
           descriptors: [descriptor1],
-          producerId: organizationProducerId,
         };
         await addOneEService(eService1, eservices);
 
         const agreementEservice1 = getMockAgreement({
           eServiceId: eService1.id,
           descriptorId: descriptor1.id,
-          producerId: organizationProducerId,
-          consumerId: consumerId1,
+          producerId: eService1.producerId,
+          consumerId: tenant1.id,
         });
         await addOneAgreement(agreementEservice1, agreements);
 
@@ -581,15 +569,15 @@ describe("database test", async () => {
           id: uuidv4(),
           name: "B",
           descriptors: [descriptor2],
-          producerId: organizationProducerId,
+          producerId: eService1.producerId,
         };
         await addOneEService(eService2, eservices);
 
         const agreementEservice2 = getMockAgreement({
           eServiceId: eService2.id,
           descriptorId: descriptor2.id,
-          producerId: organizationProducerId,
-          consumerId: consumerId2,
+          producerId: eService2.producerId,
+          consumerId: tenant2.id,
         });
         await addOneAgreement(agreementEservice2, agreements);
 
@@ -605,21 +593,21 @@ describe("database test", async () => {
           id: uuidv4(),
           name: "C",
           descriptors: [descriptor3],
-          producerId: organizationProducerId,
+          producerId: eService1.producerId,
         };
         await addOneEService(eService3, eservices);
 
         const agreementEservice3 = getMockAgreement({
           eServiceId: eService3.id,
           descriptorId: descriptor3.id,
-          producerId: organizationProducerId,
-          consumerId: consumerId3,
+          producerId: eService3.producerId,
+          consumerId: tenant3.id,
         });
         await addOneAgreement(agreementEservice3, agreements);
 
         const tenantsByName = await readModelService.getConsumers({
           consumerName: undefined,
-          producerId: organizationProducerId,
+          producerId: eService1.producerId,
           offset: 0,
           limit: 2,
         });
@@ -638,15 +626,14 @@ describe("database test", async () => {
           id: uuidv4(),
           name: "A",
           descriptors: [descriptor1],
-          producerId: organizationProducerId,
         };
         await addOneEService(eService1, eservices);
 
         const agreementEservice1 = getMockAgreement({
           eServiceId: eService1.id,
           descriptorId: descriptor1.id,
-          producerId: organizationProducerId,
-          consumerId: consumerId1,
+          producerId: eService1.producerId,
+          consumerId: tenant1.id,
         });
         await addOneAgreement(agreementEservice1, agreements);
 
@@ -662,15 +649,15 @@ describe("database test", async () => {
           id: uuidv4(),
           name: "B",
           descriptors: [descriptor2],
-          producerId: organizationProducerId,
+          producerId: eService1.producerId,
         };
         await addOneEService(eService2, eservices);
 
         const agreementEservice2 = getMockAgreement({
           eServiceId: eService2.id,
           descriptorId: descriptor2.id,
-          producerId: organizationProducerId,
-          consumerId: consumerId2,
+          producerId: eService2.producerId,
+          consumerId: tenant2.id,
         });
         await addOneAgreement(agreementEservice2, agreements);
 
@@ -686,21 +673,21 @@ describe("database test", async () => {
           id: uuidv4(),
           name: "C",
           descriptors: [descriptor3],
-          producerId: organizationProducerId,
+          producerId: eService1.producerId,
         };
         await addOneEService(eService3, eservices);
 
         const agreementEservice3 = getMockAgreement({
           eServiceId: eService3.id,
           descriptorId: descriptor3.id,
-          producerId: organizationProducerId,
-          consumerId: consumerId3,
+          producerId: eService3.producerId,
+          consumerId: tenant3.id,
         });
         await addOneAgreement(agreementEservice3, agreements);
 
         const tenantsByName = await readModelService.getConsumers({
           consumerName: undefined,
-          producerId: organizationProducerId,
+          producerId: eService1.producerId,
           offset: 2,
           limit: 3,
         });
@@ -708,28 +695,8 @@ describe("database test", async () => {
       });
     });
     describe("getProducers", () => {
-      const organizationProducerId1 = uuidv4();
-      const organizationProducerId2 = uuidv4();
-      const organizationProducerId3 = uuidv4();
-      const mockTenant = getMockTenant();
-
-      const tenantProducer1: Tenant = {
-        ...mockTenant,
-        id: organizationProducerId1,
-        name: "A tenantProducer1",
-      };
-      const tenantProducer2: Tenant = {
-        ...mockTenant,
-        id: organizationProducerId2,
-        name: "A tenantProducer2",
-      };
-      const tenantProducer3: Tenant = {
-        ...mockTenant,
-        id: organizationProducerId3,
-        name: "A tenantProducer3",
-      };
       it("should get producers", async () => {
-        await addOneTenant(tenantProducer1, postgresDB, tenants);
+        await addOneTenant(tenant1, postgresDB, tenants);
 
         const descriptor1: Descriptor = {
           ...mockDescriptor,
@@ -741,11 +708,11 @@ describe("database test", async () => {
           id: uuidv4(),
           name: "A",
           descriptors: [descriptor1],
-          producerId: organizationProducerId1,
+          producerId: tenant1.id,
         };
         await addOneEService(eService1, eservices);
 
-        await addOneTenant(tenantProducer2, postgresDB, tenants);
+        await addOneTenant(tenant2, postgresDB, tenants);
 
         const descriptor2: Descriptor = {
           ...mockDescriptor,
@@ -757,11 +724,11 @@ describe("database test", async () => {
           id: uuidv4(),
           name: "A",
           descriptors: [descriptor2],
-          producerId: organizationProducerId2,
+          producerId: tenant2.id,
         };
         await addOneEService(eService2, eservices);
 
-        await addOneTenant(tenantProducer3, postgresDB, tenants);
+        await addOneTenant(tenant3, postgresDB, tenants);
 
         const descriptor3: Descriptor = {
           ...mockDescriptor,
@@ -773,7 +740,7 @@ describe("database test", async () => {
           id: uuidv4(),
           name: "A",
           descriptors: [descriptor3],
-          producerId: organizationProducerId3,
+          producerId: tenant3.id,
         };
         await addOneEService(eService3, eservices);
 
@@ -783,14 +750,10 @@ describe("database test", async () => {
           limit: 50,
         });
         expect(producers.totalCount).toBe(3);
-        expect(producers.results).toEqual([
-          tenantProducer1,
-          tenantProducer2,
-          tenantProducer3,
-        ]);
+        expect(producers.results).toEqual([tenant1, tenant2, tenant3]);
       });
       it("should get producers by name", async () => {
-        await addOneTenant(tenantProducer1, postgresDB, tenants);
+        await addOneTenant(tenant1, postgresDB, tenants);
 
         const descriptor1: Descriptor = {
           ...mockDescriptor,
@@ -802,11 +765,11 @@ describe("database test", async () => {
           id: uuidv4(),
           name: "A",
           descriptors: [descriptor1],
-          producerId: organizationProducerId1,
+          producerId: tenant1.id,
         };
         await addOneEService(eService1, eservices);
 
-        await addOneTenant(tenantProducer2, postgresDB, tenants);
+        await addOneTenant(tenant2, postgresDB, tenants);
 
         const descriptor2: Descriptor = {
           ...mockDescriptor,
@@ -818,20 +781,20 @@ describe("database test", async () => {
           id: uuidv4(),
           name: "A",
           descriptors: [descriptor2],
-          producerId: organizationProducerId2,
+          producerId: tenant2.id,
         };
         await addOneEService(eService2, eservices);
 
         const producers = await readModelService.getProducers({
-          producerName: tenantProducer1.name,
+          producerName: tenant1.name,
           offset: 0,
           limit: 50,
         });
         expect(producers.totalCount).toBe(1);
-        expect(producers.results).toEqual([tenantProducer1]);
+        expect(producers.results).toEqual([tenant1]);
       });
       it("should not get any tenants if no one matches the requested name", async () => {
-        await addOneTenant(tenantProducer1, postgresDB, tenants);
+        await addOneTenant(tenant1, postgresDB, tenants);
 
         const descriptor1: Descriptor = {
           ...mockDescriptor,
@@ -843,11 +806,11 @@ describe("database test", async () => {
           id: uuidv4(),
           name: "A",
           descriptors: [descriptor1],
-          producerId: organizationProducerId1,
+          producerId: tenant1.id,
         };
         await addOneEService(eService1, eservices);
 
-        await addOneTenant(tenantProducer2, postgresDB, tenants);
+        await addOneTenant(tenant2, postgresDB, tenants);
 
         const descriptor2: Descriptor = {
           ...mockDescriptor,
@@ -859,12 +822,12 @@ describe("database test", async () => {
           id: uuidv4(),
           name: "A",
           descriptors: [descriptor2],
-          producerId: organizationProducerId2,
+          producerId: tenant2.id,
         };
         await addOneEService(eService2, eservices);
 
         const producers = await readModelService.getProducers({
-          producerName: "A tenantProducer6",
+          producerName: "A tenant6",
           offset: 0,
           limit: 50,
         });
@@ -882,7 +845,7 @@ describe("database test", async () => {
           id: uuidv4(),
           name: "A",
           descriptors: [descriptor1],
-          producerId: organizationProducerId1,
+          producerId: tenant1.id,
         };
         await addOneEService(eService1, eservices);
 
@@ -896,7 +859,7 @@ describe("database test", async () => {
           id: uuidv4(),
           name: "A",
           descriptors: [descriptor2],
-          producerId: organizationProducerId2,
+          producerId: tenant2.id,
         };
         await addOneEService(eService2, eservices);
 
@@ -909,7 +872,7 @@ describe("database test", async () => {
         expect(producers.results).toEqual([]);
       });
       it("Should get producers (pagination: limit)", async () => {
-        await addOneTenant(tenantProducer1, postgresDB, tenants);
+        await addOneTenant(tenant1, postgresDB, tenants);
 
         const descriptor1: Descriptor = {
           ...mockDescriptor,
@@ -921,11 +884,11 @@ describe("database test", async () => {
           id: uuidv4(),
           name: "A",
           descriptors: [descriptor1],
-          producerId: organizationProducerId1,
+          producerId: tenant1.id,
         };
         await addOneEService(eService1, eservices);
 
-        await addOneTenant(tenantProducer2, postgresDB, tenants);
+        await addOneTenant(tenant2, postgresDB, tenants);
 
         const descriptor2: Descriptor = {
           ...mockDescriptor,
@@ -937,11 +900,11 @@ describe("database test", async () => {
           id: uuidv4(),
           name: "A",
           descriptors: [descriptor2],
-          producerId: organizationProducerId2,
+          producerId: tenant2.id,
         };
         await addOneEService(eService2, eservices);
 
-        await addOneTenant(tenantProducer3, postgresDB, tenants);
+        await addOneTenant(tenant3, postgresDB, tenants);
 
         const descriptor3: Descriptor = {
           ...mockDescriptor,
@@ -953,7 +916,7 @@ describe("database test", async () => {
           id: uuidv4(),
           name: "A",
           descriptors: [descriptor3],
-          producerId: organizationProducerId3,
+          producerId: tenant3.id,
         };
         await addOneEService(eService3, eservices);
         const tenantsByName = await readModelService.getProducers({
@@ -964,7 +927,7 @@ describe("database test", async () => {
         expect(tenantsByName.results.length).toBe(3);
       });
       it("Should get producers (pagination: offset, limit)", async () => {
-        await addOneTenant(tenantProducer1, postgresDB, tenants);
+        await addOneTenant(tenant1, postgresDB, tenants);
 
         const descriptor1: Descriptor = {
           ...mockDescriptor,
@@ -976,11 +939,11 @@ describe("database test", async () => {
           id: uuidv4(),
           name: "A",
           descriptors: [descriptor1],
-          producerId: organizationProducerId1,
+          producerId: tenant1.id,
         };
         await addOneEService(eService1, eservices);
 
-        await addOneTenant(tenantProducer2, postgresDB, tenants);
+        await addOneTenant(tenant2, postgresDB, tenants);
 
         const descriptor2: Descriptor = {
           ...mockDescriptor,
@@ -992,11 +955,11 @@ describe("database test", async () => {
           id: uuidv4(),
           name: "A",
           descriptors: [descriptor2],
-          producerId: organizationProducerId2,
+          producerId: tenant2.id,
         };
         await addOneEService(eService2, eservices);
 
-        await addOneTenant(tenantProducer3, postgresDB, tenants);
+        await addOneTenant(tenant3, postgresDB, tenants);
 
         const descriptor3: Descriptor = {
           ...mockDescriptor,
@@ -1008,7 +971,7 @@ describe("database test", async () => {
           id: uuidv4(),
           name: "A",
           descriptors: [descriptor3],
-          producerId: organizationProducerId3,
+          producerId: tenant3.id,
         };
         await addOneEService(eService3, eservices);
         const tenantsByName = await readModelService.getProducers({
