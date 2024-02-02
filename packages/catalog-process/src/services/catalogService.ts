@@ -313,7 +313,7 @@ export function catalogServiceBuilder(
       const eService = await readModelService.getEServiceById(eServiceId);
 
       return await repository.createEvent(
-        createDescriptorLogic({
+        await createDescriptorLogic({
           eServiceId,
           eserviceDescriptorSeed,
           authData,
@@ -706,7 +706,7 @@ export async function updateDocumentLogic({
   });
 }
 
-export function createDescriptorLogic({
+export async function createDescriptorLogic({
   eServiceId,
   eserviceDescriptorSeed,
   authData,
@@ -720,7 +720,7 @@ export function createDescriptorLogic({
   getAttributeById: (
     id: string
   ) => Promise<WithMetadata<Attribute> | undefined>;
-}): CreateEvent<EServiceEvent> {
+}): Promise<CreateEvent<EServiceEvent>> {
   assertEServiceExist(eServiceId, eService);
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
   hasNotDraftDescriptor(eService.data);
@@ -737,12 +737,12 @@ export function createDescriptorLogic({
     ...verifiedAttributes.flat(),
   ];
 
-  attributesSeeds.forEach(async (attributeSeed) => {
+  for (const attributeSeed of attributesSeeds) {
     const attribute = await getAttributeById(attributeSeed.id);
     if (attribute === undefined) {
       throw attributeNotFound(attributeSeed.id);
     }
-  });
+  }
 
   const newDescriptor: Descriptor = {
     id: generateId(),
