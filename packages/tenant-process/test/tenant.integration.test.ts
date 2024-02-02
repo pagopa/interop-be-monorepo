@@ -21,7 +21,7 @@ import {
   tenantServiceBuilder,
 } from "../src/services/tenantService.js";
 
-describe("database test", () => {
+describe("Integration tests", () => {
   let tenants: TenantCollection;
   let readModelService: ReadModelService;
   let tenantService: TenantService;
