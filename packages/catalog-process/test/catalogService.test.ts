@@ -572,13 +572,18 @@ describe("CatalogService", () => {
           ...d,
           state: descriptorState.archived,
           version: (i + 1).toString(),
+          attributes: { certified: [], declared: [], verified: [] },
         }))
       );
       const event = createDescriptorLogic({
         eServiceId: mockEservice.id,
-        eserviceDescriptorSeed: mockEserviceDescriptorSeed,
+        eserviceDescriptorSeed: {
+          ...mockEserviceDescriptorSeed,
+          attributes: { certified: [], declared: [], verified: [] },
+        },
         authData,
         eService: addMetadata({ ...mockEservice, descriptors }),
+        getAttributeById: () => Promise.resolve(undefined),
       });
       expect(event.event.type).toBe("EServiceDescriptorAdded");
       expect(event.event.data).toMatchObject({
@@ -610,9 +615,7 @@ describe("CatalogService", () => {
             event.event.data as { eServiceDescriptor: { createdAt: Date } }
           ).eServiceDescriptor.createdAt,
           attributes: {
-            certified: mockEserviceDescriptorSeed.attributes.certified.map(
-              toEServiceAttributeV1
-            ),
+            certified: [],
             declared: [],
             verified: [],
           },
