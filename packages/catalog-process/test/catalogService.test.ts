@@ -125,12 +125,12 @@ describe("CatalogService", () => {
     it("updates the eservice", async () => {
       const eService = { ...mockEservice, descriptors: [] };
 
-      const event = await updateEserviceLogic({
+      const event = updateEserviceLogic({
         eService: addMetadata(eService),
         eServiceId: mockEservice.id,
         eServiceSeed: mockEserviceSeed,
         authData,
-        getEServiceByNameAndProducerId: () => Promise.resolve(undefined),
+        eServiceWithSameName: undefined,
       });
       expect(event.event.type).toBe("EServiceUpdated");
       expect(event.event.data).toMatchObject({
@@ -156,9 +156,9 @@ describe("CatalogService", () => {
           eServiceId: mockEservice.id,
           authData,
           eServiceSeed: mockEserviceSeed,
-          getEServiceByNameAndProducerId: () => Promise.resolve(undefined),
+          eServiceWithSameName: undefined,
         })
-      ).rejects.toThrowError(eServiceCannotBeUpdated(mockEservice.id));
+      ).toThrowError(eServiceCannotBeUpdated(mockEservice.id));
     });
 
     it("returns an error if the authenticated organization is not the producer", async () => {
@@ -174,9 +174,9 @@ describe("CatalogService", () => {
             ...authData,
             organizationId: "other-org-id",
           },
-          getEServiceByNameAndProducerId: () => Promise.resolve(undefined),
+          eServiceWithSameName: undefined,
         })
-      ).rejects.toThrowError(operationForbidden);
+      ).toThrowError(operationForbidden);
     });
 
     it("returns an error when the service does not exist", async () => {
@@ -190,9 +190,9 @@ describe("CatalogService", () => {
             ...authData,
             organizationId: "organizationId",
           },
-          getEServiceByNameAndProducerId: () => Promise.resolve(undefined),
+          eServiceWithSameName: undefined,
         })
-      ).rejects.toThrowError(eServiceNotFound(eServiceId));
+      ).toThrowError(eServiceNotFound(eServiceId));
     });
   });
   describe("deleteEService", () => {
@@ -264,7 +264,7 @@ describe("CatalogService", () => {
       };
       const event = uploadDocumentLogic({
         eServiceId: eService.id,
-        descriptorId: eService.descriptors[0].id,
+        descriptorId: descriptor.id,
         document: mockDocument,
         authData,
         eService: addMetadata(eService),
@@ -272,7 +272,7 @@ describe("CatalogService", () => {
       expect(event.event.type).toBe("EServiceDocumentAdded");
       expect(event.event.data).toMatchObject({
         eServiceId: eService.id,
-        descriptorId: eService.descriptors[0].id,
+        descriptorId: descriptor.id,
         document: {
           id: mockDocument.documentId,
           name: mockDocument.fileName,
@@ -348,14 +348,14 @@ describe("CatalogService", () => {
       };
       const event = await deleteDocumentLogic({
         eServiceId: eService.id,
-        descriptorId: eService.descriptors[0].id,
+        descriptorId: descriptor.id,
         documentId: mockDocument.documentId,
         authData,
         eService: addMetadata({
           ...eService,
           descriptors: [
             {
-              ...eService.descriptors[0],
+              ...descriptor,
               docs: [
                 {
                   path: mockDocument.filePath,
@@ -375,7 +375,7 @@ describe("CatalogService", () => {
       expect(event.event.type).toBe("EServiceDocumentDeleted");
       expect(event.event.data).toMatchObject({
         eServiceId: eService.id,
-        descriptorId: eService.descriptors[0].id,
+        descriptorId: descriptor.id,
         documentId: mockDocument.documentId,
       });
     });
@@ -394,18 +394,14 @@ describe("CatalogService", () => {
       await expect(() =>
         deleteDocumentLogic({
           eServiceId: eService.id,
-          descriptorId: eService.descriptors[0].id,
+          descriptorId: descriptor.id,
           documentId,
           authData,
           eService: addMetadata(eService),
           deleteRemoteFile: () => Promise.resolve(),
         })
       ).rejects.toThrowError(
-        eServiceDocumentNotFound(
-          eService.id,
-          eService.descriptors[0].id,
-          documentId
-        )
+        eServiceDocumentNotFound(eService.id, descriptor.id, documentId)
       );
     });
 

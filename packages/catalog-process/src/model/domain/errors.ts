@@ -135,7 +135,7 @@ export function interfaceAlreadyExists(
   return new ApiError({
     detail: `Descriptor ${descriptorId} already contains an interface`,
     code: "interfaceAlreadyExists",
-    title: "Version is not a valid descriptor version",
+    title: "Descriptor already contains an interface",
   });
 }
 
