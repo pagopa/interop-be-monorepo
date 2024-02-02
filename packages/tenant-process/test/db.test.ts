@@ -912,26 +912,6 @@ describe("database test", async () => {
       });
     });
     describe("getTenantByExternalId", () => {
-      const consumerId1 = uuidv4();
-      const consumerId2 = uuidv4();
-      const consumerId3 = uuidv4();
-      const mockTenant = getMockTenant();
-
-      const tenant1: Tenant = {
-        ...mockTenant,
-        id: consumerId1,
-        name: "A tenant1",
-      };
-      const tenant2: Tenant = {
-        ...mockTenant,
-        id: consumerId2,
-        name: "A tenant2",
-      };
-      const tenant3: Tenant = {
-        ...mockTenant,
-        id: consumerId3,
-        name: "A tenant3",
-      };
       it("should get the tenant by externalId", async () => {
         await addOneTenant(tenant1, postgresDB, tenants);
         await addOneTenant(tenant2, postgresDB, tenants);
