@@ -873,13 +873,6 @@ describe("database test", async () => {
         const tenantById = await readModelService.getTenantById(tenant1.id);
         expect(tenantById?.data).toEqual(tenant1);
       });
-      it("should not get the tenant by ID", async () => {
-        await addOneTenant(tenant1, postgresDB, tenants);
-        await addOneTenant(tenant2, postgresDB, tenants);
-        await addOneTenant(tenant3, postgresDB, tenants);
-        const tenantById = await readModelService.getTenantById(uuidv4());
-        expect(tenantById?.data.id).toBeUndefined();
-      });
       it("should not get the tenant by ID if it isn't in DB", async () => {
         const tenantById = await readModelService.getTenantById(tenant1.id);
         expect(tenantById?.data.id).toBeUndefined();
