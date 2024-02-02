@@ -2,7 +2,7 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { beforeAll, afterEach, describe, expect, it } from "vitest";
+import { beforeAll, afterEach, describe, expect, it, vi } from "vitest";
 import { GenericContainer } from "testcontainers";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import {
@@ -17,6 +17,7 @@ import {
   Descriptor,
   EService,
   Tenant,
+  TenantUpdatedV1,
   descriptorState,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
@@ -29,14 +30,28 @@ import {
   TenantService,
   tenantServiceBuilder,
 } from "../src/services/tenantService.js";
+import { toTenantV1 } from "../src/model/domain/toEvent.js";
+import { UpdateVerifiedTenantAttributeSeed } from "../src/model/domain/models.js";
+import {
+  expirationDateCannotBeInThePast,
+  organizationNotFoundInVerifiers,
+  tenantNotFound,
+  verifiedAttributeNotFoundInTenant,
+} from "../src/model/domain/errors.js";
 import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
+  decodeProtobufPayload,
   getMockAgreement,
   getMockDescriptor,
   getMockEService,
+  getMockRevokedBy,
   getMockTenant,
+  getMockVerificationAttributeSeed,
+  getMockVerifiedBy,
+  getMockVerifiedTenantAttribute,
+  readLastEventByStreamId,
 } from "./utils.js";
 
 describe("database test", async () => {
@@ -87,6 +102,9 @@ describe("database test", async () => {
 
   const mockEService = getMockEService();
   const mockDescriptor = getMockDescriptor();
+  const mockTenant = getMockTenant();
+  const mockVerifiedBy = getMockVerifiedBy();
+  const mockVerifiedTenantAttribute = getMockVerifiedTenantAttribute();
 
   afterEach(async () => {
     await tenants.deleteMany({});
@@ -99,6 +117,126 @@ describe("database test", async () => {
     describe("tenant creation", () => {
       it("TO DO", () => {
         expect(1).toBe(1);
+      });
+    });
+    describe("updateTenantVerifiedAttribute", async () => {
+      const updatedAt = new Date();
+      const mockVerificationAttributeSeed: UpdateVerifiedTenantAttributeSeed = {
+        expirationDate: new Date(
+          new Date().setDate(new Date().getDate() + 1)
+        ).toDateString(),
+      };
+      const expirationDate = new Date(
+        mockVerificationAttributeSeed.expirationDate!
+      );
+
+      const updatedTenant: Tenant = {
+        ...mockTenant,
+        attributes: [
+          {
+            ...mockVerifiedTenantAttribute,
+            verifiedBy: [
+              {
+                ...mockVerifiedBy,
+                expirationDate,
+              },
+            ],
+          },
+        ],
+        updatedAt,
+        name: "A updatedTenant",
+      };
+      const attributeId = updatedTenant.attributes.map((a) => a.id)[0];
+      const verifierId = mockVerifiedBy.id;
+      it("Should update the expirationDate", async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(updatedAt);
+        await addOneTenant(updatedTenant, postgresDB, tenants);
+        await tenantService.updateTenantVerifiedAttribute({
+          verifierId,
+          tenantId: updatedTenant.id,
+          attributeId,
+          updateVerifiedTenantAttributeSeed: mockVerificationAttributeSeed,
+        });
+        const writtenEvent = await readLastEventByStreamId(
+          updatedTenant.id,
+          postgresDB
+        );
+        expect(writtenEvent.stream_id).toBe(updatedTenant.id);
+        expect(writtenEvent.version).toBe("1");
+        expect(writtenEvent.type).toBe("TenantUpdated");
+        const writtenPayload = decodeProtobufPayload({
+          messageType: TenantUpdatedV1,
+          payload: writtenEvent.data,
+        });
+        expect(writtenPayload.tenant).toEqual(toTenantV1(updatedTenant));
+
+        vi.useRealTimers();
+      });
+      it("Should throw tenantNotFound when tenant doesn't exist", async () => {
+        expect(
+          tenantService.updateTenantVerifiedAttribute({
+            verifierId,
+            tenantId: updatedTenant.id,
+            attributeId,
+            updateVerifiedTenantAttributeSeed: mockVerificationAttributeSeed,
+          })
+        ).rejects.toThrowError(tenantNotFound(updatedTenant.id));
+      });
+
+      it("Should throw expirationDateCannotBeInThePast when expiration date is in the past", async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(updatedAt);
+        const mockVerificationAttributeSeed: UpdateVerifiedTenantAttributeSeed =
+          {
+            expirationDate: new Date(
+              new Date().setDate(new Date().getDate() - 1)
+            ).toDateString(),
+          };
+        const expirationDate = new Date(
+          mockVerificationAttributeSeed.expirationDate!
+        );
+        await addOneTenant(updatedTenant, postgresDB, tenants);
+        expect(
+          tenantService.updateTenantVerifiedAttribute({
+            verifierId,
+            tenantId: updatedTenant.id,
+            attributeId,
+            updateVerifiedTenantAttributeSeed: mockVerificationAttributeSeed,
+          })
+        ).rejects.toThrowError(expirationDateCannotBeInThePast(expirationDate));
+        vi.useRealTimers();
+      });
+      it("Should throw verifiedAttributeNotFoundInTenant when the attribute is not verified", async () => {
+        await addOneTenant(mockTenant, postgresDB, tenants);
+        expect(
+          tenantService.updateTenantVerifiedAttribute({
+            verifierId: uuidv4(),
+            tenantId: mockTenant.id,
+            attributeId,
+            updateVerifiedTenantAttributeSeed: mockVerificationAttributeSeed,
+          })
+        ).rejects.toThrowError(
+          verifiedAttributeNotFoundInTenant(mockTenant.id, attributeId)
+        );
+      });
+      it("Should throw organizationNotFoundInVerifiers when the organization is not verified", async () => {
+        const verifierId = uuidv4();
+        await addOneTenant(updatedTenant, postgresDB, tenants);
+        expect(
+          tenantService.updateTenantVerifiedAttribute({
+            verifierId,
+            tenantId: updatedTenant.id,
+            attributeId,
+            updateVerifiedTenantAttributeSeed: mockVerificationAttributeSeed,
+          })
+        ).rejects.toThrowError(
+          organizationNotFoundInVerifiers(
+            verifierId,
+            updatedTenant.id,
+            attributeId
+          )
+        );
       });
     });
   });

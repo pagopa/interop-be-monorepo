@@ -1,3 +1,4 @@
+import { MessageType } from "@protobuf-ts/runtime";
 import {
   AgreementCollection,
   AuthData,
@@ -10,6 +11,9 @@ import {
   EService,
   Tenant,
   TenantEvent,
+  TenantRevoker,
+  TenantVerifier,
+  VerifiedTenantAttribute,
   agreementState,
   descriptorState,
   technology,
@@ -70,6 +74,42 @@ export const getMockTenant = (): Tenant => ({
   mails: [],
 });
 
+const verificationDate = new Date();
+verificationDate.setDate(new Date().getDate() - 3);
+
+export const getMockVerifiedBy = (): TenantVerifier => ({
+  id: uuidv4(),
+  verificationDate,
+  expirationDate: new Date(),
+  extensionDate: undefined,
+});
+
+const revocationDate = new Date();
+revocationDate.setDate(new Date().getDate() + 3);
+
+export const getMockRevokedBy = (): TenantRevoker => ({
+  id: uuidv4(),
+  verificationDate,
+  revocationDate,
+  expirationDate: new Date(),
+  extensionDate: undefined,
+});
+
+export const getMockVerifiedTenantAttribute = (): VerifiedTenantAttribute => ({
+  id: uuidv4(),
+  type: "verified",
+  assignmentTimestamp: new Date(),
+  verifiedBy: [
+    {
+      ...getMockVerifiedBy(),
+    },
+  ],
+  revokedBy: [
+    {
+      ...getMockRevokedBy(),
+    },
+  ],
+});
 export const getMockAuthData = (organizationId?: string): AuthData => ({
   organizationId: organizationId || uuidv4(),
   userId: uuidv4(),
@@ -176,10 +216,8 @@ export const addOneAgreement = async (
 
 export const addOneEService = async (
   eService: EService,
-  // postgresDB: IDatabase<unknown>,
   eservices: EServiceCollection
 ): Promise<void> => {
-  // await writeEServiceInEventstore(eService, postgresDB);
   await writeEServiceInReadmodel(eService, eservices);
 };
 
@@ -191,3 +229,22 @@ export const addOneTenant = async (
   await writeTenantInEventstore(tenant, postgresDB);
   await writeTenantInReadmodel(tenant, tenants);
 };
+
+export const readLastEventByStreamId = async (
+  tenantId: string,
+  postgresDB: IDatabase<unknown>
+): Promise<any> => // eslint-disable-line @typescript-eslint/no-explicit-any
+  await postgresDB.one(
+    "SELECT * FROM tenant.events WHERE stream_id = $1 ORDER BY sequence_num DESC LIMIT 1",
+    [tenantId]
+  );
+
+export function decodeProtobufPayload<I extends object>({
+  messageType,
+  payload,
+}: {
+  messageType: MessageType<I>;
+  payload: Parameters<typeof Buffer.from>[0];
+}): I {
+  return messageType.fromBinary(Buffer.from(payload, "hex"));
+}
