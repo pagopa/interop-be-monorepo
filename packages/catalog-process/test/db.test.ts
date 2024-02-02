@@ -14,6 +14,7 @@ import {
 } from "vitest";
 import {
   AgreementCollection,
+  AttributeCollection,
   EServiceCollection,
   ReadModelRepository,
   TenantCollection,
@@ -21,6 +22,7 @@ import {
 } from "pagopa-interop-commons";
 import { IDatabase } from "pg-promise";
 import {
+  Attribute,
   ClonedEServiceAddedV1,
   Descriptor,
   Document,
@@ -59,6 +61,7 @@ import {
   catalogServiceBuilder,
 } from "../src/services/catalogService.js";
 import {
+  attributeNotFound,
   draftDescriptorAlreadyExists,
   eServiceCannotBeDeleted,
   eServiceCannotBeUpdated,
@@ -84,6 +87,7 @@ import {
   buildInterfaceSeed,
   getMockTenant,
   readLastEventByStreamId,
+  addOneAttribute,
 } from "./utils.js";
 
 const mockEService = getMockEService();
@@ -93,6 +97,7 @@ const mockDocument = getMockDocument();
 describe("database test", async () => {
   let eservices: EServiceCollection;
   let agreements: AgreementCollection;
+  let attributes: AttributeCollection;
   let tenants: TenantCollection;
   let readModelService: ReadModelService;
   let catalogService: CatalogService;
@@ -128,6 +133,7 @@ describe("database test", async () => {
     eservices = readModelRepository.eservices;
     agreements = readModelRepository.agreements;
     tenants = readModelRepository.tenants;
+    attributes = readModelRepository.attributes;
     readModelService = readModelServiceBuilder(readModelRepository);
     postgresDB = initDB({
       username: config.eventStoreDbUsername,
@@ -505,7 +511,52 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
+      it("should throw attributeNotFound if at least one of the attributes don't exist", async () => {
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [],
+        };
+        await addOneEService(eService, postgresDB, eservices);
 
+        const attribute: Attribute = {
+          name: "Attribute name",
+          id: generateId(),
+          kind: "Declared",
+          description: "Attribute Description",
+          creationTime: new Date(),
+        };
+        await addOneAttribute(attribute, attributes);
+        const notExistingId1 = generateId();
+        const notExistingId2 = generateId();
+        const descriptorSeed = {
+          ...buildDescriptorSeed(mockDescriptor),
+          attributes: {
+            certified: [],
+            declared: [
+              [
+                { id: attribute.id, explicitAttributeVerification: false },
+                {
+                  id: notExistingId1,
+                  explicitAttributeVerification: false,
+                },
+                {
+                  id: notExistingId2,
+                  explicitAttributeVerification: false,
+                },
+              ],
+            ],
+            verified: [],
+          },
+        };
+
+        expect(
+          catalogService.createDescriptor(
+            eService.id,
+            descriptorSeed,
+            getMockAuthData(eService.producerId)
+          )
+        ).rejects.toThrowError(attributeNotFound(notExistingId1));
+      });
       it("should throw operationForbidden if the requester is not the producer", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,

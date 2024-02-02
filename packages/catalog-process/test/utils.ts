@@ -1,5 +1,6 @@
 import {
   AgreementCollection,
+  AttributeCollection,
   AuthData,
   EServiceCollection,
   TenantCollection,
@@ -8,6 +9,7 @@ import { IDatabase } from "pg-promise";
 import { v4 as uuidv4 } from "uuid";
 import {
   Agreement,
+  Attribute,
   Descriptor,
   DescriptorId,
   Document,
@@ -57,6 +59,18 @@ export const writeEServiceInReadmodel = async (
 ): Promise<void> => {
   await eservices.insertOne({
     data: eService,
+    metadata: {
+      version: 0,
+    },
+  });
+};
+
+export const writeAttributeInReadmodel = async (
+  attribute: Attribute,
+  attributes: AttributeCollection
+): Promise<void> => {
+  await attributes.insertOne({
+    data: attribute,
     metadata: {
       version: 0,
     },
@@ -227,6 +241,13 @@ export const addOneEService = async (
 ): Promise<void> => {
   await writeEServiceInEventstore(eService, postgresDB);
   await writeEServiceInReadmodel(eService, eservices);
+};
+
+export const addOneAttribute = async (
+  attribute: Attribute,
+  attributes: AttributeCollection
+): Promise<void> => {
+  await writeAttributeInReadmodel(attribute, attributes);
 };
 
 export const addOneTenant = async (
