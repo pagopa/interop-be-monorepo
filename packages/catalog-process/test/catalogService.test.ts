@@ -574,7 +574,7 @@ describe("CatalogService", () => {
           attributes: { certified: [], declared: [], verified: [] },
         }))
       );
-      const event = createDescriptorLogic({
+      const event = await createDescriptorLogic({
         eServiceId: mockEservice.id,
         eserviceDescriptorSeed: {
           ...mockEserviceDescriptorSeed,
@@ -632,8 +632,9 @@ describe("CatalogService", () => {
             ...mockEservice,
             descriptors: [{ ...mockDescriptor, state: "Draft" }],
           }),
+          getAttributeById: () => Promise.resolve(undefined),
         })
-      ).toThrowError(draftDescriptorAlreadyExists(mockEservice.id));
+      ).rejects.toThrowError(draftDescriptorAlreadyExists(mockEservice.id));
     });
 
     it("returns an error if the authenticated organization is not the producer", async () => {
@@ -649,8 +650,9 @@ describe("CatalogService", () => {
             ...mockEservice,
             producerId: "some-org-id",
           }),
+          getAttributeById: () => Promise.resolve(undefined),
         })
-      ).toThrowError(operationForbidden);
+      ).rejects.toThrowError(operationForbidden);
     });
 
     it("returns an error when the service does not exist", async () => {
@@ -664,8 +666,9 @@ describe("CatalogService", () => {
             organizationId: "organizationId",
           },
           eService: undefined,
+          getAttributeById: () => Promise.resolve(undefined),
         })
-      ).toThrowError(eServiceNotFound(eServiceId));
+      ).rejects.toThrowError(eServiceNotFound(eServiceId));
     });
   });
   describe("deleteDraftDescriptor", () => {
