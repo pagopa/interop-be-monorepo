@@ -309,7 +309,11 @@ export function catalogServiceBuilder(
       logger.info(`Creating Descriptor for EService ${eServiceId}`);
 
       const eService = await readModelService.getEServiceById(eServiceId);
-
+      const attributesIds = [
+        ...eserviceDescriptorSeed.attributes.certified,
+        ...eserviceDescriptorSeed.attributes.declared,
+        ...eserviceDescriptorSeed.attributes.verified,
+      ];
       return await repository.createEvent(
         createDescriptorLogic({
           eServiceId,
