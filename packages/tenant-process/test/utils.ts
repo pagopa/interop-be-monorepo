@@ -99,16 +99,8 @@ export const getMockVerifiedTenantAttribute = (): VerifiedTenantAttribute => ({
   id: uuidv4(),
   type: "verified",
   assignmentTimestamp: new Date(),
-  verifiedBy: [
-    {
-      ...getMockVerifiedBy(),
-    },
-  ],
-  revokedBy: [
-    {
-      ...getMockRevokedBy(),
-    },
-  ],
+  verifiedBy: [getMockVerifiedBy()],
+  revokedBy: [getMockRevokedBy()],
 });
 export const getMockAuthData = (organizationId?: string): AuthData => ({
   organizationId: organizationId || uuidv4(),
