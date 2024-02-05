@@ -1382,12 +1382,12 @@ describe("database test", async () => {
           docs: [expectedDocument],
         };
         const currentDate = new Date();
+        const currentLocalDate = currentDate.toLocaleDateString("it-IT");
+        const currentLocalTime = currentDate.toLocaleTimeString("it-IT");
         const expectedEService: EService = {
           ...eService,
           id: writtenPayload.eService!.id,
-          name: `${eService.name} - clone - ${currentDate.toLocaleDateString(
-            "it-IT"
-          )} ${currentDate.toLocaleTimeString("it-IT")}`,
+          name: `${eService.name} - clone - ${currentLocalDate} ${currentLocalTime}`,
           descriptors: [expectedDescriptor],
           createdAt: new Date(Number(writtenPayload.eService?.createdAt)),
         };
@@ -1412,12 +1412,9 @@ describe("database test", async () => {
         await addOneEService(eService1, postgresDB, eservices);
 
         const currentDate = new Date();
-
-        const conflictEServiceName = `${
-          eService1.name
-        } - clone - ${currentDate.toLocaleDateString(
-          "it-IT"
-        )} ${currentDate.toLocaleTimeString("it-IT")}`;
+        const currentLocalDate = currentDate.toLocaleDateString("it-IT");
+        const currentLocalTime = currentDate.toLocaleTimeString("it-IT");
+        const conflictEServiceName = `${eService1.name} - clone - ${currentLocalDate} ${currentLocalTime}`;
 
         const eService2: EService = {
           ...mockEService,

@@ -996,10 +996,9 @@ export async function cloneDescriptorLogic({
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
 
   const currentDate = new Date();
-  const formattedDateAndTime = `${currentDate.toLocaleDateString(
-    "it-IT"
-  )} ${currentDate.toLocaleTimeString("it-IT")}`;
-  const clonedEServiceName = `${eService.data.name} - clone - ${formattedDateAndTime}`;
+  const currentLocalDate = currentDate.toLocaleDateString("it-IT");
+  const currentLocalTime = currentDate.toLocaleTimeString("it-IT");
+  const clonedEServiceName = `${eService.data.name} - clone - ${currentLocalDate} ${currentLocalTime}`;
 
   if (
     await getEServiceByNameAndProducerId({
