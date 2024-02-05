@@ -2,7 +2,6 @@ import {
   AuthData,
   CreateEvent,
   DB,
-  UserRoles,
   eventRepository,
   initFileManager,
   logger,
