@@ -251,7 +251,13 @@ const eservicesRouter = (
     )
     .get(
       "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      authorizationMiddleware([
+        ADMIN_ROLE,
+        API_ROLE,
+        SECURITY_ROLE,
+        M2M_ROLE,
+        SUPPORT_ROLE,
+      ]),
       async (req, res) => {
         try {
           const { eServiceId, descriptorId, documentId } = req.params;
