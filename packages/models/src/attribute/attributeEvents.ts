@@ -1,8 +1,10 @@
 import { match } from "ts-pattern";
+import { z } from "zod";
 import {
   AttributeAddedV1,
   AttributeDeletedV1,
 } from "../gen/v1/attribute/events.js";
+import { EventEnvelope, protobufDecoder } from "../index.js";
 
 export function attributeEventToBinaryData(event: AttributeEvent): Uint8Array {
   return match(event)
@@ -15,9 +17,17 @@ export function attributeEventToBinaryData(event: AttributeEvent): Uint8Array {
     .exhaustive();
 }
 
-export type AttributeEvent =
-  | { type: "AttributeAdded"; data: AttributeAddedV1 }
-  | {
-      type: "AttributeDeleted";
-      data: AttributeDeletedV1;
-    };
+export const AttributeEvent = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("AttributeAdded"),
+    data: protobufDecoder(AttributeAddedV1),
+  }),
+  z.object({
+    type: z.literal("AttributeDeleted"),
+    data: protobufDecoder(AttributeDeletedV1),
+  }),
+]);
+export type AttributeEvent = z.infer<typeof AttributeEvent>;
+
+export const AttributeEventEnvelope = EventEnvelope(AttributeEvent);
+export type AttributeEventEnvelope = z.infer<typeof AttributeEventEnvelope>;
