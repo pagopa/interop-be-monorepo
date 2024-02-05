@@ -1,4 +1,10 @@
-import { ApiError, makeApiProblemBuilder } from "pagopa-interop-models";
+import {
+  ApiError,
+  AttributeId,
+  EServiceId,
+  TenantId,
+  makeApiProblemBuilder,
+} from "pagopa-interop-models";
 
 const errorCodes = {
   attributeNotFound: "0001",
@@ -12,6 +18,7 @@ const errorCodes = {
   verifiedAttributeNotFoundInTenant: "0009",
   expirationDateCannotBeInThePast: "0010",
   organizationNotFoundInVerifiers: "0011",
+  expirationDateNotFoundInVerifier: "0012",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -42,7 +49,7 @@ export function tenantDuplicate(teanantName: string): ApiError<ErrorCodes> {
   });
 }
 
-export function tenantNotFound(tenantId: string): ApiError<ErrorCodes> {
+export function tenantNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant ${tenantId} not found`,
     code: "tenantNotFound",
@@ -50,17 +57,28 @@ export function tenantNotFound(tenantId: string): ApiError<ErrorCodes> {
   });
 }
 
-export function eServiceNotFound(eServiceId: string): ApiError<ErrorCodes> {
+export function tenantFromExternalIdNotFound(
+  origin: string,
+  code: string
+): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `EService ${eServiceId} not found`,
+    detail: `Tenant with externalId ${origin}/${code} not found`,
+    code: "tenantNotFound",
+    title: "Tenant not found",
+  });
+}
+
+export function eServiceNotFound(eserviceId: EServiceId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} not found`,
     code: "eServiceNotFound",
     title: "EService not found",
   });
 }
 
 export function verifiedAttributeNotFoundInTenant(
-  tenantId: string,
-  attributeId: string
+  tenantId: TenantId,
+  attributeId: AttributeId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Verified attribute ${attributeId} not found in tenant ${tenantId}`,
@@ -81,8 +99,8 @@ export function expirationDateCannotBeInThePast(
 
 export function organizationNotFoundInVerifiers(
   requesterId: string,
-  tenantId: string,
-  attributeId: string
+  tenantId: TenantId,
+  attributeId: AttributeId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Organization ${requesterId} not found in verifier for Tenant ${tenantId} and attribute ${attributeId}`,
@@ -101,12 +119,23 @@ export function tenantBySelfcareIdNotFound(
   });
 }
 
+export function expirationDateNotFoundInVerifier(
+  verifierId: string,
+  attributeId: string,
+  tenantId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `ExpirationDate not found in verifier ${verifierId} for Tenant ${tenantId} and attribute ${attributeId}`,
+    code: "expirationDateNotFoundInVerifier",
+    title: "ExpirationDate not found in verifier",
+  });
+}
 export function selfcareIdConflict({
   tenantId,
   existingSelfcareId,
   newSelfcareId,
 }: {
-  tenantId: string;
+  tenantId: TenantId;
   existingSelfcareId: string;
   newSelfcareId: string;
 }): ApiError<ErrorCodes> {

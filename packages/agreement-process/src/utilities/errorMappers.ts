@@ -161,3 +161,11 @@ export const activateAgreementErrorMapper = (
     .with("operationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .with("agreementAlreadyExists", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const archiveAgreementErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("operationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

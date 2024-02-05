@@ -26,10 +26,11 @@
     "express-winston": "^4.2.0",
     "jsonwebtoken": "^9.0.0",
     "jwks-rsa": "^3.0.1",
+    "kafkajs": "^2.2.4",
     "mongodb": "5.6.0",
     "pagopa-interop-models": "workspace:*",
     "pg-promise": "^11.5.0",
-    "ts-pattern": "^5.0.1",
+    "ts-pattern": "^5.0.6",
     "winston": "^3.9.0",
     "zod": "^3.21.4"
   },
