@@ -1,4 +1,9 @@
-import { Agreement, ListResult, WithMetadata } from "pagopa-interop-models";
+import {
+  Agreement,
+  AgreementId,
+  ListResult,
+  WithMetadata,
+} from "pagopa-interop-models";
 import { CompactOrganization } from "../../model/domain/models.js";
 import { AgreementQueryFilters, ReadModelService } from "./readModelService.js";
 
@@ -6,7 +11,7 @@ import { AgreementQueryFilters, ReadModelService } from "./readModelService.js";
 export function agreementQueryBuilder(readModelService: ReadModelService) {
   return {
     getAgreementById: async (
-      id: string
+      id: AgreementId
     ): Promise<WithMetadata<Agreement> | undefined> =>
       await readModelService.readAgreementById(id),
     getAllAgreements: (
