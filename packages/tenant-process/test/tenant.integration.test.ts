@@ -39,7 +39,7 @@ import {
   getMockTenant,
 } from "./utils.js";
 
-describe("database test", async () => {
+describe("Integration tests", () => {
   let tenants: TenantCollection;
   let agreements: AgreementCollection;
   let eservices: EServiceCollection;
