@@ -1,4 +1,5 @@
 import { JwtPayload } from "jsonwebtoken";
+import { TenantId } from "pagopa-interop-models";
 import { z } from "zod";
 
 export const userRoles = {
@@ -17,7 +18,7 @@ export const UserRoles = z.enum([
 export type UserRoles = z.infer<typeof UserRoles>;
 
 export const AuthJWTToken = z.object({
-  organizationId: z.string().uuid(),
+  organizationId: TenantId,
   "user-roles": z
     .string()
     .optional()
@@ -42,7 +43,7 @@ export const AuthJWTToken = z.object({
 export type AuthJWTToken = z.infer<typeof AuthJWTToken> & JwtPayload;
 
 export const AuthData = z.object({
-  organizationId: z.string().uuid(),
+  organizationId: TenantId,
   userId: z.string().uuid(),
   userRoles: z.array(z.string()),
   externalId: z.object({

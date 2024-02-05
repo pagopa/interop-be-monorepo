@@ -1,4 +1,12 @@
 import z from "zod";
+import {
+  AttributeId,
+  AgreementDocumentId,
+  AgreementId,
+  DescriptorId,
+  EServiceId,
+  TenantId,
+} from "./../brandedIds.js";
 
 export const agreementState = {
   draft: "Draft",
@@ -62,11 +70,11 @@ export const agreementCloningConflictingStates: AgreementState[] = [
   agreementState.suspended,
 ];
 
-export const AgreementAttribute = z.object({ id: z.string().uuid() });
+export const AgreementAttribute = z.object({ id: AttributeId });
 export type AgreementAttribute = z.infer<typeof AgreementAttribute>;
 
 export const AgreementDocument = z.object({
-  id: z.string().uuid(),
+  id: AgreementDocumentId,
   name: z.string(),
   prettyName: z.string(),
   contentType: z.string(),
@@ -93,11 +101,11 @@ export const AgreementStamps = z.object({
 export type AgreementStamps = z.infer<typeof AgreementStamps>;
 
 export const Agreement = z.object({
-  id: z.string().uuid(),
-  eserviceId: z.string().uuid(),
-  descriptorId: z.string().uuid(),
-  producerId: z.string().uuid(),
-  consumerId: z.string().uuid(),
+  id: AgreementId,
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId,
+  producerId: TenantId,
+  consumerId: TenantId,
   state: AgreementState,
   verifiedAttributes: z.array(AgreementAttribute),
   certifiedAttributes: z.array(AgreementAttribute),
@@ -118,7 +126,7 @@ export type Agreement = z.infer<typeof Agreement>;
 
 export const PDFPayload = z.object({
   today: z.date(),
-  agreementId: z.string().uuid(),
+  agreementId: AgreementId,
   eService: z.string(),
   producerName: z.string(),
   producerOrigin: z.string(),

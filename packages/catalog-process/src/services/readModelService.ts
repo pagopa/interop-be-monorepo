@@ -17,6 +17,10 @@ import {
   WithMetadata,
   emptyListResult,
   genericError,
+  DescriptorId,
+  EServiceId,
+  EServiceDocumentId,
+  TenantId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
@@ -163,7 +167,7 @@ export function readModelServiceBuilder(
       producerId,
     }: {
       name: string;
-      producerId: string;
+      producerId: TenantId;
     }): Promise<WithMetadata<EService> | undefined> {
       return getEService(eservices, {
         "data.name": {
@@ -174,19 +178,19 @@ export function readModelServiceBuilder(
       });
     },
     async getEServiceById(
-      id: string
+      id: EServiceId
     ): Promise<WithMetadata<EService> | undefined> {
       return getEService(eservices, { "data.id": id });
     },
     async getEServiceConsumers(
-      eServiceId: string,
+      eserviceId: EServiceId,
       offset: number,
       limit: number
     ): Promise<ListResult<Consumer>> {
       const aggregationPipeline = [
         {
           $match: {
-            "data.id": eServiceId,
+            "data.id": eserviceId,
             "data.descriptors": {
               $elemMatch: {
                 state: {
@@ -291,11 +295,11 @@ export function readModelServiceBuilder(
       };
     },
     async getDocumentById(
-      eServiceId: string,
-      descriptorId: string,
-      documentId: string
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      documentId: EServiceDocumentId
     ): Promise<Document | undefined> {
-      const eService = await this.getEServiceById(eServiceId);
+      const eService = await this.getEServiceById(eserviceId);
       return eService?.data.descriptors
         .find((d) => d.id === descriptorId)
         ?.docs.find((d) => d.id === documentId);

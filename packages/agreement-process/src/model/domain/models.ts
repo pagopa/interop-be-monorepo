@@ -1,7 +1,7 @@
 import {
+  AgreementAttribute,
   AgreementStamps,
   AgreementState,
-  AgreementAttribute,
 } from "pagopa-interop-models";
 import { z } from "zod";
 
