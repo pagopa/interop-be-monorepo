@@ -3,6 +3,7 @@ INSERT INTO
     "stream_id",
     "version",
     "type",
+    "event_version",
     "data"
   )
 VALUES
@@ -10,5 +11,6 @@ VALUES
     $(stream_id),
     $(version),
     $(type),
+    $(event_version),
     $(data)
   );

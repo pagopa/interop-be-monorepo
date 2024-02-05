@@ -53,7 +53,7 @@ message EServiceDescriptorSuspendedV2 {
   EServiceV2 eservice = 2;
 }
 
-message EServiceDescriptorsDeletedV2 {
+message EServiceDescriptorDeletedV2 {
   string descriptorId = 1;
   EServiceV2 eservice = 2;
 }

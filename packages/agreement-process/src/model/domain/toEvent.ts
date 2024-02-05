@@ -83,6 +83,7 @@ export function toCreateEventAgreementDeleted(
     version,
     event: {
       type: "AgreementDeleted",
+      eventVersion: 1,
       data: {
         agreementId: streamId,
       },
@@ -98,6 +99,7 @@ export function toCreateEventAgreementAdded(
     version: 0,
     event: {
       type: "AgreementAdded",
+      eventVersion: 1,
       data: {
         agreement: toAgreementV1(agreement),
       },
@@ -114,6 +116,7 @@ export function toCreateEventAgreementUpdated(
     version,
     event: {
       type: "AgreementUpdated",
+      eventVersion: 1,
       data: {
         agreement: toAgreementV1(agreement),
       },
@@ -131,6 +134,7 @@ export function toCreateEventAgreementContractAdded(
     version,
     event: {
       type: "AgreementContractAdded",
+      eventVersion: 1,
       data: {
         agreementId,
         contract: toAgreementDocumentV1(agreementDocument),
@@ -149,6 +153,7 @@ export function toCreateEventAgreementConsumerDocumentAdded(
     version,
     event: {
       type: "AgreementConsumerDocumentAdded",
+      eventVersion: 1,
       data: {
         agreementId,
         document: toAgreementDocumentV1(agreementDocument),
@@ -167,6 +172,7 @@ export function toCreateEventAgreementConsumerDocumentRemoved(
     version,
     event: {
       type: "AgreementConsumerDocumentRemoved",
+      eventVersion: 1,
       data: {
         agreementId,
         documentId,
