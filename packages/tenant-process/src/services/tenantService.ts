@@ -6,18 +6,20 @@ import {
 } from "pagopa-interop-commons";
 import {
   Attribute,
+  AttributeId,
   ExternalId,
   Tenant,
   TenantAttribute,
   TenantEvent,
   TenantFeature,
+  TenantId,
   TenantKind,
   TenantMail,
   WithMetadata,
+  generateId,
   tenantAttributeType,
   tenantEventToBinaryData,
 } from "pagopa-interop-models";
-import { v4 as uuidv4 } from "uuid";
 import {
   toCreateEventTenantAdded,
   toCreateEventTenantUpdated,
@@ -38,6 +40,8 @@ import {
   evaluateNewSelfcareId,
   getTenantKind,
   getTenantKindLoadingCertifiedAttributes,
+  assertOrganizationVerifierExist,
+  assertExpirationDateExist,
 } from "./validators.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -49,6 +53,22 @@ export function tenantServiceBuilder(
   const repository = eventRepository(dbInstance, tenantEventToBinaryData);
 
   return {
+    async updateVerifiedAttributeExtensionDate(
+      tenantId: TenantId,
+      attributeId: AttributeId,
+      verifierId: string
+    ): Promise<string> {
+      const tenant = await readModelService.getTenantById(tenantId);
+
+      return await repository.createEvent(
+        await updateVerifiedAttributeExtensionDateLogic({
+          tenantId,
+          attributeId,
+          verifierId,
+          tenant,
+        })
+      );
+    },
     async createTenant(
       apiTenantSeed:
         | ApiSelfcareTenantSeed
@@ -79,8 +99,8 @@ export function tenantServiceBuilder(
       updateVerifiedTenantAttributeSeed,
     }: {
       verifierId: string;
-      tenantId: string;
-      attributeId: string;
+      tenantId: TenantId;
+      attributeId: AttributeId;
       updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed;
     }): Promise<void> {
       const tenant = await readModelService.getTenantById(tenantId);
@@ -136,7 +156,7 @@ export function tenantServiceBuilder(
         );
       } else {
         const newTenant: Tenant = {
-          id: uuidv4(),
+          id: generateId(),
           name: tenantSeed.name,
           attributes: [],
           externalId: tenantSeed.externalId,
@@ -163,8 +183,8 @@ async function updateTenantVerifiedAttributeLogic({
 }: {
   verifierId: string;
   tenant: WithMetadata<Tenant> | undefined;
-  tenantId: string;
-  attributeId: string;
+  tenantId: TenantId;
+  attributeId: AttributeId;
   updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed;
 }): Promise<CreateEvent<TenantEvent>> {
   assertTenantExists(tenantId, tenant);
@@ -179,7 +199,7 @@ async function updateTenantVerifiedAttributeLogic({
     (att) => att.id === attributeId
   );
 
-  assertVerifiedAttributeExistsInTenant(attributeId, attribute, tenant.data.id);
+  assertVerifiedAttributeExistsInTenant(attributeId, attribute, tenant);
   assertOrganizationIsInAttributeVerifiers(verifierId, tenantId, attribute);
 
   const updatedAttribute: TenantAttribute = {
@@ -264,7 +284,7 @@ export function createTenantLogic({
   }));
 
   const newTenant: Tenant = {
-    id: uuidv4(),
+    id: generateId(),
     name: apiTenantSeed.name,
     attributes: tenantAttributes,
     externalId: apiTenantSeed.externalId,
@@ -277,3 +297,77 @@ export function createTenantLogic({
   return toCreateEventTenantAdded(newTenant);
 }
 export type TenantService = ReturnType<typeof tenantServiceBuilder>;
+
+export async function updateVerifiedAttributeExtensionDateLogic({
+  tenantId,
+  attributeId,
+  verifierId,
+  tenant,
+}: {
+  tenantId: TenantId;
+  attributeId: AttributeId;
+  verifierId: string;
+  tenant: WithMetadata<Tenant> | undefined;
+}): Promise<CreateEvent<TenantEvent>> {
+  assertTenantExists(tenantId, tenant);
+
+  const attribute = tenant?.data.attributes.find(
+    (att) => att.id === attributeId
+  );
+
+  assertVerifiedAttributeExistsInTenant(attributeId, attribute, tenant);
+
+  const oldVerifier = attribute.verifiedBy.find(
+    (verifier) => verifier.id === verifierId
+  );
+
+  assertOrganizationVerifierExist(
+    verifierId,
+    tenantId,
+    attributeId,
+    oldVerifier
+  );
+
+  assertExpirationDateExist(
+    tenantId,
+    attributeId,
+    verifierId,
+    oldVerifier.expirationDate
+  );
+
+  const oldExtensionDate =
+    oldVerifier.extensionDate ?? oldVerifier.expirationDate;
+
+  const extensionDate = new Date(
+    oldExtensionDate.getTime() +
+      (oldVerifier.expirationDate.getTime() -
+        oldVerifier.verificationDate.getTime())
+  );
+
+  const updatedAttribute: TenantAttribute = {
+    ...attribute,
+    verifiedBy: attribute.verifiedBy.map((v) =>
+      v.id === verifierId
+        ? {
+            ...v,
+            extensionDate,
+          }
+        : v
+    ),
+  };
+
+  const updatedTenant: Tenant = {
+    ...tenant.data,
+    attributes: [
+      updatedAttribute,
+      ...tenant.data.attributes.filter((a) => a.id !== updatedAttribute.id),
+    ],
+    updatedAt: new Date(),
+  };
+
+  return toCreateEventTenantUpdated(
+    tenant.data.id,
+    tenant.metadata.version,
+    updatedTenant
+  );
+}
