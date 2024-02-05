@@ -2,9 +2,11 @@ import {
   AuthData,
   CreateEvent,
   DB,
+  UserRoles,
   eventRepository,
   initFileManager,
   logger,
+  userRoles,
 } from "pagopa-interop-commons";
 import {
   Descriptor,
@@ -487,7 +489,14 @@ export function catalogServiceBuilder(
         return eServiceForConsumer;
       }
 
-      return eService;
+      if (
+        authData.userRoles.includes(userRoles.ADMIN_ROLE) ||
+        authData.userRoles.includes(userRoles.API_ROLE)
+      ) {
+        return eService;
+      }
+
+      throw eServiceNotFound(eServiceId);
     },
   };
 }
