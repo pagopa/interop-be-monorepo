@@ -146,15 +146,13 @@ const eservicesRouter = (
       ]),
       async (req, res) => {
         try {
-          const eService = await readModelService.getEServiceById(
-            req.params.eServiceId
+          const eService = await catalogService.getEServiceById(
+            req.params.eServiceId,
+            req.ctx.authData
           );
 
           if (eService) {
-            return res
-              .status(200)
-              .json(eServiceToApiEService(eService.data))
-              .end();
+            return res.status(200).json(eServiceToApiEService(eService)).end();
           } else {
             return res
               .status(404)

@@ -459,6 +459,36 @@ export function catalogServiceBuilder(
         })
       );
     },
+
+    async getEServiceById(
+      eServiceId: string,
+      authData: AuthData
+    ): Promise<EService> {
+      const eServiceAndMetadata = await readModelService.getEServiceById(
+        eServiceId
+      );
+      if (eServiceAndMetadata === undefined) {
+        throw eServiceNotFound(eServiceId);
+      }
+      const eService = eServiceAndMetadata.data;
+
+      if (authData.organizationId !== eService.producerId) {
+        const eServiceForConsumer: EService = {
+          ...eService,
+          descriptors: eService.descriptors.filter(
+            (d) => d.state !== descriptorState.draft
+          ),
+        };
+
+        if (eServiceForConsumer.descriptors.length === 0) {
+          throw eServiceNotFound(eService.id);
+        }
+
+        return eServiceForConsumer;
+      }
+
+      return eService;
+    },
   };
 }
 
