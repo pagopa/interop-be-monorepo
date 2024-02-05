@@ -473,29 +473,25 @@ export function catalogServiceBuilder(
       }
       const eService = eServiceAndMetadata.data;
 
-      if (authData.organizationId !== eService.producerId) {
-        const eServiceForConsumer: EService = {
-          ...eService,
-          descriptors: eService.descriptors.filter(
-            (d) => d.state !== descriptorState.draft
-          ),
-        };
-
-        if (eServiceForConsumer.descriptors.length === 0) {
-          throw eServiceNotFound(eService.id);
-        }
-
-        return eServiceForConsumer;
-      }
-
       if (
-        authData.userRoles.includes(userRoles.ADMIN_ROLE) ||
-        authData.userRoles.includes(userRoles.API_ROLE)
+        authData.organizationId === eService.producerId &&
+        (authData.userRoles.includes(userRoles.ADMIN_ROLE) ||
+          authData.userRoles.includes(userRoles.API_ROLE))
       ) {
         return eService;
       }
+      const eServiceWithoutDraft: EService = {
+        ...eService,
+        descriptors: eService.descriptors.filter(
+          (d) => d.state !== descriptorState.draft
+        ),
+      };
 
-      throw eServiceNotFound(eServiceId);
+      if (eServiceWithoutDraft.descriptors.length === 0) {
+        throw eServiceNotFound(eService.id);
+      }
+
+      return eServiceWithoutDraft;
     },
   };
 }
