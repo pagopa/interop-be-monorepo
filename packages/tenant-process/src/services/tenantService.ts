@@ -20,7 +20,6 @@ import {
   tenantAttributeType,
   tenantEventToBinaryData,
 } from "pagopa-interop-models";
-import { v4 as uuidv4 } from "uuid";
 import {
   toCreateEventTenantAdded,
   toCreateEventTenantUpdated,
