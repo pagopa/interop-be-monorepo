@@ -214,7 +214,7 @@ describe("AgreementService Integration Test", async () => {
   });
 
   describe("createAgreement (success cases)", () => {
-    it("succeeds when EService Producer and Agreement Consumer are the same, even on unmet attributes", async () => {
+    it("should succeed when EService Producer and Agreement Consumer are the same, even on unmet attributes", async () => {
       const authData = getRandomAuthData();
       const eserviceId = generateId<EServiceId>();
       const descriptorId = generateId<DescriptorId>();
@@ -223,11 +223,9 @@ describe("AgreementService Integration Test", async () => {
       const descriptor = buildDescriptorPublished(descriptorId, [
         [buildEServiceAttribute(attributeId)],
       ]);
-      const eservice = buildEService(
-        eserviceId,
-        unsafeBrandId<TenantId>(authData.organizationId),
-        [descriptor]
-      );
+      const eservice = buildEService(eserviceId, authData.organizationId, [
+        descriptor,
+      ]);
       const tenant = buildTenant(authData.organizationId);
 
       await writeInReadmodel<EService>(eservice, eservices);
@@ -246,7 +244,7 @@ describe("AgreementService Integration Test", async () => {
         unsafeBrandId<AgreementId>(createdAgreementId),
         eserviceId,
         descriptorId,
-        unsafeBrandId(authData.organizationId),
+        authData.organizationId,
         tenant.id
       );
     });
@@ -452,11 +450,7 @@ describe("AgreementService Integration Test", async () => {
       const authData = getRandomAuthData();
       const eserviceId = generateId<EServiceId>();
 
-      const eservice = buildEService(
-        eserviceId,
-        unsafeBrandId<TenantId>(authData.organizationId),
-        []
-      );
+      const eservice = buildEService(eserviceId, authData.organizationId, []);
 
       await writeInReadmodel<EService>(eservice, eservices);
 
@@ -499,7 +493,7 @@ describe("AgreementService Integration Test", async () => {
 
       await writeInReadmodel<EService>(eservice, eservices);
       await writeInReadmodel<Tenant>(
-        buildTenant(unsafeBrandId<TenantId>(authData.organizationId)),
+        buildTenant(authData.organizationId),
         tenants
       );
 
@@ -539,7 +533,7 @@ describe("AgreementService Integration Test", async () => {
 
       await writeInReadmodel<EService>(eservice, eservices);
       await writeInReadmodel<Tenant>(
-        buildTenant(unsafeBrandId<TenantId>(authData.organizationId)),
+        buildTenant(authData.organizationId),
         tenants
       );
 
