@@ -4,6 +4,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
 import {
+  afterAll,
   afterEach,
   beforeAll,
   beforeEach,
@@ -1322,10 +1323,15 @@ describe("database test", async () => {
     });
 
     describe("clone descriptor", () => {
-      it("should write on event-store for the cloning of a descriptor", async () => {
+      beforeAll(() => {
         vi.useFakeTimers();
-        vi.setSystemTime(new Date());
+        vi.setSystemTime(new Date("2024-01-01T12:00:00"));
+      });
+      afterAll(() => {
+        vi.useRealTimers();
+      });
 
+      it("should write on event-store for the cloning of a descriptor", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
@@ -1381,23 +1387,16 @@ describe("database test", async () => {
           ),
           docs: [expectedDocument],
         };
-        const currentDate = new Date();
-        const currentLocalDate = currentDate.toLocaleDateString("it-IT");
-        const currentLocalTime = currentDate.toLocaleTimeString("it-IT");
         const expectedEService: EService = {
           ...eService,
           id: writtenPayload.eService!.id,
-          name: `${eService.name} - clone - ${currentLocalDate} ${currentLocalTime}`,
+          name: `${eService.name} - clone - 1/1/2024 12:00:00`,
           descriptors: [expectedDescriptor],
           createdAt: new Date(Number(writtenPayload.eService?.createdAt)),
         };
         expect(writtenPayload.eService).toEqual(toEServiceV1(expectedEService));
-        vi.useRealTimers();
       });
       it("should throw eServiceDuplicate if an eService with the same name already exists", async () => {
-        vi.useFakeTimers();
-        vi.setSystemTime(new Date());
-
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
@@ -1411,10 +1410,7 @@ describe("database test", async () => {
         };
         await addOneEService(eService1, postgresDB, eservices);
 
-        const currentDate = new Date();
-        const currentLocalDate = currentDate.toLocaleDateString("it-IT");
-        const currentLocalTime = currentDate.toLocaleTimeString("it-IT");
-        const conflictEServiceName = `${eService1.name} - clone - ${currentLocalDate} ${currentLocalTime}`;
+        const conflictEServiceName = `${eService1.name} - clone - 1/1/2024 12:00:00`;
 
         const eService2: EService = {
           ...mockEService,
@@ -1431,7 +1427,6 @@ describe("database test", async () => {
             getMockAuthData(eService1.producerId)
           )
         ).rejects.toThrowError(eServiceDuplicate(conflictEServiceName));
-        vi.useRealTimers();
       });
       it("should throw eServiceNotFound if the eService doesn't exist", () => {
         expect(
