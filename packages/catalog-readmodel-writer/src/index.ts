@@ -8,7 +8,8 @@ import {
 import { runConsumer } from "kafka-iam-auth";
 import { EServiceEvent } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { handleMessage } from "./consumerService.js";
+import { handleMessageV1 } from "./consumerServiceV1.js";
+import { handleMessageV2 } from "./consumerServiceV2.js";
 
 const config = consumerConfig();
 const { eservices } = ReadModelRepository.init(config);
@@ -21,11 +22,9 @@ async function processMessage({
     const decodedMesssage = decodeKafkaMessage(message, EServiceEvent);
 
     await match(decodedMesssage)
-      .with({ eventVersion: 1 }, (msg) => handleMessage(msg, eservices))
-      .otherwise((message) => {
-        // Todo handle version 2 events
-        logger.warn(`Unsupported event version: ${message.eventVersion}`);
-      });
+      .with({ eventVersion: 1 }, (msg) => handleMessageV1(msg, eservices))
+      .with({ eventVersion: 2 }, handleMessageV2)
+      .exhaustive();
 
     logger.info(
       `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
