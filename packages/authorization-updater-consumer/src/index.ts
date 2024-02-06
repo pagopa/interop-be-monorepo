@@ -1,11 +1,12 @@
 import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import {
-  decodeKafkaMessage,
+  messageDecoderSupplier,
+  kafkaConsumerConfig,
   logger,
-  readModelWriterConfig,
 } from "pagopa-interop-commons";
-import { EServiceEvent } from "pagopa-interop-models";
+
+const config = kafkaConsumerConfig();
 
 async function processMessage({
   topic,
@@ -13,11 +14,15 @@ async function processMessage({
   partition,
 }: EachMessagePayload): Promise<void> {
   try {
-    const decodedMessage = decodeKafkaMessage(message, EServiceEvent);
-    logger.info(`Event handled: ${JSON.stringify(decodedMessage.type)}`);
-    logger.info(`Event from topic: ${JSON.stringify(topic)}`);
+    const messageDecoder = messageDecoderSupplier(topic);
+    const decodedMessage = messageDecoder(message);
+
+    // TODO : update authorization to AuthjorizationManagement service
+
     logger.info(
-      `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
+      `Authorization updated after "${JSON.stringify(
+        decodedMessage.type
+      )}" event`
     );
   } catch (e) {
     logger.error(
@@ -26,5 +31,4 @@ async function processMessage({
   }
 }
 
-const config = readModelWriterConfig();
 await runConsumer(config, processMessage).catch(logger.error);
