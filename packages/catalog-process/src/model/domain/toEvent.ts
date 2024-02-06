@@ -3,14 +3,14 @@ import {
   EService,
   Document,
   Descriptor,
-  EServiceTechnologyV1,
-  EServiceAttributeV1,
+  EServiceTechnologyV2,
+  EServiceAttributeV2,
   EServiceAttribute,
-  EServiceDescriptorStateV1,
-  AgreementApprovalPolicyV1,
-  EServiceV1,
-  EServiceDocumentV1,
-  EServiceDescriptorV1,
+  EServiceDescriptorStateV2,
+  AgreementApprovalPolicyV2,
+  EServiceV2,
+  EServiceDocumentV2,
+  EServiceDescriptorV2,
   AgreementApprovalPolicy,
   DescriptorState,
   Technology,
@@ -18,63 +18,64 @@ import {
   EServiceEvent,
   DescriptorId,
   EServiceDocumentId,
+  EServiceEventV2,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 
-export const toAgreementApprovalPolicyV1 = (
+export const toAgreementApprovalPolicyV2 = (
   input: AgreementApprovalPolicy | undefined
-): AgreementApprovalPolicyV1 =>
+): AgreementApprovalPolicyV2 | undefined =>
   match(input)
-    .with(P.nullish, () => AgreementApprovalPolicyV1.UNSPECIFIED$)
-    .with("Manual", () => AgreementApprovalPolicyV1.MANUAL)
-    .with("Automatic", () => AgreementApprovalPolicyV1.AUTOMATIC)
+    .with(P.nullish, () => undefined)
+    .with("Manual", () => AgreementApprovalPolicyV2.MANUAL)
+    .with("Automatic", () => AgreementApprovalPolicyV2.AUTOMATIC)
     .exhaustive();
 
-export const toEServiceDescriptorStateV1 = (
+export const toEServiceDescriptorStateV2 = (
   input: DescriptorState
-): EServiceDescriptorStateV1 =>
+): EServiceDescriptorStateV2 =>
   match(input)
-    .with("Draft", () => EServiceDescriptorStateV1.DRAFT)
-    .with("Suspended", () => EServiceDescriptorStateV1.SUSPENDED)
-    .with("Archived", () => EServiceDescriptorStateV1.ARCHIVED)
-    .with("Published", () => EServiceDescriptorStateV1.PUBLISHED)
-    .with("Deprecated", () => EServiceDescriptorStateV1.DEPRECATED)
+    .with("Draft", () => EServiceDescriptorStateV2.DRAFT)
+    .with("Suspended", () => EServiceDescriptorStateV2.SUSPENDED)
+    .with("Archived", () => EServiceDescriptorStateV2.ARCHIVED)
+    .with("Published", () => EServiceDescriptorStateV2.PUBLISHED)
+    .with("Deprecated", () => EServiceDescriptorStateV2.DEPRECATED)
     .exhaustive();
 
-export const toEServiceTechnologyV1 = (
+export const toEServiceTechnologyV2 = (
   input: Technology
-): EServiceTechnologyV1 =>
+): EServiceTechnologyV2 =>
   match(input)
-    .with("Rest", () => EServiceTechnologyV1.REST)
-    .with("Soap", () => EServiceTechnologyV1.SOAP)
+    .with("Rest", () => EServiceTechnologyV2.REST)
+    .with("Soap", () => EServiceTechnologyV2.SOAP)
     .exhaustive();
 
-export const toEServiceAttributeV1 = (
+export const toEServiceAttributeV2 = (
   input: EServiceAttribute[]
-): EServiceAttributeV1 => ({
+): EServiceAttributeV2 => ({
   group: input.map((i) => ({
     id: i.id,
     explicitAttributeVerification: i.explicitAttributeVerification,
   })),
 });
 
-export const toDocumentV1 = (input: Document): EServiceDocumentV1 => ({
+export const toDocumentV2 = (input: Document): EServiceDocumentV2 => ({
   ...input,
   uploadDate: input.uploadDate.toISOString(),
 });
 
-export const toDescriptorV1 = (input: Descriptor): EServiceDescriptorV1 => ({
+export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
   ...input,
   attributes: {
-    certified: input.attributes.certified.map(toEServiceAttributeV1),
-    declared: input.attributes.declared.map(toEServiceAttributeV1),
-    verified: input.attributes.verified.map(toEServiceAttributeV1),
+    certified: input.attributes.certified.map(toEServiceAttributeV2),
+    declared: input.attributes.declared.map(toEServiceAttributeV2),
+    verified: input.attributes.verified.map(toEServiceAttributeV2),
   },
-  docs: input.docs.map(toDocumentV1),
-  state: toEServiceDescriptorStateV1(input.state),
+  docs: input.docs.map(toDocumentV2),
+  state: toEServiceDescriptorStateV2(input.state),
   interface:
-    input.interface != null ? toDocumentV1(input.interface) : undefined,
-  agreementApprovalPolicy: toAgreementApprovalPolicyV1(
+    input.interface != null ? toDocumentV2(input.interface) : undefined,
+  agreementApprovalPolicy: toAgreementApprovalPolicyV2(
     input.agreementApprovalPolicy
   ),
   createdAt: BigInt(input.createdAt.getTime()),
@@ -90,18 +91,18 @@ export const toDescriptorV1 = (input: Descriptor): EServiceDescriptorV1 => ({
   archivedAt: input.archivedAt ? BigInt(input.archivedAt.getTime()) : undefined,
 });
 
-export const toEServiceV1 = (eService: EService): EServiceV1 => ({
+export const toEServiceV2 = (eService: EService): EServiceV2 => ({
   ...eService,
-  technology: toEServiceTechnologyV1(eService.technology),
+  technology: toEServiceTechnologyV2(eService.technology),
   attributes:
     eService.attributes != null
       ? {
-          certified: eService.attributes.certified.map(toEServiceAttributeV1),
-          declared: eService.attributes.declared.map(toEServiceAttributeV1),
-          verified: eService.attributes.verified.map(toEServiceAttributeV1),
-        }
+        certified: eService.attributes.certified.map(toEServiceAttributeV2),
+        declared: eService.attributes.declared.map(toEServiceAttributeV2),
+        verified: eService.attributes.verified.map(toEServiceAttributeV2),
+      }
       : undefined,
-  descriptors: eService.descriptors.map(toDescriptorV1),
+  descriptors: eService.descriptors.map(toDescriptorV2),
   createdAt: BigInt(eService.createdAt.getTime()),
 });
 
@@ -112,21 +113,25 @@ export const toCreateEventEServiceAdded = (
   version: 0,
   event: {
     type: "EServiceAdded",
-    eventVersion: 1,
-    data: { eService: toEServiceV1(eService) },
+    eventVersion: 2,
+    data: { eservice: toEServiceV2(eService) },
   },
 });
 
 export const toCreateEventClonedEServiceAdded = (
-  eService: EService
+  sourceDescriptorId: DescriptorId,
+  sourceEservice: EService,
+  clonedEservice: EService
 ): CreateEvent<EServiceEvent> => ({
-  streamId: eService.id,
+  streamId: clonedEservice.id,
   version: 0,
   event: {
-    type: "ClonedEServiceAdded",
-    eventVersion: 1,
+    type: "EServiceCloned",
+    eventVersion: 2,
     data: {
-      eService: toEServiceV1(eService),
+      sourceDescriptorId,
+      sourceEservice: toEServiceV2(sourceEservice),
+      clonedEservice: toEServiceV2(clonedEservice),
     },
   },
 });
@@ -134,24 +139,29 @@ export const toCreateEventClonedEServiceAdded = (
 export const toCreateEventEServiceDocumentAdded = (
   streamId: string,
   version: number,
-  descriptorId: DescriptorId,
   {
-    newDocument,
+    descriptorId,
+    documentId,
+    eservice,
     isInterface,
-    serverUrls,
-  }: { newDocument: Document; isInterface: boolean; serverUrls: string[] }
+  }: {
+    descriptorId: DescriptorId;
+    documentId: EServiceDocumentId;
+    eservice: EService;
+    isInterface: boolean;
+  }
 ): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
   event: {
-    type: "EServiceDocumentAdded",
-    eventVersion: 1,
+    type: isInterface
+      ? "EServiceDescriptorInterfaceAdded"
+      : "EServiceDescriptorDocumentAdded",
+    eventVersion: 2,
     data: {
-      eServiceId: streamId,
       descriptorId,
-      document: toDocumentV1(newDocument),
-      isInterface,
-      serverUrls,
+      documentId,
+      eservice: toEServiceV2(eservice),
     },
   },
 });
@@ -159,16 +169,17 @@ export const toCreateEventEServiceDocumentAdded = (
 export const toCreateEventEServiceDescriptorAdded = (
   streamId: string,
   version: number,
-  newDescriptor: Descriptor
+  descriptorId: DescriptorId,
+  eservice: EService
 ): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
   event: {
     type: "EServiceDescriptorAdded",
-    eventVersion: 1,
+    eventVersion: 2,
     data: {
-      eServiceId: streamId,
-      eServiceDescriptor: toDescriptorV1(newDescriptor),
+      descriptorId,
+      eservice: toEServiceV2(eservice),
     },
   },
 });
@@ -181,10 +192,10 @@ export const toCreateEventEServiceUpdated = (
   streamId,
   version,
   event: {
-    type: "EServiceUpdated",
-    eventVersion: 1,
+    type: "DraftEServiceUpdated",
+    eventVersion: 2,
     data: {
-      eService: toEServiceV1(updatedEService),
+      eservice: toEServiceV2(updatedEService),
     },
   },
 });
@@ -194,93 +205,180 @@ export const toCreateEventEServiceDocumentUpdated = ({
   version,
   descriptorId,
   documentId,
-  updatedDocument,
-  serverUrls,
+  eservice,
+  isInterface,
 }: {
   streamId: string;
   version: number;
   descriptorId: DescriptorId;
   documentId: EServiceDocumentId;
-  updatedDocument: Document;
+  eservice: EService;
   serverUrls: string[];
+  isInterface: boolean;
 }): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
   event: {
-    type: "EServiceDocumentUpdated",
-    eventVersion: 1,
+    type: isInterface
+      ? "EServiceDescriptorInterfaceUpdated"
+      : "EServiceDescriptorDocumentUpdated",
+    eventVersion: 2,
     data: {
-      eServiceId: streamId,
       descriptorId,
       documentId,
-      updatedDocument: toDocumentV1(updatedDocument),
-      serverUrls,
+      eservice: toEServiceV2(eservice),
     },
   },
 });
 
-export const toCreateEventEServiceDescriptorUpdated = (
+export const toCreateEventEServiceDraftDescriptorUpdated = (
   streamId: string,
   version: number,
-  descriptor: Descriptor
+  descriptorId: DescriptorId,
+  eservice: EService
 ): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
   event: {
-    type: "EServiceDescriptorUpdated",
-    eventVersion: 1,
+    type: "EServiceDraftDescriptorUpdated",
+    eventVersion: 2,
     data: {
-      eServiceId: streamId,
-      eServiceDescriptor: toDescriptorV1(descriptor),
+      descriptorId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+});
+
+export const toCreateEventEServiceDescriptorActivated = (
+  streamId: string,
+  version: number,
+  descriptorId: DescriptorId,
+  eservice: EService
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceDescriptorActivated",
+    eventVersion: 2,
+    data: {
+      descriptorId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+});
+
+export const toCreateEventEServiceDescriptorArchived = (
+  streamId: string,
+  version: number,
+  descriptorId: DescriptorId,
+  eservice: EService
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceDescriptorArchived",
+    eventVersion: 2,
+    data: {
+      descriptorId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+});
+
+export const toCreateEventEServiceDescriptorPublished = (
+  streamId: string,
+  version: number,
+  descriptorId: DescriptorId,
+  eservice: EService
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceDescriptorPublished",
+    eventVersion: 2,
+    data: {
+      descriptorId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+});
+
+export const toCreateEventEServiceDescriptorSuspended = (
+  streamId: string,
+  version: number,
+  descriptorId: DescriptorId,
+  eservice: EService
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceDescriptorSuspended",
+    eventVersion: 2,
+    data: {
+      descriptorId,
+      eservice: toEServiceV2(eservice),
     },
   },
 });
 
 export const toCreateEventEServiceDeleted = (
   streamId: string,
-  version: number
+  version: number,
+  eservice: EService
 ): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
   event: {
     type: "EServiceDeleted",
-    eventVersion: 1,
+    eventVersion: 2,
     data: {
-      eServiceId: streamId,
+      eserviceId: streamId,
+      eservice: toEServiceV2(eservice),
     },
   },
 });
 
-export const toCreateEventEServiceDocumentDeleted = (
-  streamId: string,
-  version: number,
-  descriptorId: DescriptorId,
-  documentId: EServiceDocumentId
-): CreateEvent<EServiceEvent> => ({
+export const toCreateEventEServiceDocumentDeleted = ({
+  streamId,
+  version,
+  descriptorId,
+  documentId,
+  eservice,
+  isInterface,
+}: {
+  streamId: string;
+  version: number;
+  descriptorId: DescriptorId;
+  documentId: EServiceDocumentId;
+  eservice: EService;
+  isInterface: boolean;
+}): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
   event: {
-    type: "EServiceDocumentDeleted",
-    eventVersion: 1,
+    type: isInterface
+      ? "EServiceDescriptorInterfaceDeleted"
+      : "EServiceDescriptorDocumentDeleted",
+    eventVersion: 2,
     data: {
-      eServiceId: streamId,
       descriptorId,
       documentId,
+      eservice: toEServiceV2(eservice),
     },
   },
 });
 
-export const toCreateEventEServiceWithDescriptorsDeleted = (
-  eService: WithMetadata<EService>,
+export const toCreateEventEServiceDescriptorDeleted = (
+  eservice: WithMetadata<EService>,
   descriptorId: DescriptorId
 ): CreateEvent<EServiceEvent> => ({
-  streamId: eService.data.id,
-  version: eService.metadata.version,
+  streamId: eservice.data.id,
+  version: eservice.metadata.version,
   event: {
-    type: "EServiceWithDescriptorsDeleted",
-    eventVersion: 1,
+    type: "EServiceDescriptorDeleted",
+    eventVersion: 2,
     data: {
-      eService: toEServiceV1(eService.data),
+      eservice: toEServiceV2(eservice.data),
       descriptorId,
     },
   },
