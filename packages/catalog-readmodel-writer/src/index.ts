@@ -7,7 +7,8 @@ import {
 import { runConsumer } from "kafka-iam-auth";
 import { EServiceEvent } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { handleMessage } from "./consumerService.js";
+import { handleMessageV1 } from "./consumerServiceV1.js";
+import { handleMessageV2 } from "./consumerServiceV2.js";
 
 async function processMessage({
   message,
@@ -17,11 +18,9 @@ async function processMessage({
     const decodedMesssage = decodeKafkaMessage(message, EServiceEvent);
 
     await match(decodedMesssage)
-      .with({ eventVersion: 1 }, handleMessage)
-      .otherwise((message) => {
-        // Todo handle version 2 events
-        logger.warn(`Unsupported event version: ${message.eventVersion}`);
-      });
+      .with({ eventVersion: 1 }, handleMessageV1)
+      .with({ eventVersion: 2 }, handleMessageV2)
+      .exhaustive();
 
     // await handleMessage(decodeKafkaMessage(message, EServiceEvent));
     logger.info(

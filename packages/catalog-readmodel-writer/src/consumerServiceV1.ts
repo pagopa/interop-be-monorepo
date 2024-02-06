@@ -9,11 +9,11 @@ import {
   fromDescriptorV1,
   fromDocumentV1,
   fromEServiceV1,
-} from "./model/converter.js";
+} from "./model/converterV1.js";
 
 const { eservices } = ReadModelRepository.init(consumerConfig());
 
-export async function handleMessage(
+export async function handleMessageV1(
   message: EServiceEventEnvelopeV1
 ): Promise<void> {
   logger.info(message);

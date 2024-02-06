@@ -19,6 +19,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
+import { safeParserDate } from "./utils.js";
 
 export const fromAgreementApprovalPolicyV1 = (
   input: AgreementApprovalPolicyV1 | undefined
@@ -144,13 +145,3 @@ export const fromEServiceV1 = (input: EServiceV1): EService => ({
   // this bug is handled with ISSUE https://pagopa.atlassian.net/browse/IMN-171
   createdAt: safeParserDate(input.createdAt),
 });
-
-// Temporary workaround
-const safeParserDate = (date: bigint | undefined): Date => {
-  if (!date) {
-    throw new Error(
-      "createdAt field is required in EService definition but is not provided in serialized byte array events"
-    );
-  }
-  return new Date(Number(date));
-};
