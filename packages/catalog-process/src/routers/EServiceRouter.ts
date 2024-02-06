@@ -20,11 +20,7 @@ import { api } from "../model/generated/api.js";
 import { config } from "../utilities/config.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { catalogServiceBuilder } from "../services/catalogService.js";
-import {
-  makeApiProblem,
-  eServiceNotFound,
-  eServiceDocumentNotFound,
-} from "../model/domain/errors.js";
+import { makeApiProblem, eServiceNotFound } from "../model/domain/errors.js";
 import {
   activateDescriptorErrorMapper,
   archiveDescriptorErrorMapper,
@@ -254,40 +250,25 @@ const eservicesRouter = (
         try {
           const { eServiceId, descriptorId, documentId } = req.params;
 
-          const document = await readModelService.getDocumentById(
+          const document = await catalogService.getDocumentById({
             eServiceId,
-            unsafeBrandId(descriptorId),
-            documentId
-          );
+            descriptorId: unsafeBrandId(descriptorId),
+            documentId,
+            authData: req.ctx.authData,
+          });
 
-          if (document) {
-            return res
-              .status(200)
-              .json({
-                id: document.id,
-                name: document.name,
-                contentType: document.contentType,
-                prettyName: document.prettyName,
-                path: document.path,
-              })
-              .end();
-          } else {
-            return res
-              .status(404)
-              .json(
-                makeApiProblem(
-                  eServiceDocumentNotFound(
-                    eServiceId,
-                    unsafeBrandId(descriptorId),
-                    documentId
-                  ),
-                  () => 404
-                )
-              )
-              .end();
-          }
+          return res
+            .status(200)
+            .json({
+              id: document.id,
+              name: document.name,
+              contentType: document.contentType,
+              prettyName: document.prettyName,
+              path: document.path,
+            })
+            .end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, () => 500);
+          const errorRes = makeApiProblem(error, deleteEServiceErrorMapper);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }

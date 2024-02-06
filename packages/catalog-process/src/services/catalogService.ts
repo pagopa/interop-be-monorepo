@@ -501,7 +501,7 @@ export function catalogServiceBuilder(
       authData,
     }: {
       eServiceId: string;
-      descriptorId: string;
+      descriptorId: DescriptorId;
       documentId: string;
       authData: AuthData;
     }): Promise<Document> {
@@ -511,10 +511,7 @@ export function catalogServiceBuilder(
       if (eServiceAndMetadata === undefined) {
         throw eServiceNotFound(eServiceId);
       }
-      const descriptor = retrieveDescriptor(
-        unsafeBrandId(descriptorId),
-        eServiceAndMetadata
-      );
+      const descriptor = retrieveDescriptor(descriptorId, eServiceAndMetadata);
       if (
         authData.organizationId === eServiceAndMetadata.data.producerId &&
         (authData.userRoles.includes(userRoles.ADMIN_ROLE) ||
@@ -522,28 +519,17 @@ export function catalogServiceBuilder(
       ) {
         const doc = descriptor.docs.find((d) => d.id === documentId);
         if (doc === undefined) {
-          throw eServiceDocumentNotFound(
-            eServiceId,
-            unsafeBrandId(descriptorId),
-            documentId
-          );
+          throw eServiceDocumentNotFound(eServiceId, descriptorId, documentId);
         }
         return doc;
       } else {
         if (descriptor.state === descriptorState.draft) {
-          throw eServiceDescriptorNotFound(
-            eServiceId,
-            unsafeBrandId(descriptorId)
-          );
+          throw eServiceDescriptorNotFound(eServiceId, descriptorId);
         }
 
         const doc = descriptor.docs.find((d) => d.id === documentId);
         if (doc === undefined) {
-          throw eServiceDocumentNotFound(
-            eServiceId,
-            unsafeBrandId(descriptorId),
-            documentId
-          );
+          throw eServiceDocumentNotFound(eServiceId, descriptorId, documentId);
         }
         return doc;
       }
