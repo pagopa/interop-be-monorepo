@@ -493,6 +493,61 @@ export function catalogServiceBuilder(
 
       return eServiceWithoutDraft;
     },
+
+    async getDocumentById({
+      eServiceId,
+      descriptorId,
+      documentId,
+      authData,
+    }: {
+      eServiceId: string;
+      descriptorId: string;
+      documentId: string;
+      authData: AuthData;
+    }): Promise<Document> {
+      const eServiceAndMetadata = await readModelService.getEServiceById(
+        eServiceId
+      );
+      if (eServiceAndMetadata === undefined) {
+        throw eServiceNotFound(eServiceId);
+      }
+      const descriptor = retrieveDescriptor(
+        unsafeBrandId(descriptorId),
+        eServiceAndMetadata
+      );
+      if (
+        authData.organizationId === eServiceAndMetadata.data.producerId &&
+        (authData.userRoles.includes(userRoles.ADMIN_ROLE) ||
+          authData.userRoles.includes(userRoles.API_ROLE))
+      ) {
+        const doc = descriptor.docs.find((d) => d.id === documentId);
+        if (doc === undefined) {
+          throw eServiceDocumentNotFound(
+            eServiceId,
+            unsafeBrandId(descriptorId),
+            documentId
+          );
+        }
+        return doc;
+      } else {
+        if (descriptor.state === descriptorState.draft) {
+          throw eServiceDescriptorNotFound(
+            eServiceId,
+            unsafeBrandId(descriptorId)
+          );
+        }
+
+        const doc = descriptor.docs.find((d) => d.id === documentId);
+        if (doc === undefined) {
+          throw eServiceDocumentNotFound(
+            eServiceId,
+            unsafeBrandId(descriptorId),
+            documentId
+          );
+        }
+        return doc;
+      }
+    },
   };
 }
 
