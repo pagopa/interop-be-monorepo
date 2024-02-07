@@ -42,3 +42,6 @@ node_modules/
 **/dist
 packages/models/src/gen
 packages/*/src/model/generated
+
+# Minio container data
+docker/minio-data
