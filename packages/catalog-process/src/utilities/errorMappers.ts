@@ -39,6 +39,11 @@ export const deleteEServiceErrorMapper = (
     .with("eserviceCannotBeUpdatedOrDeleted", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const getEServiceErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const documentCreateErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>

@@ -22,7 +22,6 @@ import { readModelServiceBuilder } from "../services/readModelService.js";
 import { catalogServiceBuilder } from "../services/catalogService.js";
 import {
   makeApiProblem,
-  eServiceNotFound,
   eServiceDocumentNotFound,
 } from "../model/domain/errors.js";
 import {
@@ -35,6 +34,7 @@ import {
   deleteEServiceErrorMapper,
   documentCreateErrorMapper,
   documentUpdateDeleteErrorMapper,
+  getEServiceErrorMapper,
   publishDescriptorErrorMapper,
   suspendDescriptorErrorMapper,
   updateDescriptorErrorMapper,
@@ -150,22 +150,9 @@ const eservicesRouter = (
             req.params.eServiceId,
             req.ctx.authData
           );
-
-          if (eService) {
-            return res.status(200).json(eServiceToApiEService(eService)).end();
-          } else {
-            return res
-              .status(404)
-              .json(
-                makeApiProblem(
-                  eServiceNotFound(req.params.eServiceId),
-                  () => 404
-                )
-              )
-              .end();
-          }
+          return res.status(200).json(eServiceToApiEService(eService)).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, () => 500);
+          const errorRes = makeApiProblem(error, getEServiceErrorMapper);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
