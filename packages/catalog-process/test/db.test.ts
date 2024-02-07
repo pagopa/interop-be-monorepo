@@ -449,10 +449,28 @@ describe("database test", async () => {
 
     describe("create descriptor", async () => {
       it("should write on event-store for the creation of a descriptor", async () => {
+        const attribute: Attribute = {
+          name: "Attribute name",
+          id: generateId(),
+          kind: "Declared",
+          description: "Attribute Description",
+          creationTime: new Date(),
+        };
+        await addOneAttribute(attribute, attributes);
+        const descriptorSeed: EServiceDescriptorSeed = {
+          ...buildDescriptorSeed(mockDescriptor),
+          attributes: {
+            certified: [],
+            declared: [
+              [{ id: attribute.id, explicitAttributeVerification: false }],
+            ],
+            verified: [],
+          },
+        };
         await addOneEService(mockEService, postgresDB, eservices);
         await catalogService.createDescriptor(
           mockEService.id,
-          buildDescriptorSeed(mockDescriptor),
+          descriptorSeed,
           getMockAuthData(mockEService.producerId)
         );
         const writtenEvent = await readLastEventByStreamId(
@@ -474,6 +492,13 @@ describe("database test", async () => {
           ),
           id: unsafeBrandId(writtenPayload.eServiceDescriptor!.id),
           serverUrls: [],
+          attributes: {
+            certified: [],
+            declared: [
+              [{ id: attribute.id, explicitAttributeVerification: false }],
+            ],
+            verified: [],
+          },
         };
 
         expect(writtenPayload.eServiceId).toEqual(mockEService.id);
