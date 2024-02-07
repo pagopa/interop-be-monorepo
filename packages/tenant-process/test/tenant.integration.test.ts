@@ -20,6 +20,7 @@ import {
   Tenant,
   TenantUpdatedV1,
   descriptorState,
+  generateId,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import { config } from "../src/utilities/config.js";
@@ -35,6 +36,7 @@ import { toTenantV1 } from "../src/model/domain/toEvent.js";
 import { UpdateVerifiedTenantAttributeSeed } from "../src/model/domain/models.js";
 import {
   expirationDateCannotBeInThePast,
+  expirationDateNotFoundInVerifier,
   organizationNotFoundInVerifiers,
   tenantNotFound,
   verifiedAttributeNotFoundInTenant,
@@ -47,6 +49,7 @@ import {
   getMockAgreement,
   getMockDescriptor,
   getMockEService,
+  getMockRevokedBy,
   getMockTenant,
   getMockVerifiedBy,
   getMockVerifiedTenantAttribute,
@@ -103,6 +106,7 @@ describe("Integration tests", () => {
   const mockDescriptor = getMockDescriptor();
   const mockTenant = getMockTenant();
   const mockVerifiedBy = getMockVerifiedBy();
+  const mockRevokedBy = getMockRevokedBy();
   const mockVerifiedTenantAttribute = getMockVerifiedTenantAttribute();
 
   afterEach(async () => {
@@ -210,7 +214,7 @@ describe("Integration tests", () => {
         await addOneTenant(mockTenant, postgresDB, tenants);
         expect(
           tenantService.updateTenantVerifiedAttribute({
-            verifierId: uuidv4(),
+            verifierId: generateId(),
             tenantId: mockTenant.id,
             attributeId,
             updateVerifiedTenantAttributeSeed: mockVerificationAttributeSeed,
@@ -220,7 +224,7 @@ describe("Integration tests", () => {
         );
       });
       it("Should throw organizationNotFoundInVerifiers when the organization is not verified", async () => {
-        const verifierId = uuidv4();
+        const verifierId = generateId();
         await addOneTenant(updatedTenant, postgresDB, tenants);
         expect(
           tenantService.updateTenantVerifiedAttribute({
@@ -238,21 +242,165 @@ describe("Integration tests", () => {
         );
       });
     });
+    describe("updateVerifiedAttributeExtensionDate", async () => {
+      const updatedAt = new Date();
+
+      const extensionDate = new Date(
+        mockVerifiedBy.extensionDate!.getTime() +
+          (mockVerifiedBy.expirationDate!.getTime() -
+            mockVerifiedBy.verificationDate.getTime())
+      );
+
+      const updatedTenant: Tenant = {
+        ...mockTenant,
+        attributes: [
+          {
+            ...mockVerifiedTenantAttribute,
+            verifiedBy: [
+              {
+                ...mockVerifiedBy,
+                extensionDate,
+              },
+            ],
+            revokedBy: [
+              {
+                ...mockRevokedBy,
+                extensionDate,
+              },
+            ],
+          },
+        ],
+        updatedAt,
+        name: "A updatedTenant",
+      };
+      const attributeId = updatedTenant.attributes.map((a) => a.id)[0];
+      const verifierId = mockVerifiedBy.id;
+      it("Should update the extensionDate", async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(updatedAt);
+        await addOneTenant(updatedTenant, postgresDB, tenants);
+        await tenantService.updateVerifiedAttributeExtensionDate(
+          updatedTenant.id,
+          attributeId,
+          verifierId
+        );
+        const writtenEvent = await readLastEventByStreamId(
+          updatedTenant.id,
+          postgresDB
+        );
+        expect(writtenEvent.stream_id).toBe(updatedTenant.id);
+        expect(writtenEvent.version).toBe("1");
+        expect(writtenEvent.type).toBe("TenantUpdated");
+        const writtenPayload = decodeProtobufPayload({
+          messageType: TenantUpdatedV1,
+          payload: writtenEvent.data,
+        });
+        expect(writtenPayload.tenant).toEqual(toTenantV1(updatedTenant));
+
+        vi.useRealTimers();
+      });
+      it("Should throw tenantNotFound when tenant doesn't exist", async () => {
+        expect(
+          tenantService.updateVerifiedAttributeExtensionDate(
+            updatedTenant.id,
+            attributeId,
+            verifierId
+          )
+        ).rejects.toThrowError(tenantNotFound(updatedTenant.id));
+      });
+
+      it("Should throw expirationDateNotFoundInVerifier", async () => {
+        const expirationDate = undefined;
+
+        const updatedTenantWithoutExpirationDate: Tenant = {
+          ...mockTenant,
+          attributes: [
+            {
+              ...mockVerifiedTenantAttribute,
+              verifiedBy: [
+                {
+                  ...mockVerifiedBy,
+                  expirationDate,
+                },
+              ],
+              revokedBy: [
+                {
+                  ...mockRevokedBy,
+                  expirationDate,
+                },
+              ],
+            },
+          ],
+          updatedAt,
+          name: "A updatedTenant",
+        };
+        const attributeId = updatedTenantWithoutExpirationDate.attributes.map(
+          (a) => a.id
+        )[0];
+        await addOneTenant(
+          updatedTenantWithoutExpirationDate,
+          postgresDB,
+          tenants
+        );
+        expect(
+          tenantService.updateVerifiedAttributeExtensionDate(
+            updatedTenantWithoutExpirationDate.id,
+            attributeId,
+            verifierId
+          )
+        ).rejects.toThrowError(
+          expirationDateNotFoundInVerifier(
+            verifierId,
+            attributeId,
+            updatedTenantWithoutExpirationDate.id
+          )
+        );
+      });
+      it("Should throw verifiedAttributeNotFoundInTenant when the attribute is not verified", async () => {
+        await addOneTenant(mockTenant, postgresDB, tenants);
+        expect(
+          tenantService.updateVerifiedAttributeExtensionDate(
+            updatedTenant.id,
+            attributeId,
+            verifierId
+          )
+        ).rejects.toThrowError(
+          verifiedAttributeNotFoundInTenant(mockTenant.id, attributeId)
+        );
+      });
+      it("Should throw organizationNotFoundInVerifiers when the organization is not verified", async () => {
+        await addOneTenant(updatedTenant, postgresDB, tenants);
+        const verifierId = generateId();
+        expect(
+          tenantService.updateVerifiedAttributeExtensionDate(
+            updatedTenant.id,
+            attributeId,
+            verifierId
+          )
+        ).rejects.toThrowError(
+          organizationNotFoundInVerifiers(
+            verifierId,
+            updatedTenant.id,
+            attributeId
+          )
+        );
+      });
+    });
   });
   describe("readModelService", () => {
     const tenant1: Tenant = {
       ...mockTenant,
-      id: uuidv4(),
+      id: generateId(),
       name: "A tenant1",
     };
     const tenant2: Tenant = {
       ...mockTenant,
-      id: uuidv4(),
+      id: generateId(),
       name: "A tenant2",
     };
     const tenant3: Tenant = {
       ...mockTenant,
-      id: uuidv4(),
+      id: generateId(),
       name: "A tenant3",
     };
     describe("getConsumers", () => {
@@ -266,7 +414,7 @@ describe("Integration tests", () => {
 
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor1],
         };
@@ -289,7 +437,7 @@ describe("Integration tests", () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "B",
           descriptors: [descriptor2],
           producerId: eService1.producerId,
@@ -313,7 +461,7 @@ describe("Integration tests", () => {
 
         const eService3: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "C",
           descriptors: [descriptor3],
           producerId: eService1.producerId,
@@ -347,7 +495,7 @@ describe("Integration tests", () => {
 
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor1],
         };
@@ -370,7 +518,7 @@ describe("Integration tests", () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "B",
           descriptors: [descriptor2],
           producerId: eService1.producerId,
@@ -394,7 +542,7 @@ describe("Integration tests", () => {
 
         const eService3: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "C",
           descriptors: [descriptor3],
           producerId: eService1.producerId,
@@ -428,7 +576,7 @@ describe("Integration tests", () => {
 
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor1],
         };
@@ -443,7 +591,7 @@ describe("Integration tests", () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "B",
           descriptors: [descriptor2],
           producerId: eService1.producerId,
@@ -459,7 +607,7 @@ describe("Integration tests", () => {
 
         const eService3: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "C",
           descriptors: [descriptor3],
           producerId: eService1.producerId,
@@ -485,7 +633,7 @@ describe("Integration tests", () => {
 
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor1],
         };
@@ -500,7 +648,7 @@ describe("Integration tests", () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "B",
           descriptors: [descriptor2],
           producerId: eService1.producerId,
@@ -516,7 +664,7 @@ describe("Integration tests", () => {
 
         const eService3: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "C",
           descriptors: [descriptor3],
           producerId: eService1.producerId,
@@ -542,7 +690,7 @@ describe("Integration tests", () => {
 
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor1],
         };
@@ -565,7 +713,7 @@ describe("Integration tests", () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "B",
           descriptors: [descriptor2],
           producerId: eService1.producerId,
@@ -589,7 +737,7 @@ describe("Integration tests", () => {
 
         const eService3: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "C",
           descriptors: [descriptor3],
           producerId: eService1.producerId,
@@ -622,7 +770,7 @@ describe("Integration tests", () => {
 
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor1],
         };
@@ -645,7 +793,7 @@ describe("Integration tests", () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "B",
           descriptors: [descriptor2],
           producerId: eService1.producerId,
@@ -669,7 +817,7 @@ describe("Integration tests", () => {
 
         const eService3: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "C",
           descriptors: [descriptor3],
           producerId: eService1.producerId,
@@ -704,7 +852,7 @@ describe("Integration tests", () => {
 
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor1],
           producerId: tenant1.id,
@@ -720,7 +868,7 @@ describe("Integration tests", () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor2],
           producerId: tenant2.id,
@@ -736,7 +884,7 @@ describe("Integration tests", () => {
 
         const eService3: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor3],
           producerId: tenant3.id,
@@ -761,7 +909,7 @@ describe("Integration tests", () => {
 
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor1],
           producerId: tenant1.id,
@@ -777,7 +925,7 @@ describe("Integration tests", () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor2],
           producerId: tenant2.id,
@@ -802,7 +950,7 @@ describe("Integration tests", () => {
 
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor1],
           producerId: tenant1.id,
@@ -818,7 +966,7 @@ describe("Integration tests", () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor2],
           producerId: tenant2.id,
@@ -841,7 +989,7 @@ describe("Integration tests", () => {
 
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor1],
           producerId: tenant1.id,
@@ -855,7 +1003,7 @@ describe("Integration tests", () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor2],
           producerId: tenant2.id,
@@ -880,7 +1028,7 @@ describe("Integration tests", () => {
 
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor1],
           producerId: tenant1.id,
@@ -896,7 +1044,7 @@ describe("Integration tests", () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor2],
           producerId: tenant2.id,
@@ -912,7 +1060,7 @@ describe("Integration tests", () => {
 
         const eService3: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor3],
           producerId: tenant3.id,
@@ -935,7 +1083,7 @@ describe("Integration tests", () => {
 
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor1],
           producerId: tenant1.id,
@@ -951,7 +1099,7 @@ describe("Integration tests", () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor2],
           producerId: tenant2.id,
@@ -967,7 +1115,7 @@ describe("Integration tests", () => {
 
         const eService3: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor3],
           producerId: tenant3.id,
