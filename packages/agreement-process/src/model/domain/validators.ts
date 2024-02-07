@@ -18,6 +18,9 @@ import {
   agreementActivationFailureStates,
   AgreementId,
   DescriptorId,
+  EServiceId,
+  unsafeBrandId,
+  TenantId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { AuthData } from "pagopa-interop-commons";
@@ -61,11 +64,11 @@ export function assertAgreementExist(
 }
 
 export function assertEServiceExist(
-  eServiceId: string,
+  eserviceId: EServiceId,
   eService: WithMetadata<EService> | undefined
 ): asserts eService is NonNullable<WithMetadata<EService>> {
   if (eService === undefined) {
-    throw eServiceNotFound(eServiceId);
+    throw eServiceNotFound(eserviceId);
   }
 }
 
@@ -141,7 +144,7 @@ export const assertActivableState = (agreement: Agreement): void => {
 };
 
 export function assertDescriptorExist(
-  eserviceId: string,
+  eserviceId: EServiceId,
   descriptorId: DescriptorId,
   descriptor: Descriptor | undefined
 ): asserts descriptor is NonNullable<Descriptor> {
@@ -153,8 +156,8 @@ export function assertDescriptorExist(
 /* =========  VALIDATIONS ========= */
 
 const validateDescriptorState = (
-  eserviceId: EService["id"],
-  descriptorId: Descriptor["id"],
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId,
   descriptorState: DescriptorState,
   allowedStates: DescriptorState[]
 ): void => {
@@ -199,7 +202,7 @@ export const validateCreationOnDescriptor = (
 };
 
 export const verifyCreationConflictingAgreements = async (
-  organizationId: string,
+  organizationId: TenantId,
   agreement: ApiAgreementPayload,
   agreementQuery: AgreementQuery
 ): Promise<void> => {
@@ -212,7 +215,7 @@ export const verifyCreationConflictingAgreements = async (
   ];
   await verifyConflictingAgreements(
     organizationId,
-    agreement.eserviceId,
+    unsafeBrandId(agreement.eserviceId),
     conflictingStates,
     agreementQuery
   );
@@ -228,7 +231,7 @@ export const verifySubmissionConflictingAgreements = async (
   ];
   await verifyConflictingAgreements(
     agreement.consumerId,
-    agreement.eserviceId,
+    unsafeBrandId(agreement.eserviceId),
     conflictingStates,
     agreementQuery
   );
@@ -292,7 +295,7 @@ export const declaredAttributesSatisfied = (
 };
 
 export const verifiedAttributesSatisfied = (
-  producerId: string,
+  producerId: TenantId,
   descriptor: Descriptor,
   tenant: Tenant
 ): boolean => {
@@ -308,8 +311,8 @@ export const verifiedAttributesSatisfied = (
 };
 
 export const verifyConflictingAgreements = async (
-  consumerId: string,
-  eserviceId: string,
+  consumerId: TenantId,
+  eserviceId: EServiceId,
   conflictingStates: AgreementState[],
   agreementQuery: AgreementQuery
 ): Promise<void> => {
@@ -439,7 +442,7 @@ export const matchingVerifiedAttributes = (
 /* ========= FILTERS ========= */
 
 export const filterVerifiedAttributes = (
-  producerId: string,
+  producerId: TenantId,
   tenant: Tenant
 ): VerifiedTenantAttribute[] =>
   tenant.attributes.filter(
