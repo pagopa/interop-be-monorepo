@@ -7,7 +7,6 @@ import {
 } from "pagopa-interop-commons";
 import {
   DescriptorState,
-  Document,
   EService,
   Agreement,
   AgreementState,
@@ -17,7 +16,6 @@ import {
   WithMetadata,
   emptyListResult,
   genericError,
-  DescriptorId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
