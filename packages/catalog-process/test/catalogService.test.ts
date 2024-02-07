@@ -7,6 +7,10 @@ import {
   descriptorState,
   WithMetadata,
   operationForbidden,
+  unsafeBrandId,
+  EServiceId,
+  DescriptorId,
+  AttributeId,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 import {
@@ -128,7 +132,7 @@ describe("CatalogService", () => {
 
       const event = await updateEserviceLogic({
         eService: addMetadata(eService),
-        eServiceId: mockEservice.id,
+        eserviceId: mockEservice.id,
         eServiceSeed: mockEserviceSeed,
         authData,
         getEServiceByNameAndProducerId: () => Promise.resolve(undefined),
@@ -154,7 +158,7 @@ describe("CatalogService", () => {
             ...mockEservice,
             descriptors: [{ ...mockDescriptor, state: "Archived" }],
           }),
-          eServiceId: mockEservice.id,
+          eserviceId: mockEservice.id,
           authData,
           eServiceSeed: mockEserviceSeed,
           getEServiceByNameAndProducerId: () => Promise.resolve(undefined),
@@ -169,7 +173,7 @@ describe("CatalogService", () => {
             ...mockEservice,
             producerId: "some-org-id",
           }),
-          eServiceId: mockEservice.id,
+          eserviceId: mockEservice.id,
           eServiceSeed: mockEserviceSeed,
           authData: {
             ...authData,
@@ -181,11 +185,11 @@ describe("CatalogService", () => {
     });
 
     it("returns an error when the service does not exist", async () => {
-      const eServiceId = "not-existing-id";
+      const eserviceId = unsafeBrandId<EServiceId>("not-existing-id");
       expect(() =>
         updateEserviceLogic({
           eService: undefined,
-          eServiceId,
+          eserviceId,
           eServiceSeed: mockEserviceSeed,
           authData: {
             ...authData,
@@ -193,13 +197,13 @@ describe("CatalogService", () => {
           },
           getEServiceByNameAndProducerId: () => Promise.resolve(undefined),
         })
-      ).rejects.toThrowError(eServiceNotFound(eServiceId));
+      ).rejects.toThrowError(eServiceNotFound(eserviceId));
     });
   });
   describe("deleteEService", () => {
     it("delete the eservice", async () => {
       const event = deleteEserviceLogic({
-        eServiceId: mockEservice.id,
+        eserviceId: mockEservice.id,
         authData,
         eService: addMetadata({ ...mockEservice, descriptors: [] }),
       });
@@ -212,7 +216,7 @@ describe("CatalogService", () => {
     it("returns an error if the eservice contains descriptors", async () => {
       expect(() =>
         deleteEserviceLogic({
-          eServiceId: mockEservice.id,
+          eserviceId: mockEservice.id,
           authData,
           eService: addMetadata({
             ...mockEservice,
@@ -225,7 +229,7 @@ describe("CatalogService", () => {
     it("returns an error if the authenticated organization is not the producer", async () => {
       expect(() =>
         deleteEserviceLogic({
-          eServiceId: mockEservice.id,
+          eserviceId: mockEservice.id,
           authData: {
             ...authData,
             organizationId: "other-org-id",
@@ -239,23 +243,23 @@ describe("CatalogService", () => {
     });
 
     it("returns an error when the service does not exist", async () => {
-      const eServiceId = "not-existing-id";
+      const eserviceId = unsafeBrandId<EServiceId>("not-existing-id");
       expect(() =>
         deleteEserviceLogic({
-          eServiceId,
+          eserviceId,
           authData: {
             ...authData,
             organizationId: "organizationId",
           },
           eService: undefined,
         })
-      ).toThrowError(eServiceNotFound(eServiceId));
+      ).toThrowError(eServiceNotFound(eserviceId));
     });
   });
   describe("uploadDocument", () => {
     it("uploads the document", async () => {
       const event = uploadDocumentLogic({
-        eServiceId: mockEservice.id,
+        eserviceId: mockEservice.id,
         descriptorId: mockEservice.descriptors[0].id,
         document: mockDocument,
         authData,
@@ -281,10 +285,12 @@ describe("CatalogService", () => {
     });
 
     it("returns an error if the eservice doesn't contains the descriptor", async () => {
-      const descriptorId = "descriptor-not-present-id";
+      const descriptorId = unsafeBrandId<DescriptorId>(
+        "descriptor-not-present-id"
+      );
       expect(() =>
         uploadDocumentLogic({
-          eServiceId: mockEservice.id,
+          eserviceId: mockEservice.id,
           descriptorId,
           document: mockDocument,
           authData,
@@ -296,7 +302,7 @@ describe("CatalogService", () => {
     it("returns an error if the authenticated organization is not the producer", async () => {
       expect(() =>
         uploadDocumentLogic({
-          eServiceId: mockEservice.id,
+          eserviceId: mockEservice.id,
           descriptorId: mockEservice.descriptors[0].id,
           document: mockDocument,
           authData: {
@@ -312,10 +318,10 @@ describe("CatalogService", () => {
     });
 
     it("returns an error when the service does not exist", async () => {
-      const eServiceId = "not-existing-id";
+      const eserviceId = unsafeBrandId<EServiceId>("not-existing-id");
       expect(() =>
         uploadDocumentLogic({
-          eServiceId,
+          eserviceId,
           descriptorId: mockEservice.descriptors[0].id,
           document: mockDocument,
           authData: {
@@ -324,15 +330,15 @@ describe("CatalogService", () => {
           },
           eService: undefined,
         })
-      ).toThrowError(eServiceNotFound(eServiceId));
+      ).toThrowError(eServiceNotFound(eserviceId));
     });
   });
   describe("deleteDocument", () => {
     it("delete the document", async () => {
       const event = await deleteDocumentLogic({
-        eServiceId: mockEservice.id,
+        eserviceId: mockEservice.id,
         descriptorId: mockEservice.descriptors[0].id,
-        documentId: mockDocument.documentId,
+        documentId: unsafeBrandId(mockDocument.documentId),
         authData,
         eService: addMetadata({
           ...mockEservice,
@@ -342,7 +348,7 @@ describe("CatalogService", () => {
               docs: [
                 {
                   path: mockDocument.filePath,
-                  id: mockDocument.documentId,
+                  id: unsafeBrandId(mockDocument.documentId),
                   name: mockDocument.fileName,
                   contentType: mockDocument.contentType,
                   prettyName: mockDocument.prettyName,
@@ -364,12 +370,12 @@ describe("CatalogService", () => {
     });
 
     it("returns an error if the eservice doesn't contains the document", async () => {
-      const documentId = "document-not-present-id";
+      const documentId = unsafeBrandId("document-not-present-id");
       await expect(() =>
         deleteDocumentLogic({
-          eServiceId: mockEservice.id,
+          eserviceId: mockEservice.id,
           descriptorId: mockEservice.descriptors[0].id,
-          documentId,
+          documentId: unsafeBrandId(documentId),
           authData,
           eService: addMetadata(mockEservice),
           deleteRemoteFile: () => Promise.resolve(),
@@ -378,7 +384,7 @@ describe("CatalogService", () => {
         eServiceDocumentNotFound(
           mockEservice.id,
           mockEservice.descriptors[0].id,
-          documentId
+          unsafeBrandId(documentId)
         )
       );
     });
@@ -386,9 +392,9 @@ describe("CatalogService", () => {
     it("returns an error if the authenticated organization is not the producer", async () => {
       await expect(() =>
         deleteDocumentLogic({
-          eServiceId: mockEservice.id,
+          eserviceId: mockEservice.id,
           descriptorId: mockEservice.descriptors[0].id,
-          documentId: mockDocument.documentId,
+          documentId: unsafeBrandId(mockDocument.documentId),
           authData: {
             ...authData,
             organizationId: "other-org-id",
@@ -403,12 +409,12 @@ describe("CatalogService", () => {
     });
 
     it("returns an error when the service does not exist", async () => {
-      const eServiceId = "not-existing-id";
+      const eserviceId = unsafeBrandId<EServiceId>("not-existing-id");
       await expect(() =>
         deleteDocumentLogic({
-          eServiceId,
+          eserviceId,
           descriptorId: mockEservice.descriptors[0].id,
-          documentId: mockDocument.documentId,
+          documentId: unsafeBrandId(mockDocument.documentId),
           authData: {
             ...authData,
             organizationId: "organizationId",
@@ -416,16 +422,16 @@ describe("CatalogService", () => {
           eService: undefined,
           deleteRemoteFile: () => Promise.resolve(),
         })
-      ).rejects.toThrowError(eServiceNotFound(eServiceId));
+      ).rejects.toThrowError(eServiceNotFound(eserviceId));
     });
   });
   describe("updateDocument", () => {
     it("update the document", async () => {
       const refDate = new Date();
       const event = await updateDocumentLogic({
-        eServiceId: mockEservice.id,
+        eserviceId: mockEservice.id,
         descriptorId: mockEservice.descriptors[0].id,
-        documentId: mockDocument.documentId,
+        documentId: unsafeBrandId(mockDocument.documentId),
         apiEServiceDescriptorDocumentUpdateSeed: mockUpdateDocumentSeed,
         authData,
         eService: addMetadata({
@@ -436,7 +442,7 @@ describe("CatalogService", () => {
               docs: [
                 {
                   path: mockDocument.filePath,
-                  id: mockDocument.documentId,
+                  id: unsafeBrandId(mockDocument.documentId),
                   name: mockDocument.fileName,
                   contentType: mockDocument.contentType,
                   prettyName: mockDocument.prettyName,
@@ -467,12 +473,14 @@ describe("CatalogService", () => {
     });
 
     it("returns an error if the eservice doesn't contains the descriptor", async () => {
-      const descriptorId = "descriptor-not-present-id";
+      const descriptorId = unsafeBrandId<DescriptorId>(
+        "descriptor-not-present-id"
+      );
       await expect(() =>
         updateDocumentLogic({
-          eServiceId: mockEservice.id,
+          eserviceId: mockEservice.id,
           descriptorId,
-          documentId: mockDocument.documentId,
+          documentId: unsafeBrandId(mockDocument.documentId),
           apiEServiceDescriptorDocumentUpdateSeed: mockUpdateDocumentSeed,
           authData,
           eService: addMetadata(mockEservice),
@@ -483,12 +491,12 @@ describe("CatalogService", () => {
     });
 
     it("returns an error if the eservice doesn't contains the document", async () => {
-      const documentId = "document-not-present-id";
+      const documentId = unsafeBrandId("document-not-present-id");
       await expect(() =>
         updateDocumentLogic({
-          eServiceId: mockEservice.id,
+          eserviceId: mockEservice.id,
           descriptorId: mockEservice.descriptors[0].id,
-          documentId,
+          documentId: unsafeBrandId(documentId),
           apiEServiceDescriptorDocumentUpdateSeed: mockUpdateDocumentSeed,
           authData,
           eService: addMetadata(mockEservice),
@@ -497,7 +505,7 @@ describe("CatalogService", () => {
         eServiceDocumentNotFound(
           mockEservice.id,
           mockEservice.descriptors[0].id,
-          documentId
+          unsafeBrandId(documentId)
         )
       );
     });
@@ -505,9 +513,9 @@ describe("CatalogService", () => {
     it("returns an error if the authenticated organization is not the producer", async () => {
       await expect(() =>
         updateDocumentLogic({
-          eServiceId: mockEservice.id,
+          eserviceId: mockEservice.id,
           descriptorId: mockEservice.descriptors[0].id,
-          documentId: mockDocument.documentId,
+          documentId: unsafeBrandId(mockDocument.documentId),
           apiEServiceDescriptorDocumentUpdateSeed: mockUpdateDocumentSeed,
           authData: {
             ...authData,
@@ -522,12 +530,12 @@ describe("CatalogService", () => {
     });
 
     it("returns an error when the service does not exist", async () => {
-      const eServiceId = "not-existing-id";
+      const eserviceId = unsafeBrandId<EServiceId>("not-existing-id");
       await expect(() =>
         updateDocumentLogic({
-          eServiceId,
+          eserviceId,
           descriptorId: mockEservice.descriptors[0].id,
-          documentId: mockDocument.documentId,
+          documentId: unsafeBrandId(mockDocument.documentId),
           apiEServiceDescriptorDocumentUpdateSeed: mockUpdateDocumentSeed,
           authData: {
             ...authData,
@@ -535,7 +543,7 @@ describe("CatalogService", () => {
           },
           eService: undefined,
         })
-      ).rejects.toThrowError(eServiceNotFound(eServiceId));
+      ).rejects.toThrowError(eServiceNotFound(eserviceId));
     });
   });
   describe("createDescriptor", () => {
@@ -548,7 +556,7 @@ describe("CatalogService", () => {
         }))
       );
       const event = createDescriptorLogic({
-        eServiceId: mockEservice.id,
+        eserviceId: mockEservice.id,
         eserviceDescriptorSeed: mockEserviceDescriptorSeed,
         authData,
         eService: addMetadata({ ...mockEservice, descriptors }),
@@ -583,9 +591,11 @@ describe("CatalogService", () => {
             event.event.data as { eServiceDescriptor: { createdAt: Date } }
           ).eServiceDescriptor.createdAt,
           attributes: {
-            certified: mockEserviceDescriptorSeed.attributes.certified.map(
-              toEServiceAttributeV1
-            ),
+            certified: mockEserviceDescriptorSeed.attributes.certified
+              .map((a) =>
+                a.map((a) => ({ ...a, id: unsafeBrandId<AttributeId>(a.id) }))
+              )
+              .map(toEServiceAttributeV1),
             declared: [],
             verified: [],
           },
@@ -596,7 +606,7 @@ describe("CatalogService", () => {
     it("returns an error if the eservice doesn't contains a draft descriptor", async () => {
       expect(() =>
         createDescriptorLogic({
-          eServiceId: mockEservice.id,
+          eserviceId: mockEservice.id,
           eserviceDescriptorSeed: mockEserviceDescriptorSeed,
           authData,
           eService: addMetadata({
@@ -610,7 +620,7 @@ describe("CatalogService", () => {
     it("returns an error if the authenticated organization is not the producer", async () => {
       expect(() =>
         createDescriptorLogic({
-          eServiceId: mockEservice.id,
+          eserviceId: mockEservice.id,
           eserviceDescriptorSeed: mockEserviceDescriptorSeed,
           authData: {
             ...authData,
@@ -625,10 +635,10 @@ describe("CatalogService", () => {
     });
 
     it("returns an error when the service does not exist", async () => {
-      const eServiceId = "not-existing-id";
+      const eserviceId = unsafeBrandId<EServiceId>("not-existing-id");
       expect(() =>
         createDescriptorLogic({
-          eServiceId,
+          eserviceId,
           eserviceDescriptorSeed: mockEserviceDescriptorSeed,
           authData: {
             ...authData,
@@ -636,7 +646,7 @@ describe("CatalogService", () => {
           },
           eService: undefined,
         })
-      ).toThrowError(eServiceNotFound(eServiceId));
+      ).toThrowError(eServiceNotFound(eserviceId));
     });
   });
   describe("deleteDraftDescriptor", () => {
@@ -646,7 +656,7 @@ describe("CatalogService", () => {
         descriptors: [{ ...mockDescriptor, state: "Draft" }],
       };
       const event = await deleteDraftDescriptorLogic({
-        eServiceId: eService.id,
+        eserviceId: eService.id,
         descriptorId: eService.descriptors[0].id,
         authData,
         deleteFile: () => Promise.resolve(),
@@ -660,10 +670,12 @@ describe("CatalogService", () => {
     });
 
     it("returns an error if the eservice doesn't contains the descriptor", async () => {
-      const descriptorId = "descriptor-not-present-id";
+      const descriptorId = unsafeBrandId<DescriptorId>(
+        "descriptor-not-present-id"
+      );
       await expect(() =>
         deleteDraftDescriptorLogic({
-          eServiceId: mockEservice.id,
+          eserviceId: mockEservice.id,
           descriptorId,
           authData,
           deleteFile: () => Promise.resolve(),
@@ -677,7 +689,7 @@ describe("CatalogService", () => {
     it("returns an error if the authenticated organization is not the producer", async () => {
       await expect(() =>
         deleteDraftDescriptorLogic({
-          eServiceId: mockEservice.id,
+          eserviceId: mockEservice.id,
           descriptorId: mockEservice.descriptors[0].id,
           authData: {
             ...authData,
@@ -693,10 +705,10 @@ describe("CatalogService", () => {
     });
 
     it("returns an error when the service does not exist", async () => {
-      const eServiceId = "not-existing-id";
+      const eserviceId = unsafeBrandId<EServiceId>("not-existing-id");
       await expect(() =>
         deleteDraftDescriptorLogic({
-          eServiceId,
+          eserviceId,
           descriptorId: mockEservice.descriptors[0].id,
           authData: {
             ...authData,
@@ -705,7 +717,7 @@ describe("CatalogService", () => {
           deleteFile: () => Promise.resolve(),
           eService: undefined,
         })
-      ).rejects.toThrowError(eServiceNotFound(eServiceId));
+      ).rejects.toThrowError(eServiceNotFound(eserviceId));
     });
   });
   describe("updateDescriptor", () => {
@@ -716,7 +728,7 @@ describe("CatalogService", () => {
         descriptors: [descriptor],
       };
       const event = updateDescriptorLogic({
-        eServiceId: eService.id,
+        eserviceId: eService.id,
         descriptorId: eService.descriptors[0].id,
         seed: mockUpdateDescriptorSeed,
         authData,
@@ -753,10 +765,12 @@ describe("CatalogService", () => {
         ...mockEservice,
         descriptors: [descriptor],
       };
-      const descriptorId = "descriptor-not-present-id";
+      const descriptorId = unsafeBrandId<DescriptorId>(
+        "descriptor-not-present-id"
+      );
       expect(() =>
         updateDescriptorLogic({
-          eServiceId: eService.id,
+          eserviceId: eService.id,
           descriptorId,
           seed: mockEserviceDescriptorSeed,
           authData,
@@ -773,7 +787,7 @@ describe("CatalogService", () => {
       };
       expect(() =>
         updateDescriptorLogic({
-          eServiceId: eService.id,
+          eserviceId: eService.id,
           descriptorId: eService.descriptors[0].id,
           seed: mockEserviceDescriptorSeed,
           authData,
@@ -787,7 +801,7 @@ describe("CatalogService", () => {
     it("returns an error if the authenticated organization is not the producer", async () => {
       expect(() =>
         updateDescriptorLogic({
-          eServiceId: mockEservice.id,
+          eserviceId: mockEservice.id,
           descriptorId: mockEservice.descriptors[0].id,
           seed: mockEserviceDescriptorSeed,
           authData: {
@@ -803,10 +817,10 @@ describe("CatalogService", () => {
     });
 
     it("returns an error when the service does not exist", async () => {
-      const eServiceId = "not-existing-id";
+      const eserviceId = unsafeBrandId<EServiceId>("not-existing-id");
       expect(() =>
         updateDescriptorLogic({
-          eServiceId,
+          eserviceId,
           descriptorId: mockEservice.descriptors[0].id,
           seed: mockEserviceDescriptorSeed,
           authData: {
@@ -815,7 +829,7 @@ describe("CatalogService", () => {
           },
           eService: undefined,
         })
-      ).toThrowError(eServiceNotFound(eServiceId));
+      ).toThrowError(eServiceNotFound(eserviceId));
     });
   });
   describe("publishDescriptor", () => {
@@ -825,7 +839,7 @@ describe("CatalogService", () => {
         descriptors: [{ ...mockDescriptor, state: "Draft" }],
       };
       const event = publishDescriptorLogic({
-        eServiceId: eService.id,
+        eserviceId: eService.id,
         descriptorId: eService.descriptors[0].id,
         authData,
         eService: addMetadata(eService),
@@ -844,7 +858,9 @@ describe("CatalogService", () => {
     });
 
     it("publish the descriptor and deprecate the current published descriptor", async () => {
-      const publishedDescriptorId = "published-descriptor-id";
+      const publishedDescriptorId = unsafeBrandId<DescriptorId>(
+        "published-descriptor-id"
+      );
       const eService: EService = {
         ...mockEservice,
         descriptors: [
@@ -857,7 +873,7 @@ describe("CatalogService", () => {
         ],
       };
       const event = publishDescriptorLogic({
-        eServiceId: eService.id,
+        eserviceId: eService.id,
         descriptorId: eService.descriptors[1].id,
         authData,
         eService: addMetadata(eService),
@@ -890,10 +906,12 @@ describe("CatalogService", () => {
     });
 
     it("returns an error if the eservice doesn't contains the descriptor", async () => {
-      const descriptorId = "descriptor-not-present-id";
+      const descriptorId = unsafeBrandId<DescriptorId>(
+        "descriptor-not-present-id"
+      );
       expect(() =>
         publishDescriptorLogic({
-          eServiceId: mockEservice.id,
+          eserviceId: mockEservice.id,
           descriptorId,
           authData,
           eService: addMetadata(mockEservice),
@@ -909,7 +927,7 @@ describe("CatalogService", () => {
       };
       expect(() =>
         publishDescriptorLogic({
-          eServiceId: eService.id,
+          eserviceId: eService.id,
           descriptorId: eService.descriptors[0].id,
           authData,
           eService: addMetadata(eService),
@@ -922,7 +940,7 @@ describe("CatalogService", () => {
     it("returns an error if the authenticated organization is not the producer", async () => {
       expect(() =>
         publishDescriptorLogic({
-          eServiceId: mockEservice.id,
+          eserviceId: mockEservice.id,
           descriptorId: mockEservice.descriptors[0].id,
           authData: {
             ...authData,
@@ -937,10 +955,10 @@ describe("CatalogService", () => {
     });
 
     it("returns an error when the service does not exist", async () => {
-      const eServiceId = "not-existing-id";
+      const eserviceId = unsafeBrandId<EServiceId>("not-existing-id");
       expect(() =>
         publishDescriptorLogic({
-          eServiceId,
+          eserviceId,
           descriptorId: mockEservice.descriptors[0].id,
           authData: {
             ...authData,
@@ -948,7 +966,7 @@ describe("CatalogService", () => {
           },
           eService: undefined,
         })
-      ).toThrowError(eServiceNotFound(eServiceId));
+      ).toThrowError(eServiceNotFound(eserviceId));
     });
   });
   describe("suspendDescriptor", () => {
@@ -966,13 +984,13 @@ describe("CatalogService", () => {
         descriptors: [publishedDescriptor, deprecatedDescriptor],
       };
       const event1 = suspendDescriptorLogic({
-        eServiceId: eService.id,
+        eserviceId: eService.id,
         descriptorId: eService.descriptors[0].id,
         authData,
         eService: addMetadata(eService),
       });
       const event2 = suspendDescriptorLogic({
-        eServiceId: eService.id,
+        eserviceId: eService.id,
         descriptorId: eService.descriptors[1].id,
         authData,
         eService: addMetadata(eService),
@@ -1007,10 +1025,12 @@ describe("CatalogService", () => {
         ...mockEservice,
         descriptors: [descriptor],
       };
-      const descriptorId = "descriptor-not-present-id";
+      const descriptorId = unsafeBrandId<DescriptorId>(
+        "descriptor-not-present-id"
+      );
       expect(() =>
         suspendDescriptorLogic({
-          eServiceId: eService.id,
+          eserviceId: eService.id,
           descriptorId,
           authData,
           eService: addMetadata(eService),
@@ -1029,7 +1049,7 @@ describe("CatalogService", () => {
       };
       expect(() =>
         suspendDescriptorLogic({
-          eServiceId: eService.id,
+          eserviceId: eService.id,
           descriptorId: eService.descriptors[0].id,
           authData,
           eService: addMetadata(eService),
@@ -1040,7 +1060,7 @@ describe("CatalogService", () => {
     it("returns an error if the authenticated organization is not the producer", async () => {
       expect(() =>
         suspendDescriptorLogic({
-          eServiceId: mockEservice.id,
+          eserviceId: mockEservice.id,
           descriptorId: mockEservice.descriptors[0].id,
           authData: {
             ...authData,
@@ -1055,10 +1075,10 @@ describe("CatalogService", () => {
     });
 
     it("returns an error when the service does not exist", async () => {
-      const eServiceId = "not-existing-id";
+      const eserviceId = unsafeBrandId<EServiceId>("not-existing-id");
       expect(() =>
         suspendDescriptorLogic({
-          eServiceId,
+          eserviceId,
           descriptorId: mockEservice.descriptors[0].id,
           authData: {
             ...authData,
@@ -1066,7 +1086,7 @@ describe("CatalogService", () => {
           },
           eService: undefined,
         })
-      ).toThrowError(eServiceNotFound(eServiceId));
+      ).toThrowError(eServiceNotFound(eserviceId));
     });
   });
   describe("activateDescriptor", () => {
@@ -1076,7 +1096,7 @@ describe("CatalogService", () => {
         descriptors: [{ ...mockDescriptor, state: "Suspended", version: "1" }],
       };
       const event = activateDescriptorLogic({
-        eServiceId: eService.id,
+        eserviceId: eService.id,
         descriptorId: eService.descriptors[0].id,
         authData,
         eService: addMetadata(eService),
@@ -1106,7 +1126,7 @@ describe("CatalogService", () => {
       };
       expect(() =>
         activateDescriptorLogic({
-          eServiceId: eService.id,
+          eserviceId: eService.id,
           descriptorId: eService.descriptors[0].id,
           authData,
           eService: addMetadata(eService),
@@ -1117,7 +1137,7 @@ describe("CatalogService", () => {
     it("returns an error if the authenticated organization is not the producer", async () => {
       expect(() =>
         activateDescriptorLogic({
-          eServiceId: mockEservice.id,
+          eserviceId: mockEservice.id,
           descriptorId: mockEservice.descriptors[0].id,
           authData: {
             ...authData,
@@ -1132,10 +1152,10 @@ describe("CatalogService", () => {
     });
 
     it("returns an error when the service does not exist", async () => {
-      const eServiceId = "not-existing-id";
+      const eserviceId = unsafeBrandId<EServiceId>("not-existing-id");
       expect(() =>
         activateDescriptorLogic({
-          eServiceId,
+          eserviceId,
           descriptorId: mockEservice.descriptors[0].id,
           authData: {
             ...authData,
@@ -1143,7 +1163,7 @@ describe("CatalogService", () => {
           },
           eService: undefined,
         })
-      ).toThrowError(eServiceNotFound(eServiceId));
+      ).toThrowError(eServiceNotFound(eserviceId));
     });
   });
   describe("cloneDescriptor", () => {
@@ -1158,7 +1178,7 @@ describe("CatalogService", () => {
       const mockEserviceV1 = toEServiceV1(mockEservice);
       const mockDescriptorV1 = toDescriptorV1(mockDescriptor);
       const { event } = await cloneDescriptorLogic({
-        eServiceId: eService.id,
+        eserviceId: eService.id,
         descriptorId: eService.descriptors[0].id,
         authData,
         copyFile: () => Promise.resolve(""),
@@ -1222,10 +1242,12 @@ describe("CatalogService", () => {
         ...mockEservice,
         descriptors: [mockDescriptor],
       };
-      const descriptorId = "descriptor-not-present-id";
+      const descriptorId = unsafeBrandId<DescriptorId>(
+        "descriptor-not-present-id"
+      );
       expect(() =>
         archiveDescriptorLogic({
-          eServiceId: eService.id,
+          eserviceId: eService.id,
           descriptorId,
           authData,
           eService: addMetadata(eService),
@@ -1236,7 +1258,7 @@ describe("CatalogService", () => {
     it("returns an error if the authenticated organization is not the producer", async () => {
       expect(() =>
         suspendDescriptorLogic({
-          eServiceId: mockEservice.id,
+          eserviceId: mockEservice.id,
           descriptorId: mockEservice.descriptors[0].id,
           authData: {
             ...authData,
@@ -1251,10 +1273,10 @@ describe("CatalogService", () => {
     });
 
     it("returns an error when the service does not exist", async () => {
-      const eServiceId = "not-existing-id";
+      const eserviceId = unsafeBrandId<EServiceId>("not-existing-id");
       expect(() =>
         suspendDescriptorLogic({
-          eServiceId,
+          eserviceId,
           descriptorId: mockEservice.descriptors[0].id,
           authData: {
             ...authData,
@@ -1262,7 +1284,7 @@ describe("CatalogService", () => {
           },
           eService: undefined,
         })
-      ).toThrowError(eServiceNotFound(eServiceId));
+      ).toThrowError(eServiceNotFound(eserviceId));
     });
   });
   describe("archiveDescriptor", () => {
@@ -1272,7 +1294,7 @@ describe("CatalogService", () => {
         descriptors: [mockDescriptor],
       };
       const event = archiveDescriptorLogic({
-        eServiceId: eService.id,
+        eserviceId: eService.id,
         descriptorId: eService.descriptors[0].id,
         authData,
         eService: addMetadata(eService),
@@ -1298,10 +1320,12 @@ describe("CatalogService", () => {
         ...mockEservice,
         descriptors: [mockDescriptor],
       };
-      const descriptorId = "descriptor-not-present-id";
+      const descriptorId = unsafeBrandId<DescriptorId>(
+        "descriptor-not-present-id"
+      );
       expect(() =>
         archiveDescriptorLogic({
-          eServiceId: eService.id,
+          eserviceId: eService.id,
           descriptorId,
           authData,
           eService: addMetadata(eService),
@@ -1312,7 +1336,7 @@ describe("CatalogService", () => {
     it("returns an error if the authenticated organization is not the producer", async () => {
       expect(() =>
         suspendDescriptorLogic({
-          eServiceId: mockEservice.id,
+          eserviceId: mockEservice.id,
           descriptorId: mockEservice.descriptors[0].id,
           authData: {
             ...authData,
@@ -1327,10 +1351,10 @@ describe("CatalogService", () => {
     });
 
     it("returns an error when the service does not exist", async () => {
-      const eServiceId = "not-existing-id";
+      const eserviceId = unsafeBrandId<EServiceId>("not-existing-id");
       expect(() =>
         suspendDescriptorLogic({
-          eServiceId,
+          eserviceId,
           descriptorId: mockEservice.descriptors[0].id,
           authData: {
             ...authData,
@@ -1338,7 +1362,7 @@ describe("CatalogService", () => {
           },
           eService: undefined,
         })
-      ).toThrowError(eServiceNotFound(eServiceId));
+      ).toThrowError(eServiceNotFound(eserviceId));
     });
   });
 });

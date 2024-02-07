@@ -4,7 +4,8 @@ import {
   consumerConfig,
   ReadModelRepository,
 } from "pagopa-interop-commons";
-import { EventEnvelope } from "./model/models.js";
+
+import { EServiceEventEnvelope } from "pagopa-interop-models";
 import {
   fromDescriptorV1,
   fromDocumentV1,
@@ -13,7 +14,9 @@ import {
 
 const { eservices } = ReadModelRepository.init(consumerConfig());
 
-export async function handleMessage(message: EventEnvelope): Promise<void> {
+export async function handleMessage(
+  message: EServiceEventEnvelope
+): Promise<void> {
   logger.info(message);
   await match(message)
     .with({ type: "EServiceAdded" }, async (msg) => {

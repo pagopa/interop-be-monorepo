@@ -4,6 +4,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
 import {
+  afterAll,
   afterEach,
   beforeAll,
   beforeEach,
@@ -817,7 +818,7 @@ describe("database test", async () => {
           interface: {
             name: "interface name",
             path: "pagopa.it",
-            id: uuidv4(),
+            id: generateId(),
             prettyName: "",
             contentType: "json",
             checksum: uuidv4(),
@@ -1100,7 +1101,7 @@ describe("database test", async () => {
 
         expect(
           catalogService.suspendDescriptor(
-            mockEService.id,
+            eService.id,
             mockDescriptor.id,
             getMockAuthData(mockEService.producerId)
           )
@@ -1234,9 +1235,9 @@ describe("database test", async () => {
 
         expect(
           catalogService.activateDescriptor(
-            mockEService.id,
+            eService.id,
             mockDescriptor.id,
-            getMockAuthData(mockEService.producerId)
+            getMockAuthData(eService.producerId)
           )
         ).rejects.toThrowError(
           eServiceDescriptorNotFound(eService.id, mockDescriptor.id)
@@ -1352,10 +1353,15 @@ describe("database test", async () => {
     });
 
     describe("clone descriptor", () => {
-      it("should write on event-store for the cloning of a descriptor", async () => {
+      beforeAll(() => {
         vi.useFakeTimers();
-        vi.setSystemTime(new Date());
+        vi.setSystemTime(new Date("2024-01-01T12:00:00"));
+      });
+      afterAll(() => {
+        vi.useRealTimers();
+      });
 
+      it("should write on event-store for the cloning of a descriptor", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
@@ -1411,23 +1417,16 @@ describe("database test", async () => {
           ),
           docs: [expectedDocument],
         };
-        const currentDate = new Date();
         const expectedEService: EService = {
           ...eService,
           id: writtenPayload.eService!.id,
-          name: `${eService.name} - clone - ${currentDate.toLocaleDateString(
-            "it-IT"
-          )} ${currentDate.toLocaleTimeString("it-IT")}`,
+          name: `${eService.name} - clone - 1/1/2024 12:00:00`,
           descriptors: [expectedDescriptor],
           createdAt: new Date(Number(writtenPayload.eService?.createdAt)),
         };
         expect(writtenPayload.eService).toEqual(toEServiceV1(expectedEService));
-        vi.useRealTimers();
       });
       it("should throw eServiceDuplicate if an eService with the same name already exists", async () => {
-        vi.useFakeTimers();
-        vi.setSystemTime(new Date());
-
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
@@ -1441,13 +1440,7 @@ describe("database test", async () => {
         };
         await addOneEService(eService1, postgresDB, eservices);
 
-        const currentDate = new Date();
-
-        const conflictEServiceName = `${
-          eService1.name
-        } - clone - ${currentDate.toLocaleDateString(
-          "it-IT"
-        )} ${currentDate.toLocaleTimeString("it-IT")}`;
+        const conflictEServiceName = `${eService1.name} - clone - 1/1/2024 12:00:00`;
 
         const eService2: EService = {
           ...mockEService,
@@ -1464,7 +1457,6 @@ describe("database test", async () => {
             getMockAuthData(eService1.producerId)
           )
         ).rejects.toThrowError(eServiceDuplicate(conflictEServiceName));
-        vi.useRealTimers();
       });
       it("should throw eServiceNotFound if the eService doesn't exist", () => {
         expect(
@@ -1574,7 +1566,7 @@ describe("database test", async () => {
 
         expect(
           catalogService.archiveDescriptor(
-            mockEService.id,
+            eService.id,
             mockDescriptor.id,
             getMockAuthData(mockEService.producerId)
           )
@@ -2010,7 +2002,7 @@ describe("database test", async () => {
         };
         eService5 = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "eService 005",
           producerId: organizationId2,
           descriptors: [descriptor5],
@@ -2024,7 +2016,7 @@ describe("database test", async () => {
         };
         eService6 = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "eService 006",
           producerId: organizationId2,
           descriptors: [descriptor6],
@@ -2037,14 +2029,14 @@ describe("database test", async () => {
         };
         await addOneTenant(tenant, tenants);
         const agreement1 = getMockAgreement({
-          eServiceId: eService1.id,
+          eserviceId: eService1.id,
           descriptorId: descriptor1.id,
           producerId: eService1.producerId,
           consumerId: tenant.id,
         });
         await addOneAgreement(agreement1, agreements);
         const agreement2 = getMockAgreement({
-          eServiceId: eService3.id,
+          eserviceId: eService3.id,
           descriptorId: descriptor3.id,
           producerId: eService3.producerId,
           consumerId: tenant.id,
@@ -2234,7 +2226,7 @@ describe("database test", async () => {
         const organizationId2 = uuidv4();
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "eService 001",
           producerId: organizationId1,
         };
@@ -2242,7 +2234,7 @@ describe("database test", async () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "eService 002",
           producerId: organizationId1,
         };
@@ -2250,7 +2242,7 @@ describe("database test", async () => {
 
         const eService3: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "eService 001",
           producerId: organizationId2,
         };
@@ -2266,7 +2258,7 @@ describe("database test", async () => {
         const organizationId = uuidv4();
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "eService 001",
           producerId: organizationId,
         };
@@ -2274,7 +2266,7 @@ describe("database test", async () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "eService 002",
           producerId: organizationId,
         };
@@ -2297,7 +2289,7 @@ describe("database test", async () => {
         };
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "eService 001",
           descriptors: [descriptor1],
         };
@@ -2310,7 +2302,7 @@ describe("database test", async () => {
         };
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "eService 002",
           descriptors: [descriptor2],
         };
@@ -2323,7 +2315,7 @@ describe("database test", async () => {
         };
         const eService3: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "eService 003",
           descriptors: [descriptor3],
         };
@@ -2356,7 +2348,7 @@ describe("database test", async () => {
         const tenant = getMockTenant();
         await addOneTenant(tenant, tenants);
         const agreement = getMockAgreement({
-          eServiceId: eService1.id,
+          eserviceId: eService1.id,
           descriptorId: descriptor1.id,
           producerId: eService1.producerId,
           consumerId: tenant.id,

@@ -34,7 +34,7 @@ export function agreementEventToBinaryData(event: AgreementEvent): Uint8Array {
     .exhaustive();
 }
 
-const AgreementAddEvent = z.object({
+export const AgreementAddEvent = z.object({
   type: z.literal("AgreementAdded"),
   data: protobufDecoder(AgreementAddedV1),
 });

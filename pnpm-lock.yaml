@@ -19,7 +19,7 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: ^10.9.2
-        version: 10.9.2(axios@1.4.0)(zod@3.21.4)
+        version: 10.9.2(axios@1.6.5)(zod@3.21.4)
       '@zodios/express':
         specifier: ^10.6.1
         version: 10.6.1(@zodios/core@10.9.2)(express@4.18.2)(zod@3.21.4)
@@ -39,8 +39,8 @@ importers:
         specifier: workspace:*
         version: link:../models
       ts-pattern:
-        specifier: ^5.0.1
-        version: 5.0.1
+        specifier: ^5.0.6
+        version: 5.0.6
       uuid:
         specifier: ^9.0.0
         version: 9.0.0
@@ -70,8 +70,8 @@ importers:
         specifier: ^1.5.0
         version: 1.5.0
       openapi-zod-client:
-        specifier: ^1.7.1
-        version: 1.7.1
+        specifier: 1.15.1
+        version: 1.15.1
       pg-promise:
         specifier: ^11.5.0
         version: 11.5.0
@@ -115,8 +115,8 @@ importers:
         specifier: workspace:*
         version: link:../models
       ts-pattern:
-        specifier: ^5.0.1
-        version: 5.0.1
+        specifier: ^5.0.6
+        version: 5.0.6
       zod:
         specifier: ^3.21.4
         version: 3.21.4
@@ -164,8 +164,8 @@ importers:
         specifier: workspace:*
         version: link:../models
       ts-pattern:
-        specifier: ^5.0.1
-        version: 5.0.1
+        specifier: ^5.0.6
+        version: 5.0.6
       zod:
         specifier: ^3.21.4
         version: 3.21.4
@@ -216,8 +216,8 @@ importers:
         specifier: 5.6.0
         version: 5.6.0
       openapi-zod-client:
-        specifier: ^1.7.1
-        version: 1.7.1
+        specifier: 1.15.1
+        version: 1.15.1
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -228,8 +228,8 @@ importers:
         specifier: ^11.5.0
         version: 11.5.0
       ts-pattern:
-        specifier: ^5.0.1
-        version: 5.0.1
+        specifier: ^5.0.6
+        version: 5.0.6
       uuid:
         specifier: ^9.0.0
         version: 9.0.0
@@ -307,8 +307,8 @@ importers:
         specifier: 5.6.0
         version: 5.6.0
       openapi-zod-client:
-        specifier: ^1.7.1
-        version: 1.7.1
+        specifier: 1.15.1
+        version: 1.15.1
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -316,8 +316,8 @@ importers:
         specifier: workspace:*
         version: link:../models
       ts-pattern:
-        specifier: ^5.0.1
-        version: 5.0.1
+        specifier: ^5.0.6
+        version: 5.0.6
       uuid:
         specifier: ^9.0.0
         version: 9.0.0
@@ -401,8 +401,8 @@ importers:
         specifier: workspace:*
         version: link:../models
       ts-pattern:
-        specifier: ^5.0.1
-        version: 5.0.1
+        specifier: ^5.0.6
+        version: 5.0.6
       zod:
         specifier: ^3.21.4
         version: 3.21.4
@@ -433,7 +433,7 @@ importers:
         version: 3.367.0
       '@zodios/core':
         specifier: ^10.9.2
-        version: 10.9.2(axios@1.4.0)(zod@3.21.4)
+        version: 10.9.2(axios@1.6.5)(zod@3.21.4)
       '@zodios/express':
         specifier: ^10.6.1
         version: 10.6.1(@zodios/core@10.9.2)(express@4.18.2)(zod@3.21.4)
@@ -462,8 +462,8 @@ importers:
         specifier: ^11.5.0
         version: 11.5.0
       ts-pattern:
-        specifier: ^5.0.1
-        version: 5.0.1
+        specifier: ^5.0.6
+        version: 5.0.6
       winston:
         specifier: ^3.9.0
         version: 3.9.0
@@ -539,8 +539,8 @@ importers:
         specifier: ^9.0.2
         version: 9.0.2
       ts-pattern:
-        specifier: ^5.0.1
-        version: 5.0.1
+        specifier: ^5.0.6
+        version: 5.0.6
       uuid:
         specifier: ^9.0.0
         version: 9.0.0
@@ -588,8 +588,8 @@ importers:
         specifier: workspace:*
         version: link:../models
       ts-pattern:
-        specifier: ^5.0.1
-        version: 5.0.1
+        specifier: ^5.0.6
+        version: 5.0.6
       zod:
         specifier: ^3.21.4
         version: 3.21.4
@@ -620,7 +620,7 @@ importers:
         version: 9.0.2
       '@zodios/core':
         specifier: ^10.9.2
-        version: 10.9.2(axios@1.4.0)(zod@3.21.4)
+        version: 10.9.2(axios@1.6.5)(zod@3.21.4)
       '@zodios/express':
         specifier: ^10.6.1
         version: 10.6.1(@zodios/core@10.9.2)(express@4.18.2)(zod@3.21.4)
@@ -634,8 +634,8 @@ importers:
         specifier: 5.6.0
         version: 5.6.0
       openapi-zod-client:
-        specifier: ^1.7.1
-        version: 1.7.1
+        specifier: 1.15.1
+        version: 1.15.1
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -643,8 +643,8 @@ importers:
         specifier: workspace:*
         version: link:../models
       ts-pattern:
-        specifier: ^5.0.1
-        version: 5.0.1
+        specifier: ^5.0.6
+        version: 5.0.6
       uuid:
         specifier: ^9.0.0
         version: 9.0.0
@@ -3596,15 +3596,6 @@ packages:
       pretty-format: 29.6.1
     dev: true
 
-  /@zodios/core@10.9.2(axios@0.27.2)(zod@3.21.4):
-    resolution: {integrity: sha512-aY8FgE6Y+91oBaMfTnqibGoHO62OiKKHoiQAq76PYJbU7InFeWsSRhpnBwpibWopRjz45AlqojxKo3QeSAYC7w==}
-    peerDependencies:
-      axios: ^0.x || ^1.0.0
-      zod: ^3.x
-    dependencies:
-      axios: 0.27.2
-      zod: 3.21.4
-
   /@zodios/core@10.9.2(axios@1.4.0)(zod@3.21.4):
     resolution: {integrity: sha512-aY8FgE6Y+91oBaMfTnqibGoHO62OiKKHoiQAq76PYJbU7InFeWsSRhpnBwpibWopRjz45AlqojxKo3QeSAYC7w==}
     peerDependencies:
@@ -3615,6 +3606,15 @@ packages:
       zod: 3.21.4
     dev: false
 
+  /@zodios/core@10.9.2(axios@1.6.5)(zod@3.21.4):
+    resolution: {integrity: sha512-aY8FgE6Y+91oBaMfTnqibGoHO62OiKKHoiQAq76PYJbU7InFeWsSRhpnBwpibWopRjz45AlqojxKo3QeSAYC7w==}
+    peerDependencies:
+      axios: ^0.x || ^1.0.0
+      zod: ^3.x
+    dependencies:
+      axios: 1.6.5
+      zod: 3.21.4
+
   /@zodios/express@10.6.1(@zodios/core@10.9.2)(express@4.18.2)(zod@3.21.4):
     resolution: {integrity: sha512-FNgOq8mvwvWP5B2howMKGm6EPp6i/0XFAsQnX5Ov3MLbanzD1oE4WJtBkTL3cmJYvD0nyykbWSeHOh51bCmhUA==}
     peerDependencies:
@@ -3622,7 +3622,7 @@ packages:
       express: 4.x
       zod: ^3.x
     dependencies:
-      '@zodios/core': 10.9.2(axios@1.4.0)(zod@3.21.4)
+      '@zodios/core': 10.9.2(axios@1.6.5)(zod@3.21.4)
       express: 4.18.2
       zod: 3.21.4
     dev: false
@@ -3914,18 +3914,19 @@ packages:
     engines: {node: '>= 0.4'}
     dev: true
 
-  /axios@0.27.2:
-    resolution: {integrity: sha512-t+yRIyySRTp/wua5xEr+z1q60QmLq8ABsS5O9Me1AsE5dfKqgnCFzwiCZZ/cGNd1lq4/7akDWMxdhVlucjmnOQ==}
-    dependencies:
-      follow-redirects: 1.15.2
-      form-data: 4.0.0
-    transitivePeerDependencies:
-      - debug
-
   /axios@1.4.0:
     resolution: {integrity: sha512-S4XCWMEmzvo64T9GfvQDOXgYRDJ/wsSZc7Jvdgx5u1sd0JwsuPLqb3SYmusag+edF6ziyMensPVqLTSc1PiSEA==}
     dependencies:
       follow-redirects: 1.15.2
+      form-data: 4.0.0
+      proxy-from-env: 1.1.0
+    transitivePeerDependencies:
+      - debug
+
+  /axios@1.6.5:
+    resolution: {integrity: sha512-Ii012v05KEVuUoFWmMW/UQv9aRIc3ZwkWDcM+h5Il8izZCtRVpDUfwpoFf7eOtajT3QiGR4yDUx7lPqHJULgbg==}
+    dependencies:
+      follow-redirects: 1.15.5
       form-data: 4.0.0
       proxy-from-env: 1.1.0
     transitivePeerDependencies:
@@ -5324,6 +5325,15 @@ packages:
       debug:
         optional: true
 
+  /follow-redirects@1.15.5:
+    resolution: {integrity: sha512-vSFWUON1B+yAw1VN4xMfxgn5fTUiaOzAJCKBwIIgT/+7CuGy9+r+5gITvP62j3RmaD5Ph65UaERdOSRGUzZtgw==}
+    engines: {node: '>=4.0'}
+    peerDependencies:
+      debug: '*'
+    peerDependenciesMeta:
+      debug:
+        optional: true
+
   /for-each@0.3.3:
     resolution: {integrity: sha512-jqYfLp7mo9vIyQf8ykW2v7A+2N4QjeCeI5+Dz9XraiO1ign81wjiH7Fb9vSOWvQfNtmSa4H2RoQTrrXivdUZmw==}
     dependencies:
@@ -6653,22 +6663,22 @@ packages:
   /openapi-types@12.1.3:
     resolution: {integrity: sha512-N4YtSYJqghVu4iek2ZUvcN/0aqH1kRDuNqzcycDxhOUpg7GdvLa2F3DgS6yBNhInhv2r/6I0Flkn7CqL8+nIcw==}
 
-  /openapi-zod-client@1.7.1:
-    resolution: {integrity: sha512-ikcQk9pnSMHMJlvwwDlv7rXVoYpUnIJm90xH0bByUz0Z5PN/c7gMHpahdqogdJeHj5tqppqe7zeC+zaIgfZ9pw==}
+  /openapi-zod-client@1.15.1:
+    resolution: {integrity: sha512-2WWy3O28KGHE1+HKY49RUs1XFXCeOIwXY+6NsmoGlBn5N2LrZUfPMN/B6EW60U5Xt2O535TYMT+5SYfRqTvDBQ==}
     hasBin: true
     dependencies:
       '@apidevtools/swagger-parser': 10.1.0(openapi-types@12.1.3)
       '@liuli-util/fs-extra': 0.1.0
-      '@zodios/core': 10.9.2(axios@0.27.2)(zod@3.21.4)
-      axios: 0.27.2
+      '@zodios/core': 10.9.2(axios@1.6.5)(zod@3.21.4)
+      axios: 1.6.5
       cac: 6.7.14
       handlebars: 4.7.7
       openapi-types: 12.1.3
       openapi3-ts: 3.1.0
-      pastable: 2.2.0
+      pastable: 2.2.1
       prettier: 2.8.8
       tanu: 0.1.13
-      ts-pattern: 4.3.0
+      ts-pattern: 5.0.6
       whence: 2.0.0
       zod: 3.21.4
     transitivePeerDependencies:
@@ -6745,8 +6755,8 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
-  /pastable@2.2.0:
-    resolution: {integrity: sha512-VW3BlFr4aqazNaHOdf2Yg/GY8JRiMDnGExFCHXN+dm6yz8b5uZk9WuJk3YwhRPyzFjuZPnoxt8aFe5fX4gAStw==}
+  /pastable@2.2.1:
+    resolution: {integrity: sha512-K4ClMxRKpgN4sXj6VIPPrvor/TMp2yPNCGtfhvV106C73SwefQ3FuegURsH7AQHpqu0WwbvKXRl1HQxF6qax9w==}
     engines: {node: '>=14.x'}
     peerDependencies:
       react: '>=17'
@@ -7812,12 +7822,8 @@ packages:
       yn: 3.1.1
     dev: true
 
-  /ts-pattern@4.3.0:
-    resolution: {integrity: sha512-pefrkcd4lmIVR0LA49Imjf9DYLK8vtWhqBPA3Ya1ir8xCW0O2yjL9dsCVvI7pCodLC5q7smNpEtDR2yVulQxOg==}
-
-  /ts-pattern@5.0.1:
-    resolution: {integrity: sha512-ZyNm28Lsg34Co5DS3e9DVyjlX2Y+2exkI4jqTKyU+9/OL6Y2fKOOuL8i+7no71o74C6mVS+UFoP3ekM3iCT1HQ==}
-    dev: false
+  /ts-pattern@5.0.6:
+    resolution: {integrity: sha512-Y+jOjihlFriWzcBjncPCf2/am+Hgz7LtsWs77pWg5vQQKLQj07oNrJryo/wK2G0ndNaoVn2ownFMeoeAuReu3Q==}
 
   /ts-toolbelt@9.6.0:
     resolution: {integrity: sha512-nsZd8ZeNUzukXPlJmTBwUAuABDe/9qtVDelJeT/qW0ow3ZS3BsQJtNkan1802aM9Uf68/Y8ljw86Hu0h5IUW3w==}
