@@ -41,20 +41,20 @@ spec:
             - name: KAFKA_CLIENT_ID
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-authorization-consumer
+                  name: interop-be-authorization-updater
                   key: KAFKA_CLIENT_ID
             - name: KAFKA_GROUP_ID
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-authorization-consumer
+                  name: interop-be-authorization-updater
                   key: KAFKA_GROUP_ID
             - name: KAFKA_BROKERS
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-authorization-consumer
+                  name: interop-be-authorization-updater
                   key: KAFKA_BROKERS
             - name: KAFKA_TOPICS
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-authorization-consumer
+                  name: interop-be-authorization-updater
                   key: KAFKA_TOPICS

@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: interop-be-authorization-consumer
+  name: interop-be-authorization-updater
   namespace: dev-refactor
 data:
   KAFKA_CLIENT_ID: "dev-pagopa-interop-authorization-updater"
