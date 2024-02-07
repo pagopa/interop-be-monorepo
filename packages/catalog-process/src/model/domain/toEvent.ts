@@ -17,6 +17,7 @@ import {
   WithMetadata,
   EServiceEvent,
   DescriptorId,
+  EServiceDocumentId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 
@@ -194,7 +195,7 @@ export const toCreateEventEServiceDocumentUpdated = ({
   streamId: string;
   version: number;
   descriptorId: DescriptorId;
-  documentId: string;
+  documentId: EServiceDocumentId;
   updatedDocument: Document;
   serverUrls: string[];
 }): CreateEvent<EServiceEvent> => ({
@@ -246,7 +247,7 @@ export const toCreateEventEServiceDocumentDeleted = (
   streamId: string,
   version: number,
   descriptorId: DescriptorId,
-  documentId: string
+  documentId: EServiceDocumentId
 ): CreateEvent<EServiceEvent> => ({
   streamId,
   version,

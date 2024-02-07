@@ -27,19 +27,6 @@ spec:
             limits:
               cpu: 1.0
               memory: 2Gi
-          # TEMPORARY DISABLED - TO BE RE-ENABLED
-          # livenessProbe:
-          #   httpGet:
-          #     path: /status
-          #     port: http
-          #   initialDelaySeconds: 15
-          #   periodSeconds: 5
-          # readinessProbe:
-          #   httpGet:
-          #     path: /status
-          #     port: http
-          #   initialDelaySeconds: 15
-          #   periodSeconds: 5
           env:
             - name: HOST
               value: "0.0.0.0"
