@@ -249,7 +249,7 @@ importers:
         specifier: ^0.33.0
         version: 0.33.0
 
-  packages/authorization-updater-consumer:
+  packages/authorization-updater:
     dependencies:
       '@protobuf-ts/runtime':
         specifier: ^2.9.1
