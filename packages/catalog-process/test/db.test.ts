@@ -781,7 +781,7 @@ describe("database test", async () => {
           interface: {
             name: "interface name",
             path: "pagopa.it",
-            id: uuidv4(),
+            id: generateId(),
             prettyName: "",
             contentType: "json",
             checksum: uuidv4(),
@@ -1925,7 +1925,7 @@ describe("database test", async () => {
         };
         eService5 = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "eService 005",
           producerId: organizationId2,
           descriptors: [descriptor5],
@@ -1939,7 +1939,7 @@ describe("database test", async () => {
         };
         eService6 = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "eService 006",
           producerId: organizationId2,
           descriptors: [descriptor6],
@@ -1952,14 +1952,14 @@ describe("database test", async () => {
         };
         await addOneTenant(tenant, tenants);
         const agreement1 = getMockAgreement({
-          eServiceId: eService1.id,
+          eserviceId: eService1.id,
           descriptorId: descriptor1.id,
           producerId: eService1.producerId,
           consumerId: tenant.id,
         });
         await addOneAgreement(agreement1, agreements);
         const agreement2 = getMockAgreement({
-          eServiceId: eService3.id,
+          eserviceId: eService3.id,
           descriptorId: descriptor3.id,
           producerId: eService3.producerId,
           consumerId: tenant.id,
@@ -2149,7 +2149,7 @@ describe("database test", async () => {
         const organizationId2 = uuidv4();
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "eService 001",
           producerId: organizationId1,
         };
@@ -2157,7 +2157,7 @@ describe("database test", async () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "eService 002",
           producerId: organizationId1,
         };
@@ -2165,7 +2165,7 @@ describe("database test", async () => {
 
         const eService3: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "eService 001",
           producerId: organizationId2,
         };
@@ -2181,7 +2181,7 @@ describe("database test", async () => {
         const organizationId = uuidv4();
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "eService 001",
           producerId: organizationId,
         };
@@ -2189,7 +2189,7 @@ describe("database test", async () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "eService 002",
           producerId: organizationId,
         };
@@ -2212,7 +2212,7 @@ describe("database test", async () => {
         };
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "eService 001",
           descriptors: [descriptor1],
         };
@@ -2225,7 +2225,7 @@ describe("database test", async () => {
         };
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "eService 002",
           descriptors: [descriptor2],
         };
@@ -2238,7 +2238,7 @@ describe("database test", async () => {
         };
         const eService3: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "eService 003",
           descriptors: [descriptor3],
         };
@@ -2382,7 +2382,7 @@ describe("database test", async () => {
         const tenant = getMockTenant();
         await addOneTenant(tenant, tenants);
         const agreement = getMockAgreement({
-          eServiceId: eService1.id,
+          eserviceId: eService1.id,
           descriptorId: descriptor1.id,
           producerId: eService1.producerId,
           consumerId: tenant.id,
