@@ -291,16 +291,6 @@ export function readModelServiceBuilder(
         ),
       };
     },
-    async getDocumentById(
-      eServiceId: string,
-      descriptorId: DescriptorId,
-      documentId: string
-    ): Promise<Document | undefined> {
-      const eService = await this.getEServiceById(eServiceId);
-      return eService?.data.descriptors
-        .find((d) => d.id === descriptorId)
-        ?.docs.find((d) => d.id === documentId);
-    },
     async listAgreements(
       eservicesIds: string[],
       consumersIds: string[],
