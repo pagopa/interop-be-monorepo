@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-import { beforeAll, afterEach, describe, expect, it, vi } from "vitest";
+import { beforeAll, afterEach, describe, expect, it } from "vitest";
 import { GenericContainer } from "testcontainers";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import {
@@ -20,8 +20,8 @@ import {
   Tenant,
   TenantUpdatedV1,
   descriptorState,
+  generateId,
 } from "pagopa-interop-models";
-import { v4 as uuidv4 } from "uuid";
 import { config } from "../src/utilities/config.js";
 import {
   ReadModelService,
@@ -43,8 +43,10 @@ import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
+  currentDate,
   decodeProtobufPayload,
   getMockAgreement,
+  getMockCertifiedTenantAttribute,
   getMockDescriptor,
   getMockEService,
   getMockTenant,
@@ -119,17 +121,16 @@ describe("Integration tests", () => {
       });
     });
     describe("updateTenantVerifiedAttribute", async () => {
-      const updatedAt = new Date();
-      const mockVerificationAttributeSeed: UpdateVerifiedTenantAttributeSeed = {
-        expirationDate: new Date(
-          new Date().setDate(new Date().getDate() + 1)
-        ).toDateString(),
-      };
       const expirationDate = new Date(
-        mockVerificationAttributeSeed.expirationDate!
+        currentDate.setDate(currentDate.getDate() + 1)
       );
 
-      const updatedTenant: Tenant = {
+      const updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed =
+        {
+          expirationDate: expirationDate.toISOString(),
+        };
+
+      const tenant: Tenant = {
         ...mockTenant,
         attributes: [
           {
@@ -142,99 +143,108 @@ describe("Integration tests", () => {
             ],
           },
         ],
-        updatedAt,
-        name: "A updatedTenant",
+        updatedAt: currentDate,
+        name: "A tenant",
       };
-      const attributeId = updatedTenant.attributes.map((a) => a.id)[0];
+      const attributeId = tenant.attributes.map((a) => a.id)[0];
       const verifierId = mockVerifiedBy.id;
       it("Should update the expirationDate", async () => {
-        vi.useFakeTimers();
-        vi.setSystemTime(updatedAt);
-        await addOneTenant(updatedTenant, postgresDB, tenants);
+        await addOneTenant(tenant, postgresDB, tenants);
         await tenantService.updateTenantVerifiedAttribute({
           verifierId,
-          tenantId: updatedTenant.id,
+          tenantId: tenant.id,
           attributeId,
-          updateVerifiedTenantAttributeSeed: mockVerificationAttributeSeed,
+          updateVerifiedTenantAttributeSeed,
         });
         const writtenEvent = await readLastEventByStreamId(
-          updatedTenant.id,
+          tenant.id,
           postgresDB
         );
-        expect(writtenEvent.stream_id).toBe(updatedTenant.id);
+        expect(writtenEvent.stream_id).toBe(tenant.id);
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("TenantUpdated");
         const writtenPayload = decodeProtobufPayload({
           messageType: TenantUpdatedV1,
           payload: writtenEvent.data,
         });
-        expect(writtenPayload.tenant).toEqual(toTenantV1(updatedTenant));
 
-        vi.useRealTimers();
+        const updatedTenant: Tenant = {
+          ...tenant,
+          updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
+        };
+
+        expect(writtenPayload.tenant).toEqual(toTenantV1(updatedTenant));
       });
       it("Should throw tenantNotFound when tenant doesn't exist", async () => {
         expect(
           tenantService.updateTenantVerifiedAttribute({
             verifierId,
-            tenantId: updatedTenant.id,
+            tenantId: tenant.id,
             attributeId,
-            updateVerifiedTenantAttributeSeed: mockVerificationAttributeSeed,
+            updateVerifiedTenantAttributeSeed,
           })
-        ).rejects.toThrowError(tenantNotFound(updatedTenant.id));
+        ).rejects.toThrowError(tenantNotFound(tenant.id));
       });
 
       it("Should throw expirationDateCannotBeInThePast when expiration date is in the past", async () => {
-        vi.useFakeTimers();
-        vi.setSystemTime(updatedAt);
-        const mockVerificationAttributeSeed: UpdateVerifiedTenantAttributeSeed =
-          {
-            expirationDate: new Date(
-              new Date().setDate(new Date().getDate() - 1)
-            ).toDateString(),
-          };
-        const expirationDate = new Date(
-          mockVerificationAttributeSeed.expirationDate!
+        const expirationDateinPast = new Date(
+          currentDate.setDate(currentDate.getDate() - 1)
         );
-        await addOneTenant(updatedTenant, postgresDB, tenants);
+
+        const updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed =
+          {
+            expirationDate: expirationDateinPast.toISOString(),
+          };
+
+        await addOneTenant(tenant, postgresDB, tenants);
         expect(
           tenantService.updateTenantVerifiedAttribute({
             verifierId,
-            tenantId: updatedTenant.id,
+            tenantId: tenant.id,
             attributeId,
-            updateVerifiedTenantAttributeSeed: mockVerificationAttributeSeed,
-          })
-        ).rejects.toThrowError(expirationDateCannotBeInThePast(expirationDate));
-        vi.useRealTimers();
-      });
-      it("Should throw verifiedAttributeNotFoundInTenant when the attribute is not verified", async () => {
-        await addOneTenant(mockTenant, postgresDB, tenants);
-        expect(
-          tenantService.updateTenantVerifiedAttribute({
-            verifierId: uuidv4(),
-            tenantId: mockTenant.id,
-            attributeId,
-            updateVerifiedTenantAttributeSeed: mockVerificationAttributeSeed,
+            updateVerifiedTenantAttributeSeed,
           })
         ).rejects.toThrowError(
-          verifiedAttributeNotFoundInTenant(mockTenant.id, attributeId)
+          expirationDateCannotBeInThePast(expirationDateinPast)
+        );
+      });
+      it("Should throw verifiedAttributeNotFoundInTenant when the attribute is not verified", async () => {
+        const updatedCertifiedTenant: Tenant = {
+          ...mockTenant,
+          attributes: [{ ...getMockCertifiedTenantAttribute() }],
+          updatedAt: currentDate,
+          name: "A updatedCertifiedTenant",
+        };
+        const attributeId = updatedCertifiedTenant.attributes.map(
+          (a) => a.id
+        )[0];
+        await addOneTenant(updatedCertifiedTenant, postgresDB, tenants);
+        expect(
+          tenantService.updateTenantVerifiedAttribute({
+            verifierId: generateId(),
+            tenantId: updatedCertifiedTenant.id,
+            attributeId,
+            updateVerifiedTenantAttributeSeed,
+          })
+        ).rejects.toThrowError(
+          verifiedAttributeNotFoundInTenant(
+            updatedCertifiedTenant.id,
+            attributeId
+          )
         );
       });
       it("Should throw organizationNotFoundInVerifiers when the organization is not verified", async () => {
-        const verifierId = uuidv4();
-        await addOneTenant(updatedTenant, postgresDB, tenants);
+        await addOneTenant(tenant, postgresDB, tenants);
+        const verifierId = generateId();
         expect(
           tenantService.updateTenantVerifiedAttribute({
             verifierId,
-            tenantId: updatedTenant.id,
+            tenantId: tenant.id,
             attributeId,
-            updateVerifiedTenantAttributeSeed: mockVerificationAttributeSeed,
+            updateVerifiedTenantAttributeSeed,
           })
         ).rejects.toThrowError(
-          organizationNotFoundInVerifiers(
-            verifierId,
-            updatedTenant.id,
-            attributeId
-          )
+          organizationNotFoundInVerifiers(verifierId, tenant.id, attributeId)
         );
       });
     });
@@ -242,17 +252,17 @@ describe("Integration tests", () => {
   describe("readModelService", () => {
     const tenant1: Tenant = {
       ...mockTenant,
-      id: uuidv4(),
+      id: generateId(),
       name: "A tenant1",
     };
     const tenant2: Tenant = {
       ...mockTenant,
-      id: uuidv4(),
+      id: generateId(),
       name: "A tenant2",
     };
     const tenant3: Tenant = {
       ...mockTenant,
-      id: uuidv4(),
+      id: generateId(),
       name: "A tenant3",
     };
     describe("getConsumers", () => {
@@ -266,14 +276,14 @@ describe("Integration tests", () => {
 
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor1],
         };
         await addOneEService(eService1, eservices);
 
         const agreementEservice1 = getMockAgreement({
-          eServiceId: eService1.id,
+          eserviceId: eService1.id,
           descriptorId: descriptor1.id,
           producerId: eService1.producerId,
           consumerId: tenant1.id,
@@ -289,7 +299,7 @@ describe("Integration tests", () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "B",
           descriptors: [descriptor2],
           producerId: eService1.producerId,
@@ -297,7 +307,7 @@ describe("Integration tests", () => {
         await addOneEService(eService2, eservices);
 
         const agreementEservice2 = getMockAgreement({
-          eServiceId: eService2.id,
+          eserviceId: eService2.id,
           descriptorId: descriptor2.id,
           producerId: eService2.producerId,
           consumerId: tenant2.id,
@@ -313,7 +323,7 @@ describe("Integration tests", () => {
 
         const eService3: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "C",
           descriptors: [descriptor3],
           producerId: eService1.producerId,
@@ -321,7 +331,7 @@ describe("Integration tests", () => {
         await addOneEService(eService3, eservices);
 
         const agreementEservice3 = getMockAgreement({
-          eServiceId: eService3.id,
+          eserviceId: eService3.id,
           descriptorId: descriptor3.id,
           producerId: eService3.producerId,
           consumerId: tenant3.id,
@@ -347,14 +357,14 @@ describe("Integration tests", () => {
 
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor1],
         };
         await addOneEService(eService1, eservices);
 
         const agreementEservice1 = getMockAgreement({
-          eServiceId: eService1.id,
+          eserviceId: eService1.id,
           descriptorId: descriptor1.id,
           producerId: eService1.producerId,
           consumerId: tenant1.id,
@@ -370,7 +380,7 @@ describe("Integration tests", () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "B",
           descriptors: [descriptor2],
           producerId: eService1.producerId,
@@ -378,7 +388,7 @@ describe("Integration tests", () => {
         await addOneEService(eService2, eservices);
 
         const agreementEservice2 = getMockAgreement({
-          eServiceId: eService2.id,
+          eserviceId: eService2.id,
           descriptorId: descriptor2.id,
           producerId: eService2.producerId,
           consumerId: tenant2.id,
@@ -394,7 +404,7 @@ describe("Integration tests", () => {
 
         const eService3: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "C",
           descriptors: [descriptor3],
           producerId: eService1.producerId,
@@ -402,7 +412,7 @@ describe("Integration tests", () => {
         await addOneEService(eService3, eservices);
 
         const agreementEservice3 = getMockAgreement({
-          eServiceId: eService3.id,
+          eserviceId: eService3.id,
           descriptorId: descriptor3.id,
           producerId: eService3.producerId,
           consumerId: tenant3.id,
@@ -428,7 +438,7 @@ describe("Integration tests", () => {
 
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor1],
         };
@@ -443,7 +453,7 @@ describe("Integration tests", () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "B",
           descriptors: [descriptor2],
           producerId: eService1.producerId,
@@ -459,7 +469,7 @@ describe("Integration tests", () => {
 
         const eService3: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "C",
           descriptors: [descriptor3],
           producerId: eService1.producerId,
@@ -485,7 +495,7 @@ describe("Integration tests", () => {
 
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor1],
         };
@@ -500,7 +510,7 @@ describe("Integration tests", () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "B",
           descriptors: [descriptor2],
           producerId: eService1.producerId,
@@ -516,7 +526,7 @@ describe("Integration tests", () => {
 
         const eService3: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "C",
           descriptors: [descriptor3],
           producerId: eService1.producerId,
@@ -542,14 +552,14 @@ describe("Integration tests", () => {
 
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor1],
         };
         await addOneEService(eService1, eservices);
 
         const agreementEservice1 = getMockAgreement({
-          eServiceId: eService1.id,
+          eserviceId: eService1.id,
           descriptorId: descriptor1.id,
           producerId: eService1.producerId,
           consumerId: tenant1.id,
@@ -565,7 +575,7 @@ describe("Integration tests", () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "B",
           descriptors: [descriptor2],
           producerId: eService1.producerId,
@@ -573,7 +583,7 @@ describe("Integration tests", () => {
         await addOneEService(eService2, eservices);
 
         const agreementEservice2 = getMockAgreement({
-          eServiceId: eService2.id,
+          eserviceId: eService2.id,
           descriptorId: descriptor2.id,
           producerId: eService2.producerId,
           consumerId: tenant2.id,
@@ -589,7 +599,7 @@ describe("Integration tests", () => {
 
         const eService3: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "C",
           descriptors: [descriptor3],
           producerId: eService1.producerId,
@@ -597,7 +607,7 @@ describe("Integration tests", () => {
         await addOneEService(eService3, eservices);
 
         const agreementEservice3 = getMockAgreement({
-          eServiceId: eService3.id,
+          eserviceId: eService3.id,
           descriptorId: descriptor3.id,
           producerId: eService3.producerId,
           consumerId: tenant3.id,
@@ -622,14 +632,14 @@ describe("Integration tests", () => {
 
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor1],
         };
         await addOneEService(eService1, eservices);
 
         const agreementEservice1 = getMockAgreement({
-          eServiceId: eService1.id,
+          eserviceId: eService1.id,
           descriptorId: descriptor1.id,
           producerId: eService1.producerId,
           consumerId: tenant1.id,
@@ -645,7 +655,7 @@ describe("Integration tests", () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "B",
           descriptors: [descriptor2],
           producerId: eService1.producerId,
@@ -653,7 +663,7 @@ describe("Integration tests", () => {
         await addOneEService(eService2, eservices);
 
         const agreementEservice2 = getMockAgreement({
-          eServiceId: eService2.id,
+          eserviceId: eService2.id,
           descriptorId: descriptor2.id,
           producerId: eService2.producerId,
           consumerId: tenant2.id,
@@ -669,7 +679,7 @@ describe("Integration tests", () => {
 
         const eService3: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "C",
           descriptors: [descriptor3],
           producerId: eService1.producerId,
@@ -677,7 +687,7 @@ describe("Integration tests", () => {
         await addOneEService(eService3, eservices);
 
         const agreementEservice3 = getMockAgreement({
-          eServiceId: eService3.id,
+          eserviceId: eService3.id,
           descriptorId: descriptor3.id,
           producerId: eService3.producerId,
           consumerId: tenant3.id,
@@ -704,7 +714,7 @@ describe("Integration tests", () => {
 
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor1],
           producerId: tenant1.id,
@@ -720,7 +730,7 @@ describe("Integration tests", () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor2],
           producerId: tenant2.id,
@@ -736,7 +746,7 @@ describe("Integration tests", () => {
 
         const eService3: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor3],
           producerId: tenant3.id,
@@ -761,7 +771,7 @@ describe("Integration tests", () => {
 
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor1],
           producerId: tenant1.id,
@@ -777,7 +787,7 @@ describe("Integration tests", () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor2],
           producerId: tenant2.id,
@@ -802,7 +812,7 @@ describe("Integration tests", () => {
 
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor1],
           producerId: tenant1.id,
@@ -818,7 +828,7 @@ describe("Integration tests", () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor2],
           producerId: tenant2.id,
@@ -841,7 +851,7 @@ describe("Integration tests", () => {
 
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor1],
           producerId: tenant1.id,
@@ -855,7 +865,7 @@ describe("Integration tests", () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor2],
           producerId: tenant2.id,
@@ -880,7 +890,7 @@ describe("Integration tests", () => {
 
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor1],
           producerId: tenant1.id,
@@ -896,7 +906,7 @@ describe("Integration tests", () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor2],
           producerId: tenant2.id,
@@ -912,7 +922,7 @@ describe("Integration tests", () => {
 
         const eService3: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor3],
           producerId: tenant3.id,
@@ -935,7 +945,7 @@ describe("Integration tests", () => {
 
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor1],
           producerId: tenant1.id,
@@ -951,7 +961,7 @@ describe("Integration tests", () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor2],
           producerId: tenant2.id,
@@ -967,7 +977,7 @@ describe("Integration tests", () => {
 
         const eService3: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor3],
           producerId: tenant3.id,

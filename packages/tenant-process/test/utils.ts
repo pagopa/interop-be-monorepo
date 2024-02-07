@@ -7,20 +7,25 @@ import {
 } from "pagopa-interop-commons";
 import {
   Agreement,
+  CertifiedTenantAttribute,
   Descriptor,
+  DescriptorId,
   EService,
+  EServiceId,
   Tenant,
   TenantEvent,
+  TenantId,
   TenantRevoker,
   TenantVerifier,
   VerifiedTenantAttribute,
   agreementState,
   descriptorState,
+  generateId,
   technology,
   tenantEventToBinaryData,
 } from "pagopa-interop-models";
 import { IDatabase } from "pg-promise";
-import { v4 as uuidv4 } from "uuid";
+import { BRAND } from "zod";
 import { toTenantV1 } from "../src/model/domain/toEvent.js";
 
 export const writeTenantInReadmodel = async (
@@ -62,10 +67,10 @@ export const writeTenantInEventstore = async (
 
 export const getMockTenant = (): Tenant => ({
   name: "A tenant",
-  id: uuidv4(),
+  id: generateId(),
   createdAt: new Date(),
   attributes: [],
-  selfcareId: uuidv4(),
+  selfcareId: generateId(),
   externalId: {
     value: "123456",
     origin: "IPA",
@@ -74,37 +79,40 @@ export const getMockTenant = (): Tenant => ({
   mails: [],
 });
 
-const verificationDate = new Date();
-verificationDate.setDate(new Date().getDate() - 3);
+export const currentDate = new Date();
 
 export const getMockVerifiedBy = (): TenantVerifier => ({
-  id: uuidv4(),
-  verificationDate,
-  expirationDate: new Date(),
-  extensionDate: undefined,
+  id: generateId(),
+  verificationDate: currentDate,
 });
 
-const revocationDate = new Date();
-revocationDate.setDate(new Date().getDate() + 3);
-
 export const getMockRevokedBy = (): TenantRevoker => ({
-  id: uuidv4(),
-  verificationDate,
-  revocationDate,
-  expirationDate: new Date(),
-  extensionDate: undefined,
+  id: generateId(),
+  verificationDate: currentDate,
+  revocationDate: currentDate,
 });
 
 export const getMockVerifiedTenantAttribute = (): VerifiedTenantAttribute => ({
-  id: uuidv4(),
+  id: generateId(),
   type: "verified",
   assignmentTimestamp: new Date(),
   verifiedBy: [getMockVerifiedBy()],
   revokedBy: [getMockRevokedBy()],
 });
-export const getMockAuthData = (organizationId?: string): AuthData => ({
-  organizationId: organizationId || uuidv4(),
-  userId: uuidv4(),
+
+export const getMockCertifiedTenantAttribute =
+  (): CertifiedTenantAttribute => ({
+    assignmentTimestamp: currentDate,
+    id: generateId(),
+    type: "certified",
+    revocationTimestamp: currentDate,
+  });
+
+export const getMockAuthData = (
+  organizationId?: string & BRAND<"TenantId">
+): AuthData => ({
+  organizationId: organizationId || generateId(),
+  userId: generateId(),
   userRoles: [],
   externalId: {
     value: "123456",
@@ -113,18 +121,18 @@ export const getMockAuthData = (organizationId?: string): AuthData => ({
 });
 
 export const getMockEService = (): EService => ({
-  id: uuidv4(),
+  id: generateId(),
   name: "eService name",
   description: "eService description",
   createdAt: new Date(),
-  producerId: uuidv4(),
+  producerId: generateId(),
   technology: technology.rest,
   descriptors: [],
   attributes: undefined,
 });
 
 export const getMockDescriptor = (): Descriptor => ({
-  id: uuidv4(),
+  id: generateId(),
   version: "0",
   docs: [],
   state: descriptorState.draft,
@@ -143,19 +151,19 @@ export const getMockDescriptor = (): Descriptor => ({
 });
 
 export const getMockAgreement = ({
-  eServiceId,
+  eserviceId,
   descriptorId,
   producerId,
   consumerId,
 }: {
-  eServiceId: string;
-  descriptorId: string;
-  producerId: string;
-  consumerId: string;
+  eserviceId: EServiceId;
+  descriptorId: DescriptorId;
+  producerId: TenantId;
+  consumerId: TenantId;
 }): Agreement => ({
-  id: uuidv4(),
+  id: generateId(),
   createdAt: new Date(),
-  eserviceId: eServiceId,
+  eserviceId,
   descriptorId,
   producerId,
   consumerId,
