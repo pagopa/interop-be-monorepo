@@ -13,6 +13,8 @@ import {
   ListResult,
   genericError,
   Tenant,
+  AttributeId,
+  TenantId,
 } from "pagopa-interop-models";
 async function getAttribute(
   attributes: AttributeCollection,
@@ -124,7 +126,7 @@ export function readModelServiceBuilder(
       offset,
       limit,
     }: {
-      ids: string[];
+      ids: AttributeId[];
       offset: number;
       limit: number;
     }): Promise<ListResult<Attribute>> {
@@ -208,7 +210,7 @@ export function readModelServiceBuilder(
     },
 
     async getAttributeById(
-      id: string
+      id: AttributeId
     ): Promise<WithMetadata<Attribute> | undefined> {
       return getAttribute(attributes, { "data.id": id });
     },
@@ -253,7 +255,7 @@ export function readModelServiceBuilder(
       });
     },
     async getTenantById(
-      tenantId: string
+      tenantId: TenantId
     ): Promise<WithMetadata<Tenant> | undefined> {
       return getTenant(tenants, { "data.id": tenantId });
     },

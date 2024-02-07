@@ -8,6 +8,7 @@ import {
   ReadModelRepository,
   initDB,
 } from "pagopa-interop-commons";
+import { unsafeBrandId } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import {
@@ -169,7 +170,7 @@ const attributeRouter = (
       async (req, res) => {
         try {
           const attribute = await readModelService.getAttributeById(
-            req.params.attributeId
+            unsafeBrandId(req.params.attributeId)
           );
 
           if (attribute) {
@@ -204,7 +205,7 @@ const attributeRouter = (
 
         try {
           const attributes = await readModelService.getAttributesByIds({
-            ids: req.body,
+            ids: req.body.map((a) => unsafeBrandId(a)),
             offset,
             limit,
           });

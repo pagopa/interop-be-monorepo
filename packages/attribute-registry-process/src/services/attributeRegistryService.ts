@@ -11,6 +11,9 @@ import {
   attributeEventToBinaryData,
   attributeKind,
   generateId,
+  TenantId,
+  unsafeBrandId,
+  AttributeId,
 } from "pagopa-interop-models";
 import {
   ApiCertifiedAttributeSeed,
@@ -38,39 +41,43 @@ export function attributeRegistryServiceBuilder(
     async createDeclaredAttribute(
       apiDeclaredAttributeSeed: ApiDeclaredAttributeSeed,
       authData: AuthData
-    ): Promise<string> {
+    ): Promise<AttributeId> {
       if (authData.externalId.origin !== "IPA") {
         throw originNotCompliant("IPA");
       }
 
-      return repository.createEvent(
-        createDeclaredAttributeLogic({
-          attribute: await readModelService.getAttributeByName(
-            apiDeclaredAttributeSeed.name
-          ),
-          apiDeclaredAttributeSeed,
-        })
+      return unsafeBrandId<AttributeId>(
+        await repository.createEvent(
+          createDeclaredAttributeLogic({
+            attribute: await readModelService.getAttributeByName(
+              apiDeclaredAttributeSeed.name
+            ),
+            apiDeclaredAttributeSeed,
+          })
+        )
       );
     },
 
     async createVerifiedAttribute(
       apiVerifiedAttributeSeed: ApiVerifiedAttributeSeed,
       authData: AuthData
-    ): Promise<string> {
+    ): Promise<AttributeId> {
       if (authData.externalId.origin !== "IPA") {
         throw originNotCompliant("IPA");
       }
 
-      return repository.createEvent(
-        createVerifiedAttributeLogic({
-          attribute: await readModelService.getAttributeByName(
-            apiVerifiedAttributeSeed.name
-          ),
-          apiVerifiedAttributeSeed,
-        })
+      return unsafeBrandId<AttributeId>(
+        await repository.createEvent(
+          createVerifiedAttributeLogic({
+            attribute: await readModelService.getAttributeByName(
+              apiVerifiedAttributeSeed.name
+            ),
+            apiVerifiedAttributeSeed,
+          })
+        )
       );
     },
-    async getCertifierId(tenantId: string): Promise<string> {
+    async getCertifierId(tenantId: TenantId): Promise<string> {
       const tenant = await readModelService.getTenantById(tenantId);
       if (!tenant) {
         throw tenantNotFound(tenantId);
@@ -88,7 +95,7 @@ export function attributeRegistryServiceBuilder(
     async createCertifiedAttribute(
       apiCertifiedAttributeSeed: ApiCertifiedAttributeSeed,
       authData: AuthData
-    ): Promise<string> {
+    ): Promise<AttributeId> {
       const certifierPromise = this.getCertifierId(authData.organizationId);
       const attributePromise = readModelService.getAttributeByCodeAndName(
         apiCertifiedAttributeSeed.code,
@@ -100,25 +107,29 @@ export function attributeRegistryServiceBuilder(
         attributePromise,
       ]);
 
-      return repository.createEvent(
-        createCertifiedAttributeLogic({
-          attribute,
-          apiCertifiedAttributeSeed,
-          certifier,
-        })
+      return unsafeBrandId<AttributeId>(
+        await repository.createEvent(
+          createCertifiedAttributeLogic({
+            attribute,
+            apiCertifiedAttributeSeed,
+            certifier,
+          })
+        )
       );
     },
     async createInternalCertifiedAttribute(
       apiInternalCertifiedAttributeSeed: ApiInternalCertifiedAttributeSeed
-    ): Promise<string> {
-      return repository.createEvent(
-        createInternalCertifiedAttributeLogic({
-          attribute: await readModelService.getAttributeByCodeAndName(
-            apiInternalCertifiedAttributeSeed.code,
-            apiInternalCertifiedAttributeSeed.name
-          ),
-          apiInternalCertifiedAttributeSeed,
-        })
+    ): Promise<AttributeId> {
+      return unsafeBrandId<AttributeId>(
+        await repository.createEvent(
+          createInternalCertifiedAttributeLogic({
+            attribute: await readModelService.getAttributeByCodeAndName(
+              apiInternalCertifiedAttributeSeed.code,
+              apiInternalCertifiedAttributeSeed.name
+            ),
+            apiInternalCertifiedAttributeSeed,
+          })
+        )
       );
     },
   };
