@@ -211,22 +211,21 @@ export const toCreateEventEServiceUpdated = (
   },
 });
 
-export const toCreateEventEServiceDocumentUpdated = ({
-  streamId,
-  version,
-  descriptorId,
-  documentId,
-  eservice,
-  isInterface,
-}: {
-  streamId: string;
-  version: number;
-  descriptorId: DescriptorId;
-  documentId: EServiceDocumentId;
-  eservice: EService;
-  serverUrls: string[];
-  isInterface: boolean;
-}): CreateEvent<EServiceEvent> => ({
+export const toCreateEventEServiceDocumentUpdated = (
+  streamId: string,
+  version: number,
+  {
+    descriptorId,
+    documentId,
+    eservice,
+    isInterface,
+  }: {
+    descriptorId: DescriptorId;
+    documentId: EServiceDocumentId;
+    eservice: EService;
+    isInterface: boolean;
+  }
+): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
   event: {
@@ -349,21 +348,21 @@ export const toCreateEventEServiceDeleted = (
   },
 });
 
-export const toCreateEventEServiceDocumentDeleted = ({
-  streamId,
-  version,
-  descriptorId,
-  documentId,
-  eservice,
-  isInterface,
-}: {
-  streamId: string;
-  version: number;
-  descriptorId: DescriptorId;
-  documentId: EServiceDocumentId;
-  eservice: EService;
-  isInterface: boolean;
-}): CreateEvent<EServiceEvent> => ({
+export const toCreateEventEServiceDocumentDeleted = (
+  streamId: string,
+  version: number,
+  {
+    descriptorId,
+    documentId,
+    eservice,
+    isInterface,
+  }: {
+    descriptorId: DescriptorId;
+    documentId: EServiceDocumentId;
+    eservice: EService;
+    isInterface: boolean;
+  }
+): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
   event: {
@@ -380,16 +379,18 @@ export const toCreateEventEServiceDocumentDeleted = ({
 });
 
 export const toCreateEventEServiceDescriptorDeleted = (
-  eservice: WithMetadata<EService>,
+  streamId: string,
+  version: number,
+  eservice: EService,
   descriptorId: DescriptorId
 ): CreateEvent<EServiceEvent> => ({
-  streamId: eservice.data.id,
-  version: eservice.metadata.version,
+  streamId,
+  version,
   event: {
     type: "EServiceDescriptorDeleted",
     event_version: 2,
     data: {
-      eservice: toEServiceV2(eservice.data),
+      eservice: toEServiceV2(eservice),
       descriptorId,
     },
   },
