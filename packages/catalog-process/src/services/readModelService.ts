@@ -351,37 +351,25 @@ export function readModelServiceBuilder(
       return result.data;
     },
 
-    async getAttributeById(
-      attributeId: string
-    ): Promise<WithMetadata<Attribute> | undefined> {
-      const data = await attributes.findOne(
-        { "data.id": attributeId },
-        {
-          projection: { data: true, metadata: true },
-        }
-      );
-      if (!data) {
-        return undefined;
-      } else {
-        const result = z
-          .object({
-            metadata: z.object({ version: z.number() }),
-            data: Attribute,
-          })
-          .safeParse(data);
-        if (!result.success) {
-          logger.error(
-            `Unable to parse attribute item: result ${JSON.stringify(
-              result
-            )} - data ${JSON.stringify(data)} `
-          );
-          throw genericError("Unable to parse attribute item");
-        }
-        return {
-          data: result.data.data,
-          metadata: { version: result.data.metadata.version },
-        };
+    async getAttributesByIds(attributesIds: string[]): Promise<Attribute[]> {
+      const data = await attributes
+        .find({
+          "data.id": { $in: attributesIds },
+        })
+        .toArray();
+
+      const result = z.array(Attribute).safeParse(data.map((d) => d.data));
+      if (!result.success) {
+        logger.error(
+          `Unable to parse attributes items: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+
+        throw genericError("Unable to parse eservices items");
       }
+
+      return result.data;
     },
   };
 }

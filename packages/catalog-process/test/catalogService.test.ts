@@ -578,7 +578,7 @@ describe("CatalogService", () => {
         },
         authData,
         eService: addMetadata({ ...mockEservice, descriptors }),
-        getAttributeById: () => Promise.resolve(undefined),
+        getAttributesByIds: () => Promise.resolve([]),
       });
       expect(event.event.type).toBe("EServiceDescriptorAdded");
       expect(event.event.data).toMatchObject({
@@ -628,7 +628,7 @@ describe("CatalogService", () => {
             ...mockEservice,
             descriptors: [{ ...mockDescriptor, state: "Draft" }],
           }),
-          getAttributeById: () => Promise.resolve(undefined),
+          getAttributesByIds: () => Promise.resolve([]),
         })
       ).rejects.toThrowError(draftDescriptorAlreadyExists(mockEservice.id));
     });
@@ -646,7 +646,7 @@ describe("CatalogService", () => {
             ...mockEservice,
             producerId: "some-org-id",
           }),
-          getAttributeById: () => Promise.resolve(undefined),
+          getAttributesByIds: () => Promise.resolve([]),
         })
       ).rejects.toThrowError(operationForbidden);
     });

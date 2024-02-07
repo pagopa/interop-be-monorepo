@@ -321,7 +321,7 @@ export function catalogServiceBuilder(
           eserviceDescriptorSeed,
           authData,
           eService,
-          getAttributeById: readModelService.getAttributeById,
+          getAttributesByIds: readModelService.getAttributesByIds,
         })
       );
     },
@@ -704,15 +704,13 @@ export async function createDescriptorLogic({
   eserviceDescriptorSeed,
   authData,
   eService,
-  getAttributeById,
+  getAttributesByIds,
 }: {
   eServiceId: string;
   eserviceDescriptorSeed: EServiceDescriptorSeed;
   authData: AuthData;
   eService: WithMetadata<EService> | undefined;
-  getAttributeById: (
-    id: string
-  ) => Promise<WithMetadata<Attribute> | undefined>;
+  getAttributesByIds: (attributesIds: string[]) => Promise<Attribute[]>;
 }): Promise<CreateEvent<EServiceEvent>> {
   assertEServiceExist(eServiceId, eService);
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
@@ -730,10 +728,14 @@ export async function createDescriptorLogic({
     ...verifiedAttributes.flat(),
   ];
 
-  for (const attributeSeed of attributesSeeds) {
-    const attribute = await getAttributeById(attributeSeed.id);
-    if (attribute === undefined) {
-      throw attributeNotFound(attributeSeed.id);
+  if (attributesSeeds.length > 0) {
+    const attributesSeedsIds = attributesSeeds.map((attr) => attr.id);
+    const attributes = await getAttributesByIds(attributesSeedsIds);
+    const attributesIds = attributes.map((attr) => attr.id);
+    for (const attributeSeedId of attributesSeedsIds) {
+      if (!attributesIds.includes(unsafeBrandId(attributeSeedId))) {
+        throw attributeNotFound(attributeSeedId);
+      }
     }
   }
 
