@@ -18,7 +18,6 @@ import {
   EServiceEvent,
   DescriptorId,
   EServiceDocumentId,
-  EServiceEventV2,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 
@@ -97,10 +96,10 @@ export const toEServiceV2 = (eService: EService): EServiceV2 => ({
   attributes:
     eService.attributes != null
       ? {
-        certified: eService.attributes.certified.map(toEServiceAttributeV2),
-        declared: eService.attributes.declared.map(toEServiceAttributeV2),
-        verified: eService.attributes.verified.map(toEServiceAttributeV2),
-      }
+          certified: eService.attributes.certified.map(toEServiceAttributeV2),
+          declared: eService.attributes.declared.map(toEServiceAttributeV2),
+          verified: eService.attributes.verified.map(toEServiceAttributeV2),
+        }
       : undefined,
   descriptors: eService.descriptors.map(toDescriptorV2),
   createdAt: BigInt(eService.createdAt.getTime()),
@@ -200,22 +199,21 @@ export const toCreateEventEServiceUpdated = (
   },
 });
 
-export const toCreateEventEServiceDocumentUpdated = ({
-  streamId,
-  version,
-  descriptorId,
-  documentId,
-  eservice,
-  isInterface,
-}: {
-  streamId: string;
-  version: number;
-  descriptorId: DescriptorId;
-  documentId: EServiceDocumentId;
-  eservice: EService;
-  serverUrls: string[];
-  isInterface: boolean;
-}): CreateEvent<EServiceEvent> => ({
+export const toCreateEventEServiceDocumentUpdated = (
+  streamId: string,
+  version: number,
+  {
+    descriptorId,
+    documentId,
+    eservice,
+    isInterface,
+  }: {
+    descriptorId: DescriptorId;
+    documentId: EServiceDocumentId;
+    eservice: EService;
+    isInterface: boolean;
+  }
+): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
   event: {
@@ -338,21 +336,21 @@ export const toCreateEventEServiceDeleted = (
   },
 });
 
-export const toCreateEventEServiceDocumentDeleted = ({
-  streamId,
-  version,
-  descriptorId,
-  documentId,
-  eservice,
-  isInterface,
-}: {
-  streamId: string;
-  version: number;
-  descriptorId: DescriptorId;
-  documentId: EServiceDocumentId;
-  eservice: EService;
-  isInterface: boolean;
-}): CreateEvent<EServiceEvent> => ({
+export const toCreateEventEServiceDocumentDeleted = (
+  streamId: string,
+  version: number,
+  {
+    descriptorId,
+    documentId,
+    eservice,
+    isInterface,
+  }: {
+    descriptorId: DescriptorId;
+    documentId: EServiceDocumentId;
+    eservice: EService;
+    isInterface: boolean;
+  }
+): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
   event: {
@@ -369,16 +367,18 @@ export const toCreateEventEServiceDocumentDeleted = ({
 });
 
 export const toCreateEventEServiceDescriptorDeleted = (
-  eservice: WithMetadata<EService>,
+  streamId: string,
+  version: number,
+  eservice: EService,
   descriptorId: DescriptorId
 ): CreateEvent<EServiceEvent> => ({
-  streamId: eservice.data.id,
-  version: eservice.metadata.version,
+  streamId,
+  version,
   event: {
     type: "EServiceDescriptorDeleted",
     eventVersion: 2,
     data: {
-      eservice: toEServiceV2(eservice.data),
+      eservice: toEServiceV2(eservice),
       descriptorId,
     },
   },
