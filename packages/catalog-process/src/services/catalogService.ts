@@ -466,7 +466,7 @@ export function catalogServiceBuilder(
     },
 
     async getEServiceById(
-      eServiceId: string,
+      eServiceId: EServiceId,
       authData: AuthData
     ): Promise<EService> {
       const eServiceAndMetadata = await readModelService.getEServiceById(

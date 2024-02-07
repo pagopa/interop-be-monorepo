@@ -147,7 +147,7 @@ const eservicesRouter = (
       async (req, res) => {
         try {
           const eService = await catalogService.getEServiceById(
-            req.params.eServiceId,
+            unsafeBrandId(req.params.eServiceId),
             req.ctx.authData
           );
           return res.status(200).json(eServiceToApiEService(eService)).end();
