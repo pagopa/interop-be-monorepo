@@ -65,9 +65,7 @@ jobs:
             suffix=
           tags: |
             type=raw,value=2.x-latest
-            type=ref,event=branch
             type=ref,event=tag
-            type=sha,format=long,prefix=commit-
 
       - name: Build and push Docker image
         id: build_push
