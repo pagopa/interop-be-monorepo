@@ -3,8 +3,8 @@ import {
   AuthData,
   CreateEvent,
   DB,
+  FileManager,
   eventRepository,
-  initFileManager,
   logger,
 } from "pagopa-interop-commons";
 import {
@@ -85,15 +85,14 @@ import {
 import { activateAgreementLogic } from "./agreementActivationProcessor.js";
 import { createAgreementLogic } from "./agreementCreationProcessor.js";
 
-const fileManager = initFileManager(config);
-
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function agreementServiceBuilder(
   dbInstance: DB,
   agreementQuery: AgreementQuery,
   tenantQuery: TenantQuery,
   eserviceQuery: EserviceQuery,
-  attributeQuery: AttributeQuery
+  attributeQuery: AttributeQuery,
+  fileManager: FileManager
 ) {
   const repository = eventRepository(dbInstance, agreementEventToBinaryData);
   return {
@@ -179,7 +178,7 @@ export function agreementServiceBuilder(
         await deleteAgreementLogic({
           agreementId,
           authData,
-          deleteFile: fileManager.deleteFile,
+          deleteFile: fileManager.delete,
           agreement,
         })
       );
@@ -192,7 +191,7 @@ export function agreementServiceBuilder(
       const updatesEvents = await submitAgreementLogic(
         agreementId,
         payload,
-        contractBuilder(attributeQuery),
+        contractBuilder(attributeQuery, fileManager.storeBytes),
         eserviceQuery,
         agreementQuery,
         tenantQuery
@@ -331,7 +330,7 @@ export function agreementServiceBuilder(
         documentId,
         agreementQuery,
         authData,
-        fileManager.deleteFile
+        fileManager.delete
       );
 
       return await repository.createEvent(removeDocumentEvent);
@@ -365,7 +364,8 @@ export function agreementServiceBuilder(
         eserviceQuery,
         tenantQuery,
         attributeQuery,
-        authData
+        authData,
+        fileManager.storeBytes
       );
 
       for (const event of updatesEvents) {
@@ -395,7 +395,7 @@ async function createAndCopyDocumentsForClonedAgreement(
   clonedAgreement: Agreement,
   startingVersion: number,
   fileCopy: (
-    container: string,
+    bucket: string,
     sourcePath: string,
     destinationPath: string,
     destinationFileName: string,
@@ -408,7 +408,7 @@ async function createAndCopyDocumentsForClonedAgreement(
       return {
         newId,
         newPath: await fileCopy(
-          config.storageContainer,
+          config.s3Bucket,
           `${config.consumerDocumentsPath}/${newAgreementId}`,
           d.path,
           newId,
@@ -441,7 +441,7 @@ export async function deleteAgreementLogic({
 }: {
   agreementId: AgreementId;
   authData: AuthData;
-  deleteFile: (container: string, path: string) => Promise<void>;
+  deleteFile: (s3Bucket: string, path: string) => Promise<void>;
   agreement: WithMetadata<Agreement> | undefined;
 }): Promise<CreateEvent<AgreementEvent>> {
   assertAgreementExist(agreementId, agreement);
@@ -454,7 +454,7 @@ export async function deleteAgreementLogic({
   );
 
   for (const d of agreement.data.consumerDocuments) {
-    await deleteFile(config.storageContainer, d.path);
+    await deleteFile(config.s3Bucket, d.path);
   }
 
   return toCreateEventAgreementDeleted(agreementId, agreement.metadata.version);
@@ -506,7 +506,7 @@ export async function upgradeAgreementLogic({
   eserviceQuery: EserviceQuery;
   tenantQuery: TenantQuery;
   fileCopy: (
-    container: string,
+    s3Bucket: string,
     sourcePath: string,
     destinationPath: string,
     destinationFileName: string,
@@ -667,7 +667,7 @@ export async function cloneAgreementLogic({
   tenantQuery: TenantQuery;
   eserviceQuery: EserviceQuery;
   fileCopy: (
-    container: string,
+    s3Bucket: string,
     sourcePath: string,
     destinationPath: string,
     destinationFileName: string,

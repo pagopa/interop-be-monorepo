@@ -6,9 +6,11 @@ import { fail } from "assert";
 import {
   AgreementCollection,
   EServiceCollection,
+  FileManager,
   ReadModelRepository,
   TenantCollection,
   initDB,
+  initFileManager,
   logger,
 } from "pagopa-interop-commons";
 import {
@@ -88,6 +90,7 @@ describe("AgreementService Integration Test", async () => {
   let postgresDB: IDatabase<unknown>;
   let postgreSqlContainer: StartedTestContainer;
   let mongodbContainer: StartedTestContainer;
+  let fileManager: FileManager;
 
   /**
    * Executes the generic agreement expectation for agreement creation process,
@@ -192,12 +195,15 @@ describe("AgreementService Integration Test", async () => {
       logger.error("postgresDB is undefined!!");
     }
 
+    // TODO: Setup Minio test container when testing functionalities that require file storage
+    fileManager = initFileManager(config);
     agreementService = agreementServiceBuilder(
       postgresDB,
       agreementQuery,
       tenantQuery,
       eserviceQuery,
-      attributeQuery
+      attributeQuery,
+      fileManager
     );
   });
 

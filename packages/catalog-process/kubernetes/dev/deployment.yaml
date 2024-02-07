@@ -50,11 +50,6 @@ spec:
               value: "0.0.0.0"
             - name: LOG_LEVEL
               value: info
-            - name: MOCK_FILE_MANAGER
-              valueFrom:
-                configMapKeyRef:
-                  name: interop-be-catalog-process-refactor
-                  key: MOCK_FILE_MANAGER
             - name: EVENTSTORE_DB_HOST
               valueFrom:
                 configMapKeyRef:
@@ -125,11 +120,11 @@ spec:
                 secretKeyRef:
                   name: read-model
                   key: REFACTOR_USER_PASSWORD
-            - name: STORAGE_CONTAINER
+            - name: S3_BUCKET
               valueFrom:
                 configMapKeyRef:
                   name: interop-be-catalog-process-refactor
-                  key: STORAGE_CONTAINER
+                  key: S3_BUCKET
             - name: ESERVICE_DOCUMENTS_PATH
               valueFrom:
                 configMapKeyRef:

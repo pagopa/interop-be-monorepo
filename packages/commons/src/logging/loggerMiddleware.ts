@@ -1,6 +1,6 @@
 import * as expressWinston from "express-winston";
 import * as winston from "winston";
-import { commonConfig } from "../config/commonConfig.js";
+import { LoggerConfig } from "../config/commonConfig.js";
 import { getContext } from "../index.js";
 
 export type SessionMetaData = {
@@ -9,7 +9,12 @@ export type SessionMetaData = {
   correlationId: string | undefined;
 };
 
-const config = commonConfig();
+export const parsedLoggerConfig = LoggerConfig.safeParse(process.env);
+const config: LoggerConfig = parsedLoggerConfig.success
+  ? parsedLoggerConfig.data
+  : {
+      logLevel: "info",
+    };
 
 const getLoggerMetadata = (): SessionMetaData => {
   const appContext = getContext();
@@ -65,3 +70,7 @@ export const loggerMiddleware = expressWinston.logger({
   responseWhitelist:
     config.logLevel === "debug" ? ["body", "statusCode", "statusMessage"] : [],
 });
+
+if (!parsedLoggerConfig.success) {
+  logger.info(`No LOG_LEVEL env var: defaulting log level to "${config.logLevel}"`);
+}
