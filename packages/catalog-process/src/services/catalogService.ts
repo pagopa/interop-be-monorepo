@@ -991,7 +991,7 @@ export async function cloneDescriptorLogic({
     producerId,
   }: {
     name: string;
-    producerId: string;
+    producerId: TenantId;
   }) => Promise<WithMetadata<EService> | undefined>;
 }): Promise<{ eService: EService; event: CreateEvent<EServiceEvent> }> {
   assertEServiceExist(eserviceId, eService);
