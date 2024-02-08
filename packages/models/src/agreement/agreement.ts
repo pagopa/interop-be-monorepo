@@ -23,8 +23,6 @@ export const AgreementState = z.enum([
 ]);
 export type AgreementState = z.infer<typeof AgreementState>;
 
-
-
 export const AgreementAttribute = z.object({ id: AttributeId });
 export type AgreementAttribute = z.infer<typeof AgreementAttribute>;
 

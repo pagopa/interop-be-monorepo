@@ -17,11 +17,6 @@ import {
   agreementEventToBinaryData,
   agreementState,
   descriptorState,
-  agreementUpgradableStates,
-  agreementDeletableStates,
-  agreementUpdatableStates,
-  agreementCloningConflictingStates,
-  agreementRejectableStates,
   AgreementUpdateEvent,
   AgreementDocumentId,
   AgreementId,
@@ -64,6 +59,11 @@ import {
 import {
   CompactEService,
   CompactOrganization,
+  agreementCloningConflictingStates,
+  agreementDeletableStates,
+  agreementRejectableStates,
+  agreementUpdatableStates,
+  agreementUpgradableStates,
 } from "../model/domain/models.js";
 import {
   ApiAgreementPayload,

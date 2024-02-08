@@ -14,8 +14,6 @@ import {
   agreementState,
   descriptorState,
   tenantAttributeType,
-  agreementActivableStates,
-  agreementActivationFailureStates,
   AgreementId,
   DescriptorId,
   EServiceId,
@@ -45,20 +43,11 @@ import {
   CertifiedAgreementAttribute,
   DeclaredAgreementAttribute,
   VerifiedAgreementAttribute,
+  agreementActivableStates,
+  agreementActivationFailureStates,
+  agreementCreationConflictingStates,
+  agreementSubmissionConflictingStates,
 } from "./models.js";
-
-const agreementCreationConflictingStates: AgreementState[] = [
-  agreementState.draft,
-  agreementState.pending,
-  agreementState.missingCertifiedAttributes,
-  agreementState.active,
-  agreementState.suspended,
-];
-
-const agreementSubmissionConflictingStates: AgreementState[] = [
-  agreementState.pending,
-  agreementState.missingCertifiedAttributes,
-];
 
 /* ========= ASSERTIONS ========= */
 
