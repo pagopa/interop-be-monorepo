@@ -14,7 +14,6 @@ import {
   AgreementApprovalPolicy,
   DescriptorState,
   Technology,
-  WithMetadata,
   EServiceEvent,
   DescriptorId,
   EServiceDocumentId,
@@ -287,7 +286,8 @@ export const toCreateEventEServiceDescriptorPublished = (
   streamId: string,
   version: number,
   descriptorId: DescriptorId,
-  eservice: EService
+  eservice: EService,
+  deprecatedDescriptorId?: DescriptorId
 ): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
@@ -296,6 +296,7 @@ export const toCreateEventEServiceDescriptorPublished = (
     eventVersion: 2,
     data: {
       descriptorId,
+      deprecatedDescriptorId,
       eservice: toEServiceV2(eservice),
     },
   },
