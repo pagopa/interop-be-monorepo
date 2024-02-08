@@ -2204,7 +2204,7 @@ describe("database test", async () => {
     });
 
     describe("getEServiceById", () => {
-      it("should get the eService if it exists", async () => {
+      it("should get the eService if it exists (requester is the producer, admin)", async () => {
         const descriptor1: Descriptor = {
           ...mockDescriptor,
           interface: mockDocument,
@@ -2217,6 +2217,10 @@ describe("database test", async () => {
           descriptors: [descriptor1],
         };
         await addOneEService(eService1, postgresDB, eservices);
+        const authData: AuthData = {
+          ...getMockAuthData(eService1.producerId),
+          userRoles: [userRoles.ADMIN_ROLE],
+        };
 
         const descriptor2: Descriptor = {
           ...mockDescriptor,
@@ -2244,15 +2248,19 @@ describe("database test", async () => {
         };
         await addOneEService(eService3, postgresDB, eservices);
 
-        const result = await readModelService.getEServiceById(eService1.id);
-        expect(result?.data).toEqual(eService1);
+        const result = await catalogService.getEServiceById(
+          eService1.id,
+          authData
+        );
+        expect(result).toEqual(eService1);
       });
 
       it("should not get the eService if it doesn't exist", async () => {
         await addOneEService(mockEService, postgresDB, eservices);
-
-        const result = await readModelService.getEServiceById(uuidv4());
-        expect(result).toBeUndefined();
+        const notExistingId = uuidv4();
+        expect(
+          catalogService.getEServiceById(notExistingId, getMockAuthData())
+        ).rejects.toThrowError(eServiceNotFound(notExistingId));
       });
 
       it("should throw eServiceNotFound if there is only a draft descriptor (requester is not the producer)", async () => {
