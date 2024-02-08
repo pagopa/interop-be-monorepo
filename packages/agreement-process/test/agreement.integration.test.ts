@@ -71,6 +71,7 @@ import {
   notLatestEServiceDescriptor,
   tenantIdNotFound,
 } from "../src/model/domain/errors.js";
+import { agreementCreationConflictingStates } from "../src/model/domain/models.js";
 import {
   startMongoDBContainer,
   startPostgresDBContainer,
