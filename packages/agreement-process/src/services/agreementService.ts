@@ -64,6 +64,11 @@ import {
 import {
   CompactEService,
   CompactOrganization,
+  agreementCloningConflictingStates,
+  agreementDeletableStates,
+  agreementRejectableStates,
+  agreementUpdatableStates,
+  agreementUpgradableStates,
 } from "../model/domain/models.js";
 import {
   ApiAgreementPayload,
