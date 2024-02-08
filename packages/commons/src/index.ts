@@ -8,5 +8,4 @@ export * from "./model/apiEndpoint.js";
 export * from "./repositories/EventRepository.js";
 export * from "./repositories/ReadModelRepository.js";
 export * from "./repositories/db.js";
-export * from "./test/index.js";
 export * from "./types/index.js";

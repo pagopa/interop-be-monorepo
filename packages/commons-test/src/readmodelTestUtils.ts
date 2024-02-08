@@ -1,4 +1,4 @@
-import { GenericCollection } from "../index.js";
+import { GenericCollection } from "pagopa-interop-commons";
 
 /**
  * This function provides a convenient way to write data into a read model

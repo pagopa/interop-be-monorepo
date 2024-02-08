@@ -1,6 +1,6 @@
 import { IDatabase } from "pg-promise";
 import { z } from "zod";
-import { StoredEvent } from "../index.js";
+import { StoredEvent } from "pagopa-interop-commons";
 
 export const eventStoreSchema = {
   agreement: "agreement",

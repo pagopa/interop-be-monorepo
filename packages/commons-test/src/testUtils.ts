@@ -1,5 +1,7 @@
+import { generateMock } from "@anatine/zod-mock";
 import {
   Agreement,
+  AgreementState,
   AttributeId,
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
@@ -12,15 +14,13 @@ import {
   TenantAttribute,
   TenantId,
   VerifiedTenantAttribute,
-  agreementCreationConflictingStates,
   agreementState,
   descriptorState,
   generateId,
   tenantAttributeType,
 } from "pagopa-interop-models";
-import { generateMock } from "@anatine/zod-mock";
 import { v4 as uuidv4 } from "uuid";
-import { AuthData } from "../index.js";
+import { AuthData } from "pagopa-interop-commons";
 
 export function expectPastTimestamp(timestamp: bigint): boolean {
   return (
@@ -126,13 +126,24 @@ export const buildTenant = (
 export const buildAgreementWithValidCreationState = (
   eserviceId: EServiceId = generateId<EServiceId>(),
   consumerId: TenantId = generateId<TenantId>()
-): Agreement => ({
-  ...generateMock(Agreement),
-  eserviceId,
-  consumerId,
-  state: randomArrayItem(
-    Object.values(agreementState).filter(
-      (state) => !agreementCreationConflictingStates.includes(state)
-    )
-  ),
-});
+): Agreement => {
+  // Please before change this for some reason, check agreementCreationConflictingStates in packages/agreement-process/src/model/domain/models.ts
+  const agreementCreationConflictingStates: AgreementState[] = [
+    agreementState.draft,
+    agreementState.pending,
+    agreementState.missingCertifiedAttributes,
+    agreementState.active,
+    agreementState.suspended,
+  ];
+
+  return {
+    ...generateMock(Agreement),
+    eserviceId,
+    consumerId,
+    state: randomArrayItem(
+      Object.values(agreementState).filter(
+        (state) => !agreementCreationConflictingStates.includes(state)
+      )
+    ),
+  };
+};

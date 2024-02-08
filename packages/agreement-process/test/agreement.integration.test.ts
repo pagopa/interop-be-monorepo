@@ -9,10 +9,12 @@ import {
   ReadModelRepository,
   StoredEvent,
   TenantCollection,
-  eventStoreSchema,
-  expectPastTimestamp,
   initDB,
   logger,
+} from "pagopa-interop-commons";
+import {
+  eventStoreSchema,
+  expectPastTimestamp,
   readLastEventByStreamId,
   writeInReadmodel,
   getRandomAuthData,
@@ -24,7 +26,7 @@ import {
   buildCertifiedTenantAttribute,
   buildAgreementWithValidCreationState,
   randomArrayItem,
-} from "pagopa-interop-commons";
+} from "pagopa-interop-commons-test";
 import {
   Agreement,
   AgreementAddedV1,
@@ -39,7 +41,6 @@ import {
   Tenant,
   TenantAttribute,
   TenantId,
-  agreementCreationConflictingStates,
   agreementState,
   descriptorState,
   generateId,
