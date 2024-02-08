@@ -2446,7 +2446,7 @@ describe("database test", async () => {
         expect(result).toEqual(mockDocument);
       });
 
-      it("should throw eServiceNotFound if the eService doesn't exist (requester is the producer, admin)", async () => {
+      it("should throw eServiceNotFound if the eService doesn't exist", async () => {
         const authData: AuthData = {
           ...getMockAuthData(),
           userRoles: [userRoles.ADMIN_ROLE],
