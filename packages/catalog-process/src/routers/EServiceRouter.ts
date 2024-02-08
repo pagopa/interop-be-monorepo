@@ -30,6 +30,7 @@ import {
   deleteDraftDescriptorErrorMapper,
   deleteEServiceErrorMapper,
   documentCreateErrorMapper,
+  documentGetErrorMapper,
   documentUpdateDeleteErrorMapper,
   publishDescriptorErrorMapper,
   suspendDescriptorErrorMapper,
@@ -268,7 +269,7 @@ const eservicesRouter = (
             })
             .end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, deleteEServiceErrorMapper);
+          const errorRes = makeApiProblem(error, documentGetErrorMapper);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
