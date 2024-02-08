@@ -2446,7 +2446,45 @@ describe("database test", async () => {
         expect(result).toEqual(mockDocument);
       });
 
-      it("should not get document if it doesn't exist (requester is the producer, admin)", async () => {
+      it("should throw eServiceNotFound if the eService doesn't exist (requester is the producer, admin)", async () => {
+        const authData: AuthData = {
+          ...getMockAuthData(),
+          userRoles: [userRoles.ADMIN_ROLE],
+        };
+        expect(
+          catalogService.getDocumentById({
+            eServiceId: mockEService.id,
+            descriptorId: mockDescriptor.id,
+            documentId: mockDocument.id,
+            authData,
+          })
+        ).rejects.toThrowError(eServiceNotFound(mockEService.id));
+      });
+
+      it("should throw eServiceDescriptorNotFound if the descriptor doesn't exist (requester is the producer, admin)", async () => {
+        const eService: EService = {
+          ...mockEService,
+          id: uuidv4(),
+          descriptors: [],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+        const authData: AuthData = {
+          ...getMockAuthData(),
+          userRoles: [userRoles.ADMIN_ROLE],
+        };
+        expect(
+          catalogService.getDocumentById({
+            eServiceId: eService.id,
+            descriptorId: mockDescriptor.id,
+            documentId: mockDocument.id,
+            authData,
+          })
+        ).rejects.toThrowError(
+          eServiceDescriptorNotFound(eService.id, mockDescriptor.id)
+        );
+      });
+
+      it("should throw eServiceDocumentNotFound if the document doesn't exist (requester is the producer, admin)", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
