@@ -118,16 +118,15 @@ describe("Integration tests", () => {
   });
 
   describe("tenantService", () => {
+    const expirationDate = new Date(
+      currentDate.setDate(currentDate.getDate() + 1)
+    );
     describe("tenant creation", () => {
       it("TO DO", () => {
         expect(1).toBe(1);
       });
     });
     describe("updateTenantVerifiedAttribute", async () => {
-      const expirationDate = new Date(
-        currentDate.setDate(currentDate.getDate() + 1)
-      );
-
       const updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed =
         {
           expirationDate: expirationDate.toISOString(),
@@ -252,15 +251,7 @@ describe("Integration tests", () => {
       });
     });
     describe("updateVerifiedAttributeExtensionDate", async () => {
-      const updatedAt = new Date();
-
-      const extensionDate = new Date(
-        mockVerifiedBy.extensionDate!.getTime() +
-          (mockVerifiedBy.expirationDate!.getTime() -
-            mockVerifiedBy.verificationDate.getTime())
-      );
-
-      const updatedTenant: Tenant = {
+      const tenant: Tenant = {
         ...mockTenant,
         attributes: [
           {
@@ -268,50 +259,67 @@ describe("Integration tests", () => {
             verifiedBy: [
               {
                 ...mockVerifiedBy,
-                extensionDate,
-              },
-            ],
-            revokedBy: [
-              {
-                ...mockRevokedBy,
-                extensionDate,
+                extensionDate: currentDate,
+                expirationDate,
               },
             ],
           },
         ],
-        updatedAt,
-        name: "A updatedTenant",
+        name: "A Tenant",
       };
-      const attributeId = updatedTenant.attributes.map((a) => a.id)[0];
+      const attributeId = tenant.attributes.map((a) => a.id)[0];
       const verifierId = mockVerifiedBy.id;
       it("Should update the extensionDate", async () => {
-        await addOneTenant(updatedTenant, postgresDB, tenants);
+        const extensionDate = new Date(
+          currentDate.getTime() +
+            (expirationDate.getTime() -
+              mockVerifiedBy.verificationDate.getTime())
+        );
+
+        await addOneTenant(tenant, postgresDB, tenants);
         await tenantService.updateVerifiedAttributeExtensionDate(
-          updatedTenant.id,
+          tenant.id,
           attributeId,
           verifierId
         );
         const writtenEvent = await readLastEventByStreamId(
-          updatedTenant.id,
+          tenant.id,
           postgresDB
         );
-        expect(writtenEvent.stream_id).toBe(updatedTenant.id);
+        expect(writtenEvent.stream_id).toBe(tenant.id);
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("TenantUpdated");
         const writtenPayload = decodeProtobufPayload({
           messageType: TenantUpdatedV1,
           payload: writtenEvent.data,
         });
+
+        const updatedTenant: Tenant = {
+          ...tenant,
+          attributes: [
+            {
+              ...mockVerifiedTenantAttribute,
+              verifiedBy: [
+                {
+                  ...mockVerifiedBy,
+                  extensionDate,
+                  expirationDate,
+                },
+              ],
+            },
+          ],
+          updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
+        };
         expect(writtenPayload.tenant).toEqual(toTenantV1(updatedTenant));
       });
       it("Should throw tenantNotFound when tenant doesn't exist", async () => {
         expect(
           tenantService.updateVerifiedAttributeExtensionDate(
-            updatedTenant.id,
+            tenant.id,
             attributeId,
             verifierId
           )
-        ).rejects.toThrowError(tenantNotFound(updatedTenant.id));
+        ).rejects.toThrowError(tenantNotFound(tenant.id));
       });
 
       it("Should throw expirationDateNotFoundInVerifier", async () => {
@@ -336,7 +344,6 @@ describe("Integration tests", () => {
               ],
             },
           ],
-          updatedAt,
           name: "A updatedTenant",
         };
         const attributeId = updatedTenantWithoutExpirationDate.attributes.map(
@@ -365,7 +372,7 @@ describe("Integration tests", () => {
         await addOneTenant(mockTenant, postgresDB, tenants);
         expect(
           tenantService.updateVerifiedAttributeExtensionDate(
-            updatedTenant.id,
+            tenant.id,
             attributeId,
             verifierId
           )
@@ -374,20 +381,16 @@ describe("Integration tests", () => {
         );
       });
       it("Should throw organizationNotFoundInVerifiers when the organization is not verified", async () => {
-        await addOneTenant(updatedTenant, postgresDB, tenants);
+        await addOneTenant(tenant, postgresDB, tenants);
         const verifierId = generateId();
         expect(
           tenantService.updateVerifiedAttributeExtensionDate(
-            updatedTenant.id,
+            tenant.id,
             attributeId,
             verifierId
           )
         ).rejects.toThrowError(
-          organizationNotFoundInVerifiers(
-            verifierId,
-            updatedTenant.id,
-            attributeId
-          )
+          organizationNotFoundInVerifiers(verifierId, tenant.id, attributeId)
         );
       });
     });
