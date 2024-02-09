@@ -107,7 +107,6 @@ describe("Integration tests", () => {
   const mockDescriptor = getMockDescriptor();
   const mockTenant = getMockTenant();
   const mockVerifiedBy = getMockVerifiedBy();
-  const mockRevokedBy = getMockRevokedBy();
   const mockVerifiedTenantAttribute = getMockVerifiedTenantAttribute();
 
   afterEach(async () => {
@@ -333,12 +332,6 @@ describe("Integration tests", () => {
               verifiedBy: [
                 {
                   ...mockVerifiedBy,
-                  expirationDate,
-                },
-              ],
-              revokedBy: [
-                {
-                  ...mockRevokedBy,
                   expirationDate,
                 },
               ],

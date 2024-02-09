@@ -96,16 +96,8 @@ export const getMockVerifiedTenantAttribute = (): VerifiedTenantAttribute => ({
   id: generateId(),
   type: "verified",
   assignmentTimestamp: new Date(),
-  verifiedBy: [
-    {
-      ...getMockVerifiedBy(),
-    },
-  ],
-  revokedBy: [
-    {
-      ...getMockRevokedBy(),
-    },
-  ],
+  verifiedBy: [getMockVerifiedBy()],
+  revokedBy: [getMockRevokedBy()],
 });
 
 export const getMockCertifiedTenantAttribute =
