@@ -109,6 +109,18 @@ const retrieveDescriptor = (
   return descriptor;
 };
 
+const retrieveDocument = (
+  eServiceId: string,
+  descriptor: Descriptor,
+  documentId: string
+): Document => {
+  const doc = descriptor.docs.find((d) => d.id === documentId);
+  if (doc === undefined) {
+    throw eServiceDocumentNotFound(eServiceId, descriptor.id, documentId);
+  }
+  return doc;
+};
+
 const updateDescriptorState = (
   descriptor: Descriptor,
   newState: DescriptorState
@@ -517,21 +529,12 @@ export function catalogServiceBuilder(
         (authData.userRoles.includes(userRoles.ADMIN_ROLE) ||
           authData.userRoles.includes(userRoles.API_ROLE))
       ) {
-        const doc = descriptor.docs.find((d) => d.id === documentId);
-        if (doc === undefined) {
-          throw eServiceDocumentNotFound(eServiceId, descriptorId, documentId);
-        }
-        return doc;
+        return retrieveDocument(eServiceId, descriptor, documentId);
       } else {
         if (descriptor.state === descriptorState.draft) {
           throw eServiceDescriptorNotFound(eServiceId, descriptorId);
         }
-
-        const doc = descriptor.docs.find((d) => d.id === documentId);
-        if (doc === undefined) {
-          throw eServiceDocumentNotFound(eServiceId, descriptorId, documentId);
-        }
-        return doc;
+        return retrieveDocument(eServiceId, descriptor, documentId);
       }
     },
   };
