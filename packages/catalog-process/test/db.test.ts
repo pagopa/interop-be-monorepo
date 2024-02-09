@@ -707,7 +707,7 @@ describe("database test", async () => {
 
     describe("delete draft descriptor", () => {
       it("should write on event-store for the deletion of a draft descriptor", async () => {
-        const fileManagerObserver = vi.spyOn(fileManager, "deleteFile");
+        const deleteFile = vi.spyOn(fileManager, "deleteFile");
         const descriptorInterface: Document = {
           ...mockDocument,
           id: generateId(),
@@ -749,11 +749,11 @@ describe("database test", async () => {
         });
         expect(writtenPayload.eService).toEqual(toEServiceV1(eService));
         expect(writtenPayload.descriptorId).toEqual(descriptor.id);
-        expect(fileManagerObserver).toHaveBeenCalledWith(
+        expect(deleteFile).toHaveBeenCalledWith(
           config.storageContainer,
           descriptorInterface.path
         );
-        expect(fileManagerObserver).toHaveBeenCalledWith(
+        expect(deleteFile).toHaveBeenCalledWith(
           config.storageContainer,
           document.path
         );
@@ -1350,7 +1350,7 @@ describe("database test", async () => {
 
     describe("clone descriptor", () => {
       it("should write on event-store for the cloning of a descriptor", async () => {
-        const fileManagerObserver = vi.spyOn(fileManager, "copy");
+        const copy = vi.spyOn(fileManager, "copy");
         const descriptorInterface: Document = {
           ...mockDocument,
           id: generateId(),
@@ -1424,14 +1424,14 @@ describe("database test", async () => {
           createdAt: new Date(Number(writtenPayload.eService?.createdAt)),
         };
         expect(writtenPayload.eService).toEqual(toEServiceV1(expectedEService));
-        expect(fileManagerObserver).toHaveBeenCalledWith(
+        expect(copy).toHaveBeenCalledWith(
           config.storageContainer,
           config.eserviceDocumentsPath,
           descriptorInterface.path,
           expectedInterface.id,
           descriptorInterface.name
         );
-        expect(fileManagerObserver).toHaveBeenCalledWith(
+        expect(copy).toHaveBeenCalledWith(
           config.storageContainer,
           config.eserviceDocumentsPath,
           document.path,
@@ -1673,7 +1673,7 @@ describe("database test", async () => {
 
     describe("delete Document", () => {
       it("should write on event-store for the deletion of a document", async () => {
-        const fileManagerObserver = vi.spyOn(fileManager, "deleteFile");
+        const deleteFile = vi.spyOn(fileManager, "deleteFile");
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
@@ -1705,7 +1705,7 @@ describe("database test", async () => {
         expect(writtenPayload.eServiceId).toEqual(eService.id);
         expect(writtenPayload.descriptorId).toEqual(descriptor.id);
         expect(writtenPayload.documentId).toEqual(mockDocument.id);
-        expect(fileManagerObserver).toHaveBeenCalledWith(
+        expect(deleteFile).toHaveBeenCalledWith(
           config.storageContainer,
           mockDocument.path
         );
