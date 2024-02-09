@@ -564,8 +564,10 @@ export function catalogServiceBuilder(
       );
       let eServicesToReturn: EService[]; // eslint-disable-line functional/no-let
       if (
-        authData.userRoles.includes(userRoles.ADMIN_ROLE) ||
-        authData.userRoles.includes(userRoles.API_ROLE)
+        !(
+          authData.userRoles.includes(userRoles.ADMIN_ROLE) ||
+          authData.userRoles.includes(userRoles.API_ROLE)
+        )
       ) {
         eServicesToReturn = eservicesList.results.map((eService) => ({
           ...eService,
