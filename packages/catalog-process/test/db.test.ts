@@ -2150,6 +2150,406 @@ describe("database test", async () => {
         expect(result.totalCount).toBe(6);
         expect(result.results.length).toBe(1);
       });
+      it("should include eservices with no descriptors (requester is the producer, admin)", async () => {
+        const eService7: EService = {
+          ...mockEService,
+          id: generateId(),
+          name: "eService 007",
+          producerId: organizationId1,
+          descriptors: [],
+        };
+        const authData: AuthData = {
+          ...getMockAuthData(organizationId1),
+          userRoles: [userRoles.ADMIN_ROLE],
+        };
+        await addOneEService(eService7, postgresDB, eservices);
+        const result = await catalogService.getEServices(
+          authData,
+          {
+            eservicesIds: [],
+            producersIds: [],
+            states: [],
+            agreementStates: [],
+          },
+          0,
+          50
+        );
+        expect(result.totalCount).toBe(7);
+        expect(result.results).toEqual([
+          eService1,
+          eService2,
+          eService3,
+          eService4,
+          eService5,
+          eService6,
+          eService7,
+        ]);
+      });
+      it("should not include eservices with no descriptors (requester is the producer, not admin nor api)", async () => {
+        const eService7: EService = {
+          ...mockEService,
+          id: generateId(),
+          name: "eService 007",
+          producerId: organizationId1,
+          descriptors: [],
+        };
+        const authData: AuthData = {
+          ...getMockAuthData(organizationId1),
+          userRoles: [userRoles.SUPPORT_ROLE],
+        };
+        await addOneEService(eService7, postgresDB, eservices);
+        const result = await catalogService.getEServices(
+          authData,
+          {
+            eservicesIds: [],
+            producersIds: [],
+            states: [],
+            agreementStates: [],
+          },
+          0,
+          50
+        );
+        expect(result.totalCount).toBe(6);
+        expect(result.results).toEqual([
+          eService1,
+          eService2,
+          eService3,
+          eService4,
+          eService5,
+          eService6,
+        ]);
+      });
+      it("should not include eservices with no descriptors (requester is not the producer)", async () => {
+        const eService7: EService = {
+          ...mockEService,
+          id: generateId(),
+          producerId: organizationId1,
+          name: "eService 007",
+          descriptors: [],
+        };
+        const authData: AuthData = {
+          ...getMockAuthData(),
+          userRoles: [userRoles.ADMIN_ROLE],
+        };
+        await addOneEService(eService7, postgresDB, eservices);
+        const result = await catalogService.getEServices(
+          authData,
+          {
+            eservicesIds: [],
+            producersIds: [],
+            states: [],
+            agreementStates: [],
+          },
+          0,
+          50
+        );
+        expect(result.totalCount).toBe(6);
+        expect(result.results).toEqual([
+          eService1,
+          eService2,
+          eService3,
+          eService4,
+          eService5,
+          eService6,
+        ]);
+      });
+      it("should include eservices whose only descriptor is draft (requester is the producer, admin)", async () => {
+        const descriptor8: Descriptor = {
+          ...mockDescriptor,
+          id: generateId(),
+          state: descriptorState.draft,
+        };
+        const eService8: EService = {
+          ...mockEService,
+          id: generateId(),
+          name: "eService 008",
+          producerId: organizationId1,
+          descriptors: [descriptor8],
+        };
+        const authData: AuthData = {
+          ...getMockAuthData(organizationId1),
+          userRoles: [userRoles.ADMIN_ROLE],
+        };
+        await addOneEService(eService8, postgresDB, eservices);
+        const result = await catalogService.getEServices(
+          authData,
+          {
+            eservicesIds: [],
+            producersIds: [],
+            states: [],
+            agreementStates: [],
+          },
+          0,
+          50
+        );
+        expect(result.totalCount).toBe(7);
+        expect(result.results).toEqual([
+          eService1,
+          eService2,
+          eService3,
+          eService4,
+          eService5,
+          eService6,
+          eService8,
+        ]);
+      });
+      it("should not include eservices whose only descriptor is draft (requester is the producer, not admin nor api)", async () => {
+        const descriptor8: Descriptor = {
+          ...mockDescriptor,
+          id: generateId(),
+          state: descriptorState.draft,
+        };
+        const eService8: EService = {
+          ...mockEService,
+          id: generateId(),
+          name: "eService 008",
+          producerId: organizationId1,
+          descriptors: [descriptor8],
+        };
+        const authData: AuthData = {
+          ...getMockAuthData(organizationId1),
+          userRoles: [userRoles.SUPPORT_ROLE],
+        };
+        await addOneEService(eService8, postgresDB, eservices);
+        const result = await catalogService.getEServices(
+          authData,
+          {
+            eservicesIds: [],
+            producersIds: [],
+            states: [],
+            agreementStates: [],
+          },
+          0,
+          50
+        );
+        expect(result.totalCount).toBe(6);
+        expect(result.results).toEqual([
+          eService1,
+          eService2,
+          eService3,
+          eService4,
+          eService5,
+          eService6,
+        ]);
+      });
+      it("should not include eservices whose only descriptor is draft (requester is not the producer)", async () => {
+        const descriptor8: Descriptor = {
+          ...mockDescriptor,
+          id: generateId(),
+          state: descriptorState.draft,
+        };
+        const eService8: EService = {
+          ...mockEService,
+          id: generateId(),
+          name: "eService 008",
+          producerId: organizationId1,
+          descriptors: [descriptor8],
+        };
+        const authData: AuthData = {
+          ...getMockAuthData(),
+          userRoles: [userRoles.ADMIN_ROLE],
+        };
+        await addOneEService(eService8, postgresDB, eservices);
+        const result = await catalogService.getEServices(
+          authData,
+          {
+            eservicesIds: [],
+            producersIds: [],
+            states: [],
+            agreementStates: [],
+          },
+          0,
+          50
+        );
+        expect(result.totalCount).toBe(6);
+        expect(result.results).toEqual([
+          eService1,
+          eService2,
+          eService3,
+          eService4,
+          eService5,
+          eService6,
+        ]);
+      });
+      it("should include eservices with no descriptors (requester is the producer, admin)", async () => {
+        const eService7: EService = {
+          ...mockEService,
+          id: generateId(),
+          producerId: organizationId1,
+          name: "eService 007",
+          descriptors: [],
+        };
+        const authData: AuthData = {
+          ...getMockAuthData(organizationId1),
+          userRoles: [userRoles.ADMIN_ROLE],
+        };
+        await addOneEService(eService7, postgresDB, eservices);
+        const result = await catalogService.getEServices(
+          authData,
+          {
+            eservicesIds: [],
+            producersIds: [],
+            states: [],
+            agreementStates: [],
+          },
+          0,
+          50
+        );
+        expect(result.totalCount).toBe(7);
+        expect(result.results).toEqual([
+          eService1,
+          eService2,
+          eService3,
+          eService4,
+          eService5,
+          eService6,
+          eService7,
+        ]);
+      });
+      it("should not filter out draft descriptors if the eservice has both draft and non-draft descrirptors (requester is the producer, admin)", async () => {
+        const descriptor9a: Descriptor = {
+          ...mockDescriptor,
+          id: generateId(),
+          interface: mockDocument,
+          publishedAt: new Date(),
+          state: descriptorState.published,
+        };
+        const descriptor9b: Descriptor = {
+          ...mockDescriptor,
+          id: generateId(),
+          version: "2",
+          state: descriptorState.draft,
+        };
+        const eService9: EService = {
+          ...mockEService,
+          id: generateId(),
+          name: "eService 008",
+          producerId: organizationId1,
+          descriptors: [descriptor9a, descriptor9b],
+        };
+        const authData: AuthData = {
+          ...getMockAuthData(organizationId1),
+          userRoles: [userRoles.ADMIN_ROLE],
+        };
+        await addOneEService(eService9, postgresDB, eservices);
+        const result = await catalogService.getEServices(
+          authData,
+          {
+            eservicesIds: [],
+            producersIds: [],
+            states: [],
+            agreementStates: [],
+          },
+          0,
+          50
+        );
+        expect(result.totalCount).toBe(7);
+        expect(result.results).toEqual([
+          eService1,
+          eService2,
+          eService3,
+          eService4,
+          eService5,
+          eService6,
+          eService9,
+        ]);
+      });
+      it("should filter out draft descriptors if the eservice has both draft and non-draft descrirptors (requester is the producer, but not admin nor api)", async () => {
+        const descriptor9a: Descriptor = {
+          ...mockDescriptor,
+          id: generateId(),
+          interface: mockDocument,
+          publishedAt: new Date(),
+          state: descriptorState.published,
+        };
+        const descriptor9b: Descriptor = {
+          ...mockDescriptor,
+          id: generateId(),
+          version: "2",
+          state: descriptorState.draft,
+        };
+        const eService9: EService = {
+          ...mockEService,
+          id: generateId(),
+          name: "eService 008",
+          producerId: organizationId1,
+          descriptors: [descriptor9a, descriptor9b],
+        };
+        const authData: AuthData = {
+          ...getMockAuthData(organizationId1),
+          userRoles: [userRoles.SUPPORT_ROLE],
+        };
+        await addOneEService(eService9, postgresDB, eservices);
+        const result = await catalogService.getEServices(
+          authData,
+          {
+            eservicesIds: [],
+            producersIds: [],
+            states: [],
+            agreementStates: [],
+          },
+          0,
+          50
+        );
+        expect(result.totalCount).toBe(7);
+        expect(result.results).toEqual([
+          eService1,
+          eService2,
+          eService3,
+          eService4,
+          eService5,
+          eService6,
+          { ...eService9, descriptors: [descriptor9a] },
+        ]);
+      });
+      it("should filter out draft descriptors if the eservice has both draft and non-draft descrirptors (requester is not the producer)", async () => {
+        const descriptor9a: Descriptor = {
+          ...mockDescriptor,
+          id: generateId(),
+          interface: mockDocument,
+          publishedAt: new Date(),
+          state: descriptorState.published,
+        };
+        const descriptor9b: Descriptor = {
+          ...mockDescriptor,
+          id: generateId(),
+          version: "2",
+          state: descriptorState.draft,
+        };
+        const eService9: EService = {
+          ...mockEService,
+          id: generateId(),
+          name: "eService 008",
+          producerId: organizationId1,
+          descriptors: [descriptor9a, descriptor9b],
+        };
+        const authData: AuthData = {
+          ...getMockAuthData(),
+          userRoles: [userRoles.ADMIN_ROLE],
+        };
+        await addOneEService(eService9, postgresDB, eservices);
+        const result = await catalogService.getEServices(
+          authData,
+          {
+            eservicesIds: [],
+            producersIds: [],
+            states: [],
+            agreementStates: [],
+          },
+          0,
+          50
+        );
+        expect(result.totalCount).toBe(7);
+        expect(result.results).toEqual([
+          eService1,
+          eService2,
+          eService3,
+          eService4,
+          eService5,
+          eService6,
+          { ...eService9, descriptors: [descriptor9a] },
+        ]);
+      });
     });
 
     describe("getEServiceByNameAndProducerId", () => {
