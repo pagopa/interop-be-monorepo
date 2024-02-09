@@ -25,7 +25,6 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { v4 as uuidv4 } from "uuid";
-import e from "express";
 import {
   apiAgreementApprovalPolicyToAgreementApprovalPolicy,
   apiTechnologyToTechnology,
