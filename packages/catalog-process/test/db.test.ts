@@ -2323,7 +2323,7 @@ describe("database test", async () => {
           catalogService.getEServiceById(eService.id, authData)
         ).rejects.toThrowError(eServiceNotFound(eService.id));
       });
-      it("should filter out the draft descriptors if there are any descriptors in other states (requester is not the producer)", async () => {
+      it("should filter out the draft descriptors if the eService has both draft and non-draft ones (requester is not the producer)", async () => {
         const descriptorA: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
@@ -2349,7 +2349,7 @@ describe("database test", async () => {
         );
         expect(result.descriptors).toEqual([descriptorB]);
       });
-      it("should filter out the draft descriptors if there are any descriptors in other states (requester is the producer but not admin nor api)", async () => {
+      it("should filter out the draft descriptors if the eService has both draft and non-draft ones (requester is the producer but not admin nor api)", async () => {
         const descriptorA: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
