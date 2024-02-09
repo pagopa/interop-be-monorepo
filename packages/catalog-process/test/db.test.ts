@@ -2331,6 +2331,7 @@ describe("database test", async () => {
         const descriptorB: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.published,
+          interface: mockDocument,
           publishedAt: new Date(),
         };
         const eService: EService = {
@@ -2356,6 +2357,7 @@ describe("database test", async () => {
         const descriptorB: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.published,
+          interface: mockDocument,
           publishedAt: new Date(),
         };
         const eService: EService = {
