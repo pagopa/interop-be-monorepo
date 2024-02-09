@@ -884,11 +884,14 @@ export async function deleteDraftDescriptorLogic({
     throw notValidDescriptor(descriptorId, descriptor.state.toString());
   }
 
-  const interfacePath = descriptor.docs.find(
-    (doc: Document) => doc.id === descriptorId
-  );
-  if (interfacePath !== undefined) {
-    await deleteFile(config.storageContainer, interfacePath.path);
+  if (descriptor.interface) {
+    await deleteFile(config.storageContainer, descriptor.interface.path).catch(
+      (error) => {
+        logger.error(
+          `Error deleting interface for descriptor ${descriptorId} : ${error}`
+        );
+      }
+    );
   }
 
   const deleteDescriptorDocs = descriptor.docs.map((doc: Document) =>
