@@ -1877,7 +1877,8 @@ describe("database test", async () => {
         const descriptor2: Descriptor = {
           ...mockDescriptor,
           id: generateId(),
-          state: descriptorState.draft,
+          interface: mockDocument,
+          state: descriptorState.published,
         };
         eService2 = {
           ...mockEService,
@@ -1906,7 +1907,8 @@ describe("database test", async () => {
         const descriptor4: Descriptor = {
           ...mockDescriptor,
           id: generateId(),
-          state: descriptorState.draft,
+          interface: mockDocument,
+          state: descriptorState.archived,
         };
         eService4 = {
           ...mockEService,
@@ -1926,7 +1928,7 @@ describe("database test", async () => {
         eService5 = {
           ...mockEService,
           id: uuidv4(),
-          name: "eService 005",
+          name: "eService 005 test",
           producerId: organizationId2,
           descriptors: [descriptor5],
         };
@@ -1935,7 +1937,8 @@ describe("database test", async () => {
         const descriptor6: Descriptor = {
           ...mockDescriptor,
           id: generateId(),
-          state: descriptorState.draft,
+          interface: mockDocument,
+          state: descriptorState.archived,
         };
         eService6 = {
           ...mockEService,
@@ -1967,7 +1970,7 @@ describe("database test", async () => {
         await addOneAgreement(agreement2, agreements);
       });
       it("should get the eServices if they exist (parameters: eservicesIds)", async () => {
-        const result = await readModelService.getEServices(
+        const result = await catalogService.getEServices(
           getMockAuthData(),
           {
             eservicesIds: [eService1.id, eService2.id],
@@ -1982,7 +1985,7 @@ describe("database test", async () => {
         expect(result.results).toEqual([eService1, eService2]);
       });
       it("should get the eServices if they exist (parameters: producersIds)", async () => {
-        const result = await readModelService.getEServices(
+        const result = await catalogService.getEServices(
           getMockAuthData(),
           {
             eservicesIds: [],
@@ -1997,22 +2000,27 @@ describe("database test", async () => {
         expect(result.results).toEqual([eService1, eService2, eService3]);
       });
       it("should get the eServices if they exist (parameters: states)", async () => {
-        const result = await readModelService.getEServices(
+        const result = await catalogService.getEServices(
           getMockAuthData(),
           {
             eservicesIds: [],
             producersIds: [],
-            states: ["Draft"],
+            states: ["Published"],
             agreementStates: [],
           },
           0,
           50
         );
-        expect(result.totalCount).toBe(3);
-        expect(result.results).toEqual([eService2, eService4, eService6]);
+        expect(result.totalCount).toBe(4);
+        expect(result.results).toEqual([
+          eService1,
+          eService2,
+          eService3,
+          eService5,
+        ]);
       });
       it("should get the eServices if they exist (parameters: agreementStates)", async () => {
-        const result = await readModelService.getEServices(
+        const result = await catalogService.getEServices(
           getMockAuthData(organizationId3),
           {
             eservicesIds: [],
@@ -2027,7 +2035,7 @@ describe("database test", async () => {
         expect(result.results).toEqual([eService1, eService3]);
       });
       it("should get the eServices if they exist (parameters: name)", async () => {
-        const result = await readModelService.getEServices(
+        const result = await catalogService.getEServices(
           getMockAuthData(),
           {
             eservicesIds: [],
@@ -2039,16 +2047,17 @@ describe("database test", async () => {
           0,
           50
         );
-        expect(result.totalCount).toBe(4);
+        expect(result.totalCount).toBe(5);
         expect(result.results).toEqual([
           eService1,
           eService2,
           eService3,
           eService4,
+          eService5,
         ]);
       });
       it("should get the eServices if they exist (parameters: states, agreementStates, name)", async () => {
-        const result = await readModelService.getEServices(
+        const result = await catalogService.getEServices(
           getMockAuthData(organizationId3),
           {
             eservicesIds: [],
@@ -2064,7 +2073,7 @@ describe("database test", async () => {
         expect(result.results).toEqual([eService1, eService3]);
       });
       it("should not get the eServices if they don't exist (parameters: states, agreementStates, name)", async () => {
-        const result = await readModelService.getEServices(
+        const result = await catalogService.getEServices(
           getMockAuthData(),
           {
             eservicesIds: [],
@@ -2080,12 +2089,12 @@ describe("database test", async () => {
         expect(result.results).toEqual([]);
       });
       it("should get the eServices if they exist (parameters: producersIds, states, name)", async () => {
-        const result = await readModelService.getEServices(
+        const result = await catalogService.getEServices(
           getMockAuthData(),
           {
             eservicesIds: [],
             producersIds: [organizationId2],
-            states: ["Draft"],
+            states: ["Published"],
             agreementStates: [],
             name: "test",
           },
@@ -2093,15 +2102,15 @@ describe("database test", async () => {
           50
         );
         expect(result.totalCount).toBe(1);
-        expect(result.results).toEqual([eService4]);
+        expect(result.results).toEqual([eService5]);
       });
       it("should not get the eServices if they don't exist (parameters: producersIds, states, name)", async () => {
-        const result = await readModelService.getEServices(
+        const result = await catalogService.getEServices(
           getMockAuthData(),
           {
             eservicesIds: [],
             producersIds: [organizationId2],
-            states: ["Draft"],
+            states: ["Published"],
             agreementStates: [],
             name: "not-existing",
           },
@@ -2112,7 +2121,7 @@ describe("database test", async () => {
         expect(result.results).toEqual([]);
       });
       it("should get the eServices if they exist (pagination: limit)", async () => {
-        const result = await readModelService.getEServices(
+        const result = await catalogService.getEServices(
           getMockAuthData(),
           {
             eservicesIds: [],
@@ -2127,7 +2136,7 @@ describe("database test", async () => {
         expect(result.results.length).toBe(5);
       });
       it("should get the eServices if they exist (pagination: offset, limit)", async () => {
-        const result = await readModelService.getEServices(
+        const result = await catalogService.getEServices(
           getMockAuthData(),
           {
             eservicesIds: [],
