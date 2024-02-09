@@ -4,6 +4,7 @@ import {
   ReadModelRepository,
   ReadModelFilter,
   EServiceCollection,
+  userRoles,
 } from "pagopa-interop-commons";
 import {
   DescriptorState,
@@ -104,6 +105,52 @@ export function readModelServiceBuilder(
           }
         : {};
 
+      const visibilityFilter = (): ReadModelFilter<EService> => {
+        if (
+          authData.userRoles.includes(userRoles.ADMIN_ROLE) ||
+          authData.userRoles.includes(userRoles.API_ROLE)
+        ) {
+          return {
+            $nor: [
+              {
+                $and: [
+                  { $ne: { "data.producerId": authData.organizationId } },
+                  { "data.descriptors": { $size: 0 } },
+                ],
+              },
+
+              {
+                $and: [
+                  { $ne: { "data.producerId": authData.organizationId } },
+                  { "data.descriptors": { $size: 1 } },
+                  {
+                    "data.descriptors": {
+                      $elemMatch: { state: { $eq: descriptorState.draft } },
+                    },
+                  },
+                ],
+              },
+            ],
+          };
+        } else {
+          return {
+            $nor: [
+              { "data.descriptors": { $size: 0 } },
+              {
+                $and: [
+                  { "data.descriptors": { $size: 1 } },
+                  {
+                    "data.descriptors": {
+                      $elemMatch: { state: { $eq: descriptorState.draft } },
+                    },
+                  },
+                ],
+              },
+            ],
+          };
+        }
+      };
+
       const aggregationPipeline = [
         {
           $match: {
@@ -117,6 +164,7 @@ export function readModelServiceBuilder(
             ...ReadModelRepository.arrayToFilter(producersIds, {
               "data.producerId": { $in: producersIds },
             }),
+            ...visibilityFilter(),
           } satisfies ReadModelFilter<EService>,
         },
         {

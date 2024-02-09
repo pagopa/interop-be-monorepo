@@ -89,7 +89,7 @@ const eservicesRouter = (
             limit,
           } = req.query;
 
-          const catalogs = await readModelService.getEServices(
+          const catalogs = await catalogService.getEServices(
             req.ctx.authData,
             {
               eservicesIds,

@@ -8,12 +8,14 @@ import {
   userRoles,
 } from "pagopa-interop-commons";
 import {
+  AgreementState,
   Descriptor,
   DescriptorId,
   DescriptorState,
   Document,
   EService,
   EServiceEvent,
+  ListResult,
   WithMetadata,
   catalogEventToBinaryData,
   descriptorState,
@@ -23,6 +25,7 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { v4 as uuidv4 } from "uuid";
+import e from "express";
 import {
   apiAgreementApprovalPolicyToAgreementApprovalPolicy,
   apiTechnologyToTechnology,
@@ -533,6 +536,62 @@ export function catalogServiceBuilder(
         }
         return doc;
       }
+    },
+
+    async getEServices(
+      authData: AuthData,
+      {
+        eservicesIds,
+        producersIds,
+        states,
+        agreementStates,
+        name,
+      }: {
+        eservicesIds: string[];
+        producersIds: string[];
+        states: DescriptorState[];
+        agreementStates: AgreementState[];
+        name?: string;
+      },
+      offset: number,
+      limit: number
+    ): Promise<ListResult<EService>> {
+      const eservicesList = await readModelService.getEServices(
+        authData,
+        { eservicesIds, producersIds, states, agreementStates, name },
+        offset,
+        limit
+      );
+      let eServicesToReturn: EService[]; // eslint-disable-line functional/no-let
+      if (
+        authData.userRoles.includes(userRoles.ADMIN_ROLE) ||
+        authData.userRoles.includes(userRoles.API_ROLE)
+      ) {
+        eServicesToReturn = eservicesList.results.map((eService) => ({
+          ...eService,
+          descriptors: eService.descriptors.filter(
+            (d) => d.state !== descriptorState.draft
+          ),
+        }));
+      } else {
+        eServicesToReturn = eservicesList.results.map((eService) => {
+          if (eService.producerId !== authData.organizationId) {
+            return {
+              ...eService,
+              descriptors: eService.descriptors.filter(
+                (d) => d.state !== descriptorState.draft
+              ),
+            };
+          } else {
+            return eService;
+          }
+        });
+      }
+
+      return {
+        results: eServicesToReturn,
+        totalCount: eservicesList.totalCount,
+      };
     },
   };
 }
