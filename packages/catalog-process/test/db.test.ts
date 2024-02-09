@@ -2516,7 +2516,7 @@ describe("database test", async () => {
           )
         );
       });
-      it("should throw eServiceDescriptorNotFound if the document belongs to a draft descriptor (requester is not the producer)", async () => {
+      it("should throw eServiceNotFound if the document belongs to a draft descriptor (requester is not the producer)", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
@@ -2538,11 +2538,9 @@ describe("database test", async () => {
             documentId: mockDocument.id,
             authData,
           })
-        ).rejects.toThrowError(
-          eServiceDescriptorNotFound(eService.id, descriptor.id)
-        );
+        ).rejects.toThrowError(eServiceNotFound(eService.id));
       });
-      it("should throw eServiceDescriptorNotFound if the document belongs to a draft descriptor (requester is the producer but not admin nor api)", async () => {
+      it("should throw eServiceNotFound if the document belongs to a draft descriptor (requester is the producer but not admin nor api)", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
@@ -2564,11 +2562,9 @@ describe("database test", async () => {
             documentId: mockDocument.id,
             authData,
           })
-        ).rejects.toThrowError(
-          eServiceDescriptorNotFound(eService.id, descriptor.id)
-        );
+        ).rejects.toThrowError(eServiceNotFound(eService.id));
       });
-      it("should throw eServiceDescriptorNotFound if the document belongs to a draft descriptor (requester is not the producer)", async () => {
+      it("should throw eServiceNotFound if the document belongs to a draft descriptor (requester is not the producer)", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
@@ -2590,9 +2586,7 @@ describe("database test", async () => {
             documentId: mockDocument.id,
             authData,
           })
-        ).rejects.toThrowError(
-          eServiceDescriptorNotFound(eService.id, descriptor.id)
-        );
+        ).rejects.toThrowError(eServiceNotFound(eService.id));
       });
     });
   });

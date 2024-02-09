@@ -532,7 +532,7 @@ export function catalogServiceBuilder(
         return retrieveDocument(eServiceId, descriptor, documentId);
       } else {
         if (descriptor.state === descriptorState.draft) {
-          throw eServiceDescriptorNotFound(eServiceId, descriptorId);
+          throw eServiceNotFound(eServiceId);
         }
         return retrieveDocument(eServiceId, descriptor, documentId);
       }
