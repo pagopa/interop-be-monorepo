@@ -2324,18 +2324,18 @@ describe("database test", async () => {
         ).rejects.toThrowError(eServiceNotFound(eService.id));
       });
       it("should filter out the draft descriptors if there are any descriptors in other states (requester is not the producer)", async () => {
-        const descriptor1: Descriptor = {
+        const descriptorA: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
         };
-        const descriptor2: Descriptor = {
+        const descriptorB: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.published,
           publishedAt: new Date(),
         };
         const eService: EService = {
           ...mockEService,
-          descriptors: [descriptor1, descriptor2],
+          descriptors: [descriptorA, descriptorB],
         };
         const authData: AuthData = {
           ...getMockAuthData(),
@@ -2346,21 +2346,21 @@ describe("database test", async () => {
           eService.id,
           authData
         );
-        expect(result.descriptors).toEqual([descriptor2]);
+        expect(result.descriptors).toEqual([descriptorB]);
       });
       it("should filter out the draft descriptors if there are any descriptors in other states (requester is the producer but not admin nor api)", async () => {
-        const descriptor1: Descriptor = {
+        const descriptorA: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
         };
-        const descriptor2: Descriptor = {
+        const descriptorB: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.published,
           publishedAt: new Date(),
         };
         const eService: EService = {
           ...mockEService,
-          descriptors: [descriptor1, descriptor2],
+          descriptors: [descriptorA, descriptorB],
         };
         const authData: AuthData = {
           ...getMockAuthData(eService.producerId),
@@ -2371,7 +2371,7 @@ describe("database test", async () => {
           eService.id,
           authData
         );
-        expect(result.descriptors).toEqual([descriptor2]);
+        expect(result.descriptors).toEqual([descriptorB]);
       });
     });
 
