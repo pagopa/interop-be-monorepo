@@ -233,7 +233,13 @@ export function catalogServiceBuilder(
       const eService = await readModelService.getEServiceById(eServiceId);
 
       await repository.createEvent(
-        updateEserviceLogic({ eService, eServiceId, authData, eServiceSeed })
+        await updateEserviceLogic({
+          eService,
+          eServiceId,
+          authData,
+          eServiceSeed,
+          deleteFile: fileManager.deleteFile,
+        })
       );
     },
 
@@ -627,17 +633,19 @@ export function createEserviceLogic({
   return toCreateEventEServiceAdded(newEService);
 }
 
-export function updateEserviceLogic({
+export async function updateEserviceLogic({
   eService,
   eServiceId,
   authData,
   eServiceSeed,
+  deleteFile,
 }: {
   eService: WithMetadata<EService> | undefined;
   eServiceId: string;
   authData: AuthData;
   eServiceSeed: ApiEServiceSeed;
-}): CreateEvent<EServiceEvent> {
+  deleteFile: (container: string, path: string) => Promise<void>;
+}): Promise<CreateEvent<EServiceEvent>> {
   assertEServiceExist(eServiceId, eService);
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
 
@@ -651,11 +659,27 @@ export function updateEserviceLogic({
     throw eServiceCannotBeUpdated(eServiceId);
   }
 
+  const updatedTechnology = apiTechnologyToTechnology(eServiceSeed.technology);
+  const draftDescriptor = eService.data.descriptors[0];
+  if (
+    updatedTechnology !== eService.data.technology &&
+    draftDescriptor.interface !== undefined
+  ) {
+    await deleteFile(
+      config.storageContainer,
+      draftDescriptor.interface.path
+    ).catch((error) => {
+      logger.error(
+        `Error deleting interface for descriptor ${draftDescriptor.id} : ${error}`
+      );
+    });
+  }
+
   const updatedEService: EService = {
     ...eService.data,
     description: eServiceSeed.description,
     name: eServiceSeed.name,
-    technology: apiTechnologyToTechnology(eServiceSeed.technology),
+    technology: updatedTechnology,
     producerId: authData.organizationId,
   };
 
