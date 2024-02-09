@@ -114,14 +114,14 @@ export function readModelServiceBuilder(
             $nor: [
               {
                 $and: [
-                  { $ne: { "data.producerId": authData.organizationId } },
+                  { "data.producerId": { $ne: authData.organizationId } },
                   { "data.descriptors": { $size: 0 } },
                 ],
               },
 
               {
                 $and: [
-                  { $ne: { "data.producerId": authData.organizationId } },
+                  { "data.producerId": { $ne: authData.organizationId } },
                   { "data.descriptors": { $size: 1 } },
                   {
                     "data.descriptors": {
