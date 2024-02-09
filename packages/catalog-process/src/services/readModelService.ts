@@ -366,7 +366,7 @@ export function readModelServiceBuilder(
           )} - data ${JSON.stringify(data)} `
         );
 
-        throw genericError("Unable to parse eservices items");
+        throw genericError("Unable to parse attributes items");
       }
 
       return result.data;
