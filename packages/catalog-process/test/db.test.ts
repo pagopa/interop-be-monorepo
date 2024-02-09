@@ -3,14 +3,24 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import {
   AgreementCollection,
   AuthData,
   EServiceCollection,
+  FileManager,
   ReadModelRepository,
   TenantCollection,
   initDB,
+  initFileManager,
   userRoles,
 } from "pagopa-interop-commons";
 import { IDatabase } from "pg-promise";
@@ -90,6 +100,7 @@ describe("database test", async () => {
   let readModelService: ReadModelService;
   let catalogService: CatalogService;
   let postgresDB: IDatabase<unknown>;
+  let fileManager: FileManager;
 
   beforeAll(async () => {
     const postgreSqlContainer = await new PostgreSqlContainer("postgres:14")
@@ -132,6 +143,7 @@ describe("database test", async () => {
       useSSL: config.eventStoreDbUseSSL,
     });
     catalogService = catalogServiceBuilder(postgresDB, readModelService);
+    fileManager = initFileManager(config);
   });
 
   afterEach(async () => {
@@ -695,9 +707,22 @@ describe("database test", async () => {
 
     describe("delete draft descriptor", () => {
       it("should write on event-store for the deletion of a draft descriptor", async () => {
+        const deleteFile = vi.spyOn(fileManager, "deleteFile");
+        const descriptorInterface: Document = {
+          ...mockDocument,
+          id: generateId(),
+          path: "test-path1",
+        };
+        const document: Document = {
+          ...mockDocument,
+          id: generateId(),
+          path: "test-path2",
+        };
         const descriptor: Descriptor = {
           ...mockDescriptor,
+          interface: descriptorInterface,
           state: descriptorState.draft,
+          docs: [document],
         };
         const eService: EService = {
           ...mockEService,
@@ -724,6 +749,14 @@ describe("database test", async () => {
         });
         expect(writtenPayload.eService).toEqual(toEServiceV1(eService));
         expect(writtenPayload.descriptorId).toEqual(descriptor.id);
+        expect(deleteFile).toHaveBeenCalledWith(
+          config.storageContainer,
+          descriptorInterface.path
+        );
+        expect(deleteFile).toHaveBeenCalledWith(
+          config.storageContainer,
+          document.path
+        );
       });
 
       it("should throw eServiceNotFound if the eService doesn't exist", () => {
@@ -1317,11 +1350,22 @@ describe("database test", async () => {
 
     describe("clone descriptor", () => {
       it("should write on event-store for the cloning of a descriptor", async () => {
+        const copy = vi.spyOn(fileManager, "copy");
+        const descriptorInterface: Document = {
+          ...mockDocument,
+          id: generateId(),
+          path: "test-path1",
+        };
+        const document: Document = {
+          ...mockDocument,
+          id: generateId(),
+          path: "test-path2",
+        };
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
-          interface: mockDocument,
-          docs: [mockDocument],
+          interface: descriptorInterface,
+          docs: [document],
         };
         const eService: EService = {
           ...mockEService,
@@ -1347,7 +1391,7 @@ describe("database test", async () => {
         });
 
         const expectedInterface: Document = {
-          ...mockDocument,
+          ...descriptorInterface,
           id: writtenPayload.eService!.descriptors[0].interface!.id,
           uploadDate: new Date(
             writtenPayload.eService!.descriptors[0].docs[0].uploadDate
@@ -1355,7 +1399,7 @@ describe("database test", async () => {
           path: writtenPayload.eService!.descriptors[0].interface!.path,
         };
         const expectedDocument: Document = {
-          ...mockDocument,
+          ...document,
           id: writtenPayload.eService!.descriptors[0].docs[0].id,
           uploadDate: new Date(
             writtenPayload.eService!.descriptors[0].docs[0].uploadDate
@@ -1380,6 +1424,20 @@ describe("database test", async () => {
           createdAt: new Date(Number(writtenPayload.eService?.createdAt)),
         };
         expect(writtenPayload.eService).toEqual(toEServiceV1(expectedEService));
+        expect(copy).toHaveBeenCalledWith(
+          config.storageContainer,
+          config.eserviceDocumentsPath,
+          descriptorInterface.path,
+          expectedInterface.id,
+          descriptorInterface.name
+        );
+        expect(copy).toHaveBeenCalledWith(
+          config.storageContainer,
+          config.eserviceDocumentsPath,
+          document.path,
+          expectedDocument.id,
+          document.name
+        );
       });
       it("should throw eServiceNotFound if the eService doesn't exist", () => {
         expect(
@@ -1615,6 +1673,7 @@ describe("database test", async () => {
 
     describe("delete Document", () => {
       it("should write on event-store for the deletion of a document", async () => {
+        const deleteFile = vi.spyOn(fileManager, "deleteFile");
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
@@ -1646,6 +1705,10 @@ describe("database test", async () => {
         expect(writtenPayload.eServiceId).toEqual(eService.id);
         expect(writtenPayload.descriptorId).toEqual(descriptor.id);
         expect(writtenPayload.documentId).toEqual(mockDocument.id);
+        expect(deleteFile).toHaveBeenCalledWith(
+          config.storageContainer,
+          mockDocument.path
+        );
       });
       it("should throw eServiceNotFound if the eService doesn't exist", async () => {
         expect(
