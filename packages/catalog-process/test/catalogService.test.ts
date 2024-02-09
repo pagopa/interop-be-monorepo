@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-floating-promises */
 import { generateMock } from "@anatine/zod-mock";
 import { describe, expect, it } from "vitest";
 import {
@@ -125,11 +126,12 @@ describe("CatalogService", () => {
     it("updates the eservice", async () => {
       const eService = { ...mockEservice, descriptors: [] };
 
-      const event = updateEserviceLogic({
+      const event = await updateEserviceLogic({
         eService: addMetadata(eService),
         eServiceId: mockEservice.id,
         eServiceSeed: mockEserviceSeed,
         authData,
+        deleteFile: () => Promise.resolve(),
       });
       expect(event.event.type).toBe("EServiceUpdated");
       expect(event.event.data).toMatchObject({
@@ -155,8 +157,9 @@ describe("CatalogService", () => {
           eServiceId: mockEservice.id,
           authData,
           eServiceSeed: mockEserviceSeed,
+          deleteFile: () => Promise.resolve(),
         })
-      ).toThrowError(eServiceCannotBeUpdated(mockEservice.id));
+      ).rejects.toThrowError(eServiceCannotBeUpdated(mockEservice.id));
     });
 
     it("returns an error if the authenticated organization is not the producer", async () => {
@@ -172,8 +175,9 @@ describe("CatalogService", () => {
             ...authData,
             organizationId: "other-org-id",
           },
+          deleteFile: () => Promise.resolve(),
         })
-      ).toThrowError(operationForbidden);
+      ).rejects.toThrowError(operationForbidden);
     });
 
     it("returns an error when the service does not exist", async () => {
@@ -187,8 +191,9 @@ describe("CatalogService", () => {
             ...authData,
             organizationId: "organizationId",
           },
+          deleteFile: () => Promise.resolve(),
         })
-      ).toThrowError(eServiceNotFound(eServiceId));
+      ).rejects.toThrowError(eServiceNotFound(eServiceId));
     });
   });
   describe("deleteEService", () => {
