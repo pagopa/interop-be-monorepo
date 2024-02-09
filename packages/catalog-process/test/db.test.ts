@@ -2255,7 +2255,7 @@ describe("database test", async () => {
         expect(result).toEqual(eService1);
       });
 
-      it("should not get the eService if it doesn't exist", async () => {
+      it("should throw eServiceNotFound if the eService doesn't exist", async () => {
         await addOneEService(mockEService, postgresDB, eservices);
         const notExistingId = uuidv4();
         expect(
