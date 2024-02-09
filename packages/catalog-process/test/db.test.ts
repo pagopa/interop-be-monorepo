@@ -3,14 +3,24 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import {
   AgreementCollection,
   AuthData,
   EServiceCollection,
+  FileManager,
   ReadModelRepository,
   TenantCollection,
   initDB,
+  initFileManager,
   userRoles,
 } from "pagopa-interop-commons";
 import { IDatabase } from "pg-promise";
@@ -90,6 +100,7 @@ describe("database test", async () => {
   let readModelService: ReadModelService;
   let catalogService: CatalogService;
   let postgresDB: IDatabase<unknown>;
+  let fileManager: FileManager;
 
   beforeAll(async () => {
     const postgreSqlContainer = await new PostgreSqlContainer("postgres:14")
@@ -132,6 +143,7 @@ describe("database test", async () => {
       useSSL: config.eventStoreDbUseSSL,
     });
     catalogService = catalogServiceBuilder(postgresDB, readModelService);
+    fileManager = initFileManager(config);
   });
 
   afterEach(async () => {
@@ -695,9 +707,22 @@ describe("database test", async () => {
 
     describe("delete draft descriptor", () => {
       it("should write on event-store for the deletion of a draft descriptor", async () => {
+        const fileManagerObserver = vi.spyOn(fileManager, "deleteFile");
+        const document: Document = {
+          ...mockDocument,
+          id: generateId(),
+          path: "test-path1",
+        };
+        const descriptorInterface: Document = {
+          ...mockDocument,
+          id: generateId(),
+          path: "test-path2",
+        };
         const descriptor: Descriptor = {
           ...mockDescriptor,
+          interface: descriptorInterface,
           state: descriptorState.draft,
+          docs: [document],
         };
         const eService: EService = {
           ...mockEService,
@@ -724,6 +749,14 @@ describe("database test", async () => {
         });
         expect(writtenPayload.eService).toEqual(toEServiceV1(eService));
         expect(writtenPayload.descriptorId).toEqual(descriptor.id);
+        expect(fileManagerObserver).toHaveBeenCalledWith(
+          config.storageContainer,
+          descriptorInterface.path
+        );
+        expect(fileManagerObserver).toHaveBeenCalledWith(
+          config.storageContainer,
+          document.path
+        );
       });
 
       it("should throw eServiceNotFound if the eService doesn't exist", () => {
