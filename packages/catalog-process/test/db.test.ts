@@ -203,21 +203,32 @@ describe("database test", async () => {
 
     describe("update eService", () => {
       it("should write on event-store for the update of an eService", async () => {
+        const deleteFile = vi.spyOn(fileManager, "deleteFile");
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+          interface: mockDocument,
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
         const updatedName = "eService new name";
-        await addOneEService(mockEService, postgresDB, eservices);
+        await addOneEService(eService, postgresDB, eservices);
         await catalogService.updateEService(
           mockEService.id,
           {
             name: updatedName,
             description: mockEService.description,
-            technology: "REST",
+            technology: "SOAP",
           },
           getMockAuthData(mockEService.producerId)
         );
 
-        const updatedEService = {
-          ...mockEService,
+        const updatedEService: EService = {
+          ...eService,
           name: updatedName,
+          technology: "Soap",
         };
 
         const writtenEvent = await readLastEventByStreamId(
@@ -233,6 +244,10 @@ describe("database test", async () => {
         });
 
         expect(writtenPayload.eService).toEqual(toEServiceV1(updatedEService));
+        expect(deleteFile).toHaveBeenCalledWith(
+          config.storageContainer,
+          mockDocument.path
+        );
       });
 
       it("should throw eServiceNotFound if the eService doesn't exist", async () => {
