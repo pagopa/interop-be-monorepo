@@ -59,7 +59,6 @@ import {
   notLatestEServiceDescriptor,
   tenantIdNotFound,
 } from "../src/model/domain/errors.js";
-import { agreementCreationConflictingStates } from "../src/model/domain/models.js";
 import { toAgreementStateV1 } from "../src/model/domain/toEvent.js";
 import { ApiAgreementPayload } from "../src/model/types.js";
 import {
@@ -72,6 +71,7 @@ import { eserviceQueryBuilder } from "../src/services/readmodel/eserviceQuery.js
 import { readModelServiceBuilder } from "../src/services/readmodel/readModelService.js";
 import { tenantQueryBuilder } from "../src/services/readmodel/tenantQuery.js";
 import { config } from "../src/utilities/config.js";
+import { agreementCreationConflictingStates } from "../src/model/domain/validators.js";
 import {
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
