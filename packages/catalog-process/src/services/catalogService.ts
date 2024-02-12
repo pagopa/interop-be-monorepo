@@ -534,15 +534,14 @@ export async function updateEserviceLogic({
     throw eServiceCannotBeUpdated(eserviceId);
   }
 
-  const eServiceWithSameName = await getEServiceByNameAndProducerId({
-    name: eServiceSeed.name,
-    producerId: authData.organizationId,
-  });
-  if (
-    eServiceWithSameName &&
-    eServiceWithSameName.data.id !== eService.data.id
-  ) {
-    throw eServiceDuplicate(eServiceSeed.name);
+  if (eServiceSeed.name !== eService.data.name) {
+    const eServiceWithSameName = await getEServiceByNameAndProducerId({
+      name: eServiceSeed.name,
+      producerId: authData.organizationId,
+    });
+    if (eServiceWithSameName !== undefined) {
+      throw eServiceDuplicate(eServiceSeed.name);
+    }
   }
 
   const updatedEService: EService = {
