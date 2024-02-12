@@ -272,3 +272,12 @@ export const readLastEventByStreamId = async (
     "SELECT * FROM catalog.events WHERE stream_id = $1 ORDER BY sequence_num DESC LIMIT 1",
     [eServiceId]
   );
+
+export const readLastTwoEventsByStreamId = async (
+  eServiceId: string,
+  postgresDB: IDatabase<unknown>
+): Promise<any> => // eslint-disable-line @typescript-eslint/no-explicit-any
+  await postgresDB.many(
+    "SELECT * FROM catalog.events WHERE stream_id = $1 ORDER BY sequence_num DESC LIMIT 2",
+    [eServiceId]
+  );

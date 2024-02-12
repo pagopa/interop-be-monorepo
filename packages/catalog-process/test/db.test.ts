@@ -88,6 +88,7 @@ import {
   getMockTenant,
   readLastEventByStreamId,
   addOneAttribute,
+  readLastTwoEventsByStreamId,
 } from "./utils.js";
 
 const mockEService = getMockEService();
@@ -935,6 +936,177 @@ describe("database test", async () => {
         const expectedDescriptorV1 = toDescriptorV1(updatedDescriptor);
         expect(writtenPayload.eServiceId).toEqual(eService.id);
         expect(writtenPayload.eServiceDescriptor).toEqual(expectedDescriptorV1);
+      });
+
+      it("should also write on event-store to archive the previously published descriptor", async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date());
+        const descriptor1: Descriptor = {
+          ...mockDescriptor,
+          id: generateId(),
+          state: descriptorState.published,
+          publishedAt: new Date(),
+          interface: mockDocument,
+        };
+        const descriptor2: Descriptor = {
+          ...mockDescriptor,
+          id: generateId(),
+          state: descriptorState.draft,
+          interface: mockDocument,
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor1, descriptor2],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+        await catalogService.publishDescriptor(
+          eService.id,
+          descriptor2.id,
+          getMockAuthData(eService.producerId)
+        );
+        const writtenEvents = await readLastTwoEventsByStreamId(
+          eService.id,
+          postgresDB
+        );
+
+        const publicationEvent = writtenEvents[0];
+        const archivingEvent = writtenEvents[1];
+        expect(archivingEvent.stream_id).toBe(eService.id);
+        expect(archivingEvent.version).toBe("1");
+        expect(archivingEvent.type).toBe("EServiceDescriptorUpdated");
+        const archivingPayload = decodeProtobufPayload({
+          messageType: EServiceDescriptorUpdatedV1,
+          payload: archivingEvent.data,
+        });
+        expect(publicationEvent.stream_id).toBe(eService.id);
+        expect(publicationEvent.version).toBe("2");
+        expect(publicationEvent.type).toBe("EServiceDescriptorUpdated");
+        const publicationPayload = decodeProtobufPayload({
+          messageType: EServiceDescriptorUpdatedV1,
+          payload: publicationEvent.data,
+        });
+
+        const updatedDescriptor1: Descriptor = {
+          ...descriptor1,
+          archivedAt: new Date(),
+          state: descriptorState.archived,
+        };
+        const updatedDescriptor2: Descriptor = {
+          ...descriptor2,
+          publishedAt: new Date(),
+          state: descriptorState.published,
+        };
+        const expectedArchivedDescriptor = toDescriptorV1(updatedDescriptor1);
+        const expectedPublishedDescriptor = toDescriptorV1(updatedDescriptor2);
+
+        expect(archivingPayload.eServiceId).toEqual(eService.id);
+        expect(publicationPayload.eServiceId).toEqual(eService.id);
+        expect(publicationPayload.eServiceDescriptor).toEqual(
+          expectedPublishedDescriptor
+        );
+        expect(archivingPayload.eServiceDescriptor).toEqual(
+          expectedArchivedDescriptor
+        );
+        vi.useRealTimers();
+      });
+
+      it("should also write on event-store to deprecate the previously published descriptor if there was a valid agreement", async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date());
+        const descriptor1: Descriptor = {
+          ...mockDescriptor,
+          id: generateId(),
+          state: descriptorState.published,
+          publishedAt: new Date(),
+          interface: {
+            name: "interface name",
+            path: "pagopa.it",
+            id: uuidv4(),
+            prettyName: "",
+            contentType: "json",
+            checksum: uuidv4(),
+            uploadDate: new Date(),
+          },
+        };
+        const descriptor2: Descriptor = {
+          ...mockDescriptor,
+          id: generateId(),
+          state: descriptorState.draft,
+          interface: {
+            name: "interface name",
+            path: "pagopa.it",
+            id: uuidv4(),
+            prettyName: "",
+            contentType: "json",
+            checksum: uuidv4(),
+            uploadDate: new Date(),
+          },
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor1, descriptor2],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+        const tenant: Tenant = {
+          ...getMockTenant(),
+        };
+        await addOneTenant(tenant, tenants);
+        const agreement = getMockAgreement({
+          eServiceId: eService.id,
+          descriptorId: descriptor1.id,
+          producerId: eService.producerId,
+          consumerId: tenant.id,
+        });
+        await addOneAgreement(agreement, agreements);
+        await catalogService.publishDescriptor(
+          eService.id,
+          descriptor2.id,
+          getMockAuthData(eService.producerId)
+        );
+        const writtenEvents = await readLastTwoEventsByStreamId(
+          eService.id,
+          postgresDB
+        );
+
+        const publicationEvent = writtenEvents[0];
+        const deprecationEvent = writtenEvents[1];
+        expect(deprecationEvent.stream_id).toBe(eService.id);
+        expect(deprecationEvent.version).toBe("1");
+        expect(deprecationEvent.type).toBe("EServiceDescriptorUpdated");
+        const deprecationPayload = decodeProtobufPayload({
+          messageType: EServiceDescriptorUpdatedV1,
+          payload: deprecationEvent.data,
+        });
+        expect(publicationEvent.stream_id).toBe(eService.id);
+        expect(publicationEvent.version).toBe("2");
+        expect(publicationEvent.type).toBe("EServiceDescriptorUpdated");
+        const publicationPayload = decodeProtobufPayload({
+          messageType: EServiceDescriptorUpdatedV1,
+          payload: publicationEvent.data,
+        });
+
+        const updatedDescriptor1: Descriptor = {
+          ...descriptor1,
+          deprecatedAt: new Date(),
+          state: descriptorState.deprecated,
+        };
+        const updatedDescriptor2: Descriptor = {
+          ...descriptor2,
+          publishedAt: new Date(),
+          state: descriptorState.published,
+        };
+        const expectedDeprecatedDescriptor = toDescriptorV1(updatedDescriptor1);
+        const expectedPublishedDescriptor = toDescriptorV1(updatedDescriptor2);
+
+        expect(deprecationPayload.eServiceId).toEqual(eService.id);
+        expect(publicationPayload.eServiceId).toEqual(eService.id);
+        expect(publicationPayload.eServiceDescriptor).toEqual(
+          expectedPublishedDescriptor
+        );
+        expect(deprecationPayload.eServiceDescriptor).toEqual(
+          expectedDeprecatedDescriptor
+        );
+        vi.useRealTimers();
       });
 
       it("should throw eServiceNotFound if the eService doesn't exist", async () => {
