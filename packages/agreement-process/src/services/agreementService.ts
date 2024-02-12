@@ -55,15 +55,15 @@ import {
   verifiedAttributesSatisfied,
   verifyConflictingAgreements,
   verifyCreationConflictingAgreements,
+  agreementDeletableStates,
+  agreementUpdatableStates,
+  agreementUpgradableStates,
+  agreementCloningConflictingStates,
+  agreementRejectableStates,
 } from "../model/domain/validators.js";
 import {
   CompactEService,
   CompactOrganization,
-  agreementCloningConflictingStates,
-  agreementDeletableStates,
-  agreementRejectableStates,
-  agreementUpdatableStates,
-  agreementUpgradableStates,
 } from "../model/domain/models.js";
 import {
   ApiAgreementPayload,

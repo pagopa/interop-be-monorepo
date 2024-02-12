@@ -11,12 +11,10 @@ import {
   assertRequesterIsConsumerOrProducer,
   assertTenantExist,
   assertDescriptorExist,
+  agreementSuspendableStates,
 } from "../model/domain/validators.js";
 import { toCreateEventAgreementUpdated } from "../model/domain/toEvent.js";
-import {
-  UpdateAgreementSeed,
-  agreementSuspendableStates,
-} from "../model/domain/models.js";
+import { UpdateAgreementSeed } from "../model/domain/models.js";
 import { AgreementQuery } from "./readmodel/agreementQuery.js";
 import { TenantQuery } from "./readmodel/tenantQuery.js";
 import { EserviceQuery } from "./readmodel/eserviceQuery.js";

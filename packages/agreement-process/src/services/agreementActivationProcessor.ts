@@ -23,12 +23,10 @@ import {
   assertActivableState,
   verifyConsumerDoesNotActivatePending,
   assertEServiceExist,
+  agreementArchivableStates,
 } from "../model/domain/validators.js";
 import { toCreateEventAgreementUpdated } from "../model/domain/toEvent.js";
-import {
-  UpdateAgreementSeed,
-  agreementArchivableStates,
-} from "../model/domain/models.js";
+import { UpdateAgreementSeed } from "../model/domain/models.js";
 import {
   agreementStateByFlags,
   nextState,
