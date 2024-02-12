@@ -5,7 +5,7 @@ import {
   ReadModelDbConfig,
 } from "../../commons/src/index.js";
 
-export const TETS_MONGO_DB_PORT = 27017;
+export const TEST_MONGO_DB_PORT = 27017;
 export const TEST_MONGO_DB_VERSION = "mongo:4.0.0";
 
 export const TEST_POSTGRES_DB_PORT = 5432;
@@ -26,7 +26,7 @@ export const startMongoDBContainer = async (
       MONGO_INITDB_ROOT_USERNAME: config.readModelDbUsername,
       MONGO_INITDB_ROOT_PASSWORD: config.readModelDbPassword,
     })
-    .withExposedPorts(TETS_MONGO_DB_PORT)
+    .withExposedPorts(TEST_MONGO_DB_PORT)
     .start();
 
 /**

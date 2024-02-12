@@ -14,7 +14,6 @@ import {
   TenantAttribute,
   TenantId,
   VerifiedTenantAttribute,
-  agreementState,
   descriptorState,
   generateId,
   tenantAttributeType,
@@ -123,27 +122,13 @@ export const buildTenant = (
   attributes,
 });
 
-export const buildAgreementWithValidCreationState = (
+export const buildAgreement = (
   eserviceId: EServiceId = generateId<EServiceId>(),
-  consumerId: TenantId = generateId<TenantId>()
-): Agreement => {
-  // Please before change this for some reason, check agreementCreationConflictingStates in packages/agreement-process/src/model/domain/models.ts
-  const agreementCreationConflictingStates: AgreementState[] = [
-    agreementState.draft,
-    agreementState.pending,
-    agreementState.missingCertifiedAttributes,
-    agreementState.active,
-    agreementState.suspended,
-  ];
-
-  return {
-    ...generateMock(Agreement),
-    eserviceId,
-    consumerId,
-    state: randomArrayItem(
-      Object.values(agreementState).filter(
-        (state) => !agreementCreationConflictingStates.includes(state)
-      )
-    ),
-  };
-};
+  consumerId: TenantId = generateId<TenantId>(),
+  state: AgreementState
+): Agreement => ({
+  ...generateMock(Agreement),
+  eserviceId,
+  consumerId,
+  state,
+});

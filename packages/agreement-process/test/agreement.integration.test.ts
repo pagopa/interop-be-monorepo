@@ -13,19 +13,19 @@ import {
   logger,
 } from "pagopa-interop-commons";
 import {
+  buildAgreement,
+  buildCertifiedTenantAttribute,
+  buildDeclaredTenantAttribute,
+  buildDescriptorPublished,
+  buildEService,
+  buildEServiceAttribute,
+  buildTenant,
   eventStoreSchema,
   expectPastTimestamp,
+  getRandomAuthData,
+  randomArrayItem,
   readLastEventByStreamId,
   writeInReadmodel,
-  getRandomAuthData,
-  buildDescriptorPublished,
-  buildEServiceAttribute,
-  buildEService,
-  buildTenant,
-  buildDeclaredTenantAttribute,
-  buildCertifiedTenantAttribute,
-  buildAgreementWithValidCreationState,
-  randomArrayItem,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -51,6 +51,16 @@ import { IDatabase } from "pg-promise";
 import { StartedTestContainer } from "testcontainers";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 
+import {
+  agreementAlreadyExists,
+  descriptorNotInExpectedState,
+  eServiceNotFound,
+  missingCertifiedAttributesError,
+  notLatestEServiceDescriptor,
+  tenantIdNotFound,
+} from "../src/model/domain/errors.js";
+import { agreementCreationConflictingStates } from "../src/model/domain/models.js";
+import { toAgreementStateV1 } from "../src/model/domain/toEvent.js";
 import { ApiAgreementPayload } from "../src/model/types.js";
 import {
   AgreementService,
@@ -62,21 +72,11 @@ import { eserviceQueryBuilder } from "../src/services/readmodel/eserviceQuery.js
 import { readModelServiceBuilder } from "../src/services/readmodel/readModelService.js";
 import { tenantQueryBuilder } from "../src/services/readmodel/tenantQuery.js";
 import { config } from "../src/utilities/config.js";
-import { toAgreementStateV1 } from "../src/model/domain/toEvent.js";
 import {
-  agreementAlreadyExists,
-  descriptorNotInExpectedState,
-  eServiceNotFound,
-  missingCertifiedAttributesError,
-  notLatestEServiceDescriptor,
-  tenantIdNotFound,
-} from "../src/model/domain/errors.js";
-import { agreementCreationConflictingStates } from "../src/model/domain/models.js";
-import {
+  TEST_MONGO_DB_PORT,
+  TEST_POSTGRES_DB_PORT,
   startMongoDBContainer,
   startPostgresDBContainer,
-  TEST_POSTGRES_DB_PORT,
-  TETS_MONGO_DB_PORT,
 } from "./containerTestUtils.js";
 
 describe("AgreementService Integration Test", async () => {
@@ -165,7 +165,7 @@ describe("AgreementService Integration Test", async () => {
     config.eventStoreDbPort = postgreSqlContainer.getMappedPort(
       TEST_POSTGRES_DB_PORT
     );
-    config.readModelDbPort = mongodbContainer.getMappedPort(TETS_MONGO_DB_PORT);
+    config.readModelDbPort = mongodbContainer.getMappedPort(TEST_MONGO_DB_PORT);
 
     const readModelRepository = ReadModelRepository.init(config);
     agreements = readModelRepository.agreements;
@@ -400,9 +400,14 @@ describe("AgreementService Integration Test", async () => {
         descriptor,
       ]);
 
-      const otherAgreement = buildAgreementWithValidCreationState(
+      const otherAgreement = buildAgreement(
         eservice.id,
-        tenant.id
+        tenant.id,
+        randomArrayItem(
+          Object.values(agreementState).filter(
+            (state) => !agreementCreationConflictingStates.includes(state)
+          )
+        )
       );
 
       await writeInReadmodel<Tenant>(tenant, tenants);
@@ -562,7 +567,15 @@ describe("AgreementService Integration Test", async () => {
       ]);
 
       const conflictingAgreement = {
-        ...buildAgreementWithValidCreationState(eservice.id, consumer.id),
+        ...buildAgreement(
+          eservice.id,
+          consumer.id,
+          randomArrayItem(
+            Object.values(agreementState).filter(
+              (state) => !agreementCreationConflictingStates.includes(state)
+            )
+          )
+        ),
         state: randomArrayItem(agreementCreationConflictingStates),
       };
 
