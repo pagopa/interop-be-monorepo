@@ -118,7 +118,6 @@ export function readModelServiceBuilder(
                   { "data.descriptors": { $size: 0 } },
                 ],
               },
-
               {
                 $and: [
                   { "data.producerId": { $ne: authData.organizationId } },
