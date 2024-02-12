@@ -24,6 +24,7 @@ import {
   agreementState,
   descriptorState,
   genericError,
+  EServiceId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { z } from "zod";
@@ -36,7 +37,7 @@ import {
 export type AgreementQueryFilters = {
   producerId?: string | string[];
   consumerId?: string | string[];
-  eserviceId?: string | string[];
+  eserviceId?: EServiceId | EServiceId[];
   descriptorId?: DescriptorId | DescriptorId[];
   agreementStates?: AgreementState[];
   attributeId?: AttributeId | AttributeId[];

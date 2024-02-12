@@ -148,6 +148,7 @@ export const fromTenantV1 = (input: TenantV1): Tenant => {
 
   return {
     ...input,
+    id: unsafeBrandId(input.id),
     name: input.name ?? "",
     createdAt: new Date(Number(input.createdAt)),
     attributes: input.attributes.map(fromTenantAttributesV1),
