@@ -26,6 +26,7 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import { GenericContainer } from "testcontainers";
+import { decodeProtobufPayload } from "pagopa-interop-commons-test";
 import { config } from "../src/utilities/config.js";
 import { toDescriptorV1, toEServiceV1 } from "../src/model/domain/toEvent.js";
 import { EServiceDescriptorSeed } from "../src/model/domain/models.js";
@@ -51,7 +52,6 @@ import {
   addOneEService,
   addOneTenant,
   buildDescriptorSeed,
-  decodeProtobufPayload,
   getMockAgreement,
   getMockAuthData,
   getMockDescriptor,
