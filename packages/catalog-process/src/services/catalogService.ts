@@ -85,7 +85,7 @@ const assertRequesterAllowed = (
   }
 };
 
-export const retrieveEService = async (
+const retrieveEService = async (
   eserviceId: EServiceId,
   readModelService: ReadModelService
 ): Promise<WithMetadata<EService>> => {
@@ -469,30 +469,24 @@ export function catalogServiceBuilder(
       eServiceId: EServiceId,
       authData: AuthData
     ): Promise<EService> {
-      const eServiceAndMetadata = await readModelService.getEServiceById(
-        eServiceId
-      );
-      if (eServiceAndMetadata === undefined) {
-        throw eServiceNotFound(eServiceId);
-      }
-      const eService = eServiceAndMetadata.data;
+      const eService = await retrieveEService(eServiceId, readModelService);
 
       if (
-        authData.organizationId === eService.producerId &&
+        authData.organizationId === eService.data.producerId &&
         (authData.userRoles.includes(userRoles.ADMIN_ROLE) ||
           authData.userRoles.includes(userRoles.API_ROLE))
       ) {
-        return eService;
+        return eService.data;
       }
       const eServiceWithoutDraft: EService = {
-        ...eService,
-        descriptors: eService.descriptors.filter(
+        ...eService.data,
+        descriptors: eService.data.descriptors.filter(
           (d) => d.state !== descriptorState.draft
         ),
       };
 
       if (eServiceWithoutDraft.descriptors.length === 0) {
-        throw eServiceNotFound(eService.id);
+        throw eServiceNotFound(eServiceId);
       }
 
       return eServiceWithoutDraft;
