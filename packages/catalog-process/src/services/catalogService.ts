@@ -564,33 +564,22 @@ export function catalogServiceBuilder(
         offset,
         limit
       );
-      let eServicesToReturn: EService[]; // eslint-disable-line functional/no-let
-      if (
-        !(
-          authData.userRoles.includes(userRoles.ADMIN_ROLE) ||
-          authData.userRoles.includes(userRoles.API_ROLE)
-        )
-      ) {
-        eServicesToReturn = eservicesList.results.map((eService) => ({
+
+      const eServicesToReturn = eservicesList.results.map((eService) => {
+        if (
+          authData.organizationId === eService.producerId &&
+          (authData.userRoles.includes(userRoles.ADMIN_ROLE) ||
+            authData.userRoles.includes(userRoles.API_ROLE))
+        ) {
+          return eService;
+        }
+        return {
           ...eService,
           descriptors: eService.descriptors.filter(
             (d) => d.state !== descriptorState.draft
           ),
-        }));
-      } else {
-        eServicesToReturn = eservicesList.results.map((eService) => {
-          if (eService.producerId !== authData.organizationId) {
-            return {
-              ...eService,
-              descriptors: eService.descriptors.filter(
-                (d) => d.state !== descriptorState.draft
-              ),
-            };
-          } else {
-            return eService;
-          }
-        });
-      }
+        };
+      });
 
       return {
         results: eServicesToReturn,
