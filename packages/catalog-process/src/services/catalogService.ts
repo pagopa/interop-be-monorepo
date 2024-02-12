@@ -660,19 +660,21 @@ export async function updateEserviceLogic({
   }
 
   const updatedTechnology = apiTechnologyToTechnology(eServiceSeed.technology);
-  const draftDescriptor = eService.data.descriptors[0];
-  if (
-    updatedTechnology !== eService.data.technology &&
-    draftDescriptor.interface !== undefined
-  ) {
-    await deleteFile(
-      config.storageContainer,
-      draftDescriptor.interface.path
-    ).catch((error) => {
-      logger.error(
-        `Error deleting interface for descriptor ${draftDescriptor.id} : ${error}`
-      );
-    });
+  if (eService.data.descriptors.length === 1) {
+    const draftDescriptor = eService.data.descriptors[0];
+    if (
+      updatedTechnology !== eService.data.technology &&
+      draftDescriptor.interface !== undefined
+    ) {
+      await deleteFile(
+        config.storageContainer,
+        draftDescriptor.interface.path
+      ).catch((error) => {
+        logger.error(
+          `Error deleting interface for descriptor ${draftDescriptor.id} : ${error}`
+        );
+      });
+    }
   }
 
   const updatedEService: EService = {
