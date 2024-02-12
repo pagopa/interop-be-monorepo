@@ -1,6 +1,7 @@
 import { IDatabase } from "pg-promise";
 import { z } from "zod";
 import { StoredEvent } from "pagopa-interop-commons";
+import { MessageType } from "@protobuf-ts/runtime";
 
 export const eventStoreSchema = {
   agreement: "agreement",
@@ -24,3 +25,13 @@ export const readLastEventByStreamId = async <T extends StoredEvent>(
     `SELECT * FROM ${schema}.events WHERE stream_id = $1 ORDER BY sequence_num DESC LIMIT 1`,
     [streamId]
   );
+
+export function decodeProtobufPayload<I extends object>({
+  messageType,
+  payload,
+}: {
+  messageType: MessageType<I>;
+  payload: Parameters<typeof Buffer.from>[0];
+}): I {
+  return messageType.fromBinary(Buffer.from(payload, "hex"));
+}
