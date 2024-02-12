@@ -895,7 +895,7 @@ describe("database test", async () => {
           interface: {
             name: "interface name",
             path: "pagopa.it",
-            id: uuidv4(),
+            id: generateId(),
             prettyName: "",
             contentType: "json",
             checksum: uuidv4(),
@@ -1021,7 +1021,7 @@ describe("database test", async () => {
           interface: {
             name: "interface name",
             path: "pagopa.it",
-            id: uuidv4(),
+            id: generateId(),
             prettyName: "",
             contentType: "json",
             checksum: uuidv4(),
@@ -1035,7 +1035,7 @@ describe("database test", async () => {
           interface: {
             name: "interface name",
             path: "pagopa.it",
-            id: uuidv4(),
+            id: generateId(),
             prettyName: "",
             contentType: "json",
             checksum: uuidv4(),
