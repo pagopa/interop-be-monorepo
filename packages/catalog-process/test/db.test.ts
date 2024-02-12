@@ -202,7 +202,51 @@ describe("database test", async () => {
     });
 
     describe("update eService", () => {
-      it("should write on event-store for the update of an eService", async () => {
+      it("should write on event-store for the update of an eService (no technology change)", async () => {
+        const deleteFile = vi.spyOn(fileManager, "deleteFile");
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+          interface: mockDocument,
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        const updatedName = "eService new name";
+        await addOneEService(eService, postgresDB, eservices);
+        await catalogService.updateEService(
+          mockEService.id,
+          {
+            name: updatedName,
+            description: mockEService.description,
+            technology: "REST",
+          },
+          getMockAuthData(mockEService.producerId)
+        );
+
+        const updatedEService: EService = {
+          ...eService,
+          name: updatedName,
+        };
+
+        const writtenEvent = await readLastEventByStreamId(
+          mockEService.id,
+          postgresDB
+        );
+        expect(writtenEvent.stream_id).toBe(mockEService.id);
+        expect(writtenEvent.version).toBe("1");
+        expect(writtenEvent.type).toBe("EServiceUpdated");
+        const writtenPayload = decodeProtobufPayload({
+          messageType: EServiceUpdatedV1,
+          payload: writtenEvent.data,
+        });
+
+        expect(writtenPayload.eService).toEqual(toEServiceV1(updatedEService));
+        expect(deleteFile).not.toHaveBeenCalled();
+      });
+
+      it("should write on event-store for the update of an eService (technology change: interface has to be deleted)", async () => {
         const deleteFile = vi.spyOn(fileManager, "deleteFile");
         const descriptor: Descriptor = {
           ...mockDescriptor,
