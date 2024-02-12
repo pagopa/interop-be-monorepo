@@ -113,9 +113,9 @@ const retrieveDescriptor = (
 };
 
 const retrieveDocument = (
-  eServiceId: string,
+  eServiceId: EServiceId,
   descriptor: Descriptor,
-  documentId: string
+  documentId: EServiceDocumentId
 ): Document => {
   const doc = descriptor.docs.find((d) => d.id === documentId);
   if (doc === undefined) {
@@ -507,19 +507,15 @@ export function catalogServiceBuilder(
       documentId,
       authData,
     }: {
-      eServiceId: string;
+      eServiceId: EServiceId;
       descriptorId: DescriptorId;
-      documentId: string;
+      documentId: EServiceDocumentId;
       authData: AuthData;
     }): Promise<Document> {
       const eService = await retrieveEService(eServiceId, readModelService);
       const descriptor = retrieveDescriptor(descriptorId, eService);
 
-      if (
-        authData.organizationId === eService.data.producerId &&
-        (authData.userRoles.includes(userRoles.ADMIN_ROLE) ||
-          authData.userRoles.includes(userRoles.API_ROLE))
-      ) {
+      if (isUserAllowedToSeeDraft(authData, eService.data.producerId)) {
         return retrieveDocument(eServiceId, descriptor, documentId);
       } else {
         if (descriptor.state === descriptorState.draft) {

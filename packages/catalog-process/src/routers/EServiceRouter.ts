@@ -240,9 +240,9 @@ const eservicesRouter = (
           const { eServiceId, descriptorId, documentId } = req.params;
 
           const document = await catalogService.getDocumentById({
-            eServiceId,
+            eServiceId: unsafeBrandId(eServiceId),
             descriptorId: unsafeBrandId(descriptorId),
-            documentId,
+            documentId: unsafeBrandId(documentId),
             authData: req.ctx.authData,
           });
 
