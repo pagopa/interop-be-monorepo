@@ -473,9 +473,6 @@ importers:
       ts-pattern:
         specifier: ^5.0.6
         version: 5.0.6
-      uuid:
-        specifier: ^9.0.0
-        version: 9.0.0
       winston:
         specifier: ^3.9.0
         version: 3.9.0
