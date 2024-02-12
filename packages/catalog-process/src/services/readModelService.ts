@@ -5,6 +5,7 @@ import {
   ReadModelFilter,
   EServiceCollection,
   userRoles,
+  hasPermission,
 } from "pagopa-interop-commons";
 import {
   DescriptorState,
@@ -112,8 +113,7 @@ export function readModelServiceBuilder(
 
       const visibilityFilter = (): ReadModelFilter<EService> => {
         if (
-          authData.userRoles.includes(userRoles.ADMIN_ROLE) ||
-          authData.userRoles.includes(userRoles.API_ROLE)
+          hasPermission([userRoles.ADMIN_ROLE, userRoles.API_ROLE], authData)
         ) {
           return {
             $nor: [
