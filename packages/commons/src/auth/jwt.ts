@@ -59,13 +59,11 @@ export const readAuthDataFromJwtToken = (
   }
 };
 
-const clients = !config.skipJWTVerification
-  ? config.wellKnownUrls.map((url) =>
-      jwksClient({
-        jwksUri: url,
-      })
-    )
-  : undefined;
+const clients = config.wellKnownUrls.map((url) =>
+  jwksClient({
+    jwksUri: url,
+  })
+);
 
 const getKey =
   (
