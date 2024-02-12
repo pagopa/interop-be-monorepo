@@ -1,12 +1,10 @@
 import {
-  AuthData,
   logger,
   ReadModelRepository,
   ReadModelFilter,
   EServiceCollection,
 } from "pagopa-interop-commons";
 import {
-  DescriptorState,
   Document,
   EService,
   Agreement,
@@ -26,6 +24,7 @@ import { match } from "ts-pattern";
 import { z } from "zod";
 import { Filter, WithId } from "mongodb";
 import { Consumer, consumer } from "../model/domain/models.js";
+import { ApiGetEServicesFilters } from "../model/types.js";
 
 async function getEService(
   eservices: EServiceCollection,
@@ -66,30 +65,20 @@ export function readModelServiceBuilder(
   const agreements = readModelRepository.agreements;
   return {
     async getEServices(
-      authData: AuthData,
-      {
-        eservicesIds,
-        producersIds,
-        states,
-        agreementStates,
-        name,
-      }: {
-        eservicesIds: string[];
-        producersIds: string[];
-        states: DescriptorState[];
-        agreementStates: AgreementState[];
-        name?: string;
-      },
+      organizationId: TenantId,
+      filters: ApiGetEServicesFilters,
       offset: number,
       limit: number
     ): Promise<ListResult<EService>> {
+      const { eservicesIds, producersIds, states, agreementStates, name } =
+        filters;
       const ids = await match(agreementStates.length)
         .with(0, () => eservicesIds)
         .otherwise(async () =>
           (
             await this.listAgreements(
               eservicesIds,
-              [authData.organizationId],
+              [organizationId],
               [],
               agreementStates
             )
