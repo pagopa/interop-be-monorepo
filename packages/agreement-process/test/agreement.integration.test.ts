@@ -7,7 +7,6 @@ import {
   AgreementCollection,
   EServiceCollection,
   ReadModelRepository,
-  StoredEvent,
   TenantCollection,
   initDB,
   logger,
@@ -25,6 +24,7 @@ import {
   getRandomAuthData,
   randomArrayItem,
   readLastEventByStreamId,
+  StoredEvent,
   writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import {

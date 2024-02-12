@@ -1,7 +1,13 @@
 import { IDatabase } from "pg-promise";
 import { z } from "zod";
-import { StoredEvent } from "pagopa-interop-commons";
 import { MessageType } from "@protobuf-ts/runtime";
+
+export type StoredEvent = {
+  stream_id: string;
+  version: string;
+  type: Event["type"];
+  data: Buffer;
+};
 
 export const eventStoreSchema = {
   agreement: "agreement",
