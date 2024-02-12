@@ -6,7 +6,6 @@ import {
   EService,
   Tenant,
   agreementState,
-  agreementArchivableStates,
   WithMetadata,
   AgreementEvent,
   AgreementUpdateEvent,
@@ -24,6 +23,7 @@ import {
   assertActivableState,
   verifyConsumerDoesNotActivatePending,
   assertEServiceExist,
+  agreementArchivableStates,
 } from "../model/domain/validators.js";
 import { toCreateEventAgreementUpdated } from "../model/domain/toEvent.js";
 import { UpdateAgreementSeed } from "../model/domain/models.js";
