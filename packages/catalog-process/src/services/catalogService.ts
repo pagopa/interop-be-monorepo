@@ -553,11 +553,7 @@ export function catalogServiceBuilder(
       );
 
       const eServicesToReturn = eservicesList.results.map((eService) => {
-        if (
-          authData.organizationId === eService.producerId &&
-          (authData.userRoles.includes(userRoles.ADMIN_ROLE) ||
-            authData.userRoles.includes(userRoles.API_ROLE))
-        ) {
+        if (isUserAllowedToSeeDraft(authData, eService.producerId)) {
           return eService;
         }
         return {
