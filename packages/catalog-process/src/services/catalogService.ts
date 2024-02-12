@@ -517,15 +517,11 @@ export function catalogServiceBuilder(
       documentId: string;
       authData: AuthData;
     }): Promise<Document> {
-      const eServiceAndMetadata = await readModelService.getEServiceById(
-        eServiceId
-      );
-      if (eServiceAndMetadata === undefined) {
-        throw eServiceNotFound(eServiceId);
-      }
-      const descriptor = retrieveDescriptor(descriptorId, eServiceAndMetadata);
+      const eService = await retrieveEService(eServiceId, readModelService);
+      const descriptor = retrieveDescriptor(descriptorId, eService);
+
       if (
-        authData.organizationId === eServiceAndMetadata.data.producerId &&
+        authData.organizationId === eService.data.producerId &&
         (authData.userRoles.includes(userRoles.ADMIN_ROLE) ||
           authData.userRoles.includes(userRoles.API_ROLE))
       ) {
