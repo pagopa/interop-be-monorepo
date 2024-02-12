@@ -3,6 +3,7 @@ import {
   CreateEvent,
   DB,
   eventRepository,
+  hasPermission,
   initFileManager,
   logger,
   userRoles,
@@ -471,11 +472,7 @@ export function catalogServiceBuilder(
     ): Promise<EService> {
       const eService = await retrieveEService(eServiceId, readModelService);
 
-      if (
-        authData.organizationId === eService.data.producerId &&
-        (authData.userRoles.includes(userRoles.ADMIN_ROLE) ||
-          authData.userRoles.includes(userRoles.API_ROLE))
-      ) {
+      if (isUserAllowedToSeeDraft(authData, eService.data.producerId)) {
         return eService.data;
       }
       const eServiceWithoutDraft: EService = {
@@ -1124,5 +1121,12 @@ export function archiveDescriptorLogic({
     updatedDescriptor
   );
 }
+
+const isUserAllowedToSeeDraft = (
+  authData: AuthData,
+  producerId: TenantId
+): boolean =>
+  hasPermission([userRoles.ADMIN_ROLE, userRoles.API_ROLE], authData) &&
+  authData.organizationId === producerId;
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
