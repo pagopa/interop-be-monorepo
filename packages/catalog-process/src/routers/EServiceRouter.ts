@@ -8,7 +8,7 @@ import {
   ReadModelRepository,
   initDB,
 } from "pagopa-interop-commons";
-import { unsafeBrandId } from "pagopa-interop-models";
+import { EServiceId, unsafeBrandId } from "pagopa-interop-models";
 import {
   agreementStateToApiAgreementState,
   apiAgreementStateToAgreementState,
@@ -20,7 +20,7 @@ import { api } from "../model/generated/api.js";
 import { config } from "../utilities/config.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { catalogServiceBuilder } from "../services/catalogService.js";
-import { makeApiProblem, eServiceNotFound } from "../model/domain/errors.js";
+import { makeApiProblem } from "../model/domain/errors.js";
 import {
   activateDescriptorErrorMapper,
   archiveDescriptorErrorMapper,
@@ -32,6 +32,7 @@ import {
   documentCreateErrorMapper,
   documentGetErrorMapper,
   documentUpdateDeleteErrorMapper,
+  getEServiceErrorMapper,
   publishDescriptorErrorMapper,
   suspendDescriptorErrorMapper,
   updateDescriptorErrorMapper,
@@ -144,25 +145,12 @@ const eservicesRouter = (
       async (req, res) => {
         try {
           const eService = await catalogService.getEServiceById(
-            req.params.eServiceId,
+            unsafeBrandId(req.params.eServiceId),
             req.ctx.authData
           );
-
-          if (eService) {
-            return res.status(200).json(eServiceToApiEService(eService)).end();
-          } else {
-            return res
-              .status(404)
-              .json(
-                makeApiProblem(
-                  eServiceNotFound(req.params.eServiceId),
-                  () => 404
-                )
-              )
-              .end();
-          }
+          return res.status(200).json(eServiceToApiEService(eService)).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, () => 500);
+          const errorRes = makeApiProblem(error, getEServiceErrorMapper);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -173,7 +161,7 @@ const eservicesRouter = (
       async (req, res) => {
         try {
           await catalogService.updateEService(
-            req.params.eServiceId,
+            unsafeBrandId(req.params.eServiceId),
             req.body,
             req.ctx.authData
           );
@@ -190,7 +178,7 @@ const eservicesRouter = (
       async (req, res) => {
         try {
           await catalogService.deleteEService(
-            req.params.eServiceId,
+            unsafeBrandId(req.params.eServiceId),
             req.ctx.authData
           );
           return res.status(204).end();
@@ -211,7 +199,7 @@ const eservicesRouter = (
       ]),
       async (req, res) => {
         try {
-          const eServiceId = req.params.eServiceId;
+          const eServiceId = unsafeBrandId<EServiceId>(req.params.eServiceId);
           const offset = req.query.offset;
           const limit = req.query.limit;
 
@@ -252,9 +240,9 @@ const eservicesRouter = (
           const { eServiceId, descriptorId, documentId } = req.params;
 
           const document = await catalogService.getDocumentById({
-            eServiceId,
+            eServiceId: unsafeBrandId(eServiceId),
             descriptorId: unsafeBrandId(descriptorId),
-            documentId,
+            documentId: unsafeBrandId(documentId),
             authData: req.ctx.authData,
           });
 
@@ -280,7 +268,7 @@ const eservicesRouter = (
       async (req, res) => {
         try {
           const id = await catalogService.uploadDocument(
-            req.params.eServiceId,
+            unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.body,
             req.ctx.authData
@@ -298,9 +286,9 @@ const eservicesRouter = (
       async (req, res) => {
         try {
           await catalogService.deleteDocument(
-            req.params.eServiceId,
+            unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
-            req.params.documentId,
+            unsafeBrandId(req.params.documentId),
             req.ctx.authData
           );
           return res.status(204).end();
@@ -319,9 +307,9 @@ const eservicesRouter = (
       async (req, res) => {
         try {
           await catalogService.updateDocument(
-            req.params.eServiceId,
+            unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
-            req.params.documentId,
+            unsafeBrandId(req.params.documentId),
             req.body,
             req.ctx.authData
           );
@@ -341,7 +329,7 @@ const eservicesRouter = (
       async (req, res) => {
         try {
           const id = await catalogService.createDescriptor(
-            req.params.eServiceId,
+            unsafeBrandId(req.params.eServiceId),
             req.body,
             req.ctx.authData
           );
@@ -358,7 +346,7 @@ const eservicesRouter = (
       async (req, res) => {
         try {
           await catalogService.deleteDraftDescriptor(
-            req.params.eServiceId,
+            unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.ctx.authData
           );
@@ -378,7 +366,7 @@ const eservicesRouter = (
       async (req, res) => {
         try {
           await catalogService.updateDescriptor(
-            req.params.eServiceId,
+            unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.body,
             req.ctx.authData
@@ -396,7 +384,7 @@ const eservicesRouter = (
       async (req, res) => {
         try {
           await catalogService.publishDescriptor(
-            req.params.eServiceId,
+            unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.ctx.authData
           );
@@ -413,7 +401,7 @@ const eservicesRouter = (
       async (req, res) => {
         try {
           await catalogService.suspendDescriptor(
-            req.params.eServiceId,
+            unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.ctx.authData
           );
@@ -430,7 +418,7 @@ const eservicesRouter = (
       async (req, res) => {
         try {
           await catalogService.activateDescriptor(
-            req.params.eServiceId,
+            unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.ctx.authData
           );
@@ -448,7 +436,7 @@ const eservicesRouter = (
         try {
           const clonedEserviceByDescriptor =
             await catalogService.cloneDescriptor(
-              req.params.eServiceId,
+              unsafeBrandId(req.params.eServiceId),
               unsafeBrandId(req.params.descriptorId),
               req.ctx.authData
             );
@@ -468,7 +456,7 @@ const eservicesRouter = (
       async (req, res) => {
         try {
           await catalogService.archiveDescriptor(
-            req.params.eServiceId,
+            unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.ctx.authData
           );
