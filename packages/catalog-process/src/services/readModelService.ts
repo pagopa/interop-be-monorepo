@@ -19,6 +19,7 @@ import {
   DescriptorId,
   WithMetadata,
   Attribute,
+  EServiceId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
@@ -324,6 +325,48 @@ export function readModelServiceBuilder(
             ...ReadModelRepository.arrayToFilter(states, {
               "data.state": { $in: states },
             }),
+          } satisfies ReadModelFilter<Agreement>,
+        },
+        {
+          $project: {
+            data: 1,
+          },
+        },
+        {
+          $sort: { "data.id": 1 },
+        },
+      ];
+      const data = await agreements.aggregate(aggregationPipeline).toArray();
+      const result = z.array(Agreement).safeParse(data.map((a) => a.data));
+
+      if (!result.success) {
+        logger.error(
+          `Unable to parse agreements: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+
+        throw genericError("Unable to parse agreements");
+      }
+
+      return result.data;
+    },
+
+    async listAgreementsForEServiceDescriptor({
+      eServiceId,
+      descriptorId,
+    }: {
+      eServiceId: EServiceId;
+      descriptorId: DescriptorId;
+    }): Promise<Agreement[]> {
+      const aggregationPipeline = [
+        {
+          $match: {
+            "data.eserviceId": { $eq: eServiceId },
+            "data.descriptorId": { $eq: descriptorId },
+            "data.state": {
+              $in: [agreementState.active, agreementState.suspended],
+            },
           } satisfies ReadModelFilter<Agreement>,
         },
         {
