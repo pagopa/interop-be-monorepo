@@ -7,6 +7,8 @@ import {
   logger,
 } from "pagopa-interop-commons";
 import {
+  Agreement,
+  AgreementState,
   Attribute,
   Descriptor,
   DescriptorId,
@@ -14,6 +16,7 @@ import {
   Document,
   EService,
   EServiceEvent,
+  EServiceId,
   WithMetadata,
   catalogEventToBinaryData,
   descriptorState,
@@ -173,6 +176,24 @@ const deprecateDescriptor = (
   const updatedDescriptor = updateDescriptorState(
     descriptor,
     descriptorState.deprecated
+  );
+  return toCreateEventEServiceDescriptorUpdated(
+    streamId,
+    version,
+    updatedDescriptor
+  );
+};
+
+const archiveDescriptor = (
+  streamId: string,
+  version: number,
+  descriptor: Descriptor
+): CreateEvent<EServiceEvent> => {
+  logger.info(`Archiving Descriptor ${descriptor.id} of EService ${streamId}`);
+
+  const updatedDescriptor = updateDescriptorState(
+    descriptor,
+    descriptorState.archived
   );
   return toCreateEventEServiceDescriptorUpdated(
     streamId,
@@ -377,11 +398,13 @@ export function catalogServiceBuilder(
 
       const eService = await readModelService.getEServiceById(eServiceId);
 
-      for (const event of publishDescriptorLogic({
+      for (const event of await publishDescriptorLogic({
         eServiceId,
         descriptorId,
         authData,
         eService,
+        listAgreementsForEServiceDescriptor:
+          readModelService.listAgreementsForEServiceDescriptor,
       })) {
         await repository.createEvent(event);
       }
@@ -885,17 +908,25 @@ export function updateDescriptorLogic({
   );
 }
 
-export function publishDescriptorLogic({
+export async function publishDescriptorLogic({
   eServiceId,
   descriptorId,
   authData,
   eService,
+  listAgreementsForEServiceDescriptor,
 }: {
-  eServiceId: string;
+  eServiceId: EServiceId;
   descriptorId: DescriptorId;
   authData: AuthData;
   eService: WithMetadata<EService> | undefined;
-}): Array<CreateEvent<EServiceEvent>> {
+  listAgreementsForEServiceDescriptor: ({
+    eServiceId,
+    descriptorId,
+  }: {
+    eServiceId: EServiceId;
+    descriptorId: DescriptorId;
+  }) => Promise<Agreement[]>;
+}): Promise<Array<CreateEvent<EServiceEvent>>> {
   assertEServiceExist(eServiceId, eService);
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
 
@@ -918,18 +949,37 @@ export function publishDescriptorLogic({
   );
 
   if (currentActiveDescriptor !== undefined) {
-    return [
-      deprecateDescriptor(
-        eService.data.id,
-        eService.metadata.version,
-        currentActiveDescriptor
-      ),
-      toCreateEventEServiceDescriptorUpdated(
-        eServiceId,
-        eService.metadata.version + 1,
-        updatedDescriptor
-      ),
-    ];
+    const agreements = await listAgreementsForEServiceDescriptor({
+      eServiceId,
+      descriptorId: currentActiveDescriptor.id,
+    });
+    if (agreements.length === 0) {
+      return [
+        archiveDescriptor(
+          eService.data.id,
+          eService.metadata.version,
+          currentActiveDescriptor
+        ),
+        toCreateEventEServiceDescriptorUpdated(
+          eServiceId,
+          eService.metadata.version + 1,
+          updatedDescriptor
+        ),
+      ];
+    } else {
+      return [
+        deprecateDescriptor(
+          eService.data.id,
+          eService.metadata.version,
+          currentActiveDescriptor
+        ),
+        toCreateEventEServiceDescriptorUpdated(
+          eServiceId,
+          eService.metadata.version + 1,
+          updatedDescriptor
+        ),
+      ];
+    }
   } else {
     return [
       toCreateEventEServiceDescriptorUpdated(
