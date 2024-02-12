@@ -17,11 +17,6 @@ import {
   agreementEventToBinaryData,
   agreementState,
   descriptorState,
-  agreementUpgradableStates,
-  agreementDeletableStates,
-  agreementUpdatableStates,
-  agreementCloningConflictingStates,
-  agreementRejectableStates,
   AgreementUpdateEvent,
   AgreementDocumentId,
   AgreementId,
@@ -60,6 +55,11 @@ import {
   verifiedAttributesSatisfied,
   verifyConflictingAgreements,
   verifyCreationConflictingAgreements,
+  agreementDeletableStates,
+  agreementUpdatableStates,
+  agreementUpgradableStates,
+  agreementCloningConflictingStates,
+  agreementRejectableStates,
 } from "../model/domain/validators.js";
 import {
   CompactEService,
