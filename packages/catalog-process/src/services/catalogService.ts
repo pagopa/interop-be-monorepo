@@ -884,7 +884,7 @@ export async function deleteDraftDescriptorLogic({
     throw notValidDescriptor(descriptorId, descriptor.state.toString());
   }
 
-  if (descriptor.interface) {
+  if (descriptor.interface !== undefined) {
     await deleteFile(config.storageContainer, descriptor.interface.path).catch(
       (error) => {
         logger.error(
