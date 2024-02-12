@@ -86,22 +86,15 @@ const getKey =
   };
 
 export const verifyJwtToken = (jwtToken: string): Promise<boolean> =>
-  clients === undefined
-    ? Promise.resolve(true)
-    : new Promise((resolve, _reject) => {
-        jwt.verify(
-          jwtToken,
-          getKey(clients),
-          undefined,
-          function (err, _decoded) {
-            if (err) {
-              logger.error(`Error verifying token: ${err}`);
-              return resolve(false);
-            }
-            return resolve(true);
-          }
-        );
-      });
+  new Promise((resolve, _reject) => {
+    jwt.verify(jwtToken, getKey(clients), undefined, function (err, _decoded) {
+      if (err) {
+        logger.error(`Error verifying token: ${err}`);
+        return resolve(false);
+      }
+      return resolve(true);
+    });
+  });
 
 export const hasPermission = (
   permissions: string[],
