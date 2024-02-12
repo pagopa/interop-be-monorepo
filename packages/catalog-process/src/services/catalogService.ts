@@ -87,6 +87,17 @@ const assertRequesterAllowed = (
   }
 };
 
+export const retrieveEService = async (
+  eserviceId: EServiceId,
+  readModelService: ReadModelService
+): Promise<WithMetadata<EService>> => {
+  const eService = await readModelService.getEServiceById(eserviceId);
+  if (eService === undefined) {
+    throw eServiceNotFound(eserviceId);
+  }
+  return eService;
+};
+
 const retrieveDescriptor = (
   descriptorId: DescriptorId,
   eService: WithMetadata<EService>
