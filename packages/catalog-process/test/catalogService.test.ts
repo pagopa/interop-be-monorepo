@@ -852,11 +852,12 @@ describe("CatalogService", () => {
         ...mockEservice,
         descriptors: [{ ...mockDescriptor, state: "Draft" }],
       };
-      const event = publishDescriptorLogic({
+      const event = await publishDescriptorLogic({
         eServiceId: eService.id,
         descriptorId: eService.descriptors[0].id,
         authData,
         eService: addMetadata(eService),
+        listAgreementsForEServiceDescriptor: () => Promise.resolve([]),
       });
       expect(event[0].event.type).toBe("EServiceDescriptorUpdated");
       expect(event[0].event.data).toMatchObject({
@@ -871,7 +872,7 @@ describe("CatalogService", () => {
       });
     });
 
-    it("publish the descriptor and deprecate the current published descriptor", async () => {
+    it("publish the descriptor and archive the current published descriptor", async () => {
       const publishedDescriptorId = "published-descriptor-id";
       const eService: EService = {
         ...mockEservice,
@@ -884,11 +885,12 @@ describe("CatalogService", () => {
           { ...mockDescriptor, state: "Draft" },
         ],
       };
-      const event = publishDescriptorLogic({
+      const event = await publishDescriptorLogic({
         eServiceId: eService.id,
         descriptorId: eService.descriptors[1].id,
         authData,
         eService: addMetadata(eService),
+        listAgreementsForEServiceDescriptor: () => Promise.resolve([]),
       });
       expect(event[0].event.type).toBe("EServiceDescriptorUpdated");
       expect(event[0].event.data).toMatchObject({
@@ -896,12 +898,12 @@ describe("CatalogService", () => {
         eServiceDescriptor: {
           ...toDescriptorV1(mockDescriptor),
           id: publishedDescriptorId,
-          deprecatedAt: (
+          archivedAt: (
             event[0].event.data as {
-              eServiceDescriptor: { deprecatedAt: Date };
+              eServiceDescriptor: { archivedAt: Date };
             }
-          ).eServiceDescriptor.deprecatedAt,
-          state: toEServiceDescriptorStateV1("Deprecated"),
+          ).eServiceDescriptor.archivedAt,
+          state: toEServiceDescriptorStateV1("Archived"),
         },
       });
       expect(event[1].event.type).toBe("EServiceDescriptorUpdated");
@@ -925,8 +927,11 @@ describe("CatalogService", () => {
           descriptorId,
           authData,
           eService: addMetadata(mockEservice),
+          listAgreementsForEServiceDescriptor: () => Promise.resolve([]),
         })
-      ).toThrowError(eServiceDescriptorNotFound(mockEservice.id, descriptorId));
+      ).rejects.toThrowError(
+        eServiceDescriptorNotFound(mockEservice.id, descriptorId)
+      );
     });
 
     it("returns an error if the eservice target descriptor is not in a Draft state", async () => {
@@ -941,8 +946,9 @@ describe("CatalogService", () => {
           descriptorId: eService.descriptors[0].id,
           authData,
           eService: addMetadata(eService),
+          listAgreementsForEServiceDescriptor: () => Promise.resolve([]),
         })
-      ).toThrowError(
+      ).rejects.toThrowError(
         notValidDescriptor(eService.descriptors[0].id, "Published")
       );
     });
@@ -960,8 +966,9 @@ describe("CatalogService", () => {
             ...mockEservice,
             producerId: "some-org-id",
           }),
+          listAgreementsForEServiceDescriptor: () => Promise.resolve([]),
         })
-      ).toThrowError(operationForbidden);
+      ).rejects.toThrowError(operationForbidden);
     });
 
     it("returns an error when the service does not exist", async () => {
@@ -975,8 +982,9 @@ describe("CatalogService", () => {
             organizationId: "organizationId",
           },
           eService: undefined,
+          listAgreementsForEServiceDescriptor: () => Promise.resolve([]),
         })
-      ).toThrowError(eServiceNotFound(eServiceId));
+      ).rejects.toThrowError(eServiceNotFound(eServiceId));
     });
   });
   describe("suspendDescriptor", () => {
