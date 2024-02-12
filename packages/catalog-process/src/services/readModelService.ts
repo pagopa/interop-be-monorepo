@@ -19,7 +19,6 @@ import {
   DescriptorId,
   WithMetadata,
   Attribute,
-  EServiceId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
@@ -356,7 +355,7 @@ export function readModelServiceBuilder(
       eServiceId,
       descriptorId,
     }: {
-      eServiceId: EServiceId;
+      eServiceId: string;
       descriptorId: DescriptorId;
     }): Promise<Agreement[]> {
       const aggregationPipeline = [

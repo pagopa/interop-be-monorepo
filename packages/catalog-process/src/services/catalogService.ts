@@ -8,7 +8,6 @@ import {
 } from "pagopa-interop-commons";
 import {
   Agreement,
-  AgreementState,
   Attribute,
   Descriptor,
   DescriptorId,
@@ -16,7 +15,6 @@ import {
   Document,
   EService,
   EServiceEvent,
-  EServiceId,
   WithMetadata,
   catalogEventToBinaryData,
   descriptorState,
@@ -915,7 +913,7 @@ export async function publishDescriptorLogic({
   eService,
   listAgreementsForEServiceDescriptor,
 }: {
-  eServiceId: EServiceId;
+  eServiceId: string;
   descriptorId: DescriptorId;
   authData: AuthData;
   eService: WithMetadata<EService> | undefined;
@@ -923,7 +921,7 @@ export async function publishDescriptorLogic({
     eServiceId,
     descriptorId,
   }: {
-    eServiceId: EServiceId;
+    eServiceId: string;
     descriptorId: DescriptorId;
   }) => Promise<Agreement[]>;
 }): Promise<Array<CreateEvent<EServiceEvent>>> {
