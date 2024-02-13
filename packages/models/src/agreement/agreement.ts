@@ -4,6 +4,8 @@ import {
   AgreementDocumentId,
   AgreementId,
   DescriptorId,
+  EServiceId,
+  TenantId,
 } from "./../brandedIds.js";
 
 export const agreementState = {
@@ -20,53 +22,6 @@ export const AgreementState = z.enum([
   ...Object.values(agreementState).slice(1),
 ]);
 export type AgreementState = z.infer<typeof AgreementState>;
-
-export const agreementActivableStates: AgreementState[] = [
-  agreementState.pending,
-  agreementState.suspended,
-];
-export const agreementSuspendableStates: AgreementState[] = [
-  agreementState.active,
-  agreementState.suspended,
-];
-export const agreementArchivableStates: AgreementState[] = [
-  agreementState.active,
-  agreementState.suspended,
-];
-export const agreementSubmittableStates: AgreementState[] = [
-  agreementState.draft,
-];
-
-export const agreementUpdatableStates: AgreementState[] = [
-  agreementState.draft,
-];
-
-export const agreementUpgradableStates: AgreementState[] = [
-  agreementState.active,
-  agreementState.suspended,
-];
-export const agreementRejectableStates: AgreementState[] = [
-  agreementState.pending,
-];
-
-export const agreementDeletableStates: AgreementState[] = [
-  agreementState.draft,
-  agreementState.missingCertifiedAttributes,
-];
-
-export const agreementActivationFailureStates: AgreementState[] = [
-  agreementState.draft,
-  agreementState.pending,
-  agreementState.missingCertifiedAttributes,
-];
-
-export const agreementCloningConflictingStates: AgreementState[] = [
-  agreementState.draft,
-  agreementState.pending,
-  agreementState.missingCertifiedAttributes,
-  agreementState.active,
-  agreementState.suspended,
-];
 
 export const AgreementAttribute = z.object({ id: AttributeId });
 export type AgreementAttribute = z.infer<typeof AgreementAttribute>;
@@ -100,10 +55,10 @@ export type AgreementStamps = z.infer<typeof AgreementStamps>;
 
 export const Agreement = z.object({
   id: AgreementId,
-  eserviceId: z.string().uuid(),
+  eserviceId: EServiceId,
   descriptorId: DescriptorId,
-  producerId: z.string().uuid(),
-  consumerId: z.string().uuid(),
+  producerId: TenantId,
+  consumerId: TenantId,
   state: AgreementState,
   verifiedAttributes: z.array(AgreementAttribute),
   certifiedAttributes: z.array(AgreementAttribute),
