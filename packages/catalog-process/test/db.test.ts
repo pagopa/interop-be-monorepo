@@ -765,7 +765,41 @@ describe("database test", async () => {
     });
 
     describe("delete draft descriptor", () => {
-      it("should write on event-store for the deletion of a draft descriptor", async () => {
+      it("should write on event-store for the deletion of a draft descriptor (no interface nor documents to delete)", async () => {
+        const deleteFile = vi.spyOn(fileManager, "deleteFile");
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+
+        await catalogService.deleteDraftDescriptor(
+          eService.id,
+          descriptor.id,
+          getMockAuthData(eService.producerId)
+        );
+
+        const writtenEvent = await readLastEventByStreamId(
+          eService.id,
+          postgresDB
+        );
+        expect(writtenEvent.stream_id).toBe(eService.id);
+        expect(writtenEvent.version).toBe("1");
+        expect(writtenEvent.type).toBe("EServiceWithDescriptorsDeleted");
+        const writtenPayload = decodeProtobufPayload({
+          messageType: EServiceWithDescriptorsDeletedV1,
+          payload: writtenEvent.data,
+        });
+        expect(writtenPayload.eService).toEqual(toEServiceV1(eService));
+        expect(writtenPayload.descriptorId).toEqual(descriptor.id);
+        expect(deleteFile).not.toHaveBeenCalled();
+      });
+
+      it("should write on event-store for the deletion of a draft descriptor (with interface and document to delete)", async () => {
         const deleteFile = vi.spyOn(fileManager, "deleteFile");
         const descriptorInterface: Document = {
           ...mockDocument,
