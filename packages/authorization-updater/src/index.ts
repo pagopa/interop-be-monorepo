@@ -2,7 +2,7 @@ import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import {
   messageDecoderSupplier,
-  readModelWriterConfig,
+  kafkaConsumerConfig,
   logger,
 } from "pagopa-interop-commons";
 
@@ -18,9 +18,7 @@ async function processMessage({
     // TODO : update authorization to AuthjorizationManagement service
 
     logger.info(
-      `Authorization updated after "${JSON.stringify(
-        decodedMessage.type
-      )}" event`
+      `Authorization updated after ${JSON.stringify(decodedMessage.type)} event`
     );
   } catch (e) {
     logger.error(
@@ -29,5 +27,5 @@ async function processMessage({
   }
 }
 
-const config = readModelWriterConfig();
+const config = kafkaConsumerConfig();
 await runConsumer(config, processMessage).catch(logger.error);
