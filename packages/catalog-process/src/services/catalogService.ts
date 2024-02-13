@@ -957,9 +957,9 @@ export async function deleteDraftDescriptorLogic({
     throw notValidDescriptor(descriptorId, descriptor.state.toString());
   }
 
-  const interfacePath = descriptor.interface;
-  if (interfacePath !== undefined) {
-    await deleteFile(config.storageContainer, descriptor.interface.path).catch(
+  const descriptorInterface = descriptor.interface;
+  if (descriptorInterface !== undefined) {
+    await deleteFile(config.storageContainer, descriptorInterface.path).catch(
       (error) => {
         logger.error(
           `Error deleting interface for descriptor ${descriptorId} : ${error}`
