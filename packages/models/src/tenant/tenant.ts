@@ -1,5 +1,5 @@
 import z from "zod";
-import { AttributeId } from "../brandedIds.js";
+import { AttributeId, TenantId } from "../brandedIds.js";
 
 export const tenantKind = {
   PA: "PA",
@@ -113,7 +113,7 @@ export const TenantMail = z.object({
 export type TenantMail = z.infer<typeof TenantMail>;
 
 export const Tenant = z.object({
-  id: z.string().uuid(),
+  id: TenantId,
   kind: TenantKind.optional(),
   selfcareId: z.string().optional(),
   externalId: ExternalId,

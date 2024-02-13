@@ -12,6 +12,7 @@ import { toApiTenant } from "../model/domain/apiConverter.js";
 import {
   makeApiProblem,
   tenantBySelfcareIdNotFound,
+  tenantFromExternalIdNotFound,
   tenantNotFound,
 } from "../model/domain/errors.js";
 import {
@@ -129,11 +130,14 @@ const tenantsRouter = (
         API_ROLE,
         M2M_ROLE,
         SECURITY_ROLE,
+        INTERNAL_ROLE,
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
         try {
-          const tenant = await readModelService.getTenantById(req.params.id);
+          const tenant = await readModelService.getTenantById(
+            unsafeBrandId(req.params.id)
+          );
 
           if (tenant) {
             return res.status(200).json(toApiTenant(tenant.data)).end();
@@ -142,7 +146,7 @@ const tenantsRouter = (
               .status(404)
               .json(
                 makeApiProblem(
-                  tenantNotFound(req.params.id),
+                  tenantNotFound(unsafeBrandId(req.params.id)),
                   getTenantByIdErrorMapper
                 )
               )
@@ -178,7 +182,7 @@ const tenantsRouter = (
               .status(404)
               .json(
                 makeApiProblem(
-                  tenantNotFound(`${origin}/${code}`),
+                  tenantFromExternalIdNotFound(origin, code),
                   getTenantByExternalIdErrorMapper
                 )
               )
@@ -285,7 +289,7 @@ const tenantsRouter = (
           const { tenantId, attributeId } = req.params;
           await tenantService.updateTenantVerifiedAttribute({
             verifierId: req.ctx.authData.organizationId,
-            tenantId,
+            tenantId: unsafeBrandId(tenantId),
             attributeId: unsafeBrandId(attributeId),
             updateVerifiedTenantAttributeSeed: req.body,
           });
@@ -306,7 +310,7 @@ const tenantsRouter = (
         try {
           const { tenantId, attributeId, verifierId } = req.params;
           await tenantService.updateVerifiedAttributeExtensionDate(
-            tenantId,
+            unsafeBrandId(tenantId),
             unsafeBrandId(attributeId),
             verifierId
           );

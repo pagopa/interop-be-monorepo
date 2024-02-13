@@ -5,6 +5,8 @@ import {
   ApiError,
   DescriptorId,
   DescriptorState,
+  EServiceId,
+  TenantId,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 
@@ -40,9 +42,9 @@ export type ErrorCodes = keyof typeof errorCodes;
 
 export const makeApiProblem = makeApiProblemBuilder(errorCodes);
 
-export function eServiceNotFound(eServiceId: string): ApiError<ErrorCodes> {
+export function eServiceNotFound(eserviceId: EServiceId): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `EService ${eServiceId} not found`,
+    detail: `EService ${eserviceId} not found`,
     code: "eServiceNotFound",
     title: "EService not found",
   });
@@ -69,23 +71,23 @@ export function notLatestEServiceDescriptor(
 }
 
 export function descriptorNotFound(
-  eServiceId: string,
+  eserviceId: EServiceId,
   descriptorId: DescriptorId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Descriptor ${descriptorId} not found in EService ${eServiceId}`,
+    detail: `Descriptor ${descriptorId} not found in EService ${eserviceId}`,
     code: "descriptorNotFound",
     title: "Descriptor not found",
   });
 }
 
 export function descriptorNotInExpectedState(
-  eServiceId: string,
+  eserviceId: EServiceId,
   descriptorId: DescriptorId,
   allowedStates: DescriptorState[]
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Descriptor ${descriptorId} of EService ${eServiceId} has not status in ${allowedStates.join(
+    detail: `Descriptor ${descriptorId} of EService ${eserviceId} has not status in ${allowedStates.join(
       ","
     )}`,
     code: "descriptorNotInExpectedState",
@@ -95,7 +97,7 @@ export function descriptorNotInExpectedState(
 
 export function missingCertifiedAttributesError(
   descriptorId: DescriptorId,
-  consumerId: string
+  consumerId: TenantId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Required certified attribute is missing. Descriptor ${descriptorId}, Consumer: ${consumerId}`,
@@ -105,11 +107,11 @@ export function missingCertifiedAttributesError(
 }
 
 export function agreementAlreadyExists(
-  consumerId: string,
-  eServiceId: string
+  consumerId: TenantId,
+  eserviceId: EServiceId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Agreement already exists for Consumer = ${consumerId}, EService = ${eServiceId}`,
+    detail: `Agreement already exists for Consumer = ${consumerId}, EService = ${eserviceId}`,
     code: "agreementAlreadyExists",
     title: "Agreement already exists",
   });
@@ -241,7 +243,7 @@ export function agreementSelfcareIdNotFound(
 }
 
 export function publishedDescriptorNotFound(
-  eserviceId: string
+  eserviceId: EServiceId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Published descriptor not found in EService ${eserviceId}`,
@@ -251,7 +253,7 @@ export function publishedDescriptorNotFound(
 }
 
 export function unexpectedVersionFormat(
-  eserviceId: string,
+  eserviceId: EServiceId,
   descriptorId: DescriptorId
 ): ApiError<ErrorCodes> {
   return new ApiError({
@@ -262,7 +264,7 @@ export function unexpectedVersionFormat(
 }
 
 export function noNewerDescriptor(
-  eserviceId: string,
+  eserviceId: EServiceId,
   descriptorId: DescriptorId
 ): ApiError<ErrorCodes> {
   return new ApiError({
