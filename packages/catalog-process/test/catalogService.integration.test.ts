@@ -347,6 +347,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(eServiceCannotBeUpdated(eService.id));
       });
+
       it("should throw eServiceCannotBeUpdated if the eService descriptor is in archived state", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
@@ -370,6 +371,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(eServiceCannotBeUpdated(eService.id));
       });
+
       it("should throw eServiceCannotBeUpdated if the eService descriptor is in suspended state", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
@@ -393,6 +395,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(eServiceCannotBeUpdated(eService.id));
       });
+
       it("should throw eServiceCannotBeUpdated if the eService descriptor is in deprecated state", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
