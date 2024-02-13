@@ -1,6 +1,12 @@
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 
+export const EServiceId = z.string().uuid().brand("EServiceId");
+export type EServiceId = z.infer<typeof EServiceId>;
+
+export const EServiceDocumentId = z.string().uuid().brand("EServiceDocumentId");
+export type EServiceDocumentId = z.infer<typeof EServiceDocumentId>;
+
 export const AgreementId = z.string().uuid().brand("AgreementId");
 export type AgreementId = z.infer<typeof AgreementId>;
 
@@ -16,7 +22,17 @@ export type AttributeId = z.infer<typeof AttributeId>;
 export const DescriptorId = z.string().uuid().brand("DescriptorId");
 export type DescriptorId = z.infer<typeof DescriptorId>;
 
-type IDS = AgreementId | AgreementDocumentId | DescriptorId | AttributeId;
+export const TenantId = z.string().uuid().brand("TenantId");
+export type TenantId = z.infer<typeof TenantId>;
+
+type IDS =
+  | EServiceId
+  | EServiceDocumentId
+  | AgreementId
+  | AgreementDocumentId
+  | DescriptorId
+  | AttributeId
+  | TenantId;
 
 // This function is used to generate a new ID for a new object
 // it infers the type of the ID based on how is used the result
