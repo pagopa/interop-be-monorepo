@@ -3,9 +3,9 @@ import {
   AgreementState,
   AgreementDocument,
   agreementState,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { utcToZonedTime } from "date-fns-tz";
 
 import {
   ApiAgreement,
@@ -90,10 +90,10 @@ export const agreementToApiAgreement = (
 export const apiAgreementDocumentToAgreementDocument = (
   input: ApiAgreementDocumentSeed
 ): AgreementDocument => ({
-  id: input.id,
+  id: unsafeBrandId(input.id),
   name: input.name,
   prettyName: input.prettyName,
   contentType: input.contentType,
   path: input.path,
-  createdAt: utcToZonedTime(new Date(), "Etc/UTC"),
+  createdAt: new Date(),
 });

@@ -6,6 +6,7 @@ import {
   ZodiosContext,
   authorizationMiddleware,
 } from "pagopa-interop-commons";
+import { unsafeBrandId } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import {
@@ -16,6 +17,10 @@ import { config } from "../utilities/config.js";
 import { attributeNotFound, makeApiProblem } from "../model/domain/errors.js";
 import { attributeRegistryServiceBuilder } from "../services/attributeRegistryService.js";
 import {
+  createCertifiedAttributesErrorMapper,
+  createDeclaredAttributesErrorMapper,
+  createInternalCertifiedAttributesErrorMapper,
+  createVerifiedAttributesErrorMapper,
   getAttributeByIdErrorMapper,
   getAttributeByOriginAndCodeErrorMapper,
   getAttributesByNameErrorMapper,
@@ -154,7 +159,7 @@ const attributeRouter = (
       async (req, res) => {
         try {
           const attribute = await readModelService.getAttributeById(
-            req.params.attributeId
+            unsafeBrandId(req.params.attributeId)
           );
 
           if (attribute) {
@@ -189,7 +194,7 @@ const attributeRouter = (
 
         try {
           const attributes = await readModelService.getAttributesByIds({
-            ids: req.body,
+            ids: req.body.map((a) => unsafeBrandId(a)),
             offset,
             limit,
           });
@@ -208,7 +213,21 @@ const attributeRouter = (
     .post(
       "/certifiedAttributes",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE, M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const id = await attributeRegistryService.createCertifiedAttribute(
+            req.body,
+            req.ctx.authData
+          );
+          return res.status(200).json({ id }).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            createCertifiedAttributesErrorMapper
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/declaredAttributes",
@@ -221,7 +240,10 @@ const attributeRouter = (
           );
           return res.status(200).json({ id }).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, getAttributeByIdErrorMapper);
+          const errorRes = makeApiProblem(
+            error,
+            createDeclaredAttributesErrorMapper
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -237,7 +259,10 @@ const attributeRouter = (
           );
           return res.status(200).json({ id }).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, getAttributeByIdErrorMapper);
+          const errorRes = makeApiProblem(
+            error,
+            createVerifiedAttributesErrorMapper
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -245,7 +270,21 @@ const attributeRouter = (
     .post(
       "/internal/certifiedAttributes",
       authorizationMiddleware([INTERNAL_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const id =
+            await attributeRegistryService.createInternalCertifiedAttribute(
+              req.body
+            );
+          return res.status(200).json({ id }).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            createInternalCertifiedAttributesErrorMapper
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     );
 
   return attributeRouter;

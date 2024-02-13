@@ -12,8 +12,11 @@ import {
 } from "pagopa-interop-commons";
 import {
   Agreement,
+  AttributeId,
+  AgreementId,
   AgreementState,
   Attribute,
+  DescriptorId,
   EService,
   ListResult,
   Tenant,
@@ -21,18 +24,23 @@ import {
   agreementState,
   descriptorState,
   genericError,
+  EServiceId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { z } from "zod";
-import { Filter } from "mongodb";
+import { Document, Filter } from "mongodb";
+import {
+  CompactEService,
+  CompactOrganization,
+} from "../../model/domain/models.js";
 
 export type AgreementQueryFilters = {
   producerId?: string | string[];
   consumerId?: string | string[];
-  eserviceId?: string | string[];
-  descriptorId?: string | string[];
+  eserviceId?: EServiceId | EServiceId[];
+  descriptorId?: DescriptorId | DescriptorId[];
   agreementStates?: AgreementState[];
-  attributeId?: string | string[];
+  attributeId?: AttributeId | AttributeId[];
   showOnlyUpgradeable?: boolean;
 };
 
@@ -47,7 +55,9 @@ const makeFilter = (
     .with(P.string, () => ({
       [`data.${fieldName}`]: value,
     }))
-    .with(P.array(P.string), () => ({ [`data.${fieldName}`]: { $in: value } }))
+    .with(P.array(P.string), (a) =>
+      a.length === 0 ? undefined : { [`data.${fieldName}`]: { $in: value } }
+    )
     .otherwise(() => {
       logger.error(
         `Unable to build filter for field ${fieldName} and value ${value}`
@@ -115,46 +125,53 @@ const getAgreementsFilters = (
   return { $match: queryFilters };
 };
 
-export const getAllAgreements = async (
+const getTenantsByNamePipeline = (
+  tenantName: string | undefined,
+  tenantIdField: Extract<AgreementDataFields, "producerId" | "consumerId">
+): Document[] => [
+  {
+    $lookup: {
+      from: "tenants",
+      localField: `data.${tenantIdField}`,
+      foreignField: "data.id",
+      as: "tenants",
+    },
+  },
+  {
+    $unwind: {
+      path: "$tenants",
+      preserveNullAndEmptyArrays: false,
+    },
+  },
+  {
+    $match: {
+      "tenants.data.name": { $regex: new RegExp(tenantName || "", "i") },
+    },
+  },
+  {
+    $group: {
+      _id: `$data.${tenantIdField}`,
+      tenantId: { $first: `$data.${tenantIdField}` },
+      tenantName: { $first: "$tenants.data.name" },
+    },
+  },
+  {
+    $project: {
+      data: { id: "$tenantId", name: "$tenantName" },
+      lowerName: { $toLower: "$tenantName" },
+    },
+  },
+  {
+    $sort: { lowerName: 1 },
+  },
+];
+
+const getAllAgreements = async (
   agreements: AgreementCollection,
   filters: AgreementQueryFilters
 ): Promise<Array<WithMetadata<Agreement>>> => {
-  const limit = 50;
-  let offset = 0;
-  let results: Array<WithMetadata<Agreement>> = [];
-
-  while (true) {
-    const agreementsChunk: Array<WithMetadata<Agreement>> = await getAgreements(
-      agreements,
-      filters,
-      offset,
-      limit
-    );
-
-    results = results.concat(agreementsChunk);
-
-    if (agreementsChunk.length < limit) {
-      break;
-    }
-
-    offset += limit;
-  }
-
-  return results;
-};
-
-const getAgreements = async (
-  agreements: AgreementCollection,
-  filters: AgreementQueryFilters,
-  offset: number,
-  limit: number
-): Promise<Array<WithMetadata<Agreement>>> => {
   const data = await agreements
-    .aggregate([
-      getAgreementsFilters(filters),
-      { $skip: offset },
-      { $limit: limit },
-    ])
+    .aggregate([getAgreementsFilters(filters)])
     .toArray();
 
   const result = z
@@ -206,6 +223,44 @@ async function getAttribute(
     };
   }
   return undefined;
+}
+
+async function searchTenantsByName(
+  agreements: AgreementCollection,
+  tenantName: string | undefined,
+  tenantIdField: "producerId" | "consumerId",
+  limit: number,
+  offset: number
+): Promise<ListResult<CompactOrganization>> {
+  const aggregationPipeline = getTenantsByNamePipeline(
+    tenantName,
+    tenantIdField
+  );
+
+  const data = await agreements
+    .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }])
+    .toArray();
+
+  const result = z
+    .array(CompactOrganization)
+    .safeParse(data.map((d) => d.data));
+  if (!result.success) {
+    logger.error(
+      `Unable to parse compact organization items: result ${JSON.stringify(
+        result
+      )} - data ${JSON.stringify(data)} `
+    );
+
+    throw genericError("Unable to parse compact organization items");
+  }
+
+  return {
+    results: result.data,
+    totalCount: await ReadModelRepository.getTotalCount(
+      agreements,
+      aggregationPipeline
+    ),
+  };
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -323,13 +378,13 @@ export function readModelServiceBuilder(
       return {
         results: result.data,
         totalCount: await ReadModelRepository.getTotalCount(
-          eservices,
+          agreements,
           aggregationPipeline
         ),
       };
     },
     async readAgreementById(
-      agreementId: string
+      agreementId: AgreementId
     ): Promise<WithMetadata<Agreement> | undefined> {
       const data = await agreements.findOne(
         { "data.id": agreementId },
@@ -431,6 +486,101 @@ export function readModelServiceBuilder(
       id: string
     ): Promise<WithMetadata<Attribute> | undefined> {
       return getAttribute(attributes, { "data.id": id });
+    },
+    async listConsumers(
+      name: string | undefined,
+      limit: number,
+      offset: number
+    ): Promise<ListResult<CompactOrganization>> {
+      return searchTenantsByName(agreements, name, "consumerId", limit, offset);
+    },
+    async listProducers(
+      name: string | undefined,
+      limit: number,
+      offset: number
+    ): Promise<ListResult<CompactOrganization>> {
+      return searchTenantsByName(agreements, name, "producerId", limit, offset);
+    },
+    async listEServicesAgreements(
+      eServiceName: string | undefined,
+      consumerIds: string[],
+      producerIds: string[],
+      limit: number,
+      offset: number
+    ): Promise<ListResult<CompactEService>> {
+      const consumerFilter = makeFilter("consumerId", consumerIds);
+      const producerFilter = makeFilter("producerId", producerIds);
+
+      const aggregationPipeline = [
+        {
+          $lookup: {
+            from: "eservices",
+            localField: "data.eserviceId",
+            foreignField: "data.id",
+            as: "eservices",
+          },
+        },
+        {
+          $unwind: {
+            path: "$eservices",
+            preserveNullAndEmptyArrays: false,
+          },
+        },
+        {
+          $match: {
+            "eservices.data.name": {
+              $regex: new RegExp(eServiceName || "", "i"),
+            },
+            consumerFilter,
+            producerFilter,
+          },
+        },
+        {
+          $group: {
+            _id: "$data.eserviceId",
+            eserviceId: { $first: "$data.eserviceId" },
+            eserviceName: { $first: "$eservices.data.name" },
+          },
+        },
+        {
+          $project: {
+            data: { id: "$eserviceId", name: "$eserviceName" },
+            lowerName: { $toLower: "$eserviceName" },
+          },
+        },
+        {
+          $sort: { lowerName: 1 },
+        },
+      ];
+
+      const data = await agreements
+        .aggregate([
+          ...aggregationPipeline,
+          { $skip: offset },
+          { $limit: limit },
+        ])
+        .toArray();
+
+      const result = z
+        .array(CompactEService)
+        .safeParse(data.map((d) => d.data));
+      if (!result.success) {
+        logger.error(
+          `Unable to parse compact eservice items: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+
+        throw genericError("Unable to parse compact eseervice items");
+      }
+
+      return {
+        results: result.data,
+        totalCount: await ReadModelRepository.getTotalCount(
+          agreements,
+          aggregationPipeline
+        ),
+      };
     },
   };
 }

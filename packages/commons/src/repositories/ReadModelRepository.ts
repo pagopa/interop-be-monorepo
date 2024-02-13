@@ -18,12 +18,12 @@ import { ReadModelDbConfig, logger } from "../index.js";
 export const Metadata = z.object({ version: z.number() });
 export type Metadata = z.infer<typeof Metadata>;
 
-type GenericCollection<T> = Collection<{
+export type GenericCollection<T> = Collection<{
   data: T;
   metadata: Metadata;
 }>;
 
-export type EServiceCollection = GenericCollection<EService | undefined>;
+export type EServiceCollection = GenericCollection<EService>;
 export type AgreementCollection = GenericCollection<Agreement>;
 export type TenantCollection = GenericCollection<Tenant>;
 export type AttributeCollection = GenericCollection<Attribute>;
@@ -173,9 +173,12 @@ export class ReadModelRepository {
 
   public static async getTotalCount(
     collection: Collections,
-    aggregation: object[]
+    aggregation: object[],
+    allowDiskUse: boolean = false
   ): Promise<number> {
-    const query = collection.aggregate([...aggregation, { $count: "count" }]);
+    const query = collection.aggregate([...aggregation, { $count: "count" }], {
+      allowDiskUse,
+    });
 
     const data = await query.toArray();
     const result = z.array(z.object({ count: z.number() })).safeParse(data);

@@ -3,17 +3,23 @@
   This file will be removed once all models are converted from scala.
  */
 import { z } from "zod";
-import { DescriptorState, AgreementState } from "pagopa-interop-models";
+import {
+  DescriptorState,
+  AgreementState,
+  DescriptorId,
+  EServiceId,
+  TenantId,
+} from "pagopa-interop-models";
 import * as api from "../generated/api.js";
 import { ApiEServiceDescriptorDocumentSeed } from "../types.js";
 
 export type EServiceSeed = z.infer<typeof api.schemas.EServiceSeed> & {
-  readonly producerId: string;
+  readonly producerId: TenantId;
 };
 
 export type EServiceDocument = {
-  readonly eServiceId: string;
-  readonly descriptorId: string;
+  readonly eserviceId: EServiceId;
+  readonly descriptorId: DescriptorId;
   readonly document: {
     readonly name: string;
     readonly contentType: string;
@@ -62,11 +68,11 @@ export const consumer = z.object({
 export type Consumer = z.infer<typeof consumer>;
 
 export const convertToDocumentEServiceEventData = (
-  eServiceId: string,
-  descriptorId: string,
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId,
   apiEServiceDescriptorDocumentSeed: ApiEServiceDescriptorDocumentSeed
 ): EServiceDocument => ({
-  eServiceId,
+  eserviceId,
   descriptorId,
   document: {
     name: apiEServiceDescriptorDocumentSeed.fileName,
@@ -82,7 +88,7 @@ export const convertToDocumentEServiceEventData = (
 
 export const convertToDescriptorEServiceEventData = (
   eserviceDescriptorSeed: EServiceDescriptorSeed,
-  descriptorId: string,
+  descriptorId: DescriptorId,
   version: string
 ): EServiceDescriptor => ({
   id: descriptorId,

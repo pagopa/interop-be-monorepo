@@ -1,9 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: interop-be-catalog-consumer-refactor
-  namespace: dev-refactor
-data:  
-  KAFKA_CLIENT_ID: "dev-pagopa-interop-catalog"
-  KAFKA_GROUP_ID: "catalog.public.event"
-  KAFKA_BROKERS: "boot-yqksbq44.c3.kafka-serverless.eu-central-1.amazonaws.com:9098"

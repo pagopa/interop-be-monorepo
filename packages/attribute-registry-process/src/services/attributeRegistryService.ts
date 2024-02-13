@@ -10,17 +10,24 @@ import {
   WithMetadata,
   attributeEventToBinaryData,
   attributeKind,
+  generateId,
+  TenantId,
+  unsafeBrandId,
+  AttributeId,
 } from "pagopa-interop-models";
-import { v4 as uuidv4 } from "uuid";
 import { AttributeRegistryConfig } from "../utilities/config.js";
 import {
+  ApiCertifiedAttributeSeed,
   ApiDeclaredAttributeSeed,
+  ApiInternalCertifiedAttributeSeed,
   ApiVerifiedAttributeSeed,
 } from "../model/types.js";
 import { toCreateEventAttributeAdded } from "../model/domain/toEvent.js";
 import {
+  OrganizationIsNotACertifier,
   attributeDuplicate,
   originNotCompliant,
+  tenantNotFound,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -45,36 +52,95 @@ export function attributeRegistryServiceBuilder(
     async createDeclaredAttribute(
       apiDeclaredAttributeSeed: ApiDeclaredAttributeSeed,
       authData: AuthData
-    ): Promise<string> {
+    ): Promise<AttributeId> {
       if (authData.externalId.origin !== "IPA") {
         throw originNotCompliant("IPA");
       }
 
-      return repository.createEvent(
-        createDeclaredAttributeLogic({
-          attribute: await readModelService.getAttributeByName(
-            apiDeclaredAttributeSeed.name
-          ),
-          apiDeclaredAttributeSeed,
-        })
+      return unsafeBrandId<AttributeId>(
+        await repository.createEvent(
+          createDeclaredAttributeLogic({
+            attribute: await readModelService.getAttributeByName(
+              apiDeclaredAttributeSeed.name
+            ),
+            apiDeclaredAttributeSeed,
+          })
+        )
       );
     },
 
     async createVerifiedAttribute(
       apiVerifiedAttributeSeed: ApiVerifiedAttributeSeed,
       authData: AuthData
-    ): Promise<string> {
+    ): Promise<AttributeId> {
       if (authData.externalId.origin !== "IPA") {
         throw originNotCompliant("IPA");
       }
 
-      return repository.createEvent(
-        createVerifiedAttributeLogic({
-          attribute: await readModelService.getAttributeByName(
-            apiVerifiedAttributeSeed.name
-          ),
-          apiVerifiedAttributeSeed,
-        })
+      return unsafeBrandId<AttributeId>(
+        await repository.createEvent(
+          createVerifiedAttributeLogic({
+            attribute: await readModelService.getAttributeByName(
+              apiVerifiedAttributeSeed.name
+            ),
+            apiVerifiedAttributeSeed,
+          })
+        )
+      );
+    },
+    async getCertifierId(tenantId: TenantId): Promise<string> {
+      const tenant = await readModelService.getTenantById(tenantId);
+      if (!tenant) {
+        throw tenantNotFound(tenantId);
+      }
+
+      const certifier = tenant.data.features
+        .filter(({ type }) => type === "Certifier")
+        .find(({ certifierId }) => certifierId.trim().length > 0);
+
+      if (certifier) {
+        return certifier.certifierId;
+      }
+      throw OrganizationIsNotACertifier(tenantId);
+    },
+    async createCertifiedAttribute(
+      apiCertifiedAttributeSeed: ApiCertifiedAttributeSeed,
+      authData: AuthData
+    ): Promise<AttributeId> {
+      const certifierPromise = this.getCertifierId(authData.organizationId);
+      const attributePromise = readModelService.getAttributeByCodeAndName(
+        apiCertifiedAttributeSeed.code,
+        apiCertifiedAttributeSeed.name
+      );
+
+      const [certifier, attribute] = await Promise.all([
+        certifierPromise,
+        attributePromise,
+      ]);
+
+      return unsafeBrandId<AttributeId>(
+        await repository.createEvent(
+          createCertifiedAttributeLogic({
+            attribute,
+            apiCertifiedAttributeSeed,
+            certifier,
+          })
+        )
+      );
+    },
+    async createInternalCertifiedAttribute(
+      apiInternalCertifiedAttributeSeed: ApiInternalCertifiedAttributeSeed
+    ): Promise<AttributeId> {
+      return unsafeBrandId<AttributeId>(
+        await repository.createEvent(
+          createInternalCertifiedAttributeLogic({
+            attribute: await readModelService.getAttributeByCodeAndName(
+              apiInternalCertifiedAttributeSeed.code,
+              apiInternalCertifiedAttributeSeed.name
+            ),
+            apiInternalCertifiedAttributeSeed,
+          })
+        )
       );
     },
   };
@@ -96,7 +162,7 @@ export function createDeclaredAttributeLogic({
   }
 
   const newDeclaredAttribute: Attribute = {
-    id: uuidv4(),
+    id: generateId(),
     kind: attributeKind.declared,
     name: apiDeclaredAttributeSeed.name,
     description: apiDeclaredAttributeSeed.description,
@@ -120,7 +186,7 @@ export function createVerifiedAttributeLogic({
   }
 
   const newVerifiedAttribute: Attribute = {
-    id: uuidv4(),
+    id: generateId(),
     kind: attributeKind.verified,
     name: apiVerifiedAttributeSeed.name,
     description: apiVerifiedAttributeSeed.description,
@@ -130,4 +196,54 @@ export function createVerifiedAttributeLogic({
   };
 
   return toCreateEventAttributeAdded(newVerifiedAttribute);
+}
+
+export function createCertifiedAttributeLogic({
+  attribute,
+  apiCertifiedAttributeSeed,
+  certifier,
+}: {
+  attribute: WithMetadata<Attribute> | undefined;
+  apiCertifiedAttributeSeed: ApiCertifiedAttributeSeed;
+  certifier: string;
+}): CreateEvent<AttributeEvent> {
+  if (attribute) {
+    throw attributeDuplicate(apiCertifiedAttributeSeed.name);
+  }
+
+  const newCertifiedAttribute: Attribute = {
+    id: generateId(),
+    kind: attributeKind.certified,
+    name: apiCertifiedAttributeSeed.name,
+    description: apiCertifiedAttributeSeed.description,
+    creationTime: new Date(),
+    code: apiCertifiedAttributeSeed.code,
+    origin: certifier,
+  };
+
+  return toCreateEventAttributeAdded(newCertifiedAttribute);
+}
+
+export function createInternalCertifiedAttributeLogic({
+  attribute,
+  apiInternalCertifiedAttributeSeed,
+}: {
+  attribute: WithMetadata<Attribute> | undefined;
+  apiInternalCertifiedAttributeSeed: ApiInternalCertifiedAttributeSeed;
+}): CreateEvent<AttributeEvent> {
+  if (attribute) {
+    throw attributeDuplicate(apiInternalCertifiedAttributeSeed.name);
+  }
+
+  const newInternalCertifiedAttribute: Attribute = {
+    id: generateId(),
+    kind: attributeKind.certified,
+    name: apiInternalCertifiedAttributeSeed.name,
+    description: apiInternalCertifiedAttributeSeed.description,
+    creationTime: new Date(),
+    code: apiInternalCertifiedAttributeSeed.code,
+    origin: apiInternalCertifiedAttributeSeed.origin,
+  };
+
+  return toCreateEventAttributeAdded(newInternalCertifiedAttribute);
 }

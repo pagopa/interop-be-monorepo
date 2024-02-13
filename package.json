@@ -6,9 +6,9 @@
   },
   "scripts": {
     "start:catalog": "turbo start --filter pagopa-interop-catalog-process",
-    "start:catalog-consumer": "turbo start --filter pagopa-interop-catalog-event-consumer",
+    "start:catalog-readmodel-writer": "turbo start --filter pagopa-interop-catalog-readmodel-writer",
     "start:agreement": "turbo start --filter pagopa-interop-agreement-process",
-    "start:agreement-consumer": "turbo start --filter pagopa-interop-agreement-event-consumer",
+    "start:agreement-readmodel-writer": "turbo start --filter pagopa-interop-agreement-readmodel-writer",
     "start:attribute": "turbo start --filter pagopa-interop-attribute-registry-process",
     "start:attribute-consumer": "turbo start --filter pagopa-interop-attribute-registry-event-consumer",
     "start:tenant": "turbo start --filter pagopa-interop-tenant-process",
