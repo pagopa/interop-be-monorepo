@@ -222,12 +222,27 @@ export function catalogServiceBuilder(
       );
     },
     async getEServiceById(
-      eserviceId: EServiceId
-    ): Promise<WithMetadata<EService>> {
+      eserviceId: EServiceId,
+      authData: AuthData
+    ): Promise<EService> {
       logger.info(`Retrieving EService ${eserviceId}`);
-      const eService = await readModelService.getEServiceById(eserviceId);
-      assertEServiceExist(eserviceId, eService);
-      return eService;
+      const eService = await retrieveEService(eserviceId, readModelService);
+
+      if (isUserAllowedToSeeDraft(authData, eService.data.producerId)) {
+        return eService.data;
+      }
+      const eServiceWithoutDraft: EService = {
+        ...eService.data,
+        descriptors: eService.data.descriptors.filter(
+          (d) => d.state !== descriptorState.draft
+        ),
+      };
+
+      if (eServiceWithoutDraft.descriptors.length === 0) {
+        throw eServiceNotFound(eserviceId);
+      }
+
+      return eServiceWithoutDraft;
     },
     async getEServices(
       authData: AuthData,
@@ -538,29 +553,6 @@ export function catalogServiceBuilder(
           eService,
         })
       );
-    },
-
-    async getEServiceById(
-      eServiceId: EServiceId,
-      authData: AuthData
-    ): Promise<EService> {
-      const eService = await retrieveEService(eServiceId, readModelService);
-
-      if (isUserAllowedToSeeDraft(authData, eService.data.producerId)) {
-        return eService.data;
-      }
-      const eServiceWithoutDraft: EService = {
-        ...eService.data,
-        descriptors: eService.data.descriptors.filter(
-          (d) => d.state !== descriptorState.draft
-        ),
-      };
-
-      if (eServiceWithoutDraft.descriptors.length === 0) {
-        throw eServiceNotFound(eServiceId);
-      }
-
-      return eServiceWithoutDraft;
     },
   };
 }
