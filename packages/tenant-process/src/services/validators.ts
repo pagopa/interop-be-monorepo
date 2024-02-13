@@ -5,6 +5,7 @@ import {
   ExternalId,
   Tenant,
   TenantAttribute,
+  TenantId,
   TenantKind,
   TenantVerifier,
   WithMetadata,
@@ -25,7 +26,7 @@ import {
 import { ReadModelService } from "./readModelService.js";
 
 export function assertTenantExists(
-  tenantId: string,
+  tenantId: TenantId,
   tenant: WithMetadata<Tenant> | undefined
 ): asserts tenant is NonNullable<WithMetadata<Tenant>> {
   if (tenant === undefined) {
@@ -47,7 +48,7 @@ export function assertVerifiedAttributeExistsInTenant(
 
 export function assertOrganizationVerifierExist(
   verifierId: string,
-  tenantId: string,
+  tenantId: TenantId,
   attributeId: AttributeId,
   tenantVerifier: TenantVerifier | undefined
 ): asserts tenantVerifier is NonNullable<TenantVerifier> {
@@ -57,13 +58,13 @@ export function assertOrganizationVerifierExist(
 }
 
 export function assertExpirationDateExist(
-  tenantId: string,
+  tenantId: TenantId,
   attributeId: string,
   verifierId: string,
   expirationDate: Date | undefined
 ): asserts expirationDate is Date {
   if (expirationDate === undefined) {
-    expirationDateNotFoundInVerifier(tenantId, attributeId, verifierId);
+    expirationDateNotFoundInVerifier(verifierId, attributeId, tenantId);
   }
 }
 
@@ -165,7 +166,7 @@ export function assertValidExpirationDate(
 
 export function assertOrganizationIsInAttributeVerifiers(
   verifierId: string,
-  tenantId: string,
+  tenantId: TenantId,
   attribute: Extract<TenantAttribute, { type: "verified" }>
 ): void {
   if (!attribute.verifiedBy.some((v) => v.id === verifierId)) {

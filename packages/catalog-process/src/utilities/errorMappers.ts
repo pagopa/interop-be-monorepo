@@ -14,6 +14,11 @@ const {
   HTTP_STATUS_CONFLICT,
 } = constants;
 
+export const getEServiceErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const createEServiceErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -48,18 +53,10 @@ export const documentCreateErrorMapper = (
       "eServiceDescriptorNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
-export const documentUpdateDeleteErrorMapper = (
-  error: ApiError<ErrorCodes>
-): number =>
-  match(error.code)
     .with(
-      "eServiceNotFound",
-      "eServiceDescriptorNotFound",
-      "eServiceDocumentNotFound",
-      () => HTTP_STATUS_NOT_FOUND
+      "notValidDescriptor",
+      "interfaceAlreadyExists",
+      () => HTTP_STATUS_BAD_REQUEST
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -74,12 +71,30 @@ export const documentGetErrorMapper = (error: ApiError<ErrorCodes>): number =>
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const documentUpdateDeleteErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound",
+      "eServiceDocumentNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with("notValidDescriptor", () => HTTP_STATUS_BAD_REQUEST)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const createDescriptorErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
     .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("draftDescriptorAlreadyExists", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "draftDescriptorAlreadyExists",
+      "attributeNotFound",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -158,6 +173,7 @@ export const cloneEServiceByDescriptorErrorMapper = (
       "eServiceDescriptorNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
+    .with("eServiceDuplicate", () => HTTP_STATUS_CONFLICT)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
