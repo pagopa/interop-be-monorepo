@@ -641,12 +641,7 @@ export function uploadDocumentLogic({
   assertEServiceExist(eserviceId, eService);
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
 
-  const descriptor = eService.data.descriptors.find(
-    (d: Descriptor) => d.id === descriptorId
-  );
-  if (descriptor === undefined) {
-    throw eServiceDescriptorNotFound(eserviceId, descriptorId);
-  }
+  retrieveDescriptor(descriptorId, eService);
 
   return toCreateEventEServiceDocumentAdded(
     eserviceId,
@@ -686,13 +681,11 @@ export async function deleteDocumentLogic({
   assertEServiceExist(eserviceId, eService);
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
 
-  const descriptor = eService.data.descriptors.find(
-    (d: Descriptor) => d.id === descriptorId
-  );
+  const descriptor = retrieveDescriptor(descriptorId, eService);
 
-  const document = (
-    descriptor ? [...descriptor.docs, descriptor.interface] : []
-  ).find((doc) => doc != null && doc.id === documentId);
+  const document = [...descriptor.docs, descriptor.interface].find(
+    (doc) => doc != null && doc.id === documentId
+  );
   if (document === undefined) {
     throw eServiceDocumentNotFound(eserviceId, descriptorId, documentId);
   }
@@ -725,12 +718,7 @@ export async function updateDocumentLogic({
   assertEServiceExist(eserviceId, eService);
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
 
-  const descriptor = eService.data.descriptors.find(
-    (d: Descriptor) => d.id === descriptorId
-  );
-  if (descriptor === undefined) {
-    throw eServiceDescriptorNotFound(eserviceId, descriptorId);
-  }
+  const descriptor = retrieveDescriptor(descriptorId, eService);
 
   const document = (
     descriptor ? [...descriptor.docs, descriptor.interface] : []
@@ -830,13 +818,10 @@ export async function deleteDraftDescriptorLogic({
   assertEServiceExist(eserviceId, eService);
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
 
-  const descriptor = eService.data.descriptors.find(
-    (d: Descriptor) =>
-      d.id === descriptorId && d.state === descriptorState.draft
-  );
+  const descriptor = retrieveDescriptor(descriptorId, eService);
 
-  if (descriptor === undefined) {
-    throw eServiceDescriptorNotFound(eserviceId, descriptorId);
+  if (descriptor.state !== descriptorState.draft) {
+    throw notValidDescriptor(descriptorId, descriptor.state.toString());
   }
 
   const interfacePath = descriptor.interface;
@@ -873,12 +858,7 @@ export function updateDescriptorLogic({
   assertEServiceExist(eserviceId, eService);
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
 
-  const descriptor = eService.data.descriptors.find(
-    (d: Descriptor) => d.id === descriptorId
-  );
-  if (descriptor === undefined) {
-    throw eServiceDescriptorNotFound(eserviceId, descriptorId);
-  }
+  const descriptor = retrieveDescriptor(descriptorId, eService);
 
   if (descriptor.state !== descriptorState.draft) {
     throw notValidDescriptor(descriptorId, descriptor.state.toString());
