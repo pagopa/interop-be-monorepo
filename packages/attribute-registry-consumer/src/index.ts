@@ -2,11 +2,11 @@ import { Kafka, KafkaMessage } from "kafkajs";
 import {
   ReadModelRepository,
   consumerConfig,
+  decodeKafkaMessage,
   logger,
 } from "pagopa-interop-commons";
 import { createMechanism } from "@jm18457/kafkajs-msk-iam-authentication-mechanism";
-
-import { decodeKafkaMessage } from "./model/models.js";
+import { AttributeEvent } from "pagopa-interop-models";
 import { handleMessage } from "./attributeRegistryConsumerService.js";
 
 const config = consumerConfig();
@@ -45,7 +45,10 @@ await consumer.subscribe({
 
 async function processMessage(message: KafkaMessage): Promise<void> {
   try {
-    await handleMessage(decodeKafkaMessage(message), attributes);
+    await handleMessage(
+      decodeKafkaMessage(message, AttributeEvent),
+      attributes
+    );
 
     logger.info("Read model was updated");
   } catch (e) {

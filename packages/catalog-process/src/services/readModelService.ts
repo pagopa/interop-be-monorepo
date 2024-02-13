@@ -1,11 +1,10 @@
 import {
-  AuthData,
   logger,
   ReadModelRepository,
   ReadModelFilter,
+  EServiceCollection,
 } from "pagopa-interop-commons";
 import {
-  DescriptorState,
   Document,
   EService,
   Agreement,
@@ -13,13 +12,51 @@ import {
   descriptorState,
   agreementState,
   ListResult,
-  WithMetadata,
   emptyListResult,
   genericError,
+  DescriptorId,
+  WithMetadata,
+  Attribute,
+  EServiceId,
+  EServiceDocumentId,
+  TenantId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
+import { Filter, WithId } from "mongodb";
 import { Consumer, consumer } from "../model/domain/models.js";
+import { ApiGetEServicesFilters } from "../model/types.js";
+
+async function getEService(
+  eservices: EServiceCollection,
+  filter: Filter<WithId<WithMetadata<EService>>>
+): Promise<WithMetadata<EService> | undefined> {
+  const data = await eservices.findOne(filter, {
+    projection: { data: true, metadata: true },
+  });
+  if (!data) {
+    return undefined;
+  } else {
+    const result = z
+      .object({
+        metadata: z.object({ version: z.number() }),
+        data: EService,
+      })
+      .safeParse(data);
+    if (!result.success) {
+      logger.error(
+        `Unable to parse eService item: result ${JSON.stringify(
+          result
+        )} - data ${JSON.stringify(data)} `
+      );
+      throw genericError("Unable to parse eService item");
+    }
+    return {
+      data: result.data.data,
+      metadata: { version: result.data.metadata.version },
+    };
+  }
+}
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(
@@ -27,32 +64,23 @@ export function readModelServiceBuilder(
 ) {
   const eservices = readModelRepository.eservices;
   const agreements = readModelRepository.agreements;
+  const attributes = readModelRepository.attributes;
   return {
     async getEServices(
-      authData: AuthData,
-      {
-        eservicesIds,
-        producersIds,
-        states,
-        agreementStates,
-        name,
-      }: {
-        eservicesIds: string[];
-        producersIds: string[];
-        states: DescriptorState[];
-        agreementStates: AgreementState[];
-        name?: { value: string; exactMatch: boolean };
-      },
+      organizationId: TenantId,
+      filters: ApiGetEServicesFilters,
       offset: number,
       limit: number
     ): Promise<ListResult<EService>> {
+      const { eservicesIds, producersIds, states, agreementStates, name } =
+        filters;
       const ids = await match(agreementStates.length)
         .with(0, () => eservicesIds)
         .otherwise(async () =>
           (
             await this.listAgreements(
               eservicesIds,
-              [authData.organizationId],
+              [organizationId],
               [],
               agreementStates
             )
@@ -66,7 +94,7 @@ export function readModelServiceBuilder(
       const nameFilter: ReadModelFilter<EService> = name
         ? {
             "data.name": {
-              $regex: name.exactMatch ? `^${name.value}$$` : name.value,
+              $regex: name,
               $options: "i",
             },
           }
@@ -125,49 +153,35 @@ export function readModelServiceBuilder(
         ),
       };
     },
+    async getEServiceByNameAndProducerId({
+      name,
+      producerId,
+    }: {
+      name: string;
+      producerId: TenantId;
+    }): Promise<WithMetadata<EService> | undefined> {
+      return getEService(eservices, {
+        "data.name": {
+          $regex: `^${name}$$`,
+          $options: "i",
+        },
+        "data.producerId": producerId,
+      });
+    },
     async getEServiceById(
-      id: string
+      id: EServiceId
     ): Promise<WithMetadata<EService> | undefined> {
-      const data = await eservices.findOne(
-        { "data.id": id } satisfies ReadModelFilter<EService>,
-        { projection: { data: true, metadata: true } }
-      );
-
-      if (data) {
-        const result = z
-          .object({
-            metadata: z.object({ version: z.number() }),
-            data: EService,
-          })
-          .safeParse(data);
-
-        if (!result.success) {
-          logger.error(
-            `Unable to parse eservices item: result ${JSON.stringify(
-              result
-            )} - data ${JSON.stringify(data)} `
-          );
-
-          throw genericError(`Unable to parse eservice ${id}`);
-        }
-
-        return {
-          data: result.data.data,
-          metadata: { version: result.data.metadata.version },
-        };
-      }
-
-      return undefined;
+      return getEService(eservices, { "data.id": id });
     },
     async getEServiceConsumers(
-      eServiceId: string,
+      eserviceId: EServiceId,
       offset: number,
       limit: number
     ): Promise<ListResult<Consumer>> {
       const aggregationPipeline = [
         {
           $match: {
-            "data.id": eServiceId,
+            "data.id": eserviceId,
             "data.descriptors": {
               $elemMatch: {
                 state: {
@@ -272,11 +286,11 @@ export function readModelServiceBuilder(
       };
     },
     async getDocumentById(
-      eServiceId: string,
-      descriptorId: string,
-      documentId: string
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      documentId: EServiceDocumentId
     ): Promise<Document | undefined> {
-      const eService = await this.getEServiceById(eServiceId);
+      const eService = await this.getEServiceById(eserviceId);
       return eService?.data.descriptors
         .find((d) => d.id === descriptorId)
         ?.docs.find((d) => d.id === documentId);
@@ -300,7 +314,7 @@ export function readModelServiceBuilder(
               "data.producerId": { $in: producersIds },
             }),
             ...ReadModelRepository.arrayToFilter(states, {
-              "data.state": { $elemMatch: { state: { $in: states } } },
+              "data.state": { $in: states },
             }),
           } satisfies ReadModelFilter<Agreement>,
         },
@@ -314,7 +328,7 @@ export function readModelServiceBuilder(
         },
       ];
       const data = await agreements.aggregate(aggregationPipeline).toArray();
-      const result = z.array(Agreement).safeParse(data);
+      const result = z.array(Agreement).safeParse(data.map((a) => a.data));
 
       if (!result.success) {
         logger.error(
@@ -324,6 +338,27 @@ export function readModelServiceBuilder(
         );
 
         throw genericError("Unable to parse agreements");
+      }
+
+      return result.data;
+    },
+
+    async getAttributesByIds(attributesIds: string[]): Promise<Attribute[]> {
+      const data = await attributes
+        .find({
+          "data.id": { $in: attributesIds },
+        })
+        .toArray();
+
+      const result = z.array(Attribute).safeParse(data.map((d) => d.data));
+      if (!result.success) {
+        logger.error(
+          `Unable to parse attributes items: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+
+        throw genericError("Unable to parse attributes items");
       }
 
       return result.data;

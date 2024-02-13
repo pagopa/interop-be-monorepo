@@ -1,4 +1,5 @@
 import z from "zod";
+import { AttributeId, TenantId } from "../brandedIds.js";
 
 export const tenantKind = {
   PA: "PA",
@@ -63,7 +64,7 @@ export type TenantRevoker = z.infer<typeof TenantRevoker>;
 
 export const CertifiedTenantAttribute = z.object({
   assignmentTimestamp: z.coerce.date(),
-  id: z.string().uuid(),
+  id: AttributeId,
   type: z.literal(tenantAttributeType.CERTIFIED),
   revocationTimestamp: z.coerce.date().optional(),
 });
@@ -72,7 +73,7 @@ export type CertifiedTenantAttribute = z.infer<typeof CertifiedTenantAttribute>;
 export const VerifiedTenantAttribute = z.object({
   assignmentTimestamp: z.coerce.date(),
   type: z.literal(tenantAttributeType.VERIFIED),
-  id: z.string().uuid(),
+  id: AttributeId,
   verifiedBy: z.array(TenantVerifier),
   revokedBy: z.array(TenantRevoker),
 });
@@ -80,7 +81,7 @@ export type VerifiedTenantAttribute = z.infer<typeof VerifiedTenantAttribute>;
 
 export const DeclaredTenantAttribute = z.object({
   type: z.literal(tenantAttributeType.DECLARED),
-  id: z.string().uuid(),
+  id: AttributeId,
   assignmentTimestamp: z.date(),
   revocationTimestamp: z.date().optional(),
 });
@@ -107,19 +108,19 @@ export const TenantMail = z.object({
   kind: TenantMailKind,
   address: z.string(),
   description: z.string().optional(),
-  createdAt: z.date(),
+  createdAt: z.coerce.date(),
 });
 export type TenantMail = z.infer<typeof TenantMail>;
 
 export const Tenant = z.object({
-  id: z.string().uuid(),
+  id: TenantId,
   kind: TenantKind.optional(),
   selfcareId: z.string().optional(),
   externalId: ExternalId,
   features: z.array(TenantFeature),
   attributes: z.array(TenantAttribute),
-  createdAt: z.date(),
-  updatedAt: z.date().optional(),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date().optional(),
   mails: z.array(TenantMail),
   name: z.string(),
 });

@@ -1,4 +1,12 @@
 import z from "zod";
+import {
+  AttributeId,
+  AgreementDocumentId,
+  AgreementId,
+  DescriptorId,
+  EServiceId,
+  TenantId,
+} from "./../brandedIds.js";
 
 export const agreementState = {
   draft: "Draft",
@@ -15,47 +23,11 @@ export const AgreementState = z.enum([
 ]);
 export type AgreementState = z.infer<typeof AgreementState>;
 
-export const agreementAttributeType = {
-  CERTIFIED: "Certified",
-  VERIFIED: "Verified",
-  DECLARED: "Declared",
-} as const;
-
-export const AgreementAttributeType = z.enum([
-  Object.values(agreementAttributeType)[0],
-  ...Object.values(agreementAttributeType).slice(1),
-]);
-
-export type AgreementAttributeType = z.infer<typeof AgreementAttributeType>;
-
-const AgreementAttribute = z.object({ id: z.string().uuid() });
+export const AgreementAttribute = z.object({ id: AttributeId });
 export type AgreementAttribute = z.infer<typeof AgreementAttribute>;
 
-export const CertifiedAgreementAttribute = z.object({
-  type: z.literal(agreementAttributeType.CERTIFIED),
-  id: z.string().uuid(),
-});
-export type CertifiedAgreementAttribute = z.infer<
-  typeof CertifiedAgreementAttribute
->;
-export const DeclaredAgreementAttribute = z.object({
-  type: z.literal(agreementAttributeType.DECLARED),
-  id: z.string().uuid(),
-});
-export type DeclaredAgreementAttribute = z.infer<
-  typeof DeclaredAgreementAttribute
->;
-
-export const VerifiedAgreementAttribute = z.object({
-  type: z.literal(agreementAttributeType.VERIFIED),
-  id: z.string().uuid(),
-});
-export type VerifiedAgreementAttribute = z.infer<
-  typeof VerifiedAgreementAttribute
->;
-
 export const AgreementDocument = z.object({
-  id: z.string().uuid(),
+  id: AgreementDocumentId,
   name: z.string(),
   prettyName: z.string(),
   contentType: z.string(),
@@ -82,11 +54,11 @@ export const AgreementStamps = z.object({
 export type AgreementStamps = z.infer<typeof AgreementStamps>;
 
 export const Agreement = z.object({
-  id: z.string().uuid(),
-  eserviceId: z.string().uuid(),
-  descriptorId: z.string().uuid(),
-  producerId: z.string().uuid(),
-  consumerId: z.string().uuid(),
+  id: AgreementId,
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId,
+  producerId: TenantId,
+  consumerId: TenantId,
   state: AgreementState,
   verifiedAttributes: z.array(AgreementAttribute),
   certifiedAttributes: z.array(AgreementAttribute),
@@ -105,24 +77,9 @@ export const Agreement = z.object({
 });
 export type Agreement = z.infer<typeof Agreement>;
 
-export const UpdateAgreementSeed = z.object({
-  state: AgreementState,
-  certifiedAttributes: z.array(CertifiedAgreementAttribute),
-  declaredAttributes: z.array(DeclaredAgreementAttribute),
-  verifiedAttributes: z.array(VerifiedAgreementAttribute),
-  suspendedByConsumer: z.boolean().optional(),
-  suspendedByProducer: z.boolean().optional(),
-  suspendedByPlatform: z.boolean().optional(),
-  stamps: AgreementStamps,
-  consumerNotes: z.string().optional(),
-  rejectionReason: z.string().optional(),
-  suspendedAt: z.date().optional(),
-});
-export type UpdateAgreementSeed = z.infer<typeof UpdateAgreementSeed>;
-
 export const PDFPayload = z.object({
   today: z.date(),
-  agreementId: z.string().uuid(),
+  agreementId: AgreementId,
   eService: z.string(),
   producerName: z.string(),
   producerOrigin: z.string(),
@@ -130,11 +87,9 @@ export const PDFPayload = z.object({
   consumerName: z.string(),
   consumerOrigin: z.string(),
   consumerIPACode: z.string(),
-  certified: z.array(
-    z.tuple([AgreementAttribute, CertifiedAgreementAttribute])
-  ),
-  declared: z.array(z.tuple([AgreementAttribute, DeclaredAgreementAttribute])),
-  verified: z.array(z.tuple([AgreementAttribute, VerifiedAgreementAttribute])),
+  certified: z.array(z.tuple([AgreementAttribute, AgreementAttribute])),
+  declared: z.array(z.tuple([AgreementAttribute, AgreementAttribute])),
+  verified: z.array(z.tuple([AgreementAttribute, AgreementAttribute])),
   submitter: z.string(),
   submissionTimestamp: z.date(),
   activator: z.string(),
@@ -144,35 +99,11 @@ export const PDFPayload = z.object({
 export type PDFPayload = z.infer<typeof PDFPayload>;
 
 export const AgreementInvolvedAttributes = z.object({
-  certified: z.array(
-    z.tuple([AgreementAttribute, CertifiedAgreementAttribute])
-  ),
-  declared: z.array(z.tuple([AgreementAttribute, DeclaredAgreementAttribute])),
-  verified: z.array(z.tuple([AgreementAttribute, VerifiedAgreementAttribute])),
+  certified: z.array(z.tuple([AgreementAttribute, AgreementAttribute])),
+  declared: z.array(z.tuple([AgreementAttribute, AgreementAttribute])),
+  verified: z.array(z.tuple([AgreementAttribute, AgreementAttribute])),
 });
 
 export type AgreementInvolvedAttributes = z.infer<
   typeof AgreementInvolvedAttributes
 >;
-
-export const agreementUpdatableStates: AgreementState[] = [
-  agreementState.draft,
-];
-
-export const agreementUpgradableStates: AgreementState[] = [
-  agreementState.active,
-  agreementState.suspended,
-];
-
-export const agreementDeletableStates: AgreementState[] = [
-  agreementState.draft,
-  agreementState.missingCertifiedAttributes,
-];
-
-export const agreementCloningConflictingStates: AgreementState[] = [
-  agreementState.draft,
-  agreementState.pending,
-  agreementState.missingCertifiedAttributes,
-  agreementState.active,
-  agreementState.suspended,
-];

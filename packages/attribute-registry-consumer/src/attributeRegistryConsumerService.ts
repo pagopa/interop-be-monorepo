@@ -27,5 +27,11 @@ export async function handleMessage(
         { upsert: true }
       );
     })
+    .with({ type: "AttributeDeleted" }, async (msg) => {
+      await attributes.deleteOne({
+        "data.id": msg.stream_id,
+        "metadata.version": { $lt: msg.version },
+      });
+    })
     .exhaustive();
 }
