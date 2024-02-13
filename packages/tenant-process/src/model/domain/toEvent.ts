@@ -138,7 +138,7 @@ export const toCreateEventTenantAdded = (
   streamId: tenant.id,
   version: 0,
   event: {
-    eventVersion: 1,
+    event_version: 1,
     type: "TenantCreated",
     data: { tenant: toTenantV1(tenant) },
   },
@@ -152,7 +152,7 @@ export const toCreateEventTenantUpdated = (
   streamId,
   version,
   event: {
-    eventVersion: 1,
+    event_version: 1,
     type: "TenantUpdated",
     data: {
       tenant: toTenantV1(updatedTenant),

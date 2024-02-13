@@ -4,7 +4,7 @@ import * as sql from "./sql/index.js";
 
 export interface Event {
   readonly type: string;
-  readonly eventVersion: number;
+  readonly event_version: number;
 }
 
 export type CreateEvent<T extends Event> = {
@@ -31,7 +31,7 @@ export const eventRepository = <T extends Event>(
           stream_id: createEvent.streamId,
           version: newVersion,
           type: createEvent.event.type,
-          event_version: createEvent.event.eventVersion,
+          event_version: createEvent.event.event_version,
           data: Buffer.from(toBinaryData(createEvent.event)),
         });
 

@@ -112,7 +112,7 @@ export const toCreateEventEServiceAdded = (
   version: 0,
   event: {
     type: "EServiceAdded",
-    eventVersion: 1,
+    event_version: 1,
     data: { eService: toEServiceV1(eService) },
   },
 });
@@ -124,7 +124,7 @@ export const toCreateEventClonedEServiceAdded = (
   version: 0,
   event: {
     type: "ClonedEServiceAdded",
-    eventVersion: 1,
+    event_version: 1,
     data: {
       eService: toEServiceV1(eService),
     },
@@ -145,7 +145,7 @@ export const toCreateEventEServiceDocumentAdded = (
   version,
   event: {
     type: "EServiceDocumentAdded",
-    eventVersion: 1,
+    event_version: 1,
     data: {
       eServiceId: streamId,
       descriptorId,
@@ -165,7 +165,7 @@ export const toCreateEventEServiceDescriptorAdded = (
   version,
   event: {
     type: "EServiceDescriptorAdded",
-    eventVersion: 1,
+    event_version: 1,
     data: {
       eServiceId: streamId,
       eServiceDescriptor: toDescriptorV1(newDescriptor),
@@ -182,7 +182,7 @@ export const toCreateEventEServiceUpdated = (
   version,
   event: {
     type: "EServiceUpdated",
-    eventVersion: 1,
+    event_version: 1,
     data: {
       eService: toEServiceV1(updatedEService),
     },
@@ -208,7 +208,7 @@ export const toCreateEventEServiceDocumentUpdated = ({
   version,
   event: {
     type: "EServiceDocumentUpdated",
-    eventVersion: 1,
+    event_version: 1,
     data: {
       eServiceId: streamId,
       descriptorId,
@@ -228,7 +228,7 @@ export const toCreateEventEServiceDescriptorUpdated = (
   version,
   event: {
     type: "EServiceDescriptorUpdated",
-    eventVersion: 1,
+    event_version: 1,
     data: {
       eServiceId: streamId,
       eServiceDescriptor: toDescriptorV1(descriptor),
@@ -244,7 +244,7 @@ export const toCreateEventEServiceDeleted = (
   version,
   event: {
     type: "EServiceDeleted",
-    eventVersion: 1,
+    event_version: 1,
     data: {
       eServiceId: streamId,
     },
@@ -261,7 +261,7 @@ export const toCreateEventEServiceDocumentDeleted = (
   version,
   event: {
     type: "EServiceDocumentDeleted",
-    eventVersion: 1,
+    event_version: 1,
     data: {
       eServiceId: streamId,
       descriptorId,
@@ -278,7 +278,7 @@ export const toCreateEventEServiceWithDescriptorsDeleted = (
   version: eService.metadata.version,
   event: {
     type: "EServiceWithDescriptorsDeleted",
-    eventVersion: 1,
+    event_version: 1,
     data: {
       eService: toEServiceV1(eService.data),
       descriptorId,

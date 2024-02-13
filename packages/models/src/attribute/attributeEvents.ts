@@ -19,12 +19,12 @@ export function attributeEventToBinaryData(event: AttributeEvent): Uint8Array {
 
 export const AttributeEvent = z.discriminatedUnion("type", [
   z.object({
-    eventVersion: z.literal(1),
+    event_version: z.literal(1),
     type: z.literal("AttributeAdded"),
     data: protobufDecoder(AttributeAddedV1),
   }),
   z.object({
-    eventVersion: z.literal(1),
+    event_version: z.literal(1),
     type: z.literal("AttributeDeleted"),
     data: protobufDecoder(AttributeDeletedV1),
   }),

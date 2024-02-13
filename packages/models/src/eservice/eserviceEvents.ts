@@ -36,8 +36,8 @@ import {
 
 export function catalogEventToBinaryData(event: EServiceEvent): Uint8Array {
   return match(event)
-    .with({ eventVersion: 1 }, catalogEventToBinaryDataV1)
-    .with({ eventVersion: 2 }, catalogEventToBinaryDataV2)
+    .with({ event_version: 1 }, catalogEventToBinaryDataV1)
+    .with({ event_version: 2 }, catalogEventToBinaryDataV2)
     .exhaustive();
 }
 
@@ -137,57 +137,57 @@ export function catalogEventToBinaryDataV2(event: EServiceEventV2): Uint8Array {
 
 export const EServiceEventV1 = z.discriminatedUnion("type", [
   z.object({
-    eventVersion: z.literal(1),
+    event_version: z.literal(1),
     type: z.literal("EServiceAdded"),
     data: protobufDecoder(EServiceAddedV1),
   }),
   z.object({
-    eventVersion: z.literal(1),
+    event_version: z.literal(1),
     type: z.literal("ClonedEServiceAdded"),
     data: protobufDecoder(ClonedEServiceAddedV1),
   }),
   z.object({
-    eventVersion: z.literal(1),
+    event_version: z.literal(1),
     type: z.literal("EServiceUpdated"),
     data: protobufDecoder(EServiceUpdatedV1),
   }),
   z.object({
-    eventVersion: z.literal(1),
+    event_version: z.literal(1),
     type: z.literal("EServiceWithDescriptorsDeleted"),
     data: protobufDecoder(EServiceWithDescriptorsDeletedV1),
   }),
   z.object({
-    eventVersion: z.literal(1),
+    event_version: z.literal(1),
     type: z.literal("EServiceDocumentUpdated"),
     data: protobufDecoder(EServiceDocumentUpdatedV1),
   }),
   z.object({
-    eventVersion: z.literal(1),
+    event_version: z.literal(1),
     type: z.literal("EServiceDeleted"),
     data: protobufDecoder(EServiceDeletedV1),
   }),
   z.object({
-    eventVersion: z.literal(1),
+    event_version: z.literal(1),
     type: z.literal("EServiceDocumentAdded"),
     data: protobufDecoder(EServiceDocumentAddedV1),
   }),
   z.object({
-    eventVersion: z.literal(1),
+    event_version: z.literal(1),
     type: z.literal("EServiceDocumentDeleted"),
     data: protobufDecoder(EServiceDocumentDeletedV1),
   }),
   z.object({
-    eventVersion: z.literal(1),
+    event_version: z.literal(1),
     type: z.literal("EServiceDescriptorAdded"),
     data: protobufDecoder(EServiceDescriptorAddedV1),
   }),
   z.object({
-    eventVersion: z.literal(1),
+    event_version: z.literal(1),
     type: z.literal("EServiceDescriptorUpdated"),
     data: protobufDecoder(EServiceDescriptorUpdatedV1),
   }),
   z.object({
-    eventVersion: z.literal(1),
+    event_version: z.literal(1),
     type: z.literal("MovedAttributesFromEserviceToDescriptors"),
     data: protobufDecoder(MovedAttributesFromEserviceToDescriptorsV1),
   }),
@@ -196,87 +196,87 @@ export type EServiceEventV1 = z.infer<typeof EServiceEventV1>;
 
 export const EServiceEventV2 = z.discriminatedUnion("type", [
   z.object({
-    eventVersion: z.literal(2),
+    event_version: z.literal(2),
     type: z.literal("EServiceAdded"),
     data: protobufDecoder(EServiceAddedV2),
   }),
   z.object({
-    eventVersion: z.literal(2),
+    event_version: z.literal(2),
     type: z.literal("DraftEServiceUpdated"),
     data: protobufDecoder(DraftEServiceUpdatedV2),
   }),
   z.object({
-    eventVersion: z.literal(2),
+    event_version: z.literal(2),
     type: z.literal("EServiceDeleted"),
     data: protobufDecoder(EServiceDeletedV2),
   }),
   z.object({
-    eventVersion: z.literal(2),
+    event_version: z.literal(2),
     type: z.literal("EServiceCloned"),
     data: protobufDecoder(EServiceClonedV2),
   }),
   z.object({
-    eventVersion: z.literal(2),
+    event_version: z.literal(2),
     type: z.literal("EServiceDescriptorAdded"),
     data: protobufDecoder(EServiceDescriptorAddedV2),
   }),
   z.object({
-    eventVersion: z.literal(2),
+    event_version: z.literal(2),
     type: z.literal("EServiceDraftDescriptorUpdated"),
     data: protobufDecoder(EServiceDraftDescriptorUpdatedV2),
   }),
   z.object({
-    eventVersion: z.literal(2),
+    event_version: z.literal(2),
     type: z.literal("EServiceDescriptorActivated"),
     data: protobufDecoder(EServiceDescriptorActivatedV2),
   }),
   z.object({
-    eventVersion: z.literal(2),
+    event_version: z.literal(2),
     type: z.literal("EServiceDescriptorArchived"),
     data: protobufDecoder(EServiceDescriptorArchivedV2),
   }),
   z.object({
-    eventVersion: z.literal(2),
+    event_version: z.literal(2),
     type: z.literal("EServiceDescriptorPublished"),
     data: protobufDecoder(EServiceDescriptorPublishedV2),
   }),
   z.object({
-    eventVersion: z.literal(2),
+    event_version: z.literal(2),
     type: z.literal("EServiceDescriptorSuspended"),
     data: protobufDecoder(EServiceDescriptorSuspendedV2),
   }),
   z.object({
-    eventVersion: z.literal(2),
+    event_version: z.literal(2),
     type: z.literal("EServiceDescriptorDeleted"),
     data: protobufDecoder(EServiceDescriptorDeletedV2),
   }),
   z.object({
-    eventVersion: z.literal(2),
+    event_version: z.literal(2),
     type: z.literal("EServiceDescriptorInterfaceAdded"),
     data: protobufDecoder(EServiceDescriptorInterfaceAddedV2),
   }),
   z.object({
-    eventVersion: z.literal(2),
+    event_version: z.literal(2),
     type: z.literal("EServiceDescriptorDocumentAdded"),
     data: protobufDecoder(EServiceDescriptorDocumentAddedV2),
   }),
   z.object({
-    eventVersion: z.literal(2),
+    event_version: z.literal(2),
     type: z.literal("EServiceDescriptorInterfaceUpdated"),
     data: protobufDecoder(EServiceDescriptorInterfaceUpdatedV2),
   }),
   z.object({
-    eventVersion: z.literal(2),
+    event_version: z.literal(2),
     type: z.literal("EServiceDescriptorDocumentUpdated"),
     data: protobufDecoder(EServiceDescriptorDocumentUpdatedV2),
   }),
   z.object({
-    eventVersion: z.literal(2),
+    event_version: z.literal(2),
     type: z.literal("EServiceDescriptorInterfaceDeleted"),
     data: protobufDecoder(EServiceDescriptorInterfaceDeletedV2),
   }),
   z.object({
-    eventVersion: z.literal(2),
+    event_version: z.literal(2),
     type: z.literal("EServiceDescriptorDocumentDeleted"),
     data: protobufDecoder(EServiceDescriptorDocumentDeletedV2),
   }),
