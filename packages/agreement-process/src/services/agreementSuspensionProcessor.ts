@@ -3,7 +3,6 @@ import {
   Agreement,
   AgreementEvent,
   agreementState,
-  agreementSuspendableStates,
 } from "pagopa-interop-models";
 import {
   assertAgreementExist,
@@ -12,6 +11,7 @@ import {
   assertRequesterIsConsumerOrProducer,
   assertTenantExist,
   assertDescriptorExist,
+  agreementSuspendableStates,
 } from "../model/domain/validators.js";
 import { toCreateEventAgreementUpdated } from "../model/domain/toEvent.js";
 import { UpdateAgreementSeed } from "../model/domain/models.js";
