@@ -1895,6 +1895,94 @@ describe("database test", async () => {
           eServiceDescriptorNotFound(eService.id, mockDescriptor.id)
         );
       });
+      it("should throw notValidDescriptor if the descriptor is in published state", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.published,
+          docs: [mockDocument],
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+        expect(
+          catalogService.deleteDocument(
+            eService.id,
+            descriptor.id,
+            mockDocument.id,
+            getMockAuthData(eService.producerId)
+          )
+        ).rejects.toThrowError(
+          notValidDescriptor(descriptor.id, descriptorState.published)
+        );
+      });
+      it("should throw notValidDescriptor if the descriptor is in deprecated state", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.deprecated,
+          docs: [mockDocument],
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+        expect(
+          catalogService.deleteDocument(
+            eService.id,
+            descriptor.id,
+            mockDocument.id,
+            getMockAuthData(eService.producerId)
+          )
+        ).rejects.toThrowError(
+          notValidDescriptor(descriptor.id, descriptorState.deprecated)
+        );
+      });
+      it("should throw notValidDescriptor if the descriptor is in archived state", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.archived,
+          docs: [mockDocument],
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+        expect(
+          catalogService.deleteDocument(
+            eService.id,
+            descriptor.id,
+            mockDocument.id,
+            getMockAuthData(eService.producerId)
+          )
+        ).rejects.toThrowError(
+          notValidDescriptor(descriptor.id, descriptorState.archived)
+        );
+      });
+      it("should throw notValidDescriptor if the descriptor is in suspended state", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.suspended,
+          docs: [mockDocument],
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+        expect(
+          catalogService.deleteDocument(
+            eService.id,
+            descriptor.id,
+            mockDocument.id,
+            getMockAuthData(eService.producerId)
+          )
+        ).rejects.toThrowError(
+          notValidDescriptor(descriptor.id, descriptorState.suspended)
+        );
+      });
       it("should throw eServiceDocumentNotFound if the document doesn't exist", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
