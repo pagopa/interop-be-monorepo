@@ -13,14 +13,15 @@ import {
   Document,
   EService,
   EServiceEvent,
+  EServiceId,
   Tenant,
+  TenantId,
   agreementState,
   catalogEventToBinaryData,
   descriptorState,
   generateId,
   technology,
 } from "pagopa-interop-models";
-import { MessageType } from "@protobuf-ts/runtime";
 import { toEServiceV1 } from "../src/model/domain/toEvent.js";
 import { EServiceDescriptorSeed } from "../src/model/domain/models.js";
 import { ApiEServiceDescriptorDocumentSeed } from "../src/model/types.js";
@@ -114,7 +115,7 @@ export const buildDescriptorSeed = (
 });
 
 export const getMockEService = (): EService => ({
-  id: uuidv4(),
+  id: generateId(),
   name: "eService name",
   description: "eService description",
   createdAt: new Date(),
@@ -166,7 +167,7 @@ export const getMockDocument = (): Document => ({
 
 export const getMockTenant = (): Tenant => ({
   name: "A tenant",
-  id: uuidv4(),
+  id: generateId(),
   createdAt: new Date(),
   attributes: [],
   externalId: {
@@ -178,19 +179,19 @@ export const getMockTenant = (): Tenant => ({
 });
 
 export const getMockAgreement = ({
-  eServiceId,
+  eserviceId,
   descriptorId,
   producerId,
   consumerId,
 }: {
-  eServiceId: string;
+  eserviceId: EServiceId;
   descriptorId: DescriptorId;
-  producerId: string;
-  consumerId: string;
+  producerId: TenantId;
+  consumerId: TenantId;
 }): Agreement => ({
   id: generateId(),
   createdAt: new Date(),
-  eserviceId: eServiceId,
+  eserviceId,
   descriptorId,
   producerId,
   consumerId,
@@ -209,16 +210,6 @@ export const getMockAgreement = ({
     archiving: undefined,
   },
 });
-
-export function decodeProtobufPayload<I extends object>({
-  messageType,
-  payload,
-}: {
-  messageType: MessageType<I>;
-  payload: Parameters<typeof Buffer.from>[0];
-}): I {
-  return messageType.fromBinary(Buffer.from(payload, "hex"));
-}
 
 export const addOneEService = async (
   eService: EService,
@@ -244,10 +235,10 @@ export const addOneAgreement = async (
 };
 
 export const readLastEventByStreamId = async (
-  eServiceId: string,
+  eserviceId: EServiceId,
   postgresDB: IDatabase<unknown>
 ): Promise<any> => // eslint-disable-line @typescript-eslint/no-explicit-any
   await postgresDB.one(
     "SELECT * FROM catalog.events WHERE stream_id = $1 ORDER BY sequence_num DESC LIMIT 1",
-    [eServiceId]
+    [eserviceId]
   );

@@ -85,6 +85,7 @@ export const fromEServiceAttributeV1 = (
 
 export const fromDocumentV1 = (input: EServiceDocumentV1): Document => ({
   ...input,
+  id: unsafeBrandId(input.id),
   uploadDate: new Date(input.uploadDate),
 });
 
@@ -127,6 +128,8 @@ export const fromDescriptorV1 = (input: EServiceDescriptorV1): Descriptor => ({
 
 export const fromEServiceV1 = (input: EServiceV1): EService => ({
   ...input,
+  id: unsafeBrandId(input.id),
+  producerId: unsafeBrandId(input.producerId),
   technology: fromEServiceTechnologyV1(input.technology),
   attributes:
     input.attributes != null

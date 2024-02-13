@@ -3,7 +3,7 @@ import {
   Agreement,
   AgreementStamp,
   AgreementState,
-  Tenant,
+  TenantId,
   agreementState,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
@@ -15,7 +15,7 @@ export const createStamp = (authData: AuthData): AgreementStamp => ({
 
 export const suspendedByConsumerStamp = (
   agreement: Agreement,
-  requesterOrgId: Tenant["id"],
+  requesterOrgId: TenantId,
   destinationState: AgreementState,
   stamp: AgreementStamp
 ): AgreementStamp | undefined =>
@@ -26,7 +26,7 @@ export const suspendedByConsumerStamp = (
 
 export const suspendedByProducerStamp = (
   agreement: Agreement,
-  requesterOrgId: Tenant["id"],
+  requesterOrgId: TenantId,
   destinationState: AgreementState,
   stamp: AgreementStamp
 ): AgreementStamp | undefined =>
