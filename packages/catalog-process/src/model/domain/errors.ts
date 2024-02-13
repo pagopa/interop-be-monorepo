@@ -16,6 +16,7 @@ export const errorCodes = {
   eserviceCannotBeUpdatedOrDeleted: "0009",
   eServiceDuplicate: "0010",
   interfaceAlreadyExists: "0011",
+  attributeNotFound: "0012",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -137,5 +138,13 @@ export function interfaceAlreadyExists(
     detail: `Descriptor ${descriptorId} already contains an interface`,
     code: "interfaceAlreadyExists",
     title: "Descriptor already contains an interface",
+  });
+}
+
+export function attributeNotFound(attributeId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attribute ${attributeId} not found`,
+    code: "attributeNotFound",
+    title: "Attribute not found",
   });
 }

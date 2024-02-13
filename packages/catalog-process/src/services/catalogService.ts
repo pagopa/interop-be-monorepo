@@ -7,6 +7,7 @@ import {
   logger,
 } from "pagopa-interop-commons";
 import {
+  Attribute,
   Descriptor,
   DescriptorId,
   DescriptorState,
@@ -65,6 +66,7 @@ import {
   eServiceNotFound,
   eServiceDescriptorWithoutInterface,
   interfaceAlreadyExists,
+  attributeNotFound,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -386,11 +388,12 @@ export function catalogServiceBuilder(
       const eService = await readModelService.getEServiceById(eserviceId);
 
       return await repository.createEvent(
-        createDescriptorLogic({
+        await createDescriptorLogic({
           eserviceId,
           eserviceDescriptorSeed,
           authData,
           eService,
+          getAttributesByIds: readModelService.getAttributesByIds,
         })
       );
     },
@@ -787,17 +790,19 @@ export async function updateDocumentLogic({
   });
 }
 
-export function createDescriptorLogic({
+export async function createDescriptorLogic({
   eserviceId,
   eserviceDescriptorSeed,
   authData,
   eService,
+  getAttributesByIds,
 }: {
   eserviceId: EServiceId;
   eserviceDescriptorSeed: EServiceDescriptorSeed;
   authData: AuthData;
   eService: WithMetadata<EService> | undefined;
-}): CreateEvent<EServiceEvent> {
+  getAttributesByIds: (attributesIds: string[]) => Promise<Attribute[]>;
+}): Promise<CreateEvent<EServiceEvent>> {
   assertEServiceExist(eserviceId, eService);
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
   hasNotDraftDescriptor(eService.data);
@@ -805,6 +810,25 @@ export function createDescriptorLogic({
   const newVersion = nextDescriptorVersion(eService.data);
 
   const certifiedAttributes = eserviceDescriptorSeed.attributes.certified;
+  const declaredAttributes = eserviceDescriptorSeed.attributes.declared;
+  const verifiedAttributes = eserviceDescriptorSeed.attributes.verified;
+
+  const attributesSeeds = [
+    ...certifiedAttributes.flat(),
+    ...declaredAttributes.flat(),
+    ...verifiedAttributes.flat(),
+  ];
+
+  if (attributesSeeds.length > 0) {
+    const attributesSeedsIds = attributesSeeds.map((attr) => attr.id);
+    const attributes = await getAttributesByIds(attributesSeedsIds);
+    const attributesIds = attributes.map((attr) => attr.id);
+    for (const attributeSeedId of attributesSeedsIds) {
+      if (!attributesIds.includes(unsafeBrandId(attributeSeedId))) {
+        throw attributeNotFound(attributeSeedId);
+      }
+    }
+  }
 
   const newDescriptor: Descriptor = {
     id: generateId(),
@@ -834,8 +858,20 @@ export function createDescriptorLogic({
           id: unsafeBrandId(a.id),
         }))
       ),
-      declared: [],
-      verified: [],
+      // eslint-disable-next-line sonarjs/no-identical-functions
+      declared: declaredAttributes.map((a) =>
+        a.map((a) => ({
+          ...a,
+          id: unsafeBrandId(a.id),
+        }))
+      ),
+      // eslint-disable-next-line sonarjs/no-identical-functions
+      verified: verifiedAttributes.map((a) =>
+        a.map((a) => ({
+          ...a,
+          id: unsafeBrandId(a.id),
+        }))
+      ),
     },
   };
 
