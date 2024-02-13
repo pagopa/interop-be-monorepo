@@ -265,7 +265,14 @@ export function catalogServiceBuilder(
       const eService = await readModelService.getEServiceById(eserviceId);
 
       await repository.createEvent(
-        updateEserviceLogic({ eService, eserviceId, authData, eServiceSeed })
+        await updateEserviceLogic({
+          eService,
+          eserviceId,
+          authData,
+          eServiceSeed,
+          getEServiceByNameAndProducerId:
+            readModelService.getEServiceByNameAndProducerId,
+        })
       );
     },
 
@@ -569,17 +576,25 @@ export function createEserviceLogic({
   return toCreateEventEServiceAdded(newEService);
 }
 
-export function updateEserviceLogic({
+export async function updateEserviceLogic({
   eService,
   eserviceId,
   authData,
   eServiceSeed,
+  getEServiceByNameAndProducerId,
 }: {
   eService: WithMetadata<EService> | undefined;
   eserviceId: EServiceId;
   authData: AuthData;
   eServiceSeed: ApiEServiceSeed;
-}): CreateEvent<EServiceEvent> {
+  getEServiceByNameAndProducerId: ({
+    name,
+    producerId,
+  }: {
+    name: string;
+    producerId: TenantId;
+  }) => Promise<WithMetadata<EService> | undefined>;
+}): Promise<CreateEvent<EServiceEvent>> {
   assertEServiceExist(eserviceId, eService);
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
 
@@ -591,6 +606,16 @@ export function updateEserviceLogic({
     )
   ) {
     throw eServiceCannotBeUpdated(eserviceId);
+  }
+
+  if (eServiceSeed.name !== eService.data.name) {
+    const eServiceWithSameName = await getEServiceByNameAndProducerId({
+      name: eServiceSeed.name,
+      producerId: authData.organizationId,
+    });
+    if (eServiceWithSameName !== undefined) {
+      throw eServiceDuplicate(eServiceSeed.name);
+    }
   }
 
   const updatedEService: EService = {

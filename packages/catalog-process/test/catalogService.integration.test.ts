@@ -198,7 +198,7 @@ describe("database test", async () => {
     });
 
     describe("update eService", () => {
-      it("should write on event-store for the update of an eService", async () => {
+      it("should write on event-store for the update of an eService (update name only)", async () => {
         const updatedName = "eService new name";
         await addOneEService(mockEService, postgresDB, eservices);
         await catalogService.updateEService(
@@ -214,6 +214,39 @@ describe("database test", async () => {
         const updatedEService = {
           ...mockEService,
           name: updatedName,
+        };
+
+        const writtenEvent = await readLastEventByStreamId(
+          mockEService.id,
+          postgresDB
+        );
+        expect(writtenEvent.stream_id).toBe(mockEService.id);
+        expect(writtenEvent.version).toBe("1");
+        expect(writtenEvent.type).toBe("EServiceUpdated");
+        const writtenPayload = decodeProtobufPayload({
+          messageType: EServiceUpdatedV1,
+          payload: writtenEvent.data,
+        });
+
+        expect(writtenPayload.eService).toEqual(toEServiceV1(updatedEService));
+      });
+
+      it("should write on event-store for the update of an eService (update description only)", async () => {
+        const updatedDescription = "eService new description";
+        await addOneEService(mockEService, postgresDB, eservices);
+        await catalogService.updateEService(
+          mockEService.id,
+          {
+            name: mockEService.name,
+            description: updatedDescription,
+            technology: "REST",
+          },
+          getMockAuthData(mockEService.producerId)
+        );
+
+        const updatedEService: EService = {
+          ...mockEService,
+          description: updatedDescription,
         };
 
         const writtenEvent = await readLastEventByStreamId(
@@ -261,6 +294,36 @@ describe("database test", async () => {
         ).rejects.toThrowError(operationForbidden);
       });
 
+      it("should throw eServiceDuplicate if the updated name is already in use", async () => {
+        const eService1: EService = {
+          ...mockEService,
+          id: generateId(),
+          descriptors: [],
+        };
+        const eService2: EService = {
+          ...mockEService,
+          id: generateId(),
+          name: "eService name already in use",
+          descriptors: [],
+        };
+        await addOneEService(eService1, postgresDB, eservices);
+        await addOneEService(eService2, postgresDB, eservices);
+
+        expect(
+          catalogService.updateEService(
+            eService1.id,
+            {
+              name: "eService name already in use",
+              description: "eService description",
+              technology: "REST",
+            },
+            getMockAuthData(eService1.producerId)
+          )
+        ).rejects.toThrowError(
+          eServiceDuplicate("eService name already in use")
+        );
+      });
+
       it("should throw eServiceCannotBeUpdated if the eService descriptor is in published state", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
@@ -284,6 +347,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(eServiceCannotBeUpdated(eService.id));
       });
+
       it("should throw eServiceCannotBeUpdated if the eService descriptor is in archived state", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
@@ -307,6 +371,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(eServiceCannotBeUpdated(eService.id));
       });
+
       it("should throw eServiceCannotBeUpdated if the eService descriptor is in suspended state", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
@@ -330,6 +395,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(eServiceCannotBeUpdated(eService.id));
       });
+
       it("should throw eServiceCannotBeUpdated if the eService descriptor is in deprecated state", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
