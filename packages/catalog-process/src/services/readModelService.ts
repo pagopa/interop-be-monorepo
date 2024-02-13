@@ -1,12 +1,10 @@
 import {
-  AuthData,
   logger,
   ReadModelRepository,
   ReadModelFilter,
   EServiceCollection,
 } from "pagopa-interop-commons";
 import {
-  DescriptorState,
   Document,
   EService,
   Agreement,
@@ -17,11 +15,16 @@ import {
   WithMetadata,
   emptyListResult,
   genericError,
+  DescriptorId,
+  EServiceId,
+  EServiceDocumentId,
+  TenantId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
 import { Filter, WithId } from "mongodb";
 import { Consumer, consumer } from "../model/domain/models.js";
+import { ApiGetEServicesFilters } from "../model/types.js";
 
 async function getEService(
   eservices: EServiceCollection,
@@ -62,30 +65,20 @@ export function readModelServiceBuilder(
   const agreements = readModelRepository.agreements;
   return {
     async getEServices(
-      authData: AuthData,
-      {
-        eservicesIds,
-        producersIds,
-        states,
-        agreementStates,
-        name,
-      }: {
-        eservicesIds: string[];
-        producersIds: string[];
-        states: DescriptorState[];
-        agreementStates: AgreementState[];
-        name?: string;
-      },
+      organizationId: TenantId,
+      filters: ApiGetEServicesFilters,
       offset: number,
       limit: number
     ): Promise<ListResult<EService>> {
+      const { eservicesIds, producersIds, states, agreementStates, name } =
+        filters;
       const ids = await match(agreementStates.length)
         .with(0, () => eservicesIds)
         .otherwise(async () =>
           (
             await this.listAgreements(
               eservicesIds,
-              [authData.organizationId],
+              [organizationId],
               [],
               agreementStates
             )
@@ -163,7 +156,7 @@ export function readModelServiceBuilder(
       producerId,
     }: {
       name: string;
-      producerId: string;
+      producerId: TenantId;
     }): Promise<WithMetadata<EService> | undefined> {
       return getEService(eservices, {
         "data.name": {
@@ -174,19 +167,19 @@ export function readModelServiceBuilder(
       });
     },
     async getEServiceById(
-      id: string
+      id: EServiceId
     ): Promise<WithMetadata<EService> | undefined> {
       return getEService(eservices, { "data.id": id });
     },
     async getEServiceConsumers(
-      eServiceId: string,
+      eserviceId: EServiceId,
       offset: number,
       limit: number
     ): Promise<ListResult<Consumer>> {
       const aggregationPipeline = [
         {
           $match: {
-            "data.id": eServiceId,
+            "data.id": eserviceId,
             "data.descriptors": {
               $elemMatch: {
                 state: {
@@ -291,11 +284,11 @@ export function readModelServiceBuilder(
       };
     },
     async getDocumentById(
-      eServiceId: string,
-      descriptorId: string,
-      documentId: string
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      documentId: EServiceDocumentId
     ): Promise<Document | undefined> {
-      const eService = await this.getEServiceById(eServiceId);
+      const eService = await this.getEServiceById(eserviceId);
       return eService?.data.descriptors
         .find((d) => d.id === descriptorId)
         ?.docs.find((d) => d.id === documentId);

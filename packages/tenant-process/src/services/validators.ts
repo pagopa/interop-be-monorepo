@@ -1,24 +1,70 @@
 import { AuthData, userRoles } from "pagopa-interop-commons";
-import { match } from "ts-pattern";
 import {
   Attribute,
+  AttributeId,
   ExternalId,
   Tenant,
   TenantAttribute,
+  TenantId,
   TenantKind,
+  TenantVerifier,
   WithMetadata,
   operationForbidden,
+  tenantAttributeType,
   tenantKind,
 } from "pagopa-interop-models";
-import { tenantNotFound } from "../model/domain/errors.js";
+import { match } from "ts-pattern";
+import {
+  attributeNotFound,
+  expirationDateCannotBeInThePast,
+  organizationNotFoundInVerifiers,
+  tenantNotFound,
+  verifiedAttributeNotFoundInTenant,
+  selfcareIdConflict,
+  expirationDateNotFoundInVerifier,
+} from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
 export function assertTenantExists(
-  tenantId: string,
+  tenantId: TenantId,
   tenant: WithMetadata<Tenant> | undefined
 ): asserts tenant is NonNullable<WithMetadata<Tenant>> {
   if (tenant === undefined) {
     throw tenantNotFound(tenantId);
+  }
+}
+
+export function assertVerifiedAttributeExistsInTenant(
+  attributeId: AttributeId,
+  attribute: TenantAttribute | undefined,
+  tenant: WithMetadata<Tenant>
+): asserts attribute is NonNullable<
+  Extract<TenantAttribute, { type: "verified" }>
+> {
+  if (!attribute || attribute.type !== tenantAttributeType.VERIFIED) {
+    throw verifiedAttributeNotFoundInTenant(tenant.data.id, attributeId);
+  }
+}
+
+export function assertOrganizationVerifierExist(
+  verifierId: string,
+  tenantId: TenantId,
+  attributeId: AttributeId,
+  tenantVerifier: TenantVerifier | undefined
+): asserts tenantVerifier is NonNullable<TenantVerifier> {
+  if (tenantVerifier === undefined) {
+    organizationNotFoundInVerifiers(verifierId, tenantId, attributeId);
+  }
+}
+
+export function assertExpirationDateExist(
+  tenantId: TenantId,
+  attributeId: string,
+  verifierId: string,
+  expirationDate: Date | undefined
+): asserts expirationDate is Date {
+  if (expirationDate === undefined) {
+    expirationDateNotFoundInVerifier(verifierId, attributeId, tenantId);
   }
 }
 
@@ -63,10 +109,8 @@ export async function assertResourceAllowed(
   const roles = authData.userRoles;
   const organizationId = authData.organizationId;
 
-  await assertRequesterAllowed(resourceId, organizationId);
-
   if (!roles.includes(userRoles.INTERNAL_ROLE)) {
-    throw operationForbidden;
+    return await assertRequesterAllowed(resourceId, organizationId);
   }
 }
 
@@ -75,7 +119,9 @@ export async function getTenantKindLoadingCertifiedAttributes(
   attributes: TenantAttribute[],
   externalId: ExternalId
 ): Promise<TenantKind> {
-  function getCertifiedAttributesIds(attributes: TenantAttribute[]): string[] {
+  function getCertifiedAttributesIds(
+    attributes: TenantAttribute[]
+  ): AttributeId[] {
     return attributes.flatMap((attr) =>
       attr.type === "certified" ? attr.id : []
     );
@@ -99,4 +145,47 @@ export async function getTenantKindLoadingCertifiedAttributes(
   const attrs = await readModelService.getAttributesById(attributesIds);
   const extIds = convertAttributes(attrs);
   return getTenantKind(extIds, externalId);
+}
+
+export function assertAttributeExists(
+  attributeId: AttributeId,
+  attributes: TenantAttribute[]
+): asserts attributes is NonNullable<TenantAttribute[]> {
+  if (!attributes.some((attr) => attr.id === attributeId)) {
+    throw attributeNotFound(attributeId);
+  }
+}
+
+export function assertValidExpirationDate(
+  expirationDate: Date | undefined
+): void {
+  if (expirationDate && expirationDate < new Date()) {
+    throw expirationDateCannotBeInThePast(expirationDate);
+  }
+}
+
+export function assertOrganizationIsInAttributeVerifiers(
+  verifierId: string,
+  tenantId: TenantId,
+  attribute: Extract<TenantAttribute, { type: "verified" }>
+): void {
+  if (!attribute.verifiedBy.some((v) => v.id === verifierId)) {
+    throw organizationNotFoundInVerifiers(verifierId, tenantId, attribute.id);
+  }
+}
+
+export function evaluateNewSelfcareId({
+  tenant,
+  newSelfcareId,
+}: {
+  tenant: Tenant;
+  newSelfcareId: string;
+}): void {
+  if (tenant.selfcareId && tenant.selfcareId !== newSelfcareId) {
+    throw selfcareIdConflict({
+      tenantId: tenant.id,
+      existingSelfcareId: tenant.selfcareId,
+      newSelfcareId,
+    });
+  }
 }

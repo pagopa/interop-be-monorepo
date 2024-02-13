@@ -3,12 +3,13 @@ import {
   Agreement,
   AgreementDocument,
   AgreementEvent,
+  AgreementId,
   EService,
   Tenant,
-  UpdateAgreementSeed,
 } from "pagopa-interop-models";
 import { toCreateEventAgreementContractAdded } from "../model/domain/toEvent.js";
 import { ApiAgreementDocumentSeed } from "../model/types.js";
+import { UpdateAgreementSeed } from "../model/domain/models.js";
 import { pdfGenerator } from "./pdfGenerator.js";
 import { AttributeQuery } from "./readmodel/attributeQuery.js";
 
@@ -34,7 +35,7 @@ export const contractBuilder = (attributeQuery: AttributeQuery) => ({
 export type ContractBuilder = ReturnType<typeof contractBuilder>;
 
 export async function addAgreementContractLogic(
-  agreementId: string,
+  agreementId: AgreementId,
   agreementDocument: AgreementDocument,
   version: number
 ): Promise<CreateEvent<AgreementEvent>> {

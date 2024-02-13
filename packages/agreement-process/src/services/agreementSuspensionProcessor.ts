@@ -2,9 +2,7 @@ import { AuthData, CreateEvent } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementEvent,
-  UpdateAgreementSeed,
   agreementState,
-  agreementSuspendableStates,
 } from "pagopa-interop-models";
 import {
   assertAgreementExist,
@@ -13,8 +11,10 @@ import {
   assertRequesterIsConsumerOrProducer,
   assertTenantExist,
   assertDescriptorExist,
+  agreementSuspendableStates,
 } from "../model/domain/validators.js";
 import { toCreateEventAgreementUpdated } from "../model/domain/toEvent.js";
+import { UpdateAgreementSeed } from "../model/domain/models.js";
 import { AgreementQuery } from "./readmodel/agreementQuery.js";
 import { TenantQuery } from "./readmodel/tenantQuery.js";
 import { EserviceQuery } from "./readmodel/eserviceQuery.js";
