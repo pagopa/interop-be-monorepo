@@ -668,7 +668,11 @@ export function uploadDocumentLogic({
   assertEServiceExist(eserviceId, eService);
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
 
-  retrieveDescriptor(descriptorId, eService);
+  const descriptor = retrieveDescriptor(descriptorId, eService);
+
+  if (descriptor.state !== descriptorState.draft) {
+    throw notValidDescriptor(descriptor.id, descriptor.state);
+  }
 
   return toCreateEventEServiceDocumentAdded(
     eserviceId,
