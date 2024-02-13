@@ -22,7 +22,6 @@ import {
   generateId,
   technology,
 } from "pagopa-interop-models";
-import { MessageType } from "@protobuf-ts/runtime";
 import { toEServiceV1 } from "../src/model/domain/toEvent.js";
 import { EServiceDescriptorSeed } from "../src/model/domain/models.js";
 import { ApiEServiceDescriptorDocumentSeed } from "../src/model/types.js";
@@ -211,16 +210,6 @@ export const getMockAgreement = ({
     archiving: undefined,
   },
 });
-
-export function decodeProtobufPayload<I extends object>({
-  messageType,
-  payload,
-}: {
-  messageType: MessageType<I>;
-  payload: Parameters<typeof Buffer.from>[0];
-}): I {
-  return messageType.fromBinary(Buffer.from(payload, "hex"));
-}
 
 export const addOneEService = async (
   eService: EService,

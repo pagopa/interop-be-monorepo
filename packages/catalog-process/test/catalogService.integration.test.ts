@@ -36,6 +36,7 @@ import {
   EServiceUpdatedV1,
   EServiceWithDescriptorsDeletedV1,
   Tenant,
+  TenantId,
   descriptorState,
   generateId,
   operationForbidden,
@@ -44,6 +45,7 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import { GenericContainer } from "testcontainers";
+import { decodeProtobufPayload } from "pagopa-interop-commons-test";
 import { config } from "../src/utilities/config.js";
 import {
   toDescriptorV1,
@@ -75,7 +77,6 @@ import {
   addOneEService,
   addOneTenant,
   buildDescriptorSeed,
-  decodeProtobufPayload,
   getMockAgreement,
   getMockAuthData,
   getMockDescriptor,
@@ -1426,7 +1427,9 @@ describe("database test", async () => {
 
         const expectedInterface: Document = {
           ...mockDocument,
-          id: writtenPayload.eService!.descriptors[0].interface!.id,
+          id: unsafeBrandId(
+            writtenPayload.eService!.descriptors[0].interface!.id
+          ),
           uploadDate: new Date(
             writtenPayload.eService!.descriptors[0].docs[0].uploadDate
           ),
@@ -1434,7 +1437,7 @@ describe("database test", async () => {
         };
         const expectedDocument: Document = {
           ...mockDocument,
-          id: writtenPayload.eService!.descriptors[0].docs[0].id,
+          id: unsafeBrandId(writtenPayload.eService!.descriptors[0].docs[0].id),
           uploadDate: new Date(
             writtenPayload.eService!.descriptors[0].docs[0].uploadDate
           ),
@@ -1452,7 +1455,7 @@ describe("database test", async () => {
         };
         const expectedEService: EService = {
           ...eService,
-          id: writtenPayload.eService!.id,
+          id: unsafeBrandId(writtenPayload.eService!.id),
           name: `${eService.name} - clone - 1/1/2024 12:00:00`,
           descriptors: [expectedDescriptor],
           createdAt: new Date(Number(writtenPayload.eService?.createdAt)),
@@ -1666,9 +1669,9 @@ describe("database test", async () => {
           buildInterfaceSeed().serverUrls
         );
 
-        const expectedDocument = {
+        const expectedDocument: Document = {
           ...mockDocument,
-          id: writtenPayload.document!.id,
+          id: unsafeBrandId(writtenPayload.document!.id),
           checksum: writtenPayload.document!.checksum,
           uploadDate: new Date(writtenPayload.document!.uploadDate),
         };
@@ -1918,7 +1921,7 @@ describe("database test", async () => {
           catalogService.updateDocument(
             eService.id,
             mockDescriptor.id,
-            uuidv4(),
+            generateId(),
             { prettyName: "updated prettyName" },
             getMockAuthData(eService.producerId)
           )
@@ -1954,9 +1957,9 @@ describe("database test", async () => {
 
   describe("ReadModel Service", () => {
     describe("getEservices", () => {
-      let organizationId1: string;
-      let organizationId2: string;
-      let organizationId3: string;
+      let organizationId1: TenantId;
+      let organizationId2: TenantId;
+      let organizationId3: TenantId;
       let eService1: EService;
       let eService2: EService;
       let eService3: EService;
@@ -1965,9 +1968,9 @@ describe("database test", async () => {
       let eService6: EService;
 
       beforeEach(async () => {
-        organizationId1 = uuidv4();
-        organizationId2 = uuidv4();
-        organizationId3 = uuidv4();
+        organizationId1 = generateId();
+        organizationId2 = generateId();
+        organizationId3 = generateId();
 
         const descriptor1: Descriptor = {
           ...mockDescriptor,
@@ -1977,7 +1980,7 @@ describe("database test", async () => {
         };
         eService1 = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "eService 001 test",
           descriptors: [descriptor1],
           producerId: organizationId1,
@@ -1991,7 +1994,7 @@ describe("database test", async () => {
         };
         eService2 = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "eService 002 test",
           descriptors: [descriptor2],
           producerId: organizationId1,
@@ -2006,7 +2009,7 @@ describe("database test", async () => {
         };
         eService3 = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "eService 003 test",
           descriptors: [descriptor3],
           producerId: organizationId1,
@@ -2020,7 +2023,7 @@ describe("database test", async () => {
         };
         eService4 = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "eService 004 test",
           producerId: organizationId2,
           descriptors: [descriptor4],
@@ -2078,7 +2081,7 @@ describe("database test", async () => {
       });
       it("should get the eServices if they exist (parameters: eservicesIds)", async () => {
         const result = await readModelService.getEServices(
-          getMockAuthData(),
+          generateId(),
           {
             eservicesIds: [eService1.id, eService2.id],
             producersIds: [],
@@ -2093,7 +2096,7 @@ describe("database test", async () => {
       });
       it("should get the eServices if they exist (parameters: producersIds)", async () => {
         const result = await readModelService.getEServices(
-          getMockAuthData(),
+          generateId(),
           {
             eservicesIds: [],
             producersIds: [organizationId1],
@@ -2108,7 +2111,7 @@ describe("database test", async () => {
       });
       it("should get the eServices if they exist (parameters: states)", async () => {
         const result = await readModelService.getEServices(
-          getMockAuthData(),
+          generateId(),
           {
             eservicesIds: [],
             producersIds: [],
@@ -2123,7 +2126,7 @@ describe("database test", async () => {
       });
       it("should get the eServices if they exist (parameters: agreementStates)", async () => {
         const result = await readModelService.getEServices(
-          getMockAuthData(organizationId3),
+          organizationId3,
           {
             eservicesIds: [],
             producersIds: [],
@@ -2138,7 +2141,7 @@ describe("database test", async () => {
       });
       it("should get the eServices if they exist (parameters: name)", async () => {
         const result = await readModelService.getEServices(
-          getMockAuthData(),
+          generateId(),
           {
             eservicesIds: [],
             producersIds: [],
@@ -2159,7 +2162,7 @@ describe("database test", async () => {
       });
       it("should get the eServices if they exist (parameters: states, agreementStates, name)", async () => {
         const result = await readModelService.getEServices(
-          getMockAuthData(organizationId3),
+          organizationId3,
           {
             eservicesIds: [],
             producersIds: [],
@@ -2175,7 +2178,7 @@ describe("database test", async () => {
       });
       it("should not get the eServices if they don't exist (parameters: states, agreementStates, name)", async () => {
         const result = await readModelService.getEServices(
-          getMockAuthData(),
+          generateId(),
           {
             eservicesIds: [],
             producersIds: [],
@@ -2191,7 +2194,7 @@ describe("database test", async () => {
       });
       it("should get the eServices if they exist (parameters: producersIds, states, name)", async () => {
         const result = await readModelService.getEServices(
-          getMockAuthData(),
+          generateId(),
           {
             eservicesIds: [],
             producersIds: [organizationId2],
@@ -2207,7 +2210,7 @@ describe("database test", async () => {
       });
       it("should not get the eServices if they don't exist (parameters: producersIds, states, name)", async () => {
         const result = await readModelService.getEServices(
-          getMockAuthData(),
+          generateId(),
           {
             eservicesIds: [],
             producersIds: [organizationId2],
@@ -2223,7 +2226,7 @@ describe("database test", async () => {
       });
       it("should get the eServices if they exist (pagination: limit)", async () => {
         const result = await readModelService.getEServices(
-          getMockAuthData(),
+          generateId(),
           {
             eservicesIds: [],
             producersIds: [],
@@ -2238,7 +2241,7 @@ describe("database test", async () => {
       });
       it("should get the eServices if they exist (pagination: offset, limit)", async () => {
         const result = await readModelService.getEServices(
-          getMockAuthData(),
+          generateId(),
           {
             eservicesIds: [],
             producersIds: [],
@@ -2255,8 +2258,8 @@ describe("database test", async () => {
 
     describe("getEServiceByNameAndProducerId", () => {
       it("should get the eService if it matches the name and the producerId", async () => {
-        const organizationId1 = uuidv4();
-        const organizationId2 = uuidv4();
+        const organizationId1: TenantId = generateId();
+        const organizationId2: TenantId = generateId();
         const eService1: EService = {
           ...mockEService,
           id: generateId(),
@@ -2288,7 +2291,7 @@ describe("database test", async () => {
         expect(result?.data).toEqual(eService1);
       });
       it("should not get the eService if it doesn't exist", async () => {
-        const organizationId = uuidv4();
+        const organizationId: TenantId = generateId();
         const eService1: EService = {
           ...mockEService,
           id: generateId(),
@@ -2361,7 +2364,7 @@ describe("database test", async () => {
       it("should not get the eService if it doesn't exist", async () => {
         await addOneEService(mockEService, postgresDB, eservices);
 
-        const result = await readModelService.getEServiceById(uuidv4());
+        const result = await readModelService.getEServiceById(generateId());
         expect(result).toBeUndefined();
       });
     });
@@ -2427,7 +2430,7 @@ describe("database test", async () => {
         };
         const eService: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "eService 001",
           descriptors: [descriptor],
         };
@@ -2443,7 +2446,7 @@ describe("database test", async () => {
       it("should not get document if it doesn't exist", async () => {
         const eService: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "eService 001",
           descriptors: [],
         };
@@ -2451,7 +2454,7 @@ describe("database test", async () => {
         const result = await readModelService.getDocumentById(
           eService.id,
           generateId(),
-          uuidv4()
+          generateId()
         );
         expect(result).toBeUndefined();
       });
