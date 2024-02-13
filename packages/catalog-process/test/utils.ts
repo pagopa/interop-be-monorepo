@@ -125,7 +125,7 @@ export const getMockEService = (): EService => ({
 
 export const getMockDescriptor = (): Descriptor => ({
   id: generateId(),
-  version: "0",
+  version: "1",
   docs: [],
   state: descriptorState.draft,
   audience: [],

@@ -41,6 +41,7 @@ export const deleteEServiceErrorMapper = (
   match(error.code)
     .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with("eserviceCannotBeUpdatedOrDeleted", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const documentCreateErrorMapper = (
@@ -66,6 +67,7 @@ export const documentUpdateDeleteErrorMapper = (
   match(error.code)
     .with(
       "eServiceNotFound",
+      "eServiceDescriptorNotFound",
       "eServiceDocumentNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
@@ -90,6 +92,7 @@ export const deleteDraftDescriptorErrorMapper = (
       "eServiceDescriptorNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
+    .with("notValidDescriptor", () => HTTP_STATUS_BAD_REQUEST)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -115,6 +118,7 @@ export const publishDescriptorErrorMapper = (
       "eServiceDescriptorNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
+    .with("notValidDescriptor", () => HTTP_STATUS_BAD_REQUEST)
     .with("eServiceDescriptorWithoutInterface", () => HTTP_STATUS_BAD_REQUEST)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -166,6 +170,5 @@ export const archiveDescriptorErrorMapper = (
       "eServiceDescriptorNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with("notValidDescriptor", () => HTTP_STATUS_BAD_REQUEST)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
