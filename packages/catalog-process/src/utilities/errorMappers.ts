@@ -14,6 +14,11 @@ const {
   HTTP_STATUS_CONFLICT,
 } = constants;
 
+export const getEServiceErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const createEServiceErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -39,11 +44,6 @@ export const deleteEServiceErrorMapper = (
     .with("eserviceCannotBeUpdatedOrDeleted", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const getEServiceErrorMapper = (error: ApiError<ErrorCodes>): number =>
-  match(error.code)
-    .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
 export const documentCreateErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -51,19 +51,6 @@ export const documentCreateErrorMapper = (
     .with(
       "eServiceNotFound",
       "eServiceDescriptorNotFound",
-      () => HTTP_STATUS_NOT_FOUND
-    )
-    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
-export const documentUpdateDeleteErrorMapper = (
-  error: ApiError<ErrorCodes>
-): number =>
-  match(error.code)
-    .with(
-      "eServiceNotFound",
-      "eServiceDescriptorNotFound",
-      "eServiceDocumentNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
@@ -77,6 +64,19 @@ export const documentGetErrorMapper = (error: ApiError<ErrorCodes>): number =>
       "eServiceDocumentNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const documentUpdateDeleteErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound",
+      "eServiceDocumentNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const createDescriptorErrorMapper = (
