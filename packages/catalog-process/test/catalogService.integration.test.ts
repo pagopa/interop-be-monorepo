@@ -2140,7 +2140,7 @@ describe("database test", async () => {
           catalogService.updateDocument(
             eService.id,
             descriptor.id,
-            uuidv4(),
+            generateId(),
             { prettyName: "updated prettyName" },
             getMockAuthData(eService.producerId)
           )
@@ -2163,7 +2163,7 @@ describe("database test", async () => {
           catalogService.updateDocument(
             eService.id,
             descriptor.id,
-            uuidv4(),
+            generateId(),
             { prettyName: "updated prettyName" },
             getMockAuthData(eService.producerId)
           )
@@ -2186,7 +2186,7 @@ describe("database test", async () => {
           catalogService.updateDocument(
             eService.id,
             descriptor.id,
-            uuidv4(),
+            generateId(),
             { prettyName: "updated prettyName" },
             getMockAuthData(eService.producerId)
           )
@@ -2209,7 +2209,7 @@ describe("database test", async () => {
           catalogService.updateDocument(
             eService.id,
             descriptor.id,
-            uuidv4(),
+            generateId(),
             { prettyName: "updated prettyName" },
             getMockAuthData(eService.producerId)
           )
