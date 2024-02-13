@@ -675,7 +675,7 @@ export function uploadDocumentLogic({
     throw notValidDescriptor(descriptor.id, descriptor.state);
   }
 
-  if (document.kind === "INTERFACE" && descriptor.interface) {
+  if (document.kind === "INTERFACE" && descriptor.interface !== undefined) {
     throw interfaceAlreadyExists(descriptor.id);
   }
 
