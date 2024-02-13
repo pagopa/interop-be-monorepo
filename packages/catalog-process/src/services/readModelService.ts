@@ -12,10 +12,11 @@ import {
   descriptorState,
   agreementState,
   ListResult,
-  WithMetadata,
   emptyListResult,
   genericError,
   DescriptorId,
+  WithMetadata,
+  Attribute,
   EServiceId,
   EServiceDocumentId,
   TenantId,
@@ -63,6 +64,7 @@ export function readModelServiceBuilder(
 ) {
   const eservices = readModelRepository.eservices;
   const agreements = readModelRepository.agreements;
+  const attributes = readModelRepository.attributes;
   return {
     async getEServices(
       organizationId: TenantId,
@@ -336,6 +338,27 @@ export function readModelServiceBuilder(
         );
 
         throw genericError("Unable to parse agreements");
+      }
+
+      return result.data;
+    },
+
+    async getAttributesByIds(attributesIds: string[]): Promise<Attribute[]> {
+      const data = await attributes
+        .find({
+          "data.id": { $in: attributesIds },
+        })
+        .toArray();
+
+      const result = z.array(Attribute).safeParse(data.map((d) => d.data));
+      if (!result.success) {
+        logger.error(
+          `Unable to parse attributes items: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+
+        throw genericError("Unable to parse attributes items");
       }
 
       return result.data;
