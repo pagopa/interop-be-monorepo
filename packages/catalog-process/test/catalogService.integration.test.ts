@@ -3,7 +3,16 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import {
   AgreementCollection,
   EServiceCollection,
@@ -1315,6 +1324,14 @@ describe("database test", async () => {
     });
 
     describe("clone descriptor", () => {
+      beforeAll(() => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date("2024-01-01T12:00:00"));
+      });
+      afterAll(() => {
+        vi.useRealTimers();
+      });
+
       it("should write on event-store for the cloning of a descriptor", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
@@ -1376,11 +1393,43 @@ describe("database test", async () => {
         const expectedEService: EService = {
           ...eService,
           id: unsafeBrandId(writtenPayload.eService!.id),
-          name: `${eService.name} - clone`,
+          name: `${eService.name} - clone - 1/1/2024 12:00:00`,
           descriptors: [expectedDescriptor],
           createdAt: new Date(Number(writtenPayload.eService?.createdAt)),
         };
         expect(writtenPayload.eService).toEqual(toEServiceV1(expectedEService));
+      });
+      it("should throw eServiceDuplicate if an eService with the same name already exists", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+          interface: mockDocument,
+          docs: [mockDocument],
+        };
+        const eService1: EService = {
+          ...mockEService,
+          id: generateId(),
+          descriptors: [descriptor],
+        };
+        await addOneEService(eService1, postgresDB, eservices);
+
+        const conflictEServiceName = `${eService1.name} - clone - 1/1/2024 12:00:00`;
+
+        const eService2: EService = {
+          ...mockEService,
+          id: generateId(),
+          name: conflictEServiceName,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eService2, postgresDB, eservices);
+
+        expect(
+          catalogService.cloneDescriptor(
+            eService1.id,
+            descriptor.id,
+            getMockAuthData(eService1.producerId)
+          )
+        ).rejects.toThrowError(eServiceDuplicate(conflictEServiceName));
       });
       it("should throw eServiceNotFound if the eService doesn't exist", () => {
         expect(
