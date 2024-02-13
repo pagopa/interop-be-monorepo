@@ -64,6 +64,7 @@ import {
   notValidDescriptor,
   eServiceNotFound,
   eServiceDescriptorWithoutInterface,
+  interfaceAlreadyExists,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -672,6 +673,10 @@ export function uploadDocumentLogic({
 
   if (descriptor.state !== descriptorState.draft) {
     throw notValidDescriptor(descriptor.id, descriptor.state);
+  }
+
+  if (document.kind === "INTERFACE" && descriptor.interface !== undefined) {
+    throw interfaceAlreadyExists(descriptor.id);
   }
 
   return toCreateEventEServiceDocumentAdded(
