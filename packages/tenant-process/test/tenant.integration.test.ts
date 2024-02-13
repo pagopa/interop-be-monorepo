@@ -18,9 +18,13 @@ import {
   Descriptor,
   EService,
   Tenant,
+  TenantCreatedV1,
+  TenantId,
   TenantUpdatedV1,
   descriptorState,
   generateId,
+  operationForbidden,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { config } from "../src/utilities/config.js";
 import {
@@ -36,9 +40,12 @@ import { UpdateVerifiedTenantAttributeSeed } from "../src/model/domain/models.js
 import {
   expirationDateCannotBeInThePast,
   organizationNotFoundInVerifiers,
+  selfcareIdConflict,
+  tenantDuplicate,
   tenantNotFound,
   verifiedAttributeNotFoundInTenant,
 } from "../src/model/domain/errors.js";
+import { ApiSelfcareTenantSeed } from "../src/model/types.js";
 import {
   addOneAgreement,
   addOneEService,
@@ -46,6 +53,7 @@ import {
   currentDate,
   decodeProtobufPayload,
   getMockAgreement,
+  getMockAuthData,
   getMockCertifiedTenantAttribute,
   getMockDescriptor,
   getMockEService,
@@ -115,9 +123,142 @@ describe("Integration tests", () => {
   });
 
   describe("tenantService", () => {
-    describe("tenant creation", () => {
-      it("TO DO", () => {
-        expect(1).toBe(1);
+    describe("createTenant", () => {
+      it("Should create a tenant", async () => {
+        const kind = "PA";
+        const selfcareId = generateId();
+        const tenantSeed = {
+          externalId: {
+            origin: "IPA",
+            value: "123456",
+          },
+          name: "A tenant",
+          selfcareId,
+        };
+        const id = await tenantService.createTenant(tenantSeed, [], kind);
+        expect(id).toBeDefined();
+        const writtenEvent = await readLastEventByStreamId(id, postgresDB);
+        expect(writtenEvent.stream_id).toBe(id);
+        expect(writtenEvent.version).toBe("0");
+        expect(writtenEvent.type).toBe("TenantCreated");
+        const writtenPayload = decodeProtobufPayload({
+          messageType: TenantCreatedV1,
+          payload: writtenEvent.data,
+        });
+        const tenant: Tenant = {
+          ...mockTenant,
+          id: unsafeBrandId(id),
+          kind,
+          selfcareId: undefined,
+          createdAt: new Date(Number(writtenPayload.tenant?.createdAt)),
+        };
+
+        expect(writtenPayload.tenant).toEqual(toTenantV1(tenant));
+      });
+      it("Should throw a tenantDuplicate error", async () => {
+        const kind = "PA";
+        const selfcareId = generateId();
+        const attributeTenantSeed = {
+          externalId: {
+            origin: "IPA",
+            value: "123456",
+          },
+          name: "A tenant",
+          selfcareId,
+        };
+        await addOneTenant(mockTenant, postgresDB, tenants);
+        expect(
+          tenantService.createTenant(attributeTenantSeed, [], kind)
+        ).rejects.toThrowError(tenantDuplicate(mockTenant.name));
+      });
+    });
+    describe("updateTenant", async () => {
+      const tenantSeed = {
+        externalId: {
+          origin: "IPA",
+          value: "123456",
+        },
+        name: "A tenant",
+        selfcareId: generateId(),
+      };
+      const tenant: Tenant = {
+        ...mockTenant,
+        selfcareId: undefined,
+      };
+      it("Should update the tenant", async () => {
+        await addOneTenant(tenant, postgresDB, tenants);
+        const kind = "PA";
+        const selfcareId = generateId();
+        const tenantSeed: ApiSelfcareTenantSeed = {
+          externalId: {
+            origin: "IPA",
+            value: "123456",
+          },
+          name: "A tenant",
+          selfcareId,
+        };
+        const mockAuthData = getMockAuthData(tenant.id);
+
+        await tenantService.selfcareUpsertTenant({
+          tenantSeed,
+          authData: mockAuthData,
+        });
+
+        const writtenEvent = await readLastEventByStreamId(
+          mockTenant.id,
+          postgresDB
+        );
+        expect(writtenEvent.stream_id).toBe(tenant.id);
+        expect(writtenEvent.version).toBe("1");
+        expect(writtenEvent.type).toBe("TenantUpdated");
+        const writtenPayload = decodeProtobufPayload({
+          messageType: TenantUpdatedV1,
+          payload: writtenEvent.data,
+        });
+
+        const updatedTenant: Tenant = {
+          ...tenant,
+          selfcareId,
+          kind,
+          updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
+        };
+
+        expect(writtenPayload.tenant).toEqual(toTenantV1(updatedTenant));
+      });
+      it("Should throw operation forbidden", async () => {
+        await addOneTenant(tenant, postgresDB, tenants);
+        const mockAuthData = getMockAuthData(generateId<TenantId>());
+
+        expect(
+          tenantService.selfcareUpsertTenant({
+            tenantSeed,
+            authData: mockAuthData,
+          })
+        ).rejects.toThrowError(operationForbidden);
+      });
+      it("Should throw selfcareIdConflict error", async () => {
+        const tenant: Tenant = {
+          ...mockTenant,
+          selfcareId: generateId(),
+        };
+        await addOneTenant(tenant, postgresDB, tenants);
+        const newTenantSeed = {
+          ...tenantSeed,
+          selfcareId: generateId(),
+        };
+        const mockAuthData = getMockAuthData(tenant.id);
+        expect(
+          tenantService.selfcareUpsertTenant({
+            tenantSeed: newTenantSeed,
+            authData: mockAuthData,
+          })
+        ).rejects.toThrowError(
+          selfcareIdConflict({
+            tenantId: tenant.id,
+            existingSelfcareId: tenant.selfcareId!,
+            newSelfcareId: newTenantSeed.selfcareId,
+          })
+        );
       });
     });
     describe("updateTenantVerifiedAttribute", async () => {
