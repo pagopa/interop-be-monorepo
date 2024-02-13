@@ -1,26 +1,20 @@
-name: "Build & Deploy DEV"
+name: "Build & Push"
 
 on:
   push:
     branches:
       - 'main'
-      - 'push-to-ecr' # TODO: remove
     paths:
       - 'packages/**'
       - '!packages/*/scripts/**'
-      - '.github/workflows/*' # TODO: remove
-
-env:
-  REGISTRY: ghcr.io
 
 jobs:
-  build_deploy_image:
+  build_push_image:
     name: ${{ matrix.image_name }}
     runs-on: ubuntu-latest
     environment: dev
     permissions:
       contents: read
-      packages: write
       id-token: write
     strategy:
       fail-fast: false
@@ -48,7 +42,7 @@ jobs:
         with:
           aws-region: ${{ vars.AWS_REGION }}
           role-to-assume: ${{ vars.IAM_ROLE_ARN }}
-          role-session-name: interop-be-monorepo-${{ github.run_number }}
+          role-session-name: be-monorepo-build-push-${{ github.run_number }}
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -76,20 +70,3 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-
-      # - name: Setup kubectl
-      #   uses: azure/setup-kubectl@v3
-      #   with:
-      #     version: ${{ vars.KUBECTL_VERSION}}
-      #
-      # - name: Set kubeconfig
-      #   run: |
-      #     aws eks update-kubeconfig --region ${{ vars.AWS_REGION }} --name ${{ vars.EKS_CLUSTER_NAME }}
-      #
-      # - name: Restart pods
-      #   run: |
-      #     kubectl rollout restart deployment/interop-be-${{ matrix.image_name }}
-      #
-      # - name: Wait for readiness
-      #   run: |
-      #     kubectl rollout status -n "${{ vars.NAMESPACE }}" "deployment/interop-be-${{ matrix.image_name }}" --timeout=300s
