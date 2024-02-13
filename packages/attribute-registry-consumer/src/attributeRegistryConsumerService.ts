@@ -1,10 +1,11 @@
 import { match } from "ts-pattern";
 import { logger, AttributeCollection } from "pagopa-interop-commons";
-import { EventEnvelope } from "./model/models.js";
+import { AttributeEvent } from "pagopa-interop-models";
+import { EventEnvelope } from "../../models/dist/readModels/events.js";
 import { fromAttributeV1 } from "./model/converter.js";
 
 export async function handleMessage(
-  message: EventEnvelope,
+  message: EventEnvelope<AttributeEvent>,
   attributes: AttributeCollection
 ): Promise<void> {
   logger.info(message);
