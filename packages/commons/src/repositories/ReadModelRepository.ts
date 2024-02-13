@@ -18,7 +18,7 @@ import { ReadModelDbConfig, logger } from "../index.js";
 export const Metadata = z.object({ version: z.number() });
 export type Metadata = z.infer<typeof Metadata>;
 
-type GenericCollection<T> = Collection<{
+export type GenericCollection<T> = Collection<{
   data: T;
   metadata: Metadata;
 }>;

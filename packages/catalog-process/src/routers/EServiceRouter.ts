@@ -20,10 +20,7 @@ import { api } from "../model/generated/api.js";
 import { config } from "../utilities/config.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { catalogServiceBuilder } from "../services/catalogService.js";
-import {
-  makeApiProblem,
-  eServiceDocumentNotFound,
-} from "../model/domain/errors.js";
+import { makeApiProblem } from "../model/domain/errors.js";
 import {
   activateDescriptorErrorMapper,
   archiveDescriptorErrorMapper,
@@ -33,6 +30,7 @@ import {
   deleteDraftDescriptorErrorMapper,
   deleteEServiceErrorMapper,
   documentCreateErrorMapper,
+  documentGetErrorMapper,
   documentUpdateDeleteErrorMapper,
   getEServiceErrorMapper,
   publishDescriptorErrorMapper,
@@ -92,7 +90,7 @@ const eservicesRouter = (
             limit,
           } = req.query;
 
-          const catalogs = await readModelService.getEServices(
+          const catalogs = await catalogService.getEServices(
             req.ctx.authData,
             {
               eservicesIds,
@@ -205,7 +203,7 @@ const eservicesRouter = (
           const offset = req.query.offset;
           const limit = req.query.limit;
 
-          const consumers = await readModelService.getEServiceConsumers(
+          const consumers = await catalogService.getEServiceConsumers(
             eServiceId,
             offset,
             limit
@@ -236,45 +234,35 @@ const eservicesRouter = (
     )
     .get(
       "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      authorizationMiddleware([
+        ADMIN_ROLE,
+        API_ROLE,
+        SECURITY_ROLE,
+        M2M_ROLE,
+        SUPPORT_ROLE,
+      ]),
       async (req, res) => {
         try {
           const { eServiceId, descriptorId, documentId } = req.params;
 
-          const document = await readModelService.getDocumentById(
+          const document = await catalogService.getDocumentById(
             unsafeBrandId(eServiceId),
             unsafeBrandId(descriptorId),
             unsafeBrandId(documentId)
           );
 
-          if (document) {
-            return res
-              .status(200)
-              .json({
-                id: document.id,
-                name: document.name,
-                contentType: document.contentType,
-                prettyName: document.prettyName,
-                path: document.path,
-              })
-              .end();
-          } else {
-            return res
-              .status(404)
-              .json(
-                makeApiProblem(
-                  eServiceDocumentNotFound(
-                    unsafeBrandId(eServiceId),
-                    unsafeBrandId(descriptorId),
-                    unsafeBrandId(documentId)
-                  ),
-                  () => 404
-                )
-              )
-              .end();
-          }
+          return res
+            .status(200)
+            .json({
+              id: document.id,
+              name: document.name,
+              contentType: document.contentType,
+              prettyName: document.prettyName,
+              path: document.path,
+            })
+            .end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, () => 500);
+          const errorRes = makeApiProblem(error, documentGetErrorMapper);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
