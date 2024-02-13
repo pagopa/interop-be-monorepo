@@ -18,8 +18,8 @@ async function processMessage({
     const decodedMesssage = decodeKafkaMessage(message, EServiceEvent);
 
     await match(decodedMesssage)
-      .with({ eventVersion: 1 }, handleMessageV1)
-      .with({ eventVersion: 2 }, handleMessageV2)
+      .with({ event_version: 1 }, handleMessageV1)
+      .with({ event_version: 2 }, handleMessageV2)
       .exhaustive();
 
     // await handleMessage(decodeKafkaMessage(message, EServiceEvent));

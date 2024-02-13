@@ -31,27 +31,27 @@ export function tenantEventToBinaryData(event: TenantEvent): Uint8Array {
 
 export const TenantEvent = z.discriminatedUnion("type", [
   z.object({
-    eventVersion: z.literal(1),
+    event_version: z.literal(1),
     type: z.literal("TenantCreated"),
     data: protobufDecoder(TenantCreatedV1),
   }),
   z.object({
-    eventVersion: z.literal(1),
+    event_version: z.literal(1),
     type: z.literal("TenantUpdated"),
     data: protobufDecoder(TenantUpdatedV1),
   }),
   z.object({
-    eventVersion: z.literal(1),
+    event_version: z.literal(1),
     type: z.literal("TenantDeleted"),
     data: protobufDecoder(TenantDeletedV1),
   }),
   z.object({
-    eventVersion: z.literal(1),
+    event_version: z.literal(1),
     type: z.literal("SelfcareMappingCreated"),
     data: protobufDecoder(SelfcareMappingCreatedV1),
   }),
   z.object({
-    eventVersion: z.literal(1),
+    event_version: z.literal(1),
     type: z.literal("SelfcareMappingDeleted"),
     data: protobufDecoder(SelfcareMappingDeletedV1),
   }),
