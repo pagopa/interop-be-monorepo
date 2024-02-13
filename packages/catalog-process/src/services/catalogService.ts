@@ -9,7 +9,6 @@ import {
   userRoles,
 } from "pagopa-interop-commons";
 import {
-  AgreementState,
   Descriptor,
   DescriptorId,
   DescriptorState,
@@ -26,7 +25,6 @@ import {
   generateId,
   operationForbidden,
   unsafeBrandId,
-  ListResult,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
