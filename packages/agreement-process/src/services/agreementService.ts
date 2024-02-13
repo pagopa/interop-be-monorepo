@@ -17,15 +17,9 @@ import {
   agreementEventToBinaryData,
   agreementState,
   descriptorState,
-  agreementUpgradableStates,
-  agreementDeletableStates,
-  agreementUpdatableStates,
-  agreementCloningConflictingStates,
-  agreementRejectableStates,
   AgreementUpdateEvent,
   AgreementDocumentId,
   AgreementId,
-  unsafeBrandId,
 } from "pagopa-interop-models";
 import {
   agreementAlreadyExists,
@@ -56,10 +50,13 @@ import {
   matchingDeclaredAttributes,
   matchingVerifiedAttributes,
   validateCertifiedAttributes,
-  validateCreationOnDescriptor,
   verifiedAttributesSatisfied,
   verifyConflictingAgreements,
-  verifyCreationConflictingAgreements,
+  agreementDeletableStates,
+  agreementUpdatableStates,
+  agreementUpgradableStates,
+  agreementCloningConflictingStates,
+  agreementRejectableStates,
 } from "../model/domain/validators.js";
 import {
   CompactEService,
@@ -86,6 +83,7 @@ import {
   addConsumerDocumentLogic,
 } from "./agreementConsumerDocumentProcessor.js";
 import { activateAgreementLogic } from "./agreementActivationProcessor.js";
+import { createAgreementLogic } from "./agreementCreationProcessor.js";
 
 const fileManager = initFileManager(config);
 
@@ -119,6 +117,9 @@ export function agreementServiceBuilder(
       agreement: ApiAgreementPayload,
       authData: AuthData
     ): Promise<string> {
+      logger.info(
+        `Creating agreement for EService ${agreement.eserviceId} and Descriptor ${agreement.descriptorId}`
+      );
       const createAgreementEvent = await createAgreementLogic(
         agreement,
         authData,
@@ -153,6 +154,7 @@ export function agreementServiceBuilder(
       agreement: ApiAgreementUpdatePayload,
       authData: AuthData
     ): Promise<void> {
+      logger.info(`Updating agreement ${agreementId}`);
       const agreementToBeUpdated = await agreementQuery.getAgreementById(
         agreementId
       );
@@ -170,6 +172,7 @@ export function agreementServiceBuilder(
       agreementId: AgreementId,
       authData: AuthData
     ): Promise<void> {
+      logger.info(`Deleting agreement ${agreementId}`);
       const agreement = await agreementQuery.getAgreementById(agreementId);
 
       await repository.createEvent(
@@ -355,6 +358,7 @@ export function agreementServiceBuilder(
       agreementId: Agreement["id"],
       authData: AuthData
     ): Promise<Agreement["id"]> {
+      logger.info(`Activating agreement ${agreementId}`);
       const updatesEvents = await activateAgreementLogic(
         agreementId,
         agreementQuery,
@@ -454,54 +458,6 @@ export async function deleteAgreementLogic({
   }
 
   return toCreateEventAgreementDeleted(agreementId, agreement.metadata.version);
-}
-
-export async function createAgreementLogic(
-  agreement: ApiAgreementPayload,
-  authData: AuthData,
-  agreementQuery: AgreementQuery,
-  eserviceQuery: EserviceQuery,
-  tenantQuery: TenantQuery
-): Promise<CreateEvent<AgreementEvent>> {
-  logger.info(
-    `Creating agreement for EService ${agreement.eserviceId} and Descriptor ${agreement.descriptorId}`
-  );
-  const eservice = await eserviceQuery.getEServiceById(agreement.eserviceId);
-  assertEServiceExist(agreement.eserviceId, eservice);
-
-  const descriptor = validateCreationOnDescriptor(
-    eservice.data,
-    unsafeBrandId(agreement.descriptorId)
-  );
-
-  await verifyCreationConflictingAgreements(
-    authData.organizationId,
-    agreement,
-    agreementQuery
-  );
-  const consumer = await tenantQuery.getTenantById(authData.organizationId);
-  assertTenantExist(authData.organizationId, consumer);
-
-  if (eservice.data.producerId !== consumer.data.id) {
-    validateCertifiedAttributes(descriptor, consumer.data);
-  }
-
-  const agreementSeed: Agreement = {
-    id: generateId(),
-    eserviceId: agreement.eserviceId,
-    descriptorId: unsafeBrandId(agreement.descriptorId),
-    producerId: eservice.data.producerId,
-    consumerId: authData.organizationId,
-    state: agreementState.draft,
-    verifiedAttributes: [],
-    certifiedAttributes: [],
-    declaredAttributes: [],
-    consumerDocuments: [],
-    createdAt: new Date(),
-    stamps: {},
-  };
-
-  return toCreateEventAgreementAdded(agreementSeed);
 }
 
 export async function updateAgreementLogic({

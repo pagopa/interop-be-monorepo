@@ -71,7 +71,10 @@ export const fromAgreementState = (input: AgreementStateV1): AgreementState => {
 export const fromAgreementV1 = (input: AgreementV1): Agreement => ({
   ...input,
   id: unsafeBrandId(input.id),
+  eserviceId: unsafeBrandId(input.eserviceId),
   descriptorId: unsafeBrandId(input.descriptorId),
+  producerId: unsafeBrandId(input.producerId),
+  consumerId: unsafeBrandId(input.consumerId),
   certifiedAttributes: input.certifiedAttributes.map((a) => ({
     ...a,
     id: unsafeBrandId(a.id),

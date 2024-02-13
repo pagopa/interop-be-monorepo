@@ -1,4 +1,8 @@
-import { ApiError, makeApiProblemBuilder } from "pagopa-interop-models";
+import {
+  ApiError,
+  TenantId,
+  makeApiProblemBuilder,
+} from "pagopa-interop-models";
 
 export const errorCodes = {
   attributeNotFound: "0001",
@@ -38,7 +42,7 @@ export function originNotCompliant(origin: string): ApiError<ErrorCodes> {
   });
 }
 
-export function tenantNotFound(tenantId: string): ApiError<ErrorCodes> {
+export function tenantNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant ${tenantId} not found`,
     code: "tenantNotFound",
@@ -47,7 +51,7 @@ export function tenantNotFound(tenantId: string): ApiError<ErrorCodes> {
 }
 
 export function OrganizationIsNotACertifier(
-  tenantId: string
+  tenantId: TenantId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant ${tenantId} is not a Certifier`,

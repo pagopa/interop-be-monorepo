@@ -15,19 +15,25 @@ export const REAUTHENTICATION_THRESHOLD = 20 * 1000;
 const errorTypes = ["unhandledRejection", "uncaughtException"];
 const signalTraps = ["SIGTERM", "SIGINT", "SIGUSR2"];
 
-const handleExit = (consumer: Consumer): void => {
+const processExit = (existStatusCode: number = 1): void => {
+  logger.info(`Process exit with code ${existStatusCode}`);
+  process.exit(existStatusCode);
+};
+
+const errorEventsListener = (consumer: Consumer): void => {
   errorTypes.forEach((type) => {
     process.on(type, async (e) => {
       try {
-        logger.info(`process.on ${type}`);
-        logger.error(e);
+        logger.error(`Error ${type} intercepted; Error detail: ${e}`);
         await consumer.disconnect().finally(() => {
-          logger.info("Consumer disconnected");
-          process.exit(0);
+          logger.info("Consumer disconnected properly");
         });
-        process.exit(0);
-      } catch (_) {
-        process.exit(1);
+        processExit();
+      } catch (e) {
+        logger.error(
+          `Unexpected error on consumer disconnection with event type ${type}; Error detail: ${e}`
+        );
+        processExit();
       }
     });
   });
@@ -36,13 +42,34 @@ const handleExit = (consumer: Consumer): void => {
     process.once(type, async () => {
       try {
         await consumer.disconnect().finally(() => {
-          logger.info("Consumer disconnected");
-          process.exit(0);
+          logger.info("Consumer disconnected properly");
+          processExit();
         });
       } finally {
         process.kill(process.pid, type);
       }
     });
+  });
+};
+
+const kafkaEventsListener = (consumer: Consumer): void => {
+  consumer.on(consumer.events.DISCONNECT, () => {
+    logger.info(`Consumer has disconnected.`);
+  });
+
+  consumer.on(consumer.events.STOP, (e) => {
+    logger.info(`Consumer has stopped ${JSON.stringify(e)}.`);
+  });
+
+  consumer.on(consumer.events.CRASH, (e) => {
+    logger.error(`Error Consumer crashed ${JSON.stringify(e)}.`);
+    processExit();
+  });
+
+  consumer.on(consumer.events.REQUEST_TIMEOUT, (e) => {
+    logger.error(
+      `Error Request to a broker has timed out : ${JSON.stringify(e)}.`
+    );
   });
 };
 
@@ -71,17 +98,37 @@ const initConsumer = async (
       };
 
   const kafka = new Kafka(kafkaConfig);
-  const consumer = kafka.consumer({ groupId: config.kafkaGroupId });
 
-  handleExit(consumer);
+  const consumer = kafka.consumer({
+    groupId: config.kafkaGroupId,
+    retry: {
+      initialRetryTime: 100,
+      maxRetryTime: 3000,
+      retries: 3,
+      restartOnFailure: (error) => {
+        logger.error(`Error during restart service: ${error.message}`);
+        return Promise.resolve(false);
+      },
+    },
+  });
+
+  kafkaEventsListener(consumer);
+  errorEventsListener(consumer);
 
   await consumer.connect();
   logger.info("Consumer connected");
+
+  const topicExists = await validateTopicMetadata(kafka, config.kafkaTopics);
+  if (!topicExists) {
+    processExit();
+  }
 
   await consumer.subscribe({
     topics: config.kafkaTopics,
     fromBeginning: true,
   });
+
+  logger.info(`Consumer subscribed topic ${config.kafkaTopics}`);
 
   await consumer.run({
     eachMessage: consumerHandler,
@@ -94,17 +141,49 @@ export const runConsumer = async (
   consumerHandler: (messagePayload: EachMessagePayload) => Promise<void>
 ): Promise<void> => {
   do {
-    const consumer = await initConsumer(config, consumerHandler);
+    try {
+      const consumer = await initConsumer(config, consumerHandler);
 
-    await new Promise((resolve) =>
-      setTimeout(
-        resolve,
-        DEFAULT_AUTHENTICATION_TIMEOUT - REAUTHENTICATION_THRESHOLD
-      )
-    );
+      await new Promise((resolve) =>
+        setTimeout(
+          resolve,
+          DEFAULT_AUTHENTICATION_TIMEOUT - REAUTHENTICATION_THRESHOLD
+        )
+      );
 
-    await consumer.disconnect().finally(() => {
-      logger.info("Consumer disconnected");
-    });
+      await consumer.disconnect().finally(() => {
+        logger.info("Consumer disconnected");
+      });
+    } catch (e) {
+      logger.error(`Generic error occurs during consumer initialization: ${e}`);
+      processExit();
+    }
   } while (true);
+};
+
+export const validateTopicMetadata = async (
+  kafka: Kafka,
+  topicNames: string[]
+): Promise<boolean> => {
+  logger.info(`Check topics [${JSON.stringify(topicNames)}] existence...`);
+
+  const admin = kafka.admin();
+  await admin.connect();
+
+  try {
+    const { topics } = await admin.fetchTopicMetadata({
+      topics: [...topicNames],
+    });
+    logger.info(`Topic metadata: ${JSON.stringify(topics)} `);
+    await admin.disconnect();
+    return true;
+  } catch (e) {
+    await admin.disconnect();
+    logger.error(
+      `Unable to subscribe! Error during topic metadata fetch: ${JSON.stringify(
+        e
+      )}`
+    );
+    return false;
+  }
 };
