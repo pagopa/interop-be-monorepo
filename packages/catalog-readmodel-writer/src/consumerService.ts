@@ -1,12 +1,12 @@
 import { match } from "ts-pattern";
 import { logger, EServiceCollection } from "pagopa-interop-commons";
+import { EServiceEvent } from "../../models/dist/eservice/eserviceEvents.js";
+import { EventEnvelope } from "../../models/dist/readModels/events.js";
 import {
   fromDescriptorV1,
   fromDocumentV1,
   fromEServiceV1,
 } from "./model/converter.js";
-import { EServiceEvent } from "../../models/dist/eservice/eserviceEvents.js";
-import { EventEnvelope } from "../../models/dist/readModels/events.js";
 
 export async function handleMessage(
   message: EventEnvelope<EServiceEvent>,
