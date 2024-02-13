@@ -10,6 +10,7 @@ import {
   Agreement,
   Descriptor,
   DescriptorId,
+  Document,
   EService,
   EServiceEvent,
   EServiceId,
@@ -23,6 +24,7 @@ import {
 } from "pagopa-interop-models";
 import { toEServiceV1 } from "../src/model/domain/toEvent.js";
 import { EServiceDescriptorSeed } from "../src/model/domain/models.js";
+import { ApiEServiceDescriptorDocumentSeed } from "../src/model/types.js";
 
 export const writeEServiceInEventstore = async (
   eService: EService,
@@ -133,13 +135,34 @@ export const getMockDescriptor = (): Descriptor => ({
   dailyCallsPerConsumer: 10,
   dailyCallsTotal: 1000,
   createdAt: new Date(),
-  serverUrls: [],
+  serverUrls: ["pagopa.it"],
   agreementApprovalPolicy: "Automatic",
   attributes: {
     certified: [],
     verified: [],
     declared: [],
   },
+});
+
+export const buildInterfaceSeed = (): ApiEServiceDescriptorDocumentSeed => ({
+  contentType: "json",
+  prettyName: "prettyName",
+  serverUrls: ["pagopa.it"],
+  documentId: uuidv4(),
+  kind: "INTERFACE",
+  filePath: "filePath",
+  fileName: "fileName",
+  checksum: "checksum",
+});
+
+export const getMockDocument = (): Document => ({
+  name: "fileName",
+  path: "filePath",
+  id: uuidv4(),
+  prettyName: "prettyName",
+  contentType: "json",
+  checksum: uuidv4(),
+  uploadDate: new Date(),
 });
 
 export const getMockTenant = (): Tenant => ({
