@@ -154,6 +154,7 @@ describe("database test", async () => {
     await eservices.deleteMany({});
     await agreements.deleteMany({});
     await tenants.deleteMany({});
+    await attributes.deleteMany({});
 
     await postgresDB.none("TRUNCATE TABLE catalog.events RESTART IDENTITY");
     await postgresDB.none("TRUNCATE TABLE agreement.events RESTART IDENTITY");
