@@ -1,12 +1,11 @@
 /* eslint-disable max-params */
-import { AuthData, CreateEvent, logger } from "pagopa-interop-commons";
+import { AuthData, CreateEvent } from "pagopa-interop-commons";
 import {
   Agreement,
   Descriptor,
   EService,
   Tenant,
   agreementState,
-  agreementArchivableStates,
   WithMetadata,
   AgreementEvent,
   AgreementUpdateEvent,
@@ -24,6 +23,7 @@ import {
   assertActivableState,
   verifyConsumerDoesNotActivatePending,
   assertEServiceExist,
+  agreementArchivableStates,
 } from "../model/domain/validators.js";
 import { toCreateEventAgreementUpdated } from "../model/domain/toEvent.js";
 import { UpdateAgreementSeed } from "../model/domain/models.js";
@@ -53,8 +53,6 @@ export async function activateAgreementLogic(
   attributeQuery: AttributeQuery,
   authData: AuthData
 ): Promise<Array<CreateEvent<AgreementEvent>>> {
-  logger.info(`Activating agreement ${agreementId}`);
-
   const agreement = await agreementQuery.getAgreementById(agreementId);
   assertAgreementExist(agreementId, agreement);
 
