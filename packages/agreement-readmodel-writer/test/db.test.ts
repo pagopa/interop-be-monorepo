@@ -8,10 +8,14 @@ import {
   ReadModelRepository,
   consumerConfig,
 } from "pagopa-interop-commons";
-import { AgreementAddedV1, AgreementStateV1 } from "pagopa-interop-models";
+import {
+  AgreementAddedV1,
+  AgreementEvent,
+  AgreementStateV1,
+  EventEnvelope,
+} from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import { GenericContainer } from "testcontainers";
-import { EventEnvelope } from "../src/model/models.js";
 import { handleMessage } from "../src/agreementConsumerService.js";
 
 describe("database test", async () => {
@@ -56,7 +60,7 @@ describe("database test", async () => {
           consumerDocuments: [],
         },
       };
-      const message: EventEnvelope = {
+      const message: EventEnvelope<AgreementEvent> = {
         sequence_num: 1,
         stream_id: id,
         version: 1,

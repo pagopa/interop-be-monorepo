@@ -8,11 +8,15 @@ import {
   ReadModelRepository,
   consumerConfig,
 } from "pagopa-interop-commons";
-import { EServiceAddedV1, EServiceTechnologyV1 } from "pagopa-interop-models";
+import {
+  EServiceAddedV1,
+  EServiceEvent,
+  EServiceTechnologyV1,
+  EventEnvelope,
+} from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import { GenericContainer } from "testcontainers";
 import { handleMessage } from "../src/consumerService.js";
-import { EventEnvelope } from "../src/model/models.js";
 
 describe("database test", async () => {
   let eservices: EServiceCollection;
@@ -49,9 +53,10 @@ describe("database test", async () => {
           description: "description",
           technology: EServiceTechnologyV1.REST,
           descriptors: [],
+          createdAt: BigInt(new Date().getTime()),
         },
       };
-      const message: EventEnvelope = {
+      const message: EventEnvelope<EServiceEvent> = {
         sequence_num: 1,
         stream_id: id,
         version: 1,
