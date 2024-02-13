@@ -344,16 +344,16 @@ export function readModelServiceBuilder(
     },
 
     async listAgreementsForEServiceDescriptor({
-      eServiceId,
+      eserviceId,
       descriptorId,
     }: {
-      eServiceId: string;
+      eserviceId: string;
       descriptorId: DescriptorId;
     }): Promise<Agreement[]> {
       const aggregationPipeline = [
         {
           $match: {
-            "data.eserviceId": { $eq: eServiceId },
+            "data.eserviceId": { $eq: eserviceId },
             "data.descriptorId": { $eq: descriptorId },
             "data.state": {
               $in: [agreementState.active, agreementState.suspended],

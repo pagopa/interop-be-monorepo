@@ -1087,7 +1087,7 @@ describe("database test", async () => {
         };
         await addOneTenant(tenant, tenants);
         const agreement = getMockAgreement({
-          eServiceId: eService.id,
+          eserviceId: eService.id,
           descriptorId: descriptor1.id,
           producerId: eService.producerId,
           consumerId: tenant.id,
