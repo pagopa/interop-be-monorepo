@@ -510,6 +510,8 @@ export function catalogServiceBuilder(
         authData,
         copyFile: fileManager.copy,
         eService,
+        getEServiceByNameAndProducerId:
+          readModelService.getEServiceByNameAndProducerId,
       });
 
       await repository.createEvent(event);
@@ -1041,6 +1043,7 @@ export async function cloneDescriptorLogic({
   authData,
   copyFile,
   eService,
+  getEServiceByNameAndProducerId,
 }: {
   eserviceId: EServiceId;
   descriptorId: DescriptorId;
@@ -1053,12 +1056,32 @@ export async function cloneDescriptorLogic({
     name: string
   ) => Promise<string>;
   eService: WithMetadata<EService> | undefined;
+  getEServiceByNameAndProducerId: ({
+    name,
+    producerId,
+  }: {
+    name: string;
+    producerId: TenantId;
+  }) => Promise<WithMetadata<EService> | undefined>;
 }): Promise<{ eService: EService; event: CreateEvent<EServiceEvent> }> {
   assertEServiceExist(eserviceId, eService);
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
 
-  const descriptor = retrieveDescriptor(descriptorId, eService);
+  const currentDate = new Date();
+  const currentLocalDate = currentDate.toLocaleDateString("it-IT");
+  const currentLocalTime = currentDate.toLocaleTimeString("it-IT");
+  const clonedEServiceName = `${eService.data.name} - clone - ${currentLocalDate} ${currentLocalTime}`;
 
+  if (
+    await getEServiceByNameAndProducerId({
+      name: clonedEServiceName,
+      producerId: authData.organizationId,
+    })
+  ) {
+    throw eServiceDuplicate(clonedEServiceName);
+  }
+
+  const descriptor = retrieveDescriptor(descriptorId, eService);
   const sourceDocument = descriptor.docs[0];
   const clonedDocumentId = generateId<EServiceDocumentId>();
 
@@ -1112,7 +1135,7 @@ export async function cloneDescriptorLogic({
   const draftCatalogItem: EService = {
     id: generateId(),
     producerId: eService.data.producerId,
-    name: `${eService.data.name} - clone`,
+    name: clonedEServiceName,
     description: eService.data.description,
     technology: eService.data.technology,
     attributes: eService.data.attributes,
