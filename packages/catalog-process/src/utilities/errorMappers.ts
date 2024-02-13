@@ -85,7 +85,11 @@ export const createDescriptorErrorMapper = (
 ): number =>
   match(error.code)
     .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("draftDescriptorAlreadyExists", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "draftDescriptorAlreadyExists",
+      "attributeNotFound",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
