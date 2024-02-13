@@ -24,6 +24,7 @@ import {
   generateId,
   operationForbidden,
   unsafeBrandId,
+  ListResult,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -31,6 +32,7 @@ import {
   apiTechnologyToTechnology,
 } from "../model/domain/apiConverter.js";
 import {
+  Consumer,
   EServiceDescriptorSeed,
   UpdateEServiceDescriptorSeed,
 } from "../model/domain/models.js";
@@ -50,6 +52,7 @@ import {
   ApiEServiceDescriptorDocumentSeed,
   ApiEServiceDescriptorDocumentUpdateSeed,
   ApiEServiceSeed,
+  ApiGetEServicesFilters,
 } from "../model/types.js";
 import { config } from "../utilities/config.js";
 import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
@@ -214,6 +217,9 @@ export function catalogServiceBuilder(
       apiEServicesSeed: ApiEServiceSeed,
       authData: AuthData
     ): Promise<EServiceId> {
+      logger.info(
+        `Creating EService with service name ${apiEServicesSeed.name}`
+      );
       return unsafeBrandId<EServiceId>(
         await repository.createEvent(
           createEserviceLogic({
@@ -227,12 +233,64 @@ export function catalogServiceBuilder(
         )
       );
     },
+    async getEServiceById(
+      eserviceId: EServiceId,
+      authData: AuthData
+    ): Promise<EService> {
+      logger.info(`Retrieving EService ${eserviceId}`);
+      const eService = await retrieveEService(eserviceId, readModelService);
 
+      if (isUserAllowedToSeeDraft(authData, eService.data.producerId)) {
+        return eService.data;
+      }
+      const eServiceWithoutDraft: EService = {
+        ...eService.data,
+        descriptors: eService.data.descriptors.filter(
+          (d) => d.state !== descriptorState.draft
+        ),
+      };
+
+      if (eServiceWithoutDraft.descriptors.length === 0) {
+        throw eServiceNotFound(eserviceId);
+      }
+
+      return eServiceWithoutDraft;
+    },
+    async getEServices(
+      authData: AuthData,
+      filters: ApiGetEServicesFilters,
+      offset: number,
+      limit: number
+    ): Promise<ListResult<EService>> {
+      // "Getting e-service with name = $name, ids = $eServicesIds, producers = $producersIds, states = $states, agreementStates = $agreementStates, limit = $limit, offset = $offset"
+      logger.info(
+        `Getting EServices with name = ${filters.name}, ids = ${filters.eservicesIds}, producers = ${filters.producersIds}, states = ${filters.states}, agreementStates = ${filters.agreementStates}, limit = ${limit}, offset = ${offset}`
+      );
+      return await readModelService.getEServices(
+        authData.organizationId,
+        filters,
+        offset,
+        limit
+      );
+    },
+    async getEServiceConsumers(
+      eServiceId: EServiceId,
+      offset: number,
+      limit: number
+    ): Promise<ListResult<Consumer>> {
+      logger.info(`Retrieving consumers for EService ${eServiceId}`);
+      return await readModelService.getEServiceConsumers(
+        eServiceId,
+        offset,
+        limit
+      );
+    },
     async updateEService(
       eserviceId: EServiceId,
       eServiceSeed: ApiEServiceSeed,
       authData: AuthData
     ): Promise<void> {
+      logger.info(`Updating EService ${eserviceId}`);
       const eService = await readModelService.getEServiceById(eserviceId);
 
       await repository.createEvent(
@@ -244,6 +302,7 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       authData: AuthData
     ): Promise<void> {
+      logger.info(`Deleting EService ${eserviceId}`);
       const eService = await readModelService.getEServiceById(eserviceId);
 
       await repository.createEvent(
@@ -257,6 +316,9 @@ export function catalogServiceBuilder(
       document: ApiEServiceDescriptorDocumentSeed,
       authData: AuthData
     ): Promise<string> {
+      logger.info(
+        `Creating EService Document ${document.documentId.toString} of kind ${document.kind}, name ${document.fileName}, path ${document.filePath} for EService ${eserviceId} and Descriptor ${descriptorId}`
+      );
       const eService = await readModelService.getEServiceById(eserviceId);
 
       return await repository.createEvent(
@@ -269,13 +331,41 @@ export function catalogServiceBuilder(
         })
       );
     },
+    async getDocumentById({
+      eServiceId,
+      descriptorId,
+      documentId,
+      authData,
+    }: {
+      eServiceId: EServiceId;
+      descriptorId: DescriptorId;
+      documentId: EServiceDocumentId;
+      authData: AuthData;
+    }): Promise<Document> {
+      logger.info(
+        `Retrieving EService document ${documentId} for EService ${eServiceId} and descriptor ${descriptorId}`
+      );
+      const eService = await retrieveEService(eServiceId, readModelService);
+      const descriptor = retrieveDescriptor(descriptorId, eService);
 
+      if (isUserAllowedToSeeDraft(authData, eService.data.producerId)) {
+        return retrieveDocument(eServiceId, descriptor, documentId);
+      } else {
+        if (descriptor.state === descriptorState.draft) {
+          throw eServiceNotFound(eServiceId);
+        }
+        return retrieveDocument(eServiceId, descriptor, documentId);
+      }
+    },
     async deleteDocument(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       documentId: EServiceDocumentId,
       authData: AuthData
     ): Promise<void> {
+      logger.info(
+        `Deleting Document ${documentId} of Descriptor ${descriptorId} for EService ${eserviceId}`
+      );
       const eService = await readModelService.getEServiceById(eserviceId);
 
       await repository.createEvent(
@@ -297,6 +387,9 @@ export function catalogServiceBuilder(
       apiEServiceDescriptorDocumentUpdateSeed: ApiEServiceDescriptorDocumentUpdateSeed,
       authData: AuthData
     ): Promise<void> {
+      logger.info(
+        `Updating Document ${documentId} of Descriptor ${descriptorId} for EService ${eserviceId}`
+      );
       const eService = await readModelService.getEServiceById(eserviceId);
 
       await repository.createEvent(
@@ -336,7 +429,7 @@ export function catalogServiceBuilder(
       authData: AuthData
     ): Promise<void> {
       logger.info(
-        `Deleting draft Descriptor ${descriptorId} of EService ${eserviceId}`
+        `Deleting draft Descriptor ${descriptorId} for EService ${eserviceId}`
       );
 
       const eService = await readModelService.getEServiceById(eserviceId);
@@ -357,6 +450,9 @@ export function catalogServiceBuilder(
       seed: UpdateEServiceDescriptorSeed,
       authData: AuthData
     ): Promise<void> {
+      logger.info(
+        `Updating draft Descriptor ${descriptorId} for EService ${eserviceId}`
+      );
       const eService = await readModelService.getEServiceById(eserviceId);
 
       await repository.createEvent(
@@ -376,7 +472,7 @@ export function catalogServiceBuilder(
       authData: AuthData
     ): Promise<void> {
       logger.info(
-        `Publishing Descriptor $descriptorId of EService ${eserviceId}`
+        `Publishing Descriptor ${descriptorId} for EService ${eserviceId}`
       );
 
       const eService = await readModelService.getEServiceById(eserviceId);
@@ -397,7 +493,7 @@ export function catalogServiceBuilder(
       authData: AuthData
     ): Promise<void> {
       logger.info(
-        `Suspending Descriptor ${descriptorId} of EService ${eserviceId}`
+        `Suspending Descriptor ${descriptorId} for EService ${eserviceId}`
       );
 
       const eService = await readModelService.getEServiceById(eserviceId);
@@ -439,7 +535,7 @@ export function catalogServiceBuilder(
       authData: AuthData
     ): Promise<EService> {
       logger.info(
-        `Cloning Descriptor ${descriptorId} of EService ${eserviceId}`
+        `Cloning Descriptor ${descriptorId} for EService ${eserviceId}`
       );
 
       const eService = await readModelService.getEServiceById(eserviceId);
@@ -463,7 +559,7 @@ export function catalogServiceBuilder(
       authData: AuthData
     ): Promise<void> {
       logger.info(
-        `Archiving descriptor ${descriptorId} of EService ${eserviceId}`
+        `Archiving Descriptor ${descriptorId} for EService ${eserviceId}`
       );
 
       const eService = await readModelService.getEServiceById(eserviceId);
@@ -476,53 +572,6 @@ export function catalogServiceBuilder(
           eService,
         })
       );
-    },
-
-    async getEServiceById(
-      eServiceId: EServiceId,
-      authData: AuthData
-    ): Promise<EService> {
-      const eService = await retrieveEService(eServiceId, readModelService);
-
-      if (isUserAllowedToSeeDraft(authData, eService.data.producerId)) {
-        return eService.data;
-      }
-      const eServiceWithoutDraft: EService = {
-        ...eService.data,
-        descriptors: eService.data.descriptors.filter(
-          (d) => d.state !== descriptorState.draft
-        ),
-      };
-
-      if (eServiceWithoutDraft.descriptors.length === 0) {
-        throw eServiceNotFound(eServiceId);
-      }
-
-      return eServiceWithoutDraft;
-    },
-
-    async getDocumentById({
-      eServiceId,
-      descriptorId,
-      documentId,
-      authData,
-    }: {
-      eServiceId: EServiceId;
-      descriptorId: DescriptorId;
-      documentId: EServiceDocumentId;
-      authData: AuthData;
-    }): Promise<Document> {
-      const eService = await retrieveEService(eServiceId, readModelService);
-      const descriptor = retrieveDescriptor(descriptorId, eService);
-
-      if (isUserAllowedToSeeDraft(authData, eService.data.producerId)) {
-        return retrieveDocument(eServiceId, descriptor, documentId);
-      } else {
-        if (descriptor.state === descriptorState.draft) {
-          throw eServiceNotFound(eServiceId);
-        }
-        return retrieveDocument(eServiceId, descriptor, documentId);
-      }
     },
   };
 }
@@ -1008,10 +1057,6 @@ export function activateDescriptorLogic({
     recentDescriptorVersion !== null &&
     parseInt(descriptor.version, 10) === recentDescriptorVersion
   ) {
-    logger.info(
-      `Publishing Descriptor ${descriptorId} of EService ${eserviceId}`
-    );
-
     return toCreateEventEServiceDescriptorUpdated(
       eserviceId,
       eService.metadata.version,

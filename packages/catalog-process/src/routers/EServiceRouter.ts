@@ -90,7 +90,7 @@ const eservicesRouter = (
             limit,
           } = req.query;
 
-          const catalogs = await readModelService.getEServices(
+          const catalogs = await catalogService.getEServices(
             req.ctx.authData,
             {
               eservicesIds,
@@ -203,7 +203,7 @@ const eservicesRouter = (
           const offset = req.query.offset;
           const limit = req.query.limit;
 
-          const consumers = await readModelService.getEServiceConsumers(
+          const consumers = await catalogService.getEServiceConsumers(
             eServiceId,
             offset,
             limit
@@ -234,7 +234,13 @@ const eservicesRouter = (
     )
     .get(
       "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      authorizationMiddleware([
+        ADMIN_ROLE,
+        API_ROLE,
+        SECURITY_ROLE,
+        M2M_ROLE,
+        SUPPORT_ROLE,
+      ]),
       async (req, res) => {
         try {
           const { eServiceId, descriptorId, documentId } = req.params;
