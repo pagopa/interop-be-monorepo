@@ -5,6 +5,7 @@ import {
   EServiceCollection,
   userRoles,
   hasPermission,
+  AuthData,
 } from "pagopa-interop-commons";
 import {
   Document,
@@ -67,7 +68,7 @@ export function readModelServiceBuilder(
   const agreements = readModelRepository.agreements;
   return {
     async getEServices(
-      organizationId: TenantId,
+      authData: AuthData,
       filters: ApiGetEServicesFilters,
       offset: number,
       limit: number
@@ -80,7 +81,7 @@ export function readModelServiceBuilder(
           (
             await this.listAgreements(
               eservicesIds,
-              [organizationId],
+              [authData.organizationId],
               [],
               agreementStates
             )
