@@ -1,25 +1,25 @@
 import { z } from "zod";
 
-const LocalMinioConfig = z
-  .discriminatedUnion("S3_LOCAL_MINIO", [
+const S3CustomServerConfig = z
+  .discriminatedUnion("S3_CUSTOM_SERVER", [
     z.object({
-      S3_LOCAL_MINIO: z.literal("true"),
-      S3_LOCAL_MINIO_HOST: z.string(),
-      S3_LOCAL_MINIO_PORT: z.coerce.number().min(1001),
+      S3_CUSTOM_SERVER: z.literal("true"),
+      S3_SERVER_HOST: z.string(),
+      S3_SERVER_PORT: z.coerce.number().min(1001),
     }),
     z.object({
-      S3_LOCAL_MINIO: z.literal("false"),
+      S3_CUSTOM_SERVER: z.literal("false"),
     }),
   ])
   .transform((c) =>
-    c.S3_LOCAL_MINIO === "true"
+    c.S3_CUSTOM_SERVER === "true"
       ? {
-          s3LocalMinio: true as const,
-          s3LocalMinioHost: c.S3_LOCAL_MINIO_HOST,
-          s3LocalMinioPort: c.S3_LOCAL_MINIO_PORT,
+          s3CustomServer: true as const,
+          s3ServerHost: c.S3_SERVER_HOST,
+          s3ServerPort: c.S3_SERVER_PORT,
         }
       : {
-          s3LocalMinio: false as const,
+          s3CustomServer: false as const,
         }
   );
 
@@ -35,5 +35,5 @@ const S3Config = z
     s3Region: c.S3_REGION,
   }));
 
-export const FileManagerConfig = z.intersection(LocalMinioConfig, S3Config);
+export const FileManagerConfig = z.intersection(S3CustomServerConfig, S3Config);
 export type FileManagerConfig = z.infer<typeof FileManagerConfig>;

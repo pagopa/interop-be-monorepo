@@ -7,7 +7,7 @@ import {
   S3ClientConfig,
 } from "@aws-sdk/client-s3";
 import { FileManagerConfig } from "./config/fileManagerConfig.js";
-import { logger } from "./index.js";
+import { LoggerConfig, logger } from "./index.js";
 
 export type FileManager = {
   delete: (bucket: string, path: string) => Promise<void>;
@@ -29,8 +29,7 @@ export type FileManager = {
 };
 
 export function initFileManager(
-  config: FileManagerConfig,
-  debugLogs?: boolean
+  config: FileManagerConfig & LoggerConfig
 ): FileManager {
   const s3ClientConfig: S3ClientConfig = {
     credentials: {
@@ -38,11 +37,11 @@ export function initFileManager(
       secretAccessKey: config.s3SecretAccessKey,
     },
     region: config.s3Region,
-    endpoint: config.s3LocalMinio
-      ? `${config.s3LocalMinioHost}:${config.s3LocalMinioPort}`
+    endpoint: config.s3CustomServer
+      ? `${config.s3ServerHost}:${config.s3ServerPort}`
       : undefined,
-    forcePathStyle: config.s3LocalMinio ? true : false,
-    logger: debugLogs ? console : undefined,
+    forcePathStyle: config.s3CustomServer,
+    logger: config.logLevel === "debug" ? console : undefined,
   };
   const client = new S3Client(s3ClientConfig);
 
