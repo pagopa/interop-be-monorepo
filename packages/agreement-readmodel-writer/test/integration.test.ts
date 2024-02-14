@@ -11,6 +11,7 @@ import {
 import {
   AgreementAddedV1,
   AgreementEvent,
+  AgreementEventEnvelope,
   AgreementStateV1,
   EventEnvelope,
 } from "pagopa-interop-models";
@@ -60,7 +61,7 @@ describe("database test", async () => {
           consumerDocuments: [],
         },
       };
-      const message: EventEnvelope<AgreementEvent> = {
+      const message: AgreementEventEnvelope = {
         sequence_num: 1,
         stream_id: id,
         version: 1,

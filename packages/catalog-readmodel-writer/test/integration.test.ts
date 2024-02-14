@@ -11,6 +11,7 @@ import {
 import {
   EServiceAddedV1,
   EServiceEvent,
+  EServiceEventEnvelope,
   EServiceTechnologyV1,
   EventEnvelope,
 } from "pagopa-interop-models";
@@ -56,7 +57,7 @@ describe("database test", async () => {
           createdAt: BigInt(new Date().getTime()),
         },
       };
-      const message: EventEnvelope<EServiceEvent> = {
+      const message: EServiceEventEnvelope = {
         sequence_num: 1,
         stream_id: id,
         version: 1,
