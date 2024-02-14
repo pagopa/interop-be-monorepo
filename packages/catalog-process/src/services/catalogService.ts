@@ -699,7 +699,7 @@ export function uploadDocumentLogic({
     throw notValidDescriptor(descriptor.id, descriptor.state);
   }
 
-  if (document.kind === "INTERFACE" && descriptor.interface) {
+  if (document.kind === "INTERFACE" && descriptor.interface !== undefined) {
     throw interfaceAlreadyExists(descriptor.id);
   }
 
@@ -783,6 +783,10 @@ export async function updateDocumentLogic({
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
 
   const descriptor = retrieveDescriptor(descriptorId, eService);
+
+  if (descriptor.state !== descriptorState.draft) {
+    throw notValidDescriptor(descriptor.id, descriptor.state);
+  }
 
   const document = (
     descriptor ? [...descriptor.docs, descriptor.interface] : []

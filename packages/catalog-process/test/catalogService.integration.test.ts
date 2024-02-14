@@ -356,6 +356,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(eServiceCannotBeUpdated(eService.id));
       });
+
       it("should throw eServiceCannotBeUpdated if the eService descriptor is in archived state", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
@@ -379,6 +380,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(eServiceCannotBeUpdated(eService.id));
       });
+
       it("should throw eServiceCannotBeUpdated if the eService descriptor is in suspended state", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
@@ -402,6 +404,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(eServiceCannotBeUpdated(eService.id));
       });
+
       it("should throw eServiceCannotBeUpdated if the eService descriptor is in deprecated state", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
@@ -2369,6 +2372,98 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(
           eServiceDescriptorNotFound(eService.id, mockDescriptor.id)
+        );
+      });
+      it("should throw notValidDescriptor if the descriptor is in Published state", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          interface: mockDocument,
+          state: descriptorState.published,
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+        expect(
+          catalogService.updateDocument(
+            eService.id,
+            descriptor.id,
+            generateId(),
+            { prettyName: "updated prettyName" },
+            getMockAuthData(eService.producerId)
+          )
+        ).rejects.toThrowError(
+          notValidDescriptor(descriptor.id, descriptorState.published)
+        );
+      });
+      it("should throw notValidDescriptor if the descriptor is in Suspended state", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          interface: mockDocument,
+          state: descriptorState.suspended,
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+        expect(
+          catalogService.updateDocument(
+            eService.id,
+            descriptor.id,
+            generateId(),
+            { prettyName: "updated prettyName" },
+            getMockAuthData(eService.producerId)
+          )
+        ).rejects.toThrowError(
+          notValidDescriptor(descriptor.id, descriptorState.suspended)
+        );
+      });
+      it("should throw notValidDescriptor if the descriptor is in Archived state", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          interface: mockDocument,
+          state: descriptorState.archived,
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+        expect(
+          catalogService.updateDocument(
+            eService.id,
+            descriptor.id,
+            generateId(),
+            { prettyName: "updated prettyName" },
+            getMockAuthData(eService.producerId)
+          )
+        ).rejects.toThrowError(
+          notValidDescriptor(descriptor.id, descriptorState.archived)
+        );
+      });
+      it("should throw notValidDescriptor if the descriptor is in Deprecated state", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          interface: mockDocument,
+          state: descriptorState.deprecated,
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+        expect(
+          catalogService.updateDocument(
+            eService.id,
+            descriptor.id,
+            generateId(),
+            { prettyName: "updated prettyName" },
+            getMockAuthData(eService.producerId)
+          )
+        ).rejects.toThrowError(
+          notValidDescriptor(descriptor.id, descriptorState.deprecated)
         );
       });
       it("should throw eServiceDocumentNotFound if the document doesn't exist", async () => {
