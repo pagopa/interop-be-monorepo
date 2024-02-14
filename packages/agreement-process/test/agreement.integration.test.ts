@@ -195,7 +195,7 @@ describe("AgreementService Integration Test", async () => {
       logger.error("postgresDB is undefined!!");
     }
 
-    // TODO: Setup Minio test container when testing functionalities that require file storage
+    // TODO: Setup MinIO test container when testing functionalities that require file storage
     fileManager = initFileManager(config);
     agreementService = agreementServiceBuilder(
       postgresDB,
