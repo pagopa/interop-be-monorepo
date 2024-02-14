@@ -155,7 +155,7 @@ describe("database test", async () => {
 
     config.eventStoreDbPort = postgreSqlContainer.getMappedPort(5432);
     config.readModelDbPort = mongodbContainer.getMappedPort(27017);
-    config.s3LocalMinioPort = minioContainer.getMappedPort(9000);
+    config.s3ServerPort = minioContainer.getMappedPort(9000);
 
     const readModelRepository = ReadModelRepository.init(config);
     eservices = readModelRepository.eservices;
@@ -1950,6 +1950,8 @@ describe("database test", async () => {
 
     describe("delete Document", () => {
       it("should write on event-store for the deletion of a document", async () => {
+        vi.spyOn(fileManager, "delete");
+
         const document = {
           ...mockDocument,
           path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}`,
@@ -1999,6 +2001,10 @@ describe("database test", async () => {
         expect(writtenPayload.descriptorId).toEqual(descriptor.id);
         expect(writtenPayload.documentId).toEqual(document.id);
 
+        expect(fileManager.delete).toHaveBeenCalledWith(
+          config.s3Bucket,
+          document.path
+        );
         expect(await fileManager.listFiles(config.s3Bucket)).not.toContain(
           document.path
         );
