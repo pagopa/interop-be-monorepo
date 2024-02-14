@@ -241,14 +241,14 @@ export function catalogServiceBuilder(
       authData: AuthData
     ): Promise<EService> {
       logger.info(`Retrieving EService ${eserviceId}`);
-      const eService = await retrieveEService(eserviceId, readModelService);
+      const eservice = await retrieveEService(eserviceId, readModelService);
 
-      if (isUserAllowedToSeeDraft(authData, eService.data.producerId)) {
-        return eService.data;
+      if (isUserAllowedToSeeDraft(authData, eservice.data.producerId)) {
+        return eservice.data;
       }
       const eServiceWithoutDraft: EService = {
-        ...eService.data,
-        descriptors: eService.data.descriptors.filter(
+        ...eservice.data,
+        descriptors: eservice.data.descriptors.filter(
           (d) => d.state !== descriptorState.draft
         ),
       };
