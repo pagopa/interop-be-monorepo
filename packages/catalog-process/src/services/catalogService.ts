@@ -262,17 +262,9 @@ export function catalogServiceBuilder(
         limit
       );
 
-      const eServicesToReturn = eservicesList.results.map((eservice) => {
-        if (isUserAllowedToSeeDraft(authData, eservice.producerId)) {
-          return eservice;
-        }
-        return {
-          ...eservice,
-          descriptors: eservice.descriptors.filter(
-            (d) => d.state !== descriptorState.draft
-          ),
-        };
-      });
+      const eServicesToReturn = eservicesList.results.map((eservice) =>
+        applyVisibilityToEService(eservice, authData)
+      );
 
       return {
         results: eServicesToReturn,
