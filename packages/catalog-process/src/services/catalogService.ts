@@ -276,13 +276,13 @@ export function catalogServiceBuilder(
         limit
       );
 
-      const eServicesToReturn = eservicesList.results.map((eService) => {
-        if (isUserAllowedToSeeDraft(authData, eService.producerId)) {
-          return eService;
+      const eServicesToReturn = eservicesList.results.map((eservice) => {
+        if (isUserAllowedToSeeDraft(authData, eservice.producerId)) {
+          return eservice;
         }
         return {
-          ...eService,
-          descriptors: eService.descriptors.filter(
+          ...eservice,
+          descriptors: eservice.descriptors.filter(
             (d) => d.state !== descriptorState.draft
           ),
         };
