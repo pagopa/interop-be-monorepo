@@ -42,12 +42,12 @@ import {
   EServiceWithDescriptorsDeletedV1,
   Tenant,
   TenantId,
+  agreementState,
   descriptorState,
   generateId,
   operationForbidden,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { v4 as uuidv4 } from "uuid";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import { GenericContainer } from "testcontainers";
 import { decodeProtobufPayload } from "pagopa-interop-commons-test";
@@ -93,6 +93,7 @@ import {
   getMockTenant,
   readLastEventByStreamId,
   addOneAttribute,
+  getMockEServiceAttributes,
 } from "./utils.js";
 
 const mockEService = getMockEService();
@@ -939,7 +940,7 @@ describe("database test", async () => {
             id: generateId(),
             prettyName: "",
             contentType: "json",
-            checksum: uuidv4(),
+            checksum: generateId(),
             uploadDate: new Date(),
           },
         };
@@ -2334,6 +2335,9 @@ describe("database test", async () => {
       let eService4: EService;
       let eService5: EService;
       let eService6: EService;
+      const attributesForDescriptor1and2 = getMockEServiceAttributes();
+      const attributesForDescriptor3 = getMockEServiceAttributes();
+      const attributesForDescriptor4 = getMockEServiceAttributes();
 
       beforeEach(async () => {
         organizationId1 = generateId();
@@ -2345,6 +2349,7 @@ describe("database test", async () => {
           id: generateId(),
           interface: mockDocument,
           state: descriptorState.published,
+          attributes: attributesForDescriptor1and2,
         };
         eService1 = {
           ...mockEService,
@@ -2360,6 +2365,7 @@ describe("database test", async () => {
           id: generateId(),
           interface: mockDocument,
           state: descriptorState.published,
+          attributes: attributesForDescriptor1and2,
         };
         eService2 = {
           ...mockEService,
@@ -2375,6 +2381,7 @@ describe("database test", async () => {
           id: generateId(),
           interface: mockDocument,
           state: descriptorState.published,
+          attributes: attributesForDescriptor3,
         };
         eService3 = {
           ...mockEService,
@@ -2390,6 +2397,7 @@ describe("database test", async () => {
           id: generateId(),
           interface: mockDocument,
           state: descriptorState.archived,
+          attributes: attributesForDescriptor4,
         };
         eService4 = {
           ...mockEService,
@@ -2449,6 +2457,16 @@ describe("database test", async () => {
           consumerId: tenant.id,
         });
         await addOneAgreement(agreement2, agreements);
+        const agreement3 = {
+          ...getMockAgreement({
+            eserviceId: eService4.id,
+            descriptorId: descriptor4.id,
+            producerId: eService4.producerId,
+            consumerId: tenant.id,
+          }),
+          state: agreementState.draft,
+        };
+        await addOneAgreement(agreement3, agreements);
       });
       it("should get the eServices if they exist (parameters: eservicesIds)", async () => {
         const result = await catalogService.getEServices(
@@ -2458,6 +2476,7 @@ describe("database test", async () => {
             producersIds: [],
             states: [],
             agreementStates: [],
+            attributesIds: [],
           },
           0,
           50
@@ -2473,6 +2492,7 @@ describe("database test", async () => {
             producersIds: [organizationId1],
             states: [],
             agreementStates: [],
+            attributesIds: [],
           },
           0,
           50
@@ -2488,6 +2508,7 @@ describe("database test", async () => {
             producersIds: [],
             states: ["Published"],
             agreementStates: [],
+            attributesIds: [],
           },
           0,
           50
@@ -2501,19 +2522,36 @@ describe("database test", async () => {
         ]);
       });
       it("should get the eServices if they exist (parameters: agreementStates)", async () => {
-        const result = await catalogService.getEServices(
+        const result1 = await readModelService.getEServices(
           getMockAuthData(organizationId3),
           {
             eservicesIds: [],
             producersIds: [],
             states: [],
             agreementStates: ["Active"],
+            attributesIds: [],
           },
           0,
           50
         );
-        expect(result.totalCount).toBe(2);
-        expect(result.results).toEqual([eService1, eService3]);
+
+        const result2 = await readModelService.getEServices(
+          getMockAuthData(organizationId3),
+          {
+            eservicesIds: [],
+            producersIds: [],
+            states: [],
+            agreementStates: ["Active", "Draft"],
+            attributesIds: [],
+          },
+          0,
+          50
+        );
+
+        expect(result1.totalCount).toBe(2);
+        expect(result1.results).toEqual([eService1, eService3]);
+        expect(result2.totalCount).toBe(3);
+        expect(result2.results).toEqual([eService1, eService3, eService4]);
       });
       it("should get the eServices if they exist (parameters: name)", async () => {
         const result = await catalogService.getEServices(
@@ -2524,6 +2562,7 @@ describe("database test", async () => {
             states: [],
             agreementStates: [],
             name: "test",
+            attributesIds: [],
           },
           0,
           50
@@ -2546,6 +2585,7 @@ describe("database test", async () => {
             states: ["Published"],
             agreementStates: ["Active"],
             name: "test",
+            attributesIds: [],
           },
           0,
           50
@@ -2562,6 +2602,7 @@ describe("database test", async () => {
             states: ["Archived"],
             agreementStates: ["Active"],
             name: "test",
+            attributesIds: [],
           },
           0,
           50
@@ -2578,6 +2619,7 @@ describe("database test", async () => {
             states: ["Published"],
             agreementStates: [],
             name: "test",
+            attributesIds: [],
           },
           0,
           50
@@ -2594,6 +2636,7 @@ describe("database test", async () => {
             states: ["Published"],
             agreementStates: [],
             name: "not-existing",
+            attributesIds: [],
           },
           0,
           50
@@ -2609,6 +2652,7 @@ describe("database test", async () => {
             producersIds: [],
             states: [],
             agreementStates: [],
+            attributesIds: [],
           },
           0,
           5
@@ -2624,6 +2668,7 @@ describe("database test", async () => {
             producersIds: [],
             states: [],
             agreementStates: [],
+            attributesIds: [],
           },
           5,
           5
@@ -2631,6 +2676,142 @@ describe("database test", async () => {
         expect(result.totalCount).toBe(6);
         expect(result.results.length).toBe(1);
       });
+      it("should get the eServices if they exist (parameters: attributesIds)", async () => {
+        const result = await readModelService.getEServices(
+          getMockAuthData(),
+          {
+            eservicesIds: [],
+            producersIds: [],
+            states: [],
+            agreementStates: [],
+            attributesIds: [
+              attributesForDescriptor1and2.certified[0][0].id,
+              attributesForDescriptor3.declared[0][1].id,
+              attributesForDescriptor4.verified[0][1].id,
+            ],
+          },
+          0,
+          50
+        );
+        expect(result.totalCount).toBe(4);
+        expect(result.results).toEqual([
+          eService1,
+          eService2,
+          eService3,
+          eService4,
+        ]);
+      });
+
+      it("should not get the eServices if they don't exist  (parameters: attributesIds)", async () => {
+        const result = await readModelService.getEServices(
+          getMockAuthData(),
+          {
+            eservicesIds: [],
+            producersIds: [],
+            states: [],
+            agreementStates: [],
+            attributesIds: [generateId()],
+          },
+          0,
+          50
+        );
+        expect(result.totalCount).toBe(0);
+        expect(result.results).toEqual([]);
+      });
+
+      it("should get the eServices if they exist (parameters: attributesIds, name)", async () => {
+        const result = await readModelService.getEServices(
+          getMockAuthData(),
+          {
+            eservicesIds: [],
+            producersIds: [],
+            states: [],
+            agreementStates: [],
+            name: eService1.name.slice(-6),
+            attributesIds: [attributesForDescriptor1and2.verified[0][1].id],
+          },
+          0,
+          50
+        );
+        expect(result.totalCount).toBe(1);
+        expect(result.results).toEqual([eService1]);
+      });
+
+      it("should get the eServices if they exist (parameters: attributesIds, states)", async () => {
+        const result = await readModelService.getEServices(
+          getMockAuthData(),
+          {
+            eservicesIds: [],
+            producersIds: [],
+            states: ["Draft"],
+            agreementStates: [],
+            attributesIds: [
+              attributesForDescriptor1and2.certified[0][0].id,
+              attributesForDescriptor4.verified[0][1].id,
+            ],
+          },
+          0,
+          50
+        );
+
+        expect(result.totalCount).toBe(2);
+        expect(result.results).toEqual([eService2, eService4]);
+      });
+
+      it("should get the eServices if they exist (parameters: attributesIds, agreementStates, producersIds)", async () => {
+        const result = await readModelService.getEServices(
+          getMockAuthData(organizationId3),
+          {
+            eservicesIds: [],
+            producersIds: [organizationId1],
+            states: [],
+            agreementStates: ["Active"],
+            attributesIds: [attributesForDescriptor1and2.certified[0][0].id],
+          },
+          0,
+          50
+        );
+        expect(result.totalCount).toBe(1);
+        expect(result.results).toEqual([eService1]);
+      });
+
+      it("should get the eServices if they exist (parameters: attributesIds, agreementStates, eservicesIds)", async () => {
+        const result = await readModelService.getEServices(
+          getMockAuthData(organizationId3),
+          {
+            eservicesIds: [eService1.id, eService4.id],
+            producersIds: [organizationId1, organizationId2],
+            states: [],
+            agreementStates: ["Active", "Draft"],
+            attributesIds: [
+              attributesForDescriptor1and2.certified[0][0].id,
+              attributesForDescriptor4.verified[0][1].id,
+            ],
+          },
+          0,
+          50
+        );
+        expect(result.totalCount).toBe(2);
+        expect(result.results).toEqual([eService1, eService4]);
+      });
+
+      it("should not get the eServices if they don't exist (parameters: attributesIds, agreementStates)", async () => {
+        const result = await readModelService.getEServices(
+          getMockAuthData(organizationId3),
+          {
+            eservicesIds: [],
+            producersIds: [],
+            states: [],
+            agreementStates: ["Draft"],
+            attributesIds: [attributesForDescriptor1and2.certified[0][0].id],
+          },
+          0,
+          50
+        );
+        expect(result.totalCount).toBe(0);
+        expect(result.results).toEqual([]);
+      });
+
       it("should include eservices with no descriptors (requester is the producer, admin)", async () => {
         const eService7: EService = {
           ...mockEService,
@@ -2651,6 +2832,7 @@ describe("database test", async () => {
             producersIds: [],
             states: [],
             agreementStates: [],
+            attributesIds: [],
           },
           0,
           50
@@ -2686,6 +2868,7 @@ describe("database test", async () => {
             producersIds: [],
             states: [],
             agreementStates: [],
+            attributesIds: [],
           },
           0,
           50
@@ -2720,6 +2903,7 @@ describe("database test", async () => {
             producersIds: [],
             states: [],
             agreementStates: [],
+            attributesIds: [],
           },
           0,
           50
@@ -2759,6 +2943,7 @@ describe("database test", async () => {
             producersIds: [],
             states: [],
             agreementStates: [],
+            attributesIds: [],
           },
           0,
           50
@@ -2799,6 +2984,7 @@ describe("database test", async () => {
             producersIds: [],
             states: [],
             agreementStates: [],
+            attributesIds: [],
           },
           0,
           50
@@ -2838,6 +3024,7 @@ describe("database test", async () => {
             producersIds: [],
             states: [],
             agreementStates: [],
+            attributesIds: [],
           },
           0,
           50
@@ -2872,6 +3059,7 @@ describe("database test", async () => {
             producersIds: [],
             states: [],
             agreementStates: [],
+            attributesIds: [],
           },
           0,
           50
@@ -2920,6 +3108,7 @@ describe("database test", async () => {
             producersIds: [],
             states: [],
             agreementStates: [],
+            attributesIds: [],
           },
           0,
           50
@@ -2968,6 +3157,7 @@ describe("database test", async () => {
             producersIds: [],
             states: [],
             agreementStates: [],
+            attributesIds: [],
           },
           0,
           50
@@ -3016,6 +3206,7 @@ describe("database test", async () => {
             producersIds: [],
             states: [],
             agreementStates: [],
+            attributesIds: [],
           },
           0,
           50
