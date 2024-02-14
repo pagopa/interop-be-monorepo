@@ -119,13 +119,13 @@ const retrieveDescriptor = (
 };
 
 const retrieveDocument = (
-  eServiceId: EServiceId,
+  eserviceId: EServiceId,
   descriptor: Descriptor,
   documentId: EServiceDocumentId
 ): Document => {
   const doc = descriptor.docs.find((d) => d.id === documentId);
   if (doc === undefined) {
-    throw eServiceDocumentNotFound(eServiceId, descriptor.id, documentId);
+    throw eServiceDocumentNotFound(eserviceId, descriptor.id, documentId);
   }
   return doc;
 };
@@ -342,29 +342,29 @@ export function catalogServiceBuilder(
       );
     },
     async getDocumentById({
-      eServiceId,
+      eserviceId,
       descriptorId,
       documentId,
       authData,
     }: {
-      eServiceId: EServiceId;
+      eserviceId: EServiceId;
       descriptorId: DescriptorId;
       documentId: EServiceDocumentId;
       authData: AuthData;
     }): Promise<Document> {
       logger.info(
-        `Retrieving EService document ${documentId} for EService ${eServiceId} and descriptor ${descriptorId}`
+        `Retrieving EService document ${documentId} for EService ${eserviceId} and descriptor ${descriptorId}`
       );
-      const eService = await retrieveEService(eServiceId, readModelService);
+      const eService = await retrieveEService(eserviceId, readModelService);
       const descriptor = retrieveDescriptor(descriptorId, eService);
 
       if (isUserAllowedToSeeDraft(authData, eService.data.producerId)) {
-        return retrieveDocument(eServiceId, descriptor, documentId);
+        return retrieveDocument(eserviceId, descriptor, documentId);
       } else {
         if (descriptor.state === descriptorState.draft) {
-          throw eServiceNotFound(eServiceId);
+          throw eServiceNotFound(eserviceId);
         }
-        return retrieveDocument(eServiceId, descriptor, documentId);
+        return retrieveDocument(eserviceId, descriptor, documentId);
       }
     },
     async deleteDocument(
