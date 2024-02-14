@@ -1,13 +1,14 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
-import { GenericContainer, StartedTestContainer } from "testcontainers";
+import { StartedTestContainer } from "testcontainers";
 import {
   FileManager,
   FileManagerConfig,
   LoggerConfig,
   initFileManager,
 } from "pagopa-interop-commons";
+import { TEST_MINIO_PORT, minioContainer } from "../src/index.js";
 
 describe("FileManager tests", async () => {
   const config: FileManagerConfig & LoggerConfig = {
@@ -23,24 +24,16 @@ describe("FileManager tests", async () => {
   const s3Bucket = "interop-be-test-bucket";
 
   let fileManager: FileManager;
-  let minioContainer: StartedTestContainer;
+  let startedMinioContainer: StartedTestContainer;
   beforeAll(async () => {
-    minioContainer = await new GenericContainer(
-      "quay.io/minio/minio:RELEASE.2024-02-06T21-36-22Z"
-    )
-      .withEnvironment({
-        MINIO_ROOT_USER: config.s3AccessKeyId,
-        MINIO_ROOT_PASSWORD: config.s3SecretAccessKey,
-        MINIO_SITE_REGION: config.s3Region,
-      })
-      .withEntrypoint(["sh", "-c"])
-      .withCommand([
-        `mkdir -p /data/${s3Bucket} && /usr/bin/minio server /data`,
-      ])
-      .withExposedPorts(config.s3ServerPort)
-      .start();
+    startedMinioContainer = await minioContainer({
+      s3AccessKeyId: config.s3AccessKeyId,
+      s3SecretAccessKey: config.s3SecretAccessKey,
+      s3Region: config.s3Region,
+      s3Bucket,
+    }).start();
 
-    config.s3ServerPort = minioContainer.getMappedPort(9000);
+    config.s3ServerPort = startedMinioContainer.getMappedPort(TEST_MINIO_PORT);
     fileManager = initFileManager(config);
   });
 
@@ -50,7 +43,7 @@ describe("FileManager tests", async () => {
   });
 
   afterAll(async () => {
-    await minioContainer.stop();
+    await startedMinioContainer.stop();
   });
 
   describe("FileManager storeBytes", () => {

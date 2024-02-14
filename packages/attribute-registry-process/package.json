@@ -30,6 +30,7 @@
     "@types/jsonwebtoken": "^9.0.2",
     "@types/node": "^20.3.1",
     "@types/uuid": "^9.0.2",
+    "pagopa-interop-commons-test": "workspace:*",
     "prettier": "^2.8.8",
     "testcontainers": "^10.2.2",
     "ts-node": "^10.9.1",

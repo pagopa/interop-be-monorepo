@@ -1,12 +1,17 @@
 /* eslint-disable functional/no-let */
-import { beforeAll, afterEach, describe, expect, it } from "vitest";
-import { GenericContainer } from "testcontainers";
-import { PostgreSqlContainer } from "@testcontainers/postgresql";
+import { beforeAll, afterEach, describe, expect, it, afterAll } from "vitest";
+import {
+  TEST_MONGO_DB_PORT,
+  TEST_POSTGRES_DB_PORT,
+  mongoDBContainer,
+  postgresDBContainer,
+} from "pagopa-interop-commons-test";
 import {
   AttributeCollection,
   ReadModelRepository,
   initDB,
 } from "pagopa-interop-commons";
+import { StartedTestContainer } from "testcontainers";
 import { v4 as uuidv4 } from "uuid";
 import { Document } from "mongodb";
 import { IDatabase } from "pg-promise";
@@ -25,31 +30,19 @@ describe("database test", () => {
   let readModelService: ReadModelService;
   let attributeRegistryService: AttributeRegistryService;
   let postgresDB: IDatabase<unknown>;
+  let startedPostgreSqlContainer: StartedTestContainer;
+  let startedMongodbContainer: StartedTestContainer;
+
   beforeAll(async () => {
-    const postgreSqlContainer = await new PostgreSqlContainer("postgres:14")
-      .withUsername(config.eventStoreDbUsername)
-      .withPassword(config.eventStoreDbPassword)
-      .withDatabase(config.eventStoreDbName)
-      .withCopyFilesToContainer([
-        {
-          source: "../../docker/event-store-init.sql",
-          target: "/docker-entrypoint-initdb.d/01-init.sql",
-        },
-      ])
-      .withExposedPorts(5432)
-      .start();
+    startedPostgreSqlContainer = await postgresDBContainer(config).start();
 
-    const mongodbContainer = await new GenericContainer("mongo:4.0.0")
-      .withEnvironment({
-        MONGO_INITDB_DATABASE: config.readModelDbName,
-        MONGO_INITDB_ROOT_USERNAME: config.readModelDbUsername,
-        MONGO_INITDB_ROOT_PASSWORD: config.readModelDbPassword,
-      })
-      .withExposedPorts(27017)
-      .start();
+    startedMongodbContainer = await mongoDBContainer(config).start();
 
-    config.eventStoreDbPort = postgreSqlContainer.getMappedPort(5432);
-    config.readModelDbPort = mongodbContainer.getMappedPort(27017);
+    config.eventStoreDbPort = startedPostgreSqlContainer.getMappedPort(
+      TEST_POSTGRES_DB_PORT
+    );
+    config.readModelDbPort =
+      startedMongodbContainer.getMappedPort(TEST_MONGO_DB_PORT);
     attributes = ReadModelRepository.init(config).attributes;
     readModelService = readModelServiceBuilder(config);
     attributeRegistryService = attributeRegistryServiceBuilder(
@@ -61,7 +54,7 @@ describe("database test", () => {
       username: config.eventStoreDbUsername,
       password: config.eventStoreDbPassword,
       host: config.eventStoreDbHost,
-      port: postgreSqlContainer.getMappedPort(5432),
+      port: config.eventStoreDbPort,
       database: config.eventStoreDbName,
       schema: config.eventStoreDbSchema,
       useSSL: config.eventStoreDbUseSSL,
@@ -71,6 +64,11 @@ describe("database test", () => {
   afterEach(async () => {
     await attributes.deleteMany({});
     await postgresDB.none("TRUNCATE TABLE attribute.events RESTART IDENTITY");
+  });
+
+  afterAll(async () => {
+    await startedPostgreSqlContainer.stop();
+    await startedMongodbContainer.stop();
   });
 
   describe("attribute creation", () => {
