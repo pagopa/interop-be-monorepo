@@ -343,15 +343,15 @@ export function catalogServiceBuilder(
       );
       const eService = await retrieveEService(eserviceId, readModelService);
       const descriptor = retrieveDescriptor(descriptorId, eService);
-
-      if (isUserAllowedToSeeDraft(authData, eService.data.producerId)) {
-        return retrieveDocument(eserviceId, descriptor, documentId);
-      } else {
-        if (descriptor.state === descriptorState.draft) {
-          throw eServiceNotFound(eserviceId);
-        }
-        return retrieveDocument(eserviceId, descriptor, documentId);
+      const document = retrieveDocument(eserviceId, descriptor, documentId);
+      const checkedEService = applyVisibilityToEService(
+        eService.data,
+        authData
+      );
+      if (!checkedEService.descriptors.find((d) => d.id === descriptorId)) {
+        throw eServiceDocumentNotFound(eserviceId, descriptorId, documentId);
       }
+      return document;
     },
     async deleteDocument(
       eserviceId: EServiceId,
