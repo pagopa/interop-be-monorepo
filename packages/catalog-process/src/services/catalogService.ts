@@ -321,9 +321,9 @@ export function catalogServiceBuilder(
           eserviceId,
           authData,
           eServiceSeed,
-          deleteFile: fileManager.deleteFile,
           getEServiceByNameAndProducerId:
             readModelService.getEServiceByNameAndProducerId,
+          deleteFile: fileManager.deleteFile,
         })
       );
     },
@@ -641,14 +641,13 @@ export async function updateEserviceLogic({
   eserviceId,
   authData,
   eServiceSeed,
-  deleteFile,
   getEServiceByNameAndProducerId,
+  deleteFile,
 }: {
   eService: WithMetadata<EService> | undefined;
   eserviceId: EServiceId;
   authData: AuthData;
   eServiceSeed: ApiEServiceSeed;
-  deleteFile: (container: string, path: string) => Promise<void>;
   getEServiceByNameAndProducerId: ({
     name,
     producerId,
@@ -656,6 +655,7 @@ export async function updateEserviceLogic({
     name: string;
     producerId: TenantId;
   }) => Promise<WithMetadata<EService> | undefined>;
+  deleteFile: (container: string, path: string) => Promise<void>;
 }): Promise<CreateEvent<EServiceEvent>> {
   assertEServiceExist(eserviceId, eService);
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
