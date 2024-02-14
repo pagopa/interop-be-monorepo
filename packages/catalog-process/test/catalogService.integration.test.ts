@@ -190,6 +190,7 @@ describe("database test", async () => {
         expect(writtenEvent.stream_id).toBe(id);
         expect(writtenEvent.version).toBe("0");
         expect(writtenEvent.type).toBe("EServiceAdded");
+        expect(writtenEvent.event_version).toBe(1);
         const writtenPayload = decodeProtobufPayload({
           messageType: EServiceAddedV1,
           payload: writtenEvent.data,
@@ -1790,6 +1791,7 @@ describe("database test", async () => {
         const expectedLocalDate = cloneTimeStamp.toLocaleDateString("it-IT");
         const expectedLocalTime = cloneTimeStamp.toLocaleTimeString("it-IT");
         const conflictEServiceName = `${eService1.name} - clone - ${expectedLocalDate} ${expectedLocalTime}`;
+
         const eService2: EService = {
           ...mockEService,
           id: generateId(),
