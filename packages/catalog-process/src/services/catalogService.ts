@@ -243,21 +243,7 @@ export function catalogServiceBuilder(
       logger.info(`Retrieving EService ${eserviceId}`);
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      if (isUserAllowedToSeeDraft(authData, eservice.data.producerId)) {
-        return eservice.data;
-      }
-      const eServiceWithoutDraft: EService = {
-        ...eservice.data,
-        descriptors: eservice.data.descriptors.filter(
-          (d) => d.state !== descriptorState.draft
-        ),
-      };
-
-      if (eServiceWithoutDraft.descriptors.length === 0) {
-        throw eServiceNotFound(eserviceId);
-      }
-
-      return eServiceWithoutDraft;
+      return applyVisibilityToEService(eservice.data, authData);
     },
 
     async getEServices(
@@ -374,15 +360,15 @@ export function catalogServiceBuilder(
       );
       const eService = await retrieveEService(eserviceId, readModelService);
       const descriptor = retrieveDescriptor(descriptorId, eService);
-
-      if (isUserAllowedToSeeDraft(authData, eService.data.producerId)) {
-        return retrieveDocument(eserviceId, descriptor, documentId);
-      } else {
-        if (descriptor.state === descriptorState.draft) {
-          throw eServiceNotFound(eserviceId);
-        }
-        return retrieveDocument(eserviceId, descriptor, documentId);
+      const document = retrieveDocument(eserviceId, descriptor, documentId);
+      const checkedEService = applyVisibilityToEService(
+        eService.data,
+        authData
+      );
+      if (!checkedEService.descriptors.find((d) => d.id === descriptorId)) {
+        throw eServiceDocumentNotFound(eserviceId, descriptorId, documentId);
       }
+      return document;
     },
     async deleteDocument(
       eserviceId: EServiceId,
@@ -1328,4 +1314,27 @@ const isUserAllowedToSeeDraft = (
   hasPermission([userRoles.ADMIN_ROLE, userRoles.API_ROLE], authData) &&
   authData.organizationId === producerId;
 
+const applyVisibilityToEService = (
+  eservice: EService,
+  authData: AuthData
+): EService => {
+  if (isUserAllowedToSeeDraft(authData, eservice.producerId)) {
+    return eservice;
+  }
+
+  if (
+    eservice.descriptors.length === 0 ||
+    (eservice.descriptors.length === 1 &&
+      eservice.descriptors[0].state === descriptorState.draft)
+  ) {
+    throw eServiceNotFound(eservice.id);
+  }
+
+  return {
+    ...eservice,
+    descriptors: eservice.descriptors.filter(
+      (d) => d.state !== descriptorState.draft
+    ),
+  };
+};
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
