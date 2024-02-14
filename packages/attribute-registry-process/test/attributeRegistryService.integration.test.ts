@@ -461,7 +461,7 @@ describe("database test", () => {
         });
         it("should not get the attributes if they don't exist", async () => {
           const result = await readModelService.getAttributesByIds({
-            ids: [uuidv4(), uuidv4()],
+            ids: [generateId(), generateId()],
             offset: 0,
             limit: 50,
           });
@@ -573,7 +573,9 @@ describe("database test", () => {
           expect(attribute?.data).toEqual(attribute1);
         });
         it("should not get the attribute if it doesn't exist", async () => {
-          const attribute = await readModelService.getAttributeById(uuidv4());
+          const attribute = await readModelService.getAttributeById(
+            generateId()
+          );
           expect(attribute).toBeUndefined();
         });
       });
