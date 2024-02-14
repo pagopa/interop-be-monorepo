@@ -220,12 +220,12 @@ describe("database test", async () => {
           state: descriptorState.draft,
           interface: mockDocument,
         };
-        const eService: EService = {
+        const eservice: EService = {
           ...mockEService,
           descriptors: [descriptor],
         };
         const updatedName = "eService new name";
-        await addOneEService(eService, postgresDB, eservices);
+        await addOneEService(eservice, postgresDB, eservices);
         await catalogService.updateEService(
           mockEService.id,
           {
@@ -237,7 +237,7 @@ describe("database test", async () => {
         );
 
         const updatedEService: EService = {
-          ...eService,
+          ...eservice,
           name: updatedName,
         };
 
@@ -264,12 +264,12 @@ describe("database test", async () => {
           state: descriptorState.draft,
           interface: mockDocument,
         };
-        const eService: EService = {
+        const eservice: EService = {
           ...mockEService,
           descriptors: [descriptor],
         };
         const updatedName = "eService new name";
-        await addOneEService(eService, postgresDB, eservices);
+        await addOneEService(eservice, postgresDB, eservices);
         await catalogService.updateEService(
           mockEService.id,
           {
@@ -281,7 +281,7 @@ describe("database test", async () => {
         );
 
         const updatedEService: EService = {
-          ...eService,
+          ...eservice,
           name: updatedName,
           technology: "Soap",
         };
