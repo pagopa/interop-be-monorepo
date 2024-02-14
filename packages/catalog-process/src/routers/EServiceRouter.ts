@@ -8,7 +8,12 @@ import {
   ReadModelRepository,
   initDB,
 } from "pagopa-interop-commons";
-import { EServiceId, unsafeBrandId } from "pagopa-interop-models";
+import {
+  unsafeBrandId,
+  EServiceId,
+  TenantId,
+  AttributeId,
+} from "pagopa-interop-models";
 import {
   agreementStateToApiAgreementState,
   apiAgreementStateToAgreementState,
@@ -84,6 +89,7 @@ const eservicesRouter = (
             name,
             eservicesIds,
             producersIds,
+            attributesIds,
             states,
             agreementStates,
             offset,
@@ -93,8 +99,9 @@ const eservicesRouter = (
           const catalogs = await catalogService.getEServices(
             req.ctx.authData,
             {
-              eservicesIds,
-              producersIds,
+              eservicesIds: eservicesIds.map<EServiceId>(unsafeBrandId),
+              producersIds: producersIds.map<TenantId>(unsafeBrandId),
+              attributesIds: attributesIds.map<AttributeId>(unsafeBrandId),
               states: states.map(apiDescriptorStateToDescriptorState),
               agreementStates: agreementStates.map(
                 apiAgreementStateToAgreementState
@@ -199,14 +206,10 @@ const eservicesRouter = (
       ]),
       async (req, res) => {
         try {
-          const eServiceId = unsafeBrandId<EServiceId>(req.params.eServiceId);
-          const offset = req.query.offset;
-          const limit = req.query.limit;
-
           const consumers = await catalogService.getEServiceConsumers(
-            eServiceId,
-            offset,
-            limit
+            unsafeBrandId(req.params.eServiceId),
+            req.query.offset,
+            req.query.limit
           );
 
           return res
