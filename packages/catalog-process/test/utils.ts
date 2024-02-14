@@ -14,8 +14,10 @@ import {
   DescriptorId,
   Document,
   EService,
+  EServiceAttribute,
   EServiceEvent,
   EServiceId,
+  EserviceAttributes,
   Tenant,
   TenantId,
   agreementState,
@@ -156,6 +158,17 @@ export const getMockDescriptor = (): Descriptor => ({
     verified: [],
     declared: [],
   },
+});
+
+export const getMockEServiceAttribute = (): EServiceAttribute => ({
+  id: generateId(),
+  explicitAttributeVerification: false,
+});
+
+export const getMockEServiceAttributes = (): EserviceAttributes => ({
+  certified: [[getMockEServiceAttribute(), getMockEServiceAttribute()]],
+  declared: [[getMockEServiceAttribute(), getMockEServiceAttribute()]],
+  verified: [[getMockEServiceAttribute(), getMockEServiceAttribute()]],
 });
 
 export const buildInterfaceSeed = (): ApiEServiceDescriptorDocumentSeed => ({
