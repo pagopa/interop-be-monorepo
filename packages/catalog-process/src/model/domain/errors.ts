@@ -1,6 +1,8 @@
 import {
   ApiError,
   DescriptorId,
+  EServiceDocumentId,
+  EServiceId,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 
@@ -13,6 +15,8 @@ export const errorCodes = {
   draftDescriptorAlreadyExists: "0008",
   eserviceCannotBeUpdatedOrDeleted: "0009",
   eServiceDuplicate: "0010",
+  interfaceAlreadyExists: "0011",
+  attributeNotFound: "0012",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -27,9 +31,9 @@ const eserviceCannotBeUpdatedOrDeleted: {
   title: "EService cannot be updated or deleted",
 };
 
-export function eServiceNotFound(eServiceId: string): ApiError<ErrorCodes> {
+export function eServiceNotFound(eserviceId: EServiceId): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `EService ${eServiceId} not found`,
+    detail: `EService ${eserviceId} not found`,
     code: "eServiceNotFound",
     title: "EService not found",
   });
@@ -46,41 +50,41 @@ export function eServiceDuplicate(
 }
 
 export function eServiceCannotBeUpdated(
-  eServiceId: string
+  eserviceId: EServiceId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `EService ${eServiceId} contains valid descriptors and cannot be updated`,
+    detail: `EService ${eserviceId} contains valid descriptors and cannot be updated`,
     ...eserviceCannotBeUpdatedOrDeleted,
   });
 }
 
 export function eServiceCannotBeDeleted(
-  eServiceId: string
+  eserviceId: EServiceId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `EService ${eServiceId} contains descriptors and cannot be deleted`,
+    detail: `EService ${eserviceId} contains descriptors and cannot be deleted`,
     ...eserviceCannotBeUpdatedOrDeleted,
   });
 }
 
 export function eServiceDescriptorNotFound(
-  eServiceId: string,
+  eserviceId: EServiceId,
   descriptorId: DescriptorId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Descriptor ${descriptorId} for EService ${eServiceId} not found`,
+    detail: `Descriptor ${descriptorId} for EService ${eserviceId} not found`,
     code: "eServiceDescriptorNotFound",
     title: "EService descriptor not found",
   });
 }
 
 export function eServiceDocumentNotFound(
-  eServiceId: string,
+  eserviceId: EServiceId,
   descriptorId: DescriptorId,
-  documentId: string
+  documentId: EServiceDocumentId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Document with id ${documentId} not found in EService ${eServiceId} / Descriptor ${descriptorId}`,
+    detail: `Document with id ${documentId} not found in EService ${eserviceId} / Descriptor ${descriptorId}`,
     code: "eServiceDocumentNotFound",
     title: "EService document not found",
   });
@@ -108,10 +112,10 @@ export function eServiceDescriptorWithoutInterface(
 }
 
 export function draftDescriptorAlreadyExists(
-  eServiceId: string
+  eserviceId: EServiceId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `EService ${eServiceId} already contains a draft descriptor`,
+    detail: `EService ${eserviceId} already contains a draft descriptor`,
     code: "draftDescriptorAlreadyExists",
     title: "EService already contains a draft descriptor",
   });
@@ -124,5 +128,23 @@ export function invalidDescriptorVersion(
     detail: details,
     code: "notValidDescriptor",
     title: "Version is not a valid descriptor version",
+  });
+}
+
+export function interfaceAlreadyExists(
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} already contains an interface`,
+    code: "interfaceAlreadyExists",
+    title: "Descriptor already contains an interface",
+  });
+}
+
+export function attributeNotFound(attributeId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attribute ${attributeId} not found`,
+    code: "attributeNotFound",
+    title: "Attribute not found",
   });
 }
