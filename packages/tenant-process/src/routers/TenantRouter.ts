@@ -232,6 +232,17 @@ const tenantsRouter = (
         }
       }
     )
+    .get(
+      "/tenants/attributes/certified",
+      authorizationMiddleware([
+        ADMIN_ROLE,
+        API_ROLE,
+        SECURITY_ROLE,
+        M2M_ROLE,
+        SUPPORT_ROLE,
+      ]),
+      async (_req, res) => res.status(501).send()
+    )
     .post(
       "/internal/tenants",
       authorizationMiddleware([INTERNAL_ROLE]),
