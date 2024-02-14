@@ -5,20 +5,23 @@ import { GenericContainer, StartedTestContainer } from "testcontainers";
 import {
   FileManager,
   FileManagerConfig,
+  LoggerConfig,
   initFileManager,
 } from "pagopa-interop-commons";
 
 describe("FileManager tests", async () => {
-  const config: FileManagerConfig = {
-    s3LocalMinio: true,
+  const config: FileManagerConfig & LoggerConfig = {
     s3AccessKeyId: "minioadmin",
     s3SecretAccessKey: "minioadmin",
-    s3LocalMinioHost: "http://127.0.0.1",
-    s3LocalMinioPort: 9000,
     s3Region: "eu-central-1",
+    s3CustomServer: true,
+    s3ServerHost: "http://127.0.0.1",
+    s3ServerPort: 9000,
+    logLevel: "debug",
   };
 
   const s3Bucket = "interop-be-test-bucket";
+
   let fileManager: FileManager;
   let minioContainer: StartedTestContainer;
   beforeAll(async () => {
@@ -34,10 +37,10 @@ describe("FileManager tests", async () => {
       .withCommand([
         `mkdir -p /data/${s3Bucket} && /usr/bin/minio server /data`,
       ])
-      .withExposedPorts(config.s3LocalMinioPort)
+      .withExposedPorts(config.s3ServerPort)
       .start();
 
-    config.s3LocalMinioPort = minioContainer.getMappedPort(9000);
+    config.s3ServerPort = minioContainer.getMappedPort(9000);
     fileManager = initFileManager(config);
   });
 
