@@ -72,5 +72,7 @@ export const loggerMiddleware = expressWinston.logger({
 });
 
 if (!parsedLoggerConfig.success) {
-  logger.info(`No LOG_LEVEL env var: defaulting log level to "${config.logLevel}"`);
+  logger.info(
+    `No LOG_LEVEL env var: defaulting log level to "${config.logLevel}"`
+  );
 }
