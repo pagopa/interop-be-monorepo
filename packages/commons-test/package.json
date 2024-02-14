@@ -1,5 +1,6 @@
 {
   "name": "pagopa-interop-commons-test",
+  "private": true,
   "version": "1.0.0",
   "description": "common test utilities",
   "main": "dist",
@@ -19,6 +20,7 @@
     "@anatine/zod-mock": "^3.13.1",
     "@pagopa/eslint-config": "^3.0.0",
     "@protobuf-ts/runtime": "^2.9.1",
+    "@testcontainers/postgresql": "^10.2.2",
     "@types/uuid": "^9.0.2",
     "@zodios/core": "^10.9.2",
     "pagopa-interop-commons": "workspace:*",
