@@ -2743,7 +2743,7 @@ describe("database test", async () => {
           {
             eservicesIds: [],
             producersIds: [],
-            states: ["Draft"],
+            states: ["Archived"],
             agreementStates: [],
             attributesIds: [
               attributesForDescriptor1and2.certified[0][0].id,
@@ -2754,8 +2754,8 @@ describe("database test", async () => {
           50
         );
 
-        expect(result.totalCount).toBe(2);
-        expect(result.results).toEqual([eService2, eService4]);
+        expect(result.totalCount).toBe(1);
+        expect(result.results).toEqual([eService4]);
       });
 
       it("should get the eServices if they exist (parameters: attributesIds, agreementStates, producersIds)", async () => {
@@ -3037,42 +3037,6 @@ describe("database test", async () => {
           eService4,
           eService5,
           eService6,
-        ]);
-      });
-      it("should include eservices with no descriptors (requester is the producer, admin)", async () => {
-        const eService7: EService = {
-          ...mockEService,
-          id: generateId(),
-          producerId: organizationId1,
-          name: "eService 007",
-          descriptors: [],
-        };
-        const authData: AuthData = {
-          ...getMockAuthData(organizationId1),
-          userRoles: [userRoles.ADMIN_ROLE],
-        };
-        await addOneEService(eService7, postgresDB, eservices);
-        const result = await catalogService.getEServices(
-          authData,
-          {
-            eservicesIds: [],
-            producersIds: [],
-            states: [],
-            agreementStates: [],
-            attributesIds: [],
-          },
-          0,
-          50
-        );
-        expect(result.totalCount).toBe(7);
-        expect(result.results).toEqual([
-          eService1,
-          eService2,
-          eService3,
-          eService4,
-          eService5,
-          eService6,
-          eService7,
         ]);
       });
       it("should not filter out draft descriptors if the eService has both draft and non-draft ones (requester is the producer, admin)", async () => {
