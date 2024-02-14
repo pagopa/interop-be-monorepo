@@ -17,7 +17,7 @@ describe("FileManager tests", async () => {
     s3CustomServer: true,
     s3ServerHost: "http://127.0.0.1",
     s3ServerPort: 9000,
-    logLevel: "debug",
+    logLevel: "info",
   };
 
   const s3Bucket = "interop-be-test-bucket";
