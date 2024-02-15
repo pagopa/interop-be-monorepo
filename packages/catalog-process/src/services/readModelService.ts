@@ -111,13 +111,15 @@ export function readModelServiceBuilder(
           }
         : {};
 
-      const idsFilter: ReadModelFilter<EService> = {
-        "data.id": { $in: ids },
-      };
+      const idsFilter: ReadModelFilter<EService> =
+        ReadModelRepository.arrayToFilter(ids, {
+          "data.id": { $in: ids },
+        });
 
-      const producersIdsFilter: ReadModelFilter<EService> = {
-        "data.producerId": { $in: producersIds },
-      };
+      const producersIdsFilter: ReadModelFilter<EService> =
+        ReadModelRepository.arrayToFilter(producersIds, {
+          "data.producerId": { $in: producersIds },
+        });
 
       const descriptorsStateFilter: ReadModelFilter<Descriptor> = {
         state: { $in: states },
@@ -148,6 +150,24 @@ export function readModelServiceBuilder(
           },
         ],
       };
+
+      const descriptorsFilter =
+        states.length === 0 && attributesIds.length === 0
+          ? {}
+          : {
+              "data.descriptors": {
+                $elemMatch: {
+                  ...ReadModelRepository.arrayToFilter(
+                    states,
+                    descriptorsStateFilter
+                  ),
+                  ...ReadModelRepository.arrayToFilter(
+                    attributesIds,
+                    descriptorsAttributesFilter
+                  ),
+                },
+              },
+            };
 
       const visibilityFilter = (): ReadModelFilter<EService> => {
         if (
@@ -197,23 +217,9 @@ export function readModelServiceBuilder(
         {
           $match: {
             ...nameFilter,
-            ...ReadModelRepository.arrayToFilter(ids, idsFilter),
-            ...ReadModelRepository.arrayToFilter(
-              producersIds,
-              producersIdsFilter
-            ),
-            "data.descriptors": {
-              $elemMatch: {
-                ...ReadModelRepository.arrayToFilter(
-                  states,
-                  descriptorsStateFilter
-                ),
-                ...ReadModelRepository.arrayToFilter(
-                  attributesIds,
-                  descriptorsAttributesFilter
-                ),
-              },
-            },
+            ...idsFilter,
+            ...producersIdsFilter,
+            ...descriptorsFilter,
             ...visibilityFilter(),
           } satisfies ReadModelFilter<EService>,
         },
