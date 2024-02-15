@@ -788,7 +788,11 @@ export async function deleteDocumentLogic({
     throw eServiceDocumentNotFound(eserviceId, descriptorId, documentId);
   }
 
-  await deleteFile(config.s3Bucket, document.path);
+  await deleteFile(config.s3Bucket, document.path).catch((error) => {
+    logger.error(
+      `Error deleting interface or document file for descriptor ${descriptorId} : ${error}`
+    );
+  });
 
   return toCreateEventEServiceDocumentDeleted(
     eserviceId,
@@ -973,9 +977,8 @@ export async function deleteDraftDescriptorLogic({
     await deleteFile(config.s3Bucket, descriptorInterface.path).catch(
       (error) => {
         logger.error(
-          `Error deleting interface for descriptor ${descriptorId} : ${error}`
+          `Error deleting interface file for descriptor ${descriptorId} : ${error}`
         );
-        throw error;
       }
     );
   }
@@ -986,7 +989,7 @@ export async function deleteDraftDescriptorLogic({
 
   await Promise.all(deleteDescriptorDocs).catch((error) => {
     logger.error(
-      `Error deleting documents for descriptor ${descriptorId} : ${error}`
+      `Error deleting documents' files for descriptor ${descriptorId} : ${error}`
     );
   });
 
@@ -1246,7 +1249,11 @@ export async function cloneDescriptorLogic({
           descriptor.interface.path,
           clonedDocumentId,
           descriptor.interface.name
-        )
+        ).catch((error) => {
+          logger.error(
+            `Error copying interface file for descriptor ${descriptorId} : ${error}`
+          );
+        })
       : undefined;
 
   const clonedInterfaceDocument: Document | undefined =
@@ -1283,7 +1290,11 @@ export async function cloneDescriptorLogic({
       };
       return clonedDocument;
     })
-  );
+  ).catch((error) => {
+    logger.error(
+      `Error copying documents' files for descriptor ${descriptorId} : ${error}`
+    );
+  });
 
   const draftCatalogItem: EService = {
     id: generateId(),
@@ -1299,7 +1310,7 @@ export async function cloneDescriptorLogic({
         id: generateId(),
         version: "1",
         interface: clonedInterfaceDocument,
-        docs: clonedDocuments,
+        docs: clonedDocuments ?? [],
         state: descriptorState.draft,
         createdAt: new Date(),
         publishedAt: undefined,
