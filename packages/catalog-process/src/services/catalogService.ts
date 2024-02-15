@@ -897,7 +897,7 @@ export async function deleteDraftDescriptorLogic({
   eserviceId: EServiceId;
   descriptorId: DescriptorId;
   authData: AuthData;
-  deleteFile: (s3Bucket: string, path: string) => Promise<void>;
+  deleteFile: (bucket: string, path: string) => Promise<void>;
   eService: WithMetadata<EService> | undefined;
 }): Promise<CreateEvent<EServiceEvent>> {
   assertEServiceExist(eserviceId, eService);
@@ -1132,7 +1132,7 @@ export async function cloneDescriptorLogic({
   descriptorId: DescriptorId;
   authData: AuthData;
   copyFile: (
-    s3Bucket: string,
+    bucket: string,
     docPath: string,
     path: string,
     id: string,
