@@ -1,17 +1,17 @@
 /* eslint-disable functional/no-let */
 import { beforeAll, afterEach, describe, expect, it, afterAll } from "vitest";
 import {
-  TEST_MONGO_DB_PORT,
-  TEST_POSTGRES_DB_PORT,
-  mongoDBContainer,
-  postgresDBContainer,
-} from "pagopa-interop-commons-test";
-import {
   AttributeCollection,
   ReadModelRepository,
   initDB,
 } from "pagopa-interop-commons";
 import { StartedTestContainer } from "testcontainers";
+import {
+  TEST_MONGO_DB_PORT,
+  TEST_POSTGRES_DB_PORT,
+  getMongodbContainer,
+  getPostgreSqlContainer,
+} from "pagopa-interop-commons-test";
 import { v4 as uuidv4 } from "uuid";
 import { Document } from "mongodb";
 import { IDatabase } from "pg-promise";
@@ -34,9 +34,8 @@ describe("database test", () => {
   let startedMongodbContainer: StartedTestContainer;
 
   beforeAll(async () => {
-    startedPostgreSqlContainer = await postgresDBContainer(config).start();
-
-    startedMongodbContainer = await mongoDBContainer(config).start();
+    startedPostgreSqlContainer = await getPostgreSqlContainer(config).start();
+    startedMongodbContainer = await getMongodbContainer(config).start();
 
     config.eventStoreDbPort = startedPostgreSqlContainer.getMappedPort(
       TEST_POSTGRES_DB_PORT
