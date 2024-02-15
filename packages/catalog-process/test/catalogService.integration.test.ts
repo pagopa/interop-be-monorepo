@@ -1949,7 +1949,7 @@ describe("database test", async () => {
     });
 
     describe("delete Document", () => {
-      it("should write on event-store for the deletion of a document", async () => {
+      it("should write on event-store for the deletion of a document, and delete the file from the bucket", async () => {
         vi.spyOn(fileManager, "delete");
 
         const document = {
