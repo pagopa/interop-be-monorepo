@@ -78,7 +78,7 @@ import {
   eServiceDocumentNotFound,
   eServiceDuplicate,
   eServiceNotFound,
-  incoherentDailyCalls,
+  inconsistentDailyCalls,
   interfaceAlreadyExists,
   notValidDescriptor,
 } from "../src/model/domain/errors.js";
@@ -708,7 +708,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(operationForbidden);
       });
-      it("should throw incoherentDailyCalls if dailyCallsPerConsumer is greater than dailyCallsTotal", async () => {
+      it("should throw inconsistentDailyCalls if dailyCallsPerConsumer is greater than dailyCallsTotal", async () => {
         const descriptorSeed: EServiceDescriptorSeed = {
           ...buildDescriptorSeed(mockDescriptor),
           dailyCallsPerConsumer: 100,
@@ -726,7 +726,7 @@ describe("database test", async () => {
             descriptorSeed,
             getMockAuthData(eService.producerId)
           )
-        ).rejects.toThrowError(incoherentDailyCalls());
+        ).rejects.toThrowError(inconsistentDailyCalls());
       });
     });
 
@@ -931,7 +931,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(operationForbidden);
       });
-      it("should throw incoherentDailyCalls if dailyCallsPerConsumer is greater than dailyCallsTotal", async () => {
+      it("should throw inconsistentDailyCalls if dailyCallsPerConsumer is greater than dailyCallsTotal", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
@@ -954,7 +954,7 @@ describe("database test", async () => {
             buildDescriptorSeed(updatedDescriptor),
             getMockAuthData(eService.producerId)
           )
-        ).rejects.toThrowError(incoherentDailyCalls());
+        ).rejects.toThrowError(inconsistentDailyCalls());
       });
     });
 
