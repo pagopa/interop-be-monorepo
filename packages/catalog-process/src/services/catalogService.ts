@@ -70,7 +70,7 @@ import {
   eServiceDescriptorWithoutInterface,
   interfaceAlreadyExists,
   attributeNotFound,
-  incoherentDailyCalls,
+  inconsistentDailyCalls,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -1381,7 +1381,7 @@ function checkDailyCalls({
   dailyCallsTotal: number;
 }): void {
   if (dailyCallsPerConsumer > dailyCallsTotal) {
-    throw incoherentDailyCalls();
+    throw inconsistentDailyCalls();
   }
 }
 

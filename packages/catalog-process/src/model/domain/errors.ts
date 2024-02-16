@@ -17,7 +17,7 @@ export const errorCodes = {
   eServiceDuplicate: "0010",
   interfaceAlreadyExists: "0011",
   attributeNotFound: "0012",
-  incoherentDailyCalls: "0013",
+  inconsistentDailyCalls: "0013",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -150,10 +150,10 @@ export function attributeNotFound(attributeId: string): ApiError<ErrorCodes> {
   });
 }
 
-export function incoherentDailyCalls(): ApiError<ErrorCodes> {
+export function inconsistentDailyCalls(): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `dailyCallsPerConsumer can't be greater than dailyCallsTotal`,
-    code: "incoherentDailyCalls",
-    title: "Incoherent daily calls",
+    code: "incosnsistentDailyCalls",
+    title: "Inconsistent daily calls",
   });
 }
