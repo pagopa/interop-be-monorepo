@@ -72,6 +72,7 @@ import {
   interfaceAlreadyExists,
   attributeNotFound,
   inconsistentDailyCalls,
+  dailyCallsCannotBeDecreased,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -1098,6 +1099,13 @@ export function updateDescriptorQuotasLogic({
     throw notValidDescriptor(descriptorId, descriptor.state.toString());
   }
 
+  assertDailyCallsAreConsistentAndNotDecreased({
+    dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
+    dailyCallsTotal: descriptor.dailyCallsTotal,
+    updatedDailyCallsPerConsumer: seed.dailyCallsPerConsumer,
+    updatedDailyCallsTotal: seed.dailyCallsTotal,
+  });
+
   const updatedDescriptor: Descriptor = {
     ...descriptor,
     voucherLifespan: seed.voucherLifespan,
@@ -1445,5 +1453,27 @@ const applyVisibilityToEService = (
     ),
   };
 };
+
+function assertDailyCallsAreConsistentAndNotDecreased({
+  dailyCallsPerConsumer,
+  dailyCallsTotal,
+  updatedDailyCallsPerConsumer,
+  updatedDailyCallsTotal,
+}: {
+  dailyCallsPerConsumer: number;
+  dailyCallsTotal: number;
+  updatedDailyCallsPerConsumer: number;
+  updatedDailyCallsTotal: number;
+}): void {
+  if (dailyCallsPerConsumer > dailyCallsTotal) {
+    throw inconsistentDailyCalls();
+  }
+  if (
+    updatedDailyCallsPerConsumer < dailyCallsPerConsumer ||
+    updatedDailyCallsTotal < dailyCallsTotal
+  ) {
+    throw dailyCallsCannotBeDecreased();
+  }
+}
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;

@@ -18,6 +18,7 @@ export const errorCodes = {
   interfaceAlreadyExists: "0011",
   attributeNotFound: "0012",
   inconsistentDailyCalls: "0013",
+  dailyCallsCannotBeDecreased: "0014",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -155,5 +156,13 @@ export function inconsistentDailyCalls(): ApiError<ErrorCodes> {
     detail: `dailyCallsPerConsumer can't be greater than dailyCallsTotal`,
     code: "inconsistentDailyCalls",
     title: "Inconsistent daily calls",
+  });
+}
+
+export function dailyCallsCannotBeDecreased(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `dailyCallsPerConsumer and dailyCallsTotal can't be decreased`,
+    code: "dailyCallsCannotBeDecreased",
+    title: "Daily Calls limits Can't be decreased",
   });
 }
