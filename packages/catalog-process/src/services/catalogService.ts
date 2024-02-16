@@ -37,6 +37,7 @@ import {
   Consumer,
   EServiceDescriptorSeed,
   UpdateEServiceDescriptorSeed,
+  UpdateEServiceDescriptorQuotasSeed,
 } from "../model/domain/models.js";
 import {
   toCreateEventClonedEServiceAdded,
@@ -467,6 +468,28 @@ export function catalogServiceBuilder(
 
       await repository.createEvent(
         updateDescriptorLogic({
+          eserviceId,
+          descriptorId,
+          seed,
+          authData,
+          eService,
+        })
+      );
+    },
+
+    async updateDescriptorQuotas(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: UpdateEServiceDescriptorQuotasSeed,
+      authData: AuthData
+    ): Promise<void> {
+      logger.info(
+        `Updating draft Descriptor ${descriptorId} for EService ${eserviceId}`
+      );
+      const eService = await readModelService.getEServiceById(eserviceId);
+
+      await repository.createEvent(
+        updateDescriptorQuotasLogic({
           eserviceId,
           descriptorId,
           seed,
@@ -1019,6 +1042,55 @@ export function updateDescriptorLogic({
       apiAgreementApprovalPolicyToAgreementApprovalPolicy(
         seed.agreementApprovalPolicy
       ),
+  };
+
+  const filteredDescriptor = eService.data.descriptors.filter(
+    (d: Descriptor) => d.id !== descriptorId
+  );
+
+  const updatedEService: EService = {
+    ...eService.data,
+    descriptors: [...filteredDescriptor, updatedDescriptor],
+  };
+
+  return toCreateEventEServiceUpdated(
+    eserviceId,
+    eService.metadata.version,
+    updatedEService
+  );
+}
+
+export function updateDescriptorQuotasLogic({
+  eserviceId,
+  descriptorId,
+  seed,
+  authData,
+  eService,
+}: {
+  eserviceId: EServiceId;
+  descriptorId: DescriptorId;
+  seed: UpdateEServiceDescriptorQuotasSeed;
+  authData: AuthData;
+  eService: WithMetadata<EService> | undefined;
+}): CreateEvent<EServiceEvent> {
+  assertEServiceExist(eserviceId, eService);
+  assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+
+  const descriptor = retrieveDescriptor(descriptorId, eService);
+
+  if (
+    descriptor.state !== descriptorState.published &&
+    descriptor.state !== descriptorState.suspended &&
+    descriptor.state !== descriptorState.deprecated
+  ) {
+    throw notValidDescriptor(descriptorId, descriptor.state.toString());
+  }
+
+  const updatedDescriptor: Descriptor = {
+    ...descriptor,
+    voucherLifespan: seed.voucherLifespan,
+    dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
+    dailyCallsTotal: seed.dailyCallsTotal,
   };
 
   const filteredDescriptor = eService.data.descriptors.filter(

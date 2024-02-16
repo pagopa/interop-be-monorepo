@@ -475,6 +475,24 @@ const eservicesRouter = (
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
+    )
+    .post(
+      "/eservices/:eServiceId/descriptors/:descriptorId/update",
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      async (req, res) => {
+        try {
+          await catalogService.updateDescriptorQuotas(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
+            req.body,
+            req.ctx.authData
+          );
+          return res.status(200).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, updateDescriptorErrorMapper);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     );
   return eservicesRouter;
 };
