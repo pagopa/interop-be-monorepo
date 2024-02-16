@@ -18,7 +18,6 @@ import {
   EServiceDocumentId,
   EServiceEvent,
   EServiceId,
-  ListResult,
   TenantId,
   WithMetadata,
   catalogEventToBinaryData,
@@ -26,6 +25,8 @@ import {
   generateId,
   operationForbidden,
   unsafeBrandId,
+  ListResult,
+  AttributeId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -119,13 +120,13 @@ const retrieveDescriptor = (
 };
 
 const retrieveDocument = (
-  eServiceId: EServiceId,
+  eserviceId: EServiceId,
   descriptor: Descriptor,
   documentId: EServiceDocumentId
 ): Document => {
   const doc = descriptor.docs.find((d) => d.id === documentId);
   if (doc === undefined) {
-    throw eServiceDocumentNotFound(eServiceId, descriptor.id, documentId);
+    throw eServiceDocumentNotFound(eserviceId, descriptor.id, documentId);
   }
   return doc;
 };
@@ -241,23 +242,9 @@ export function catalogServiceBuilder(
       authData: AuthData
     ): Promise<EService> {
       logger.info(`Retrieving EService ${eserviceId}`);
-      const eService = await retrieveEService(eserviceId, readModelService);
+      const eservice = await retrieveEService(eserviceId, readModelService);
 
-      if (isUserAllowedToSeeDraft(authData, eService.data.producerId)) {
-        return eService.data;
-      }
-      const eServiceWithoutDraft: EService = {
-        ...eService.data,
-        descriptors: eService.data.descriptors.filter(
-          (d) => d.state !== descriptorState.draft
-        ),
-      };
-
-      if (eServiceWithoutDraft.descriptors.length === 0) {
-        throw eServiceNotFound(eserviceId);
-      }
-
-      return eServiceWithoutDraft;
+      return applyVisibilityToEService(eservice.data, authData);
     },
 
     async getEServices(
@@ -276,17 +263,9 @@ export function catalogServiceBuilder(
         limit
       );
 
-      const eServicesToReturn = eservicesList.results.map((eService) => {
-        if (isUserAllowedToSeeDraft(authData, eService.producerId)) {
-          return eService;
-        }
-        return {
-          ...eService,
-          descriptors: eService.descriptors.filter(
-            (d) => d.state !== descriptorState.draft
-          ),
-        };
-      });
+      const eServicesToReturn = eservicesList.results.map((eservice) =>
+        applyVisibilityToEService(eservice, authData)
+      );
 
       return {
         results: eServicesToReturn,
@@ -359,30 +338,30 @@ export function catalogServiceBuilder(
       );
     },
     async getDocumentById({
-      eServiceId,
+      eserviceId,
       descriptorId,
       documentId,
       authData,
     }: {
-      eServiceId: EServiceId;
+      eserviceId: EServiceId;
       descriptorId: DescriptorId;
       documentId: EServiceDocumentId;
       authData: AuthData;
     }): Promise<Document> {
       logger.info(
-        `Retrieving EService document ${documentId} for EService ${eServiceId} and descriptor ${descriptorId}`
+        `Retrieving EService document ${documentId} for EService ${eserviceId} and descriptor ${descriptorId}`
       );
-      const eService = await retrieveEService(eServiceId, readModelService);
+      const eService = await retrieveEService(eserviceId, readModelService);
       const descriptor = retrieveDescriptor(descriptorId, eService);
-
-      if (isUserAllowedToSeeDraft(authData, eService.data.producerId)) {
-        return retrieveDocument(eServiceId, descriptor, documentId);
-      } else {
-        if (descriptor.state === descriptorState.draft) {
-          throw eServiceNotFound(eServiceId);
-        }
-        return retrieveDocument(eServiceId, descriptor, documentId);
+      const document = retrieveDocument(eserviceId, descriptor, documentId);
+      const checkedEService = applyVisibilityToEService(
+        eService.data,
+        authData
+      );
+      if (!checkedEService.descriptors.find((d) => d.id === descriptorId)) {
+        throw eServiceDocumentNotFound(eserviceId, descriptorId, documentId);
       }
+      return document;
     },
     async deleteDocument(
       eserviceId: EServiceId,
@@ -854,7 +833,7 @@ export async function createDescriptorLogic({
   eserviceDescriptorSeed: EServiceDescriptorSeed;
   authData: AuthData;
   eService: WithMetadata<EService> | undefined;
-  getAttributesByIds: (attributesIds: string[]) => Promise<Attribute[]>;
+  getAttributesByIds: (attributesIds: AttributeId[]) => Promise<Attribute[]>;
 }): Promise<CreateEvent<EServiceEvent>> {
   assertEServiceExist(eserviceId, eService);
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
@@ -873,7 +852,9 @@ export async function createDescriptorLogic({
   ];
 
   if (attributesSeeds.length > 0) {
-    const attributesSeedsIds = attributesSeeds.map((attr) => attr.id);
+    const attributesSeedsIds: AttributeId[] = attributesSeeds.map((attr) =>
+      unsafeBrandId(attr.id)
+    );
     const attributes = await getAttributesByIds(attributesSeedsIds);
     const attributesIds = attributes.map((attr) => attr.id);
     for (const attributeSeedId of attributesSeedsIds) {
@@ -1334,4 +1315,27 @@ const isUserAllowedToSeeDraft = (
   hasPermission([userRoles.ADMIN_ROLE, userRoles.API_ROLE], authData) &&
   authData.organizationId === producerId;
 
+const applyVisibilityToEService = (
+  eservice: EService,
+  authData: AuthData
+): EService => {
+  if (isUserAllowedToSeeDraft(authData, eservice.producerId)) {
+    return eservice;
+  }
+
+  if (
+    eservice.descriptors.length === 0 ||
+    (eservice.descriptors.length === 1 &&
+      eservice.descriptors[0].state === descriptorState.draft)
+  ) {
+    throw eServiceNotFound(eservice.id);
+  }
+
+  return {
+    ...eservice,
+    descriptors: eservice.descriptors.filter(
+      (d) => d.state !== descriptorState.draft
+    ),
+  };
+};
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
