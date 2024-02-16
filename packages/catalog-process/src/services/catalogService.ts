@@ -888,10 +888,12 @@ export async function createDescriptorLogic({
     }
   }
 
-  checkDailyCalls({
-    dailyCallsPerConsumer: eserviceDescriptorSeed.dailyCallsPerConsumer,
-    dailyCallsTotal: eserviceDescriptorSeed.dailyCallsTotal,
-  });
+  if (
+    eserviceDescriptorSeed.dailyCallsPerConsumer >
+    eserviceDescriptorSeed.dailyCallsTotal
+  ) {
+    throw inconsistentDailyCalls();
+  }
 
   const newDescriptor: Descriptor = {
     id: generateId(),
@@ -1013,10 +1015,9 @@ export function updateDescriptorLogic({
     throw notValidDescriptor(descriptorId, descriptor.state.toString());
   }
 
-  checkDailyCalls({
-    dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
-    dailyCallsTotal: seed.dailyCallsTotal,
-  });
+  if (seed.dailyCallsPerConsumer > seed.dailyCallsTotal) {
+    throw inconsistentDailyCalls();
+  }
 
   const updatedDescriptor: Descriptor = {
     ...descriptor,
@@ -1372,17 +1373,5 @@ const applyVisibilityToEService = (
     ),
   };
 };
-
-function checkDailyCalls({
-  dailyCallsPerConsumer,
-  dailyCallsTotal,
-}: {
-  dailyCallsPerConsumer: number;
-  dailyCallsTotal: number;
-}): void {
-  if (dailyCallsPerConsumer > dailyCallsTotal) {
-    throw inconsistentDailyCalls();
-  }
-}
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
