@@ -3,8 +3,10 @@ import {
   CreateEvent,
   DB,
   eventRepository,
+  hasPermission,
   initFileManager,
   logger,
+  userRoles,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -91,7 +93,7 @@ const assertRequesterAllowed = (
   }
 };
 
-export const retrieveEService = async (
+const retrieveEService = async (
   eserviceId: EServiceId,
   readModelService: ReadModelService
 ): Promise<WithMetadata<EService>> => {
@@ -224,12 +226,13 @@ export function catalogServiceBuilder(
       );
     },
     async getEServiceById(
-      eserviceId: EServiceId
-    ): Promise<WithMetadata<EService>> {
+      eserviceId: EServiceId,
+      authData: AuthData
+    ): Promise<EService> {
       logger.info(`Retrieving EService ${eserviceId}`);
-      const eService = await readModelService.getEServiceById(eserviceId);
-      assertEServiceExist(eserviceId, eService);
-      return eService;
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      return applyVisibilityToEService(eservice.data, authData);
     },
     async getEServices(
       authData: AuthData,
@@ -1271,4 +1274,34 @@ export function archiveDescriptorLogic({
   );
 }
 
+const isUserAllowedToSeeDraft = (
+  authData: AuthData,
+  producerId: TenantId
+): boolean =>
+  hasPermission([userRoles.ADMIN_ROLE, userRoles.API_ROLE], authData) &&
+  authData.organizationId === producerId;
+
+const applyVisibilityToEService = (
+  eservice: EService,
+  authData: AuthData
+): EService => {
+  if (isUserAllowedToSeeDraft(authData, eservice.producerId)) {
+    return eservice;
+  }
+
+  if (
+    eservice.descriptors.length === 0 ||
+    (eservice.descriptors.length === 1 &&
+      eservice.descriptors[0].state === descriptorState.draft)
+  ) {
+    throw eServiceNotFound(eservice.id);
+  }
+
+  return {
+    ...eservice,
+    descriptors: eservice.descriptors.filter(
+      (d) => d.state !== descriptorState.draft
+    ),
+  };
+};
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
