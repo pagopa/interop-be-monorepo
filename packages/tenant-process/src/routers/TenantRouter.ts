@@ -6,19 +6,29 @@ import {
   ZodiosContext,
   authorizationMiddleware,
 } from "pagopa-interop-commons";
+import { unsafeBrandId } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
 import { toApiTenant } from "../model/domain/apiConverter.js";
-import { readModelService } from "../services/readModelService.js";
 import {
   makeApiProblem,
-  tenantBySelfcateIdNotFound,
+  tenantBySelfcareIdNotFound,
+  tenantFromExternalIdNotFound,
   tenantNotFound,
 } from "../model/domain/errors.js";
 import {
   getTenantByExternalIdErrorMapper,
   getTenantByIdErrorMapper,
   getTenantBySelfcareIdErrorMapper,
+  updateVerifiedAttributeExtensionDateErrorMapper,
+  updateTenantVerifiedAttributeErrorMapper,
+  selfcareUpsertTenantErrorMapper,
 } from "../utilities/errorMappers.js";
+import { readModelServiceBuilder } from "../services/readModelService.js";
+import { config } from "../utilities/config.js";
+import { tenantServiceBuilder } from "../services/tenantService.js";
+
+const readModelService = readModelServiceBuilder(config);
+const tenantService = tenantServiceBuilder(config, readModelService);
 
 const tenantsRouter = (
   ctx: ZodiosContext
@@ -97,7 +107,7 @@ const tenantsRouter = (
       async (req, res) => {
         try {
           const { name, offset, limit } = req.query;
-          const tenants = await readModelService.getTenants({
+          const tenants = await readModelService.getTenantsByName({
             name,
             offset,
             limit,
@@ -120,11 +130,14 @@ const tenantsRouter = (
         API_ROLE,
         M2M_ROLE,
         SECURITY_ROLE,
+        INTERNAL_ROLE,
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
         try {
-          const tenant = await readModelService.getTenantById(req.params.id);
+          const tenant = await readModelService.getTenantById(
+            unsafeBrandId(req.params.id)
+          );
 
           if (tenant) {
             return res.status(200).json(toApiTenant(tenant.data)).end();
@@ -133,7 +146,7 @@ const tenantsRouter = (
               .status(404)
               .json(
                 makeApiProblem(
-                  tenantNotFound(req.params.id),
+                  tenantNotFound(unsafeBrandId(req.params.id)),
                   getTenantByIdErrorMapper
                 )
               )
@@ -159,8 +172,8 @@ const tenantsRouter = (
           const { origin, code } = req.params;
 
           const tenant = await readModelService.getTenantByExternalId({
+            value: code,
             origin,
-            code,
           });
           if (tenant) {
             return res.status(200).json(toApiTenant(tenant.data)).end();
@@ -169,7 +182,7 @@ const tenantsRouter = (
               .status(404)
               .json(
                 makeApiProblem(
-                  tenantNotFound(`${origin}/${code}`),
+                  tenantFromExternalIdNotFound(origin, code),
                   getTenantByExternalIdErrorMapper
                 )
               )
@@ -204,7 +217,7 @@ const tenantsRouter = (
               .status(404)
               .json(
                 makeApiProblem(
-                  tenantBySelfcateIdNotFound(req.params.selfcareId),
+                  tenantBySelfcareIdNotFound(req.params.selfcareId),
                   getTenantBySelfcareIdErrorMapper
                 )
               )
@@ -247,7 +260,21 @@ const tenantsRouter = (
         SECURITY_ROLE,
         INTERNAL_ROLE,
       ]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const id = await tenantService.selfcareUpsertTenant({
+            tenantSeed: req.body,
+            authData: req.ctx.authData,
+          });
+          return res.status(200).json({ id }).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            selfcareUpsertTenantErrorMapper
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/tenants/:tenantId/attributes/verified",
@@ -257,12 +284,45 @@ const tenantsRouter = (
     .post(
       "/tenants/:tenantId/attributes/verified/:attributeId",
       authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const { tenantId, attributeId } = req.params;
+          await tenantService.updateTenantVerifiedAttribute({
+            verifierId: req.ctx.authData.organizationId,
+            tenantId: unsafeBrandId(tenantId),
+            attributeId: unsafeBrandId(attributeId),
+            updateVerifiedTenantAttributeSeed: req.body,
+          });
+          return res.status(200).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateTenantVerifiedAttributeErrorMapper
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/tenants/:tenantId/attributes/verified/:attributeId/verifier/:verifierId",
       authorizationMiddleware([INTERNAL_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const { tenantId, attributeId, verifierId } = req.params;
+          await tenantService.updateVerifiedAttributeExtensionDate(
+            unsafeBrandId(tenantId),
+            unsafeBrandId(attributeId),
+            verifierId
+          );
+          return res.status(200).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateVerifiedAttributeExtensionDateErrorMapper
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/tenants/attributes/declared",

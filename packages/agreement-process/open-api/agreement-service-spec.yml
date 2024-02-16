@@ -62,7 +62,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#components/schemas/AgreementSubmissionPayload"
+              $ref: "#/components/schemas/AgreementSubmissionPayload"
         description: payload for agreement submission
         required: true
       responses:
@@ -109,7 +109,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Agreement"
+                $ref: "#/components/schemas/ResourceId"
         "400":
           description: Bad Request
           content:
@@ -258,7 +258,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Agreement"
+                $ref: "#/components/schemas/ResourceId"
         "400":
           description: Bad Request
           content:
@@ -305,7 +305,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Agreement"
+                $ref: "#/components/schemas/ResourceId"
         "400":
           description: Bad Request
           content:
@@ -346,7 +346,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Agreement"
+                $ref: "#/components/schemas/ResourceId"
         "400":
           description: Bad Request
           content:

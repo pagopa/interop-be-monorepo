@@ -4,6 +4,7 @@ import {
   AttributeKind,
   attributeKind,
   Attribute,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 
 export const fromAttributeKindV1 = (input: AttributeKindV1): AttributeKind => {
@@ -20,6 +21,7 @@ export const fromAttributeKindV1 = (input: AttributeKindV1): AttributeKind => {
 };
 export const fromAttributeV1 = (input: AttributeV1): Attribute => ({
   ...input,
+  id: unsafeBrandId(input.id),
   kind: fromAttributeKindV1(input.kind),
   creationTime: new Date(input.creationTime),
 });

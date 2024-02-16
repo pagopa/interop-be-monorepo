@@ -4,12 +4,14 @@ import {
   consumerConfig,
   ReadModelRepository,
 } from "pagopa-interop-commons";
-import { EventEnvelope } from "./model/models.js";
+import { AttributeEventEnvelope } from "pagopa-interop-models";
 import { fromAttributeV1 } from "./model/converter.js";
 
 const { attributes } = ReadModelRepository.init(consumerConfig());
 
-export async function handleMessage(message: EventEnvelope): Promise<void> {
+export async function handleMessage(
+  message: AttributeEventEnvelope
+): Promise<void> {
   logger.info(message);
   await match(message)
     .with({ type: "AttributeAdded" }, async (msg) => {
@@ -29,6 +31,12 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
         },
         { upsert: true }
       );
+    })
+    .with({ type: "AttributeDeleted" }, async (msg) => {
+      await attributes.deleteOne({
+        "data.id": msg.stream_id,
+        "metadata.version": { $lt: msg.version },
+      });
     })
     .exhaustive();
 }

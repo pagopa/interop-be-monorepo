@@ -63,6 +63,16 @@ paths:
             default: []
           explode: false
         - in: query
+          name: attributesIds
+          description: comma separated sequence of attributes IDs
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+        - in: query
           name: states
           description: comma separated sequence of states
           schema:

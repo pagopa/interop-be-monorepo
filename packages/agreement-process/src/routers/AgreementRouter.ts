@@ -8,6 +8,12 @@ import {
   initDB,
   ReadModelRepository,
 } from "pagopa-interop-commons";
+import {
+  Agreement,
+  DescriptorId,
+  EServiceId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
 import {
   agreementDocumentToApiAgreementDocument,
@@ -25,12 +31,17 @@ import { agreementNotFound, makeApiProblem } from "../model/domain/errors.js";
 import {
   cloneAgreementErrorMapper,
   addConsumerDocumentErrorMapper,
+  activateAgreementErrorMapper,
   createAgreementErrorMapper,
   deleteAgreementErrorMapper,
   getConsumerDocumentErrorMapper,
+  rejectAgreementErrorMapper,
   submitAgreementErrorMapper,
+  suspendAgreementErrorMapper,
   updateAgreementErrorMapper,
   upgradeAgreementErrorMapper,
+  removeConsumerDocumentErrorMapper,
+  archiveAgreementErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -77,7 +88,7 @@ const agreementRouter = (
     async (req, res) => {
       try {
         const id = await agreementService.submitAgreement(
-          req.params.agreementId,
+          unsafeBrandId(req.params.agreementId),
           req.body
         );
         return res.status(200).json({ id }).end();
@@ -90,8 +101,20 @@ const agreementRouter = (
 
   agreementRouter.post(
     "/agreements/:agreementId/activate",
-    async (_req, res) => {
-      res.status(501).send();
+    authorizationMiddleware([ADMIN_ROLE]),
+    async (req, res) => {
+      try {
+        const agreementId: Agreement["id"] =
+          await agreementService.activateAgreement(
+            unsafeBrandId(req.params.agreementId),
+            req.ctx.authData
+          );
+
+        return res.status(200).json({ id: agreementId }).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, activateAgreementErrorMapper);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
     }
   );
 
@@ -101,7 +124,7 @@ const agreementRouter = (
     async (req, res) => {
       try {
         const id = await agreementService.addConsumerDocument(
-          req.params.agreementId,
+          unsafeBrandId(req.params.agreementId),
           req.body,
           req.ctx.authData
         );
@@ -120,8 +143,8 @@ const agreementRouter = (
     async (req, res) => {
       try {
         const document = await agreementService.getAgreementConsumerDocument(
-          req.params.agreementId,
-          req.params.documentId,
+          unsafeBrandId(req.params.agreementId),
+          unsafeBrandId(req.params.documentId),
           req.ctx.authData
         );
         return res
@@ -137,26 +160,74 @@ const agreementRouter = (
 
   agreementRouter.delete(
     "/agreements/:agreementId/consumer-documents/:documentId",
-    async (_req, res) => {
-      res.status(501).send();
+    authorizationMiddleware([ADMIN_ROLE]),
+    async (req, res) => {
+      try {
+        await agreementService.removeAgreementConsumerDocument(
+          unsafeBrandId(req.params.agreementId),
+          unsafeBrandId(req.params.documentId),
+          req.ctx.authData
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          removeConsumerDocumentErrorMapper
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
     }
   );
 
   agreementRouter.post(
     "/agreements/:agreementId/suspend",
-    async (_req, res) => {
-      res.status(501).send();
+    authorizationMiddleware([ADMIN_ROLE]),
+    async (req, res) => {
+      try {
+        const id = await agreementService.suspendAgreement(
+          unsafeBrandId(req.params.agreementId),
+          req.ctx.authData
+        );
+        return res.status(200).json({ id }).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, suspendAgreementErrorMapper);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
     }
   );
 
-  agreementRouter.post("/agreements/:agreementId/reject", async (_req, res) => {
-    res.status(501).send();
-  });
+  agreementRouter.post(
+    "/agreements/:agreementId/reject",
+    authorizationMiddleware([ADMIN_ROLE]),
+    async (req, res) => {
+      try {
+        const id = await agreementService.rejectAgreement(
+          unsafeBrandId(req.params.agreementId),
+          req.body.reason,
+          req.ctx.authData
+        );
+        return res.status(200).json({ id }).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, rejectAgreementErrorMapper);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    }
+  );
 
   agreementRouter.post(
     "/agreements/:agreementId/archive",
-    async (_req, res) => {
-      res.status(501).send();
+    authorizationMiddleware([ADMIN_ROLE]),
+    async (req, res) => {
+      try {
+        const agreementId = await agreementService.archiveAgreement(
+          unsafeBrandId(req.params.agreementId),
+          req.ctx.authData
+        );
+        return res.status(200).send({ id: agreementId });
+      } catch (error) {
+        const errorRes = makeApiProblem(error, archiveAgreementErrorMapper);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
     }
   );
 
@@ -190,10 +261,12 @@ const agreementRouter = (
       try {
         const agreements = await agreementService.getAgreements(
           {
-            eserviceId: req.query.eservicesIds,
+            eserviceId: req.query.eservicesIds.map(unsafeBrandId<EServiceId>),
             consumerId: req.query.consumersIds,
             producerId: req.query.producersIds,
-            descriptorId: req.query.descriptorsIds,
+            descriptorId: req.query.descriptorsIds.map(
+              unsafeBrandId<DescriptorId>
+            ),
             agreementStates: req.query.states.map(
               apiAgreementStateToAgreementState
             ),
@@ -290,7 +363,7 @@ const agreementRouter = (
     async (req, res) => {
       try {
         const agreement = await agreementService.getAgreementById(
-          req.params.agreementId
+          unsafeBrandId(req.params.agreementId)
         );
         if (agreement) {
           return res
@@ -302,7 +375,7 @@ const agreementRouter = (
             .status(404)
             .json(
               makeApiProblem(
-                agreementNotFound(req.params.agreementId),
+                agreementNotFound(unsafeBrandId(req.params.agreementId)),
                 () => 404
               )
             )
@@ -321,7 +394,7 @@ const agreementRouter = (
     async (req, res) => {
       try {
         await agreementService.deleteAgreementById(
-          req.params.agreementId,
+          unsafeBrandId(req.params.agreementId),
           req.ctx.authData
         );
         return res.status(204).send();
@@ -338,7 +411,7 @@ const agreementRouter = (
     async (req, res) => {
       try {
         await agreementService.updateAgreement(
-          req.params.agreementId,
+          unsafeBrandId(req.params.agreementId),
           req.body,
           req.ctx.authData
         );
@@ -357,7 +430,7 @@ const agreementRouter = (
     async (req, res) => {
       try {
         const id = await agreementService.upgradeAgreement(
-          req.params.agreementId,
+          unsafeBrandId(req.params.agreementId),
           req.ctx.authData
         );
 
@@ -375,7 +448,7 @@ const agreementRouter = (
     async (req, res) => {
       try {
         const id = await agreementService.cloneAgreement(
-          req.params.agreementId,
+          unsafeBrandId(req.params.agreementId),
           req.ctx.authData
         );
 
@@ -391,9 +464,37 @@ const agreementRouter = (
     res.status(501).send();
   });
 
-  agreementRouter.get("/agreements/filter/eservices", async (_req, res) => {
-    res.status(501).send();
-  });
+  agreementRouter.get(
+    "/agreements/filter/eservices",
+    authorizationMiddleware([
+      ADMIN_ROLE,
+      API_ROLE,
+      SECURITY_ROLE,
+      SUPPORT_ROLE,
+    ]),
+    async (req, res) => {
+      try {
+        const eservices = await agreementService.getAgreementEServices(
+          req.query.eServiceName,
+          req.query.consumersIds,
+          req.query.producersIds,
+          req.query.limit,
+          req.query.offset
+        );
+
+        return res
+          .status(200)
+          .json({
+            results: eservices.results,
+            totalCount: eservices.totalCount,
+          })
+          .end();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, () => 500);
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    }
+  );
 
   return agreementRouter;
 };
