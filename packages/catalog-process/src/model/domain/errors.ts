@@ -154,6 +154,6 @@ export function incoherentDailyCalls(): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `dailyCallsPerConsumer can't be greater than dailyCallsTotal`,
     code: "incoherentDailyCalls",
-    title: "incoherent daily calls",
+    title: "Incoherent daily calls",
   });
 }
