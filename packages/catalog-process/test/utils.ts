@@ -104,8 +104,8 @@ export const writeTenantInReadmodel = async (
   });
 };
 
-export const getMockAuthData = (organizationId?: string): AuthData => ({
-  organizationId: organizationId || uuidv4(),
+export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
+  organizationId: organizationId || generateId(),
   userId: uuidv4(),
   userRoles: [],
   externalId: {
@@ -135,7 +135,7 @@ export const getMockEService = (): EService => ({
   name: "eService name",
   description: "eService description",
   createdAt: new Date(),
-  producerId: uuidv4(),
+  producerId: generateId(),
   technology: technology.rest,
   descriptors: [],
   attributes: undefined,
@@ -185,7 +185,7 @@ export const buildInterfaceSeed = (): ApiEServiceDescriptorDocumentSeed => ({
 export const getMockDocument = (): Document => ({
   name: "fileName",
   path: "filePath",
-  id: uuidv4(),
+  id: generateId(),
   prettyName: "prettyName",
   contentType: "json",
   checksum: "checksum",
