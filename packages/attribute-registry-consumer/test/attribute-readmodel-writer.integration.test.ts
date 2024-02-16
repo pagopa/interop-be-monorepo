@@ -8,8 +8,11 @@ import {
   ReadModelRepository,
   consumerConfig,
 } from "pagopa-interop-commons";
-import { AttributeAddedV1, AttributeKindV1 } from "pagopa-interop-models";
-import { v4 as uuidv4 } from "uuid";
+import {
+  AttributeAddedV1,
+  AttributeKindV1,
+  generateId,
+} from "pagopa-interop-models";
 import { GenericContainer } from "testcontainers";
 import { EventEnvelope } from "../src/model/models.js";
 import { handleMessage } from "../src/attributeRegistryConsumerService.js";
@@ -40,7 +43,7 @@ describe("database test", async () => {
 
   describe("Handle message for attribute creation", () => {
     it("should create an attribute", async () => {
-      const id = uuidv4();
+      const id = generateId();
       const newAttribute: AttributeAddedV1 = {
         attribute: {
           id,
