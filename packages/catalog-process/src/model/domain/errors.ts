@@ -153,7 +153,7 @@ export function attributeNotFound(attributeId: string): ApiError<ErrorCodes> {
 export function inconsistentDailyCalls(): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `dailyCallsPerConsumer can't be greater than dailyCallsTotal`,
-    code: "incosnsistentDailyCalls",
+    code: "inconsistentDailyCalls",
     title: "Inconsistent daily calls",
   });
 }
