@@ -952,7 +952,7 @@ describe("database test", async () => {
             eService.id,
             descriptor.id,
             buildDescriptorSeed(updatedDescriptor),
-            getMockAuthData()
+            getMockAuthData(eService.producerId)
           )
         ).rejects.toThrowError(incoherentDailyCalls());
       });

@@ -1014,8 +1014,8 @@ export function updateDescriptorLogic({
   }
 
   checkDailyCalls({
-    dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
-    dailyCallsTotal: descriptor.dailyCallsTotal,
+    dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
+    dailyCallsTotal: seed.dailyCallsTotal,
   });
 
   const updatedDescriptor: Descriptor = {
