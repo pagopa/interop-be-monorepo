@@ -19,6 +19,7 @@ import {
   tenantMailKind,
   ExternalId,
   genericError,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -101,7 +102,7 @@ export const fromTenantAttributesV1 = (
     case "certifiedAttribute":
       const { certifiedAttribute } = sealedValue;
       return {
-        id: certifiedAttribute.id,
+        id: unsafeBrandId(certifiedAttribute.id),
         assignmentTimestamp: new Date(
           Number(certifiedAttribute.assignmentTimestamp)
         ),
@@ -110,7 +111,7 @@ export const fromTenantAttributesV1 = (
     case "verifiedAttribute":
       const { verifiedAttribute } = sealedValue;
       return {
-        id: verifiedAttribute.id,
+        id: unsafeBrandId(verifiedAttribute.id),
         assignmentTimestamp: new Date(
           Number(verifiedAttribute.assignmentTimestamp)
         ),
@@ -121,7 +122,7 @@ export const fromTenantAttributesV1 = (
     case "declaredAttribute":
       const { declaredAttribute } = sealedValue;
       return {
-        id: declaredAttribute.id,
+        id: unsafeBrandId(declaredAttribute.id),
         assignmentTimestamp: new Date(
           Number(declaredAttribute.assignmentTimestamp)
         ),
@@ -147,6 +148,7 @@ export const fromTenantV1 = (input: TenantV1): Tenant => {
 
   return {
     ...input,
+    id: unsafeBrandId(input.id),
     name: input.name ?? "",
     createdAt: new Date(Number(input.createdAt)),
     attributes: input.attributes.map(fromTenantAttributesV1),

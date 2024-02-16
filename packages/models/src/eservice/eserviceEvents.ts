@@ -1,4 +1,5 @@
 import { match } from "ts-pattern";
+import { z } from "zod";
 import {
   ClonedEServiceAddedV1,
   EServiceAddedV1,
@@ -12,6 +13,7 @@ import {
   EServiceWithDescriptorsDeletedV1,
   MovedAttributesFromEserviceToDescriptorsV1,
 } from "../gen/v1/eservice/events.js";
+import { EventEnvelope, protobufDecoder } from "../index.js";
 
 export function catalogEventToBinaryData(event: EServiceEvent): Uint8Array {
   return match(event)
@@ -51,21 +53,53 @@ export function catalogEventToBinaryData(event: EServiceEvent): Uint8Array {
     .exhaustive();
 }
 
-export type EServiceEvent =
-  | { type: "EServiceAdded"; data: EServiceAddedV1 }
-  | { type: "ClonedEServiceAdded"; data: ClonedEServiceAddedV1 }
-  | { type: "EServiceUpdated"; data: EServiceUpdatedV1 }
-  | {
-      type: "EServiceWithDescriptorsDeleted";
-      data: EServiceWithDescriptorsDeletedV1;
-    }
-  | { type: "EServiceDocumentUpdated"; data: EServiceDocumentUpdatedV1 }
-  | { type: "EServiceDeleted"; data: EServiceDeletedV1 }
-  | { type: "EServiceDocumentAdded"; data: EServiceDocumentAddedV1 }
-  | { type: "EServiceDocumentDeleted"; data: EServiceDocumentDeletedV1 }
-  | { type: "EServiceDescriptorAdded"; data: EServiceDescriptorAddedV1 }
-  | { type: "EServiceDescriptorUpdated"; data: EServiceDescriptorUpdatedV1 }
-  | {
-      type: "MovedAttributesFromEserviceToDescriptors";
-      data: MovedAttributesFromEserviceToDescriptorsV1;
-    };
+export const EServiceEvent = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("EServiceAdded"),
+    data: protobufDecoder(EServiceAddedV1),
+  }),
+  z.object({
+    type: z.literal("ClonedEServiceAdded"),
+    data: protobufDecoder(ClonedEServiceAddedV1),
+  }),
+  z.object({
+    type: z.literal("EServiceUpdated"),
+    data: protobufDecoder(EServiceUpdatedV1),
+  }),
+  z.object({
+    type: z.literal("EServiceWithDescriptorsDeleted"),
+    data: protobufDecoder(EServiceWithDescriptorsDeletedV1),
+  }),
+  z.object({
+    type: z.literal("EServiceDocumentUpdated"),
+    data: protobufDecoder(EServiceDocumentUpdatedV1),
+  }),
+  z.object({
+    type: z.literal("EServiceDeleted"),
+    data: protobufDecoder(EServiceDeletedV1),
+  }),
+  z.object({
+    type: z.literal("EServiceDocumentAdded"),
+    data: protobufDecoder(EServiceDocumentAddedV1),
+  }),
+  z.object({
+    type: z.literal("EServiceDocumentDeleted"),
+    data: protobufDecoder(EServiceDocumentDeletedV1),
+  }),
+  z.object({
+    type: z.literal("EServiceDescriptorAdded"),
+    data: protobufDecoder(EServiceDescriptorAddedV1),
+  }),
+  z.object({
+    type: z.literal("EServiceDescriptorUpdated"),
+    data: protobufDecoder(EServiceDescriptorUpdatedV1),
+  }),
+  z.object({
+    type: z.literal("MovedAttributesFromEserviceToDescriptors"),
+    data: protobufDecoder(MovedAttributesFromEserviceToDescriptorsV1),
+  }),
+]);
+export type EServiceEvent = z.infer<typeof EServiceEvent>;
+
+export const EServiceEventEnvelope = EventEnvelope(EServiceEvent);
+export type EServiceEventEnvelope = z.infer<typeof EServiceEventEnvelope>;

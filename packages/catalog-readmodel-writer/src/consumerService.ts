@@ -4,7 +4,8 @@ import {
   consumerConfig,
   ReadModelRepository,
 } from "pagopa-interop-commons";
-import { EventEnvelope } from "./model/models.js";
+
+import { EServiceEventEnvelope } from "pagopa-interop-models";
 import {
   fromDescriptorV1,
   fromDocumentV1,
@@ -13,7 +14,9 @@ import {
 
 const { eservices } = ReadModelRepository.init(consumerConfig());
 
-export async function handleMessage(message: EventEnvelope): Promise<void> {
+export async function handleMessage(
+  message: EServiceEventEnvelope
+): Promise<void> {
   logger.info(message);
   await match(message)
     .with({ type: "EServiceAdded" }, async (msg) => {
@@ -95,7 +98,6 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
         { "data.id": msg.stream_id, "metadata.version": { $lt: msg.version } },
         {
           $set: {
-            "metadata.version": msg.version,
             "data.descriptors.$[descriptor].docs.$[doc]": msg.data
               .updatedDocument
               ? fromDocumentV1(msg.data.updatedDocument)
@@ -106,7 +108,30 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
           arrayFilters: [
             {
               "descriptor.id": msg.data.descriptorId,
+            },
+            {
               "doc.id": msg.data.documentId,
+            },
+          ],
+        }
+      );
+      await eservices.updateOne(
+        {
+          "data.id": msg.stream_id,
+        },
+        {
+          $set: {
+            "data.descriptors.$[descriptor].interface": msg.data.updatedDocument
+              ? fromDocumentV1(msg.data.updatedDocument)
+              : undefined,
+            "data.descriptors.$[descriptor].serverUrls": msg.data.serverUrls,
+          },
+        },
+        {
+          arrayFilters: [
+            {
+              "descriptor.id": msg.data.descriptorId,
+              "descriptor.interface.id": msg.data.documentId,
             },
           ],
         }
@@ -118,23 +143,8 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
         },
         {
           $set: {
-            "data.descriptors.$[descriptor].interface": msg.data.updatedDocument
-              ? fromDocumentV1(msg.data.updatedDocument)
-              : undefined,
-            "data.descriptors.$[descriptor].serverUrls": msg.data.serverUrls,
             "metadata.version": msg.version,
           },
-        },
-        {
-          arrayFilters: [
-            {
-              "descriptor.id": msg.data.descriptorId,
-              $or: [
-                { "descriptor.interface": { $exists: true } },
-                { "descriptor.interface.id": msg.data.documentId },
-              ],
-            },
-          ],
         }
       );
     })
@@ -205,9 +215,6 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
               id: msg.data.documentId,
             },
           },
-          $set: {
-            "metadata.version": msg.version,
-          },
         },
         {
           arrayFilters: [
@@ -225,7 +232,6 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
           },
           $set: {
             "data.descriptors.$[descriptor].serverUrls": [],
-            "metadata.version": msg.version,
           },
         },
         {
@@ -235,6 +241,14 @@ export async function handleMessage(message: EventEnvelope): Promise<void> {
               "descriptor.interface.id": msg.data.documentId,
             },
           ],
+        }
+      );
+      await eservices.updateOne(
+        { "data.id": msg.stream_id, "metadata.version": { $lt: msg.version } },
+        {
+          $set: {
+            "metadata.version": msg.version,
+          },
         }
       );
     })

@@ -1,4 +1,5 @@
 import z from "zod";
+import { AttributeId } from "../brandedIds.js";
 
 export const attributeKind = {
   certified: "Certified",
@@ -12,7 +13,7 @@ export const AttributeKind = z.enum([
 export type AttributeKind = z.infer<typeof AttributeKind>;
 
 export const Attribute = z.object({
-  id: z.string().uuid(),
+  id: AttributeId,
   code: z.string().optional(),
   kind: AttributeKind,
   description: z.string(),
