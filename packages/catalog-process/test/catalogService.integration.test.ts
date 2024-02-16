@@ -1540,7 +1540,6 @@ describe("database test", async () => {
       });
 
       it("should write on event-store for the cloning of a descriptor", async () => {
-        const copy = vi.spyOn(fileManager, "copy");
         const descriptorInterface: Document = {
           ...mockDocument,
           id: generateId(),
