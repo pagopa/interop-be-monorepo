@@ -169,11 +169,11 @@ export function readModelServiceBuilder(
               },
             };
 
-      const visibilityFilter = (): ReadModelFilter<EService> => {
-        if (
-          hasPermission([userRoles.ADMIN_ROLE, userRoles.API_ROLE], authData)
-        ) {
-          return {
+      const visibilityFilter: ReadModelFilter<EService> = hasPermission(
+        [userRoles.ADMIN_ROLE, userRoles.API_ROLE],
+        authData
+      )
+        ? {
             $nor: [
               {
                 $and: [
@@ -193,9 +193,8 @@ export function readModelServiceBuilder(
                 ],
               },
             ],
-          };
-        } else {
-          return {
+          }
+        : {
             $nor: [
               { "data.descriptors": { $size: 0 } },
               {
@@ -210,8 +209,6 @@ export function readModelServiceBuilder(
               },
             ],
           };
-        }
-      };
 
       const aggregationPipeline = [
         {
@@ -220,7 +217,7 @@ export function readModelServiceBuilder(
             ...idsFilter,
             ...producersIdsFilter,
             ...descriptorsFilter,
-            ...visibilityFilter(),
+            ...visibilityFilter,
           } satisfies ReadModelFilter<EService>,
         },
         {
