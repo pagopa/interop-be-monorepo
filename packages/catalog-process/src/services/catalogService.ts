@@ -25,6 +25,7 @@ import {
   operationForbidden,
   unsafeBrandId,
   ListResult,
+  AttributeId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -822,7 +823,7 @@ export async function createDescriptorLogic({
   eserviceDescriptorSeed: EServiceDescriptorSeed;
   authData: AuthData;
   eService: WithMetadata<EService> | undefined;
-  getAttributesByIds: (attributesIds: string[]) => Promise<Attribute[]>;
+  getAttributesByIds: (attributesIds: AttributeId[]) => Promise<Attribute[]>;
 }): Promise<CreateEvent<EServiceEvent>> {
   assertEServiceExist(eserviceId, eService);
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
@@ -841,7 +842,9 @@ export async function createDescriptorLogic({
   ];
 
   if (attributesSeeds.length > 0) {
-    const attributesSeedsIds = attributesSeeds.map((attr) => attr.id);
+    const attributesSeedsIds: AttributeId[] = attributesSeeds.map((attr) =>
+      unsafeBrandId(attr.id)
+    );
     const attributes = await getAttributesByIds(attributesSeedsIds);
     const attributesIds = attributes.map((attr) => attr.id);
     for (const attributeSeedId of attributesSeedsIds) {

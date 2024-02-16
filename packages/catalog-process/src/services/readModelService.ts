@@ -5,6 +5,7 @@ import {
   EServiceCollection,
 } from "pagopa-interop-commons";
 import {
+  AttributeId,
   Document,
   EService,
   Agreement,
@@ -20,6 +21,7 @@ import {
   EServiceId,
   EServiceDocumentId,
   TenantId,
+  Descriptor,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
@@ -72,8 +74,14 @@ export function readModelServiceBuilder(
       offset: number,
       limit: number
     ): Promise<ListResult<EService>> {
-      const { eservicesIds, producersIds, states, agreementStates, name } =
-        filters;
+      const {
+        eservicesIds,
+        producersIds,
+        states,
+        agreementStates,
+        name,
+        attributesIds,
+      } = filters;
       const ids = await match(agreementStates.length)
         .with(0, () => eservicesIds)
         .otherwise(async () =>
@@ -100,19 +108,65 @@ export function readModelServiceBuilder(
           }
         : {};
 
+      const idsFilter: ReadModelFilter<EService> = {
+        "data.id": { $in: ids },
+      };
+
+      const producersIdsFilter: ReadModelFilter<EService> = {
+        "data.producerId": { $in: producersIds },
+      };
+
+      const descriptorsStateFilter: ReadModelFilter<Descriptor> = {
+        state: { $in: states },
+      } as ReadModelFilter<Descriptor>;
+
+      const descriptorsAttributesFilter: ReadModelFilter<Descriptor> = {
+        $or: [
+          {
+            "attributes.certified": {
+              $elemMatch: {
+                $elemMatch: { id: { $in: attributesIds } },
+              },
+            },
+          },
+          {
+            "attributes.declared": {
+              $elemMatch: {
+                $elemMatch: { id: { $in: attributesIds } },
+              },
+            },
+          },
+          {
+            "attributes.verified": {
+              $elemMatch: {
+                $elemMatch: { id: { $in: attributesIds } },
+              },
+            },
+          },
+        ],
+      };
+
       const aggregationPipeline = [
         {
           $match: {
             ...nameFilter,
-            ...ReadModelRepository.arrayToFilter(states, {
-              "data.descriptors": { $elemMatch: { state: { $in: states } } },
-            }),
-            ...ReadModelRepository.arrayToFilter(ids, {
-              "data.id": { $in: ids },
-            }),
-            ...ReadModelRepository.arrayToFilter(producersIds, {
-              "data.producerId": { $in: producersIds },
-            }),
+            ...ReadModelRepository.arrayToFilter(ids, idsFilter),
+            ...ReadModelRepository.arrayToFilter(
+              producersIds,
+              producersIdsFilter
+            ),
+            "data.descriptors": {
+              $elemMatch: {
+                ...ReadModelRepository.arrayToFilter(
+                  states,
+                  descriptorsStateFilter
+                ),
+                ...ReadModelRepository.arrayToFilter(
+                  attributesIds,
+                  descriptorsAttributesFilter
+                ),
+              },
+            },
           } satisfies ReadModelFilter<EService>,
         },
         {
@@ -296,9 +350,9 @@ export function readModelServiceBuilder(
         ?.docs.find((d) => d.id === documentId);
     },
     async listAgreements(
-      eservicesIds: string[],
-      consumersIds: string[],
-      producersIds: string[],
+      eservicesIds: EServiceId[],
+      consumersIds: TenantId[],
+      producersIds: TenantId[],
       states: AgreementState[]
     ): Promise<Agreement[]> {
       const aggregationPipeline = [
@@ -385,7 +439,9 @@ export function readModelServiceBuilder(
       return result.data;
     },
 
-    async getAttributesByIds(attributesIds: string[]): Promise<Attribute[]> {
+    async getAttributesByIds(
+      attributesIds: AttributeId[]
+    ): Promise<Attribute[]> {
       const data = await attributes
         .find({
           "data.id": { $in: attributesIds },
