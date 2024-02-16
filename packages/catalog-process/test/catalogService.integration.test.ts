@@ -48,6 +48,7 @@ import {
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import { GenericContainer } from "testcontainers";
 import { decodeProtobufPayload } from "pagopa-interop-commons-test";
+import { v4 as uuidv4 } from "uuid";
 import { config } from "../src/utilities/config.js";
 import {
   toDescriptorV1,
@@ -938,7 +939,7 @@ describe("database test", async () => {
             id: generateId(),
             prettyName: "",
             contentType: "json",
-            checksum: generateId(),
+            checksum: uuidv4(),
             uploadDate: new Date(),
           },
         };
