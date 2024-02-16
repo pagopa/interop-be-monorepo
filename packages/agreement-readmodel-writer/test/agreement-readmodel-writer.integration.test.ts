@@ -10,12 +10,10 @@ import {
 } from "pagopa-interop-commons";
 import {
   AgreementAddedV1,
-  AgreementEvent,
   AgreementEventEnvelope,
   AgreementStateV1,
-  EventEnvelope,
+  generateId,
 } from "pagopa-interop-models";
-import { v4 as uuidv4 } from "uuid";
 import { GenericContainer } from "testcontainers";
 import { handleMessage } from "../src/agreementConsumerService.js";
 
@@ -45,14 +43,14 @@ describe("database test", async () => {
 
   describe("Handle message for agreement creation", () => {
     it("should create an agreement", async () => {
-      const id = uuidv4();
+      const id = generateId();
       const newAgreement: AgreementAddedV1 = {
         agreement: {
           id,
-          eserviceId: uuidv4(),
-          descriptorId: uuidv4(),
-          producerId: uuidv4(),
-          consumerId: uuidv4(),
+          eserviceId: generateId(),
+          descriptorId: generateId(),
+          producerId: generateId(),
+          consumerId: generateId(),
           state: AgreementStateV1.ACTIVE,
           certifiedAttributes: [],
           declaredAttributes: [],

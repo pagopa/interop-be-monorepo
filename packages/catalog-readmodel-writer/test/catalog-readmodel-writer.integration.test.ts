@@ -10,12 +10,10 @@ import {
 } from "pagopa-interop-commons";
 import {
   EServiceAddedV1,
-  EServiceEvent,
   EServiceEventEnvelope,
   EServiceTechnologyV1,
-  EventEnvelope,
+  generateId,
 } from "pagopa-interop-models";
-import { v4 as uuidv4 } from "uuid";
 import { GenericContainer } from "testcontainers";
 import { handleMessage } from "../src/consumerService.js";
 
@@ -45,11 +43,11 @@ describe("database test", async () => {
 
   describe("Handle message for eservice creation", () => {
     it("should create an eService", async () => {
-      const id = uuidv4();
+      const id = generateId();
       const newEService: EServiceAddedV1 = {
         eService: {
           id,
-          producerId: uuidv4(),
+          producerId: generateId(),
           name: "name",
           description: "description",
           technology: EServiceTechnologyV1.REST,
