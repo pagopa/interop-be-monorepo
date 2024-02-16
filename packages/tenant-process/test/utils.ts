@@ -1,12 +1,14 @@
 import { MessageType } from "@protobuf-ts/runtime";
 import {
   AgreementCollection,
+  AttributeCollection,
   AuthData,
   EServiceCollection,
   TenantCollection,
 } from "pagopa-interop-commons";
 import {
   Agreement,
+  Attribute,
   CertifiedTenantAttribute,
   Descriptor,
   DescriptorId,
@@ -105,7 +107,6 @@ export const getMockCertifiedTenantAttribute =
     assignmentTimestamp: currentDate,
     id: generateId(),
     type: "certified",
-    revocationTimestamp: currentDate,
   });
 
 export const getMockAuthData = (
@@ -207,6 +208,18 @@ export const writeEServiceInReadmodel = async (
   });
 };
 
+export const writeAttributeInReadmodel = async (
+  attribute: Attribute,
+  attributes: AttributeCollection
+): Promise<void> => {
+  await attributes.insertOne({
+    data: attribute,
+    metadata: {
+      version: 0,
+    },
+  });
+};
+
 export const addOneAgreement = async (
   agreement: Agreement,
   agreements: AgreementCollection
@@ -228,6 +241,13 @@ export const addOneTenant = async (
 ): Promise<void> => {
   await writeTenantInEventstore(tenant, postgresDB);
   await writeTenantInReadmodel(tenant, tenants);
+};
+
+export const addOneAttribute = async (
+  attribute: Attribute,
+  attributes: AttributeCollection
+): Promise<void> => {
+  await writeAttributeInReadmodel(attribute, attributes);
 };
 
 export const readLastEventByStreamId = async (

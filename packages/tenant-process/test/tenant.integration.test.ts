@@ -3,11 +3,12 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-import { beforeAll, afterEach, describe, expect, it } from "vitest";
+import { beforeAll, afterEach, describe, expect, it, vi } from "vitest";
 import { GenericContainer } from "testcontainers";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import {
   AgreementCollection,
+  AttributeCollection,
   EServiceCollection,
   ReadModelRepository,
   TenantCollection,
@@ -15,15 +16,19 @@ import {
 } from "pagopa-interop-commons";
 import { IDatabase } from "pg-promise";
 import {
+  Attribute,
+  AttributeId,
   Descriptor,
   EService,
   Tenant,
   TenantCreatedV1,
   TenantId,
   TenantUpdatedV1,
+  attributeKind,
   descriptorState,
   generateId,
   operationForbidden,
+  tenantKind,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { config } from "../src/utilities/config.js";
@@ -45,9 +50,15 @@ import {
   tenantNotFound,
   verifiedAttributeNotFoundInTenant,
 } from "../src/model/domain/errors.js";
-import { ApiSelfcareTenantSeed } from "../src/model/types.js";
+import {
+  ApiInternalTenantSeed,
+  ApiM2MTenantSeed,
+  ApiSelfcareTenantSeed,
+} from "../src/model/types.js";
+import { getTenantKind } from "../src/services/validators.js";
 import {
   addOneAgreement,
+  addOneAttribute,
   addOneEService,
   addOneTenant,
   currentDate,
@@ -67,6 +78,7 @@ describe("Integration tests", () => {
   let tenants: TenantCollection;
   let agreements: AgreementCollection;
   let eservices: EServiceCollection;
+  let attributes: AttributeCollection;
   let readModelService: ReadModelService;
   let tenantService: TenantService;
   let postgresDB: IDatabase<unknown>;
@@ -95,7 +107,8 @@ describe("Integration tests", () => {
 
     config.eventStoreDbPort = postgreSqlContainer.getMappedPort(5432);
     config.readModelDbPort = mongodbContainer.getMappedPort(27017);
-    ({ tenants, agreements, eservices } = ReadModelRepository.init(config));
+    ({ tenants, agreements, eservices, attributes } =
+      ReadModelRepository.init(config));
     readModelService = readModelServiceBuilder(config);
     postgresDB = initDB({
       username: config.eventStoreDbUsername,
@@ -114,6 +127,7 @@ describe("Integration tests", () => {
   const mockTenant = getMockTenant();
   const mockVerifiedBy = getMockVerifiedBy();
   const mockVerifiedTenantAttribute = getMockVerifiedTenantAttribute();
+  const mockCertifiedTenantAttribute = getMockCertifiedTenantAttribute();
 
   afterEach(async () => {
     await tenants.deleteMany({});
@@ -127,7 +141,7 @@ describe("Integration tests", () => {
       it("Should create a tenant", async () => {
         const kind = "PA";
         const selfcareId = generateId();
-        const tenantSeed = {
+        const tenantSeed: ApiSelfcareTenantSeed = {
           externalId: {
             origin: "IPA",
             value: "123456",
@@ -154,6 +168,69 @@ describe("Integration tests", () => {
         };
 
         expect(writtenPayload.tenant).toEqual(toTenantV1(tenant));
+      });
+      it("Should create a tenant with attributes", async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date());
+        const kind = tenantKind.PA;
+        const tenantSeed: ApiInternalTenantSeed = {
+          externalId: {
+            origin: "IPA",
+            value: "123456",
+          },
+          certifiedAttributes: [
+            {
+              origin: "API",
+              code: "1234567",
+            },
+          ],
+          name: "A tenant",
+        };
+        const attribute: Attribute = {
+          name: "An Attribute",
+          id: generateId(),
+          kind: "Certified",
+          description: "a Description",
+          creationTime: new Date(),
+          code: "1234567",
+          origin: "API",
+        };
+        await addOneAttribute(attribute, attributes);
+        const attributesExternalIds = {
+          value: attribute.code!,
+          origin: attribute.origin!,
+        };
+        const id = await tenantService.createTenant(
+          tenantSeed,
+          [attributesExternalIds],
+          kind
+        );
+        expect(id).toBeDefined();
+        const writtenEvent = await readLastEventByStreamId(id, postgresDB);
+        expect(writtenEvent.stream_id).toBe(id);
+        expect(writtenEvent.version).toBe("0");
+        expect(writtenEvent.type).toBe("TenantCreated");
+        const writtenPayload = decodeProtobufPayload({
+          messageType: TenantCreatedV1,
+          payload: writtenEvent.data,
+        });
+        const tenant: Tenant = {
+          ...mockTenant,
+          attributes: [
+            {
+              ...mockCertifiedTenantAttribute,
+              id: attribute.id,
+              assignmentTimestamp: new Date(),
+            },
+          ],
+          id: unsafeBrandId(id),
+          createdAt: new Date(Number(writtenPayload.tenant?.createdAt)),
+          selfcareId: undefined,
+          kind,
+        };
+
+        expect(writtenPayload.tenant).toEqual(toTenantV1(tenant));
+        vi.useRealTimers();
       });
       it("Should throw a tenantDuplicate error", async () => {
         const kind = "PA";
@@ -224,6 +301,40 @@ describe("Integration tests", () => {
         };
 
         expect(writtenPayload.tenant).toEqual(toTenantV1(updatedTenant));
+      });
+      it("Should create a tenant by the upsert", async () => {
+        const mockAuthData = getMockAuthData(mockTenant.id);
+        const tenantSeed = {
+          externalId: {
+            origin: "Nothing",
+            value: "0",
+          },
+          name: "A tenant",
+          selfcareId: generateId(),
+        };
+        const id = await tenantService.selfcareUpsertTenant({
+          tenantSeed,
+          authData: mockAuthData,
+        });
+        expect(id).toBeDefined();
+        const writtenEvent = await readLastEventByStreamId(id, postgresDB);
+        expect(writtenEvent.stream_id).toBe(id);
+        expect(writtenEvent.version).toBe("0");
+        expect(writtenEvent.type).toBe("TenantCreated");
+        const writtenPayload = decodeProtobufPayload({
+          messageType: TenantCreatedV1,
+          payload: writtenEvent.data,
+        });
+        const tenant: Tenant = {
+          ...mockTenant,
+          externalId: tenantSeed.externalId,
+          id: unsafeBrandId(id),
+          kind: getTenantKind([], tenantSeed.externalId),
+          selfcareId: tenantSeed.selfcareId,
+          createdAt: new Date(Number(writtenPayload.tenant?.createdAt)),
+        };
+
+        expect(writtenPayload.tenant).toEqual(toTenantV1(tenant));
       });
       it("Should throw operation forbidden", async () => {
         await addOneTenant(tenant, postgresDB, tenants);
