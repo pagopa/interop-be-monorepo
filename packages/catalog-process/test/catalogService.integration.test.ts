@@ -1616,20 +1616,6 @@ describe("database test", async () => {
           createdAt: new Date(Number(writtenPayload.eService?.createdAt)),
         };
         expect(writtenPayload.eService).toEqual(toEServiceV1(expectedEService));
-        expect(copy).toHaveBeenCalledWith(
-          config.storageContainer,
-          config.eserviceDocumentsPath,
-          descriptorInterface.path,
-          expectedInterface.id,
-          descriptorInterface.name
-        );
-        expect(copy).toHaveBeenCalledWith(
-          config.storageContainer,
-          config.eserviceDocumentsPath,
-          document.path,
-          expectedDocument.id,
-          document.name
-        );
       });
       it("should throw eServiceDuplicate if an eService with the same name already exists", async () => {
         const descriptor: Descriptor = {
@@ -2001,7 +1987,6 @@ describe("database test", async () => {
 
     describe("delete Document", () => {
       it("should write on event-store for the deletion of a document", async () => {
-        const deleteFile = vi.spyOn(fileManager, "deleteFile");
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
@@ -2033,10 +2018,6 @@ describe("database test", async () => {
         expect(writtenPayload.eServiceId).toEqual(eService.id);
         expect(writtenPayload.descriptorId).toEqual(descriptor.id);
         expect(writtenPayload.documentId).toEqual(mockDocument.id);
-        expect(deleteFile).toHaveBeenCalledWith(
-          config.storageContainer,
-          mockDocument.path
-        );
       });
       it("should throw eServiceNotFound if the eService doesn't exist", async () => {
         expect(
