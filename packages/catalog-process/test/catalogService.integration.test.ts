@@ -48,7 +48,6 @@ import {
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import { GenericContainer } from "testcontainers";
 import { decodeProtobufPayload } from "pagopa-interop-commons-test";
-import { v4 as uuidv4 } from "uuid";
 import { config } from "../src/utilities/config.js";
 import {
   toDescriptorV1,
@@ -933,15 +932,7 @@ describe("database test", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
-          interface: {
-            name: "interface name",
-            path: "pagopa.it",
-            id: generateId(),
-            prettyName: "",
-            contentType: "json",
-            checksum: uuidv4(),
-            uploadDate: new Date(),
-          },
+          interface: mockDocument,
         };
         const eService: EService = {
           ...mockEService,
@@ -1059,29 +1050,13 @@ describe("database test", async () => {
           id: generateId(),
           state: descriptorState.published,
           publishedAt: new Date(),
-          interface: {
-            name: "interface name",
-            path: "pagopa.it",
-            id: generateId(),
-            prettyName: "",
-            contentType: "json",
-            checksum: uuidv4(),
-            uploadDate: new Date(),
-          },
+          interface: mockDocument,
         };
         const descriptor2: Descriptor = {
           ...mockDescriptor,
           id: generateId(),
           state: descriptorState.draft,
-          interface: {
-            name: "interface name",
-            path: "pagopa.it",
-            id: generateId(),
-            prettyName: "",
-            contentType: "json",
-            checksum: uuidv4(),
-            uploadDate: new Date(),
-          },
+          interface: mockDocument,
         };
         const eService: EService = {
           ...mockEService,

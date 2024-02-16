@@ -188,7 +188,7 @@ export const getMockDocument = (): Document => ({
   id: uuidv4(),
   prettyName: "prettyName",
   contentType: "json",
-  checksum: uuidv4(),
+  checksum: "checksum",
   uploadDate: new Date(),
 });
 
