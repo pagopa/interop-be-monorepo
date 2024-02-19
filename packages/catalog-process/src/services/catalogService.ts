@@ -117,6 +117,18 @@ const retrieveDescriptor = (
   return descriptor;
 };
 
+const retrieveDocument = (
+  eserviceId: EServiceId,
+  descriptor: Descriptor,
+  documentId: EServiceDocumentId
+): Document => {
+  const doc = descriptor.docs.find((d) => d.id === documentId);
+  if (doc === undefined) {
+    throw eServiceDocumentNotFound(eserviceId, descriptor.id, documentId);
+  }
+  return doc;
+};
+
 const updateDescriptorState = (
   descriptor: Descriptor,
   newState: DescriptorState
@@ -315,22 +327,29 @@ export function catalogServiceBuilder(
         })
       );
     },
-    async getDocumentById(
-      eServiceId: EServiceId,
-      descriptorId: DescriptorId,
-      documentId: EServiceDocumentId
-    ): Promise<Document> {
+    async getDocumentById({
+      eserviceId,
+      descriptorId,
+      documentId,
+      authData,
+    }: {
+      eserviceId: EServiceId;
+      descriptorId: DescriptorId;
+      documentId: EServiceDocumentId;
+      authData: AuthData;
+    }): Promise<Document> {
       logger.info(
-        `Retrieving EService document ${documentId} for EService ${eServiceId} and descriptor ${descriptorId}`
+        `Retrieving EService document ${documentId} for EService ${eserviceId} and descriptor ${descriptorId}`
       );
-      const document = await readModelService.getDocumentById(
-        eServiceId,
-        descriptorId,
-        documentId
+      const eService = await retrieveEService(eserviceId, readModelService);
+      const descriptor = retrieveDescriptor(descriptorId, eService);
+      const document = retrieveDocument(eserviceId, descriptor, documentId);
+      const checkedEService = applyVisibilityToEService(
+        eService.data,
+        authData
       );
-
-      if (document === undefined) {
-        throw eServiceDocumentNotFound(eServiceId, descriptorId, documentId);
+      if (!checkedEService.descriptors.find((d) => d.id === descriptorId)) {
+        throw eServiceDocumentNotFound(eserviceId, descriptorId, documentId);
       }
       return document;
     },
