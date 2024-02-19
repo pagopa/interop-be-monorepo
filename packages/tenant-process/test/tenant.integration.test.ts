@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable functional/no-let */
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -17,14 +18,12 @@ import {
 import { IDatabase } from "pg-promise";
 import {
   Attribute,
-  AttributeId,
   Descriptor,
   EService,
   Tenant,
   TenantCreatedV1,
   TenantId,
   TenantUpdatedV1,
-  attributeKind,
   descriptorState,
   generateId,
   operationForbidden,
