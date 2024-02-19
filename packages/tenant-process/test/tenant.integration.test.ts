@@ -50,7 +50,6 @@ import {
   getMockCertifiedTenantAttribute,
   getMockDescriptor,
   getMockEService,
-  getMockRevokedBy,
   getMockTenant,
   getMockVerifiedBy,
   getMockVerifiedTenantAttribute,
