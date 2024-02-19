@@ -1,12 +1,11 @@
 import {
-  AuthData,
   logger,
   ReadModelRepository,
   ReadModelFilter,
   EServiceCollection,
 } from "pagopa-interop-commons";
 import {
-  DescriptorState,
+  AttributeId,
   Document,
   EService,
   Agreement,
@@ -14,18 +13,21 @@ import {
   descriptorState,
   agreementState,
   ListResult,
-  WithMetadata,
   emptyListResult,
   genericError,
   DescriptorId,
+  WithMetadata,
+  Attribute,
   EServiceId,
   EServiceDocumentId,
   TenantId,
+  Descriptor,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
 import { Filter, WithId } from "mongodb";
 import { Consumer, consumer } from "../model/domain/models.js";
+import { ApiGetEServicesFilters } from "../model/types.js";
 
 async function getEService(
   eservices: EServiceCollection,
@@ -64,32 +66,29 @@ export function readModelServiceBuilder(
 ) {
   const eservices = readModelRepository.eservices;
   const agreements = readModelRepository.agreements;
+  const attributes = readModelRepository.attributes;
   return {
     async getEServices(
-      authData: AuthData,
-      {
+      organizationId: TenantId,
+      filters: ApiGetEServicesFilters,
+      offset: number,
+      limit: number
+    ): Promise<ListResult<EService>> {
+      const {
         eservicesIds,
         producersIds,
         states,
         agreementStates,
         name,
-      }: {
-        eservicesIds: string[];
-        producersIds: string[];
-        states: DescriptorState[];
-        agreementStates: AgreementState[];
-        name?: string;
-      },
-      offset: number,
-      limit: number
-    ): Promise<ListResult<EService>> {
+        attributesIds,
+      } = filters;
       const ids = await match(agreementStates.length)
         .with(0, () => eservicesIds)
         .otherwise(async () =>
           (
             await this.listAgreements(
               eservicesIds,
-              [authData.organizationId],
+              [organizationId],
               [],
               agreementStates
             )
@@ -109,19 +108,65 @@ export function readModelServiceBuilder(
           }
         : {};
 
+      const idsFilter: ReadModelFilter<EService> = {
+        "data.id": { $in: ids },
+      };
+
+      const producersIdsFilter: ReadModelFilter<EService> = {
+        "data.producerId": { $in: producersIds },
+      };
+
+      const descriptorsStateFilter: ReadModelFilter<Descriptor> = {
+        state: { $in: states },
+      } as ReadModelFilter<Descriptor>;
+
+      const descriptorsAttributesFilter: ReadModelFilter<Descriptor> = {
+        $or: [
+          {
+            "attributes.certified": {
+              $elemMatch: {
+                $elemMatch: { id: { $in: attributesIds } },
+              },
+            },
+          },
+          {
+            "attributes.declared": {
+              $elemMatch: {
+                $elemMatch: { id: { $in: attributesIds } },
+              },
+            },
+          },
+          {
+            "attributes.verified": {
+              $elemMatch: {
+                $elemMatch: { id: { $in: attributesIds } },
+              },
+            },
+          },
+        ],
+      };
+
       const aggregationPipeline = [
         {
           $match: {
             ...nameFilter,
-            ...ReadModelRepository.arrayToFilter(states, {
-              "data.descriptors": { $elemMatch: { state: { $in: states } } },
-            }),
-            ...ReadModelRepository.arrayToFilter(ids, {
-              "data.id": { $in: ids },
-            }),
-            ...ReadModelRepository.arrayToFilter(producersIds, {
-              "data.producerId": { $in: producersIds },
-            }),
+            ...ReadModelRepository.arrayToFilter(ids, idsFilter),
+            ...ReadModelRepository.arrayToFilter(
+              producersIds,
+              producersIdsFilter
+            ),
+            "data.descriptors": {
+              $elemMatch: {
+                ...ReadModelRepository.arrayToFilter(
+                  states,
+                  descriptorsStateFilter
+                ),
+                ...ReadModelRepository.arrayToFilter(
+                  attributesIds,
+                  descriptorsAttributesFilter
+                ),
+              },
+            },
           } satisfies ReadModelFilter<EService>,
         },
         {
@@ -305,9 +350,9 @@ export function readModelServiceBuilder(
         ?.docs.find((d) => d.id === documentId);
     },
     async listAgreements(
-      eservicesIds: string[],
-      consumersIds: string[],
-      producersIds: string[],
+      eservicesIds: EServiceId[],
+      consumersIds: TenantId[],
+      producersIds: TenantId[],
       states: AgreementState[]
     ): Promise<Agreement[]> {
       const aggregationPipeline = [
@@ -323,7 +368,7 @@ export function readModelServiceBuilder(
               "data.producerId": { $in: producersIds },
             }),
             ...ReadModelRepository.arrayToFilter(states, {
-              "data.state": { $elemMatch: { state: { $in: states } } },
+              "data.state": { $in: states },
             }),
           } satisfies ReadModelFilter<Agreement>,
         },
@@ -337,7 +382,7 @@ export function readModelServiceBuilder(
         },
       ];
       const data = await agreements.aggregate(aggregationPipeline).toArray();
-      const result = z.array(Agreement).safeParse(data);
+      const result = z.array(Agreement).safeParse(data.map((a) => a.data));
 
       if (!result.success) {
         logger.error(
@@ -347,6 +392,29 @@ export function readModelServiceBuilder(
         );
 
         throw genericError("Unable to parse agreements");
+      }
+
+      return result.data;
+    },
+
+    async getAttributesByIds(
+      attributesIds: AttributeId[]
+    ): Promise<Attribute[]> {
+      const data = await attributes
+        .find({
+          "data.id": { $in: attributesIds },
+        })
+        .toArray();
+
+      const result = z.array(Attribute).safeParse(data.map((d) => d.data));
+      if (!result.success) {
+        logger.error(
+          `Unable to parse attributes items: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+
+        throw genericError("Unable to parse attributes items");
       }
 
       return result.data;

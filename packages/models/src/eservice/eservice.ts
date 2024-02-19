@@ -37,13 +37,13 @@ export const AgreementApprovalPolicy = z.enum([
 ]);
 export type AgreementApprovalPolicy = z.infer<typeof AgreementApprovalPolicy>;
 
-const EServiceAttribute = z.object({
+export const EServiceAttribute = z.object({
   id: AttributeId,
   explicitAttributeVerification: z.boolean(),
 });
 export type EServiceAttribute = z.infer<typeof EServiceAttribute>;
 
-const EServiceAttributes = z.object({
+export const EServiceAttributes = z.object({
   certified: z.array(z.array(EServiceAttribute)),
   declared: z.array(z.array(EServiceAttribute)),
   verified: z.array(z.array(EServiceAttribute)),

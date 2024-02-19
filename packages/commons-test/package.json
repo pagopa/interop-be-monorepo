@@ -1,0 +1,34 @@
+{
+  "name": "pagopa-interop-commons-test",
+  "version": "1.0.0",
+  "description": "common test utilities",
+  "main": "dist",
+  "type": "module",
+  "scripts": {
+    "test": "vitest",
+    "test:it": "vitest db",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:autofix": "eslint . --ext .ts,.tsx --fix",
+    "format:check": "prettier --check src",
+    "format:write": "prettier --write src",
+    "build": "tsc"
+  },
+  "author": "",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@anatine/zod-mock": "^3.13.1",
+    "@pagopa/eslint-config": "^3.0.0",
+    "@protobuf-ts/runtime": "^2.9.1",
+    "@types/uuid": "^9.0.2",
+    "@zodios/core": "^10.9.2",
+    "pagopa-interop-commons": "workspace:*",
+    "pagopa-interop-models": "workspace:*",
+    "pg-promise": "^11.5.0",
+    "uuid": "^9.0.0",
+    "testcontainers": "^10.2.2",
+    "typescript": "^5.1.3",
+    "vitest": "^0.33.0",
+    "zod": "^3.0.0"
+  },
+  "dependencies": {}
+}
