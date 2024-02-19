@@ -48,13 +48,15 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
+  TEST_MINIO_PORT,
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
   decodeProtobufPayload,
-  getMongodbContainer,
-  getPostgreSqlContainer,
+  minioContainer,
+  mongoDBContainer,
+  postgresDBContainer,
 } from "pagopa-interop-commons-test";
-import { GenericContainer, StartedTestContainer } from "testcontainers";
+import { StartedTestContainer } from "testcontainers";
 import { config } from "../src/utilities/config.js";
 import {
   toDescriptorV1,
@@ -118,30 +120,16 @@ describe("database test", async () => {
   let fileManager: FileManager;
 
   beforeAll(async () => {
-    startedPostgreSqlContainer = await getPostgreSqlContainer(config).start();
-    startedMongodbContainer = await getMongodbContainer(config).start();
-
-    startedMinioContainer = await new GenericContainer(
-      "quay.io/minio/minio:RELEASE.2024-02-06T21-36-22Z"
-    )
-      .withEnvironment({
-        MINIO_ROOT_USER: config.s3AccessKeyId,
-        MINIO_ROOT_PASSWORD: config.s3SecretAccessKey,
-        MINIO_SITE_REGION: config.s3Region,
-      })
-      .withEntrypoint(["sh", "-c"])
-      .withCommand([
-        `mkdir -p /data/${config.s3Bucket} && /usr/bin/minio server /data`,
-      ])
-      .withExposedPorts(9000)
-      .start();
+    startedPostgreSqlContainer = await postgresDBContainer(config).start();
+    startedMongodbContainer = await mongoDBContainer(config).start();
+    startedMinioContainer = await minioContainer(config).start();
 
     config.eventStoreDbPort = startedPostgreSqlContainer.getMappedPort(
       TEST_POSTGRES_DB_PORT
     );
     config.readModelDbPort =
       startedMongodbContainer.getMappedPort(TEST_MONGO_DB_PORT);
-    config.s3ServerPort = startedMinioContainer.getMappedPort(9000);
+    config.s3ServerPort = startedMinioContainer.getMappedPort(TEST_MINIO_PORT);
 
     const readModelRepository = ReadModelRepository.init(config);
     eservices = readModelRepository.eservices;

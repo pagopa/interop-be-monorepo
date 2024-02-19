@@ -23,15 +23,15 @@ import {
   buildTenant,
   eventStoreSchema,
   expectPastTimestamp,
-  getMongodbContainer,
-  getPostgreSqlContainer,
   getRandomAuthData,
   randomArrayItem,
   readLastEventByStreamId,
   StoredEvent,
+  writeInReadmodel,
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
-  writeInReadmodel,
+  mongoDBContainer,
+  postgresDBContainer,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -159,8 +159,9 @@ describe("AgreementService Integration Test", async () => {
   };
 
   beforeAll(async () => {
-    startedPostgreSqlContainer = await getPostgreSqlContainer(config).start();
-    startedMongodbContainer = await getMongodbContainer(config).start();
+    startedPostgreSqlContainer = await postgresDBContainer(config).start();
+    startedMongodbContainer = await mongoDBContainer(config).start();
+
     config.eventStoreDbPort = startedPostgreSqlContainer.getMappedPort(
       TEST_POSTGRES_DB_PORT
     );
