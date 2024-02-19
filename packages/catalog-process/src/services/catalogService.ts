@@ -522,7 +522,7 @@ export function catalogServiceBuilder(
         eserviceId,
         descriptorId,
         authData,
-        copyFile: () => Promise.resolve(""), // TODO unmock and use FileManager
+        copyFile: fileManager.copy,
         eService,
         getEServiceByNameAndProducerId:
           readModelService.getEServiceByNameAndProducerId,
