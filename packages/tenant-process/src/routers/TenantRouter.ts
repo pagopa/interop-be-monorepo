@@ -22,6 +22,7 @@ import {
   updateVerifiedAttributeExtensionDateErrorMapper,
   updateTenantVerifiedAttributeErrorMapper,
   selfcareUpsertTenantErrorMapper,
+  getCertifiedAttributesErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../utilities/config.js";
@@ -241,7 +242,28 @@ const tenantsRouter = (
         M2M_ROLE,
         SUPPORT_ROLE,
       ]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const { offset, limit } = req.query;
+          const { results, totalCount } =
+            await tenantService.getCertifiedAttributes({
+              organizationId: req.ctx.authData.organizationId,
+              offset,
+              limit,
+            });
+
+          return res.status(200).json({
+            results,
+            totalCount,
+          });
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getCertifiedAttributesErrorMapper
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/internal/tenants",
