@@ -5,6 +5,8 @@ import {
   ExternalId,
   Tenant,
   TenantAttribute,
+  TenantFeature,
+  TenantFeatureCertifier,
   TenantId,
   TenantKind,
   TenantVerifier,
@@ -22,6 +24,7 @@ import {
   verifiedAttributeNotFoundInTenant,
   selfcareIdConflict,
   expirationDateNotFoundInVerifier,
+  tenantIsNotCertifier,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -187,5 +190,16 @@ export function evaluateNewSelfcareId({
       existingSelfcareId: tenant.selfcareId,
       newSelfcareId,
     });
+  }
+}
+
+export function assertTenantIsCertifier(
+  tenant: Tenant
+): asserts tenant is Tenant & {
+  features: [TenantFeatureCertifier, ...TenantFeature[]];
+} {
+  const isCertifier = tenant.features[0]?.type === "Certifier";
+  if (!isCertifier) {
+    throw tenantIsNotCertifier(tenant.id);
   }
 }
