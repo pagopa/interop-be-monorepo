@@ -1,10 +1,7 @@
 import jwt, { JwtHeader, SigningKeyCallback } from "jsonwebtoken";
 import jwksClient from "jwks-rsa";
-import { commonConfig } from "../config/commonConfig.js";
-import { logger } from "../index.js";
+import { JWTConfig, logger } from "../index.js";
 import { AuthData, AuthJWTToken } from "./authData.js";
-
-const config = commonConfig();
 
 const getUserRoles = (token: AuthJWTToken): string[] => {
   const rolesFromInteropClaim = token.role;
@@ -59,14 +56,6 @@ export const readAuthDataFromJwtToken = (
   }
 };
 
-const clients = !config.skipJWTVerification
-  ? config.wellKnownUrls.map((url) =>
-      jwksClient({
-        jwksUri: url,
-      })
-    )
-  : undefined;
-
 const getKey =
   (
     clients: jwksClient.JwksClient[]
@@ -87,8 +76,16 @@ const getKey =
     }
   };
 
-export const verifyJwtToken = (jwtToken: string): Promise<boolean> =>
-  clients === undefined
+export const verifyJwtToken = (jwtToken: string): Promise<boolean> => {
+  const config = JWTConfig.parse(process.env);
+  const clients = !config.skipJWTVerification
+    ? config.wellKnownUrls.map((url) =>
+        jwksClient({
+          jwksUri: url,
+        })
+      )
+    : undefined;
+  return clients === undefined
     ? Promise.resolve(true)
     : new Promise((resolve, _reject) => {
         jwt.verify(
@@ -104,6 +101,7 @@ export const verifyJwtToken = (jwtToken: string): Promise<boolean> =>
           }
         );
       });
+};
 
 export const hasPermission = (
   permissions: string[],
