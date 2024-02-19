@@ -756,7 +756,7 @@ describe("database test", async () => {
             },
           ],
         };
-        await catalogService.updateDescriptor(
+        await catalogService.updateDraftDescriptor(
           eService.id,
           descriptor.id,
           updatedDescriptorSeed,
@@ -783,7 +783,7 @@ describe("database test", async () => {
           state: descriptorState.published,
         };
         expect(
-          catalogService.updateDescriptor(
+          catalogService.updateDraftDescriptor(
             mockEService.id,
             descriptor.id,
             buildDescriptorSeed(descriptor),
@@ -800,7 +800,7 @@ describe("database test", async () => {
         await addOneEService(eService, postgresDB, eservices);
 
         expect(
-          catalogService.updateDescriptor(
+          catalogService.updateDraftDescriptor(
             mockEService.id,
             mockDescriptor.id,
             buildDescriptorSeed(mockDescriptor),
@@ -824,7 +824,7 @@ describe("database test", async () => {
         await addOneEService(eService, postgresDB, eservices);
 
         expect(
-          catalogService.updateDescriptor(
+          catalogService.updateDraftDescriptor(
             eService.id,
             descriptor.id,
             buildDescriptorSeed(descriptor),
@@ -848,7 +848,7 @@ describe("database test", async () => {
         await addOneEService(eService, postgresDB, eservices);
 
         expect(
-          catalogService.updateDescriptor(
+          catalogService.updateDraftDescriptor(
             eService.id,
             descriptor.id,
             buildDescriptorSeed(descriptor),
@@ -872,7 +872,7 @@ describe("database test", async () => {
         await addOneEService(eService, postgresDB, eservices);
 
         expect(
-          catalogService.updateDescriptor(
+          catalogService.updateDraftDescriptor(
             eService.id,
             descriptor.id,
             buildDescriptorSeed(descriptor),
@@ -896,7 +896,7 @@ describe("database test", async () => {
         await addOneEService(eService, postgresDB, eservices);
 
         expect(
-          catalogService.updateDescriptor(
+          catalogService.updateDraftDescriptor(
             eService.id,
             descriptor.id,
             buildDescriptorSeed(descriptor),
@@ -923,7 +923,7 @@ describe("database test", async () => {
           dailyCallsTotal: 200,
         };
         expect(
-          catalogService.updateDescriptor(
+          catalogService.updateDraftDescriptor(
             eService.id,
             descriptor.id,
             buildDescriptorSeed(updatedDescriptor),
@@ -948,7 +948,7 @@ describe("database test", async () => {
           dailyCallsTotal: 50,
         };
         expect(
-          catalogService.updateDescriptor(
+          catalogService.updateDraftDescriptor(
             eService.id,
             descriptor.id,
             buildDescriptorSeed(updatedDescriptor),
