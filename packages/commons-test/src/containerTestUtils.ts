@@ -1,9 +1,6 @@
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
+import { EventStoreConfig, ReadModelDbConfig } from "pagopa-interop-commons";
 import { GenericContainer } from "testcontainers";
-import {
-  EventStoreConfig,
-  ReadModelDbConfig,
-} from "../../commons/src/index.js";
 
 export const TEST_MONGO_DB_PORT = 27017;
 export const TEST_MONGO_DB_IMAGE = "mongo:4.0.0";
