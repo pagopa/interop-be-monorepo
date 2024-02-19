@@ -479,7 +479,7 @@ export function catalogServiceBuilder(
       );
     },
 
-    async updateDescriptorQuotas(
+    async updateDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       seed: UpdateEServiceDescriptorQuotasSeed,

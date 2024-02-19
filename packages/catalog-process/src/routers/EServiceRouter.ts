@@ -374,7 +374,7 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
-          await catalogService.updateDescriptor(
+          await catalogService.updateDraftDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.body,
@@ -481,7 +481,7 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
-          await catalogService.updateDescriptorQuotas(
+          await catalogService.updateDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.body,
