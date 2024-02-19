@@ -457,7 +457,7 @@ export function catalogServiceBuilder(
       );
     },
 
-    async updateDescriptor(
+    async updateDraftDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       seed: UpdateEServiceDescriptorSeed,
@@ -469,7 +469,7 @@ export function catalogServiceBuilder(
       const eService = await readModelService.getEServiceById(eserviceId);
 
       await repository.createEvent(
-        updateDescriptorLogic({
+        updateDraftDescriptorLogic({
           eserviceId,
           descriptorId,
           seed,
@@ -491,7 +491,7 @@ export function catalogServiceBuilder(
       const eService = await readModelService.getEServiceById(eserviceId);
 
       await repository.createEvent(
-        updateDescriptorQuotasLogic({
+        updateDescriptorLogic({
           eserviceId,
           descriptorId,
           seed,
@@ -1017,7 +1017,7 @@ export async function deleteDraftDescriptorLogic({
   return toCreateEventEServiceWithDescriptorsDeleted(eService, descriptorId);
 }
 
-export function updateDescriptorLogic({
+export function updateDraftDescriptorLogic({
   eserviceId,
   descriptorId,
   seed,
@@ -1073,7 +1073,7 @@ export function updateDescriptorLogic({
   );
 }
 
-export function updateDescriptorQuotasLogic({
+export function updateDescriptorLogic({
   eserviceId,
   descriptorId,
   seed,
