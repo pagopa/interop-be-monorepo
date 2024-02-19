@@ -730,8 +730,8 @@ describe("database test", async () => {
       });
     });
 
-    describe("update descriptor", () => {
-      it("should write on event-store for the update of a descriptor", async () => {
+    describe("update draft descriptor", () => {
+      it("should write on event-store for the update of a draft descriptor", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
