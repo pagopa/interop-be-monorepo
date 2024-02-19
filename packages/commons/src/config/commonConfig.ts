@@ -41,7 +41,6 @@ export const LoggerConfig = z
   .transform((c) => ({
     logLevel: c.LOG_LEVEL,
   }));
-
 export type LoggerConfig = z.infer<typeof LoggerConfig>;
 
 export const HTTPServerConfig = z
@@ -57,6 +56,3 @@ export type HTTPServerConfig = z.infer<typeof HTTPServerConfig>;
 
 export const CommonConfig = HTTPServerConfig.and(LoggerConfig).and(JWTConfig);
 export type CommonConfig = z.infer<typeof CommonConfig>;
-
-export const commonConfig: () => CommonConfig = () =>
-  CommonConfig.parse(process.env);
