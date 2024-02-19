@@ -31,7 +31,7 @@ import {
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
   mongoDBContainer,
-  postgresDBContainer,
+  postgreSQLContainer,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -159,7 +159,7 @@ describe("AgreementService Integration Test", async () => {
   };
 
   beforeAll(async () => {
-    startedPostgreSqlContainer = await postgresDBContainer(config).start();
+    startedPostgreSqlContainer = await postgreSQLContainer(config).start();
     startedMongodbContainer = await mongoDBContainer(config).start();
 
     config.eventStoreDbPort = startedPostgreSqlContainer.getMappedPort(

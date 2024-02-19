@@ -57,7 +57,7 @@ import {
   decodeProtobufPayload,
   minioContainer,
   mongoDBContainer,
-  postgresDBContainer,
+  postgreSQLContainer,
 } from "pagopa-interop-commons-test";
 import { StartedTestContainer } from "testcontainers";
 import { config } from "../src/utilities/config.js";
@@ -123,7 +123,7 @@ describe("database test", async () => {
   let fileManager: FileManager;
 
   beforeAll(async () => {
-    startedPostgreSqlContainer = await postgresDBContainer(config).start();
+    startedPostgreSqlContainer = await postgreSQLContainer(config).start();
     startedMongodbContainer = await mongoDBContainer(config).start();
     startedMinioContainer = await minioContainer(config).start();
 
