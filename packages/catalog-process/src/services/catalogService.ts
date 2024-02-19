@@ -945,6 +945,7 @@ export async function deleteDraftDescriptorLogic({
         logger.error(
           `Error deleting interface for descriptor ${descriptorId} : ${error}`
         );
+        throw error;
       }
     );
   }
