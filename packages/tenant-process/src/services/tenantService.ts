@@ -19,13 +19,17 @@ import {
   generateId,
   tenantAttributeType,
   tenantEventToBinaryData,
+  ListResult,
 } from "pagopa-interop-models";
 import { TenantProcessConfig } from "../utilities/config.js";
 import {
   toCreateEventTenantAdded,
   toCreateEventTenantUpdated,
 } from "../model/domain/toEvent.js";
-import { UpdateVerifiedTenantAttributeSeed } from "../model/domain/models.js";
+import {
+  ApiCertifiedAttribute,
+  UpdateVerifiedTenantAttributeSeed,
+} from "../model/domain/models.js";
 import {
   ApiInternalTenantSeed,
   ApiM2MTenantSeed,
@@ -43,6 +47,7 @@ import {
   getTenantKindLoadingCertifiedAttributes,
   assertOrganizationVerifierExist,
   assertExpirationDateExist,
+  assertTenantIsCertifier,
 } from "./validators.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -181,6 +186,28 @@ export function tenantServiceBuilder(
           toCreateEventTenantAdded(newTenant)
         );
       }
+    },
+    async getCertifiedAttributes({
+      organizationId,
+      offset,
+      limit,
+    }: {
+      organizationId: TenantId;
+      offset: number;
+      limit: number;
+    }): Promise<ListResult<ApiCertifiedAttribute>> {
+      const tenant = await readModelService.getTenantById(organizationId);
+
+      assertTenantExists(organizationId, tenant);
+      assertTenantIsCertifier(tenant.data);
+
+      const certifierId = tenant.data.features[0].certifierId;
+
+      return await readModelService.getCertifiedAttributes({
+        certifierId,
+        offset,
+        limit,
+      });
     },
   };
 }

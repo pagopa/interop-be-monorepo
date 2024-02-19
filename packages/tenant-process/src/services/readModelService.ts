@@ -16,11 +16,13 @@ import {
   AttributeId,
   TenantId,
   EServiceId,
+  attributeKind,
 } from "pagopa-interop-models";
 import { z } from "zod";
-import { Filter, WithId } from "mongodb";
+import { Document, Filter, WithId } from "mongodb";
 import { attributeNotFound } from "../model/domain/errors.js";
 import { TenantProcessConfig } from "../utilities/config.js";
+import { ApiCertifiedAttribute } from "../model/domain/models.js";
 
 function listTenantsFilters(
   name: string | undefined
@@ -365,6 +367,98 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
           metadata: { version: result.data.metadata.version },
         };
       }
+    },
+
+    async getCertifiedAttributes({
+      certifierId,
+      offset,
+      limit,
+    }: {
+      certifierId: string;
+      offset: number;
+      limit: number;
+    }): Promise<ListResult<ApiCertifiedAttribute>> {
+      const aggregationPipeline: Document[] = [
+        {
+          $match: {
+            "data.kind": attributeKind.certified,
+            "data.origin": certifierId,
+          },
+        },
+        {
+          $lookup: {
+            from: "tenants",
+            localField: "data.id",
+            foreignField: "data.attributes.id",
+            as: "tenants",
+          },
+        },
+        { $unwind: "$tenants" },
+        { $unwind: "$tenants.data.attributes" },
+        {
+          $addFields: {
+            notRevoked: {
+              $cond: {
+                if: {
+                  $and: [
+                    { $eq: ["$tenants.data.attributes.id", "$data.id"] },
+                    { $not: ["$tenants.data.attributes.revocationTimestamp"] },
+                  ],
+                },
+                then: true,
+                else: false,
+              },
+            },
+          },
+        },
+        {
+          $match: {
+            notRevoked: true,
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            id: "$tenants.data.id",
+            name: "$tenants.data.name",
+            attributeId: "$data.id",
+            attributeName: "$data.name",
+            lowerName: { $toLower: "$tenants.data.name" },
+          },
+        },
+        {
+          $sort: {
+            lowerName: 1,
+          },
+        },
+      ];
+
+      const data = await tenants
+        .aggregate(
+          [...aggregationPipeline, { $skip: offset }, { $limit: limit }],
+          { allowDiskUse: true }
+        )
+        .toArray();
+
+      const result = z.array(ApiCertifiedAttribute).safeParse(data);
+
+      if (!result.success) {
+        logger.error(
+          `Unable to parse attributes items: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+
+        throw genericError("Unable to parse attributes items");
+      }
+
+      return {
+        results: result.data,
+        totalCount: await ReadModelRepository.getTotalCount(
+          attributes,
+          aggregationPipeline
+        ),
+      };
     },
   };
 }
