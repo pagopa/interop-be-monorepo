@@ -29,10 +29,10 @@ const S3CustomServerConfig = z
 
 const S3Config = z
   .object({
-    S3_REGION: z.string(),
+    AWS_REGION: z.string(),
   })
   .transform((c) => ({
-    s3Region: c.S3_REGION,
+    s3Region: c.AWS_REGION,
   }));
 
 export const FileManagerConfig = z.intersection(S3CustomServerConfig, S3Config);
