@@ -7,6 +7,7 @@ import {
   authorizationMiddleware,
   ReadModelRepository,
   initDB,
+  initFileManager,
 } from "pagopa-interop-commons";
 import {
   unsafeBrandId,
@@ -58,7 +59,8 @@ const catalogService = catalogServiceBuilder(
     schema: config.eventStoreDbSchema,
     useSSL: config.eventStoreDbUseSSL,
   }),
-  readModelService
+  readModelService,
+  initFileManager(config)
 );
 
 const eservicesRouter = (
@@ -248,11 +250,12 @@ const eservicesRouter = (
         try {
           const { eServiceId, descriptorId, documentId } = req.params;
 
-          const document = await catalogService.getDocumentById(
-            unsafeBrandId(eServiceId),
-            unsafeBrandId(descriptorId),
-            unsafeBrandId(documentId)
-          );
+          const document = await catalogService.getDocumentById({
+            eserviceId: unsafeBrandId(eServiceId),
+            descriptorId: unsafeBrandId(descriptorId),
+            documentId: unsafeBrandId(documentId),
+            authData: req.ctx.authData,
+          });
 
           return res
             .status(200)
