@@ -223,7 +223,7 @@ export const pdfGenerator = {
       logger.error(
         `Error storing document file for agreement ${agreement.id} : ${error}`
       );
-      throw error;
+      throw error; // same behavior as in the Scala code - TODO define a more specific error
     });
 
     return {
