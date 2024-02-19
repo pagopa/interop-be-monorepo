@@ -142,9 +142,9 @@ describe("database test", async () => {
       "quay.io/minio/minio:RELEASE.2024-02-06T21-36-22Z"
     )
       .withEnvironment({
-        MINIO_ROOT_USER: config.s3AccessKeyId,
-        MINIO_ROOT_PASSWORD: config.s3SecretAccessKey,
-        MINIO_SITE_REGION: config.s3Region,
+        MINIO_ROOT_USER: "minioadmin",
+        MINIO_ROOT_PASSWORD: "minioadmin",
+        MINIO_SITE_REGION: "eu-central-1",
       })
       .withEntrypoint(["sh", "-c"])
       .withCommand([

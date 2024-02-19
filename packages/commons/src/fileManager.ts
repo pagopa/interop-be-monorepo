@@ -32,15 +32,6 @@ export function initFileManager(
   config: FileManagerConfig & LoggerConfig
 ): FileManager {
   const s3ClientConfig: S3ClientConfig = {
-    ...(config.s3CustomServer
-      ? {
-          credentials: {
-            accessKeyId: config.s3AccessKeyId,
-            secretAccessKey: config.s3SecretAccessKey,
-          },
-        }
-      : undefined),
-    region: config.s3Region,
     endpoint: config.s3CustomServer
       ? `${config.s3ServerHost}:${config.s3ServerPort}`
       : undefined,
