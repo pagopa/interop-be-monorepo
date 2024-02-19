@@ -43,6 +43,7 @@ import {
 import { toTenantV1 } from "../src/model/domain/toEvent.js";
 import { UpdateVerifiedTenantAttributeSeed } from "../src/model/domain/models.js";
 import {
+  attributeNotFound,
   expirationDateCannotBeInThePast,
   organizationNotFoundInVerifiers,
   selfcareIdConflict,
@@ -139,7 +140,7 @@ describe("Integration tests", () => {
   describe("tenantService", () => {
     describe("createTenant", () => {
       it("Should create a tenant", async () => {
-        const kind = "PA";
+        const kind = tenantKind.PA;
         const selfcareId = generateId();
         const tenantSeed: ApiSelfcareTenantSeed = {
           externalId: {
@@ -173,7 +174,7 @@ describe("Integration tests", () => {
         vi.useFakeTimers();
         vi.setSystemTime(new Date());
         const kind = tenantKind.PA;
-        const tenantSeed: ApiInternalTenantSeed = {
+        const tenantSeed: ApiInternalTenantSeed | ApiM2MTenantSeed = {
           externalId: {
             origin: "IPA",
             value: "123456",
@@ -232,8 +233,37 @@ describe("Integration tests", () => {
         expect(writtenPayload.tenant).toEqual(toTenantV1(tenant));
         vi.useRealTimers();
       });
+      it("Should throw a AttributeNotFound error when create a tenant with attribute", async () => {
+        const kind = tenantKind.PA;
+
+        const tenantSeed: ApiInternalTenantSeed | ApiM2MTenantSeed = {
+          externalId: {
+            origin: "IPA",
+            value: "123456",
+          },
+          certifiedAttributes: [
+            {
+              origin: "API",
+              code: "1234567",
+            },
+          ],
+          name: "A tenant",
+        };
+
+        const attributesExternalIds = {
+          value: "123",
+          origin: "FakeOrigin",
+        };
+        expect(
+          tenantService.createTenant(tenantSeed, [attributesExternalIds], kind)
+        ).rejects.toThrowError(
+          attributeNotFound(
+            `${attributesExternalIds.origin}/${attributesExternalIds.value}`
+          )
+        );
+      });
       it("Should throw a tenantDuplicate error", async () => {
-        const kind = "PA";
+        const kind = tenantKind.PA;
         const selfcareId = generateId();
         const attributeTenantSeed = {
           externalId: {
@@ -264,7 +294,7 @@ describe("Integration tests", () => {
       };
       it("Should update the tenant", async () => {
         await addOneTenant(tenant, postgresDB, tenants);
-        const kind = "PA";
+        const kind = tenantKind.PA;
         const selfcareId = generateId();
         const tenantSeed: ApiSelfcareTenantSeed = {
           externalId: {
