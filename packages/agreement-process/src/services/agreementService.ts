@@ -420,6 +420,7 @@ async function createAndCopyDocumentsForClonedAgreement(
     logger.error(
       `Error copying documents' files for agreement ${clonedAgreement.id} : ${error}`
     );
+    throw error; // same behavior as in the Scala code - TODO define a more specific error
   });
 
   return (docs ?? []).map((d, i) =>
@@ -463,6 +464,7 @@ export async function deleteAgreementLogic({
       logger.error(
         `Error deleting documents' files for agreement ${agreement.data.id} : ${error}`
       );
+      throw error; // same behavior as in the Scala code - TODO define a more specific error
     });
   }
 
