@@ -500,13 +500,13 @@ paths:
         '400':
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: '#/components/schemas/Problem'
         '403':
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: '#/components/schemas/Problem'
   /tenants/attributes/declared:
