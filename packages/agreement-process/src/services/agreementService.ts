@@ -441,7 +441,7 @@ export async function deleteAgreementLogic({
 }: {
   agreementId: AgreementId;
   authData: AuthData;
-  deleteFile: (s3Bucket: string, path: string) => Promise<void>;
+  deleteFile: (bucket: string, path: string) => Promise<void>;
   agreement: WithMetadata<Agreement> | undefined;
 }): Promise<CreateEvent<AgreementEvent>> {
   assertAgreementExist(agreementId, agreement);
@@ -506,7 +506,7 @@ export async function upgradeAgreementLogic({
   eserviceQuery: EserviceQuery;
   tenantQuery: TenantQuery;
   fileCopy: (
-    s3Bucket: string,
+    bucket: string,
     sourcePath: string,
     destinationPath: string,
     destinationFileName: string,
@@ -667,7 +667,7 @@ export async function cloneAgreementLogic({
   tenantQuery: TenantQuery;
   eserviceQuery: EserviceQuery;
   fileCopy: (
-    s3Bucket: string,
+    bucket: string,
     sourcePath: string,
     destinationPath: string,
     destinationFileName: string,
