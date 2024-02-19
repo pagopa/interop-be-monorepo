@@ -4,7 +4,7 @@ import {
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
   mongoDBContainer,
-  postgresDBContainer,
+  postgreSQLContainer,
 } from "pagopa-interop-commons-test";
 import {
   AttributeCollection,
@@ -34,7 +34,7 @@ describe("database test", () => {
   let startedMongodbContainer: StartedTestContainer;
 
   beforeAll(async () => {
-    startedPostgreSqlContainer = await postgresDBContainer(config).start();
+    startedPostgreSqlContainer = await postgreSQLContainer(config).start();
 
     startedMongodbContainer = await mongoDBContainer(config).start();
 

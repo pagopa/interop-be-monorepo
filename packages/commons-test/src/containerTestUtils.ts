@@ -36,7 +36,7 @@ export const mongoDBContainer = (config: ReadModelDbConfig): GenericContainer =>
  * @param config - The configuration for the PostgreSQL container.
  * @returns A promise that resolves to the started test container.
  */
-export const postgresDBContainer = (
+export const postgreSQLContainer = (
   config: EventStoreConfig
 ): GenericContainer =>
   new PostgreSqlContainer(TEST_POSTGRES_DB_IMAGE)
