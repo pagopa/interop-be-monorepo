@@ -792,7 +792,7 @@ export async function deleteDocumentLogic({
     logger.error(
       `Error deleting interface or document file for descriptor ${descriptorId} : ${error}`
     );
-    throw error; // same behavior as in the Scala code - TODO define a more specific error
+    throw error;
   });
 
   return toCreateEventEServiceDocumentDeleted(
@@ -980,7 +980,7 @@ export async function deleteDraftDescriptorLogic({
         logger.error(
           `Error deleting interface file for descriptor ${descriptorId} : ${error}`
         );
-        throw error; // same behavior as in the Scala code - TODO define a more specific error
+        throw error;
       }
     );
   }
@@ -993,7 +993,7 @@ export async function deleteDraftDescriptorLogic({
     logger.error(
       `Error deleting documents' files for descriptor ${descriptorId} : ${error}`
     );
-    throw error; // same behavior as in the Scala code - TODO define a more specific error
+    throw error;
   });
 
   return toCreateEventEServiceWithDescriptorsDeleted(eService, descriptorId);
@@ -1256,7 +1256,7 @@ export async function cloneDescriptorLogic({
           logger.error(
             `Error copying interface file for descriptor ${descriptorId} : ${error}`
           );
-          throw error; // same behavior as in the Scala code - TODO define a more specific error
+          throw error;
         })
       : undefined;
 
@@ -1298,7 +1298,7 @@ export async function cloneDescriptorLogic({
     logger.error(
       `Error copying documents' files for descriptor ${descriptorId} : ${error}`
     );
-    throw error; // same behavior as in the Scala code - TODO define a more specific error
+    throw error;
   });
 
   const draftCatalogItem: EService = {
