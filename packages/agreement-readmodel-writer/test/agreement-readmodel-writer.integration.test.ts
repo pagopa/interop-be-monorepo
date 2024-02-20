@@ -2,36 +2,31 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { afterEach, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import {
   AgreementCollection,
   ReadModelRepository,
   consumerConfig,
 } from "pagopa-interop-commons";
+import { mongoDBContainer } from "pagopa-interop-commons-test";
 import {
   AgreementAddedV1,
   AgreementEventEnvelope,
   AgreementStateV1,
   generateId,
 } from "pagopa-interop-models";
-import { GenericContainer } from "testcontainers";
+import { StartedTestContainer } from "testcontainers";
 import { handleMessage } from "../src/agreementConsumerService.js";
 
 describe("database test", async () => {
   let agreements: AgreementCollection;
+  let startedMongoDBContainer: StartedTestContainer;
 
   const config = consumerConfig();
   beforeAll(async () => {
-    const mongodbContainer = await new GenericContainer("mongo:4.0.0")
-      .withEnvironment({
-        MONGO_INITDB_DATABASE: config.readModelDbName,
-        MONGO_INITDB_ROOT_USERNAME: config.readModelDbUsername,
-        MONGO_INITDB_ROOT_PASSWORD: config.readModelDbPassword,
-      })
-      .withExposedPorts(27017)
-      .start();
+    startedMongoDBContainer = await mongoDBContainer(config).start();
 
-    config.readModelDbPort = mongodbContainer.getMappedPort(27017);
+    config.readModelDbPort = startedMongoDBContainer.getMappedPort(27017);
 
     const readModelRepository = ReadModelRepository.init(config);
     agreements = readModelRepository.agreements;
@@ -39,6 +34,10 @@ describe("database test", async () => {
 
   afterEach(async () => {
     await agreements.deleteMany({});
+  });
+
+  afterAll(async () => {
+    await startedMongoDBContainer.stop();
   });
 
   describe("Handle message for agreement creation", () => {
@@ -72,19 +71,13 @@ describe("database test", async () => {
         "data.id": id.toString,
       });
 
-      expect(agreement?.data?.id).toBe(newAgreement.agreement?.id);
-      expect(agreement?.data?.eserviceId).toBe(
-        newAgreement.agreement?.eserviceId
-      );
-      expect(agreement?.data?.descriptorId).toBe(
-        newAgreement.agreement?.descriptorId
-      );
-      expect(agreement?.data?.producerId).toBe(
-        newAgreement.agreement?.producerId
-      );
-      expect(agreement?.data?.consumerId).toBe(
-        newAgreement.agreement?.consumerId
-      );
+      expect(agreement?.data).toMatchObject({
+        id: newAgreement.agreement?.id,
+        eserviceId: newAgreement.agreement?.eserviceId,
+        descriptorId: newAgreement.agreement?.descriptorId,
+        producerId: newAgreement.agreement?.producerId,
+        consumerId: newAgreement.agreement?.consumerId,
+      });
     });
   });
 });

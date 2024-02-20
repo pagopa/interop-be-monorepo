@@ -2,36 +2,32 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { afterEach, beforeAll, describe, expect, it } from "vitest";
+import { afterEach, afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   EServiceCollection,
   ReadModelRepository,
   consumerConfig,
 } from "pagopa-interop-commons";
+import { mongoDBContainer } from "pagopa-interop-commons-test";
 import {
   EServiceAddedV1,
   EServiceEventEnvelope,
   EServiceTechnologyV1,
   generateId,
 } from "pagopa-interop-models";
-import { GenericContainer } from "testcontainers";
+import { StartedTestContainer } from "testcontainers";
 import { handleMessage } from "../src/consumerService.js";
 
 describe("database test", async () => {
   let eservices: EServiceCollection;
+  let startedMongoDBContainer: StartedTestContainer;
 
   const config = consumerConfig();
-  beforeAll(async () => {
-    const mongodbContainer = await new GenericContainer("mongo:4.0.0")
-      .withEnvironment({
-        MONGO_INITDB_DATABASE: config.readModelDbName,
-        MONGO_INITDB_ROOT_USERNAME: config.readModelDbUsername,
-        MONGO_INITDB_ROOT_PASSWORD: config.readModelDbPassword,
-      })
-      .withExposedPorts(27017)
-      .start();
 
-    config.readModelDbPort = mongodbContainer.getMappedPort(27017);
+  beforeAll(async () => {
+    startedMongoDBContainer = await mongoDBContainer(config).start();
+
+    config.readModelDbPort = startedMongoDBContainer.getMappedPort(27017);
 
     const readModelRepository = ReadModelRepository.init(config);
     eservices = readModelRepository.eservices;
@@ -39,6 +35,10 @@ describe("database test", async () => {
 
   afterEach(async () => {
     await eservices.deleteMany({});
+  });
+
+  afterAll(async () => {
+    await startedMongoDBContainer.stop();
   });
 
   describe("Handle message for eservice creation", () => {
@@ -68,12 +68,12 @@ describe("database test", async () => {
         "data.id": id.toString,
       });
 
-      expect(eservice?.data?.id).toBe(newEService.eService?.id);
-      expect(eservice?.data?.producerId).toBe(newEService.eService?.producerId);
-      expect(eservice?.data?.name).toBe(newEService.eService?.name);
-      expect(eservice?.data?.description).toBe(
-        newEService.eService?.description
-      );
+      expect(eservice?.data).toMatchObject({
+        id: newEService.eService?.id,
+        producerId: newEService.eService?.producerId,
+        name: newEService.eService?.name,
+        description: newEService.eService?.description,
+      });
     });
   });
 });
