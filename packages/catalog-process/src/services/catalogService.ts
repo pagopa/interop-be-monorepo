@@ -1241,16 +1241,15 @@ export async function cloneDescriptorLogic({
   }
 
   const descriptor = retrieveDescriptor(descriptorId, eService);
-  const sourceDocument = descriptor.docs[0];
-  const clonedDocumentId = generateId<EServiceDocumentId>();
 
+  const clonedInterfaceId = generateId<EServiceDocumentId>();
   const clonedInterfacePath =
     descriptor.interface !== undefined
       ? await copyFile(
           config.s3Bucket,
           descriptor.interface.path,
           config.eserviceDocumentsPath,
-          clonedDocumentId,
+          clonedInterfaceId,
           descriptor.interface.name
         ).catch((error) => {
           logger.error(
@@ -1261,14 +1260,14 @@ export async function cloneDescriptorLogic({
       : undefined;
 
   const clonedInterfaceDocument: Document | undefined =
-    clonedInterfacePath !== undefined
+    descriptor.interface !== undefined && clonedInterfacePath !== undefined
       ? {
-          id: clonedDocumentId,
-          name: sourceDocument.name,
-          contentType: sourceDocument.contentType,
-          prettyName: sourceDocument.prettyName,
+          id: clonedInterfaceId,
+          name: descriptor.interface.name,
+          contentType: descriptor.interface.contentType,
+          prettyName: descriptor.interface.prettyName,
           path: clonedInterfacePath,
-          checksum: sourceDocument.checksum,
+          checksum: descriptor.interface.checksum,
           uploadDate: new Date(),
         }
       : undefined;
@@ -1276,7 +1275,7 @@ export async function cloneDescriptorLogic({
   const clonedDocuments = await Promise.all(
     descriptor.docs.map(async (doc: Document) => {
       const clonedDocumentId = generateId<EServiceDocumentId>();
-      const clonedPath = await copyFile(
+      const clonedDocumentPath = await copyFile(
         config.s3Bucket,
         doc.path,
         config.eserviceDocumentsPath,
@@ -1288,7 +1287,7 @@ export async function cloneDescriptorLogic({
         name: doc.name,
         contentType: doc.contentType,
         prettyName: doc.prettyName,
-        path: clonedPath,
+        path: clonedDocumentPath,
         checksum: doc.checksum,
         uploadDate: new Date(),
       };
@@ -1315,7 +1314,7 @@ export async function cloneDescriptorLogic({
         id: generateId(),
         version: "1",
         interface: clonedInterfaceDocument,
-        docs: clonedDocuments ?? [],
+        docs: clonedDocuments,
         state: descriptorState.draft,
         createdAt: new Date(),
         publishedAt: undefined,
