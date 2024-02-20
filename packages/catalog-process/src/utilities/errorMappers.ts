@@ -63,7 +63,12 @@ export const documentCreateErrorMapper = (
 
 export const documentGetErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
-    .with("eServiceDocumentNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound",
+      "eServiceDocumentNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const documentUpdateDeleteErrorMapper = (
