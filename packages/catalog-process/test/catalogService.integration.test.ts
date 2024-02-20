@@ -974,20 +974,9 @@ describe("database test", async () => {
           new Error("Failed to delete file")
         );
 
-        const document1 = {
-          ...mockDocument,
-          name: `${mockDocument.name}_1`,
-          path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}_1`,
-        };
-        const document2 = {
-          ...mockDocument,
-          name: `${mockDocument.name}_2`,
-          path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}_2`,
-        };
-
         const descriptor: Descriptor = {
           ...mockDescriptor,
-          docs: [document1, document2],
+          docs: [mockDocument, mockDocument],
           state: descriptorState.draft,
         };
         const eService: EService = {
@@ -1758,6 +1747,31 @@ describe("database test", async () => {
           expectedDocument2.path
         );
       });
+      it("should fail if one of the file copy fails", async () => {
+        vi.spyOn(fileManager, "copy").mockRejectedValueOnce(
+          new Error("Failed to copy file")
+        );
+
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+          interface: mockDocument,
+          docs: [mockDocument],
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+
+        await expect(
+          catalogService.cloneDescriptor(
+            eService.id,
+            descriptor.id,
+            getMockAuthData(eService.producerId)
+          )
+        ).rejects.toThrowError("Failed to copy file");
+      });
       it("should throw eServiceDuplicate if an eService with the same name already exists", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
@@ -2256,14 +2270,10 @@ describe("database test", async () => {
           new Error("Failed to delete file")
         );
 
-        const document = {
-          ...mockDocument,
-          path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}`,
-        };
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
-          docs: [document],
+          docs: [mockDocument],
         };
         const eService: EService = {
           ...mockEService,
@@ -2275,7 +2285,7 @@ describe("database test", async () => {
           catalogService.deleteDocument(
             eService.id,
             descriptor.id,
-            document.id,
+            mockDocument.id,
             getMockAuthData(eService.producerId)
           )
         ).rejects.toThrowError("Failed to delete file");
