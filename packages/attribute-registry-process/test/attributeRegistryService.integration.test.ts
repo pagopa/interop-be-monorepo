@@ -75,15 +75,15 @@ describe("database test", () => {
 
     startedMongodbContainer = await mongoDBContainer(config).start();
 
-    const readModelRepository = ReadModelRepository.init(config);
-    ({ attributes, tenants } = readModelRepository);
-    readModelService = readModelServiceBuilder(readModelRepository);
-
     config.eventStoreDbPort = startedPostgreSqlContainer.getMappedPort(
       TEST_POSTGRES_DB_PORT
     );
     config.readModelDbPort =
       startedMongodbContainer.getMappedPort(TEST_MONGO_DB_PORT);
+
+    const readModelRepository = ReadModelRepository.init(config);
+    ({ attributes, tenants } = readModelRepository);
+    readModelService = readModelServiceBuilder(readModelRepository);
 
     postgresDB = initDB({
       username: config.eventStoreDbUsername,
