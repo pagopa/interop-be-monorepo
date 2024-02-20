@@ -9,29 +9,28 @@ import {
   consumerConfig,
 } from "pagopa-interop-commons";
 import {
+  TEST_MONGO_DB_PORT,
+  mongoDBContainer,
+} from "pagopa-interop-commons-test";
+import {
   AttributeAddedV1,
+  AttributeEventEnvelope,
   AttributeKindV1,
   generateId,
 } from "pagopa-interop-models";
-import { GenericContainer } from "testcontainers";
-import { EventEnvelope } from "../src/model/models.js";
+import { StartedTestContainer } from "testcontainers";
 import { handleMessage } from "../src/attributeRegistryConsumerService.js";
 
 describe("database test", async () => {
   let attributes: AttributeCollection;
+  let startedMongoDBContainer: StartedTestContainer;
 
   const config = consumerConfig();
   beforeAll(async () => {
-    const mongodbContainer = await new GenericContainer("mongo:6.0.7")
-      .withEnvironment({
-        MONGO_INITDB_DATABASE: config.readModelDbName,
-        MONGO_INITDB_ROOT_USERNAME: config.readModelDbUsername,
-        MONGO_INITDB_ROOT_PASSWORD: config.readModelDbPassword,
-      })
-      .withExposedPorts(27017)
-      .start();
+    startedMongoDBContainer = await mongoDBContainer(config).start();
 
-    config.readModelDbPort = mongodbContainer.getMappedPort(27017);
+    config.readModelDbPort =
+      startedMongoDBContainer.getMappedPort(TEST_MONGO_DB_PORT);
 
     const readModelRepository = ReadModelRepository.init(config);
     attributes = readModelRepository.attributes;
@@ -53,7 +52,7 @@ describe("database test", async () => {
           creationTime: new Date().toString(),
         },
       };
-      const message: EventEnvelope = {
+      const message: AttributeEventEnvelope = {
         sequence_num: 1,
         stream_id: id,
         version: 1,
@@ -66,11 +65,11 @@ describe("database test", async () => {
         "data.id": id.toString,
       });
 
-      expect(attribute?.data?.id).toBe(newAttribute.attribute?.id);
-      expect(attribute?.data.name).toBe(newAttribute.attribute?.name);
-      expect(attribute?.data.description).toBe(
-        newAttribute.attribute?.description
-      );
+      expect(attribute?.data).toMatchObject({
+        id: newAttribute.attribute?.id,
+        name: newAttribute.attribute?.name,
+        description: newAttribute.attribute?.description,
+      });
     });
   });
 });
