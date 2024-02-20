@@ -419,9 +419,6 @@ export function readModelServiceBuilder(
             data: 1,
           },
         },
-        {
-          $sort: { "data.id": 1 },
-        },
       ];
       const data = await agreements.aggregate(aggregationPipeline).toArray();
       const result = z.array(Agreement).safeParse(data.map((a) => a.data));
