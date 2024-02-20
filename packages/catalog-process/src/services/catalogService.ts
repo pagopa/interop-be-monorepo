@@ -1465,7 +1465,7 @@ function assertDailyCallsAreConsistentAndNotDecreased({
   updatedDailyCallsPerConsumer: number;
   updatedDailyCallsTotal: number;
 }): void {
-  if (dailyCallsPerConsumer > dailyCallsTotal) {
+  if (updatedDailyCallsPerConsumer > updatedDailyCallsTotal) {
     throw inconsistentDailyCalls();
   }
   if (
