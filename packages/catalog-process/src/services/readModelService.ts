@@ -24,7 +24,6 @@ import {
   EServiceId,
   EServiceDocumentId,
   TenantId,
-  Descriptor,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
