@@ -2,9 +2,11 @@ import {
   AuthData,
   CreateEvent,
   DB,
+  FileManager,
   eventRepository,
-  initFileManager,
+  hasPermission,
   logger,
+  userRoles,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -71,8 +73,6 @@ import {
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
-const fileManager = initFileManager(config);
-
 function assertEServiceExist(
   eserviceId: EServiceId,
   eService: WithMetadata<EService> | undefined
@@ -91,7 +91,7 @@ const assertRequesterAllowed = (
   }
 };
 
-export const retrieveEService = async (
+const retrieveEService = async (
   eserviceId: EServiceId,
   readModelService: ReadModelService
 ): Promise<WithMetadata<EService>> => {
@@ -115,6 +115,18 @@ const retrieveDescriptor = (
   }
 
   return descriptor;
+};
+
+const retrieveDocument = (
+  eserviceId: EServiceId,
+  descriptor: Descriptor,
+  documentId: EServiceDocumentId
+): Document => {
+  const doc = descriptor.docs.find((d) => d.id === documentId);
+  if (doc === undefined) {
+    throw eServiceDocumentNotFound(eserviceId, descriptor.id, documentId);
+  }
+  return doc;
 };
 
 const updateDescriptorState = (
@@ -199,7 +211,8 @@ const hasNotDraftDescriptor = (eService: EService): void => {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function catalogServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelService
+  readModelService: ReadModelService,
+  fileManager: FileManager
 ) {
   const repository = eventRepository(dbInstance, catalogEventToBinaryData);
   return {
@@ -224,12 +237,13 @@ export function catalogServiceBuilder(
       );
     },
     async getEServiceById(
-      eserviceId: EServiceId
-    ): Promise<WithMetadata<EService>> {
+      eserviceId: EServiceId,
+      authData: AuthData
+    ): Promise<EService> {
       logger.info(`Retrieving EService ${eserviceId}`);
-      const eService = await readModelService.getEServiceById(eserviceId);
-      assertEServiceExist(eserviceId, eService);
-      return eService;
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      return applyVisibilityToEService(eservice.data, authData);
     },
     async getEServices(
       authData: AuthData,
@@ -313,22 +327,29 @@ export function catalogServiceBuilder(
         })
       );
     },
-    async getDocumentById(
-      eServiceId: EServiceId,
-      descriptorId: DescriptorId,
-      documentId: EServiceDocumentId
-    ): Promise<Document> {
+    async getDocumentById({
+      eserviceId,
+      descriptorId,
+      documentId,
+      authData,
+    }: {
+      eserviceId: EServiceId;
+      descriptorId: DescriptorId;
+      documentId: EServiceDocumentId;
+      authData: AuthData;
+    }): Promise<Document> {
       logger.info(
-        `Retrieving EService document ${documentId} for EService ${eServiceId} and descriptor ${descriptorId}`
+        `Retrieving EService document ${documentId} for EService ${eserviceId} and descriptor ${descriptorId}`
       );
-      const document = await readModelService.getDocumentById(
-        eServiceId,
-        descriptorId,
-        documentId
+      const eService = await retrieveEService(eserviceId, readModelService);
+      const descriptor = retrieveDescriptor(descriptorId, eService);
+      const document = retrieveDocument(eserviceId, descriptor, documentId);
+      const checkedEService = applyVisibilityToEService(
+        eService.data,
+        authData
       );
-
-      if (document === undefined) {
-        throw eServiceDocumentNotFound(eServiceId, descriptorId, documentId);
+      if (!checkedEService.descriptors.find((d) => d.id === descriptorId)) {
+        throw eServiceDocumentNotFound(eserviceId, descriptorId, documentId);
       }
       return document;
     },
@@ -350,7 +371,7 @@ export function catalogServiceBuilder(
           documentId,
           authData,
           eService,
-          deleteRemoteFile: fileManager.deleteFile,
+          deleteFile: fileManager.delete,
         })
       );
     },
@@ -414,7 +435,7 @@ export function catalogServiceBuilder(
           eserviceId,
           descriptorId,
           authData,
-          deleteFile: fileManager.deleteFile,
+          deleteFile: fileManager.delete,
           eService,
         })
       );
@@ -709,14 +730,14 @@ export async function deleteDocumentLogic({
   documentId,
   authData,
   eService,
-  deleteRemoteFile,
+  deleteFile,
 }: {
   eserviceId: EServiceId;
   descriptorId: DescriptorId;
   documentId: EServiceDocumentId;
   authData: AuthData;
   eService: WithMetadata<EService> | undefined;
-  deleteRemoteFile: (container: string, path: string) => Promise<void>;
+  deleteFile: (bucket: string, path: string) => Promise<void>;
 }): Promise<CreateEvent<EServiceEvent>> {
   assertEServiceExist(eserviceId, eService);
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
@@ -734,7 +755,7 @@ export async function deleteDocumentLogic({
     throw eServiceDocumentNotFound(eserviceId, descriptorId, documentId);
   }
 
-  await deleteRemoteFile(config.storageContainer, document.path);
+  await deleteFile(config.s3Bucket, document.path);
 
   return toCreateEventEServiceDocumentDeleted(
     eserviceId,
@@ -895,7 +916,7 @@ export async function deleteDraftDescriptorLogic({
   eserviceId: EServiceId;
   descriptorId: DescriptorId;
   authData: AuthData;
-  deleteFile: (container: string, path: string) => Promise<void>;
+  deleteFile: (bucket: string, path: string) => Promise<void>;
   eService: WithMetadata<EService> | undefined;
 }): Promise<CreateEvent<EServiceEvent>> {
   assertEServiceExist(eserviceId, eService);
@@ -907,13 +928,13 @@ export async function deleteDraftDescriptorLogic({
     throw notValidDescriptor(descriptorId, descriptor.state.toString());
   }
 
-  const interfacePath = descriptor.interface;
-  if (interfacePath !== undefined) {
-    await deleteFile(config.storageContainer, interfacePath.path);
+  const descriptorInterface = descriptor.interface;
+  if (descriptorInterface !== undefined) {
+    await deleteFile(config.s3Bucket, descriptorInterface.path);
   }
 
   const deleteDescriptorDocs = descriptor.docs.map((doc: Document) =>
-    deleteFile(config.storageContainer, doc.path)
+    deleteFile(config.s3Bucket, doc.path)
   );
 
   await Promise.all(deleteDescriptorDocs).catch((error) => {
@@ -1130,7 +1151,7 @@ export async function cloneDescriptorLogic({
   descriptorId: DescriptorId;
   authData: AuthData;
   copyFile: (
-    container: string,
+    bucket: string,
     docPath: string,
     path: string,
     id: string,
@@ -1169,7 +1190,7 @@ export async function cloneDescriptorLogic({
   const clonedInterfacePath =
     descriptor.interface !== undefined
       ? await copyFile(
-          config.storageContainer,
+          config.s3Bucket,
           config.eserviceDocumentsPath,
           descriptor.interface.path,
           clonedDocumentId,
@@ -1194,7 +1215,7 @@ export async function cloneDescriptorLogic({
     descriptor.docs.map(async (doc: Document) => {
       const clonedDocumentId = generateId<EServiceDocumentId>();
       const clonedPath = await copyFile(
-        config.storageContainer,
+        config.s3Bucket,
         config.eserviceDocumentsPath,
         doc.path,
         clonedDocumentId,
@@ -1271,4 +1292,34 @@ export function archiveDescriptorLogic({
   );
 }
 
+const isUserAllowedToSeeDraft = (
+  authData: AuthData,
+  producerId: TenantId
+): boolean =>
+  hasPermission([userRoles.ADMIN_ROLE, userRoles.API_ROLE], authData) &&
+  authData.organizationId === producerId;
+
+const applyVisibilityToEService = (
+  eservice: EService,
+  authData: AuthData
+): EService => {
+  if (isUserAllowedToSeeDraft(authData, eservice.producerId)) {
+    return eservice;
+  }
+
+  if (
+    eservice.descriptors.length === 0 ||
+    (eservice.descriptors.length === 1 &&
+      eservice.descriptors[0].state === descriptorState.draft)
+  ) {
+    throw eServiceNotFound(eservice.id);
+  }
+
+  return {
+    ...eservice,
+    descriptors: eservice.descriptors.filter(
+      (d) => d.state !== descriptorState.draft
+    ),
+  };
+};
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;

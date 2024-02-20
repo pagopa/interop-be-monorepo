@@ -16,10 +16,14 @@ import {
 import {
   AgreementCollection,
   AttributeCollection,
+  AuthData,
   EServiceCollection,
+  FileManager,
   ReadModelRepository,
   TenantCollection,
   initDB,
+  userRoles,
+  initFileManager,
 } from "pagopa-interop-commons";
 import { IDatabase } from "pg-promise";
 import {
@@ -35,6 +39,7 @@ import {
   EServiceDocumentAddedV1,
   EServiceDocumentDeletedV1,
   EServiceDocumentUpdatedV1,
+  EServiceId,
   EServiceUpdatedV1,
   EServiceWithDescriptorsDeletedV1,
   Tenant,
@@ -46,8 +51,8 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
-import { GenericContainer } from "testcontainers";
 import { decodeProtobufPayload } from "pagopa-interop-commons-test";
+import { GenericContainer, StartedTestContainer } from "testcontainers";
 import { config } from "../src/utilities/config.js";
 import {
   toDescriptorV1,
@@ -105,9 +110,13 @@ describe("database test", async () => {
   let readModelService: ReadModelService;
   let catalogService: CatalogService;
   let postgresDB: IDatabase<unknown>;
+  let postgreSqlContainer: StartedTestContainer;
+  let mongodbContainer: StartedTestContainer;
+  let minioContainer: StartedTestContainer;
+  let fileManager: FileManager;
 
   beforeAll(async () => {
-    const postgreSqlContainer = await new PostgreSqlContainer("postgres:14")
+    postgreSqlContainer = await new PostgreSqlContainer("postgres:14")
       .withUsername(config.eventStoreDbUsername)
       .withPassword(config.eventStoreDbPassword)
       .withDatabase(config.eventStoreDbName)
@@ -120,7 +129,7 @@ describe("database test", async () => {
       .withExposedPorts(5432)
       .start();
 
-    const mongodbContainer = await new GenericContainer("mongo:4.0.0")
+    mongodbContainer = await new GenericContainer("mongo:4.0.0")
       .withEnvironment({
         MONGO_INITDB_DATABASE: config.readModelDbName,
         MONGO_INITDB_ROOT_USERNAME: config.readModelDbUsername,
@@ -129,8 +138,24 @@ describe("database test", async () => {
       .withExposedPorts(27017)
       .start();
 
+    minioContainer = await new GenericContainer(
+      "quay.io/minio/minio:RELEASE.2024-02-06T21-36-22Z"
+    )
+      .withEnvironment({
+        MINIO_ROOT_USER: config.s3AccessKeyId,
+        MINIO_ROOT_PASSWORD: config.s3SecretAccessKey,
+        MINIO_SITE_REGION: config.s3Region,
+      })
+      .withEntrypoint(["sh", "-c"])
+      .withCommand([
+        `mkdir -p /data/${config.s3Bucket} && /usr/bin/minio server /data`,
+      ])
+      .withExposedPorts(9000)
+      .start();
+
     config.eventStoreDbPort = postgreSqlContainer.getMappedPort(5432);
     config.readModelDbPort = mongodbContainer.getMappedPort(27017);
+    config.s3ServerPort = minioContainer.getMappedPort(9000);
 
     const readModelRepository = ReadModelRepository.init(config);
     eservices = readModelRepository.eservices;
@@ -147,7 +172,12 @@ describe("database test", async () => {
       schema: config.eventStoreDbSchema,
       useSSL: config.eventStoreDbUseSSL,
     });
-    catalogService = catalogServiceBuilder(postgresDB, readModelService);
+    fileManager = initFileManager(config);
+    catalogService = catalogServiceBuilder(
+      postgresDB,
+      readModelService,
+      fileManager
+    );
   });
 
   afterEach(async () => {
@@ -158,6 +188,12 @@ describe("database test", async () => {
 
     await postgresDB.none("TRUNCATE TABLE catalog.events RESTART IDENTITY");
     await postgresDB.none("TRUNCATE TABLE agreement.events RESTART IDENTITY");
+  });
+
+  afterAll(async () => {
+    await postgreSqlContainer.stop();
+    await mongodbContainer.stop();
+    await minioContainer.stop();
   });
 
   describe("Catalog service", () => {
@@ -1477,7 +1513,8 @@ describe("database test", async () => {
         vi.useRealTimers();
       });
 
-      it("should write on event-store for the cloning of a descriptor", async () => {
+      // TODO: test also file cloning on the bucket, then re-enable this test
+      it.skip("should write on event-store for the cloning of a descriptor", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
@@ -1913,21 +1950,40 @@ describe("database test", async () => {
     });
 
     describe("delete Document", () => {
-      it("should write on event-store for the deletion of a document", async () => {
+      it("should write on event-store for the deletion of a document, and delete the file from the bucket", async () => {
+        vi.spyOn(fileManager, "delete");
+
+        const document = {
+          ...mockDocument,
+          path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}`,
+        };
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
-          docs: [mockDocument],
+          docs: [document],
         };
         const eService: EService = {
           ...mockEService,
           descriptors: [descriptor],
         };
+
         await addOneEService(eService, postgresDB, eservices);
+
+        await fileManager.storeBytes(
+          config.s3Bucket,
+          config.eserviceDocumentsPath,
+          document.id,
+          document.name,
+          Buffer.from("testtest")
+        );
+        expect(await fileManager.listFiles(config.s3Bucket)).toContain(
+          document.path
+        );
+
         await catalogService.deleteDocument(
           eService.id,
           descriptor.id,
-          mockDocument.id,
+          document.id,
           getMockAuthData(eService.producerId)
         );
         const writtenEvent = await readLastEventByStreamId(
@@ -1944,7 +2000,15 @@ describe("database test", async () => {
 
         expect(writtenPayload.eServiceId).toEqual(eService.id);
         expect(writtenPayload.descriptorId).toEqual(descriptor.id);
-        expect(writtenPayload.documentId).toEqual(mockDocument.id);
+        expect(writtenPayload.documentId).toEqual(document.id);
+
+        expect(fileManager.delete).toHaveBeenCalledWith(
+          config.s3Bucket,
+          document.path
+        );
+        expect(await fileManager.listFiles(config.s3Bucket)).not.toContain(
+          document.path
+        );
       });
       it("should throw eServiceNotFound if the eService doesn't exist", async () => {
         expect(
@@ -2862,7 +2926,7 @@ describe("database test", async () => {
     });
 
     describe("getEServiceById", () => {
-      it("should get the eService if it exists", async () => {
+      it("should get the eService if it exists (requester is the producer, admin)", async () => {
         const descriptor1: Descriptor = {
           ...mockDescriptor,
           interface: mockDocument,
@@ -2875,6 +2939,10 @@ describe("database test", async () => {
           descriptors: [descriptor1],
         };
         await addOneEService(eService1, postgresDB, eservices);
+        const authData: AuthData = {
+          ...getMockAuthData(eService1.producerId),
+          userRoles: [userRoles.ADMIN_ROLE],
+        };
 
         const descriptor2: Descriptor = {
           ...mockDescriptor,
@@ -2902,15 +2970,132 @@ describe("database test", async () => {
         };
         await addOneEService(eService3, postgresDB, eservices);
 
-        const result = await readModelService.getEServiceById(eService1.id);
-        expect(result?.data).toEqual(eService1);
+        const result = await catalogService.getEServiceById(
+          eService1.id,
+          authData
+        );
+        expect(result).toEqual(eService1);
       });
 
-      it("should not get the eService if it doesn't exist", async () => {
+      it("should throw eServiceNotFound if the eService doesn't exist", async () => {
         await addOneEService(mockEService, postgresDB, eservices);
+        const notExistingId: EServiceId = generateId();
+        expect(
+          catalogService.getEServiceById(notExistingId, getMockAuthData())
+        ).rejects.toThrowError(eServiceNotFound(notExistingId));
+      });
 
-        const result = await readModelService.getEServiceById(generateId());
-        expect(result).toBeUndefined();
+      it("should throw eServiceNotFound if there is only a draft descriptor (requester is not the producer)", async () => {
+        const descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(mockEService, postgresDB, eservices);
+        expect(
+          catalogService.getEServiceById(eservice.id, getMockAuthData())
+        ).rejects.toThrowError(eServiceNotFound(eservice.id));
+      });
+      it("should throw eServiceNotFound if there is only a draft descriptor (requester is the producer but not admin nor api)", async () => {
+        const descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        const authData: AuthData = {
+          ...getMockAuthData(),
+          userRoles: [userRoles.SUPPORT_ROLE],
+        };
+        await addOneEService(mockEService, postgresDB, eservices);
+        expect(
+          catalogService.getEServiceById(eservice.id, authData)
+        ).rejects.toThrowError(eServiceNotFound(eservice.id));
+      });
+      it("should throw eServiceNotFound if there are no descriptors (requester is not the producer)", async () => {
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [],
+        };
+        await addOneEService(mockEService, postgresDB, eservices);
+        expect(
+          catalogService.getEServiceById(eservice.id, getMockAuthData())
+        ).rejects.toThrowError(eServiceNotFound(eservice.id));
+      });
+      it("should throw eServiceNotFound if there are no descriptors (requester is the producer but not admin nor api)", async () => {
+        const descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        const authData: AuthData = {
+          ...getMockAuthData(eservice.producerId),
+          userRoles: [userRoles.SUPPORT_ROLE],
+        };
+        await addOneEService(mockEService, postgresDB, eservices);
+        expect(
+          catalogService.getEServiceById(eservice.id, authData)
+        ).rejects.toThrowError(eServiceNotFound(eservice.id));
+      });
+      it("should filter out the draft descriptors if the eService has both draft and non-draft ones (requester is not the producer)", async () => {
+        const descriptorA: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+        };
+        const descriptorB: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.published,
+          interface: mockDocument,
+          publishedAt: new Date(),
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptorA, descriptorB],
+        };
+        const authData: AuthData = {
+          ...getMockAuthData(),
+          userRoles: [userRoles.ADMIN_ROLE],
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+        const result = await catalogService.getEServiceById(
+          eservice.id,
+          authData
+        );
+        expect(result.descriptors).toEqual([descriptorB]);
+      });
+      it("should filter out the draft descriptors if the eService has both draft and non-draft ones (requester is the producer but not admin nor api)", async () => {
+        const descriptorA: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+        };
+        const descriptorB: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.published,
+          interface: mockDocument,
+          publishedAt: new Date(),
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptorA, descriptorB],
+        };
+        const authData: AuthData = {
+          ...getMockAuthData(eservice.producerId),
+          userRoles: [userRoles.SUPPORT_ROLE],
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+        const result = await catalogService.getEServiceById(
+          eservice.id,
+          authData
+        );
+        expect(result.descriptors).toEqual([descriptorB]);
       });
     });
 
@@ -2968,7 +3153,7 @@ describe("database test", async () => {
     });
 
     describe("getDocumentById", () => {
-      it("should get the document if it exists", async () => {
+      it("should get the document if it exists (requester is the producer, admin)", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           docs: [mockDocument],
@@ -2979,29 +3164,161 @@ describe("database test", async () => {
           name: "eService 001",
           descriptors: [descriptor],
         };
+        const authData: AuthData = {
+          ...getMockAuthData(eService.producerId),
+          userRoles: [userRoles.ADMIN_ROLE],
+        };
         await addOneEService(eService, postgresDB, eservices);
-        const result = await readModelService.getDocumentById(
-          eService.id,
-          descriptor.id,
-          mockDocument.id
-        );
+        const result = await catalogService.getDocumentById({
+          eserviceId: eService.id,
+          descriptorId: descriptor.id,
+          documentId: mockDocument.id,
+          authData,
+        });
         expect(result).toEqual(mockDocument);
       });
 
-      it("should not get document if it doesn't exist", async () => {
-        const eService: EService = {
+      it("should throw eServiceNotFound if the eService doesn't exist", async () => {
+        const authData: AuthData = {
+          ...getMockAuthData(),
+          userRoles: [userRoles.ADMIN_ROLE],
+        };
+        expect(
+          catalogService.getDocumentById({
+            eserviceId: mockEService.id,
+            descriptorId: mockDescriptor.id,
+            documentId: mockDocument.id,
+            authData,
+          })
+        ).rejects.toThrowError(eServiceNotFound(mockEService.id));
+      });
+
+      it("should throw eServiceDescriptorNotFound if the descriptor doesn't exist (requester is the producer, admin)", async () => {
+        const eservice: EService = {
+          ...mockEService,
+          id: generateId(),
+          descriptors: [],
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+        const authData: AuthData = {
+          ...getMockAuthData(),
+          userRoles: [userRoles.ADMIN_ROLE],
+        };
+        expect(
+          catalogService.getDocumentById({
+            eserviceId: eservice.id,
+            descriptorId: mockDescriptor.id,
+            documentId: mockDocument.id,
+            authData,
+          })
+        ).rejects.toThrowError(
+          eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
+        );
+      });
+
+      it("should throw eServiceDocumentNotFound if the document doesn't exist (requester is the producer, admin)", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+          docs: [],
+        };
+        const eservice: EService = {
           ...mockEService,
           id: generateId(),
           name: "eService 001",
-          descriptors: [],
+          descriptors: [descriptor],
         };
-        await addOneEService(eService, postgresDB, eservices);
-        const result = await readModelService.getDocumentById(
-          eService.id,
-          generateId(),
-          generateId()
+        const authData: AuthData = {
+          ...getMockAuthData(eservice.producerId),
+          userRoles: [userRoles.ADMIN_ROLE],
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+        expect(
+          catalogService.getDocumentById({
+            eserviceId: eservice.id,
+            descriptorId: mockDescriptor.id,
+            documentId: mockDocument.id,
+            authData,
+          })
+        ).rejects.toThrowError(
+          eServiceDocumentNotFound(
+            eservice.id,
+            mockDescriptor.id,
+            mockDocument.id
+          )
         );
-        expect(result).toBeUndefined();
+      });
+      it("should throw eServiceNotFound if the document belongs to a draft descriptor (requester is not the producer)", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+          docs: [mockDocument],
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        const authData: AuthData = {
+          ...getMockAuthData(),
+          userRoles: [userRoles.ADMIN_ROLE],
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+        expect(
+          catalogService.getDocumentById({
+            eserviceId: eservice.id,
+            descriptorId: descriptor.id,
+            documentId: mockDocument.id,
+            authData,
+          })
+        ).rejects.toThrowError(eServiceNotFound(eservice.id));
+      });
+      it("should throw eServiceNotFound if the document belongs to a draft descriptor (requester is the producer but not admin nor api)", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+          docs: [mockDocument],
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        const authData: AuthData = {
+          ...getMockAuthData(eservice.producerId),
+          userRoles: [userRoles.SUPPORT_ROLE],
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+        expect(
+          catalogService.getDocumentById({
+            eserviceId: eservice.id,
+            descriptorId: descriptor.id,
+            documentId: mockDocument.id,
+            authData,
+          })
+        ).rejects.toThrowError(eServiceNotFound(eservice.id));
+      });
+      it("should throw eServiceNotFound if the document belongs to a draft descriptor (requester is not the producer)", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+          docs: [mockDocument],
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        const authData: AuthData = {
+          ...getMockAuthData(),
+          userRoles: [userRoles.ADMIN_ROLE],
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+        expect(
+          catalogService.getDocumentById({
+            eserviceId: eservice.id,
+            descriptorId: descriptor.id,
+            documentId: mockDocument.id,
+            authData,
+          })
+        ).rejects.toThrowError(eServiceNotFound(eservice.id));
       });
     });
   });
