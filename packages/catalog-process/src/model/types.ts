@@ -1,5 +1,11 @@
 import { ZodiosBodyByPath } from "@zodios/core";
-import { AgreementState, DescriptorState } from "pagopa-interop-models";
+import {
+  AgreementState,
+  AttributeId,
+  DescriptorState,
+  EServiceId,
+  TenantId,
+} from "pagopa-interop-models";
 import { api } from "./generated/api.js";
 
 type Api = typeof api.api;
@@ -18,8 +24,9 @@ export type ApiEServiceDescriptorDocumentUpdateSeed = ZodiosBodyByPath<
 >;
 
 export type ApiGetEServicesFilters = {
-  eservicesIds: string[];
-  producersIds: string[];
+  eservicesIds: EServiceId[];
+  producersIds: TenantId[];
+  attributesIds: AttributeId[];
   states: DescriptorState[];
   agreementStates: AgreementState[];
   name?: string;
