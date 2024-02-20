@@ -860,9 +860,29 @@ describe("database test", async () => {
     });
 
     describe("delete draft descriptor", () => {
-      it("should write on event-store for the deletion of a draft descriptor", async () => {
+      it("should write on event-store for the deletion of a draft descriptor, and delete documents and interface files from the bucket", async () => {
+        vi.spyOn(fileManager, "delete");
+
+        const document1 = {
+          ...mockDocument,
+          name: `${mockDocument.name}_1`,
+          path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}_1`,
+        };
+        const document2 = {
+          ...mockDocument,
+          name: `${mockDocument.name}_2`,
+          path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}_2`,
+        };
+        const interfaceDocument = {
+          ...mockDocument,
+          name: `${mockDocument.name}_interface`,
+          path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}_interface`,
+        };
+
         const descriptor: Descriptor = {
           ...mockDescriptor,
+          docs: [document1, document2],
+          interface: interfaceDocument,
           state: descriptorState.draft,
         };
         const eService: EService = {
@@ -870,6 +890,40 @@ describe("database test", async () => {
           descriptors: [descriptor],
         };
         await addOneEService(eService, postgresDB, eservices);
+
+        await fileManager.storeBytes(
+          config.s3Bucket,
+          config.eserviceDocumentsPath,
+          interfaceDocument.id,
+          interfaceDocument.name,
+          Buffer.from("testtest")
+        );
+
+        await fileManager.storeBytes(
+          config.s3Bucket,
+          config.eserviceDocumentsPath,
+          document1.id,
+          document1.name,
+          Buffer.from("testtest")
+        );
+
+        await fileManager.storeBytes(
+          config.s3Bucket,
+          config.eserviceDocumentsPath,
+          document2.id,
+          document2.name,
+          Buffer.from("testtest")
+        );
+
+        expect(await fileManager.listFiles(config.s3Bucket)).toContain(
+          interfaceDocument.path
+        );
+        expect(await fileManager.listFiles(config.s3Bucket)).toContain(
+          document1.path
+        );
+        expect(await fileManager.listFiles(config.s3Bucket)).toContain(
+          document2.path
+        );
 
         await catalogService.deleteDraftDescriptor(
           eService.id,
@@ -890,6 +944,65 @@ describe("database test", async () => {
         });
         expect(writtenPayload.eService).toEqual(toEServiceV1(eService));
         expect(writtenPayload.descriptorId).toEqual(descriptor.id);
+
+        expect(fileManager.delete).toHaveBeenCalledWith(
+          config.s3Bucket,
+          interfaceDocument.path
+        );
+        expect(fileManager.delete).toHaveBeenCalledWith(
+          config.s3Bucket,
+          document1.path
+        );
+        expect(fileManager.delete).toHaveBeenCalledWith(
+          config.s3Bucket,
+          document2.path
+        );
+
+        expect(await fileManager.listFiles(config.s3Bucket)).not.toContain(
+          interfaceDocument.path
+        );
+        expect(await fileManager.listFiles(config.s3Bucket)).not.toContain(
+          document1.path
+        );
+        expect(await fileManager.listFiles(config.s3Bucket)).not.toContain(
+          document2.path
+        );
+      });
+
+      it("should fail if one of the file deletions fails", async () => {
+        vi.spyOn(fileManager, "delete").mockRejectedValueOnce(
+          new Error("Failed to delete file")
+        );
+
+        const document1 = {
+          ...mockDocument,
+          name: `${mockDocument.name}_1`,
+          path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}_1`,
+        };
+        const document2 = {
+          ...mockDocument,
+          name: `${mockDocument.name}_2`,
+          path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}_2`,
+        };
+
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          docs: [document1, document2],
+          state: descriptorState.draft,
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+
+        await expect(
+          catalogService.deleteDraftDescriptor(
+            eService.id,
+            descriptor.id,
+            getMockAuthData(eService.producerId)
+          )
+        ).rejects.toThrowError("Failed to delete file");
       });
 
       it("should throw eServiceNotFound if the eService doesn't exist", () => {
@@ -1986,6 +2099,97 @@ describe("database test", async () => {
         expect(await fileManager.listFiles(config.s3Bucket)).not.toContain(
           document.path
         );
+      });
+
+      it("should write on event-store for the deletion of a document that is the descriptor interface, and delete the file from the bucket", async () => {
+        vi.spyOn(fileManager, "delete");
+
+        const interfaceDocument = {
+          ...mockDocument,
+          path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}`,
+        };
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+          interface: interfaceDocument,
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+
+        await addOneEService(eService, postgresDB, eservices);
+
+        await fileManager.storeBytes(
+          config.s3Bucket,
+          config.eserviceDocumentsPath,
+          interfaceDocument.id,
+          interfaceDocument.name,
+          Buffer.from("testtest")
+        );
+        expect(await fileManager.listFiles(config.s3Bucket)).toContain(
+          interfaceDocument.path
+        );
+
+        await catalogService.deleteDocument(
+          eService.id,
+          descriptor.id,
+          interfaceDocument.id,
+          getMockAuthData(eService.producerId)
+        );
+        const writtenEvent = await readLastEventByStreamId(
+          eService.id,
+          postgresDB
+        );
+        expect(writtenEvent.stream_id).toBe(eService.id);
+        expect(writtenEvent.version).toBe("1");
+        expect(writtenEvent.type).toBe("EServiceDocumentDeleted");
+        const writtenPayload = decodeProtobufPayload({
+          messageType: EServiceDocumentDeletedV1,
+          payload: writtenEvent.data,
+        });
+
+        expect(writtenPayload.eServiceId).toEqual(eService.id);
+        expect(writtenPayload.descriptorId).toEqual(descriptor.id);
+        expect(writtenPayload.documentId).toEqual(interfaceDocument.id);
+
+        expect(fileManager.delete).toHaveBeenCalledWith(
+          config.s3Bucket,
+          interfaceDocument.path
+        );
+        expect(await fileManager.listFiles(config.s3Bucket)).not.toContain(
+          interfaceDocument.path
+        );
+      });
+
+      it("should fail if the file deletion fails", async () => {
+        vi.spyOn(fileManager, "delete").mockRejectedValueOnce(
+          new Error("Failed to delete file")
+        );
+
+        const document = {
+          ...mockDocument,
+          path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}`,
+        };
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+          docs: [document],
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+
+        await addOneEService(eService, postgresDB, eservices);
+        await expect(
+          catalogService.deleteDocument(
+            eService.id,
+            descriptor.id,
+            document.id,
+            getMockAuthData(eService.producerId)
+          )
+        ).rejects.toThrowError("Failed to delete file");
       });
       it("should throw eServiceNotFound if the eService doesn't exist", async () => {
         expect(
