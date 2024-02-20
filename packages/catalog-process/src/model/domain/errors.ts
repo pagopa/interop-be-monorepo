@@ -163,6 +163,6 @@ export function dailyCallsCannotBeDecreased(): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `dailyCallsPerConsumer and dailyCallsTotal can't be decreased`,
     code: "dailyCallsCannotBeDecreased",
-    title: "Daily Calls limits Can't be decreased",
+    title: "Daily calls limits can't be decreased",
   });
 }
