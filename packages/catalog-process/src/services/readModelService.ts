@@ -121,53 +121,37 @@ export function readModelServiceBuilder(
           "data.producerId": { $in: producersIds },
         });
 
-      const descriptorsStateFilter: ReadModelFilter<Descriptor> = {
-        state: { $in: states },
-      } as ReadModelFilter<Descriptor>;
+      const descriptorsStateFilter: ReadModelFilter<EService> =
+        ReadModelRepository.arrayToFilter(states, {
+          "data.descriptors.state": { $in: states },
+        });
 
-      const descriptorsAttributesFilter: ReadModelFilter<Descriptor> = {
-        $or: [
-          {
-            "attributes.certified": {
-              $elemMatch: {
-                $elemMatch: { id: { $in: attributesIds } },
-              },
-            },
-          },
-          {
-            "attributes.declared": {
-              $elemMatch: {
-                $elemMatch: { id: { $in: attributesIds } },
-              },
-            },
-          },
-          {
-            "attributes.verified": {
-              $elemMatch: {
-                $elemMatch: { id: { $in: attributesIds } },
-              },
-            },
-          },
-        ],
-      };
-
-      const descriptorsFilter =
-        states.length === 0 && attributesIds.length === 0
-          ? {}
-          : {
-              "data.descriptors": {
+      const attributesFilter: ReadModelFilter<EService> =
+        ReadModelRepository.arrayToFilter(attributesIds, {
+          $or: [
+            {
+              "data.descriptors.attributes.certified": {
                 $elemMatch: {
-                  ...ReadModelRepository.arrayToFilter(
-                    states,
-                    descriptorsStateFilter
-                  ),
-                  ...ReadModelRepository.arrayToFilter(
-                    attributesIds,
-                    descriptorsAttributesFilter
-                  ),
+                  $elemMatch: { id: { $in: attributesIds } },
                 },
               },
-            };
+            },
+            {
+              "data.descriptors.attributes.declared": {
+                $elemMatch: {
+                  $elemMatch: { id: { $in: attributesIds } },
+                },
+              },
+            },
+            {
+              "data.descriptors.attributes.verified": {
+                $elemMatch: {
+                  $elemMatch: { id: { $in: attributesIds } },
+                },
+              },
+            },
+          ],
+        });
 
       const visibilityFilter: ReadModelFilter<EService> = hasPermission(
         [userRoles.ADMIN_ROLE, userRoles.API_ROLE],
@@ -212,7 +196,8 @@ export function readModelServiceBuilder(
             ...nameFilter,
             ...idsFilter,
             ...producersIdsFilter,
-            ...descriptorsFilter,
+            ...descriptorsStateFilter,
+            ...attributesFilter,
             ...visibilityFilter,
           } satisfies ReadModelFilter<EService>,
         },
