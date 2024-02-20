@@ -1,4 +1,5 @@
 import { match } from "ts-pattern";
+import { z } from "zod";
 import {
   TenantCreatedV1,
   TenantUpdatedV1,
@@ -6,6 +7,7 @@ import {
   SelfcareMappingCreatedV1,
   SelfcareMappingDeletedV1,
 } from "../gen/v1/tenant/events.js";
+import { EventEnvelope, protobufDecoder } from "../index.js";
 
 export function tenantEventToBinaryData(event: TenantEvent): Uint8Array {
   return match(event)
@@ -27,9 +29,30 @@ export function tenantEventToBinaryData(event: TenantEvent): Uint8Array {
     .exhaustive();
 }
 
-export type TenantEvent =
-  | { type: "TenantCreated"; data: TenantCreatedV1 }
-  | { type: "TenantUpdated"; data: TenantUpdatedV1 }
-  | { type: "TenantDeleted"; data: TenantDeletedV1 }
-  | { type: "SelfcareMappingCreated"; data: SelfcareMappingCreatedV1 }
-  | { type: "SelfcareMappingDeleted"; data: SelfcareMappingDeletedV1 };
+export const TenantEvent = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("TenantCreated"),
+    data: protobufDecoder(TenantCreatedV1),
+  }),
+  z.object({
+    type: z.literal("TenantUpdated"),
+    data: protobufDecoder(TenantUpdatedV1),
+  }),
+  z.object({
+    type: z.literal("TenantDeleted"),
+    data: protobufDecoder(TenantDeletedV1),
+  }),
+  z.object({
+    type: z.literal("SelfcareMappingCreated"),
+    data: protobufDecoder(SelfcareMappingCreatedV1),
+  }),
+  z.object({
+    type: z.literal("SelfcareMappingDeleted"),
+    data: protobufDecoder(SelfcareMappingDeletedV1),
+  }),
+]);
+
+export type TenantEvent = z.infer<typeof TenantEvent>;
+
+export const TenantEventEnvelope = EventEnvelope(TenantEvent);
+export type TenantEventEnvelope = z.infer<typeof TenantEventEnvelope>;
