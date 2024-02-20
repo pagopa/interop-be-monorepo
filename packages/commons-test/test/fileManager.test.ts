@@ -10,10 +10,9 @@ import {
 } from "pagopa-interop-commons";
 
 describe("FileManager tests", async () => {
+  process.env.AWS_CONFIG_FILE = "aws.config.local";
+
   const config: FileManagerConfig & LoggerConfig = {
-    s3AccessKeyId: "minioadmin",
-    s3SecretAccessKey: "minioadmin",
-    s3Region: "eu-central-1",
     s3CustomServer: true,
     s3ServerHost: "http://127.0.0.1",
     s3ServerPort: 9000,
@@ -29,9 +28,9 @@ describe("FileManager tests", async () => {
       "quay.io/minio/minio:RELEASE.2024-02-06T21-36-22Z"
     )
       .withEnvironment({
-        MINIO_ROOT_USER: config.s3AccessKeyId,
-        MINIO_ROOT_PASSWORD: config.s3SecretAccessKey,
-        MINIO_SITE_REGION: config.s3Region,
+        MINIO_ROOT_USER: "minioadmin",
+        MINIO_ROOT_PASSWORD: "minioadmin",
+        MINIO_SITE_REGION: "eu-central-1",
       })
       .withEntrypoint(["sh", "-c"])
       .withCommand([

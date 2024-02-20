@@ -23,17 +23,5 @@ const S3CustomServerConfig = z
         }
   );
 
-const S3Config = z
-  .object({
-    S3_ACCESS_KEY_ID: z.string(),
-    S3_SECRET_ACCESS_KEY: z.string(),
-    S3_REGION: z.string(),
-  })
-  .transform((c) => ({
-    s3AccessKeyId: c.S3_ACCESS_KEY_ID,
-    s3SecretAccessKey: c.S3_SECRET_ACCESS_KEY,
-    s3Region: c.S3_REGION,
-  }));
-
-export const FileManagerConfig = z.intersection(S3CustomServerConfig, S3Config);
+export const FileManagerConfig = S3CustomServerConfig;
 export type FileManagerConfig = z.infer<typeof FileManagerConfig>;
