@@ -2,7 +2,7 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { afterEach, beforeAll, describe, expect, it } from "vitest";
+import { afterEach, afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   AttributeCollection,
   ReadModelRepository,
@@ -38,6 +38,10 @@ describe("database test", async () => {
 
   afterEach(async () => {
     await attributes.deleteMany({});
+  });
+
+  afterAll(async () => {
+    await startedMongoDBContainer.stop();
   });
 
   describe("Handle message for attribute creation", () => {
