@@ -673,6 +673,7 @@ export async function updateEserviceLogic({
         logger.error(
           `Error deleting interface for descriptor ${draftDescriptor.id} : ${error}`
         );
+        throw error;
       });
     }
   }
