@@ -7,6 +7,7 @@ import {
   authorizationMiddleware,
   initDB,
   ReadModelRepository,
+  initFileManager,
 } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -65,7 +66,8 @@ const agreementService = agreementServiceBuilder(
   agreementQuery,
   tenantQuery,
   eserviceQuery,
-  attributeQuery
+  attributeQuery,
+  initFileManager(config)
 );
 
 const {
