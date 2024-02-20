@@ -1248,8 +1248,8 @@ export async function cloneDescriptorLogic({
     descriptor.interface !== undefined
       ? await copyFile(
           config.s3Bucket,
-          config.eserviceDocumentsPath,
           descriptor.interface.path,
+          config.eserviceDocumentsPath,
           clonedDocumentId,
           descriptor.interface.name
         ).catch((error) => {
@@ -1278,8 +1278,8 @@ export async function cloneDescriptorLogic({
       const clonedDocumentId = generateId<EServiceDocumentId>();
       const clonedPath = await copyFile(
         config.s3Bucket,
-        config.eserviceDocumentsPath,
         doc.path,
+        config.eserviceDocumentsPath,
         clonedDocumentId,
         doc.name
       );
