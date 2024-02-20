@@ -28,6 +28,10 @@ import {
   readLastEventByStreamId,
   StoredEvent,
   writeInReadmodel,
+  TEST_MONGO_DB_PORT,
+  TEST_POSTGRES_DB_PORT,
+  mongoDBContainer,
+  postgreSQLContainer,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -52,7 +56,6 @@ import {
 import { IDatabase } from "pg-promise";
 import { StartedTestContainer } from "testcontainers";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
-
 import {
   agreementAlreadyExists,
   descriptorNotInExpectedState,
@@ -74,12 +77,6 @@ import { readModelServiceBuilder } from "../src/services/readmodel/readModelServ
 import { tenantQueryBuilder } from "../src/services/readmodel/tenantQuery.js";
 import { config } from "../src/utilities/config.js";
 import { agreementCreationConflictingStates } from "../src/model/domain/validators.js";
-import {
-  TEST_MONGO_DB_PORT,
-  TEST_POSTGRES_DB_PORT,
-  startMongoDBContainer,
-  startPostgresDBContainer,
-} from "./containerTestUtils.js";
 
 describe("AgreementService Integration Test", async () => {
   let agreements: AgreementCollection;
@@ -88,8 +85,8 @@ describe("AgreementService Integration Test", async () => {
   let readModelService;
   let agreementService: AgreementService;
   let postgresDB: IDatabase<unknown>;
-  let postgreSqlContainer: StartedTestContainer;
-  let mongodbContainer: StartedTestContainer;
+  let startedPostgreSqlContainer: StartedTestContainer;
+  let startedMongodbContainer: StartedTestContainer;
   let fileManager: FileManager;
 
   /**
@@ -162,13 +159,14 @@ describe("AgreementService Integration Test", async () => {
   };
 
   beforeAll(async () => {
-    postgreSqlContainer = await startPostgresDBContainer(config);
-    mongodbContainer = await startMongoDBContainer(config);
+    startedPostgreSqlContainer = await postgreSQLContainer(config).start();
+    startedMongodbContainer = await mongoDBContainer(config).start();
 
-    config.eventStoreDbPort = postgreSqlContainer.getMappedPort(
+    config.eventStoreDbPort = startedPostgreSqlContainer.getMappedPort(
       TEST_POSTGRES_DB_PORT
     );
-    config.readModelDbPort = mongodbContainer.getMappedPort(TEST_MONGO_DB_PORT);
+    config.readModelDbPort =
+      startedMongodbContainer.getMappedPort(TEST_MONGO_DB_PORT);
 
     const readModelRepository = ReadModelRepository.init(config);
     agreements = readModelRepository.agreements;
@@ -217,8 +215,8 @@ describe("AgreementService Integration Test", async () => {
   });
 
   afterAll(async () => {
-    await postgreSqlContainer.stop();
-    await mongodbContainer.stop();
+    await startedPostgreSqlContainer.stop();
+    await startedMongodbContainer.stop();
   });
 
   describe("createAgreement (success cases)", () => {
