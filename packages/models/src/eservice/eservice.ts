@@ -1,4 +1,11 @@
 import z from "zod";
+import {
+  AttributeId,
+  DescriptorId,
+  EServiceDocumentId,
+  EServiceId,
+  TenantId,
+} from "../brandedIds.js";
 
 export const technology = { rest: "Rest", soap: "Soap" } as const;
 export const Technology = z.enum([
@@ -30,13 +37,13 @@ export const AgreementApprovalPolicy = z.enum([
 ]);
 export type AgreementApprovalPolicy = z.infer<typeof AgreementApprovalPolicy>;
 
-const EServiceAttribute = z.object({
-  id: z.string().uuid(),
+export const EServiceAttribute = z.object({
+  id: AttributeId,
   explicitAttributeVerification: z.boolean(),
 });
 export type EServiceAttribute = z.infer<typeof EServiceAttribute>;
 
-const EServiceAttributes = z.object({
+export const EServiceAttributes = z.object({
   certified: z.array(z.array(EServiceAttribute)),
   declared: z.array(z.array(EServiceAttribute)),
   verified: z.array(z.array(EServiceAttribute)),
@@ -44,7 +51,7 @@ const EServiceAttributes = z.object({
 export type EserviceAttributes = z.infer<typeof EServiceAttributes>;
 
 export const Document = z.object({
-  id: z.string().uuid(),
+  id: EServiceDocumentId,
   name: z.string(),
   contentType: z.string(),
   prettyName: z.string(),
@@ -55,7 +62,7 @@ export const Document = z.object({
 export type Document = z.infer<typeof Document>;
 
 export const Descriptor = z.object({
-  id: z.string().uuid(),
+  id: DescriptorId,
   version: z.string(),
   description: z.string().optional(),
   interface: Document.optional(),
@@ -77,8 +84,8 @@ export const Descriptor = z.object({
 export type Descriptor = z.infer<typeof Descriptor>;
 
 export const EService = z.object({
-  id: z.string().uuid(),
-  producerId: z.string().uuid(),
+  id: EServiceId,
+  producerId: TenantId,
   name: z.string(),
   description: z.string(),
   technology: Technology,

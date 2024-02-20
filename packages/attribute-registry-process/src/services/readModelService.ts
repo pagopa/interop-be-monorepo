@@ -13,9 +13,9 @@ import {
   ListResult,
   genericError,
   Tenant,
+  AttributeId,
+  TenantId,
 } from "pagopa-interop-models";
-import { AttributeRegistryConfig } from "../utilities/config.js";
-
 async function getAttribute(
   attributes: AttributeCollection,
   filter: Filter<WithId<WithMetadata<Attribute>>>
@@ -115,15 +115,18 @@ async function getAttributes({
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function readModelServiceBuilder(config: AttributeRegistryConfig) {
-  const { attributes, tenants } = ReadModelRepository.init(config);
+export function readModelServiceBuilder(
+  readModelRepository: ReadModelRepository
+) {
+  const { attributes, tenants } = readModelRepository;
+
   return {
     async getAttributesByIds({
       ids,
       offset,
       limit,
     }: {
-      ids: string[];
+      ids: AttributeId[];
       offset: number;
       limit: number;
     }): Promise<ListResult<Attribute>> {
@@ -207,7 +210,7 @@ export function readModelServiceBuilder(config: AttributeRegistryConfig) {
     },
 
     async getAttributeById(
-      id: string
+      id: AttributeId
     ): Promise<WithMetadata<Attribute> | undefined> {
       return getAttribute(attributes, { "data.id": id });
     },
@@ -252,7 +255,7 @@ export function readModelServiceBuilder(config: AttributeRegistryConfig) {
       });
     },
     async getTenantById(
-      tenantId: string
+      tenantId: TenantId
     ): Promise<WithMetadata<Tenant> | undefined> {
       return getTenant(tenants, { "data.id": tenantId });
     },

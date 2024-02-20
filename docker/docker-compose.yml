@@ -15,6 +15,7 @@ services:
 
   zookeeper:
     image: quay.io/debezium/zookeeper:2.3
+
   kafka:
     image: quay.io/debezium/kafka:2.3
     ports:
@@ -29,6 +30,8 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER:PLAINTEXT,LISTENER_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER
       KAFKA_NUM_PARTITIONS: 3
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+
   connect:
     image: quay.io/debezium/connect:2.3
     ports:
@@ -42,6 +45,7 @@ services:
       CONNECT__BINARY_HANDLING_MODE: hex
     depends_on:
       - kafka
+
   readmodel:
     image: mongo:6.0.7
     ports:
@@ -96,3 +100,21 @@ services:
     environment:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+
+  # MinIO is a local S3-compatible storage, to replace AWS S3 in local development
+  minio:
+    image: quay.io/minio/minio:RELEASE.2024-02-06T21-36-22Z
+    entrypoint: sh
+    command: >
+      -c 'mkdir -p /data/interop-local-bucket &&
+      /usr/bin/minio server /data --console-address ":9001"'
+    ports:
+      - 9000:9000
+      - 9001:9001
+    environment:
+      MINIO_ROOT_USER: minioadmin # use this as AWS S3 access key ID
+      MINIO_ROOT_PASSWORD: minioadmin # use this as AWS S3 secret access key
+      MINIO_SITE_REGION: eu-central-1
+    volumes:
+      - ./minio-data:/data
+    restart: always

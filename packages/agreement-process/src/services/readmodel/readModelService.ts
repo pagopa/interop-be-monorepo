@@ -12,8 +12,11 @@ import {
 } from "pagopa-interop-commons";
 import {
   Agreement,
+  AttributeId,
+  AgreementId,
   AgreementState,
   Attribute,
+  DescriptorId,
   EService,
   ListResult,
   Tenant,
@@ -21,19 +24,23 @@ import {
   agreementState,
   descriptorState,
   genericError,
+  EServiceId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { z } from "zod";
 import { Document, Filter } from "mongodb";
-import { CompactOrganization } from "../../model/domain/models.js";
+import {
+  CompactEService,
+  CompactOrganization,
+} from "../../model/domain/models.js";
 
 export type AgreementQueryFilters = {
   producerId?: string | string[];
   consumerId?: string | string[];
-  eserviceId?: string | string[];
-  descriptorId?: string | string[];
+  eserviceId?: EServiceId | EServiceId[];
+  descriptorId?: DescriptorId | DescriptorId[];
   agreementStates?: AgreementState[];
-  attributeId?: string | string[];
+  attributeId?: AttributeId | AttributeId[];
   showOnlyUpgradeable?: boolean;
 };
 
@@ -159,46 +166,12 @@ const getTenantsByNamePipeline = (
   },
 ];
 
-export const getAllAgreements = async (
+const getAllAgreements = async (
   agreements: AgreementCollection,
   filters: AgreementQueryFilters
 ): Promise<Array<WithMetadata<Agreement>>> => {
-  const limit = 50;
-  let offset = 0;
-  let results: Array<WithMetadata<Agreement>> = [];
-
-  while (true) {
-    const agreementsChunk: Array<WithMetadata<Agreement>> = await getAgreements(
-      agreements,
-      filters,
-      offset,
-      limit
-    );
-
-    results = results.concat(agreementsChunk);
-
-    if (agreementsChunk.length < limit) {
-      break;
-    }
-
-    offset += limit;
-  }
-
-  return results;
-};
-
-const getAgreements = async (
-  agreements: AgreementCollection,
-  filters: AgreementQueryFilters,
-  offset: number,
-  limit: number
-): Promise<Array<WithMetadata<Agreement>>> => {
   const data = await agreements
-    .aggregate([
-      getAgreementsFilters(filters),
-      { $skip: offset },
-      { $limit: limit },
-    ])
+    .aggregate([getAgreementsFilters(filters)])
     .toArray();
 
   const result = z
@@ -411,7 +384,7 @@ export function readModelServiceBuilder(
       };
     },
     async readAgreementById(
-      agreementId: string
+      agreementId: AgreementId
     ): Promise<WithMetadata<Agreement> | undefined> {
       const data = await agreements.findOne(
         { "data.id": agreementId },
@@ -527,6 +500,87 @@ export function readModelServiceBuilder(
       offset: number
     ): Promise<ListResult<CompactOrganization>> {
       return searchTenantsByName(agreements, name, "producerId", limit, offset);
+    },
+    async listEServicesAgreements(
+      eServiceName: string | undefined,
+      consumerIds: string[],
+      producerIds: string[],
+      limit: number,
+      offset: number
+    ): Promise<ListResult<CompactEService>> {
+      const consumerFilter = makeFilter("consumerId", consumerIds);
+      const producerFilter = makeFilter("producerId", producerIds);
+
+      const aggregationPipeline = [
+        {
+          $lookup: {
+            from: "eservices",
+            localField: "data.eserviceId",
+            foreignField: "data.id",
+            as: "eservices",
+          },
+        },
+        {
+          $unwind: {
+            path: "$eservices",
+            preserveNullAndEmptyArrays: false,
+          },
+        },
+        {
+          $match: {
+            "eservices.data.name": {
+              $regex: new RegExp(eServiceName || "", "i"),
+            },
+            consumerFilter,
+            producerFilter,
+          },
+        },
+        {
+          $group: {
+            _id: "$data.eserviceId",
+            eserviceId: { $first: "$data.eserviceId" },
+            eserviceName: { $first: "$eservices.data.name" },
+          },
+        },
+        {
+          $project: {
+            data: { id: "$eserviceId", name: "$eserviceName" },
+            lowerName: { $toLower: "$eserviceName" },
+          },
+        },
+        {
+          $sort: { lowerName: 1 },
+        },
+      ];
+
+      const data = await agreements
+        .aggregate([
+          ...aggregationPipeline,
+          { $skip: offset },
+          { $limit: limit },
+        ])
+        .toArray();
+
+      const result = z
+        .array(CompactEService)
+        .safeParse(data.map((d) => d.data));
+      if (!result.success) {
+        logger.error(
+          `Unable to parse compact eservice items: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+
+        throw genericError("Unable to parse compact eseervice items");
+      }
+
+      return {
+        results: result.data,
+        totalCount: await ReadModelRepository.getTotalCount(
+          agreements,
+          aggregationPipeline
+        ),
+      };
     },
   };
 }

@@ -8,32 +8,34 @@
 import fs from "fs";
 import path from "path";
 
-import { selfcareServiceMock, initFileManager } from "pagopa-interop-commons";
+import { FileManager, selfcareServiceMock } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementAttribute,
   AgreementInvolvedAttributes,
-  CertifiedAgreementAttribute,
-  DeclaredAgreementAttribute,
   EService,
   PDFPayload,
   Tenant,
   TenantAttributeType,
-  UpdateAgreementSeed,
-  VerifiedAgreementAttribute,
+  TenantId,
   genericError,
   tenantAttributeType,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
+import { match } from "ts-pattern";
 import {
   agreementMissingUserInfo,
   agreementStampNotFound,
 } from "../model/domain/errors.js";
 import { ApiAgreementDocumentSeed } from "../model/types.js";
+import {
+  CertifiedAgreementAttribute,
+  DeclaredAgreementAttribute,
+  UpdateAgreementSeed,
+  VerifiedAgreementAttribute,
+} from "../model/domain/models.js";
 import { config } from "../utilities/config.js";
 import { AttributeQuery } from "./readmodel/attributeQuery.js";
-
-const fileManager = initFileManager(config);
 
 const getAttributeInvolved = async (
   consumer: Tenant,
@@ -48,7 +50,12 @@ const getAttributeInvolved = async (
   >(
     type: TenantAttributeType
   ): Promise<Array<[AgreementAttribute, T]>> => {
-    const seedAttributes = seed.certifiedAttributes.map((ca) => ca.id);
+    const seedAttributes = match(type)
+      .with(tenantAttributeType.CERTIFIED, () => seed.certifiedAttributes || [])
+      .with(tenantAttributeType.DECLARED, () => seed.declaredAttributes || [])
+      .with(tenantAttributeType.VERIFIED, () => seed.verifiedAttributes || [])
+      .exhaustive()
+      .map((ca) => ca.id);
     const attributes = consumer.attributes.filter(
       (a) => a.type === type && seedAttributes.includes(a.id)
     );
@@ -172,8 +179,8 @@ const agreementTemplateMock = fs
   .toString();
 
 const createAgreementDocumentName = (
-  consumerId: string,
-  producerId: string
+  consumerId: TenantId,
+  producerId: TenantId
 ): string => `${consumerId}_${producerId}_${new Date()}_agreement_contract.pdf`;
 
 export const pdfGenerator = {
@@ -183,7 +190,8 @@ export const pdfGenerator = {
     consumer: Tenant,
     producer: Tenant,
     seed: UpdateAgreementSeed,
-    attributeQuery: AttributeQuery
+    attributeQuery: AttributeQuery,
+    storeFile: FileManager["storeBytes"]
   ): Promise<ApiAgreementDocumentSeed> => {
     const documentId = uuidv4();
     const prettyName = "Richiesta di fruizione";
@@ -201,16 +209,13 @@ export const pdfGenerator = {
     );
     const document = await create(agreementTemplateMock, pdfPayload);
 
-    /* 
-      TODO : this method should be respect this behaviours https://github.com/pagopa/interop-be-agreement-process/blob/66781549a6db2470d8c407965b7561d1fe493107/src/main/scala/it/pagopa/interop/agreementprocess/service/AgreementContractCreator.scala#L57
-      handled with task https://pagopa.atlassian.net/browse/IMN-138
-    */
-    const path = await fileManager.storeBytes(
+    const path = await storeFile(
+      config.s3Bucket,
+      `${config.agreementContractsPath}/${agreement.id}`,
       documentId,
       documentName,
-      new Uint8Array(document)
+      Buffer.from(document)
     );
-
     return {
       id: documentId,
       name: documentName,

@@ -19,6 +19,7 @@ COPY turbo.json /app/
 COPY ./packages/tenant-readmodel-writer /app/packages/tenant-readmodel-writer
 COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
+COPY ./packages/kafka-iam-auth /app/packages/kafka-iam-auth
 
 RUN pnpm build
 

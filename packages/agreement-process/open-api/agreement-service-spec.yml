@@ -45,7 +45,6 @@ paths:
   "/agreements/{agreementId}/submit":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
-      - $ref: "#/components/parameters/IpAddress"
       - schema:
           type: string
           format: uuid
@@ -63,7 +62,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#components/schemas/AgreementSubmissionPayload"
+              $ref: "#/components/schemas/AgreementSubmissionPayload"
         description: payload for agreement submission
         required: true
       responses:
@@ -94,7 +93,6 @@ paths:
   "/agreements/{agreementId}/activate":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
-      - $ref: "#/components/parameters/IpAddress"
       - schema:
           type: string
           format: uuid
@@ -111,7 +109,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Agreement"
+                $ref: "#/components/schemas/ResourceId"
         "400":
           description: Bad Request
           content:
@@ -136,7 +134,6 @@ paths:
   "/agreements/{agreementId}/consumer-documents":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
-      - $ref: "#/components/parameters/IpAddress"
       - name: agreementId
         in: path
         schema:
@@ -180,7 +177,6 @@ paths:
   "/agreements/{agreementId}/consumer-documents/{documentId}":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
-      - $ref: "#/components/parameters/IpAddress"
       - name: agreementId
         in: path
         schema:
@@ -246,7 +242,6 @@ paths:
   "/agreements/{agreementId}/suspend":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
-      - $ref: "#/components/parameters/IpAddress"
       - schema:
           type: string
           format: uuid
@@ -263,7 +258,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Agreement"
+                $ref: "#/components/schemas/ResourceId"
         "400":
           description: Bad Request
           content:
@@ -288,7 +283,6 @@ paths:
   "/agreements/{agreementId}/reject":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
-      - $ref: "#/components/parameters/IpAddress"
       - schema:
           type: string
           format: uuid
@@ -311,7 +305,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Agreement"
+                $ref: "#/components/schemas/ResourceId"
         "400":
           description: Bad Request
           content:
@@ -336,7 +330,6 @@ paths:
   /agreements/{agreementId}/archive:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
-      - $ref: "#/components/parameters/IpAddress"
       - schema:
           type: string
           format: uuid
@@ -353,7 +346,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Agreement"
+                $ref: "#/components/schemas/ResourceId"
         "400":
           description: Bad Request
           content:
@@ -378,7 +371,6 @@ paths:
   /agreements:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
-      - $ref: "#/components/parameters/IpAddress"
     post:
       summary: Agreement Creation
       operationId: createAgreement
@@ -496,7 +488,6 @@ paths:
   "/producers":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
-      - $ref: "#/components/parameters/IpAddress"
     get:
       tags:
         - agreement
@@ -540,7 +531,6 @@ paths:
   "/consumers":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
-      - $ref: "#/components/parameters/IpAddress"
     get:
       tags:
         - agreement
@@ -584,7 +574,6 @@ paths:
   "/agreements/{agreementId}":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
-      - $ref: "#/components/parameters/IpAddress"
       - name: agreementId
         in: path
         description: The identifier of the agreement
@@ -639,7 +628,6 @@ paths:
   "/agreements/{agreementId}/update":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
-      - $ref: "#/components/parameters/IpAddress"
     post:
       tags:
         - agreement
@@ -682,7 +670,6 @@ paths:
   "/agreements/{agreementId}/upgrade":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
-      - $ref: "#/components/parameters/IpAddress"
     post:
       tags:
         - agreement
@@ -719,7 +706,6 @@ paths:
   "/agreements/{agreementId}/clone":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
-      - $ref: "#/components/parameters/IpAddress"
     post:
       tags:
         - agreement
@@ -768,7 +754,6 @@ paths:
   "/compute/agreementsState":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
-      - $ref: "#/components/parameters/IpAddress"
     post:
       tags:
         - agreement
@@ -787,7 +772,6 @@ paths:
   "/agreements/filter/eservices":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
-      - $ref: "#/components/parameters/IpAddress"
     get:
       tags:
         - agreement
@@ -854,11 +838,6 @@ components:
       in: header
       name: X-Correlation-Id
       required: true
-      schema:
-        type: string
-    IpAddress:
-      in: header
-      name: X-Forwarded-For
       schema:
         type: string
   schemas:
