@@ -423,7 +423,7 @@ async function createAndCopyDocumentsForClonedAgreement(
     throw error;
   });
 
-  return (docs ?? []).map((d, i) =>
+  return docs.map((d, i) =>
     toCreateEventAgreementConsumerDocumentAdded(
       newAgreementId,
       {
