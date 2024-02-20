@@ -15,7 +15,7 @@ const S3CustomServerConfig = z.preprocess(
         S3_SERVER_PORT: z.coerce.number().min(1001),
       }),
       z.object({
-        S3_CUSTOM_SERVER: z.literal("false").optional(),
+        S3_CUSTOM_SERVER: z.literal("false"),
       }),
     ])
     .transform((c) =>
