@@ -479,28 +479,6 @@ export function catalogServiceBuilder(
       );
     },
 
-    async updateDescriptor(
-      eserviceId: EServiceId,
-      descriptorId: DescriptorId,
-      seed: UpdateEServiceDescriptorQuotasSeed,
-      authData: AuthData
-    ): Promise<void> {
-      logger.info(
-        `Updating draft Descriptor ${descriptorId} for EService ${eserviceId}`
-      );
-      const eService = await readModelService.getEServiceById(eserviceId);
-
-      await repository.createEvent(
-        updateDescriptorLogic({
-          eserviceId,
-          descriptorId,
-          seed,
-          authData,
-          eService,
-        })
-      );
-    },
-
     async publishDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
@@ -605,6 +583,28 @@ export function catalogServiceBuilder(
         archiveDescriptorLogic({
           eserviceId,
           descriptorId,
+          authData,
+          eService,
+        })
+      );
+    },
+
+    async updateDescriptor(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: UpdateEServiceDescriptorQuotasSeed,
+      authData: AuthData
+    ): Promise<void> {
+      logger.info(
+        `Updating draft Descriptor ${descriptorId} for EService ${eserviceId}`
+      );
+      const eService = await readModelService.getEServiceById(eserviceId);
+
+      await repository.createEvent(
+        updateDescriptorLogic({
+          eserviceId,
+          descriptorId,
+          seed,
           authData,
           eService,
         })
