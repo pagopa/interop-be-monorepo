@@ -1,7 +1,11 @@
 import { EachMessagePayload } from "kafkajs";
-import { logger, consumerConfig } from "pagopa-interop-commons";
+import {
+  logger,
+  consumerConfig,
+  decodeKafkaMessage,
+} from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
-import { decodeKafkaMessage } from "./model/models.js";
+import { TenantEvent } from "pagopa-interop-models";
 import { handleMessage } from "./tenantConsumerService.js";
 
 async function processMessage({
@@ -9,7 +13,7 @@ async function processMessage({
   partition,
 }: EachMessagePayload): Promise<void> {
   try {
-    await handleMessage(decodeKafkaMessage(message));
+    await handleMessage(decodeKafkaMessage(message, TenantEvent));
     logger.info(
       `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
     );
