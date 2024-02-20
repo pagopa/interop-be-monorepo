@@ -2,8 +2,8 @@ import { z } from "zod";
 
 const S3CustomServerConfig = z.preprocess(
   (c) =>
-    (c as { S3_CUSTOM_SERVER: string | undefined })
-      .S3_CUSTOM_SERVER === undefined
+    (c as { S3_CUSTOM_SERVER: string | undefined }).S3_CUSTOM_SERVER ===
+    undefined
       ? { ...(c as object), S3_CUSTOM_SERVER: "false" }
       : c,
 
@@ -21,13 +21,13 @@ const S3CustomServerConfig = z.preprocess(
     .transform((c) =>
       c.S3_CUSTOM_SERVER === "true"
         ? {
-          s3CustomServer: true as const,
-          s3ServerHost: c.S3_SERVER_HOST,
-          s3ServerPort: c.S3_SERVER_PORT,
-        }
+            s3CustomServer: true as const,
+            s3ServerHost: c.S3_SERVER_HOST,
+            s3ServerPort: c.S3_SERVER_PORT,
+          }
         : {
-          s3CustomServer: false as const,
-        }
+            s3CustomServer: false as const,
+          }
     )
 );
 
