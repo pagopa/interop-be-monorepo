@@ -1057,72 +1057,7 @@ export function updateDraftDescriptorLogic({
       ),
   };
 
-  const updatedEService: EService = {
-    ...eService.data,
-    descriptors: eService.data.descriptors.map((descriptor) => {
-      if (descriptor.id === descriptorId) {
-        return updatedDescriptor;
-      }
-      return descriptor;
-    }),
-  };
-
-  return toCreateEventEServiceUpdated(
-    eserviceId,
-    eService.metadata.version,
-    updatedEService
-  );
-}
-
-export function updateDescriptorLogic({
-  eserviceId,
-  descriptorId,
-  seed,
-  authData,
-  eService,
-}: {
-  eserviceId: EServiceId;
-  descriptorId: DescriptorId;
-  seed: UpdateEServiceDescriptorQuotasSeed;
-  authData: AuthData;
-  eService: WithMetadata<EService> | undefined;
-}): CreateEvent<EServiceEvent> {
-  assertEServiceExist(eserviceId, eService);
-  assertRequesterAllowed(eService.data.producerId, authData.organizationId);
-
-  const descriptor = retrieveDescriptor(descriptorId, eService);
-
-  if (
-    descriptor.state !== descriptorState.published &&
-    descriptor.state !== descriptorState.suspended &&
-    descriptor.state !== descriptorState.deprecated
-  ) {
-    throw notValidDescriptor(descriptorId, descriptor.state.toString());
-  }
-
-  assertDailyCallsAreConsistentAndNotDecreased({
-    dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
-    dailyCallsTotal: descriptor.dailyCallsTotal,
-    updatedDailyCallsPerConsumer: seed.dailyCallsPerConsumer,
-    updatedDailyCallsTotal: seed.dailyCallsTotal,
-  });
-
-  const updatedDescriptor: Descriptor = {
-    ...descriptor,
-    voucherLifespan: seed.voucherLifespan,
-    dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
-    dailyCallsTotal: seed.dailyCallsTotal,
-  };
-
-  const updatedEService: EService = {
-    ...eService.data,
-    descriptors: eService.data.descriptors.map((descriptor) => {
-      if (descriptor.id === descriptorId) {
-        return updatedDescriptor;
-      }
-      return descriptor;
-    }),
-  };
+  const updatedEService = replaceDescriptor(eService.data, updatedDescriptor);
 
   return toCreateEventEServiceUpdated(
     eserviceId,
@@ -1425,6 +1360,55 @@ export function archiveDescriptorLogic({
   );
 }
 
+export function updateDescriptorLogic({
+  eserviceId,
+  descriptorId,
+  seed,
+  authData,
+  eService,
+}: {
+  eserviceId: EServiceId;
+  descriptorId: DescriptorId;
+  seed: UpdateEServiceDescriptorQuotasSeed;
+  authData: AuthData;
+  eService: WithMetadata<EService> | undefined;
+}): CreateEvent<EServiceEvent> {
+  assertEServiceExist(eserviceId, eService);
+  assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+
+  const descriptor = retrieveDescriptor(descriptorId, eService);
+
+  if (
+    descriptor.state !== descriptorState.published &&
+    descriptor.state !== descriptorState.suspended &&
+    descriptor.state !== descriptorState.deprecated
+  ) {
+    throw notValidDescriptor(descriptorId, descriptor.state.toString());
+  }
+
+  assertDailyCallsAreConsistentAndNotDecreased({
+    dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
+    dailyCallsTotal: descriptor.dailyCallsTotal,
+    updatedDailyCallsPerConsumer: seed.dailyCallsPerConsumer,
+    updatedDailyCallsTotal: seed.dailyCallsTotal,
+  });
+
+  const updatedDescriptor: Descriptor = {
+    ...descriptor,
+    voucherLifespan: seed.voucherLifespan,
+    dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
+    dailyCallsTotal: seed.dailyCallsTotal,
+  };
+
+  const updatedEService = replaceDescriptor(eService.data, updatedDescriptor);
+
+  return toCreateEventEServiceUpdated(
+    eserviceId,
+    eService.metadata.version,
+    updatedEService
+  );
+}
+
 const isUserAllowedToSeeDraft = (
   authData: AuthData,
   producerId: TenantId
@@ -1476,6 +1460,21 @@ function assertDailyCallsAreConsistentAndNotDecreased({
   ) {
     throw dailyCallsCannotBeDecreased();
   }
+}
+
+function replaceDescriptor(
+  eService: EService,
+  updatedDescriptor: Descriptor
+): EService {
+  return {
+    ...eService,
+    descriptors: eService.descriptors.map((descriptor) => {
+      if (descriptor.id === updatedDescriptor.id) {
+        return updatedDescriptor;
+      }
+      return descriptor;
+    }),
+  };
 }
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
