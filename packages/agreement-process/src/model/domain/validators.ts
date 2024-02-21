@@ -1,6 +1,7 @@
 import {
   Agreement,
   AgreementState,
+  AttributeId,
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
   Descriptor,
@@ -15,6 +16,11 @@ import {
   tenantAttributeType,
   agreementActivableStates,
   agreementActivationFailureStates,
+  AgreementId,
+  DescriptorId,
+  EServiceId,
+  unsafeBrandId,
+  TenantId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { AuthData } from "pagopa-interop-commons";
@@ -49,7 +55,7 @@ type RevocableTenantAttribute =
 /* ========= ASSERTIONS ========= */
 
 export function assertAgreementExist(
-  agreementId: string,
+  agreementId: AgreementId,
   agreement: WithMetadata<Agreement> | undefined
 ): asserts agreement is NonNullable<WithMetadata<Agreement>> {
   if (agreement === undefined) {
@@ -58,11 +64,11 @@ export function assertAgreementExist(
 }
 
 export function assertEServiceExist(
-  eServiceId: string,
+  eserviceId: EServiceId,
   eService: WithMetadata<EService> | undefined
 ): asserts eService is NonNullable<WithMetadata<EService>> {
   if (eService === undefined) {
-    throw eServiceNotFound(eServiceId);
+    throw eServiceNotFound(eserviceId);
   }
 }
 
@@ -97,7 +103,7 @@ export const assertRequesterIsConsumerOrProducer = (
 
 export const assertSubmittableState = (
   state: AgreementState,
-  agreementId: string
+  agreementId: AgreementId
 ): void => {
   if (state !== agreementState.draft) {
     throw agreementNotInExpectedState(agreementId, state);
@@ -105,7 +111,7 @@ export const assertSubmittableState = (
 };
 
 export const assertExpectedState = (
-  agreementId: string,
+  agreementId: AgreementId,
   agreementState: AgreementState,
   expectedStates: AgreementState[]
 ): void => {
@@ -138,8 +144,8 @@ export const assertActivableState = (agreement: Agreement): void => {
 };
 
 export function assertDescriptorExist(
-  eserviceId: string,
-  descriptorId: string,
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId,
   descriptor: Descriptor | undefined
 ): asserts descriptor is NonNullable<Descriptor> {
   if (descriptor === undefined) {
@@ -150,8 +156,8 @@ export function assertDescriptorExist(
 /* =========  VALIDATIONS ========= */
 
 const validateDescriptorState = (
-  eserviceId: EService["id"],
-  descriptorId: Descriptor["id"],
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId,
   descriptorState: DescriptorState,
   allowedStates: DescriptorState[]
 ): void => {
@@ -162,7 +168,7 @@ const validateDescriptorState = (
 
 const validateLatestDescriptor = (
   eService: EService,
-  descriptorId: string,
+  descriptorId: DescriptorId,
   allowedStates: DescriptorState[]
 ): Descriptor => {
   const recentActiveDescriptors = eService.descriptors
@@ -189,14 +195,14 @@ const validateLatestDescriptor = (
 
 export const validateCreationOnDescriptor = (
   eservice: EService,
-  descriptorId: string
+  descriptorId: DescriptorId
 ): Descriptor => {
   const allowedStatus = [descriptorState.published];
   return validateLatestDescriptor(eservice, descriptorId, allowedStatus);
 };
 
 export const verifyCreationConflictingAgreements = async (
-  organizationId: string,
+  organizationId: TenantId,
   agreement: ApiAgreementPayload,
   agreementQuery: AgreementQuery
 ): Promise<void> => {
@@ -209,7 +215,7 @@ export const verifyCreationConflictingAgreements = async (
   ];
   await verifyConflictingAgreements(
     organizationId,
-    agreement.eserviceId,
+    unsafeBrandId(agreement.eserviceId),
     conflictingStates,
     agreementQuery
   );
@@ -225,7 +231,7 @@ export const verifySubmissionConflictingAgreements = async (
   ];
   await verifyConflictingAgreements(
     agreement.consumerId,
-    agreement.eserviceId,
+    unsafeBrandId(agreement.eserviceId),
     conflictingStates,
     agreementQuery
   );
@@ -242,7 +248,7 @@ export const validateCertifiedAttributes = (
 
 export const validateSubmitOnDescriptor = async (
   eservice: EService,
-  descriptorId: string
+  descriptorId: DescriptorId
 ): Promise<Descriptor> => {
   const allowedStatus: DescriptorState[] = [
     descriptorState.published,
@@ -252,7 +258,7 @@ export const validateSubmitOnDescriptor = async (
 };
 
 export const validateActiveOrPendingAgreement = (
-  agreementId: string,
+  agreementId: AgreementId,
   state: AgreementState
 ): void => {
   if (agreementState.active !== state && agreementState.pending !== state) {
@@ -289,7 +295,7 @@ export const declaredAttributesSatisfied = (
 };
 
 export const verifiedAttributesSatisfied = (
-  producerId: string,
+  producerId: TenantId,
   descriptor: Descriptor,
   tenant: Tenant
 ): boolean => {
@@ -305,8 +311,8 @@ export const verifiedAttributesSatisfied = (
 };
 
 export const verifyConflictingAgreements = async (
-  consumerId: string,
-  eserviceId: string,
+  consumerId: TenantId,
+  eserviceId: EServiceId,
   conflictingStates: AgreementState[],
   agreementQuery: AgreementQuery
 ): Promise<void> => {
@@ -381,8 +387,8 @@ const attributesSatisfied = <
 
 const matchingAttributes = (
   eServiceAttributes: EServiceAttribute[][],
-  consumerAttributes: string[]
-): string[] =>
+  consumerAttributes: AttributeId[]
+): AttributeId[] =>
   eServiceAttributes
     .flatMap((atts) => atts.map((att) => att.id))
     .filter((att) => consumerAttributes.includes(att));
@@ -436,7 +442,7 @@ export const matchingVerifiedAttributes = (
 /* ========= FILTERS ========= */
 
 export const filterVerifiedAttributes = (
-  producerId: string,
+  producerId: TenantId,
   tenant: Tenant
 ): VerifiedTenantAttribute[] =>
   tenant.attributes.filter(

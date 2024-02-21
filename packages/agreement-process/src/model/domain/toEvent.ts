@@ -1,17 +1,23 @@
 import { CreateEvent } from "pagopa-interop-commons";
 import {
   Agreement,
+  AgreementAddConsumerDocumentEvent,
+  AgreementAddContractEvent,
+  AgreementAddEvent,
+  AgreementDeleteEvent,
   AgreementDocument,
   AgreementDocumentV1,
-  AgreementEvent,
   AgreementStamp,
   AgreementStamps,
   AgreementState,
   AgreementStateV1,
+  AgreementUpdateEvent,
   AgreementV1,
   StampV1,
   StampsV1,
-  AgreementUpdateEvent,
+  AgreementId,
+  AgreementDocumentId,
+  AgreementRemoveConsumerDocumentEvent,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -71,7 +77,7 @@ export const toAgreementV1 = (input: Agreement): AgreementV1 => ({
 export function toCreateEventAgreementDeleted(
   streamId: string,
   version: number
-): CreateEvent<AgreementEvent> {
+): CreateEvent<AgreementDeleteEvent> {
   return {
     streamId,
     version,
@@ -86,7 +92,7 @@ export function toCreateEventAgreementDeleted(
 
 export function toCreateEventAgreementAdded(
   agreement: Agreement
-): CreateEvent<AgreementEvent> {
+): CreateEvent<AgreementAddEvent> {
   return {
     streamId: agreement.id,
     version: 0,
@@ -116,10 +122,10 @@ export function toCreateEventAgreementUpdated(
 }
 
 export function toCreateEventAgreementContractAdded(
-  agreementId: string,
+  agreementId: AgreementId,
   agreementDocument: AgreementDocument,
   version: number
-): CreateEvent<AgreementEvent> {
+): CreateEvent<AgreementAddContractEvent> {
   return {
     streamId: agreementId,
     version,
@@ -134,10 +140,10 @@ export function toCreateEventAgreementContractAdded(
 }
 
 export function toCreateEventAgreementConsumerDocumentAdded(
-  agreementId: string,
+  agreementId: AgreementId,
   agreementDocument: AgreementDocument,
   version: number
-): CreateEvent<AgreementEvent> {
+): CreateEvent<AgreementAddConsumerDocumentEvent> {
   return {
     streamId: agreementId,
     version,
@@ -152,10 +158,10 @@ export function toCreateEventAgreementConsumerDocumentAdded(
 }
 
 export function toCreateEventAgreementConsumerDocumentRemoved(
-  agreementId: string,
-  documentId: string,
+  agreementId: AgreementId,
+  documentId: AgreementDocumentId,
   version: number
-): CreateEvent<AgreementEvent> {
+): CreateEvent<AgreementRemoveConsumerDocumentEvent> {
   return {
     streamId: agreementId,
     version,

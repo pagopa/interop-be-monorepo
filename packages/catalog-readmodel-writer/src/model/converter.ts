@@ -16,6 +16,7 @@ import {
   agreementApprovalPolicy,
   descriptorState,
   technology,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 
@@ -76,17 +77,21 @@ export const fromEServiceAttributeV1 = (
       {
         single: P.not(P.nullish),
       },
-      ({ single }) => [single]
+      ({ single }) => [{ ...single, id: unsafeBrandId(single.id) }]
     )
-    .otherwise(() => input.group);
+    .otherwise(() =>
+      input.group.map((a) => ({ ...a, id: unsafeBrandId(a.id) }))
+    );
 
 export const fromDocumentV1 = (input: EServiceDocumentV1): Document => ({
   ...input,
+  id: unsafeBrandId(input.id),
   uploadDate: new Date(input.uploadDate),
 });
 
 export const fromDescriptorV1 = (input: EServiceDescriptorV1): Descriptor => ({
   ...input,
+  id: unsafeBrandId(input.id),
   attributes:
     input.attributes != null
       ? {
@@ -123,6 +128,8 @@ export const fromDescriptorV1 = (input: EServiceDescriptorV1): Descriptor => ({
 
 export const fromEServiceV1 = (input: EServiceV1): EService => ({
   ...input,
+  id: unsafeBrandId(input.id),
+  producerId: unsafeBrandId(input.producerId),
   technology: fromEServiceTechnologyV1(input.technology),
   attributes:
     input.attributes != null
