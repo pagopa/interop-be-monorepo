@@ -88,8 +88,8 @@ export const Descriptor = z.object({
 export type Descriptor = z.infer<typeof Descriptor>;
 
 export const eserviceMode = {
-  manual: "Receive",
-  automatic: "Deliver",
+  receive: "Receive",
+  deliver: "Deliver",
 } as const;
 export const EServiceMode = z.enum([
   Object.values(eserviceMode)[0],
@@ -107,7 +107,7 @@ export type RiskAnalysisSingleAnswer = z.infer<typeof RiskAnalysisSingleAnswer>;
 export const RiskAnalysisMultiAnswer = z.object({
   id: RiskAnalysisMultiAnswerId,
   key: z.string(),
-  value: z.array(z.string()),
+  values: z.array(z.string()),
 });
 export type RiskAnalysisMultiAnswer = z.infer<typeof RiskAnalysisMultiAnswer>;
 
@@ -125,6 +125,7 @@ export const RiskAnalysis = z.object({
   riskAnalysisForm: RiskAnalysisForm,
   createdAt: z.coerce.date(),
 });
+export type RiskAnalysis = z.infer<typeof RiskAnalysis>;
 
 export const EService = z.object({
   id: EServiceId,
