@@ -264,22 +264,31 @@ export function catalogServiceBuilder(
 
       return applyVisibilityToEService(eservice.data, authData);
     },
+
     async getEServices(
       authData: AuthData,
       filters: ApiGetEServicesFilters,
       offset: number,
       limit: number
     ): Promise<ListResult<EService>> {
-      // "Getting e-service with name = $name, ids = $eServicesIds, producers = $producersIds, states = $states, agreementStates = $agreementStates, limit = $limit, offset = $offset"
       logger.info(
         `Getting EServices with name = ${filters.name}, ids = ${filters.eservicesIds}, producers = ${filters.producersIds}, states = ${filters.states}, agreementStates = ${filters.agreementStates}, limit = ${limit}, offset = ${offset}`
       );
-      return await readModelService.getEServices(
-        authData.organizationId,
+      const eservicesList = await readModelService.getEServices(
+        authData,
         filters,
         offset,
         limit
       );
+
+      const eServicesToReturn = eservicesList.results.map((eservice) =>
+        applyVisibilityToEService(eservice, authData)
+      );
+
+      return {
+        results: eServicesToReturn,
+        totalCount: eservicesList.totalCount,
+      };
     },
     async getEServiceConsumers(
       eServiceId: EServiceId,
