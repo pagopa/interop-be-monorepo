@@ -5,8 +5,6 @@ import {
   EServiceCollection,
   TenantCollection,
 } from "pagopa-interop-commons";
-import { IDatabase } from "pg-promise";
-import { v4 as uuidv4 } from "uuid";
 import {
   Agreement,
   Attribute,
@@ -23,11 +21,14 @@ import {
   agreementState,
   catalogEventToBinaryData,
   descriptorState,
+  eserviceMode,
   generateId,
   technology,
 } from "pagopa-interop-models";
-import { toEServiceV1 } from "../src/model/domain/toEvent.js";
+import { IDatabase } from "pg-promise";
+import { v4 as uuidv4 } from "uuid";
 import { EServiceDescriptorSeed } from "../src/model/domain/models.js";
+import { toEServiceV1 } from "../src/model/domain/toEvent.js";
 import { ApiEServiceDescriptorDocumentSeed } from "../src/model/types.js";
 
 export const writeEServiceInEventstore = async (
@@ -142,6 +143,8 @@ export const getMockEService = (): EService => ({
   technology: technology.rest,
   descriptors: [],
   attributes: undefined,
+  mode: eserviceMode.deliver,
+  riskAnalysis: [],
 });
 
 export const getMockDescriptor = (): Descriptor => ({
@@ -178,7 +181,7 @@ export const buildInterfaceSeed = (): ApiEServiceDescriptorDocumentSeed => ({
   contentType: "json",
   prettyName: "prettyName",
   serverUrls: ["pagopa.it"],
-  documentId: uuidv4(),
+  documentId: generateId(),
   kind: "INTERFACE",
   filePath: "filePath",
   fileName: "fileName",
@@ -191,7 +194,7 @@ export const getMockDocument = (): Document => ({
   id: generateId(),
   prettyName: "prettyName",
   contentType: "json",
-  checksum: uuidv4(),
+  checksum: generateId(),
   uploadDate: new Date(),
 });
 

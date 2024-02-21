@@ -183,6 +183,7 @@ describe("database test", async () => {
             name: mockEService.name,
             description: mockEService.description,
             technology: "REST",
+            mode: "DELIVER",
           },
           getMockAuthData(mockEService.producerId)
         );
@@ -215,6 +216,7 @@ describe("database test", async () => {
               name: mockEService.name,
               description: mockEService.description,
               technology: "REST",
+              mode: "DELIVER",
             },
             getMockAuthData(mockEService.producerId)
           )
@@ -242,6 +244,7 @@ describe("database test", async () => {
             name: updatedName,
             description: mockEService.description,
             technology: "REST",
+            mode: "DELIVER",
           },
           getMockAuthData(mockEService.producerId)
         );
@@ -324,6 +327,7 @@ describe("database test", async () => {
             name: mockEService.name,
             description: updatedDescription,
             technology: "REST",
+            mode: "DELIVER",
           },
           getMockAuthData(mockEService.producerId)
         );
@@ -356,6 +360,7 @@ describe("database test", async () => {
               name: "eService new name",
               description: "eService description",
               technology: "REST",
+              mode: "DELIVER",
             },
             getMockAuthData(mockEService.producerId)
           )
@@ -372,6 +377,7 @@ describe("database test", async () => {
               name: "eService new name",
               description: "eService description",
               technology: "REST",
+              mode: "DELIVER",
             },
             getMockAuthData()
           )
@@ -400,6 +406,7 @@ describe("database test", async () => {
               name: "eService name already in use",
               description: "eService description",
               technology: "REST",
+              mode: "DELIVER",
             },
             getMockAuthData(eService1.producerId)
           )
@@ -426,6 +433,7 @@ describe("database test", async () => {
               name: "eService new name",
               description: "eService description",
               technology: "REST",
+              mode: "DELIVER",
             },
             getMockAuthData(eService.producerId)
           )
@@ -450,6 +458,7 @@ describe("database test", async () => {
               name: "eService new name",
               description: "eService description",
               technology: "REST",
+              mode: "DELIVER",
             },
             getMockAuthData(eService.producerId)
           )
@@ -474,6 +483,7 @@ describe("database test", async () => {
               name: "eService new name",
               description: "eService description",
               technology: "REST",
+              mode: "DELIVER",
             },
             getMockAuthData(eService.producerId)
           )
@@ -498,6 +508,7 @@ describe("database test", async () => {
               name: "eService new name",
               description: "eService description",
               technology: "REST",
+              mode: "DELIVER",
             },
             getMockAuthData(eService.producerId)
           )
