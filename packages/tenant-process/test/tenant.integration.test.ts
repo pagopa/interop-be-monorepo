@@ -119,6 +119,16 @@ describe("Integration tests", () => {
       id: uuidv4(),
       name: "A tenant3",
     };
+    const tenant4: Tenant = {
+      ...mockTenant,
+      id: uuidv4(),
+      name: "A tenant4",
+    };
+    const tenant5: Tenant = {
+      ...mockTenant,
+      id: uuidv4(),
+      name: "A tenant5",
+    };
     describe("getConsumers", () => {
       it("should get the tenants consuming any of the eservices of a specific producerId", async () => {
         await addOneTenant(tenant1, postgresDB, tenants);
@@ -843,6 +853,82 @@ describe("Integration tests", () => {
           limit: 3,
         });
         expect(tenantsByName.results.length).toBe(1);
+      });
+    });
+    describe("getTenants", () => {
+      it("should get all the tenants with no filter", async () => {
+        await addOneTenant(tenant1, postgresDB, tenants);
+        await addOneTenant(tenant2, postgresDB, tenants);
+        await addOneTenant(tenant3, postgresDB, tenants);
+
+        const tenantsByName = await readModelService.getTenantsByName({
+          name: undefined,
+          offset: 0,
+          limit: 50,
+        });
+        expect(tenantsByName.totalCount).toBe(3);
+        expect(tenantsByName.results).toEqual([tenant1, tenant2, tenant3]);
+      });
+      it("should get tenants by name", async () => {
+        await addOneTenant(tenant1, postgresDB, tenants);
+
+        await addOneTenant(tenant2, postgresDB, tenants);
+
+        const tenantsByName = await readModelService.getTenantsByName({
+          name: "A tenant1",
+          offset: 0,
+          limit: 50,
+        });
+        expect(tenantsByName.totalCount).toBe(1);
+        expect(tenantsByName.results).toEqual([tenant1]);
+      });
+      it("should not get tenants if there are not any tenants", async () => {
+        const tenantsByName = await readModelService.getTenantsByName({
+          name: undefined,
+          offset: 0,
+          limit: 50,
+        });
+        expect(tenantsByName.totalCount).toBe(0);
+        expect(tenantsByName.results).toEqual([]);
+      });
+      it("should not get tenants if the name does not match", async () => {
+        await addOneTenant(tenant1, postgresDB, tenants);
+
+        await addOneTenant(tenant2, postgresDB, tenants);
+
+        const tenantsByName = await readModelService.getTenantsByName({
+          name: "A tenant6",
+          offset: 0,
+          limit: 50,
+        });
+        expect(tenantsByName.totalCount).toBe(0);
+        expect(tenantsByName.results).toEqual([]);
+      });
+      it("Should get a maximun number of tenants based on a specified limit", async () => {
+        await addOneTenant(tenant1, postgresDB, tenants);
+        await addOneTenant(tenant2, postgresDB, tenants);
+        await addOneTenant(tenant3, postgresDB, tenants);
+        await addOneTenant(tenant4, postgresDB, tenants);
+        await addOneTenant(tenant5, postgresDB, tenants);
+        const tenantsByName = await readModelService.getTenantsByName({
+          name: undefined,
+          offset: 0,
+          limit: 4,
+        });
+        expect(tenantsByName.results.length).toBe(4);
+      });
+      it("Should get a maximun number of tenants based on a specified limit and offset", async () => {
+        await addOneTenant(tenant1, postgresDB, tenants);
+        await addOneTenant(tenant2, postgresDB, tenants);
+        await addOneTenant(tenant3, postgresDB, tenants);
+        await addOneTenant(tenant4, postgresDB, tenants);
+        await addOneTenant(tenant5, postgresDB, tenants);
+        const tenantsByName = await readModelService.getTenantsByName({
+          name: undefined,
+          offset: 2,
+          limit: 4,
+        });
+        expect(tenantsByName.results.length).toBe(3);
       });
     });
     describe("getTenantById", () => {
