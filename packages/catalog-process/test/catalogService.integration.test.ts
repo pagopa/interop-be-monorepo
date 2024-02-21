@@ -1053,11 +1053,11 @@ describe("database test", async () => {
         const expectedArchivedDescriptor = toDescriptorV1(updatedDescriptor1);
         const expectedPublishedDescriptor = toDescriptorV1(updatedDescriptor2);
 
-        expect(archivingPayload).toMatchObject({
+        expect(archivingPayload).toEqual({
           eServiceId: eService.id,
           eServiceDescriptor: expectedArchivedDescriptor,
         });
-        expect(publicationPayload).toMatchObject({
+        expect(publicationPayload).toEqual({
           eServiceId: eService.id,
           eServiceDescriptor: expectedPublishedDescriptor,
         });
@@ -1144,11 +1144,11 @@ describe("database test", async () => {
         const expectedDeprecatedDescriptor = toDescriptorV1(updatedDescriptor1);
         const expectedPublishedDescriptor = toDescriptorV1(updatedDescriptor2);
 
-        expect(deprecationPayload).toMatchObject({
+        expect(deprecationPayload).toEqual({
           eServiceId: eService.id,
           eServiceDescriptor: expectedDeprecatedDescriptor,
         });
-        expect(publicationPayload).toMatchObject({
+        expect(publicationPayload).toEqual({
           eServiceId: eService.id,
           eServiceDescriptor: expectedPublishedDescriptor,
         });
