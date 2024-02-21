@@ -3,14 +3,19 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { beforeAll, afterEach, describe, expect, it } from "vitest";
-import { GenericContainer } from "testcontainers";
-import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import {
   ReadModelRepository,
   TenantCollection,
   initDB,
 } from "pagopa-interop-commons";
+import {
+  TEST_MONGO_DB_PORT,
+  TEST_POSTGRES_DB_PORT,
+  mongoDBContainer,
+  postgreSQLContainer,
+} from "pagopa-interop-commons-test";
 import { IDatabase } from "pg-promise";
+import { StartedTestContainer } from "testcontainers";
 import { config } from "../src/utilities/config.js";
 import {
   ReadModelService,
@@ -26,38 +31,25 @@ describe("Integration tests", () => {
   let readModelService: ReadModelService;
   let tenantService: TenantService;
   let postgresDB: IDatabase<unknown>;
+  let startedPostgreSqlContainer: StartedTestContainer;
+  let startedMongodbContainer: StartedTestContainer;
+
   beforeAll(async () => {
-    const postgreSqlContainer = await new PostgreSqlContainer("postgres:14")
-      .withUsername(config.eventStoreDbUsername)
-      .withPassword(config.eventStoreDbPassword)
-      .withDatabase(config.eventStoreDbName)
-      .withCopyFilesToContainer([
-        {
-          source: "../../docker/event-store-init.sql",
-          target: "/docker-entrypoint-initdb.d/01-init.sql",
-        },
-      ])
-      .withExposedPorts(5432)
-      .start();
+    startedPostgreSqlContainer = await postgreSQLContainer(config).start();
+    startedMongodbContainer = await mongoDBContainer(config).start();
 
-    const mongodbContainer = await new GenericContainer("mongo:4.0.0")
-      .withEnvironment({
-        MONGO_INITDB_DATABASE: config.readModelDbName,
-        MONGO_INITDB_ROOT_USERNAME: config.readModelDbUsername,
-        MONGO_INITDB_ROOT_PASSWORD: config.readModelDbPassword,
-      })
-      .withExposedPorts(27017)
-      .start();
-
-    config.eventStoreDbPort = postgreSqlContainer.getMappedPort(5432);
-    config.readModelDbPort = mongodbContainer.getMappedPort(27017);
+    config.eventStoreDbPort = startedPostgreSqlContainer.getMappedPort(
+      TEST_POSTGRES_DB_PORT
+    );
+    config.readModelDbPort =
+      startedMongodbContainer.getMappedPort(TEST_MONGO_DB_PORT);
     ({ tenants } = ReadModelRepository.init(config));
     readModelService = readModelServiceBuilder(config);
     postgresDB = initDB({
       username: config.eventStoreDbUsername,
       password: config.eventStoreDbPassword,
       host: config.eventStoreDbHost,
-      port: postgreSqlContainer.getMappedPort(5432),
+      port: config.eventStoreDbPort,
       database: config.eventStoreDbName,
       schema: config.eventStoreDbSchema,
       useSSL: config.eventStoreDbUseSSL,
@@ -68,6 +60,9 @@ describe("Integration tests", () => {
   afterEach(async () => {
     await tenants.deleteMany({});
     await postgresDB.none("TRUNCATE TABLE tenant.events RESTART IDENTITY");
+
+    await startedPostgreSqlContainer.stop();
+    await startedMongodbContainer.stop();
   });
 
   describe("tenantService", () => {
