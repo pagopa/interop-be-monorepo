@@ -45,7 +45,8 @@ message EServiceDescriptorArchivedV2 {
 
 message EServiceDescriptorPublishedV2 {
   string descriptorId = 1;
-  EServiceV2 eservice = 2;
+  optional string deprecatedDescriptorId = 2;
+  EServiceV2 eservice = 3;
 }
 
 message EServiceDescriptorSuspendedV2 {
