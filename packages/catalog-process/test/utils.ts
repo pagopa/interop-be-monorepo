@@ -268,20 +268,23 @@ export const addOneAgreement = async (
   await writeAgreementInReadmodel(agreement, agreements);
 };
 
+export const readLastEventsByStreamId = async (
+  eserviceId: EServiceId,
+  postgresDB: IDatabase<unknown>,
+  limit: number
+): Promise<any> => // eslint-disable-line @typescript-eslint/no-explicit-any
+  await postgresDB.many(
+    `SELECT * FROM catalog.events WHERE stream_id = $1 ORDER BY sequence_num DESC LIMIT ${limit}`,
+    [eserviceId]
+  );
+
 export const readLastEventByStreamId = async (
   eserviceId: EServiceId,
   postgresDB: IDatabase<unknown>
 ): Promise<any> => // eslint-disable-line @typescript-eslint/no-explicit-any
-  await postgresDB.one(
-    "SELECT * FROM catalog.events WHERE stream_id = $1 ORDER BY sequence_num DESC LIMIT 1",
-    [eserviceId]
-  );
+  (await readLastEventsByStreamId(eserviceId, postgresDB, 1))[0];
 
 export const readLastTwoEventsByStreamId = async (
-  eServiceId: string,
+  eserviceId: EServiceId,
   postgresDB: IDatabase<unknown>
-): Promise<any> => // eslint-disable-line @typescript-eslint/no-explicit-any
-  await postgresDB.many(
-    "SELECT * FROM catalog.events WHERE stream_id = $1 ORDER BY sequence_num DESC LIMIT 2",
-    [eServiceId]
-  );
+): Promise<any> => await readLastEventsByStreamId(eserviceId, postgresDB, 2); // eslint-disable-line @typescript-eslint/no-explicit-any

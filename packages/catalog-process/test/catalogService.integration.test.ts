@@ -1016,16 +1016,20 @@ describe("database test", async () => {
 
         const publicationEvent = writtenEvents[0];
         const archivingEvent = writtenEvents[1];
-        expect(archivingEvent.stream_id).toBe(eService.id);
-        expect(archivingEvent.version).toBe("1");
-        expect(archivingEvent.type).toBe("EServiceDescriptorUpdated");
+        expect(archivingEvent).toMatchObject({
+          stream_id: eService.id,
+          version: "1",
+          type: "EServiceDescriptorUpdated",
+        });
+        expect(publicationEvent).toMatchObject({
+          stream_id: eService.id,
+          version: "2",
+          type: "EServiceDescriptorUpdated",
+        });
         const archivingPayload = decodeProtobufPayload({
           messageType: EServiceDescriptorUpdatedV1,
           payload: archivingEvent.data,
         });
-        expect(publicationEvent.stream_id).toBe(eService.id);
-        expect(publicationEvent.version).toBe("2");
-        expect(publicationEvent.type).toBe("EServiceDescriptorUpdated");
         const publicationPayload = decodeProtobufPayload({
           messageType: EServiceDescriptorUpdatedV1,
           payload: publicationEvent.data,
