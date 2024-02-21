@@ -1024,6 +1024,8 @@ components:
         voucherLifespan:
           type: integer
           format: int32
+          minimum: 60
+          maximum: 86400
         dailyCallsPerConsumer:
           type: integer
           format: int32
