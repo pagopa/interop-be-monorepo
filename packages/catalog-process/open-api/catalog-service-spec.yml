@@ -638,7 +638,7 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Publish the selected descriptor.
+      summary: Update the selected descriptor.
       operationId: updateDescriptor
       parameters:
         - name: eServiceId
@@ -664,7 +664,7 @@ paths:
               $ref: "#/components/schemas/UpdateEServiceDescriptorQuotasSeed"
       responses:
         "200":
-          description: EService with published descriptor updated.
+          description: EService descriptor updated.
         "400":
           description: Invalid input
           content:
