@@ -1466,15 +1466,12 @@ function replaceDescriptor(
   eService: EService,
   updatedDescriptor: Descriptor
 ): EService {
+  const filteredDescriptors = eService.descriptors.filter(
+    (descriptor) => descriptor.id !== updatedDescriptor.id
+  );
+
   return {
     ...eService,
-    descriptors: eService.descriptors.map((descriptor) => {
-      if (descriptor.id === updatedDescriptor.id) {
-        return updatedDescriptor;
-      }
-      return descriptor;
-    }),
+    descriptors: [...filteredDescriptors, updatedDescriptor],
   };
 }
-
-export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
