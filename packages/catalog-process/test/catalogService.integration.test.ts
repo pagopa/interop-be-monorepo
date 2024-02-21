@@ -2075,7 +2075,7 @@ describe("database test", async () => {
         expect(
           catalogService.updateDescriptor(
             mockEService.id,
-            descriptor.id,
+            mockDescriptor.id,
             updatedDescriptorQuotasSeed,
             getMockAuthData(mockEService.producerId)
           )
