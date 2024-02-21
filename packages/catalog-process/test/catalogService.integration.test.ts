@@ -1019,6 +1019,7 @@ describe("database test", async () => {
 
         const publicationEvent = writtenEvents[0];
         const archivingEvent = writtenEvents[1];
+
         expect(archivingEvent).toMatchObject({
           stream_id: eService.id,
           version: "1",
@@ -1029,6 +1030,7 @@ describe("database test", async () => {
           version: "2",
           type: "EServiceDescriptorUpdated",
         });
+
         const archivingPayload = decodeProtobufPayload({
           messageType: EServiceDescriptorUpdatedV1,
           payload: archivingEvent.data,
