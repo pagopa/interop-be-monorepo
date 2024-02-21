@@ -283,8 +283,3 @@ export const readLastEventByStreamId = async (
   postgresDB: IDatabase<unknown>
 ): Promise<any> => // eslint-disable-line @typescript-eslint/no-explicit-any
   (await readLastEventsByStreamId(eserviceId, postgresDB, 1))[0];
-
-export const readLastTwoEventsByStreamId = async (
-  eserviceId: EServiceId,
-  postgresDB: IDatabase<unknown>
-): Promise<any> => await readLastEventsByStreamId(eserviceId, postgresDB, 2); // eslint-disable-line @typescript-eslint/no-explicit-any
