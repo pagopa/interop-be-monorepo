@@ -1057,13 +1057,14 @@ export function updateDraftDescriptorLogic({
       ),
   };
 
-  const filteredDescriptor = eService.data.descriptors.filter(
-    (d: Descriptor) => d.id !== descriptorId
-  );
-
   const updatedEService: EService = {
     ...eService.data,
-    descriptors: [...filteredDescriptor, updatedDescriptor],
+    descriptors: eService.data.descriptors.map((descriptor) => {
+      if (descriptor.id === descriptorId) {
+        return updatedDescriptor;
+      }
+      return descriptor;
+    }),
   };
 
   return toCreateEventEServiceUpdated(
