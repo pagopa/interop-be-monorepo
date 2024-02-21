@@ -2066,17 +2066,11 @@ describe("database test", async () => {
       });
 
       it("should throw eServiceNotFound if the eService doesn't exist", () => {
-        const descriptor: Descriptor = {
-          ...mockDescriptor,
-          interface: mockDocument,
-          state: descriptorState.published,
-          publishedAt: new Date(),
-        };
         const updatedDescriptorQuotasSeed: UpdateEServiceDescriptorQuotasSeed =
           {
             voucherLifespan: 1000,
-            dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
-            dailyCallsTotal: descriptor.dailyCallsTotal + 10,
+            dailyCallsPerConsumer: mockDescriptor.dailyCallsPerConsumer + 10,
+            dailyCallsTotal: mockDescriptor.dailyCallsTotal + 10,
           };
         expect(
           catalogService.updateDescriptor(
