@@ -2,7 +2,7 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { beforeAll, afterEach, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import {
   ReadModelRepository,
   TenantCollection,
@@ -60,7 +60,9 @@ describe("Integration tests", () => {
   afterEach(async () => {
     await tenants.deleteMany({});
     await postgresDB.none("TRUNCATE TABLE tenant.events RESTART IDENTITY");
+  });
 
+  afterAll(async () => {
     await startedPostgreSqlContainer.stop();
     await startedMongodbContainer.stop();
   });
