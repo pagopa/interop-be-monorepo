@@ -1097,9 +1097,10 @@ describe("database test", async () => {
           descriptor2.id,
           getMockAuthData(eService.producerId)
         );
-        const writtenEvents = await readLastTwoEventsByStreamId(
+        const writtenEvents = await readLastEventsByStreamId(
           eService.id,
-          postgresDB
+          postgresDB,
+          2
         );
 
         const publicationEvent = writtenEvents[0];
