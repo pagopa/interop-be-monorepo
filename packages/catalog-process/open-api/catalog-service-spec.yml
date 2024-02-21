@@ -847,6 +847,7 @@ components:
         - name
         - description
         - technology
+        - mode
       properties:
         name:
           type: string
@@ -858,12 +859,15 @@ components:
           maxLength: 250
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
+        mode:
+          $ref: "#/components/schemas/EServiceMode"
     UpdateEServiceSeed:
       type: object
       required:
         - name
         - description
         - technology
+        - mode
       properties:
         name:
           type: string
@@ -875,6 +879,8 @@ components:
           maxLength: 250
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
+        mode:
+          $ref: "#/components/schemas/EServiceMode"
     EServiceDescriptorSeed:
       required:
         - audience

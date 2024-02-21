@@ -18,6 +18,10 @@ import {
   EServiceEvent,
   DescriptorId,
   EServiceDocumentId,
+  EServiceMode,
+  EServiceModeV1,
+  RiskAnalysis,
+  EServiceRiskAnalysisV1,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 
@@ -47,6 +51,12 @@ export const toEServiceTechnologyV1 = (
   match(input)
     .with("Rest", () => EServiceTechnologyV1.REST)
     .with("Soap", () => EServiceTechnologyV1.SOAP)
+    .exhaustive();
+
+export const toEServiceModeV1 = (input: EServiceMode): EServiceModeV1 =>
+  match(input)
+    .with("Deliver", () => EServiceModeV1.DELIVER)
+    .with("Receive", () => EServiceModeV1.RECEIVE)
     .exhaustive();
 
 export const toEServiceAttributeV1 = (
@@ -90,6 +100,13 @@ export const toDescriptorV1 = (input: Descriptor): EServiceDescriptorV1 => ({
   archivedAt: input.archivedAt ? BigInt(input.archivedAt.getTime()) : undefined,
 });
 
+export const toRiskAnalysisV1 = (
+  input: RiskAnalysis
+): EServiceRiskAnalysisV1 => ({
+  ...input,
+  createdAt: BigInt(input.createdAt.getTime()),
+});
+
 export const toEServiceV1 = (eService: EService): EServiceV1 => ({
   ...eService,
   technology: toEServiceTechnologyV1(eService.technology),
@@ -103,6 +120,8 @@ export const toEServiceV1 = (eService: EService): EServiceV1 => ({
       : undefined,
   descriptors: eService.descriptors.map(toDescriptorV1),
   createdAt: BigInt(eService.createdAt.getTime()),
+  mode: toEServiceModeV1(eService.mode),
+  riskAnalysis: eService.riskAnalysis.map(toRiskAnalysisV1),
 });
 
 export const toCreateEventEServiceAdded = (
