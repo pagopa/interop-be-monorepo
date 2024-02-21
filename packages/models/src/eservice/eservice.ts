@@ -4,6 +4,10 @@ import {
   DescriptorId,
   EServiceDocumentId,
   EServiceId,
+  RiskAnalysisFormId,
+  RiskAnalysisId,
+  RiskAnalysisMultiAnswerId,
+  RiskAnalysisSingleAnswerId,
   TenantId,
 } from "../brandedIds.js";
 
@@ -83,6 +87,45 @@ export const Descriptor = z.object({
 });
 export type Descriptor = z.infer<typeof Descriptor>;
 
+export const eserviceMode = {
+  manual: "Receive",
+  automatic: "Deliver",
+} as const;
+export const EServiceMode = z.enum([
+  Object.values(eserviceMode)[0],
+  ...Object.values(eserviceMode).slice(1),
+]);
+export type EServiceMode = z.infer<typeof EServiceMode>;
+
+export const RiskAnalysisSingleAnswer = z.object({
+  id: RiskAnalysisSingleAnswerId,
+  key: z.string(),
+  value: z.string().optional(),
+});
+export type RiskAnalysisSingleAnswer = z.infer<typeof RiskAnalysisSingleAnswer>;
+
+export const RiskAnalysisMultiAnswer = z.object({
+  id: RiskAnalysisMultiAnswerId,
+  key: z.string(),
+  value: z.array(z.string()),
+});
+export type RiskAnalysisMultiAnswer = z.infer<typeof RiskAnalysisMultiAnswer>;
+
+export const RiskAnalysisForm = z.object({
+  id: RiskAnalysisFormId,
+  version: z.string(),
+  singleAnswers: z.array(RiskAnalysisSingleAnswer),
+  multiAnswers: z.array(RiskAnalysisMultiAnswer),
+});
+export type RiskAnalysisForm = z.infer<typeof RiskAnalysisForm>;
+
+export const RiskAnalysis = z.object({
+  id: RiskAnalysisId,
+  name: z.string(),
+  riskAnalysisForm: RiskAnalysisForm,
+  createdAt: z.coerce.date(),
+});
+
 export const EService = z.object({
   id: EServiceId,
   producerId: TenantId,
@@ -92,5 +135,7 @@ export const EService = z.object({
   attributes: EServiceAttributes.optional(),
   descriptors: z.array(Descriptor),
   createdAt: z.coerce.date(),
+  riskAnalysis: z.array(RiskAnalysis),
+  mode: EServiceMode,
 });
 export type EService = z.infer<typeof EService>;
