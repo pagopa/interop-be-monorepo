@@ -250,11 +250,12 @@ const eservicesRouter = (
         try {
           const { eServiceId, descriptorId, documentId } = req.params;
 
-          const document = await catalogService.getDocumentById(
-            unsafeBrandId(eServiceId),
-            unsafeBrandId(descriptorId),
-            unsafeBrandId(documentId)
-          );
+          const document = await catalogService.getDocumentById({
+            eserviceId: unsafeBrandId(eServiceId),
+            descriptorId: unsafeBrandId(descriptorId),
+            documentId: unsafeBrandId(documentId),
+            authData: req.ctx.authData,
+          });
 
           return res
             .status(200)
