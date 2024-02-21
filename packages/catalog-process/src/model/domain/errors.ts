@@ -15,8 +15,9 @@ export const errorCodes = {
   draftDescriptorAlreadyExists: "0008",
   eserviceCannotBeUpdatedOrDeleted: "0009",
   eServiceDuplicate: "0010",
-  interfaceAlreadyExists: "0011",
+  originNotCompliant: "0011",
   attributeNotFound: "0012",
+  interfaceAlreadyExists: "0022",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -146,5 +147,13 @@ export function attributeNotFound(attributeId: string): ApiError<ErrorCodes> {
     detail: `Attribute ${attributeId} not found`,
     code: "attributeNotFound",
     title: "Attribute not found",
+  });
+}
+
+export function originNotCompliant(origin: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Requester has not origin ${origin}`,
+    code: "originNotCompliant",
+    title: "Origin is not compliant",
   });
 }

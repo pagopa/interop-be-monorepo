@@ -71,6 +71,7 @@ import {
   eServiceDescriptorWithoutInterface,
   interfaceAlreadyExists,
   attributeNotFound,
+  originNotCompliant,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -588,11 +589,13 @@ export function createEserviceLogic({
   apiEServicesSeed: ApiEServiceSeed;
   authData: AuthData;
 }): CreateEvent<EServiceEvent> {
+  if (authData.externalId.origin !== "IPA") {
+    throw originNotCompliant("IPA");
+  }
+
   if (eserviceWithSameName) {
     throw eServiceDuplicate(apiEServicesSeed.name);
   }
-
-  // TODO missing IPA origin check? https://github.com/pagopa/interop-be-catalog-process/blob/19b60ff8bc4994dec501b6f1b4a81de5ee225cd5/src/main/scala/it/pagopa/interop/catalogprocess/api/impl/ProcessApiServiceImpl.scala#L73
 
   const newEService: EService = {
     id: generateId(),
