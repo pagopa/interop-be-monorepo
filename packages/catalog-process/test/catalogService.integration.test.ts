@@ -88,6 +88,7 @@ import {
   inconsistentDailyCalls,
   interfaceAlreadyExists,
   notValidDescriptor,
+  originNotCompliant,
 } from "../src/model/domain/errors.js";
 import { formatClonedEServiceDate } from "../src/utilities/date.js";
 import {
@@ -221,6 +222,23 @@ describe("database test", async () => {
             getMockAuthData(mockEService.producerId)
           )
         ).rejects.toThrowError(eServiceDuplicate(mockEService.name));
+      });
+
+      it("should throw originNotCompliant if the requester externalId origin is not IPA", async () => {
+        expect(
+          catalogService.createEService(
+            {
+              name: mockEService.name,
+              description: mockEService.description,
+              technology: "REST",
+              mode: "DELIVER",
+            },
+            {
+              ...getMockAuthData(mockEService.producerId),
+              externalId: { ...getMockAuthData().externalId, origin: "" },
+            }
+          )
+        ).rejects.toThrowError(originNotCompliant("IPA"));
       });
     });
 
