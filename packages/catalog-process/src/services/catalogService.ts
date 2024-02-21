@@ -1463,15 +1463,15 @@ function assertDailyCallsAreConsistentAndNotDecreased({
 }
 
 function replaceDescriptor(
-  eService: EService,
+  eservice: EService,
   updatedDescriptor: Descriptor
 ): EService {
-  const filteredDescriptors = eService.descriptors.filter(
+  const filteredDescriptors = eservice.descriptors.filter(
     (descriptor) => descriptor.id !== updatedDescriptor.id
   );
 
   return {
-    ...eService,
+    ...eservice,
     descriptors: [...filteredDescriptors, updatedDescriptor],
   };
 }
