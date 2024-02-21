@@ -433,7 +433,7 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
         },
       ];
 
-      const data = await tenants
+      const data = await attributes
         .aggregate(
           [...aggregationPipeline, { $skip: offset }, { $limit: limit }],
           { allowDiskUse: true }
