@@ -5,8 +5,6 @@ import {
   ExternalId,
   Tenant,
   TenantAttribute,
-  TenantFeature,
-  TenantFeatureCertifier,
   TenantId,
   TenantKind,
   TenantVerifier,
@@ -193,13 +191,10 @@ export function evaluateNewSelfcareId({
   }
 }
 
-export function assertTenantIsCertifier(
-  tenant: Tenant
-): asserts tenant is Tenant & {
-  features: [TenantFeatureCertifier, ...TenantFeature[]];
-} {
-  const isCertifier = tenant.features[0]?.type === "Certifier";
-  if (!isCertifier) {
+export function getTenantCertifierId(tenant: Tenant): string {
+  const certifierFeature = tenant.features.find((f) => f.type === "Certifier");
+  if (!certifierFeature) {
     throw tenantIsNotCertifier(tenant.id);
   }
+  return certifierFeature.certifierId;
 }
