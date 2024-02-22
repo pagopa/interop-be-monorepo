@@ -149,7 +149,7 @@ export function selfcareIdConflict({
 
 export function tenantIsNotCertifier(tenantId: TenantId): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization ${tenantId} not allowed to assign attributes`,
+    detail: `Organization ${tenantId} not a certifier`,
     code: "tenantIsNotCertifier",
     title: "Tenant is not a certifier",
   });
