@@ -3,7 +3,6 @@ import { KID } from "../auth/keys/keys.js";
 
 export const SignerConfig = z
   .object({
-    KMS_MAX_CONCURRENCY: z.number(),
     KMS_MAX_ACQUISITION_TIMEOUT_SECONDS: z.number(),
     EC_KEYS_IDENTIFIERS: z
       .string()
@@ -15,7 +14,6 @@ export const SignerConfig = z
       .pipe(z.array(KID)),
   })
   .transform((c) => ({
-    maxConcurrency: c.KMS_MAX_CONCURRENCY,
     maxAcquisitionTimeoutSeconds: c.KMS_MAX_ACQUISITION_TIMEOUT_SECONDS,
     ecKeysIdentifiers: c.EC_KEYS_IDENTIFIERS,
     rsaKeysIdentifiers: c.RSA_KEYS_IDENTIFIERS,

@@ -26,6 +26,17 @@ export class ApiError<T> extends Error {
   }
 }
 
+export class InternalError<T> extends Error {
+  public code: T;
+  public detail: string;
+
+  constructor({ code, detail }: { code: T; detail: string }) {
+    super(detail);
+    this.code = code;
+    this.detail = detail;
+  }
+}
+
 export type ProblemError = {
   code: string;
   detail: string;
@@ -88,10 +99,25 @@ const errorCodes = {
   missingClaim: "9990",
   genericError: "9991",
   unauthorizedError: "9991",
+  thirdPartyCallError: "9992",
   missingHeader: "9994",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
+
+/* ===== Internal Error ===== */
+
+export function thirdPartyCallError(
+  serviceName: string,
+  errorMessage: string
+): InternalError<CommonErrorCodes> {
+  return new InternalError({
+    code: "thirdPartyCallError",
+    detail: `Error while invoking ${serviceName} external service -> ${errorMessage}`,
+  });
+}
+
+/* ===== API Error ===== */
 
 export function authenticationSaslFailed(
   message: string
