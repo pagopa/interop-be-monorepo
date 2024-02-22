@@ -30,6 +30,7 @@ export async function handleMessageV2(
           version: message.version,
         },
       },
-    }
+    },
+    { upsert: true }
   );
 }
