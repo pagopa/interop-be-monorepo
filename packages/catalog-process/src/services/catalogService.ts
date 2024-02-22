@@ -939,7 +939,14 @@ export async function deleteDraftDescriptorLogic({
 
   const descriptorInterface = descriptor.interface;
   if (descriptorInterface !== undefined) {
-    await deleteFile(config.s3Bucket, descriptorInterface.path);
+    await deleteFile(config.s3Bucket, descriptorInterface.path).catch(
+      (error) => {
+        logger.error(
+          `Error deleting interface for descriptor ${descriptorId} : ${error}`
+        );
+        throw error;
+      }
+    );
   }
 
   const deleteDescriptorDocs = descriptor.docs.map((doc: Document) =>

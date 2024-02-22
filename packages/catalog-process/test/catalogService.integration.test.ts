@@ -860,7 +860,8 @@ describe("database test", async () => {
     });
 
     describe("delete draft descriptor", () => {
-      it("should write on event-store for the deletion of a draft descriptor", async () => {
+      it("should write on event-store for the deletion of a draft descriptor (no interface nor documents to delete)", async () => {
+        const deleteFile = vi.spyOn(fileManager, "delete");
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
@@ -890,6 +891,57 @@ describe("database test", async () => {
         });
         expect(writtenPayload.eService).toEqual(toEServiceV1(eService));
         expect(writtenPayload.descriptorId).toEqual(descriptor.id);
+        expect(deleteFile).not.toHaveBeenCalled();
+      });
+
+      it("should write on event-store for the deletion of a draft descriptor (with interface and document to delete)", async () => {
+        const deleteFile = vi.spyOn(fileManager, "delete");
+        const descriptorInterface: Document = {
+          ...mockDocument,
+          id: generateId(),
+          path: "test-path1",
+        };
+        const document: Document = {
+          ...mockDocument,
+          id: generateId(),
+          path: "test-path2",
+        };
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          interface: descriptorInterface,
+          state: descriptorState.draft,
+          docs: [document],
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+
+        await catalogService.deleteDraftDescriptor(
+          eService.id,
+          descriptor.id,
+          getMockAuthData(eService.producerId)
+        );
+
+        const writtenEvent = await readLastEventByStreamId(
+          eService.id,
+          postgresDB
+        );
+        expect(writtenEvent.stream_id).toBe(eService.id);
+        expect(writtenEvent.version).toBe("1");
+        expect(writtenEvent.type).toBe("EServiceWithDescriptorsDeleted");
+        const writtenPayload = decodeProtobufPayload({
+          messageType: EServiceWithDescriptorsDeletedV1,
+          payload: writtenEvent.data,
+        });
+        expect(writtenPayload.eService).toEqual(toEServiceV1(eService));
+        expect(writtenPayload.descriptorId).toEqual(descriptor.id);
+        expect(deleteFile).toHaveBeenCalledWith(
+          config.s3Bucket,
+          descriptorInterface.path
+        );
+        expect(deleteFile).toHaveBeenCalledWith(config.s3Bucket, document.path);
       });
 
       it("should throw eServiceNotFound if the eService doesn't exist", () => {
@@ -1492,11 +1544,21 @@ describe("database test", async () => {
 
       // TODO: test also file cloning on the bucket, then re-enable this test
       it.skip("should write on event-store for the cloning of a descriptor", async () => {
+        const descriptorInterface: Document = {
+          ...mockDocument,
+          id: generateId(),
+          path: "test-path1",
+        };
+        const document: Document = {
+          ...mockDocument,
+          id: generateId(),
+          path: "test-path2",
+        };
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
-          interface: mockDocument,
-          docs: [mockDocument],
+          interface: descriptorInterface,
+          docs: [document],
         };
         const eService: EService = {
           ...mockEService,
@@ -1522,7 +1584,7 @@ describe("database test", async () => {
         });
 
         const expectedInterface: Document = {
-          ...mockDocument,
+          ...descriptorInterface,
           id: unsafeBrandId(
             writtenPayload.eService!.descriptors[0].interface!.id
           ),
@@ -1532,7 +1594,7 @@ describe("database test", async () => {
           path: writtenPayload.eService!.descriptors[0].interface!.path,
         };
         const expectedDocument: Document = {
-          ...mockDocument,
+          ...document,
           id: unsafeBrandId(writtenPayload.eService!.descriptors[0].docs[0].id),
           uploadDate: new Date(
             writtenPayload.eService!.descriptors[0].docs[0].uploadDate
