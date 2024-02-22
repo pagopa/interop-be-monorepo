@@ -18,8 +18,7 @@ message EServiceAttributeValueV2 {
 }
 
 message EServiceAttributeV2 {
-  optional EServiceAttributeValueV2 single = 1;
-  repeated EServiceAttributeValueV2 group = 2;
+  repeated EServiceAttributeValueV2 values = 1;
 }
 
 message EServiceAttributesV2 {
