@@ -8,9 +8,8 @@ message EServiceV2 {
   string name = 3;
   string description = 4;
   EServiceTechnologyV2 technology = 5;
-  optional EServiceAttributesV2 attributes = 6;
-  repeated EServiceDescriptorV2 descriptors = 7;
-  optional int64 createdAt = 8;
+  repeated EServiceDescriptorV2 descriptors = 6;
+  int64 createdAt = 7;
 }
 
 message EServiceAttributeValueV2 {
@@ -31,7 +30,7 @@ message EServiceAttributesV2 {
 
 message EServiceDescriptorV2 {
   string id = 1;
-  string version = 2;
+  int64 version = 2;
   optional string description = 3;
   repeated EServiceDocumentV2 docs = 4;
   EServiceDescriptorStateV2 state = 5;
@@ -40,14 +39,14 @@ message EServiceDescriptorV2 {
   int32 voucherLifespan = 8;
   int32 dailyCallsPerConsumer = 9;
   int32 dailyCallsTotal = 10;
-  optional AgreementApprovalPolicyV2 agreementApprovalPolicy = 11;
-  optional int64 createdAt = 12;
+  AgreementApprovalPolicyV2 agreementApprovalPolicy = 11;
+  int64 createdAt = 12;
   optional int64 publishedAt = 13;
   repeated string serverUrls = 14;
   optional int64 suspendedAt = 15;
   optional int64 deprecatedAt = 16;
   optional int64 archivedAt = 17;
-  optional EServiceAttributesV2 attributes = 18;
+  EServiceAttributesV2 attributes = 18;
 }
 
 message EServiceDocumentV2 {
