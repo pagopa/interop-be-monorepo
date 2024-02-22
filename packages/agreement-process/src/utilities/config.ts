@@ -12,12 +12,14 @@ const AgreementProcessConfig = CommonConfig.and(EventStoreConfig)
   .and(
     z
       .object({
-        STORAGE_CONTAINER: z.string(),
+        S3_BUCKET: z.string(),
         CONSUMER_DOCUMENTS_PATH: z.string(),
+        AGREEMENT_CONTRACTS_PATH: z.string(),
       })
       .transform((c) => ({
-        storageContainer: c.STORAGE_CONTAINER,
+        s3Bucket: c.S3_BUCKET,
         consumerDocumentsPath: c.CONSUMER_DOCUMENTS_PATH,
+        agreementContractsPath: c.AGREEMENT_CONTRACTS_PATH,
       }))
   );
 export type AgreementProcessConfig = z.infer<typeof AgreementProcessConfig>;

@@ -1,110 +1,109 @@
 import {
   CopyObjectCommand,
   DeleteObjectCommand,
+  ListObjectsCommand,
+  PutObjectCommand,
   S3Client,
+  S3ClientConfig,
 } from "@aws-sdk/client-s3";
 import { FileManagerConfig } from "./config/fileManagerConfig.js";
-import { logger } from "./index.js";
+import { LoggerConfig, logger } from "./index.js";
 
 export type FileManager = {
-  deleteFile: (container: string, path: string) => Promise<void>;
+  delete: (bucket: string, path: string) => Promise<void>;
   copy: (
-    container: string,
-    path: string,
+    bucket: string,
     filePathToCopy: string,
-    documentId: string,
+    path: string,
+    resourceId: string,
     fileName: string
   ) => Promise<string>;
   storeBytes: (
-    documentId: string,
-    documentName: string,
-    byteArray: Uint8Array
+    bucket: string,
+    path: string,
+    resourceId: string,
+    fileName: string,
+    fileContent: Buffer
   ) => Promise<string>;
+  listFiles: (bucket: string) => Promise<string[]>;
 };
 
-const mockFileManager: FileManager = {
-  deleteFile: async (container: string, path: string): Promise<void> => {
-    logger.info(`Deleting file ${path} from container ${container}`);
+export function initFileManager(
+  config: FileManagerConfig & LoggerConfig
+): FileManager {
+  const s3ClientConfig: S3ClientConfig = {
+    endpoint: config.s3CustomServer
+      ? `${config.s3ServerHost}:${config.s3ServerPort}`
+      : undefined,
+    forcePathStyle: config.s3CustomServer,
+    logger: config.logLevel === "debug" ? console : undefined,
+  };
+  const client = new S3Client(s3ClientConfig);
 
-    return Promise.resolve();
-  },
+  const buildS3Key = (
+    path: string,
+    resourceId: string,
+    fileName: string
+  ): string => `${path}/${resourceId}/${fileName}`;
 
-  copy: async (
-    container: string,
-    _path: string,
-    filePathToCopy: string,
-    _documentId: string,
-    _fileName: string
-  ): Promise<string> => {
-    logger.info(
-      `Mock Copying file ${filePathToCopy} from container ${container}`
-    );
-    return Promise.resolve("");
-  },
-  storeBytes: async (
-    _documentId: string,
-    _documentName: string,
-    _byteArray: Uint8Array
-  ): Promise<string> => {
-    logger.info(`Mock Storing bytes`);
-    return Promise.resolve("mock/path/to/file");
-  },
-};
-
-export function initFileManager(config: FileManagerConfig): FileManager {
-  if (config.mockFileManager) {
-    return mockFileManager;
-  } else {
-    const { s3AccessKeyId, s3SecretAccessKey, s3Region } = config;
-
-    const client = new S3Client({
-      credentials: {
-        accessKeyId: s3AccessKeyId,
-        secretAccessKey: s3SecretAccessKey,
-      },
-      region: s3Region,
-    });
-
-    const buildS3Key = (
+  return {
+    delete: async (bucket: string, path: string): Promise<void> => {
+      logger.info(`Deleting file ${path} from bucket ${bucket}`);
+      await client.send(
+        new DeleteObjectCommand({
+          Bucket: bucket,
+          Key: path,
+        })
+      );
+    },
+    copy: async (
+      bucket: string,
+      filePathToCopy: string,
       path: string,
       resourceId: string,
       fileName: string
-    ): string => `${path}/${resourceId}/${fileName}`;
-
-    return {
-      deleteFile: async (container: string, path: string): Promise<void> => {
-        await client.send(
-          new DeleteObjectCommand({ Bucket: container, Key: path })
-        );
-      },
-      copy: async (
-        container: string,
-        path: string,
-        filePathToCopy: string,
-        documentId: string,
-        fileName: string
-      ): Promise<string> => {
-        logger.info(`Copying file ${filePathToCopy}`);
-
-        const s3Key = buildS3Key(path, documentId, fileName);
-
-        await client.send(
-          new CopyObjectCommand({
-            Bucket: container,
-            CopySource: `${container}/${filePathToCopy}`,
-            Key: s3Key,
-          })
-        );
-        return Promise.resolve(s3Key);
-      },
-      storeBytes: async (
-        _documentId: string,
-        _documentName: string,
-        _byteArray: Uint8Array
-      ): Promise<string> => {
-        logger.info(`Mock Storing bytes`);
-        return Promise.resolve("mock/path/to/file");
-      },
-    };
-  }
+    ): Promise<string> => {
+      const key = buildS3Key(path, resourceId, fileName);
+      logger.info(`Copying file ${filePathToCopy} to ${key}`);
+      await client.send(
+        new CopyObjectCommand({
+          Bucket: bucket,
+          CopySource: `${bucket}/${filePathToCopy}`,
+          Key: key,
+        })
+      );
+      return key;
+    },
+    listFiles: async (bucket: string): Promise<string[]> => {
+      logger.info(`Listing files in bucket ${bucket}`);
+      const response = await client.send(
+        new ListObjectsCommand({
+          Bucket: bucket,
+        })
+      );
+      return (
+        response.Contents?.map((object) => object.Key).filter(
+          (key): key is string => key !== undefined
+        ) ?? []
+      );
+    },
+    storeBytes: async (
+      bucket: string,
+      path: string,
+      resourceId: string,
+      fileName: string,
+      fileContent: Buffer
+    ): Promise<string> => {
+      const key = buildS3Key(path, resourceId, fileName);
+      logger.info(`Storing file ${key} in bucket ${bucket}`);
+      await client.send(
+        new PutObjectCommand({
+          Bucket: bucket,
+          Key: key,
+          Body: fileContent,
+        })
+      );
+      return key;
+    },
+  };
 }

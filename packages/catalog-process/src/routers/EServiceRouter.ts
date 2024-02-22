@@ -7,6 +7,7 @@ import {
   authorizationMiddleware,
   ReadModelRepository,
   initDB,
+  initFileManager,
 } from "pagopa-interop-commons";
 import {
   unsafeBrandId,
@@ -58,7 +59,8 @@ const catalogService = catalogServiceBuilder(
     schema: config.eventStoreDbSchema,
     useSSL: config.eventStoreDbUseSSL,
   }),
-  readModelService
+  readModelService,
+  initFileManager(config)
 );
 
 const eservicesRouter = (
