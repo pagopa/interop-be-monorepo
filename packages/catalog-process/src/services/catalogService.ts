@@ -70,6 +70,7 @@ import {
   eServiceDescriptorWithoutInterface,
   interfaceAlreadyExists,
   attributeNotFound,
+  inconsistentDailyCalls,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -886,6 +887,13 @@ export async function createDescriptorLogic({
     }
   }
 
+  if (
+    eserviceDescriptorSeed.dailyCallsPerConsumer >
+    eserviceDescriptorSeed.dailyCallsTotal
+  ) {
+    throw inconsistentDailyCalls();
+  }
+
   const newDescriptor: Descriptor = {
     id: generateId(),
     description: eserviceDescriptorSeed.description,
@@ -1005,6 +1013,10 @@ export function updateDescriptorLogic({
 
   if (descriptor.state !== descriptorState.draft) {
     throw notValidDescriptor(descriptorId, descriptor.state.toString());
+  }
+
+  if (seed.dailyCallsPerConsumer > seed.dailyCallsTotal) {
+    throw inconsistentDailyCalls();
   }
 
   const updatedDescriptor: Descriptor = {
@@ -1361,4 +1373,5 @@ const applyVisibilityToEService = (
     ),
   };
 };
+
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
