@@ -3,7 +3,7 @@ import { KID } from "../auth/keys/keys.js";
 
 export const SignerConfig = z
   .object({
-    KMS_MAX_ACQUISITION_TIMEOUT_SECONDS: z.number(),
+    KMS_MAX_ACQUISITION_TIMEOUT_SECONDS: z.coerce.number(),
     EC_KEYS_IDENTIFIERS: z
       .string()
       .transform((val) => val?.split(","))

@@ -5,7 +5,7 @@ export const JWTSeedConfig = z
     JWT_SUBJECT: z.string(),
     JWT_AUDIENCE: z.string().transform((v) => v.split(",")),
     JWT_ISSUER: z.string(),
-    JWT_SECONDS_TO_EXPIRE: z.number(),
+    JWT_SECONDS_TO_EXPIRE: z.coerce.number(),
   })
   .transform((c) => ({
     subject: c.JWT_SUBJECT,
