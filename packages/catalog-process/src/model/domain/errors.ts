@@ -42,7 +42,7 @@ export function eServiceNotFound(eserviceId: EServiceId): ApiError<ErrorCodes> {
 
 export function eServiceDuplicate(eServiceName: string): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `EService with name: ${eServiceName} already in use`,
+    detail: `An EService with name ${eServiceName} already exists`,
     code: "eServiceDuplicate",
     title: "Duplicated service name",
   });
