@@ -72,6 +72,7 @@ import {
   attributeNotFound,
   inconsistentDailyCalls,
 } from "../model/domain/errors.js";
+import { formatClonedEServiceDate } from "../utilities/date.js";
 import { ReadModelService } from "./readModelService.js";
 
 function assertEServiceExist(
@@ -1226,10 +1227,9 @@ export async function cloneDescriptorLogic({
   assertEServiceExist(eserviceId, eService);
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
 
-  const currentDate = new Date();
-  const currentLocalDate = currentDate.toLocaleDateString("it-IT");
-  const currentLocalTime = currentDate.toLocaleTimeString("it-IT");
-  const clonedEServiceName = `${eService.data.name} - clone - ${currentLocalDate} ${currentLocalTime}`;
+  const clonedEServiceName = `${
+    eService.data.name
+  } - clone - ${formatClonedEServiceDate(new Date())}`;
 
   if (
     await getEServiceByNameAndProducerId({

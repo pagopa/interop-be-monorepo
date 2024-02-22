@@ -89,6 +89,7 @@ import {
   interfaceAlreadyExists,
   notValidDescriptor,
 } from "../src/model/domain/errors.js";
+import { formatClonedEServiceDate } from "../src/utilities/date.js";
 import {
   addOneAgreement,
   addOneEService,
@@ -1844,12 +1845,12 @@ describe("database test", async () => {
           docs: [expectedDocument1, expectedDocument2],
         };
 
-        const expectedLocalDate = cloneTimeStamp.toLocaleDateString("it-IT");
-        const expectedLocalTime = cloneTimeStamp.toLocaleTimeString("it-IT");
         const expectedEService: EService = {
           ...eService,
           id: unsafeBrandId(writtenPayload.eService!.id),
-          name: `${eService.name} - clone - ${expectedLocalDate} ${expectedLocalTime}`,
+          name: `${eService.name} - clone - ${formatClonedEServiceDate(
+            cloneTimeStamp
+          )}`,
           descriptors: [expectedDescriptor],
           createdAt: new Date(Number(writtenPayload.eService?.createdAt)),
         };
@@ -1926,9 +1927,9 @@ describe("database test", async () => {
         await addOneEService(eService1, postgresDB, eservices);
 
         const cloneTimeStamp = new Date();
-        const expectedLocalDate = cloneTimeStamp.toLocaleDateString("it-IT");
-        const expectedLocalTime = cloneTimeStamp.toLocaleTimeString("it-IT");
-        const conflictEServiceName = `${eService1.name} - clone - ${expectedLocalDate} ${expectedLocalTime}`;
+        const conflictEServiceName = `${
+          eService1.name
+        } - clone - ${formatClonedEServiceDate(cloneTimeStamp)}`;
         const eService2: EService = {
           ...mockEService,
           id: generateId(),
