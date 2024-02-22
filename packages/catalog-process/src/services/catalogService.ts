@@ -290,6 +290,7 @@ export function catalogServiceBuilder(
         totalCount: eservicesList.totalCount,
       };
     },
+
     async getEServiceConsumers(
       eServiceId: EServiceId,
       offset: number,
@@ -302,6 +303,7 @@ export function catalogServiceBuilder(
         limit
       );
     },
+
     async updateEService(
       eserviceId: EServiceId,
       eServiceSeed: ApiEServiceSeed,
@@ -318,6 +320,7 @@ export function catalogServiceBuilder(
           eServiceSeed,
           getEServiceByNameAndProducerId:
             readModelService.getEServiceByNameAndProducerId,
+          deleteFile: fileManager.delete,
         })
       );
     },
@@ -638,6 +641,7 @@ export async function updateEserviceLogic({
   authData,
   eServiceSeed,
   getEServiceByNameAndProducerId,
+  deleteFile,
 }: {
   eService: WithMetadata<EService> | undefined;
   eserviceId: EServiceId;
@@ -650,6 +654,7 @@ export async function updateEserviceLogic({
     name: string;
     producerId: TenantId;
   }) => Promise<WithMetadata<EService> | undefined>;
+  deleteFile: (container: string, path: string) => Promise<void>;
 }): Promise<CreateEvent<EServiceEvent>> {
   assertEServiceExist(eserviceId, eService);
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
@@ -674,11 +679,29 @@ export async function updateEserviceLogic({
     }
   }
 
+  const updatedTechnology = apiTechnologyToTechnology(eServiceSeed.technology);
+  if (eService.data.descriptors.length === 1) {
+    const draftDescriptor = eService.data.descriptors[0];
+    if (
+      updatedTechnology !== eService.data.technology &&
+      draftDescriptor.interface !== undefined
+    ) {
+      await deleteFile(config.s3Bucket, draftDescriptor.interface.path).catch(
+        (error) => {
+          logger.error(
+            `Error deleting interface for descriptor ${draftDescriptor.id} : ${error}`
+          );
+          throw error;
+        }
+      );
+    }
+  }
+
   const updatedEService: EService = {
     ...eService.data,
     description: eServiceSeed.description,
     name: eServiceSeed.name,
-    technology: apiTechnologyToTechnology(eServiceSeed.technology),
+    technology: updatedTechnology,
     producerId: authData.organizationId,
   };
 
@@ -960,7 +983,14 @@ export async function deleteDraftDescriptorLogic({
 
   const descriptorInterface = descriptor.interface;
   if (descriptorInterface !== undefined) {
-    await deleteFile(config.s3Bucket, descriptorInterface.path);
+    await deleteFile(config.s3Bucket, descriptorInterface.path).catch(
+      (error) => {
+        logger.error(
+          `Error deleting interface for descriptor ${descriptorId} : ${error}`
+        );
+        throw error;
+      }
+    );
   }
 
   const deleteDescriptorDocs = descriptor.docs.map((doc: Document) =>
