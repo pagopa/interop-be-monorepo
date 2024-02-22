@@ -2,9 +2,9 @@ import {
   AuthData,
   CreateEvent,
   DB,
+  FileManager,
   eventRepository,
   hasPermission,
-  initFileManager,
   logger,
   userRoles,
 } from "pagopa-interop-commons";
@@ -72,8 +72,6 @@ import {
   attributeNotFound,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
-
-const fileManager = initFileManager(config);
 
 function assertEServiceExist(
   eserviceId: EServiceId,
@@ -213,7 +211,8 @@ const hasNotDraftDescriptor = (eService: EService): void => {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function catalogServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelService
+  readModelService: ReadModelService,
+  fileManager: FileManager
 ) {
   const repository = eventRepository(dbInstance, catalogEventToBinaryData);
   return {
@@ -302,7 +301,7 @@ export function catalogServiceBuilder(
           eServiceSeed,
           getEServiceByNameAndProducerId:
             readModelService.getEServiceByNameAndProducerId,
-          deleteFile: fileManager.deleteFile,
+          deleteFile: fileManager.delete,
         })
       );
     },
@@ -384,7 +383,7 @@ export function catalogServiceBuilder(
           documentId,
           authData,
           eService,
-          deleteRemoteFile: fileManager.deleteFile,
+          deleteFile: fileManager.delete,
         })
       );
     },
@@ -448,7 +447,7 @@ export function catalogServiceBuilder(
           eserviceId,
           descriptorId,
           authData,
-          deleteFile: fileManager.deleteFile,
+          deleteFile: fileManager.delete,
           eService,
         })
       );
@@ -666,15 +665,14 @@ export async function updateEserviceLogic({
       updatedTechnology !== eService.data.technology &&
       draftDescriptor.interface !== undefined
     ) {
-      await deleteFile(
-        config.storageContainer,
-        draftDescriptor.interface.path
-      ).catch((error) => {
-        logger.error(
-          `Error deleting interface for descriptor ${draftDescriptor.id} : ${error}`
-        );
-        throw error;
-      });
+      await deleteFile(config.s3Bucket, draftDescriptor.interface.path).catch(
+        (error) => {
+          logger.error(
+            `Error deleting interface for descriptor ${draftDescriptor.id} : ${error}`
+          );
+          throw error;
+        }
+      );
     }
   }
 
@@ -764,14 +762,14 @@ export async function deleteDocumentLogic({
   documentId,
   authData,
   eService,
-  deleteRemoteFile,
+  deleteFile,
 }: {
   eserviceId: EServiceId;
   descriptorId: DescriptorId;
   documentId: EServiceDocumentId;
   authData: AuthData;
   eService: WithMetadata<EService> | undefined;
-  deleteRemoteFile: (container: string, path: string) => Promise<void>;
+  deleteFile: (bucket: string, path: string) => Promise<void>;
 }): Promise<CreateEvent<EServiceEvent>> {
   assertEServiceExist(eserviceId, eService);
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
@@ -789,7 +787,7 @@ export async function deleteDocumentLogic({
     throw eServiceDocumentNotFound(eserviceId, descriptorId, documentId);
   }
 
-  await deleteRemoteFile(config.storageContainer, document.path);
+  await deleteFile(config.s3Bucket, document.path);
 
   return toCreateEventEServiceDocumentDeleted(
     eserviceId,
@@ -950,7 +948,7 @@ export async function deleteDraftDescriptorLogic({
   eserviceId: EServiceId;
   descriptorId: DescriptorId;
   authData: AuthData;
-  deleteFile: (container: string, path: string) => Promise<void>;
+  deleteFile: (bucket: string, path: string) => Promise<void>;
   eService: WithMetadata<EService> | undefined;
 }): Promise<CreateEvent<EServiceEvent>> {
   assertEServiceExist(eserviceId, eService);
@@ -964,17 +962,18 @@ export async function deleteDraftDescriptorLogic({
 
   const descriptorInterface = descriptor.interface;
   if (descriptorInterface !== undefined) {
-    await deleteFile(config.storageContainer, descriptorInterface.path).catch(
+    await deleteFile(config.s3Bucket, descriptorInterface.path).catch(
       (error) => {
         logger.error(
           `Error deleting interface for descriptor ${descriptorId} : ${error}`
         );
+        throw error;
       }
     );
   }
 
   const deleteDescriptorDocs = descriptor.docs.map((doc: Document) =>
-    deleteFile(config.storageContainer, doc.path)
+    deleteFile(config.s3Bucket, doc.path)
   );
 
   await Promise.all(deleteDescriptorDocs).catch((error) => {
@@ -1191,7 +1190,7 @@ export async function cloneDescriptorLogic({
   descriptorId: DescriptorId;
   authData: AuthData;
   copyFile: (
-    container: string,
+    bucket: string,
     docPath: string,
     path: string,
     id: string,
@@ -1230,7 +1229,7 @@ export async function cloneDescriptorLogic({
   const clonedInterfacePath =
     descriptor.interface !== undefined
       ? await copyFile(
-          config.storageContainer,
+          config.s3Bucket,
           config.eserviceDocumentsPath,
           descriptor.interface.path,
           clonedDocumentId,
@@ -1255,7 +1254,7 @@ export async function cloneDescriptorLogic({
     descriptor.docs.map(async (doc: Document) => {
       const clonedDocumentId = generateId<EServiceDocumentId>();
       const clonedPath = await copyFile(
-        config.storageContainer,
+        config.s3Bucket,
         config.eserviceDocumentsPath,
         doc.path,
         clonedDocumentId,
