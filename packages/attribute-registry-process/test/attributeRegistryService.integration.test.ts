@@ -128,6 +128,7 @@ describe("database test", () => {
         expect(writtenEvent.stream_id).toBe(id);
         expect(writtenEvent.version).toBe("0");
         expect(writtenEvent.type).toBe("AttributeAdded");
+        expect(writtenEvent.event_version).toBe(1);
         const writtenPayload = decodeProtobufPayload({
           messageType: AttributeAddedV1,
           payload: writtenEvent.data,
@@ -174,6 +175,7 @@ describe("database test", () => {
         expect(writtenEvent.stream_id).toBe(id);
         expect(writtenEvent.version).toBe("0");
         expect(writtenEvent.type).toBe("AttributeAdded");
+        expect(writtenEvent.event_version).toBe(1);
 
         const writtenPayload = decodeProtobufPayload({
           messageType: AttributeAddedV1,
@@ -234,6 +236,7 @@ describe("database test", () => {
         expect(writtenEvent.stream_id).toBe(id);
         expect(writtenEvent.version).toBe("0");
         expect(writtenEvent.type).toBe("AttributeAdded");
+        expect(writtenEvent.event_version).toBe(1);
         const writtenPayload = decodeProtobufPayload({
           messageType: AttributeAddedV1,
           payload: writtenEvent.data,
@@ -332,6 +335,7 @@ describe("database test", () => {
         expect(writtenEvent.stream_id).toBe(id);
         expect(writtenEvent.version).toBe("0");
         expect(writtenEvent.type).toBe("AttributeAdded");
+        expect(writtenEvent.event_version).toBe(1);
         const writtenPayload = decodeProtobufPayload({
           messageType: AttributeAddedV1,
           payload: writtenEvent.data,
