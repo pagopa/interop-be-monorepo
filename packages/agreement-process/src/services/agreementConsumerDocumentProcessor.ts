@@ -54,7 +54,7 @@ export async function removeAgreementConsumerDocumentLogic(
   documentId: AgreementDocumentId,
   agreementQuery: AgreementQuery,
   authData: AuthData,
-  fileRemove: (container: string, path: string) => Promise<void>
+  fileRemove: (bucket: string, path: string) => Promise<void>
 ): Promise<CreateEvent<AgreementEvent>> {
   const agreement = await agreementQuery.getAgreementById(agreementId);
 
@@ -70,7 +70,7 @@ export async function removeAgreementConsumerDocumentLogic(
     throw agreementDocumentNotFound(documentId, agreementId);
   }
 
-  await fileRemove(config.storageContainer, existentDocument.path);
+  await fileRemove(config.s3Bucket, existentDocument.path);
 
   return toCreateEventAgreementConsumerDocumentRemoved(
     agreementId,

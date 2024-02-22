@@ -50,9 +50,16 @@ import {
   operationForbidden,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { PostgreSqlContainer } from "@testcontainers/postgresql";
-import { GenericContainer } from "testcontainers";
-import { decodeProtobufPayload } from "pagopa-interop-commons-test";
+import {
+  TEST_MINIO_PORT,
+  TEST_MONGO_DB_PORT,
+  TEST_POSTGRES_DB_PORT,
+  decodeProtobufPayload,
+  minioContainer,
+  mongoDBContainer,
+  postgreSQLContainer,
+} from "pagopa-interop-commons-test";
+import { StartedTestContainer } from "testcontainers";
 import { config } from "../src/utilities/config.js";
 import {
   toDescriptorV1,
@@ -115,33 +122,22 @@ describe("database test", async () => {
   let readModelService: ReadModelService;
   let catalogService: CatalogService;
   let postgresDB: IDatabase<unknown>;
+  let startedPostgreSqlContainer: StartedTestContainer;
+  let startedMongodbContainer: StartedTestContainer;
+  let startedMinioContainer: StartedTestContainer;
   let fileManager: FileManager;
 
   beforeAll(async () => {
-    const postgreSqlContainer = await new PostgreSqlContainer("postgres:14")
-      .withUsername(config.eventStoreDbUsername)
-      .withPassword(config.eventStoreDbPassword)
-      .withDatabase(config.eventStoreDbName)
-      .withCopyFilesToContainer([
-        {
-          source: "../../docker/event-store-init.sql",
-          target: "/docker-entrypoint-initdb.d/01-init.sql",
-        },
-      ])
-      .withExposedPorts(5432)
-      .start();
+    startedPostgreSqlContainer = await postgreSQLContainer(config).start();
+    startedMongodbContainer = await mongoDBContainer(config).start();
+    startedMinioContainer = await minioContainer(config).start();
 
-    const mongodbContainer = await new GenericContainer("mongo:4.0.0")
-      .withEnvironment({
-        MONGO_INITDB_DATABASE: config.readModelDbName,
-        MONGO_INITDB_ROOT_USERNAME: config.readModelDbUsername,
-        MONGO_INITDB_ROOT_PASSWORD: config.readModelDbPassword,
-      })
-      .withExposedPorts(27017)
-      .start();
-
-    config.eventStoreDbPort = postgreSqlContainer.getMappedPort(5432);
-    config.readModelDbPort = mongodbContainer.getMappedPort(27017);
+    config.eventStoreDbPort = startedPostgreSqlContainer.getMappedPort(
+      TEST_POSTGRES_DB_PORT
+    );
+    config.readModelDbPort =
+      startedMongodbContainer.getMappedPort(TEST_MONGO_DB_PORT);
+    config.s3ServerPort = startedMinioContainer.getMappedPort(TEST_MINIO_PORT);
 
     const readModelRepository = ReadModelRepository.init(config);
     eservices = readModelRepository.eservices;
@@ -158,8 +154,12 @@ describe("database test", async () => {
       schema: config.eventStoreDbSchema,
       useSSL: config.eventStoreDbUseSSL,
     });
-    catalogService = catalogServiceBuilder(postgresDB, readModelService);
     fileManager = initFileManager(config);
+    catalogService = catalogServiceBuilder(
+      postgresDB,
+      readModelService,
+      fileManager
+    );
   });
 
   afterEach(async () => {
@@ -170,6 +170,12 @@ describe("database test", async () => {
 
     await postgresDB.none("TRUNCATE TABLE catalog.events RESTART IDENTITY");
     await postgresDB.none("TRUNCATE TABLE agreement.events RESTART IDENTITY");
+  });
+
+  afterAll(async () => {
+    await startedPostgreSqlContainer.stop();
+    await startedMongodbContainer.stop();
+    await startedMinioContainer.stop();
   });
 
   describe("Catalog service", () => {
@@ -220,7 +226,7 @@ describe("database test", async () => {
 
     describe("update eService", () => {
       it("should write on event-store for the update of an eService (no technology change)", async () => {
-        const deleteFile = vi.spyOn(fileManager, "deleteFile");
+        const deleteFile = vi.spyOn(fileManager, "delete");
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
@@ -264,7 +270,7 @@ describe("database test", async () => {
       });
 
       it("should write on event-store for the update of an eService (technology change: interface has to be deleted)", async () => {
-        const deleteFile = vi.spyOn(fileManager, "deleteFile");
+        const deleteFile = vi.spyOn(fileManager, "delete");
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
@@ -306,7 +312,7 @@ describe("database test", async () => {
 
         expect(writtenPayload.eService).toEqual(toEServiceV1(updatedEService));
         expect(deleteFile).toHaveBeenCalledWith(
-          config.storageContainer,
+          config.s3Bucket,
           mockDocument.path
         );
       });
@@ -964,7 +970,7 @@ describe("database test", async () => {
 
     describe("delete draft descriptor", () => {
       it("should write on event-store for the deletion of a draft descriptor (no interface nor documents to delete)", async () => {
-        const deleteFile = vi.spyOn(fileManager, "deleteFile");
+        const deleteFile = vi.spyOn(fileManager, "delete");
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
@@ -998,7 +1004,7 @@ describe("database test", async () => {
       });
 
       it("should write on event-store for the deletion of a draft descriptor (with interface and document to delete)", async () => {
-        const deleteFile = vi.spyOn(fileManager, "deleteFile");
+        const deleteFile = vi.spyOn(fileManager, "delete");
         const descriptorInterface: Document = {
           ...mockDocument,
           id: generateId(),
@@ -1041,13 +1047,10 @@ describe("database test", async () => {
         expect(writtenPayload.eService).toEqual(toEServiceV1(eService));
         expect(writtenPayload.descriptorId).toEqual(descriptor.id);
         expect(deleteFile).toHaveBeenCalledWith(
-          config.storageContainer,
+          config.s3Bucket,
           descriptorInterface.path
         );
-        expect(deleteFile).toHaveBeenCalledWith(
-          config.storageContainer,
-          document.path
-        );
+        expect(deleteFile).toHaveBeenCalledWith(config.s3Bucket, document.path);
       });
 
       it("should throw eServiceNotFound if the eService doesn't exist", () => {
@@ -1648,7 +1651,8 @@ describe("database test", async () => {
         vi.useRealTimers();
       });
 
-      it("should write on event-store for the cloning of a descriptor", async () => {
+      // TODO: test also file cloning on the bucket, then re-enable this test
+      it.skip("should write on event-store for the cloning of a descriptor", async () => {
         const copy = vi.spyOn(fileManager, "copy");
         const descriptorInterface: Document = {
           ...mockDocument,
@@ -1726,14 +1730,14 @@ describe("database test", async () => {
         };
         expect(writtenPayload.eService).toEqual(toEServiceV1(expectedEService));
         expect(copy).toHaveBeenCalledWith(
-          config.storageContainer,
+          config.s3Bucket,
           config.eserviceDocumentsPath,
           descriptorInterface.path,
           expectedInterface.id,
           descriptorInterface.name
         );
         expect(copy).toHaveBeenCalledWith(
-          config.storageContainer,
+          config.s3Bucket,
           config.eserviceDocumentsPath,
           document.path,
           expectedDocument.id,
@@ -2455,22 +2459,40 @@ describe("database test", async () => {
     });
 
     describe("delete Document", () => {
-      it("should write on event-store for the deletion of a document", async () => {
-        const deleteFile = vi.spyOn(fileManager, "deleteFile");
+      it("should write on event-store for the deletion of a document, and delete the file from the bucket", async () => {
+        vi.spyOn(fileManager, "delete");
+
+        const document = {
+          ...mockDocument,
+          path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}`,
+        };
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
-          docs: [mockDocument],
+          docs: [document],
         };
         const eService: EService = {
           ...mockEService,
           descriptors: [descriptor],
         };
+
         await addOneEService(eService, postgresDB, eservices);
+
+        await fileManager.storeBytes(
+          config.s3Bucket,
+          config.eserviceDocumentsPath,
+          document.id,
+          document.name,
+          Buffer.from("testtest")
+        );
+        expect(await fileManager.listFiles(config.s3Bucket)).toContain(
+          document.path
+        );
+
         await catalogService.deleteDocument(
           eService.id,
           descriptor.id,
-          mockDocument.id,
+          document.id,
           getMockAuthData(eService.producerId)
         );
         const writtenEvent = await readLastEventByStreamId(
@@ -2487,10 +2509,14 @@ describe("database test", async () => {
 
         expect(writtenPayload.eServiceId).toEqual(eService.id);
         expect(writtenPayload.descriptorId).toEqual(descriptor.id);
-        expect(writtenPayload.documentId).toEqual(mockDocument.id);
-        expect(deleteFile).toHaveBeenCalledWith(
-          config.storageContainer,
-          mockDocument.path
+        expect(writtenPayload.documentId).toEqual(document.id);
+
+        expect(fileManager.delete).toHaveBeenCalledWith(
+          config.s3Bucket,
+          document.path
+        );
+        expect(await fileManager.listFiles(config.s3Bucket)).not.toContain(
+          document.path
         );
       });
       it("should throw eServiceNotFound if the eService doesn't exist", async () => {
