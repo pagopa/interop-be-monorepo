@@ -19,7 +19,6 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
-import { parseDateOrThrow } from "./utils.js";
 
 export const fromAgreementApprovalPolicyV2 = (
   input: AgreementApprovalPolicyV2 | undefined
@@ -87,6 +86,7 @@ export const fromDocumentV2 = (input: EServiceDocumentV2): Document => ({
 export const fromDescriptorV2 = (input: EServiceDescriptorV2): Descriptor => ({
   ...input,
   id: unsafeBrandId(input.id),
+  version: input.version.toString(),
   attributes:
     input.attributes != null
       ? {
@@ -106,9 +106,7 @@ export const fromDescriptorV2 = (input: EServiceDescriptorV2): Descriptor => ({
   agreementApprovalPolicy: fromAgreementApprovalPolicyV2(
     input.agreementApprovalPolicy
   ),
-  // createdAt is required in EService definition but not in protobuf,
-  // this bug is handled with ISSUE https://pagopa.atlassian.net/browse/IMN-171
-  createdAt: parseDateOrThrow(input.createdAt),
+  createdAt: new Date(Number(input.createdAt)),
   publishedAt: input.publishedAt
     ? new Date(Number(input.publishedAt))
     : undefined,
@@ -126,16 +124,6 @@ export const fromEServiceV2 = (input: EServiceV2): EService => ({
   id: unsafeBrandId(input.id),
   producerId: unsafeBrandId(input.producerId),
   technology: fromEServiceTechnologyV2(input.technology),
-  attributes:
-    input.attributes != null
-      ? {
-          certified: input.attributes.certified.map(fromEServiceAttributeV2),
-          declared: input.attributes.declared.map(fromEServiceAttributeV2),
-          verified: input.attributes.verified.map(fromEServiceAttributeV2),
-        }
-      : undefined,
   descriptors: input.descriptors.map(fromDescriptorV2),
-  // createdAt is required in EService definition but not in protobuf,
-  // this bug is handled with ISSUE https://pagopa.atlassian.net/browse/IMN-171
-  createdAt: parseDateOrThrow(input.createdAt),
+  createdAt: new Date(Number(input.createdAt)),
 });
