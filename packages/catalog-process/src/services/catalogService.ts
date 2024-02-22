@@ -207,6 +207,20 @@ const hasNotDraftDescriptor = (eService: EService): void => {
   }
 };
 
+const updateDescriptor = (
+  eservice: EService,
+  newDescriptor: Descriptor
+): EService => {
+  const updatedDescriptors = eservice.descriptors.map((d: Descriptor) =>
+    d.id === newDescriptor.id ? newDescriptor : d
+  );
+
+  return {
+    ...eservice,
+    descriptors: updatedDescriptors,
+  };
+};
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function catalogServiceBuilder(
   dbInstance: DB,
@@ -1186,22 +1200,13 @@ export function publishDescriptorLogic({
     descriptorState.published
   );
 
-  const newEservice: EService = {
-    ...eService.data,
-    descriptors: eService.data.descriptors.map((d: Descriptor) =>
-      d.id === descriptorId ? updatedDescriptor : d
-    ),
-  };
+  const newEservice = updateDescriptor(eService.data, updatedDescriptor);
 
   if (currentActiveDescriptor !== undefined) {
-    const newEserviceWithDeprecation: EService = {
-      ...eService.data,
-      descriptors: eService.data.descriptors.map((d: Descriptor) =>
-        d.id === currentActiveDescriptor.id
-          ? deprecateDescriptor(eserviceId, currentActiveDescriptor)
-          : d
-      ),
-    };
+    const newEserviceWithDeprecation = updateDescriptor(
+      eService.data,
+      deprecateDescriptor(eserviceId, currentActiveDescriptor)
+    );
 
     return toCreateEventEServiceDescriptorPublished(
       eserviceId,
@@ -1247,12 +1252,7 @@ export function suspendDescriptorLogic({
     descriptorState.suspended
   );
 
-  const newEservice: EService = {
-    ...eService.data,
-    descriptors: eService.data.descriptors.map((d: Descriptor) =>
-      d.id === descriptorId ? updatedDescriptor : d
-    ),
-  };
+  const newEservice = updateDescriptor(eService.data, updatedDescriptor);
 
   return toCreateEventEServiceDescriptorSuspended(
     eserviceId,
@@ -1303,12 +1303,7 @@ export function activateDescriptorLogic({
       `Publishing Descriptor ${descriptorId} of EService ${eserviceId}`
     );
 
-    const newEservice: EService = {
-      ...eService.data,
-      descriptors: eService.data.descriptors.map((d: Descriptor) =>
-        d.id === descriptorId ? updatedDescriptor : d
-      ),
-    };
+    const newEservice = updateDescriptor(eService.data, updatedDescriptor);
 
     return toCreateEventEServiceDescriptorActivated(
       eserviceId,
@@ -1317,12 +1312,10 @@ export function activateDescriptorLogic({
       newEservice
     );
   } else {
-    const newEservice: EService = {
-      ...eService.data,
-      descriptors: eService.data.descriptors.map((d: Descriptor) =>
-        d.id === descriptorId ? deprecateDescriptor(eserviceId, descriptor) : d
-      ),
-    };
+    const newEservice = updateDescriptor(
+      eService.data,
+      deprecateDescriptor(eserviceId, descriptor)
+    );
 
     return toCreateEventEServiceDescriptorActivated(
       eserviceId,
@@ -1493,12 +1486,7 @@ export function archiveDescriptorLogic({
     descriptorState.archived
   );
 
-  const newEservice: EService = {
-    ...eService.data,
-    descriptors: eService.data.descriptors.map((d: Descriptor) =>
-      d.id === descriptorId ? updatedDescriptor : d
-    ),
-  };
+  const newEservice = updateDescriptor(eService.data, updatedDescriptor);
 
   return toCreateEventEServiceDescriptorActivated(
     eserviceId,
