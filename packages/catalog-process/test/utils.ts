@@ -5,6 +5,8 @@ import {
   EServiceCollection,
   TenantCollection,
 } from "pagopa-interop-commons";
+import { IDatabase } from "pg-promise";
+import { v4 as uuidv4 } from "uuid";
 import {
   Agreement,
   Attribute,
@@ -25,10 +27,8 @@ import {
   generateId,
   technology,
 } from "pagopa-interop-models";
-import { IDatabase } from "pg-promise";
-import { v4 as uuidv4 } from "uuid";
-import { EServiceDescriptorSeed } from "../src/model/domain/models.js";
 import { toEServiceV1 } from "../src/model/domain/toEvent.js";
+import { EServiceDescriptorSeed } from "../src/model/domain/models.js";
 import { ApiEServiceDescriptorDocumentSeed } from "../src/model/types.js";
 
 export const writeEServiceInEventstore = async (
