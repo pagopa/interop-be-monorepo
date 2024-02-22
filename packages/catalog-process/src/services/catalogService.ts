@@ -1466,12 +1466,10 @@ function replaceDescriptor(
   eservice: EService,
   updatedDescriptor: Descriptor
 ): EService {
-  const filteredDescriptors = eservice.descriptors.filter(
-    (descriptor) => descriptor.id !== updatedDescriptor.id
-  );
-
   return {
     ...eservice,
-    descriptors: [...filteredDescriptors, updatedDescriptor],
+    descriptors: eservice.descriptors.map((descriptor) =>
+      descriptor.id === updatedDescriptor.id ? updatedDescriptor : descriptor
+    ),
   };
 }
