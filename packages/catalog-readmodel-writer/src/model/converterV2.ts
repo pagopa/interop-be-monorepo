@@ -17,6 +17,13 @@ import {
   descriptorState,
   technology,
   unsafeBrandId,
+  EServiceModeV2,
+  EServiceMode,
+  eserviceMode,
+  EServiceRiskAnalysisV2,
+  RiskAnalysis,
+  EServiceRiskAnalysisFormV2,
+  RiskAnalysisForm,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 
@@ -60,6 +67,15 @@ export const fromEServiceTechnologyV2 = (
       return technology.rest;
     case EServiceTechnologyV2.SOAP:
       return technology.soap;
+  }
+};
+
+export const fromEServiceModeV2 = (input: EServiceModeV2): EServiceMode => {
+  switch (input) {
+    case EServiceModeV2.RECEIVE:
+      return eserviceMode.receive;
+    case EServiceModeV2.DELIVER:
+      return eserviceMode.deliver;
   }
 };
 
@@ -119,6 +135,40 @@ export const fromDescriptorV2 = (input: EServiceDescriptorV2): Descriptor => ({
   archivedAt: input.archivedAt ? new Date(Number(input.archivedAt)) : undefined,
 });
 
+export const fromRiskAnalysisFormV2 = (
+  input: EServiceRiskAnalysisFormV2 | undefined
+): RiskAnalysisForm => {
+  if (!input) {
+    // riskAnalysisForm is required in EService definition but not in protobuf
+    // tracked in https://pagopa.atlassian.net/browse/IMN-171
+    throw new Error(
+      "riskAnalysisForm field is required in EService definition but is not provided in serialized byte array events"
+    );
+  }
+
+  return {
+    ...input,
+    id: unsafeBrandId(input.id),
+    singleAnswers: input.singleAnswers.map((a) => ({
+      ...a,
+      id: unsafeBrandId(a.id),
+    })),
+    multiAnswers: input.multiAnswers.map((a) => ({
+      ...a,
+      id: unsafeBrandId(a.id),
+    })),
+  };
+};
+
+export const fromRiskAnalysisV2 = (
+  input: EServiceRiskAnalysisV2
+): RiskAnalysis => ({
+  ...input,
+  id: unsafeBrandId(input.id),
+  createdAt: new Date(Number(input.createdAt)),
+  riskAnalysisForm: fromRiskAnalysisFormV2(input.riskAnalysisForm),
+});
+
 export const fromEServiceV2 = (input: EServiceV2): EService => ({
   ...input,
   id: unsafeBrandId(input.id),
@@ -126,4 +176,6 @@ export const fromEServiceV2 = (input: EServiceV2): EService => ({
   technology: fromEServiceTechnologyV2(input.technology),
   descriptors: input.descriptors.map(fromDescriptorV2),
   createdAt: new Date(Number(input.createdAt)),
+  riskAnalysis: input.riskAnalysis.map(fromRiskAnalysisV2),
+  mode: fromEServiceModeV2(input.mode),
 });
