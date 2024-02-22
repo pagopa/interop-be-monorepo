@@ -1896,7 +1896,7 @@ describe("database test", async () => {
           );
         },
         {
-          // Flaky test, buecause the clone could happen a second further the retrieval of the cloneTimestamp
+          // Flaky test, because the clone could happen a second further the retrieval of the cloneTimestamp
           retry: 3,
         }
       );
@@ -1962,7 +1962,7 @@ describe("database test", async () => {
           ).rejects.toThrowError(eServiceDuplicate(conflictEServiceName));
         },
         {
-          // Flaky test, buecause the clone could happen a second further the retrieval of the cloneTimestamp
+          // Flaky test, because the clone could happen a second further the retrieval of the cloneTimestamp
           retry: 3,
         }
       );
