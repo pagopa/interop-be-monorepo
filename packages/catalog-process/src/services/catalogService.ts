@@ -5,7 +5,6 @@ import {
   FileManager,
   eventRepository,
   hasPermission,
-  initFileManager,
   logger,
   userRoles,
 } from "pagopa-interop-commons";
