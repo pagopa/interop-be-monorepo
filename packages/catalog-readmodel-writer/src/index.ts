@@ -22,7 +22,6 @@ async function processMessage({
       .with({ event_version: 2 }, handleMessageV2)
       .exhaustive();
 
-    // await handleMessage(decodeKafkaMessage(message, EServiceEvent));
     logger.info(
       `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
     );
