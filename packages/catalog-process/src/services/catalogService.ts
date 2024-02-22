@@ -1212,8 +1212,7 @@ export function publishDescriptorLogic({
       eserviceId,
       eService.metadata.version + 1,
       descriptorId,
-      newEserviceWithDeprecation,
-      currentActiveDescriptor.id
+      newEserviceWithDeprecation
     );
   } else {
     return toCreateEventEServiceDescriptorPublished(
