@@ -1473,3 +1473,5 @@ function replaceDescriptor(
     ),
   };
 }
+
+export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
