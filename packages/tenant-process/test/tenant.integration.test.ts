@@ -2,9 +2,7 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { beforeAll, afterEach, describe, expect, it } from "vitest";
-import { GenericContainer } from "testcontainers";
-import { PostgreSqlContainer } from "@testcontainers/postgresql";
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import {
   AgreementCollection,
   EServiceCollection,
@@ -12,14 +10,22 @@ import {
   TenantCollection,
   initDB,
 } from "pagopa-interop-commons";
+import {
+  TEST_MONGO_DB_PORT,
+  TEST_POSTGRES_DB_PORT,
+  mongoDBContainer,
+  postgreSQLContainer,
+} from "pagopa-interop-commons-test";
 import { IDatabase } from "pg-promise";
 import {
   Descriptor,
   EService,
   Tenant,
   descriptorState,
+  generateId,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
+import { StartedTestContainer } from "testcontainers";
 import { config } from "../src/utilities/config.js";
 import {
   ReadModelService,
@@ -46,38 +52,26 @@ describe("Integration tests", () => {
   let readModelService: ReadModelService;
   let tenantService: TenantService;
   let postgresDB: IDatabase<unknown>;
+  let startedPostgreSqlContainer: StartedTestContainer;
+  let startedMongodbContainer: StartedTestContainer;
+
   beforeAll(async () => {
-    const postgreSqlContainer = await new PostgreSqlContainer("postgres:14")
-      .withUsername(config.eventStoreDbUsername)
-      .withPassword(config.eventStoreDbPassword)
-      .withDatabase(config.eventStoreDbName)
-      .withCopyFilesToContainer([
-        {
-          source: "../../docker/event-store-init.sql",
-          target: "/docker-entrypoint-initdb.d/01-init.sql",
-        },
-      ])
-      .withExposedPorts(5432)
-      .start();
+    startedPostgreSqlContainer = await postgreSQLContainer(config).start();
+    startedMongodbContainer = await mongoDBContainer(config).start();
 
-    const mongodbContainer = await new GenericContainer("mongo:4.0.0")
-      .withEnvironment({
-        MONGO_INITDB_DATABASE: config.readModelDbName,
-        MONGO_INITDB_ROOT_USERNAME: config.readModelDbUsername,
-        MONGO_INITDB_ROOT_PASSWORD: config.readModelDbPassword,
-      })
-      .withExposedPorts(27017)
-      .start();
-
-    config.eventStoreDbPort = postgreSqlContainer.getMappedPort(5432);
-    config.readModelDbPort = mongodbContainer.getMappedPort(27017);
+    config.eventStoreDbPort = startedPostgreSqlContainer.getMappedPort(
+      TEST_POSTGRES_DB_PORT
+    );
+    config.readModelDbPort =
+      startedMongodbContainer.getMappedPort(TEST_MONGO_DB_PORT);
     ({ tenants, agreements, eservices } = ReadModelRepository.init(config));
+
     readModelService = readModelServiceBuilder(config);
     postgresDB = initDB({
       username: config.eventStoreDbUsername,
       password: config.eventStoreDbPassword,
       host: config.eventStoreDbHost,
-      port: postgreSqlContainer.getMappedPort(5432),
+      port: config.eventStoreDbPort,
       database: config.eventStoreDbName,
       schema: config.eventStoreDbSchema,
       useSSL: config.eventStoreDbUseSSL,
@@ -96,6 +90,11 @@ describe("Integration tests", () => {
     await postgresDB.none("TRUNCATE TABLE tenant.events RESTART IDENTITY");
   });
 
+  afterAll(async () => {
+    await startedPostgreSqlContainer.stop();
+    await startedMongodbContainer.stop();
+  });
+
   describe("tenantService", () => {
     describe("tenant creation", () => {
       it("TO DO", () => {
@@ -106,27 +105,27 @@ describe("Integration tests", () => {
   describe("readModelService", () => {
     const tenant1: Tenant = {
       ...mockTenant,
-      id: uuidv4(),
+      id: generateId(),
       name: "A tenant1",
     };
     const tenant2: Tenant = {
       ...mockTenant,
-      id: uuidv4(),
+      id: generateId(),
       name: "A tenant2",
     };
     const tenant3: Tenant = {
       ...mockTenant,
-      id: uuidv4(),
+      id: generateId(),
       name: "A tenant3",
     };
     const tenant4: Tenant = {
       ...mockTenant,
-      id: uuidv4(),
+      id: generateId(),
       name: "A tenant4",
     };
     const tenant5: Tenant = {
       ...mockTenant,
-      id: uuidv4(),
+      id: generateId(),
       name: "A tenant5",
     };
     describe("getConsumers", () => {
@@ -140,7 +139,7 @@ describe("Integration tests", () => {
 
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor1],
         };
@@ -163,7 +162,7 @@ describe("Integration tests", () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "B",
           descriptors: [descriptor2],
           producerId: eService1.producerId,
@@ -187,7 +186,7 @@ describe("Integration tests", () => {
 
         const eService3: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "C",
           descriptors: [descriptor3],
           producerId: eService1.producerId,
@@ -221,7 +220,7 @@ describe("Integration tests", () => {
 
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor1],
         };
@@ -244,7 +243,7 @@ describe("Integration tests", () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "B",
           descriptors: [descriptor2],
           producerId: eService1.producerId,
@@ -268,7 +267,7 @@ describe("Integration tests", () => {
 
         const eService3: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "C",
           descriptors: [descriptor3],
           producerId: eService1.producerId,
@@ -302,7 +301,7 @@ describe("Integration tests", () => {
 
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor1],
         };
@@ -317,7 +316,7 @@ describe("Integration tests", () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "B",
           descriptors: [descriptor2],
           producerId: eService1.producerId,
@@ -333,7 +332,7 @@ describe("Integration tests", () => {
 
         const eService3: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "C",
           descriptors: [descriptor3],
           producerId: eService1.producerId,
@@ -359,7 +358,7 @@ describe("Integration tests", () => {
 
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor1],
         };
@@ -374,7 +373,7 @@ describe("Integration tests", () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "B",
           descriptors: [descriptor2],
           producerId: eService1.producerId,
@@ -390,7 +389,7 @@ describe("Integration tests", () => {
 
         const eService3: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "C",
           descriptors: [descriptor3],
           producerId: eService1.producerId,
@@ -416,7 +415,7 @@ describe("Integration tests", () => {
 
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor1],
         };
@@ -439,7 +438,7 @@ describe("Integration tests", () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "B",
           descriptors: [descriptor2],
           producerId: eService1.producerId,
@@ -463,7 +462,7 @@ describe("Integration tests", () => {
 
         const eService3: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "C",
           descriptors: [descriptor3],
           producerId: eService1.producerId,
@@ -496,7 +495,7 @@ describe("Integration tests", () => {
 
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor1],
         };
@@ -519,7 +518,7 @@ describe("Integration tests", () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "B",
           descriptors: [descriptor2],
           producerId: eService1.producerId,
@@ -543,7 +542,7 @@ describe("Integration tests", () => {
 
         const eService3: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "C",
           descriptors: [descriptor3],
           producerId: eService1.producerId,
@@ -578,7 +577,7 @@ describe("Integration tests", () => {
 
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor1],
           producerId: tenant1.id,
@@ -594,7 +593,7 @@ describe("Integration tests", () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor2],
           producerId: tenant2.id,
@@ -610,7 +609,7 @@ describe("Integration tests", () => {
 
         const eService3: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor3],
           producerId: tenant3.id,
@@ -635,7 +634,7 @@ describe("Integration tests", () => {
 
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor1],
           producerId: tenant1.id,
@@ -651,7 +650,7 @@ describe("Integration tests", () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor2],
           producerId: tenant2.id,
@@ -676,7 +675,7 @@ describe("Integration tests", () => {
 
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor1],
           producerId: tenant1.id,
@@ -692,7 +691,7 @@ describe("Integration tests", () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor2],
           producerId: tenant2.id,
@@ -715,7 +714,7 @@ describe("Integration tests", () => {
 
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor1],
           producerId: tenant1.id,
@@ -729,7 +728,7 @@ describe("Integration tests", () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor2],
           producerId: tenant2.id,
@@ -754,7 +753,7 @@ describe("Integration tests", () => {
 
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor1],
           producerId: tenant1.id,
@@ -770,7 +769,7 @@ describe("Integration tests", () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor2],
           producerId: tenant2.id,
@@ -786,7 +785,7 @@ describe("Integration tests", () => {
 
         const eService3: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor3],
           producerId: tenant3.id,
@@ -809,7 +808,7 @@ describe("Integration tests", () => {
 
         const eService1: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor1],
           producerId: tenant1.id,
@@ -825,7 +824,7 @@ describe("Integration tests", () => {
 
         const eService2: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor2],
           producerId: tenant2.id,
@@ -841,7 +840,7 @@ describe("Integration tests", () => {
 
         const eService3: EService = {
           ...mockEService,
-          id: uuidv4(),
+          id: generateId(),
           name: "A",
           descriptors: [descriptor3],
           producerId: tenant3.id,
@@ -950,13 +949,13 @@ describe("Integration tests", () => {
         await addOneTenant(tenant2, postgresDB, tenants);
         await addOneTenant(tenant3, postgresDB, tenants);
         const tenantBySelfcareId = await readModelService.getTenantBySelfcareId(
-          tenant1.selfcareId ?? uuidv4()
+          tenant1.selfcareId!
         );
         expect(tenantBySelfcareId?.data).toEqual(tenant1);
       });
       it("should not get the tenant by selfcareId if it isn't in DB", async () => {
         const tenantBySelfcareId = await readModelService.getTenantBySelfcareId(
-          tenant1.selfcareId ?? uuidv4()
+          tenant1.selfcareId!
         );
         expect(tenantBySelfcareId?.data.selfcareId).toBeUndefined();
       });

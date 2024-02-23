@@ -2,6 +2,7 @@ import { EachMessagePayload } from "kafkajs";
 import {
   logger,
   consumerConfig,
+  ReadModelRepository,
   decodeKafkaMessage,
 } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
@@ -9,12 +10,15 @@ import { runConsumer } from "kafka-iam-auth";
 import { EServiceEvent } from "pagopa-interop-models";
 import { handleMessage } from "./consumerService.js";
 
+const config = consumerConfig();
+const { eservices } = ReadModelRepository.init(config);
+
 async function processMessage({
   message,
   partition,
 }: EachMessagePayload): Promise<void> {
   try {
-    await handleMessage(decodeKafkaMessage(message, EServiceEvent));
+    await handleMessage(decodeKafkaMessage(message, EServiceEvent), eservices);
     logger.info(
       `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
     );
@@ -25,5 +29,4 @@ async function processMessage({
   }
 }
 
-const config = consumerConfig();
 await runConsumer(config, processMessage).catch(logger.error);

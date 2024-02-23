@@ -1,12 +1,14 @@
 import {
-  AuthData,
   logger,
   ReadModelRepository,
   ReadModelFilter,
   EServiceCollection,
+  userRoles,
+  hasPermission,
+  AuthData,
 } from "pagopa-interop-commons";
 import {
-  DescriptorState,
+  AttributeId,
   Document,
   EService,
   Agreement,
@@ -14,10 +16,11 @@ import {
   descriptorState,
   agreementState,
   ListResult,
-  WithMetadata,
   emptyListResult,
   genericError,
   DescriptorId,
+  WithMetadata,
+  Attribute,
   EServiceId,
   EServiceDocumentId,
   TenantId,
@@ -26,6 +29,7 @@ import { match } from "ts-pattern";
 import { z } from "zod";
 import { Filter, WithId } from "mongodb";
 import { Consumer, consumer } from "../model/domain/models.js";
+import { ApiGetEServicesFilters } from "../model/types.js";
 
 async function getEService(
   eservices: EServiceCollection,
@@ -64,25 +68,22 @@ export function readModelServiceBuilder(
 ) {
   const eservices = readModelRepository.eservices;
   const agreements = readModelRepository.agreements;
+  const attributes = readModelRepository.attributes;
   return {
     async getEServices(
       authData: AuthData,
-      {
+      filters: ApiGetEServicesFilters,
+      offset: number,
+      limit: number
+    ): Promise<ListResult<EService>> {
+      const {
         eservicesIds,
         producersIds,
         states,
         agreementStates,
         name,
-      }: {
-        eservicesIds: string[];
-        producersIds: string[];
-        states: DescriptorState[];
-        agreementStates: AgreementState[];
-        name?: string;
-      },
-      offset: number,
-      limit: number
-    ): Promise<ListResult<EService>> {
+        attributesIds,
+      } = filters;
       const ids = await match(agreementStates.length)
         .with(0, () => eservicesIds)
         .otherwise(async () =>
@@ -109,19 +110,94 @@ export function readModelServiceBuilder(
           }
         : {};
 
+      const idsFilter: ReadModelFilter<EService> =
+        ReadModelRepository.arrayToFilter(ids, {
+          "data.id": { $in: ids },
+        });
+
+      const producersIdsFilter: ReadModelFilter<EService> =
+        ReadModelRepository.arrayToFilter(producersIds, {
+          "data.producerId": { $in: producersIds },
+        });
+
+      const descriptorsStateFilter: ReadModelFilter<EService> =
+        ReadModelRepository.arrayToFilter(states, {
+          "data.descriptors.state": { $in: states },
+        });
+
+      const attributesFilter: ReadModelFilter<EService> =
+        ReadModelRepository.arrayToFilter(attributesIds, {
+          $or: [
+            {
+              "data.descriptors.attributes.certified": {
+                $elemMatch: {
+                  $elemMatch: { id: { $in: attributesIds } },
+                },
+              },
+            },
+            {
+              "data.descriptors.attributes.declared": {
+                $elemMatch: {
+                  $elemMatch: { id: { $in: attributesIds } },
+                },
+              },
+            },
+            {
+              "data.descriptors.attributes.verified": {
+                $elemMatch: {
+                  $elemMatch: { id: { $in: attributesIds } },
+                },
+              },
+            },
+          ],
+        });
+
+      const visibilityFilter: ReadModelFilter<EService> = hasPermission(
+        [userRoles.ADMIN_ROLE, userRoles.API_ROLE],
+        authData
+      )
+        ? {
+            $nor: [
+              {
+                $and: [
+                  { "data.producerId": { $ne: authData.organizationId } },
+                  { "data.descriptors": { $size: 0 } },
+                ],
+              },
+              {
+                $and: [
+                  { "data.producerId": { $ne: authData.organizationId } },
+                  { "data.descriptors": { $size: 1 } },
+                  {
+                    "data.descriptors.state": { $eq: descriptorState.draft },
+                  },
+                ],
+              },
+            ],
+          }
+        : {
+            $nor: [
+              { "data.descriptors": { $size: 0 } },
+              {
+                $and: [
+                  { "data.descriptors": { $size: 1 } },
+                  {
+                    "data.descriptors.state": { $eq: descriptorState.draft },
+                  },
+                ],
+              },
+            ],
+          };
+
       const aggregationPipeline = [
         {
           $match: {
             ...nameFilter,
-            ...ReadModelRepository.arrayToFilter(states, {
-              "data.descriptors": { $elemMatch: { state: { $in: states } } },
-            }),
-            ...ReadModelRepository.arrayToFilter(ids, {
-              "data.id": { $in: ids },
-            }),
-            ...ReadModelRepository.arrayToFilter(producersIds, {
-              "data.producerId": { $in: producersIds },
-            }),
+            ...idsFilter,
+            ...producersIdsFilter,
+            ...descriptorsStateFilter,
+            ...attributesFilter,
+            ...visibilityFilter,
           } satisfies ReadModelFilter<EService>,
         },
         {
@@ -305,9 +381,9 @@ export function readModelServiceBuilder(
         ?.docs.find((d) => d.id === documentId);
     },
     async listAgreements(
-      eservicesIds: string[],
-      consumersIds: string[],
-      producersIds: string[],
+      eservicesIds: EServiceId[],
+      consumersIds: TenantId[],
+      producersIds: TenantId[],
       states: AgreementState[]
     ): Promise<Agreement[]> {
       const aggregationPipeline = [
@@ -323,7 +399,7 @@ export function readModelServiceBuilder(
               "data.producerId": { $in: producersIds },
             }),
             ...ReadModelRepository.arrayToFilter(states, {
-              "data.state": { $elemMatch: { state: { $in: states } } },
+              "data.state": { $in: states },
             }),
           } satisfies ReadModelFilter<Agreement>,
         },
@@ -337,7 +413,7 @@ export function readModelServiceBuilder(
         },
       ];
       const data = await agreements.aggregate(aggregationPipeline).toArray();
-      const result = z.array(Agreement).safeParse(data);
+      const result = z.array(Agreement).safeParse(data.map((a) => a.data));
 
       if (!result.success) {
         logger.error(
@@ -347,6 +423,29 @@ export function readModelServiceBuilder(
         );
 
         throw genericError("Unable to parse agreements");
+      }
+
+      return result.data;
+    },
+
+    async getAttributesByIds(
+      attributesIds: AttributeId[]
+    ): Promise<Attribute[]> {
+      const data = await attributes
+        .find({
+          "data.id": { $in: attributesIds },
+        })
+        .toArray();
+
+      const result = z.array(Attribute).safeParse(data.map((d) => d.data));
+      if (!result.success) {
+        logger.error(
+          `Unable to parse attributes items: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+
+        throw genericError("Unable to parse attributes items");
       }
 
       return result.data;
