@@ -1,5 +1,6 @@
 import {
   AgreementCollection,
+  AttributeCollection,
   AuthData,
   EServiceCollection,
   TenantCollection,
@@ -8,11 +9,15 @@ import { IDatabase } from "pg-promise";
 import { v4 as uuidv4 } from "uuid";
 import {
   Agreement,
+  Attribute,
   Descriptor,
   DescriptorId,
+  Document,
   EService,
+  EServiceAttribute,
   EServiceEvent,
   EServiceId,
+  EserviceAttributes,
   Tenant,
   TenantId,
   agreementState,
@@ -21,9 +26,9 @@ import {
   generateId,
   technology,
 } from "pagopa-interop-models";
-import { MessageType } from "@protobuf-ts/runtime";
 import { toEServiceV1 } from "../src/model/domain/toEvent.js";
 import { EServiceDescriptorSeed } from "../src/model/domain/models.js";
+import { ApiEServiceDescriptorDocumentSeed } from "../src/model/types.js";
 
 export const writeEServiceInEventstore = async (
   eService: EService,
@@ -57,6 +62,18 @@ export const writeEServiceInReadmodel = async (
 ): Promise<void> => {
   await eservices.insertOne({
     data: eService,
+    metadata: {
+      version: 0,
+    },
+  });
+};
+
+export const writeAttributeInReadmodel = async (
+  attribute: Attribute,
+  attributes: AttributeCollection
+): Promise<void> => {
+  await attributes.insertOne({
+    data: attribute,
     metadata: {
       version: 0,
     },
@@ -126,7 +143,7 @@ export const getMockEService = (): EService => ({
 
 export const getMockDescriptor = (): Descriptor => ({
   id: generateId(),
-  version: "0",
+  version: "1",
   docs: [],
   state: descriptorState.draft,
   audience: [],
@@ -134,13 +151,45 @@ export const getMockDescriptor = (): Descriptor => ({
   dailyCallsPerConsumer: 10,
   dailyCallsTotal: 1000,
   createdAt: new Date(),
-  serverUrls: [],
+  serverUrls: ["pagopa.it"],
   agreementApprovalPolicy: "Automatic",
   attributes: {
     certified: [],
     verified: [],
     declared: [],
   },
+});
+
+export const getMockEServiceAttribute = (): EServiceAttribute => ({
+  id: generateId(),
+  explicitAttributeVerification: false,
+});
+
+export const getMockEServiceAttributes = (): EserviceAttributes => ({
+  certified: [[getMockEServiceAttribute(), getMockEServiceAttribute()]],
+  declared: [[getMockEServiceAttribute(), getMockEServiceAttribute()]],
+  verified: [[getMockEServiceAttribute(), getMockEServiceAttribute()]],
+});
+
+export const buildInterfaceSeed = (): ApiEServiceDescriptorDocumentSeed => ({
+  contentType: "json",
+  prettyName: "prettyName",
+  serverUrls: ["pagopa.it"],
+  documentId: uuidv4(),
+  kind: "INTERFACE",
+  filePath: "filePath",
+  fileName: "fileName",
+  checksum: "checksum",
+});
+
+export const getMockDocument = (): Document => ({
+  name: "fileName",
+  path: "filePath",
+  id: uuidv4(),
+  prettyName: "prettyName",
+  contentType: "json",
+  checksum: uuidv4(),
+  uploadDate: new Date(),
 });
 
 export const getMockTenant = (): Tenant => ({
@@ -189,16 +238,6 @@ export const getMockAgreement = ({
   },
 });
 
-export function decodeProtobufPayload<I extends object>({
-  messageType,
-  payload,
-}: {
-  messageType: MessageType<I>;
-  payload: Parameters<typeof Buffer.from>[0];
-}): I {
-  return messageType.fromBinary(Buffer.from(payload, "hex"));
-}
-
 export const addOneEService = async (
   eService: EService,
   postgresDB: IDatabase<unknown>,
@@ -206,6 +245,13 @@ export const addOneEService = async (
 ): Promise<void> => {
   await writeEServiceInEventstore(eService, postgresDB);
   await writeEServiceInReadmodel(eService, eservices);
+};
+
+export const addOneAttribute = async (
+  attribute: Attribute,
+  attributes: AttributeCollection
+): Promise<void> => {
+  await writeAttributeInReadmodel(attribute, attributes);
 };
 
 export const addOneTenant = async (

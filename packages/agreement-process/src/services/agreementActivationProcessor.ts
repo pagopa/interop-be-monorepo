@@ -1,12 +1,11 @@
 /* eslint-disable max-params */
-import { AuthData, CreateEvent, logger } from "pagopa-interop-commons";
+import { AuthData, CreateEvent, FileManager } from "pagopa-interop-commons";
 import {
   Agreement,
   Descriptor,
   EService,
   Tenant,
   agreementState,
-  agreementArchivableStates,
   WithMetadata,
   AgreementEvent,
   AgreementUpdateEvent,
@@ -24,6 +23,7 @@ import {
   assertActivableState,
   verifyConsumerDoesNotActivatePending,
   assertEServiceExist,
+  agreementArchivableStates,
 } from "../model/domain/validators.js";
 import { toCreateEventAgreementUpdated } from "../model/domain/toEvent.js";
 import { UpdateAgreementSeed } from "../model/domain/models.js";
@@ -51,10 +51,9 @@ export async function activateAgreementLogic(
   eserviceQuery: EserviceQuery,
   tenantQuery: TenantQuery,
   attributeQuery: AttributeQuery,
-  authData: AuthData
+  authData: AuthData,
+  storeFile: FileManager["storeBytes"]
 ): Promise<Array<CreateEvent<AgreementEvent>>> {
-  logger.info(`Activating agreement ${agreementId}`);
-
   const agreement = await agreementQuery.getAgreementById(agreementId);
   assertAgreementExist(agreementId, agreement);
 
@@ -83,7 +82,8 @@ export async function activateAgreementLogic(
     authData,
     tenantQuery,
     agreementQuery,
-    attributeQuery
+    attributeQuery,
+    storeFile
   );
 }
 
@@ -95,7 +95,8 @@ async function activateAgreement(
   authData: AuthData,
   tenantQuery: TenantQuery,
   agreementQuery: AgreementQuery,
-  attributeQuery: AttributeQuery
+  attributeQuery: AttributeQuery,
+  storeFile: FileManager["storeBytes"]
 ): Promise<Array<CreateEvent<AgreementEvent>>> {
   const agreement = agreementData.data;
   const nextAttributesState = nextState(agreement, descriptor, consumer);
@@ -186,7 +187,8 @@ async function activateAgreement(
       eService,
       consumer,
       attributeQuery,
-      tenantQuery
+      tenantQuery,
+      storeFile
     );
   }
 
@@ -242,12 +244,13 @@ const createContract = async (
   eService: EService,
   consumer: Tenant,
   attributeQuery: AttributeQuery,
-  tenantQuery: TenantQuery
+  tenantQuery: TenantQuery,
+  storeFile: FileManager["storeBytes"]
 ): Promise<void> => {
   const producer = await tenantQuery.getTenantById(agreement.producerId);
   assertTenantExist(agreement.producerId, producer);
 
-  await contractBuilder(attributeQuery).createContract(
+  await contractBuilder(attributeQuery, storeFile).createContract(
     agreement,
     eService,
     consumer,
