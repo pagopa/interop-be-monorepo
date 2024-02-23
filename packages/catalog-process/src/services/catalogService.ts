@@ -70,6 +70,7 @@ import {
   eServiceDescriptorWithoutInterface,
   interfaceAlreadyExists,
   attributeNotFound,
+  inconsistentDailyCalls,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -271,6 +272,7 @@ export function catalogServiceBuilder(
         totalCount: eservicesList.totalCount,
       };
     },
+
     async getEServiceConsumers(
       eServiceId: EServiceId,
       offset: number,
@@ -283,6 +285,7 @@ export function catalogServiceBuilder(
         limit
       );
     },
+
     async updateEService(
       eserviceId: EServiceId,
       eServiceSeed: ApiEServiceSeed,
@@ -299,6 +302,7 @@ export function catalogServiceBuilder(
           eServiceSeed,
           getEServiceByNameAndProducerId:
             readModelService.getEServiceByNameAndProducerId,
+          deleteFile: fileManager.delete,
         })
       );
     },
@@ -617,6 +621,7 @@ export async function updateEserviceLogic({
   authData,
   eServiceSeed,
   getEServiceByNameAndProducerId,
+  deleteFile,
 }: {
   eService: WithMetadata<EService> | undefined;
   eserviceId: EServiceId;
@@ -629,6 +634,7 @@ export async function updateEserviceLogic({
     name: string;
     producerId: TenantId;
   }) => Promise<WithMetadata<EService> | undefined>;
+  deleteFile: (container: string, path: string) => Promise<void>;
 }): Promise<CreateEvent<EServiceEvent>> {
   assertEServiceExist(eserviceId, eService);
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
@@ -653,11 +659,29 @@ export async function updateEserviceLogic({
     }
   }
 
+  const updatedTechnology = apiTechnologyToTechnology(eServiceSeed.technology);
+  if (eService.data.descriptors.length === 1) {
+    const draftDescriptor = eService.data.descriptors[0];
+    if (
+      updatedTechnology !== eService.data.technology &&
+      draftDescriptor.interface !== undefined
+    ) {
+      await deleteFile(config.s3Bucket, draftDescriptor.interface.path).catch(
+        (error) => {
+          logger.error(
+            `Error deleting interface for descriptor ${draftDescriptor.id} : ${error}`
+          );
+          throw error;
+        }
+      );
+    }
+  }
+
   const updatedEService: EService = {
     ...eService.data,
     description: eServiceSeed.description,
     name: eServiceSeed.name,
-    technology: apiTechnologyToTechnology(eServiceSeed.technology),
+    technology: updatedTechnology,
     producerId: authData.organizationId,
   };
 
@@ -863,6 +887,13 @@ export async function createDescriptorLogic({
     }
   }
 
+  if (
+    eserviceDescriptorSeed.dailyCallsPerConsumer >
+    eserviceDescriptorSeed.dailyCallsTotal
+  ) {
+    throw inconsistentDailyCalls();
+  }
+
   const newDescriptor: Descriptor = {
     id: generateId(),
     description: eserviceDescriptorSeed.description,
@@ -982,6 +1013,10 @@ export function updateDescriptorLogic({
 
   if (descriptor.state !== descriptorState.draft) {
     throw notValidDescriptor(descriptorId, descriptor.state.toString());
+  }
+
+  if (seed.dailyCallsPerConsumer > seed.dailyCallsTotal) {
+    throw inconsistentDailyCalls();
   }
 
   const updatedDescriptor: Descriptor = {
@@ -1338,4 +1373,5 @@ const applyVisibilityToEService = (
     ),
   };
 };
+
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
