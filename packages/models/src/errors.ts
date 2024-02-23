@@ -75,7 +75,9 @@ export function makeApiProblemBuilder<T extends string>(
       )
       .otherwise(() => makeProblem(500, genericError("Unexpected error")));
 
-    logger.error(`- ${problem.title} - ${problem.detail}`);
+    logger.error(
+      `- ${problem.title} - ${problem.detail} - orignal error: ${error}`
+    );
     return problem;
   };
 }
