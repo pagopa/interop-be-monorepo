@@ -229,22 +229,3 @@ export const addOneTenant = async (
   await writeTenantInEventstore(tenant, postgresDB);
   await writeTenantInReadmodel(tenant, tenants);
 };
-
-export const readLastEventByStreamId = async (
-  tenantId: string,
-  postgresDB: IDatabase<unknown>
-): Promise<any> => // eslint-disable-line @typescript-eslint/no-explicit-any
-  await postgresDB.one(
-    "SELECT * FROM tenant.events WHERE stream_id = $1 ORDER BY sequence_num DESC LIMIT 1",
-    [tenantId]
-  );
-
-export function decodeProtobufPayload<I extends object>({
-  messageType,
-  payload,
-}: {
-  messageType: MessageType<I>;
-  payload: Parameters<typeof Buffer.from>[0];
-}): I {
-  return messageType.fromBinary(Buffer.from(payload, "hex"));
-}
