@@ -595,7 +595,7 @@ export function catalogServiceBuilder(
       authData: AuthData
     ): Promise<void> {
       logger.info(
-        `Updating draft Descriptor ${descriptorId} for EService ${eserviceId}`
+        `Updating Descriptor ${descriptorId} for EService ${eserviceId}`
       );
       const eService = await readModelService.getEServiceById(eserviceId);
 
