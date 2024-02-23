@@ -16,7 +16,7 @@ app.disable("x-powered-by");
 
 app.use(globalContextMiddleware);
 app.use(contextDataMiddleware);
-app.use(loggerMiddleware);
+app.use(loggerMiddleware("agreement-process")());
 
 // NOTE(gabro): the order is relevant, authMiddleware must come *after* the routes
 // we want to be unauthenticated.
