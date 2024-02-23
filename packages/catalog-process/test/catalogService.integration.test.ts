@@ -85,6 +85,7 @@ import {
   eServiceDocumentNotFound,
   eServiceDuplicate,
   eServiceNotFound,
+  inconsistentDailyCalls,
   interfaceAlreadyExists,
   notValidDescriptor,
 } from "../src/model/domain/errors.js";
@@ -714,6 +715,26 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(operationForbidden);
       });
+      it("should throw inconsistentDailyCalls if dailyCallsPerConsumer is greater than dailyCallsTotal", async () => {
+        const descriptorSeed: EServiceDescriptorSeed = {
+          ...buildDescriptorSeed(mockDescriptor),
+          dailyCallsPerConsumer: 100,
+          dailyCallsTotal: 50,
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [],
+        };
+
+        await addOneEService(eService, postgresDB, eservices);
+        expect(
+          catalogService.createDescriptor(
+            eService.id,
+            descriptorSeed,
+            getMockAuthData(eService.producerId)
+          )
+        ).rejects.toThrowError(inconsistentDailyCalls());
+      });
     });
 
     describe("update descriptor", () => {
@@ -916,6 +937,31 @@ describe("database test", async () => {
             getMockAuthData()
           )
         ).rejects.toThrowError(operationForbidden);
+      });
+      it("should throw inconsistentDailyCalls if dailyCallsPerConsumer is greater than dailyCallsTotal", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+
+        const updatedDescriptor: Descriptor = {
+          ...descriptor,
+          dailyCallsPerConsumer: 100,
+          dailyCallsTotal: 50,
+        };
+        expect(
+          catalogService.updateDescriptor(
+            eService.id,
+            descriptor.id,
+            buildDescriptorSeed(updatedDescriptor),
+            getMockAuthData(eService.producerId)
+          )
+        ).rejects.toThrowError(inconsistentDailyCalls());
       });
     });
 

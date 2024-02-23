@@ -5,6 +5,7 @@ import {
   EServiceId,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
+import { logger } from "pagopa-interop-commons";
 
 export const errorCodes = {
   eServiceDescriptorNotFound: "0002",
@@ -17,11 +18,12 @@ export const errorCodes = {
   eServiceDuplicate: "0010",
   interfaceAlreadyExists: "0011",
   attributeNotFound: "0012",
+  inconsistentDailyCalls: "0013",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
 
-export const makeApiProblem = makeApiProblemBuilder(errorCodes);
+export const makeApiProblem = makeApiProblemBuilder(logger, errorCodes);
 
 const eserviceCannotBeUpdatedOrDeleted: {
   code: ErrorCodes;
@@ -146,5 +148,13 @@ export function attributeNotFound(attributeId: string): ApiError<ErrorCodes> {
     detail: `Attribute ${attributeId} not found`,
     code: "attributeNotFound",
     title: "Attribute not found",
+  });
+}
+
+export function inconsistentDailyCalls(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `dailyCallsPerConsumer can't be greater than dailyCallsTotal`,
+    code: "inconsistentDailyCalls",
+    title: "Inconsistent daily calls",
   });
 }
