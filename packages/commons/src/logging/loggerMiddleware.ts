@@ -90,12 +90,8 @@ export const loggerMiddleware = (serviceName: string) => () =>
     responseWhitelist:
       config.logLevel === "info" ? ["body", "statusCode", "statusMessage"] : [],
     meta: false,
-    msg: (req, res) => {
-      if (res.statusCode >= 400) {
-        // sdd
-      }
-      return `Request ${req.method} ${req.url} - Response ${res.statusCode} ${res.statusMessage}`;
-    },
+    msg: (req, res) =>
+      `Request ${req.method} ${req.url} - Response ${res.statusCode} ${res.statusMessage}`,
   });
 
 export const logger = getLogger();
