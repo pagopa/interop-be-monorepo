@@ -1,4 +1,3 @@
-import { MessageType } from "@protobuf-ts/runtime";
 import {
   AgreementCollection,
   AuthData,
@@ -25,7 +24,6 @@ import {
   tenantEventToBinaryData,
 } from "pagopa-interop-models";
 import { IDatabase } from "pg-promise";
-import { BRAND } from "zod";
 import { toTenantV1 } from "../src/model/domain/toEvent.js";
 
 export const writeTenantInReadmodel = async (
@@ -108,9 +106,7 @@ export const getMockCertifiedTenantAttribute =
     revocationTimestamp: currentDate,
   });
 
-export const getMockAuthData = (
-  organizationId?: string & BRAND<"TenantId">
-): AuthData => ({
+export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
   organizationId: organizationId || generateId(),
   userId: generateId(),
   userRoles: [],
