@@ -265,6 +265,16 @@ describe("Integration tests", () => {
       id: generateId(),
       name: "A tenant3",
     };
+    const tenant4: Tenant = {
+      ...mockTenant,
+      id: uuidv4(),
+      name: "A tenant4",
+    };
+    const tenant5: Tenant = {
+      ...mockTenant,
+      id: uuidv4(),
+      name: "A tenant5",
+    };
     describe("getConsumers", () => {
       it("should get the tenants consuming any of the eservices of a specific producerId", async () => {
         await addOneTenant(tenant1, postgresDB, tenants);
@@ -991,9 +1001,127 @@ describe("Integration tests", () => {
         expect(tenantsByName.results.length).toBe(1);
       });
     });
+    describe("getTenants", () => {
+      it("should get all the tenants with no filter", async () => {
+        await addOneTenant(tenant1, postgresDB, tenants);
+        await addOneTenant(tenant2, postgresDB, tenants);
+        await addOneTenant(tenant3, postgresDB, tenants);
+
+        const tenantsByName = await readModelService.getTenantsByName({
+          name: undefined,
+          offset: 0,
+          limit: 50,
+        });
+        expect(tenantsByName.totalCount).toBe(3);
+        expect(tenantsByName.results).toEqual([tenant1, tenant2, tenant3]);
+      });
+      it("should get tenants by name", async () => {
+        await addOneTenant(tenant1, postgresDB, tenants);
+
+        await addOneTenant(tenant2, postgresDB, tenants);
+
+        const tenantsByName = await readModelService.getTenantsByName({
+          name: "A tenant1",
+          offset: 0,
+          limit: 50,
+        });
+        expect(tenantsByName.totalCount).toBe(1);
+        expect(tenantsByName.results).toEqual([tenant1]);
+      });
+      it("should not get tenants if there are not any tenants", async () => {
+        const tenantsByName = await readModelService.getTenantsByName({
+          name: undefined,
+          offset: 0,
+          limit: 50,
+        });
+        expect(tenantsByName.totalCount).toBe(0);
+        expect(tenantsByName.results).toEqual([]);
+      });
+      it("should not get tenants if the name does not match", async () => {
+        await addOneTenant(tenant1, postgresDB, tenants);
+
+        await addOneTenant(tenant2, postgresDB, tenants);
+
+        const tenantsByName = await readModelService.getTenantsByName({
+          name: "A tenant6",
+          offset: 0,
+          limit: 50,
+        });
+        expect(tenantsByName.totalCount).toBe(0);
+        expect(tenantsByName.results).toEqual([]);
+      });
+      it("Should get a maximun number of tenants based on a specified limit", async () => {
+        await addOneTenant(tenant1, postgresDB, tenants);
+        await addOneTenant(tenant2, postgresDB, tenants);
+        await addOneTenant(tenant3, postgresDB, tenants);
+        await addOneTenant(tenant4, postgresDB, tenants);
+        await addOneTenant(tenant5, postgresDB, tenants);
+        const tenantsByName = await readModelService.getTenantsByName({
+          name: undefined,
+          offset: 0,
+          limit: 4,
+        });
+        expect(tenantsByName.results.length).toBe(4);
+      });
+      it("Should get a maximun number of tenants based on a specified limit and offset", async () => {
+        await addOneTenant(tenant1, postgresDB, tenants);
+        await addOneTenant(tenant2, postgresDB, tenants);
+        await addOneTenant(tenant3, postgresDB, tenants);
+        await addOneTenant(tenant4, postgresDB, tenants);
+        await addOneTenant(tenant5, postgresDB, tenants);
+        const tenantsByName = await readModelService.getTenantsByName({
+          name: undefined,
+          offset: 2,
+          limit: 4,
+        });
+        expect(tenantsByName.results.length).toBe(3);
+      });
+    });
     describe("getTenantById", () => {
-      it("TO DO", () => {
-        expect(2).toBe(2);
+      it("should get the tenant by ID", async () => {
+        await addOneTenant(tenant1, postgresDB, tenants);
+        await addOneTenant(tenant2, postgresDB, tenants);
+        await addOneTenant(tenant3, postgresDB, tenants);
+        const tenantById = await readModelService.getTenantById(tenant1.id);
+        expect(tenantById?.data).toEqual(tenant1);
+      });
+      it("should not get the tenant by ID if it isn't in DB", async () => {
+        const tenantById = await readModelService.getTenantById(tenant1.id);
+        expect(tenantById?.data.id).toBeUndefined();
+      });
+    });
+    describe("getTenantBySelfcareId", () => {
+      it("should get the tenant by selfcareId", async () => {
+        await addOneTenant(tenant1, postgresDB, tenants);
+        await addOneTenant(tenant2, postgresDB, tenants);
+        await addOneTenant(tenant3, postgresDB, tenants);
+        const tenantBySelfcareId = await readModelService.getTenantBySelfcareId(
+          tenant1.selfcareId ?? uuidv4()
+        );
+        expect(tenantBySelfcareId?.data).toEqual(tenant1);
+      });
+      it("should not get the tenant by selfcareId if it isn't in DB", async () => {
+        const tenantBySelfcareId = await readModelService.getTenantBySelfcareId(
+          tenant1.selfcareId ?? uuidv4()
+        );
+        expect(tenantBySelfcareId?.data.selfcareId).toBeUndefined();
+      });
+    });
+    describe("getTenantByExternalId", () => {
+      it("should get the tenant by externalId", async () => {
+        await addOneTenant(tenant1, postgresDB, tenants);
+        await addOneTenant(tenant2, postgresDB, tenants);
+        await addOneTenant(tenant3, postgresDB, tenants);
+        const tenantByExternalId = await readModelService.getTenantByExternalId(
+          { value: tenant1.externalId.value, origin: tenant1.externalId.origin }
+        );
+        expect(tenantByExternalId?.data).toEqual(tenant1);
+      });
+      it("should not get the tenant by externalId if it isn't in DB", async () => {
+        const tenantByExternalId = await readModelService.getTenantByExternalId(
+          { value: tenant1.externalId.value, origin: tenant1.externalId.origin }
+        );
+        expect(tenantByExternalId?.data.externalId).toBeUndefined();
       });
     });
   });
