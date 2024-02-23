@@ -19,6 +19,7 @@ import {
   agreementStateToApiAgreementState,
   apiAgreementStateToAgreementState,
   apiDescriptorStateToDescriptorState,
+  apiEServiceModeToEServiceMode,
   descriptorStateToApiEServiceDescriptorState,
   eServiceToApiEService,
 } from "../model/domain/apiConverter.js";
@@ -94,6 +95,7 @@ const eservicesRouter = (
             attributesIds,
             states,
             agreementStates,
+            mode,
             offset,
             limit,
           } = req.query;
@@ -109,6 +111,7 @@ const eservicesRouter = (
                 apiAgreementStateToAgreementState
               ),
               name,
+              mode: mode ? apiEServiceModeToEServiceMode(mode) : undefined,
             },
             offset,
             limit

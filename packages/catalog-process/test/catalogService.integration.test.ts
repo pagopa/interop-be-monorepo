@@ -46,6 +46,7 @@ import {
   TenantId,
   agreementState,
   descriptorState,
+  eserviceMode,
   generateId,
   operationForbidden,
   unsafeBrandId,
@@ -2473,6 +2474,7 @@ describe("database test", async () => {
           name: "eService 006",
           producerId: organizationId2,
           descriptors: [descriptor6],
+          mode: eserviceMode.receive,
         };
         await addOneEService(eService6, postgresDB, eservices);
 
@@ -2738,6 +2740,24 @@ describe("database test", async () => {
           eService3,
           eService4,
         ]);
+      });
+
+      it("should get the eServices if they exist (parameters: mode)", async () => {
+        const result = await readModelService.getEServices(
+          getMockAuthData(),
+          {
+            eservicesIds: [],
+            producersIds: [],
+            states: [],
+            agreementStates: [],
+            attributesIds: [],
+            mode: eserviceMode.receive,
+          },
+          0,
+          50
+        );
+        expect(result.totalCount).toBe(1);
+        expect(result.results).toEqual([eService6]);
       });
 
       it("should not get the eServices if they don't exist  (parameters: attributesIds)", async () => {
