@@ -3,6 +3,9 @@ import {
   ReadModelRepository,
   ReadModelFilter,
   EServiceCollection,
+  userRoles,
+  hasPermission,
+  AuthData,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
@@ -21,7 +24,6 @@ import {
   EServiceId,
   EServiceDocumentId,
   TenantId,
-  Descriptor,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
@@ -69,7 +71,7 @@ export function readModelServiceBuilder(
   const attributes = readModelRepository.attributes;
   return {
     async getEServices(
-      organizationId: TenantId,
+      authData: AuthData,
       filters: ApiGetEServicesFilters,
       offset: number,
       limit: number
@@ -88,7 +90,7 @@ export function readModelServiceBuilder(
           (
             await this.listAgreements(
               eservicesIds,
-              [organizationId],
+              [authData.organizationId],
               [],
               agreementStates
             )
@@ -108,65 +110,94 @@ export function readModelServiceBuilder(
           }
         : {};
 
-      const idsFilter: ReadModelFilter<EService> = {
-        "data.id": { $in: ids },
-      };
+      const idsFilter: ReadModelFilter<EService> =
+        ReadModelRepository.arrayToFilter(ids, {
+          "data.id": { $in: ids },
+        });
 
-      const producersIdsFilter: ReadModelFilter<EService> = {
-        "data.producerId": { $in: producersIds },
-      };
+      const producersIdsFilter: ReadModelFilter<EService> =
+        ReadModelRepository.arrayToFilter(producersIds, {
+          "data.producerId": { $in: producersIds },
+        });
 
-      const descriptorsStateFilter: ReadModelFilter<Descriptor> = {
-        state: { $in: states },
-      } as ReadModelFilter<Descriptor>;
+      const descriptorsStateFilter: ReadModelFilter<EService> =
+        ReadModelRepository.arrayToFilter(states, {
+          "data.descriptors.state": { $in: states },
+        });
 
-      const descriptorsAttributesFilter: ReadModelFilter<Descriptor> = {
-        $or: [
-          {
-            "attributes.certified": {
-              $elemMatch: {
-                $elemMatch: { id: { $in: attributesIds } },
+      const attributesFilter: ReadModelFilter<EService> =
+        ReadModelRepository.arrayToFilter(attributesIds, {
+          $or: [
+            {
+              "data.descriptors.attributes.certified": {
+                $elemMatch: {
+                  $elemMatch: { id: { $in: attributesIds } },
+                },
               },
             },
-          },
-          {
-            "attributes.declared": {
-              $elemMatch: {
-                $elemMatch: { id: { $in: attributesIds } },
+            {
+              "data.descriptors.attributes.declared": {
+                $elemMatch: {
+                  $elemMatch: { id: { $in: attributesIds } },
+                },
               },
             },
-          },
-          {
-            "attributes.verified": {
-              $elemMatch: {
-                $elemMatch: { id: { $in: attributesIds } },
+            {
+              "data.descriptors.attributes.verified": {
+                $elemMatch: {
+                  $elemMatch: { id: { $in: attributesIds } },
+                },
               },
             },
-          },
-        ],
-      };
+          ],
+        });
+
+      const visibilityFilter: ReadModelFilter<EService> = hasPermission(
+        [userRoles.ADMIN_ROLE, userRoles.API_ROLE],
+        authData
+      )
+        ? {
+            $nor: [
+              {
+                $and: [
+                  { "data.producerId": { $ne: authData.organizationId } },
+                  { "data.descriptors": { $size: 0 } },
+                ],
+              },
+              {
+                $and: [
+                  { "data.producerId": { $ne: authData.organizationId } },
+                  { "data.descriptors": { $size: 1 } },
+                  {
+                    "data.descriptors.state": { $eq: descriptorState.draft },
+                  },
+                ],
+              },
+            ],
+          }
+        : {
+            $nor: [
+              { "data.descriptors": { $size: 0 } },
+              {
+                $and: [
+                  { "data.descriptors": { $size: 1 } },
+                  {
+                    "data.descriptors.state": { $eq: descriptorState.draft },
+                  },
+                ],
+              },
+            ],
+          };
 
       const aggregationPipeline = [
         {
           $match: {
             ...nameFilter,
-            ...ReadModelRepository.arrayToFilter(ids, idsFilter),
-            ...ReadModelRepository.arrayToFilter(
-              producersIds,
-              producersIdsFilter
-            ),
-            "data.descriptors": {
-              $elemMatch: {
-                ...ReadModelRepository.arrayToFilter(
-                  states,
-                  descriptorsStateFilter
-                ),
-                ...ReadModelRepository.arrayToFilter(
-                  attributesIds,
-                  descriptorsAttributesFilter
-                ),
-              },
-            },
+            ...idsFilter,
+            ...producersIdsFilter,
+            ...descriptorsStateFilter,
+            ...attributesFilter,
+            ...visibilityFilter,
           } satisfies ReadModelFilter<EService>,
         },
         {
