@@ -5,6 +5,7 @@ import {
   EServiceId,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
+import { logger } from "pagopa-interop-commons";
 
 export const errorCodes = {
   eServiceDescriptorNotFound: "0002",
@@ -22,7 +23,7 @@ export const errorCodes = {
 
 export type ErrorCodes = keyof typeof errorCodes;
 
-export const makeApiProblem = makeApiProblemBuilder(errorCodes);
+export const makeApiProblem = makeApiProblemBuilder(logger, errorCodes);
 
 const eserviceCannotBeUpdatedOrDeleted: {
   code: ErrorCodes;
