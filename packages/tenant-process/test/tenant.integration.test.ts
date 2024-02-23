@@ -164,7 +164,7 @@ describe("Integration tests", () => {
             postgresDB
           );
         if (!writtenEvent) {
-          fail("Creation fails: agreement not found in event-store");
+          fail("Creation fails: tenant not found in event-store");
         }
         expect(writtenEvent).toBeDefined();
         expect(writtenEvent.stream_id).toBe(tenant.id);
