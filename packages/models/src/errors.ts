@@ -75,8 +75,12 @@ export function makeApiProblemBuilder<T extends string>(
       )
       .otherwise(() => makeProblem(500, genericError("Unexpected error")));
 
+    const serializedError = JSON.stringify(
+      error,
+      Object.getOwnPropertyNames(error)
+    );
     logger.error(
-      `- ${problem.title} - ${problem.detail} - orignal error: ${error}`
+      `- ${problem.title} - ${problem.detail} - orignal error: ${serializedError}`
     );
     return problem;
   };
