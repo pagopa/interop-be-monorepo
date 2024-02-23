@@ -4,8 +4,8 @@ metadata:
   name: interop-be-agreement-process-refactor
   namespace: dev-refactor
 data:
-  MOCK_FILE_MANAGER: "true"
   EVENTSTORE_DB_USE_SSL: "true"
   EVENTSTORE_DB_SCHEMA: "agreement"
+  S3_BUCKET: ""
   CONSUMER_DOCUMENTS_PATH: ""
-  STORAGE_CONTAINER: ""
+  AGREEMENT_CONTRACTS_PATH: ""

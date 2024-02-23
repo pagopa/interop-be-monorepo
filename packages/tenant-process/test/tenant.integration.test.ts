@@ -3,9 +3,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
-import { beforeAll, afterEach, describe, expect, it } from "vitest";
-import { GenericContainer } from "testcontainers";
-import { PostgreSqlContainer } from "@testcontainers/postgresql";
+import { fail } from "assert";
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import {
   AgreementCollection,
   EServiceCollection,
@@ -13,6 +12,15 @@ import {
   TenantCollection,
   initDB,
 } from "pagopa-interop-commons";
+import {
+  StoredEvent,
+  TEST_MONGO_DB_PORT,
+  TEST_POSTGRES_DB_PORT,
+  eventStoreSchema,
+  mongoDBContainer,
+  postgreSQLContainer,
+  readLastEventByStreamId,
+} from "pagopa-interop-commons-test";
 import { IDatabase } from "pg-promise";
 import {
   Descriptor,
@@ -21,7 +29,9 @@ import {
   TenantUpdatedV1,
   descriptorState,
   generateId,
+  protobufDecoder,
 } from "pagopa-interop-models";
+import { StartedTestContainer } from "testcontainers";
 import { config } from "../src/utilities/config.js";
 import {
   ReadModelService,
@@ -45,7 +55,6 @@ import {
   addOneEService,
   addOneTenant,
   currentDate,
-  decodeProtobufPayload,
   getMockAgreement,
   getMockCertifiedTenantAttribute,
   getMockDescriptor,
@@ -53,7 +62,6 @@ import {
   getMockTenant,
   getMockVerifiedBy,
   getMockVerifiedTenantAttribute,
-  readLastEventByStreamId,
 } from "./utils.js";
 
 describe("Integration tests", () => {
@@ -63,38 +71,26 @@ describe("Integration tests", () => {
   let readModelService: ReadModelService;
   let tenantService: TenantService;
   let postgresDB: IDatabase<unknown>;
+  let startedPostgreSqlContainer: StartedTestContainer;
+  let startedMongodbContainer: StartedTestContainer;
+
   beforeAll(async () => {
-    const postgreSqlContainer = await new PostgreSqlContainer("postgres:14")
-      .withUsername(config.eventStoreDbUsername)
-      .withPassword(config.eventStoreDbPassword)
-      .withDatabase(config.eventStoreDbName)
-      .withCopyFilesToContainer([
-        {
-          source: "../../docker/event-store-init.sql",
-          target: "/docker-entrypoint-initdb.d/01-init.sql",
-        },
-      ])
-      .withExposedPorts(5432)
-      .start();
+    startedPostgreSqlContainer = await postgreSQLContainer(config).start();
+    startedMongodbContainer = await mongoDBContainer(config).start();
 
-    const mongodbContainer = await new GenericContainer("mongo:4.0.0")
-      .withEnvironment({
-        MONGO_INITDB_DATABASE: config.readModelDbName,
-        MONGO_INITDB_ROOT_USERNAME: config.readModelDbUsername,
-        MONGO_INITDB_ROOT_PASSWORD: config.readModelDbPassword,
-      })
-      .withExposedPorts(27017)
-      .start();
-
-    config.eventStoreDbPort = postgreSqlContainer.getMappedPort(5432);
-    config.readModelDbPort = mongodbContainer.getMappedPort(27017);
+    config.eventStoreDbPort = startedPostgreSqlContainer.getMappedPort(
+      TEST_POSTGRES_DB_PORT
+    );
+    config.readModelDbPort =
+      startedMongodbContainer.getMappedPort(TEST_MONGO_DB_PORT);
     ({ tenants, agreements, eservices } = ReadModelRepository.init(config));
+
     readModelService = readModelServiceBuilder(config);
     postgresDB = initDB({
       username: config.eventStoreDbUsername,
       password: config.eventStoreDbPassword,
       host: config.eventStoreDbHost,
-      port: postgreSqlContainer.getMappedPort(5432),
+      port: config.eventStoreDbPort,
       database: config.eventStoreDbName,
       schema: config.eventStoreDbSchema,
       useSSL: config.eventStoreDbUseSSL,
@@ -113,6 +109,11 @@ describe("Integration tests", () => {
     await agreements.deleteMany({});
     await eservices.deleteMany({});
     await postgresDB.none("TRUNCATE TABLE tenant.events RESTART IDENTITY");
+  });
+
+  afterAll(async () => {
+    await startedPostgreSqlContainer.stop();
+    await startedMongodbContainer.stop();
   });
 
   describe("tenantService", () => {
@@ -156,17 +157,26 @@ describe("Integration tests", () => {
           attributeId,
           updateVerifiedTenantAttributeSeed,
         });
-        const writtenEvent = await readLastEventByStreamId(
-          tenant.id,
-          postgresDB
-        );
+        const writtenEvent: StoredEvent | undefined =
+          await readLastEventByStreamId(
+            tenant.id,
+            eventStoreSchema.tenant,
+            postgresDB
+          );
+        if (!writtenEvent) {
+          fail("Creation fails: tenant not found in event-store");
+        }
+        expect(writtenEvent).toBeDefined();
         expect(writtenEvent.stream_id).toBe(tenant.id);
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("TenantUpdated");
-        const writtenPayload = decodeProtobufPayload({
-          messageType: TenantUpdatedV1,
-          payload: writtenEvent.data,
-        });
+        const writtenPayload: TenantUpdatedV1 | undefined = protobufDecoder(
+          TenantUpdatedV1
+        ).parse(writtenEvent.data);
+
+        if (!writtenPayload) {
+          fail("impossible to decode TenantUpdatedV1 data");
+        }
 
         const updatedTenant: Tenant = {
           ...tenant,
@@ -402,6 +412,16 @@ describe("Integration tests", () => {
       ...mockTenant,
       id: generateId(),
       name: "A tenant3",
+    };
+    const tenant4: Tenant = {
+      ...mockTenant,
+      id: generateId(),
+      name: "A tenant4",
+    };
+    const tenant5: Tenant = {
+      ...mockTenant,
+      id: generateId(),
+      name: "A tenant5",
     };
     describe("getConsumers", () => {
       it("should get the tenants consuming any of the eservices of a specific producerId", async () => {
@@ -1129,9 +1149,129 @@ describe("Integration tests", () => {
         expect(tenantsByName.results.length).toBe(1);
       });
     });
+    describe("getTenants", () => {
+      it("should get all the tenants with no filter", async () => {
+        await addOneTenant(tenant1, postgresDB, tenants);
+        await addOneTenant(tenant2, postgresDB, tenants);
+        await addOneTenant(tenant3, postgresDB, tenants);
+
+        const tenantsByName = await readModelService.getTenantsByName({
+          name: undefined,
+          offset: 0,
+          limit: 50,
+        });
+        expect(tenantsByName.totalCount).toBe(3);
+        expect(tenantsByName.results).toEqual([tenant1, tenant2, tenant3]);
+      });
+      it("should get tenants by name", async () => {
+        await addOneTenant(tenant1, postgresDB, tenants);
+
+        await addOneTenant(tenant2, postgresDB, tenants);
+
+        const tenantsByName = await readModelService.getTenantsByName({
+          name: "A tenant1",
+          offset: 0,
+          limit: 50,
+        });
+        expect(tenantsByName.totalCount).toBe(1);
+        expect(tenantsByName.results).toEqual([tenant1]);
+      });
+      it("should not get tenants if there are not any tenants", async () => {
+        const tenantsByName = await readModelService.getTenantsByName({
+          name: undefined,
+          offset: 0,
+          limit: 50,
+        });
+        expect(tenantsByName.totalCount).toBe(0);
+        expect(tenantsByName.results).toEqual([]);
+      });
+      it("should not get tenants if the name does not match", async () => {
+        await addOneTenant(tenant1, postgresDB, tenants);
+
+        await addOneTenant(tenant2, postgresDB, tenants);
+
+        const tenantsByName = await readModelService.getTenantsByName({
+          name: "A tenant6",
+          offset: 0,
+          limit: 50,
+        });
+        expect(tenantsByName.totalCount).toBe(0);
+        expect(tenantsByName.results).toEqual([]);
+      });
+      it("Should get a maximun number of tenants based on a specified limit", async () => {
+        await addOneTenant(tenant1, postgresDB, tenants);
+        await addOneTenant(tenant2, postgresDB, tenants);
+        await addOneTenant(tenant3, postgresDB, tenants);
+        await addOneTenant(tenant4, postgresDB, tenants);
+        await addOneTenant(tenant5, postgresDB, tenants);
+        const tenantsByName = await readModelService.getTenantsByName({
+          name: undefined,
+          offset: 0,
+          limit: 4,
+        });
+        expect(tenantsByName.results.length).toBe(4);
+      });
+      it("Should get a maximun number of tenants based on a specified limit and offset", async () => {
+        await addOneTenant(tenant1, postgresDB, tenants);
+        await addOneTenant(tenant2, postgresDB, tenants);
+        await addOneTenant(tenant3, postgresDB, tenants);
+        await addOneTenant(tenant4, postgresDB, tenants);
+        await addOneTenant(tenant5, postgresDB, tenants);
+        const tenantsByName = await readModelService.getTenantsByName({
+          name: undefined,
+          offset: 2,
+          limit: 4,
+        });
+        expect(tenantsByName.results.length).toBe(3);
+      });
+    });
     describe("getTenantById", () => {
-      it("TO DO", () => {
-        expect(2).toBe(2);
+      it("should get the tenant by ID", async () => {
+        await addOneTenant(tenant1, postgresDB, tenants);
+        await addOneTenant(tenant2, postgresDB, tenants);
+        await addOneTenant(tenant3, postgresDB, tenants);
+        const tenantById = await readModelService.getTenantById(tenant1.id);
+        expect(tenantById?.data).toEqual(tenant1);
+      });
+      it("should not get the tenant by ID if it isn't in DB", async () => {
+        const tenantById = await readModelService.getTenantById(tenant1.id);
+        expect(tenantById?.data.id).toBeUndefined();
+      });
+    });
+    describe("getTenantBySelfcareId", () => {
+      it("should get the tenant by selfcareId", async () => {
+        await addOneTenant(tenant1, postgresDB, tenants);
+        await addOneTenant(tenant2, postgresDB, tenants);
+        await addOneTenant(tenant3, postgresDB, tenants);
+        const tenantBySelfcareId = await readModelService.getTenantBySelfcareId(
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          tenant1.selfcareId!
+        );
+        expect(tenantBySelfcareId?.data).toEqual(tenant1);
+      });
+      it("should not get the tenant by selfcareId if it isn't in DB", async () => {
+        const tenantBySelfcareId = await readModelService.getTenantBySelfcareId(
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          tenant1.selfcareId!
+        );
+        expect(tenantBySelfcareId?.data.selfcareId).toBeUndefined();
+      });
+    });
+    describe("getTenantByExternalId", () => {
+      it("should get the tenant by externalId", async () => {
+        await addOneTenant(tenant1, postgresDB, tenants);
+        await addOneTenant(tenant2, postgresDB, tenants);
+        await addOneTenant(tenant3, postgresDB, tenants);
+        const tenantByExternalId = await readModelService.getTenantByExternalId(
+          { value: tenant1.externalId.value, origin: tenant1.externalId.origin }
+        );
+        expect(tenantByExternalId?.data).toEqual(tenant1);
+      });
+      it("should not get the tenant by externalId if it isn't in DB", async () => {
+        const tenantByExternalId = await readModelService.getTenantByExternalId(
+          { value: tenant1.externalId.value, origin: tenant1.externalId.origin }
+        );
+        expect(tenantByExternalId?.data.externalId).toBeUndefined();
       });
     });
   });

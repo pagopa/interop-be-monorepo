@@ -3,8 +3,8 @@ import {
   AuthData,
   CreateEvent,
   DB,
+  FileManager,
   eventRepository,
-  initFileManager,
   logger,
 } from "pagopa-interop-commons";
 import {
@@ -17,15 +17,9 @@ import {
   agreementEventToBinaryData,
   agreementState,
   descriptorState,
-  agreementUpgradableStates,
-  agreementDeletableStates,
-  agreementUpdatableStates,
-  agreementCloningConflictingStates,
-  agreementRejectableStates,
   AgreementUpdateEvent,
   AgreementDocumentId,
   AgreementId,
-  unsafeBrandId,
 } from "pagopa-interop-models";
 import {
   agreementAlreadyExists,
@@ -56,10 +50,13 @@ import {
   matchingDeclaredAttributes,
   matchingVerifiedAttributes,
   validateCertifiedAttributes,
-  validateCreationOnDescriptor,
   verifiedAttributesSatisfied,
   verifyConflictingAgreements,
-  verifyCreationConflictingAgreements,
+  agreementDeletableStates,
+  agreementUpdatableStates,
+  agreementUpgradableStates,
+  agreementCloningConflictingStates,
+  agreementRejectableStates,
 } from "../model/domain/validators.js";
 import {
   CompactEService,
@@ -86,8 +83,7 @@ import {
   addConsumerDocumentLogic,
 } from "./agreementConsumerDocumentProcessor.js";
 import { activateAgreementLogic } from "./agreementActivationProcessor.js";
-
-const fileManager = initFileManager(config);
+import { createAgreementLogic } from "./agreementCreationProcessor.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function agreementServiceBuilder(
@@ -95,7 +91,8 @@ export function agreementServiceBuilder(
   agreementQuery: AgreementQuery,
   tenantQuery: TenantQuery,
   eserviceQuery: EserviceQuery,
-  attributeQuery: AttributeQuery
+  attributeQuery: AttributeQuery,
+  fileManager: FileManager
 ) {
   const repository = eventRepository(dbInstance, agreementEventToBinaryData);
   return {
@@ -119,6 +116,9 @@ export function agreementServiceBuilder(
       agreement: ApiAgreementPayload,
       authData: AuthData
     ): Promise<string> {
+      logger.info(
+        `Creating agreement for EService ${agreement.eserviceId} and Descriptor ${agreement.descriptorId}`
+      );
       const createAgreementEvent = await createAgreementLogic(
         agreement,
         authData,
@@ -153,6 +153,7 @@ export function agreementServiceBuilder(
       agreement: ApiAgreementUpdatePayload,
       authData: AuthData
     ): Promise<void> {
+      logger.info(`Updating agreement ${agreementId}`);
       const agreementToBeUpdated = await agreementQuery.getAgreementById(
         agreementId
       );
@@ -170,13 +171,14 @@ export function agreementServiceBuilder(
       agreementId: AgreementId,
       authData: AuthData
     ): Promise<void> {
+      logger.info(`Deleting agreement ${agreementId}`);
       const agreement = await agreementQuery.getAgreementById(agreementId);
 
       await repository.createEvent(
         await deleteAgreementLogic({
           agreementId,
           authData,
-          deleteFile: fileManager.deleteFile,
+          deleteFile: fileManager.delete,
           agreement,
         })
       );
@@ -189,7 +191,7 @@ export function agreementServiceBuilder(
       const updatesEvents = await submitAgreementLogic(
         agreementId,
         payload,
-        contractBuilder(attributeQuery),
+        contractBuilder(attributeQuery, fileManager.storeBytes),
         eserviceQuery,
         agreementQuery,
         tenantQuery
@@ -328,7 +330,7 @@ export function agreementServiceBuilder(
         documentId,
         agreementQuery,
         authData,
-        fileManager.deleteFile
+        fileManager.delete
       );
 
       return await repository.createEvent(removeDocumentEvent);
@@ -355,13 +357,15 @@ export function agreementServiceBuilder(
       agreementId: Agreement["id"],
       authData: AuthData
     ): Promise<Agreement["id"]> {
+      logger.info(`Activating agreement ${agreementId}`);
       const updatesEvents = await activateAgreementLogic(
         agreementId,
         agreementQuery,
         eserviceQuery,
         tenantQuery,
         attributeQuery,
-        authData
+        authData,
+        fileManager.storeBytes
       );
 
       for (const event of updatesEvents) {
@@ -391,7 +395,7 @@ async function createAndCopyDocumentsForClonedAgreement(
   clonedAgreement: Agreement,
   startingVersion: number,
   fileCopy: (
-    container: string,
+    bucket: string,
     sourcePath: string,
     destinationPath: string,
     destinationFileName: string,
@@ -404,7 +408,7 @@ async function createAndCopyDocumentsForClonedAgreement(
       return {
         newId,
         newPath: await fileCopy(
-          config.storageContainer,
+          config.s3Bucket,
           `${config.consumerDocumentsPath}/${newAgreementId}`,
           d.path,
           newId,
@@ -437,7 +441,7 @@ export async function deleteAgreementLogic({
 }: {
   agreementId: AgreementId;
   authData: AuthData;
-  deleteFile: (container: string, path: string) => Promise<void>;
+  deleteFile: (bucket: string, path: string) => Promise<void>;
   agreement: WithMetadata<Agreement> | undefined;
 }): Promise<CreateEvent<AgreementEvent>> {
   assertAgreementExist(agreementId, agreement);
@@ -450,58 +454,10 @@ export async function deleteAgreementLogic({
   );
 
   for (const d of agreement.data.consumerDocuments) {
-    await deleteFile(config.storageContainer, d.path);
+    await deleteFile(config.s3Bucket, d.path);
   }
 
   return toCreateEventAgreementDeleted(agreementId, agreement.metadata.version);
-}
-
-export async function createAgreementLogic(
-  agreement: ApiAgreementPayload,
-  authData: AuthData,
-  agreementQuery: AgreementQuery,
-  eserviceQuery: EserviceQuery,
-  tenantQuery: TenantQuery
-): Promise<CreateEvent<AgreementEvent>> {
-  logger.info(
-    `Creating agreement for EService ${agreement.eserviceId} and Descriptor ${agreement.descriptorId}`
-  );
-  const eservice = await eserviceQuery.getEServiceById(agreement.eserviceId);
-  assertEServiceExist(unsafeBrandId(agreement.eserviceId), eservice);
-
-  const descriptor = validateCreationOnDescriptor(
-    eservice.data,
-    unsafeBrandId(agreement.descriptorId)
-  );
-
-  await verifyCreationConflictingAgreements(
-    authData.organizationId,
-    agreement,
-    agreementQuery
-  );
-  const consumer = await tenantQuery.getTenantById(authData.organizationId);
-  assertTenantExist(authData.organizationId, consumer);
-
-  if (eservice.data.producerId !== consumer.data.id) {
-    validateCertifiedAttributes(descriptor, consumer.data);
-  }
-
-  const agreementSeed: Agreement = {
-    id: generateId(),
-    eserviceId: unsafeBrandId(agreement.eserviceId),
-    descriptorId: unsafeBrandId(agreement.descriptorId),
-    producerId: eservice.data.producerId,
-    consumerId: authData.organizationId,
-    state: agreementState.draft,
-    verifiedAttributes: [],
-    certifiedAttributes: [],
-    declaredAttributes: [],
-    consumerDocuments: [],
-    createdAt: new Date(),
-    stamps: {},
-  };
-
-  return toCreateEventAgreementAdded(agreementSeed);
 }
 
 export async function updateAgreementLogic({
@@ -550,7 +506,7 @@ export async function upgradeAgreementLogic({
   eserviceQuery: EserviceQuery;
   tenantQuery: TenantQuery;
   fileCopy: (
-    container: string,
+    bucket: string,
     sourcePath: string,
     destinationPath: string,
     destinationFileName: string,
@@ -711,7 +667,7 @@ export async function cloneAgreementLogic({
   tenantQuery: TenantQuery;
   eserviceQuery: EserviceQuery;
   fileCopy: (
-    container: string,
+    bucket: string,
     sourcePath: string,
     destinationPath: string,
     destinationFileName: string,
