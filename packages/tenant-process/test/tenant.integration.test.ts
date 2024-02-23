@@ -290,17 +290,21 @@ describe("Integration tests", () => {
           attributeId,
           verifierId
         );
-        const writtenEvent = await readLastEventByStreamId(
-          tenant.id,
-          postgresDB
-        );
+        const writtenEvent: StoredEvent | undefined =
+          await readLastEventByStreamId(
+            tenant.id,
+            eventStoreSchema.tenant,
+            postgresDB
+          );
+        if (!writtenEvent) {
+          fail("Creation fails: tenant not found in event-store");
+        }
         expect(writtenEvent.stream_id).toBe(tenant.id);
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("TenantUpdated");
-        const writtenPayload = decodeProtobufPayload({
-          messageType: TenantUpdatedV1,
-          payload: writtenEvent.data,
-        });
+        const writtenPayload: TenantUpdatedV1 | undefined = protobufDecoder(
+          TenantUpdatedV1
+        ).parse(writtenEvent.data);
 
         const updatedTenant: Tenant = {
           ...tenant,
