@@ -4,18 +4,17 @@ import {
   consumerConfig,
   ReadModelRepository,
 } from "pagopa-interop-commons";
-
-import { EServiceEventEnvelope } from "pagopa-interop-models";
+import { EServiceEventEnvelopeV1 } from "pagopa-interop-models";
 import {
   fromDescriptorV1,
   fromDocumentV1,
   fromEServiceV1,
-} from "./model/converter.js";
+} from "./model/converterV1.js";
 
 const { eservices } = ReadModelRepository.init(consumerConfig());
 
-export async function handleMessage(
-  message: EServiceEventEnvelope
+export async function handleMessageV1(
+  message: EServiceEventEnvelopeV1
 ): Promise<void> {
   logger.info(message);
   await match(message)

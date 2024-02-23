@@ -1,0 +1,112 @@
+syntax = "proto3";
+
+package eservice.v2;
+
+message EServiceV2 {
+  string id = 1;
+  string producerId = 2;
+  string name = 3;
+  string description = 4;
+  EServiceTechnologyV2 technology = 5;
+  repeated EServiceDescriptorV2 descriptors = 6;
+  int64 createdAt = 7;
+  repeated EServiceRiskAnalysisV2 riskAnalysis = 8;
+  EServiceModeV2 mode = 9;
+}
+
+
+message EServiceRiskAnalysisV2 {
+  string id = 1;
+  string name = 2;
+  EServiceRiskAnalysisFormV2 riskAnalysisForm = 3;
+  int64 createdAt = 4;
+}
+
+message EServiceRiskAnalysisFormV2 {
+  string id = 1;
+  string version = 2;
+  repeated EServiceRiskAnalysisSingleAnswerV2 singleAnswers = 3;
+  repeated EServiceRiskAnalysisMultiAnswerV2 multiAnswers = 4;
+}
+
+message EServiceRiskAnalysisSingleAnswerV2 {
+  string id = 1;
+  string key = 2;
+  optional string value = 3;
+}
+
+message EServiceRiskAnalysisMultiAnswerV2 {
+  string id = 1;
+  string key = 2;
+  repeated string values = 3;
+}
+
+message EServiceAttributeValueV2 {
+  string id = 1;
+  bool explicitAttributeVerification = 2;
+}
+
+message EServiceAttributeV2 {
+  optional EServiceAttributeValueV2 single = 1;
+  repeated EServiceAttributeValueV2 group = 2;
+}
+
+message EServiceAttributesV2 {
+  repeated EServiceAttributeV2 certified = 1;
+  repeated EServiceAttributeV2 declared = 2;
+  repeated EServiceAttributeV2 verified = 3;
+}
+
+message EServiceDescriptorV2 {
+  string id = 1;
+  int64 version = 2;
+  optional string description = 3;
+  repeated EServiceDocumentV2 docs = 4;
+  EServiceDescriptorStateV2 state = 5;
+  optional EServiceDocumentV2 interface = 6;
+  repeated string audience = 7;
+  int32 voucherLifespan = 8;
+  int32 dailyCallsPerConsumer = 9;
+  int32 dailyCallsTotal = 10;
+  AgreementApprovalPolicyV2 agreementApprovalPolicy = 11;
+  int64 createdAt = 12;
+  optional int64 publishedAt = 13;
+  repeated string serverUrls = 14;
+  optional int64 suspendedAt = 15;
+  optional int64 deprecatedAt = 16;
+  optional int64 archivedAt = 17;
+  EServiceAttributesV2 attributes = 18;
+}
+
+message EServiceDocumentV2 {
+  string id = 1;
+  string name = 2;
+  string contentType = 3;
+  string path = 4;
+  string checksum = 5;
+  string uploadDate = 6;
+  string prettyName = 7;
+}
+
+enum EServiceDescriptorStateV2 {
+  DRAFT = 0;
+  PUBLISHED = 1;
+  DEPRECATED = 2;
+  SUSPENDED = 3;
+  ARCHIVED = 4;
+}
+
+enum EServiceTechnologyV2 {
+  REST = 0;
+  SOAP = 1;
+}
+
+enum AgreementApprovalPolicyV2 {
+  AUTOMATIC = 0;
+  MANUAL = 1;
+}
+
+enum EServiceModeV2 {
+  RECEIVE = 0;
+  DELIVER = 1;
+}
