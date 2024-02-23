@@ -50,11 +50,6 @@ spec:
               value: "0.0.0.0"
             - name: LOG_LEVEL
               value: info
-            - name: MOCK_FILE_MANAGER
-              valueFrom:
-                configMapKeyRef:
-                  name: interop-be-attribute-registry-process-refactor
-                  key: MOCK_FILE_MANAGER
             - name: EVENTSTORE_DB_HOST
               valueFrom:
                 configMapKeyRef:
