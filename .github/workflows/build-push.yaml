@@ -35,9 +35,9 @@ jobs:
           - image_name: attribute-registry-process
             dockerfile_path: packages/attribute-registry-process
             k8s_path: packages/attribute-registry-process/kubernetes/dev
-          - image_name: attribute-registry-consumer
-            dockerfile_path: packages/attribute-registry-consumer
-            k8s_path: packages/attribute-registry-consumer/kubernetes/dev
+          - image_name: attribute-registry-readmodel-writer
+            dockerfile_path: packages/attribute-registry-readmodel-writer
+            k8s_path: packages/attribute-registry-readmodel-writer/kubernetes/dev
 
 
     steps:

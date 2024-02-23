@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: interop-be-attribute-registry-consumer-refactor
+  name: interop-be-attribute-registry-readmodel-writer-refactor
   namespace: dev-refactor
 data:
   KAFKA_CLIENT_ID: "dev-pagopa-interop-attribute-registry"
