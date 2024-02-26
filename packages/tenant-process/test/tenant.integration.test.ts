@@ -5,15 +5,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
 import { fail } from "assert";
-import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import {
   AgreementCollection,
   AttributeCollection,
@@ -26,7 +18,6 @@ import {
   StoredEvent,
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
-  decodeProtobufPayload,
   eventStoreSchema,
   mongoDBContainer,
   postgreSQLContainer,
@@ -34,7 +25,6 @@ import {
 } from "pagopa-interop-commons-test";
 import { IDatabase } from "pg-promise";
 import {
-  Attribute,
   Descriptor,
   EService,
   Tenant,
@@ -61,23 +51,16 @@ import {
 import { toTenantV1 } from "../src/model/domain/toEvent.js";
 import { UpdateVerifiedTenantAttributeSeed } from "../src/model/domain/models.js";
 import {
-  attributeNotFound,
   expirationDateCannotBeInThePast,
   organizationNotFoundInVerifiers,
   selfcareIdConflict,
-  tenantDuplicate,
   tenantNotFound,
   verifiedAttributeNotFoundInTenant,
 } from "../src/model/domain/errors.js";
-import {
-  ApiInternalTenantSeed,
-  ApiM2MTenantSeed,
-  ApiSelfcareTenantSeed,
-} from "../src/model/types.js";
+import { ApiSelfcareTenantSeed } from "../src/model/types.js";
 import { getTenantKind } from "../src/services/validators.js";
 import {
   addOneAgreement,
-  addOneAttribute,
   addOneEService,
   addOneTenant,
   currentDate,
@@ -95,7 +78,6 @@ describe("Integration tests", () => {
   let tenants: TenantCollection;
   let agreements: AgreementCollection;
   let eservices: EServiceCollection;
-  let attributes: AttributeCollection;
   let readModelService: ReadModelService;
   let tenantService: TenantService;
   let postgresDB: IDatabase<unknown>;
@@ -111,8 +93,7 @@ describe("Integration tests", () => {
     );
     config.readModelDbPort =
       startedMongodbContainer.getMappedPort(TEST_MONGO_DB_PORT);
-    ({ tenants, agreements, eservices, attributes } =
-      ReadModelRepository.init(config));
+    ({ tenants, agreements, eservices } = ReadModelRepository.init(config));
 
     readModelService = readModelServiceBuilder(config);
     postgresDB = initDB({
@@ -132,7 +113,6 @@ describe("Integration tests", () => {
   const mockTenant = getMockTenant();
   const mockVerifiedBy = getMockVerifiedBy();
   const mockVerifiedTenantAttribute = getMockVerifiedTenantAttribute();
-  const mockCertifiedTenantAttribute = getMockCertifiedTenantAttribute();
 
   afterEach(async () => {
     await tenants.deleteMany({});
