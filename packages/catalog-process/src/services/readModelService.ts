@@ -384,14 +384,20 @@ export function readModelServiceBuilder(
       eservicesIds: EServiceId[],
       consumersIds: TenantId[],
       producersIds: TenantId[],
-      states: AgreementState[]
+      states: AgreementState[],
+      descriptorId?: DescriptorId | undefined
     ): Promise<Agreement[]> {
+      const descriptorFilter: ReadModelFilter<Agreement> = descriptorId
+        ? { "data.descriptorId": { $eq: descriptorId } }
+        : {};
+
       const aggregationPipeline = [
         {
           $match: {
             ...ReadModelRepository.arrayToFilter(eservicesIds, {
               "data.eserviceId": { $in: eservicesIds },
             }),
+            ...descriptorFilter,
             ...ReadModelRepository.arrayToFilter(consumersIds, {
               "data.consumerId": { $in: consumersIds },
             }),
@@ -410,45 +416,6 @@ export function readModelServiceBuilder(
         },
         {
           $sort: { "data.id": 1 },
-        },
-      ];
-      const data = await agreements.aggregate(aggregationPipeline).toArray();
-      const result = z.array(Agreement).safeParse(data.map((a) => a.data));
-
-      if (!result.success) {
-        logger.error(
-          `Unable to parse agreements: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
-        );
-
-        throw genericError("Unable to parse agreements");
-      }
-
-      return result.data;
-    },
-
-    async listAgreementsForEServiceDescriptor({
-      eserviceId,
-      descriptorId,
-    }: {
-      eserviceId: string;
-      descriptorId: DescriptorId;
-    }): Promise<Agreement[]> {
-      const aggregationPipeline = [
-        {
-          $match: {
-            "data.eserviceId": { $eq: eserviceId },
-            "data.descriptorId": { $eq: descriptorId },
-            "data.state": {
-              $in: [agreementState.active, agreementState.suspended],
-            },
-          } satisfies ReadModelFilter<Agreement>,
-        },
-        {
-          $project: {
-            data: 1,
-          },
         },
       ];
       const data = await agreements.aggregate(aggregationPipeline).toArray();

@@ -28,6 +28,8 @@ import {
   unsafeBrandId,
   ListResult,
   AttributeId,
+  AgreementState,
+  agreementState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -511,8 +513,7 @@ export function catalogServiceBuilder(
         descriptorId,
         authData,
         eService,
-        listAgreementsForEServiceDescriptor:
-          readModelService.listAgreementsForEServiceDescriptor,
+        listAgreements: readModelService.listAgreements,
       })) {
         await repository.createEvent(event);
       }
@@ -1075,19 +1076,19 @@ export async function publishDescriptorLogic({
   descriptorId,
   authData,
   eService,
-  listAgreementsForEServiceDescriptor,
+  listAgreements,
 }: {
   eserviceId: EServiceId;
   descriptorId: DescriptorId;
   authData: AuthData;
   eService: WithMetadata<EService> | undefined;
-  listAgreementsForEServiceDescriptor: ({
-    eserviceId,
-    descriptorId,
-  }: {
-    eserviceId: string;
-    descriptorId: DescriptorId;
-  }) => Promise<Agreement[]>;
+  listAgreements: (
+    eservicesIds: EServiceId[],
+    consumersIds: TenantId[],
+    producersIds: TenantId[],
+    states: AgreementState[],
+    descriptorId?: DescriptorId | undefined
+  ) => Promise<Agreement[]>;
 }): Promise<Array<CreateEvent<EServiceEvent>>> {
   assertEServiceExist(eserviceId, eService);
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
@@ -1111,10 +1112,13 @@ export async function publishDescriptorLogic({
   );
 
   if (currentActiveDescriptor !== undefined) {
-    const agreements = await listAgreementsForEServiceDescriptor({
-      eserviceId,
-      descriptorId: currentActiveDescriptor.id,
-    });
+    const agreements = await listAgreements(
+      [eserviceId],
+      [],
+      [],
+      [agreementState.active, agreementState.suspended],
+      currentActiveDescriptor.id
+    );
     if (agreements.length === 0) {
       return [
         archiveDescriptor(
