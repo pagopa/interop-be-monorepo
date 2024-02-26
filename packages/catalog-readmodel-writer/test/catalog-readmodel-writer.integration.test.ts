@@ -6,7 +6,7 @@ import { afterEach, afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   EServiceCollection,
   ReadModelRepository,
-  consumerConfig,
+  readModelWriterConfig,
 } from "pagopa-interop-commons";
 import { mongoDBContainer } from "pagopa-interop-commons-test";
 import {
@@ -23,7 +23,7 @@ describe("database test", async () => {
   let eservices: EServiceCollection;
   let startedMongoDBContainer: StartedTestContainer;
 
-  const config = consumerConfig();
+  const config = readModelWriterConfig();
 
   beforeAll(async () => {
     startedMongoDBContainer = await mongoDBContainer(config).start();

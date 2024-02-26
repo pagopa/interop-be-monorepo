@@ -1,7 +1,6 @@
 import { EachMessagePayload } from "kafkajs";
 import {
   logger,
-  consumerConfig,
   ReadModelRepository,
   readModelWriterConfig,
   decodeKafkaMessage,
@@ -20,9 +19,9 @@ async function processMessage({
   partition,
 }: EachMessagePayload): Promise<void> {
   try {
-    const decodedMesssage = decodeKafkaMessage(message, EServiceEvent);
+    const decodedMessage = decodeKafkaMessage(message, EServiceEvent);
 
-    await match(decodedMesssage)
+    await match(decodedMessage)
       .with({ event_version: 1 }, (msg) => handleMessageV1(msg, eservices))
       .with({ event_version: 2 }, (msg) => handleMessageV2(msg, eservices))
       .exhaustive();
@@ -36,6 +35,5 @@ async function processMessage({
     );
   }
 }
-
 
 await runConsumer(config, processMessage).catch(logger.error);
