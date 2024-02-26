@@ -23,7 +23,7 @@ async function processMessage({
 
     await match(decodedMesssage)
       .with({ event_version: 1 }, (msg) => handleMessageV1(msg, eservices))
-      .with({ event_version: 2 }, handleMessageV2)
+      .with({ event_version: 2 }, (msg) => handleMessageV2(msg, eservices))
       .exhaustive();
 
     logger.info(
