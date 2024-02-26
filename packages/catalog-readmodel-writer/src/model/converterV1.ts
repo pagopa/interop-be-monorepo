@@ -1,20 +1,27 @@
 import {
   AgreementApprovalPolicy,
   AgreementApprovalPolicyV1,
-  EServiceAttribute,
   Descriptor,
   DescriptorState,
   Document,
   EService,
+  EServiceAttribute,
   EServiceAttributeV1,
   EServiceDescriptorStateV1,
   EServiceDescriptorV1,
   EServiceDocumentV1,
+  EServiceMode,
+  EServiceModeV1,
+  EServiceRiskAnalysisFormV1,
+  EServiceRiskAnalysisV1,
   EServiceTechnologyV1,
   EServiceV1,
+  RiskAnalysis,
+  RiskAnalysisForm,
   Technology,
   agreementApprovalPolicy,
   descriptorState,
+  eserviceMode,
   technology,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -67,6 +74,23 @@ export const fromEServiceTechnologyV1 = (
       return technology.soap;
     case EServiceTechnologyV1.UNSPECIFIED$:
       throw new Error("Unspecified technology");
+  }
+};
+
+export const fromEServiceModeV1 = (
+  input: EServiceModeV1 | undefined
+): EServiceMode => {
+  switch (input) {
+    case EServiceModeV1.RECEIVE:
+      return eserviceMode.receive;
+    case EServiceModeV1.DELIVER:
+      return eserviceMode.deliver;
+    case EServiceModeV1.UNSPECIFIED$:
+    case undefined:
+      throw new Error("Unspecified mode");
+
+    // the undefiend case is becauese mode is required in EService definition but not in protobuf
+    // tracked in: https://pagopa.atlassian.net/browse/IMN-171
   }
 };
 
@@ -127,6 +151,40 @@ export const fromDescriptorV1 = (input: EServiceDescriptorV1): Descriptor => ({
   archivedAt: input.archivedAt ? new Date(Number(input.archivedAt)) : undefined,
 });
 
+export const fromRiskAnalysisFormV1 = (
+  input: EServiceRiskAnalysisFormV1 | undefined
+): RiskAnalysisForm => {
+  if (!input) {
+    // riskAnalysisForm is required in EService definition but not in protobuf
+    // tracked in https://pagopa.atlassian.net/browse/IMN-171
+    throw new Error(
+      "riskAnalysisForm field is required in EService definition but is not provided in serialized byte array events"
+    );
+  }
+
+  return {
+    ...input,
+    id: unsafeBrandId(input.id),
+    singleAnswers: input.singleAnswers.map((a) => ({
+      ...a,
+      id: unsafeBrandId(a.id),
+    })),
+    multiAnswers: input.multiAnswers.map((a) => ({
+      ...a,
+      id: unsafeBrandId(a.id),
+    })),
+  };
+};
+
+export const fromRiskAnalysisV1 = (
+  input: EServiceRiskAnalysisV1
+): RiskAnalysis => ({
+  ...input,
+  id: unsafeBrandId(input.id),
+  createdAt: new Date(Number(input.createdAt)),
+  riskAnalysisForm: fromRiskAnalysisFormV1(input.riskAnalysisForm),
+});
+
 export const fromEServiceV1 = (input: EServiceV1): EService => ({
   ...input,
   id: unsafeBrandId(input.id),
@@ -141,7 +199,9 @@ export const fromEServiceV1 = (input: EServiceV1): EService => ({
         }
       : undefined,
   descriptors: input.descriptors.map(fromDescriptorV1),
-  // createdAt is required in EService definition but not in protobuf,
-  // this bug is handled with ISSUE https://pagopa.atlassian.net/browse/IMN-171
+  // createdAt is required in EService definition but not in protobuf
+  // tracked in https://pagopa.atlassian.net/browse/IMN-171
   createdAt: parseDateOrThrow(input.createdAt),
+  riskAnalysis: input.riskAnalysis.map(fromRiskAnalysisV1),
+  mode: fromEServiceModeV1(input.mode),
 });

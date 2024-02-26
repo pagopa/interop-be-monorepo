@@ -12,6 +12,7 @@ import { mongoDBContainer } from "pagopa-interop-commons-test";
 import {
   EServiceAddedV1,
   EServiceEventEnvelope,
+  EServiceModeV1,
   EServiceTechnologyV1,
   generateId,
 } from "pagopa-interop-models";
@@ -53,6 +54,8 @@ describe("database test", async () => {
           technology: EServiceTechnologyV1.REST,
           descriptors: [],
           createdAt: BigInt(new Date().getTime()),
+          mode: EServiceModeV1.RECEIVE,
+          riskAnalysis: [],
         },
       };
       const message: EServiceEventEnvelope = {

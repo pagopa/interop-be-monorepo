@@ -23,6 +23,7 @@ import {
   agreementState,
   catalogEventToBinaryData,
   descriptorState,
+  eserviceMode,
   generateId,
   technology,
 } from "pagopa-interop-models";
@@ -142,6 +143,8 @@ export const getMockEService = (): EService => ({
   technology: technology.rest,
   descriptors: [],
   attributes: undefined,
+  mode: eserviceMode.deliver,
+  riskAnalysis: [],
 });
 
 export const getMockDescriptor = (): Descriptor => ({
@@ -178,7 +181,7 @@ export const buildInterfaceSeed = (): ApiEServiceDescriptorDocumentSeed => ({
   contentType: "json",
   prettyName: "prettyName",
   serverUrls: ["pagopa.it"],
-  documentId: uuidv4(),
+  documentId: generateId(),
   kind: "INTERFACE",
   filePath: "filePath",
   fileName: "fileName",
@@ -191,7 +194,7 @@ export const getMockDocument = (): Document => ({
   id: generateId(),
   prettyName: "prettyName",
   contentType: "json",
-  checksum: uuidv4(),
+  checksum: generateId(),
   uploadDate: new Date(),
 });
 

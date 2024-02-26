@@ -31,6 +31,7 @@ import {
 import { match } from "ts-pattern";
 import {
   apiAgreementApprovalPolicyToAgreementApprovalPolicy,
+  apiEServiceModeToEServiceMode,
   apiTechnologyToTechnology,
 } from "../model/domain/apiConverter.js";
 import {
@@ -71,6 +72,7 @@ import {
   interfaceAlreadyExists,
   attributeNotFound,
   inconsistentDailyCalls,
+  originNotCompliant,
 } from "../model/domain/errors.js";
 import { formatClonedEServiceDate } from "../utilities/date.js";
 import { ReadModelService } from "./readModelService.js";
@@ -225,13 +227,16 @@ export function catalogServiceBuilder(
       logger.info(
         `Creating EService with service name ${apiEServicesSeed.name}`
       );
+
+      const eserviceWithSameName =
+        await readModelService.getEServiceByNameAndProducerId({
+          name: apiEServicesSeed.name,
+          producerId: authData.organizationId,
+        });
       return unsafeBrandId<EServiceId>(
         await repository.createEvent(
           createEserviceLogic({
-            eService: await readModelService.getEServiceByNameAndProducerId({
-              name: apiEServicesSeed.name,
-              producerId: authData.organizationId,
-            }),
+            eserviceWithSameName,
             apiEServicesSeed,
             authData,
           })
@@ -590,15 +595,19 @@ export function catalogServiceBuilder(
 }
 
 export function createEserviceLogic({
-  eService,
+  eserviceWithSameName,
   apiEServicesSeed,
   authData,
 }: {
-  eService: WithMetadata<EService> | undefined;
+  eserviceWithSameName: WithMetadata<EService> | undefined;
   apiEServicesSeed: ApiEServiceSeed;
   authData: AuthData;
 }): CreateEvent<EServiceEvent> {
-  if (eService) {
+  if (authData.externalId.origin !== "IPA") {
+    throw originNotCompliant("IPA");
+  }
+
+  if (eserviceWithSameName) {
     throw eServiceDuplicate(apiEServicesSeed.name);
   }
 
@@ -608,9 +617,11 @@ export function createEserviceLogic({
     name: apiEServicesSeed.name,
     description: apiEServicesSeed.description,
     technology: apiTechnologyToTechnology(apiEServicesSeed.technology),
+    mode: apiEServiceModeToEServiceMode(apiEServicesSeed.mode),
     attributes: undefined,
     descriptors: [],
     createdAt: new Date(),
+    riskAnalysis: [],
   };
 
   return toCreateEventEServiceAdded(newEService);
@@ -1308,6 +1319,8 @@ export async function cloneDescriptorLogic({
     technology: eService.data.technology,
     attributes: eService.data.attributes,
     createdAt: new Date(),
+    riskAnalysis: eService.data.riskAnalysis,
+    mode: eService.data.mode,
     descriptors: [
       {
         ...descriptor,
