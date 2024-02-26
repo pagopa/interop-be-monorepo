@@ -4,19 +4,15 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { randomUUID } from "crypto";
-import { RequestListener } from "http";
-import supertest from "supertest";
-import { afterAll, afterEach, describe, it, vi } from "vitest";
 import {
-  Method,
-  ZodiosEndpointDefinition,
-  ZodiosPathsByMethod,
-  ZodiosBodyByPath,
-  ZodiosQueryParamsByPath,
-  ZodiosPathParamsByPath,
-  ZodiosResponseByPath,
-} from "@zodios/core";
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import {
   postgreSQLContainer,
   mongoDBContainer,
@@ -24,116 +20,100 @@ import {
   TEST_POSTGRES_DB_PORT,
   TEST_MONGO_DB_PORT,
   TEST_MINIO_PORT,
-} from "pagopa-interop-commons-test/index.js";
+  createMockedApiRequester,
+  MockApiRequester,
+  readLastEventByStreamId,
+  decodeProtobufPayload,
+} from "pagopa-interop-commons-test";
+import * as pagopaInteropCommons from "pagopa-interop-commons";
+import { IDatabase } from "pg-promise";
+import { StartedTestContainer } from "testcontainers";
+import {
+  EService,
+  EServiceAddedV1,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { config } from "../src/utilities/config.js";
 import { api } from "../src/model/generated/api.js";
+import {
+  ReadModelService,
+  readModelServiceBuilder,
+} from "../src/services/readModelService.js";
+import { toEServiceV1 } from "../src/model/domain/toEvent.js";
+import {
+  addOneEService,
+  getMockDescriptor,
+  getMockDocument,
+  getMockEService,
+} from "./utils.js";
 
 type Api = typeof api.api;
 
-function createMockedApiRequester<
-  TApi extends Array<ZodiosEndpointDefinition<unknown>>
->(app: RequestListener) {
-  type MockedApiRequestOptions<
-    TMethod extends Method,
-    TPath extends ZodiosPathsByMethod<TApi, TMethod>
-  > = {
-    path: TPath;
-  } & (ZodiosPathParamsByPath<TApi, TMethod, TPath> extends never
-    ? object
-    : { pathParams: ZodiosPathParamsByPath<TApi, TMethod, TPath> }) &
-    (ZodiosQueryParamsByPath<TApi, TMethod, TPath> extends never
-      ? object
-      : { queryParams: ZodiosQueryParamsByPath<TApi, TMethod, TPath> }) &
-    (ZodiosBodyByPath<TApi, TMethod, TPath> extends never
-      ? object
-      : { body: ZodiosBodyByPath<TApi, TMethod, TPath> });
-
-  function resolvePathParams(
-    path: string,
-    pathParams?: Record<string, string>
-  ) {
-    if (!pathParams) {
-      return path;
-    }
-    return Object.entries(pathParams).reduce(
-      (acc, [key, value]) => acc.replace(`:${key}`, value),
-      path
-    );
-  }
-
-  function sendMockedApiRequest<TMethod extends Method>(method: TMethod) {
-    return async <TPath extends ZodiosPathsByMethod<TApi, TMethod>>(
-      opts: MockedApiRequestOptions<TMethod, TPath>
-    ) => {
-      const { path, pathParams, body, queryParams } = opts as {
-        path: string;
-        pathParams?: Record<string, string>;
-        body?: unknown;
-        queryParams?: unknown;
-      };
-      const request = supertest(app)[method](
-        resolvePathParams(path, pathParams)
-      );
-
-      request.set({
-        "X-Correlation-Id": randomUUID(),
-        Authorization:
-          "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6ImF0K2p3dCIsImtpZCI6IjE3YzExNzdmLWQ3ZGMtNDE4MS05ZjU0LTZmZDQxNmJmMjI5YiIsInVzZSI6InNpZyJ9.eyJleHRlcm5hbElkIjp7Im9yaWdpbiI6IklQQSIsInZhbHVlIjoiNU4yVFI1NTcifSwidXNlci1yb2xlcyI6ImFkbWluIiwic2VsZmNhcmVJZCI6IjE5NjJkMjFjLWM3MDEtNDgwNS05M2Y2LTUzYTg3Nzg5ODc1NiIsIm9yZ2FuaXphdGlvbklkIjoiNjllMjg2NWUtNjVhYi00ZTQ4LWE2MzgtMjAzN2E5ZWUyZWU3Iiwib3JnYW5pemF0aW9uIjp7ImlkIjoiMTk2MmQyMWMtYzcwMS00ODA1LTkzZjYtNTNhODc3ODk4NzU2IiwibmFtZSI6IlBhZ29QQSBTLnAuQS4iLCJyb2xlcyI6W3sicGFydHlSb2xlIjoiTUFOQUdFUiIsInJvbGUiOiJhZG1pbiJ9XSwiZmlzY2FsX2NvZGUiOiIxNTM3NjM3MTAwOSIsImlwYUNvZGUiOiI1TjJUUjU1NyJ9LCJ1aWQiOiJmMDdkZGI4Zi0xN2Y5LTQ3ZDQtYjMxZS0zNWQxYWMxMGU1MjEiLCJpc3MiOiJkZXYuaW50ZXJvcC5wYWdvcGEuaXQiLCJhdWQiOiJkZXYuaW50ZXJvcC5wYWdvcGEuaXQvdWkiLCJuYmYiOjE3MDg2OTA2NTcsImlhdCI6MTcwODY5MDY1NywiZXhwIjoxNzA4NzE5NDU3LCJqdGkiOiJhNjAxMDYyYS1kMTAzLTQ3YjAtODBiZi1jMTYxOTAzMjZkNzMifQ.",
-      });
-
-      if (queryParams) {
-        request.query(queryParams);
-      }
-      if (body) {
-        request.send(body);
-      }
-
-      type Response = Omit<supertest.Response, "body"> & {
-        body: ZodiosResponseByPath<TApi, TMethod, TPath>;
-      };
-
-      return new Promise<Response>((resolve, reject) => {
-        request.end((err, res) => {
-          if (err) {
-            reject(err);
-          }
-          resolve(res);
-        });
-      });
-    };
-  }
-
-  return {
-    get: sendMockedApiRequest("get"),
-    post: sendMockedApiRequest("post"),
-  };
-}
-const startedPostgreSqlContainer = await postgreSQLContainer(config).start();
-const startedMongodbContainer = await mongoDBContainer(config).start();
-const startedMinioContainer = await minioContainer(config).start();
-
-vi.doMock("../src/utilities/config.js", () => ({
-  config: {
-    ...config,
-    eventStoreDbPort: startedPostgreSqlContainer.getMappedPort(
-      TEST_POSTGRES_DB_PORT
-    ),
-    readModelDbPort: startedMongodbContainer.getMappedPort(TEST_MONGO_DB_PORT),
-    s3ServerPort: startedMinioContainer.getMappedPort(TEST_MINIO_PORT),
-  },
-}));
-
-const { default: app } = await import("../src/app.js");
-const apiRequester = createMockedApiRequester<Api>(app);
-
 describe("database test", () => {
+  let eservices: pagopaInteropCommons.EServiceCollection;
+  let agreements: pagopaInteropCommons.AgreementCollection;
+  let attributes: pagopaInteropCommons.AttributeCollection;
+  let tenants: pagopaInteropCommons.TenantCollection;
+  let readModelService: ReadModelService;
+  let postgresDB: IDatabase<unknown>;
+  let startedPostgreSqlContainer: StartedTestContainer;
+  let startedMongodbContainer: StartedTestContainer;
+  let startedMinioContainer: StartedTestContainer;
+  let fileManager: pagopaInteropCommons.FileManager;
+  let apiRequester: MockApiRequester<Api>;
+
+  beforeAll(async () => {
+    startedPostgreSqlContainer = await postgreSQLContainer(config).start();
+    startedMongodbContainer = await mongoDBContainer(config).start();
+    startedMinioContainer = await minioContainer(config).start();
+
+    config.eventStoreDbPort = startedPostgreSqlContainer.getMappedPort(
+      TEST_POSTGRES_DB_PORT
+    );
+    config.readModelDbPort =
+      startedMongodbContainer.getMappedPort(TEST_MONGO_DB_PORT);
+    config.s3ServerPort = startedMinioContainer.getMappedPort(TEST_MINIO_PORT);
+
+    const readModelRepository =
+      pagopaInteropCommons.ReadModelRepository.init(config);
+    eservices = readModelRepository.eservices;
+    agreements = readModelRepository.agreements;
+    tenants = readModelRepository.tenants;
+    attributes = readModelRepository.attributes;
+    readModelService = readModelServiceBuilder(readModelRepository);
+    postgresDB = pagopaInteropCommons.initDB({
+      username: config.eventStoreDbUsername,
+      password: config.eventStoreDbPassword,
+      host: config.eventStoreDbHost,
+      port: config.eventStoreDbPort,
+      database: config.eventStoreDbName,
+      schema: config.eventStoreDbSchema,
+      useSSL: config.eventStoreDbUseSSL,
+    });
+    fileManager = pagopaInteropCommons.initFileManager(config);
+
+    vi.doMock("pagopa-interop-commons", () => ({
+      ...pagopaInteropCommons,
+      initDB: () => postgresDB,
+      initFileManager: () => fileManager,
+      readModelServiceBuilder: () => readModelService,
+      ReadModelRepository: {
+        init: () => readModelRepository,
+      },
+    }));
+
+    const { default: app } = await import("../src/app.js");
+    apiRequester = createMockedApiRequester<Api>(app);
+  });
+
   afterEach(async () => {
-    // await eservices.deleteMany({});
-    // await agreements.deleteMany({});
-    // await tenants.deleteMany({});
-    // await attributes.deleteMany({});
-    // await postgresDB.none("TRUNCATE TABLE catalog.events RESTART IDENTITY");
-    // await postgresDB.none("TRUNCATE TABLE agreement.events RESTART IDENTITY");
+    await eservices.deleteMany({});
+    await agreements.deleteMany({});
+    await tenants.deleteMany({});
+    await attributes.deleteMany({});
+
+    await postgresDB.none("TRUNCATE TABLE catalog.events RESTART IDENTITY");
+    await postgresDB.none("TRUNCATE TABLE agreement.events RESTART IDENTITY");
   });
 
   afterAll(async () => {
@@ -142,12 +122,68 @@ describe("database test", () => {
     await startedMinioContainer.stop();
   });
 
-  it("/eservices", async () => {
-    const response = await apiRequester.get({
-      path: "/eservices",
-      queryParams: { offset: 0, limit: 10 },
-      // pathParams: { eServiceId: "1", descriptorId: "2" },
+  const mockEService = getMockEService();
+  const mockDescriptor = getMockDescriptor();
+  const mockDocument = getMockDocument();
+
+  describe("GET /status", () => {
+    it("should respond with 200 status code", async () => {
+      const response = await apiRequester.get({
+        path: "/status",
+      });
+      expect(response.status).toBe(200);
     });
-    console.log(response.body);
+  });
+
+  describe("POST /eservices", () => {
+    it("should write on event-store for the creation of an eService", async () => {
+      const response = await apiRequester.post({
+        path: "/eservices",
+        body: {
+          name: mockEService.name,
+          description: mockEService.description,
+          technology: "REST",
+        },
+      });
+
+      const id = response.body.id;
+
+      expect(id).toBeDefined();
+      const writtenEvent = await readLastEventByStreamId(
+        response.body.id,
+        "catalog",
+        postgresDB
+      );
+
+      expect(writtenEvent?.stream_id).toBe(id);
+      expect(writtenEvent?.version).toBe("0");
+      expect(writtenEvent?.type).toBe("EServiceAdded");
+
+      const writtenPayload = decodeProtobufPayload({
+        messageType: EServiceAddedV1,
+        payload: writtenEvent!.data,
+      });
+
+      const eService: EService = {
+        ...mockEService,
+        createdAt: new Date(Number(writtenPayload.eService?.createdAt)),
+        id: unsafeBrandId(id),
+      };
+
+      expect(writtenPayload.eService).toEqual(toEServiceV1(eService));
+    });
+
+    it("should throw eServiceDuplicate if an eService with the same name already exists", async () => {
+      await addOneEService(mockEService, postgresDB, eservices);
+      const response = apiRequester.post({
+        path: "/eservices",
+        body: {
+          name: "mockEService.name",
+          description: "mockEService.description",
+          technology: "REST",
+        },
+      });
+      console.log(response);
+    });
   });
 });
