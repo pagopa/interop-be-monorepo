@@ -72,6 +72,7 @@ import {
   attributeNotFound,
   inconsistentDailyCalls,
 } from "../model/domain/errors.js";
+import { formatClonedEServiceDate } from "../utilities/date.js";
 import { ReadModelService } from "./readModelService.js";
 
 function assertEServiceExist(
@@ -788,7 +789,12 @@ export async function deleteDocumentLogic({
     throw eServiceDocumentNotFound(eserviceId, descriptorId, documentId);
   }
 
-  await deleteFile(config.s3Bucket, document.path);
+  await deleteFile(config.s3Bucket, document.path).catch((error) => {
+    logger.error(
+      `Error deleting interface or document file for descriptor ${descriptorId} : ${error}`
+    );
+    throw error;
+  });
 
   return toCreateEventEServiceDocumentDeleted(
     eserviceId,
@@ -973,7 +979,7 @@ export async function deleteDraftDescriptorLogic({
     await deleteFile(config.s3Bucket, descriptorInterface.path).catch(
       (error) => {
         logger.error(
-          `Error deleting interface for descriptor ${descriptorId} : ${error}`
+          `Error deleting interface file for descriptor ${descriptorId} : ${error}`
         );
         throw error;
       }
@@ -986,8 +992,9 @@ export async function deleteDraftDescriptorLogic({
 
   await Promise.all(deleteDescriptorDocs).catch((error) => {
     logger.error(
-      `Error deleting documents for descriptor ${descriptorId} : ${error}`
+      `Error deleting documents' files for descriptor ${descriptorId} : ${error}`
     );
+    throw error;
   });
 
   return toCreateEventEServiceWithDescriptorsDeleted(eService, descriptorId);
@@ -1220,10 +1227,9 @@ export async function cloneDescriptorLogic({
   assertEServiceExist(eserviceId, eService);
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
 
-  const currentDate = new Date();
-  const currentLocalDate = currentDate.toLocaleDateString("it-IT");
-  const currentLocalTime = currentDate.toLocaleTimeString("it-IT");
-  const clonedEServiceName = `${eService.data.name} - clone - ${currentLocalDate} ${currentLocalTime}`;
+  const clonedEServiceName = `${
+    eService.data.name
+  } - clone - ${formatClonedEServiceDate(new Date())}`;
 
   if (
     await getEServiceByNameAndProducerId({
@@ -1235,29 +1241,33 @@ export async function cloneDescriptorLogic({
   }
 
   const descriptor = retrieveDescriptor(descriptorId, eService);
-  const sourceDocument = descriptor.docs[0];
-  const clonedDocumentId = generateId<EServiceDocumentId>();
 
+  const clonedInterfaceId = generateId<EServiceDocumentId>();
   const clonedInterfacePath =
     descriptor.interface !== undefined
       ? await copyFile(
           config.s3Bucket,
-          config.eserviceDocumentsPath,
           descriptor.interface.path,
-          clonedDocumentId,
+          config.eserviceDocumentsPath,
+          clonedInterfaceId,
           descriptor.interface.name
-        )
+        ).catch((error) => {
+          logger.error(
+            `Error copying interface file for descriptor ${descriptorId} : ${error}`
+          );
+          throw error;
+        })
       : undefined;
 
   const clonedInterfaceDocument: Document | undefined =
-    clonedInterfacePath !== undefined
+    descriptor.interface !== undefined && clonedInterfacePath !== undefined
       ? {
-          id: clonedDocumentId,
-          name: sourceDocument.name,
-          contentType: sourceDocument.contentType,
-          prettyName: sourceDocument.prettyName,
+          id: clonedInterfaceId,
+          name: descriptor.interface.name,
+          contentType: descriptor.interface.contentType,
+          prettyName: descriptor.interface.prettyName,
           path: clonedInterfacePath,
-          checksum: sourceDocument.checksum,
+          checksum: descriptor.interface.checksum,
           uploadDate: new Date(),
         }
       : undefined;
@@ -1265,10 +1275,10 @@ export async function cloneDescriptorLogic({
   const clonedDocuments = await Promise.all(
     descriptor.docs.map(async (doc: Document) => {
       const clonedDocumentId = generateId<EServiceDocumentId>();
-      const clonedPath = await copyFile(
+      const clonedDocumentPath = await copyFile(
         config.s3Bucket,
-        config.eserviceDocumentsPath,
         doc.path,
+        config.eserviceDocumentsPath,
         clonedDocumentId,
         doc.name
       );
@@ -1277,13 +1287,18 @@ export async function cloneDescriptorLogic({
         name: doc.name,
         contentType: doc.contentType,
         prettyName: doc.prettyName,
-        path: clonedPath,
+        path: clonedDocumentPath,
         checksum: doc.checksum,
         uploadDate: new Date(),
       };
       return clonedDocument;
     })
-  );
+  ).catch((error) => {
+    logger.error(
+      `Error copying documents' files for descriptor ${descriptorId} : ${error}`
+    );
+    throw error;
+  });
 
   const draftCatalogItem: EService = {
     id: generateId(),

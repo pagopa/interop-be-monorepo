@@ -8,7 +8,11 @@
 import fs from "fs";
 import path from "path";
 
-import { FileManager, selfcareServiceMock } from "pagopa-interop-commons";
+import {
+  FileManager,
+  logger,
+  selfcareServiceMock,
+} from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementAttribute,
@@ -215,7 +219,13 @@ export const pdfGenerator = {
       documentId,
       documentName,
       Buffer.from(document)
-    );
+    ).catch((error) => {
+      logger.error(
+        `Error storing document file for agreement ${agreement.id} : ${error}`
+      );
+      throw error;
+    });
+
     return {
       id: documentId,
       name: documentName,
