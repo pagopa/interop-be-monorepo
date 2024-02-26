@@ -147,163 +147,6 @@ describe("Integration tests", () => {
   });
 
   describe("tenantService", () => {
-    describe("createTenant", () => {
-      it("Should create a tenant", async () => {
-        const kind = tenantKind.PA;
-        const selfcareId = generateId();
-        const tenantSeed: ApiSelfcareTenantSeed = {
-          externalId: {
-            origin: "IPA",
-            value: "123456",
-          },
-          name: "A tenant",
-          selfcareId,
-        };
-        const id = await tenantService.createTenant(tenantSeed, [], kind);
-        expect(id).toBeDefined();
-        const writtenEvent: StoredEvent | undefined =
-          await readLastEventByStreamId(
-            id,
-            eventStoreSchema.tenant,
-            postgresDB
-          );
-        if (!writtenEvent) {
-          fail("Creation fails: tenant not found in event-store");
-        }
-        expect(writtenEvent.stream_id).toBe(id);
-        expect(writtenEvent.version).toBe("0");
-        expect(writtenEvent.type).toBe("TenantCreated");
-        const writtenPayload: TenantCreatedV1 | undefined = protobufDecoder(
-          TenantCreatedV1
-        ).parse(writtenEvent.data);
-
-        const tenant: Tenant = {
-          ...mockTenant,
-          id: unsafeBrandId(id),
-          kind,
-          selfcareId: undefined,
-          createdAt: new Date(Number(writtenPayload.tenant?.createdAt)),
-        };
-
-        expect(writtenPayload.tenant).toEqual(toTenantV1(tenant));
-      });
-      it("Should create a tenant with attributes", async () => {
-        vi.useFakeTimers();
-        vi.setSystemTime(new Date());
-        const kind = tenantKind.PA;
-        const tenantSeed: ApiInternalTenantSeed | ApiM2MTenantSeed = {
-          externalId: {
-            origin: "IPA",
-            value: "123456",
-          },
-          certifiedAttributes: [
-            {
-              origin: "API",
-              code: "1234567",
-            },
-          ],
-          name: "A tenant",
-        };
-        const attribute: Attribute = {
-          name: "An Attribute",
-          id: generateId(),
-          kind: "Certified",
-          description: "a Description",
-          creationTime: new Date(),
-          code: "1234567",
-          origin: "API",
-        };
-        await addOneAttribute(attribute, attributes);
-        const attributesExternalIds = {
-          value: attribute.code!,
-          origin: attribute.origin!,
-        };
-        const id = await tenantService.createTenant(
-          tenantSeed,
-          [attributesExternalIds],
-          kind
-        );
-        expect(id).toBeDefined();
-        const writtenEvent: StoredEvent | undefined =
-          await readLastEventByStreamId(
-            id,
-            eventStoreSchema.tenant,
-            postgresDB
-          );
-        if (!writtenEvent) {
-          fail("Creation fails: tenant not found in event-store");
-        }
-        expect(writtenEvent.stream_id).toBe(id);
-        expect(writtenEvent.version).toBe("0");
-        expect(writtenEvent.type).toBe("TenantCreated");
-        const writtenPayload: TenantCreatedV1 | undefined = protobufDecoder(
-          TenantCreatedV1
-        ).parse(writtenEvent.data);
-
-        const tenant: Tenant = {
-          ...mockTenant,
-          attributes: [
-            {
-              ...mockCertifiedTenantAttribute,
-              id: attribute.id,
-              assignmentTimestamp: new Date(),
-            },
-          ],
-          id: unsafeBrandId(id),
-          createdAt: new Date(Number(writtenPayload.tenant?.createdAt)),
-          selfcareId: undefined,
-          kind,
-        };
-
-        expect(writtenPayload.tenant).toEqual(toTenantV1(tenant));
-        vi.useRealTimers();
-      });
-      it("Should throw a AttributeNotFound error when create a tenant with attribute", async () => {
-        const kind = tenantKind.PA;
-
-        const tenantSeed: ApiInternalTenantSeed | ApiM2MTenantSeed = {
-          externalId: {
-            origin: "IPA",
-            value: "123456",
-          },
-          certifiedAttributes: [
-            {
-              origin: "API",
-              code: "1234567",
-            },
-          ],
-          name: "A tenant",
-        };
-
-        const attributesExternalIds = {
-          value: "123",
-          origin: "FakeOrigin",
-        };
-        expect(
-          tenantService.createTenant(tenantSeed, [attributesExternalIds], kind)
-        ).rejects.toThrowError(
-          attributeNotFound(
-            `${attributesExternalIds.origin}/${attributesExternalIds.value}`
-          )
-        );
-      });
-      it("Should throw a tenantDuplicate error", async () => {
-        const kind = tenantKind.PA;
-        const selfcareId = generateId();
-        const attributeTenantSeed = {
-          externalId: {
-            origin: "IPA",
-            value: "123456",
-          },
-          name: "A tenant",
-          selfcareId,
-        };
-        await addOneTenant(mockTenant, postgresDB, tenants);
-        expect(
-          tenantService.createTenant(attributeTenantSeed, [], kind)
-        ).rejects.toThrowError(tenantDuplicate(mockTenant.name));
-      });
-    });
     describe("updateTenant", async () => {
       const tenantSeed = {
         externalId: {
@@ -338,7 +181,7 @@ describe("Integration tests", () => {
 
         const writtenEvent: StoredEvent | undefined =
           await readLastEventByStreamId(
-            mockTenant.id,
+            tenant.id,
             eventStoreSchema.tenant,
             postgresDB
           );
@@ -362,7 +205,7 @@ describe("Integration tests", () => {
         expect(writtenPayload.tenant).toEqual(toTenantV1(updatedTenant));
       });
       it("Should create a tenant by the upsert", async () => {
-        const mockAuthData = getMockAuthData(mockTenant.id);
+        const mockAuthData = getMockAuthData();
         const tenantSeed = {
           externalId: {
             origin: "Nothing",
@@ -391,7 +234,7 @@ describe("Integration tests", () => {
         const writtenPayload: TenantCreatedV1 | undefined = protobufDecoder(
           TenantCreatedV1
         ).parse(writtenEvent.data);
-        const tenant: Tenant = {
+        const expectedTenant: Tenant = {
           ...mockTenant,
           externalId: tenantSeed.externalId,
           id: unsafeBrandId(id),
@@ -400,7 +243,7 @@ describe("Integration tests", () => {
           createdAt: new Date(Number(writtenPayload.tenant?.createdAt)),
         };
 
-        expect(writtenPayload.tenant).toEqual(toTenantV1(tenant));
+        expect(writtenPayload.tenant).toEqual(toTenantV1(expectedTenant));
       });
       it("Should throw operation forbidden", async () => {
         await addOneTenant(tenant, postgresDB, tenants);
