@@ -107,6 +107,15 @@ export type CommonErrorCodes = keyof typeof errorCodes;
 
 /* ===== Internal Error ===== */
 
+export function genericInternalError(
+  message: string
+): InternalError<CommonErrorCodes> {
+  return new InternalError({
+    code: "genericError",
+    detail: message,
+  });
+}
+
 export function thirdPartyCallError(
   serviceName: string,
   errorMessage: string

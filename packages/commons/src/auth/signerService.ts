@@ -4,7 +4,10 @@ import {
   SignCommandInput,
   SigningAlgorithmSpec,
 } from "@aws-sdk/client-kms";
-import { thirdPartyCallError } from "pagopa-interop-models";
+import {
+  thirdPartyCallError,
+  genericInternalError,
+} from "pagopa-interop-models";
 import { logger, signerConfig } from "../index.js";
 
 /**
@@ -29,7 +32,7 @@ export type SignerService = {
 
 export const buildSignerService = (): SignerService => {
   const config = signerConfig();
-  const client = new KMSClient([
+  const kmsClient = new KMSClient([
     {
       requestTimeout: config.maxAcquisitionTimeoutSeconds,
     },
@@ -39,16 +42,23 @@ export const buildSignerService = (): SignerService => {
     signWithRSA256: async (keyId: string, data: string): Promise<string> => {
       const input: SignCommandInput = {
         KeyId: keyId,
-        Message: new TextEncoder().encode(data),
+        Message: Buffer.from(data),
         MessageType: "RAW",
         SigningAlgorithm: SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_256,
       };
 
       try {
         const command = new SignCommand(input);
-        const res = await client.send(command);
+        const res = await kmsClient.send(command);
 
-        return new TextDecoder().decode(res.Signature);
+        if (!res.Signature) {
+          logger.error("KMS response does not contains a signature");
+          throw genericInternalError(
+            "KMS response does not contains a signature"
+          );
+        }
+
+        return Buffer.from(res.Signature).toString("base64");
       } catch (err) {
         const internalError = thirdPartyCallError("KMS", JSON.stringify(err));
         logger.error(internalError);
