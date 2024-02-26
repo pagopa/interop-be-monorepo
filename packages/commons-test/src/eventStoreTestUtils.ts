@@ -6,6 +6,7 @@ export type StoredEvent = {
   stream_id: string;
   version: string;
   type: Event["type"];
+  event_version: number;
   data: Buffer;
 };
 

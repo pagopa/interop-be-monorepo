@@ -2,8 +2,10 @@ import {
   Attribute,
   AttributeEvent,
   Tenant,
+  TenantId,
   attributeEventToBinaryData,
   attributeKind,
+  generateId,
 } from "pagopa-interop-models";
 import { IDatabase } from "pg-promise";
 import {
@@ -31,11 +33,12 @@ export const writeAttributeInEventstore = async (
   };
 
   await postgresDB.none(
-    "INSERT INTO attribute.events(stream_id, version, type, data) VALUES ($1, $2, $3, $4)",
+    "INSERT INTO attribute.events(stream_id, version, type, event_version, data) VALUES ($1, $2, $3, $4, $5)",
     [
       eventToWrite.stream_id,
       eventToWrite.version,
       eventToWrite.type,
+      1,
       eventToWrite.data,
     ]
   );
@@ -82,7 +85,7 @@ export const addOneTenant = async (
 };
 
 export const getMockAttribute = (): Attribute => ({
-  id: uuidv4(),
+  id: generateId(),
   name: "attribute name",
   kind: attributeKind.certified,
   description: "attribute description",
@@ -93,7 +96,7 @@ export const getMockAttribute = (): Attribute => ({
 
 export const getMockTenant = (): Tenant => ({
   name: "tenant_Name",
-  id: uuidv4(),
+  id: generateId(),
   createdAt: new Date(),
   attributes: [],
   externalId: {
@@ -104,8 +107,8 @@ export const getMockTenant = (): Tenant => ({
   mails: [],
 });
 
-export const getMockAuthData = (organizationId?: string): AuthData => ({
-  organizationId: organizationId || uuidv4(),
+export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
+  organizationId: organizationId || generateId(),
   userId: uuidv4(),
   userRoles: [],
   externalId: {

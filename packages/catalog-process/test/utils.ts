@@ -36,21 +36,24 @@ export const writeEServiceInEventstore = async (
 ): Promise<void> => {
   const eServiceEvent: EServiceEvent = {
     type: "EServiceAdded",
+    event_version: 1,
     data: { eService: toEServiceV1(eService) },
   };
   const eventToWrite = {
     stream_id: eServiceEvent.data.eService?.id,
     version: 0,
     type: eServiceEvent.type,
+    event_version: eServiceEvent.event_version,
     data: Buffer.from(catalogEventToBinaryData(eServiceEvent)),
   };
 
   await postgresDB.none(
-    "INSERT INTO catalog.events(stream_id, version, type, data) VALUES ($1, $2, $3, $4)",
+    "INSERT INTO catalog.events(stream_id, version, type, event_version, data) VALUES ($1, $2, $3, $4, $5)",
     [
       eventToWrite.stream_id,
       eventToWrite.version,
       eventToWrite.type,
+      eventToWrite.event_version,
       eventToWrite.data,
     ]
   );
@@ -104,8 +107,8 @@ export const writeTenantInReadmodel = async (
   });
 };
 
-export const getMockAuthData = (organizationId?: string): AuthData => ({
-  organizationId: organizationId || uuidv4(),
+export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
+  organizationId: organizationId || generateId(),
   userId: uuidv4(),
   userRoles: [],
   externalId: {
@@ -135,7 +138,7 @@ export const getMockEService = (): EService => ({
   name: "eService name",
   description: "eService description",
   createdAt: new Date(),
-  producerId: uuidv4(),
+  producerId: generateId(),
   technology: technology.rest,
   descriptors: [],
   attributes: undefined,
@@ -185,7 +188,7 @@ export const buildInterfaceSeed = (): ApiEServiceDescriptorDocumentSeed => ({
 export const getMockDocument = (): Document => ({
   name: "fileName",
   path: "filePath",
-  id: uuidv4(),
+  id: generateId(),
   prettyName: "prettyName",
   contentType: "json",
   checksum: uuidv4(),

@@ -192,6 +192,7 @@ describe("database test", async () => {
         expect(writtenEvent.stream_id).toBe(id);
         expect(writtenEvent.version).toBe("0");
         expect(writtenEvent.type).toBe("EServiceAdded");
+        expect(writtenEvent.event_version).toBe(1);
         const writtenPayload = decodeProtobufPayload({
           messageType: EServiceAddedV1,
           payload: writtenEvent.data,
@@ -1937,6 +1938,7 @@ describe("database test", async () => {
         const conflictEServiceName = `${
           eService1.name
         } - clone - ${formatClonedEServiceDate(cloneTimestamp)}`;
+
         const eService2: EService = {
           ...mockEService,
           id: generateId(),

@@ -18,6 +18,8 @@ export * from "./readModels/readModels.js";
 export * from "./user/user.js";
 export * from "./gen/v1/eservice/eservice.js";
 export * from "./gen/v1/eservice/events.js";
+export * from "./gen/v2/eservice/eservice.js";
+export * from "./gen/v2/eservice/events.js";
 export * from "./gen/v1/agreement/agreement.js";
 export * from "./gen/v1/agreement/events.js";
 export * from "./gen/v1/agreement/state.js";
