@@ -38,11 +38,15 @@ export type Problem = {
   correlationId?: string;
   detail: string;
   errors: ProblemError[];
+  toString: () => string;
 };
 
-export function makeApiProblemBuilder<T extends string>(errors: {
-  [K in T]: string;
-}): (
+export function makeApiProblemBuilder<T extends string>(
+  logger: { error: (message: string) => void },
+  errors: {
+    [K in T]: string;
+  }
+): (
   error: unknown,
   httpMapper: (apiError: ApiError<T | CommonErrorCodes>) => number
 ) => Problem {
@@ -65,11 +69,16 @@ export function makeApiProblemBuilder<T extends string>(errors: {
       ],
     });
 
-    return match<unknown, Problem>(error)
+    const problem = match<unknown, Problem>(error)
       .with(P.instanceOf(ApiError<T | CommonErrorCodes>), (error) =>
         makeProblem(httpMapper(error), error)
       )
       .otherwise(() => makeProblem(500, genericError("Unexpected error")));
+
+    logger.error(
+      `- ${problem.title} - ${problem.detail} - orignal error: ${error}`
+    );
+    return problem;
   };
 }
 
