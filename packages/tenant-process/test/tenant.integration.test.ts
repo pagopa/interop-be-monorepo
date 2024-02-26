@@ -26,6 +26,7 @@ import {
   StoredEvent,
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
+  decodeProtobufPayload,
   eventStoreSchema,
   mongoDBContainer,
   postgreSQLContainer,
@@ -42,7 +43,10 @@ import {
   TenantUpdatedV1,
   descriptorState,
   generateId,
+  operationForbidden,
   protobufDecoder,
+  tenantKind,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { StartedTestContainer } from "testcontainers";
 import { config } from "../src/utilities/config.js";
@@ -107,7 +111,8 @@ describe("Integration tests", () => {
     );
     config.readModelDbPort =
       startedMongodbContainer.getMappedPort(TEST_MONGO_DB_PORT);
-    ({ tenants, agreements, eservices } = ReadModelRepository.init(config));
+    ({ tenants, agreements, eservices, attributes } =
+      ReadModelRepository.init(config));
 
     readModelService = readModelServiceBuilder(config);
     postgresDB = initDB({
@@ -156,14 +161,22 @@ describe("Integration tests", () => {
         };
         const id = await tenantService.createTenant(tenantSeed, [], kind);
         expect(id).toBeDefined();
-        const writtenEvent = await readLastEventByStreamId(id, postgresDB);
+        const writtenEvent: StoredEvent | undefined =
+          await readLastEventByStreamId(
+            id,
+            eventStoreSchema.tenant,
+            postgresDB
+          );
+        if (!writtenEvent) {
+          fail("Creation fails: tenant not found in event-store");
+        }
         expect(writtenEvent.stream_id).toBe(id);
         expect(writtenEvent.version).toBe("0");
         expect(writtenEvent.type).toBe("TenantCreated");
-        const writtenPayload = decodeProtobufPayload({
-          messageType: TenantCreatedV1,
-          payload: writtenEvent.data,
-        });
+        const writtenPayload: TenantCreatedV1 | undefined = protobufDecoder(
+          TenantCreatedV1
+        ).parse(writtenEvent.data);
+
         const tenant: Tenant = {
           ...mockTenant,
           id: unsafeBrandId(id),
@@ -211,14 +224,22 @@ describe("Integration tests", () => {
           kind
         );
         expect(id).toBeDefined();
-        const writtenEvent = await readLastEventByStreamId(id, postgresDB);
+        const writtenEvent: StoredEvent | undefined =
+          await readLastEventByStreamId(
+            id,
+            eventStoreSchema.tenant,
+            postgresDB
+          );
+        if (!writtenEvent) {
+          fail("Creation fails: tenant not found in event-store");
+        }
         expect(writtenEvent.stream_id).toBe(id);
         expect(writtenEvent.version).toBe("0");
         expect(writtenEvent.type).toBe("TenantCreated");
-        const writtenPayload = decodeProtobufPayload({
-          messageType: TenantCreatedV1,
-          payload: writtenEvent.data,
-        });
+        const writtenPayload: TenantCreatedV1 | undefined = protobufDecoder(
+          TenantCreatedV1
+        ).parse(writtenEvent.data);
+
         const tenant: Tenant = {
           ...mockTenant,
           attributes: [
@@ -315,17 +336,21 @@ describe("Integration tests", () => {
           authData: mockAuthData,
         });
 
-        const writtenEvent = await readLastEventByStreamId(
-          mockTenant.id,
-          postgresDB
-        );
+        const writtenEvent: StoredEvent | undefined =
+          await readLastEventByStreamId(
+            mockTenant.id,
+            eventStoreSchema.tenant,
+            postgresDB
+          );
+        if (!writtenEvent) {
+          fail("Creation fails: tenant not found in event-store");
+        }
         expect(writtenEvent.stream_id).toBe(tenant.id);
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("TenantUpdated");
-        const writtenPayload = decodeProtobufPayload({
-          messageType: TenantUpdatedV1,
-          payload: writtenEvent.data,
-        });
+        const writtenPayload: TenantUpdatedV1 | undefined = protobufDecoder(
+          TenantUpdatedV1
+        ).parse(writtenEvent.data);
 
         const updatedTenant: Tenant = {
           ...tenant,
@@ -351,14 +376,21 @@ describe("Integration tests", () => {
           authData: mockAuthData,
         });
         expect(id).toBeDefined();
-        const writtenEvent = await readLastEventByStreamId(id, postgresDB);
+        const writtenEvent: StoredEvent | undefined =
+          await readLastEventByStreamId(
+            id,
+            eventStoreSchema.tenant,
+            postgresDB
+          );
+        if (!writtenEvent) {
+          fail("Creation fails: tenant not found in event-store");
+        }
         expect(writtenEvent.stream_id).toBe(id);
         expect(writtenEvent.version).toBe("0");
         expect(writtenEvent.type).toBe("TenantCreated");
-        const writtenPayload = decodeProtobufPayload({
-          messageType: TenantCreatedV1,
-          payload: writtenEvent.data,
-        });
+        const writtenPayload: TenantCreatedV1 | undefined = protobufDecoder(
+          TenantCreatedV1
+        ).parse(writtenEvent.data);
         const tenant: Tenant = {
           ...mockTenant,
           externalId: tenantSeed.externalId,

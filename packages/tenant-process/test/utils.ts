@@ -238,3 +238,10 @@ export const addOneTenant = async (
   await writeTenantInEventstore(tenant, postgresDB);
   await writeTenantInReadmodel(tenant, tenants);
 };
+
+export const addOneAttribute = async (
+  attribute: Attribute,
+  attributes: AttributeCollection
+): Promise<void> => {
+  await writeAttributeInReadmodel(attribute, attributes);
+};
