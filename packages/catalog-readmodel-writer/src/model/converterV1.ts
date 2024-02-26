@@ -19,6 +19,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
+import { parseDateOrThrow } from "./utils.js";
 
 export const fromAgreementApprovalPolicyV1 = (
   input: AgreementApprovalPolicyV1 | undefined
@@ -113,7 +114,7 @@ export const fromDescriptorV1 = (input: EServiceDescriptorV1): Descriptor => ({
   ),
   // createdAt is required in EService definition but not in protobuf,
   // this bug is handled with ISSUE https://pagopa.atlassian.net/browse/IMN-171
-  createdAt: safeParserDate(input.createdAt),
+  createdAt: parseDateOrThrow(input.createdAt),
   publishedAt: input.publishedAt
     ? new Date(Number(input.publishedAt))
     : undefined,
@@ -142,15 +143,5 @@ export const fromEServiceV1 = (input: EServiceV1): EService => ({
   descriptors: input.descriptors.map(fromDescriptorV1),
   // createdAt is required in EService definition but not in protobuf,
   // this bug is handled with ISSUE https://pagopa.atlassian.net/browse/IMN-171
-  createdAt: safeParserDate(input.createdAt),
+  createdAt: parseDateOrThrow(input.createdAt),
 });
-
-// Temporary workaround
-const safeParserDate = (date: bigint | undefined): Date => {
-  if (!date) {
-    throw new Error(
-      "createdAt field is required in EService definition but is not provided in serialized byte array events"
-    );
-  }
-  return new Date(Number(date));
-};
