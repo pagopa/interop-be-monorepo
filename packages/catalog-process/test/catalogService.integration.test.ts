@@ -307,6 +307,7 @@ describe("database test", async () => {
             name: updatedName,
             description: mockEService.description,
             technology: "SOAP",
+            mode: "RECEIVE",
           },
           getMockAuthData(mockEService.producerId)
         );
