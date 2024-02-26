@@ -1069,7 +1069,7 @@ export async function deleteDraftDescriptorLogic({
   eserviceId: EServiceId;
   descriptorId: DescriptorId;
   authData: AuthData;
-  deleteFile: (container: string, path: string) => Promise<void>;
+  deleteFile: (bucket: string, path: string) => Promise<void>;
   eService: WithMetadata<EService> | undefined;
 }): Promise<CreateEvent<EServiceEvent>> {
   assertEServiceExist(eserviceId, eService);
@@ -1298,10 +1298,6 @@ export function activateDescriptorLogic({
     recentDescriptorVersion !== null &&
     parseInt(descriptor.version, 10) === recentDescriptorVersion
   ) {
-    logger.info(
-      `Publishing Descriptor ${descriptorId} of EService ${eserviceId}`
-    );
-
     const newEservice = updateDescriptor(eService.data, updatedDescriptor);
 
     return toCreateEventEServiceDescriptorActivated(
