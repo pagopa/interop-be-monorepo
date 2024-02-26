@@ -517,6 +517,12 @@ const eservicesRouter = (
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
+    )
+    .post(
+      "/eservices/:eServiceId/riskAnalysis",
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      // TODO implement
+      async (_req, res) => res.status(501).send()
     );
   return eservicesRouter;
 };
