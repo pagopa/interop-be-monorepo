@@ -1035,13 +1035,20 @@ describe("database test", async () => {
         );
         expect(writtenEvent.stream_id).toBe(eService.id);
         expect(writtenEvent.version).toBe("1");
-        expect(writtenEvent.type).toBe("EServiceWithDescriptorsDeleted");
+        expect(writtenEvent.type).toBe("EServiceDescriptorDeleted");
         expect(writtenEvent.event_version).toBe(2);
+
         const writtenPayload = decodeProtobufPayload({
           messageType: EServiceDescriptorDeletedV2,
           payload: writtenEvent.data,
         });
-        expect(writtenPayload.eservice).toEqual(toEServiceV2(eService));
+
+        const expectedEservice = toEServiceV2({
+          ...eService,
+          descriptors: [],
+        });
+
+        expect(writtenPayload.eservice).toEqual(expectedEservice);
         expect(writtenPayload.descriptorId).toEqual(descriptor.id);
         expect(fileManager.delete).not.toHaveBeenCalled();
       });
