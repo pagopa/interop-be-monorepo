@@ -8,6 +8,8 @@ import {
   agreementApprovalPolicy,
   descriptorState,
   technology,
+  EServiceMode,
+  eserviceMode,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
@@ -16,6 +18,7 @@ import {
   ApiAgreementApprovalPolicy,
   ApiAgreementState,
   ApiEServiceDescriptorState,
+  ApiEServiceMode,
   ApiTechnology,
 } from "./models.js";
 
@@ -111,6 +114,24 @@ export function apiAgreementStateToAgreementState(
     .exhaustive();
 }
 
+export function apiEServiceModeToEServiceMode(
+  input: ApiEServiceMode
+): EServiceMode {
+  return match<ApiEServiceMode, EServiceMode>(input)
+    .with("RECEIVE", () => eserviceMode.receive)
+    .with("DELIVER", () => eserviceMode.deliver)
+    .exhaustive();
+}
+
+export function eServiceModeToApiEServiceMode(
+  input: EServiceMode
+): ApiEServiceMode {
+  return match<EServiceMode, ApiEServiceMode>(input)
+    .with(eserviceMode.receive, () => "RECEIVE")
+    .with(eserviceMode.deliver, () => "DELIVER")
+    .exhaustive();
+}
+
 export const eServiceToApiEService = (
   eService: EService
 ): z.infer<typeof api.schemas.EService> => ({
@@ -119,6 +140,18 @@ export const eServiceToApiEService = (
   name: eService.name,
   description: eService.description,
   technology: technologyToApiTechnology(eService.technology),
+  mode: eServiceModeToApiEServiceMode(eService.mode),
+  riskAnalysis: eService.riskAnalysis.map((riskAnalysis) => ({
+    id: riskAnalysis.id,
+    name: riskAnalysis.name,
+    createdAt: riskAnalysis.createdAt.toJSON(),
+    riskAnalysisForm: {
+      id: riskAnalysis.riskAnalysisForm.id,
+      version: riskAnalysis.riskAnalysisForm.version,
+      singleAnswers: riskAnalysis.riskAnalysisForm.singleAnswers,
+      multiAnswers: riskAnalysis.riskAnalysisForm.multiAnswers,
+    },
+  })),
   descriptors: eService.descriptors.map((descriptor) => ({
     id: descriptor.id,
     version: descriptor.version,

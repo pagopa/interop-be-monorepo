@@ -109,3 +109,5 @@ export const convertToDescriptorEServiceEventData = (
   archivedAt: undefined,
   attributes: eserviceDescriptorSeed.attributes,
 });
+
+export type ApiEServiceMode = z.infer<typeof api.schemas.EServiceMode>;
