@@ -12,11 +12,12 @@ import { mongoDBContainer } from "pagopa-interop-commons-test";
 import {
   EServiceAddedV1,
   EServiceEventEnvelope,
+  EServiceModeV1,
   EServiceTechnologyV1,
   generateId,
 } from "pagopa-interop-models";
 import { StartedTestContainer } from "testcontainers";
-import { handleMessage } from "../src/consumerService.js";
+import { handleMessageV1 } from "../src/consumerServiceV1.js";
 
 describe("database test", async () => {
   let eservices: EServiceCollection;
@@ -53,6 +54,8 @@ describe("database test", async () => {
           technology: EServiceTechnologyV1.REST,
           descriptors: [],
           createdAt: BigInt(new Date().getTime()),
+          mode: EServiceModeV1.RECEIVE,
+          riskAnalysis: [],
         },
       };
       const message: EServiceEventEnvelope = {
@@ -60,9 +63,10 @@ describe("database test", async () => {
         stream_id: id,
         version: 1,
         type: "EServiceAdded",
+        event_version: 1,
         data: newEService,
       };
-      await handleMessage(message, eservices);
+      await handleMessageV1(message, eservices);
 
       const eservice = await eservices.findOne({
         "data.id": id.toString,

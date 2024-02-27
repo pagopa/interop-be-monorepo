@@ -894,6 +894,7 @@ components:
         - name
         - description
         - technology
+        - mode
       properties:
         name:
           type: string
@@ -905,12 +906,15 @@ components:
           maxLength: 250
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
+        mode:
+          $ref: "#/components/schemas/EServiceMode"
     UpdateEServiceSeed:
       type: object
       required:
         - name
         - description
         - technology
+        - mode
       properties:
         name:
           type: string
@@ -922,6 +926,8 @@ components:
           maxLength: 250
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
+        mode:
+          $ref: "#/components/schemas/EServiceMode"
     EServiceDescriptorSeed:
       required:
         - audience
@@ -1124,6 +1130,8 @@ components:
         - description
         - technology
         - descriptors
+        - riskAnalysis
+        - mode
       properties:
         id:
           type: string
@@ -1141,6 +1149,86 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/EServiceDescriptor"
+        riskAnalysis:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceRiskAnalysis"
+        mode:
+          $ref: "#/components/schemas/EServiceMode"
+    EServiceMode:
+      type: string
+      description: Risk Analysis Mode
+      enum:
+        - RECEIVE
+        - DELIVER
+    EServiceRiskAnalysis:
+      type: object
+      required:
+        - id
+        - name
+        - riskAnalysisForm
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        riskAnalysisForm:
+          $ref: "#/components/schemas/EServiceRiskAnalysisForm"
+        createdAt:
+          type: string
+          format: date-time
+    EServiceRiskAnalysisForm:
+      type: object
+      required:
+        - id
+        - version
+        - singleAnswers
+        - multiAnswers
+      properties:
+        id:
+          type: string
+          format: uuid
+        version:
+          type: string
+        singleAnswers:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceRiskAnalysisSingleAnswer"
+        multiAnswers:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceRiskAnalysisMultiAnswer"
+    EServiceRiskAnalysisSingleAnswer:
+      type: object
+      required:
+        - id
+        - key
+      properties:
+        id:
+          type: string
+          format: uuid
+        key:
+          type: string
+        value:
+          type: string
+    EServiceRiskAnalysisMultiAnswer:
+      type: object
+      required:
+        - id
+        - key
+        - values
+      properties:
+        id:
+          type: string
+          format: uuid
+        key:
+          type: string
+        values:
+          type: array
+          items:
+            type: string
     EServiceConsumers:
       type: object
       properties:
