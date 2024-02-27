@@ -655,6 +655,10 @@ paths:
       responses:
         "200":
           description: EService descriptor updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourceId"
         "400":
           description: Invalid input
           content:

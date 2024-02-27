@@ -599,13 +599,13 @@ export function catalogServiceBuilder(
       descriptorId: DescriptorId,
       seed: UpdateEServiceDescriptorQuotasSeed,
       authData: AuthData
-    ): Promise<void> {
+    ): Promise<string> {
       logger.info(
         `Updating Descriptor ${descriptorId} for EService ${eserviceId}`
       );
       const eService = await readModelService.getEServiceById(eserviceId);
 
-      await repository.createEvent(
+      return await repository.createEvent(
         updateDescriptorLogic({
           eserviceId,
           descriptorId,
