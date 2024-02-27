@@ -1006,8 +1006,6 @@ describe("database test", async () => {
         vi.spyOn(fileManager, "delete");
         const descriptor: Descriptor = {
           ...mockDescriptor,
-          docs: [document1, document2],
-          interface: interfaceDocument,
           state: descriptorState.draft,
         };
         const eService: EService = {
