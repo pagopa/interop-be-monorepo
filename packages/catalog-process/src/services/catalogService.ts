@@ -27,6 +27,9 @@ import {
   unsafeBrandId,
   ListResult,
   AttributeId,
+  eserviceMode,
+  Tenant,
+  RiskAnalysis,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -39,6 +42,7 @@ import {
   EServiceDescriptorSeed,
   UpdateEServiceDescriptorSeed,
   UpdateEServiceDescriptorQuotasSeed,
+  EServiceRiskAnalysisSeed,
 } from "../model/domain/models.js";
 import {
   toCreateEventClonedEServiceAdded,
@@ -55,6 +59,7 @@ import {
   toCreateEventEServiceInterfaceAdded,
   toCreateEventEServiceInterfaceDeleted,
   toCreateEventEServiceInterfaceUpdated,
+  toCreateEventEServiceRiskAnalysisAdded,
   toCreateEventEServiceUpdated,
 } from "../model/domain/toEvent.js";
 import {
@@ -80,6 +85,9 @@ import {
   inconsistentDailyCalls,
   originNotCompliant,
   dailyCallsCannotBeDecreased,
+  eserviceNotInDraftState,
+  eserviceNotInReceiveMode,
+  tenantKindNotFound,
 } from "../model/domain/errors.js";
 import { formatClonedEServiceDate } from "../utilities/date.js";
 import { ReadModelService } from "./readModelService.js";
@@ -101,6 +109,27 @@ const assertRequesterAllowed = (
     throw operationForbidden;
   }
 };
+
+function assertIsDraftEservice(eservice: EService): void {
+  if (eservice.descriptors.some((d) => d.state !== descriptorState.draft)) {
+    throw eserviceNotInDraftState(eservice.id);
+  }
+}
+
+function assertIsReceiveEservice(eservice: EService): void {
+  if (eservice.mode !== eserviceMode.receive) {
+    throw eserviceNotInReceiveMode(eservice.id);
+  }
+}
+
+function assertTenantKindExists(
+  tenantId: TenantId,
+  tenant: WithMetadata<Tenant> | undefined
+): asserts tenant is NonNullable<WithMetadata<Tenant>> {
+  if (tenant === undefined || tenant.data.kind === undefined) {
+    throw tenantKindNotFound(tenantId);
+  }
+}
 
 const retrieveEService = async (
   eserviceId: EServiceId,
@@ -603,7 +632,6 @@ export function catalogServiceBuilder(
         })
       );
     },
-
     async updateDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
@@ -622,6 +650,28 @@ export function catalogServiceBuilder(
           seed,
           authData,
           eservice,
+        })
+      );
+    },
+    async createRiskAnalysis(
+      eserviceId: EServiceId,
+      eserviceRiskAnalysisSeed: EServiceRiskAnalysisSeed,
+      authData: AuthData
+    ): Promise<string> {
+      logger.info(`Creating Risk Analysis for EService ${eserviceId}`);
+
+      const eservice = await readModelService.getEServiceById(eserviceId);
+      const tenant = await readModelService.getTenantById(
+        authData.organizationId
+      );
+
+      return await repository.createEvent(
+        createRiskAnalysisLogic({
+          eserviceId,
+          eserviceRiskAnalysisSeed,
+          authData,
+          eservice,
+          tenant,
         })
       );
     },
@@ -1633,6 +1683,50 @@ function replaceDescriptor(
       descriptor.id === updatedDescriptor.id ? updatedDescriptor : descriptor
     ),
   };
+}
+
+export function createRiskAnalysisLogic({
+  eserviceId,
+  eserviceRiskAnalysisSeed,
+  authData,
+  eservice,
+  tenant,
+}: {
+  eserviceId: EServiceId;
+  eserviceRiskAnalysisSeed: EServiceRiskAnalysisSeed;
+  authData: AuthData;
+  eservice: WithMetadata<EService> | undefined;
+  tenant: WithMetadata<Tenant> | undefined;
+}): CreateEvent<EServiceEvent> {
+  assertEServiceExist(eserviceId, eservice);
+  assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+  assertIsDraftEservice(eservice.data);
+  assertIsReceiveEservice(eservice.data);
+  assertTenantKindExists(authData.organizationId, tenant);
+
+  // TODO risk analysis model conversion and validation
+  const newRiskAnalysis: RiskAnalysis = {
+    name: eserviceRiskAnalysisSeed.name,
+    id: generateId(),
+    createdAt: new Date(),
+    riskAnalysisForm: {
+      id: generateId(),
+      version: eserviceRiskAnalysisSeed.riskAnalysisForm.version,
+      singleAnswers: [],
+      multiAnswers: [],
+    },
+  };
+  const newEservice: EService = {
+    ...eservice.data,
+    riskAnalysis: [...eservice.data.riskAnalysis, newRiskAnalysis],
+  };
+
+  return toCreateEventEServiceRiskAnalysisAdded(
+    eservice.data.id,
+    eservice.metadata.version,
+    newRiskAnalysis.id,
+    newEservice
+  );
 }
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
