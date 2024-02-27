@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: interop-be-tenant-consumer-refactor
+  name: interop-be-tenant-readmodel-writer
   namespace: dev-refactor
 data:  
   KAFKA_CLIENT_ID: "dev-pagopa-interop-tenant"

@@ -1,9 +1,5 @@
 import { match } from "ts-pattern";
-import {
-  logger,
-  consumerConfig,
-  ReadModelRepository,
-} from "pagopa-interop-commons";
+import { logger, EServiceCollection } from "pagopa-interop-commons";
 import { EServiceEventEnvelopeV1 } from "pagopa-interop-models";
 import {
   fromDescriptorV1,
@@ -11,10 +7,9 @@ import {
   fromEServiceV1,
 } from "./model/converterV1.js";
 
-const { eservices } = ReadModelRepository.init(consumerConfig());
-
 export async function handleMessageV1(
-  message: EServiceEventEnvelopeV1
+  message: EServiceEventEnvelopeV1,
+  eservices: EServiceCollection
 ): Promise<void> {
   logger.info(message);
   await match(message)

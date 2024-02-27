@@ -379,7 +379,7 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
-          await catalogService.updateDescriptor(
+          await catalogService.updateDraftDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.body,
@@ -477,6 +477,24 @@ const eservicesRouter = (
           return res.status(204).end();
         } catch (error) {
           const errorRes = makeApiProblem(error, archiveDescriptorErrorMapper);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
+    .post(
+      "/eservices/:eServiceId/descriptors/:descriptorId/update",
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      async (req, res) => {
+        try {
+          const eserviceId = await catalogService.updateDescriptor(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
+            req.body,
+            req.ctx.authData
+          );
+          return res.status(200).json({ id: eserviceId }).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, updateDescriptorErrorMapper);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }

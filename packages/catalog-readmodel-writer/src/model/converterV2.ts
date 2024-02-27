@@ -25,15 +25,10 @@ import {
   EServiceRiskAnalysisFormV2,
   RiskAnalysisForm,
 } from "pagopa-interop-models";
-import { P, match } from "ts-pattern";
 
 export const fromAgreementApprovalPolicyV2 = (
-  input: AgreementApprovalPolicyV2 | undefined
-): AgreementApprovalPolicy | undefined => {
-  if (input == null) {
-    return undefined;
-  }
-
+  input: AgreementApprovalPolicyV2
+): AgreementApprovalPolicy => {
   switch (input) {
     case AgreementApprovalPolicyV2.MANUAL:
       return agreementApprovalPolicy.manual;
@@ -82,16 +77,7 @@ export const fromEServiceModeV2 = (input: EServiceModeV2): EServiceMode => {
 export const fromEServiceAttributeV2 = (
   input: EServiceAttributeV2
 ): EServiceAttribute[] =>
-  match<EServiceAttributeV2, EServiceAttribute[]>(input)
-    .with(
-      {
-        single: P.not(P.nullish),
-      },
-      ({ single }) => [{ ...single, id: unsafeBrandId(single.id) }]
-    )
-    .otherwise(() =>
-      input.group.map((a) => ({ ...a, id: unsafeBrandId(a.id) }))
-    );
+  input.values.map((a) => ({ ...a, id: unsafeBrandId(a.id) }));
 
 export const fromDocumentV2 = (input: EServiceDocumentV2): Document => ({
   ...input,

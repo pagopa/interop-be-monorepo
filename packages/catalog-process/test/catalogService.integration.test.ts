@@ -67,7 +67,10 @@ import {
   toDocumentV1,
   toEServiceV1,
 } from "../src/model/domain/toEvent.js";
-import { EServiceDescriptorSeed } from "../src/model/domain/models.js";
+import {
+  EServiceDescriptorSeed,
+  UpdateEServiceDescriptorQuotasSeed,
+} from "../src/model/domain/models.js";
 import {
   ReadModelService,
   readModelServiceBuilder,
@@ -78,6 +81,7 @@ import {
 } from "../src/services/catalogService.js";
 import {
   attributeNotFound,
+  dailyCallsCannotBeDecreased,
   draftDescriptorAlreadyExists,
   eServiceCannotBeDeleted,
   eServiceCannotBeUpdated,
@@ -86,10 +90,12 @@ import {
   eServiceDocumentNotFound,
   eServiceDuplicate,
   eServiceNotFound,
+  inconsistentDailyCalls,
   interfaceAlreadyExists,
   notValidDescriptor,
   originNotCompliant,
 } from "../src/model/domain/errors.js";
+import { formatClonedEServiceDate } from "../src/utilities/date.js";
 import {
   addOneAgreement,
   addOneEService,
@@ -242,9 +248,19 @@ describe("database test", async () => {
     });
 
     describe("update eService", () => {
-      it("should write on event-store for the update of an eService (update name only)", async () => {
+      it("should write on event-store for the update of an eService (no technology change)", async () => {
+        const deleteFile = vi.spyOn(fileManager, "delete");
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+          interface: mockDocument,
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
         const updatedName = "eService new name";
-        await addOneEService(mockEService, postgresDB, eservices);
+        await addOneEService(eservice, postgresDB, eservices);
         await catalogService.updateEService(
           mockEService.id,
           {
@@ -256,8 +272,8 @@ describe("database test", async () => {
           getMockAuthData(mockEService.producerId)
         );
 
-        const updatedEService = {
-          ...mockEService,
+        const updatedEService: EService = {
+          ...eservice,
           name: updatedName,
         };
 
@@ -274,6 +290,56 @@ describe("database test", async () => {
         });
 
         expect(writtenPayload.eService).toEqual(toEServiceV1(updatedEService));
+        expect(deleteFile).not.toHaveBeenCalled();
+      });
+
+      it("should write on event-store for the update of an eService (technology change: interface has to be deleted)", async () => {
+        const deleteFile = vi.spyOn(fileManager, "delete");
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+          interface: mockDocument,
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        const updatedName = "eService new name";
+        await addOneEService(eservice, postgresDB, eservices);
+        await catalogService.updateEService(
+          mockEService.id,
+          {
+            name: updatedName,
+            description: mockEService.description,
+            technology: "SOAP",
+            mode: "RECEIVE",
+          },
+          getMockAuthData(mockEService.producerId)
+        );
+
+        const updatedEService: EService = {
+          ...eservice,
+          name: updatedName,
+          technology: "Soap",
+        };
+
+        const writtenEvent = await readLastEventByStreamId(
+          mockEService.id,
+          postgresDB
+        );
+        expect(writtenEvent.stream_id).toBe(mockEService.id);
+        expect(writtenEvent.version).toBe("1");
+        expect(writtenEvent.type).toBe("EServiceUpdated");
+        const writtenPayload = decodeProtobufPayload({
+          messageType: EServiceUpdatedV1,
+          payload: writtenEvent.data,
+        });
+
+        expect(writtenPayload.eService).toEqual(toEServiceV1(updatedEService));
+        expect(deleteFile).toHaveBeenCalledWith(
+          config.s3Bucket,
+          mockDocument.path
+        );
       });
 
       it("should write on event-store for the update of an eService (update description only)", async () => {
@@ -685,10 +751,30 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(operationForbidden);
       });
+      it("should throw inconsistentDailyCalls if dailyCallsPerConsumer is greater than dailyCallsTotal", async () => {
+        const descriptorSeed: EServiceDescriptorSeed = {
+          ...buildDescriptorSeed(mockDescriptor),
+          dailyCallsPerConsumer: 100,
+          dailyCallsTotal: 50,
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [],
+        };
+
+        await addOneEService(eService, postgresDB, eservices);
+        expect(
+          catalogService.createDescriptor(
+            eService.id,
+            descriptorSeed,
+            getMockAuthData(eService.producerId)
+          )
+        ).rejects.toThrowError(inconsistentDailyCalls());
+      });
     });
 
-    describe("update descriptor", () => {
-      it("should write on event-store for the update of a descriptor", async () => {
+    describe("update draft descriptor", () => {
+      it("should write on event-store for the update of a draft descriptor", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
@@ -713,7 +799,7 @@ describe("database test", async () => {
             },
           ],
         };
-        await catalogService.updateDescriptor(
+        await catalogService.updateDraftDescriptor(
           eService.id,
           descriptor.id,
           updatedDescriptorSeed,
@@ -740,7 +826,7 @@ describe("database test", async () => {
           state: descriptorState.published,
         };
         expect(
-          catalogService.updateDescriptor(
+          catalogService.updateDraftDescriptor(
             mockEService.id,
             descriptor.id,
             buildDescriptorSeed(descriptor),
@@ -757,7 +843,7 @@ describe("database test", async () => {
         await addOneEService(eService, postgresDB, eservices);
 
         expect(
-          catalogService.updateDescriptor(
+          catalogService.updateDraftDescriptor(
             mockEService.id,
             mockDescriptor.id,
             buildDescriptorSeed(mockDescriptor),
@@ -781,7 +867,7 @@ describe("database test", async () => {
         await addOneEService(eService, postgresDB, eservices);
 
         expect(
-          catalogService.updateDescriptor(
+          catalogService.updateDraftDescriptor(
             eService.id,
             descriptor.id,
             buildDescriptorSeed(descriptor),
@@ -805,7 +891,7 @@ describe("database test", async () => {
         await addOneEService(eService, postgresDB, eservices);
 
         expect(
-          catalogService.updateDescriptor(
+          catalogService.updateDraftDescriptor(
             eService.id,
             descriptor.id,
             buildDescriptorSeed(descriptor),
@@ -829,7 +915,7 @@ describe("database test", async () => {
         await addOneEService(eService, postgresDB, eservices);
 
         expect(
-          catalogService.updateDescriptor(
+          catalogService.updateDraftDescriptor(
             eService.id,
             descriptor.id,
             buildDescriptorSeed(descriptor),
@@ -853,7 +939,7 @@ describe("database test", async () => {
         await addOneEService(eService, postgresDB, eservices);
 
         expect(
-          catalogService.updateDescriptor(
+          catalogService.updateDraftDescriptor(
             eService.id,
             descriptor.id,
             buildDescriptorSeed(descriptor),
@@ -880,7 +966,7 @@ describe("database test", async () => {
           dailyCallsTotal: 200,
         };
         expect(
-          catalogService.updateDescriptor(
+          catalogService.updateDraftDescriptor(
             eService.id,
             descriptor.id,
             buildDescriptorSeed(updatedDescriptor),
@@ -888,10 +974,105 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(operationForbidden);
       });
+      it("should throw inconsistentDailyCalls if dailyCallsPerConsumer is greater than dailyCallsTotal", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+
+        const updatedDescriptor: Descriptor = {
+          ...descriptor,
+          dailyCallsPerConsumer: 100,
+          dailyCallsTotal: 50,
+        };
+        expect(
+          catalogService.updateDraftDescriptor(
+            eService.id,
+            descriptor.id,
+            buildDescriptorSeed(updatedDescriptor),
+            getMockAuthData(eService.producerId)
+          )
+        ).rejects.toThrowError(inconsistentDailyCalls());
+      });
     });
 
     describe("delete draft descriptor", () => {
-      it("should write on event-store for the deletion of a draft descriptor, and delete documents and interface files from the bucket", async () => {
+      it("should write on event-store for the deletion of a draft descriptor (no interface nor documents to delete)", async () => {
+        vi.spyOn(fileManager, "delete");
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          docs: [document1, document2],
+          interface: interfaceDocument,
+          state: descriptorState.draft,
+        };
+        const eService: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eService, postgresDB, eservices);
+
+        await fileManager.storeBytes(
+          config.s3Bucket,
+          config.eserviceDocumentsPath,
+          interfaceDocument.id,
+          interfaceDocument.name,
+          Buffer.from("testtest")
+        );
+
+        await fileManager.storeBytes(
+          config.s3Bucket,
+          config.eserviceDocumentsPath,
+          document1.id,
+          document1.name,
+          Buffer.from("testtest")
+        );
+
+        await fileManager.storeBytes(
+          config.s3Bucket,
+          config.eserviceDocumentsPath,
+          document2.id,
+          document2.name,
+          Buffer.from("testtest")
+        );
+
+        expect(await fileManager.listFiles(config.s3Bucket)).toContain(
+          interfaceDocument.path
+        );
+        expect(await fileManager.listFiles(config.s3Bucket)).toContain(
+          document1.path
+        );
+        expect(await fileManager.listFiles(config.s3Bucket)).toContain(
+          document2.path
+        );
+
+        await catalogService.deleteDraftDescriptor(
+          eService.id,
+          descriptor.id,
+          getMockAuthData(eService.producerId)
+        );
+
+        const writtenEvent = await readLastEventByStreamId(
+          eService.id,
+          postgresDB
+        );
+        expect(writtenEvent.stream_id).toBe(eService.id);
+        expect(writtenEvent.version).toBe("1");
+        expect(writtenEvent.type).toBe("EServiceWithDescriptorsDeleted");
+        const writtenPayload = decodeProtobufPayload({
+          messageType: EServiceWithDescriptorsDeletedV1,
+          payload: writtenEvent.data,
+        });
+        expect(writtenPayload.eService).toEqual(toEServiceV1(eService));
+        expect(writtenPayload.descriptorId).toEqual(descriptor.id);
+        expect(fileManager.delete).not.toHaveBeenCalled();
+      });
+
+      it("should write on event-store for the deletion of a draft descriptor (with interface and document to delete), and delete documents and interface files from the bucket", async () => {
         vi.spyOn(fileManager, "delete");
 
         const document1 = {
@@ -1615,6 +1796,13 @@ describe("database test", async () => {
     });
 
     describe("clone descriptor", () => {
+      beforeAll(() => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date());
+      });
+      afterAll(() => {
+        vi.useRealTimers();
+      });
       it("should write on event-store for the cloning of a descriptor, and clone the descriptor docs and interface files", async () => {
         vi.spyOn(fileManager, "copy");
 
@@ -1679,7 +1867,7 @@ describe("database test", async () => {
           document2.path
         );
 
-        const cloneTimeStamp = new Date();
+        const cloneTimestamp = new Date();
         const newEService = await catalogService.cloneDescriptor(
           eService.id,
           descriptor.id,
@@ -1736,12 +1924,12 @@ describe("database test", async () => {
           docs: [expectedDocument1, expectedDocument2],
         };
 
-        const expectedLocalDate = cloneTimeStamp.toLocaleDateString("it-IT");
-        const expectedLocalTime = cloneTimeStamp.toLocaleTimeString("it-IT");
         const expectedEService: EService = {
           ...eService,
           id: unsafeBrandId(writtenPayload.eService!.id),
-          name: `${eService.name} - clone - ${expectedLocalDate} ${expectedLocalTime}`,
+          name: `${eService.name} - clone - ${formatClonedEServiceDate(
+            cloneTimestamp
+          )}`,
           descriptors: [expectedDescriptor],
           createdAt: new Date(Number(writtenPayload.eService?.createdAt)),
         };
@@ -1817,10 +2005,10 @@ describe("database test", async () => {
         };
         await addOneEService(eService1, postgresDB, eservices);
 
-        const cloneTimeStamp = new Date();
-        const expectedLocalDate = cloneTimeStamp.toLocaleDateString("it-IT");
-        const expectedLocalTime = cloneTimeStamp.toLocaleTimeString("it-IT");
-        const conflictEServiceName = `${eService1.name} - clone - ${expectedLocalDate} ${expectedLocalTime}`;
+        const cloneTimestamp = new Date();
+        const conflictEServiceName = `${
+          eService1.name
+        } - clone - ${formatClonedEServiceDate(cloneTimestamp)}`;
 
         const eService2: EService = {
           ...mockEService,
@@ -1972,6 +2160,358 @@ describe("database test", async () => {
             getMockAuthData()
           )
         ).rejects.toThrowError(operationForbidden);
+      });
+    });
+
+    describe("update descriptor", () => {
+      it("should write on event-store for the update of a published descriptor", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.published,
+          interface: mockDocument,
+          publishedAt: new Date(),
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+
+        const updatedDescriptorQuotasSeed: UpdateEServiceDescriptorQuotasSeed =
+          {
+            voucherLifespan: 1000,
+            dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
+            dailyCallsTotal: descriptor.dailyCallsTotal + 10,
+          };
+
+        const updatedEService: EService = {
+          ...eservice,
+          descriptors: [
+            {
+              ...descriptor,
+              voucherLifespan: 1000,
+              dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
+              dailyCallsTotal: descriptor.dailyCallsTotal + 10,
+            },
+          ],
+        };
+        await catalogService.updateDescriptor(
+          eservice.id,
+          descriptor.id,
+          updatedDescriptorQuotasSeed,
+          getMockAuthData(eservice.producerId)
+        );
+        const writtenEvent = await readLastEventByStreamId(
+          eservice.id,
+          postgresDB
+        );
+        expect(writtenEvent).toMatchObject({
+          stream_id: eservice.id,
+          version: "1",
+          type: "EServiceUpdated",
+        });
+        const writtenPayload = decodeProtobufPayload({
+          messageType: EServiceUpdatedV1,
+          payload: writtenEvent.data,
+        });
+        expect(writtenPayload.eService).toEqual(toEServiceV1(updatedEService));
+      });
+
+      it("should write on event-store for the update of a suspended descriptor", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.suspended,
+          interface: mockDocument,
+          publishedAt: new Date(),
+          suspendedAt: new Date(),
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+
+        const updatedDescriptorQuotasSeed: UpdateEServiceDescriptorQuotasSeed =
+          {
+            voucherLifespan: 1000,
+            dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
+            dailyCallsTotal: descriptor.dailyCallsTotal + 10,
+          };
+
+        const updatedEService: EService = {
+          ...eservice,
+          descriptors: [
+            {
+              ...descriptor,
+              voucherLifespan: 1000,
+              dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
+              dailyCallsTotal: descriptor.dailyCallsTotal + 10,
+            },
+          ],
+        };
+        await catalogService.updateDescriptor(
+          eservice.id,
+          descriptor.id,
+          updatedDescriptorQuotasSeed,
+          getMockAuthData(eservice.producerId)
+        );
+        const writtenEvent = await readLastEventByStreamId(
+          eservice.id,
+          postgresDB
+        );
+        expect(writtenEvent).toMatchObject({
+          stream_id: eservice.id,
+          version: "1",
+          type: "EServiceUpdated",
+        });
+        const writtenPayload = decodeProtobufPayload({
+          messageType: EServiceUpdatedV1,
+          payload: writtenEvent.data,
+        });
+        expect(writtenPayload.eService).toEqual(toEServiceV1(updatedEService));
+      });
+
+      it("should write on event-store for the update of an deprecated descriptor", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.deprecated,
+          interface: mockDocument,
+          publishedAt: new Date(),
+          deprecatedAt: new Date(),
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+
+        const updatedDescriptorQuotasSeed: UpdateEServiceDescriptorQuotasSeed =
+          {
+            voucherLifespan: 1000,
+            dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
+            dailyCallsTotal: descriptor.dailyCallsTotal + 10,
+          };
+
+        const updatedEService: EService = {
+          ...eservice,
+          descriptors: [
+            {
+              ...descriptor,
+              voucherLifespan: 1000,
+              dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
+              dailyCallsTotal: descriptor.dailyCallsTotal + 10,
+            },
+          ],
+        };
+        await catalogService.updateDescriptor(
+          eservice.id,
+          descriptor.id,
+          updatedDescriptorQuotasSeed,
+          getMockAuthData(eservice.producerId)
+        );
+        const writtenEvent = await readLastEventByStreamId(
+          eservice.id,
+          postgresDB
+        );
+        expect(writtenEvent).toMatchObject({
+          stream_id: eservice.id,
+          version: "1",
+          type: "EServiceUpdated",
+        });
+        const writtenPayload = decodeProtobufPayload({
+          messageType: EServiceUpdatedV1,
+          payload: writtenEvent.data,
+        });
+        expect(writtenPayload.eService).toEqual(toEServiceV1(updatedEService));
+      });
+
+      it("should throw eServiceNotFound if the eService doesn't exist", () => {
+        const updatedDescriptorQuotasSeed: UpdateEServiceDescriptorQuotasSeed =
+          {
+            voucherLifespan: 1000,
+            dailyCallsPerConsumer: mockDescriptor.dailyCallsPerConsumer + 10,
+            dailyCallsTotal: mockDescriptor.dailyCallsTotal + 10,
+          };
+        expect(
+          catalogService.updateDescriptor(
+            mockEService.id,
+            mockDescriptor.id,
+            updatedDescriptorQuotasSeed,
+            getMockAuthData(mockEService.producerId)
+          )
+        ).rejects.toThrowError(eServiceNotFound(mockEService.id));
+      });
+
+      it("should throw eServiceDescriptorNotFound if the descriptor doesn't exist", async () => {
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [],
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+
+        const updatedDescriptorQuotasSeed: UpdateEServiceDescriptorQuotasSeed =
+          {
+            voucherLifespan: 1000,
+            dailyCallsPerConsumer: mockDescriptor.dailyCallsPerConsumer + 10,
+            dailyCallsTotal: mockDescriptor.dailyCallsTotal + 10,
+          };
+
+        expect(
+          catalogService.updateDescriptor(
+            mockEService.id,
+            mockDescriptor.id,
+            updatedDescriptorQuotasSeed,
+            getMockAuthData(mockEService.producerId)
+          )
+        ).rejects.toThrowError(
+          eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
+        );
+      });
+
+      it("should throw notValidDescriptor if the descriptor is in draft state", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          interface: mockDocument,
+          state: descriptorState.draft,
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+        const updatedDescriptorQuotasSeed: UpdateEServiceDescriptorQuotasSeed =
+          {
+            voucherLifespan: 1000,
+            dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
+            dailyCallsTotal: descriptor.dailyCallsTotal + 10,
+          };
+
+        expect(
+          catalogService.updateDescriptor(
+            eservice.id,
+            descriptor.id,
+            updatedDescriptorQuotasSeed,
+            getMockAuthData(eservice.producerId)
+          )
+        ).rejects.toThrowError(
+          notValidDescriptor(mockDescriptor.id, descriptorState.draft)
+        );
+      });
+
+      it("should throw notValidDescriptor if the descriptor is in archived state", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          interface: mockDocument,
+          state: descriptorState.archived,
+          archivedAt: new Date(),
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+
+        const updatedDescriptorQuotasSeed: UpdateEServiceDescriptorQuotasSeed =
+          {
+            voucherLifespan: 1000,
+            dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
+            dailyCallsTotal: descriptor.dailyCallsTotal + 10,
+          };
+        expect(
+          catalogService.updateDescriptor(
+            eservice.id,
+            descriptor.id,
+            updatedDescriptorQuotasSeed,
+            getMockAuthData(eservice.producerId)
+          )
+        ).rejects.toThrowError(
+          notValidDescriptor(mockDescriptor.id, descriptorState.archived)
+        );
+      });
+
+      it("should throw operationForbidden if the requester is not the producer", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+
+        const updatedDescriptorQuotasSeed: UpdateEServiceDescriptorQuotasSeed =
+          {
+            voucherLifespan: 1000,
+            dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
+            dailyCallsTotal: descriptor.dailyCallsTotal + 10,
+          };
+        expect(
+          catalogService.updateDescriptor(
+            eservice.id,
+            descriptor.id,
+            updatedDescriptorQuotasSeed,
+            getMockAuthData()
+          )
+        ).rejects.toThrowError(operationForbidden);
+      });
+
+      it("should throw inconsistentDailyCalls if dailyCallsPerConsumer is greater than dailyCallsTotal", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.published,
+          interface: mockDocument,
+          publishedAt: new Date(),
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+
+        const updatedDescriptorQuotasSeed: UpdateEServiceDescriptorQuotasSeed =
+          {
+            voucherLifespan: 1000,
+            dailyCallsPerConsumer: descriptor.dailyCallsTotal + 11,
+            dailyCallsTotal: descriptor.dailyCallsTotal + 10,
+          };
+        expect(
+          catalogService.updateDescriptor(
+            eservice.id,
+            descriptor.id,
+            updatedDescriptorQuotasSeed,
+            getMockAuthData(eservice.producerId)
+          )
+        ).rejects.toThrowError(inconsistentDailyCalls());
+      });
+
+      it("should throw dailyCallsCannotBeDecreased if dailyCallsPerConsumer or dailyCallsTotal get decreased", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.published,
+          interface: mockDocument,
+          publishedAt: new Date(),
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+
+        const updatedDescriptorQuotasSeed: UpdateEServiceDescriptorQuotasSeed =
+          {
+            voucherLifespan: 1000,
+            dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer - 1,
+            dailyCallsTotal: descriptor.dailyCallsTotal - 1,
+          };
+        expect(
+          catalogService.updateDescriptor(
+            eservice.id,
+            descriptor.id,
+            updatedDescriptorQuotasSeed,
+            getMockAuthData(eservice.producerId)
+          )
+        ).rejects.toThrowError(dailyCallsCannotBeDecreased());
       });
     });
 

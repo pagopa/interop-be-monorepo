@@ -5,6 +5,7 @@ import {
   EServiceId,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
+import { logger } from "pagopa-interop-commons";
 
 export const errorCodes = {
   eServiceDescriptorNotFound: "0002",
@@ -17,12 +18,14 @@ export const errorCodes = {
   eServiceDuplicate: "0010",
   originNotCompliant: "0011",
   attributeNotFound: "0012",
+  inconsistentDailyCalls: "0013",
   interfaceAlreadyExists: "0022",
+  dailyCallsCannotBeDecreased: "0014",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
 
-export const makeApiProblem = makeApiProblemBuilder(errorCodes);
+export const makeApiProblem = makeApiProblemBuilder(logger, errorCodes);
 
 const eserviceCannotBeUpdatedOrDeleted: {
   code: ErrorCodes;
@@ -148,10 +151,26 @@ export function attributeNotFound(attributeId: string): ApiError<ErrorCodes> {
   });
 }
 
+export function inconsistentDailyCalls(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `dailyCallsPerConsumer can't be greater than dailyCallsTotal`,
+    code: "inconsistentDailyCalls",
+    title: "Inconsistent daily calls",
+  });
+}
+
 export function originNotCompliant(origin: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Requester has not origin ${origin}`,
     code: "originNotCompliant",
     title: "Origin is not compliant",
+  });
+}
+
+export function dailyCallsCannotBeDecreased(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `dailyCallsPerConsumer and dailyCallsTotal can't be decreased`,
+    code: "dailyCallsCannotBeDecreased",
+    title: "Daily calls limits can't be decreased",
   });
 }
