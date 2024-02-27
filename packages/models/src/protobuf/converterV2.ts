@@ -1,30 +1,32 @@
+import { unsafeBrandId } from "../brandedIds.js";
 import {
   AgreementApprovalPolicy,
-  AgreementApprovalPolicyV2,
+  agreementApprovalPolicy,
+  DescriptorState,
+  descriptorState,
+  Technology,
+  technology,
+  EServiceMode,
+  eserviceMode,
   EServiceAttribute,
   Descriptor,
-  DescriptorState,
-  Document,
+  RiskAnalysisForm,
+  RiskAnalysis,
   EService,
+  Document,
+} from "../eservice/eservice.js";
+import {
+  AgreementApprovalPolicyV2,
   EServiceAttributeV2,
   EServiceDescriptorStateV2,
   EServiceDescriptorV2,
   EServiceDocumentV2,
   EServiceTechnologyV2,
   EServiceV2,
-  Technology,
-  agreementApprovalPolicy,
-  descriptorState,
-  technology,
-  unsafeBrandId,
   EServiceModeV2,
-  EServiceMode,
-  eserviceMode,
   EServiceRiskAnalysisV2,
-  RiskAnalysis,
   EServiceRiskAnalysisFormV2,
-  RiskAnalysisForm,
-} from "pagopa-interop-models";
+} from "../gen/v2/eservice/eservice.js";
 
 export const fromAgreementApprovalPolicyV2 = (
   input: AgreementApprovalPolicyV2
