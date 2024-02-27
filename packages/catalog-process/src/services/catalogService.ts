@@ -52,6 +52,9 @@ import {
   toCreateEventEServiceDocumentAdded,
   toCreateEventEServiceDocumentDeleted,
   toCreateEventEServiceDocumentUpdated,
+  toCreateEventEServiceInterfaceAdded,
+  toCreateEventEServiceInterfaceDeleted,
+  toCreateEventEServiceInterfaceUpdated,
   toCreateEventEServiceUpdated,
 } from "../model/domain/toEvent.js";
 import {
@@ -724,7 +727,7 @@ export async function updateEserviceLogic({
     ...eService.data,
     description: eServiceSeed.description,
     name: eServiceSeed.name,
-    technology: apiTechnologyToTechnology(eServiceSeed.technology),
+    technology: updatedTechnology,
     producerId: authData.organizationId,
   };
 
@@ -809,16 +812,25 @@ export function uploadDocumentLogic({
     ),
   };
 
-  return toCreateEventEServiceDocumentAdded(
-    eserviceId,
-    eService.metadata.version,
-    {
-      descriptorId,
-      documentId: unsafeBrandId(document.documentId),
-      eservice: newEservice,
-      isInterface: document.kind === "INTERFACE",
-    }
-  );
+  return document.kind === "INTERFACE"
+    ? toCreateEventEServiceInterfaceAdded(
+        eserviceId,
+        eService.metadata.version,
+        {
+          descriptorId,
+          documentId: unsafeBrandId(document.documentId),
+          eservice: newEservice,
+        }
+      )
+    : toCreateEventEServiceDocumentAdded(
+        eserviceId,
+        eService.metadata.version,
+        {
+          descriptorId,
+          documentId: unsafeBrandId(document.documentId),
+          eservice: newEservice,
+        }
+      );
 }
 
 export async function deleteDocumentLogic({
@@ -873,16 +885,25 @@ export async function deleteDocumentLogic({
     ),
   };
 
-  return toCreateEventEServiceDocumentDeleted(
-    eserviceId,
-    eService.metadata.version,
-    {
-      descriptorId,
-      documentId,
-      eservice: newEservice,
-      isInterface,
-    }
-  );
+  return isInterface
+    ? toCreateEventEServiceInterfaceDeleted(
+        eserviceId,
+        eService.metadata.version,
+        {
+          descriptorId,
+          documentId,
+          eservice: newEservice,
+        }
+      )
+    : toCreateEventEServiceDocumentDeleted(
+        eserviceId,
+        eService.metadata.version,
+        {
+          descriptorId,
+          documentId,
+          eservice: newEservice,
+        }
+      );
 }
 
 export async function updateDocumentLogic({
@@ -938,16 +959,25 @@ export async function updateDocumentLogic({
     ),
   };
 
-  return toCreateEventEServiceDocumentUpdated(
-    eserviceId,
-    eService.metadata.version,
-    {
-      descriptorId,
-      documentId,
-      eservice: newEservice,
-      isInterface,
-    }
-  );
+  return isInterface
+    ? toCreateEventEServiceInterfaceUpdated(
+        eserviceId,
+        eService.metadata.version,
+        {
+          descriptorId,
+          documentId,
+          eservice: newEservice,
+        }
+      )
+    : toCreateEventEServiceDocumentUpdated(
+        eserviceId,
+        eService.metadata.version,
+        {
+          descriptorId,
+          documentId,
+          eservice: newEservice,
+        }
+      );
 }
 
 export async function createDescriptorLogic({

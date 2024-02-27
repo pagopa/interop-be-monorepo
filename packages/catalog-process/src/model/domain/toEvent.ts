@@ -146,6 +146,32 @@ export const toCreateEventClonedEServiceAdded = (
   },
 });
 
+export const toCreateEventEServiceInterfaceAdded = (
+  streamId: string,
+  version: number,
+  {
+    descriptorId,
+    documentId,
+    eservice,
+  }: {
+    descriptorId: DescriptorId;
+    documentId: EServiceDocumentId;
+    eservice: EService;
+  }
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceDescriptorInterfaceAdded",
+    event_version: 2,
+    data: {
+      descriptorId,
+      documentId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+});
+
 export const toCreateEventEServiceDocumentAdded = (
   streamId: string,
   version: number,
@@ -153,20 +179,16 @@ export const toCreateEventEServiceDocumentAdded = (
     descriptorId,
     documentId,
     eservice,
-    isInterface,
   }: {
     descriptorId: DescriptorId;
     documentId: EServiceDocumentId;
     eservice: EService;
-    isInterface: boolean;
   }
 ): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
   event: {
-    type: isInterface
-      ? "EServiceDescriptorInterfaceAdded"
-      : "EServiceDescriptorDocumentAdded",
+    type: "EServiceDescriptorDocumentAdded",
     event_version: 2,
     data: {
       descriptorId,
@@ -210,6 +232,32 @@ export const toCreateEventEServiceUpdated = (
   },
 });
 
+export const toCreateEventEServiceInterfaceUpdated = (
+  streamId: string,
+  version: number,
+  {
+    descriptorId,
+    documentId,
+    eservice,
+  }: {
+    descriptorId: DescriptorId;
+    documentId: EServiceDocumentId;
+    eservice: EService;
+  }
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceDescriptorInterfaceUpdated",
+    event_version: 2,
+    data: {
+      descriptorId,
+      documentId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+});
+
 export const toCreateEventEServiceDocumentUpdated = (
   streamId: string,
   version: number,
@@ -217,20 +265,16 @@ export const toCreateEventEServiceDocumentUpdated = (
     descriptorId,
     documentId,
     eservice,
-    isInterface,
   }: {
     descriptorId: DescriptorId;
     documentId: EServiceDocumentId;
     eservice: EService;
-    isInterface: boolean;
   }
 ): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
   event: {
-    type: isInterface
-      ? "EServiceDescriptorInterfaceUpdated"
-      : "EServiceDescriptorDocumentUpdated",
+    type: "EServiceDescriptorDocumentUpdated",
     event_version: 2,
     data: {
       descriptorId,
@@ -347,6 +391,31 @@ export const toCreateEventEServiceDeleted = (
   },
 });
 
+export const toCreateEventEServiceInterfaceDeleted = (
+  streamId: string,
+  version: number,
+  {
+    descriptorId,
+    documentId,
+    eservice,
+  }: {
+    descriptorId: DescriptorId;
+    documentId: EServiceDocumentId;
+    eservice: EService;
+  }
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceDescriptorInterfaceDeleted",
+    event_version: 2,
+    data: {
+      descriptorId,
+      documentId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+});
 export const toCreateEventEServiceDocumentDeleted = (
   streamId: string,
   version: number,
@@ -354,20 +423,16 @@ export const toCreateEventEServiceDocumentDeleted = (
     descriptorId,
     documentId,
     eservice,
-    isInterface,
   }: {
     descriptorId: DescriptorId;
     documentId: EServiceDocumentId;
     eservice: EService;
-    isInterface: boolean;
   }
 ): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
   event: {
-    type: isInterface
-      ? "EServiceDescriptorInterfaceDeleted"
-      : "EServiceDescriptorDocumentDeleted",
+    type: "EServiceDescriptorDocumentDeleted",
     event_version: 2,
     data: {
       descriptorId,
