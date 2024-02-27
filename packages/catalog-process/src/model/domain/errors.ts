@@ -16,9 +16,10 @@ export const errorCodes = {
   draftDescriptorAlreadyExists: "0008",
   eserviceCannotBeUpdatedOrDeleted: "0009",
   eServiceDuplicate: "0010",
-  interfaceAlreadyExists: "0011",
+  originNotCompliant: "0011",
   attributeNotFound: "0012",
   inconsistentDailyCalls: "0013",
+  interfaceAlreadyExists: "0022",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -41,11 +42,9 @@ export function eServiceNotFound(eserviceId: EServiceId): ApiError<ErrorCodes> {
   });
 }
 
-export function eServiceDuplicate(
-  eServiceNameSeed: string
-): ApiError<ErrorCodes> {
+export function eServiceDuplicate(eServiceName: string): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `ApiError during EService creation with name ${eServiceNameSeed}`,
+    detail: `An EService with name ${eServiceName} already exists`,
     code: "eServiceDuplicate",
     title: "Duplicated service name",
   });
@@ -156,5 +155,13 @@ export function inconsistentDailyCalls(): ApiError<ErrorCodes> {
     detail: `dailyCallsPerConsumer can't be greater than dailyCallsTotal`,
     code: "inconsistentDailyCalls",
     title: "Inconsistent daily calls",
+  });
+}
+
+export function originNotCompliant(origin: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Requester has not origin ${origin}`,
+    code: "originNotCompliant",
+    title: "Origin is not compliant",
   });
 }
