@@ -41,6 +41,7 @@ import {
   Consumer,
   EServiceDescriptorSeed,
   UpdateEServiceDescriptorSeed,
+  UpdateEServiceDescriptorQuotasSeed,
 } from "../model/domain/models.js";
 import {
   toCreateEventClonedEServiceAdded,
@@ -76,6 +77,7 @@ import {
   attributeNotFound,
   inconsistentDailyCalls,
   originNotCompliant,
+  dailyCallsCannotBeDecreased,
 } from "../model/domain/errors.js";
 import { formatClonedEServiceDate } from "../utilities/date.js";
 import { ReadModelService } from "./readModelService.js";
@@ -481,7 +483,7 @@ export function catalogServiceBuilder(
       );
     },
 
-    async updateDescriptor(
+    async updateDraftDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       seed: UpdateEServiceDescriptorSeed,
@@ -493,7 +495,7 @@ export function catalogServiceBuilder(
       const eService = await readModelService.getEServiceById(eserviceId);
 
       await repository.createEvent(
-        updateDescriptorLogic({
+        updateDraftDescriptorLogic({
           eserviceId,
           descriptorId,
           seed,
@@ -608,6 +610,28 @@ export function catalogServiceBuilder(
         archiveDescriptorLogic({
           eserviceId,
           descriptorId,
+          authData,
+          eService,
+        })
+      );
+    },
+
+    async updateDescriptor(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: UpdateEServiceDescriptorQuotasSeed,
+      authData: AuthData
+    ): Promise<string> {
+      logger.info(
+        `Updating Descriptor ${descriptorId} for EService ${eserviceId}`
+      );
+      const eService = await readModelService.getEServiceById(eserviceId);
+
+      return await repository.createEvent(
+        updateDescriptorLogic({
+          eserviceId,
+          descriptorId,
+          seed,
           authData,
           eService,
         })
@@ -1033,7 +1057,7 @@ export async function deleteDraftDescriptorLogic({
   return toCreateEventEServiceWithDescriptorsDeleted(eService, descriptorId);
 }
 
-export function updateDescriptorLogic({
+export function updateDraftDescriptorLogic({
   eserviceId,
   descriptorId,
   seed,
@@ -1073,14 +1097,7 @@ export function updateDescriptorLogic({
       ),
   };
 
-  const filteredDescriptor = eService.data.descriptors.filter(
-    (d: Descriptor) => d.id !== descriptorId
-  );
-
-  const updatedEService: EService = {
-    ...eService.data,
-    descriptors: [...filteredDescriptor, updatedDescriptor],
-  };
+  const updatedEService = replaceDescriptor(eService.data, updatedDescriptor);
 
   return toCreateEventEServiceUpdated(
     eserviceId,
@@ -1423,6 +1440,55 @@ export function archiveDescriptorLogic({
   );
 }
 
+export function updateDescriptorLogic({
+  eserviceId,
+  descriptorId,
+  seed,
+  authData,
+  eService,
+}: {
+  eserviceId: EServiceId;
+  descriptorId: DescriptorId;
+  seed: UpdateEServiceDescriptorQuotasSeed;
+  authData: AuthData;
+  eService: WithMetadata<EService> | undefined;
+}): CreateEvent<EServiceEvent> {
+  assertEServiceExist(eserviceId, eService);
+  assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+
+  const descriptor = retrieveDescriptor(descriptorId, eService);
+
+  if (
+    descriptor.state !== descriptorState.published &&
+    descriptor.state !== descriptorState.suspended &&
+    descriptor.state !== descriptorState.deprecated
+  ) {
+    throw notValidDescriptor(descriptorId, descriptor.state.toString());
+  }
+
+  assertDailyCallsAreConsistentAndNotDecreased({
+    dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
+    dailyCallsTotal: descriptor.dailyCallsTotal,
+    updatedDailyCallsPerConsumer: seed.dailyCallsPerConsumer,
+    updatedDailyCallsTotal: seed.dailyCallsTotal,
+  });
+
+  const updatedDescriptor: Descriptor = {
+    ...descriptor,
+    voucherLifespan: seed.voucherLifespan,
+    dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
+    dailyCallsTotal: seed.dailyCallsTotal,
+  };
+
+  const updatedEService = replaceDescriptor(eService.data, updatedDescriptor);
+
+  return toCreateEventEServiceUpdated(
+    eserviceId,
+    eService.metadata.version,
+    updatedEService
+  );
+}
+
 const isUserAllowedToSeeDraft = (
   authData: AuthData,
   producerId: TenantId
@@ -1453,5 +1519,39 @@ const applyVisibilityToEService = (
     ),
   };
 };
+
+function assertDailyCallsAreConsistentAndNotDecreased({
+  dailyCallsPerConsumer,
+  dailyCallsTotal,
+  updatedDailyCallsPerConsumer,
+  updatedDailyCallsTotal,
+}: {
+  dailyCallsPerConsumer: number;
+  dailyCallsTotal: number;
+  updatedDailyCallsPerConsumer: number;
+  updatedDailyCallsTotal: number;
+}): void {
+  if (updatedDailyCallsPerConsumer > updatedDailyCallsTotal) {
+    throw inconsistentDailyCalls();
+  }
+  if (
+    updatedDailyCallsPerConsumer < dailyCallsPerConsumer ||
+    updatedDailyCallsTotal < dailyCallsTotal
+  ) {
+    throw dailyCallsCannotBeDecreased();
+  }
+}
+
+function replaceDescriptor(
+  eservice: EService,
+  updatedDescriptor: Descriptor
+): EService {
+  return {
+    ...eservice,
+    descriptors: eservice.descriptors.map((descriptor) =>
+      descriptor.id === updatedDescriptor.id ? updatedDescriptor : descriptor
+    ),
+  };
+}
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
