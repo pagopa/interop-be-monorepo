@@ -169,12 +169,12 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
-          await catalogService.updateEService(
+          const eserviceId = await catalogService.updateEService(
             unsafeBrandId(req.params.eServiceId),
             req.body,
             req.ctx.authData
           );
-          return res.status(200).end();
+          return res.status(200).json({ id: eserviceId }).end();
         } catch (error) {
           const errorRes = makeApiProblem(error, updateEServiceErrorMapper);
           return res.status(errorRes.status).json(errorRes).end();
@@ -317,14 +317,14 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
-          await catalogService.updateDocument(
+          const eserviceId = await catalogService.updateDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             unsafeBrandId(req.params.documentId),
             req.body,
             req.ctx.authData
           );
-          return res.status(200).end();
+          return res.status(200).json({ id: eserviceId }).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -376,13 +376,13 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
-          await catalogService.updateDraftDescriptor(
+          const eserviceId = await catalogService.updateDraftDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.body,
             req.ctx.authData
           );
-          return res.status(200).end();
+          return res.status(200).json({ id: eserviceId }).end();
         } catch (error) {
           const errorRes = makeApiProblem(error, updateDescriptorErrorMapper);
           return res.status(errorRes.status).json(errorRes).end();

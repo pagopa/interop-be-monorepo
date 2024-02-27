@@ -205,6 +205,10 @@ paths:
       responses:
         "200":
           description: E-Service updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourceId"
         "404":
           description: E-Service not found
           content:
@@ -410,6 +414,10 @@ paths:
       responses:
         "200":
           description: EService with draft descriptor updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourceId"
         "400":
           description: Invalid input
           content:
@@ -847,7 +855,11 @@ paths:
               $ref: "#/components/schemas/UpdateEServiceDescriptorDocumentSeed"
       responses:
         "200":
-          description: EService Descriptor updated.
+          description: EService Document updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourceId"
         "404":
           description: EService not found
           content:
