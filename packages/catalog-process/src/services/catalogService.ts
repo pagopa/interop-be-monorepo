@@ -298,11 +298,11 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       eServiceSeed: ApiEServiceSeed,
       authData: AuthData
-    ): Promise<void> {
+    ): Promise<string> {
       logger.info(`Updating EService ${eserviceId}`);
       const eService = await readModelService.getEServiceById(eserviceId);
 
-      await repository.createEvent(
+      return await repository.createEvent(
         await updateEserviceLogic({
           eService,
           eserviceId,
@@ -403,13 +403,13 @@ export function catalogServiceBuilder(
       documentId: EServiceDocumentId,
       apiEServiceDescriptorDocumentUpdateSeed: ApiEServiceDescriptorDocumentUpdateSeed,
       authData: AuthData
-    ): Promise<void> {
+    ): Promise<string> {
       logger.info(
         `Updating Document ${documentId} of Descriptor ${descriptorId} for EService ${eserviceId}`
       );
       const eService = await readModelService.getEServiceById(eserviceId);
 
-      await repository.createEvent(
+      return await repository.createEvent(
         await updateDocumentLogic({
           eserviceId,
           descriptorId,
@@ -467,13 +467,13 @@ export function catalogServiceBuilder(
       descriptorId: DescriptorId,
       seed: UpdateEServiceDescriptorSeed,
       authData: AuthData
-    ): Promise<void> {
+    ): Promise<string> {
       logger.info(
         `Updating draft Descriptor ${descriptorId} for EService ${eserviceId}`
       );
       const eService = await readModelService.getEServiceById(eserviceId);
 
-      await repository.createEvent(
+      return await repository.createEvent(
         updateDraftDescriptorLogic({
           eserviceId,
           descriptorId,
