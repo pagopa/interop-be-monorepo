@@ -49,6 +49,7 @@ export async function handleMessageV1(
     )
     .with(
       { type: "EServiceUpdated" },
+      { type: "EServiceRiskAnalysisAdded" },
       async (msg) =>
         await eservices.updateOne(
           {
