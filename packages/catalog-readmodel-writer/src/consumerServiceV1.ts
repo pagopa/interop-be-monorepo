@@ -1,11 +1,11 @@
 import { match } from "ts-pattern";
 import { EServiceCollection } from "pagopa-interop-commons";
-import { EServiceEventEnvelopeV1 } from "pagopa-interop-models";
 import {
   fromDescriptorV1,
   fromDocumentV1,
   fromEServiceV1,
-} from "./model/converterV1.js";
+  EServiceEventEnvelopeV1,
+} from "pagopa-interop-models";
 
 export async function handleMessageV1(
   message: EServiceEventEnvelopeV1,
