@@ -7,6 +7,7 @@ import {
   hasPermission,
   logger,
   userRoles,
+  validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
   Descriptor,
@@ -88,6 +89,7 @@ import {
   eserviceNotInDraftState,
   eserviceNotInReceiveMode,
   tenantKindNotFound,
+  tenantNotFound,
 } from "../model/domain/errors.js";
 import { formatClonedEServiceDate } from "../utilities/date.js";
 import { ReadModelService } from "./readModelService.js";
@@ -113,11 +115,20 @@ function assertIsReceiveEservice(eservice: EService): void {
   }
 }
 
-function assertTenantKindExists(
+function assertTenantExists(
   tenantId: TenantId,
   tenant: WithMetadata<Tenant> | undefined
 ): asserts tenant is NonNullable<WithMetadata<Tenant>> {
-  if (tenant === undefined || tenant.data.kind === undefined) {
+  if (tenant === undefined) {
+    throw tenantNotFound(tenantId);
+  }
+}
+
+function assertTenantKindExists(
+  tenantId: TenantId,
+  tenantKind: Tenant["kind"] | undefined
+): asserts tenantKind is NonNullable<Tenant["kind"]> {
+  if (tenantKind === undefined) {
     throw tenantKindNotFound(tenantId);
   }
 }
@@ -1381,20 +1392,25 @@ export function createRiskAnalysisLogic({
   assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
   assertIsDraftEservice(eservice.data);
   assertIsReceiveEservice(eservice.data);
-  assertTenantKindExists(authData.organizationId, tenant);
+  assertTenantExists(authData.organizationId, tenant);
+  assertTenantKindExists(authData.organizationId, tenant.data.kind);
 
-  // TODO risk analysis model conversion and validation
+  const validatedRiskAnalysisForm = validateRiskAnalysis(
+    eserviceRiskAnalysisSeed.riskAnalysisForm,
+    true,
+    tenant.data.kind
+  );
+
   const newRiskAnalysis: RiskAnalysis = {
     name: eserviceRiskAnalysisSeed.name,
     id: generateId(),
     createdAt: new Date(),
     riskAnalysisForm: {
       id: generateId(),
-      version: eserviceRiskAnalysisSeed.riskAnalysisForm.version,
-      singleAnswers: [],
-      multiAnswers: [],
+      ...validatedRiskAnalysisForm,
     },
   };
+
   const newEservice: EService = {
     ...eservice.data,
     riskAnalysis: [...eservice.data.riskAnalysis, newRiskAnalysis],
