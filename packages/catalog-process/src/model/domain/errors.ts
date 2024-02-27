@@ -3,6 +3,7 @@ import {
   DescriptorId,
   EServiceDocumentId,
   EServiceId,
+  TenantId,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 import { logger } from "pagopa-interop-commons";
@@ -19,7 +20,11 @@ export const errorCodes = {
   originNotCompliant: "0011",
   attributeNotFound: "0012",
   inconsistentDailyCalls: "0013",
-  interfaceAlreadyExists: "0022",
+  dailyCallsCannotBeDecreased: "0014",
+  interfaceAlreadyExists: "0015",
+  eserviceNotInDraftState: "0016",
+  eserviceNotInReceiveMode: "0017",
+  tenantKindNotFound: "0018",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -163,5 +168,41 @@ export function originNotCompliant(origin: string): ApiError<ErrorCodes> {
     detail: `Requester has not origin ${origin}`,
     code: "originNotCompliant",
     title: "Origin is not compliant",
+  });
+}
+
+export function dailyCallsCannotBeDecreased(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `dailyCallsPerConsumer and dailyCallsTotal can't be decreased`,
+    code: "dailyCallsCannotBeDecreased",
+    title: "Daily calls limits can't be decreased",
+  });
+}
+
+export function eserviceNotInDraftState(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} is not in draft state`,
+    code: "eserviceNotInDraftState",
+    title: "EService is not in draft state",
+  });
+}
+
+export function eserviceNotInReceiveMode(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} is not in receive mode`,
+    code: "eserviceNotInReceiveMode",
+    title: "EService is not in receive mode",
+  });
+}
+
+export function tenantKindNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant kind for tenant ${tenantId} not found`,
+    code: "tenantKindNotFound",
+    title: "Tenant kind not found",
   });
 }

@@ -1,5 +1,6 @@
 import {
   AuthData,
+  CreateEvent,
   DB,
   FileManager,
   eventRepository,
@@ -26,6 +27,10 @@ import {
   AttributeId,
   agreementState,
   EserviceAttributes,
+  eserviceMode,
+  Tenant,
+  RiskAnalysis,
+  EServiceEvent,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -39,6 +44,7 @@ import {
   UpdateEServiceDescriptorSeed,
   UpdateEServiceDescriptorQuotasSeed,
   EServiceAttributesSeed,
+  EServiceRiskAnalysisSeed,
 } from "../model/domain/models.js";
 import {
   toCreateEventClonedEServiceAdded,
@@ -55,6 +61,7 @@ import {
   toCreateEventEServiceInterfaceAdded,
   toCreateEventEServiceInterfaceDeleted,
   toCreateEventEServiceInterfaceUpdated,
+  toCreateEventEServiceRiskAnalysisAdded,
   toCreateEventEServiceUpdated,
 } from "../model/domain/toEvent.js";
 import {
@@ -79,6 +86,10 @@ import {
   attributeNotFound,
   inconsistentDailyCalls,
   originNotCompliant,
+  dailyCallsCannotBeDecreased,
+  eserviceNotInDraftState,
+  eserviceNotInReceiveMode,
+  tenantKindNotFound,
 } from "../model/domain/errors.js";
 import { formatClonedEServiceDate } from "../utilities/date.js";
 import { ReadModelService } from "./readModelService.js";
@@ -91,6 +102,27 @@ const assertRequesterAllowed = (
     throw operationForbidden;
   }
 };
+
+function assertIsDraftEservice(eservice: EService): void {
+  if (eservice.descriptors.some((d) => d.state !== descriptorState.draft)) {
+    throw eserviceNotInDraftState(eservice.id);
+  }
+}
+
+function assertIsReceiveEservice(eservice: EService): void {
+  if (eservice.mode !== eserviceMode.receive) {
+    throw eserviceNotInReceiveMode(eservice.id);
+  }
+}
+
+function assertTenantKindExists(
+  tenantId: TenantId,
+  tenant: WithMetadata<Tenant> | undefined
+): asserts tenant is NonNullable<WithMetadata<Tenant>> {
+  if (tenant === undefined || tenant.data.kind === undefined) {
+    throw tenantKindNotFound(tenantId);
+  }
+}
 
 const retrieveEService = async (
   eserviceId: EServiceId,
@@ -1227,7 +1259,6 @@ export function catalogServiceBuilder(
 
       await repository.createEvent(event);
     },
-
     async updateDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
@@ -1276,6 +1307,27 @@ export function catalogServiceBuilder(
 
       return updatedEService;
     },
+    async createRiskAnalysis(
+      eserviceId: EServiceId,
+      eserviceRiskAnalysisSeed: EServiceRiskAnalysisSeed,
+      authData: AuthData
+    ): Promise<string> {
+      logger.info(`Creating Risk Analysis for EService ${eserviceId}`);
+
+      const eservice = await readModelService.getEServiceById(eserviceId);
+      const tenant = await readModelService.getTenantById(
+        authData.organizationId
+      );
+
+      return await repository.createEvent(
+        createRiskAnalysisLogic({
+          eserviceRiskAnalysisSeed,
+          authData,
+          eservice,
+          tenant,
+        })
+      );
+    },
   };
 }
 
@@ -1309,5 +1361,68 @@ const applyVisibilityToEService = (
     ),
   };
 };
+
+function assertDailyCallsAreConsistentAndNotDecreased({
+  dailyCallsPerConsumer,
+  dailyCallsTotal,
+  updatedDailyCallsPerConsumer,
+  updatedDailyCallsTotal,
+}: {
+  dailyCallsPerConsumer: number;
+  dailyCallsTotal: number;
+  updatedDailyCallsPerConsumer: number;
+  updatedDailyCallsTotal: number;
+}): void {
+  if (updatedDailyCallsPerConsumer > updatedDailyCallsTotal) {
+    throw inconsistentDailyCalls();
+  }
+  if (
+    updatedDailyCallsPerConsumer < dailyCallsPerConsumer ||
+    updatedDailyCallsTotal < dailyCallsTotal
+  ) {
+    throw dailyCallsCannotBeDecreased();
+  }
+}
+
+export function createRiskAnalysisLogic({
+  eserviceRiskAnalysisSeed,
+  authData,
+  eservice,
+  tenant,
+}: {
+  eserviceRiskAnalysisSeed: EServiceRiskAnalysisSeed;
+  authData: AuthData;
+  eservice: WithMetadata<EService>;
+  tenant: WithMetadata<Tenant> | undefined;
+}): CreateEvent<EServiceEvent> {
+  assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+  assertIsDraftEservice(eservice.data);
+  assertIsReceiveEservice(eservice.data);
+  assertTenantKindExists(authData.organizationId, tenant);
+
+  // TODO risk analysis model conversion and validation
+  const newRiskAnalysis: RiskAnalysis = {
+    name: eserviceRiskAnalysisSeed.name,
+    id: generateId(),
+    createdAt: new Date(),
+    riskAnalysisForm: {
+      id: generateId(),
+      version: eserviceRiskAnalysisSeed.riskAnalysisForm.version,
+      singleAnswers: [],
+      multiAnswers: [],
+    },
+  };
+  const newEservice: EService = {
+    ...eservice.data,
+    riskAnalysis: [...eservice.data.riskAnalysis, newRiskAnalysis],
+  };
+
+  return toCreateEventEServiceRiskAnalysisAdded(
+    eservice.data.id,
+    eservice.metadata.version,
+    newRiskAnalysis.id,
+    newEservice
+  );
+}
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
