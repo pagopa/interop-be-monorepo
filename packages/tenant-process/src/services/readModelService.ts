@@ -22,7 +22,7 @@ import { z } from "zod";
 import { Document, Filter, WithId } from "mongodb";
 import { attributeNotFound } from "../model/domain/errors.js";
 import { TenantProcessConfig } from "../utilities/config.js";
-import { ApiCertifiedAttribute } from "../model/domain/models.js";
+import { CertifiedAttributeQueryResult } from "../model/domain/models.js";
 
 function listTenantsFilters(
   name: string | undefined
@@ -377,7 +377,7 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
       certifierId: string;
       offset: number;
       limit: number;
-    }): Promise<ListResult<ApiCertifiedAttribute>> {
+    }): Promise<ListResult<CertifiedAttributeQueryResult>> {
       const aggregationPipeline: Document[] = [
         {
           $match: {
@@ -440,7 +440,7 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
         )
         .toArray();
 
-      const result = z.array(ApiCertifiedAttribute).safeParse(data);
+      const result = z.array(CertifiedAttributeQueryResult).safeParse(data);
 
       if (!result.success) {
         logger.error(

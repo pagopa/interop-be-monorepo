@@ -25,8 +25,14 @@ export type ApiExternalId = z.infer<typeof api.schemas.ExternalId>;
 
 export type ApiTenantFeature = z.infer<typeof api.schemas.TenantFeature>;
 
-export const ApiCertifiedAttribute = api.schemas.CertifiedAttribute;
-export type ApiCertifiedAttribute = z.infer<typeof ApiCertifiedAttribute>;
+export type ApiCertifiedAttribute = z.infer<
+  typeof api.schemas.CertifiedAttribute
+>;
+
+export const CertifiedAttributeQueryResult = api.schemas.CertifiedAttribute;
+export type CertifiedAttributeQueryResult = z.infer<
+  typeof CertifiedAttributeQueryResult
+>;
 
 export type UpdateVerifiedTenantAttributeSeed = z.infer<
   typeof api.schemas.UpdateVerifiedTenantAttributeSeed

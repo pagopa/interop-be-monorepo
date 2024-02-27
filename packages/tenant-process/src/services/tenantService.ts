@@ -27,7 +27,7 @@ import {
   toCreateEventTenantUpdated,
 } from "../model/domain/toEvent.js";
 import {
-  ApiCertifiedAttribute,
+  CertifiedAttributeQueryResult,
   UpdateVerifiedTenantAttributeSeed,
 } from "../model/domain/models.js";
 import {
@@ -195,7 +195,7 @@ export function tenantServiceBuilder(
       organizationId: TenantId;
       offset: number;
       limit: number;
-    }): Promise<ListResult<ApiCertifiedAttribute>> {
+    }): Promise<ListResult<CertifiedAttributeQueryResult>> {
       const tenant = await readModelService.getTenantById(organizationId);
       assertTenantExists(organizationId, tenant);
 

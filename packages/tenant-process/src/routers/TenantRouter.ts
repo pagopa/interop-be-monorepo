@@ -27,6 +27,7 @@ import {
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../utilities/config.js";
 import { tenantServiceBuilder } from "../services/tenantService.js";
+import { ApiCertifiedAttribute } from "../model/domain/models.js";
 
 const readModelService = readModelServiceBuilder(config);
 const tenantService = tenantServiceBuilder(config, readModelService);
@@ -253,7 +254,7 @@ const tenantsRouter = (
             });
 
           return res.status(200).json({
-            results,
+            results: results satisfies ApiCertifiedAttribute[],
             totalCount,
           });
         } catch (error) {
