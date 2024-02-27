@@ -24,7 +24,8 @@ export const errorCodes = {
   interfaceAlreadyExists: "0015",
   eserviceNotInDraftState: "0016",
   eserviceNotInReceiveMode: "0017",
-  tenantKindNotFound: "0018",
+  tenantNotFound: "0018",
+  tenantKindNotFound: "0019",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -196,6 +197,14 @@ export function eserviceNotInReceiveMode(
     detail: `EService ${eserviceId} is not in receive mode`,
     code: "eserviceNotInReceiveMode",
     title: "EService is not in receive mode",
+  });
+}
+
+export function tenantNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} not found`,
+    code: "tenantNotFound",
+    title: "Tenant not found",
   });
 }
 
