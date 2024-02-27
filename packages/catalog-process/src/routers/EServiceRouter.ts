@@ -33,6 +33,7 @@ import {
   cloneEServiceByDescriptorErrorMapper,
   createDescriptorErrorMapper,
   createEServiceErrorMapper,
+  createRiskAnalysisErrorMapper,
   deleteDraftDescriptorErrorMapper,
   deleteEServiceErrorMapper,
   documentCreateErrorMapper,
