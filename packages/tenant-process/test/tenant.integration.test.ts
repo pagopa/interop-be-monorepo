@@ -8,7 +8,6 @@ import { fail } from "assert";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import {
   AgreementCollection,
-  AttributeCollection,
   EServiceCollection,
   ReadModelRepository,
   TenantCollection,
@@ -166,14 +165,16 @@ describe("Integration tests", () => {
             postgresDB
           );
         if (!writtenEvent) {
-          fail("Creation fails: tenant not found in event-store");
+          fail("Updation fails: tenant not found in event-store");
         }
-        expect(writtenEvent.stream_id).toBe(tenant.id);
-        expect(writtenEvent.version).toBe("1");
-        expect(writtenEvent.type).toBe("TenantUpdated");
+        expect(writtenEvent).toMatchObject({
+          stream_id: tenant.id,
+          version: "1",
+          type: "TenantUpdated",
+        });
         const writtenPayload: TenantUpdatedV1 | undefined = protobufDecoder(
           TenantUpdatedV1
-        ).parse(writtenEvent.data);
+        ).parse(writtenEvent?.data);
 
         const updatedTenant: Tenant = {
           ...tenant,
@@ -208,9 +209,11 @@ describe("Integration tests", () => {
         if (!writtenEvent) {
           fail("Creation fails: tenant not found in event-store");
         }
-        expect(writtenEvent.stream_id).toBe(id);
-        expect(writtenEvent.version).toBe("0");
-        expect(writtenEvent.type).toBe("TenantCreated");
+        expect(writtenEvent).toMatchObject({
+          stream_id: id,
+          version: "0",
+          type: "TenantCreated",
+        });
         const writtenPayload: TenantCreatedV1 | undefined = protobufDecoder(
           TenantCreatedV1
         ).parse(writtenEvent.data);

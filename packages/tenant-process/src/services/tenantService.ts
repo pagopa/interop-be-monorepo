@@ -5,9 +5,7 @@ import {
   eventRepository,
 } from "pagopa-interop-commons";
 import {
-  Attribute,
   AttributeId,
-  ExternalId,
   Tenant,
   TenantAttribute,
   TenantEvent,
@@ -17,7 +15,6 @@ import {
   TenantMail,
   WithMetadata,
   generateId,
-  tenantAttributeType,
   tenantEventToBinaryData,
 } from "pagopa-interop-models";
 import {
@@ -25,12 +22,7 @@ import {
   toCreateEventTenantUpdated,
 } from "../model/domain/toEvent.js";
 import { UpdateVerifiedTenantAttributeSeed } from "../model/domain/models.js";
-import {
-  ApiInternalTenantSeed,
-  ApiM2MTenantSeed,
-  ApiSelfcareTenantSeed,
-} from "../model/types.js";
-import { tenantDuplicate } from "../model/domain/errors.js";
+import { ApiSelfcareTenantSeed } from "../model/types.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
   assertTenantExists,
@@ -65,28 +57,6 @@ export function tenantServiceBuilder(
           attributeId,
           verifierId,
           tenant,
-        })
-      );
-    },
-    async createTenant(
-      apiTenantSeed:
-        | ApiSelfcareTenantSeed
-        | ApiM2MTenantSeed
-        | ApiInternalTenantSeed,
-      attributesExternalIds: ExternalId[],
-      kind: TenantKind
-    ): Promise<string> {
-      const [attributes, tenant] = await Promise.all([
-        readModelService.getAttributesByExternalIds(attributesExternalIds),
-        readModelService.getTenantByName(apiTenantSeed.name),
-      ]);
-
-      return repository.createEvent(
-        createTenantLogic({
-          tenant,
-          apiTenantSeed,
-          kind,
-          attributes,
         })
       );
     },
@@ -258,43 +228,6 @@ export async function updateTenantLogic({
   );
 }
 
-export function createTenantLogic({
-  tenant,
-  apiTenantSeed,
-  kind,
-  attributes,
-}: {
-  tenant: WithMetadata<Tenant> | undefined;
-  apiTenantSeed:
-    | ApiSelfcareTenantSeed
-    | ApiM2MTenantSeed
-    | ApiInternalTenantSeed;
-  kind: TenantKind;
-  attributes: Array<WithMetadata<Attribute>>;
-}): CreateEvent<TenantEvent> {
-  if (tenant) {
-    throw tenantDuplicate(apiTenantSeed.name);
-  }
-
-  const tenantAttributes: TenantAttribute[] = attributes.map((attribute) => ({
-    type: tenantAttributeType.CERTIFIED, // All attributes here are certified
-    id: attribute.data.id,
-    assignmentTimestamp: new Date(),
-  }));
-
-  const newTenant: Tenant = {
-    id: generateId(),
-    name: apiTenantSeed.name,
-    attributes: tenantAttributes,
-    externalId: apiTenantSeed.externalId,
-    features: [],
-    mails: [],
-    createdAt: new Date(),
-    kind,
-  };
-
-  return toCreateEventTenantAdded(newTenant);
-}
 export type TenantService = ReturnType<typeof tenantServiceBuilder>;
 
 export async function updateVerifiedAttributeExtensionDateLogic({
