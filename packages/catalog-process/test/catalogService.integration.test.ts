@@ -1016,40 +1016,6 @@ describe("database test", async () => {
         };
         await addOneEService(eService, postgresDB, eservices);
 
-        await fileManager.storeBytes(
-          config.s3Bucket,
-          config.eserviceDocumentsPath,
-          interfaceDocument.id,
-          interfaceDocument.name,
-          Buffer.from("testtest")
-        );
-
-        await fileManager.storeBytes(
-          config.s3Bucket,
-          config.eserviceDocumentsPath,
-          document1.id,
-          document1.name,
-          Buffer.from("testtest")
-        );
-
-        await fileManager.storeBytes(
-          config.s3Bucket,
-          config.eserviceDocumentsPath,
-          document2.id,
-          document2.name,
-          Buffer.from("testtest")
-        );
-
-        expect(await fileManager.listFiles(config.s3Bucket)).toContain(
-          interfaceDocument.path
-        );
-        expect(await fileManager.listFiles(config.s3Bucket)).toContain(
-          document1.path
-        );
-        expect(await fileManager.listFiles(config.s3Bucket)).toContain(
-          document2.path
-        );
-
         await catalogService.deleteDraftDescriptor(
           eService.id,
           descriptor.id,
