@@ -499,8 +499,20 @@ const eservicesRouter = (
     .post(
       "/eservices/:eServiceId/riskAnalysis",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
-      // TODO implement
-      async (_req, res) => res.status(501).send()
+
+      async (req, res) => {
+        try {
+          await catalogService.createRiskAnalysis(
+            unsafeBrandId(req.params.eServiceId),
+            req.body,
+            req.ctx.authData
+          );
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, createRiskAnalysisErrorMapper);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     );
   return eservicesRouter;
 };
