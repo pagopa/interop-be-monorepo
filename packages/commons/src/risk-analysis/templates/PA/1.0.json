@@ -412,7 +412,10 @@
           "value": "ANONYMOUS"
         },
         {
-          "label": { "it": "in forma pseudoanonimizzata", "en": "pseudonymized" },
+          "label": {
+            "it": "in forma pseudoanonimizzata",
+            "en": "pseudonymized"
+          },
           "value": "PSEUDOANONYMOUS"
         }
       ],
