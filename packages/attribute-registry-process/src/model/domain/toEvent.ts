@@ -28,6 +28,7 @@ export const toCreateEventAttributeAdded = (
   version: 0,
   event: {
     type: "AttributeAdded",
+    event_version: 1,
     data: { attribute: toAttributeV1(attribute) },
   },
 });

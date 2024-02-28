@@ -6,6 +6,7 @@ create table catalog.events (
     version bigint NOT NULL,
 
     type text NOT NULL,
+    event_version int NOT NULL,
     data bytea NOT NULL,
 
     log_date timestamptz NOT NULL DEFAULT now(),
@@ -22,6 +23,7 @@ create table agreement.events (
     version bigint NOT NULL,
 
     type text NOT NULL,
+    event_version int NOT NULL,
     data bytea NOT NULL,
 
     log_date timestamptz NOT NULL DEFAULT now(),
@@ -38,6 +40,7 @@ create table tenant.events (
     version bigint NOT NULL,
 
     type text NOT NULL,
+    event_version int NOT NULL,
     data bytea NOT NULL,
 
     log_date timestamptz NOT NULL DEFAULT now(),
@@ -54,6 +57,7 @@ create table attribute.events (
     version bigint NOT NULL,
 
     type text NOT NULL,
+    event_version int NOT NULL,
     data bytea NOT NULL,
 
     log_date timestamptz NOT NULL DEFAULT now(),

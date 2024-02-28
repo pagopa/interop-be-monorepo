@@ -1,3 +1,4 @@
+import { logger } from "pagopa-interop-commons";
 import {
   AgreementDocumentId,
   AgreementId,
@@ -40,7 +41,7 @@ const errorCodes = {
 
 export type ErrorCodes = keyof typeof errorCodes;
 
-export const makeApiProblem = makeApiProblemBuilder(errorCodes);
+export const makeApiProblem = makeApiProblemBuilder(logger, errorCodes);
 
 export function eServiceNotFound(eserviceId: EServiceId): ApiError<ErrorCodes> {
   return new ApiError({

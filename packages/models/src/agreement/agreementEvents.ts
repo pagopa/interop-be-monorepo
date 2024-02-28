@@ -35,24 +35,28 @@ export function agreementEventToBinaryData(event: AgreementEvent): Uint8Array {
 }
 
 export const AgreementAddEvent = z.object({
+  event_version: z.literal(1),
   type: z.literal("AgreementAdded"),
   data: protobufDecoder(AgreementAddedV1),
 });
 export type AgreementAddEvent = z.infer<typeof AgreementAddEvent>;
 
 export const AgreementDeleteEvent = z.object({
+  event_version: z.literal(1),
   type: z.literal("AgreementDeleted"),
   data: protobufDecoder(AgreementDeletedV1),
 });
 export type AgreementDeleteEvent = z.infer<typeof AgreementDeleteEvent>;
 
 export const AgreementUpdateEvent = z.object({
+  event_version: z.literal(1),
   type: z.literal("AgreementUpdated"),
   data: protobufDecoder(AgreementUpdatedV1),
 });
 export type AgreementUpdateEvent = z.infer<typeof AgreementUpdateEvent>;
 
 export const AgreementAddConsumerDocumentEvent = z.object({
+  event_version: z.literal(1),
   type: z.literal("AgreementConsumerDocumentAdded"),
   data: protobufDecoder(AgreementConsumerDocumentAddedV1),
 });
@@ -61,6 +65,7 @@ export type AgreementAddConsumerDocumentEvent = z.infer<
 >;
 
 export const AgreementRemoveConsumerDocumentEvent = z.object({
+  event_version: z.literal(1),
   type: z.literal("AgreementConsumerDocumentRemoved"),
   data: protobufDecoder(AgreementConsumerDocumentRemovedV1),
 });
@@ -69,6 +74,7 @@ export type AgreementRemoveConsumerDocumentEvent = z.infer<
 >;
 
 export const AgreementAddContractEvent = z.object({
+  event_version: z.literal(1),
   type: z.literal("AgreementContractAdded"),
   data: protobufDecoder(AgreementContractAddedV1),
 });

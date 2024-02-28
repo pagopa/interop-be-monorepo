@@ -15,7 +15,7 @@
     "format:write": "prettier --write src",
     "start": "node --watch --no-warnings --loader ts-node/esm ./src/index.ts",
     "build": "tsc",
-    "generate-protobuf": "mkdirp ./src/gen && npx protoc --ts_opt=eslint_disable --ts_out ./src/gen --proto_path ./proto ./proto/v1/**/*.proto && tsc-esm-fix --src='src/gen/v1' --ext='.js'"
+    "generate-protobuf": "mkdirp ./src/gen && npx protoc --ts_opt=eslint_disable --ts_out ./src/gen --proto_path ./proto ./proto/**/**/*.proto && tsc-esm-fix --src='src/gen/' --ext='.js'"
   },
   "keywords": [],
   "author": "",

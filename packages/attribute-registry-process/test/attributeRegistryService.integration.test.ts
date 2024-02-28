@@ -128,6 +128,7 @@ describe("database test", () => {
         expect(writtenEvent.stream_id).toBe(id);
         expect(writtenEvent.version).toBe("0");
         expect(writtenEvent.type).toBe("AttributeAdded");
+        expect(writtenEvent.event_version).toBe(1);
         const writtenPayload = decodeProtobufPayload({
           messageType: AttributeAddedV1,
           payload: writtenEvent.data,
@@ -174,6 +175,7 @@ describe("database test", () => {
         expect(writtenEvent.stream_id).toBe(id);
         expect(writtenEvent.version).toBe("0");
         expect(writtenEvent.type).toBe("AttributeAdded");
+        expect(writtenEvent.event_version).toBe(1);
 
         const writtenPayload = decodeProtobufPayload({
           messageType: AttributeAddedV1,
@@ -234,6 +236,7 @@ describe("database test", () => {
         expect(writtenEvent.stream_id).toBe(id);
         expect(writtenEvent.version).toBe("0");
         expect(writtenEvent.type).toBe("AttributeAdded");
+        expect(writtenEvent.event_version).toBe(1);
         const writtenPayload = decodeProtobufPayload({
           messageType: AttributeAddedV1,
           payload: writtenEvent.data,
@@ -332,6 +335,7 @@ describe("database test", () => {
         expect(writtenEvent.stream_id).toBe(id);
         expect(writtenEvent.version).toBe("0");
         expect(writtenEvent.type).toBe("AttributeAdded");
+        expect(writtenEvent.event_version).toBe(1);
         const writtenPayload = decodeProtobufPayload({
           messageType: AttributeAddedV1,
           payload: writtenEvent.data,
@@ -461,7 +465,7 @@ describe("database test", () => {
         });
         it("should not get the attributes if they don't exist", async () => {
           const result = await readModelService.getAttributesByIds({
-            ids: [uuidv4(), uuidv4()],
+            ids: [generateId(), generateId()],
             offset: 0,
             limit: 50,
           });
@@ -573,7 +577,9 @@ describe("database test", () => {
           expect(attribute?.data).toEqual(attribute1);
         });
         it("should not get the attribute if it doesn't exist", async () => {
-          const attribute = await readModelService.getAttributeById(uuidv4());
+          const attribute = await readModelService.getAttributeById(
+            generateId()
+          );
           expect(attribute).toBeUndefined();
         });
       });

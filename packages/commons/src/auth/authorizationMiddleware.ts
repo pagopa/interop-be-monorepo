@@ -16,6 +16,7 @@ import { P, match } from "ts-pattern";
 import { z } from "zod";
 import { Middleware } from "../types/middleware.js";
 import { readHeaders } from "../index.js";
+import { logger } from "../logging/index.js";
 import { UserRoles } from "./authData.js";
 import { readAuthDataFromJwtToken } from "./jwt.js";
 
@@ -26,7 +27,7 @@ type RoleValidation =
     }
   | { isValid: true };
 
-const makeApiProblem = makeApiProblemBuilder({});
+const makeApiProblem = makeApiProblemBuilder(logger, {});
 
 const hasValidRoles = (
   req: Request,

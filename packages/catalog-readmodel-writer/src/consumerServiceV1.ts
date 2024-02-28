@@ -1,14 +1,14 @@
 import { match } from "ts-pattern";
 import { logger, EServiceCollection } from "pagopa-interop-commons";
-import { EServiceEventEnvelope } from "../../models/dist/eservice/eserviceEvents.js";
+import { EServiceEventEnvelopeV1 } from "pagopa-interop-models";
 import {
   fromDescriptorV1,
   fromDocumentV1,
   fromEServiceV1,
-} from "./model/converter.js";
+} from "./model/converterV1.js";
 
-export async function handleMessage(
-  message: EServiceEventEnvelope,
+export async function handleMessageV1(
+  message: EServiceEventEnvelopeV1,
   eservices: EServiceCollection
 ): Promise<void> {
   logger.info(message);
