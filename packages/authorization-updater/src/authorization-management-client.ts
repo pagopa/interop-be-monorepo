@@ -4,8 +4,5 @@ import { api, createApiClient } from "./model/generated/api.js";
 
 type Api = typeof api.api;
 
-export function buidAuthMgmtClient(): ZodiosInstance<Api> {
-  const { url } = authServiceConfig();
-
-  return createApiClient(url);
-}
+export const buildAuthMgmtClient = (): ZodiosInstance<Api> =>
+  createApiClient(authServiceConfig().url);
