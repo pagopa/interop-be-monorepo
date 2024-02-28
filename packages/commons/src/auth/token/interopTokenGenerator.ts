@@ -1,11 +1,11 @@
 /* eslint-disable max-params */
 import { Algorithm, JwtHeader, JwtPayload } from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
+import { jwtSeedConfig } from "../../config/jwtConfig.js";
+import { logger } from "../../index.js";
 import { userRoles } from "../authData.js";
 import { buildPrivateKeysKidHolder } from "../keys/keyHolder.js";
 import { buildSignerService } from "../signerService.js";
-import { logger } from "../../index.js";
-import { jwtSeedConfig } from "../../config/jwtConfig.js";
 import { InternalToken, TokenSeed } from "./token.js";
 
 export type InteropTokenGenerator = {
@@ -21,6 +21,9 @@ const createInternalTokenWithKid = (
   validityDurationSeconds: number
 ): TokenSeed => {
   const issuedAt = new Date();
+  const expireDate = new Date(issuedAt);
+  expireDate.setSeconds(expireDate.getSeconds() + validityDurationSeconds);
+
   return {
     id: uuidv4(),
     algorithm,
@@ -29,9 +32,7 @@ const createInternalTokenWithKid = (
     issuer: tokenIssuer,
     issuedAt: issuedAt.getTime() / 1000,
     nbf: issuedAt.getTime() / 1000,
-    expireAt: issuedAt.setSeconds(
-      issuedAt.getSeconds() + validityDurationSeconds
-    ),
+    expireAt: expireDate.getTime() / 1000,
     audience,
     customClaims: new Map([["role", userRoles.INTERNAL_ROLE]]),
   };
