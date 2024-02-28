@@ -192,7 +192,6 @@ export function attributeRegistryServiceBuilder(
         origin,
         code,
       });
-
       if (attribute === undefined) {
         throw attributeNotFound(`${origin}/${code}`);
       }
