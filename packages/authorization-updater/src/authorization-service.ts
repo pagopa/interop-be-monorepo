@@ -1,16 +1,20 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { pluginToken } from "@zodios/plugins";
-import { getContext } from "pagopa-interop-commons";
+import { buildInteropTokenGenerator, getContext } from "pagopa-interop-commons";
 import { DescriptorId, EServiceId } from "pagopa-interop-models";
-import { buidAuthMgmtClient } from "./authorization-management-client.js";
+import { buildAuthMgmtClient } from "./authorization-management-client.js";
 import { ApiClientComponentState } from "./model/models.js";
 
 export const authorizationServiceBuilder = () => {
-  const apiClient = buidAuthMgmtClient();
-  apiClient.use(
+  const authMgmtClient = buildAuthMgmtClient();
+  const tokenGenerator = buildInteropTokenGenerator();
+
+  authMgmtClient.use(
     pluginToken({
-      // TODO: retrieve token from builder
-      getToken: async () => undefined,
+      getToken: async () => {
+        const token = await tokenGenerator.generateInternalToken();
+        return token.serialized;
+      },
     })
   );
 
@@ -36,11 +40,14 @@ export const authorizationServiceBuilder = () => {
         voucherLifespan,
       };
 
-      return await apiClient.updateEServiceState(clientEServiceDetailsUpdate, {
-        params: { eserviceId },
-        withCredentials: true,
-        headers: getHeaders(),
-      });
+      return await authMgmtClient.updateEServiceState(
+        clientEServiceDetailsUpdate,
+        {
+          params: { eserviceId },
+          withCredentials: true,
+          headers: getHeaders(),
+        }
+      );
     },
   };
 };
