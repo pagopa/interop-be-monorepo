@@ -20,8 +20,8 @@ export async function handleMessageV1(
         },
         {
           $setOnInsert: {
-            data: msg.data.eService
-              ? fromEServiceV1(msg.data.eService)
+            data: msg.data.eservice
+              ? fromEServiceV1(msg.data.eservice)
               : undefined,
             metadata: {
               version: msg.version,
@@ -38,8 +38,8 @@ export async function handleMessageV1(
           { "data.id": msg.stream_id },
           {
             $setOnInsert: {
-              data: msg.data.eService
-                ? fromEServiceV1(msg.data.eService)
+              data: msg.data.eservice
+                ? fromEServiceV1(msg.data.eservice)
                 : undefined,
               metadata: { version: msg.version },
             },
@@ -57,8 +57,8 @@ export async function handleMessageV1(
           },
           {
             $set: {
-              data: msg.data.eService
-                ? fromEServiceV1(msg.data.eService)
+              data: msg.data.eservice
+                ? fromEServiceV1(msg.data.eservice)
                 : undefined,
               metadata: {
                 version: msg.version,
@@ -302,8 +302,8 @@ export async function handleMessageV1(
           {
             $set: {
               "metadata.version": msg.version,
-              data: msg.data.eService
-                ? fromEServiceV1(msg.data.eService)
+              data: msg.data.eservice
+                ? fromEServiceV1(msg.data.eservice)
                 : undefined,
             },
           }
