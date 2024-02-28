@@ -1,3 +1,5 @@
+/* eslint-disable functional/immutable-data */
+import { randomUUID } from "crypto";
 import { runConsumer } from "kafka-iam-auth";
 import { match } from "ts-pattern";
 import { EachMessagePayload } from "kafkajs";
@@ -5,6 +7,7 @@ import {
   messageDecoderSupplier,
   kafkaConsumerConfig,
   logger,
+  getContext,
 } from "pagopa-interop-commons";
 import {
   Descriptor,
@@ -13,12 +16,12 @@ import {
   missingMessageDataError,
   EServiceId,
 } from "pagopa-interop-models";
-import { authorizationServiceBuilder } from "./authorization-service.js";
+import {
+  AuthorizationService,
+  authorizationServiceBuilder,
+} from "./authorization-service.js";
 
-const authService = authorizationServiceBuilder();
-const config = kafkaConsumerConfig();
-
-const getDescriptorFromMsg = (msg: {
+const getDescriptorFromEvent = (msg: {
   data: {
     descriptorId: string;
     eservice?: EServiceV2;
@@ -41,63 +44,73 @@ const getDescriptorFromMsg = (msg: {
   return { eserviceId: eservice.id, descriptor };
 };
 
-async function processMessage({
-  topic,
-  message,
-  partition,
-}: EachMessagePayload): Promise<void> {
-  try {
-    const messageDecoder = messageDecoderSupplier(topic);
-    const decodedMsg = messageDecoder(message);
+function getprocessMessage(authService: AuthorizationService) {
+  return async ({
+    topic,
+    message,
+    partition,
+  }: EachMessagePayload): Promise<void> => {
+    try {
+      const appContext = getContext();
+      appContext.correlationId = randomUUID();
 
-    match(decodedMsg)
-      .with(
-        {
-          event_version: 2,
-          type: "EServiceDescriptorPublished",
-        },
-        {
-          event_version: 2,
-          type: "EServiceDescriptorActivated",
-        },
-        async (msg) => {
-          const data = getDescriptorFromMsg(msg);
-          await authService.updateEServiceState(
-            "ACTIVE",
-            data.descriptor.id,
-            data.eserviceId,
-            data.descriptor.audience,
-            data.descriptor.voucherLifespan
-          );
-        }
-      )
-      .with(
-        {
-          event_version: 2,
-          type: "EServiceDescriptorSuspended",
-        },
-        async (msg) => {
-          const data = getDescriptorFromMsg(msg);
-          await authService.updateEServiceState(
-            "INACTIVE",
-            data.descriptor.id,
-            data.eserviceId,
-            data.descriptor.audience,
-            data.descriptor.voucherLifespan
-          );
-        }
+      const messageDecoder = messageDecoderSupplier(topic);
+      const decodedMsg = messageDecoder(message);
+
+      match(decodedMsg)
+        .with(
+          {
+            event_version: 2,
+            type: "EServiceDescriptorPublished",
+          },
+          {
+            event_version: 2,
+            type: "EServiceDescriptorActivated",
+          },
+          async (msg) => {
+            const data = getDescriptorFromEvent(msg);
+            await authService.updateEServiceState(
+              "ACTIVE",
+              data.descriptor.id,
+              data.eserviceId,
+              data.descriptor.audience,
+              data.descriptor.voucherLifespan
+            );
+          }
+        )
+        .with(
+          {
+            event_version: 2,
+            type: "EServiceDescriptorSuspended",
+          },
+          async (msg) => {
+            const data = getDescriptorFromEvent(msg);
+            await authService.updateEServiceState(
+              "INACTIVE",
+              data.descriptor.id,
+              data.eserviceId,
+              data.descriptor.audience,
+              data.descriptor.voucherLifespan
+            );
+          }
+        );
+      logger.info(
+        `Authorization updated after ${JSON.stringify(
+          decodedMsg.type
+        )} event - Partition number: ${partition} - Offset: ${message.offset}`
       );
-
-    logger.info(
-      `Authorization updated after ${JSON.stringify(
-        decodedMsg.type
-      )} event - Partition number: ${partition} - Offset: ${message.offset}`
-    );
-  } catch (e) {
-    logger.error(
-      `Error during message handling. Partition number: ${partition}. Offset: ${message.offset}, ${e}`
-    );
-  }
+    } catch (e) {
+      logger.error(
+        ` Error during message handling. Partition number: ${partition}. Offset: ${message.offset}.\nError: ${e}`
+      );
+    }
+  };
 }
 
-await runConsumer(config, processMessage).catch(logger.error);
+try {
+  const authService = await authorizationServiceBuilder();
+  const config = kafkaConsumerConfig();
+  await runConsumer(config, getprocessMessage(authService)).catch(logger.error);
+} catch (e) {
+  logger.error(`Error during bootstrap:\n${e}`);
+}
