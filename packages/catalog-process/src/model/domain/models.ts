@@ -57,6 +57,10 @@ export type UpdateEServiceDescriptorSeed = z.infer<
   typeof api.schemas.UpdateEServiceDescriptorSeed
 >;
 
+export type UpdateEServiceDescriptorQuotasSeed = z.infer<
+  typeof api.schemas.UpdateEServiceDescriptorQuotasSeed
+>;
+
 export const consumer = z.object({
   descriptorVersion: z.string(),
   descriptorState: DescriptorState,
@@ -109,3 +113,5 @@ export const convertToDescriptorEServiceEventData = (
   archivedAt: undefined,
   attributes: eserviceDescriptorSeed.attributes,
 });
+
+export type ApiEServiceMode = z.infer<typeof api.schemas.EServiceMode>;
