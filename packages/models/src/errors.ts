@@ -98,11 +98,12 @@ const errorCodes = {
   operationForbidden: "9989",
   missingClaim: "9990",
   genericError: "9991",
-  unauthorizedError: "9991",
   thirdPartyCallError: "9992",
+  unauthorizedError: "9993",
   missingHeader: "9994",
   tokenGenerationError: "9995",
   missingRSAKey: "9996",
+  missingMessageData: "9996",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -120,6 +121,16 @@ export function parseErrorMessage(error: unknown): string {
 }
 
 /* ===== Internal Error ===== */
+
+export function missingMessageDataError(
+  dataName: string,
+  eventName: string
+): InternalError<CommonErrorCodes> {
+  return new InternalError({
+    code: "missingMessageData",
+    detail: `"Invalid message: missing data '${dataName}' in ${eventName} event"`,
+  });
+}
 
 export function genericInternalError(
   message: string
