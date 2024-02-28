@@ -1,19 +1,37 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { pluginToken } from "@zodios/plugins";
-import { buildInteropTokenGenerator, getContext } from "pagopa-interop-commons";
+import {
+  buildInteropTokenGenerator,
+  getContext,
+  logger,
+} from "pagopa-interop-commons";
 import { DescriptorId, EServiceId } from "pagopa-interop-models";
 import { buildAuthMgmtClient } from "./authorization-management-client.js";
 import { ApiClientComponentState } from "./model/models.js";
 
-export const authorizationServiceBuilder = () => {
+export type AuthorizationService = {
+  updateEServiceState: (
+    state: ApiClientComponentState,
+    descriptorId: DescriptorId,
+    eserviceId: EServiceId,
+    audience: string[],
+    voucherLifespan: number
+  ) => Promise<void>;
+};
+
+export const authorizationServiceBuilder = async () => {
   const authMgmtClient = buildAuthMgmtClient();
   const tokenGenerator = buildInteropTokenGenerator();
+  const token = await tokenGenerator.generateInternalToken();
 
   authMgmtClient.use(
     pluginToken({
-      getToken: async () => {
-        const token = await tokenGenerator.generateInternalToken();
-        return token.serialized;
+      getToken: async () => token.serialized,
+      renewToken: async () => {
+        logger.info("Renewing token");
+
+        const newToken = await tokenGenerator.generateInternalToken();
+        return newToken.serialized;
       },
     })
   );
@@ -40,18 +58,13 @@ export const authorizationServiceBuilder = () => {
         voucherLifespan,
       };
 
-      return await authMgmtClient.updateEServiceState(
-        clientEServiceDetailsUpdate,
-        {
-          params: { eserviceId },
-          withCredentials: true,
-          headers: getHeaders(),
-        }
-      );
+      await authMgmtClient.updateEServiceState(clientEServiceDetailsUpdate, {
+        params: { eserviceId },
+        withCredentials: true,
+        headers: getHeaders(),
+      });
+
+      logger.info(`Authorization service update Eservice state`);
     },
   };
 };
-
-export type AuthorizationService = ReturnType<
-  typeof authorizationServiceBuilder
->;
