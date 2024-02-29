@@ -125,6 +125,7 @@ describe("AgreementService Integration Test", async () => {
 
     expect(actualAgreementData).toBeDefined();
     expect(actualAgreementData.type).toBe("AgreementAdded");
+    expect(actualAgreementData.event_version).toBe(1);
     expect(actualAgreementData.version).toBe("0");
     expect(actualAgreementData.stream_id).toEqual(agreementId);
 

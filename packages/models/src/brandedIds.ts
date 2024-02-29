@@ -25,6 +25,28 @@ export type DescriptorId = z.infer<typeof DescriptorId>;
 export const TenantId = z.string().uuid().brand("TenantId");
 export type TenantId = z.infer<typeof TenantId>;
 
+export const RiskAnalysisSingleAnswerId = z
+  .string()
+  .uuid()
+  .brand("RiskAnalysisSingleAnswerId");
+export type RiskAnalysisSingleAnswerId = z.infer<
+  typeof RiskAnalysisSingleAnswerId
+>;
+
+export const RiskAnalysisMultiAnswerId = z
+  .string()
+  .uuid()
+  .brand("RiskAnalysisMultiAnswerId");
+export type RiskAnalysisMultiAnswerId = z.infer<
+  typeof RiskAnalysisMultiAnswerId
+>;
+
+export const RiskAnalysisFormId = z.string().uuid().brand("RiskAnalysisFormId");
+export type RiskAnalysisFormId = z.infer<typeof RiskAnalysisFormId>;
+
+export const RiskAnalysisId = z.string().uuid().brand("RiskAnalysisId");
+export type RiskAnalysisId = z.infer<typeof RiskAnalysisId>;
+
 type IDS =
   | EServiceId
   | EServiceDocumentId
@@ -32,7 +54,11 @@ type IDS =
   | AgreementDocumentId
   | DescriptorId
   | AttributeId
-  | TenantId;
+  | TenantId
+  | RiskAnalysisSingleAnswerId
+  | RiskAnalysisMultiAnswerId
+  | RiskAnalysisFormId
+  | RiskAnalysisId;
 
 // This function is used to generate a new ID for a new object
 // it infers the type of the ID based on how is used the result

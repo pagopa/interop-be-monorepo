@@ -31,24 +31,31 @@ import {
 import { match } from "ts-pattern";
 import {
   apiAgreementApprovalPolicyToAgreementApprovalPolicy,
+  apiEServiceModeToEServiceMode,
   apiTechnologyToTechnology,
 } from "../model/domain/apiConverter.js";
 import {
   Consumer,
   EServiceDescriptorSeed,
   UpdateEServiceDescriptorSeed,
+  UpdateEServiceDescriptorQuotasSeed,
 } from "../model/domain/models.js";
 import {
   toCreateEventClonedEServiceAdded,
   toCreateEventEServiceAdded,
   toCreateEventEServiceDeleted,
+  toCreateEventEServiceDescriptorActivated,
   toCreateEventEServiceDescriptorAdded,
-  toCreateEventEServiceDescriptorUpdated,
+  toCreateEventEServiceDescriptorDeleted,
+  toCreateEventEServiceDescriptorPublished,
+  toCreateEventEServiceDescriptorSuspended,
   toCreateEventEServiceDocumentAdded,
   toCreateEventEServiceDocumentDeleted,
   toCreateEventEServiceDocumentUpdated,
+  toCreateEventEServiceInterfaceAdded,
+  toCreateEventEServiceInterfaceDeleted,
+  toCreateEventEServiceInterfaceUpdated,
   toCreateEventEServiceUpdated,
-  toCreateEventEServiceWithDescriptorsDeleted,
 } from "../model/domain/toEvent.js";
 import {
   ApiEServiceDescriptorDocumentSeed,
@@ -71,7 +78,10 @@ import {
   interfaceAlreadyExists,
   attributeNotFound,
   inconsistentDailyCalls,
+  originNotCompliant,
+  dailyCallsCannotBeDecreased,
 } from "../model/domain/errors.js";
+import { formatClonedEServiceDate } from "../utilities/date.js";
 import { ReadModelService } from "./readModelService.js";
 
 function assertEServiceExist(
@@ -181,23 +191,14 @@ const updateDescriptorState = (
 };
 
 const deprecateDescriptor = (
-  streamId: string,
-  version: number,
+  eserviceId: EServiceId,
   descriptor: Descriptor
-): CreateEvent<EServiceEvent> => {
+): Descriptor => {
   logger.info(
-    `Deprecating Descriptor ${descriptor.id} of EService ${streamId}`
+    `Deprecating Descriptor ${descriptor.id} of EService ${eserviceId}`
   );
 
-  const updatedDescriptor = updateDescriptorState(
-    descriptor,
-    descriptorState.deprecated
-  );
-  return toCreateEventEServiceDescriptorUpdated(
-    streamId,
-    version,
-    updatedDescriptor
-  );
+  return updateDescriptorState(descriptor, descriptorState.deprecated);
 };
 
 const hasNotDraftDescriptor = (eService: EService): void => {
@@ -207,6 +208,20 @@ const hasNotDraftDescriptor = (eService: EService): void => {
   if (hasDraftDescriptor) {
     throw draftDescriptorAlreadyExists(eService.id);
   }
+};
+
+const updateDescriptor = (
+  eservice: EService,
+  newDescriptor: Descriptor
+): EService => {
+  const updatedDescriptors = eservice.descriptors.map((d: Descriptor) =>
+    d.id === newDescriptor.id ? newDescriptor : d
+  );
+
+  return {
+    ...eservice,
+    descriptors: updatedDescriptors,
+  };
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -224,13 +239,16 @@ export function catalogServiceBuilder(
       logger.info(
         `Creating EService with service name ${apiEServicesSeed.name}`
       );
+
+      const eserviceWithSameName =
+        await readModelService.getEServiceByNameAndProducerId({
+          name: apiEServicesSeed.name,
+          producerId: authData.organizationId,
+        });
       return unsafeBrandId<EServiceId>(
         await repository.createEvent(
           createEserviceLogic({
-            eService: await readModelService.getEServiceByNameAndProducerId({
-              name: apiEServicesSeed.name,
-              producerId: authData.organizationId,
-            }),
+            eserviceWithSameName,
             apiEServicesSeed,
             authData,
           })
@@ -242,9 +260,9 @@ export function catalogServiceBuilder(
       authData: AuthData
     ): Promise<EService> {
       logger.info(`Retrieving EService ${eserviceId}`);
-      const eservice = await retrieveEService(eserviceId, readModelService);
+      const eService = await retrieveEService(eserviceId, readModelService);
 
-      return applyVisibilityToEService(eservice.data, authData);
+      return applyVisibilityToEService(eService.data, authData);
     },
 
     async getEServices(
@@ -454,7 +472,7 @@ export function catalogServiceBuilder(
       );
     },
 
-    async updateDescriptor(
+    async updateDraftDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       seed: UpdateEServiceDescriptorSeed,
@@ -466,7 +484,7 @@ export function catalogServiceBuilder(
       const eService = await readModelService.getEServiceById(eserviceId);
 
       await repository.createEvent(
-        updateDescriptorLogic({
+        updateDraftDescriptorLogic({
           eserviceId,
           descriptorId,
           seed,
@@ -487,14 +505,14 @@ export function catalogServiceBuilder(
 
       const eService = await readModelService.getEServiceById(eserviceId);
 
-      for (const event of publishDescriptorLogic({
-        eserviceId,
-        descriptorId,
-        authData,
-        eService,
-      })) {
-        await repository.createEvent(event);
-      }
+      await repository.createEvent(
+        publishDescriptorLogic({
+          eserviceId,
+          descriptorId,
+          authData,
+          eService,
+        })
+      );
     },
 
     async suspendDescriptor(
@@ -585,19 +603,45 @@ export function catalogServiceBuilder(
         })
       );
     },
+
+    async updateDescriptor(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: UpdateEServiceDescriptorQuotasSeed,
+      authData: AuthData
+    ): Promise<string> {
+      logger.info(
+        `Updating Descriptor ${descriptorId} for EService ${eserviceId}`
+      );
+      const eService = await readModelService.getEServiceById(eserviceId);
+
+      return await repository.createEvent(
+        updateDescriptorLogic({
+          eserviceId,
+          descriptorId,
+          seed,
+          authData,
+          eService,
+        })
+      );
+    },
   };
 }
 
 export function createEserviceLogic({
-  eService,
+  eserviceWithSameName,
   apiEServicesSeed,
   authData,
 }: {
-  eService: WithMetadata<EService> | undefined;
+  eserviceWithSameName: WithMetadata<EService> | undefined;
   apiEServicesSeed: ApiEServiceSeed;
   authData: AuthData;
 }): CreateEvent<EServiceEvent> {
-  if (eService) {
+  if (authData.externalId.origin !== "IPA") {
+    throw originNotCompliant("IPA");
+  }
+
+  if (eserviceWithSameName) {
     throw eServiceDuplicate(apiEServicesSeed.name);
   }
 
@@ -607,9 +651,11 @@ export function createEserviceLogic({
     name: apiEServicesSeed.name,
     description: apiEServicesSeed.description,
     technology: apiTechnologyToTechnology(apiEServicesSeed.technology),
+    mode: apiEServiceModeToEServiceMode(apiEServicesSeed.mode),
     attributes: undefined,
     descriptors: [],
     createdAt: new Date(),
+    riskAnalysis: [],
   };
 
   return toCreateEventEServiceAdded(newEService);
@@ -708,7 +754,11 @@ export function deleteEserviceLogic({
     throw eServiceCannotBeDeleted(eserviceId);
   }
 
-  return toCreateEventEServiceDeleted(eserviceId, eService.metadata.version);
+  return toCreateEventEServiceDeleted(
+    eserviceId,
+    eService.metadata.version,
+    eService.data
+  );
 }
 
 export function uploadDocumentLogic({
@@ -737,24 +787,50 @@ export function uploadDocumentLogic({
     throw interfaceAlreadyExists(descriptor.id);
   }
 
-  return toCreateEventEServiceDocumentAdded(
-    eserviceId,
-    eService.metadata.version,
-    descriptorId,
-    {
-      newDocument: {
-        id: unsafeBrandId(document.documentId),
-        name: document.fileName,
-        contentType: document.contentType,
-        prettyName: document.prettyName,
-        path: document.filePath,
-        checksum: document.checksum,
-        uploadDate: new Date(),
-      },
-      isInterface: document.kind === "INTERFACE",
-      serverUrls: document.serverUrls,
-    }
-  );
+  const isInterface = document.kind === "INTERFACE";
+  const newDocument: Document = {
+    id: unsafeBrandId(document.documentId),
+    name: document.fileName,
+    contentType: document.contentType,
+    prettyName: document.prettyName,
+    path: document.filePath,
+    checksum: document.checksum,
+    uploadDate: new Date(),
+  };
+
+  const newEservice: EService = {
+    ...eService.data,
+    descriptors: eService.data.descriptors.map((d: Descriptor) =>
+      d.id === descriptorId
+        ? {
+            ...d,
+            interface: isInterface ? newDocument : d.interface,
+            docs: isInterface ? d.docs : [...d.docs, newDocument],
+            serverUrls: document.serverUrls,
+          }
+        : d
+    ),
+  };
+
+  return document.kind === "INTERFACE"
+    ? toCreateEventEServiceInterfaceAdded(
+        eserviceId,
+        eService.metadata.version,
+        {
+          descriptorId,
+          documentId: unsafeBrandId(document.documentId),
+          eservice: newEservice,
+        }
+      )
+    : toCreateEventEServiceDocumentAdded(
+        eserviceId,
+        eService.metadata.version,
+        {
+          descriptorId,
+          documentId: unsafeBrandId(document.documentId),
+          eservice: newEservice,
+        }
+      );
 }
 
 export async function deleteDocumentLogic({
@@ -788,14 +864,46 @@ export async function deleteDocumentLogic({
     throw eServiceDocumentNotFound(eserviceId, descriptorId, documentId);
   }
 
-  await deleteFile(config.s3Bucket, document.path);
+  await deleteFile(config.s3Bucket, document.path).catch((error) => {
+    logger.error(
+      `Error deleting interface or document file for descriptor ${descriptorId} : ${error}`
+    );
+    throw error;
+  });
 
-  return toCreateEventEServiceDocumentDeleted(
-    eserviceId,
-    eService.metadata.version,
-    descriptorId,
-    documentId
-  );
+  const isInterface = document.id === descriptor?.interface?.id;
+  const newEservice: EService = {
+    ...eService.data,
+    descriptors: eService.data.descriptors.map((d: Descriptor) =>
+      d.id === descriptorId
+        ? {
+            ...d,
+            interface: d.interface?.id === documentId ? undefined : d.interface,
+            docs: d.docs.filter((doc) => doc.id !== documentId),
+          }
+        : d
+    ),
+  };
+
+  return isInterface
+    ? toCreateEventEServiceInterfaceDeleted(
+        eserviceId,
+        eService.metadata.version,
+        {
+          descriptorId,
+          documentId,
+          eservice: newEservice,
+        }
+      )
+    : toCreateEventEServiceDocumentDeleted(
+        eserviceId,
+        eService.metadata.version,
+        {
+          descriptorId,
+          documentId,
+          eservice: newEservice,
+        }
+      );
 }
 
 export async function updateDocumentLogic({
@@ -835,14 +943,41 @@ export async function updateDocumentLogic({
     prettyName: apiEServiceDescriptorDocumentUpdateSeed.prettyName,
   };
 
-  return toCreateEventEServiceDocumentUpdated({
-    streamId: eserviceId,
-    version: eService.metadata.version,
-    descriptorId,
-    documentId,
-    updatedDocument,
-    serverUrls: descriptor.serverUrls,
-  });
+  const isInterface = document.id === descriptor?.interface?.id;
+  const newEservice: EService = {
+    ...eService.data,
+    descriptors: eService.data.descriptors.map((d: Descriptor) =>
+      d.id === descriptorId
+        ? {
+            ...d,
+            interface: isInterface ? updatedDocument : d.interface,
+            docs: d.docs.map((doc) =>
+              doc.id === documentId ? updatedDocument : doc
+            ),
+          }
+        : d
+    ),
+  };
+
+  return isInterface
+    ? toCreateEventEServiceInterfaceUpdated(
+        eserviceId,
+        eService.metadata.version,
+        {
+          descriptorId,
+          documentId,
+          eservice: newEservice,
+        }
+      )
+    : toCreateEventEServiceDocumentUpdated(
+        eserviceId,
+        eService.metadata.version,
+        {
+          descriptorId,
+          documentId,
+          eservice: newEservice,
+        }
+      );
 }
 
 export async function createDescriptorLogic({
@@ -894,8 +1029,10 @@ export async function createDescriptorLogic({
     throw inconsistentDailyCalls();
   }
 
+  const descriptorId = generateId<DescriptorId>();
+
   const newDescriptor: Descriptor = {
-    id: generateId(),
+    id: descriptorId,
     description: eserviceDescriptorSeed.description,
     version: newVersion,
     interface: undefined,
@@ -939,10 +1076,16 @@ export async function createDescriptorLogic({
     },
   };
 
+  const newEservice: EService = {
+    ...eService.data,
+    descriptors: [...eService.data.descriptors, newDescriptor],
+  };
+
   return toCreateEventEServiceDescriptorAdded(
     eService.data.id,
     eService.metadata.version,
-    newDescriptor
+    descriptorId,
+    newEservice
   );
 }
 
@@ -973,7 +1116,7 @@ export async function deleteDraftDescriptorLogic({
     await deleteFile(config.s3Bucket, descriptorInterface.path).catch(
       (error) => {
         logger.error(
-          `Error deleting interface for descriptor ${descriptorId} : ${error}`
+          `Error deleting interface file for descriptor ${descriptorId} : ${error}`
         );
         throw error;
       }
@@ -986,14 +1129,27 @@ export async function deleteDraftDescriptorLogic({
 
   await Promise.all(deleteDescriptorDocs).catch((error) => {
     logger.error(
-      `Error deleting documents for descriptor ${descriptorId} : ${error}`
+      `Error deleting documents' files for descriptor ${descriptorId} : ${error}`
     );
+    throw error;
   });
 
-  return toCreateEventEServiceWithDescriptorsDeleted(eService, descriptorId);
+  const newEservice: EService = {
+    ...eService.data,
+    descriptors: eService.data.descriptors.filter(
+      (d: Descriptor) => d.id !== descriptorId
+    ),
+  };
+
+  return toCreateEventEServiceDescriptorDeleted(
+    eService.data.id,
+    eService.metadata.version,
+    newEservice,
+    descriptorId
+  );
 }
 
-export function updateDescriptorLogic({
+export function updateDraftDescriptorLogic({
   eserviceId,
   descriptorId,
   seed,
@@ -1033,14 +1189,7 @@ export function updateDescriptorLogic({
       ),
   };
 
-  const filteredDescriptor = eService.data.descriptors.filter(
-    (d: Descriptor) => d.id !== descriptorId
-  );
-
-  const updatedEService: EService = {
-    ...eService.data,
-    descriptors: [...filteredDescriptor, updatedDescriptor],
-  };
+  const updatedEService = replaceDescriptor(eService.data, updatedDescriptor);
 
   return toCreateEventEServiceUpdated(
     eserviceId,
@@ -1059,7 +1208,7 @@ export function publishDescriptorLogic({
   descriptorId: DescriptorId;
   authData: AuthData;
   eService: WithMetadata<EService> | undefined;
-}): Array<CreateEvent<EServiceEvent>> {
+}): CreateEvent<EServiceEvent> {
   assertEServiceExist(eserviceId, eService);
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
 
@@ -1081,27 +1230,27 @@ export function publishDescriptorLogic({
     descriptorState.published
   );
 
+  const newEservice = updateDescriptor(eService.data, updatedDescriptor);
+
   if (currentActiveDescriptor !== undefined) {
-    return [
-      deprecateDescriptor(
-        eService.data.id,
-        eService.metadata.version,
-        currentActiveDescriptor
-      ),
-      toCreateEventEServiceDescriptorUpdated(
-        eserviceId,
-        eService.metadata.version + 1,
-        updatedDescriptor
-      ),
-    ];
+    const newEserviceWithDeprecation = updateDescriptor(
+      eService.data,
+      deprecateDescriptor(eserviceId, currentActiveDescriptor)
+    );
+
+    return toCreateEventEServiceDescriptorPublished(
+      eserviceId,
+      eService.metadata.version + 1,
+      descriptorId,
+      newEserviceWithDeprecation
+    );
   } else {
-    return [
-      toCreateEventEServiceDescriptorUpdated(
-        eserviceId,
-        eService.metadata.version,
-        updatedDescriptor
-      ),
-    ];
+    return toCreateEventEServiceDescriptorPublished(
+      eserviceId,
+      eService.metadata.version,
+      descriptorId,
+      newEservice
+    );
   }
 }
 
@@ -1132,10 +1281,13 @@ export function suspendDescriptorLogic({
     descriptorState.suspended
   );
 
-  return toCreateEventEServiceDescriptorUpdated(
+  const newEservice = updateDescriptor(eService.data, updatedDescriptor);
+
+  return toCreateEventEServiceDescriptorSuspended(
     eserviceId,
     eService.metadata.version,
-    updatedDescriptor
+    descriptorId,
+    newEservice
   );
 }
 
@@ -1176,16 +1328,25 @@ export function activateDescriptorLogic({
     recentDescriptorVersion !== null &&
     parseInt(descriptor.version, 10) === recentDescriptorVersion
   ) {
-    return toCreateEventEServiceDescriptorUpdated(
+    const newEservice = updateDescriptor(eService.data, updatedDescriptor);
+
+    return toCreateEventEServiceDescriptorActivated(
       eserviceId,
       eService.metadata.version,
-      updatedDescriptor
+      descriptorId,
+      newEservice
     );
   } else {
-    return deprecateDescriptor(
+    const newEservice = updateDescriptor(
+      eService.data,
+      deprecateDescriptor(eserviceId, descriptor)
+    );
+
+    return toCreateEventEServiceDescriptorActivated(
       eserviceId,
       eService.metadata.version,
-      descriptor
+      descriptorId,
+      newEservice
     );
   }
 }
@@ -1220,10 +1381,9 @@ export async function cloneDescriptorLogic({
   assertEServiceExist(eserviceId, eService);
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
 
-  const currentDate = new Date();
-  const currentLocalDate = currentDate.toLocaleDateString("it-IT");
-  const currentLocalTime = currentDate.toLocaleTimeString("it-IT");
-  const clonedEServiceName = `${eService.data.name} - clone - ${currentLocalDate} ${currentLocalTime}`;
+  const clonedEServiceName = `${
+    eService.data.name
+  } - clone - ${formatClonedEServiceDate(new Date())}`;
 
   if (
     await getEServiceByNameAndProducerId({
@@ -1235,29 +1395,33 @@ export async function cloneDescriptorLogic({
   }
 
   const descriptor = retrieveDescriptor(descriptorId, eService);
-  const sourceDocument = descriptor.docs[0];
-  const clonedDocumentId = generateId<EServiceDocumentId>();
 
+  const clonedInterfaceId = generateId<EServiceDocumentId>();
   const clonedInterfacePath =
     descriptor.interface !== undefined
       ? await copyFile(
           config.s3Bucket,
-          config.eserviceDocumentsPath,
           descriptor.interface.path,
-          clonedDocumentId,
+          config.eserviceDocumentsPath,
+          clonedInterfaceId,
           descriptor.interface.name
-        )
+        ).catch((error) => {
+          logger.error(
+            `Error copying interface file for descriptor ${descriptorId} : ${error}`
+          );
+          throw error;
+        })
       : undefined;
 
   const clonedInterfaceDocument: Document | undefined =
-    clonedInterfacePath !== undefined
+    descriptor.interface !== undefined && clonedInterfacePath !== undefined
       ? {
-          id: clonedDocumentId,
-          name: sourceDocument.name,
-          contentType: sourceDocument.contentType,
-          prettyName: sourceDocument.prettyName,
+          id: clonedInterfaceId,
+          name: descriptor.interface.name,
+          contentType: descriptor.interface.contentType,
+          prettyName: descriptor.interface.prettyName,
           path: clonedInterfacePath,
-          checksum: sourceDocument.checksum,
+          checksum: descriptor.interface.checksum,
           uploadDate: new Date(),
         }
       : undefined;
@@ -1265,10 +1429,10 @@ export async function cloneDescriptorLogic({
   const clonedDocuments = await Promise.all(
     descriptor.docs.map(async (doc: Document) => {
       const clonedDocumentId = generateId<EServiceDocumentId>();
-      const clonedPath = await copyFile(
+      const clonedDocumentPath = await copyFile(
         config.s3Bucket,
-        config.eserviceDocumentsPath,
         doc.path,
+        config.eserviceDocumentsPath,
         clonedDocumentId,
         doc.name
       );
@@ -1277,15 +1441,20 @@ export async function cloneDescriptorLogic({
         name: doc.name,
         contentType: doc.contentType,
         prettyName: doc.prettyName,
-        path: clonedPath,
+        path: clonedDocumentPath,
         checksum: doc.checksum,
         uploadDate: new Date(),
       };
       return clonedDocument;
     })
-  );
+  ).catch((error) => {
+    logger.error(
+      `Error copying documents' files for descriptor ${descriptorId} : ${error}`
+    );
+    throw error;
+  });
 
-  const draftCatalogItem: EService = {
+  const clonedEservice: EService = {
     id: generateId(),
     producerId: eService.data.producerId,
     name: clonedEServiceName,
@@ -1293,6 +1462,8 @@ export async function cloneDescriptorLogic({
     technology: eService.data.technology,
     attributes: eService.data.attributes,
     createdAt: new Date(),
+    riskAnalysis: eService.data.riskAnalysis,
+    mode: eService.data.mode,
     descriptors: [
       {
         ...descriptor,
@@ -1311,8 +1482,12 @@ export async function cloneDescriptorLogic({
   };
 
   return {
-    eService: draftCatalogItem,
-    event: toCreateEventClonedEServiceAdded(draftCatalogItem),
+    eService: clonedEservice,
+    event: toCreateEventClonedEServiceAdded(
+      descriptorId,
+      eService.data,
+      clonedEservice
+    ),
   };
 }
 
@@ -1336,10 +1511,62 @@ export function archiveDescriptorLogic({
     descriptorState.archived
   );
 
-  return toCreateEventEServiceDescriptorUpdated(
+  const newEservice = updateDescriptor(eService.data, updatedDescriptor);
+
+  return toCreateEventEServiceDescriptorActivated(
     eserviceId,
     eService.metadata.version,
-    updatedDescriptor
+    descriptorId,
+    newEservice
+  );
+}
+
+export function updateDescriptorLogic({
+  eserviceId,
+  descriptorId,
+  seed,
+  authData,
+  eService,
+}: {
+  eserviceId: EServiceId;
+  descriptorId: DescriptorId;
+  seed: UpdateEServiceDescriptorQuotasSeed;
+  authData: AuthData;
+  eService: WithMetadata<EService> | undefined;
+}): CreateEvent<EServiceEvent> {
+  assertEServiceExist(eserviceId, eService);
+  assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+
+  const descriptor = retrieveDescriptor(descriptorId, eService);
+
+  if (
+    descriptor.state !== descriptorState.published &&
+    descriptor.state !== descriptorState.suspended &&
+    descriptor.state !== descriptorState.deprecated
+  ) {
+    throw notValidDescriptor(descriptorId, descriptor.state.toString());
+  }
+
+  assertDailyCallsAreConsistentAndNotDecreased({
+    dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
+    dailyCallsTotal: descriptor.dailyCallsTotal,
+    updatedDailyCallsPerConsumer: seed.dailyCallsPerConsumer,
+    updatedDailyCallsTotal: seed.dailyCallsTotal,
+  });
+
+  const updatedDescriptor: Descriptor = {
+    ...descriptor,
+    voucherLifespan: seed.voucherLifespan,
+    dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
+    dailyCallsTotal: seed.dailyCallsTotal,
+  };
+
+  const updatedEService = replaceDescriptor(eService.data, updatedDescriptor);
+
+  return toCreateEventEServiceUpdated(
+    eserviceId,
+    eService.metadata.version,
+    updatedEService
   );
 }
 
@@ -1373,5 +1600,39 @@ const applyVisibilityToEService = (
     ),
   };
 };
+
+function assertDailyCallsAreConsistentAndNotDecreased({
+  dailyCallsPerConsumer,
+  dailyCallsTotal,
+  updatedDailyCallsPerConsumer,
+  updatedDailyCallsTotal,
+}: {
+  dailyCallsPerConsumer: number;
+  dailyCallsTotal: number;
+  updatedDailyCallsPerConsumer: number;
+  updatedDailyCallsTotal: number;
+}): void {
+  if (updatedDailyCallsPerConsumer > updatedDailyCallsTotal) {
+    throw inconsistentDailyCalls();
+  }
+  if (
+    updatedDailyCallsPerConsumer < dailyCallsPerConsumer ||
+    updatedDailyCallsTotal < dailyCallsTotal
+  ) {
+    throw dailyCallsCannotBeDecreased();
+  }
+}
+
+function replaceDescriptor(
+  eservice: EService,
+  updatedDescriptor: Descriptor
+): EService {
+  return {
+    ...eservice,
+    descriptors: eservice.descriptors.map((descriptor) =>
+      descriptor.id === updatedDescriptor.id ? updatedDescriptor : descriptor
+    ),
+  };
+}
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
