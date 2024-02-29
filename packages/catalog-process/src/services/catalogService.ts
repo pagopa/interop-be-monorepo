@@ -1716,6 +1716,7 @@ export function createRiskAnalysisLogic({
   assertTenantExists(authData.organizationId, tenant);
   assertTenantKindExists(authData.organizationId, tenant.data.kind);
 
+  // TODO catch & rethrow the right errors when validation fails
   const validatedRiskAnalysisForm = validateRiskAnalysis(
     eserviceRiskAnalysisSeed.riskAnalysisForm,
     true,
@@ -1728,7 +1729,19 @@ export function createRiskAnalysisLogic({
     createdAt: new Date(),
     riskAnalysisForm: {
       id: generateId(),
-      ...validatedRiskAnalysisForm,
+      version: validatedRiskAnalysisForm.version,
+      singleAnswers: validatedRiskAnalysisForm.singleAnswers.map(
+        (singleAnswer) => ({
+          id: generateId(),
+          ...singleAnswer,
+        })
+      ),
+      multiAnswers: validatedRiskAnalysisForm.multiAnswers.map(
+        (multipleAnswer) => ({
+          id: generateId(),
+          ...multipleAnswer,
+        })
+      ),
     },
   };
 
