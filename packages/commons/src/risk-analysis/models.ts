@@ -2,6 +2,7 @@ import { DataType } from "./riskAnalysisTemplates.js";
 
 export type RiskAnalysisFormToValidate = {
   version: string;
+  // TODO really needed to have string | string[] and all the consequent logic?
   answers: Record<string, string | string[]>;
 };
 
