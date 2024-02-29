@@ -1,5 +1,5 @@
 /* eslint-disable functional/immutable-data */
-import { randomUUID } from "crypto";
+import { v4 as uuidv4 } from "uuid";
 import { runConsumer } from "kafka-iam-auth";
 import { match } from "ts-pattern";
 import { EachMessagePayload } from "kafkajs";
@@ -52,7 +52,7 @@ function getprocessMessage(authService: AuthorizationService) {
   }: EachMessagePayload): Promise<void> => {
     try {
       const appContext = getContext();
-      appContext.correlationId = randomUUID();
+      appContext.correlationId = uuidv4();
 
       const messageDecoder = messageDecoderSupplier(topic);
       const decodedMsg = messageDecoder(message);
