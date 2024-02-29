@@ -3598,6 +3598,24 @@ describe("database test", async () => {
         expect(result.results).toEqual([eService6]);
       });
 
+      it("should get the eServices if they exist (parameters: producerIds, mode)", async () => {
+        const result = await readModelService.getEServices(
+          getMockAuthData(),
+          {
+            eservicesIds: [],
+            producersIds: [organizationId2],
+            states: [],
+            agreementStates: [],
+            attributesIds: [],
+            mode: eserviceMode.deliver,
+          },
+          0,
+          50
+        );
+        expect(result.totalCount).toBe(2);
+        expect(result.results).toEqual([eService4, eService5]);
+      });
+
       it("should not get the eServices if they don't exist  (parameters: attributesIds)", async () => {
         const result = await readModelService.getEServices(
           getMockAuthData(),
