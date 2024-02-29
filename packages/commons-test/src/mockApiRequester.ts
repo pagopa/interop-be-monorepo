@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 import { randomUUID } from "crypto";
@@ -90,6 +91,8 @@ export function createMockedApiRequester<
   return {
     get: sendMockedApiRequest("get"),
     post: sendMockedApiRequest("post"),
+    delete: sendMockedApiRequest("delete"),
+    put: sendMockedApiRequest("put"),
   };
 }
 
