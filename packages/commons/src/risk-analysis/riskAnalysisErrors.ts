@@ -50,8 +50,7 @@ export function dependencyNotFound(
   };
 }
 
-// UnexpectedFieldValueByDependency
-export function unexpectedFieldValueByDependency(
+export function unexpectedFieldValueByDependencyError(
   dependentField: string,
   depencency: ValidationRuleDependency,
   expectedValue: string
