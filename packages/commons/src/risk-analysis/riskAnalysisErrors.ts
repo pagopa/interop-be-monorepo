@@ -1,5 +1,5 @@
 import { TenantKind } from "pagopa-interop-models";
-import { ValidationRuleDependency } from "./models.js";
+import { ValidationRule, ValidationRuleDependency } from "./models.js";
 
 // Defining RiskAnalysisValidationError
 type RiskAnalysisValidationError = {
@@ -50,12 +50,40 @@ export function dependencyNotFound(
   };
 }
 
-export function unexpectedFieldValueByDependencyError(
+export function unexpectedDependencyValueError(
   dependentField: string,
   depencency: ValidationRuleDependency,
   expectedValue: string
 ): RiskAnalysisValidationError {
   return {
     message: `Field ${dependentField} requires field ${depencency.fieldName} value to be ${expectedValue}`,
+  };
+}
+
+export function invalidFormAnswerError(
+  fieldName: string,
+  fieldValue: string | string[],
+  validationRule: ValidationRule
+): RiskAnalysisValidationError {
+  return {
+    message: `Field ${fieldName} has invalid value ${fieldValue} according to validation rule ${JSON.stringify(
+      validationRule
+    )}`,
+  };
+}
+
+export function unexpectedFieldFormatError(
+  fieldName: string
+): RiskAnalysisValidationError {
+  return {
+    message: `Unexpected format for field ${fieldName}`,
+  };
+}
+
+export function missingExpectedFieldError(
+  fieldName: string
+): RiskAnalysisValidationError {
+  return {
+    message: `Expected field ${fieldName} not found in form`,
   };
 }
