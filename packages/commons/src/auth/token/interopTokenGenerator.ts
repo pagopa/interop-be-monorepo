@@ -1,11 +1,12 @@
 /* eslint-disable max-params */
 import { Algorithm, JwtHeader, JwtPayload } from "jsonwebtoken";
+import {
+  tokenGenerationError,
+  missingRSAKeyError,
+} from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
-import { tokenGenerationError } from "pagopa-interop-models";
-import { jwtSeedConfig } from "../../config/jwtConfig.js";
-import { logger } from "../../index.js";
+import { logger, jwtSeedConfig, signerConfig } from "../../index.js";
 import { userRoles } from "../authData.js";
-import { buildPrivateKeysKidHolder } from "../keys/keyHolder.js";
 import { buildSignerService } from "../signerService.js";
 import { InternalToken, TokenSeed } from "./token.js";
 
@@ -13,7 +14,7 @@ export type InteropTokenGenerator = {
   generateInternalToken: () => Promise<InternalToken>;
 };
 
-const createInternalTokenWithKid = (
+const createInternalToken = (
   algorithm: Algorithm,
   kid: string,
   subject: string,
@@ -40,9 +41,13 @@ const createInternalTokenWithKid = (
 
 export const buildInteropTokenGenerator = (): InteropTokenGenerator => {
   // Hosting all the dependencies to collect all process env reading at one time
-  const kidHolder = buildPrivateKeysKidHolder();
   const signerService = buildSignerService();
   const { subject, audience, tokenIssuer, secondsToExpire } = jwtSeedConfig();
+  const { rsaKeysIdentifiers } = signerConfig();
+
+  if (!rsaKeysIdentifiers.length) {
+    throw missingRSAKeyError();
+  }
 
   const createSignedJWT = async (
     seed: TokenSeed,
@@ -83,9 +88,12 @@ export const buildInteropTokenGenerator = (): InteropTokenGenerator => {
 
   const generateInternalToken = async (): Promise<InternalToken> => {
     try {
-      const privateKid = kidHolder.getPrivateKeyKidByAlgorithm("RS256");
+      const privateKid =
+        rsaKeysIdentifiers[
+          Math.floor(Math.random() * rsaKeysIdentifiers.length)
+        ];
 
-      const tokenSeed = createInternalTokenWithKid(
+      const tokenSeed = createInternalToken(
         "RS256",
         privateKid,
         subject,

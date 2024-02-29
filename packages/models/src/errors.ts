@@ -102,6 +102,7 @@ const errorCodes = {
   thirdPartyCallError: "9992",
   missingHeader: "9994",
   tokenGenerationError: "9995",
+  missingRSAKey: "9996",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -144,7 +145,14 @@ export function tokenGenerationError(
 ): InternalError<CommonErrorCodes> {
   return new InternalError({
     code: "tokenGenerationError",
-    detail: `Error  during token generation: ${parseErrorMessage(error)}`,
+    detail: `Error during token generation: ${parseErrorMessage(error)}`,
+  });
+}
+
+export function missingRSAKeyError(): InternalError<CommonErrorCodes> {
+  return new InternalError({
+    code: "missingRSAKey",
+    detail: "RSA key has not been found",
   });
 }
 
