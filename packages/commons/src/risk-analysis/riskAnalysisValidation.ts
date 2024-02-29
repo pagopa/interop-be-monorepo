@@ -1,28 +1,28 @@
 import { TenantKind } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import {
-  FormTemplateQuestion,
-  RiskAnalysisFormTemplate,
-  dataType,
-  riskAnalysisTemplates,
-} from "./riskAnalysisTemplates.js";
-import {
-  dependencyNotFoundError,
-  noTemplateVersionFoundError,
-  unexpectedFieldError,
-  unexpectedFieldValue,
-  unexpectedDependencyValueError,
-  unexpectedTemplateVersionError,
-  unexpectedFieldFormatError,
-  missingExpectedFieldError,
-} from "./riskAnalysisErrors.js";
-import {
   RiskAnalysisFormToValidate,
   RiskAnalysisValidatedForm,
   RiskAnalysisValidatedSingleOrMultiAnswer,
   ValidationRule,
   ValidationRuleDependency,
 } from "./models.js";
+import {
+  dependencyNotFoundError,
+  missingExpectedFieldError,
+  noTemplateVersionFoundError,
+  unexpectedDependencyValueError,
+  unexpectedFieldError,
+  unexpectedFieldFormatError,
+  unexpectedFieldValue,
+  unexpectedTemplateVersionError,
+} from "./riskAnalysisErrors.js";
+import {
+  FormTemplateQuestion,
+  RiskAnalysisFormTemplate,
+  dataType,
+} from "./templates/models.js";
+import { riskAnalysisTemplates } from "./templates/riskAnalysisTemplates.js";
 
 function assertLatestVersionTemplateFormExists(
   latestVersionTemplateForm: RiskAnalysisFormTemplate | undefined,
@@ -43,10 +43,10 @@ function assertValidationRuleExists(
 }
 
 function assertDependencyExists(
-  dependencyValue: string | string[] | undefined,
+  dependencyValue: string[] | undefined,
   dependentField: string,
   dependency: ValidationRuleDependency
-): asserts dependencyValue is NonNullable<string | string[]> {
+): asserts dependencyValue is NonNullable<string[]> {
   if (dependencyValue === undefined) {
     throw dependencyNotFoundError(dependentField, dependency.fieldName);
   }
@@ -138,7 +138,7 @@ function questionToValidationRule(
     .exhaustive();
 }
 
-export function validateFormAnswers(
+function validateFormAnswers(
   answers: RiskAnalysisFormToValidate["answers"],
   schemaOnlyValidation: boolean,
   validationRules: ValidationRule[]
@@ -148,22 +148,22 @@ export function validateFormAnswers(
   }
 
   const validatedAnswers = Object.entries(answers).map(
-    ([fieldName, fieldValue]) => {
+    ([answerKey, answerValue]) => {
       const validationRule = validationRules.find(
-        (r) => r.fieldName === fieldName
+        (r) => r.fieldName === answerKey
       );
-      assertValidationRuleExists(validationRule, fieldName);
+      assertValidationRuleExists(validationRule, answerKey);
 
-      validateFormAnswer(
-        fieldValue,
+      validateFormField(
+        answerValue,
         validationRule,
         schemaOnlyValidation,
         answers
       );
 
       return answerToValidatedSingleOrMultiAnswer(
-        fieldName,
-        fieldValue,
+        answerKey,
+        answerValue,
         validationRule
       );
     }
@@ -188,50 +188,43 @@ export function validateFormAnswers(
   );
 }
 
-export function validateFormAnswer(
-  answerValue: string | string[],
+function validateFormField(
+  fieldValue: string[],
   validationRule: ValidationRule,
   schemaOnlyValidation: boolean,
   answers: RiskAnalysisFormToValidate["answers"]
 ): void {
   if (schemaOnlyValidation) {
-    validateAnswerValue(answerValue, validationRule);
+    validateFieldValue(fieldValue, validationRule);
   } else {
-    validateAnswerValue(answerValue, validationRule);
+    validateFieldValue(fieldValue, validationRule);
     validationRule.dependencies.forEach((dependency) =>
-      validateAnswerDependency(answers, validationRule.fieldName, dependency)
+      validateFieldDependency(answers, validationRule.fieldName, dependency)
     );
   }
 }
 
-function validateAnswerValue(
-  answerValue: string | string[],
+function validateFieldValue(
+  fieldValue: string[],
   rule: ValidationRule
 ): boolean {
-  return match([rule.allowedValues, answerValue])
-    .with([P.not(P.nullish), P.array(P.string)], ([allowedValues, values]) => {
-      if (!values.every((v) => allowedValues.has(v))) {
+  return match(rule.allowedValues)
+    .with(P.not(P.nullish), (allowedValues) => {
+      if (!fieldValue.every((v) => allowedValues.has(v))) {
         throw unexpectedFieldValue(rule.fieldName, allowedValues);
       }
       return true;
     })
-    .with([P.not(P.nullish), P.string], ([allowedValues, value]) => {
-      if (!allowedValues.has(value)) {
-        throw unexpectedFieldValue(rule.fieldName, allowedValues);
-      }
-      return true;
-    })
-    .with([P.nullish, P._], () => true)
+    .with(P.nullish, () => true)
     .exhaustive();
 }
 
-function validateAnswerDependency(
+function validateFieldDependency(
   answers: RiskAnalysisFormToValidate["answers"],
   dependentField: string,
   dependency: ValidationRuleDependency
 ): boolean {
-  const dependencyValue: string | string[] | undefined =
-    answers[dependency.fieldName];
+  const dependencyValue: string[] | undefined = answers[dependency.fieldName];
   assertDependencyExists(dependencyValue, dependentField, dependency);
   return match(dependencyValue)
     .with(P.array(P.string), (values) => {
@@ -257,7 +250,7 @@ function validateAnswerDependency(
     .exhaustive();
 }
 
-export function validateRequiredFields(
+function validateRequiredFields(
   answers: RiskAnalysisFormToValidate["answers"],
   validationRules: ValidationRule[]
 ): void {
@@ -267,61 +260,54 @@ export function validateRequiredFields(
       const depsSatisfied = rule.dependencies.every((dependency) =>
         formContainsDependency(answers, dependency)
       );
-      const field: string | string[] | undefined = answers[rule.fieldName];
+      const field: string[] | undefined = answers[rule.fieldName];
       if (depsSatisfied && field === undefined) {
         throw missingExpectedFieldError(rule.fieldName);
       }
     });
 }
 
-export function formContainsDependency(
+function formContainsDependency(
   answers: RiskAnalysisFormToValidate["answers"],
   dependency: ValidationRuleDependency
 ): boolean {
-  const field: string | string[] | undefined = answers[dependency.fieldName];
+  const field: string[] | undefined = answers[dependency.fieldName];
   return match(field)
-    .with(P.array(P.string), (values) =>
+    .with(P.not(P.nullish), (values) =>
       values.some((v) => v === dependency.fieldValue)
     )
-    .with(P.string, (value) => value === dependency.fieldValue)
     .with(P.nullish, () => false)
     .exhaustive();
 }
 
-export function answerToValidatedSingleOrMultiAnswer(
-  fieldName: string,
-  fieldValue: string | string[],
+function answerToValidatedSingleOrMultiAnswer(
+  answerKey: string,
+  answerValue: string[],
   validationRule: ValidationRule
 ): RiskAnalysisValidatedSingleOrMultiAnswer {
-  return match([fieldValue, validationRule.dataType])
-    .with(
-      [P.array(P.string), P.union(dataType.single, dataType.freeText)],
-      ([values, _]) => {
-        if (values.length === 0) {
-          throw unexpectedFieldFormatError(fieldName);
-        }
-        return {
-          type: "single",
-          answer: {
-            key: fieldName,
-            value: values[0],
-          },
-        } as RiskAnalysisValidatedSingleOrMultiAnswer;
+  return match(validationRule.dataType)
+    .with(dataType.single, dataType.freeText, () => {
+      if (answerValue.length === 0) {
+        throw unexpectedFieldFormatError(answerKey);
       }
-    )
+      return {
+        type: "single",
+        answer: {
+          key: answerKey,
+          value: answerValue[0],
+        },
+      } as RiskAnalysisValidatedSingleOrMultiAnswer;
+    })
     .with(
-      [P.array(P.string), dataType.multi],
-      ([values, _]) =>
+      dataType.multi,
+      () =>
         ({
           type: "multi",
           answer: {
-            key: fieldName,
-            values,
+            key: answerKey,
+            values: answerValue,
           },
         } as RiskAnalysisValidatedSingleOrMultiAnswer)
     )
-    .with([P.string, P._], () => {
-      throw unexpectedFieldFormatError(fieldName);
-    })
     .exhaustive();
 }
