@@ -57,7 +57,11 @@ export const buildSignerService = (): SignerService => {
           );
         }
 
-        return Buffer.from(res.Signature).toString("base64");
+        const base64JWS = Buffer.from(res.Signature).toString("base64");
+        return base64JWS
+          .replaceAll("=", "")
+          .replaceAll("+", "-")
+          .replaceAll("/", "_");
       } catch (err) {
         const internalError = thirdPartyCallError("KMS", JSON.stringify(err));
         logger.error(internalError);
