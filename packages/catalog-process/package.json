@@ -13,7 +13,7 @@
     "format:write": "prettier --write src",
     "start": "node --watch --no-warnings --loader ts-node/esm -r 'dotenv-flow/config' ./src/index.ts",
     "build": "tsc",
-    "generate-model": "mkdir -p ./src/model/generated && pnpm openapi-zod-client './open-api/catalog-service-spec.yml' -o './src/model/generated/api.ts'",
+    "generate-model": "mkdir -p ./src/model/generated && pnpm openapi-zod-client './open-api/catalog-service-spec.yml' -o './src/model/generated/api.ts' && node --loader ts-node/esm ./patchZodios.ts",
     "clean-generated": "pnpm exec rm ./src/model/generated/api.ts"
   },
   "keywords": [],
