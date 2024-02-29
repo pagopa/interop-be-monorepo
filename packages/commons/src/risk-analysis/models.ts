@@ -1,9 +1,8 @@
-import { DataType } from "./riskAnalysisTemplates.js";
+import { DataType } from "./templates/models.js";
 
 export type RiskAnalysisFormToValidate = {
   version: string;
-  // TODO really needed to have string | string[] and all the consequent logic?
-  answers: Record<string, string | string[]>;
+  answers: Record<string, string[]>;
 };
 
 export type RiskAnalysisValidatedMultiAnswer = {

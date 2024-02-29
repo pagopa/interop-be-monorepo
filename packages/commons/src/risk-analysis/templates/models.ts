@@ -1,11 +1,4 @@
-import { TenantKind } from "pagopa-interop-models";
-import { match } from "ts-pattern";
 import { z } from "zod";
-import pa1 from "./templates/PA/1.0.json";
-import pa2 from "./templates/PA/2.0.json";
-import pa3 from "./templates/PA/3.0.json";
-import private1 from "./templates/PRIVATE/1.0.json";
-import private2 from "./templates/PRIVATE/2.0.json";
 
 export const dataType = {
   freeText: "freeText",
@@ -75,31 +68,8 @@ const FormTemplateQuestion = z.discriminatedUnion("dataType", [
 ]);
 export type FormTemplateQuestion = z.infer<typeof FormTemplateQuestion>;
 
-const RiskAnalysisFormTemplate = z.object({
+export const RiskAnalysisFormTemplate = z.object({
   version: z.string(),
   questions: z.array(FormTemplateQuestion),
 });
 export type RiskAnalysisFormTemplate = z.infer<typeof RiskAnalysisFormTemplate>;
-
-type Template = "pa1" | "pa2" | "pa3" | "private1" | "private2";
-
-export function getTemplate(template: Template): RiskAnalysisFormTemplate {
-  return RiskAnalysisFormTemplate.parse(
-    match(template)
-      .with("pa1", () => pa1)
-      .with("pa2", () => pa2)
-      .with("pa3", () => pa3)
-      .with("private1", () => private1)
-      .with("private2", () => private2)
-      .exhaustive()
-  );
-}
-
-export const riskAnalysisTemplates: Record<
-  TenantKind,
-  RiskAnalysisFormTemplate[]
-> = {
-  PA: [getTemplate("pa1"), getTemplate("pa2"), getTemplate("pa3")],
-  PRIVATE: [getTemplate("private1"), getTemplate("private2")],
-  GSP: [getTemplate("private1"), getTemplate("private2")],
-};
