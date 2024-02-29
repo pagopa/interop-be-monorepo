@@ -283,7 +283,32 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
 ]);
 export type EServiceEventV2 = z.infer<typeof EServiceEventV2>;
 
-export const EServiceEvent = z.union([EServiceEventV1, EServiceEventV2]);
+const eventV1 = z
+  .object({
+    event_version: z.literal(1),
+  })
+  .passthrough();
+const eventV2 = z
+  .object({
+    event_version: z.literal(2),
+  })
+  .passthrough();
+
+export const EServiceEvent = z
+  .discriminatedUnion("event_version", [eventV1, eventV2])
+  .transform((obj, ctx) => {
+    const res = match(obj)
+      .with({ event_version: 1 }, () => EServiceEventV1.safeParse(obj))
+      .with({ event_version: 2 }, () => EServiceEventV2.safeParse(obj))
+      .exhaustive();
+
+    if (!res.success) {
+      res.error.issues.forEach(ctx.addIssue);
+      return z.NEVER;
+    }
+    return res.data;
+  });
+
 export type EServiceEvent = z.infer<typeof EServiceEvent>;
 
 export const EServiceEventEnvelopeV1 = EventEnvelope(EServiceEventV1);
