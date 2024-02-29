@@ -204,18 +204,15 @@ function validateFormField(
   }
 }
 
-function validateFieldValue(
-  fieldValue: string[],
-  rule: ValidationRule
-): boolean {
-  return match(rule.allowedValues)
+function validateFieldValue(fieldValue: string[], rule: ValidationRule): void {
+  match(rule.allowedValues)
     .with(P.not(P.nullish), (allowedValues) => {
       if (!fieldValue.every((v) => allowedValues.has(v))) {
         throw unexpectedFieldValue(rule.fieldName, allowedValues);
       }
-      return true;
     })
-    .with(P.nullish, () => true)
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    .with(P.nullish, () => {})
     .exhaustive();
 }
 
@@ -223,31 +220,16 @@ function validateFieldDependency(
   answers: RiskAnalysisFormToValidate["answers"],
   dependentField: string,
   dependency: ValidationRuleDependency
-): boolean {
+): void {
   const dependencyValue: string[] | undefined = answers[dependency.fieldName];
   assertDependencyExists(dependencyValue, dependentField, dependency);
-  return match(dependencyValue)
-    .with(P.array(P.string), (values) => {
-      if (!values.some((v) => v === dependency.fieldValue)) {
-        throw unexpectedDependencyValueError(
-          dependentField,
-          dependency.fieldName,
-          dependency.fieldValue
-        );
-      }
-      return true;
-    })
-    .with(P.string, (value) => {
-      if (value !== dependency.fieldValue) {
-        throw unexpectedDependencyValueError(
-          dependentField,
-          dependency.fieldName,
-          dependency.fieldValue
-        );
-      }
-      return true;
-    })
-    .exhaustive();
+  if (!dependencyValue.some((v) => v === dependency.fieldValue)) {
+    throw unexpectedDependencyValueError(
+      dependentField,
+      dependency.fieldName,
+      dependency.fieldValue
+    );
+  }
 }
 
 function validateRequiredFields(
