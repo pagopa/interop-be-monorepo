@@ -5,13 +5,13 @@ import {
   missingRSAKeyError,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
-import { logger, jwtSeedConfig, signerConfig } from "../../index.js";
+import { logger, signerConfig } from "../../index.js";
 import { userRoles } from "../authData.js";
 import { buildSignerService } from "../signerService.js";
-import { InternalToken, TokenSeed } from "./token.js";
+import { InternalToken, TokenSeed, TokenPayloadSeed } from "./token.js";
 
 export type InteropTokenGenerator = {
-  generateInternalToken: () => Promise<InternalToken>;
+  generateInternalToken: (seed: TokenPayloadSeed) => Promise<InternalToken>;
 };
 
 const createInternalToken = (
@@ -42,7 +42,6 @@ const createInternalToken = (
 export const buildInteropTokenGenerator = (): InteropTokenGenerator => {
   // Hosting all the dependencies to collect all process env reading at one time
   const signerService = buildSignerService();
-  const { subject, audience, tokenIssuer, secondsToExpire } = jwtSeedConfig();
   const { rsaKeysIdentifiers } = signerConfig();
 
   if (!rsaKeysIdentifiers.length) {
@@ -86,7 +85,9 @@ export const buildInteropTokenGenerator = (): InteropTokenGenerator => {
     return `${serializedToken}.${signature}`;
   };
 
-  const generateInternalToken = async (): Promise<InternalToken> => {
+  const generateInternalToken = async (
+    tokenPayloadSeed: TokenPayloadSeed
+  ): Promise<InternalToken> => {
     try {
       const privateKid =
         rsaKeysIdentifiers[
@@ -96,10 +97,10 @@ export const buildInteropTokenGenerator = (): InteropTokenGenerator => {
       const tokenSeed = createInternalToken(
         "RS256",
         privateKid,
-        subject,
-        audience,
-        tokenIssuer,
-        secondsToExpire
+        tokenPayloadSeed.subject,
+        tokenPayloadSeed.audience,
+        tokenPayloadSeed.tokenIssuer,
+        tokenPayloadSeed.secondsToExpire
       );
 
       const signedJwt = await createSignedJWT(tokenSeed, privateKid);
@@ -110,12 +111,12 @@ export const buildInteropTokenGenerator = (): InteropTokenGenerator => {
         iat: tokenSeed.issuedAt,
         exp: tokenSeed.expireAt,
         nbf: tokenSeed.nbf,
-        expIn: secondsToExpire,
+        expIn: tokenPayloadSeed.secondsToExpire,
         alg: "RS256",
         kid: privateKid,
-        aud: audience,
-        sub: subject,
-        iss: tokenIssuer,
+        aud: tokenSeed.audience,
+        sub: tokenSeed.subject,
+        iss: tokenSeed.issuer,
       };
     } catch (error) {
       throw tokenGenerationError(error);

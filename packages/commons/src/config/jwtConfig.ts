@@ -2,16 +2,16 @@ import { z } from "zod";
 
 export const JWTSeedConfig = z
   .object({
-    JWT_SUBJECT: z.string(),
-    JWT_AUDIENCE: z.string().transform((v) => v.split(",")),
-    JWT_ISSUER: z.string(),
-    JWT_SECONDS_TO_EXPIRE: z.coerce.number(),
+    GENERATED_JWT_SUBJECT: z.string(),
+    GENERATED_JWT_AUDIENCE: z.string().transform((v) => v.split(",")),
+    GENERATED_JWT_ISSUER: z.string(),
+    GENERATED_JWT_SECONDS_TO_EXPIRE: z.coerce.number(),
   })
   .transform((c) => ({
-    subject: c.JWT_SUBJECT,
-    audience: c.JWT_AUDIENCE,
-    tokenIssuer: c.JWT_ISSUER,
-    secondsToExpire: c.JWT_SECONDS_TO_EXPIRE,
+    subject: c.GENERATED_JWT_SUBJECT,
+    audience: c.GENERATED_JWT_AUDIENCE,
+    tokenIssuer: c.GENERATED_JWT_ISSUER,
+    secondsToExpire: c.GENERATED_JWT_SECONDS_TO_EXPIRE,
   }));
 
 export type JWTSeedConfig = z.infer<typeof JWTSeedConfig>;

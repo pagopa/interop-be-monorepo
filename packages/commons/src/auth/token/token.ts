@@ -28,3 +28,10 @@ export type TokenSeed = {
   audience: string[];
   customClaims: CustomJWTClaims;
 };
+
+export type TokenPayloadSeed = {
+  subject: string;
+  audience: string[];
+  tokenIssuer: string;
+  secondsToExpire: number;
+};
