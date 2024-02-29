@@ -101,9 +101,22 @@ const errorCodes = {
   unauthorizedError: "9991",
   thirdPartyCallError: "9992",
   missingHeader: "9994",
+  tokenGenerationError: "9995",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
+
+export function parseErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === "string") {
+    return error;
+  }
+
+  return `${JSON.stringify(error)}`;
+}
 
 /* ===== Internal Error ===== */
 
@@ -123,6 +136,15 @@ export function thirdPartyCallError(
   return new InternalError({
     code: "thirdPartyCallError",
     detail: `Error while invoking ${serviceName} external service -> ${errorMessage}`,
+  });
+}
+
+export function tokenGenerationError(
+  error: unknown
+): InternalError<CommonErrorCodes> {
+  return new InternalError({
+    code: "tokenGenerationError",
+    detail: `Error  during token generation: ${parseErrorMessage(error)}`,
   });
 }
 

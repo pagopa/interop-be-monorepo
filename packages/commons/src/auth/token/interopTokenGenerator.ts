@@ -1,6 +1,7 @@
 /* eslint-disable max-params */
 import { Algorithm, JwtHeader, JwtPayload } from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
+import { tokenGenerationError } from "pagopa-interop-models";
 import { jwtSeedConfig } from "../../config/jwtConfig.js";
 import { logger } from "../../index.js";
 import { userRoles } from "../authData.js";
@@ -20,9 +21,8 @@ const createInternalTokenWithKid = (
   tokenIssuer: string,
   validityDurationSeconds: number
 ): TokenSeed => {
-  const issuedAt = new Date();
-  const expireDate = new Date(issuedAt);
-  expireDate.setSeconds(expireDate.getSeconds() + validityDurationSeconds);
+  const issuedAt = new Date().getTime() / 1000;
+  const expireAt = validityDurationSeconds * 1000 + issuedAt;
 
   return {
     id: uuidv4(),
@@ -30,9 +30,9 @@ const createInternalTokenWithKid = (
     kid,
     subject,
     issuer: tokenIssuer,
-    issuedAt: issuedAt.getTime() / 1000,
-    nbf: issuedAt.getTime() / 1000,
-    expireAt: expireDate.getTime() / 1000,
+    issuedAt,
+    nbf: issuedAt,
+    expireAt,
     audience,
     customClaims: new Map([["role", userRoles.INTERNAL_ROLE]]),
   };
@@ -110,9 +110,7 @@ export const buildInteropTokenGenerator = (): InteropTokenGenerator => {
         iss: tokenIssuer,
       };
     } catch (error) {
-      throw new Error(
-        `Invalid clientAssertion provided for jwt token generation ${error}`
-      );
+      throw tokenGenerationError(error);
     }
   };
 
