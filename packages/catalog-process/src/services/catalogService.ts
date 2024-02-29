@@ -47,13 +47,18 @@ import {
   toCreateEventClonedEServiceAdded,
   toCreateEventEServiceAdded,
   toCreateEventEServiceDeleted,
+  toCreateEventEServiceDescriptorActivated,
   toCreateEventEServiceDescriptorAdded,
-  toCreateEventEServiceDescriptorUpdated,
+  toCreateEventEServiceDescriptorDeleted,
+  toCreateEventEServiceDescriptorPublished,
+  toCreateEventEServiceDescriptorSuspended,
   toCreateEventEServiceDocumentAdded,
   toCreateEventEServiceDocumentDeleted,
   toCreateEventEServiceDocumentUpdated,
+  toCreateEventEServiceInterfaceAdded,
+  toCreateEventEServiceInterfaceDeleted,
+  toCreateEventEServiceInterfaceUpdated,
   toCreateEventEServiceUpdated,
-  toCreateEventEServiceWithDescriptorsDeleted,
 } from "../model/domain/toEvent.js";
 import {
   ApiEServiceDescriptorDocumentSeed,
@@ -189,41 +194,23 @@ const updateDescriptorState = (
 };
 
 const deprecateDescriptor = (
-  streamId: string,
-  version: number,
+  eserviceId: EServiceId,
   descriptor: Descriptor
-): CreateEvent<EServiceEvent> => {
+): Descriptor => {
   logger.info(
-    `Deprecating Descriptor ${descriptor.id} of EService ${streamId}`
+    `Deprecating Descriptor ${descriptor.id} of EService ${eserviceId}`
   );
 
-  const updatedDescriptor = updateDescriptorState(
-    descriptor,
-    descriptorState.deprecated
-  );
-  return toCreateEventEServiceDescriptorUpdated(
-    streamId,
-    version,
-    updatedDescriptor
-  );
+  return updateDescriptorState(descriptor, descriptorState.deprecated);
 };
 
 const archiveDescriptor = (
   streamId: string,
-  version: number,
   descriptor: Descriptor
-): CreateEvent<EServiceEvent> => {
+): Descriptor => {
   logger.info(`Archiving Descriptor ${descriptor.id} of EService ${streamId}`);
 
-  const updatedDescriptor = updateDescriptorState(
-    descriptor,
-    descriptorState.archived
-  );
-  return toCreateEventEServiceDescriptorUpdated(
-    streamId,
-    version,
-    updatedDescriptor
-  );
+  return updateDescriptorState(descriptor, descriptorState.archived);
 };
 
 const hasNotDraftDescriptor = (eService: EService): void => {
@@ -233,6 +220,20 @@ const hasNotDraftDescriptor = (eService: EService): void => {
   if (hasDraftDescriptor) {
     throw draftDescriptorAlreadyExists(eService.id);
   }
+};
+
+const replaceDescriptor = (
+  eservice: EService,
+  newDescriptor: Descriptor
+): EService => {
+  const updatedDescriptors = eservice.descriptors.map((d: Descriptor) =>
+    d.id === newDescriptor.id ? newDescriptor : d
+  );
+
+  return {
+    ...eservice,
+    descriptors: updatedDescriptors,
+  };
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -271,9 +272,9 @@ export function catalogServiceBuilder(
       authData: AuthData
     ): Promise<EService> {
       logger.info(`Retrieving EService ${eserviceId}`);
-      const eservice = await retrieveEService(eserviceId, readModelService);
+      const eService = await retrieveEService(eserviceId, readModelService);
 
-      return applyVisibilityToEService(eservice.data, authData);
+      return applyVisibilityToEService(eService.data, authData);
     },
 
     async getEServices(
@@ -516,15 +517,15 @@ export function catalogServiceBuilder(
 
       const eService = await readModelService.getEServiceById(eserviceId);
 
-      for (const event of await publishDescriptorLogic({
-        eserviceId,
-        descriptorId,
-        authData,
-        eService,
-        listAgreements: readModelService.listAgreements,
-      })) {
-        await repository.createEvent(event);
-      }
+      await repository.createEvent(
+        await publishDescriptorLogic({
+          eserviceId,
+          descriptorId,
+          authData,
+          eService,
+          listAgreements: readModelService.listAgreements,
+        })
+      );
     },
 
     async suspendDescriptor(
@@ -766,7 +767,11 @@ export function deleteEserviceLogic({
     throw eServiceCannotBeDeleted(eserviceId);
   }
 
-  return toCreateEventEServiceDeleted(eserviceId, eService.metadata.version);
+  return toCreateEventEServiceDeleted(
+    eserviceId,
+    eService.metadata.version,
+    eService.data
+  );
 }
 
 export function uploadDocumentLogic({
@@ -795,24 +800,50 @@ export function uploadDocumentLogic({
     throw interfaceAlreadyExists(descriptor.id);
   }
 
-  return toCreateEventEServiceDocumentAdded(
-    eserviceId,
-    eService.metadata.version,
-    descriptorId,
-    {
-      newDocument: {
-        id: unsafeBrandId(document.documentId),
-        name: document.fileName,
-        contentType: document.contentType,
-        prettyName: document.prettyName,
-        path: document.filePath,
-        checksum: document.checksum,
-        uploadDate: new Date(),
-      },
-      isInterface: document.kind === "INTERFACE",
-      serverUrls: document.serverUrls,
-    }
-  );
+  const isInterface = document.kind === "INTERFACE";
+  const newDocument: Document = {
+    id: unsafeBrandId(document.documentId),
+    name: document.fileName,
+    contentType: document.contentType,
+    prettyName: document.prettyName,
+    path: document.filePath,
+    checksum: document.checksum,
+    uploadDate: new Date(),
+  };
+
+  const newEservice: EService = {
+    ...eService.data,
+    descriptors: eService.data.descriptors.map((d: Descriptor) =>
+      d.id === descriptorId
+        ? {
+            ...d,
+            interface: isInterface ? newDocument : d.interface,
+            docs: isInterface ? d.docs : [...d.docs, newDocument],
+            serverUrls: document.serverUrls,
+          }
+        : d
+    ),
+  };
+
+  return document.kind === "INTERFACE"
+    ? toCreateEventEServiceInterfaceAdded(
+        eserviceId,
+        eService.metadata.version,
+        {
+          descriptorId,
+          documentId: unsafeBrandId(document.documentId),
+          eservice: newEservice,
+        }
+      )
+    : toCreateEventEServiceDocumentAdded(
+        eserviceId,
+        eService.metadata.version,
+        {
+          descriptorId,
+          documentId: unsafeBrandId(document.documentId),
+          eservice: newEservice,
+        }
+      );
 }
 
 export async function deleteDocumentLogic({
@@ -853,12 +884,39 @@ export async function deleteDocumentLogic({
     throw error;
   });
 
-  return toCreateEventEServiceDocumentDeleted(
-    eserviceId,
-    eService.metadata.version,
-    descriptorId,
-    documentId
-  );
+  const isInterface = document.id === descriptor?.interface?.id;
+  const newEservice: EService = {
+    ...eService.data,
+    descriptors: eService.data.descriptors.map((d: Descriptor) =>
+      d.id === descriptorId
+        ? {
+            ...d,
+            interface: d.interface?.id === documentId ? undefined : d.interface,
+            docs: d.docs.filter((doc) => doc.id !== documentId),
+          }
+        : d
+    ),
+  };
+
+  return isInterface
+    ? toCreateEventEServiceInterfaceDeleted(
+        eserviceId,
+        eService.metadata.version,
+        {
+          descriptorId,
+          documentId,
+          eservice: newEservice,
+        }
+      )
+    : toCreateEventEServiceDocumentDeleted(
+        eserviceId,
+        eService.metadata.version,
+        {
+          descriptorId,
+          documentId,
+          eservice: newEservice,
+        }
+      );
 }
 
 export async function updateDocumentLogic({
@@ -898,14 +956,41 @@ export async function updateDocumentLogic({
     prettyName: apiEServiceDescriptorDocumentUpdateSeed.prettyName,
   };
 
-  return toCreateEventEServiceDocumentUpdated({
-    streamId: eserviceId,
-    version: eService.metadata.version,
-    descriptorId,
-    documentId,
-    updatedDocument,
-    serverUrls: descriptor.serverUrls,
-  });
+  const isInterface = document.id === descriptor?.interface?.id;
+  const newEservice: EService = {
+    ...eService.data,
+    descriptors: eService.data.descriptors.map((d: Descriptor) =>
+      d.id === descriptorId
+        ? {
+            ...d,
+            interface: isInterface ? updatedDocument : d.interface,
+            docs: d.docs.map((doc) =>
+              doc.id === documentId ? updatedDocument : doc
+            ),
+          }
+        : d
+    ),
+  };
+
+  return isInterface
+    ? toCreateEventEServiceInterfaceUpdated(
+        eserviceId,
+        eService.metadata.version,
+        {
+          descriptorId,
+          documentId,
+          eservice: newEservice,
+        }
+      )
+    : toCreateEventEServiceDocumentUpdated(
+        eserviceId,
+        eService.metadata.version,
+        {
+          descriptorId,
+          documentId,
+          eservice: newEservice,
+        }
+      );
 }
 
 export async function createDescriptorLogic({
@@ -957,8 +1042,10 @@ export async function createDescriptorLogic({
     throw inconsistentDailyCalls();
   }
 
+  const descriptorId = generateId<DescriptorId>();
+
   const newDescriptor: Descriptor = {
-    id: generateId(),
+    id: descriptorId,
     description: eserviceDescriptorSeed.description,
     version: newVersion,
     interface: undefined,
@@ -1002,10 +1089,16 @@ export async function createDescriptorLogic({
     },
   };
 
+  const newEservice: EService = {
+    ...eService.data,
+    descriptors: [...eService.data.descriptors, newDescriptor],
+  };
+
   return toCreateEventEServiceDescriptorAdded(
     eService.data.id,
     eService.metadata.version,
-    newDescriptor
+    descriptorId,
+    newEservice
   );
 }
 
@@ -1054,7 +1147,19 @@ export async function deleteDraftDescriptorLogic({
     throw error;
   });
 
-  return toCreateEventEServiceWithDescriptorsDeleted(eService, descriptorId);
+  const newEservice: EService = {
+    ...eService.data,
+    descriptors: eService.data.descriptors.filter(
+      (d: Descriptor) => d.id !== descriptorId
+    ),
+  };
+
+  return toCreateEventEServiceDescriptorDeleted(
+    eService.data.id,
+    eService.metadata.version,
+    newEservice,
+    descriptorId
+  );
 }
 
 export function updateDraftDescriptorLogic({
@@ -1124,7 +1229,7 @@ export async function publishDescriptorLogic({
     states: AgreementState[],
     descriptorId?: DescriptorId | undefined
   ) => Promise<Agreement[]>;
-}): Promise<Array<CreateEvent<EServiceEvent>>> {
+}): Promise<CreateEvent<EServiceEvent>> {
   assertEServiceExist(eserviceId, eService);
   assertRequesterAllowed(eService.data.producerId, authData.organizationId);
 
@@ -1146,6 +1251,8 @@ export async function publishDescriptorLogic({
     descriptorState.published
   );
 
+  const newEservice = replaceDescriptor(eService.data, updatedDescriptor);
+
   if (currentActiveDescriptor !== undefined) {
     const agreements = await listAgreements(
       [eserviceId],
@@ -1155,40 +1262,37 @@ export async function publishDescriptorLogic({
       currentActiveDescriptor.id
     );
     if (agreements.length === 0) {
-      return [
-        archiveDescriptor(
-          eService.data.id,
-          eService.metadata.version,
-          currentActiveDescriptor
-        ),
-        toCreateEventEServiceDescriptorUpdated(
-          eserviceId,
-          eService.metadata.version + 1,
-          updatedDescriptor
-        ),
-      ];
+      const newEserviceWithArchiving = replaceDescriptor(
+        eService.data,
+        archiveDescriptor(eserviceId, currentActiveDescriptor)
+      );
+
+      return toCreateEventEServiceDescriptorPublished(
+        eserviceId,
+        eService.metadata.version + 1,
+        descriptorId,
+        newEserviceWithArchiving
+      );
     } else {
-      return [
-        deprecateDescriptor(
-          eService.data.id,
-          eService.metadata.version,
-          currentActiveDescriptor
-        ),
-        toCreateEventEServiceDescriptorUpdated(
-          eserviceId,
-          eService.metadata.version + 1,
-          updatedDescriptor
-        ),
-      ];
+      const newEserviceWithDeprecation = replaceDescriptor(
+        eService.data,
+        deprecateDescriptor(eserviceId, currentActiveDescriptor)
+      );
+
+      return toCreateEventEServiceDescriptorPublished(
+        eserviceId,
+        eService.metadata.version + 1,
+        descriptorId,
+        newEserviceWithDeprecation
+      );
     }
   } else {
-    return [
-      toCreateEventEServiceDescriptorUpdated(
-        eserviceId,
-        eService.metadata.version,
-        updatedDescriptor
-      ),
-    ];
+    return toCreateEventEServiceDescriptorPublished(
+      eserviceId,
+      eService.metadata.version,
+      descriptorId,
+      newEservice
+    );
   }
 }
 
@@ -1219,10 +1323,13 @@ export function suspendDescriptorLogic({
     descriptorState.suspended
   );
 
-  return toCreateEventEServiceDescriptorUpdated(
+  const newEservice = replaceDescriptor(eService.data, updatedDescriptor);
+
+  return toCreateEventEServiceDescriptorSuspended(
     eserviceId,
     eService.metadata.version,
-    updatedDescriptor
+    descriptorId,
+    newEservice
   );
 }
 
@@ -1263,16 +1370,25 @@ export function activateDescriptorLogic({
     recentDescriptorVersion !== null &&
     parseInt(descriptor.version, 10) === recentDescriptorVersion
   ) {
-    return toCreateEventEServiceDescriptorUpdated(
+    const newEservice = replaceDescriptor(eService.data, updatedDescriptor);
+
+    return toCreateEventEServiceDescriptorActivated(
       eserviceId,
       eService.metadata.version,
-      updatedDescriptor
+      descriptorId,
+      newEservice
     );
   } else {
-    return deprecateDescriptor(
+    const newEservice = replaceDescriptor(
+      eService.data,
+      deprecateDescriptor(eserviceId, descriptor)
+    );
+
+    return toCreateEventEServiceDescriptorActivated(
       eserviceId,
       eService.metadata.version,
-      descriptor
+      descriptorId,
+      newEservice
     );
   }
 }
@@ -1380,7 +1496,7 @@ export async function cloneDescriptorLogic({
     throw error;
   });
 
-  const draftCatalogItem: EService = {
+  const clonedEservice: EService = {
     id: generateId(),
     producerId: eService.data.producerId,
     name: clonedEServiceName,
@@ -1408,8 +1524,12 @@ export async function cloneDescriptorLogic({
   };
 
   return {
-    eService: draftCatalogItem,
-    event: toCreateEventClonedEServiceAdded(draftCatalogItem),
+    eService: clonedEservice,
+    event: toCreateEventClonedEServiceAdded(
+      descriptorId,
+      eService.data,
+      clonedEservice
+    ),
   };
 }
 
@@ -1433,10 +1553,13 @@ export function archiveDescriptorLogic({
     descriptorState.archived
   );
 
-  return toCreateEventEServiceDescriptorUpdated(
+  const newEservice = replaceDescriptor(eService.data, updatedDescriptor);
+
+  return toCreateEventEServiceDescriptorActivated(
     eserviceId,
     eService.metadata.version,
-    updatedDescriptor
+    descriptorId,
+    newEservice
   );
 }
 
@@ -1540,18 +1663,6 @@ function assertDailyCallsAreConsistentAndNotDecreased({
   ) {
     throw dailyCallsCannotBeDecreased();
   }
-}
-
-function replaceDescriptor(
-  eservice: EService,
-  updatedDescriptor: Descriptor
-): EService {
-  return {
-    ...eservice,
-    descriptors: eservice.descriptors.map((descriptor) =>
-      descriptor.id === updatedDescriptor.id ? updatedDescriptor : descriptor
-    ),
-  };
 }
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;

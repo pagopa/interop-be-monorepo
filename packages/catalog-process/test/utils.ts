@@ -27,7 +27,7 @@ import {
   generateId,
   technology,
 } from "pagopa-interop-models";
-import { toEServiceV1 } from "../src/model/domain/toEvent.js";
+import { toEServiceV2 } from "../src/model/domain/toEvent.js";
 import { EServiceDescriptorSeed } from "../src/model/domain/models.js";
 import { ApiEServiceDescriptorDocumentSeed } from "../src/model/types.js";
 
@@ -37,11 +37,11 @@ export const writeEServiceInEventstore = async (
 ): Promise<void> => {
   const eServiceEvent: EServiceEvent = {
     type: "EServiceAdded",
-    event_version: 1,
-    data: { eService: toEServiceV1(eService) },
+    event_version: 2,
+    data: { eservice: toEServiceV2(eService) },
   };
   const eventToWrite = {
-    stream_id: eServiceEvent.data.eService?.id,
+    stream_id: eServiceEvent.data.eservice?.id,
     version: 0,
     type: eServiceEvent.type,
     event_version: eServiceEvent.event_version,
