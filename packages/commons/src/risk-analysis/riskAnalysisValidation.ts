@@ -11,12 +11,16 @@ import {
   noTemplateVersionFoundError,
   unexpectedFieldError,
   unexpectedFieldValue,
-  unexpectedFieldValueByDependencyError,
+  unexpectedDependencyValueError,
   unexpectedTemplateVersionError,
+  invalidFormAnswerError,
+  unexpectedFieldFormatError,
+  missingExpectedFieldError,
 } from "./riskAnalysisErrors.js";
 import {
   RiskAnalysisFormToValidate,
   RiskAnalysisValidatedForm,
+  RiskAnalysisValidatedSingleOrMultiAnswer,
   ValidationRule,
   ValidationRuleDependency,
 } from "./models.js";
@@ -141,21 +145,50 @@ export function validateFormAnswers(
   validationRules: ValidationRule[]
 ): Omit<RiskAnalysisValidatedForm, "version"> {
   if (!schemaOnlyValidation) {
-    validateExpectedFields(answers, validationRules);
+    validRequiredFields(answers, validationRules);
   }
 
-  Object.entries(answers).forEach(([answerKey, answerValue]) => {
-    const validationRule = validationRules.find(
-      (r) => r.fieldName === answerKey
-    );
-    assertValidationRuleExists(validationRule, answerKey);
-    validFormAnswer(answerValue, validationRule, schemaOnlyValidation, answers);
-  });
-  // TODO convert into right format and return instead of mock
-  return {
-    singleAnswers: [],
-    multiAnswers: [],
-  };
+  const validatedAnswers = Object.entries(answers).map(
+    ([fieldName, fieldValue]) => {
+      const validationRule = validationRules.find(
+        (r) => r.fieldName === fieldName
+      );
+      assertValidationRuleExists(validationRule, fieldName);
+      if (
+        !validFormAnswer(
+          fieldValue,
+          validationRule,
+          schemaOnlyValidation,
+          answers
+        )
+      ) {
+        throw invalidFormAnswerError(fieldName, fieldValue, validationRule);
+      }
+      return answerToValidatedSingleOrMultiAnswer(
+        fieldName,
+        fieldValue,
+        validationRule
+      );
+    }
+  );
+
+  return validatedAnswers.reduce(
+    (validatedForm, answer) =>
+      match(answer)
+        .with({ type: "single" }, (a) => ({
+          ...validatedForm,
+          singleAnswers: [...validatedForm.singleAnswers, a.answer],
+        }))
+        .with({ type: "multi" }, (a) => ({
+          ...validatedForm,
+          multiAnswers: [...validatedForm.multiAnswers, a.answer],
+        }))
+        .exhaustive(),
+    {
+      singleAnswers: [],
+      multiAnswers: [],
+    } as Omit<RiskAnalysisValidatedForm, "version">
+  );
 }
 
 export function validFormAnswer(
@@ -208,7 +241,7 @@ function validAnswerDependency(
   return match(dependencyValue)
     .with(P.array(P.string), (values) => {
       if (!values.some((v) => v === dependency.fieldValue)) {
-        throw unexpectedFieldValueByDependencyError(
+        throw unexpectedDependencyValueError(
           dependentField,
           dependency,
           dependency.fieldValue
@@ -218,7 +251,7 @@ function validAnswerDependency(
     })
     .with(P.string, (value) => {
       if (value !== dependency.fieldValue) {
-        throw unexpectedFieldValueByDependencyError(
+        throw unexpectedDependencyValueError(
           dependentField,
           dependency,
           dependency.fieldValue
@@ -229,10 +262,72 @@ function validAnswerDependency(
     .exhaustive();
 }
 
-export function validateExpectedFields(
-  _answers: RiskAnalysisFormToValidate["answers"],
-  _validationRules: ValidationRule[]
-): void {
-  // mock implementation
-  return undefined;
+export function validRequiredFields(
+  answers: RiskAnalysisFormToValidate["answers"],
+  validationRules: ValidationRule[]
+): boolean {
+  return validationRules
+    .filter((r) => r.required)
+    .every((rule) => {
+      const depsSatisfied = rule.dependencies.every((dependency) =>
+        formContainsDependency(answers, dependency)
+      );
+      const field: string | string[] | undefined = answers[rule.fieldName];
+      if (!depsSatisfied || (depsSatisfied && field !== undefined)) {
+        return true;
+      }
+      throw missingExpectedFieldError(rule.fieldName);
+    });
+}
+
+export function formContainsDependency(
+  answers: RiskAnalysisFormToValidate["answers"],
+  dependency: ValidationRuleDependency
+): boolean {
+  const field: string | string[] | undefined = answers[dependency.fieldName];
+  return match(field)
+    .with(P.array(P.string), (values) =>
+      values.some((v) => v === dependency.fieldValue)
+    )
+    .with(P.string, (value) => value === dependency.fieldValue)
+    .with(P.nullish, () => false)
+    .exhaustive();
+}
+
+export function answerToValidatedSingleOrMultiAnswer(
+  fieldName: string,
+  fieldValue: string | string[],
+  validationRule: ValidationRule
+): RiskAnalysisValidatedSingleOrMultiAnswer {
+  return match([fieldValue, validationRule.dataType])
+    .with(
+      [P.array(P.string), P.union(dataType.single, dataType.freeText)],
+      ([values, _]) => {
+        if (values.length === 0) {
+          throw unexpectedFieldFormatError(fieldName);
+        }
+        return {
+          type: "single",
+          answer: {
+            key: fieldName,
+            value: values[0],
+          },
+        } as RiskAnalysisValidatedSingleOrMultiAnswer;
+      }
+    )
+    .with(
+      [P.array(P.string), dataType.multi],
+      ([values, _]) =>
+        ({
+          type: "multi",
+          answer: {
+            key: fieldName,
+            values,
+          },
+        } as RiskAnalysisValidatedSingleOrMultiAnswer)
+    )
+    .with([P.string, P._], () => {
+      throw unexpectedFieldFormatError(fieldName);
+    })
+    .exhaustive();
 }

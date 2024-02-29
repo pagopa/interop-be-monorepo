@@ -15,6 +15,16 @@ export type RiskAnalysisValidatedSingleAnswer = {
   value?: string;
 };
 
+export type RiskAnalysisValidatedSingleOrMultiAnswer =
+  | {
+      type: "single";
+      answer: RiskAnalysisValidatedSingleAnswer;
+    }
+  | {
+      type: "multi";
+      answer: RiskAnalysisValidatedMultiAnswer;
+    };
+
 export type RiskAnalysisValidatedForm = {
   version: string;
   singleAnswers: RiskAnalysisValidatedSingleAnswer[];
