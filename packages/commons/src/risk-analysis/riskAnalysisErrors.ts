@@ -1,89 +1,73 @@
 import { TenantKind } from "pagopa-interop-models";
-import { ValidationRule, ValidationRuleDependency } from "./models.js";
 
-// Defining RiskAnalysisValidationError
-type RiskAnalysisValidationError = {
-  message: string;
-};
+export class RiskAnalysisValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+  }
+}
 
 export function noTemplateVersionFoundError(
   kind: TenantKind
 ): RiskAnalysisValidationError {
-  return {
-    message: `Template version for tenant kind ${kind} not found`,
-  };
+  return new RiskAnalysisValidationError(
+    `Template version for tenant kind ${kind} not found`
+  );
 }
 
 export function unexpectedTemplateVersionError(
   version: string
 ): RiskAnalysisValidationError {
-  return {
-    message: `Unexpected template version ${version}`,
-  };
+  return new RiskAnalysisValidationError(
+    `Unexpected template version ${version}`
+  );
 }
 
 export function unexpectedFieldError(
   fieldName: string
 ): RiskAnalysisValidationError {
-  return {
-    message: `Unexpected field ${fieldName}`,
-  };
+  return new RiskAnalysisValidationError(`Unexpected field ${fieldName}`);
 }
 
 export function unexpectedFieldValue(
   fieldName: string,
   allowedValues: Set<string>
 ): RiskAnalysisValidationError {
-  return {
-    message: `Field ${fieldName} should be one of ${Array.from(
-      allowedValues
-    ).join(",")}`,
-  };
+  return new RiskAnalysisValidationError(
+    `Field ${fieldName} should be one of ${Array.from(allowedValues).join(",")}`
+  );
 }
 
-export function dependencyNotFound(
+export function dependencyNotFoundError(
   dependentField: string,
-  depencency: ValidationRuleDependency
+  depencencyField: string
 ): RiskAnalysisValidationError {
-  return {
-    message: `Field ${dependentField} expects field ${depencency.fieldName} to be in the form`,
-  };
+  return new RiskAnalysisValidationError(
+    `Field ${dependentField} expects field ${depencencyField} to be in the form`
+  );
 }
 
 export function unexpectedDependencyValueError(
   dependentField: string,
-  depencency: ValidationRuleDependency,
+  depencencyField: string,
   expectedValue: string
 ): RiskAnalysisValidationError {
-  return {
-    message: `Field ${dependentField} requires field ${depencency.fieldName} value to be ${expectedValue}`,
-  };
-}
-
-export function invalidFormAnswerError(
-  fieldName: string,
-  fieldValue: string | string[],
-  validationRule: ValidationRule
-): RiskAnalysisValidationError {
-  return {
-    message: `Field ${fieldName} has invalid value ${fieldValue} according to validation rule ${JSON.stringify(
-      validationRule
-    )}`,
-  };
+  return new RiskAnalysisValidationError(
+    `Field ${dependentField} requires field ${depencencyField} value to be ${expectedValue}`
+  );
 }
 
 export function unexpectedFieldFormatError(
   fieldName: string
 ): RiskAnalysisValidationError {
-  return {
-    message: `Unexpected format for field ${fieldName}`,
-  };
+  return new RiskAnalysisValidationError(
+    `Unexpected format for field ${fieldName}`
+  );
 }
 
 export function missingExpectedFieldError(
   fieldName: string
 ): RiskAnalysisValidationError {
-  return {
-    message: `Expected field ${fieldName} not found in form`,
-  };
+  return new RiskAnalysisValidationError(
+    `Expected field ${fieldName} not found in form`
+  );
 }

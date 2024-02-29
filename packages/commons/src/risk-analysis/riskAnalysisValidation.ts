@@ -7,13 +7,12 @@ import {
   riskAnalysisTemplates,
 } from "./riskAnalysisTemplates.js";
 import {
-  dependencyNotFound,
+  dependencyNotFoundError,
   noTemplateVersionFoundError,
   unexpectedFieldError,
   unexpectedFieldValue,
   unexpectedDependencyValueError,
   unexpectedTemplateVersionError,
-  invalidFormAnswerError,
   unexpectedFieldFormatError,
   missingExpectedFieldError,
 } from "./riskAnalysisErrors.js";
@@ -49,7 +48,7 @@ function assertDependencyExists(
   dependency: ValidationRuleDependency
 ): asserts dependencyValue is NonNullable<string | string[]> {
   if (dependencyValue === undefined) {
-    throw dependencyNotFound(dependentField, dependency);
+    throw dependencyNotFoundError(dependentField, dependency.fieldName);
   }
 }
 
@@ -145,7 +144,7 @@ export function validateFormAnswers(
   validationRules: ValidationRule[]
 ): Omit<RiskAnalysisValidatedForm, "version"> {
   if (!schemaOnlyValidation) {
-    validRequiredFields(answers, validationRules);
+    validateRequiredFields(answers, validationRules);
   }
 
   const validatedAnswers = Object.entries(answers).map(
@@ -154,16 +153,14 @@ export function validateFormAnswers(
         (r) => r.fieldName === fieldName
       );
       assertValidationRuleExists(validationRule, fieldName);
-      if (
-        !validFormAnswer(
-          fieldValue,
-          validationRule,
-          schemaOnlyValidation,
-          answers
-        )
-      ) {
-        throw invalidFormAnswerError(fieldName, fieldValue, validationRule);
-      }
+
+      validateFormAnswer(
+        fieldValue,
+        validationRule,
+        schemaOnlyValidation,
+        answers
+      );
+
       return answerToValidatedSingleOrMultiAnswer(
         fieldName,
         fieldValue,
@@ -191,25 +188,23 @@ export function validateFormAnswers(
   );
 }
 
-export function validFormAnswer(
+export function validateFormAnswer(
   answerValue: string | string[],
   validationRule: ValidationRule,
   schemaOnlyValidation: boolean,
   answers: RiskAnalysisFormToValidate["answers"]
-): boolean {
+): void {
   if (schemaOnlyValidation) {
-    return validAnswerValue(answerValue, validationRule);
+    validateAnswerValue(answerValue, validationRule);
   } else {
-    return (
-      validAnswerValue(answerValue, validationRule) &&
-      validationRule.dependencies.every((dependency) =>
-        validAnswerDependency(answers, validationRule.fieldName, dependency)
-      )
+    validateAnswerValue(answerValue, validationRule);
+    validationRule.dependencies.forEach((dependency) =>
+      validateAnswerDependency(answers, validationRule.fieldName, dependency)
     );
   }
 }
 
-function validAnswerValue(
+function validateAnswerValue(
   answerValue: string | string[],
   rule: ValidationRule
 ): boolean {
@@ -230,7 +225,7 @@ function validAnswerValue(
     .exhaustive();
 }
 
-function validAnswerDependency(
+function validateAnswerDependency(
   answers: RiskAnalysisFormToValidate["answers"],
   dependentField: string,
   dependency: ValidationRuleDependency
@@ -243,7 +238,7 @@ function validAnswerDependency(
       if (!values.some((v) => v === dependency.fieldValue)) {
         throw unexpectedDependencyValueError(
           dependentField,
-          dependency,
+          dependency.fieldName,
           dependency.fieldValue
         );
       }
@@ -253,7 +248,7 @@ function validAnswerDependency(
       if (value !== dependency.fieldValue) {
         throw unexpectedDependencyValueError(
           dependentField,
-          dependency,
+          dependency.fieldName,
           dependency.fieldValue
         );
       }
@@ -262,21 +257,20 @@ function validAnswerDependency(
     .exhaustive();
 }
 
-export function validRequiredFields(
+export function validateRequiredFields(
   answers: RiskAnalysisFormToValidate["answers"],
   validationRules: ValidationRule[]
-): boolean {
-  return validationRules
+): void {
+  validationRules
     .filter((r) => r.required)
-    .every((rule) => {
+    .forEach((rule) => {
       const depsSatisfied = rule.dependencies.every((dependency) =>
         formContainsDependency(answers, dependency)
       );
       const field: string | string[] | undefined = answers[rule.fieldName];
-      if (!depsSatisfied || (depsSatisfied && field !== undefined)) {
-        return true;
+      if (depsSatisfied && field === undefined) {
+        throw missingExpectedFieldError(rule.fieldName);
       }
-      throw missingExpectedFieldError(rule.fieldName);
     });
 }
 
