@@ -28,6 +28,7 @@ import { IDatabase } from "pg-promise";
 import {
   Attribute,
   AttributeAddedV1,
+  AttributeId,
   Tenant,
   attributeKind,
   generateId,
@@ -45,6 +46,7 @@ import {
 import {
   OrganizationIsNotACertifier,
   attributeDuplicate,
+  attributeNotFound,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 import { toAttributeV1 } from "../src/model/domain/toEvent.js";
@@ -571,46 +573,48 @@ describe("database test", () => {
       });
       describe("getAttributeById", () => {
         it("should get the attribute if it exists", async () => {
-          const attribute = await readModelService.getAttributeById(
+          const attribute = await attributeRegistryService.getAttributeById(
             attribute1.id
           );
           expect(attribute?.data).toEqual(attribute1);
         });
-        it("should not get the attribute if it doesn't exist", async () => {
-          const attribute = await readModelService.getAttributeById(
-            generateId()
-          );
-          expect(attribute).toBeUndefined();
+        it("should throw attributeNotFound if the attribute doesn't exist", async () => {
+          const id = generateId<AttributeId>();
+          expect(
+            attributeRegistryService.getAttributeById(id)
+          ).rejects.toThrowError(attributeNotFound(id));
         });
       });
       describe("getAttributeByName", () => {
         it("should get the attribute if it exists", async () => {
-          const attribute = await readModelService.getAttributeByName(
+          const attribute = await attributeRegistryService.getAttributeByName(
             attribute1.name
           );
           expect(attribute?.data).toEqual(attribute1);
         });
-        it("should not get the attribute if it doesn't exist", async () => {
-          const attribute = await readModelService.getAttributeByName(
-            "not-existing"
-          );
-          expect(attribute).toBeUndefined();
+        it("should throw attributeNotFound if the attribute doesn't exist", async () => {
+          const name = "not-existing";
+          expect(
+            attributeRegistryService.getAttributeByName(name)
+          ).rejects.toThrowError(attributeNotFound(name));
         });
       });
       describe("getAttributeByOriginAndCode", () => {
         it("should get the attribute if it exists", async () => {
-          const attribute = await readModelService.getAttributeByOriginAndCode({
-            origin: "IPA",
-            code: "12345A",
-          });
+          const attribute =
+            await attributeRegistryService.getAttributeByOriginAndCode({
+              origin: "IPA",
+              code: "12345A",
+            });
           expect(attribute?.data).toEqual(attribute1);
         });
-        it("should not get the attribute if it doesn't exist", async () => {
-          const attribute = await readModelService.getAttributeByOriginAndCode({
-            origin: "IPA",
-            code: "12345D",
-          });
-          expect(attribute).toBeUndefined();
+        it("should throw attributeNotFound if the attribute doesn't exist", async () => {
+          expect(
+            attributeRegistryService.getAttributeByOriginAndCode({
+              origin: "IPA",
+              code: "12345D",
+            })
+          ).rejects.toThrowError(attributeNotFound("IPA/12345D"));
         });
       });
     });
