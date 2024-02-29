@@ -11,7 +11,7 @@ import {
   noTemplateVersionFoundError,
   unexpectedFieldError,
   unexpectedFieldValue,
-  unexpectedFieldValueByDependency,
+  unexpectedFieldValueByDependencyError,
   unexpectedTemplateVersionError,
 } from "./riskAnalysisErrors.js";
 import {
@@ -208,7 +208,7 @@ function validAnswerDependency(
   return match(dependencyValue)
     .with(P.array(P.string), (values) => {
       if (!values.some((v) => v === dependency.fieldValue)) {
-        throw unexpectedFieldValueByDependency(
+        throw unexpectedFieldValueByDependencyError(
           dependentField,
           dependency,
           dependency.fieldValue
@@ -218,7 +218,7 @@ function validAnswerDependency(
     })
     .with(P.string, (value) => {
       if (value !== dependency.fieldValue) {
-        throw unexpectedFieldValueByDependency(
+        throw unexpectedFieldValueByDependencyError(
           dependentField,
           dependency,
           dependency.fieldValue
