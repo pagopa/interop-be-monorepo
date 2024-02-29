@@ -26,6 +26,7 @@ export const errorCodes = {
   eserviceNotInReceiveMode: "0017",
   tenantNotFound: "0018",
   tenantKindNotFound: "0019",
+  riskAnalysisValidationFailed: "0020",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -213,5 +214,15 @@ export function tenantKindNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
     detail: `Tenant kind for tenant ${tenantId} not found`,
     code: "tenantKindNotFound",
     title: "Tenant kind not found",
+  });
+}
+
+export function riskAnalysisValidationFailed(
+  reason: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk analysis validation failed. Reasons: ${reason}`,
+    code: "riskAnalysisValidationFailed",
+    title: "Risk analysis validation failed",
   });
 }
