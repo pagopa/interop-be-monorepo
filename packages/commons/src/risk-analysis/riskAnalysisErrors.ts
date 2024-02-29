@@ -1,6 +1,6 @@
 import { TenantKind } from "pagopa-interop-models";
 
-export class RiskAnalysisValidationError extends Error {
+class RiskAnalysisValidationError extends Error {
   constructor(message: string) {
     super(message);
   }
