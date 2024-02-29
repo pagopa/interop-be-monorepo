@@ -3,6 +3,8 @@ import {
   CreateEvent,
   DB,
   FileManager,
+  RiskAnalysisValidatedForm,
+  RiskAnalysisValidationError,
   eventRepository,
   hasPermission,
   logger,
@@ -31,6 +33,7 @@ import {
   Tenant,
   RiskAnalysis,
   EServiceEvent,
+  TenantKind,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -90,6 +93,7 @@ import {
   eserviceNotInReceiveMode,
   tenantKindNotFound,
   tenantNotFound,
+  riskAnalysisValidationFailed,
 } from "../model/domain/errors.js";
 import { formatClonedEServiceDate } from "../utilities/date.js";
 import { ReadModelService } from "./readModelService.js";
@@ -1308,7 +1312,7 @@ export function catalogServiceBuilder(
     ): Promise<string> {
       logger.info(`Creating Risk Analysis for EService ${eserviceId}`);
 
-      const eservice = await readModelService.getEServiceById(eserviceId);
+      const eservice = await retrieveEService(eserviceId, readModelService);
       const tenant = await readModelService.getTenantById(
         authData.organizationId
       );
@@ -1395,8 +1399,7 @@ export function createRiskAnalysisLogic({
   assertTenantExists(authData.organizationId, tenant);
   assertTenantKindExists(authData.organizationId, tenant.data.kind);
 
-  // TODO catch & rethrow the right errors when validation fails
-  const validatedRiskAnalysisForm = validateRiskAnalysis(
+  const validatedRiskAnalysisForm = validateRiskAnalysisOrThrow(
     eserviceRiskAnalysisSeed.riskAnalysisForm,
     true,
     tenant.data.kind
@@ -1437,4 +1440,18 @@ export function createRiskAnalysisLogic({
   );
 }
 
-export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
+function validateRiskAnalysisOrThrow(
+  riskAnalysisForm: EServiceRiskAnalysisSeed["riskAnalysisForm"],
+  schemaOnly: boolean,
+  tenantKind: TenantKind
+): RiskAnalysisValidatedForm {
+  try {
+    return validateRiskAnalysis(riskAnalysisForm, schemaOnly, tenantKind);
+  } catch (error) {
+    throw riskAnalysisValidationFailed(
+      error instanceof RiskAnalysisValidationError
+        ? error.message
+        : `Unexpected risk analysis validation error: ${JSON.stringify(error)}`
+    );
+  }
+}
