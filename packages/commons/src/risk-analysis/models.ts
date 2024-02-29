@@ -2,7 +2,7 @@ import { DataType } from "./riskAnalysisTemplates.js";
 
 export type RiskAnalysisFormToValidate = {
   version: string;
-  answers: Record<string, string[]>;
+  answers: Record<string, string | string[]>;
 };
 
 export type RiskAnalysisValidatedMultiAnswer = {
