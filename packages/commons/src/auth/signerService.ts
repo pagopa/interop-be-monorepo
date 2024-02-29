@@ -52,9 +52,8 @@ export const buildSignerService = (): SignerService => {
         const res = await kmsClient.send(command);
 
         if (!res.Signature) {
-          logger.error("KMS response does not contains a signature");
           throw genericInternalError(
-            "KMS response does not contains a signature"
+            "KMS response does not contain a signature"
           );
         }
 
