@@ -20,7 +20,7 @@ const createInternalToken = (
   validityDurationSeconds: number
 ): TokenSeed => {
   const issuedAt = new Date().getTime() / 1000;
-  const expireAt = validityDurationSeconds * 1000 + issuedAt;
+  const expireAt = validityDurationSeconds + issuedAt;
 
   return {
     id: uuidv4(),
@@ -93,7 +93,7 @@ export const buildInteropTokenGenerator = (): InteropTokenGenerator => {
         tokenPayloadSeed.subject,
         tokenPayloadSeed.audience,
         tokenPayloadSeed.tokenIssuer,
-        tokenPayloadSeed.secondsToExpire
+        tokenPayloadSeed.expirationInSeconds
       );
 
       const signedJwt = await createSignedJWT(tokenSeed, privateKid);
@@ -104,7 +104,7 @@ export const buildInteropTokenGenerator = (): InteropTokenGenerator => {
         iat: tokenSeed.issuedAt,
         exp: tokenSeed.expireAt,
         nbf: tokenSeed.nbf,
-        expIn: tokenPayloadSeed.secondsToExpire,
+        expIn: tokenPayloadSeed.expirationInSeconds,
         alg: "RS256",
         kid: privateKid,
         aud: tokenSeed.audience,

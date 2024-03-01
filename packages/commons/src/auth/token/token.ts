@@ -33,5 +33,5 @@ export type TokenPayloadSeed = {
   subject: string;
   audience: string[];
   tokenIssuer: string;
-  secondsToExpire: number;
+  expirationInSeconds: number;
 };
