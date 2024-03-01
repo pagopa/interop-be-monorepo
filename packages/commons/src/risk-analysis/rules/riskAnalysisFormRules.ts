@@ -5,13 +5,13 @@ import pa2 from "./PA/2.0.json";
 import pa3 from "./PA/3.0.json";
 import private1 from "./PRIVATE/1.0.json";
 import private2 from "./PRIVATE/2.0.json";
-import { RiskAnalysisFormTemplate } from "./models.js";
+import { RiskAnalysisFormRules } from "./models.js";
 
-function getTemplate(
-  template: "pa1" | "pa2" | "pa3" | "private1" | "private2"
-): RiskAnalysisFormTemplate {
-  return RiskAnalysisFormTemplate.parse(
-    match(template)
+function getRules(
+  ruleset: "pa1" | "pa2" | "pa3" | "private1" | "private2"
+): RiskAnalysisFormRules {
+  return RiskAnalysisFormRules.parse(
+    match(ruleset)
       .with("pa1", () => pa1)
       .with("pa2", () => pa2)
       .with("pa3", () => pa3)
@@ -21,11 +21,11 @@ function getTemplate(
   );
 }
 
-export const riskAnalysisTemplates: Record<
+export const riskAnalysisFormRules: Record<
   TenantKind,
-  RiskAnalysisFormTemplate[]
+  RiskAnalysisFormRules[]
 > = {
-  PA: [getTemplate("pa1"), getTemplate("pa2"), getTemplate("pa3")],
-  PRIVATE: [getTemplate("private1"), getTemplate("private2")],
-  GSP: [getTemplate("private1"), getTemplate("private2")],
+  PA: [getRules("pa1"), getRules("pa2"), getRules("pa3")],
+  PRIVATE: [getRules("private1"), getRules("private2")],
+  GSP: [getRules("private1"), getRules("private2")],
 };

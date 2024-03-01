@@ -7,7 +7,7 @@ import {
   unexpectedDependencyValueError,
   unexpectedFieldError,
   unexpectedFieldValue,
-  unexpectedTemplateVersionError,
+  unexpectedRulesVersionError,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
 
@@ -246,7 +246,7 @@ describe("Risk Analysis Validation", () => {
 
     expect(() =>
       validateRiskAnalysis(invalidRiskAnalysis, false, "PA")
-    ).toThrowError(unexpectedTemplateVersionError(invalidRiskAnalysis.version));
+    ).toThrowError(unexpectedRulesVersionError(invalidRiskAnalysis.version));
 
     const invalidRiskAnalysis2: RiskAnalysisFormToValidate = {
       ...validRiskAnalysis2_0_Private,
@@ -255,9 +255,7 @@ describe("Risk Analysis Validation", () => {
 
     expect(() =>
       validateRiskAnalysis(invalidRiskAnalysis2, false, "PRIVATE")
-    ).toThrowError(
-      unexpectedTemplateVersionError(invalidRiskAnalysis2.version)
-    );
+    ).toThrowError(unexpectedRulesVersionError(invalidRiskAnalysis2.version));
   });
 
   it("fail if a provided answer depends on a missing field", () => {
@@ -275,7 +273,7 @@ describe("Risk Analysis Validation", () => {
       /* If the field was not required, it would return the following error:
       dependencyNotFoundError("confirmedDoneDpia", "doneDpia")
 
-      ^^ No way to test this error with the current templates, as all the fields are required */
+      ^^ No way to test this error with the current rulesets, as all the fields are required */
     );
   });
 

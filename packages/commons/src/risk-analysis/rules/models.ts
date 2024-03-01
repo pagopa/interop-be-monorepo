@@ -47,7 +47,7 @@ const FormConfigQuestionCommonProps = z.object({
   validation: ValidationOption.optional(),
 });
 
-const FormTemplateQuestion = z.discriminatedUnion("dataType", [
+const FormQuestionRules = z.discriminatedUnion("dataType", [
   FormConfigQuestionCommonProps.merge(
     z.object({
       dataType: z.literal(dataType.freeText),
@@ -66,10 +66,10 @@ const FormTemplateQuestion = z.discriminatedUnion("dataType", [
     })
   ),
 ]);
-export type FormTemplateQuestion = z.infer<typeof FormTemplateQuestion>;
+export type FormQuestionRules = z.infer<typeof FormQuestionRules>;
 
-export const RiskAnalysisFormTemplate = z.object({
+export const RiskAnalysisFormRules = z.object({
   version: z.string(),
-  questions: z.array(FormTemplateQuestion),
+  questions: z.array(FormQuestionRules),
 });
-export type RiskAnalysisFormTemplate = z.infer<typeof RiskAnalysisFormTemplate>;
+export type RiskAnalysisFormRules = z.infer<typeof RiskAnalysisFormRules>;
