@@ -3681,8 +3681,10 @@ describe("database test", async () => {
           0,
           50
         );
-        expect(result.totalCount).toBe(1);
-        expect(result.results).toEqual([eService6]);
+        expect(result).toEqual({
+          totalCount: 1,
+          results: [eService6],
+        });
       });
 
       it("should get the eServices if they exist (parameters: producerIds, mode)", async () => {
@@ -3699,8 +3701,10 @@ describe("database test", async () => {
           0,
           50
         );
-        expect(result.totalCount).toBe(2);
-        expect(result.results).toEqual([eService4, eService5]);
+        expect(result).toEqual({
+          totalCount: 2,
+          results: [eService4, eService5],
+        });
       });
 
       it("should not get the eServices if they don't exist  (parameters: attributesIds)", async () => {
