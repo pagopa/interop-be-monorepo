@@ -1242,6 +1242,13 @@ describe("database test", async () => {
     });
 
     describe("publish descriptor", () => {
+      beforeAll(() => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date());
+      });
+      afterAll(() => {
+        vi.useRealTimers();
+      });
       it("should write on event-store for the publication of a descriptor", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
@@ -1279,9 +1286,7 @@ describe("database test", async () => {
           descriptors: [
             {
               ...descriptor,
-              publishedAt: new Date(
-                Number(writtenPayload.eservice!.descriptors[0]!.publishedAt)
-              ),
+              publishedAt: new Date(),
               state: descriptorState.published,
             },
           ],
@@ -1292,8 +1297,6 @@ describe("database test", async () => {
       });
 
       it("should also archive the previously published descriptor", async () => {
-        vi.useFakeTimers();
-        vi.setSystemTime(new Date());
         const descriptor1: Descriptor = {
           ...mockDescriptor,
           id: generateId(),
@@ -1353,13 +1356,9 @@ describe("database test", async () => {
           eservice: toEServiceV2(expectedEservice),
           descriptorId: descriptor2.id,
         });
-
-        vi.useRealTimers();
       });
 
       it("should also write deprecate the previously published descriptor if there was a valid agreement", async () => {
-        vi.useFakeTimers();
-        vi.setSystemTime(new Date());
         const descriptor1: Descriptor = {
           ...mockDescriptor,
           id: generateId(),
@@ -1430,8 +1429,6 @@ describe("database test", async () => {
           eservice: toEServiceV2(expectedEservice),
           descriptorId: descriptor2.id,
         });
-
-        vi.useRealTimers();
       });
 
       it("should throw eServiceNotFound if the eService doesn't exist", async () => {
