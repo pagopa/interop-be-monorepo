@@ -6,19 +6,19 @@ class RiskAnalysisValidationError extends Error {
   }
 }
 
-export function noTemplateVersionFoundError(
+export function noRulesVersionFoundError(
   kind: TenantKind
 ): RiskAnalysisValidationError {
   return new RiskAnalysisValidationError(
-    `Template version for tenant kind ${kind} not found`
+    `Ruleset version for tenant kind ${kind} not found`
   );
 }
 
-export function unexpectedTemplateVersionError(
+export function unexpectedRulesVersionError(
   version: string
 ): RiskAnalysisValidationError {
   return new RiskAnalysisValidationError(
-    `Unexpected template version ${version}`
+    `Unexpected ruleset version ${version}`
   );
 }
 

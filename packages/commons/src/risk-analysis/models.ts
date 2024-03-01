@@ -1,4 +1,4 @@
-import { DataType } from "./templates/models.js";
+import { DataType } from "./rules/models.js";
 
 export type RiskAnalysisFormToValidate = {
   version: string;
