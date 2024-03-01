@@ -63,7 +63,7 @@ import {
 } from "pagopa-interop-commons-test";
 import { StartedTestContainer } from "testcontainers";
 import { config } from "../src/utilities/config.js";
-import { toDescriptorV2, toEServiceV2 } from "../src/model/domain/toEvent.js";
+import { toEServiceV2 } from "../src/model/domain/toEvent.js";
 import {
   EServiceDescriptorSeed,
   UpdateEServiceDescriptorQuotasSeed,
@@ -108,7 +108,6 @@ import {
   readLastEventByStreamId,
   addOneAttribute,
   getMockEServiceAttributes,
-  readLastEventsByStreamId,
 } from "./utils.js";
 
 const mockEService = getMockEService();
@@ -1267,7 +1266,7 @@ describe("database test", async () => {
         expect(writtenEvent).toMatchObject({
           stream_id: eService.id,
           version: "1",
-          type: "EServiceDescriptorUpdated",
+          type: "EServiceDescriptorPublished",
           event_version: 2,
         });
         const writtenPayload = decodeProtobufPayload({
@@ -1325,8 +1324,9 @@ describe("database test", async () => {
 
         expect(writtenEvent).toMatchObject({
           stream_id: eService.id,
-          version: "2",
-          type: "EServiceDescrtiptorPublished",
+          version: "1",
+          type: "EServiceDescriptorPublished",
+          event_version: 2,
         });
 
         const writtenPayload = decodeProtobufPayload({
@@ -1350,8 +1350,8 @@ describe("database test", async () => {
           descriptors: [updatedDescriptor1, updatedDescriptor2],
         };
         expect(writtenPayload).toEqual({
-          eServiceId: eService.id,
           eservice: toEServiceV2(expectedEservice),
+          descriptorId: descriptor2.id,
         });
 
         vi.useRealTimers();
@@ -1402,13 +1402,8 @@ describe("database test", async () => {
         expect(writtenEvent).toMatchObject({
           stream_id: eService.id,
           version: "1",
-          type: "EServiceDescriptorUpdated",
-        });
-
-        expect(writtenEvent).toMatchObject({
-          stream_id: eService.id,
-          version: "2",
-          type: "EServiceDescriptorUpdated",
+          type: "EServiceDescriptorPublished",
+          event_version: 2,
         });
 
         const writtenPayload = decodeProtobufPayload({
@@ -1432,8 +1427,8 @@ describe("database test", async () => {
           descriptors: [updatedDescriptor1, updatedDescriptor2],
         };
         expect(writtenPayload).toEqual({
-          eServiceId: eService.id,
           eservice: toEServiceV2(expectedEservice),
+          descriptorId: descriptor2.id,
         });
 
         vi.useRealTimers();

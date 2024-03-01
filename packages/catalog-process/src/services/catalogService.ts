@@ -1246,12 +1246,15 @@ export async function publishDescriptorLogic({
     (d: Descriptor) => d.state === descriptorState.published
   );
 
-  const updatedDescriptor = updateDescriptorState(
+  const publishedDescriptor = updateDescriptorState(
     descriptor,
     descriptorState.published
   );
 
-  const newEservice = replaceDescriptor(eService.data, updatedDescriptor);
+  const eserviceWithPublishedDescriptor = replaceDescriptor(
+    eService.data,
+    publishedDescriptor
+  );
 
   if (currentActiveDescriptor !== undefined) {
     const agreements = await listAgreements(
@@ -1262,28 +1265,28 @@ export async function publishDescriptorLogic({
       currentActiveDescriptor.id
     );
     if (agreements.length === 0) {
-      const newEserviceWithArchiving = replaceDescriptor(
-        eService.data,
+      const eserviceWithArchivedAndPublishedDescriptors = replaceDescriptor(
+        eserviceWithPublishedDescriptor,
         archiveDescriptor(eserviceId, currentActiveDescriptor)
       );
 
       return toCreateEventEServiceDescriptorPublished(
         eserviceId,
-        eService.metadata.version + 1,
+        eService.metadata.version,
         descriptorId,
-        newEserviceWithArchiving
+        eserviceWithArchivedAndPublishedDescriptors
       );
     } else {
-      const newEserviceWithDeprecation = replaceDescriptor(
-        eService.data,
+      const eserviceWithDeprecatedAndPublishedDescriptors = replaceDescriptor(
+        eserviceWithPublishedDescriptor,
         deprecateDescriptor(eserviceId, currentActiveDescriptor)
       );
 
       return toCreateEventEServiceDescriptorPublished(
         eserviceId,
-        eService.metadata.version + 1,
+        eService.metadata.version,
         descriptorId,
-        newEserviceWithDeprecation
+        eserviceWithDeprecatedAndPublishedDescriptors
       );
     }
   } else {
@@ -1291,7 +1294,7 @@ export async function publishDescriptorLogic({
       eserviceId,
       eService.metadata.version,
       descriptorId,
-      newEservice
+      eserviceWithPublishedDescriptor
     );
   }
 }
