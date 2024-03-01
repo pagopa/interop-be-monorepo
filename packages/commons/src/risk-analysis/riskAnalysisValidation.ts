@@ -10,26 +10,26 @@ import {
 import {
   dependencyNotFoundError,
   missingExpectedFieldError,
-  noTemplateVersionFoundError,
+  noRulesVersionFoundError,
   unexpectedDependencyValueError,
   unexpectedFieldError,
   unexpectedFieldFormatError,
   unexpectedFieldValue,
-  unexpectedTemplateVersionError,
+  unexpectedRulesVersionError,
 } from "./riskAnalysisErrors.js";
 import {
-  FormTemplateQuestion,
-  RiskAnalysisFormTemplate,
+  FormQuestionRules,
+  RiskAnalysisFormRules,
   dataType,
-} from "./templates/models.js";
-import { riskAnalysisTemplates } from "./templates/riskAnalysisTemplates.js";
+} from "./rules/models.js";
+import { riskAnalysisFormRules } from "./rules/riskAnalysisFormRules.js";
 
-function assertLatestVersionTemplateFormExists(
-  latestVersionTemplateForm: RiskAnalysisFormTemplate | undefined,
+function assertLatestVersionFormRulesExist(
+  latestVersionFormRules: RiskAnalysisFormRules | undefined,
   tenantKind: TenantKind
-): asserts latestVersionTemplateForm is NonNullable<RiskAnalysisFormTemplate> {
-  if (latestVersionTemplateForm === undefined) {
-    throw noTemplateVersionFoundError(tenantKind);
+): asserts latestVersionFormRules is NonNullable<RiskAnalysisFormRules> {
+  if (latestVersionFormRules === undefined) {
+    throw noRulesVersionFoundError(tenantKind);
   }
 }
 
@@ -57,15 +57,15 @@ export function validateRiskAnalysis(
   schemaOnlyValidation: boolean,
   tenantKind: TenantKind
 ): RiskAnalysisValidatedForm {
-  const latestVersionTemplateForm = getLatestVersionTemplateForm(tenantKind);
-  assertLatestVersionTemplateFormExists(latestVersionTemplateForm, tenantKind);
+  const latestVersionFormRules = getLatestVersionFormRules(tenantKind);
+  assertLatestVersionFormRulesExist(latestVersionFormRules, tenantKind);
 
-  if (latestVersionTemplateForm.version !== riskAnalysisForm.version) {
-    throw unexpectedTemplateVersionError(riskAnalysisForm.version);
+  if (latestVersionFormRules.version !== riskAnalysisForm.version) {
+    throw unexpectedRulesVersionError(riskAnalysisForm.version);
   }
 
-  const validationRules = latestVersionTemplateForm.questions.map(
-    questionToValidationRule
+  const validationRules = latestVersionFormRules.questions.map(
+    questionRulesToValidationRule
   );
 
   const sanitizedAnswers = Object.fromEntries(
@@ -79,31 +79,31 @@ export function validateRiskAnalysis(
   );
 
   return {
-    version: latestVersionTemplateForm.version,
+    version: latestVersionFormRules.version,
     singleAnswers,
     multiAnswers,
   };
 }
 
-function getLatestVersionTemplateForm(
+function getLatestVersionFormRules(
   tenantKind: TenantKind
-): RiskAnalysisFormTemplate | undefined {
-  const templates = riskAnalysisTemplates[tenantKind];
+): RiskAnalysisFormRules | undefined {
+  const rules = riskAnalysisFormRules[tenantKind];
   try {
-    return templates
-      .map((t) => ({
-        floatVersion: parseFloat(t.version),
-        template: t,
+    return rules
+      .map((rules) => ({
+        floatVersion: parseFloat(rules.version),
+        rules,
       }))
       .sort((a, b) => b.floatVersion - a.floatVersion)
-      .map((t) => t.template)[0];
+      .map(({ rules }) => rules)[0];
   } catch {
     return undefined;
   }
 }
 
-function templateDepsToValidationRuleDeps(
-  dependencies: FormTemplateQuestion["dependencies"]
+function questionRulesDepsToValidationRuleDeps(
+  dependencies: FormQuestionRules["dependencies"]
 ): ValidationRuleDependency[] {
   return dependencies.map((d) => ({
     fieldName: d.id,
@@ -111,15 +111,15 @@ function templateDepsToValidationRuleDeps(
   }));
 }
 
-function questionToValidationRule(
-  question: FormTemplateQuestion
+function questionRulesToValidationRule(
+  question: FormQuestionRules
 ): ValidationRule {
   return match(question)
     .with({ dataType: dataType.freeText }, (q) => ({
       fieldName: q.id,
       dataType: q.dataType,
       required: q.required,
-      dependencies: templateDepsToValidationRuleDeps(q.dependencies),
+      dependencies: questionRulesDepsToValidationRuleDeps(q.dependencies),
       allowedValues: undefined,
     }))
     .with(
@@ -131,7 +131,7 @@ function questionToValidationRule(
         fieldName: q.id,
         dataType: q.dataType,
         required: q.required,
-        dependencies: templateDepsToValidationRuleDeps(q.dependencies),
+        dependencies: questionRulesDepsToValidationRuleDeps(q.dependencies),
         allowedValues: new Set(q.options.map((o) => o.value)),
       })
     )
