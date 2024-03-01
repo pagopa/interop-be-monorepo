@@ -279,6 +279,6 @@ export const readLastEventByStreamId = async (
   postgresDB: IDatabase<unknown>
 ): Promise<any> => // eslint-disable-line @typescript-eslint/no-explicit-any
   await postgresDB.one(
-    `SELECT * FROM catalog.events WHERE stream_id = $1 ORDER BY sequence_num DESC LIMIT 1`,
+    "SELECT * FROM catalog.events WHERE stream_id = $1 ORDER BY sequence_num DESC LIMIT 1",
     [eserviceId]
   );
