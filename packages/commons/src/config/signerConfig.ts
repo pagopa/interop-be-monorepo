@@ -6,8 +6,9 @@ export const SignerConfig = z
     KMS_MAX_ACQUISITION_TIMEOUT_SECONDS: z.coerce.number(),
     RSA_KEYS_IDENTIFIERS: z
       .string()
+      .nonempty()
       .transform((val) => val?.split(","))
-      .pipe(z.array(KID)),
+      .pipe(z.array(KID).nonempty()),
   })
   .transform((c) => ({
     maxAcquisitionTimeoutSeconds: c.KMS_MAX_ACQUISITION_TIMEOUT_SECONDS,

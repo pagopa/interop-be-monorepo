@@ -149,13 +149,6 @@ export function tokenGenerationError(
   });
 }
 
-export function missingRSAKeyError(): InternalError<CommonErrorCodes> {
-  return new InternalError({
-    code: "missingRSAKey",
-    detail: "RSA key has not been found",
-  });
-}
-
 /* ===== API Error ===== */
 
 export function authenticationSaslFailed(

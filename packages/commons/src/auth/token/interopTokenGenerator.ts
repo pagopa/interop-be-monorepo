@@ -1,9 +1,6 @@
 /* eslint-disable max-params */
 import { Algorithm, JwtHeader, JwtPayload } from "jsonwebtoken";
-import {
-  tokenGenerationError,
-  missingRSAKeyError,
-} from "pagopa-interop-models";
+import { tokenGenerationError } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import { logger, signerConfig } from "../../index.js";
 import { userRoles } from "../authData.js";
@@ -43,10 +40,6 @@ export const buildInteropTokenGenerator = (): InteropTokenGenerator => {
   // Hosting all the dependencies to collect all process env reading at one time
   const signerService = buildSignerService();
   const { rsaKeysIdentifiers } = signerConfig();
-
-  if (!rsaKeysIdentifiers.length) {
-    throw missingRSAKeyError();
-  }
 
   const createSignedJWT = async (
     seed: TokenSeed,
