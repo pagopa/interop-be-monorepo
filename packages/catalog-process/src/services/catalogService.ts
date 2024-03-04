@@ -85,9 +85,9 @@ import { ReadModelService } from "./readModelService.js";
 
 function assertEServiceExist(
   eserviceId: EServiceId,
-  eService: WithMetadata<EService> | undefined
-): asserts eService is NonNullable<WithMetadata<EService>> {
-  if (eService === undefined) {
+  eservice: WithMetadata<EService> | undefined
+): asserts eservice is NonNullable<WithMetadata<EService>> {
+  if (eservice === undefined) {
     throw eServiceNotFound(eserviceId);
   }
 }
@@ -105,23 +105,23 @@ const retrieveEService = async (
   eserviceId: EServiceId,
   readModelService: ReadModelService
 ): Promise<WithMetadata<EService>> => {
-  const eService = await readModelService.getEServiceById(eserviceId);
-  if (eService === undefined) {
+  const eservice = await readModelService.getEServiceById(eserviceId);
+  if (eservice === undefined) {
     throw eServiceNotFound(eserviceId);
   }
-  return eService;
+  return eservice;
 };
 
 const retrieveDescriptor = (
   descriptorId: DescriptorId,
-  eService: WithMetadata<EService>
+  eservice: WithMetadata<EService>
 ): Descriptor => {
-  const descriptor = eService.data.descriptors.find(
+  const descriptor = eservice.data.descriptors.find(
     (d: Descriptor) => d.id === descriptorId
   );
 
   if (descriptor === undefined) {
-    throw eServiceDescriptorNotFound(eService.data.id, descriptorId);
+    throw eServiceDescriptorNotFound(eservice.data.id, descriptorId);
   }
 
   return descriptor;
@@ -200,12 +200,12 @@ const deprecateDescriptor = (
   return updateDescriptorState(descriptor, descriptorState.deprecated);
 };
 
-const hasNotDraftDescriptor = (eService: EService): void => {
-  const hasDraftDescriptor = eService.descriptors.some(
+const hasNotDraftDescriptor = (eservice: EService): void => {
+  const hasDraftDescriptor = eservice.descriptors.some(
     (d: Descriptor) => d.state === descriptorState.draft
   );
   if (hasDraftDescriptor) {
-    throw draftDescriptorAlreadyExists(eService.id);
+    throw draftDescriptorAlreadyExists(eservice.id);
   }
 };
 
@@ -236,9 +236,9 @@ export function catalogServiceBuilder(
       authData: AuthData
     ): Promise<EService> {
       logger.info(`Retrieving EService ${eserviceId}`);
-      const eService = await retrieveEService(eserviceId, readModelService);
+      const eservice = await retrieveEService(eserviceId, readModelService);
 
-      return applyVisibilityToEService(eService.data, authData);
+      return applyVisibilityToEService(eservice.data, authData);
     },
 
     async getEServices(
@@ -257,24 +257,24 @@ export function catalogServiceBuilder(
         limit
       );
 
-      const eServicesToReturn = eservicesList.results.map((eservice) =>
+      const eservicesToReturn = eservicesList.results.map((eservice) =>
         applyVisibilityToEService(eservice, authData)
       );
 
       return {
-        results: eServicesToReturn,
+        results: eservicesToReturn,
         totalCount: eservicesList.totalCount,
       };
     },
 
     async getEServiceConsumers(
-      eServiceId: EServiceId,
+      eserviceId: EServiceId,
       offset: number,
       limit: number
     ): Promise<ListResult<Consumer>> {
-      logger.info(`Retrieving consumers for EService ${eServiceId}`);
+      logger.info(`Retrieving consumers for EService ${eserviceId}`);
       return await readModelService.getEServiceConsumers(
-        eServiceId,
+        eserviceId,
         offset,
         limit
       );
@@ -294,11 +294,11 @@ export function catalogServiceBuilder(
       logger.info(
         `Retrieving EService document ${documentId} for EService ${eserviceId} and descriptor ${descriptorId}`
       );
-      const eService = await retrieveEService(eserviceId, readModelService);
-      const descriptor = retrieveDescriptor(descriptorId, eService);
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
       const document = retrieveDocument(eserviceId, descriptor, documentId);
       const checkedEService = applyVisibilityToEService(
-        eService.data,
+        eservice.data,
         authData
       );
       if (!checkedEService.descriptors.find((d) => d.id === descriptorId)) {
@@ -316,7 +316,7 @@ export function catalogServiceBuilder(
       logger.info(
         `Updating draft Descriptor ${descriptorId} for EService ${eserviceId}`
       );
-      const eService = await readModelService.getEServiceById(eserviceId);
+      const eservice = await readModelService.getEServiceById(eserviceId);
 
       await repository.createEvent(
         updateDraftDescriptorLogic({
@@ -324,7 +324,7 @@ export function catalogServiceBuilder(
           descriptorId,
           seed,
           authData,
-          eService,
+          eservice,
         })
       );
     },
@@ -338,14 +338,14 @@ export function catalogServiceBuilder(
         `Publishing Descriptor ${descriptorId} for EService ${eserviceId}`
       );
 
-      const eService = await readModelService.getEServiceById(eserviceId);
+      const eservice = await readModelService.getEServiceById(eserviceId);
 
       await repository.createEvent(
         publishDescriptorLogic({
           eserviceId,
           descriptorId,
           authData,
-          eService,
+          eservice,
         })
       );
     },
@@ -359,14 +359,14 @@ export function catalogServiceBuilder(
         `Suspending Descriptor ${descriptorId} for EService ${eserviceId}`
       );
 
-      const eService = await readModelService.getEServiceById(eserviceId);
+      const eservice = await readModelService.getEServiceById(eserviceId);
 
       await repository.createEvent(
         suspendDescriptorLogic({
           eserviceId,
           descriptorId,
           authData,
-          eService,
+          eservice,
         })
       );
     },
@@ -380,14 +380,14 @@ export function catalogServiceBuilder(
         `Activating descriptor ${descriptorId} for EService ${eserviceId}`
       );
 
-      const eService = await readModelService.getEServiceById(eserviceId);
+      const eservice = await readModelService.getEServiceById(eserviceId);
 
       await repository.createEvent(
         activateDescriptorLogic({
           eserviceId,
           descriptorId,
           authData,
-          eService,
+          eservice,
         })
       );
     },
@@ -401,14 +401,14 @@ export function catalogServiceBuilder(
         `Cloning Descriptor ${descriptorId} for EService ${eserviceId}`
       );
 
-      const eService = await readModelService.getEServiceById(eserviceId);
+      const eservice = await readModelService.getEServiceById(eserviceId);
 
-      const { eService: draftEService, event } = await cloneDescriptorLogic({
+      const { eservice: draftEService, event } = await cloneDescriptorLogic({
         eserviceId,
         descriptorId,
         authData,
         copyFile: fileManager.copy,
-        eService,
+        eservice,
         getEServiceByNameAndProducerId:
           readModelService.getEServiceByNameAndProducerId,
       });
@@ -427,14 +427,14 @@ export function catalogServiceBuilder(
         `Archiving Descriptor ${descriptorId} for EService ${eserviceId}`
       );
 
-      const eService = await readModelService.getEServiceById(eserviceId);
+      const eservice = await readModelService.getEServiceById(eserviceId);
 
       await repository.createEvent(
         archiveDescriptorLogic({
           eserviceId,
           descriptorId,
           authData,
-          eService,
+          eservice,
         })
       );
     },
@@ -448,7 +448,7 @@ export function catalogServiceBuilder(
       logger.info(
         `Updating Descriptor ${descriptorId} for EService ${eserviceId}`
       );
-      const eService = await readModelService.getEServiceById(eserviceId);
+      const eservice = await readModelService.getEServiceById(eserviceId);
 
       return await repository.createEvent(
         updateDescriptorLogic({
@@ -456,7 +456,7 @@ export function catalogServiceBuilder(
           descriptorId,
           seed,
           authData,
-          eService,
+          eservice,
         })
       );
     },
@@ -503,42 +503,42 @@ export function catalogServiceBuilder(
 
     async updateEService(
       eserviceId: EServiceId,
-      eServiceSeed: ApiEServiceSeed,
+      eserviceSeed: ApiEServiceSeed,
       authData: AuthData
     ): Promise<EService> {
       logger.info(`Updating EService ${eserviceId}`);
 
-      const eService = await retrieveEService(eserviceId, readModelService);
-      assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
 
       if (
         !(
-          eService.data.descriptors.length === 0 ||
-          (eService.data.descriptors.length === 1 &&
-            eService.data.descriptors[0].state === descriptorState.draft)
+          eservice.data.descriptors.length === 0 ||
+          (eservice.data.descriptors.length === 1 &&
+            eservice.data.descriptors[0].state === descriptorState.draft)
         )
       ) {
         throw eServiceCannotBeUpdated(eserviceId);
       }
 
-      if (eServiceSeed.name !== eService.data.name) {
-        const eServiceWithSameName =
+      if (eserviceSeed.name !== eservice.data.name) {
+        const eserviceWithSameName =
           await readModelService.getEServiceByNameAndProducerId({
-            name: eServiceSeed.name,
+            name: eserviceSeed.name,
             producerId: authData.organizationId,
           });
-        if (eServiceWithSameName !== undefined) {
-          throw eServiceDuplicate(eServiceSeed.name);
+        if (eserviceWithSameName !== undefined) {
+          throw eServiceDuplicate(eserviceSeed.name);
         }
       }
 
       const updatedTechnology = apiTechnologyToTechnology(
-        eServiceSeed.technology
+        eserviceSeed.technology
       );
-      if (eService.data.descriptors.length === 1) {
-        const draftDescriptor = eService.data.descriptors[0];
+      if (eservice.data.descriptors.length === 1) {
+        const draftDescriptor = eservice.data.descriptors[0];
         if (
-          updatedTechnology !== eService.data.technology &&
+          updatedTechnology !== eservice.data.technology &&
           draftDescriptor.interface !== undefined
         ) {
           await fileManager
@@ -553,16 +553,16 @@ export function catalogServiceBuilder(
       }
 
       const updatedEService: EService = {
-        ...eService.data,
-        description: eServiceSeed.description,
-        name: eServiceSeed.name,
+        ...eservice.data,
+        description: eserviceSeed.description,
+        name: eserviceSeed.name,
         technology: updatedTechnology,
         producerId: authData.organizationId,
       };
 
       const event = toCreateEventEServiceUpdated(
         eserviceId,
-        eService.metadata.version,
+        eservice.metadata.version,
         updatedEService
       );
       await repository.createEvent(event);
@@ -576,17 +576,17 @@ export function catalogServiceBuilder(
     ): Promise<void> {
       logger.info(`Deleting EService ${eserviceId}`);
 
-      const eService = await retrieveEService(eserviceId, readModelService);
-      assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
 
-      if (eService.data.descriptors.length > 0) {
+      if (eservice.data.descriptors.length > 0) {
         throw eServiceCannotBeDeleted(eserviceId);
       }
 
       const event = toCreateEventEServiceDeleted(
         eserviceId,
-        eService.metadata.version,
-        eService.data
+        eservice.metadata.version,
+        eservice.data
       );
       await repository.createEvent(event);
     },
@@ -601,10 +601,10 @@ export function catalogServiceBuilder(
         `Creating EService Document ${document.documentId.toString} of kind ${document.kind}, name ${document.fileName}, path ${document.filePath} for EService ${eserviceId} and Descriptor ${descriptorId}`
       );
 
-      const eService = await retrieveEService(eserviceId, readModelService);
-      assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
 
-      const descriptor = retrieveDescriptor(descriptorId, eService);
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
 
       if (descriptor.state !== descriptorState.draft) {
         throw notValidDescriptor(descriptor.id, descriptor.state);
@@ -626,8 +626,8 @@ export function catalogServiceBuilder(
       };
 
       const updatedEService: EService = {
-        ...eService.data,
-        descriptors: eService.data.descriptors.map((d: Descriptor) =>
+        ...eservice.data,
+        descriptors: eservice.data.descriptors.map((d: Descriptor) =>
           d.id === descriptorId
             ? {
                 ...d,
@@ -643,7 +643,7 @@ export function catalogServiceBuilder(
         document.kind === "INTERFACE"
           ? toCreateEventEServiceInterfaceAdded(
               eserviceId,
-              eService.metadata.version,
+              eservice.metadata.version,
               {
                 descriptorId,
                 documentId: unsafeBrandId(document.documentId),
@@ -652,7 +652,7 @@ export function catalogServiceBuilder(
             )
           : toCreateEventEServiceDocumentAdded(
               eserviceId,
-              eService.metadata.version,
+              eservice.metadata.version,
               {
                 descriptorId,
                 documentId: unsafeBrandId(document.documentId),
@@ -675,10 +675,10 @@ export function catalogServiceBuilder(
         `Deleting Document ${documentId} of Descriptor ${descriptorId} for EService ${eserviceId}`
       );
 
-      const eService = await retrieveEService(eserviceId, readModelService);
-      assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
 
-      const descriptor = retrieveDescriptor(descriptorId, eService);
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
 
       if (descriptor.state !== descriptorState.draft) {
         throw notValidDescriptor(descriptor.id, descriptor.state);
@@ -702,8 +702,8 @@ export function catalogServiceBuilder(
 
       const isInterface = document.id === descriptor?.interface?.id;
       const newEservice: EService = {
-        ...eService.data,
-        descriptors: eService.data.descriptors.map((d: Descriptor) =>
+        ...eservice.data,
+        descriptors: eservice.data.descriptors.map((d: Descriptor) =>
           d.id === descriptorId
             ? {
                 ...d,
@@ -718,7 +718,7 @@ export function catalogServiceBuilder(
       const event = isInterface
         ? toCreateEventEServiceInterfaceDeleted(
             eserviceId,
-            eService.metadata.version,
+            eservice.metadata.version,
             {
               descriptorId,
               documentId,
@@ -727,7 +727,7 @@ export function catalogServiceBuilder(
           )
         : toCreateEventEServiceDocumentDeleted(
             eserviceId,
-            eService.metadata.version,
+            eservice.metadata.version,
             {
               descriptorId,
               documentId,
@@ -749,10 +749,10 @@ export function catalogServiceBuilder(
         `Updating Document ${documentId} of Descriptor ${descriptorId} for EService ${eserviceId}`
       );
 
-      const eService = await retrieveEService(eserviceId, readModelService);
-      assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
 
-      const descriptor = retrieveDescriptor(descriptorId, eService);
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
 
       if (descriptor.state !== descriptorState.draft) {
         throw notValidDescriptor(descriptor.id, descriptor.state);
@@ -773,8 +773,8 @@ export function catalogServiceBuilder(
 
       const isInterface = document.id === descriptor?.interface?.id;
       const newEservice: EService = {
-        ...eService.data,
-        descriptors: eService.data.descriptors.map((d: Descriptor) =>
+        ...eservice.data,
+        descriptors: eservice.data.descriptors.map((d: Descriptor) =>
           d.id === descriptorId
             ? {
                 ...d,
@@ -790,7 +790,7 @@ export function catalogServiceBuilder(
       const event = isInterface
         ? toCreateEventEServiceInterfaceUpdated(
             eserviceId,
-            eService.metadata.version,
+            eservice.metadata.version,
             {
               descriptorId,
               documentId,
@@ -799,7 +799,7 @@ export function catalogServiceBuilder(
           )
         : toCreateEventEServiceDocumentUpdated(
             eserviceId,
-            eService.metadata.version,
+            eservice.metadata.version,
             {
               descriptorId,
               documentId,
@@ -817,11 +817,11 @@ export function catalogServiceBuilder(
     ): Promise<Descriptor> {
       logger.info(`Creating Descriptor for EService ${eserviceId}`);
 
-      const eService = await retrieveEService(eserviceId, readModelService);
-      assertRequesterAllowed(eService.data.producerId, authData.organizationId);
-      hasNotDraftDescriptor(eService.data);
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+      hasNotDraftDescriptor(eservice.data);
 
-      const newVersion = nextDescriptorVersion(eService.data);
+      const newVersion = nextDescriptorVersion(eservice.data);
 
       const certifiedAttributes = eserviceDescriptorSeed.attributes.certified;
       const declaredAttributes = eserviceDescriptorSeed.attributes.declared;
@@ -903,13 +903,13 @@ export function catalogServiceBuilder(
       };
 
       const newEservice: EService = {
-        ...eService.data,
-        descriptors: [...eService.data.descriptors, newDescriptor],
+        ...eservice.data,
+        descriptors: [...eservice.data.descriptors, newDescriptor],
       };
 
       const event = toCreateEventEServiceDescriptorAdded(
-        eService.data.id,
-        eService.metadata.version,
+        eservice.data.id,
+        eservice.metadata.version,
         descriptorId,
         newEservice
       );
@@ -927,10 +927,10 @@ export function catalogServiceBuilder(
         `Deleting draft Descriptor ${descriptorId} for EService ${eserviceId}`
       );
 
-      const eService = await retrieveEService(eserviceId, readModelService);
-      assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
 
-      const descriptor = retrieveDescriptor(descriptorId, eService);
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
 
       const descriptorInterface = descriptor.interface;
       if (descriptorInterface !== undefined) {
@@ -956,15 +956,15 @@ export function catalogServiceBuilder(
       });
 
       const newEservice: EService = {
-        ...eService.data,
-        descriptors: eService.data.descriptors.filter(
+        ...eservice.data,
+        descriptors: eservice.data.descriptors.filter(
           (d: Descriptor) => d.id !== descriptorId
         ),
       };
 
       const event = toCreateEventEServiceDescriptorDeleted(
-        eService.data.id,
-        eService.metadata.version,
+        eservice.data.id,
+        eservice.metadata.version,
         newEservice,
         descriptorId
       );
@@ -979,18 +979,18 @@ export function updateDraftDescriptorLogic({
   descriptorId,
   seed,
   authData,
-  eService,
+  eservice,
 }: {
   eserviceId: EServiceId;
   descriptorId: DescriptorId;
   seed: UpdateEServiceDescriptorSeed;
   authData: AuthData;
-  eService: WithMetadata<EService> | undefined;
+  eservice: WithMetadata<EService> | undefined;
 }): CreateEvent<EServiceEvent> {
-  assertEServiceExist(eserviceId, eService);
-  assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+  assertEServiceExist(eserviceId, eservice);
+  assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
 
-  const descriptor = retrieveDescriptor(descriptorId, eService);
+  const descriptor = retrieveDescriptor(descriptorId, eservice);
 
   if (descriptor.state !== descriptorState.draft) {
     throw notValidDescriptor(descriptorId, descriptor.state.toString());
@@ -1014,11 +1014,11 @@ export function updateDraftDescriptorLogic({
       ),
   };
 
-  const updatedEService = replaceDescriptor(eService.data, updatedDescriptor);
+  const updatedEService = replaceDescriptor(eservice.data, updatedDescriptor);
 
   return toCreateEventEServiceUpdated(
     eserviceId,
-    eService.metadata.version,
+    eservice.metadata.version,
     updatedEService
   );
 }
@@ -1027,17 +1027,17 @@ export function publishDescriptorLogic({
   eserviceId,
   descriptorId,
   authData,
-  eService,
+  eservice,
 }: {
   eserviceId: EServiceId;
   descriptorId: DescriptorId;
   authData: AuthData;
-  eService: WithMetadata<EService> | undefined;
+  eservice: WithMetadata<EService> | undefined;
 }): CreateEvent<EServiceEvent> {
-  assertEServiceExist(eserviceId, eService);
-  assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+  assertEServiceExist(eserviceId, eservice);
+  assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
 
-  const descriptor = retrieveDescriptor(descriptorId, eService);
+  const descriptor = retrieveDescriptor(descriptorId, eservice);
   if (descriptor.state !== descriptorState.draft) {
     throw notValidDescriptor(descriptor.id, descriptor.state.toString());
   }
@@ -1046,7 +1046,7 @@ export function publishDescriptorLogic({
     throw eServiceDescriptorWithoutInterface(descriptor.id);
   }
 
-  const currentActiveDescriptor = eService.data.descriptors.find(
+  const currentActiveDescriptor = eservice.data.descriptors.find(
     (d: Descriptor) => d.state === descriptorState.published
   );
 
@@ -1055,24 +1055,24 @@ export function publishDescriptorLogic({
     descriptorState.published
   );
 
-  const newEservice = updateDescriptor(eService.data, updatedDescriptor);
+  const newEservice = updateDescriptor(eservice.data, updatedDescriptor);
 
   if (currentActiveDescriptor !== undefined) {
     const newEserviceWithDeprecation = updateDescriptor(
-      eService.data,
+      eservice.data,
       deprecateDescriptor(eserviceId, currentActiveDescriptor)
     );
 
     return toCreateEventEServiceDescriptorPublished(
       eserviceId,
-      eService.metadata.version + 1,
+      eservice.metadata.version + 1,
       descriptorId,
       newEserviceWithDeprecation
     );
   } else {
     return toCreateEventEServiceDescriptorPublished(
       eserviceId,
-      eService.metadata.version,
+      eservice.metadata.version,
       descriptorId,
       newEservice
     );
@@ -1083,17 +1083,17 @@ export function suspendDescriptorLogic({
   eserviceId,
   descriptorId,
   authData,
-  eService,
+  eservice,
 }: {
   eserviceId: EServiceId;
   descriptorId: DescriptorId;
   authData: AuthData;
-  eService: WithMetadata<EService> | undefined;
+  eservice: WithMetadata<EService> | undefined;
 }): CreateEvent<EServiceEvent> {
-  assertEServiceExist(eserviceId, eService);
-  assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+  assertEServiceExist(eserviceId, eservice);
+  assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
 
-  const descriptor = retrieveDescriptor(descriptorId, eService);
+  const descriptor = retrieveDescriptor(descriptorId, eservice);
   if (
     descriptor.state !== descriptorState.deprecated &&
     descriptor.state !== descriptorState.published
@@ -1106,11 +1106,11 @@ export function suspendDescriptorLogic({
     descriptorState.suspended
   );
 
-  const newEservice = updateDescriptor(eService.data, updatedDescriptor);
+  const newEservice = updateDescriptor(eservice.data, updatedDescriptor);
 
   return toCreateEventEServiceDescriptorSuspended(
     eserviceId,
-    eService.metadata.version,
+    eservice.metadata.version,
     descriptorId,
     newEservice
   );
@@ -1120,17 +1120,17 @@ export function activateDescriptorLogic({
   eserviceId,
   descriptorId,
   authData,
-  eService,
+  eservice,
 }: {
   eserviceId: EServiceId;
   descriptorId: DescriptorId;
   authData: AuthData;
-  eService: WithMetadata<EService> | undefined;
+  eservice: WithMetadata<EService> | undefined;
 }): CreateEvent<EServiceEvent> {
-  assertEServiceExist(eserviceId, eService);
-  assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+  assertEServiceExist(eserviceId, eservice);
+  assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
 
-  const descriptor = retrieveDescriptor(descriptorId, eService);
+  const descriptor = retrieveDescriptor(descriptorId, eservice);
   if (descriptor.state !== descriptorState.suspended) {
     throw notValidDescriptor(descriptorId, descriptor.state.toString());
   }
@@ -1139,7 +1139,7 @@ export function activateDescriptorLogic({
     descriptor,
     descriptorState.published
   );
-  const descriptorVersions: number[] = eService.data.descriptors
+  const descriptorVersions: number[] = eservice.data.descriptors
     .filter(
       (d: Descriptor) =>
         d.state === descriptorState.suspended ||
@@ -1153,23 +1153,23 @@ export function activateDescriptorLogic({
     recentDescriptorVersion !== null &&
     parseInt(descriptor.version, 10) === recentDescriptorVersion
   ) {
-    const newEservice = updateDescriptor(eService.data, updatedDescriptor);
+    const newEservice = updateDescriptor(eservice.data, updatedDescriptor);
 
     return toCreateEventEServiceDescriptorActivated(
       eserviceId,
-      eService.metadata.version,
+      eservice.metadata.version,
       descriptorId,
       newEservice
     );
   } else {
     const newEservice = updateDescriptor(
-      eService.data,
+      eservice.data,
       deprecateDescriptor(eserviceId, descriptor)
     );
 
     return toCreateEventEServiceDescriptorActivated(
       eserviceId,
-      eService.metadata.version,
+      eservice.metadata.version,
       descriptorId,
       newEservice
     );
@@ -1181,7 +1181,7 @@ export async function cloneDescriptorLogic({
   descriptorId,
   authData,
   copyFile,
-  eService,
+  eservice,
   getEServiceByNameAndProducerId,
 }: {
   eserviceId: EServiceId;
@@ -1194,7 +1194,7 @@ export async function cloneDescriptorLogic({
     id: string,
     name: string
   ) => Promise<string>;
-  eService: WithMetadata<EService> | undefined;
+  eservice: WithMetadata<EService> | undefined;
   getEServiceByNameAndProducerId: ({
     name,
     producerId,
@@ -1202,12 +1202,12 @@ export async function cloneDescriptorLogic({
     name: string;
     producerId: TenantId;
   }) => Promise<WithMetadata<EService> | undefined>;
-}): Promise<{ eService: EService; event: CreateEvent<EServiceEvent> }> {
-  assertEServiceExist(eserviceId, eService);
-  assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+}): Promise<{ eservice: EService; event: CreateEvent<EServiceEvent> }> {
+  assertEServiceExist(eserviceId, eservice);
+  assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
 
   const clonedEServiceName = `${
-    eService.data.name
+    eservice.data.name
   } - clone - ${formatClonedEServiceDate(new Date())}`;
 
   if (
@@ -1219,7 +1219,7 @@ export async function cloneDescriptorLogic({
     throw eServiceDuplicate(clonedEServiceName);
   }
 
-  const descriptor = retrieveDescriptor(descriptorId, eService);
+  const descriptor = retrieveDescriptor(descriptorId, eservice);
 
   const clonedInterfaceId = generateId<EServiceDocumentId>();
   const clonedInterfacePath =
@@ -1281,14 +1281,14 @@ export async function cloneDescriptorLogic({
 
   const clonedEservice: EService = {
     id: generateId(),
-    producerId: eService.data.producerId,
+    producerId: eservice.data.producerId,
     name: clonedEServiceName,
-    description: eService.data.description,
-    technology: eService.data.technology,
-    attributes: eService.data.attributes,
+    description: eservice.data.description,
+    technology: eservice.data.technology,
+    attributes: eservice.data.attributes,
     createdAt: new Date(),
-    riskAnalysis: eService.data.riskAnalysis,
-    mode: eService.data.mode,
+    riskAnalysis: eservice.data.riskAnalysis,
+    mode: eservice.data.mode,
     descriptors: [
       {
         ...descriptor,
@@ -1307,10 +1307,10 @@ export async function cloneDescriptorLogic({
   };
 
   return {
-    eService: clonedEservice,
+    eservice: clonedEservice,
     event: toCreateEventClonedEServiceAdded(
       descriptorId,
-      eService.data,
+      eservice.data,
       clonedEservice
     ),
   };
@@ -1320,27 +1320,27 @@ export function archiveDescriptorLogic({
   eserviceId,
   descriptorId,
   authData,
-  eService,
+  eservice,
 }: {
   eserviceId: EServiceId;
   descriptorId: DescriptorId;
   authData: AuthData;
-  eService: WithMetadata<EService> | undefined;
+  eservice: WithMetadata<EService> | undefined;
 }): CreateEvent<EServiceEvent> {
-  assertEServiceExist(eserviceId, eService);
-  assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+  assertEServiceExist(eserviceId, eservice);
+  assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
 
-  const descriptor = retrieveDescriptor(descriptorId, eService);
+  const descriptor = retrieveDescriptor(descriptorId, eservice);
   const updatedDescriptor = updateDescriptorState(
     descriptor,
     descriptorState.archived
   );
 
-  const newEservice = updateDescriptor(eService.data, updatedDescriptor);
+  const newEservice = updateDescriptor(eservice.data, updatedDescriptor);
 
   return toCreateEventEServiceDescriptorActivated(
     eserviceId,
-    eService.metadata.version,
+    eservice.metadata.version,
     descriptorId,
     newEservice
   );
@@ -1351,18 +1351,18 @@ export function updateDescriptorLogic({
   descriptorId,
   seed,
   authData,
-  eService,
+  eservice,
 }: {
   eserviceId: EServiceId;
   descriptorId: DescriptorId;
   seed: UpdateEServiceDescriptorQuotasSeed;
   authData: AuthData;
-  eService: WithMetadata<EService> | undefined;
+  eservice: WithMetadata<EService> | undefined;
 }): CreateEvent<EServiceEvent> {
-  assertEServiceExist(eserviceId, eService);
-  assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+  assertEServiceExist(eserviceId, eservice);
+  assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
 
-  const descriptor = retrieveDescriptor(descriptorId, eService);
+  const descriptor = retrieveDescriptor(descriptorId, eservice);
 
   if (
     descriptor.state !== descriptorState.published &&
@@ -1386,11 +1386,11 @@ export function updateDescriptorLogic({
     dailyCallsTotal: seed.dailyCallsTotal,
   };
 
-  const updatedEService = replaceDescriptor(eService.data, updatedDescriptor);
+  const updatedEService = replaceDescriptor(eservice.data, updatedDescriptor);
 
   return toCreateEventEServiceUpdated(
     eserviceId,
-    eService.metadata.version,
+    eservice.metadata.version,
     updatedEService
   );
 }

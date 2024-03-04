@@ -162,15 +162,15 @@ export const descriptorToApiDescriptor = (
 });
 
 export const eServiceToApiEService = (
-  eService: EService
+  eservice: EService
 ): z.infer<typeof api.schemas.EService> => ({
-  id: eService.id,
-  producerId: eService.producerId,
-  name: eService.name,
-  description: eService.description,
-  technology: technologyToApiTechnology(eService.technology),
-  mode: eServiceModeToApiEServiceMode(eService.mode),
-  riskAnalysis: eService.riskAnalysis.map((riskAnalysis) => ({
+  id: eservice.id,
+  producerId: eservice.producerId,
+  name: eservice.name,
+  description: eservice.description,
+  technology: technologyToApiTechnology(eservice.technology),
+  mode: eServiceModeToApiEServiceMode(eservice.mode),
+  riskAnalysis: eservice.riskAnalysis.map((riskAnalysis) => ({
     id: riskAnalysis.id,
     name: riskAnalysis.name,
     createdAt: riskAnalysis.createdAt.toJSON(),
@@ -181,5 +181,5 @@ export const eServiceToApiEService = (
       multiAnswers: riskAnalysis.riskAnalysisForm.multiAnswers,
     },
   })),
-  descriptors: eService.descriptors.map(descriptorToApiDescriptor),
+  descriptors: eservice.descriptors.map(descriptorToApiDescriptor),
 });
