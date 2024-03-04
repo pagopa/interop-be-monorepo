@@ -246,7 +246,7 @@ describe("database test", async () => {
 
     describe("update eService", () => {
       it("should write on event-store for the update of an eService (no technology change)", async () => {
-        const deleteFile = vi.spyOn(fileManager, "delete");
+        vi.spyOn(fileManager, "delete");
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
@@ -288,15 +288,22 @@ describe("database test", async () => {
         });
 
         expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-        expect(deleteFile).not.toHaveBeenCalled();
+        expect(fileManager.delete).not.toHaveBeenCalled();
       });
 
       it("should write on event-store for the update of an eService (technology change: interface has to be deleted)", async () => {
-        const deleteFile = vi.spyOn(fileManager, "delete");
+        vi.spyOn(fileManager, "delete");
+
+        const interfaceDocument = {
+          ...mockDocument,
+          name: `${mockDocument.name}`,
+          path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}`,
+        };
+
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
-          interface: mockDocument,
+          interface: interfaceDocument,
         };
         const eservice: EService = {
           ...mockEService,
@@ -304,6 +311,19 @@ describe("database test", async () => {
         };
         const updatedName = "eService new name";
         await addOneEService(eservice, postgresDB, eservices);
+
+        await fileManager.storeBytes(
+          config.s3Bucket,
+          config.eserviceDocumentsPath,
+          interfaceDocument.id,
+          interfaceDocument.name,
+          Buffer.from("testtest")
+        );
+
+        expect(await fileManager.listFiles(config.s3Bucket)).toContain(
+          interfaceDocument.path
+        );
+
         await catalogService.updateEService(
           mockEService.id,
           {
@@ -336,12 +356,44 @@ describe("database test", async () => {
         });
 
         expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-        expect(deleteFile).toHaveBeenCalledWith(
+        expect(fileManager.delete).toHaveBeenCalledWith(
           config.s3Bucket,
-          mockDocument.path
+          interfaceDocument.path
+        );
+        expect(await fileManager.listFiles(config.s3Bucket)).not.toContain(
+          interfaceDocument.path
         );
       });
 
+      it("should fail if the file deletion fails when interface file has to be deleted on technology change", async () => {
+        vi.spyOn(fileManager, "delete").mockRejectedValueOnce(
+          new Error("Failed to delete file")
+        );
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+          interface: mockDocument,
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        const updatedName = "eService new name";
+        await addOneEService(eservice, postgresDB, eservices);
+
+        expect(
+          catalogService.updateEService(
+            mockEService.id,
+            {
+              name: updatedName,
+              description: mockEService.description,
+              technology: "SOAP",
+              mode: "DELIVER",
+            },
+            getMockAuthData(mockEService.producerId)
+          )
+        ).rejects.toThrowError("Failed to delete file");
+      });
       it("should write on event-store for the update of an eService (update description only)", async () => {
         const updatedDescription = "eService new description";
         await addOneEService(mockEService, postgresDB, eservices);
