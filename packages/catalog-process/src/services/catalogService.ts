@@ -281,27 +281,6 @@ export function catalogServiceBuilder(
       );
     },
 
-    async uploadDocument(
-      eserviceId: EServiceId,
-      descriptorId: DescriptorId,
-      document: ApiEServiceDescriptorDocumentSeed,
-      authData: AuthData
-    ): Promise<string> {
-      logger.info(
-        `Creating EService Document ${document.documentId.toString} of kind ${document.kind}, name ${document.fileName}, path ${document.filePath} for EService ${eserviceId} and Descriptor ${descriptorId}`
-      );
-      const eService = await readModelService.getEServiceById(eserviceId);
-
-      return await repository.createEvent(
-        uploadDocumentLogic({
-          eserviceId,
-          descriptorId,
-          document,
-          authData,
-          eService,
-        })
-      );
-    },
     async getDocumentById({
       eserviceId,
       descriptorId,
@@ -699,79 +678,81 @@ export function catalogServiceBuilder(
       );
       await repository.createEvent(event);
     },
-  };
-}
 
-export function uploadDocumentLogic({
-  eserviceId,
-  descriptorId,
-  document,
-  authData,
-  eService,
-}: {
-  eserviceId: EServiceId;
-  descriptorId: DescriptorId;
-  document: ApiEServiceDescriptorDocumentSeed;
-  authData: AuthData;
-  eService: WithMetadata<EService> | undefined;
-}): CreateEvent<EServiceEvent> {
-  assertEServiceExist(eserviceId, eService);
-  assertRequesterAllowed(eService.data.producerId, authData.organizationId);
-
-  const descriptor = retrieveDescriptor(descriptorId, eService);
-
-  if (descriptor.state !== descriptorState.draft) {
-    throw notValidDescriptor(descriptor.id, descriptor.state);
-  }
-
-  if (document.kind === "INTERFACE" && descriptor.interface !== undefined) {
-    throw interfaceAlreadyExists(descriptor.id);
-  }
-
-  const isInterface = document.kind === "INTERFACE";
-  const newDocument: Document = {
-    id: unsafeBrandId(document.documentId),
-    name: document.fileName,
-    contentType: document.contentType,
-    prettyName: document.prettyName,
-    path: document.filePath,
-    checksum: document.checksum,
-    uploadDate: new Date(),
-  };
-
-  const newEservice: EService = {
-    ...eService.data,
-    descriptors: eService.data.descriptors.map((d: Descriptor) =>
-      d.id === descriptorId
-        ? {
-            ...d,
-            interface: isInterface ? newDocument : d.interface,
-            docs: isInterface ? d.docs : [...d.docs, newDocument],
-            serverUrls: document.serverUrls,
-          }
-        : d
-    ),
-  };
-
-  return document.kind === "INTERFACE"
-    ? toCreateEventEServiceInterfaceAdded(
-        eserviceId,
-        eService.metadata.version,
-        {
-          descriptorId,
-          documentId: unsafeBrandId(document.documentId),
-          eservice: newEservice,
-        }
-      )
-    : toCreateEventEServiceDocumentAdded(
-        eserviceId,
-        eService.metadata.version,
-        {
-          descriptorId,
-          documentId: unsafeBrandId(document.documentId),
-          eservice: newEservice,
-        }
+    async uploadDocument(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      document: ApiEServiceDescriptorDocumentSeed,
+      authData: AuthData
+    ): Promise<EService> {
+      logger.info(
+        `Creating EService Document ${document.documentId.toString} of kind ${document.kind}, name ${document.fileName}, path ${document.filePath} for EService ${eserviceId} and Descriptor ${descriptorId}`
       );
+
+      const eService = await retrieveEService(eserviceId, readModelService);
+      assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+
+      const descriptor = retrieveDescriptor(descriptorId, eService);
+
+      if (descriptor.state !== descriptorState.draft) {
+        throw notValidDescriptor(descriptor.id, descriptor.state);
+      }
+
+      if (document.kind === "INTERFACE" && descriptor.interface !== undefined) {
+        throw interfaceAlreadyExists(descriptor.id);
+      }
+
+      const isInterface = document.kind === "INTERFACE";
+      const newDocument: Document = {
+        id: unsafeBrandId(document.documentId),
+        name: document.fileName,
+        contentType: document.contentType,
+        prettyName: document.prettyName,
+        path: document.filePath,
+        checksum: document.checksum,
+        uploadDate: new Date(),
+      };
+
+      const updatedEService: EService = {
+        ...eService.data,
+        descriptors: eService.data.descriptors.map((d: Descriptor) =>
+          d.id === descriptorId
+            ? {
+                ...d,
+                interface: isInterface ? newDocument : d.interface,
+                docs: isInterface ? d.docs : [...d.docs, newDocument],
+                serverUrls: document.serverUrls,
+              }
+            : d
+        ),
+      };
+
+      const event =
+        document.kind === "INTERFACE"
+          ? toCreateEventEServiceInterfaceAdded(
+              eserviceId,
+              eService.metadata.version,
+              {
+                descriptorId,
+                documentId: unsafeBrandId(document.documentId),
+                eservice: updatedEService,
+              }
+            )
+          : toCreateEventEServiceDocumentAdded(
+              eserviceId,
+              eService.metadata.version,
+              {
+                descriptorId,
+                documentId: unsafeBrandId(document.documentId),
+                eservice: updatedEService,
+              }
+            );
+
+      await repository.createEvent(event);
+
+      return updatedEService;
+    },
+  };
 }
 
 export async function deleteDocumentLogic({
