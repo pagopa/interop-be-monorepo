@@ -307,28 +307,6 @@ export function catalogServiceBuilder(
       }
       return document;
     },
-    async deleteDocument(
-      eserviceId: EServiceId,
-      descriptorId: DescriptorId,
-      documentId: EServiceDocumentId,
-      authData: AuthData
-    ): Promise<void> {
-      logger.info(
-        `Deleting Document ${documentId} of Descriptor ${descriptorId} for EService ${eserviceId}`
-      );
-      const eService = await readModelService.getEServiceById(eserviceId);
-
-      await repository.createEvent(
-        await deleteDocumentLogic({
-          eserviceId,
-          descriptorId,
-          documentId,
-          authData,
-          eService,
-          deleteFile: fileManager.delete,
-        })
-      );
-    },
 
     async updateDocument(
       eserviceId: EServiceId,
@@ -752,80 +730,80 @@ export function catalogServiceBuilder(
 
       return updatedEService;
     },
-  };
-}
 
-export async function deleteDocumentLogic({
-  eserviceId,
-  descriptorId,
-  documentId,
-  authData,
-  eService,
-  deleteFile,
-}: {
-  eserviceId: EServiceId;
-  descriptorId: DescriptorId;
-  documentId: EServiceDocumentId;
-  authData: AuthData;
-  eService: WithMetadata<EService> | undefined;
-  deleteFile: (bucket: string, path: string) => Promise<void>;
-}): Promise<CreateEvent<EServiceEvent>> {
-  assertEServiceExist(eserviceId, eService);
-  assertRequesterAllowed(eService.data.producerId, authData.organizationId);
-
-  const descriptor = retrieveDescriptor(descriptorId, eService);
-
-  if (descriptor.state !== descriptorState.draft) {
-    throw notValidDescriptor(descriptor.id, descriptor.state);
-  }
-
-  const document = [...descriptor.docs, descriptor.interface].find(
-    (doc) => doc != null && doc.id === documentId
-  );
-  if (document === undefined) {
-    throw eServiceDocumentNotFound(eserviceId, descriptorId, documentId);
-  }
-
-  await deleteFile(config.s3Bucket, document.path).catch((error) => {
-    logger.error(
-      `Error deleting interface or document file for descriptor ${descriptorId} : ${error}`
-    );
-    throw error;
-  });
-
-  const isInterface = document.id === descriptor?.interface?.id;
-  const newEservice: EService = {
-    ...eService.data,
-    descriptors: eService.data.descriptors.map((d: Descriptor) =>
-      d.id === descriptorId
-        ? {
-            ...d,
-            interface: d.interface?.id === documentId ? undefined : d.interface,
-            docs: d.docs.filter((doc) => doc.id !== documentId),
-          }
-        : d
-    ),
-  };
-
-  return isInterface
-    ? toCreateEventEServiceInterfaceDeleted(
-        eserviceId,
-        eService.metadata.version,
-        {
-          descriptorId,
-          documentId,
-          eservice: newEservice,
-        }
-      )
-    : toCreateEventEServiceDocumentDeleted(
-        eserviceId,
-        eService.metadata.version,
-        {
-          descriptorId,
-          documentId,
-          eservice: newEservice,
-        }
+    async deleteDocument(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      documentId: EServiceDocumentId,
+      authData: AuthData
+    ): Promise<void> {
+      logger.info(
+        `Deleting Document ${documentId} of Descriptor ${descriptorId} for EService ${eserviceId}`
       );
+
+      const eService = await retrieveEService(eserviceId, readModelService);
+      assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+
+      const descriptor = retrieveDescriptor(descriptorId, eService);
+
+      if (descriptor.state !== descriptorState.draft) {
+        throw notValidDescriptor(descriptor.id, descriptor.state);
+      }
+
+      const document = [...descriptor.docs, descriptor.interface].find(
+        (doc) => doc != null && doc.id === documentId
+      );
+      if (document === undefined) {
+        throw eServiceDocumentNotFound(eserviceId, descriptorId, documentId);
+      }
+
+      await fileManager
+        .delete(config.s3Bucket, document.path)
+        .catch((error) => {
+          logger.error(
+            `Error deleting interface or document file for descriptor ${descriptorId} : ${error}`
+          );
+          throw error;
+        });
+
+      const isInterface = document.id === descriptor?.interface?.id;
+      const newEservice: EService = {
+        ...eService.data,
+        descriptors: eService.data.descriptors.map((d: Descriptor) =>
+          d.id === descriptorId
+            ? {
+                ...d,
+                interface:
+                  d.interface?.id === documentId ? undefined : d.interface,
+                docs: d.docs.filter((doc) => doc.id !== documentId),
+              }
+            : d
+        ),
+      };
+
+      const event = isInterface
+        ? toCreateEventEServiceInterfaceDeleted(
+            eserviceId,
+            eService.metadata.version,
+            {
+              descriptorId,
+              documentId,
+              eservice: newEservice,
+            }
+          )
+        : toCreateEventEServiceDocumentDeleted(
+            eserviceId,
+            eService.metadata.version,
+            {
+              descriptorId,
+              documentId,
+              eservice: newEservice,
+            }
+          );
+
+      await repository.createEvent(event);
+    },
+  };
 }
 
 export async function updateDocumentLogic({
