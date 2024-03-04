@@ -145,7 +145,12 @@ const getTenantsByNamePipeline = (
   },
   {
     $match: {
-      "tenants.data.name": { $regex: new RegExp(tenantName || "", "i") },
+      "tenants.data.name": {
+        $regex: new RegExp(
+          ReadModelRepository.escapeRegExp(tenantName || ""),
+          "i"
+        ),
+      },
     },
   },
   {
@@ -529,7 +534,10 @@ export function readModelServiceBuilder(
         {
           $match: {
             "eservices.data.name": {
-              $regex: new RegExp(eserviceName || "", "i"),
+              $regex: new RegExp(
+                ReadModelRepository.escapeRegExp(eserviceName || ""),
+                "i"
+              ),
             },
             consumerFilter,
             producerFilter,
