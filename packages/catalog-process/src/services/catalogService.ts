@@ -818,7 +818,6 @@ export function catalogServiceBuilder(
       logger.info(`Creating Descriptor for EService ${eserviceId}`);
 
       const eService = await retrieveEService(eserviceId, readModelService);
-      assertEServiceExist(eserviceId, eService);
       assertRequesterAllowed(eService.data.producerId, authData.organizationId);
       hasNotDraftDescriptor(eService.data);
 
