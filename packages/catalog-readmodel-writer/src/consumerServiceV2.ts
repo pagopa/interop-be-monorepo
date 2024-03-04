@@ -20,7 +20,23 @@ export async function handleMessageV2(
         "metadata.version": { $lt: message.version },
       });
     })
-    .otherwise(
+    .with(
+      { type: "EServiceAdded" },
+      { type: "DraftEServiceUpdated" },
+      { type: "EServiceCloned" },
+      { type: "EServiceDescriptorAdded" },
+      { type: "EServiceDraftDescriptorUpdated" },
+      { type: "EServiceDescriptorActivated" },
+      { type: "EServiceDescriptorArchived" },
+      { type: "EServiceDescriptorPublished" },
+      { type: "EServiceDescriptorSuspended" },
+      { type: "EServiceDescriptorDeleted" },
+      { type: "EServiceDescriptorInterfaceAdded" },
+      { type: "EServiceDescriptorDocumentAdded" },
+      { type: "EServiceDescriptorInterfaceUpdated" },
+      { type: "EServiceDescriptorDocumentUpdated" },
+      { type: "EServiceDescriptorInterfaceDeleted" },
+      { type: "EServiceDescriptorDocumentDeleted" },
       async (message) =>
         await eservices.updateOne(
           {
@@ -37,5 +53,6 @@ export async function handleMessageV2(
           },
           { upsert: true }
         )
-    );
+    )
+    .exhaustive();
 }
