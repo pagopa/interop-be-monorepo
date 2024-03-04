@@ -281,12 +281,12 @@ export function catalogServiceBuilder(
         limit
       );
 
-      const eServicesToReturn = eservicesList.results.map((eservice) =>
+      const eservicesToReturn = eservicesList.results.map((eservice) =>
         applyVisibilityToEService(eservice, authData)
       );
 
       return {
-        results: eServicesToReturn,
+        results: eservicesToReturn,
         totalCount: eservicesList.totalCount,
       };
     },

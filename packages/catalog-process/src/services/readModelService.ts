@@ -375,8 +375,8 @@ export function readModelServiceBuilder(
       descriptorId: DescriptorId,
       documentId: EServiceDocumentId
     ): Promise<Document | undefined> {
-      const eService = await this.getEServiceById(eserviceId);
-      return eService?.data.descriptors
+      const eservice = await this.getEServiceById(eserviceId);
+      return eservice?.data.descriptors
         .find((d) => d.id === descriptorId)
         ?.docs.find((d) => d.id === documentId);
     },

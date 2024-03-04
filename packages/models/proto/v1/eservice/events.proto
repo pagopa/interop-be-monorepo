@@ -49,12 +49,12 @@ message EServiceDocumentDeletedV1 {
 
 message EServiceDescriptorAddedV1 {
   required string eserviceId = 1;
-  required EServiceDescriptorV1 EServiceDescriptor = 2;
+  required EServiceDescriptorV1 eserviceDescriptor = 2;
 }
 
 message EServiceDescriptorUpdatedV1 {
   required string eserviceId = 1;
-  required EServiceDescriptorV1 EServiceDescriptor = 2;
+  required EServiceDescriptorV1 eserviceDescriptor = 2;
 }
 
 message MovedAttributesFromEserviceToDescriptorsV1 {

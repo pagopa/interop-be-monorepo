@@ -3829,7 +3829,7 @@ describe("database test", async () => {
       });
 
       it("should include eservices with no descriptors (requester is the producer, admin)", async () => {
-        const eService7: EService = {
+        const eservice7: EService = {
           ...mockEService,
           id: generateId(),
           name: "eservice 007",
@@ -3840,7 +3840,7 @@ describe("database test", async () => {
           ...getMockAuthData(organizationId1),
           userRoles: [userRoles.ADMIN_ROLE],
         };
-        await addOneEService(eService7, postgresDB, eservices);
+        await addOneEService(eservice7, postgresDB, eservices);
         const result = await catalogService.getEServices(
           authData,
           {
@@ -3861,11 +3861,11 @@ describe("database test", async () => {
           eservice4,
           eservice5,
           eservice6,
-          eService7,
+          eservice7,
         ]);
       });
       it("should not include eservices with no descriptors (requester is the producer, not admin nor api)", async () => {
-        const eService7: EService = {
+        const eservice7: EService = {
           ...mockEService,
           id: generateId(),
           name: "eservice 007",
@@ -3876,7 +3876,7 @@ describe("database test", async () => {
           ...getMockAuthData(organizationId1),
           userRoles: [userRoles.SUPPORT_ROLE],
         };
-        await addOneEService(eService7, postgresDB, eservices);
+        await addOneEService(eservice7, postgresDB, eservices);
         const result = await catalogService.getEServices(
           authData,
           {
@@ -3900,7 +3900,7 @@ describe("database test", async () => {
         ]);
       });
       it("should not include eservices with no descriptors (requester is not the producer)", async () => {
-        const eService7: EService = {
+        const eservice7: EService = {
           ...mockEService,
           id: generateId(),
           producerId: organizationId1,
@@ -3911,7 +3911,7 @@ describe("database test", async () => {
           ...getMockAuthData(),
           userRoles: [userRoles.ADMIN_ROLE],
         };
-        await addOneEService(eService7, postgresDB, eservices);
+        await addOneEService(eservice7, postgresDB, eservices);
         const result = await catalogService.getEServices(
           authData,
           {
@@ -3940,7 +3940,7 @@ describe("database test", async () => {
           id: generateId(),
           state: descriptorState.draft,
         };
-        const eService8: EService = {
+        const eservice8: EService = {
           ...mockEService,
           id: generateId(),
           name: "eservice 008",
@@ -3951,7 +3951,7 @@ describe("database test", async () => {
           ...getMockAuthData(organizationId1),
           userRoles: [userRoles.ADMIN_ROLE],
         };
-        await addOneEService(eService8, postgresDB, eservices);
+        await addOneEService(eservice8, postgresDB, eservices);
         const result = await catalogService.getEServices(
           authData,
           {
@@ -3972,7 +3972,7 @@ describe("database test", async () => {
           eservice4,
           eservice5,
           eservice6,
-          eService8,
+          eservice8,
         ]);
       });
       it("should not include eservices whose only descriptor is draft (requester is the producer, not admin nor api)", async () => {
@@ -3981,7 +3981,7 @@ describe("database test", async () => {
           id: generateId(),
           state: descriptorState.draft,
         };
-        const eService8: EService = {
+        const eservice8: EService = {
           ...mockEService,
           id: generateId(),
           name: "eservice 008",
@@ -3992,7 +3992,7 @@ describe("database test", async () => {
           ...getMockAuthData(organizationId1),
           userRoles: [userRoles.SUPPORT_ROLE],
         };
-        await addOneEService(eService8, postgresDB, eservices);
+        await addOneEService(eservice8, postgresDB, eservices);
         const result = await catalogService.getEServices(
           authData,
           {
@@ -4021,7 +4021,7 @@ describe("database test", async () => {
           id: generateId(),
           state: descriptorState.draft,
         };
-        const eService8: EService = {
+        const eservice8: EService = {
           ...mockEService,
           id: generateId(),
           name: "eservice 008",
@@ -4032,7 +4032,7 @@ describe("database test", async () => {
           ...getMockAuthData(),
           userRoles: [userRoles.ADMIN_ROLE],
         };
-        await addOneEService(eService8, postgresDB, eservices);
+        await addOneEService(eservice8, postgresDB, eservices);
         const result = await catalogService.getEServices(
           authData,
           {
