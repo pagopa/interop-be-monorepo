@@ -205,6 +205,10 @@ paths:
       responses:
         "200":
           description: E-Service updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
         "404":
           description: E-Service not found
           content:

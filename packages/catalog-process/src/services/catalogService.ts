@@ -281,27 +281,6 @@ export function catalogServiceBuilder(
       );
     },
 
-    async updateEService(
-      eserviceId: EServiceId,
-      eServiceSeed: ApiEServiceSeed,
-      authData: AuthData
-    ): Promise<void> {
-      logger.info(`Updating EService ${eserviceId}`);
-      const eService = await readModelService.getEServiceById(eserviceId);
-
-      await repository.createEvent(
-        await updateEserviceLogic({
-          eService,
-          eserviceId,
-          authData,
-          eServiceSeed,
-          getEServiceByNameAndProducerId:
-            readModelService.getEServiceByNameAndProducerId,
-          deleteFile: fileManager.delete,
-        })
-      );
-    },
-
     async deleteEService(
       eserviceId: EServiceId,
       authData: AuthData
@@ -642,84 +621,76 @@ export function catalogServiceBuilder(
 
       return newEService;
     },
-  };
-}
 
-export async function updateEserviceLogic({
-  eService,
-  eserviceId,
-  authData,
-  eServiceSeed,
-  getEServiceByNameAndProducerId,
-  deleteFile,
-}: {
-  eService: WithMetadata<EService> | undefined;
-  eserviceId: EServiceId;
-  authData: AuthData;
-  eServiceSeed: ApiEServiceSeed;
-  getEServiceByNameAndProducerId: ({
-    name,
-    producerId,
-  }: {
-    name: string;
-    producerId: TenantId;
-  }) => Promise<WithMetadata<EService> | undefined>;
-  deleteFile: (container: string, path: string) => Promise<void>;
-}): Promise<CreateEvent<EServiceEvent>> {
-  assertEServiceExist(eserviceId, eService);
-  assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+    async updateEService(
+      eserviceId: EServiceId,
+      eServiceSeed: ApiEServiceSeed,
+      authData: AuthData
+    ): Promise<EService> {
+      logger.info(`Updating EService ${eserviceId}`);
 
-  if (
-    !(
-      eService.data.descriptors.length === 0 ||
-      (eService.data.descriptors.length === 1 &&
-        eService.data.descriptors[0].state === descriptorState.draft)
-    )
-  ) {
-    throw eServiceCannotBeUpdated(eserviceId);
-  }
+      const eService = await retrieveEService(eserviceId, readModelService);
+      assertRequesterAllowed(eService.data.producerId, authData.organizationId);
 
-  if (eServiceSeed.name !== eService.data.name) {
-    const eServiceWithSameName = await getEServiceByNameAndProducerId({
-      name: eServiceSeed.name,
-      producerId: authData.organizationId,
-    });
-    if (eServiceWithSameName !== undefined) {
-      throw eServiceDuplicate(eServiceSeed.name);
-    }
-  }
+      if (
+        !(
+          eService.data.descriptors.length === 0 ||
+          (eService.data.descriptors.length === 1 &&
+            eService.data.descriptors[0].state === descriptorState.draft)
+        )
+      ) {
+        throw eServiceCannotBeUpdated(eserviceId);
+      }
 
-  const updatedTechnology = apiTechnologyToTechnology(eServiceSeed.technology);
-  if (eService.data.descriptors.length === 1) {
-    const draftDescriptor = eService.data.descriptors[0];
-    if (
-      updatedTechnology !== eService.data.technology &&
-      draftDescriptor.interface !== undefined
-    ) {
-      await deleteFile(config.s3Bucket, draftDescriptor.interface.path).catch(
-        (error) => {
-          logger.error(
-            `Error deleting interface for descriptor ${draftDescriptor.id} : ${error}`
-          );
-          throw error;
+      if (eServiceSeed.name !== eService.data.name) {
+        const eServiceWithSameName =
+          await readModelService.getEServiceByNameAndProducerId({
+            name: eServiceSeed.name,
+            producerId: authData.organizationId,
+          });
+        if (eServiceWithSameName !== undefined) {
+          throw eServiceDuplicate(eServiceSeed.name);
         }
+      }
+
+      const updatedTechnology = apiTechnologyToTechnology(
+        eServiceSeed.technology
       );
-    }
-  }
+      if (eService.data.descriptors.length === 1) {
+        const draftDescriptor = eService.data.descriptors[0];
+        if (
+          updatedTechnology !== eService.data.technology &&
+          draftDescriptor.interface !== undefined
+        ) {
+          await fileManager
+            .delete(config.s3Bucket, draftDescriptor.interface.path)
+            .catch((error) => {
+              logger.error(
+                `Error deleting interface for descriptor ${draftDescriptor.id} : ${error}`
+              );
+              throw error;
+            });
+        }
+      }
 
-  const updatedEService: EService = {
-    ...eService.data,
-    description: eServiceSeed.description,
-    name: eServiceSeed.name,
-    technology: updatedTechnology,
-    producerId: authData.organizationId,
+      const updatedEService: EService = {
+        ...eService.data,
+        description: eServiceSeed.description,
+        name: eServiceSeed.name,
+        technology: updatedTechnology,
+        producerId: authData.organizationId,
+      };
+
+      const event = toCreateEventEServiceUpdated(
+        eserviceId,
+        eService.metadata.version,
+        updatedEService
+      );
+      await repository.createEvent(event);
+
+      return updatedEService;
+    },
   };
-
-  return toCreateEventEServiceUpdated(
-    eserviceId,
-    eService.metadata.version,
-    updatedEService
-  );
 }
 
 export function deleteEserviceLogic({
