@@ -81,15 +81,6 @@ import {
 import { formatClonedEServiceDate } from "../utilities/date.js";
 import { ReadModelService } from "./readModelService.js";
 
-function assertEServiceExist(
-  eserviceId: EServiceId,
-  eService: WithMetadata<EService> | undefined
-): asserts eService is NonNullable<WithMetadata<EService>> {
-  if (eService === undefined) {
-    throw eServiceNotFound(eserviceId);
-  }
-}
-
 const assertRequesterAllowed = (
   producerId: TenantId,
   requesterId: TenantId
