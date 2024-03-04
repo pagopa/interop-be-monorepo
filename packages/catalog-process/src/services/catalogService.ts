@@ -898,7 +898,6 @@ export function catalogServiceBuilder(
       );
 
       const eService = await retrieveEService(eserviceId, readModelService);
-      assertEServiceExist(eserviceId, eService);
       assertRequesterAllowed(eService.data.producerId, authData.organizationId);
 
       const descriptor = retrieveDescriptor(descriptorId, eService);
