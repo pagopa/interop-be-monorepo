@@ -171,6 +171,10 @@ export class ReadModelRepository {
     return array.length > 0 ? filter : {};
   }
 
+  public static escapeRegExp(str: string): string {
+    return str.replace(/[/\-\\^$*+?.()|[\]{}]/g, "\\$&");
+  }
+
   public static async getTotalCount(
     collection: Collections,
     aggregation: object[],
