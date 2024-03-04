@@ -181,7 +181,7 @@ describe("database test", async () => {
   describe("Catalog service", () => {
     describe("create eService", () => {
       it("should write on event-store for the creation of an eService", async () => {
-        const id = await catalogService.createEService(
+        const eservice = await catalogService.createEService(
           {
             name: mockEService.name,
             description: mockEService.description,
@@ -191,9 +191,12 @@ describe("database test", async () => {
           getMockAuthData(mockEService.producerId)
         );
 
-        expect(id).toBeDefined();
-        const writtenEvent = await readLastEventByStreamId(id, postgresDB);
-        expect(writtenEvent.stream_id).toBe(id);
+        expect(eservice).toBeDefined();
+        const writtenEvent = await readLastEventByStreamId(
+          eservice.id,
+          postgresDB
+        );
+        expect(writtenEvent.stream_id).toBe(eservice.id);
         expect(writtenEvent.version).toBe("0");
         expect(writtenEvent.type).toBe("EServiceAdded");
         expect(writtenEvent.event_version).toBe(2);
@@ -205,7 +208,7 @@ describe("database test", async () => {
         const eService: EService = {
           ...mockEService,
           createdAt: new Date(Number(writtenPayload.eservice!.createdAt)),
-          id,
+          id: eservice.id,
         };
 
         expect(writtenPayload.eservice).toEqual(toEServiceV2(eService));
@@ -275,10 +278,10 @@ describe("database test", async () => {
         };
 
         const writtenEvent = await readLastEventByStreamId(
-          mockEService.id,
+          eservice.id,
           postgresDB
         );
-        expect(writtenEvent.stream_id).toBe(mockEService.id);
+        expect(writtenEvent.stream_id).toBe(eservice.id);
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("DraftEServiceUpdated");
         expect(writtenEvent.event_version).toBe(2);
@@ -342,10 +345,10 @@ describe("database test", async () => {
         };
 
         const writtenEvent = await readLastEventByStreamId(
-          mockEService.id,
+          eservice.id,
           postgresDB
         );
-        expect(writtenEvent.stream_id).toBe(mockEService.id);
+        expect(writtenEvent.stream_id).toBe(eservice.id);
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("DraftEServiceUpdated");
         expect(writtenEvent.event_version).toBe(2);
