@@ -307,27 +307,6 @@ export function catalogServiceBuilder(
       return document;
     },
 
-    async activateDescriptor(
-      eserviceId: EServiceId,
-      descriptorId: DescriptorId,
-      authData: AuthData
-    ): Promise<void> {
-      logger.info(
-        `Activating descriptor ${descriptorId} for EService ${eserviceId}`
-      );
-
-      const eService = await readModelService.getEServiceById(eserviceId);
-
-      await repository.createEvent(
-        activateDescriptorLogic({
-          eserviceId,
-          descriptorId,
-          authData,
-          eService,
-        })
-      );
-    },
-
     async cloneDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
@@ -1056,67 +1035,73 @@ export function catalogServiceBuilder(
       );
       await repository.createEvent(event);
     },
+
+    async activateDescriptor(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      authData: AuthData
+    ): Promise<void> {
+      logger.info(
+        `Activating descriptor ${descriptorId} for EService ${eserviceId}`
+      );
+
+      const eService = await retrieveEService(eserviceId, readModelService);
+      assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+
+      const descriptor = retrieveDescriptor(descriptorId, eService);
+      if (descriptor.state !== descriptorState.suspended) {
+        throw notValidDescriptor(descriptorId, descriptor.state.toString());
+      }
+
+      const updatedDescriptor = updateDescriptorState(
+        descriptor,
+        descriptorState.published
+      );
+      const descriptorVersions: number[] = eService.data.descriptors
+        .filter(
+          (d: Descriptor) =>
+            d.state === descriptorState.suspended ||
+            d.state === descriptorState.deprecated ||
+            d.state === descriptorState.published
+        )
+        .map((d: Descriptor) => parseInt(d.version, 10));
+      const recentDescriptorVersion = Math.max(...descriptorVersions);
+
+      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+      const event = () => {
+        if (
+          recentDescriptorVersion !== null &&
+          parseInt(descriptor.version, 10) === recentDescriptorVersion
+        ) {
+          const newEservice = updateDescriptor(
+            eService.data,
+            updatedDescriptor
+          );
+
+          return toCreateEventEServiceDescriptorActivated(
+            eserviceId,
+            eService.metadata.version,
+            descriptorId,
+            newEservice
+          );
+        } else {
+          const newEservice = updateDescriptor(
+            eService.data,
+            deprecateDescriptor(eserviceId, descriptor)
+          );
+
+          return toCreateEventEServiceDescriptorActivated(
+            eserviceId,
+            eService.metadata.version,
+            descriptorId,
+            newEservice
+          );
+        }
+      };
+
+      await repository.createEvent(event());
+    },
   };
-}
-
-export function activateDescriptorLogic({
-  eserviceId,
-  descriptorId,
-  authData,
-  eService,
-}: {
-  eserviceId: EServiceId;
-  descriptorId: DescriptorId;
-  authData: AuthData;
-  eService: WithMetadata<EService> | undefined;
-}): CreateEvent<EServiceEvent> {
-  assertEServiceExist(eserviceId, eService);
-  assertRequesterAllowed(eService.data.producerId, authData.organizationId);
-
-  const descriptor = retrieveDescriptor(descriptorId, eService);
-  if (descriptor.state !== descriptorState.suspended) {
-    throw notValidDescriptor(descriptorId, descriptor.state.toString());
-  }
-
-  const updatedDescriptor = updateDescriptorState(
-    descriptor,
-    descriptorState.published
-  );
-  const descriptorVersions: number[] = eService.data.descriptors
-    .filter(
-      (d: Descriptor) =>
-        d.state === descriptorState.suspended ||
-        d.state === descriptorState.deprecated ||
-        d.state === descriptorState.published
-    )
-    .map((d: Descriptor) => parseInt(d.version, 10));
-  const recentDescriptorVersion = Math.max(...descriptorVersions);
-
-  if (
-    recentDescriptorVersion !== null &&
-    parseInt(descriptor.version, 10) === recentDescriptorVersion
-  ) {
-    const newEservice = updateDescriptor(eService.data, updatedDescriptor);
-
-    return toCreateEventEServiceDescriptorActivated(
-      eserviceId,
-      eService.metadata.version,
-      descriptorId,
-      newEservice
-    );
-  } else {
-    const newEservice = updateDescriptor(
-      eService.data,
-      deprecateDescriptor(eserviceId, descriptor)
-    );
-
-    return toCreateEventEServiceDescriptorActivated(
-      eserviceId,
-      eService.metadata.version,
-      descriptorId,
-      newEservice
-    );
-  }
 }
 
 export async function cloneDescriptorLogic({
