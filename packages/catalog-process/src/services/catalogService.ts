@@ -307,27 +307,6 @@ export function catalogServiceBuilder(
       return document;
     },
 
-    async publishDescriptor(
-      eserviceId: EServiceId,
-      descriptorId: DescriptorId,
-      authData: AuthData
-    ): Promise<void> {
-      logger.info(
-        `Publishing Descriptor ${descriptorId} for EService ${eserviceId}`
-      );
-
-      const eService = await readModelService.getEServiceById(eserviceId);
-
-      await repository.createEvent(
-        publishDescriptorLogic({
-          eserviceId,
-          descriptorId,
-          authData,
-          eService,
-        })
-      );
-    },
-
     async suspendDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
@@ -1003,63 +982,66 @@ export function catalogServiceBuilder(
 
       return updatedEService;
     },
+
+    async publishDescriptor(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      authData: AuthData
+    ): Promise<void> {
+      logger.info(
+        `Publishing Descriptor ${descriptorId} for EService ${eserviceId}`
+      );
+
+      const eService = await retrieveEService(eserviceId, readModelService);
+      assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+
+      const descriptor = retrieveDescriptor(descriptorId, eService);
+      if (descriptor.state !== descriptorState.draft) {
+        throw notValidDescriptor(descriptor.id, descriptor.state.toString());
+      }
+
+      if (descriptor.interface === undefined) {
+        throw eServiceDescriptorWithoutInterface(descriptor.id);
+      }
+
+      const currentActiveDescriptor = eService.data.descriptors.find(
+        (d: Descriptor) => d.state === descriptorState.published
+      );
+
+      const updatedDescriptor = updateDescriptorState(
+        descriptor,
+        descriptorState.published
+      );
+
+      const newEservice = updateDescriptor(eService.data, updatedDescriptor);
+
+      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+      const event = () => {
+        if (currentActiveDescriptor !== undefined) {
+          const newEserviceWithDeprecation = updateDescriptor(
+            eService.data,
+            deprecateDescriptor(eserviceId, currentActiveDescriptor)
+          );
+
+          return toCreateEventEServiceDescriptorPublished(
+            eserviceId,
+            eService.metadata.version + 1,
+            descriptorId,
+            newEserviceWithDeprecation
+          );
+        } else {
+          return toCreateEventEServiceDescriptorPublished(
+            eserviceId,
+            eService.metadata.version,
+            descriptorId,
+            newEservice
+          );
+        }
+      };
+
+      await repository.createEvent(event());
+    },
   };
-}
-
-export function publishDescriptorLogic({
-  eserviceId,
-  descriptorId,
-  authData,
-  eService,
-}: {
-  eserviceId: EServiceId;
-  descriptorId: DescriptorId;
-  authData: AuthData;
-  eService: WithMetadata<EService> | undefined;
-}): CreateEvent<EServiceEvent> {
-  assertEServiceExist(eserviceId, eService);
-  assertRequesterAllowed(eService.data.producerId, authData.organizationId);
-
-  const descriptor = retrieveDescriptor(descriptorId, eService);
-  if (descriptor.state !== descriptorState.draft) {
-    throw notValidDescriptor(descriptor.id, descriptor.state.toString());
-  }
-
-  if (descriptor.interface === undefined) {
-    throw eServiceDescriptorWithoutInterface(descriptor.id);
-  }
-
-  const currentActiveDescriptor = eService.data.descriptors.find(
-    (d: Descriptor) => d.state === descriptorState.published
-  );
-
-  const updatedDescriptor = updateDescriptorState(
-    descriptor,
-    descriptorState.published
-  );
-
-  const newEservice = updateDescriptor(eService.data, updatedDescriptor);
-
-  if (currentActiveDescriptor !== undefined) {
-    const newEserviceWithDeprecation = updateDescriptor(
-      eService.data,
-      deprecateDescriptor(eserviceId, currentActiveDescriptor)
-    );
-
-    return toCreateEventEServiceDescriptorPublished(
-      eserviceId,
-      eService.metadata.version + 1,
-      descriptorId,
-      newEserviceWithDeprecation
-    );
-  } else {
-    return toCreateEventEServiceDescriptorPublished(
-      eserviceId,
-      eService.metadata.version,
-      descriptorId,
-      newEservice
-    );
-  }
 }
 
 export function suspendDescriptorLogic({
