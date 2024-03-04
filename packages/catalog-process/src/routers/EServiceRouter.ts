@@ -135,7 +135,7 @@ const eservicesRouter = (
             req.body,
             req.ctx.authData
           );
-          return res.status(201).json(eServiceToApiEService(eservice)).end();
+          return res.status(200).json(eServiceToApiEService(eservice)).end();
         } catch (error) {
           const errorRes = makeApiProblem(error, createEServiceErrorMapper);
           return res.status(errorRes.status).json(errorRes).end();
