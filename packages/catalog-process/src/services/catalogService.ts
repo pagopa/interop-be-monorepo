@@ -307,27 +307,6 @@ export function catalogServiceBuilder(
       return document;
     },
 
-    async deleteDraftDescriptor(
-      eserviceId: EServiceId,
-      descriptorId: DescriptorId,
-      authData: AuthData
-    ): Promise<void> {
-      logger.info(
-        `Deleting draft Descriptor ${descriptorId} for EService ${eserviceId}`
-      );
-
-      const eService = await readModelService.getEServiceById(eserviceId);
-      await repository.createEvent(
-        await deleteDraftDescriptorLogic({
-          eserviceId,
-          descriptorId,
-          authData,
-          deleteFile: fileManager.delete,
-          eService,
-        })
-      );
-    },
-
     async updateDraftDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
@@ -939,67 +918,61 @@ export function catalogServiceBuilder(
 
       return newDescriptor;
     },
-  };
-}
 
-export async function deleteDraftDescriptorLogic({
-  eserviceId,
-  descriptorId,
-  authData,
-  deleteFile,
-  eService,
-}: {
-  eserviceId: EServiceId;
-  descriptorId: DescriptorId;
-  authData: AuthData;
-  deleteFile: (bucket: string, path: string) => Promise<void>;
-  eService: WithMetadata<EService> | undefined;
-}): Promise<CreateEvent<EServiceEvent>> {
-  assertEServiceExist(eserviceId, eService);
-  assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+    async deleteDraftDescriptor(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      authData: AuthData
+    ): Promise<void> {
+      logger.info(
+        `Deleting draft Descriptor ${descriptorId} for EService ${eserviceId}`
+      );
 
-  const descriptor = retrieveDescriptor(descriptorId, eService);
+      const eService = await retrieveEService(eserviceId, readModelService);
+      assertRequesterAllowed(eService.data.producerId, authData.organizationId);
 
-  if (descriptor.state !== descriptorState.draft) {
-    throw notValidDescriptor(descriptorId, descriptor.state.toString());
-  }
+      const descriptor = retrieveDescriptor(descriptorId, eService);
 
-  const descriptorInterface = descriptor.interface;
-  if (descriptorInterface !== undefined) {
-    await deleteFile(config.s3Bucket, descriptorInterface.path).catch(
-      (error) => {
+      const descriptorInterface = descriptor.interface;
+      if (descriptorInterface !== undefined) {
+        await fileManager
+          .delete(config.s3Bucket, descriptorInterface.path)
+          .catch((error) => {
+            logger.error(
+              `Error deleting interface file for descriptor ${descriptorId} : ${error}`
+            );
+            throw error;
+          });
+      }
+
+      const deleteDescriptorDocs = descriptor.docs.map((doc: Document) =>
+        fileManager.delete(config.s3Bucket, doc.path)
+      );
+
+      await Promise.all(deleteDescriptorDocs).catch((error) => {
         logger.error(
-          `Error deleting interface file for descriptor ${descriptorId} : ${error}`
+          `Error deleting documents' files for descriptor ${descriptorId} : ${error}`
         );
         throw error;
-      }
-    );
-  }
+      });
 
-  const deleteDescriptorDocs = descriptor.docs.map((doc: Document) =>
-    deleteFile(config.s3Bucket, doc.path)
-  );
+      const newEservice: EService = {
+        ...eService.data,
+        descriptors: eService.data.descriptors.filter(
+          (d: Descriptor) => d.id !== descriptorId
+        ),
+      };
 
-  await Promise.all(deleteDescriptorDocs).catch((error) => {
-    logger.error(
-      `Error deleting documents' files for descriptor ${descriptorId} : ${error}`
-    );
-    throw error;
-  });
+      const event = toCreateEventEServiceDescriptorDeleted(
+        eService.data.id,
+        eService.metadata.version,
+        newEservice,
+        descriptorId
+      );
 
-  const newEservice: EService = {
-    ...eService.data,
-    descriptors: eService.data.descriptors.filter(
-      (d: Descriptor) => d.id !== descriptorId
-    ),
+      await repository.createEvent(event);
+    },
   };
-
-  return toCreateEventEServiceDescriptorDeleted(
-    eService.data.id,
-    eService.metadata.version,
-    newEservice,
-    descriptorId
-  );
 }
 
 export function updateDraftDescriptorLogic({
