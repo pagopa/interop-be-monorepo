@@ -464,7 +464,10 @@ const eservicesRouter = (
               unsafeBrandId(req.params.descriptorId),
               req.ctx.authData
             );
-          return res.status(200).json(clonedEserviceByDescriptor).end();
+          return res
+            .status(200)
+            .json(eServiceToApiEService(clonedEserviceByDescriptor))
+            .end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
