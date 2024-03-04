@@ -1425,34 +1425,34 @@ describe("database test", async () => {
           state: descriptorState.draft,
           interface: mockDocument,
         };
-        const eService: EService = {
+        const eservice: EService = {
           ...mockEService,
           descriptors: [descriptor1, descriptor2],
         };
-        await addOneEService(eService, postgresDB, eservices);
+        await addOneEService(eservice, postgresDB, eservices);
         const tenant: Tenant = {
           ...getMockTenant(),
         };
         await addOneTenant(tenant, tenants);
         const agreement = getMockAgreement({
-          eserviceId: eService.id,
+          eserviceId: eservice.id,
           descriptorId: descriptor1.id,
-          producerId: eService.producerId,
+          producerId: eservice.producerId,
           consumerId: tenant.id,
         });
         await addOneAgreement(agreement, agreements);
         await catalogService.publishDescriptor(
-          eService.id,
+          eservice.id,
           descriptor2.id,
-          getMockAuthData(eService.producerId)
+          getMockAuthData(eservice.producerId)
         );
         const writtenEvent = await readLastEventByStreamId(
-          eService.id,
+          eservice.id,
           postgresDB
         );
 
         expect(writtenEvent).toMatchObject({
-          stream_id: eService.id,
+          stream_id: eservice.id,
           version: "1",
           type: "EServiceDescriptorPublished",
           event_version: 2,
@@ -1475,7 +1475,7 @@ describe("database test", async () => {
         };
 
         const expectedEservice: EService = {
-          ...eService,
+          ...eservice,
           descriptors: [updatedDescriptor1, updatedDescriptor2],
         };
         expect(writtenPayload).toEqual({
