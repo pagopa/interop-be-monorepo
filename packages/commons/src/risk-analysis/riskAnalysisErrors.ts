@@ -1,15 +1,5 @@
 import { TenantKind } from "pagopa-interop-models";
 
-export class RiskAnalysisValidationError extends Error {
-  public issues: RiskAnalysisValidationIssue[];
-
-  constructor(issues: RiskAnalysisValidationIssue[]) {
-    super(`Risk analysis validation failed`);
-
-    this.issues = issues;
-  }
-}
-
 export type RiskAnalysisValidationIssue = string & {
   readonly __brand: unique symbol;
 };
