@@ -281,18 +281,6 @@ export function catalogServiceBuilder(
       );
     },
 
-    async deleteEService(
-      eserviceId: EServiceId,
-      authData: AuthData
-    ): Promise<void> {
-      logger.info(`Deleting EService ${eserviceId}`);
-      const eService = await readModelService.getEServiceById(eserviceId);
-
-      await repository.createEvent(
-        deleteEserviceLogic({ eserviceId, authData, eService })
-      );
-    },
-
     async uploadDocument(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
@@ -690,30 +678,28 @@ export function catalogServiceBuilder(
 
       return updatedEService;
     },
+
+    async deleteEService(
+      eserviceId: EServiceId,
+      authData: AuthData
+    ): Promise<void> {
+      logger.info(`Deleting EService ${eserviceId}`);
+
+      const eService = await retrieveEService(eserviceId, readModelService);
+      assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+
+      if (eService.data.descriptors.length > 0) {
+        throw eServiceCannotBeDeleted(eserviceId);
+      }
+
+      const event = toCreateEventEServiceDeleted(
+        eserviceId,
+        eService.metadata.version,
+        eService.data
+      );
+      await repository.createEvent(event);
+    },
   };
-}
-
-export function deleteEserviceLogic({
-  eserviceId,
-  authData,
-  eService,
-}: {
-  eserviceId: EServiceId;
-  authData: AuthData;
-  eService: WithMetadata<EService> | undefined;
-}): CreateEvent<EServiceEvent> {
-  assertEServiceExist(eserviceId, eService);
-  assertRequesterAllowed(eService.data.producerId, authData.organizationId);
-
-  if (eService.data.descriptors.length > 0) {
-    throw eServiceCannotBeDeleted(eserviceId);
-  }
-
-  return toCreateEventEServiceDeleted(
-    eserviceId,
-    eService.metadata.version,
-    eService.data
-  );
 }
 
 export function uploadDocumentLogic({
