@@ -62,6 +62,6 @@ message MovedAttributesFromEserviceToDescriptorsV1 {
 }
 
 message EServiceRiskAnalysisAddedV1 {
-  required EServiceV1 eService = 1;
+  required EServiceV1 eservice = 1;
   required string riskAnalysisId = 2;
 }
