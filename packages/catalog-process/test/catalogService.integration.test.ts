@@ -278,10 +278,10 @@ describe("database test", async () => {
         };
 
         const writtenEvent = await readLastEventByStreamId(
-          eservice.id,
+          mockEService.id,
           postgresDB
         );
-        expect(writtenEvent.stream_id).toBe(eservice.id);
+        expect(writtenEvent.stream_id).toBe(mockEService.id);
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("DraftEServiceUpdated");
         expect(writtenEvent.event_version).toBe(2);
@@ -345,10 +345,10 @@ describe("database test", async () => {
         };
 
         const writtenEvent = await readLastEventByStreamId(
-          eservice.id,
+          mockEService.id,
           postgresDB
         );
-        expect(writtenEvent.stream_id).toBe(eservice.id);
+        expect(writtenEvent.stream_id).toBe(mockEService.id);
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("DraftEServiceUpdated");
         expect(writtenEvent.event_version).toBe(2);
