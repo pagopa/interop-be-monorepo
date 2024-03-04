@@ -308,30 +308,6 @@ export function catalogServiceBuilder(
       return document;
     },
 
-    async updateDocument(
-      eserviceId: EServiceId,
-      descriptorId: DescriptorId,
-      documentId: EServiceDocumentId,
-      apiEServiceDescriptorDocumentUpdateSeed: ApiEServiceDescriptorDocumentUpdateSeed,
-      authData: AuthData
-    ): Promise<void> {
-      logger.info(
-        `Updating Document ${documentId} of Descriptor ${descriptorId} for EService ${eserviceId}`
-      );
-      const eService = await readModelService.getEServiceById(eserviceId);
-
-      await repository.createEvent(
-        await updateDocumentLogic({
-          eserviceId,
-          descriptorId,
-          documentId,
-          apiEServiceDescriptorDocumentUpdateSeed,
-          authData,
-          eService,
-        })
-      );
-    },
-
     async createDescriptor(
       eserviceId: EServiceId,
       eserviceDescriptorSeed: EServiceDescriptorSeed,
