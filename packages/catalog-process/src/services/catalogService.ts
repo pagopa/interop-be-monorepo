@@ -307,28 +307,6 @@ export function catalogServiceBuilder(
       return document;
     },
 
-    async updateDraftDescriptor(
-      eserviceId: EServiceId,
-      descriptorId: DescriptorId,
-      seed: UpdateEServiceDescriptorSeed,
-      authData: AuthData
-    ): Promise<void> {
-      logger.info(
-        `Updating draft Descriptor ${descriptorId} for EService ${eserviceId}`
-      );
-      const eService = await readModelService.getEServiceById(eserviceId);
-
-      await repository.createEvent(
-        updateDraftDescriptorLogic({
-          eserviceId,
-          descriptorId,
-          seed,
-          authData,
-          eService,
-        })
-      );
-    },
-
     async publishDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
@@ -972,56 +950,60 @@ export function catalogServiceBuilder(
 
       await repository.createEvent(event);
     },
+
+    async updateDraftDescriptor(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: UpdateEServiceDescriptorSeed,
+      authData: AuthData
+    ): Promise<EService> {
+      logger.info(
+        `Updating draft Descriptor ${descriptorId} for EService ${eserviceId}`
+      );
+
+      const eService = await retrieveEService(eserviceId, readModelService);
+      assertEServiceExist(eserviceId, eService);
+      assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+
+      const descriptor = retrieveDescriptor(descriptorId, eService);
+
+      if (descriptor.state !== descriptorState.draft) {
+        throw notValidDescriptor(descriptorId, descriptor.state.toString());
+      }
+
+      if (seed.dailyCallsPerConsumer > seed.dailyCallsTotal) {
+        throw inconsistentDailyCalls();
+      }
+
+      const updatedDescriptor: Descriptor = {
+        ...descriptor,
+        description: seed.description,
+        audience: seed.audience,
+        voucherLifespan: seed.voucherLifespan,
+        dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
+        state: "Draft",
+        dailyCallsTotal: seed.dailyCallsTotal,
+        agreementApprovalPolicy:
+          apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+            seed.agreementApprovalPolicy
+          ),
+      };
+
+      const updatedEService = replaceDescriptor(
+        eService.data,
+        updatedDescriptor
+      );
+
+      const event = toCreateEventEServiceUpdated(
+        eserviceId,
+        eService.metadata.version,
+        updatedEService
+      );
+      await repository.createEvent(event);
+
+      return updatedEService;
+    },
   };
-}
-
-export function updateDraftDescriptorLogic({
-  eserviceId,
-  descriptorId,
-  seed,
-  authData,
-  eService,
-}: {
-  eserviceId: EServiceId;
-  descriptorId: DescriptorId;
-  seed: UpdateEServiceDescriptorSeed;
-  authData: AuthData;
-  eService: WithMetadata<EService> | undefined;
-}): CreateEvent<EServiceEvent> {
-  assertEServiceExist(eserviceId, eService);
-  assertRequesterAllowed(eService.data.producerId, authData.organizationId);
-
-  const descriptor = retrieveDescriptor(descriptorId, eService);
-
-  if (descriptor.state !== descriptorState.draft) {
-    throw notValidDescriptor(descriptorId, descriptor.state.toString());
-  }
-
-  if (seed.dailyCallsPerConsumer > seed.dailyCallsTotal) {
-    throw inconsistentDailyCalls();
-  }
-
-  const updatedDescriptor: Descriptor = {
-    ...descriptor,
-    description: seed.description,
-    audience: seed.audience,
-    voucherLifespan: seed.voucherLifespan,
-    dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
-    state: "Draft",
-    dailyCallsTotal: seed.dailyCallsTotal,
-    agreementApprovalPolicy:
-      apiAgreementApprovalPolicyToAgreementApprovalPolicy(
-        seed.agreementApprovalPolicy
-      ),
-  };
-
-  const updatedEService = replaceDescriptor(eService.data, updatedDescriptor);
-
-  return toCreateEventEServiceUpdated(
-    eserviceId,
-    eService.metadata.version,
-    updatedEService
-  );
 }
 
 export function publishDescriptorLogic({
