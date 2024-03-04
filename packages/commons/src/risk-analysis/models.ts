@@ -1,4 +1,19 @@
 import { DataType } from "./rules/models.js";
+import { RiskAnalysisValidationIssue } from "./riskAnalysisErrors.js";
+
+export type RiskAnalysisValidationInvalid = {
+  type: "invalid";
+  issues: RiskAnalysisValidationIssue[];
+};
+
+export type RiskAnalysisValidationValid<T> = {
+  type: "valid";
+  value: T;
+};
+
+export type RiskAnalysisValidationResult<T> =
+  | RiskAnalysisValidationValid<T>
+  | RiskAnalysisValidationInvalid;
 
 export type RiskAnalysisFormToValidate = {
   version: string;

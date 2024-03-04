@@ -4,10 +4,14 @@ import {
   RiskAnalysisFormToValidate,
   RiskAnalysisValidatedForm,
   RiskAnalysisValidatedSingleOrMultiAnswer,
+  RiskAnalysisValidationInvalid,
+  RiskAnalysisValidationResult,
   ValidationRule,
   ValidationRuleDependency,
 } from "./models.js";
 import {
+  RiskAnalysisValidationError,
+  RiskAnalysisValidationIssue,
   dependencyNotFoundError,
   missingExpectedFieldError,
   noRulesVersionFoundError,
@@ -29,26 +33,9 @@ function assertLatestVersionFormRulesExist(
   tenantKind: TenantKind
 ): asserts latestVersionFormRules is NonNullable<RiskAnalysisFormRules> {
   if (latestVersionFormRules === undefined) {
-    throw noRulesVersionFoundError(tenantKind);
-  }
-}
-
-function assertValidationRuleExists(
-  validationRule: ValidationRule | undefined,
-  answerKey: string
-): asserts validationRule is NonNullable<ValidationRule> {
-  if (validationRule === undefined) {
-    throw unexpectedFieldError(answerKey);
-  }
-}
-
-function assertDependencyExists(
-  dependencyValue: string[] | undefined,
-  dependentField: string,
-  dependency: ValidationRuleDependency
-): asserts dependencyValue is NonNullable<string[]> {
-  if (dependencyValue === undefined) {
-    throw dependencyNotFoundError(dependentField, dependency.fieldName);
+    throw new RiskAnalysisValidationError([
+      noRulesVersionFoundError(tenantKind),
+    ]);
   }
 }
 
@@ -61,7 +48,9 @@ export function validateRiskAnalysis(
   assertLatestVersionFormRulesExist(latestVersionFormRules, tenantKind);
 
   if (latestVersionFormRules.version !== riskAnalysisForm.version) {
-    throw unexpectedRulesVersionError(riskAnalysisForm.version);
+    throw new RiskAnalysisValidationError([
+      unexpectedRulesVersionError(riskAnalysisForm.version),
+    ]);
   }
 
   const validationRules = latestVersionFormRules.questions.map(
@@ -72,17 +61,45 @@ export function validateRiskAnalysis(
     Object.entries(riskAnalysisForm.answers).filter(([, v]) => v.length > 0)
   );
 
-  const { singleAnswers, multiAnswers } = validateFormAnswers(
+  const results = validateFormAnswers(
     sanitizedAnswers,
     schemaOnlyValidation,
     validationRules
   );
 
-  return {
-    version: latestVersionFormRules.version,
-    singleAnswers,
-    multiAnswers,
-  };
+  if (results.some((r) => r.type === "invalid")) {
+    throw new RiskAnalysisValidationError(
+      results.flatMap((r) => (r.type === "invalid" ? r.issues : []))
+    );
+  } else {
+    const validatedAnswers = results.flatMap((r) =>
+      r.type === "valid" ? [r.value] : []
+    );
+
+    const { singleAnswers, multiAnswers } = validatedAnswers.reduce(
+      (validatedForm, answer) =>
+        match(answer)
+          .with({ type: "single" }, (a) => ({
+            ...validatedForm,
+            singleAnswers: [...validatedForm.singleAnswers, a.answer],
+          }))
+          .with({ type: "multi" }, (a) => ({
+            ...validatedForm,
+            multiAnswers: [...validatedForm.multiAnswers, a.answer],
+          }))
+          .exhaustive(),
+      {
+        singleAnswers: [],
+        multiAnswers: [],
+      } as Omit<RiskAnalysisValidatedForm, "version">
+    );
+
+    return {
+      version: latestVersionFormRules.version,
+      singleAnswers,
+      multiAnswers,
+    };
+  }
 }
 
 function getLatestVersionFormRules(
@@ -142,50 +159,45 @@ function validateFormAnswers(
   answers: RiskAnalysisFormToValidate["answers"],
   schemaOnlyValidation: boolean,
   validationRules: ValidationRule[]
-): Omit<RiskAnalysisValidatedForm, "version"> {
-  if (!schemaOnlyValidation) {
-    validateRequiredFields(answers, validationRules);
-  }
-
-  const validatedAnswers = Object.entries(answers).map(
-    ([answerKey, answerValue]) => {
+): Array<
+  RiskAnalysisValidationResult<RiskAnalysisValidatedSingleOrMultiAnswer>
+> {
+  return Object.entries(answers)
+    .map(([answerKey, answerValue]) => {
       const validationRule = validationRules.find(
         (r) => r.fieldName === answerKey
       );
-      assertValidationRuleExists(validationRule, answerKey);
 
-      validateFormField(
-        answerValue,
-        validationRule,
-        schemaOnlyValidation,
-        answers
-      );
+      return match(validationRule)
+        .with(P.nullish, () => invalidResult([unexpectedFieldError(answerKey)]))
+        .with(P.not(P.nullish), (rule) => {
+          const errors = validateFormField(
+            answerValue,
+            rule,
+            schemaOnlyValidation,
+            answers
+          );
 
-      return answerToValidatedSingleOrMultiAnswer(
-        answerKey,
-        answerValue,
-        validationRule
-      );
-    }
-  );
-
-  return validatedAnswers.reduce(
-    (validatedForm, answer) =>
-      match(answer)
-        .with({ type: "single" }, (a) => ({
-          ...validatedForm,
-          singleAnswers: [...validatedForm.singleAnswers, a.answer],
-        }))
-        .with({ type: "multi" }, (a) => ({
-          ...validatedForm,
-          multiAnswers: [...validatedForm.multiAnswers, a.answer],
-        }))
-        .exhaustive(),
-    {
-      singleAnswers: [],
-      multiAnswers: [],
-    } as Omit<RiskAnalysisValidatedForm, "version">
-  );
+          if (errors.length > 0) {
+            return invalidResult(errors);
+          } else {
+            return answerToValidatedSingleOrMultiAnswer(
+              answerKey,
+              answerValue,
+              rule
+            );
+          }
+        })
+        .exhaustive();
+    })
+    .concat(
+      match(schemaOnlyValidation)
+        .with(true, () => [])
+        .with(false, () =>
+          invalidResult(validateRequiredFields(answers, validationRules))
+        )
+        .exhaustive()
+    );
 }
 
 function validateFormField(
@@ -193,26 +205,31 @@ function validateFormField(
   validationRule: ValidationRule,
   schemaOnlyValidation: boolean,
   answers: RiskAnalysisFormToValidate["answers"]
-): void {
-  if (schemaOnlyValidation) {
-    validateFieldValue(fieldValue, validationRule);
-  } else {
-    validateFieldValue(fieldValue, validationRule);
-    validationRule.dependencies.forEach((dependency) =>
-      validateFieldDependency(answers, validationRule.fieldName, dependency)
-    );
-  }
+): RiskAnalysisValidationIssue[] {
+  return match(schemaOnlyValidation)
+    .with(true, () => validateFieldValue(fieldValue, validationRule))
+    .with(false, () => [
+      ...validateFieldValue(fieldValue, validationRule),
+      ...validationRule.dependencies.flatMap((dependency) =>
+        validateFieldDependency(answers, validationRule.fieldName, dependency)
+      ),
+    ])
+    .exhaustive();
 }
 
-function validateFieldValue(fieldValue: string[], rule: ValidationRule): void {
-  match(rule.allowedValues)
-    .with(P.not(P.nullish), (allowedValues) => {
-      if (!fieldValue.every((v) => allowedValues.has(v))) {
-        throw unexpectedFieldValue(rule.fieldName, allowedValues);
-      }
-    })
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    .with(P.nullish, () => {})
+function validateFieldValue(
+  fieldValue: string[],
+  rule: ValidationRule
+): RiskAnalysisValidationIssue[] {
+  return match(rule.allowedValues)
+    .with(P.not(P.nullish), (allowedValues) =>
+      fieldValue.flatMap((v) =>
+        allowedValues.has(v)
+          ? []
+          : [unexpectedFieldValue(rule.fieldName, allowedValues)]
+      )
+    )
+    .with(P.nullish, () => [])
     .exhaustive();
 }
 
@@ -220,31 +237,40 @@ function validateFieldDependency(
   answers: RiskAnalysisFormToValidate["answers"],
   dependentField: string,
   dependency: ValidationRuleDependency
-): void {
+): RiskAnalysisValidationIssue[] {
   const dependencyValue: string[] | undefined = answers[dependency.fieldName];
-  assertDependencyExists(dependencyValue, dependentField, dependency);
-  if (!dependencyValue.some((v) => v === dependency.fieldValue)) {
-    throw unexpectedDependencyValueError(
-      dependentField,
-      dependency.fieldName,
-      dependency.fieldValue
-    );
-  }
+  return [
+    ...(dependencyValue === undefined
+      ? [dependencyNotFoundError(dependentField, dependency.fieldName)]
+      : []),
+    ...(dependencyValue !== undefined &&
+    !dependencyValue.some((v) => v === dependency.fieldValue)
+      ? [
+          unexpectedDependencyValueError(
+            dependentField,
+            dependency.fieldName,
+            dependency.fieldValue
+          ),
+        ]
+      : []),
+  ];
 }
 
 function validateRequiredFields(
   answers: RiskAnalysisFormToValidate["answers"],
   validationRules: ValidationRule[]
-): void {
-  validationRules
+): RiskAnalysisValidationIssue[] {
+  return validationRules
     .filter((r) => r.required)
-    .forEach((rule) => {
+    .flatMap((rule) => {
       const depsSatisfied = rule.dependencies.every((dependency) =>
         formContainsDependency(answers, dependency)
       );
       const field: string[] | undefined = answers[rule.fieldName];
       if (depsSatisfied && field === undefined) {
-        throw missingExpectedFieldError(rule.fieldName);
+        return [missingExpectedFieldError(rule.fieldName)];
+      } else {
+        return [];
       }
     });
 }
@@ -266,30 +292,44 @@ function answerToValidatedSingleOrMultiAnswer(
   answerKey: string,
   answerValue: string[],
   validationRule: ValidationRule
-): RiskAnalysisValidatedSingleOrMultiAnswer {
+): RiskAnalysisValidationResult<RiskAnalysisValidatedSingleOrMultiAnswer> {
   return match(validationRule.dataType)
     .with(dataType.single, dataType.freeText, () => {
       if (answerValue.length === 0) {
-        throw unexpectedFieldFormatError(answerKey);
+        return invalidResult([unexpectedFieldFormatError(answerKey)]);
       }
-      return {
+      return validResult<RiskAnalysisValidatedSingleOrMultiAnswer>({
         type: "single",
         answer: {
           key: answerKey,
           value: answerValue[0],
         },
-      } as RiskAnalysisValidatedSingleOrMultiAnswer;
+      });
     })
-    .with(
-      dataType.multi,
-      () =>
-        ({
-          type: "multi",
-          answer: {
-            key: answerKey,
-            values: answerValue,
-          },
-        } as RiskAnalysisValidatedSingleOrMultiAnswer)
+    .with(dataType.multi, () =>
+      validResult<RiskAnalysisValidatedSingleOrMultiAnswer>({
+        type: "multi",
+        answer: {
+          key: answerKey,
+          values: answerValue,
+        },
+      })
     )
     .exhaustive();
+}
+
+function invalidResult(
+  issues: RiskAnalysisValidationIssue[]
+): RiskAnalysisValidationInvalid {
+  return {
+    type: "invalid",
+    issues,
+  };
+}
+
+function validResult<T>(value: T): RiskAnalysisValidationResult<T> {
+  return {
+    type: "valid",
+    value,
+  };
 }
