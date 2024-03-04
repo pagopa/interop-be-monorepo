@@ -10,7 +10,6 @@ import {
   ValidationRuleDependency,
 } from "./models.js";
 import {
-  RiskAnalysisValidationError,
   RiskAnalysisValidationIssue,
   dependencyNotFoundError,
   missingExpectedFieldError,
@@ -28,27 +27,19 @@ import {
 } from "./rules/models.js";
 import { riskAnalysisFormRules } from "./rules/riskAnalysisFormRules.js";
 
-function assertLatestVersionFormRulesExist(
-  latestVersionFormRules: RiskAnalysisFormRules | undefined,
-  tenantKind: TenantKind
-): asserts latestVersionFormRules is NonNullable<RiskAnalysisFormRules> {
-  if (latestVersionFormRules === undefined) {
-    throw new RiskAnalysisValidationError([
-      noRulesVersionFoundError(tenantKind),
-    ]);
-  }
-}
-
 export function validateRiskAnalysis(
   riskAnalysisForm: RiskAnalysisFormToValidate,
   schemaOnlyValidation: boolean,
   tenantKind: TenantKind
-): RiskAnalysisValidatedForm {
+): RiskAnalysisValidationResult<RiskAnalysisValidatedForm> {
   const latestVersionFormRules = getLatestVersionFormRules(tenantKind);
-  assertLatestVersionFormRulesExist(latestVersionFormRules, tenantKind);
+  // assertLatestVersionFormRulesExist(latestVersionFormRules, tenantKind);
+  if (latestVersionFormRules === undefined) {
+    return invalidResult([noRulesVersionFoundError(tenantKind)]);
+  }
 
   if (latestVersionFormRules.version !== riskAnalysisForm.version) {
-    throw new RiskAnalysisValidationError([
+    return invalidResult([
       unexpectedRulesVersionError(riskAnalysisForm.version),
     ]);
   }
@@ -67,8 +58,8 @@ export function validateRiskAnalysis(
     validationRules
   );
 
-  if (results.some((r) => r.type === "invalid")) {
-    throw new RiskAnalysisValidationError(
+  if (results.some((r) => r.type === "invalid" && r.issues.length > 0)) {
+    return invalidResult(
       results.flatMap((r) => (r.type === "invalid" ? r.issues : []))
     );
   } else {
@@ -94,11 +85,11 @@ export function validateRiskAnalysis(
       } as Omit<RiskAnalysisValidatedForm, "version">
     );
 
-    return {
+    return validResult({
       version: latestVersionFormRules.version,
       singleAnswers,
       multiAnswers,
-    };
+    });
   }
 }
 
