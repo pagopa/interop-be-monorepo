@@ -9,7 +9,6 @@ import {
   userRoles,
 } from "pagopa-interop-commons";
 import {
-  Attribute,
   Descriptor,
   DescriptorId,
   DescriptorState,
@@ -306,26 +305,6 @@ export function catalogServiceBuilder(
         throw eServiceDocumentNotFound(eserviceId, descriptorId, documentId);
       }
       return document;
-    },
-
-    async createDescriptor(
-      eserviceId: EServiceId,
-      eserviceDescriptorSeed: EServiceDescriptorSeed,
-      authData: AuthData
-    ): Promise<string> {
-      logger.info(`Creating Descriptor for EService ${eserviceId}`);
-
-      const eService = await readModelService.getEServiceById(eserviceId);
-
-      return await repository.createEvent(
-        await createDescriptorLogic({
-          eserviceId,
-          eserviceDescriptorSeed,
-          authData,
-          eService,
-          getAttributesByIds: readModelService.getAttributesByIds,
-        })
-      );
     },
 
     async deleteDraftDescriptor(
@@ -851,116 +830,116 @@ export function catalogServiceBuilder(
 
       await repository.createEvent(event);
     },
-  };
-}
 
-export async function createDescriptorLogic({
-  eserviceId,
-  eserviceDescriptorSeed,
-  authData,
-  eService,
-  getAttributesByIds,
-}: {
-  eserviceId: EServiceId;
-  eserviceDescriptorSeed: EServiceDescriptorSeed;
-  authData: AuthData;
-  eService: WithMetadata<EService> | undefined;
-  getAttributesByIds: (attributesIds: AttributeId[]) => Promise<Attribute[]>;
-}): Promise<CreateEvent<EServiceEvent>> {
-  assertEServiceExist(eserviceId, eService);
-  assertRequesterAllowed(eService.data.producerId, authData.organizationId);
-  hasNotDraftDescriptor(eService.data);
+    async createDescriptor(
+      eserviceId: EServiceId,
+      eserviceDescriptorSeed: EServiceDescriptorSeed,
+      authData: AuthData
+    ): Promise<Descriptor> {
+      logger.info(`Creating Descriptor for EService ${eserviceId}`);
 
-  const newVersion = nextDescriptorVersion(eService.data);
+      const eService = await retrieveEService(eserviceId, readModelService);
+      assertEServiceExist(eserviceId, eService);
+      assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+      hasNotDraftDescriptor(eService.data);
 
-  const certifiedAttributes = eserviceDescriptorSeed.attributes.certified;
-  const declaredAttributes = eserviceDescriptorSeed.attributes.declared;
-  const verifiedAttributes = eserviceDescriptorSeed.attributes.verified;
+      const newVersion = nextDescriptorVersion(eService.data);
 
-  const attributesSeeds = [
-    ...certifiedAttributes.flat(),
-    ...declaredAttributes.flat(),
-    ...verifiedAttributes.flat(),
-  ];
+      const certifiedAttributes = eserviceDescriptorSeed.attributes.certified;
+      const declaredAttributes = eserviceDescriptorSeed.attributes.declared;
+      const verifiedAttributes = eserviceDescriptorSeed.attributes.verified;
 
-  if (attributesSeeds.length > 0) {
-    const attributesSeedsIds: AttributeId[] = attributesSeeds.map((attr) =>
-      unsafeBrandId(attr.id)
-    );
-    const attributes = await getAttributesByIds(attributesSeedsIds);
-    const attributesIds = attributes.map((attr) => attr.id);
-    for (const attributeSeedId of attributesSeedsIds) {
-      if (!attributesIds.includes(unsafeBrandId(attributeSeedId))) {
-        throw attributeNotFound(attributeSeedId);
+      const attributesSeeds = [
+        ...certifiedAttributes.flat(),
+        ...declaredAttributes.flat(),
+        ...verifiedAttributes.flat(),
+      ];
+
+      if (attributesSeeds.length > 0) {
+        const attributesSeedsIds: AttributeId[] = attributesSeeds.map((attr) =>
+          unsafeBrandId(attr.id)
+        );
+        const attributes = await readModelService.getAttributesByIds(
+          attributesSeedsIds
+        );
+        const attributesIds = attributes.map((attr) => attr.id);
+        for (const attributeSeedId of attributesSeedsIds) {
+          if (!attributesIds.includes(unsafeBrandId(attributeSeedId))) {
+            throw attributeNotFound(attributeSeedId);
+          }
+        }
       }
-    }
-  }
 
-  if (
-    eserviceDescriptorSeed.dailyCallsPerConsumer >
-    eserviceDescriptorSeed.dailyCallsTotal
-  ) {
-    throw inconsistentDailyCalls();
-  }
+      if (
+        eserviceDescriptorSeed.dailyCallsPerConsumer >
+        eserviceDescriptorSeed.dailyCallsTotal
+      ) {
+        throw inconsistentDailyCalls();
+      }
 
-  const descriptorId = generateId<DescriptorId>();
+      const descriptorId = generateId<DescriptorId>();
 
-  const newDescriptor: Descriptor = {
-    id: descriptorId,
-    description: eserviceDescriptorSeed.description,
-    version: newVersion,
-    interface: undefined,
-    docs: [],
-    state: "Draft",
-    voucherLifespan: eserviceDescriptorSeed.voucherLifespan,
-    audience: eserviceDescriptorSeed.audience,
-    dailyCallsPerConsumer: eserviceDescriptorSeed.dailyCallsPerConsumer,
-    dailyCallsTotal: eserviceDescriptorSeed.dailyCallsTotal,
-    agreementApprovalPolicy:
-      apiAgreementApprovalPolicyToAgreementApprovalPolicy(
-        eserviceDescriptorSeed.agreementApprovalPolicy
-      ),
-    serverUrls: [],
-    publishedAt: undefined,
-    suspendedAt: undefined,
-    deprecatedAt: undefined,
-    archivedAt: undefined,
-    createdAt: new Date(),
-    attributes: {
-      certified: certifiedAttributes.map((a) =>
-        a.map((a) => ({
-          ...a,
-          id: unsafeBrandId(a.id),
-        }))
-      ),
-      // eslint-disable-next-line sonarjs/no-identical-functions
-      declared: declaredAttributes.map((a) =>
-        a.map((a) => ({
-          ...a,
-          id: unsafeBrandId(a.id),
-        }))
-      ),
-      // eslint-disable-next-line sonarjs/no-identical-functions
-      verified: verifiedAttributes.map((a) =>
-        a.map((a) => ({
-          ...a,
-          id: unsafeBrandId(a.id),
-        }))
-      ),
+      const newDescriptor: Descriptor = {
+        id: descriptorId,
+        description: eserviceDescriptorSeed.description,
+        version: newVersion,
+        interface: undefined,
+        docs: [],
+        state: "Draft",
+        voucherLifespan: eserviceDescriptorSeed.voucherLifespan,
+        audience: eserviceDescriptorSeed.audience,
+        dailyCallsPerConsumer: eserviceDescriptorSeed.dailyCallsPerConsumer,
+        dailyCallsTotal: eserviceDescriptorSeed.dailyCallsTotal,
+        agreementApprovalPolicy:
+          apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+            eserviceDescriptorSeed.agreementApprovalPolicy
+          ),
+        serverUrls: [],
+        publishedAt: undefined,
+        suspendedAt: undefined,
+        deprecatedAt: undefined,
+        archivedAt: undefined,
+        createdAt: new Date(),
+        attributes: {
+          certified: certifiedAttributes.map((a) =>
+            a.map((a) => ({
+              ...a,
+              id: unsafeBrandId(a.id),
+            }))
+          ),
+          // eslint-disable-next-line sonarjs/no-identical-functions
+          declared: declaredAttributes.map((a) =>
+            a.map((a) => ({
+              ...a,
+              id: unsafeBrandId(a.id),
+            }))
+          ),
+          // eslint-disable-next-line sonarjs/no-identical-functions
+          verified: verifiedAttributes.map((a) =>
+            a.map((a) => ({
+              ...a,
+              id: unsafeBrandId(a.id),
+            }))
+          ),
+        },
+      };
+
+      const newEservice: EService = {
+        ...eService.data,
+        descriptors: [...eService.data.descriptors, newDescriptor],
+      };
+
+      const event = toCreateEventEServiceDescriptorAdded(
+        eService.data.id,
+        eService.metadata.version,
+        descriptorId,
+        newEservice
+      );
+      await repository.createEvent(event);
+
+      return newDescriptor;
     },
   };
-
-  const newEservice: EService = {
-    ...eService.data,
-    descriptors: [...eService.data.descriptors, newDescriptor],
-  };
-
-  return toCreateEventEServiceDescriptorAdded(
-    eService.data.id,
-    eService.metadata.version,
-    descriptorId,
-    newEservice
-  );
 }
 
 export async function deleteDraftDescriptorLogic({

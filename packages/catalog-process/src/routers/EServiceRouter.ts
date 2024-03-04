@@ -20,6 +20,7 @@ import {
   apiAgreementStateToAgreementState,
   apiDescriptorStateToDescriptorState,
   descriptorStateToApiEServiceDescriptorState,
+  descriptorToApiDescriptor,
   eServiceToApiEService,
 } from "../model/domain/apiConverter.js";
 import { api } from "../model/generated/api.js";
@@ -345,12 +346,15 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
-          const id = await catalogService.createDescriptor(
+          const descriptor = await catalogService.createDescriptor(
             unsafeBrandId(req.params.eServiceId),
             req.body,
             req.ctx.authData
           );
-          return res.status(200).json({ id }).end();
+          return res
+            .status(200)
+            .json(descriptorToApiDescriptor(descriptor))
+            .end();
         } catch (error) {
           const errorRes = makeApiProblem(error, createDescriptorErrorMapper);
           return res.status(errorRes.status).json(errorRes).end();
