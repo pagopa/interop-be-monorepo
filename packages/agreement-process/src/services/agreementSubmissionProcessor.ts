@@ -112,7 +112,7 @@ export async function submitAgreementLogic(
 
 const submitAgreement = async (
   agreementData: WithMetadata<Agreement>,
-  eService: EService,
+  eservice: EService,
   descriptor: Descriptor,
   consumer: Tenant,
   payload: ApiAgreementSubmissionPayload,
@@ -140,7 +140,7 @@ const submitAgreement = async (
   const updateSeed = getUpdateSeed(
     descriptor,
     consumer,
-    eService,
+    eservice,
     agreement,
     payload,
     stamps,
@@ -209,7 +209,7 @@ const submitAgreement = async (
           await createContract(
             updatedAgreement,
             updatedAgreementEvent.version + 1,
-            eService,
+            eservice,
             consumer,
             updateSeed,
             tenantQuery,
@@ -282,7 +282,7 @@ const validateConsumerEmail = async (
 const getUpdateSeed = (
   descriptor: Descriptor,
   consumer: Tenant,
-  eService: EService,
+  eservice: EService,
   agreement: Agreement,
   payload: ApiAgreementSubmissionPayload,
   stamps: AgreementStamps,
@@ -295,7 +295,7 @@ const getUpdateSeed = (
         certifiedAttributes: matchingCertifiedAttributes(descriptor, consumer),
         declaredAttributes: matchingDeclaredAttributes(descriptor, consumer),
         verifiedAttributes: matchingVerifiedAttributes(
-          eService,
+          eservice,
           descriptor,
           consumer
         ),

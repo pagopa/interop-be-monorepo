@@ -154,11 +154,11 @@ const eservicesRouter = (
       ]),
       async (req, res) => {
         try {
-          const eService = await catalogService.getEServiceById(
+          const eservice = await catalogService.getEServiceById(
             unsafeBrandId(req.params.eServiceId),
             req.ctx.authData
           );
-          return res.status(200).json(eServiceToApiEService(eService)).end();
+          return res.status(200).json(eServiceToApiEService(eservice)).end();
         } catch (error) {
           const errorRes = makeApiProblem(error, getEServiceErrorMapper);
           return res.status(errorRes.status).json(errorRes).end();
