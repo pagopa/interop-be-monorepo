@@ -307,32 +307,6 @@ export function catalogServiceBuilder(
       return document;
     },
 
-    async cloneDescriptor(
-      eserviceId: EServiceId,
-      descriptorId: DescriptorId,
-      authData: AuthData
-    ): Promise<EService> {
-      logger.info(
-        `Cloning Descriptor ${descriptorId} for EService ${eserviceId}`
-      );
-
-      const eService = await readModelService.getEServiceById(eserviceId);
-
-      const { eService: draftEService, event } = await cloneDescriptorLogic({
-        eserviceId,
-        descriptorId,
-        authData,
-        copyFile: fileManager.copy,
-        eService,
-        getEServiceByNameAndProducerId:
-          readModelService.getEServiceByNameAndProducerId,
-      });
-
-      await repository.createEvent(event);
-
-      return draftEService;
-    },
-
     async archiveDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
@@ -1101,146 +1075,130 @@ export function catalogServiceBuilder(
 
       await repository.createEvent(event());
     },
-  };
-}
 
-export async function cloneDescriptorLogic({
-  eserviceId,
-  descriptorId,
-  authData,
-  copyFile,
-  eService,
-  getEServiceByNameAndProducerId,
-}: {
-  eserviceId: EServiceId;
-  descriptorId: DescriptorId;
-  authData: AuthData;
-  copyFile: (
-    bucket: string,
-    docPath: string,
-    path: string,
-    id: string,
-    name: string
-  ) => Promise<string>;
-  eService: WithMetadata<EService> | undefined;
-  getEServiceByNameAndProducerId: ({
-    name,
-    producerId,
-  }: {
-    name: string;
-    producerId: TenantId;
-  }) => Promise<WithMetadata<EService> | undefined>;
-}): Promise<{ eService: EService; event: CreateEvent<EServiceEvent> }> {
-  assertEServiceExist(eserviceId, eService);
-  assertRequesterAllowed(eService.data.producerId, authData.organizationId);
-
-  const clonedEServiceName = `${
-    eService.data.name
-  } - clone - ${formatClonedEServiceDate(new Date())}`;
-
-  if (
-    await getEServiceByNameAndProducerId({
-      name: clonedEServiceName,
-      producerId: authData.organizationId,
-    })
-  ) {
-    throw eServiceDuplicate(clonedEServiceName);
-  }
-
-  const descriptor = retrieveDescriptor(descriptorId, eService);
-
-  const clonedInterfaceId = generateId<EServiceDocumentId>();
-  const clonedInterfacePath =
-    descriptor.interface !== undefined
-      ? await copyFile(
-          config.s3Bucket,
-          descriptor.interface.path,
-          config.eserviceDocumentsPath,
-          clonedInterfaceId,
-          descriptor.interface.name
-        ).catch((error) => {
-          logger.error(
-            `Error copying interface file for descriptor ${descriptorId} : ${error}`
-          );
-          throw error;
-        })
-      : undefined;
-
-  const clonedInterfaceDocument: Document | undefined =
-    descriptor.interface !== undefined && clonedInterfacePath !== undefined
-      ? {
-          id: clonedInterfaceId,
-          name: descriptor.interface.name,
-          contentType: descriptor.interface.contentType,
-          prettyName: descriptor.interface.prettyName,
-          path: clonedInterfacePath,
-          checksum: descriptor.interface.checksum,
-          uploadDate: new Date(),
-        }
-      : undefined;
-
-  const clonedDocuments = await Promise.all(
-    descriptor.docs.map(async (doc: Document) => {
-      const clonedDocumentId = generateId<EServiceDocumentId>();
-      const clonedDocumentPath = await copyFile(
-        config.s3Bucket,
-        doc.path,
-        config.eserviceDocumentsPath,
-        clonedDocumentId,
-        doc.name
+    async cloneDescriptor(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      authData: AuthData
+    ): Promise<EService> {
+      logger.info(
+        `Cloning Descriptor ${descriptorId} for EService ${eserviceId}`
       );
-      const clonedDocument: Document = {
-        id: clonedDocumentId,
-        name: doc.name,
-        contentType: doc.contentType,
-        prettyName: doc.prettyName,
-        path: clonedDocumentPath,
-        checksum: doc.checksum,
-        uploadDate: new Date(),
-      };
-      return clonedDocument;
-    })
-  ).catch((error) => {
-    logger.error(
-      `Error copying documents' files for descriptor ${descriptorId} : ${error}`
-    );
-    throw error;
-  });
 
-  const clonedEservice: EService = {
-    id: generateId(),
-    producerId: eService.data.producerId,
-    name: clonedEServiceName,
-    description: eService.data.description,
-    technology: eService.data.technology,
-    attributes: eService.data.attributes,
-    createdAt: new Date(),
-    riskAnalysis: eService.data.riskAnalysis,
-    mode: eService.data.mode,
-    descriptors: [
-      {
-        ...descriptor,
+      const eService = await retrieveEService(eserviceId, readModelService);
+
+      assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+
+      const clonedEServiceName = `${
+        eService.data.name
+      } - clone - ${formatClonedEServiceDate(new Date())}`;
+
+      if (
+        await readModelService.getEServiceByNameAndProducerId({
+          name: clonedEServiceName,
+          producerId: authData.organizationId,
+        })
+      ) {
+        throw eServiceDuplicate(clonedEServiceName);
+      }
+
+      const descriptor = retrieveDescriptor(descriptorId, eService);
+
+      const clonedInterfaceId = generateId<EServiceDocumentId>();
+      const clonedInterfacePath =
+        descriptor.interface !== undefined
+          ? await fileManager
+              .copy(
+                config.s3Bucket,
+                descriptor.interface.path,
+                config.eserviceDocumentsPath,
+                clonedInterfaceId,
+                descriptor.interface.name
+              )
+              .catch((error) => {
+                logger.error(
+                  `Error copying interface file for descriptor ${descriptorId} : ${error}`
+                );
+                throw error;
+              })
+          : undefined;
+
+      const clonedInterfaceDocument: Document | undefined =
+        descriptor.interface !== undefined && clonedInterfacePath !== undefined
+          ? {
+              id: clonedInterfaceId,
+              name: descriptor.interface.name,
+              contentType: descriptor.interface.contentType,
+              prettyName: descriptor.interface.prettyName,
+              path: clonedInterfacePath,
+              checksum: descriptor.interface.checksum,
+              uploadDate: new Date(),
+            }
+          : undefined;
+
+      const clonedDocuments = await Promise.all(
+        descriptor.docs.map(async (doc: Document) => {
+          const clonedDocumentId = generateId<EServiceDocumentId>();
+          const clonedDocumentPath = await fileManager.copy(
+            config.s3Bucket,
+            doc.path,
+            config.eserviceDocumentsPath,
+            clonedDocumentId,
+            doc.name
+          );
+          const clonedDocument: Document = {
+            id: clonedDocumentId,
+            name: doc.name,
+            contentType: doc.contentType,
+            prettyName: doc.prettyName,
+            path: clonedDocumentPath,
+            checksum: doc.checksum,
+            uploadDate: new Date(),
+          };
+          return clonedDocument;
+        })
+      ).catch((error) => {
+        logger.error(
+          `Error copying documents' files for descriptor ${descriptorId} : ${error}`
+        );
+        throw error;
+      });
+
+      const clonedEservice: EService = {
         id: generateId(),
-        version: "1",
-        interface: clonedInterfaceDocument,
-        docs: clonedDocuments,
-        state: descriptorState.draft,
+        producerId: eService.data.producerId,
+        name: clonedEServiceName,
+        description: eService.data.description,
+        technology: eService.data.technology,
+        attributes: eService.data.attributes,
         createdAt: new Date(),
-        publishedAt: undefined,
-        suspendedAt: undefined,
-        deprecatedAt: undefined,
-        archivedAt: undefined,
-      },
-    ],
-  };
+        riskAnalysis: eService.data.riskAnalysis,
+        mode: eService.data.mode,
+        descriptors: [
+          {
+            ...descriptor,
+            id: generateId(),
+            version: "1",
+            interface: clonedInterfaceDocument,
+            docs: clonedDocuments,
+            state: descriptorState.draft,
+            createdAt: new Date(),
+            publishedAt: undefined,
+            suspendedAt: undefined,
+            deprecatedAt: undefined,
+            archivedAt: undefined,
+          },
+        ],
+      };
+      const event = toCreateEventClonedEServiceAdded(
+        descriptorId,
+        eService.data,
+        clonedEservice
+      );
+      await repository.createEvent(event);
 
-  return {
-    eService: clonedEservice,
-    event: toCreateEventClonedEServiceAdded(
-      descriptorId,
-      eService.data,
-      clonedEservice
-    ),
+      return clonedEservice;
+    },
   };
 }
 
