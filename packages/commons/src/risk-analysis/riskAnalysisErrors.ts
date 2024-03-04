@@ -1,50 +1,78 @@
 import { TenantKind } from "pagopa-interop-models";
 
-export type RiskAnalysisValidationIssue = string & {
-  readonly __brand: unique symbol;
-};
-function riskAnalyisisValidationIssue(
-  message: string
-): RiskAnalysisValidationIssue {
-  return message as RiskAnalysisValidationIssue;
+type RiskAnalysisValidationIssueCode =
+  | "noRulesVersionFoundError"
+  | "unexpectedRulesVersionError"
+  | "unexpectedFieldError"
+  | "unexpectedFieldValue"
+  | "dependencyNotFoundError"
+  | "unexpectedDependencyValueError"
+  | "unexpectedFieldFormatError"
+  | "missingExpectedFieldError";
+
+export class RiskAnalysisValidationIssue extends Error {
+  public code: RiskAnalysisValidationIssueCode;
+  public issue: string;
+  constructor({
+    code,
+    issue,
+  }: {
+    code: RiskAnalysisValidationIssueCode;
+    issue: string;
+  }) {
+    super(issue);
+    this.code = code;
+    this.issue = issue;
+  }
 }
 
 export function noRulesVersionFoundError(
   kind: TenantKind
 ): RiskAnalysisValidationIssue {
-  return riskAnalyisisValidationIssue(
-    `Ruleset version for tenant kind ${kind} not found`
-  );
+  return new RiskAnalysisValidationIssue({
+    code: "noRulesVersionFoundError",
+    issue: `Ruleset version for tenant kind ${kind} not found`,
+  });
 }
 
 export function unexpectedRulesVersionError(
   version: string
 ): RiskAnalysisValidationIssue {
-  return riskAnalyisisValidationIssue(`Unexpected ruleset version ${version}`);
+  return new RiskAnalysisValidationIssue({
+    code: "unexpectedRulesVersionError",
+    issue: `Unexpected ruleset version ${version}`,
+  });
 }
 
 export function unexpectedFieldError(
   fieldName: string
 ): RiskAnalysisValidationIssue {
-  return riskAnalyisisValidationIssue(`Unexpected field ${fieldName}`);
+  return new RiskAnalysisValidationIssue({
+    code: "unexpectedFieldError",
+    issue: `Unexpected field ${fieldName}`,
+  });
 }
 
 export function unexpectedFieldValue(
   fieldName: string,
   allowedValues: Set<string>
 ): RiskAnalysisValidationIssue {
-  return riskAnalyisisValidationIssue(
-    `Field ${fieldName} should be one of ${Array.from(allowedValues).join(",")}`
-  );
+  return new RiskAnalysisValidationIssue({
+    code: "unexpectedFieldValue",
+    issue: `Field ${fieldName} should be one of ${Array.from(
+      allowedValues
+    ).join(",")}`,
+  });
 }
 
 export function dependencyNotFoundError(
   dependentField: string,
   depencencyField: string
 ): RiskAnalysisValidationIssue {
-  return riskAnalyisisValidationIssue(
-    `Field ${dependentField} expects field ${depencencyField} to be in the form`
-  );
+  return new RiskAnalysisValidationIssue({
+    code: "dependencyNotFoundError",
+    issue: `Field ${dependentField} expects field ${depencencyField} to be in the form`,
+  });
 }
 
 export function unexpectedDependencyValueError(
@@ -52,23 +80,26 @@ export function unexpectedDependencyValueError(
   depencencyField: string,
   expectedValue: string
 ): RiskAnalysisValidationIssue {
-  return riskAnalyisisValidationIssue(
-    `Field ${dependentField} requires field ${depencencyField} value to be ${expectedValue}`
-  );
+  return new RiskAnalysisValidationIssue({
+    issue: `Field ${dependentField} requires field ${depencencyField} value to be ${expectedValue}`,
+    code: "unexpectedDependencyValueError",
+  });
 }
 
 export function unexpectedFieldFormatError(
   fieldName: string
 ): RiskAnalysisValidationIssue {
-  return riskAnalyisisValidationIssue(
-    `Unexpected format for field ${fieldName}`
-  );
+  return new RiskAnalysisValidationIssue({
+    issue: `Unexpected format for field ${fieldName}`,
+    code: "unexpectedFieldFormatError",
+  });
 }
 
 export function missingExpectedFieldError(
   fieldName: string
 ): RiskAnalysisValidationIssue {
-  return riskAnalyisisValidationIssue(
-    `Expected field ${fieldName} not found in form`
-  );
+  return new RiskAnalysisValidationIssue({
+    issue: `Expected field ${fieldName} not found in form`,
+    code: "missingExpectedFieldError",
+  });
 }
