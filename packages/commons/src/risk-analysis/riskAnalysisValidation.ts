@@ -33,7 +33,7 @@ export function validateRiskAnalysis(
   tenantKind: TenantKind
 ): RiskAnalysisValidationResult<RiskAnalysisValidatedForm> {
   const latestVersionFormRules = getLatestVersionFormRules(tenantKind);
-  // assertLatestVersionFormRulesExist(latestVersionFormRules, tenantKind);
+
   if (latestVersionFormRules === undefined) {
     return invalidResult([noRulesVersionFoundError(tenantKind)]);
   }
