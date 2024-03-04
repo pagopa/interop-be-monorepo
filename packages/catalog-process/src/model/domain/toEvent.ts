@@ -107,24 +107,24 @@ export const toRiskAnalysisV2 = (
   createdAt: BigInt(input.createdAt.getTime()),
 });
 
-export const toEServiceV2 = (eService: EService): EServiceV2 => ({
-  ...eService,
-  technology: toEServiceTechnologyV2(eService.technology),
-  descriptors: eService.descriptors.map(toDescriptorV2),
-  createdAt: BigInt(eService.createdAt.getTime()),
-  mode: toEServiceModeV2(eService.mode),
-  riskAnalysis: eService.riskAnalysis.map(toRiskAnalysisV2),
+export const toEServiceV2 = (eservice: EService): EServiceV2 => ({
+  ...eservice,
+  technology: toEServiceTechnologyV2(eservice.technology),
+  descriptors: eservice.descriptors.map(toDescriptorV2),
+  createdAt: BigInt(eservice.createdAt.getTime()),
+  mode: toEServiceModeV2(eservice.mode),
+  riskAnalysis: eservice.riskAnalysis.map(toRiskAnalysisV2),
 });
 
 export const toCreateEventEServiceAdded = (
-  eService: EService
+  eservice: EService
 ): CreateEvent<EServiceEvent> => ({
-  streamId: eService.id,
+  streamId: eservice.id,
   version: 0,
   event: {
     type: "EServiceAdded",
     event_version: 2,
-    data: { eservice: toEServiceV2(eService) },
+    data: { eservice: toEServiceV2(eservice) },
   },
 });
 

@@ -20,14 +20,14 @@ export const contractBuilder = (
 ) => ({
   createContract: async (
     agreement: Agreement,
-    eService: EService,
+    eservice: EService,
     consumer: Tenant,
     producer: Tenant,
     seed: UpdateAgreementSeed
   ): Promise<ApiAgreementDocumentSeed> =>
     await pdfGenerator.createDocumentSeed(
       agreement,
-      eService,
+      eservice,
       consumer,
       producer,
       seed,
