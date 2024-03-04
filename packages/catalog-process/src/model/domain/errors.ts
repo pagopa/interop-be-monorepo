@@ -6,7 +6,7 @@ import {
   TenantId,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
-import { logger } from "pagopa-interop-commons";
+import { RiskAnalysisValidationIssue, logger } from "pagopa-interop-commons";
 
 export const errorCodes = {
   eServiceDescriptorNotFound: "0002",
@@ -218,10 +218,12 @@ export function tenantKindNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
 }
 
 export function riskAnalysisValidationFailed(
-  reason: string
+  issues: RiskAnalysisValidationIssue[]
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Risk analysis validation failed. Reasons: ${reason}`,
+    detail: `Risk analysis validation failed. Reasons: ${issues
+      .map((i) => i.issue)
+      .join("\n")}`,
     code: "riskAnalysisValidationFailed",
     title: "Risk analysis validation failed",
   });

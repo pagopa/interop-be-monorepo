@@ -4,7 +4,6 @@ import {
   DB,
   FileManager,
   RiskAnalysisValidatedForm,
-  RiskAnalysisValidationError,
   eventRepository,
   hasPermission,
   logger,
@@ -1766,13 +1765,11 @@ function validateRiskAnalysisOrThrow(
   schemaOnly: boolean,
   tenantKind: TenantKind
 ): RiskAnalysisValidatedForm {
-  try {
-    return validateRiskAnalysis(riskAnalysisForm, schemaOnly, tenantKind);
-  } catch (error) {
-    throw riskAnalysisValidationFailed(
-      error instanceof RiskAnalysisValidationError
-        ? error.message
-        : `Unexpected risk analysis validation error: ${JSON.stringify(error)}`
-    );
+  const result = validateRiskAnalysis(riskAnalysisForm, schemaOnly, tenantKind);
+
+  if (result.type === "invalid") {
+    throw riskAnalysisValidationFailed(result.issues);
+  } else {
+    return result.value;
   }
 }
