@@ -803,81 +803,79 @@ export function catalogServiceBuilder(
 
       await repository.createEvent(event);
     },
-  };
-}
 
-export async function updateDocumentLogic({
-  eserviceId,
-  descriptorId,
-  documentId,
-  apiEServiceDescriptorDocumentUpdateSeed,
-  authData,
-  eService,
-}: {
-  eserviceId: EServiceId;
-  descriptorId: DescriptorId;
-  documentId: EServiceDocumentId;
-  apiEServiceDescriptorDocumentUpdateSeed: ApiEServiceDescriptorDocumentUpdateSeed;
-  authData: AuthData;
-  eService: WithMetadata<EService> | undefined;
-}): Promise<CreateEvent<EServiceEvent>> {
-  assertEServiceExist(eserviceId, eService);
-  assertRequesterAllowed(eService.data.producerId, authData.organizationId);
-
-  const descriptor = retrieveDescriptor(descriptorId, eService);
-
-  if (descriptor.state !== descriptorState.draft) {
-    throw notValidDescriptor(descriptor.id, descriptor.state);
-  }
-
-  const document = (
-    descriptor ? [...descriptor.docs, descriptor.interface] : []
-  ).find((doc) => doc != null && doc.id === documentId);
-
-  if (document === undefined) {
-    throw eServiceDocumentNotFound(eserviceId, descriptorId, documentId);
-  }
-
-  const updatedDocument = {
-    ...document,
-    prettyName: apiEServiceDescriptorDocumentUpdateSeed.prettyName,
-  };
-
-  const isInterface = document.id === descriptor?.interface?.id;
-  const newEservice: EService = {
-    ...eService.data,
-    descriptors: eService.data.descriptors.map((d: Descriptor) =>
-      d.id === descriptorId
-        ? {
-            ...d,
-            interface: isInterface ? updatedDocument : d.interface,
-            docs: d.docs.map((doc) =>
-              doc.id === documentId ? updatedDocument : doc
-            ),
-          }
-        : d
-    ),
-  };
-
-  return isInterface
-    ? toCreateEventEServiceInterfaceUpdated(
-        eserviceId,
-        eService.metadata.version,
-        {
-          descriptorId,
-          documentId,
-          eservice: newEservice,
-        }
-      )
-    : toCreateEventEServiceDocumentUpdated(
-        eserviceId,
-        eService.metadata.version,
-        {
-          descriptorId,
-          documentId,
-          eservice: newEservice,
-        }
+    async updateDocument(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      documentId: EServiceDocumentId,
+      apiEServiceDescriptorDocumentUpdateSeed: ApiEServiceDescriptorDocumentUpdateSeed,
+      authData: AuthData
+    ): Promise<void> {
+      logger.info(
+        `Updating Document ${documentId} of Descriptor ${descriptorId} for EService ${eserviceId}`
       );
+
+      const eService = await retrieveEService(eserviceId, readModelService);
+      assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+
+      const descriptor = retrieveDescriptor(descriptorId, eService);
+
+      if (descriptor.state !== descriptorState.draft) {
+        throw notValidDescriptor(descriptor.id, descriptor.state);
+      }
+
+      const document = (
+        descriptor ? [...descriptor.docs, descriptor.interface] : []
+      ).find((doc) => doc != null && doc.id === documentId);
+
+      if (document === undefined) {
+        throw eServiceDocumentNotFound(eserviceId, descriptorId, documentId);
+      }
+
+      const updatedDocument = {
+        ...document,
+        prettyName: apiEServiceDescriptorDocumentUpdateSeed.prettyName,
+      };
+
+      const isInterface = document.id === descriptor?.interface?.id;
+      const newEservice: EService = {
+        ...eService.data,
+        descriptors: eService.data.descriptors.map((d: Descriptor) =>
+          d.id === descriptorId
+            ? {
+                ...d,
+                interface: isInterface ? updatedDocument : d.interface,
+                docs: d.docs.map((doc) =>
+                  doc.id === documentId ? updatedDocument : doc
+                ),
+              }
+            : d
+        ),
+      };
+
+      const event = isInterface
+        ? toCreateEventEServiceInterfaceUpdated(
+            eserviceId,
+            eService.metadata.version,
+            {
+              descriptorId,
+              documentId,
+              eservice: newEservice,
+            }
+          )
+        : toCreateEventEServiceDocumentUpdated(
+            eserviceId,
+            eService.metadata.version,
+            {
+              descriptorId,
+              documentId,
+              eservice: newEservice,
+            }
+          );
+
+      await repository.createEvent(event);
+    },
+  };
 }
 
 export async function createDescriptorLogic({
