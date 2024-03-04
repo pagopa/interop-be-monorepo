@@ -179,7 +179,7 @@ describe("database test", async () => {
   });
 
   describe("Catalog service", () => {
-    describe("create eService", () => {
+    describe("create eservice", () => {
       it("should write on event-store for the creation of an eservice", async () => {
         const eservice = await catalogService.createEService(
           {
