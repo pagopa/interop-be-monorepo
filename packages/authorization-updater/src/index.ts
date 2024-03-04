@@ -18,7 +18,9 @@ async function processMessage({
     // TODO : update authorization to AuthjorizationManagement service
 
     logger.info(
-      `Authorization updated after ${JSON.stringify(decodedMessage.type)} event`
+      `Authorization updated after ${JSON.stringify(
+        decodedMessage.type
+      )} event - Partition number: ${partition} - Offset: ${message.offset}`
     );
   } catch (e) {
     logger.error(
