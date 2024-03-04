@@ -232,29 +232,6 @@ export function catalogServiceBuilder(
 ) {
   const repository = eventRepository(dbInstance, catalogEventToBinaryData);
   return {
-    async createEService(
-      apiEServicesSeed: ApiEServiceSeed,
-      authData: AuthData
-    ): Promise<EServiceId> {
-      logger.info(
-        `Creating EService with service name ${apiEServicesSeed.name}`
-      );
-
-      const eserviceWithSameName =
-        await readModelService.getEServiceByNameAndProducerId({
-          name: apiEServicesSeed.name,
-          producerId: authData.organizationId,
-        });
-      return unsafeBrandId<EServiceId>(
-        await repository.createEvent(
-          createEserviceLogic({
-            eserviceWithSameName,
-            apiEServicesSeed,
-            authData,
-          })
-        )
-      );
-    },
     async getEServiceById(
       eserviceId: EServiceId,
       authData: AuthData
@@ -625,40 +602,47 @@ export function catalogServiceBuilder(
         })
       );
     },
+
+    async createEService(
+      apiEServicesSeed: ApiEServiceSeed,
+      authData: AuthData
+    ): Promise<EService> {
+      logger.info(
+        `Creating EService with service name ${apiEServicesSeed.name}`
+      );
+
+      if (authData.externalId.origin !== "IPA") {
+        throw originNotCompliant("IPA");
+      }
+
+      const eserviceWithSameName =
+        await readModelService.getEServiceByNameAndProducerId({
+          name: apiEServicesSeed.name,
+          producerId: authData.organizationId,
+        });
+      if (eserviceWithSameName) {
+        throw eServiceDuplicate(apiEServicesSeed.name);
+      }
+
+      const newEService: EService = {
+        id: generateId(),
+        producerId: authData.organizationId,
+        name: apiEServicesSeed.name,
+        description: apiEServicesSeed.description,
+        technology: apiTechnologyToTechnology(apiEServicesSeed.technology),
+        mode: apiEServiceModeToEServiceMode(apiEServicesSeed.mode),
+        attributes: undefined,
+        descriptors: [],
+        createdAt: new Date(),
+        riskAnalysis: [],
+      };
+
+      const event = toCreateEventEServiceAdded(newEService);
+      await repository.createEvent(event);
+
+      return newEService;
+    },
   };
-}
-
-export function createEserviceLogic({
-  eserviceWithSameName,
-  apiEServicesSeed,
-  authData,
-}: {
-  eserviceWithSameName: WithMetadata<EService> | undefined;
-  apiEServicesSeed: ApiEServiceSeed;
-  authData: AuthData;
-}): CreateEvent<EServiceEvent> {
-  if (authData.externalId.origin !== "IPA") {
-    throw originNotCompliant("IPA");
-  }
-
-  if (eserviceWithSameName) {
-    throw eServiceDuplicate(apiEServicesSeed.name);
-  }
-
-  const newEService: EService = {
-    id: generateId(),
-    producerId: authData.organizationId,
-    name: apiEServicesSeed.name,
-    description: apiEServicesSeed.description,
-    technology: apiTechnologyToTechnology(apiEServicesSeed.technology),
-    mode: apiEServiceModeToEServiceMode(apiEServicesSeed.mode),
-    attributes: undefined,
-    descriptors: [],
-    createdAt: new Date(),
-    riskAnalysis: [],
-  };
-
-  return toCreateEventEServiceAdded(newEService);
 }
 
 export async function updateEserviceLogic({

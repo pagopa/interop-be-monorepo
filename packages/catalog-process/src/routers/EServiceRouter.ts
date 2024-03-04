@@ -131,11 +131,11 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
-          const id = await catalogService.createEService(
+          const eservice = await catalogService.createEService(
             req.body,
             req.ctx.authData
           );
-          return res.status(201).json({ id }).end();
+          return res.status(201).json(eServiceToApiEService(eservice)).end();
         } catch (error) {
           const errorRes = makeApiProblem(error, createEServiceErrorMapper);
           return res.status(errorRes.status).json(errorRes).end();
