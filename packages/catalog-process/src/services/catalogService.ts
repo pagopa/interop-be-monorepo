@@ -1,6 +1,5 @@
 import {
   AuthData,
-  CreateEvent,
   DB,
   FileManager,
   eventRepository,
@@ -15,7 +14,6 @@ import {
   Document,
   EService,
   EServiceDocumentId,
-  EServiceEvent,
   EServiceId,
   TenantId,
   WithMetadata,
@@ -305,28 +303,6 @@ export function catalogServiceBuilder(
         throw eServiceDocumentNotFound(eserviceId, descriptorId, documentId);
       }
       return document;
-    },
-
-    async updateDescriptor(
-      eserviceId: EServiceId,
-      descriptorId: DescriptorId,
-      seed: UpdateEServiceDescriptorQuotasSeed,
-      authData: AuthData
-    ): Promise<string> {
-      logger.info(
-        `Updating Descriptor ${descriptorId} for EService ${eserviceId}`
-      );
-      const eService = await readModelService.getEServiceById(eserviceId);
-
-      return await repository.createEvent(
-        updateDescriptorLogic({
-          eserviceId,
-          descriptorId,
-          seed,
-          authData,
-          eService,
-        })
-      );
     },
 
     async createEService(
@@ -1208,56 +1184,59 @@ export function catalogServiceBuilder(
 
       await repository.createEvent(event);
     },
+
+    async updateDescriptor(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: UpdateEServiceDescriptorQuotasSeed,
+      authData: AuthData
+    ): Promise<EService> {
+      logger.info(
+        `Updating Descriptor ${descriptorId} for EService ${eserviceId}`
+      );
+
+      const eService = await retrieveEService(eserviceId, readModelService);
+      assertRequesterAllowed(eService.data.producerId, authData.organizationId);
+
+      const descriptor = retrieveDescriptor(descriptorId, eService);
+
+      if (
+        descriptor.state !== descriptorState.published &&
+        descriptor.state !== descriptorState.suspended &&
+        descriptor.state !== descriptorState.deprecated
+      ) {
+        throw notValidDescriptor(descriptorId, descriptor.state.toString());
+      }
+
+      assertDailyCallsAreConsistentAndNotDecreased({
+        dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
+        dailyCallsTotal: descriptor.dailyCallsTotal,
+        updatedDailyCallsPerConsumer: seed.dailyCallsPerConsumer,
+        updatedDailyCallsTotal: seed.dailyCallsTotal,
+      });
+
+      const updatedDescriptor: Descriptor = {
+        ...descriptor,
+        voucherLifespan: seed.voucherLifespan,
+        dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
+        dailyCallsTotal: seed.dailyCallsTotal,
+      };
+
+      const updatedEService = replaceDescriptor(
+        eService.data,
+        updatedDescriptor
+      );
+
+      const event = toCreateEventEServiceUpdated(
+        eserviceId,
+        eService.metadata.version,
+        updatedEService
+      );
+      await repository.createEvent(event);
+
+      return updatedEService;
+    },
   };
-}
-
-export function updateDescriptorLogic({
-  eserviceId,
-  descriptorId,
-  seed,
-  authData,
-  eService,
-}: {
-  eserviceId: EServiceId;
-  descriptorId: DescriptorId;
-  seed: UpdateEServiceDescriptorQuotasSeed;
-  authData: AuthData;
-  eService: WithMetadata<EService> | undefined;
-}): CreateEvent<EServiceEvent> {
-  assertEServiceExist(eserviceId, eService);
-  assertRequesterAllowed(eService.data.producerId, authData.organizationId);
-
-  const descriptor = retrieveDescriptor(descriptorId, eService);
-
-  if (
-    descriptor.state !== descriptorState.published &&
-    descriptor.state !== descriptorState.suspended &&
-    descriptor.state !== descriptorState.deprecated
-  ) {
-    throw notValidDescriptor(descriptorId, descriptor.state.toString());
-  }
-
-  assertDailyCallsAreConsistentAndNotDecreased({
-    dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
-    dailyCallsTotal: descriptor.dailyCallsTotal,
-    updatedDailyCallsPerConsumer: seed.dailyCallsPerConsumer,
-    updatedDailyCallsTotal: seed.dailyCallsTotal,
-  });
-
-  const updatedDescriptor: Descriptor = {
-    ...descriptor,
-    voucherLifespan: seed.voucherLifespan,
-    dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
-    dailyCallsTotal: seed.dailyCallsTotal,
-  };
-
-  const updatedEService = replaceDescriptor(eService.data, updatedDescriptor);
-
-  return toCreateEventEServiceUpdated(
-    eserviceId,
-    eService.metadata.version,
-    updatedEService
-  );
 }
 
 const isUserAllowedToSeeDraft = (
