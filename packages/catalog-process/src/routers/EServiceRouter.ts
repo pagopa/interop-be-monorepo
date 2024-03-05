@@ -131,11 +131,11 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
-          const id = await catalogService.createEService(
+          const eservice = await catalogService.createEService(
             req.body,
             req.ctx.authData
           );
-          return res.status(201).json({ id }).end();
+          return res.status(200).json(eServiceToApiEService(eservice)).end();
         } catch (error) {
           const errorRes = makeApiProblem(error, createEServiceErrorMapper);
           return res.status(errorRes.status).json(errorRes).end();
@@ -169,12 +169,15 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
-          await catalogService.updateEService(
+          const updatedEService = await catalogService.updateEService(
             unsafeBrandId(req.params.eServiceId),
             req.body,
             req.ctx.authData
           );
-          return res.status(200).end();
+          return res
+            .status(200)
+            .json(eServiceToApiEService(updatedEService))
+            .end();
         } catch (error) {
           const errorRes = makeApiProblem(error, updateEServiceErrorMapper);
           return res.status(errorRes.status).json(errorRes).end();
@@ -278,13 +281,16 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
-          const id = await catalogService.uploadDocument(
+          const updatedEService = await catalogService.uploadDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.body,
             req.ctx.authData
           );
-          return res.status(200).json({ id }).end();
+          return res
+            .status(200)
+            .json(eServiceToApiEService(updatedEService))
+            .end();
         } catch (error) {
           const errorRes = makeApiProblem(error, documentCreateErrorMapper);
           return res.status(errorRes.status).json(errorRes).end();
