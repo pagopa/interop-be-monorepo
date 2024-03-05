@@ -231,7 +231,7 @@ describe("database test", async () => {
         ).rejects.toThrowError(eServiceDuplicate(mockEService.name));
       });
 
-      it("should throw originNotCompliant if the requester externalId origin is not IPA", async () => {
+      it("should throw originNotCompliant if the requester externalId origin is not allowed", async () => {
         expect(
           catalogService.createEService(
             {
