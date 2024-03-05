@@ -44,18 +44,29 @@ const getDescriptorFromEvent = (msg: {
   return { eserviceId: eservice.id, descriptor };
 };
 
-function getprocessMessage(authService: AuthorizationService) {
-  return async ({
-    topic,
-    message,
-    partition,
-  }: EachMessagePayload): Promise<void> => {
+async function executeUpdate(
+  eventType: string,
+  messagePayload: EachMessagePayload,
+  update: () => Promise<void>
+): Promise<void> {
+  await update();
+  logger.info(
+    `Authorization updated after ${JSON.stringify(
+      eventType
+    )} event - Partition number: ${messagePayload.partition} - Offset: ${
+      messagePayload.message.offset
+    }`
+  );
+}
+
+function processMessage(authService: AuthorizationService) {
+  return async (messagePayload: EachMessagePayload): Promise<void> => {
     try {
       const appContext = getContext();
       appContext.correlationId = uuidv4();
 
-      const messageDecoder = messageDecoderSupplier(topic);
-      const decodedMsg = messageDecoder(message);
+      const messageDecoder = messageDecoderSupplier(messagePayload.topic);
+      const decodedMsg = messageDecoder(messagePayload.message);
 
       match(decodedMsg)
         .with(
@@ -69,12 +80,14 @@ function getprocessMessage(authService: AuthorizationService) {
           },
           async (msg) => {
             const data = getDescriptorFromEvent(msg);
-            await authService.updateEServiceState(
-              "ACTIVE",
-              data.descriptor.id,
-              data.eserviceId,
-              data.descriptor.audience,
-              data.descriptor.voucherLifespan
+            await executeUpdate(decodedMsg.type, messagePayload, () =>
+              authService.updateEServiceState(
+                "ACTIVE",
+                data.descriptor.id,
+                data.eserviceId,
+                data.descriptor.audience,
+                data.descriptor.voucherLifespan
+              )
             );
           }
         )
@@ -85,23 +98,20 @@ function getprocessMessage(authService: AuthorizationService) {
           },
           async (msg) => {
             const data = getDescriptorFromEvent(msg);
-            await authService.updateEServiceState(
-              "INACTIVE",
-              data.descriptor.id,
-              data.eserviceId,
-              data.descriptor.audience,
-              data.descriptor.voucherLifespan
+            await executeUpdate(decodedMsg.type, messagePayload, () =>
+              authService.updateEServiceState(
+                "INACTIVE",
+                data.descriptor.id,
+                data.eserviceId,
+                data.descriptor.audience,
+                data.descriptor.voucherLifespan
+              )
             );
           }
         );
-      logger.info(
-        `Authorization updated after ${JSON.stringify(
-          decodedMsg.type
-        )} event - Partition number: ${partition} - Offset: ${message.offset}`
-      );
     } catch (e) {
       logger.error(
-        ` Error during message handling. Partition number: ${partition}. Offset: ${message.offset}.\nError: ${e}`
+        ` Error during message handling. Partition number: ${messagePayload.partition}. Offset: ${messagePayload.message.offset}.\nError: ${e}`
       );
     }
   };
@@ -110,7 +120,7 @@ function getprocessMessage(authService: AuthorizationService) {
 try {
   const authService = await authorizationServiceBuilder();
   const config = kafkaConsumerConfig();
-  await runConsumer(config, getprocessMessage(authService)).catch(logger.error);
+  await runConsumer(config, processMessage(authService)).catch(logger.error);
 } catch (e) {
-  logger.error(`Error during bootstrap:\n${e}`);
+  logger.error(`An error occurred during initialization:\n${e}`);
 }
