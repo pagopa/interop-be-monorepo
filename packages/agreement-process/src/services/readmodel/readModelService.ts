@@ -488,7 +488,7 @@ export function readModelServiceBuilder(
       return undefined;
     },
     async getAttributeById(
-      id: string
+      id: AttributeId
     ): Promise<WithMetadata<Attribute> | undefined> {
       return getAttribute(attributes, { "data.id": id });
     },
