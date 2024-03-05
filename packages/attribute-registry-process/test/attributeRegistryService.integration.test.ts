@@ -32,7 +32,6 @@ import {
   Tenant,
   attributeKind,
   generateId,
-  unsafeBrandId,
 } from "pagopa-interop-models";
 import { config } from "../src/utilities/config.js";
 import {
@@ -117,17 +116,21 @@ describe("database test", () => {
   describe("attributeRegistryService", () => {
     describe("declared attribute creation", () => {
       it("should write on event-store for the creation of a declared attribute", async () => {
-        const id = await attributeRegistryService.createDeclaredAttribute(
-          {
-            name: mockAttribute.name,
-            description: mockAttribute.description,
-          },
-          getMockAuthData()
-        );
-        expect(id).toBeDefined();
+        const attribute =
+          await attributeRegistryService.createDeclaredAttribute(
+            {
+              name: mockAttribute.name,
+              description: mockAttribute.description,
+            },
+            getMockAuthData()
+          );
+        expect(attribute).toBeDefined();
 
-        const writtenEvent = await readLastEventByStreamId(id, postgresDB);
-        expect(writtenEvent.stream_id).toBe(id);
+        const writtenEvent = await readLastEventByStreamId(
+          attribute.id,
+          postgresDB
+        );
+        expect(writtenEvent.stream_id).toBe(attribute.id);
         expect(writtenEvent.version).toBe("0");
         expect(writtenEvent.type).toBe("AttributeAdded");
         expect(writtenEvent.event_version).toBe(1);
@@ -136,14 +139,16 @@ describe("database test", () => {
           payload: writtenEvent.data,
         });
 
-        const attribute: Attribute = {
+        const expectedAttribute: Attribute = {
           ...mockAttribute,
-          id: unsafeBrandId(id),
+          id: attribute.id,
           kind: attributeKind.declared,
           creationTime: new Date(writtenPayload.attribute!.creationTime),
         };
 
-        expect(writtenPayload.attribute).toEqual(toAttributeV1(attribute));
+        expect(writtenPayload.attribute).toEqual(
+          toAttributeV1(expectedAttribute)
+        );
       });
       it("should throw attributeDuplicate if an attribute with the same name already exists", async () => {
         const attribute = {
@@ -164,17 +169,21 @@ describe("database test", () => {
     });
     describe("verified attribute creation", () => {
       it("should write on event-store for the creation of a verified attribute", async () => {
-        const id = await attributeRegistryService.createVerifiedAttribute(
-          {
-            name: mockAttribute.name,
-            description: mockAttribute.description,
-          },
-          getMockAuthData()
-        );
-        expect(id).toBeDefined();
+        const attribute =
+          await attributeRegistryService.createVerifiedAttribute(
+            {
+              name: mockAttribute.name,
+              description: mockAttribute.description,
+            },
+            getMockAuthData()
+          );
+        expect(attribute).toBeDefined();
 
-        const writtenEvent = await readLastEventByStreamId(id, postgresDB);
-        expect(writtenEvent.stream_id).toBe(id);
+        const writtenEvent = await readLastEventByStreamId(
+          attribute.id,
+          postgresDB
+        );
+        expect(writtenEvent.stream_id).toBe(attribute.id);
         expect(writtenEvent.version).toBe("0");
         expect(writtenEvent.type).toBe("AttributeAdded");
         expect(writtenEvent.event_version).toBe(1);
@@ -184,14 +193,16 @@ describe("database test", () => {
           payload: writtenEvent.data,
         });
 
-        const attribute: Attribute = {
+        const expectedAttribute: Attribute = {
           ...mockAttribute,
-          id: unsafeBrandId(id),
+          id: attribute.id,
           kind: attributeKind.verified,
           creationTime: new Date(writtenPayload.attribute!.creationTime),
         };
 
-        expect(writtenPayload.attribute).toEqual(toAttributeV1(attribute));
+        expect(writtenPayload.attribute).toEqual(
+          toAttributeV1(expectedAttribute)
+        );
       });
       it("should throw attributeDuplicate if an attribute with the same name already exists", async () => {
         const attribute = {
@@ -224,18 +235,22 @@ describe("database test", () => {
 
         await addOneTenant(tenant, tenants);
 
-        const id = await attributeRegistryService.createCertifiedAttribute(
-          {
-            name: mockAttribute.name,
-            code: mockAttribute.code!,
-            description: mockAttribute.description,
-          },
-          getMockAuthData(tenant.id)
-        );
-        expect(id).toBeDefined();
+        const attribute =
+          await attributeRegistryService.createCertifiedAttribute(
+            {
+              name: mockAttribute.name,
+              code: mockAttribute.code!,
+              description: mockAttribute.description,
+            },
+            getMockAuthData(tenant.id)
+          );
+        expect(attribute).toBeDefined();
 
-        const writtenEvent = await readLastEventByStreamId(id, postgresDB);
-        expect(writtenEvent.stream_id).toBe(id);
+        const writtenEvent = await readLastEventByStreamId(
+          attribute.id,
+          postgresDB
+        );
+        expect(writtenEvent.stream_id).toBe(attribute.id);
         expect(writtenEvent.version).toBe("0");
         expect(writtenEvent.type).toBe("AttributeAdded");
         expect(writtenEvent.event_version).toBe(1);
@@ -244,14 +259,16 @@ describe("database test", () => {
           payload: writtenEvent.data,
         });
 
-        const attribute: Attribute = {
+        const expectedAttribute: Attribute = {
           ...mockAttribute,
-          id: unsafeBrandId(id),
+          id: attribute.id,
           kind: attributeKind.certified,
           creationTime: new Date(writtenPayload.attribute!.creationTime),
           origin: tenant.features[0].certifierId,
         };
-        expect(writtenPayload.attribute).toEqual(toAttributeV1(attribute));
+        expect(writtenPayload.attribute).toEqual(
+          toAttributeV1(expectedAttribute)
+        );
       });
       it("should throw attributeDuplicate if an attribute with the same name and code already exists", async () => {
         const attribute = {
@@ -324,17 +341,20 @@ describe("database test", () => {
 
         await addOneTenant(tenant, tenants);
 
-        const id =
+        const attribute =
           await attributeRegistryService.createInternalCertifiedAttribute({
             name: mockAttribute.name,
             code: mockAttribute.code!,
             origin: tenant.features[0].certifierId,
             description: mockAttribute.description,
           });
-        expect(id).toBeDefined();
+        expect(attribute).toBeDefined();
 
-        const writtenEvent = await readLastEventByStreamId(id, postgresDB);
-        expect(writtenEvent.stream_id).toBe(id);
+        const writtenEvent = await readLastEventByStreamId(
+          attribute.id,
+          postgresDB
+        );
+        expect(writtenEvent.stream_id).toBe(attribute.id);
         expect(writtenEvent.version).toBe("0");
         expect(writtenEvent.type).toBe("AttributeAdded");
         expect(writtenEvent.event_version).toBe(1);
@@ -343,14 +363,16 @@ describe("database test", () => {
           payload: writtenEvent.data,
         });
 
-        const attribute: Attribute = {
+        const expectedAttribute: Attribute = {
           ...mockAttribute,
-          id: unsafeBrandId(id),
+          id: attribute.id,
           kind: attributeKind.certified,
           creationTime: new Date(writtenPayload.attribute!.creationTime),
           origin: tenant.features[0].certifierId,
         };
-        expect(writtenPayload.attribute).toEqual(toAttributeV1(attribute));
+        expect(writtenPayload.attribute).toEqual(
+          toAttributeV1(expectedAttribute)
+        );
       });
       it("should throw attributeDuplicate if an attribute with the same name and code already exists", async () => {
         const attribute = {
