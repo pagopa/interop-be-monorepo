@@ -1,10 +1,10 @@
 import { TenantKind } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import pa1 from "./PA/1.0.json";
-import pa2 from "./PA/2.0.json";
-import pa3 from "./PA/3.0.json";
-import private1 from "./PRIVATE/1.0.json";
-import private2 from "./PRIVATE/2.0.json";
+import pa1 from "./PA/1.0.json" assert { type: "json" };
+import pa2 from "./PA/2.0.json" assert { type: "json" };
+import pa3 from "./PA/3.0.json" assert { type: "json" };
+import private1 from "./PRIVATE/1.0.json" assert { type: "json" };
+import private2 from "./PRIVATE/2.0.json" assert { type: "json" };
 import { RiskAnalysisFormRules } from "./models.js";
 
 function getRules(
