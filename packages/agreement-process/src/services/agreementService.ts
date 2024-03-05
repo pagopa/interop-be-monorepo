@@ -298,7 +298,7 @@ export function agreementServiceBuilder(
       return agreementId;
     },
     async getAgreementEServices(
-      eServiceName: string | undefined,
+      eserviceName: string | undefined,
       consumerIds: string[],
       producerIds: string[],
       limit: number,
@@ -309,7 +309,7 @@ export function agreementServiceBuilder(
       );
 
       return await agreementQuery.getEServices(
-        eServiceName,
+        eserviceName,
         consumerIds,
         producerIds,
         limit,
