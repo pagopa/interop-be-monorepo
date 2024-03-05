@@ -7,6 +7,7 @@ import {
   eventRepository,
   hasPermission,
   logger,
+  riskAnalysisValidatedFormToNewRiskAnalysis,
   userRoles,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
@@ -33,6 +34,7 @@ import {
   RiskAnalysis,
   EServiceEvent,
   TenantKind,
+  RiskAnalysis,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -1404,27 +1406,11 @@ export function createRiskAnalysisLogic({
     tenant.data.kind
   );
 
-  const newRiskAnalysis: RiskAnalysis = {
-    name: eserviceRiskAnalysisSeed.name,
-    id: generateId(),
-    createdAt: new Date(),
-    riskAnalysisForm: {
-      id: generateId(),
-      version: validatedRiskAnalysisForm.version,
-      singleAnswers: validatedRiskAnalysisForm.singleAnswers.map(
-        (singleAnswer) => ({
-          id: generateId(),
-          ...singleAnswer,
-        })
-      ),
-      multiAnswers: validatedRiskAnalysisForm.multiAnswers.map(
-        (multipleAnswer) => ({
-          id: generateId(),
-          ...multipleAnswer,
-        })
-      ),
-    },
-  };
+  const newRiskAnalysis: RiskAnalysis =
+    riskAnalysisValidatedFormToNewRiskAnalysis(
+      validatedRiskAnalysisForm,
+      eserviceRiskAnalysisSeed.name
+    );
 
   const newEservice: EService = {
     ...eservice.data,

@@ -1,3 +1,11 @@
+import {
+  RiskAnalysis,
+  RiskAnalysisFormId,
+  RiskAnalysisId,
+  RiskAnalysisMultiAnswerId,
+  RiskAnalysisSingleAnswerId,
+  generateId,
+} from "pagopa-interop-models";
 import { DataType } from "./rules/models.js";
 import { RiskAnalysisValidationIssue } from "./riskAnalysisErrors.js";
 
@@ -58,3 +66,26 @@ export type ValidationRule = {
   dependencies: ValidationRuleDependency[];
   allowedValues: Set<string> | undefined;
 };
+
+export function riskAnalysisValidatedFormToNewRiskAnalysis(
+  validatedForm: RiskAnalysisValidatedForm,
+  name: RiskAnalysis["name"]
+): RiskAnalysis {
+  return {
+    id: generateId<RiskAnalysisId>(),
+    name,
+    createdAt: new Date(),
+    riskAnalysisForm: {
+      id: generateId<RiskAnalysisFormId>(),
+      version: validatedForm.version,
+      singleAnswers: validatedForm.singleAnswers.map((a) => ({
+        ...a,
+        id: generateId<RiskAnalysisSingleAnswerId>(),
+      })),
+      multiAnswers: validatedForm.multiAnswers.map((a) => ({
+        ...a,
+        id: generateId<RiskAnalysisMultiAnswerId>(),
+      })),
+    },
+  };
+}
