@@ -1469,3 +1469,5 @@ function validateRiskAnalysisOrThrow(
     return result.value;
   }
 }
+
+export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
