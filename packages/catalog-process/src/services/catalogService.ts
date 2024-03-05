@@ -1751,7 +1751,6 @@ function validateRiskAnalysisOrThrow(
   tenantKind: TenantKind
 ): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(riskAnalysisForm, schemaOnly, tenantKind);
-
   if (result.type === "invalid") {
     throw riskAnalysisValidationFailed(result.issues);
   } else {
