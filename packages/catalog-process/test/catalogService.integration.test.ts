@@ -243,7 +243,7 @@ describe("database test", async () => {
             {
               ...getMockAuthData(mockEService.producerId),
               externalId: {
-                ...getMockAuthData().externalId,
+                value: "123456",
                 origin: "not-allowed-origin",
               },
             }
