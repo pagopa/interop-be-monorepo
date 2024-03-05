@@ -37,14 +37,14 @@ export function agreementQueryBuilder(readModelService: ReadModelService) {
     ): Promise<ListResult<CompactOrganization>> =>
       readModelService.listProducers(name, limit, offset),
     getEServices: (
-      eServiceName: string | undefined,
+      eserviceName: string | undefined,
       consumerIds: string[],
       producerIds: string[],
       limit: number,
       offset: number
     ): Promise<ListResult<CompactOrganization>> =>
       readModelService.listEServicesAgreements(
-        eServiceName,
+        eserviceName,
         consumerIds,
         producerIds,
         limit,
