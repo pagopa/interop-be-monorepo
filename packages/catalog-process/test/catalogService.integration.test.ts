@@ -242,10 +242,13 @@ describe("database test", async () => {
             },
             {
               ...getMockAuthData(mockEService.producerId),
-              externalId: { ...getMockAuthData().externalId, origin: "" },
+              externalId: {
+                ...getMockAuthData().externalId,
+                origin: "not-allowed-origin",
+              },
             }
           )
-        ).rejects.toThrowError(originNotCompliant("IPA"));
+        ).rejects.toThrowError(originNotCompliant("not-allowed-origin"));
       });
     });
 

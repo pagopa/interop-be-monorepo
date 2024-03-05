@@ -161,7 +161,7 @@ export function inconsistentDailyCalls(): ApiError<ErrorCodes> {
 
 export function originNotCompliant(origin: string): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Requester has not origin ${origin}`,
+    detail: `Requester origin ${origin} is not allowed`,
     code: "originNotCompliant",
     title: "Origin is not compliant",
   });
