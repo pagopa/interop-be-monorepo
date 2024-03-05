@@ -3741,7 +3741,7 @@ describe("database test", async () => {
         );
         expect(result).toEqual({
           totalCount: 1,
-          results: [eService6],
+          results: [eservice6],
         });
       });
 
@@ -3761,7 +3761,7 @@ describe("database test", async () => {
         );
         expect(result).toEqual({
           totalCount: 2,
-          results: [eService4, eService5],
+          results: [eservice4, eservice5],
         });
       });
 
