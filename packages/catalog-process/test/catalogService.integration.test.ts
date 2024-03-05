@@ -44,13 +44,16 @@ import {
   EServiceDescriptorPublishedV2,
   EServiceDescriptorSuspendedV2,
   EServiceId,
+  EServiceRiskAnalysisAddedV2,
   Tenant,
   TenantId,
+  TenantKind,
   agreementState,
   descriptorState,
   eserviceMode,
   generateId,
   operationForbidden,
+  tenantKind,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
@@ -58,15 +61,18 @@ import {
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
   decodeProtobufPayload,
+  getMockValidRiskAnalysis,
   minioContainer,
   mongoDBContainer,
   postgreSQLContainer,
+  randomArrayItem,
 } from "pagopa-interop-commons-test";
 import { StartedTestContainer } from "testcontainers";
 import { config } from "../src/utilities/config.js";
 import { toEServiceV2 } from "../src/model/domain/toEvent.js";
 import {
   EServiceDescriptorSeed,
+  EServiceRiskAnalysisSeed,
   UpdateEServiceDescriptorQuotasSeed,
 } from "../src/model/domain/models.js";
 import {
@@ -108,6 +114,7 @@ import {
   readLastEventByStreamId,
   addOneAttribute,
   getMockEServiceAttributes,
+  buildRiskAnalysisSeed,
 } from "./utils.js";
 
 const mockEService = getMockEService();
@@ -4980,6 +4987,100 @@ describe("database test", async () => {
             authData,
           })
         ).rejects.toThrowError(eServiceNotFound(eservice.id));
+      });
+    });
+    describe("create risk analysis", () => {
+      it("should write on event-store for the creation of a risk analysis", async () => {
+        const producerTenantKind: TenantKind = randomArrayItem(
+          Object.values(tenantKind)
+        );
+        const producer: Tenant = {
+          ...getMockTenant(),
+          kind: producerTenantKind,
+        };
+
+        const mockValidRiskAnalysis =
+          getMockValidRiskAnalysis(producerTenantKind);
+        const riskAnalysisSeed: EServiceRiskAnalysisSeed =
+          buildRiskAnalysisSeed(mockValidRiskAnalysis);
+
+        const eservice: EService = {
+          ...mockEService,
+          producerId: producer.id,
+          mode: eserviceMode.receive,
+        };
+
+        addOneTenant(producer, tenants);
+        addOneEService(eservice, postgresDB, eservices);
+
+        await catalogService.createRiskAnalysis(
+          eservice.id,
+          riskAnalysisSeed,
+          getMockAuthData(producer.id)
+        );
+
+        const writtenEvent = await readLastEventByStreamId(
+          eservice.id,
+          postgresDB
+        );
+
+        expect(writtenEvent.stream_id).toBe(eservice.id);
+        expect(writtenEvent.version).toBe("1");
+        expect(writtenEvent.type).toBe("EServiceRiskAnalysisAdded");
+        expect(writtenEvent.event_version).toBe(2);
+        const writtenPayload = decodeProtobufPayload({
+          messageType: EServiceRiskAnalysisAddedV2,
+          payload: writtenEvent.data,
+        });
+
+        const expectedEservice = toEServiceV2({
+          ...eservice,
+          riskAnalysis: [
+            {
+              ...mockValidRiskAnalysis,
+              id: unsafeBrandId(writtenPayload.eservice!.riskAnalysis[0]!.id),
+              name: riskAnalysisSeed.name,
+              createdAt: new Date(
+                Number(writtenPayload.eservice!.riskAnalysis[0]!.createdAt)
+              ),
+              riskAnalysisForm: {
+                id: unsafeBrandId(
+                  writtenPayload.eservice!.riskAnalysis[0]!.riskAnalysisForm!.id
+                ),
+                version:
+                  writtenPayload.eservice!.riskAnalysis[0]!.riskAnalysisForm!
+                    .version,
+                singleAnswers:
+                  mockValidRiskAnalysis.riskAnalysisForm.singleAnswers.map(
+                    (singleAnswer) => ({
+                      ...singleAnswer,
+                      id: unsafeBrandId(
+                        writtenPayload.eservice!.riskAnalysis[0]!.riskAnalysisForm!.singleAnswers.find(
+                          (sa) => sa.key === singleAnswer.key
+                        )!.id
+                      ),
+                    })
+                  ),
+                multiAnswers:
+                  mockValidRiskAnalysis.riskAnalysisForm.multiAnswers.map(
+                    (multiAnswer) => ({
+                      ...multiAnswer,
+                      id: unsafeBrandId(
+                        writtenPayload.eservice!.riskAnalysis[0]!.riskAnalysisForm!.multiAnswers.find(
+                          (ma) => ma.key === multiAnswer.key
+                        )!.id
+                      ),
+                    })
+                  ),
+              },
+            },
+          ],
+        });
+
+        expect(writtenPayload.riskAnalysisId).toEqual(
+          expectedEservice.riskAnalysis[0].id
+        );
+        expect(writtenPayload.eservice).toEqual(expectedEservice);
       });
     });
   });
