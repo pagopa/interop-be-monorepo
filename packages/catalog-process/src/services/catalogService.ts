@@ -304,8 +304,8 @@ export function catalogServiceBuilder(
         `Creating EService with service name ${apiEServicesSeed.name}`
       );
 
-      if (authData.externalId.origin !== "IPA") {
-        throw originNotCompliant("IPA");
+      if (!config.producerAllowedOrigins.includes(authData.externalId.origin)) {
+        throw originNotCompliant(authData.externalId.origin);
       }
 
       const eserviceWithSameName =
