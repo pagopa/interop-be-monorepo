@@ -91,6 +91,11 @@ paths:
             default: []
           explode: false
         - in: query
+          name: mode
+          description: mode
+          schema:
+            $ref: "#/components/schemas/EServiceMode"
+        - in: query
           name: offset
           required: true
           schema:
