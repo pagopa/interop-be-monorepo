@@ -59,9 +59,9 @@ export function unexpectedFieldValue(
 ): RiskAnalysisValidationIssue {
   return new RiskAnalysisValidationIssue({
     code: "unexpectedFieldValue",
-    issue: `Field ${fieldName} should be one of ${Array.from(
+    issue: `Field ${fieldName} should be one of [${Array.from(
       allowedValues
-    ).join(",")}`,
+    ).join(",")}]`,
   });
 }
 
