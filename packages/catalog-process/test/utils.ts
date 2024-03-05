@@ -18,6 +18,7 @@ import {
   EServiceEvent,
   EServiceId,
   EserviceAttributes,
+  RiskAnalysis,
   Tenant,
   TenantId,
   agreementState,
@@ -28,7 +29,10 @@ import {
   technology,
 } from "pagopa-interop-models";
 import { toEServiceV2 } from "../src/model/domain/toEvent.js";
-import { EServiceDescriptorSeed } from "../src/model/domain/models.js";
+import {
+  EServiceDescriptorSeed,
+  EServiceRiskAnalysisSeed,
+} from "../src/model/domain/models.js";
 import { ApiEServiceDescriptorDocumentSeed } from "../src/model/types.js";
 
 export const writeEServiceInEventstore = async (
@@ -131,6 +135,31 @@ export const buildDescriptorSeed = (
     certified: [],
     declared: [],
     verified: [],
+  },
+});
+
+export const buildRiskAnalysisSeed = (
+  riskAnalysis: RiskAnalysis
+): EServiceRiskAnalysisSeed => ({
+  name: riskAnalysis.name,
+  riskAnalysisForm: {
+    version: riskAnalysis.riskAnalysisForm.version,
+    answers: {
+      ...riskAnalysis.riskAnalysisForm.singleAnswers.reduce(
+        (acc, singleAnswer) => ({
+          ...acc,
+          [singleAnswer.key]: singleAnswer.value ? [singleAnswer.value] : [],
+        }),
+        {}
+      ),
+      ...riskAnalysis.riskAnalysisForm.multiAnswers.reduce(
+        (acc, multiAnswer) => ({
+          ...acc,
+          [multiAnswer.key]: multiAnswer.values,
+        }),
+        {}
+      ),
+    },
   },
 });
 
