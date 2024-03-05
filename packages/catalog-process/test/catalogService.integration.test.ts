@@ -4732,17 +4732,14 @@ describe("database test", async () => {
             {
               ...mockValidRiskAnalysis,
               id: unsafeBrandId(writtenPayload.eservice!.riskAnalysis[0]!.id),
-              name: riskAnalysisSeed.name,
               createdAt: new Date(
                 Number(writtenPayload.eservice!.riskAnalysis[0]!.createdAt)
               ),
               riskAnalysisForm: {
+                ...mockValidRiskAnalysis.riskAnalysisForm,
                 id: unsafeBrandId(
                   writtenPayload.eservice!.riskAnalysis[0]!.riskAnalysisForm!.id
                 ),
-                version:
-                  writtenPayload.eservice!.riskAnalysis[0]!.riskAnalysisForm!
-                    .version,
                 singleAnswers:
                   mockValidRiskAnalysis.riskAnalysisForm.singleAnswers.map(
                     (singleAnswer) => ({
