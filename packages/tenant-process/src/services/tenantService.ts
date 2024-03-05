@@ -3,11 +3,13 @@ import {
   CreateEvent,
   eventRepository,
   initDB,
+  logger,
 } from "pagopa-interop-commons";
 import {
   Attribute,
   AttributeId,
   ExternalId,
+  ListResult,
   Tenant,
   TenantAttribute,
   TenantEvent,
@@ -158,6 +160,9 @@ export function tenantServiceBuilder(
           updatedAt: new Date(),
         };
 
+        logger.info(
+          `Creating tenant with external id ${tenantSeed.externalId} via SelfCare request"`
+        );
         return await repository.createEvent(
           toCreateEventTenantUpdated(
             existingTenant.data.id,
@@ -181,6 +186,70 @@ export function tenantServiceBuilder(
           toCreateEventTenantAdded(newTenant)
         );
       }
+    },
+    async getProducers({
+      name,
+      offset,
+      limit,
+    }: {
+      name: string | undefined;
+      offset: number;
+      limit: number;
+    }): Promise<ListResult<Tenant>> {
+      logger.info(
+        `Retrieving Producers with name = ${name}, limit = ${limit}, offset = ${offset}`
+      );
+      return readModelService.getProducers({ name, offset, limit });
+    },
+    async getConsumers({
+      name,
+      producerId,
+      offset,
+      limit,
+    }: {
+      name: string | undefined;
+      producerId: TenantId;
+      offset: number;
+      limit: number;
+    }): Promise<ListResult<Tenant>> {
+      logger.info(
+        `Retrieving Consumers with name = ${name}, limit = ${limit}, offset = ${offset}`
+      );
+      return readModelService.getConsumers({ name, producerId, offset, limit });
+    },
+    async getTenantsByName({
+      name,
+      offset,
+      limit,
+    }: {
+      name: string | undefined;
+      offset: number;
+      limit: number;
+    }): Promise<ListResult<Tenant>> {
+      logger.info(
+        `Retrieving Tenants with name = ${name}, limit = ${limit}, offset = ${offset}`
+      );
+      return readModelService.getTenantsByName({ name, offset, limit });
+    },
+    async getTenantById(
+      id: TenantId
+    ): Promise<WithMetadata<Tenant> | undefined> {
+      logger.info(`Retrieving tenant ${id}`);
+      return readModelService.getTenantById(id);
+    },
+    async getTenantByExternalId(
+      externalId: ExternalId
+    ): Promise<WithMetadata<Tenant> | undefined> {
+      logger.info(
+        `Retrieving tenant by External Id Origin ${externalId.origin} Code ${externalId.value}`
+      );
+      return readModelService.getTenantByExternalId(externalId);
+    },
+    async getTenantBySelfcareId(
+      selfcareId: string
+    ): Promise<WithMetadata<Tenant> | undefined> {
+      logger.info(`Retrieving Tenant by Selfcare Id ${selfcareId}`);
+      return readModelService.getTenantBySelfcareId(selfcareId);
     },
   };
 }
@@ -262,7 +331,7 @@ export async function updateTenantLogic({
     kind,
     updatedAt: new Date(),
   };
-
+  logger.info(`Updating Tenant ${tenant.data.id}`);
   return toCreateEventTenantUpdated(
     tenant.data.id,
     tenant.metadata.version,
@@ -376,6 +445,9 @@ export async function updateVerifiedAttributeExtensionDateLogic({
     updatedAt: new Date(),
   };
 
+  logger.info(
+    `Update extension date of attribute ${attributeId} for tenant ${tenantId}`
+  );
   return toCreateEventTenantUpdated(
     tenant.data.id,
     tenant.metadata.version,

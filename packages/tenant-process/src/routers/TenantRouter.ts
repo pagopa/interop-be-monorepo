@@ -54,7 +54,7 @@ const tenantsRouter = (
       async (req, res) => {
         try {
           const { name, offset, limit } = req.query;
-          const consumers = await readModelService.getConsumers({
+          const consumers = await tenantService.getConsumers({
             name,
             producerId: req.ctx.authData.organizationId,
             offset,
@@ -81,7 +81,7 @@ const tenantsRouter = (
       async (req, res) => {
         try {
           const { name, offset, limit } = req.query;
-          const producers = await readModelService.getProducers({
+          const producers = await tenantService.getProducers({
             name,
             offset,
             limit,
@@ -107,7 +107,7 @@ const tenantsRouter = (
       async (req, res) => {
         try {
           const { name, offset, limit } = req.query;
-          const tenants = await readModelService.getTenantsByName({
+          const tenants = await tenantService.getTenantsByName({
             name,
             offset,
             limit,
@@ -135,7 +135,7 @@ const tenantsRouter = (
       ]),
       async (req, res) => {
         try {
-          const tenant = await readModelService.getTenantById(
+          const tenant = await tenantService.getTenantById(
             unsafeBrandId(req.params.id)
           );
 
@@ -171,7 +171,7 @@ const tenantsRouter = (
         try {
           const { origin, code } = req.params;
 
-          const tenant = await readModelService.getTenantByExternalId({
+          const tenant = await tenantService.getTenantByExternalId({
             value: code,
             origin,
           });
@@ -206,7 +206,7 @@ const tenantsRouter = (
       ]),
       async (req, res) => {
         try {
-          const tenant = await readModelService.getTenantBySelfcareId(
+          const tenant = await tenantService.getTenantBySelfcareId(
             req.params.selfcareId
           );
 
