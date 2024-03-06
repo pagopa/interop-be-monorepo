@@ -1,6 +1,5 @@
 import {
   AuthData,
-  CreateEvent,
   DB,
   FileManager,
   RiskAnalysisValidatedForm,
@@ -33,9 +32,7 @@ import {
   eserviceMode,
   Tenant,
   RiskAnalysis,
-  EServiceEvent,
   TenantKind,
-  RiskAnalysis,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -122,21 +119,11 @@ function assertIsReceiveEservice(eservice: EService): void {
   }
 }
 
-function assertTenantExists(
-  tenantId: TenantId,
-  tenant: WithMetadata<Tenant> | undefined
-): asserts tenant is NonNullable<WithMetadata<Tenant>> {
-  if (tenant === undefined) {
-    throw tenantNotFound(tenantId);
-  }
-}
-
 function assertTenantKindExists(
-  tenantId: TenantId,
-  tenantKind: Tenant["kind"] | undefined
-): asserts tenantKind is NonNullable<Tenant["kind"]> {
-  if (tenantKind === undefined) {
-    throw tenantKindNotFound(tenantId);
+  tenant: Tenant
+): asserts tenant is Tenant & { kind: NonNullable<Tenant["kind"]> } {
+  if (tenant.kind === undefined) {
+    throw tenantKindNotFound(tenant.id);
   }
 }
 
@@ -176,6 +163,17 @@ const retrieveDocument = (
     throw eServiceDocumentNotFound(eserviceId, descriptor.id, documentId);
   }
   return doc;
+};
+
+const retrieveTenant = async (
+  tenantId: TenantId,
+  readModelService: ReadModelService
+): Promise<WithMetadata<Tenant>> => {
+  const tenant = await readModelService.getTenantById(tenantId);
+  if (tenant === undefined) {
+    throw tenantNotFound(tenantId);
+  }
+  return tenant;
 };
 
 const updateDescriptorState = (
@@ -1327,22 +1325,46 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       eserviceRiskAnalysisSeed: EServiceRiskAnalysisSeed,
       authData: AuthData
-    ): Promise<string> {
+    ): Promise<void> {
       logger.info(`Creating Risk Analysis for EService ${eserviceId}`);
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      const tenant = await readModelService.getTenantById(
-        authData.organizationId
+
+      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+      assertIsDraftEservice(eservice.data);
+      assertIsReceiveEservice(eservice.data);
+
+      const tenant = await retrieveTenant(
+        authData.organizationId,
+        readModelService
+      );
+      assertTenantKindExists(tenant.data);
+
+      const validatedRiskAnalysisForm = validateRiskAnalysisOrThrow(
+        eserviceRiskAnalysisSeed.riskAnalysisForm,
+        true,
+        tenant.data.kind
       );
 
-      return await repository.createEvent(
-        createRiskAnalysisLogic({
-          eserviceRiskAnalysisSeed,
-          authData,
-          eservice,
-          tenant,
-        })
+      const newRiskAnalysis: RiskAnalysis =
+        riskAnalysisValidatedFormToNewRiskAnalysis(
+          validatedRiskAnalysisForm,
+          eserviceRiskAnalysisSeed.name
+        );
+
+      const newEservice: EService = {
+        ...eservice.data,
+        riskAnalysis: [...eservice.data.riskAnalysis, newRiskAnalysis],
+      };
+
+      const event = toCreateEventEServiceRiskAnalysisAdded(
+        eservice.data.id,
+        eservice.metadata.version,
+        newRiskAnalysis.id,
+        newEservice
       );
+
+      await repository.createEvent(event);
     },
   };
 }
@@ -1398,48 +1420,6 @@ function assertDailyCallsAreConsistentAndNotDecreased({
   ) {
     throw dailyCallsCannotBeDecreased();
   }
-}
-
-export function createRiskAnalysisLogic({
-  eserviceRiskAnalysisSeed,
-  authData,
-  eservice,
-  tenant,
-}: {
-  eserviceRiskAnalysisSeed: EServiceRiskAnalysisSeed;
-  authData: AuthData;
-  eservice: WithMetadata<EService>;
-  tenant: WithMetadata<Tenant> | undefined;
-}): CreateEvent<EServiceEvent> {
-  assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
-  assertIsDraftEservice(eservice.data);
-  assertIsReceiveEservice(eservice.data);
-  assertTenantExists(authData.organizationId, tenant);
-  assertTenantKindExists(authData.organizationId, tenant.data.kind);
-
-  const validatedRiskAnalysisForm = validateRiskAnalysisOrThrow(
-    eserviceRiskAnalysisSeed.riskAnalysisForm,
-    true,
-    tenant.data.kind
-  );
-
-  const newRiskAnalysis: RiskAnalysis =
-    riskAnalysisValidatedFormToNewRiskAnalysis(
-      validatedRiskAnalysisForm,
-      eserviceRiskAnalysisSeed.name
-    );
-
-  const newEservice: EService = {
-    ...eservice.data,
-    riskAnalysis: [...eservice.data.riskAnalysis, newRiskAnalysis],
-  };
-
-  return toCreateEventEServiceRiskAnalysisAdded(
-    eservice.data.id,
-    eservice.metadata.version,
-    newRiskAnalysis.id,
-    newEservice
-  );
 }
 
 function validateRiskAnalysisOrThrow(
