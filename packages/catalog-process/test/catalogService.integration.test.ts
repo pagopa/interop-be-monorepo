@@ -49,6 +49,9 @@ import {
   EServiceDraftDescriptorUpdatedV2,
   EServiceId,
   EServiceRiskAnalysisAddedV2,
+  EServiceRiskAnalysisUpdatedV2,
+  RiskAnalysisFormId,
+  RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
   Tenant,
   TenantId,
@@ -4049,6 +4052,124 @@ describe("database test", async () => {
             unexpectedFieldError("unexpected_field"),
           ])
         );
+      });
+    });
+    describe("update risk analysis", () => {
+      it("should write on event-store for the update of a risk analysis", async () => {
+        const producerTenantKind: TenantKind = randomArrayItem(
+          Object.values(tenantKind)
+        );
+        const producer: Tenant = {
+          ...getMockTenant(),
+          kind: producerTenantKind,
+        };
+
+        const riskAnalysis = getMockValidRiskAnalysis(producerTenantKind);
+
+        const eservice: EService = {
+          ...mockEService,
+          producerId: producer.id,
+          mode: eserviceMode.receive,
+          descriptors: [
+            {
+              ...mockDescriptor,
+              state: descriptorState.draft,
+            },
+          ],
+          riskAnalysis: [riskAnalysis],
+        };
+
+        await addOneTenant(producer, tenants);
+        await addOneEService(eservice, postgresDB, eservices);
+
+        const riskAnalysisSeed: EServiceRiskAnalysisSeed =
+          buildRiskAnalysisSeed(riskAnalysis);
+
+        const riskAnalysisUpdatedSeed: EServiceRiskAnalysisSeed = {
+          ...riskAnalysisSeed,
+          riskAnalysisForm: {
+            ...riskAnalysisSeed.riskAnalysisForm,
+            answers: {
+              ...riskAnalysisSeed.riskAnalysisForm.answers,
+              purpose: ["OTHER"], // we modify the purpose field already present in the mock
+              otherPurpose: ["updated other purpose"], // we add a new field
+            },
+          },
+        };
+
+        await catalogService.updateRiskAnalysis(
+          eservice.id,
+          riskAnalysis.id,
+          riskAnalysisUpdatedSeed,
+          getMockAuthData(producer.id)
+        );
+
+        const writtenEvent = await readLastEventByStreamId(
+          eservice.id,
+          postgresDB
+        );
+        expect(writtenEvent).toMatchObject({
+          stream_id: eservice.id,
+          version: "1",
+          type: "EServiceRiskAnalysisUpdated",
+          event_version: 2,
+        });
+        const writtenPayload = decodeProtobufPayload({
+          messageType: EServiceRiskAnalysisUpdatedV2,
+          payload: writtenEvent.data,
+        });
+
+        const updatedEservice: EService = {
+          ...eservice,
+          riskAnalysis: [
+            {
+              ...riskAnalysis,
+              name: riskAnalysisUpdatedSeed.name,
+              riskAnalysisForm: {
+                ...riskAnalysis.riskAnalysisForm,
+                id: unsafeBrandId<RiskAnalysisFormId>(
+                  writtenPayload.eservice!.riskAnalysis[0]!.riskAnalysisForm!.id
+                ),
+                multiAnswers: riskAnalysis.riskAnalysisForm.multiAnswers.map(
+                  (multiAnswer) => ({
+                    ...multiAnswer,
+                    id: unsafeBrandId<RiskAnalysisMultiAnswerId>(
+                      writtenPayload.eservice!.riskAnalysis[0]!.riskAnalysisForm!.multiAnswers.find(
+                        (ma) => ma.key === multiAnswer.key
+                      )!.id
+                    ),
+                  })
+                ),
+                singleAnswers: riskAnalysis.riskAnalysisForm.singleAnswers
+                  .map((singleAnswer) => ({
+                    ...singleAnswer,
+                    id: unsafeBrandId<RiskAnalysisSingleAnswerId>(
+                      writtenPayload.eservice!.riskAnalysis[0]!.riskAnalysisForm!.singleAnswers.find(
+                        (sa) => sa.key === singleAnswer.key
+                      )!.id
+                    ),
+                    value:
+                      singleAnswer.key === "purpose"
+                        ? "OTHER"
+                        : singleAnswer.value,
+                  }))
+                  .concat([
+                    {
+                      key: "otherPurpose",
+                      value: "updated other purpose",
+                      id: unsafeBrandId<RiskAnalysisSingleAnswerId>(
+                        writtenPayload.eservice!.riskAnalysis[0]!.riskAnalysisForm!.singleAnswers.find(
+                          (sa) => sa.key === "otherPurpose"
+                        )!.id
+                      ),
+                    },
+                  ]),
+              },
+            },
+          ],
+        };
+
+        expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEservice));
       });
     });
   });
