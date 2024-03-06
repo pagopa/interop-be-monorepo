@@ -43,6 +43,8 @@ import {
   EServiceDescriptorInterfaceDeletedV2,
   EServiceDescriptorPublishedV2,
   EServiceDescriptorSuspendedV2,
+  EServiceDescriptorUpdatedV2,
+  EServiceDraftDescriptorUpdatedV2,
   EServiceId,
   Tenant,
   TenantId,
@@ -878,10 +880,10 @@ describe("database test", async () => {
         );
         expect(writtenEvent.stream_id).toBe(eservice.id);
         expect(writtenEvent.version).toBe("1");
-        expect(writtenEvent.type).toBe("DraftEServiceUpdated");
+        expect(writtenEvent.type).toBe("EServiceDraftDescriptorUpdated");
         expect(writtenEvent.event_version).toBe(2);
         const writtenPayload = decodeProtobufPayload({
-          messageType: DraftEServiceUpdatedV2,
+          messageType: EServiceDraftDescriptorUpdatedV2,
           payload: writtenEvent.data,
         });
         expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
@@ -2296,7 +2298,7 @@ describe("database test", async () => {
         );
         expect(writtenEvent.stream_id).toBe(eservice.id);
         expect(writtenEvent.version).toBe("1");
-        expect(writtenEvent.type).toBe("EServiceDescriptorActivated");
+        expect(writtenEvent.type).toBe("EServiceDescriptorArchived");
         expect(writtenEvent.event_version).toBe(2);
         const writtenPayload = decodeProtobufPayload({
           messageType: EServiceDescriptorActivatedV2,
@@ -2412,11 +2414,11 @@ describe("database test", async () => {
         expect(writtenEvent).toMatchObject({
           stream_id: eservice.id,
           version: "1",
-          type: "DraftEServiceUpdated",
+          type: "EServiceDescriptorUpdated",
           event_version: 2,
         });
         const writtenPayload = decodeProtobufPayload({
-          messageType: DraftEServiceUpdatedV2,
+          messageType: EServiceDescriptorUpdatedV2,
           payload: writtenEvent.data,
         });
         expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
@@ -2467,11 +2469,11 @@ describe("database test", async () => {
         expect(writtenEvent).toMatchObject({
           stream_id: eservice.id,
           version: "1",
-          type: "DraftEServiceUpdated",
+          type: "EServiceDescriptorUpdated",
           event_version: 2,
         });
         const writtenPayload = decodeProtobufPayload({
-          messageType: DraftEServiceUpdatedV2,
+          messageType: EServiceDescriptorUpdatedV2,
           payload: writtenEvent.data,
         });
         expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
@@ -2522,11 +2524,11 @@ describe("database test", async () => {
         expect(writtenEvent).toMatchObject({
           stream_id: eservice.id,
           version: "1",
-          type: "DraftEServiceUpdated",
+          type: "EServiceDescriptorUpdated",
           event_version: 2,
         });
         const writtenPayload = decodeProtobufPayload({
-          messageType: DraftEServiceUpdatedV2,
+          messageType: EServiceDescriptorUpdatedV2,
           payload: writtenEvent.data,
         });
         expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
