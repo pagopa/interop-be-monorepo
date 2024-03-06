@@ -1,6 +1,5 @@
 import {
   AuthData,
-  CreateEvent,
   DB,
   FileManager,
   eventRepository,
@@ -15,7 +14,6 @@ import {
   Document,
   EService,
   EServiceDocumentId,
-  EServiceEvent,
   EServiceId,
   TenantId,
   WithMetadata,
@@ -82,15 +80,6 @@ import {
 } from "../model/domain/errors.js";
 import { formatClonedEServiceDate } from "../utilities/date.js";
 import { ReadModelService } from "./readModelService.js";
-
-function assertEServiceExist(
-  eserviceId: EServiceId,
-  eservice: WithMetadata<EService> | undefined
-): asserts eservice is NonNullable<WithMetadata<EService>> {
-  if (eservice === undefined) {
-    throw eServiceNotFound(eserviceId);
-  }
-}
 
 const assertRequesterAllowed = (
   producerId: TenantId,
@@ -305,75 +294,6 @@ export function catalogServiceBuilder(
         throw eServiceDocumentNotFound(eserviceId, descriptorId, documentId);
       }
       return document;
-    },
-
-    async cloneDescriptor(
-      eserviceId: EServiceId,
-      descriptorId: DescriptorId,
-      authData: AuthData
-    ): Promise<EService> {
-      logger.info(
-        `Cloning Descriptor ${descriptorId} for EService ${eserviceId}`
-      );
-
-      const eservice = await readModelService.getEServiceById(eserviceId);
-
-      const { eservice: draftEService, event } = await cloneDescriptorLogic({
-        eserviceId,
-        descriptorId,
-        authData,
-        copyFile: fileManager.copy,
-        eservice,
-        getEServiceByNameAndProducerId:
-          readModelService.getEServiceByNameAndProducerId,
-      });
-
-      await repository.createEvent(event);
-
-      return draftEService;
-    },
-
-    async archiveDescriptor(
-      eserviceId: EServiceId,
-      descriptorId: DescriptorId,
-      authData: AuthData
-    ): Promise<void> {
-      logger.info(
-        `Archiving Descriptor ${descriptorId} for EService ${eserviceId}`
-      );
-
-      const eservice = await readModelService.getEServiceById(eserviceId);
-
-      await repository.createEvent(
-        archiveDescriptorLogic({
-          eserviceId,
-          descriptorId,
-          authData,
-          eservice,
-        })
-      );
-    },
-
-    async updateDescriptor(
-      eserviceId: EServiceId,
-      descriptorId: DescriptorId,
-      seed: UpdateEServiceDescriptorQuotasSeed,
-      authData: AuthData
-    ): Promise<string> {
-      logger.info(
-        `Updating Descriptor ${descriptorId} for EService ${eserviceId}`
-      );
-      const eservice = await readModelService.getEServiceById(eserviceId);
-
-      return await repository.createEvent(
-        updateDescriptorLogic({
-          eserviceId,
-          descriptorId,
-          seed,
-          authData,
-          eservice,
-        })
-      );
     },
 
     async createEService(
@@ -1099,226 +1019,213 @@ export function catalogServiceBuilder(
 
       await repository.createEvent(event());
     },
-  };
-}
 
-export async function cloneDescriptorLogic({
-  eserviceId,
-  descriptorId,
-  authData,
-  copyFile,
-  eservice,
-  getEServiceByNameAndProducerId,
-}: {
-  eserviceId: EServiceId;
-  descriptorId: DescriptorId;
-  authData: AuthData;
-  copyFile: (
-    bucket: string,
-    docPath: string,
-    path: string,
-    id: string,
-    name: string
-  ) => Promise<string>;
-  eservice: WithMetadata<EService> | undefined;
-  getEServiceByNameAndProducerId: ({
-    name,
-    producerId,
-  }: {
-    name: string;
-    producerId: TenantId;
-  }) => Promise<WithMetadata<EService> | undefined>;
-}): Promise<{ eservice: EService; event: CreateEvent<EServiceEvent> }> {
-  assertEServiceExist(eserviceId, eservice);
-  assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
-
-  const clonedEServiceName = `${
-    eservice.data.name
-  } - clone - ${formatClonedEServiceDate(new Date())}`;
-
-  if (
-    await getEServiceByNameAndProducerId({
-      name: clonedEServiceName,
-      producerId: authData.organizationId,
-    })
-  ) {
-    throw eServiceDuplicate(clonedEServiceName);
-  }
-
-  const descriptor = retrieveDescriptor(descriptorId, eservice);
-
-  const clonedInterfaceId = generateId<EServiceDocumentId>();
-  const clonedInterfacePath =
-    descriptor.interface !== undefined
-      ? await copyFile(
-          config.s3Bucket,
-          descriptor.interface.path,
-          config.eserviceDocumentsPath,
-          clonedInterfaceId,
-          descriptor.interface.name
-        ).catch((error) => {
-          logger.error(
-            `Error copying interface file for descriptor ${descriptorId} : ${error}`
-          );
-          throw error;
-        })
-      : undefined;
-
-  const clonedInterfaceDocument: Document | undefined =
-    descriptor.interface !== undefined && clonedInterfacePath !== undefined
-      ? {
-          id: clonedInterfaceId,
-          name: descriptor.interface.name,
-          contentType: descriptor.interface.contentType,
-          prettyName: descriptor.interface.prettyName,
-          path: clonedInterfacePath,
-          checksum: descriptor.interface.checksum,
-          uploadDate: new Date(),
-        }
-      : undefined;
-
-  const clonedDocuments = await Promise.all(
-    descriptor.docs.map(async (doc: Document) => {
-      const clonedDocumentId = generateId<EServiceDocumentId>();
-      const clonedDocumentPath = await copyFile(
-        config.s3Bucket,
-        doc.path,
-        config.eserviceDocumentsPath,
-        clonedDocumentId,
-        doc.name
+    async cloneDescriptor(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      authData: AuthData
+    ): Promise<EService> {
+      logger.info(
+        `Cloning Descriptor ${descriptorId} for EService ${eserviceId}`
       );
-      const clonedDocument: Document = {
-        id: clonedDocumentId,
-        name: doc.name,
-        contentType: doc.contentType,
-        prettyName: doc.prettyName,
-        path: clonedDocumentPath,
-        checksum: doc.checksum,
-        uploadDate: new Date(),
-      };
-      return clonedDocument;
-    })
-  ).catch((error) => {
-    logger.error(
-      `Error copying documents' files for descriptor ${descriptorId} : ${error}`
-    );
-    throw error;
-  });
 
-  const clonedEservice: EService = {
-    id: generateId(),
-    producerId: eservice.data.producerId,
-    name: clonedEServiceName,
-    description: eservice.data.description,
-    technology: eservice.data.technology,
-    attributes: eservice.data.attributes,
-    createdAt: new Date(),
-    riskAnalysis: eservice.data.riskAnalysis,
-    mode: eservice.data.mode,
-    descriptors: [
-      {
-        ...descriptor,
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+
+      const clonedEServiceName = `${
+        eservice.data.name
+      } - clone - ${formatClonedEServiceDate(new Date())}`;
+
+      if (
+        await readModelService.getEServiceByNameAndProducerId({
+          name: clonedEServiceName,
+          producerId: authData.organizationId,
+        })
+      ) {
+        throw eServiceDuplicate(clonedEServiceName);
+      }
+
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      const clonedInterfaceId = generateId<EServiceDocumentId>();
+      const clonedInterfacePath =
+        descriptor.interface !== undefined
+          ? await fileManager
+              .copy(
+                config.s3Bucket,
+                descriptor.interface.path,
+                config.eserviceDocumentsPath,
+                clonedInterfaceId,
+                descriptor.interface.name
+              )
+              .catch((error) => {
+                logger.error(
+                  `Error copying interface file for descriptor ${descriptorId} : ${error}`
+                );
+                throw error;
+              })
+          : undefined;
+
+      const clonedInterfaceDocument: Document | undefined =
+        descriptor.interface !== undefined && clonedInterfacePath !== undefined
+          ? {
+              id: clonedInterfaceId,
+              name: descriptor.interface.name,
+              contentType: descriptor.interface.contentType,
+              prettyName: descriptor.interface.prettyName,
+              path: clonedInterfacePath,
+              checksum: descriptor.interface.checksum,
+              uploadDate: new Date(),
+            }
+          : undefined;
+
+      const clonedDocuments = await Promise.all(
+        descriptor.docs.map(async (doc: Document) => {
+          const clonedDocumentId = generateId<EServiceDocumentId>();
+          const clonedDocumentPath = await fileManager.copy(
+            config.s3Bucket,
+            doc.path,
+            config.eserviceDocumentsPath,
+            clonedDocumentId,
+            doc.name
+          );
+          const clonedDocument: Document = {
+            id: clonedDocumentId,
+            name: doc.name,
+            contentType: doc.contentType,
+            prettyName: doc.prettyName,
+            path: clonedDocumentPath,
+            checksum: doc.checksum,
+            uploadDate: new Date(),
+          };
+          return clonedDocument;
+        })
+      ).catch((error) => {
+        logger.error(
+          `Error copying documents' files for descriptor ${descriptorId} : ${error}`
+        );
+        throw error;
+      });
+
+      const clonedEservice: EService = {
         id: generateId(),
-        version: "1",
-        interface: clonedInterfaceDocument,
-        docs: clonedDocuments,
-        state: descriptorState.draft,
+        producerId: eservice.data.producerId,
+        name: clonedEServiceName,
+        description: eservice.data.description,
+        technology: eservice.data.technology,
+        attributes: eservice.data.attributes,
         createdAt: new Date(),
-        publishedAt: undefined,
-        suspendedAt: undefined,
-        deprecatedAt: undefined,
-        archivedAt: undefined,
-      },
-    ],
+        riskAnalysis: eservice.data.riskAnalysis,
+        mode: eservice.data.mode,
+        descriptors: [
+          {
+            ...descriptor,
+            id: generateId(),
+            version: "1",
+            interface: clonedInterfaceDocument,
+            docs: clonedDocuments,
+            state: descriptorState.draft,
+            createdAt: new Date(),
+            publishedAt: undefined,
+            suspendedAt: undefined,
+            deprecatedAt: undefined,
+            archivedAt: undefined,
+          },
+        ],
+      };
+      const event = toCreateEventClonedEServiceAdded(
+        descriptorId,
+        eservice.data,
+        clonedEservice
+      );
+      await repository.createEvent(event);
+
+      return clonedEservice;
+    },
+
+    async archiveDescriptor(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      authData: AuthData
+    ): Promise<void> {
+      logger.info(
+        `Archiving Descriptor ${descriptorId} for EService ${eserviceId}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+      const updatedDescriptor = updateDescriptorState(
+        descriptor,
+        descriptorState.archived
+      );
+
+      const newEservice = updateDescriptor(eservice.data, updatedDescriptor);
+
+      const event = toCreateEventEServiceDescriptorActivated(
+        eserviceId,
+        eservice.metadata.version,
+        descriptorId,
+        newEservice
+      );
+
+      await repository.createEvent(event);
+    },
+
+    async updateDescriptor(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: UpdateEServiceDescriptorQuotasSeed,
+      authData: AuthData
+    ): Promise<EService> {
+      logger.info(
+        `Updating Descriptor ${descriptorId} for EService ${eserviceId}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      if (
+        descriptor.state !== descriptorState.published &&
+        descriptor.state !== descriptorState.suspended &&
+        descriptor.state !== descriptorState.deprecated
+      ) {
+        throw notValidDescriptor(descriptorId, descriptor.state.toString());
+      }
+
+      assertDailyCallsAreConsistentAndNotDecreased({
+        dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
+        dailyCallsTotal: descriptor.dailyCallsTotal,
+        updatedDailyCallsPerConsumer: seed.dailyCallsPerConsumer,
+        updatedDailyCallsTotal: seed.dailyCallsTotal,
+      });
+
+      const updatedDescriptor: Descriptor = {
+        ...descriptor,
+        voucherLifespan: seed.voucherLifespan,
+        dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
+        dailyCallsTotal: seed.dailyCallsTotal,
+      };
+
+      const updatedEService = replaceDescriptor(
+        eservice.data,
+        updatedDescriptor
+      );
+
+      const event = toCreateEventEServiceUpdated(
+        eserviceId,
+        eservice.metadata.version,
+        updatedEService
+      );
+      await repository.createEvent(event);
+
+      return updatedEService;
+    },
   };
-
-  return {
-    eservice: clonedEservice,
-    event: toCreateEventClonedEServiceAdded(
-      descriptorId,
-      eservice.data,
-      clonedEservice
-    ),
-  };
-}
-
-export function archiveDescriptorLogic({
-  eserviceId,
-  descriptorId,
-  authData,
-  eservice,
-}: {
-  eserviceId: EServiceId;
-  descriptorId: DescriptorId;
-  authData: AuthData;
-  eservice: WithMetadata<EService> | undefined;
-}): CreateEvent<EServiceEvent> {
-  assertEServiceExist(eserviceId, eservice);
-  assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
-
-  const descriptor = retrieveDescriptor(descriptorId, eservice);
-  const updatedDescriptor = updateDescriptorState(
-    descriptor,
-    descriptorState.archived
-  );
-
-  const newEservice = updateDescriptor(eservice.data, updatedDescriptor);
-
-  return toCreateEventEServiceDescriptorActivated(
-    eserviceId,
-    eservice.metadata.version,
-    descriptorId,
-    newEservice
-  );
-}
-
-export function updateDescriptorLogic({
-  eserviceId,
-  descriptorId,
-  seed,
-  authData,
-  eservice,
-}: {
-  eserviceId: EServiceId;
-  descriptorId: DescriptorId;
-  seed: UpdateEServiceDescriptorQuotasSeed;
-  authData: AuthData;
-  eservice: WithMetadata<EService> | undefined;
-}): CreateEvent<EServiceEvent> {
-  assertEServiceExist(eserviceId, eservice);
-  assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
-
-  const descriptor = retrieveDescriptor(descriptorId, eservice);
-
-  if (
-    descriptor.state !== descriptorState.published &&
-    descriptor.state !== descriptorState.suspended &&
-    descriptor.state !== descriptorState.deprecated
-  ) {
-    throw notValidDescriptor(descriptorId, descriptor.state.toString());
-  }
-
-  assertDailyCallsAreConsistentAndNotDecreased({
-    dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
-    dailyCallsTotal: descriptor.dailyCallsTotal,
-    updatedDailyCallsPerConsumer: seed.dailyCallsPerConsumer,
-    updatedDailyCallsTotal: seed.dailyCallsTotal,
-  });
-
-  const updatedDescriptor: Descriptor = {
-    ...descriptor,
-    voucherLifespan: seed.voucherLifespan,
-    dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
-    dailyCallsTotal: seed.dailyCallsTotal,
-  };
-
-  const updatedEService = replaceDescriptor(eservice.data, updatedDescriptor);
-
-  return toCreateEventEServiceUpdated(
-    eserviceId,
-    eservice.metadata.version,
-    updatedEService
-  );
 }
 
 const isUserAllowedToSeeDraft = (
