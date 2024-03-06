@@ -48,6 +48,7 @@ import {
   TenantId,
   agreementState,
   descriptorState,
+  eserviceMode,
   generateId,
   operationForbidden,
   unsafeBrandId,
@@ -181,7 +182,7 @@ describe("database test", async () => {
   describe("Catalog service", () => {
     describe("create eservice", () => {
       it("should write on event-store for the creation of an eservice", async () => {
-        const id = await catalogService.createEService(
+        const eservice = await catalogService.createEService(
           {
             name: mockEService.name,
             description: mockEService.description,
@@ -191,24 +192,29 @@ describe("database test", async () => {
           getMockAuthData(mockEService.producerId)
         );
 
-        expect(id).toBeDefined();
-        const writtenEvent = await readLastEventByStreamId(id, postgresDB);
-        expect(writtenEvent.stream_id).toBe(id);
-        expect(writtenEvent.version).toBe("0");
-        expect(writtenEvent.type).toBe("EServiceAdded");
-        expect(writtenEvent.event_version).toBe(2);
+        expect(eservice).toBeDefined();
+        const writtenEvent = await readLastEventByStreamId(
+          eservice.id,
+          postgresDB
+        );
+        expect(writtenEvent).toMatchObject({
+          stream_id: eservice.id,
+          version: "0",
+          type: "EServiceAdded",
+          event_version: 2,
+        });
         const writtenPayload = decodeProtobufPayload({
           messageType: EServiceAddedV2,
           payload: writtenEvent.data,
         });
 
-        const eservice: EService = {
+        const expectedEservice: EService = {
           ...mockEService,
           createdAt: new Date(Number(writtenPayload.eservice!.createdAt)),
-          id,
+          id: eservice.id,
         };
 
-        expect(writtenPayload.eservice).toEqual(toEServiceV2(eservice));
+        expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
       });
 
       it("should throw eServiceDuplicate if an eservice with the same name already exists", async () => {
@@ -3585,6 +3591,7 @@ describe("database test", async () => {
           name: "eservice 006",
           producerId: organizationId2,
           descriptors: [descriptor6],
+          mode: eserviceMode.receive,
         };
         await addOneEService(eservice6, postgresDB, eservices);
 
@@ -3850,6 +3857,46 @@ describe("database test", async () => {
           eservice3,
           eservice4,
         ]);
+      });
+
+      it("should get the eServices if they exist (parameters: mode)", async () => {
+        const result = await readModelService.getEServices(
+          getMockAuthData(),
+          {
+            eservicesIds: [],
+            producersIds: [],
+            states: [],
+            agreementStates: [],
+            attributesIds: [],
+            mode: eserviceMode.receive,
+          },
+          0,
+          50
+        );
+        expect(result).toEqual({
+          totalCount: 1,
+          results: [eservice6],
+        });
+      });
+
+      it("should get the eServices if they exist (parameters: producerIds, mode)", async () => {
+        const result = await readModelService.getEServices(
+          getMockAuthData(),
+          {
+            eservicesIds: [],
+            producersIds: [organizationId2],
+            states: [],
+            agreementStates: [],
+            attributesIds: [],
+            mode: eserviceMode.deliver,
+          },
+          0,
+          50
+        );
+        expect(result).toEqual({
+          totalCount: 2,
+          results: [eservice4, eservice5],
+        });
       });
 
       it("should not get the eServices if they don't exist  (parameters: attributesIds)", async () => {
