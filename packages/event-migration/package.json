@@ -9,7 +9,7 @@
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
-    "start": "node --watch --no-warnings --loader ts-node/esm -r 'dotenv-flow/config' ./src/index.ts",
+    "start": "node --loader ts-node/esm ./src/index.ts",
     "build": "tsc"
   },
   "keywords": [],
@@ -17,13 +17,15 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@types/node": "^20.3.1",
-    "ts-pattern": "^5.0.6",
     "connection-string": "^4.3.6",
-    "pg-promise": "^11.5.0"
+    "pagopa-interop-models": "workspace:*",
+    "pg-promise": "^11.5.0",
+    "ts-pattern": "^5.0.6"
   },
   "devDependencies": {
     "eslint": "^8.44.0",
     "prettier": "^2.8.8",
+    "ts-node": "^10.9.1",
     "tsc-esm-fix": "^2.20.15",
     "typescript": "^5.1.3"
   }

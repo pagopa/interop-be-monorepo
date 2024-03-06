@@ -1,4 +1,8 @@
+/* eslint-disable functional/no-let */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable no-console */
 import { ConnectionString } from "connection-string";
+import { EServiceEventV1 } from "pagopa-interop-models";
 import pgPromise, { IDatabase } from "pg-promise";
 import {
   IClient,
@@ -45,38 +49,81 @@ export function initDB({
   return pgp(dbConfig);
 }
 
+console.log("Starting migration");
+
+console.log("Initializing connections to source database");
 const sourceConnection = initDB({
-  username: "postgres",
-  password: "postgres",
+  username: "root",
+  password: "root",
   host: "localhost",
-  port: 5432,
-  database: "postgres",
+  port: 6001,
+  database: "old",
   schema: "public",
   useSSL: false,
 });
 
+console.log("Initializing connections to target database");
 const targetConnection = initDB({
-  username: "postgres",
-  password: "postgres",
+  username: "root",
+  password: "root",
   host: "localhost",
-  port: 5432,
-  database: "postgres",
-  schema: "public",
+  port: 6001,
+  database: "root",
+  schema: "catalog",
   useSSL: false,
 });
 
+console.log("reading events from source database");
 const originalEvents = await sourceConnection.many(
-  "SELECT persistence_id, sequence_number, event_ser_manifest, event_payload, write_timestamp FROM event_journal"
+  "SELECT event_ser_manifest, event_payload, write_timestamp FROM event_journal order by ordering ASC"
 );
 
+const idVersionHashMap = new Map<string, number>();
+
 for (const event of originalEvents) {
-  const {
-    persistence_id,
-    sequence_number,
-    event_ser_manifest,
-    event_payload,
-    write_timestamp,
-  } = event;
+  console.log(event);
+  const { event_ser_manifest, event_payload, write_timestamp } = event;
+
+  const eventType = match(
+    event_ser_manifest
+      .replace("it.pagopa.interop.catalogmanagement.model.persistence.", "")
+      .split("|")[0]
+  )
+    .with("CatalogItemDescriptorItemAdded", () => "EServiceDescriptorAdded")
+    .when(
+      (originalType) => (originalType as string).includes("CatalogItem"),
+      (originalType) =>
+        (originalType as string).replace("CatalogItem", "EService")
+    )
+    .otherwise((originalType) => `UnknownType: ${originalType}`);
+
+  const eventToDecode = EServiceEventV1.safeParse({
+    type: eventType,
+    event_version: 1,
+    data: event_payload,
+  });
+
+  if (!eventToDecode.success) {
+    console.error(
+      `Error decoding event ${eventType} with payload ${event_payload}`
+    );
+    continue;
+  }
+
+  console.log(eventToDecode.data);
+
+  const anyPayload = eventToDecode.data.data as any;
+  const id = anyPayload.eService
+    ? anyPayload.eService.id
+    : anyPayload.eServiceId;
+
+  let version = idVersionHashMap.get(id);
+  if (version === undefined) {
+    version = 0;
+  } else {
+    version++;
+  }
+  idVersionHashMap.set(id, version);
 
   const newEvent: {
     stream_id: string;
@@ -84,31 +131,26 @@ for (const event of originalEvents) {
     type: string;
     eventVersion: number;
     data: string;
-    logData: Date;
+    logDate: Date;
   } = {
-    stream_id: persistence_id,
-    version: sequence_number,
-    type: match(event_ser_manifest)
-      .with("CatalogItemDescriptorItemAdded", () => "EServiceDescriptorAdded")
-      .when(
-        (originalType) => originalType.contains("CatalogItem"),
-        (originalType) => originalType.replace("CatalogItem", "EService")
-      )
-      .otherwise((originalType) => `UnknownType: ${originalType}`),
+    stream_id: id,
+    version,
+    type: eventType,
     eventVersion: 1,
     data: event_payload,
-    logData: new Date(write_timestamp),
+    logDate: new Date(parseInt(write_timestamp, 10)),
   };
+  console.log(newEvent);
 
   await targetConnection.none(
-    "INSERT INTO events(stream_id, version, type, event_version, data, log_data) VALUES ($1, $2, $3, $4, $5, $6)",
+    "INSERT INTO events(stream_id, version, type, event_version, data, log_date) VALUES ($1, $2, $3, $4, $5, $6)",
     [
       newEvent.stream_id,
       newEvent.version,
       newEvent.type,
       newEvent.eventVersion,
       newEvent.data,
-      newEvent.logData,
+      newEvent.logDate,
     ]
   );
 }
