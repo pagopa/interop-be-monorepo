@@ -1,3 +1,3 @@
 # pagopa-interop-be-authorization-updater
 
-Node version required >=node16
+Node version required >=node18
