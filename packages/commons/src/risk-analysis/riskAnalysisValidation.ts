@@ -17,7 +17,7 @@ import {
   unexpectedDependencyValueError,
   unexpectedFieldError,
   unexpectedFieldFormatError,
-  unexpectedFieldValue,
+  unexpectedFieldValueError,
   unexpectedRulesVersionError,
 } from "./riskAnalysisErrors.js";
 import {
@@ -227,7 +227,7 @@ function validateFieldValue(
       fieldValue.flatMap((v) =>
         allowedValues.has(v)
           ? []
-          : [unexpectedFieldValue(rule.fieldName, allowedValues)]
+          : [unexpectedFieldValueError(rule.fieldName, allowedValues)]
       )
     )
     .with(P.nullish, () => [])

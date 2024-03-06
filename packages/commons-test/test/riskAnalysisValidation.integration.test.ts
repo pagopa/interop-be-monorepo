@@ -7,7 +7,7 @@ import {
   missingExpectedFieldError,
   unexpectedDependencyValueError,
   unexpectedFieldError,
-  unexpectedFieldValue,
+  unexpectedFieldValueError,
   unexpectedRulesVersionError,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
@@ -664,8 +664,11 @@ describe("Risk Analysis Validation", () => {
     expect(validateRiskAnalysis(riskAnalysisPa, false, "PA")).toEqual({
       type: "invalid",
       issues: [
-        unexpectedFieldValue("purpose", new Set(["INSTITUTIONAL", "OTHER"])),
-        unexpectedFieldValue(
+        unexpectedFieldValueError(
+          "purpose",
+          new Set(["INSTITUTIONAL", "OTHER"])
+        ),
+        unexpectedFieldValueError(
           "legalBasis",
           new Set([
             "CONSENT",
@@ -696,8 +699,11 @@ describe("Risk Analysis Validation", () => {
       {
         type: "invalid",
         issues: [
-          unexpectedFieldValue("purpose", new Set(["INSTITUTIONAL", "OTHER"])),
-          unexpectedFieldValue(
+          unexpectedFieldValueError(
+            "purpose",
+            new Set(["INSTITUTIONAL", "OTHER"])
+          ),
+          unexpectedFieldValueError(
             "personalDataTypes",
             new Set([
               "WITH_NON_IDENTIFYING_DATA",
