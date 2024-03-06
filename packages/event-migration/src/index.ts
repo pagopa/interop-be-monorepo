@@ -113,9 +113,9 @@ for (const event of originalEvents) {
   console.log(eventToDecode.data);
 
   const anyPayload = eventToDecode.data.data as any;
-  const id = anyPayload.eService
-    ? anyPayload.eService.id
-    : anyPayload.eServiceId;
+  const id = anyPayload.eservice
+    ? anyPayload.eservice.id
+    : anyPayload.eserviceId;
 
   let version = idVersionHashMap.get(id);
   if (version === undefined) {
