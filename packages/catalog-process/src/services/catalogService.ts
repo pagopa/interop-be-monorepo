@@ -1314,6 +1314,18 @@ export function catalogServiceBuilder(
 
       await repository.createEvent(event);
     },
+    async updateRiskAnalysis(
+      eserviceId: EServiceId,
+      riskAnalysisId: RiskAnalysis["id"],
+      _eserviceRiskAnalysisSeed: EServiceRiskAnalysisSeed,
+      _authData: AuthData
+    ): Promise<void> {
+      logger.info(
+        `Updating Risk Analysis ${riskAnalysisId} for EService ${eserviceId}`
+      );
+
+      // TODO unmock
+    },
   };
 }
 

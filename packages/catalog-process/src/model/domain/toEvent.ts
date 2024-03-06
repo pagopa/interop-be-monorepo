@@ -496,3 +496,21 @@ export const toCreateEventEServiceRiskAnalysisAdded = (
     },
   },
 });
+
+export const toCreateEventEServiceRiskAnalysisUpdated = (
+  streamId: string,
+  version: number,
+  riskAnalysisId: RiskAnalysisId,
+  eservice: EService
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceRiskAnalysisUpdated",
+    event_version: 2,
+    data: {
+      riskAnalysisId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+});
