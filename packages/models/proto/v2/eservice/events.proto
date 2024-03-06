@@ -33,6 +33,11 @@ message EServiceDraftDescriptorUpdatedV2 {
   EServiceV2 eservice = 2;
 }
 
+message EServiceDescriptorUpdatedV2 {
+  string descriptorId = 1;
+  EServiceV2 eservice = 2;
+}
+
 message EServiceDescriptorActivatedV2 {
   string descriptorId = 1;
   EServiceV2 eservice = 2;

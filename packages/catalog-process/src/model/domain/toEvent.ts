@@ -302,6 +302,25 @@ export const toCreateEventEServiceDraftDescriptorUpdated = (
   },
 });
 
+export const toCreateEventEServiceDescriptorUpdated = (
+  streamId: string,
+  version: number,
+  descriptorId: DescriptorId,
+  eservice: EService
+  // eslint-disable-next-line sonarjs/no-identical-functions
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceDescriptorUpdated",
+    event_version: 2,
+    data: {
+      descriptorId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+});
+
 export const toCreateEventEServiceDescriptorActivated = (
   streamId: string,
   version: number,
