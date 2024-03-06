@@ -389,13 +389,16 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
-          await catalogService.updateDraftDescriptor(
+          const updatedEService = await catalogService.updateDraftDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.body,
             req.ctx.authData
           );
-          return res.status(200).end();
+          return res
+            .status(200)
+            .json(eServiceToApiEService(updatedEService))
+            .end();
         } catch (error) {
           const errorRes = makeApiProblem(error, updateDescriptorErrorMapper);
           return res.status(errorRes.status).json(errorRes).end();
