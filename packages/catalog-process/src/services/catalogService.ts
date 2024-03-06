@@ -34,6 +34,7 @@ import {
   Tenant,
   TenantKind,
   RiskAnalysis,
+  RiskAnalysisId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -64,6 +65,7 @@ import {
   toCreateEventEServiceInterfaceDeleted,
   toCreateEventEServiceInterfaceUpdated,
   toCreateEventEServiceRiskAnalysisAdded,
+  toCreateEventEServiceRiskAnalysisDeleted,
   toCreateEventEServiceUpdated,
 } from "../model/domain/toEvent.js";
 import {
@@ -689,6 +691,33 @@ export function catalogServiceBuilder(
           tenant,
         })
       );
+    },
+
+    async deleteRiskAnalysis(
+      eserviceId: EServiceId,
+      riskAnalysisId: RiskAnalysisId
+    ): Promise<void> {
+      logger.info(
+        `Deleting Risk Analysis ${riskAnalysisId} for EService ${eserviceId}`
+      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      assertIsDraftEservice(eservice.data);
+      assertIsReceiveEservice(eservice.data);
+
+      const newEservice: EService = {
+        ...eservice.data,
+        riskAnalysis: eservice.data.riskAnalysis.filter(
+          (r) => r.id !== riskAnalysisId
+        ),
+      };
+      const event = toCreateEventEServiceRiskAnalysisDeleted(
+        eservice.data.id,
+        eservice.metadata.version,
+        riskAnalysisId,
+        newEservice
+      );
+
+      await repository.createEvent(event);
     },
   };
 }
