@@ -3,6 +3,7 @@ import {
   DescriptorId,
   EServiceDocumentId,
   EServiceId,
+  RiskAnalysisId,
   TenantId,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
@@ -196,7 +197,7 @@ export function riskAnalysisValidationFailed(
 
 export function eServiceRiskAnalysisNotFound(
   eserviceId: EServiceId,
-  riskAnalysisId: string
+  riskAnalysisId: RiskAnalysisId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Risk Analysis ${riskAnalysisId} not found for EService ${eserviceId}`,
