@@ -34,6 +34,7 @@ import {
   EServiceDescriptorSuspendedV2,
   EServiceDraftDescriptorUpdatedV2,
   EServiceRiskAnalysisAddedV2,
+  EServiceRiskAnalysisDeletedV2,
 } from "../gen/v2/eservice/events.js";
 
 export function catalogEventToBinaryData(event: EServiceEvent): Uint8Array {
@@ -139,6 +140,9 @@ export function catalogEventToBinaryDataV2(event: EServiceEventV2): Uint8Array {
     )
     .with({ type: "EServiceRiskAnalysisAdded" }, ({ data }) =>
       EServiceRiskAnalysisAddedV2.toBinary(data)
+    )
+    .with({ type: "EServiceRiskAnalysisDeleted" }, ({ data }) =>
+      EServiceRiskAnalysisDeletedV2.toBinary(data)
     )
     .exhaustive();
 }
@@ -297,6 +301,11 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("EServiceRiskAnalysisAdded"),
     data: protobufDecoder(EServiceRiskAnalysisAddedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceRiskAnalysisDeleted"),
+    data: protobufDecoder(EServiceRiskAnalysisDeletedV2),
   }),
 ]);
 export type EServiceEventV2 = z.infer<typeof EServiceEventV2>;
