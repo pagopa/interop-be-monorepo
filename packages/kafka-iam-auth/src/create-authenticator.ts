@@ -1,5 +1,8 @@
 import { AuthenticationProviderArgs, Authenticator } from "kafkajs";
-import { authenticationSaslFailed } from "pagopa-interop-models";
+import {
+  authenticationSaslFailed,
+  parseErrorMessage,
+} from "pagopa-interop-models";
 import { TYPE } from "./constants.js";
 import { Options } from "./create-mechanism.js";
 import { CreatePayload } from "./create-payload.js";
@@ -34,14 +37,10 @@ export const createAuthenticator =
 
         logger.info(`SASL ${TYPE} authentication successful`, { broker });
       } catch (error) {
-        if (error instanceof Error) {
-          logger.error(error?.message, { broker });
-          throw authenticationSaslFailed(error?.message);
-        } else if (typeof error === "string") {
-          logger.error(error, { broker });
-          throw authenticationSaslFailed(error);
-        }
-        throw authenticationSaslFailed(`Unknow error : ${error}`);
+        const errMsg = parseErrorMessage(error);
+
+        logger.error(errMsg, { broker });
+        throw authenticationSaslFailed(errMsg);
       }
     },
   });

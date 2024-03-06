@@ -89,7 +89,7 @@ export async function activateAgreementLogic(
 
 async function activateAgreement(
   agreementData: WithMetadata<Agreement>,
-  eService: EService,
+  eservice: EService,
   descriptor: Descriptor,
   consumer: Tenant,
   authData: AuthData,
@@ -132,7 +132,7 @@ async function activateAgreement(
         certifiedAttributes: matchingCertifiedAttributes(descriptor, consumer),
         declaredAttributes: matchingDeclaredAttributes(descriptor, consumer),
         verifiedAttributes: matchingVerifiedAttributes(
-          eService,
+          eservice,
           descriptor,
           consumer
         ),
@@ -184,7 +184,7 @@ async function activateAgreement(
     await createContract(
       updatedAgreement,
       updatedAgreementSeed,
-      eService,
+      eservice,
       consumer,
       attributeQuery,
       tenantQuery,
@@ -241,7 +241,7 @@ const archiveRelatedToAgreements = async (
 const createContract = async (
   agreement: Agreement,
   updateSeed: UpdateAgreementSeed,
-  eService: EService,
+  eservice: EService,
   consumer: Tenant,
   attributeQuery: AttributeQuery,
   tenantQuery: TenantQuery,
@@ -252,7 +252,7 @@ const createContract = async (
 
   await contractBuilder(attributeQuery, storeFile).createContract(
     agreement,
-    eService,
+    eservice,
     consumer,
     producer.data,
     updateSeed
