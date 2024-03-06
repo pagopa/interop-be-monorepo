@@ -24,8 +24,8 @@ import {
   FormQuestionRules,
   RiskAnalysisFormRules,
   dataType,
-} from "./rules/models.js";
-import { riskAnalysisFormRules } from "./rules/riskAnalysisFormRules.js";
+} from "./rules/riskAnalysisFormRules.js";
+import { riskAnalysisFormRules } from "./rules/riskAnalysisFormRulesProvider.js";
 
 export function validateRiskAnalysis(
   riskAnalysisForm: RiskAnalysisFormToValidate,
@@ -44,13 +44,9 @@ export function validateRiskAnalysis(
     ]);
   }
 
-  const validationRules = latestVersionFormRules.questions.map(
-    questionRulesToValidationRule
-  );
+  const validationRules = buildValidationRules(latestVersionFormRules);
 
-  const sanitizedAnswers = Object.fromEntries(
-    Object.entries(riskAnalysisForm.answers).filter(([, v]) => v.length > 0)
-  );
+  const sanitizedAnswers = getSanitizedAnswers(riskAnalysisForm);
 
   const results = validateFormAnswers(
     sanitizedAnswers,
@@ -67,7 +63,9 @@ export function validateRiskAnalysis(
       r.type === "valid" ? [r.value] : []
     );
 
-    const { singleAnswers, multiAnswers } = validatedAnswers.reduce(
+    const { singleAnswers, multiAnswers } = validatedAnswers.reduce<
+      Omit<RiskAnalysisValidatedForm, "version">
+    >(
       (validatedForm, answer) =>
         match(answer)
           .with({ type: "single" }, (a) => ({
@@ -82,7 +80,7 @@ export function validateRiskAnalysis(
       {
         singleAnswers: [],
         multiAnswers: [],
-      } as Omit<RiskAnalysisValidatedForm, "version">
+      }
     );
 
     return validResult({
@@ -91,6 +89,14 @@ export function validateRiskAnalysis(
       multiAnswers,
     });
   }
+}
+
+function getSanitizedAnswers(
+  riskAnalysisForm: RiskAnalysisFormToValidate
+): RiskAnalysisFormToValidate["answers"] {
+  return Object.fromEntries(
+    Object.entries(riskAnalysisForm.answers).filter(([, v]) => v.length > 0)
+  );
 }
 
 function getLatestVersionFormRules(
@@ -119,9 +125,13 @@ function questionRulesDepsToValidationRuleDeps(
   }));
 }
 
-function questionRulesToValidationRule(
-  question: FormQuestionRules
-): ValidationRule {
+function buildValidationRules(
+  formRules: RiskAnalysisFormRules
+): ValidationRule[] {
+  return formRules.questions.map(buildValidationRule);
+}
+
+function buildValidationRule(question: FormQuestionRules): ValidationRule {
   return match(question)
     .with({ dataType: dataType.freeText }, (q) => ({
       fieldName: q.id,
@@ -230,21 +240,21 @@ function validateFieldDependency(
   dependency: ValidationRuleDependency
 ): RiskAnalysisValidationIssue[] {
   const dependencyValue: string[] | undefined = answers[dependency.fieldName];
-  return [
-    ...(dependencyValue === undefined
-      ? [dependencyNotFoundError(dependentField, dependency.fieldName)]
-      : []),
-    ...(dependencyValue !== undefined &&
-    !dependencyValue.some((v) => v === dependency.fieldValue)
-      ? [
-          unexpectedDependencyValueError(
-            dependentField,
-            dependency.fieldName,
-            dependency.fieldValue
-          ),
-        ]
-      : []),
-  ];
+  if (dependencyValue === undefined) {
+    return [dependencyNotFoundError(dependentField, dependency.fieldName)];
+  }
+
+  if (!dependencyValue.some((v) => v === dependency.fieldValue)) {
+    return [
+      unexpectedDependencyValueError(
+        dependentField,
+        dependency.fieldName,
+        dependency.fieldValue
+      ),
+    ];
+  }
+
+  return [];
 }
 
 function validateRequiredFields(

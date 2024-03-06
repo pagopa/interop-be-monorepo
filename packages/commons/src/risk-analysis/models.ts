@@ -1,4 +1,4 @@
-import { DataType } from "./rules/models.js";
+import { DataType } from "./rules/riskAnalysisFormRules.js";
 import { RiskAnalysisValidationIssue } from "./riskAnalysisErrors.js";
 
 export type RiskAnalysisValidationInvalid = {

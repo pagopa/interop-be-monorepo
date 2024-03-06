@@ -97,7 +97,7 @@ export const validRiskAnalysis2_0_Private: RiskAnalysisFormToValidate = {
   },
 };
 
-const expectedValidatedRiskANalysis2_0_Private: RiskAnalysisValidatedForm = {
+const expectedValidatedRiskAnalysis2_0_Private: RiskAnalysisValidatedForm = {
   version: validRiskAnalysis2_0_Private.version,
   singleAnswers: [
     { key: "purpose", value: "INSTITUTIONAL" },
@@ -194,7 +194,7 @@ describe("Risk Analysis Validation", () => {
 
     expect(result).toEqual({
       type: "valid",
-      value: expectedValidatedRiskANalysis2_0_Private,
+      value: expectedValidatedRiskAnalysis2_0_Private,
     });
     expect(result).toEqual(resultSchemaOnly);
   });
@@ -232,7 +232,7 @@ describe("Risk Analysis Validation", () => {
 
     expect(result).toEqual({
       type: "valid",
-      value: expectedValidatedRiskANalysis2_0_Private,
+      value: expectedValidatedRiskAnalysis2_0_Private,
     });
     expect(result).toEqual(resultSchemaOnly);
   });
@@ -386,9 +386,9 @@ describe("Risk Analysis Validation", () => {
     expect(validateRiskAnalysis(riskAnalysisPrivate, true, "PRIVATE")).toEqual({
       type: "valid",
       value: {
-        ...expectedValidatedRiskANalysis2_0_Private,
+        ...expectedValidatedRiskAnalysis2_0_Private,
         singleAnswers: [
-          ...expectedValidatedRiskANalysis2_0_Private.singleAnswers.filter(
+          ...expectedValidatedRiskAnalysis2_0_Private.singleAnswers.filter(
             (a) => a.key !== "usesPersonalData"
           ),
         ],

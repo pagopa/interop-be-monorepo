@@ -1,31 +1,75 @@
-import { TenantKind } from "pagopa-interop-models";
-import { match } from "ts-pattern";
-import pa1 from "./PA/1.0.json";
-import pa2 from "./PA/2.0.json";
-import pa3 from "./PA/3.0.json";
-import private1 from "./PRIVATE/1.0.json";
-import private2 from "./PRIVATE/2.0.json";
-import { RiskAnalysisFormRules } from "./models.js";
+import { z } from "zod";
 
-function getRules(
-  ruleset: "pa1" | "pa2" | "pa3" | "private1" | "private2"
-): RiskAnalysisFormRules {
-  return RiskAnalysisFormRules.parse(
-    match(ruleset)
-      .with("pa1", () => pa1)
-      .with("pa2", () => pa2)
-      .with("pa3", () => pa3)
-      .with("private1", () => private1)
-      .with("private2", () => private2)
-      .exhaustive()
-  );
-}
+export const dataType = {
+  freeText: "freeText",
+  single: "single",
+  multi: "multi",
+} as const;
+export const DataType = z.enum([
+  Object.values(dataType)[0],
+  ...Object.values(dataType).slice(1),
+]);
+export type DataType = z.infer<typeof DataType>;
 
-export const riskAnalysisFormRules: Record<
-  TenantKind,
-  RiskAnalysisFormRules[]
-> = {
-  PA: [getRules("pa1"), getRules("pa2"), getRules("pa3")],
-  PRIVATE: [getRules("private1"), getRules("private2")],
-  GSP: [getRules("private1"), getRules("private2")],
-};
+const LocalizedText = z.object({
+  it: z.string(),
+  en: z.string(),
+});
+
+const Dependency = z.object({
+  id: z.string(),
+  value: z.string(),
+});
+
+const HideOptionConfig = z.object({
+  id: z.string(),
+  value: z.string(),
+});
+
+const ValidationOption = z.object({
+  maxLength: z.number().optional(),
+});
+
+const LabeledValue = z.object({
+  label: LocalizedText,
+  value: z.string(),
+});
+
+const FormConfigQuestionCommonProps = z.object({
+  id: z.string(),
+  label: LocalizedText,
+  infoLabel: LocalizedText.optional(),
+  required: z.boolean(),
+  dependencies: z.array(Dependency),
+  type: z.string(),
+  defaultValue: z.array(z.string()),
+  hideOption: z.record(z.array(HideOptionConfig)).optional(),
+  validation: ValidationOption.optional(),
+});
+
+const FormQuestionRules = z.discriminatedUnion("dataType", [
+  FormConfigQuestionCommonProps.merge(
+    z.object({
+      dataType: z.literal(dataType.freeText),
+    })
+  ),
+  FormConfigQuestionCommonProps.merge(
+    z.object({
+      dataType: z.literal(dataType.single),
+      options: z.array(LabeledValue),
+    })
+  ),
+  FormConfigQuestionCommonProps.merge(
+    z.object({
+      dataType: z.literal(dataType.multi),
+      options: z.array(LabeledValue),
+    })
+  ),
+]);
+export type FormQuestionRules = z.infer<typeof FormQuestionRules>;
+
+export const RiskAnalysisFormRules = z.object({
+  version: z.string(),
+  questions: z.array(FormQuestionRules),
+});
+export type RiskAnalysisFormRules = z.infer<typeof RiskAnalysisFormRules>;
