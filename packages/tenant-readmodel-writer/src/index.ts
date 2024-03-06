@@ -1,7 +1,7 @@
 import { EachMessagePayload } from "kafkajs";
 import {
   logger,
-  consumerConfig,
+  readModelWriterConfig,
   decodeKafkaMessage,
 } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
@@ -24,5 +24,5 @@ async function processMessage({
   }
 }
 
-const config = consumerConfig();
+const config = readModelWriterConfig();
 await runConsumer(config, processMessage).catch(logger.error);

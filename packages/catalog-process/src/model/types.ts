@@ -4,6 +4,7 @@ import {
   AttributeId,
   DescriptorState,
   EServiceId,
+  EServiceMode,
   TenantId,
 } from "pagopa-interop-models";
 import { api } from "./generated/api.js";
@@ -30,4 +31,5 @@ export type ApiGetEServicesFilters = {
   states: DescriptorState[];
   agreementStates: AgreementState[];
   name?: string;
+  mode?: EServiceMode;
 };
