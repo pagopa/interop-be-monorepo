@@ -1301,19 +1301,18 @@ describe("database test", async () => {
     });
 
     describe("publish descriptor", () => {
+      beforeAll(() => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date());
+      });
+      afterAll(() => {
+        vi.useRealTimers();
+      });
       it("should write on event-store for the publication of a descriptor", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
-          interface: {
-            name: "interface name",
-            path: "pagopa.it",
-            id: generateId(),
-            prettyName: "",
-            contentType: "json",
-            checksum: generateId(),
-            uploadDate: new Date(),
-          },
+          interface: mockDocument,
         };
         const eservice: EService = {
           ...mockEService,
@@ -1330,10 +1329,12 @@ describe("database test", async () => {
           eservice.id,
           postgresDB
         );
-        expect(writtenEvent.stream_id).toBe(eservice.id);
-        expect(writtenEvent.version).toBe("1");
-        expect(writtenEvent.type).toBe("EServiceDescriptorPublished");
-        expect(writtenEvent.event_version).toBe(2);
+        expect(writtenEvent).toMatchObject({
+          stream_id: eservice.id,
+          version: "1",
+          type: "EServiceDescriptorPublished",
+          event_version: 2,
+        });
         const writtenPayload = decodeProtobufPayload({
           messageType: EServiceDescriptorPublishedV2,
           payload: writtenEvent.data,
@@ -1344,9 +1345,7 @@ describe("database test", async () => {
           descriptors: [
             {
               ...descriptor,
-              publishedAt: new Date(
-                Number(writtenPayload.eservice!.descriptors[0]!.publishedAt)
-              ),
+              publishedAt: new Date(),
               state: descriptorState.published,
             },
           ],
@@ -1356,7 +1355,142 @@ describe("database test", async () => {
         expect(writtenPayload.eservice).toEqual(expectedEservice);
       });
 
-      it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
+      it("should also archive the previously published descriptor", async () => {
+        const descriptor1: Descriptor = {
+          ...mockDescriptor,
+          id: generateId(),
+          state: descriptorState.published,
+          publishedAt: new Date(),
+          interface: mockDocument,
+        };
+        const descriptor2: Descriptor = {
+          ...mockDescriptor,
+          id: generateId(),
+          state: descriptorState.draft,
+          interface: mockDocument,
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptor1, descriptor2],
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+        await catalogService.publishDescriptor(
+          eservice.id,
+          descriptor2.id,
+          getMockAuthData(eservice.producerId)
+        );
+        const writtenEvent = await readLastEventByStreamId(
+          eservice.id,
+          postgresDB
+        );
+
+        expect(writtenEvent).toMatchObject({
+          stream_id: eservice.id,
+          version: "1",
+          type: "EServiceDescriptorPublished",
+          event_version: 2,
+        });
+
+        const writtenPayload = decodeProtobufPayload({
+          messageType: EServiceDescriptorPublishedV2,
+          payload: writtenEvent.data,
+        });
+
+        const updatedDescriptor1: Descriptor = {
+          ...descriptor1,
+          archivedAt: new Date(),
+          state: descriptorState.archived,
+        };
+        const updatedDescriptor2: Descriptor = {
+          ...descriptor2,
+          publishedAt: new Date(),
+          state: descriptorState.published,
+        };
+
+        const expectedEservice: EService = {
+          ...eservice,
+          descriptors: [updatedDescriptor1, updatedDescriptor2],
+        };
+        expect(writtenPayload).toEqual({
+          eservice: toEServiceV2(expectedEservice),
+          descriptorId: descriptor2.id,
+        });
+      });
+
+      it("should also write deprecate the previously published descriptor if there was a valid agreement", async () => {
+        const descriptor1: Descriptor = {
+          ...mockDescriptor,
+          id: generateId(),
+          state: descriptorState.published,
+          publishedAt: new Date(),
+          interface: mockDocument,
+        };
+        const descriptor2: Descriptor = {
+          ...mockDescriptor,
+          id: generateId(),
+          state: descriptorState.draft,
+          interface: mockDocument,
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptor1, descriptor2],
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+        const tenant: Tenant = {
+          ...getMockTenant(),
+        };
+        await addOneTenant(tenant, tenants);
+        const agreement = getMockAgreement({
+          eserviceId: eservice.id,
+          descriptorId: descriptor1.id,
+          producerId: eservice.producerId,
+          consumerId: tenant.id,
+        });
+        await addOneAgreement(agreement, agreements);
+        await catalogService.publishDescriptor(
+          eservice.id,
+          descriptor2.id,
+          getMockAuthData(eservice.producerId)
+        );
+        const writtenEvent = await readLastEventByStreamId(
+          eservice.id,
+          postgresDB
+        );
+
+        expect(writtenEvent).toMatchObject({
+          stream_id: eservice.id,
+          version: "1",
+          type: "EServiceDescriptorPublished",
+          event_version: 2,
+        });
+
+        const writtenPayload = decodeProtobufPayload({
+          messageType: EServiceDescriptorPublishedV2,
+          payload: writtenEvent.data,
+        });
+
+        const updatedDescriptor1: Descriptor = {
+          ...descriptor1,
+          deprecatedAt: new Date(),
+          state: descriptorState.deprecated,
+        };
+        const updatedDescriptor2: Descriptor = {
+          ...descriptor2,
+          publishedAt: new Date(),
+          state: descriptorState.published,
+        };
+
+        const expectedEservice: EService = {
+          ...eservice,
+          descriptors: [updatedDescriptor1, updatedDescriptor2],
+        };
+        expect(writtenPayload).toEqual({
+          eservice: toEServiceV2(expectedEservice),
+          descriptorId: descriptor2.id,
+        });
+      });
+
+      it("should throw eServiceNotFound if the eService doesn't exist", async () => {
         await expect(
           catalogService.publishDescriptor(
             mockEService.id,
