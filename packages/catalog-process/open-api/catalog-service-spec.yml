@@ -91,6 +91,11 @@ paths:
             default: []
           explode: false
         - in: query
+          name: mode
+          description: mode
+          schema:
+            $ref: "#/components/schemas/EServiceMode"
+        - in: query
           name: offset
           required: true
           schema:
@@ -132,7 +137,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResourceId"
+                $ref: "#/components/schemas/EService"
         "400":
           description: Invalid input
           content:
@@ -205,6 +210,10 @@ paths:
       responses:
         "200":
           description: E-Service updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
         "404":
           description: E-Service not found
           content:
@@ -329,7 +338,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResourceId"
+                $ref: "#/components/schemas/EServiceDescriptor"
         "400":
           description: Invalid input
           content:
@@ -410,6 +419,10 @@ paths:
       responses:
         "200":
           description: EService with draft descriptor updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
         "400":
           description: Invalid input
           content:
@@ -567,7 +580,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResourceId"
+                $ref: "#/components/schemas/EService"
         "400":
           description: Invalid input
           content:
@@ -658,7 +671,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResourceId"
+                $ref: "#/components/schemas/EService"
         "400":
           description: Invalid input
           content:
@@ -707,7 +720,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResourceId"
+                $ref: "#/components/schemas/EService"
         "400":
           description: Invalid input
           content:

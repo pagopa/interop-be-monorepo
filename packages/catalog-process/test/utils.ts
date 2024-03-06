@@ -223,7 +223,7 @@ export const getMockDocument = (): Document => ({
   id: generateId(),
   prettyName: "prettyName",
   contentType: "json",
-  checksum: generateId(),
+  checksum: "checksum",
   uploadDate: new Date(),
 });
 

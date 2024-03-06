@@ -1,5 +1,5 @@
 import { match } from "ts-pattern";
-import { logger, EServiceCollection } from "pagopa-interop-commons";
+import { EServiceCollection } from "pagopa-interop-commons";
 import { EServiceEventEnvelopeV1 } from "pagopa-interop-models";
 import {
   fromDescriptorV1,
@@ -11,7 +11,6 @@ export async function handleMessageV1(
   message: EServiceEventEnvelopeV1,
   eservices: EServiceCollection
 ): Promise<void> {
-  logger.info(message);
   await match(message)
     .with({ type: "EServiceAdded" }, async (msg) => {
       await eservices.updateOne(

@@ -122,6 +122,7 @@ export function readModelServiceBuilder(
         agreementStates,
         name,
         attributesIds,
+        mode,
       } = filters;
       const ids = await match(agreementStates.length)
         .with(0, () => eservicesIds)
@@ -228,6 +229,10 @@ export function readModelServiceBuilder(
             ],
           };
 
+      const modeFilter: ReadModelFilter<EService> = mode
+        ? { "data.mode": { $eq: mode } }
+        : {};
+
       const aggregationPipeline = [
         {
           $match: {
@@ -237,6 +242,7 @@ export function readModelServiceBuilder(
             ...descriptorsStateFilter,
             ...attributesFilter,
             ...visibilityFilter,
+            ...modeFilter,
           } satisfies ReadModelFilter<EService>,
         },
         {
@@ -423,14 +429,20 @@ export function readModelServiceBuilder(
       eservicesIds: EServiceId[],
       consumersIds: TenantId[],
       producersIds: TenantId[],
-      states: AgreementState[]
+      states: AgreementState[],
+      descriptorId?: DescriptorId | undefined
     ): Promise<Agreement[]> {
+      const descriptorFilter: ReadModelFilter<Agreement> = descriptorId
+        ? { "data.descriptorId": { $eq: descriptorId } }
+        : {};
+
       const aggregationPipeline = [
         {
           $match: {
             ...ReadModelRepository.arrayToFilter(eservicesIds, {
               "data.eserviceId": { $in: eservicesIds },
             }),
+            ...descriptorFilter,
             ...ReadModelRepository.arrayToFilter(consumersIds, {
               "data.consumerId": { $in: consumersIds },
             }),

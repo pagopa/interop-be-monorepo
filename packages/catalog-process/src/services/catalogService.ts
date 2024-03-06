@@ -1,6 +1,5 @@
 import {
   AuthData,
-  CreateEvent,
   DB,
   FileManager,
   RiskAnalysisValidatedForm,
@@ -12,14 +11,12 @@ import {
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
-  Attribute,
   Descriptor,
   DescriptorId,
   DescriptorState,
   Document,
   EService,
   EServiceDocumentId,
-  EServiceEvent,
   EServiceId,
   TenantId,
   WithMetadata,
@@ -30,10 +27,11 @@ import {
   unsafeBrandId,
   ListResult,
   AttributeId,
+  agreementState,
   eserviceMode,
   Tenant,
-  TenantKind,
   RiskAnalysis,
+  TenantKind,
   RiskAnalysisId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -100,15 +98,6 @@ import {
 import { formatClonedEServiceDate } from "../utilities/date.js";
 import { ReadModelService } from "./readModelService.js";
 
-function assertEServiceExist(
-  eserviceId: EServiceId,
-  eservice: WithMetadata<EService> | undefined
-): asserts eservice is NonNullable<WithMetadata<EService>> {
-  if (eservice === undefined) {
-    throw eServiceNotFound(eserviceId);
-  }
-}
-
 const assertRequesterAllowed = (
   producerId: TenantId,
   requesterId: TenantId
@@ -130,21 +119,11 @@ function assertIsReceiveEservice(eservice: EService): void {
   }
 }
 
-function assertTenantExists(
-  tenantId: TenantId,
-  tenant: WithMetadata<Tenant> | undefined
-): asserts tenant is NonNullable<WithMetadata<Tenant>> {
-  if (tenant === undefined) {
-    throw tenantNotFound(tenantId);
-  }
-}
-
 function assertTenantKindExists(
-  tenantId: TenantId,
-  tenantKind: Tenant["kind"] | undefined
-): asserts tenantKind is NonNullable<Tenant["kind"]> {
-  if (tenantKind === undefined) {
-    throw tenantKindNotFound(tenantId);
+  tenant: Tenant
+): asserts tenant is Tenant & { kind: NonNullable<Tenant["kind"]> } {
+  if (tenant.kind === undefined) {
+    throw tenantKindNotFound(tenant.id);
   }
 }
 
@@ -184,6 +163,17 @@ const retrieveDocument = (
     throw eServiceDocumentNotFound(eserviceId, descriptor.id, documentId);
   }
   return doc;
+};
+
+const retrieveTenant = async (
+  tenantId: TenantId,
+  readModelService: ReadModelService
+): Promise<WithMetadata<Tenant>> => {
+  const tenant = await readModelService.getTenantById(tenantId);
+  if (tenant === undefined) {
+    throw tenantNotFound(tenantId);
+  }
+  return tenant;
 };
 
 const updateDescriptorState = (
@@ -247,6 +237,15 @@ const deprecateDescriptor = (
   return updateDescriptorState(descriptor, descriptorState.deprecated);
 };
 
+const archiveDescriptor = (
+  streamId: string,
+  descriptor: Descriptor
+): Descriptor => {
+  logger.info(`Archiving Descriptor ${descriptor.id} of EService ${streamId}`);
+
+  return updateDescriptorState(descriptor, descriptorState.archived);
+};
+
 const hasNotDraftDescriptor = (eservice: EService): void => {
   const hasDraftDescriptor = eservice.descriptors.some(
     (d: Descriptor) => d.state === descriptorState.draft
@@ -256,7 +255,7 @@ const hasNotDraftDescriptor = (eservice: EService): void => {
   }
 };
 
-const updateDescriptor = (
+const replaceDescriptor = (
   eservice: EService,
   newDescriptor: Descriptor
 ): EService => {
@@ -278,29 +277,6 @@ export function catalogServiceBuilder(
 ) {
   const repository = eventRepository(dbInstance, catalogEventToBinaryData);
   return {
-    async createEService(
-      apiEServicesSeed: ApiEServiceSeed,
-      authData: AuthData
-    ): Promise<EServiceId> {
-      logger.info(
-        `Creating EService with service name ${apiEServicesSeed.name}`
-      );
-
-      const eserviceWithSameName =
-        await readModelService.getEServiceByNameAndProducerId({
-          name: apiEServicesSeed.name,
-          producerId: authData.organizationId,
-        });
-      return unsafeBrandId<EServiceId>(
-        await repository.createEvent(
-          createEserviceLogic({
-            eserviceWithSameName,
-            apiEServicesSeed,
-            authData,
-          })
-        )
-      );
-    },
     async getEServiceById(
       eserviceId: EServiceId,
       authData: AuthData
@@ -350,60 +326,6 @@ export function catalogServiceBuilder(
       );
     },
 
-    async updateEService(
-      eserviceId: EServiceId,
-      eserviceSeed: ApiEServiceSeed,
-      authData: AuthData
-    ): Promise<void> {
-      logger.info(`Updating EService ${eserviceId}`);
-      const eservice = await readModelService.getEServiceById(eserviceId);
-
-      await repository.createEvent(
-        await updateEserviceLogic({
-          eservice,
-          eserviceId,
-          authData,
-          eserviceSeed,
-          getEServiceByNameAndProducerId:
-            readModelService.getEServiceByNameAndProducerId,
-          deleteFile: fileManager.delete,
-        })
-      );
-    },
-
-    async deleteEService(
-      eserviceId: EServiceId,
-      authData: AuthData
-    ): Promise<void> {
-      logger.info(`Deleting EService ${eserviceId}`);
-      const eservice = await readModelService.getEServiceById(eserviceId);
-
-      await repository.createEvent(
-        deleteEserviceLogic({ eserviceId, authData, eservice })
-      );
-    },
-
-    async uploadDocument(
-      eserviceId: EServiceId,
-      descriptorId: DescriptorId,
-      document: ApiEServiceDescriptorDocumentSeed,
-      authData: AuthData
-    ): Promise<string> {
-      logger.info(
-        `Creating EService Document ${document.documentId.toString} of kind ${document.kind}, name ${document.fileName}, path ${document.filePath} for EService ${eserviceId} and Descriptor ${descriptorId}`
-      );
-      const eservice = await readModelService.getEServiceById(eserviceId);
-
-      return await repository.createEvent(
-        uploadDocumentLogic({
-          eserviceId,
-          descriptorId,
-          document,
-          authData,
-          eservice,
-        })
-      );
-    },
     async getDocumentById({
       eserviceId,
       descriptorId,
@@ -430,6 +352,211 @@ export function catalogServiceBuilder(
       }
       return document;
     },
+
+    async createEService(
+      apiEServicesSeed: ApiEServiceSeed,
+      authData: AuthData
+    ): Promise<EService> {
+      logger.info(
+        `Creating EService with service name ${apiEServicesSeed.name}`
+      );
+
+      if (authData.externalId.origin !== "IPA") {
+        throw originNotCompliant("IPA");
+      }
+
+      const eserviceWithSameName =
+        await readModelService.getEServiceByNameAndProducerId({
+          name: apiEServicesSeed.name,
+          producerId: authData.organizationId,
+        });
+      if (eserviceWithSameName) {
+        throw eServiceDuplicate(apiEServicesSeed.name);
+      }
+
+      const newEService: EService = {
+        id: generateId(),
+        producerId: authData.organizationId,
+        name: apiEServicesSeed.name,
+        description: apiEServicesSeed.description,
+        technology: apiTechnologyToTechnology(apiEServicesSeed.technology),
+        mode: apiEServiceModeToEServiceMode(apiEServicesSeed.mode),
+        attributes: undefined,
+        descriptors: [],
+        createdAt: new Date(),
+        riskAnalysis: [],
+      };
+
+      const event = toCreateEventEServiceAdded(newEService);
+      await repository.createEvent(event);
+
+      return newEService;
+    },
+
+    async updateEService(
+      eserviceId: EServiceId,
+      eserviceSeed: ApiEServiceSeed,
+      authData: AuthData
+    ): Promise<EService> {
+      logger.info(`Updating EService ${eserviceId}`);
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+
+      if (
+        !(
+          eservice.data.descriptors.length === 0 ||
+          (eservice.data.descriptors.length === 1 &&
+            eservice.data.descriptors[0].state === descriptorState.draft)
+        )
+      ) {
+        throw eServiceCannotBeUpdated(eserviceId);
+      }
+
+      if (eserviceSeed.name !== eservice.data.name) {
+        const eserviceWithSameName =
+          await readModelService.getEServiceByNameAndProducerId({
+            name: eserviceSeed.name,
+            producerId: authData.organizationId,
+          });
+        if (eserviceWithSameName !== undefined) {
+          throw eServiceDuplicate(eserviceSeed.name);
+        }
+      }
+
+      const updatedTechnology = apiTechnologyToTechnology(
+        eserviceSeed.technology
+      );
+      if (eservice.data.descriptors.length === 1) {
+        const draftDescriptor = eservice.data.descriptors[0];
+        if (
+          updatedTechnology !== eservice.data.technology &&
+          draftDescriptor.interface !== undefined
+        ) {
+          await fileManager
+            .delete(config.s3Bucket, draftDescriptor.interface.path)
+            .catch((error) => {
+              logger.error(
+                `Error deleting interface for descriptor ${draftDescriptor.id} : ${error}`
+              );
+              throw error;
+            });
+        }
+      }
+
+      const updatedEService: EService = {
+        ...eservice.data,
+        description: eserviceSeed.description,
+        name: eserviceSeed.name,
+        technology: updatedTechnology,
+        producerId: authData.organizationId,
+      };
+
+      const event = toCreateEventEServiceUpdated(
+        eserviceId,
+        eservice.metadata.version,
+        updatedEService
+      );
+      await repository.createEvent(event);
+
+      return updatedEService;
+    },
+
+    async deleteEService(
+      eserviceId: EServiceId,
+      authData: AuthData
+    ): Promise<void> {
+      logger.info(`Deleting EService ${eserviceId}`);
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+
+      if (eservice.data.descriptors.length > 0) {
+        throw eServiceCannotBeDeleted(eserviceId);
+      }
+
+      const event = toCreateEventEServiceDeleted(
+        eserviceId,
+        eservice.metadata.version,
+        eservice.data
+      );
+      await repository.createEvent(event);
+    },
+
+    async uploadDocument(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      document: ApiEServiceDescriptorDocumentSeed,
+      authData: AuthData
+    ): Promise<EService> {
+      logger.info(
+        `Creating EService Document ${document.documentId.toString} of kind ${document.kind}, name ${document.fileName}, path ${document.filePath} for EService ${eserviceId} and Descriptor ${descriptorId}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      if (descriptor.state !== descriptorState.draft) {
+        throw notValidDescriptor(descriptor.id, descriptor.state);
+      }
+
+      if (document.kind === "INTERFACE" && descriptor.interface !== undefined) {
+        throw interfaceAlreadyExists(descriptor.id);
+      }
+
+      const isInterface = document.kind === "INTERFACE";
+      const newDocument: Document = {
+        id: unsafeBrandId(document.documentId),
+        name: document.fileName,
+        contentType: document.contentType,
+        prettyName: document.prettyName,
+        path: document.filePath,
+        checksum: document.checksum,
+        uploadDate: new Date(),
+      };
+
+      const updatedEService: EService = {
+        ...eservice.data,
+        descriptors: eservice.data.descriptors.map((d: Descriptor) =>
+          d.id === descriptorId
+            ? {
+                ...d,
+                interface: isInterface ? newDocument : d.interface,
+                docs: isInterface ? d.docs : [...d.docs, newDocument],
+                serverUrls: document.serverUrls,
+              }
+            : d
+        ),
+      };
+
+      const event =
+        document.kind === "INTERFACE"
+          ? toCreateEventEServiceInterfaceAdded(
+              eserviceId,
+              eservice.metadata.version,
+              {
+                descriptorId,
+                documentId: unsafeBrandId(document.documentId),
+                eservice: updatedEService,
+              }
+            )
+          : toCreateEventEServiceDocumentAdded(
+              eserviceId,
+              eservice.metadata.version,
+              {
+                descriptorId,
+                documentId: unsafeBrandId(document.documentId),
+                eservice: updatedEService,
+              }
+            );
+
+      await repository.createEvent(event);
+
+      return updatedEService;
+    },
+
     async deleteDocument(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
@@ -439,18 +566,68 @@ export function catalogServiceBuilder(
       logger.info(
         `Deleting Document ${documentId} of Descriptor ${descriptorId} for EService ${eserviceId}`
       );
-      const eservice = await readModelService.getEServiceById(eserviceId);
 
-      await repository.createEvent(
-        await deleteDocumentLogic({
-          eserviceId,
-          descriptorId,
-          documentId,
-          authData,
-          eservice,
-          deleteFile: fileManager.delete,
-        })
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      if (descriptor.state !== descriptorState.draft) {
+        throw notValidDescriptor(descriptor.id, descriptor.state);
+      }
+
+      const document = [...descriptor.docs, descriptor.interface].find(
+        (doc) => doc != null && doc.id === documentId
       );
+      if (document === undefined) {
+        throw eServiceDocumentNotFound(eserviceId, descriptorId, documentId);
+      }
+
+      await fileManager
+        .delete(config.s3Bucket, document.path)
+        .catch((error) => {
+          logger.error(
+            `Error deleting interface or document file for descriptor ${descriptorId} : ${error}`
+          );
+          throw error;
+        });
+
+      const isInterface = document.id === descriptor?.interface?.id;
+      const newEservice: EService = {
+        ...eservice.data,
+        descriptors: eservice.data.descriptors.map((d: Descriptor) =>
+          d.id === descriptorId
+            ? {
+                ...d,
+                interface:
+                  d.interface?.id === documentId ? undefined : d.interface,
+                docs: d.docs.filter((doc) => doc.id !== documentId),
+              }
+            : d
+        ),
+      };
+
+      const event = isInterface
+        ? toCreateEventEServiceInterfaceDeleted(
+            eserviceId,
+            eservice.metadata.version,
+            {
+              descriptorId,
+              documentId,
+              eservice: newEservice,
+            }
+          )
+        : toCreateEventEServiceDocumentDeleted(
+            eserviceId,
+            eservice.metadata.version,
+            {
+              descriptorId,
+              documentId,
+              eservice: newEservice,
+            }
+          );
+
+      await repository.createEvent(event);
     },
 
     async updateDocument(
@@ -463,38 +640,174 @@ export function catalogServiceBuilder(
       logger.info(
         `Updating Document ${documentId} of Descriptor ${descriptorId} for EService ${eserviceId}`
       );
-      const eservice = await readModelService.getEServiceById(eserviceId);
 
-      await repository.createEvent(
-        await updateDocumentLogic({
-          eserviceId,
-          descriptorId,
-          documentId,
-          apiEServiceDescriptorDocumentUpdateSeed,
-          authData,
-          eservice,
-        })
-      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      if (descriptor.state !== descriptorState.draft) {
+        throw notValidDescriptor(descriptor.id, descriptor.state);
+      }
+
+      const document = (
+        descriptor ? [...descriptor.docs, descriptor.interface] : []
+      ).find((doc) => doc != null && doc.id === documentId);
+
+      if (document === undefined) {
+        throw eServiceDocumentNotFound(eserviceId, descriptorId, documentId);
+      }
+
+      const updatedDocument = {
+        ...document,
+        prettyName: apiEServiceDescriptorDocumentUpdateSeed.prettyName,
+      };
+
+      const isInterface = document.id === descriptor?.interface?.id;
+      const newEservice: EService = {
+        ...eservice.data,
+        descriptors: eservice.data.descriptors.map((d: Descriptor) =>
+          d.id === descriptorId
+            ? {
+                ...d,
+                interface: isInterface ? updatedDocument : d.interface,
+                docs: d.docs.map((doc) =>
+                  doc.id === documentId ? updatedDocument : doc
+                ),
+              }
+            : d
+        ),
+      };
+
+      const event = isInterface
+        ? toCreateEventEServiceInterfaceUpdated(
+            eserviceId,
+            eservice.metadata.version,
+            {
+              descriptorId,
+              documentId,
+              eservice: newEservice,
+            }
+          )
+        : toCreateEventEServiceDocumentUpdated(
+            eserviceId,
+            eservice.metadata.version,
+            {
+              descriptorId,
+              documentId,
+              eservice: newEservice,
+            }
+          );
+
+      await repository.createEvent(event);
     },
 
     async createDescriptor(
       eserviceId: EServiceId,
       eserviceDescriptorSeed: EServiceDescriptorSeed,
       authData: AuthData
-    ): Promise<string> {
+    ): Promise<Descriptor> {
       logger.info(`Creating Descriptor for EService ${eserviceId}`);
 
-      const eservice = await readModelService.getEServiceById(eserviceId);
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+      hasNotDraftDescriptor(eservice.data);
 
-      return await repository.createEvent(
-        await createDescriptorLogic({
-          eserviceId,
-          eserviceDescriptorSeed,
-          authData,
-          eservice,
-          getAttributesByIds: readModelService.getAttributesByIds,
-        })
+      const newVersion = nextDescriptorVersion(eservice.data);
+
+      const certifiedAttributes = eserviceDescriptorSeed.attributes.certified;
+      const declaredAttributes = eserviceDescriptorSeed.attributes.declared;
+      const verifiedAttributes = eserviceDescriptorSeed.attributes.verified;
+
+      const attributesSeeds = [
+        ...certifiedAttributes.flat(),
+        ...declaredAttributes.flat(),
+        ...verifiedAttributes.flat(),
+      ];
+
+      if (attributesSeeds.length > 0) {
+        const attributesSeedsIds: AttributeId[] = attributesSeeds.map((attr) =>
+          unsafeBrandId(attr.id)
+        );
+        const attributes = await readModelService.getAttributesByIds(
+          attributesSeedsIds
+        );
+        const attributesIds = attributes.map((attr) => attr.id);
+        for (const attributeSeedId of attributesSeedsIds) {
+          if (!attributesIds.includes(unsafeBrandId(attributeSeedId))) {
+            throw attributeNotFound(attributeSeedId);
+          }
+        }
+      }
+
+      if (
+        eserviceDescriptorSeed.dailyCallsPerConsumer >
+        eserviceDescriptorSeed.dailyCallsTotal
+      ) {
+        throw inconsistentDailyCalls();
+      }
+
+      const descriptorId = generateId<DescriptorId>();
+
+      const newDescriptor: Descriptor = {
+        id: descriptorId,
+        description: eserviceDescriptorSeed.description,
+        version: newVersion,
+        interface: undefined,
+        docs: [],
+        state: "Draft",
+        voucherLifespan: eserviceDescriptorSeed.voucherLifespan,
+        audience: eserviceDescriptorSeed.audience,
+        dailyCallsPerConsumer: eserviceDescriptorSeed.dailyCallsPerConsumer,
+        dailyCallsTotal: eserviceDescriptorSeed.dailyCallsTotal,
+        agreementApprovalPolicy:
+          apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+            eserviceDescriptorSeed.agreementApprovalPolicy
+          ),
+        serverUrls: [],
+        publishedAt: undefined,
+        suspendedAt: undefined,
+        deprecatedAt: undefined,
+        archivedAt: undefined,
+        createdAt: new Date(),
+        attributes: {
+          certified: certifiedAttributes.map((a) =>
+            a.map((a) => ({
+              ...a,
+              id: unsafeBrandId(a.id),
+            }))
+          ),
+          // eslint-disable-next-line sonarjs/no-identical-functions
+          declared: declaredAttributes.map((a) =>
+            a.map((a) => ({
+              ...a,
+              id: unsafeBrandId(a.id),
+            }))
+          ),
+          // eslint-disable-next-line sonarjs/no-identical-functions
+          verified: verifiedAttributes.map((a) =>
+            a.map((a) => ({
+              ...a,
+              id: unsafeBrandId(a.id),
+            }))
+          ),
+        },
+      };
+
+      const newEservice: EService = {
+        ...eservice.data,
+        descriptors: [...eservice.data.descriptors, newDescriptor],
+      };
+
+      const event = toCreateEventEServiceDescriptorAdded(
+        eservice.data.id,
+        eservice.metadata.version,
+        descriptorId,
+        newEservice
       );
+      await repository.createEvent(event);
+
+      return newDescriptor;
     },
 
     async deleteDraftDescriptor(
@@ -506,16 +819,49 @@ export function catalogServiceBuilder(
         `Deleting draft Descriptor ${descriptorId} for EService ${eserviceId}`
       );
 
-      const eservice = await readModelService.getEServiceById(eserviceId);
-      await repository.createEvent(
-        await deleteDraftDescriptorLogic({
-          eserviceId,
-          descriptorId,
-          authData,
-          deleteFile: fileManager.delete,
-          eservice,
-        })
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      const descriptorInterface = descriptor.interface;
+      if (descriptorInterface !== undefined) {
+        await fileManager
+          .delete(config.s3Bucket, descriptorInterface.path)
+          .catch((error) => {
+            logger.error(
+              `Error deleting interface file for descriptor ${descriptorId} : ${error}`
+            );
+            throw error;
+          });
+      }
+
+      const deleteDescriptorDocs = descriptor.docs.map((doc: Document) =>
+        fileManager.delete(config.s3Bucket, doc.path)
       );
+
+      await Promise.all(deleteDescriptorDocs).catch((error) => {
+        logger.error(
+          `Error deleting documents' files for descriptor ${descriptorId} : ${error}`
+        );
+        throw error;
+      });
+
+      const newEservice: EService = {
+        ...eservice.data,
+        descriptors: eservice.data.descriptors.filter(
+          (d: Descriptor) => d.id !== descriptorId
+        ),
+      };
+
+      const event = toCreateEventEServiceDescriptorDeleted(
+        eservice.data.id,
+        eservice.metadata.version,
+        newEservice,
+        descriptorId
+      );
+
+      await repository.createEvent(event);
     },
 
     async updateDraftDescriptor(
@@ -523,21 +869,51 @@ export function catalogServiceBuilder(
       descriptorId: DescriptorId,
       seed: UpdateEServiceDescriptorSeed,
       authData: AuthData
-    ): Promise<void> {
+    ): Promise<EService> {
       logger.info(
         `Updating draft Descriptor ${descriptorId} for EService ${eserviceId}`
       );
-      const eservice = await readModelService.getEServiceById(eserviceId);
 
-      await repository.createEvent(
-        updateDraftDescriptorLogic({
-          eserviceId,
-          descriptorId,
-          seed,
-          authData,
-          eservice,
-        })
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      if (descriptor.state !== descriptorState.draft) {
+        throw notValidDescriptor(descriptorId, descriptor.state.toString());
+      }
+
+      if (seed.dailyCallsPerConsumer > seed.dailyCallsTotal) {
+        throw inconsistentDailyCalls();
+      }
+
+      const updatedDescriptor: Descriptor = {
+        ...descriptor,
+        description: seed.description,
+        audience: seed.audience,
+        voucherLifespan: seed.voucherLifespan,
+        dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
+        state: "Draft",
+        dailyCallsTotal: seed.dailyCallsTotal,
+        agreementApprovalPolicy:
+          apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+            seed.agreementApprovalPolicy
+          ),
+      };
+
+      const updatedEService = replaceDescriptor(
+        eservice.data,
+        updatedDescriptor
       );
+
+      const event = toCreateEventEServiceUpdated(
+        eserviceId,
+        eservice.metadata.version,
+        updatedEService
+      );
+      await repository.createEvent(event);
+
+      return updatedEService;
     },
 
     async publishDescriptor(
@@ -549,16 +925,79 @@ export function catalogServiceBuilder(
         `Publishing Descriptor ${descriptorId} for EService ${eserviceId}`
       );
 
-      const eservice = await readModelService.getEServiceById(eserviceId);
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
 
-      await repository.createEvent(
-        publishDescriptorLogic({
-          eserviceId,
-          descriptorId,
-          authData,
-          eservice,
-        })
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+      if (descriptor.state !== descriptorState.draft) {
+        throw notValidDescriptor(descriptor.id, descriptor.state.toString());
+      }
+
+      if (descriptor.interface === undefined) {
+        throw eServiceDescriptorWithoutInterface(descriptor.id);
+      }
+
+      const currentActiveDescriptor = eservice.data.descriptors.find(
+        (d: Descriptor) => d.state === descriptorState.published
       );
+
+      const publishedDescriptor = updateDescriptorState(
+        descriptor,
+        descriptorState.published
+      );
+
+      const eserviceWithPublishedDescriptor = replaceDescriptor(
+        eservice.data,
+        publishedDescriptor
+      );
+
+      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+      const event = async () => {
+        if (currentActiveDescriptor !== undefined) {
+          const agreements = await readModelService.listAgreements(
+            [eserviceId],
+            [],
+            [],
+            [agreementState.active, agreementState.suspended],
+            currentActiveDescriptor.id
+          );
+          if (agreements.length === 0) {
+            const eserviceWithArchivedAndPublishedDescriptors =
+              replaceDescriptor(
+                eserviceWithPublishedDescriptor,
+                archiveDescriptor(eserviceId, currentActiveDescriptor)
+              );
+
+            return toCreateEventEServiceDescriptorPublished(
+              eserviceId,
+              eservice.metadata.version,
+              descriptorId,
+              eserviceWithArchivedAndPublishedDescriptors
+            );
+          } else {
+            const eserviceWithDeprecatedAndPublishedDescriptors =
+              replaceDescriptor(
+                eserviceWithPublishedDescriptor,
+                deprecateDescriptor(eserviceId, currentActiveDescriptor)
+              );
+
+            return toCreateEventEServiceDescriptorPublished(
+              eserviceId,
+              eservice.metadata.version,
+              descriptorId,
+              eserviceWithDeprecatedAndPublishedDescriptors
+            );
+          }
+        } else {
+          return toCreateEventEServiceDescriptorPublished(
+            eserviceId,
+            eservice.metadata.version,
+            descriptorId,
+            eserviceWithPublishedDescriptor
+          );
+        }
+      };
+      await repository.createEvent(await event());
     },
 
     async suspendDescriptor(
@@ -570,16 +1009,31 @@ export function catalogServiceBuilder(
         `Suspending Descriptor ${descriptorId} for EService ${eserviceId}`
       );
 
-      const eservice = await readModelService.getEServiceById(eserviceId);
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
 
-      await repository.createEvent(
-        suspendDescriptorLogic({
-          eserviceId,
-          descriptorId,
-          authData,
-          eservice,
-        })
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+      if (
+        descriptor.state !== descriptorState.deprecated &&
+        descriptor.state !== descriptorState.published
+      ) {
+        throw notValidDescriptor(descriptorId, descriptor.state.toString());
+      }
+
+      const updatedDescriptor = updateDescriptorState(
+        descriptor,
+        descriptorState.suspended
       );
+
+      const newEservice = replaceDescriptor(eservice.data, updatedDescriptor);
+
+      const event = toCreateEventEServiceDescriptorSuspended(
+        eserviceId,
+        eservice.metadata.version,
+        descriptorId,
+        newEservice
+      );
+      await repository.createEvent(event);
     },
 
     async activateDescriptor(
@@ -591,16 +1045,61 @@ export function catalogServiceBuilder(
         `Activating descriptor ${descriptorId} for EService ${eserviceId}`
       );
 
-      const eservice = await readModelService.getEServiceById(eserviceId);
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
 
-      await repository.createEvent(
-        activateDescriptorLogic({
-          eserviceId,
-          descriptorId,
-          authData,
-          eservice,
-        })
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+      if (descriptor.state !== descriptorState.suspended) {
+        throw notValidDescriptor(descriptorId, descriptor.state.toString());
+      }
+
+      const updatedDescriptor = updateDescriptorState(
+        descriptor,
+        descriptorState.published
       );
+      const descriptorVersions: number[] = eservice.data.descriptors
+        .filter(
+          (d: Descriptor) =>
+            d.state === descriptorState.suspended ||
+            d.state === descriptorState.deprecated ||
+            d.state === descriptorState.published
+        )
+        .map((d: Descriptor) => parseInt(d.version, 10));
+      const recentDescriptorVersion = Math.max(...descriptorVersions);
+
+      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+      const event = () => {
+        if (
+          recentDescriptorVersion !== null &&
+          parseInt(descriptor.version, 10) === recentDescriptorVersion
+        ) {
+          const newEservice = replaceDescriptor(
+            eservice.data,
+            updatedDescriptor
+          );
+
+          return toCreateEventEServiceDescriptorActivated(
+            eserviceId,
+            eservice.metadata.version,
+            descriptorId,
+            newEservice
+          );
+        } else {
+          const newEservice = replaceDescriptor(
+            eservice.data,
+            deprecateDescriptor(eserviceId, descriptor)
+          );
+
+          return toCreateEventEServiceDescriptorActivated(
+            eserviceId,
+            eservice.metadata.version,
+            descriptorId,
+            newEservice
+          );
+        }
+      };
+
+      await repository.createEvent(event());
     },
 
     async cloneDescriptor(
@@ -612,21 +1111,119 @@ export function catalogServiceBuilder(
         `Cloning Descriptor ${descriptorId} for EService ${eserviceId}`
       );
 
-      const eservice = await readModelService.getEServiceById(eserviceId);
+      const eservice = await retrieveEService(eserviceId, readModelService);
 
-      const { eservice: draftEService, event } = await cloneDescriptorLogic({
-        eserviceId,
-        descriptorId,
-        authData,
-        copyFile: fileManager.copy,
-        eservice,
-        getEServiceByNameAndProducerId:
-          readModelService.getEServiceByNameAndProducerId,
+      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+
+      const clonedEServiceName = `${
+        eservice.data.name
+      } - clone - ${formatClonedEServiceDate(new Date())}`;
+
+      if (
+        await readModelService.getEServiceByNameAndProducerId({
+          name: clonedEServiceName,
+          producerId: authData.organizationId,
+        })
+      ) {
+        throw eServiceDuplicate(clonedEServiceName);
+      }
+
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      const clonedInterfaceId = generateId<EServiceDocumentId>();
+      const clonedInterfacePath =
+        descriptor.interface !== undefined
+          ? await fileManager
+              .copy(
+                config.s3Bucket,
+                descriptor.interface.path,
+                config.eserviceDocumentsPath,
+                clonedInterfaceId,
+                descriptor.interface.name
+              )
+              .catch((error) => {
+                logger.error(
+                  `Error copying interface file for descriptor ${descriptorId} : ${error}`
+                );
+                throw error;
+              })
+          : undefined;
+
+      const clonedInterfaceDocument: Document | undefined =
+        descriptor.interface !== undefined && clonedInterfacePath !== undefined
+          ? {
+              id: clonedInterfaceId,
+              name: descriptor.interface.name,
+              contentType: descriptor.interface.contentType,
+              prettyName: descriptor.interface.prettyName,
+              path: clonedInterfacePath,
+              checksum: descriptor.interface.checksum,
+              uploadDate: new Date(),
+            }
+          : undefined;
+
+      const clonedDocuments = await Promise.all(
+        descriptor.docs.map(async (doc: Document) => {
+          const clonedDocumentId = generateId<EServiceDocumentId>();
+          const clonedDocumentPath = await fileManager.copy(
+            config.s3Bucket,
+            doc.path,
+            config.eserviceDocumentsPath,
+            clonedDocumentId,
+            doc.name
+          );
+          const clonedDocument: Document = {
+            id: clonedDocumentId,
+            name: doc.name,
+            contentType: doc.contentType,
+            prettyName: doc.prettyName,
+            path: clonedDocumentPath,
+            checksum: doc.checksum,
+            uploadDate: new Date(),
+          };
+          return clonedDocument;
+        })
+      ).catch((error) => {
+        logger.error(
+          `Error copying documents' files for descriptor ${descriptorId} : ${error}`
+        );
+        throw error;
       });
 
+      const clonedEservice: EService = {
+        id: generateId(),
+        producerId: eservice.data.producerId,
+        name: clonedEServiceName,
+        description: eservice.data.description,
+        technology: eservice.data.technology,
+        attributes: eservice.data.attributes,
+        createdAt: new Date(),
+        riskAnalysis: eservice.data.riskAnalysis,
+        mode: eservice.data.mode,
+        descriptors: [
+          {
+            ...descriptor,
+            id: generateId(),
+            version: "1",
+            interface: clonedInterfaceDocument,
+            docs: clonedDocuments,
+            state: descriptorState.draft,
+            createdAt: new Date(),
+            publishedAt: undefined,
+            suspendedAt: undefined,
+            deprecatedAt: undefined,
+            archivedAt: undefined,
+          },
+        ],
+      };
+      const event = toCreateEventClonedEServiceAdded(
+        descriptorId,
+        eservice.data,
+        clonedEservice
+      );
       await repository.createEvent(event);
 
-      return draftEService;
+      return clonedEservice;
     },
 
     async archiveDescriptor(
@@ -638,61 +1235,122 @@ export function catalogServiceBuilder(
         `Archiving Descriptor ${descriptorId} for EService ${eserviceId}`
       );
 
-      const eservice = await readModelService.getEServiceById(eserviceId);
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
 
-      await repository.createEvent(
-        archiveDescriptorLogic({
-          eserviceId,
-          descriptorId,
-          authData,
-          eservice,
-        })
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+      const updatedDescriptor = updateDescriptorState(
+        descriptor,
+        descriptorState.archived
       );
+
+      const newEservice = replaceDescriptor(eservice.data, updatedDescriptor);
+
+      const event = toCreateEventEServiceDescriptorActivated(
+        eserviceId,
+        eservice.metadata.version,
+        descriptorId,
+        newEservice
+      );
+
+      await repository.createEvent(event);
     },
     async updateDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       seed: UpdateEServiceDescriptorQuotasSeed,
       authData: AuthData
-    ): Promise<string> {
+    ): Promise<EService> {
       logger.info(
         `Updating Descriptor ${descriptorId} for EService ${eserviceId}`
       );
-      const eservice = await readModelService.getEServiceById(eserviceId);
 
-      return await repository.createEvent(
-        updateDescriptorLogic({
-          eserviceId,
-          descriptorId,
-          seed,
-          authData,
-          eservice,
-        })
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      if (
+        descriptor.state !== descriptorState.published &&
+        descriptor.state !== descriptorState.suspended &&
+        descriptor.state !== descriptorState.deprecated
+      ) {
+        throw notValidDescriptor(descriptorId, descriptor.state.toString());
+      }
+
+      assertDailyCallsAreConsistentAndNotDecreased({
+        dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
+        dailyCallsTotal: descriptor.dailyCallsTotal,
+        updatedDailyCallsPerConsumer: seed.dailyCallsPerConsumer,
+        updatedDailyCallsTotal: seed.dailyCallsTotal,
+      });
+
+      const updatedDescriptor: Descriptor = {
+        ...descriptor,
+        voucherLifespan: seed.voucherLifespan,
+        dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
+        dailyCallsTotal: seed.dailyCallsTotal,
+      };
+
+      const updatedEService = replaceDescriptor(
+        eservice.data,
+        updatedDescriptor
       );
+
+      const event = toCreateEventEServiceUpdated(
+        eserviceId,
+        eservice.metadata.version,
+        updatedEService
+      );
+      await repository.createEvent(event);
+
+      return updatedEService;
     },
     async createRiskAnalysis(
       eserviceId: EServiceId,
       eserviceRiskAnalysisSeed: EServiceRiskAnalysisSeed,
       authData: AuthData
-    ): Promise<string> {
+    ): Promise<void> {
       logger.info(`Creating Risk Analysis for EService ${eserviceId}`);
 
-      const eservice = await readModelService.getEServiceById(eserviceId);
-      const tenant = await readModelService.getTenantById(
-        authData.organizationId
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+      assertIsDraftEservice(eservice.data);
+      assertIsReceiveEservice(eservice.data);
+
+      const tenant = await retrieveTenant(
+        authData.organizationId,
+        readModelService
+      );
+      assertTenantKindExists(tenant.data);
+
+      const validatedRiskAnalysisForm = validateRiskAnalysisOrThrow(
+        eserviceRiskAnalysisSeed.riskAnalysisForm,
+        true,
+        tenant.data.kind
       );
 
-      return await repository.createEvent(
-        createRiskAnalysisLogic({
-          eserviceId,
-          eserviceRiskAnalysisSeed,
-          authData,
-          eservice,
-          tenant,
-        })
+      const newRiskAnalysis: RiskAnalysis =
+        riskAnalysisValidatedFormToNewRiskAnalysis(
+          validatedRiskAnalysisForm,
+          eserviceRiskAnalysisSeed.name
+        );
+
+      const newEservice: EService = {
+        ...eservice.data,
+        riskAnalysis: [...eservice.data.riskAnalysis, newRiskAnalysis],
+      };
+
+      const event = toCreateEventEServiceRiskAnalysisAdded(
+        eservice.data.id,
+        eservice.metadata.version,
+        newRiskAnalysis.id,
+        newEservice
       );
+
+      await repository.createEvent(event);
     },
-
     async deleteRiskAnalysis(
       eserviceId: EServiceId,
       riskAnalysisId: RiskAnalysisId
@@ -720,948 +1378,6 @@ export function catalogServiceBuilder(
       await repository.createEvent(event);
     },
   };
-}
-
-export function createEserviceLogic({
-  eserviceWithSameName,
-  apiEServicesSeed,
-  authData,
-}: {
-  eserviceWithSameName: WithMetadata<EService> | undefined;
-  apiEServicesSeed: ApiEServiceSeed;
-  authData: AuthData;
-}): CreateEvent<EServiceEvent> {
-  if (authData.externalId.origin !== "IPA") {
-    throw originNotCompliant("IPA");
-  }
-
-  if (eserviceWithSameName) {
-    throw eServiceDuplicate(apiEServicesSeed.name);
-  }
-
-  const newEService: EService = {
-    id: generateId(),
-    producerId: authData.organizationId,
-    name: apiEServicesSeed.name,
-    description: apiEServicesSeed.description,
-    technology: apiTechnologyToTechnology(apiEServicesSeed.technology),
-    mode: apiEServiceModeToEServiceMode(apiEServicesSeed.mode),
-    attributes: undefined,
-    descriptors: [],
-    createdAt: new Date(),
-    riskAnalysis: [],
-  };
-
-  return toCreateEventEServiceAdded(newEService);
-}
-
-export async function updateEserviceLogic({
-  eservice,
-  eserviceId,
-  authData,
-  eserviceSeed,
-  getEServiceByNameAndProducerId,
-  deleteFile,
-}: {
-  eservice: WithMetadata<EService> | undefined;
-  eserviceId: EServiceId;
-  authData: AuthData;
-  eserviceSeed: ApiEServiceSeed;
-  getEServiceByNameAndProducerId: ({
-    name,
-    producerId,
-  }: {
-    name: string;
-    producerId: TenantId;
-  }) => Promise<WithMetadata<EService> | undefined>;
-  deleteFile: (container: string, path: string) => Promise<void>;
-}): Promise<CreateEvent<EServiceEvent>> {
-  assertEServiceExist(eserviceId, eservice);
-  assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
-
-  if (
-    !(
-      eservice.data.descriptors.length === 0 ||
-      (eservice.data.descriptors.length === 1 &&
-        eservice.data.descriptors[0].state === descriptorState.draft)
-    )
-  ) {
-    throw eServiceCannotBeUpdated(eserviceId);
-  }
-
-  if (eserviceSeed.name !== eservice.data.name) {
-    const eserviceWithSameName = await getEServiceByNameAndProducerId({
-      name: eserviceSeed.name,
-      producerId: authData.organizationId,
-    });
-    if (eserviceWithSameName !== undefined) {
-      throw eServiceDuplicate(eserviceSeed.name);
-    }
-  }
-
-  const updatedTechnology = apiTechnologyToTechnology(eserviceSeed.technology);
-  if (eservice.data.descriptors.length === 1) {
-    const draftDescriptor = eservice.data.descriptors[0];
-    if (
-      updatedTechnology !== eservice.data.technology &&
-      draftDescriptor.interface !== undefined
-    ) {
-      await deleteFile(config.s3Bucket, draftDescriptor.interface.path).catch(
-        (error) => {
-          logger.error(
-            `Error deleting interface for descriptor ${draftDescriptor.id} : ${error}`
-          );
-          throw error;
-        }
-      );
-    }
-  }
-
-  const updatedEService: EService = {
-    ...eservice.data,
-    description: eserviceSeed.description,
-    name: eserviceSeed.name,
-    technology: updatedTechnology,
-    producerId: authData.organizationId,
-  };
-
-  return toCreateEventEServiceUpdated(
-    eserviceId,
-    eservice.metadata.version,
-    updatedEService
-  );
-}
-
-export function deleteEserviceLogic({
-  eserviceId,
-  authData,
-  eservice,
-}: {
-  eserviceId: EServiceId;
-  authData: AuthData;
-  eservice: WithMetadata<EService> | undefined;
-}): CreateEvent<EServiceEvent> {
-  assertEServiceExist(eserviceId, eservice);
-  assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
-
-  if (eservice.data.descriptors.length > 0) {
-    throw eServiceCannotBeDeleted(eserviceId);
-  }
-
-  return toCreateEventEServiceDeleted(
-    eserviceId,
-    eservice.metadata.version,
-    eservice.data
-  );
-}
-
-export function uploadDocumentLogic({
-  eserviceId,
-  descriptorId,
-  document,
-  authData,
-  eservice,
-}: {
-  eserviceId: EServiceId;
-  descriptorId: DescriptorId;
-  document: ApiEServiceDescriptorDocumentSeed;
-  authData: AuthData;
-  eservice: WithMetadata<EService> | undefined;
-}): CreateEvent<EServiceEvent> {
-  assertEServiceExist(eserviceId, eservice);
-  assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
-
-  const descriptor = retrieveDescriptor(descriptorId, eservice);
-
-  if (descriptor.state !== descriptorState.draft) {
-    throw notValidDescriptor(descriptor.id, descriptor.state);
-  }
-
-  if (document.kind === "INTERFACE" && descriptor.interface !== undefined) {
-    throw interfaceAlreadyExists(descriptor.id);
-  }
-
-  const isInterface = document.kind === "INTERFACE";
-  const newDocument: Document = {
-    id: unsafeBrandId(document.documentId),
-    name: document.fileName,
-    contentType: document.contentType,
-    prettyName: document.prettyName,
-    path: document.filePath,
-    checksum: document.checksum,
-    uploadDate: new Date(),
-  };
-
-  const newEservice: EService = {
-    ...eservice.data,
-    descriptors: eservice.data.descriptors.map((d: Descriptor) =>
-      d.id === descriptorId
-        ? {
-            ...d,
-            interface: isInterface ? newDocument : d.interface,
-            docs: isInterface ? d.docs : [...d.docs, newDocument],
-            serverUrls: document.serverUrls,
-          }
-        : d
-    ),
-  };
-
-  return document.kind === "INTERFACE"
-    ? toCreateEventEServiceInterfaceAdded(
-        eserviceId,
-        eservice.metadata.version,
-        {
-          descriptorId,
-          documentId: unsafeBrandId(document.documentId),
-          eservice: newEservice,
-        }
-      )
-    : toCreateEventEServiceDocumentAdded(
-        eserviceId,
-        eservice.metadata.version,
-        {
-          descriptorId,
-          documentId: unsafeBrandId(document.documentId),
-          eservice: newEservice,
-        }
-      );
-}
-
-export async function deleteDocumentLogic({
-  eserviceId,
-  descriptorId,
-  documentId,
-  authData,
-  eservice,
-  deleteFile,
-}: {
-  eserviceId: EServiceId;
-  descriptorId: DescriptorId;
-  documentId: EServiceDocumentId;
-  authData: AuthData;
-  eservice: WithMetadata<EService> | undefined;
-  deleteFile: (bucket: string, path: string) => Promise<void>;
-}): Promise<CreateEvent<EServiceEvent>> {
-  assertEServiceExist(eserviceId, eservice);
-  assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
-
-  const descriptor = retrieveDescriptor(descriptorId, eservice);
-
-  if (descriptor.state !== descriptorState.draft) {
-    throw notValidDescriptor(descriptor.id, descriptor.state);
-  }
-
-  const document = [...descriptor.docs, descriptor.interface].find(
-    (doc) => doc != null && doc.id === documentId
-  );
-  if (document === undefined) {
-    throw eServiceDocumentNotFound(eserviceId, descriptorId, documentId);
-  }
-
-  await deleteFile(config.s3Bucket, document.path).catch((error) => {
-    logger.error(
-      `Error deleting interface or document file for descriptor ${descriptorId} : ${error}`
-    );
-    throw error;
-  });
-
-  const isInterface = document.id === descriptor?.interface?.id;
-  const newEservice: EService = {
-    ...eservice.data,
-    descriptors: eservice.data.descriptors.map((d: Descriptor) =>
-      d.id === descriptorId
-        ? {
-            ...d,
-            interface: d.interface?.id === documentId ? undefined : d.interface,
-            docs: d.docs.filter((doc) => doc.id !== documentId),
-          }
-        : d
-    ),
-  };
-
-  return isInterface
-    ? toCreateEventEServiceInterfaceDeleted(
-        eserviceId,
-        eservice.metadata.version,
-        {
-          descriptorId,
-          documentId,
-          eservice: newEservice,
-        }
-      )
-    : toCreateEventEServiceDocumentDeleted(
-        eserviceId,
-        eservice.metadata.version,
-        {
-          descriptorId,
-          documentId,
-          eservice: newEservice,
-        }
-      );
-}
-
-export async function updateDocumentLogic({
-  eserviceId,
-  descriptorId,
-  documentId,
-  apiEServiceDescriptorDocumentUpdateSeed,
-  authData,
-  eservice,
-}: {
-  eserviceId: EServiceId;
-  descriptorId: DescriptorId;
-  documentId: EServiceDocumentId;
-  apiEServiceDescriptorDocumentUpdateSeed: ApiEServiceDescriptorDocumentUpdateSeed;
-  authData: AuthData;
-  eservice: WithMetadata<EService> | undefined;
-}): Promise<CreateEvent<EServiceEvent>> {
-  assertEServiceExist(eserviceId, eservice);
-  assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
-
-  const descriptor = retrieveDescriptor(descriptorId, eservice);
-
-  if (descriptor.state !== descriptorState.draft) {
-    throw notValidDescriptor(descriptor.id, descriptor.state);
-  }
-
-  const document = (
-    descriptor ? [...descriptor.docs, descriptor.interface] : []
-  ).find((doc) => doc != null && doc.id === documentId);
-
-  if (document === undefined) {
-    throw eServiceDocumentNotFound(eserviceId, descriptorId, documentId);
-  }
-
-  const updatedDocument = {
-    ...document,
-    prettyName: apiEServiceDescriptorDocumentUpdateSeed.prettyName,
-  };
-
-  const isInterface = document.id === descriptor?.interface?.id;
-  const newEservice: EService = {
-    ...eservice.data,
-    descriptors: eservice.data.descriptors.map((d: Descriptor) =>
-      d.id === descriptorId
-        ? {
-            ...d,
-            interface: isInterface ? updatedDocument : d.interface,
-            docs: d.docs.map((doc) =>
-              doc.id === documentId ? updatedDocument : doc
-            ),
-          }
-        : d
-    ),
-  };
-
-  return isInterface
-    ? toCreateEventEServiceInterfaceUpdated(
-        eserviceId,
-        eservice.metadata.version,
-        {
-          descriptorId,
-          documentId,
-          eservice: newEservice,
-        }
-      )
-    : toCreateEventEServiceDocumentUpdated(
-        eserviceId,
-        eservice.metadata.version,
-        {
-          descriptorId,
-          documentId,
-          eservice: newEservice,
-        }
-      );
-}
-
-export async function createDescriptorLogic({
-  eserviceId,
-  eserviceDescriptorSeed,
-  authData,
-  eservice,
-  getAttributesByIds,
-}: {
-  eserviceId: EServiceId;
-  eserviceDescriptorSeed: EServiceDescriptorSeed;
-  authData: AuthData;
-  eservice: WithMetadata<EService> | undefined;
-  getAttributesByIds: (attributesIds: AttributeId[]) => Promise<Attribute[]>;
-}): Promise<CreateEvent<EServiceEvent>> {
-  assertEServiceExist(eserviceId, eservice);
-  assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
-  hasNotDraftDescriptor(eservice.data);
-
-  const newVersion = nextDescriptorVersion(eservice.data);
-
-  const certifiedAttributes = eserviceDescriptorSeed.attributes.certified;
-  const declaredAttributes = eserviceDescriptorSeed.attributes.declared;
-  const verifiedAttributes = eserviceDescriptorSeed.attributes.verified;
-
-  const attributesSeeds = [
-    ...certifiedAttributes.flat(),
-    ...declaredAttributes.flat(),
-    ...verifiedAttributes.flat(),
-  ];
-
-  if (attributesSeeds.length > 0) {
-    const attributesSeedsIds: AttributeId[] = attributesSeeds.map((attr) =>
-      unsafeBrandId(attr.id)
-    );
-    const attributes = await getAttributesByIds(attributesSeedsIds);
-    const attributesIds = attributes.map((attr) => attr.id);
-    for (const attributeSeedId of attributesSeedsIds) {
-      if (!attributesIds.includes(unsafeBrandId(attributeSeedId))) {
-        throw attributeNotFound(attributeSeedId);
-      }
-    }
-  }
-
-  if (
-    eserviceDescriptorSeed.dailyCallsPerConsumer >
-    eserviceDescriptorSeed.dailyCallsTotal
-  ) {
-    throw inconsistentDailyCalls();
-  }
-
-  const descriptorId = generateId<DescriptorId>();
-
-  const newDescriptor: Descriptor = {
-    id: descriptorId,
-    description: eserviceDescriptorSeed.description,
-    version: newVersion,
-    interface: undefined,
-    docs: [],
-    state: "Draft",
-    voucherLifespan: eserviceDescriptorSeed.voucherLifespan,
-    audience: eserviceDescriptorSeed.audience,
-    dailyCallsPerConsumer: eserviceDescriptorSeed.dailyCallsPerConsumer,
-    dailyCallsTotal: eserviceDescriptorSeed.dailyCallsTotal,
-    agreementApprovalPolicy:
-      apiAgreementApprovalPolicyToAgreementApprovalPolicy(
-        eserviceDescriptorSeed.agreementApprovalPolicy
-      ),
-    serverUrls: [],
-    publishedAt: undefined,
-    suspendedAt: undefined,
-    deprecatedAt: undefined,
-    archivedAt: undefined,
-    createdAt: new Date(),
-    attributes: {
-      certified: certifiedAttributes.map((a) =>
-        a.map((a) => ({
-          ...a,
-          id: unsafeBrandId(a.id),
-        }))
-      ),
-      // eslint-disable-next-line sonarjs/no-identical-functions
-      declared: declaredAttributes.map((a) =>
-        a.map((a) => ({
-          ...a,
-          id: unsafeBrandId(a.id),
-        }))
-      ),
-      // eslint-disable-next-line sonarjs/no-identical-functions
-      verified: verifiedAttributes.map((a) =>
-        a.map((a) => ({
-          ...a,
-          id: unsafeBrandId(a.id),
-        }))
-      ),
-    },
-  };
-
-  const newEservice: EService = {
-    ...eservice.data,
-    descriptors: [...eservice.data.descriptors, newDescriptor],
-  };
-
-  return toCreateEventEServiceDescriptorAdded(
-    eservice.data.id,
-    eservice.metadata.version,
-    descriptorId,
-    newEservice
-  );
-}
-
-export async function deleteDraftDescriptorLogic({
-  eserviceId,
-  descriptorId,
-  authData,
-  deleteFile,
-  eservice,
-}: {
-  eserviceId: EServiceId;
-  descriptorId: DescriptorId;
-  authData: AuthData;
-  deleteFile: (bucket: string, path: string) => Promise<void>;
-  eservice: WithMetadata<EService> | undefined;
-}): Promise<CreateEvent<EServiceEvent>> {
-  assertEServiceExist(eserviceId, eservice);
-  assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
-
-  const descriptor = retrieveDescriptor(descriptorId, eservice);
-
-  if (descriptor.state !== descriptorState.draft) {
-    throw notValidDescriptor(descriptorId, descriptor.state.toString());
-  }
-
-  const descriptorInterface = descriptor.interface;
-  if (descriptorInterface !== undefined) {
-    await deleteFile(config.s3Bucket, descriptorInterface.path).catch(
-      (error) => {
-        logger.error(
-          `Error deleting interface file for descriptor ${descriptorId} : ${error}`
-        );
-        throw error;
-      }
-    );
-  }
-
-  const deleteDescriptorDocs = descriptor.docs.map((doc: Document) =>
-    deleteFile(config.s3Bucket, doc.path)
-  );
-
-  await Promise.all(deleteDescriptorDocs).catch((error) => {
-    logger.error(
-      `Error deleting documents' files for descriptor ${descriptorId} : ${error}`
-    );
-    throw error;
-  });
-
-  const newEservice: EService = {
-    ...eservice.data,
-    descriptors: eservice.data.descriptors.filter(
-      (d: Descriptor) => d.id !== descriptorId
-    ),
-  };
-
-  return toCreateEventEServiceDescriptorDeleted(
-    eservice.data.id,
-    eservice.metadata.version,
-    newEservice,
-    descriptorId
-  );
-}
-
-export function updateDraftDescriptorLogic({
-  eserviceId,
-  descriptorId,
-  seed,
-  authData,
-  eservice,
-}: {
-  eserviceId: EServiceId;
-  descriptorId: DescriptorId;
-  seed: UpdateEServiceDescriptorSeed;
-  authData: AuthData;
-  eservice: WithMetadata<EService> | undefined;
-}): CreateEvent<EServiceEvent> {
-  assertEServiceExist(eserviceId, eservice);
-  assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
-
-  const descriptor = retrieveDescriptor(descriptorId, eservice);
-
-  if (descriptor.state !== descriptorState.draft) {
-    throw notValidDescriptor(descriptorId, descriptor.state.toString());
-  }
-
-  if (seed.dailyCallsPerConsumer > seed.dailyCallsTotal) {
-    throw inconsistentDailyCalls();
-  }
-
-  const updatedDescriptor: Descriptor = {
-    ...descriptor,
-    description: seed.description,
-    audience: seed.audience,
-    voucherLifespan: seed.voucherLifespan,
-    dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
-    state: "Draft",
-    dailyCallsTotal: seed.dailyCallsTotal,
-    agreementApprovalPolicy:
-      apiAgreementApprovalPolicyToAgreementApprovalPolicy(
-        seed.agreementApprovalPolicy
-      ),
-  };
-
-  const updatedEService = replaceDescriptor(eservice.data, updatedDescriptor);
-
-  return toCreateEventEServiceUpdated(
-    eserviceId,
-    eservice.metadata.version,
-    updatedEService
-  );
-}
-
-export function publishDescriptorLogic({
-  eserviceId,
-  descriptorId,
-  authData,
-  eservice,
-}: {
-  eserviceId: EServiceId;
-  descriptorId: DescriptorId;
-  authData: AuthData;
-  eservice: WithMetadata<EService> | undefined;
-}): CreateEvent<EServiceEvent> {
-  assertEServiceExist(eserviceId, eservice);
-  assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
-
-  const descriptor = retrieveDescriptor(descriptorId, eservice);
-  if (descriptor.state !== descriptorState.draft) {
-    throw notValidDescriptor(descriptor.id, descriptor.state.toString());
-  }
-
-  if (descriptor.interface === undefined) {
-    throw eServiceDescriptorWithoutInterface(descriptor.id);
-  }
-
-  const currentActiveDescriptor = eservice.data.descriptors.find(
-    (d: Descriptor) => d.state === descriptorState.published
-  );
-
-  const updatedDescriptor = updateDescriptorState(
-    descriptor,
-    descriptorState.published
-  );
-
-  const newEservice = updateDescriptor(eservice.data, updatedDescriptor);
-
-  if (currentActiveDescriptor !== undefined) {
-    const newEserviceWithDeprecation = updateDescriptor(
-      eservice.data,
-      deprecateDescriptor(eserviceId, currentActiveDescriptor)
-    );
-
-    return toCreateEventEServiceDescriptorPublished(
-      eserviceId,
-      eservice.metadata.version + 1,
-      descriptorId,
-      newEserviceWithDeprecation
-    );
-  } else {
-    return toCreateEventEServiceDescriptorPublished(
-      eserviceId,
-      eservice.metadata.version,
-      descriptorId,
-      newEservice
-    );
-  }
-}
-
-export function suspendDescriptorLogic({
-  eserviceId,
-  descriptorId,
-  authData,
-  eservice,
-}: {
-  eserviceId: EServiceId;
-  descriptorId: DescriptorId;
-  authData: AuthData;
-  eservice: WithMetadata<EService> | undefined;
-}): CreateEvent<EServiceEvent> {
-  assertEServiceExist(eserviceId, eservice);
-  assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
-
-  const descriptor = retrieveDescriptor(descriptorId, eservice);
-  if (
-    descriptor.state !== descriptorState.deprecated &&
-    descriptor.state !== descriptorState.published
-  ) {
-    throw notValidDescriptor(descriptorId, descriptor.state.toString());
-  }
-
-  const updatedDescriptor = updateDescriptorState(
-    descriptor,
-    descriptorState.suspended
-  );
-
-  const newEservice = updateDescriptor(eservice.data, updatedDescriptor);
-
-  return toCreateEventEServiceDescriptorSuspended(
-    eserviceId,
-    eservice.metadata.version,
-    descriptorId,
-    newEservice
-  );
-}
-
-export function activateDescriptorLogic({
-  eserviceId,
-  descriptorId,
-  authData,
-  eservice,
-}: {
-  eserviceId: EServiceId;
-  descriptorId: DescriptorId;
-  authData: AuthData;
-  eservice: WithMetadata<EService> | undefined;
-}): CreateEvent<EServiceEvent> {
-  assertEServiceExist(eserviceId, eservice);
-  assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
-
-  const descriptor = retrieveDescriptor(descriptorId, eservice);
-  if (descriptor.state !== descriptorState.suspended) {
-    throw notValidDescriptor(descriptorId, descriptor.state.toString());
-  }
-
-  const updatedDescriptor = updateDescriptorState(
-    descriptor,
-    descriptorState.published
-  );
-  const descriptorVersions: number[] = eservice.data.descriptors
-    .filter(
-      (d: Descriptor) =>
-        d.state === descriptorState.suspended ||
-        d.state === descriptorState.deprecated ||
-        d.state === descriptorState.published
-    )
-    .map((d: Descriptor) => parseInt(d.version, 10));
-  const recentDescriptorVersion = Math.max(...descriptorVersions);
-
-  if (
-    recentDescriptorVersion !== null &&
-    parseInt(descriptor.version, 10) === recentDescriptorVersion
-  ) {
-    const newEservice = updateDescriptor(eservice.data, updatedDescriptor);
-
-    return toCreateEventEServiceDescriptorActivated(
-      eserviceId,
-      eservice.metadata.version,
-      descriptorId,
-      newEservice
-    );
-  } else {
-    const newEservice = updateDescriptor(
-      eservice.data,
-      deprecateDescriptor(eserviceId, descriptor)
-    );
-
-    return toCreateEventEServiceDescriptorActivated(
-      eserviceId,
-      eservice.metadata.version,
-      descriptorId,
-      newEservice
-    );
-  }
-}
-
-export async function cloneDescriptorLogic({
-  eserviceId,
-  descriptorId,
-  authData,
-  copyFile,
-  eservice,
-  getEServiceByNameAndProducerId,
-}: {
-  eserviceId: EServiceId;
-  descriptorId: DescriptorId;
-  authData: AuthData;
-  copyFile: (
-    bucket: string,
-    docPath: string,
-    path: string,
-    id: string,
-    name: string
-  ) => Promise<string>;
-  eservice: WithMetadata<EService> | undefined;
-  getEServiceByNameAndProducerId: ({
-    name,
-    producerId,
-  }: {
-    name: string;
-    producerId: TenantId;
-  }) => Promise<WithMetadata<EService> | undefined>;
-}): Promise<{ eservice: EService; event: CreateEvent<EServiceEvent> }> {
-  assertEServiceExist(eserviceId, eservice);
-  assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
-
-  const clonedEServiceName = `${
-    eservice.data.name
-  } - clone - ${formatClonedEServiceDate(new Date())}`;
-
-  if (
-    await getEServiceByNameAndProducerId({
-      name: clonedEServiceName,
-      producerId: authData.organizationId,
-    })
-  ) {
-    throw eServiceDuplicate(clonedEServiceName);
-  }
-
-  const descriptor = retrieveDescriptor(descriptorId, eservice);
-
-  const clonedInterfaceId = generateId<EServiceDocumentId>();
-  const clonedInterfacePath =
-    descriptor.interface !== undefined
-      ? await copyFile(
-          config.s3Bucket,
-          descriptor.interface.path,
-          config.eserviceDocumentsPath,
-          clonedInterfaceId,
-          descriptor.interface.name
-        ).catch((error) => {
-          logger.error(
-            `Error copying interface file for descriptor ${descriptorId} : ${error}`
-          );
-          throw error;
-        })
-      : undefined;
-
-  const clonedInterfaceDocument: Document | undefined =
-    descriptor.interface !== undefined && clonedInterfacePath !== undefined
-      ? {
-          id: clonedInterfaceId,
-          name: descriptor.interface.name,
-          contentType: descriptor.interface.contentType,
-          prettyName: descriptor.interface.prettyName,
-          path: clonedInterfacePath,
-          checksum: descriptor.interface.checksum,
-          uploadDate: new Date(),
-        }
-      : undefined;
-
-  const clonedDocuments = await Promise.all(
-    descriptor.docs.map(async (doc: Document) => {
-      const clonedDocumentId = generateId<EServiceDocumentId>();
-      const clonedDocumentPath = await copyFile(
-        config.s3Bucket,
-        doc.path,
-        config.eserviceDocumentsPath,
-        clonedDocumentId,
-        doc.name
-      );
-      const clonedDocument: Document = {
-        id: clonedDocumentId,
-        name: doc.name,
-        contentType: doc.contentType,
-        prettyName: doc.prettyName,
-        path: clonedDocumentPath,
-        checksum: doc.checksum,
-        uploadDate: new Date(),
-      };
-      return clonedDocument;
-    })
-  ).catch((error) => {
-    logger.error(
-      `Error copying documents' files for descriptor ${descriptorId} : ${error}`
-    );
-    throw error;
-  });
-
-  const clonedEservice: EService = {
-    id: generateId(),
-    producerId: eservice.data.producerId,
-    name: clonedEServiceName,
-    description: eservice.data.description,
-    technology: eservice.data.technology,
-    attributes: eservice.data.attributes,
-    createdAt: new Date(),
-    riskAnalysis: eservice.data.riskAnalysis,
-    mode: eservice.data.mode,
-    descriptors: [
-      {
-        ...descriptor,
-        id: generateId(),
-        version: "1",
-        interface: clonedInterfaceDocument,
-        docs: clonedDocuments,
-        state: descriptorState.draft,
-        createdAt: new Date(),
-        publishedAt: undefined,
-        suspendedAt: undefined,
-        deprecatedAt: undefined,
-        archivedAt: undefined,
-      },
-    ],
-  };
-
-  return {
-    eservice: clonedEservice,
-    event: toCreateEventClonedEServiceAdded(
-      descriptorId,
-      eservice.data,
-      clonedEservice
-    ),
-  };
-}
-
-export function archiveDescriptorLogic({
-  eserviceId,
-  descriptorId,
-  authData,
-  eservice,
-}: {
-  eserviceId: EServiceId;
-  descriptorId: DescriptorId;
-  authData: AuthData;
-  eservice: WithMetadata<EService> | undefined;
-}): CreateEvent<EServiceEvent> {
-  assertEServiceExist(eserviceId, eservice);
-  assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
-
-  const descriptor = retrieveDescriptor(descriptorId, eservice);
-  const updatedDescriptor = updateDescriptorState(
-    descriptor,
-    descriptorState.archived
-  );
-
-  const newEservice = updateDescriptor(eservice.data, updatedDescriptor);
-
-  return toCreateEventEServiceDescriptorActivated(
-    eserviceId,
-    eservice.metadata.version,
-    descriptorId,
-    newEservice
-  );
-}
-
-export function updateDescriptorLogic({
-  eserviceId,
-  descriptorId,
-  seed,
-  authData,
-  eservice,
-}: {
-  eserviceId: EServiceId;
-  descriptorId: DescriptorId;
-  seed: UpdateEServiceDescriptorQuotasSeed;
-  authData: AuthData;
-  eservice: WithMetadata<EService> | undefined;
-}): CreateEvent<EServiceEvent> {
-  assertEServiceExist(eserviceId, eservice);
-  assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
-
-  const descriptor = retrieveDescriptor(descriptorId, eservice);
-
-  if (
-    descriptor.state !== descriptorState.published &&
-    descriptor.state !== descriptorState.suspended &&
-    descriptor.state !== descriptorState.deprecated
-  ) {
-    throw notValidDescriptor(descriptorId, descriptor.state.toString());
-  }
-
-  assertDailyCallsAreConsistentAndNotDecreased({
-    dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
-    dailyCallsTotal: descriptor.dailyCallsTotal,
-    updatedDailyCallsPerConsumer: seed.dailyCallsPerConsumer,
-    updatedDailyCallsTotal: seed.dailyCallsTotal,
-  });
-
-  const updatedDescriptor: Descriptor = {
-    ...descriptor,
-    voucherLifespan: seed.voucherLifespan,
-    dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
-    dailyCallsTotal: seed.dailyCallsTotal,
-  };
-
-  const updatedEService = replaceDescriptor(eservice.data, updatedDescriptor);
-
-  return toCreateEventEServiceUpdated(
-    eserviceId,
-    eservice.metadata.version,
-    updatedEService
-  );
 }
 
 const isUserAllowedToSeeDraft = (
@@ -1715,63 +1431,6 @@ function assertDailyCallsAreConsistentAndNotDecreased({
   ) {
     throw dailyCallsCannotBeDecreased();
   }
-}
-
-function replaceDescriptor(
-  eservice: EService,
-  updatedDescriptor: Descriptor
-): EService {
-  return {
-    ...eservice,
-    descriptors: eservice.descriptors.map((descriptor) =>
-      descriptor.id === updatedDescriptor.id ? updatedDescriptor : descriptor
-    ),
-  };
-}
-
-export function createRiskAnalysisLogic({
-  eserviceId,
-  eserviceRiskAnalysisSeed,
-  authData,
-  eservice,
-  tenant,
-}: {
-  eserviceId: EServiceId;
-  eserviceRiskAnalysisSeed: EServiceRiskAnalysisSeed;
-  authData: AuthData;
-  eservice: WithMetadata<EService> | undefined;
-  tenant: WithMetadata<Tenant> | undefined;
-}): CreateEvent<EServiceEvent> {
-  assertEServiceExist(eserviceId, eservice);
-  assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
-  assertIsDraftEservice(eservice.data);
-  assertIsReceiveEservice(eservice.data);
-  assertTenantExists(authData.organizationId, tenant);
-  assertTenantKindExists(authData.organizationId, tenant.data.kind);
-
-  const validatedRiskAnalysisForm = validateRiskAnalysisOrThrow(
-    eserviceRiskAnalysisSeed.riskAnalysisForm,
-    true,
-    tenant.data.kind
-  );
-
-  const newRiskAnalysis: RiskAnalysis =
-    riskAnalysisValidatedFormToNewRiskAnalysis(
-      validatedRiskAnalysisForm,
-      eserviceRiskAnalysisSeed.name
-    );
-
-  const newEservice: EService = {
-    ...eservice.data,
-    riskAnalysis: [...eservice.data.riskAnalysis, newRiskAnalysis],
-  };
-
-  return toCreateEventEServiceRiskAnalysisAdded(
-    eservice.data.id,
-    eservice.metadata.version,
-    newRiskAnalysis.id,
-    newEservice
-  );
 }
 
 function validateRiskAnalysisOrThrow(
