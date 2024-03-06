@@ -124,11 +124,11 @@ export function parseErrorMessage(error: unknown): string {
 
 export function missingMessageDataError(
   dataName: string,
-  eventName: string
+  eventType: string
 ): InternalError<CommonErrorCodes> {
   return new InternalError({
     code: "missingMessageData",
-    detail: `"Invalid message: missing data '${dataName}' in ${eventName} event"`,
+    detail: `"Invalid message: missing data '${dataName}' in ${eventType} event"`,
   });
 }
 

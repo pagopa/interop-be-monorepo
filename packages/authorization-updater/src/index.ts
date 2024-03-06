@@ -15,30 +15,36 @@ import {
   fromEServiceV2,
   missingMessageDataError,
   EServiceId,
+  EService,
 } from "pagopa-interop-models";
 import {
   AuthorizationService,
   authorizationServiceBuilder,
 } from "./authorization-service.js";
 
-const getDescriptorFromEvent = (msg: {
-  data: {
-    descriptorId: string;
-    eservice?: EServiceV2;
-  };
-}): {
+const getDescriptorFromEvent = (
+  msg: {
+    data: {
+      descriptorId: string;
+      eservice?: EServiceV2;
+    };
+  },
+  eventType: string
+): {
   eserviceId: EServiceId;
   descriptor: Descriptor;
 } => {
   if (!msg.data.eservice) {
-    throw missingMessageDataError("eservice", "EServiceDescriptorPublished");
+    throw missingMessageDataError("eservice", eventType);
   }
 
-  const eservice = fromEServiceV2(msg.data.eservice);
-  const descriptor = eservice.descriptors.find(() => msg.data.descriptorId);
+  const eservice: EService = fromEServiceV2(msg.data.eservice);
+  const descriptor = eservice.descriptors.find(
+    (d) => d.id === msg.data.descriptorId
+  );
 
   if (!descriptor) {
-    throw missingMessageDataError("descriptor", "EServiceDescriptorPublished");
+    throw missingMessageDataError("descriptor", eventType);
   }
 
   return { eserviceId: eservice.id, descriptor };
@@ -79,7 +85,7 @@ function processMessage(authService: AuthorizationService) {
             type: "EServiceDescriptorActivated",
           },
           async (msg) => {
-            const data = getDescriptorFromEvent(msg);
+            const data = getDescriptorFromEvent(msg, decodedMsg.type);
             await executeUpdate(decodedMsg.type, messagePayload, () =>
               authService.updateEServiceState(
                 "ACTIVE",
@@ -97,7 +103,7 @@ function processMessage(authService: AuthorizationService) {
             type: "EServiceDescriptorSuspended",
           },
           async (msg) => {
-            const data = getDescriptorFromEvent(msg);
+            const data = getDescriptorFromEvent(msg, decodedMsg.type);
             await executeUpdate(decodedMsg.type, messagePayload, () =>
               authService.updateEServiceState(
                 "INACTIVE",
