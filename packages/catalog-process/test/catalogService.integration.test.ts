@@ -63,6 +63,7 @@ import {
   postgreSQLContainer,
 } from "pagopa-interop-commons-test";
 import { StartedTestContainer } from "testcontainers";
+import { E } from "vitest/dist/types-198fd1d9.js";
 import { config } from "../src/utilities/config.js";
 import { toEServiceV2 } from "../src/model/domain/toEvent.js";
 import {
@@ -659,7 +660,7 @@ describe("database test", async () => {
     });
 
     describe("create descriptor", async () => {
-      it("should write on event-store for the creation of a descriptor", async () => {
+      it("should write on event-store for the creation of a descriptor (eservice had no descriptors)", async () => {
         const attribute: Attribute = {
           name: "Attribute name",
           id: generateId(),
@@ -678,17 +679,21 @@ describe("database test", async () => {
             verified: [],
           },
         };
-        await addOneEService(mockEService, postgresDB, eservices);
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [],
+        };
+        await addOneEService(eservice, postgresDB, eservices);
         await catalogService.createDescriptor(
-          mockEService.id,
+          eservice.id,
           descriptorSeed,
-          getMockAuthData(mockEService.producerId)
+          getMockAuthData(eservice.producerId)
         );
         const writtenEvent = await readLastEventByStreamId(
-          mockEService.id,
+          eservice.id,
           postgresDB
         );
-        expect(writtenEvent.stream_id).toBe(mockEService.id);
+        expect(writtenEvent.stream_id).toBe(eservice.id);
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("EServiceDescriptorAdded");
         expect(writtenEvent.event_version).toBe(2);
@@ -698,10 +703,11 @@ describe("database test", async () => {
         });
 
         const expectedEservice = toEServiceV2({
-          ...mockEService,
+          ...eservice,
           descriptors: [
             {
               ...mockDescriptor,
+              version: "1",
               createdAt: new Date(
                 Number(writtenPayload.eservice!.descriptors[0]!.createdAt)
               ),
@@ -716,6 +722,76 @@ describe("database test", async () => {
               },
             },
           ],
+        });
+
+        expect(writtenPayload.descriptorId).toEqual(
+          expectedEservice.descriptors[0].id
+        );
+        expect(writtenPayload.eservice).toEqual(expectedEservice);
+      });
+
+      it("should write on event-store for the creation of a descriptor (eservice already had one descriptor)", async () => {
+        const attribute: Attribute = {
+          name: "Attribute name",
+          id: generateId(),
+          kind: "Declared",
+          description: "Attribute Description",
+          creationTime: new Date(),
+        };
+        await addOneAttribute(attribute, attributes);
+        const descriptorSeed: EServiceDescriptorSeed = {
+          ...buildDescriptorSeed(mockDescriptor),
+          attributes: {
+            certified: [],
+            declared: [
+              [{ id: attribute.id, explicitAttributeVerification: false }],
+            ],
+            verified: [],
+          },
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [],
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+        await catalogService.createDescriptor(
+          eservice.id,
+          descriptorSeed,
+          getMockAuthData(eservice.producerId)
+        );
+        const writtenEvent = await readLastEventByStreamId(
+          eservice.id,
+          postgresDB
+        );
+        expect(writtenEvent.stream_id).toBe(mockEService.id);
+        expect(writtenEvent.version).toBe("1");
+        expect(writtenEvent.type).toBe("EServiceDescriptorAdded");
+        expect(writtenEvent.event_version).toBe(2);
+        const writtenPayload = decodeProtobufPayload({
+          messageType: EServiceDescriptorAddedV2,
+          payload: writtenEvent.data,
+        });
+
+        const newDescriptor: Descriptor = {
+          ...mockDescriptor,
+          version: "2",
+          createdAt: new Date(
+            Number(writtenPayload.eservice!.descriptors[0]!.createdAt)
+          ),
+          id: unsafeBrandId(writtenPayload.eservice!.descriptors[0]!.id),
+          serverUrls: [],
+          attributes: {
+            certified: [],
+            declared: [
+              [{ id: attribute.id, explicitAttributeVerification: false }],
+            ],
+            verified: [],
+          },
+        };
+
+        const expectedEservice = toEServiceV2({
+          ...mockEService,
+          descriptors: [...eservice.descriptors, newDescriptor],
         });
 
         expect(writtenPayload.descriptorId).toEqual(
