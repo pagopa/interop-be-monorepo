@@ -1,13 +1,15 @@
 import { match } from "ts-pattern";
 import { EServiceCollection } from "pagopa-interop-commons";
 import {
-  fromDescriptorV1,
-  fromDocumentV1,
-  fromEServiceV1Legacy,
   EServiceEventEnvelopeV1,
   EServiceV1,
   EServiceLegacy,
 } from "pagopa-interop-models";
+import {
+  fromDescriptorV1Legacy,
+  fromDocumentV1Legacy,
+  fromEServiceV1Legacy,
+} from "./model/legacy/eserviceLegacyConverter.js";
 
 const getEserviceData = (
   version: number,
@@ -88,7 +90,7 @@ export async function handleMessageV1(
           $set: {
             "data.descriptors.$[descriptor].docs.$[doc]": msg.data
               .updatedDocument
-              ? fromDocumentV1(msg.data.updatedDocument)
+              ? fromDocumentV1Legacy(msg.data.updatedDocument)
               : undefined,
           },
         },
@@ -110,7 +112,7 @@ export async function handleMessageV1(
         {
           $set: {
             "data.descriptors.$[descriptor].interface": msg.data.updatedDocument
-              ? fromDocumentV1(msg.data.updatedDocument)
+              ? fromDocumentV1Legacy(msg.data.updatedDocument)
               : undefined,
             "data.descriptors.$[descriptor].serverUrls": msg.data.serverUrls,
           },
@@ -155,7 +157,7 @@ export async function handleMessageV1(
             $set: {
               "metadata.version": msg.version,
               "data.descriptors.$[descriptor].interface": msg.data.document
-                ? fromDocumentV1(msg.data.document)
+                ? fromDocumentV1Legacy(msg.data.document)
                 : undefined,
               "data.descriptors.$[descriptor].serverUrls": msg.data.serverUrls,
             },
@@ -180,7 +182,7 @@ export async function handleMessageV1(
             },
             $push: {
               "data.descriptors.$[descriptor].docs": msg.data.document
-                ? fromDocumentV1(msg.data.document)
+                ? fromDocumentV1Legacy(msg.data.document)
                 : undefined,
             },
           },
@@ -254,7 +256,7 @@ export async function handleMessageV1(
             },
             $push: {
               "data.descriptors": msg.data.eserviceDescriptor
-                ? fromDescriptorV1(msg.data.eserviceDescriptor)
+                ? fromDescriptorV1Legacy(msg.data.eserviceDescriptor)
                 : undefined,
             },
           }
@@ -272,7 +274,7 @@ export async function handleMessageV1(
             $set: {
               "metadata.version": msg.version,
               "data.descriptors.$[descriptor]": msg.data.eserviceDescriptor
-                ? fromDescriptorV1(msg.data.eserviceDescriptor)
+                ? fromDescriptorV1Legacy(msg.data.eserviceDescriptor)
                 : undefined,
             },
           },

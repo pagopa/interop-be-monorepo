@@ -1,9 +1,7 @@
 import { match } from "ts-pattern";
 import { EServiceCollection, logger } from "pagopa-interop-commons";
-import {
-  EServiceEventEnvelopeV2,
-  fromEServiceV2Legacy,
-} from "pagopa-interop-models";
+import { EServiceEventEnvelopeV2 } from "pagopa-interop-models";
+import { fromEServiceV2Legacy } from "./model/legacy/eserviceLegacyConverter.js";
 
 export async function handleMessageV2(
   message: EServiceEventEnvelopeV2,
