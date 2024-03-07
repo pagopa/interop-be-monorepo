@@ -39,8 +39,8 @@ export const authorizationServiceBuilder =
         getToken: async () => token.serialized,
         renewToken: async () => {
           /* 
-            This function is called when the service response with a 401, 
-            automatically renew the token and execute the request again.
+            This function is called when the service responds with a 401, 
+            automatically renews the token, and executes the request again.
             more details: https://github.com/ecyrbe/zodios-plugins/blob/main/src/plugins.test.ts#L69
           */
           logger.info("Renewing token");
