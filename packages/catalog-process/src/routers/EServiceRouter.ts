@@ -137,7 +137,8 @@ const eservicesRouter = (
         try {
           const eservice = await catalogService.createEService(
             req.body,
-            req.ctx.authData
+            req.ctx.authData,
+            req.ctx.correlationId
           );
           return res.status(200).json(eServiceToApiEService(eservice)).end();
         } catch (error) {
@@ -176,7 +177,8 @@ const eservicesRouter = (
           const updatedEService = await catalogService.updateEService(
             unsafeBrandId(req.params.eServiceId),
             req.body,
-            req.ctx.authData
+            req.ctx.authData,
+            req.ctx.correlationId
           );
           return res
             .status(200)
@@ -195,7 +197,8 @@ const eservicesRouter = (
         try {
           await catalogService.deleteEService(
             unsafeBrandId(req.params.eServiceId),
-            req.ctx.authData
+            req.ctx.authData,
+            req.ctx.correlationId
           );
           return res.status(204).end();
         } catch (error) {
@@ -289,7 +292,8 @@ const eservicesRouter = (
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.body,
-            req.ctx.authData
+            req.ctx.authData,
+            req.ctx.correlationId
           );
           return res
             .status(200)
@@ -310,7 +314,8 @@ const eservicesRouter = (
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             unsafeBrandId(req.params.documentId),
-            req.ctx.authData
+            req.ctx.authData,
+            req.ctx.correlationId
           );
           return res.status(204).end();
         } catch (error) {
@@ -332,7 +337,8 @@ const eservicesRouter = (
             unsafeBrandId(req.params.descriptorId),
             unsafeBrandId(req.params.documentId),
             req.body,
-            req.ctx.authData
+            req.ctx.authData,
+            req.ctx.correlationId
           );
           return res.status(200).end();
         } catch (error) {
@@ -352,7 +358,8 @@ const eservicesRouter = (
           const descriptor = await catalogService.createDescriptor(
             unsafeBrandId(req.params.eServiceId),
             req.body,
-            req.ctx.authData
+            req.ctx.authData,
+            req.ctx.correlationId
           );
           return res
             .status(200)
@@ -372,7 +379,8 @@ const eservicesRouter = (
           await catalogService.deleteDraftDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
-            req.ctx.authData
+            req.ctx.authData,
+            req.ctx.correlationId
           );
           return res.status(204).end();
         } catch (error) {
@@ -393,7 +401,8 @@ const eservicesRouter = (
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.body,
-            req.ctx.authData
+            req.ctx.authData,
+            req.ctx.correlationId
           );
           return res
             .status(200)
@@ -413,7 +422,8 @@ const eservicesRouter = (
           await catalogService.publishDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
-            req.ctx.authData
+            req.ctx.authData,
+            req.ctx.correlationId
           );
           return res.status(204).end();
         } catch (error) {
@@ -430,7 +440,8 @@ const eservicesRouter = (
           await catalogService.suspendDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
-            req.ctx.authData
+            req.ctx.authData,
+            req.ctx.correlationId
           );
           return res.status(204).end();
         } catch (error) {
@@ -447,7 +458,8 @@ const eservicesRouter = (
           await catalogService.activateDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
-            req.ctx.authData
+            req.ctx.authData,
+            req.ctx.correlationId
           );
           return res.status(204).end();
         } catch (error) {
@@ -465,7 +477,8 @@ const eservicesRouter = (
             await catalogService.cloneDescriptor(
               unsafeBrandId(req.params.eServiceId),
               unsafeBrandId(req.params.descriptorId),
-              req.ctx.authData
+              req.ctx.authData,
+              req.ctx.correlationId
             );
           return res
             .status(200)
@@ -488,7 +501,8 @@ const eservicesRouter = (
           await catalogService.archiveDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
-            req.ctx.authData
+            req.ctx.authData,
+            req.ctx.correlationId
           );
           return res.status(204).end();
         } catch (error) {
@@ -506,7 +520,8 @@ const eservicesRouter = (
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.body,
-            req.ctx.authData
+            req.ctx.authData,
+            req.ctx.correlationId
           );
           return res
             .status(200)

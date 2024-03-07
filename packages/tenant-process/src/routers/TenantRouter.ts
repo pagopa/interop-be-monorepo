@@ -262,10 +262,13 @@ const tenantsRouter = (
       ]),
       async (req, res) => {
         try {
-          const id = await tenantService.selfcareUpsertTenant({
-            tenantSeed: req.body,
-            authData: req.ctx.authData,
-          });
+          const id = await tenantService.selfcareUpsertTenant(
+            {
+              tenantSeed: req.body,
+              authData: req.ctx.authData,
+            },
+            req.ctx.correlationId
+          );
           return res.status(200).json({ id }).send();
         } catch (error) {
           const errorRes = makeApiProblem(
@@ -287,12 +290,15 @@ const tenantsRouter = (
       async (req, res) => {
         try {
           const { tenantId, attributeId } = req.params;
-          await tenantService.updateTenantVerifiedAttribute({
-            verifierId: req.ctx.authData.organizationId,
-            tenantId: unsafeBrandId(tenantId),
-            attributeId: unsafeBrandId(attributeId),
-            updateVerifiedTenantAttributeSeed: req.body,
-          });
+          await tenantService.updateTenantVerifiedAttribute(
+            {
+              verifierId: req.ctx.authData.organizationId,
+              tenantId: unsafeBrandId(tenantId),
+              attributeId: unsafeBrandId(attributeId),
+              updateVerifiedTenantAttributeSeed: req.body,
+            },
+            req.ctx.correlationId
+          );
           return res.status(200).end();
         } catch (error) {
           const errorRes = makeApiProblem(
@@ -312,7 +318,8 @@ const tenantsRouter = (
           await tenantService.updateVerifiedAttributeExtensionDate(
             unsafeBrandId(tenantId),
             unsafeBrandId(attributeId),
-            verifierId
+            verifierId,
+            req.ctx.correlationId
           );
           return res.status(200).end();
         } catch (error) {

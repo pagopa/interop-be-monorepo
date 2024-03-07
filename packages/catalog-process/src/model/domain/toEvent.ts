@@ -117,7 +117,8 @@ export const toEServiceV2 = (eservice: EService): EServiceV2 => ({
 });
 
 export const toCreateEventEServiceAdded = (
-  eservice: EService
+  eservice: EService,
+  correlationId: string
 ): CreateEvent<EServiceEvent> => ({
   streamId: eservice.id,
   version: 0,
@@ -126,12 +127,14 @@ export const toCreateEventEServiceAdded = (
     event_version: 2,
     data: { eservice: toEServiceV2(eservice) },
   },
+  correlationId,
 });
 
 export const toCreateEventClonedEServiceAdded = (
   sourceDescriptorId: DescriptorId,
   sourceEservice: EService,
-  clonedEservice: EService
+  clonedEservice: EService,
+  correlationId: string
 ): CreateEvent<EServiceEvent> => ({
   streamId: clonedEservice.id,
   version: 0,
@@ -144,6 +147,7 @@ export const toCreateEventClonedEServiceAdded = (
       clonedEservice: toEServiceV2(clonedEservice),
     },
   },
+  correlationId,
 });
 
 export const toCreateEventEServiceInterfaceAdded = (
@@ -157,7 +161,8 @@ export const toCreateEventEServiceInterfaceAdded = (
     descriptorId: DescriptorId;
     documentId: EServiceDocumentId;
     eservice: EService;
-  }
+  },
+  correlationId: string
 ): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
@@ -170,6 +175,7 @@ export const toCreateEventEServiceInterfaceAdded = (
       eservice: toEServiceV2(eservice),
     },
   },
+  correlationId,
 });
 
 export const toCreateEventEServiceDocumentAdded = (
@@ -183,7 +189,8 @@ export const toCreateEventEServiceDocumentAdded = (
     descriptorId: DescriptorId;
     documentId: EServiceDocumentId;
     eservice: EService;
-  }
+  },
+  correlationId: string
 ): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
@@ -196,13 +203,15 @@ export const toCreateEventEServiceDocumentAdded = (
       eservice: toEServiceV2(eservice),
     },
   },
+  correlationId,
 });
 
 export const toCreateEventEServiceDescriptorAdded = (
   streamId: string,
   version: number,
   descriptorId: DescriptorId,
-  eservice: EService
+  eservice: EService,
+  correlationId: string
 ): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
@@ -214,12 +223,14 @@ export const toCreateEventEServiceDescriptorAdded = (
       eservice: toEServiceV2(eservice),
     },
   },
+  correlationId,
 });
 
 export const toCreateEventEServiceUpdated = (
   streamId: string,
   version: number,
-  updatedEService: EService
+  updatedEService: EService,
+  correlationId: string
 ): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
@@ -230,6 +241,7 @@ export const toCreateEventEServiceUpdated = (
       eservice: toEServiceV2(updatedEService),
     },
   },
+  correlationId,
 });
 
 export const toCreateEventEServiceInterfaceUpdated = (
@@ -243,7 +255,8 @@ export const toCreateEventEServiceInterfaceUpdated = (
     descriptorId: DescriptorId;
     documentId: EServiceDocumentId;
     eservice: EService;
-  }
+  },
+  correlationId: string
 ): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
@@ -256,6 +269,7 @@ export const toCreateEventEServiceInterfaceUpdated = (
       eservice: toEServiceV2(eservice),
     },
   },
+  correlationId,
 });
 
 export const toCreateEventEServiceDocumentUpdated = (
@@ -269,7 +283,8 @@ export const toCreateEventEServiceDocumentUpdated = (
     descriptorId: DescriptorId;
     documentId: EServiceDocumentId;
     eservice: EService;
-  }
+  },
+  correlationId: string
 ): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
@@ -282,13 +297,15 @@ export const toCreateEventEServiceDocumentUpdated = (
       eservice: toEServiceV2(eservice),
     },
   },
+  correlationId,
 });
 
 export const toCreateEventEServiceDraftDescriptorUpdated = (
   streamId: string,
   version: number,
   descriptorId: DescriptorId,
-  eservice: EService
+  eservice: EService,
+  correlationId: string
 ): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
@@ -300,13 +317,15 @@ export const toCreateEventEServiceDraftDescriptorUpdated = (
       eservice: toEServiceV2(eservice),
     },
   },
+  correlationId,
 });
 
 export const toCreateEventEServiceDescriptorActivated = (
   streamId: string,
   version: number,
   descriptorId: DescriptorId,
-  eservice: EService
+  eservice: EService,
+  correlationId: string
 ): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
@@ -318,13 +337,15 @@ export const toCreateEventEServiceDescriptorActivated = (
       eservice: toEServiceV2(eservice),
     },
   },
+  correlationId,
 });
 
 export const toCreateEventEServiceDescriptorArchived = (
   streamId: string,
   version: number,
   descriptorId: DescriptorId,
-  eservice: EService
+  eservice: EService,
+  correlationId: string
 ): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
@@ -336,13 +357,15 @@ export const toCreateEventEServiceDescriptorArchived = (
       eservice: toEServiceV2(eservice),
     },
   },
+  correlationId,
 });
 
 export const toCreateEventEServiceDescriptorPublished = (
   streamId: string,
   version: number,
   descriptorId: DescriptorId,
-  eservice: EService
+  eservice: EService,
+  correlationId: string
 ): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
@@ -354,13 +377,15 @@ export const toCreateEventEServiceDescriptorPublished = (
       eservice: toEServiceV2(eservice),
     },
   },
+  correlationId,
 });
 
 export const toCreateEventEServiceDescriptorSuspended = (
   streamId: string,
   version: number,
   descriptorId: DescriptorId,
-  eservice: EService
+  eservice: EService,
+  correlationId: string
 ): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
@@ -372,12 +397,14 @@ export const toCreateEventEServiceDescriptorSuspended = (
       eservice: toEServiceV2(eservice),
     },
   },
+  correlationId,
 });
 
 export const toCreateEventEServiceDeleted = (
   streamId: string,
   version: number,
-  eservice: EService
+  eservice: EService,
+  correlationId: string
 ): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
@@ -389,6 +416,7 @@ export const toCreateEventEServiceDeleted = (
       eservice: toEServiceV2(eservice),
     },
   },
+  correlationId,
 });
 
 export const toCreateEventEServiceInterfaceDeleted = (
@@ -402,7 +430,8 @@ export const toCreateEventEServiceInterfaceDeleted = (
     descriptorId: DescriptorId;
     documentId: EServiceDocumentId;
     eservice: EService;
-  }
+  },
+  correlationId: string
 ): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
@@ -415,6 +444,7 @@ export const toCreateEventEServiceInterfaceDeleted = (
       eservice: toEServiceV2(eservice),
     },
   },
+  correlationId,
 });
 export const toCreateEventEServiceDocumentDeleted = (
   streamId: string,
@@ -427,7 +457,8 @@ export const toCreateEventEServiceDocumentDeleted = (
     descriptorId: DescriptorId;
     documentId: EServiceDocumentId;
     eservice: EService;
-  }
+  },
+  correlationId: string
 ): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
@@ -440,13 +471,15 @@ export const toCreateEventEServiceDocumentDeleted = (
       eservice: toEServiceV2(eservice),
     },
   },
+  correlationId,
 });
 
 export const toCreateEventEServiceDescriptorDeleted = (
   streamId: string,
   version: number,
   eservice: EService,
-  descriptorId: DescriptorId
+  descriptorId: DescriptorId,
+  correlationId: string
 ): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
@@ -458,4 +491,5 @@ export const toCreateEventEServiceDescriptorDeleted = (
       descriptorId,
     },
   },
+  correlationId,
 });
