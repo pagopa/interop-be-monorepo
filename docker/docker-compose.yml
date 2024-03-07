@@ -47,7 +47,7 @@ services:
       - kafka
 
   readmodel:
-    image: mongo:6.0.7
+    image: mongo:4
     ports:
       - 27017:27017
     environment:
