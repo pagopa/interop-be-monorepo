@@ -16,7 +16,7 @@ const errorTypes = ["unhandledRejection", "uncaughtException"];
 const signalTraps = ["SIGTERM", "SIGINT", "SIGUSR2"];
 
 const processExit = (existStatusCode: number = 1): void => {
-  logger.info(`Process exit with code ${existStatusCode}`);
+  logger.debug(`Process exit with code ${existStatusCode}`);
   process.exit(existStatusCode);
 };
 
@@ -26,7 +26,7 @@ const errorEventsListener = (consumer: Consumer): void => {
       try {
         logger.error(`Error ${type} intercepted; Error detail: ${e}`);
         await consumer.disconnect().finally(() => {
-          logger.info("Consumer disconnected properly");
+          logger.debug("Consumer disconnected properly");
         });
         processExit();
       } catch (e) {
@@ -42,7 +42,7 @@ const errorEventsListener = (consumer: Consumer): void => {
     process.once(type, async () => {
       try {
         await consumer.disconnect().finally(() => {
-          logger.info("Consumer disconnected properly");
+          logger.debug("Consumer disconnected properly");
           processExit();
         });
       } finally {
@@ -54,11 +54,11 @@ const errorEventsListener = (consumer: Consumer): void => {
 
 const kafkaEventsListener = (consumer: Consumer): void => {
   consumer.on(consumer.events.DISCONNECT, () => {
-    logger.info(`Consumer has disconnected.`);
+    logger.debug(`Consumer has disconnected.`);
   });
 
   consumer.on(consumer.events.STOP, (e) => {
-    logger.info(`Consumer has stopped ${JSON.stringify(e)}.`);
+    logger.debug(`Consumer has stopped ${JSON.stringify(e)}.`);
   });
 
   consumer.on(consumer.events.CRASH, (e) => {
@@ -77,7 +77,7 @@ const initConsumer = async (
   config: KafkaConsumerConfig,
   consumerHandler: (payload: EachMessagePayload) => Promise<void>
 ): Promise<Consumer> => {
-  logger.info(
+  logger.debug(
     `Consumer connecting to topics [${JSON.stringify(config.kafkaTopics)}]`
   );
 
@@ -116,7 +116,7 @@ const initConsumer = async (
   errorEventsListener(consumer);
 
   await consumer.connect();
-  logger.info("Consumer connected");
+  logger.debug("Consumer connected");
 
   const topicExists = await validateTopicMetadata(kafka, config.kafkaTopics);
   if (!topicExists) {
@@ -128,7 +128,7 @@ const initConsumer = async (
     fromBeginning: true,
   });
 
-  logger.info(`Consumer subscribed topic ${config.kafkaTopics}`);
+  logger.debug(`Consumer subscribed topic ${config.kafkaTopics}`);
 
   await consumer.run({
     eachMessage: consumerHandler,
@@ -152,7 +152,7 @@ export const runConsumer = async (
       );
 
       await consumer.disconnect().finally(() => {
-        logger.info("Consumer disconnected");
+        logger.debug("Consumer disconnected");
       });
     } catch (e) {
       logger.error(`Generic error occurs during consumer initialization: ${e}`);
@@ -165,7 +165,7 @@ export const validateTopicMetadata = async (
   kafka: Kafka,
   topicNames: string[]
 ): Promise<boolean> => {
-  logger.info(`Check topics [${JSON.stringify(topicNames)}] existence...`);
+  logger.debug(`Check topics [${JSON.stringify(topicNames)}] existence...`);
 
   const admin = kafka.admin();
   await admin.connect();
@@ -174,7 +174,7 @@ export const validateTopicMetadata = async (
     const { topics } = await admin.fetchTopicMetadata({
       topics: [...topicNames],
     });
-    logger.info(`Topic metadata: ${JSON.stringify(topics)} `);
+    logger.debug(`Topic metadata: ${JSON.stringify(topics)} `);
     await admin.disconnect();
     return true;
   } catch (e) {
