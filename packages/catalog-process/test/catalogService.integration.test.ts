@@ -749,9 +749,14 @@ describe("database test", async () => {
             verified: [],
           },
         };
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          interface: mockDocument,
+          state: descriptorState.published,
+        };
         const eservice: EService = {
           ...mockEService,
-          descriptors: [],
+          descriptors: [descriptor],
         };
         await addOneEService(eservice, postgresDB, eservices);
         await catalogService.createDescriptor(
@@ -776,9 +781,9 @@ describe("database test", async () => {
           ...mockDescriptor,
           version: "2",
           createdAt: new Date(
-            Number(writtenPayload.eservice!.descriptors[0]!.createdAt)
+            Number(writtenPayload.eservice!.descriptors[1]!.createdAt)
           ),
-          id: unsafeBrandId(writtenPayload.eservice!.descriptors[0]!.id),
+          id: unsafeBrandId(writtenPayload.eservice!.descriptors[1]!.id),
           serverUrls: [],
           attributes: {
             certified: [],
@@ -790,12 +795,12 @@ describe("database test", async () => {
         };
 
         const expectedEservice = toEServiceV2({
-          ...mockEService,
+          ...eservice,
           descriptors: [...eservice.descriptors, newDescriptor],
         });
 
         expect(writtenPayload.descriptorId).toEqual(
-          expectedEservice.descriptors[0].id
+          expectedEservice.descriptors[1].id
         );
         expect(writtenPayload.eservice).toEqual(expectedEservice);
       });
