@@ -670,6 +670,9 @@ importers:
       connection-string:
         specifier: ^4.3.6
         version: 4.3.6
+      dotenv-flow:
+        specifier: ^3.2.0
+        version: 3.2.0
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
@@ -679,6 +682,9 @@ importers:
       ts-pattern:
         specifier: ^5.0.6
         version: 5.0.6
+      zod:
+        specifier: ^3.22.4
+        version: 3.22.4
     devDependencies:
       eslint:
         specifier: ^8.44.0
@@ -10203,3 +10209,7 @@ packages:
 
   /zod@3.21.4:
     resolution: {integrity: sha512-m46AKbrzKVzOzs/DZgVnG5H55N1sv1M8qZU3A8RIKbs3mrACDNeIOeilDymVb2HdmP8uwshOCF4uJ8uM9rCqJw==}
+
+  /zod@3.22.4:
+    resolution: {integrity: sha512-iC+8Io04lddc+mVqQ9AZ7OQ2MrUKGN+oIQyq1vemgt46jwCwLfhq7/pwnBnNXXXZb8VTVLKwp9EDkx+ryxIWmg==}
+    dev: false

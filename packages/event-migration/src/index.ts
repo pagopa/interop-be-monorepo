@@ -9,6 +9,50 @@ import {
   IConnectionParameters,
 } from "pg-promise/typescript/pg-subset.js";
 import { match } from "ts-pattern";
+import { z } from "zod";
+
+const Config = z
+  .object({
+    SOURCE_DB_USERNAME: z.string(),
+    SOURCE_DB_PASSWORD: z.string(),
+    SOURCE_DB_HOST: z.string(),
+    SOURCE_DB_PORT: z.coerce.number(),
+    SOURCE_DB_NAME: z.string(),
+    SOURCE_DB_SCHEMA: z.string(),
+    SOURCE_DB_USE_SSL: z
+      .enum(["true", "false"])
+      .transform((value) => value === "true"),
+    TARGET_DB_USERNAME: z.string(),
+    TARGET_DB_PASSWORD: z.string(),
+    TARGET_DB_HOST: z.string(),
+    TARGET_DB_PORT: z.coerce.number(),
+    TARGET_DB_NAME: z.string(),
+    TARGET_DB_SCHEMA: z.string(),
+    TARGET_DB_USE_SSL: z
+      .enum(["true", "false"])
+      .transform((value) => value === "true"),
+  })
+  .transform((c) => ({
+    sourceDbUsername: c.SOURCE_DB_USERNAME,
+    sourceDbPassword: c.SOURCE_DB_PASSWORD,
+    sourceDbHost: c.SOURCE_DB_HOST,
+    sourceDbPort: c.SOURCE_DB_PORT,
+    sourceDbName: c.SOURCE_DB_NAME,
+    sourceDbSchema: c.SOURCE_DB_SCHEMA,
+    sourceDbUseSSL: c.SOURCE_DB_USE_SSL,
+    targetDbUsername: c.TARGET_DB_USERNAME,
+    targetDbPassword: c.TARGET_DB_PASSWORD,
+    targetDbHost: c.TARGET_DB_HOST,
+    targetDbPort: c.TARGET_DB_PORT,
+    targetDbName: c.TARGET_DB_NAME,
+    targetDbSchema: c.TARGET_DB_SCHEMA,
+    targetDbUseSSL: c.TARGET_DB_USE_SSL,
+  }));
+export type Config = z.infer<typeof Config>;
+
+export const config: Config = {
+  ...Config.parse(process.env),
+};
 
 export type DB = IDatabase<unknown>;
 
@@ -48,29 +92,28 @@ export function initDB({
 
   return pgp(dbConfig);
 }
-
 console.log("Starting migration");
 
 console.log("Initializing connections to source database");
 const sourceConnection = initDB({
-  username: "root",
-  password: "root",
-  host: "localhost",
-  port: 6001,
-  database: "old",
-  schema: "public",
-  useSSL: false,
+  username: config.sourceDbUsername,
+  password: config.sourceDbPassword,
+  host: config.sourceDbHost,
+  port: config.sourceDbPort,
+  database: config.sourceDbName,
+  schema: config.sourceDbSchema,
+  useSSL: config.sourceDbUseSSL,
 });
 
 console.log("Initializing connections to target database");
 const targetConnection = initDB({
-  username: "root",
-  password: "root",
-  host: "localhost",
-  port: 6001,
-  database: "root",
-  schema: "catalog",
-  useSSL: false,
+  username: config.targetDbUsername,
+  password: config.targetDbPassword,
+  host: config.targetDbHost,
+  port: config.targetDbPort,
+  database: config.targetDbName,
+  schema: config.targetDbSchema,
+  useSSL: config.targetDbUseSSL,
 });
 
 console.log("reading events from source database");
