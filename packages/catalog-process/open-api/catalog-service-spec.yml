@@ -954,7 +954,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
-          description: EService not found
+          description: Not found
           content:
             application/json:
               schema:
