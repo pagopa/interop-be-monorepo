@@ -213,7 +213,11 @@ export const deleteRiskAnalysisErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "eServiceNotFound",
+      "riskAnalysisNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
     .with(
       "eserviceNotInDraftState",
       "eserviceNotInReceiveMode",
