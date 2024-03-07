@@ -47,6 +47,8 @@ import {
   EServiceDescriptorSuspendedV2,
   EServiceId,
   EServiceRiskAnalysisAddedV2,
+  EServiceRiskAnalysisDeletedV2,
+  RiskAnalysisId,
   RiskAnalysisSingleAnswerId,
   Tenant,
   TenantId,
@@ -103,6 +105,7 @@ import {
   interfaceAlreadyExists,
   notValidDescriptor,
   originNotCompliant,
+  riskAnalysisNotFound,
   riskAnalysisValidationFailed,
   tenantKindNotFound,
   tenantNotFound,
@@ -3491,6 +3494,90 @@ describe("database test", async () => {
         ).rejects.toThrowError(
           eServiceDocumentNotFound(eservice.id, descriptor.id, mockDocument.id)
         );
+      });
+    });
+
+    describe("delete risk analysis", () => {
+      it("should write on event-store for the deletion of a risk analysis", async () => {
+        const riskAnalysis = getMockValidRiskAnalysis("PA");
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [],
+          riskAnalysis: [riskAnalysis],
+          mode: "Receive",
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+
+        await catalogService.deleteRiskAnalysis(eservice.id, riskAnalysis.id);
+
+        const writtenEvent = await readLastEventByStreamId(
+          eservice.id,
+          postgresDB
+        );
+        const expectedEservice = toEServiceV2({
+          ...eservice,
+          riskAnalysis: eservice.riskAnalysis.filter(
+            (r) => r.id !== riskAnalysis.id
+          ),
+        });
+
+        expect(writtenEvent.stream_id).toBe(eservice.id);
+        expect(writtenEvent.version).toBe("1");
+        expect(writtenEvent.type).toBe("EServiceRiskAnalysisDeleted");
+        expect(writtenEvent.event_version).toBe(2);
+        const writtenPayload = decodeProtobufPayload({
+          messageType: EServiceRiskAnalysisDeletedV2,
+          payload: writtenEvent.data,
+        });
+
+        expect(writtenPayload.riskAnalysisId).toEqual(riskAnalysis.id);
+        expect(writtenPayload.eservice).toEqual(expectedEservice);
+      });
+      it("should throw eServiceNotFound if the eservice doesn't exist", () => {
+        expect(
+          catalogService.deleteRiskAnalysis(
+            mockEService.id,
+            generateId<RiskAnalysisId>()
+          )
+        ).rejects.toThrowError(eServiceNotFound(mockEService.id));
+      });
+      it("should throw riskAnalysisNotFound if the riskAnalysis doesn't exist", async () => {
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [],
+          riskAnalysis: [],
+          mode: "Receive",
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+
+        const riskAnalysisId = generateId<RiskAnalysisId>();
+        expect(
+          catalogService.deleteRiskAnalysis(eservice.id, riskAnalysisId)
+        ).rejects.toThrowError(
+          riskAnalysisNotFound(eservice.id, riskAnalysisId)
+        );
+      });
+      it("should throw eserviceNotInDraftState if the eservice has a non-draft descriptor", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.published,
+          interface: mockDocument,
+          publishedAt: new Date(),
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+          riskAnalysis: [getMockValidRiskAnalysis("PA")],
+          mode: "Receive",
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+
+        expect(
+          catalogService.deleteRiskAnalysis(
+            mockEService.id,
+            generateId<RiskAnalysisId>()
+          )
+        ).rejects.toThrowError(eserviceNotInDraftState(mockEService.id));
       });
     });
   });
