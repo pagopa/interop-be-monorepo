@@ -445,12 +445,22 @@ export function catalogServiceBuilder(
         }
       }
 
+      const updatedMode = apiEServiceModeToEServiceMode(eserviceSeed.mode);
+
+      const checkedRiskAnalysis =
+        updatedMode === eserviceMode.deliver &&
+        eservice.data.mode === eserviceMode.receive
+          ? []
+          : eservice.data.riskAnalysis;
+
       const updatedEService: EService = {
         ...eservice.data,
         description: eserviceSeed.description,
         name: eserviceSeed.name,
         technology: updatedTechnology,
         producerId: authData.organizationId,
+        mode: updatedMode,
+        riskAnalysis: checkedRiskAnalysis,
       };
 
       const event = toCreateEventEServiceUpdated(
