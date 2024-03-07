@@ -19,7 +19,9 @@ const CataloProcessConfig = CommonConfig.and(ReadModelDbConfig)
       .transform((c) => ({
         s3Bucket: c.S3_BUCKET,
         eserviceDocumentsPath: c.ESERVICE_DOCUMENTS_PATH,
-        producerAllowedOrigins: c.PRODUCER_ALLOWED_ORIGINS.split(","),
+        producerAllowedOrigins: c.PRODUCER_ALLOWED_ORIGINS.split(",")
+          .map((origin) => origin.trim())
+          .filter(Boolean),
       }))
   );
 
