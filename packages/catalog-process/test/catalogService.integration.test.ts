@@ -350,14 +350,14 @@ describe("database test", async () => {
         );
 
         await catalogService.updateEService(
-          mockEService.id,
+          eservice.id,
           {
             name: updatedName,
-            description: mockEService.description,
+            description: eservice.description,
             technology: "SOAP",
-            mode: "RECEIVE",
+            mode: "DELIVER",
           },
-          getMockAuthData(mockEService.producerId)
+          getMockAuthData(eservice.producerId)
         );
 
         const updatedEService: EService = {
@@ -367,10 +367,10 @@ describe("database test", async () => {
         };
 
         const writtenEvent = await readLastEventByStreamId(
-          mockEService.id,
+          eservice.id,
           postgresDB
         );
-        expect(writtenEvent.stream_id).toBe(mockEService.id);
+        expect(writtenEvent.stream_id).toBe(eservice.id);
         expect(writtenEvent.version).toBe("1");
         expect(writtenEvent.type).toBe("DraftEServiceUpdated");
         expect(writtenEvent.event_version).toBe(2);
