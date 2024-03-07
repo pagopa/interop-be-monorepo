@@ -126,7 +126,7 @@ function processMessage(authService: AuthorizationService) {
 try {
   const authService = await authorizationServiceBuilder();
   const config = kafkaConsumerConfig();
-  await runConsumer(config, processMessage(authService)).catch(logger.error);
+  await runConsumer(config, processMessage(authService));
 } catch (e) {
   logger.error(`An error occurred during initialization:\n${e}`);
 }
