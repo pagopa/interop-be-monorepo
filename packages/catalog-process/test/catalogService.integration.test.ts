@@ -63,7 +63,6 @@ import {
   postgreSQLContainer,
 } from "pagopa-interop-commons-test";
 import { StartedTestContainer } from "testcontainers";
-import { E } from "vitest/dist/types-198fd1d9.js";
 import { config } from "../src/utilities/config.js";
 import { toEServiceV2 } from "../src/model/domain/toEvent.js";
 import {
