@@ -20,7 +20,7 @@ import {
 import {
   AuthorizationService,
   authorizationServiceBuilder,
-} from "./authorization-service.js";
+} from "./authorizationService.js";
 
 const getDescriptorFromEvent = (
   msg: {

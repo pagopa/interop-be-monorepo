@@ -7,7 +7,7 @@ import {
   logger,
 } from "pagopa-interop-commons";
 import { DescriptorId, EServiceId } from "pagopa-interop-models";
-import { buildAuthMgmtClient } from "./authorization-management-client.js";
+import { buildAuthMgmtClient } from "./authorizationManagementClient.js";
 import { ApiClientComponentState } from "./model/models.js";
 
 export type AuthorizationService = {
