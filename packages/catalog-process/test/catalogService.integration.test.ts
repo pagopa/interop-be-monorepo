@@ -454,7 +454,7 @@ describe("database test", async () => {
         expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
       });
 
-      it.only("should write on event-store for the update of an eService (update mode to DELIVER so risk analysis has to be deleted)", async () => {
+      it("should write on event-store for the update of an eService (update mode to DELIVER so risk analysis has to be deleted)", async () => {
         const riskAnalysis = getMockValidRiskAnalysis("PA");
         const eservice: EService = {
           ...mockEService,
