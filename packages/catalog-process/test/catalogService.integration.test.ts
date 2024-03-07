@@ -683,11 +683,13 @@ describe("database test", async () => {
           descriptors: [],
         };
         await addOneEService(eservice, postgresDB, eservices);
-        await catalogService.createDescriptor(
-          eservice.id,
-          descriptorSeed,
-          getMockAuthData(eservice.producerId)
-        );
+        const newDescriptorId = (
+          await catalogService.createDescriptor(
+            eservice.id,
+            descriptorSeed,
+            getMockAuthData(eservice.producerId)
+          )
+        ).id;
         const writtenEvent = await readLastEventByStreamId(
           eservice.id,
           postgresDB
@@ -712,7 +714,7 @@ describe("database test", async () => {
               createdAt: new Date(
                 Number(writtenPayload.eservice!.descriptors[0]!.createdAt)
               ),
-              id: unsafeBrandId(writtenPayload.eservice!.descriptors[0]!.id),
+              id: newDescriptorId,
               serverUrls: [],
               attributes: {
                 certified: [],
@@ -725,9 +727,7 @@ describe("database test", async () => {
           ],
         });
 
-        expect(writtenPayload.descriptorId).toEqual(
-          expectedEservice.descriptors[0].id
-        );
+        expect(writtenPayload.descriptorId).toEqual(newDescriptorId);
         expect(writtenPayload.eservice).toEqual(expectedEservice);
       });
 
@@ -760,11 +760,13 @@ describe("database test", async () => {
           descriptors: [descriptor],
         };
         await addOneEService(eservice, postgresDB, eservices);
-        await catalogService.createDescriptor(
-          eservice.id,
-          descriptorSeed,
-          getMockAuthData(eservice.producerId)
-        );
+        const newDescriptorId = (
+          await catalogService.createDescriptor(
+            eservice.id,
+            descriptorSeed,
+            getMockAuthData(eservice.producerId)
+          )
+        ).id;
         const writtenEvent = await readLastEventByStreamId(
           eservice.id,
           postgresDB
@@ -786,7 +788,7 @@ describe("database test", async () => {
           createdAt: new Date(
             Number(writtenPayload.eservice!.descriptors[1]!.createdAt)
           ),
-          id: unsafeBrandId(writtenPayload.eservice!.descriptors[1]!.id),
+          id: newDescriptorId,
           serverUrls: [],
           attributes: {
             certified: [],
@@ -802,9 +804,7 @@ describe("database test", async () => {
           descriptors: [...eservice.descriptors, newDescriptor],
         });
 
-        expect(writtenPayload.descriptorId).toEqual(
-          expectedEservice.descriptors[1].id
-        );
+        expect(writtenPayload.descriptorId).toEqual(newDescriptorId);
         expect(writtenPayload.eservice).toEqual(expectedEservice);
       });
 
