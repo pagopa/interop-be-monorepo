@@ -1,11 +1,23 @@
 import { match } from "ts-pattern";
 import { EServiceCollection } from "pagopa-interop-commons";
-import { EServiceEventEnvelopeV1 } from "pagopa-interop-models";
 import {
   fromDescriptorV1,
   fromDocumentV1,
-  fromEServiceV1,
-} from "./model/converterV1.js";
+  fromEServiceV1Legacy,
+  EServiceEventEnvelopeV1,
+  EServiceV1,
+  EServiceLegacy,
+} from "pagopa-interop-models";
+
+const getEserviceData = (
+  version: number,
+  eservice?: EServiceV1
+): { data: EServiceLegacy | undefined; metadata: { version: number } } => ({
+  data: eservice ? fromEServiceV1Legacy(eservice) : undefined,
+  metadata: {
+    version,
+  },
+});
 
 export async function handleMessageV1(
   message: EServiceEventEnvelopeV1,
@@ -18,14 +30,7 @@ export async function handleMessageV1(
           "data.id": msg.stream_id,
         },
         {
-          $setOnInsert: {
-            data: msg.data.eservice
-              ? fromEServiceV1(msg.data.eservice)
-              : undefined,
-            metadata: {
-              version: msg.version,
-            },
-          },
+          $setOnInsert: getEserviceData(msg.version, msg.data.eservice),
         },
         { upsert: true }
       );
@@ -36,12 +41,7 @@ export async function handleMessageV1(
         await eservices.updateOne(
           { "data.id": msg.stream_id },
           {
-            $setOnInsert: {
-              data: msg.data.eservice
-                ? fromEServiceV1(msg.data.eservice)
-                : undefined,
-              metadata: { version: msg.version },
-            },
+            $setOnInsert: getEserviceData(msg.version, msg.data.eservice),
           },
           { upsert: true }
         )
@@ -49,6 +49,7 @@ export async function handleMessageV1(
     .with(
       { type: "EServiceUpdated" },
       { type: "EServiceRiskAnalysisAdded" },
+      { type: "MovedAttributesFromEserviceToDescriptors" },
       async (msg) =>
         await eservices.updateOne(
           {
@@ -56,14 +57,7 @@ export async function handleMessageV1(
             "metadata.version": { $lt: msg.version },
           },
           {
-            $set: {
-              data: msg.data.eservice
-                ? fromEServiceV1(msg.data.eservice)
-                : undefined,
-              metadata: {
-                version: msg.version,
-              },
-            },
+            $set: getEserviceData(msg.version, msg.data.eservice),
           }
         )
     )
@@ -288,24 +282,6 @@ export async function handleMessageV1(
                 "descriptor.id": msg.data.eserviceDescriptor?.id,
               },
             ],
-          }
-        )
-    )
-    .with(
-      { type: "MovedAttributesFromEserviceToDescriptors" },
-      async (msg) =>
-        await eservices.updateOne(
-          {
-            "data.id": msg.stream_id,
-            "metadata.version": { $lt: msg.version },
-          },
-          {
-            $set: {
-              "metadata.version": msg.version,
-              data: msg.data.eservice
-                ? fromEServiceV1(msg.data.eservice)
-                : undefined,
-            },
           }
         )
     )
