@@ -20,7 +20,6 @@ export const errorCodes = {
   attributeNotFound: "0012",
   inconsistentDailyCalls: "0013",
   interfaceAlreadyExists: "0022",
-  dailyCallsCannotBeDecreased: "0014",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -164,13 +163,5 @@ export function originNotCompliant(origin: string): ApiError<ErrorCodes> {
     detail: `Requester origin ${origin} is not allowed`,
     code: "originNotCompliant",
     title: "Origin is not compliant",
-  });
-}
-
-export function dailyCallsCannotBeDecreased(): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `dailyCallsPerConsumer and dailyCallsTotal can't be decreased`,
-    code: "dailyCallsCannotBeDecreased",
-    title: "Daily calls limits can't be decreased",
   });
 }
