@@ -3,6 +3,7 @@ import {
   DescriptorId,
   EServiceDocumentId,
   EServiceId,
+  RiskAnalysisId,
   TenantId,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
@@ -27,6 +28,7 @@ export const errorCodes = {
   tenantNotFound: "0018",
   tenantKindNotFound: "0019",
   riskAnalysisValidationFailed: "0020",
+  riskAnalysisNotFound: "0021",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -226,5 +228,16 @@ export function riskAnalysisValidationFailed(
       .join(", ")}]`,
     code: "riskAnalysisValidationFailed",
     title: "Risk analysis validation failed",
+  });
+}
+
+export function riskAnalysisNotFound(
+  eserviceId: EServiceId,
+  riskAnalysisId: RiskAnalysisId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk analysis ${riskAnalysisId} not found for EService ${eserviceId}`,
+    code: "riskAnalysisNotFound",
+    title: "Risk analysis not found",
   });
 }
