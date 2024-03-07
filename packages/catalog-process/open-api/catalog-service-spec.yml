@@ -419,6 +419,10 @@ paths:
       responses:
         "200":
           description: EService with draft descriptor updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
         "400":
           description: Invalid input
           content:
@@ -576,7 +580,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResourceId"
+                $ref: "#/components/schemas/EService"
         "400":
           description: Invalid input
           content:
@@ -667,7 +671,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResourceId"
+                $ref: "#/components/schemas/EService"
         "400":
           description: Invalid input
           content:
