@@ -94,6 +94,7 @@ import {
   tenantKindNotFound,
   tenantNotFound,
   riskAnalysisValidationFailed,
+  riskAnalysisNotFound,
 } from "../model/domain/errors.js";
 import { formatClonedEServiceDate } from "../utilities/date.js";
 import { ReadModelService } from "./readModelService.js";
@@ -1362,7 +1363,14 @@ export function catalogServiceBuilder(
       assertIsDraftEservice(eservice.data);
       assertIsReceiveEservice(eservice.data);
 
-      const newEservice: EService = {
+      const riskAnalysisToDelete = eservice.data.riskAnalysis.find(
+        (r) => r.id === riskAnalysisId
+      );
+
+      if (riskAnalysisToDelete === undefined) {
+        throw riskAnalysisNotFound(eservice.data.id, riskAnalysisId);
+      }
+      const eserviceWithRiskAnalysisDeleted: EService = {
         ...eservice.data,
         riskAnalysis: eservice.data.riskAnalysis.filter(
           (r) => r.id !== riskAnalysisId
@@ -1372,7 +1380,7 @@ export function catalogServiceBuilder(
         eservice.data.id,
         eservice.metadata.version,
         riskAnalysisId,
-        newEservice
+        eserviceWithRiskAnalysisDeleted
       );
 
       await repository.createEvent(event);
