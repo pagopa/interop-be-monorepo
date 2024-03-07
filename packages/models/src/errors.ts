@@ -103,7 +103,7 @@ const errorCodes = {
   missingHeader: "9994",
   tokenGenerationError: "9995",
   missingRSAKey: "9996",
-  missingMessageData: "9996",
+  missingMessageData: "9997",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
