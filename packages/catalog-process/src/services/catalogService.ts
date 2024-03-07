@@ -80,7 +80,6 @@ import {
   attributeNotFound,
   inconsistentDailyCalls,
   originNotCompliant,
-  dailyCallsCannotBeDecreased,
 } from "../model/domain/errors.js";
 import { formatClonedEServiceDate } from "../utilities/date.js";
 import { ReadModelService } from "./readModelService.js";
@@ -1236,12 +1235,9 @@ export function catalogServiceBuilder(
         throw notValidDescriptor(descriptorId, descriptor.state.toString());
       }
 
-      assertDailyCallsAreConsistentAndNotDecreased({
-        dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
-        dailyCallsTotal: descriptor.dailyCallsTotal,
-        updatedDailyCallsPerConsumer: seed.dailyCallsPerConsumer,
-        updatedDailyCallsTotal: seed.dailyCallsTotal,
-      });
+      if (seed.dailyCallsPerConsumer > seed.dailyCallsTotal) {
+        throw inconsistentDailyCalls();
+      }
 
       const updatedDescriptor: Descriptor = {
         ...descriptor,
@@ -1298,27 +1294,5 @@ const applyVisibilityToEService = (
     ),
   };
 };
-
-function assertDailyCallsAreConsistentAndNotDecreased({
-  dailyCallsPerConsumer,
-  dailyCallsTotal,
-  updatedDailyCallsPerConsumer,
-  updatedDailyCallsTotal,
-}: {
-  dailyCallsPerConsumer: number;
-  dailyCallsTotal: number;
-  updatedDailyCallsPerConsumer: number;
-  updatedDailyCallsTotal: number;
-}): void {
-  if (updatedDailyCallsPerConsumer > updatedDailyCallsTotal) {
-    throw inconsistentDailyCalls();
-  }
-  if (
-    updatedDailyCallsPerConsumer < dailyCallsPerConsumer ||
-    updatedDailyCallsTotal < dailyCallsTotal
-  ) {
-    throw dailyCallsCannotBeDecreased();
-  }
-}
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;

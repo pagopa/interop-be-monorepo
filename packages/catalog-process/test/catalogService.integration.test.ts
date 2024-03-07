@@ -81,7 +81,6 @@ import {
 } from "../src/services/catalogService.js";
 import {
   attributeNotFound,
-  dailyCallsCannotBeDecreased,
   draftDescriptorAlreadyExists,
   eServiceCannotBeDeleted,
   eServiceCannotBeUpdated,
@@ -2692,35 +2691,6 @@ describe("database test", async () => {
             getMockAuthData(eservice.producerId)
           )
         ).rejects.toThrowError(inconsistentDailyCalls());
-      });
-
-      it("should throw dailyCallsCannotBeDecreased if dailyCallsPerConsumer or dailyCallsTotal get decreased", async () => {
-        const descriptor: Descriptor = {
-          ...mockDescriptor,
-          state: descriptorState.published,
-          interface: mockDocument,
-          publishedAt: new Date(),
-        };
-        const eservice: EService = {
-          ...mockEService,
-          descriptors: [descriptor],
-        };
-        await addOneEService(eservice, postgresDB, eservices);
-
-        const updatedDescriptorQuotasSeed: UpdateEServiceDescriptorQuotasSeed =
-          {
-            voucherLifespan: 1000,
-            dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer - 1,
-            dailyCallsTotal: descriptor.dailyCallsTotal - 1,
-          };
-        expect(
-          catalogService.updateDescriptor(
-            eservice.id,
-            descriptor.id,
-            updatedDescriptorQuotasSeed,
-            getMockAuthData(eservice.producerId)
-          )
-        ).rejects.toThrowError(dailyCallsCannotBeDecreased());
       });
     });
 
