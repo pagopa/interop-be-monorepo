@@ -81,9 +81,7 @@ export const authorizationServiceBuilder =
           headers: getHeaders(),
         });
 
-        logger.info(
-          `Authorization service Update EService state on all clients`
-        );
+        logger.info(`Updating EService ${eserviceId} state for all clients`);
       },
     };
   };
