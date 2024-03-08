@@ -3525,17 +3525,20 @@ describe("database test", async () => {
           ),
         });
 
-        expect(writtenEvent.stream_id).toBe(eservice.id);
-        expect(writtenEvent.version).toBe("1");
-        expect(writtenEvent.type).toBe("EServiceRiskAnalysisDeleted");
-        expect(writtenEvent.event_version).toBe(2);
+        expect(writtenEvent).toMatchObject({
+          stream_id: eservice.id,
+          version: "1",
+          type: "EServiceRiskAnalysisDeleted",
+          event_version: 2,
+        });
         const writtenPayload = decodeProtobufPayload({
           messageType: EServiceRiskAnalysisDeletedV2,
           payload: writtenEvent.data,
         });
-
-        expect(writtenPayload.riskAnalysisId).toEqual(riskAnalysis.id);
-        expect(writtenPayload.eservice).toEqual(expectedEservice);
+        expect(writtenPayload).toEqual({
+          riskAnalysisId: riskAnalysis.id,
+          eservice: expectedEservice,
+        });
       });
       it("should throw eServiceNotFound if the eservice doesn't exist", () => {
         expect(
