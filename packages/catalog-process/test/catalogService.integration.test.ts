@@ -752,7 +752,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
-      it("should throw attributeNotFound if at least one of the attributes don't exist", async () => {
+      it("should throw attributeNotFound if at least one of the attributes doesn't exist", async () => {
         const eservice: EService = {
           ...mockEService,
           descriptors: [],
@@ -1092,7 +1092,7 @@ describe("database test", async () => {
         ).rejects.toThrowError(inconsistentDailyCalls());
       });
 
-      it("should throw attributeNotFound if at least one of the attributes don't exist", async () => {
+      it("should throw attributeNotFound if at least one of the attributes doesn't exist", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
