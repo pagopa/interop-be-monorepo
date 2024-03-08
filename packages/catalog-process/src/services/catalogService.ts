@@ -24,6 +24,7 @@ import {
   unsafeBrandId,
   ListResult,
   AttributeId,
+  agreementState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -76,7 +77,6 @@ import {
   attributeNotFound,
   inconsistentDailyCalls,
   originNotCompliant,
-  dailyCallsCannotBeDecreased,
 } from "../model/domain/errors.js";
 import { formatClonedEServiceDate } from "../utilities/date.js";
 import { ReadModelService } from "./readModelService.js";
@@ -189,6 +189,15 @@ const deprecateDescriptor = (
   return updateDescriptorState(descriptor, descriptorState.deprecated);
 };
 
+const archiveDescriptor = (
+  streamId: string,
+  descriptor: Descriptor
+): Descriptor => {
+  logger.info(`Archiving Descriptor ${descriptor.id} of EService ${streamId}`);
+
+  return updateDescriptorState(descriptor, descriptorState.archived);
+};
+
 const hasNotDraftDescriptor = (eservice: EService): void => {
   const hasDraftDescriptor = eservice.descriptors.some(
     (d: Descriptor) => d.state === descriptorState.draft
@@ -198,7 +207,7 @@ const hasNotDraftDescriptor = (eservice: EService): void => {
   }
 };
 
-const updateDescriptor = (
+const replaceDescriptor = (
   eservice: EService,
   newDescriptor: Descriptor
 ): EService => {
@@ -906,40 +915,66 @@ export function catalogServiceBuilder(
         (d: Descriptor) => d.state === descriptorState.published
       );
 
-      const updatedDescriptor = updateDescriptorState(
+      const publishedDescriptor = updateDescriptorState(
         descriptor,
         descriptorState.published
       );
 
-      const newEservice = updateDescriptor(eservice.data, updatedDescriptor);
+      const eserviceWithPublishedDescriptor = replaceDescriptor(
+        eservice.data,
+        publishedDescriptor
+      );
 
       // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-      const event = () => {
+      const event = async () => {
         if (currentActiveDescriptor !== undefined) {
-          const newEserviceWithDeprecation = updateDescriptor(
-            eservice.data,
-            deprecateDescriptor(eserviceId, currentActiveDescriptor)
+          const agreements = await readModelService.listAgreements(
+            [eserviceId],
+            [],
+            [],
+            [agreementState.active, agreementState.suspended],
+            currentActiveDescriptor.id
           );
+          if (agreements.length === 0) {
+            const eserviceWithArchivedAndPublishedDescriptors =
+              replaceDescriptor(
+                eserviceWithPublishedDescriptor,
+                archiveDescriptor(eserviceId, currentActiveDescriptor)
+              );
 
-          return toCreateEventEServiceDescriptorPublished(
-            eserviceId,
-            eservice.metadata.version + 1,
-            descriptorId,
-            newEserviceWithDeprecation,
-            correlationId
-          );
+            return toCreateEventEServiceDescriptorPublished(
+              eserviceId,
+              eservice.metadata.version,
+              descriptorId,
+              eserviceWithArchivedAndPublishedDescriptors,
+              correlationId
+            );
+          } else {
+            const eserviceWithDeprecatedAndPublishedDescriptors =
+              replaceDescriptor(
+                eserviceWithPublishedDescriptor,
+                deprecateDescriptor(eserviceId, currentActiveDescriptor)
+              );
+
+            return toCreateEventEServiceDescriptorPublished(
+              eserviceId,
+              eservice.metadata.version,
+              descriptorId,
+              eserviceWithDeprecatedAndPublishedDescriptors,
+              correlationId
+            );
+          }
         } else {
           return toCreateEventEServiceDescriptorPublished(
             eserviceId,
             eservice.metadata.version,
             descriptorId,
-            newEservice,
+            eserviceWithPublishedDescriptor,
             correlationId
           );
         }
       };
-
-      await repository.createEvent(event());
+      await repository.createEvent(await event());
     },
 
     async suspendDescriptor(
@@ -968,7 +1003,7 @@ export function catalogServiceBuilder(
         descriptorState.suspended
       );
 
-      const newEservice = updateDescriptor(eservice.data, updatedDescriptor);
+      const newEservice = replaceDescriptor(eservice.data, updatedDescriptor);
 
       const event = toCreateEventEServiceDescriptorSuspended(
         eserviceId,
@@ -1018,7 +1053,7 @@ export function catalogServiceBuilder(
           recentDescriptorVersion !== null &&
           parseInt(descriptor.version, 10) === recentDescriptorVersion
         ) {
-          const newEservice = updateDescriptor(
+          const newEservice = replaceDescriptor(
             eservice.data,
             updatedDescriptor
           );
@@ -1031,7 +1066,7 @@ export function catalogServiceBuilder(
             correlationId
           );
         } else {
-          const newEservice = updateDescriptor(
+          const newEservice = replaceDescriptor(
             eservice.data,
             deprecateDescriptor(eserviceId, descriptor)
           );
@@ -1194,7 +1229,7 @@ export function catalogServiceBuilder(
         descriptorState.archived
       );
 
-      const newEservice = updateDescriptor(eservice.data, updatedDescriptor);
+      const newEservice = replaceDescriptor(eservice.data, updatedDescriptor);
 
       const event = toCreateEventEServiceDescriptorActivated(
         eserviceId,
@@ -1231,12 +1266,9 @@ export function catalogServiceBuilder(
         throw notValidDescriptor(descriptorId, descriptor.state.toString());
       }
 
-      assertDailyCallsAreConsistentAndNotDecreased({
-        dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
-        dailyCallsTotal: descriptor.dailyCallsTotal,
-        updatedDailyCallsPerConsumer: seed.dailyCallsPerConsumer,
-        updatedDailyCallsTotal: seed.dailyCallsTotal,
-      });
+      if (seed.dailyCallsPerConsumer > seed.dailyCallsTotal) {
+        throw inconsistentDailyCalls();
+      }
 
       const updatedDescriptor: Descriptor = {
         ...descriptor,
@@ -1293,39 +1325,5 @@ const applyVisibilityToEService = (
     ),
   };
 };
-
-function assertDailyCallsAreConsistentAndNotDecreased({
-  dailyCallsPerConsumer,
-  dailyCallsTotal,
-  updatedDailyCallsPerConsumer,
-  updatedDailyCallsTotal,
-}: {
-  dailyCallsPerConsumer: number;
-  dailyCallsTotal: number;
-  updatedDailyCallsPerConsumer: number;
-  updatedDailyCallsTotal: number;
-}): void {
-  if (updatedDailyCallsPerConsumer > updatedDailyCallsTotal) {
-    throw inconsistentDailyCalls();
-  }
-  if (
-    updatedDailyCallsPerConsumer < dailyCallsPerConsumer ||
-    updatedDailyCallsTotal < dailyCallsTotal
-  ) {
-    throw dailyCallsCannotBeDecreased();
-  }
-}
-
-function replaceDescriptor(
-  eservice: EService,
-  updatedDescriptor: Descriptor
-): EService {
-  return {
-    ...eservice,
-    descriptors: eservice.descriptors.map((descriptor) =>
-      descriptor.id === updatedDescriptor.id ? updatedDescriptor : descriptor
-    ),
-  };
-}
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;

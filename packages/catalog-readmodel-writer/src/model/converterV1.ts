@@ -87,10 +87,7 @@ export const fromEServiceModeV1 = (
       return eserviceMode.deliver;
     case EServiceModeV1.UNSPECIFIED$:
     case undefined:
-      throw new Error("Unspecified mode");
-
-    // the undefiend case is becauese mode is required in EService definition but not in protobuf
-    // tracked in: https://pagopa.atlassian.net/browse/IMN-171
+      return eserviceMode.deliver;
   }
 };
 
