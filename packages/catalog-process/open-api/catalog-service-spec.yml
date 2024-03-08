@@ -91,6 +91,11 @@ paths:
             default: []
           explode: false
         - in: query
+          name: mode
+          description: mode
+          schema:
+            $ref: "#/components/schemas/EServiceMode"
+        - in: query
           name: offset
           required: true
           schema:
@@ -333,7 +338,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResourceId"
+                $ref: "#/components/schemas/EServiceDescriptor"
         "400":
           description: Invalid input
           content:
@@ -414,6 +419,10 @@ paths:
       responses:
         "200":
           description: EService with draft descriptor updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
         "400":
           description: Invalid input
           content:
@@ -571,7 +580,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResourceId"
+                $ref: "#/components/schemas/EService"
         "400":
           description: Invalid input
           content:
@@ -662,7 +671,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResourceId"
+                $ref: "#/components/schemas/EService"
         "400":
           description: Invalid input
           content:
@@ -965,12 +974,12 @@ components:
           description: "maximum number of daily calls that this descriptor can afford."
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
         dailyCallsTotal:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
@@ -1004,12 +1013,12 @@ components:
           description: "maximum number of daily calls that this descriptor can afford."
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
         dailyCallsTotal:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
@@ -1025,11 +1034,11 @@ components:
         dailyCallsPerConsumer:
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
         dailyCallsTotal:
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
       required:
         - voucherLifespan
         - dailyCallsPerConsumer
@@ -1337,12 +1346,12 @@ components:
           description: "maximum number of daily calls that this descriptor can afford per consumer."
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
         dailyCallsTotal:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
         interface:
           $ref: "#/components/schemas/EServiceDoc"
         docs:
