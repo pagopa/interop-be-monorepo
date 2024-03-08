@@ -853,6 +853,11 @@ export function catalogServiceBuilder(
         throw inconsistentDailyCalls();
       }
 
+      const parsedAttributes = await parseAndCheckAttributes(
+        seed.attributes,
+        readModelService
+      );
+
       const updatedDescriptor: Descriptor = {
         ...descriptor,
         description: seed.description,
@@ -865,6 +870,7 @@ export function catalogServiceBuilder(
           apiAgreementApprovalPolicyToAgreementApprovalPolicy(
             seed.agreementApprovalPolicy
           ),
+        attributes: parsedAttributes,
       };
 
       const updatedEService = replaceDescriptor(
