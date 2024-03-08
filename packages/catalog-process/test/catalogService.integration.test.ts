@@ -3586,11 +3586,11 @@ describe("database test", async () => {
 
         expect(
           catalogService.deleteRiskAnalysis(
-            mockEService.id,
+            eservice.id,
             generateId<RiskAnalysisId>(),
             getMockAuthData(eservice.producerId)
           )
-        ).rejects.toThrowError(eserviceNotInDraftState(mockEService.id));
+        ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
       });
 
       it("should throw operationForbidden if the requester is not the producer", async () => {
@@ -3610,7 +3610,7 @@ describe("database test", async () => {
 
         expect(
           catalogService.deleteRiskAnalysis(
-            mockEService.id,
+            eservice.id,
             generateId<RiskAnalysisId>(),
             getMockAuthData()
           )
