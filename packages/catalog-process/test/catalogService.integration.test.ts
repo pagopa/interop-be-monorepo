@@ -727,8 +727,10 @@ describe("database test", async () => {
           ],
         });
 
-        expect(writtenPayload.descriptorId).toEqual(newDescriptorId);
-        expect(writtenPayload.eservice).toEqual(expectedEservice);
+        expect(writtenPayload).toEqual({
+          descriptorId: newDescriptorId,
+          eservice: expectedEservice,
+        });
       });
 
       it("should write on event-store for the creation of a descriptor (eservice already had one descriptor)", async () => {
@@ -804,8 +806,10 @@ describe("database test", async () => {
           descriptors: [...eservice.descriptors, newDescriptor],
         });
 
-        expect(writtenPayload.descriptorId).toEqual(newDescriptorId);
-        expect(writtenPayload.eservice).toEqual(expectedEservice);
+        expect(writtenPayload).toEqual({
+          descriptorId: newDescriptorId,
+          eservice: expectedEservice,
+        });
       });
 
       it("should throw draftDescriptorAlreadyExists if a draft descriptor already exists", async () => {
