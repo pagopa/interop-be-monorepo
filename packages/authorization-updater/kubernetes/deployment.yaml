@@ -56,3 +56,38 @@ spec:
                 configMapKeyRef:
                   name: interop-be-authorization-updater
                   key: KAFKA_TOPICS
+            - name: AUTH_MNGT_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: interop-be-authorization-updater
+                  key: AUTH_MNGT_SERVICE_URL
+            - name: RSA_KEYS_IDENTIFIERS
+              valueFrom:
+                configMapKeyRef:
+                  name: interop-be-authorization-updater
+                  key: RSA_KEYS_IDENTIFIERS
+            - name: KMS_MAX_ACQUISITION_TIMEOUT_SECONDS
+              valueFrom:
+                configMapKeyRef:
+                  name: interop-be-authorization-updater
+                  key: KMS_MAX_ACQUISITION_TIMEOUT_SECONDS
+            - name: GENERATED_JWT_SECONDS_TO_EXPIRE
+              valueFrom:
+                configMapKeyRef:
+                  name: interop-be-authorization-updater
+                  key: GENERATED_JWT_SECONDS_TO_EXPIRE
+            - name: GENERATED_JWT_ISSUER
+              valueFrom:
+                configMapKeyRef:
+                  name: interop-be-authorization-updater
+                  key: GENERATED_JWT_ISSUER
+            - name: GENERATED_JWT_SUBJECT
+              valueFrom:
+                configMapKeyRef:
+                  name: interop-be-authorization-updater
+                  key: GENERATED_JWT_SUBJECT
+            - name: GENERATED_JWT_AUDIENCE
+              valueFrom:
+                configMapKeyRef:
+                  name: interop-be-authorization-updater
+                  key: GENERATED_JWT_AUDIENCE
