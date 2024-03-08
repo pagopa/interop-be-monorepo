@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
+import { v4 as uuidv4 } from "uuid";
 import {
   afterAll,
   afterEach,
@@ -189,7 +190,8 @@ describe("database test", async () => {
             technology: "REST",
             mode: "DELIVER",
           },
-          getMockAuthData(mockEService.producerId)
+          getMockAuthData(mockEService.producerId),
+          uuidv4()
         );
 
         expect(eservice).toBeDefined();
@@ -227,7 +229,8 @@ describe("database test", async () => {
               technology: "REST",
               mode: "DELIVER",
             },
-            getMockAuthData(mockEService.producerId)
+            getMockAuthData(mockEService.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(eServiceDuplicate(mockEService.name));
       });
@@ -244,7 +247,8 @@ describe("database test", async () => {
             {
               ...getMockAuthData(mockEService.producerId),
               externalId: { ...getMockAuthData().externalId, origin: "" },
-            }
+            },
+            uuidv4()
           )
         ).rejects.toThrowError(originNotCompliant("IPA"));
       });
@@ -273,7 +277,8 @@ describe("database test", async () => {
             technology: "REST",
             mode: "DELIVER",
           },
-          getMockAuthData(mockEService.producerId)
+          getMockAuthData(mockEService.producerId),
+          uuidv4()
         );
 
         const updatedEService: EService = {
@@ -339,7 +344,8 @@ describe("database test", async () => {
             technology: "SOAP",
             mode: "RECEIVE",
           },
-          getMockAuthData(mockEService.producerId)
+          getMockAuthData(mockEService.producerId),
+          uuidv4()
         );
 
         const updatedEService: EService = {
@@ -397,7 +403,8 @@ describe("database test", async () => {
               technology: "SOAP",
               mode: "DELIVER",
             },
-            getMockAuthData(mockEService.producerId)
+            getMockAuthData(mockEService.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError("Failed to delete file");
       });
@@ -412,7 +419,8 @@ describe("database test", async () => {
             technology: "REST",
             mode: "DELIVER",
           },
-          getMockAuthData(mockEService.producerId)
+          getMockAuthData(mockEService.producerId),
+          uuidv4()
         );
 
         const updatedEService: EService = {
@@ -446,7 +454,8 @@ describe("database test", async () => {
               technology: "REST",
               mode: "DELIVER",
             },
-            getMockAuthData(mockEService.producerId)
+            getMockAuthData(mockEService.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
@@ -463,7 +472,8 @@ describe("database test", async () => {
               technology: "REST",
               mode: "DELIVER",
             },
-            getMockAuthData()
+            getMockAuthData(),
+            uuidv4()
           )
         ).rejects.toThrowError(operationForbidden);
       });
@@ -492,7 +502,8 @@ describe("database test", async () => {
               technology: "REST",
               mode: "DELIVER",
             },
-            getMockAuthData(eservice1.producerId)
+            getMockAuthData(eservice1.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           eServiceDuplicate("eservice name already in use")
@@ -519,7 +530,8 @@ describe("database test", async () => {
               technology: "REST",
               mode: "DELIVER",
             },
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(eServiceCannotBeUpdated(eservice.id));
       });
@@ -544,7 +556,8 @@ describe("database test", async () => {
               technology: "REST",
               mode: "DELIVER",
             },
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(eServiceCannotBeUpdated(eservice.id));
       });
@@ -569,7 +582,8 @@ describe("database test", async () => {
               technology: "REST",
               mode: "DELIVER",
             },
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(eServiceCannotBeUpdated(eservice.id));
       });
@@ -594,7 +608,8 @@ describe("database test", async () => {
               technology: "REST",
               mode: "DELIVER",
             },
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(eServiceCannotBeUpdated(eservice.id));
       });
@@ -605,7 +620,8 @@ describe("database test", async () => {
         await addOneEService(mockEService, postgresDB, eservices);
         await catalogService.deleteEService(
           mockEService.id,
-          getMockAuthData(mockEService.producerId)
+          getMockAuthData(mockEService.producerId),
+          uuidv4()
         );
         const writtenEvent = await readLastEventByStreamId(
           mockEService.id,
@@ -626,7 +642,8 @@ describe("database test", async () => {
         expect(
           catalogService.deleteEService(
             mockEService.id,
-            getMockAuthData(mockEService.producerId)
+            getMockAuthData(mockEService.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
@@ -634,7 +651,11 @@ describe("database test", async () => {
       it("should throw operationForbidden if the requester is not the producer", async () => {
         await addOneEService(mockEService, postgresDB, eservices);
         expect(
-          catalogService.deleteEService(mockEService.id, getMockAuthData())
+          catalogService.deleteEService(
+            mockEService.id,
+            getMockAuthData(),
+            uuidv4()
+          )
         ).rejects.toThrowError(operationForbidden);
       });
 
@@ -652,7 +673,8 @@ describe("database test", async () => {
         expect(
           catalogService.deleteEService(
             eservice.id,
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(eServiceCannotBeDeleted(eservice.id));
       });
@@ -682,7 +704,8 @@ describe("database test", async () => {
         await catalogService.createDescriptor(
           mockEService.id,
           descriptorSeed,
-          getMockAuthData(mockEService.producerId)
+          getMockAuthData(mockEService.producerId),
+          uuidv4()
         );
         const writtenEvent = await readLastEventByStreamId(
           mockEService.id,
@@ -739,7 +762,8 @@ describe("database test", async () => {
           catalogService.createDescriptor(
             eservice.id,
             buildDescriptorSeed(descriptor),
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(draftDescriptorAlreadyExists(eservice.id));
       });
@@ -749,7 +773,8 @@ describe("database test", async () => {
           catalogService.createDescriptor(
             mockEService.id,
             buildDescriptorSeed(mockDescriptor),
-            getMockAuthData(mockEService.producerId)
+            getMockAuthData(mockEService.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
@@ -795,7 +820,8 @@ describe("database test", async () => {
           catalogService.createDescriptor(
             eservice.id,
             descriptorSeed,
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(attributeNotFound(notExistingId1));
       });
@@ -814,7 +840,8 @@ describe("database test", async () => {
           catalogService.createDescriptor(
             eservice.id,
             buildDescriptorSeed(descriptor),
-            getMockAuthData()
+            getMockAuthData(),
+            uuidv4()
           )
         ).rejects.toThrowError(operationForbidden);
       });
@@ -834,7 +861,8 @@ describe("database test", async () => {
           catalogService.createDescriptor(
             eservice.id,
             descriptorSeed,
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(inconsistentDailyCalls());
       });
@@ -870,7 +898,8 @@ describe("database test", async () => {
           eservice.id,
           descriptor.id,
           updatedDescriptorSeed,
-          getMockAuthData(eservice.producerId)
+          getMockAuthData(eservice.producerId),
+          uuidv4()
         );
         const writtenEvent = await readLastEventByStreamId(
           eservice.id,
@@ -898,7 +927,8 @@ describe("database test", async () => {
             mockEService.id,
             descriptor.id,
             buildDescriptorSeed(descriptor),
-            getMockAuthData(mockEService.producerId)
+            getMockAuthData(mockEService.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
@@ -915,7 +945,8 @@ describe("database test", async () => {
             mockEService.id,
             mockDescriptor.id,
             buildDescriptorSeed(mockDescriptor),
-            getMockAuthData(mockEService.producerId)
+            getMockAuthData(mockEService.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -939,7 +970,8 @@ describe("database test", async () => {
             eservice.id,
             descriptor.id,
             buildDescriptorSeed(descriptor),
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           notValidDescriptor(mockDescriptor.id, descriptorState.published)
@@ -963,7 +995,8 @@ describe("database test", async () => {
             eservice.id,
             descriptor.id,
             buildDescriptorSeed(descriptor),
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           notValidDescriptor(mockDescriptor.id, descriptorState.deprecated)
@@ -987,7 +1020,8 @@ describe("database test", async () => {
             eservice.id,
             descriptor.id,
             buildDescriptorSeed(descriptor),
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           notValidDescriptor(mockDescriptor.id, descriptorState.suspended)
@@ -1011,7 +1045,8 @@ describe("database test", async () => {
             eservice.id,
             descriptor.id,
             buildDescriptorSeed(descriptor),
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           notValidDescriptor(mockDescriptor.id, descriptorState.archived)
@@ -1038,7 +1073,8 @@ describe("database test", async () => {
             eservice.id,
             descriptor.id,
             buildDescriptorSeed(updatedDescriptor),
-            getMockAuthData()
+            getMockAuthData(),
+            uuidv4()
           )
         ).rejects.toThrowError(operationForbidden);
       });
@@ -1063,7 +1099,8 @@ describe("database test", async () => {
             eservice.id,
             descriptor.id,
             buildDescriptorSeed(updatedDescriptor),
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(inconsistentDailyCalls());
       });
@@ -1085,7 +1122,8 @@ describe("database test", async () => {
         await catalogService.deleteDraftDescriptor(
           eservice.id,
           descriptor.id,
-          getMockAuthData(eservice.producerId)
+          getMockAuthData(eservice.producerId),
+          uuidv4()
         );
 
         const writtenEvent = await readLastEventByStreamId(
@@ -1180,7 +1218,8 @@ describe("database test", async () => {
         await catalogService.deleteDraftDescriptor(
           eservice.id,
           descriptor.id,
-          getMockAuthData(eservice.producerId)
+          getMockAuthData(eservice.producerId),
+          uuidv4()
         );
 
         const writtenEvent = await readLastEventByStreamId(
@@ -1248,7 +1287,8 @@ describe("database test", async () => {
           catalogService.deleteDraftDescriptor(
             eservice.id,
             descriptor.id,
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError("Failed to delete file");
       });
@@ -1258,7 +1298,8 @@ describe("database test", async () => {
           catalogService.deleteDraftDescriptor(
             mockEService.id,
             mockDescriptor.id,
-            getMockAuthData(mockEService.producerId)
+            getMockAuthData(mockEService.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
@@ -1273,7 +1314,8 @@ describe("database test", async () => {
           catalogService.deleteDraftDescriptor(
             mockEService.id,
             mockDescriptor.id,
-            getMockAuthData(mockEService.producerId)
+            getMockAuthData(mockEService.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -1294,7 +1336,8 @@ describe("database test", async () => {
           catalogService.deleteDraftDescriptor(
             eservice.id,
             descriptor.id,
-            getMockAuthData()
+            getMockAuthData(),
+            uuidv4()
           )
         ).rejects.toThrowError(operationForbidden);
       });
@@ -1323,7 +1366,8 @@ describe("database test", async () => {
         await catalogService.publishDescriptor(
           eservice.id,
           descriptor.id,
-          getMockAuthData(eservice.producerId)
+          getMockAuthData(eservice.producerId),
+          uuidv4()
         );
 
         const writtenEvent = await readLastEventByStreamId(
@@ -1361,7 +1405,8 @@ describe("database test", async () => {
           catalogService.publishDescriptor(
             mockEService.id,
             mockDescriptor.id,
-            getMockAuthData(mockEService.producerId)
+            getMockAuthData(mockEService.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
@@ -1376,7 +1421,8 @@ describe("database test", async () => {
           catalogService.publishDescriptor(
             eservice.id,
             mockDescriptor.id,
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -1397,7 +1443,8 @@ describe("database test", async () => {
           catalogService.publishDescriptor(
             eservice.id,
             descriptor.id,
-            getMockAuthData()
+            getMockAuthData(),
+            uuidv4()
           )
         ).rejects.toThrowError(operationForbidden);
       });
@@ -1417,7 +1464,8 @@ describe("database test", async () => {
           catalogService.publishDescriptor(
             eservice.id,
             descriptor.id,
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           notValidDescriptor(descriptor.id, descriptorState.published)
@@ -1439,7 +1487,8 @@ describe("database test", async () => {
           catalogService.publishDescriptor(
             eservice.id,
             descriptor.id,
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           notValidDescriptor(descriptor.id, descriptorState.deprecated)
@@ -1461,7 +1510,8 @@ describe("database test", async () => {
           catalogService.publishDescriptor(
             eservice.id,
             descriptor.id,
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           notValidDescriptor(descriptor.id, descriptorState.suspended)
@@ -1483,7 +1533,8 @@ describe("database test", async () => {
           catalogService.publishDescriptor(
             eservice.id,
             descriptor.id,
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           notValidDescriptor(descriptor.id, descriptorState.archived)
@@ -1505,7 +1556,8 @@ describe("database test", async () => {
           catalogService.publishDescriptor(
             eservice.id,
             descriptor.id,
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           eServiceDescriptorWithoutInterface(descriptor.id)
@@ -1528,7 +1580,8 @@ describe("database test", async () => {
         await catalogService.suspendDescriptor(
           eservice.id,
           descriptor.id,
-          getMockAuthData(eservice.producerId)
+          getMockAuthData(eservice.producerId),
+          uuidv4()
         );
 
         const writtenEvent = await readLastEventByStreamId(
@@ -1566,7 +1619,8 @@ describe("database test", async () => {
           catalogService.suspendDescriptor(
             mockEService.id,
             mockDescriptor.id,
-            getMockAuthData(mockEService.producerId)
+            getMockAuthData(mockEService.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
@@ -1586,7 +1640,8 @@ describe("database test", async () => {
           catalogService.suspendDescriptor(
             eservice.id,
             descriptor.id,
-            getMockAuthData()
+            getMockAuthData(),
+            uuidv4()
           )
         ).rejects.toThrowError(operationForbidden);
       });
@@ -1602,7 +1657,8 @@ describe("database test", async () => {
           catalogService.suspendDescriptor(
             eservice.id,
             mockDescriptor.id,
-            getMockAuthData(mockEService.producerId)
+            getMockAuthData(mockEService.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -1623,7 +1679,8 @@ describe("database test", async () => {
           catalogService.suspendDescriptor(
             eservice.id,
             descriptor.id,
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           notValidDescriptor(descriptor.id, descriptorState.draft)
@@ -1645,7 +1702,8 @@ describe("database test", async () => {
           catalogService.suspendDescriptor(
             eservice.id,
             descriptor.id,
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           notValidDescriptor(descriptor.id, descriptorState.suspended)
@@ -1667,7 +1725,8 @@ describe("database test", async () => {
           catalogService.suspendDescriptor(
             eservice.id,
             descriptor.id,
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           notValidDescriptor(descriptor.id, descriptorState.archived)
@@ -1690,7 +1749,8 @@ describe("database test", async () => {
         await catalogService.activateDescriptor(
           eservice.id,
           descriptor.id,
-          getMockAuthData(eservice.producerId)
+          getMockAuthData(eservice.producerId),
+          uuidv4()
         );
 
         const updatedDescriptor = {
@@ -1724,7 +1784,8 @@ describe("database test", async () => {
           catalogService.activateDescriptor(
             mockEService.id,
             mockDescriptor.id,
-            getMockAuthData(mockEService.producerId)
+            getMockAuthData(mockEService.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
@@ -1740,7 +1801,8 @@ describe("database test", async () => {
           catalogService.activateDescriptor(
             eservice.id,
             mockDescriptor.id,
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -1762,7 +1824,8 @@ describe("database test", async () => {
           catalogService.activateDescriptor(
             eservice.id,
             descriptor.id,
-            getMockAuthData()
+            getMockAuthData(),
+            uuidv4()
           )
         ).rejects.toThrowError(operationForbidden);
       });
@@ -1781,7 +1844,8 @@ describe("database test", async () => {
           catalogService.activateDescriptor(
             mockEService.id,
             mockDescriptor.id,
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           notValidDescriptor(descriptor.id, descriptorState.draft)
@@ -1803,7 +1867,8 @@ describe("database test", async () => {
           catalogService.activateDescriptor(
             mockEService.id,
             mockDescriptor.id,
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           notValidDescriptor(descriptor.id, descriptorState.published)
@@ -1825,7 +1890,8 @@ describe("database test", async () => {
           catalogService.activateDescriptor(
             mockEService.id,
             mockDescriptor.id,
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           notValidDescriptor(descriptor.id, descriptorState.deprecated)
@@ -1847,7 +1913,8 @@ describe("database test", async () => {
           catalogService.activateDescriptor(
             mockEService.id,
             mockDescriptor.id,
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           notValidDescriptor(descriptor.id, descriptorState.archived)
@@ -1931,7 +1998,8 @@ describe("database test", async () => {
         const newEService = await catalogService.cloneDescriptor(
           eservice.id,
           descriptor.id,
-          getMockAuthData(eservice.producerId)
+          getMockAuthData(eservice.producerId),
+          uuidv4()
         );
 
         const writtenEvent = await readLastEventByStreamId(
@@ -2054,7 +2122,8 @@ describe("database test", async () => {
           catalogService.cloneDescriptor(
             eservice.id,
             descriptor.id,
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError("Failed to copy file");
       });
@@ -2089,7 +2158,8 @@ describe("database test", async () => {
           catalogService.cloneDescriptor(
             eservice1.id,
             descriptor.id,
-            getMockAuthData(eservice1.producerId)
+            getMockAuthData(eservice1.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(eServiceDuplicate(conflictEServiceName));
       });
@@ -2098,7 +2168,8 @@ describe("database test", async () => {
           catalogService.cloneDescriptor(
             mockEService.id,
             mockDescriptor.id,
-            getMockAuthData()
+            getMockAuthData(),
+            uuidv4()
           )
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
@@ -2116,7 +2187,8 @@ describe("database test", async () => {
           catalogService.cloneDescriptor(
             eservice.id,
             descriptor.id,
-            getMockAuthData()
+            getMockAuthData(),
+            uuidv4()
           )
         ).rejects.toThrowError(operationForbidden);
       });
@@ -2130,7 +2202,8 @@ describe("database test", async () => {
           catalogService.cloneDescriptor(
             mockEService.id,
             mockDescriptor.id,
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -2153,7 +2226,8 @@ describe("database test", async () => {
         await catalogService.archiveDescriptor(
           eservice.id,
           descriptor.id,
-          getMockAuthData(eservice.producerId)
+          getMockAuthData(eservice.producerId),
+          uuidv4()
         );
 
         const writtenEvent = await readLastEventByStreamId(
@@ -2190,7 +2264,8 @@ describe("database test", async () => {
           catalogService.archiveDescriptor(
             mockEService.id,
             mockDescriptor.id,
-            getMockAuthData(mockEService.producerId)
+            getMockAuthData(mockEService.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
@@ -2206,7 +2281,8 @@ describe("database test", async () => {
           catalogService.archiveDescriptor(
             eservice.id,
             mockDescriptor.id,
-            getMockAuthData(mockEService.producerId)
+            getMockAuthData(mockEService.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -2227,7 +2303,8 @@ describe("database test", async () => {
           catalogService.archiveDescriptor(
             eservice.id,
             descriptor.id,
-            getMockAuthData()
+            getMockAuthData(),
+            uuidv4()
           )
         ).rejects.toThrowError(operationForbidden);
       });
@@ -2269,7 +2346,8 @@ describe("database test", async () => {
           eservice.id,
           descriptor.id,
           updatedDescriptorQuotasSeed,
-          getMockAuthData(eservice.producerId)
+          getMockAuthData(eservice.producerId),
+          uuidv4()
         );
         const writtenEvent = await readLastEventByStreamId(
           eservice.id,
@@ -2324,7 +2402,8 @@ describe("database test", async () => {
           eservice.id,
           descriptor.id,
           updatedDescriptorQuotasSeed,
-          getMockAuthData(eservice.producerId)
+          getMockAuthData(eservice.producerId),
+          uuidv4()
         );
         const writtenEvent = await readLastEventByStreamId(
           eservice.id,
@@ -2379,7 +2458,8 @@ describe("database test", async () => {
           eservice.id,
           descriptor.id,
           updatedDescriptorQuotasSeed,
-          getMockAuthData(eservice.producerId)
+          getMockAuthData(eservice.producerId),
+          uuidv4()
         );
         const writtenEvent = await readLastEventByStreamId(
           eservice.id,
@@ -2410,7 +2490,8 @@ describe("database test", async () => {
             mockEService.id,
             mockDescriptor.id,
             updatedDescriptorQuotasSeed,
-            getMockAuthData(mockEService.producerId)
+            getMockAuthData(mockEService.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
@@ -2434,7 +2515,8 @@ describe("database test", async () => {
             mockEService.id,
             mockDescriptor.id,
             updatedDescriptorQuotasSeed,
-            getMockAuthData(mockEService.producerId)
+            getMockAuthData(mockEService.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -2464,7 +2546,8 @@ describe("database test", async () => {
             eservice.id,
             descriptor.id,
             updatedDescriptorQuotasSeed,
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           notValidDescriptor(mockDescriptor.id, descriptorState.draft)
@@ -2495,7 +2578,8 @@ describe("database test", async () => {
             eservice.id,
             descriptor.id,
             updatedDescriptorQuotasSeed,
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           notValidDescriptor(mockDescriptor.id, descriptorState.archived)
@@ -2524,7 +2608,8 @@ describe("database test", async () => {
             eservice.id,
             descriptor.id,
             updatedDescriptorQuotasSeed,
-            getMockAuthData()
+            getMockAuthData(),
+            uuidv4()
           )
         ).rejects.toThrowError(operationForbidden);
       });
@@ -2553,7 +2638,8 @@ describe("database test", async () => {
             eservice.id,
             descriptor.id,
             updatedDescriptorQuotasSeed,
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(inconsistentDailyCalls());
       });
@@ -2582,7 +2668,8 @@ describe("database test", async () => {
             eservice.id,
             descriptor.id,
             updatedDescriptorQuotasSeed,
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(dailyCallsCannotBeDecreased());
       });
@@ -2604,7 +2691,8 @@ describe("database test", async () => {
           eservice.id,
           descriptor.id,
           buildInterfaceSeed(),
-          getMockAuthData(eservice.producerId)
+          getMockAuthData(eservice.producerId),
+          uuidv4()
         );
 
         const writtenEvent = await readLastEventByStreamId(
@@ -2649,7 +2737,8 @@ describe("database test", async () => {
             mockEService.id,
             mockDescriptor.id,
             buildInterfaceSeed(),
-            getMockAuthData()
+            getMockAuthData(),
+            uuidv4()
           )
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
@@ -2669,7 +2758,8 @@ describe("database test", async () => {
             eservice.id,
             descriptor.id,
             buildInterfaceSeed(),
-            getMockAuthData()
+            getMockAuthData(),
+            uuidv4()
           )
         ).rejects.toThrowError(operationForbidden);
       });
@@ -2684,7 +2774,8 @@ describe("database test", async () => {
             eservice.id,
             mockDescriptor.id,
             buildInterfaceSeed(),
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -2705,7 +2796,8 @@ describe("database test", async () => {
             eservice.id,
             descriptor.id,
             buildInterfaceSeed(),
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           notValidDescriptor(descriptor.id, descriptorState.published)
@@ -2726,7 +2818,8 @@ describe("database test", async () => {
             eservice.id,
             descriptor.id,
             buildInterfaceSeed(),
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           notValidDescriptor(descriptor.id, descriptorState.deprecated)
@@ -2747,7 +2840,8 @@ describe("database test", async () => {
             eservice.id,
             descriptor.id,
             buildInterfaceSeed(),
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           notValidDescriptor(descriptor.id, descriptorState.archived)
@@ -2768,7 +2862,8 @@ describe("database test", async () => {
             eservice.id,
             descriptor.id,
             buildInterfaceSeed(),
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           notValidDescriptor(descriptor.id, descriptorState.suspended)
@@ -2790,7 +2885,8 @@ describe("database test", async () => {
             eservice.id,
             descriptor.id,
             buildInterfaceSeed(),
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(interfaceAlreadyExists(descriptor.id));
       });
@@ -2831,7 +2927,8 @@ describe("database test", async () => {
           eservice.id,
           descriptor.id,
           document.id,
-          getMockAuthData(eservice.producerId)
+          getMockAuthData(eservice.producerId),
+          uuidv4()
         );
         const writtenEvent = await readLastEventByStreamId(
           eservice.id,
@@ -2903,7 +3000,8 @@ describe("database test", async () => {
           eservice.id,
           descriptor.id,
           interfaceDocument.id,
-          getMockAuthData(eservice.producerId)
+          getMockAuthData(eservice.producerId),
+          uuidv4()
         );
         const writtenEvent = await readLastEventByStreamId(
           eservice.id,
@@ -2962,7 +3060,8 @@ describe("database test", async () => {
             eservice.id,
             descriptor.id,
             mockDocument.id,
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError("Failed to delete file");
       });
@@ -2972,7 +3071,8 @@ describe("database test", async () => {
             mockEService.id,
             mockDescriptor.id,
             mockDocument.id,
-            getMockAuthData()
+            getMockAuthData(),
+            uuidv4()
           )
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
@@ -2992,7 +3092,8 @@ describe("database test", async () => {
             eservice.id,
             descriptor.id,
             mockDocument.id,
-            getMockAuthData()
+            getMockAuthData(),
+            uuidv4()
           )
         ).rejects.toThrowError(operationForbidden);
       });
@@ -3008,7 +3109,8 @@ describe("database test", async () => {
             eservice.id,
             mockDescriptor.id,
             mockDocument.id,
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -3030,7 +3132,8 @@ describe("database test", async () => {
             eservice.id,
             descriptor.id,
             mockDocument.id,
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           notValidDescriptor(descriptor.id, descriptorState.published)
@@ -3052,7 +3155,8 @@ describe("database test", async () => {
             eservice.id,
             descriptor.id,
             mockDocument.id,
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           notValidDescriptor(descriptor.id, descriptorState.deprecated)
@@ -3074,7 +3178,8 @@ describe("database test", async () => {
             eservice.id,
             descriptor.id,
             mockDocument.id,
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           notValidDescriptor(descriptor.id, descriptorState.archived)
@@ -3096,7 +3201,8 @@ describe("database test", async () => {
             eservice.id,
             descriptor.id,
             mockDocument.id,
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           notValidDescriptor(descriptor.id, descriptorState.suspended)
@@ -3119,7 +3225,8 @@ describe("database test", async () => {
             eservice.id,
             descriptor.id,
             mockDocument.id,
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           eServiceDocumentNotFound(eservice.id, descriptor.id, mockDocument.id)
@@ -3144,7 +3251,8 @@ describe("database test", async () => {
           descriptor.id,
           mockDocument.id,
           { prettyName: "updated prettyName" },
-          getMockAuthData(eservice.producerId)
+          getMockAuthData(eservice.producerId),
+          uuidv4()
         );
         const writtenEvent = await readLastEventByStreamId(
           eservice.id,
@@ -3185,7 +3293,8 @@ describe("database test", async () => {
             mockDescriptor.id,
             mockDocument.id,
             { prettyName: "updated prettyName" },
-            getMockAuthData()
+            getMockAuthData(),
+            uuidv4()
           )
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
@@ -3206,7 +3315,8 @@ describe("database test", async () => {
             descriptor.id,
             mockDocument.id,
             { prettyName: "updated prettyName" },
-            getMockAuthData()
+            getMockAuthData(),
+            uuidv4()
           )
         ).rejects.toThrowError(operationForbidden);
       });
@@ -3222,7 +3332,8 @@ describe("database test", async () => {
             mockDescriptor.id,
             generateId(),
             { prettyName: "updated prettyName" },
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -3245,7 +3356,8 @@ describe("database test", async () => {
             descriptor.id,
             generateId(),
             { prettyName: "updated prettyName" },
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           notValidDescriptor(descriptor.id, descriptorState.published)
@@ -3268,7 +3380,8 @@ describe("database test", async () => {
             descriptor.id,
             generateId(),
             { prettyName: "updated prettyName" },
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           notValidDescriptor(descriptor.id, descriptorState.suspended)
@@ -3291,7 +3404,8 @@ describe("database test", async () => {
             descriptor.id,
             generateId(),
             { prettyName: "updated prettyName" },
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           notValidDescriptor(descriptor.id, descriptorState.archived)
@@ -3314,7 +3428,8 @@ describe("database test", async () => {
             descriptor.id,
             generateId(),
             { prettyName: "updated prettyName" },
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           notValidDescriptor(descriptor.id, descriptorState.deprecated)
@@ -3337,7 +3452,8 @@ describe("database test", async () => {
             descriptor.id,
             mockDocument.id,
             { prettyName: "updated prettyName" },
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           eServiceDocumentNotFound(eservice.id, descriptor.id, mockDocument.id)
