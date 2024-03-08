@@ -241,14 +241,14 @@ export function tenantServiceBuilder(
       externalId: ExternalId
     ): Promise<WithMetadata<Tenant> | undefined> {
       logger.info(
-        `Retrieving tenant by External Id Origin ${externalId.origin} Code ${externalId.value}`
+        `Retrieving tenant with origin ${externalId.origin} and code ${externalId.value}`
       );
       return readModelService.getTenantByExternalId(externalId);
     },
     async getTenantBySelfcareId(
       selfcareId: string
     ): Promise<WithMetadata<Tenant> | undefined> {
-      logger.info(`Retrieving Tenant by Selfcare Id ${selfcareId}`);
+      logger.info(`Retrieving Tenant with Selfcare Id ${selfcareId}`);
       return readModelService.getTenantBySelfcareId(selfcareId);
     },
   };
