@@ -3508,7 +3508,11 @@ describe("database test", async () => {
         };
         await addOneEService(eservice, postgresDB, eservices);
 
-        await catalogService.deleteRiskAnalysis(eservice.id, riskAnalysis.id);
+        await catalogService.deleteRiskAnalysis(
+          eservice.id,
+          riskAnalysis.id,
+          getMockAuthData(eservice.producerId)
+        );
 
         const writtenEvent = await readLastEventByStreamId(
           eservice.id,
@@ -3537,7 +3541,8 @@ describe("database test", async () => {
         expect(
           catalogService.deleteRiskAnalysis(
             mockEService.id,
-            generateId<RiskAnalysisId>()
+            generateId<RiskAnalysisId>(),
+            getMockAuthData(mockEService.producerId)
           )
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
@@ -3552,7 +3557,11 @@ describe("database test", async () => {
 
         const riskAnalysisId = generateId<RiskAnalysisId>();
         expect(
-          catalogService.deleteRiskAnalysis(eservice.id, riskAnalysisId)
+          catalogService.deleteRiskAnalysis(
+            eservice.id,
+            riskAnalysisId,
+            getMockAuthData(eservice.producerId)
+          )
         ).rejects.toThrowError(
           riskAnalysisNotFound(eservice.id, riskAnalysisId)
         );
@@ -3575,9 +3584,34 @@ describe("database test", async () => {
         expect(
           catalogService.deleteRiskAnalysis(
             mockEService.id,
-            generateId<RiskAnalysisId>()
+            generateId<RiskAnalysisId>(),
+            getMockAuthData(eservice.producerId)
           )
         ).rejects.toThrowError(eserviceNotInDraftState(mockEService.id));
+      });
+
+      it("should throw operationForbidden if the requester is not the producer", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.published,
+          interface: mockDocument,
+          publishedAt: new Date(),
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+          riskAnalysis: [getMockValidRiskAnalysis("PA")],
+          mode: "Receive",
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+
+        expect(
+          catalogService.deleteRiskAnalysis(
+            mockEService.id,
+            generateId<RiskAnalysisId>(),
+            getMockAuthData()
+          )
+        ).rejects.toThrowError(operationForbidden);
       });
     });
   });

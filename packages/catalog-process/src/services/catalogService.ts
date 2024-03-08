@@ -1354,12 +1354,15 @@ export function catalogServiceBuilder(
     },
     async deleteRiskAnalysis(
       eserviceId: EServiceId,
-      riskAnalysisId: RiskAnalysisId
+      riskAnalysisId: RiskAnalysisId,
+      authData: AuthData
     ): Promise<void> {
       logger.info(
         `Deleting Risk Analysis ${riskAnalysisId} for EService ${eserviceId}`
       );
       const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
       assertIsDraftEservice(eservice.data);
       assertIsReceiveEservice(eservice.data);
 
