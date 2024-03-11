@@ -141,7 +141,7 @@ export const toCreateEventClonedEServiceAdded = (
     data: {
       sourceDescriptorId,
       sourceEservice: toEServiceV2(sourceEservice),
-      clonedEservice: toEServiceV2(clonedEservice),
+      eservice: toEServiceV2(clonedEservice),
     },
   },
 });
