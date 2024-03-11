@@ -9,3 +9,4 @@ export * from "./repositories/EventRepository.js";
 export * from "./repositories/ReadModelRepository.js";
 export * from "./repositories/db.js";
 export * from "./types/index.js";
+export * from "./auth/token/index.js";

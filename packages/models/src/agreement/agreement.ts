@@ -80,7 +80,7 @@ export type Agreement = z.infer<typeof Agreement>;
 export const PDFPayload = z.object({
   today: z.date(),
   agreementId: AgreementId,
-  eService: z.string(),
+  eservice: z.string(),
   producerName: z.string(),
   producerOrigin: z.string(),
   producerIPACode: z.string(),

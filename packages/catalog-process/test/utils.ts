@@ -23,45 +23,49 @@ import {
   agreementState,
   catalogEventToBinaryData,
   descriptorState,
+  eserviceMode,
   generateId,
   technology,
 } from "pagopa-interop-models";
-import { toEServiceV1 } from "../src/model/domain/toEvent.js";
+import { toEServiceV2 } from "../src/model/domain/toEvent.js";
 import { EServiceDescriptorSeed } from "../src/model/domain/models.js";
 import { ApiEServiceDescriptorDocumentSeed } from "../src/model/types.js";
 
 export const writeEServiceInEventstore = async (
-  eService: EService,
+  eservice: EService,
   postgresDB: IDatabase<unknown>
 ): Promise<void> => {
-  const eServiceEvent: EServiceEvent = {
+  const eserviceEvent: EServiceEvent = {
     type: "EServiceAdded",
-    data: { eService: toEServiceV1(eService) },
+    event_version: 2,
+    data: { eservice: toEServiceV2(eservice) },
   };
   const eventToWrite = {
-    stream_id: eServiceEvent.data.eService?.id,
+    stream_id: eserviceEvent.data.eservice?.id,
     version: 0,
-    type: eServiceEvent.type,
-    data: Buffer.from(catalogEventToBinaryData(eServiceEvent)),
+    type: eserviceEvent.type,
+    event_version: eserviceEvent.event_version,
+    data: Buffer.from(catalogEventToBinaryData(eserviceEvent)),
   };
 
   await postgresDB.none(
-    "INSERT INTO catalog.events(stream_id, version, type, data) VALUES ($1, $2, $3, $4)",
+    "INSERT INTO catalog.events(stream_id, version, type, event_version, data) VALUES ($1, $2, $3, $4, $5)",
     [
       eventToWrite.stream_id,
       eventToWrite.version,
       eventToWrite.type,
+      eventToWrite.event_version,
       eventToWrite.data,
     ]
   );
 };
 
 export const writeEServiceInReadmodel = async (
-  eService: EService,
+  eservice: EService,
   eservices: EServiceCollection
 ): Promise<void> => {
   await eservices.insertOne({
-    data: eService,
+    data: eservice,
     metadata: {
       version: 0,
     },
@@ -104,8 +108,8 @@ export const writeTenantInReadmodel = async (
   });
 };
 
-export const getMockAuthData = (organizationId?: string): AuthData => ({
-  organizationId: organizationId || uuidv4(),
+export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
+  organizationId: organizationId || generateId(),
   userId: uuidv4(),
   userRoles: [],
   externalId: {
@@ -132,13 +136,15 @@ export const buildDescriptorSeed = (
 
 export const getMockEService = (): EService => ({
   id: generateId(),
-  name: "eService name",
-  description: "eService description",
+  name: "eservice name",
+  description: "eservice description",
   createdAt: new Date(),
-  producerId: uuidv4(),
+  producerId: generateId(),
   technology: technology.rest,
   descriptors: [],
   attributes: undefined,
+  mode: eserviceMode.deliver,
+  riskAnalysis: [],
 });
 
 export const getMockDescriptor = (): Descriptor => ({
@@ -175,7 +181,7 @@ export const buildInterfaceSeed = (): ApiEServiceDescriptorDocumentSeed => ({
   contentType: "json",
   prettyName: "prettyName",
   serverUrls: ["pagopa.it"],
-  documentId: uuidv4(),
+  documentId: generateId(),
   kind: "INTERFACE",
   filePath: "filePath",
   fileName: "fileName",
@@ -185,10 +191,10 @@ export const buildInterfaceSeed = (): ApiEServiceDescriptorDocumentSeed => ({
 export const getMockDocument = (): Document => ({
   name: "fileName",
   path: "filePath",
-  id: uuidv4(),
+  id: generateId(),
   prettyName: "prettyName",
   contentType: "json",
-  checksum: uuidv4(),
+  checksum: "checksum",
   uploadDate: new Date(),
 });
 
@@ -239,12 +245,12 @@ export const getMockAgreement = ({
 });
 
 export const addOneEService = async (
-  eService: EService,
+  eservice: EService,
   postgresDB: IDatabase<unknown>,
   eservices: EServiceCollection
 ): Promise<void> => {
-  await writeEServiceInEventstore(eService, postgresDB);
-  await writeEServiceInReadmodel(eService, eservices);
+  await writeEServiceInEventstore(eservice, postgresDB);
+  await writeEServiceInReadmodel(eservice, eservices);
 };
 
 export const addOneAttribute = async (

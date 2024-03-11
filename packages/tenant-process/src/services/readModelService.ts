@@ -319,7 +319,7 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
       attributeIds: AttributeId[]
     ): Promise<Array<WithMetadata<Attribute>>> {
       const fetchAttributeById = async (
-        id: string
+        id: AttributeId
       ): Promise<WithMetadata<Attribute>> => {
         const data = await getAttribute(attributes, { "data.id": id });
         if (!data) {

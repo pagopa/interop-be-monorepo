@@ -5,6 +5,7 @@ import {
   EServiceId,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
+import { logger } from "pagopa-interop-commons";
 
 export const errorCodes = {
   eServiceDescriptorNotFound: "0002",
@@ -15,14 +16,15 @@ export const errorCodes = {
   draftDescriptorAlreadyExists: "0008",
   eserviceCannotBeUpdatedOrDeleted: "0009",
   eServiceDuplicate: "0010",
-  interfaceAlreadyExists: "0011",
+  originNotCompliant: "0011",
   attributeNotFound: "0012",
   inconsistentDailyCalls: "0013",
+  interfaceAlreadyExists: "0022",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
 
-export const makeApiProblem = makeApiProblemBuilder(errorCodes);
+export const makeApiProblem = makeApiProblemBuilder(logger, errorCodes);
 
 const eserviceCannotBeUpdatedOrDeleted: {
   code: ErrorCodes;
@@ -40,11 +42,9 @@ export function eServiceNotFound(eserviceId: EServiceId): ApiError<ErrorCodes> {
   });
 }
 
-export function eServiceDuplicate(
-  eServiceNameSeed: string
-): ApiError<ErrorCodes> {
+export function eServiceDuplicate(eserviceName: string): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `ApiError during EService creation with name ${eServiceNameSeed}`,
+    detail: `An EService with name ${eserviceName} already exists`,
     code: "eServiceDuplicate",
     title: "Duplicated service name",
   });
@@ -155,5 +155,13 @@ export function inconsistentDailyCalls(): ApiError<ErrorCodes> {
     detail: `dailyCallsPerConsumer can't be greater than dailyCallsTotal`,
     code: "inconsistentDailyCalls",
     title: "Inconsistent daily calls",
+  });
+}
+
+export function originNotCompliant(origin: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Requester has not origin ${origin}`,
+    code: "originNotCompliant",
+    title: "Origin is not compliant",
   });
 }
