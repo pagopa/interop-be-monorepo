@@ -42,8 +42,8 @@ import {
   EServiceDescriptorDocumentUpdatedV2,
   EServiceDescriptorInterfaceDeletedV2,
   EServiceDescriptorPublishedV2,
+  EServiceDescriptorQuotasUpdatedV2,
   EServiceDescriptorSuspendedV2,
-  EServiceDescriptorUpdatedV2,
   EServiceDraftDescriptorUpdatedV2,
   EServiceId,
   Tenant,
@@ -2578,11 +2578,11 @@ describe("database test", async () => {
         expect(writtenEvent).toMatchObject({
           stream_id: eservice.id,
           version: "1",
-          type: "EServiceDescriptorUpdated",
+          type: "EServiceDescriptorQuotasUpdated",
           event_version: 2,
         });
         const writtenPayload = decodeProtobufPayload({
-          messageType: EServiceDescriptorUpdatedV2,
+          messageType: EServiceDescriptorQuotasUpdatedV2,
           payload: writtenEvent.data,
         });
         expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
@@ -2633,11 +2633,11 @@ describe("database test", async () => {
         expect(writtenEvent).toMatchObject({
           stream_id: eservice.id,
           version: "1",
-          type: "EServiceDescriptorUpdated",
+          type: "EServiceDescriptorQuotasUpdated",
           event_version: 2,
         });
         const writtenPayload = decodeProtobufPayload({
-          messageType: EServiceDescriptorUpdatedV2,
+          messageType: EServiceDescriptorQuotasUpdatedV2,
           payload: writtenEvent.data,
         });
         expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
@@ -2688,11 +2688,11 @@ describe("database test", async () => {
         expect(writtenEvent).toMatchObject({
           stream_id: eservice.id,
           version: "1",
-          type: "EServiceDescriptorUpdated",
+          type: "EServiceDescriptorQuotasUpdated",
           event_version: 2,
         });
         const writtenPayload = decodeProtobufPayload({
-          messageType: EServiceDescriptorUpdatedV2,
+          messageType: EServiceDescriptorQuotasUpdatedV2,
           payload: writtenEvent.data,
         });
         expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));

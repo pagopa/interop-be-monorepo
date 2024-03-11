@@ -49,8 +49,8 @@ import {
   toCreateEventEServiceDescriptorArchived,
   toCreateEventEServiceDescriptorDeleted,
   toCreateEventEServiceDescriptorPublished,
+  toCreateEventEServiceDescriptorQuotasUpdated,
   toCreateEventEServiceDescriptorSuspended,
-  toCreateEventEServiceDescriptorUpdated,
   toCreateEventEServiceDocumentAdded,
   toCreateEventEServiceDocumentDeleted,
   toCreateEventEServiceDocumentUpdated,
@@ -1271,7 +1271,7 @@ export function catalogServiceBuilder(
         updatedDescriptor
       );
 
-      const event = toCreateEventEServiceDescriptorUpdated(
+      const event = toCreateEventEServiceDescriptorQuotasUpdated(
         eserviceId,
         eservice.metadata.version,
         descriptorId,

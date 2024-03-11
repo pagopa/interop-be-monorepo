@@ -33,7 +33,7 @@ message EServiceDraftDescriptorUpdatedV2 {
   EServiceV2 eservice = 2;
 }
 
-message EServiceDescriptorUpdatedV2 {
+message EServiceDescriptorQuotasUpdatedV2 {
   string descriptorId = 1;
   EServiceV2 eservice = 2;
 }

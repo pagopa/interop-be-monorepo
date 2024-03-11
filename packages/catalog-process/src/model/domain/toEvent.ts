@@ -302,7 +302,7 @@ export const toCreateEventEServiceDraftDescriptorUpdated = (
   },
 });
 
-export const toCreateEventEServiceDescriptorUpdated = (
+export const toCreateEventEServiceDescriptorQuotasUpdated = (
   streamId: string,
   version: number,
   descriptorId: DescriptorId,
@@ -311,7 +311,7 @@ export const toCreateEventEServiceDescriptorUpdated = (
   streamId,
   version,
   event: {
-    type: "EServiceDescriptorUpdated",
+    type: "EServiceDescriptorQuotasUpdated",
     event_version: 2,
     data: {
       descriptorId,
