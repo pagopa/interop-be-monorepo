@@ -35,6 +35,7 @@ import {
   cloneEServiceByDescriptorErrorMapper,
   createDescriptorErrorMapper,
   createEServiceErrorMapper,
+  createRiskAnalysisErrorMapper,
   deleteDraftDescriptorErrorMapper,
   deleteEServiceErrorMapper,
   documentCreateErrorMapper,
@@ -518,6 +519,24 @@ const eservicesRouter = (
             .end();
         } catch (error) {
           const errorRes = makeApiProblem(error, updateDescriptorErrorMapper);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
+    .post(
+      "/eservices/:eServiceId/riskAnalysis",
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+
+      async (req, res) => {
+        try {
+          await catalogService.createRiskAnalysis(
+            unsafeBrandId(req.params.eServiceId),
+            req.body,
+            req.ctx.authData
+          );
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, createRiskAnalysisErrorMapper);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
