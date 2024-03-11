@@ -236,9 +236,7 @@ function validateFieldValue(
           : [unexpectedFieldValueError(rule.fieldName, allowedValues)]
       )
     )
-    .with(P.nullish, () => [
-      unexpectedFieldValueError(rule.fieldName, new Set([])),
-    ])
+    .with(P.nullish, () => [])
     .exhaustive();
 }
 
