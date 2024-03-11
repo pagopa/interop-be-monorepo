@@ -62,12 +62,11 @@ export function assertHasNoDraftDescriptor(eservice: EService): void {
   }
 }
 
-export function validateRiskAnalysisOrThrow(
+export function buildValidatedRiskAnalysisOrThrow(
   riskAnalysisForm: EServiceRiskAnalysisSeed["riskAnalysisForm"],
-  schemaOnly: boolean,
   tenantKind: TenantKind
 ): RiskAnalysisValidatedForm {
-  const result = validateRiskAnalysis(riskAnalysisForm, schemaOnly, tenantKind);
+  const result = validateRiskAnalysis(riskAnalysisForm, true, tenantKind);
   if (result.type === "invalid") {
     throw riskAnalysisValidationFailed(result.issues);
   } else {
