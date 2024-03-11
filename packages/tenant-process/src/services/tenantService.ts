@@ -13,10 +13,8 @@ import {
   Tenant,
   TenantAttribute,
   TenantEvent,
-  TenantFeature,
   TenantId,
   TenantKind,
-  TenantMail,
   WithMetadata,
   generateId,
   tenantAttributeType,
@@ -307,35 +305,6 @@ async function updateTenantVerifiedAttributeLogic({
     tenant.data.id,
     tenant.metadata.version,
     updatedTenant
-  );
-}
-
-export async function updateTenantLogic({
-  tenant,
-  selfcareId,
-  features,
-  mails,
-  kind,
-}: {
-  tenant: WithMetadata<Tenant>;
-  selfcareId: string | undefined;
-  features: TenantFeature[];
-  mails: TenantMail[];
-  kind: TenantKind;
-}): Promise<CreateEvent<TenantEvent>> {
-  const newTenant: Tenant = {
-    ...tenant.data,
-    selfcareId,
-    features,
-    mails,
-    kind,
-    updatedAt: new Date(),
-  };
-  logger.info(`Updating Tenant ${tenant.data.id}`);
-  return toCreateEventTenantUpdated(
-    tenant.data.id,
-    tenant.metadata.version,
-    newTenant
   );
 }
 
