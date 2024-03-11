@@ -2,13 +2,10 @@ import {
   AuthData,
   DB,
   FileManager,
-  RiskAnalysisValidatedForm,
   eventRepository,
   hasPermission,
   logger,
-  riskAnalysisValidatedFormToNewRiskAnalysis,
   userRoles,
-  validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
   Descriptor,
@@ -23,15 +20,12 @@ import {
   catalogEventToBinaryData,
   descriptorState,
   generateId,
-  operationForbidden,
   unsafeBrandId,
   ListResult,
   AttributeId,
   agreementState,
-  eserviceMode,
   Tenant,
   RiskAnalysis,
-  TenantKind,
   RiskAnalysisId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -75,7 +69,6 @@ import {
 import { config } from "../utilities/config.js";
 import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
 import {
-  draftDescriptorAlreadyExists,
   eServiceCannotBeDeleted,
   eServiceCannotBeUpdated,
   eServiceDescriptorNotFound,
@@ -88,45 +81,20 @@ import {
   attributeNotFound,
   inconsistentDailyCalls,
   originNotCompliant,
-  dailyCallsCannotBeDecreased,
-  eserviceNotInDraftState,
-  eserviceNotInReceiveMode,
-  tenantKindNotFound,
   tenantNotFound,
-  riskAnalysisValidationFailed,
   riskAnalysisNotFound,
 } from "../model/domain/errors.js";
 import { formatClonedEServiceDate } from "../utilities/date.js";
 import { ReadModelService } from "./readModelService.js";
-
-const assertRequesterAllowed = (
-  producerId: TenantId,
-  requesterId: TenantId
-): void => {
-  if (producerId !== requesterId) {
-    throw operationForbidden;
-  }
-};
-
-function assertIsDraftEservice(eservice: EService): void {
-  if (eservice.descriptors.some((d) => d.state !== descriptorState.draft)) {
-    throw eserviceNotInDraftState(eservice.id);
-  }
-}
-
-function assertIsReceiveEservice(eservice: EService): void {
-  if (eservice.mode !== eserviceMode.receive) {
-    throw eserviceNotInReceiveMode(eservice.id);
-  }
-}
-
-function assertTenantKindExists(
-  tenant: Tenant
-): asserts tenant is Tenant & { kind: NonNullable<Tenant["kind"]> } {
-  if (tenant.kind === undefined) {
-    throw tenantKindNotFound(tenant.id);
-  }
-}
+import {
+  assertRequesterAllowed,
+  assertDailyCallsAreConsistentAndNotDecreased,
+  assertIsDraftEservice,
+  assertIsReceiveEservice,
+  assertTenantKindExists,
+  validateRiskAnalysisOrThrow,
+  assertHasNoDraftDescriptor,
+} from "./validators.js";
 
 const retrieveEService = async (
   eserviceId: EServiceId,
@@ -245,15 +213,6 @@ const archiveDescriptor = (
   logger.info(`Archiving Descriptor ${descriptor.id} of EService ${streamId}`);
 
   return updateDescriptorState(descriptor, descriptorState.archived);
-};
-
-const hasNotDraftDescriptor = (eservice: EService): void => {
-  const hasDraftDescriptor = eservice.descriptors.some(
-    (d: Descriptor) => d.state === descriptorState.draft
-  );
-  if (hasDraftDescriptor) {
-    throw draftDescriptorAlreadyExists(eservice.id);
-  }
 };
 
 const replaceDescriptor = (
@@ -712,7 +671,7 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
       assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
-      hasNotDraftDescriptor(eservice.data);
+      assertHasNoDraftDescriptor(eservice.data);
 
       const newVersion = nextDescriptorVersion(eservice.data);
 
@@ -1421,40 +1380,5 @@ const applyVisibilityToEService = (
     ),
   };
 };
-
-function assertDailyCallsAreConsistentAndNotDecreased({
-  dailyCallsPerConsumer,
-  dailyCallsTotal,
-  updatedDailyCallsPerConsumer,
-  updatedDailyCallsTotal,
-}: {
-  dailyCallsPerConsumer: number;
-  dailyCallsTotal: number;
-  updatedDailyCallsPerConsumer: number;
-  updatedDailyCallsTotal: number;
-}): void {
-  if (updatedDailyCallsPerConsumer > updatedDailyCallsTotal) {
-    throw inconsistentDailyCalls();
-  }
-  if (
-    updatedDailyCallsPerConsumer < dailyCallsPerConsumer ||
-    updatedDailyCallsTotal < dailyCallsTotal
-  ) {
-    throw dailyCallsCannotBeDecreased();
-  }
-}
-
-function validateRiskAnalysisOrThrow(
-  riskAnalysisForm: EServiceRiskAnalysisSeed["riskAnalysisForm"],
-  schemaOnly: boolean,
-  tenantKind: TenantKind
-): RiskAnalysisValidatedForm {
-  const result = validateRiskAnalysis(riskAnalysisForm, schemaOnly, tenantKind);
-  if (result.type === "invalid") {
-    throw riskAnalysisValidationFailed(result.issues);
-  } else {
-    return result.value;
-  }
-}
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
