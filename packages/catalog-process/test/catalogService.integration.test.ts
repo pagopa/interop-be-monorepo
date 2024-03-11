@@ -24,7 +24,7 @@ import {
   initDB,
   initFileManager,
   unexpectedFieldError,
-  unexpectedFieldValue,
+  unexpectedFieldValueError,
   userRoles,
 } from "pagopa-interop-commons";
 import { IDatabase } from "pg-promise";
@@ -3905,7 +3905,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(
           riskAnalysisValidationFailed([
-            unexpectedFieldValue(
+            unexpectedFieldValueError(
               "purpose",
               new Set(["INSTITUTIONAL", "OTHER"])
             ),

@@ -26,7 +26,6 @@ import {
   AttributeId,
   agreementState,
   EserviceAttributes,
-  eserviceMode,
   Tenant,
   RiskAnalysis,
 } from "pagopa-interop-models";
@@ -89,7 +88,6 @@ import { formatClonedEServiceDate } from "../utilities/date.js";
 import { ReadModelService } from "./readModelService.js";
 import {
   assertRequesterAllowed,
-  assertDailyCallsAreConsistentAndNotDecreased,
   assertIsDraftEservice,
   assertIsReceiveEservice,
   assertTenantKindExists,
