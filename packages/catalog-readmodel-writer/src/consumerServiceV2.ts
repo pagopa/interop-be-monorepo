@@ -26,6 +26,7 @@ export async function handleMessageV2(
       { type: "EServiceCloned" },
       { type: "EServiceDescriptorAdded" },
       { type: "EServiceDraftDescriptorUpdated" },
+      { type: "EServiceDescriptorUpdated" },
       { type: "EServiceDescriptorActivated" },
       { type: "EServiceDescriptorArchived" },
       { type: "EServiceDescriptorPublished" },
