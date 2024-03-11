@@ -53,6 +53,8 @@ export type ApiAttribute = z.infer<typeof api.schemas.Attribute>;
 
 export type EServiceDescriptor = z.infer<typeof api.schemas.EServiceDescriptor>;
 
+export type EServiceAttributesSeed = z.infer<typeof api.schemas.AttributesSeed>;
+
 export type UpdateEServiceDescriptorSeed = z.infer<
   typeof api.schemas.UpdateEServiceDescriptorSeed
 >;
