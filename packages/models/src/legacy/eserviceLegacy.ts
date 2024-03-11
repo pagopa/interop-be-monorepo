@@ -1,3 +1,12 @@
+/* 
+ --- Technical NOTE ---
+  ISSUE https://pagopa.atlassian.net/browse/IMN-315
+  This model is used guarantee the compatibility with old read model version,
+  the old service read it using ISO string for all date fields, 
+  meanwhile the new event version will use date type.
+  After the complete services update this definition should be removed.
+*/
+
 import { z } from "zod";
 import {
   AgreementApprovalPolicy,
