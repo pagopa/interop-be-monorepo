@@ -990,7 +990,7 @@ describe("database test", async () => {
         expect(writtenEvent).toMatchObject({
           stream_id: eservice.id,
           version: "1",
-          type: "DraftEServiceUpdated",
+          type: "EServiceDraftDescriptorUpdated",
           event_version: 2,
         });
         const writtenPayload = decodeProtobufPayload({
