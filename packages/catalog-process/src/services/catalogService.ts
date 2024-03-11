@@ -5,6 +5,7 @@ import {
   eventRepository,
   hasPermission,
   logger,
+  riskAnalysisValidatedFormToNewRiskAnalysis,
   userRoles,
 } from "pagopa-interop-commons";
 import {
