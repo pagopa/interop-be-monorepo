@@ -23,6 +23,7 @@ export const createEServiceErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
+    .with("originNotCompliant", () => HTTP_STATUS_FORBIDDEN)
     .with("eServiceDuplicate", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -93,6 +94,7 @@ export const createDescriptorErrorMapper = (
     .with(
       "draftDescriptorAlreadyExists",
       "attributeNotFound",
+      "inconsistentDailyCalls",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
@@ -121,7 +123,11 @@ export const updateDescriptorErrorMapper = (
       () => HTTP_STATUS_NOT_FOUND
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
-    .with("notValidDescriptor", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "notValidDescriptor",
+      "inconsistentDailyCalls",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const publishDescriptorErrorMapper = (

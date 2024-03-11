@@ -214,7 +214,7 @@ export function agreementServiceBuilder(
         agreementQuery,
         eserviceQuery,
         tenantQuery,
-        fileCopy: fileManager.copy,
+        copyFile: fileManager.copy,
       });
 
       for (const event of events) {
@@ -234,7 +234,7 @@ export function agreementServiceBuilder(
         agreementQuery,
         eserviceQuery,
         tenantQuery,
-        fileCopy: fileManager.copy,
+        copyFile: fileManager.copy,
       });
 
       for (const event of events) {
@@ -298,7 +298,7 @@ export function agreementServiceBuilder(
       return agreementId;
     },
     async getAgreementEServices(
-      eServiceName: string | undefined,
+      eserviceName: string | undefined,
       consumerIds: string[],
       producerIds: string[],
       limit: number,
@@ -309,7 +309,7 @@ export function agreementServiceBuilder(
       );
 
       return await agreementQuery.getEServices(
-        eServiceName,
+        eserviceName,
         consumerIds,
         producerIds,
         limit,
@@ -394,7 +394,7 @@ async function createAndCopyDocumentsForClonedAgreement(
   newAgreementId: AgreementId,
   clonedAgreement: Agreement,
   startingVersion: number,
-  fileCopy: (
+  copyFile: (
     bucket: string,
     sourcePath: string,
     destinationPath: string,
@@ -407,7 +407,7 @@ async function createAndCopyDocumentsForClonedAgreement(
       const newId: AgreementDocumentId = generateId();
       return {
         newId,
-        newPath: await fileCopy(
+        newPath: await copyFile(
           config.s3Bucket,
           `${config.consumerDocumentsPath}/${newAgreementId}`,
           d.path,
@@ -416,7 +416,13 @@ async function createAndCopyDocumentsForClonedAgreement(
         ),
       };
     })
-  );
+  ).catch((error) => {
+    logger.error(
+      `Error copying documents' files for agreement ${clonedAgreement.id} : ${error}`
+    );
+    throw error;
+  });
+
   return docs.map((d, i) =>
     toCreateEventAgreementConsumerDocumentAdded(
       newAgreementId,
@@ -454,7 +460,12 @@ export async function deleteAgreementLogic({
   );
 
   for (const d of agreement.data.consumerDocuments) {
-    await deleteFile(config.s3Bucket, d.path);
+    await deleteFile(config.s3Bucket, d.path).catch((error) => {
+      logger.error(
+        `Error deleting documents' files for agreement ${agreement.data.id} : ${error}`
+      );
+      throw error;
+    });
   }
 
   return toCreateEventAgreementDeleted(agreementId, agreement.metadata.version);
@@ -498,14 +509,14 @@ export async function upgradeAgreementLogic({
   agreementQuery,
   eserviceQuery,
   tenantQuery,
-  fileCopy,
+  copyFile,
 }: {
   agreementId: AgreementId;
   authData: AuthData;
   agreementQuery: AgreementQuery;
   eserviceQuery: EserviceQuery;
   tenantQuery: TenantQuery;
-  fileCopy: (
+  copyFile: (
     bucket: string,
     sourcePath: string,
     destinationPath: string,
@@ -643,7 +654,7 @@ export async function upgradeAgreementLogic({
       newAgreement.id,
       agreementToBeUpgraded.data,
       1,
-      fileCopy
+      copyFile
     );
 
     return {
@@ -659,14 +670,14 @@ export async function cloneAgreementLogic({
   agreementQuery,
   tenantQuery,
   eserviceQuery,
-  fileCopy,
+  copyFile,
 }: {
   agreementId: AgreementId;
   authData: AuthData;
   agreementQuery: AgreementQuery;
   tenantQuery: TenantQuery;
   eserviceQuery: EserviceQuery;
-  fileCopy: (
+  copyFile: (
     bucket: string,
     sourcePath: string,
     destinationPath: string,
@@ -739,7 +750,7 @@ export async function cloneAgreementLogic({
     newAgreement.id,
     agreementToBeCloned.data,
     0,
-    fileCopy
+    copyFile
   );
 
   return {

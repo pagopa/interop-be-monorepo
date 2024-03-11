@@ -26,6 +26,17 @@ export class ApiError<T> extends Error {
   }
 }
 
+export class InternalError<T> extends Error {
+  public code: T;
+  public detail: string;
+
+  constructor({ code, detail }: { code: T; detail: string }) {
+    super(detail);
+    this.code = code;
+    this.detail = detail;
+  }
+}
+
 export type ProblemError = {
   code: string;
   detail: string;
@@ -38,11 +49,15 @@ export type Problem = {
   correlationId?: string;
   detail: string;
   errors: ProblemError[];
+  toString: () => string;
 };
 
-export function makeApiProblemBuilder<T extends string>(errors: {
-  [K in T]: string;
-}): (
+export function makeApiProblemBuilder<T extends string>(
+  logger: { error: (message: string) => void },
+  errors: {
+    [K in T]: string;
+  }
+): (
   error: unknown,
   httpMapper: (apiError: ApiError<T | CommonErrorCodes>) => number
 ) => Problem {
@@ -65,11 +80,16 @@ export function makeApiProblemBuilder<T extends string>(errors: {
       ],
     });
 
-    return match<unknown, Problem>(error)
+    const problem = match<unknown, Problem>(error)
       .with(P.instanceOf(ApiError<T | CommonErrorCodes>), (error) =>
         makeProblem(httpMapper(error), error)
       )
       .otherwise(() => makeProblem(500, genericError("Unexpected error")));
+
+    logger.error(
+      `- ${problem.title} - ${problem.detail} - orignal error: ${error}`
+    );
+    return problem;
   };
 }
 
@@ -79,10 +99,57 @@ const errorCodes = {
   missingClaim: "9990",
   genericError: "9991",
   unauthorizedError: "9991",
+  thirdPartyCallError: "9992",
   missingHeader: "9994",
+  tokenGenerationError: "9995",
+  missingRSAKey: "9996",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
+
+export function parseErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === "string") {
+    return error;
+  }
+
+  return `${JSON.stringify(error)}`;
+}
+
+/* ===== Internal Error ===== */
+
+export function genericInternalError(
+  message: string
+): InternalError<CommonErrorCodes> {
+  return new InternalError({
+    code: "genericError",
+    detail: message,
+  });
+}
+
+export function thirdPartyCallError(
+  serviceName: string,
+  errorMessage: string
+): InternalError<CommonErrorCodes> {
+  return new InternalError({
+    code: "thirdPartyCallError",
+    detail: `Error while invoking ${serviceName} external service -> ${errorMessage}`,
+  });
+}
+
+export function tokenGenerationError(
+  error: unknown
+): InternalError<CommonErrorCodes> {
+  return new InternalError({
+    code: "tokenGenerationError",
+    detail: `Error during token generation: ${parseErrorMessage(error)}`,
+  });
+}
+
+/* ===== API Error ===== */
 
 export function authenticationSaslFailed(
   message: string
