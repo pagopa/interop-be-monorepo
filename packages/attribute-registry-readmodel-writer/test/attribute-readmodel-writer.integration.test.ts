@@ -6,7 +6,7 @@ import { afterEach, afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   AttributeCollection,
   ReadModelRepository,
-  consumerConfig,
+  readModelWriterConfig,
 } from "pagopa-interop-commons";
 import {
   TEST_MONGO_DB_PORT,
@@ -25,7 +25,7 @@ describe("database test", async () => {
   let attributes: AttributeCollection;
   let startedMongoDBContainer: StartedTestContainer;
 
-  const config = consumerConfig();
+  const config = readModelWriterConfig();
   beforeAll(async () => {
     startedMongoDBContainer = await mongoDBContainer(config).start();
 
@@ -61,6 +61,7 @@ describe("database test", async () => {
         stream_id: id,
         version: 1,
         type: "AttributeAdded",
+        event_version: 1,
         data: newAttribute,
       };
       await handleMessage(message, attributes);
