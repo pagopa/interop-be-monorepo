@@ -5,8 +5,8 @@ export * from "./create-mechanism.js";
 export * from "./create-payload.js";
 export * from "./create-sasl-authentication-request.js";
 export * from "./create-sasl-authentication-response.js";
-import { Consumer, Kafka, EachMessagePayload } from "kafkajs";
-import { ConsumerConfig, logger } from "pagopa-interop-commons";
+import { Consumer, EachMessagePayload, Kafka } from "kafkajs";
+import { KafkaConsumerConfig, logger } from "pagopa-interop-commons";
 import { createMechanism } from "./create-mechanism.js";
 
 export const DEFAULT_AUTHENTICATION_TIMEOUT = 60 * 60 * 1000;
@@ -74,7 +74,7 @@ const kafkaEventsListener = (consumer: Consumer): void => {
 };
 
 const initConsumer = async (
-  config: ConsumerConfig,
+  config: KafkaConsumerConfig,
   consumerHandler: (payload: EachMessagePayload) => Promise<void>
 ): Promise<Consumer> => {
   logger.info(
@@ -137,7 +137,7 @@ const initConsumer = async (
 };
 
 export const runConsumer = async (
-  config: ConsumerConfig,
+  config: KafkaConsumerConfig,
   consumerHandler: (messagePayload: EachMessagePayload) => Promise<void>
 ): Promise<void> => {
   do {

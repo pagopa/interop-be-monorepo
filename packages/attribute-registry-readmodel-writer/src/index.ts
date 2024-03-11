@@ -1,6 +1,6 @@
 import { Kafka, KafkaMessage } from "kafkajs";
 import {
-  consumerConfig,
+  readModelWriterConfig,
   decodeKafkaMessage,
   logger,
 } from "pagopa-interop-commons";
@@ -8,7 +8,7 @@ import { createMechanism } from "@jm18457/kafkajs-msk-iam-authentication-mechani
 import { AttributeEvent } from "pagopa-interop-models";
 import { handleMessage } from "./attributeRegistryConsumerService.js";
 
-const config = consumerConfig();
+const config = readModelWriterConfig();
 const kafkaConfig = config.kafkaDisableAwsIamAuth
   ? {
       clientId: config.kafkaClientId,

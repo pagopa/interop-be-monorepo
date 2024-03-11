@@ -13,19 +13,46 @@ export async function handleMessageV2(
     .with({ type: "EServiceCloned" }, (msg) => msg.data.clonedEservice)
     .otherwise((msg) => msg.data.eservice);
 
-  await eservices.updateOne(
-    {
-      "data.id": message.stream_id,
-      "metadata.version": { $lt: message.version },
-    },
-    {
-      $set: {
-        data: eservice ? fromEServiceV2(eservice) : undefined,
-        metadata: {
-          version: message.version,
-        },
-      },
-    },
-    { upsert: true }
-  );
+  await match(message)
+    .with({ type: "EServiceDeleted" }, async (message) => {
+      await eservices.deleteOne({
+        "data.id": message.stream_id,
+        "metadata.version": { $lt: message.version },
+      });
+    })
+    .with(
+      { type: "EServiceAdded" },
+      { type: "DraftEServiceUpdated" },
+      { type: "EServiceCloned" },
+      { type: "EServiceDescriptorAdded" },
+      { type: "EServiceDraftDescriptorUpdated" },
+      { type: "EServiceDescriptorActivated" },
+      { type: "EServiceDescriptorArchived" },
+      { type: "EServiceDescriptorPublished" },
+      { type: "EServiceDescriptorSuspended" },
+      { type: "EServiceDescriptorDeleted" },
+      { type: "EServiceDescriptorInterfaceAdded" },
+      { type: "EServiceDescriptorDocumentAdded" },
+      { type: "EServiceDescriptorInterfaceUpdated" },
+      { type: "EServiceDescriptorDocumentUpdated" },
+      { type: "EServiceDescriptorInterfaceDeleted" },
+      { type: "EServiceDescriptorDocumentDeleted" },
+      async (message) =>
+        await eservices.updateOne(
+          {
+            "data.id": message.stream_id,
+            "metadata.version": { $lt: message.version },
+          },
+          {
+            $set: {
+              data: eservice ? fromEServiceV2(eservice) : undefined,
+              metadata: {
+                version: message.version,
+              },
+            },
+          },
+          { upsert: true }
+        )
+    )
+    .exhaustive();
 }

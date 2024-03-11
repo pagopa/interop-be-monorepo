@@ -32,20 +32,20 @@ import { EServiceDescriptorSeed } from "../src/model/domain/models.js";
 import { ApiEServiceDescriptorDocumentSeed } from "../src/model/types.js";
 
 export const writeEServiceInEventstore = async (
-  eService: EService,
+  eservice: EService,
   postgresDB: IDatabase<unknown>
 ): Promise<void> => {
-  const eServiceEvent: EServiceEvent = {
+  const eserviceEvent: EServiceEvent = {
     type: "EServiceAdded",
     event_version: 2,
-    data: { eservice: toEServiceV2(eService) },
+    data: { eservice: toEServiceV2(eservice) },
   };
   const eventToWrite = {
-    stream_id: eServiceEvent.data.eservice?.id,
+    stream_id: eserviceEvent.data.eservice?.id,
     version: 0,
-    type: eServiceEvent.type,
-    event_version: eServiceEvent.event_version,
-    data: Buffer.from(catalogEventToBinaryData(eServiceEvent)),
+    type: eserviceEvent.type,
+    event_version: eserviceEvent.event_version,
+    data: Buffer.from(catalogEventToBinaryData(eserviceEvent)),
   };
 
   await postgresDB.none(
@@ -61,11 +61,11 @@ export const writeEServiceInEventstore = async (
 };
 
 export const writeEServiceInReadmodel = async (
-  eService: EService,
+  eservice: EService,
   eservices: EServiceCollection
 ): Promise<void> => {
   await eservices.insertOne({
-    data: eService,
+    data: eservice,
     metadata: {
       version: 0,
     },
@@ -136,8 +136,8 @@ export const buildDescriptorSeed = (
 
 export const getMockEService = (): EService => ({
   id: generateId(),
-  name: "eService name",
-  description: "eService description",
+  name: "eservice name",
+  description: "eservice description",
   createdAt: new Date(),
   producerId: generateId(),
   technology: technology.rest,
@@ -194,7 +194,7 @@ export const getMockDocument = (): Document => ({
   id: generateId(),
   prettyName: "prettyName",
   contentType: "json",
-  checksum: generateId(),
+  checksum: "checksum",
   uploadDate: new Date(),
 });
 
@@ -245,12 +245,12 @@ export const getMockAgreement = ({
 });
 
 export const addOneEService = async (
-  eService: EService,
+  eservice: EService,
   postgresDB: IDatabase<unknown>,
   eservices: EServiceCollection
 ): Promise<void> => {
-  await writeEServiceInEventstore(eService, postgresDB);
-  await writeEServiceInReadmodel(eService, eservices);
+  await writeEServiceInEventstore(eservice, postgresDB);
+  await writeEServiceInReadmodel(eservice, eservices);
 };
 
 export const addOneAttribute = async (
