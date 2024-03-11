@@ -4379,7 +4379,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(
           riskAnalysisValidationFailed([
-            unexpectedFieldValue(
+            unexpectedFieldValueError(
               "purpose",
               new Set(["INSTITUTIONAL", "OTHER"])
             ),
