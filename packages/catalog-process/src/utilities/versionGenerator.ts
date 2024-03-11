@@ -14,7 +14,7 @@ export const nextDescriptorVersion = (eservice: EService): string => {
     }
 
     return currentVersionNumber.data > max ? currentVersionNumber.data : max;
-  }, 1);
+  }, 0);
 
-  return currentVersion.toString();
+  return (currentVersion + 1).toString();
 };
