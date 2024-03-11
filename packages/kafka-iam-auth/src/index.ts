@@ -53,13 +53,15 @@ const errorEventsListener = (consumer: Consumer): void => {
 };
 
 const kafkaEventsListener = (consumer: Consumer): void => {
-  consumer.on(consumer.events.DISCONNECT, () => {
-    logger.debug(`Consumer has disconnected.`);
-  });
+  if (logger.isDebugEnabled()) {
+    consumer.on(consumer.events.DISCONNECT, () => {
+      logger.debug(`Consumer has disconnected.`);
+    });
 
-  consumer.on(consumer.events.STOP, (e) => {
-    logger.debug(`Consumer has stopped ${JSON.stringify(e)}.`);
-  });
+    consumer.on(consumer.events.STOP, (e) => {
+      logger.debug(`Consumer has stopped ${JSON.stringify(e)}.`);
+    });
+  }
 
   consumer.on(consumer.events.CRASH, (e) => {
     logger.error(`Error Consumer crashed ${JSON.stringify(e)}.`);
