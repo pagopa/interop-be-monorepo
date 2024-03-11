@@ -100,6 +100,7 @@ import {
   assertTenantKindExists,
   validateRiskAnalysisOrThrow,
   assertHasNoDraftDescriptor,
+  assertRiskAnalysisValidForPublication,
 } from "./validators.js";
 
 const retrieveEService = async (
@@ -942,6 +943,15 @@ export function catalogServiceBuilder(
 
       if (descriptor.interface === undefined) {
         throw eServiceDescriptorWithoutInterface(descriptor.id);
+      }
+
+      if (eservice.data.mode === eserviceMode.receive) {
+        const tenant = await retrieveTenant(
+          eservice.data.producerId,
+          readModelService
+        );
+        assertTenantKindExists(tenant.data);
+        assertRiskAnalysisValidForPublication(eservice.data, tenant.data.kind);
       }
 
       const currentActiveDescriptor = eservice.data.descriptors.find(
