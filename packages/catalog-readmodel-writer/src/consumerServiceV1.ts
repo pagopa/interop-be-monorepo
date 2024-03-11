@@ -1,5 +1,5 @@
 import { match } from "ts-pattern";
-import { logger, EServiceCollection } from "pagopa-interop-commons";
+import { EServiceCollection } from "pagopa-interop-commons";
 import { EServiceEventEnvelopeV1 } from "pagopa-interop-models";
 import {
   fromDescriptorV1,
@@ -11,7 +11,6 @@ export async function handleMessageV1(
   message: EServiceEventEnvelopeV1,
   eservices: EServiceCollection
 ): Promise<void> {
-  logger.info(message);
   await match(message)
     .with({ type: "EServiceAdded" }, async (msg) => {
       await eservices.updateOne(
@@ -20,8 +19,8 @@ export async function handleMessageV1(
         },
         {
           $setOnInsert: {
-            data: msg.data.eService
-              ? fromEServiceV1(msg.data.eService)
+            data: msg.data.eservice
+              ? fromEServiceV1(msg.data.eservice)
               : undefined,
             metadata: {
               version: msg.version,
@@ -38,8 +37,8 @@ export async function handleMessageV1(
           { "data.id": msg.stream_id },
           {
             $setOnInsert: {
-              data: msg.data.eService
-                ? fromEServiceV1(msg.data.eService)
+              data: msg.data.eservice
+                ? fromEServiceV1(msg.data.eservice)
                 : undefined,
               metadata: { version: msg.version },
             },
@@ -57,8 +56,8 @@ export async function handleMessageV1(
           },
           {
             $set: {
-              data: msg.data.eService
-                ? fromEServiceV1(msg.data.eService)
+              data: msg.data.eservice
+                ? fromEServiceV1(msg.data.eservice)
                 : undefined,
               metadata: {
                 version: msg.version,
@@ -259,8 +258,8 @@ export async function handleMessageV1(
               "metadata.version": msg.version,
             },
             $push: {
-              "data.descriptors": msg.data.eServiceDescriptor
-                ? fromDescriptorV1(msg.data.eServiceDescriptor)
+              "data.descriptors": msg.data.eserviceDescriptor
+                ? fromDescriptorV1(msg.data.eserviceDescriptor)
                 : undefined,
             },
           }
@@ -277,15 +276,15 @@ export async function handleMessageV1(
           {
             $set: {
               "metadata.version": msg.version,
-              "data.descriptors.$[descriptor]": msg.data.eServiceDescriptor
-                ? fromDescriptorV1(msg.data.eServiceDescriptor)
+              "data.descriptors.$[descriptor]": msg.data.eserviceDescriptor
+                ? fromDescriptorV1(msg.data.eserviceDescriptor)
                 : undefined,
             },
           },
           {
             arrayFilters: [
               {
-                "descriptor.id": msg.data.eServiceDescriptor?.id,
+                "descriptor.id": msg.data.eserviceDescriptor?.id,
               },
             ],
           }
@@ -302,8 +301,8 @@ export async function handleMessageV1(
           {
             $set: {
               "metadata.version": msg.version,
-              data: msg.data.eService
-                ? fromEServiceV1(msg.data.eService)
+              data: msg.data.eservice
+                ? fromEServiceV1(msg.data.eservice)
                 : undefined,
             },
           }
