@@ -54,7 +54,7 @@ export function validateRiskAnalysis(
     validationRules
   );
 
-  if (results.some((r) => r.type === "invalid" && r.issues.length > 0)) {
+  if (results.some((r) => r.type === "invalid")) {
     return invalidResult(
       results.flatMap((r) => (r.type === "invalid" ? r.issues : []))
     );
@@ -194,9 +194,15 @@ function validateFormAnswers(
     .concat(
       match(schemaOnlyValidation)
         .with(true, () => [])
-        .with(false, () =>
-          invalidResult(validateRequiredFields(answers, validationRules))
-        )
+        .with(false, () => {
+          const errors = validateRequiredFields(answers, validationRules);
+
+          if (errors.length > 0) {
+            return [invalidResult(errors)];
+          } else {
+            return [];
+          }
+        })
         .exhaustive()
     );
 }
@@ -230,7 +236,9 @@ function validateFieldValue(
           : [unexpectedFieldValueError(rule.fieldName, allowedValues)]
       )
     )
-    .with(P.nullish, () => [])
+    .with(P.nullish, () => [
+      unexpectedFieldValueError(rule.fieldName, new Set([])),
+    ])
     .exhaustive();
 }
 
