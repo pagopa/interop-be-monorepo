@@ -309,16 +309,14 @@ export function agreementServiceBuilder(
     ): Promise<AgreementId> {
       logger.info(`Suspending agreement ${agreementId}`);
       await repository.createEvent(
-        await suspendAgreementLogic(
-          {
-            agreementId,
-            authData,
-            agreementQuery,
-            tenantQuery,
-            eserviceQuery,
-          },
-          correlationId
-        )
+        await suspendAgreementLogic({
+          agreementId,
+          authData,
+          agreementQuery,
+          tenantQuery,
+          eserviceQuery,
+          correlationId,
+        })
       );
 
       return agreementId;

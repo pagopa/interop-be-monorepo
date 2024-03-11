@@ -262,13 +262,11 @@ const tenantsRouter = (
       ]),
       async (req, res) => {
         try {
-          const id = await tenantService.selfcareUpsertTenant(
-            {
-              tenantSeed: req.body,
-              authData: req.ctx.authData,
-            },
-            req.ctx.correlationId
-          );
+          const id = await tenantService.selfcareUpsertTenant({
+            tenantSeed: req.body,
+            authData: req.ctx.authData,
+            correlationId: req.ctx.correlationId,
+          });
           return res.status(200).json({ id }).send();
         } catch (error) {
           const errorRes = makeApiProblem(
@@ -290,15 +288,13 @@ const tenantsRouter = (
       async (req, res) => {
         try {
           const { tenantId, attributeId } = req.params;
-          await tenantService.updateTenantVerifiedAttribute(
-            {
-              verifierId: req.ctx.authData.organizationId,
-              tenantId: unsafeBrandId(tenantId),
-              attributeId: unsafeBrandId(attributeId),
-              updateVerifiedTenantAttributeSeed: req.body,
-            },
-            req.ctx.correlationId
-          );
+          await tenantService.updateTenantVerifiedAttribute({
+            verifierId: req.ctx.authData.organizationId,
+            tenantId: unsafeBrandId(tenantId),
+            attributeId: unsafeBrandId(attributeId),
+            updateVerifiedTenantAttributeSeed: req.body,
+            correlationId: req.ctx.correlationId,
+          });
           return res.status(200).end();
         } catch (error) {
           const errorRes = makeApiProblem(

@@ -31,22 +31,21 @@ import {
   suspendedByProducerStamp,
 } from "./agreementStampUtils.js";
 
-export async function suspendAgreementLogic(
-  {
-    agreementId,
-    authData,
-    agreementQuery,
-    tenantQuery,
-    eserviceQuery,
-  }: {
-    agreementId: Agreement["id"];
-    authData: AuthData;
-    agreementQuery: AgreementQuery;
-    tenantQuery: TenantQuery;
-    eserviceQuery: EserviceQuery;
-  },
-  correlationId: string
-): Promise<CreateEvent<AgreementEvent>> {
+export async function suspendAgreementLogic({
+  agreementId,
+  authData,
+  agreementQuery,
+  tenantQuery,
+  eserviceQuery,
+  correlationId,
+}: {
+  agreementId: Agreement["id"];
+  authData: AuthData;
+  agreementQuery: AgreementQuery;
+  tenantQuery: TenantQuery;
+  eserviceQuery: EserviceQuery;
+  correlationId: string;
+}): Promise<CreateEvent<AgreementEvent>> {
   const agreement = await agreementQuery.getAgreementById(agreementId);
   assertAgreementExist(agreementId, agreement);
 

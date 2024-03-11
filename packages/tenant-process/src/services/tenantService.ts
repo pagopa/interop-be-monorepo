@@ -73,15 +73,13 @@ export function tenantServiceBuilder(
       const tenant = await readModelService.getTenantById(tenantId);
 
       return await repository.createEvent(
-        await updateVerifiedAttributeExtensionDateLogic(
-          {
-            tenantId,
-            attributeId,
-            verifierId,
-            tenant,
-          },
-          correlationId
-        )
+        await updateVerifiedAttributeExtensionDateLogic({
+          tenantId,
+          attributeId,
+          verifierId,
+          tenant,
+          correlationId,
+        })
       );
     },
     async createTenant(
@@ -99,58 +97,52 @@ export function tenantServiceBuilder(
       ]);
 
       return repository.createEvent(
-        createTenantLogic(
-          {
-            tenant,
-            apiTenantSeed,
-            kind,
-            attributes,
-          },
-          correlationId
-        )
+        createTenantLogic({
+          tenant,
+          apiTenantSeed,
+          kind,
+          attributes,
+          correlationId,
+        })
       );
     },
 
-    async updateTenantVerifiedAttribute(
-      {
-        verifierId,
-        tenantId,
-        attributeId,
-        updateVerifiedTenantAttributeSeed,
-      }: {
-        verifierId: string;
-        tenantId: TenantId;
-        attributeId: AttributeId;
-        updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed;
-      },
-      correlationId: string
-    ): Promise<void> {
+    async updateTenantVerifiedAttribute({
+      verifierId,
+      tenantId,
+      attributeId,
+      updateVerifiedTenantAttributeSeed,
+      correlationId,
+    }: {
+      verifierId: string;
+      tenantId: TenantId;
+      attributeId: AttributeId;
+      updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed;
+      correlationId: string;
+    }): Promise<void> {
       const tenant = await readModelService.getTenantById(tenantId);
 
       await repository.createEvent(
-        await updateTenantVerifiedAttributeLogic(
-          {
-            verifierId,
-            tenant,
-            tenantId,
-            attributeId,
-            updateVerifiedTenantAttributeSeed,
-          },
-          correlationId
-        )
+        await updateTenantVerifiedAttributeLogic({
+          verifierId,
+          tenant,
+          tenantId,
+          attributeId,
+          updateVerifiedTenantAttributeSeed,
+          correlationId,
+        })
       );
     },
 
-    async selfcareUpsertTenant(
-      {
-        tenantSeed,
-        authData,
-      }: {
-        tenantSeed: ApiSelfcareTenantSeed;
-        authData: AuthData;
-      },
-      correlationId: string
-    ): Promise<string> {
+    async selfcareUpsertTenant({
+      tenantSeed,
+      authData,
+      correlationId,
+    }: {
+      tenantSeed: ApiSelfcareTenantSeed;
+      authData: AuthData;
+      correlationId: string;
+    }): Promise<string> {
       const existingTenant = await readModelService.getTenantByExternalId(
         tenantSeed.externalId
       );
@@ -203,22 +195,21 @@ export function tenantServiceBuilder(
   };
 }
 
-async function updateTenantVerifiedAttributeLogic(
-  {
-    verifierId,
-    tenant,
-    tenantId,
-    attributeId,
-    updateVerifiedTenantAttributeSeed,
-  }: {
-    verifierId: string;
-    tenant: WithMetadata<Tenant> | undefined;
-    tenantId: TenantId;
-    attributeId: AttributeId;
-    updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed;
-  },
-  correlationId: string
-): Promise<CreateEvent<TenantEvent>> {
+async function updateTenantVerifiedAttributeLogic({
+  verifierId,
+  tenant,
+  tenantId,
+  attributeId,
+  updateVerifiedTenantAttributeSeed,
+  correlationId,
+}: {
+  verifierId: string;
+  tenant: WithMetadata<Tenant> | undefined;
+  tenantId: TenantId;
+  attributeId: AttributeId;
+  updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed;
+  correlationId: string;
+}): Promise<CreateEvent<TenantEvent>> {
   assertTenantExists(tenantId, tenant);
 
   const expirationDate = updateVerifiedTenantAttributeSeed.expirationDate
@@ -263,22 +254,21 @@ async function updateTenantVerifiedAttributeLogic(
   );
 }
 
-export async function updateTenantLogic(
-  {
-    tenant,
-    selfcareId,
-    features,
-    mails,
-    kind,
-  }: {
-    tenant: WithMetadata<Tenant>;
-    selfcareId: string | undefined;
-    features: TenantFeature[];
-    mails: TenantMail[];
-    kind: TenantKind;
-  },
-  correlationId: string
-): Promise<CreateEvent<TenantEvent>> {
+export async function updateTenantLogic({
+  tenant,
+  selfcareId,
+  features,
+  mails,
+  kind,
+  correlationId,
+}: {
+  tenant: WithMetadata<Tenant>;
+  selfcareId: string | undefined;
+  features: TenantFeature[];
+  mails: TenantMail[];
+  kind: TenantKind;
+  correlationId: string;
+}): Promise<CreateEvent<TenantEvent>> {
   const newTenant: Tenant = {
     ...tenant.data,
     selfcareId,
@@ -296,23 +286,22 @@ export async function updateTenantLogic(
   );
 }
 
-export function createTenantLogic(
-  {
-    tenant,
-    apiTenantSeed,
-    kind,
-    attributes,
-  }: {
-    tenant: WithMetadata<Tenant> | undefined;
-    apiTenantSeed:
-      | ApiSelfcareTenantSeed
-      | ApiM2MTenantSeed
-      | ApiInternalTenantSeed;
-    kind: TenantKind;
-    attributes: Array<WithMetadata<Attribute>>;
-  },
-  correlationId: string
-): CreateEvent<TenantEvent> {
+export function createTenantLogic({
+  tenant,
+  apiTenantSeed,
+  kind,
+  attributes,
+  correlationId,
+}: {
+  tenant: WithMetadata<Tenant> | undefined;
+  apiTenantSeed:
+    | ApiSelfcareTenantSeed
+    | ApiM2MTenantSeed
+    | ApiInternalTenantSeed;
+  kind: TenantKind;
+  attributes: Array<WithMetadata<Attribute>>;
+  correlationId: string;
+}): CreateEvent<TenantEvent> {
   if (tenant) {
     throw tenantDuplicate(apiTenantSeed.name);
   }
@@ -338,20 +327,19 @@ export function createTenantLogic(
 }
 export type TenantService = ReturnType<typeof tenantServiceBuilder>;
 
-export async function updateVerifiedAttributeExtensionDateLogic(
-  {
-    tenantId,
-    attributeId,
-    verifierId,
-    tenant,
-  }: {
-    tenantId: TenantId;
-    attributeId: AttributeId;
-    verifierId: string;
-    tenant: WithMetadata<Tenant> | undefined;
-  },
-  correlationId: string
-): Promise<CreateEvent<TenantEvent>> {
+export async function updateVerifiedAttributeExtensionDateLogic({
+  tenantId,
+  attributeId,
+  verifierId,
+  tenant,
+  correlationId,
+}: {
+  tenantId: TenantId;
+  attributeId: AttributeId;
+  verifierId: string;
+  tenant: WithMetadata<Tenant> | undefined;
+  correlationId: string;
+}): Promise<CreateEvent<TenantEvent>> {
   assertTenantExists(tenantId, tenant);
 
   const attribute = tenant?.data.attributes.find(
