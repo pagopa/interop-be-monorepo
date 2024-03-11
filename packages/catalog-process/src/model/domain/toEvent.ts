@@ -21,6 +21,7 @@ import {
   RiskAnalysis,
   EServiceRiskAnalysisV1,
   EServiceModeV2,
+  RiskAnalysisId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 
@@ -456,6 +457,24 @@ export const toCreateEventEServiceDescriptorDeleted = (
     data: {
       eservice: toEServiceV2(eservice),
       descriptorId,
+    },
+  },
+});
+
+export const toCreateEventEServiceRiskAnalysisAdded = (
+  streamId: string,
+  version: number,
+  riskAnalysisId: RiskAnalysisId,
+  eservice: EService
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceRiskAnalysisAdded",
+    event_version: 2,
+    data: {
+      riskAnalysisId,
+      eservice: toEServiceV2(eservice),
     },
   },
 });
