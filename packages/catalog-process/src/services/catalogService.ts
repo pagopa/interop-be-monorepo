@@ -29,6 +29,7 @@ import {
   Tenant,
   RiskAnalysis,
   RiskAnalysisId,
+  eserviceMode,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
