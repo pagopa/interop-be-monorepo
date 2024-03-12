@@ -488,7 +488,11 @@ export function catalogServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
       assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
 
-      assertIsDraftEservice(eservice.data);
+      if (
+        eservice.data.descriptors.some((d) => d.state !== descriptorState.draft)
+      ) {
+        throw eServiceCannotBeDeleted(eserviceId);
+      }
 
       const event = toCreateEventEServiceDeleted(
         eserviceId,
