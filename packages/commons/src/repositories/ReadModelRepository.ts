@@ -1,7 +1,7 @@
 import {
   Agreement,
   Attribute,
-  EServiceLegacy,
+  EServiceReadModel,
   Tenant,
   genericError,
 } from "pagopa-interop-models";
@@ -25,7 +25,7 @@ export type GenericCollection<T> = Collection<{
 
 // Uncomment this line when all services can read models with date type fields
 // export type EServiceCollection = GenericCollection<EService>;
-export type EServiceCollection = GenericCollection<EServiceLegacy>;
+export type EServiceCollection = GenericCollection<EServiceReadModel>;
 export type AgreementCollection = GenericCollection<Agreement>;
 export type TenantCollection = GenericCollection<Tenant>;
 export type AttributeCollection = GenericCollection<Attribute>;
