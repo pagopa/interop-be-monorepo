@@ -98,3 +98,8 @@ message EServiceDescriptorDocumentDeletedV2 {
   string documentId = 2;
   EServiceV2 eservice = 3;
 }
+
+message EServiceRiskAnalysisAddedV2 {
+  string riskAnalysisId = 1;
+  EServiceV2 eservice = 2;
+}
