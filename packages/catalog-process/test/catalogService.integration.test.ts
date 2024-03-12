@@ -91,8 +91,6 @@ import {
 import {
   attributeNotFound,
   draftDescriptorAlreadyExists,
-  eServiceCannotBeDeleted,
-  eServiceCannotBeUpdated,
   eServiceDescriptorNotFound,
   eServiceDescriptorWithoutInterface,
   eServiceDocumentNotFound,
@@ -515,7 +513,7 @@ describe("database test", async () => {
         );
       });
 
-      it("should throw eServiceCannotBeUpdated if the eservice descriptor is in published state", async () => {
+      it("should throw eserviceNotInDraftState if the eservice descriptor is in published state", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           interface: mockDocument,
@@ -537,10 +535,10 @@ describe("database test", async () => {
             },
             getMockAuthData(eservice.producerId)
           )
-        ).rejects.toThrowError(eServiceCannotBeUpdated(eservice.id));
+        ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
       });
 
-      it("should throw eServiceCannotBeUpdated if the eservice descriptor is in archived state", async () => {
+      it("should throw eserviceNotInDraftState if the eservice descriptor is in archived state", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           interface: mockDocument,
@@ -562,10 +560,10 @@ describe("database test", async () => {
             },
             getMockAuthData(eservice.producerId)
           )
-        ).rejects.toThrowError(eServiceCannotBeUpdated(eservice.id));
+        ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
       });
 
-      it("should throw eServiceCannotBeUpdated if the eservice descriptor is in suspended state", async () => {
+      it("should throw eserviceNotInDraftState if the eservice descriptor is in suspended state", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           interface: mockDocument,
@@ -587,10 +585,10 @@ describe("database test", async () => {
             },
             getMockAuthData(eservice.producerId)
           )
-        ).rejects.toThrowError(eServiceCannotBeUpdated(eservice.id));
+        ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
       });
 
-      it("should throw eServiceCannotBeUpdated if the eservice descriptor is in deprecated state", async () => {
+      it("should throw eserviceNotInDraftState if the eservice descriptor is in deprecated state", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           interface: mockDocument,
@@ -612,7 +610,7 @@ describe("database test", async () => {
             },
             getMockAuthData(eservice.producerId)
           )
-        ).rejects.toThrowError(eServiceCannotBeUpdated(eservice.id));
+        ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
       });
     });
 
@@ -692,7 +690,7 @@ describe("database test", async () => {
         ).rejects.toThrowError(operationForbidden);
       });
 
-      it("should throw eServiceCannotBeDeleted if the eservice has both draft and non-draft descriptors", async () => {
+      it("should throw eserviceNotInDraftState if the eservice has both draft and non-draft descriptors", async () => {
         const descriptor1: Descriptor = {
           ...mockDescriptor,
           interface: mockDocument,
@@ -714,7 +712,7 @@ describe("database test", async () => {
             eservice.id,
             getMockAuthData(eservice.producerId)
           )
-        ).rejects.toThrowError(eServiceCannotBeDeleted(eservice.id));
+        ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
       });
     });
 
