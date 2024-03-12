@@ -15,6 +15,7 @@ export * from "./tenant/tenantEvents.js";
 export * from "./attribute/attribute.js";
 export * from "./attribute/attributeEvents.js";
 export * from "./readModels/readModels.js";
+export * from "./readModels/eserviceReadModel.js";
 export * from "./user/user.js";
 export * from "./risk-analysis/riskAnalysis.js";
 export * from "./gen/v1/eservice/eservice.js";

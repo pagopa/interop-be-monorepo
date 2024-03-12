@@ -9,12 +9,7 @@
 */
 
 import { z } from "zod";
-import {
-  Descriptor,
-  Document,
-  EService,
-  RiskAnalysis,
-} from "../../../../models/src/index.js";
+import { Descriptor, Document, EService, RiskAnalysis } from "../index.js";
 
 export const DocumentReadModel = Document.extend({
   uploadDate: z.string().datetime(),
