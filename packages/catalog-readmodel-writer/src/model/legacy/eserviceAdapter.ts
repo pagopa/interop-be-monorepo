@@ -1,13 +1,10 @@
 /* 
   --- Technical NOTE ---
   ISSUE https://pagopa.atlassian.net/browse/IMN-315
-  This code provide a zod schema for the eService model that gurantee 
-  retrocompatibility with the previous version of object stored into read model NoSQL DB (DocumentDB).
-  The old objects was saved using ISO string for all date fields, meanwhile the new event version will use date type.
-  To guarantee the retrocompatibility we need to use the zod schema to provide a model with a ISO date string for all date occurrence, 
-  the others fields doesn't need to be changed so we cna use the previous defined decoder functions (eg: fromEServiceV1).
-  This solution is temporary and will be removed when all services that consuming read model will be 
-  able to parse the model in final format.
+	  This code adapts EService to EServiceReadModel, which guarantees 
+	  retro compatibility with the objects stored in the old read model NoSQL DB (DocumentDB).
+	  The old objects were saved using an ISO string for all date fields: we need to convert all dates to ISO date strings.
+	  This solution is temporary and will be removed after all services will be migrated.
 */
 
 import {
