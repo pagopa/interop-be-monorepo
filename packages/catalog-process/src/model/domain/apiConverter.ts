@@ -11,6 +11,7 @@ import {
   EServiceMode,
   eserviceMode,
   Descriptor,
+  Document,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
@@ -21,6 +22,7 @@ import {
   ApiEServiceDescriptorState,
   ApiEServiceMode,
   ApiTechnology,
+  EServiceDocument,
 } from "./models.js";
 
 export function technologyToApiTechnology(input: Technology): ApiTechnology {
@@ -133,6 +135,18 @@ export function eServiceModeToApiEServiceMode(
     .exhaustive();
 }
 
+export const documentToApiDocument = (
+  document: Document
+): z.infer<typeof api.schemas.EServiceDoc> => ({
+  id: document.id,
+  name: document.name,
+  contentType: document.contentType,
+  prettyName: document.prettyName,
+  path: document.path,
+  checksum: document.checksum,
+  uploadDate: document.uploadDate,
+});
+
 export const descriptorToApiDescriptor = (
   descriptor: Descriptor
 ): z.infer<typeof api.schemas.EServiceDescriptor> => ({
@@ -144,7 +158,7 @@ export const descriptorToApiDescriptor = (
   dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
   dailyCallsTotal: descriptor.dailyCallsTotal,
   interface: descriptor.interface,
-  docs: descriptor.docs,
+  docs: descriptor.docs.map(documentToApiDocument),
   state: descriptorStateToApiEServiceDescriptorState(descriptor.state),
   agreementApprovalPolicy: agreementApprovalPolicyToApiAgreementApprovalPolicy(
     descriptor.agreementApprovalPolicy
