@@ -23,8 +23,11 @@ export type GenericCollection<T> = Collection<{
   metadata: Metadata;
 }>;
 
-// Uncomment this line when all services can read models with date type fields
-// export type EServiceCollection = GenericCollection<EService>;
+/*
+  ISSUE https://pagopa.atlassian.net/browse/IMN-315
+  Uncomment this line when all services can read models with date type fields
+  export type EServiceCollection = GenericCollection<EService>;
+*/
 export type EServiceCollection = GenericCollection<EServiceReadModel>;
 export type AgreementCollection = GenericCollection<Agreement>;
 export type TenantCollection = GenericCollection<Tenant>;
