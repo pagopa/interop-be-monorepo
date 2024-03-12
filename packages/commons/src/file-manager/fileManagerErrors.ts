@@ -25,11 +25,12 @@ function printError(error: unknown): string {
 export function fileManagerCopyError(
   filePathToCopy: string,
   key: string,
+  bucket: string,
   error: unknown
 ): FileManagerError {
   return new FileManagerError({
     code: "fileManagerCopyError",
-    detail: `Error copying file ${filePathToCopy} to ${key}: ${printError(
+    detail: `Error copying file ${filePathToCopy} to ${key} in bucket ${bucket}: ${printError(
       error
     )}`,
   });

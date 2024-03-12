@@ -74,7 +74,9 @@ export function initFileManager(
       fileName: string
     ): Promise<string> => {
       const key = buildS3Key(path, resourceId, fileName);
-      logger.info(`Copying file ${filePathToCopy} to ${key}`);
+      logger.info(
+        `Copying file ${filePathToCopy} to ${key} in bucket ${bucket}`
+      );
       try {
         await client.send(
           new CopyObjectCommand({
@@ -85,7 +87,7 @@ export function initFileManager(
         );
         return key;
       } catch (error) {
-        throw fileManagerCopyError(filePathToCopy, key, error);
+        throw fileManagerCopyError(filePathToCopy, key, bucket, error);
       }
     },
     listFiles: async (bucket: string): Promise<string[]> => {
