@@ -51,12 +51,15 @@ import {
   toCreateEventEServiceDeleted,
   toCreateEventEServiceDescriptorActivated,
   toCreateEventEServiceDescriptorAdded,
+  toCreateEventEServiceDescriptorArchived,
   toCreateEventEServiceDescriptorDeleted,
   toCreateEventEServiceDescriptorPublished,
+  toCreateEventEServiceDescriptorQuotasUpdated,
   toCreateEventEServiceDescriptorSuspended,
   toCreateEventEServiceDocumentAdded,
   toCreateEventEServiceDocumentDeleted,
   toCreateEventEServiceDocumentUpdated,
+  toCreateEventEServiceDraftDescriptorUpdated,
   toCreateEventEServiceInterfaceAdded,
   toCreateEventEServiceInterfaceDeleted,
   toCreateEventEServiceInterfaceUpdated,
@@ -894,9 +897,10 @@ export function catalogServiceBuilder(
         updatedDescriptor
       );
 
-      const event = toCreateEventEServiceUpdated(
+      const event = toCreateEventEServiceDraftDescriptorUpdated(
         eserviceId,
         eservice.metadata.version,
+        descriptorId,
         updatedEService
       );
       await repository.createEvent(event);
@@ -1234,7 +1238,7 @@ export function catalogServiceBuilder(
 
       const newEservice = replaceDescriptor(eservice.data, updatedDescriptor);
 
-      const event = toCreateEventEServiceDescriptorActivated(
+      const event = toCreateEventEServiceDescriptorArchived(
         eserviceId,
         eservice.metadata.version,
         descriptorId,
@@ -1282,9 +1286,10 @@ export function catalogServiceBuilder(
         updatedDescriptor
       );
 
-      const event = toCreateEventEServiceUpdated(
+      const event = toCreateEventEServiceDescriptorQuotasUpdated(
         eserviceId,
         eservice.metadata.version,
+        descriptorId,
         updatedEService
       );
       await repository.createEvent(event);
