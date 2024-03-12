@@ -469,10 +469,9 @@ export function readModelServiceBuilder(
         },
       ];
 
-      const aggregationWithLimit =
-        limit && limit > 0
-          ? [...aggregationPipeline, { $limit: limit }]
-          : aggregationPipeline;
+      const aggregationWithLimit = limit
+        ? [...aggregationPipeline, { $limit: limit }]
+        : aggregationPipeline;
       const data = await agreements.aggregate(aggregationWithLimit).toArray();
       const result = z.array(Agreement).safeParse(data.map((a) => a.data));
 
