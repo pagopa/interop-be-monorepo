@@ -9,9 +9,7 @@ export async function handleMessageV2(
 ): Promise<void> {
   logger.info(message);
 
-  const eservice = match(message)
-    .with({ type: "EServiceCloned" }, (msg) => msg.data.clonedEservice)
-    .otherwise((msg) => msg.data.eservice);
+  const eservice = message.data.eservice;
 
   await match(message)
     .with({ type: "EServiceDeleted" }, async (message) => {
@@ -26,6 +24,7 @@ export async function handleMessageV2(
       { type: "EServiceCloned" },
       { type: "EServiceDescriptorAdded" },
       { type: "EServiceDraftDescriptorUpdated" },
+      { type: "EServiceDescriptorQuotasUpdated" },
       { type: "EServiceDescriptorActivated" },
       { type: "EServiceDescriptorArchived" },
       { type: "EServiceDescriptorPublished" },
