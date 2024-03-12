@@ -219,12 +219,7 @@ export const pdfGenerator = {
       documentId,
       documentName,
       Buffer.from(document)
-    ).catch((error) => {
-      logger.error(
-        `Error storing document file for agreement ${agreement.id} : ${error}`
-      );
-      throw error;
-    });
+    );
 
     return {
       id: documentId,

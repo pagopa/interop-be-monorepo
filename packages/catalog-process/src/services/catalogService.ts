@@ -476,14 +476,10 @@ export function catalogServiceBuilder(
           updatedTechnology !== eservice.data.technology &&
           draftDescriptor.interface !== undefined
         ) {
-          await fileManager
-            .delete(config.s3Bucket, draftDescriptor.interface.path)
-            .catch((error) => {
-              logger.error(
-                `Error deleting interface for descriptor ${draftDescriptor.id} : ${error}`
-              );
-              throw error;
-            });
+          await fileManager.delete(
+            config.s3Bucket,
+            draftDescriptor.interface.path
+          );
         }
       }
 
@@ -626,14 +622,7 @@ export function catalogServiceBuilder(
 
       const document = retrieveDocument(eserviceId, descriptor, documentId);
 
-      await fileManager
-        .delete(config.s3Bucket, document.path)
-        .catch((error) => {
-          logger.error(
-            `Error deleting interface or document file for descriptor ${descriptorId} : ${error}`
-          );
-          throw error;
-        });
+      await fileManager.delete(config.s3Bucket, document.path);
 
       const isInterface = document.id === descriptor?.interface?.id;
       const newEservice: EService = {
@@ -827,26 +816,14 @@ export function catalogServiceBuilder(
 
       const descriptorInterface = descriptor.interface;
       if (descriptorInterface !== undefined) {
-        await fileManager
-          .delete(config.s3Bucket, descriptorInterface.path)
-          .catch((error) => {
-            logger.error(
-              `Error deleting interface file for descriptor ${descriptorId} : ${error}`
-            );
-            throw error;
-          });
+        await fileManager.delete(config.s3Bucket, descriptorInterface.path);
       }
 
       const deleteDescriptorDocs = descriptor.docs.map((doc: Document) =>
         fileManager.delete(config.s3Bucket, doc.path)
       );
 
-      await Promise.all(deleteDescriptorDocs).catch((error) => {
-        logger.error(
-          `Error deleting documents' files for descriptor ${descriptorId} : ${error}`
-        );
-        throw error;
-      });
+      await Promise.all(deleteDescriptorDocs);
 
       const newEservice: EService = {
         ...eservice.data,
@@ -1151,20 +1128,13 @@ export function catalogServiceBuilder(
       const clonedInterfaceId = generateId<EServiceDocumentId>();
       const clonedInterfacePath =
         descriptor.interface !== undefined
-          ? await fileManager
-              .copy(
-                config.s3Bucket,
-                descriptor.interface.path,
-                config.eserviceDocumentsPath,
-                clonedInterfaceId,
-                descriptor.interface.name
-              )
-              .catch((error) => {
-                logger.error(
-                  `Error copying interface file for descriptor ${descriptorId} : ${error}`
-                );
-                throw error;
-              })
+          ? await fileManager.copy(
+              config.s3Bucket,
+              descriptor.interface.path,
+              config.eserviceDocumentsPath,
+              clonedInterfaceId,
+              descriptor.interface.name
+            )
           : undefined;
 
       const clonedInterfaceDocument: Document | undefined =
@@ -1201,12 +1171,7 @@ export function catalogServiceBuilder(
           };
           return clonedDocument;
         })
-      ).catch((error) => {
-        logger.error(
-          `Error copying documents' files for descriptor ${descriptorId} : ${error}`
-        );
-        throw error;
-      });
+      );
 
       const clonedEservice: EService = {
         id: generateId(),
