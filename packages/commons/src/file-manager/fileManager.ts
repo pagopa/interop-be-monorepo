@@ -104,7 +104,7 @@ export function initFileManager(
           ) ?? []
         );
       } catch (error) {
-        throw fileManagerListFilesError(bucket);
+        throw fileManagerListFilesError(bucket, error);
       }
     },
     storeBytes: async (

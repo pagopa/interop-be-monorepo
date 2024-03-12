@@ -49,10 +49,13 @@ export function fileManagerDeleteError(
   });
 }
 
-export function fileManagerListFilesError(bucket: string): FileManagerError {
+export function fileManagerListFilesError(
+  bucket: string,
+  error: unknown
+): FileManagerError {
   return new FileManagerError({
     code: "fileManagerListFilesError",
-    detail: `Error listing files in bucket ${bucket}`,
+    detail: `Error listing files in bucket ${bucket}: ${printError(error)}`,
   });
 }
 
