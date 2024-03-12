@@ -8,11 +8,7 @@
 import fs from "fs";
 import path from "path";
 
-import {
-  FileManager,
-  logger,
-  selfcareServiceMock,
-} from "pagopa-interop-commons";
+import { FileManager, selfcareServiceMock } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementAttribute,
