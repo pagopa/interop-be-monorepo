@@ -16,6 +16,7 @@ export * from "./attribute/attribute.js";
 export * from "./attribute/attributeEvents.js";
 export * from "./readModels/readModels.js";
 export * from "./user/user.js";
+export * from "./risk-analysis/riskAnalysis.js";
 export * from "./gen/v1/eservice/eservice.js";
 export * from "./gen/v1/eservice/events.js";
 export * from "./gen/v2/eservice/eservice.js";
