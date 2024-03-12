@@ -132,7 +132,7 @@ export function readModelServiceBuilder(
               [authData.organizationId],
               [],
               agreementStates,
-              0
+              false
             )
           ).map((a) => a.eserviceId)
         );
@@ -431,7 +431,7 @@ export function readModelServiceBuilder(
       consumersIds: TenantId[],
       producersIds: TenantId[],
       states: AgreementState[],
-      limit: number,
+      limitOne: boolean,
       descriptorId?: DescriptorId | undefined
     ): Promise<Agreement[]> {
       const descriptorFilter: ReadModelFilter<Agreement> = descriptorId
@@ -463,10 +463,9 @@ export function readModelServiceBuilder(
         },
       ];
 
-      const aggregationWithLimit =
-        limit > 0
-          ? [...aggregationPipeline, { $limit: limit }]
-          : aggregationPipeline;
+      const aggregationWithLimit = limitOne
+        ? [...aggregationPipeline, { $limit: 1 }]
+        : aggregationPipeline;
       const data = await agreements.aggregate(aggregationWithLimit).toArray();
       const result = z.array(Agreement).safeParse(data.map((a) => a.data));
 

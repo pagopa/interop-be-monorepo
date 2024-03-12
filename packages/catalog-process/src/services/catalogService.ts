@@ -924,7 +924,7 @@ export function catalogServiceBuilder(
             [],
             [],
             [agreementState.active, agreementState.suspended],
-            1,
+            true,
             currentActiveDescriptor.id
           );
           if (agreements.length === 0) {
