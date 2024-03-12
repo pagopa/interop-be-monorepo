@@ -1,10 +1,14 @@
 import { z } from "zod";
-import { ReadModelDbConfig } from "./readmodelDbConfig.js";
-import { KafkaConfig } from "./kafkaConfig.js";
 import { AWSConfig } from "./awsConfig.js";
+import { KafkaConfig } from "./kafkaConfig.js";
+import { ReadModelDbConfig } from "./readmodelDbConfig.js";
 
-export const ConsumerConfig = ReadModelDbConfig.and(KafkaConfig).and(AWSConfig);
-export type ConsumerConfig = z.infer<typeof ConsumerConfig>;
+export const KafkaConsumerConfig = KafkaConfig.and(AWSConfig);
+export type KafkaConsumerConfig = z.infer<typeof KafkaConsumerConfig>;
+export const kafkaConsumerConfig: () => KafkaConsumerConfig = () =>
+  KafkaConsumerConfig.parse(process.env);
 
-export const consumerConfig: () => ConsumerConfig = () =>
-  ConsumerConfig.parse(process.env);
+export const ReadModelWriterConfig = KafkaConsumerConfig.and(ReadModelDbConfig);
+export type ReadModelWriterConfig = z.infer<typeof ReadModelWriterConfig>;
+export const readModelWriterConfig: () => ReadModelWriterConfig = () =>
+  ReadModelWriterConfig.parse(process.env);
