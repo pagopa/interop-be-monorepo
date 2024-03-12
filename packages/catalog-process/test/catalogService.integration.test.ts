@@ -23,6 +23,8 @@ import {
   TenantCollection,
   initDB,
   initFileManager,
+  unexpectedFieldError,
+  unexpectedFieldValueError,
   userRoles,
 } from "pagopa-interop-commons";
 import { IDatabase } from "pg-promise";
@@ -42,15 +44,21 @@ import {
   EServiceDescriptorDocumentUpdatedV2,
   EServiceDescriptorInterfaceDeletedV2,
   EServiceDescriptorPublishedV2,
+  EServiceDescriptorQuotasUpdatedV2,
   EServiceDescriptorSuspendedV2,
+  EServiceDraftDescriptorUpdatedV2,
   EServiceId,
+  EServiceRiskAnalysisAddedV2,
+  RiskAnalysisSingleAnswerId,
   Tenant,
   TenantId,
+  TenantKind,
   agreementState,
   descriptorState,
   eserviceMode,
   generateId,
   operationForbidden,
+  tenantKind,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
@@ -58,15 +66,18 @@ import {
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
   decodeProtobufPayload,
+  getMockValidRiskAnalysis,
   minioContainer,
   mongoDBContainer,
   postgreSQLContainer,
+  randomArrayItem,
 } from "pagopa-interop-commons-test";
 import { StartedTestContainer } from "testcontainers";
 import { config } from "../src/utilities/config.js";
 import { toEServiceV2 } from "../src/model/domain/toEvent.js";
 import {
   EServiceDescriptorSeed,
+  EServiceRiskAnalysisSeed,
   UpdateEServiceDescriptorQuotasSeed,
 } from "../src/model/domain/models.js";
 import {
@@ -87,10 +98,15 @@ import {
   eServiceDocumentNotFound,
   eServiceDuplicate,
   eServiceNotFound,
+  eserviceNotInDraftState,
+  eserviceNotInReceiveMode,
   inconsistentDailyCalls,
   interfaceAlreadyExists,
   notValidDescriptor,
   originNotCompliant,
+  riskAnalysisValidationFailed,
+  tenantKindNotFound,
+  tenantNotFound,
 } from "../src/model/domain/errors.js";
 import { formatClonedEServiceDate } from "../src/utilities/date.js";
 import {
@@ -108,6 +124,7 @@ import {
   readLastEventByStreamId,
   addOneAttribute,
   getMockEServiceAttributes,
+  buildRiskAnalysisSeed,
 } from "./utils.js";
 
 const mockEService = getMockEService();
@@ -661,7 +678,7 @@ describe("database test", async () => {
     });
 
     describe("create descriptor", async () => {
-      it("should write on event-store for the creation of a descriptor", async () => {
+      it("should write on event-store for the creation of a descriptor (eservice had no descriptors)", async () => {
         const attribute: Attribute = {
           name: "Attribute name",
           id: generateId(),
@@ -680,34 +697,43 @@ describe("database test", async () => {
             verified: [],
           },
         };
-        await addOneEService(mockEService, postgresDB, eservices);
-        await catalogService.createDescriptor(
-          mockEService.id,
-          descriptorSeed,
-          getMockAuthData(mockEService.producerId)
-        );
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [],
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+        const newDescriptorId = (
+          await catalogService.createDescriptor(
+            eservice.id,
+            descriptorSeed,
+            getMockAuthData(eservice.producerId)
+          )
+        ).id;
         const writtenEvent = await readLastEventByStreamId(
-          mockEService.id,
+          eservice.id,
           postgresDB
         );
-        expect(writtenEvent.stream_id).toBe(mockEService.id);
-        expect(writtenEvent.version).toBe("1");
-        expect(writtenEvent.type).toBe("EServiceDescriptorAdded");
-        expect(writtenEvent.event_version).toBe(2);
+        expect(writtenEvent).toMatchObject({
+          stream_id: eservice.id,
+          version: "1",
+          type: "EServiceDescriptorAdded",
+          event_version: 2,
+        });
         const writtenPayload = decodeProtobufPayload({
           messageType: EServiceDescriptorAddedV2,
           payload: writtenEvent.data,
         });
 
         const expectedEservice = toEServiceV2({
-          ...mockEService,
+          ...eservice,
           descriptors: [
             {
               ...mockDescriptor,
+              version: "1",
               createdAt: new Date(
                 Number(writtenPayload.eservice!.descriptors[0]!.createdAt)
               ),
-              id: unsafeBrandId(writtenPayload.eservice!.descriptors[0]!.id),
+              id: newDescriptorId,
               serverUrls: [],
               attributes: {
                 certified: [],
@@ -720,10 +746,89 @@ describe("database test", async () => {
           ],
         });
 
-        expect(writtenPayload.descriptorId).toEqual(
-          expectedEservice.descriptors[0].id
+        expect(writtenPayload).toEqual({
+          descriptorId: newDescriptorId,
+          eservice: expectedEservice,
+        });
+      });
+
+      it("should write on event-store for the creation of a descriptor (eservice already had one descriptor)", async () => {
+        const attribute: Attribute = {
+          name: "Attribute name",
+          id: generateId(),
+          kind: "Declared",
+          description: "Attribute Description",
+          creationTime: new Date(),
+        };
+        await addOneAttribute(attribute, attributes);
+        const descriptorSeed: EServiceDescriptorSeed = {
+          ...buildDescriptorSeed(mockDescriptor),
+          attributes: {
+            certified: [],
+            declared: [
+              [{ id: attribute.id, explicitAttributeVerification: false }],
+            ],
+            verified: [],
+          },
+        };
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          interface: mockDocument,
+          state: descriptorState.published,
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+        const newDescriptorId = (
+          await catalogService.createDescriptor(
+            eservice.id,
+            descriptorSeed,
+            getMockAuthData(eservice.producerId)
+          )
+        ).id;
+        const writtenEvent = await readLastEventByStreamId(
+          eservice.id,
+          postgresDB
         );
-        expect(writtenPayload.eservice).toEqual(expectedEservice);
+        expect(writtenEvent).toMatchObject({
+          stream_id: eservice.id,
+          version: "1",
+          type: "EServiceDescriptorAdded",
+          event_version: 2,
+        });
+        const writtenPayload = decodeProtobufPayload({
+          messageType: EServiceDescriptorAddedV2,
+          payload: writtenEvent.data,
+        });
+
+        const newDescriptor: Descriptor = {
+          ...mockDescriptor,
+          version: "2",
+          createdAt: new Date(
+            Number(writtenPayload.eservice!.descriptors[1]!.createdAt)
+          ),
+          id: newDescriptorId,
+          serverUrls: [],
+          attributes: {
+            certified: [],
+            declared: [
+              [{ id: attribute.id, explicitAttributeVerification: false }],
+            ],
+            verified: [],
+          },
+        };
+
+        const expectedEservice = toEServiceV2({
+          ...eservice,
+          descriptors: [...eservice.descriptors, newDescriptor],
+        });
+
+        expect(writtenPayload).toEqual({
+          descriptorId: newDescriptorId,
+          eservice: expectedEservice,
+        });
       });
 
       it("should throw draftDescriptorAlreadyExists if a draft descriptor already exists", async () => {
@@ -755,7 +860,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
-      it("should throw attributeNotFound if at least one of the attributes don't exist", async () => {
+      it("should throw attributeNotFound if at least one of the attributes doesn't exist", async () => {
         const eservice: EService = {
           ...mockEService,
           descriptors: [],
@@ -853,10 +958,25 @@ describe("database test", async () => {
           descriptors: [descriptor],
         };
         await addOneEService(eservice, postgresDB, eservices);
+        const attribute: Attribute = {
+          name: "Attribute name",
+          id: generateId(),
+          kind: "Declared",
+          description: "Attribute Description",
+          creationTime: new Date(),
+        };
+        await addOneAttribute(attribute, attributes);
 
         const updatedDescriptorSeed: EServiceDescriptorSeed = {
           ...buildDescriptorSeed(descriptor),
           dailyCallsTotal: 200,
+          attributes: {
+            certified: [],
+            declared: [
+              [{ id: attribute.id, explicitAttributeVerification: false }],
+            ],
+            verified: [],
+          },
         };
 
         const updatedEService: EService = {
@@ -865,6 +985,13 @@ describe("database test", async () => {
             {
               ...descriptor,
               dailyCallsTotal: 200,
+              attributes: {
+                certified: [],
+                declared: [
+                  [{ id: attribute.id, explicitAttributeVerification: false }],
+                ],
+                verified: [],
+              },
             },
           ],
         };
@@ -878,12 +1005,14 @@ describe("database test", async () => {
           eservice.id,
           postgresDB
         );
-        expect(writtenEvent.stream_id).toBe(eservice.id);
-        expect(writtenEvent.version).toBe("1");
-        expect(writtenEvent.type).toBe("DraftEServiceUpdated");
-        expect(writtenEvent.event_version).toBe(2);
+        expect(writtenEvent).toMatchObject({
+          stream_id: eservice.id,
+          version: "1",
+          type: "EServiceDraftDescriptorUpdated",
+          event_version: 2,
+        });
         const writtenPayload = decodeProtobufPayload({
-          messageType: DraftEServiceUpdatedV2,
+          messageType: EServiceDraftDescriptorUpdatedV2,
           payload: writtenEvent.data,
         });
         expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
@@ -1044,6 +1173,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(operationForbidden);
       });
+
       it("should throw inconsistentDailyCalls if dailyCallsPerConsumer is greater than dailyCallsTotal", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
@@ -1068,6 +1198,64 @@ describe("database test", async () => {
             getMockAuthData(eservice.producerId)
           )
         ).rejects.toThrowError(inconsistentDailyCalls());
+      });
+
+      it("should throw attributeNotFound if at least one of the attributes doesn't exist", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+          attributes: {
+            certified: [],
+            declared: [],
+            verified: [],
+          },
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+
+        const attribute: Attribute = {
+          name: "Attribute name",
+          id: generateId(),
+          kind: "Declared",
+          description: "Attribute Description",
+          creationTime: new Date(),
+        };
+        await addOneAttribute(attribute, attributes);
+        const notExistingId1 = generateId();
+        const notExistingId2 = generateId();
+
+        const descriptorSeed = {
+          ...buildDescriptorSeed(mockDescriptor),
+          attributes: {
+            certified: [],
+            declared: [
+              [
+                { id: attribute.id, explicitAttributeVerification: false },
+                {
+                  id: notExistingId1,
+                  explicitAttributeVerification: false,
+                },
+                {
+                  id: notExistingId2,
+                  explicitAttributeVerification: false,
+                },
+              ],
+            ],
+            verified: [],
+          },
+        };
+
+        expect(
+          catalogService.updateDraftDescriptor(
+            eservice.id,
+            descriptor.id,
+            descriptorSeed,
+            getMockAuthData(eservice.producerId)
+          )
+        ).rejects.toThrowError(attributeNotFound(notExistingId1));
       });
     });
 
@@ -2086,57 +2274,51 @@ describe("database test", async () => {
         const expectedInterface: Document = {
           ...interfaceDocument,
           id: unsafeBrandId(
-            writtenPayload.clonedEservice!.descriptors[0].interface!.id
+            writtenPayload.eservice!.descriptors[0].interface!.id
           ),
           uploadDate: new Date(
-            writtenPayload.clonedEservice!.descriptors[0].interface!.uploadDate
+            writtenPayload.eservice!.descriptors[0].interface!.uploadDate
           ),
-          path: writtenPayload.clonedEservice!.descriptors[0].interface!.path,
+          path: writtenPayload.eservice!.descriptors[0].interface!.path,
         };
         const expectedDocument1: Document = {
           ...document1,
-          id: unsafeBrandId(
-            writtenPayload.clonedEservice!.descriptors[0].docs[0].id
-          ),
+          id: unsafeBrandId(writtenPayload.eservice!.descriptors[0].docs[0].id),
           uploadDate: new Date(
-            writtenPayload.clonedEservice!.descriptors[0].docs[0].uploadDate
+            writtenPayload.eservice!.descriptors[0].docs[0].uploadDate
           ),
-          path: writtenPayload.clonedEservice!.descriptors[0].docs[0].path,
+          path: writtenPayload.eservice!.descriptors[0].docs[0].path,
         };
         const expectedDocument2: Document = {
           ...document2,
-          id: unsafeBrandId(
-            writtenPayload.clonedEservice!.descriptors[0].docs[1].id
-          ),
+          id: unsafeBrandId(writtenPayload.eservice!.descriptors[0].docs[1].id),
           uploadDate: new Date(
-            writtenPayload.clonedEservice!.descriptors[0].docs[1].uploadDate
+            writtenPayload.eservice!.descriptors[0].docs[1].uploadDate
           ),
-          path: writtenPayload.clonedEservice!.descriptors[0].docs[1].path,
+          path: writtenPayload.eservice!.descriptors[0].docs[1].path,
         };
 
         const expectedDescriptor: Descriptor = {
           ...descriptor,
-          id: unsafeBrandId(writtenPayload.clonedEservice!.descriptors[0].id),
+          id: unsafeBrandId(writtenPayload.eservice!.descriptors[0].id),
           version: "1",
           interface: expectedInterface,
           createdAt: new Date(
-            Number(writtenPayload.clonedEservice?.descriptors[0].createdAt)
+            Number(writtenPayload.eservice?.descriptors[0].createdAt)
           ),
           docs: [expectedDocument1, expectedDocument2],
         };
 
         const expectedEService: EService = {
           ...eservice,
-          id: unsafeBrandId(writtenPayload.clonedEservice!.id),
+          id: unsafeBrandId(writtenPayload.eservice!.id),
           name: `${eservice.name} - clone - ${formatClonedEServiceDate(
             cloneTimestamp
           )}`,
           descriptors: [expectedDescriptor],
-          createdAt: new Date(Number(writtenPayload.clonedEservice?.createdAt)),
+          createdAt: new Date(Number(writtenPayload.eservice?.createdAt)),
         };
-        expect(writtenPayload.clonedEservice).toEqual(
-          toEServiceV2(expectedEService)
-        );
+        expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
 
         expect(fileManager.copy).toHaveBeenCalledWith(
           config.s3Bucket,
@@ -2298,7 +2480,7 @@ describe("database test", async () => {
         );
         expect(writtenEvent.stream_id).toBe(eservice.id);
         expect(writtenEvent.version).toBe("1");
-        expect(writtenEvent.type).toBe("EServiceDescriptorActivated");
+        expect(writtenEvent.type).toBe("EServiceDescriptorArchived");
         expect(writtenEvent.event_version).toBe(2);
         const writtenPayload = decodeProtobufPayload({
           messageType: EServiceDescriptorActivatedV2,
@@ -2414,11 +2596,11 @@ describe("database test", async () => {
         expect(writtenEvent).toMatchObject({
           stream_id: eservice.id,
           version: "1",
-          type: "DraftEServiceUpdated",
+          type: "EServiceDescriptorQuotasUpdated",
           event_version: 2,
         });
         const writtenPayload = decodeProtobufPayload({
-          messageType: DraftEServiceUpdatedV2,
+          messageType: EServiceDescriptorQuotasUpdatedV2,
           payload: writtenEvent.data,
         });
         expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
@@ -2469,11 +2651,11 @@ describe("database test", async () => {
         expect(writtenEvent).toMatchObject({
           stream_id: eservice.id,
           version: "1",
-          type: "DraftEServiceUpdated",
+          type: "EServiceDescriptorQuotasUpdated",
           event_version: 2,
         });
         const writtenPayload = decodeProtobufPayload({
-          messageType: DraftEServiceUpdatedV2,
+          messageType: EServiceDescriptorQuotasUpdatedV2,
           payload: writtenEvent.data,
         });
         expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
@@ -2524,11 +2706,11 @@ describe("database test", async () => {
         expect(writtenEvent).toMatchObject({
           stream_id: eservice.id,
           version: "1",
-          type: "DraftEServiceUpdated",
+          type: "EServiceDescriptorQuotasUpdated",
           event_version: 2,
         });
         const writtenPayload = decodeProtobufPayload({
-          messageType: DraftEServiceUpdatedV2,
+          messageType: EServiceDescriptorQuotasUpdatedV2,
           payload: writtenEvent.data,
         });
         expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
@@ -3448,6 +3630,286 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(
           eServiceDocumentNotFound(eservice.id, descriptor.id, mockDocument.id)
+        );
+      });
+    });
+
+    describe("create risk analysis", () => {
+      it("should write on event-store for the creation of a risk analysis", async () => {
+        const producerTenantKind: TenantKind = randomArrayItem(
+          Object.values(tenantKind)
+        );
+        const producer: Tenant = {
+          ...getMockTenant(),
+          kind: producerTenantKind,
+        };
+
+        const mockValidRiskAnalysis =
+          getMockValidRiskAnalysis(producerTenantKind);
+        const riskAnalysisSeed: EServiceRiskAnalysisSeed =
+          buildRiskAnalysisSeed(mockValidRiskAnalysis);
+
+        const eservice: EService = {
+          ...mockEService,
+          producerId: producer.id,
+          mode: eserviceMode.receive,
+          descriptors: [
+            {
+              ...mockDescriptor,
+              state: descriptorState.draft,
+            },
+          ],
+        };
+
+        await addOneTenant(producer, tenants);
+        await addOneEService(eservice, postgresDB, eservices);
+
+        await catalogService.createRiskAnalysis(
+          eservice.id,
+          riskAnalysisSeed,
+          getMockAuthData(producer.id)
+        );
+
+        const writtenEvent = await readLastEventByStreamId(
+          eservice.id,
+          postgresDB
+        );
+
+        expect(writtenEvent.stream_id).toBe(eservice.id);
+        expect(writtenEvent.version).toBe("1");
+        expect(writtenEvent.type).toBe("EServiceRiskAnalysisAdded");
+        expect(writtenEvent.event_version).toBe(2);
+        const writtenPayload = decodeProtobufPayload({
+          messageType: EServiceRiskAnalysisAddedV2,
+          payload: writtenEvent.data,
+        });
+
+        const expectedEservice = toEServiceV2({
+          ...eservice,
+          riskAnalysis: [
+            {
+              ...mockValidRiskAnalysis,
+              id: unsafeBrandId(writtenPayload.eservice!.riskAnalysis[0]!.id),
+              createdAt: new Date(
+                Number(writtenPayload.eservice!.riskAnalysis[0]!.createdAt)
+              ),
+              riskAnalysisForm: {
+                ...mockValidRiskAnalysis.riskAnalysisForm,
+                id: unsafeBrandId(
+                  writtenPayload.eservice!.riskAnalysis[0]!.riskAnalysisForm!.id
+                ),
+                singleAnswers:
+                  mockValidRiskAnalysis.riskAnalysisForm.singleAnswers.map(
+                    (singleAnswer) => ({
+                      ...singleAnswer,
+                      id: unsafeBrandId(
+                        writtenPayload.eservice!.riskAnalysis[0]!.riskAnalysisForm!.singleAnswers.find(
+                          (sa) => sa.key === singleAnswer.key
+                        )!.id
+                      ),
+                    })
+                  ),
+                multiAnswers:
+                  mockValidRiskAnalysis.riskAnalysisForm.multiAnswers.map(
+                    (multiAnswer) => ({
+                      ...multiAnswer,
+                      id: unsafeBrandId(
+                        writtenPayload.eservice!.riskAnalysis[0]!.riskAnalysisForm!.multiAnswers.find(
+                          (ma) => ma.key === multiAnswer.key
+                        )!.id
+                      ),
+                    })
+                  ),
+              },
+            },
+          ],
+        });
+
+        expect(writtenPayload.riskAnalysisId).toEqual(
+          expectedEservice.riskAnalysis[0].id
+        );
+        expect(writtenPayload.eservice).toEqual(expectedEservice);
+      });
+      it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
+        expect(
+          catalogService.createRiskAnalysis(
+            mockEService.id,
+            buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
+            getMockAuthData(mockEService.producerId)
+          )
+        ).rejects.toThrowError(eServiceNotFound(mockEService.id));
+      });
+      it("should throw operationForbidden if the requester is not the producer", async () => {
+        await addOneEService(mockEService, postgresDB, eservices);
+        expect(
+          catalogService.createRiskAnalysis(
+            mockEService.id,
+            buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
+            getMockAuthData()
+          )
+        ).rejects.toThrowError(operationForbidden);
+      });
+      it("should throw eserviceNotInDraftState if the eservice is not in draft state", async () => {
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [
+            {
+              ...mockDescriptor,
+              state: descriptorState.published,
+            },
+          ],
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+
+        expect(
+          catalogService.createRiskAnalysis(
+            eservice.id,
+            buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
+            getMockAuthData(eservice.producerId)
+          )
+        ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
+      });
+      it("should throw eserviceNotInReceiveMode if the eservice is not in receive mode", async () => {
+        const eservice: EService = {
+          ...mockEService,
+          mode: eserviceMode.deliver,
+          descriptors: [
+            {
+              ...mockDescriptor,
+              state: descriptorState.draft,
+            },
+          ],
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+
+        expect(
+          catalogService.createRiskAnalysis(
+            eservice.id,
+            buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
+            getMockAuthData(eservice.producerId)
+          )
+        ).rejects.toThrowError(eserviceNotInReceiveMode(eservice.id));
+      });
+      it("should throw tenantNotFound if the producer tenant doesn't exist", async () => {
+        const eservice: EService = {
+          ...mockEService,
+          mode: eserviceMode.receive,
+          descriptors: [
+            {
+              ...mockDescriptor,
+              state: descriptorState.draft,
+            },
+          ],
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+
+        expect(
+          catalogService.createRiskAnalysis(
+            eservice.id,
+            buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
+            getMockAuthData(eservice.producerId)
+          )
+        ).rejects.toThrowError(tenantNotFound(eservice.producerId));
+      });
+      it("should throw tenantKindNotFound if the producer tenant kind doesn't exist", async () => {
+        const producer: Tenant = {
+          ...getMockTenant(),
+          kind: undefined,
+        };
+
+        const eservice: EService = {
+          ...mockEService,
+          producerId: producer.id,
+          mode: eserviceMode.receive,
+          descriptors: [
+            {
+              ...mockDescriptor,
+              state: descriptorState.draft,
+            },
+          ],
+        };
+
+        await addOneTenant(producer, tenants);
+        await addOneEService(eservice, postgresDB, eservices);
+
+        expect(
+          catalogService.createRiskAnalysis(
+            eservice.id,
+            buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
+            getMockAuthData(producer.id)
+          )
+        ).rejects.toThrowError(tenantKindNotFound(producer.id));
+      });
+
+      it("should throw riskAnalysisValidationFailed if the risk analysis is not valid", async () => {
+        const producerTenantKind: TenantKind = randomArrayItem(
+          Object.values(tenantKind)
+        );
+        const producer: Tenant = {
+          ...getMockTenant(),
+          kind: producerTenantKind,
+        };
+
+        const mockValidRiskAnalysis =
+          getMockValidRiskAnalysis(producerTenantKind);
+
+        const mockInvalidRiskAnalysis = {
+          ...mockValidRiskAnalysis,
+          riskAnalysisForm: {
+            ...mockValidRiskAnalysis.riskAnalysisForm,
+            multiAnswers: [],
+            singleAnswers: [
+              {
+                id: generateId<RiskAnalysisSingleAnswerId>(),
+                key: "purpose", // "purpose" is a required field for all tenant kinds
+                value: "invalid purpose",
+              },
+              {
+                id: generateId<RiskAnalysisSingleAnswerId>(),
+                key: "unexpected_field",
+                value: "unexpected value",
+              },
+            ],
+            /*
+              This risk analysis form has an unexpected field and an invalid value for the purpose field.
+              The validation on create is schemaOnly: it does not check missing required fields or dependencies.
+              However, it checks for unexpected fields and invalid values.
+              So, the validation should fail with just two errors corresponding to the two invalid fields.
+             */
+          },
+        };
+        const riskAnalysisSeed: EServiceRiskAnalysisSeed =
+          buildRiskAnalysisSeed(mockInvalidRiskAnalysis);
+
+        const eservice: EService = {
+          ...mockEService,
+          producerId: producer.id,
+          mode: eserviceMode.receive,
+          descriptors: [
+            {
+              ...mockDescriptor,
+              state: descriptorState.draft,
+            },
+          ],
+        };
+
+        await addOneTenant(producer, tenants);
+        await addOneEService(eservice, postgresDB, eservices);
+
+        expect(
+          catalogService.createRiskAnalysis(
+            eservice.id,
+            riskAnalysisSeed,
+            getMockAuthData(producer.id)
+          )
+        ).rejects.toThrowError(
+          riskAnalysisValidationFailed([
+            unexpectedFieldValueError(
+              "purpose",
+              new Set(["INSTITUTIONAL", "OTHER"])
+            ),
+            unexpectedFieldError("unexpected_field"),
+          ])
         );
       });
     });
