@@ -1,13 +1,14 @@
 import { match } from "ts-pattern";
 import { logger, AgreementCollection } from "pagopa-interop-commons";
 import { AgreementEventEnvelope } from "pagopa-interop-models";
+import { bigIntReplacer } from "../../commons/src/logging/utils.js";
 import { fromAgreementV1, fromDocumentV1 } from "./model/converter.js";
 
 export async function handleMessage(
   message: AgreementEventEnvelope,
   agreements: AgreementCollection
 ): Promise<void> {
-  logger.info(message);
+  logger.info(JSON.stringify(message, bigIntReplacer));
   await match(message)
     .with({ type: "AgreementAdded" }, async (msg) => {
       await agreements.updateOne(

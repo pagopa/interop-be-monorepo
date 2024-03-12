@@ -5,6 +5,7 @@ import {
   ReadModelRepository,
 } from "pagopa-interop-commons";
 import { AttributeEventEnvelope } from "pagopa-interop-models";
+import { bigIntReplacer } from "../../commons/src/logging/utils.js";
 import { fromAttributeV1 } from "./model/converter.js";
 
 const { attributes } = ReadModelRepository.init(readModelWriterConfig());
@@ -12,7 +13,7 @@ const { attributes } = ReadModelRepository.init(readModelWriterConfig());
 export async function handleMessage(
   message: AttributeEventEnvelope
 ): Promise<void> {
-  logger.info(message);
+  logger.info(JSON.stringify(message, bigIntReplacer));
   await match(message)
     .with({ type: "AttributeAdded" }, async (msg) => {
       await attributes.updateOne(

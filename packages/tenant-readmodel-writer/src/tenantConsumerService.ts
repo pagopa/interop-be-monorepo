@@ -5,6 +5,7 @@ import {
   logger,
 } from "pagopa-interop-commons";
 import { TenantEventEnvelope } from "pagopa-interop-models";
+import { bigIntReplacer } from "../../commons/src/logging/utils.js";
 import { fromTenantV1 } from "./model/converter.js";
 
 const { tenants } = ReadModelRepository.init(readModelWriterConfig());
@@ -12,7 +13,7 @@ const { tenants } = ReadModelRepository.init(readModelWriterConfig());
 export async function handleMessage(
   message: TenantEventEnvelope
 ): Promise<void> {
-  logger.info(message);
+  logger.info(JSON.stringify(message, bigIntReplacer));
   await match(message)
     .with({ type: "TenantCreated" }, async (msg) => {
       await tenants.updateOne(
