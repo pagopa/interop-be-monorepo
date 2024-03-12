@@ -22,7 +22,6 @@ import {
   ApiEServiceDescriptorState,
   ApiEServiceMode,
   ApiTechnology,
-  EServiceDocument,
 } from "./models.js";
 
 export function technologyToApiTechnology(input: Technology): ApiTechnology {
