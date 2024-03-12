@@ -463,10 +463,13 @@ export function readModelServiceBuilder(
         },
       ];
 
-      const aggregationWithLimit = limitOne
-        ? [...aggregationPipeline, { $limit: 1 }]
-        : aggregationPipeline;
-      const data = await agreements.aggregate(aggregationWithLimit).toArray();
+      if (limitOne) {
+        // eslint-disable-next-line functional/immutable-data
+        aggregationPipeline.push({
+          $limit: 1,
+        });
+      }
+      const data = await agreements.aggregate(aggregationPipeline).toArray();
       const result = z.array(Agreement).safeParse(data.map((a) => a.data));
 
       if (!result.success) {
