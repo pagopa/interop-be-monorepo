@@ -9,7 +9,8 @@
 */
 
 import { z } from "zod";
-import { Descriptor, Document, EService, RiskAnalysis } from "../index.js";
+import { Descriptor, Document, EService } from "../eservice/eservice.js";
+import { RiskAnalysis } from "../risk-analysis/riskAnalysis.js";
 
 export const DocumentReadModel = Document.extend({
   uploadDate: z.string().datetime(),
@@ -32,9 +33,9 @@ export const DescriptorReadModel = Descriptor.extend({
 });
 export type DescriptorReadModel = z.infer<typeof DescriptorReadModel>;
 
-export const EServiceLegacy = EService.extend({
+export const EServiceReadModel = EService.extend({
   descriptors: z.array(DescriptorReadModel),
   createdAt: z.string().datetime(),
   riskAnalysis: z.array(RiskAnalysisReadModel),
 });
-export type EServiceReadModel = z.infer<typeof EServiceLegacy>;
+export type EServiceReadModel = z.infer<typeof EServiceReadModel>;
