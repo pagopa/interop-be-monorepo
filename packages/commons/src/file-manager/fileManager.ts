@@ -6,8 +6,14 @@ import {
   S3Client,
   S3ClientConfig,
 } from "@aws-sdk/client-s3";
-import { FileManagerConfig } from "./config/fileManagerConfig.js";
-import { LoggerConfig, logger } from "./index.js";
+import { FileManagerConfig } from "../config/fileManagerConfig.js";
+import { LoggerConfig, logger } from "../index.js";
+import {
+  fileManagerCopyError,
+  fileManagerDeleteError,
+  fileManagerListFilesError,
+  fileManagerStoreBytesError,
+} from "./fileManagerErrors.js";
 
 export type FileManager = {
   delete: (bucket: string, path: string) => Promise<void>;
@@ -49,12 +55,16 @@ export function initFileManager(
   return {
     delete: async (bucket: string, path: string): Promise<void> => {
       logger.info(`Deleting file ${path} from bucket ${bucket}`);
-      await client.send(
-        new DeleteObjectCommand({
-          Bucket: bucket,
-          Key: path,
-        })
-      );
+      try {
+        await client.send(
+          new DeleteObjectCommand({
+            Bucket: bucket,
+            Key: path,
+          })
+        );
+      } catch (error) {
+        throw fileManagerDeleteError(path, bucket, error);
+      }
     },
     copy: async (
       bucket: string,
@@ -65,27 +75,35 @@ export function initFileManager(
     ): Promise<string> => {
       const key = buildS3Key(path, resourceId, fileName);
       logger.info(`Copying file ${filePathToCopy} to ${key}`);
-      await client.send(
-        new CopyObjectCommand({
-          Bucket: bucket,
-          CopySource: `${bucket}/${filePathToCopy}`,
-          Key: key,
-        })
-      );
-      return key;
+      try {
+        await client.send(
+          new CopyObjectCommand({
+            Bucket: bucket,
+            CopySource: `${bucket}/${filePathToCopy}`,
+            Key: key,
+          })
+        );
+        return key;
+      } catch (error) {
+        throw fileManagerCopyError(filePathToCopy, key, error);
+      }
     },
     listFiles: async (bucket: string): Promise<string[]> => {
       logger.info(`Listing files in bucket ${bucket}`);
-      const response = await client.send(
-        new ListObjectsCommand({
-          Bucket: bucket,
-        })
-      );
-      return (
-        response.Contents?.map((object) => object.Key).filter(
-          (key): key is string => key !== undefined
-        ) ?? []
-      );
+      try {
+        const response = await client.send(
+          new ListObjectsCommand({
+            Bucket: bucket,
+          })
+        );
+        return (
+          response.Contents?.map((object) => object.Key).filter(
+            (key): key is string => key !== undefined
+          ) ?? []
+        );
+      } catch (error) {
+        throw fileManagerListFilesError(bucket);
+      }
     },
     storeBytes: async (
       bucket: string,
@@ -96,14 +114,18 @@ export function initFileManager(
     ): Promise<string> => {
       const key = buildS3Key(path, resourceId, fileName);
       logger.info(`Storing file ${key} in bucket ${bucket}`);
-      await client.send(
-        new PutObjectCommand({
-          Bucket: bucket,
-          Key: key,
-          Body: fileContent,
-        })
-      );
-      return key;
+      try {
+        await client.send(
+          new PutObjectCommand({
+            Bucket: bucket,
+            Key: key,
+            Body: fileContent,
+          })
+        );
+        return key;
+      } catch (error) {
+        throw fileManagerStoreBytesError(key, bucket, error);
+      }
     },
   };
 }
