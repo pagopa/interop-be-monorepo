@@ -36,6 +36,10 @@ export type EServiceDescriptorSeed = z.infer<
   typeof api.schemas.EServiceDescriptorSeed
 >;
 
+export type EServiceRiskAnalysisSeed = z.infer<
+  typeof api.schemas.EServiceRiskAnalysisSeed
+>;
+
 export type EServiceDescriptorState = z.infer<
   typeof api.schemas.EServiceDescriptorState
 >;
