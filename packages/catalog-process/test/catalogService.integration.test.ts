@@ -1553,7 +1553,7 @@ describe("database test", async () => {
             getMockAuthData(eservice.producerId)
           )
         ).rejects.toThrowError(
-          notValidDescriptor(mockDescriptor.id, descriptorState.published)
+          notValidDescriptor(descriptor.id, descriptorState.published)
         );
       });
       it("should throw notValidDescriptor if the eservice is in deprecated state", async () => {
@@ -1577,7 +1577,7 @@ describe("database test", async () => {
             getMockAuthData(eservice.producerId)
           )
         ).rejects.toThrowError(
-          notValidDescriptor(mockDescriptor.id, descriptorState.deprecated)
+          notValidDescriptor(descriptor.id, descriptorState.deprecated)
         );
       });
       it("should throw notValidDescriptor if the eservice is in suspended state", async () => {
@@ -1601,7 +1601,7 @@ describe("database test", async () => {
             getMockAuthData(eservice.producerId)
           )
         ).rejects.toThrowError(
-          notValidDescriptor(mockDescriptor.id, descriptorState.suspended)
+          notValidDescriptor(descriptor.id, descriptorState.suspended)
         );
       });
       it("should throw notValidDescriptor if the eservice is in archived state", async () => {
@@ -1625,7 +1625,7 @@ describe("database test", async () => {
             getMockAuthData(eservice.producerId)
           )
         ).rejects.toThrowError(
-          notValidDescriptor(mockDescriptor.id, descriptorState.archived)
+          notValidDescriptor(descriptor.id, descriptorState.archived)
         );
       });
     });
