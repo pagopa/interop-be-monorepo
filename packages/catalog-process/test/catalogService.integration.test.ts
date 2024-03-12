@@ -44,7 +44,9 @@ import {
   EServiceDescriptorDocumentUpdatedV2,
   EServiceDescriptorInterfaceDeletedV2,
   EServiceDescriptorPublishedV2,
+  EServiceDescriptorQuotasUpdatedV2,
   EServiceDescriptorSuspendedV2,
+  EServiceDraftDescriptorUpdatedV2,
   EServiceId,
   EServiceRiskAnalysisAddedV2,
   RiskAnalysisSingleAnswerId,
@@ -1003,11 +1005,11 @@ describe("database test", async () => {
         expect(writtenEvent).toMatchObject({
           stream_id: eservice.id,
           version: "1",
-          type: "DraftEServiceUpdated",
+          type: "EServiceDraftDescriptorUpdated",
           event_version: 2,
         });
         const writtenPayload = decodeProtobufPayload({
-          messageType: DraftEServiceUpdatedV2,
+          messageType: EServiceDraftDescriptorUpdatedV2,
           payload: writtenEvent.data,
         });
         expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
@@ -2269,57 +2271,51 @@ describe("database test", async () => {
         const expectedInterface: Document = {
           ...interfaceDocument,
           id: unsafeBrandId(
-            writtenPayload.clonedEservice!.descriptors[0].interface!.id
+            writtenPayload.eservice!.descriptors[0].interface!.id
           ),
           uploadDate: new Date(
-            writtenPayload.clonedEservice!.descriptors[0].interface!.uploadDate
+            writtenPayload.eservice!.descriptors[0].interface!.uploadDate
           ),
-          path: writtenPayload.clonedEservice!.descriptors[0].interface!.path,
+          path: writtenPayload.eservice!.descriptors[0].interface!.path,
         };
         const expectedDocument1: Document = {
           ...document1,
-          id: unsafeBrandId(
-            writtenPayload.clonedEservice!.descriptors[0].docs[0].id
-          ),
+          id: unsafeBrandId(writtenPayload.eservice!.descriptors[0].docs[0].id),
           uploadDate: new Date(
-            writtenPayload.clonedEservice!.descriptors[0].docs[0].uploadDate
+            writtenPayload.eservice!.descriptors[0].docs[0].uploadDate
           ),
-          path: writtenPayload.clonedEservice!.descriptors[0].docs[0].path,
+          path: writtenPayload.eservice!.descriptors[0].docs[0].path,
         };
         const expectedDocument2: Document = {
           ...document2,
-          id: unsafeBrandId(
-            writtenPayload.clonedEservice!.descriptors[0].docs[1].id
-          ),
+          id: unsafeBrandId(writtenPayload.eservice!.descriptors[0].docs[1].id),
           uploadDate: new Date(
-            writtenPayload.clonedEservice!.descriptors[0].docs[1].uploadDate
+            writtenPayload.eservice!.descriptors[0].docs[1].uploadDate
           ),
-          path: writtenPayload.clonedEservice!.descriptors[0].docs[1].path,
+          path: writtenPayload.eservice!.descriptors[0].docs[1].path,
         };
 
         const expectedDescriptor: Descriptor = {
           ...descriptor,
-          id: unsafeBrandId(writtenPayload.clonedEservice!.descriptors[0].id),
+          id: unsafeBrandId(writtenPayload.eservice!.descriptors[0].id),
           version: "1",
           interface: expectedInterface,
           createdAt: new Date(
-            Number(writtenPayload.clonedEservice?.descriptors[0].createdAt)
+            Number(writtenPayload.eservice?.descriptors[0].createdAt)
           ),
           docs: [expectedDocument1, expectedDocument2],
         };
 
         const expectedEService: EService = {
           ...eservice,
-          id: unsafeBrandId(writtenPayload.clonedEservice!.id),
+          id: unsafeBrandId(writtenPayload.eservice!.id),
           name: `${eservice.name} - clone - ${formatClonedEServiceDate(
             cloneTimestamp
           )}`,
           descriptors: [expectedDescriptor],
-          createdAt: new Date(Number(writtenPayload.clonedEservice?.createdAt)),
+          createdAt: new Date(Number(writtenPayload.eservice?.createdAt)),
         };
-        expect(writtenPayload.clonedEservice).toEqual(
-          toEServiceV2(expectedEService)
-        );
+        expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
 
         expect(fileManager.copy).toHaveBeenCalledWith(
           config.s3Bucket,
@@ -2481,7 +2477,7 @@ describe("database test", async () => {
         );
         expect(writtenEvent.stream_id).toBe(eservice.id);
         expect(writtenEvent.version).toBe("1");
-        expect(writtenEvent.type).toBe("EServiceDescriptorActivated");
+        expect(writtenEvent.type).toBe("EServiceDescriptorArchived");
         expect(writtenEvent.event_version).toBe(2);
         const writtenPayload = decodeProtobufPayload({
           messageType: EServiceDescriptorActivatedV2,
@@ -2597,11 +2593,11 @@ describe("database test", async () => {
         expect(writtenEvent).toMatchObject({
           stream_id: eservice.id,
           version: "1",
-          type: "DraftEServiceUpdated",
+          type: "EServiceDescriptorQuotasUpdated",
           event_version: 2,
         });
         const writtenPayload = decodeProtobufPayload({
-          messageType: DraftEServiceUpdatedV2,
+          messageType: EServiceDescriptorQuotasUpdatedV2,
           payload: writtenEvent.data,
         });
         expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
@@ -2652,11 +2648,11 @@ describe("database test", async () => {
         expect(writtenEvent).toMatchObject({
           stream_id: eservice.id,
           version: "1",
-          type: "DraftEServiceUpdated",
+          type: "EServiceDescriptorQuotasUpdated",
           event_version: 2,
         });
         const writtenPayload = decodeProtobufPayload({
-          messageType: DraftEServiceUpdatedV2,
+          messageType: EServiceDescriptorQuotasUpdatedV2,
           payload: writtenEvent.data,
         });
         expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
@@ -2707,11 +2703,11 @@ describe("database test", async () => {
         expect(writtenEvent).toMatchObject({
           stream_id: eservice.id,
           version: "1",
-          type: "DraftEServiceUpdated",
+          type: "EServiceDescriptorQuotasUpdated",
           event_version: 2,
         });
         const writtenPayload = decodeProtobufPayload({
-          messageType: DraftEServiceUpdatedV2,
+          messageType: EServiceDescriptorQuotasUpdatedV2,
           payload: writtenEvent.data,
         });
         expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
