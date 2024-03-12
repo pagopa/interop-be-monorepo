@@ -648,7 +648,7 @@ export function catalogServiceBuilder(
       documentId: EServiceDocumentId,
       apiEServiceDescriptorDocumentUpdateSeed: ApiEServiceDescriptorDocumentUpdateSeed,
       authData: AuthData
-    ): Promise<void> {
+    ): Promise<Document> {
       logger.info(
         `Updating Document ${documentId} of Descriptor ${descriptorId} for EService ${eserviceId}`
       );
@@ -712,6 +712,7 @@ export function catalogServiceBuilder(
           );
 
       await repository.createEvent(event);
+      return updatedDocument;
     },
 
     async createDescriptor(
