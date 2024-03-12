@@ -6,7 +6,7 @@
       "cache": false,
       "dependsOn": [
         "^build",
-        "generate-model",
+        "open-api-generate",
         "generate-protobuf",
         "//#infra:start"
       ]
@@ -22,7 +22,7 @@
     },
     "build": {
       "dependsOn": [
-        "generate-model",
+        "open-api-generate",
         "generate-protobuf",
         "^build"
       ],
@@ -30,9 +30,9 @@
         "dist"
       ]
     },
-    "generate-model": {
+    "open-api-generate": {
       "dependsOn": [
-        "^generate-model"
+        "^open-api-generate"
       ]
     },
     "generate-protobuf": {

@@ -23,7 +23,7 @@ module.exports = {
   ignorePatterns: [
     ".eslintrc.cjs",
     "vitest.config.ts",
-    "**/src/model/generated/*.ts",
+    "**/src/generated/**/*.ts",
     "**/dist",
     "**/patchZodios.ts"
   ],

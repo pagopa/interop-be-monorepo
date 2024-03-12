@@ -32,7 +32,7 @@
 
 import { readFileSync, writeFileSync } from "fs";
 
-const apiPath = new URL("./src/model/generated/api.ts", import.meta.url);
+const apiPath = new URL("./src/generated/generated.ts", import.meta.url);
 const apiContent = readFileSync(apiPath, "utf8");
 
 const patch = [

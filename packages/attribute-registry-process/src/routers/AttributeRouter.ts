@@ -9,7 +9,7 @@ import {
   initDB,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
-import { api } from "../model/generated/api.js";
+import { api } from "../generated/generated.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import {
   toAttributeKind,

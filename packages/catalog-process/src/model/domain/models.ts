@@ -10,7 +10,7 @@ import {
   EServiceId,
   TenantId,
 } from "pagopa-interop-models";
-import * as api from "../generated/api.js";
+import * as api from "../../generated/generated.js";
 import { ApiEServiceDescriptorDocumentSeed } from "../types.js";
 
 export type EServiceSeed = z.infer<typeof api.schemas.EServiceSeed> & {

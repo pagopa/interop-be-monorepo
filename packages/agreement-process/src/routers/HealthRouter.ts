@@ -1,5 +1,5 @@
 import { zodiosRouter } from "@zodios/express";
-import { api } from "../model/generated/api.js";
+import { api } from "../generated/generated.js";
 
 const healthRouter = zodiosRouter(api.api);
 

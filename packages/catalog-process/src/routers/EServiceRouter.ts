@@ -24,7 +24,7 @@ import {
   descriptorToApiDescriptor,
   eServiceToApiEService,
 } from "../model/domain/apiConverter.js";
-import { api } from "../model/generated/api.js";
+import { api } from "../generated/generated.js";
 import { config } from "../utilities/config.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { catalogServiceBuilder } from "../services/catalogService.js";

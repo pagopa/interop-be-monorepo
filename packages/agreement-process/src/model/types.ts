@@ -1,6 +1,6 @@
 import { ZodiosBodyByPath } from "@zodios/core";
 import { z } from "zod";
-import { api, schemas } from "./generated/api.js";
+import { api, schemas } from "../generated/generated.js";
 
 type Api = typeof api.api;
 export type ApiAgreement = z.infer<typeof schemas.Agreement>;

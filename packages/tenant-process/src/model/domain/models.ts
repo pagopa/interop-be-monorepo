@@ -3,7 +3,7 @@
   This file will be removed once all models are converted from scala.
  */
 import { z } from "zod";
-import * as api from "../generated/api.js";
+import * as api from "../../generated/generated.js";
 
 export type ApiCertifier = z.infer<typeof api.schemas.Certifier>;
 

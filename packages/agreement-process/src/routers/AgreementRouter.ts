@@ -15,7 +15,7 @@ import {
   EServiceId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { api } from "../model/generated/api.js";
+import { api } from "../generated/generated.js";
 import {
   agreementDocumentToApiAgreementDocument,
   agreementToApiAgreement,

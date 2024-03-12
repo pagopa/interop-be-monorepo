@@ -1,5 +1,5 @@
 import { ZodiosBodyByPath } from "@zodios/core";
-import { api } from "./generated/api.js";
+import { api } from "../generated/generated.js";
 
 type Api = typeof api.api;
 export type ApiSelfcareTenantSeed = ZodiosBodyByPath<

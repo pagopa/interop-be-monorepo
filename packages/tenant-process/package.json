@@ -11,8 +11,8 @@
     "format:write": "prettier --write src",
     "start": "node --watch --no-warnings --loader ts-node/esm -r 'dotenv-flow/config' ./src/index.ts",
     "build": "tsc",
-    "generate-model": "mkdir -p ./src/model/generated && pnpm openapi-zod-client './open-api/tenant-service-spec.yml' -o './src/model/generated/api.ts'",
-    "clean-generated": "pnpm exec rm ./src/model/generated/api.ts"
+    "open-api-generate": "mkdir -p ./src/generated && pnpm openapi-zod-client './open-api/tenant-service-spec.yml' -o './src/generated/generated.ts'",
+    "clean-generated": "pnpm exec rm ./src/generated/generated.ts"
   },
   "keywords": [],
   "author": "",

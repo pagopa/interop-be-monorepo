@@ -1,6 +1,6 @@
 import { ZodiosBodyByPath } from "@zodios/core";
 import { Problem } from "pagopa-interop-models";
-import { api } from "./generated/api.js";
+import { api } from "../generated/generated.js";
 
 type Api = typeof api.api;
 
