@@ -547,7 +547,8 @@ const eservicesRouter = (
           await catalogService.createRiskAnalysis(
             unsafeBrandId(req.params.eServiceId),
             req.body,
-            req.ctx.authData
+            req.ctx.authData,
+            req.ctx.correlationId
           );
           return res.status(204).end();
         } catch (error) {

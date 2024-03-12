@@ -325,7 +325,8 @@ export const toCreateEventEServiceDescriptorQuotasUpdated = (
   streamId: string,
   version: number,
   descriptorId: DescriptorId,
-  eservice: EService
+  eservice: EService,
+  correlationId: string
 ): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
@@ -337,6 +338,7 @@ export const toCreateEventEServiceDescriptorQuotasUpdated = (
       eservice: toEServiceV2(eservice),
     },
   },
+  correlationId,
 });
 
 export const toCreateEventEServiceDescriptorActivated = (
@@ -517,7 +519,8 @@ export const toCreateEventEServiceRiskAnalysisAdded = (
   streamId: string,
   version: number,
   riskAnalysisId: RiskAnalysisId,
-  eservice: EService
+  eservice: EService,
+  correlationId: string
 ): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
@@ -529,4 +532,5 @@ export const toCreateEventEServiceRiskAnalysisAdded = (
       eservice: toEServiceV2(eservice),
     },
   },
+  correlationId,
 });
