@@ -1,19 +1,17 @@
 import { InternalError } from "pagopa-interop-models";
 
-const fileManagerErrorCodes = {
-  fileManagerCopyError: "10001",
-  fileManagerDeleteError: "10002",
-  fileManagerListFilesError: "10003",
-  fileManagerStoreBytesError: "10004",
-} as const;
-type FileManagerErrorCodes = keyof typeof fileManagerErrorCodes;
+type FileManagerErrorCode =
+  | "fileManagerCopyError"
+  | "fileManagerDeleteError"
+  | "fileManagerListFilesError"
+  | "fileManagerStoreBytesError";
 
-export class FileManagerError extends InternalError<FileManagerErrorCodes> {
+export class FileManagerError extends InternalError<FileManagerErrorCode> {
   constructor({
     code,
     detail,
   }: {
-    code: FileManagerErrorCodes;
+    code: FileManagerErrorCode;
     detail: string;
   }) {
     super({ code, detail });
