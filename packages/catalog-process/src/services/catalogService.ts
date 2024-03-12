@@ -73,7 +73,6 @@ import {
 import { config } from "../utilities/config.js";
 import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
 import {
-  eServiceCannotBeDeleted,
   eServiceCannotBeUpdated,
   eServiceDescriptorNotFound,
   eServiceDocumentNotFound,
