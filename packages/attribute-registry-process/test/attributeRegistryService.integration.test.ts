@@ -131,10 +131,13 @@ describe("database test", () => {
           attribute.id,
           postgresDB
         );
-        expect(writtenEvent.stream_id).toBe(attribute.id);
-        expect(writtenEvent.version).toBe("0");
-        expect(writtenEvent.type).toBe("AttributeAdded");
-        expect(writtenEvent.event_version).toBe(1);
+
+        expect(writtenEvent).toMatchObject({
+          stream_id: attribute.id,
+          version: "0",
+          type: "AttributeAdded",
+          event_version: 1,
+        });
         const writtenPayload = decodeProtobufPayload({
           messageType: AttributeAddedV1,
           payload: writtenEvent.data,
@@ -201,10 +204,12 @@ describe("database test", () => {
           attribute.id,
           postgresDB
         );
-        expect(writtenEvent.stream_id).toBe(attribute.id);
-        expect(writtenEvent.version).toBe("0");
-        expect(writtenEvent.type).toBe("AttributeAdded");
-        expect(writtenEvent.event_version).toBe(1);
+        expect(writtenEvent).toMatchObject({
+          stream_id: attribute.id,
+          version: "0",
+          type: "AttributeAdded",
+          event_version: 1,
+        });
 
         const writtenPayload = decodeProtobufPayload({
           messageType: AttributeAddedV1,
@@ -285,10 +290,12 @@ describe("database test", () => {
           attribute.id,
           postgresDB
         );
-        expect(writtenEvent.stream_id).toBe(attribute.id);
-        expect(writtenEvent.version).toBe("0");
-        expect(writtenEvent.type).toBe("AttributeAdded");
-        expect(writtenEvent.event_version).toBe(1);
+        expect(writtenEvent).toMatchObject({
+          stream_id: attribute.id,
+          version: "0",
+          type: "AttributeAdded",
+          event_version: 1,
+        });
         const writtenPayload = decodeProtobufPayload({
           messageType: AttributeAddedV1,
           payload: writtenEvent.data,
@@ -389,10 +396,12 @@ describe("database test", () => {
           attribute.id,
           postgresDB
         );
-        expect(writtenEvent.stream_id).toBe(attribute.id);
-        expect(writtenEvent.version).toBe("0");
-        expect(writtenEvent.type).toBe("AttributeAdded");
-        expect(writtenEvent.event_version).toBe(1);
+        expect(writtenEvent).toMatchObject({
+          stream_id: attribute.id,
+          version: "0",
+          type: "AttributeAdded",
+          event_version: 1,
+        });
         const writtenPayload = decodeProtobufPayload({
           messageType: AttributeAddedV1,
           payload: writtenEvent.data,
