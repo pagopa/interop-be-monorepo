@@ -91,6 +91,7 @@ import {
 import {
   attributeNotFound,
   draftDescriptorAlreadyExists,
+  eServiceCannotBeDeleted,
   eServiceCannotBeUpdated,
   eServiceDescriptorNotFound,
   eServiceDescriptorWithoutInterface,
