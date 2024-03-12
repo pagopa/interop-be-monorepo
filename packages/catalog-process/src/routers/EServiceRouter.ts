@@ -267,16 +267,7 @@ const eservicesRouter = (
             authData: req.ctx.authData,
           });
 
-          return res
-            .status(200)
-            .json({
-              id: document.id,
-              name: document.name,
-              contentType: document.contentType,
-              prettyName: document.prettyName,
-              path: document.path,
-            })
-            .end();
+          return res.status(200).json(documentToApiDocument(document)).end();
         } catch (error) {
           const errorRes = makeApiProblem(error, documentGetErrorMapper);
           return res.status(errorRes.status).json(errorRes).end();
