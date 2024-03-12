@@ -2,13 +2,11 @@ import {
   AuthData,
   DB,
   FileManager,
-  RiskAnalysisValidatedForm,
   eventRepository,
   hasPermission,
   logger,
   riskAnalysisValidatedFormToNewRiskAnalysis,
   userRoles,
-  validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
   Descriptor,
@@ -23,15 +21,13 @@ import {
   catalogEventToBinaryData,
   descriptorState,
   generateId,
-  operationForbidden,
   unsafeBrandId,
   ListResult,
   AttributeId,
   agreementState,
-  eserviceMode,
+  EserviceAttributes,
   Tenant,
   RiskAnalysis,
-  TenantKind,
   RiskAnalysisId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -45,6 +41,7 @@ import {
   EServiceDescriptorSeed,
   UpdateEServiceDescriptorSeed,
   UpdateEServiceDescriptorQuotasSeed,
+  EServiceAttributesSeed,
   EServiceRiskAnalysisSeed,
 } from "../model/domain/models.js";
 import {
@@ -75,7 +72,6 @@ import {
 import { config } from "../utilities/config.js";
 import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
 import {
-  draftDescriptorAlreadyExists,
   eServiceCannotBeDeleted,
   eServiceCannotBeUpdated,
   eServiceDescriptorNotFound,
@@ -88,45 +84,19 @@ import {
   attributeNotFound,
   inconsistentDailyCalls,
   originNotCompliant,
-  dailyCallsCannotBeDecreased,
-  eserviceNotInDraftState,
-  eserviceNotInReceiveMode,
-  tenantKindNotFound,
   tenantNotFound,
-  riskAnalysisValidationFailed,
   riskAnalysisNotFound,
 } from "../model/domain/errors.js";
 import { formatClonedEServiceDate } from "../utilities/date.js";
 import { ReadModelService } from "./readModelService.js";
-
-const assertRequesterAllowed = (
-  producerId: TenantId,
-  requesterId: TenantId
-): void => {
-  if (producerId !== requesterId) {
-    throw operationForbidden;
-  }
-};
-
-function assertIsDraftEservice(eservice: EService): void {
-  if (eservice.descriptors.some((d) => d.state !== descriptorState.draft)) {
-    throw eserviceNotInDraftState(eservice.id);
-  }
-}
-
-function assertIsReceiveEservice(eservice: EService): void {
-  if (eservice.mode !== eserviceMode.receive) {
-    throw eserviceNotInReceiveMode(eservice.id);
-  }
-}
-
-function assertTenantKindExists(
-  tenant: Tenant
-): asserts tenant is Tenant & { kind: NonNullable<Tenant["kind"]> } {
-  if (tenant.kind === undefined) {
-    throw tenantKindNotFound(tenant.id);
-  }
-}
+import {
+  assertRequesterAllowed,
+  assertIsDraftEservice,
+  assertIsReceiveEservice,
+  assertTenantKindExists,
+  validateRiskAnalysisOrThrow,
+  assertHasNoDraftDescriptor,
+} from "./validators.js";
 
 const retrieveEService = async (
   eserviceId: EServiceId,
@@ -247,15 +217,6 @@ const archiveDescriptor = (
   return updateDescriptorState(descriptor, descriptorState.archived);
 };
 
-const hasNotDraftDescriptor = (eservice: EService): void => {
-  const hasDraftDescriptor = eservice.descriptors.some(
-    (d: Descriptor) => d.state === descriptorState.draft
-  );
-  if (hasDraftDescriptor) {
-    throw draftDescriptorAlreadyExists(eservice.id);
-  }
-};
-
 const replaceDescriptor = (
   eservice: EService,
   newDescriptor: Descriptor
@@ -269,6 +230,59 @@ const replaceDescriptor = (
     descriptors: updatedDescriptors,
   };
 };
+
+async function parseAndCheckAttributes(
+  attributesSeed: EServiceAttributesSeed,
+  readModelService: ReadModelService
+): Promise<EserviceAttributes> {
+  const certifiedAttributes = attributesSeed.certified;
+  const declaredAttributes = attributesSeed.declared;
+  const verifiedAttributes = attributesSeed.verified;
+
+  const attributesSeeds = [
+    ...certifiedAttributes.flat(),
+    ...declaredAttributes.flat(),
+    ...verifiedAttributes.flat(),
+  ];
+
+  if (attributesSeeds.length > 0) {
+    const attributesSeedsIds: AttributeId[] = attributesSeeds.map((attr) =>
+      unsafeBrandId(attr.id)
+    );
+    const attributes = await readModelService.getAttributesByIds(
+      attributesSeedsIds
+    );
+    const attributesIds = attributes.map((attr) => attr.id);
+    for (const attributeSeedId of attributesSeedsIds) {
+      if (!attributesIds.includes(unsafeBrandId(attributeSeedId))) {
+        throw attributeNotFound(attributeSeedId);
+      }
+    }
+  }
+
+  return {
+    certified: certifiedAttributes.map((a) =>
+      a.map((a) => ({
+        ...a,
+        id: unsafeBrandId(a.id),
+      }))
+    ),
+    // eslint-disable-next-line sonarjs/no-identical-functions
+    declared: declaredAttributes.map((a) =>
+      a.map((a) => ({
+        ...a,
+        id: unsafeBrandId(a.id),
+      }))
+    ),
+    // eslint-disable-next-line sonarjs/no-identical-functions
+    verified: verifiedAttributes.map((a) =>
+      a.map((a) => ({
+        ...a,
+        id: unsafeBrandId(a.id),
+      }))
+    ),
+  };
+}
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function catalogServiceBuilder(
@@ -719,34 +733,14 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
       assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
-      hasNotDraftDescriptor(eservice.data);
+      assertHasNoDraftDescriptor(eservice.data);
 
       const newVersion = nextDescriptorVersion(eservice.data);
 
-      const certifiedAttributes = eserviceDescriptorSeed.attributes.certified;
-      const declaredAttributes = eserviceDescriptorSeed.attributes.declared;
-      const verifiedAttributes = eserviceDescriptorSeed.attributes.verified;
-
-      const attributesSeeds = [
-        ...certifiedAttributes.flat(),
-        ...declaredAttributes.flat(),
-        ...verifiedAttributes.flat(),
-      ];
-
-      if (attributesSeeds.length > 0) {
-        const attributesSeedsIds: AttributeId[] = attributesSeeds.map((attr) =>
-          unsafeBrandId(attr.id)
-        );
-        const attributes = await readModelService.getAttributesByIds(
-          attributesSeedsIds
-        );
-        const attributesIds = attributes.map((attr) => attr.id);
-        for (const attributeSeedId of attributesSeedsIds) {
-          if (!attributesIds.includes(unsafeBrandId(attributeSeedId))) {
-            throw attributeNotFound(attributeSeedId);
-          }
-        }
-      }
+      const parsedAttributes = await parseAndCheckAttributes(
+        eserviceDescriptorSeed.attributes,
+        readModelService
+      );
 
       if (
         eserviceDescriptorSeed.dailyCallsPerConsumer >
@@ -778,28 +772,7 @@ export function catalogServiceBuilder(
         deprecatedAt: undefined,
         archivedAt: undefined,
         createdAt: new Date(),
-        attributes: {
-          certified: certifiedAttributes.map((a) =>
-            a.map((a) => ({
-              ...a,
-              id: unsafeBrandId(a.id),
-            }))
-          ),
-          // eslint-disable-next-line sonarjs/no-identical-functions
-          declared: declaredAttributes.map((a) =>
-            a.map((a) => ({
-              ...a,
-              id: unsafeBrandId(a.id),
-            }))
-          ),
-          // eslint-disable-next-line sonarjs/no-identical-functions
-          verified: verifiedAttributes.map((a) =>
-            a.map((a) => ({
-              ...a,
-              id: unsafeBrandId(a.id),
-            }))
-          ),
-        },
+        attributes: parsedAttributes,
       };
 
       const newEservice: EService = {
@@ -895,6 +868,11 @@ export function catalogServiceBuilder(
         throw inconsistentDailyCalls();
       }
 
+      const parsedAttributes = await parseAndCheckAttributes(
+        seed.attributes,
+        readModelService
+      );
+
       const updatedDescriptor: Descriptor = {
         ...descriptor,
         description: seed.description,
@@ -907,6 +885,7 @@ export function catalogServiceBuilder(
           apiAgreementApprovalPolicyToAgreementApprovalPolicy(
             seed.agreementApprovalPolicy
           ),
+        attributes: parsedAttributes,
       };
 
       const updatedEService = replaceDescriptor(
@@ -1286,12 +1265,9 @@ export function catalogServiceBuilder(
         throw notValidDescriptor(descriptorId, descriptor.state.toString());
       }
 
-      assertDailyCallsAreConsistentAndNotDecreased({
-        dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
-        dailyCallsTotal: descriptor.dailyCallsTotal,
-        updatedDailyCallsPerConsumer: seed.dailyCallsPerConsumer,
-        updatedDailyCallsTotal: seed.dailyCallsTotal,
-      });
+      if (seed.dailyCallsPerConsumer > seed.dailyCallsTotal) {
+        throw inconsistentDailyCalls();
+      }
 
       const updatedDescriptor: Descriptor = {
         ...descriptor,
@@ -1361,12 +1337,15 @@ export function catalogServiceBuilder(
     },
     async deleteRiskAnalysis(
       eserviceId: EServiceId,
-      riskAnalysisId: RiskAnalysisId
+      riskAnalysisId: RiskAnalysisId,
+      authData: AuthData
     ): Promise<void> {
       logger.info(
         `Deleting Risk Analysis ${riskAnalysisId} for EService ${eserviceId}`
       );
       const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
       assertIsDraftEservice(eservice.data);
       assertIsReceiveEservice(eservice.data);
 
@@ -1425,40 +1404,5 @@ const applyVisibilityToEService = (
     ),
   };
 };
-
-function assertDailyCallsAreConsistentAndNotDecreased({
-  dailyCallsPerConsumer,
-  dailyCallsTotal,
-  updatedDailyCallsPerConsumer,
-  updatedDailyCallsTotal,
-}: {
-  dailyCallsPerConsumer: number;
-  dailyCallsTotal: number;
-  updatedDailyCallsPerConsumer: number;
-  updatedDailyCallsTotal: number;
-}): void {
-  if (updatedDailyCallsPerConsumer > updatedDailyCallsTotal) {
-    throw inconsistentDailyCalls();
-  }
-  if (
-    updatedDailyCallsPerConsumer < dailyCallsPerConsumer ||
-    updatedDailyCallsTotal < dailyCallsTotal
-  ) {
-    throw dailyCallsCannotBeDecreased();
-  }
-}
-
-function validateRiskAnalysisOrThrow(
-  riskAnalysisForm: EServiceRiskAnalysisSeed["riskAnalysisForm"],
-  schemaOnly: boolean,
-  tenantKind: TenantKind
-): RiskAnalysisValidatedForm {
-  const result = validateRiskAnalysis(riskAnalysisForm, schemaOnly, tenantKind);
-  if (result.type === "invalid") {
-    throw riskAnalysisValidationFailed(result.issues);
-  } else {
-    return result.value;
-  }
-}
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;

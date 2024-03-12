@@ -46,6 +46,7 @@ import {
   publishDescriptorErrorMapper,
   suspendDescriptorErrorMapper,
   updateDescriptorErrorMapper,
+  updateDraftDescriptorErrorMapper,
   updateEServiceErrorMapper,
 } from "../utilities/errorMappers.js";
 
@@ -402,7 +403,10 @@ const eservicesRouter = (
             .json(eServiceToApiEService(updatedEService))
             .end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, updateDescriptorErrorMapper);
+          const errorRes = makeApiProblem(
+            error,
+            updateDraftDescriptorErrorMapper
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -546,7 +550,8 @@ const eservicesRouter = (
         try {
           await catalogService.deleteRiskAnalysis(
             unsafeBrandId(req.params.eServiceId),
-            unsafeBrandId(req.params.riskAnalysisId)
+            unsafeBrandId(req.params.riskAnalysisId),
+            req.ctx.authData
           );
           return res.status(204).end();
         } catch (error) {

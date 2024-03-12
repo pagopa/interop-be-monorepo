@@ -74,29 +74,28 @@ async function getTenant(
 
   if (!data) {
     return undefined;
-  } else {
-    const result = z
-      .object({
-        metadata: z.object({ version: z.number() }),
-        data: Tenant,
-      })
-      .safeParse(data);
-
-    if (!result.success) {
-      logger.error(
-        `Unable to parse tenant item: result ${JSON.stringify(
-          result
-        )} - data ${JSON.stringify(data)} `
-      );
-
-      throw genericError("Unable to parse tenant item");
-    }
-
-    return {
-      data: result.data.data,
-      metadata: { version: result.data.metadata.version },
-    };
   }
+  const result = z
+    .object({
+      metadata: z.object({ version: z.number() }),
+      data: Tenant,
+    })
+    .safeParse(data);
+
+  if (!result.success) {
+    logger.error(
+      `Unable to parse tenant item: result ${JSON.stringify(
+        result
+      )} - data ${JSON.stringify(data)} `
+    );
+
+    throw genericError("Unable to parse tenant item");
+  }
+
+  return {
+    data: result.data.data,
+    metadata: { version: result.data.metadata.version },
+  };
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type

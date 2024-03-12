@@ -93,7 +93,7 @@ export const validRiskAnalysis2_0_Private: RiskAnalysisFormToValidate = {
   },
 };
 
-export const validatedRiskANalysis2_0_Private: RiskAnalysisValidatedForm = {
+export const validatedRiskAnalysis2_0_Private: RiskAnalysisValidatedForm = {
   version: validRiskAnalysis2_0_Private.version,
   singleAnswers: [
     { key: "purpose", value: "INSTITUTIONAL" },
@@ -154,7 +154,7 @@ export const getMockValidRiskAnalysis = (
     )
     .with(tenantKind.PRIVATE, tenantKind.GSP, () =>
       riskAnalysisValidatedFormToNewRiskAnalysis(
-        validatedRiskANalysis2_0_Private,
+        validatedRiskAnalysis2_0_Private,
         generateMock(z.string())
       )
     )
