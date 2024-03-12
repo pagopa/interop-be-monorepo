@@ -448,10 +448,7 @@ export function catalogServiceBuilder(
       const updatedMode = apiEServiceModeToEServiceMode(eserviceSeed.mode);
 
       const checkedRiskAnalysis =
-        updatedMode === eserviceMode.deliver &&
-        eservice.data.mode === eserviceMode.receive
-          ? []
-          : eservice.data.riskAnalysis;
+        updatedMode === eserviceMode.receive ? eservice.data.riskAnalysis : [];
 
       const updatedEService: EService = {
         ...eservice.data,
