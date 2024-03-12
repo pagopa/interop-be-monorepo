@@ -25,6 +25,7 @@ import {
   ListResult,
   AttributeId,
   agreementState,
+  EserviceAttributes,
   Tenant,
   RiskAnalysis,
   RiskAnalysisId,
@@ -40,6 +41,7 @@ import {
   EServiceDescriptorSeed,
   UpdateEServiceDescriptorSeed,
   UpdateEServiceDescriptorQuotasSeed,
+  EServiceAttributesSeed,
   EServiceRiskAnalysisSeed,
 } from "../model/domain/models.js";
 import {
@@ -89,7 +91,6 @@ import { formatClonedEServiceDate } from "../utilities/date.js";
 import { ReadModelService } from "./readModelService.js";
 import {
   assertRequesterAllowed,
-  assertDailyCallsAreConsistentAndNotDecreased,
   assertIsDraftEservice,
   assertIsReceiveEservice,
   assertTenantKindExists,
@@ -229,6 +230,59 @@ const replaceDescriptor = (
     descriptors: updatedDescriptors,
   };
 };
+
+async function parseAndCheckAttributes(
+  attributesSeed: EServiceAttributesSeed,
+  readModelService: ReadModelService
+): Promise<EserviceAttributes> {
+  const certifiedAttributes = attributesSeed.certified;
+  const declaredAttributes = attributesSeed.declared;
+  const verifiedAttributes = attributesSeed.verified;
+
+  const attributesSeeds = [
+    ...certifiedAttributes.flat(),
+    ...declaredAttributes.flat(),
+    ...verifiedAttributes.flat(),
+  ];
+
+  if (attributesSeeds.length > 0) {
+    const attributesSeedsIds: AttributeId[] = attributesSeeds.map((attr) =>
+      unsafeBrandId(attr.id)
+    );
+    const attributes = await readModelService.getAttributesByIds(
+      attributesSeedsIds
+    );
+    const attributesIds = attributes.map((attr) => attr.id);
+    for (const attributeSeedId of attributesSeedsIds) {
+      if (!attributesIds.includes(unsafeBrandId(attributeSeedId))) {
+        throw attributeNotFound(attributeSeedId);
+      }
+    }
+  }
+
+  return {
+    certified: certifiedAttributes.map((a) =>
+      a.map((a) => ({
+        ...a,
+        id: unsafeBrandId(a.id),
+      }))
+    ),
+    // eslint-disable-next-line sonarjs/no-identical-functions
+    declared: declaredAttributes.map((a) =>
+      a.map((a) => ({
+        ...a,
+        id: unsafeBrandId(a.id),
+      }))
+    ),
+    // eslint-disable-next-line sonarjs/no-identical-functions
+    verified: verifiedAttributes.map((a) =>
+      a.map((a) => ({
+        ...a,
+        id: unsafeBrandId(a.id),
+      }))
+    ),
+  };
+}
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function catalogServiceBuilder(
@@ -676,30 +730,10 @@ export function catalogServiceBuilder(
 
       const newVersion = nextDescriptorVersion(eservice.data);
 
-      const certifiedAttributes = eserviceDescriptorSeed.attributes.certified;
-      const declaredAttributes = eserviceDescriptorSeed.attributes.declared;
-      const verifiedAttributes = eserviceDescriptorSeed.attributes.verified;
-
-      const attributesSeeds = [
-        ...certifiedAttributes.flat(),
-        ...declaredAttributes.flat(),
-        ...verifiedAttributes.flat(),
-      ];
-
-      if (attributesSeeds.length > 0) {
-        const attributesSeedsIds: AttributeId[] = attributesSeeds.map((attr) =>
-          unsafeBrandId(attr.id)
-        );
-        const attributes = await readModelService.getAttributesByIds(
-          attributesSeedsIds
-        );
-        const attributesIds = attributes.map((attr) => attr.id);
-        for (const attributeSeedId of attributesSeedsIds) {
-          if (!attributesIds.includes(unsafeBrandId(attributeSeedId))) {
-            throw attributeNotFound(attributeSeedId);
-          }
-        }
-      }
+      const parsedAttributes = await parseAndCheckAttributes(
+        eserviceDescriptorSeed.attributes,
+        readModelService
+      );
 
       if (
         eserviceDescriptorSeed.dailyCallsPerConsumer >
@@ -731,28 +765,7 @@ export function catalogServiceBuilder(
         deprecatedAt: undefined,
         archivedAt: undefined,
         createdAt: new Date(),
-        attributes: {
-          certified: certifiedAttributes.map((a) =>
-            a.map((a) => ({
-              ...a,
-              id: unsafeBrandId(a.id),
-            }))
-          ),
-          // eslint-disable-next-line sonarjs/no-identical-functions
-          declared: declaredAttributes.map((a) =>
-            a.map((a) => ({
-              ...a,
-              id: unsafeBrandId(a.id),
-            }))
-          ),
-          // eslint-disable-next-line sonarjs/no-identical-functions
-          verified: verifiedAttributes.map((a) =>
-            a.map((a) => ({
-              ...a,
-              id: unsafeBrandId(a.id),
-            }))
-          ),
-        },
+        attributes: parsedAttributes,
       };
 
       const newEservice: EService = {
@@ -848,6 +861,11 @@ export function catalogServiceBuilder(
         throw inconsistentDailyCalls();
       }
 
+      const parsedAttributes = await parseAndCheckAttributes(
+        seed.attributes,
+        readModelService
+      );
+
       const updatedDescriptor: Descriptor = {
         ...descriptor,
         description: seed.description,
@@ -860,6 +878,7 @@ export function catalogServiceBuilder(
           apiAgreementApprovalPolicyToAgreementApprovalPolicy(
             seed.agreementApprovalPolicy
           ),
+        attributes: parsedAttributes,
       };
 
       const updatedEService = replaceDescriptor(
@@ -1239,12 +1258,9 @@ export function catalogServiceBuilder(
         throw notValidDescriptor(descriptorId, descriptor.state.toString());
       }
 
-      assertDailyCallsAreConsistentAndNotDecreased({
-        dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
-        dailyCallsTotal: descriptor.dailyCallsTotal,
-        updatedDailyCallsPerConsumer: seed.dailyCallsPerConsumer,
-        updatedDailyCallsTotal: seed.dailyCallsTotal,
-      });
+      if (seed.dailyCallsPerConsumer > seed.dailyCallsTotal) {
+        throw inconsistentDailyCalls();
+      }
 
       const updatedDescriptor: Descriptor = {
         ...descriptor,

@@ -24,7 +24,7 @@ import {
   initDB,
   initFileManager,
   unexpectedFieldError,
-  unexpectedFieldValue,
+  unexpectedFieldValueError,
   userRoles,
 } from "pagopa-interop-commons";
 import { IDatabase } from "pg-promise";
@@ -90,7 +90,6 @@ import {
 } from "../src/services/catalogService.js";
 import {
   attributeNotFound,
-  dailyCallsCannotBeDecreased,
   draftDescriptorAlreadyExists,
   eServiceCannotBeDeleted,
   eServiceCannotBeUpdated,
@@ -677,7 +676,7 @@ describe("database test", async () => {
     });
 
     describe("create descriptor", async () => {
-      it("should write on event-store for the creation of a descriptor", async () => {
+      it("should write on event-store for the creation of a descriptor (eservice had no descriptors)", async () => {
         const attribute: Attribute = {
           name: "Attribute name",
           id: generateId(),
@@ -696,34 +695,43 @@ describe("database test", async () => {
             verified: [],
           },
         };
-        await addOneEService(mockEService, postgresDB, eservices);
-        await catalogService.createDescriptor(
-          mockEService.id,
-          descriptorSeed,
-          getMockAuthData(mockEService.producerId)
-        );
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [],
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+        const newDescriptorId = (
+          await catalogService.createDescriptor(
+            eservice.id,
+            descriptorSeed,
+            getMockAuthData(eservice.producerId)
+          )
+        ).id;
         const writtenEvent = await readLastEventByStreamId(
-          mockEService.id,
+          eservice.id,
           postgresDB
         );
-        expect(writtenEvent.stream_id).toBe(mockEService.id);
-        expect(writtenEvent.version).toBe("1");
-        expect(writtenEvent.type).toBe("EServiceDescriptorAdded");
-        expect(writtenEvent.event_version).toBe(2);
+        expect(writtenEvent).toMatchObject({
+          stream_id: eservice.id,
+          version: "1",
+          type: "EServiceDescriptorAdded",
+          event_version: 2,
+        });
         const writtenPayload = decodeProtobufPayload({
           messageType: EServiceDescriptorAddedV2,
           payload: writtenEvent.data,
         });
 
         const expectedEservice = toEServiceV2({
-          ...mockEService,
+          ...eservice,
           descriptors: [
             {
               ...mockDescriptor,
+              version: "1",
               createdAt: new Date(
                 Number(writtenPayload.eservice!.descriptors[0]!.createdAt)
               ),
-              id: unsafeBrandId(writtenPayload.eservice!.descriptors[0]!.id),
+              id: newDescriptorId,
               serverUrls: [],
               attributes: {
                 certified: [],
@@ -736,10 +744,89 @@ describe("database test", async () => {
           ],
         });
 
-        expect(writtenPayload.descriptorId).toEqual(
-          expectedEservice.descriptors[0].id
+        expect(writtenPayload).toEqual({
+          descriptorId: newDescriptorId,
+          eservice: expectedEservice,
+        });
+      });
+
+      it("should write on event-store for the creation of a descriptor (eservice already had one descriptor)", async () => {
+        const attribute: Attribute = {
+          name: "Attribute name",
+          id: generateId(),
+          kind: "Declared",
+          description: "Attribute Description",
+          creationTime: new Date(),
+        };
+        await addOneAttribute(attribute, attributes);
+        const descriptorSeed: EServiceDescriptorSeed = {
+          ...buildDescriptorSeed(mockDescriptor),
+          attributes: {
+            certified: [],
+            declared: [
+              [{ id: attribute.id, explicitAttributeVerification: false }],
+            ],
+            verified: [],
+          },
+        };
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          interface: mockDocument,
+          state: descriptorState.published,
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+        const newDescriptorId = (
+          await catalogService.createDescriptor(
+            eservice.id,
+            descriptorSeed,
+            getMockAuthData(eservice.producerId)
+          )
+        ).id;
+        const writtenEvent = await readLastEventByStreamId(
+          eservice.id,
+          postgresDB
         );
-        expect(writtenPayload.eservice).toEqual(expectedEservice);
+        expect(writtenEvent).toMatchObject({
+          stream_id: eservice.id,
+          version: "1",
+          type: "EServiceDescriptorAdded",
+          event_version: 2,
+        });
+        const writtenPayload = decodeProtobufPayload({
+          messageType: EServiceDescriptorAddedV2,
+          payload: writtenEvent.data,
+        });
+
+        const newDescriptor: Descriptor = {
+          ...mockDescriptor,
+          version: "2",
+          createdAt: new Date(
+            Number(writtenPayload.eservice!.descriptors[1]!.createdAt)
+          ),
+          id: newDescriptorId,
+          serverUrls: [],
+          attributes: {
+            certified: [],
+            declared: [
+              [{ id: attribute.id, explicitAttributeVerification: false }],
+            ],
+            verified: [],
+          },
+        };
+
+        const expectedEservice = toEServiceV2({
+          ...eservice,
+          descriptors: [...eservice.descriptors, newDescriptor],
+        });
+
+        expect(writtenPayload).toEqual({
+          descriptorId: newDescriptorId,
+          eservice: expectedEservice,
+        });
       });
 
       it("should throw draftDescriptorAlreadyExists if a draft descriptor already exists", async () => {
@@ -771,7 +858,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
-      it("should throw attributeNotFound if at least one of the attributes don't exist", async () => {
+      it("should throw attributeNotFound if at least one of the attributes doesn't exist", async () => {
         const eservice: EService = {
           ...mockEService,
           descriptors: [],
@@ -869,10 +956,25 @@ describe("database test", async () => {
           descriptors: [descriptor],
         };
         await addOneEService(eservice, postgresDB, eservices);
+        const attribute: Attribute = {
+          name: "Attribute name",
+          id: generateId(),
+          kind: "Declared",
+          description: "Attribute Description",
+          creationTime: new Date(),
+        };
+        await addOneAttribute(attribute, attributes);
 
         const updatedDescriptorSeed: EServiceDescriptorSeed = {
           ...buildDescriptorSeed(descriptor),
           dailyCallsTotal: 200,
+          attributes: {
+            certified: [],
+            declared: [
+              [{ id: attribute.id, explicitAttributeVerification: false }],
+            ],
+            verified: [],
+          },
         };
 
         const updatedEService: EService = {
@@ -881,6 +983,13 @@ describe("database test", async () => {
             {
               ...descriptor,
               dailyCallsTotal: 200,
+              attributes: {
+                certified: [],
+                declared: [
+                  [{ id: attribute.id, explicitAttributeVerification: false }],
+                ],
+                verified: [],
+              },
             },
           ],
         };
@@ -894,10 +1003,12 @@ describe("database test", async () => {
           eservice.id,
           postgresDB
         );
-        expect(writtenEvent.stream_id).toBe(eservice.id);
-        expect(writtenEvent.version).toBe("1");
-        expect(writtenEvent.type).toBe("DraftEServiceUpdated");
-        expect(writtenEvent.event_version).toBe(2);
+        expect(writtenEvent).toMatchObject({
+          stream_id: eservice.id,
+          version: "1",
+          type: "DraftEServiceUpdated",
+          event_version: 2,
+        });
         const writtenPayload = decodeProtobufPayload({
           messageType: DraftEServiceUpdatedV2,
           payload: writtenEvent.data,
@@ -1060,6 +1171,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(operationForbidden);
       });
+
       it("should throw inconsistentDailyCalls if dailyCallsPerConsumer is greater than dailyCallsTotal", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
@@ -1084,6 +1196,64 @@ describe("database test", async () => {
             getMockAuthData(eservice.producerId)
           )
         ).rejects.toThrowError(inconsistentDailyCalls());
+      });
+
+      it("should throw attributeNotFound if at least one of the attributes doesn't exist", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+          attributes: {
+            certified: [],
+            declared: [],
+            verified: [],
+          },
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+
+        const attribute: Attribute = {
+          name: "Attribute name",
+          id: generateId(),
+          kind: "Declared",
+          description: "Attribute Description",
+          creationTime: new Date(),
+        };
+        await addOneAttribute(attribute, attributes);
+        const notExistingId1 = generateId();
+        const notExistingId2 = generateId();
+
+        const descriptorSeed = {
+          ...buildDescriptorSeed(mockDescriptor),
+          attributes: {
+            certified: [],
+            declared: [
+              [
+                { id: attribute.id, explicitAttributeVerification: false },
+                {
+                  id: notExistingId1,
+                  explicitAttributeVerification: false,
+                },
+                {
+                  id: notExistingId2,
+                  explicitAttributeVerification: false,
+                },
+              ],
+            ],
+            verified: [],
+          },
+        };
+
+        expect(
+          catalogService.updateDraftDescriptor(
+            eservice.id,
+            descriptor.id,
+            descriptorSeed,
+            getMockAuthData(eservice.producerId)
+          )
+        ).rejects.toThrowError(attributeNotFound(notExistingId1));
       });
     });
 
@@ -2709,35 +2879,6 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(inconsistentDailyCalls());
       });
-
-      it("should throw dailyCallsCannotBeDecreased if dailyCallsPerConsumer or dailyCallsTotal get decreased", async () => {
-        const descriptor: Descriptor = {
-          ...mockDescriptor,
-          state: descriptorState.published,
-          interface: mockDocument,
-          publishedAt: new Date(),
-        };
-        const eservice: EService = {
-          ...mockEService,
-          descriptors: [descriptor],
-        };
-        await addOneEService(eservice, postgresDB, eservices);
-
-        const updatedDescriptorQuotasSeed: UpdateEServiceDescriptorQuotasSeed =
-          {
-            voucherLifespan: 1000,
-            dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer - 1,
-            dailyCallsTotal: descriptor.dailyCallsTotal - 1,
-          };
-        expect(
-          catalogService.updateDescriptor(
-            eservice.id,
-            descriptor.id,
-            updatedDescriptorQuotasSeed,
-            getMockAuthData(eservice.producerId)
-          )
-        ).rejects.toThrowError(dailyCallsCannotBeDecreased());
-      });
     });
 
     describe("upload Document", () => {
@@ -3767,7 +3908,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(
           riskAnalysisValidationFailed([
-            unexpectedFieldValue(
+            unexpectedFieldValueError(
               "purpose",
               new Set(["INSTITUTIONAL", "OTHER"])
             ),

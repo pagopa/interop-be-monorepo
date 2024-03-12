@@ -16,8 +16,6 @@ import {
   eserviceNotInDraftState,
   eserviceNotInReceiveMode,
   tenantKindNotFound,
-  inconsistentDailyCalls,
-  dailyCallsCannotBeDecreased,
   riskAnalysisValidationFailed,
   draftDescriptorAlreadyExists,
 } from "../model/domain/errors.js";
@@ -49,28 +47,6 @@ export function assertTenantKindExists(
 ): asserts tenant is Tenant & { kind: NonNullable<Tenant["kind"]> } {
   if (tenant.kind === undefined) {
     throw tenantKindNotFound(tenant.id);
-  }
-}
-
-export function assertDailyCallsAreConsistentAndNotDecreased({
-  dailyCallsPerConsumer,
-  dailyCallsTotal,
-  updatedDailyCallsPerConsumer,
-  updatedDailyCallsTotal,
-}: {
-  dailyCallsPerConsumer: number;
-  dailyCallsTotal: number;
-  updatedDailyCallsPerConsumer: number;
-  updatedDailyCallsTotal: number;
-}): void {
-  if (updatedDailyCallsPerConsumer > updatedDailyCallsTotal) {
-    throw inconsistentDailyCalls();
-  }
-  if (
-    updatedDailyCallsPerConsumer < dailyCallsPerConsumer ||
-    updatedDailyCallsTotal < dailyCallsTotal
-  ) {
-    throw dailyCallsCannotBeDecreased();
   }
 }
 
