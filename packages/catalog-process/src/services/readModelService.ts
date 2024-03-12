@@ -131,7 +131,8 @@ export function readModelServiceBuilder(
               eservicesIds,
               [authData.organizationId],
               [],
-              agreementStates
+              agreementStates,
+              0
             )
           ).map((a) => a.eserviceId)
         );
@@ -424,11 +425,13 @@ export function readModelServiceBuilder(
         .find((d) => d.id === descriptorId)
         ?.docs.find((d) => d.id === documentId);
     },
+    // eslint-disable-next-line max-params
     async listAgreements(
       eservicesIds: EServiceId[],
       consumersIds: TenantId[],
       producersIds: TenantId[],
       states: AgreementState[],
+      limit: number,
       descriptorId?: DescriptorId | undefined
     ): Promise<Agreement[]> {
       const descriptorFilter: ReadModelFilter<Agreement> = descriptorId
@@ -458,9 +461,7 @@ export function readModelServiceBuilder(
             data: 1,
           },
         },
-        {
-          $sort: { "data.id": 1 },
-        },
+        { $limit: limit },
       ];
       const data = await agreements.aggregate(aggregationPipeline).toArray();
       const result = z.array(Agreement).safeParse(data.map((a) => a.data));
