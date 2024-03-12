@@ -4,7 +4,7 @@ type RiskAnalysisValidationIssueCode =
   | "noRulesVersionFoundError"
   | "unexpectedRulesVersionError"
   | "unexpectedFieldError"
-  | "unexpectedFieldValue"
+  | "unexpectedFieldValueError"
   | "dependencyNotFoundError"
   | "unexpectedDependencyValueError"
   | "unexpectedFieldFormatError"
@@ -53,12 +53,12 @@ export function unexpectedFieldError(
   });
 }
 
-export function unexpectedFieldValue(
+export function unexpectedFieldValueError(
   fieldName: string,
   allowedValues: Set<string>
 ): RiskAnalysisValidationIssue {
   return new RiskAnalysisValidationIssue({
-    code: "unexpectedFieldValue",
+    code: "unexpectedFieldValueError",
     issue: `Field ${fieldName} should be one of [${Array.from(
       allowedValues
     ).join(",")}]`,

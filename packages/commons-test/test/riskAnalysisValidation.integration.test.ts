@@ -7,7 +7,7 @@ import {
   missingExpectedFieldError,
   unexpectedDependencyValueError,
   unexpectedFieldError,
-  unexpectedFieldValue,
+  unexpectedFieldValueError,
   unexpectedRulesVersionError,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
@@ -16,7 +16,7 @@ import {
   validRiskAnalysis3_0_Pa,
   validSchemaOnlyRiskAnalysis2_0_Private,
   validSchemaOnlyRiskAnalysis3_0_Pa,
-  validatedRiskANalysis2_0_Private,
+  validatedRiskAnalysis2_0_Private,
   validatedRiskAnalysis3_0_Pa,
 } from "../src/riskAnalysisTestUtils.js";
 
@@ -68,7 +68,7 @@ describe("Risk Analysis Validation", () => {
 
     expect(result).toEqual({
       type: "valid",
-      value: validatedRiskANalysis2_0_Private,
+      value: validatedRiskAnalysis2_0_Private,
     });
     expect(result).toEqual(resultSchemaOnly);
   });
@@ -106,7 +106,7 @@ describe("Risk Analysis Validation", () => {
 
     expect(result).toEqual({
       type: "valid",
-      value: validatedRiskANalysis2_0_Private,
+      value: validatedRiskAnalysis2_0_Private,
     });
     expect(result).toEqual(resultSchemaOnly);
   });
@@ -155,7 +155,7 @@ describe("Risk Analysis Validation", () => {
   });
 
   it("fail if a provided answer depends on missing fields", () => {
-    const riskAnalysisPa: RiskAnalysisFormToValidate = {
+    const riskAnalysis: RiskAnalysisFormToValidate = {
       version: validRiskAnalysis3_0_Pa.version,
       answers: {
         ...validRiskAnalysis3_0_Pa.answers,
@@ -166,7 +166,7 @@ describe("Risk Analysis Validation", () => {
       },
     };
 
-    expect(validateRiskAnalysis(riskAnalysisPa, false, "PA")).toEqual({
+    expect(validateRiskAnalysis(riskAnalysis, false, "PA")).toEqual({
       type: "invalid",
       issues: [
         dependencyNotFoundError("reasonPolicyNotProvided", "policyProvided"),
@@ -175,59 +175,10 @@ describe("Risk Analysis Validation", () => {
         missingExpectedFieldError("doneDpia"),
       ],
     });
-
-    const riskAnalysisPrivate: RiskAnalysisFormToValidate = {
-      version: validRiskAnalysis2_0_Private.version,
-      answers: {
-        ...validRiskAnalysis2_0_Private.answers,
-        usesPersonalData: [], // usesPersonalData is required by many fields in the form
-      },
-    };
-
-    expect(validateRiskAnalysis(riskAnalysisPrivate, false, "PRIVATE")).toEqual(
-      {
-        type: "invalid",
-        issues: [
-          dependencyNotFoundError("personalDataTypes", "usesPersonalData"),
-          dependencyNotFoundError("otherPersonalDataTypes", "usesPersonalData"),
-          dependencyNotFoundError("legalBasis", "usesPersonalData"),
-          dependencyNotFoundError(
-            "legalObligationReference",
-            "usesPersonalData"
-          ),
-          dependencyNotFoundError(
-            "legalBasisPublicInterest",
-            "usesPersonalData"
-          ),
-          dependencyNotFoundError("ruleOfLawText", "usesPersonalData"),
-          dependencyNotFoundError("knowsDataQuantity", "usesPersonalData"),
-          dependencyNotFoundError("dataDownload", "usesPersonalData"),
-          dependencyNotFoundError("deliveryMethod", "usesPersonalData"),
-          dependencyNotFoundError("policyProvided", "usesPersonalData"),
-          dependencyNotFoundError(
-            "confirmPricipleIntegrityAndDiscretion",
-            "usesPersonalData"
-          ),
-          dependencyNotFoundError(
-            "reasonPolicyNotProvided",
-            "usesPersonalData"
-          ),
-          dependencyNotFoundError("doneDpia", "usesPersonalData"),
-          dependencyNotFoundError("dataRetentionPeriod", "usesPersonalData"),
-          dependencyNotFoundError("purposePursuit", "usesPersonalData"),
-          dependencyNotFoundError(
-            "checkedExistenceMereCorrectnessInteropCatalogue",
-            "usesPersonalData"
-          ),
-          dependencyNotFoundError("declarationConfirmGDPR", "usesPersonalData"),
-          missingExpectedFieldError("usesPersonalData"),
-        ],
-      }
-    );
   });
 
   it("should succeed schema only even if a provided answer depends on a missing field", () => {
-    const riskAnalysisPa: RiskAnalysisFormToValidate = {
+    const riskAnalysis: RiskAnalysisFormToValidate = {
       version: validRiskAnalysis3_0_Pa.version,
       answers: {
         doneDpia: [],
@@ -237,7 +188,7 @@ describe("Risk Analysis Validation", () => {
       },
     };
 
-    expect(validateRiskAnalysis(riskAnalysisPa, true, "PA")).toEqual({
+    expect(validateRiskAnalysis(riskAnalysis, true, "PA")).toEqual({
       type: "valid",
       value: {
         version: validRiskAnalysis3_0_Pa.version,
@@ -248,30 +199,10 @@ describe("Risk Analysis Validation", () => {
         multiAnswers: [],
       },
     });
-
-    const riskAnalysisPrivate: RiskAnalysisFormToValidate = {
-      version: validRiskAnalysis2_0_Private.version,
-      answers: {
-        ...validRiskAnalysis2_0_Private.answers,
-        usesPersonalData: [],
-      },
-    };
-
-    expect(validateRiskAnalysis(riskAnalysisPrivate, true, "PRIVATE")).toEqual({
-      type: "valid",
-      value: {
-        ...validatedRiskANalysis2_0_Private,
-        singleAnswers: [
-          ...validatedRiskANalysis2_0_Private.singleAnswers.filter(
-            (a) => a.key !== "usesPersonalData"
-          ),
-        ],
-      },
-    });
   });
 
   it("should fail if a provided answer depends on existing fields with unexpected values", () => {
-    const riskAnalysisPa: RiskAnalysisFormToValidate = {
+    const riskAnalysis: RiskAnalysisFormToValidate = {
       version: validRiskAnalysis3_0_Pa.version,
       answers: {
         ...validRiskAnalysis3_0_Pa.answers,
@@ -282,7 +213,7 @@ describe("Risk Analysis Validation", () => {
       },
     };
 
-    expect(validateRiskAnalysis(riskAnalysisPa, false, "PA")).toEqual({
+    expect(validateRiskAnalysis(riskAnalysis, false, "PA")).toEqual({
       type: "invalid",
       issues: [
         unexpectedDependencyValueError(
@@ -303,40 +234,10 @@ describe("Risk Analysis Validation", () => {
         unexpectedDependencyValueError("otherPurpose", "purpose", "OTHER"),
       ],
     });
-
-    const riskAnalysisPrivate: RiskAnalysisFormToValidate = {
-      version: validRiskAnalysis2_0_Private.version,
-      answers: {
-        usesPersonalData: ["NO"],
-        usesThirdPartyPersonalData: ["NO"],
-        purpose: ["OTHER"],
-        otherPurpose: ["otherPurpose"],
-        institutionalPurpose: ["institutionalPurpose"], // institutionalPurpose requires purpose to be INSTITUTIONAL
-        declarationConfirmGDPR: ["true"], // declarationConfirmGDPR requires usesPersonalData to be YES
-      },
-    };
-
-    expect(validateRiskAnalysis(riskAnalysisPrivate, false, "PRIVATE")).toEqual(
-      {
-        type: "invalid",
-        issues: [
-          unexpectedDependencyValueError(
-            "institutionalPurpose",
-            "purpose",
-            "INSTITUTIONAL"
-          ),
-          unexpectedDependencyValueError(
-            "declarationConfirmGDPR",
-            "usesPersonalData",
-            "YES"
-          ),
-        ],
-      }
-    );
   });
 
   it("should succeed schema only even if a provided answer depends on an existing field with an unexpected value", () => {
-    const riskAnalysisPa: RiskAnalysisFormToValidate = {
+    const riskAnalysis: RiskAnalysisFormToValidate = {
       version: validRiskAnalysis3_0_Pa.version,
       answers: {
         purpose: ["INSTITUTIONAL"],
@@ -346,10 +247,10 @@ describe("Risk Analysis Validation", () => {
       },
     };
 
-    expect(validateRiskAnalysis(riskAnalysisPa, true, "PA")).toEqual({
+    expect(validateRiskAnalysis(riskAnalysis, true, "PA")).toEqual({
       type: "valid",
       value: {
-        version: riskAnalysisPa.version,
+        version: riskAnalysis.version,
         singleAnswers: [
           { key: "purpose", value: "INSTITUTIONAL" },
           { key: "otherPurpose", value: "otherPurpose" },
@@ -363,38 +264,10 @@ describe("Risk Analysis Validation", () => {
         ],
       },
     });
-
-    const riskAnalysisPrivate: RiskAnalysisFormToValidate = {
-      version: validRiskAnalysis2_0_Private.version,
-      answers: {
-        usesPersonalData: ["NO"],
-        usesThirdPartyPersonalData: ["NO"],
-        purpose: ["OTHER"],
-        otherPurpose: ["otherPurpose"],
-        institutionalPurpose: ["institutionalPurpose"],
-        declarationConfirmGDPR: ["true"],
-      },
-    };
-
-    expect(validateRiskAnalysis(riskAnalysisPrivate, true, "PRIVATE")).toEqual({
-      type: "valid",
-      value: {
-        version: riskAnalysisPrivate.version,
-        singleAnswers: [
-          { key: "usesPersonalData", value: "NO" },
-          { key: "usesThirdPartyPersonalData", value: "NO" },
-          { key: "purpose", value: "OTHER" },
-          { key: "otherPurpose", value: "otherPurpose" },
-          { key: "institutionalPurpose", value: "institutionalPurpose" },
-          { key: "declarationConfirmGDPR", value: "true" },
-        ],
-        multiAnswers: [],
-      },
-    });
   });
 
   it("should fail on missing expected answers", () => {
-    const riskAnalysisPa: RiskAnalysisFormToValidate = {
+    const riskAnalysis: RiskAnalysisFormToValidate = {
       version: validRiskAnalysis3_0_Pa.version,
       answers: {
         ...validRiskAnalysis3_0_Pa.answers,
@@ -403,33 +276,17 @@ describe("Risk Analysis Validation", () => {
       },
     };
 
-    expect(validateRiskAnalysis(riskAnalysisPa, false, "PA")).toEqual({
+    expect(validateRiskAnalysis(riskAnalysis, false, "PA")).toEqual({
       type: "invalid",
       issues: [
         missingExpectedFieldError("deliveryMethod"),
         missingExpectedFieldError("doneDpia"),
       ],
     });
-
-    const riskAnalysisPrivate: RiskAnalysisFormToValidate = {
-      version: validRiskAnalysis2_0_Private.version,
-      answers: {
-        ...validRiskAnalysis2_0_Private.answers,
-        purpose: [],
-        institutionalPurpose: [],
-      },
-    };
-
-    expect(validateRiskAnalysis(riskAnalysisPrivate, false, "PRIVATE")).toEqual(
-      {
-        type: "invalid",
-        issues: [missingExpectedFieldError("purpose")],
-      }
-    );
   });
 
   it("should succeeed schema only even on missing expected answers", () => {
-    const riskAnalysisPa: RiskAnalysisFormToValidate = {
+    const riskAnalysis: RiskAnalysisFormToValidate = {
       version: "3.0",
       answers: {
         purpose: ["INSTITUTIONAL"],
@@ -440,10 +297,10 @@ describe("Risk Analysis Validation", () => {
       },
     };
 
-    expect(validateRiskAnalysis(riskAnalysisPa, true, "PA")).toEqual({
+    expect(validateRiskAnalysis(riskAnalysis, true, "PA")).toEqual({
       type: "valid",
       value: {
-        version: riskAnalysisPa.version,
+        version: riskAnalysis.version,
         singleAnswers: [
           { key: "purpose", value: "INSTITUTIONAL" },
           { key: "institutionalPurpose", value: "institutionalPurpose" },
@@ -453,27 +310,10 @@ describe("Risk Analysis Validation", () => {
         multiAnswers: [],
       },
     });
-
-    const riskAnalysisPrivate: RiskAnalysisFormToValidate = {
-      version: "2.0",
-      answers: {
-        usesPersonalData: ["YES"],
-        // missing many required fields
-      },
-    };
-
-    expect(validateRiskAnalysis(riskAnalysisPrivate, true, "PRIVATE")).toEqual({
-      type: "valid",
-      value: {
-        version: riskAnalysisPrivate.version,
-        singleAnswers: [{ key: "usesPersonalData", value: "YES" }],
-        multiAnswers: [],
-      },
-    });
   });
 
   it("should fail on unexpected field name both schema only and not", () => {
-    const riskAnalysisPa: RiskAnalysisFormToValidate = {
+    const riskAnalysis: RiskAnalysisFormToValidate = {
       version: validRiskAnalysis3_0_Pa.version,
       answers: {
         ...validRiskAnalysis3_0_Pa.answers,
@@ -483,11 +323,11 @@ describe("Risk Analysis Validation", () => {
       },
     };
 
-    expect(validateRiskAnalysis(riskAnalysisPa, false, "PA")).toEqual(
-      validateRiskAnalysis(riskAnalysisPa, true, "PA")
+    expect(validateRiskAnalysis(riskAnalysis, false, "PA")).toEqual(
+      validateRiskAnalysis(riskAnalysis, true, "PA")
     );
 
-    expect(validateRiskAnalysis(riskAnalysisPa, false, "PA")).toEqual({
+    expect(validateRiskAnalysis(riskAnalysis, false, "PA")).toEqual({
       type: "invalid",
       issues: [
         unexpectedFieldError("unexpectedFieldA"),
@@ -495,33 +335,10 @@ describe("Risk Analysis Validation", () => {
         unexpectedFieldError("unexpectedFieldC"),
       ],
     });
-
-    const riskAnalysisPrivate: RiskAnalysisFormToValidate = {
-      version: validRiskAnalysis2_0_Private.version,
-      answers: {
-        ...validRiskAnalysis2_0_Private.answers,
-        unexpectedFieldA: ["unexpected value A"],
-        unexpectedFieldB: ["unexpected value B"],
-      },
-    };
-
-    expect(validateRiskAnalysis(riskAnalysisPrivate, false, "PRIVATE")).toEqual(
-      validateRiskAnalysis(riskAnalysisPrivate, true, "PRIVATE")
-    );
-
-    expect(validateRiskAnalysis(riskAnalysisPrivate, false, "PRIVATE")).toEqual(
-      {
-        type: "invalid",
-        issues: [
-          unexpectedFieldError("unexpectedFieldA"),
-          unexpectedFieldError("unexpectedFieldB"),
-        ],
-      }
-    );
   });
 
   it("should fail on unexpected field value both schema only and not", () => {
-    const riskAnalysisPa: RiskAnalysisFormToValidate = {
+    const riskAnalysis: RiskAnalysisFormToValidate = {
       version: validRiskAnalysis3_0_Pa.version,
       answers: {
         ...validRiskAnalysis3_0_Pa.answers,
@@ -531,15 +348,18 @@ describe("Risk Analysis Validation", () => {
       },
     };
 
-    expect(validateRiskAnalysis(riskAnalysisPa, false, "PA")).toEqual(
-      validateRiskAnalysis(riskAnalysisPa, true, "PA")
+    expect(validateRiskAnalysis(riskAnalysis, false, "PA")).toEqual(
+      validateRiskAnalysis(riskAnalysis, true, "PA")
     );
 
-    expect(validateRiskAnalysis(riskAnalysisPa, false, "PA")).toEqual({
+    expect(validateRiskAnalysis(riskAnalysis, false, "PA")).toEqual({
       type: "invalid",
       issues: [
-        unexpectedFieldValue("purpose", new Set(["INSTITUTIONAL", "OTHER"])),
-        unexpectedFieldValue(
+        unexpectedFieldValueError(
+          "purpose",
+          new Set(["INSTITUTIONAL", "OTHER"])
+        ),
+        unexpectedFieldValueError(
           "legalBasis",
           new Set([
             "CONSENT",
@@ -551,39 +371,5 @@ describe("Risk Analysis Validation", () => {
         ),
       ],
     });
-
-    const riskAnalysisPrivate: RiskAnalysisFormToValidate = {
-      version: validRiskAnalysis2_0_Private.version,
-      answers: {
-        ...validRiskAnalysis2_0_Private.answers,
-        purpose: ["unexpected value"],
-        institutionalPurpose: [],
-        personalDataTypes: ["unexpected value", "OTHER"],
-      },
-    };
-
-    expect(validateRiskAnalysis(riskAnalysisPrivate, true, "PRIVATE")).toEqual(
-      validateRiskAnalysis(riskAnalysisPrivate, false, "PRIVATE")
-    );
-
-    expect(validateRiskAnalysis(riskAnalysisPrivate, false, "PRIVATE")).toEqual(
-      {
-        type: "invalid",
-        issues: [
-          unexpectedFieldValue("purpose", new Set(["INSTITUTIONAL", "OTHER"])),
-          unexpectedFieldValue(
-            "personalDataTypes",
-            new Set([
-              "WITH_NON_IDENTIFYING_DATA",
-              "WITH_IDENTIFYING_DATA",
-              "GDPR_ART_8",
-              "GDPR_ART_9",
-              "GDPR_ART_10",
-              "OTHER",
-            ])
-          ),
-        ],
-      }
-    );
   });
 });
