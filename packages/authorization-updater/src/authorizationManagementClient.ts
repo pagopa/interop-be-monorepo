@@ -1,6 +1,6 @@
 import { ZodiosInstance } from "@zodios/core";
 import { authServiceConfig } from "pagopa-interop-commons";
-import { api, createApiClient } from "./model/generated/api.js";
+import { api, createApiClient } from "./generated/generated.js";
 
 type Api = typeof api.api;
 

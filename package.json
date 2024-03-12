@@ -21,7 +21,7 @@
     "lint:autofix": "turbo lint:autofix",
     "format:check": "turbo format:check",
     "format:write": "turbo format:write",
-    "generate-model": "turbo generate-model",
+    "open-api-generate": "turbo open-api-generate",
     "infra:start": "./scripts/infra-start.sh",
     "infra:stop": "./scripts/infra-stop.sh",
     "infra:destroy": "./scripts/infra-destroy.sh",

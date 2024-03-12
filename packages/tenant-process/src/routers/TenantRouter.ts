@@ -7,7 +7,7 @@ import {
   authorizationMiddleware,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
-import { api } from "../model/generated/api.js";
+import { api } from "../generated/generated.js";
 import { toApiTenant } from "../model/domain/apiConverter.js";
 import {
   makeApiProblem,

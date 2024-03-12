@@ -7,7 +7,7 @@ import {
   EServiceMode,
   TenantId,
 } from "pagopa-interop-models";
-import { api } from "./generated/api.js";
+import { api } from "../generated/generated.js";
 
 type Api = typeof api.api;
 export type ApiEServiceSeed = ZodiosBodyByPath<Api, "post", "/eservices">;
