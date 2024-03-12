@@ -39,13 +39,13 @@ import {
   EServiceDeletedV1,
   EServiceDescriptorActivatedV2,
   EServiceDescriptorAddedV2,
-  EServiceDescriptorDeletedV2,
   EServiceDescriptorDocumentDeletedV2,
   EServiceDescriptorDocumentUpdatedV2,
   EServiceDescriptorInterfaceDeletedV2,
   EServiceDescriptorPublishedV2,
   EServiceDescriptorQuotasUpdatedV2,
   EServiceDescriptorSuspendedV2,
+  EServiceDraftDescriptorDeletedV2,
   EServiceDraftDescriptorUpdatedV2,
   EServiceId,
   EServiceRiskAnalysisAddedV2,
@@ -1324,11 +1324,11 @@ describe("database test", async () => {
         );
         expect(writtenEvent.stream_id).toBe(eservice.id);
         expect(writtenEvent.version).toBe("1");
-        expect(writtenEvent.type).toBe("EServiceDescriptorDeleted");
+        expect(writtenEvent.type).toBe("EServiceDraftDescriptorDeleted");
         expect(writtenEvent.event_version).toBe(2);
 
         const writtenPayload = decodeProtobufPayload({
-          messageType: EServiceDescriptorDeletedV2,
+          messageType: EServiceDraftDescriptorDeletedV2,
           payload: writtenEvent.data,
         });
 
@@ -1419,10 +1419,10 @@ describe("database test", async () => {
         );
         expect(writtenEvent.stream_id).toBe(eservice.id);
         expect(writtenEvent.version).toBe("1");
-        expect(writtenEvent.type).toBe("EServiceDescriptorDeleted");
+        expect(writtenEvent.type).toBe("EServiceDraftDescriptorDeleted");
         expect(writtenEvent.event_version).toBe(2);
         const writtenPayload = decodeProtobufPayload({
-          messageType: EServiceDescriptorDeletedV2,
+          messageType: EServiceDraftDescriptorDeletedV2,
           payload: writtenEvent.data,
         });
 
