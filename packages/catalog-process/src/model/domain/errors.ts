@@ -65,6 +65,15 @@ export function eServiceCannotBeUpdated(
   });
 }
 
+export function eServiceCannotBeDeleted(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} contains descriptors and cannot be deleted`,
+    ...eserviceCannotBeUpdatedOrDeleted,
+  });
+}
+
 export function eServiceDescriptorNotFound(
   eserviceId: EServiceId,
   descriptorId: DescriptorId
