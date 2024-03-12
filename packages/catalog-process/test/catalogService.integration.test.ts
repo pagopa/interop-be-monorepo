@@ -91,6 +91,7 @@ import {
 import {
   attributeNotFound,
   draftDescriptorAlreadyExists,
+  eServiceCannotBeDeleted,
   eServiceCannotBeUpdated,
   eServiceDescriptorNotFound,
   eServiceDescriptorWithoutInterface,
@@ -691,7 +692,7 @@ describe("database test", async () => {
         ).rejects.toThrowError(operationForbidden);
       });
 
-      it("should throw eserviceNotInDraftState if the eservice has both draft and non-draft descriptors", async () => {
+      it("should throw eServiceCannotBeDeleted if the eservice has both draft and non-draft descriptors", async () => {
         const descriptor1: Descriptor = {
           ...mockDescriptor,
           interface: mockDocument,
@@ -713,7 +714,7 @@ describe("database test", async () => {
             eservice.id,
             getMockAuthData(eservice.producerId)
           )
-        ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
+        ).rejects.toThrowError(eServiceCannotBeDeleted(eservice.id));
       });
     });
 
