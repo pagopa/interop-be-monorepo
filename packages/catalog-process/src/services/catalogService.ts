@@ -129,11 +129,13 @@ const retrieveDocument = (
   descriptor: Descriptor,
   documentId: EServiceDocumentId
 ): Document => {
-  const doc = descriptor.docs.find((d) => d.id === documentId);
-  if (doc === undefined) {
+  const document = [...descriptor.docs, descriptor.interface].find(
+    (doc) => doc != null && doc.id === documentId
+  );
+  if (document === undefined) {
     throw eServiceDocumentNotFound(eserviceId, descriptor.id, documentId);
   }
-  return doc;
+  return document;
 };
 
 const retrieveTenant = async (
@@ -591,12 +593,7 @@ export function catalogServiceBuilder(
         throw notValidDescriptor(descriptor.id, descriptor.state);
       }
 
-      const document = [...descriptor.docs, descriptor.interface].find(
-        (doc) => doc != null && doc.id === documentId
-      );
-      if (document === undefined) {
-        throw eServiceDocumentNotFound(eserviceId, descriptorId, documentId);
-      }
+      const document = retrieveDocument(eserviceId, descriptor, documentId);
 
       await fileManager
         .delete(config.s3Bucket, document.path)
@@ -665,13 +662,7 @@ export function catalogServiceBuilder(
         throw notValidDescriptor(descriptor.id, descriptor.state);
       }
 
-      const document = (
-        descriptor ? [...descriptor.docs, descriptor.interface] : []
-      ).find((doc) => doc != null && doc.id === documentId);
-
-      if (document === undefined) {
-        throw eServiceDocumentNotFound(eserviceId, descriptorId, documentId);
-      }
+      const document = retrieveDocument(eserviceId, descriptor, documentId);
 
       const updatedDocument = {
         ...document,

@@ -5130,6 +5130,32 @@ describe("database test", async () => {
         expect(result).toEqual(mockDocument);
       });
 
+      it("should get the interface if it exists (requester is the producer, admin)", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          interface: mockDocument,
+          docs: [],
+        };
+        const eservice: EService = {
+          ...mockEService,
+          id: generateId(),
+          name: "eservice 001",
+          descriptors: [descriptor],
+        };
+        const authData: AuthData = {
+          ...getMockAuthData(eservice.producerId),
+          userRoles: [userRoles.ADMIN_ROLE],
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+        const result = await catalogService.getDocumentById({
+          eserviceId: eservice.id,
+          descriptorId: descriptor.id,
+          documentId: mockDocument.id,
+          authData,
+        });
+        expect(result).toEqual(mockDocument);
+      });
+
       it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
         const authData: AuthData = {
           ...getMockAuthData(),
