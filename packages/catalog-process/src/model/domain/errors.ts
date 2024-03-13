@@ -10,37 +10,28 @@ import {
 import { RiskAnalysisValidationIssue, logger } from "pagopa-interop-commons";
 
 export const errorCodes = {
-  eServiceDescriptorNotFound: "0002",
-  eServiceDescriptorWithoutInterface: "0003",
-  notValidDescriptor: "0004",
-  eServiceDocumentNotFound: "0006",
-  eServiceNotFound: "0007",
-  draftDescriptorAlreadyExists: "0008",
-  eserviceCannotBeUpdatedOrDeleted: "0009",
-  eServiceDuplicate: "0010",
-  originNotCompliant: "0011",
-  attributeNotFound: "0012",
-  inconsistentDailyCalls: "0013",
-  interfaceAlreadyExists: "0014",
-  eserviceNotInDraftState: "0015",
-  eserviceNotInReceiveMode: "0016",
-  tenantNotFound: "0017",
-  tenantKindNotFound: "0018",
-  riskAnalysisValidationFailed: "0019",
-  eserviceRiskAnalysisNotFound: "0020",
+  eServiceDescriptorNotFound: "0001",
+  eServiceDescriptorWithoutInterface: "0002",
+  notValidDescriptor: "0003",
+  eServiceDocumentNotFound: "0004",
+  eServiceNotFound: "0005",
+  draftDescriptorAlreadyExists: "0006",
+  eServiceDuplicate: "007",
+  originNotCompliant: "0008",
+  attributeNotFound: "0009",
+  inconsistentDailyCalls: "0010",
+  interfaceAlreadyExists: "0011",
+  eserviceNotInDraftState: "0012",
+  eserviceNotInReceiveMode: "0013",
+  tenantNotFound: "0014",
+  tenantKindNotFound: "0015",
+  riskAnalysisValidationFailed: "0016",
+  eserviceRiskAnalysisNotFound: "0017",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
 
 export const makeApiProblem = makeApiProblemBuilder(logger, errorCodes);
-
-const eserviceCannotBeUpdatedOrDeleted: {
-  code: ErrorCodes;
-  title: string;
-} = {
-  code: "eserviceCannotBeUpdatedOrDeleted",
-  title: "EService cannot be updated or deleted",
-};
 
 export function eServiceNotFound(eserviceId: EServiceId): ApiError<ErrorCodes> {
   return new ApiError({
@@ -55,24 +46,6 @@ export function eServiceDuplicate(eserviceName: string): ApiError<ErrorCodes> {
     detail: `An EService with name ${eserviceName} already exists`,
     code: "eServiceDuplicate",
     title: "Duplicated service name",
-  });
-}
-
-export function eServiceCannotBeUpdated(
-  eserviceId: EServiceId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `EService ${eserviceId} contains valid descriptors and cannot be updated`,
-    ...eserviceCannotBeUpdatedOrDeleted,
-  });
-}
-
-export function eServiceCannotBeDeleted(
-  eserviceId: EServiceId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `EService ${eserviceId} contains descriptors and cannot be deleted`,
-    ...eserviceCannotBeUpdatedOrDeleted,
   });
 }
 
