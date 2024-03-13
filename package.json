@@ -14,6 +14,7 @@
     "start:tenant": "turbo start --filter pagopa-interop-tenant-process",
     "start:tenant-readmodel-writer": "turbo start --filter pagopa-interop-tenant-readmodel-writer",
     "start:auth-updater": "turbo start --filter pagopa-interop-authorization-updater",
+    "start:notifier": "turbo start --filter pagopa-interop-notifier",
     "test": "turbo test",
     "test:it": "turbo test:it",
     "build": "turbo build",

@@ -1,8 +1,8 @@
 {
-  "name": "pagopa-interop-notifier-sink",
+  "name": "pagopa-interop-notifier",
   "private": true,
   "version": "1.0.0",
-  "description": "Pagopa Interop Notifier Sink",
+  "description": "Pagopa Interop Notifier",
   "main": "dist",
   "type": "module",
   "scripts": {
