@@ -860,7 +860,11 @@ paths:
               $ref: "#/components/schemas/UpdateEServiceDescriptorDocumentSeed"
       responses:
         "200":
-          description: EService Descriptor updated.
+          description: EService Document updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDoc"
         "404":
           description: EService not found
           content:
