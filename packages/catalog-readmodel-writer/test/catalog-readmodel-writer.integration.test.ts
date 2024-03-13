@@ -8,16 +8,28 @@ import {
   ReadModelRepository,
   readModelWriterConfig,
 } from "pagopa-interop-commons";
-import { mongoDBContainer } from "pagopa-interop-commons-test";
 import {
+  mongoDBContainer,
+  writeInReadmodel,
+} from "pagopa-interop-commons-test";
+import {
+  ClonedEServiceAddedV1,
+  Descriptor,
+  EService,
   EServiceAddedV1,
   EServiceEventEnvelope,
+  EServiceId,
   EServiceModeV1,
   EServiceTechnologyV1,
+  EServiceUpdatedV1,
+  descriptorState,
+  eserviceMode,
   generateId,
+  technology,
 } from "pagopa-interop-models";
 import { StartedTestContainer } from "testcontainers";
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
+import { toEServiceV1 } from "./toEventV1.js";
 
 describe("database test", async () => {
   let eservices: EServiceCollection;
@@ -42,42 +54,116 @@ describe("database test", async () => {
     await startedMongoDBContainer.stop();
   });
 
-  describe("Handle message for eservice creation", () => {
-    it("should create an eservice", async () => {
-      const id = generateId();
-      const newEService: EServiceAddedV1 = {
-        eservice: {
-          id,
-          producerId: generateId(),
-          name: "name",
-          description: "description",
-          technology: EServiceTechnologyV1.REST,
-          descriptors: [],
-          createdAt: BigInt(new Date().getTime()),
-          mode: EServiceModeV1.RECEIVE,
-          riskAnalysis: [],
-        },
+  describe("Events V1", () => {
+    describe("EServiceAdded", () => {
+      it("should create an eservice", async () => {
+        const id = generateId<EServiceId>();
+        const newEservice: EService = getMockEService();
+        const newEServicePayloadV1: EServiceAddedV1 = {
+          eservice: toEServiceV1(newEservice),
+        };
+        const message: EServiceEventEnvelope = {
+          sequence_num: 1,
+          stream_id: id,
+          version: 1,
+          type: "EServiceAdded",
+          event_version: 1,
+          data: newEServicePayloadV1,
+        };
+        await handleMessageV1(message, eservices);
+
+        const eservice = await eservices.findOne({
+          "data.id": id.toString,
+        });
+
+        expect(eservice?.data).toEqual(newEservice);
+      });
+    });
+
+    describe("ClonedEServiceAdded", () => {
+      it("should clone an eservice", async () => {
+        const id = generateId<EServiceId>();
+        const newEservice: EService = getMockEService();
+        const clonedEServicePayloadV1: ClonedEServiceAddedV1 = {
+          eservice: toEServiceV1(newEservice),
+        };
+        const message: EServiceEventEnvelope = {
+          sequence_num: 1,
+          stream_id: id,
+          version: 1,
+          type: "ClonedEServiceAdded",
+          event_version: 1,
+          data: clonedEServicePayloadV1,
+        };
+        await handleMessageV1(message, eservices);
+
+        const retrievedEservice = await eservices.findOne({
+          "data.id": id.toString,
+        });
+
+        expect(retrievedEservice?.data).toEqual(newEservice);
+      });
+    });
+
+    it("EServiceUpdated", async () => {
+      const eservice: EService = getMockEService();
+
+      await writeInReadmodel<EService>(eservice, eservices, 1);
+
+      const updatedEService: EService = {
+        ...eservice,
+        description: "updated description",
+      };
+      const updatedEServicePayloadV1: EServiceUpdatedV1 = {
+        eservice: toEServiceV1(updatedEService),
       };
       const message: EServiceEventEnvelope = {
         sequence_num: 1,
-        stream_id: id,
-        version: 1,
-        type: "EServiceAdded",
+        stream_id: eservice.id,
+        version: 2,
+        type: "EServiceUpdated",
         event_version: 1,
-        data: newEService,
+        data: updatedEServicePayloadV1,
       };
       await handleMessageV1(message, eservices);
 
-      const eservice = await eservices.findOne({
-        "data.id": id.toString,
+      const retrievedEservice = await eservices.findOne({
+        "data.id": eservice.id,
       });
 
-      expect(eservice?.data).toMatchObject({
-        id: newEService.eservice?.id,
-        producerId: newEService.eservice?.producerId,
-        name: newEService.eservice?.name,
-        description: newEService.eservice?.description,
-      });
+      expect(retrievedEservice?.data).toEqual(updatedEService);
     });
   });
+});
+
+export const getMockEService = (): EService => ({
+  id: generateId(),
+  name: "eservice name",
+  description: "eservice description",
+  createdAt: new Date(),
+  producerId: generateId(),
+  technology: technology.rest,
+  descriptors: [],
+  attributes: undefined,
+  mode: eserviceMode.deliver,
+  riskAnalysis: [],
+});
+
+export const getMockDescriptor = (): Descriptor => ({
+  id: generateId(),
+  version: "1",
+  docs: [],
+  state: descriptorState.draft,
+  audience: [],
+  voucherLifespan: 60,
+  dailyCallsPerConsumer: 10,
+  dailyCallsTotal: 1000,
+  createdAt: new Date(),
+  serverUrls: ["pagopa.it"],
+  agreementApprovalPolicy: "Automatic",
+  attributes: {
+    certified: [],
+    verified: [],
+    declared: [],
+  },
 });
