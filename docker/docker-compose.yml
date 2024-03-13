@@ -118,3 +118,13 @@ services:
     volumes:
       - ./minio-data:/data
     restart: always
+
+  # ElasticMQ is a local SQS-compatible queue system, to replace AWS SQS in local development
+  elasticmq:
+    image: softwaremill/elasticmq-native
+    ports:
+      - 9324:9324
+      - 9325:9325
+    volumes:
+      - ./elasticmq.local.conf:/opt/elasticmq.conf
+    restart: always
