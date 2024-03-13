@@ -27,7 +27,7 @@ export const errorCodes = {
   tenantNotFound: "0017",
   tenantKindNotFound: "0018",
   riskAnalysisValidationFailed: "0019",
-  riskAnalysisNotFound: "0020",
+  eserviceRiskAnalysisNotFound: "0020",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -222,13 +222,13 @@ export function riskAnalysisValidationFailed(
   });
 }
 
-export function riskAnalysisNotFound(
+export function eServiceRiskAnalysisNotFound(
   eserviceId: EServiceId,
   riskAnalysisId: RiskAnalysisId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Risk analysis ${riskAnalysisId} not found for EService ${eserviceId}`,
-    code: "riskAnalysisNotFound",
+    code: "eserviceRiskAnalysisNotFound",
     title: "Risk analysis not found",
   });
 }

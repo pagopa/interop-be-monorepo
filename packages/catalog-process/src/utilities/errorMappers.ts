@@ -233,7 +233,7 @@ export const deleteRiskAnalysisErrorMapper = (
   match(error.code)
     .with(
       "eServiceNotFound",
-      "riskAnalysisNotFound",
+      "eserviceRiskAnalysisNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .with(

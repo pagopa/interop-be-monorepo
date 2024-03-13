@@ -88,7 +88,7 @@ import {
   inconsistentDailyCalls,
   originNotCompliant,
   tenantNotFound,
-  riskAnalysisNotFound,
+  eServiceRiskAnalysisNotFound,
 } from "../model/domain/errors.js";
 import { formatClonedEServiceDate } from "../utilities/date.js";
 import { ReadModelService } from "./readModelService.js";
@@ -148,6 +148,21 @@ const retrieveTenant = async (
     throw tenantNotFound(tenantId);
   }
   return tenant;
+};
+
+const retrieveRiskAnalysis = (
+  riskAnalysisId: RiskAnalysisId,
+  eservice: WithMetadata<EService>
+): RiskAnalysis => {
+  const riskAnalysis = eservice.data.riskAnalysis.find(
+    (ra: RiskAnalysis) => ra.id === riskAnalysisId
+  );
+
+  if (riskAnalysis === undefined) {
+    throw eServiceRiskAnalysisNotFound(eservice.data.id, riskAnalysisId);
+  }
+
+  return riskAnalysis;
 };
 
 const updateDescriptorState = (
@@ -1348,13 +1363,8 @@ export function catalogServiceBuilder(
       assertIsDraftEservice(eservice.data);
       assertIsReceiveEservice(eservice.data);
 
-      const riskAnalysisToDelete = eservice.data.riskAnalysis.find(
-        (r) => r.id === riskAnalysisId
-      );
+      retrieveRiskAnalysis(riskAnalysisId, eservice);
 
-      if (riskAnalysisToDelete === undefined) {
-        throw riskAnalysisNotFound(eservice.data.id, riskAnalysisId);
-      }
       const eserviceWithRiskAnalysisDeleted: EService = {
         ...eservice.data,
         riskAnalysis: eservice.data.riskAnalysis.filter(

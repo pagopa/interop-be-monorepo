@@ -100,13 +100,13 @@ import {
   eServiceDocumentNotFound,
   eServiceDuplicate,
   eServiceNotFound,
+  eServiceRiskAnalysisNotFound,
   eserviceNotInDraftState,
   eserviceNotInReceiveMode,
   inconsistentDailyCalls,
   interfaceAlreadyExists,
   notValidDescriptor,
   originNotCompliant,
-  riskAnalysisNotFound,
   riskAnalysisValidationFailed,
   tenantKindNotFound,
   tenantNotFound,
@@ -3965,7 +3965,7 @@ describe("database test", async () => {
             )
           ).rejects.toThrowError(eServiceNotFound(mockEService.id));
         });
-        it("should throw riskAnalysisNotFound if the riskAnalysis doesn't exist", async () => {
+        it("should throw eServiceRiskAnalysisNotFound if the riskAnalysis doesn't exist", async () => {
           const eservice: EService = {
             ...mockEService,
             descriptors: [],
@@ -3982,7 +3982,7 @@ describe("database test", async () => {
               getMockAuthData(eservice.producerId)
             )
           ).rejects.toThrowError(
-            riskAnalysisNotFound(eservice.id, riskAnalysisId)
+            eServiceRiskAnalysisNotFound(eservice.id, riskAnalysisId)
           );
         });
         it("should throw eserviceNotInDraftState if the eservice has a non-draft descriptor", async () => {
