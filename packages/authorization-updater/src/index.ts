@@ -8,6 +8,7 @@ import {
   kafkaConsumerConfig,
   logger,
   getContext,
+  catalogTopicConfig,
 } from "pagopa-interop-commons";
 import {
   Descriptor,
@@ -130,7 +131,8 @@ function processMessage(authService: AuthorizationService) {
 try {
   const authService = await authorizationServiceBuilder();
   const config = kafkaConsumerConfig();
-  await runConsumer(config, processMessage(authService));
+  const { catalogTopic } = catalogTopicConfig();
+  await runConsumer(config, [catalogTopic], processMessage(authService));
 } catch (e) {
   logger.error(`An error occurred during initialization:\n${e}`);
 }
