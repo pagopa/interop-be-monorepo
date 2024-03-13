@@ -73,8 +73,6 @@ import {
 import { config } from "../utilities/config.js";
 import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
 import {
-  eServiceCannotBeDeleted,
-  eServiceCannotBeUpdated,
   eServiceDescriptorNotFound,
   eServiceDocumentNotFound,
   eServiceDuplicate,
@@ -420,15 +418,7 @@ export function catalogServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
       assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
 
-      if (
-        !(
-          eservice.data.descriptors.length === 0 ||
-          (eservice.data.descriptors.length === 1 &&
-            eservice.data.descriptors[0].state === descriptorState.draft)
-        )
-      ) {
-        throw eServiceCannotBeUpdated(eserviceId);
-      }
+      assertIsDraftEservice(eservice.data);
 
       if (eserviceSeed.name !== eservice.data.name) {
         const eserviceWithSameName =
@@ -488,9 +478,7 @@ export function catalogServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
       assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
 
-      if (eservice.data.descriptors.length > 0) {
-        throw eServiceCannotBeDeleted(eserviceId);
-      }
+      assertIsDraftEservice(eservice.data);
 
       const event = toCreateEventEServiceDeleted(
         eserviceId,
