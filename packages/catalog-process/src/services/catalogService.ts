@@ -51,13 +51,13 @@ import {
   toCreateEventEServiceDescriptorActivated,
   toCreateEventEServiceDescriptorAdded,
   toCreateEventEServiceDescriptorArchived,
-  toCreateEventEServiceDescriptorDeleted,
   toCreateEventEServiceDescriptorPublished,
   toCreateEventEServiceDescriptorQuotasUpdated,
   toCreateEventEServiceDescriptorSuspended,
   toCreateEventEServiceDocumentAdded,
   toCreateEventEServiceDocumentDeleted,
   toCreateEventEServiceDocumentUpdated,
+  toCreateEventEServiceDraftDescriptorDeleted,
   toCreateEventEServiceDraftDescriptorUpdated,
   toCreateEventEServiceInterfaceAdded,
   toCreateEventEServiceInterfaceDeleted,
@@ -75,8 +75,6 @@ import {
 import { config } from "../utilities/config.js";
 import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
 import {
-  eServiceCannotBeDeleted,
-  eServiceCannotBeUpdated,
   eServiceDescriptorNotFound,
   eServiceDocumentNotFound,
   eServiceDuplicate,
@@ -132,11 +130,13 @@ const retrieveDocument = (
   descriptor: Descriptor,
   documentId: EServiceDocumentId
 ): Document => {
-  const doc = descriptor.docs.find((d) => d.id === documentId);
-  if (doc === undefined) {
+  const document = [...descriptor.docs, descriptor.interface].find(
+    (doc) => doc != null && doc.id === documentId
+  );
+  if (document === undefined) {
     throw eServiceDocumentNotFound(eserviceId, descriptor.id, documentId);
   }
-  return doc;
+  return document;
 };
 
 const retrieveTenant = async (
@@ -421,15 +421,7 @@ export function catalogServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
       assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
 
-      if (
-        !(
-          eservice.data.descriptors.length === 0 ||
-          (eservice.data.descriptors.length === 1 &&
-            eservice.data.descriptors[0].state === descriptorState.draft)
-        )
-      ) {
-        throw eServiceCannotBeUpdated(eserviceId);
-      }
+      assertIsDraftEservice(eservice.data);
 
       if (eserviceSeed.name !== eservice.data.name) {
         const eserviceWithSameName =
@@ -489,9 +481,7 @@ export function catalogServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
       assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
 
-      if (eservice.data.descriptors.length > 0) {
-        throw eServiceCannotBeDeleted(eserviceId);
-      }
+      assertIsDraftEservice(eservice.data);
 
       const event = toCreateEventEServiceDeleted(
         eserviceId,
@@ -594,12 +584,7 @@ export function catalogServiceBuilder(
         throw notValidDescriptor(descriptor.id, descriptor.state);
       }
 
-      const document = [...descriptor.docs, descriptor.interface].find(
-        (doc) => doc != null && doc.id === documentId
-      );
-      if (document === undefined) {
-        throw eServiceDocumentNotFound(eserviceId, descriptorId, documentId);
-      }
+      const document = retrieveDocument(eserviceId, descriptor, documentId);
 
       await fileManager
         .delete(config.s3Bucket, document.path)
@@ -668,13 +653,7 @@ export function catalogServiceBuilder(
         throw notValidDescriptor(descriptor.id, descriptor.state);
       }
 
-      const document = (
-        descriptor ? [...descriptor.docs, descriptor.interface] : []
-      ).find((doc) => doc != null && doc.id === documentId);
-
-      if (document === undefined) {
-        throw eServiceDocumentNotFound(eserviceId, descriptorId, documentId);
-      }
+      const document = retrieveDocument(eserviceId, descriptor, documentId);
 
       const updatedDocument = {
         ...document,
@@ -802,6 +781,10 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
+      if (descriptor.state !== descriptorState.draft) {
+        throw notValidDescriptor(descriptorId, descriptor.state);
+      }
+
       const descriptorInterface = descriptor.interface;
       if (descriptorInterface !== undefined) {
         await fileManager
@@ -832,7 +815,7 @@ export function catalogServiceBuilder(
         ),
       };
 
-      const event = toCreateEventEServiceDescriptorDeleted(
+      const event = toCreateEventEServiceDraftDescriptorDeleted(
         eservice.data.id,
         eservice.metadata.version,
         newEservice,
