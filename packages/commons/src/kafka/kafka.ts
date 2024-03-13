@@ -2,6 +2,11 @@
 import { z } from "zod";
 import { EachMessagePayload, KafkaMessage } from "kafkajs";
 import { EServiceEvent, Message } from "pagopa-interop-models";
+import { match } from "ts-pattern";
+import {
+  CatalogTopicConfig,
+  KafkaTopicConfig,
+} from "../config/kafkaTopicConfig.js";
 
 /**
  * Decodes a Kafka message using the provided event schema.
@@ -32,14 +37,21 @@ export function decodeKafkaMessage<TEvent extends z.ZodType>(
  * this is a simplest way to handle the different topics without structured topic name and models.
  *
  * @param {string} topic - The topic of the Kafka message.
+ * @param {KafkaTopicConfig} topic configuration.
  * @returns {(message: KafkaMessage) => unknown} - The message decoder function.
  * @throws {Error} - If the topic is unknown and no decoder is available.
  */
-export function messageDecoderSupplier(topic: EachMessagePayload["topic"]) {
-  if (/\.catalog\./.test(topic)) {
-    return (message: KafkaMessage) =>
-      decodeKafkaMessage(message, EServiceEvent);
-  }
-
-  throw new Error(`Topic decoder not found for provided topic : ${topic}`);
+export function messageDecoderSupplier(
+  topicConfig: KafkaTopicConfig,
+  topic: EachMessagePayload["topic"]
+) {
+  match(topicConfig)
+    .when(
+      (c) => CatalogTopicConfig.safeParse(c).success,
+      () => (message: KafkaMessage) =>
+        decodeKafkaMessage(message, EServiceEvent)
+    )
+    .otherwise(() => {
+      throw new Error(`Topic decoder not found for provided topic : ${topic}`);
+    });
 }

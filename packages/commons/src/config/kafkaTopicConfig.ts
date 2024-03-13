@@ -43,3 +43,11 @@ export const AttributeTopicConfig = z
 export type AttributeTopicConfig = z.infer<typeof AttributeTopicConfig>;
 export const attributeTopicConfig: () => AttributeTopicConfig = () =>
   AttributeTopicConfig.parse(process.env);
+
+export const KafkaTopicConfig = z.union([
+  CatalogTopicConfig,
+  AgreementTopicConfig,
+  TenantTopicConfig,
+  AttributeTopicConfig,
+]);
+export type KafkaTopicConfig = z.infer<typeof KafkaTopicConfig>;
