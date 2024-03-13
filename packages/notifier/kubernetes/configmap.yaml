@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: interop-be-notifier
+  namespace: dev-refactor
+data:  
+  KAFKA_CLIENT_ID: "dev-pagopa-interop-notifier"
+  KAFKA_GROUP_ID: "notifier"
+  KAFKA_BROKERS: "boot-yqksbq44.c3.kafka-serverless.eu-central-1.amazonaws.com:9098"
