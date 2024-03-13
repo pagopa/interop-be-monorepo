@@ -424,7 +424,6 @@ export function readModelServiceBuilder(
         .find((d) => d.id === descriptorId)
         ?.docs.find((d) => d.id === documentId);
     },
-    // eslint-disable-next-line max-params
     async listAgreements({
       eservicesIds,
       consumersIds,
