@@ -461,7 +461,7 @@ export const toCreateEventEServiceDocumentDeleted = (
   },
 });
 
-export const toCreateEventEServiceDescriptorDeleted = (
+export const toCreateEventEServiceDraftDescriptorDeleted = (
   streamId: string,
   version: number,
   eservice: EService,
@@ -470,7 +470,7 @@ export const toCreateEventEServiceDescriptorDeleted = (
   streamId,
   version,
   event: {
-    type: "EServiceDescriptorDeleted",
+    type: "EServiceDraftDescriptorDeleted",
     event_version: 2,
     data: {
       eservice: toEServiceV2(eservice),
