@@ -12,43 +12,32 @@ export async function handleMessageV1(
   eservices: EServiceCollection
 ): Promise<void> {
   await match(message)
-    .with({ type: "EServiceAdded" }, async (msg) => {
-      await eservices.updateOne(
-        {
-          "data.id": msg.stream_id,
-        },
-        {
-          $setOnInsert: {
-            data: msg.data.eservice
-              ? fromEServiceV1(msg.data.eservice)
-              : undefined,
-            metadata: {
-              version: msg.version,
-            },
-          },
-        },
-        { upsert: true }
-      );
-    })
     .with(
+      { type: "EServiceAdded" },
       { type: "ClonedEServiceAdded" },
-      async (msg) =>
+      async (msg) => {
         await eservices.updateOne(
-          { "data.id": msg.stream_id },
+          {
+            "data.id": msg.stream_id,
+          },
           {
             $setOnInsert: {
               data: msg.data.eservice
                 ? fromEServiceV1(msg.data.eservice)
                 : undefined,
-              metadata: { version: msg.version },
+              metadata: {
+                version: msg.version,
+              },
             },
           },
           { upsert: true }
-        )
+        );
+      }
     )
     .with(
       { type: "EServiceUpdated" },
       { type: "EServiceRiskAnalysisAdded" },
+      { type: "MovedAttributesFromEserviceToDescriptors" },
       async (msg) =>
         await eservices.updateOne(
           {
@@ -288,24 +277,6 @@ export async function handleMessageV1(
                 "descriptor.id": msg.data.eserviceDescriptor?.id,
               },
             ],
-          }
-        )
-    )
-    .with(
-      { type: "MovedAttributesFromEserviceToDescriptors" },
-      async (msg) =>
-        await eservices.updateOne(
-          {
-            "data.id": msg.stream_id,
-            "metadata.version": { $lt: msg.version },
-          },
-          {
-            $set: {
-              "metadata.version": msg.version,
-              data: msg.data.eservice
-                ? fromEServiceV1(msg.data.eservice)
-                : undefined,
-            },
           }
         )
     )
