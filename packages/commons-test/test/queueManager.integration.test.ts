@@ -1,10 +1,13 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-// import { StartedTestContainer } from "testcontainers";
 import { QueueManager, initQueueManager } from "pagopa-interop-commons";
 import { v4 as uuidv4 } from "uuid";
-import { GenericContainer, StartedTestContainer } from "testcontainers";
+import { StartedTestContainer } from "testcontainers";
+import {
+  TEST_ELASTIC_MQ_PORT,
+  elasticMQContainer,
+} from "../src/containerTestUtils.js";
 
 describe("FileManager tests", async () => {
   process.env.AWS_CONFIG_FILE = "aws.config.local";
@@ -12,23 +15,16 @@ describe("FileManager tests", async () => {
   let queueWriter: QueueManager;
   let startedElasticMQContainer: StartedTestContainer;
 
+  const testQueueUrl = (port: number): string =>
+    `http://localhost:${startedElasticMQContainer.getMappedPort(
+      port
+    )}/000000000000/sqsLocalQueue.fifo`;
+
   beforeAll(async () => {
-    startedElasticMQContainer = await new GenericContainer(
-      "softwaremill/elasticmq-native:latest"
-    )
-      .withExposedPorts(9324)
-      .withCopyFilesToContainer([
-        {
-          source: "elasticmq.custom.conf",
-          target: "/opt/elasticmq.conf",
-        },
-      ])
-      .start();
+    startedElasticMQContainer = await elasticMQContainer().start();
 
     queueWriter = initQueueManager({
-      queueUrl: `http://localhost:${startedElasticMQContainer.getMappedPort(
-        9324
-      )}/000000000000/testQueue.fifo`,
+      queueUrl: testQueueUrl(TEST_ELASTIC_MQ_PORT),
       logLevel: "debug",
     });
   });
@@ -38,12 +34,12 @@ describe("FileManager tests", async () => {
   });
 
   describe("QueueWriter send", () => {
-    it("should send a message to the queue", async () => {
+    it("should send a message to the queue and receive it back", async () => {
       await queueWriter.send({
         messageUUID: uuidv4(),
-        kind: "TestEvent",
-        eventJournalPersistenceId: "test",
-        eventJournalSequenceNumber: 1,
+        kind: "TestMessageKind",
+        eventJournalPersistenceId: "test-persistence-id",
+        eventJournalSequenceNumber: 0,
         eventTimestamp: new Date().getTime(),
         payload: {
           test: "test",
@@ -53,9 +49,9 @@ describe("FileManager tests", async () => {
 
       const lastMessage = (await queueWriter.receiveLast())[0];
       expect(lastMessage).toMatchObject({
-        kind: "TestEvent",
-        eventJournalPersistenceId: "test",
-        eventJournalSequenceNumber: 1,
+        kind: "TestMessageKind",
+        eventJournalPersistenceId: "test-persistence-id",
+        eventJournalSequenceNumber: 0,
         payload: {
           test: "test",
           foo: "bar",
