@@ -778,6 +778,10 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
+      if (descriptor.state !== descriptorState.draft) {
+        throw notValidDescriptor(descriptorId, descriptor.state);
+      }
+
       const descriptorInterface = descriptor.interface;
       if (descriptorInterface !== undefined) {
         await fileManager
