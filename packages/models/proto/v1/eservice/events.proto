@@ -65,3 +65,8 @@ message EServiceRiskAnalysisAddedV1 {
   required EServiceV1 eservice = 1;
   required string riskAnalysisId = 2;
 }
+
+message EServiceRiskAnalysisDeletedV1 {
+  required EServiceV1 eservice = 1;
+  required string riskAnalysisId = 2;
+}

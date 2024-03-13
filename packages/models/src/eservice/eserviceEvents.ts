@@ -10,6 +10,7 @@ import {
   EServiceDocumentDeletedV1,
   EServiceDocumentUpdatedV1,
   EServiceRiskAnalysisAddedV1,
+  EServiceRiskAnalysisDeletedV1,
   EServiceUpdatedV1,
   EServiceWithDescriptorsDeletedV1,
   MovedAttributesFromEserviceToDescriptorsV1,
@@ -23,7 +24,6 @@ import {
   EServiceDescriptorActivatedV2,
   EServiceDescriptorAddedV2,
   EServiceDescriptorArchivedV2,
-  EServiceDescriptorDeletedV2,
   EServiceDescriptorDocumentAddedV2,
   EServiceDescriptorDocumentDeletedV2,
   EServiceDescriptorDocumentUpdatedV2,
@@ -32,6 +32,7 @@ import {
   EServiceDescriptorInterfaceUpdatedV2,
   EServiceDescriptorPublishedV2,
   EServiceDescriptorSuspendedV2,
+  EServiceDraftDescriptorDeletedV2,
   EServiceDraftDescriptorUpdatedV2,
   EServiceRiskAnalysisAddedV2,
   EServiceDescriptorQuotasUpdatedV2,
@@ -83,6 +84,9 @@ export function catalogEventToBinaryDataV1(event: EServiceEventV1): Uint8Array {
     .with({ type: "EServiceRiskAnalysisAdded" }, ({ data }) =>
       EServiceRiskAnalysisAddedV1.toBinary(data)
     )
+    .with({ type: "EServiceRiskAnalysisDeleted" }, ({ data }) =>
+      EServiceRiskAnalysisDeletedV1.toBinary(data)
+    )
     .exhaustive();
 }
 
@@ -121,8 +125,8 @@ export function catalogEventToBinaryDataV2(event: EServiceEventV2): Uint8Array {
     .with({ type: "EServiceDescriptorSuspended" }, ({ data }) =>
       EServiceDescriptorSuspendedV2.toBinary(data)
     )
-    .with({ type: "EServiceDescriptorDeleted" }, ({ data }) =>
-      EServiceDescriptorDeletedV2.toBinary(data)
+    .with({ type: "EServiceDraftDescriptorDeleted" }, ({ data }) =>
+      EServiceDraftDescriptorDeletedV2.toBinary(data)
     )
     .with({ type: "EServiceDescriptorInterfaceAdded" }, ({ data }) =>
       EServiceDescriptorInterfaceAddedV2.toBinary(data)
@@ -212,6 +216,11 @@ export const EServiceEventV1 = z.discriminatedUnion("type", [
     type: z.literal("EServiceRiskAnalysisAdded"),
     data: protobufDecoder(EServiceRiskAnalysisAddedV1),
   }),
+  z.object({
+    event_version: z.literal(1),
+    type: z.literal("EServiceRiskAnalysisDeleted"),
+    data: protobufDecoder(EServiceRiskAnalysisDeletedV1),
+  }),
 ]);
 export type EServiceEventV1 = z.infer<typeof EServiceEventV1>;
 
@@ -273,8 +282,8 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("EServiceDescriptorDeleted"),
-    data: protobufDecoder(EServiceDescriptorDeletedV2),
+    type: z.literal("EServiceDraftDescriptorDeleted"),
+    data: protobufDecoder(EServiceDraftDescriptorDeletedV2),
   }),
   z.object({
     event_version: z.literal(2),
