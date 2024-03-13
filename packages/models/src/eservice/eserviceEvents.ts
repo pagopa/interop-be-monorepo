@@ -23,7 +23,6 @@ import {
   EServiceDescriptorActivatedV2,
   EServiceDescriptorAddedV2,
   EServiceDescriptorArchivedV2,
-  EServiceDescriptorDeletedV2,
   EServiceDescriptorDocumentAddedV2,
   EServiceDescriptorDocumentDeletedV2,
   EServiceDescriptorDocumentUpdatedV2,
@@ -32,6 +31,7 @@ import {
   EServiceDescriptorInterfaceUpdatedV2,
   EServiceDescriptorPublishedV2,
   EServiceDescriptorSuspendedV2,
+  EServiceDraftDescriptorDeletedV2,
   EServiceDraftDescriptorUpdatedV2,
   EServiceRiskAnalysisAddedV2,
   EServiceDescriptorQuotasUpdatedV2,
@@ -120,8 +120,8 @@ export function catalogEventToBinaryDataV2(event: EServiceEventV2): Uint8Array {
     .with({ type: "EServiceDescriptorSuspended" }, ({ data }) =>
       EServiceDescriptorSuspendedV2.toBinary(data)
     )
-    .with({ type: "EServiceDescriptorDeleted" }, ({ data }) =>
-      EServiceDescriptorDeletedV2.toBinary(data)
+    .with({ type: "EServiceDraftDescriptorDeleted" }, ({ data }) =>
+      EServiceDraftDescriptorDeletedV2.toBinary(data)
     )
     .with({ type: "EServiceDescriptorInterfaceAdded" }, ({ data }) =>
       EServiceDescriptorInterfaceAddedV2.toBinary(data)
@@ -269,8 +269,8 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("EServiceDescriptorDeleted"),
-    data: protobufDecoder(EServiceDescriptorDeletedV2),
+    type: z.literal("EServiceDraftDescriptorDeleted"),
+    data: protobufDecoder(EServiceDraftDescriptorDeletedV2),
   }),
   z.object({
     event_version: z.literal(2),
