@@ -132,7 +132,6 @@ for (const event of originalEvents) {
       .replace("it.pagopa.interop.catalogmanagement.model.persistence.", "")
       .split("|")[0]
   )
-    .with("CatalogItemDescriptorItemAdded", () => "EServiceDescriptorAdded")
     .when(
       (originalType) => (originalType as string).includes("CatalogItem"),
       (originalType) =>
@@ -150,7 +149,7 @@ for (const event of originalEvents) {
     console.error(
       `Error decoding event ${eventType} with payload ${event_payload}`
     );
-    continue;
+    throw new Error("Error decoding event");
   }
 
   console.log(eventToDecode.data);
