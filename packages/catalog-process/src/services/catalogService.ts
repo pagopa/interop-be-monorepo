@@ -50,13 +50,13 @@ import {
   toCreateEventEServiceDescriptorActivated,
   toCreateEventEServiceDescriptorAdded,
   toCreateEventEServiceDescriptorArchived,
-  toCreateEventEServiceDescriptorDeleted,
   toCreateEventEServiceDescriptorPublished,
   toCreateEventEServiceDescriptorQuotasUpdated,
   toCreateEventEServiceDescriptorSuspended,
   toCreateEventEServiceDocumentAdded,
   toCreateEventEServiceDocumentDeleted,
   toCreateEventEServiceDocumentUpdated,
+  toCreateEventEServiceDraftDescriptorDeleted,
   toCreateEventEServiceDraftDescriptorUpdated,
   toCreateEventEServiceInterfaceAdded,
   toCreateEventEServiceInterfaceDeleted,
@@ -812,7 +812,7 @@ export function catalogServiceBuilder(
         ),
       };
 
-      const event = toCreateEventEServiceDescriptorDeleted(
+      const event = toCreateEventEServiceDraftDescriptorDeleted(
         eservice.data.id,
         eservice.metadata.version,
         newEservice,
