@@ -19,7 +19,7 @@ import {
   EServiceDocumentId,
   EServiceMode,
   RiskAnalysis,
-  EServiceRiskAnalysisV1,
+  EServiceRiskAnalysisV2,
   EServiceModeV2,
   RiskAnalysisId,
 } from "pagopa-interop-models";
@@ -103,7 +103,7 @@ export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
 
 export const toRiskAnalysisV2 = (
   input: RiskAnalysis
-): EServiceRiskAnalysisV1 => ({
+): EServiceRiskAnalysisV2 => ({
   ...input,
   createdAt: BigInt(input.createdAt.getTime()),
 });
