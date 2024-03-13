@@ -1,4 +1,4 @@
-import { InternalError } from "pagopa-interop-models";
+import { InternalError, parseErrorMessage } from "pagopa-interop-models";
 
 type FileManagerErrorCode =
   | "fileManagerCopyError"
@@ -18,10 +18,6 @@ export class FileManagerError extends InternalError<FileManagerErrorCode> {
   }
 }
 
-function printError(error: unknown): string {
-  return error instanceof Error ? error.message : JSON.stringify(error);
-}
-
 export function fileManagerCopyError(
   filePathToCopy: string,
   key: string,
@@ -30,7 +26,7 @@ export function fileManagerCopyError(
 ): FileManagerError {
   return new FileManagerError({
     code: "fileManagerCopyError",
-    detail: `Error copying file ${filePathToCopy} to ${key} in bucket ${bucket}: ${printError(
+    detail: `Error copying file ${filePathToCopy} to ${key} in bucket ${bucket}: ${parseErrorMessage(
       error
     )}`,
   });
@@ -43,7 +39,7 @@ export function fileManagerDeleteError(
 ): FileManagerError {
   return new FileManagerError({
     code: "fileManagerDeleteError",
-    detail: `Error deleting file ${path} from bucket ${bucket}: ${printError(
+    detail: `Error deleting file ${path} from bucket ${bucket}: ${parseErrorMessage(
       error
     )}`,
   });
@@ -55,7 +51,9 @@ export function fileManagerListFilesError(
 ): FileManagerError {
   return new FileManagerError({
     code: "fileManagerListFilesError",
-    detail: `Error listing files in bucket ${bucket}: ${printError(error)}`,
+    detail: `Error listing files in bucket ${bucket}: ${parseErrorMessage(
+      error
+    )}`,
   });
 }
 
@@ -66,7 +64,7 @@ export function fileManagerStoreBytesError(
 ): FileManagerError {
   return new FileManagerError({
     code: "fileManagerStoreBytesError",
-    detail: `Error storing file ${key} in bucket ${bucket}: ${printError(
+    detail: `Error storing file ${key} in bucket ${bucket}: ${parseErrorMessage(
       error
     )}`,
   });
