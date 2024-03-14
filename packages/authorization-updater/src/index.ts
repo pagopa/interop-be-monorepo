@@ -102,6 +102,10 @@ function processMessage(authService: AuthorizationService) {
             event_version: 2,
             type: "EServiceDescriptorSuspended",
           },
+          {
+            event_version: 2,
+            type: "EServiceDescriptorArchived",
+          },
           async (msg) => {
             const data = getDescriptorFromEvent(msg, decodedMsg.type);
             await executeUpdate(decodedMsg.type, messagePayload, () =>
