@@ -41,7 +41,7 @@ import {
 import { StartedTestContainer } from "testcontainers";
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
 import { toReadModelEService } from "../src/model/legacy/eserviceAdapter.js";
-import { toDescriptorV1, toDocumentV1, toEServiceV1 } from "./toEventV1.js";
+import { toDescriptorV1, toDocumentV1, toEServiceV1 } from "./converterV1.js";
 
 describe("database test", async () => {
   let eservices: EServiceCollection;
