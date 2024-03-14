@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package agreement.v2;
+
+import "v2/agreement/agreement.proto";
+
+message StateV2
+{
+  repeated AgreementsV2 agreements = 1;
+}
+
+message AgreementsV2 {
+  string key = 1;
+  AgreementV2 value = 2;
+}
