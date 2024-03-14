@@ -1,4 +1,7 @@
-// Entities and events
+// Events model
+export * from "./events/events.js";
+
+// Entities, events, converters
 export * from "./agreement/agreement.js";
 export * from "./agreement/agreementEvents.js";
 export * from "./agreement/protobufConverter.js";
@@ -30,7 +33,6 @@ export * from "./protobuf/utils.js";
 
 // Read models
 export * from "./readModels/eserviceReadModel.js";
-export * from "./readModels/events.js";
 export * from "./readModels/readModels.js";
 
 // Utilities

@@ -16,7 +16,8 @@ import {
   EServiceWithDescriptorsDeletedV1,
   MovedAttributesFromEserviceToDescriptorsV1,
 } from "../gen/v1/eservice/events.js";
-import { EventEnvelope, protobufDecoder } from "../index.js";
+import { protobufDecoder } from "../protobuf/protobuf.js";
+import { EventEnvelope } from "../events/events.js";
 import {
   DraftEServiceUpdatedV2,
   EServiceAddedV2,
