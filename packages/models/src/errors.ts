@@ -103,7 +103,7 @@ const errorCodes = {
   missingHeader: "9994",
   tokenGenerationError: "9995",
   missingRSAKey: "9996",
-  missingMessageData: "9997",
+  missingKafkaMessageData: "9997",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -127,7 +127,7 @@ export function missingKafkaMessageDataError(
   eventType: string
 ): InternalError<CommonErrorCodes> {
   return new InternalError({
-    code: "missingMessageData",
+    code: "missingKafkaMessageData",
     detail: `"Invalid message: missing data '${dataName}' in ${eventType} event"`,
   });
 }
