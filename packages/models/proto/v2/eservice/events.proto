@@ -58,7 +58,7 @@ message EServiceDescriptorSuspendedV2 {
   EServiceV2 eservice = 2;
 }
 
-message EServiceDescriptorDeletedV2 {
+message EServiceDraftDescriptorDeletedV2 {
   string descriptorId = 1;
   EServiceV2 eservice = 2;
 }
@@ -100,6 +100,11 @@ message EServiceDescriptorDocumentDeletedV2 {
 }
 
 message EServiceRiskAnalysisAddedV2 {
+  string riskAnalysisId = 1;
+  EServiceV2 eservice = 2;
+}
+
+message EServiceRiskAnalysisUpdatedV2 {
   string riskAnalysisId = 1;
   EServiceV2 eservice = 2;
 }

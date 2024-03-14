@@ -6,6 +6,7 @@ import {
   hasPermission,
   logger,
   riskAnalysisValidatedFormToNewRiskAnalysis,
+  riskAnalysisValidatedFormToNewRiskAnalysisForm,
   userRoles,
 } from "pagopa-interop-commons";
 import {
@@ -28,6 +29,7 @@ import {
   EserviceAttributes,
   Tenant,
   RiskAnalysis,
+  RiskAnalysisId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -50,18 +52,19 @@ import {
   toCreateEventEServiceDescriptorActivated,
   toCreateEventEServiceDescriptorAdded,
   toCreateEventEServiceDescriptorArchived,
-  toCreateEventEServiceDescriptorDeleted,
   toCreateEventEServiceDescriptorPublished,
   toCreateEventEServiceDescriptorQuotasUpdated,
   toCreateEventEServiceDescriptorSuspended,
   toCreateEventEServiceDocumentAdded,
   toCreateEventEServiceDocumentDeleted,
   toCreateEventEServiceDocumentUpdated,
+  toCreateEventEServiceDraftDescriptorDeleted,
   toCreateEventEServiceDraftDescriptorUpdated,
   toCreateEventEServiceInterfaceAdded,
   toCreateEventEServiceInterfaceDeleted,
   toCreateEventEServiceInterfaceUpdated,
   toCreateEventEServiceRiskAnalysisAdded,
+  toCreateEventEServiceRiskAnalysisUpdated,
   toCreateEventEServiceUpdated,
 } from "../model/domain/toEvent.js";
 import {
@@ -73,8 +76,6 @@ import {
 import { config } from "../utilities/config.js";
 import { nextDescriptorVersion } from "../utilities/versionGenerator.js";
 import {
-  eServiceCannotBeDeleted,
-  eServiceCannotBeUpdated,
   eServiceDescriptorNotFound,
   eServiceDocumentNotFound,
   eServiceDuplicate,
@@ -86,6 +87,7 @@ import {
   inconsistentDailyCalls,
   originNotCompliant,
   tenantNotFound,
+  eServiceRiskAnalysisNotFound,
 } from "../model/domain/errors.js";
 import { formatClonedEServiceDate } from "../utilities/date.js";
 import { ReadModelService } from "./readModelService.js";
@@ -129,11 +131,13 @@ const retrieveDocument = (
   descriptor: Descriptor,
   documentId: EServiceDocumentId
 ): Document => {
-  const doc = descriptor.docs.find((d) => d.id === documentId);
-  if (doc === undefined) {
+  const document = [...descriptor.docs, descriptor.interface].find(
+    (doc) => doc != null && doc.id === documentId
+  );
+  if (document === undefined) {
     throw eServiceDocumentNotFound(eserviceId, descriptor.id, documentId);
   }
-  return doc;
+  return document;
 };
 
 const retrieveTenant = async (
@@ -145,6 +149,21 @@ const retrieveTenant = async (
     throw tenantNotFound(tenantId);
   }
   return tenant;
+};
+
+const retrieveRiskAnalysis = (
+  riskAnalysisId: RiskAnalysisId,
+  eservice: WithMetadata<EService>
+): RiskAnalysis => {
+  const riskAnalysis = eservice.data.riskAnalysis.find(
+    (ra: RiskAnalysis) => ra.id === riskAnalysisId
+  );
+
+  if (riskAnalysis === undefined) {
+    throw eServiceRiskAnalysisNotFound(eservice.data.id, riskAnalysisId);
+  }
+
+  return riskAnalysis;
 };
 
 const updateDescriptorState = (
@@ -228,6 +247,20 @@ const replaceDescriptor = (
   return {
     ...eservice,
     descriptors: updatedDescriptors,
+  };
+};
+
+const replaceRiskAnalysis = (
+  eservice: EService,
+  newRiskAnalysis: RiskAnalysis
+): EService => {
+  const updatedRiskAnalysis = eservice.riskAnalysis.map((ra: RiskAnalysis) =>
+    ra.id === newRiskAnalysis.id ? newRiskAnalysis : ra
+  );
+
+  return {
+    ...eservice,
+    riskAnalysis: updatedRiskAnalysis,
   };
 };
 
@@ -418,15 +451,7 @@ export function catalogServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
       assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
 
-      if (
-        !(
-          eservice.data.descriptors.length === 0 ||
-          (eservice.data.descriptors.length === 1 &&
-            eservice.data.descriptors[0].state === descriptorState.draft)
-        )
-      ) {
-        throw eServiceCannotBeUpdated(eserviceId);
-      }
+      assertIsDraftEservice(eservice.data);
 
       if (eserviceSeed.name !== eservice.data.name) {
         const eserviceWithSameName =
@@ -486,9 +511,7 @@ export function catalogServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
       assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
 
-      if (eservice.data.descriptors.length > 0) {
-        throw eServiceCannotBeDeleted(eserviceId);
-      }
+      assertIsDraftEservice(eservice.data);
 
       const event = toCreateEventEServiceDeleted(
         eserviceId,
@@ -591,12 +614,7 @@ export function catalogServiceBuilder(
         throw notValidDescriptor(descriptor.id, descriptor.state);
       }
 
-      const document = [...descriptor.docs, descriptor.interface].find(
-        (doc) => doc != null && doc.id === documentId
-      );
-      if (document === undefined) {
-        throw eServiceDocumentNotFound(eserviceId, descriptorId, documentId);
-      }
+      const document = retrieveDocument(eserviceId, descriptor, documentId);
 
       await fileManager
         .delete(config.s3Bucket, document.path)
@@ -665,13 +683,7 @@ export function catalogServiceBuilder(
         throw notValidDescriptor(descriptor.id, descriptor.state);
       }
 
-      const document = (
-        descriptor ? [...descriptor.docs, descriptor.interface] : []
-      ).find((doc) => doc != null && doc.id === documentId);
-
-      if (document === undefined) {
-        throw eServiceDocumentNotFound(eserviceId, descriptorId, documentId);
-      }
+      const document = retrieveDocument(eserviceId, descriptor, documentId);
 
       const updatedDocument = {
         ...document,
@@ -799,6 +811,10 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
+      if (descriptor.state !== descriptorState.draft) {
+        throw notValidDescriptor(descriptorId, descriptor.state);
+      }
+
       const descriptorInterface = descriptor.interface;
       if (descriptorInterface !== undefined) {
         await fileManager
@@ -829,7 +845,7 @@ export function catalogServiceBuilder(
         ),
       };
 
-      const event = toCreateEventEServiceDescriptorDeleted(
+      const event = toCreateEventEServiceDraftDescriptorDeleted(
         eservice.data.id,
         eservice.metadata.version,
         newEservice,
@@ -1326,6 +1342,61 @@ export function catalogServiceBuilder(
         eservice.data.id,
         eservice.metadata.version,
         newRiskAnalysis.id,
+        newEservice
+      );
+
+      await repository.createEvent(event);
+    },
+    async updateRiskAnalysis(
+      eserviceId: EServiceId,
+      riskAnalysisId: RiskAnalysis["id"],
+      eserviceRiskAnalysisSeed: EServiceRiskAnalysisSeed,
+      authData: AuthData
+    ): Promise<void> {
+      logger.info(
+        `Updating Risk Analysis ${riskAnalysisId} for EService ${eserviceId}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+      assertIsDraftEservice(eservice.data);
+      assertIsReceiveEservice(eservice.data);
+
+      const tenant = await retrieveTenant(
+        authData.organizationId,
+        readModelService
+      );
+      assertTenantKindExists(tenant.data);
+
+      const riskAnalysisToUpdate = retrieveRiskAnalysis(
+        riskAnalysisId,
+        eservice
+      );
+
+      const validatedRiskAnalysisForm = validateRiskAnalysisOrThrow(
+        eserviceRiskAnalysisSeed.riskAnalysisForm,
+        true,
+        tenant.data.kind
+      );
+
+      const updatedRiskAnalysis: RiskAnalysis = {
+        ...riskAnalysisToUpdate,
+        name: eserviceRiskAnalysisSeed.name,
+        riskAnalysisForm: riskAnalysisValidatedFormToNewRiskAnalysisForm(
+          validatedRiskAnalysisForm
+        ),
+      };
+
+      const newEservice = replaceRiskAnalysis(
+        eservice.data,
+        updatedRiskAnalysis
+      );
+
+      const event = toCreateEventEServiceRiskAnalysisUpdated(
+        eservice.data.id,
+        eservice.metadata.version,
+        updatedRiskAnalysis.id,
         newEservice
       );
 
