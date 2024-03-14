@@ -24,6 +24,12 @@ export type ApiEServiceDescriptorDocumentUpdateSeed = ZodiosBodyByPath<
   "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId/update"
 >;
 
+export type ApiEServiceRiskAnalysisSeed = ZodiosBodyByPath<
+  Api,
+  "post",
+  "/eservices/:eServiceId/riskAnalysis"
+>;
+
 export type ApiGetEServicesFilters = {
   eservicesIds: EServiceId[];
   producersIds: TenantId[];

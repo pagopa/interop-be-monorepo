@@ -22,6 +22,7 @@ import {
   apiEServiceModeToEServiceMode,
   descriptorStateToApiEServiceDescriptorState,
   descriptorToApiDescriptor,
+  documentToApiDocument,
   eServiceToApiEService,
 } from "../model/domain/apiConverter.js";
 import { api } from "../model/generated/api.js";
@@ -35,6 +36,7 @@ import {
   cloneEServiceByDescriptorErrorMapper,
   createDescriptorErrorMapper,
   createEServiceErrorMapper,
+  createRiskAnalysisErrorMapper,
   deleteDraftDescriptorErrorMapper,
   deleteEServiceErrorMapper,
   documentCreateErrorMapper,
@@ -44,7 +46,9 @@ import {
   publishDescriptorErrorMapper,
   suspendDescriptorErrorMapper,
   updateDescriptorErrorMapper,
+  updateDraftDescriptorErrorMapper,
   updateEServiceErrorMapper,
+  updateRiskAnalysisErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -264,16 +268,7 @@ const eservicesRouter = (
             authData: req.ctx.authData,
           });
 
-          return res
-            .status(200)
-            .json({
-              id: document.id,
-              name: document.name,
-              contentType: document.contentType,
-              prettyName: document.prettyName,
-              path: document.path,
-            })
-            .end();
+          return res.status(200).json(documentToApiDocument(document)).end();
         } catch (error) {
           const errorRes = makeApiProblem(error, documentGetErrorMapper);
           return res.status(errorRes.status).json(errorRes).end();
@@ -327,14 +322,17 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
-          await catalogService.updateDocument(
+          const updatedDocument = await catalogService.updateDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             unsafeBrandId(req.params.documentId),
             req.body,
             req.ctx.authData
           );
-          return res.status(200).end();
+          return res
+            .status(200)
+            .json(documentToApiDocument(updatedDocument))
+            .end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -400,7 +398,10 @@ const eservicesRouter = (
             .json(eServiceToApiEService(updatedEService))
             .end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, updateDescriptorErrorMapper);
+          const errorRes = makeApiProblem(
+            error,
+            updateDraftDescriptorErrorMapper
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -514,6 +515,43 @@ const eservicesRouter = (
             .end();
         } catch (error) {
           const errorRes = makeApiProblem(error, updateDescriptorErrorMapper);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
+    .post(
+      "/eservices/:eServiceId/riskAnalysis",
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+
+      async (req, res) => {
+        try {
+          await catalogService.createRiskAnalysis(
+            unsafeBrandId(req.params.eServiceId),
+            req.body,
+            req.ctx.authData
+          );
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, createRiskAnalysisErrorMapper);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
+    .post(
+      "/eservices/:eServiceId/riskAnalysis/:riskAnalysisId",
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+
+      async (req, res) => {
+        try {
+          await catalogService.updateRiskAnalysis(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.riskAnalysisId),
+            req.body,
+            req.ctx.authData
+          );
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, updateRiskAnalysisErrorMapper);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }

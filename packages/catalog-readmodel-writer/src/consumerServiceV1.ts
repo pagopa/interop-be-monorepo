@@ -1,11 +1,42 @@
-import { match } from "ts-pattern";
 import { EServiceCollection } from "pagopa-interop-commons";
+import { match } from "ts-pattern";
 import {
+  EServiceReadModel,
+  DescriptorReadModel,
+  DocumentReadModel,
+  EServiceDescriptorV1,
+  EServiceDocumentV1,
+  EServiceEventEnvelopeV1,
+  EServiceV1,
   fromDescriptorV1,
   fromDocumentV1,
   fromEServiceV1,
-  EServiceEventEnvelopeV1,
 } from "pagopa-interop-models";
+import {
+  toReadModelDescriptor,
+  toReadModelDocument,
+  toReadModelEService,
+} from "./model/legacy/eserviceAdapter.js";
+
+const adaptEserviceToReadModel = (
+  version: number,
+  eservice?: EServiceV1
+): { data: EServiceReadModel | undefined; metadata: { version: number } } => ({
+  data: eservice ? toReadModelEService(fromEServiceV1(eservice)) : undefined,
+  metadata: {
+    version,
+  },
+});
+
+const adaptDocumentToReadModel = (
+  document: EServiceDocumentV1 | undefined
+): DocumentReadModel | undefined =>
+  document ? toReadModelDocument(fromDocumentV1(document)) : undefined;
+
+const adaptDescriptorToReadModel = (
+  descriptor: EServiceDescriptorV1 | undefined
+): DescriptorReadModel | undefined =>
+  descriptor ? toReadModelDescriptor(fromDescriptorV1(descriptor)) : undefined;
 
 export async function handleMessageV1(
   message: EServiceEventEnvelopeV1,
@@ -18,14 +49,10 @@ export async function handleMessageV1(
           "data.id": msg.stream_id,
         },
         {
-          $setOnInsert: {
-            data: msg.data.eservice
-              ? fromEServiceV1(msg.data.eservice)
-              : undefined,
-            metadata: {
-              version: msg.version,
-            },
-          },
+          $setOnInsert: adaptEserviceToReadModel(
+            msg.version,
+            msg.data.eservice
+          ),
         },
         { upsert: true }
       );
@@ -36,18 +63,19 @@ export async function handleMessageV1(
         await eservices.updateOne(
           { "data.id": msg.stream_id },
           {
-            $setOnInsert: {
-              data: msg.data.eservice
-                ? fromEServiceV1(msg.data.eservice)
-                : undefined,
-              metadata: { version: msg.version },
-            },
+            $setOnInsert: adaptEserviceToReadModel(
+              msg.version,
+              msg.data.eservice
+            ),
           },
           { upsert: true }
         )
     )
     .with(
       { type: "EServiceUpdated" },
+      { type: "EServiceRiskAnalysisAdded" },
+      { type: "MovedAttributesFromEserviceToDescriptors" },
+      { type: "EServiceRiskAnalysisUpdated" },
       async (msg) =>
         await eservices.updateOne(
           {
@@ -55,14 +83,7 @@ export async function handleMessageV1(
             "metadata.version": { $lt: msg.version },
           },
           {
-            $set: {
-              data: msg.data.eservice
-                ? fromEServiceV1(msg.data.eservice)
-                : undefined,
-              metadata: {
-                version: msg.version,
-              },
-            },
+            $set: adaptEserviceToReadModel(msg.version, msg.data.eservice),
           }
         )
     )
@@ -91,10 +112,8 @@ export async function handleMessageV1(
         { "data.id": msg.stream_id, "metadata.version": { $lt: msg.version } },
         {
           $set: {
-            "data.descriptors.$[descriptor].docs.$[doc]": msg.data
-              .updatedDocument
-              ? fromDocumentV1(msg.data.updatedDocument)
-              : undefined,
+            "data.descriptors.$[descriptor].docs.$[doc]":
+              adaptDocumentToReadModel(msg.data.updatedDocument),
           },
         },
         {
@@ -114,9 +133,8 @@ export async function handleMessageV1(
         },
         {
           $set: {
-            "data.descriptors.$[descriptor].interface": msg.data.updatedDocument
-              ? fromDocumentV1(msg.data.updatedDocument)
-              : undefined,
+            "data.descriptors.$[descriptor].interface":
+              adaptDocumentToReadModel(msg.data.updatedDocument),
             "data.descriptors.$[descriptor].serverUrls": msg.data.serverUrls,
           },
         },
@@ -159,9 +177,8 @@ export async function handleMessageV1(
           {
             $set: {
               "metadata.version": msg.version,
-              "data.descriptors.$[descriptor].interface": msg.data.document
-                ? fromDocumentV1(msg.data.document)
-                : undefined,
+              "data.descriptors.$[descriptor].interface":
+                adaptDocumentToReadModel(msg.data.document),
               "data.descriptors.$[descriptor].serverUrls": msg.data.serverUrls,
             },
           },
@@ -184,9 +201,9 @@ export async function handleMessageV1(
               "metadata.version": msg.version,
             },
             $push: {
-              "data.descriptors.$[descriptor].docs": msg.data.document
-                ? fromDocumentV1(msg.data.document)
-                : undefined,
+              "data.descriptors.$[descriptor].docs": adaptDocumentToReadModel(
+                msg.data.document
+              ),
             },
           },
           {
@@ -258,9 +275,9 @@ export async function handleMessageV1(
               "metadata.version": msg.version,
             },
             $push: {
-              "data.descriptors": msg.data.eserviceDescriptor
-                ? fromDescriptorV1(msg.data.eserviceDescriptor)
-                : undefined,
+              "data.descriptors": adaptDescriptorToReadModel(
+                msg.data.eserviceDescriptor
+              ),
             },
           }
         )
@@ -276,9 +293,9 @@ export async function handleMessageV1(
           {
             $set: {
               "metadata.version": msg.version,
-              "data.descriptors.$[descriptor]": msg.data.eserviceDescriptor
-                ? fromDescriptorV1(msg.data.eserviceDescriptor)
-                : undefined,
+              "data.descriptors.$[descriptor]": adaptDescriptorToReadModel(
+                msg.data.eserviceDescriptor
+              ),
             },
           },
           {
@@ -287,24 +304,6 @@ export async function handleMessageV1(
                 "descriptor.id": msg.data.eserviceDescriptor?.id,
               },
             ],
-          }
-        )
-    )
-    .with(
-      { type: "MovedAttributesFromEserviceToDescriptors" },
-      async (msg) =>
-        await eservices.updateOne(
-          {
-            "data.id": msg.stream_id,
-            "metadata.version": { $lt: msg.version },
-          },
-          {
-            $set: {
-              "metadata.version": msg.version,
-              data: msg.data.eservice
-                ? fromEServiceV1(msg.data.eservice)
-                : undefined,
-            },
           }
         )
     )

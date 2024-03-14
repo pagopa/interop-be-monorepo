@@ -1,6 +1,7 @@
-import { match } from "ts-pattern";
 import { EServiceCollection, logger } from "pagopa-interop-commons";
 import { EServiceEventEnvelopeV2, fromEServiceV2 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
+import { toReadModelEService } from "./model/legacy/eserviceAdapter.js";
 
 export async function handleMessageV2(
   message: EServiceEventEnvelopeV2,
@@ -8,23 +9,53 @@ export async function handleMessageV2(
 ): Promise<void> {
   logger.info(message);
 
-  const eservice = match(message)
-    .with({ type: "EServiceCloned" }, (msg) => msg.data.clonedEservice)
-    .otherwise((msg) => msg.data.eservice);
+  const eservice = message.data.eservice;
 
-  await eservices.updateOne(
-    {
-      "data.id": message.stream_id,
-      "metadata.version": { $lt: message.version },
-    },
-    {
-      $set: {
-        data: eservice ? fromEServiceV2(eservice) : undefined,
-        metadata: {
-          version: message.version,
-        },
-      },
-    },
-    { upsert: true }
-  );
+  await match(message)
+    .with({ type: "EServiceDeleted" }, async (message) => {
+      await eservices.deleteOne({
+        "data.id": message.stream_id,
+        "metadata.version": { $lt: message.version },
+      });
+    })
+    .with(
+      { type: "EServiceAdded" },
+      { type: "DraftEServiceUpdated" },
+      { type: "EServiceCloned" },
+      { type: "EServiceDescriptorAdded" },
+      { type: "EServiceDraftDescriptorDeleted" },
+      { type: "EServiceDraftDescriptorUpdated" },
+      { type: "EServiceDescriptorQuotasUpdated" },
+      { type: "EServiceDescriptorActivated" },
+      { type: "EServiceDescriptorArchived" },
+      { type: "EServiceDescriptorPublished" },
+      { type: "EServiceDescriptorSuspended" },
+      { type: "EServiceDescriptorInterfaceAdded" },
+      { type: "EServiceDescriptorDocumentAdded" },
+      { type: "EServiceDescriptorInterfaceUpdated" },
+      { type: "EServiceDescriptorDocumentUpdated" },
+      { type: "EServiceDescriptorInterfaceDeleted" },
+      { type: "EServiceDescriptorDocumentDeleted" },
+      { type: "EServiceRiskAnalysisAdded" },
+      { type: "EServiceRiskAnalysisUpdated" },
+      async (message) =>
+        await eservices.updateOne(
+          {
+            "data.id": message.stream_id,
+            "metadata.version": { $lt: message.version },
+          },
+          {
+            $set: {
+              data: eservice
+                ? toReadModelEService(fromEServiceV2(eservice))
+                : undefined,
+              metadata: {
+                version: message.version,
+              },
+            },
+          },
+          { upsert: true }
+        )
+    )
+    .exhaustive();
 }

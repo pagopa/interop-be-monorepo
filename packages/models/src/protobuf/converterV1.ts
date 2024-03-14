@@ -11,8 +11,6 @@ import {
   eserviceMode,
   EServiceAttribute,
   Descriptor,
-  RiskAnalysisForm,
-  RiskAnalysis,
   EService,
   Document,
 } from "../eservice/eservice.js";
@@ -28,6 +26,10 @@ import {
   EServiceRiskAnalysisV1,
   EServiceV1,
 } from "../gen/v1/eservice/eservice.js";
+import {
+  RiskAnalysis,
+  RiskAnalysisForm,
+} from "../risk-analysis/riskAnalysis.js";
 import { parseDateOrThrow } from "./utils.js";
 
 export const fromAgreementApprovalPolicyV1 = (
