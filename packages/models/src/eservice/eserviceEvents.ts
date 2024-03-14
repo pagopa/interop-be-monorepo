@@ -11,6 +11,7 @@ import {
   EServiceDocumentUpdatedV1,
   EServiceRiskAnalysisAddedV1,
   EServiceRiskAnalysisDeletedV1,
+  EServiceRiskAnalysisUpdatedV1,
   EServiceUpdatedV1,
   EServiceWithDescriptorsDeletedV1,
   MovedAttributesFromEserviceToDescriptorsV1,
@@ -36,6 +37,7 @@ import {
   EServiceDraftDescriptorUpdatedV2,
   EServiceRiskAnalysisAddedV2,
   EServiceDescriptorQuotasUpdatedV2,
+  EServiceRiskAnalysisUpdatedV2,
   EServiceRiskAnalysisDeletedV2,
 } from "../gen/v2/eservice/events.js";
 
@@ -83,6 +85,9 @@ export function catalogEventToBinaryDataV1(event: EServiceEventV1): Uint8Array {
     )
     .with({ type: "EServiceRiskAnalysisAdded" }, ({ data }) =>
       EServiceRiskAnalysisAddedV1.toBinary(data)
+    )
+    .with({ type: "EServiceRiskAnalysisUpdated" }, ({ data }) =>
+      EServiceRiskAnalysisUpdatedV1.toBinary(data)
     )
     .with({ type: "EServiceRiskAnalysisDeleted" }, ({ data }) =>
       EServiceRiskAnalysisDeletedV1.toBinary(data)
@@ -148,6 +153,9 @@ export function catalogEventToBinaryDataV2(event: EServiceEventV2): Uint8Array {
     )
     .with({ type: "EServiceRiskAnalysisAdded" }, ({ data }) =>
       EServiceRiskAnalysisAddedV2.toBinary(data)
+    )
+    .with({ type: "EServiceRiskAnalysisUpdated" }, ({ data }) =>
+      EServiceRiskAnalysisUpdatedV2.toBinary(data)
     )
     .with({ type: "EServiceRiskAnalysisDeleted" }, ({ data }) =>
       EServiceRiskAnalysisDeletedV2.toBinary(data)
@@ -215,6 +223,11 @@ export const EServiceEventV1 = z.discriminatedUnion("type", [
     event_version: z.literal(1),
     type: z.literal("EServiceRiskAnalysisAdded"),
     data: protobufDecoder(EServiceRiskAnalysisAddedV1),
+  }),
+  z.object({
+    event_version: z.literal(1),
+    type: z.literal("EServiceRiskAnalysisUpdated"),
+    data: protobufDecoder(EServiceRiskAnalysisUpdatedV1),
   }),
   z.object({
     event_version: z.literal(1),
@@ -319,6 +332,11 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("EServiceRiskAnalysisAdded"),
     data: protobufDecoder(EServiceRiskAnalysisAddedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceRiskAnalysisUpdated"),
+    data: protobufDecoder(EServiceRiskAnalysisUpdatedV2),
   }),
   z.object({
     event_version: z.literal(2),

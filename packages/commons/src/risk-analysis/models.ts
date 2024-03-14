@@ -1,5 +1,6 @@
 import {
   RiskAnalysis,
+  RiskAnalysisForm,
   RiskAnalysisFormId,
   RiskAnalysisId,
   RiskAnalysisMultiAnswerId,
@@ -75,17 +76,24 @@ export function riskAnalysisValidatedFormToNewRiskAnalysis(
     id: generateId<RiskAnalysisId>(),
     name,
     createdAt: new Date(),
-    riskAnalysisForm: {
-      id: generateId<RiskAnalysisFormId>(),
-      version: validatedForm.version,
-      singleAnswers: validatedForm.singleAnswers.map((a) => ({
-        ...a,
-        id: generateId<RiskAnalysisSingleAnswerId>(),
-      })),
-      multiAnswers: validatedForm.multiAnswers.map((a) => ({
-        ...a,
-        id: generateId<RiskAnalysisMultiAnswerId>(),
-      })),
-    },
+    riskAnalysisForm:
+      riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),
+  };
+}
+
+export function riskAnalysisValidatedFormToNewRiskAnalysisForm(
+  validatedForm: RiskAnalysisValidatedForm
+): RiskAnalysisForm {
+  return {
+    id: generateId<RiskAnalysisFormId>(),
+    version: validatedForm.version,
+    singleAnswers: validatedForm.singleAnswers.map((a) => ({
+      ...a,
+      id: generateId<RiskAnalysisSingleAnswerId>(),
+    })),
+    multiAnswers: validatedForm.multiAnswers.map((a) => ({
+      ...a,
+      id: generateId<RiskAnalysisMultiAnswerId>(),
+    })),
   };
 }
