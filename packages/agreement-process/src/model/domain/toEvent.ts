@@ -12,6 +12,7 @@ import {
   StampsV1,
   AgreementId,
   AgreementDocumentId,
+  AgreementEvent,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -72,7 +73,7 @@ export function toCreateEventAgreementDeleted(
   streamId: string,
   version: number,
   correlationId: string
-): CreateEvent<AgreementDeleteEvent> {
+): CreateEvent<AgreementEvent> {
   return {
     streamId,
     version,
@@ -90,7 +91,7 @@ export function toCreateEventAgreementDeleted(
 export function toCreateEventAgreementAdded(
   agreement: Agreement,
   correlationId: string
-): CreateEvent<AgreementAddEvent> {
+): CreateEvent<AgreementEvent> {
   return {
     streamId: agreement.id,
     version: 0,
@@ -109,7 +110,7 @@ export function toCreateEventAgreementUpdated(
   agreement: Agreement,
   version: number,
   correlationId: string
-): CreateEvent<AgreementUpdateEvent> {
+): CreateEvent<AgreementEvent> {
   return {
     streamId: agreement.id,
     version,
@@ -129,7 +130,7 @@ export function toCreateEventAgreementContractAdded(
   agreementDocument: AgreementDocument,
   version: number,
   correlationId: string
-): CreateEvent<AgreementAddContractEvent> {
+): CreateEvent<AgreementEvent> {
   return {
     streamId: agreementId,
     version,
@@ -150,7 +151,7 @@ export function toCreateEventAgreementConsumerDocumentAdded(
   agreementDocument: AgreementDocument,
   version: number,
   correlationId: string
-): CreateEvent<AgreementAddConsumerDocumentEvent> {
+): CreateEvent<AgreementEvent> {
   return {
     streamId: agreementId,
     version,
@@ -171,7 +172,7 @@ export function toCreateEventAgreementConsumerDocumentRemoved(
   documentId: AgreementDocumentId,
   version: number,
   correlationId: string
-): CreateEvent<AgreementRemoveConsumerDocumentEvent> {
+): CreateEvent<AgreementEvent> {
   return {
     streamId: agreementId,
     version,
