@@ -100,7 +100,7 @@ import {
   assertTenantKindExists,
   buildValidatedRiskAnalysisOrThrow,
   assertHasNoDraftDescriptor,
-  assertRiskAnalysisValidForPublication,
+  assertRiskAnalysisIsValidForPublication,
 } from "./validators.js";
 
 const retrieveEService = async (
@@ -951,7 +951,7 @@ export function catalogServiceBuilder(
           readModelService
         );
         assertTenantKindExists(tenant);
-        assertRiskAnalysisValidForPublication(eservice.data, tenant.kind);
+        assertRiskAnalysisIsValidForPublication(eservice.data, tenant.kind);
       }
 
       const currentActiveDescriptor = eservice.data.descriptors.find(

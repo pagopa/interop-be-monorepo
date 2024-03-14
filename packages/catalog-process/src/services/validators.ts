@@ -74,7 +74,7 @@ export function buildValidatedRiskAnalysisOrThrow(
   }
 }
 
-export function assertRiskAnalysisValidForPublication(
+export function assertRiskAnalysisIsValidForPublication(
   eservice: EService,
   tenantKind: TenantKind
 ): void {
