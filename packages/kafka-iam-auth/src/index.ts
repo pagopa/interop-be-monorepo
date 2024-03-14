@@ -80,9 +80,7 @@ const initConsumer = async (
   topics: string[],
   consumerHandler: (payload: EachMessagePayload) => Promise<void>
 ): Promise<Consumer> => {
-  logger.debug(
-    `Consumer connecting to topics ${JSON.stringify(topics)}`
-  );
+  logger.debug(`Consumer connecting to topics ${JSON.stringify(topics)}`);
 
   const kafkaConfig = config.kafkaDisableAwsIamAuth
     ? {
