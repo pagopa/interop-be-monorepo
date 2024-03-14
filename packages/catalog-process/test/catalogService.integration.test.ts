@@ -251,7 +251,7 @@ describe("database test", async () => {
         ).rejects.toThrowError(eServiceDuplicate(mockEService.name));
       });
 
-      it("should throw originNotCompliant if the requester externalId origin is not IPA", async () => {
+      it("should throw originNotCompliant if the requester externalId origin is not allowed", async () => {
         expect(
           catalogService.createEService(
             {
@@ -262,10 +262,13 @@ describe("database test", async () => {
             },
             {
               ...getMockAuthData(mockEService.producerId),
-              externalId: { ...getMockAuthData().externalId, origin: "" },
+              externalId: {
+                value: "123456",
+                origin: "not-allowed-origin",
+              },
             }
           )
-        ).rejects.toThrowError(originNotCompliant("IPA"));
+        ).rejects.toThrowError(originNotCompliant("not-allowed-origin"));
       });
     });
 
