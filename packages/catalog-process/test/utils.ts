@@ -30,7 +30,10 @@ import {
   technology,
   toReadModelEService,
 } from "pagopa-interop-models";
-import { writeInReadmodel } from "pagopa-interop-commons-test/index.js";
+import {
+  readLastEventByStreamId,
+  writeInReadmodel,
+} from "pagopa-interop-commons-test/index.js";
 import { toEServiceV2 } from "../src/model/domain/toEvent.js";
 import {
   EServiceDescriptorSeed,
@@ -242,11 +245,8 @@ export const addOneAgreement = async (
   await writeInReadmodel(agreement, agreements, 0);
 };
 
-export const readLastEventByStreamId = async (
+export const readLastEserviceEvent = async (
   eserviceId: EServiceId,
   postgresDB: IDatabase<unknown>
-): Promise<any> => // eslint-disable-line @typescript-eslint/no-explicit-any
-  await postgresDB.one(
-    "SELECT * FROM catalog.events WHERE stream_id = $1 ORDER BY sequence_num DESC LIMIT 1",
-    [eserviceId]
-  );
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<any> => readLastEventByStreamId(eserviceId, "catalog", postgresDB);

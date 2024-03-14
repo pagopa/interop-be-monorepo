@@ -129,7 +129,7 @@ import {
   getMockEService,
   buildInterfaceSeed,
   getMockTenant,
-  readLastEventByStreamId,
+  readLastEserviceEvent,
   addOneAttribute,
   getMockEServiceAttributes,
   buildRiskAnalysisSeed,
@@ -221,7 +221,7 @@ describe("database test", async () => {
         );
 
         expect(eservice).toBeDefined();
-        const writtenEvent = await readLastEventByStreamId(
+        const writtenEvent = await readLastEserviceEvent(
           eservice.id,
           postgresDB
         );
@@ -312,7 +312,7 @@ describe("database test", async () => {
           name: updatedName,
         };
 
-        const writtenEvent = await readLastEventByStreamId(
+        const writtenEvent = await readLastEserviceEvent(
           mockEService.id,
           postgresDB
         );
@@ -379,7 +379,7 @@ describe("database test", async () => {
           technology: "Soap",
         };
 
-        const writtenEvent = await readLastEventByStreamId(
+        const writtenEvent = await readLastEserviceEvent(
           eservice.id,
           postgresDB
         );
@@ -458,7 +458,7 @@ describe("database test", async () => {
           description: updatedDescription,
         };
 
-        const writtenEvent = await readLastEventByStreamId(
+        const writtenEvent = await readLastEserviceEvent(
           mockEService.id,
           postgresDB
         );
@@ -503,7 +503,7 @@ describe("database test", async () => {
           riskAnalysis: [],
         };
 
-        const writtenEvent = await readLastEventByStreamId(
+        const writtenEvent = await readLastEserviceEvent(
           eservice.id,
           postgresDB
         );
@@ -696,7 +696,7 @@ describe("database test", async () => {
           eservice.id,
           getMockAuthData(eservice.producerId)
         );
-        const writtenEvent = await readLastEventByStreamId(
+        const writtenEvent = await readLastEserviceEvent(
           eservice.id,
           postgresDB
         );
@@ -728,7 +728,7 @@ describe("database test", async () => {
           eservice.id,
           getMockAuthData(eservice.producerId)
         );
-        const writtenEvent = await readLastEventByStreamId(
+        const writtenEvent = await readLastEserviceEvent(
           eservice.id,
           postgresDB
         );
@@ -819,7 +819,7 @@ describe("database test", async () => {
             getMockAuthData(eservice.producerId)
           )
         ).id;
-        const writtenEvent = await readLastEventByStreamId(
+        const writtenEvent = await readLastEserviceEvent(
           eservice.id,
           postgresDB
         );
@@ -898,7 +898,7 @@ describe("database test", async () => {
             getMockAuthData(eservice.producerId)
           )
         ).id;
-        const writtenEvent = await readLastEventByStreamId(
+        const writtenEvent = await readLastEserviceEvent(
           eservice.id,
           postgresDB
         );
@@ -1111,7 +1111,7 @@ describe("database test", async () => {
           updatedDescriptorSeed,
           getMockAuthData(eservice.producerId)
         );
-        const writtenEvent = await readLastEventByStreamId(
+        const writtenEvent = await readLastEserviceEvent(
           eservice.id,
           postgresDB
         );
@@ -1388,7 +1388,7 @@ describe("database test", async () => {
           getMockAuthData(eservice.producerId)
         );
 
-        const writtenEvent = await readLastEventByStreamId(
+        const writtenEvent = await readLastEserviceEvent(
           eservice.id,
           postgresDB
         );
@@ -1485,7 +1485,7 @@ describe("database test", async () => {
           getMockAuthData(eservice.producerId)
         );
 
-        const writtenEvent = await readLastEventByStreamId(
+        const writtenEvent = await readLastEserviceEvent(
           eservice.id,
           postgresDB
         );
@@ -1729,7 +1729,7 @@ describe("database test", async () => {
           getMockAuthData(eservice.producerId)
         );
 
-        const writtenEvent = await readLastEventByStreamId(
+        const writtenEvent = await readLastEserviceEvent(
           eservice.id,
           postgresDB
         );
@@ -1793,7 +1793,7 @@ describe("database test", async () => {
           getMockAuthData(eservice.producerId)
         );
 
-        const writtenEvent = await readLastEventByStreamId(
+        const writtenEvent = await readLastEserviceEvent(
           eservice.id,
           postgresDB
         );
@@ -1847,7 +1847,7 @@ describe("database test", async () => {
           descriptor2.id,
           getMockAuthData(eservice.producerId)
         );
-        const writtenEvent = await readLastEventByStreamId(
+        const writtenEvent = await readLastEserviceEvent(
           eservice.id,
           postgresDB
         );
@@ -1920,7 +1920,7 @@ describe("database test", async () => {
           descriptor2.id,
           getMockAuthData(eservice.producerId)
         );
-        const writtenEvent = await readLastEventByStreamId(
+        const writtenEvent = await readLastEserviceEvent(
           eservice.id,
           postgresDB
         );
@@ -2269,7 +2269,7 @@ describe("database test", async () => {
           getMockAuthData(eservice.producerId)
         );
 
-        const writtenEvent = await readLastEventByStreamId(
+        const writtenEvent = await readLastEserviceEvent(
           eservice.id,
           postgresDB
         );
@@ -2436,7 +2436,7 @@ describe("database test", async () => {
           state: descriptorState.published,
         };
 
-        const writtenEvent = await readLastEventByStreamId(
+        const writtenEvent = await readLastEserviceEvent(
           eservice.id,
           postgresDB
         );
@@ -2672,7 +2672,7 @@ describe("database test", async () => {
           getMockAuthData(eservice.producerId)
         );
 
-        const writtenEvent = await readLastEventByStreamId(
+        const writtenEvent = await readLastEserviceEvent(
           newEService.id,
           postgresDB
         );
@@ -2884,7 +2884,7 @@ describe("database test", async () => {
           getMockAuthData(eservice.producerId)
         );
 
-        const writtenEvent = await readLastEventByStreamId(
+        const writtenEvent = await readLastEserviceEvent(
           eservice.id,
           postgresDB
         );
@@ -2999,7 +2999,7 @@ describe("database test", async () => {
           updatedDescriptorQuotasSeed,
           getMockAuthData(eservice.producerId)
         );
-        const writtenEvent = await readLastEventByStreamId(
+        const writtenEvent = await readLastEserviceEvent(
           eservice.id,
           postgresDB
         );
@@ -3054,7 +3054,7 @@ describe("database test", async () => {
           updatedDescriptorQuotasSeed,
           getMockAuthData(eservice.producerId)
         );
-        const writtenEvent = await readLastEventByStreamId(
+        const writtenEvent = await readLastEserviceEvent(
           eservice.id,
           postgresDB
         );
@@ -3109,7 +3109,7 @@ describe("database test", async () => {
           updatedDescriptorQuotasSeed,
           getMockAuthData(eservice.producerId)
         );
-        const writtenEvent = await readLastEventByStreamId(
+        const writtenEvent = await readLastEserviceEvent(
           eservice.id,
           postgresDB
         );
@@ -3306,7 +3306,7 @@ describe("database test", async () => {
           getMockAuthData(eservice.producerId)
         );
 
-        const writtenEvent = await readLastEventByStreamId(
+        const writtenEvent = await readLastEserviceEvent(
           eservice.id,
           postgresDB
         );
@@ -3532,7 +3532,7 @@ describe("database test", async () => {
           document.id,
           getMockAuthData(eservice.producerId)
         );
-        const writtenEvent = await readLastEventByStreamId(
+        const writtenEvent = await readLastEserviceEvent(
           eservice.id,
           postgresDB
         );
@@ -3604,7 +3604,7 @@ describe("database test", async () => {
           interfaceDocument.id,
           getMockAuthData(eservice.producerId)
         );
-        const writtenEvent = await readLastEventByStreamId(
+        const writtenEvent = await readLastEserviceEvent(
           eservice.id,
           postgresDB
         );
@@ -3849,7 +3849,7 @@ describe("database test", async () => {
           { prettyName: "updated prettyName" },
           getMockAuthData(eservice.producerId)
         );
-        const writtenEvent = await readLastEventByStreamId(
+        const writtenEvent = await readLastEserviceEvent(
           eservice.id,
           postgresDB
         );
@@ -4084,7 +4084,7 @@ describe("database test", async () => {
           getMockAuthData(producer.id)
         );
 
-        const writtenEvent = await readLastEventByStreamId(
+        const writtenEvent = await readLastEserviceEvent(
           eservice.id,
           postgresDB
         );
@@ -4371,7 +4371,7 @@ describe("database test", async () => {
           getMockAuthData(producer.id)
         );
 
-        const writtenEvent = await readLastEventByStreamId(
+        const writtenEvent = await readLastEserviceEvent(
           eservice.id,
           postgresDB
         );
@@ -4677,7 +4677,7 @@ describe("database test", async () => {
           getMockAuthData(eservice.producerId)
         );
 
-        const writtenEvent = await readLastEventByStreamId(
+        const writtenEvent = await readLastEserviceEvent(
           eservice.id,
           postgresDB
         );

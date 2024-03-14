@@ -1,6 +1,12 @@
 import { IDatabase } from "pg-promise";
 import { z } from "zod";
 import { MessageType } from "@protobuf-ts/runtime";
+import {
+  AgreementId,
+  AttributeId,
+  EServiceId,
+  TenantId,
+} from "pagopa-interop-models";
 
 export type StoredEvent = {
   stream_id: string;
@@ -24,7 +30,7 @@ export const EventStoreSchema = z.enum([
 export type EventStoreSchema = z.infer<typeof EventStoreSchema>;
 
 export const readLastEventByStreamId = async <T extends StoredEvent>(
-  streamId: string,
+  streamId: EServiceId | TenantId | AttributeId | AgreementId,
   schema: EventStoreSchema,
   postgresDB: IDatabase<unknown>
 ): Promise<T | undefined> =>
