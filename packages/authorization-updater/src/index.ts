@@ -13,7 +13,7 @@ import {
   Descriptor,
   EServiceV2,
   fromEServiceV2,
-  missingMessageDataError,
+  missingKafkaMessageDataError,
   EServiceId,
   EService,
 } from "pagopa-interop-models";
@@ -35,7 +35,7 @@ const getDescriptorFromEvent = (
   descriptor: Descriptor;
 } => {
   if (!msg.data.eservice) {
-    throw missingMessageDataError("eservice", eventType);
+    throw missingKafkaMessageDataError("eservice", eventType);
   }
 
   const eservice: EService = fromEServiceV2(msg.data.eservice);
@@ -44,7 +44,7 @@ const getDescriptorFromEvent = (
   );
 
   if (!descriptor) {
-    throw missingMessageDataError("descriptor", eventType);
+    throw missingKafkaMessageDataError("descriptor", eventType);
   }
 
   return { eserviceId: eservice.id, descriptor };

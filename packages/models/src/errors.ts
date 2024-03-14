@@ -122,7 +122,7 @@ export function parseErrorMessage(error: unknown): string {
 
 /* ===== Internal Error ===== */
 
-export function missingMessageDataError(
+export function missingKafkaMessageDataError(
   dataName: string,
   eventType: string
 ): InternalError<CommonErrorCodes> {
