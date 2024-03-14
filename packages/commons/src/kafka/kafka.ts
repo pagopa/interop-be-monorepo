@@ -41,10 +41,10 @@ export function decodeKafkaMessage<TEvent extends z.ZodType>(
  * @returns {(message: KafkaMessage) => unknown} - The message decoder function.
  * @throws {Error} - If the topic is unknown and no decoder is available.
  */
-export function messageDecoderSupplier(
+export const messageDecoderSupplier = (
   topicConfig: KafkaTopicConfig,
   topic: EachMessagePayload["topic"]
-) {
+) =>
   match(topicConfig)
     .when(
       (c) => CatalogTopicConfig.safeParse(c).success,
@@ -54,4 +54,3 @@ export function messageDecoderSupplier(
     .otherwise(() => {
       throw new Error(`Topic decoder not found for provided topic : ${topic}`);
     });
-}
