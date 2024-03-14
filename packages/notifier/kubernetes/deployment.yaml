@@ -28,6 +28,8 @@ spec:
               cpu: 1.0
               memory: 2Gi
           env:
+            - name: LOG_LEVEL
+              value: info
             - name: KAFKA_CLIENT_ID
               valueFrom:
                 configMapKeyRef:
