@@ -1,19 +1,17 @@
 import { EServiceCollection } from "pagopa-interop-commons";
+import { match } from "ts-pattern";
 import {
+  EServiceReadModel,
   DescriptorReadModel,
   DocumentReadModel,
   EServiceDescriptorV1,
   EServiceDocumentV1,
   EServiceEventEnvelopeV1,
-  EServiceReadModel,
   EServiceV1,
-} from "pagopa-interop-models";
-import { match } from "ts-pattern";
-import {
   fromDescriptorV1,
   fromDocumentV1,
   fromEServiceV1,
-} from "./model/converterV1.js";
+} from "pagopa-interop-models";
 import {
   toReadModelDescriptor,
   toReadModelDocument,
