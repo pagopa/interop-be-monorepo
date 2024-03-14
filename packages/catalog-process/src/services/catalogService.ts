@@ -1367,7 +1367,7 @@ export function catalogServiceBuilder(
         authData.organizationId,
         readModelService
       );
-      assertTenantKindExists(tenant.data);
+      assertTenantKindExists(tenant);
 
       const riskAnalysisToUpdate = retrieveRiskAnalysis(
         riskAnalysisId,
@@ -1377,7 +1377,7 @@ export function catalogServiceBuilder(
       const validatedRiskAnalysisForm = validateRiskAnalysisOrThrow(
         eserviceRiskAnalysisSeed.riskAnalysisForm,
         true,
-        tenant.data.kind
+        tenant.kind
       );
 
       const updatedRiskAnalysis: RiskAnalysis = {
