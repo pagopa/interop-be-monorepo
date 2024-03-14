@@ -23,9 +23,7 @@ export async function handleMessageV1(
               data: msg.data.eservice
                 ? fromEServiceV1(msg.data.eservice)
                 : undefined,
-              metadata: {
-                version: msg.version,
-              },
+              metadata: { version: msg.version },
             },
           },
           { upsert: true }
