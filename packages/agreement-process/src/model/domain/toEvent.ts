@@ -1,23 +1,17 @@
 import { CreateEvent } from "pagopa-interop-commons";
 import {
   Agreement,
-  AgreementAddConsumerDocumentEvent,
-  AgreementAddContractEvent,
-  AgreementAddEvent,
-  AgreementDeleteEvent,
   AgreementDocument,
   AgreementDocumentV1,
   AgreementStamp,
   AgreementStamps,
   AgreementState,
   AgreementStateV1,
-  AgreementUpdateEvent,
   AgreementV1,
   StampV1,
   StampsV1,
   AgreementId,
   AgreementDocumentId,
-  AgreementRemoveConsumerDocumentEvent,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
