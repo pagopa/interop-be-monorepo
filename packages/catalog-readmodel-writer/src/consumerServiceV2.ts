@@ -1,7 +1,8 @@
-import { match } from "ts-pattern";
 import { EServiceCollection, logger } from "pagopa-interop-commons";
 import { EServiceEventEnvelopeV2 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import { fromEServiceV2 } from "./model/converterV2.js";
+import { toReadModelEService } from "./model/legacy/eserviceAdapter.js";
 
 export async function handleMessageV2(
   message: EServiceEventEnvelopeV2,
@@ -37,6 +38,7 @@ export async function handleMessageV2(
       { type: "EServiceDescriptorInterfaceDeleted" },
       { type: "EServiceDescriptorDocumentDeleted" },
       { type: "EServiceRiskAnalysisAdded" },
+      { type: "EServiceRiskAnalysisUpdated" },
       { type: "EServiceRiskAnalysisDeleted" },
       async (message) =>
         await eservices.updateOne(
@@ -46,7 +48,9 @@ export async function handleMessageV2(
           },
           {
             $set: {
-              data: eservice ? fromEServiceV2(eservice) : undefined,
+              data: eservice
+                ? toReadModelEService(fromEServiceV2(eservice))
+                : undefined,
               metadata: {
                 version: message.version,
               },
