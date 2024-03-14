@@ -732,6 +732,9 @@ importers:
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:^
+        version: link:../models
     devDependencies:
       '@pagopa/eslint-config':
         specifier: ^3.0.0
