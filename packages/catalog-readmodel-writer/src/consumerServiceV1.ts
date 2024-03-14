@@ -15,7 +15,7 @@ export async function handleMessageV1(
     .with(
       { type: "EServiceAdded" },
       { type: "ClonedEServiceAdded" },
-      async (msg) => {
+      async (msg) =>
         await eservices.updateOne(
           {
             "data.id": msg.stream_id,
@@ -31,8 +31,7 @@ export async function handleMessageV1(
             },
           },
           { upsert: true }
-        );
-      }
+        )
     )
     .with(
       { type: "EServiceUpdated" },
