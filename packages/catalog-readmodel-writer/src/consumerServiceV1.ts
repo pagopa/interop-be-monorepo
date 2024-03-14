@@ -17,9 +17,7 @@ export async function handleMessageV1(
       { type: "ClonedEServiceAdded" },
       async (msg) =>
         await eservices.updateOne(
-          {
-            "data.id": msg.stream_id,
-          },
+          { "data.id": msg.stream_id },
           {
             $setOnInsert: {
               data: msg.data.eservice
