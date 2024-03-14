@@ -49,6 +49,10 @@ import {
   EServiceDraftDescriptorUpdatedV2,
   EServiceId,
   EServiceRiskAnalysisAddedV2,
+  EServiceRiskAnalysisUpdatedV2,
+  RiskAnalysisFormId,
+  RiskAnalysisId,
+  RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
   Tenant,
   TenantId,
@@ -96,6 +100,7 @@ import {
   eServiceDocumentNotFound,
   eServiceDuplicate,
   eServiceNotFound,
+  eServiceRiskAnalysisNotFound,
   eserviceNotInDraftState,
   eserviceNotInReceiveMode,
   inconsistentDailyCalls,
@@ -3991,33 +3996,26 @@ describe("database test", async () => {
         const mockValidRiskAnalysis =
           getMockValidRiskAnalysis(producerTenantKind);
 
-        const mockInvalidRiskAnalysis = {
-          ...mockValidRiskAnalysis,
+        const riskAnalysisSeed: EServiceRiskAnalysisSeed = {
+          ...buildRiskAnalysisSeed(mockValidRiskAnalysis),
+        };
+
+        const invalidRiskAnalysisSeed = {
+          ...riskAnalysisSeed,
           riskAnalysisForm: {
-            ...mockValidRiskAnalysis.riskAnalysisForm,
-            multiAnswers: [],
-            singleAnswers: [
-              {
-                id: generateId<RiskAnalysisSingleAnswerId>(),
-                key: "purpose", // "purpose" is a required field for all tenant kinds
-                value: "invalid purpose",
-              },
-              {
-                id: generateId<RiskAnalysisSingleAnswerId>(),
-                key: "unexpected_field",
-                value: "unexpected value",
-              },
-            ],
-            /*
+            ...riskAnalysisSeed.riskAnalysisForm,
+            answers: {
+              purpose: ["invalid purpose"], // "purpose" is field expected for all tenant kinds
+              unexpectedField: ["updated other purpose"],
+              /*
               This risk analysis form has an unexpected field and an invalid value for the purpose field.
               The validation on create is schemaOnly: it does not check missing required fields or dependencies.
               However, it checks for unexpected fields and invalid values.
               So, the validation should fail with just two errors corresponding to the two invalid fields.
              */
+            },
           },
         };
-        const riskAnalysisSeed: EServiceRiskAnalysisSeed =
-          buildRiskAnalysisSeed(mockInvalidRiskAnalysis);
 
         const eservice: EService = {
           ...mockEService,
@@ -4037,7 +4035,7 @@ describe("database test", async () => {
         expect(
           catalogService.createRiskAnalysis(
             eservice.id,
-            riskAnalysisSeed,
+            invalidRiskAnalysisSeed,
             getMockAuthData(producer.id)
           )
         ).rejects.toThrowError(
@@ -4046,7 +4044,346 @@ describe("database test", async () => {
               "purpose",
               new Set(["INSTITUTIONAL", "OTHER"])
             ),
-            unexpectedFieldError("unexpected_field"),
+            unexpectedFieldError("unexpectedField"),
+          ])
+        );
+      });
+    });
+    describe("update risk analysis", () => {
+      it("should write on event-store for the update of a risk analysis", async () => {
+        const producerTenantKind: TenantKind = randomArrayItem(
+          Object.values(tenantKind)
+        );
+        const producer: Tenant = {
+          ...getMockTenant(),
+          kind: producerTenantKind,
+        };
+
+        const riskAnalysis = getMockValidRiskAnalysis(producerTenantKind);
+
+        const eservice: EService = {
+          ...mockEService,
+          producerId: producer.id,
+          mode: eserviceMode.receive,
+          descriptors: [
+            {
+              ...mockDescriptor,
+              state: descriptorState.draft,
+            },
+          ],
+          riskAnalysis: [riskAnalysis],
+        };
+
+        await addOneTenant(producer, tenants);
+        await addOneEService(eservice, postgresDB, eservices);
+
+        const riskAnalysisSeed: EServiceRiskAnalysisSeed =
+          buildRiskAnalysisSeed(riskAnalysis);
+
+        const riskAnalysisUpdatedSeed: EServiceRiskAnalysisSeed = {
+          ...riskAnalysisSeed,
+          riskAnalysisForm: {
+            ...riskAnalysisSeed.riskAnalysisForm,
+            answers: {
+              ...riskAnalysisSeed.riskAnalysisForm.answers,
+              purpose: ["OTHER"], // we modify the purpose field, present in the mock for all tenant kinds
+              otherPurpose: ["updated other purpose"], // we add a new field
+              ruleOfLawText: [], // we remove the ruleOfLawText field, present in the mock for all tenant kinds
+            },
+          },
+        };
+
+        await catalogService.updateRiskAnalysis(
+          eservice.id,
+          riskAnalysis.id,
+          riskAnalysisUpdatedSeed,
+          getMockAuthData(producer.id)
+        );
+
+        const writtenEvent = await readLastEventByStreamId(
+          eservice.id,
+          postgresDB
+        );
+        expect(writtenEvent).toMatchObject({
+          stream_id: eservice.id,
+          version: "1",
+          type: "EServiceRiskAnalysisUpdated",
+          event_version: 2,
+        });
+        const writtenPayload = decodeProtobufPayload({
+          messageType: EServiceRiskAnalysisUpdatedV2,
+          payload: writtenEvent.data,
+        });
+
+        const updatedEservice: EService = {
+          ...eservice,
+          riskAnalysis: [
+            {
+              ...riskAnalysis,
+              name: riskAnalysisUpdatedSeed.name,
+              riskAnalysisForm: {
+                ...riskAnalysis.riskAnalysisForm,
+                id: unsafeBrandId<RiskAnalysisFormId>(
+                  writtenPayload.eservice!.riskAnalysis[0]!.riskAnalysisForm!.id
+                ),
+                multiAnswers: riskAnalysis.riskAnalysisForm.multiAnswers.map(
+                  (multiAnswer) => ({
+                    ...multiAnswer,
+                    id: unsafeBrandId<RiskAnalysisMultiAnswerId>(
+                      writtenPayload.eservice!.riskAnalysis[0]!.riskAnalysisForm!.multiAnswers.find(
+                        (ma) => ma.key === multiAnswer.key
+                      )!.id
+                    ),
+                  })
+                ),
+                singleAnswers: riskAnalysis.riskAnalysisForm.singleAnswers
+                  .filter(
+                    (singleAnswer) => singleAnswer.key !== "ruleOfLawText"
+                  )
+                  .map((singleAnswer) => ({
+                    ...singleAnswer,
+                    id: unsafeBrandId<RiskAnalysisSingleAnswerId>(
+                      writtenPayload.eservice!.riskAnalysis[0]!.riskAnalysisForm!.singleAnswers.find(
+                        (sa) => sa.key === singleAnswer.key
+                      )!.id
+                    ),
+                    value:
+                      singleAnswer.key === "purpose"
+                        ? "OTHER"
+                        : singleAnswer.value,
+                  }))
+                  .concat([
+                    {
+                      key: "otherPurpose",
+                      value: "updated other purpose",
+                      id: unsafeBrandId<RiskAnalysisSingleAnswerId>(
+                        writtenPayload.eservice!.riskAnalysis[0]!.riskAnalysisForm!.singleAnswers.find(
+                          (sa) => sa.key === "otherPurpose"
+                        )!.id
+                      ),
+                    },
+                  ]),
+              },
+            },
+          ],
+        };
+
+        expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEservice));
+      });
+      it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
+        expect(
+          catalogService.updateRiskAnalysis(
+            mockEService.id,
+            generateId(),
+            buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
+            getMockAuthData(mockEService.producerId)
+          )
+        ).rejects.toThrowError(eServiceNotFound(mockEService.id));
+      });
+      it("should throw operationForbidden if the requester is not the producer", async () => {
+        await addOneEService(mockEService, postgresDB, eservices);
+        expect(
+          catalogService.updateRiskAnalysis(
+            mockEService.id,
+            generateId(),
+            buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
+            getMockAuthData()
+          )
+        ).rejects.toThrowError(operationForbidden);
+      });
+      it("should throw eserviceNotInDraftState if the eservice is not in draft state", async () => {
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [
+            {
+              ...mockDescriptor,
+              state: descriptorState.published,
+            },
+          ],
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+
+        expect(
+          catalogService.updateRiskAnalysis(
+            eservice.id,
+            generateId(),
+            buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
+            getMockAuthData(eservice.producerId)
+          )
+        ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
+      });
+      it("should throw eserviceNotInReceiveMode if the eservice is not in receive mode", async () => {
+        const eservice: EService = {
+          ...mockEService,
+          mode: eserviceMode.deliver,
+          descriptors: [
+            {
+              ...mockDescriptor,
+              state: descriptorState.draft,
+            },
+          ],
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+
+        expect(
+          catalogService.updateRiskAnalysis(
+            eservice.id,
+            generateId(),
+            buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
+            getMockAuthData(eservice.producerId)
+          )
+        ).rejects.toThrowError(eserviceNotInReceiveMode(eservice.id));
+      });
+      it("should throw tenantNotFound if the producer tenant doesn't exist", async () => {
+        const eservice: EService = {
+          ...mockEService,
+          mode: eserviceMode.receive,
+          descriptors: [
+            {
+              ...mockDescriptor,
+              state: descriptorState.draft,
+            },
+          ],
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+
+        expect(
+          catalogService.updateRiskAnalysis(
+            eservice.id,
+            generateId(),
+            buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
+            getMockAuthData(eservice.producerId)
+          )
+        ).rejects.toThrowError(tenantNotFound(eservice.producerId));
+      });
+      it("should throw tenantKindNotFound if the producer tenant kind doesn't exist", async () => {
+        const producer: Tenant = {
+          ...getMockTenant(),
+          kind: undefined,
+        };
+
+        const eservice: EService = {
+          ...mockEService,
+          producerId: producer.id,
+          mode: eserviceMode.receive,
+          descriptors: [
+            {
+              ...mockDescriptor,
+              state: descriptorState.draft,
+            },
+          ],
+        };
+
+        await addOneTenant(producer, tenants);
+        await addOneEService(eservice, postgresDB, eservices);
+
+        expect(
+          catalogService.updateRiskAnalysis(
+            eservice.id,
+            generateId(),
+            buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
+            getMockAuthData(producer.id)
+          )
+        ).rejects.toThrowError(tenantKindNotFound(producer.id));
+      });
+      it("should throw eServiceRiskAnalysisNotFound if the risk analysis doesn't exist", async () => {
+        const producerTenantKind: TenantKind = randomArrayItem(
+          Object.values(tenantKind)
+        );
+        const producer: Tenant = {
+          ...getMockTenant(),
+          kind: producerTenantKind,
+        };
+
+        const eservice: EService = {
+          ...mockEService,
+          producerId: producer.id,
+          mode: eserviceMode.receive,
+          descriptors: [
+            {
+              ...mockDescriptor,
+              state: descriptorState.draft,
+            },
+          ],
+        };
+
+        await addOneTenant(producer, tenants);
+        await addOneEService(eservice, postgresDB, eservices);
+
+        const riskAnalysisId = generateId<RiskAnalysisId>();
+        expect(
+          catalogService.updateRiskAnalysis(
+            eservice.id,
+            riskAnalysisId,
+            buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
+            getMockAuthData(producer.id)
+          )
+        ).rejects.toThrowError(
+          eServiceRiskAnalysisNotFound(eservice.id, riskAnalysisId)
+        );
+      });
+      it("should throw riskAnalysisValidationFailed if the risk analysis is not valid", async () => {
+        const producerTenantKind: TenantKind = randomArrayItem(
+          Object.values(tenantKind)
+        );
+        const producer: Tenant = {
+          ...getMockTenant(),
+          kind: producerTenantKind,
+        };
+
+        const riskAnalysis = getMockValidRiskAnalysis(producerTenantKind);
+
+        const eservice: EService = {
+          ...mockEService,
+          producerId: producer.id,
+          mode: eserviceMode.receive,
+          descriptors: [
+            {
+              ...mockDescriptor,
+              state: descriptorState.draft,
+            },
+          ],
+          riskAnalysis: [riskAnalysis],
+        };
+
+        await addOneTenant(producer, tenants);
+        await addOneEService(eservice, postgresDB, eservices);
+
+        const riskAnalysisSeed: EServiceRiskAnalysisSeed =
+          buildRiskAnalysisSeed(riskAnalysis);
+
+        const riskAnalysisUpdatedSeed: EServiceRiskAnalysisSeed = {
+          ...riskAnalysisSeed,
+          riskAnalysisForm: {
+            ...riskAnalysisSeed.riskAnalysisForm,
+            answers: {
+              ...riskAnalysisSeed.riskAnalysisForm.answers,
+              purpose: ["INVALID"], // "purpose" is field expected for all tenant kinds
+              unexpectedField: ["unexpected field value"],
+              /*
+                This risk analysis form has an unexpected field and an invalid value for the purpose field.
+                The validation on update is schemaOnly: it does not check missing required fields or dependencies.
+                However, it checks for unexpected fields and invalid values.
+                So, the validation should fail with just two errors corresponding to the two invalid fields.
+             */
+            },
+          },
+        };
+
+        expect(
+          catalogService.updateRiskAnalysis(
+            eservice.id,
+            riskAnalysis.id,
+            riskAnalysisUpdatedSeed,
+            getMockAuthData(producer.id)
+          )
+        ).rejects.toThrowError(
+          riskAnalysisValidationFailed([
+            unexpectedFieldValueError(
+              "purpose",
+              new Set(["INSTITUTIONAL", "OTHER"])
+            ),
+            unexpectedFieldError("unexpectedField"),
           ])
         );
       });

@@ -26,6 +26,7 @@ import {
   EServiceDocumentId,
   TenantId,
   Tenant,
+  EServiceReadModel,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
@@ -35,7 +36,7 @@ import { ApiGetEServicesFilters } from "../model/types.js";
 
 async function getEService(
   eservices: EServiceCollection,
-  filter: Filter<WithId<WithMetadata<EService>>>
+  filter: Filter<WithId<WithMetadata<EServiceReadModel>>>
 ): Promise<WithMetadata<EService> | undefined> {
   const data = await eservices.findOne(filter, {
     projection: { data: true, metadata: true },
@@ -135,7 +136,7 @@ export function readModelServiceBuilder(
       const nameFilter: ReadModelFilter<EService> = name
         ? {
             "data.name": {
-              $regex: name,
+              $regex: ReadModelRepository.escapeRegExp(name),
               $options: "i",
             },
           }
@@ -283,7 +284,7 @@ export function readModelServiceBuilder(
     }): Promise<WithMetadata<EService> | undefined> {
       return getEService(eservices, {
         "data.name": {
-          $regex: `^${name}$$`,
+          $regex: `^${ReadModelRepository.escapeRegExp(name)}$$`,
           $options: "i",
         },
         "data.producerId": producerId,
