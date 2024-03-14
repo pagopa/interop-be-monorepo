@@ -1,22 +1,43 @@
-export * from "./protobuf/index.js";
-export * from "./readModels/events.js";
-export * from "./readModels/readModels.js";
-export * from "./readModels/eserviceReadModel.js";
-export * from "./brandedIds.js";
+// Entities and events
 export * from "./agreement/agreement.js";
 export * from "./agreement/agreementEvents.js";
+export * from "./agreement/protobufConverter.js";
+
 export * from "./attribute/attribute.js";
-export * from "./errors.js";
+export * from "./attribute/protobufConverter.js";
+export * from "./attribute/attributeEvents.js";
+
+export * from "./email/email.js";
+
 export * from "./eservice/eservice.js";
 export * from "./eservice/eserviceEvents.js";
-export * from "./email/email.js";
+export * from "./eservice/protobufConverterV1.js";
+export * from "./eservice/protobufConverterV2.js";
+
 export * from "./institution/institution.js";
+
+export * from "./risk-analysis/riskAnalysis.js";
+
 export * from "./tenant/tenant.js";
 export * from "./tenant/tenantEvents.js";
-export * from "./attribute/attribute.js";
-export * from "./attribute/attributeEvents.js";
+export * from "./tenant/protobufConverter.js";
+
 export * from "./user/user.js";
-export * from "./risk-analysis/riskAnalysis.js";
+
+// Protobuf
+export * from "./protobuf/protobuf.js";
+export * from "./protobuf/utils.js";
+
+// Read models
+export * from "./readModels/eserviceReadModel.js";
+export * from "./readModels/events.js";
+export * from "./readModels/readModels.js";
+
+// Utilities
+export * from "./brandedIds.js";
+export * from "./errors.js";
+
+//  Generated models
 export * from "./gen/v1/eservice/eservice.js";
 export * from "./gen/v1/eservice/events.js";
 export * from "./gen/v2/eservice/eservice.js";
