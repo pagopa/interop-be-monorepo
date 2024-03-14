@@ -28,7 +28,9 @@ import {
   eserviceMode,
   generateId,
   technology,
+  toReadModelEService,
 } from "pagopa-interop-models";
+import { writeInReadmodel } from "pagopa-interop-commons-test/index.js";
 import { toEServiceV2 } from "../src/model/domain/toEvent.js";
 import {
   EServiceDescriptorSeed,
@@ -63,54 +65,6 @@ export const writeEServiceInEventstore = async (
       eventToWrite.data,
     ]
   );
-};
-
-export const writeEServiceInReadmodel = async (
-  eservice: EService,
-  eservices: EServiceCollection
-): Promise<void> => {
-  await eservices.insertOne({
-    data: eservice,
-    metadata: {
-      version: 0,
-    },
-  });
-};
-
-export const writeAttributeInReadmodel = async (
-  attribute: Attribute,
-  attributes: AttributeCollection
-): Promise<void> => {
-  await attributes.insertOne({
-    data: attribute,
-    metadata: {
-      version: 0,
-    },
-  });
-};
-
-export const writeAgreementInReadmodel = async (
-  agreement: Agreement,
-  agreements: AgreementCollection
-): Promise<void> => {
-  await agreements.insertOne({
-    data: agreement,
-    metadata: {
-      version: 0,
-    },
-  });
-};
-
-export const writeTenantInReadmodel = async (
-  tenant: Tenant,
-  tenants: TenantCollection
-): Promise<void> => {
-  await tenants.insertOne({
-    data: tenant,
-    metadata: {
-      version: 0,
-    },
-  });
 };
 
 export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
@@ -264,28 +218,28 @@ export const addOneEService = async (
   eservices: EServiceCollection
 ): Promise<void> => {
   await writeEServiceInEventstore(eservice, postgresDB);
-  await writeEServiceInReadmodel(eservice, eservices);
+  await writeInReadmodel(toReadModelEService(eservice), eservices, 0);
 };
 
 export const addOneAttribute = async (
   attribute: Attribute,
   attributes: AttributeCollection
 ): Promise<void> => {
-  await writeAttributeInReadmodel(attribute, attributes);
+  await writeInReadmodel(attribute, attributes, 0);
 };
 
 export const addOneTenant = async (
   tenant: Tenant,
   tenants: TenantCollection
 ): Promise<void> => {
-  await writeTenantInReadmodel(tenant, tenants);
+  await writeInReadmodel(tenant, tenants, 0);
 };
 
 export const addOneAgreement = async (
   agreement: Agreement,
   agreements: AgreementCollection
 ): Promise<void> => {
-  await writeAgreementInReadmodel(agreement, agreements);
+  await writeInReadmodel(agreement, agreements, 0);
 };
 
 export const readLastEventByStreamId = async (

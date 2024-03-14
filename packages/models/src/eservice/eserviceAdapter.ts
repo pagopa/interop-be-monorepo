@@ -1,7 +1,7 @@
-/* 
+/*
   --- Technical NOTE ---
   ISSUE https://pagopa.atlassian.net/browse/IMN-315
-	  This code adapts EService to EServiceReadModel, which guarantees 
+	  This code adapts EService to EServiceReadModel, which guarantees
 	  retro compatibility with the objects stored in the old read model NoSQL DB (DocumentDB).
 	  The old objects were saved using an ISO string for all date fields: we need to convert all dates to ISO date strings.
 	  This solution is temporary and will be removed after all services will be migrated.
@@ -9,14 +9,12 @@
 
 import {
   DocumentReadModel,
-  Document,
-  EService,
-  EServiceReadModel,
-  Descriptor,
   DescriptorReadModel,
-  RiskAnalysis,
   RiskAnalysisReadModel,
-} from "pagopa-interop-models";
+  EServiceReadModel,
+} from "../read-models/eserviceReadModel.js";
+import { RiskAnalysis } from "../risk-analysis/riskAnalysis.js";
+import { Document, Descriptor, EService } from "./eservice.js";
 
 /* ====================================
              Adapter functions
