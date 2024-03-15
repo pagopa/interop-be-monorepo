@@ -6,6 +6,7 @@ import {
   userRoles,
   hasPermission,
   AuthData,
+  TenantCollection,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
@@ -24,6 +25,8 @@ import {
   EServiceId,
   EServiceDocumentId,
   TenantId,
+  Tenant,
+  EServiceReadModel,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
@@ -33,7 +36,7 @@ import { ApiGetEServicesFilters } from "../model/types.js";
 
 async function getEService(
   eservices: EServiceCollection,
-  filter: Filter<WithId<WithMetadata<EService>>>
+  filter: Filter<WithId<WithMetadata<EServiceReadModel>>>
 ): Promise<WithMetadata<EService> | undefined> {
   const data = await eservices.findOne(filter, {
     projection: { data: true, metadata: true },
@@ -62,6 +65,40 @@ async function getEService(
   }
 }
 
+async function getTenant(
+  tenants: TenantCollection,
+  filter: Filter<WithId<WithMetadata<Tenant>>>
+): Promise<WithMetadata<Tenant> | undefined> {
+  const data = await tenants.findOne(filter, {
+    projection: { data: true, metadata: true },
+  });
+
+  if (!data) {
+    return undefined;
+  }
+  const result = z
+    .object({
+      metadata: z.object({ version: z.number() }),
+      data: Tenant,
+    })
+    .safeParse(data);
+
+  if (!result.success) {
+    logger.error(
+      `Unable to parse tenant item: result ${JSON.stringify(
+        result
+      )} - data ${JSON.stringify(data)} `
+    );
+
+    throw genericError("Unable to parse tenant item");
+  }
+
+  return {
+    data: result.data.data,
+    metadata: { version: result.data.metadata.version },
+  };
+}
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
@@ -69,6 +106,8 @@ export function readModelServiceBuilder(
   const eservices = readModelRepository.eservices;
   const agreements = readModelRepository.agreements;
   const attributes = readModelRepository.attributes;
+  const tenants = readModelRepository.tenants;
+
   return {
     async getEServices(
       authData: AuthData,
@@ -105,7 +144,7 @@ export function readModelServiceBuilder(
       const nameFilter: ReadModelFilter<EService> = name
         ? {
             "data.name": {
-              $regex: name,
+              $regex: ReadModelRepository.escapeRegExp(name),
               $options: "i",
             },
           }
@@ -253,7 +292,7 @@ export function readModelServiceBuilder(
     }): Promise<WithMetadata<EService> | undefined> {
       return getEService(eservices, {
         "data.name": {
-          $regex: `^${name}$$`,
+          $regex: `^${ReadModelRepository.escapeRegExp(name)}$$`,
           $options: "i",
         },
         "data.producerId": producerId,
@@ -461,6 +500,12 @@ export function readModelServiceBuilder(
       }
 
       return result.data;
+    },
+
+    async getTenantById(
+      id: TenantId
+    ): Promise<WithMetadata<Tenant> | undefined> {
+      return getTenant(tenants, { "data.id": id });
     },
   };
 }

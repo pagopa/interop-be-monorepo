@@ -171,7 +171,7 @@ export function readModelServiceBuilder(
       const nameFilter = name
         ? {
             "data.name": {
-              $regex: name,
+              $regex: ReadModelRepository.escapeRegExp(name),
               $options: "i",
             },
           }
@@ -220,7 +220,7 @@ export function readModelServiceBuilder(
     ): Promise<WithMetadata<Attribute> | undefined> {
       return getAttribute(attributes, {
         "data.name": {
-          $regex: `^${name}$$`,
+          $regex: `^${ReadModelRepository.escapeRegExp(name)}$$`,
           $options: "i",
         },
       });
@@ -245,11 +245,11 @@ export function readModelServiceBuilder(
     ): Promise<WithMetadata<Attribute> | undefined> {
       return getAttribute(attributes, {
         "data.code": {
-          $regex: `^${code}$$`,
+          $regex: `^${ReadModelRepository.escapeRegExp(code)}$$`,
           $options: "i",
         },
         "data.name": {
-          $regex: `^${name}$$`,
+          $regex: `^${ReadModelRepository.escapeRegExp(name)}$$`,
           $options: "i",
         },
       });
