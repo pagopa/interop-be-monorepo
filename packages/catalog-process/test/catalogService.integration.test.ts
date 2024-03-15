@@ -252,7 +252,7 @@ describe("database test", async () => {
         ).rejects.toThrowError(eServiceDuplicate(mockEService.name));
       });
 
-      it("should throw originNotCompliant if the requester externalId origin is not IPA", async () => {
+      it("should throw originNotCompliant if the requester externalId origin is not allowed", async () => {
         expect(
           catalogService.createEService(
             {
@@ -263,10 +263,13 @@ describe("database test", async () => {
             },
             {
               ...getMockAuthData(mockEService.producerId),
-              externalId: { ...getMockAuthData().externalId, origin: "" },
+              externalId: {
+                value: "123456",
+                origin: "not-allowed-origin",
+              },
             }
           )
-        ).rejects.toThrowError(originNotCompliant("IPA"));
+        ).rejects.toThrowError(originNotCompliant("not-allowed-origin"));
       });
     });
 
@@ -352,14 +355,14 @@ describe("database test", async () => {
         );
 
         await catalogService.updateEService(
-          mockEService.id,
+          eservice.id,
           {
             name: updatedName,
-            description: mockEService.description,
+            description: eservice.description,
             technology: "SOAP",
-            mode: "RECEIVE",
+            mode: "DELIVER",
           },
-          getMockAuthData(mockEService.producerId)
+          getMockAuthData(eservice.producerId)
         );
 
         const updatedEService: EService = {
@@ -369,13 +372,15 @@ describe("database test", async () => {
         };
 
         const writtenEvent = await readLastEventByStreamId(
-          mockEService.id,
+          eservice.id,
           postgresDB
         );
-        expect(writtenEvent.stream_id).toBe(mockEService.id);
-        expect(writtenEvent.version).toBe("1");
-        expect(writtenEvent.type).toBe("DraftEServiceUpdated");
-        expect(writtenEvent.event_version).toBe(2);
+        expect(writtenEvent).toMatchObject({
+          stream_id: eservice.id,
+          version: "1",
+          type: "DraftEServiceUpdated",
+          event_version: 2,
+        });
 
         const writtenPayload = decodeProtobufPayload({
           messageType: DraftEServiceUpdatedV2,
@@ -444,16 +449,63 @@ describe("database test", async () => {
           mockEService.id,
           postgresDB
         );
-        expect(writtenEvent.stream_id).toBe(mockEService.id);
-        expect(writtenEvent.version).toBe("1");
-        expect(writtenEvent.type).toBe("DraftEServiceUpdated");
-        expect(writtenEvent.event_version).toBe(2);
+        expect(writtenEvent).toMatchObject({
+          stream_id: mockEService.id,
+          version: "1",
+          type: "DraftEServiceUpdated",
+          event_version: 2,
+        });
         const writtenPayload = decodeProtobufPayload({
           messageType: DraftEServiceUpdatedV2,
           payload: writtenEvent.data,
         });
 
         expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+      });
+
+      it("should write on event-store for the update of an eService (update mode to DELIVER so risk analysis has to be deleted)", async () => {
+        const riskAnalysis = getMockValidRiskAnalysis("PA");
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [],
+          riskAnalysis: [riskAnalysis],
+          mode: "Receive",
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+
+        await catalogService.updateEService(
+          eservice.id,
+          {
+            name: eservice.name,
+            description: eservice.description,
+            technology: "REST",
+            mode: "DELIVER",
+          },
+          getMockAuthData(eservice.producerId)
+        );
+
+        const expectedEservice: EService = {
+          ...eservice,
+          mode: eserviceMode.deliver,
+          riskAnalysis: [],
+        };
+
+        const writtenEvent = await readLastEventByStreamId(
+          eservice.id,
+          postgresDB
+        );
+        expect(writtenEvent).toMatchObject({
+          stream_id: eservice.id,
+          version: "1",
+          type: "DraftEServiceUpdated",
+          event_version: 2,
+        });
+        const writtenPayload = decodeProtobufPayload({
+          messageType: DraftEServiceUpdatedV2,
+          payload: writtenEvent.data,
+        });
+
+        expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
       });
 
       it("should throw eServiceNotFound if the eservice doesn't exist", async () => {

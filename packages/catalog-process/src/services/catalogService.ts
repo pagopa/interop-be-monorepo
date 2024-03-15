@@ -30,6 +30,7 @@ import {
   Tenant,
   RiskAnalysis,
   RiskAnalysisId,
+  eserviceMode,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -144,7 +145,7 @@ const retrieveDocument = (
 const retrieveTenant = async (
   tenantId: TenantId,
   readModelService: ReadModelService
-): Promise<WithMetadata<Tenant>> => {
+): Promise<Tenant> => {
   const tenant = await readModelService.getTenantById(tenantId);
   if (tenant === undefined) {
     throw tenantNotFound(tenantId);
@@ -410,8 +411,8 @@ export function catalogServiceBuilder(
         `Creating EService with service name ${apiEServicesSeed.name}`
       );
 
-      if (authData.externalId.origin !== "IPA") {
-        throw originNotCompliant("IPA");
+      if (!config.producerAllowedOrigins.includes(authData.externalId.origin)) {
+        throw originNotCompliant(authData.externalId.origin);
       }
 
       const eserviceWithSameName =
@@ -485,12 +486,19 @@ export function catalogServiceBuilder(
         }
       }
 
+      const updatedMode = apiEServiceModeToEServiceMode(eserviceSeed.mode);
+
+      const checkedRiskAnalysis =
+        updatedMode === eserviceMode.receive ? eservice.data.riskAnalysis : [];
+
       const updatedEService: EService = {
         ...eservice.data,
         description: eserviceSeed.description,
         name: eserviceSeed.name,
         technology: updatedTechnology,
         producerId: authData.organizationId,
+        mode: updatedMode,
+        riskAnalysis: checkedRiskAnalysis,
       };
 
       const event = toCreateEventEServiceUpdated(
@@ -1320,12 +1328,12 @@ export function catalogServiceBuilder(
         authData.organizationId,
         readModelService
       );
-      assertTenantKindExists(tenant.data);
+      assertTenantKindExists(tenant);
 
       const validatedRiskAnalysisForm = validateRiskAnalysisOrThrow(
         eserviceRiskAnalysisSeed.riskAnalysisForm,
         true,
-        tenant.data.kind
+        tenant.kind
       );
 
       const newRiskAnalysis: RiskAnalysis =
@@ -1368,7 +1376,7 @@ export function catalogServiceBuilder(
         authData.organizationId,
         readModelService
       );
-      assertTenantKindExists(tenant.data);
+      assertTenantKindExists(tenant);
 
       const riskAnalysisToUpdate = retrieveRiskAnalysis(
         riskAnalysisId,
@@ -1378,7 +1386,7 @@ export function catalogServiceBuilder(
       const validatedRiskAnalysisForm = validateRiskAnalysisOrThrow(
         eserviceRiskAnalysisSeed.riskAnalysisForm,
         true,
-        tenant.data.kind
+        tenant.kind
       );
 
       const updatedRiskAnalysis: RiskAnalysis = {

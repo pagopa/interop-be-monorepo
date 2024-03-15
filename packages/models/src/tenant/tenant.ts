@@ -82,8 +82,8 @@ export type VerifiedTenantAttribute = z.infer<typeof VerifiedTenantAttribute>;
 export const DeclaredTenantAttribute = z.object({
   type: z.literal(tenantAttributeType.DECLARED),
   id: AttributeId,
-  assignmentTimestamp: z.date(),
-  revocationTimestamp: z.date().optional(),
+  assignmentTimestamp: z.coerce.date(),
+  revocationTimestamp: z.coerce.date().optional(),
 });
 export type DeclaredTenantAttribute = z.infer<typeof DeclaredTenantAttribute>;
 
@@ -96,7 +96,7 @@ export const TenantAttribute = z.discriminatedUnion("type", [
 export type TenantAttribute = z.infer<typeof TenantAttribute>;
 
 export const tenantMailKind = {
-  ContactEmail: "ContactEmail",
+  ContactEmail: "CONTACT_EMAIL",
 } as const;
 export const TenantMailKind = z.enum([
   Object.values(tenantMailKind)[0],
