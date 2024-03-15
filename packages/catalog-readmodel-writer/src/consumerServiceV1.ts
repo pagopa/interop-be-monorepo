@@ -307,5 +307,25 @@ export async function handleMessageV1(
           }
         )
     )
+    .with(
+      { type: "EServiceRiskAnalysisDeleted" },
+      async (msg) =>
+        await eservices.updateOne(
+          {
+            "data.id": msg.stream_id,
+            "metadata.version": { $lt: msg.version },
+          },
+          {
+            $pull: {
+              "data.riskAnalysis": {
+                id: msg.data.riskAnalysisId,
+              },
+            },
+            $set: {
+              "metadata.version": msg.version,
+            },
+          }
+        )
+    )
     .exhaustive();
 }

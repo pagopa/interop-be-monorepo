@@ -30,6 +30,7 @@ import {
   Tenant,
   RiskAnalysis,
   RiskAnalysisId,
+  eserviceMode,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -64,6 +65,7 @@ import {
   toCreateEventEServiceInterfaceDeleted,
   toCreateEventEServiceInterfaceUpdated,
   toCreateEventEServiceRiskAnalysisAdded,
+  toCreateEventEServiceRiskAnalysisDeleted,
   toCreateEventEServiceRiskAnalysisUpdated,
   toCreateEventEServiceUpdated,
 } from "../model/domain/toEvent.js";
@@ -143,7 +145,7 @@ const retrieveDocument = (
 const retrieveTenant = async (
   tenantId: TenantId,
   readModelService: ReadModelService
-): Promise<WithMetadata<Tenant>> => {
+): Promise<Tenant> => {
   const tenant = await readModelService.getTenantById(tenantId);
   if (tenant === undefined) {
     throw tenantNotFound(tenantId);
@@ -484,12 +486,19 @@ export function catalogServiceBuilder(
         }
       }
 
+      const updatedMode = apiEServiceModeToEServiceMode(eserviceSeed.mode);
+
+      const checkedRiskAnalysis =
+        updatedMode === eserviceMode.receive ? eservice.data.riskAnalysis : [];
+
       const updatedEService: EService = {
         ...eservice.data,
         description: eserviceSeed.description,
         name: eserviceSeed.name,
         technology: updatedTechnology,
         producerId: authData.organizationId,
+        mode: updatedMode,
+        riskAnalysis: checkedRiskAnalysis,
       };
 
       const event = toCreateEventEServiceUpdated(
@@ -1319,12 +1328,12 @@ export function catalogServiceBuilder(
         authData.organizationId,
         readModelService
       );
-      assertTenantKindExists(tenant.data);
+      assertTenantKindExists(tenant);
 
       const validatedRiskAnalysisForm = validateRiskAnalysisOrThrow(
         eserviceRiskAnalysisSeed.riskAnalysisForm,
         true,
-        tenant.data.kind
+        tenant.kind
       );
 
       const newRiskAnalysis: RiskAnalysis =
@@ -1367,7 +1376,7 @@ export function catalogServiceBuilder(
         authData.organizationId,
         readModelService
       );
-      assertTenantKindExists(tenant.data);
+      assertTenantKindExists(tenant);
 
       const riskAnalysisToUpdate = retrieveRiskAnalysis(
         riskAnalysisId,
@@ -1377,7 +1386,7 @@ export function catalogServiceBuilder(
       const validatedRiskAnalysisForm = validateRiskAnalysisOrThrow(
         eserviceRiskAnalysisSeed.riskAnalysisForm,
         true,
-        tenant.data.kind
+        tenant.kind
       );
 
       const updatedRiskAnalysis: RiskAnalysis = {
@@ -1398,6 +1407,38 @@ export function catalogServiceBuilder(
         eservice.metadata.version,
         updatedRiskAnalysis.id,
         newEservice
+      );
+
+      await repository.createEvent(event);
+    },
+    async deleteRiskAnalysis(
+      eserviceId: EServiceId,
+      riskAnalysisId: RiskAnalysisId,
+      authData: AuthData
+    ): Promise<void> {
+      logger.info(
+        `Deleting Risk Analysis ${riskAnalysisId} for EService ${eserviceId}`
+      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+
+      assertIsDraftEservice(eservice.data);
+      assertIsReceiveEservice(eservice.data);
+
+      retrieveRiskAnalysis(riskAnalysisId, eservice);
+
+      const eserviceWithRiskAnalysisDeleted: EService = {
+        ...eservice.data,
+        riskAnalysis: eservice.data.riskAnalysis.filter(
+          (r) => r.id !== riskAnalysisId
+        ),
+      };
+      const event = toCreateEventEServiceRiskAnalysisDeleted(
+        eservice.data.id,
+        eservice.metadata.version,
+        riskAnalysisId,
+        eserviceWithRiskAnalysisDeleted
       );
 
       await repository.createEvent(event);
