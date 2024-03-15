@@ -32,8 +32,8 @@ export const updateEServiceErrorMapper = (
 ): number =>
   match(error.code)
     .with("eServiceDuplicate", () => HTTP_STATUS_NOT_FOUND)
-    .with("eserviceCannotBeUpdatedOrDeleted", () => HTTP_STATUS_BAD_REQUEST)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with("eserviceNotInDraftState", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const deleteEServiceErrorMapper = (
@@ -42,7 +42,7 @@ export const deleteEServiceErrorMapper = (
   match(error.code)
     .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
-    .with("eserviceCannotBeUpdatedOrDeleted", () => HTTP_STATUS_BAD_REQUEST)
+    .with("eserviceNotInDraftState", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const documentCreateErrorMapper = (
@@ -111,6 +111,24 @@ export const deleteDraftDescriptorErrorMapper = (
     )
     .with("notValidDescriptor", () => HTTP_STATUS_BAD_REQUEST)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const updateDraftDescriptorErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "notValidDescriptor",
+      "inconsistentDailyCalls",
+      "attributeNotFound",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const updateDescriptorErrorMapper = (
@@ -191,6 +209,38 @@ export const archiveDescriptorErrorMapper = (
       "eServiceNotFound",
       "eServiceDescriptorNotFound",
       () => HTTP_STATUS_NOT_FOUND
+    )
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const createRiskAnalysisErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "eserviceNotInDraftState",
+      "eserviceNotInReceiveMode",
+      "riskAnalysisValidationFailed",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const updateRiskAnalysisErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eServiceNotFound",
+      "eServiceRiskAnalysisNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with(
+      "eserviceNotInDraftState",
+      "eserviceNotInReceiveMode",
+      "riskAnalysisValidationFailed",
+      () => HTTP_STATUS_BAD_REQUEST
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
