@@ -145,7 +145,7 @@ const retrieveDocument = (
 const retrieveTenant = async (
   tenantId: TenantId,
   readModelService: ReadModelService
-): Promise<WithMetadata<Tenant>> => {
+): Promise<Tenant> => {
   const tenant = await readModelService.getTenantById(tenantId);
   if (tenant === undefined) {
     throw tenantNotFound(tenantId);
@@ -1328,12 +1328,12 @@ export function catalogServiceBuilder(
         authData.organizationId,
         readModelService
       );
-      assertTenantKindExists(tenant.data);
+      assertTenantKindExists(tenant);
 
       const validatedRiskAnalysisForm = validateRiskAnalysisOrThrow(
         eserviceRiskAnalysisSeed.riskAnalysisForm,
         true,
-        tenant.data.kind
+        tenant.kind
       );
 
       const newRiskAnalysis: RiskAnalysis =
@@ -1376,7 +1376,7 @@ export function catalogServiceBuilder(
         authData.organizationId,
         readModelService
       );
-      assertTenantKindExists(tenant.data);
+      assertTenantKindExists(tenant);
 
       const riskAnalysisToUpdate = retrieveRiskAnalysis(
         riskAnalysisId,
@@ -1386,7 +1386,7 @@ export function catalogServiceBuilder(
       const validatedRiskAnalysisForm = validateRiskAnalysisOrThrow(
         eserviceRiskAnalysisSeed.riskAnalysisForm,
         true,
-        tenant.data.kind
+        tenant.kind
       );
 
       const updatedRiskAnalysis: RiskAnalysis = {
