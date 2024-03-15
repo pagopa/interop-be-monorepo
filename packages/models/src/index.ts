@@ -1,4 +1,4 @@
-export * from "./protobuf/protobuf.js";
+export * from "./protobuf/index.js";
 export * from "./readModels/events.js";
 export * from "./readModels/readModels.js";
 export * from "./readModels/eserviceReadModel.js";

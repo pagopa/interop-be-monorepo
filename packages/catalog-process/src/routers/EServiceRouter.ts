@@ -39,6 +39,7 @@ import {
   createRiskAnalysisErrorMapper,
   deleteDraftDescriptorErrorMapper,
   deleteEServiceErrorMapper,
+  deleteRiskAnalysisErrorMapper,
   documentCreateErrorMapper,
   documentGetErrorMapper,
   documentUpdateDeleteErrorMapper,
@@ -552,6 +553,24 @@ const eservicesRouter = (
           return res.status(204).end();
         } catch (error) {
           const errorRes = makeApiProblem(error, updateRiskAnalysisErrorMapper);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
+    .delete(
+      "/eservices/:eServiceId/riskAnalysis/:riskAnalysisId",
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+
+      async (req, res) => {
+        try {
+          await catalogService.deleteRiskAnalysis(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.riskAnalysisId),
+            req.ctx.authData
+          );
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, deleteRiskAnalysisErrorMapper);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
