@@ -68,7 +68,7 @@ async function getEService(
 async function getTenant(
   tenants: TenantCollection,
   filter: Filter<WithId<WithMetadata<Tenant>>>
-): Promise<WithMetadata<Tenant> | undefined> {
+): Promise<Tenant | undefined> {
   const data = await tenants.findOne(filter, {
     projection: { data: true, metadata: true },
   });
@@ -76,12 +76,7 @@ async function getTenant(
   if (!data) {
     return undefined;
   }
-  const result = z
-    .object({
-      metadata: z.object({ version: z.number() }),
-      data: Tenant,
-    })
-    .safeParse(data);
+  const result = Tenant.safeParse(data.data);
 
   if (!result.success) {
     logger.error(
@@ -93,10 +88,7 @@ async function getTenant(
     throw genericError("Unable to parse tenant item");
   }
 
-  return {
-    data: result.data.data,
-    metadata: { version: result.data.metadata.version },
-  };
+  return result.data;
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -502,9 +494,7 @@ export function readModelServiceBuilder(
       return result.data;
     },
 
-    async getTenantById(
-      id: TenantId
-    ): Promise<WithMetadata<Tenant> | undefined> {
+    async getTenantById(id: TenantId): Promise<Tenant | undefined> {
       return getTenant(tenants, { "data.id": id });
     },
   };
