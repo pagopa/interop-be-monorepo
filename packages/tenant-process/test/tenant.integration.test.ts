@@ -126,7 +126,7 @@ describe("Integration tests", () => {
   });
 
   describe("tenantService", () => {
-    describe("updateTenant", async () => {
+    describe("selfcareUpsertTenant", async () => {
       const tenantSeed = {
         externalId: {
           origin: "IPA",
@@ -139,14 +139,14 @@ describe("Integration tests", () => {
         ...mockTenant,
         selfcareId: undefined,
       };
-      it("Should update the tenant", async () => {
+      it("Should update the tenant if it exists", async () => {
         await addOneTenant(tenant, postgresDB, tenants);
         const kind = tenantKind.PA;
         const selfcareId = generateId();
         const tenantSeed: ApiSelfcareTenantSeed = {
           externalId: {
-            origin: "IPA",
-            value: "123456",
+            origin: tenant.externalId.origin,
+            value: tenant.externalId.value,
           },
           name: "A tenant",
           selfcareId,
@@ -165,7 +165,7 @@ describe("Integration tests", () => {
             postgresDB
           );
         if (!writtenEvent) {
-          fail("Updation fails: tenant not found in event-store");
+          fail("Update failed: tenant not found in event-store");
         }
         expect(writtenEvent).toMatchObject({
           stream_id: tenant.id,
@@ -185,7 +185,7 @@ describe("Integration tests", () => {
 
         expect(writtenPayload.tenant).toEqual(toTenantV1(updatedTenant));
       });
-      it("Should create a tenant by the upsert", async () => {
+      it("Should create a tenant by the upsert if it does not exist", async () => {
         const mockAuthData = getMockAuthData();
         const tenantSeed = {
           externalId: {
@@ -207,7 +207,7 @@ describe("Integration tests", () => {
             postgresDB
           );
         if (!writtenEvent) {
-          fail("Creation fails: tenant not found in event-store");
+          fail("Creation failed: tenant not found in event-store");
         }
         expect(writtenEvent).toMatchObject({
           stream_id: id,
@@ -228,7 +228,7 @@ describe("Integration tests", () => {
 
         expect(writtenPayload.tenant).toEqual(toTenantV1(expectedTenant));
       });
-      it("Should throw operation forbidden", async () => {
+      it("Should throw operation forbidden for insufficient permissions", async () => {
         await addOneTenant(tenant, postgresDB, tenants);
         const mockAuthData = getMockAuthData(generateId<TenantId>());
 
@@ -239,7 +239,7 @@ describe("Integration tests", () => {
           })
         ).rejects.toThrowError(operationForbidden);
       });
-      it("Should throw selfcareIdConflict error", async () => {
+      it("Should throw selfcareIdConflict error becaute it already exist", async () => {
         const tenant: Tenant = {
           ...mockTenant,
           selfcareId: generateId(),
