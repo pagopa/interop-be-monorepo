@@ -108,3 +108,8 @@ message EServiceRiskAnalysisUpdatedV2 {
   string riskAnalysisId = 1;
   EServiceV2 eservice = 2;
 }
+
+message EServiceRiskAnalysisDeletedV2 {
+  string riskAnalysisId = 1;
+  EServiceV2 eservice = 2;
+}
