@@ -1,31 +1,35 @@
+import { P, match } from "ts-pattern";
+import { unsafeBrandId } from "../brandedIds.js";
 import {
   AgreementApprovalPolicy,
-  AgreementApprovalPolicyV1,
-  Descriptor,
+  agreementApprovalPolicy,
   DescriptorState,
-  Document,
-  EService,
-  EServiceAttribute,
-  EServiceAttributeV1,
-  EServiceDescriptorStateV1,
-  EServiceDescriptorV1,
-  EServiceDocumentV1,
+  descriptorState,
+  Technology,
+  technology,
   EServiceMode,
+  eserviceMode,
+  EServiceAttribute,
+  Descriptor,
+  EService,
+  Document,
+} from "../eservice/eservice.js";
+import {
+  AgreementApprovalPolicyV1,
+  EServiceDescriptorStateV1,
+  EServiceTechnologyV1,
   EServiceModeV1,
+  EServiceAttributeV1,
+  EServiceDocumentV1,
+  EServiceDescriptorV1,
   EServiceRiskAnalysisFormV1,
   EServiceRiskAnalysisV1,
-  EServiceTechnologyV1,
   EServiceV1,
+} from "../gen/v1/eservice/eservice.js";
+import {
   RiskAnalysis,
   RiskAnalysisForm,
-  Technology,
-  agreementApprovalPolicy,
-  descriptorState,
-  eserviceMode,
-  technology,
-  unsafeBrandId,
-} from "pagopa-interop-models";
-import { P, match } from "ts-pattern";
+} from "../risk-analysis/riskAnalysis.js";
 import { parseDateOrThrow } from "./utils.js";
 
 export const fromAgreementApprovalPolicyV1 = (
