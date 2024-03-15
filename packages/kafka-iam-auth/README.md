@@ -2,6 +2,8 @@
 
 This package runs consumer and handles AWS IAM authentication for Kafka topic consumed by consumer's services, it creates a SASL configuration valid for KafakaJS authentication mechanism.
 
+To refresh the AWS IAM authentication the consumer will be disconnected and reconnected to the topics just before the authentication expiration.
+
 ## Usages
 
 To run an authenticated consumer, you need to provide three parameters:
