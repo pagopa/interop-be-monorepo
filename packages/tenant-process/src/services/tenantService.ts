@@ -70,6 +70,10 @@ export function tenantServiceBuilder(
       attributeId: AttributeId,
       verifierId: string
     ): Promise<string> {
+      logger.info(
+        `Update extension date of attribute ${attributeId} for tenant ${tenantId}`
+      );
+
       const tenant = await retrieveTenant(tenantId, readModelService);
 
       const attribute = tenant?.data.attributes.find(
@@ -131,9 +135,6 @@ export function tenantServiceBuilder(
         tenant.metadata.version,
         updatedTenant
       );
-      logger.info(
-        `Update extension date of attribute ${attributeId} for tenant ${tenantId}`
-      );
       return await repository.createEvent(event);
     },
 
@@ -148,6 +149,8 @@ export function tenantServiceBuilder(
       attributeId: AttributeId;
       updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed;
     }): Promise<string> {
+      logger.info(`Update attribute ${attributeId} to tenant ${tenantId}`);
+
       const tenant = await retrieveTenant(tenantId, readModelService);
 
       const expirationDate = updateVerifiedTenantAttributeSeed.expirationDate
@@ -188,8 +191,6 @@ export function tenantServiceBuilder(
         tenant.metadata.version,
         updatedTenant
       );
-      logger.info(`Update attribute ${attributeId} to tenant ${tenantId}`);
-
       return await repository.createEvent(event);
     },
 
@@ -204,6 +205,9 @@ export function tenantServiceBuilder(
         tenantSeed.externalId
       );
       if (existingTenant) {
+        logger.info(
+          `Updating tenant with external id ${tenantSeed.externalId} via SelfCare request"`
+        );
         await assertResourceAllowed(existingTenant.data.id, authData);
 
         evaluateNewSelfcareId({
@@ -223,10 +227,6 @@ export function tenantServiceBuilder(
           selfcareId: tenantSeed.selfcareId,
           updatedAt: new Date(),
         };
-
-        logger.info(
-          `Updating tenant with external id ${tenantSeed.externalId} via SelfCare request"`
-        );
         return await repository.createEvent(
           toCreateEventTenantUpdated(
             existingTenant.data.id,
@@ -235,6 +235,9 @@ export function tenantServiceBuilder(
           )
         );
       } else {
+        logger.info(
+          `Creating tenant with external id ${tenantSeed.externalId} via SelfCare request"`
+        );
         const newTenant: Tenant = {
           id: generateId(),
           name: tenantSeed.name,
@@ -246,9 +249,6 @@ export function tenantServiceBuilder(
           kind: getTenantKind([], tenantSeed.externalId),
           createdAt: new Date(),
         };
-        logger.info(
-          `Creating tenant with external id ${tenantSeed.externalId} via SelfCare request"`
-        );
         return await repository.createEvent(
           toCreateEventTenantAdded(newTenant)
         );
