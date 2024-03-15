@@ -287,13 +287,13 @@ const tenantsRouter = (
       async (req, res) => {
         try {
           const { tenantId, attributeId } = req.params;
-          await tenantService.updateTenantVerifiedAttribute({
+          const tenant = await tenantService.updateTenantVerifiedAttribute({
             verifierId: req.ctx.authData.organizationId,
             tenantId: unsafeBrandId(tenantId),
             attributeId: unsafeBrandId(attributeId),
             updateVerifiedTenantAttributeSeed: req.body,
           });
-          return res.status(200).end();
+          return res.status(200).json(toApiTenant(tenant)).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -309,12 +309,13 @@ const tenantsRouter = (
       async (req, res) => {
         try {
           const { tenantId, attributeId, verifierId } = req.params;
-          await tenantService.updateVerifiedAttributeExtensionDate(
-            unsafeBrandId(tenantId),
-            unsafeBrandId(attributeId),
-            verifierId
-          );
-          return res.status(200).end();
+          const tenant =
+            await tenantService.updateVerifiedAttributeExtensionDate(
+              unsafeBrandId(tenantId),
+              unsafeBrandId(attributeId),
+              verifierId
+            );
+          return res.status(200).json(toApiTenant(tenant)).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
