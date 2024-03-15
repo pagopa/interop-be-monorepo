@@ -1,6 +1,7 @@
-export * from "./protobuf/protobuf.js";
+export * from "./protobuf/index.js";
 export * from "./readModels/events.js";
 export * from "./readModels/readModels.js";
+export * from "./readModels/eserviceReadModel.js";
 export * from "./brandedIds.js";
 export * from "./agreement/agreement.js";
 export * from "./agreement/agreementEvents.js";
@@ -14,7 +15,6 @@ export * from "./tenant/tenant.js";
 export * from "./tenant/tenantEvents.js";
 export * from "./attribute/attribute.js";
 export * from "./attribute/attributeEvents.js";
-export * from "./readModels/readModels.js";
 export * from "./user/user.js";
 export * from "./risk-analysis/riskAnalysis.js";
 export * from "./gen/v1/eservice/eservice.js";

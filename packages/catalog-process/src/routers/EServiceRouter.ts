@@ -39,6 +39,7 @@ import {
   createRiskAnalysisErrorMapper,
   deleteDraftDescriptorErrorMapper,
   deleteEServiceErrorMapper,
+  deleteRiskAnalysisErrorMapper,
   documentCreateErrorMapper,
   documentGetErrorMapper,
   documentUpdateDeleteErrorMapper,
@@ -48,6 +49,7 @@ import {
   updateDescriptorErrorMapper,
   updateDraftDescriptorErrorMapper,
   updateEServiceErrorMapper,
+  updateRiskAnalysisErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -532,6 +534,43 @@ const eservicesRouter = (
           return res.status(204).end();
         } catch (error) {
           const errorRes = makeApiProblem(error, createRiskAnalysisErrorMapper);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
+    .post(
+      "/eservices/:eServiceId/riskAnalysis/:riskAnalysisId",
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+
+      async (req, res) => {
+        try {
+          await catalogService.updateRiskAnalysis(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.riskAnalysisId),
+            req.body,
+            req.ctx.authData
+          );
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, updateRiskAnalysisErrorMapper);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
+    .delete(
+      "/eservices/:eServiceId/riskAnalysis/:riskAnalysisId",
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+
+      async (req, res) => {
+        try {
+          await catalogService.deleteRiskAnalysis(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.riskAnalysisId),
+            req.ctx.authData
+          );
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, deleteRiskAnalysisErrorMapper);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }

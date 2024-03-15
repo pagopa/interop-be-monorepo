@@ -6,6 +6,7 @@ import {
   hasPermission,
   logger,
   riskAnalysisValidatedFormToNewRiskAnalysis,
+  riskAnalysisValidatedFormToNewRiskAnalysisForm,
   userRoles,
 } from "pagopa-interop-commons";
 import {
@@ -28,6 +29,8 @@ import {
   EserviceAttributes,
   Tenant,
   RiskAnalysis,
+  RiskAnalysisId,
+  eserviceMode,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -62,6 +65,8 @@ import {
   toCreateEventEServiceInterfaceDeleted,
   toCreateEventEServiceInterfaceUpdated,
   toCreateEventEServiceRiskAnalysisAdded,
+  toCreateEventEServiceRiskAnalysisDeleted,
+  toCreateEventEServiceRiskAnalysisUpdated,
   toCreateEventEServiceUpdated,
 } from "../model/domain/toEvent.js";
 import {
@@ -84,6 +89,7 @@ import {
   inconsistentDailyCalls,
   originNotCompliant,
   tenantNotFound,
+  eServiceRiskAnalysisNotFound,
 } from "../model/domain/errors.js";
 import { formatClonedEServiceDate } from "../utilities/date.js";
 import { ReadModelService } from "./readModelService.js";
@@ -139,12 +145,27 @@ const retrieveDocument = (
 const retrieveTenant = async (
   tenantId: TenantId,
   readModelService: ReadModelService
-): Promise<WithMetadata<Tenant>> => {
+): Promise<Tenant> => {
   const tenant = await readModelService.getTenantById(tenantId);
   if (tenant === undefined) {
     throw tenantNotFound(tenantId);
   }
   return tenant;
+};
+
+const retrieveRiskAnalysis = (
+  riskAnalysisId: RiskAnalysisId,
+  eservice: WithMetadata<EService>
+): RiskAnalysis => {
+  const riskAnalysis = eservice.data.riskAnalysis.find(
+    (ra: RiskAnalysis) => ra.id === riskAnalysisId
+  );
+
+  if (riskAnalysis === undefined) {
+    throw eServiceRiskAnalysisNotFound(eservice.data.id, riskAnalysisId);
+  }
+
+  return riskAnalysis;
 };
 
 const updateDescriptorState = (
@@ -228,6 +249,20 @@ const replaceDescriptor = (
   return {
     ...eservice,
     descriptors: updatedDescriptors,
+  };
+};
+
+const replaceRiskAnalysis = (
+  eservice: EService,
+  newRiskAnalysis: RiskAnalysis
+): EService => {
+  const updatedRiskAnalysis = eservice.riskAnalysis.map((ra: RiskAnalysis) =>
+    ra.id === newRiskAnalysis.id ? newRiskAnalysis : ra
+  );
+
+  return {
+    ...eservice,
+    riskAnalysis: updatedRiskAnalysis,
   };
 };
 
@@ -376,8 +411,8 @@ export function catalogServiceBuilder(
         `Creating EService with service name ${apiEServicesSeed.name}`
       );
 
-      if (authData.externalId.origin !== "IPA") {
-        throw originNotCompliant("IPA");
+      if (!config.producerAllowedOrigins.includes(authData.externalId.origin)) {
+        throw originNotCompliant(authData.externalId.origin);
       }
 
       const eserviceWithSameName =
@@ -451,12 +486,19 @@ export function catalogServiceBuilder(
         }
       }
 
+      const updatedMode = apiEServiceModeToEServiceMode(eserviceSeed.mode);
+
+      const checkedRiskAnalysis =
+        updatedMode === eserviceMode.receive ? eservice.data.riskAnalysis : [];
+
       const updatedEService: EService = {
         ...eservice.data,
         description: eserviceSeed.description,
         name: eserviceSeed.name,
         technology: updatedTechnology,
         producerId: authData.organizationId,
+        mode: updatedMode,
+        riskAnalysis: checkedRiskAnalysis,
       };
 
       const event = toCreateEventEServiceUpdated(
@@ -1287,12 +1329,12 @@ export function catalogServiceBuilder(
         authData.organizationId,
         readModelService
       );
-      assertTenantKindExists(tenant.data);
+      assertTenantKindExists(tenant);
 
       const validatedRiskAnalysisForm = validateRiskAnalysisOrThrow(
         eserviceRiskAnalysisSeed.riskAnalysisForm,
         true,
-        tenant.data.kind
+        tenant.kind
       );
 
       const newRiskAnalysis: RiskAnalysis =
@@ -1311,6 +1353,93 @@ export function catalogServiceBuilder(
         eservice.metadata.version,
         newRiskAnalysis.id,
         newEservice
+      );
+
+      await repository.createEvent(event);
+    },
+    async updateRiskAnalysis(
+      eserviceId: EServiceId,
+      riskAnalysisId: RiskAnalysis["id"],
+      eserviceRiskAnalysisSeed: EServiceRiskAnalysisSeed,
+      authData: AuthData
+    ): Promise<void> {
+      logger.info(
+        `Updating Risk Analysis ${riskAnalysisId} for EService ${eserviceId}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+      assertIsDraftEservice(eservice.data);
+      assertIsReceiveEservice(eservice.data);
+
+      const tenant = await retrieveTenant(
+        authData.organizationId,
+        readModelService
+      );
+      assertTenantKindExists(tenant);
+
+      const riskAnalysisToUpdate = retrieveRiskAnalysis(
+        riskAnalysisId,
+        eservice
+      );
+
+      const validatedRiskAnalysisForm = validateRiskAnalysisOrThrow(
+        eserviceRiskAnalysisSeed.riskAnalysisForm,
+        true,
+        tenant.kind
+      );
+
+      const updatedRiskAnalysis: RiskAnalysis = {
+        ...riskAnalysisToUpdate,
+        name: eserviceRiskAnalysisSeed.name,
+        riskAnalysisForm: riskAnalysisValidatedFormToNewRiskAnalysisForm(
+          validatedRiskAnalysisForm
+        ),
+      };
+
+      const newEservice = replaceRiskAnalysis(
+        eservice.data,
+        updatedRiskAnalysis
+      );
+
+      const event = toCreateEventEServiceRiskAnalysisUpdated(
+        eservice.data.id,
+        eservice.metadata.version,
+        updatedRiskAnalysis.id,
+        newEservice
+      );
+
+      await repository.createEvent(event);
+    },
+    async deleteRiskAnalysis(
+      eserviceId: EServiceId,
+      riskAnalysisId: RiskAnalysisId,
+      authData: AuthData
+    ): Promise<void> {
+      logger.info(
+        `Deleting Risk Analysis ${riskAnalysisId} for EService ${eserviceId}`
+      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+
+      assertIsDraftEservice(eservice.data);
+      assertIsReceiveEservice(eservice.data);
+
+      retrieveRiskAnalysis(riskAnalysisId, eservice);
+
+      const eserviceWithRiskAnalysisDeleted: EService = {
+        ...eservice.data,
+        riskAnalysis: eservice.data.riskAnalysis.filter(
+          (r) => r.id !== riskAnalysisId
+        ),
+      };
+      const event = toCreateEventEServiceRiskAnalysisDeleted(
+        eservice.data.id,
+        eservice.metadata.version,
+        riskAnalysisId,
+        eserviceWithRiskAnalysisDeleted
       );
 
       await repository.createEvent(event);
