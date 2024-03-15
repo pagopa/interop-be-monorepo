@@ -53,6 +53,7 @@ import {
   RiskAnalysisFormId,
   RiskAnalysisId,
   RiskAnalysisMultiAnswerId,
+  EServiceRiskAnalysisDeletedV2,
   RiskAnalysisSingleAnswerId,
   Tenant,
   TenantId,
@@ -354,14 +355,14 @@ describe("database test", async () => {
         );
 
         await catalogService.updateEService(
-          mockEService.id,
+          eservice.id,
           {
             name: updatedName,
-            description: mockEService.description,
+            description: eservice.description,
             technology: "SOAP",
-            mode: "RECEIVE",
+            mode: "DELIVER",
           },
-          getMockAuthData(mockEService.producerId)
+          getMockAuthData(eservice.producerId)
         );
 
         const updatedEService: EService = {
@@ -371,13 +372,15 @@ describe("database test", async () => {
         };
 
         const writtenEvent = await readLastEventByStreamId(
-          mockEService.id,
+          eservice.id,
           postgresDB
         );
-        expect(writtenEvent.stream_id).toBe(mockEService.id);
-        expect(writtenEvent.version).toBe("1");
-        expect(writtenEvent.type).toBe("DraftEServiceUpdated");
-        expect(writtenEvent.event_version).toBe(2);
+        expect(writtenEvent).toMatchObject({
+          stream_id: eservice.id,
+          version: "1",
+          type: "DraftEServiceUpdated",
+          event_version: 2,
+        });
 
         const writtenPayload = decodeProtobufPayload({
           messageType: DraftEServiceUpdatedV2,
@@ -446,16 +449,63 @@ describe("database test", async () => {
           mockEService.id,
           postgresDB
         );
-        expect(writtenEvent.stream_id).toBe(mockEService.id);
-        expect(writtenEvent.version).toBe("1");
-        expect(writtenEvent.type).toBe("DraftEServiceUpdated");
-        expect(writtenEvent.event_version).toBe(2);
+        expect(writtenEvent).toMatchObject({
+          stream_id: mockEService.id,
+          version: "1",
+          type: "DraftEServiceUpdated",
+          event_version: 2,
+        });
         const writtenPayload = decodeProtobufPayload({
           messageType: DraftEServiceUpdatedV2,
           payload: writtenEvent.data,
         });
 
         expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+      });
+
+      it("should write on event-store for the update of an eService (update mode to DELIVER so risk analysis has to be deleted)", async () => {
+        const riskAnalysis = getMockValidRiskAnalysis("PA");
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [],
+          riskAnalysis: [riskAnalysis],
+          mode: "Receive",
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+
+        await catalogService.updateEService(
+          eservice.id,
+          {
+            name: eservice.name,
+            description: eservice.description,
+            technology: "REST",
+            mode: "DELIVER",
+          },
+          getMockAuthData(eservice.producerId)
+        );
+
+        const expectedEservice: EService = {
+          ...eservice,
+          mode: eserviceMode.deliver,
+          riskAnalysis: [],
+        };
+
+        const writtenEvent = await readLastEventByStreamId(
+          eservice.id,
+          postgresDB
+        );
+        expect(writtenEvent).toMatchObject({
+          stream_id: eservice.id,
+          version: "1",
+          type: "DraftEServiceUpdated",
+          event_version: 2,
+        });
+        const writtenPayload = decodeProtobufPayload({
+          messageType: DraftEServiceUpdatedV2,
+          payload: writtenEvent.data,
+        });
+
+        expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
       });
 
       it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
@@ -4389,6 +4439,127 @@ describe("database test", async () => {
             unexpectedFieldError("unexpectedField"),
           ])
         );
+      });
+    });
+
+    describe("delete risk analysis", () => {
+      it("should write on event-store for the deletion of a risk analysis", async () => {
+        const riskAnalysis = getMockValidRiskAnalysis("PA");
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [],
+          riskAnalysis: [riskAnalysis],
+          mode: "Receive",
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+
+        await catalogService.deleteRiskAnalysis(
+          eservice.id,
+          riskAnalysis.id,
+          getMockAuthData(eservice.producerId)
+        );
+
+        const writtenEvent = await readLastEventByStreamId(
+          eservice.id,
+          postgresDB
+        );
+        const expectedEservice = toEServiceV2({
+          ...eservice,
+          riskAnalysis: eservice.riskAnalysis.filter(
+            (r) => r.id !== riskAnalysis.id
+          ),
+        });
+
+        expect(writtenEvent).toMatchObject({
+          stream_id: eservice.id,
+          version: "1",
+          type: "EServiceRiskAnalysisDeleted",
+          event_version: 2,
+        });
+        const writtenPayload = decodeProtobufPayload({
+          messageType: EServiceRiskAnalysisDeletedV2,
+          payload: writtenEvent.data,
+        });
+        expect(writtenPayload).toEqual({
+          riskAnalysisId: riskAnalysis.id,
+          eservice: expectedEservice,
+        });
+      });
+      it("should throw eServiceNotFound if the eservice doesn't exist", () => {
+        expect(
+          catalogService.deleteRiskAnalysis(
+            mockEService.id,
+            generateId<RiskAnalysisId>(),
+            getMockAuthData(mockEService.producerId)
+          )
+        ).rejects.toThrowError(eServiceNotFound(mockEService.id));
+      });
+      it("should throw eServiceRiskAnalysisNotFound if the riskAnalysis doesn't exist", async () => {
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [],
+          riskAnalysis: [],
+          mode: "Receive",
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+
+        const riskAnalysisId = generateId<RiskAnalysisId>();
+        expect(
+          catalogService.deleteRiskAnalysis(
+            eservice.id,
+            riskAnalysisId,
+            getMockAuthData(eservice.producerId)
+          )
+        ).rejects.toThrowError(
+          eServiceRiskAnalysisNotFound(eservice.id, riskAnalysisId)
+        );
+      });
+      it("should throw eserviceNotInDraftState if the eservice has a non-draft descriptor", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.published,
+          interface: mockDocument,
+          publishedAt: new Date(),
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+          riskAnalysis: [getMockValidRiskAnalysis("PA")],
+          mode: "Receive",
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+
+        expect(
+          catalogService.deleteRiskAnalysis(
+            eservice.id,
+            generateId<RiskAnalysisId>(),
+            getMockAuthData(eservice.producerId)
+          )
+        ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
+      });
+
+      it("should throw operationForbidden if the requester is not the producer", async () => {
+        const descriptor: Descriptor = {
+          ...mockDescriptor,
+          state: descriptorState.published,
+          interface: mockDocument,
+          publishedAt: new Date(),
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+          riskAnalysis: [getMockValidRiskAnalysis("PA")],
+          mode: "Receive",
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+
+        expect(
+          catalogService.deleteRiskAnalysis(
+            eservice.id,
+            generateId<RiskAnalysisId>(),
+            getMockAuthData()
+          )
+        ).rejects.toThrowError(operationForbidden);
       });
     });
   });
