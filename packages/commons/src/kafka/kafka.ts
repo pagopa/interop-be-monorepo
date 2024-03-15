@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { z } from "zod";
 import { EachMessagePayload, KafkaMessage } from "kafkajs";
-import { AgreementEvent, EServiceEvent, Message } from "pagopa-interop-models";
+import { EServiceEvent, Message } from "pagopa-interop-models";
 
 /**
  * Decodes a Kafka message using the provided event schema.
@@ -36,10 +36,6 @@ export function decodeKafkaMessage<TEvent extends z.ZodType>(
  * @throws {Error} - If the topic is unknown and no decoder is available.
  */
 export function messageDecoderSupplier(topic: EachMessagePayload["topic"]) {
-  if (/\.agreement\./.test(topic)) {
-    return (message: KafkaMessage) =>
-      decodeKafkaMessage(message, AgreementEvent);
-  }
   if (/\.catalog\./.test(topic)) {
     return (message: KafkaMessage) =>
       decodeKafkaMessage(message, EServiceEvent);

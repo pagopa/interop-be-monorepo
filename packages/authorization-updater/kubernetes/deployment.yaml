@@ -56,11 +56,11 @@ spec:
                 configMapKeyRef:
                   name: interop-be-authorization-updater
                   key: KAFKA_TOPICS
-            - name: AUTH_MNGT_SERVICE_URL
+            - name: AUTHORIZATION_MANAGEMENT_URL
               valueFrom:
                 configMapKeyRef:
                   name: interop-be-authorization-updater
-                  key: AUTH_MNGT_SERVICE_URL
+                  key: AUTHORIZATION_MANAGEMENT_URL
             - name: RSA_KEYS_IDENTIFIERS
               valueFrom:
                 configMapKeyRef:
