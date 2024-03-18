@@ -14,6 +14,10 @@ import {
   AgreementId,
   AgreementDocumentId,
   AgreementEvent,
+  AgreementStateV2,
+  AgreementDocumentV2,
+  StampV2,
+  StampsV2,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -70,17 +74,57 @@ export const toAgreementV1 = (input: Agreement): AgreementV1 => ({
   stamps: toStampsV1(input.stamps),
 });
 
+export const toAgreementStateV2 = (state: AgreementState): AgreementStateV2 =>
+  match(state)
+    .with("Draft", () => AgreementStateV2.DRAFT)
+    .with("Suspended", () => AgreementStateV2.SUSPENDED)
+    .with("Archived", () => AgreementStateV2.ARCHIVED)
+    .with("Pending", () => AgreementStateV2.PENDING)
+    .with("Active", () => AgreementStateV2.ACTIVE)
+    .with("Rejected", () => AgreementStateV2.REJECTED)
+    .with(
+      "MissingCertifiedAttributes",
+      () => AgreementStateV2.MISSING_CERTIFIED_ATTRIBUTES
+    )
+    .exhaustive();
+
+export const toAgreementDocumentV2 = (
+  input: AgreementDocument
+): AgreementDocumentV2 => ({
+  ...input,
+  createdAt: BigInt(input.createdAt.getTime()),
+});
+
+export const toStampV2 = (input: AgreementStamp): StampV2 => ({
+  ...input,
+  when: BigInt(input.when.getTime()),
+});
+
+export const toStampsV2 = (input: AgreementStamps): StampsV2 => ({
+  submission: input.submission ? toStampV2(input.submission) : undefined,
+  activation: input.activation ? toStampV2(input.activation) : undefined,
+  rejection: input.rejection ? toStampV2(input.rejection) : undefined,
+  suspensionByProducer: input.suspensionByProducer
+    ? toStampV2(input.suspensionByProducer)
+    : undefined,
+  upgrade: input.upgrade ? toStampV2(input.upgrade) : undefined,
+  archiving: input.archiving ? toStampV2(input.archiving) : undefined,
+  suspensionByConsumer: input.suspensionByConsumer
+    ? toStampV2(input.suspensionByConsumer)
+    : undefined,
+});
+
 export const toAgreementV2 = (input: Agreement): AgreementV2 => ({
   ...input,
-  state: toAgreementStateV1(input.state),
+  state: toAgreementStateV2(input.state),
   createdAt: BigInt(input.createdAt.getTime()),
   updatedAt: input.updatedAt ? BigInt(input.updatedAt.getTime()) : undefined,
   suspendedAt: input.suspendedAt
     ? BigInt(input.suspendedAt.getTime())
     : undefined,
-  consumerDocuments: input.consumerDocuments.map(toAgreementDocumentV1),
-  contract: input.contract ? toAgreementDocumentV1(input.contract) : undefined,
-  stamps: toStampsV1(input.stamps),
+  consumerDocuments: input.consumerDocuments.map(toAgreementDocumentV2),
+  contract: input.contract ? toAgreementDocumentV2(input.contract) : undefined,
+  stamps: toStampsV2(input.stamps),
 });
 
 export function toCreateEventAgreementDeleted(
