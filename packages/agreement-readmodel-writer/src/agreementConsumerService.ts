@@ -1,8 +1,11 @@
 import { match } from "ts-pattern";
 import { logger, AgreementCollection } from "pagopa-interop-commons";
-import { AgreementEventEnvelope } from "pagopa-interop-models";
+import {
+  AgreementEventEnvelope,
+  fromAgreementV1,
+  fromAgreementDocumentV1,
+} from "pagopa-interop-models";
 import { bigIntReplacer } from "../../commons/src/logging/utils.js";
-import { fromAgreementV1, fromDocumentV1 } from "./model/converter.js";
 
 export async function handleMessage(
   message: AgreementEventEnvelope,
@@ -61,7 +64,7 @@ export async function handleMessage(
         {
           $push: {
             "data.consumerDocuments": msg.data.document
-              ? fromDocumentV1(msg.data.document)
+              ? fromAgreementDocumentV1(msg.data.document)
               : undefined,
           },
           $set: {
@@ -101,7 +104,7 @@ export async function handleMessage(
         {
           $set: {
             "data.contract": msg.data.contract
-              ? fromDocumentV1(msg.data.contract)
+              ? fromAgreementDocumentV1(msg.data.contract)
               : undefined,
             metadata: {
               version: msg.version,

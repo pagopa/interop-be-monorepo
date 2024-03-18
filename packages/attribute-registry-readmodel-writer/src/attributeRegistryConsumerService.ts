@@ -4,9 +4,8 @@ import {
   readModelWriterConfig,
   ReadModelRepository,
 } from "pagopa-interop-commons";
-import { AttributeEventEnvelope } from "pagopa-interop-models";
+import { AttributeEventEnvelope, fromAttributeV1 } from "pagopa-interop-models";
 import { bigIntReplacer } from "../../commons/src/logging/utils.js";
-import { fromAttributeV1 } from "./model/converter.js";
 
 const { attributes } = ReadModelRepository.init(readModelWriterConfig());
 

@@ -225,7 +225,7 @@ describe("database test", () => {
         const id = await attributeRegistryService.createCertifiedAttribute(
           {
             name: mockAttribute.name,
-            code: mockAttribute.code!,
+            code: "code",
             description: mockAttribute.description,
           },
           getMockAuthData(tenant.id)
@@ -244,6 +244,7 @@ describe("database test", () => {
 
         const attribute: Attribute = {
           ...mockAttribute,
+          code: "code",
           id: unsafeBrandId(id),
           kind: attributeKind.certified,
           creationTime: new Date(writtenPayload.attribute!.creationTime),
@@ -287,7 +288,7 @@ describe("database test", () => {
           attributeRegistryService.createCertifiedAttribute(
             {
               name: mockAttribute.name,
-              code: mockAttribute.code!,
+              code: "code",
               description: mockAttribute.description,
             },
             getMockAuthData(mockTenant.id)
@@ -300,7 +301,7 @@ describe("database test", () => {
           attributeRegistryService.createCertifiedAttribute(
             {
               name: mockAttribute.name,
-              code: mockAttribute.code!,
+              code: "code",
               description: mockAttribute.description,
             },
             getMockAuthData(mockTenant.id)
@@ -325,7 +326,7 @@ describe("database test", () => {
         const id =
           await attributeRegistryService.createInternalCertifiedAttribute({
             name: mockAttribute.name,
-            code: mockAttribute.code!,
+            code: "code",
             origin: tenant.features[0].certifierId,
             description: mockAttribute.description,
           });
@@ -343,6 +344,7 @@ describe("database test", () => {
 
         const attribute: Attribute = {
           ...mockAttribute,
+          code: "code",
           id: unsafeBrandId(id),
           kind: attributeKind.certified,
           creationTime: new Date(writtenPayload.attribute!.creationTime),

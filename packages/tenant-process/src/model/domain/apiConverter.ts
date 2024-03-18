@@ -10,6 +10,7 @@ import {
   TenantMailKind,
   tenantMailKind,
   TenantFeature,
+  tenantAttributeType,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -75,14 +76,14 @@ export function toApiTenantAttribute(
   input: TenantAttribute
 ): ApiTenantAttribute {
   return match<TenantAttribute, ApiTenantAttribute>(input)
-    .with({ type: "certified" }, (attribute) => ({
+    .with({ type: tenantAttributeType.CERTIFIED }, (attribute) => ({
       certified: {
         id: attribute.id,
         assignmentTimestamp: attribute.assignmentTimestamp.toJSON(),
         revocationTimestamp: attribute.revocationTimestamp?.toJSON(),
       },
     }))
-    .with({ type: "verified" }, (attribute) => ({
+    .with({ type: tenantAttributeType.VERIFIED }, (attribute) => ({
       verified: {
         id: attribute.id,
         assignmentTimestamp: attribute.assignmentTimestamp.toJSON(),
@@ -90,7 +91,7 @@ export function toApiTenantAttribute(
         revokedBy: attribute.revokedBy.map(toApiTenantRevoker),
       },
     }))
-    .with({ type: "declared" }, (attribute) => ({
+    .with({ type: tenantAttributeType.DECLARED }, (attribute) => ({
       declared: {
         id: attribute.id,
         assignmentTimestamp: attribute.assignmentTimestamp.toJSON(),
