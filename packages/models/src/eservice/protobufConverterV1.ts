@@ -1,6 +1,23 @@
 import { P, match } from "ts-pattern";
 import { unsafeBrandId } from "../brandedIds.js";
 import {
+  AgreementApprovalPolicyV1,
+  EServiceDescriptorStateV1,
+  EServiceTechnologyV1,
+  EServiceModeV1,
+  EServiceAttributeV1,
+  EServiceDocumentV1,
+  EServiceDescriptorV1,
+  EServiceRiskAnalysisFormV1,
+  EServiceRiskAnalysisV1,
+  EServiceV1,
+} from "../gen/v1/eservice/eservice.js";
+import { parseDateOrThrow } from "../protobuf/utils.js";
+import {
+  RiskAnalysis,
+  RiskAnalysisForm,
+} from "../risk-analysis/riskAnalysis.js";
+import {
   AgreementApprovalPolicy,
   agreementApprovalPolicy,
   DescriptorState,
@@ -13,24 +30,7 @@ import {
   Descriptor,
   EService,
   Document,
-} from "../eservice/eservice.js";
-import {
-  AgreementApprovalPolicyV1,
-  EServiceDescriptorStateV1,
-  EServiceTechnologyV1,
-  EServiceModeV1,
-  EServiceAttributeV1,
-  EServiceDocumentV1,
-  EServiceDescriptorV1,
-  EServiceRiskAnalysisFormV1,
-  EServiceRiskAnalysisV1,
-  EServiceV1,
-} from "../gen/v1/eservice/eservice.js";
-import {
-  RiskAnalysis,
-  RiskAnalysisForm,
-} from "../risk-analysis/riskAnalysis.js";
-import { parseDateOrThrow } from "./utils.js";
+} from "./eservice.js";
 
 export const fromAgreementApprovalPolicyV1 = (
   input: AgreementApprovalPolicyV1 | undefined
