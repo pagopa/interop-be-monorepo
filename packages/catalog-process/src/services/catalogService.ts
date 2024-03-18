@@ -470,17 +470,17 @@ export function catalogServiceBuilder(
       const updatedTechnology = apiTechnologyToTechnology(
         eserviceSeed.technology
       );
-      if (eservice.data.descriptors.length === 1) {
-        const draftDescriptor = eservice.data.descriptors[0];
-        if (
-          updatedTechnology !== eservice.data.technology &&
-          draftDescriptor.interface !== undefined
-        ) {
-          await fileManager.delete(
-            config.s3Bucket,
-            draftDescriptor.interface.path
-          );
-        }
+      const interfaceHasToBeDeleted =
+        updatedTechnology !== eservice.data.technology &&
+        eservice.data.descriptors.length === 1 &&
+        eservice.data.descriptors[0].interface !== undefined;
+
+      if (interfaceHasToBeDeleted) {
+        await fileManager.delete(
+          config.s3Bucket,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          eservice.data.descriptors[0].interface!.path
+        );
       }
 
       const updatedMode = apiEServiceModeToEServiceMode(eserviceSeed.mode);
@@ -496,6 +496,12 @@ export function catalogServiceBuilder(
         producerId: authData.organizationId,
         mode: updatedMode,
         riskAnalysis: checkedRiskAnalysis,
+        descriptors: interfaceHasToBeDeleted
+          ? eservice.data.descriptors.map((d) => ({
+              ...d,
+              interface: undefined,
+            }))
+          : eservice.data.descriptors,
       };
 
       const event = toCreateEventEServiceUpdated(
