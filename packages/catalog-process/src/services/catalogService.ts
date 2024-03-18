@@ -98,8 +98,9 @@ import {
   assertIsDraftEservice,
   assertIsReceiveEservice,
   assertTenantKindExists,
-  validateRiskAnalysisOrThrow,
+  validateRiskAnalysisSchemaOrThrow,
   assertHasNoDraftDescriptor,
+  assertRiskAnalysisIsValidForPublication,
 } from "./validators.js";
 
 const retrieveEService = async (
@@ -944,6 +945,15 @@ export function catalogServiceBuilder(
         throw eServiceDescriptorWithoutInterface(descriptor.id);
       }
 
+      if (eservice.data.mode === eserviceMode.receive) {
+        const tenant = await retrieveTenant(
+          eservice.data.producerId,
+          readModelService
+        );
+        assertTenantKindExists(tenant);
+        assertRiskAnalysisIsValidForPublication(eservice.data, tenant.kind);
+      }
+
       const currentActiveDescriptor = eservice.data.descriptors.find(
         (d: Descriptor) => d.state === descriptorState.published
       );
@@ -1331,9 +1341,8 @@ export function catalogServiceBuilder(
       );
       assertTenantKindExists(tenant);
 
-      const validatedRiskAnalysisForm = validateRiskAnalysisOrThrow(
+      const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
         eserviceRiskAnalysisSeed.riskAnalysisForm,
-        true,
         tenant.kind
       );
 
@@ -1384,9 +1393,8 @@ export function catalogServiceBuilder(
         eservice
       );
 
-      const validatedRiskAnalysisForm = validateRiskAnalysisOrThrow(
+      const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
         eserviceRiskAnalysisSeed.riskAnalysisForm,
-        true,
         tenant.kind
       );
 

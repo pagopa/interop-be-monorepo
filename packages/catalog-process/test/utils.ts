@@ -4,6 +4,7 @@ import {
   AuthData,
   EServiceCollection,
   TenantCollection,
+  riskAnalysisFormToRiskAnalysisFormToValidate,
 } from "pagopa-interop-commons";
 import { IDatabase } from "pg-promise";
 import { v4 as uuidv4 } from "uuid";
@@ -142,25 +143,9 @@ export const buildRiskAnalysisSeed = (
   riskAnalysis: RiskAnalysis
 ): EServiceRiskAnalysisSeed => ({
   name: riskAnalysis.name,
-  riskAnalysisForm: {
-    version: riskAnalysis.riskAnalysisForm.version,
-    answers: {
-      ...riskAnalysis.riskAnalysisForm.singleAnswers.reduce(
-        (acc, singleAnswer) => ({
-          ...acc,
-          [singleAnswer.key]: singleAnswer.value ? [singleAnswer.value] : [],
-        }),
-        {}
-      ),
-      ...riskAnalysis.riskAnalysisForm.multiAnswers.reduce(
-        (acc, multiAnswer) => ({
-          ...acc,
-          [multiAnswer.key]: multiAnswer.values,
-        }),
-        {}
-      ),
-    },
-  },
+  riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
+    riskAnalysis.riskAnalysisForm
+  ),
 });
 
 export const getMockEService = (): EService => ({
