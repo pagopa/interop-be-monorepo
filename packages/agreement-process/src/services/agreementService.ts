@@ -34,6 +34,7 @@ import {
   toCreateEventAgreementConsumerDocumentAdded,
   toCreateEventAgreementDeleted,
   toCreateEventAgreementUpdated,
+  toCreateEventDraftAgreementUpdated,
 } from "../model/domain/toEvent.js";
 import {
   assertAgreementExist,
@@ -534,7 +535,7 @@ export async function updateAgreementLogic(
     consumerNotes: agreement.consumerNotes,
   };
 
-  return toCreateEventAgreementUpdated(
+  return toCreateEventDraftAgreementUpdated(
     agreementUpdated,
     agreementToBeUpdated.metadata.version,
     correlationId
