@@ -2,11 +2,8 @@
 import { z } from "zod";
 import { EachMessagePayload, KafkaMessage } from "kafkajs";
 import { EServiceEvent, Message } from "pagopa-interop-models";
-import { match } from "ts-pattern";
-import {
-  CatalogTopicConfig,
-  KafkaTopicConfig,
-} from "../config/kafkaTopicConfig.js";
+import { P, match } from "ts-pattern";
+import { KafkaTopicConfig } from "../config/kafkaTopicConfig.js";
 
 /**
  * Decodes a Kafka message using the provided event schema.
@@ -46,8 +43,8 @@ export const messageDecoderSupplier = (
   topic: EachMessagePayload["topic"]
 ) =>
   match(topicConfig)
-    .when(
-      (c) => CatalogTopicConfig.safeParse(c).success,
+    .with(
+      { catalogTopic: P.string },
       () => (message: KafkaMessage) =>
         decodeKafkaMessage(message, EServiceEvent)
     )
