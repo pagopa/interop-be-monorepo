@@ -96,7 +96,7 @@ export const TenantAttribute = z.discriminatedUnion("type", [
 export type TenantAttribute = z.infer<typeof TenantAttribute>;
 
 export const tenantMailKind = {
-  ContactEmail: "ContactEmail",
+  ContactEmail: "CONTACT_EMAIL",
 } as const;
 export const TenantMailKind = z.enum([
   Object.values(tenantMailKind)[0],
