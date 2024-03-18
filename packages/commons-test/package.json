@@ -21,7 +21,7 @@
     "@pagopa/eslint-config": "^3.0.0",
     "@protobuf-ts/runtime": "^2.9.1",
     "@testcontainers/postgresql": "^10.2.2",
-    "@types/jsonwebtoken": "^9.0.2",
+    "@types/jsonwebtoken": "^9.0.0",
     "@types/uuid": "^9.0.2",
     "@zodios/core": "^10.9.2",
     "jsonwebtoken": "^9.0.0",
