@@ -20,6 +20,7 @@ import {
   ExternalId,
   genericError,
   unsafeBrandId,
+  tenantAttributeType,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -106,7 +107,7 @@ export const fromTenantAttributesV1 = (
         assignmentTimestamp: new Date(
           Number(certifiedAttribute.assignmentTimestamp)
         ),
-        type: "certified",
+        type: tenantAttributeType.CERTIFIED,
       };
     case "verifiedAttribute":
       const { verifiedAttribute } = sealedValue;
@@ -117,7 +118,7 @@ export const fromTenantAttributesV1 = (
         ),
         verifiedBy: verifiedAttribute.verifiedBy.map(fromTenantVerifierV1),
         revokedBy: verifiedAttribute.revokedBy.map(fromTenantRevokerV1),
-        type: "verified",
+        type: tenantAttributeType.VERIFIED,
       };
     case "declaredAttribute":
       const { declaredAttribute } = sealedValue;
@@ -126,7 +127,7 @@ export const fromTenantAttributesV1 = (
         assignmentTimestamp: new Date(
           Number(declaredAttribute.assignmentTimestamp)
         ),
-        type: "declared",
+        type: tenantAttributeType.DECLARED,
       };
     case undefined:
       throw genericError("Undefined attribute kind");
