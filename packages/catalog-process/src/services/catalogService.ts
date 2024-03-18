@@ -961,13 +961,14 @@ export function catalogServiceBuilder(
       // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
       const event = async () => {
         if (currentActiveDescriptor !== undefined) {
-          const agreements = await readModelService.listAgreements(
-            [eserviceId],
-            [],
-            [],
-            [agreementState.active, agreementState.suspended],
-            currentActiveDescriptor.id
-          );
+          const agreements = await readModelService.listAgreements({
+            eservicesIds: [eserviceId],
+            consumersIds: [],
+            producersIds: [],
+            states: [agreementState.active, agreementState.suspended],
+            limit: 1,
+            descriptorId: currentActiveDescriptor.id,
+          });
           if (agreements.length === 0) {
             const eserviceWithArchivedAndPublishedDescriptors =
               replaceDescriptor(

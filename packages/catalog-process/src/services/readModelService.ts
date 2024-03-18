@@ -120,12 +120,12 @@ export function readModelServiceBuilder(
         .with(0, () => eservicesIds)
         .otherwise(async () =>
           (
-            await this.listAgreements(
+            await this.listAgreements({
               eservicesIds,
-              [authData.organizationId],
-              [],
-              agreementStates
-            )
+              consumersIds: [authData.organizationId],
+              producersIds: [],
+              states: agreementStates,
+            })
           ).map((a) => a.eserviceId)
         );
 
@@ -417,13 +417,21 @@ export function readModelServiceBuilder(
         .find((d) => d.id === descriptorId)
         ?.docs.find((d) => d.id === documentId);
     },
-    async listAgreements(
-      eservicesIds: EServiceId[],
-      consumersIds: TenantId[],
-      producersIds: TenantId[],
-      states: AgreementState[],
-      descriptorId?: DescriptorId | undefined
-    ): Promise<Agreement[]> {
+    async listAgreements({
+      eservicesIds,
+      consumersIds,
+      producersIds,
+      states,
+      limit,
+      descriptorId,
+    }: {
+      eservicesIds: EServiceId[];
+      consumersIds: TenantId[];
+      producersIds: TenantId[];
+      states: AgreementState[];
+      limit?: number;
+      descriptorId?: DescriptorId;
+    }): Promise<Agreement[]> {
       const descriptorFilter: ReadModelFilter<Agreement> = descriptorId
         ? { "data.descriptorId": { $eq: descriptorId } }
         : {};
@@ -451,11 +459,12 @@ export function readModelServiceBuilder(
             data: 1,
           },
         },
-        {
-          $sort: { "data.id": 1 },
-        },
       ];
-      const data = await agreements.aggregate(aggregationPipeline).toArray();
+
+      const aggregationWithLimit = limit
+        ? [...aggregationPipeline, { $limit: limit }]
+        : aggregationPipeline;
+      const data = await agreements.aggregate(aggregationWithLimit).toArray();
       const result = z.array(Agreement).safeParse(data.map((a) => a.data));
 
       if (!result.success) {
