@@ -190,7 +190,7 @@ export function riskAnalysisValidationFailed(
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Risk analysis validation failed. Reasons: [${issues
-      .map((i) => i.issue)
+      .map((i) => i.detail)
       .join(", ")}]`,
     code: "riskAnalysisValidationFailed",
     title: "Risk analysis validation failed",

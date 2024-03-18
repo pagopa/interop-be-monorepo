@@ -19,8 +19,10 @@ import {
   AuthData,
   EServiceCollection,
   FileManager,
+  FileManagerError,
   ReadModelRepository,
   TenantCollection,
+  fileManagerDeleteError,
   initDB,
   initFileManager,
   unexpectedFieldError,
@@ -149,6 +151,7 @@ describe("database test", async () => {
   let startedMongodbContainer: StartedTestContainer;
   let startedMinioContainer: StartedTestContainer;
   let fileManager: FileManager;
+  const s3OriginalBucket = config.s3Bucket;
 
   beforeAll(async () => {
     startedPostgreSqlContainer = await postgreSQLContainer(config).start();
@@ -193,6 +196,9 @@ describe("database test", async () => {
 
     await postgresDB.none("TRUNCATE TABLE catalog.events RESTART IDENTITY");
     await postgresDB.none("TRUNCATE TABLE agreement.events RESTART IDENTITY");
+
+    // Some tests change the bucket name, so we need to reset it
+    config.s3Bucket = s3OriginalBucket;
   });
 
   afterAll(async () => {
@@ -400,9 +406,8 @@ describe("database test", async () => {
       });
 
       it("should fail if the file deletion fails when interface file has to be deleted on technology change", async () => {
-        vi.spyOn(fileManager, "delete").mockRejectedValueOnce(
-          new Error("Failed to delete file")
-        );
+        config.s3Bucket = "invalid-bucket"; // configure an invalid bucket to force a failure
+
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
@@ -426,7 +431,13 @@ describe("database test", async () => {
             },
             getMockAuthData(mockEService.producerId)
           )
-        ).rejects.toThrowError("Failed to delete file");
+        ).rejects.toThrowError(
+          fileManagerDeleteError(
+            mockDocument.path,
+            config.s3Bucket,
+            new Error("The specified bucket does not exist")
+          )
+        );
       });
       it("should write on event-store for the update of an eService (update description only)", async () => {
         const updatedDescription = "eservice new description";
@@ -1522,9 +1533,7 @@ describe("database test", async () => {
       });
 
       it("should fail if one of the file deletions fails", async () => {
-        vi.spyOn(fileManager, "delete").mockRejectedValueOnce(
-          new Error("Failed to delete file")
-        );
+        config.s3Bucket = "invalid-bucket"; // configure an invalid bucket to force a failure
 
         const descriptor: Descriptor = {
           ...mockDescriptor,
@@ -1543,7 +1552,13 @@ describe("database test", async () => {
             descriptor.id,
             getMockAuthData(eservice.producerId)
           )
-        ).rejects.toThrowError("Failed to delete file");
+        ).rejects.toThrowError(
+          fileManagerDeleteError(
+            mockDocument.path,
+            config.s3Bucket,
+            new Error("The specified bucket does not exist")
+          )
+        );
       });
 
       it("should throw eServiceNotFound if the eservice doesn't exist", () => {
@@ -2751,10 +2766,6 @@ describe("database test", async () => {
         );
       });
       it("should fail if one of the file copy fails", async () => {
-        vi.spyOn(fileManager, "copy").mockRejectedValueOnce(
-          new Error("Failed to copy file")
-        );
-
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
@@ -2773,7 +2784,7 @@ describe("database test", async () => {
             descriptor.id,
             getMockAuthData(eservice.producerId)
           )
-        ).rejects.toThrowError("Failed to copy file");
+        ).rejects.toThrowError(FileManagerError);
       });
       it("should throw eServiceDuplicate if an eservice with the same name already exists", async () => {
         const descriptor: Descriptor = {
@@ -3630,9 +3641,7 @@ describe("database test", async () => {
       });
 
       it("should fail if the file deletion fails", async () => {
-        vi.spyOn(fileManager, "delete").mockRejectedValueOnce(
-          new Error("Failed to delete file")
-        );
+        config.s3Bucket = "invalid-bucket"; // configure an invalid bucket to force a failure
 
         const descriptor: Descriptor = {
           ...mockDescriptor,
@@ -3652,7 +3661,13 @@ describe("database test", async () => {
             mockDocument.id,
             getMockAuthData(eservice.producerId)
           )
-        ).rejects.toThrowError("Failed to delete file");
+        ).rejects.toThrowError(
+          fileManagerDeleteError(
+            mockDocument.path,
+            config.s3Bucket,
+            new Error("The specified bucket does not exist")
+          )
+        );
       });
       it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
         expect(
