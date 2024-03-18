@@ -164,6 +164,23 @@ export function toCreateEventAgreementAdded(
   };
 }
 
+export function toCreateEventDraftAgreementUpdated(
+  agreement: Agreement,
+  version: number
+): CreateEvent<AgreementEvent> {
+  return {
+    streamId: agreement.id,
+    version,
+    event: {
+      type: "DraftAgreementUpdated",
+      event_version: 2,
+      data: {
+        agreement: toAgreementV2(agreement),
+      },
+    },
+  };
+}
+
 export function toCreateEventAgreementUpdated(
   agreement: Agreement,
   version: number,
