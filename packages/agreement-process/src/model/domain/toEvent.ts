@@ -8,6 +8,7 @@ import {
   AgreementState,
   AgreementStateV1,
   AgreementV1,
+  AgreementV2,
   StampV1,
   StampsV1,
   AgreementId,
@@ -69,6 +70,19 @@ export const toAgreementV1 = (input: Agreement): AgreementV1 => ({
   stamps: toStampsV1(input.stamps),
 });
 
+export const toAgreementV2 = (input: Agreement): AgreementV2 => ({
+  ...input,
+  state: toAgreementStateV1(input.state),
+  createdAt: BigInt(input.createdAt.getTime()),
+  updatedAt: input.updatedAt ? BigInt(input.updatedAt.getTime()) : undefined,
+  suspendedAt: input.suspendedAt
+    ? BigInt(input.suspendedAt.getTime())
+    : undefined,
+  consumerDocuments: input.consumerDocuments.map(toAgreementDocumentV1),
+  contract: input.contract ? toAgreementDocumentV1(input.contract) : undefined,
+  stamps: toStampsV1(input.stamps),
+});
+
 export function toCreateEventAgreementDeleted(
   streamId: string,
   version: number,
@@ -97,9 +111,9 @@ export function toCreateEventAgreementAdded(
     version: 0,
     event: {
       type: "AgreementAdded",
-      event_version: 1,
+      event_version: 2,
       data: {
-        agreement: toAgreementV1(agreement),
+        agreement: toAgreementV2(agreement),
       },
     },
     correlationId,
