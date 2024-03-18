@@ -33,9 +33,9 @@ export const TenantFeature = TenantFeatureCertifier; // It will be extended with
 export type TenantFeature = z.infer<typeof TenantFeature>;
 
 export const tenantAttributeType = {
-  CERTIFIED: "certified",
-  DECLARED: "declared",
-  VERIFIED: "verified",
+  CERTIFIED: "PersistentCertifiedAttribute",
+  DECLARED: "PersistentDeclaredAttribute",
+  VERIFIED: "PersistentVerifiedAttribute",
 } as const;
 
 export const TenantAttributeType = z.enum([
