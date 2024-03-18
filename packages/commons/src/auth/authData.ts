@@ -17,35 +17,38 @@ export const UserRoles = z.enum([
 ]);
 export type UserRoles = z.infer<typeof UserRoles>;
 
-export const AuthJWTToken = z.object({
-  organizationId: TenantId,
+// TODO this model has only optional fields to catch all the possible cases.
+// Improve by enumerating the possible tokens with their respective required / optional fields.
+export const AuthToken = z.object({
+  organizationId: TenantId.optional(),
   "user-roles": z
-    .string()
-    .optional()
-    .transform((val) => val?.split(",")),
-  role: z
-    .string()
-    .optional()
-    .transform((val) => val?.split(",")),
+    .preprocess((val) => String(val).split(","), z.array(UserRoles))
+    .optional(),
+  role: UserRoles.optional(),
   uid: z.string().uuid().optional(),
-  organization: z.object({
-    roles: z.array(
-      z.object({
-        role: z.string(),
-      })
-    ),
-  }),
-  externalId: z.object({
-    origin: z.string(),
-    value: z.string(),
-  }),
+  organization: z
+    .object({
+      roles: z.array(
+        z.object({
+          role: UserRoles,
+        })
+      ),
+    })
+    .optional(),
+  externalId: z
+    .object({
+      origin: z.string(),
+      value: z.string(),
+    })
+    .optional(),
+  client_id: z.string().uuid().optional(),
 });
-export type AuthJWTToken = z.infer<typeof AuthJWTToken> & JwtPayload;
+export type AuthToken = z.infer<typeof AuthToken> & JwtPayload;
 
 export const AuthData = z.object({
   organizationId: TenantId,
   userId: z.string().uuid(),
-  userRoles: z.array(z.string()),
+  userRoles: z.array(UserRoles),
   externalId: z.object({
     origin: z.string(),
     value: z.string(),
