@@ -15,12 +15,12 @@ message AgreementV2 {
   int64 createdAt = 10;
   optional int64 updatedAt = 11;
   optional bool suspendedByPlatform = 12;
-  repeated CertifiedAttributeV1 certifiedAttributes = 13;
-  repeated DeclaredAttributeV1 declaredAttributes = 14;
+  repeated CertifiedAttributeV2 certifiedAttributes = 13;
+  repeated DeclaredAttributeV2 declaredAttributes = 14;
   repeated AgreementDocumentV2 consumerDocuments = 15;
   optional string consumerNotes = 16;
   optional AgreementDocumentV2 contract = 17;
-  optional StampsV1 stamps = 18;
+  optional StampsV2 stamps = 18;
   optional string rejectionReason = 19;
   optional int64 suspendedAt = 20;
 }
@@ -31,11 +31,11 @@ message VerifiedAttributeV2 {
   string id = 1;
 }
 
-message CertifiedAttributeV1 {
+message CertifiedAttributeV2 {
   string id = 1;
 }
 
-message DeclaredAttributeV1 {
+message DeclaredAttributeV2 {
   string id = 1;
 }
 
@@ -63,7 +63,7 @@ message StampV2 {
   int64 when = 2;
 }
 
-message StampsV1 {
+message StampsV2 {
   optional StampV2 submission = 1;
   optional StampV2 activation = 2;
   optional StampV2 rejection = 3;
