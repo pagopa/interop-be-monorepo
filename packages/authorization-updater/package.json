@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "@protobuf-ts/runtime": "^2.9.1",
+    "@zodios/core": "^10.9.2",
     "@zodios/plugins": "^10.6.0",
     "connection-string": "^4.3.6",
     "dotenv-flow": "^3.2.0",
