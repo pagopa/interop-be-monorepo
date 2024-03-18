@@ -32,6 +32,7 @@ import {
   EServiceRiskAnalysisDeletedV1,
   EServiceUpdatedV1,
   EServiceWithDescriptorsDeletedV1,
+  EserviceAttributes,
   MovedAttributesFromEserviceToDescriptorsV1,
   descriptorState,
   eserviceMode,
@@ -97,6 +98,11 @@ describe("database test", async () => {
 
     describe("ClonedEServiceAdded", () => {
       it("should clone an eservice", async () => {
+        await writeInReadmodel<EServiceReadModel>(
+          toReadModelEService(mockEService),
+          eservices,
+          1
+        );
         const payload: ClonedEServiceAddedV1 = {
           eservice: toEServiceV1(mockEService),
         };
@@ -190,32 +196,39 @@ describe("database test", async () => {
       );
       expect(retrievedEservice?.metadata).toEqual({ version: 2 });
     });
+
     it("MovedAttributesFromEserviceToDescriptors", async () => {
-      await writeInReadmodel<EServiceReadModel>(
-        toReadModelEService(mockEService),
-        eservices,
-        1
-      );
-      const draftDescriptor: Descriptor = {
+      const attributes: EserviceAttributes = {
+        certified: [
+          [
+            {
+              id: generateId<AttributeId>(),
+              explicitAttributeVerification: false,
+            },
+          ],
+        ],
+        declared: [],
+        verified: [],
+      };
+      const descriptor: Descriptor = {
         ...getMockDescriptor(),
         state: descriptorState.draft,
-        attributes: {
-          certified: [
-            [
-              {
-                id: generateId<AttributeId>(),
-                explicitAttributeVerification: false,
-              },
-            ],
-          ],
-          declared: [],
-          verified: [],
-        },
+        attributes,
+      };
+      const eservice: EService = {
+        ...mockEService,
+        attributes,
+        descriptors: [descriptor],
+      };
+      await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
+      const updatedDescriptor = {
+        ...descriptor,
+        attributes,
       };
       const updatedEService: EService = {
         ...mockEService,
         attributes: undefined,
-        descriptors: [draftDescriptor],
+        descriptors: [updatedDescriptor],
       };
       const payload: MovedAttributesFromEserviceToDescriptorsV1 = {
         eservice: toEServiceV1(updatedEService),
@@ -248,11 +261,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [draftDescriptor],
       };
-      await writeInReadmodel<EServiceReadModel>(
-        toReadModelEService(eservice),
-        eservices,
-        1
-      );
+      await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
 
       const updatedEService: EService = {
         ...eservice,
@@ -292,11 +301,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [draftDescriptor],
       };
-      await writeInReadmodel<EServiceReadModel>(
-        toReadModelEService(eservice),
-        eservices,
-        1
-      );
+      await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
 
       const updatedDocument: Document = {
         ...document,
@@ -333,11 +338,7 @@ describe("database test", async () => {
       expect(retrievedEservice?.metadata).toEqual({ version: 2 });
     });
     it("EServiceDeleted", async () => {
-      await writeInReadmodel<EServiceReadModel>(
-        toReadModelEService(mockEService),
-        eservices,
-        1
-      );
+      await writeInReadmodel(toReadModelEService(mockEService), eservices, 1);
 
       const payload: EServiceDeletedV1 = {
         eserviceId: mockEService.id,
@@ -370,11 +371,7 @@ describe("database test", async () => {
           ...mockEService,
           descriptors: [draftDescriptor],
         };
-        await writeInReadmodel<EServiceReadModel>(
-          toReadModelEService(eservice),
-          eservices,
-          1
-        );
+        await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
         const updatedEService: EService = {
           ...eservice,
           descriptors: [{ ...draftDescriptor, interface: descriptorInterface }],
@@ -416,11 +413,7 @@ describe("database test", async () => {
           ...mockEService,
           descriptors: [draftDescriptor],
         };
-        await writeInReadmodel<EServiceReadModel>(
-          toReadModelEService(eservice),
-          eservices,
-          1
-        );
+        await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
 
         const updatedEService: EService = {
           ...eservice,
@@ -465,11 +458,7 @@ describe("database test", async () => {
           ...mockEService,
           descriptors: [draftDescriptor],
         };
-        await writeInReadmodel<EServiceReadModel>(
-          toReadModelEService(eservice),
-          eservices,
-          1
-        );
+        await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
 
         const updatedEService: EService = {
           ...eservice,
@@ -513,11 +502,7 @@ describe("database test", async () => {
           ...mockEService,
           descriptors: [draftDescriptor],
         };
-        await writeInReadmodel<EServiceReadModel>(
-          toReadModelEService(eservice),
-          eservices,
-          1
-        );
+        await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
 
         const updatedEService: EService = {
           ...eservice,
@@ -558,11 +543,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [],
       };
-      await writeInReadmodel<EServiceReadModel>(
-        toReadModelEService(eservice),
-        eservices,
-        1
-      );
+      await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
 
       const updatedEService: EService = {
         ...eservice,
@@ -601,11 +582,7 @@ describe("database test", async () => {
         ...mockEService,
         descriptors: [draftDescriptor],
       };
-      await writeInReadmodel<EServiceReadModel>(
-        toReadModelEService(eservice),
-        eservices,
-        1
-      );
+      await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
 
       const publishedDescriptor: Descriptor = {
         ...draftDescriptor,
@@ -646,11 +623,7 @@ describe("database test", async () => {
         riskAnalysis: [riskAnalysis],
       };
 
-      await writeInReadmodel<EServiceReadModel>(
-        toReadModelEService(eservice),
-        eservices,
-        1
-      );
+      await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
 
       const updatedEService: EService = {
         ...mockEService,
