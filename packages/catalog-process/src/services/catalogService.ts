@@ -98,7 +98,7 @@ import {
   assertIsDraftEservice,
   assertIsReceiveEservice,
   assertTenantKindExists,
-  buildRiskAnalysisValidationResultOrThrow,
+  validateRiskAnalysisSchemaOrThrow,
   assertHasNoDraftDescriptor,
   assertRiskAnalysisIsValidForPublication,
 } from "./validators.js";
@@ -1341,11 +1341,10 @@ export function catalogServiceBuilder(
       );
       assertTenantKindExists(tenant);
 
-      const validatedRiskAnalysisForm =
-        buildRiskAnalysisValidationResultOrThrow(
-          eserviceRiskAnalysisSeed.riskAnalysisForm,
-          tenant.kind
-        );
+      const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
+        eserviceRiskAnalysisSeed.riskAnalysisForm,
+        tenant.kind
+      );
 
       const newRiskAnalysis: RiskAnalysis =
         riskAnalysisValidatedFormToNewRiskAnalysis(
@@ -1394,11 +1393,10 @@ export function catalogServiceBuilder(
         eservice
       );
 
-      const validatedRiskAnalysisForm =
-        buildRiskAnalysisValidationResultOrThrow(
-          eserviceRiskAnalysisSeed.riskAnalysisForm,
-          tenant.kind
-        );
+      const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
+        eserviceRiskAnalysisSeed.riskAnalysisForm,
+        tenant.kind
+      );
 
       const updatedRiskAnalysis: RiskAnalysis = {
         ...riskAnalysisToUpdate,

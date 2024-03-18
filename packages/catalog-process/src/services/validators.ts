@@ -62,7 +62,7 @@ export function assertHasNoDraftDescriptor(eservice: EService): void {
   }
 }
 
-export function buildRiskAnalysisValidationResultOrThrow(
+export function validateRiskAnalysisSchemaOrThrow(
   riskAnalysisForm: EServiceRiskAnalysisSeed["riskAnalysisForm"],
   tenantKind: TenantKind
 ): RiskAnalysisValidatedForm {
