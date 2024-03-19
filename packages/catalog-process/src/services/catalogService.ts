@@ -476,11 +476,12 @@ export function catalogServiceBuilder(
       if (interfaceHasToBeDeleted) {
         await Promise.all(
           eservice.data.descriptors.map(async (d) => {
-            if (d.interface != undefined)
+            if (d.interface !== undefined) {
               return await fileManager.delete(
                 config.s3Bucket,
                 d.interface.path
               );
+            }
           })
         );
       }
