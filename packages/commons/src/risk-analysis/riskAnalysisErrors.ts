@@ -1,4 +1,4 @@
-import { TenantKind } from "pagopa-interop-models";
+import { InternalError, TenantKind } from "pagopa-interop-models";
 
 type RiskAnalysisValidationIssueCode =
   | "noRulesVersionFoundError"
@@ -10,19 +10,15 @@ type RiskAnalysisValidationIssueCode =
   | "unexpectedFieldFormatError"
   | "missingExpectedFieldError";
 
-export class RiskAnalysisValidationIssue extends Error {
-  public code: RiskAnalysisValidationIssueCode;
-  public issue: string;
+export class RiskAnalysisValidationIssue extends InternalError<RiskAnalysisValidationIssueCode> {
   constructor({
     code,
-    issue,
+    detail,
   }: {
     code: RiskAnalysisValidationIssueCode;
-    issue: string;
+    detail: string;
   }) {
-    super(issue);
-    this.code = code;
-    this.issue = issue;
+    super({ code, detail });
   }
 }
 
@@ -31,7 +27,7 @@ export function noRulesVersionFoundError(
 ): RiskAnalysisValidationIssue {
   return new RiskAnalysisValidationIssue({
     code: "noRulesVersionFoundError",
-    issue: `Ruleset version for tenant kind ${kind} not found`,
+    detail: `Ruleset version for tenant kind ${kind} not found`,
   });
 }
 
@@ -40,7 +36,7 @@ export function unexpectedRulesVersionError(
 ): RiskAnalysisValidationIssue {
   return new RiskAnalysisValidationIssue({
     code: "unexpectedRulesVersionError",
-    issue: `Unexpected ruleset version ${version}`,
+    detail: `Unexpected ruleset version ${version}`,
   });
 }
 
@@ -49,7 +45,7 @@ export function unexpectedFieldError(
 ): RiskAnalysisValidationIssue {
   return new RiskAnalysisValidationIssue({
     code: "unexpectedFieldError",
-    issue: `Unexpected field ${fieldName}`,
+    detail: `Unexpected field ${fieldName}`,
   });
 }
 
@@ -59,7 +55,7 @@ export function unexpectedFieldValueError(
 ): RiskAnalysisValidationIssue {
   return new RiskAnalysisValidationIssue({
     code: "unexpectedFieldValueError",
-    issue: `Field ${fieldName} should be one of [${Array.from(
+    detail: `Field ${fieldName} should be one of [${Array.from(
       allowedValues
     ).join(",")}]`,
   });
@@ -71,7 +67,7 @@ export function dependencyNotFoundError(
 ): RiskAnalysisValidationIssue {
   return new RiskAnalysisValidationIssue({
     code: "dependencyNotFoundError",
-    issue: `Field ${dependentField} expects field ${depencencyField} to be in the form`,
+    detail: `Field ${dependentField} expects field ${depencencyField} to be in the form`,
   });
 }
 
@@ -81,8 +77,8 @@ export function unexpectedDependencyValueError(
   expectedValue: string
 ): RiskAnalysisValidationIssue {
   return new RiskAnalysisValidationIssue({
-    issue: `Field ${dependentField} requires field ${depencencyField} value to be ${expectedValue}`,
     code: "unexpectedDependencyValueError",
+    detail: `Field ${dependentField} requires field ${depencencyField} value to be ${expectedValue}`,
   });
 }
 
@@ -90,8 +86,8 @@ export function unexpectedFieldFormatError(
   fieldName: string
 ): RiskAnalysisValidationIssue {
   return new RiskAnalysisValidationIssue({
-    issue: `Unexpected format for field ${fieldName}`,
     code: "unexpectedFieldFormatError",
+    detail: `Unexpected format for field ${fieldName}`,
   });
 }
 
@@ -99,7 +95,7 @@ export function missingExpectedFieldError(
   fieldName: string
 ): RiskAnalysisValidationIssue {
   return new RiskAnalysisValidationIssue({
-    issue: `Expected field ${fieldName} not found in form`,
     code: "missingExpectedFieldError",
+    detail: `Expected field ${fieldName} not found in form`,
   });
 }
