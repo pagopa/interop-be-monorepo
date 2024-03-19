@@ -18,9 +18,11 @@ import {
   TenantVerifier,
   VerifiedTenantAttribute,
   agreementState,
+  attributeKind,
   descriptorState,
   generateId,
   technology,
+  tenantAttributeType,
   tenantEventToBinaryData,
 } from "pagopa-interop-models";
 import { IDatabase } from "pg-promise";
@@ -94,7 +96,7 @@ export const getMockRevokedBy = (): TenantRevoker => ({
 
 export const getMockVerifiedTenantAttribute = (): VerifiedTenantAttribute => ({
   id: generateId(),
-  type: "verified",
+  type: tenantAttributeType.VERIFIED,
   assignmentTimestamp: new Date(),
   verifiedBy: [getMockVerifiedBy()],
   revokedBy: [getMockRevokedBy()],
@@ -104,7 +106,7 @@ export const getMockCertifiedTenantAttribute =
   (): CertifiedTenantAttribute => ({
     assignmentTimestamp: currentDate,
     id: generateId(),
-    type: "certified",
+    type: tenantAttributeType.CERTIFIED,
     revocationTimestamp: currentDate,
   });
 
