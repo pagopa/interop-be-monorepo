@@ -273,6 +273,7 @@ export function toCreateEventAgreementConsumerDocumentAdded(
 export function toCreateEventAgreementConsumerDocumentRemoved(
   agreementId: AgreementId,
   documentId: AgreementDocumentId,
+  agreement: Agreement,
   version: number,
   correlationId: string
 ): CreateEvent<AgreementEvent> {
@@ -281,10 +282,10 @@ export function toCreateEventAgreementConsumerDocumentRemoved(
     version,
     event: {
       type: "AgreementConsumerDocumentRemoved",
-      event_version: 1,
+      event_version: 2,
       data: {
-        agreementId,
         documentId,
+        agreement: toAgreementV2(agreement),
       },
     },
     correlationId,
