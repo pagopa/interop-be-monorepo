@@ -501,7 +501,7 @@ export async function deleteAgreementLogic(
   }
 
   return toCreateEventAgreementDeleted(
-    agreementId,
+    agreement.data,
     agreement.metadata.version,
     correlationId
   );

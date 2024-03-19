@@ -16,8 +16,8 @@ import {
   AgreementEvent,
   AgreementStateV2,
   AgreementDocumentV2,
-  StampV2,
-  StampsV2,
+  AgreementStampV2,
+  AgreementStampsV2,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -95,22 +95,30 @@ export const toAgreementDocumentV2 = (
   createdAt: BigInt(input.createdAt.getTime()),
 });
 
-export const toStampV2 = (input: AgreementStamp): StampV2 => ({
+export const toAgreementStampV2 = (
+  input: AgreementStamp
+): AgreementStampV2 => ({
   ...input,
   when: BigInt(input.when.getTime()),
 });
 
-export const toStampsV2 = (input: AgreementStamps): StampsV2 => ({
-  submission: input.submission ? toStampV2(input.submission) : undefined,
-  activation: input.activation ? toStampV2(input.activation) : undefined,
-  rejection: input.rejection ? toStampV2(input.rejection) : undefined,
-  suspensionByProducer: input.suspensionByProducer
-    ? toStampV2(input.suspensionByProducer)
+export const toAgreementStampsV2 = (
+  input: AgreementStamps
+): AgreementStampsV2 => ({
+  submission: input.submission
+    ? toAgreementStampV2(input.submission)
     : undefined,
-  upgrade: input.upgrade ? toStampV2(input.upgrade) : undefined,
-  archiving: input.archiving ? toStampV2(input.archiving) : undefined,
+  activation: input.activation
+    ? toAgreementStampV2(input.activation)
+    : undefined,
+  rejection: input.rejection ? toAgreementStampV2(input.rejection) : undefined,
+  suspensionByProducer: input.suspensionByProducer
+    ? toAgreementStampV2(input.suspensionByProducer)
+    : undefined,
+  upgrade: input.upgrade ? toAgreementStampV2(input.upgrade) : undefined,
+  archiving: input.archiving ? toAgreementStampV2(input.archiving) : undefined,
   suspensionByConsumer: input.suspensionByConsumer
-    ? toStampV2(input.suspensionByConsumer)
+    ? toAgreementStampV2(input.suspensionByConsumer)
     : undefined,
 });
 
@@ -124,22 +132,22 @@ export const toAgreementV2 = (input: Agreement): AgreementV2 => ({
     : undefined,
   consumerDocuments: input.consumerDocuments.map(toAgreementDocumentV2),
   contract: input.contract ? toAgreementDocumentV2(input.contract) : undefined,
-  stamps: toStampsV2(input.stamps),
+  stamps: toAgreementStampsV2(input.stamps),
 });
 
 export function toCreateEventAgreementDeleted(
-  streamId: string,
+  agreement: Agreement,
   version: number,
   correlationId: string
 ): CreateEvent<AgreementEvent> {
   return {
-    streamId,
+    streamId: agreement.id,
     version,
     event: {
       type: "AgreementDeleted",
-      event_version: 1,
+      event_version: 2,
       data: {
-        agreementId: streamId,
+        agreement: toAgreementV2(agreement),
       },
     },
     correlationId,
@@ -166,7 +174,8 @@ export function toCreateEventAgreementAdded(
 
 export function toCreateEventDraftAgreementUpdated(
   agreement: Agreement,
-  version: number
+  version: number,
+  correlationId: string
 ): CreateEvent<AgreementEvent> {
   return {
     streamId: agreement.id,
@@ -178,6 +187,7 @@ export function toCreateEventDraftAgreementUpdated(
         agreement: toAgreementV2(agreement),
       },
     },
+    correlationId,
   };
 }
 
