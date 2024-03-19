@@ -7,7 +7,8 @@ import {
   SelfcareMappingCreatedV1,
   SelfcareMappingDeletedV1,
 } from "../gen/v1/tenant/events.js";
-import { EventEnvelope, protobufDecoder } from "../index.js";
+import { protobufDecoder } from "../protobuf/protobuf.js";
+import { EventEnvelope } from "../events/events.js";
 
 export function tenantEventToBinaryData(event: TenantEvent): Uint8Array {
   return match(event)
