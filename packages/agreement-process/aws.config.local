@@ -1,4 +1,4 @@
 [default]
-aws_access_key_id=minioadmin
-aws_secret_access_key=minioadmin
+aws_access_key_id=test-aws-key
+aws_secret_access_key=test-aws-secret
 region=eu-central-1
