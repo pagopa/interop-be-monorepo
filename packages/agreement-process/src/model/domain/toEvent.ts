@@ -248,6 +248,23 @@ export function toCreateEventAgreementUpdated(
   };
 }
 
+export function toCreateEventAgreementRejected(
+  agreement: Agreement,
+  version: number
+): CreateEvent<AgreementEvent> {
+  return {
+    streamId: agreement.id,
+    version,
+    event: {
+      type: "AgreementRejected",
+      event_version: 2,
+      data: {
+        agreement: toAgreementV2(agreement),
+      },
+    },
+  };
+}
+
 export function toCreateEventAgreementConsumerDocumentAdded(
   agreementId: AgreementId,
   documentId: AgreementDocumentId,

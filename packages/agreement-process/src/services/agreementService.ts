@@ -33,6 +33,7 @@ import {
   toCreateEventAgreementAdded,
   toCreateEventAgreementArchived,
   toCreateEventAgreementDeleted,
+  toCreateEventAgreementRejected,
   toCreateEventAgreementUpdated,
   toCreateEventDraftAgreementUpdated,
 } from "../model/domain/toEvent.js";
@@ -860,7 +861,7 @@ export async function rejectAgreementLogic(
     },
   };
 
-  return toCreateEventAgreementUpdated(
+  return toCreateEventAgreementRejected(
     rejected,
     agreementToBeRejected.metadata.version,
     correlationId
