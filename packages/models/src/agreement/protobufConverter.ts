@@ -1,19 +1,21 @@
+import { unsafeBrandId } from "../brandedIds.js";
 import {
-  Agreement,
-  AgreementDocument,
   AgreementDocumentV1,
-  AgreementState,
+  StampV1,
+  StampsV1,
   AgreementStateV1,
   AgreementV1,
-  StampV1,
+} from "../gen/v1/agreement/agreement.js";
+import {
+  AgreementDocument,
   AgreementStamp,
-  StampsV1,
   AgreementStamps,
+  AgreementState,
   agreementState,
-  unsafeBrandId,
-} from "pagopa-interop-models";
+  Agreement,
+} from "./agreement.js";
 
-export const fromDocumentV1 = (
+export const fromAgreementDocumentV1 = (
   input: AgreementDocumentV1
 ): AgreementDocument => ({
   ...input,
@@ -93,7 +95,9 @@ export const fromAgreementV1 = (input: AgreementV1): Agreement => ({
   suspendedAt: input.suspendedAt
     ? new Date(Number(input.suspendedAt))
     : undefined,
-  consumerDocuments: input.consumerDocuments.map(fromDocumentV1),
-  contract: input.contract ? fromDocumentV1(input.contract) : undefined,
+  consumerDocuments: input.consumerDocuments.map(fromAgreementDocumentV1),
+  contract: input.contract
+    ? fromAgreementDocumentV1(input.contract)
+    : undefined,
   stamps: { ...fromAgreementStamps(input.stamps) },
 });

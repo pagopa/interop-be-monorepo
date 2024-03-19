@@ -1,19 +1,5 @@
 import { unsafeBrandId } from "../brandedIds.js";
 import {
-  AgreementApprovalPolicy,
-  agreementApprovalPolicy,
-  DescriptorState,
-  descriptorState,
-  Technology,
-  technology,
-  EServiceMode,
-  eserviceMode,
-  EServiceAttribute,
-  Descriptor,
-  EService,
-  Document,
-} from "../eservice/eservice.js";
-import {
   AgreementApprovalPolicyV2,
   EServiceAttributeV2,
   EServiceDescriptorStateV2,
@@ -29,6 +15,20 @@ import {
   RiskAnalysis,
   RiskAnalysisForm,
 } from "../risk-analysis/riskAnalysis.js";
+import {
+  AgreementApprovalPolicy,
+  agreementApprovalPolicy,
+  DescriptorState,
+  descriptorState,
+  Technology,
+  technology,
+  EServiceMode,
+  eserviceMode,
+  EServiceAttribute,
+  Descriptor,
+  EService,
+  Document,
+} from "./eservice.js";
 
 export const fromAgreementApprovalPolicyV2 = (
   input: AgreementApprovalPolicyV2

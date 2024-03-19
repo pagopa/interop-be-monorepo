@@ -11,12 +11,10 @@ import {
   fromDescriptorV1,
   fromDocumentV1,
   fromEServiceV1,
-} from "pagopa-interop-models";
-import {
   toReadModelDescriptor,
   toReadModelDocument,
   toReadModelEService,
-} from "./model/legacy/eserviceAdapter.js";
+} from "pagopa-interop-models";
 
 const adaptEserviceToReadModel = (
   version: number,
