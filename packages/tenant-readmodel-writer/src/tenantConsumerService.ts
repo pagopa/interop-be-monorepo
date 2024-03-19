@@ -4,8 +4,7 @@ import {
   readModelWriterConfig,
   logger,
 } from "pagopa-interop-commons";
-import { TenantEventEnvelope } from "pagopa-interop-models";
-import { fromTenantV1 } from "./model/converter.js";
+import { TenantEventEnvelope, fromTenantV1 } from "pagopa-interop-models";
 
 const { tenants } = ReadModelRepository.init(readModelWriterConfig());
 
