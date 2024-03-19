@@ -5,7 +5,7 @@ create table catalog.events (
     stream_id uuid NOT NULL,
     version bigint NOT NULL,
 
-    correlation_id uuid,
+    correlation_id text,
 
     type text NOT NULL,
     event_version int NOT NULL,
@@ -24,7 +24,7 @@ create table agreement.events (
     stream_id uuid NOT NULL,
     version bigint NOT NULL,
 
-    correlation_id uuid,
+    correlation_id text,
 
     type text NOT NULL,
     event_version int NOT NULL,
@@ -43,7 +43,7 @@ create table tenant.events (
     stream_id uuid NOT NULL,
     version bigint NOT NULL,
 
-    correlation_id uuid,
+    correlation_id text,
 
     type text NOT NULL,
     event_version int NOT NULL,
@@ -62,7 +62,7 @@ create table attribute.events (
     stream_id uuid NOT NULL,
     version bigint NOT NULL,
 
-    correlation_id uuid,
+    correlation_id text,
 
     type text NOT NULL,
     event_version int NOT NULL,
