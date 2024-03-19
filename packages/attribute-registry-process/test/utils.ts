@@ -66,6 +66,7 @@ export const writeAttributeInEventstore = async (
     data: { attribute: toAttributeV1(attribute) },
   };
   const eventToWrite = {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     stream_id: attributeEvent.data.attribute!.id,
     version: "0",
     type: attributeEvent.type,
