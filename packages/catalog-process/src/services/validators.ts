@@ -1,5 +1,6 @@
 import {
   RiskAnalysisValidatedForm,
+  riskAnalysisFormToRiskAnalysisFormToValidate,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
@@ -18,6 +19,8 @@ import {
   tenantKindNotFound,
   riskAnalysisValidationFailed,
   draftDescriptorAlreadyExists,
+  eServiceRiskAnalysisIsRequired,
+  riskAnalysisNotValid,
 } from "../model/domain/errors.js";
 import { EServiceRiskAnalysisSeed } from "../model/domain/models.js";
 
@@ -59,15 +62,37 @@ export function assertHasNoDraftDescriptor(eservice: EService): void {
   }
 }
 
-export function validateRiskAnalysisOrThrow(
+export function validateRiskAnalysisSchemaOrThrow(
   riskAnalysisForm: EServiceRiskAnalysisSeed["riskAnalysisForm"],
-  schemaOnly: boolean,
   tenantKind: TenantKind
 ): RiskAnalysisValidatedForm {
-  const result = validateRiskAnalysis(riskAnalysisForm, schemaOnly, tenantKind);
+  const result = validateRiskAnalysis(riskAnalysisForm, true, tenantKind);
   if (result.type === "invalid") {
     throw riskAnalysisValidationFailed(result.issues);
   } else {
     return result.value;
   }
+}
+
+export function assertRiskAnalysisIsValidForPublication(
+  eservice: EService,
+  tenantKind: TenantKind
+): void {
+  if (eservice.riskAnalysis.length === 0) {
+    throw eServiceRiskAnalysisIsRequired(eservice.id);
+  }
+
+  eservice.riskAnalysis.forEach((riskAnalysis) => {
+    const result = validateRiskAnalysis(
+      riskAnalysisFormToRiskAnalysisFormToValidate(
+        riskAnalysis.riskAnalysisForm
+      ),
+      false,
+      tenantKind
+    );
+
+    if (result.type === "invalid") {
+      throw riskAnalysisNotValid();
+    }
+  });
 }
