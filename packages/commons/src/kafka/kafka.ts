@@ -31,7 +31,6 @@ export function decodeKafkaMessage<TEvent extends z.ZodType>(
 /**
  * Returns a message decoder function based on the provided topic.
  * NOTE: this function using a regex to match the topic and return the correct decoder,
- * this is a simplest way to handle the different topics without structured topic name and models.
  *
  * @param {string} topic - The topic of the Kafka message.
  * @param {KafkaTopicConfig} topic configuration.
