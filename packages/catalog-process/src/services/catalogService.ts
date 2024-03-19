@@ -471,15 +471,17 @@ export function catalogServiceBuilder(
         eserviceSeed.technology
       );
       const interfaceHasToBeDeleted =
-        updatedTechnology !== eservice.data.technology &&
-        eservice.data.descriptors.length === 1 &&
-        eservice.data.descriptors[0].interface !== undefined;
+        updatedTechnology !== eservice.data.technology;
 
       if (interfaceHasToBeDeleted) {
-        await fileManager.delete(
-          config.s3Bucket,
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          eservice.data.descriptors[0].interface!.path
+        await Promise.all(
+          eservice.data.descriptors.map(async (d) => {
+            if (d.interface != undefined)
+              return await fileManager.delete(
+                config.s3Bucket,
+                d.interface.path
+              );
+          })
         );
       }
 
