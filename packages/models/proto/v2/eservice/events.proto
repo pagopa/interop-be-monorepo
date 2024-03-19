@@ -20,7 +20,7 @@ message EServiceDeletedV2 {
 message EServiceClonedV2 {
   EServiceV2 sourceEservice = 1;
   string sourceDescriptorId = 2;
-  EServiceV2 clonedEservice = 3;
+  EServiceV2 eservice = 3;
 }
 
 message EServiceDescriptorAddedV2 {
@@ -29,6 +29,11 @@ message EServiceDescriptorAddedV2 {
 }
 
 message EServiceDraftDescriptorUpdatedV2 {
+  string descriptorId = 1;
+  EServiceV2 eservice = 2;
+}
+
+message EServiceDescriptorQuotasUpdatedV2 {
   string descriptorId = 1;
   EServiceV2 eservice = 2;
 }
@@ -53,7 +58,7 @@ message EServiceDescriptorSuspendedV2 {
   EServiceV2 eservice = 2;
 }
 
-message EServiceDescriptorDeletedV2 {
+message EServiceDraftDescriptorDeletedV2 {
   string descriptorId = 1;
   EServiceV2 eservice = 2;
 }
@@ -92,4 +97,19 @@ message EServiceDescriptorDocumentDeletedV2 {
   string descriptorId = 1;
   string documentId = 2;
   EServiceV2 eservice = 3;
+}
+
+message EServiceRiskAnalysisAddedV2 {
+  string riskAnalysisId = 1;
+  EServiceV2 eservice = 2;
+}
+
+message EServiceRiskAnalysisUpdatedV2 {
+  string riskAnalysisId = 1;
+  EServiceV2 eservice = 2;
+}
+
+message EServiceRiskAnalysisDeletedV2 {
+  string riskAnalysisId = 1;
+  EServiceV2 eservice = 2;
 }
