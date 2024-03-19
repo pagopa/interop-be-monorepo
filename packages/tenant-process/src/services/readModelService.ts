@@ -28,7 +28,7 @@ function listTenantsFilters(
   const nameFilter = name
     ? {
         "data.name": {
-          $regex: name,
+          $regex: ReadModelRepository.escapeRegExp(name),
           $options: "i",
         },
       }
@@ -193,7 +193,7 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
     ): Promise<WithMetadata<Tenant> | undefined> {
       return getTenant(tenants, {
         "data.name": {
-          $regex: `^${name}$$`,
+          $regex: `^${ReadModelRepository.escapeRegExp(name)}$$`,
           $options: "i",
         },
       });

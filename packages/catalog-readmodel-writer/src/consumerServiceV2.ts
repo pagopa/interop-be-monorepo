@@ -1,7 +1,10 @@
-import { match } from "ts-pattern";
 import { EServiceCollection, logger } from "pagopa-interop-commons";
-import { EServiceEventEnvelopeV2 } from "pagopa-interop-models";
-import { fromEServiceV2 } from "./model/converterV2.js";
+import {
+  EServiceEventEnvelopeV2,
+  fromEServiceV2,
+  toReadModelEService,
+} from "pagopa-interop-models";
+import { match } from "ts-pattern";
 
 export async function handleMessageV2(
   message: EServiceEventEnvelopeV2,
@@ -23,13 +26,13 @@ export async function handleMessageV2(
       { type: "DraftEServiceUpdated" },
       { type: "EServiceCloned" },
       { type: "EServiceDescriptorAdded" },
+      { type: "EServiceDraftDescriptorDeleted" },
       { type: "EServiceDraftDescriptorUpdated" },
       { type: "EServiceDescriptorQuotasUpdated" },
       { type: "EServiceDescriptorActivated" },
       { type: "EServiceDescriptorArchived" },
       { type: "EServiceDescriptorPublished" },
       { type: "EServiceDescriptorSuspended" },
-      { type: "EServiceDescriptorDeleted" },
       { type: "EServiceDescriptorInterfaceAdded" },
       { type: "EServiceDescriptorDocumentAdded" },
       { type: "EServiceDescriptorInterfaceUpdated" },
@@ -37,6 +40,8 @@ export async function handleMessageV2(
       { type: "EServiceDescriptorInterfaceDeleted" },
       { type: "EServiceDescriptorDocumentDeleted" },
       { type: "EServiceRiskAnalysisAdded" },
+      { type: "EServiceRiskAnalysisUpdated" },
+      { type: "EServiceRiskAnalysisDeleted" },
       async (message) =>
         await eservices.updateOne(
           {
@@ -45,7 +50,9 @@ export async function handleMessageV2(
           },
           {
             $set: {
-              data: eservice ? fromEServiceV2(eservice) : undefined,
+              data: eservice
+                ? toReadModelEService(fromEServiceV2(eservice))
+                : undefined,
               metadata: {
                 version: message.version,
               },
