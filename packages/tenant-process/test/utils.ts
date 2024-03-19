@@ -18,7 +18,6 @@ import {
   TenantVerifier,
   VerifiedTenantAttribute,
   agreementState,
-  attributeKind,
   descriptorState,
   generateId,
   technology,
