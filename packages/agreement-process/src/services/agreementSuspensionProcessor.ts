@@ -13,7 +13,10 @@ import {
   assertDescriptorExist,
   agreementSuspendableStates,
 } from "../model/domain/validators.js";
-import { toCreateEventAgreementUpdated } from "../model/domain/toEvent.js";
+import {
+  toCreateEventAgreementSuspendedByConsumer,
+  toCreateEventAgreementSuspendedByProducer,
+} from "../model/domain/toEvent.js";
 import { UpdateAgreementSeed } from "../model/domain/models.js";
 import { AgreementQuery } from "./readmodel/agreementQuery.js";
 import { TenantQuery } from "./readmodel/tenantQuery.js";
@@ -22,7 +25,6 @@ import {
   agreementStateByFlags,
   nextState,
   suspendedByConsumerFlag,
-  suspendedByPlatformFlag,
   suspendedByProducerFlag,
 } from "./agreementStateProcessor.js";
 import {
@@ -88,12 +90,10 @@ export async function suspendAgreementLogic({
     authData.organizationId,
     agreementState.suspended
   );
-  const suspendedByPlatform = suspendedByPlatformFlag(nextStateByAttributes);
   const newState = agreementStateByFlags(
     nextStateByAttributes,
     suspendedByProducer,
-    suspendedByConsumer,
-    suspendedByPlatform
+    suspendedByConsumer
   );
 
   const stamp = createStamp(authData);
@@ -116,7 +116,6 @@ export async function suspendAgreementLogic({
     state: newState,
     suspendedByConsumer,
     suspendedByProducer,
-    suspendedByPlatform,
     stamps: {
       ...agreement.data.stamps,
       suspensionByConsumer: suspensionByConsumerStamp,
@@ -130,8 +129,17 @@ export async function suspendAgreementLogic({
     ...updateSeed,
   };
 
-  return toCreateEventAgreementUpdated(
-    updatedAgreement,
-    agreement.metadata.version
-  );
+  if (authData.organizationId === agreement.data.consumerId) {
+    return toCreateEventAgreementSuspendedByConsumer(
+      updatedAgreement,
+      agreement.metadata.version
+    );
+  } else if (authData.organizationId === agreement.data.producerId) {
+    return toCreateEventAgreementSuspendedByProducer(
+      updatedAgreement,
+      agreement.metadata.version
+    );
+  } else {
+    throw new Error("Unexpected state");
+  }
 }
