@@ -14,7 +14,7 @@ export type CertificationType = z.infer<typeof CertificationType>;
 
 export const CertifiableFieldResourceOfLocalDate = z.object({
   certification: CertificationType,
-  value: z.date(),
+  value: z.coerce.date(),
 });
 export type CertifiableFieldResourceOfLocalDate = z.infer<
   typeof CertifiableFieldResourceOfLocalDate
