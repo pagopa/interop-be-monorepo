@@ -304,6 +304,101 @@ export function toCreateEventAgreementRejected(
   };
 }
 
+export function toCreateEventAgreementActivated(
+  agreement: Agreement,
+  version: number,
+  correlationId: string
+): CreateEvent<AgreementEvent> {
+  return {
+    streamId: agreement.id,
+    version,
+    event: {
+      type: "AgreementActivated",
+      event_version: 2,
+      data: {
+        agreement: toAgreementV2(agreement),
+      },
+    },
+    correlationId,
+  };
+}
+
+export function toCreateEventAgreementSuspendedByProducer(
+  agreement: Agreement,
+  version: number,
+  correlationId: string
+): CreateEvent<AgreementEvent> {
+  return {
+    streamId: agreement.id,
+    version,
+    event: {
+      type: "AgreementSuspendedByProducer",
+      event_version: 2,
+      data: {
+        agreement: toAgreementV2(agreement),
+      },
+    },
+    correlationId,
+  };
+}
+
+export function toCreateEventAgreementSuspendedByConsumer(
+  agreement: Agreement,
+  version: number,
+  correlationId: string
+): CreateEvent<AgreementEvent> {
+  return {
+    streamId: agreement.id,
+    version,
+    event: {
+      type: "AgreementSuspendedByConsumer",
+      event_version: 2,
+      data: {
+        agreement: toAgreementV2(agreement),
+      },
+    },
+    correlationId,
+  };
+}
+
+export function toCreateEventAgreementUnsuspendedByProducer(
+  agreement: Agreement,
+  version: number,
+  correlationId: string
+): CreateEvent<AgreementEvent> {
+  return {
+    streamId: agreement.id,
+    version,
+    event: {
+      type: "AgreementUnsuspendedByProducer",
+      event_version: 2,
+      data: {
+        agreement: toAgreementV2(agreement),
+      },
+    },
+    correlationId,
+  };
+}
+
+export function toCreateEventAgreementUnsuspendedByConsumer(
+  agreement: Agreement,
+  version: number,
+  correlationId: string
+): CreateEvent<AgreementEvent> {
+  return {
+    streamId: agreement.id,
+    version,
+    event: {
+      type: "AgreementUnsuspendedByConsumer",
+      event_version: 2,
+      data: {
+        agreement: toAgreementV2(agreement),
+      },
+    },
+    correlationId,
+  };
+}
+
 export function toCreateEventAgreementConsumerDocumentAdded(
   documentId: AgreementDocumentId,
   agreement: Agreement,
