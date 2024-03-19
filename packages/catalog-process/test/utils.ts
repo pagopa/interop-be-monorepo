@@ -215,28 +215,28 @@ export const addOneEService = async (
   eservices: EServiceCollection
 ): Promise<void> => {
   await writeEServiceInEventstore(eservice, postgresDB);
-  await writeInReadmodel(toReadModelEService(eservice), eservices, 0);
+  await writeInReadmodel(toReadModelEService(eservice), eservices);
 };
 
 export const addOneAttribute = async (
   attribute: Attribute,
   attributes: AttributeCollection
 ): Promise<void> => {
-  await writeInReadmodel(attribute, attributes, 0);
+  await writeInReadmodel(attribute, attributes);
 };
 
 export const addOneTenant = async (
   tenant: Tenant,
   tenants: TenantCollection
 ): Promise<void> => {
-  await writeInReadmodel(tenant, tenants, 0);
+  await writeInReadmodel(tenant, tenants);
 };
 
 export const addOneAgreement = async (
   agreement: Agreement,
   agreements: AgreementCollection
 ): Promise<void> => {
-  await writeInReadmodel(agreement, agreements, 0);
+  await writeInReadmodel(agreement, agreements);
 };
 
 export const readLastEserviceEvent = async (
