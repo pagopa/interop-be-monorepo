@@ -3,34 +3,37 @@ import {
   DescriptorId,
   EServiceDocumentId,
   EServiceId,
+  RiskAnalysisId,
+  TenantId,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
+import { RiskAnalysisValidationIssue, logger } from "pagopa-interop-commons";
 
 export const errorCodes = {
-  eServiceDescriptorNotFound: "0002",
-  eServiceDescriptorWithoutInterface: "0003",
-  notValidDescriptor: "0004",
-  eServiceDocumentNotFound: "0006",
-  eServiceNotFound: "0007",
-  draftDescriptorAlreadyExists: "0008",
-  eserviceCannotBeUpdatedOrDeleted: "0009",
-  eServiceDuplicate: "0010",
+  eServiceDescriptorNotFound: "0001",
+  eServiceDescriptorWithoutInterface: "0002",
+  notValidDescriptor: "0003",
+  eServiceDocumentNotFound: "0004",
+  eServiceNotFound: "0005",
+  draftDescriptorAlreadyExists: "0006",
+  eServiceDuplicate: "007",
+  originNotCompliant: "0008",
+  attributeNotFound: "0009",
+  inconsistentDailyCalls: "0010",
   interfaceAlreadyExists: "0011",
-  attributeNotFound: "0012",
-  inconsistentDailyCalls: "0013",
+  eserviceNotInDraftState: "0012",
+  eserviceNotInReceiveMode: "0013",
+  tenantNotFound: "0014",
+  tenantKindNotFound: "0015",
+  riskAnalysisValidationFailed: "0016",
+  eServiceRiskAnalysisNotFound: "0017",
+  eServiceRiskAnalysisIsRequired: "0018",
+  riskAnalysisNotValid: "0019",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
 
-export const makeApiProblem = makeApiProblemBuilder(errorCodes);
-
-const eserviceCannotBeUpdatedOrDeleted: {
-  code: ErrorCodes;
-  title: string;
-} = {
-  code: "eserviceCannotBeUpdatedOrDeleted",
-  title: "EService cannot be updated or deleted",
-};
+export const makeApiProblem = makeApiProblemBuilder(logger, errorCodes);
 
 export function eServiceNotFound(eserviceId: EServiceId): ApiError<ErrorCodes> {
   return new ApiError({
@@ -40,31 +43,11 @@ export function eServiceNotFound(eserviceId: EServiceId): ApiError<ErrorCodes> {
   });
 }
 
-export function eServiceDuplicate(
-  eServiceNameSeed: string
-): ApiError<ErrorCodes> {
+export function eServiceDuplicate(eserviceName: string): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `ApiError during EService creation with name ${eServiceNameSeed}`,
+    detail: `An EService with name ${eserviceName} already exists`,
     code: "eServiceDuplicate",
     title: "Duplicated service name",
-  });
-}
-
-export function eServiceCannotBeUpdated(
-  eserviceId: EServiceId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `EService ${eserviceId} contains valid descriptors and cannot be updated`,
-    ...eserviceCannotBeUpdatedOrDeleted,
-  });
-}
-
-export function eServiceCannotBeDeleted(
-  eserviceId: EServiceId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `EService ${eserviceId} contains descriptors and cannot be deleted`,
-    ...eserviceCannotBeUpdatedOrDeleted,
   });
 }
 
@@ -155,5 +138,90 @@ export function inconsistentDailyCalls(): ApiError<ErrorCodes> {
     detail: `dailyCallsPerConsumer can't be greater than dailyCallsTotal`,
     code: "inconsistentDailyCalls",
     title: "Inconsistent daily calls",
+  });
+}
+
+export function originNotCompliant(origin: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Requester origin ${origin} is not allowed`,
+    code: "originNotCompliant",
+    title: "Origin is not compliant",
+  });
+}
+
+export function eserviceNotInDraftState(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} is not in draft state`,
+    code: "eserviceNotInDraftState",
+    title: "EService is not in draft state",
+  });
+}
+
+export function eserviceNotInReceiveMode(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} is not in receive mode`,
+    code: "eserviceNotInReceiveMode",
+    title: "EService is not in receive mode",
+  });
+}
+
+export function tenantNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} not found`,
+    code: "tenantNotFound",
+    title: "Tenant not found",
+  });
+}
+
+export function tenantKindNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant kind for tenant ${tenantId} not found`,
+    code: "tenantKindNotFound",
+    title: "Tenant kind not found",
+  });
+}
+
+export function riskAnalysisValidationFailed(
+  issues: RiskAnalysisValidationIssue[]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk analysis validation failed. Reasons: [${issues
+      .map((i) => i.detail)
+      .join(", ")}]`,
+    code: "riskAnalysisValidationFailed",
+    title: "Risk analysis validation failed",
+  });
+}
+
+export function eServiceRiskAnalysisNotFound(
+  eserviceId: EServiceId,
+  riskAnalysisId: RiskAnalysisId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk Analysis ${riskAnalysisId} not found for EService ${eserviceId}`,
+    code: "eServiceRiskAnalysisNotFound",
+    title: "Risk analysis not found",
+  });
+}
+
+export function eServiceRiskAnalysisIsRequired(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `At least one Risk Analysis is required for EService ${eserviceId}`,
+    code: "eServiceRiskAnalysisIsRequired",
+    title: "Risk analysis is required",
+  });
+}
+
+export function riskAnalysisNotValid(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk Analysis did not pass validation`,
+    code: "riskAnalysisNotValid",
+    title: "Risk Analysis did not pass validation",
   });
 }

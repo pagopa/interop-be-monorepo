@@ -11,6 +11,34 @@ message EServiceV1 {
   optional EServiceAttributesV1 attributes = 6;
   repeated EServiceDescriptorV1 descriptors = 7;
   optional int64 createdAt = 8;
+  repeated EServiceRiskAnalysisV1 riskAnalysis = 9;
+  optional EServiceModeV1 mode = 10;
+}
+
+message EServiceRiskAnalysisV1 {
+  required string id = 1;
+  required string name = 2;
+  required EServiceRiskAnalysisFormV1 riskAnalysisForm = 3;
+  required int64 createdAt = 4;
+}
+
+message EServiceRiskAnalysisFormV1 {
+  required string id = 1;
+  required string version = 2;
+  repeated EServiceRiskAnalysisSingleAnswerV1 singleAnswers = 3;
+  repeated EServiceRiskAnalysisMultiAnswerV1 multiAnswers = 4;
+}
+
+message EServiceRiskAnalysisSingleAnswerV1 {
+  required string id = 1;
+  required string key = 2;
+  optional string value = 3;
+}
+
+message EServiceRiskAnalysisMultiAnswerV1 {
+  required string id = 1;
+  required string key = 2;
+  repeated string values = 3;
 }
 
 message EServiceAttributeValueV1 {
@@ -76,4 +104,9 @@ enum EServiceTechnologyV1 {
 enum AgreementApprovalPolicyV1 {
   AUTOMATIC = 1;
   MANUAL = 2;
+}
+
+enum EServiceModeV1 {
+  RECEIVE = 1;
+  DELIVER = 2;
 }

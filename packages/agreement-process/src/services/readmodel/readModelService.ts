@@ -145,7 +145,12 @@ const getTenantsByNamePipeline = (
   },
   {
     $match: {
-      "tenants.data.name": { $regex: new RegExp(tenantName || "", "i") },
+      "tenants.data.name": {
+        $regex: new RegExp(
+          ReadModelRepository.escapeRegExp(tenantName || ""),
+          "i"
+        ),
+      },
     },
   },
   {
@@ -483,7 +488,7 @@ export function readModelServiceBuilder(
       return undefined;
     },
     async getAttributeById(
-      id: string
+      id: AttributeId
     ): Promise<WithMetadata<Attribute> | undefined> {
       return getAttribute(attributes, { "data.id": id });
     },
@@ -502,7 +507,7 @@ export function readModelServiceBuilder(
       return searchTenantsByName(agreements, name, "producerId", limit, offset);
     },
     async listEServicesAgreements(
-      eServiceName: string | undefined,
+      eserviceName: string | undefined,
       consumerIds: string[],
       producerIds: string[],
       limit: number,
@@ -529,7 +534,10 @@ export function readModelServiceBuilder(
         {
           $match: {
             "eservices.data.name": {
-              $regex: new RegExp(eServiceName || "", "i"),
+              $regex: new RegExp(
+                ReadModelRepository.escapeRegExp(eserviceName || ""),
+                "i"
+              ),
             },
             consumerFilter,
             producerFilter,

@@ -1,0 +1,115 @@
+syntax = "proto3";
+
+package eservice.v2;
+
+import "v2/eservice/eservice.proto";
+
+message EServiceAddedV2 {
+  EServiceV2 eservice = 1;
+}
+
+message DraftEServiceUpdatedV2 {
+  EServiceV2 eservice = 1;
+}
+
+message EServiceDeletedV2 {
+  string eserviceId = 1;
+  EServiceV2 eservice = 2;
+}
+
+message EServiceClonedV2 {
+  EServiceV2 sourceEservice = 1;
+  string sourceDescriptorId = 2;
+  EServiceV2 eservice = 3;
+}
+
+message EServiceDescriptorAddedV2 {
+  string descriptorId = 1;
+  EServiceV2 eservice = 2;
+}
+
+message EServiceDraftDescriptorUpdatedV2 {
+  string descriptorId = 1;
+  EServiceV2 eservice = 2;
+}
+
+message EServiceDescriptorQuotasUpdatedV2 {
+  string descriptorId = 1;
+  EServiceV2 eservice = 2;
+}
+
+message EServiceDescriptorActivatedV2 {
+  string descriptorId = 1;
+  EServiceV2 eservice = 2;
+}
+
+message EServiceDescriptorArchivedV2 {
+  string descriptorId = 1;
+  EServiceV2 eservice = 2;
+}
+
+message EServiceDescriptorPublishedV2 {
+  string descriptorId = 1;
+  EServiceV2 eservice = 2;
+}
+
+message EServiceDescriptorSuspendedV2 {
+  string descriptorId = 1;
+  EServiceV2 eservice = 2;
+}
+
+message EServiceDraftDescriptorDeletedV2 {
+  string descriptorId = 1;
+  EServiceV2 eservice = 2;
+}
+
+message EServiceDescriptorInterfaceAddedV2 {
+  string descriptorId = 1;
+  string documentId = 2;
+  EServiceV2 eservice = 3;
+}
+
+message EServiceDescriptorDocumentAddedV2 {
+  string descriptorId = 1;
+  string documentId = 2;
+  EServiceV2 eservice = 3;
+}
+
+message EServiceDescriptorInterfaceUpdatedV2 {
+  string descriptorId = 1;
+  string documentId = 2;
+  EServiceV2 eservice = 3;
+}
+
+message EServiceDescriptorDocumentUpdatedV2 {
+  string descriptorId = 1;
+  string documentId = 2;
+  EServiceV2 eservice = 3;
+}
+
+message EServiceDescriptorInterfaceDeletedV2 {
+  string descriptorId = 1;
+  string documentId = 2;
+  EServiceV2 eservice = 3;
+}
+
+message EServiceDescriptorDocumentDeletedV2 {
+  string descriptorId = 1;
+  string documentId = 2;
+  EServiceV2 eservice = 3;
+}
+
+message EServiceRiskAnalysisAddedV2 {
+  string riskAnalysisId = 1;
+  EServiceV2 eservice = 2;
+}
+
+message EServiceRiskAnalysisUpdatedV2 {
+  string riskAnalysisId = 1;
+  EServiceV2 eservice = 2;
+}
+
+message EServiceRiskAnalysisDeletedV2 {
+  string riskAnalysisId = 1;
+  EServiceV2 eservice = 2;
+}

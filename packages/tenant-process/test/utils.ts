@@ -50,14 +50,16 @@ export const writeTenantInEventstore = async (
     stream_id: tenantEvent.data.tenant?.id,
     version: 0,
     type: tenantEvent.type,
+    event_version: 1,
     data: Buffer.from(tenantEventToBinaryData(tenantEvent)),
   };
   await postgresDB.none(
-    "INSERT INTO tenant.events(stream_id, version, type, data) VALUES ($1, $2, $3, $4)",
+    "INSERT INTO tenant.events(stream_id, version, type, event_version, data) VALUES ($1, $2, $3, $4, $5)",
     [
       eventToWrite.stream_id,
       eventToWrite.version,
       eventToWrite.type,
+      eventToWrite.event_version,
       eventToWrite.data,
     ]
   );

@@ -6,23 +6,24 @@ import { afterEach, afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   EServiceCollection,
   ReadModelRepository,
-  consumerConfig,
+  readModelWriterConfig,
 } from "pagopa-interop-commons";
 import { mongoDBContainer } from "pagopa-interop-commons-test";
 import {
   EServiceAddedV1,
   EServiceEventEnvelope,
+  EServiceModeV1,
   EServiceTechnologyV1,
   generateId,
 } from "pagopa-interop-models";
 import { StartedTestContainer } from "testcontainers";
-import { handleMessage } from "../src/consumerService.js";
+import { handleMessageV1 } from "../src/consumerServiceV1.js";
 
 describe("database test", async () => {
   let eservices: EServiceCollection;
   let startedMongoDBContainer: StartedTestContainer;
 
-  const config = consumerConfig();
+  const config = readModelWriterConfig();
 
   beforeAll(async () => {
     startedMongoDBContainer = await mongoDBContainer(config).start();
@@ -42,10 +43,10 @@ describe("database test", async () => {
   });
 
   describe("Handle message for eservice creation", () => {
-    it("should create an eService", async () => {
+    it("should create an eservice", async () => {
       const id = generateId();
       const newEService: EServiceAddedV1 = {
-        eService: {
+        eservice: {
           id,
           producerId: generateId(),
           name: "name",
@@ -53,6 +54,8 @@ describe("database test", async () => {
           technology: EServiceTechnologyV1.REST,
           descriptors: [],
           createdAt: BigInt(new Date().getTime()),
+          mode: EServiceModeV1.RECEIVE,
+          riskAnalysis: [],
         },
       };
       const message: EServiceEventEnvelope = {
@@ -60,19 +63,20 @@ describe("database test", async () => {
         stream_id: id,
         version: 1,
         type: "EServiceAdded",
+        event_version: 1,
         data: newEService,
       };
-      await handleMessage(message, eservices);
+      await handleMessageV1(message, eservices);
 
       const eservice = await eservices.findOne({
         "data.id": id.toString,
       });
 
       expect(eservice?.data).toMatchObject({
-        id: newEService.eService?.id,
-        producerId: newEService.eService?.producerId,
-        name: newEService.eService?.name,
-        description: newEService.eService?.description,
+        id: newEService.eservice?.id,
+        producerId: newEService.eservice?.producerId,
+        name: newEService.eservice?.name,
+        description: newEService.eservice?.description,
       });
     });
   });

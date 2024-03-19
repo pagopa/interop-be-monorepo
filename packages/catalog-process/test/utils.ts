@@ -4,6 +4,7 @@ import {
   AuthData,
   EServiceCollection,
   TenantCollection,
+  riskAnalysisFormToRiskAnalysisFormToValidate,
 } from "pagopa-interop-commons";
 import { IDatabase } from "pg-promise";
 import { v4 as uuidv4 } from "uuid";
@@ -18,94 +19,32 @@ import {
   EServiceEvent,
   EServiceId,
   EserviceAttributes,
+  RiskAnalysis,
   Tenant,
   TenantId,
   agreementState,
   catalogEventToBinaryData,
   descriptorState,
+  eserviceMode,
   generateId,
   technology,
+  toReadModelEService,
 } from "pagopa-interop-models";
-import { toEServiceV1 } from "../src/model/domain/toEvent.js";
-import { EServiceDescriptorSeed } from "../src/model/domain/models.js";
+import {
+  StoredEvent,
+  readLastEventByStreamId,
+  writeInEventstore,
+  writeInReadmodel,
+} from "pagopa-interop-commons-test/index.js";
+import { toEServiceV2 } from "../src/model/domain/toEvent.js";
+import {
+  EServiceDescriptorSeed,
+  EServiceRiskAnalysisSeed,
+} from "../src/model/domain/models.js";
 import { ApiEServiceDescriptorDocumentSeed } from "../src/model/types.js";
 
-export const writeEServiceInEventstore = async (
-  eService: EService,
-  postgresDB: IDatabase<unknown>
-): Promise<void> => {
-  const eServiceEvent: EServiceEvent = {
-    type: "EServiceAdded",
-    data: { eService: toEServiceV1(eService) },
-  };
-  const eventToWrite = {
-    stream_id: eServiceEvent.data.eService?.id,
-    version: 0,
-    type: eServiceEvent.type,
-    data: Buffer.from(catalogEventToBinaryData(eServiceEvent)),
-  };
-
-  await postgresDB.none(
-    "INSERT INTO catalog.events(stream_id, version, type, data) VALUES ($1, $2, $3, $4)",
-    [
-      eventToWrite.stream_id,
-      eventToWrite.version,
-      eventToWrite.type,
-      eventToWrite.data,
-    ]
-  );
-};
-
-export const writeEServiceInReadmodel = async (
-  eService: EService,
-  eservices: EServiceCollection
-): Promise<void> => {
-  await eservices.insertOne({
-    data: eService,
-    metadata: {
-      version: 0,
-    },
-  });
-};
-
-export const writeAttributeInReadmodel = async (
-  attribute: Attribute,
-  attributes: AttributeCollection
-): Promise<void> => {
-  await attributes.insertOne({
-    data: attribute,
-    metadata: {
-      version: 0,
-    },
-  });
-};
-
-export const writeAgreementInReadmodel = async (
-  agreement: Agreement,
-  agreements: AgreementCollection
-): Promise<void> => {
-  await agreements.insertOne({
-    data: agreement,
-    metadata: {
-      version: 0,
-    },
-  });
-};
-
-export const writeTenantInReadmodel = async (
-  tenant: Tenant,
-  tenants: TenantCollection
-): Promise<void> => {
-  await tenants.insertOne({
-    data: tenant,
-    metadata: {
-      version: 0,
-    },
-  });
-};
-
-export const getMockAuthData = (organizationId?: string): AuthData => ({
-  organizationId: organizationId || uuidv4(),
+export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
+  organizationId: organizationId || generateId(),
   userId: uuidv4(),
   userRoles: [],
   externalId: {
@@ -130,15 +69,26 @@ export const buildDescriptorSeed = (
   },
 });
 
+export const buildRiskAnalysisSeed = (
+  riskAnalysis: RiskAnalysis
+): EServiceRiskAnalysisSeed => ({
+  name: riskAnalysis.name,
+  riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
+    riskAnalysis.riskAnalysisForm
+  ),
+});
+
 export const getMockEService = (): EService => ({
   id: generateId(),
-  name: "eService name",
-  description: "eService description",
+  name: "eservice name",
+  description: "eservice description",
   createdAt: new Date(),
-  producerId: uuidv4(),
+  producerId: generateId(),
   technology: technology.rest,
   descriptors: [],
   attributes: undefined,
+  mode: eserviceMode.deliver,
+  riskAnalysis: [],
 });
 
 export const getMockDescriptor = (): Descriptor => ({
@@ -175,7 +125,7 @@ export const buildInterfaceSeed = (): ApiEServiceDescriptorDocumentSeed => ({
   contentType: "json",
   prettyName: "prettyName",
   serverUrls: ["pagopa.it"],
-  documentId: uuidv4(),
+  documentId: generateId(),
   kind: "INTERFACE",
   filePath: "filePath",
   fileName: "fileName",
@@ -185,10 +135,10 @@ export const buildInterfaceSeed = (): ApiEServiceDescriptorDocumentSeed => ({
 export const getMockDocument = (): Document => ({
   name: "fileName",
   path: "filePath",
-  id: uuidv4(),
+  id: generateId(),
   prettyName: "prettyName",
   contentType: "json",
-  checksum: uuidv4(),
+  checksum: "checksum",
   uploadDate: new Date(),
 });
 
@@ -238,41 +188,59 @@ export const getMockAgreement = ({
   },
 });
 
+export const writeEServiceInEventstore = async (
+  eservice: EService,
+  postgresDB: IDatabase<unknown>
+): Promise<void> => {
+  const eserviceEvent: EServiceEvent = {
+    type: "EServiceAdded",
+    event_version: 2,
+    data: { eservice: toEServiceV2(eservice) },
+  };
+  const eventToWrite = {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    stream_id: eserviceEvent.data.eservice!.id,
+    version: "0",
+    type: eserviceEvent.type,
+    event_version: eserviceEvent.event_version,
+    data: catalogEventToBinaryData(eserviceEvent),
+  };
+
+  await writeInEventstore(eventToWrite, "catalog", postgresDB);
+};
+
 export const addOneEService = async (
-  eService: EService,
+  eservice: EService,
   postgresDB: IDatabase<unknown>,
   eservices: EServiceCollection
 ): Promise<void> => {
-  await writeEServiceInEventstore(eService, postgresDB);
-  await writeEServiceInReadmodel(eService, eservices);
+  await writeEServiceInEventstore(eservice, postgresDB);
+  await writeInReadmodel(toReadModelEService(eservice), eservices);
 };
 
 export const addOneAttribute = async (
   attribute: Attribute,
   attributes: AttributeCollection
 ): Promise<void> => {
-  await writeAttributeInReadmodel(attribute, attributes);
+  await writeInReadmodel(attribute, attributes);
 };
 
 export const addOneTenant = async (
   tenant: Tenant,
   tenants: TenantCollection
 ): Promise<void> => {
-  await writeTenantInReadmodel(tenant, tenants);
+  await writeInReadmodel(tenant, tenants);
 };
 
 export const addOneAgreement = async (
   agreement: Agreement,
   agreements: AgreementCollection
 ): Promise<void> => {
-  await writeAgreementInReadmodel(agreement, agreements);
+  await writeInReadmodel(agreement, agreements);
 };
 
-export const readLastEventByStreamId = async (
+export const readLastEserviceEvent = async (
   eserviceId: EServiceId,
   postgresDB: IDatabase<unknown>
-): Promise<any> => // eslint-disable-line @typescript-eslint/no-explicit-any
-  await postgresDB.one(
-    "SELECT * FROM catalog.events WHERE stream_id = $1 ORDER BY sequence_num DESC LIMIT 1",
-    [eserviceId]
-  );
+): Promise<StoredEvent> =>
+  await readLastEventByStreamId(eserviceId, "catalog", postgresDB);
