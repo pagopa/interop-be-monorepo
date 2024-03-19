@@ -79,9 +79,17 @@ export async function removeAgreementConsumerDocumentLogic(
 
   await fileRemove(config.s3Bucket, existentDocument.path);
 
+  const updatedAgreement = {
+    ...agreement.data,
+    consumerDocuments: agreement.data.consumerDocuments.filter(
+      (d) => d.id !== documentId
+    ),
+  };
+
   return toCreateEventAgreementConsumerDocumentRemoved(
     agreementId,
     documentId,
+    updatedAgreement,
     agreement.metadata.version
   );
 }
