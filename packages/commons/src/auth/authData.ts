@@ -30,37 +30,38 @@ export type UserRole = z.infer<typeof UserRole>;
 const CommaSeparatedStringsToArray = <T extends z.ZodType>(t: T) =>
   z.preprocess((s: unknown) => String(s).split(","), z.array(t));
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const JWTArray = <T extends z.ZodType>(t: T) =>
-  z.union([CommaSeparatedStringsToArray(t), z.array(t)]);
-
-const StandardJWTClaims = z.object({
+const SharedJWTClaims = z.object({
+  // All standard claims except "sub", which is not present in UI tokens
   iss: z.string(),
-  sub: z.string().uuid(),
-  aud: JWTArray(z.string()),
+  aud: CommaSeparatedStringsToArray(z.string()),
   exp: z.number(),
   nbf: z.number(),
   iat: z.number(),
   jti: z.string().uuid(),
 });
 
-export const M2MAuthToken = z
-  .object({
+export const M2MAuthToken = SharedJWTClaims.merge(
+  z.object({
     role: z.literal("m2m"),
     organizationId: z.string().uuid(),
     client_id: z.string().uuid(),
+    sub: z.string().uuid(),
   })
-  .and(StandardJWTClaims);
+);
 
-export const InternalAuthToken = z
-  .object({
+export const InternalAuthToken = SharedJWTClaims.merge(
+  z.object({
     role: z.literal("internal"),
+    sub: z.string().uuid(),
   })
-  .and(StandardJWTClaims);
+);
 
-export const UIAuthToken = z
-  .object({
-    "user-roles": JWTArray(UIUserRole),
+export const UIAuthToken = SharedJWTClaims.merge(
+  z.object({
+    // setting role to z.undefined() to make the discriminated union work.
+    // z.discriminatedUnion performs better than z.union and gives more meaningful parsing errors.
+    role: z.undefined(),
+    "user-roles": CommaSeparatedStringsToArray(UIUserRole),
     uid: z.string().uuid(),
     organizationId: z.string().uuid(),
     selfcareId: z.string().uuid(),
@@ -84,9 +85,9 @@ export const UIAuthToken = z
       value: z.string(),
     }),
   })
-  .and(StandardJWTClaims);
+);
 
-export const AuthToken = z.union([
+export const AuthToken = z.discriminatedUnion("role", [
   M2MAuthToken,
   InternalAuthToken,
   UIAuthToken,
@@ -99,22 +100,25 @@ export type AuthToken = z.infer<typeof AuthToken>;
   around the application to perform authorization checks.
 
   To avoid the need to handle optional fields, we make them required in
-  the type definition, and set default values to be used when the field
-  is not present in the token.
+  the type definition, but know that they will be set to empty strings or
+  empty arrays in case they are not present in the token.
 */
 export const AuthData = z.object({
-  organizationId: TenantId.default(""),
-  userId: z.string().uuid().default(""),
-  userRoles: z.array(UserRole).default([]),
-  externalId: z
-    .object({
-      origin: z.string(),
-      value: z.string(),
-    })
-    .default({ origin: "", value: "" }),
+  organizationId: TenantId,
+  userId: z.string().uuid(),
+  userRoles: z.array(UserRole),
+  externalId: z.object({
+    value: z.string(),
+    origin: z.string(),
+  }),
 });
 export type AuthData = z.infer<typeof AuthData>;
-export const defaultAuthData: AuthData = AuthData.parse({});
+export const defaultAuthData: AuthData = {
+  organizationId: unsafeBrandId<TenantId>(""),
+  userId: "",
+  userRoles: [],
+  externalId: { value: "", origin: "" },
+};
 
 const getUserRoles = (token: AuthToken): UserRole[] =>
   match(token)
@@ -145,10 +149,9 @@ const getExternalId = (
     .with({ role: "m2m" }, { role: "internal" }, () => undefined)
     .exhaustive();
 
-export const getAuthDataFromToken = (token: AuthToken): AuthData =>
-  AuthData.parse({
-    organizationId: getOrganizationId(token),
-    userId: getUserId(token),
-    userRoles: getUserRoles(token),
-    externalId: getExternalId(token),
-  });
+export const getAuthDataFromToken = (token: AuthToken): AuthData => ({
+  organizationId: getOrganizationId(token) ?? defaultAuthData.organizationId,
+  userId: getUserId(token) ?? defaultAuthData.userId,
+  userRoles: getUserRoles(token),
+  externalId: getExternalId(token) ?? defaultAuthData.externalId,
+});
