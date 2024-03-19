@@ -1,37 +1,7 @@
 import jwt, { JwtHeader, SigningKeyCallback } from "jsonwebtoken";
 import jwksClient from "jwks-rsa";
-import { unsafeBrandId } from "pagopa-interop-models";
 import { JWTConfig, logger } from "../index.js";
-import { AuthData, AuthToken, UserRoles } from "./authData.js";
-
-const getUserRoles = (token: AuthToken): UserRoles[] => {
-  const roleFromInteropClaim = token.role;
-  if (roleFromInteropClaim !== undefined) {
-    return [roleFromInteropClaim];
-  }
-
-  const userRolesFromInteropClaim = token["user-roles"];
-  if (
-    userRolesFromInteropClaim !== undefined &&
-    userRolesFromInteropClaim.length !== 0
-  ) {
-    return userRolesFromInteropClaim;
-  }
-
-  const userRolesFromOrganizationClaim = token.organization?.roles.map(
-    (role) => role.role
-  );
-
-  if (
-    userRolesFromOrganizationClaim !== undefined &&
-    userRolesFromOrganizationClaim.length !== 0
-  ) {
-    return userRolesFromOrganizationClaim;
-  }
-
-  logger.warn(`Unable to extract userRoles from claims`); // TODO: improve error logging
-  return [];
-};
+import { AuthData, AuthToken, getAuthDataFromToken } from "./authData.js";
 
 export const readAuthDataFromJwtToken = (
   jwtToken: string
@@ -44,12 +14,7 @@ export const readAuthDataFromJwtToken = (
       logger.error(`Error parsing token: ${JSON.stringify(token.error)}`);
       return new Error(token.error.message);
     } else {
-      return {
-        organizationId: token.data.organizationId ?? unsafeBrandId(""), // TODO improve
-        userId: token.data.uid ?? "",
-        userRoles: getUserRoles(token.data),
-        externalId: token.data.externalId ?? { origin: "", value: "" },
-      };
+      return getAuthDataFromToken(token.data);
     }
   } catch (err) {
     logger.error(`Unexpected error parsing token: ${err}`);
