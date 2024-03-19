@@ -36,6 +36,10 @@ export type EServiceDescriptorSeed = z.infer<
   typeof api.schemas.EServiceDescriptorSeed
 >;
 
+export type EServiceRiskAnalysisSeed = z.infer<
+  typeof api.schemas.EServiceRiskAnalysisSeed
+>;
+
 export type EServiceDescriptorState = z.infer<
   typeof api.schemas.EServiceDescriptorState
 >;
@@ -53,8 +57,14 @@ export type ApiAttribute = z.infer<typeof api.schemas.Attribute>;
 
 export type EServiceDescriptor = z.infer<typeof api.schemas.EServiceDescriptor>;
 
+export type EServiceAttributesSeed = z.infer<typeof api.schemas.AttributesSeed>;
+
 export type UpdateEServiceDescriptorSeed = z.infer<
   typeof api.schemas.UpdateEServiceDescriptorSeed
+>;
+
+export type UpdateEServiceDescriptorQuotasSeed = z.infer<
+  typeof api.schemas.UpdateEServiceDescriptorQuotasSeed
 >;
 
 export const consumer = z.object({
@@ -109,3 +119,5 @@ export const convertToDescriptorEServiceEventData = (
   archivedAt: undefined,
   attributes: eserviceDescriptorSeed.attributes,
 });
+
+export type ApiEServiceMode = z.infer<typeof api.schemas.EServiceMode>;
