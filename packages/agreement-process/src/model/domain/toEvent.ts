@@ -250,7 +250,8 @@ export function toCreateEventAgreementUpdated(
 
 export function toCreateEventAgreementConsumerDocumentAdded(
   agreementId: AgreementId,
-  agreementDocument: AgreementDocument,
+  documentId: AgreementDocumentId,
+  agreement: Agreement,
   version: number,
   correlationId: string
 ): CreateEvent<AgreementEvent> {
@@ -259,10 +260,10 @@ export function toCreateEventAgreementConsumerDocumentAdded(
     version,
     event: {
       type: "AgreementConsumerDocumentAdded",
-      event_version: 1,
+      event_version: 2,
       data: {
-        agreementId,
-        document: toAgreementDocumentV1(agreementDocument),
+        documentId,
+        agreement: toAgreementV2(agreement),
       },
     },
     correlationId,
