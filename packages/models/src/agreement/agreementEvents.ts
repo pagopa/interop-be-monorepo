@@ -9,7 +9,7 @@ import {
   AgreementConsumerDocumentRemovedV1,
 } from "../gen/v1/agreement/events.js";
 import { protobufDecoder } from "../protobuf/protobuf.js";
-import { EventEnvelope } from "../index.js";
+import { EventEnvelope } from "../events/events.js";
 
 export function agreementEventToBinaryData(event: AgreementEvent): Uint8Array {
   return match(event)
