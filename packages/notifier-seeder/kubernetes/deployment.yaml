@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: interop-be-notifier
+  name: interop-be-notifier-seeder
   namespace: dev-refactor
   labels:
-    app: interop-be-notifier
+    app: interop-be-notifier-seeder
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: interop-be-notifier
+      app: interop-be-notifier-seeder
   template:
     metadata:
       labels:
-        app: interop-be-notifier
+        app: interop-be-notifier-seeder
     spec:
-      serviceAccountName: interop-be-notifier
+      serviceAccountName: interop-be-notifier-seeder
       containers:
-        - name: interop-be-notifier
+        - name: interop-be-notifier-seeder
           image: ghcr.io/pagopa/catalog-readmodel-writer@$IMAGE_DIGEST
           imagePullPolicy: Always          
           resources:
@@ -33,15 +33,15 @@ spec:
             - name: KAFKA_CLIENT_ID
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-notifier
+                  name: interop-be-notifier-seeder
                   key: KAFKA_CLIENT_ID
             - name: KAFKA_GROUP_ID
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-notifier
+                  name: interop-be-notifier-seeder
                   key: KAFKA_GROUP_ID
             - name: KAFKA_BROKERS
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-notifier
+                  name: interop-be-notifier-seeder
                   key: KAFKA_BROKERS

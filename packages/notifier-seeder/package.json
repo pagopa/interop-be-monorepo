@@ -1,8 +1,8 @@
 {
-  "name": "pagopa-interop-notifier",
+  "name": "pagopa-interop-notifier-seeder",
   "private": true,
   "version": "1.0.0",
-  "description": "Pagopa Interop Notifier",
+  "description": "Pagopa Interop notifier seeder",
   "main": "dist",
   "type": "module",
   "exports": {
