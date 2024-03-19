@@ -13,6 +13,7 @@ import {
 import {
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
+  decodeProtobufPayload,
   mongoDBContainer,
   postgreSQLContainer,
 } from "pagopa-interop-commons-test";
@@ -51,11 +52,10 @@ import { toAttributeV1 } from "../src/model/domain/toEvent.js";
 import {
   addOneAttribute,
   addOneTenant,
-  decodeProtobufPayload,
   getMockAttribute,
   getMockTenant,
   getMockAuthData,
-  readLastEventByStreamId,
+  readLastAttributeEvent,
 } from "./utils.js";
 
 const mockAttribute = getMockAttribute();
@@ -125,7 +125,7 @@ describe("database test", () => {
         );
         expect(id).toBeDefined();
 
-        const writtenEvent = await readLastEventByStreamId(id, postgresDB);
+        const writtenEvent = await readLastAttributeEvent(id, postgresDB);
         expect(writtenEvent.stream_id).toBe(id);
         expect(writtenEvent.version).toBe("0");
         expect(writtenEvent.type).toBe("AttributeAdded");
@@ -174,7 +174,7 @@ describe("database test", () => {
         );
         expect(id).toBeDefined();
 
-        const writtenEvent = await readLastEventByStreamId(id, postgresDB);
+        const writtenEvent = await readLastAttributeEvent(id, postgresDB);
         expect(writtenEvent.stream_id).toBe(id);
         expect(writtenEvent.version).toBe("0");
         expect(writtenEvent.type).toBe("AttributeAdded");
@@ -229,7 +229,7 @@ describe("database test", () => {
         const id = await attributeRegistryService.createCertifiedAttribute(
           {
             name: mockAttribute.name,
-            code: mockAttribute.code!,
+            code: "code",
             description: mockAttribute.description,
           },
           getMockAuthData(tenant.id),
@@ -237,7 +237,7 @@ describe("database test", () => {
         );
         expect(id).toBeDefined();
 
-        const writtenEvent = await readLastEventByStreamId(id, postgresDB);
+        const writtenEvent = await readLastAttributeEvent(id, postgresDB);
         expect(writtenEvent.stream_id).toBe(id);
         expect(writtenEvent.version).toBe("0");
         expect(writtenEvent.type).toBe("AttributeAdded");
@@ -249,6 +249,7 @@ describe("database test", () => {
 
         const attribute: Attribute = {
           ...mockAttribute,
+          code: "code",
           id: unsafeBrandId(id),
           kind: attributeKind.certified,
           creationTime: new Date(writtenPayload.attribute!.creationTime),
@@ -293,7 +294,7 @@ describe("database test", () => {
           attributeRegistryService.createCertifiedAttribute(
             {
               name: mockAttribute.name,
-              code: mockAttribute.code!,
+              code: "code",
               description: mockAttribute.description,
             },
             getMockAuthData(mockTenant.id),
@@ -307,7 +308,7 @@ describe("database test", () => {
           attributeRegistryService.createCertifiedAttribute(
             {
               name: mockAttribute.name,
-              code: mockAttribute.code!,
+              code: "code",
               description: mockAttribute.description,
             },
             getMockAuthData(mockTenant.id),
@@ -334,7 +335,7 @@ describe("database test", () => {
           await attributeRegistryService.createInternalCertifiedAttribute(
             {
               name: mockAttribute.name,
-              code: mockAttribute.code!,
+              code: "code",
               origin: tenant.features[0].certifierId,
               description: mockAttribute.description,
             },
@@ -342,7 +343,7 @@ describe("database test", () => {
           );
         expect(id).toBeDefined();
 
-        const writtenEvent = await readLastEventByStreamId(id, postgresDB);
+        const writtenEvent = await readLastAttributeEvent(id, postgresDB);
         expect(writtenEvent.stream_id).toBe(id);
         expect(writtenEvent.version).toBe("0");
         expect(writtenEvent.type).toBe("AttributeAdded");
@@ -354,6 +355,7 @@ describe("database test", () => {
 
         const attribute: Attribute = {
           ...mockAttribute,
+          code: "code",
           id: unsafeBrandId(id),
           kind: attributeKind.certified,
           creationTime: new Date(writtenPayload.attribute!.creationTime),

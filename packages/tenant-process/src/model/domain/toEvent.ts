@@ -19,6 +19,7 @@ import {
   tenantMailKind,
   tenantKind,
   TenantEvent,
+  tenantAttributeType,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -64,7 +65,7 @@ export function toTenantRevokerV1(revoker: TenantRevoker): TenantRevokerV1 {
 
 export function toAttributeV1(input: TenantAttribute): TenantAttributeV1 {
   return match<TenantAttribute, TenantAttributeV1>(input)
-    .with({ type: "certified" }, (attribute) => ({
+    .with({ type: tenantAttributeType.CERTIFIED }, (attribute) => ({
       sealedValue: {
         oneofKind: "certifiedAttribute",
         certifiedAttribute: {
@@ -76,7 +77,7 @@ export function toAttributeV1(input: TenantAttribute): TenantAttributeV1 {
         },
       },
     }))
-    .with({ type: "verified" }, (attribute) => ({
+    .with({ type: tenantAttributeType.VERIFIED }, (attribute) => ({
       sealedValue: {
         oneofKind: "verifiedAttribute",
         verifiedAttribute: {
@@ -87,7 +88,7 @@ export function toAttributeV1(input: TenantAttribute): TenantAttributeV1 {
         },
       },
     }))
-    .with({ type: "declared" }, (attribute) => ({
+    .with({ type: tenantAttributeType.DECLARED }, (attribute) => ({
       sealedValue: {
         oneofKind: "declaredAttribute",
         declaredAttribute: {

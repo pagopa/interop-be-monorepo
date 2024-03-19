@@ -455,12 +455,7 @@ async function createAndCopyDocumentsForClonedAgreement(
         ),
       };
     })
-  ).catch((error) => {
-    logger.error(
-      `Error copying documents' files for agreement ${clonedAgreement.id} : ${error}`
-    );
-    throw error;
-  });
+  );
 
   return docs.map((d, i) =>
     toCreateEventAgreementConsumerDocumentAdded(
@@ -503,12 +498,7 @@ export async function deleteAgreementLogic(
   );
 
   for (const d of agreement.data.consumerDocuments) {
-    await deleteFile(config.s3Bucket, d.path).catch((error) => {
-      logger.error(
-        `Error deleting documents' files for agreement ${agreement.data.id} : ${error}`
-      );
-      throw error;
-    });
+    await deleteFile(config.s3Bucket, d.path);
   }
 
   return toCreateEventAgreementDeleted(

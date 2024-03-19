@@ -19,7 +19,7 @@ import {
   EServiceDocumentId,
   EServiceMode,
   RiskAnalysis,
-  EServiceRiskAnalysisV1,
+  EServiceRiskAnalysisV2,
   EServiceModeV2,
   RiskAnalysisId,
 } from "pagopa-interop-models";
@@ -103,7 +103,7 @@ export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
 
 export const toRiskAnalysisV2 = (
   input: RiskAnalysis
-): EServiceRiskAnalysisV1 => ({
+): EServiceRiskAnalysisV2 => ({
   ...input,
   createdAt: BigInt(input.createdAt.getTime()),
 });
@@ -495,7 +495,7 @@ export const toCreateEventEServiceDocumentDeleted = (
   correlationId,
 });
 
-export const toCreateEventEServiceDescriptorDeleted = (
+export const toCreateEventEServiceDraftDescriptorDeleted = (
   streamId: string,
   version: number,
   eservice: EService,
@@ -505,7 +505,7 @@ export const toCreateEventEServiceDescriptorDeleted = (
   streamId,
   version,
   event: {
-    type: "EServiceDescriptorDeleted",
+    type: "EServiceDraftDescriptorDeleted",
     event_version: 2,
     data: {
       eservice: toEServiceV2(eservice),
@@ -533,4 +533,40 @@ export const toCreateEventEServiceRiskAnalysisAdded = (
     },
   },
   correlationId,
+});
+
+export const toCreateEventEServiceRiskAnalysisUpdated = (
+  streamId: string,
+  version: number,
+  riskAnalysisId: RiskAnalysisId,
+  eservice: EService
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceRiskAnalysisUpdated",
+    event_version: 2,
+    data: {
+      riskAnalysisId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+});
+
+export const toCreateEventEServiceRiskAnalysisDeleted = (
+  streamId: string,
+  version: number,
+  riskAnalysisId: RiskAnalysisId,
+  eservice: EService
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceRiskAnalysisDeleted",
+    event_version: 2,
+    data: {
+      riskAnalysisId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
 });

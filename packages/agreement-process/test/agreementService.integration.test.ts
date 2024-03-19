@@ -21,27 +21,22 @@ import {
   buildEService,
   buildEServiceAttribute,
   buildTenant,
-  eventStoreSchema,
   expectPastTimestamp,
   getRandomAuthData,
   randomArrayItem,
-  readLastEventByStreamId,
   StoredEvent,
-  writeInReadmodel,
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
   mongoDBContainer,
   postgreSQLContainer,
 } from "pagopa-interop-commons-test";
 import {
-  Agreement,
   AgreementAddedV1,
   AgreementId,
   AgreementV1,
   AttributeId,
   Descriptor,
   DescriptorId,
-  EService,
   EServiceAttribute,
   EServiceId,
   Tenant,
@@ -78,6 +73,12 @@ import { readModelServiceBuilder } from "../src/services/readmodel/readModelServ
 import { tenantQueryBuilder } from "../src/services/readmodel/tenantQuery.js";
 import { config } from "../src/utilities/config.js";
 import { agreementCreationConflictingStates } from "../src/model/domain/validators.js";
+import {
+  addOneAgreement,
+  addOneEService,
+  addOneTenant,
+  readLastAgreementEvent,
+} from "./utils.js";
 
 describe("AgreementService Integration Test", async () => {
   let agreements: AgreementCollection;
@@ -114,11 +115,7 @@ describe("AgreementService Integration Test", async () => {
     }
 
     const actualAgreementData: StoredEvent | undefined =
-      await readLastEventByStreamId(
-        agreementId,
-        eventStoreSchema.agreement,
-        postgresDB
-      );
+      await readLastAgreementEvent(agreementId, postgresDB);
 
     if (!actualAgreementData) {
       fail("Creation fails: agreement not found in event-store");
@@ -236,8 +233,8 @@ describe("AgreementService Integration Test", async () => {
       ]);
       const tenant = buildTenant(authData.organizationId);
 
-      await writeInReadmodel<EService>(eservice, eservices);
-      await writeInReadmodel<Tenant>(tenant, tenants);
+      await addOneEService(eservice, eservices);
+      await addOneTenant(tenant, tenants);
 
       const agreementData: ApiAgreementPayload = {
         eserviceId,
@@ -294,9 +291,9 @@ describe("AgreementService Integration Test", async () => {
         [descriptor]
       );
 
-      await writeInReadmodel<Tenant>(eserviceProducer, tenants);
-      await writeInReadmodel<Tenant>(consumer, tenants);
-      await writeInReadmodel<EService>(eservice, eservices);
+      await addOneTenant(eserviceProducer, tenants);
+      await addOneTenant(consumer, tenants);
+      await addOneEService(eservice, eservices);
 
       const apiAgreementPayload: ApiAgreementPayload = {
         eserviceId: eservice.id,
@@ -331,9 +328,9 @@ describe("AgreementService Integration Test", async () => {
         [descriptor]
       );
 
-      await writeInReadmodel<Tenant>(eserviceProducer, tenants);
-      await writeInReadmodel<Tenant>(consumer, tenants);
-      await writeInReadmodel<EService>(eservice, eservices);
+      await addOneTenant(eserviceProducer, tenants);
+      await addOneTenant(consumer, tenants);
+      await addOneEService(eservice, eservices);
 
       const authData = getRandomAuthData(consumer.id); // different from eserviceProducer
       const apiAgreementPayload: ApiAgreementPayload = {
@@ -378,8 +375,8 @@ describe("AgreementService Integration Test", async () => {
         descriptor2,
       ]);
 
-      await writeInReadmodel<Tenant>(tenant, tenants);
-      await writeInReadmodel<EService>(eservice, eservices);
+      await addOneTenant(tenant, tenants);
+      await addOneEService(eservice, eservices);
 
       const authData = getRandomAuthData(tenant.id);
       const apiAgreementPayload: ApiAgreementPayload = {
@@ -420,9 +417,9 @@ describe("AgreementService Integration Test", async () => {
         )
       );
 
-      await writeInReadmodel<Tenant>(tenant, tenants);
-      await writeInReadmodel<EService>(eservice, eservices);
-      await writeInReadmodel<Agreement>(otherAgreement, agreements);
+      await addOneTenant(tenant, tenants);
+      await addOneEService(eservice, eservices);
+      await addOneAgreement(otherAgreement, postgresDB, agreements);
 
       const authData = getRandomAuthData(tenant.id);
       const apiAgreementPayload: ApiAgreementPayload = {
@@ -474,7 +471,7 @@ describe("AgreementService Integration Test", async () => {
 
       const eservice = buildEService(eserviceId, authData.organizationId, []);
 
-      await writeInReadmodel<EService>(eservice, eservices);
+      await addOneEService(eservice, eservices);
 
       const apiAgreementPayload: ApiAgreementPayload = {
         eserviceId,
@@ -517,11 +514,8 @@ describe("AgreementService Integration Test", async () => {
         descriptor1,
       ]);
 
-      await writeInReadmodel<EService>(eservice, eservices);
-      await writeInReadmodel<Tenant>(
-        buildTenant(authData.organizationId),
-        tenants
-      );
+      await addOneEService(eservice, eservices);
+      await addOneTenant(buildTenant(authData.organizationId), tenants);
 
       const apiAgreementPayload: ApiAgreementPayload = {
         eserviceId,
@@ -561,11 +555,8 @@ describe("AgreementService Integration Test", async () => {
         descriptor,
       ]);
 
-      await writeInReadmodel<EService>(eservice, eservices);
-      await writeInReadmodel<Tenant>(
-        buildTenant(authData.organizationId),
-        tenants
-      );
+      await addOneEService(eservice, eservices);
+      await addOneTenant(buildTenant(authData.organizationId), tenants);
 
       const apiAgreementPayload: ApiAgreementPayload = {
         eserviceId,
@@ -606,9 +597,9 @@ describe("AgreementService Integration Test", async () => {
         state: randomArrayItem(agreementCreationConflictingStates),
       };
 
-      await writeInReadmodel<Tenant>(consumer, tenants);
-      await writeInReadmodel<EService>(eservice, eservices);
-      await writeInReadmodel<Agreement>(conflictingAgreement, agreements);
+      await addOneTenant(consumer, tenants);
+      await addOneEService(eservice, eservices);
+      await addOneAgreement(conflictingAgreement, postgresDB, agreements);
 
       const authData = getRandomAuthData(consumer.id);
       const apiAgreementPayload: ApiAgreementPayload = {
@@ -635,7 +626,7 @@ describe("AgreementService Integration Test", async () => {
         [descriptor]
       );
 
-      await writeInReadmodel<EService>(eservice, eservices);
+      await addOneEService(eservice, eservices);
 
       const authData = getRandomAuthData(consumer.id);
       const apiAgreementPayload: ApiAgreementPayload = {
@@ -683,9 +674,9 @@ describe("AgreementService Integration Test", async () => {
         [descriptor]
       );
 
-      await writeInReadmodel<Tenant>(eserviceProducer, tenants);
-      await writeInReadmodel<Tenant>(consumer, tenants);
-      await writeInReadmodel<EService>(eservice, eservices);
+      await addOneTenant(eserviceProducer, tenants);
+      await addOneTenant(consumer, tenants);
+      await addOneEService(eservice, eservices);
 
       const authData = getRandomAuthData(consumer.id);
       const apiAgreementPayload: ApiAgreementPayload = {
@@ -741,9 +732,9 @@ describe("AgreementService Integration Test", async () => {
         attributes: [certifiedTenantAttribute1, certifiedTenantAttribute2],
       };
 
-      await writeInReadmodel<Tenant>(eserviceProducer, tenants);
-      await writeInReadmodel<Tenant>(consumer, tenants);
-      await writeInReadmodel<EService>(eservice, eservices);
+      await addOneTenant(eserviceProducer, tenants);
+      await addOneTenant(consumer, tenants);
+      await addOneEService(eservice, eservices);
 
       const authData = getRandomAuthData(consumer.id);
       const apiAgreementPayload: ApiAgreementPayload = {
