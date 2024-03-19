@@ -5,13 +5,12 @@ import {
   fromAgreementV1,
   fromAgreementDocumentV1,
 } from "pagopa-interop-models";
-import { bigIntReplacer } from "../../commons/src/logging/utils.js";
 
 export async function handleMessage(
   message: AgreementEventEnvelope,
   agreements: AgreementCollection
 ): Promise<void> {
-  logger.info(JSON.stringify(message, bigIntReplacer));
+  logger.info(message);
   await match(message)
     .with({ type: "AgreementAdded" }, async (msg) => {
       await agreements.updateOne(

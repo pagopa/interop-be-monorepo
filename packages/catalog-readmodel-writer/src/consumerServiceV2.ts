@@ -1,15 +1,13 @@
 import { EServiceCollection, logger } from "pagopa-interop-commons";
 import { EServiceEventEnvelopeV2, fromEServiceV2 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { bigIntReplacer } from "../../commons/src/logging/utils.js";
 import { toReadModelEService } from "./model/legacy/eserviceAdapter.js";
 
 export async function handleMessageV2(
   message: EServiceEventEnvelopeV2,
   eservices: EServiceCollection
 ): Promise<void> {
-  logger.info(JSON.stringify(message, bigIntReplacer));
-
+  logger.info(message);
   const eservice = message.data.eservice;
 
   await match(message)
