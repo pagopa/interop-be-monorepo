@@ -31,7 +31,7 @@ import {
 
 import {
   toCreateEventAgreementAdded,
-  toCreateEventAgreementConsumerDocumentAdded,
+  toCreateEventAgreementArchived,
   toCreateEventAgreementDeleted,
   toCreateEventAgreementUpdated,
   toCreateEventDraftAgreementUpdated,
@@ -244,7 +244,7 @@ export function agreementServiceBuilder(
       correlationId: string
     ): Promise<string> {
       logger.info(`Cloning agreement ${agreementId}`);
-      const { streamId, events } = await cloneAgreementLogic(
+      const event = await cloneAgreementLogic(
         {
           agreementId,
           authData,
@@ -256,11 +256,9 @@ export function agreementServiceBuilder(
         correlationId
       );
 
-      for (const event of events) {
-        await repository.createEvent(event);
-      }
+      await repository.createEvent(event);
 
-      return streamId;
+      return event.streamId;
     },
     async addConsumerDocument(
       agreementId: AgreementId,
@@ -430,16 +428,14 @@ export type AgreementService = ReturnType<typeof agreementServiceBuilder>;
 async function createAndCopyDocumentsForClonedAgreement(
   newAgreementId: AgreementId,
   clonedAgreement: Agreement,
-  startingVersion: number,
   copyFile: (
     bucket: string,
     sourcePath: string,
     destinationPath: string,
     destinationFileName: string,
     docName: string
-  ) => Promise<string>,
-  correlationId: string
-): Promise<Array<CreateEvent<AgreementEvent>>> {
+  ) => Promise<string>
+): Promise<AgreementDocument[]> {
   const docs = await Promise.all(
     clonedAgreement.consumerDocuments.map(async (d) => {
       const newId: AgreementDocumentId = generateId();
@@ -456,21 +452,14 @@ async function createAndCopyDocumentsForClonedAgreement(
     })
   );
 
-  return docs.map((d, i) =>
-    toCreateEventAgreementConsumerDocumentAdded(
-      newAgreementId,
-      {
-        id: d.newId,
-        name: clonedAgreement.consumerDocuments[i].name,
-        prettyName: clonedAgreement.consumerDocuments[i].prettyName,
-        contentType: clonedAgreement.consumerDocuments[i].contentType,
-        path: d.newPath,
-        createdAt: new Date(),
-      },
-      startingVersion + i,
-      correlationId
-    )
-  );
+  return docs.map((d, i) => ({
+    id: d.newId,
+    name: clonedAgreement.consumerDocuments[i].name,
+    prettyName: clonedAgreement.consumerDocuments[i].prettyName,
+    contentType: clonedAgreement.consumerDocuments[i].contentType,
+    path: d.newPath,
+    createdAt: new Date(),
+  }));
 }
 
 export async function deleteAgreementLogic(
@@ -659,7 +648,7 @@ export async function upgradeAgreementLogic(
     return {
       streamId: upgraded.id,
       events: [
-        toCreateEventAgreementUpdated(
+        toCreateEventAgreementArchived(
           archived,
           agreementToBeUpgraded.metadata.version,
           correlationId
@@ -676,8 +665,9 @@ export async function upgradeAgreementLogic(
       agreementQuery
     );
 
+    const id = generateId<AgreementId>();
     const newAgreement: Agreement = {
-      id: generateId(),
+      id,
       eserviceId: agreementToBeUpgraded.data.eserviceId,
       descriptorId: newDescriptor.id,
       producerId: agreementToBeUpgraded.data.producerId,
@@ -688,7 +678,11 @@ export async function upgradeAgreementLogic(
       consumerNotes: agreementToBeUpgraded.data.consumerNotes,
       state: agreementState.draft,
       createdAt: new Date(),
-      consumerDocuments: [],
+      consumerDocuments: await createAndCopyDocumentsForClonedAgreement(
+        id,
+        agreementToBeUpgraded.data,
+        copyFile
+      ),
       stamps: {},
     };
 
@@ -697,17 +691,9 @@ export async function upgradeAgreementLogic(
       correlationId
     );
 
-    const docEvents = await createAndCopyDocumentsForClonedAgreement(
-      newAgreement.id,
-      agreementToBeUpgraded.data,
-      1,
-      copyFile,
-      correlationId
-    );
-
     return {
       streamId: createEvent.streamId,
-      events: [createEvent, ...docEvents],
+      events: [createEvent],
     };
   }
 }
@@ -735,7 +721,7 @@ export async function cloneAgreementLogic(
     ) => Promise<string>;
   },
   correlationId: string
-): Promise<{ streamId: string; events: Array<CreateEvent<AgreementEvent>> }> {
+): Promise<CreateEvent<AgreementEvent>> {
   const agreementToBeCloned = await agreementQuery.getAgreementById(
     agreementId
   );
@@ -779,8 +765,9 @@ export async function cloneAgreementLogic(
 
   validateCertifiedAttributes(descriptor, consumer);
 
+  const id = generateId<AgreementId>();
   const newAgreement: Agreement = {
-    id: generateId(),
+    id,
     eserviceId: agreementToBeCloned.data.eserviceId,
     descriptorId: agreementToBeCloned.data.descriptorId,
     producerId: agreementToBeCloned.data.producerId,
@@ -791,24 +778,15 @@ export async function cloneAgreementLogic(
     declaredAttributes: [],
     state: agreementState.draft,
     createdAt: new Date(),
-    consumerDocuments: [],
+    consumerDocuments: await createAndCopyDocumentsForClonedAgreement(
+      id,
+      agreementToBeCloned.data,
+      copyFile
+    ),
     stamps: {},
   };
 
-  const createEvent = toCreateEventAgreementAdded(newAgreement, correlationId);
-
-  const docEvents = await createAndCopyDocumentsForClonedAgreement(
-    newAgreement.id,
-    agreementToBeCloned.data,
-    0,
-    copyFile,
-    correlationId
-  );
-
-  return {
-    streamId: createEvent.streamId,
-    events: [createEvent, ...docEvents],
-  };
+  return toCreateEventAgreementAdded(newAgreement, correlationId);
 }
 
 export async function rejectAgreementLogic(
