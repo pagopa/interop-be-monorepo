@@ -6,6 +6,7 @@ import {
   EServiceId,
   TenantId,
 } from "../brandedIds.js";
+import { RiskAnalysis } from "../risk-analysis/riskAnalysis.js";
 
 export const technology = { rest: "Rest", soap: "Soap" } as const;
 export const Technology = z.enum([
@@ -83,6 +84,16 @@ export const Descriptor = z.object({
 });
 export type Descriptor = z.infer<typeof Descriptor>;
 
+export const eserviceMode = {
+  receive: "Receive",
+  deliver: "Deliver",
+} as const;
+export const EServiceMode = z.enum([
+  Object.values(eserviceMode)[0],
+  ...Object.values(eserviceMode).slice(1),
+]);
+export type EServiceMode = z.infer<typeof EServiceMode>;
+
 export const EService = z.object({
   id: EServiceId,
   producerId: TenantId,
@@ -92,5 +103,7 @@ export const EService = z.object({
   attributes: EServiceAttributes.optional(),
   descriptors: z.array(Descriptor),
   createdAt: z.coerce.date(),
+  riskAnalysis: z.array(RiskAnalysis),
+  mode: EServiceMode,
 });
 export type EService = z.infer<typeof EService>;

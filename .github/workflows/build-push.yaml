@@ -32,6 +32,15 @@ jobs:
           - image_name: agreement-readmodel-writer
             dockerfile_path: packages/agreement-readmodel-writer
             k8s_path: packages/agreement-readmodel-writer/kubernetes/dev
+          - image_name: attribute-registry-process
+            dockerfile_path: packages/attribute-registry-process
+            k8s_path: packages/attribute-registry-process/kubernetes/dev
+          - image_name: attribute-registry-readmodel-writer
+            dockerfile_path: packages/attribute-registry-readmodel-writer
+            k8s_path: packages/attribute-registry-readmodel-writer/kubernetes/dev
+          - image_name: authorization-updater
+            dockerfile_path: packages/authorization-updater
+            k8s_path: packages/authorization-updater/kubernetes/dev
 
     steps:
       - name: Checkout repository

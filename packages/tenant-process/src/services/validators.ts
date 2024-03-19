@@ -8,6 +8,7 @@ import {
   TenantId,
   TenantKind,
   TenantVerifier,
+  VerifiedTenantAttribute,
   WithMetadata,
   operationForbidden,
   tenantAttributeType,
@@ -38,9 +39,7 @@ export function assertVerifiedAttributeExistsInTenant(
   attributeId: AttributeId,
   attribute: TenantAttribute | undefined,
   tenant: WithMetadata<Tenant>
-): asserts attribute is NonNullable<
-  Extract<TenantAttribute, { type: "verified" }>
-> {
+): asserts attribute is NonNullable<VerifiedTenantAttribute> {
   if (!attribute || attribute.type !== tenantAttributeType.VERIFIED) {
     throw verifiedAttributeNotFoundInTenant(tenant.data.id, attributeId);
   }
@@ -123,7 +122,7 @@ export async function getTenantKindLoadingCertifiedAttributes(
     attributes: TenantAttribute[]
   ): AttributeId[] {
     return attributes.flatMap((attr) =>
-      attr.type === "certified" ? attr.id : []
+      attr.type === tenantAttributeType.CERTIFIED ? attr.id : []
     );
   }
 
@@ -167,7 +166,7 @@ export function assertValidExpirationDate(
 export function assertOrganizationIsInAttributeVerifiers(
   verifierId: string,
   tenantId: TenantId,
-  attribute: Extract<TenantAttribute, { type: "verified" }>
+  attribute: VerifiedTenantAttribute
 ): void {
   if (!attribute.verifiedBy.some((v) => v.id === verifierId)) {
     throw organizationNotFoundInVerifiers(verifierId, tenantId, attribute.id);

@@ -8,6 +8,10 @@ import {
   agreementApprovalPolicy,
   descriptorState,
   technology,
+  EServiceMode,
+  eserviceMode,
+  Descriptor,
+  Document,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
@@ -16,6 +20,7 @@ import {
   ApiAgreementApprovalPolicy,
   ApiAgreementState,
   ApiEServiceDescriptorState,
+  ApiEServiceMode,
   ApiTechnology,
 } from "./models.js";
 
@@ -111,38 +116,82 @@ export function apiAgreementStateToAgreementState(
     .exhaustive();
 }
 
+export function apiEServiceModeToEServiceMode(
+  input: ApiEServiceMode
+): EServiceMode {
+  return match<ApiEServiceMode, EServiceMode>(input)
+    .with("RECEIVE", () => eserviceMode.receive)
+    .with("DELIVER", () => eserviceMode.deliver)
+    .exhaustive();
+}
+
+export function eServiceModeToApiEServiceMode(
+  input: EServiceMode
+): ApiEServiceMode {
+  return match<EServiceMode, ApiEServiceMode>(input)
+    .with(eserviceMode.receive, () => "RECEIVE")
+    .with(eserviceMode.deliver, () => "DELIVER")
+    .exhaustive();
+}
+
+export const documentToApiDocument = (
+  document: Document
+): z.infer<typeof api.schemas.EServiceDoc> => ({
+  id: document.id,
+  name: document.name,
+  contentType: document.contentType,
+  prettyName: document.prettyName,
+  path: document.path,
+  uploadDate: document.uploadDate,
+});
+
+export const descriptorToApiDescriptor = (
+  descriptor: Descriptor
+): z.infer<typeof api.schemas.EServiceDescriptor> => ({
+  id: descriptor.id,
+  version: descriptor.version,
+  description: descriptor.description,
+  audience: descriptor.audience,
+  voucherLifespan: descriptor.voucherLifespan,
+  dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
+  dailyCallsTotal: descriptor.dailyCallsTotal,
+  interface: descriptor.interface,
+  docs: descriptor.docs.map(documentToApiDocument),
+  state: descriptorStateToApiEServiceDescriptorState(descriptor.state),
+  agreementApprovalPolicy: agreementApprovalPolicyToApiAgreementApprovalPolicy(
+    descriptor.agreementApprovalPolicy
+  ),
+  serverUrls: descriptor.serverUrls,
+  publishedAt: descriptor.publishedAt?.toJSON(),
+  suspendedAt: descriptor.suspendedAt?.toJSON(),
+  deprecatedAt: descriptor.deprecatedAt?.toJSON(),
+  archivedAt: descriptor.archivedAt?.toJSON(),
+  attributes: {
+    certified: descriptor.attributes.certified,
+    declared: descriptor.attributes.declared,
+    verified: descriptor.attributes.verified,
+  },
+});
+
 export const eServiceToApiEService = (
-  eService: EService
+  eservice: EService
 ): z.infer<typeof api.schemas.EService> => ({
-  id: eService.id,
-  producerId: eService.producerId,
-  name: eService.name,
-  description: eService.description,
-  technology: technologyToApiTechnology(eService.technology),
-  descriptors: eService.descriptors.map((descriptor) => ({
-    id: descriptor.id,
-    version: descriptor.version,
-    description: descriptor.description,
-    audience: descriptor.audience,
-    voucherLifespan: descriptor.voucherLifespan,
-    dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
-    dailyCallsTotal: descriptor.dailyCallsTotal,
-    interface: descriptor.interface,
-    docs: descriptor.docs,
-    state: descriptorStateToApiEServiceDescriptorState(descriptor.state),
-    agreementApprovalPolicy:
-      agreementApprovalPolicyToApiAgreementApprovalPolicy(
-        descriptor.agreementApprovalPolicy
-      ),
-    serverUrls: descriptor.serverUrls,
-    publishedAt: descriptor.publishedAt?.toJSON(),
-    suspendedAt: descriptor.suspendedAt?.toJSON(),
-    deprecatedAt: descriptor.deprecatedAt?.toJSON(),
-    archivedAt: descriptor.archivedAt?.toJSON(),
-    attributes: {
-      certified: descriptor.attributes.certified,
-      declared: descriptor.attributes.declared,
-      verified: descriptor.attributes.verified,
+  id: eservice.id,
+  producerId: eservice.producerId,
+  name: eservice.name,
+  description: eservice.description,
+  technology: technologyToApiTechnology(eservice.technology),
+  mode: eServiceModeToApiEServiceMode(eservice.mode),
+  riskAnalysis: eservice.riskAnalysis.map((riskAnalysis) => ({
+    id: riskAnalysis.id,
+    name: riskAnalysis.name,
+    createdAt: riskAnalysis.createdAt.toJSON(),
+    riskAnalysisForm: {
+      id: riskAnalysis.riskAnalysisForm.id,
+      version: riskAnalysis.riskAnalysisForm.version,
+      singleAnswers: riskAnalysis.riskAnalysisForm.singleAnswers,
+      multiAnswers: riskAnalysis.riskAnalysisForm.multiAnswers,
     },
   })),
+  descriptors: eservice.descriptors.map(descriptorToApiDescriptor),
 });

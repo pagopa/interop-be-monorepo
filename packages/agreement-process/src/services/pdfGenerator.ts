@@ -132,7 +132,7 @@ const getActivationInfo = async (
 
 const getPdfPayload = async (
   agreement: Agreement,
-  eService: EService,
+  eservice: EService,
   consumer: Tenant,
   producer: Tenant,
   seed: UpdateAgreementSeed,
@@ -149,7 +149,7 @@ const getPdfPayload = async (
   return {
     today: new Date(),
     agreementId: agreement.id,
-    eService: eService.name,
+    eservice: eservice.name,
     producerName: producer.name,
     producerOrigin: producer.externalId.origin,
     producerIPACode: producer.externalId.value,
@@ -186,7 +186,7 @@ const createAgreementDocumentName = (
 export const pdfGenerator = {
   createDocumentSeed: async (
     agreement: Agreement,
-    eService: EService,
+    eservice: EService,
     consumer: Tenant,
     producer: Tenant,
     seed: UpdateAgreementSeed,
@@ -201,7 +201,7 @@ export const pdfGenerator = {
     );
     const pdfPayload = await getPdfPayload(
       agreement,
-      eService,
+      eservice,
       consumer,
       producer,
       seed,
@@ -216,6 +216,7 @@ export const pdfGenerator = {
       documentName,
       Buffer.from(document)
     );
+
     return {
       id: documentId,
       name: documentName,
