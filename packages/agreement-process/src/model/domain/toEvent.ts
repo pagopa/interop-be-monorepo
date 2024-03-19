@@ -128,17 +128,17 @@ export const toAgreementV2 = (input: Agreement): AgreementV2 => ({
 });
 
 export function toCreateEventAgreementDeleted(
-  streamId: string,
+  agreement: Agreement,
   version: number
 ): CreateEvent<AgreementEvent> {
   return {
-    streamId,
+    streamId: agreement.id,
     version,
     event: {
       type: "AgreementDeleted",
-      event_version: 1,
+      event_version: 2,
       data: {
-        agreementId: streamId,
+        agreement: toAgreementV2(agreement),
       },
     },
   };

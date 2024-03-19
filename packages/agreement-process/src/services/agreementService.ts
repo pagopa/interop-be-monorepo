@@ -458,7 +458,10 @@ export async function deleteAgreementLogic({
     await deleteFile(config.s3Bucket, d.path);
   }
 
-  return toCreateEventAgreementDeleted(agreementId, agreement.metadata.version);
+  return toCreateEventAgreementDeleted(
+    agreement.data,
+    agreement.metadata.version
+  );
 }
 
 export async function updateAgreementLogic({
