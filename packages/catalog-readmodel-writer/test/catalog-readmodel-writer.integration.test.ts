@@ -38,10 +38,10 @@ import {
   eserviceMode,
   generateId,
   technology,
+  toReadModelEService,
 } from "pagopa-interop-models";
 import { StartedTestContainer } from "testcontainers";
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
-import { toReadModelEService } from "../src/model/legacy/eserviceAdapter.js";
 import { toDescriptorV1, toDocumentV1, toEServiceV1 } from "./converterV1.js";
 
 describe("database test", async () => {
