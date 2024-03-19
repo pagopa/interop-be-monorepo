@@ -1,13 +1,5 @@
-import { CreateEvent, FileManager, logger } from "pagopa-interop-commons";
-import {
-  Agreement,
-  AgreementDocument,
-  AgreementEvent,
-  AgreementId,
-  EService,
-  Tenant,
-} from "pagopa-interop-models";
-import { toCreateEventAgreementContractAdded } from "../model/domain/toEvent.js";
+import { FileManager } from "pagopa-interop-commons";
+import { Agreement, EService, Tenant } from "pagopa-interop-models";
 import { ApiAgreementDocumentSeed } from "../model/types.js";
 import { UpdateAgreementSeed } from "../model/domain/models.js";
 import { pdfGenerator } from "./pdfGenerator.js";
@@ -37,21 +29,3 @@ export const contractBuilder = (
 });
 
 export type ContractBuilder = ReturnType<typeof contractBuilder>;
-
-export async function addAgreementContractLogic(
-  agreementId: AgreementId,
-  agreementDocument: AgreementDocument,
-  version: number,
-  correlationId: string
-): Promise<CreateEvent<AgreementEvent>> {
-  logger.info(
-    `Adding contract ${agreementDocument.id} to Agreement ${agreementId}`
-  );
-
-  return toCreateEventAgreementContractAdded(
-    agreementId,
-    agreementDocument,
-    version,
-    correlationId
-  );
-}

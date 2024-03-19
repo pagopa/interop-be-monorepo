@@ -191,6 +191,44 @@ export function toCreateEventDraftAgreementUpdated(
   };
 }
 
+export function toCreateEventAgreementSubmited(
+  agreement: Agreement,
+  version: number,
+  correlationId: string
+): CreateEvent<AgreementEvent> {
+  return {
+    streamId: agreement.id,
+    version,
+    event: {
+      type: "AgreementSubmitted",
+      event_version: 2,
+      data: {
+        agreement: toAgreementV2(agreement),
+      },
+    },
+    correlationId,
+  };
+}
+
+export function toCreateEventAgreementArchived(
+  agreement: Agreement,
+  version: number,
+  correlationId: string
+): CreateEvent<AgreementEvent> {
+  return {
+    streamId: agreement.id,
+    version,
+    event: {
+      type: "AgreementArchived",
+      event_version: 2,
+      data: {
+        agreement: toAgreementV2(agreement),
+      },
+    },
+    correlationId,
+  };
+}
+
 export function toCreateEventAgreementUpdated(
   agreement: Agreement,
   version: number,
@@ -204,27 +242,6 @@ export function toCreateEventAgreementUpdated(
       event_version: 1,
       data: {
         agreement: toAgreementV1(agreement),
-      },
-    },
-    correlationId,
-  };
-}
-
-export function toCreateEventAgreementContractAdded(
-  agreementId: AgreementId,
-  agreementDocument: AgreementDocument,
-  version: number,
-  correlationId: string
-): CreateEvent<AgreementEvent> {
-  return {
-    streamId: agreementId,
-    version,
-    event: {
-      type: "AgreementContractAdded",
-      event_version: 1,
-      data: {
-        agreementId,
-        contract: toAgreementDocumentV1(agreementDocument),
       },
     },
     correlationId,
