@@ -33,9 +33,9 @@ export const TenantFeature = TenantFeatureCertifier; // It will be extended with
 export type TenantFeature = z.infer<typeof TenantFeature>;
 
 export const tenantAttributeType = {
-  CERTIFIED: "certified",
-  DECLARED: "declared",
-  VERIFIED: "verified",
+  CERTIFIED: "PersistentCertifiedAttribute",
+  DECLARED: "PersistentDeclaredAttribute",
+  VERIFIED: "PersistentVerifiedAttribute",
 } as const;
 
 export const TenantAttributeType = z.enum([
@@ -96,7 +96,7 @@ export const TenantAttribute = z.discriminatedUnion("type", [
 export type TenantAttribute = z.infer<typeof TenantAttribute>;
 
 export const tenantMailKind = {
-  ContactEmail: "ContactEmail",
+  ContactEmail: "CONTACT_EMAIL",
 } as const;
 export const TenantMailKind = z.enum([
   Object.values(tenantMailKind)[0],

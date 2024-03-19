@@ -97,3 +97,27 @@ export function riskAnalysisValidatedFormToNewRiskAnalysisForm(
     })),
   };
 }
+
+export function riskAnalysisFormToRiskAnalysisFormToValidate(
+  form: RiskAnalysisForm
+): RiskAnalysisFormToValidate {
+  return {
+    version: form.version,
+    answers: {
+      ...form.singleAnswers.reduce(
+        (acc, singleAnswer) => ({
+          ...acc,
+          [singleAnswer.key]: singleAnswer.value ? [singleAnswer.value] : [],
+        }),
+        {}
+      ),
+      ...form.multiAnswers.reduce(
+        (acc, multiAnswer) => ({
+          ...acc,
+          [multiAnswer.key]: multiAnswer.values,
+        }),
+        {}
+      ),
+    },
+  };
+}

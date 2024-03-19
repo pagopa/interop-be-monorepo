@@ -27,6 +27,8 @@ export const errorCodes = {
   tenantKindNotFound: "0015",
   riskAnalysisValidationFailed: "0016",
   eServiceRiskAnalysisNotFound: "0017",
+  eServiceRiskAnalysisIsRequired: "0018",
+  riskAnalysisNotValid: "0019",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -188,7 +190,7 @@ export function riskAnalysisValidationFailed(
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Risk analysis validation failed. Reasons: [${issues
-      .map((i) => i.issue)
+      .map((i) => i.detail)
       .join(", ")}]`,
     code: "riskAnalysisValidationFailed",
     title: "Risk analysis validation failed",
@@ -203,5 +205,23 @@ export function eServiceRiskAnalysisNotFound(
     detail: `Risk Analysis ${riskAnalysisId} not found for EService ${eserviceId}`,
     code: "eServiceRiskAnalysisNotFound",
     title: "Risk analysis not found",
+  });
+}
+
+export function eServiceRiskAnalysisIsRequired(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `At least one Risk Analysis is required for EService ${eserviceId}`,
+    code: "eServiceRiskAnalysisIsRequired",
+    title: "Risk analysis is required",
+  });
+}
+
+export function riskAnalysisNotValid(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk Analysis did not pass validation`,
+    code: "riskAnalysisNotValid",
+    title: "Risk Analysis did not pass validation",
   });
 }
