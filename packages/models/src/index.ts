@@ -13,7 +13,7 @@ export * from "./attribute/protobufConverter.js";
 export * from "./email/email.js";
 
 export * from "./eservice/eservice.js";
-export * from "./eservice/eserviceAdapter.js";
+export * from "./eservice/eserviceReadModelAdapter.js";
 export * from "./eservice/protobufConverterV1.js";
 export * from "./eservice/protobufConverterV2.js";
 export * from "./eservice/eserviceEvents.js";
