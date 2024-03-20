@@ -83,22 +83,15 @@ export const verifyJwtToken = (jwtToken: string): Promise<boolean> => {
       jwksUri: url,
     })
   );
-  return clients === undefined
-    ? Promise.resolve(true)
-    : new Promise((resolve, _reject) => {
-        jwt.verify(
-          jwtToken,
-          getKey(clients),
-          undefined,
-          function (err, _decoded) {
-            if (err) {
-              logger.error(`Error verifying token: ${err}`);
-              return resolve(false);
-            }
-            return resolve(true);
-          }
-        );
-      });
+  return new Promise((resolve, _reject) => {
+    jwt.verify(jwtToken, getKey(clients), undefined, function (err, _decoded) {
+      if (err) {
+        logger.error(`Error verifying token: ${err}`);
+        return resolve(false);
+      }
+      return resolve(true);
+    });
+  });
 };
 
 export const hasPermission = (
