@@ -41,6 +41,7 @@ import {
   toReadModelEService,
 } from "pagopa-interop-models";
 import { StartedTestContainer } from "testcontainers";
+import { format } from "date-fns";
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
 import { toDescriptorV1, toDocumentV1, toEServiceV1 } from "./converterV1.js";
 
@@ -100,12 +101,24 @@ describe("database test", async () => {
         eservices,
         1
       );
+
+      const date = new Date();
+      const clonedEService: EService = {
+        ...mockEService,
+        id: generateId(),
+        createdAt: new Date(),
+        name: `${mockEService.name} - clone - ${format(
+          date,
+          "dd/MM/yyyy HH:mm:ss"
+        )}`,
+      };
+
       const payload: ClonedEServiceAddedV1 = {
-        eservice: toEServiceV1(mockEService),
+        eservice: toEServiceV1(clonedEService),
       };
       const message: EServiceEventEnvelope = {
         sequence_num: 1,
-        stream_id: mockEService.id,
+        stream_id: clonedEService.id,
         version: 1,
         type: "ClonedEServiceAdded",
         event_version: 1,
@@ -114,11 +127,11 @@ describe("database test", async () => {
       await handleMessageV1(message, eservices);
 
       const retrievedEservice = await eservices.findOne({
-        "data.id": mockEService.id,
+        "data.id": clonedEService.id,
       });
 
       expect(retrievedEservice).toMatchObject({
-        data: toReadModelEService(mockEService),
+        data: toReadModelEService(clonedEService),
         metadata: { version: 1 },
       });
     });
