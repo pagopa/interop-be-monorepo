@@ -5,8 +5,8 @@ export * from "./create-mechanism.js";
 export * from "./create-payload.js";
 export * from "./create-sasl-authentication-request.js";
 export * from "./create-sasl-authentication-response.js";
-import { Consumer, Kafka, EachMessagePayload } from "kafkajs";
-import { ConsumerConfig, logger } from "pagopa-interop-commons";
+import { Consumer, EachMessagePayload, Kafka } from "kafkajs";
+import { KafkaConsumerConfig, logger } from "pagopa-interop-commons";
 import { createMechanism } from "./create-mechanism.js";
 
 export const DEFAULT_AUTHENTICATION_TIMEOUT = 60 * 60 * 1000;
@@ -16,7 +16,7 @@ const errorTypes = ["unhandledRejection", "uncaughtException"];
 const signalTraps = ["SIGTERM", "SIGINT", "SIGUSR2"];
 
 const processExit = (existStatusCode: number = 1): void => {
-  logger.info(`Process exit with code ${existStatusCode}`);
+  logger.debug(`Process exit with code ${existStatusCode}`);
   process.exit(existStatusCode);
 };
 
@@ -26,7 +26,7 @@ const errorEventsListener = (consumer: Consumer): void => {
       try {
         logger.error(`Error ${type} intercepted; Error detail: ${e}`);
         await consumer.disconnect().finally(() => {
-          logger.info("Consumer disconnected properly");
+          logger.debug("Consumer disconnected properly");
         });
         processExit();
       } catch (e) {
@@ -42,7 +42,7 @@ const errorEventsListener = (consumer: Consumer): void => {
     process.once(type, async () => {
       try {
         await consumer.disconnect().finally(() => {
-          logger.info("Consumer disconnected properly");
+          logger.debug("Consumer disconnected properly");
           processExit();
         });
       } finally {
@@ -53,13 +53,15 @@ const errorEventsListener = (consumer: Consumer): void => {
 };
 
 const kafkaEventsListener = (consumer: Consumer): void => {
-  consumer.on(consumer.events.DISCONNECT, () => {
-    logger.info(`Consumer has disconnected.`);
-  });
+  if (logger.isDebugEnabled()) {
+    consumer.on(consumer.events.DISCONNECT, () => {
+      logger.debug(`Consumer has disconnected.`);
+    });
 
-  consumer.on(consumer.events.STOP, (e) => {
-    logger.info(`Consumer has stopped ${JSON.stringify(e)}.`);
-  });
+    consumer.on(consumer.events.STOP, (e) => {
+      logger.debug(`Consumer has stopped ${JSON.stringify(e)}.`);
+    });
+  }
 
   consumer.on(consumer.events.CRASH, (e) => {
     logger.error(`Error Consumer crashed ${JSON.stringify(e)}.`);
@@ -74,12 +76,11 @@ const kafkaEventsListener = (consumer: Consumer): void => {
 };
 
 const initConsumer = async (
-  config: ConsumerConfig,
+  config: KafkaConsumerConfig,
+  topics: string[],
   consumerHandler: (payload: EachMessagePayload) => Promise<void>
 ): Promise<Consumer> => {
-  logger.info(
-    `Consumer connecting to topics [${JSON.stringify(config.kafkaTopics)}]`
-  );
+  logger.debug(`Consumer connecting to topics ${JSON.stringify(topics)}`);
 
   const kafkaConfig = config.kafkaDisableAwsIamAuth
     ? {
@@ -116,19 +117,19 @@ const initConsumer = async (
   errorEventsListener(consumer);
 
   await consumer.connect();
-  logger.info("Consumer connected");
+  logger.debug("Consumer connected");
 
-  const topicExists = await validateTopicMetadata(kafka, config.kafkaTopics);
+  const topicExists = await validateTopicMetadata(kafka, topics);
   if (!topicExists) {
     processExit();
   }
 
   await consumer.subscribe({
-    topics: config.kafkaTopics,
+    topics,
     fromBeginning: true,
   });
 
-  logger.info(`Consumer subscribed topic ${config.kafkaTopics}`);
+  logger.debug(`Consumer subscribed topic ${topics}`);
 
   await consumer.run({
     eachMessage: consumerHandler,
@@ -137,12 +138,13 @@ const initConsumer = async (
 };
 
 export const runConsumer = async (
-  config: ConsumerConfig,
+  config: KafkaConsumerConfig,
+  topics: string[],
   consumerHandler: (messagePayload: EachMessagePayload) => Promise<void>
 ): Promise<void> => {
   do {
     try {
-      const consumer = await initConsumer(config, consumerHandler);
+      const consumer = await initConsumer(config, topics, consumerHandler);
 
       await new Promise((resolve) =>
         setTimeout(
@@ -152,7 +154,7 @@ export const runConsumer = async (
       );
 
       await consumer.disconnect().finally(() => {
-        logger.info("Consumer disconnected");
+        logger.debug("Consumer disconnected");
       });
     } catch (e) {
       logger.error(`Generic error occurs during consumer initialization: ${e}`);
@@ -165,7 +167,7 @@ export const validateTopicMetadata = async (
   kafka: Kafka,
   topicNames: string[]
 ): Promise<boolean> => {
-  logger.info(`Check topics [${JSON.stringify(topicNames)}] existence...`);
+  logger.debug(`Check topics [${JSON.stringify(topicNames)}] existence...`);
 
   const admin = kafka.admin();
   await admin.connect();
@@ -174,7 +176,7 @@ export const validateTopicMetadata = async (
     const { topics } = await admin.fetchTopicMetadata({
       topics: [...topicNames],
     });
-    logger.info(`Topic metadata: ${JSON.stringify(topics)} `);
+    logger.debug(`Topic metadata: ${JSON.stringify(topics)} `);
     await admin.disconnect();
     return true;
   } catch (e) {

@@ -5,24 +5,24 @@ package eservice;
 import "v1/eservice/eservice.proto";
 
 message EServiceAddedV1 {
-  required EServiceV1 eService = 1;
+  required EServiceV1 eservice = 1;
 }
 
 message ClonedEServiceAddedV1 {
-  required EServiceV1 eService = 1;
+  required EServiceV1 eservice = 1;
 }
 
 message EServiceUpdatedV1 {
-  required EServiceV1 eService = 1;
+  required EServiceV1 eservice = 1;
 }
 
 message EServiceWithDescriptorsDeletedV1 {
-  required EServiceV1 eService = 1;
+  required EServiceV1 eservice = 1;
   required string descriptorId = 2;
 }
 
 message EServiceDocumentUpdatedV1 {
-  required string eServiceId = 1;
+  required string eserviceId = 1;
   required string descriptorId = 2;
   required string documentId = 3;
   required EServiceDocumentV1 updatedDocument = 4;
@@ -30,11 +30,11 @@ message EServiceDocumentUpdatedV1 {
 }
 
 message EServiceDeletedV1 {
-  required string eServiceId = 1;
+  required string eserviceId = 1;
 }
 
 message EServiceDocumentAddedV1 {
-  required string eServiceId = 1;
+  required string eserviceId = 1;
   required string descriptorId = 2;
   required EServiceDocumentV1 document = 3;
   required bool isInterface = 4;
@@ -42,21 +42,36 @@ message EServiceDocumentAddedV1 {
 }
 
 message EServiceDocumentDeletedV1 {
-  required string eServiceId = 1;
+  required string eserviceId = 1;
   required string descriptorId = 2;
   required string documentId = 3;
 }
 
 message EServiceDescriptorAddedV1 {
-  required string eServiceId = 1;
-  required EServiceDescriptorV1 EServiceDescriptor = 2;
+  required string eserviceId = 1;
+  required EServiceDescriptorV1 eserviceDescriptor = 2;
 }
 
 message EServiceDescriptorUpdatedV1 {
-  required string eServiceId = 1;
-  required EServiceDescriptorV1 EServiceDescriptor = 2;
+  required string eserviceId = 1;
+  required EServiceDescriptorV1 eserviceDescriptor = 2;
 }
 
 message MovedAttributesFromEserviceToDescriptorsV1 {
-  required EServiceV1 eService = 1;
+  required EServiceV1 eservice = 1;
+}
+
+message EServiceRiskAnalysisAddedV1 {
+  required EServiceV1 eservice = 1;
+  required string riskAnalysisId = 2;
+}
+
+message EServiceRiskAnalysisUpdatedV1 {
+  required EServiceV1 eservice = 1;
+  required string riskAnalysisId = 2;
+}
+
+message EServiceRiskAnalysisDeletedV1 {
+  required EServiceV1 eservice = 1;
+  required string riskAnalysisId = 2;
 }

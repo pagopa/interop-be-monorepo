@@ -1,7 +1,8 @@
 import { EachMessagePayload } from "kafkajs";
 import {
   ReadModelRepository,
-  consumerConfig,
+  readModelWriterConfig,
+  agreementTopicConfig,
   decodeKafkaMessage,
   logger,
 } from "pagopa-interop-commons";
@@ -9,7 +10,8 @@ import { runConsumer } from "kafka-iam-auth";
 import { AgreementEvent } from "pagopa-interop-models";
 import { handleMessage } from "./agreementConsumerService.js";
 
-const config = consumerConfig();
+const config = readModelWriterConfig();
+const { agreementTopic } = agreementTopicConfig();
 const { agreements } = ReadModelRepository.init(config);
 
 async function processMessage({
@@ -32,4 +34,4 @@ async function processMessage({
   }
 }
 
-await runConsumer(config, processMessage).catch(logger.error);
+await runConsumer(config, [agreementTopic], processMessage).catch(logger.error);

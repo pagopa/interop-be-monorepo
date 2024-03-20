@@ -1,8 +1,9 @@
 import { EachMessagePayload } from "kafkajs";
 import {
   logger,
-  consumerConfig,
   ReadModelRepository,
+  readModelWriterConfig,
+  catalogTopicConfig,
   decodeKafkaMessage,
 } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
@@ -11,7 +12,8 @@ import { match } from "ts-pattern";
 import { handleMessageV1 } from "./consumerServiceV1.js";
 import { handleMessageV2 } from "./consumerServiceV2.js";
 
-const config = consumerConfig();
+const config = readModelWriterConfig();
+const { catalogTopic } = catalogTopicConfig();
 const { eservices } = ReadModelRepository.init(config);
 
 async function processMessage({
@@ -19,9 +21,9 @@ async function processMessage({
   partition,
 }: EachMessagePayload): Promise<void> {
   try {
-    const decodedMesssage = decodeKafkaMessage(message, EServiceEvent);
+    const decodedMessage = decodeKafkaMessage(message, EServiceEvent);
 
-    await match(decodedMesssage)
+    await match(decodedMessage)
       .with({ event_version: 1 }, (msg) => handleMessageV1(msg, eservices))
       .with({ event_version: 2 }, (msg) => handleMessageV2(msg, eservices))
       .exhaustive();
@@ -36,4 +38,4 @@ async function processMessage({
   }
 }
 
-await runConsumer(config, processMessage).catch(logger.error);
+await runConsumer(config, [catalogTopic], processMessage).catch(logger.error);

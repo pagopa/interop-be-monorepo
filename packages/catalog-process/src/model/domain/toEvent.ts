@@ -19,8 +19,9 @@ import {
   EServiceDocumentId,
   EServiceMode,
   RiskAnalysis,
-  EServiceRiskAnalysisV1,
+  EServiceRiskAnalysisV2,
   EServiceModeV2,
+  RiskAnalysisId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 
@@ -102,29 +103,29 @@ export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
 
 export const toRiskAnalysisV2 = (
   input: RiskAnalysis
-): EServiceRiskAnalysisV1 => ({
+): EServiceRiskAnalysisV2 => ({
   ...input,
   createdAt: BigInt(input.createdAt.getTime()),
 });
 
-export const toEServiceV2 = (eService: EService): EServiceV2 => ({
-  ...eService,
-  technology: toEServiceTechnologyV2(eService.technology),
-  descriptors: eService.descriptors.map(toDescriptorV2),
-  createdAt: BigInt(eService.createdAt.getTime()),
-  mode: toEServiceModeV2(eService.mode),
-  riskAnalysis: eService.riskAnalysis.map(toRiskAnalysisV2),
+export const toEServiceV2 = (eservice: EService): EServiceV2 => ({
+  ...eservice,
+  technology: toEServiceTechnologyV2(eservice.technology),
+  descriptors: eservice.descriptors.map(toDescriptorV2),
+  createdAt: BigInt(eservice.createdAt.getTime()),
+  mode: toEServiceModeV2(eservice.mode),
+  riskAnalysis: eservice.riskAnalysis.map(toRiskAnalysisV2),
 });
 
 export const toCreateEventEServiceAdded = (
-  eService: EService
+  eservice: EService
 ): CreateEvent<EServiceEvent> => ({
-  streamId: eService.id,
+  streamId: eservice.id,
   version: 0,
   event: {
     type: "EServiceAdded",
     event_version: 2,
-    data: { eservice: toEServiceV2(eService) },
+    data: { eservice: toEServiceV2(eservice) },
   },
 });
 
@@ -141,7 +142,7 @@ export const toCreateEventClonedEServiceAdded = (
     data: {
       sourceDescriptorId,
       sourceEservice: toEServiceV2(sourceEservice),
-      clonedEservice: toEServiceV2(clonedEservice),
+      eservice: toEServiceV2(clonedEservice),
     },
   },
 });
@@ -302,6 +303,24 @@ export const toCreateEventEServiceDraftDescriptorUpdated = (
   },
 });
 
+export const toCreateEventEServiceDescriptorQuotasUpdated = (
+  streamId: string,
+  version: number,
+  descriptorId: DescriptorId,
+  eservice: EService
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceDescriptorQuotasUpdated",
+    event_version: 2,
+    data: {
+      descriptorId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+});
+
 export const toCreateEventEServiceDescriptorActivated = (
   streamId: string,
   version: number,
@@ -442,7 +461,7 @@ export const toCreateEventEServiceDocumentDeleted = (
   },
 });
 
-export const toCreateEventEServiceDescriptorDeleted = (
+export const toCreateEventEServiceDraftDescriptorDeleted = (
   streamId: string,
   version: number,
   eservice: EService,
@@ -451,11 +470,65 @@ export const toCreateEventEServiceDescriptorDeleted = (
   streamId,
   version,
   event: {
-    type: "EServiceDescriptorDeleted",
+    type: "EServiceDraftDescriptorDeleted",
     event_version: 2,
     data: {
       eservice: toEServiceV2(eservice),
       descriptorId,
+    },
+  },
+});
+
+export const toCreateEventEServiceRiskAnalysisAdded = (
+  streamId: string,
+  version: number,
+  riskAnalysisId: RiskAnalysisId,
+  eservice: EService
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceRiskAnalysisAdded",
+    event_version: 2,
+    data: {
+      riskAnalysisId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+});
+
+export const toCreateEventEServiceRiskAnalysisUpdated = (
+  streamId: string,
+  version: number,
+  riskAnalysisId: RiskAnalysisId,
+  eservice: EService
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceRiskAnalysisUpdated",
+    event_version: 2,
+    data: {
+      riskAnalysisId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+});
+
+export const toCreateEventEServiceRiskAnalysisDeleted = (
+  streamId: string,
+  version: number,
+  riskAnalysisId: RiskAnalysisId,
+  eservice: EService
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceRiskAnalysisDeleted",
+    event_version: 2,
+    data: {
+      riskAnalysisId,
+      eservice: toEServiceV2(eservice),
     },
   },
 });

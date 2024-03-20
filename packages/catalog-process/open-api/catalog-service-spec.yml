@@ -91,6 +91,11 @@ paths:
             default: []
           explode: false
         - in: query
+          name: mode
+          description: mode
+          schema:
+            $ref: "#/components/schemas/EServiceMode"
+        - in: query
           name: offset
           required: true
           schema:
@@ -132,7 +137,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResourceId"
+                $ref: "#/components/schemas/EService"
         "400":
           description: Invalid input
           content:
@@ -205,6 +210,10 @@ paths:
       responses:
         "200":
           description: E-Service updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
         "404":
           description: E-Service not found
           content:
@@ -329,7 +338,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResourceId"
+                $ref: "#/components/schemas/EServiceDescriptor"
         "400":
           description: Invalid input
           content:
@@ -410,6 +419,10 @@ paths:
       responses:
         "200":
           description: EService with draft descriptor updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
         "400":
           description: Invalid input
           content:
@@ -567,7 +580,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResourceId"
+                $ref: "#/components/schemas/EService"
         "400":
           description: Invalid input
           content:
@@ -658,7 +671,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResourceId"
+                $ref: "#/components/schemas/EService"
         "400":
           description: Invalid input
           content:
@@ -707,7 +720,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResourceId"
+                $ref: "#/components/schemas/EService"
         "400":
           description: Invalid input
           content:
@@ -847,9 +860,155 @@ paths:
               $ref: "#/components/schemas/UpdateEServiceDescriptorDocumentSeed"
       responses:
         "200":
-          description: EService Descriptor updated.
+          description: EService Document updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDoc"
         "404":
           description: EService not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /eservices/{eServiceId}/riskAnalysis:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Create an e-service risk analysis
+      operationId: createRiskAnalysis
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: A payload containing the risk analysis
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceRiskAnalysisSeed"
+      responses:
+        "204":
+          description: EService Risk Analysis created.
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: EService not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /eservices/{eServiceId}/riskAnalysis/{riskAnalysisId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Update an e-service risk analysis
+      operationId: updateRiskAnalysis
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: riskAnalysisId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: A payload containing the risk analysis to update
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceRiskAnalysisSeed"
+      responses:
+        "204":
+          description: EService Risk Analysis created.
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: EService not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Delete an e-service risk analysis
+      operationId: deleteRiskAnalysis
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: riskAnalysisId
+          in: path
+          description: the risk analysis id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: EService Risk Analysis deleted.
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not found
           content:
             application/json:
               schema:
@@ -961,12 +1120,12 @@ components:
           description: "maximum number of daily calls that this descriptor can afford."
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
         dailyCallsTotal:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
@@ -1000,12 +1159,12 @@ components:
           description: "maximum number of daily calls that this descriptor can afford."
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
         dailyCallsTotal:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
@@ -1021,11 +1180,11 @@ components:
         dailyCallsPerConsumer:
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
         dailyCallsTotal:
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
       required:
         - voucherLifespan
         - dailyCallsPerConsumer
@@ -1125,6 +1284,33 @@ components:
           format: uuid
         name:
           type: string
+    EServiceRiskAnalysisSeed:
+      type: object
+      required:
+        - name
+        - riskAnalysisForm
+      properties:
+        name:
+          type: string
+        riskAnalysisForm:
+          $ref: "#/components/schemas/EServiceRiskAnalysisFormSeed"
+    EServiceRiskAnalysisFormSeed:
+      type: object
+      properties:
+        version:
+          type: string
+          minLength: 1
+          maxLength: 250
+        answers:
+          additionalProperties:
+            type: array
+            items:
+              type: string
+              minLength: 1
+              maxLength: 250
+      required:
+        - version
+        - answers
     EService:
       type: object
       required:
@@ -1333,12 +1519,12 @@ components:
           description: "maximum number of daily calls that this descriptor can afford per consumer."
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
         dailyCallsTotal:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
         interface:
           $ref: "#/components/schemas/EServiceDoc"
         docs:

@@ -13,6 +13,7 @@
     "start:attribute-readmodel-writer": "turbo start --filter pagopa-interop-attribute-registry-readmodel-writer",
     "start:tenant": "turbo start --filter pagopa-interop-tenant-process",
     "start:tenant-readmodel-writer": "turbo start --filter pagopa-interop-tenant-readmodel-writer",
+    "start:auth-updater": "turbo start --filter pagopa-interop-authorization-updater",
     "test": "turbo test",
     "test:it": "turbo test:it",
     "build": "turbo build",
@@ -23,7 +24,9 @@
     "generate-model": "turbo generate-model",
     "infra:start": "./scripts/infra-start.sh",
     "infra:stop": "./scripts/infra-stop.sh",
-    "infra:destroy": "./scripts/infra-destroy.sh"
+    "infra:destroy": "./scripts/infra-destroy.sh",
+    "prune-dist" : "find . -name 'dist' -type d -exec rm -rf {} +",
+    "prune-modules" : "find . -name 'node_modules' -type d -exec rm -rf {} +"
   },
   "devDependencies": {
     "@tsconfig/node-lts": "^18.12.3",

@@ -2,11 +2,13 @@
 
 This package runs consumer and handles AWS IAM authentication for Kafka topic consumed by consumer's services, it creates a SASL configuration valid for KafakaJS authentication mechanism.
 
+To refresh the AWS IAM authentication the consumer will be disconnected and reconnected to the topics just before the authentication expiration.
+
 ## Usages
 
 To run an authenticated consumer, you need to provide three parameters:
 
-- **Consumer's Config**: contains all environment variables defined for the current consumer. You can get it with `const config = consumerConfig();`
+- **Consumer's Config**: contains all environment variables defined for the current consumer.If your consumer needs to write on readmodel you can get it with `const config = readModelWriterConfig();` or you can use `kafkaConsumerConfig()` for more general kafka consumer
 
 - **Topic Name**: the target topic for the consumer. It usually has a name like "event-store.{schema}.{table}".
 
@@ -18,7 +20,7 @@ Here's an example of how to execute a consumer:
 import { runConsumer } from 'pagopa-interop-kafka-iam-auth';
 
 // Your config, topic name, and message handler
-const config = consumerConfig();
+const config = readModelWriterConfig();
 const topicName = 'event-store.mySchema.myTable';
 const processMessageHandler = async (message: KafkaMessage) => {
   // Your message processing logic here

@@ -1,6 +1,7 @@
 import { Kafka, KafkaMessage } from "kafkajs";
 import {
-  consumerConfig,
+  readModelWriterConfig,
+  attributeTopicConfig,
   decodeKafkaMessage,
   logger,
 } from "pagopa-interop-commons";
@@ -8,7 +9,8 @@ import { createMechanism } from "@jm18457/kafkajs-msk-iam-authentication-mechani
 import { AttributeEvent } from "pagopa-interop-models";
 import { handleMessage } from "./attributeRegistryConsumerService.js";
 
-const config = consumerConfig();
+const config = readModelWriterConfig();
+const { attributeTopic } = attributeTopicConfig();
 const kafkaConfig = config.kafkaDisableAwsIamAuth
   ? {
       clientId: config.kafkaClientId,
@@ -37,7 +39,7 @@ process.on("SIGINT", exitGracefully);
 process.on("SIGTERM", exitGracefully);
 
 await consumer.subscribe({
-  topics: ["event-store.attribute.events"],
+  topics: [attributeTopic],
   fromBeginning: true,
 });
 

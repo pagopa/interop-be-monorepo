@@ -8,11 +8,7 @@
 import fs from "fs";
 import path from "path";
 
-import {
-  FileManager,
-  logger,
-  selfcareServiceMock,
-} from "pagopa-interop-commons";
+import { FileManager, selfcareServiceMock } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementAttribute,
@@ -136,7 +132,7 @@ const getActivationInfo = async (
 
 const getPdfPayload = async (
   agreement: Agreement,
-  eService: EService,
+  eservice: EService,
   consumer: Tenant,
   producer: Tenant,
   seed: UpdateAgreementSeed,
@@ -153,7 +149,7 @@ const getPdfPayload = async (
   return {
     today: new Date(),
     agreementId: agreement.id,
-    eService: eService.name,
+    eservice: eservice.name,
     producerName: producer.name,
     producerOrigin: producer.externalId.origin,
     producerIPACode: producer.externalId.value,
@@ -190,7 +186,7 @@ const createAgreementDocumentName = (
 export const pdfGenerator = {
   createDocumentSeed: async (
     agreement: Agreement,
-    eService: EService,
+    eservice: EService,
     consumer: Tenant,
     producer: Tenant,
     seed: UpdateAgreementSeed,
@@ -205,7 +201,7 @@ export const pdfGenerator = {
     );
     const pdfPayload = await getPdfPayload(
       agreement,
-      eService,
+      eservice,
       consumer,
       producer,
       seed,
@@ -219,12 +215,7 @@ export const pdfGenerator = {
       documentId,
       documentName,
       Buffer.from(document)
-    ).catch((error) => {
-      logger.error(
-        `Error storing document file for agreement ${agreement.id} : ${error}`
-      );
-      throw error;
-    });
+    );
 
     return {
       id: documentId,
