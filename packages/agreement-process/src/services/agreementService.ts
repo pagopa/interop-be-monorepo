@@ -34,7 +34,6 @@ import {
   toCreateEventAgreementArchived,
   toCreateEventAgreementDeleted,
   toCreateEventAgreementRejected,
-  toCreateEventAgreementUpdated,
   toCreateEventDraftAgreementUpdated,
 } from "../model/domain/toEvent.js";
 import {
@@ -832,7 +831,7 @@ export async function archiveAgreementLogic(
     ...updateSeed,
   };
 
-  return toCreateEventAgreementUpdated(
+  return toCreateEventAgreementArchived(
     updatedAgreement,
     agreement.metadata.version
   );
