@@ -1,4 +1,4 @@
-import { CreateEvent, logger } from "pagopa-interop-commons";
+import { CreateEvent, FileManager, logger } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementDocument,
@@ -14,21 +14,25 @@ import { pdfGenerator } from "./pdfGenerator.js";
 import { AttributeQuery } from "./readmodel/attributeQuery.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export const contractBuilder = (attributeQuery: AttributeQuery) => ({
+export const contractBuilder = (
+  attributeQuery: AttributeQuery,
+  storeFile: FileManager["storeBytes"]
+) => ({
   createContract: async (
     agreement: Agreement,
-    eService: EService,
+    eservice: EService,
     consumer: Tenant,
     producer: Tenant,
     seed: UpdateAgreementSeed
   ): Promise<ApiAgreementDocumentSeed> =>
     await pdfGenerator.createDocumentSeed(
       agreement,
-      eService,
+      eservice,
       consumer,
       producer,
       seed,
-      attributeQuery
+      attributeQuery,
+      storeFile
     ),
 });
 

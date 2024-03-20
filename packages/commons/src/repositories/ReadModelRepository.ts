@@ -1,7 +1,7 @@
 import {
   Agreement,
   Attribute,
-  EService,
+  EServiceReadModel,
   Tenant,
   genericError,
 } from "pagopa-interop-models";
@@ -18,12 +18,17 @@ import { ReadModelDbConfig, logger } from "../index.js";
 export const Metadata = z.object({ version: z.number() });
 export type Metadata = z.infer<typeof Metadata>;
 
-type GenericCollection<T> = Collection<{
+export type GenericCollection<T> = Collection<{
   data: T;
   metadata: Metadata;
 }>;
 
-export type EServiceCollection = GenericCollection<EService>;
+/*
+  ISSUE https://pagopa.atlassian.net/browse/IMN-315
+  Uncomment this line when all services can read models with date type fields
+  export type EServiceCollection = GenericCollection<EService>;
+*/
+export type EServiceCollection = GenericCollection<EServiceReadModel>;
 export type AgreementCollection = GenericCollection<Agreement>;
 export type TenantCollection = GenericCollection<Tenant>;
 export type AttributeCollection = GenericCollection<Attribute>;
@@ -169,6 +174,10 @@ export class ReadModelRepository {
     filter: ReadModelFilter<T>
   ): ReadModelFilter<T> {
     return array.length > 0 ? filter : {};
+  }
+
+  public static escapeRegExp(str: string): string {
+    return str.replace(/[/\-\\^$*+?.()|[\]{}]/g, "\\$&");
   }
 
   public static async getTotalCount(

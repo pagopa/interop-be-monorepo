@@ -3,7 +3,6 @@ import {
   Agreement,
   AgreementEvent,
   agreementState,
-  agreementSuspendableStates,
 } from "pagopa-interop-models";
 import {
   assertAgreementExist,
@@ -12,6 +11,7 @@ import {
   assertRequesterIsConsumerOrProducer,
   assertTenantExist,
   assertDescriptorExist,
+  agreementSuspendableStates,
 } from "../model/domain/validators.js";
 import { toCreateEventAgreementUpdated } from "../model/domain/toEvent.js";
 import { UpdateAgreementSeed } from "../model/domain/models.js";
@@ -55,19 +55,19 @@ export async function suspendAgreementLogic({
     agreementSuspendableStates
   );
 
-  const eService = await eserviceQuery.getEServiceById(
+  const eservice = await eserviceQuery.getEServiceById(
     agreement.data.eserviceId
   );
-  assertEServiceExist(agreement.data.eserviceId, eService);
+  assertEServiceExist(agreement.data.eserviceId, eservice);
 
   const consumer = await tenantQuery.getTenantById(agreement.data.consumerId);
   assertTenantExist(agreement.data.consumerId, consumer);
 
-  const descriptor = eService.data.descriptors.find(
+  const descriptor = eservice.data.descriptors.find(
     (d) => d.id === agreement.data.descriptorId
   );
   assertDescriptorExist(
-    eService.data.id,
+    eservice.data.id,
     agreement.data.descriptorId,
     descriptor
   );

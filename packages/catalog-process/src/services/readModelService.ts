@@ -3,8 +3,13 @@ import {
   ReadModelRepository,
   ReadModelFilter,
   EServiceCollection,
+  userRoles,
+  hasPermission,
+  AuthData,
+  TenantCollection,
 } from "pagopa-interop-commons";
 import {
+  AttributeId,
   Document,
   EService,
   Agreement,
@@ -12,13 +17,16 @@ import {
   descriptorState,
   agreementState,
   ListResult,
-  WithMetadata,
   emptyListResult,
   genericError,
   DescriptorId,
+  WithMetadata,
+  Attribute,
   EServiceId,
   EServiceDocumentId,
   TenantId,
+  Tenant,
+  EServiceReadModel,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
@@ -28,7 +36,7 @@ import { ApiGetEServicesFilters } from "../model/types.js";
 
 async function getEService(
   eservices: EServiceCollection,
-  filter: Filter<WithId<WithMetadata<EService>>>
+  filter: Filter<WithId<WithMetadata<EServiceReadModel>>>
 ): Promise<WithMetadata<EService> | undefined> {
   const data = await eservices.findOne(filter, {
     projection: { data: true, metadata: true },
@@ -57,31 +65,67 @@ async function getEService(
   }
 }
 
+async function getTenant(
+  tenants: TenantCollection,
+  filter: Filter<WithId<WithMetadata<Tenant>>>
+): Promise<Tenant | undefined> {
+  const data = await tenants.findOne(filter, {
+    projection: { data: true, metadata: true },
+  });
+
+  if (!data) {
+    return undefined;
+  }
+  const result = Tenant.safeParse(data.data);
+
+  if (!result.success) {
+    logger.error(
+      `Unable to parse tenant item: result ${JSON.stringify(
+        result
+      )} - data ${JSON.stringify(data)} `
+    );
+
+    throw genericError("Unable to parse tenant item");
+  }
+
+  return result.data;
+}
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
 ) {
   const eservices = readModelRepository.eservices;
   const agreements = readModelRepository.agreements;
+  const attributes = readModelRepository.attributes;
+  const tenants = readModelRepository.tenants;
+
   return {
     async getEServices(
-      organizationId: TenantId,
+      authData: AuthData,
       filters: ApiGetEServicesFilters,
       offset: number,
       limit: number
     ): Promise<ListResult<EService>> {
-      const { eservicesIds, producersIds, states, agreementStates, name } =
-        filters;
+      const {
+        eservicesIds,
+        producersIds,
+        states,
+        agreementStates,
+        name,
+        attributesIds,
+        mode,
+      } = filters;
       const ids = await match(agreementStates.length)
         .with(0, () => eservicesIds)
         .otherwise(async () =>
           (
-            await this.listAgreements(
+            await this.listAgreements({
               eservicesIds,
-              [organizationId],
-              [],
-              agreementStates
-            )
+              consumersIds: [authData.organizationId],
+              producersIds: [],
+              states: agreementStates,
+            })
           ).map((a) => a.eserviceId)
         );
 
@@ -92,25 +136,105 @@ export function readModelServiceBuilder(
       const nameFilter: ReadModelFilter<EService> = name
         ? {
             "data.name": {
-              $regex: name,
+              $regex: ReadModelRepository.escapeRegExp(name),
               $options: "i",
             },
           }
+        : {};
+
+      const idsFilter: ReadModelFilter<EService> =
+        ReadModelRepository.arrayToFilter(ids, {
+          "data.id": { $in: ids },
+        });
+
+      const producersIdsFilter: ReadModelFilter<EService> =
+        ReadModelRepository.arrayToFilter(producersIds, {
+          "data.producerId": { $in: producersIds },
+        });
+
+      const descriptorsStateFilter: ReadModelFilter<EService> =
+        ReadModelRepository.arrayToFilter(states, {
+          "data.descriptors.state": { $in: states },
+        });
+
+      const attributesFilter: ReadModelFilter<EService> =
+        ReadModelRepository.arrayToFilter(attributesIds, {
+          $or: [
+            {
+              "data.descriptors.attributes.certified": {
+                $elemMatch: {
+                  $elemMatch: { id: { $in: attributesIds } },
+                },
+              },
+            },
+            {
+              "data.descriptors.attributes.declared": {
+                $elemMatch: {
+                  $elemMatch: { id: { $in: attributesIds } },
+                },
+              },
+            },
+            {
+              "data.descriptors.attributes.verified": {
+                $elemMatch: {
+                  $elemMatch: { id: { $in: attributesIds } },
+                },
+              },
+            },
+          ],
+        });
+
+      const visibilityFilter: ReadModelFilter<EService> = hasPermission(
+        [userRoles.ADMIN_ROLE, userRoles.API_ROLE],
+        authData
+      )
+        ? {
+            $nor: [
+              {
+                $and: [
+                  { "data.producerId": { $ne: authData.organizationId } },
+                  { "data.descriptors": { $size: 0 } },
+                ],
+              },
+              {
+                $and: [
+                  { "data.producerId": { $ne: authData.organizationId } },
+                  { "data.descriptors": { $size: 1 } },
+                  {
+                    "data.descriptors.state": { $eq: descriptorState.draft },
+                  },
+                ],
+              },
+            ],
+          }
+        : {
+            $nor: [
+              { "data.descriptors": { $size: 0 } },
+              {
+                $and: [
+                  { "data.descriptors": { $size: 1 } },
+                  {
+                    "data.descriptors.state": { $eq: descriptorState.draft },
+                  },
+                ],
+              },
+            ],
+          };
+
+      const modeFilter: ReadModelFilter<EService> = mode
+        ? { "data.mode": { $eq: mode } }
         : {};
 
       const aggregationPipeline = [
         {
           $match: {
             ...nameFilter,
-            ...ReadModelRepository.arrayToFilter(states, {
-              "data.descriptors": { $elemMatch: { state: { $in: states } } },
-            }),
-            ...ReadModelRepository.arrayToFilter(ids, {
-              "data.id": { $in: ids },
-            }),
-            ...ReadModelRepository.arrayToFilter(producersIds, {
-              "data.producerId": { $in: producersIds },
-            }),
+            ...idsFilter,
+            ...producersIdsFilter,
+            ...descriptorsStateFilter,
+            ...attributesFilter,
+            ...visibilityFilter,
+            ...modeFilter,
           } satisfies ReadModelFilter<EService>,
         },
         {
@@ -160,7 +284,7 @@ export function readModelServiceBuilder(
     }): Promise<WithMetadata<EService> | undefined> {
       return getEService(eservices, {
         "data.name": {
-          $regex: `^${name}$$`,
+          $regex: `^${ReadModelRepository.escapeRegExp(name)}$$`,
           $options: "i",
         },
         "data.producerId": producerId,
@@ -288,23 +412,37 @@ export function readModelServiceBuilder(
       descriptorId: DescriptorId,
       documentId: EServiceDocumentId
     ): Promise<Document | undefined> {
-      const eService = await this.getEServiceById(eserviceId);
-      return eService?.data.descriptors
+      const eservice = await this.getEServiceById(eserviceId);
+      return eservice?.data.descriptors
         .find((d) => d.id === descriptorId)
         ?.docs.find((d) => d.id === documentId);
     },
-    async listAgreements(
-      eservicesIds: string[],
-      consumersIds: string[],
-      producersIds: string[],
-      states: AgreementState[]
-    ): Promise<Agreement[]> {
+    async listAgreements({
+      eservicesIds,
+      consumersIds,
+      producersIds,
+      states,
+      limit,
+      descriptorId,
+    }: {
+      eservicesIds: EServiceId[];
+      consumersIds: TenantId[];
+      producersIds: TenantId[];
+      states: AgreementState[];
+      limit?: number;
+      descriptorId?: DescriptorId;
+    }): Promise<Agreement[]> {
+      const descriptorFilter: ReadModelFilter<Agreement> = descriptorId
+        ? { "data.descriptorId": { $eq: descriptorId } }
+        : {};
+
       const aggregationPipeline = [
         {
           $match: {
             ...ReadModelRepository.arrayToFilter(eservicesIds, {
               "data.eserviceId": { $in: eservicesIds },
             }),
+            ...descriptorFilter,
             ...ReadModelRepository.arrayToFilter(consumersIds, {
               "data.consumerId": { $in: consumersIds },
             }),
@@ -312,7 +450,7 @@ export function readModelServiceBuilder(
               "data.producerId": { $in: producersIds },
             }),
             ...ReadModelRepository.arrayToFilter(states, {
-              "data.state": { $elemMatch: { state: { $in: states } } },
+              "data.state": { $in: states },
             }),
           } satisfies ReadModelFilter<Agreement>,
         },
@@ -321,12 +459,13 @@ export function readModelServiceBuilder(
             data: 1,
           },
         },
-        {
-          $sort: { "data.id": 1 },
-        },
       ];
-      const data = await agreements.aggregate(aggregationPipeline).toArray();
-      const result = z.array(Agreement).safeParse(data);
+
+      const aggregationWithLimit = limit
+        ? [...aggregationPipeline, { $limit: limit }]
+        : aggregationPipeline;
+      const data = await agreements.aggregate(aggregationWithLimit).toArray();
+      const result = z.array(Agreement).safeParse(data.map((a) => a.data));
 
       if (!result.success) {
         logger.error(
@@ -339,6 +478,33 @@ export function readModelServiceBuilder(
       }
 
       return result.data;
+    },
+
+    async getAttributesByIds(
+      attributesIds: AttributeId[]
+    ): Promise<Attribute[]> {
+      const data = await attributes
+        .find({
+          "data.id": { $in: attributesIds },
+        })
+        .toArray();
+
+      const result = z.array(Attribute).safeParse(data.map((d) => d.data));
+      if (!result.success) {
+        logger.error(
+          `Unable to parse attributes items: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+
+        throw genericError("Unable to parse attributes items");
+      }
+
+      return result.data;
+    },
+
+    async getTenantById(id: TenantId): Promise<Tenant | undefined> {
+      return getTenant(tenants, { "data.id": id });
     },
   };
 }

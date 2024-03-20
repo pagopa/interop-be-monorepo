@@ -16,8 +16,6 @@ import {
   AttributeId,
   TenantId,
 } from "pagopa-interop-models";
-import { AttributeRegistryConfig } from "../utilities/config.js";
-
 async function getAttribute(
   attributes: AttributeCollection,
   filter: Filter<WithId<WithMetadata<Attribute>>>
@@ -117,8 +115,11 @@ async function getAttributes({
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function readModelServiceBuilder(config: AttributeRegistryConfig) {
-  const { attributes, tenants } = ReadModelRepository.init(config);
+export function readModelServiceBuilder(
+  readModelRepository: ReadModelRepository
+) {
+  const { attributes, tenants } = readModelRepository;
+
   return {
     async getAttributesByIds({
       ids,
@@ -170,7 +171,7 @@ export function readModelServiceBuilder(config: AttributeRegistryConfig) {
       const nameFilter = name
         ? {
             "data.name": {
-              $regex: name,
+              $regex: ReadModelRepository.escapeRegExp(name),
               $options: "i",
             },
           }
@@ -219,7 +220,7 @@ export function readModelServiceBuilder(config: AttributeRegistryConfig) {
     ): Promise<WithMetadata<Attribute> | undefined> {
       return getAttribute(attributes, {
         "data.name": {
-          $regex: `^${name}$$`,
+          $regex: `^${ReadModelRepository.escapeRegExp(name)}$$`,
           $options: "i",
         },
       });
@@ -244,11 +245,11 @@ export function readModelServiceBuilder(config: AttributeRegistryConfig) {
     ): Promise<WithMetadata<Attribute> | undefined> {
       return getAttribute(attributes, {
         "data.code": {
-          $regex: `^${code}$$`,
+          $regex: `^${ReadModelRepository.escapeRegExp(code)}$$`,
           $options: "i",
         },
         "data.name": {
-          $regex: `^${name}$$`,
+          $regex: `^${ReadModelRepository.escapeRegExp(name)}$$`,
           $options: "i",
         },
       });

@@ -8,7 +8,7 @@
 import fs from "fs";
 import path from "path";
 
-import { selfcareServiceMock, initFileManager } from "pagopa-interop-commons";
+import { FileManager, selfcareServiceMock } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementAttribute,
@@ -28,16 +28,14 @@ import {
   agreementStampNotFound,
 } from "../model/domain/errors.js";
 import { ApiAgreementDocumentSeed } from "../model/types.js";
-import { config } from "../utilities/config.js";
 import {
   CertifiedAgreementAttribute,
   DeclaredAgreementAttribute,
   UpdateAgreementSeed,
   VerifiedAgreementAttribute,
 } from "../model/domain/models.js";
+import { config } from "../utilities/config.js";
 import { AttributeQuery } from "./readmodel/attributeQuery.js";
-
-const fileManager = initFileManager(config);
 
 const getAttributeInvolved = async (
   consumer: Tenant,
@@ -134,7 +132,7 @@ const getActivationInfo = async (
 
 const getPdfPayload = async (
   agreement: Agreement,
-  eService: EService,
+  eservice: EService,
   consumer: Tenant,
   producer: Tenant,
   seed: UpdateAgreementSeed,
@@ -151,7 +149,7 @@ const getPdfPayload = async (
   return {
     today: new Date(),
     agreementId: agreement.id,
-    eService: eService.name,
+    eservice: eservice.name,
     producerName: producer.name,
     producerOrigin: producer.externalId.origin,
     producerIPACode: producer.externalId.value,
@@ -188,11 +186,12 @@ const createAgreementDocumentName = (
 export const pdfGenerator = {
   createDocumentSeed: async (
     agreement: Agreement,
-    eService: EService,
+    eservice: EService,
     consumer: Tenant,
     producer: Tenant,
     seed: UpdateAgreementSeed,
-    attributeQuery: AttributeQuery
+    attributeQuery: AttributeQuery,
+    storeFile: FileManager["storeBytes"]
   ): Promise<ApiAgreementDocumentSeed> => {
     const documentId = uuidv4();
     const prettyName = "Richiesta di fruizione";
@@ -202,7 +201,7 @@ export const pdfGenerator = {
     );
     const pdfPayload = await getPdfPayload(
       agreement,
-      eService,
+      eservice,
       consumer,
       producer,
       seed,
@@ -210,14 +209,12 @@ export const pdfGenerator = {
     );
     const document = await create(agreementTemplateMock, pdfPayload);
 
-    /*
-      TODO : this method should be respect this behaviours https://github.com/pagopa/interop-be-agreement-process/blob/66781549a6db2470d8c407965b7561d1fe493107/src/main/scala/it/pagopa/interop/agreementprocess/service/AgreementContractCreator.scala#L57
-      handled with task https://pagopa.atlassian.net/browse/IMN-138
-    */
-    const path = await fileManager.storeBytes(
+    const path = await storeFile(
+      config.s3Bucket,
+      `${config.agreementContractsPath}/${agreement.id}`,
       documentId,
       documentName,
-      new Uint8Array(document)
+      Buffer.from(document)
     );
 
     return {

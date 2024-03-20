@@ -50,11 +50,6 @@ spec:
               value: "0.0.0.0"
             - name: LOG_LEVEL
               value: info
-            - name: MOCK_FILE_MANAGER
-              valueFrom:
-                configMapKeyRef:
-                  name: interop-be-agreement-process-refactor
-                  key: MOCK_FILE_MANAGER
             - name: EVENTSTORE_DB_HOST
               valueFrom:
                 configMapKeyRef:
@@ -120,13 +115,18 @@ spec:
                 secretKeyRef:
                   name: read-model
                   key: REFACTOR_USER_PASSWORD
+            - name: S3_BUCKET
+              valueFrom:
+                configMapKeyRef:
+                  name: interop-be-agreement-process-refactor
+                  key: S3_BUCKET
             - name: CONSUMER_DOCUMENTS_PATH
               valueFrom:
                 configMapKeyRef:
                   name: interop-be-agreement-process-refactor
                   key: CONSUMER_DOCUMENTS_PATH
-            - name: STORAGE_CONTAINER
+            - name: AGREEMENT_CONTRACTS_PATH
               valueFrom:
                 configMapKeyRef:
                   name: interop-be-agreement-process-refactor
-                  key: STORAGE_CONTAINER
+                  key: AGREEMENT_CONTRACTS_PATH

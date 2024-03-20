@@ -1,16 +1,14 @@
 import { match } from "ts-pattern";
+import { logger, AgreementCollection } from "pagopa-interop-commons";
 import {
-  logger,
-  consumerConfig,
-  ReadModelRepository,
-} from "pagopa-interop-commons";
-import { AgreementEventEnvelope } from "pagopa-interop-models";
-import { fromAgreementV1, fromDocumentV1 } from "./model/converter.js";
-
-const { agreements } = ReadModelRepository.init(consumerConfig());
+  AgreementEventEnvelope,
+  fromAgreementV1,
+  fromAgreementDocumentV1,
+} from "pagopa-interop-models";
 
 export async function handleMessage(
-  message: AgreementEventEnvelope
+  message: AgreementEventEnvelope,
+  agreements: AgreementCollection
 ): Promise<void> {
   logger.info(message);
   await match(message)
@@ -65,7 +63,7 @@ export async function handleMessage(
         {
           $push: {
             "data.consumerDocuments": msg.data.document
-              ? fromDocumentV1(msg.data.document)
+              ? fromAgreementDocumentV1(msg.data.document)
               : undefined,
           },
           $set: {
@@ -105,7 +103,7 @@ export async function handleMessage(
         {
           $set: {
             "data.contract": msg.data.contract
-              ? fromDocumentV1(msg.data.contract)
+              ? fromAgreementDocumentV1(msg.data.contract)
               : undefined,
             metadata: {
               version: msg.version,

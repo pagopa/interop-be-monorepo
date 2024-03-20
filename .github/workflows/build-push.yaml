@@ -1,0 +1,81 @@
+name: "Build & Push"
+
+on:
+  push:
+    branches:
+      - 'main'
+    paths:
+      - 'packages/**'
+      - '!packages/*/scripts/**'
+
+jobs:
+  build_push_image:
+    name: ${{ matrix.image_name }}
+    runs-on: ubuntu-latest
+    environment: dev
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image_name: catalog-process
+            dockerfile_path: packages/catalog-process
+            k8s_path: packages/catalog-process/kubernetes/dev
+          - image_name: catalog-readmodel-writer
+            dockerfile_path: packages/catalog-readmodel-writer
+            k8s_path: packages/catalog-readmodel-writer/kubernetes/dev
+          - image_name: agreement-process
+            dockerfile_path: packages/agreement-process
+            k8s_path: packages/agreement-process/kubernetes/dev
+          - image_name: agreement-readmodel-writer
+            dockerfile_path: packages/agreement-readmodel-writer
+            k8s_path: packages/agreement-readmodel-writer/kubernetes/dev
+          - image_name: attribute-registry-process
+            dockerfile_path: packages/attribute-registry-process
+            k8s_path: packages/attribute-registry-process/kubernetes/dev
+          - image_name: attribute-registry-readmodel-writer
+            dockerfile_path: packages/attribute-registry-readmodel-writer
+            k8s_path: packages/attribute-registry-readmodel-writer/kubernetes/dev
+          - image_name: authorization-updater
+            dockerfile_path: packages/authorization-updater
+            k8s_path: packages/authorization-updater/kubernetes/dev
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ vars.IAM_ROLE_ARN }}
+          role-session-name: be-monorepo-build-push-${{ github.run_number }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        with:
+          images: ${{ steps.login-ecr.outputs.registry }}/interop-be-${{ matrix.image_name }}
+          flavor: |
+            latest=false
+            prefix=
+            suffix=
+          tags: |
+            type=raw,value=2.x-latest
+            type=ref,event=tag
+
+      - name: Build and push Docker image
+        id: build_push
+        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        with:
+          context: .
+          file: ${{ matrix.dockerfile_path }}/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

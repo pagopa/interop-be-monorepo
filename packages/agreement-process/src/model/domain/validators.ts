@@ -14,15 +14,13 @@ import {
   agreementState,
   descriptorState,
   tenantAttributeType,
-  agreementActivableStates,
-  agreementActivationFailureStates,
   AgreementId,
   DescriptorId,
   EServiceId,
   unsafeBrandId,
+  TenantAttribute,
   TenantId,
 } from "pagopa-interop-models";
-import { P, match } from "ts-pattern";
 import { AuthData } from "pagopa-interop-commons";
 import { AgreementQuery } from "../../services/readmodel/agreementQuery.js";
 import { ApiAgreementPayload } from "../types.js";
@@ -47,10 +45,66 @@ import {
   VerifiedAgreementAttribute,
 } from "./models.js";
 
-type NotRevocableTenantAttribute = Pick<VerifiedTenantAttribute, "id">;
-type RevocableTenantAttribute =
-  | Pick<CertifiedTenantAttribute, "id" | "revocationTimestamp">
-  | Pick<DeclaredTenantAttribute, "id" | "revocationTimestamp">;
+/* ========= STATES ========= */
+export const agreementActivableStates: AgreementState[] = [
+  agreementState.pending,
+  agreementState.suspended,
+];
+export const agreementSuspendableStates: AgreementState[] = [
+  agreementState.active,
+  agreementState.suspended,
+];
+export const agreementArchivableStates: AgreementState[] = [
+  agreementState.active,
+  agreementState.suspended,
+];
+export const agreementSubmittableStates: AgreementState[] = [
+  agreementState.draft,
+];
+
+export const agreementUpdatableStates: AgreementState[] = [
+  agreementState.draft,
+];
+
+export const agreementUpgradableStates: AgreementState[] = [
+  agreementState.active,
+  agreementState.suspended,
+];
+export const agreementRejectableStates: AgreementState[] = [
+  agreementState.pending,
+];
+
+export const agreementDeletableStates: AgreementState[] = [
+  agreementState.draft,
+  agreementState.missingCertifiedAttributes,
+];
+
+export const agreementActivationFailureStates: AgreementState[] = [
+  agreementState.draft,
+  agreementState.pending,
+  agreementState.missingCertifiedAttributes,
+];
+
+export const agreementCloningConflictingStates: AgreementState[] = [
+  agreementState.draft,
+  agreementState.pending,
+  agreementState.missingCertifiedAttributes,
+  agreementState.active,
+  agreementState.suspended,
+];
+
+export const agreementCreationConflictingStates: AgreementState[] = [
+  agreementState.draft,
+  agreementState.pending,
+  agreementState.missingCertifiedAttributes,
+  agreementState.active,
+  agreementState.suspended,
+];
+
+export const agreementSubmissionConflictingStates: AgreementState[] = [
+  agreementState.pending,
+  agreementState.missingCertifiedAttributes,
+];
 
 /* ========= ASSERTIONS ========= */
 
@@ -65,9 +119,9 @@ export function assertAgreementExist(
 
 export function assertEServiceExist(
   eserviceId: EServiceId,
-  eService: WithMetadata<EService> | undefined
-): asserts eService is NonNullable<WithMetadata<EService>> {
-  if (eService === undefined) {
+  eservice: WithMetadata<EService> | undefined
+): asserts eservice is NonNullable<WithMetadata<EService>> {
+  if (eservice === undefined) {
     throw eServiceNotFound(eserviceId);
   }
 }
@@ -167,11 +221,11 @@ const validateDescriptorState = (
 };
 
 const validateLatestDescriptor = (
-  eService: EService,
+  eservice: EService,
   descriptorId: DescriptorId,
   allowedStates: DescriptorState[]
 ): Descriptor => {
-  const recentActiveDescriptors = eService.descriptors
+  const recentActiveDescriptors = eservice.descriptors
     .filter((d) => d.state !== descriptorState.draft)
     .sort((a, b) => Number(b.version) - Number(a.version));
 
@@ -184,7 +238,7 @@ const validateLatestDescriptor = (
 
   const recentActiveDescriptor = recentActiveDescriptors[0];
   validateDescriptorState(
-    eService.id,
+    eservice.id,
     descriptorId,
     recentActiveDescriptor.state,
     allowedStates
@@ -206,17 +260,10 @@ export const verifyCreationConflictingAgreements = async (
   agreement: ApiAgreementPayload,
   agreementQuery: AgreementQuery
 ): Promise<void> => {
-  const conflictingStates: AgreementState[] = [
-    agreementState.draft,
-    agreementState.pending,
-    agreementState.missingCertifiedAttributes,
-    agreementState.active,
-    agreementState.suspended,
-  ];
   await verifyConflictingAgreements(
     organizationId,
     unsafeBrandId(agreement.eserviceId),
-    conflictingStates,
+    agreementCreationConflictingStates,
     agreementQuery
   );
 };
@@ -225,14 +272,10 @@ export const verifySubmissionConflictingAgreements = async (
   agreement: Agreement,
   agreementQuery: AgreementQuery
 ): Promise<void> => {
-  const conflictingStates: AgreementState[] = [
-    agreementState.pending,
-    agreementState.missingCertifiedAttributes,
-  ];
   await verifyConflictingAgreements(
     agreement.consumerId,
     unsafeBrandId(agreement.eserviceId),
-    conflictingStates,
+    agreementSubmissionConflictingStates,
     agreementQuery
   );
 };
@@ -266,13 +309,24 @@ export const validateActiveOrPendingAgreement = (
   }
 };
 
+const attributesSatisfied = (
+  descriptorAttributes: EServiceAttribute[][],
+  consumerAttributeIds: Array<TenantAttribute["id"]>
+): boolean =>
+  descriptorAttributes.every((attributeList) => {
+    const attributes = attributeList.map((a) => a.id);
+    return (
+      attributes.filter((a) => consumerAttributeIds.includes(a)).length > 0
+    );
+  });
+
 export const certifiedAttributesSatisfied = (
   descriptor: Descriptor,
   tenant: Tenant
 ): boolean => {
-  const certifiedAttributes = tenant.attributes.filter(
-    (e) => e.type === tenantAttributeType.CERTIFIED
-  ) as CertifiedTenantAttribute[];
+  const certifiedAttributes = filterCertifiedAttributes(tenant).map(
+    (a) => a.id
+  );
 
   return attributesSatisfied(
     descriptor.attributes.certified,
@@ -284,9 +338,7 @@ export const declaredAttributesSatisfied = (
   descriptor: Descriptor,
   tenant: Tenant
 ): boolean => {
-  const declaredAttributes = tenant.attributes.filter(
-    (e) => e.type === tenantAttributeType.DECLARED
-  ) as DeclaredTenantAttribute[];
+  const declaredAttributes = filterDeclaredAttributes(tenant).map((a) => a.id);
 
   return attributesSatisfied(
     descriptor.attributes.declared,
@@ -299,14 +351,13 @@ export const verifiedAttributesSatisfied = (
   descriptor: Descriptor,
   tenant: Tenant
 ): boolean => {
-  const producersAttributesNotExpired = filterVerifiedAttributes(
-    producerId,
-    tenant
+  const verifiedAttributes = filterVerifiedAttributes(producerId, tenant).map(
+    (a) => a.id
   );
 
   return attributesSatisfied(
     descriptor.attributes.verified,
-    producersAttributesNotExpired
+    verifiedAttributes
   );
 };
 
@@ -365,31 +416,22 @@ export const validateActivationOnDescriptor = (
   return descriptor;
 };
 
-const attributesSatisfied = <
-  T extends RevocableTenantAttribute | NotRevocableTenantAttribute
->(
-  descriptorAttributes: EServiceAttribute[][],
-  consumerAttributes: T[]
-): boolean => {
-  const notRevocatedAttributeIds = consumerAttributes
-    .filter(notRevocatedTenantAttributesFilter(consumerAttributes))
-    .map((a) => a.id);
-
-  return descriptorAttributes.every((attributeList) => {
-    const attributes = attributeList.map((a) => a.id);
-    return (
-      attributes.filter((a) => notRevocatedAttributeIds.includes(a)).length > 0
-    );
-  });
+export const failOnActivationFailure = (
+  newState: AgreementState,
+  agreement: Agreement
+): void => {
+  if (agreementActivationFailureStates.includes(newState)) {
+    throw agreementActivationFailed(agreement.id);
+  }
 };
 
 /* ========= MATCHERS ========= */
 
 const matchingAttributes = (
-  eServiceAttributes: EServiceAttribute[][],
+  eserviceAttributes: EServiceAttribute[][],
   consumerAttributes: AttributeId[]
 ): AttributeId[] =>
-  eServiceAttributes
+  eserviceAttributes
     .flatMap((atts) => atts.map((att) => att.id))
     .filter((att) => consumerAttributes.includes(att));
 
@@ -397,39 +439,37 @@ export const matchingCertifiedAttributes = (
   descriptor: Descriptor,
   consumer: Tenant
 ): CertifiedAgreementAttribute[] => {
-  const attributes = consumer.attributes
-    .filter(
-      (a) => a.type === tenantAttributeType.CERTIFIED && !a.revocationTimestamp
-    )
-    .map((a) => a.id);
-
-  return matchingAttributes(descriptor.attributes.certified, attributes).map(
-    (id) => ({ id } as CertifiedAgreementAttribute)
+  const certifiedAttributes = filterCertifiedAttributes(consumer).map(
+    (a) => a.id
   );
+
+  return matchingAttributes(
+    descriptor.attributes.certified,
+    certifiedAttributes
+  ).map((id) => ({ id } as CertifiedAgreementAttribute));
 };
 
 export const matchingDeclaredAttributes = (
   descriptor: Descriptor,
   consumer: Tenant
 ): DeclaredAgreementAttribute[] => {
-  const attributes = consumer.attributes
-    .filter(
-      (a) => a.type === tenantAttributeType.DECLARED && !a.revocationTimestamp
-    )
-    .map((a) => a.id);
-
-  return matchingAttributes(descriptor.attributes.declared, attributes).map(
-    (id) => ({ id } as DeclaredAgreementAttribute)
+  const declaredAttributes = filterDeclaredAttributes(consumer).map(
+    (a) => a.id
   );
+
+  return matchingAttributes(
+    descriptor.attributes.declared,
+    declaredAttributes
+  ).map((id) => ({ id } as DeclaredAgreementAttribute));
 };
 
 export const matchingVerifiedAttributes = (
-  eService: EService,
+  eservice: EService,
   descriptor: Descriptor,
   consumer: Tenant
 ): VerifiedAgreementAttribute[] => {
   const verifiedAttributes = filterVerifiedAttributes(
-    eService.producerId,
+    eservice.producerId,
     consumer
   ).map((a) => a.id);
 
@@ -455,25 +495,18 @@ export const filterVerifiedAttributes = (
       )
   ) as VerifiedTenantAttribute[];
 
-const notRevocatedTenantAttributesFilter = <
-  T extends RevocableTenantAttribute | NotRevocableTenantAttribute
->(
-  att: T[]
-): ((a: T) => boolean) =>
-  match(att)
-    .with(
-      P.array({ revocationTimestamp: P.instanceOf(Date) }),
-      () =>
-        (a: RevocableTenantAttribute): boolean =>
-          !a.revocationTimestamp
-    )
-    .otherwise(() => () => true);
+export const filterCertifiedAttributes = (
+  tenant: Tenant
+): CertifiedTenantAttribute[] =>
+  tenant.attributes.filter(
+    (att) =>
+      att.type === tenantAttributeType.CERTIFIED && !att.revocationTimestamp
+  ) as CertifiedTenantAttribute[];
 
-export const failOnActivationFailure = (
-  newState: AgreementState,
-  agreement: Agreement
-): void => {
-  if (agreementActivationFailureStates.includes(newState)) {
-    throw agreementActivationFailed(agreement.id);
-  }
-};
+export const filterDeclaredAttributes = (
+  tenant: Tenant
+): DeclaredTenantAttribute[] =>
+  tenant.attributes.filter(
+    (att) =>
+      att.type === tenantAttributeType.DECLARED && !att.revocationTimestamp
+  ) as DeclaredTenantAttribute[];

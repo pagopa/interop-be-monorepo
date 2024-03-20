@@ -12,12 +12,16 @@ const CataloProcessConfig = CommonConfig.and(ReadModelDbConfig)
   .and(
     z
       .object({
-        STORAGE_CONTAINER: z.string(),
+        S3_BUCKET: z.string(),
         ESERVICE_DOCUMENTS_PATH: z.string(),
+        PRODUCER_ALLOWED_ORIGINS: z.string(),
       })
       .transform((c) => ({
-        storageContainer: c.STORAGE_CONTAINER,
+        s3Bucket: c.S3_BUCKET,
         eserviceDocumentsPath: c.ESERVICE_DOCUMENTS_PATH,
+        producerAllowedOrigins: c.PRODUCER_ALLOWED_ORIGINS.split(",")
+          .map((origin) => origin.trim())
+          .filter(Boolean),
       }))
   );
 
