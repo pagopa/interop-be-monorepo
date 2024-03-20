@@ -77,11 +77,10 @@ const kafkaEventsListener = (consumer: Consumer): void => {
 
 const initConsumer = async (
   config: KafkaConsumerConfig,
+  topics: string[],
   consumerHandler: (payload: EachMessagePayload) => Promise<void>
 ): Promise<Consumer> => {
-  logger.debug(
-    `Consumer connecting to topics [${JSON.stringify(config.kafkaTopics)}]`
-  );
+  logger.debug(`Consumer connecting to topics ${JSON.stringify(topics)}`);
 
   const kafkaConfig = config.kafkaDisableAwsIamAuth
     ? {
@@ -120,17 +119,17 @@ const initConsumer = async (
   await consumer.connect();
   logger.debug("Consumer connected");
 
-  const topicExists = await validateTopicMetadata(kafka, config.kafkaTopics);
+  const topicExists = await validateTopicMetadata(kafka, topics);
   if (!topicExists) {
     processExit();
   }
 
   await consumer.subscribe({
-    topics: config.kafkaTopics,
+    topics,
     fromBeginning: true,
   });
 
-  logger.debug(`Consumer subscribed topic ${config.kafkaTopics}`);
+  logger.debug(`Consumer subscribed topic ${topics}`);
 
   await consumer.run({
     eachMessage: consumerHandler,
@@ -140,11 +139,12 @@ const initConsumer = async (
 
 export const runConsumer = async (
   config: KafkaConsumerConfig,
+  topics: string[],
   consumerHandler: (messagePayload: EachMessagePayload) => Promise<void>
 ): Promise<void> => {
   do {
     try {
-      const consumer = await initConsumer(config, consumerHandler);
+      const consumer = await initConsumer(config, topics, consumerHandler);
 
       await new Promise((resolve) =>
         setTimeout(
