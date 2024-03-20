@@ -100,7 +100,7 @@ export const authorizationMiddleware =
               ...error,
               correlationId: headers?.correlationId,
             }),
-            (error) => (error.code === "unauthorizedError" ? 401 : 500)
+            (error) => (error.code === "unauthorizedError" ? 403 : 500)
           )
         )
         .otherwise(() =>
