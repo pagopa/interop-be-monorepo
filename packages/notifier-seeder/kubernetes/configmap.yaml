@@ -7,3 +7,4 @@ data:
   KAFKA_CLIENT_ID: "dev-pagopa-interop-notifier-seeder"
   KAFKA_GROUP_ID: "notifier-seeder"
   KAFKA_BROKERS: "boot-yqksbq44.c3.kafka-serverless.eu-central-1.amazonaws.com:9098"
+  CATALOG_TOPIC: "event-store.catalog.events"

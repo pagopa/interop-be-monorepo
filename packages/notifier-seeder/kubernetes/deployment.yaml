@@ -45,3 +45,8 @@ spec:
                 configMapKeyRef:
                   name: interop-be-notifier-seeder
                   key: KAFKA_BROKERS
+            - name: CATALOG_TOPIC
+              valueFrom:
+                configMapKeyRef:
+                  name: interop-be-notifier-seeder
+                  key: CATALOG_TOPIC
