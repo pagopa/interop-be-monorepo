@@ -31,9 +31,9 @@ import {
   postgreSQLContainer,
 } from "pagopa-interop-commons-test";
 import {
-  AgreementAddedV1,
+  AgreementAddedV2,
   AgreementId,
-  AgreementV1,
+  AgreementV2,
   AttributeId,
   Descriptor,
   DescriptorId,
@@ -59,7 +59,7 @@ import {
   notLatestEServiceDescriptor,
   tenantIdNotFound,
 } from "../src/model/domain/errors.js";
-import { toAgreementStateV1 } from "../src/model/domain/toEvent.js";
+import { toAgreementStateV2 } from "../src/model/domain/toEvent.js";
 import { ApiAgreementPayload } from "../src/model/types.js";
 import {
   AgreementService,
@@ -107,7 +107,7 @@ describe("AgreementService Integration Test", async () => {
     expectedDescriptorId: DescriptorId,
     expectedProducerId: TenantId,
     expectedConsumerId: TenantId
-  ): Promise<AgreementV1> => {
+  ): Promise<AgreementV2> => {
     expect(agreementId).toBeDefined();
     if (!agreementId) {
       fail("Unhandled error: returned agreementId is undefined");
@@ -122,16 +122,16 @@ describe("AgreementService Integration Test", async () => {
 
     expect(actualAgreementData).toBeDefined();
     expect(actualAgreementData.type).toBe("AgreementAdded");
-    expect(actualAgreementData.event_version).toBe(1);
+    expect(actualAgreementData.event_version).toBe(2);
     expect(actualAgreementData.version).toBe("0");
     expect(actualAgreementData.stream_id).toEqual(agreementId);
 
-    const actualAgreement: AgreementV1 | undefined = protobufDecoder(
-      AgreementAddedV1
+    const actualAgreement: AgreementV2 | undefined = protobufDecoder(
+      AgreementAddedV2
     ).parse(actualAgreementData.data)?.agreement;
 
     if (!actualAgreement) {
-      fail("impossible to decode AgreementAddedV1 data");
+      fail("impossible to decode AgreementAddedV2 data");
     }
 
     expect(actualAgreement).toBeDefined();
@@ -144,7 +144,7 @@ describe("AgreementService Integration Test", async () => {
       descriptorId: expectedDescriptorId,
       producerId: expectedProducerId,
       consumerId: expectedConsumerId,
-      state: toAgreementStateV1(agreementState.draft),
+      state: toAgreementStateV2(agreementState.draft),
       verifiedAttributes: [],
       certifiedAttributes: [],
       declaredAttributes: [],
