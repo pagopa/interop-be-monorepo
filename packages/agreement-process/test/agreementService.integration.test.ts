@@ -32,10 +32,10 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
-  AgreementAddedV1,
   AgreementAttribute,
+  AgreementAddedV2,
   AgreementId,
-  AgreementV1,
+  AgreementV2,
   AttributeId,
   Descriptor,
   DescriptorId,
@@ -72,7 +72,7 @@ import {
   notLatestEServiceDescriptor,
   tenantIdNotFound,
 } from "../src/model/domain/errors.js";
-import { toAgreementStateV1 } from "../src/model/domain/toEvent.js";
+import { toAgreementStateV2 } from "../src/model/domain/toEvent.js";
 import { ApiAgreementPayload } from "../src/model/types.js";
 import {
   AgreementService,
@@ -120,7 +120,7 @@ const expectedAgreementCreation = async (
   expectedDescriptorId: DescriptorId,
   expectedProducerId: TenantId,
   expectedConsumerId: TenantId
-): Promise<AgreementV1> => {
+): Promise<AgreementV2> => {
   expect(agreementId).toBeDefined();
   if (!agreementId) {
     fail("Unhandled error: returned agreementId is undefined");
@@ -135,13 +135,13 @@ const expectedAgreementCreation = async (
 
   expect(actualAgreementData).toMatchObject({
     type: "AgreementAdded",
-    event_version: 1,
+    event_version: 2,
     version: "0",
     stream_id: agreementId,
   });
 
-  const actualAgreement: AgreementV1 | undefined = protobufDecoder(
-    AgreementAddedV1
+  const actualAgreement: AgreementV2 | undefined = protobufDecoder(
+    AgreementAddedV2
   ).parse(actualAgreementData.data)?.agreement;
 
   if (!actualAgreement) {
@@ -157,7 +157,7 @@ const expectedAgreementCreation = async (
     descriptorId: expectedDescriptorId,
     producerId: expectedProducerId,
     consumerId: expectedConsumerId,
-    state: toAgreementStateV1(agreementState.draft),
+    state: toAgreementStateV2(agreementState.draft),
     verifiedAttributes: [],
     certifiedAttributes: [],
     declaredAttributes: [],
