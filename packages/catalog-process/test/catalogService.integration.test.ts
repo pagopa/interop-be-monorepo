@@ -67,6 +67,7 @@ import {
   operationForbidden,
   tenantKind,
   unsafeBrandId,
+  toEServiceV2,
 } from "pagopa-interop-models";
 import {
   TEST_MINIO_PORT,
@@ -81,7 +82,6 @@ import {
 } from "pagopa-interop-commons-test";
 import { StartedTestContainer } from "testcontainers";
 import { config } from "../src/utilities/config.js";
-import { toEServiceV2 } from "../src/model/domain/toEvent.js";
 import {
   EServiceDescriptorSeed,
   EServiceRiskAnalysisSeed,
