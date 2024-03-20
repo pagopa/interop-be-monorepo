@@ -65,9 +65,6 @@ export const UIAuthToken = SharedJWTClaims.merge(
     uid: z.string().uuid(),
     organizationId: z.string().uuid(),
     selfcareId: z.string().uuid(),
-    name: z.string(),
-    family_name: z.string(),
-    email: z.string(),
     organization: z.object({
       id: z.string().uuid(),
       name: z.string(),
@@ -84,6 +81,9 @@ export const UIAuthToken = SharedJWTClaims.merge(
       origin: z.string(),
       value: z.string(),
     }),
+    name: z.string().optional(),
+    family_name: z.string().optional(),
+    email: z.string().optional(),
   })
 );
 
