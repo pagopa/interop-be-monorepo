@@ -102,6 +102,8 @@ export type AuthToken = z.infer<typeof AuthToken>;
   To avoid the need to handle optional fields, we make them required in
   the type definition, but know that they will be set to empty strings or
   empty arrays in case they are not present in the token.
+
+  A possible improvement for this is tracked in: https://pagopa.atlassian.net/browse/IMN-371
 */
 export const AuthData = z.object({
   organizationId: TenantId,
