@@ -1,28 +1,30 @@
+import { match } from "ts-pattern";
+import { unsafeBrandId } from "../brandedIds.js";
+import { genericError } from "../errors.js";
 import {
-  Tenant,
-  TenantAttribute,
-  TenantVerifier,
-  TenantRevoker,
-  TenantAttributeV1,
-  TenantRevokerV1,
-  TenantV1,
-  TenantVerifierV1,
-  TenantFeatureV1,
-  TenantMailV1,
-  TenantMail,
-  TenantMailKindV1,
-  TenantMailKind,
   TenantKindV1,
+  TenantMailKindV1,
+  TenantMailV1,
+  TenantFeatureV1,
+  TenantVerifierV1,
+  TenantRevokerV1,
+  TenantAttributeV1,
+  TenantV1,
+} from "../gen/v1/tenant/tenant.js";
+import {
   TenantKind,
   tenantKind,
-  TenantFeatureCertifier,
+  TenantMailKind,
   tenantMailKind,
+  TenantMail,
+  TenantFeatureCertifier,
+  TenantVerifier,
+  TenantRevoker,
+  TenantAttribute,
+  Tenant,
   ExternalId,
-  genericError,
-  unsafeBrandId,
   tenantAttributeType,
-} from "pagopa-interop-models";
-import { match } from "ts-pattern";
+} from "./tenant.js";
 
 export const fromTenantKindV1 = (input: TenantKindV1): TenantKind => {
   switch (input) {
