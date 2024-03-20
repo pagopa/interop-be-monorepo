@@ -104,7 +104,7 @@ export const authenticationMiddleware: () => ZodiosRouterContextRequestHandler<E
       } catch (error) {
         const problem = makeApiProblem(error, (err) =>
           match(err.code)
-            .with("unauthorizedError", () => 403)
+            .with("unauthorizedError", () => 401)
             .with("operationForbidden", () => 403)
             .with("missingHeader", () => 400)
             .otherwise(() => 500)
