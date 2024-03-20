@@ -564,7 +564,8 @@ const eservicesRouter = (
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.riskAnalysisId),
             req.body,
-            req.ctx.authData
+            req.ctx.authData,
+            req.ctx.correlationId
           );
           return res.status(204).end();
         } catch (error) {
@@ -582,7 +583,8 @@ const eservicesRouter = (
           await catalogService.deleteRiskAnalysis(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.riskAnalysisId),
-            req.ctx.authData
+            req.ctx.authData,
+            req.ctx.correlationId
           );
           return res.status(204).end();
         } catch (error) {

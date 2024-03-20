@@ -539,7 +539,8 @@ export const toCreateEventEServiceRiskAnalysisUpdated = (
   streamId: string,
   version: number,
   riskAnalysisId: RiskAnalysisId,
-  eservice: EService
+  eservice: EService,
+  correlationId: string
 ): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
@@ -551,13 +552,15 @@ export const toCreateEventEServiceRiskAnalysisUpdated = (
       eservice: toEServiceV2(eservice),
     },
   },
+  correlationId,
 });
 
 export const toCreateEventEServiceRiskAnalysisDeleted = (
   streamId: string,
   version: number,
   riskAnalysisId: RiskAnalysisId,
-  eservice: EService
+  eservice: EService,
+  correlationId: string
 ): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
@@ -569,4 +572,5 @@ export const toCreateEventEServiceRiskAnalysisDeleted = (
       eservice: toEServiceV2(eservice),
     },
   },
+  correlationId,
 });

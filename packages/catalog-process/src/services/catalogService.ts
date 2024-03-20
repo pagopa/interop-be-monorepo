@@ -1373,7 +1373,8 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       riskAnalysisId: RiskAnalysis["id"],
       eserviceRiskAnalysisSeed: EServiceRiskAnalysisSeed,
-      authData: AuthData
+      authData: AuthData,
+      correlationId: string
     ): Promise<void> {
       logger.info(
         `Updating Risk Analysis ${riskAnalysisId} for EService ${eserviceId}`
@@ -1418,7 +1419,8 @@ export function catalogServiceBuilder(
         eservice.data.id,
         eservice.metadata.version,
         updatedRiskAnalysis.id,
-        newEservice
+        newEservice,
+        correlationId
       );
 
       await repository.createEvent(event);
@@ -1426,7 +1428,8 @@ export function catalogServiceBuilder(
     async deleteRiskAnalysis(
       eserviceId: EServiceId,
       riskAnalysisId: RiskAnalysisId,
-      authData: AuthData
+      authData: AuthData,
+      correlationId: string
     ): Promise<void> {
       logger.info(
         `Deleting Risk Analysis ${riskAnalysisId} for EService ${eserviceId}`
@@ -1450,7 +1453,8 @@ export function catalogServiceBuilder(
         eservice.data.id,
         eservice.metadata.version,
         riskAnalysisId,
-        eserviceWithRiskAnalysisDeleted
+        eserviceWithRiskAnalysisDeleted,
+        correlationId
       );
 
       await repository.createEvent(event);

@@ -3,7 +3,6 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-import { v4 as uuidv4 } from "uuid";
 import {
   afterAll,
   afterEach,
@@ -81,8 +80,8 @@ import {
   randomArrayItem,
 } from "pagopa-interop-commons-test";
 import { StartedTestContainer } from "testcontainers";
+import { v4 as uuidv4 } from "uuid";
 import { config } from "../src/utilities/config.js";
-import { toEServiceV2 } from "../src/model/domain/toEvent.js";
 import {
   EServiceDescriptorSeed,
   EServiceRiskAnalysisSeed,
@@ -118,6 +117,7 @@ import {
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 import { formatClonedEServiceDate } from "../src/utilities/date.js";
+import { toEServiceV2 } from "../src/model/domain/toEvent.js";
 import {
   addOneAgreement,
   addOneEService,
@@ -4506,7 +4506,8 @@ describe("database test", async () => {
           eservice.id,
           riskAnalysis.id,
           riskAnalysisUpdatedSeed,
-          getMockAuthData(producer.id)
+          getMockAuthData(producer.id),
+          uuidv4()
         );
 
         const writtenEvent = await readLastEserviceEvent(
@@ -4585,7 +4586,8 @@ describe("database test", async () => {
             mockEService.id,
             generateId(),
             buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
-            getMockAuthData(mockEService.producerId)
+            getMockAuthData(mockEService.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
@@ -4596,7 +4598,8 @@ describe("database test", async () => {
             mockEService.id,
             generateId(),
             buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
-            getMockAuthData()
+            getMockAuthData(),
+            uuidv4()
           )
         ).rejects.toThrowError(operationForbidden);
       });
@@ -4617,7 +4620,8 @@ describe("database test", async () => {
             eservice.id,
             generateId(),
             buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
       });
@@ -4639,7 +4643,8 @@ describe("database test", async () => {
             eservice.id,
             generateId(),
             buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(eserviceNotInReceiveMode(eservice.id));
       });
@@ -4661,7 +4666,8 @@ describe("database test", async () => {
             eservice.id,
             generateId(),
             buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(tenantNotFound(eservice.producerId));
       });
@@ -4691,7 +4697,8 @@ describe("database test", async () => {
             eservice.id,
             generateId(),
             buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
-            getMockAuthData(producer.id)
+            getMockAuthData(producer.id),
+            uuidv4()
           )
         ).rejects.toThrowError(tenantKindNotFound(producer.id));
       });
@@ -4725,7 +4732,8 @@ describe("database test", async () => {
             eservice.id,
             riskAnalysisId,
             buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
-            getMockAuthData(producer.id)
+            getMockAuthData(producer.id),
+            uuidv4()
           )
         ).rejects.toThrowError(
           eServiceRiskAnalysisNotFound(eservice.id, riskAnalysisId)
@@ -4784,7 +4792,8 @@ describe("database test", async () => {
             eservice.id,
             riskAnalysis.id,
             riskAnalysisUpdatedSeed,
-            getMockAuthData(producer.id)
+            getMockAuthData(producer.id),
+            uuidv4()
           )
         ).rejects.toThrowError(
           riskAnalysisValidationFailed([
@@ -4812,7 +4821,8 @@ describe("database test", async () => {
         await catalogService.deleteRiskAnalysis(
           eservice.id,
           riskAnalysis.id,
-          getMockAuthData(eservice.producerId)
+          getMockAuthData(eservice.producerId),
+          uuidv4()
         );
 
         const writtenEvent = await readLastEserviceEvent(
@@ -4846,7 +4856,8 @@ describe("database test", async () => {
           catalogService.deleteRiskAnalysis(
             mockEService.id,
             generateId<RiskAnalysisId>(),
-            getMockAuthData(mockEService.producerId)
+            getMockAuthData(mockEService.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
       });
@@ -4864,7 +4875,8 @@ describe("database test", async () => {
           catalogService.deleteRiskAnalysis(
             eservice.id,
             riskAnalysisId,
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(
           eServiceRiskAnalysisNotFound(eservice.id, riskAnalysisId)
@@ -4889,7 +4901,8 @@ describe("database test", async () => {
           catalogService.deleteRiskAnalysis(
             eservice.id,
             generateId<RiskAnalysisId>(),
-            getMockAuthData(eservice.producerId)
+            getMockAuthData(eservice.producerId),
+            uuidv4()
           )
         ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
       });
@@ -4913,7 +4926,8 @@ describe("database test", async () => {
           catalogService.deleteRiskAnalysis(
             eservice.id,
             generateId<RiskAnalysisId>(),
-            getMockAuthData()
+            getMockAuthData(),
+            uuidv4()
           )
         ).rejects.toThrowError(operationForbidden);
       });
