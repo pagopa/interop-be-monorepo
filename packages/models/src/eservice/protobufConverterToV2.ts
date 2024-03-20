@@ -9,8 +9,8 @@ import {
   EServiceRiskAnalysisV2,
   EServiceTechnologyV2,
   EServiceV2,
-  RiskAnalysis,
-} from "../index.js";
+} from "../gen/v2/eservice/eservice.js";
+import { RiskAnalysis } from "../risk-analysis/riskAnalysis.js";
 import {
   AgreementApprovalPolicy,
   Descriptor,
