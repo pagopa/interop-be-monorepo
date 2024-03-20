@@ -8,6 +8,18 @@ import {
   toEServiceV2,
 } from "pagopa-interop-models";
 
+export const toCreateEventEServiceAdded = (
+  eservice: EService
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version: 0,
+  event: {
+    type: "EServiceAdded",
+    event_version: 2,
+    data: { eservice: toEServiceV2(eservice) },
+  },
+});
+
 export const toCreateEventClonedEServiceAdded = (
   sourceDescriptorId: DescriptorId,
   sourceEservice: EService,
@@ -409,17 +421,5 @@ export const toCreateEventEServiceRiskAnalysisDeleted = (
       riskAnalysisId,
       eservice: toEServiceV2(eservice),
     },
-  },
-});
-
-export const toCreateEventEServiceAdded = (
-  eservice: EService
-): CreateEvent<EServiceEvent> => ({
-  streamId: eservice.id,
-  version: 0,
-  event: {
-    type: "EServiceAdded",
-    event_version: 2,
-    data: { eservice: toEServiceV2(eservice) },
   },
 });
