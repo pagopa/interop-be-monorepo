@@ -94,13 +94,13 @@ export function agreementEventToBinaryDataV2(
     .with({ type: "AgreementSuspendedByProducer" }, ({ data }) =>
       AgreementSuspendedByProducerV2.toBinary(data)
     )
-    .with({ type: "AgeementSuspendedByConsumer" }, ({ data }) =>
+    .with({ type: "AgreementSuspendedByConsumer" }, ({ data }) =>
       AgreementSuspendedByConsumerV2.toBinary(data)
     )
     .with({ type: "AgreementSuspendedByPlatform" }, ({ data }) =>
       AgreementSuspendedByPlatformV2.toBinary(data)
     )
-    .with({ type: "AgreeementRejected" }, ({ data }) =>
+    .with({ type: "AgreementRejected" }, ({ data }) =>
       AgreementRejectedV2.toBinary(data)
     )
     .with({ type: "AgreementConsumerDocumentAdded" }, ({ data }) =>
@@ -199,7 +199,7 @@ export const AgreementEventV2 = z.discriminatedUnion("type", [
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("AgeementSuspendedByConsumer"),
+    type: z.literal("AgreementSuspendedByConsumer"),
     data: protobufDecoder(AgreementSuspendedByConsumerV2),
   }),
   z.object({
@@ -209,7 +209,7 @@ export const AgreementEventV2 = z.discriminatedUnion("type", [
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("AgreeementRejected"),
+    type: z.literal("AgreementRejected"),
     data: protobufDecoder(AgreementRejectedV2),
   }),
   z.object({
