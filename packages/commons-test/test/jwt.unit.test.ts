@@ -9,10 +9,10 @@ const mockUiToken = {
     origin: "IPA",
     value: "5N2TR557",
   },
-  "user-roles": "admin",
+  "user-roles": "security,api",
   selfcareId: "1962d21c-c701-4805-93f6-53a877898756",
   organizationId: "69e2865e-65ab-4e48-a638-2037a9ee2ee7",
-  aud: "dev.interop.pagopa.it/ui",
+  aud: "dev.interop.pagopa.it/ui,dev.interop.pagopa.it/fake",
   uid: "f07ddb8f-17f9-47d4-b31e-35d1ac10e521",
   nbf: 1710841859,
   organization: {
@@ -37,7 +37,7 @@ const mockUiToken = {
 
 const mockM2MToken = {
   organizationId: "89804b2c-f62e-4867-87a4-3a82f2b03485",
-  aud: "refactor.dev.interop.pagopa.it/m2m",
+  aud: "refactor.dev.interop.pagopa.it/m2m,refactor.dev.interop.pagopa.it/fake",
   sub: "227cadc9-1a2c-4612-b100-a247b48d0464",
   role: "m2m",
   nbf: 1710511524,
@@ -49,7 +49,7 @@ const mockM2MToken = {
 };
 
 const mockInternalToken = {
-  aud: "refactor.dev.interop.pagopa.it/m2m",
+  aud: "refactor.dev.interop.pagopa.it/m2m,refactor.dev.interop.pagopa.it/fake",
   sub: "227cadc9-1a2c-4612-b100-a247b48d0464",
   role: "internal",
   nbf: 1710511524,
@@ -83,7 +83,7 @@ describe("JWT tests", () => {
     it("should successfully read auth data from a UI token with multiple comma separated user roles", async () => {
       const token = getMockSignedToken({
         ...mockUiToken,
-        "user-roles": "admin,api",
+        "user-roles": "security,api",
       });
 
       expect(readAuthDataFromJwtToken(token)).toEqual({
@@ -93,7 +93,7 @@ describe("JWT tests", () => {
         },
         organizationId: "69e2865e-65ab-4e48-a638-2037a9ee2ee7",
         userId: "f07ddb8f-17f9-47d4-b31e-35d1ac10e521",
-        userRoles: ["admin", "api"],
+        userRoles: ["security", "api"],
       });
     });
 
@@ -124,7 +124,10 @@ describe("JWT tests", () => {
     });
 
     it("should return an error when the token is invalid", async () => {
-      expect(readAuthDataFromJwtToken("invalid token")).toBeInstanceOf(Error);
+      const token = getMockSignedToken({
+        role: "invalid-role",
+      });
+      expect(readAuthDataFromJwtToken(token)).toBeInstanceOf(Error);
     });
   });
 });
