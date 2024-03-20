@@ -27,13 +27,17 @@ export const UserRole = z.enum([
 export type UserRole = z.infer<typeof UserRole>;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const CommaSeparatedStringsToArray = <T extends z.ZodType>(t: T) =>
-  z.preprocess((s: unknown) => String(s).split(","), z.array(t));
+const CommaSeparatedStringToArray = <T extends z.ZodType>(t: T) =>
+  z
+    .string()
+    .nonempty()
+    .transform((s: string) => s.split(","))
+    .pipe(z.array(t));
 
 const SharedJWTClaims = z.object({
   // All standard claims except "sub", which is not present in UI tokens
   iss: z.string(),
-  aud: CommaSeparatedStringsToArray(z.string()),
+  aud: CommaSeparatedStringToArray(z.string()),
   exp: z.number(),
   nbf: z.number(),
   iat: z.number(),
@@ -61,7 +65,7 @@ export const UIAuthToken = SharedJWTClaims.merge(
     // setting role to z.undefined() to make the discriminated union work.
     // z.discriminatedUnion performs better than z.union and gives more meaningful parsing errors.
     role: z.undefined(),
-    "user-roles": CommaSeparatedStringsToArray(UIUserRole),
+    "user-roles": CommaSeparatedStringToArray(UIUserRole),
     uid: z.string().uuid(),
     organizationId: z.string().uuid(),
     selfcareId: z.string().uuid(),

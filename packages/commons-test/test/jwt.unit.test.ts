@@ -2,6 +2,7 @@
 import { readAuthDataFromJwtToken } from "pagopa-interop-commons";
 import { describe, expect, it } from "vitest";
 import jwt from "jsonwebtoken";
+import { randomArrayItem } from "../src/testUtils.js";
 
 const mockUiToken = {
   iss: "dev.interop.pagopa.it",
@@ -62,6 +63,9 @@ const mockInternalToken = {
 const getMockSignedToken = (token: object): string =>
   jwt.sign(token, "test-secret");
 
+const parseReadAuthDataFromJwtTokenErrorResult = (result: Error): string =>
+  JSON.parse(result.message)[0].message;
+
 describe("JWT tests", () => {
   describe("readAuthDataFromJwtToken", () => {
     it("should successfully read auth data from a UI token with a single user role", async () => {
@@ -97,6 +101,32 @@ describe("JWT tests", () => {
       });
     });
 
+    it("should fail reading auth data from a UI token with invalid user roles", async () => {
+      const token = getMockSignedToken({
+        ...mockUiToken,
+        "user-roles": "api,invalid-role",
+      });
+
+      const result = readAuthDataFromJwtToken(token);
+      expect(result).toBeInstanceOf(Error);
+      expect(parseReadAuthDataFromJwtTokenErrorResult(result as Error)).toEqual(
+        "Invalid enum value. Expected 'admin' | 'security' | 'api' | 'support', received 'invalid-role'"
+      );
+    });
+
+    it("should fail reading auth data from a UI token with empty user roles", async () => {
+      const token = getMockSignedToken({
+        ...mockUiToken,
+        "user-roles": "",
+      });
+
+      const result = readAuthDataFromJwtToken(token);
+      expect(readAuthDataFromJwtToken(token)).toBeInstanceOf(Error);
+      expect(parseReadAuthDataFromJwtTokenErrorResult(result as Error)).toEqual(
+        "String must contain at least 1 character(s)"
+      );
+    });
+
     it("should successfully read auth data from a UI token with empty email, name, and family_name", async () => {
       const token = getMockSignedToken({
         ...mockUiToken,
@@ -129,6 +159,43 @@ describe("JWT tests", () => {
       });
     });
 
+    it("should fail if some required fields are missing", () => {
+      const mockToken = randomArrayItem([
+        mockUiToken,
+        mockM2MToken,
+        mockInternalToken,
+      ]);
+      const token = getMockSignedToken({
+        ...mockToken,
+        sub: undefined,
+        jti: undefined,
+      });
+
+      const result = readAuthDataFromJwtToken(token);
+      expect(result).toBeInstanceOf(Error);
+      expect(parseReadAuthDataFromJwtTokenErrorResult(result as Error)).toEqual(
+        "Required"
+      );
+    });
+
+    it("should fail if the aud field is an empty string", () => {
+      const mockToken = randomArrayItem([
+        mockUiToken,
+        mockM2MToken,
+        mockInternalToken,
+      ]);
+      const token = getMockSignedToken({
+        ...mockToken,
+        aud: "",
+      });
+
+      const result = readAuthDataFromJwtToken(token);
+      expect(result).toBeInstanceOf(Error);
+      expect(parseReadAuthDataFromJwtTokenErrorResult(result as Error)).toEqual(
+        "String must contain at least 1 character(s)"
+      );
+    });
+
     it("should successfully read auth data from an Internal token", async () => {
       const token = getMockSignedToken(mockInternalToken);
       expect(readAuthDataFromJwtToken(token)).toEqual({
@@ -142,11 +209,16 @@ describe("JWT tests", () => {
       });
     });
 
-    it("should return an error when the token is invalid", async () => {
+    it("should fail when the token is invalid", async () => {
       const token = getMockSignedToken({
         role: "invalid-role",
       });
-      expect(readAuthDataFromJwtToken(token)).toBeInstanceOf(Error);
+
+      const result = readAuthDataFromJwtToken(token);
+      expect(result).toBeInstanceOf(Error);
+      expect(parseReadAuthDataFromJwtTokenErrorResult(result as Error)).toEqual(
+        "Invalid discriminator value. Expected 'm2m' | 'internal' | "
+      );
     });
   });
 });
