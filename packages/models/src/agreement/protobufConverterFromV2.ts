@@ -1,11 +1,11 @@
 import { unsafeBrandId } from "../brandedIds.js";
 import {
-  AgreementDocumentV1,
-  StampV1,
-  StampsV1,
-  AgreementStateV1,
-  AgreementV1,
-} from "../gen/v1/agreement/agreement.js";
+  AgreementDocumentV2,
+  AgreementStampV2,
+  AgreementStampsV2,
+  AgreementStateV2,
+  AgreementV2,
+} from "../gen/v2/agreement/agreement.js";
 import {
   AgreementDocument,
   AgreementStamp,
@@ -15,16 +15,16 @@ import {
   Agreement,
 } from "./agreement.js";
 
-export const fromAgreementDocumentV1 = (
-  input: AgreementDocumentV1
+export const fromAgreementDocumentV2 = (
+  input: AgreementDocumentV2
 ): AgreementDocument => ({
   ...input,
   id: unsafeBrandId(input.id),
   createdAt: new Date(Number(input.createdAt)),
 });
 
-export const fromAgreementStampV1 = (
-  input: StampV1 | undefined
+export const fromAgreementStampV2 = (
+  input: AgreementStampV2 | undefined
 ): AgreementStamp | undefined =>
   input
     ? {
@@ -33,46 +33,44 @@ export const fromAgreementStampV1 = (
       }
     : undefined;
 
-export const fromAgreementStamps = (
-  input: StampsV1 | undefined
+export const fromAgreementStampsV2 = (
+  input: AgreementStampsV2 | undefined
 ): AgreementStamps | undefined =>
   input
     ? {
         ...input,
-        submission: fromAgreementStampV1(input.submission),
-        activation: fromAgreementStampV1(input.activation),
-        rejection: fromAgreementStampV1(input.rejection),
-        suspensionByProducer: fromAgreementStampV1(input.suspensionByProducer),
-        suspensionByConsumer: fromAgreementStampV1(input.suspensionByConsumer),
-        upgrade: fromAgreementStampV1(input.upgrade),
-        archiving: fromAgreementStampV1(input.archiving),
+        submission: fromAgreementStampV2(input.submission),
+        activation: fromAgreementStampV2(input.activation),
+        rejection: fromAgreementStampV2(input.rejection),
+        suspensionByProducer: fromAgreementStampV2(input.suspensionByProducer),
+        suspensionByConsumer: fromAgreementStampV2(input.suspensionByConsumer),
+        upgrade: fromAgreementStampV2(input.upgrade),
+        archiving: fromAgreementStampV2(input.archiving),
       }
     : undefined;
 
-export const fromAgreementStateV1 = (
-  input: AgreementStateV1
+export const fromAgreementStateV2 = (
+  input: AgreementStateV2
 ): AgreementState => {
   switch (input) {
-    case AgreementStateV1.ACTIVE:
+    case AgreementStateV2.ACTIVE:
       return agreementState.active;
-    case AgreementStateV1.SUSPENDED:
+    case AgreementStateV2.SUSPENDED:
       return agreementState.suspended;
-    case AgreementStateV1.ARCHIVED:
+    case AgreementStateV2.ARCHIVED:
       return agreementState.archived;
-    case AgreementStateV1.DRAFT:
+    case AgreementStateV2.DRAFT:
       return agreementState.draft;
-    case AgreementStateV1.PENDING:
+    case AgreementStateV2.PENDING:
       return agreementState.pending;
-    case AgreementStateV1.MISSING_CERTIFIED_ATTRIBUTES:
+    case AgreementStateV2.MISSING_CERTIFIED_ATTRIBUTES:
       return agreementState.missingCertifiedAttributes;
-    case AgreementStateV1.REJECTED:
+    case AgreementStateV2.REJECTED:
       return agreementState.rejected;
-    case AgreementStateV1.UNSPECIFIED$:
-      throw new Error("Unspecified agreement state");
   }
 };
 
-export const fromAgreementV1 = (input: AgreementV1): Agreement => ({
+export const fromAgreementV2 = (input: AgreementV2): Agreement => ({
   ...input,
   id: unsafeBrandId(input.id),
   eserviceId: unsafeBrandId(input.eserviceId),
@@ -91,15 +89,15 @@ export const fromAgreementV1 = (input: AgreementV1): Agreement => ({
     ...a,
     id: unsafeBrandId(a.id),
   })),
-  state: fromAgreementStateV1(input.state),
+  state: fromAgreementStateV2(input.state),
   createdAt: new Date(Number(input.createdAt)),
   updatedAt: input.updatedAt ? new Date(Number(input.updatedAt)) : undefined,
   suspendedAt: input.suspendedAt
     ? new Date(Number(input.suspendedAt))
     : undefined,
-  consumerDocuments: input.consumerDocuments.map(fromAgreementDocumentV1),
+  consumerDocuments: input.consumerDocuments.map(fromAgreementDocumentV2),
   contract: input.contract
-    ? fromAgreementDocumentV1(input.contract)
+    ? fromAgreementDocumentV2(input.contract)
     : undefined,
-  stamps: { ...fromAgreementStamps(input.stamps) },
+  stamps: { ...fromAgreementStampsV2(input.stamps) },
 });
