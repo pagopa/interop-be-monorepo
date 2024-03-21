@@ -43,7 +43,7 @@ export function toApiTenantExternalId(input: ExternalId): ApiExternalId {
 
 export function toApiTenantFeature(input: TenantFeature): ApiTenantFeature {
   return match<TenantFeature, ApiTenantFeature>(input)
-    .with({ type: "Certifier" }, (feature) => ({
+    .with({ type: "PersistentCertifier" }, (feature) => ({
       certifier: {
         certifierId: feature.certifierId,
       },
@@ -103,6 +103,7 @@ export function toApiTenantAttribute(
 export function toApiMailKind(kind: TenantMailKind): ApiMailKind {
   return match<TenantMailKind, ApiMailKind>(kind)
     .with(tenantMailKind.ContactEmail, () => "CONTACT_EMAIL")
+    .with(tenantMailKind.DigitalAddress, () => "DIGITAL_ADDRESS")
     .exhaustive();
 }
 

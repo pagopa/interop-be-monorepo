@@ -1142,6 +1142,7 @@ components:
       type: string
       enum:
         - CONTACT_EMAIL
+        - DIGITAL_ADDRESS
     ResourceId:
       type: object
       required:
