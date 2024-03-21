@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import * as expressWinston from "express-winston";
 import * as winston from "winston";
+import { match } from "ts-pattern";
 import { LoggerConfig } from "../config/commonConfig.js";
 import { getContext } from "../index.js";
 
@@ -26,11 +27,23 @@ const getLoggerMetadata = (): SessionMetaData => {
         organizationId: "",
         correlationId: "",
       }
-    : {
-        userId: appContext.authData.userId,
-        organizationId: appContext.authData.organizationId,
-        correlationId: appContext.correlationId,
-      };
+    : match(appContext.authData)
+        .with({ type: "empty" }, { type: "internal" }, () => ({
+          userId: "",
+          organizationId: "",
+          correlationId: appContext.correlationId,
+        }))
+        .with({ type: "m2m" }, (d) => ({
+          userId: "",
+          organizationId: d.organizationId,
+          correlationId: appContext.correlationId,
+        }))
+        .with({ type: "ui" }, (d) => ({
+          userId: d.userId,
+          organizationId: d.organizationId,
+          correlationId: appContext.correlationId,
+        }))
+        .exhaustive();
 };
 
 const logFormat = (

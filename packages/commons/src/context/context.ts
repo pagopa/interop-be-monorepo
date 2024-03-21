@@ -3,7 +3,7 @@ import { AsyncLocalStorage } from "async_hooks";
 import { NextFunction, Request, Response } from "express";
 import { zodiosContext } from "@zodios/express";
 import { z } from "zod";
-import { AuthData, defaultAuthData } from "../auth/authData.js";
+import { AuthData } from "../auth/authData.js";
 import { readHeaders } from "../auth/headers.js";
 
 export type AppContext = z.infer<typeof ctx>;
@@ -19,7 +19,7 @@ export const zodiosCtx = zodiosContext(z.object({ ctx }));
 
 const globalStore = new AsyncLocalStorage<AppContext>();
 const defaultAppContext: AppContext = {
-  authData: defaultAuthData,
+  authData: { type: "empty" },
   correlationId: "",
 };
 
@@ -45,14 +45,9 @@ export const contextDataMiddleware = (
   const headers = readHeaders(req);
   if (headers) {
     const context = getContext();
-    context.authData = {
-      userId: headers.userId,
-      organizationId: headers.organizationId,
-      userRoles: headers.userRoles,
-      externalId: headers.externalId,
-    };
-
-    context.correlationId = headers?.correlationId;
+    const { correlationId, ...authData } = headers;
+    context.authData = authData;
+    context.correlationId = correlationId;
   }
   next();
 };
