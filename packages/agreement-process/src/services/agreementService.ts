@@ -17,7 +17,6 @@ import {
   agreementEventToBinaryData,
   agreementState,
   descriptorState,
-  AgreementUpdateEvent,
   AgreementDocumentId,
   AgreementId,
 } from "pagopa-interop-models";
@@ -827,7 +826,7 @@ export async function archiveAgreementLogic(
   agreementId: Agreement["id"],
   authData: AuthData,
   agreementQuery: AgreementQuery
-): Promise<CreateEvent<AgreementUpdateEvent>> {
+): Promise<CreateEvent<AgreementEvent>> {
   const agreement = await agreementQuery.getAgreementById(agreementId);
   assertAgreementExist(agreementId, agreement);
   assertRequesterIsConsumer(agreement.data, authData);
