@@ -128,8 +128,7 @@ const submitAgreement = async (
   const newState = agreementStateByFlags(
     nextStateByAttributes,
     undefined,
-    undefined,
-    suspendedByPlatform
+    undefined
   );
 
   if (agreement.state === agreementState.draft) {

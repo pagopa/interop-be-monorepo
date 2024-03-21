@@ -211,23 +211,6 @@ export function toCreateEventAgreementArchived(
   };
 }
 
-export function toCreateEventAgreementUpdated(
-  agreement: Agreement,
-  version: number
-): CreateEvent<AgreementEvent> {
-  return {
-    streamId: agreement.id,
-    version,
-    event: {
-      type: "AgreementUpdated",
-      event_version: 1,
-      data: {
-        agreement: toAgreementV1(agreement),
-      },
-    },
-  };
-}
-
 export function toCreateEventAgreementRejected(
   agreement: Agreement,
   version: number
@@ -237,6 +220,91 @@ export function toCreateEventAgreementRejected(
     version,
     event: {
       type: "AgreementRejected",
+      event_version: 2,
+      data: {
+        agreement: toAgreementV2(agreement),
+      },
+    },
+  };
+}
+
+export function toCreateEventAgreementActivated(
+  agreement: Agreement,
+  version: number
+): CreateEvent<AgreementEvent> {
+  return {
+    streamId: agreement.id,
+    version,
+    event: {
+      type: "AgreementActivated",
+      event_version: 2,
+      data: {
+        agreement: toAgreementV2(agreement),
+      },
+    },
+  };
+}
+
+export function toCreateEventAgreementSuspendedByProducer(
+  agreement: Agreement,
+  version: number
+): CreateEvent<AgreementEvent> {
+  return {
+    streamId: agreement.id,
+    version,
+    event: {
+      type: "AgreementSuspendedByProducer",
+      event_version: 2,
+      data: {
+        agreement: toAgreementV2(agreement),
+      },
+    },
+  };
+}
+
+export function toCreateEventAgreementSuspendedByConsumer(
+  agreement: Agreement,
+  version: number
+): CreateEvent<AgreementEvent> {
+  return {
+    streamId: agreement.id,
+    version,
+    event: {
+      type: "AgreementSuspendedByConsumer",
+      event_version: 2,
+      data: {
+        agreement: toAgreementV2(agreement),
+      },
+    },
+  };
+}
+
+export function toCreateEventAgreementUnsuspendedByProducer(
+  agreement: Agreement,
+  version: number
+): CreateEvent<AgreementEvent> {
+  return {
+    streamId: agreement.id,
+    version,
+    event: {
+      type: "AgreementUnsuspendedByProducer",
+      event_version: 2,
+      data: {
+        agreement: toAgreementV2(agreement),
+      },
+    },
+  };
+}
+
+export function toCreateEventAgreementUnsuspendedByConsumer(
+  agreement: Agreement,
+  version: number
+): CreateEvent<AgreementEvent> {
+  return {
+    streamId: agreement.id,
+    version,
+    event: {
+      type: "AgreementUnsuspendedByConsumer",
       event_version: 2,
       data: {
         agreement: toAgreementV2(agreement),
