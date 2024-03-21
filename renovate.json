@@ -2,7 +2,6 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended",
-    ":renovatePrefix",
     ":automergeRequireAllStatusChecks",
     ":automergeStableNonMajor",
     ":automergeLinters",
@@ -17,6 +16,7 @@
   ],
   "schedule": ["after 1am and before 8am on Monday"],
   "labels": ["dependencies"],
+  "branchPrefix": "renovate-action/",
   "prConcurrentLimit": 2,
   "packageRules": []
 }
