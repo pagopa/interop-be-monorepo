@@ -1,0 +1,22 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":renovatePrefix",
+    ":automergeRequireAllStatusChecks",
+    ":automergeStableNonMajor",
+    ":automergeLinters",
+    ":automergeTesters",
+    ":automergeTypes",
+    ":enableVulnerabilityAlerts",
+    ":combinePatchMinorReleases",
+    ":ignoreUnstable",
+    ":maintainLockFilesWeekly",
+    ":pinAllExceptPeerDependencies",
+    ":rebaseStalePrs"
+  ],
+  "schedule": ["after 1am and before 8am on Monday"],
+  "labels": ["dependencies"],
+  "prConcurrentLimit": 2,
+  "packageRules": []
+}
