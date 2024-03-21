@@ -6,6 +6,7 @@ export * from "./agreement/agreement.js";
 export * from "./agreement/agreementEvents.js";
 export * from "./agreement/agreementReadModelAdapter.js";
 export * from "./agreement/protobufConverterFromV1.js";
+export * from "./agreement/protobufConverterFromV2.js";
 
 export * from "./attribute/attribute.js";
 export * from "./attribute/attributeReadModelAdapter.js";
