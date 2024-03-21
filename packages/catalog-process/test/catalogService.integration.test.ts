@@ -377,6 +377,10 @@ describe("database test", async () => {
           ...eservice,
           name: updatedName,
           technology: "Soap",
+          descriptors: eservice.descriptors.map((d) => ({
+            ...d,
+            interface: undefined,
+          })),
         };
 
         const writtenEvent = await readLastEserviceEvent(
