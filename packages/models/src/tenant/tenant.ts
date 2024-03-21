@@ -22,7 +22,7 @@ export const ExternalId = z.object({
 export type ExternalId = z.infer<typeof ExternalId>;
 
 export const TenantFeatureCertifier = z.object({
-  type: z.literal("Certifier"),
+  type: z.literal("PersistentCertifier"),
   certifierId: z.string(),
 });
 
@@ -33,9 +33,9 @@ export const TenantFeature = TenantFeatureCertifier; // It will be extended with
 export type TenantFeature = z.infer<typeof TenantFeature>;
 
 export const tenantAttributeType = {
-  CERTIFIED: "certified",
-  DECLARED: "declared",
-  VERIFIED: "verified",
+  CERTIFIED: "PersistentCertifiedAttribute",
+  DECLARED: "PersistentDeclaredAttribute",
+  VERIFIED: "PersistentVerifiedAttribute",
 } as const;
 
 export const TenantAttributeType = z.enum([
@@ -82,8 +82,8 @@ export type VerifiedTenantAttribute = z.infer<typeof VerifiedTenantAttribute>;
 export const DeclaredTenantAttribute = z.object({
   type: z.literal(tenantAttributeType.DECLARED),
   id: AttributeId,
-  assignmentTimestamp: z.date(),
-  revocationTimestamp: z.date().optional(),
+  assignmentTimestamp: z.coerce.date(),
+  revocationTimestamp: z.coerce.date().optional(),
 });
 export type DeclaredTenantAttribute = z.infer<typeof DeclaredTenantAttribute>;
 
@@ -96,7 +96,8 @@ export const TenantAttribute = z.discriminatedUnion("type", [
 export type TenantAttribute = z.infer<typeof TenantAttribute>;
 
 export const tenantMailKind = {
-  ContactEmail: "ContactEmail",
+  ContactEmail: "CONTACT_EMAIL",
+  DigitalAddress: "DIGITAL_ADDRESS",
 } as const;
 export const TenantMailKind = z.enum([
   Object.values(tenantMailKind)[0],
@@ -105,12 +106,25 @@ export const TenantMailKind = z.enum([
 export type TenantMailKind = z.infer<typeof TenantMailKind>;
 
 export const TenantMail = z.object({
+  id: z.string(),
   kind: TenantMailKind,
   address: z.string(),
   description: z.string().optional(),
   createdAt: z.coerce.date(),
 });
 export type TenantMail = z.infer<typeof TenantMail>;
+
+export const tenantUnitType = {
+  AOO: "AOO",
+  UO: "UO",
+} as const;
+
+export const TenantUnitType = z.enum([
+  Object.values(tenantUnitType)[0],
+  ...Object.values(tenantUnitType).slice(1),
+]);
+
+export type TenantUnitType = z.infer<typeof TenantUnitType>;
 
 export const Tenant = z.object({
   id: TenantId,
@@ -123,6 +137,8 @@ export const Tenant = z.object({
   updatedAt: z.coerce.date().optional(),
   mails: z.array(TenantMail),
   name: z.string(),
+  onboardedAt: z.coerce.date().optional(),
+  subUnitType: TenantUnitType.optional(),
 });
 
 export type Tenant = z.infer<typeof Tenant>;

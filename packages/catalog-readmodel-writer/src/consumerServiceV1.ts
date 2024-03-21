@@ -1,24 +1,20 @@
 import { EServiceCollection } from "pagopa-interop-commons";
+import { match } from "ts-pattern";
 import {
+  EServiceReadModel,
   DescriptorReadModel,
   DocumentReadModel,
   EServiceDescriptorV1,
   EServiceDocumentV1,
   EServiceEventEnvelopeV1,
-  EServiceReadModel,
   EServiceV1,
-} from "pagopa-interop-models";
-import { match } from "ts-pattern";
-import {
   fromDescriptorV1,
   fromDocumentV1,
   fromEServiceV1,
-} from "./model/converterV1.js";
-import {
   toReadModelDescriptor,
   toReadModelDocument,
   toReadModelEService,
-} from "./model/legacy/eserviceAdapter.js";
+} from "pagopa-interop-models";
 
 const adaptEserviceToReadModel = (
   version: number,
@@ -77,6 +73,7 @@ export async function handleMessageV1(
       { type: "EServiceUpdated" },
       { type: "EServiceRiskAnalysisAdded" },
       { type: "MovedAttributesFromEserviceToDescriptors" },
+      { type: "EServiceRiskAnalysisUpdated" },
       async (msg) =>
         await eservices.updateOne(
           {
@@ -305,6 +302,26 @@ export async function handleMessageV1(
                 "descriptor.id": msg.data.eserviceDescriptor?.id,
               },
             ],
+          }
+        )
+    )
+    .with(
+      { type: "EServiceRiskAnalysisDeleted" },
+      async (msg) =>
+        await eservices.updateOne(
+          {
+            "data.id": msg.stream_id,
+            "metadata.version": { $lt: msg.version },
+          },
+          {
+            $pull: {
+              "data.riskAnalysis": {
+                id: msg.data.riskAnalysisId,
+              },
+            },
+            $set: {
+              "metadata.version": msg.version,
+            },
           }
         )
     )

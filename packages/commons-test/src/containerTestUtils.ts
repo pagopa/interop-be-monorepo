@@ -12,6 +12,9 @@ export const TEST_MINIO_PORT = 9000;
 export const TEST_MINIO_IMAGE =
   "quay.io/minio/minio:RELEASE.2024-02-06T21-36-22Z";
 
+export const TEST_ELASTIC_MQ_IMAGE = "softwaremill/elasticmq-native:latest";
+export const TEST_ELASTIC_MQ_PORT = 9324;
+
 /**
  * Starts a MongoDB container for testing purposes.
  *
@@ -60,8 +63,8 @@ export const minioContainer = (config: {
 }): GenericContainer =>
   new GenericContainer(TEST_MINIO_IMAGE)
     .withEnvironment({
-      MINIO_ROOT_USER: "minioadmin",
-      MINIO_ROOT_PASSWORD: "minioadmin",
+      MINIO_ROOT_USER: "test-aws-key",
+      MINIO_ROOT_PASSWORD: "test-aws-secret",
       MINIO_SITE_REGION: "eu-central-1",
     })
     .withEntrypoint(["sh", "-c"])
@@ -69,3 +72,13 @@ export const minioContainer = (config: {
       `mkdir -p /data/${config.s3Bucket} && /usr/bin/minio server /data`,
     ])
     .withExposedPorts(TEST_MINIO_PORT);
+
+export const elasticMQContainer = (): GenericContainer =>
+  new GenericContainer(TEST_ELASTIC_MQ_IMAGE)
+    .withCopyFilesToContainer([
+      {
+        source: "elasticmq.local.conf",
+        target: "/opt/elasticmq.conf",
+      },
+    ])
+    .withExposedPorts(TEST_ELASTIC_MQ_PORT);

@@ -10,6 +10,7 @@ import {
   TenantMailKind,
   tenantMailKind,
   TenantFeature,
+  tenantAttributeType,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -42,7 +43,7 @@ export function toApiTenantExternalId(input: ExternalId): ApiExternalId {
 
 export function toApiTenantFeature(input: TenantFeature): ApiTenantFeature {
   return match<TenantFeature, ApiTenantFeature>(input)
-    .with({ type: "Certifier" }, (feature) => ({
+    .with({ type: "PersistentCertifier" }, (feature) => ({
       certifier: {
         certifierId: feature.certifierId,
       },
@@ -75,14 +76,14 @@ export function toApiTenantAttribute(
   input: TenantAttribute
 ): ApiTenantAttribute {
   return match<TenantAttribute, ApiTenantAttribute>(input)
-    .with({ type: "certified" }, (attribute) => ({
+    .with({ type: tenantAttributeType.CERTIFIED }, (attribute) => ({
       certified: {
         id: attribute.id,
         assignmentTimestamp: attribute.assignmentTimestamp.toJSON(),
         revocationTimestamp: attribute.revocationTimestamp?.toJSON(),
       },
     }))
-    .with({ type: "verified" }, (attribute) => ({
+    .with({ type: tenantAttributeType.VERIFIED }, (attribute) => ({
       verified: {
         id: attribute.id,
         assignmentTimestamp: attribute.assignmentTimestamp.toJSON(),
@@ -90,7 +91,7 @@ export function toApiTenantAttribute(
         revokedBy: attribute.revokedBy.map(toApiTenantRevoker),
       },
     }))
-    .with({ type: "declared" }, (attribute) => ({
+    .with({ type: tenantAttributeType.DECLARED }, (attribute) => ({
       declared: {
         id: attribute.id,
         assignmentTimestamp: attribute.assignmentTimestamp.toJSON(),
@@ -102,6 +103,7 @@ export function toApiTenantAttribute(
 export function toApiMailKind(kind: TenantMailKind): ApiMailKind {
   return match<TenantMailKind, ApiMailKind>(kind)
     .with(tenantMailKind.ContactEmail, () => "CONTACT_EMAIL")
+    .with(tenantMailKind.DigitalAddress, () => "DIGITAL_ADDRESS")
     .exhaustive();
 }
 

@@ -6,6 +6,10 @@ import {
   FileManager,
   FileManagerConfig,
   LoggerConfig,
+  fileManagerCopyError,
+  fileManagerDeleteError,
+  fileManagerListFilesError,
+  fileManagerStoreBytesError,
   initFileManager,
 } from "pagopa-interop-commons";
 import { TEST_MINIO_PORT, minioContainer } from "../src/index.js";
@@ -24,6 +28,7 @@ describe("FileManager tests", async () => {
 
   let fileManager: FileManager;
   let startedMinioContainer: StartedTestContainer;
+
   beforeAll(async () => {
     startedMinioContainer = await minioContainer({ s3Bucket }).start();
 
@@ -54,6 +59,24 @@ describe("FileManager tests", async () => {
       const files = await fileManager.listFiles(s3Bucket);
       expect(files).toContain("test/test/test");
     });
+
+    it("should fail if the bucket does not exist", async () => {
+      await expect(
+        fileManager.storeBytes(
+          "invalid bucket",
+          "test",
+          "test",
+          "test",
+          Buffer.from("test")
+        )
+      ).rejects.toThrowError(
+        fileManagerStoreBytesError(
+          "test/test/test",
+          "invalid bucket",
+          new Error("The specified bucket is not valid.")
+        )
+      );
+    });
   });
 
   describe("FileManager listFiles", () => {
@@ -83,6 +106,17 @@ describe("FileManager tests", async () => {
       const files = await fileManager.listFiles(s3Bucket);
       expect(files).toEqual([]);
     });
+
+    it("should fail if the bucket does not exist", async () => {
+      await expect(
+        fileManager.listFiles("invalid bucket")
+      ).rejects.toThrowError(
+        fileManagerListFilesError(
+          "invalid bucket",
+          new Error("The specified bucket is not valid.")
+        )
+      );
+    });
   });
 
   describe("FileManager delete", () => {
@@ -100,6 +134,18 @@ describe("FileManager tests", async () => {
       await fileManager.delete(s3Bucket, "test/test/test");
       const listAfterDelete = await fileManager.listFiles(s3Bucket);
       expect(listAfterDelete).not.toContain("test/test/test");
+    });
+
+    it("should fail if the bucket does not exist", async () => {
+      await expect(
+        fileManager.delete("invalid bucket", "test/test/test")
+      ).rejects.toThrowError(
+        fileManagerDeleteError(
+          "test/test/test",
+          "invalid bucket",
+          new Error("The specified bucket is not valid.")
+        )
+      );
     });
   });
 
@@ -126,6 +172,38 @@ describe("FileManager tests", async () => {
       expect(files.length).toBe(2);
       expect(files).toContain("test/test/test");
       expect(files).toContain("test/test/testCopy");
+    });
+
+    it("should fail if the bucket does not exist", async () => {
+      await expect(
+        fileManager.copy(
+          "invalid bucket",
+          "test/test/test",
+          "test",
+          "test",
+          "testCopy"
+        )
+      ).rejects.toThrowError(
+        fileManagerCopyError(
+          "test/test/test",
+          "test/test/testCopy",
+          "invalid bucket",
+          new Error("The specified bucket is not valid.")
+        )
+      );
+    });
+
+    it("should fail if the file to copy does not exist", async () => {
+      await expect(
+        fileManager.copy(s3Bucket, "test/test/test", "test", "test", "testCopy")
+      ).rejects.toThrowError(
+        fileManagerCopyError(
+          "test/test/test",
+          "test/test/testCopy",
+          s3Bucket,
+          new Error("The specified key does not exist.")
+        )
+      );
     });
   });
 });
