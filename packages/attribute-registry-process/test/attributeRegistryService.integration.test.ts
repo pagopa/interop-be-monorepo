@@ -214,7 +214,7 @@ describe("database test", () => {
           ...mockTenant,
           features: [
             {
-              type: "Certifier",
+              type: "PersistentCertifier",
               certifierId: uuidv4(),
             },
           ],
@@ -262,7 +262,7 @@ describe("database test", () => {
           ...mockTenant,
           features: [
             {
-              type: "Certifier",
+              type: "PersistentCertifier",
               certifierId: uuidv4(),
             },
           ],
@@ -315,7 +315,7 @@ describe("database test", () => {
           ...mockTenant,
           features: [
             {
-              type: "Certifier",
+              type: "PersistentCertifier",
               certifierId: uuidv4(),
             },
           ],
@@ -362,7 +362,7 @@ describe("database test", () => {
           ...mockTenant,
           features: [
             {
-              type: "Certifier",
+              type: "PersistentCertifier",
               certifierId: uuidv4(),
             },
           ],
