@@ -45,7 +45,17 @@ const hasValidRoles = (
     };
   }
 
-  if (!authData.userRoles || authData.userRoles.length === 0) {
+  const userRoles = match(authData)
+    .with({ type: "empty" }, () => [])
+    .with(
+      { type: "m2m" },
+      { type: "internal" },
+      { type: "ui" },
+      (d) => d.userRoles
+    )
+    .exhaustive();
+
+  if (!userRoles || userRoles.length === 0) {
     return {
       isValid: false,
       error: unauthorizedError("No user roles found to execute this request"),
@@ -56,7 +66,7 @@ const hasValidRoles = (
     role.toString().toLowerCase()
   );
 
-  const intersection = authData.userRoles.filter((value) =>
+  const intersection = userRoles.filter((value) =>
     admittedRolesStr.includes(value)
   );
 
@@ -65,9 +75,7 @@ const hasValidRoles = (
     : {
         isValid: false,
         error: unauthorizedError(
-          `Invalid user roles (${authData.userRoles.join(
-            ","
-          )}) to execute this request`
+          `Invalid user roles (${userRoles.join(",")}) to execute this request`
         ),
       };
 };
