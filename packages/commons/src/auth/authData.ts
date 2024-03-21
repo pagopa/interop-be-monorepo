@@ -98,18 +98,23 @@ export const AuthToken = z.discriminatedUnion("role", [
 ]);
 export type AuthToken = z.infer<typeof AuthToken>;
 
-/* NOTE:
-  The following type represents the data extracted from the JWT token.
-  It is used to populate the context object, which is referenced all
-  around the application to perform authorization checks.
+export const EmptyAuthData = z.object({
+  type: z.literal("empty"),
+});
 
-  To avoid the need to handle optional fields, we make them required in
-  the type definition, but know that they will be set to empty strings or
-  empty arrays in case they are not present in the token.
+export const AuthDataM2M = z.object({
+  type: z.literal("m2m"),
+  organizationId: TenantId,
+  userRoles: z.array(z.literal("m2m")),
+});
 
-  A possible improvement for this is tracked in: https://pagopa.atlassian.net/browse/IMN-371
-*/
-export const AuthData = z.object({
+export const AuthDataInternal = z.object({
+  type: z.literal("internal"),
+  userRoles: z.array(z.literal("internal")),
+});
+
+export const AuthDataUI = z.object({
+  type: z.literal("ui"),
   organizationId: TenantId,
   userId: z.string().uuid(),
   userRoles: z.array(UserRole),
@@ -118,46 +123,32 @@ export const AuthData = z.object({
     origin: z.string(),
   }),
 });
+
+export const AuthData = z.discriminatedUnion("type", [
+  EmptyAuthData,
+  AuthDataM2M,
+  AuthDataInternal,
+  AuthDataUI,
+]);
 export type AuthData = z.infer<typeof AuthData>;
-export const defaultAuthData: AuthData = {
-  organizationId: unsafeBrandId<TenantId>(""),
-  userId: "",
-  userRoles: [],
-  externalId: { value: "", origin: "" },
-};
 
-const getUserRoles = (token: AuthToken): UserRole[] =>
-  match(token)
-    .with({ role: "m2m" }, (t) => [t.role])
-    .with({ role: "internal" }, (t) => [t.role])
-    .with({ "user-roles": P.not(P.nullish) }, (t) => t["user-roles"])
+export function getAuthDataFromToken(token: AuthToken): AuthData {
+  return match<AuthToken, AuthData>(token)
+    .with({ role: "m2m" }, (t) => ({
+      type: "m2m",
+      organizationId: unsafeBrandId<TenantId>(t.organizationId),
+      userRoles: [t.role],
+    }))
+    .with({ role: "internal" }, (t) => ({
+      type: "internal",
+      userRoles: [t.role],
+    }))
+    .with({ "user-roles": P.not(P.nullish) }, (t) => ({
+      type: "ui",
+      organizationId: unsafeBrandId<TenantId>(t.organizationId),
+      userId: t.uid,
+      userRoles: t["user-roles"],
+      externalId: t.externalId,
+    }))
     .exhaustive();
-
-const getOrganizationId = (token: AuthToken): TenantId | undefined =>
-  match(token)
-    .with({ "user-roles": P.not(P.nullish) }, { role: "m2m" }, (t) =>
-      unsafeBrandId<TenantId>(t.organizationId)
-    )
-    .with({ role: "internal" }, () => undefined)
-    .exhaustive();
-
-const getUserId = (token: AuthToken): string | undefined =>
-  match(token)
-    .with({ "user-roles": P.not(P.nullish) }, (t) => t.uid)
-    .with({ role: "m2m" }, { role: "internal" }, () => undefined)
-    .exhaustive();
-
-const getExternalId = (
-  token: AuthToken
-): { value: string; origin: string } | undefined =>
-  match(token)
-    .with({ "user-roles": P.not(P.nullish) }, (t) => t.externalId)
-    .with({ role: "m2m" }, { role: "internal" }, () => undefined)
-    .exhaustive();
-
-export const getAuthDataFromToken = (token: AuthToken): AuthData => ({
-  organizationId: getOrganizationId(token) ?? defaultAuthData.organizationId,
-  userId: getUserId(token) ?? defaultAuthData.userId,
-  userRoles: getUserRoles(token),
-  externalId: getExternalId(token) ?? defaultAuthData.externalId,
-});
+}
