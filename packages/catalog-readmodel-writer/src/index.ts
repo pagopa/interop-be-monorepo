@@ -3,6 +3,7 @@ import {
   logger,
   ReadModelRepository,
   readModelWriterConfig,
+  catalogTopicConfig,
   decodeKafkaMessage,
 } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
@@ -12,6 +13,7 @@ import { handleMessageV1 } from "./consumerServiceV1.js";
 import { handleMessageV2 } from "./consumerServiceV2.js";
 
 const config = readModelWriterConfig();
+const { catalogTopic } = catalogTopicConfig();
 const { eservices } = ReadModelRepository.init(config);
 
 async function processMessage({
@@ -36,4 +38,4 @@ async function processMessage({
   }
 }
 
-await runConsumer(config, processMessage).catch(logger.error);
+await runConsumer(config, [catalogTopic], processMessage).catch(logger.error);
