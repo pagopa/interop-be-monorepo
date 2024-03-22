@@ -20,6 +20,10 @@ import {
   EServiceAttribute,
   EServiceMode,
   Technology,
+  agreementApprovalPolicy,
+  descriptorState,
+  eserviceMode,
+  technology,
 } from "./eservice.js";
 
 export const toAgreementApprovalPolicyV2 = (
@@ -27,33 +31,42 @@ export const toAgreementApprovalPolicyV2 = (
 ): AgreementApprovalPolicyV2 =>
   match(input)
     .with(P.nullish, () => AgreementApprovalPolicyV2.AUTOMATIC)
-    .with("Manual", () => AgreementApprovalPolicyV2.MANUAL)
-    .with("Automatic", () => AgreementApprovalPolicyV2.AUTOMATIC)
+    .with(
+      agreementApprovalPolicy.manual,
+      () => AgreementApprovalPolicyV2.MANUAL
+    )
+    .with(
+      agreementApprovalPolicy.automatic,
+      () => AgreementApprovalPolicyV2.AUTOMATIC
+    )
     .exhaustive();
 
 export const toEServiceDescriptorStateV2 = (
   input: DescriptorState
 ): EServiceDescriptorStateV2 =>
   match(input)
-    .with("Draft", () => EServiceDescriptorStateV2.DRAFT)
-    .with("Suspended", () => EServiceDescriptorStateV2.SUSPENDED)
-    .with("Archived", () => EServiceDescriptorStateV2.ARCHIVED)
-    .with("Published", () => EServiceDescriptorStateV2.PUBLISHED)
-    .with("Deprecated", () => EServiceDescriptorStateV2.DEPRECATED)
+    .with(descriptorState.draft, () => EServiceDescriptorStateV2.DRAFT)
+    .with(descriptorState.suspended, () => EServiceDescriptorStateV2.SUSPENDED)
+    .with(descriptorState.archived, () => EServiceDescriptorStateV2.ARCHIVED)
+    .with(descriptorState.published, () => EServiceDescriptorStateV2.PUBLISHED)
+    .with(
+      descriptorState.deprecated,
+      () => EServiceDescriptorStateV2.DEPRECATED
+    )
     .exhaustive();
 
 export const toEServiceTechnologyV2 = (
   input: Technology
 ): EServiceTechnologyV2 =>
   match(input)
-    .with("Rest", () => EServiceTechnologyV2.REST)
-    .with("Soap", () => EServiceTechnologyV2.SOAP)
+    .with(technology.rest, () => EServiceTechnologyV2.REST)
+    .with(technology.soap, () => EServiceTechnologyV2.SOAP)
     .exhaustive();
 
 export const toEServiceModeV2 = (input: EServiceMode): EServiceModeV2 =>
   match(input)
-    .with("Deliver", () => EServiceModeV2.DELIVER)
-    .with("Receive", () => EServiceModeV2.RECEIVE)
+    .with(eserviceMode.deliver, () => EServiceModeV2.DELIVER)
+    .with(eserviceMode.receive, () => EServiceModeV2.RECEIVE)
     .exhaustive();
 
 export const toEServiceAttributeV2 = (
