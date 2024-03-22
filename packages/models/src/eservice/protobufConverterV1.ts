@@ -1,32 +1,36 @@
+import { P, match } from "ts-pattern";
+import { unsafeBrandId } from "../brandedIds.js";
 import {
-  AgreementApprovalPolicy,
   AgreementApprovalPolicyV1,
-  Descriptor,
-  DescriptorState,
-  Document,
-  EService,
-  EServiceAttribute,
-  EServiceAttributeV1,
   EServiceDescriptorStateV1,
-  EServiceDescriptorV1,
-  EServiceDocumentV1,
-  EServiceMode,
+  EServiceTechnologyV1,
   EServiceModeV1,
+  EServiceAttributeV1,
+  EServiceDocumentV1,
+  EServiceDescriptorV1,
   EServiceRiskAnalysisFormV1,
   EServiceRiskAnalysisV1,
-  EServiceTechnologyV1,
   EServiceV1,
+} from "../gen/v1/eservice/eservice.js";
+import { parseDateOrThrow } from "../protobuf/utils.js";
+import {
   RiskAnalysis,
   RiskAnalysisForm,
-  Technology,
+} from "../risk-analysis/riskAnalysis.js";
+import {
+  AgreementApprovalPolicy,
   agreementApprovalPolicy,
+  DescriptorState,
   descriptorState,
-  eserviceMode,
+  Technology,
   technology,
-  unsafeBrandId,
-} from "pagopa-interop-models";
-import { P, match } from "ts-pattern";
-import { parseDateOrThrow } from "./utils.js";
+  EServiceMode,
+  eserviceMode,
+  EServiceAttribute,
+  Descriptor,
+  EService,
+  Document,
+} from "./eservice.js";
 
 export const fromAgreementApprovalPolicyV1 = (
   input: AgreementApprovalPolicyV1 | undefined

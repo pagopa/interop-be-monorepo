@@ -4,7 +4,8 @@ import {
   AttributeAddedV1,
   AttributeDeletedV1,
 } from "../gen/v1/attribute/events.js";
-import { EventEnvelope, protobufDecoder } from "../index.js";
+import { protobufDecoder } from "../protobuf/protobuf.js";
+import { EventEnvelope } from "../events/events.js";
 
 export function attributeEventToBinaryData(event: AttributeEvent): Uint8Array {
   return match(event)

@@ -7,8 +7,8 @@ data:
   KAFKA_CLIENT_ID: "dev-pagopa-interop-authorization-updater"
   KAFKA_GROUP_ID: "authorization-updater"
   KAFKA_BROKERS: "boot-yqksbq44.c3.kafka-serverless.eu-central-1.amazonaws.com:9098"
-  KAFKA_TOPICS: "event-store.catalog.events,event-store.agreement.events"
-  AUTH_MNGT_SERVICE_URL: "interop-be-authorization-management.dev-refactor.svc.cluster.local"
+  CATALOG_TOPIC: "event-store.catalog.events,event-store.agreement.events"
+  AUTHORIZATION_MANAGEMENT_URL: "interop-be-authorization-management.dev-refactor.svc.cluster.local"
   RSA_KEYS_IDENTIFIERS: "17c1177f-d7dc-4181-9f54-6fd416bf229b"
   KMS_MAX_ACQUISITION_TIMEOUT_SECONDS: 10
   GENERATED_JWT_SECONDS_TO_EXPIRE: 60
