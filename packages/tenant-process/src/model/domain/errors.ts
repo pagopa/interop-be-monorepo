@@ -20,6 +20,7 @@ const errorCodes = {
   expirationDateCannotBeInThePast: "0010",
   organizationNotFoundInVerifiers: "0011",
   expirationDateNotFoundInVerifier: "0012",
+  tenantIsNotCertifier: "0013",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -144,5 +145,13 @@ export function selfcareIdConflict({
     detail: `Conflict on Tenant SelfCareId update for tenant ${tenantId}: old value ${existingSelfcareId} - new value ${newSelfcareId}`,
     code: "selfcareIdConflict",
     title: "Selfcare id conflict",
+  });
+}
+
+export function tenantIsNotCertifier(tenantId: TenantId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Organization ${tenantId} not a certifier`,
+    code: "tenantIsNotCertifier",
+    title: "Tenant is not a certifier",
   });
 }

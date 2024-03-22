@@ -23,10 +23,12 @@ import {
   updateVerifiedAttributeExtensionDateErrorMapper,
   updateTenantVerifiedAttributeErrorMapper,
   selfcareUpsertTenantErrorMapper,
+  getCertifiedAttributesErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../utilities/config.js";
 import { tenantServiceBuilder } from "../services/tenantService.js";
+import { ApiCertifiedAttribute } from "../model/domain/models.js";
 
 const readModelService = readModelServiceBuilder(config);
 const tenantService = tenantServiceBuilder(
@@ -239,6 +241,38 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             getTenantBySelfcareIdErrorMapper
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
+    .get(
+      "/tenants/attributes/certified",
+      authorizationMiddleware([
+        ADMIN_ROLE,
+        API_ROLE,
+        SECURITY_ROLE,
+        M2M_ROLE,
+        SUPPORT_ROLE,
+      ]),
+      async (req, res) => {
+        try {
+          const { offset, limit } = req.query;
+          const { results, totalCount } =
+            await tenantService.getCertifiedAttributes({
+              organizationId: req.ctx.authData.organizationId,
+              offset,
+              limit,
+            });
+
+          return res.status(200).json({
+            results: results satisfies ApiCertifiedAttribute[],
+            totalCount,
+          });
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getCertifiedAttributesErrorMapper
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
