@@ -5,6 +5,7 @@ import {
   userRoles,
   ZodiosContext,
   authorizationMiddleware,
+  initDB,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
@@ -28,7 +29,18 @@ import { config } from "../utilities/config.js";
 import { tenantServiceBuilder } from "../services/tenantService.js";
 
 const readModelService = readModelServiceBuilder(config);
-const tenantService = tenantServiceBuilder(config, readModelService);
+const tenantService = tenantServiceBuilder(
+  initDB({
+    username: config.eventStoreDbUsername,
+    password: config.eventStoreDbPassword,
+    host: config.eventStoreDbHost,
+    port: config.eventStoreDbPort,
+    database: config.eventStoreDbName,
+    schema: config.eventStoreDbSchema,
+    useSSL: config.eventStoreDbUseSSL,
+  }),
+  readModelService
+);
 
 const tenantsRouter = (
   ctx: ZodiosContext
