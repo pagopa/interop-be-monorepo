@@ -126,7 +126,10 @@ describe("database test", () => {
           );
         expect(attribute).toBeDefined();
 
-        const writtenEvent = await readLastAttributeEvent(id, postgresDB);
+        const writtenEvent = await readLastAttributeEvent(
+          attribute.id,
+          postgresDB
+        );
         expect(writtenEvent).toMatchObject({
           stream_id: attribute.id,
           version: "0",
@@ -179,7 +182,10 @@ describe("database test", () => {
           );
         expect(attribute).toBeDefined();
 
-        const writtenEvent = await readLastAttributeEvent(id, postgresDB);
+        const writtenEvent = await readLastAttributeEvent(
+          attribute.id,
+          postgresDB
+        );
         expect(writtenEvent).toMatchObject({
           stream_id: attribute.id,
           version: "0",
@@ -226,7 +232,7 @@ describe("database test", () => {
           ...mockTenant,
           features: [
             {
-              type: "Certifier",
+              type: "PersistentCertifier",
               certifierId: uuidv4(),
             },
           ],
@@ -245,7 +251,10 @@ describe("database test", () => {
           );
         expect(attribute).toBeDefined();
 
-        const writtenEvent = await readLastAttributeEvent(id, postgresDB);
+        const writtenEvent = await readLastAttributeEvent(
+          attribute.id,
+          postgresDB
+        );
         expect(writtenEvent).toMatchObject({
           stream_id: attribute.id,
           version: "0",
@@ -280,7 +289,7 @@ describe("database test", () => {
           ...mockTenant,
           features: [
             {
-              type: "Certifier",
+              type: "PersistentCertifier",
               certifierId: uuidv4(),
             },
           ],
@@ -333,7 +342,7 @@ describe("database test", () => {
           ...mockTenant,
           features: [
             {
-              type: "Certifier",
+              type: "PersistentCertifier",
               certifierId: uuidv4(),
             },
           ],
@@ -350,7 +359,10 @@ describe("database test", () => {
           });
         expect(attribute).toBeDefined();
 
-        const writtenEvent = await readLastAttributeEvent(id, postgresDB);
+        const writtenEvent = await readLastAttributeEvent(
+          attribute.id,
+          postgresDB
+        );
         expect(writtenEvent).toMatchObject({
           stream_id: attribute.id,
           version: "0",
@@ -384,7 +396,7 @@ describe("database test", () => {
           ...mockTenant,
           features: [
             {
-              type: "Certifier",
+              type: "PersistentCertifier",
               certifierId: uuidv4(),
             },
           ],
