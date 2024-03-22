@@ -1,11 +1,6 @@
-import {
-  AttributeKindV1,
-  AttributeV1,
-  AttributeKind,
-  attributeKind,
-  Attribute,
-  unsafeBrandId,
-} from "pagopa-interop-models";
+import { unsafeBrandId } from "../brandedIds.js";
+import { AttributeKindV1, AttributeV1 } from "../gen/v1/attribute/attribute.js";
+import { AttributeKind, attributeKind, Attribute } from "./attribute.js";
 
 export const fromAttributeKindV1 = (input: AttributeKindV1): AttributeKind => {
   switch (input) {
