@@ -47,6 +47,7 @@ import {
   OrganizationIsNotACertifier,
   attributeDuplicate,
   attributeNotFound,
+  originNotCompliant,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 import { toAttributeV1 } from "../src/model/domain/toEvent.js";
@@ -153,6 +154,23 @@ describe("database test", () => {
           toAttributeV1(expectedAttribute)
         );
       });
+      it("should throw originNotCompliant if the requester externalId origin is not allowed", async () => {
+        expect(
+          attributeRegistryService.createDeclaredAttribute(
+            {
+              name: mockAttribute.name,
+              description: mockAttribute.description,
+            },
+            {
+              ...getMockAuthData(),
+              externalId: {
+                value: "123456",
+                origin: "not-allowed-origin",
+              },
+            }
+          )
+        ).rejects.toThrowError(originNotCompliant("not-allowed-origin"));
+      });
       it("should throw attributeDuplicate if an attribute with the same name already exists", async () => {
         const attribute = {
           ...mockAttribute,
@@ -208,6 +226,23 @@ describe("database test", () => {
         expect(writtenPayload.attribute).toEqual(
           toAttributeV1(expectedAttribute)
         );
+      });
+      it("should throw originNotCompliant if the requester externalId origin is not allowed", async () => {
+        expect(
+          attributeRegistryService.createVerifiedAttribute(
+            {
+              name: mockAttribute.name,
+              description: mockAttribute.description,
+            },
+            {
+              ...getMockAuthData(),
+              externalId: {
+                value: "123456",
+                origin: "not-allowed-origin",
+              },
+            }
+          )
+        ).rejects.toThrowError(originNotCompliant("not-allowed-origin"));
       });
       it("should throw attributeDuplicate if an attribute with the same name already exists", async () => {
         const attribute = {

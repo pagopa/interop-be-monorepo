@@ -24,6 +24,7 @@ import {
   originNotCompliant,
   tenantNotFound,
 } from "../model/domain/errors.js";
+import { config } from "../utilities/config.js";
 import { ReadModelService } from "./readModelService.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -115,8 +116,9 @@ export function attributeRegistryServiceBuilder(
       logger.info(
         `Creating declared attribute with name ${apiDeclaredAttributeSeed.name}}`
       );
-      if (authData.externalId.origin !== "IPA") {
-        throw originNotCompliant("IPA");
+
+      if (!config.producerAllowedOrigins.includes(authData.externalId.origin)) {
+        throw originNotCompliant(authData.externalId.origin);
       }
 
       const attributeWithSameName = await readModelService.getAttributeByName(
@@ -153,8 +155,8 @@ export function attributeRegistryServiceBuilder(
       logger.info(
         `Creating verified attribute with name ${apiVerifiedAttributeSeed.name}`
       );
-      if (authData.externalId.origin !== "IPA") {
-        throw originNotCompliant("IPA");
+      if (!config.producerAllowedOrigins.includes(authData.externalId.origin)) {
+        throw originNotCompliant(authData.externalId.origin);
       }
 
       const attributeWithSameName = await readModelService.getAttributeByName(
