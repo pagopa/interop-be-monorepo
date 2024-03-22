@@ -1,27 +1,34 @@
+import { createHash } from "crypto";
+import { match } from "ts-pattern";
+import { unsafeBrandId } from "../brandedIds.js";
+import { genericError } from "../errors.js";
 import {
-  Tenant,
-  TenantAttribute,
-  TenantVerifier,
-  TenantRevoker,
-  TenantAttributeV1,
-  TenantRevokerV1,
-  TenantV1,
-  TenantVerifierV1,
-  TenantFeatureV1,
-  TenantMailV1,
-  TenantMail,
-  TenantMailKindV1,
-  TenantMailKind,
   TenantKindV1,
+  TenantMailKindV1,
+  TenantMailV1,
+  TenantFeatureV1,
+  TenantVerifierV1,
+  TenantRevokerV1,
+  TenantAttributeV1,
+  TenantV1,
+  TenantUnitTypeV1,
+} from "../gen/v1/tenant/tenant.js";
+import {
   TenantKind,
   tenantKind,
-  TenantFeatureCertifier,
+  TenantMailKind,
   tenantMailKind,
+  TenantMail,
+  TenantFeatureCertifier,
+  TenantVerifier,
+  TenantRevoker,
+  TenantAttribute,
+  Tenant,
   ExternalId,
-  genericError,
-  unsafeBrandId,
-} from "pagopa-interop-models";
-import { match } from "ts-pattern";
+  tenantAttributeType,
+  TenantUnitType,
+  tenantUnitType,
+} from "./tenant.js";
 
 export const fromTenantKindV1 = (input: TenantKindV1): TenantKind => {
   switch (input) {
@@ -42,6 +49,8 @@ export const fromTenantMailKindV1 = (
   switch (input) {
     case TenantMailKindV1.CONTACT_EMAIL:
       return tenantMailKind.ContactEmail;
+    case TenantMailKindV1.DIGITAL_ADDRESS:
+      return tenantMailKind.DigitalAddress;
     case TenantMailKindV1.UNSPECIFIED$:
       throw new Error("Unspecified tenant mail kind");
   }
@@ -49,6 +58,9 @@ export const fromTenantMailKindV1 = (
 
 export const fromTenantMailV1 = (input: TenantMailV1): TenantMail => ({
   ...input,
+  id: input.id
+    ? input.id
+    : createHash("sha256").update(input.address).digest("hex"),
   createdAt: new Date(Number(input.createdAt)),
   kind: fromTenantMailKindV1(input.kind),
 });
@@ -60,7 +72,7 @@ export const fromTenantFeatureV1 = (
     input.sealedValue
   )
     .with({ oneofKind: "certifier" }, ({ certifier }) => ({
-      type: "Certifier",
+      type: "PersistentCertifier",
       certifierId: certifier.certifierId,
     }))
     .with({ oneofKind: undefined }, () => {
@@ -106,7 +118,7 @@ export const fromTenantAttributesV1 = (
         assignmentTimestamp: new Date(
           Number(certifiedAttribute.assignmentTimestamp)
         ),
-        type: "certified",
+        type: tenantAttributeType.CERTIFIED,
       };
     case "verifiedAttribute":
       const { verifiedAttribute } = sealedValue;
@@ -117,7 +129,7 @@ export const fromTenantAttributesV1 = (
         ),
         verifiedBy: verifiedAttribute.verifiedBy.map(fromTenantVerifierV1),
         revokedBy: verifiedAttribute.revokedBy.map(fromTenantRevokerV1),
-        type: "verified",
+        type: tenantAttributeType.VERIFIED,
       };
     case "declaredAttribute":
       const { declaredAttribute } = sealedValue;
@@ -126,10 +138,23 @@ export const fromTenantAttributesV1 = (
         assignmentTimestamp: new Date(
           Number(declaredAttribute.assignmentTimestamp)
         ),
-        type: "declared",
+        type: tenantAttributeType.DECLARED,
       };
     case undefined:
       throw genericError("Undefined attribute kind");
+  }
+};
+
+export const fromTenantUnitTypeV1 = (
+  input: TenantUnitTypeV1
+): TenantUnitType => {
+  switch (input) {
+    case TenantUnitTypeV1.AOO:
+      return tenantUnitType.AOO;
+    case TenantUnitTypeV1.UO:
+      return tenantUnitType.UO;
+    case TenantUnitTypeV1.UNSPECIFIED$:
+      throw new Error("Unspecified tenant unit type");
   }
 };
 
@@ -157,5 +182,11 @@ export const fromTenantV1 = (input: TenantV1): Tenant => {
     mails: input.mails.map(fromTenantMailV1),
     kind: input.kind ? fromTenantKindV1(input.kind) : undefined,
     updatedAt: input.updatedAt ? new Date(Number(input.updatedAt)) : undefined,
+    onboardedAt: input.onboardedAt
+      ? new Date(Number(input.onboardedAt))
+      : undefined,
+    subUnitType: input.subUnitType
+      ? fromTenantUnitTypeV1(input.subUnitType)
+      : undefined,
   };
 };

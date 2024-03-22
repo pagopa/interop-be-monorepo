@@ -9,11 +9,15 @@ import {
   EServiceDocumentAddedV1,
   EServiceDocumentDeletedV1,
   EServiceDocumentUpdatedV1,
+  EServiceRiskAnalysisAddedV1,
+  EServiceRiskAnalysisDeletedV1,
+  EServiceRiskAnalysisUpdatedV1,
   EServiceUpdatedV1,
   EServiceWithDescriptorsDeletedV1,
   MovedAttributesFromEserviceToDescriptorsV1,
 } from "../gen/v1/eservice/events.js";
-import { EventEnvelope, protobufDecoder } from "../index.js";
+import { protobufDecoder } from "../protobuf/protobuf.js";
+import { EventEnvelope } from "../events/events.js";
 import {
   DraftEServiceUpdatedV2,
   EServiceAddedV2,
@@ -22,7 +26,6 @@ import {
   EServiceDescriptorActivatedV2,
   EServiceDescriptorAddedV2,
   EServiceDescriptorArchivedV2,
-  EServiceDescriptorDeletedV2,
   EServiceDescriptorDocumentAddedV2,
   EServiceDescriptorDocumentDeletedV2,
   EServiceDescriptorDocumentUpdatedV2,
@@ -31,7 +34,12 @@ import {
   EServiceDescriptorInterfaceUpdatedV2,
   EServiceDescriptorPublishedV2,
   EServiceDescriptorSuspendedV2,
+  EServiceDraftDescriptorDeletedV2,
   EServiceDraftDescriptorUpdatedV2,
+  EServiceRiskAnalysisAddedV2,
+  EServiceDescriptorQuotasUpdatedV2,
+  EServiceRiskAnalysisUpdatedV2,
+  EServiceRiskAnalysisDeletedV2,
 } from "../gen/v2/eservice/events.js";
 
 export function catalogEventToBinaryData(event: EServiceEvent): Uint8Array {
@@ -76,6 +84,15 @@ export function catalogEventToBinaryDataV1(event: EServiceEventV1): Uint8Array {
     .with({ type: "MovedAttributesFromEserviceToDescriptors" }, ({ data }) =>
       MovedAttributesFromEserviceToDescriptorsV1.toBinary(data)
     )
+    .with({ type: "EServiceRiskAnalysisAdded" }, ({ data }) =>
+      EServiceRiskAnalysisAddedV1.toBinary(data)
+    )
+    .with({ type: "EServiceRiskAnalysisUpdated" }, ({ data }) =>
+      EServiceRiskAnalysisUpdatedV1.toBinary(data)
+    )
+    .with({ type: "EServiceRiskAnalysisDeleted" }, ({ data }) =>
+      EServiceRiskAnalysisDeletedV1.toBinary(data)
+    )
     .exhaustive();
 }
 
@@ -99,6 +116,9 @@ export function catalogEventToBinaryDataV2(event: EServiceEventV2): Uint8Array {
     .with({ type: "EServiceDraftDescriptorUpdated" }, ({ data }) =>
       EServiceDraftDescriptorUpdatedV2.toBinary(data)
     )
+    .with({ type: "EServiceDescriptorQuotasUpdated" }, ({ data }) =>
+      EServiceDescriptorQuotasUpdatedV2.toBinary(data)
+    )
     .with({ type: "EServiceDescriptorActivated" }, ({ data }) =>
       EServiceDescriptorActivatedV2.toBinary(data)
     )
@@ -111,8 +131,8 @@ export function catalogEventToBinaryDataV2(event: EServiceEventV2): Uint8Array {
     .with({ type: "EServiceDescriptorSuspended" }, ({ data }) =>
       EServiceDescriptorSuspendedV2.toBinary(data)
     )
-    .with({ type: "EServiceDescriptorDeleted" }, ({ data }) =>
-      EServiceDescriptorDeletedV2.toBinary(data)
+    .with({ type: "EServiceDraftDescriptorDeleted" }, ({ data }) =>
+      EServiceDraftDescriptorDeletedV2.toBinary(data)
     )
     .with({ type: "EServiceDescriptorInterfaceAdded" }, ({ data }) =>
       EServiceDescriptorInterfaceAddedV2.toBinary(data)
@@ -131,6 +151,15 @@ export function catalogEventToBinaryDataV2(event: EServiceEventV2): Uint8Array {
     )
     .with({ type: "EServiceDescriptorDocumentDeleted" }, ({ data }) =>
       EServiceDescriptorDocumentDeletedV2.toBinary(data)
+    )
+    .with({ type: "EServiceRiskAnalysisAdded" }, ({ data }) =>
+      EServiceRiskAnalysisAddedV2.toBinary(data)
+    )
+    .with({ type: "EServiceRiskAnalysisUpdated" }, ({ data }) =>
+      EServiceRiskAnalysisUpdatedV2.toBinary(data)
+    )
+    .with({ type: "EServiceRiskAnalysisDeleted" }, ({ data }) =>
+      EServiceRiskAnalysisDeletedV2.toBinary(data)
     )
     .exhaustive();
 }
@@ -191,6 +220,21 @@ export const EServiceEventV1 = z.discriminatedUnion("type", [
     type: z.literal("MovedAttributesFromEserviceToDescriptors"),
     data: protobufDecoder(MovedAttributesFromEserviceToDescriptorsV1),
   }),
+  z.object({
+    event_version: z.literal(1),
+    type: z.literal("EServiceRiskAnalysisAdded"),
+    data: protobufDecoder(EServiceRiskAnalysisAddedV1),
+  }),
+  z.object({
+    event_version: z.literal(1),
+    type: z.literal("EServiceRiskAnalysisUpdated"),
+    data: protobufDecoder(EServiceRiskAnalysisUpdatedV1),
+  }),
+  z.object({
+    event_version: z.literal(1),
+    type: z.literal("EServiceRiskAnalysisDeleted"),
+    data: protobufDecoder(EServiceRiskAnalysisDeletedV1),
+  }),
 ]);
 export type EServiceEventV1 = z.infer<typeof EServiceEventV1>;
 
@@ -227,6 +271,11 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
   }),
   z.object({
     event_version: z.literal(2),
+    type: z.literal("EServiceDescriptorQuotasUpdated"),
+    data: protobufDecoder(EServiceDescriptorQuotasUpdatedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
     type: z.literal("EServiceDescriptorActivated"),
     data: protobufDecoder(EServiceDescriptorActivatedV2),
   }),
@@ -247,8 +296,8 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("EServiceDescriptorDeleted"),
-    data: protobufDecoder(EServiceDescriptorDeletedV2),
+    type: z.literal("EServiceDraftDescriptorDeleted"),
+    data: protobufDecoder(EServiceDraftDescriptorDeletedV2),
   }),
   z.object({
     event_version: z.literal(2),
@@ -279,6 +328,21 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("EServiceDescriptorDocumentDeleted"),
     data: protobufDecoder(EServiceDescriptorDocumentDeletedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceRiskAnalysisAdded"),
+    data: protobufDecoder(EServiceRiskAnalysisAddedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceRiskAnalysisUpdated"),
+    data: protobufDecoder(EServiceRiskAnalysisUpdatedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceRiskAnalysisDeleted"),
+    data: protobufDecoder(EServiceRiskAnalysisDeletedV2),
   }),
 ]);
 export type EServiceEventV2 = z.infer<typeof EServiceEventV2>;
