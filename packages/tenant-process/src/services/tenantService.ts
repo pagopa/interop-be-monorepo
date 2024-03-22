@@ -1,8 +1,8 @@
 import {
   AuthData,
   CreateEvent,
+  DB,
   eventRepository,
-  initDB,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -20,7 +20,6 @@ import {
   tenantAttributeType,
   tenantEventToBinaryData,
 } from "pagopa-interop-models";
-import { TenantProcessConfig } from "../utilities/config.js";
 import {
   toCreateEventTenantAdded,
   toCreateEventTenantUpdated,
@@ -48,21 +47,11 @@ import { ReadModelService } from "./readModelService.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantServiceBuilder(
-  config: TenantProcessConfig,
+  dbInstance: DB,
   readModelService: ReadModelService
 ) {
-  const repository = eventRepository(
-    initDB({
-      username: config.eventStoreDbUsername,
-      password: config.eventStoreDbPassword,
-      host: config.eventStoreDbHost,
-      port: config.eventStoreDbPort,
-      database: config.eventStoreDbName,
-      schema: config.eventStoreDbSchema,
-      useSSL: config.eventStoreDbUseSSL,
-    }),
-    tenantEventToBinaryData
-  );
+  const repository = eventRepository(dbInstance, tenantEventToBinaryData);
+
   return {
     async updateVerifiedAttributeExtensionDate(
       tenantId: TenantId,
