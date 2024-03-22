@@ -279,7 +279,7 @@ describe("database test", () => {
           await attributeRegistryService.createCertifiedAttribute(
             {
               name: mockAttribute.name,
-              code: mockAttribute.code!,
+              code: "code",
               description: mockAttribute.description,
             },
             getMockAuthData(tenant.id)
