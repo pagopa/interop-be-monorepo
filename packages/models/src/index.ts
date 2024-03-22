@@ -14,8 +14,9 @@ export * from "./email/email.js";
 
 export * from "./eservice/eservice.js";
 export * from "./eservice/eserviceReadModelAdapter.js";
-export * from "./eservice/protobufConverterV1.js";
-export * from "./eservice/protobufConverterV2.js";
+export * from "./eservice/protobufConverterFromV1.js";
+export * from "./eservice/protobufConverterFromV2.js";
+export * from "./eservice/protobufConverterToV2.js";
 export * from "./eservice/eserviceEvents.js";
 
 export * from "./institution/institution.js";
