@@ -1,6 +1,7 @@
 import { Kafka, KafkaMessage } from "kafkajs";
 import {
   ReadModelRepository,
+  attributeTopicConfig,
   decodeKafkaMessage,
   logger,
   readModelWriterConfig,
@@ -11,6 +12,7 @@ import { handleMessage } from "./attributeRegistryConsumerService.js";
 
 const config = readModelWriterConfig();
 const { attributes } = ReadModelRepository.init(config);
+const { attributeTopic } = attributeTopicConfig();
 
 const kafkaConfig = config.kafkaDisableAwsIamAuth
   ? {
@@ -40,7 +42,7 @@ process.on("SIGINT", exitGracefully);
 process.on("SIGTERM", exitGracefully);
 
 await consumer.subscribe({
-  topics: ["event-store.attribute.events"],
+  topics: [attributeTopic],
   fromBeginning: true,
 });
 
