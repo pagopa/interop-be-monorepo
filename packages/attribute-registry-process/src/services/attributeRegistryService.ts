@@ -277,7 +277,7 @@ async function getCertifierId(
   }
 
   const certifier = tenant.data.features
-    .filter(({ type }) => type === "Certifier")
+    .filter(({ type }) => type === "PersistentCertifier")
     .find(({ certifierId }) => certifierId.trim().length > 0);
 
   if (certifier) {
