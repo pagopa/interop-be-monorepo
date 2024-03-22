@@ -272,7 +272,7 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
   z.object({
     event_version: z.literal(2),
     type: z.literal("EServiceDescriptorQuotasUpdated"),
-    data: protobufDecoder(EServiceDraftDescriptorUpdatedV2),
+    data: protobufDecoder(EServiceDescriptorQuotasUpdatedV2),
   }),
   z.object({
     event_version: z.literal(2),
