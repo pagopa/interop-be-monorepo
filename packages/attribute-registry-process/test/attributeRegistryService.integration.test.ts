@@ -127,7 +127,6 @@ describe("database test", () => {
         expect(attribute).toBeDefined();
 
         const writtenEvent = await readLastAttributeEvent(id, postgresDB);
-
         expect(writtenEvent).toMatchObject({
           stream_id: attribute.id,
           version: "0",
