@@ -277,6 +277,7 @@ const tenantsRouter = (
           const id = await tenantService.selfcareUpsertTenant({
             tenantSeed: req.body,
             authData: req.ctx.authData,
+            correlationId: req.ctx.correlationId,
           });
           return res.status(200).json({ id }).send();
         } catch (error) {
@@ -304,6 +305,7 @@ const tenantsRouter = (
             tenantId: unsafeBrandId(tenantId),
             attributeId: unsafeBrandId(attributeId),
             updateVerifiedTenantAttributeSeed: req.body,
+            correlationId: req.ctx.correlationId,
           });
           return res.status(200).end();
         } catch (error) {
@@ -324,7 +326,8 @@ const tenantsRouter = (
           await tenantService.updateVerifiedAttributeExtensionDate(
             unsafeBrandId(tenantId),
             unsafeBrandId(attributeId),
-            verifierId
+            verifierId,
+            req.ctx.correlationId
           );
           return res.status(200).end();
         } catch (error) {
