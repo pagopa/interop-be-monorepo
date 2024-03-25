@@ -11,10 +11,11 @@ import {
   attributeEventToBinaryData,
   attributeKind,
   generateId,
-  TenantId,
   unsafeBrandId,
   AttributeId,
+  operationForbidden,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import {
   ApiCertifiedAttributeSeed,
   ApiDeclaredAttributeSeed,
@@ -25,10 +26,10 @@ import { toCreateEventAttributeAdded } from "../model/domain/toEvent.js";
 import {
   OrganizationIsNotACertifier,
   attributeDuplicate,
-  originNotCompliant,
   tenantNotFound,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
+import { assertProducerAllowedOrigins } from "./validators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function attributeRegistryServiceBuilder(
@@ -43,9 +44,7 @@ export function attributeRegistryServiceBuilder(
       authData: AuthData,
       correlationId: string
     ): Promise<AttributeId> {
-      if (authData.externalId.origin !== "IPA") {
-        throw originNotCompliant("IPA");
-      }
+      assertProducerAllowedOrigins(authData);
 
       return unsafeBrandId<AttributeId>(
         await repository.createEvent(
@@ -67,9 +66,7 @@ export function attributeRegistryServiceBuilder(
       authData: AuthData,
       correlationId: string
     ): Promise<AttributeId> {
-      if (authData.externalId.origin !== "IPA") {
-        throw originNotCompliant("IPA");
-      }
+      assertProducerAllowedOrigins(authData);
 
       return unsafeBrandId<AttributeId>(
         await repository.createEvent(
@@ -85,7 +82,18 @@ export function attributeRegistryServiceBuilder(
         )
       );
     },
-    async getCertifierId(tenantId: TenantId): Promise<string> {
+    async getCertifierId(authData: AuthData): Promise<string> {
+      const tenantId = match(authData)
+        .with(
+          { tokenType: "m2m" },
+          { tokenType: "ui" },
+          (d) => d.organizationId
+        )
+        .with({ tokenType: "empty" }, { tokenType: "internal" }, () => {
+          throw operationForbidden;
+        })
+        .exhaustive();
+
       const tenant = await readModelService.getTenantById(tenantId);
       if (!tenant) {
         throw tenantNotFound(tenantId);
@@ -105,7 +113,7 @@ export function attributeRegistryServiceBuilder(
       authData: AuthData,
       correlationId: string
     ): Promise<AttributeId> {
-      const certifierPromise = this.getCertifierId(authData.organizationId);
+      const certifierPromise = this.getCertifierId(authData);
       const attributePromise = readModelService.getAttributeByCodeAndName(
         apiCertifiedAttributeSeed.code,
         apiCertifiedAttributeSeed.name
