@@ -98,22 +98,22 @@ export const AuthToken = z.discriminatedUnion("role", [
 ]);
 export type AuthToken = z.infer<typeof AuthToken>;
 
-const EmptyAuthData = z.object({
+export const EmptyAuthData = z.object({
   type: z.literal("empty"),
 });
 
-const AuthDataM2M = z.object({
+export const AuthDataM2M = z.object({
   type: z.literal("m2m"),
   organizationId: TenantId,
   userRoles: z.array(z.literal("m2m")),
 });
 
-const AuthDataInternal = z.object({
+export const AuthDataInternal = z.object({
   type: z.literal("internal"),
   userRoles: z.array(z.literal("internal")),
 });
 
-const AuthDataUI = z.object({
+export const AuthDataUI = z.object({
   type: z.literal("ui"),
   organizationId: TenantId,
   userId: z.string().uuid(),
