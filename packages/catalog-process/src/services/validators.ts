@@ -44,7 +44,7 @@ export function assertRequesterAllowed(
     .exhaustive();
 }
 
-export function assertProducerExists(
+export function assertOrganizationIdInAuthData(
   authData: AuthData
 ): asserts authData is AuthData & { organizationId: NonNullable<TenantId> } {
   match(authData)

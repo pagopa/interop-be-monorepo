@@ -101,7 +101,7 @@ import {
   assertHasNoDraftDescriptor,
   assertRiskAnalysisIsValidForPublication,
   assertProducerAllowedOrigin,
-  assertProducerExists,
+  assertOrganizationIdInAuthData,
 } from "./validators.js";
 
 const retrieveEService = async (
@@ -414,7 +414,7 @@ export function catalogServiceBuilder(
         `Creating EService with service name ${apiEServicesSeed.name}`
       );
 
-      assertProducerExists(authData);
+      assertOrganizationIdInAuthData(authData);
       assertProducerAllowedOrigin(config, authData);
 
       const eserviceWithSameName =
