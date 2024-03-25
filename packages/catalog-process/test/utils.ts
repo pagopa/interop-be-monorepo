@@ -1,7 +1,7 @@
 import {
   AgreementCollection,
   AttributeCollection,
-  AuthData,
+  AuthDataUI,
   EServiceCollection,
   TenantCollection,
   riskAnalysisFormToRiskAnalysisFormToValidate,
@@ -43,7 +43,8 @@ import {
 } from "../src/model/domain/models.js";
 import { ApiEServiceDescriptorDocumentSeed } from "../src/model/types.js";
 
-export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
+export const getMockAuthData = (organizationId?: TenantId): AuthDataUI => ({
+  tokenType: "ui",
   organizationId: organizationId || generateId(),
   userId: uuidv4(),
   userRoles: [],

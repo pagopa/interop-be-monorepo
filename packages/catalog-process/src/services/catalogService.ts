@@ -87,7 +87,6 @@ import {
   interfaceAlreadyExists,
   attributeNotFound,
   inconsistentDailyCalls,
-  originNotCompliant,
   tenantNotFound,
   eServiceRiskAnalysisNotFound,
 } from "../model/domain/errors.js";
@@ -101,6 +100,8 @@ import {
   validateRiskAnalysisSchemaOrThrow,
   assertHasNoDraftDescriptor,
   assertRiskAnalysisIsValidForPublication,
+  assertProducerAllowedOrigin,
+  assertProducerExists,
 } from "./validators.js";
 
 const retrieveEService = async (
@@ -413,9 +414,8 @@ export function catalogServiceBuilder(
         `Creating EService with service name ${apiEServicesSeed.name}`
       );
 
-      if (!config.producerAllowedOrigins.includes(authData.externalId.origin)) {
-        throw originNotCompliant(authData.externalId.origin);
-      }
+      assertProducerExists(authData);
+      assertProducerAllowedOrigin(config, authData);
 
       const eserviceWithSameName =
         await readModelService.getEServiceByNameAndProducerId({
@@ -1253,15 +1253,16 @@ export function catalogServiceBuilder(
     async archiveDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      authData: AuthData,
       correlationId: string
     ): Promise<void> {
       logger.info(
         `Archiving Descriptor ${descriptorId} for EService ${eserviceId}`
       );
 
+      // No need to check if requester is allowed to archive the descriptor.
+      // This operation is allowed only for INTERNAL users - see authorization in the router.
+
       const eservice = await retrieveEService(eserviceId, readModelService);
-      assertRequesterAllowed(eservice.data.producerId, authData);
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
       const updatedDescriptor = updateDescriptorState(
@@ -1475,8 +1476,20 @@ const isUserAllowedToSeeDraft = (
   authData: AuthData,
   producerId: TenantId
 ): boolean =>
-  hasPermission([userRoles.ADMIN_ROLE, userRoles.API_ROLE], authData) &&
-  authData.organizationId === producerId;
+  match(authData)
+    .with(
+      { tokenType: "empty" },
+      { tokenType: "internal" },
+      { tokenType: "m2m" },
+      () => false
+    )
+    .with(
+      { tokenType: "ui" },
+      (d) =>
+        hasPermission([userRoles.ADMIN_ROLE, userRoles.API_ROLE], authData) &&
+        d.organizationId === producerId
+    )
+    .exhaustive();
 
 const applyVisibilityToEService = (
   eservice: EService,

@@ -19,7 +19,7 @@ export const zodiosCtx = zodiosContext(z.object({ ctx }));
 
 const globalStore = new AsyncLocalStorage<AppContext>();
 const defaultAppContext: AppContext = {
-  authData: { type: "empty" },
+  authData: { tokenType: "empty" },
   correlationId: "",
 };
 
