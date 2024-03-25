@@ -8,3 +8,4 @@ export * from "./fileManagerConfig.js";
 export * from "./signerConfig.js";
 export * from "./jwtConfig.js";
 export * from "./authServerConfig.js";
+export * from "./kafkaTopicConfig.js";
