@@ -940,7 +940,7 @@ describe("database test", async () => {
       };
       const payload: EServiceDraftDescriptorUpdatedV2 = {
         eservice: toEServiceV2(updatedEService),
-        descriptorId: draftDescriptor.id,
+        descriptorId: updatedDraftDescriptor.id,
       };
       const message: EServiceEventEnvelope = {
         sequence_num: 1,
@@ -985,7 +985,7 @@ describe("database test", async () => {
       };
       const payload: EServiceDescriptorQuotasUpdatedV2 = {
         eservice: toEServiceV2(updatedEService),
-        descriptorId: publishedDescriptor.id,
+        descriptorId: updatedPublishedDescriptor.id,
       };
 
       const message: EServiceEventEnvelope = {
