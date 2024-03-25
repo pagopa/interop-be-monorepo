@@ -97,13 +97,13 @@ export function tenantServiceBuilder(
     },
 
     async updateTenantVerifiedAttribute({
-      verifierId,
+      authData,
       tenantId,
       attributeId,
       updateVerifiedTenantAttributeSeed,
       correlationId,
     }: {
-      verifierId: string;
+      authData: AuthData;
       tenantId: TenantId;
       attributeId: AttributeId;
       updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed;
@@ -113,7 +113,7 @@ export function tenantServiceBuilder(
 
       await repository.createEvent(
         await updateTenantVerifiedAttributeLogic({
-          verifierId,
+          authData,
           tenant,
           tenantId,
           attributeId,
@@ -257,14 +257,14 @@ export function tenantServiceBuilder(
 }
 
 async function updateTenantVerifiedAttributeLogic({
-  verifierId,
+  authData,
   tenant,
   tenantId,
   attributeId,
   updateVerifiedTenantAttributeSeed,
   correlationId,
 }: {
-  verifierId: string;
+  authData: AuthData;
   tenant: WithMetadata<Tenant> | undefined;
   tenantId: TenantId;
   attributeId: AttributeId;
@@ -284,12 +284,12 @@ async function updateTenantVerifiedAttributeLogic({
   );
 
   assertVerifiedAttributeExistsInTenant(attributeId, attribute, tenant);
-  assertOrganizationIsInAttributeVerifiers(verifierId, tenantId, attribute);
+  assertOrganizationIsInAttributeVerifiers(authData, tenantId, attribute);
 
   const updatedAttribute: TenantAttribute = {
     ...attribute,
     verifiedBy: attribute.verifiedBy.map((v) =>
-      v.id === verifierId
+      v.id === authData.organizationId
         ? {
             ...v,
             expirationDate,

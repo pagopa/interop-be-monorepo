@@ -66,9 +66,9 @@ const tenantsRouter = (
       async (req, res) => {
         try {
           const { name, offset, limit } = req.query;
-          const consumers = await tenantService.getConsumers({
+          const consumers = await readModelService.getConsumers({
             consumerName: name,
-            producerId: req.ctx.authData.organizationId,
+            authData: req.ctx.authData,
             offset,
             limit,
           });
@@ -301,7 +301,7 @@ const tenantsRouter = (
         try {
           const { tenantId, attributeId } = req.params;
           await tenantService.updateTenantVerifiedAttribute({
-            verifierId: req.ctx.authData.organizationId,
+            authData: req.ctx.authData,
             tenantId: unsafeBrandId(tenantId),
             attributeId: unsafeBrandId(attributeId),
             updateVerifiedTenantAttributeSeed: req.body,
