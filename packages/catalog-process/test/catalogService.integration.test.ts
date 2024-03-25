@@ -2973,7 +2973,6 @@ describe("database test", async () => {
         await catalogService.archiveDescriptor(
           eservice.id,
           descriptor.id,
-          getMockAuthData(eservice.producerId),
           uuidv4()
         );
 
@@ -3011,7 +3010,6 @@ describe("database test", async () => {
           catalogService.archiveDescriptor(
             mockEService.id,
             mockDescriptor.id,
-            getMockAuthData(mockEService.producerId),
             uuidv4()
           )
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
@@ -3028,32 +3026,11 @@ describe("database test", async () => {
           catalogService.archiveDescriptor(
             eservice.id,
             mockDescriptor.id,
-            getMockAuthData(mockEService.producerId),
             uuidv4()
           )
         ).rejects.toThrowError(
           eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
         );
-      });
-
-      it("should throw operationForbidden if the requester is not the producer", async () => {
-        const descriptor: Descriptor = {
-          ...mockDescriptor,
-          state: descriptorState.draft,
-        };
-        const eservice: EService = {
-          ...mockEService,
-          descriptors: [descriptor],
-        };
-        await addOneEService(eservice, postgresDB, eservices);
-        expect(
-          catalogService.archiveDescriptor(
-            eservice.id,
-            descriptor.id,
-            getMockAuthData(),
-            uuidv4()
-          )
-        ).rejects.toThrowError(operationForbidden);
       });
     });
 

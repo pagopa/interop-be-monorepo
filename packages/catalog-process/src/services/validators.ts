@@ -14,6 +14,7 @@ import {
   TenantKind,
   Descriptor,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import {
   eserviceNotInDraftState,
   eserviceNotInReceiveMode,
@@ -22,19 +23,37 @@ import {
   draftDescriptorAlreadyExists,
   eServiceRiskAnalysisIsRequired,
   riskAnalysisNotValid,
+  originNotCompliant,
 } from "../model/domain/errors.js";
 import { EServiceRiskAnalysisSeed } from "../model/domain/models.js";
 
 export function assertRequesterAllowed(
   producerId: TenantId,
   authData: AuthData
-): void {
-  if (
-    !authData.userRoles.includes("internal") &&
-    producerId !== authData.organizationId
-  ) {
-    throw operationForbidden;
-  }
+): asserts authData is AuthData & { organizationId: NonNullable<TenantId> } {
+  match(authData)
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    .with({ tokenType: "empty" }, { tokenType: "internal" }, () => {
+      throw operationForbidden;
+    })
+    .with({ tokenType: "m2m" }, { tokenType: "ui" }, (d) => {
+      if (producerId !== d.organizationId) {
+        throw operationForbidden;
+      }
+    })
+    .exhaustive();
+}
+
+export function assertProducerExists(
+  authData: AuthData
+): asserts authData is AuthData & { organizationId: NonNullable<TenantId> } {
+  match(authData)
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    .with({ tokenType: "m2m" }, { tokenType: "ui" }, () => {})
+    .with({ tokenType: "empty" }, { tokenType: "internal" }, () => {
+      throw operationForbidden;
+    })
+    .exhaustive();
 }
 
 export function assertIsDraftEservice(eservice: EService): void {
@@ -99,4 +118,25 @@ export function assertRiskAnalysisIsValidForPublication(
       throw riskAnalysisNotValid();
     }
   });
+}
+
+export function assertProducerAllowedOrigin(
+  config: { producerAllowedOrigins: string[] },
+  authData: AuthData
+): void {
+  match(authData)
+    .with(
+      { tokenType: "empty" },
+      { tokenType: "internal" },
+      { tokenType: "m2m" },
+      () => {
+        throw originNotCompliant("");
+      }
+    )
+    .with({ tokenType: "ui" }, (d) => {
+      if (!config.producerAllowedOrigins.includes(d.externalId.origin)) {
+        throw originNotCompliant(d.externalId.origin);
+      }
+    })
+    .exhaustive();
 }

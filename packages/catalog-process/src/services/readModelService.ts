@@ -122,9 +122,18 @@ export function readModelServiceBuilder(
           (
             await this.listAgreements({
               eservicesIds,
-              consumersIds: [authData.organizationId],
               producersIds: [],
               states: agreementStates,
+              consumersIds: match(authData)
+                .with(
+                  { tokenType: "empty" },
+                  { tokenType: "internal" },
+                  () => []
+                )
+                .with({ tokenType: "m2m" }, { tokenType: "ui" }, (d) => [
+                  d.organizationId,
+                ])
+                .exhaustive(),
             })
           ).map((a) => a.eserviceId)
         );
@@ -184,42 +193,54 @@ export function readModelServiceBuilder(
           ],
         });
 
-      const visibilityFilter: ReadModelFilter<EService> = hasPermission(
-        [userRoles.ADMIN_ROLE, userRoles.API_ROLE],
-        authData
-      )
-        ? {
-            $nor: [
+      const noPermissionsVisibilityFilter: ReadModelFilter<EService> = {
+        $nor: [
+          { "data.descriptors": { $size: 0 } },
+          {
+            $and: [
+              { "data.descriptors": { $size: 1 } },
               {
-                $and: [
-                  { "data.producerId": { $ne: authData.organizationId } },
-                  { "data.descriptors": { $size: 0 } },
-                ],
-              },
-              {
-                $and: [
-                  { "data.producerId": { $ne: authData.organizationId } },
-                  { "data.descriptors": { $size: 1 } },
-                  {
-                    "data.descriptors.state": { $eq: descriptorState.draft },
-                  },
-                ],
+                "data.descriptors.state": {
+                  $eq: descriptorState.draft,
+                },
               },
             ],
-          }
-        : {
-            $nor: [
-              { "data.descriptors": { $size: 0 } },
-              {
-                $and: [
-                  { "data.descriptors": { $size: 1 } },
+          },
+        ],
+      };
+      const visibilityFilter: ReadModelFilter<EService> = match(authData)
+        .with(
+          { tokenType: "empty" },
+          { tokenType: "internal" },
+          { tokenType: "m2m" },
+          () => noPermissionsVisibilityFilter
+        )
+        .with({ tokenType: "ui" }, (d) =>
+          hasPermission([userRoles.ADMIN_ROLE, userRoles.API_ROLE], d)
+            ? {
+                $nor: [
                   {
-                    "data.descriptors.state": { $eq: descriptorState.draft },
+                    $and: [
+                      { "data.producerId": { $ne: d.organizationId } },
+                      { "data.descriptors": { $size: 0 } },
+                    ],
+                  },
+                  {
+                    $and: [
+                      { "data.producerId": { $ne: d.organizationId } },
+                      { "data.descriptors": { $size: 1 } },
+                      {
+                        "data.descriptors.state": {
+                          $eq: descriptorState.draft,
+                        },
+                      },
+                    ],
                   },
                 ],
-              },
-            ],
-          };
+              }
+            : noPermissionsVisibilityFilter
+        )
+        .exhaustive();
 
       const modeFilter: ReadModelFilter<EService> = mode
         ? { "data.mode": { $eq: mode } }

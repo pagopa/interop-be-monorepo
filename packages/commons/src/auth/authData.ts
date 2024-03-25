@@ -99,32 +99,34 @@ export const AuthToken = z.discriminatedUnion("role", [
 export type AuthToken = z.infer<typeof AuthToken>;
 
 export const EmptyAuthData = z.object({
-  type: z.literal("empty"),
+  tokenType: z.literal("empty"),
 });
+export type EmptyAuthData = z.infer<typeof EmptyAuthData>;
 
 export const AuthDataM2M = z.object({
-  type: z.literal("m2m"),
+  tokenType: z.literal("m2m"),
   organizationId: TenantId,
-  userRoles: z.array(z.literal("m2m")),
 });
+export type AuthDataM2M = z.infer<typeof AuthDataM2M>;
 
 export const AuthDataInternal = z.object({
-  type: z.literal("internal"),
-  userRoles: z.array(z.literal("internal")),
+  tokenType: z.literal("internal"),
 });
+export type AuthDataInternal = z.infer<typeof AuthDataInternal>;
 
 export const AuthDataUI = z.object({
-  type: z.literal("ui"),
+  tokenType: z.literal("ui"),
+  userRoles: z.array(UIUserRole),
   organizationId: TenantId,
   userId: z.string().uuid(),
-  userRoles: z.array(UserRole),
   externalId: z.object({
     value: z.string(),
     origin: z.string(),
   }),
 });
+export type AuthDataUI = z.infer<typeof AuthDataUI>;
 
-export const AuthData = z.discriminatedUnion("type", [
+export const AuthData = z.discriminatedUnion("tokenType", [
   EmptyAuthData,
   AuthDataM2M,
   AuthDataInternal,
@@ -135,20 +137,27 @@ export type AuthData = z.infer<typeof AuthData>;
 export function getAuthDataFromToken(token: AuthToken): AuthData {
   return match<AuthToken, AuthData>(token)
     .with({ role: "m2m" }, (t) => ({
-      type: "m2m",
+      tokenType: "m2m",
       organizationId: unsafeBrandId<TenantId>(t.organizationId),
-      userRoles: [t.role],
     }))
-    .with({ role: "internal" }, (t) => ({
-      type: "internal",
-      userRoles: [t.role],
+    .with({ role: "internal" }, () => ({
+      tokenType: "internal",
     }))
     .with({ "user-roles": P.not(P.nullish) }, (t) => ({
-      type: "ui",
+      tokenType: "ui",
+      userRoles: t["user-roles"],
       organizationId: unsafeBrandId<TenantId>(t.organizationId),
       userId: t.uid,
-      userRoles: t["user-roles"],
       externalId: t.externalId,
     }))
+    .exhaustive();
+}
+
+export function getUserRolesFromAuthData(authData: AuthData): UserRole[] {
+  return match<AuthData, UserRole[]>(authData)
+    .with({ tokenType: "empty" }, () => [])
+    .with({ tokenType: "internal" }, () => ["internal"])
+    .with({ tokenType: "m2m" }, () => ["m2m"])
+    .with({ tokenType: "ui" }, (d) => d.userRoles)
     .exhaustive();
 }
