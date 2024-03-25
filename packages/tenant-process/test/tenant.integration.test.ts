@@ -228,7 +228,7 @@ describe("Integration tests", () => {
 
         expect(writtenPayload.tenant).toEqual(toTenantV1(expectedTenant));
       });
-      it("Should throw operation forbidden for insufficient permissions", async () => {
+      it("Should throw operation forbidden if role isn't internal", async () => {
         await addOneTenant(tenant, postgresDB, tenants);
         const mockAuthData = getMockAuthData(generateId<TenantId>());
 
@@ -239,7 +239,7 @@ describe("Integration tests", () => {
           })
         ).rejects.toThrowError(operationForbidden);
       });
-      it("Should throw selfcareIdConflict error becaute it already exist", async () => {
+      it("Should throw selfcareIdConflict error if the given and existing selfcareId differs", async () => {
         const tenant: Tenant = {
           ...mockTenant,
           selfcareId: generateId(),
