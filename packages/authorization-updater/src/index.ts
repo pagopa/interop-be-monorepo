@@ -8,6 +8,8 @@ import {
   kafkaConsumerConfig,
   logger,
   getContext,
+  CatalogTopicConfig,
+  catalogTopicConfig,
 } from "pagopa-interop-commons";
 import {
   Descriptor,
@@ -65,13 +67,19 @@ async function executeUpdate(
   );
 }
 
-function processMessage(authService: AuthorizationService) {
+function processMessage(
+  topicConfig: CatalogTopicConfig,
+  authService: AuthorizationService
+) {
   return async (messagePayload: EachMessagePayload): Promise<void> => {
     try {
       const appContext = getContext();
       appContext.correlationId = uuidv4();
 
-      const messageDecoder = messageDecoderSupplier(messagePayload.topic);
+      const messageDecoder = messageDecoderSupplier(
+        topicConfig,
+        messagePayload.topic
+      );
       const decodedMsg = messageDecoder(messagePayload.message);
 
       match(decodedMsg)
@@ -130,7 +138,12 @@ function processMessage(authService: AuthorizationService) {
 try {
   const authService = await authorizationServiceBuilder();
   const config = kafkaConsumerConfig();
-  await runConsumer(config, processMessage(authService));
+  const topicConfig: CatalogTopicConfig = catalogTopicConfig();
+  await runConsumer(
+    config,
+    [topicConfig.catalogTopic],
+    processMessage(topicConfig, authService)
+  );
 } catch (e) {
   logger.error(`An error occurred during initialization:\n${e}`);
 }
