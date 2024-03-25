@@ -127,25 +127,6 @@ describe("JWT tests", () => {
       );
     });
 
-    it("should successfully read auth data from a UI token with empty email, name, and family_name", async () => {
-      const token = getMockSignedToken({
-        ...mockUiToken,
-        email: undefined,
-        name: undefined,
-        family_name: undefined,
-      });
-
-      expect(readAuthDataFromJwtToken(token)).toEqual({
-        externalId: {
-          origin: "IPA",
-          value: "5N2TR557",
-        },
-        organizationId: "69e2865e-65ab-4e48-a638-2037a9ee2ee7",
-        userId: "f07ddb8f-17f9-47d4-b31e-35d1ac10e521",
-        userRoles: ["security", "api"],
-      });
-    });
-
     it("should successfully read auth data from a M2M token", async () => {
       const token = getMockSignedToken(mockM2MToken);
       expect(readAuthDataFromJwtToken(token)).toEqual({

@@ -78,16 +78,16 @@ export const UIAuthToken = SharedJWTClaims.merge(
           role: UIUserRole,
         })
       ),
-      fiscal_code: z.string(),
-      ipaCode: z.string(),
+      fiscal_code: z.string().optional(),
+      ipaCode: z.string().optional(),
     }),
     externalId: z.object({
       origin: z.string(),
       value: z.string(),
     }),
-    name: z.string().optional(),
-    family_name: z.string().optional(),
-    email: z.string().optional(),
+    name: z.string(),
+    family_name: z.string(),
+    email: z.string(),
   })
 );
 
