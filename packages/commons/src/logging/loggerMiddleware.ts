@@ -9,6 +9,9 @@ export type SessionMetaData = {
   userId: string | undefined;
   organizationId: string | undefined;
   correlationId: string | undefined;
+  eventType: string | undefined;
+  eventVersion: number | undefined;
+  streamId: string | undefined;
 };
 
 export const parsedLoggerConfig = LoggerConfig.safeParse(process.env);
@@ -22,14 +25,20 @@ const getLoggerMetadata = (): SessionMetaData => {
   const appContext = getContext();
   return !appContext
     ? {
-        userId: "",
-        organizationId: "",
-        correlationId: "",
+        userId: undefined,
+        organizationId: undefined,
+        correlationId: undefined,
+        eventType: undefined,
+        eventVersion: undefined,
+        streamId: undefined,
       }
     : {
-        userId: appContext.authData.userId,
-        organizationId: appContext.authData.organizationId,
+        userId: appContext.authData?.userId,
+        organizationId: appContext.authData?.organizationId,
         correlationId: appContext.correlationId,
+        eventType: appContext.messageData?.eventType,
+        eventVersion: appContext.messageData?.eventVersion,
+        streamId: appContext.messageData?.streamId,
       };
 };
 
@@ -37,29 +46,34 @@ const logFormat = (
   msg: string,
   timestamp: string,
   level: string,
-  userId: string | undefined,
-  organizationId: string | undefined,
-  correlationId: string | undefined,
-  serviceName: string = ""
-) =>
-  `${timestamp} ${level.toUpperCase()} [${serviceName}] - [UID=${userId}] [OID=${organizationId}] [CID=${correlationId}] ${msg}`;
+  {
+    userId,
+    organizationId,
+    correlationId,
+    serviceName,
+  }: {
+    userId: string | undefined;
+    organizationId: string | undefined;
+    correlationId: string | undefined;
+    serviceName: string | undefined;
+  }
+) => {
+  const serviceLogPart = serviceName ? `[${serviceName}]` : "";
+  const userLogPart = userId ? `[UID=${userId}]` : "";
+  const organizationLogPart = organizationId ? `[OID=${organizationId}]` : "";
+  const correlationLogPart = correlationId ? `[CID=${correlationId}]` : "";
+
+  return `${timestamp} ${level.toUpperCase()} ${serviceLogPart} - ${userLogPart} ${organizationLogPart} ${correlationLogPart} ${msg}`;
+};
 
 export const customFormat = (serviceName?: string) =>
   winston.format.printf(({ level, message, timestamp }) => {
-    const { userId, organizationId, correlationId } = getLoggerMetadata();
+    const logMetadata = getLoggerMetadata();
     const lines = message
       .toString()
       .split("\n")
       .map((line: string) =>
-        logFormat(
-          line,
-          timestamp,
-          level,
-          userId,
-          organizationId,
-          correlationId,
-          serviceName
-        )
+        logFormat(line, timestamp, level, { ...logMetadata, serviceName })
       );
     return lines.join("\n");
   });

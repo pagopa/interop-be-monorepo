@@ -56,7 +56,7 @@ export const authorizationServiceBuilder =
     const getHeaders = () => {
       const appContext = getContext();
       return {
-        "X-Correlation-Id": appContext.correlationId,
+        "X-Correlation-Id": appContext.correlationId || "",
       };
     };
 
