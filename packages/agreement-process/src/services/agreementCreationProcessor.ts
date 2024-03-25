@@ -25,8 +25,7 @@ export async function createAgreementLogic(
   authData: AuthData,
   agreementQuery: AgreementQuery,
   eserviceQuery: EserviceQuery,
-  tenantQuery: TenantQuery,
-  correlationId: string
+  tenantQuery: TenantQuery
 ): Promise<CreateEvent<AgreementEvent>> {
   logger.info(
     `Creating agreement for EService ${agreement.eserviceId} and Descriptor ${agreement.descriptorId}`
@@ -66,5 +65,5 @@ export async function createAgreementLogic(
     stamps: {},
   };
 
-  return toCreateEventAgreementAdded(agreementSeed, correlationId);
+  return toCreateEventAgreementAdded(agreementSeed);
 }

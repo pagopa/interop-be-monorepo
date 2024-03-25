@@ -1,4 +1,4 @@
-import { logger } from "../index.js";
+import { getContext, logger } from "../index.js";
 import { DB } from "./db.js";
 import * as sql from "./sql/index.js";
 
@@ -9,7 +9,6 @@ export interface Event {
 
 export type CreateEvent<T extends Event> = {
   readonly streamId: string;
-  readonly correlationId: string;
   readonly version: number;
   readonly event: T;
 };
@@ -28,9 +27,11 @@ export const eventRepository = <T extends Event>(
 
         const newVersion = data != null ? createEvent.version + 1 : 0;
 
+        const correlationId = getContext().correlationId;
+
         await t.none(sql.insertEvent, {
           stream_id: createEvent.streamId,
-          correlation_id: createEvent.correlationId,
+          correlation_id: correlationId,
           version: newVersion,
           type: createEvent.event.type,
           event_version: createEvent.event.event_version,

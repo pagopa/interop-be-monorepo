@@ -41,8 +41,7 @@ export type ContractBuilder = ReturnType<typeof contractBuilder>;
 export async function addAgreementContractLogic(
   agreementId: AgreementId,
   agreementDocument: AgreementDocument,
-  version: number,
-  correlationId: string
+  version: number
 ): Promise<CreateEvent<AgreementEvent>> {
   logger.info(
     `Adding contract ${agreementDocument.id} to Agreement ${agreementId}`
@@ -51,7 +50,6 @@ export async function addAgreementContractLogic(
   return toCreateEventAgreementContractAdded(
     agreementId,
     agreementDocument,
-    version,
-    correlationId
+    version
   );
 }

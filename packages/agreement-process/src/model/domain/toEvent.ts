@@ -76,8 +76,7 @@ export const toAgreementV1 = (input: Agreement): AgreementV1 => ({
 
 export function toCreateEventAgreementDeleted(
   streamId: string,
-  version: number,
-  correlationId: string
+  version: number
 ): CreateEvent<AgreementDeleteEvent> {
   return {
     streamId,
@@ -89,13 +88,11 @@ export function toCreateEventAgreementDeleted(
         agreementId: streamId,
       },
     },
-    correlationId,
   };
 }
 
 export function toCreateEventAgreementAdded(
-  agreement: Agreement,
-  correlationId: string
+  agreement: Agreement
 ): CreateEvent<AgreementAddEvent> {
   return {
     streamId: agreement.id,
@@ -107,14 +104,12 @@ export function toCreateEventAgreementAdded(
         agreement: toAgreementV1(agreement),
       },
     },
-    correlationId,
   };
 }
 
 export function toCreateEventAgreementUpdated(
   agreement: Agreement,
-  version: number,
-  correlationId: string
+  version: number
 ): CreateEvent<AgreementUpdateEvent> {
   return {
     streamId: agreement.id,
@@ -126,15 +121,13 @@ export function toCreateEventAgreementUpdated(
         agreement: toAgreementV1(agreement),
       },
     },
-    correlationId,
   };
 }
 
 export function toCreateEventAgreementContractAdded(
   agreementId: AgreementId,
   agreementDocument: AgreementDocument,
-  version: number,
-  correlationId: string
+  version: number
 ): CreateEvent<AgreementAddContractEvent> {
   return {
     streamId: agreementId,
@@ -147,15 +140,13 @@ export function toCreateEventAgreementContractAdded(
         contract: toAgreementDocumentV1(agreementDocument),
       },
     },
-    correlationId,
   };
 }
 
 export function toCreateEventAgreementConsumerDocumentAdded(
   agreementId: AgreementId,
   agreementDocument: AgreementDocument,
-  version: number,
-  correlationId: string
+  version: number
 ): CreateEvent<AgreementAddConsumerDocumentEvent> {
   return {
     streamId: agreementId,
@@ -168,15 +159,13 @@ export function toCreateEventAgreementConsumerDocumentAdded(
         document: toAgreementDocumentV1(agreementDocument),
       },
     },
-    correlationId,
   };
 }
 
 export function toCreateEventAgreementConsumerDocumentRemoved(
   agreementId: AgreementId,
   documentId: AgreementDocumentId,
-  version: number,
-  correlationId: string
+  version: number
 ): CreateEvent<AgreementRemoveConsumerDocumentEvent> {
   return {
     streamId: agreementId,
@@ -189,6 +178,5 @@ export function toCreateEventAgreementConsumerDocumentRemoved(
         documentId,
       },
     },
-    correlationId,
   };
 }
