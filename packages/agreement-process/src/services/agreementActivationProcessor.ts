@@ -2,11 +2,9 @@
 import { AuthData, CreateEvent, FileManager } from "pagopa-interop-commons";
 import {
   Agreement,
-  Descriptor,
   EService,
   Tenant,
   agreementState,
-  WithMetadata,
   AgreementEvent,
   AgreementUpdateEvent,
   AgreementId,
@@ -72,45 +70,22 @@ export async function activateAgreementLogic(
     agreement.data.descriptorId
   );
 
-  const tenant = await tenantQuery.getTenantById(agreement.data.consumerId);
-  assertTenantExist(agreement.data.consumerId, tenant);
+  const consumer = await tenantQuery.getTenantById(agreement.data.consumerId);
+  assertTenantExist(agreement.data.consumerId, consumer);
 
-  return activateAgreement(
-    agreement,
-    eservice.data,
+  const nextAttributesState = nextState(
+    agreement.data,
     descriptor,
-    tenant.data,
-    authData,
-    tenantQuery,
-    agreementQuery,
-    attributeQuery,
-    storeFile,
-    correlationId
+    consumer.data
   );
-}
-
-async function activateAgreement(
-  agreementData: WithMetadata<Agreement>,
-  eservice: EService,
-  descriptor: Descriptor,
-  consumer: Tenant,
-  authData: AuthData,
-  tenantQuery: TenantQuery,
-  agreementQuery: AgreementQuery,
-  attributeQuery: AttributeQuery,
-  storeFile: FileManager["storeBytes"],
-  correlationId: string
-): Promise<Array<CreateEvent<AgreementEvent>>> {
-  const agreement = agreementData.data;
-  const nextAttributesState = nextState(agreement, descriptor, consumer);
 
   const suspendedByConsumer = suspendedByConsumerFlag(
-    agreement,
+    agreement.data,
     authData.organizationId,
     agreementState.active
   );
   const suspendedByProducer = suspendedByProducerFlag(
-    agreement,
+    agreement.data,
     authData.organizationId,
     agreementState.active
   );
@@ -123,27 +98,33 @@ async function activateAgreement(
     suspendedByPlatform
   );
 
-  failOnActivationFailure(newState, agreement);
+  failOnActivationFailure(newState, agreement.data);
 
   const firstActivation =
-    agreement.state === agreementState.pending &&
+    agreement.data.state === agreementState.pending &&
     newState === agreementState.active;
 
   const updatedAgreementSeed: UpdateAgreementSeed = firstActivation
     ? {
         state: newState,
-        certifiedAttributes: matchingCertifiedAttributes(descriptor, consumer),
-        declaredAttributes: matchingDeclaredAttributes(descriptor, consumer),
-        verifiedAttributes: matchingVerifiedAttributes(
-          eservice,
+        certifiedAttributes: matchingCertifiedAttributes(
           descriptor,
-          consumer
+          consumer.data
+        ),
+        declaredAttributes: matchingDeclaredAttributes(
+          descriptor,
+          consumer.data
+        ),
+        verifiedAttributes: matchingVerifiedAttributes(
+          eservice.data,
+          descriptor,
+          consumer.data
         ),
         suspendedByConsumer,
         suspendedByProducer,
         suspendedByPlatform,
         stamps: {
-          ...agreement.stamps,
+          ...agreement.data.stamps,
           activation: createStamp(authData),
         },
       }
@@ -153,15 +134,15 @@ async function activateAgreement(
         suspendedByProducer,
         suspendedByPlatform,
         stamps: {
-          ...agreement.stamps,
+          ...agreement.data.stamps,
           suspensionByConsumer: suspendedByConsumerStamp(
-            agreement,
+            agreement.data,
             authData.organizationId,
             agreementState.active,
             createStamp(authData)
           ),
           suspensionByProducer: suspendedByProducerStamp(
-            agreement,
+            agreement.data,
             authData.organizationId,
             agreementState.active,
             createStamp(authData)
@@ -170,17 +151,17 @@ async function activateAgreement(
         suspendedAt:
           newState === agreementState.active
             ? undefined
-            : agreement.suspendedAt,
+            : agreement.data.suspendedAt,
       };
 
   const updatedAgreement = {
-    ...agreement,
+    ...agreement.data,
     ...updatedAgreementSeed,
   };
 
   const updateAgreementEvent = toCreateEventAgreementUpdated(
     updatedAgreement,
-    agreementData.metadata.version,
+    agreement.metadata.version,
     correlationId
   );
 
@@ -188,8 +169,8 @@ async function activateAgreement(
     await createContract(
       updatedAgreement,
       updatedAgreementSeed,
-      eservice,
-      consumer,
+      eservice.data,
+      consumer.data,
       attributeQuery,
       tenantQuery,
       storeFile
@@ -197,7 +178,7 @@ async function activateAgreement(
   }
 
   const archiveEvents = await archiveRelatedToAgreements(
-    agreement,
+    agreement.data,
     authData,
     agreementQuery,
     correlationId

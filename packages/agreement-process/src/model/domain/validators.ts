@@ -20,8 +20,10 @@ import {
   unsafeBrandId,
   TenantAttribute,
   TenantId,
+  operationForbidden,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
+import { match } from "ts-pattern";
 import { AgreementQuery } from "../../services/readmodel/agreementQuery.js";
 import { ApiAgreementPayload } from "../types.js";
 import {
@@ -126,40 +128,48 @@ export function assertEServiceExist(
   }
 }
 
-export const assertRequesterIsConsumer = (
+export function assertRequesterIsConsumer(
   agreement: Agreement,
   authData: AuthData
-): void => {
-  if (
-    !authData.userRoles.includes("internal") &&
-    authData.organizationId !== agreement.consumerId
-  ) {
-    throw operationNotAllowed(authData.organizationId);
-  }
-};
+): asserts authData is AuthData & { organizationId: NonNullable<TenantId> } {
+  match(authData)
+    .with({ tokenType: "empty" }, { tokenType: "internal" }, () => {
+      throw operationNotAllowed("");
+    })
+    .with({ tokenType: "m2m" }, { tokenType: "ui" }, (d) => {
+      if (d.organizationId !== agreement.consumerId) {
+        throw operationNotAllowed(d.organizationId);
+      }
+    })
+    .exhaustive();
+}
 
 export function assertRequesterIsProducer(
   agreement: Agreement,
   authData: AuthData
-): void {
-  if (
-    !authData.userRoles.includes("internal") &&
-    authData.organizationId !== agreement.producerId
-  ) {
-    throw operationNotAllowed(authData.organizationId);
-  }
+): asserts authData is AuthData & { organizationId: NonNullable<TenantId> } {
+  match(authData)
+    .with({ tokenType: "empty" }, { tokenType: "internal" }, () => {
+      throw operationNotAllowed("");
+    })
+    .with({ tokenType: "m2m" }, { tokenType: "ui" }, (d) => {
+      if (d.organizationId !== agreement.producerId) {
+        throw operationNotAllowed(d.organizationId);
+      }
+    })
+    .exhaustive();
 }
 
-export const assertRequesterIsConsumerOrProducer = (
+export function assertRequesterIsConsumerOrProducer(
   agreement: Agreement,
   authData: AuthData
-): void => {
+): asserts authData is AuthData & { organizationId: NonNullable<TenantId> } {
   try {
     assertRequesterIsConsumer(agreement, authData);
   } catch (error) {
     assertRequesterIsProducer(agreement, authData);
   }
-};
+}
 
 export const assertSubmittableState = (
   state: AgreementState,
@@ -211,6 +221,18 @@ export function assertDescriptorExist(
   if (descriptor === undefined) {
     throw descriptorNotFound(eserviceId, descriptorId);
   }
+}
+
+export function assertOrganizationIdInAuthData(
+  authData: AuthData
+): asserts authData is AuthData & { organizationId: NonNullable<TenantId> } {
+  match(authData)
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    .with({ tokenType: "m2m" }, { tokenType: "ui" }, () => {})
+    .with({ tokenType: "empty" }, { tokenType: "internal" }, () => {
+      throw operationForbidden;
+    })
+    .exhaustive();
 }
 
 /* =========  VALIDATIONS ========= */
@@ -388,9 +410,9 @@ export const verifyConsumerDoesNotActivatePending = (
   agreement: Agreement,
   authData: AuthData
 ): void => {
+  assertRequesterIsConsumer(agreement, authData);
   const activationPendingNotAllowed =
     agreement.state === agreementState.pending &&
-    agreement.consumerId === authData.organizationId &&
     agreement.producerId !== agreement.consumerId;
   if (activationPendingNotAllowed) {
     throw operationNotAllowed(authData.organizationId);

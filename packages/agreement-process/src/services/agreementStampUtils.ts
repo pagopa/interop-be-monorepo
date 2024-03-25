@@ -5,13 +5,25 @@ import {
   AgreementState,
   TenantId,
   agreementState,
+  operationForbidden,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 
-export const createStamp = (authData: AuthData): AgreementStamp => ({
-  who: authData.userId,
-  when: new Date(),
-});
+export const createStamp = (authData: AuthData): AgreementStamp =>
+  match(authData)
+    .with(
+      { tokenType: "empty" },
+      { tokenType: "internal" },
+      { tokenType: "m2m" },
+      () => {
+        throw operationForbidden;
+      }
+    )
+    .with({ tokenType: "ui" }, (d) => ({
+      who: d.userId,
+      when: new Date(),
+    }))
+    .exhaustive();
 
 export const suspendedByConsumerStamp = (
   agreement: Agreement,
