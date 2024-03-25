@@ -52,7 +52,8 @@ export async function activateAgreementLogic(
   tenantQuery: TenantQuery,
   attributeQuery: AttributeQuery,
   authData: AuthData,
-  storeFile: FileManager["storeBytes"]
+  storeFile: FileManager["storeBytes"],
+  correlationId: string
 ): Promise<Array<CreateEvent<AgreementEvent>>> {
   const agreement = await agreementQuery.getAgreementById(agreementId);
   assertAgreementExist(agreementId, agreement);
@@ -83,7 +84,8 @@ export async function activateAgreementLogic(
     tenantQuery,
     agreementQuery,
     attributeQuery,
-    storeFile
+    storeFile,
+    correlationId
   );
 }
 
@@ -96,7 +98,8 @@ async function activateAgreement(
   tenantQuery: TenantQuery,
   agreementQuery: AgreementQuery,
   attributeQuery: AttributeQuery,
-  storeFile: FileManager["storeBytes"]
+  storeFile: FileManager["storeBytes"],
+  correlationId: string
 ): Promise<Array<CreateEvent<AgreementEvent>>> {
   const agreement = agreementData.data;
   const nextAttributesState = nextState(agreement, descriptor, consumer);
@@ -177,7 +180,8 @@ async function activateAgreement(
 
   const updateAgreementEvent = toCreateEventAgreementUpdated(
     updatedAgreement,
-    agreementData.metadata.version
+    agreementData.metadata.version,
+    correlationId
   );
 
   if (firstActivation) {
@@ -195,7 +199,8 @@ async function activateAgreement(
   const archiveEvents = await archiveRelatedToAgreements(
     agreement,
     authData,
-    agreementQuery
+    agreementQuery,
+    correlationId
   );
 
   return [updateAgreementEvent, ...archiveEvents];
@@ -204,7 +209,8 @@ async function activateAgreement(
 const archiveRelatedToAgreements = async (
   agreement: Agreement,
   authData: AuthData,
-  agreementQuery: AgreementQuery
+  agreementQuery: AgreementQuery,
+  correlationId: string
 ): Promise<Array<CreateEvent<AgreementUpdateEvent>>> => {
   const existingAgreements = await agreementQuery.getAllAgreements({
     consumerId: agreement.consumerId,
@@ -233,7 +239,8 @@ const archiveRelatedToAgreements = async (
           archiving: createStamp(authData),
         },
       },
-      agreementData.metadata.version
+      agreementData.metadata.version,
+      correlationId
     )
   );
 };
