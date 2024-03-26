@@ -28,6 +28,7 @@ import {
   eserviceMode,
   generateId,
   technology,
+  toEServiceV2,
   toReadModelEService,
 } from "pagopa-interop-models";
 import {
@@ -36,7 +37,6 @@ import {
   writeInEventstore,
   writeInReadmodel,
 } from "pagopa-interop-commons-test/index.js";
-import { toEServiceV2 } from "../src/model/domain/toEvent.js";
 import {
   EServiceDescriptorSeed,
   EServiceRiskAnalysisSeed,
