@@ -185,10 +185,11 @@ for (const event of originalEvents) {
   console.log(newEvent);
 
   await targetConnection.none(
-    "INSERT INTO events(stream_id, version, type, event_version, data, log_date) VALUES ($1, $2, $3, $4, $5, $6)",
+    "INSERT INTO events(stream_id, version, correlation_id, type, event_version, data, log_date) VALUES ($1, $2, $3, $4, $5, $6, $7)",
     [
       newEvent.stream_id,
       newEvent.version,
+      null,
       newEvent.type,
       newEvent.eventVersion,
       newEvent.data,
