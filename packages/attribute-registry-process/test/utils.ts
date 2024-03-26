@@ -23,16 +23,6 @@ import {
   writeInReadmodel,
 } from "pagopa-interop-commons-test/index.js";
 
-export const getMockAttribute = (): Attribute => ({
-  id: generateId(),
-  name: "attribute name",
-  kind: attributeKind.certified,
-  description: "attribute description",
-  creationTime: new Date(),
-  code: undefined,
-  origin: undefined,
-});
-
 export const getMockTenant = (): Tenant => ({
   name: "tenant_Name",
   id: generateId(),

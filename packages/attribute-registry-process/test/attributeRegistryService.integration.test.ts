@@ -14,6 +14,7 @@ import {
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
   decodeProtobufPayload,
+  getMockAttribute,
   mongoDBContainer,
   postgreSQLContainer,
 } from "pagopa-interop-commons-test";
@@ -52,7 +53,6 @@ import {
 import {
   addOneAttribute,
   addOneTenant,
-  getMockAttribute,
   getMockTenant,
   getMockAuthData,
   readLastAttributeEvent,

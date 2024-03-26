@@ -10,6 +10,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   TEST_MONGO_DB_PORT,
+  getMockAttribute,
   mongoDBContainer,
 } from "pagopa-interop-commons-test";
 import {
@@ -134,14 +135,4 @@ describe("database test", async () => {
       });
     });
   });
-});
-
-export const getMockAttribute = (): Attribute => ({
-  id: generateId(),
-  name: "attribute name",
-  kind: attributeKind.certified,
-  description: "attribute description",
-  creationTime: new Date(),
-  code: undefined,
-  origin: undefined,
 });
