@@ -32,6 +32,7 @@ import {
   Tenant,
   attributeKind,
   generateId,
+  toAttributeV1,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { config } from "../src/utilities/config.js";
@@ -48,7 +49,6 @@ import {
   attributeDuplicate,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
-import { toAttributeV1 } from "../src/model/domain/toEvent.js";
 import {
   addOneAttribute,
   addOneTenant,
