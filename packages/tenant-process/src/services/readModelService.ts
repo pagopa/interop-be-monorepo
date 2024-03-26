@@ -1,6 +1,5 @@
 import {
   AttributeCollection,
-  AuthData,
   logger,
   ReadModelRepository,
   TenantCollection,
@@ -20,7 +19,6 @@ import {
 } from "pagopa-interop-models";
 import { z } from "zod";
 import { Filter, WithId } from "mongodb";
-import { match } from "ts-pattern";
 import { attributeNotFound } from "../model/domain/errors.js";
 import { TenantProcessConfig } from "../utilities/config.js";
 
@@ -218,23 +216,16 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
 
     async getConsumers({
       consumerName,
-      authData,
+      producerId,
       offset,
       limit,
     }: {
       consumerName: string | undefined;
-      authData: AuthData;
+      producerId: string;
       offset: number;
       limit: number;
     }): Promise<ListResult<Tenant>> {
       const query = listTenantsFilters(consumerName);
-
-      const producerIdFilter = match(authData)
-        .with({ tokenType: "ui" }, { tokenType: "m2m" }, (d) => [
-          { "agreements.data.producerId": d.organizationId },
-        ])
-        .with({ tokenType: "empty" }, { tokenType: "internal" }, () => [])
-        .exhaustive();
 
       const aggregationPipeline = [
         { $match: query },
@@ -249,7 +240,7 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
         {
           $match: {
             $and: [
-              ...producerIdFilter,
+              { "agreements.data.producerId": producerId },
               {
                 "agreements.data.state": {
                   $in: [agreementState.active, agreementState.suspended],

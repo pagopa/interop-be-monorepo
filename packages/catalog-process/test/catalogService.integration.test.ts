@@ -134,6 +134,7 @@ import {
   addOneAttribute,
   getMockEServiceAttributes,
   buildRiskAnalysisSeed,
+  getMockInternalAuthData,
 } from "./utils.js";
 
 const mockEService = getMockEService();
@@ -2973,6 +2974,7 @@ describe("database test", async () => {
         await catalogService.archiveDescriptor(
           eservice.id,
           descriptor.id,
+          getMockInternalAuthData(),
           uuidv4()
         );
 
@@ -3010,6 +3012,7 @@ describe("database test", async () => {
           catalogService.archiveDescriptor(
             mockEService.id,
             mockDescriptor.id,
+            getMockInternalAuthData(),
             uuidv4()
           )
         ).rejects.toThrowError(eServiceNotFound(mockEService.id));
@@ -3026,6 +3029,7 @@ describe("database test", async () => {
           catalogService.archiveDescriptor(
             eservice.id,
             mockDescriptor.id,
+            getMockInternalAuthData(),
             uuidv4()
           )
         ).rejects.toThrowError(

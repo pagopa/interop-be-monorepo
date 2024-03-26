@@ -1,6 +1,7 @@
 import {
   AgreementCollection,
   AttributeCollection,
+  AuthDataInternal,
   AuthDataUI,
   EServiceCollection,
   TenantCollection,
@@ -47,11 +48,16 @@ export const getMockAuthData = (organizationId?: TenantId): AuthDataUI => ({
   tokenType: "ui",
   organizationId: organizationId || generateId(),
   userId: uuidv4(),
-  userRoles: [],
+  userRoles: ["admin"],
   externalId: {
     value: "123456",
     origin: "IPA",
   },
+});
+
+export const getMockInternalAuthData = (): AuthDataInternal => ({
+  tokenType: "internal",
+  userRoles: ["internal"],
 });
 
 export const buildDescriptorSeed = (

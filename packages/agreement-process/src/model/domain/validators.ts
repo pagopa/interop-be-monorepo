@@ -133,7 +133,10 @@ export function assertRequesterIsConsumer(
   authData: AuthData
 ): asserts authData is AuthData & { organizationId: NonNullable<TenantId> } {
   match(authData)
-    .with({ tokenType: "empty" }, { tokenType: "internal" }, () => {
+    .with({ tokenType: "internal" }, () => {
+      // Internal requests are always allowed
+    })
+    .with({ tokenType: "empty" }, () => {
       throw operationNotAllowed("");
     })
     .with({ tokenType: "m2m" }, { tokenType: "ui" }, (d) => {
@@ -149,7 +152,10 @@ export function assertRequesterIsProducer(
   authData: AuthData
 ): asserts authData is AuthData & { organizationId: NonNullable<TenantId> } {
   match(authData)
-    .with({ tokenType: "empty" }, { tokenType: "internal" }, () => {
+    .with({ tokenType: "internal" }, () => {
+      // Internal requests are always allowed
+    })
+    .with({ tokenType: "empty" }, () => {
       throw operationNotAllowed("");
     })
     .with({ tokenType: "m2m" }, { tokenType: "ui" }, (d) => {
