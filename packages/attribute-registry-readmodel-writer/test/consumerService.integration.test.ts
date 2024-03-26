@@ -19,6 +19,7 @@ import {
   AttributeEventEnvelope,
   attributeKind,
   toAttributeV1,
+  toReadModelAttribute,
 } from "pagopa-interop-models";
 import { StartedTestContainer } from "testcontainers";
 import { handleMessage } from "../src/attributeRegistryConsumerService.js";
@@ -72,7 +73,7 @@ describe("database test", async () => {
       });
 
       expect(retrievedAttribute).toMatchObject({
-        data: certifiedAttribute,
+        data: toReadModelAttribute(certifiedAttribute),
         metadata: { version: 1 },
       });
     });
@@ -99,7 +100,9 @@ describe("database test", async () => {
         "data.id": declaredAttribute.id,
       });
 
-      expect(retrievedAttribute?.data).toEqual(declaredAttribute);
+      expect(retrievedAttribute?.data).toEqual(
+        toReadModelAttribute(declaredAttribute)
+      );
       expect(retrievedAttribute?.metadata).toEqual({ version: 1 });
     });
 
@@ -125,7 +128,9 @@ describe("database test", async () => {
         "data.id": verifiedAttribute.id,
       });
 
-      expect(retrievedAttribute?.data).toEqual(verifiedAttribute);
+      expect(retrievedAttribute?.data).toEqual(
+        toReadModelAttribute(verifiedAttribute)
+      );
       expect(retrievedAttribute?.metadata).toEqual({ version: 1 });
     });
   });
