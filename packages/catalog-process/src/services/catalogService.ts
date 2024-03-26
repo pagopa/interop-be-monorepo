@@ -454,7 +454,7 @@ export function catalogServiceBuilder(
       logger.info(`Updating EService ${eserviceId}`);
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+      assertRequesterAllowed(eservice.data.producerId, authData);
 
       assertIsDraftEservice(eservice.data);
 
@@ -528,7 +528,7 @@ export function catalogServiceBuilder(
       logger.info(`Deleting EService ${eserviceId}`);
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+      assertRequesterAllowed(eservice.data.producerId, authData);
 
       assertIsDraftEservice(eservice.data);
 
@@ -553,7 +553,7 @@ export function catalogServiceBuilder(
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+      assertRequesterAllowed(eservice.data.producerId, authData);
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
@@ -630,7 +630,7 @@ export function catalogServiceBuilder(
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+      assertRequesterAllowed(eservice.data.producerId, authData);
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
@@ -696,7 +696,7 @@ export function catalogServiceBuilder(
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+      assertRequesterAllowed(eservice.data.producerId, authData);
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
@@ -762,7 +762,7 @@ export function catalogServiceBuilder(
       logger.info(`Creating Descriptor for EService ${eserviceId}`);
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+      assertRequesterAllowed(eservice.data.producerId, authData);
       assertHasNoDraftDescriptor(eservice.data);
 
       const newVersion = nextDescriptorVersion(eservice.data);
@@ -833,7 +833,7 @@ export function catalogServiceBuilder(
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+      assertRequesterAllowed(eservice.data.producerId, authData);
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
@@ -882,7 +882,7 @@ export function catalogServiceBuilder(
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+      assertRequesterAllowed(eservice.data.producerId, authData);
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
@@ -942,7 +942,7 @@ export function catalogServiceBuilder(
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+      assertRequesterAllowed(eservice.data.producerId, authData);
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
       if (descriptor.state !== descriptorState.draft) {
@@ -1040,7 +1040,7 @@ export function catalogServiceBuilder(
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+      assertRequesterAllowed(eservice.data.producerId, authData);
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
       if (
@@ -1078,7 +1078,7 @@ export function catalogServiceBuilder(
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+      assertRequesterAllowed(eservice.data.producerId, authData);
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
       if (descriptor.state !== descriptorState.suspended) {
@@ -1148,7 +1148,7 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+      assertRequesterAllowed(eservice.data.producerId, authData);
 
       const clonedEServiceName = `${
         eservice.data.name
@@ -1261,7 +1261,7 @@ export function catalogServiceBuilder(
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+      assertRequesterAllowed(eservice.data.producerId, authData);
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
       const updatedDescriptor = updateDescriptorState(
@@ -1293,7 +1293,7 @@ export function catalogServiceBuilder(
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+      assertRequesterAllowed(eservice.data.producerId, authData);
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
@@ -1342,7 +1342,7 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+      assertRequesterAllowed(eservice.data.producerId, authData);
       assertIsDraftEservice(eservice.data);
       assertIsReceiveEservice(eservice.data);
 
@@ -1391,7 +1391,7 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+      assertRequesterAllowed(eservice.data.producerId, authData);
       assertIsDraftEservice(eservice.data);
       assertIsReceiveEservice(eservice.data);
 
@@ -1445,7 +1445,7 @@ export function catalogServiceBuilder(
       );
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      assertRequesterAllowed(eservice.data.producerId, authData.organizationId);
+      assertRequesterAllowed(eservice.data.producerId, authData);
 
       assertIsDraftEservice(eservice.data);
       assertIsReceiveEservice(eservice.data);
