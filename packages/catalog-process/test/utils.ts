@@ -1,7 +1,8 @@
 import {
   AgreementCollection,
   AttributeCollection,
-  AuthData,
+  AuthDataInternal,
+  AuthDataUI,
   EServiceCollection,
   TenantCollection,
   riskAnalysisFormToRiskAnalysisFormToValidate,
@@ -43,16 +44,21 @@ import {
 } from "../src/model/domain/models.js";
 import { ApiEServiceDescriptorDocumentSeed } from "../src/model/types.js";
 
-export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
+export const getMockAuthData = (organizationId?: TenantId): AuthDataUI => ({
+  tokenType: "ui",
   organizationId: organizationId || generateId(),
   userId: uuidv4(),
-  userRoles: [],
+  userRoles: ["admin"],
   externalId: {
     value: "123456",
     origin: "IPA",
   },
 });
 
+export const getMockAuthDataInternal = (): AuthDataInternal => ({
+  tokenType: "internal",
+  userRoles: ["internal"],
+});
 export const buildDescriptorSeed = (
   descriptor: Descriptor
 ): EServiceDescriptorSeed => ({
