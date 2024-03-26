@@ -37,12 +37,14 @@ export async function suspendAgreementLogic({
   agreementQuery,
   tenantQuery,
   eserviceQuery,
+  correlationId,
 }: {
   agreementId: Agreement["id"];
   authData: AuthData;
   agreementQuery: AgreementQuery;
   tenantQuery: TenantQuery;
   eserviceQuery: EserviceQuery;
+  correlationId: string;
 }): Promise<CreateEvent<AgreementEvent>> {
   const agreement = await agreementQuery.getAgreementById(agreementId);
   assertAgreementExist(agreementId, agreement);
@@ -132,6 +134,7 @@ export async function suspendAgreementLogic({
 
   return toCreateEventAgreementUpdated(
     updatedAgreement,
-    agreement.metadata.version
+    agreement.metadata.version,
+    correlationId
   );
 }

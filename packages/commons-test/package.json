@@ -21,17 +21,18 @@
     "@pagopa/eslint-config": "^3.0.0",
     "@protobuf-ts/runtime": "^2.9.1",
     "@testcontainers/postgresql": "^10.2.2",
+    "@types/jsonwebtoken": "^9.0.0",
     "@types/uuid": "^9.0.2",
     "@zodios/core": "^10.9.2",
+    "jsonwebtoken": "^9.0.0",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "pg-promise": "^11.5.0",
-    "uuid": "^9.0.0",
     "testcontainers": "^10.2.2",
     "ts-pattern": "^5.0.6",
     "typescript": "^5.1.3",
+    "uuid": "^9.0.0",
     "vitest": "^0.33.0",
     "zod": "^3.0.0"
-  },
-  "dependencies": {}
+  }
 }
