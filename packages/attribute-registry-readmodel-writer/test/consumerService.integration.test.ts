@@ -99,10 +99,8 @@ describe("database test", async () => {
         "data.id": declaredAttribute.id,
       });
 
-      expect(retrievedAttribute).toMatchObject({
-        data: declaredAttribute,
-        metadata: { version: 1 },
-      });
+      expect(retrievedAttribute?.data).toEqual(declaredAttribute);
+      expect(retrievedAttribute?.metadata).toEqual({ version: 1 });
     });
 
     it("AttributeAdded - verified", async () => {
@@ -127,10 +125,8 @@ describe("database test", async () => {
         "data.id": verifiedAttribute.id,
       });
 
-      expect(retrievedAttribute).toMatchObject({
-        data: verifiedAttribute,
-        metadata: { version: 1 },
-      });
+      expect(retrievedAttribute?.data).toEqual(verifiedAttribute);
+      expect(retrievedAttribute?.metadata).toEqual({ version: 1 });
     });
   });
 });
