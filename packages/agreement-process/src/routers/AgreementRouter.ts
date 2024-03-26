@@ -91,7 +91,8 @@ const agreementRouter = (
       try {
         const id = await agreementService.submitAgreement(
           unsafeBrandId(req.params.agreementId),
-          req.body
+          req.body,
+          req.ctx.correlationId
         );
         return res.status(200).json({ id }).end();
       } catch (error) {
@@ -109,7 +110,8 @@ const agreementRouter = (
         const agreementId: Agreement["id"] =
           await agreementService.activateAgreement(
             unsafeBrandId(req.params.agreementId),
-            req.ctx.authData
+            req.ctx.authData,
+            req.ctx.correlationId
           );
 
         return res.status(200).json({ id: agreementId }).end();
@@ -128,7 +130,8 @@ const agreementRouter = (
         const id = await agreementService.addConsumerDocument(
           unsafeBrandId(req.params.agreementId),
           req.body,
-          req.ctx.authData
+          req.ctx.authData,
+          req.ctx.correlationId
         );
 
         return res.status(200).json({ id }).send();
@@ -168,7 +171,8 @@ const agreementRouter = (
         await agreementService.removeAgreementConsumerDocument(
           unsafeBrandId(req.params.agreementId),
           unsafeBrandId(req.params.documentId),
-          req.ctx.authData
+          req.ctx.authData,
+          req.ctx.correlationId
         );
         return res.status(204).send();
       } catch (error) {
@@ -188,7 +192,8 @@ const agreementRouter = (
       try {
         const id = await agreementService.suspendAgreement(
           unsafeBrandId(req.params.agreementId),
-          req.ctx.authData
+          req.ctx.authData,
+          req.ctx.correlationId
         );
         return res.status(200).json({ id }).send();
       } catch (error) {
@@ -206,7 +211,8 @@ const agreementRouter = (
         const id = await agreementService.rejectAgreement(
           unsafeBrandId(req.params.agreementId),
           req.body.reason,
-          req.ctx.authData
+          req.ctx.authData,
+          req.ctx.correlationId
         );
         return res.status(200).json({ id }).send();
       } catch (error) {
@@ -223,7 +229,8 @@ const agreementRouter = (
       try {
         const agreementId = await agreementService.archiveAgreement(
           unsafeBrandId(req.params.agreementId),
-          req.ctx.authData
+          req.ctx.authData,
+          req.ctx.correlationId
         );
         return res.status(200).send({ id: agreementId });
       } catch (error) {
@@ -240,7 +247,8 @@ const agreementRouter = (
       try {
         const id = await agreementService.createAgreement(
           req.body,
-          req.ctx.authData
+          req.ctx.authData,
+          req.ctx.correlationId
         );
         return res.status(200).json({ id }).send();
       } catch (error) {
@@ -397,7 +405,8 @@ const agreementRouter = (
       try {
         await agreementService.deleteAgreementById(
           unsafeBrandId(req.params.agreementId),
-          req.ctx.authData
+          req.ctx.authData,
+          req.ctx.correlationId
         );
         return res.status(204).send();
       } catch (error) {
@@ -415,7 +424,8 @@ const agreementRouter = (
         await agreementService.updateAgreement(
           unsafeBrandId(req.params.agreementId),
           req.body,
-          req.ctx.authData
+          req.ctx.authData,
+          req.ctx.correlationId
         );
 
         return res.status(200).send();
@@ -433,7 +443,8 @@ const agreementRouter = (
       try {
         const id = await agreementService.upgradeAgreement(
           unsafeBrandId(req.params.agreementId),
-          req.ctx.authData
+          req.ctx.authData,
+          req.ctx.correlationId
         );
 
         return res.status(200).json({ id }).send();
@@ -451,7 +462,8 @@ const agreementRouter = (
       try {
         const id = await agreementService.cloneAgreement(
           unsafeBrandId(req.params.agreementId),
-          req.ctx.authData
+          req.ctx.authData,
+          req.ctx.correlationId
         );
 
         return res.status(200).json({ id }).send();

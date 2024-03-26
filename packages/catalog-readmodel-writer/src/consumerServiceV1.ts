@@ -41,21 +41,8 @@ export async function handleMessageV1(
   eservices: EServiceCollection
 ): Promise<void> {
   await match(message)
-    .with({ type: "EServiceAdded" }, async (msg) => {
-      await eservices.updateOne(
-        {
-          "data.id": msg.stream_id,
-        },
-        {
-          $setOnInsert: adaptEserviceToReadModel(
-            msg.version,
-            msg.data.eservice
-          ),
-        },
-        { upsert: true }
-      );
-    })
     .with(
+      { type: "EServiceAdded" },
       { type: "ClonedEServiceAdded" },
       async (msg) =>
         await eservices.updateOne(
