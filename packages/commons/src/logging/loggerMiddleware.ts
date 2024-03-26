@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import * as expressWinston from "express-winston";
 import * as winston from "winston";
+import { v4 } from "uuid";
 import { LoggerConfig } from "../config/commonConfig.js";
 import { getContext } from "../index.js";
 
@@ -27,7 +28,7 @@ const getLoggerMetadata = (): SessionMetaData => {
     ? {
         userId: undefined,
         organizationId: undefined,
-        correlationId: undefined,
+        correlationId: v4(),
         eventType: undefined,
         eventVersion: undefined,
         streamId: undefined,

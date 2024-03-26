@@ -6,6 +6,7 @@ import {
   jwtSeedConfig,
   logger,
 } from "pagopa-interop-commons";
+import { v4 } from "uuid";
 import { DescriptorId, EServiceId } from "pagopa-interop-models";
 import { buildAuthMgmtClient } from "./authorizationManagementClient.js";
 import { ApiClientComponentState } from "./model/models.js";
@@ -56,7 +57,7 @@ export const authorizationServiceBuilder =
     const getHeaders = () => {
       const appContext = getContext();
       return {
-        "X-Correlation-Id": appContext.correlationId || "",
+        "X-Correlation-Id": appContext.correlationId || v4(),
       };
     };
 

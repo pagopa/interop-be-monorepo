@@ -8,6 +8,7 @@ import {
   decodeKafkaMessage,
   getContext,
 } from "pagopa-interop-commons";
+import { v4 } from "uuid";
 import { runConsumer } from "kafka-iam-auth";
 import { EServiceEvent } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -30,7 +31,7 @@ async function processMessage({
       eventVersion: decodedMessage.event_version,
       streamId: decodedMessage.stream_id,
     };
-    ctx.correlationId = decodedMessage.correlation_id;
+    ctx.correlationId = decodedMessage.correlation_id || v4();
 
     await match(decodedMessage)
       .with({ event_version: 1 }, (msg) => handleMessageV1(msg, eservices))
