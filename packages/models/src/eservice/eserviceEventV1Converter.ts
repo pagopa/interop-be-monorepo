@@ -1,3 +1,4 @@
+import { P, match } from "ts-pattern";
 import {
   EService,
   Document,
@@ -17,8 +18,7 @@ import {
   EServiceModeV1,
   RiskAnalysis,
   EServiceRiskAnalysisV1,
-} from "pagopa-interop-models";
-import { P, match } from "ts-pattern";
+} from "../index.js";
 
 export const toAgreementApprovalPolicyV1 = (
   input: AgreementApprovalPolicy | undefined
