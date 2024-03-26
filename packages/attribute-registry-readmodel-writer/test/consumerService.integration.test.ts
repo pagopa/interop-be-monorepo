@@ -12,10 +12,12 @@ import {
   TEST_MONGO_DB_PORT,
   getMockAttribute,
   mongoDBContainer,
+  writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import {
   Attribute,
   AttributeAddedV1,
+  AttributeDeletedV1,
   AttributeEventEnvelope,
   attributeKind,
   toAttributeV1,
@@ -132,6 +134,35 @@ describe("database test", async () => {
         toReadModelAttribute(verifiedAttribute)
       );
       expect(retrievedAttribute?.metadata).toEqual({ version: 1 });
+    });
+
+    it("AttributeDeleted", async () => {
+      const certifiedAttribute: Attribute = {
+        ...getMockAttribute(),
+        kind: attributeKind.verified,
+      };
+      await writeInReadmodel(
+        toReadModelAttribute(certifiedAttribute),
+        attributes
+      );
+      const payload: AttributeDeletedV1 = {
+        id: certifiedAttribute.id,
+      };
+      const message: AttributeEventEnvelope = {
+        sequence_num: 1,
+        stream_id: certifiedAttribute.id,
+        version: 1,
+        type: "AttributeDeleted",
+        event_version: 1,
+        data: payload,
+      };
+      await handleMessage(message, attributes);
+
+      const retrievedAttribute = await attributes.findOne({
+        "data.id": certifiedAttribute.id,
+      });
+
+      expect(retrievedAttribute).toBeNull();
     });
   });
 });
