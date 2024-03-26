@@ -75,8 +75,11 @@ export const hasPermission = (
   authData: AuthData
 ): boolean =>
   match(authData)
-    .with({ type: "empty" }, () => false)
-    .with({ type: "internal" }, { type: "m2m" }, { type: "ui" }, (d) =>
-      d.userRoles.some((role: string) => permissions.includes(role))
+    .with({ tokenType: "empty" }, () => false)
+    .with(
+      { tokenType: "internal" },
+      { tokenType: "m2m" },
+      { tokenType: "ui" },
+      (d) => d.userRoles.some((role: string) => permissions.includes(role))
     )
     .exhaustive();
