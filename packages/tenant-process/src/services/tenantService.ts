@@ -185,34 +185,39 @@ export function tenantServiceBuilder(
       }
     },
     async getProducers({
-      name,
+      producerName,
       offset,
       limit,
     }: {
-      name: string | undefined;
+      producerName: string | undefined;
       offset: number;
       limit: number;
     }): Promise<ListResult<Tenant>> {
       logger.info(
-        `Retrieving Producers with name = ${name}, limit = ${limit}, offset = ${offset}`
+        `Retrieving Producers with name = ${producerName}, limit = ${limit}, offset = ${offset}`
       );
-      return readModelService.getProducers({ name, offset, limit });
+      return readModelService.getProducers({ producerName, offset, limit });
     },
     async getConsumers({
-      name,
+      consumerName,
       producerId,
       offset,
       limit,
     }: {
-      name: string | undefined;
+      consumerName: string | undefined;
       producerId: TenantId;
       offset: number;
       limit: number;
     }): Promise<ListResult<Tenant>> {
       logger.info(
-        `Retrieving Consumers with name = ${name}, limit = ${limit}, offset = ${offset}`
+        `Retrieving Consumers with name = ${consumerName}, limit = ${limit}, offset = ${offset}`
       );
-      return readModelService.getConsumers({ name, producerId, offset, limit });
+      return readModelService.getConsumers({
+        consumerName,
+        producerId,
+        offset,
+        limit,
+      });
     },
     async getTenantsByName({
       name,
