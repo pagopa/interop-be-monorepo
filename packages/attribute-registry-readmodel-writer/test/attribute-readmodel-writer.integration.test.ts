@@ -50,36 +50,6 @@ describe("database test", async () => {
   });
 
   describe("Events V1", () => {
-    it("AttributeAdded - certified", async () => {
-      const certifiedAttribute: Attribute = {
-        ...getMockAttribute(),
-        kind: attributeKind.certified,
-        code: "123456",
-        origin: "certifier-id",
-      };
-      const payload: AttributeAddedV1 = {
-        attribute: toAttributeV1(certifiedAttribute),
-      };
-      const message: AttributeEventEnvelope = {
-        sequence_num: 1,
-        stream_id: certifiedAttribute.id,
-        version: 1,
-        type: "AttributeAdded",
-        event_version: 1,
-        data: payload,
-      };
-      await handleMessage(message, attributes);
-
-      const retrievedAttribute = await attributes.findOne({
-        "data.id": certifiedAttribute.id,
-      });
-
-      expect(retrievedAttribute).toMatchObject({
-        data: toReadModelAttribute(certifiedAttribute),
-        metadata: { version: 1 },
-      });
-    });
-
     it("AttributeAdded - declared", async () => {
       const declaredAttribute: Attribute = {
         ...getMockAttribute(),
@@ -134,6 +104,36 @@ describe("database test", async () => {
         toReadModelAttribute(verifiedAttribute)
       );
       expect(retrievedAttribute?.metadata).toEqual({ version: 1 });
+    });
+
+    it("AttributeAdded - certified", async () => {
+      const certifiedAttribute: Attribute = {
+        ...getMockAttribute(),
+        kind: attributeKind.certified,
+        code: "123456",
+        origin: "certifier-id",
+      };
+      const payload: AttributeAddedV1 = {
+        attribute: toAttributeV1(certifiedAttribute),
+      };
+      const message: AttributeEventEnvelope = {
+        sequence_num: 1,
+        stream_id: certifiedAttribute.id,
+        version: 1,
+        type: "AttributeAdded",
+        event_version: 1,
+        data: payload,
+      };
+      await handleMessage(message, attributes);
+
+      const retrievedAttribute = await attributes.findOne({
+        "data.id": certifiedAttribute.id,
+      });
+
+      expect(retrievedAttribute).toMatchObject({
+        data: toReadModelAttribute(certifiedAttribute),
+        metadata: { version: 1 },
+      });
     });
 
     it("AttributeDeleted", async () => {
