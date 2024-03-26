@@ -1071,8 +1071,8 @@ describe("database test", async () => {
 
       const archivedDescriptor: Descriptor = {
         ...publishedDescriptor,
-        publishedAt: new Date(),
-        state: descriptorState.published,
+        archivedAt: new Date(),
+        state: descriptorState.archived,
       };
       const updatedEService: EService = {
         ...eservice,
@@ -1163,7 +1163,7 @@ describe("database test", async () => {
       const suspendedDescriptor: Descriptor = {
         ...publishedDescriptor,
         suspendedAt: new Date(),
-        state: descriptorState.published,
+        state: descriptorState.suspended,
       };
       const updatedEService: EService = {
         ...eservice,
@@ -1277,11 +1277,11 @@ describe("database test", async () => {
     });
 
     it("EServiceDescriptorInterfaceUpdated", async () => {
-      const document = getMockDocument();
+      const descriptorInterface = getMockDocument();
       const draftDescriptor: Descriptor = {
         ...getMockDescriptor(),
         state: descriptorState.draft,
-        docs: [document],
+        interface: descriptorInterface,
       };
       const eservice: EService = {
         ...mockEService,
@@ -1289,18 +1289,18 @@ describe("database test", async () => {
       };
       await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
 
-      const updatedDocument: Document = {
-        ...document,
+      const updatedInterface: Document = {
+        ...descriptorInterface,
         prettyName: "updated pretty name",
       };
       const updatedEService: EService = {
         ...eservice,
-        descriptors: [{ ...draftDescriptor, docs: [updatedDocument] }],
+        descriptors: [{ ...draftDescriptor, interface: updatedInterface }],
       };
       const payload: EServiceDescriptorInterfaceUpdatedV2 = {
         eservice: toEServiceV2(updatedEService),
         descriptorId: draftDescriptor.id,
-        documentId: document.id,
+        documentId: updatedInterface.id,
       };
       const message: EServiceEventEnvelope = {
         sequence_num: 1,
@@ -1466,7 +1466,7 @@ describe("database test", async () => {
       const mockRiskAnalysis = getMockValidRiskAnalysis("PA");
       const updatedEService: EService = {
         ...mockEService,
-        riskAnalysis: [...mockEService.riskAnalysis, mockRiskAnalysis],
+        riskAnalysis: [mockRiskAnalysis],
       };
       const payload: EServiceRiskAnalysisAddedV2 = {
         eservice: toEServiceV2(updatedEService),
