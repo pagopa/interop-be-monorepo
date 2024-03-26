@@ -51,19 +51,47 @@ const logFormat = (
     organizationId,
     correlationId,
     serviceName,
+    eventType,
+    eventVersion,
+    streamId,
   }: {
     userId: string | undefined;
     organizationId: string | undefined;
     correlationId: string | undefined;
     serviceName: string | undefined;
+    eventType: string | undefined;
+    eventVersion: number | undefined;
+    streamId: string | undefined;
   }
 ) => {
-  const serviceLogPart = serviceName ? `[${serviceName}]` : "";
-  const userLogPart = userId ? `[UID=${userId}]` : "";
-  const organizationLogPart = organizationId ? `[OID=${organizationId}]` : "";
-  const correlationLogPart = correlationId ? `[CID=${correlationId}]` : "";
+  const serviceLogPart = serviceName ? `[${serviceName}]` : undefined;
+  const userLogPart = userId ? `[UID=${userId}]` : undefined;
+  const organizationLogPart = organizationId
+    ? `[OID=${organizationId}]`
+    : undefined;
+  const correlationLogPart = correlationId
+    ? `[CID=${correlationId}]`
+    : undefined;
+  const eventTypePart = eventType ? `[ET=${eventType}]` : undefined;
+  const eventVersionPart = eventVersion ? `[EV=${eventVersion}]` : undefined;
+  const streamIdPart = streamId ? `[SID=${streamId}]` : undefined;
 
-  return `${timestamp} ${level.toUpperCase()} ${serviceLogPart} - ${userLogPart} ${organizationLogPart} ${correlationLogPart} ${msg}`;
+  const firstPart = [timestamp, level.toUpperCase(), serviceLogPart]
+    .filter((e) => e !== undefined)
+    .join(" ");
+
+  const secondPart = [
+    userLogPart,
+    organizationLogPart,
+    correlationLogPart,
+    eventTypePart,
+    eventVersionPart,
+    streamIdPart,
+  ]
+    .filter((e) => e !== undefined)
+    .join(" ");
+
+  return `${firstPart} - ${secondPart} ${msg}`;
 };
 
 export const customFormat = (serviceName?: string) =>

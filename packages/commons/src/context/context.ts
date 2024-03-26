@@ -20,7 +20,7 @@ export type ExpressContext = NonNullable<typeof zodiosCtx.context>;
 
 export const ctx = z.object({
   authData: AuthData,
-  correlationId: z.string().uuid(),
+  correlationId: z.string(),
 });
 
 export const zodiosCtx = zodiosContext(z.object({ ctx }));
