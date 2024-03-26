@@ -7,6 +7,7 @@ import {
   attributeEventToBinaryData,
   attributeKind,
   generateId,
+  toAttributeV1,
 } from "pagopa-interop-models";
 import { IDatabase } from "pg-promise";
 import {
@@ -21,7 +22,6 @@ import {
   writeInEventstore,
   writeInReadmodel,
 } from "pagopa-interop-commons-test/index.js";
-import { toAttributeV1 } from "../src/model/domain/toEvent.js";
 
 export const getMockAttribute = (): Attribute => ({
   id: generateId(),
