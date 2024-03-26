@@ -104,6 +104,7 @@ const errorCodes = {
   tokenGenerationError: "9995",
   missingRSAKey: "9996",
   missingKafkaMessageData: "9997",
+  kafkaMessageProcessError: "9998",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -157,6 +158,20 @@ export function tokenGenerationError(
   return new InternalError({
     code: "tokenGenerationError",
     detail: `Error during token generation: ${parseErrorMessage(error)}`,
+  });
+}
+
+export function kafkaMessageProcessError(
+  topic: string,
+  partition: number,
+  offset: string,
+  error?: unknown
+): InternalError<CommonErrorCodes> {
+  return new InternalError({
+    code: "kafkaMessageProcessError",
+    detail: `Error while handling kafka message from topic : ${topic} - partition ${partition} - offest ${offset}. ${
+      error ? parseErrorMessage(error) : ""
+    }`,
   });
 }
 

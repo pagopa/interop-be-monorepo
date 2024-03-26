@@ -1,4 +1,5 @@
 import {
+  AuthData,
   RiskAnalysisValidatedForm,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   validateRiskAnalysis,
@@ -26,9 +27,12 @@ import { EServiceRiskAnalysisSeed } from "../model/domain/models.js";
 
 export function assertRequesterAllowed(
   producerId: TenantId,
-  requesterId: TenantId
+  authData: AuthData
 ): void {
-  if (producerId !== requesterId) {
+  if (
+    !authData.userRoles.includes("internal") &&
+    producerId !== authData.organizationId
+  ) {
     throw operationForbidden;
   }
 }
