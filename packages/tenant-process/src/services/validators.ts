@@ -52,7 +52,7 @@ export function assertOrganizationVerifierExist(
   tenantVerifier: TenantVerifier | undefined
 ): asserts tenantVerifier is NonNullable<TenantVerifier> {
   if (tenantVerifier === undefined) {
-    organizationNotFoundInVerifiers(verifierId, tenantId, attributeId);
+    throw organizationNotFoundInVerifiers(verifierId, tenantId, attributeId);
   }
 }
 
@@ -63,7 +63,7 @@ export function assertExpirationDateExist(
   expirationDate: Date | undefined
 ): asserts expirationDate is Date {
   if (expirationDate === undefined) {
-    expirationDateNotFoundInVerifier(verifierId, attributeId, tenantId);
+    throw expirationDateNotFoundInVerifier(verifierId, attributeId, tenantId);
   }
 }
 
