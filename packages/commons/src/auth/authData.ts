@@ -106,21 +106,19 @@ export type EmptyAuthData = z.infer<typeof EmptyAuthData>;
 export const AuthDataM2M = z.object({
   tokenType: z.literal("m2m"),
   organizationId: TenantId,
-  userRoles: z.array(z.literal("m2m")),
 });
 export type AuthDataM2M = z.infer<typeof AuthDataM2M>;
 
 export const AuthDataInternal = z.object({
   tokenType: z.literal("internal"),
-  userRoles: z.array(z.literal("internal")),
 });
 export type AuthDataInternal = z.infer<typeof AuthDataInternal>;
 
 export const AuthDataUI = z.object({
   tokenType: z.literal("ui"),
+  userRoles: z.array(UserRole),
   organizationId: TenantId,
   userId: z.string().uuid(),
-  userRoles: z.array(UserRole),
   externalId: z.object({
     value: z.string(),
     origin: z.string(),
@@ -141,18 +139,25 @@ export function getAuthDataFromToken(token: AuthToken): AuthData {
     .with({ role: "m2m" }, (t) => ({
       tokenType: "m2m",
       organizationId: unsafeBrandId<TenantId>(t.organizationId),
-      userRoles: [t.role],
     }))
-    .with({ role: "internal" }, (t) => ({
+    .with({ role: "internal" }, () => ({
       tokenType: "internal",
-      userRoles: [t.role],
     }))
     .with({ "user-roles": P.not(P.nullish) }, (t) => ({
       tokenType: "ui",
+      userRoles: t["user-roles"],
       organizationId: unsafeBrandId<TenantId>(t.organizationId),
       userId: t.uid,
-      userRoles: t["user-roles"],
       externalId: t.externalId,
     }))
+    .exhaustive();
+}
+
+export function getUserRolesFromAuthData(authData: AuthData): UserRole[] {
+  return match<AuthData, UserRole[]>(authData)
+    .with({ tokenType: "empty" }, () => [])
+    .with({ tokenType: "internal" }, () => ["internal"])
+    .with({ tokenType: "m2m" }, () => ["m2m"])
+    .with({ tokenType: "ui" }, (d) => d.userRoles)
     .exhaustive();
 }

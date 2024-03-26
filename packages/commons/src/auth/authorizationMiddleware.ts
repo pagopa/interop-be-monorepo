@@ -15,7 +15,7 @@ import {
 import { P, match } from "ts-pattern";
 import { z } from "zod";
 import { Middleware } from "../types/middleware.js";
-import { UserRole, readHeaders } from "../index.js";
+import { UserRole, getUserRolesFromAuthData, readHeaders } from "../index.js";
 import { logger } from "../logging/index.js";
 import { readAuthDataFromJwtToken } from "./jwt.js";
 
@@ -45,15 +45,7 @@ const hasValidRoles = (
     };
   }
 
-  const userRoles = match(authData)
-    .with({ tokenType: "empty" }, () => [])
-    .with(
-      { tokenType: "m2m" },
-      { tokenType: "internal" },
-      { tokenType: "ui" },
-      (d) => d.userRoles
-    )
-    .exhaustive();
+  const userRoles = getUserRolesFromAuthData(authData);
 
   if (!userRoles || userRoles.length === 0) {
     return {

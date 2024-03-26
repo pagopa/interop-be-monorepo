@@ -134,7 +134,6 @@ describe("JWT tests", () => {
       expect(readAuthDataFromJwtToken(token)).toEqual({
         tokenType: "m2m",
         organizationId: "89804b2c-f62e-4867-87a4-3a82f2b03485",
-        userRoles: ["m2m"],
       });
     });
 
@@ -179,7 +178,6 @@ describe("JWT tests", () => {
       const token = getMockSignedToken(mockInternalToken);
       expect(readAuthDataFromJwtToken(token)).toEqual({
         tokenType: "internal",
-        userRoles: ["internal"],
       });
     });
 
