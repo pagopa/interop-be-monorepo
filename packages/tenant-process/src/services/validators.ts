@@ -97,8 +97,10 @@ export function assertRequesterAllowed(
   authData: AuthData
 ): asserts authData is AuthData & { organizationId: NonNullable<TenantId> } {
   match(authData)
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    .with({ tokenType: "empty" }, { tokenType: "internal" }, () => {
+    .with({ tokenType: "internal" }, () => {
+      // Internal requests are always allowed
+    })
+    .with({ tokenType: "empty" }, () => {
       throw operationForbidden;
     })
     .with({ tokenType: "m2m" }, { tokenType: "ui" }, (d) => {
@@ -106,22 +108,6 @@ export function assertRequesterAllowed(
         throw operationForbidden;
       }
     })
-    .exhaustive();
-}
-
-export async function assertResourceAllowed(
-  resourceId: string,
-  authData: AuthData
-): Promise<void> {
-  match(authData)
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    .with({ tokenType: "internal" }, () => {})
-    .with(
-      { tokenType: "ui" },
-      { tokenType: "m2m" },
-      { tokenType: "empty" },
-      () => assertRequesterAllowed(resourceId, authData)
-    )
     .exhaustive();
 }
 
@@ -210,4 +196,16 @@ export function evaluateNewSelfcareId({
       newSelfcareId,
     });
   }
+}
+
+export function assertOrganizationIdInAuthData(
+  authData: AuthData
+): asserts authData is AuthData & { organizationId: NonNullable<TenantId> } {
+  match(authData)
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    .with({ tokenType: "m2m" }, { tokenType: "ui" }, () => {})
+    .with({ tokenType: "empty" }, { tokenType: "internal" }, () => {
+      throw operationForbidden;
+    })
+    .exhaustive();
 }

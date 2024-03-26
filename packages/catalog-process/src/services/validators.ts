@@ -32,8 +32,10 @@ export function assertRequesterAllowed(
   authData: AuthData
 ): asserts authData is AuthData & { organizationId: NonNullable<TenantId> } {
   match(authData)
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    .with({ tokenType: "empty" }, { tokenType: "internal" }, () => {
+    .with({ tokenType: "internal" }, () => {
+      // Internal requests are always allowed
+    })
+    .with({ tokenType: "empty" }, () => {
       throw operationForbidden;
     })
     .with({ tokenType: "m2m" }, { tokenType: "ui" }, (d) => {

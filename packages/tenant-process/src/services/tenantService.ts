@@ -36,12 +36,13 @@ import {
   assertTenantExists,
   assertValidExpirationDate,
   assertVerifiedAttributeExistsInTenant,
-  assertResourceAllowed,
   evaluateNewSelfcareId,
   getTenantKind,
   getTenantKindLoadingCertifiedAttributes,
   assertOrganizationVerifierExist,
   assertExpirationDateExist,
+  assertRequesterAllowed,
+  assertOrganizationIdInAuthData,
 } from "./validators.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -136,7 +137,7 @@ export function tenantServiceBuilder(
         tenantSeed.externalId
       );
       if (existingTenant) {
-        await assertResourceAllowed(existingTenant.data.id, authData);
+        assertRequesterAllowed(existingTenant.data.id, authData);
 
         evaluateNewSelfcareId({
           tenant: existingTenant.data,
@@ -200,21 +201,23 @@ export function tenantServiceBuilder(
     },
     async getConsumers({
       consumerName,
-      producerId,
+      authData,
       offset,
       limit,
     }: {
       consumerName: string | undefined;
-      producerId: TenantId;
+      authData: AuthData;
       offset: number;
       limit: number;
     }): Promise<ListResult<Tenant>> {
       logger.info(
         `Retrieving Consumers with name = ${consumerName}, limit = ${limit}, offset = ${offset}`
       );
+
+      assertOrganizationIdInAuthData(authData);
       return readModelService.getConsumers({
         consumerName,
-        producerId,
+        producerId: authData.organizationId,
         offset,
         limit,
       });

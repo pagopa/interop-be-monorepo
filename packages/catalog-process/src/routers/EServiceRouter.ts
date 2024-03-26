@@ -503,6 +503,7 @@ const eservicesRouter = (
           await catalogService.archiveDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
+            req.ctx.authData,
             req.ctx.correlationId
           );
           return res.status(204).end();
