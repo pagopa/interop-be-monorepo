@@ -5,7 +5,6 @@ import {
   Tenant,
   TenantId,
   attributeEventToBinaryData,
-  attributeKind,
   generateId,
   toAttributeV1,
 } from "pagopa-interop-models";
