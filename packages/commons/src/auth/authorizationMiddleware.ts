@@ -15,9 +15,8 @@ import {
 import { P, match } from "ts-pattern";
 import { z } from "zod";
 import { Middleware } from "../types/middleware.js";
-import { readHeaders } from "../index.js";
+import { UserRole, readHeaders } from "../index.js";
 import { logger } from "../logging/index.js";
-import { UserRoles } from "./authData.js";
 import { readAuthDataFromJwtToken } from "./jwt.js";
 
 type RoleValidation =
@@ -31,7 +30,7 @@ const makeApiProblem = makeApiProblemBuilder(logger, {});
 
 const hasValidRoles = (
   req: Request,
-  admittedRoles: UserRoles[]
+  admittedRoles: UserRole[]
 ): RoleValidation => {
   const jwtToken = req.headers.authorization?.split(" ")[1];
   if (!jwtToken) {
@@ -81,7 +80,7 @@ export const authorizationMiddleware =
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Context extends z.ZodObject<any>
   >(
-    admittedRoles: UserRoles[]
+    admittedRoles: UserRole[]
   ): Middleware<Api, M, Path, Context> =>
   (req, res, next) => {
     try {
@@ -100,7 +99,7 @@ export const authorizationMiddleware =
               ...error,
               correlationId: headers?.correlationId,
             }),
-            (error) => (error.code === "unauthorizedError" ? 401 : 500)
+            (error) => (error.code === "unauthorizedError" ? 403 : 500)
           )
         )
         .otherwise(() =>

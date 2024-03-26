@@ -51,11 +51,11 @@ spec:
                 configMapKeyRef:
                   name: interop-be-authorization-updater
                   key: KAFKA_BROKERS
-            - name: KAFKA_TOPICS
+            - name: CATALOG_TOPIC
               valueFrom:
                 configMapKeyRef:
                   name: interop-be-authorization-updater
-                  key: KAFKA_TOPICS
+                  key: CATALOG_TOPIC
             - name: AUTHORIZATION_MANAGEMENT_URL
               valueFrom:
                 configMapKeyRef:

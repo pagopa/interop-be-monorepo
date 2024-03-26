@@ -1,8 +1,8 @@
 import {
   AuthData,
   CreateEvent,
+  DB,
   eventRepository,
-  initDB,
   logger,
 } from "pagopa-interop-commons";
 import {
@@ -20,7 +20,6 @@ import {
   tenantAttributeType,
   tenantEventToBinaryData,
 } from "pagopa-interop-models";
-import { TenantProcessConfig } from "../utilities/config.js";
 import {
   toCreateEventTenantAdded,
   toCreateEventTenantUpdated,
@@ -48,26 +47,17 @@ import { ReadModelService } from "./readModelService.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantServiceBuilder(
-  config: TenantProcessConfig,
+  dbInstance: DB,
   readModelService: ReadModelService
 ) {
-  const repository = eventRepository(
-    initDB({
-      username: config.eventStoreDbUsername,
-      password: config.eventStoreDbPassword,
-      host: config.eventStoreDbHost,
-      port: config.eventStoreDbPort,
-      database: config.eventStoreDbName,
-      schema: config.eventStoreDbSchema,
-      useSSL: config.eventStoreDbUseSSL,
-    }),
-    tenantEventToBinaryData
-  );
+  const repository = eventRepository(dbInstance, tenantEventToBinaryData);
+
   return {
     async updateVerifiedAttributeExtensionDate(
       tenantId: TenantId,
       attributeId: AttributeId,
-      verifierId: string
+      verifierId: string,
+      correlationId: string
     ): Promise<string> {
       const tenant = await readModelService.getTenantById(tenantId);
 
@@ -77,6 +67,7 @@ export function tenantServiceBuilder(
           attributeId,
           verifierId,
           tenant,
+          correlationId,
         })
       );
     },
@@ -86,7 +77,8 @@ export function tenantServiceBuilder(
         | ApiM2MTenantSeed
         | ApiInternalTenantSeed,
       attributesExternalIds: ExternalId[],
-      kind: TenantKind
+      kind: TenantKind,
+      correlationId: string
     ): Promise<string> {
       const [attributes, tenant] = await Promise.all([
         readModelService.getAttributesByExternalIds(attributesExternalIds),
@@ -99,6 +91,7 @@ export function tenantServiceBuilder(
           apiTenantSeed,
           kind,
           attributes,
+          correlationId,
         })
       );
     },
@@ -108,11 +101,13 @@ export function tenantServiceBuilder(
       tenantId,
       attributeId,
       updateVerifiedTenantAttributeSeed,
+      correlationId,
     }: {
       verifierId: string;
       tenantId: TenantId;
       attributeId: AttributeId;
       updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed;
+      correlationId: string;
     }): Promise<void> {
       const tenant = await readModelService.getTenantById(tenantId);
 
@@ -123,6 +118,7 @@ export function tenantServiceBuilder(
           tenantId,
           attributeId,
           updateVerifiedTenantAttributeSeed,
+          correlationId,
         })
       );
     },
@@ -130,9 +126,11 @@ export function tenantServiceBuilder(
     async selfcareUpsertTenant({
       tenantSeed,
       authData,
+      correlationId,
     }: {
       tenantSeed: ApiSelfcareTenantSeed;
       authData: AuthData;
+      correlationId: string;
     }): Promise<string> {
       const existingTenant = await readModelService.getTenantByExternalId(
         tenantSeed.externalId
@@ -165,7 +163,8 @@ export function tenantServiceBuilder(
           toCreateEventTenantUpdated(
             existingTenant.data.id,
             existingTenant.metadata.version,
-            updatedTenant
+            updatedTenant,
+            correlationId
           )
         );
       } else {
@@ -181,7 +180,7 @@ export function tenantServiceBuilder(
           createdAt: new Date(),
         };
         return await repository.createEvent(
-          toCreateEventTenantAdded(newTenant)
+          toCreateEventTenantAdded(newTenant, correlationId)
         );
       }
     },
@@ -258,12 +257,14 @@ async function updateTenantVerifiedAttributeLogic({
   tenantId,
   attributeId,
   updateVerifiedTenantAttributeSeed,
+  correlationId,
 }: {
   verifierId: string;
   tenant: WithMetadata<Tenant> | undefined;
   tenantId: TenantId;
   attributeId: AttributeId;
   updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed;
+  correlationId: string;
 }): Promise<CreateEvent<TenantEvent>> {
   assertTenantExists(tenantId, tenant);
 
@@ -304,7 +305,8 @@ async function updateTenantVerifiedAttributeLogic({
   return toCreateEventTenantUpdated(
     tenant.data.id,
     tenant.metadata.version,
-    updatedTenant
+    updatedTenant,
+    correlationId
   );
 }
 
@@ -313,6 +315,7 @@ export function createTenantLogic({
   apiTenantSeed,
   kind,
   attributes,
+  correlationId,
 }: {
   tenant: WithMetadata<Tenant> | undefined;
   apiTenantSeed:
@@ -321,6 +324,7 @@ export function createTenantLogic({
     | ApiInternalTenantSeed;
   kind: TenantKind;
   attributes: Array<WithMetadata<Attribute>>;
+  correlationId: string;
 }): CreateEvent<TenantEvent> {
   if (tenant) {
     throw tenantDuplicate(apiTenantSeed.name);
@@ -343,7 +347,7 @@ export function createTenantLogic({
     kind,
   };
 
-  return toCreateEventTenantAdded(newTenant);
+  return toCreateEventTenantAdded(newTenant, correlationId);
 }
 export type TenantService = ReturnType<typeof tenantServiceBuilder>;
 
@@ -352,11 +356,13 @@ export async function updateVerifiedAttributeExtensionDateLogic({
   attributeId,
   verifierId,
   tenant,
+  correlationId,
 }: {
   tenantId: TenantId;
   attributeId: AttributeId;
   verifierId: string;
   tenant: WithMetadata<Tenant> | undefined;
+  correlationId: string;
 }): Promise<CreateEvent<TenantEvent>> {
   assertTenantExists(tenantId, tenant);
 
@@ -420,6 +426,7 @@ export async function updateVerifiedAttributeExtensionDateLogic({
   return toCreateEventTenantUpdated(
     tenant.data.id,
     tenant.metadata.version,
-    updatedTenant
+    updatedTenant,
+    correlationId
   );
 }
