@@ -1,6 +1,6 @@
 import { match } from "ts-pattern";
 import { AttributeKindV1, AttributeV1 } from "../index.js";
-import { Attribute, AttributeKind } from "./attribute.js";
+import { Attribute, AttributeKind, attributeKind } from "./attribute.js";
 
 export const toAttributeV1 = (attribute: Attribute): AttributeV1 => ({
   ...attribute,
@@ -10,7 +10,7 @@ export const toAttributeV1 = (attribute: Attribute): AttributeV1 => ({
 
 export const toAttributeKindV1 = (input: AttributeKind): AttributeKindV1 =>
   match(input)
-    .with("Declared", () => AttributeKindV1.DECLARED)
-    .with("Verified", () => AttributeKindV1.VERIFIED)
-    .with("Certified", () => AttributeKindV1.CERTIFIED)
+    .with(attributeKind.declared, () => AttributeKindV1.DECLARED)
+    .with(attributeKind.verified, () => AttributeKindV1.VERIFIED)
+    .with(attributeKind.certified, () => AttributeKindV1.CERTIFIED)
     .exhaustive();
