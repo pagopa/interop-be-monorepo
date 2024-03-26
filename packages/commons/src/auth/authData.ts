@@ -34,7 +34,7 @@ const CommaSeparatedStringToArray = <T extends z.ZodType>(t: T) =>
     .transform((s: string) => s.split(","))
     .pipe(z.array(t));
 
-const SharedJWTClaims = z.object({
+const SharedStandardJWTClaims = z.object({
   // All standard claims except "sub", which is not present in UI tokens
   iss: z.string(),
   aud: CommaSeparatedStringToArray(z.string()),
@@ -44,7 +44,7 @@ const SharedJWTClaims = z.object({
   jti: z.string().uuid(),
 });
 
-export const M2MAuthToken = SharedJWTClaims.merge(
+export const M2MAuthToken = SharedStandardJWTClaims.merge(
   z.object({
     role: z.literal("m2m"),
     organizationId: z.string().uuid(),
@@ -53,14 +53,14 @@ export const M2MAuthToken = SharedJWTClaims.merge(
   })
 );
 
-export const InternalAuthToken = SharedJWTClaims.merge(
+export const InternalAuthToken = SharedStandardJWTClaims.merge(
   z.object({
     role: z.literal("internal"),
     sub: z.string().uuid(),
   })
 );
 
-export const UIAuthToken = SharedJWTClaims.merge(
+export const UIAuthToken = SharedStandardJWTClaims.merge(
   z.object({
     // setting role to z.undefined() to make the discriminated union work.
     // z.discriminatedUnion performs better than z.union and gives more meaningful parsing errors.
