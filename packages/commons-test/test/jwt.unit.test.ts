@@ -74,7 +74,7 @@ describe("JWT tests", () => {
         "user-roles": "admin",
       });
       expect(readAuthDataFromJwtToken(token)).toEqual({
-        type: "ui",
+        tokenType: "ui",
         externalId: {
           origin: "IPA",
           value: "5N2TR557",
@@ -92,7 +92,7 @@ describe("JWT tests", () => {
       });
 
       expect(readAuthDataFromJwtToken(token)).toEqual({
-        type: "ui",
+        tokenType: "ui",
         externalId: {
           origin: "IPA",
           value: "5N2TR557",
@@ -132,7 +132,7 @@ describe("JWT tests", () => {
     it("should successfully read auth data from a M2M token", async () => {
       const token = getMockSignedToken(mockM2MToken);
       expect(readAuthDataFromJwtToken(token)).toEqual({
-        type: "m2m",
+        tokenType: "m2m",
         organizationId: "89804b2c-f62e-4867-87a4-3a82f2b03485",
         userRoles: ["m2m"],
       });
@@ -178,7 +178,7 @@ describe("JWT tests", () => {
     it("should successfully read auth data from an Internal token", async () => {
       const token = getMockSignedToken(mockInternalToken);
       expect(readAuthDataFromJwtToken(token)).toEqual({
-        type: "internal",
+        tokenType: "internal",
         userRoles: ["internal"],
       });
     });

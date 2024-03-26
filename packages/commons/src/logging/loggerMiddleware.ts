@@ -28,17 +28,17 @@ const getLoggerMetadata = (): SessionMetaData => {
         correlationId: "",
       }
     : match(appContext.authData)
-        .with({ type: "empty" }, { type: "internal" }, () => ({
+        .with({ tokenType: "empty" }, { tokenType: "internal" }, () => ({
           userId: "",
           organizationId: "",
           correlationId: appContext.correlationId,
         }))
-        .with({ type: "m2m" }, (d) => ({
+        .with({ tokenType: "m2m" }, (d) => ({
           userId: "",
           organizationId: d.organizationId,
           correlationId: appContext.correlationId,
         }))
-        .with({ type: "ui" }, (d) => ({
+        .with({ tokenType: "ui" }, (d) => ({
           userId: d.userId,
           organizationId: d.organizationId,
           correlationId: appContext.correlationId,

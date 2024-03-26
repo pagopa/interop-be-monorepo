@@ -46,11 +46,11 @@ const hasValidRoles = (
   }
 
   const userRoles = match(authData)
-    .with({ type: "empty" }, () => [])
+    .with({ tokenType: "empty" }, () => [])
     .with(
-      { type: "m2m" },
-      { type: "internal" },
-      { type: "ui" },
+      { tokenType: "m2m" },
+      { tokenType: "internal" },
+      { tokenType: "ui" },
       (d) => d.userRoles
     )
     .exhaustive();
