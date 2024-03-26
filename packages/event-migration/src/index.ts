@@ -137,7 +137,7 @@ for (const event of originalEvents) {
       (originalType) =>
         (originalType as string).replace("CatalogItem", "EService")
     )
-    .otherwise((originalType) => `UnknownType: ${originalType}`);
+    .otherwise((originalType) => originalType);
 
   const eventToDecode = EServiceEventV1.safeParse({
     type: eventType,
