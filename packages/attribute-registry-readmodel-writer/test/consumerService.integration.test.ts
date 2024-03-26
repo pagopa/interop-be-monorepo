@@ -17,9 +17,7 @@ import {
   Attribute,
   AttributeAddedV1,
   AttributeEventEnvelope,
-  AttributeKindV1,
   attributeKind,
-  generateId,
   toAttributeV1,
 } from "pagopa-interop-models";
 import { StartedTestContainer } from "testcontainers";
