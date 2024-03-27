@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-console */
 import { ConnectionString } from "connection-string";
-import { EServiceEventV1 } from "pagopa-interop-models";
+import { AttributeEvent, EServiceEventV1 } from "pagopa-interop-models";
 import pgPromise, { IDatabase } from "pg-promise";
 import {
   IClient,
@@ -27,7 +28,7 @@ const Config = z
     TARGET_DB_HOST: z.string(),
     TARGET_DB_PORT: z.coerce.number(),
     TARGET_DB_NAME: z.string(),
-    TARGET_DB_SCHEMA: z.string(),
+    TARGET_DB_SCHEMA: z.enum(["catalog", "attribute"]),
     TARGET_DB_USE_SSL: z
       .enum(["true", "false"])
       .transform((value) => value === "true"),
@@ -123,27 +124,65 @@ const originalEvents = await sourceConnection.many(
 
 const idVersionHashMap = new Map<string, number>();
 
+const { parser, decoder, idParser } = match(config.targetDbSchema)
+  .with("catalog", () => {
+    const parser = (event_ser_manifest: any) =>
+      match(
+        event_ser_manifest
+          .replace("it.pagopa.interop.catalogmanagement.model.persistence.", "")
+          .split("|")[0]
+      )
+        .when(
+          (originalType) => (originalType as string).includes("CatalogItem"),
+          (originalType) =>
+            (originalType as string).replace("CatalogItem", "EService")
+        )
+        .otherwise((originalType) => originalType);
+
+    const decoder = (eventType: string, event_payload: any) =>
+      EServiceEventV1.safeParse({
+        type: eventType,
+        event_version: 1,
+        data: event_payload,
+      });
+
+    const idParser = (anyPayload: any) =>
+      anyPayload.eservice ? anyPayload.eservice.id : anyPayload.eserviceId;
+
+    return { parser, decoder, idParser };
+  })
+  .with("attribute", () => {
+    const parser = (event_ser_manifest: any) =>
+      match(
+        event_ser_manifest
+          .replace(
+            "it.pagopa.interop.attributeregistrymanagement.model.persistence.",
+            ""
+          )
+          .split("|")[0]
+      ).otherwise((originalType) => originalType);
+
+    const decoder = (eventType: string, event_payload: any) =>
+      AttributeEvent.safeParse({
+        type: eventType,
+        event_version: 1,
+        data: event_payload,
+      });
+
+    const idParser = (anyPayload: any) =>
+      anyPayload.attribute ? anyPayload.attribute.id : anyPayload.id;
+
+    return { parser, decoder, idParser };
+  })
+  .exhaustive();
+
 for (const event of originalEvents) {
   console.log(event);
   const { event_ser_manifest, event_payload, write_timestamp } = event;
 
-  const eventType = match(
-    event_ser_manifest
-      .replace("it.pagopa.interop.catalogmanagement.model.persistence.", "")
-      .split("|")[0]
-  )
-    .when(
-      (originalType) => (originalType as string).includes("CatalogItem"),
-      (originalType) =>
-        (originalType as string).replace("CatalogItem", "EService")
-    )
-    .otherwise((originalType) => originalType);
+  const eventType = parser(event_ser_manifest);
 
-  const eventToDecode = EServiceEventV1.safeParse({
-    type: eventType,
-    event_version: 1,
-    data: event_payload,
-  });
+  const eventToDecode = decoder(eventType, event_payload);
 
   if (!eventToDecode.success) {
     console.error(
@@ -155,9 +194,7 @@ for (const event of originalEvents) {
   console.log(eventToDecode.data);
 
   const anyPayload = eventToDecode.data.data as any;
-  const id = anyPayload.eservice
-    ? anyPayload.eservice.id
-    : anyPayload.eserviceId;
+  const id = idParser(anyPayload);
 
   let version = idVersionHashMap.get(id);
   if (version === undefined) {
