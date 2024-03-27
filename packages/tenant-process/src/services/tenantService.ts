@@ -76,7 +76,7 @@ export function tenantServiceBuilder(
 
       const tenant = await retrieveTenant(tenantId, readModelService);
 
-      const attribute = tenant?.data.attributes.find(
+      const attribute = tenant.data.attributes.find(
         (att) => att.id === attributeId
       );
 
@@ -159,7 +159,7 @@ export function tenantServiceBuilder(
 
       assertValidExpirationDate(expirationDate);
 
-      const attribute = tenant?.data.attributes.find(
+      const attribute = tenant.data.attributes.find(
         (att) => att.id === attributeId
       );
 
@@ -201,6 +201,9 @@ export function tenantServiceBuilder(
       tenantSeed: ApiSelfcareTenantSeed;
       authData: AuthData;
     }): Promise<string> {
+      logger.info(
+        `Upsert tenant by selfcare with externalId: ${tenantSeed.externalId}`
+      );
       const existingTenant = await readModelService.getTenantByExternalId(
         tenantSeed.externalId
       );
