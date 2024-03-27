@@ -13,7 +13,7 @@ import {
 } from "pagopa-interop-commons";
 import { v4 as uuidv4 } from "uuid";
 import { kafkaMessageProcessError } from "pagopa-interop-models";
-import { convertToEserviceV1 } from "./models/catalogEventV2Converter.js";
+import { convertToEserviceV1 } from "./models/catalogEventV2ConverterToV1.js";
 import { buildCatalogMessage } from "./models/catalogEventMessage.js";
 import { initQueueManager } from "./queue-manager/queueManager.js";
 
