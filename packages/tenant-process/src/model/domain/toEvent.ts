@@ -20,12 +20,15 @@ import {
   tenantKind,
   TenantEvent,
   tenantAttributeType,
+  TenantUnitTypeV1,
+  tenantUnitType,
+  TenantUnitType,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
 export function toFeatureV1(feature: TenantFeature): TenantFeatureV1 {
   return match<TenantFeature, TenantFeatureV1>(feature)
-    .with({ type: "Certifier" }, (feature) => ({
+    .with({ type: "PersistentCertifier" }, (feature) => ({
       sealedValue: {
         oneofKind: "certifier",
         certifier: {
@@ -112,6 +115,7 @@ export function toTenantMailV1(mail: TenantMail): TenantMailV1 {
 export function toTenantMailKindV1(kind: TenantMailKind): TenantMailKindV1 {
   return match(kind)
     .with(tenantMailKind.ContactEmail, () => TenantMailKindV1.CONTACT_EMAIL)
+    .with(tenantMailKind.DigitalAddress, () => TenantMailKindV1.DIGITAL_ADDRESS)
     .exhaustive();
 }
 
@@ -123,6 +127,13 @@ export function toTenantKindV1(input: TenantKind): TenantKindV1 {
     .exhaustive();
 }
 
+export function toTenantUnitTypeV1(input: TenantUnitType): TenantUnitTypeV1 {
+  return match<TenantUnitType, TenantUnitTypeV1>(input)
+    .with(tenantUnitType.AOO, () => TenantUnitTypeV1.AOO)
+    .with(tenantUnitType.UO, () => TenantUnitTypeV1.UO)
+    .exhaustive();
+}
+
 export const toTenantV1 = (tenant: Tenant): TenantV1 => ({
   ...tenant,
   features: tenant.features.map(toFeatureV1),
@@ -131,10 +142,17 @@ export const toTenantV1 = (tenant: Tenant): TenantV1 => ({
   updatedAt: tenant.updatedAt ? BigInt(tenant.updatedAt.getTime()) : undefined,
   mails: tenant.mails.map(toTenantMailV1),
   kind: tenant.kind ? toTenantKindV1(tenant.kind) : undefined,
+  onboardedAt: tenant.createdAt
+    ? BigInt(tenant.createdAt.getTime())
+    : undefined,
+  subUnitType: tenant.subUnitType
+    ? toTenantUnitTypeV1(tenant.subUnitType)
+    : undefined,
 });
 
 export const toCreateEventTenantAdded = (
-  tenant: Tenant
+  tenant: Tenant,
+  correlationId: string
 ): CreateEvent<TenantEvent> => ({
   streamId: tenant.id,
   version: 0,
@@ -143,12 +161,14 @@ export const toCreateEventTenantAdded = (
     type: "TenantCreated",
     data: { tenant: toTenantV1(tenant) },
   },
+  correlationId,
 });
 
 export const toCreateEventTenantUpdated = (
   streamId: string,
   version: number,
-  updatedTenant: Tenant
+  updatedTenant: Tenant,
+  correlationId: string
 ): CreateEvent<TenantEvent> => ({
   streamId,
   version,
@@ -159,4 +179,5 @@ export const toCreateEventTenantUpdated = (
       tenant: toTenantV1(updatedTenant),
     },
   },
+  correlationId,
 });

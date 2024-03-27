@@ -101,3 +101,8 @@ spec:
                 configMapKeyRef:
                   name: interop-be-attribute-registry-readmodel-writer
                   key: KAFKA_BROKERS
+            - name: ATTRIBUTE_TOPIC
+              valueFrom:
+                configMapKeyRef:
+                  name: interop-be-attribute-registry-readmodel-writer
+                  key: ATTRIBUTE_TOPIC
