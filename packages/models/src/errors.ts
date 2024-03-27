@@ -105,8 +105,6 @@ const errorCodes = {
   missingRSAKey: "9996",
   missingKafkaMessageData: "9997",
   kafkaMessageProcessError: "9998",
-  // This error code is temporary and should be removed when conversion is deprecated
-  eventV1ConversionError: "9999",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -177,14 +175,6 @@ export function kafkaMessageProcessError(
   });
 }
 
-export function eventV1ConversionError(
-  message: string
-): InternalError<CommonErrorCodes> {
-  return new InternalError({
-    code: "eventV1ConversionError",
-    detail: `Error during event V1 conversion with message: ${message}`,
-  });
-}
 /* ===== API Error ===== */
 
 export function authenticationSaslFailed(

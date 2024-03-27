@@ -4,12 +4,12 @@ import {
   EServiceEventEnvelopeV2,
   EServiceEventV1,
   EServiceV1,
-  eventV1ConversionError,
   fromEServiceV2,
   missingKafkaMessageDataError,
   toEServiceV1,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { eventV1ConversionError } from "../notifierErrors.js";
 
 const getEserviceV1 = (event: EServiceEventEnvelopeV2): EServiceV1 => {
   if (!event.data.eservice) {
@@ -26,7 +26,9 @@ const getDescriptorV1 = (
   const descriptor = eserviceV1.descriptors.find((d) => d.id === descriptorId);
 
   if (!descriptor) {
-    throw eventV1ConversionError("Added dcoument descriptor not found");
+    throw eventV1ConversionError(
+      `Expected descriptor ${descriptorId} in eservice during eventV1 conversion`
+    );
   }
 
   return descriptor;
@@ -39,7 +41,7 @@ const getDocumentV1 = (
   const document = descriptor.docs.find((d) => d.id === documentId);
   if (!document) {
     throw eventV1ConversionError(
-      `Expected document ${documentId} not found during eventV1 conversion`
+      `Expected document ${documentId} in descriptor during eventV1 conversion`
     );
   }
 
@@ -51,11 +53,15 @@ const getInterfaceV1 = (
   interfaceId: string
 ): EServiceDocumentV1 => {
   if (!descriptor?.interface) {
-    throw eventV1ConversionError("Added dcoument descriptor not found");
+    throw eventV1ConversionError(
+      `Expected interface ${interfaceId} in descriptor during eventV1 conversion`
+    );
   }
 
   if (descriptor.interface.id !== interfaceId) {
-    throw eventV1ConversionError("Interface added not found");
+    throw eventV1ConversionError(
+      `Expected Interface with same ID ${interfaceId} in descriptor's interface during eventV1 conversion`
+    );
   }
 
   return descriptor.interface;
