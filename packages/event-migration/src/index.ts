@@ -160,7 +160,17 @@ const { parser, decoder, idParser } = match(config.targetDbSchema)
             ""
           )
           .split("|")[0]
-      ).otherwise((originalType) => originalType);
+      )
+        .when(
+          (originalType) =>
+            (originalType as string).includes("AttributeDeleted"),
+          (originalType) =>
+            (originalType as string).replace(
+              "AttributeDeleted",
+              "MaintenanceAttributeDeleted"
+            )
+        )
+        .otherwise((originalType) => originalType);
 
     const decoder = (eventType: string, event_payload: any) =>
       AttributeEvent.safeParse({
