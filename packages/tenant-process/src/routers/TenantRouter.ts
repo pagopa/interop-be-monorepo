@@ -6,6 +6,8 @@ import {
   ZodiosContext,
   authorizationMiddleware,
   initDB,
+  assertAuthDataIs,
+  assertAuthDataIsOneOf,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
@@ -65,6 +67,7 @@ const tenantsRouter = (
       ]),
       async (req, res) => {
         try {
+          assertAuthDataIs(req.ctx.authData, "ui");
           const { name, offset, limit } = req.query;
           const consumers = await tenantService.getConsumers({
             consumerName: name,
@@ -92,6 +95,7 @@ const tenantsRouter = (
       ]),
       async (req, res) => {
         try {
+          assertAuthDataIs(req.ctx.authData, "ui");
           const { name, offset, limit } = req.query;
           const producers = await tenantService.getProducers({
             producerName: name,
@@ -118,6 +122,7 @@ const tenantsRouter = (
       ]),
       async (req, res) => {
         try {
+          assertAuthDataIs(req.ctx.authData, "ui");
           const { name, offset, limit } = req.query;
           const tenants = await tenantService.getTenantsByName({
             name,
@@ -147,6 +152,7 @@ const tenantsRouter = (
       ]),
       async (req, res) => {
         try {
+          assertAuthDataIsOneOf(req.ctx.authData, ["ui", "m2m", "internal"]);
           const tenant = await tenantService.getTenantById(
             unsafeBrandId(req.params.id)
           );
@@ -181,6 +187,7 @@ const tenantsRouter = (
       ]),
       async (req, res) => {
         try {
+          assertAuthDataIsOneOf(req.ctx.authData, ["ui", "m2m"]);
           const { origin, code } = req.params;
 
           const tenant = await tenantService.getTenantByExternalId({
@@ -218,6 +225,7 @@ const tenantsRouter = (
       ]),
       async (req, res) => {
         try {
+          assertAuthDataIsOneOf(req.ctx.authData, ["ui", "m2m", "internal"]);
           const tenant = await tenantService.getTenantBySelfcareId(
             req.params.selfcareId
           );
@@ -247,22 +255,34 @@ const tenantsRouter = (
     .post(
       "/internal/tenants",
       authorizationMiddleware([INTERNAL_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        assertAuthDataIs(req.ctx.authData, "internal");
+        res.status(501).send();
+      }
     )
     .post(
       "/tenants/:id",
       authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        assertAuthDataIs(req.ctx.authData, "ui");
+        res.status(501).send();
+      }
     )
     .post(
       "/internal/origin/:tOrigin/externalId/:tExternalId/attributes/origin/:aOrigin/externalId/:aExternalId",
       authorizationMiddleware([INTERNAL_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        assertAuthDataIs(req.ctx.authData, "internal");
+        res.status(501).send();
+      }
     )
     .post(
       "/m2m/tenants",
       authorizationMiddleware([M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        assertAuthDataIs(req.ctx.authData, "m2m");
+        res.status(501).send();
+      }
     )
     .post(
       "/selfcare/tenants",
@@ -274,6 +294,7 @@ const tenantsRouter = (
       ]),
       async (req, res) => {
         try {
+          assertAuthDataIsOneOf(req.ctx.authData, ["ui", "internal"]);
           const id = await tenantService.selfcareUpsertTenant({
             tenantSeed: req.body,
             authData: req.ctx.authData,
@@ -292,13 +313,17 @@ const tenantsRouter = (
     .post(
       "/tenants/:tenantId/attributes/verified",
       authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        assertAuthDataIs(req.ctx.authData, "ui");
+        res.status(501).send();
+      }
     )
     .post(
       "/tenants/:tenantId/attributes/verified/:attributeId",
       authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
         try {
+          assertAuthDataIs(req.ctx.authData, "ui");
           const { tenantId, attributeId } = req.params;
           await tenantService.updateTenantVerifiedAttribute({
             verifierId: req.ctx.authData.organizationId,
@@ -322,6 +347,7 @@ const tenantsRouter = (
       authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
         try {
+          assertAuthDataIs(req.ctx.authData, "internal");
           const { tenantId, attributeId, verifierId } = req.params;
           await tenantService.updateVerifiedAttributeExtensionDate(
             unsafeBrandId(tenantId),
@@ -342,27 +368,42 @@ const tenantsRouter = (
     .post(
       "/tenants/attributes/declared",
       authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        assertAuthDataIs(req.ctx.authData, "ui");
+        res.status(501).send();
+      }
     )
     .delete(
       "/internal/origin/:tOrigin/externalId/:tExternalId/attributes/origin/:aOrigin/externalId/:aExternalId",
       authorizationMiddleware([INTERNAL_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        assertAuthDataIs(req.ctx.authData, "internal");
+        res.status(501).send();
+      }
     )
     .delete(
       "/m2m/origin/:origin/externalId/:externalId/attributes/:code",
       authorizationMiddleware([M2M_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        assertAuthDataIs(req.ctx.authData, "m2m");
+        res.status(501).send();
+      }
     )
     .delete(
       "/tenants/:tenantId/attributes/verified/:attributeId",
       authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        assertAuthDataIs(req.ctx.authData, "ui");
+        res.status(501).send();
+      }
     )
     .delete(
       "/tenants/attributes/declared/:attributeId",
       authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        assertAuthDataIs(req.ctx.authData, "ui");
+        res.status(501).send();
+      }
     );
 
   return tenantsRouter;

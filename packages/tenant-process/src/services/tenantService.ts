@@ -36,12 +36,12 @@ import {
   assertTenantExists,
   assertValidExpirationDate,
   assertVerifiedAttributeExistsInTenant,
-  assertResourceAllowed,
   evaluateNewSelfcareId,
   getTenantKind,
   getTenantKindLoadingCertifiedAttributes,
   assertOrganizationVerifierExist,
   assertExpirationDateExist,
+  assertRequesterAllowed,
 } from "./validators.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -136,7 +136,7 @@ export function tenantServiceBuilder(
         tenantSeed.externalId
       );
       if (existingTenant) {
-        await assertResourceAllowed(existingTenant.data.id, authData);
+        assertRequesterAllowed(existingTenant.data.id, authData);
 
         evaluateNewSelfcareId({
           tenant: existingTenant.data,
