@@ -8,12 +8,15 @@ import {
   kafkaConsumerConfig,
   logger,
   getContext,
+  CatalogTopicConfig,
+  catalogTopicConfig,
 } from "pagopa-interop-commons";
 import {
   Descriptor,
   EServiceV2,
   fromEServiceV2,
   missingKafkaMessageDataError,
+  kafkaMessageProcessError,
   EServiceId,
   EService,
 } from "pagopa-interop-models";
@@ -21,6 +24,7 @@ import {
   AuthorizationService,
   authorizationServiceBuilder,
 } from "./authorizationService.js";
+import { ApiClientComponent } from "./model/models.js";
 
 const getDescriptorFromEvent = (
   msg: {
@@ -65,72 +69,96 @@ async function executeUpdate(
   );
 }
 
-function processMessage(authService: AuthorizationService) {
+function processMessage(
+  topicConfig: CatalogTopicConfig,
+  authService: AuthorizationService
+) {
   return async (messagePayload: EachMessagePayload): Promise<void> => {
-    try {
-      const appContext = getContext();
-      appContext.correlationId = uuidv4();
+    const appContext = getContext();
+    appContext.correlationId = uuidv4();
 
-      const messageDecoder = messageDecoderSupplier(messagePayload.topic);
-      const decodedMsg = messageDecoder(messagePayload.message);
+    const messageDecoder = messageDecoderSupplier(
+      topicConfig,
+      messagePayload.topic
+    );
+    const decodedMsg = messageDecoder(messagePayload.message);
 
-      match(decodedMsg)
-        .with(
-          {
-            event_version: 2,
-            type: "EServiceDescriptorPublished",
-          },
-          {
-            event_version: 2,
-            type: "EServiceDescriptorActivated",
-          },
-          async (msg) => {
-            const data = getDescriptorFromEvent(msg, decodedMsg.type);
-            await executeUpdate(decodedMsg.type, messagePayload, () =>
-              authService.updateEServiceState(
-                "ACTIVE",
-                data.descriptor.id,
-                data.eserviceId,
-                data.descriptor.audience,
-                data.descriptor.voucherLifespan
-              )
-            );
-          }
-        )
-        .with(
-          {
-            event_version: 2,
-            type: "EServiceDescriptorSuspended",
-          },
-          {
-            event_version: 2,
-            type: "EServiceDescriptorArchived",
-          },
-          async (msg) => {
-            const data = getDescriptorFromEvent(msg, decodedMsg.type);
-            await executeUpdate(decodedMsg.type, messagePayload, () =>
-              authService.updateEServiceState(
-                "INACTIVE",
-                data.descriptor.id,
-                data.eserviceId,
-                data.descriptor.audience,
-                data.descriptor.voucherLifespan
-              )
-            );
-          }
+    const updateSeed = match(decodedMsg)
+      .with(
+        {
+          event_version: 2,
+          type: "EServiceDescriptorPublished",
+        },
+        {
+          event_version: 2,
+          type: "EServiceDescriptorActivated",
+        },
+        (msg) => {
+          const data = getDescriptorFromEvent(msg, decodedMsg.type);
+          return {
+            state: "ACTIVE",
+            descriptorId: data.descriptor.id,
+            eserviceId: data.eserviceId,
+            audience: data.descriptor.audience,
+            voucherLifespan: data.descriptor.voucherLifespan,
+            eventType: decodedMsg.type,
+          };
+        }
+      )
+      .with(
+        {
+          event_version: 2,
+          type: "EServiceDescriptorSuspended",
+        },
+        {
+          event_version: 2,
+          type: "EServiceDescriptorArchived",
+        },
+        (msg) => {
+          const data = getDescriptorFromEvent(msg, decodedMsg.type);
+          return {
+            state: "INACTIVE",
+            descriptorId: data.descriptor.id,
+            eserviceId: data.eserviceId,
+            audience: data.descriptor.audience,
+            voucherLifespan: data.descriptor.voucherLifespan,
+            eventType: decodedMsg.type,
+          };
+        }
+      )
+      .otherwise(() => {
+        logger.error(
+          ` Error during message handling. Partition number: ${messagePayload.partition}. Offset: ${messagePayload.message.offset}.`
         );
-    } catch (e) {
-      logger.error(
-        ` Error during message handling. Partition number: ${messagePayload.partition}. Offset: ${messagePayload.message.offset}.\nError: ${e}`
-      );
-    }
+
+        throw kafkaMessageProcessError(
+          messagePayload.topic,
+          messagePayload.partition,
+          messagePayload.message.offset
+        );
+      });
+
+    await executeUpdate(updateSeed.eventType, messagePayload, () =>
+      authService.updateEServiceState(
+        ApiClientComponent.parse(updateSeed.state),
+        updateSeed.descriptorId,
+        updateSeed.eserviceId,
+        updateSeed.audience,
+        updateSeed.voucherLifespan
+      )
+    );
   };
 }
 
 try {
   const authService = await authorizationServiceBuilder();
   const config = kafkaConsumerConfig();
-  await runConsumer(config, processMessage(authService));
+  const topicConfig: CatalogTopicConfig = catalogTopicConfig();
+  await runConsumer(
+    config,
+    [topicConfig.catalogTopic],
+    processMessage(topicConfig, authService)
+  );
 } catch (e) {
   logger.error(`An error occurred during initialization:\n${e}`);
 }

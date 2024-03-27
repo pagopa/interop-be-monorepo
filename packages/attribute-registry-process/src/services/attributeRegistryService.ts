@@ -40,7 +40,8 @@ export function attributeRegistryServiceBuilder(
   return {
     async createDeclaredAttribute(
       apiDeclaredAttributeSeed: ApiDeclaredAttributeSeed,
-      authData: AuthData
+      authData: AuthData,
+      correlationId: string
     ): Promise<AttributeId> {
       if (authData.externalId.origin !== "IPA") {
         throw originNotCompliant("IPA");
@@ -48,19 +49,23 @@ export function attributeRegistryServiceBuilder(
 
       return unsafeBrandId<AttributeId>(
         await repository.createEvent(
-          createDeclaredAttributeLogic({
-            attribute: await readModelService.getAttributeByName(
-              apiDeclaredAttributeSeed.name
-            ),
-            apiDeclaredAttributeSeed,
-          })
+          createDeclaredAttributeLogic(
+            {
+              attribute: await readModelService.getAttributeByName(
+                apiDeclaredAttributeSeed.name
+              ),
+              apiDeclaredAttributeSeed,
+            },
+            correlationId
+          )
         )
       );
     },
 
     async createVerifiedAttribute(
       apiVerifiedAttributeSeed: ApiVerifiedAttributeSeed,
-      authData: AuthData
+      authData: AuthData,
+      correlationId: string
     ): Promise<AttributeId> {
       if (authData.externalId.origin !== "IPA") {
         throw originNotCompliant("IPA");
@@ -68,12 +73,15 @@ export function attributeRegistryServiceBuilder(
 
       return unsafeBrandId<AttributeId>(
         await repository.createEvent(
-          createVerifiedAttributeLogic({
-            attribute: await readModelService.getAttributeByName(
-              apiVerifiedAttributeSeed.name
-            ),
-            apiVerifiedAttributeSeed,
-          })
+          createVerifiedAttributeLogic(
+            {
+              attribute: await readModelService.getAttributeByName(
+                apiVerifiedAttributeSeed.name
+              ),
+              apiVerifiedAttributeSeed,
+            },
+            correlationId
+          )
         )
       );
     },
@@ -84,7 +92,7 @@ export function attributeRegistryServiceBuilder(
       }
 
       const certifier = tenant.data.features
-        .filter(({ type }) => type === "Certifier")
+        .filter(({ type }) => type === "PersistentCertifier")
         .find(({ certifierId }) => certifierId.trim().length > 0);
 
       if (certifier) {
@@ -94,7 +102,8 @@ export function attributeRegistryServiceBuilder(
     },
     async createCertifiedAttribute(
       apiCertifiedAttributeSeed: ApiCertifiedAttributeSeed,
-      authData: AuthData
+      authData: AuthData,
+      correlationId: string
     ): Promise<AttributeId> {
       const certifierPromise = this.getCertifierId(authData.organizationId);
       const attributePromise = readModelService.getAttributeByCodeAndName(
@@ -109,26 +118,33 @@ export function attributeRegistryServiceBuilder(
 
       return unsafeBrandId<AttributeId>(
         await repository.createEvent(
-          createCertifiedAttributeLogic({
-            attribute,
-            apiCertifiedAttributeSeed,
-            certifier,
-          })
+          createCertifiedAttributeLogic(
+            {
+              attribute,
+              apiCertifiedAttributeSeed,
+              certifier,
+            },
+            correlationId
+          )
         )
       );
     },
     async createInternalCertifiedAttribute(
-      apiInternalCertifiedAttributeSeed: ApiInternalCertifiedAttributeSeed
+      apiInternalCertifiedAttributeSeed: ApiInternalCertifiedAttributeSeed,
+      correlationId: string
     ): Promise<AttributeId> {
       return unsafeBrandId<AttributeId>(
         await repository.createEvent(
-          createInternalCertifiedAttributeLogic({
-            attribute: await readModelService.getAttributeByCodeAndName(
-              apiInternalCertifiedAttributeSeed.code,
-              apiInternalCertifiedAttributeSeed.name
-            ),
-            apiInternalCertifiedAttributeSeed,
-          })
+          createInternalCertifiedAttributeLogic(
+            {
+              attribute: await readModelService.getAttributeByCodeAndName(
+                apiInternalCertifiedAttributeSeed.code,
+                apiInternalCertifiedAttributeSeed.name
+              ),
+              apiInternalCertifiedAttributeSeed,
+            },
+            correlationId
+          )
         )
       );
     },
@@ -139,13 +155,16 @@ export type AttributeRegistryService = ReturnType<
   typeof attributeRegistryServiceBuilder
 >;
 
-export function createDeclaredAttributeLogic({
-  attribute,
-  apiDeclaredAttributeSeed,
-}: {
-  attribute: WithMetadata<Attribute> | undefined;
-  apiDeclaredAttributeSeed: ApiDeclaredAttributeSeed;
-}): CreateEvent<AttributeEvent> {
+export function createDeclaredAttributeLogic(
+  {
+    attribute,
+    apiDeclaredAttributeSeed,
+  }: {
+    attribute: WithMetadata<Attribute> | undefined;
+    apiDeclaredAttributeSeed: ApiDeclaredAttributeSeed;
+  },
+  correlationId: string
+): CreateEvent<AttributeEvent> {
   if (attribute) {
     throw attributeDuplicate(apiDeclaredAttributeSeed.name);
   }
@@ -160,16 +179,19 @@ export function createDeclaredAttributeLogic({
     origin: undefined,
   };
 
-  return toCreateEventAttributeAdded(newDeclaredAttribute);
+  return toCreateEventAttributeAdded(newDeclaredAttribute, correlationId);
 }
 
-export function createVerifiedAttributeLogic({
-  attribute,
-  apiVerifiedAttributeSeed,
-}: {
-  attribute: WithMetadata<Attribute> | undefined;
-  apiVerifiedAttributeSeed: ApiVerifiedAttributeSeed;
-}): CreateEvent<AttributeEvent> {
+export function createVerifiedAttributeLogic(
+  {
+    attribute,
+    apiVerifiedAttributeSeed,
+  }: {
+    attribute: WithMetadata<Attribute> | undefined;
+    apiVerifiedAttributeSeed: ApiVerifiedAttributeSeed;
+  },
+  correlationId: string
+): CreateEvent<AttributeEvent> {
   if (attribute) {
     throw attributeDuplicate(apiVerifiedAttributeSeed.name);
   }
@@ -184,18 +206,21 @@ export function createVerifiedAttributeLogic({
     origin: undefined,
   };
 
-  return toCreateEventAttributeAdded(newVerifiedAttribute);
+  return toCreateEventAttributeAdded(newVerifiedAttribute, correlationId);
 }
 
-export function createCertifiedAttributeLogic({
-  attribute,
-  apiCertifiedAttributeSeed,
-  certifier,
-}: {
-  attribute: WithMetadata<Attribute> | undefined;
-  apiCertifiedAttributeSeed: ApiCertifiedAttributeSeed;
-  certifier: string;
-}): CreateEvent<AttributeEvent> {
+export function createCertifiedAttributeLogic(
+  {
+    attribute,
+    apiCertifiedAttributeSeed,
+    certifier,
+  }: {
+    attribute: WithMetadata<Attribute> | undefined;
+    apiCertifiedAttributeSeed: ApiCertifiedAttributeSeed;
+    certifier: string;
+  },
+  correlationId: string
+): CreateEvent<AttributeEvent> {
   if (attribute) {
     throw attributeDuplicate(apiCertifiedAttributeSeed.name);
   }
@@ -210,16 +235,19 @@ export function createCertifiedAttributeLogic({
     origin: certifier,
   };
 
-  return toCreateEventAttributeAdded(newCertifiedAttribute);
+  return toCreateEventAttributeAdded(newCertifiedAttribute, correlationId);
 }
 
-export function createInternalCertifiedAttributeLogic({
-  attribute,
-  apiInternalCertifiedAttributeSeed,
-}: {
-  attribute: WithMetadata<Attribute> | undefined;
-  apiInternalCertifiedAttributeSeed: ApiInternalCertifiedAttributeSeed;
-}): CreateEvent<AttributeEvent> {
+export function createInternalCertifiedAttributeLogic(
+  {
+    attribute,
+    apiInternalCertifiedAttributeSeed,
+  }: {
+    attribute: WithMetadata<Attribute> | undefined;
+    apiInternalCertifiedAttributeSeed: ApiInternalCertifiedAttributeSeed;
+  },
+  correlationId: string
+): CreateEvent<AttributeEvent> {
   if (attribute) {
     throw attributeDuplicate(apiInternalCertifiedAttributeSeed.name);
   }
@@ -234,5 +262,8 @@ export function createInternalCertifiedAttributeLogic({
     origin: apiInternalCertifiedAttributeSeed.origin,
   };
 
-  return toCreateEventAttributeAdded(newInternalCertifiedAttribute);
+  return toCreateEventAttributeAdded(
+    newInternalCertifiedAttribute,
+    correlationId
+  );
 }
