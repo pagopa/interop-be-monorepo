@@ -51,6 +51,7 @@ import {
 import { IDatabase } from "pg-promise";
 import { StartedTestContainer } from "testcontainers";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+import { v4 as uuidv4 } from "uuid";
 import {
   agreementAlreadyExists,
   descriptorNotInExpectedState,
@@ -241,7 +242,8 @@ describe("AgreementService Integration Test", async () => {
       };
       const createdAgreementId = await agreementService.createAgreement(
         agreementData,
-        authData
+        authData,
+        uuidv4()
       );
 
       await expectedAgreementCreation(
@@ -300,7 +302,8 @@ describe("AgreementService Integration Test", async () => {
 
       const createdAgreementId = await agreementService.createAgreement(
         apiAgreementPayload,
-        authData
+        authData,
+        uuidv4()
       );
 
       await expectedAgreementCreation(
@@ -337,7 +340,8 @@ describe("AgreementService Integration Test", async () => {
 
       const createdAgreementId = await agreementService.createAgreement(
         apiAgreementPayload,
-        authData
+        authData,
+        uuidv4()
       );
 
       await expectedAgreementCreation(
@@ -382,7 +386,8 @@ describe("AgreementService Integration Test", async () => {
 
       const createdAgreementId = await agreementService.createAgreement(
         apiAgreementPayload,
-        authData
+        authData,
+        uuidv4()
       );
 
       await expectedAgreementCreation(
@@ -424,7 +429,8 @@ describe("AgreementService Integration Test", async () => {
 
       const createdAgreementId = await agreementService.createAgreement(
         apiAgreementPayload,
-        authData
+        authData,
+        uuidv4()
       );
 
       await expectedAgreementCreation(
@@ -449,7 +455,11 @@ describe("AgreementService Integration Test", async () => {
       };
 
       await expect(
-        agreementService.createAgreement(apiAgreementPayload, authData)
+        agreementService.createAgreement(
+          apiAgreementPayload,
+          authData,
+          uuidv4()
+        )
       ).rejects.toThrowError(
         eServiceNotFound(unsafeBrandId(apiAgreementPayload.eserviceId))
       );
@@ -469,7 +479,11 @@ describe("AgreementService Integration Test", async () => {
       };
 
       await expect(
-        agreementService.createAgreement(apiAgreementPayload, authData)
+        agreementService.createAgreement(
+          apiAgreementPayload,
+          authData,
+          uuidv4()
+        )
       ).rejects.toThrowError(
         notLatestEServiceDescriptor(
           unsafeBrandId(apiAgreementPayload.descriptorId)
@@ -509,7 +523,11 @@ describe("AgreementService Integration Test", async () => {
       };
 
       await expect(
-        agreementService.createAgreement(apiAgreementPayload, authData)
+        agreementService.createAgreement(
+          apiAgreementPayload,
+          authData,
+          uuidv4()
+        )
       ).rejects.toThrowError(
         notLatestEServiceDescriptor(
           unsafeBrandId(apiAgreementPayload.descriptorId)
@@ -546,7 +564,11 @@ describe("AgreementService Integration Test", async () => {
       };
 
       await expect(
-        agreementService.createAgreement(apiAgreementPayload, authData)
+        agreementService.createAgreement(
+          apiAgreementPayload,
+          authData,
+          uuidv4()
+        )
       ).rejects.toThrowError(
         descriptorNotInExpectedState(eservice.id, descriptor.id, [
           descriptorState.published,
@@ -586,7 +608,11 @@ describe("AgreementService Integration Test", async () => {
       };
 
       await expect(
-        agreementService.createAgreement(apiAgreementPayload, authData)
+        agreementService.createAgreement(
+          apiAgreementPayload,
+          authData,
+          uuidv4()
+        )
       ).rejects.toThrowError(agreementAlreadyExists(consumer.id, eservice.id));
     });
 
@@ -609,7 +635,11 @@ describe("AgreementService Integration Test", async () => {
       };
 
       await expect(() =>
-        agreementService.createAgreement(apiAgreementPayload, authData)
+        agreementService.createAgreement(
+          apiAgreementPayload,
+          authData,
+          uuidv4()
+        )
       ).rejects.toThrowError(tenantIdNotFound(consumer.id));
     });
 
@@ -655,7 +685,11 @@ describe("AgreementService Integration Test", async () => {
       };
 
       await expect(
-        agreementService.createAgreement(apiAgreementPayload, authData)
+        agreementService.createAgreement(
+          apiAgreementPayload,
+          authData,
+          uuidv4()
+        )
       ).rejects.toThrowError(
         missingCertifiedAttributesError(descriptor.id, consumer.id)
       );
@@ -709,7 +743,11 @@ describe("AgreementService Integration Test", async () => {
       };
 
       await expect(
-        agreementService.createAgreement(apiAgreementPayload, authData)
+        agreementService.createAgreement(
+          apiAgreementPayload,
+          authData,
+          uuidv4()
+        )
       ).rejects.toThrowError(
         missingCertifiedAttributesError(descriptor.id, consumer.id)
       );
