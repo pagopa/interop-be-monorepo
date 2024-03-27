@@ -6,6 +6,7 @@ import {
   userRoles,
   hasPermission,
   AuthData,
+  TenantCollection,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
@@ -24,6 +25,8 @@ import {
   EServiceId,
   EServiceDocumentId,
   TenantId,
+  Tenant,
+  EServiceReadModel,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
@@ -33,7 +36,7 @@ import { ApiGetEServicesFilters } from "../model/types.js";
 
 async function getEService(
   eservices: EServiceCollection,
-  filter: Filter<WithId<WithMetadata<EService>>>
+  filter: Filter<WithId<WithMetadata<EServiceReadModel>>>
 ): Promise<WithMetadata<EService> | undefined> {
   const data = await eservices.findOne(filter, {
     projection: { data: true, metadata: true },
@@ -62,6 +65,32 @@ async function getEService(
   }
 }
 
+async function getTenant(
+  tenants: TenantCollection,
+  filter: Filter<WithId<WithMetadata<Tenant>>>
+): Promise<Tenant | undefined> {
+  const data = await tenants.findOne(filter, {
+    projection: { data: true, metadata: true },
+  });
+
+  if (!data) {
+    return undefined;
+  }
+  const result = Tenant.safeParse(data.data);
+
+  if (!result.success) {
+    logger.error(
+      `Unable to parse tenant item: result ${JSON.stringify(
+        result
+      )} - data ${JSON.stringify(data)} `
+    );
+
+    throw genericError("Unable to parse tenant item");
+  }
+
+  return result.data;
+}
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
@@ -69,6 +98,8 @@ export function readModelServiceBuilder(
   const eservices = readModelRepository.eservices;
   const agreements = readModelRepository.agreements;
   const attributes = readModelRepository.attributes;
+  const tenants = readModelRepository.tenants;
+
   return {
     async getEServices(
       authData: AuthData,
@@ -83,17 +114,18 @@ export function readModelServiceBuilder(
         agreementStates,
         name,
         attributesIds,
+        mode,
       } = filters;
       const ids = await match(agreementStates.length)
         .with(0, () => eservicesIds)
         .otherwise(async () =>
           (
-            await this.listAgreements(
+            await this.listAgreements({
               eservicesIds,
-              [authData.organizationId],
-              [],
-              agreementStates
-            )
+              consumersIds: [authData.organizationId],
+              producersIds: [],
+              states: agreementStates,
+            })
           ).map((a) => a.eserviceId)
         );
 
@@ -104,7 +136,7 @@ export function readModelServiceBuilder(
       const nameFilter: ReadModelFilter<EService> = name
         ? {
             "data.name": {
-              $regex: name,
+              $regex: ReadModelRepository.escapeRegExp(name),
               $options: "i",
             },
           }
@@ -189,6 +221,10 @@ export function readModelServiceBuilder(
             ],
           };
 
+      const modeFilter: ReadModelFilter<EService> = mode
+        ? { "data.mode": { $eq: mode } }
+        : {};
+
       const aggregationPipeline = [
         {
           $match: {
@@ -198,6 +234,7 @@ export function readModelServiceBuilder(
             ...descriptorsStateFilter,
             ...attributesFilter,
             ...visibilityFilter,
+            ...modeFilter,
           } satisfies ReadModelFilter<EService>,
         },
         {
@@ -247,7 +284,7 @@ export function readModelServiceBuilder(
     }): Promise<WithMetadata<EService> | undefined> {
       return getEService(eservices, {
         "data.name": {
-          $regex: `^${name}$$`,
+          $regex: `^${ReadModelRepository.escapeRegExp(name)}$$`,
           $options: "i",
         },
         "data.producerId": producerId,
@@ -375,23 +412,37 @@ export function readModelServiceBuilder(
       descriptorId: DescriptorId,
       documentId: EServiceDocumentId
     ): Promise<Document | undefined> {
-      const eService = await this.getEServiceById(eserviceId);
-      return eService?.data.descriptors
+      const eservice = await this.getEServiceById(eserviceId);
+      return eservice?.data.descriptors
         .find((d) => d.id === descriptorId)
         ?.docs.find((d) => d.id === documentId);
     },
-    async listAgreements(
-      eservicesIds: EServiceId[],
-      consumersIds: TenantId[],
-      producersIds: TenantId[],
-      states: AgreementState[]
-    ): Promise<Agreement[]> {
+    async listAgreements({
+      eservicesIds,
+      consumersIds,
+      producersIds,
+      states,
+      limit,
+      descriptorId,
+    }: {
+      eservicesIds: EServiceId[];
+      consumersIds: TenantId[];
+      producersIds: TenantId[];
+      states: AgreementState[];
+      limit?: number;
+      descriptorId?: DescriptorId;
+    }): Promise<Agreement[]> {
+      const descriptorFilter: ReadModelFilter<Agreement> = descriptorId
+        ? { "data.descriptorId": { $eq: descriptorId } }
+        : {};
+
       const aggregationPipeline = [
         {
           $match: {
             ...ReadModelRepository.arrayToFilter(eservicesIds, {
               "data.eserviceId": { $in: eservicesIds },
             }),
+            ...descriptorFilter,
             ...ReadModelRepository.arrayToFilter(consumersIds, {
               "data.consumerId": { $in: consumersIds },
             }),
@@ -408,11 +459,12 @@ export function readModelServiceBuilder(
             data: 1,
           },
         },
-        {
-          $sort: { "data.id": 1 },
-        },
       ];
-      const data = await agreements.aggregate(aggregationPipeline).toArray();
+
+      const aggregationWithLimit = limit
+        ? [...aggregationPipeline, { $limit: limit }]
+        : aggregationPipeline;
+      const data = await agreements.aggregate(aggregationWithLimit).toArray();
       const result = z.array(Agreement).safeParse(data.map((a) => a.data));
 
       if (!result.success) {
@@ -449,6 +501,10 @@ export function readModelServiceBuilder(
       }
 
       return result.data;
+    },
+
+    async getTenantById(id: TenantId): Promise<Tenant | undefined> {
+      return getTenant(tenants, { "data.id": id });
     },
   };
 }

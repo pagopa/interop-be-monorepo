@@ -1,277 +1,467 @@
 import { CreateEvent } from "pagopa-interop-commons";
 import {
   EService,
-  Document,
-  Descriptor,
-  EServiceTechnologyV1,
-  EServiceAttributeV1,
-  EServiceAttribute,
-  EServiceDescriptorStateV1,
-  AgreementApprovalPolicyV1,
-  EServiceV1,
-  EServiceDocumentV1,
-  EServiceDescriptorV1,
-  AgreementApprovalPolicy,
-  DescriptorState,
-  Technology,
-  WithMetadata,
   EServiceEvent,
   DescriptorId,
   EServiceDocumentId,
+  RiskAnalysisId,
+  toEServiceV2,
 } from "pagopa-interop-models";
-import { P, match } from "ts-pattern";
-
-export const toAgreementApprovalPolicyV1 = (
-  input: AgreementApprovalPolicy | undefined
-): AgreementApprovalPolicyV1 =>
-  match(input)
-    .with(P.nullish, () => AgreementApprovalPolicyV1.UNSPECIFIED$)
-    .with("Manual", () => AgreementApprovalPolicyV1.MANUAL)
-    .with("Automatic", () => AgreementApprovalPolicyV1.AUTOMATIC)
-    .exhaustive();
-
-export const toEServiceDescriptorStateV1 = (
-  input: DescriptorState
-): EServiceDescriptorStateV1 =>
-  match(input)
-    .with("Draft", () => EServiceDescriptorStateV1.DRAFT)
-    .with("Suspended", () => EServiceDescriptorStateV1.SUSPENDED)
-    .with("Archived", () => EServiceDescriptorStateV1.ARCHIVED)
-    .with("Published", () => EServiceDescriptorStateV1.PUBLISHED)
-    .with("Deprecated", () => EServiceDescriptorStateV1.DEPRECATED)
-    .exhaustive();
-
-export const toEServiceTechnologyV1 = (
-  input: Technology
-): EServiceTechnologyV1 =>
-  match(input)
-    .with("Rest", () => EServiceTechnologyV1.REST)
-    .with("Soap", () => EServiceTechnologyV1.SOAP)
-    .exhaustive();
-
-export const toEServiceAttributeV1 = (
-  input: EServiceAttribute[]
-): EServiceAttributeV1 => ({
-  group: input.map((i) => ({
-    id: i.id,
-    explicitAttributeVerification: i.explicitAttributeVerification,
-  })),
-});
-
-export const toDocumentV1 = (input: Document): EServiceDocumentV1 => ({
-  ...input,
-  uploadDate: input.uploadDate.toISOString(),
-});
-
-export const toDescriptorV1 = (input: Descriptor): EServiceDescriptorV1 => ({
-  ...input,
-  attributes: {
-    certified: input.attributes.certified.map(toEServiceAttributeV1),
-    declared: input.attributes.declared.map(toEServiceAttributeV1),
-    verified: input.attributes.verified.map(toEServiceAttributeV1),
-  },
-  docs: input.docs.map(toDocumentV1),
-  state: toEServiceDescriptorStateV1(input.state),
-  interface:
-    input.interface != null ? toDocumentV1(input.interface) : undefined,
-  agreementApprovalPolicy: toAgreementApprovalPolicyV1(
-    input.agreementApprovalPolicy
-  ),
-  createdAt: BigInt(input.createdAt.getTime()),
-  publishedAt: input.publishedAt
-    ? BigInt(input.publishedAt.getTime())
-    : undefined,
-  suspendedAt: input.suspendedAt
-    ? BigInt(input.suspendedAt.getTime())
-    : undefined,
-  deprecatedAt: input.deprecatedAt
-    ? BigInt(input.deprecatedAt.getTime())
-    : undefined,
-  archivedAt: input.archivedAt ? BigInt(input.archivedAt.getTime()) : undefined,
-});
-
-export const toEServiceV1 = (eService: EService): EServiceV1 => ({
-  ...eService,
-  technology: toEServiceTechnologyV1(eService.technology),
-  attributes:
-    eService.attributes != null
-      ? {
-          certified: eService.attributes.certified.map(toEServiceAttributeV1),
-          declared: eService.attributes.declared.map(toEServiceAttributeV1),
-          verified: eService.attributes.verified.map(toEServiceAttributeV1),
-        }
-      : undefined,
-  descriptors: eService.descriptors.map(toDescriptorV1),
-  createdAt: BigInt(eService.createdAt.getTime()),
-});
 
 export const toCreateEventEServiceAdded = (
-  eService: EService
+  eservice: EService,
+  correlationId: string
 ): CreateEvent<EServiceEvent> => ({
-  streamId: eService.id,
+  streamId: eservice.id,
   version: 0,
   event: {
     type: "EServiceAdded",
-    data: { eService: toEServiceV1(eService) },
+    event_version: 2,
+    data: { eservice: toEServiceV2(eservice) },
   },
+  correlationId,
 });
 
 export const toCreateEventClonedEServiceAdded = (
-  eService: EService
+  sourceDescriptorId: DescriptorId,
+  sourceEservice: EService,
+  clonedEservice: EService,
+  correlationId: string
 ): CreateEvent<EServiceEvent> => ({
-  streamId: eService.id,
+  streamId: clonedEservice.id,
   version: 0,
   event: {
-    type: "ClonedEServiceAdded",
+    type: "EServiceCloned",
+    event_version: 2,
     data: {
-      eService: toEServiceV1(eService),
+      sourceDescriptorId,
+      sourceEservice: toEServiceV2(sourceEservice),
+      eservice: toEServiceV2(clonedEservice),
     },
   },
+  correlationId,
+});
+
+export const toCreateEventEServiceInterfaceAdded = (
+  streamId: string,
+  version: number,
+  {
+    descriptorId,
+    documentId,
+    eservice,
+  }: {
+    descriptorId: DescriptorId;
+    documentId: EServiceDocumentId;
+    eservice: EService;
+  },
+  correlationId: string
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceDescriptorInterfaceAdded",
+    event_version: 2,
+    data: {
+      descriptorId,
+      documentId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
 });
 
 export const toCreateEventEServiceDocumentAdded = (
   streamId: string,
   version: number,
-  descriptorId: DescriptorId,
   {
-    newDocument,
-    isInterface,
-    serverUrls,
-  }: { newDocument: Document; isInterface: boolean; serverUrls: string[] }
+    descriptorId,
+    documentId,
+    eservice,
+  }: {
+    descriptorId: DescriptorId;
+    documentId: EServiceDocumentId;
+    eservice: EService;
+  },
+  correlationId: string
 ): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
   event: {
-    type: "EServiceDocumentAdded",
+    type: "EServiceDescriptorDocumentAdded",
+    event_version: 2,
     data: {
-      eServiceId: streamId,
       descriptorId,
-      document: toDocumentV1(newDocument),
-      isInterface,
-      serverUrls,
+      documentId,
+      eservice: toEServiceV2(eservice),
     },
   },
+  correlationId,
 });
 
 export const toCreateEventEServiceDescriptorAdded = (
   streamId: string,
   version: number,
-  newDescriptor: Descriptor
+  descriptorId: DescriptorId,
+  eservice: EService,
+  correlationId: string
 ): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
   event: {
     type: "EServiceDescriptorAdded",
+    event_version: 2,
     data: {
-      eServiceId: streamId,
-      eServiceDescriptor: toDescriptorV1(newDescriptor),
+      descriptorId,
+      eservice: toEServiceV2(eservice),
     },
   },
+  correlationId,
 });
 
 export const toCreateEventEServiceUpdated = (
   streamId: string,
   version: number,
-  updatedEService: EService
+  updatedEService: EService,
+  correlationId: string
 ): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
   event: {
-    type: "EServiceUpdated",
+    type: "DraftEServiceUpdated",
+    event_version: 2,
     data: {
-      eService: toEServiceV1(updatedEService),
+      eservice: toEServiceV2(updatedEService),
     },
   },
+  correlationId,
 });
 
-export const toCreateEventEServiceDocumentUpdated = ({
-  streamId,
-  version,
-  descriptorId,
-  documentId,
-  updatedDocument,
-  serverUrls,
-}: {
-  streamId: string;
-  version: number;
-  descriptorId: DescriptorId;
-  documentId: EServiceDocumentId;
-  updatedDocument: Document;
-  serverUrls: string[];
-}): CreateEvent<EServiceEvent> => ({
-  streamId,
-  version,
-  event: {
-    type: "EServiceDocumentUpdated",
-    data: {
-      eServiceId: streamId,
-      descriptorId,
-      documentId,
-      updatedDocument: toDocumentV1(updatedDocument),
-      serverUrls,
-    },
-  },
-});
-
-export const toCreateEventEServiceDescriptorUpdated = (
+export const toCreateEventEServiceInterfaceUpdated = (
   streamId: string,
   version: number,
-  descriptor: Descriptor
+  {
+    descriptorId,
+    documentId,
+    eservice,
+  }: {
+    descriptorId: DescriptorId;
+    documentId: EServiceDocumentId;
+    eservice: EService;
+  },
+  correlationId: string
 ): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
   event: {
-    type: "EServiceDescriptorUpdated",
+    type: "EServiceDescriptorInterfaceUpdated",
+    event_version: 2,
     data: {
-      eServiceId: streamId,
-      eServiceDescriptor: toDescriptorV1(descriptor),
+      descriptorId,
+      documentId,
+      eservice: toEServiceV2(eservice),
     },
   },
+  correlationId,
+});
+
+export const toCreateEventEServiceDocumentUpdated = (
+  streamId: string,
+  version: number,
+  {
+    descriptorId,
+    documentId,
+    eservice,
+  }: {
+    descriptorId: DescriptorId;
+    documentId: EServiceDocumentId;
+    eservice: EService;
+  },
+  correlationId: string
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceDescriptorDocumentUpdated",
+    event_version: 2,
+    data: {
+      descriptorId,
+      documentId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceDraftDescriptorUpdated = (
+  streamId: string,
+  version: number,
+  descriptorId: DescriptorId,
+  eservice: EService,
+  correlationId: string
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceDraftDescriptorUpdated",
+    event_version: 2,
+    data: {
+      descriptorId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceDescriptorQuotasUpdated = (
+  streamId: string,
+  version: number,
+  descriptorId: DescriptorId,
+  eservice: EService,
+  correlationId: string
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceDescriptorQuotasUpdated",
+    event_version: 2,
+    data: {
+      descriptorId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceDescriptorActivated = (
+  streamId: string,
+  version: number,
+  descriptorId: DescriptorId,
+  eservice: EService,
+  correlationId: string
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceDescriptorActivated",
+    event_version: 2,
+    data: {
+      descriptorId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceDescriptorArchived = (
+  streamId: string,
+  version: number,
+  descriptorId: DescriptorId,
+  eservice: EService,
+  correlationId: string
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceDescriptorArchived",
+    event_version: 2,
+    data: {
+      descriptorId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceDescriptorPublished = (
+  streamId: string,
+  version: number,
+  descriptorId: DescriptorId,
+  eservice: EService,
+  correlationId: string
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceDescriptorPublished",
+    event_version: 2,
+    data: {
+      descriptorId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceDescriptorSuspended = (
+  streamId: string,
+  version: number,
+  descriptorId: DescriptorId,
+  eservice: EService,
+  correlationId: string
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceDescriptorSuspended",
+    event_version: 2,
+    data: {
+      descriptorId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
 });
 
 export const toCreateEventEServiceDeleted = (
   streamId: string,
-  version: number
+  version: number,
+  eservice: EService,
+  correlationId: string
 ): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
   event: {
     type: "EServiceDeleted",
+    event_version: 2,
     data: {
-      eServiceId: streamId,
+      eserviceId: streamId,
+      eservice: toEServiceV2(eservice),
     },
   },
+  correlationId,
 });
 
-export const toCreateEventEServiceDocumentDeleted = (
+export const toCreateEventEServiceInterfaceDeleted = (
   streamId: string,
   version: number,
-  descriptorId: DescriptorId,
-  documentId: EServiceDocumentId
+  {
+    descriptorId,
+    documentId,
+    eservice,
+  }: {
+    descriptorId: DescriptorId;
+    documentId: EServiceDocumentId;
+    eservice: EService;
+  },
+  correlationId: string
 ): CreateEvent<EServiceEvent> => ({
   streamId,
   version,
   event: {
-    type: "EServiceDocumentDeleted",
+    type: "EServiceDescriptorInterfaceDeleted",
+    event_version: 2,
     data: {
-      eServiceId: streamId,
       descriptorId,
       documentId,
+      eservice: toEServiceV2(eservice),
     },
   },
+  correlationId,
+});
+export const toCreateEventEServiceDocumentDeleted = (
+  streamId: string,
+  version: number,
+  {
+    descriptorId,
+    documentId,
+    eservice,
+  }: {
+    descriptorId: DescriptorId;
+    documentId: EServiceDocumentId;
+    eservice: EService;
+  },
+  correlationId: string
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceDescriptorDocumentDeleted",
+    event_version: 2,
+    data: {
+      descriptorId,
+      documentId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
 });
 
-export const toCreateEventEServiceWithDescriptorsDeleted = (
-  eService: WithMetadata<EService>,
-  descriptorId: DescriptorId
+export const toCreateEventEServiceDraftDescriptorDeleted = (
+  streamId: string,
+  version: number,
+  eservice: EService,
+  descriptorId: DescriptorId,
+  correlationId: string
 ): CreateEvent<EServiceEvent> => ({
-  streamId: eService.data.id,
-  version: eService.metadata.version,
+  streamId,
+  version,
   event: {
-    type: "EServiceWithDescriptorsDeleted",
+    type: "EServiceDraftDescriptorDeleted",
+    event_version: 2,
     data: {
-      eService: toEServiceV1(eService.data),
+      eservice: toEServiceV2(eservice),
       descriptorId,
     },
   },
+  correlationId,
+});
+
+export const toCreateEventEServiceRiskAnalysisAdded = (
+  streamId: string,
+  version: number,
+  riskAnalysisId: RiskAnalysisId,
+  eservice: EService,
+  correlationId: string
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceRiskAnalysisAdded",
+    event_version: 2,
+    data: {
+      riskAnalysisId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceRiskAnalysisUpdated = (
+  streamId: string,
+  version: number,
+  riskAnalysisId: RiskAnalysisId,
+  eservice: EService,
+  correlationId: string
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceRiskAnalysisUpdated",
+    event_version: 2,
+    data: {
+      riskAnalysisId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceRiskAnalysisDeleted = (
+  streamId: string,
+  version: number,
+  riskAnalysisId: RiskAnalysisId,
+  eservice: EService,
+  correlationId: string
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceRiskAnalysisDeleted",
+    event_version: 2,
+    data: {
+      riskAnalysisId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
 });

@@ -52,7 +52,8 @@ export async function activateAgreementLogic(
   tenantQuery: TenantQuery,
   attributeQuery: AttributeQuery,
   authData: AuthData,
-  storeFile: FileManager["storeBytes"]
+  storeFile: FileManager["storeBytes"],
+  correlationId: string
 ): Promise<Array<CreateEvent<AgreementEvent>>> {
   const agreement = await agreementQuery.getAgreementById(agreementId);
   assertAgreementExist(agreementId, agreement);
@@ -83,20 +84,22 @@ export async function activateAgreementLogic(
     tenantQuery,
     agreementQuery,
     attributeQuery,
-    storeFile
+    storeFile,
+    correlationId
   );
 }
 
 async function activateAgreement(
   agreementData: WithMetadata<Agreement>,
-  eService: EService,
+  eservice: EService,
   descriptor: Descriptor,
   consumer: Tenant,
   authData: AuthData,
   tenantQuery: TenantQuery,
   agreementQuery: AgreementQuery,
   attributeQuery: AttributeQuery,
-  storeFile: FileManager["storeBytes"]
+  storeFile: FileManager["storeBytes"],
+  correlationId: string
 ): Promise<Array<CreateEvent<AgreementEvent>>> {
   const agreement = agreementData.data;
   const nextAttributesState = nextState(agreement, descriptor, consumer);
@@ -132,7 +135,7 @@ async function activateAgreement(
         certifiedAttributes: matchingCertifiedAttributes(descriptor, consumer),
         declaredAttributes: matchingDeclaredAttributes(descriptor, consumer),
         verifiedAttributes: matchingVerifiedAttributes(
-          eService,
+          eservice,
           descriptor,
           consumer
         ),
@@ -177,14 +180,15 @@ async function activateAgreement(
 
   const updateAgreementEvent = toCreateEventAgreementUpdated(
     updatedAgreement,
-    agreementData.metadata.version
+    agreementData.metadata.version,
+    correlationId
   );
 
   if (firstActivation) {
     await createContract(
       updatedAgreement,
       updatedAgreementSeed,
-      eService,
+      eservice,
       consumer,
       attributeQuery,
       tenantQuery,
@@ -195,7 +199,8 @@ async function activateAgreement(
   const archiveEvents = await archiveRelatedToAgreements(
     agreement,
     authData,
-    agreementQuery
+    agreementQuery,
+    correlationId
   );
 
   return [updateAgreementEvent, ...archiveEvents];
@@ -204,7 +209,8 @@ async function activateAgreement(
 const archiveRelatedToAgreements = async (
   agreement: Agreement,
   authData: AuthData,
-  agreementQuery: AgreementQuery
+  agreementQuery: AgreementQuery,
+  correlationId: string
 ): Promise<Array<CreateEvent<AgreementUpdateEvent>>> => {
   const existingAgreements = await agreementQuery.getAllAgreements({
     consumerId: agreement.consumerId,
@@ -233,7 +239,8 @@ const archiveRelatedToAgreements = async (
           archiving: createStamp(authData),
         },
       },
-      agreementData.metadata.version
+      agreementData.metadata.version,
+      correlationId
     )
   );
 };
@@ -241,7 +248,7 @@ const archiveRelatedToAgreements = async (
 const createContract = async (
   agreement: Agreement,
   updateSeed: UpdateAgreementSeed,
-  eService: EService,
+  eservice: EService,
   consumer: Tenant,
   attributeQuery: AttributeQuery,
   tenantQuery: TenantQuery,
@@ -252,7 +259,7 @@ const createContract = async (
 
   await contractBuilder(attributeQuery, storeFile).createContract(
     agreement,
-    eService,
+    eservice,
     consumer,
     producer.data,
     updateSeed

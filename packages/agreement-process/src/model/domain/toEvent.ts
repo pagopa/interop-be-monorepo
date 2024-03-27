@@ -76,101 +76,119 @@ export const toAgreementV1 = (input: Agreement): AgreementV1 => ({
 
 export function toCreateEventAgreementDeleted(
   streamId: string,
-  version: number
+  version: number,
+  correlationId: string
 ): CreateEvent<AgreementDeleteEvent> {
   return {
     streamId,
     version,
     event: {
       type: "AgreementDeleted",
+      event_version: 1,
       data: {
         agreementId: streamId,
       },
     },
+    correlationId,
   };
 }
 
 export function toCreateEventAgreementAdded(
-  agreement: Agreement
+  agreement: Agreement,
+  correlationId: string
 ): CreateEvent<AgreementAddEvent> {
   return {
     streamId: agreement.id,
     version: 0,
     event: {
       type: "AgreementAdded",
+      event_version: 1,
       data: {
         agreement: toAgreementV1(agreement),
       },
     },
+    correlationId,
   };
 }
 
 export function toCreateEventAgreementUpdated(
   agreement: Agreement,
-  version: number
+  version: number,
+  correlationId: string
 ): CreateEvent<AgreementUpdateEvent> {
   return {
     streamId: agreement.id,
     version,
     event: {
       type: "AgreementUpdated",
+      event_version: 1,
       data: {
         agreement: toAgreementV1(agreement),
       },
     },
+    correlationId,
   };
 }
 
 export function toCreateEventAgreementContractAdded(
   agreementId: AgreementId,
   agreementDocument: AgreementDocument,
-  version: number
+  version: number,
+  correlationId: string
 ): CreateEvent<AgreementAddContractEvent> {
   return {
     streamId: agreementId,
     version,
     event: {
       type: "AgreementContractAdded",
+      event_version: 1,
       data: {
         agreementId,
         contract: toAgreementDocumentV1(agreementDocument),
       },
     },
+    correlationId,
   };
 }
 
 export function toCreateEventAgreementConsumerDocumentAdded(
   agreementId: AgreementId,
   agreementDocument: AgreementDocument,
-  version: number
+  version: number,
+  correlationId: string
 ): CreateEvent<AgreementAddConsumerDocumentEvent> {
   return {
     streamId: agreementId,
     version,
     event: {
       type: "AgreementConsumerDocumentAdded",
+      event_version: 1,
       data: {
         agreementId,
         document: toAgreementDocumentV1(agreementDocument),
       },
     },
+    correlationId,
   };
 }
 
 export function toCreateEventAgreementConsumerDocumentRemoved(
   agreementId: AgreementId,
   documentId: AgreementDocumentId,
-  version: number
+  version: number,
+  correlationId: string
 ): CreateEvent<AgreementRemoveConsumerDocumentEvent> {
   return {
     streamId: agreementId,
     version,
     event: {
       type: "AgreementConsumerDocumentRemoved",
+      event_version: 1,
       data: {
         agreementId,
         documentId,
       },
     },
+    correlationId,
   };
 }

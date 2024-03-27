@@ -26,6 +26,17 @@ export class ApiError<T> extends Error {
   }
 }
 
+export class InternalError<T> extends Error {
+  public code: T;
+  public detail: string;
+
+  constructor({ code, detail }: { code: T; detail: string }) {
+    super(detail);
+    this.code = code;
+    this.detail = detail;
+  }
+}
+
 export type ProblemError = {
   code: string;
   detail: string;
@@ -87,11 +98,84 @@ const errorCodes = {
   operationForbidden: "9989",
   missingClaim: "9990",
   genericError: "9991",
-  unauthorizedError: "9991",
+  thirdPartyCallError: "9992",
+  unauthorizedError: "9993",
   missingHeader: "9994",
+  tokenGenerationError: "9995",
+  missingRSAKey: "9996",
+  missingKafkaMessageData: "9997",
+  kafkaMessageProcessError: "9998",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
+
+export function parseErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === "string") {
+    return error;
+  }
+
+  return `${JSON.stringify(error)}`;
+}
+
+/* ===== Internal Error ===== */
+
+export function missingKafkaMessageDataError(
+  dataName: string,
+  eventType: string
+): InternalError<CommonErrorCodes> {
+  return new InternalError({
+    code: "missingKafkaMessageData",
+    detail: `"Invalid message: missing data '${dataName}' in ${eventType} event"`,
+  });
+}
+
+export function genericInternalError(
+  message: string
+): InternalError<CommonErrorCodes> {
+  return new InternalError({
+    code: "genericError",
+    detail: message,
+  });
+}
+
+export function thirdPartyCallError(
+  serviceName: string,
+  errorMessage: string
+): InternalError<CommonErrorCodes> {
+  return new InternalError({
+    code: "thirdPartyCallError",
+    detail: `Error while invoking ${serviceName} external service -> ${errorMessage}`,
+  });
+}
+
+export function tokenGenerationError(
+  error: unknown
+): InternalError<CommonErrorCodes> {
+  return new InternalError({
+    code: "tokenGenerationError",
+    detail: `Error during token generation: ${parseErrorMessage(error)}`,
+  });
+}
+
+export function kafkaMessageProcessError(
+  topic: string,
+  partition: number,
+  offset: string,
+  error?: unknown
+): InternalError<CommonErrorCodes> {
+  return new InternalError({
+    code: "kafkaMessageProcessError",
+    detail: `Error while handling kafka message from topic : ${topic} - partition ${partition} - offest ${offset}. ${
+      error ? parseErrorMessage(error) : ""
+    }`,
+  });
+}
+
+/* ===== API Error ===== */
 
 export function authenticationSaslFailed(
   message: string

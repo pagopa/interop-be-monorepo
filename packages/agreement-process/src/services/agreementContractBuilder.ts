@@ -20,14 +20,14 @@ export const contractBuilder = (
 ) => ({
   createContract: async (
     agreement: Agreement,
-    eService: EService,
+    eservice: EService,
     consumer: Tenant,
     producer: Tenant,
     seed: UpdateAgreementSeed
   ): Promise<ApiAgreementDocumentSeed> =>
     await pdfGenerator.createDocumentSeed(
       agreement,
-      eService,
+      eservice,
       consumer,
       producer,
       seed,
@@ -41,7 +41,8 @@ export type ContractBuilder = ReturnType<typeof contractBuilder>;
 export async function addAgreementContractLogic(
   agreementId: AgreementId,
   agreementDocument: AgreementDocument,
-  version: number
+  version: number,
+  correlationId: string
 ): Promise<CreateEvent<AgreementEvent>> {
   logger.info(
     `Adding contract ${agreementDocument.id} to Agreement ${agreementId}`
@@ -50,6 +51,7 @@ export async function addAgreementContractLogic(
   return toCreateEventAgreementContractAdded(
     agreementId,
     agreementDocument,
-    version
+    version,
+    correlationId
   );
 }

@@ -5,7 +5,10 @@ create table catalog.events (
     stream_id uuid NOT NULL,
     version bigint NOT NULL,
 
+    correlation_id text,
+
     type text NOT NULL,
+    event_version int NOT NULL,
     data bytea NOT NULL,
 
     log_date timestamptz NOT NULL DEFAULT now(),
@@ -21,7 +24,10 @@ create table agreement.events (
     stream_id uuid NOT NULL,
     version bigint NOT NULL,
 
+    correlation_id text,
+
     type text NOT NULL,
+    event_version int NOT NULL,
     data bytea NOT NULL,
 
     log_date timestamptz NOT NULL DEFAULT now(),
@@ -37,7 +43,10 @@ create table tenant.events (
     stream_id uuid NOT NULL,
     version bigint NOT NULL,
 
+    correlation_id text,
+
     type text NOT NULL,
+    event_version int NOT NULL,
     data bytea NOT NULL,
 
     log_date timestamptz NOT NULL DEFAULT now(),
@@ -53,7 +62,10 @@ create table attribute.events (
     stream_id uuid NOT NULL,
     version bigint NOT NULL,
 
+    correlation_id text,
+
     type text NOT NULL,
+    event_version int NOT NULL,
     data bytea NOT NULL,
 
     log_date timestamptz NOT NULL DEFAULT now(),

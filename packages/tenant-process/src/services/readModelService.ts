@@ -28,7 +28,7 @@ function listTenantsFilters(
   const nameFilter = name
     ? {
         "data.name": {
-          $regex: name,
+          $regex: ReadModelRepository.escapeRegExp(name),
           $options: "i",
         },
       }
@@ -193,7 +193,7 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
     ): Promise<WithMetadata<Tenant> | undefined> {
       return getTenant(tenants, {
         "data.name": {
-          $regex: `^${name}$$`,
+          $regex: `^${ReadModelRepository.escapeRegExp(name)}$$`,
           $options: "i",
         },
       });
@@ -215,17 +215,17 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
     },
 
     async getConsumers({
-      name,
+      consumerName,
       producerId,
       offset,
       limit,
     }: {
-      name: string | undefined;
-      producerId: TenantId;
+      consumerName: string | undefined;
+      producerId: string;
       offset: number;
       limit: number;
     }): Promise<ListResult<Tenant>> {
-      const query = listTenantsFilters(name);
+      const query = listTenantsFilters(consumerName);
 
       const aggregationPipeline = [
         { $match: query },
@@ -263,15 +263,15 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
     },
 
     async getProducers({
-      name,
+      producerName,
       offset,
       limit,
     }: {
-      name: string | undefined;
+      producerName: string | undefined;
       offset: number;
       limit: number;
     }): Promise<ListResult<Tenant>> {
-      const query = listTenantsFilters(name);
+      const query = listTenantsFilters(producerName);
       const aggregationPipeline = [
         { $match: query },
         {
@@ -319,7 +319,7 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
       attributeIds: AttributeId[]
     ): Promise<Array<WithMetadata<Attribute>>> {
       const fetchAttributeById = async (
-        id: string
+        id: AttributeId
       ): Promise<WithMetadata<Attribute>> => {
         const data = await getAttribute(attributes, { "data.id": id });
         if (!data) {

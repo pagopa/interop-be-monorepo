@@ -1,7 +1,8 @@
 import { EachMessagePayload } from "kafkajs";
 import {
   logger,
-  consumerConfig,
+  readModelWriterConfig,
+  tenantTopicConfig,
   decodeKafkaMessage,
 } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
@@ -24,5 +25,6 @@ async function processMessage({
   }
 }
 
-const config = consumerConfig();
-await runConsumer(config, processMessage).catch(logger.error);
+const config = readModelWriterConfig();
+const { tenantTopic } = tenantTopicConfig();
+await runConsumer(config, [tenantTopic], processMessage).catch(logger.error);

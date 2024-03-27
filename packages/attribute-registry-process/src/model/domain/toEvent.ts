@@ -22,12 +22,15 @@ export const toAttributeKindV1 = (input: AttributeKind): AttributeKindV1 =>
     .exhaustive();
 
 export const toCreateEventAttributeAdded = (
-  attribute: Attribute
+  attribute: Attribute,
+  correlationId: string
 ): CreateEvent<AttributeEvent> => ({
   streamId: attribute.id,
   version: 0,
   event: {
     type: "AttributeAdded",
+    event_version: 1,
     data: { attribute: toAttributeV1(attribute) },
   },
+  correlationId,
 });

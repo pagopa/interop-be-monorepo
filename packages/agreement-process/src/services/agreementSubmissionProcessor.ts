@@ -64,7 +64,8 @@ export async function submitAgreementLogic(
   constractBuilder: ContractBuilder,
   eserviceQuery: EserviceQuery,
   agreementQuery: AgreementQuery,
-  tenantQuery: TenantQuery
+  tenantQuery: TenantQuery,
+  correlationId: string
 ): Promise<Array<CreateEvent<AgreementEvent>>> {
   logger.info(`Submitting agreement ${agreementId}`);
   const { authData } = getContext();
@@ -106,19 +107,21 @@ export async function submitAgreementLogic(
     payload,
     agreementQuery,
     tenantQuery,
-    constractBuilder
+    constractBuilder,
+    correlationId
   );
 }
 
 const submitAgreement = async (
   agreementData: WithMetadata<Agreement>,
-  eService: EService,
+  eservice: EService,
   descriptor: Descriptor,
   consumer: Tenant,
   payload: ApiAgreementSubmissionPayload,
   agreementQuery: AgreementQuery,
   tenantQuery: TenantQuery,
-  constractBuilder: ContractBuilder
+  constractBuilder: ContractBuilder,
+  correlationId: string
 ): Promise<Array<CreateEvent<AgreementEvent>>> => {
   const agreement = agreementData.data;
   const { authData } = getContext();
@@ -140,7 +143,7 @@ const submitAgreement = async (
   const updateSeed = getUpdateSeed(
     descriptor,
     consumer,
-    eService,
+    eservice,
     agreement,
     payload,
     stamps,
@@ -155,7 +158,8 @@ const submitAgreement = async (
 
   const updatedAgreementEvent = toCreateEventAgreementUpdated(
     updatedAgreement,
-    agreementData.metadata.version
+    agreementData.metadata.version,
+    correlationId
   );
 
   const agreements = (
@@ -187,7 +191,8 @@ const submitAgreement = async (
                   ...agreement.data,
                   ...updateSeed,
                 },
-                agreement.metadata.version
+                agreement.metadata.version,
+                correlationId
               );
             }
           )
@@ -209,11 +214,12 @@ const submitAgreement = async (
           await createContract(
             updatedAgreement,
             updatedAgreementEvent.version + 1,
-            eService,
+            eservice,
             consumer,
             updateSeed,
             tenantQuery,
-            constractBuilder
+            constractBuilder,
+            correlationId
           ),
         ]
       : [];
@@ -232,7 +238,8 @@ const createContract = async (
   consumer: Tenant,
   seed: UpdateAgreementSeed,
   tenantQuery: TenantQuery,
-  constractBuilder: ContractBuilder
+  constractBuilder: ContractBuilder,
+  correlationId: string
 ): Promise<CreateEvent<AgreementEvent>> => {
   const producer = await tenantQuery.getTenantById(agreement.producerId);
 
@@ -260,7 +267,8 @@ const createContract = async (
   return addAgreementContractLogic(
     agreement.id,
     agreementdocumentSeed,
-    agreementVersionNumer
+    agreementVersionNumer,
+    correlationId
   );
 };
 
@@ -282,7 +290,7 @@ const validateConsumerEmail = async (
 const getUpdateSeed = (
   descriptor: Descriptor,
   consumer: Tenant,
-  eService: EService,
+  eservice: EService,
   agreement: Agreement,
   payload: ApiAgreementSubmissionPayload,
   stamps: AgreementStamps,
@@ -295,7 +303,7 @@ const getUpdateSeed = (
         certifiedAttributes: matchingCertifiedAttributes(descriptor, consumer),
         declaredAttributes: matchingDeclaredAttributes(descriptor, consumer),
         verifiedAttributes: matchingVerifiedAttributes(
-          eService,
+          eservice,
           descriptor,
           consumer
         ),

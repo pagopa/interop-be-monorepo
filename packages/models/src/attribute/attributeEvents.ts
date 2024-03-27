@@ -4,7 +4,8 @@ import {
   AttributeAddedV1,
   AttributeDeletedV1,
 } from "../gen/v1/attribute/events.js";
-import { EventEnvelope, protobufDecoder } from "../index.js";
+import { protobufDecoder } from "../protobuf/protobuf.js";
+import { EventEnvelope } from "../events/events.js";
 
 export function attributeEventToBinaryData(event: AttributeEvent): Uint8Array {
   return match(event)
@@ -19,10 +20,12 @@ export function attributeEventToBinaryData(event: AttributeEvent): Uint8Array {
 
 export const AttributeEvent = z.discriminatedUnion("type", [
   z.object({
+    event_version: z.literal(1),
     type: z.literal("AttributeAdded"),
     data: protobufDecoder(AttributeAddedV1),
   }),
   z.object({
+    event_version: z.literal(1),
     type: z.literal("AttributeDeleted"),
     data: protobufDecoder(AttributeDeletedV1),
   }),

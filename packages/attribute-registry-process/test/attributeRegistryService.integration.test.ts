@@ -13,6 +13,7 @@ import {
 import {
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
+  decodeProtobufPayload,
   mongoDBContainer,
   postgreSQLContainer,
 } from "pagopa-interop-commons-test";
@@ -51,11 +52,10 @@ import { toAttributeV1 } from "../src/model/domain/toEvent.js";
 import {
   addOneAttribute,
   addOneTenant,
-  decodeProtobufPayload,
   getMockAttribute,
   getMockTenant,
   getMockAuthData,
-  readLastEventByStreamId,
+  readLastAttributeEvent,
 } from "./utils.js";
 
 const mockAttribute = getMockAttribute();
@@ -120,14 +120,16 @@ describe("database test", () => {
             name: mockAttribute.name,
             description: mockAttribute.description,
           },
-          getMockAuthData()
+          getMockAuthData(),
+          uuidv4()
         );
         expect(id).toBeDefined();
 
-        const writtenEvent = await readLastEventByStreamId(id, postgresDB);
+        const writtenEvent = await readLastAttributeEvent(id, postgresDB);
         expect(writtenEvent.stream_id).toBe(id);
         expect(writtenEvent.version).toBe("0");
         expect(writtenEvent.type).toBe("AttributeAdded");
+        expect(writtenEvent.event_version).toBe(1);
         const writtenPayload = decodeProtobufPayload({
           messageType: AttributeAddedV1,
           payload: writtenEvent.data,
@@ -154,7 +156,8 @@ describe("database test", () => {
               name: attribute.name,
               description: attribute.description,
             },
-            getMockAuthData()
+            getMockAuthData(),
+            uuidv4()
           )
         ).rejects.toThrowError(attributeDuplicate(attribute.name));
       });
@@ -166,14 +169,16 @@ describe("database test", () => {
             name: mockAttribute.name,
             description: mockAttribute.description,
           },
-          getMockAuthData()
+          getMockAuthData(),
+          uuidv4()
         );
         expect(id).toBeDefined();
 
-        const writtenEvent = await readLastEventByStreamId(id, postgresDB);
+        const writtenEvent = await readLastAttributeEvent(id, postgresDB);
         expect(writtenEvent.stream_id).toBe(id);
         expect(writtenEvent.version).toBe("0");
         expect(writtenEvent.type).toBe("AttributeAdded");
+        expect(writtenEvent.event_version).toBe(1);
 
         const writtenPayload = decodeProtobufPayload({
           messageType: AttributeAddedV1,
@@ -201,7 +206,8 @@ describe("database test", () => {
               name: attribute.name,
               description: attribute.description,
             },
-            getMockAuthData()
+            getMockAuthData(),
+            uuidv4()
           )
         ).rejects.toThrowError(attributeDuplicate(attribute.name));
       });
@@ -212,7 +218,7 @@ describe("database test", () => {
           ...mockTenant,
           features: [
             {
-              type: "Certifier",
+              type: "PersistentCertifier",
               certifierId: uuidv4(),
             },
           ],
@@ -223,17 +229,19 @@ describe("database test", () => {
         const id = await attributeRegistryService.createCertifiedAttribute(
           {
             name: mockAttribute.name,
-            code: mockAttribute.code!,
+            code: "code",
             description: mockAttribute.description,
           },
-          getMockAuthData(tenant.id)
+          getMockAuthData(tenant.id),
+          uuidv4()
         );
         expect(id).toBeDefined();
 
-        const writtenEvent = await readLastEventByStreamId(id, postgresDB);
+        const writtenEvent = await readLastAttributeEvent(id, postgresDB);
         expect(writtenEvent.stream_id).toBe(id);
         expect(writtenEvent.version).toBe("0");
         expect(writtenEvent.type).toBe("AttributeAdded");
+        expect(writtenEvent.event_version).toBe(1);
         const writtenPayload = decodeProtobufPayload({
           messageType: AttributeAddedV1,
           payload: writtenEvent.data,
@@ -241,6 +249,7 @@ describe("database test", () => {
 
         const attribute: Attribute = {
           ...mockAttribute,
+          code: "code",
           id: unsafeBrandId(id),
           kind: attributeKind.certified,
           creationTime: new Date(writtenPayload.attribute!.creationTime),
@@ -258,7 +267,7 @@ describe("database test", () => {
           ...mockTenant,
           features: [
             {
-              type: "Certifier",
+              type: "PersistentCertifier",
               certifierId: uuidv4(),
             },
           ],
@@ -273,7 +282,8 @@ describe("database test", () => {
               code: attribute.code,
               description: attribute.description,
             },
-            getMockAuthData(tenant.id)
+            getMockAuthData(tenant.id),
+            uuidv4()
           )
         ).rejects.toThrowError(attributeDuplicate(attribute.name));
       });
@@ -284,10 +294,11 @@ describe("database test", () => {
           attributeRegistryService.createCertifiedAttribute(
             {
               name: mockAttribute.name,
-              code: mockAttribute.code!,
+              code: "code",
               description: mockAttribute.description,
             },
-            getMockAuthData(mockTenant.id)
+            getMockAuthData(mockTenant.id),
+            uuidv4()
           )
         ).rejects.toThrowError(OrganizationIsNotACertifier(mockTenant.id));
       });
@@ -297,10 +308,11 @@ describe("database test", () => {
           attributeRegistryService.createCertifiedAttribute(
             {
               name: mockAttribute.name,
-              code: mockAttribute.code!,
+              code: "code",
               description: mockAttribute.description,
             },
-            getMockAuthData(mockTenant.id)
+            getMockAuthData(mockTenant.id),
+            uuidv4()
           )
         ).rejects.toThrowError(tenantNotFound(mockTenant.id));
       });
@@ -311,7 +323,7 @@ describe("database test", () => {
           ...mockTenant,
           features: [
             {
-              type: "Certifier",
+              type: "PersistentCertifier",
               certifierId: uuidv4(),
             },
           ],
@@ -320,18 +332,22 @@ describe("database test", () => {
         await addOneTenant(tenant, tenants);
 
         const id =
-          await attributeRegistryService.createInternalCertifiedAttribute({
-            name: mockAttribute.name,
-            code: mockAttribute.code!,
-            origin: tenant.features[0].certifierId,
-            description: mockAttribute.description,
-          });
+          await attributeRegistryService.createInternalCertifiedAttribute(
+            {
+              name: mockAttribute.name,
+              code: "code",
+              origin: tenant.features[0].certifierId,
+              description: mockAttribute.description,
+            },
+            uuidv4()
+          );
         expect(id).toBeDefined();
 
-        const writtenEvent = await readLastEventByStreamId(id, postgresDB);
+        const writtenEvent = await readLastAttributeEvent(id, postgresDB);
         expect(writtenEvent.stream_id).toBe(id);
         expect(writtenEvent.version).toBe("0");
         expect(writtenEvent.type).toBe("AttributeAdded");
+        expect(writtenEvent.event_version).toBe(1);
         const writtenPayload = decodeProtobufPayload({
           messageType: AttributeAddedV1,
           payload: writtenEvent.data,
@@ -339,6 +355,7 @@ describe("database test", () => {
 
         const attribute: Attribute = {
           ...mockAttribute,
+          code: "code",
           id: unsafeBrandId(id),
           kind: attributeKind.certified,
           creationTime: new Date(writtenPayload.attribute!.creationTime),
@@ -356,7 +373,7 @@ describe("database test", () => {
           ...mockTenant,
           features: [
             {
-              type: "Certifier",
+              type: "PersistentCertifier",
               certifierId: uuidv4(),
             },
           ],
@@ -365,12 +382,15 @@ describe("database test", () => {
         await addOneTenant(tenant, tenants);
         await addOneAttribute(attribute, postgresDB, attributes);
         expect(
-          attributeRegistryService.createInternalCertifiedAttribute({
-            name: attribute.name,
-            code: attribute.code,
-            origin: tenant.features[0].certifierId,
-            description: attribute.description,
-          })
+          attributeRegistryService.createInternalCertifiedAttribute(
+            {
+              name: attribute.name,
+              code: attribute.code,
+              origin: tenant.features[0].certifierId,
+              description: attribute.description,
+            },
+            uuidv4()
+          )
         ).rejects.toThrowError(attributeDuplicate(attribute.name));
       });
     });
@@ -461,7 +481,7 @@ describe("database test", () => {
         });
         it("should not get the attributes if they don't exist", async () => {
           const result = await readModelService.getAttributesByIds({
-            ids: [uuidv4(), uuidv4()],
+            ids: [generateId(), generateId()],
             offset: 0,
             limit: 50,
           });
@@ -573,7 +593,9 @@ describe("database test", () => {
           expect(attribute?.data).toEqual(attribute1);
         });
         it("should not get the attribute if it doesn't exist", async () => {
-          const attribute = await readModelService.getAttributeById(uuidv4());
+          const attribute = await readModelService.getAttributeById(
+            generateId()
+          );
           expect(attribute).toBeUndefined();
         });
       });

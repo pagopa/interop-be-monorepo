@@ -119,9 +119,9 @@ export function assertAgreementExist(
 
 export function assertEServiceExist(
   eserviceId: EServiceId,
-  eService: WithMetadata<EService> | undefined
-): asserts eService is NonNullable<WithMetadata<EService>> {
-  if (eService === undefined) {
+  eservice: WithMetadata<EService> | undefined
+): asserts eservice is NonNullable<WithMetadata<EService>> {
+  if (eservice === undefined) {
     throw eServiceNotFound(eserviceId);
   }
 }
@@ -130,7 +130,10 @@ export const assertRequesterIsConsumer = (
   agreement: Agreement,
   authData: AuthData
 ): void => {
-  if (authData.organizationId !== agreement.consumerId) {
+  if (
+    !authData.userRoles.includes("internal") &&
+    authData.organizationId !== agreement.consumerId
+  ) {
     throw operationNotAllowed(authData.organizationId);
   }
 };
@@ -139,7 +142,10 @@ export function assertRequesterIsProducer(
   agreement: Agreement,
   authData: AuthData
 ): void {
-  if (authData.organizationId !== agreement.producerId) {
+  if (
+    !authData.userRoles.includes("internal") &&
+    authData.organizationId !== agreement.producerId
+  ) {
     throw operationNotAllowed(authData.organizationId);
   }
 }
@@ -221,11 +227,11 @@ const validateDescriptorState = (
 };
 
 const validateLatestDescriptor = (
-  eService: EService,
+  eservice: EService,
   descriptorId: DescriptorId,
   allowedStates: DescriptorState[]
 ): Descriptor => {
-  const recentActiveDescriptors = eService.descriptors
+  const recentActiveDescriptors = eservice.descriptors
     .filter((d) => d.state !== descriptorState.draft)
     .sort((a, b) => Number(b.version) - Number(a.version));
 
@@ -238,7 +244,7 @@ const validateLatestDescriptor = (
 
   const recentActiveDescriptor = recentActiveDescriptors[0];
   validateDescriptorState(
-    eService.id,
+    eservice.id,
     descriptorId,
     recentActiveDescriptor.state,
     allowedStates
@@ -428,10 +434,10 @@ export const failOnActivationFailure = (
 /* ========= MATCHERS ========= */
 
 const matchingAttributes = (
-  eServiceAttributes: EServiceAttribute[][],
+  eserviceAttributes: EServiceAttribute[][],
   consumerAttributes: AttributeId[]
 ): AttributeId[] =>
-  eServiceAttributes
+  eserviceAttributes
     .flatMap((atts) => atts.map((att) => att.id))
     .filter((att) => consumerAttributes.includes(att));
 
@@ -464,12 +470,12 @@ export const matchingDeclaredAttributes = (
 };
 
 export const matchingVerifiedAttributes = (
-  eService: EService,
+  eservice: EService,
   descriptor: Descriptor,
   consumer: Tenant
 ): VerifiedAgreementAttribute[] => {
   const verifiedAttributes = filterVerifiedAttributes(
-    eService.producerId,
+    eservice.producerId,
     consumer
   ).map((a) => a.id);
 
