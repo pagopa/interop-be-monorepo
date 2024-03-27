@@ -19,12 +19,14 @@ import { AgreementQuery } from "./readmodel/agreementQuery.js";
 import { EserviceQuery } from "./readmodel/eserviceQuery.js";
 import { TenantQuery } from "./readmodel/tenantQuery.js";
 
+// eslint-disable-next-line max-params
 export async function createAgreementLogic(
   agreement: ApiAgreementPayload,
   authData: AuthData,
   agreementQuery: AgreementQuery,
   eserviceQuery: EserviceQuery,
-  tenantQuery: TenantQuery
+  tenantQuery: TenantQuery,
+  correlationId: string
 ): Promise<CreateEvent<AgreementEvent>> {
   logger.info(
     `Creating agreement for EService ${agreement.eserviceId} and Descriptor ${agreement.descriptorId}`
@@ -64,5 +66,5 @@ export async function createAgreementLogic(
     stamps: {},
   };
 
-  return toCreateEventAgreementAdded(agreementSeed);
+  return toCreateEventAgreementAdded(agreementSeed, correlationId);
 }
