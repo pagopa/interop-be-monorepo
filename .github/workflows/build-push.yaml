@@ -3,10 +3,10 @@ name: "Build & Push"
 on:
   push:
     branches:
-      - "main"
+      - 'main'
     paths:
-      - "packages/**"
-      - "!packages/*/scripts/**"
+      - 'packages/**'
+      - '!packages/*/scripts/**'
 
 jobs:
   build_push_image:
