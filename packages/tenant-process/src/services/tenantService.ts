@@ -1,5 +1,6 @@
 import {
-  AuthData,
+  AuthDataInternal,
+  AuthDataUI,
   CreateEvent,
   DB,
   eventRepository,
@@ -129,7 +130,7 @@ export function tenantServiceBuilder(
       correlationId,
     }: {
       tenantSeed: ApiSelfcareTenantSeed;
-      authData: AuthData;
+      authData: AuthDataUI | AuthDataInternal;
       correlationId: string;
     }): Promise<string> {
       const existingTenant = await readModelService.getTenantByExternalId(
