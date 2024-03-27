@@ -3,12 +3,12 @@ import {
   SQSClient,
   SendMessageCommand,
 } from "@aws-sdk/client-sqs";
-import { LoggerConfig, logger } from "../index.js";
-import { QueueMessage } from "./models.js";
+import { LoggerConfig, logger } from "pagopa-interop-commons";
 import {
   queueManagerReceiveError,
   queueManagerSendError,
 } from "./queueManagerErrors.js";
+import { QueueMessage } from "./queueMessage.js";
 
 export type QueueManager = {
   send: (message: QueueMessage) => Promise<string>;
