@@ -250,11 +250,6 @@ const tenantsRouter = (
       async (_req, res) => res.status(501).send()
     )
     .post(
-      "/tenants/:id",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
-    )
-    .post(
       "/internal/origin/:tOrigin/externalId/:tExternalId/attributes/origin/:aOrigin/externalId/:aExternalId",
       authorizationMiddleware([INTERNAL_ROLE]),
       async (_req, res) => res.status(501).send()
@@ -300,14 +295,14 @@ const tenantsRouter = (
       async (req, res) => {
         try {
           const { tenantId, attributeId } = req.params;
-          await tenantService.updateTenantVerifiedAttribute({
+          const tenant = await tenantService.updateTenantVerifiedAttribute({
             verifierId: req.ctx.authData.organizationId,
             tenantId: unsafeBrandId(tenantId),
             attributeId: unsafeBrandId(attributeId),
             updateVerifiedTenantAttributeSeed: req.body,
             correlationId: req.ctx.correlationId,
           });
-          return res.status(200).end();
+          return res.status(200).json(toApiTenant(tenant)).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -323,13 +318,14 @@ const tenantsRouter = (
       async (req, res) => {
         try {
           const { tenantId, attributeId, verifierId } = req.params;
-          await tenantService.updateVerifiedAttributeExtensionDate(
-            unsafeBrandId(tenantId),
-            unsafeBrandId(attributeId),
-            verifierId,
-            req.ctx.correlationId
-          );
-          return res.status(200).end();
+          const tenant =
+            await tenantService.updateVerifiedAttributeExtensionDate(
+              unsafeBrandId(tenantId),
+              unsafeBrandId(attributeId),
+              verifierId,
+              req.ctx.correlationId
+            );
+          return res.status(200).json(toApiTenant(tenant)).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

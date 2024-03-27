@@ -54,11 +54,10 @@ export function tenantServiceBuilder(
       attributeId: AttributeId,
       verifierId: string,
       correlationId: string
-    ): Promise<string> {
+    ): Promise<Tenant> {
       logger.info(
         `Update extension date of attribute ${attributeId} for tenant ${tenantId}`
       );
-
       const tenant = await retrieveTenant(tenantId, readModelService);
 
       const attribute = tenant.data.attributes.find(
@@ -121,7 +120,8 @@ export function tenantServiceBuilder(
         updatedTenant,
         correlationId
       );
-      return await repository.createEvent(event);
+      await repository.createEvent(event);
+      return updatedTenant;
     },
 
     async updateTenantVerifiedAttribute({
@@ -136,9 +136,8 @@ export function tenantServiceBuilder(
       attributeId: AttributeId;
       updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed;
       correlationId: string;
-    }): Promise<string> {
+    }): Promise<Tenant> {
       logger.info(`Update attribute ${attributeId} to tenant ${tenantId}`);
-
       const tenant = await retrieveTenant(tenantId, readModelService);
 
       const expirationDate = updateVerifiedTenantAttributeSeed.expirationDate
@@ -180,7 +179,8 @@ export function tenantServiceBuilder(
         updatedTenant,
         correlationId
       );
-      return await repository.createEvent(event);
+      await repository.createEvent(event);
+      return updatedTenant;
     },
 
     async selfcareUpsertTenant({
