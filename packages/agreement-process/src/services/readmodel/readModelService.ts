@@ -47,7 +47,10 @@ export type AgreementQueryFilters = {
 type AgreementDataFields = RemoveDataPrefix<MongoQueryKeys<Agreement>>;
 
 const makeFilter = (
-  fieldName: AgreementDataFields,
+  fieldName: Extract<
+    AgreementDataFields,
+    "producerId" | "consumerId" | "eserviceId" | "descriptorId"
+  >,
   value: string | string[] | undefined
 ): ReadModelFilter<Agreement> | undefined =>
   match(value)
@@ -58,12 +61,29 @@ const makeFilter = (
     .with(P.array(P.string), (a) =>
       a.length === 0 ? undefined : { [`data.${fieldName}`]: { $in: value } }
     )
-    .otherwise(() => {
-      logger.error(
-        `Unable to build filter for field ${fieldName} and value ${value}`
-      );
-      return undefined;
-    });
+    .exhaustive();
+
+const makeAttributesFilter = (
+  fieldName: Extract<
+    AgreementDataFields,
+    "certifiedAttributes" | "declaredAttributes" | "verifiedAttributes"
+  >,
+  attributeId: AttributeId | AttributeId[]
+): ReadModelFilter<Agreement> | undefined =>
+  match(attributeId)
+    .with(P.string, () => ({
+      [`data.${fieldName}`]: { $elemMatch: { id: attributeId } },
+    }))
+    .with(P.array(P.string), (a) =>
+      a.length === 0
+        ? undefined
+        : {
+            [`data.${fieldName}`]: {
+              $elemMatch: { id: { $in: attributeId } },
+            },
+          }
+    )
+    .exhaustive();
 
 const getAgreementsFilters = (
   filters: AgreementQueryFilters
@@ -116,9 +136,9 @@ const getAgreementsFilters = (
       }),
     ...(attributeId && {
       $or: [
-        { "data.certifiedAttributes": { $elemMatch: { id: attributeId } } },
-        { "data.declaredAttributes": { $elemMatch: { id: attributeId } } },
-        { "data.verifiedAttributes": { $elemMatch: { id: attributeId } } },
+        makeAttributesFilter("certifiedAttributes", attributeId),
+        makeAttributesFilter("verifiedAttributes", attributeId),
+        makeAttributesFilter("declaredAttributes", attributeId),
       ],
     }),
   };
