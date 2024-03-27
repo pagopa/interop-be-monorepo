@@ -64,7 +64,8 @@ export async function submitAgreementLogic(
   constractBuilder: ContractBuilder,
   eserviceQuery: EserviceQuery,
   agreementQuery: AgreementQuery,
-  tenantQuery: TenantQuery
+  tenantQuery: TenantQuery,
+  correlationId: string
 ): Promise<Array<CreateEvent<AgreementEvent>>> {
   logger.info(`Submitting agreement ${agreementId}`);
   const { authData } = getContext();
@@ -106,7 +107,8 @@ export async function submitAgreementLogic(
     payload,
     agreementQuery,
     tenantQuery,
-    constractBuilder
+    constractBuilder,
+    correlationId
   );
 }
 
@@ -118,7 +120,8 @@ const submitAgreement = async (
   payload: ApiAgreementSubmissionPayload,
   agreementQuery: AgreementQuery,
   tenantQuery: TenantQuery,
-  constractBuilder: ContractBuilder
+  constractBuilder: ContractBuilder,
+  correlationId: string
 ): Promise<Array<CreateEvent<AgreementEvent>>> => {
   const agreement = agreementData.data;
   const { authData } = getContext();
@@ -155,7 +158,8 @@ const submitAgreement = async (
 
   const updatedAgreementEvent = toCreateEventAgreementUpdated(
     updatedAgreement,
-    agreementData.metadata.version
+    agreementData.metadata.version,
+    correlationId
   );
 
   const agreements = (
@@ -187,7 +191,8 @@ const submitAgreement = async (
                   ...agreement.data,
                   ...updateSeed,
                 },
-                agreement.metadata.version
+                agreement.metadata.version,
+                correlationId
               );
             }
           )
@@ -213,7 +218,8 @@ const submitAgreement = async (
             consumer,
             updateSeed,
             tenantQuery,
-            constractBuilder
+            constractBuilder,
+            correlationId
           ),
         ]
       : [];
@@ -232,7 +238,8 @@ const createContract = async (
   consumer: Tenant,
   seed: UpdateAgreementSeed,
   tenantQuery: TenantQuery,
-  constractBuilder: ContractBuilder
+  constractBuilder: ContractBuilder,
+  correlationId: string
 ): Promise<CreateEvent<AgreementEvent>> => {
   const producer = await tenantQuery.getTenantById(agreement.producerId);
 
@@ -260,7 +267,8 @@ const createContract = async (
   return addAgreementContractLogic(
     agreement.id,
     agreementdocumentSeed,
-    agreementVersionNumer
+    agreementVersionNumer,
+    correlationId
   );
 };
 

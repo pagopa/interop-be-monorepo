@@ -203,7 +203,8 @@ const attributeRouter = (
           const attribute =
             await attributeRegistryService.createCertifiedAttribute(
               req.body,
-              req.ctx.authData
+              req.ctx.authData,
+              req.ctx.correlationId
             );
           return res.status(200).json(toApiAttribute(attribute)).end();
         } catch (error) {
@@ -223,7 +224,8 @@ const attributeRouter = (
           const attribute =
             await attributeRegistryService.createDeclaredAttribute(
               req.body,
-              req.ctx.authData
+              req.ctx.authData,
+              req.ctx.correlationId
             );
           return res.status(200).json(toApiAttribute(attribute)).end();
         } catch (error) {
@@ -243,7 +245,8 @@ const attributeRouter = (
           const attribute =
             await attributeRegistryService.createVerifiedAttribute(
               req.body,
-              req.ctx.authData
+              req.ctx.authData,
+              req.ctx.correlationId
             );
           return res.status(200).json(toApiAttribute(attribute)).end();
         } catch (error) {
@@ -262,7 +265,8 @@ const attributeRouter = (
         try {
           const attribute =
             await attributeRegistryService.createInternalCertifiedAttribute(
-              req.body
+              req.body,
+              req.ctx.correlationId
             );
           return res.status(200).json(toApiAttribute(attribute)).end();
         } catch (error) {
