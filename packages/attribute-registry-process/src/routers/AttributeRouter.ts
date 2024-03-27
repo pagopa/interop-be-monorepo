@@ -197,7 +197,7 @@ const attributeRouter = (
     )
     .post(
       "/certifiedAttributes",
-      authorizationMiddleware([ADMIN_ROLE, API_ROLE, M2M_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE, M2M_ROLE]),
       async (req, res) => {
         try {
           const attribute =
