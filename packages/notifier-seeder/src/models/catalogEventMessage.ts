@@ -1,10 +1,10 @@
-import { QueueMessage } from "pagopa-interop-commons";
 import { v4 as uuidv4 } from "uuid";
 import {
   EServiceEventV1,
   EServiceEventEnvelopeV2,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { QueueMessage } from "../queue-manager/queueMessage.js";
 
 export const eventV2TypeMapper = (
   eventType: EServiceEventEnvelopeV2["type"]

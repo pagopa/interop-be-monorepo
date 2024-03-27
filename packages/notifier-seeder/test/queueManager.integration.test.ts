@@ -1,18 +1,29 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
+import { StartedTestContainer, GenericContainer } from "testcontainers";
+import { v4 as uuidv4 } from "uuid";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   QueueManager,
   initQueueManager,
+} from "../src/queue-manager/queueManager.js";
+import {
   queueManagerReceiveError,
   queueManagerSendError,
-} from "pagopa-interop-commons";
-import { v4 as uuidv4 } from "uuid";
-import { StartedTestContainer } from "testcontainers";
-import {
-  TEST_ELASTIC_MQ_PORT,
-  elasticMQContainer,
-} from "../src/containerTestUtils.js";
+} from "../src/queue-manager/queueManagerErrors.js";
+
+export const TEST_ELASTIC_MQ_IMAGE = "softwaremill/elasticmq-native:latest";
+export const TEST_ELASTIC_MQ_PORT = 9324;
+
+export const elasticMQContainer = (): GenericContainer =>
+  new GenericContainer(TEST_ELASTIC_MQ_IMAGE)
+    .withCopyFilesToContainer([
+      {
+        source: "elasticmq.local.conf",
+        target: "/opt/elasticmq.conf",
+      },
+    ])
+    .withExposedPorts(TEST_ELASTIC_MQ_PORT);
 
 describe("FileManager tests", async () => {
   process.env.AWS_CONFIG_FILE = "aws.config.local";
