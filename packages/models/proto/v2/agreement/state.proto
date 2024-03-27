@@ -4,7 +4,7 @@ package agreement.v2;
 
 import "v2/agreement/agreement.proto";
 
-message StateV2
+message AgreementsStateV2
 {
   repeated AgreementsV2 agreements = 1;
 }

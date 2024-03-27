@@ -20,7 +20,7 @@ message AgreementV2 {
   repeated AgreementDocumentV2 consumerDocuments = 15;
   optional string consumerNotes = 16;
   optional AgreementDocumentV2 contract = 17;
-  optional StampsV2 stamps = 18;
+  optional AgreementStampsV2 stamps = 18;
   optional string rejectionReason = 19;
   optional int64 suspendedAt = 20;
 }
@@ -58,17 +58,17 @@ enum AgreementStateV2 {
   REJECTED = 6;
 }
 
-message StampV2 {
+message AgreementStampV2 {
   string who = 1;
   int64 when = 2;
 }
 
-message StampsV2 {
-  optional StampV2 submission = 1;
-  optional StampV2 activation = 2;
-  optional StampV2 rejection = 3;
-  optional StampV2 suspensionByProducer = 4;
-  optional StampV2 upgrade = 5;
-  optional StampV2 archiving = 6;
-  optional StampV2 suspensionByConsumer = 7;
+message AgreementStampsV2 {
+  optional AgreementStampV2 submission = 1;
+  optional AgreementStampV2 activation = 2;
+  optional AgreementStampV2 rejection = 3;
+  optional AgreementStampV2 suspensionByProducer = 4;
+  optional AgreementStampV2 upgrade = 5;
+  optional AgreementStampV2 archiving = 6;
+  optional AgreementStampV2 suspensionByConsumer = 7;
 }
