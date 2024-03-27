@@ -1,14 +1,19 @@
 import { Kafka, KafkaMessage } from "kafkajs";
 import {
-  readModelWriterConfig,
+  ReadModelRepository,
+  attributeTopicConfig,
   decodeKafkaMessage,
   logger,
+  readModelWriterConfig,
 } from "pagopa-interop-commons";
 import { createMechanism } from "@jm18457/kafkajs-msk-iam-authentication-mechanism";
 import { AttributeEvent } from "pagopa-interop-models";
 import { handleMessage } from "./attributeRegistryConsumerService.js";
 
 const config = readModelWriterConfig();
+const { attributes } = ReadModelRepository.init(config);
+const { attributeTopic } = attributeTopicConfig();
+
 const kafkaConfig = config.kafkaDisableAwsIamAuth
   ? {
       clientId: config.kafkaClientId,
@@ -37,13 +42,16 @@ process.on("SIGINT", exitGracefully);
 process.on("SIGTERM", exitGracefully);
 
 await consumer.subscribe({
-  topics: ["event-store.attribute.events"],
+  topics: [attributeTopic],
   fromBeginning: true,
 });
 
 async function processMessage(message: KafkaMessage): Promise<void> {
   try {
-    await handleMessage(decodeKafkaMessage(message, AttributeEvent));
+    await handleMessage(
+      decodeKafkaMessage(message, AttributeEvent),
+      attributes
+    );
 
     logger.info("Read model was updated");
   } catch (e) {

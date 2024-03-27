@@ -1,9 +1,4 @@
-import {
-  AuthData,
-  eventRepository,
-  initDB,
-  logger,
-} from "pagopa-interop-commons";
+import { AuthData, DB, eventRepository, logger } from "pagopa-interop-commons";
 import {
   AttributeId,
   ExternalId,
@@ -15,7 +10,6 @@ import {
   generateId,
   tenantEventToBinaryData,
 } from "pagopa-interop-models";
-import { TenantProcessConfig } from "../utilities/config.js";
 import {
   toCreateEventTenantAdded,
   toCreateEventTenantUpdated,
@@ -49,26 +43,17 @@ const retrieveTenant = async (
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantServiceBuilder(
-  config: TenantProcessConfig,
+  dbInstance: DB,
   readModelService: ReadModelService
 ) {
-  const repository = eventRepository(
-    initDB({
-      username: config.eventStoreDbUsername,
-      password: config.eventStoreDbPassword,
-      host: config.eventStoreDbHost,
-      port: config.eventStoreDbPort,
-      database: config.eventStoreDbName,
-      schema: config.eventStoreDbSchema,
-      useSSL: config.eventStoreDbUseSSL,
-    }),
-    tenantEventToBinaryData
-  );
+  const repository = eventRepository(dbInstance, tenantEventToBinaryData);
+
   return {
     async updateVerifiedAttributeExtensionDate(
       tenantId: TenantId,
       attributeId: AttributeId,
-      verifierId: string
+      verifierId: string,
+      correlationId: string
     ): Promise<string> {
       logger.info(
         `Update extension date of attribute ${attributeId} for tenant ${tenantId}`
@@ -133,7 +118,8 @@ export function tenantServiceBuilder(
       const event = toCreateEventTenantUpdated(
         tenant.data.id,
         tenant.metadata.version,
-        updatedTenant
+        updatedTenant,
+        correlationId
       );
       return await repository.createEvent(event);
     },
@@ -143,11 +129,13 @@ export function tenantServiceBuilder(
       tenantId,
       attributeId,
       updateVerifiedTenantAttributeSeed,
+      correlationId,
     }: {
       verifierId: string;
       tenantId: TenantId;
       attributeId: AttributeId;
       updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed;
+      correlationId: string;
     }): Promise<string> {
       logger.info(`Update attribute ${attributeId} to tenant ${tenantId}`);
 
@@ -189,7 +177,8 @@ export function tenantServiceBuilder(
       const event = toCreateEventTenantUpdated(
         tenant.data.id,
         tenant.metadata.version,
-        updatedTenant
+        updatedTenant,
+        correlationId
       );
       return await repository.createEvent(event);
     },
@@ -197,9 +186,11 @@ export function tenantServiceBuilder(
     async selfcareUpsertTenant({
       tenantSeed,
       authData,
+      correlationId,
     }: {
       tenantSeed: ApiSelfcareTenantSeed;
       authData: AuthData;
+      correlationId: string;
     }): Promise<string> {
       logger.info(
         `Upsert tenant by selfcare with externalId: ${tenantSeed.externalId}`
@@ -230,11 +221,16 @@ export function tenantServiceBuilder(
           selfcareId: tenantSeed.selfcareId,
           updatedAt: new Date(),
         };
+
+        logger.info(
+          `Creating tenant with external id ${tenantSeed.externalId} via SelfCare request"`
+        );
         return await repository.createEvent(
           toCreateEventTenantUpdated(
             existingTenant.data.id,
             existingTenant.metadata.version,
-            updatedTenant
+            updatedTenant,
+            correlationId
           )
         );
       } else {
@@ -253,39 +249,44 @@ export function tenantServiceBuilder(
           createdAt: new Date(),
         };
         return await repository.createEvent(
-          toCreateEventTenantAdded(newTenant)
+          toCreateEventTenantAdded(newTenant, correlationId)
         );
       }
     },
     async getProducers({
-      name,
+      producerName,
       offset,
       limit,
     }: {
-      name: string | undefined;
+      producerName: string | undefined;
       offset: number;
       limit: number;
     }): Promise<ListResult<Tenant>> {
       logger.info(
-        `Retrieving Producers with name = ${name}, limit = ${limit}, offset = ${offset}`
+        `Retrieving Producers with name = ${producerName}, limit = ${limit}, offset = ${offset}`
       );
-      return readModelService.getProducers({ name, offset, limit });
+      return readModelService.getProducers({ producerName, offset, limit });
     },
     async getConsumers({
-      name,
+      consumerName,
       producerId,
       offset,
       limit,
     }: {
-      name: string | undefined;
+      consumerName: string | undefined;
       producerId: TenantId;
       offset: number;
       limit: number;
     }): Promise<ListResult<Tenant>> {
       logger.info(
-        `Retrieving Consumers with name = ${name}, limit = ${limit}, offset = ${offset}`
+        `Retrieving Consumers with name = ${consumerName}, limit = ${limit}, offset = ${offset}`
       );
-      return readModelService.getConsumers({ name, producerId, offset, limit });
+      return readModelService.getConsumers({
+        consumerName,
+        producerId,
+        offset,
+        limit,
+      });
     },
     async getTenantsByName({
       name,
