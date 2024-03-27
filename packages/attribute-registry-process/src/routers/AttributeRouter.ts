@@ -7,6 +7,8 @@ import {
   authorizationMiddleware,
   ReadModelRepository,
   initDB,
+  assertAuthDataIs,
+  assertAuthDataIsOneOf,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
@@ -67,6 +69,7 @@ const attributeRouter = (
       ]),
       async (req, res) => {
         try {
+          assertAuthDataIsOneOf(req.ctx.authData, ["m2m", "ui"]);
           const { limit, offset, kinds, name, origin } = req.query;
           const attributes =
             await readModelService.getAttributesByKindsNameOrigin({
@@ -100,6 +103,7 @@ const attributeRouter = (
       ]),
       async (req, res) => {
         try {
+          assertAuthDataIsOneOf(req.ctx.authData, ["m2m", "ui"]);
           const attribute = await readModelService.getAttributeByName(
             req.params.name
           );
@@ -133,6 +137,7 @@ const attributeRouter = (
       ]),
       async (req, res) => {
         try {
+          assertAuthDataIsOneOf(req.ctx.authData, ["m2m", "ui", "internal"]);
           const { origin, code } = req.params;
 
           const attribute = await readModelService.getAttributeByOriginAndCode({
@@ -169,6 +174,7 @@ const attributeRouter = (
       ]),
       async (req, res) => {
         try {
+          assertAuthDataIsOneOf(req.ctx.authData, ["m2m", "ui"]);
           const attribute = await readModelService.getAttributeById(
             unsafeBrandId(req.params.attributeId)
           );
@@ -204,6 +210,7 @@ const attributeRouter = (
         const { limit, offset } = req.query;
 
         try {
+          assertAuthDataIsOneOf(req.ctx.authData, ["m2m", "ui"]);
           const attributes = await readModelService.getAttributesByIds({
             ids: req.body.map((a) => unsafeBrandId(a)),
             offset,
@@ -226,6 +233,7 @@ const attributeRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE, M2M_ROLE]),
       async (req, res) => {
         try {
+          assertAuthDataIsOneOf(req.ctx.authData, ["m2m", "ui"]);
           const id = await attributeRegistryService.createCertifiedAttribute(
             req.body,
             req.ctx.authData,
@@ -246,6 +254,7 @@ const attributeRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE, M2M_ROLE]),
       async (req, res) => {
         try {
+          assertAuthDataIsOneOf(req.ctx.authData, ["m2m", "ui"]);
           const id = await attributeRegistryService.createDeclaredAttribute(
             req.body,
             req.ctx.authData,
@@ -266,6 +275,7 @@ const attributeRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE, M2M_ROLE]),
       async (req, res) => {
         try {
+          assertAuthDataIsOneOf(req.ctx.authData, ["m2m", "ui"]);
           const id = await attributeRegistryService.createVerifiedAttribute(
             req.body,
             req.ctx.authData,
@@ -286,6 +296,7 @@ const attributeRouter = (
       authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
         try {
+          assertAuthDataIs(req.ctx.authData, "internal");
           const id =
             await attributeRegistryService.createInternalCertifiedAttribute(
               req.body,
