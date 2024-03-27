@@ -1,15 +1,10 @@
 import { match } from "ts-pattern";
-import {
-  logger,
-  readModelWriterConfig,
-  ReadModelRepository,
-} from "pagopa-interop-commons";
+import { logger, AttributeCollection } from "pagopa-interop-commons";
 import { AttributeEventEnvelope, fromAttributeV1 } from "pagopa-interop-models";
 
-const { attributes } = ReadModelRepository.init(readModelWriterConfig());
-
 export async function handleMessage(
-  message: AttributeEventEnvelope
+  message: AttributeEventEnvelope,
+  attributes: AttributeCollection
 ): Promise<void> {
   logger.info(message);
   await match(message)

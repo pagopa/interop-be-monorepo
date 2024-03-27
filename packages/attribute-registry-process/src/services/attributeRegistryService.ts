@@ -111,7 +111,8 @@ export function attributeRegistryServiceBuilder(
 
     async createDeclaredAttribute(
       apiDeclaredAttributeSeed: ApiDeclaredAttributeSeed,
-      authData: AuthData
+      authData: AuthData,
+      correlationId: string
     ): Promise<Attribute> {
       logger.info(
         `Creating declared attribute with name ${apiDeclaredAttributeSeed.name}}`
@@ -142,7 +143,10 @@ export function attributeRegistryServiceBuilder(
         `Declared attribute created with id ${newDeclaredAttribute.id}`
       );
 
-      const event = toCreateEventAttributeAdded(newDeclaredAttribute);
+      const event = toCreateEventAttributeAdded(
+        newDeclaredAttribute,
+        correlationId
+      );
       await repository.createEvent(event);
 
       return newDeclaredAttribute;
@@ -150,7 +154,8 @@ export function attributeRegistryServiceBuilder(
 
     async createVerifiedAttribute(
       apiVerifiedAttributeSeed: ApiVerifiedAttributeSeed,
-      authData: AuthData
+      authData: AuthData,
+      correlationId: string
     ): Promise<Attribute> {
       logger.info(
         `Creating verified attribute with name ${apiVerifiedAttributeSeed.name}`
@@ -180,7 +185,10 @@ export function attributeRegistryServiceBuilder(
         `Verified attribute created with id ${newVerifiedAttribute.id}`
       );
 
-      const event = toCreateEventAttributeAdded(newVerifiedAttribute);
+      const event = toCreateEventAttributeAdded(
+        newVerifiedAttribute,
+        correlationId
+      );
       await repository.createEvent(event);
 
       return newVerifiedAttribute;
@@ -188,7 +196,8 @@ export function attributeRegistryServiceBuilder(
 
     async createCertifiedAttribute(
       apiCertifiedAttributeSeed: ApiCertifiedAttributeSeed,
-      authData: AuthData
+      authData: AuthData,
+      correlationId: string
     ): Promise<Attribute> {
       logger.info(
         `Creating certified attribute with code ${apiCertifiedAttributeSeed.code}`
@@ -225,14 +234,18 @@ export function attributeRegistryServiceBuilder(
         `Certified attribute created with id ${newCertifiedAttribute.id}`
       );
 
-      const event = toCreateEventAttributeAdded(newCertifiedAttribute);
+      const event = toCreateEventAttributeAdded(
+        newCertifiedAttribute,
+        correlationId
+      );
       await repository.createEvent(event);
 
       return newCertifiedAttribute;
     },
 
     async createInternalCertifiedAttribute(
-      apiInternalCertifiedAttributeSeed: ApiInternalCertifiedAttributeSeed
+      apiInternalCertifiedAttributeSeed: ApiInternalCertifiedAttributeSeed,
+      correlationId: string
     ): Promise<Attribute> {
       logger.info(
         `Creating certified attribute with origin ${apiInternalCertifiedAttributeSeed.origin} and code ${apiInternalCertifiedAttributeSeed.code} - Internal Request`
@@ -261,7 +274,10 @@ export function attributeRegistryServiceBuilder(
         `Certified attribute created with id ${newInternalCertifiedAttribute.id} - Internal Request`
       );
 
-      const event = toCreateEventAttributeAdded(newInternalCertifiedAttribute);
+      const event = toCreateEventAttributeAdded(
+        newInternalCertifiedAttribute,
+        correlationId
+      );
       await repository.createEvent(event);
 
       return newInternalCertifiedAttribute;
