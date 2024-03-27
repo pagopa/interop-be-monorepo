@@ -6,3 +6,4 @@ metadata:
 data:
   EVENTSTORE_DB_USE_SSL: "true"
   EVENTSTORE_DB_SCHEMA: "attribute"
+  PRODUCER_ALLOWED_ORIGINS: "IPA"
