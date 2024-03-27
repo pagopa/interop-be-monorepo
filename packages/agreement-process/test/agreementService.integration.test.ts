@@ -1033,4 +1033,6 @@ describe("Agreement service", () => {
       );
     });
   });
+  // TODO test missing showOnlyUpdgradable filter
+  // TODO test combinations of filters
 });
