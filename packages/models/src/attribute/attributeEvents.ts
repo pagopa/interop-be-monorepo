@@ -2,15 +2,15 @@ import { match } from "ts-pattern";
 import { z } from "zod";
 import {
   AttributeAddedV1,
-  AttributeDeletedV1,
+  MaintenanceAttributeDeletedV1,
 } from "../gen/v1/attribute/events.js";
 import { protobufDecoder } from "../protobuf/protobuf.js";
 import { EventEnvelope } from "../events/events.js";
 
 export function attributeEventToBinaryData(event: AttributeEvent): Uint8Array {
   return match(event)
-    .with({ type: "AttributeDeleted" }, ({ data }) =>
-      AttributeDeletedV1.toBinary(data)
+    .with({ type: "MaintenanceAttributeDeleted" }, ({ data }) =>
+      MaintenanceAttributeDeletedV1.toBinary(data)
     )
     .with({ type: "AttributeAdded" }, ({ data }) =>
       AttributeAddedV1.toBinary(data)
@@ -26,8 +26,8 @@ export const AttributeEvent = z.discriminatedUnion("type", [
   }),
   z.object({
     event_version: z.literal(1),
-    type: z.literal("AttributeDeleted"),
-    data: protobufDecoder(AttributeDeletedV1),
+    type: z.literal("MaintenanceAttributeDeleted"),
+    data: protobufDecoder(MaintenanceAttributeDeletedV1),
   }),
 ]);
 export type AttributeEvent = z.infer<typeof AttributeEvent>;
