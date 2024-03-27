@@ -17,7 +17,6 @@ export const getAttributesByNameErrorMapper = (
 ): number =>
   match(error.code)
     .with("attributeNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getAttributeByOriginAndCodeErrorMapper = (
@@ -25,7 +24,6 @@ export const getAttributeByOriginAndCodeErrorMapper = (
 ): number =>
   match(error.code)
     .with("attributeNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getAttributeByIdErrorMapper = (
@@ -33,7 +31,6 @@ export const getAttributeByIdErrorMapper = (
 ): number =>
   match(error.code)
     .with("attributeNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const createDeclaredAttributesErrorMapper = (
