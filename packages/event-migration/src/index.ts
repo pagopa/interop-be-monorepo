@@ -126,6 +126,11 @@ const idVersionHashMap = new Map<string, number>();
 
 const { parser, decoder, idParser } = match(config.targetDbSchema)
   .with("catalog", () => {
+    if (!config.sourceDbSchema.includes("catalog")) {
+      throw Error(
+        "Source and target databases are incompatible, please double-check the config"
+      );
+    }
     const parser = (event_ser_manifest: any) =>
       match(
         event_ser_manifest
@@ -152,6 +157,11 @@ const { parser, decoder, idParser } = match(config.targetDbSchema)
     return { parser, decoder, idParser };
   })
   .with("attribute", () => {
+    if (!config.sourceDbSchema.includes("attribute")) {
+      throw Error(
+        "Source and target databases are incompatible, please double-check the config"
+      );
+    }
     const parser = (event_ser_manifest: any) =>
       match(
         event_ser_manifest
