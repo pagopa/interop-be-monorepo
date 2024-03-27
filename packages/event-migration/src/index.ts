@@ -124,14 +124,14 @@ const originalEvents = await sourceConnection.many(
 
 const idVersionHashMap = new Map<string, number>();
 
-const { parser, decoder, idParser } = match(config.targetDbSchema)
+const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
   .with("catalog", () => {
     if (!config.sourceDbSchema.includes("catalog")) {
       throw Error(
         "Source and target databases are incompatible, please double-check the config"
       );
     }
-    const parser = (event_ser_manifest: any) =>
+    const parseEventType = (event_ser_manifest: any) =>
       match(
         event_ser_manifest
           .replace("it.pagopa.interop.catalogmanagement.model.persistence.", "")
@@ -144,17 +144,17 @@ const { parser, decoder, idParser } = match(config.targetDbSchema)
         )
         .otherwise((originalType) => originalType);
 
-    const decoder = (eventType: string, event_payload: any) =>
+    const decodeEvent = (eventType: string, event_payload: any) =>
       EServiceEventV1.safeParse({
         type: eventType,
         event_version: 1,
         data: event_payload,
       });
 
-    const idParser = (anyPayload: any) =>
+    const parseId = (anyPayload: any) =>
       anyPayload.eservice ? anyPayload.eservice.id : anyPayload.eserviceId;
 
-    return { parser, decoder, idParser };
+    return { parseEventType, decodeEvent, parseId };
   })
   .with("attribute", () => {
     if (!config.sourceDbSchema.includes("attribute")) {
@@ -162,7 +162,7 @@ const { parser, decoder, idParser } = match(config.targetDbSchema)
         "Source and target databases are incompatible, please double-check the config"
       );
     }
-    const parser = (event_ser_manifest: any) =>
+    const parseEventType = (event_ser_manifest: any) =>
       match(
         event_ser_manifest
           .replace(
@@ -182,17 +182,17 @@ const { parser, decoder, idParser } = match(config.targetDbSchema)
         )
         .otherwise((originalType) => originalType);
 
-    const decoder = (eventType: string, event_payload: any) =>
+    const decodeEvent = (eventType: string, event_payload: any) =>
       AttributeEvent.safeParse({
         type: eventType,
         event_version: 1,
         data: event_payload,
       });
 
-    const idParser = (anyPayload: any) =>
+    const parseId = (anyPayload: any) =>
       anyPayload.attribute ? anyPayload.attribute.id : anyPayload.id;
 
-    return { parser, decoder, idParser };
+    return { parseEventType, decodeEvent, parseId };
   })
   .exhaustive();
 
@@ -200,21 +200,21 @@ for (const event of originalEvents) {
   console.log(event);
   const { event_ser_manifest, event_payload, write_timestamp } = event;
 
-  const eventType = parser(event_ser_manifest);
+  const parsedEventType = parseEventType(event_ser_manifest);
 
-  const eventToDecode = decoder(eventType, event_payload);
+  const decodedEvent = decodeEvent(parsedEventType, event_payload);
 
-  if (!eventToDecode.success) {
+  if (!decodedEvent.success) {
     console.error(
-      `Error decoding event ${eventType} with payload ${event_payload}`
+      `Error decoding event ${parsedEventType} with payload ${event_payload}`
     );
     throw new Error("Error decoding event");
   }
 
-  console.log(eventToDecode.data);
+  console.log(decodedEvent.data);
 
-  const anyPayload = eventToDecode.data.data as any;
-  const id = idParser(anyPayload);
+  const anyPayload = decodedEvent.data.data;
+  const id = parseId(anyPayload);
 
   let version = idVersionHashMap.get(id);
   if (version === undefined) {
@@ -234,7 +234,7 @@ for (const event of originalEvents) {
   } = {
     stream_id: id,
     version,
-    type: eventType,
+    type: parsedEventType,
     eventVersion: 1,
     data: event_payload,
     logDate: new Date(parseInt(write_timestamp, 10)),
