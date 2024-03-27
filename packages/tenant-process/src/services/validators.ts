@@ -126,12 +126,10 @@ export async function getTenantKindLoadingCertifiedAttributes(
     );
   }
 
-  const convertAttributes = (
-    attributes: Array<WithMetadata<Attribute>>
-  ): ExternalId[] =>
+  const convertAttributes = (attributes: Attribute[]): ExternalId[] =>
     attributes.flatMap((attr) => {
-      const origin = attr.data.origin;
-      const code = attr.data.code;
+      const origin = attr.origin;
+      const code = attr.code;
 
       if (origin !== undefined && code !== undefined) {
         return { origin, value: code } as ExternalId;

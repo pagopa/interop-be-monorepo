@@ -328,7 +328,7 @@ export function createTenantLogic({
     | ApiM2MTenantSeed
     | ApiInternalTenantSeed;
   kind: TenantKind;
-  attributes: Array<WithMetadata<Attribute>>;
+  attributes: Attribute[];
   correlationId: string;
 }): CreateEvent<TenantEvent> {
   if (tenant) {
@@ -337,7 +337,7 @@ export function createTenantLogic({
 
   const tenantAttributes: TenantAttribute[] = attributes.map((attribute) => ({
     type: tenantAttributeType.CERTIFIED, // All attributes here are certified
-    id: attribute.data.id,
+    id: attribute.id,
     assignmentTimestamp: new Date(),
   }));
 
