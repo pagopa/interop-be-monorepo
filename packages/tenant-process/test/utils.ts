@@ -23,6 +23,8 @@ import {
 import { IDatabase } from "pg-promise";
 import { v4 as uuidv4 } from "uuid";
 import {
+  StoredEvent,
+  readLastEventByStreamId,
   writeInEventstore,
   writeInReadmodel,
 } from "pagopa-interop-commons-test";
@@ -160,3 +162,9 @@ export const addOneTenant = async (
   await writeTenantInEventstore(tenant, postgresDB);
   await writeInReadmodel(tenant, tenants);
 };
+
+export const readLastTenantEvent = async (
+  tenantId: TenantId,
+  postgresDB: IDatabase<unknown>
+): Promise<StoredEvent> =>
+  await readLastEventByStreamId(tenantId, "tenant", postgresDB);
