@@ -1,26 +1,25 @@
 import {
   AuthData,
   CreateEvent,
+  DB,
   eventRepository,
-  initDB,
+  logger,
 } from "pagopa-interop-commons";
 import {
   Attribute,
   AttributeId,
   ExternalId,
+  ListResult,
   Tenant,
   TenantAttribute,
   TenantEvent,
-  TenantFeature,
   TenantId,
   TenantKind,
-  TenantMail,
   WithMetadata,
   generateId,
   tenantAttributeType,
   tenantEventToBinaryData,
 } from "pagopa-interop-models";
-import { TenantProcessConfig } from "../utilities/config.js";
 import {
   toCreateEventTenantAdded,
   toCreateEventTenantUpdated,
@@ -48,26 +47,17 @@ import { ReadModelService } from "./readModelService.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantServiceBuilder(
-  config: TenantProcessConfig,
+  dbInstance: DB,
   readModelService: ReadModelService
 ) {
-  const repository = eventRepository(
-    initDB({
-      username: config.eventStoreDbUsername,
-      password: config.eventStoreDbPassword,
-      host: config.eventStoreDbHost,
-      port: config.eventStoreDbPort,
-      database: config.eventStoreDbName,
-      schema: config.eventStoreDbSchema,
-      useSSL: config.eventStoreDbUseSSL,
-    }),
-    tenantEventToBinaryData
-  );
+  const repository = eventRepository(dbInstance, tenantEventToBinaryData);
+
   return {
     async updateVerifiedAttributeExtensionDate(
       tenantId: TenantId,
       attributeId: AttributeId,
-      verifierId: string
+      verifierId: string,
+      correlationId: string
     ): Promise<string> {
       const tenant = await readModelService.getTenantById(tenantId);
 
@@ -77,6 +67,7 @@ export function tenantServiceBuilder(
           attributeId,
           verifierId,
           tenant,
+          correlationId,
         })
       );
     },
@@ -86,7 +77,8 @@ export function tenantServiceBuilder(
         | ApiM2MTenantSeed
         | ApiInternalTenantSeed,
       attributesExternalIds: ExternalId[],
-      kind: TenantKind
+      kind: TenantKind,
+      correlationId: string
     ): Promise<string> {
       const [attributes, tenant] = await Promise.all([
         readModelService.getAttributesByExternalIds(attributesExternalIds),
@@ -99,6 +91,7 @@ export function tenantServiceBuilder(
           apiTenantSeed,
           kind,
           attributes,
+          correlationId,
         })
       );
     },
@@ -108,11 +101,13 @@ export function tenantServiceBuilder(
       tenantId,
       attributeId,
       updateVerifiedTenantAttributeSeed,
+      correlationId,
     }: {
       verifierId: string;
       tenantId: TenantId;
       attributeId: AttributeId;
       updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed;
+      correlationId: string;
     }): Promise<void> {
       const tenant = await readModelService.getTenantById(tenantId);
 
@@ -123,6 +118,7 @@ export function tenantServiceBuilder(
           tenantId,
           attributeId,
           updateVerifiedTenantAttributeSeed,
+          correlationId,
         })
       );
     },
@@ -130,9 +126,11 @@ export function tenantServiceBuilder(
     async selfcareUpsertTenant({
       tenantSeed,
       authData,
+      correlationId,
     }: {
       tenantSeed: ApiSelfcareTenantSeed;
       authData: AuthData;
+      correlationId: string;
     }): Promise<string> {
       const existingTenant = await readModelService.getTenantByExternalId(
         tenantSeed.externalId
@@ -158,11 +156,15 @@ export function tenantServiceBuilder(
           updatedAt: new Date(),
         };
 
+        logger.info(
+          `Creating tenant with external id ${tenantSeed.externalId} via SelfCare request"`
+        );
         return await repository.createEvent(
           toCreateEventTenantUpdated(
             existingTenant.data.id,
             existingTenant.metadata.version,
-            updatedTenant
+            updatedTenant,
+            correlationId
           )
         );
       } else {
@@ -178,9 +180,78 @@ export function tenantServiceBuilder(
           createdAt: new Date(),
         };
         return await repository.createEvent(
-          toCreateEventTenantAdded(newTenant)
+          toCreateEventTenantAdded(newTenant, correlationId)
         );
       }
+    },
+    async getProducers({
+      producerName,
+      offset,
+      limit,
+    }: {
+      producerName: string | undefined;
+      offset: number;
+      limit: number;
+    }): Promise<ListResult<Tenant>> {
+      logger.info(
+        `Retrieving Producers with name = ${producerName}, limit = ${limit}, offset = ${offset}`
+      );
+      return readModelService.getProducers({ producerName, offset, limit });
+    },
+    async getConsumers({
+      consumerName,
+      producerId,
+      offset,
+      limit,
+    }: {
+      consumerName: string | undefined;
+      producerId: TenantId;
+      offset: number;
+      limit: number;
+    }): Promise<ListResult<Tenant>> {
+      logger.info(
+        `Retrieving Consumers with name = ${consumerName}, limit = ${limit}, offset = ${offset}`
+      );
+      return readModelService.getConsumers({
+        consumerName,
+        producerId,
+        offset,
+        limit,
+      });
+    },
+    async getTenantsByName({
+      name,
+      offset,
+      limit,
+    }: {
+      name: string | undefined;
+      offset: number;
+      limit: number;
+    }): Promise<ListResult<Tenant>> {
+      logger.info(
+        `Retrieving Tenants with name = ${name}, limit = ${limit}, offset = ${offset}`
+      );
+      return readModelService.getTenantsByName({ name, offset, limit });
+    },
+    async getTenantById(
+      id: TenantId
+    ): Promise<WithMetadata<Tenant> | undefined> {
+      logger.info(`Retrieving tenant ${id}`);
+      return readModelService.getTenantById(id);
+    },
+    async getTenantByExternalId(
+      externalId: ExternalId
+    ): Promise<WithMetadata<Tenant> | undefined> {
+      logger.info(
+        `Retrieving tenant with origin ${externalId.origin} and code ${externalId.value}`
+      );
+      return readModelService.getTenantByExternalId(externalId);
+    },
+    async getTenantBySelfcareId(
+      selfcareId: string
+    ): Promise<WithMetadata<Tenant> | undefined> {
+      logger.info(`Retrieving Tenant with Selfcare Id ${selfcareId}`);
+      return readModelService.getTenantBySelfcareId(selfcareId);
     },
   };
 }
@@ -191,12 +262,14 @@ async function updateTenantVerifiedAttributeLogic({
   tenantId,
   attributeId,
   updateVerifiedTenantAttributeSeed,
+  correlationId,
 }: {
   verifierId: string;
   tenant: WithMetadata<Tenant> | undefined;
   tenantId: TenantId;
   attributeId: AttributeId;
   updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed;
+  correlationId: string;
 }): Promise<CreateEvent<TenantEvent>> {
   assertTenantExists(tenantId, tenant);
 
@@ -237,36 +310,8 @@ async function updateTenantVerifiedAttributeLogic({
   return toCreateEventTenantUpdated(
     tenant.data.id,
     tenant.metadata.version,
-    updatedTenant
-  );
-}
-
-export async function updateTenantLogic({
-  tenant,
-  selfcareId,
-  features,
-  mails,
-  kind,
-}: {
-  tenant: WithMetadata<Tenant>;
-  selfcareId: string | undefined;
-  features: TenantFeature[];
-  mails: TenantMail[];
-  kind: TenantKind;
-}): Promise<CreateEvent<TenantEvent>> {
-  const newTenant: Tenant = {
-    ...tenant.data,
-    selfcareId,
-    features,
-    mails,
-    kind,
-    updatedAt: new Date(),
-  };
-
-  return toCreateEventTenantUpdated(
-    tenant.data.id,
-    tenant.metadata.version,
-    newTenant
+    updatedTenant,
+    correlationId
   );
 }
 
@@ -275,6 +320,7 @@ export function createTenantLogic({
   apiTenantSeed,
   kind,
   attributes,
+  correlationId,
 }: {
   tenant: WithMetadata<Tenant> | undefined;
   apiTenantSeed:
@@ -283,6 +329,7 @@ export function createTenantLogic({
     | ApiInternalTenantSeed;
   kind: TenantKind;
   attributes: Array<WithMetadata<Attribute>>;
+  correlationId: string;
 }): CreateEvent<TenantEvent> {
   if (tenant) {
     throw tenantDuplicate(apiTenantSeed.name);
@@ -305,7 +352,7 @@ export function createTenantLogic({
     kind,
   };
 
-  return toCreateEventTenantAdded(newTenant);
+  return toCreateEventTenantAdded(newTenant, correlationId);
 }
 export type TenantService = ReturnType<typeof tenantServiceBuilder>;
 
@@ -314,11 +361,13 @@ export async function updateVerifiedAttributeExtensionDateLogic({
   attributeId,
   verifierId,
   tenant,
+  correlationId,
 }: {
   tenantId: TenantId;
   attributeId: AttributeId;
   verifierId: string;
   tenant: WithMetadata<Tenant> | undefined;
+  correlationId: string;
 }): Promise<CreateEvent<TenantEvent>> {
   assertTenantExists(tenantId, tenant);
 
@@ -376,9 +425,13 @@ export async function updateVerifiedAttributeExtensionDateLogic({
     updatedAt: new Date(),
   };
 
+  logger.info(
+    `Update extension date of attribute ${attributeId} for tenant ${tenantId}`
+  );
   return toCreateEventTenantUpdated(
     tenant.data.id,
     tenant.metadata.version,
-    updatedTenant
+    updatedTenant,
+    correlationId
   );
 }
