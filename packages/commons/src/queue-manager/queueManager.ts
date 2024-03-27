@@ -24,14 +24,16 @@ export function initQueueManager(
 
   return {
     send: async (message: QueueMessage): Promise<string> => {
-      logger.info(
+      logger.debug(
         `Sending message ${message.messageUUID} to queue ${config.queueUrl}`
       );
       try {
         const response = await client.send(
           new SendMessageCommand({
             QueueUrl: config.queueUrl,
-            MessageBody: JSON.stringify(message),
+            MessageBody: JSON.stringify(message, (_, v) =>
+              typeof v === "bigint" ? v.toString() : v
+            ),
             MessageGroupId: config.messageGroupId,
             MessageDeduplicationId: `${message.eventJournalPersistenceId}_${message.eventJournalSequenceNumber}`,
           })
@@ -45,7 +47,7 @@ export function initQueueManager(
       }
     },
     receiveLast: async (msgsToReceive: number = 1): Promise<QueueMessage[]> => {
-      logger.info(
+      logger.debug(
         `Receiving last ${msgsToReceive} messages from queue ${config.queueUrl}`
       );
       try {
