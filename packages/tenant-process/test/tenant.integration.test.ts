@@ -1,7 +1,9 @@
 /* eslint-disable functional/no-let */
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-floating-promises */
 
+import { fail } from "assert";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import {
   AgreementCollection,
@@ -11,20 +13,24 @@ import {
   initDB,
 } from "pagopa-interop-commons";
 import {
+  StoredEvent,
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
+  eventStoreSchema,
   mongoDBContainer,
   postgreSQLContainer,
+  readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
 import { IDatabase } from "pg-promise";
 import {
   Descriptor,
   EService,
   Tenant,
+  TenantUpdatedV1,
   descriptorState,
   generateId,
+  protobufDecoder,
 } from "pagopa-interop-models";
-import { v4 as uuidv4 } from "uuid";
 import { StartedTestContainer } from "testcontainers";
 import { config } from "../src/utilities/config.js";
 import {
@@ -35,14 +41,26 @@ import {
   TenantService,
   tenantServiceBuilder,
 } from "../src/services/tenantService.js";
+import { toTenantV1 } from "../src/model/domain/toEvent.js";
+import { UpdateVerifiedTenantAttributeSeed } from "../src/model/domain/models.js";
+import {
+  expirationDateCannotBeInThePast,
+  organizationNotFoundInVerifiers,
+  tenantNotFound,
+  verifiedAttributeNotFoundInTenant,
+} from "../src/model/domain/errors.js";
 import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
+  currentDate,
   getMockAgreement,
+  getMockCertifiedTenantAttribute,
   getMockDescriptor,
   getMockEService,
   getMockTenant,
+  getMockVerifiedBy,
+  getMockVerifiedTenantAttribute,
 } from "./utils.js";
 
 describe("Integration tests", () => {
@@ -82,6 +100,8 @@ describe("Integration tests", () => {
   const mockEService = getMockEService();
   const mockDescriptor = getMockDescriptor();
   const mockTenant = getMockTenant();
+  const mockVerifiedBy = getMockVerifiedBy();
+  const mockVerifiedTenantAttribute = getMockVerifiedTenantAttribute();
 
   afterEach(async () => {
     await tenants.deleteMany({});
@@ -99,6 +119,143 @@ describe("Integration tests", () => {
     describe("tenant creation", () => {
       it("TO DO", () => {
         expect(1).toBe(1);
+      });
+    });
+    describe("updateTenantVerifiedAttribute", async () => {
+      const expirationDate = new Date(
+        currentDate.setDate(currentDate.getDate() + 1)
+      );
+
+      const updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed =
+        {
+          expirationDate: expirationDate.toISOString(),
+        };
+
+      const tenant: Tenant = {
+        ...mockTenant,
+        attributes: [
+          {
+            ...mockVerifiedTenantAttribute,
+            verifiedBy: [
+              {
+                ...mockVerifiedBy,
+                expirationDate,
+              },
+            ],
+          },
+        ],
+        updatedAt: currentDate,
+        name: "A tenant",
+      };
+      const attributeId = tenant.attributes.map((a) => a.id)[0];
+      const verifierId = mockVerifiedBy.id;
+      it("Should update the expirationDate", async () => {
+        await addOneTenant(tenant, postgresDB, tenants);
+        await tenantService.updateTenantVerifiedAttribute({
+          verifierId,
+          tenantId: tenant.id,
+          attributeId,
+          updateVerifiedTenantAttributeSeed,
+        });
+        const writtenEvent: StoredEvent | undefined =
+          await readLastEventByStreamId(
+            tenant.id,
+            eventStoreSchema.tenant,
+            postgresDB
+          );
+        if (!writtenEvent) {
+          fail("Creation fails: tenant not found in event-store");
+        }
+        expect(writtenEvent).toBeDefined();
+        expect(writtenEvent.stream_id).toBe(tenant.id);
+        expect(writtenEvent.version).toBe("1");
+        expect(writtenEvent.type).toBe("TenantUpdated");
+        const writtenPayload: TenantUpdatedV1 | undefined = protobufDecoder(
+          TenantUpdatedV1
+        ).parse(writtenEvent.data);
+
+        if (!writtenPayload) {
+          fail("impossible to decode TenantUpdatedV1 data");
+        }
+
+        const updatedTenant: Tenant = {
+          ...tenant,
+          updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
+        };
+
+        expect(writtenPayload.tenant).toEqual(toTenantV1(updatedTenant));
+      });
+      it("Should throw tenantNotFound when tenant doesn't exist", async () => {
+        expect(
+          tenantService.updateTenantVerifiedAttribute({
+            verifierId,
+            tenantId: tenant.id,
+            attributeId,
+            updateVerifiedTenantAttributeSeed,
+          })
+        ).rejects.toThrowError(tenantNotFound(tenant.id));
+      });
+
+      it("Should throw expirationDateCannotBeInThePast when expiration date is in the past", async () => {
+        const expirationDateinPast = new Date(
+          currentDate.setDate(currentDate.getDate() - 1)
+        );
+
+        const updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed =
+          {
+            expirationDate: expirationDateinPast.toISOString(),
+          };
+
+        await addOneTenant(tenant, postgresDB, tenants);
+        expect(
+          tenantService.updateTenantVerifiedAttribute({
+            verifierId,
+            tenantId: tenant.id,
+            attributeId,
+            updateVerifiedTenantAttributeSeed,
+          })
+        ).rejects.toThrowError(
+          expirationDateCannotBeInThePast(expirationDateinPast)
+        );
+      });
+      it("Should throw verifiedAttributeNotFoundInTenant when the attribute is not verified", async () => {
+        const updatedCertifiedTenant: Tenant = {
+          ...mockTenant,
+          attributes: [{ ...getMockCertifiedTenantAttribute() }],
+          updatedAt: currentDate,
+          name: "A updatedCertifiedTenant",
+        };
+        const attributeId = updatedCertifiedTenant.attributes.map(
+          (a) => a.id
+        )[0];
+        await addOneTenant(updatedCertifiedTenant, postgresDB, tenants);
+        expect(
+          tenantService.updateTenantVerifiedAttribute({
+            verifierId: generateId(),
+            tenantId: updatedCertifiedTenant.id,
+            attributeId,
+            updateVerifiedTenantAttributeSeed,
+          })
+        ).rejects.toThrowError(
+          verifiedAttributeNotFoundInTenant(
+            updatedCertifiedTenant.id,
+            attributeId
+          )
+        );
+      });
+      it("Should throw organizationNotFoundInVerifiers when the organization is not verified", async () => {
+        await addOneTenant(tenant, postgresDB, tenants);
+        const verifierId = generateId();
+        expect(
+          tenantService.updateTenantVerifiedAttribute({
+            verifierId,
+            tenantId: tenant.id,
+            attributeId,
+            updateVerifiedTenantAttributeSeed,
+          })
+        ).rejects.toThrowError(
+          organizationNotFoundInVerifiers(verifierId, tenant.id, attributeId)
+        );
       });
     });
   });
@@ -146,7 +303,7 @@ describe("Integration tests", () => {
         await addOneEService(eService1, eservices);
 
         const agreementEservice1 = getMockAgreement({
-          eServiceId: eService1.id,
+          eserviceId: eService1.id,
           descriptorId: descriptor1.id,
           producerId: eService1.producerId,
           consumerId: tenant1.id,
@@ -170,7 +327,7 @@ describe("Integration tests", () => {
         await addOneEService(eService2, eservices);
 
         const agreementEservice2 = getMockAgreement({
-          eServiceId: eService2.id,
+          eserviceId: eService2.id,
           descriptorId: descriptor2.id,
           producerId: eService2.producerId,
           consumerId: tenant2.id,
@@ -194,7 +351,7 @@ describe("Integration tests", () => {
         await addOneEService(eService3, eservices);
 
         const agreementEservice3 = getMockAgreement({
-          eServiceId: eService3.id,
+          eserviceId: eService3.id,
           descriptorId: descriptor3.id,
           producerId: eService3.producerId,
           consumerId: tenant3.id,
@@ -227,7 +384,7 @@ describe("Integration tests", () => {
         await addOneEService(eService1, eservices);
 
         const agreementEservice1 = getMockAgreement({
-          eServiceId: eService1.id,
+          eserviceId: eService1.id,
           descriptorId: descriptor1.id,
           producerId: eService1.producerId,
           consumerId: tenant1.id,
@@ -251,7 +408,7 @@ describe("Integration tests", () => {
         await addOneEService(eService2, eservices);
 
         const agreementEservice2 = getMockAgreement({
-          eServiceId: eService2.id,
+          eserviceId: eService2.id,
           descriptorId: descriptor2.id,
           producerId: eService2.producerId,
           consumerId: tenant2.id,
@@ -275,7 +432,7 @@ describe("Integration tests", () => {
         await addOneEService(eService3, eservices);
 
         const agreementEservice3 = getMockAgreement({
-          eServiceId: eService3.id,
+          eserviceId: eService3.id,
           descriptorId: descriptor3.id,
           producerId: eService3.producerId,
           consumerId: tenant3.id,
@@ -422,7 +579,7 @@ describe("Integration tests", () => {
         await addOneEService(eService1, eservices);
 
         const agreementEservice1 = getMockAgreement({
-          eServiceId: eService1.id,
+          eserviceId: eService1.id,
           descriptorId: descriptor1.id,
           producerId: eService1.producerId,
           consumerId: tenant1.id,
@@ -446,7 +603,7 @@ describe("Integration tests", () => {
         await addOneEService(eService2, eservices);
 
         const agreementEservice2 = getMockAgreement({
-          eServiceId: eService2.id,
+          eserviceId: eService2.id,
           descriptorId: descriptor2.id,
           producerId: eService2.producerId,
           consumerId: tenant2.id,
@@ -470,7 +627,7 @@ describe("Integration tests", () => {
         await addOneEService(eService3, eservices);
 
         const agreementEservice3 = getMockAgreement({
-          eServiceId: eService3.id,
+          eserviceId: eService3.id,
           descriptorId: descriptor3.id,
           producerId: eService3.producerId,
           consumerId: tenant3.id,
@@ -502,7 +659,7 @@ describe("Integration tests", () => {
         await addOneEService(eService1, eservices);
 
         const agreementEservice1 = getMockAgreement({
-          eServiceId: eService1.id,
+          eserviceId: eService1.id,
           descriptorId: descriptor1.id,
           producerId: eService1.producerId,
           consumerId: tenant1.id,
@@ -526,7 +683,7 @@ describe("Integration tests", () => {
         await addOneEService(eService2, eservices);
 
         const agreementEservice2 = getMockAgreement({
-          eServiceId: eService2.id,
+          eserviceId: eService2.id,
           descriptorId: descriptor2.id,
           producerId: eService2.producerId,
           consumerId: tenant2.id,
@@ -550,7 +707,7 @@ describe("Integration tests", () => {
         await addOneEService(eService3, eservices);
 
         const agreementEservice3 = getMockAgreement({
-          eServiceId: eService3.id,
+          eserviceId: eService3.id,
           descriptorId: descriptor3.id,
           producerId: eService3.producerId,
           consumerId: tenant3.id,
@@ -949,12 +1106,14 @@ describe("Integration tests", () => {
         await addOneTenant(tenant2, postgresDB, tenants);
         await addOneTenant(tenant3, postgresDB, tenants);
         const tenantBySelfcareId = await readModelService.getTenantBySelfcareId(
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           tenant1.selfcareId!
         );
         expect(tenantBySelfcareId?.data).toEqual(tenant1);
       });
       it("should not get the tenant by selfcareId if it isn't in DB", async () => {
         const tenantBySelfcareId = await readModelService.getTenantBySelfcareId(
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           tenant1.selfcareId!
         );
         expect(tenantBySelfcareId?.data.selfcareId).toBeUndefined();
