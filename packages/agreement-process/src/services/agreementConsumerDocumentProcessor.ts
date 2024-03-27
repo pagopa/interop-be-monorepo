@@ -26,7 +26,8 @@ export async function addConsumerDocumentLogic(
   agreementId: AgreementId,
   payload: ApiAgreementDocumentSeed,
   agreementQuery: AgreementQuery,
-  authData: AuthData
+  authData: AuthData,
+  correlationId: string
 ): Promise<CreateEvent<AgreementEvent>> {
   const agreement = await agreementQuery.getAgreementById(agreementId);
 
@@ -45,16 +46,19 @@ export async function addConsumerDocumentLogic(
   return toCreateEventAgreementConsumerDocumentAdded(
     agreementId,
     apiAgreementDocumentToAgreementDocument(payload),
-    agreement.metadata.version
+    agreement.metadata.version,
+    correlationId
   );
 }
 
+// eslint-disable-next-line max-params
 export async function removeAgreementConsumerDocumentLogic(
   agreementId: AgreementId,
   documentId: AgreementDocumentId,
   agreementQuery: AgreementQuery,
   authData: AuthData,
-  fileRemove: (bucket: string, path: string) => Promise<void>
+  fileRemove: (bucket: string, path: string) => Promise<void>,
+  correlationId: string
 ): Promise<CreateEvent<AgreementEvent>> {
   const agreement = await agreementQuery.getAgreementById(agreementId);
 
@@ -75,6 +79,7 @@ export async function removeAgreementConsumerDocumentLogic(
   return toCreateEventAgreementConsumerDocumentRemoved(
     agreementId,
     documentId,
-    agreement.metadata.version
+    agreement.metadata.version,
+    correlationId
   );
 }

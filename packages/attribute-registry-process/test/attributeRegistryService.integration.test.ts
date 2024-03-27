@@ -122,7 +122,8 @@ describe("database test", () => {
             name: mockAttribute.name,
             description: mockAttribute.description,
           },
-          getMockAuthData()
+          getMockAuthData(),
+          uuidv4()
         );
         expect(id).toBeDefined();
 
@@ -157,7 +158,8 @@ describe("database test", () => {
               name: attribute.name,
               description: attribute.description,
             },
-            getMockAuthData()
+            getMockAuthData(),
+            uuidv4()
           )
         ).rejects.toThrowError(attributeDuplicate(attribute.name));
       });
@@ -169,7 +171,8 @@ describe("database test", () => {
             name: mockAttribute.name,
             description: mockAttribute.description,
           },
-          getMockAuthData()
+          getMockAuthData(),
+          uuidv4()
         );
         expect(id).toBeDefined();
 
@@ -205,7 +208,8 @@ describe("database test", () => {
               name: attribute.name,
               description: attribute.description,
             },
-            getMockAuthData()
+            getMockAuthData(),
+            uuidv4()
           )
         ).rejects.toThrowError(attributeDuplicate(attribute.name));
       });
@@ -230,7 +234,8 @@ describe("database test", () => {
             code: "code",
             description: mockAttribute.description,
           },
-          getMockAuthData(tenant.id)
+          getMockAuthData(tenant.id),
+          uuidv4()
         );
         expect(id).toBeDefined();
 
@@ -279,7 +284,8 @@ describe("database test", () => {
               code: attribute.code,
               description: attribute.description,
             },
-            getMockAuthData(tenant.id)
+            getMockAuthData(tenant.id),
+            uuidv4()
           )
         ).rejects.toThrowError(attributeDuplicate(attribute.name));
       });
@@ -293,7 +299,8 @@ describe("database test", () => {
               code: "code",
               description: mockAttribute.description,
             },
-            getMockAuthData(mockTenant.id)
+            getMockAuthData(mockTenant.id),
+            uuidv4()
           )
         ).rejects.toThrowError(OrganizationIsNotACertifier(mockTenant.id));
       });
@@ -306,7 +313,8 @@ describe("database test", () => {
               code: "code",
               description: mockAttribute.description,
             },
-            getMockAuthData(mockTenant.id)
+            getMockAuthData(mockTenant.id),
+            uuidv4()
           )
         ).rejects.toThrowError(tenantNotFound(mockTenant.id));
       });
@@ -326,12 +334,15 @@ describe("database test", () => {
         await addOneTenant(tenant, tenants);
 
         const id =
-          await attributeRegistryService.createInternalCertifiedAttribute({
-            name: mockAttribute.name,
-            code: "code",
-            origin: tenant.features[0].certifierId,
-            description: mockAttribute.description,
-          });
+          await attributeRegistryService.createInternalCertifiedAttribute(
+            {
+              name: mockAttribute.name,
+              code: "code",
+              origin: tenant.features[0].certifierId,
+              description: mockAttribute.description,
+            },
+            uuidv4()
+          );
         expect(id).toBeDefined();
 
         const writtenEvent = await readLastAttributeEvent(id, postgresDB);
@@ -373,12 +384,15 @@ describe("database test", () => {
         await addOneTenant(tenant, tenants);
         await addOneAttribute(attribute, postgresDB, attributes);
         expect(
-          attributeRegistryService.createInternalCertifiedAttribute({
-            name: attribute.name,
-            code: attribute.code,
-            origin: tenant.features[0].certifierId,
-            description: attribute.description,
-          })
+          attributeRegistryService.createInternalCertifiedAttribute(
+            {
+              name: attribute.name,
+              code: attribute.code,
+              origin: tenant.features[0].certifierId,
+              description: attribute.description,
+            },
+            uuidv4()
+          )
         ).rejects.toThrowError(attributeDuplicate(attribute.name));
       });
     });
