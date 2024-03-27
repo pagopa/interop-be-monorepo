@@ -13,6 +13,7 @@ import {
   notificationConfig,
 } from "pagopa-interop-commons";
 import { v4 as uuidv4 } from "uuid";
+import { kafkaMessageProcessError } from "pagopa-interop-models";
 import { convertToEserviceV1 } from "./models/catalogEventV2Converter.js";
 import { buildCatalogMessage } from "./models/catalogEventMessage.js";
 
@@ -44,18 +45,27 @@ function processMessage(topicConfig: CatalogTopicConfig) {
       const eventEnvelope = messageDecoder(kafkaMessage.message);
       if (eventEnvelope.event_version !== 2) {
         logger.info(
-          `Received event version ${eventEnvelope.event_version} , not supported.`
+          `Event version ${eventEnvelope.event_version} received not supported`
         );
         return;
       }
 
-      const message = convertToEserviceV1(eventEnvelope);
-      await queueManager.send(buildCatalogMessage(eventEnvelope, message));
+      const eserviceV1Event = convertToEserviceV1(eventEnvelope);
+      const message = buildCatalogMessage(eventEnvelope, eserviceV1Event);
+      await queueManager.send(message);
 
-      logger.info(`Notify message for ${eventEnvelope.type} send to queue`);
+      logger.info(
+        `Notification message [${message.messageUUID}] sent to queue ${queueConfig.queueUrl} for event type "${eventEnvelope.type}"`
+      );
     } catch (e) {
       logger.error(
         `Error during message handling. Partition number: ${kafkaMessage.partition}. Offset: ${kafkaMessage.message.offset}, ${e}`
+      );
+      throw kafkaMessageProcessError(
+        topicsConfig.catalogTopic,
+        kafkaMessage.partition,
+        kafkaMessage.message.offset,
+        e
       );
     }
   };
