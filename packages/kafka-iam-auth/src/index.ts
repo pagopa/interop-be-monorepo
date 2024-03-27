@@ -7,6 +7,7 @@ export * from "./create-sasl-authentication-request.js";
 export * from "./create-sasl-authentication-response.js";
 import { Consumer, EachMessagePayload, Kafka } from "kafkajs";
 import { KafkaConsumerConfig, logger } from "pagopa-interop-commons";
+import { kafkaMessageProcessError } from "pagopa-interop-models";
 import { createMechanism } from "./create-mechanism.js";
 
 export const DEFAULT_AUTHENTICATION_TIMEOUT = 60 * 60 * 1000;
@@ -75,6 +76,18 @@ const kafkaEventsListener = (consumer: Consumer): void => {
   });
 };
 
+const kafkaCommitMessageOffsets = async (
+  consumer: Consumer,
+  payload: EachMessagePayload
+): Promise<void> => {
+  const { topic, partition, message } = payload;
+  await consumer.commitOffsets([
+    { topic, partition, offset: (Number(message.offset) + 1).toString() },
+  ]);
+
+  logger.debug(`Topic message offset ${Number(message.offset) + 1} committed`);
+};
+
 const initConsumer = async (
   config: KafkaConsumerConfig,
   topics: string[],
@@ -132,7 +145,20 @@ const initConsumer = async (
   logger.debug(`Consumer subscribed topic ${topics}`);
 
   await consumer.run({
-    eachMessage: consumerHandler,
+    autoCommit: false,
+    eachMessage: async (payload: EachMessagePayload) => {
+      try {
+        await consumerHandler(payload);
+        await kafkaCommitMessageOffsets(consumer, payload);
+      } catch (e) {
+        throw kafkaMessageProcessError(
+          payload.topic,
+          payload.partition,
+          payload.message.offset,
+          e
+        );
+      }
+    },
   });
   return consumer;
 };

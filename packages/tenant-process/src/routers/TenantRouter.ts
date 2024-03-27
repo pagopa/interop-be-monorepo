@@ -5,6 +5,7 @@ import {
   userRoles,
   ZodiosContext,
   authorizationMiddleware,
+  initDB,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
@@ -28,7 +29,18 @@ import { config } from "../utilities/config.js";
 import { tenantServiceBuilder } from "../services/tenantService.js";
 
 const readModelService = readModelServiceBuilder(config);
-const tenantService = tenantServiceBuilder(config, readModelService);
+const tenantService = tenantServiceBuilder(
+  initDB({
+    username: config.eventStoreDbUsername,
+    password: config.eventStoreDbPassword,
+    host: config.eventStoreDbHost,
+    port: config.eventStoreDbPort,
+    database: config.eventStoreDbName,
+    schema: config.eventStoreDbSchema,
+    useSSL: config.eventStoreDbUseSSL,
+  }),
+  readModelService
+);
 
 const tenantsRouter = (
   ctx: ZodiosContext
@@ -54,8 +66,8 @@ const tenantsRouter = (
       async (req, res) => {
         try {
           const { name, offset, limit } = req.query;
-          const consumers = await readModelService.getConsumers({
-            name,
+          const consumers = await tenantService.getConsumers({
+            consumerName: name,
             producerId: req.ctx.authData.organizationId,
             offset,
             limit,
@@ -81,8 +93,8 @@ const tenantsRouter = (
       async (req, res) => {
         try {
           const { name, offset, limit } = req.query;
-          const producers = await readModelService.getProducers({
-            name,
+          const producers = await tenantService.getProducers({
+            producerName: name,
             offset,
             limit,
           });
@@ -107,7 +119,7 @@ const tenantsRouter = (
       async (req, res) => {
         try {
           const { name, offset, limit } = req.query;
-          const tenants = await readModelService.getTenantsByName({
+          const tenants = await tenantService.getTenantsByName({
             name,
             offset,
             limit,
@@ -135,7 +147,7 @@ const tenantsRouter = (
       ]),
       async (req, res) => {
         try {
-          const tenant = await readModelService.getTenantById(
+          const tenant = await tenantService.getTenantById(
             unsafeBrandId(req.params.id)
           );
 
@@ -171,7 +183,7 @@ const tenantsRouter = (
         try {
           const { origin, code } = req.params;
 
-          const tenant = await readModelService.getTenantByExternalId({
+          const tenant = await tenantService.getTenantByExternalId({
             value: code,
             origin,
           });
@@ -206,7 +218,7 @@ const tenantsRouter = (
       ]),
       async (req, res) => {
         try {
-          const tenant = await readModelService.getTenantBySelfcareId(
+          const tenant = await tenantService.getTenantBySelfcareId(
             req.params.selfcareId
           );
 
@@ -265,6 +277,7 @@ const tenantsRouter = (
           const id = await tenantService.selfcareUpsertTenant({
             tenantSeed: req.body,
             authData: req.ctx.authData,
+            correlationId: req.ctx.correlationId,
           });
           return res.status(200).json({ id }).send();
         } catch (error) {
@@ -292,6 +305,7 @@ const tenantsRouter = (
             tenantId: unsafeBrandId(tenantId),
             attributeId: unsafeBrandId(attributeId),
             updateVerifiedTenantAttributeSeed: req.body,
+            correlationId: req.ctx.correlationId,
           });
           return res.status(200).end();
         } catch (error) {
@@ -312,7 +326,8 @@ const tenantsRouter = (
           await tenantService.updateVerifiedAttributeExtensionDate(
             unsafeBrandId(tenantId),
             unsafeBrandId(attributeId),
-            verifierId
+            verifierId,
+            req.ctx.correlationId
           );
           return res.status(200).end();
         } catch (error) {
