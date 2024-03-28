@@ -5,6 +5,7 @@ import * as winston from "winston";
 import { v4 } from "uuid";
 import { LoggerConfig } from "../config/commonConfig.js";
 import { getContext } from "../index.js";
+import { bigIntReplacer } from "./utils.js";
 
 export type SessionMetaData = {
   userId: string | undefined;
@@ -98,7 +99,11 @@ const logFormat = (
 export const customFormat = (serviceName?: string) =>
   winston.format.printf(({ level, message, timestamp }) => {
     const logMetadata = getLoggerMetadata();
-    const lines = message
+    const clearMessage =
+      typeof message === "object"
+        ? JSON.stringify(message, bigIntReplacer)
+        : message;
+    const lines = clearMessage
       .toString()
       .split("\n")
       .map((line: string) =>

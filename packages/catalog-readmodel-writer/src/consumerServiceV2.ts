@@ -10,11 +10,7 @@ export async function handleMessageV2(
   message: EServiceEventEnvelopeV2,
   eservices: EServiceCollection
 ): Promise<void> {
-  logger.info(
-    JSON.stringify(message, (_, v) =>
-      typeof v === "bigint" ? v.toString() : v
-    )
-  );
+  logger.info(message);
 
   const eservice = message.data.eservice;
 
