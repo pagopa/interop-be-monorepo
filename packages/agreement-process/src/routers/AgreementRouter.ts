@@ -373,12 +373,10 @@ const agreementRouter = (
     ]),
     async (req, res) => {
       try {
-        const agreement = agreementToApiAgreement(
-          await agreementService.getAgreementById(
-            unsafeBrandId(req.params.agreementId)
-          )
+        const agreement = await agreementService.getAgreementById(
+          unsafeBrandId(req.params.agreementId)
         );
-        return res.status(200).json(agreement).end();
+        return res.status(200).json(agreementToApiAgreement(agreement)).send();
       } catch (error) {
         const errorRes = makeApiProblem(error, getAgreementErrorMapper);
         return res.status(errorRes.status).json(errorRes).end();
