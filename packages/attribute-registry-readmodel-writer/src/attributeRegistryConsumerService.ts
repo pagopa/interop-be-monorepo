@@ -1,6 +1,10 @@
 import { match } from "ts-pattern";
 import { logger, AttributeCollection } from "pagopa-interop-commons";
-import { AttributeEventEnvelope, fromAttributeV1 } from "pagopa-interop-models";
+import {
+  AttributeEventEnvelope,
+  fromAttributeV1,
+  toReadModelAttribute,
+} from "pagopa-interop-models";
 
 export async function handleMessage(
   message: AttributeEventEnvelope,
@@ -16,7 +20,7 @@ export async function handleMessage(
         {
           $setOnInsert: {
             data: msg.data.attribute
-              ? fromAttributeV1(msg.data.attribute)
+              ? toReadModelAttribute(fromAttributeV1(msg.data.attribute))
               : undefined,
             metadata: {
               version: msg.version,
