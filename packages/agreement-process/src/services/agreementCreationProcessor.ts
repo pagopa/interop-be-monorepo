@@ -35,7 +35,7 @@ export async function createAgreementLogic(
   assertEServiceExist(unsafeBrandId(agreement.eserviceId), eservice);
 
   const descriptor = validateCreationOnDescriptor(
-    eservice.data,
+    eservice,
     unsafeBrandId(agreement.descriptorId)
   );
 
@@ -47,15 +47,15 @@ export async function createAgreementLogic(
   const consumer = await tenantQuery.getTenantById(authData.organizationId);
   assertTenantExist(authData.organizationId, consumer);
 
-  if (eservice.data.producerId !== consumer.data.id) {
-    validateCertifiedAttributes(descriptor, consumer.data);
+  if (eservice.producerId !== consumer.id) {
+    validateCertifiedAttributes(descriptor, consumer);
   }
 
   const agreementSeed: Agreement = {
     id: generateId(),
     eserviceId: unsafeBrandId(agreement.eserviceId),
     descriptorId: unsafeBrandId(agreement.descriptorId),
-    producerId: eservice.data.producerId,
+    producerId: eservice.producerId,
     consumerId: authData.organizationId,
     state: agreementState.draft,
     verifiedAttributes: [],

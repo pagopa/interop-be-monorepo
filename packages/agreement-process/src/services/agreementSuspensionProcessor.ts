@@ -65,20 +65,12 @@ export async function suspendAgreementLogic({
   const consumer = await tenantQuery.getTenantById(agreement.data.consumerId);
   assertTenantExist(agreement.data.consumerId, consumer);
 
-  const descriptor = eservice.data.descriptors.find(
+  const descriptor = eservice.descriptors.find(
     (d) => d.id === agreement.data.descriptorId
   );
-  assertDescriptorExist(
-    eservice.data.id,
-    agreement.data.descriptorId,
-    descriptor
-  );
+  assertDescriptorExist(eservice.id, agreement.data.descriptorId, descriptor);
 
-  const nextStateByAttributes = nextState(
-    agreement.data,
-    descriptor,
-    consumer.data
-  );
+  const nextStateByAttributes = nextState(agreement.data, descriptor, consumer);
 
   const suspendedByConsumer = suspendedByConsumerFlag(
     agreement.data,

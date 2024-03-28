@@ -80,9 +80,9 @@ export async function submitAgreementLogic(
   assertSubmittableState(agreement.data.state, agreement.data.id);
   await verifySubmissionConflictingAgreements(agreement.data, agreementQuery);
 
-  const eservice = (
-    await eserviceQuery.getEServiceById(agreement.data.eserviceId)
-  )?.data;
+  const eservice = await eserviceQuery.getEServiceById(
+    agreement.data.eserviceId
+  );
   if (!eservice) {
     throw eServiceNotFound(agreement.data.eserviceId);
   }
@@ -92,8 +92,7 @@ export async function submitAgreementLogic(
     agreement.data.descriptorId
   );
 
-  const consumer = (await tenantQuery.getTenantById(agreement.data.consumerId))
-    ?.data;
+  const consumer = await tenantQuery.getTenantById(agreement.data.consumerId);
 
   if (!consumer) {
     throw tenantIdNotFound(agreement.data.consumerId);
@@ -243,7 +242,7 @@ const createContract = async (
 ): Promise<CreateEvent<AgreementEvent>> => {
   const producer = await tenantQuery.getTenantById(agreement.producerId);
 
-  if (!producer?.data) {
+  if (!producer) {
     throw tenantIdNotFound(agreement.producerId);
   }
 
@@ -255,7 +254,7 @@ const createContract = async (
     agreement,
     eservice,
     consumer,
-    producer.data,
+    producer,
     seed
   );
   const agreementdocumentSeed: AgreementDocument = {
@@ -279,9 +278,7 @@ const validateConsumerEmail = async (
   const consumer = await tenantQuery.getTenantById(agreement.consumerId);
 
   if (
-    !consumer?.data.mails.find(
-      (mail) => mail.kind === tenantMailKind.ContactEmail
-    )
+    !consumer?.mails.find((mail) => mail.kind === tenantMailKind.ContactEmail)
   ) {
     throw consumerWithNotValidEmail(agreement.id, agreement.consumerId);
   }
