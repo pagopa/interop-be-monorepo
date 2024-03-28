@@ -14,6 +14,7 @@ import {
   TenantKind,
   Descriptor,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import {
   eserviceNotInDraftState,
   eserviceNotInReceiveMode,
@@ -29,12 +30,19 @@ export function assertRequesterAllowed(
   producerId: TenantId,
   authData: AuthData
 ): void {
-  if (
-    !authData.userRoles.includes("internal") &&
-    producerId !== authData.organizationId
-  ) {
-    throw operationForbidden;
-  }
+  match(authData)
+    .with({ tokenType: "internal" }, () => {
+      // Internal requests are always allowed
+    })
+    .with({ tokenType: "empty" }, () => {
+      throw operationForbidden;
+    })
+    .with({ tokenType: "m2m" }, { tokenType: "ui" }, (d) => {
+      if (producerId !== d.organizationId) {
+        throw operationForbidden;
+      }
+    })
+    .exhaustive();
 }
 
 export function assertIsDraftEservice(eservice: EService): void {

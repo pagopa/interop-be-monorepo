@@ -15,7 +15,7 @@ import {
 import { P, match } from "ts-pattern";
 import { z } from "zod";
 import { Middleware } from "../types/middleware.js";
-import { UserRole, readHeaders } from "../index.js";
+import { UserRole, getUserRolesFromAuthData, readHeaders } from "../index.js";
 import { logger } from "../logging/index.js";
 import { readAuthDataFromJwtToken } from "./jwt.js";
 
@@ -45,7 +45,9 @@ const hasValidRoles = (
     };
   }
 
-  if (!authData.userRoles || authData.userRoles.length === 0) {
+  const userRoles = getUserRolesFromAuthData(authData);
+
+  if (!userRoles || userRoles.length === 0) {
     return {
       isValid: false,
       error: unauthorizedError("No user roles found to execute this request"),
@@ -56,7 +58,7 @@ const hasValidRoles = (
     role.toString().toLowerCase()
   );
 
-  const intersection = authData.userRoles.filter((value) =>
+  const intersection = userRoles.filter((value) =>
     admittedRolesStr.includes(value)
   );
 
@@ -65,9 +67,7 @@ const hasValidRoles = (
     : {
         isValid: false,
         error: unauthorizedError(
-          `Invalid user roles (${authData.userRoles.join(
-            ","
-          )}) to execute this request`
+          `Invalid user roles (${userRoles.join(",")}) to execute this request`
         ),
       };
 };

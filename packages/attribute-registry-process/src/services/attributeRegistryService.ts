@@ -1,5 +1,6 @@
 import {
-  AuthData,
+  AuthDataM2M,
+  AuthDataUI,
   CreateEvent,
   DB,
   eventRepository,
@@ -40,7 +41,7 @@ export function attributeRegistryServiceBuilder(
   return {
     async createDeclaredAttribute(
       apiDeclaredAttributeSeed: ApiDeclaredAttributeSeed,
-      authData: AuthData,
+      authData: AuthDataUI | AuthDataM2M,
       correlationId: string
     ): Promise<AttributeId> {
       if (authData.externalId.origin !== "IPA") {
@@ -64,7 +65,7 @@ export function attributeRegistryServiceBuilder(
 
     async createVerifiedAttribute(
       apiVerifiedAttributeSeed: ApiVerifiedAttributeSeed,
-      authData: AuthData,
+      authData: AuthDataUI | AuthDataM2M,
       correlationId: string
     ): Promise<AttributeId> {
       if (authData.externalId.origin !== "IPA") {
@@ -102,7 +103,7 @@ export function attributeRegistryServiceBuilder(
     },
     async createCertifiedAttribute(
       apiCertifiedAttributeSeed: ApiCertifiedAttributeSeed,
-      authData: AuthData,
+      authData: AuthDataUI | AuthDataM2M,
       correlationId: string
     ): Promise<AttributeId> {
       const certifierPromise = this.getCertifierId(authData.organizationId);

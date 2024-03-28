@@ -1,5 +1,6 @@
 import {
-  AuthData,
+  AuthDataUI,
+  AuthDataM2M,
   DB,
   FileManager,
   eventRepository,
@@ -8,6 +9,7 @@ import {
   riskAnalysisValidatedFormToNewRiskAnalysis,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
   userRoles,
+  AuthDataInternal,
 } from "pagopa-interop-commons";
 import {
   Descriptor,
@@ -330,7 +332,7 @@ export function catalogServiceBuilder(
   return {
     async getEServiceById(
       eserviceId: EServiceId,
-      authData: AuthData
+      authData: AuthDataUI | AuthDataM2M
     ): Promise<EService> {
       logger.info(`Retrieving EService ${eserviceId}`);
       const eservice = await retrieveEService(eserviceId, readModelService);
@@ -339,7 +341,7 @@ export function catalogServiceBuilder(
     },
 
     async getEServices(
-      authData: AuthData,
+      authData: AuthDataUI | AuthDataM2M,
       filters: ApiGetEServicesFilters,
       offset: number,
       limit: number
@@ -386,7 +388,7 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId;
       descriptorId: DescriptorId;
       documentId: EServiceDocumentId;
-      authData: AuthData;
+      authData: AuthDataUI | AuthDataM2M;
     }): Promise<Document> {
       logger.info(
         `Retrieving EService document ${documentId} for EService ${eserviceId} and descriptor ${descriptorId}`
@@ -406,7 +408,7 @@ export function catalogServiceBuilder(
 
     async createEService(
       apiEServicesSeed: ApiEServiceSeed,
-      authData: AuthData,
+      authData: AuthDataUI,
       correlationId: string
     ): Promise<EService> {
       logger.info(
@@ -448,7 +450,7 @@ export function catalogServiceBuilder(
     async updateEService(
       eserviceId: EServiceId,
       eserviceSeed: ApiEServiceSeed,
-      authData: AuthData,
+      authData: AuthDataUI,
       correlationId: string
     ): Promise<EService> {
       logger.info(`Updating EService ${eserviceId}`);
@@ -522,7 +524,7 @@ export function catalogServiceBuilder(
 
     async deleteEService(
       eserviceId: EServiceId,
-      authData: AuthData,
+      authData: AuthDataUI,
       correlationId: string
     ): Promise<void> {
       logger.info(`Deleting EService ${eserviceId}`);
@@ -545,7 +547,7 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       document: ApiEServiceDescriptorDocumentSeed,
-      authData: AuthData,
+      authData: AuthDataUI,
       correlationId: string
     ): Promise<EService> {
       logger.info(
@@ -622,7 +624,7 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       documentId: EServiceDocumentId,
-      authData: AuthData,
+      authData: AuthDataUI,
       correlationId: string
     ): Promise<void> {
       logger.info(
@@ -688,7 +690,7 @@ export function catalogServiceBuilder(
       descriptorId: DescriptorId,
       documentId: EServiceDocumentId,
       apiEServiceDescriptorDocumentUpdateSeed: ApiEServiceDescriptorDocumentUpdateSeed,
-      authData: AuthData,
+      authData: AuthDataUI,
       correlationId: string
     ): Promise<Document> {
       logger.info(
@@ -756,7 +758,7 @@ export function catalogServiceBuilder(
     async createDescriptor(
       eserviceId: EServiceId,
       eserviceDescriptorSeed: EServiceDescriptorSeed,
-      authData: AuthData,
+      authData: AuthDataUI,
       correlationId: string
     ): Promise<Descriptor> {
       logger.info(`Creating Descriptor for EService ${eserviceId}`);
@@ -825,7 +827,7 @@ export function catalogServiceBuilder(
     async deleteDraftDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      authData: AuthData,
+      authData: AuthDataUI,
       correlationId: string
     ): Promise<void> {
       logger.info(
@@ -874,7 +876,7 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       seed: UpdateEServiceDescriptorSeed,
-      authData: AuthData,
+      authData: AuthDataUI,
       correlationId: string
     ): Promise<EService> {
       logger.info(
@@ -934,7 +936,7 @@ export function catalogServiceBuilder(
     async publishDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      authData: AuthData,
+      authData: AuthDataUI,
       correlationId: string
     ): Promise<void> {
       logger.info(
@@ -1032,7 +1034,7 @@ export function catalogServiceBuilder(
     async suspendDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      authData: AuthData,
+      authData: AuthDataUI,
       correlationId: string
     ): Promise<void> {
       logger.info(
@@ -1070,7 +1072,7 @@ export function catalogServiceBuilder(
     async activateDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      authData: AuthData,
+      authData: AuthDataUI,
       correlationId: string
     ): Promise<void> {
       logger.info(
@@ -1139,7 +1141,7 @@ export function catalogServiceBuilder(
     async cloneDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      authData: AuthData,
+      authData: AuthDataUI,
       correlationId: string
     ): Promise<EService> {
       logger.info(
@@ -1253,7 +1255,7 @@ export function catalogServiceBuilder(
     async archiveDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      authData: AuthData,
+      authData: AuthDataInternal,
       correlationId: string
     ): Promise<void> {
       logger.info(
@@ -1285,7 +1287,7 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       seed: UpdateEServiceDescriptorQuotasSeed,
-      authData: AuthData,
+      authData: AuthDataUI,
       correlationId: string
     ): Promise<EService> {
       logger.info(
@@ -1335,7 +1337,7 @@ export function catalogServiceBuilder(
     async createRiskAnalysis(
       eserviceId: EServiceId,
       eserviceRiskAnalysisSeed: EServiceRiskAnalysisSeed,
-      authData: AuthData,
+      authData: AuthDataUI,
       correlationId: string
     ): Promise<void> {
       logger.info(`Creating Risk Analysis for EService ${eserviceId}`);
@@ -1382,7 +1384,7 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       riskAnalysisId: RiskAnalysis["id"],
       eserviceRiskAnalysisSeed: EServiceRiskAnalysisSeed,
-      authData: AuthData,
+      authData: AuthDataUI,
       correlationId: string
     ): Promise<void> {
       logger.info(
@@ -1437,7 +1439,7 @@ export function catalogServiceBuilder(
     async deleteRiskAnalysis(
       eserviceId: EServiceId,
       riskAnalysisId: RiskAnalysisId,
-      authData: AuthData,
+      authData: AuthDataUI,
       correlationId: string
     ): Promise<void> {
       logger.info(
@@ -1472,7 +1474,7 @@ export function catalogServiceBuilder(
 }
 
 const isUserAllowedToSeeDraft = (
-  authData: AuthData,
+  authData: AuthDataUI | AuthDataM2M,
   producerId: TenantId
 ): boolean =>
   hasPermission([userRoles.ADMIN_ROLE, userRoles.API_ROLE], authData) &&
@@ -1480,7 +1482,7 @@ const isUserAllowedToSeeDraft = (
 
 const applyVisibilityToEService = (
   eservice: EService,
-  authData: AuthData
+  authData: AuthDataUI | AuthDataM2M
 ): EService => {
   if (isUserAllowedToSeeDraft(authData, eservice.producerId)) {
     return eservice;
