@@ -343,8 +343,8 @@ export function readModelServiceBuilder(
                         $and: [
                           {
                             $gt: [
-                              "$$upgradable.activatedAt",
-                              "$currentDescriptor.activatedAt",
+                              "$$upgradable.publishedAt",
+                              "$currentDescriptor.publishedAt",
                             ],
                           },
                           {

@@ -769,6 +769,8 @@ describe("Agreement service", () => {
     let descriptor1: Descriptor;
     let descriptor2: Descriptor;
     let descriptor3: Descriptor;
+    let descriptor4: Descriptor;
+    let descriptor5: Descriptor;
     let eservice1: EService;
     let eservice2: EService;
     let eservice3: EService;
@@ -788,17 +790,39 @@ describe("Agreement service", () => {
       tenant2 = buildTenant();
       tenant3 = buildTenant();
 
-      descriptor1 = buildDescriptorPublished();
-      descriptor2 = buildDescriptorPublished();
-      descriptor3 = buildDescriptorPublished();
+      descriptor1 = {
+        ...buildDescriptorPublished(),
+        state: descriptorState.suspended,
+        publishedAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
+      };
+      descriptor2 = {
+        ...buildDescriptorPublished(),
+        publishedAt: new Date(),
+      };
+      descriptor3 = {
+        ...buildDescriptorPublished(),
+        publishedAt: new Date(Date.now()),
+      };
+      descriptor4 = {
+        ...buildDescriptorPublished(),
+        publishedAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
+      };
+      descriptor5 = {
+        ...buildDescriptorPublished(),
+      };
       eservice1 = buildEService(generateId<EServiceId>(), tenant1.id, [
         descriptor1,
         descriptor2,
+        // descriptor2 is the latest - agreements for descriptor1 are upgradeable
       ]);
       eservice2 = buildEService(generateId<EServiceId>(), tenant2.id, [
         descriptor3,
+        descriptor4,
+        // descriptor4 is not the latest - agreements for descriptor3 are not upgradeable
       ]);
-      eservice3 = buildEService(generateId<EServiceId>(), tenant3.id, []);
+      eservice3 = buildEService(generateId<EServiceId>(), tenant3.id, [
+        descriptor5,
+      ]);
 
       await addOneTenant(tenant1, tenants);
       await addOneTenant(tenant2, tenants);
@@ -839,17 +863,20 @@ describe("Agreement service", () => {
           tenant2.id,
           agreementState.missingCertifiedAttributes
         ),
-        descriptorId: eservice2.descriptors[0].id,
+        // upgradeable agreement based on descriptors, but not in an upgradeable state
+        descriptorId: eservice2.descriptors[1].id,
         producerId: eservice2.producerId,
       };
 
       agreement5 = {
         ...buildAgreement(eservice3.id, tenant1.id, agreementState.archived),
+        descriptorId: eservice3.descriptors[0].id,
         producerId: eservice3.producerId,
       };
 
       agreement6 = {
         ...buildAgreement(eservice3.id, tenant3.id, agreementState.rejected),
+        descriptorId: eservice3.descriptors[0].id,
         producerId: eservice3.producerId,
       };
 
@@ -973,14 +1000,14 @@ describe("Agreement service", () => {
 
       const agreements2 = await agreementService.getAgreements(
         {
-          descriptorId: [descriptor1.id, descriptor3.id],
+          descriptorId: [descriptor1.id, descriptor3.id, descriptor5.id],
         },
         10,
         0
       );
-      expect(agreements2.totalCount).toEqual(3);
+      expect(agreements2.totalCount).toEqual(4);
       expect(agreements2.results).toEqual(
-        expect.arrayContaining([agreement1, agreement3, agreement4])
+        expect.arrayContaining([agreement1, agreement3, agreement5, agreement6])
       );
     });
 
@@ -1032,7 +1059,23 @@ describe("Agreement service", () => {
         expect.arrayContaining([agreement2, agreement3])
       );
     });
+    it("should get agreements with filters: showOnlyUpgradeable", async () => {
+      const agreements = await agreementService.getAgreements(
+        {
+          showOnlyUpgradeable: true,
+        },
+        10,
+        0
+      );
+      expect(agreements.totalCount).toEqual(1);
+      expect(agreements.results).toEqual(
+        expect.arrayContaining([
+          agreement1,
+          // also agreement4 has a latest descriptor to upgrade to,
+          // but it is not in an upgradeable state
+        ])
+      );
+    });
+    // TODO test combinations of filters
   });
-  // TODO test missing showOnlyUpdgradable filter
-  // TODO test combinations of filters
 });
