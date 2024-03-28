@@ -96,7 +96,8 @@ export const loggerMiddleware = (serviceName: string) => () =>
 
 export const logger = getLogger();
 if (!parsedLoggerConfig.success) {
-  logger.info(
+  // eslint-disable-next-line no-console
+  console.log(
     `No LOG_LEVEL env var: defaulting log level to "${config.logLevel}"`
   );
 }
