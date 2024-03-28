@@ -8,11 +8,16 @@ import {
   AgreementState,
   AgreementStateV1,
   AgreementV1,
+  AgreementV2,
   StampV1,
   StampsV1,
   AgreementId,
   AgreementDocumentId,
   AgreementEvent,
+  AgreementStateV2,
+  AgreementDocumentV2,
+  StampV2,
+  StampsV2,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -69,18 +74,71 @@ export const toAgreementV1 = (input: Agreement): AgreementV1 => ({
   stamps: toStampsV1(input.stamps),
 });
 
+export const toAgreementStateV2 = (state: AgreementState): AgreementStateV2 =>
+  match(state)
+    .with("Draft", () => AgreementStateV2.DRAFT)
+    .with("Suspended", () => AgreementStateV2.SUSPENDED)
+    .with("Archived", () => AgreementStateV2.ARCHIVED)
+    .with("Pending", () => AgreementStateV2.PENDING)
+    .with("Active", () => AgreementStateV2.ACTIVE)
+    .with("Rejected", () => AgreementStateV2.REJECTED)
+    .with(
+      "MissingCertifiedAttributes",
+      () => AgreementStateV2.MISSING_CERTIFIED_ATTRIBUTES
+    )
+    .exhaustive();
+
+export const toAgreementDocumentV2 = (
+  input: AgreementDocument
+): AgreementDocumentV2 => ({
+  ...input,
+  createdAt: BigInt(input.createdAt.getTime()),
+});
+
+export const toStampV2 = (input: AgreementStamp): StampV2 => ({
+  ...input,
+  when: BigInt(input.when.getTime()),
+});
+
+export const toStampsV2 = (input: AgreementStamps): StampsV2 => ({
+  submission: input.submission ? toStampV2(input.submission) : undefined,
+  activation: input.activation ? toStampV2(input.activation) : undefined,
+  rejection: input.rejection ? toStampV2(input.rejection) : undefined,
+  suspensionByProducer: input.suspensionByProducer
+    ? toStampV2(input.suspensionByProducer)
+    : undefined,
+  upgrade: input.upgrade ? toStampV2(input.upgrade) : undefined,
+  archiving: input.archiving ? toStampV2(input.archiving) : undefined,
+  suspensionByConsumer: input.suspensionByConsumer
+    ? toStampV2(input.suspensionByConsumer)
+    : undefined,
+});
+
+export const toAgreementV2 = (input: Agreement): AgreementV2 => ({
+  ...input,
+  state: toAgreementStateV2(input.state),
+  createdAt: BigInt(input.createdAt.getTime()),
+  updatedAt: input.updatedAt ? BigInt(input.updatedAt.getTime()) : undefined,
+  suspendedAt: input.suspendedAt
+    ? BigInt(input.suspendedAt.getTime())
+    : undefined,
+  consumerDocuments: input.consumerDocuments.map(toAgreementDocumentV2),
+  contract: input.contract ? toAgreementDocumentV2(input.contract) : undefined,
+  stamps: toStampsV2(input.stamps),
+});
+
 export function toCreateEventAgreementDeleted(
-  streamId: string,
+  agreement: Agreement,
   version: number
 ): CreateEvent<AgreementEvent> {
   return {
-    streamId,
+    streamId: agreement.id,
     version,
     event: {
       type: "AgreementDeleted",
-      event_version: 1,
+      event_version: 2,
       data: {
-        agreementId: streamId,
+        agreement: toAgreementV2(agreement),
       },
     },
   };
@@ -94,9 +152,60 @@ export function toCreateEventAgreementAdded(
     version: 0,
     event: {
       type: "AgreementAdded",
-      event_version: 1,
+      event_version: 2,
       data: {
-        agreement: toAgreementV1(agreement),
+        agreement: toAgreementV2(agreement),
+      },
+    },
+  };
+}
+
+export function toCreateEventDraftAgreementUpdated(
+  agreement: Agreement,
+  version: number
+): CreateEvent<AgreementEvent> {
+  return {
+    streamId: agreement.id,
+    version,
+    event: {
+      type: "DraftAgreementUpdated",
+      event_version: 2,
+      data: {
+        agreement: toAgreementV2(agreement),
+      },
+    },
+  };
+}
+
+export function toCreateEventAgreementSubmited(
+  agreement: Agreement,
+  version: number
+): CreateEvent<AgreementEvent> {
+  return {
+    streamId: agreement.id,
+    version,
+    event: {
+      type: "AgreementSubmitted",
+      event_version: 2,
+      data: {
+        agreement: toAgreementV2(agreement),
+      },
+    },
+  };
+}
+
+export function toCreateEventAgreementArchived(
+  agreement: Agreement,
+  version: number
+): CreateEvent<AgreementEvent> {
+  return {
+    streamId: agreement.id,
+    version,
+    event: {
+      type: "AgreementArchived",
+      event_version: 2,
+      data: {
+        agreement: toAgreementV2(agreement),
       },
     },
   };
@@ -119,20 +228,18 @@ export function toCreateEventAgreementUpdated(
   };
 }
 
-export function toCreateEventAgreementContractAdded(
-  agreementId: AgreementId,
-  agreementDocument: AgreementDocument,
+export function toCreateEventAgreementRejected(
+  agreement: Agreement,
   version: number
 ): CreateEvent<AgreementEvent> {
   return {
-    streamId: agreementId,
+    streamId: agreement.id,
     version,
     event: {
-      type: "AgreementContractAdded",
-      event_version: 1,
+      type: "AgreementRejected",
+      event_version: 2,
       data: {
-        agreementId,
-        contract: toAgreementDocumentV1(agreementDocument),
+        agreement: toAgreementV2(agreement),
       },
     },
   };
@@ -140,7 +247,8 @@ export function toCreateEventAgreementContractAdded(
 
 export function toCreateEventAgreementConsumerDocumentAdded(
   agreementId: AgreementId,
-  agreementDocument: AgreementDocument,
+  documentId: AgreementDocumentId,
+  agreement: Agreement,
   version: number
 ): CreateEvent<AgreementEvent> {
   return {
@@ -148,10 +256,10 @@ export function toCreateEventAgreementConsumerDocumentAdded(
     version,
     event: {
       type: "AgreementConsumerDocumentAdded",
-      event_version: 1,
+      event_version: 2,
       data: {
-        agreementId,
-        document: toAgreementDocumentV1(agreementDocument),
+        documentId,
+        agreement: toAgreementV2(agreement),
       },
     },
   };
@@ -160,6 +268,7 @@ export function toCreateEventAgreementConsumerDocumentAdded(
 export function toCreateEventAgreementConsumerDocumentRemoved(
   agreementId: AgreementId,
   documentId: AgreementDocumentId,
+  agreement: Agreement,
   version: number
 ): CreateEvent<AgreementEvent> {
   return {
@@ -167,10 +276,10 @@ export function toCreateEventAgreementConsumerDocumentRemoved(
     version,
     event: {
       type: "AgreementConsumerDocumentRemoved",
-      event_version: 1,
+      event_version: 2,
       data: {
-        agreementId,
         documentId,
+        agreement: toAgreementV2(agreement),
       },
     },
   };
