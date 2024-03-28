@@ -19,9 +19,21 @@ COPY ./packages/tenant-process /app/packages/tenant-process
 COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
 
-RUN pnpm build
+RUN pnpm build && \
+    rm -rf /app/node_modules/.modules.yaml && \
+    rm -rf /app/node_modules/.cache && \
+    mkdir /out && \
+    cp -a --parents -t /out \
+      node_modules packages/tenant-process/node_modules \
+      package*.json packages/tenant-process/package*.json \
+      packages/tenant-process/dist && \
+    find /out -exec touch -h --date=@0 {} \;
+
+FROM node:18.17.1-slim as final 
+
+COPY --from=build /out /app
 
 WORKDIR /app/packages/tenant-process
 EXPOSE 3000
 
-CMD ["node", "."]
+CMD [ "node", "." ]
