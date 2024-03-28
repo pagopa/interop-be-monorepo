@@ -5,11 +5,13 @@
   "description": "PagoPA Interoperability event migration",
   "type": "module",
   "scripts": {
+    "test": "vitest",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
     "start": "node --no-warnings --loader ts-node/esm -r 'dotenv-flow/config' ./src/index.ts",
+    "start:read-models-migration-check": "node --no-warnings --loader ts-node/esm -r 'dotenv-flow/config' ./src/read-models-migration-check.ts",
     "build": "tsc"
   },
   "keywords": [],
