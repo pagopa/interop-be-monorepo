@@ -30,24 +30,38 @@ describe("read-models-migration-check", () => {
   });
 
   describe("getReadModelsCollectionDataDifferences", () => {
-    const mockMongoDb = <T extends { id: string }>(data: T[]) =>
-      ({
-        collection: () => ({
-          find: () => ({
-            map: () => ({
-              toArray: () => Promise.resolve(data),
-            }),
-          }),
-        }),
-      } as unknown as Db);
+    // A simple mock for the MongoDB client, no need to connect to a real database
+    class MockMongoDb<T extends { id: string }> {
+      private constructor(private data: T[]) {}
+
+      public static mockDb<T extends { id: string }>(data: T[]) {
+        return new MockMongoDb(data) as unknown as Db;
+      }
+
+      public collection() {
+        return this;
+      }
+
+      public find() {
+        return this;
+      }
+
+      public map() {
+        return this;
+      }
+
+      public toArray() {
+        return Promise.resolve(this.data);
+      }
+    }
 
     it("should return an empty array if the data collections have no differences", async () => {
-      const readModelA = mockMongoDb([
+      const readModelA = MockMongoDb.mockDb([
         { id: "1", name: "test 1" },
         { id: "2", name: "test 2" },
         { id: "3", name: "test 3" },
       ]);
-      const readModelB = mockMongoDb([
+      const readModelB = MockMongoDb.mockDb([
         { id: "3", name: "test 3" },
         { id: "2", name: "test 2" },
         { id: "1", name: "test 1" },
@@ -63,8 +77,8 @@ describe("read-models-migration-check", () => {
     });
 
     it("should return an empty array if the data collections are empty", async () => {
-      const readModelA = mockMongoDb([]);
-      const readModelB = mockMongoDb([]);
+      const readModelA = MockMongoDb.mockDb([]);
+      const readModelB = MockMongoDb.mockDb([]);
 
       const result = await getReadModelsCollectionDataDifferences(
         readModelA,
@@ -76,12 +90,12 @@ describe("read-models-migration-check", () => {
     });
 
     it("should return an array of differences if the data collections have differences", async () => {
-      const readModelA = mockMongoDb([
+      const readModelA = MockMongoDb.mockDb([
         { id: "1", name: "test 1" },
         { id: "2", name: "test 2" },
         { id: "3", name: "test 3" },
       ]);
-      const readModelB = mockMongoDb([
+      const readModelB = MockMongoDb.mockDb([
         { id: "3", nsame: "difference" },
         { id: "2", name: "test 2" },
         { id: "1", name: "test 1" },
@@ -102,12 +116,12 @@ describe("read-models-migration-check", () => {
     });
 
     it("should throw an error if one of the second data collection objects is missing", async () => {
-      const readModelA = mockMongoDb([
+      const readModelA = MockMongoDb.mockDb([
         { id: "1", name: "test 1" },
         { id: "2", name: "test 2" },
         { id: "3", name: "test 3" },
       ]);
-      const readModelB = mockMongoDb([
+      const readModelB = MockMongoDb.mockDb([
         { id: "3", name: "test 3" },
         { id: "2", name: "test 2" },
       ]);
@@ -118,8 +132,8 @@ describe("read-models-migration-check", () => {
     });
 
     it("should not throw an error if the first readModels misses one or more data from the second", async () => {
-      const readModelA = mockMongoDb([{ id: "1", name: "test 1" }]);
-      const readModelB = mockMongoDb([
+      const readModelA = MockMongoDb.mockDb([{ id: "1", name: "test 1" }]);
+      const readModelB = MockMongoDb.mockDb([
         { id: "1", name: "test 1" },
         { id: "2", name: "test 2" },
         { id: "3", name: "test 3" },
