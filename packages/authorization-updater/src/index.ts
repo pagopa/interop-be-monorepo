@@ -161,7 +161,5 @@ try {
     processMessage(topicConfig, authService)
   );
 } catch (e) {
-  // eslint-disable-next-line no-console
-  console.log("HELLO");
   logger.error(`An error occurred during initialization:\n${e}`);
 }
