@@ -44,29 +44,20 @@ const getKey =
 
 export const verifyJwtToken = (jwtToken: string): Promise<boolean> => {
   const config = JWTConfig.parse(process.env);
-  const clients = !config.skipJWTVerification
-    ? config.wellKnownUrls.map((url) =>
-        jwksClient({
-          jwksUri: url,
-        })
-      )
-    : undefined;
-  return clients === undefined
-    ? Promise.resolve(true)
-    : new Promise((resolve, _reject) => {
-        jwt.verify(
-          jwtToken,
-          getKey(clients),
-          undefined,
-          function (err, _decoded) {
-            if (err) {
-              logger.error(`Error verifying token: ${err}`);
-              return resolve(false);
-            }
-            return resolve(true);
-          }
-        );
-      });
+  const clients = config.wellKnownUrls.map((url) =>
+    jwksClient({
+      jwksUri: url,
+    })
+  );
+  return new Promise((resolve, _reject) => {
+    jwt.verify(jwtToken, getKey(clients), undefined, function (err, _decoded) {
+      if (err) {
+        logger.error(`Error verifying token: ${err}`);
+        return resolve(false);
+      }
+      return resolve(true);
+    });
+  });
 };
 
 export const hasPermission = (

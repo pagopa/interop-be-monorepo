@@ -1,37 +1,16 @@
 import { z } from "zod";
 import { APIEndpoint } from "../model/apiEndpoint.js";
 
-export const JWTConfig = z.preprocess(
-  (c) =>
-    (c as { SKIP_JWT_VERIFICATION: string | undefined })
-      .SKIP_JWT_VERIFICATION === undefined
-      ? { ...(c as object), SKIP_JWT_VERIFICATION: "false" }
-      : c,
-
-  z
-    .discriminatedUnion("SKIP_JWT_VERIFICATION", [
-      z.object({
-        SKIP_JWT_VERIFICATION: z.literal("true"),
-      }),
-      z.object({
-        SKIP_JWT_VERIFICATION: z.literal("false"),
-        WELL_KNOWN_URLS: z
-          .string()
-          .transform((s) => s.split(","))
-          .pipe(z.array(APIEndpoint)),
-      }),
-    ])
-    .transform((c) =>
-      c.SKIP_JWT_VERIFICATION === "false"
-        ? {
-            skipJWTVerification: false as const,
-            wellKnownUrls: c.WELL_KNOWN_URLS,
-          }
-        : {
-            skipJWTVerification: true as const,
-          }
-    )
-);
+export const JWTConfig = z
+  .object({
+    WELL_KNOWN_URLS: z
+      .string()
+      .transform((s) => s.split(","))
+      .pipe(z.array(APIEndpoint)),
+  })
+  .transform((c) => ({
+    wellKnownUrls: c.WELL_KNOWN_URLS,
+  }));
 export type JWTConfig = z.infer<typeof JWTConfig>;
 
 export const LoggerConfig = z
