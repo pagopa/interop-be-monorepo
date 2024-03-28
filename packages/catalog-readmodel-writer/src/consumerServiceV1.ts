@@ -19,7 +19,7 @@ import {
 const adaptEserviceToReadModel = (
   version: number,
   eservice?: EServiceV1
-): { data: EServiceReadModel | undefined; metadata: { version: number } } => {
+): { data: EServiceReadModel; metadata: { version: number } } => {
   if (eservice === undefined) {
     throw Error("The eservice field is required");
   }
@@ -39,7 +39,7 @@ const adaptEserviceToReadModel = (
 
 const adaptDocumentToReadModel = (
   document: EServiceDocumentV1 | undefined
-): DocumentReadModel | undefined => {
+): DocumentReadModel => {
   if (document === undefined) {
     throw Error("The document field is required");
   }
@@ -53,7 +53,7 @@ const adaptDocumentToReadModel = (
 
 const adaptDescriptorToReadModel = (
   descriptor: EServiceDescriptorV1 | undefined
-): DescriptorReadModel | undefined => {
+): DescriptorReadModel => {
   if (descriptor === undefined) {
     throw Error("The descriptor field is required");
   }
