@@ -810,19 +810,26 @@ describe("Agreement service", () => {
       descriptor5 = {
         ...buildDescriptorPublished(),
       };
-      eservice1 = buildEService(generateId<EServiceId>(), tenant1.id, [
-        descriptor1,
-        descriptor2,
-        // descriptor2 is the latest - agreements for descriptor1 are upgradeable
-      ]);
-      eservice2 = buildEService(generateId<EServiceId>(), tenant2.id, [
-        descriptor3,
-        descriptor4,
-        // descriptor4 is not the latest - agreements for descriptor3 are not upgradeable
-      ]);
-      eservice3 = buildEService(generateId<EServiceId>(), tenant3.id, [
-        descriptor5,
-      ]);
+      eservice1 = {
+        ...buildEService(generateId<EServiceId>(), tenant1.id, [
+          descriptor1,
+          descriptor2,
+          // descriptor2 is the latest - agreements for descriptor1 are upgradeable
+        ]),
+        name: "EService1", // Adding name because results are sorted by esevice name
+      };
+      eservice2 = {
+        ...buildEService(generateId<EServiceId>(), tenant2.id, [
+          descriptor3,
+          descriptor4,
+          // descriptor4 is not the latest - agreements for descriptor3 are not upgradeable
+        ]),
+        name: "EService2", // Adding name because results are sorted by esevice name
+      };
+      eservice3 = {
+        ...buildEService(generateId<EServiceId>(), tenant3.id, [descriptor5]),
+        name: "EService3", // Adding name because results are sorted by esevice name
+      };
 
       await addOneTenant(tenant1, tenants);
       await addOneTenant(tenant2, tenants);
@@ -1144,6 +1151,34 @@ describe("Agreement service", () => {
         0
       );
       expect(agreements2.totalCount).toEqual(0);
+    });
+
+    it("should get agreements with limit", async () => {
+      const agreements = await agreementService.getAgreements(
+        {
+          eserviceId: eservice1.id,
+        },
+        1,
+        0
+      );
+      expect(agreements.totalCount).toEqual(2);
+      expect(agreements.results.length).toEqual(1);
+      expect(agreements.results).toEqual(expect.arrayContaining([agreement1]));
+    });
+
+    it("should get agreements with offset and limit", async () => {
+      const agreements = await agreementService.getAgreements(
+        {
+          eserviceId: [eservice1.id, eservice2.id],
+        },
+        2,
+        1
+      );
+      expect(agreements.totalCount).toEqual(4);
+      expect(agreements.results.length).toEqual(2);
+      expect(agreements.results).toEqual(
+        expect.arrayContaining([agreement2, agreement3])
+      );
     });
   });
 });
