@@ -1047,15 +1047,15 @@ describe("Agreement service", () => {
       );
     });
     it("should get agreements with filters: state", async () => {
-      const agreements1 = await agreementService.getAgreements(
+      const agreements = await agreementService.getAgreements(
         {
           agreementStates: [agreementState.active, agreementState.pending],
         },
         10,
         0
       );
-      expect(agreements1.totalCount).toEqual(2);
-      expect(agreements1.results).toEqual(
+      expect(agreements.totalCount).toEqual(2);
+      expect(agreements.results).toEqual(
         expect.arrayContaining([agreement2, agreement3])
       );
     });
@@ -1076,6 +1076,74 @@ describe("Agreement service", () => {
         ])
       );
     });
-    // TODO test combinations of filters
+
+    it("should get agreements with filters: producerId, consumerId, eserviceId", async () => {
+      const agreements = await agreementService.getAgreements(
+        {
+          producerId: [eservice1.producerId, eservice2.producerId],
+          consumerId: tenant1.id,
+          eserviceId: [eservice1.id, eservice2.id],
+        },
+        10,
+        0
+      );
+      expect(agreements.totalCount).toEqual(2);
+      expect(agreements.results).toEqual(
+        expect.arrayContaining([agreement1, agreement3])
+      );
+    });
+
+    it("should get agreements with filters: producerId, consumerId, eserviceId, descriptorId", async () => {
+      const agreements = await agreementService.getAgreements(
+        {
+          producerId: [eservice1.producerId, eservice2.producerId],
+          consumerId: tenant1.id,
+          eserviceId: [eservice1.id, eservice2.id],
+          descriptorId: [descriptor1.id],
+        },
+        10,
+        0
+      );
+      expect(agreements.totalCount).toEqual(1);
+      expect(agreements.results).toEqual(expect.arrayContaining([agreement1]));
+    });
+
+    it("should get agreements with filters: attributeId, state", async () => {
+      const agreements = await agreementService.getAgreements(
+        {
+          attributeId: attribute3.id,
+          agreementStates: [agreementState.active],
+        },
+        10,
+        0
+      );
+      expect(agreements.totalCount).toEqual(1);
+      expect(agreements.results).toEqual(expect.arrayContaining([agreement2]));
+    });
+
+    it("should get agreements with filters: showOnlyUpgradeable, state, descriptorId", async () => {
+      const agreements1 = await agreementService.getAgreements(
+        {
+          showOnlyUpgradeable: true,
+          agreementStates: [agreementState.draft],
+          descriptorId: descriptor1.id,
+        },
+        10,
+        0
+      );
+      expect(agreements1.totalCount).toEqual(1);
+      expect(agreements1.results).toEqual(expect.arrayContaining([agreement1]));
+
+      const agreements2 = await agreementService.getAgreements(
+        {
+          showOnlyUpgradeable: true,
+          agreementStates: [agreementState.suspended],
+          descriptorId: descriptor1.id,
+        },
+        10,
+        0
+      );
+      expect(agreements2.totalCount).toEqual(0);
+    });
   });
 });

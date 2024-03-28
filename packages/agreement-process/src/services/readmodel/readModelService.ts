@@ -117,9 +117,7 @@ const getAgreementsFilters = (
         (agreementStates) => agreementStates.length > 0 && showOnlyUpgradeable
       ),
       (agreementStates) =>
-        upgradeableStates.filter(
-          (s1) => agreementStates.some((s2) => s1 === s2) !== undefined
-        )
+        upgradeableStates.filter((s) => agreementStates.includes(s))
     )
     .otherwise((agreementStates) => agreementStates);
 
