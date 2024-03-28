@@ -1,7 +1,12 @@
 import jwt, { JwtHeader, SigningKeyCallback } from "jsonwebtoken";
 import jwksClient from "jwks-rsa";
 import { JWTConfig, logger } from "../index.js";
-import { AuthData, AuthToken, getAuthDataFromToken } from "./authData.js";
+import {
+  AuthData,
+  AuthToken,
+  getAuthDataFromToken,
+  getUserRolesFromAuthData,
+} from "./authData.js";
 
 export const readAuthDataFromJwtToken = (
   jwtToken: string
@@ -73,4 +78,6 @@ export const hasPermission = (
   permissions: string[],
   authData: AuthData
 ): boolean =>
-  authData.userRoles.some((role: string) => permissions.includes(role));
+  getUserRolesFromAuthData(authData).some((role: string) =>
+    permissions.includes(role)
+  );

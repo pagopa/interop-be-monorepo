@@ -36,12 +36,13 @@ import {
   assertTenantExists,
   assertValidExpirationDate,
   assertVerifiedAttributeExistsInTenant,
-  assertResourceAllowed,
   evaluateNewSelfcareId,
   getTenantKind,
   getTenantKindLoadingCertifiedAttributes,
   assertOrganizationVerifierExist,
   assertExpirationDateExist,
+  assertRequesterAllowed,
+  assertOrganizationIdInAuthData,
 } from "./validators.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -97,13 +98,13 @@ export function tenantServiceBuilder(
     },
 
     async updateTenantVerifiedAttribute({
-      verifierId,
+      authData,
       tenantId,
       attributeId,
       updateVerifiedTenantAttributeSeed,
       correlationId,
     }: {
-      verifierId: string;
+      authData: AuthData;
       tenantId: TenantId;
       attributeId: AttributeId;
       updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed;
@@ -113,7 +114,7 @@ export function tenantServiceBuilder(
 
       await repository.createEvent(
         await updateTenantVerifiedAttributeLogic({
-          verifierId,
+          authData,
           tenant,
           tenantId,
           attributeId,
@@ -136,7 +137,7 @@ export function tenantServiceBuilder(
         tenantSeed.externalId
       );
       if (existingTenant) {
-        await assertResourceAllowed(existingTenant.data.id, authData);
+        assertRequesterAllowed(existingTenant.data.id, authData);
 
         evaluateNewSelfcareId({
           tenant: existingTenant.data,
@@ -200,21 +201,23 @@ export function tenantServiceBuilder(
     },
     async getConsumers({
       consumerName,
-      producerId,
+      authData,
       offset,
       limit,
     }: {
       consumerName: string | undefined;
-      producerId: TenantId;
+      authData: AuthData;
       offset: number;
       limit: number;
     }): Promise<ListResult<Tenant>> {
       logger.info(
         `Retrieving Consumers with name = ${consumerName}, limit = ${limit}, offset = ${offset}`
       );
+
+      assertOrganizationIdInAuthData(authData);
       return readModelService.getConsumers({
         consumerName,
-        producerId,
+        producerId: authData.organizationId,
         offset,
         limit,
       });
@@ -257,14 +260,14 @@ export function tenantServiceBuilder(
 }
 
 async function updateTenantVerifiedAttributeLogic({
-  verifierId,
+  authData,
   tenant,
   tenantId,
   attributeId,
   updateVerifiedTenantAttributeSeed,
   correlationId,
 }: {
-  verifierId: string;
+  authData: AuthData;
   tenant: WithMetadata<Tenant> | undefined;
   tenantId: TenantId;
   attributeId: AttributeId;
@@ -284,12 +287,12 @@ async function updateTenantVerifiedAttributeLogic({
   );
 
   assertVerifiedAttributeExistsInTenant(attributeId, attribute, tenant);
-  assertOrganizationIsInAttributeVerifiers(verifierId, tenantId, attribute);
+  assertOrganizationIsInAttributeVerifiers(authData, tenantId, attribute);
 
   const updatedAttribute: TenantAttribute = {
     ...attribute,
     verifiedBy: attribute.verifiedBy.map((v) =>
-      v.id === verifierId
+      v.id === authData.organizationId
         ? {
             ...v,
             expirationDate,

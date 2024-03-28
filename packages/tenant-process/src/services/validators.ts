@@ -1,4 +1,4 @@
-import { AuthData, userRoles } from "pagopa-interop-commons";
+import { AuthData } from "pagopa-interop-commons";
 import {
   Attribute,
   AttributeId,
@@ -92,25 +92,23 @@ export function getTenantKind(
     .otherwise(() => tenantKind.PRIVATE);
 }
 
-async function assertRequesterAllowed(
-  resourceId: string,
-  requesterId: string
-): Promise<void> {
-  if (resourceId !== requesterId) {
-    throw operationForbidden;
-  }
-}
-
-export async function assertResourceAllowed(
+export function assertRequesterAllowed(
   resourceId: string,
   authData: AuthData
-): Promise<void> {
-  const roles = authData.userRoles;
-  const organizationId = authData.organizationId;
-
-  if (!roles.includes(userRoles.INTERNAL_ROLE)) {
-    return await assertRequesterAllowed(resourceId, organizationId);
-  }
+): asserts authData is AuthData & { organizationId: NonNullable<TenantId> } {
+  match(authData)
+    .with({ tokenType: "internal" }, () => {
+      // Internal requests are always allowed
+    })
+    .with({ tokenType: "empty" }, () => {
+      throw operationForbidden;
+    })
+    .with({ tokenType: "m2m" }, { tokenType: "ui" }, (d) => {
+      if (resourceId !== d.organizationId) {
+        throw operationForbidden;
+      }
+    })
+    .exhaustive();
 }
 
 export async function getTenantKindLoadingCertifiedAttributes(
@@ -164,13 +162,24 @@ export function assertValidExpirationDate(
 }
 
 export function assertOrganizationIsInAttributeVerifiers(
-  verifierId: string,
+  authData: AuthData,
   tenantId: TenantId,
   attribute: VerifiedTenantAttribute
-): void {
-  if (!attribute.verifiedBy.some((v) => v.id === verifierId)) {
-    throw organizationNotFoundInVerifiers(verifierId, tenantId, attribute.id);
-  }
+): asserts authData is AuthData & { organizationId: NonNullable<TenantId> } {
+  match(authData)
+    .with({ tokenType: "ui" }, { tokenType: "m2m" }, (d) => {
+      if (!attribute.verifiedBy.some((v) => v.id === d.organizationId)) {
+        throw organizationNotFoundInVerifiers(
+          d.organizationId,
+          tenantId,
+          attribute.id
+        );
+      }
+    })
+    .with({ tokenType: "empty" }, { tokenType: "internal" }, () => {
+      throw organizationNotFoundInVerifiers("", tenantId, attribute.id);
+    })
+    .exhaustive();
 }
 
 export function evaluateNewSelfcareId({
@@ -187,4 +196,16 @@ export function evaluateNewSelfcareId({
       newSelfcareId,
     });
   }
+}
+
+export function assertOrganizationIdInAuthData(
+  authData: AuthData
+): asserts authData is AuthData & { organizationId: NonNullable<TenantId> } {
+  match(authData)
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    .with({ tokenType: "m2m" }, { tokenType: "ui" }, () => {})
+    .with({ tokenType: "empty" }, { tokenType: "internal" }, () => {
+      throw operationForbidden;
+    })
+    .exhaustive();
 }

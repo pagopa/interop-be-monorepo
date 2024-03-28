@@ -9,6 +9,7 @@ import {
 import { toCreateEventAgreementAdded } from "../model/domain/toEvent.js";
 import {
   assertEServiceExist,
+  assertOrganizationIdInAuthData,
   assertTenantExist,
   validateCertifiedAttributes,
   validateCreationOnDescriptor,
@@ -38,6 +39,8 @@ export async function createAgreementLogic(
     eservice.data,
     unsafeBrandId(agreement.descriptorId)
   );
+
+  assertOrganizationIdInAuthData(authData);
 
   await verifyCreationConflictingAgreements(
     authData.organizationId,

@@ -571,10 +571,11 @@ export async function upgradeAgreementLogic(
   const agreementToBeUpgraded = await agreementQuery.getAgreementById(
     agreementId
   );
-  const tenant = await tenantQuery.getTenantById(authData.organizationId);
-  assertTenantExist(authData.organizationId, tenant);
   assertAgreementExist(agreementId, agreementToBeUpgraded);
   assertRequesterIsConsumer(agreementToBeUpgraded.data, authData);
+
+  const tenant = await tenantQuery.getTenantById(authData.organizationId);
+  assertTenantExist(authData.organizationId, tenant);
 
   assertExpectedState(
     agreementId,

@@ -98,66 +98,66 @@ export const AuthToken = z.discriminatedUnion("role", [
 ]);
 export type AuthToken = z.infer<typeof AuthToken>;
 
-/* NOTE:
-  The following type represents the data extracted from the JWT token.
-  It is used to populate the context object, which is referenced all
-  around the application to perform authorization checks.
+export const EmptyAuthData = z.object({
+  tokenType: z.literal("empty"),
+});
+export type EmptyAuthData = z.infer<typeof EmptyAuthData>;
 
-  To avoid the need to handle optional fields, we make them required in
-  the type definition, but know that they will be set to empty strings or
-  empty arrays in case they are not present in the token.
+export const AuthDataM2M = z.object({
+  tokenType: z.literal("m2m"),
+  organizationId: TenantId,
+});
+export type AuthDataM2M = z.infer<typeof AuthDataM2M>;
 
-  A possible improvement for this is tracked in: https://pagopa.atlassian.net/browse/IMN-371
-*/
-export const AuthData = z.object({
+export const AuthDataInternal = z.object({
+  tokenType: z.literal("internal"),
+});
+export type AuthDataInternal = z.infer<typeof AuthDataInternal>;
+
+export const AuthDataUI = z.object({
+  tokenType: z.literal("ui"),
+  userRoles: z.array(UIUserRole),
   organizationId: TenantId,
   userId: z.string().uuid(),
-  userRoles: z.array(UserRole),
   externalId: z.object({
     value: z.string(),
     origin: z.string(),
   }),
 });
+export type AuthDataUI = z.infer<typeof AuthDataUI>;
+
+export const AuthData = z.discriminatedUnion("tokenType", [
+  EmptyAuthData,
+  AuthDataM2M,
+  AuthDataInternal,
+  AuthDataUI,
+]);
 export type AuthData = z.infer<typeof AuthData>;
-export const defaultAuthData: AuthData = {
-  organizationId: unsafeBrandId<TenantId>(""),
-  userId: "",
-  userRoles: [],
-  externalId: { value: "", origin: "" },
-};
 
-const getUserRoles = (token: AuthToken): UserRole[] =>
-  match(token)
-    .with({ role: "m2m" }, (t) => [t.role])
-    .with({ role: "internal" }, (t) => [t.role])
-    .with({ "user-roles": P.not(P.nullish) }, (t) => t["user-roles"])
+export function getAuthDataFromToken(token: AuthToken): AuthData {
+  return match<AuthToken, AuthData>(token)
+    .with({ role: "m2m" }, (t) => ({
+      tokenType: "m2m",
+      organizationId: unsafeBrandId<TenantId>(t.organizationId),
+    }))
+    .with({ role: "internal" }, () => ({
+      tokenType: "internal",
+    }))
+    .with({ "user-roles": P.not(P.nullish) }, (t) => ({
+      tokenType: "ui",
+      userRoles: t["user-roles"],
+      organizationId: unsafeBrandId<TenantId>(t.organizationId),
+      userId: t.uid,
+      externalId: t.externalId,
+    }))
     .exhaustive();
+}
 
-const getOrganizationId = (token: AuthToken): TenantId | undefined =>
-  match(token)
-    .with({ "user-roles": P.not(P.nullish) }, { role: "m2m" }, (t) =>
-      unsafeBrandId<TenantId>(t.organizationId)
-    )
-    .with({ role: "internal" }, () => undefined)
+export function getUserRolesFromAuthData(authData: AuthData): UserRole[] {
+  return match<AuthData, UserRole[]>(authData)
+    .with({ tokenType: "empty" }, () => [])
+    .with({ tokenType: "internal" }, () => ["internal"])
+    .with({ tokenType: "m2m" }, () => ["m2m"])
+    .with({ tokenType: "ui" }, (d) => d.userRoles)
     .exhaustive();
-
-const getUserId = (token: AuthToken): string | undefined =>
-  match(token)
-    .with({ "user-roles": P.not(P.nullish) }, (t) => t.uid)
-    .with({ role: "m2m" }, { role: "internal" }, () => undefined)
-    .exhaustive();
-
-const getExternalId = (
-  token: AuthToken
-): { value: string; origin: string } | undefined =>
-  match(token)
-    .with({ "user-roles": P.not(P.nullish) }, (t) => t.externalId)
-    .with({ role: "m2m" }, { role: "internal" }, () => undefined)
-    .exhaustive();
-
-export const getAuthDataFromToken = (token: AuthToken): AuthData => ({
-  organizationId: getOrganizationId(token) ?? defaultAuthData.organizationId,
-  userId: getUserId(token) ?? defaultAuthData.userId,
-  userRoles: getUserRoles(token),
-  externalId: getExternalId(token) ?? defaultAuthData.externalId,
-});
+}

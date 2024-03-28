@@ -87,7 +87,6 @@ import {
   interfaceAlreadyExists,
   attributeNotFound,
   inconsistentDailyCalls,
-  originNotCompliant,
   tenantNotFound,
   eServiceRiskAnalysisNotFound,
 } from "../model/domain/errors.js";
@@ -101,6 +100,8 @@ import {
   validateRiskAnalysisSchemaOrThrow,
   assertHasNoDraftDescriptor,
   assertRiskAnalysisIsValidForPublication,
+  assertProducerAllowedOrigin,
+  assertOrganizationIdInAuthData,
 } from "./validators.js";
 
 const retrieveEService = async (
@@ -413,9 +414,8 @@ export function catalogServiceBuilder(
         `Creating EService with service name ${apiEServicesSeed.name}`
       );
 
-      if (!config.producerAllowedOrigins.includes(authData.externalId.origin)) {
-        throw originNotCompliant(authData.externalId.origin);
-      }
+      assertOrganizationIdInAuthData(authData);
+      assertProducerAllowedOrigin(config, authData);
 
       const eserviceWithSameName =
         await readModelService.getEServiceByNameAndProducerId({
@@ -1475,8 +1475,20 @@ const isUserAllowedToSeeDraft = (
   authData: AuthData,
   producerId: TenantId
 ): boolean =>
-  hasPermission([userRoles.ADMIN_ROLE, userRoles.API_ROLE], authData) &&
-  authData.organizationId === producerId;
+  match(authData)
+    .with(
+      { tokenType: "empty" },
+      { tokenType: "internal" },
+      { tokenType: "m2m" },
+      () => false
+    )
+    .with(
+      { tokenType: "ui" },
+      (d) =>
+        hasPermission([userRoles.ADMIN_ROLE, userRoles.API_ROLE], authData) &&
+        d.organizationId === producerId
+    )
+    .exhaustive();
 
 const applyVisibilityToEService = (
   eservice: EService,

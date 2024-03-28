@@ -19,7 +19,7 @@ import {
   tenantAttributeType,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
-import { AuthData } from "pagopa-interop-commons";
+import { AuthData, AuthDataUI } from "pagopa-interop-commons";
 
 export function expectPastTimestamp(timestamp: bigint): boolean {
   return (
@@ -34,7 +34,8 @@ export function randomArrayItem<T>(array: T[]): T {
 export const getRandomAuthData = (
   organizationId: TenantId = generateId<TenantId>()
 ): AuthData => ({
-  ...generateMock(AuthData),
+  ...generateMock(AuthDataUI),
+  userRoles: ["admin"],
   organizationId,
 });
 

@@ -12,7 +12,7 @@ import {
 import { IDatabase } from "pg-promise";
 import {
   AttributeCollection,
-  AuthData,
+  AuthDataUI,
   TenantCollection,
 } from "pagopa-interop-commons";
 import { v4 as uuidv4 } from "uuid";
@@ -47,7 +47,8 @@ export const getMockTenant = (): Tenant => ({
   mails: [],
 });
 
-export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
+export const getMockAuthData = (organizationId?: TenantId): AuthDataUI => ({
+  tokenType: "ui",
   organizationId: organizationId || generateId(),
   userId: uuidv4(),
   userRoles: [],
