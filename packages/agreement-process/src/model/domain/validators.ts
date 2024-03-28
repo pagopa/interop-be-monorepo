@@ -130,7 +130,10 @@ export const assertRequesterIsConsumer = (
   agreement: Agreement,
   authData: AuthData
 ): void => {
-  if (authData.organizationId !== agreement.consumerId) {
+  if (
+    !authData.userRoles.includes("internal") &&
+    authData.organizationId !== agreement.consumerId
+  ) {
     throw operationNotAllowed(authData.organizationId);
   }
 };
@@ -139,7 +142,10 @@ export function assertRequesterIsProducer(
   agreement: Agreement,
   authData: AuthData
 ): void {
-  if (authData.organizationId !== agreement.producerId) {
+  if (
+    !authData.userRoles.includes("internal") &&
+    authData.organizationId !== agreement.producerId
+  ) {
     throw operationNotAllowed(authData.organizationId);
   }
 }
