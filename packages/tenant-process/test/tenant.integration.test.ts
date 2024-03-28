@@ -24,7 +24,6 @@ import {
   descriptorState,
   generateId,
 } from "pagopa-interop-models";
-import { v4 as uuidv4 } from "uuid";
 import { StartedTestContainer } from "testcontainers";
 import { config } from "../src/utilities/config.js";
 import {
