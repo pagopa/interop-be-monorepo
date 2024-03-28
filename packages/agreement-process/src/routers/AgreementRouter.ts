@@ -28,7 +28,7 @@ import { tenantQueryBuilder } from "../services/readmodel/tenantQuery.js";
 import { eserviceQueryBuilder } from "../services/readmodel/eserviceQuery.js";
 import { attributeQueryBuilder } from "../services/readmodel/attributeQuery.js";
 import { readModelServiceBuilder } from "../services/readmodel/readModelService.js";
-import { agreementNotFound, makeApiProblem } from "../model/domain/errors.js";
+import { makeApiProblem } from "../model/domain/errors.js";
 import {
   cloneAgreementErrorMapper,
   addConsumerDocumentErrorMapper,
@@ -43,6 +43,7 @@ import {
   upgradeAgreementErrorMapper,
   removeConsumerDocumentErrorMapper,
   archiveAgreementErrorMapper,
+  getAgreementErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -372,27 +373,13 @@ const agreementRouter = (
     ]),
     async (req, res) => {
       try {
-        const agreement = await agreementService.getAgreementById(
-          unsafeBrandId(req.params.agreementId)
+        return agreementToApiAgreement(
+          await agreementService.getAgreementById(
+            unsafeBrandId(req.params.agreementId)
+          )
         );
-        if (agreement) {
-          return res
-            .status(200)
-            .json(agreementToApiAgreement(agreement))
-            .send();
-        } else {
-          return res
-            .status(404)
-            .json(
-              makeApiProblem(
-                agreementNotFound(unsafeBrandId(req.params.agreementId)),
-                () => 404
-              )
-            )
-            .send();
-        }
       } catch (error) {
-        const errorRes = makeApiProblem(error, () => 500);
+        const errorRes = makeApiProblem(error, getAgreementErrorMapper);
         return res.status(errorRes.status).json(errorRes).end();
       }
     }

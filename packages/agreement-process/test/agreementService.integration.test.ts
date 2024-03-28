@@ -65,6 +65,7 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import {
   agreementAlreadyExists,
+  agreementNotFound,
   descriptorNotInExpectedState,
   eServiceNotFound,
   missingCertifiedAttributesError,
@@ -1202,6 +1203,26 @@ describe("Agreement service", () => {
         totalCount: 4,
         results: expect.arrayContaining([agreement2, agreement3]),
       });
+    });
+  });
+  describe("get agreement", () => {
+    it("should get an agreement", async () => {
+      const agreement: Agreement = buildAgreement(
+        generateId<EServiceId>(),
+        generateId<TenantId>(),
+        agreementState.draft
+      );
+      await addOneAgreement(agreement, postgresDB, agreements);
+
+      const result = await agreementService.getAgreementById(agreement.id);
+      expect(result).toEqual(agreement);
+    });
+
+    it("should throw an agreementNotFound error when the agreement does not exist", async () => {
+      const agreementId = generateId<AgreementId>();
+      await expect(
+        agreementService.getAgreementById(agreementId)
+      ).rejects.toThrowError(agreementNotFound(agreementId));
     });
   });
 });
