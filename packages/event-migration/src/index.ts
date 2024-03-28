@@ -28,7 +28,12 @@ const Config = z
     TARGET_DB_HOST: z.string(),
     TARGET_DB_PORT: z.coerce.number(),
     TARGET_DB_NAME: z.string(),
-    TARGET_DB_SCHEMA: z.enum(["catalog", "attribute"]),
+    TARGET_DB_SCHEMA: z.enum([
+      "catalog",
+      "dev-refactor_catalog",
+      "attribute",
+      "dev-refactor_attribute_registry",
+    ]),
     TARGET_DB_USE_SSL: z
       .enum(["true", "false"])
       .transform((value) => value === "true"),
@@ -125,7 +130,7 @@ const originalEvents = await sourceConnection.many(
 const idVersionHashMap = new Map<string, number>();
 
 const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
-  .with("catalog", () => {
+  .with("catalog", "dev-refactor_catalog", () => {
     if (!config.sourceDbSchema.includes("catalog")) {
       throw Error(
         "Source and target databases are incompatible, please double-check the config"
@@ -156,7 +161,7 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
 
     return { parseEventType, decodeEvent, parseId };
   })
-  .with("attribute", () => {
+  .with("attribute", "dev-refactor_attribute_registry", () => {
     if (!config.sourceDbSchema.includes("attribute")) {
       throw Error(
         "Source and target databases are incompatible, please double-check the config"
