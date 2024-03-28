@@ -13,7 +13,7 @@ export type Headers = z.infer<typeof Headers>;
 
 export const ParsedHeaders = z
   .object({
-    correlationId: z.string().uuid(),
+    correlationId: z.string(),
   })
   .and(AuthData);
 export type ParsedHeaders = z.infer<typeof ParsedHeaders>;

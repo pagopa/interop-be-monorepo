@@ -1,3 +1,4 @@
+/* eslint-disable functional/immutable-data */
 import { EachMessagePayload } from "kafkajs";
 import {
   ReadModelRepository,
@@ -5,6 +6,7 @@ import {
   agreementTopicConfig,
   decodeKafkaMessage,
   logger,
+  getContext,
 } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
 import { AgreementEvent } from "pagopa-interop-models";
@@ -19,6 +21,16 @@ async function processMessage({
   partition,
 }: EachMessagePayload): Promise<void> {
   try {
+    const msg = decodeKafkaMessage(message, AgreementEvent);
+
+    const ctx = getContext();
+    ctx.messageData = {
+      eventType: msg.type,
+      eventVersion: msg.event_version,
+      streamId: msg.stream_id,
+    };
+    ctx.correlationId = msg.correlation_id;
+
     await handleMessage(
       decodeKafkaMessage(message, AgreementEvent),
       agreements

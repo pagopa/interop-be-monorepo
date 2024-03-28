@@ -1,8 +1,10 @@
+/* eslint-disable functional/immutable-data */
 import { Kafka, KafkaMessage } from "kafkajs";
 import {
   ReadModelRepository,
   attributeTopicConfig,
   decodeKafkaMessage,
+  getContext,
   logger,
   readModelWriterConfig,
 } from "pagopa-interop-commons";
@@ -48,10 +50,16 @@ await consumer.subscribe({
 
 async function processMessage(message: KafkaMessage): Promise<void> {
   try {
-    await handleMessage(
-      decodeKafkaMessage(message, AttributeEvent),
-      attributes
-    );
+    const msg = decodeKafkaMessage(message, AttributeEvent);
+    const ctx = getContext();
+    ctx.messageData = {
+      eventType: msg.type,
+      eventVersion: msg.event_version,
+      streamId: msg.stream_id,
+    };
+    ctx.correlationId = msg.correlation_id;
+
+    await handleMessage(msg, attributes);
 
     logger.info("Read model was updated");
   } catch (e) {
