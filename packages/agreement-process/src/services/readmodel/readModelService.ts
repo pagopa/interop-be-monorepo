@@ -25,6 +25,7 @@ import {
   descriptorState,
   genericError,
   EServiceId,
+  AttributeReadmodel,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { z } from "zod";
@@ -202,7 +203,7 @@ const getAllAgreements = async (
 
 async function getAttribute(
   attributes: AttributeCollection,
-  filter: Filter<{ data: Attribute }>
+  filter: Filter<{ data: AttributeReadmodel }>
 ): Promise<WithMetadata<Attribute> | undefined> {
   const data = await attributes.findOne(filter, {
     projection: { data: true, metadata: true },
