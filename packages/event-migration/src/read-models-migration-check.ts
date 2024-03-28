@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * This script is used to compare the data of the scala generated readmodel with the node generated readmodel.
  * The comparison is done by comparing the collection data from both the readmodels with a deep comparison, and if any differences are found,
@@ -5,13 +6,18 @@
  */
 
 import { z } from "zod";
-import { ReadModelDbConfig, logger } from "pagopa-interop-commons";
+import { ReadModelDbConfig } from "pagopa-interop-commons";
 import { MongoClient, Db } from "mongodb";
 import isEqual from "lodash.isequal";
 
 const Config = z
   .object({
-    COLLECTION: z.enum(["agreements", "attributes", "eservices", "tenants"]),
+    READ_MODEL_COLLECTION: z.enum([
+      "agreements",
+      "attributes",
+      "eservices",
+      "tenants",
+    ]),
     SCALA_READMODEL_DB_HOST: z.string(),
     SCALA_READMODEL_DB_NAME: z.string(),
     SCALA_READMODEL_DB_USERNAME: z.string(),
@@ -24,7 +30,7 @@ const Config = z
     NODE_READMODEL_DB_PORT: z.coerce.number().min(1001),
   })
   .transform((c) => ({
-    collection: c.COLLECTION,
+    readModelCollection: c.READ_MODEL_COLLECTION,
     scalaReadModelConfig: {
       readModelDbHost: c.SCALA_READMODEL_DB_HOST,
       readModelDbName: c.SCALA_READMODEL_DB_NAME,
@@ -61,19 +67,19 @@ async function main(): Promise<void> {
   const differences = await getReadModelsCollectionDataDifferences(
     scalaReadModelDb,
     nodeReadModelDb,
-    config.collection
+    config.readModelCollection
   );
 
   if (differences.length > 0) {
-    logger.warn("Differences found:");
+    console.warn("Differences found:");
     differences.forEach(([node, scala]) => {
-      logger.warn("Node data:", node);
-      logger.warn("Scala data:", scala);
+      console.warn("Node data:", node);
+      console.warn("Scala data:", scala);
     });
     process.exit(1);
   }
 
-  logger.info("No differences found");
+  console.log("No differences found");
 }
 
 function connectToReadModelDb({
@@ -125,8 +131,6 @@ export function zipIdentifiableData(
   });
 }
 
-// Only run the script if it is the main module, not if it is imported
-// This is useful for testing
-if (require.main === module) {
+if (process.env.NODE_ENV !== "test") {
   await main();
 }
