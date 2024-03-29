@@ -73,7 +73,7 @@ async function main(): Promise<void> {
 
   if (differences.length > 0) {
     console.warn(`Differences found, red is scala, green is node:`);
-    differences.forEach(([node, scala]) => {
+    differences.forEach(([scala, node]) => {
       consoleStringDiffs(
         JSON.stringify(scala, null, 2),
         JSON.stringify(node, null, 2)
