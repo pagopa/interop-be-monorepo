@@ -9,6 +9,7 @@ import { z } from "zod";
 import { ReadModelDbConfig } from "pagopa-interop-commons";
 import { MongoClient, Db } from "mongodb";
 import isEqual from "lodash.isequal";
+import { diffLines } from "diff";
 
 const Config = z
   .object({
@@ -71,10 +72,12 @@ async function main(): Promise<void> {
   );
 
   if (differences.length > 0) {
-    console.warn("Differences found:");
+    console.warn(`Differences found, red is scala, green is node:`);
     differences.forEach(([node, scala]) => {
-      console.warn("Node data:", node);
-      console.warn("Scala data:", scala);
+      consoleStringDiffs(
+        JSON.stringify(scala, null, 2),
+        JSON.stringify(node, null, 2)
+      );
     });
     process.exit(1);
   }
@@ -128,6 +131,24 @@ export function zipIdentifiableData(
       throw new Error(`Data A with id ${a.id} not found in data B`);
     }
     return [a, b];
+  });
+}
+
+function consoleStringDiffs(a: string, b: string): void {
+  const consoleFormatter = {
+    added: (s: string) => `\x1b[32m${s}\x1b[0m`,
+    removed: (s: string) => `\x1b[31m${s}\x1b[0m`,
+    equal: (s: string) => s,
+  } as const;
+
+  diffLines(a, b).forEach((part) => {
+    const color = part.added
+      ? consoleFormatter.added
+      : part.removed
+      ? consoleFormatter.removed
+      : consoleFormatter.equal;
+
+    process.stderr.write(color(part.value));
   });
 }
 
