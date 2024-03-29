@@ -135,20 +135,20 @@ export function zipIdentifiableData(
 }
 
 function consoleStringDiffs(a: string, b: string): void {
-  const consoleFormatter = {
+  const formatter = {
     added: (s: string) => `\x1b[32m${s}\x1b[0m`,
     removed: (s: string) => `\x1b[31m${s}\x1b[0m`,
     equal: (s: string) => s,
   } as const;
 
   diffLines(a, b).forEach((part) => {
-    const color = part.added
-      ? consoleFormatter.added
+    const format = part.added
+      ? formatter.added
       : part.removed
-      ? consoleFormatter.removed
-      : consoleFormatter.equal;
+      ? formatter.removed
+      : formatter.equal;
 
-    process.stderr.write(color(part.value));
+    process.stderr.write(format(part.value));
   });
 }
 
