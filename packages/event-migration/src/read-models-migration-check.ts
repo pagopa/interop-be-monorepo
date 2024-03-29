@@ -65,19 +65,27 @@ async function main(): Promise<void> {
   const scalaReadModelDb = connectToReadModelDb(config.scalaReadModelConfig);
   const nodeReadModelDb = connectToReadModelDb(config.nodeReadModelConfig);
 
-  const differences = await getReadModelsCollectionDataDifferences(
+  const differences = await compareReadModelsCollection(
     scalaReadModelDb,
     nodeReadModelDb,
     config.readModelCollection
   );
 
   if (differences.length > 0) {
-    console.warn(`Differences found, red is scala, green is node:`);
+    console.warn(
+      `Differences found in ${config.readModelCollection} collection`
+    );
     differences.forEach(([scala, node]) => {
-      consoleStringDiffs(
-        JSON.stringify(scala, null, 2),
-        JSON.stringify(node, null, 2)
-      );
+      if (scala && !node) {
+        console.warn(`Object with id ${scala.id} not found in node readmodel`);
+      }
+      if (!scala && node) {
+        console.warn(`Object with id ${node.id} not found in scala readmodel`);
+      }
+      if (scala && node) {
+        console.warn(`Differences in object with id ${scala.id}`);
+        consoleStringDiffs(JSON.stringify(scala), JSON.stringify(node));
+      }
     });
     process.exit(1);
   }
@@ -99,11 +107,11 @@ function connectToReadModelDb({
   return client.db(database);
 }
 
-export async function getReadModelsCollectionDataDifferences(
+export async function compareReadModelsCollection(
   readmodelA: Db,
   readmodelB: Db,
   collection: string
-): Promise<Array<[Identifiable, Identifiable]>> {
+): Promise<Array<[Identifiable | undefined, Identifiable | undefined]>> {
   const resultsA = await readmodelA
     .collection(collection)
     .find()
@@ -112,7 +120,7 @@ export async function getReadModelsCollectionDataDifferences(
 
   const resultsB = await readmodelB
     .collection(collection)
-    .find({ id: { $in: resultsA.map((d) => d.id) } })
+    .find()
     .map(({ data }) => Identifiable.parse(data))
     .toArray();
 
@@ -124,14 +132,12 @@ export async function getReadModelsCollectionDataDifferences(
 export function zipIdentifiableData(
   dataA: Identifiable[],
   dataB: Identifiable[]
-): Array<[Identifiable, Identifiable]> {
-  return dataA.map((a) => {
-    const b = dataB.find((d) => d.id === a.id);
-    if (!b) {
-      throw new Error(`Data A with id ${a.id} not found in data B`);
-    }
-    return [a, b];
-  });
+): Array<[Identifiable | undefined, Identifiable | undefined]> {
+  const allIds = new Set([...dataA, ...dataB].map((d) => d.id));
+  return Array.from(allIds).map((id) => [
+    dataA.find((d) => d.id === id),
+    dataB.find((d) => d.id === id),
+  ]);
 }
 
 function consoleStringDiffs(a: string, b: string): void {
