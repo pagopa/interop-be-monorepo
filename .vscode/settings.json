@@ -4,5 +4,67 @@
   "editor.codeActionsOnSave": {
     "source.fixAll": "explicit"
   },
-  "typescript.tsdk": "node_modules/typescript/lib"
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "restoreTerminals.runOnStartup": true,
+  "restoreTerminals.keepExistingTerminalsOpen": true,
+  "restoreTerminals.terminals": [
+    {
+      "splitTerminals": [
+        {
+          "name": "Root 🏡",
+          "commands": ["pnpm i && pnpm build --force"]
+        }
+      ]
+    },
+    {
+      "splitTerminals": [
+        {
+          "name": "catalog-process",
+          "icon": "",
+          "commands": ["pnpm start:catalog"]
+        },
+        {
+          "name": "catalog-readmodel-writer",
+          "icon": "",
+          "commands": ["pnpm start:catalog-readmodel-writer"]
+        }
+      ]
+    },
+    {
+      "splitTerminals": [
+        {
+          "name": "auth-updater",
+          "icon": "",
+          "commands": ["pnpm start:catalog"]
+        }
+      ]
+    },
+    {
+      "splitTerminals": [
+        {
+          "name": "notifier-seeder",
+          "icon": "",
+          "commands": ["aws-vault exec pagopa -- pnpm start:notifier-seeder"]
+        }
+      ]
+    },
+    {
+      "splitTerminals": [
+        {
+          "name": "auth-updater",
+          "icon": "",
+          "color": "",
+          "commands": ["aws-vault exec pagopa -- pnpm start:auth-updater"]
+        }
+      ]
+    },
+    {
+      "splitTerminals": [
+        {
+          "name": "__git",
+          "commands": ["git status"]
+        }
+      ]
+    }
+  ]
 }
