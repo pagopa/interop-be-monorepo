@@ -1,10 +1,8 @@
-import { v4 as uuidv4 } from "uuid";
-import {
-  EServiceEventV1,
-  EServiceEventEnvelopeV2,
-} from "pagopa-interop-models";
+import { EServiceEventEnvelopeV2 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import { v4 as uuidv4 } from "uuid";
 import { QueueMessage } from "../queue-manager/queueMessage.js";
+import { CatalogItemEventNotification } from "./catalogItemEventNotification.js";
 
 export const eventV2TypeMapper = (
   eventType: EServiceEventEnvelopeV2["type"]
@@ -62,12 +60,12 @@ export const eventV2TypeMapper = (
 */
 export const buildCatalogMessage = (
   event: EServiceEventEnvelopeV2,
-  eserviceEvent: EServiceEventV1["data"]
+  catalogItemEvent: CatalogItemEventNotification
 ): QueueMessage => ({
   messageUUID: uuidv4(),
   eventJournalPersistenceId: event.stream_id,
   eventJournalSequenceNumber: event.version,
   eventTimestamp: Number(event.log_date),
   kind: eventV2TypeMapper(event.type),
-  payload: eserviceEvent,
+  payload: catalogItemEvent,
 });

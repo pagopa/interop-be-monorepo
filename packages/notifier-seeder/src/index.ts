@@ -11,10 +11,10 @@ import {
   messageDecoderSupplier,
   notificationConfig,
 } from "pagopa-interop-commons";
-import { v4 as uuidv4 } from "uuid";
 import { kafkaMessageProcessError } from "pagopa-interop-models";
-import { convertToEserviceV1 } from "./models/catalogEventV2ConverterToV1.js";
-import { buildCatalogMessage } from "./models/catalogEventMessage.js";
+import { v4 as uuidv4 } from "uuid";
+import { toCatalogItemEventNotification } from "./models/catalogItemEventNotificationConverter.js";
+import { buildCatalogMessage } from "./models/catalogItemEventNotificationMessage.js";
 import { initQueueManager } from "./queue-manager/queueManager.js";
 
 const config = kafkaConsumerConfig();
@@ -50,7 +50,7 @@ function processMessage(topicConfig: CatalogTopicConfig) {
         return;
       }
 
-      const eserviceV1Event = convertToEserviceV1(eventEnvelope);
+      const eserviceV1Event = toCatalogItemEventNotification(eventEnvelope);
       const message = buildCatalogMessage(eventEnvelope, eserviceV1Event);
       await queueManager.send(message);
 
