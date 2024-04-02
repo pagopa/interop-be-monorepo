@@ -22,8 +22,8 @@ import {
   EServiceCollection,
   TenantCollection,
 } from "pagopa-interop-commons";
-import { toAgreementV1 } from "../src/model/domain/toEvent.js";
 import { config } from "../src/utilities/config.js";
+import { toAgreementV2 } from "../src/model/domain/toEvent.js";
 
 export const writeAgreementInEventstore = async (
   agreement: Agreement,
@@ -31,8 +31,8 @@ export const writeAgreementInEventstore = async (
 ): Promise<void> => {
   const agreementEvent: AgreementEvent = {
     type: "AgreementAdded",
-    event_version: 1,
-    data: { agreement: toAgreementV1(agreement) },
+    event_version: 2,
+    data: { agreement: toAgreementV2(agreement) },
   };
   const eventToWrite: StoredEvent<AgreementEvent> = {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
