@@ -1434,4 +1434,49 @@ describe("Agreement service", () => {
       });
     });
   });
+  describe("get agreement eservices", () => {
+    let eservice1: EService;
+    let eservice2: EService;
+    let eservice3: EService;
+
+    beforeEach(async () => {
+      eservice1 = {
+        ...buildEService(generateId<EServiceId>(), generateId<TenantId>()),
+        name: "EService 1 Foo",
+      };
+      eservice2 = {
+        ...buildEService(generateId<EServiceId>(), generateId<TenantId>()),
+        name: "EService 2 Bar",
+      };
+      eservice3 = {
+        ...buildEService(generateId<EServiceId>(), generateId<TenantId>()),
+        name: "EService 3 FooBar",
+      };
+
+      await addOneEService(eservice1, eservices);
+      await addOneEService(eservice2, eservices);
+      await addOneEService(eservice3, eservices);
+
+      const agreement1 = buildAgreement(eservice1.id);
+      const agreement2 = buildAgreement(eservice2.id);
+      const agreement3 = buildAgreement(eservice3.id);
+
+      await addOneAgreement(agreement1, postgresDB, agreements);
+      await addOneAgreement(agreement2, postgresDB, agreements);
+      await addOneAgreement(agreement3, postgresDB, agreements);
+    });
+
+    it("should get all agreement eservices", async () => {
+      const eservices = await agreementService.getAgreementEServices(
+        undefined,
+        [],
+        [],
+        10,
+        0
+      );
+
+      expect(eservices.totalCount).toEqual(3);
+      // TODO test equality with expect.arrayContaining and conversion to CompactEService
+    });
+  });
 });
