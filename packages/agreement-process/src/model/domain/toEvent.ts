@@ -17,6 +17,7 @@ import {
   AgreementDocumentV2,
   AgreementStampV2,
   AgreementStampsV2,
+  AgreementEventV2,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -138,7 +139,7 @@ export function toCreateEventAgreementDeleted(
   agreement: Agreement,
   version: number,
   correlationId: string
-): CreateEvent<AgreementEvent> {
+): CreateEvent<AgreementEventV2> {
   return {
     streamId: agreement.id,
     version,
@@ -156,7 +157,7 @@ export function toCreateEventAgreementDeleted(
 export function toCreateEventAgreementAdded(
   agreement: Agreement,
   correlationId: string
-): CreateEvent<AgreementEvent> {
+): CreateEvent<AgreementEventV2> {
   return {
     streamId: agreement.id,
     version: 0,
@@ -175,7 +176,7 @@ export function toCreateEventDraftAgreementUpdated(
   agreement: Agreement,
   version: number,
   correlationId: string
-): CreateEvent<AgreementEvent> {
+): CreateEvent<AgreementEventV2> {
   return {
     streamId: agreement.id,
     version,
@@ -194,7 +195,7 @@ export function toCreateEventAgreementSubmitted(
   agreement: Agreement,
   version: number,
   correlationId: string
-): CreateEvent<AgreementEvent> {
+): CreateEvent<AgreementEventV2> {
   return {
     streamId: agreement.id,
     version,
@@ -213,7 +214,7 @@ export function toCreateEventAgreementArchived(
   agreement: Agreement,
   version: number,
   correlationId: string
-): CreateEvent<AgreementEvent> {
+): CreateEvent<AgreementEventV2> {
   return {
     streamId: agreement.id,
     version,
@@ -251,7 +252,7 @@ export function toCreateEventAgreementRejected(
   agreement: Agreement,
   version: number,
   correlationId: string
-): CreateEvent<AgreementEvent> {
+): CreateEvent<AgreementEventV2> {
   return {
     streamId: agreement.id,
     version,
@@ -271,7 +272,7 @@ export function toCreateEventAgreementConsumerDocumentAdded(
   agreement: Agreement,
   version: number,
   correlationId: string
-): CreateEvent<AgreementEvent> {
+): CreateEvent<AgreementEventV2> {
   return {
     streamId: agreement.id,
     version,
@@ -292,7 +293,7 @@ export function toCreateEventAgreementConsumerDocumentRemoved(
   agreement: Agreement,
   version: number,
   correlationId: string
-): CreateEvent<AgreementEvent> {
+): CreateEvent<AgreementEventV2> {
   return {
     streamId: agreement.id,
     version,
