@@ -177,13 +177,8 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
           .split("|")[0]
       )
         .when(
-          (originalType) =>
-            (originalType as string).includes("AttributeDeleted"),
-          (originalType) =>
-            (originalType as string).replace(
-              "AttributeDeleted",
-              "MaintenanceAttributeDeleted"
-            )
+          (originalType) => (originalType as string) === "AttributeDeleted",
+          () => "MaintenanceAttributeDeleted"
         )
         .otherwise((originalType) => originalType);
 
