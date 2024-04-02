@@ -205,7 +205,7 @@ async function getAttribute(
   filter: Filter<{ data: Attribute }>
 ): Promise<Attribute | undefined> {
   const data = await attributes.findOne(filter, {
-    projection: { data: true, metadata: true },
+    projection: { data: true, metadata: false },
   });
   if (data) {
     const result = Attribute.safeParse(data.data);
@@ -415,7 +415,7 @@ export function readModelServiceBuilder(
     async getEServiceById(id: string): Promise<EService | undefined> {
       const data = await eservices.findOne(
         { "data.id": id },
-        { projection: { data: true, metadata: true } }
+        { projection: { data: true, metadata: false } }
       );
 
       if (data) {
@@ -439,7 +439,7 @@ export function readModelServiceBuilder(
     async getTenantById(tenantId: string): Promise<Tenant | undefined> {
       const data = await tenants.findOne(
         { "data.id": tenantId },
-        { projection: { data: true, metadata: true } }
+        { projection: { data: true, metadata: false } }
       );
 
       if (data) {
