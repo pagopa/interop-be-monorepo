@@ -71,37 +71,40 @@ async function main(): Promise<void> {
     config.readModelCollection
   );
 
-  if (differences.length > 0) {
-    console.warn(
-      `Differences found in ${config.readModelCollection} collection`
-    );
-    differences.forEach(([scala, node]) => {
-      if (scala && !node) {
-        console.warn(`Object with id ${scala.id} not found in node readmodel`);
+  // eslint-disable-next-line functional/no-let
+  let actualDiffCount = 0;
+  differences.forEach(([scala, node]) => {
+    if (scala && !node) {
+      actualDiffCount++;
+      console.warn(`Object with id ${scala.id} not found in node readmodel`);
+    }
+    if (!scala && node) {
+      actualDiffCount++;
+      console.warn(`Object with id ${node.id} not found in scala readmodel`);
+    }
+    if (scala && node) {
+      /*
+      const dateKeysToExclude = [
+        "createdAt",
+        "uploadDate",
+        "publishedAt",
+        "deprecatedAt",
+        "suspendedAt",
+        "archivedAt",
+      ];
+      */
+      const objectsDiff = diff(scala, node, {
+        excludeKeys: [],
+      });
+      if (objectsDiff) {
+        actualDiffCount++;
+        console.warn(`Differences in object with id ${scala.id}`);
+        console.warn(JSON.stringify(objectsDiff, null, 2));
       }
-      if (!scala && node) {
-        console.warn(`Object with id ${node.id} not found in scala readmodel`);
-      }
-      if (scala && node) {
-        /*
-        const dateKeysToExclude = [
-          "createdAt",
-          "uploadDate",
-          "publishedAt",
-          "deprecatedAt",
-          "suspendedAt",
-          "archivedAt",
-        ];
-        */
-        const objectsDiff = diff(scala, node, {
-          excludeKeys: [],
-        });
-        if (objectsDiff) {
-          console.warn(`Differences in object with id ${scala.id}`);
-          console.warn(JSON.stringify(objectsDiff, null, 2));
-        }
-      }
-    });
+    }
+  });
+
+  if (actualDiffCount > 0) {
     process.exit(1);
   }
 
