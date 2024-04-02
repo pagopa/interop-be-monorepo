@@ -1213,6 +1213,15 @@ describe("Agreement service", () => {
         agreementState.draft
       );
       await addOneAgreement(agreement, postgresDB, agreements);
+      await addOneAgreement(
+        buildAgreement(
+          generateId<EServiceId>(),
+          generateId<TenantId>(),
+          agreementState.pending
+        ),
+        postgresDB,
+        agreements
+      );
 
       const result = await agreementService.getAgreementById(agreement.id);
       expect(result).toEqual(agreement);
@@ -1220,6 +1229,17 @@ describe("Agreement service", () => {
 
     it("should throw an agreementNotFound error when the agreement does not exist", async () => {
       const agreementId = generateId<AgreementId>();
+
+      await addOneAgreement(
+        buildAgreement(
+          generateId<EServiceId>(),
+          generateId<TenantId>(),
+          agreementState.pending
+        ),
+        postgresDB,
+        agreements
+      );
+
       await expect(
         agreementService.getAgreementById(agreementId)
       ).rejects.toThrowError(agreementNotFound(agreementId));
