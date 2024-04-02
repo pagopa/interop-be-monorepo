@@ -83,8 +83,23 @@ async function main(): Promise<void> {
         console.warn(`Object with id ${node.id} not found in scala readmodel`);
       }
       if (scala && node) {
-        console.warn(`Differences in object with id ${scala.id}`);
-        diff(scala, node);
+        /*
+        const dateKeysToExclude = [
+          "createdAt",
+          "uploadDate",
+          "publishedAt",
+          "deprecatedAt",
+          "suspendedAt",
+          "archivedAt",
+        ];
+        */
+        const objectsDiff = diff(scala, node, {
+          excludeKeys: [],
+        });
+        if (objectsDiff) {
+          console.warn(`Differences in object with id ${scala.id}`);
+          console.warn(JSON.stringify(objectsDiff, null, 2));
+        }
       }
     });
     process.exit(1);
