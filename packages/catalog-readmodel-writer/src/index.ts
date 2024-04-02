@@ -20,22 +20,16 @@ async function processMessage({
   message,
   partition,
 }: EachMessagePayload): Promise<void> {
-  try {
-    const decodedMessage = decodeKafkaMessage(message, EServiceEvent);
+  const decodedMessage = decodeKafkaMessage(message, EServiceEvent);
 
-    await match(decodedMessage)
-      .with({ event_version: 1 }, (msg) => handleMessageV1(msg, eservices))
-      .with({ event_version: 2 }, (msg) => handleMessageV2(msg, eservices))
-      .exhaustive();
+  await match(decodedMessage)
+    .with({ event_version: 1 }, (msg) => handleMessageV1(msg, eservices))
+    .with({ event_version: 2 }, (msg) => handleMessageV2(msg, eservices))
+    .exhaustive();
 
-    logger.info(
-      `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
-    );
-  } catch (e) {
-    logger.error(
-      `Error during message handling. Partition number: ${partition}. Offset: ${message.offset}, ${e}`
-    );
-  }
+  logger.info(
+    `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
+  );
 }
 
-await runConsumer(config, [catalogTopic], processMessage).catch(logger.error);
+await runConsumer(config, [catalogTopic], processMessage);

@@ -18,20 +18,11 @@ async function processMessage({
   message,
   partition,
 }: EachMessagePayload): Promise<void> {
-  try {
-    await handleMessage(
-      decodeKafkaMessage(message, AgreementEvent),
-      agreements
-    );
+  await handleMessage(decodeKafkaMessage(message, AgreementEvent), agreements);
 
-    logger.info(
-      `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
-    );
-  } catch (e) {
-    logger.error(
-      `Error during message handling. Partition number: ${partition}. Offset: ${message.offset}, ${e}`
-    );
-  }
+  logger.info(
+    `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
+  );
 }
 
-await runConsumer(config, [agreementTopic], processMessage).catch(logger.error);
+await runConsumer(config, [agreementTopic], processMessage);

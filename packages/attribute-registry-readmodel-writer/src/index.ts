@@ -47,16 +47,9 @@ await consumer.subscribe({
 });
 
 async function processMessage(message: KafkaMessage): Promise<void> {
-  try {
-    await handleMessage(
-      decodeKafkaMessage(message, AttributeEvent),
-      attributes
-    );
+  await handleMessage(decodeKafkaMessage(message, AttributeEvent), attributes);
 
-    logger.info("Read model was updated");
-  } catch (e) {
-    logger.error(`Error during message handling ${e}`);
-  }
+  logger.info("Read model was updated");
 }
 
 await consumer.run({
