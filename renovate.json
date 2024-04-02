@@ -14,7 +14,6 @@
     ":pinAllExceptPeerDependencies",
     ":rebaseStalePrs"
   ],
-  "schedule": ["after 1am and before 8am on Monday"],
   "labels": ["dependencies"],
   "branchPrefix": "renovate-action/",
   "prConcurrentLimit": 2,
