@@ -10,6 +10,7 @@ import { ReadModelDbConfig } from "pagopa-interop-commons";
 import { MongoClient, Db } from "mongodb";
 import isEqual from "lodash.isequal";
 import { diff } from "json-diff";
+import { EService } from "pagopa-interop-models";
 
 const Config = z
   .object({
@@ -54,13 +55,6 @@ const config: Config = {
   ...Config.parse(process.env),
 };
 
-const Identifiable = z
-  .object({
-    id: z.string(),
-  })
-  .passthrough();
-type Identifiable = z.infer<typeof Identifiable>;
-
 async function main(): Promise<void> {
   const scalaReadModelDb = connectToReadModelDb(config.scalaReadModelConfig);
   const nodeReadModelDb = connectToReadModelDb(config.nodeReadModelConfig);
@@ -83,19 +77,7 @@ async function main(): Promise<void> {
       console.warn(`Object with id ${node.id} not found in scala readmodel`);
     }
     if (scala && node) {
-      /*
-      const dateKeysToExclude = [
-        "createdAt",
-        "uploadDate",
-        "publishedAt",
-        "deprecatedAt",
-        "suspendedAt",
-        "archivedAt",
-      ];
-      */
-      const objectsDiff = diff(scala, node, {
-        excludeKeys: [],
-      });
+      const objectsDiff = diff(scala, node);
       if (objectsDiff) {
         actualDiffCount++;
         console.warn(`Differences in object with id ${scala.id}`);
@@ -129,17 +111,17 @@ export async function compareReadModelsCollection(
   readmodelA: Db,
   readmodelB: Db,
   collection: string
-): Promise<Array<[Identifiable | undefined, Identifiable | undefined]>> {
+): Promise<Array<[EService | undefined, EService | undefined]>> {
   const resultsA = await readmodelA
     .collection(collection)
     .find()
-    .map(({ data }) => Identifiable.parse(data))
+    .map(({ data }) => EService.parse(data))
     .toArray();
 
   const resultsB = await readmodelB
     .collection(collection)
     .find()
-    .map(({ data }) => Identifiable.parse(data))
+    .map(({ data }) => EService.parse(data))
     .toArray();
 
   return zipIdentifiableData(resultsA, resultsB).filter(
@@ -148,9 +130,9 @@ export async function compareReadModelsCollection(
 }
 
 export function zipIdentifiableData(
-  dataA: Identifiable[],
-  dataB: Identifiable[]
-): Array<[Identifiable | undefined, Identifiable | undefined]> {
+  dataA: EService[],
+  dataB: EService[]
+): Array<[EService | undefined, EService | undefined]> {
   const allIds = new Set([...dataA, ...dataB].map((d) => d.id));
   return Array.from(allIds).map((id) => [
     dataA.find((d) => d.id === id),
