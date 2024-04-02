@@ -9,7 +9,13 @@ import { z } from "zod";
 import { ReadModelDbConfig } from "pagopa-interop-commons";
 import { MongoClient, Db } from "mongodb";
 import isEqual from "lodash.isequal";
-import { diffLines } from "diff";
+import {
+  diff,
+  // addedDiff,
+  // deletedDiff,
+  // updatedDiff,
+  // detailedDiff,
+} from "deep-object-diff";
 
 const Config = z
   .object({
@@ -84,7 +90,7 @@ async function main(): Promise<void> {
       }
       if (scala && node) {
         console.warn(`Differences in object with id ${scala.id}`);
-        consoleStringDiffs(JSON.stringify(scala), JSON.stringify(node));
+        diff(scala, node);
       }
     });
     process.exit(1);
@@ -138,24 +144,6 @@ export function zipIdentifiableData(
     dataA.find((d) => d.id === id),
     dataB.find((d) => d.id === id),
   ]);
-}
-
-function consoleStringDiffs(a: string, b: string): void {
-  const formatter = {
-    added: (s: string) => `\x1b[32m${s}\x1b[0m`,
-    removed: (s: string) => `\x1b[31m${s}\x1b[0m`,
-    equal: (s: string) => s,
-  } as const;
-
-  diffLines(a, b).forEach((part) => {
-    const format = part.added
-      ? formatter.added
-      : part.removed
-      ? formatter.removed
-      : formatter.equal;
-
-    process.stderr.write(format(part.value));
-  });
 }
 
 if (process.env.NODE_ENV !== "test") {
