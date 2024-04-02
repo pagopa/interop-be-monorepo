@@ -31,8 +31,12 @@ const Config = z
     TARGET_DB_SCHEMA: z.enum([
       "catalog",
       "dev-refactor_catalog",
+      "uat-catalog",
+      "prod-catalog",
       "attribute",
       "dev-refactor_attribute_registry",
+      "uat-attribute_registry",
+      "prod-attribute_registry",
     ]),
     TARGET_DB_USE_SSL: z
       .enum(["true", "false"])
@@ -130,70 +134,75 @@ const originalEvents = await sourceConnection.many(
 const idVersionHashMap = new Map<string, number>();
 
 const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
-  .with("catalog", "dev-refactor_catalog", () => {
-    if (!config.sourceDbSchema.includes("catalog")) {
-      throw Error(
-        "Source and target databases are incompatible, please double-check the config"
-      );
-    }
-    const parseEventType = (event_ser_manifest: any) =>
-      match(
-        event_ser_manifest
-          .replace("it.pagopa.interop.catalogmanagement.model.persistence.", "")
-          .split("|")[0]
-      )
-        .when(
-          (originalType) => (originalType as string).includes("CatalogItem"),
-          (originalType) =>
-            (originalType as string).replace("CatalogItem", "EService")
+  .with(
+    "catalog",
+    "dev-refactor_catalog",
+    "uat-catalog",
+    "prod-catalog",
+    () => {
+      checkSchema(config.sourceDbSchema, "catalog");
+      const parseEventType = (event_ser_manifest: any) =>
+        match(
+          event_ser_manifest
+            .replace(
+              "it.pagopa.interop.catalogmanagement.model.persistence.",
+              ""
+            )
+            .split("|")[0]
         )
-        .otherwise((originalType) => originalType);
-
-    const decodeEvent = (eventType: string, event_payload: any) =>
-      EServiceEventV1.safeParse({
-        type: eventType,
-        event_version: 1,
-        data: event_payload,
-      });
-
-    const parseId = (anyPayload: any) =>
-      anyPayload.eservice ? anyPayload.eservice.id : anyPayload.eserviceId;
-
-    return { parseEventType, decodeEvent, parseId };
-  })
-  .with("attribute", "dev-refactor_attribute_registry", () => {
-    if (!config.sourceDbSchema.includes("attribute")) {
-      throw Error(
-        "Source and target databases are incompatible, please double-check the config"
-      );
-    }
-    const parseEventType = (event_ser_manifest: any) =>
-      match(
-        event_ser_manifest
-          .replace(
-            "it.pagopa.interop.attributeregistrymanagement.model.persistence.",
-            ""
+          .when(
+            (originalType) => (originalType as string).includes("CatalogItem"),
+            (originalType) =>
+              (originalType as string).replace("CatalogItem", "EService")
           )
-          .split("|")[0]
-      )
-        .when(
-          (originalType) => (originalType as string) === "AttributeDeleted",
-          () => "MaintenanceAttributeDeleted"
+          .otherwise((originalType) => originalType);
+
+      const decodeEvent = (eventType: string, event_payload: any) =>
+        EServiceEventV1.safeParse({
+          type: eventType,
+          event_version: 1,
+          data: event_payload,
+        });
+
+      const parseId = (anyPayload: any) =>
+        anyPayload.eservice ? anyPayload.eservice.id : anyPayload.eserviceId;
+
+      return { parseEventType, decodeEvent, parseId };
+    }
+  )
+  .with(
+    "attribute",
+    "dev-refactor_attribute_registry",
+    "uat-attribute_registry",
+    "prod-attribute_registry",
+    () => {
+      checkSchema(config.sourceDbSchema, "attribute");
+
+      const parseEventType = (event_ser_manifest: any) =>
+        match(
+          event_ser_manifest
+            .replace(
+              "it.pagopa.interop.attributeregistrymanagement.model.persistence.",
+              ""
+            )
+            .split("|")[0]
         )
-        .otherwise((originalType) => originalType);
+          .with("AttributeDeleted", () => "MaintenanceAttributeDeleted")
+          .otherwise((originalType) => originalType);
 
-    const decodeEvent = (eventType: string, event_payload: any) =>
-      AttributeEvent.safeParse({
-        type: eventType,
-        event_version: 1,
-        data: event_payload,
-      });
+      const decodeEvent = (eventType: string, event_payload: any) =>
+        AttributeEvent.safeParse({
+          type: eventType,
+          event_version: 1,
+          data: event_payload,
+        });
 
-    const parseId = (anyPayload: any) =>
-      anyPayload.attribute ? anyPayload.attribute.id : anyPayload.id;
+      const parseId = (anyPayload: any) =>
+        anyPayload.attribute ? anyPayload.attribute.id : anyPayload.id;
 
-    return { parseEventType, decodeEvent, parseId };
-  })
+      return { parseEventType, decodeEvent, parseId };
+    }
+  )
   .exhaustive();
 
 for (const event of originalEvents) {
@@ -253,4 +262,12 @@ for (const event of originalEvents) {
       newEvent.logDate,
     ]
   );
+}
+
+function checkSchema(sourceSchema: string, schemaKind: string) {
+  if (!sourceSchema.includes(schemaKind)) {
+    throw new Error(
+      "Source and target databases are incompatible, please double-check the config"
+    );
+  }
 }
