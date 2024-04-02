@@ -68,7 +68,7 @@ export async function activateAgreementLogic(
   assertEServiceExist(agreement.data.eserviceId, eservice);
 
   const descriptor = validateActivationOnDescriptor(
-    eservice.data,
+    eservice,
     agreement.data.descriptorId
   );
 
@@ -77,9 +77,9 @@ export async function activateAgreementLogic(
 
   return activateAgreement(
     agreement,
-    eservice.data,
+    eservice,
     descriptor,
-    tenant.data,
+    tenant,
     authData,
     tenantQuery,
     agreementQuery,
@@ -261,7 +261,7 @@ const createContract = async (
     agreement,
     eservice,
     consumer,
-    producer.data,
+    producer,
     updateSeed
   );
 };
