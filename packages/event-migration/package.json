@@ -21,6 +21,7 @@
     "@types/node": "^20.3.1",
     "connection-string": "^4.3.6",
     "dotenv-flow": "^3.2.0",
+    "json-diff": "^1.0.6",
     "lodash.isequal": "^4.5.0",
     "mongodb": "5.6.0",
     "pagopa-interop-commons": "workspace:^",
@@ -30,6 +31,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@types/json-diff": "^1.0.3",
     "@types/lodash.isequal": "^4.5.8",
     "eslint": "^8.44.0",
     "prettier": "^2.8.8",
