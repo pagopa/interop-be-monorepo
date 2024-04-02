@@ -1,4 +1,4 @@
-import { Kafka, KafkaMessage } from "kafkajs";
+import { EachMessagePayload, Kafka } from "kafkajs";
 import {
   ReadModelRepository,
   attributeTopicConfig,
@@ -8,6 +8,7 @@ import {
 } from "pagopa-interop-commons";
 import { createMechanism } from "@jm18457/kafkajs-msk-iam-authentication-mechanism";
 import { AttributeEvent } from "pagopa-interop-models";
+import { runConsumer } from "kafka-iam-auth";
 import { handleMessage } from "./attributeRegistryConsumerService.js";
 
 const config = readModelWriterConfig();
@@ -46,12 +47,14 @@ await consumer.subscribe({
   fromBeginning: true,
 });
 
-async function processMessage(message: KafkaMessage): Promise<void> {
+async function processMessage({
+  message,
+  partition,
+}: EachMessagePayload): Promise<void> {
   await handleMessage(decodeKafkaMessage(message, AttributeEvent), attributes);
 
-  logger.info("Read model was updated");
+  logger.info(
+    `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
+  );
 }
-
-await consumer.run({
-  eachMessage: ({ message }) => processMessage(message),
-});
+await runConsumer(config, [attributeTopic], processMessage);
