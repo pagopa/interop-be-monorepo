@@ -1,0 +1,74 @@
+syntax = "proto3";
+
+package agreement.v2;
+
+message AgreementV2 {
+  string id = 1;
+  string eserviceId = 2;
+  string descriptorId = 3;
+  string producerId = 4;
+  string consumerId = 5;
+  AgreementStateV2 state = 6;
+  repeated VerifiedAttributeV2 verifiedAttributes = 7;
+  optional bool suspendedByConsumer = 8;
+  optional bool suspendedByProducer = 9;
+  int64 createdAt = 10;
+  optional int64 updatedAt = 11;
+  optional bool suspendedByPlatform = 12;
+  repeated CertifiedAttributeV2 certifiedAttributes = 13;
+  repeated DeclaredAttributeV2 declaredAttributes = 14;
+  repeated AgreementDocumentV2 consumerDocuments = 15;
+  optional string consumerNotes = 16;
+  optional AgreementDocumentV2 contract = 17;
+  optional AgreementStampsV2 stamps = 18;
+  optional string rejectionReason = 19;
+  optional int64 suspendedAt = 20;
+}
+
+message VerifiedAttributeV2 {
+  reserved 2, 3, 4, 5;
+
+  string id = 1;
+}
+
+message CertifiedAttributeV2 {
+  string id = 1;
+}
+
+message DeclaredAttributeV2 {
+  string id = 1;
+}
+
+message AgreementDocumentV2 {
+  string id = 1;
+  string name = 2;
+  string prettyName = 3;
+  string contentType = 4;
+  string path = 5;
+  int64 createdAt = 6;
+}
+
+enum AgreementStateV2 {
+  PENDING = 0;
+  ACTIVE = 1;
+  SUSPENDED = 2;
+  ARCHIVED = 3;
+  DRAFT = 4;
+  MISSING_CERTIFIED_ATTRIBUTES = 5;
+  REJECTED = 6;
+}
+
+message AgreementStampV2 {
+  string who = 1;
+  int64 when = 2;
+}
+
+message AgreementStampsV2 {
+  optional AgreementStampV2 submission = 1;
+  optional AgreementStampV2 activation = 2;
+  optional AgreementStampV2 rejection = 3;
+  optional AgreementStampV2 suspensionByProducer = 4;
+  optional AgreementStampV2 upgrade = 5;
+  optional AgreementStampV2 archiving = 6;
+  optional AgreementStampV2 suspensionByConsumer = 7;
+}

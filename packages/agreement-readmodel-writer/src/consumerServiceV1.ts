@@ -1,13 +1,13 @@
 import { match } from "ts-pattern";
 import { logger, AgreementCollection } from "pagopa-interop-commons";
 import {
-  AgreementEventEnvelope,
-  fromAgreementV1,
+  AgreementEventEnvelopeV1,
   fromAgreementDocumentV1,
+  fromAgreementV1,
 } from "pagopa-interop-models";
 
-export async function handleMessage(
-  message: AgreementEventEnvelope,
+export async function handleMessageV1(
+  message: AgreementEventEnvelopeV1,
   agreements: AgreementCollection
 ): Promise<void> {
   logger.info(message);
