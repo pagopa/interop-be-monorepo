@@ -8,9 +8,15 @@ import {
 } from "../gen/v1/events.js";
 
 /* 
-  The notification catalog event type defines a type with 
-  the same form as the legacy catalog events but using a different type 
-  for some properties that require a different type of field mapping
+The notification catalog event types was implemented to allow compatibility with old notifier consumers,
+infact in the rest of the platform the old service expect the message with the same old format of event V1.
+Furthermore some properties require different field-type mapping, because the old scala codebase 
+applies some conversion on a specific fields before sending to queue:
+- Date fields are converted to ISOstring
+- Enum fields are converted using keys name and not its values
+
+NOTE: this implementation is temporary and will be removed when all old services 
+will be updated to digest a message with new format of V2 events.
 */
 export type CatalogItemEventNotification =
   // CatalogItemV1AddedV1 | ClonedCatalogItemV1AddedV1 | CatalogItemV1UpdatedV1 | MovedAttributesFromEserviceToDescriptorsV1
