@@ -63,10 +63,10 @@ const getAttributeInvolved = async (
     return Promise.all(
       attributes.map(async (attr) => {
         const att = await attributeQuery.getAttributeById(attr.id);
-        if (!att?.data) {
+        if (!att) {
           throw genericError(`Attribute ${attr.id} not found`);
         }
-        return [{ id: attr.id }, att.data as unknown as T];
+        return [{ id: attr.id }, att as unknown as T];
       })
     );
   };
