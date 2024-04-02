@@ -11,7 +11,6 @@ import {
   AgreementV2,
   StampV1,
   StampsV1,
-  AgreementId,
   AgreementDocumentId,
   AgreementEvent,
   AgreementStateV2,
@@ -191,7 +190,7 @@ export function toCreateEventDraftAgreementUpdated(
   };
 }
 
-export function toCreateEventAgreementSubmited(
+export function toCreateEventAgreementSubmitted(
   agreement: Agreement,
   version: number,
   correlationId: string
@@ -268,14 +267,13 @@ export function toCreateEventAgreementRejected(
 }
 
 export function toCreateEventAgreementConsumerDocumentAdded(
-  agreementId: AgreementId,
   documentId: AgreementDocumentId,
   agreement: Agreement,
   version: number,
   correlationId: string
 ): CreateEvent<AgreementEvent> {
   return {
-    streamId: agreementId,
+    streamId: agreement.id,
     version,
     event: {
       type: "AgreementConsumerDocumentAdded",
@@ -290,14 +288,13 @@ export function toCreateEventAgreementConsumerDocumentAdded(
 }
 
 export function toCreateEventAgreementConsumerDocumentRemoved(
-  agreementId: AgreementId,
   documentId: AgreementDocumentId,
   agreement: Agreement,
   version: number,
   correlationId: string
 ): CreateEvent<AgreementEvent> {
   return {
-    streamId: agreementId,
+    streamId: agreement.id,
     version,
     event: {
       type: "AgreementConsumerDocumentRemoved",

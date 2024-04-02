@@ -50,7 +50,6 @@ export async function addConsumerDocumentLogic(
   };
 
   return toCreateEventAgreementConsumerDocumentAdded(
-    agreementId,
     newDocument.id,
     updatedAgreement,
     agreement.metadata.version,
@@ -91,7 +90,6 @@ export async function removeAgreementConsumerDocumentLogic(
   };
 
   return toCreateEventAgreementConsumerDocumentRemoved(
-    agreementId,
     documentId,
     updatedAgreement,
     agreement.metadata.version,
