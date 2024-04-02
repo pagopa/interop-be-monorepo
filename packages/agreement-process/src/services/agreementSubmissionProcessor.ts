@@ -27,7 +27,7 @@ import {
 } from "../model/domain/errors.js";
 import {
   toCreateEventAgreementArchived,
-  toCreateEventAgreementSubmited,
+  toCreateEventAgreementSubmitted,
 } from "../model/domain/toEvent.js";
 import {
   assertRequesterIsConsumer,
@@ -179,7 +179,7 @@ const submitAgreement = async (
         }
       : newAgreement;
 
-  const submittedAgreementEvent = toCreateEventAgreementSubmited(
+  const submittedAgreementEvent = toCreateEventAgreementSubmitted(
     submittedAgreement,
     agreementData.metadata.version,
     correlationId
