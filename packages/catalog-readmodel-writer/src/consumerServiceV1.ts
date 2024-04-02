@@ -19,51 +19,22 @@ import {
 const adaptEserviceToReadModel = (
   version: number,
   eservice?: EServiceV1
-): { data: EServiceReadModel; metadata: { version: number } } => {
-  if (eservice === undefined) {
-    throw Error("The eservice field is required");
-  }
-
-  const deserializedEService = fromEServiceV1(eservice);
-  if (deserializedEService === undefined) {
-    throw Error(`Error during deserialization of eservice ${eservice.id}`);
-  }
-
-  return {
-    data: toReadModelEService(deserializedEService),
-    metadata: {
-      version,
-    },
-  };
-};
+): { data: EServiceReadModel | undefined; metadata: { version: number } } => ({
+  data: eservice ? toReadModelEService(fromEServiceV1(eservice)) : undefined,
+  metadata: {
+    version,
+  },
+});
 
 const adaptDocumentToReadModel = (
   document: EServiceDocumentV1 | undefined
-): DocumentReadModel => {
-  if (document === undefined) {
-    throw Error("The document field is required");
-  }
-
-  const deserializedDocument = fromDocumentV1(document);
-  if (deserializedDocument === undefined) {
-    throw Error(`Error during deserialization of document ${document.id}`);
-  }
-  return toReadModelDocument(deserializedDocument);
-};
+): DocumentReadModel | undefined =>
+  document ? toReadModelDocument(fromDocumentV1(document)) : undefined;
 
 const adaptDescriptorToReadModel = (
   descriptor: EServiceDescriptorV1 | undefined
-): DescriptorReadModel => {
-  if (descriptor === undefined) {
-    throw Error("The descriptor field is required");
-  }
-
-  const deserializedDescriptor = fromDescriptorV1(descriptor);
-  if (deserializedDescriptor === undefined) {
-    throw Error(`Error during deserialization of descriptor ${descriptor.id}`);
-  }
-  return toReadModelDescriptor(deserializedDescriptor);
-};
+): DescriptorReadModel | undefined =>
+  descriptor ? toReadModelDescriptor(fromDescriptorV1(descriptor)) : undefined;
 
 export async function handleMessageV1(
   message: EServiceEventEnvelopeV1,
