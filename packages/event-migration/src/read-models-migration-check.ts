@@ -9,13 +9,6 @@ import { z } from "zod";
 import { ReadModelDbConfig } from "pagopa-interop-commons";
 import { MongoClient, Db } from "mongodb";
 import isEqual from "lodash.isequal";
-import {
-  diff,
-  // addedDiff,
-  // deletedDiff,
-  // updatedDiff,
-  // detailedDiff,
-} from "deep-object-diff";
 
 const Config = z
   .object({
@@ -90,7 +83,10 @@ async function main(): Promise<void> {
       }
       if (scala && node) {
         console.warn(`Differences in object with id ${scala.id}`);
-        diff(scala, node);
+        Object.keys(scala).forEach((key) => {
+          console.log(`scala - ${JSON.stringify(scala[key])}`);
+          console.log(`node - ${JSON.stringify(node[key])}`);
+        });
       }
     });
     process.exit(1);
