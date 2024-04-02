@@ -1,10 +1,6 @@
 import { InternalError } from "pagopa-interop-models";
 
-const notifierErrorCode = {
-  eventV1ConversionError: "eventV1ConversionError",
-} as const;
-
-export type NotifierErrorCode = keyof typeof notifierErrorCode;
+type NotifierErrorCode = "eventV1ConversionError";
 
 export function eventV1ConversionError(
   message: string
