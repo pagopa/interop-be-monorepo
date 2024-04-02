@@ -250,7 +250,8 @@ export function toCreateEventAgreementUpdated(
 
 export function toCreateEventAgreementRejected(
   agreement: Agreement,
-  version: number
+  version: number,
+  correlationId: string
 ): CreateEvent<AgreementEvent> {
   return {
     streamId: agreement.id,
@@ -262,6 +263,7 @@ export function toCreateEventAgreementRejected(
         agreement: toAgreementV2(agreement),
       },
     },
+    correlationId,
   };
 }
 
