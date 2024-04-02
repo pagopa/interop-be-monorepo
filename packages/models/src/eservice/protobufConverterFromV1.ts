@@ -19,17 +19,17 @@ import {
 } from "../risk-analysis/riskAnalysis.js";
 import {
   AgreementApprovalPolicy,
-  agreementApprovalPolicy,
-  DescriptorState,
-  descriptorState,
-  Technology,
-  technology,
-  EServiceMode,
-  eserviceMode,
-  EServiceAttribute,
   Descriptor,
-  EService,
+  DescriptorState,
   Document,
+  EService,
+  EServiceAttribute,
+  EServiceMode,
+  Technology,
+  agreementApprovalPolicy,
+  descriptorState,
+  eserviceMode,
+  technology,
 } from "./eservice.js";
 
 export const fromAgreementApprovalPolicyV1 = (
