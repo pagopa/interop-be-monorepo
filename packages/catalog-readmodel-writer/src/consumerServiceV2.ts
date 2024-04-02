@@ -11,7 +11,6 @@ export async function handleMessageV2(
   eservices: EServiceCollection
 ): Promise<void> {
   logger.info(message);
-
   const eservice = message.data.eservice;
 
   await match(message)
