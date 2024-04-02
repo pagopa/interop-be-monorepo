@@ -48,6 +48,7 @@ export const getMockTenant = (): Tenant => ({
 });
 
 export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
+  tokenType: "ui",
   organizationId: organizationId || generateId(),
   userId: uuidv4(),
   userRoles: [],

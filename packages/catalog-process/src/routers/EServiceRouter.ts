@@ -8,6 +8,8 @@ import {
   ReadModelRepository,
   initDB,
   initFileManager,
+  assertAuthDataIs,
+  assertAuthDataIsOneOf,
 } from "pagopa-interop-commons";
 import {
   unsafeBrandId,
@@ -94,6 +96,7 @@ const eservicesRouter = (
       ]),
       async (req, res) => {
         try {
+          assertAuthDataIsOneOf(req.ctx.authData, ["ui", "m2m"]);
           const {
             name,
             eservicesIds,
@@ -140,6 +143,7 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
+          assertAuthDataIs(req.ctx.authData, "ui");
           const eservice = await catalogService.createEService(
             req.body,
             req.ctx.authData,
@@ -163,6 +167,7 @@ const eservicesRouter = (
       ]),
       async (req, res) => {
         try {
+          assertAuthDataIsOneOf(req.ctx.authData, ["ui", "m2m"]);
           const eservice = await catalogService.getEServiceById(
             unsafeBrandId(req.params.eServiceId),
             req.ctx.authData
@@ -179,6 +184,7 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
+          assertAuthDataIs(req.ctx.authData, "ui");
           const updatedEService = await catalogService.updateEService(
             unsafeBrandId(req.params.eServiceId),
             req.body,
@@ -200,6 +206,7 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
+          assertAuthDataIs(req.ctx.authData, "ui");
           await catalogService.deleteEService(
             unsafeBrandId(req.params.eServiceId),
             req.ctx.authData,
@@ -223,6 +230,7 @@ const eservicesRouter = (
       ]),
       async (req, res) => {
         try {
+          assertAuthDataIsOneOf(req.ctx.authData, ["ui", "m2m"]);
           const consumers = await catalogService.getEServiceConsumers(
             unsafeBrandId(req.params.eServiceId),
             req.query.offset,
@@ -263,6 +271,7 @@ const eservicesRouter = (
       ]),
       async (req, res) => {
         try {
+          assertAuthDataIsOneOf(req.ctx.authData, ["ui", "m2m"]);
           const { eServiceId, descriptorId, documentId } = req.params;
 
           const document = await catalogService.getDocumentById({
@@ -284,6 +293,7 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
+          assertAuthDataIs(req.ctx.authData, "ui");
           const updatedEService = await catalogService.uploadDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -306,6 +316,7 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
+          assertAuthDataIs(req.ctx.authData, "ui");
           await catalogService.deleteDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -328,6 +339,7 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
+          assertAuthDataIs(req.ctx.authData, "ui");
           const updatedDocument = await catalogService.updateDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -354,6 +366,7 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
+          assertAuthDataIs(req.ctx.authData, "ui");
           const descriptor = await catalogService.createDescriptor(
             unsafeBrandId(req.params.eServiceId),
             req.body,
@@ -375,6 +388,7 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
+          assertAuthDataIs(req.ctx.authData, "ui");
           await catalogService.deleteDraftDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -396,6 +410,7 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
+          assertAuthDataIs(req.ctx.authData, "ui");
           const updatedEService = await catalogService.updateDraftDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -421,6 +436,7 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
+          assertAuthDataIs(req.ctx.authData, "ui");
           await catalogService.publishDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -439,6 +455,7 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
+          assertAuthDataIs(req.ctx.authData, "ui");
           await catalogService.suspendDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -457,6 +474,7 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
+          assertAuthDataIs(req.ctx.authData, "ui");
           await catalogService.activateDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -475,6 +493,7 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
+          assertAuthDataIs(req.ctx.authData, "ui");
           const clonedEserviceByDescriptor =
             await catalogService.cloneDescriptor(
               unsafeBrandId(req.params.eServiceId),
@@ -500,6 +519,7 @@ const eservicesRouter = (
       authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
         try {
+          assertAuthDataIs(req.ctx.authData, "internal");
           await catalogService.archiveDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -518,6 +538,7 @@ const eservicesRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
         try {
+          assertAuthDataIs(req.ctx.authData, "ui");
           const updatedEService = await catalogService.updateDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
@@ -541,6 +562,7 @@ const eservicesRouter = (
 
       async (req, res) => {
         try {
+          assertAuthDataIs(req.ctx.authData, "ui");
           await catalogService.createRiskAnalysis(
             unsafeBrandId(req.params.eServiceId),
             req.body,
@@ -560,6 +582,7 @@ const eservicesRouter = (
 
       async (req, res) => {
         try {
+          assertAuthDataIs(req.ctx.authData, "ui");
           await catalogService.updateRiskAnalysis(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.riskAnalysisId),
@@ -580,6 +603,7 @@ const eservicesRouter = (
 
       async (req, res) => {
         try {
+          assertAuthDataIs(req.ctx.authData, "ui");
           await catalogService.deleteRiskAnalysis(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.riskAnalysisId),

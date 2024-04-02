@@ -1,5 +1,6 @@
 import {
-  AuthData,
+  AuthDataInternal,
+  AuthDataUI,
   CreateEvent,
   DB,
   eventRepository,
@@ -36,12 +37,12 @@ import {
   assertTenantExists,
   assertValidExpirationDate,
   assertVerifiedAttributeExistsInTenant,
-  assertResourceAllowed,
   evaluateNewSelfcareId,
   getTenantKind,
   getTenantKindLoadingCertifiedAttributes,
   assertOrganizationVerifierExist,
   assertExpirationDateExist,
+  assertRequesterAllowed,
 } from "./validators.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -129,14 +130,14 @@ export function tenantServiceBuilder(
       correlationId,
     }: {
       tenantSeed: ApiSelfcareTenantSeed;
-      authData: AuthData;
+      authData: AuthDataUI | AuthDataInternal;
       correlationId: string;
     }): Promise<string> {
       const existingTenant = await readModelService.getTenantByExternalId(
         tenantSeed.externalId
       );
       if (existingTenant) {
-        await assertResourceAllowed(existingTenant.data.id, authData);
+        assertRequesterAllowed(existingTenant.data.id, authData);
 
         evaluateNewSelfcareId({
           tenant: existingTenant.data,

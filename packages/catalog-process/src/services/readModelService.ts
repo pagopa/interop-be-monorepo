@@ -5,8 +5,9 @@ import {
   EServiceCollection,
   userRoles,
   hasPermission,
-  AuthData,
   TenantCollection,
+  AuthDataUI,
+  AuthDataM2M,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
@@ -102,7 +103,7 @@ export function readModelServiceBuilder(
 
   return {
     async getEServices(
-      authData: AuthData,
+      authData: AuthDataUI | AuthDataM2M,
       filters: ApiGetEServicesFilters,
       offset: number,
       limit: number

@@ -1,4 +1,4 @@
-import { AuthData, userRoles } from "pagopa-interop-commons";
+import { AuthData } from "pagopa-interop-commons";
 import {
   Attribute,
   AttributeId,
@@ -92,25 +92,23 @@ export function getTenantKind(
     .otherwise(() => tenantKind.PRIVATE);
 }
 
-async function assertRequesterAllowed(
-  resourceId: string,
-  requesterId: string
-): Promise<void> {
-  if (resourceId !== requesterId) {
-    throw operationForbidden;
-  }
-}
-
-export async function assertResourceAllowed(
-  resourceId: string,
+export function assertRequesterAllowed(
+  resourceId: TenantId,
   authData: AuthData
-): Promise<void> {
-  const roles = authData.userRoles;
-  const organizationId = authData.organizationId;
-
-  if (!roles.includes(userRoles.INTERNAL_ROLE)) {
-    return await assertRequesterAllowed(resourceId, organizationId);
-  }
+): void {
+  match(authData)
+    .with({ tokenType: "internal" }, () => {
+      // Internal requests are always allowed
+    })
+    .with({ tokenType: "empty" }, () => {
+      throw operationForbidden;
+    })
+    .with({ tokenType: "m2m" }, { tokenType: "ui" }, (d) => {
+      if (resourceId !== d.organizationId) {
+        throw operationForbidden;
+      }
+    })
+    .exhaustive();
 }
 
 export async function getTenantKindLoadingCertifiedAttributes(
