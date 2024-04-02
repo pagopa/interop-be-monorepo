@@ -1,8 +1,8 @@
 import { unsafeBrandId } from "../brandedIds.js";
 import {
   AgreementDocumentV2,
-  StampV2,
-  StampsV2,
+  AgreementStampV2,
+  AgreementStampsV2,
   AgreementStateV2,
   AgreementV2,
 } from "../gen/v2/agreement/agreement.js";
@@ -24,7 +24,7 @@ export const fromAgreementDocumentV2 = (
 });
 
 export const fromAgreementStampV2 = (
-  input: StampV2 | undefined
+  input: AgreementStampV2 | undefined
 ): AgreementStamp | undefined =>
   input
     ? {
@@ -34,7 +34,7 @@ export const fromAgreementStampV2 = (
     : undefined;
 
 export const fromAgreementStampsV2 = (
-  input: StampsV2 | undefined
+  input: AgreementStampsV2 | undefined
 ): AgreementStamps | undefined =>
   input
     ? {
