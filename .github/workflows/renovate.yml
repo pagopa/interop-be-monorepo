@@ -5,6 +5,8 @@ on:
     # considering UTC+2 correction: Sunday at 23:00 to Monday at 6:00
     - cron: "0/30 23 * * 0"
     - cron: "0/30 0-5 * * 1"
+  workflow_dispatch:
+
 jobs:
   renovate:
     runs-on: ubuntu-latest
