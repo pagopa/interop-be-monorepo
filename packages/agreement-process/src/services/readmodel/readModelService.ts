@@ -25,6 +25,7 @@ import {
   descriptorState,
   genericError,
   EServiceId,
+  AttributeReadmodel,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { z } from "zod";
@@ -220,18 +221,13 @@ const getAllAgreements = async (
 
 async function getAttribute(
   attributes: AttributeCollection,
-  filter: Filter<{ data: Attribute }>
-): Promise<WithMetadata<Attribute> | undefined> {
+  filter: Filter<{ data: AttributeReadmodel }>
+): Promise<Attribute | undefined> {
   const data = await attributes.findOne(filter, {
-    projection: { data: true, metadata: true },
+    projection: { data: true },
   });
   if (data) {
-    const result = z
-      .object({
-        metadata: z.object({ version: z.number() }),
-        data: Attribute,
-      })
-      .safeParse(data);
+    const result = Attribute.safeParse(data.data);
     if (!result.success) {
       logger.error(
         `Unable to parse attribute item: result ${JSON.stringify(
@@ -240,10 +236,7 @@ async function getAttribute(
       );
       throw genericError("Unable to parse attribute item");
     }
-    return {
-      data: result.data.data,
-      metadata: { version: result.data.metadata.version },
-    };
+    return result.data;
   }
   return undefined;
 }
@@ -438,21 +431,14 @@ export function readModelServiceBuilder(
     ): Promise<Array<WithMetadata<Agreement>>> {
       return getAllAgreements(agreements, filters);
     },
-    async getEServiceById(
-      id: string
-    ): Promise<WithMetadata<EService> | undefined> {
+    async getEServiceById(id: string): Promise<EService | undefined> {
       const data = await eservices.findOne(
         { "data.id": id },
-        { projection: { data: true, metadata: true } }
+        { projection: { data: true } }
       );
 
       if (data) {
-        const result = z
-          .object({
-            metadata: z.object({ version: z.number() }),
-            data: EService,
-          })
-          .safeParse(data);
+        const result = EService.safeParse(data.data);
 
         if (!result.success) {
           logger.error(
@@ -464,29 +450,19 @@ export function readModelServiceBuilder(
           throw genericError(`Unable to parse eservice ${id}`);
         }
 
-        return {
-          data: result.data.data,
-          metadata: { version: result.data.metadata.version },
-        };
+        return result.data;
       }
 
       return undefined;
     },
-    async getTenantById(
-      tenantId: string
-    ): Promise<WithMetadata<Tenant> | undefined> {
+    async getTenantById(tenantId: string): Promise<Tenant | undefined> {
       const data = await tenants.findOne(
         { "data.id": tenantId },
-        { projection: { data: true, metadata: true } }
+        { projection: { data: true } }
       );
 
       if (data) {
-        const result = z
-          .object({
-            metadata: z.object({ version: z.number() }),
-            data: Tenant,
-          })
-          .safeParse(data);
+        const result = Tenant.safeParse(data.data);
 
         if (!result.success) {
           logger.error(
@@ -498,16 +474,11 @@ export function readModelServiceBuilder(
           throw genericError(`Unable to parse tenant ${tenantId}`);
         }
 
-        return {
-          data: result.data.data,
-          metadata: { version: result.data.metadata.version },
-        };
+        return result.data;
       }
       return undefined;
     },
-    async getAttributeById(
-      id: AttributeId
-    ): Promise<WithMetadata<Attribute> | undefined> {
+    async getAttributeById(id: AttributeId): Promise<Attribute | undefined> {
       return getAttribute(attributes, { "data.id": id });
     },
     async listConsumers(
