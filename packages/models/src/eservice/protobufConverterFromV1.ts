@@ -12,7 +12,6 @@ import {
   EServiceRiskAnalysisV1,
   EServiceV1,
 } from "../gen/v1/eservice/eservice.js";
-import { parseDateOrThrow } from "../protobuf/utils.js";
 import {
   RiskAnalysis,
   RiskAnalysisForm,
@@ -31,6 +30,9 @@ import {
   eserviceMode,
   technology,
 } from "./eservice.js";
+
+const defaultCreatedAt = new Date("2022-10-21T12:00:00");
+const defaultPublishedAt = new Date("2022-12-15T12:00:00");
 
 export const fromAgreementApprovalPolicyV1 = (
   input: AgreementApprovalPolicyV1 | undefined
@@ -115,42 +117,53 @@ export const fromDocumentV1 = (input: EServiceDocumentV1): Document => ({
   uploadDate: new Date(input.uploadDate),
 });
 
-export const fromDescriptorV1 = (input: EServiceDescriptorV1): Descriptor => ({
-  ...input,
-  id: unsafeBrandId(input.id),
-  attributes:
-    input.attributes != null
-      ? {
-          certified: input.attributes.certified.map(fromEServiceAttributeV1),
-          declared: input.attributes.declared.map(fromEServiceAttributeV1),
-          verified: input.attributes.verified.map(fromEServiceAttributeV1),
-        }
-      : {
-          certified: [],
-          declared: [],
-          verified: [],
-        },
-  docs: input.docs.map(fromDocumentV1),
-  state: fromEServiceDescriptorStateV1(input.state),
-  interface:
-    input.interface != null ? fromDocumentV1(input.interface) : undefined,
-  agreementApprovalPolicy: fromAgreementApprovalPolicyV1(
-    input.agreementApprovalPolicy
-  ),
-  // createdAt is required in EService definition but not in protobuf,
-  // this bug is handled with ISSUE https://pagopa.atlassian.net/browse/IMN-171
-  createdAt: parseDateOrThrow(input.createdAt),
-  publishedAt: input.publishedAt
-    ? new Date(Number(input.publishedAt))
-    : undefined,
-  suspendedAt: input.suspendedAt
-    ? new Date(Number(input.suspendedAt))
-    : undefined,
-  deprecatedAt: input.deprecatedAt
-    ? new Date(Number(input.deprecatedAt))
-    : undefined,
-  archivedAt: input.archivedAt ? new Date(Number(input.archivedAt)) : undefined,
-});
+export const fromDescriptorV1 = (input: EServiceDescriptorV1): Descriptor => {
+  const state = fromEServiceDescriptorStateV1(input.state);
+
+  return {
+    ...input,
+    id: unsafeBrandId(input.id),
+    attributes:
+      input.attributes != null
+        ? {
+            certified: input.attributes.certified.map(fromEServiceAttributeV1),
+            declared: input.attributes.declared.map(fromEServiceAttributeV1),
+            verified: input.attributes.verified.map(fromEServiceAttributeV1),
+          }
+        : {
+            certified: [],
+            declared: [],
+            verified: [],
+          },
+    docs: input.docs.map(fromDocumentV1),
+    state,
+    interface:
+      input.interface != null ? fromDocumentV1(input.interface) : undefined,
+    agreementApprovalPolicy: fromAgreementApprovalPolicyV1(
+      input.agreementApprovalPolicy
+    ),
+    // createdAt is required in EService definition but not in protobuf,
+    // this bug is handled with ISSUE https://pagopa.atlassian.net/browse/IMN-171
+    createdAt: input.createdAt
+      ? new Date(Number(input.createdAt))
+      : defaultCreatedAt,
+    publishedAt:
+      state === descriptorState.draft
+        ? undefined
+        : input.publishedAt
+        ? new Date(Number(input.publishedAt))
+        : defaultPublishedAt,
+    suspendedAt: input.suspendedAt
+      ? new Date(Number(input.suspendedAt))
+      : undefined,
+    deprecatedAt: input.deprecatedAt
+      ? new Date(Number(input.deprecatedAt))
+      : undefined,
+    archivedAt: input.archivedAt
+      ? new Date(Number(input.archivedAt))
+      : undefined,
+  };
+};
 
 export const fromRiskAnalysisFormV1 = (
   input: EServiceRiskAnalysisFormV1 | undefined
@@ -202,7 +215,9 @@ export const fromEServiceV1 = (input: EServiceV1): EService => ({
   descriptors: input.descriptors.map(fromDescriptorV1),
   // createdAt is required in EService definition but not in protobuf
   // tracked in https://pagopa.atlassian.net/browse/IMN-171
-  createdAt: parseDateOrThrow(input.createdAt),
+  createdAt: input.createdAt
+    ? new Date(Number(input.createdAt))
+    : defaultCreatedAt,
   riskAnalysis: input.riskAnalysis.map(fromRiskAnalysisV1),
   mode: fromEServiceModeV1(input.mode),
 });

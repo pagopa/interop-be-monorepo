@@ -200,12 +200,13 @@ const attributeRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE, M2M_ROLE]),
       async (req, res) => {
         try {
-          const id = await attributeRegistryService.createCertifiedAttribute(
-            req.body,
-            req.ctx.authData,
-            req.ctx.correlationId
-          );
-          return res.status(200).json({ id }).end();
+          const attribute =
+            await attributeRegistryService.createCertifiedAttribute(
+              req.body,
+              req.ctx.authData,
+              req.ctx.correlationId
+            );
+          return res.status(200).json(toApiAttribute(attribute)).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -220,12 +221,13 @@ const attributeRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE, M2M_ROLE]),
       async (req, res) => {
         try {
-          const id = await attributeRegistryService.createDeclaredAttribute(
-            req.body,
-            req.ctx.authData,
-            req.ctx.correlationId
-          );
-          return res.status(200).json({ id }).end();
+          const attribute =
+            await attributeRegistryService.createDeclaredAttribute(
+              req.body,
+              req.ctx.authData,
+              req.ctx.correlationId
+            );
+          return res.status(200).json(toApiAttribute(attribute)).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -240,12 +242,13 @@ const attributeRouter = (
       authorizationMiddleware([ADMIN_ROLE, API_ROLE, M2M_ROLE]),
       async (req, res) => {
         try {
-          const id = await attributeRegistryService.createVerifiedAttribute(
-            req.body,
-            req.ctx.authData,
-            req.ctx.correlationId
-          );
-          return res.status(200).json({ id }).end();
+          const attribute =
+            await attributeRegistryService.createVerifiedAttribute(
+              req.body,
+              req.ctx.authData,
+              req.ctx.correlationId
+            );
+          return res.status(200).json(toApiAttribute(attribute)).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -260,12 +263,12 @@ const attributeRouter = (
       authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
         try {
-          const id =
+          const attribute =
             await attributeRegistryService.createInternalCertifiedAttribute(
               req.body,
               req.ctx.correlationId
             );
-          return res.status(200).json({ id }).end();
+          return res.status(200).json(toApiAttribute(attribute)).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
