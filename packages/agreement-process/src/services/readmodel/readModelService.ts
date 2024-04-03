@@ -58,7 +58,7 @@ type AgreementDataFields = RemoveDataPrefix<MongoQueryKeys<Agreement>>;
 const makeFilter = (
   fieldName: Extract<
     AgreementDataFields,
-    "producerId" | "consumerId" | "eserviceId" | "descriptorId"
+    "producerId" | "consumerId" | "eserviceId" | "descriptorId" | "state"
   >,
   value: string | string[] | undefined
 ): ReadModelFilter<Agreement> | undefined =>
@@ -92,6 +92,19 @@ const makeAttributesFilter = (
             },
           }
     )
+    .exhaustive();
+
+const makeRegexFilter = (
+  fieldName: string,
+  value: string | undefined
+): ReadModelFilter<Agreement> | undefined =>
+  match(value)
+    .with(P.nullish, () => undefined)
+    .with(P.string, () => ({
+      [fieldName]: {
+        $regex: new RegExp(ReadModelRepository.escapeRegExp(value || ""), "i"),
+      },
+    }))
     .exhaustive();
 
 const getAgreementsFilters = (
@@ -135,12 +148,7 @@ const getAgreementsFilters = (
     ...makeFilter("consumerId", consumerId),
     ...makeFilter("eserviceId", eserviceId),
     ...makeFilter("descriptorId", descriptorId),
-    ...(agreementStatesFilters &&
-      agreementStatesFilters.length > 0 && {
-        "data.state": {
-          $in: agreementStatesFilters.map((s) => s.toString()),
-        },
-      }),
+    ...makeFilter("state", agreementStatesFilters),
     ...(attributeId && {
       $or: [
         makeAttributesFilter("certifiedAttributes", attributeId),
@@ -172,12 +180,7 @@ const getTenantsByNamePipeline = (
   },
   {
     $match: {
-      "tenants.data.name": {
-        $regex: new RegExp(
-          ReadModelRepository.escapeRegExp(tenantName || ""),
-          "i"
-        ),
-      },
+      ...makeRegexFilter("tenants.data.name", tenantName),
     },
   },
   {
@@ -527,12 +530,8 @@ export function readModelServiceBuilder(
           $match: {
             ...makeFilter("consumerId", filters.consumerIds),
             ...makeFilter("producerId", filters.producerIds),
-            "eservices.data.name": {
-              $regex: new RegExp(
-                ReadModelRepository.escapeRegExp(filters.eserviceName || ""),
-                "i"
-              ),
-            },
+            ...makeFilter("state", filters.agreeementStates),
+            ...makeRegexFilter("eservices.data.name", filters.eserviceName),
           },
         },
         {
