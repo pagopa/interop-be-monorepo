@@ -32,7 +32,6 @@ export * from "./user/user.js";
 
 // Protobuf
 export * from "./protobuf/protobuf.js";
-export * from "./protobuf/utils.js";
 
 // Read models
 export * from "./read-models/attributeReadModel.js";
