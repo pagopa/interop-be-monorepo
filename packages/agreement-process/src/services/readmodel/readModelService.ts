@@ -25,6 +25,7 @@ import {
   descriptorState,
   genericError,
   EServiceId,
+  AttributeReadmodel,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { z } from "zod";
@@ -47,7 +48,10 @@ export type AgreementQueryFilters = {
 type AgreementDataFields = RemoveDataPrefix<MongoQueryKeys<Agreement>>;
 
 const makeFilter = (
-  fieldName: AgreementDataFields,
+  fieldName: Extract<
+    AgreementDataFields,
+    "producerId" | "consumerId" | "eserviceId" | "descriptorId"
+  >,
   value: string | string[] | undefined
 ): ReadModelFilter<Agreement> | undefined =>
   match(value)
@@ -58,12 +62,29 @@ const makeFilter = (
     .with(P.array(P.string), (a) =>
       a.length === 0 ? undefined : { [`data.${fieldName}`]: { $in: value } }
     )
-    .otherwise(() => {
-      logger.error(
-        `Unable to build filter for field ${fieldName} and value ${value}`
-      );
-      return undefined;
-    });
+    .exhaustive();
+
+const makeAttributesFilter = (
+  fieldName: Extract<
+    AgreementDataFields,
+    "certifiedAttributes" | "declaredAttributes" | "verifiedAttributes"
+  >,
+  attributeIds: AttributeId | AttributeId[]
+): ReadModelFilter<Agreement> | undefined =>
+  match(attributeIds)
+    .with(P.string, (id) => ({
+      [`data.${fieldName}`]: { $elemMatch: { id } },
+    }))
+    .with(P.array(P.string), (ids) =>
+      ids.length === 0
+        ? undefined
+        : {
+            [`data.${fieldName}`]: {
+              $elemMatch: { id: { $in: ids } },
+            },
+          }
+    )
+    .exhaustive();
 
 const getAgreementsFilters = (
   filters: AgreementQueryFilters
@@ -97,9 +118,7 @@ const getAgreementsFilters = (
         (agreementStates) => agreementStates.length > 0 && showOnlyUpgradeable
       ),
       (agreementStates) =>
-        upgradeableStates.filter(
-          (s1) => agreementStates.some((s2) => s1 === s2) !== undefined
-        )
+        upgradeableStates.filter((s) => agreementStates.includes(s))
     )
     .otherwise((agreementStates) => agreementStates);
 
@@ -116,9 +135,9 @@ const getAgreementsFilters = (
       }),
     ...(attributeId && {
       $or: [
-        { "data.certifiedAttributes": { $elemMatch: { id: attributeId } } },
-        { "data.declaredAttributes": { $elemMatch: { id: attributeId } } },
-        { "data.verifiedAttributes": { $elemMatch: { id: attributeId } } },
+        makeAttributesFilter("certifiedAttributes", attributeId),
+        makeAttributesFilter("verifiedAttributes", attributeId),
+        makeAttributesFilter("declaredAttributes", attributeId),
       ],
     }),
   };
@@ -202,18 +221,13 @@ const getAllAgreements = async (
 
 async function getAttribute(
   attributes: AttributeCollection,
-  filter: Filter<{ data: Attribute }>
-): Promise<WithMetadata<Attribute> | undefined> {
+  filter: Filter<{ data: AttributeReadmodel }>
+): Promise<Attribute | undefined> {
   const data = await attributes.findOne(filter, {
-    projection: { data: true, metadata: true },
+    projection: { data: true },
   });
   if (data) {
-    const result = z
-      .object({
-        metadata: z.object({ version: z.number() }),
-        data: Attribute,
-      })
-      .safeParse(data);
+    const result = Attribute.safeParse(data.data);
     if (!result.success) {
       logger.error(
         `Unable to parse attribute item: result ${JSON.stringify(
@@ -222,10 +236,7 @@ async function getAttribute(
       );
       throw genericError("Unable to parse attribute item");
     }
-    return {
-      data: result.data.data,
-      metadata: { version: result.data.metadata.version },
-    };
+    return result.data;
   }
   return undefined;
 }
@@ -323,8 +334,8 @@ export function readModelServiceBuilder(
                         $and: [
                           {
                             $gt: [
-                              "$$upgradable.activatedAt",
-                              "$currentDescriptor.activatedAt",
+                              "$$upgradable.publishedAt",
+                              "$currentDescriptor.publishedAt",
                             ],
                           },
                           {
@@ -420,21 +431,14 @@ export function readModelServiceBuilder(
     ): Promise<Array<WithMetadata<Agreement>>> {
       return getAllAgreements(agreements, filters);
     },
-    async getEServiceById(
-      id: string
-    ): Promise<WithMetadata<EService> | undefined> {
+    async getEServiceById(id: string): Promise<EService | undefined> {
       const data = await eservices.findOne(
         { "data.id": id },
-        { projection: { data: true, metadata: true } }
+        { projection: { data: true } }
       );
 
       if (data) {
-        const result = z
-          .object({
-            metadata: z.object({ version: z.number() }),
-            data: EService,
-          })
-          .safeParse(data);
+        const result = EService.safeParse(data.data);
 
         if (!result.success) {
           logger.error(
@@ -446,29 +450,19 @@ export function readModelServiceBuilder(
           throw genericError(`Unable to parse eservice ${id}`);
         }
 
-        return {
-          data: result.data.data,
-          metadata: { version: result.data.metadata.version },
-        };
+        return result.data;
       }
 
       return undefined;
     },
-    async getTenantById(
-      tenantId: string
-    ): Promise<WithMetadata<Tenant> | undefined> {
+    async getTenantById(tenantId: string): Promise<Tenant | undefined> {
       const data = await tenants.findOne(
         { "data.id": tenantId },
-        { projection: { data: true, metadata: true } }
+        { projection: { data: true } }
       );
 
       if (data) {
-        const result = z
-          .object({
-            metadata: z.object({ version: z.number() }),
-            data: Tenant,
-          })
-          .safeParse(data);
+        const result = Tenant.safeParse(data.data);
 
         if (!result.success) {
           logger.error(
@@ -480,16 +474,11 @@ export function readModelServiceBuilder(
           throw genericError(`Unable to parse tenant ${tenantId}`);
         }
 
-        return {
-          data: result.data.data,
-          metadata: { version: result.data.metadata.version },
-        };
+        return result.data;
       }
       return undefined;
     },
-    async getAttributeById(
-      id: AttributeId
-    ): Promise<WithMetadata<Attribute> | undefined> {
+    async getAttributeById(id: AttributeId): Promise<Attribute | undefined> {
       return getAttribute(attributes, { "data.id": id });
     },
     async listConsumers(

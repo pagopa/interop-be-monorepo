@@ -126,6 +126,10 @@ describe("Integration tests", () => {
       });
     });
     describe("updateTenantVerifiedAttribute", async () => {
+      const expirationDate = new Date(
+        currentDate.setDate(currentDate.getDate() + 1)
+      );
+
       const updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed =
         {
           expirationDate: expirationDate.toISOString(),
@@ -156,6 +160,7 @@ describe("Integration tests", () => {
           tenantId: tenant.id,
           attributeId,
           updateVerifiedTenantAttributeSeed,
+          correlationId: generateId(),
         });
         const writtenEvent: StoredEvent | undefined =
           await readLastEventByStreamId(
@@ -192,13 +197,14 @@ describe("Integration tests", () => {
             tenantId: tenant.id,
             attributeId,
             updateVerifiedTenantAttributeSeed,
+            correlationId: generateId(),
           })
         ).rejects.toThrowError(tenantNotFound(tenant.id));
       });
 
       it("Should throw expirationDateCannotBeInThePast when expiration date is in the past", async () => {
         const expirationDateinPast = new Date(
-          currentDate.setDate(currentDate.getDate() - 1)
+          currentDate.setDate(currentDate.getDate() - 3)
         );
 
         const updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed =
@@ -213,6 +219,7 @@ describe("Integration tests", () => {
             tenantId: tenant.id,
             attributeId,
             updateVerifiedTenantAttributeSeed,
+            correlationId: generateId(),
           })
         ).rejects.toThrowError(
           expirationDateCannotBeInThePast(expirationDateinPast)
@@ -235,6 +242,7 @@ describe("Integration tests", () => {
             tenantId: updatedCertifiedTenant.id,
             attributeId,
             updateVerifiedTenantAttributeSeed,
+            correlationId: generateId(),
           })
         ).rejects.toThrowError(
           verifiedAttributeNotFoundInTenant(
@@ -252,6 +260,7 @@ describe("Integration tests", () => {
             tenantId: tenant.id,
             attributeId,
             updateVerifiedTenantAttributeSeed,
+            correlationId: generateId(),
           })
         ).rejects.toThrowError(
           organizationNotFoundInVerifiers(verifierId, tenant.id, attributeId)
@@ -259,6 +268,8 @@ describe("Integration tests", () => {
       });
     });
     describe("updateVerifiedAttributeExtensionDate", async () => {
+      const correlationId = generateId();
+
       const tenant: Tenant = {
         ...mockTenant,
         attributes: [
@@ -288,7 +299,8 @@ describe("Integration tests", () => {
         await tenantService.updateVerifiedAttributeExtensionDate(
           tenant.id,
           attributeId,
-          verifierId
+          verifierId,
+          correlationId
         );
         const writtenEvent: StoredEvent | undefined =
           await readLastEventByStreamId(
@@ -325,11 +337,13 @@ describe("Integration tests", () => {
         expect(writtenPayload.tenant).toEqual(toTenantV1(updatedTenant));
       });
       it("Should throw tenantNotFound when tenant doesn't exist", async () => {
+        const correlationId = generateId();
         expect(
           tenantService.updateVerifiedAttributeExtensionDate(
             tenant.id,
             attributeId,
-            verifierId
+            verifierId,
+            correlationId
           )
         ).rejects.toThrowError(tenantNotFound(tenant.id));
       });
@@ -360,11 +374,13 @@ describe("Integration tests", () => {
           postgresDB,
           tenants
         );
+        const correlationId = generateId();
         expect(
           tenantService.updateVerifiedAttributeExtensionDate(
             updatedTenantWithoutExpirationDate.id,
             attributeId,
-            verifierId
+            verifierId,
+            correlationId
           )
         ).rejects.toThrowError(
           expirationDateNotFoundInVerifier(
@@ -376,11 +392,13 @@ describe("Integration tests", () => {
       });
       it("Should throw verifiedAttributeNotFoundInTenant when the attribute is not verified", async () => {
         await addOneTenant(mockTenant, postgresDB, tenants);
+        const correlationId = generateId();
         expect(
           tenantService.updateVerifiedAttributeExtensionDate(
             tenant.id,
             attributeId,
-            verifierId
+            verifierId,
+            correlationId
           )
         ).rejects.toThrowError(
           verifiedAttributeNotFoundInTenant(mockTenant.id, attributeId)
@@ -389,11 +407,13 @@ describe("Integration tests", () => {
       it("Should throw organizationNotFoundInVerifiers when the organization is not verified", async () => {
         await addOneTenant(tenant, postgresDB, tenants);
         const verifierId = generateId();
+        const correlationId = generateId();
         expect(
           tenantService.updateVerifiedAttributeExtensionDate(
             tenant.id,
             attributeId,
-            verifierId
+            verifierId,
+            correlationId
           )
         ).rejects.toThrowError(
           organizationNotFoundInVerifiers(verifierId, tenant.id, attributeId)
