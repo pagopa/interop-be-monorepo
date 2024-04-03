@@ -28,6 +28,7 @@ import { toCreateEventAttributeAdded } from "../model/domain/toEvent.js";
 import {
   OrganizationIsNotACertifier,
   attributeDuplicate,
+  attributeNotFound,
   originNotCompliant,
   tenantNotFound,
 } from "../model/domain/errors.js";
@@ -187,11 +188,13 @@ export function attributeRegistryServiceBuilder(
         limit,
       });
     },
-    async getAttributeByName(
-      name: string
-    ): Promise<WithMetadata<Attribute> | undefined> {
+    async getAttributeByName(name: string): Promise<WithMetadata<Attribute>> {
       logger.info(`Retrieving attribute with name ${name}`);
-      return await readModelService.getAttributeByName(name);
+      const attribute = await readModelService.getAttributeByName(name);
+      if (attribute === undefined) {
+        throw attributeNotFound(name);
+      }
+      return attribute;
     },
     async getAttributeByOriginAndCode({
       origin,
@@ -199,18 +202,24 @@ export function attributeRegistryServiceBuilder(
     }: {
       origin: string;
       code: string;
-    }): Promise<WithMetadata<Attribute> | undefined> {
+    }): Promise<WithMetadata<Attribute>> {
       logger.info(`Retrieving attribute ${origin}/${code}`);
-      return await readModelService.getAttributeByOriginAndCode({
+      const attribute = await readModelService.getAttributeByOriginAndCode({
         origin,
         code,
       });
+      if (attribute === undefined) {
+        throw attributeNotFound(`${origin}/${code}`);
+      }
+      return attribute;
     },
-    async getAttributeById(
-      id: AttributeId
-    ): Promise<WithMetadata<Attribute> | undefined> {
+    async getAttributeById(id: AttributeId): Promise<WithMetadata<Attribute>> {
       logger.info(`Retrieving attribute with ID ${id}`);
-      return await readModelService.getAttributeById(id);
+      const attribute = await readModelService.getAttributeById(id);
+      if (attribute === undefined) {
+        throw attributeNotFound(id);
+      }
+      return attribute;
     },
     async getAttributesByIds({
       ids,
