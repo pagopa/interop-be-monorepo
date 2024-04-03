@@ -1217,8 +1217,11 @@ describe("Agreement service", () => {
         10,
         0
       );
-      expect(agreements.totalCount).toEqual(0);
-      expect(agreements.results).toEqual([]);
+
+      expect(agreements).toEqual({
+        totalCount: 0,
+        results: [],
+      });
     });
   });
   describe("get agreement", () => {
@@ -1382,8 +1385,11 @@ describe("Agreement service", () => {
           10,
           0
         );
-        expect(producers.totalCount).toEqual(0);
-        expect(producers.results).toEqual([]);
+
+        expect(producers).toEqual({
+          totalCount: 0,
+          results: [],
+        });
       });
     });
     describe("get agreement producers", () => {
@@ -1461,8 +1467,11 @@ describe("Agreement service", () => {
           10,
           0
         );
-        expect(producers.totalCount).toEqual(0);
-        expect(producers.results).toEqual([]);
+
+        expect(producers).toEqual({
+          totalCount: 0,
+          results: [],
+        });
       });
     });
   });
@@ -1542,12 +1551,12 @@ describe("Agreement service", () => {
         0
       );
 
-      expect(eservices.totalCount).toEqual(3);
-      expect(eservices.results).toEqual(
-        expect.arrayContaining(
+      expect(eservices).toEqual({
+        totalCount: 3,
+        results: expect.arrayContaining(
           [eservice1, eservice2, eservice3].map(toCompactEService)
-        )
-      );
+        ),
+      });
     });
 
     it("should get agreement eservices filtered by name", async () => {
@@ -1561,10 +1570,13 @@ describe("Agreement service", () => {
         10,
         0
       );
-      expect(eservices.totalCount).toEqual(2);
-      expect(eservices.results).toEqual(
-        expect.arrayContaining([eservice1, eservice3].map(toCompactEService))
-      );
+
+      expect(eservices).toEqual({
+        totalCount: 2,
+        results: expect.arrayContaining(
+          [eservice1, eservice3].map(toCompactEService)
+        ),
+      });
     });
 
     it("should get agreement eservices filtered by consumerId", async () => {
@@ -1578,10 +1590,13 @@ describe("Agreement service", () => {
         10,
         0
       );
-      expect(eservices.totalCount).toEqual(2);
-      expect(eservices.results).toEqual(
-        expect.arrayContaining([eservice1, eservice2].map(toCompactEService))
-      );
+
+      expect(eservices).toEqual({
+        totalCount: 2,
+        results: expect.arrayContaining(
+          [eservice1, eservice2].map(toCompactEService)
+        ),
+      });
     });
 
     it("should get agreement eservices filtered by producerId", async () => {
@@ -1595,10 +1610,13 @@ describe("Agreement service", () => {
         10,
         0
       );
-      expect(eservices.totalCount).toEqual(2);
-      expect(eservices.results).toEqual(
-        expect.arrayContaining([eservice1, eservice2].map(toCompactEService))
-      );
+
+      expect(eservices).toEqual({
+        totalCount: 2,
+        results: expect.arrayContaining(
+          [eservice1, eservice2].map(toCompactEService)
+        ),
+      });
     });
 
     it("should get agreement eservices filtered by agreement state", async () => {
@@ -1612,10 +1630,13 @@ describe("Agreement service", () => {
         10,
         0
       );
-      expect(eservices.totalCount).toEqual(2);
-      expect(eservices.results).toEqual(
-        expect.arrayContaining([eservice2, eservice3].map(toCompactEService))
-      );
+
+      expect(eservices).toEqual({
+        totalCount: 2,
+        results: expect.arrayContaining(
+          [eservice2, eservice3].map(toCompactEService)
+        ),
+      });
     });
 
     it("should get agreement eservices with filters: name, consumerId, producerId", async () => {
@@ -1629,10 +1650,11 @@ describe("Agreement service", () => {
         10,
         0
       );
-      expect(eservices.totalCount).toEqual(1);
-      expect(eservices.results).toEqual(
-        expect.arrayContaining([eservice1].map(toCompactEService))
-      );
+
+      expect(eservices).toEqual({
+        totalCount: 1,
+        results: expect.arrayContaining([eservice1].map(toCompactEService)),
+      });
     });
 
     it("should get agreement eservices with filters: name, agreement state", async () => {
@@ -1646,10 +1668,11 @@ describe("Agreement service", () => {
         10,
         0
       );
-      expect(eservices.totalCount).toEqual(1);
-      expect(eservices.results).toEqual(
-        expect.arrayContaining([eservice3].map(toCompactEService))
-      );
+
+      expect(eservices).toEqual({
+        totalCount: 1,
+        results: expect.arrayContaining([eservice3].map(toCompactEService)),
+      });
     });
 
     it("should get agreement eservices with filters: name, consumerId, producerId, agreement state", async () => {
@@ -1663,10 +1686,11 @@ describe("Agreement service", () => {
         10,
         0
       );
-      expect(eservices.totalCount).toEqual(1);
-      expect(eservices.results).toEqual(
-        expect.arrayContaining([eservice3].map(toCompactEService))
-      );
+
+      expect(eservices).toEqual({
+        totalCount: 1,
+        results: expect.arrayContaining([eservice3].map(toCompactEService)),
+      });
     });
 
     it("should get agreement eservices with limit", async () => {
@@ -1680,11 +1704,13 @@ describe("Agreement service", () => {
         2,
         0
       );
-      expect(eservices.totalCount).toEqual(3);
-      expect(eservices.results.length).toEqual(2);
-      expect(eservices.results).toEqual(
-        expect.arrayContaining([eservice1, eservice2].map(toCompactEService))
-      );
+
+      expect(eservices).toEqual({
+        totalCount: 3,
+        results: expect.arrayContaining(
+          [eservice1, eservice2].map(toCompactEService)
+        ),
+      });
     });
 
     it("should get agreement eservices with offset and limit", async () => {
@@ -1698,11 +1724,13 @@ describe("Agreement service", () => {
         2,
         1
       );
-      expect(eservices.totalCount).toEqual(3);
-      expect(eservices.results.length).toEqual(2);
-      expect(eservices.results).toEqual(
-        expect.arrayContaining([eservice2, eservice3].map(toCompactEService))
-      );
+
+      expect(eservices).toEqual({
+        totalCount: 3,
+        results: expect.arrayContaining(
+          [eservice2, eservice3].map(toCompactEService)
+        ),
+      });
     });
 
     it("should get no agreement eservices in case no filters match", async () => {
@@ -1716,8 +1744,11 @@ describe("Agreement service", () => {
         10,
         0
       );
-      expect(eservices.totalCount).toEqual(0);
-      expect(eservices.results).toEqual([]);
+
+      expect(eservices).toEqual({
+        totalCount: 0,
+        results: [],
+      });
     });
   });
 });
