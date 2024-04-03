@@ -8,7 +8,6 @@ import {
   agreementState,
   WithMetadata,
   AgreementEvent,
-  AgreementUpdateEvent,
   AgreementId,
 } from "pagopa-interop-models";
 import {
@@ -68,7 +67,7 @@ export async function activateAgreementLogic(
   assertEServiceExist(agreement.data.eserviceId, eservice);
 
   const descriptor = validateActivationOnDescriptor(
-    eservice.data,
+    eservice,
     agreement.data.descriptorId
   );
 
@@ -77,9 +76,9 @@ export async function activateAgreementLogic(
 
   return activateAgreement(
     agreement,
-    eservice.data,
+    eservice,
     descriptor,
-    tenant.data,
+    tenant,
     authData,
     tenantQuery,
     agreementQuery,
@@ -211,7 +210,7 @@ const archiveRelatedToAgreements = async (
   authData: AuthData,
   agreementQuery: AgreementQuery,
   correlationId: string
-): Promise<Array<CreateEvent<AgreementUpdateEvent>>> => {
+): Promise<Array<CreateEvent<AgreementEvent>>> => {
   const existingAgreements = await agreementQuery.getAllAgreements({
     consumerId: agreement.consumerId,
     eserviceId: agreement.eserviceId,
@@ -261,7 +260,7 @@ const createContract = async (
     agreement,
     eservice,
     consumer,
-    producer.data,
+    producer,
     updateSeed
   );
 };
