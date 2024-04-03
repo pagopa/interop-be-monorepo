@@ -495,16 +495,13 @@ export function readModelServiceBuilder(
     ): Promise<ListResult<CompactOrganization>> {
       return searchTenantsByName(agreements, name, "producerId", limit, offset);
     },
-    async listEServicesAgreements(
+    async listAgreementsEServices(
       eserviceName: string | undefined,
       consumerIds: string[],
       producerIds: string[],
       limit: number,
       offset: number
     ): Promise<ListResult<CompactEService>> {
-      const consumerFilter = makeFilter("consumerId", consumerIds);
-      const producerFilter = makeFilter("producerId", producerIds);
-
       const aggregationPipeline = [
         {
           $lookup: {
@@ -522,14 +519,14 @@ export function readModelServiceBuilder(
         },
         {
           $match: {
+            ...makeFilter("consumerId", consumerIds),
+            ...makeFilter("producerId", producerIds),
             "eservices.data.name": {
               $regex: new RegExp(
                 ReadModelRepository.escapeRegExp(eserviceName || ""),
                 "i"
               ),
             },
-            consumerFilter,
-            producerFilter,
           },
         },
         {
