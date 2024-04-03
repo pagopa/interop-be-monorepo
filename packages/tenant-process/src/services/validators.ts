@@ -2,6 +2,7 @@ import { AuthData, userRoles } from "pagopa-interop-commons";
 import {
   Attribute,
   AttributeId,
+  CertifiedTenantAttribute,
   ExternalId,
   Tenant,
   TenantAttribute,
@@ -23,6 +24,11 @@ import {
   verifiedAttributeNotFoundInTenant,
   selfcareIdConflict,
   expirationDateNotFoundInVerifier,
+  tenantIsNotACertifier,
+  registryAttributeIdNotFound,
+  certifiedAttributeOriginIsNotCompliantWithCertifier,
+  certifiedAttributeNotFoundInTenant,
+  certifierNotFound,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -35,6 +41,14 @@ export function assertTenantExists(
   }
 }
 
+export function assertCertifierExists(
+  certifierId: string | undefined
+): asserts certifierId is NonNullable<string> {
+  if (certifierId === undefined) {
+    throw certifierNotFound(certifierId!);
+  }
+}
+
 export function assertVerifiedAttributeExistsInTenant(
   attributeId: AttributeId,
   attribute: TenantAttribute | undefined,
@@ -42,6 +56,16 @@ export function assertVerifiedAttributeExistsInTenant(
 ): asserts attribute is NonNullable<VerifiedTenantAttribute> {
   if (!attribute || attribute.type !== tenantAttributeType.VERIFIED) {
     throw verifiedAttributeNotFoundInTenant(tenant.data.id, attributeId);
+  }
+}
+
+export function assertCertifiedAttributeExistsInTenant(
+  attributeId: AttributeId,
+  attribute: TenantAttribute | undefined,
+  tenant: WithMetadata<Tenant>
+): asserts attribute is NonNullable<CertifiedTenantAttribute> {
+  if (!attribute || attribute.type !== tenantAttributeType.CERTIFIED) {
+    throw certifiedAttributeNotFoundInTenant(tenant.data.id, attributeId);
   }
 }
 
@@ -64,6 +88,40 @@ export function assertExpirationDateExist(
 ): asserts expirationDate is Date {
   if (expirationDate === undefined) {
     expirationDateNotFoundInVerifier(verifierId, attributeId, tenantId);
+  }
+}
+
+export function assertTenantIsACertifier(
+  certifierId: string,
+  tenantId: TenantId
+): asserts certifierId is string {
+  if (certifierId !== tenantId) {
+    throw tenantIsNotACertifier(tenantId);
+  }
+}
+
+export function assertAttributeIsCertified(
+  origin: string,
+  kind: string
+): asserts kind is string {
+  if (kind !== "Certified") {
+    throw registryAttributeIdNotFound(origin);
+  }
+}
+
+export function assertCertifiedAttributeOriginIsCompliantWithCertifier(
+  certifierId: string,
+  tenantId: TenantId,
+  organizationId: TenantId,
+  origin: string
+): asserts certifierId is string {
+  if (origin !== certifierId) {
+    throw certifiedAttributeOriginIsNotCompliantWithCertifier(
+      origin,
+      organizationId,
+      tenantId,
+      certifierId
+    );
   }
 }
 
