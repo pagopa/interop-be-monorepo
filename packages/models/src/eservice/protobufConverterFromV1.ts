@@ -18,17 +18,17 @@ import {
 } from "../risk-analysis/riskAnalysis.js";
 import {
   AgreementApprovalPolicy,
-  agreementApprovalPolicy,
-  DescriptorState,
-  descriptorState,
-  Technology,
-  technology,
-  EServiceMode,
-  eserviceMode,
-  EServiceAttribute,
   Descriptor,
-  EService,
+  DescriptorState,
   Document,
+  EService,
+  EServiceAttribute,
+  EServiceMode,
+  Technology,
+  agreementApprovalPolicy,
+  descriptorState,
+  eserviceMode,
+  technology,
 } from "./eservice.js";
 
 const defaultCreatedAt = new Date("2022-10-21T12:00:00");
