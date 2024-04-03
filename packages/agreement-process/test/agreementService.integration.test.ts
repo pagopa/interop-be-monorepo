@@ -131,11 +131,12 @@ const expectedAgreementCreation = async (
     fail("Creation fails: agreement not found in event-store");
   }
 
-  expect(actualAgreementData).toBeDefined();
-  expect(actualAgreementData.type).toBe("AgreementAdded");
-  expect(actualAgreementData.event_version).toBe(1);
-  expect(actualAgreementData.version).toBe("0");
-  expect(actualAgreementData.stream_id).toEqual(agreementId);
+  expect(actualAgreementData).toMatchObject({
+    type: "AgreementAdded",
+    event_version: 1,
+    version: "0",
+    stream_id: agreementId,
+  });
 
   const actualAgreement: AgreementV1 | undefined = protobufDecoder(
     AgreementAddedV1
@@ -145,7 +146,6 @@ const expectedAgreementCreation = async (
     fail("impossible to decode AgreementAddedV1 data");
   }
 
-  expect(actualAgreement).toBeDefined();
   expect(actualAgreement.contract).toBeUndefined();
   expect(actualAgreement).property("createdAt").satisfy(expectPastTimestamp);
 
@@ -897,17 +897,17 @@ describe("Agreement service", () => {
 
     it("should get all agreements if no filters are provided", async () => {
       const allAgreements = await agreementService.getAgreements({}, 10, 0);
-      expect(allAgreements.totalCount).toEqual(6);
-      expect(allAgreements.results).toEqual(
-        expect.arrayContaining([
+      expect(allAgreements).toEqual({
+        totalCount: 6,
+        results: expect.arrayContaining([
           agreement1,
           agreement2,
           agreement3,
           agreement4,
           agreement5,
           agreement6,
-        ])
-      );
+        ]),
+      });
     });
 
     it("should get agreements with filters: producerId", async () => {
@@ -918,10 +918,10 @@ describe("Agreement service", () => {
         10,
         0
       );
-      expect(agreements1.totalCount).toEqual(2);
-      expect(agreements1.results).toEqual(
-        expect.arrayContaining([agreement1, agreement2])
-      );
+      expect(agreements1).toEqual({
+        totalCount: 2,
+        results: expect.arrayContaining([agreement1, agreement2]),
+      });
 
       const agreements2 = await agreementService.getAgreements(
         {
@@ -944,10 +944,10 @@ describe("Agreement service", () => {
         10,
         0
       );
-      expect(agreements1.totalCount).toEqual(3);
-      expect(agreements1.results).toEqual(
-        expect.arrayContaining([agreement1, agreement3, agreement5])
-      );
+      expect(agreements1).toEqual({
+        totalCount: 3,
+        results: expect.arrayContaining([agreement1, agreement3, agreement5]),
+      });
 
       const agreements2 = await agreementService.getAgreements(
         {
@@ -956,16 +956,16 @@ describe("Agreement service", () => {
         10,
         0
       );
-      expect(agreements2.totalCount).toEqual(5);
-      expect(agreements2.results).toEqual(
-        expect.arrayContaining([
+      expect(agreements2).toEqual({
+        totalCount: 5,
+        results: expect.arrayContaining([
           agreement1,
           agreement2,
           agreement3,
           agreement4,
           agreement5,
-        ])
-      );
+        ]),
+      });
     });
 
     it("should get agreements with filters: eserviceId", async () => {
@@ -976,10 +976,10 @@ describe("Agreement service", () => {
         10,
         0
       );
-      expect(agreements1.totalCount).toEqual(2);
-      expect(agreements1.results).toEqual(
-        expect.arrayContaining([agreement1, agreement2])
-      );
+      expect(agreements1).toEqual({
+        totalCount: 2,
+        results: expect.arrayContaining([agreement1, agreement2]),
+      });
 
       const agreements2 = await agreementService.getAgreements(
         {
@@ -988,10 +988,15 @@ describe("Agreement service", () => {
         10,
         0
       );
-      expect(agreements2.totalCount).toEqual(4);
-      expect(agreements2.results).toEqual(
-        expect.arrayContaining([agreement1, agreement2, agreement3, agreement4])
-      );
+      expect(agreements2).toEqual({
+        totalCount: 4,
+        results: expect.arrayContaining([
+          agreement1,
+          agreement2,
+          agreement3,
+          agreement4,
+        ]),
+      });
     });
 
     it("should get agreements with filters: descriptorId", async () => {
@@ -1002,8 +1007,10 @@ describe("Agreement service", () => {
         10,
         0
       );
-      expect(agreements1.totalCount).toEqual(1);
-      expect(agreements1.results).toEqual(expect.arrayContaining([agreement1]));
+      expect(agreements1).toEqual({
+        totalCount: 1,
+        results: expect.arrayContaining([agreement1]),
+      });
 
       const agreements2 = await agreementService.getAgreements(
         {
@@ -1012,10 +1019,15 @@ describe("Agreement service", () => {
         10,
         0
       );
-      expect(agreements2.totalCount).toEqual(4);
-      expect(agreements2.results).toEqual(
-        expect.arrayContaining([agreement1, agreement3, agreement5, agreement6])
-      );
+      expect(agreements2).toEqual({
+        totalCount: 4,
+        results: expect.arrayContaining([
+          agreement1,
+          agreement3,
+          agreement5,
+          agreement6,
+        ]),
+      });
     });
 
     it("should get agreements with filters: attributeId", async () => {
@@ -1026,8 +1038,10 @@ describe("Agreement service", () => {
         10,
         0
       );
-      expect(agreements1.totalCount).toEqual(1);
-      expect(agreements1.results).toEqual(expect.arrayContaining([agreement1]));
+      expect(agreements1).toEqual({
+        totalCount: 1,
+        results: expect.arrayContaining([agreement1]),
+      });
 
       const agreements2 = await agreementService.getAgreements(
         {
@@ -1036,10 +1050,10 @@ describe("Agreement service", () => {
         10,
         0
       );
-      expect(agreements2.totalCount).toEqual(2);
-      expect(agreements2.results).toEqual(
-        expect.arrayContaining([agreement1, agreement2])
-      );
+      expect(agreements2).toEqual({
+        totalCount: 2,
+        results: expect.arrayContaining([agreement1, agreement2]),
+      });
 
       const agreements3 = await agreementService.getAgreements(
         {
@@ -1048,10 +1062,10 @@ describe("Agreement service", () => {
         10,
         0
       );
-      expect(agreements3.totalCount).toEqual(2);
-      expect(agreements3.results).toEqual(
-        expect.arrayContaining([agreement1, agreement2])
-      );
+      expect(agreements3).toEqual({
+        totalCount: 2,
+        results: expect.arrayContaining([agreement1, agreement2]),
+      });
     });
     it("should get agreements with filters: state", async () => {
       const agreements = await agreementService.getAgreements(
@@ -1061,10 +1075,10 @@ describe("Agreement service", () => {
         10,
         0
       );
-      expect(agreements.totalCount).toEqual(2);
-      expect(agreements.results).toEqual(
-        expect.arrayContaining([agreement2, agreement3])
-      );
+      expect(agreements).toEqual({
+        totalCount: 2,
+        results: expect.arrayContaining([agreement2, agreement3]),
+      });
     });
     it("should get agreements with filters: showOnlyUpgradeable", async () => {
       const agreements = await agreementService.getAgreements(
@@ -1074,14 +1088,14 @@ describe("Agreement service", () => {
         10,
         0
       );
-      expect(agreements.totalCount).toEqual(1);
-      expect(agreements.results).toEqual(
-        expect.arrayContaining([
+      expect(agreements).toEqual({
+        totalCount: 1,
+        results: expect.arrayContaining([
           agreement1,
           // also agreement4 has a latest descriptor to upgrade to,
           // but it is not in an upgradeable state
-        ])
-      );
+        ]),
+      });
     });
 
     it("should get agreements with filters: producerId, consumerId, eserviceId", async () => {
@@ -1094,10 +1108,10 @@ describe("Agreement service", () => {
         10,
         0
       );
-      expect(agreements.totalCount).toEqual(2);
-      expect(agreements.results).toEqual(
-        expect.arrayContaining([agreement1, agreement3])
-      );
+      expect(agreements).toEqual({
+        totalCount: 2,
+        results: expect.arrayContaining([agreement1, agreement3]),
+      });
     });
 
     it("should get agreements with filters: producerId, consumerId, eserviceId, descriptorId", async () => {
@@ -1111,8 +1125,10 @@ describe("Agreement service", () => {
         10,
         0
       );
-      expect(agreements.totalCount).toEqual(1);
-      expect(agreements.results).toEqual(expect.arrayContaining([agreement1]));
+      expect(agreements).toEqual({
+        totalCount: 1,
+        results: expect.arrayContaining([agreement1]),
+      });
     });
 
     it("should get agreements with filters: attributeId, state", async () => {
@@ -1124,8 +1140,10 @@ describe("Agreement service", () => {
         10,
         0
       );
-      expect(agreements.totalCount).toEqual(1);
-      expect(agreements.results).toEqual(expect.arrayContaining([agreement2]));
+      expect(agreements).toEqual({
+        totalCount: 1,
+        results: expect.arrayContaining([agreement2]),
+      });
     });
 
     it("should get agreements with filters: showOnlyUpgradeable, state, descriptorId", async () => {
@@ -1138,8 +1156,10 @@ describe("Agreement service", () => {
         10,
         0
       );
-      expect(agreements1.totalCount).toEqual(1);
-      expect(agreements1.results).toEqual(expect.arrayContaining([agreement1]));
+      expect(agreements1).toEqual({
+        totalCount: 1,
+        results: expect.arrayContaining([agreement1]),
+      });
 
       const agreements2 = await agreementService.getAgreements(
         {
@@ -1150,7 +1170,10 @@ describe("Agreement service", () => {
         10,
         0
       );
-      expect(agreements2.totalCount).toEqual(0);
+      expect(agreements2).toEqual({
+        totalCount: 0,
+        results: [],
+      });
     });
 
     it("should get agreements with limit", async () => {
@@ -1161,9 +1184,10 @@ describe("Agreement service", () => {
         1,
         0
       );
-      expect(agreements.totalCount).toEqual(2);
-      expect(agreements.results.length).toEqual(1);
-      expect(agreements.results).toEqual(expect.arrayContaining([agreement1]));
+      expect(agreements).toEqual({
+        totalCount: 2,
+        results: expect.arrayContaining([agreement1]),
+      });
     });
 
     it("should get agreements with offset and limit", async () => {
@@ -1174,11 +1198,10 @@ describe("Agreement service", () => {
         2,
         1
       );
-      expect(agreements.totalCount).toEqual(4);
-      expect(agreements.results.length).toEqual(2);
-      expect(agreements.results).toEqual(
-        expect.arrayContaining([agreement2, agreement3])
-      );
+      expect(agreements).toEqual({
+        totalCount: 4,
+        results: expect.arrayContaining([agreement2, agreement3]),
+      });
     });
   });
 });

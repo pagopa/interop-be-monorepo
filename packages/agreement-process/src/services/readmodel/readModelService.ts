@@ -69,18 +69,18 @@ const makeAttributesFilter = (
     AgreementDataFields,
     "certifiedAttributes" | "declaredAttributes" | "verifiedAttributes"
   >,
-  attributeId: AttributeId | AttributeId[]
+  attributeIds: AttributeId | AttributeId[]
 ): ReadModelFilter<Agreement> | undefined =>
-  match(attributeId)
-    .with(P.string, () => ({
-      [`data.${fieldName}`]: { $elemMatch: { id: attributeId } },
+  match(attributeIds)
+    .with(P.string, (id) => ({
+      [`data.${fieldName}`]: { $elemMatch: { id } },
     }))
-    .with(P.array(P.string), (a) =>
-      a.length === 0
+    .with(P.array(P.string), (ids) =>
+      ids.length === 0
         ? undefined
         : {
             [`data.${fieldName}`]: {
-              $elemMatch: { id: { $in: attributeId } },
+              $elemMatch: { id: { $in: ids } },
             },
           }
     )
