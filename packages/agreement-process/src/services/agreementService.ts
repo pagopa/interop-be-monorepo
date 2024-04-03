@@ -103,13 +103,12 @@ export function agreementServiceBuilder(
       logger.info("Retrieving agreements");
       return await agreementQuery.getAgreements(filters, limit, offset);
     },
-    async getAgreementById(
-      agreementId: AgreementId
-    ): Promise<Agreement | undefined> {
+    async getAgreementById(agreementId: AgreementId): Promise<Agreement> {
       logger.info(`Retrieving agreement by id ${agreementId}`);
 
       const agreement = await agreementQuery.getAgreementById(agreementId);
-      return agreement?.data;
+      assertAgreementExist(agreementId, agreement);
+      return agreement.data;
     },
     async createAgreement(
       agreement: ApiAgreementPayload,
