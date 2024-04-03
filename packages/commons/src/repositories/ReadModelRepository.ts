@@ -1,6 +1,6 @@
 import {
   Agreement,
-  Attribute,
+  AttributeReadmodel,
   EServiceReadModel,
   Tenant,
   genericError,
@@ -24,14 +24,14 @@ export type GenericCollection<T> = Collection<{
 }>;
 
 /*
-  ISSUE https://pagopa.atlassian.net/browse/IMN-315
-  Uncomment this line when all services can read models with date type fields
-  export type EServiceCollection = GenericCollection<EService>;
+  After all services will be migrated to TS, we should
+  go remove ReadModel models created for dates retro-compatibility.
+  Tracked in https://pagopa.atlassian.net/browse/IMN-367
 */
 export type EServiceCollection = GenericCollection<EServiceReadModel>;
 export type AgreementCollection = GenericCollection<Agreement>;
 export type TenantCollection = GenericCollection<Tenant>;
-export type AttributeCollection = GenericCollection<Attribute>;
+export type AttributeCollection = GenericCollection<AttributeReadmodel>;
 
 export type Collections =
   | EServiceCollection
