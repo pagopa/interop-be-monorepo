@@ -12,7 +12,6 @@ import {
   EServiceRiskAnalysisV1,
   EServiceV1,
 } from "../gen/v1/eservice/eservice.js";
-import { parseDateOrThrow } from "../protobuf/utils.js";
 import {
   RiskAnalysis,
   RiskAnalysisForm,
@@ -146,7 +145,7 @@ export const fromDescriptorV1 = (input: EServiceDescriptorV1): Descriptor => {
     // createdAt is required in EService definition but not in protobuf,
     // this bug is handled with ISSUE https://pagopa.atlassian.net/browse/IMN-171
     createdAt: input.createdAt
-      ? parseDateOrThrow(input.createdAt)
+      ? new Date(Number(input.createdAt))
       : defaultCreatedAt,
     publishedAt:
       state === descriptorState.draft
@@ -217,7 +216,7 @@ export const fromEServiceV1 = (input: EServiceV1): EService => ({
   // createdAt is required in EService definition but not in protobuf
   // tracked in https://pagopa.atlassian.net/browse/IMN-171
   createdAt: input.createdAt
-    ? parseDateOrThrow(input.createdAt)
+    ? new Date(Number(input.createdAt))
     : defaultCreatedAt,
   riskAnalysis: input.riskAnalysis.map(fromRiskAnalysisV1),
   mode: fromEServiceModeV1(input.mode),
