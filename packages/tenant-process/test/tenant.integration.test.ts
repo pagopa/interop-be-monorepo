@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable functional/no-let */
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -26,10 +27,15 @@ import {
   Descriptor,
   EService,
   Tenant,
+  TenantCreatedV1,
+  TenantId,
   TenantUpdatedV1,
   descriptorState,
   generateId,
+  operationForbidden,
   protobufDecoder,
+  tenantKind,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { StartedTestContainer } from "testcontainers";
 import { config } from "../src/utilities/config.js";
@@ -45,17 +51,21 @@ import { toTenantV1 } from "../src/model/domain/toEvent.js";
 import { UpdateVerifiedTenantAttributeSeed } from "../src/model/domain/models.js";
 import {
   expirationDateCannotBeInThePast,
-  expirationDateNotFoundInVerifier,
   organizationNotFoundInVerifiers,
+  selfcareIdConflict,
   tenantNotFound,
   verifiedAttributeNotFoundInTenant,
+  expirationDateNotFoundInVerifier,
 } from "../src/model/domain/errors.js";
+import { ApiSelfcareTenantSeed } from "../src/model/types.js";
+import { getTenantKind } from "../src/services/validators.js";
 import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
   currentDate,
   getMockAgreement,
+  getMockAuthData,
   getMockCertifiedTenantAttribute,
   getMockDescriptor,
   getMockEService,
@@ -116,13 +126,291 @@ describe("Integration tests", () => {
     await startedMongodbContainer.stop();
   });
 
+  // eslint-disable-next-line sonarjs/cognitive-complexity
   describe("tenantService", () => {
-    const expirationDate = new Date(
-      currentDate.setDate(currentDate.getDate() + 1)
-    );
-    describe("tenant creation", () => {
-      it("TO DO", () => {
-        expect(1).toBe(1);
+    describe("selfcareUpsertTenant", async () => {
+      const correlationId = generateId();
+      const tenantSeed = {
+        externalId: {
+          origin: "IPA",
+          value: "123456",
+        },
+        name: "A tenant",
+        selfcareId: generateId(),
+      };
+      const tenant: Tenant = {
+        ...mockTenant,
+        selfcareId: undefined,
+      };
+      it("Should update the tenant if it exists", async () => {
+        await addOneTenant(tenant, postgresDB, tenants);
+        const kind = tenantKind.PA;
+        const selfcareId = generateId();
+        const tenantSeed: ApiSelfcareTenantSeed = {
+          externalId: {
+            origin: tenant.externalId.origin,
+            value: tenant.externalId.value,
+          },
+          name: "A tenant",
+          selfcareId,
+        };
+        const mockAuthData = getMockAuthData(tenant.id);
+        await tenantService.selfcareUpsertTenant({
+          tenantSeed,
+          authData: mockAuthData,
+          correlationId,
+        });
+
+        const writtenEvent: StoredEvent | undefined =
+          await readLastEventByStreamId(
+            tenant.id,
+            eventStoreSchema.tenant,
+            postgresDB
+          );
+        if (!writtenEvent) {
+          fail("Update failed: tenant not found in event-store");
+        }
+        expect(writtenEvent).toMatchObject({
+          stream_id: tenant.id,
+          version: "1",
+          type: "TenantUpdated",
+        });
+        const writtenPayload: TenantUpdatedV1 | undefined = protobufDecoder(
+          TenantUpdatedV1
+        ).parse(writtenEvent?.data);
+
+        const updatedTenant: Tenant = {
+          ...tenant,
+          selfcareId,
+          kind,
+          updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
+        };
+
+        expect(writtenPayload.tenant).toEqual(toTenantV1(updatedTenant));
+      });
+      it("Should create a tenant by the upsert if it does not exist", async () => {
+        const mockAuthData = getMockAuthData();
+        const tenantSeed = {
+          externalId: {
+            origin: "Nothing",
+            value: "0",
+          },
+          name: "A tenant",
+          selfcareId: generateId(),
+        };
+        const id = await tenantService.selfcareUpsertTenant({
+          tenantSeed,
+          authData: mockAuthData,
+          correlationId,
+        });
+        expect(id).toBeDefined();
+        const writtenEvent: StoredEvent | undefined =
+          await readLastEventByStreamId(
+            id,
+            eventStoreSchema.tenant,
+            postgresDB
+          );
+        if (!writtenEvent) {
+          fail("Creation failed: tenant not found in event-store");
+        }
+        expect(writtenEvent).toMatchObject({
+          stream_id: id,
+          version: "0",
+          type: "TenantCreated",
+        });
+        const writtenPayload: TenantCreatedV1 | undefined = protobufDecoder(
+          TenantCreatedV1
+        ).parse(writtenEvent.data);
+        const expectedTenant: Tenant = {
+          ...mockTenant,
+          externalId: tenantSeed.externalId,
+          id: unsafeBrandId(id),
+          kind: getTenantKind([], tenantSeed.externalId),
+          selfcareId: tenantSeed.selfcareId,
+          createdAt: new Date(Number(writtenPayload.tenant?.createdAt)),
+        };
+
+        expect(writtenPayload.tenant).toEqual(toTenantV1(expectedTenant));
+      });
+      it("Should throw operation forbidden if role isn't internal", async () => {
+        await addOneTenant(tenant, postgresDB, tenants);
+        const mockAuthData = getMockAuthData(generateId<TenantId>());
+
+        expect(
+          tenantService.selfcareUpsertTenant({
+            tenantSeed,
+            authData: mockAuthData,
+            correlationId,
+          })
+        ).rejects.toThrowError(operationForbidden);
+      });
+      it("Should throw selfcareIdConflict error if the given and existing selfcareId differs", async () => {
+        const tenant: Tenant = {
+          ...mockTenant,
+          selfcareId: generateId(),
+        };
+        await addOneTenant(tenant, postgresDB, tenants);
+        const newTenantSeed = {
+          ...tenantSeed,
+          selfcareId: generateId(),
+        };
+        const mockAuthData = getMockAuthData(tenant.id);
+        expect(
+          tenantService.selfcareUpsertTenant({
+            tenantSeed: newTenantSeed,
+            authData: mockAuthData,
+            correlationId,
+          })
+        ).rejects.toThrowError(
+          selfcareIdConflict({
+            tenantId: tenant.id,
+            existingSelfcareId: tenant.selfcareId!,
+            newSelfcareId: newTenantSeed.selfcareId,
+          })
+        );
+      });
+    });
+    describe("updateTenantVerifiedAttribute", async () => {
+      const correlationId = generateId();
+      const expirationDate = new Date(
+        currentDate.setDate(currentDate.getDate() + 1)
+      );
+
+      const updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed =
+        {
+          expirationDate: expirationDate.toISOString(),
+        };
+
+      const tenant: Tenant = {
+        ...mockTenant,
+        attributes: [
+          {
+            ...mockVerifiedTenantAttribute,
+            verifiedBy: [
+              {
+                ...mockVerifiedBy,
+                expirationDate,
+              },
+            ],
+          },
+        ],
+        updatedAt: currentDate,
+        name: "A tenant",
+      };
+      const attributeId = tenant.attributes.map((a) => a.id)[0];
+      const verifierId = mockVerifiedBy.id;
+      it("Should update the expirationDate", async () => {
+        await addOneTenant(tenant, postgresDB, tenants);
+        await tenantService.updateTenantVerifiedAttribute({
+          verifierId,
+          tenantId: tenant.id,
+          attributeId,
+          updateVerifiedTenantAttributeSeed,
+          correlationId,
+        });
+        const writtenEvent: StoredEvent | undefined =
+          await readLastEventByStreamId(
+            tenant.id,
+            eventStoreSchema.tenant,
+            postgresDB
+          );
+        if (!writtenEvent) {
+          fail("Creation fails: tenant not found in event-store");
+        }
+        expect(writtenEvent).toBeDefined();
+        expect(writtenEvent.stream_id).toBe(tenant.id);
+        expect(writtenEvent.version).toBe("1");
+        expect(writtenEvent.type).toBe("TenantUpdated");
+        const writtenPayload: TenantUpdatedV1 | undefined = protobufDecoder(
+          TenantUpdatedV1
+        ).parse(writtenEvent.data);
+
+        if (!writtenPayload) {
+          fail("impossible to decode TenantUpdatedV1 data");
+        }
+
+        const updatedTenant: Tenant = {
+          ...tenant,
+          updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
+        };
+
+        expect(writtenPayload.tenant).toEqual(toTenantV1(updatedTenant));
+      });
+      it("Should throw tenantNotFound when tenant doesn't exist", async () => {
+        expect(
+          tenantService.updateTenantVerifiedAttribute({
+            verifierId,
+            tenantId: tenant.id,
+            attributeId,
+            updateVerifiedTenantAttributeSeed,
+            correlationId,
+          })
+        ).rejects.toThrowError(tenantNotFound(tenant.id));
+      });
+
+      it("Should throw expirationDateCannotBeInThePast when expiration date is in the past", async () => {
+        const expirationDateinPast = new Date(
+          currentDate.setDate(currentDate.getDate() - 3)
+        );
+
+        const updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed =
+          {
+            expirationDate: expirationDateinPast.toISOString(),
+          };
+
+        await addOneTenant(tenant, postgresDB, tenants);
+        expect(
+          tenantService.updateTenantVerifiedAttribute({
+            verifierId,
+            tenantId: tenant.id,
+            attributeId,
+            updateVerifiedTenantAttributeSeed,
+            correlationId,
+          })
+        ).rejects.toThrowError(
+          expirationDateCannotBeInThePast(expirationDateinPast)
+        );
+      });
+      it("Should throw verifiedAttributeNotFoundInTenant when the attribute is not verified", async () => {
+        const updatedCertifiedTenant: Tenant = {
+          ...mockTenant,
+          attributes: [{ ...getMockCertifiedTenantAttribute() }],
+          updatedAt: currentDate,
+          name: "A updatedCertifiedTenant",
+        };
+        const attributeId = updatedCertifiedTenant.attributes.map(
+          (a) => a.id
+        )[0];
+        await addOneTenant(updatedCertifiedTenant, postgresDB, tenants);
+        expect(
+          tenantService.updateTenantVerifiedAttribute({
+            verifierId: generateId(),
+            tenantId: updatedCertifiedTenant.id,
+            attributeId,
+            updateVerifiedTenantAttributeSeed,
+            correlationId,
+          })
+        ).rejects.toThrowError(
+          verifiedAttributeNotFoundInTenant(
+            updatedCertifiedTenant.id,
+            attributeId
+          )
+        );
+      });
+      it("Should throw organizationNotFoundInVerifiers when the organization is not verified", async () => {
+        await addOneTenant(tenant, postgresDB, tenants);
+        const verifierId = generateId();
+        expect(
+          tenantService.updateTenantVerifiedAttribute({
+            verifierId,
+            tenantId: tenant.id,
+            attributeId,
+            updateVerifiedTenantAttributeSeed,
+            correlationId,
+          })
+        ).rejects.toThrowError(
+          organizationNotFoundInVerifiers(verifierId, tenant.id, attributeId)
+        );
       });
     });
     describe("updateTenantVerifiedAttribute", async () => {
@@ -269,6 +557,9 @@ describe("Integration tests", () => {
     });
     describe("updateVerifiedAttributeExtensionDate", async () => {
       const correlationId = generateId();
+      const expirationDate = new Date(
+        currentDate.setDate(currentDate.getDate() + 1)
+      );
 
       const tenant: Tenant = {
         ...mockTenant,
