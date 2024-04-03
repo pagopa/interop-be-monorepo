@@ -69,7 +69,7 @@ const attributeRouter = (
         try {
           const { limit, offset, kinds, name, origin } = req.query;
           const attributes =
-            await readModelService.getAttributesByKindsNameOrigin({
+            await attributeRegistryService.getAttributesByKindsNameOrigin({
               kinds: kinds.map(toAttributeKind),
               name,
               origin,
@@ -100,7 +100,7 @@ const attributeRouter = (
       ]),
       async (req, res) => {
         try {
-          const attribute = await readModelService.getAttributeByName(
+          const attribute = await attributeRegistryService.getAttributeByName(
             req.params.name
           );
 
@@ -135,10 +135,11 @@ const attributeRouter = (
         try {
           const { origin, code } = req.params;
 
-          const attribute = await readModelService.getAttributeByOriginAndCode({
-            origin,
-            code,
-          });
+          const attribute =
+            await attributeRegistryService.getAttributeByOriginAndCode({
+              origin,
+              code,
+            });
           if (attribute) {
             return res.status(200).json(toApiAttribute(attribute.data)).end();
           } else {
@@ -169,7 +170,7 @@ const attributeRouter = (
       ]),
       async (req, res) => {
         try {
-          const attribute = await readModelService.getAttributeById(
+          const attribute = await attributeRegistryService.getAttributeById(
             unsafeBrandId(req.params.attributeId)
           );
 
@@ -204,7 +205,7 @@ const attributeRouter = (
         const { limit, offset } = req.query;
 
         try {
-          const attributes = await readModelService.getAttributesByIds({
+          const attributes = await attributeRegistryService.getAttributesByIds({
             ids: req.body.map((a) => unsafeBrandId(a)),
             offset,
             limit,
