@@ -16,7 +16,7 @@
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
     "start": "node --watch --no-warnings --loader ts-node/esm -r 'dotenv-flow/config' ./src/index.ts",
-    "build": "tsc"    
+    "build": "tsc"
   },
   "keywords": [],
   "author": "",
@@ -32,7 +32,9 @@
     "kafkajs": "2.2.4",
     "@types/uuid": "^9.0.2",
     "mkdirp": "^3.0.1",
-    "tsc-esm-fix": "^2.20.15"
+    "tsc-esm-fix": "^2.20.15",
+    "testcontainers": "^10.2.2",
+    "vitest": "^0.33.0"
   },
   "dependencies": {
     "@protobuf-ts/plugin": "^2.9.1",
@@ -43,10 +45,8 @@
     "kafka-iam-auth": "workspace:*",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:^",
-    "testcontainers": "^10.2.2",
     "ts-pattern": "^5.0.6",
     "uuid": "^9.0.0",
-    "vitest": "^0.33.0",
     "zod": "^3.0.0"
   }
 }
