@@ -927,10 +927,16 @@ describe("Agreement service", () => {
         10,
         0
       );
-      expect(agreements2.totalCount).toEqual(4);
-      expect(agreements2.results).toEqual(
-        expect.arrayContaining([agreement1, agreement2, agreement3, agreement4])
-      );
+
+      expect(agreements2).toEqual({
+        totalCount: 4,
+        results: expect.arrayContaining([
+          agreement1,
+          agreement2,
+          agreement3,
+          agreement4,
+        ]),
+      });
     });
 
     it("should get agreements with filters: consumerId", async () => {
@@ -1293,14 +1299,14 @@ describe("Agreement service", () => {
           0
         );
 
-        expect(consumers.totalCount).toEqual(5);
-        expect(consumers.results).toEqual(
-          expect.arrayContaining(
+        expect(consumers).toEqual({
+          totalCount: 5,
+          results: expect.arrayContaining(
             [tenant2, tenant3, tenant4, tenant5, tenant6].map(
               toCompactOrganization
             )
-          )
-        );
+          ),
+        });
       });
       it("should get agreement consumers filtered by name", async () => {
         const consumers = await agreementService.getAgreementConsumers(
@@ -1308,10 +1314,13 @@ describe("Agreement service", () => {
           10,
           0
         );
-        expect(consumers.totalCount).toEqual(2);
-        expect(consumers.results).toEqual(
-          expect.arrayContaining([tenant3, tenant6].map(toCompactOrganization))
-        );
+
+        expect(consumers).toEqual({
+          totalCount: 2,
+          results: expect.arrayContaining(
+            [tenant3, tenant6].map(toCompactOrganization)
+          ),
+        });
       });
       it("should get agreeement consumers with limit", async () => {
         const consumers = await agreementService.getAgreementConsumers(
@@ -1319,11 +1328,13 @@ describe("Agreement service", () => {
           2,
           0
         );
-        expect(consumers.totalCount).toEqual(5);
-        expect(consumers.results.length).toEqual(2);
-        expect(consumers.results).toEqual(
-          expect.arrayContaining([tenant2, tenant3].map(toCompactOrganization))
-        );
+
+        expect(consumers).toEqual({
+          totalCount: 5,
+          results: expect.arrayContaining(
+            [tenant2, tenant3].map(toCompactOrganization)
+          ),
+        });
       });
       it("should get agreement consumers with offset and limit", async () => {
         const consumers = await agreementService.getAgreementConsumers(
@@ -1331,11 +1342,13 @@ describe("Agreement service", () => {
           2,
           1
         );
-        expect(consumers.totalCount).toEqual(5);
-        expect(consumers.results.length).toEqual(2);
-        expect(consumers.results).toEqual(
-          expect.arrayContaining([tenant3, tenant4].map(toCompactOrganization))
-        );
+
+        expect(consumers).toEqual({
+          totalCount: 5,
+          results: expect.arrayContaining(
+            [tenant3, tenant4].map(toCompactOrganization)
+          ),
+        });
       });
       it("should get agreement consumers with offset, limit, and name filter", async () => {
         const consumers = await agreementService.getAgreementConsumers(
@@ -1343,11 +1356,11 @@ describe("Agreement service", () => {
           1,
           1
         );
-        expect(consumers.totalCount).toEqual(2);
-        expect(consumers.results.length).toEqual(1);
-        expect(consumers.results).toEqual(
-          expect.arrayContaining([tenant6].map(toCompactOrganization))
-        );
+
+        expect(consumers).toEqual({
+          totalCount: 2,
+          results: expect.arrayContaining([tenant6].map(toCompactOrganization)),
+        });
       });
     });
     describe("get agreement producers", () => {
@@ -1358,12 +1371,12 @@ describe("Agreement service", () => {
           0
         );
 
-        expect(producers.totalCount).toEqual(3);
-        expect(producers.results).toEqual(
-          expect.arrayContaining(
+        expect(producers).toEqual({
+          totalCount: 3,
+          results: expect.arrayContaining(
             [tenant1, tenant2, tenant3].map(toCompactOrganization)
-          )
-        );
+          ),
+        });
       });
       it("should get agreement producers filtered by name", async () => {
         const producers = await agreementService.getAgreementProducers(
@@ -1371,10 +1384,13 @@ describe("Agreement service", () => {
           10,
           0
         );
-        expect(producers.totalCount).toEqual(2);
-        expect(producers.results).toEqual(
-          expect.arrayContaining([tenant2, tenant3].map(toCompactOrganization))
-        );
+
+        expect(producers).toEqual({
+          totalCount: 2,
+          results: expect.arrayContaining(
+            [tenant2, tenant3].map(toCompactOrganization)
+          ),
+        });
       });
       it("should get agreeement producers with limit", async () => {
         const producers = await agreementService.getAgreementProducers(
@@ -1382,11 +1398,13 @@ describe("Agreement service", () => {
           2,
           0
         );
-        expect(producers.totalCount).toEqual(3);
-        expect(producers.results.length).toEqual(2);
-        expect(producers.results).toEqual(
-          expect.arrayContaining([tenant1, tenant2].map(toCompactOrganization))
-        );
+
+        expect(producers).toEqual({
+          totalCount: 3,
+          results: expect.arrayContaining(
+            [tenant1, tenant2].map(toCompactOrganization)
+          ),
+        });
       });
       it("should get agreement producers with offset and limit", async () => {
         const producers = await agreementService.getAgreementProducers(
@@ -1394,11 +1412,13 @@ describe("Agreement service", () => {
           2,
           1
         );
-        expect(producers.totalCount).toEqual(3);
-        expect(producers.results.length).toEqual(2);
-        expect(producers.results).toEqual(
-          expect.arrayContaining([tenant2, tenant3].map(toCompactOrganization))
-        );
+
+        expect(producers).toEqual({
+          totalCount: 3,
+          results: expect.arrayContaining(
+            [tenant2, tenant3].map(toCompactOrganization)
+          ),
+        });
       });
       it("should get agreement producers with offset, limit, and name filter", async () => {
         const producers = await agreementService.getAgreementProducers(
@@ -1406,11 +1426,11 @@ describe("Agreement service", () => {
           1,
           1
         );
-        expect(producers.totalCount).toEqual(2);
-        expect(producers.results.length).toEqual(1);
-        expect(producers.results).toEqual(
-          expect.arrayContaining([tenant3].map(toCompactOrganization))
-        );
+
+        expect(producers).toEqual({
+          totalCount: 2,
+          results: expect.arrayContaining([tenant3].map(toCompactOrganization)),
+        });
       });
     });
   });
