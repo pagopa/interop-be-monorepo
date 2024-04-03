@@ -26,7 +26,7 @@ const queueManager = initQueueManager({
   logLevel: logConfig.logLevel,
 });
 
-function processMessage(topicConfig: CatalogTopicConfig) {
+export function processMessage(topicConfig: CatalogTopicConfig) {
   return async (kafkaMessage: EachMessagePayload): Promise<void> => {
     const messageDecoder = messageDecoderSupplier(
       topicConfig,
