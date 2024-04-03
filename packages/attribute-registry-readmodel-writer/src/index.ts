@@ -1,16 +1,21 @@
+/* eslint-disable functional/immutable-data */
 import { Kafka, KafkaMessage } from "kafkajs";
 import {
-  readModelWriterConfig,
+  ReadModelRepository,
   attributeTopicConfig,
   decodeKafkaMessage,
+  getContext,
   logger,
+  readModelWriterConfig,
 } from "pagopa-interop-commons";
 import { createMechanism } from "@jm18457/kafkajs-msk-iam-authentication-mechanism";
 import { AttributeEvent } from "pagopa-interop-models";
 import { handleMessage } from "./attributeRegistryConsumerService.js";
 
 const config = readModelWriterConfig();
+const { attributes } = ReadModelRepository.init(config);
 const { attributeTopic } = attributeTopicConfig();
+
 const kafkaConfig = config.kafkaDisableAwsIamAuth
   ? {
       clientId: config.kafkaClientId,
@@ -45,7 +50,16 @@ await consumer.subscribe({
 
 async function processMessage(message: KafkaMessage): Promise<void> {
   try {
-    await handleMessage(decodeKafkaMessage(message, AttributeEvent));
+    const msg = decodeKafkaMessage(message, AttributeEvent);
+    const ctx = getContext();
+    ctx.messageData = {
+      eventType: msg.type,
+      eventVersion: msg.event_version,
+      streamId: msg.stream_id,
+    };
+    ctx.correlationId = msg.correlation_id;
+
+    await handleMessage(msg, attributes);
 
     logger.info("Read model was updated");
   } catch (e) {

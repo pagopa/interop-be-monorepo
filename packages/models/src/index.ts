@@ -7,6 +7,7 @@ export * from "./agreement/agreementEvents.js";
 export * from "./agreement/protobufConverter.js";
 
 export * from "./attribute/attribute.js";
+export * from "./attribute/attributeReadModelAdapter.js";
 export * from "./attribute/attributeEvents.js";
 export * from "./attribute/protobufConverter.js";
 
@@ -14,8 +15,9 @@ export * from "./email/email.js";
 
 export * from "./eservice/eservice.js";
 export * from "./eservice/eserviceReadModelAdapter.js";
-export * from "./eservice/protobufConverterV1.js";
-export * from "./eservice/protobufConverterV2.js";
+export * from "./eservice/protobufConverterFromV1.js";
+export * from "./eservice/protobufConverterFromV2.js";
+export * from "./eservice/protobufConverterToV2.js";
 export * from "./eservice/eserviceEvents.js";
 
 export * from "./institution/institution.js";
@@ -33,6 +35,7 @@ export * from "./protobuf/protobuf.js";
 export * from "./protobuf/utils.js";
 
 // Read models
+export * from "./read-models/attributeReadModel.js";
 export * from "./read-models/eserviceReadModel.js";
 export * from "./read-models/readModels.js";
 

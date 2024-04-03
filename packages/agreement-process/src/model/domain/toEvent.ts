@@ -1,23 +1,18 @@
 import { CreateEvent } from "pagopa-interop-commons";
 import {
   Agreement,
-  AgreementAddConsumerDocumentEvent,
-  AgreementAddContractEvent,
-  AgreementAddEvent,
-  AgreementDeleteEvent,
   AgreementDocument,
   AgreementDocumentV1,
   AgreementStamp,
   AgreementStamps,
   AgreementState,
   AgreementStateV1,
-  AgreementUpdateEvent,
   AgreementV1,
   StampV1,
   StampsV1,
   AgreementId,
   AgreementDocumentId,
-  AgreementRemoveConsumerDocumentEvent,
+  AgreementEvent,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -76,8 +71,9 @@ export const toAgreementV1 = (input: Agreement): AgreementV1 => ({
 
 export function toCreateEventAgreementDeleted(
   streamId: string,
-  version: number
-): CreateEvent<AgreementDeleteEvent> {
+  version: number,
+  correlationId: string
+): CreateEvent<AgreementEvent> {
   return {
     streamId,
     version,
@@ -88,12 +84,14 @@ export function toCreateEventAgreementDeleted(
         agreementId: streamId,
       },
     },
+    correlationId,
   };
 }
 
 export function toCreateEventAgreementAdded(
-  agreement: Agreement
-): CreateEvent<AgreementAddEvent> {
+  agreement: Agreement,
+  correlationId: string
+): CreateEvent<AgreementEvent> {
   return {
     streamId: agreement.id,
     version: 0,
@@ -104,13 +102,15 @@ export function toCreateEventAgreementAdded(
         agreement: toAgreementV1(agreement),
       },
     },
+    correlationId,
   };
 }
 
 export function toCreateEventAgreementUpdated(
   agreement: Agreement,
-  version: number
-): CreateEvent<AgreementUpdateEvent> {
+  version: number,
+  correlationId: string
+): CreateEvent<AgreementEvent> {
   return {
     streamId: agreement.id,
     version,
@@ -121,14 +121,16 @@ export function toCreateEventAgreementUpdated(
         agreement: toAgreementV1(agreement),
       },
     },
+    correlationId,
   };
 }
 
 export function toCreateEventAgreementContractAdded(
   agreementId: AgreementId,
   agreementDocument: AgreementDocument,
-  version: number
-): CreateEvent<AgreementAddContractEvent> {
+  version: number,
+  correlationId: string
+): CreateEvent<AgreementEvent> {
   return {
     streamId: agreementId,
     version,
@@ -140,14 +142,16 @@ export function toCreateEventAgreementContractAdded(
         contract: toAgreementDocumentV1(agreementDocument),
       },
     },
+    correlationId,
   };
 }
 
 export function toCreateEventAgreementConsumerDocumentAdded(
   agreementId: AgreementId,
   agreementDocument: AgreementDocument,
-  version: number
-): CreateEvent<AgreementAddConsumerDocumentEvent> {
+  version: number,
+  correlationId: string
+): CreateEvent<AgreementEvent> {
   return {
     streamId: agreementId,
     version,
@@ -159,14 +163,16 @@ export function toCreateEventAgreementConsumerDocumentAdded(
         document: toAgreementDocumentV1(agreementDocument),
       },
     },
+    correlationId,
   };
 }
 
 export function toCreateEventAgreementConsumerDocumentRemoved(
   agreementId: AgreementId,
   documentId: AgreementDocumentId,
-  version: number
-): CreateEvent<AgreementRemoveConsumerDocumentEvent> {
+  version: number,
+  correlationId: string
+): CreateEvent<AgreementEvent> {
   return {
     streamId: agreementId,
     version,
@@ -178,5 +184,6 @@ export function toCreateEventAgreementConsumerDocumentRemoved(
         documentId,
       },
     },
+    correlationId,
   };
 }

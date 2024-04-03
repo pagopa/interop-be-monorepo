@@ -29,6 +29,7 @@ import { IDatabase } from "pg-promise";
 import {
   Attribute,
   AttributeAddedV1,
+  AttributeId,
   Tenant,
   attributeKind,
   generateId,
@@ -46,6 +47,7 @@ import {
 import {
   OrganizationIsNotACertifier,
   attributeDuplicate,
+  attributeNotFound,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 import { toAttributeV1 } from "../src/model/domain/toEvent.js";
@@ -120,7 +122,8 @@ describe("database test", () => {
             name: mockAttribute.name,
             description: mockAttribute.description,
           },
-          getMockAuthData()
+          getMockAuthData(),
+          uuidv4()
         );
         expect(id).toBeDefined();
 
@@ -155,7 +158,8 @@ describe("database test", () => {
               name: attribute.name,
               description: attribute.description,
             },
-            getMockAuthData()
+            getMockAuthData(),
+            uuidv4()
           )
         ).rejects.toThrowError(attributeDuplicate(attribute.name));
       });
@@ -167,7 +171,8 @@ describe("database test", () => {
             name: mockAttribute.name,
             description: mockAttribute.description,
           },
-          getMockAuthData()
+          getMockAuthData(),
+          uuidv4()
         );
         expect(id).toBeDefined();
 
@@ -203,7 +208,8 @@ describe("database test", () => {
               name: attribute.name,
               description: attribute.description,
             },
-            getMockAuthData()
+            getMockAuthData(),
+            uuidv4()
           )
         ).rejects.toThrowError(attributeDuplicate(attribute.name));
       });
@@ -228,7 +234,8 @@ describe("database test", () => {
             code: "code",
             description: mockAttribute.description,
           },
-          getMockAuthData(tenant.id)
+          getMockAuthData(tenant.id),
+          uuidv4()
         );
         expect(id).toBeDefined();
 
@@ -277,7 +284,8 @@ describe("database test", () => {
               code: attribute.code,
               description: attribute.description,
             },
-            getMockAuthData(tenant.id)
+            getMockAuthData(tenant.id),
+            uuidv4()
           )
         ).rejects.toThrowError(attributeDuplicate(attribute.name));
       });
@@ -291,7 +299,8 @@ describe("database test", () => {
               code: "code",
               description: mockAttribute.description,
             },
-            getMockAuthData(mockTenant.id)
+            getMockAuthData(mockTenant.id),
+            uuidv4()
           )
         ).rejects.toThrowError(OrganizationIsNotACertifier(mockTenant.id));
       });
@@ -304,7 +313,8 @@ describe("database test", () => {
               code: "code",
               description: mockAttribute.description,
             },
-            getMockAuthData(mockTenant.id)
+            getMockAuthData(mockTenant.id),
+            uuidv4()
           )
         ).rejects.toThrowError(tenantNotFound(mockTenant.id));
       });
@@ -324,12 +334,15 @@ describe("database test", () => {
         await addOneTenant(tenant, tenants);
 
         const id =
-          await attributeRegistryService.createInternalCertifiedAttribute({
-            name: mockAttribute.name,
-            code: "code",
-            origin: tenant.features[0].certifierId,
-            description: mockAttribute.description,
-          });
+          await attributeRegistryService.createInternalCertifiedAttribute(
+            {
+              name: mockAttribute.name,
+              code: "code",
+              origin: tenant.features[0].certifierId,
+              description: mockAttribute.description,
+            },
+            uuidv4()
+          );
         expect(id).toBeDefined();
 
         const writtenEvent = await readLastAttributeEvent(id, postgresDB);
@@ -371,12 +384,15 @@ describe("database test", () => {
         await addOneTenant(tenant, tenants);
         await addOneAttribute(attribute, postgresDB, attributes);
         expect(
-          attributeRegistryService.createInternalCertifiedAttribute({
-            name: attribute.name,
-            code: attribute.code,
-            origin: tenant.features[0].certifierId,
-            description: attribute.description,
-          })
+          attributeRegistryService.createInternalCertifiedAttribute(
+            {
+              name: attribute.name,
+              code: attribute.code,
+              origin: tenant.features[0].certifierId,
+              description: attribute.description,
+            },
+            uuidv4()
+          )
         ).rejects.toThrowError(attributeDuplicate(attribute.name));
       });
     });
@@ -573,46 +589,48 @@ describe("database test", () => {
       });
       describe("getAttributeById", () => {
         it("should get the attribute if it exists", async () => {
-          const attribute = await readModelService.getAttributeById(
+          const attribute = await attributeRegistryService.getAttributeById(
             attribute1.id
           );
           expect(attribute?.data).toEqual(attribute1);
         });
-        it("should not get the attribute if it doesn't exist", async () => {
-          const attribute = await readModelService.getAttributeById(
-            generateId()
-          );
-          expect(attribute).toBeUndefined();
+        it("should throw attributeNotFound if the attribute doesn't exist", async () => {
+          const id = generateId<AttributeId>();
+          expect(
+            attributeRegistryService.getAttributeById(id)
+          ).rejects.toThrowError(attributeNotFound(id));
         });
       });
       describe("getAttributeByName", () => {
         it("should get the attribute if it exists", async () => {
-          const attribute = await readModelService.getAttributeByName(
+          const attribute = await attributeRegistryService.getAttributeByName(
             attribute1.name
           );
           expect(attribute?.data).toEqual(attribute1);
         });
-        it("should not get the attribute if it doesn't exist", async () => {
-          const attribute = await readModelService.getAttributeByName(
-            "not-existing"
-          );
-          expect(attribute).toBeUndefined();
+        it("should throw attributeNotFound if the attribute doesn't exist", async () => {
+          const name = "not-existing";
+          expect(
+            attributeRegistryService.getAttributeByName(name)
+          ).rejects.toThrowError(attributeNotFound(name));
         });
       });
       describe("getAttributeByOriginAndCode", () => {
         it("should get the attribute if it exists", async () => {
-          const attribute = await readModelService.getAttributeByOriginAndCode({
-            origin: "IPA",
-            code: "12345A",
-          });
+          const attribute =
+            await attributeRegistryService.getAttributeByOriginAndCode({
+              origin: "IPA",
+              code: "12345A",
+            });
           expect(attribute?.data).toEqual(attribute1);
         });
-        it("should not get the attribute if it doesn't exist", async () => {
-          const attribute = await readModelService.getAttributeByOriginAndCode({
-            origin: "IPA",
-            code: "12345D",
-          });
-          expect(attribute).toBeUndefined();
+        it("should throw attributeNotFound if the attribute doesn't exist", async () => {
+          expect(
+            attributeRegistryService.getAttributeByOriginAndCode({
+              origin: "IPA",
+              code: "12345D",
+            })
+          ).rejects.toThrowError(attributeNotFound("IPA/12345D"));
         });
       });
     });
