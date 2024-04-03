@@ -5,7 +5,11 @@ import {
   WithMetadata,
 } from "pagopa-interop-models";
 import { CompactOrganization } from "../../model/domain/models.js";
-import { AgreementQueryFilters, ReadModelService } from "./readModelService.js";
+import {
+  AgreementEServicesQueryFilters,
+  AgreementQueryFilters,
+  ReadModelService,
+} from "./readModelService.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function agreementQueryBuilder(readModelService: ReadModelService) {
@@ -37,19 +41,11 @@ export function agreementQueryBuilder(readModelService: ReadModelService) {
     ): Promise<ListResult<CompactOrganization>> =>
       readModelService.listProducers(name, limit, offset),
     getEServices: (
-      eserviceName: string | undefined,
-      consumerIds: string[],
-      producerIds: string[],
+      filters: AgreementEServicesQueryFilters,
       limit: number,
       offset: number
     ): Promise<ListResult<CompactOrganization>> =>
-      readModelService.listAgreementsEServices(
-        eserviceName,
-        consumerIds,
-        producerIds,
-        limit,
-        offset
-      ),
+      readModelService.listAgreementsEServices(filters, limit, offset),
   };
 }
 

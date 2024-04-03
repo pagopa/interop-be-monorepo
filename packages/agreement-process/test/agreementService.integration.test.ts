@@ -1529,9 +1529,12 @@ describe("Agreement service", () => {
 
     it("should get all agreement eservices", async () => {
       const eservices = await agreementService.getAgreementEServices(
-        undefined,
-        [],
-        [],
+        {
+          eserviceName: undefined,
+          consumerIds: [],
+          producerIds: [],
+          agreeementStates: [],
+        },
         10,
         0
       );
@@ -1546,9 +1549,12 @@ describe("Agreement service", () => {
 
     it("should get agreement eservices filtered by name", async () => {
       const eservices = await agreementService.getAgreementEServices(
-        "Foo",
-        [],
-        [],
+        {
+          eserviceName: "Foo",
+          consumerIds: [],
+          producerIds: [],
+          agreeementStates: [],
+        },
         10,
         0
       );
@@ -1560,9 +1566,12 @@ describe("Agreement service", () => {
 
     it("should get agreement eservices filtered by consumerId", async () => {
       const eservices = await agreementService.getAgreementEServices(
-        undefined,
-        [tenant2.id, tenant3.id],
-        [],
+        {
+          eserviceName: undefined,
+          consumerIds: [tenant2.id, tenant3.id],
+          producerIds: [],
+          agreeementStates: [],
+        },
         10,
         0
       );
@@ -1574,9 +1583,12 @@ describe("Agreement service", () => {
 
     it("should get agreement eservices filtered by producerId", async () => {
       const eservices = await agreementService.getAgreementEServices(
-        undefined,
-        [],
-        [tenant1.id, tenant2.id],
+        {
+          eserviceName: undefined,
+          consumerIds: [],
+          producerIds: [tenant1.id, tenant2.id],
+          agreeementStates: [],
+        },
         10,
         0
       );
@@ -1588,9 +1600,12 @@ describe("Agreement service", () => {
 
     it("should get agreement eservices with filters: name, consumerId, producerId", async () => {
       const eservices = await agreementService.getAgreementEServices(
-        "Foo",
-        [tenant2.id],
-        [tenant1.id],
+        {
+          eserviceName: "Foo",
+          consumerIds: [tenant2.id],
+          producerIds: [tenant1.id],
+          agreeementStates: [],
+        },
         10,
         0
       );
@@ -1602,9 +1617,12 @@ describe("Agreement service", () => {
 
     it("should get agreement eservices with limit", async () => {
       const eservices = await agreementService.getAgreementEServices(
-        undefined,
-        [],
-        [],
+        {
+          eserviceName: undefined,
+          consumerIds: [],
+          producerIds: [],
+          agreeementStates: [],
+        },
         2,
         0
       );
@@ -1617,9 +1635,12 @@ describe("Agreement service", () => {
 
     it("should get agreement eservices with offset and limit", async () => {
       const eservices = await agreementService.getAgreementEServices(
-        undefined,
-        [],
-        [],
+        {
+          eserviceName: undefined,
+          consumerIds: [],
+          producerIds: [],
+          agreeementStates: [],
+        },
         2,
         1
       );
@@ -1632,9 +1653,12 @@ describe("Agreement service", () => {
 
     it("should get no agreement eservices in case no filters match", async () => {
       const eservices = await agreementService.getAgreementEServices(
-        "Not existing name",
-        [],
-        [],
+        {
+          eserviceName: "Not existing name",
+          consumerIds: [],
+          producerIds: [],
+          agreeementStates: [],
+        },
         10,
         0
       );

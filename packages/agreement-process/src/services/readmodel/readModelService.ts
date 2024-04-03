@@ -26,6 +26,7 @@ import {
   genericError,
   EServiceId,
   AttributeReadmodel,
+  TenantId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { z } from "zod";
@@ -36,13 +37,20 @@ import {
 } from "../../model/domain/models.js";
 
 export type AgreementQueryFilters = {
-  producerId?: string | string[];
-  consumerId?: string | string[];
+  producerId?: TenantId | TenantId[];
+  consumerId?: TenantId | TenantId[];
   eserviceId?: EServiceId | EServiceId[];
   descriptorId?: DescriptorId | DescriptorId[];
   agreementStates?: AgreementState[];
   attributeId?: AttributeId | AttributeId[];
   showOnlyUpgradeable?: boolean;
+};
+
+export type AgreementEServicesQueryFilters = {
+  eserviceName: string | undefined;
+  consumerIds: TenantId[];
+  producerIds: TenantId[];
+  agreeementStates: AgreementState[];
 };
 
 type AgreementDataFields = RemoveDataPrefix<MongoQueryKeys<Agreement>>;
@@ -496,9 +504,7 @@ export function readModelServiceBuilder(
       return searchTenantsByName(agreements, name, "producerId", limit, offset);
     },
     async listAgreementsEServices(
-      eserviceName: string | undefined,
-      consumerIds: string[],
-      producerIds: string[],
+      filters: AgreementEServicesQueryFilters,
       limit: number,
       offset: number
     ): Promise<ListResult<CompactEService>> {
@@ -519,11 +525,11 @@ export function readModelServiceBuilder(
         },
         {
           $match: {
-            ...makeFilter("consumerId", consumerIds),
-            ...makeFilter("producerId", producerIds),
+            ...makeFilter("consumerId", filters.consumerIds),
+            ...makeFilter("producerId", filters.producerIds),
             "eservices.data.name": {
               $regex: new RegExp(
-                ReadModelRepository.escapeRegExp(eserviceName || ""),
+                ReadModelRepository.escapeRegExp(filters.eserviceName || ""),
                 "i"
               ),
             },
