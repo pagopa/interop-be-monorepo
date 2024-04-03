@@ -67,6 +67,7 @@ import {
   operationForbidden,
   tenantKind,
   unsafeBrandId,
+  toEServiceV2,
 } from "pagopa-interop-models";
 import {
   TEST_MINIO_PORT,
@@ -117,7 +118,6 @@ import {
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 import { formatClonedEServiceDate } from "../src/utilities/date.js";
-import { toEServiceV2 } from "../src/model/domain/toEvent.js";
 import {
   addOneAgreement,
   addOneEService,

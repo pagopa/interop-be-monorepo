@@ -119,8 +119,8 @@ export function assertAgreementExist(
 
 export function assertEServiceExist(
   eserviceId: EServiceId,
-  eservice: WithMetadata<EService> | undefined
-): asserts eservice is NonNullable<WithMetadata<EService>> {
+  eservice: EService | undefined
+): asserts eservice is NonNullable<EService> {
   if (eservice === undefined) {
     throw eServiceNotFound(eserviceId);
   }
@@ -130,7 +130,10 @@ export const assertRequesterIsConsumer = (
   agreement: Agreement,
   authData: AuthData
 ): void => {
-  if (authData.organizationId !== agreement.consumerId) {
+  if (
+    !authData.userRoles.includes("internal") &&
+    authData.organizationId !== agreement.consumerId
+  ) {
     throw operationNotAllowed(authData.organizationId);
   }
 };
@@ -139,7 +142,10 @@ export function assertRequesterIsProducer(
   agreement: Agreement,
   authData: AuthData
 ): void {
-  if (authData.organizationId !== agreement.producerId) {
+  if (
+    !authData.userRoles.includes("internal") &&
+    authData.organizationId !== agreement.producerId
+  ) {
     throw operationNotAllowed(authData.organizationId);
   }
 }
@@ -176,8 +182,8 @@ export const assertExpectedState = (
 
 export function assertTenantExist(
   tenantId: string,
-  tenant: WithMetadata<Tenant> | undefined
-): asserts tenant is NonNullable<WithMetadata<Tenant>> {
+  tenant: Tenant | undefined
+): asserts tenant is NonNullable<Tenant> {
   if (tenant === undefined) {
     throw tenantIdNotFound(tenantId);
   }

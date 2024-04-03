@@ -1,5 +1,4 @@
 /* eslint-disable functional/immutable-data */
-import { v4 as uuidv4 } from "uuid";
 import { runConsumer } from "kafka-iam-auth";
 import { match } from "ts-pattern";
 import { EachMessagePayload } from "kafkajs";
@@ -16,6 +15,7 @@ import {
   EServiceV2,
   fromEServiceV2,
   missingKafkaMessageDataError,
+  kafkaMessageProcessError,
   EServiceId,
   EService,
 } from "pagopa-interop-models";
@@ -23,6 +23,7 @@ import {
   AuthorizationService,
   authorizationServiceBuilder,
 } from "./authorizationService.js";
+import { ApiClientComponent } from "./model/models.js";
 
 const getDescriptorFromEvent = (
   msg: {
@@ -73,16 +74,21 @@ function processMessage(
 ) {
   return async (messagePayload: EachMessagePayload): Promise<void> => {
     try {
-      const appContext = getContext();
-      appContext.correlationId = uuidv4();
-
       const messageDecoder = messageDecoderSupplier(
         topicConfig,
         messagePayload.topic
       );
       const decodedMsg = messageDecoder(messagePayload.message);
 
-      match(decodedMsg)
+      const ctx = getContext();
+      ctx.messageData = {
+        eventType: decodedMsg.type,
+        eventVersion: decodedMsg.event_version,
+        streamId: decodedMsg.stream_id,
+      };
+      ctx.correlationId = decodedMsg.correlation_id;
+
+      const updateSeed = match(decodedMsg)
         .with(
           {
             event_version: 2,
@@ -92,17 +98,16 @@ function processMessage(
             event_version: 2,
             type: "EServiceDescriptorActivated",
           },
-          async (msg) => {
+          (msg) => {
             const data = getDescriptorFromEvent(msg, decodedMsg.type);
-            await executeUpdate(decodedMsg.type, messagePayload, () =>
-              authService.updateEServiceState(
-                "ACTIVE",
-                data.descriptor.id,
-                data.eserviceId,
-                data.descriptor.audience,
-                data.descriptor.voucherLifespan
-              )
-            );
+            return {
+              state: "ACTIVE",
+              descriptorId: data.descriptor.id,
+              eserviceId: data.eserviceId,
+              audience: data.descriptor.audience,
+              voucherLifespan: data.descriptor.voucherLifespan,
+              eventType: decodedMsg.type,
+            };
           }
         )
         .with(
@@ -114,22 +119,37 @@ function processMessage(
             event_version: 2,
             type: "EServiceDescriptorArchived",
           },
-          async (msg) => {
+          (msg) => {
             const data = getDescriptorFromEvent(msg, decodedMsg.type);
-            await executeUpdate(decodedMsg.type, messagePayload, () =>
-              authService.updateEServiceState(
-                "INACTIVE",
-                data.descriptor.id,
-                data.eserviceId,
-                data.descriptor.audience,
-                data.descriptor.voucherLifespan
-              )
-            );
+            return {
+              state: "INACTIVE",
+              descriptorId: data.descriptor.id,
+              eserviceId: data.eserviceId,
+              audience: data.descriptor.audience,
+              voucherLifespan: data.descriptor.voucherLifespan,
+              eventType: decodedMsg.type,
+            };
           }
+        )
+        .otherwise(() => undefined);
+
+      if (updateSeed) {
+        await executeUpdate(updateSeed.eventType, messagePayload, () =>
+          authService.updateEServiceState(
+            ApiClientComponent.parse(updateSeed.state),
+            updateSeed.descriptorId,
+            updateSeed.eserviceId,
+            updateSeed.audience,
+            updateSeed.voucherLifespan
+          )
         );
+      }
     } catch (e) {
-      logger.error(
-        ` Error during message handling. Partition number: ${messagePayload.partition}. Offset: ${messagePayload.message.offset}.\nError: ${e}`
+      throw kafkaMessageProcessError(
+        messagePayload.topic,
+        messagePayload.partition,
+        messagePayload.message.offset,
+        e
       );
     }
   };
