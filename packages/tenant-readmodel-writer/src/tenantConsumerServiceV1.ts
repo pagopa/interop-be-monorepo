@@ -8,7 +8,7 @@ import { TenantEventEnvelopeV1, fromTenantV1 } from "pagopa-interop-models";
 
 const { tenants } = ReadModelRepository.init(readModelWriterConfig());
 
-export async function handleMessage(
+export async function handleMessageV1(
   message: TenantEventEnvelopeV1
 ): Promise<void> {
   logger.info(message);
