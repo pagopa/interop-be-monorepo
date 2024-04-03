@@ -47,6 +47,11 @@ message TenantVerifiedAttributeExpirationUpdatedV2 {
   required TenantV2 tenant = 2;
 }
 
+message TenantVerifiedAttributeExtensionUpdatedV2 {
+  required string attributeId = 1;
+  required TenantV2 tenant = 2;
+}
+
 message MaintenanceTenantDeletedV2 {
   required string tenantId = 1;
   required TenantV2 tenant = 2;
