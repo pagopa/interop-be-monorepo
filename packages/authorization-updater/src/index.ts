@@ -1,5 +1,4 @@
 /* eslint-disable functional/immutable-data */
-import { v4 as uuidv4 } from "uuid";
 import { runConsumer } from "kafka-iam-auth";
 import { match } from "ts-pattern";
 import { EachMessagePayload } from "kafkajs";
@@ -75,14 +74,19 @@ function processMessage(
 ) {
   return async (messagePayload: EachMessagePayload): Promise<void> => {
     try {
-      const appContext = getContext();
-      appContext.correlationId = uuidv4();
-
       const messageDecoder = messageDecoderSupplier(
         topicConfig,
         messagePayload.topic
       );
       const decodedMsg = messageDecoder(messagePayload.message);
+
+      const ctx = getContext();
+      ctx.messageData = {
+        eventType: decodedMsg.type,
+        eventVersion: decodedMsg.event_version,
+        streamId: decodedMsg.stream_id,
+      };
+      ctx.correlationId = decodedMsg.correlation_id;
 
       const updateSeed = match(decodedMsg)
         .with(

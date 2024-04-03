@@ -8,7 +8,6 @@ import {
   agreementState,
   WithMetadata,
   AgreementEvent,
-  AgreementUpdateEvent,
   AgreementId,
 } from "pagopa-interop-models";
 import {
@@ -211,7 +210,7 @@ const archiveRelatedToAgreements = async (
   authData: AuthData,
   agreementQuery: AgreementQuery,
   correlationId: string
-): Promise<Array<CreateEvent<AgreementUpdateEvent>>> => {
+): Promise<Array<CreateEvent<AgreementEvent>>> => {
   const existingAgreements = await agreementQuery.getAllAgreements({
     consumerId: agreement.consumerId,
     eserviceId: agreement.eserviceId,
