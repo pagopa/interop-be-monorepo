@@ -124,12 +124,10 @@ export async function compareReadModelsCollection(
     .map(({ data }) => EService.parse(data))
     .toArray();
 
-  return zipIdentifiableData(resultsA, resultsB).filter(
-    ([a, b]) => !isEqual(a, b)
-  );
+  return zipEServices(resultsA, resultsB).filter(([a, b]) => !isEqual(a, b));
 }
 
-export function zipIdentifiableData(
+export function zipEServices(
   dataA: EService[],
   dataB: EService[]
 ): Array<[EService | undefined, EService | undefined]> {
