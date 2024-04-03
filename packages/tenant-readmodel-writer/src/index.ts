@@ -15,28 +15,22 @@ async function processMessage({
   message,
   partition,
 }: EachMessagePayload): Promise<void> {
-  try {
-    const decodedMessage = decodeKafkaMessage(message, TenantEvent);
+  const decodedMessage = decodeKafkaMessage(message, TenantEvent);
 
-    const ctx = getContext();
-    ctx.messageData = {
-      eventType: decodedMessage.type,
-      eventVersion: decodedMessage.event_version,
-      streamId: decodedMessage.stream_id,
-    };
-    ctx.correlationId = decodedMessage.correlation_id;
+  const ctx = getContext();
+  ctx.messageData = {
+    eventType: decodedMessage.type,
+    eventVersion: decodedMessage.event_version,
+    streamId: decodedMessage.stream_id,
+  };
+  ctx.correlationId = decodedMessage.correlation_id;
 
-    await handleMessage(decodedMessage);
-    logger.info(
-      `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
-    );
-  } catch (e) {
-    logger.error(
-      `Error during message handling. Partition number: ${partition}. Offset: ${message.offset}, ${e}`
-    );
-  }
+  await handleMessage(decodedMessage);
+  logger.info(
+    `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
+  );
 }
 
 const config = readModelWriterConfig();
 const { tenantTopic } = tenantTopicConfig();
-await runConsumer(config, [tenantTopic], processMessage).catch(logger.error);
+await runConsumer(config, [tenantTopic], processMessage);
