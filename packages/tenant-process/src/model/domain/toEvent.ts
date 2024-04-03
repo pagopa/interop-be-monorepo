@@ -23,6 +23,7 @@ import {
   TenantUnitTypeV1,
   tenantUnitType,
   TenantUnitType,
+  AttributeId,
   toTenantV2,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -151,7 +152,7 @@ export const toTenantV1 = (tenant: Tenant): TenantV1 => ({
     : undefined,
 });
 
-export const toCreateEventTenantAdded = (
+export const toCreateEventTenantOnboarded = (
   tenant: Tenant,
   correlationId: string
 ): CreateEvent<TenantEvent> => ({
@@ -165,7 +166,7 @@ export const toCreateEventTenantAdded = (
   correlationId,
 });
 
-export const toCreateEventTenantUpdated = (
+export const toCreateEventTenantOnboardDetailsUpdated = (
   streamId: string,
   version: number,
   updatedTenant: Tenant,
@@ -177,6 +178,46 @@ export const toCreateEventTenantUpdated = (
     event_version: 2,
     type: "TenantOnboardDetailsUpdated",
     data: {
+      tenant: toTenantV2(updatedTenant),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventTenantVerifiedAttributeExtensionUpdated = (
+  streamId: string,
+  version: number,
+  updatedTenant: Tenant,
+  attributeId: AttributeId,
+  correlationId: string
+): CreateEvent<TenantEvent> => ({
+  streamId,
+  version,
+  event: {
+    event_version: 2,
+    type: "TenantVerifiedAttributeExtensionUpdated",
+    data: {
+      attributeId,
+      tenant: toTenantV2(updatedTenant),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventTenantVerifiedAttributeExpirationUpdated = (
+  streamId: string,
+  version: number,
+  updatedTenant: Tenant,
+  attributeId: AttributeId,
+  correlationId: string
+): CreateEvent<TenantEvent> => ({
+  streamId,
+  version,
+  event: {
+    event_version: 2,
+    type: "TenantVerifiedAttributeExpirationUpdated",
+    data: {
+      attributeId,
       tenant: toTenantV2(updatedTenant),
     },
   },
