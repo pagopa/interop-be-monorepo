@@ -9,12 +9,12 @@ import {
   logger,
   loggerConfig,
   messageDecoderSupplier,
-  notificationConfig,
 } from "pagopa-interop-commons";
 import { v4 as uuidv4 } from "uuid";
 import { toCatalogItemEventNotification } from "./models/catalogItemEventNotificationConverter.js";
 import { buildCatalogMessage } from "./models/catalogItemEventNotificationMessage.js";
 import { initQueueManager } from "./queue-manager/queueManager.js";
+import { notificationConfig } from "./config/notificationConfig.js";
 
 const config = kafkaConsumerConfig();
 const topicsConfig = catalogTopicConfig();
@@ -28,30 +28,32 @@ const queueManager = initQueueManager({
 
 function processMessage(topicConfig: CatalogTopicConfig) {
   return async (kafkaMessage: EachMessagePayload): Promise<void> => {
-    /* 
-        TODO: handle correlationId from message when 
-        PR https://github.com/pagopa/interop-be-monorepo/pull/310 is merged 
-      */
-    const appContext = getContext();
-    appContext.correlationId = uuidv4();
-
     const messageDecoder = messageDecoderSupplier(
       topicConfig,
       kafkaMessage.topic
     );
 
-    const eventEnvelope = messageDecoder(kafkaMessage.message);
-    if (eventEnvelope.event_version !== 2) {
-      logger.info(`Event with version ${eventEnvelope.event_version} skipped`);
+    const decodedMessage = messageDecoder(kafkaMessage.message);
+
+    const ctx = getContext();
+    ctx.messageData = {
+      eventType: decodedMessage.type,
+      eventVersion: decodedMessage.event_version,
+      streamId: decodedMessage.stream_id,
+    };
+    ctx.correlationId = decodedMessage.correlation_id || uuidv4();
+
+    if (decodedMessage.event_version !== 2) {
+      logger.info(`Event with version ${decodedMessage.event_version} skipped`);
       return;
     }
 
-    const eserviceV1Event = toCatalogItemEventNotification(eventEnvelope);
-    const message = buildCatalogMessage(eventEnvelope, eserviceV1Event);
+    const eserviceV1Event = toCatalogItemEventNotification(decodedMessage);
+    const message = buildCatalogMessage(decodedMessage, eserviceV1Event);
     await queueManager.send(message);
 
     logger.info(
-      `Notification message [${message.messageUUID}] sent to queue ${queueConfig.queueUrl} for event type "${eventEnvelope.type}"`
+      `Notification message [${message.messageUUID}] sent to queue ${queueConfig.queueUrl} for event type "${decodedMessage.type}"`
     );
   };
 }
