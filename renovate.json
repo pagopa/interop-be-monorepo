@@ -17,5 +17,7 @@
   "labels": ["dependencies"],
   "branchPrefix": "renovate-action/",
   "prConcurrentLimit": 2,
-  "packageRules": []
+  "packageRules": [],
+  "platform": "github",
+  "repositories": ["pagopa/interop-be-monorepo"]
 }
