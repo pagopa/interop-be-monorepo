@@ -683,8 +683,11 @@ importers:
         specifier: 5.6.0
         version: 5.6.0
       pagopa-interop-commons:
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../commons
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
