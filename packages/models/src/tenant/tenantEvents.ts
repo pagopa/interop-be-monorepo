@@ -6,6 +6,7 @@ import {
   TenantDeletedV1,
   SelfcareMappingCreatedV1,
   SelfcareMappingDeletedV1,
+  TenantCertifiedAttributeAssignedV1,
 } from "../gen/v1/tenant/events.js";
 import { protobufDecoder } from "../protobuf/protobuf.js";
 import { EventEnvelope } from "../events/events.js";
@@ -26,6 +27,9 @@ export function tenantEventToBinaryData(event: TenantEvent): Uint8Array {
     )
     .with({ type: "SelfcareMappingDeleted" }, ({ data }) =>
       SelfcareMappingDeletedV1.toBinary(data)
+    )
+    .with({ type: "TenantCertifiedAttributeAssigned" }, ({ data }) =>
+      TenantCertifiedAttributeAssignedV1.toBinary(data)
     )
     .exhaustive();
 }
@@ -55,6 +59,11 @@ export const TenantEvent = z.discriminatedUnion("type", [
     event_version: z.literal(1),
     type: z.literal("SelfcareMappingDeleted"),
     data: protobufDecoder(SelfcareMappingDeletedV1),
+  }),
+  z.object({
+    event_version: z.literal(1),
+    type: z.literal("TenantCertifiedAttributeAssigned"),
+    data: protobufDecoder(TenantCertifiedAttributeAssignedV1),
   }),
 ]);
 

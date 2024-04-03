@@ -332,6 +332,16 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
       return Promise.all(attributePromises);
     },
 
+    async getAttributeById(
+      attributeId: AttributeId
+    ): Promise<WithMetadata<Attribute>> {
+      const data = await getAttribute(attributes, { "data.id": attributeId });
+      if (!data) {
+        throw attributeNotFound(attributeId);
+      }
+      return data;
+    },
+
     async getEServiceById(
       id: EServiceId
     ): Promise<WithMetadata<EService> | undefined> {

@@ -20,6 +20,12 @@ const errorCodes = {
   expirationDateCannotBeInThePast: "0010",
   organizationNotFoundInVerifiers: "0011",
   expirationDateNotFoundInVerifier: "0012",
+  tenantIsNotACertifier: "0013",
+  registryAttributeIdNotFound: "0014",
+  certifiedAttributeOriginIsNotCompliantWithCertifier: "0015",
+  certifiedAttributeNotFoundInTenant: "0016",
+  certifiedAttributeAlreadyAssigned: "0017",
+  certifierNotFound: "0018",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -88,6 +94,17 @@ export function verifiedAttributeNotFoundInTenant(
   });
 }
 
+export function certifiedAttributeNotFoundInTenant(
+  tenantId: TenantId,
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Certified attribute ${attributeId} not found in tenant ${tenantId}`,
+    code: "certifiedAttributeNotFoundInTenant",
+    title: "Certified attribute not found in tenant",
+  });
+}
+
 export function expirationDateCannotBeInThePast(
   date: Date
 ): ApiError<ErrorCodes> {
@@ -144,5 +161,57 @@ export function selfcareIdConflict({
     detail: `Conflict on Tenant SelfCareId update for tenant ${tenantId}: old value ${existingSelfcareId} - new value ${newSelfcareId}`,
     code: "selfcareIdConflict",
     title: "Selfcare id conflict",
+  });
+}
+
+export function tenantIsNotACertifier(
+  organizationId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Organization ${organizationId} not allowed to assign attributes`,
+    code: "tenantIsNotACertifier",
+    title: "Tenant Is Not A Certifier",
+  });
+}
+
+export function certifierNotFound(certifierId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Certifier ${certifierId} not found`,
+    code: "certifierNotFound",
+    title: "Certifier Not Found",
+  });
+}
+
+export function registryAttributeIdNotFound(
+  origin: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attribute ${origin} not found in registry`,
+    code: "registryAttributeIdNotFound",
+    title: "Registry AttributeId Not Found",
+  });
+}
+
+export function certifiedAttributeOriginIsNotCompliantWithCertifier(
+  origin: string,
+  organizationId: TenantId,
+  tenantId: TenantId,
+  certifierId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Organization ${organizationId} not allowed to assign certified attributes to tenant ${tenantId} -> origin ${origin} , certifier ${certifierId}`,
+    code: "certifiedAttributeOriginIsNotCompliantWithCertifier",
+    title: "certified Attribute Origin Is Not Compliant With Certifier",
+  });
+}
+
+export function certifiedAttributeAlreadyAssigned(
+  attributeId: AttributeId,
+  organizationId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Certified Attribute ${attributeId} already assigned to tenant ${organizationId}`,
+    code: "certifiedAttributeAlreadyAssigned",
+    title: "certified Attribute Already Assigned",
   });
 }

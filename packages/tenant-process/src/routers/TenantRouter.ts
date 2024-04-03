@@ -23,6 +23,7 @@ import {
   updateVerifiedAttributeExtensionDateErrorMapper,
   updateTenantVerifiedAttributeErrorMapper,
   selfcareUpsertTenantErrorMapper,
+  addCertifiedAttributeErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../utilities/config.js";
@@ -334,6 +335,27 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             updateVerifiedAttributeExtensionDateErrorMapper
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
+    )
+    .post(
+      "/tenants/:tenantId/attributes/certified",
+      authorizationMiddleware([ADMIN_ROLE, M2M_ROLE]),
+      async (req, res) => {
+        try {
+          const { tenantId } = req.params;
+          await tenantService.addCertifiedAttribute(unsafeBrandId(tenantId), {
+            tenantSeed: req.body,
+            authData: req.ctx.authData,
+            correlationId: req.ctx.correlationId,
+          });
+          return res.status(200).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            addCertifiedAttributeErrorMapper
           );
           return res.status(errorRes.status).json(errorRes).end();
         }

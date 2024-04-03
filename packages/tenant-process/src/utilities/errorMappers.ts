@@ -59,3 +59,14 @@ export const selfcareUpsertTenantErrorMapper = (
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with("selfcareIdConflict", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+export const addCertifiedAttributeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("tenantNotFound", () => 404)
+    .with("tenantIsNotACertifier", () => 400)
+    .with("registryAttributeIdNotFound", () => 404)
+    .with("certifiedAttributeOriginIsNotCompliantWithCertifier", () => 400)
+    .with("certifiedAttributeNotFoundInTenant", () => 404)
+    .with("certifiedAttributeAlreadyAssigned", () => 400)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
