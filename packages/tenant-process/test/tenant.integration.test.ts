@@ -949,12 +949,14 @@ describe("Integration tests", () => {
         await addOneTenant(tenant2, postgresDB, tenants);
         await addOneTenant(tenant3, postgresDB, tenants);
         const tenantBySelfcareId = await readModelService.getTenantBySelfcareId(
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           tenant1.selfcareId!
         );
         expect(tenantBySelfcareId?.data).toEqual(tenant1);
       });
       it("should not get the tenant by selfcareId if it isn't in DB", async () => {
         const tenantBySelfcareId = await readModelService.getTenantBySelfcareId(
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           tenant1.selfcareId!
         );
         expect(tenantBySelfcareId?.data.selfcareId).toBeUndefined();
