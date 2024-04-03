@@ -1,8 +1,8 @@
 INSERT INTO
   "events"(
     "stream_id",
-    "correlation_id",
     "version",
+    "correlation_id",
     "type",
     "event_version",
     "data"
@@ -10,8 +10,8 @@ INSERT INTO
 VALUES
   (
     $(stream_id),
-    $(correlation_id),
     $(version),
+    $(correlation_id),
     $(type),
     $(event_version),
     $(data)

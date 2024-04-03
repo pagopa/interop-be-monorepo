@@ -7,6 +7,7 @@ import {
   attributeEventToBinaryData,
   attributeKind,
   generateId,
+  toReadModelAttribute,
 } from "pagopa-interop-models";
 import { IDatabase } from "pg-promise";
 import {
@@ -83,7 +84,7 @@ export const addOneAttribute = async (
   attributes: AttributeCollection
 ): Promise<void> => {
   await writeAttributeInEventstore(attribute, postgresDB);
-  await writeInReadmodel(attribute, attributes);
+  await writeInReadmodel(toReadModelAttribute(attribute), attributes);
 };
 
 export const addOneTenant = async (

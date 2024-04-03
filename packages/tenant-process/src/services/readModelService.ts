@@ -16,6 +16,7 @@ import {
   AttributeId,
   TenantId,
   EServiceId,
+  AttributeReadmodel,
 } from "pagopa-interop-models";
 import { z } from "zod";
 import { Filter, WithId } from "mongodb";
@@ -90,7 +91,7 @@ export const getTenants = async ({
 
 async function getAttribute(
   attributes: AttributeCollection,
-  filter: Filter<WithId<WithMetadata<Attribute>>>
+  filter: Filter<WithId<WithMetadata<AttributeReadmodel>>>
 ): Promise<WithMetadata<Attribute> | undefined> {
   const data = await attributes.findOne(filter, {
     projection: { data: true, metadata: true },
