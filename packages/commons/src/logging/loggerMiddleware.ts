@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import * as expressWinston from "express-winston";
 import * as winston from "winston";
+import { v4 } from "uuid";
 import { LoggerConfig } from "../config/commonConfig.js";
 import { getContext } from "../index.js";
 import { bigIntReplacer } from "./utils.js";
@@ -10,6 +11,9 @@ export type SessionMetaData = {
   userId: string | undefined;
   organizationId: string | undefined;
   correlationId: string | undefined;
+  eventType: string | undefined;
+  eventVersion: number | undefined;
+  streamId: string | undefined;
 };
 
 export const parsedLoggerConfig = LoggerConfig.safeParse(process.env);
@@ -23,14 +27,20 @@ const getLoggerMetadata = (): SessionMetaData => {
   const appContext = getContext();
   return !appContext
     ? {
-        userId: "",
-        organizationId: "",
-        correlationId: "",
+        userId: undefined,
+        organizationId: undefined,
+        correlationId: v4(),
+        eventType: undefined,
+        eventVersion: undefined,
+        streamId: undefined,
       }
     : {
-        userId: appContext.authData.userId,
-        organizationId: appContext.authData.organizationId,
+        userId: appContext.authData?.userId,
+        organizationId: appContext.authData?.organizationId,
         correlationId: appContext.correlationId,
+        eventType: appContext.messageData?.eventType,
+        eventVersion: appContext.messageData?.eventVersion,
+        streamId: appContext.messageData?.streamId,
       };
 };
 
@@ -38,16 +48,57 @@ const logFormat = (
   msg: string,
   timestamp: string,
   level: string,
-  userId: string | undefined,
-  organizationId: string | undefined,
-  correlationId: string | undefined,
-  serviceName: string = ""
-) =>
-  `${timestamp} ${level.toUpperCase()} [${serviceName}] - [UID=${userId}] [OID=${organizationId}] [CID=${correlationId}] ${msg}`;
+  {
+    userId,
+    organizationId,
+    correlationId,
+    serviceName,
+    eventType,
+    eventVersion,
+    streamId,
+  }: {
+    userId: string | undefined;
+    organizationId: string | undefined;
+    correlationId: string | undefined;
+    serviceName: string | undefined;
+    eventType: string | undefined;
+    eventVersion: number | undefined;
+    streamId: string | undefined;
+  }
+) => {
+  const serviceLogPart = serviceName ? `[${serviceName}]` : undefined;
+  const userLogPart = userId ? `[UID=${userId}]` : undefined;
+  const organizationLogPart = organizationId
+    ? `[OID=${organizationId}]`
+    : undefined;
+  const correlationLogPart = correlationId
+    ? `[CID=${correlationId}]`
+    : undefined;
+  const eventTypePart = eventType ? `[ET=${eventType}]` : undefined;
+  const eventVersionPart = eventVersion ? `[EV=${eventVersion}]` : undefined;
+  const streamIdPart = streamId ? `[SID=${streamId}]` : undefined;
+
+  const firstPart = [timestamp, level.toUpperCase(), serviceLogPart]
+    .filter((e) => e !== undefined)
+    .join(" ");
+
+  const secondPart = [
+    userLogPart,
+    organizationLogPart,
+    correlationLogPart,
+    eventTypePart,
+    eventVersionPart,
+    streamIdPart,
+  ]
+    .filter((e) => e !== undefined)
+    .join(" ");
+
+  return `${firstPart} - ${secondPart} ${msg}`;
+};
 
 export const customFormat = (serviceName?: string) =>
   winston.format.printf(({ level, message, timestamp }) => {
-    const { userId, organizationId, correlationId } = getLoggerMetadata();
+    const logMetadata = getLoggerMetadata();
     const clearMessage =
       typeof message === "object"
         ? JSON.stringify(message, bigIntReplacer)
@@ -56,15 +107,7 @@ export const customFormat = (serviceName?: string) =>
       .toString()
       .split("\n")
       .map((line: string) =>
-        logFormat(
-          line,
-          timestamp,
-          level,
-          userId,
-          organizationId,
-          correlationId,
-          serviceName
-        )
+        logFormat(line, timestamp, level, { ...logMetadata, serviceName })
       );
     return lines.join("\n");
   });
