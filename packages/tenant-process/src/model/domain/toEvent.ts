@@ -23,6 +23,7 @@ import {
   TenantUnitTypeV1,
   tenantUnitType,
   TenantUnitType,
+  toTenantV2,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -157,9 +158,9 @@ export const toCreateEventTenantAdded = (
   streamId: tenant.id,
   version: 0,
   event: {
-    event_version: 1,
-    type: "TenantCreated",
-    data: { tenant: toTenantV1(tenant) },
+    event_version: 2,
+    type: "TenantOnboarded",
+    data: { tenant: toTenantV2(tenant) },
   },
   correlationId,
 });
@@ -173,10 +174,10 @@ export const toCreateEventTenantUpdated = (
   streamId,
   version,
   event: {
-    event_version: 1,
-    type: "TenantUpdated",
+    event_version: 2,
+    type: "TenantOnboardDetailsUpdated",
     data: {
-      tenant: toTenantV1(updatedTenant),
+      tenant: toTenantV2(updatedTenant),
     },
   },
   correlationId,
