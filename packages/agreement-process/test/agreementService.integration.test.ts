@@ -1209,7 +1209,7 @@ describe("Agreement service", () => {
         results: expect.arrayContaining([agreement2, agreement3]),
       });
     });
-    it("should get no agreements producers in case no filters match", async () => {
+    it("should get no agreements in case no filters match", async () => {
       const agreements = await agreementService.getAgreements(
         {
           producerId: generateId<TenantId>(),
@@ -1378,7 +1378,7 @@ describe("Agreement service", () => {
       });
       it("should get no agreement consumers in case no filters match", async () => {
         const producers = await agreementService.getAgreementConsumers(
-          "Bar",
+          "Not existing name",
           10,
           0
         );
@@ -1457,7 +1457,7 @@ describe("Agreement service", () => {
       });
       it("should get no agreement producers in case no filters match", async () => {
         const producers = await agreementService.getAgreementProducers(
-          "Foo",
+          "Not existing name",
           10,
           0
         );
@@ -1632,7 +1632,7 @@ describe("Agreement service", () => {
 
     it("should get no agreement eservices in case no filters match", async () => {
       const eservices = await agreementService.getAgreementEServices(
-        "Baz",
+        "Not existing name",
         [],
         [],
         10,
