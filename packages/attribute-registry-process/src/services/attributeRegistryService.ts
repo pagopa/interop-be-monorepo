@@ -3,6 +3,7 @@ import {
   CreateEvent,
   DB,
   eventRepository,
+  logger,
 } from "pagopa-interop-commons";
 import {
   AttributeEvent,
@@ -14,6 +15,8 @@ import {
   TenantId,
   unsafeBrandId,
   AttributeId,
+  AttributeKind,
+  ListResult,
 } from "pagopa-interop-models";
 import {
   ApiCertifiedAttributeSeed,
@@ -43,6 +46,9 @@ export function attributeRegistryServiceBuilder(
       authData: AuthData,
       correlationId: string
     ): Promise<AttributeId> {
+      logger.info(
+        `Creating declared attribute with name ${apiDeclaredAttributeSeed.name}}`
+      );
       if (authData.externalId.origin !== "IPA") {
         throw originNotCompliant("IPA");
       }
@@ -67,6 +73,9 @@ export function attributeRegistryServiceBuilder(
       authData: AuthData,
       correlationId: string
     ): Promise<AttributeId> {
+      logger.info(
+        `Creating verified attribute with name ${apiVerifiedAttributeSeed.name}`
+      );
       if (authData.externalId.origin !== "IPA") {
         throw originNotCompliant("IPA");
       }
@@ -105,6 +114,9 @@ export function attributeRegistryServiceBuilder(
       authData: AuthData,
       correlationId: string
     ): Promise<AttributeId> {
+      logger.info(
+        `Creating certified attribute with code ${apiCertifiedAttributeSeed.code}`
+      );
       const certifierPromise = this.getCertifierId(authData.organizationId);
       const attributePromise = readModelService.getAttributeByCodeAndName(
         apiCertifiedAttributeSeed.code,
@@ -133,6 +145,9 @@ export function attributeRegistryServiceBuilder(
       apiInternalCertifiedAttributeSeed: ApiInternalCertifiedAttributeSeed,
       correlationId: string
     ): Promise<AttributeId> {
+      logger.info(
+        `Creating certified attribute with origin ${apiInternalCertifiedAttributeSeed.origin} and code ${apiInternalCertifiedAttributeSeed.code} - Internal Request`
+      );
       return unsafeBrandId<AttributeId>(
         await repository.createEvent(
           createInternalCertifiedAttributeLogic(
@@ -147,6 +162,67 @@ export function attributeRegistryServiceBuilder(
           )
         )
       );
+    },
+    async getAttributesByKindsNameOrigin({
+      kinds,
+      name,
+      origin,
+      offset,
+      limit,
+    }: {
+      kinds: AttributeKind[];
+      name: string | undefined;
+      origin: string | undefined;
+      offset: number;
+      limit: number;
+    }): Promise<ListResult<Attribute>> {
+      logger.info(
+        `Getting attributes with name = ${name}, limit = ${limit}, offset = ${offset}, kinds = ${kinds}`
+      );
+      return await readModelService.getAttributesByKindsNameOrigin({
+        kinds,
+        name,
+        origin,
+        offset,
+        limit,
+      });
+    },
+    async getAttributeByName(
+      name: string
+    ): Promise<WithMetadata<Attribute> | undefined> {
+      logger.info(`Retrieving attribute with name ${name}`);
+      return await readModelService.getAttributeByName(name);
+    },
+    async getAttributeByOriginAndCode({
+      origin,
+      code,
+    }: {
+      origin: string;
+      code: string;
+    }): Promise<WithMetadata<Attribute> | undefined> {
+      logger.info(`Retrieving attribute ${origin}/${code}`);
+      return await readModelService.getAttributeByOriginAndCode({
+        origin,
+        code,
+      });
+    },
+    async getAttributeById(
+      id: AttributeId
+    ): Promise<WithMetadata<Attribute> | undefined> {
+      logger.info(`Retrieving attribute with ID ${id}`);
+      return await readModelService.getAttributeById(id);
+    },
+    async getAttributesByIds({
+      ids,
+      offset,
+      limit,
+    }: {
+      ids: AttributeId[];
+      offset: number;
+      limit: number;
+    }): Promise<ListResult<Attribute>> {
+      logger.info(`Retrieving attributes in bulk by id in [${ids}]`);
+      return await readModelService.getAttributesByIds({ ids, offset, limit });
     },
   };
 }
@@ -179,6 +255,7 @@ export function createDeclaredAttributeLogic(
     origin: undefined,
   };
 
+  logger.info(`Declared attribute created with id ${newDeclaredAttribute.id}`);
   return toCreateEventAttributeAdded(newDeclaredAttribute, correlationId);
 }
 
@@ -206,6 +283,7 @@ export function createVerifiedAttributeLogic(
     origin: undefined,
   };
 
+  logger.info(`Verified attribute created with id ${newVerifiedAttribute.id}`);
   return toCreateEventAttributeAdded(newVerifiedAttribute, correlationId);
 }
 
@@ -235,6 +313,9 @@ export function createCertifiedAttributeLogic(
     origin: certifier,
   };
 
+  logger.info(
+    `Certified attribute created with id ${newCertifiedAttribute.id}`
+  );
   return toCreateEventAttributeAdded(newCertifiedAttribute, correlationId);
 }
 
@@ -262,6 +343,9 @@ export function createInternalCertifiedAttributeLogic(
     origin: apiInternalCertifiedAttributeSeed.origin,
   };
 
+  logger.info(
+    `Certified attribute created with id ${newInternalCertifiedAttribute.id} - Internal Request`
+  );
   return toCreateEventAttributeAdded(
     newInternalCertifiedAttribute,
     correlationId
