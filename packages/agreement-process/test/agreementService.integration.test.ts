@@ -1209,6 +1209,17 @@ describe("Agreement service", () => {
         results: expect.arrayContaining([agreement2, agreement3]),
       });
     });
+    it("should get no agreements producers in case no filters match", async () => {
+      const agreements = await agreementService.getAgreements(
+        {
+          producerId: generateId<TenantId>(),
+        },
+        10,
+        0
+      );
+      expect(agreements.totalCount).toEqual(0);
+      expect(agreements.results).toEqual([]);
+    });
   });
   describe("get agreement", () => {
     it("should get an agreement", async () => {
@@ -1325,7 +1336,7 @@ describe("Agreement service", () => {
           ),
         });
       });
-      it("should get agreeement consumers with limit", async () => {
+      it("should get agreement consumers with limit", async () => {
         const consumers = await agreementService.getAgreementConsumers(
           undefined,
           2,
@@ -1365,6 +1376,15 @@ describe("Agreement service", () => {
           results: expect.arrayContaining([tenant6].map(toCompactOrganization)),
         });
       });
+      it("should get no agreement consumers in case no filters match", async () => {
+        const producers = await agreementService.getAgreementConsumers(
+          "Bar",
+          10,
+          0
+        );
+        expect(producers.totalCount).toEqual(0);
+        expect(producers.results).toEqual([]);
+      });
     });
     describe("get agreement producers", () => {
       it("should get all agreement producers", async () => {
@@ -1395,7 +1415,7 @@ describe("Agreement service", () => {
           ),
         });
       });
-      it("should get agreeement producers with limit", async () => {
+      it("should get agreement producers with limit", async () => {
         const producers = await agreementService.getAgreementProducers(
           undefined,
           2,
@@ -1434,6 +1454,15 @@ describe("Agreement service", () => {
           totalCount: 2,
           results: expect.arrayContaining([tenant3].map(toCompactOrganization)),
         });
+      });
+      it("should get no agreement producers in case no filters match", async () => {
+        const producers = await agreementService.getAgreementProducers(
+          "Foo",
+          10,
+          0
+        );
+        expect(producers.totalCount).toEqual(0);
+        expect(producers.results).toEqual([]);
       });
     });
   });
@@ -1601,7 +1630,7 @@ describe("Agreement service", () => {
       );
     });
 
-    it("should get no agreement eservices in case of no filters match", async () => {
+    it("should get no agreement eservices in case no filters match", async () => {
       const eservices = await agreementService.getAgreementEServices(
         "Baz",
         [],
