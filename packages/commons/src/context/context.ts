@@ -13,7 +13,7 @@ export type AppContext = {
     eventVersion: number;
     streamId: string;
   };
-  correlationId?: string;
+  correlationId?: string | null | undefined;
 };
 export type ZodiosContext = NonNullable<typeof zodiosCtx>;
 export type ExpressContext = NonNullable<typeof zodiosCtx.context>;

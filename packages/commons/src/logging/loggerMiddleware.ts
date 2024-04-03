@@ -10,7 +10,7 @@ import { bigIntReplacer } from "./utils.js";
 export type SessionMetaData = {
   userId: string | undefined;
   organizationId: string | undefined;
-  correlationId: string | undefined;
+  correlationId: string | undefined | null;
   eventType: string | undefined;
   eventVersion: number | undefined;
   streamId: string | undefined;
@@ -59,7 +59,7 @@ const logFormat = (
   }: {
     userId: string | undefined;
     organizationId: string | undefined;
-    correlationId: string | undefined;
+    correlationId: string | undefined | null;
     serviceName: string | undefined;
     eventType: string | undefined;
     eventVersion: number | undefined;
