@@ -16,7 +16,7 @@ import {
   toApiAttribute,
 } from "../model/domain/apiConverter.js";
 import { config } from "../utilities/config.js";
-import { attributeNotFound, makeApiProblem } from "../model/domain/errors.js";
+import { makeApiProblem } from "../model/domain/errors.js";
 import { attributeRegistryServiceBuilder } from "../services/attributeRegistryService.js";
 import {
   createCertifiedAttributesErrorMapper,
@@ -104,15 +104,7 @@ const attributeRouter = (
             req.params.name
           );
 
-          if (attribute) {
-            return res.status(200).json(toApiAttribute(attribute.data)).end();
-          } else {
-            const errorRes = makeApiProblem(
-              attributeNotFound,
-              getAttributesByNameErrorMapper
-            );
-            return res.status(errorRes.status).json(errorRes).end();
-          }
+          return res.status(200).json(toApiAttribute(attribute.data)).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -134,21 +126,13 @@ const attributeRouter = (
       async (req, res) => {
         try {
           const { origin, code } = req.params;
-
           const attribute =
             await attributeRegistryService.getAttributeByOriginAndCode({
               origin,
               code,
             });
-          if (attribute) {
-            return res.status(200).json(toApiAttribute(attribute.data)).end();
-          } else {
-            const errorRes = makeApiProblem(
-              attributeNotFound(`${origin}/${code}`),
-              getAttributeByOriginAndCodeErrorMapper
-            );
-            return res.status(errorRes.status).json(errorRes).end();
-          }
+
+          return res.status(200).json(toApiAttribute(attribute.data)).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -174,20 +158,9 @@ const attributeRouter = (
             unsafeBrandId(req.params.attributeId)
           );
 
-          if (attribute) {
-            return res.status(200).json(toApiAttribute(attribute.data)).end();
-          } else {
-            const errorRes = makeApiProblem(
-              attributeNotFound(req.params.attributeId),
-              getAttributeByIdErrorMapper
-            );
-            return res.status(errorRes.status).json(errorRes).end();
-          }
+          return res.status(200).json(toApiAttribute(attribute.data)).end();
         } catch (error) {
-          const errorRes = makeApiProblem(
-            attributeNotFound(req.params.attributeId),
-            getAttributeByIdErrorMapper
-          );
+          const errorRes = makeApiProblem(error, getAttributeByIdErrorMapper);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
