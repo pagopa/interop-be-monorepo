@@ -9,15 +9,15 @@ import {
   Descriptor,
   EService,
   Tenant,
-  TenantEvent,
+  TenantEventV2,
   agreementState,
   descriptorState,
   technology,
-  tenantEventToBinaryData,
+  tenantEventToBinaryDataV2,
+  toTenantV2,
 } from "pagopa-interop-models";
 import { IDatabase } from "pg-promise";
 import { v4 as uuidv4 } from "uuid";
-import { toTenantV1 } from "../src/model/domain/toEvent.js";
 
 export const writeTenantInReadmodel = async (
   tenant: Tenant,
@@ -35,16 +35,17 @@ export const writeTenantInEventstore = async (
   tenant: Tenant,
   postgresDB: IDatabase<unknown>
 ): Promise<void> => {
-  const tenantEvent: TenantEvent = {
-    type: "TenantCreated",
-    data: { tenant: toTenantV1(tenant) },
+  const tenantEvent: TenantEventV2 = {
+    type: "TenantOnboarded",
+    event_version: 2,
+    data: { tenant: toTenantV2(tenant) },
   };
   const eventToWrite = {
     stream_id: tenantEvent.data.tenant?.id,
     version: 0,
     type: tenantEvent.type,
-    event_version: 1,
-    data: Buffer.from(tenantEventToBinaryData(tenantEvent)),
+    event_version: tenantEvent.event_version,
+    data: Buffer.from(tenantEventToBinaryDataV2(tenantEvent)),
   };
   await postgresDB.none(
     "INSERT INTO tenant.events(stream_id, version, type, event_version, data) VALUES ($1, $2, $3, $4, $5)",
