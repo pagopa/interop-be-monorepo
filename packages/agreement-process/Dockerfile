@@ -26,6 +26,8 @@ RUN pnpm build && \
     cp -a --parents -t /out \
       node_modules packages/agreement-process/node_modules \
       package*.json packages/agreement-process/package*.json \
+      packages/commons/ \
+      packages/models/ \
       packages/agreement-process/dist && \
     find /out -exec touch -h --date=@0 {} \;
 

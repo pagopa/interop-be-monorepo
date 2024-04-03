@@ -28,6 +28,9 @@ RUN pnpm build && \
     cp -a --parents -t /out \
       node_modules packages/agreement-readmodel-writer/node_modules \
       package*.json packages/agreement-readmodel-writer/package*.json \
+      packages/commons/ \
+      packages/models/ \
+      packages/kafka-iam-auth/ \
       packages/agreement-readmodel-writer/dist && \
     find /out -exec touch -h --date=@0 {} \;
 
