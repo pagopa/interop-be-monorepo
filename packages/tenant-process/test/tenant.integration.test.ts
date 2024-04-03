@@ -94,6 +94,7 @@ describe("Integration tests", () => {
       schema: config.eventStoreDbSchema,
       useSSL: config.eventStoreDbUseSSL,
     });
+    const correlationId = generateId();
     tenantService = tenantServiceBuilder(postgresDB, readModelService);
   });
 
@@ -156,6 +157,7 @@ describe("Integration tests", () => {
           tenantId: tenant.id,
           attributeId,
           updateVerifiedTenantAttributeSeed,
+          correlationId: generateId(),
         });
         const writtenEvent: StoredEvent | undefined =
           await readLastEventByStreamId(
@@ -192,6 +194,7 @@ describe("Integration tests", () => {
             tenantId: tenant.id,
             attributeId,
             updateVerifiedTenantAttributeSeed,
+            correlationId: generateId(),
           })
         ).rejects.toThrowError(tenantNotFound(tenant.id));
       });
@@ -213,6 +216,7 @@ describe("Integration tests", () => {
             tenantId: tenant.id,
             attributeId,
             updateVerifiedTenantAttributeSeed,
+            correlationId: generateId(),
           })
         ).rejects.toThrowError(
           expirationDateCannotBeInThePast(expirationDateinPast)
@@ -235,6 +239,7 @@ describe("Integration tests", () => {
             tenantId: updatedCertifiedTenant.id,
             attributeId,
             updateVerifiedTenantAttributeSeed,
+            correlationId: generateId(),
           })
         ).rejects.toThrowError(
           verifiedAttributeNotFoundInTenant(
@@ -252,6 +257,7 @@ describe("Integration tests", () => {
             tenantId: tenant.id,
             attributeId,
             updateVerifiedTenantAttributeSeed,
+            correlationId: generateId(),
           })
         ).rejects.toThrowError(
           organizationNotFoundInVerifiers(verifierId, tenant.id, attributeId)
