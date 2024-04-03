@@ -1509,17 +1509,20 @@ describe("Agreement service", () => {
         ...buildAgreement(eservice1.id),
         producerId: eservice1.producerId,
         consumerId: tenant2.id,
+        state: agreementState.draft,
       };
       const agreement2 = {
         ...buildAgreement(eservice2.id),
         producerId: eservice2.producerId,
         consumerId: tenant3.id,
+        state: agreementState.active,
       };
 
       const agreement3 = {
         ...buildAgreement(eservice3.id),
         producerId: eservice3.producerId,
         consumerId: tenant1.id,
+        state: agreementState.pending,
       };
 
       await addOneAgreement(agreement1, postgresDB, agreements);
@@ -1598,6 +1601,23 @@ describe("Agreement service", () => {
       );
     });
 
+    it("should get agreement eservices filtered by agreement state", async () => {
+      const eservices = await agreementService.getAgreementEServices(
+        {
+          eserviceName: undefined,
+          consumerIds: [],
+          producerIds: [],
+          agreeementStates: [agreementState.active, agreementState.pending],
+        },
+        10,
+        0
+      );
+      expect(eservices.totalCount).toEqual(2);
+      expect(eservices.results).toEqual(
+        expect.arrayContaining([eservice2, eservice3].map(toCompactEService))
+      );
+    });
+
     it("should get agreement eservices with filters: name, consumerId, producerId", async () => {
       const eservices = await agreementService.getAgreementEServices(
         {
@@ -1612,6 +1632,40 @@ describe("Agreement service", () => {
       expect(eservices.totalCount).toEqual(1);
       expect(eservices.results).toEqual(
         expect.arrayContaining([eservice1].map(toCompactEService))
+      );
+    });
+
+    it("should get agreement eservices with filters: name, agreement state", async () => {
+      const eservices = await agreementService.getAgreementEServices(
+        {
+          eserviceName: "Bar",
+          consumerIds: [],
+          producerIds: [],
+          agreeementStates: [agreementState.pending, agreementState.draft],
+        },
+        10,
+        0
+      );
+      expect(eservices.totalCount).toEqual(1);
+      expect(eservices.results).toEqual(
+        expect.arrayContaining([eservice3].map(toCompactEService))
+      );
+    });
+
+    it("should get agreement eservices with filters: name, consumerId, producerId, agreement state", async () => {
+      const eservices = await agreementService.getAgreementEServices(
+        {
+          eserviceName: "Bar",
+          consumerIds: [tenant1.id],
+          producerIds: [tenant3.id],
+          agreeementStates: [agreementState.pending],
+        },
+        10,
+        0
+      );
+      expect(eservices.totalCount).toEqual(1);
+      expect(eservices.results).toEqual(
+        expect.arrayContaining([eservice3].map(toCompactEService))
       );
     });
 
