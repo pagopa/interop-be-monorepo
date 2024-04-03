@@ -60,14 +60,15 @@ import {
   generateId,
   technology,
   toEServiceV2,
+  toDescriptorV1,
+  toDocumentV1,
+  toEServiceV1,
   toReadModelEService,
 } from "pagopa-interop-models";
 import { StartedTestContainer } from "testcontainers";
 import { format } from "date-fns";
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
-
-import { toDescriptorV1, toDocumentV1, toEServiceV1 } from "./converterV1.js";
 
 describe("database test", async () => {
   let eservices: EServiceCollection;
@@ -106,6 +107,7 @@ describe("database test", async () => {
         type: "EServiceAdded",
         event_version: 1,
         data: payload,
+        log_date: new Date(),
       };
       await handleMessageV1(message, eservices);
 
@@ -147,6 +149,7 @@ describe("database test", async () => {
         type: "ClonedEServiceAdded",
         event_version: 1,
         data: payload,
+        log_date: new Date(),
       };
       await handleMessageV1(message, eservices);
 
@@ -181,6 +184,7 @@ describe("database test", async () => {
         type: "EServiceUpdated",
         event_version: 1,
         data: payload,
+        log_date: new Date(),
       };
       await handleMessageV1(message, eservices);
 
@@ -217,6 +221,7 @@ describe("database test", async () => {
         type: "EServiceRiskAnalysisAdded",
         event_version: 1,
         data: payload,
+        log_date: new Date(),
       };
       await handleMessageV1(message, eservices);
 
@@ -273,6 +278,7 @@ describe("database test", async () => {
         type: "MovedAttributesFromEserviceToDescriptors",
         event_version: 1,
         data: payload,
+        log_date: new Date(),
       };
       await handleMessageV1(message, eservices);
 
@@ -312,6 +318,7 @@ describe("database test", async () => {
         type: "EServiceWithDescriptorsDeleted",
         event_version: 1,
         data: payload,
+        log_date: new Date(),
       };
       await handleMessageV1(message, eservices);
 
@@ -360,6 +367,7 @@ describe("database test", async () => {
         type: "EServiceDocumentUpdated",
         event_version: 1,
         data: payload,
+        log_date: new Date(),
       };
       await handleMessageV1(message, eservices);
 
@@ -386,6 +394,7 @@ describe("database test", async () => {
         type: "EServiceDeleted",
         event_version: 1,
         data: payload,
+        log_date: new Date(),
       };
       await handleMessageV1(message, eservices);
 
@@ -427,6 +436,7 @@ describe("database test", async () => {
           type: "EServiceDocumentAdded",
           event_version: 1,
           data: payload,
+          log_date: new Date(),
         };
         await handleMessageV1(message, eservices);
 
@@ -471,6 +481,7 @@ describe("database test", async () => {
           type: "EServiceDocumentAdded",
           event_version: 1,
           data: payload,
+          log_date: new Date(),
         };
         await handleMessageV1(message, eservices);
 
@@ -518,6 +529,7 @@ describe("database test", async () => {
           type: "EServiceDocumentDeleted",
           event_version: 1,
           data: payload,
+          log_date: new Date(),
         };
         await handleMessageV1(message, eservices);
 
@@ -561,6 +573,7 @@ describe("database test", async () => {
           type: "EServiceDocumentDeleted",
           event_version: 1,
           data: payload,
+          log_date: new Date(),
         };
         await handleMessageV1(message, eservices);
 
@@ -601,6 +614,7 @@ describe("database test", async () => {
         type: "EServiceDescriptorAdded",
         event_version: 1,
         data: payload,
+        log_date: new Date(),
       };
       await handleMessageV1(message, eservices);
 
@@ -646,6 +660,7 @@ describe("database test", async () => {
         type: "EServiceDescriptorUpdated",
         event_version: 1,
         data: payload,
+        log_date: new Date(),
       };
       await handleMessageV1(message, eservices);
 
@@ -683,6 +698,7 @@ describe("database test", async () => {
         type: "EServiceRiskAnalysisDeleted",
         event_version: 1,
         data: payload,
+        log_date: new Date(),
       };
       await handleMessageV1(message, eservices);
 
@@ -712,6 +728,7 @@ describe("database test", async () => {
         type: "EServiceDeleted",
         event_version: 2,
         data: payload,
+        log_date: new Date(),
       };
       await handleMessageV2(message, eservices);
 
@@ -733,6 +750,7 @@ describe("database test", async () => {
         type: "EServiceAdded",
         event_version: 2,
         data: payload,
+        log_date: new Date(),
       };
       await handleMessageV2(message, eservices);
 
@@ -767,6 +785,7 @@ describe("database test", async () => {
         type: "DraftEServiceUpdated",
         event_version: 2,
         data: payload,
+        log_date: new Date(),
       };
       await handleMessageV2(message, eservices);
 
@@ -827,6 +846,7 @@ describe("database test", async () => {
         type: "EServiceCloned",
         event_version: 2,
         data: payload,
+        log_date: new Date(),
       };
       await handleMessageV2(message, eservices);
 
@@ -866,6 +886,7 @@ describe("database test", async () => {
         type: "EServiceDescriptorAdded",
         event_version: 2,
         data: payload,
+        log_date: new Date(),
       };
       await handleMessageV2(message, eservices);
 
@@ -905,6 +926,7 @@ describe("database test", async () => {
         type: "EServiceDraftDescriptorDeleted",
         event_version: 2,
         data: payload,
+        log_date: new Date(),
       };
       await handleMessageV2(message, eservices);
 
@@ -949,6 +971,7 @@ describe("database test", async () => {
         type: "EServiceDraftDescriptorUpdated",
         event_version: 2,
         data: payload,
+        log_date: new Date(),
       };
       await handleMessageV2(message, eservices);
 
@@ -995,6 +1018,7 @@ describe("database test", async () => {
         type: "EServiceDescriptorQuotasUpdated",
         event_version: 2,
         data: payload,
+        log_date: new Date(),
       };
       await handleMessageV2(message, eservices);
 
@@ -1043,6 +1067,7 @@ describe("database test", async () => {
         type: "EServiceDescriptorActivated",
         event_version: 2,
         data: payload,
+        log_date: new Date(),
       };
       await handleMessageV2(message, eservices);
 
@@ -1089,6 +1114,7 @@ describe("database test", async () => {
         type: "EServiceDescriptorArchived",
         event_version: 2,
         data: payload,
+        log_date: new Date(),
       };
       await handleMessageV2(message, eservices);
 
@@ -1134,6 +1160,7 @@ describe("database test", async () => {
         type: "EServiceDescriptorPublished",
         event_version: 2,
         data: payload,
+        log_date: new Date(),
       };
       await handleMessageV2(message, eservices);
 
@@ -1180,6 +1207,7 @@ describe("database test", async () => {
         type: "EServiceDescriptorSuspended",
         event_version: 2,
         data: payload,
+        log_date: new Date(),
       };
       await handleMessageV2(message, eservices);
 
@@ -1221,6 +1249,7 @@ describe("database test", async () => {
         type: "EServiceDescriptorInterfaceAdded",
         event_version: 2,
         data: payload,
+        log_date: new Date(),
       };
       await handleMessageV2(message, eservices);
 
@@ -1263,6 +1292,7 @@ describe("database test", async () => {
         type: "EServiceDescriptorDocumentAdded",
         event_version: 2,
         data: payload,
+        log_date: new Date(),
       };
       await handleMessageV2(message, eservices);
 
@@ -1309,6 +1339,7 @@ describe("database test", async () => {
         type: "EServiceDescriptorInterfaceUpdated",
         event_version: 2,
         data: payload,
+        log_date: new Date(),
       };
       await handleMessageV2(message, eservices);
 
@@ -1355,6 +1386,7 @@ describe("database test", async () => {
         type: "EServiceDescriptorDocumentUpdated",
         event_version: 2,
         data: payload,
+        log_date: new Date(),
       };
       await handleMessageV2(message, eservices);
 
@@ -1400,6 +1432,7 @@ describe("database test", async () => {
         type: "EServiceDescriptorInterfaceDeleted",
         event_version: 2,
         data: payload,
+        log_date: new Date(),
       };
       await handleMessageV2(message, eservices);
 
@@ -1443,6 +1476,7 @@ describe("database test", async () => {
         type: "EServiceDescriptorDocumentDeleted",
         event_version: 2,
         data: payload,
+        log_date: new Date(),
       };
       await handleMessageV2(message, eservices);
 
@@ -1479,6 +1513,7 @@ describe("database test", async () => {
         type: "EServiceRiskAnalysisAdded",
         event_version: 2,
         data: payload,
+        log_date: new Date(),
       };
       await handleMessageV2(message, eservices);
 
@@ -1532,6 +1567,7 @@ describe("database test", async () => {
         type: "EServiceRiskAnalysisUpdated",
         event_version: 2,
         data: payload,
+        log_date: new Date(),
       };
       await handleMessageV2(message, eservices);
 
@@ -1569,6 +1605,7 @@ describe("database test", async () => {
         type: "EServiceRiskAnalysisDeleted",
         event_version: 2,
         data: payload,
+        log_date: new Date(),
       };
       await handleMessageV2(message, eservices);
 
