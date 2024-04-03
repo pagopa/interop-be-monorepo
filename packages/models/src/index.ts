@@ -27,6 +27,7 @@ export * from "./tenant/tenant.js";
 export * from "./tenant/tenantEvents.js";
 export * from "./tenant/protobufConverterFromV1.js";
 export * from "./tenant/protobufConverterFromV2.js";
+export * from "./tenant/protobufConverterToV2.js";
 
 export * from "./user/user.js";
 
