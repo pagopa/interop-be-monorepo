@@ -15,10 +15,11 @@ import {
   Tenant,
   AttributeId,
   TenantId,
+  AttributeReadmodel,
 } from "pagopa-interop-models";
 async function getAttribute(
   attributes: AttributeCollection,
-  filter: Filter<WithId<WithMetadata<Attribute>>>
+  filter: Filter<WithId<WithMetadata<AttributeReadmodel>>>
 ): Promise<WithMetadata<Attribute> | undefined> {
   const data = await attributes.findOne(filter, {
     projection: { data: true, metadata: true },
