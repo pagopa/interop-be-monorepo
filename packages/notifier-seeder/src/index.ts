@@ -11,7 +11,6 @@ import {
   messageDecoderSupplier,
   notificationConfig,
 } from "pagopa-interop-commons";
-import { kafkaMessageProcessError } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import { toCatalogItemEventNotification } from "./models/catalogItemEventNotificationConverter.js";
 import { buildCatalogMessage } from "./models/catalogItemEventNotificationMessage.js";
@@ -29,45 +28,31 @@ const queueManager = initQueueManager({
 
 function processMessage(topicConfig: CatalogTopicConfig) {
   return async (kafkaMessage: EachMessagePayload): Promise<void> => {
-    try {
-      /* 
+    /* 
         TODO: handle correlationId from message when 
         PR https://github.com/pagopa/interop-be-monorepo/pull/310 is merged 
       */
-      const appContext = getContext();
-      appContext.correlationId = uuidv4();
+    const appContext = getContext();
+    appContext.correlationId = uuidv4();
 
-      const messageDecoder = messageDecoderSupplier(
-        topicConfig,
-        kafkaMessage.topic
-      );
+    const messageDecoder = messageDecoderSupplier(
+      topicConfig,
+      kafkaMessage.topic
+    );
 
-      const eventEnvelope = messageDecoder(kafkaMessage.message);
-      if (eventEnvelope.event_version !== 2) {
-        logger.info(
-          `Event version ${eventEnvelope.event_version} received not supported`
-        );
-        return;
-      }
-
-      const eserviceV1Event = toCatalogItemEventNotification(eventEnvelope);
-      const message = buildCatalogMessage(eventEnvelope, eserviceV1Event);
-      await queueManager.send(message);
-
-      logger.info(
-        `Notification message [${message.messageUUID}] sent to queue ${queueConfig.queueUrl} for event type "${eventEnvelope.type}"`
-      );
-    } catch (e) {
-      logger.error(
-        `Error during message handling. Partition number: ${kafkaMessage.partition}. Offset: ${kafkaMessage.message.offset}, ${e}`
-      );
-      throw kafkaMessageProcessError(
-        topicsConfig.catalogTopic,
-        kafkaMessage.partition,
-        kafkaMessage.message.offset,
-        e
-      );
+    const eventEnvelope = messageDecoder(kafkaMessage.message);
+    if (eventEnvelope.event_version !== 2) {
+      logger.info(`Event with version ${eventEnvelope.event_version} skipped`);
+      return;
     }
+
+    const eserviceV1Event = toCatalogItemEventNotification(eventEnvelope);
+    const message = buildCatalogMessage(eventEnvelope, eserviceV1Event);
+    await queueManager.send(message);
+
+    logger.info(
+      `Notification message [${message.messageUUID}] sent to queue ${queueConfig.queueUrl} for event type "${eventEnvelope.type}"`
+    );
   };
 }
 
@@ -75,4 +60,4 @@ await runConsumer(
   config,
   [topicsConfig.catalogTopic],
   processMessage(topicsConfig)
-).catch(logger.error);
+);

@@ -34,7 +34,7 @@ const getCatalogItemDescriptor = (
 
   if (!descriptor) {
     throw eventV1ConversionError(
-      `Expected descriptor ${descriptorId} in eservice during eventV1 conversion`
+      `Expected descriptor ${descriptorId} in eservice ${eserviceV1.id} during eventV1 conversion`
     );
   }
 
@@ -48,7 +48,7 @@ const getCatalogItemDocument = (
   const document = descriptor.docs.find((d) => d.id === documentId);
   if (!document) {
     throw eventV1ConversionError(
-      `Expected document ${documentId} in descriptor during eventV1 conversion`
+      `Expected document ${documentId} in descriptor ${descriptor.id} during eventV1 conversion`
     );
   }
 
@@ -61,13 +61,13 @@ const getCatalogItemInterface = (
 ): CatalogDocumentV1Notification => {
   if (!descriptor?.interface) {
     throw eventV1ConversionError(
-      `Expected interface ${interfaceId} in descriptor during eventV1 conversion`
+      `Expected interface ${interfaceId} in descriptor ${descriptor.id} during eventV1 conversion`
     );
   }
 
   if (descriptor.interface.id !== interfaceId) {
     throw eventV1ConversionError(
-      `Expected Interface with same ID ${interfaceId} in descriptor's interface during eventV1 conversion`
+      `Expected interface with same ID ${interfaceId} in descriptor ${descriptor.id} interface during eventV1 conversion`
     );
   }
 
