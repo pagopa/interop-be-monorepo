@@ -17,7 +17,6 @@ import {
   agreementEventToBinaryData,
   agreementState,
   descriptorState,
-  AgreementUpdateEvent,
   AgreementDocumentId,
   AgreementId,
 } from "pagopa-interop-models";
@@ -104,13 +103,12 @@ export function agreementServiceBuilder(
       logger.info("Retrieving agreements");
       return await agreementQuery.getAgreements(filters, limit, offset);
     },
-    async getAgreementById(
-      agreementId: AgreementId
-    ): Promise<Agreement | undefined> {
+    async getAgreementById(agreementId: AgreementId): Promise<Agreement> {
       logger.info(`Retrieving agreement by id ${agreementId}`);
 
       const agreement = await agreementQuery.getAgreementById(agreementId);
-      return agreement?.data;
+      assertAgreementExist(agreementId, agreement);
+      return agreement.data;
     },
     async createAgreement(
       agreement: ApiAgreementPayload,
@@ -895,7 +893,7 @@ export async function archiveAgreementLogic(
   authData: AuthData,
   agreementQuery: AgreementQuery,
   correlationId: string
-): Promise<CreateEvent<AgreementUpdateEvent>> {
+): Promise<CreateEvent<AgreementEvent>> {
   const agreement = await agreementQuery.getAgreementById(agreementId);
   assertAgreementExist(agreementId, agreement);
   assertRequesterIsConsumer(agreement.data, authData);
