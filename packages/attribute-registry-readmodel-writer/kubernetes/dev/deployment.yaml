@@ -66,11 +66,6 @@ spec:
                 configMapKeyRef:
                   name: interop-be-common-refactor
                   key: READMODEL_DB_PORT
-            - name: SKIP_JWT_VERIFICATION
-              valueFrom:
-                configMapKeyRef:
-                  name: interop-be-common-refactor
-                  key: SKIP_JWT_VERIFICATION
             - name: WELL_KNOWN_URLS
               valueFrom:
                 configMapKeyRef:
