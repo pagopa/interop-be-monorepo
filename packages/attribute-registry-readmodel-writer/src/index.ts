@@ -1,13 +1,16 @@
-import { Kafka, KafkaMessage } from "kafkajs";
+/* eslint-disable functional/immutable-data */
+import { EachMessagePayload, Kafka } from "kafkajs";
 import {
   ReadModelRepository,
   attributeTopicConfig,
   decodeKafkaMessage,
+  getContext,
   logger,
   readModelWriterConfig,
 } from "pagopa-interop-commons";
 import { createMechanism } from "@jm18457/kafkajs-msk-iam-authentication-mechanism";
 import { AttributeEvent } from "pagopa-interop-models";
+import { runConsumer } from "kafka-iam-auth";
 import { handleMessage } from "./attributeRegistryConsumerService.js";
 
 const config = readModelWriterConfig();
@@ -46,19 +49,23 @@ await consumer.subscribe({
   fromBeginning: true,
 });
 
-async function processMessage(message: KafkaMessage): Promise<void> {
-  try {
-    await handleMessage(
-      decodeKafkaMessage(message, AttributeEvent),
-      attributes
-    );
+async function processMessage({
+  message,
+  partition,
+}: EachMessagePayload): Promise<void> {
+  await handleMessage(decodeKafkaMessage(message, AttributeEvent), attributes);
+  const msg = decodeKafkaMessage(message, AttributeEvent);
+  const ctx = getContext();
+  ctx.messageData = {
+    eventType: msg.type,
+    eventVersion: msg.event_version,
+    streamId: msg.stream_id,
+  };
+  ctx.correlationId = msg.correlation_id;
 
-    logger.info("Read model was updated");
-  } catch (e) {
-    logger.error(`Error during message handling ${e}`);
-  }
+  await handleMessage(msg, attributes);
+  logger.info(
+    `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
+  );
 }
-
-await consumer.run({
-  eachMessage: ({ message }) => processMessage(message),
-});
+await runConsumer(config, [attributeTopic], processMessage);

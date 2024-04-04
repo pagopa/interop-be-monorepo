@@ -6,13 +6,21 @@ import { z } from "zod";
 import { AuthData, defaultAuthData } from "../auth/authData.js";
 import { readHeaders } from "../auth/headers.js";
 
-export type AppContext = z.infer<typeof ctx>;
+export type AppContext = {
+  authData: AuthData;
+  messageData?: {
+    eventType: string;
+    eventVersion: number;
+    streamId: string;
+  };
+  correlationId?: string | null | undefined;
+};
 export type ZodiosContext = NonNullable<typeof zodiosCtx>;
 export type ExpressContext = NonNullable<typeof zodiosCtx.context>;
 
 export const ctx = z.object({
   authData: AuthData,
-  correlationId: z.string().uuid(),
+  correlationId: z.string(),
 });
 
 export const zodiosCtx = zodiosContext(z.object({ ctx }));
@@ -20,7 +28,6 @@ export const zodiosCtx = zodiosContext(z.object({ ctx }));
 const globalStore = new AsyncLocalStorage<AppContext>();
 const defaultAppContext: AppContext = {
   authData: defaultAuthData,
-  correlationId: "",
 };
 
 export const getContext = (): AppContext => {
