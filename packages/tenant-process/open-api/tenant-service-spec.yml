@@ -443,6 +443,48 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Problem'
+  /tenants/attributes/certified:
+    parameters:
+      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - in: query
+        name: offset
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+      - in: query
+        name: limit
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 50
+    get:
+      tags:
+        - tenant
+      operationId: getCertifiedAttributes
+      description: Retrieve the certified attributes
+      responses:
+        '200':
+          description: Certified Attributes retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertifiedAttributes'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
   /tenants/attributes/declared:
     parameters:
       - $ref: '#/components/parameters/CorrelationIdHeader'
@@ -813,6 +855,38 @@ components:
           type: string
       required:
         - certifierId
+    CertifiedAttribute:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        attributeId:
+          type: string
+          format: uuid
+        attributeName:
+          type: string
+      required:
+        - id
+        - name
+        - attributeId
+        - attributeName
+
+    CertifiedAttributes:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/CertifiedAttribute'
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
     TenantAttribute:
       type: object
       properties:
