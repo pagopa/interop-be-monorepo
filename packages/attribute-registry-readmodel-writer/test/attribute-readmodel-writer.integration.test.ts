@@ -17,8 +17,8 @@ import {
 import {
   Attribute,
   AttributeAddedV1,
-  AttributeDeletedV1,
   AttributeEventEnvelope,
+  MaintenanceAttributeDeletedV1,
   attributeKind,
   toAttributeV1,
   toReadModelAttribute,
@@ -96,6 +96,7 @@ describe("database test", async () => {
         type: "AttributeAdded",
         event_version: 1,
         data: payload,
+        log_date: new Date(),
       };
       await handleMessage(message, attributes);
 
@@ -124,6 +125,7 @@ describe("database test", async () => {
         type: "AttributeAdded",
         event_version: 1,
         data: payload,
+        log_date: new Date(),
       };
       await handleMessage(message, attributes);
 
@@ -146,16 +148,17 @@ describe("database test", async () => {
         toReadModelAttribute(certifiedAttribute),
         attributes
       );
-      const payload: AttributeDeletedV1 = {
+      const payload: MaintenanceAttributeDeletedV1 = {
         id: certifiedAttribute.id,
       };
       const message: AttributeEventEnvelope = {
         sequence_num: 1,
         stream_id: certifiedAttribute.id,
         version: 1,
-        type: "AttributeDeleted",
+        type: "MaintenanceAttributeDeleted",
         event_version: 1,
         data: payload,
+        log_date: new Date(),
       };
       await handleMessage(message, attributes);
 
