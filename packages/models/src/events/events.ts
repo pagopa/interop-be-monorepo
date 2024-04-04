@@ -9,6 +9,8 @@ export const EventEnvelope = <TEventZodType extends z.ZodType>(
       sequence_num: z.number(),
       stream_id: z.string().uuid(),
       version: z.number(),
+      correlation_id: z.string().nullish(),
+      log_date: z.coerce.date(),
     }),
     event
   );

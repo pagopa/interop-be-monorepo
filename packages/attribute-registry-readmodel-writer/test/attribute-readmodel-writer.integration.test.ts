@@ -67,6 +67,7 @@ describe("database test", async () => {
         type: "AttributeAdded",
         event_version: 1,
         data: payload,
+        log_date: new Date(),
       };
       await handleMessage(message, attributes);
 
