@@ -10,5 +10,4 @@ data:
   EVENTSTORE_DB_HOST: "interop-persistence-management-dev.cluster-c9zr6t2swdpb.eu-central-1.rds.amazonaws.com"
   EVENTSTORE_DB_PORT: "5432"
   EVENTSTORE_DB_NAME: "persistence_management_refactor"
-  SKIP_JWT_VERIFICATION: "true"
   WELL_KNOWN_URLS: ""
