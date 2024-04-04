@@ -66,7 +66,7 @@ export async function submitAgreementLogic(
   agreementQuery: AgreementQuery,
   tenantQuery: TenantQuery,
   correlationId: string
-): Promise<Array<CreateEvent<AgreementEvent>>> {
+): Promise<[Agreement, Array<CreateEvent<AgreementEvent>>]> {
   logger.info(`Submitting agreement ${agreementId}`);
   const { authData } = getContext();
 
@@ -121,7 +121,7 @@ const submitAgreement = async (
   tenantQuery: TenantQuery,
   constractBuilder: ContractBuilder,
   correlationId: string
-): Promise<Array<CreateEvent<AgreementEvent>>> => {
+): Promise<[Agreement, Array<CreateEvent<AgreementEvent>>]> => {
   const agreement = agreementData.data;
   const { authData } = getContext();
   const nextStateByAttributes = nextState(agreement, descriptor, consumer);
@@ -214,7 +214,10 @@ const submitAgreement = async (
 
   validateActiveOrPendingAgreement(agreement.id, newState);
 
-  return [submittedAgreementEvent, ...archivedAgreementsUpdates];
+  return [
+    submittedAgreement,
+    [submittedAgreementEvent, ...archivedAgreementsUpdates],
+  ];
 };
 
 const createContract = async (

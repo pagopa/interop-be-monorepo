@@ -202,9 +202,9 @@ export function agreementServiceBuilder(
       agreementId: AgreementId,
       payload: ApiAgreementSubmissionPayload,
       correlationId: string
-    ): Promise<string> {
+    ): Promise<Agreement> {
       logger.info(`Submitting agreement ${agreementId}`);
-      const updatesEvents = await submitAgreementLogic(
+      const [agreement, updatesEvents] = await submitAgreementLogic(
         agreementId,
         payload,
         contractBuilder(attributeQuery, fileManager.storeBytes),
@@ -218,7 +218,7 @@ export function agreementServiceBuilder(
         await repository.createEvent(event);
       }
 
-      return agreementId;
+      return agreement;
     },
     async upgradeAgreement(
       agreementId: AgreementId,

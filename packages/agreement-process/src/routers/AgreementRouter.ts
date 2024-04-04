@@ -94,12 +94,12 @@ const agreementRouter = (
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
       try {
-        const id = await agreementService.submitAgreement(
+        const agreement = await agreementService.submitAgreement(
           unsafeBrandId(req.params.agreementId),
           req.body,
           req.ctx.correlationId
         );
-        return res.status(200).json({ id }).end();
+        return res.status(200).json(agreementToApiAgreement(agreement)).end();
       } catch (error) {
         const errorRes = makeApiProblem(error, submitAgreementErrorMapper);
         return res.status(errorRes.status).json(errorRes).end();
