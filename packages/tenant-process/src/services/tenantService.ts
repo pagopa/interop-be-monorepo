@@ -49,7 +49,6 @@ export function tenantServiceBuilder(
   readModelService: ReadModelService
 ) {
   const repository = eventRepository(dbInstance, tenantEventToBinaryData);
-
   return {
     async updateVerifiedAttributeExtensionDate(
       tenantId: TenantId,
@@ -126,7 +125,6 @@ export function tenantServiceBuilder(
       await repository.createEvent(event);
       return updatedTenant;
     },
-
     async updateTenantVerifiedAttribute({
       verifierId,
       tenantId,
@@ -186,7 +184,6 @@ export function tenantServiceBuilder(
       await repository.createEvent(event);
       return updatedTenant;
     },
-
     async selfcareUpsertTenant({
       tenantSeed,
       authData,
