@@ -29,8 +29,8 @@
     "prune-modules" : "find . -name 'node_modules' -type d -exec rm -rf {} +"
   },
   "devDependencies": {
-    "@tsconfig/node-lts": "^18.12.3",
-    "turbo": "^1.10.7"
+    "@tsconfig/node-lts": "18.12.3",
+    "turbo": "1.10.7"
   },
   "packageManager": "pnpm@8.6.3"
 }
