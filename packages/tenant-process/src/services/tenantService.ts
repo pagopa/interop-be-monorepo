@@ -49,7 +49,6 @@ export function tenantServiceBuilder(
   readModelService: ReadModelService
 ) {
   const repository = eventRepository(dbInstance, tenantEventToBinaryData);
-
   return {
     async updateVerifiedAttributeExtensionDate(
       tenantId: TenantId,
