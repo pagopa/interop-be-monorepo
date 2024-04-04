@@ -65,6 +65,7 @@ describe("database test", async () => {
         version: 1,
         type: "AgreementAdded",
         data: newAgreement,
+        log_date: new Date(),
       };
       await handleMessageV1(message, agreements);
 
