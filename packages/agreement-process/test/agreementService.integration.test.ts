@@ -84,7 +84,10 @@ import {
 import { agreementQueryBuilder } from "../src/services/readmodel/agreementQuery.js";
 import { attributeQueryBuilder } from "../src/services/readmodel/attributeQuery.js";
 import { eserviceQueryBuilder } from "../src/services/readmodel/eserviceQuery.js";
-import { readModelServiceBuilder } from "../src/services/readmodel/readModelService.js";
+import {
+  AgreementEServicesQueryFilters,
+  readModelServiceBuilder,
+} from "../src/services/readmodel/readModelService.js";
 import { tenantQueryBuilder } from "../src/services/readmodel/tenantQuery.js";
 import { config } from "../src/utilities/config.js";
 import { agreementCreationConflictingStates } from "../src/model/domain/validators.js";
@@ -176,6 +179,16 @@ const expectedAgreementCreation = async (
 
   return actualAgreement;
 };
+
+const toCompactOrganization = (tenant: Tenant): CompactOrganization => ({
+  id: tenant.id,
+  name: tenant.name,
+});
+
+const toCompactEService = (eservice: EService): CompactEService => ({
+  id: eservice.id,
+  name: eservice.name,
+});
 
 beforeAll(async () => {
   startedPostgreSqlContainer = await postgreSQLContainer(config).start();
@@ -1258,11 +1271,6 @@ describe("Agreement service", () => {
     let tenant5: Tenant;
     let tenant6: Tenant;
 
-    const toCompactOrganization = (tenant: Tenant): CompactOrganization => ({
-      id: tenant.id,
-      name: tenant.name,
-    });
-
     beforeEach(async () => {
       tenant1 = { ...buildTenant(), name: "Tenant 1 Foo" };
       tenant2 = { ...buildTenant(), name: "Tenant 2 Bar" };
@@ -1490,11 +1498,6 @@ describe("Agreement service", () => {
     let tenant2: Tenant;
     let tenant3: Tenant;
 
-    const toCompactEService = (eservice: EService): CompactEService => ({
-      id: eservice.id,
-      name: eservice.name,
-    });
-
     beforeEach(async () => {
       tenant1 = buildTenant();
       tenant2 = buildTenant();
@@ -1551,7 +1554,7 @@ describe("Agreement service", () => {
           eserviceName: undefined,
           consumerIds: [],
           producerIds: [],
-          agreeementStates: [],
+          agreementStates: [],
         },
         10,
         0
@@ -1571,7 +1574,7 @@ describe("Agreement service", () => {
           eserviceName: "Foo",
           consumerIds: [],
           producerIds: [],
-          agreeementStates: [],
+          agreementStates: [],
         },
         10,
         0
@@ -1591,7 +1594,7 @@ describe("Agreement service", () => {
           eserviceName: undefined,
           consumerIds: [tenant2.id, tenant3.id],
           producerIds: [],
-          agreeementStates: [],
+          agreementStates: [],
         },
         10,
         0
@@ -1611,7 +1614,7 @@ describe("Agreement service", () => {
           eserviceName: undefined,
           consumerIds: [],
           producerIds: [tenant1.id, tenant2.id],
-          agreeementStates: [],
+          agreementStates: [],
         },
         10,
         0
@@ -1631,7 +1634,7 @@ describe("Agreement service", () => {
           eserviceName: undefined,
           consumerIds: [],
           producerIds: [],
-          agreeementStates: [agreementState.active, agreementState.pending],
+          agreementStates: [agreementState.active, agreementState.pending],
         },
         10,
         0
@@ -1651,7 +1654,7 @@ describe("Agreement service", () => {
           eserviceName: "Foo",
           consumerIds: [tenant2.id],
           producerIds: [tenant1.id],
-          agreeementStates: [],
+          agreementStates: [],
         },
         10,
         0
@@ -1669,7 +1672,7 @@ describe("Agreement service", () => {
           eserviceName: "Bar",
           consumerIds: [],
           producerIds: [],
-          agreeementStates: [agreementState.pending, agreementState.draft],
+          agreementStates: [agreementState.pending, agreementState.draft],
         },
         10,
         0
@@ -1687,7 +1690,7 @@ describe("Agreement service", () => {
           eserviceName: "Bar",
           consumerIds: [tenant1.id],
           producerIds: [tenant3.id],
-          agreeementStates: [agreementState.pending],
+          agreementStates: [agreementState.pending],
         },
         10,
         0
@@ -1705,7 +1708,7 @@ describe("Agreement service", () => {
           eserviceName: undefined,
           consumerIds: [],
           producerIds: [],
-          agreeementStates: [],
+          agreementStates: [],
         },
         2,
         0
@@ -1725,7 +1728,7 @@ describe("Agreement service", () => {
           eserviceName: undefined,
           consumerIds: [],
           producerIds: [],
-          agreeementStates: [],
+          agreementStates: [],
         },
         2,
         1
@@ -1745,7 +1748,7 @@ describe("Agreement service", () => {
           eserviceName: "Not existing name",
           consumerIds: [],
           producerIds: [],
-          agreeementStates: [],
+          agreementStates: [],
         },
         10,
         0
@@ -1759,7 +1762,7 @@ describe("Agreement service", () => {
   });
 
   describe("Agreement read model service", () => {
-    describe("Smoke-testing only methods not explicitly covered by the Agreement service tests above", () => {
+    describe("Smoke-testing only - their logic is already covered in the service tests above", () => {
       let tenant1: Tenant;
       let tenant2: Tenant;
       let tenant3: Tenant;
@@ -1777,17 +1780,35 @@ describe("Agreement service", () => {
       let agreement3: Agreement;
 
       beforeEach(async () => {
-        tenant1 = buildTenant();
-        tenant2 = buildTenant();
-        tenant3 = buildTenant();
+        tenant1 = {
+          ...buildTenant(),
+          name: "Tenant1 Foo",
+        };
+        tenant2 = {
+          ...buildTenant(),
+          name: "Tenant2 Bar",
+        };
+        tenant3 = {
+          ...buildTenant(),
+          name: "Tenant3 FooBar",
+        };
 
         await addOneTenant(tenant1, tenants);
         await addOneTenant(tenant2, tenants);
         await addOneTenant(tenant3, tenants);
 
-        eservice1 = buildEService(generateId<EServiceId>(), tenant1.id);
-        eservice2 = buildEService(generateId<EServiceId>(), tenant2.id);
-        eservice3 = buildEService(generateId<EServiceId>(), tenant3.id);
+        eservice1 = {
+          ...buildEService(generateId<EServiceId>(), tenant1.id),
+          name: "EService1 Foo",
+        };
+        eservice2 = {
+          ...buildEService(generateId<EServiceId>(), tenant2.id),
+          name: "EService2 Bar",
+        };
+        eservice3 = {
+          ...buildEService(generateId<EServiceId>(), tenant3.id),
+          name: "EService3 FooBar",
+        };
 
         await addOneEService(eservice1, eservices);
         await addOneEService(eservice2, eservices);
@@ -1795,18 +1816,21 @@ describe("Agreement service", () => {
 
         agreement1 = {
           ...buildAgreement(),
+          state: agreementState.draft,
           eserviceId: eservice1.id,
           producerId: tenant1.id,
           consumerId: tenant2.id,
         };
         agreement2 = {
           ...buildAgreement(),
+          state: agreementState.active,
           eserviceId: eservice2.id,
           producerId: tenant1.id,
           consumerId: tenant3.id,
         };
         agreement3 = {
           ...buildAgreement(),
+          state: agreementState.pending,
           eserviceId: eservice3.id,
           producerId: tenant2.id,
           consumerId: tenant3.id,
@@ -1825,19 +1849,57 @@ describe("Agreement service", () => {
         await addOneAttribute(attribute3, attributes);
       });
 
+      describe("get agreements", () => {
+        it("should get all agreements with no filters", async () => {
+          const filters = {};
+          const results = await readModelService.getAgreements(filters, 10, 0);
+          expect(results).toEqual({
+            totalCount: 3,
+            results: expect.arrayContaining([
+              agreement1,
+              agreement2,
+              agreement3,
+            ]),
+          });
+        });
+
+        it("should filter agreements when some filters are provided, with limit and offset", async () => {
+          const filters = {
+            producerId: [agreement1.producerId, agreement2.producerId],
+            state: [agreement1.state, agreement2.state],
+          };
+          const results = await readModelService.getAgreements(filters, 1, 1);
+          expect(results).toEqual({
+            totalCount: 2,
+            results: expect.arrayContaining([agreement2]),
+          });
+        });
+      });
+      describe("get agreement by id", () => {
+        it("should get an agreement by id", async () => {
+          const result = await readModelService.readAgreementById(
+            agreement1.id
+          );
+          expect(result?.data).toEqual(agreement1);
+        });
+        it("should return undefined the agreement does not exist", async () => {
+          const result = await readModelService.readAgreementById(
+            generateId<AgreementId>()
+          );
+          expect(result).toBeUndefined();
+        });
+      });
       describe("get all agreements", () => {
         it("should get all agreements", async () => {
           const filters = {};
           const allAgreements = await readModelService.getAllAgreements(
             filters
           );
-          expect(allAgreements.map((a) => a.data)).toEqual([
-            agreement1,
-            agreement2,
-            agreement3,
-          ]);
+          expect(allAgreements.map((a) => a.data)).toEqual(
+            expect.arrayContaining([agreement1, agreement2, agreement3])
+          );
         });
-        it("should filter agreements when some filters are provided (filters already thoroughly tested in get agreements tests)", async () => {
+        it("should filter agreements when some filters are provided", async () => {
           const filters = {
             producerId: [agreement1.producerId, agreement2.producerId],
             consumerId: [agreement1.consumerId, agreement3.consumerId],
@@ -1845,7 +1907,9 @@ describe("Agreement service", () => {
             eserviceId: [agreement1.eserviceId],
           };
           const agreements = await readModelService.getAllAgreements(filters);
-          expect(agreements.map((a) => a.data)).toEqual([agreement1]);
+          expect(agreements.map((a) => a.data)).toEqual(
+            expect.arrayContaining([agreement1])
+          );
         });
       });
 
@@ -1888,7 +1952,98 @@ describe("Agreement service", () => {
         });
       });
 
-      // TODO add a smoke test also for all the other readmodel service methods
+      describe("list consumers", () => {
+        it("should get all consumers", async () => {
+          const consumers = await readModelService.listConsumers(
+            undefined,
+            10,
+            0
+          );
+          expect(consumers).toEqual({
+            totalCount: 2,
+            results: expect.arrayContaining(
+              [tenant2, tenant3].map(toCompactOrganization)
+            ),
+          });
+        });
+        it("should filter consumers by name with offset and limit", async () => {
+          const consumers = await readModelService.listConsumers("Bar", 1, 1);
+          expect(consumers).toEqual({
+            totalCount: 2,
+            results: expect.arrayContaining(
+              [tenant3].map(toCompactOrganization)
+            ),
+          });
+        });
+      });
+
+      describe("list producers", () => {
+        it("should get all producers", async () => {
+          const producers = await readModelService.listProducers(
+            undefined,
+            10,
+            0
+          );
+          expect(producers).toEqual({
+            totalCount: 2,
+            results: expect.arrayContaining(
+              [tenant1, tenant2].map(toCompactOrganization)
+            ),
+          });
+        });
+        it("should filter producers by name with offset and limit", async () => {
+          const producers = await readModelService.listProducers(
+            "Tenant",
+            1,
+            1
+          );
+          expect(producers).toEqual({
+            totalCount: 2,
+            results: expect.arrayContaining(
+              [tenant2].map(toCompactOrganization)
+            ),
+          });
+        });
+      });
+
+      describe("list eservices", () => {
+        it("should get all eservices", async () => {
+          const filters = {
+            producerIds: [],
+            consumerIds: [],
+            agreementStates: [],
+            eserviceName: undefined,
+          };
+          const eservices = await readModelService.listAgreementsEServices(
+            filters,
+            10,
+            0
+          );
+          expect(eservices).toEqual({
+            totalCount: 3,
+            results: expect.arrayContaining(
+              [eservice1, eservice2, eservice3].map(toCompactEService)
+            ),
+          });
+        });
+        it("should filter eservices when some filters are provided, with limit and offset", async () => {
+          const filters = {
+            producerIds: [tenant1.id],
+            consumerIds: [tenant2.id, tenant3.id],
+            agreementStates: [agreementState.draft, agreementState.active],
+            eserviceName: "EService",
+          };
+          const eservices = await readModelService.listAgreementsEServices(
+            filters,
+            1,
+            1
+          );
+          expect(eservices).toEqual({
+            totalCount: 2,
+            results: expect.arrayContaining([eservice2].map(toCompactEService)),
+          });
+        });
+      });
     });
   });
 });

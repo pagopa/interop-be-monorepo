@@ -328,7 +328,7 @@ export function agreementServiceBuilder(
       offset: number
     ): Promise<ListResult<CompactEService>> {
       logger.info(
-        `Retrieving EServices with consumers ${filters.consumerIds}, producers ${filters.producerIds}, states ${filters.agreeementStates}, offset ${offset}, limit ${limit} and name matching ${filters.eserviceName}`
+        `Retrieving EServices with consumers ${filters.consumerIds}, producers ${filters.producerIds}, states ${filters.agreementStates}, offset ${offset}, limit ${limit} and name matching ${filters.eserviceName}`
       );
 
       return await agreementQuery.getEServices(filters, limit, offset);

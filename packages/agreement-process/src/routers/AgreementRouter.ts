@@ -480,7 +480,7 @@ const agreementRouter = (
             eserviceName: req.query.eServiceName,
             consumerIds: req.query.consumersIds.map(unsafeBrandId<TenantId>),
             producerIds: req.query.producersIds.map(unsafeBrandId<TenantId>),
-            agreeementStates: req.query.states.map(
+            agreementStates: req.query.states.map(
               apiAgreementStateToAgreementState
             ),
           },

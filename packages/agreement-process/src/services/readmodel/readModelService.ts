@@ -50,7 +50,7 @@ export type AgreementEServicesQueryFilters = {
   eserviceName: string | undefined;
   consumerIds: TenantId[];
   producerIds: TenantId[];
-  agreeementStates: AgreementState[];
+  agreementStates: AgreementState[];
 };
 
 type AgreementDataFields = RemoveDataPrefix<MongoQueryKeys<Agreement>>;
@@ -530,7 +530,7 @@ export function readModelServiceBuilder(
           $match: {
             ...makeFilter("consumerId", filters.consumerIds),
             ...makeFilter("producerId", filters.producerIds),
-            ...makeFilter("state", filters.agreeementStates),
+            ...makeFilter("state", filters.agreementStates),
             ...makeRegexFilter("eservices.data.name", filters.eserviceName),
           },
         },
