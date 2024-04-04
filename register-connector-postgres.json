@@ -18,6 +18,7 @@
         "transforms": "PartitionRouting",
         "transforms.PartitionRouting.type": "io.debezium.transforms.partitions.PartitionRouting",
         "transforms.PartitionRouting.partition.topic.num": 3,
-        "transforms.PartitionRouting.partition.payload.fields": "change.stream_id"
+        "transforms.PartitionRouting.partition.payload.fields": "change.stream_id",
+        "message.key.columns": "(.*).events:stream_id"
     }
 }
