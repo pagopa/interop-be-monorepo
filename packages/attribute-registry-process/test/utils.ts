@@ -6,6 +6,7 @@ import {
   TenantId,
   attributeEventToBinaryData,
   generateId,
+  toAttributeV1,
   toReadModelAttribute,
 } from "pagopa-interop-models";
 import { IDatabase } from "pg-promise";
