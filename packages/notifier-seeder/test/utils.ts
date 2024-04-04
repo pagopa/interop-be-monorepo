@@ -1,6 +1,6 @@
 import { GenericContainer } from "testcontainers";
 
-export const TEST_ELASTIC_MQ_IMAGE = "softwaremill/elasticmq-native:latest";
+export const TEST_ELASTIC_MQ_IMAGE = "softwaremill/elasticmq-native:1.5.7";
 export const TEST_ELASTIC_MQ_PORT = 9324;
 
 export const elasticMQContainer = (): GenericContainer =>
