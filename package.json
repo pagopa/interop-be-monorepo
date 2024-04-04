@@ -14,8 +14,8 @@
     "start:tenant": "turbo start --filter pagopa-interop-tenant-process",
     "start:tenant-readmodel-writer": "turbo start --filter pagopa-interop-tenant-readmodel-writer",
     "start:auth-updater": "turbo start --filter pagopa-interop-authorization-updater",
+    "start:notifier-seeder": "turbo start --filter pagopa-interop-notifier-seeder",
     "test": "turbo test",
-    "test:it": "turbo test:it",
     "build": "turbo build",
     "lint": "turbo lint",
     "lint:autofix": "turbo lint:autofix",
@@ -29,8 +29,8 @@
     "prune-modules" : "find . -name 'node_modules' -type d -exec rm -rf {} +"
   },
   "devDependencies": {
-    "@tsconfig/node-lts": "^18.12.3",
-    "turbo": "^1.10.7"
+    "@tsconfig/node-lts": "18.12.3",
+    "turbo": "1.10.7"
   },
   "packageManager": "pnpm@8.6.3"
 }

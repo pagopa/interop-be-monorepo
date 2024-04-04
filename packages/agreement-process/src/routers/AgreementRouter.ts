@@ -28,7 +28,7 @@ import { tenantQueryBuilder } from "../services/readmodel/tenantQuery.js";
 import { eserviceQueryBuilder } from "../services/readmodel/eserviceQuery.js";
 import { attributeQueryBuilder } from "../services/readmodel/attributeQuery.js";
 import { readModelServiceBuilder } from "../services/readmodel/readModelService.js";
-import { agreementNotFound, makeApiProblem } from "../model/domain/errors.js";
+import { makeApiProblem } from "../model/domain/errors.js";
 import {
   cloneAgreementErrorMapper,
   addConsumerDocumentErrorMapper,
@@ -43,6 +43,7 @@ import {
   upgradeAgreementErrorMapper,
   removeConsumerDocumentErrorMapper,
   archiveAgreementErrorMapper,
+  getAgreementErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -91,7 +92,8 @@ const agreementRouter = (
       try {
         const id = await agreementService.submitAgreement(
           unsafeBrandId(req.params.agreementId),
-          req.body
+          req.body,
+          req.ctx.correlationId
         );
         return res.status(200).json({ id }).end();
       } catch (error) {
@@ -109,7 +111,8 @@ const agreementRouter = (
         const agreementId: Agreement["id"] =
           await agreementService.activateAgreement(
             unsafeBrandId(req.params.agreementId),
-            req.ctx.authData
+            req.ctx.authData,
+            req.ctx.correlationId
           );
 
         return res.status(200).json({ id: agreementId }).end();
@@ -128,7 +131,8 @@ const agreementRouter = (
         const id = await agreementService.addConsumerDocument(
           unsafeBrandId(req.params.agreementId),
           req.body,
-          req.ctx.authData
+          req.ctx.authData,
+          req.ctx.correlationId
         );
 
         return res.status(200).json({ id }).send();
@@ -168,7 +172,8 @@ const agreementRouter = (
         await agreementService.removeAgreementConsumerDocument(
           unsafeBrandId(req.params.agreementId),
           unsafeBrandId(req.params.documentId),
-          req.ctx.authData
+          req.ctx.authData,
+          req.ctx.correlationId
         );
         return res.status(204).send();
       } catch (error) {
@@ -188,7 +193,8 @@ const agreementRouter = (
       try {
         const id = await agreementService.suspendAgreement(
           unsafeBrandId(req.params.agreementId),
-          req.ctx.authData
+          req.ctx.authData,
+          req.ctx.correlationId
         );
         return res.status(200).json({ id }).send();
       } catch (error) {
@@ -206,7 +212,8 @@ const agreementRouter = (
         const id = await agreementService.rejectAgreement(
           unsafeBrandId(req.params.agreementId),
           req.body.reason,
-          req.ctx.authData
+          req.ctx.authData,
+          req.ctx.correlationId
         );
         return res.status(200).json({ id }).send();
       } catch (error) {
@@ -223,7 +230,8 @@ const agreementRouter = (
       try {
         const agreementId = await agreementService.archiveAgreement(
           unsafeBrandId(req.params.agreementId),
-          req.ctx.authData
+          req.ctx.authData,
+          req.ctx.correlationId
         );
         return res.status(200).send({ id: agreementId });
       } catch (error) {
@@ -240,7 +248,8 @@ const agreementRouter = (
       try {
         const id = await agreementService.createAgreement(
           req.body,
-          req.ctx.authData
+          req.ctx.authData,
+          req.ctx.correlationId
         );
         return res.status(200).json({ id }).send();
       } catch (error) {
@@ -367,24 +376,9 @@ const agreementRouter = (
         const agreement = await agreementService.getAgreementById(
           unsafeBrandId(req.params.agreementId)
         );
-        if (agreement) {
-          return res
-            .status(200)
-            .json(agreementToApiAgreement(agreement))
-            .send();
-        } else {
-          return res
-            .status(404)
-            .json(
-              makeApiProblem(
-                agreementNotFound(unsafeBrandId(req.params.agreementId)),
-                () => 404
-              )
-            )
-            .send();
-        }
+        return res.status(200).json(agreementToApiAgreement(agreement)).send();
       } catch (error) {
-        const errorRes = makeApiProblem(error, () => 500);
+        const errorRes = makeApiProblem(error, getAgreementErrorMapper);
         return res.status(errorRes.status).json(errorRes).end();
       }
     }
@@ -397,7 +391,8 @@ const agreementRouter = (
       try {
         await agreementService.deleteAgreementById(
           unsafeBrandId(req.params.agreementId),
-          req.ctx.authData
+          req.ctx.authData,
+          req.ctx.correlationId
         );
         return res.status(204).send();
       } catch (error) {
@@ -415,7 +410,8 @@ const agreementRouter = (
         await agreementService.updateAgreement(
           unsafeBrandId(req.params.agreementId),
           req.body,
-          req.ctx.authData
+          req.ctx.authData,
+          req.ctx.correlationId
         );
 
         return res.status(200).send();
@@ -433,7 +429,8 @@ const agreementRouter = (
       try {
         const id = await agreementService.upgradeAgreement(
           unsafeBrandId(req.params.agreementId),
-          req.ctx.authData
+          req.ctx.authData,
+          req.ctx.correlationId
         );
 
         return res.status(200).json({ id }).send();
@@ -451,7 +448,8 @@ const agreementRouter = (
       try {
         const id = await agreementService.cloneAgreement(
           unsafeBrandId(req.params.agreementId),
-          req.ctx.authData
+          req.ctx.authData,
+          req.ctx.correlationId
         );
 
         return res.status(200).json({ id }).send();

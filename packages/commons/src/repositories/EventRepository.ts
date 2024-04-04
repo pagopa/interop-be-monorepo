@@ -9,6 +9,7 @@ export interface Event {
 
 export type CreateEvent<T extends Event> = {
   readonly streamId: string;
+  readonly correlationId: string;
   readonly version: number;
   readonly event: T;
 };
@@ -30,6 +31,7 @@ export const eventRepository = <T extends Event>(
         await t.none(sql.insertEvent, {
           stream_id: createEvent.streamId,
           version: newVersion,
+          correlation_id: createEvent.correlationId,
           type: createEvent.event.type,
           event_version: createEvent.event.event_version,
           data: Buffer.from(toBinaryData(createEvent.event)),

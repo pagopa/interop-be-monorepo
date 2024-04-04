@@ -1,19 +1,14 @@
+import { AuthData, DB, eventRepository, logger } from "pagopa-interop-commons";
 import {
-  AuthData,
-  CreateEvent,
-  DB,
-  eventRepository,
-} from "pagopa-interop-commons";
-import {
-  AttributeEvent,
   Attribute,
   WithMetadata,
   attributeEventToBinaryData,
   attributeKind,
   generateId,
   TenantId,
-  unsafeBrandId,
   AttributeId,
+  AttributeKind,
+  ListResult,
 } from "pagopa-interop-models";
 import {
   ApiCertifiedAttributeSeed,
@@ -25,9 +20,11 @@ import { toCreateEventAttributeAdded } from "../model/domain/toEvent.js";
 import {
   OrganizationIsNotACertifier,
   attributeDuplicate,
+  attributeNotFound,
   originNotCompliant,
   tenantNotFound,
 } from "../model/domain/errors.js";
+import { config } from "../utilities/config.js";
 import { ReadModelService } from "./readModelService.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -38,201 +35,275 @@ export function attributeRegistryServiceBuilder(
   const repository = eventRepository(dbInstance, attributeEventToBinaryData);
 
   return {
+    async getAttributesByKindsNameOrigin({
+      kinds,
+      name,
+      origin,
+      offset,
+      limit,
+    }: {
+      kinds: AttributeKind[];
+      name: string | undefined;
+      origin: string | undefined;
+      offset: number;
+      limit: number;
+    }): Promise<ListResult<Attribute>> {
+      logger.info(
+        `Getting attributes with name = ${name}, limit = ${limit}, offset = ${offset}, kinds = ${kinds}`
+      );
+      return await readModelService.getAttributesByKindsNameOrigin({
+        kinds,
+        name,
+        origin,
+        offset,
+        limit,
+      });
+    },
+
+    async getAttributeByName(name: string): Promise<WithMetadata<Attribute>> {
+      logger.info(`Retrieving attribute with name ${name}`);
+      const attribute = await readModelService.getAttributeByName(name);
+      if (attribute === undefined) {
+        throw attributeNotFound(name);
+      }
+      return attribute;
+    },
+
+    async getAttributeByOriginAndCode({
+      origin,
+      code,
+    }: {
+      origin: string;
+      code: string;
+    }): Promise<WithMetadata<Attribute>> {
+      logger.info(`Retrieving attribute ${origin}/${code}`);
+      const attribute = await readModelService.getAttributeByOriginAndCode({
+        origin,
+        code,
+      });
+      if (attribute === undefined) {
+        throw attributeNotFound(`${origin}/${code}`);
+      }
+      return attribute;
+    },
+
+    async getAttributeById(id: AttributeId): Promise<WithMetadata<Attribute>> {
+      logger.info(`Retrieving attribute with ID ${id}`);
+      const attribute = await readModelService.getAttributeById(id);
+      if (attribute === undefined) {
+        throw attributeNotFound(id);
+      }
+      return attribute;
+    },
+
+    async getAttributesByIds({
+      ids,
+      offset,
+      limit,
+    }: {
+      ids: AttributeId[];
+      offset: number;
+      limit: number;
+    }): Promise<ListResult<Attribute>> {
+      logger.info(`Retrieving attributes in bulk by id in [${ids}]`);
+      return await readModelService.getAttributesByIds({ ids, offset, limit });
+    },
+
     async createDeclaredAttribute(
       apiDeclaredAttributeSeed: ApiDeclaredAttributeSeed,
-      authData: AuthData
-    ): Promise<AttributeId> {
-      if (authData.externalId.origin !== "IPA") {
-        throw originNotCompliant("IPA");
+      authData: AuthData,
+      correlationId: string
+    ): Promise<Attribute> {
+      logger.info(
+        `Creating declared attribute with name ${apiDeclaredAttributeSeed.name}}`
+      );
+
+      if (!config.producerAllowedOrigins.includes(authData.externalId.origin)) {
+        throw originNotCompliant(authData.externalId.origin);
       }
 
-      return unsafeBrandId<AttributeId>(
-        await repository.createEvent(
-          createDeclaredAttributeLogic({
-            attribute: await readModelService.getAttributeByName(
-              apiDeclaredAttributeSeed.name
-            ),
-            apiDeclaredAttributeSeed,
-          })
-        )
+      const attributeWithSameName = await readModelService.getAttributeByName(
+        apiDeclaredAttributeSeed.name
       );
+      if (attributeWithSameName) {
+        throw attributeDuplicate(apiDeclaredAttributeSeed.name);
+      }
+
+      const newDeclaredAttribute: Attribute = {
+        id: generateId(),
+        kind: attributeKind.declared,
+        name: apiDeclaredAttributeSeed.name,
+        description: apiDeclaredAttributeSeed.description,
+        creationTime: new Date(),
+        code: undefined,
+        origin: undefined,
+      };
+
+      logger.info(
+        `Declared attribute created with id ${newDeclaredAttribute.id}`
+      );
+
+      const event = toCreateEventAttributeAdded(
+        newDeclaredAttribute,
+        correlationId
+      );
+      await repository.createEvent(event);
+
+      return newDeclaredAttribute;
     },
 
     async createVerifiedAttribute(
       apiVerifiedAttributeSeed: ApiVerifiedAttributeSeed,
-      authData: AuthData
-    ): Promise<AttributeId> {
-      if (authData.externalId.origin !== "IPA") {
-        throw originNotCompliant("IPA");
-      }
-
-      return unsafeBrandId<AttributeId>(
-        await repository.createEvent(
-          createVerifiedAttributeLogic({
-            attribute: await readModelService.getAttributeByName(
-              apiVerifiedAttributeSeed.name
-            ),
-            apiVerifiedAttributeSeed,
-          })
-        )
+      authData: AuthData,
+      correlationId: string
+    ): Promise<Attribute> {
+      logger.info(
+        `Creating verified attribute with name ${apiVerifiedAttributeSeed.name}`
       );
-    },
-    async getCertifierId(tenantId: TenantId): Promise<string> {
-      const tenant = await readModelService.getTenantById(tenantId);
-      if (!tenant) {
-        throw tenantNotFound(tenantId);
+      if (!config.producerAllowedOrigins.includes(authData.externalId.origin)) {
+        throw originNotCompliant(authData.externalId.origin);
       }
 
-      const certifier = tenant.data.features
-        .filter(({ type }) => type === "PersistentCertifier")
-        .find(({ certifierId }) => certifierId.trim().length > 0);
-
-      if (certifier) {
-        return certifier.certifierId;
+      const attributeWithSameName = await readModelService.getAttributeByName(
+        apiVerifiedAttributeSeed.name
+      );
+      if (attributeWithSameName) {
+        throw attributeDuplicate(apiVerifiedAttributeSeed.name);
       }
-      throw OrganizationIsNotACertifier(tenantId);
+
+      const newVerifiedAttribute: Attribute = {
+        id: generateId(),
+        kind: attributeKind.verified,
+        name: apiVerifiedAttributeSeed.name,
+        description: apiVerifiedAttributeSeed.description,
+        creationTime: new Date(),
+        code: undefined,
+        origin: undefined,
+      };
+
+      logger.info(
+        `Verified attribute created with id ${newVerifiedAttribute.id}`
+      );
+
+      const event = toCreateEventAttributeAdded(
+        newVerifiedAttribute,
+        correlationId
+      );
+      await repository.createEvent(event);
+
+      return newVerifiedAttribute;
     },
+
     async createCertifiedAttribute(
       apiCertifiedAttributeSeed: ApiCertifiedAttributeSeed,
-      authData: AuthData
-    ): Promise<AttributeId> {
-      const certifierPromise = this.getCertifierId(authData.organizationId);
+      authData: AuthData,
+      correlationId: string
+    ): Promise<Attribute> {
+      logger.info(
+        `Creating certified attribute with code ${apiCertifiedAttributeSeed.code}`
+      );
+      const certifierPromise = getCertifierId(
+        authData.organizationId,
+        readModelService
+      );
       const attributePromise = readModelService.getAttributeByCodeAndName(
         apiCertifiedAttributeSeed.code,
         apiCertifiedAttributeSeed.name
       );
 
-      const [certifier, attribute] = await Promise.all([
+      const [certifier, attributeWithSameName] = await Promise.all([
         certifierPromise,
         attributePromise,
       ]);
 
-      return unsafeBrandId<AttributeId>(
-        await repository.createEvent(
-          createCertifiedAttributeLogic({
-            attribute,
-            apiCertifiedAttributeSeed,
-            certifier,
-          })
-        )
+      if (attributeWithSameName) {
+        throw attributeDuplicate(apiCertifiedAttributeSeed.name);
+      }
+
+      const newCertifiedAttribute: Attribute = {
+        id: generateId(),
+        kind: attributeKind.certified,
+        name: apiCertifiedAttributeSeed.name,
+        description: apiCertifiedAttributeSeed.description,
+        creationTime: new Date(),
+        code: apiCertifiedAttributeSeed.code,
+        origin: certifier,
+      };
+
+      logger.info(
+        `Certified attribute created with id ${newCertifiedAttribute.id}`
       );
+
+      const event = toCreateEventAttributeAdded(
+        newCertifiedAttribute,
+        correlationId
+      );
+      await repository.createEvent(event);
+
+      return newCertifiedAttribute;
     },
+
     async createInternalCertifiedAttribute(
-      apiInternalCertifiedAttributeSeed: ApiInternalCertifiedAttributeSeed
-    ): Promise<AttributeId> {
-      return unsafeBrandId<AttributeId>(
-        await repository.createEvent(
-          createInternalCertifiedAttributeLogic({
-            attribute: await readModelService.getAttributeByCodeAndName(
-              apiInternalCertifiedAttributeSeed.code,
-              apiInternalCertifiedAttributeSeed.name
-            ),
-            apiInternalCertifiedAttributeSeed,
-          })
-        )
+      apiInternalCertifiedAttributeSeed: ApiInternalCertifiedAttributeSeed,
+      correlationId: string
+    ): Promise<Attribute> {
+      logger.info(
+        `Creating certified attribute with origin ${apiInternalCertifiedAttributeSeed.origin} and code ${apiInternalCertifiedAttributeSeed.code} - Internal Request`
       );
+
+      const attributeWithSameNameAndCode =
+        await readModelService.getAttributeByCodeAndName(
+          apiInternalCertifiedAttributeSeed.code,
+          apiInternalCertifiedAttributeSeed.name
+        );
+      if (attributeWithSameNameAndCode) {
+        throw attributeDuplicate(apiInternalCertifiedAttributeSeed.name);
+      }
+
+      const newInternalCertifiedAttribute: Attribute = {
+        id: generateId(),
+        kind: attributeKind.certified,
+        name: apiInternalCertifiedAttributeSeed.name,
+        description: apiInternalCertifiedAttributeSeed.description,
+        creationTime: new Date(),
+        code: apiInternalCertifiedAttributeSeed.code,
+        origin: apiInternalCertifiedAttributeSeed.origin,
+      };
+
+      logger.info(
+        `Certified attribute created with id ${newInternalCertifiedAttribute.id} - Internal Request`
+      );
+
+      const event = toCreateEventAttributeAdded(
+        newInternalCertifiedAttribute,
+        correlationId
+      );
+      await repository.createEvent(event);
+
+      return newInternalCertifiedAttribute;
     },
   };
+}
+
+async function getCertifierId(
+  tenantId: TenantId,
+  readModelService: ReadModelService
+): Promise<string> {
+  const tenant = await readModelService.getTenantById(tenantId);
+  if (!tenant) {
+    throw tenantNotFound(tenantId);
+  }
+
+  const certifier = tenant.features
+    .filter(({ type }) => type === "PersistentCertifier")
+    .find(({ certifierId }) => certifierId.trim().length > 0);
+
+  if (certifier) {
+    return certifier.certifierId;
+  }
+  throw OrganizationIsNotACertifier(tenantId);
 }
 
 export type AttributeRegistryService = ReturnType<
   typeof attributeRegistryServiceBuilder
 >;
-
-export function createDeclaredAttributeLogic({
-  attribute,
-  apiDeclaredAttributeSeed,
-}: {
-  attribute: WithMetadata<Attribute> | undefined;
-  apiDeclaredAttributeSeed: ApiDeclaredAttributeSeed;
-}): CreateEvent<AttributeEvent> {
-  if (attribute) {
-    throw attributeDuplicate(apiDeclaredAttributeSeed.name);
-  }
-
-  const newDeclaredAttribute: Attribute = {
-    id: generateId(),
-    kind: attributeKind.declared,
-    name: apiDeclaredAttributeSeed.name,
-    description: apiDeclaredAttributeSeed.description,
-    creationTime: new Date(),
-    code: undefined,
-    origin: undefined,
-  };
-
-  return toCreateEventAttributeAdded(newDeclaredAttribute);
-}
-
-export function createVerifiedAttributeLogic({
-  attribute,
-  apiVerifiedAttributeSeed,
-}: {
-  attribute: WithMetadata<Attribute> | undefined;
-  apiVerifiedAttributeSeed: ApiVerifiedAttributeSeed;
-}): CreateEvent<AttributeEvent> {
-  if (attribute) {
-    throw attributeDuplicate(apiVerifiedAttributeSeed.name);
-  }
-
-  const newVerifiedAttribute: Attribute = {
-    id: generateId(),
-    kind: attributeKind.verified,
-    name: apiVerifiedAttributeSeed.name,
-    description: apiVerifiedAttributeSeed.description,
-    creationTime: new Date(),
-    code: undefined,
-    origin: undefined,
-  };
-
-  return toCreateEventAttributeAdded(newVerifiedAttribute);
-}
-
-export function createCertifiedAttributeLogic({
-  attribute,
-  apiCertifiedAttributeSeed,
-  certifier,
-}: {
-  attribute: WithMetadata<Attribute> | undefined;
-  apiCertifiedAttributeSeed: ApiCertifiedAttributeSeed;
-  certifier: string;
-}): CreateEvent<AttributeEvent> {
-  if (attribute) {
-    throw attributeDuplicate(apiCertifiedAttributeSeed.name);
-  }
-
-  const newCertifiedAttribute: Attribute = {
-    id: generateId(),
-    kind: attributeKind.certified,
-    name: apiCertifiedAttributeSeed.name,
-    description: apiCertifiedAttributeSeed.description,
-    creationTime: new Date(),
-    code: apiCertifiedAttributeSeed.code,
-    origin: certifier,
-  };
-
-  return toCreateEventAttributeAdded(newCertifiedAttribute);
-}
-
-export function createInternalCertifiedAttributeLogic({
-  attribute,
-  apiInternalCertifiedAttributeSeed,
-}: {
-  attribute: WithMetadata<Attribute> | undefined;
-  apiInternalCertifiedAttributeSeed: ApiInternalCertifiedAttributeSeed;
-}): CreateEvent<AttributeEvent> {
-  if (attribute) {
-    throw attributeDuplicate(apiInternalCertifiedAttributeSeed.name);
-  }
-
-  const newInternalCertifiedAttribute: Attribute = {
-    id: generateId(),
-    kind: attributeKind.certified,
-    name: apiInternalCertifiedAttributeSeed.name,
-    description: apiInternalCertifiedAttributeSeed.description,
-    creationTime: new Date(),
-    code: apiInternalCertifiedAttributeSeed.code,
-    origin: apiInternalCertifiedAttributeSeed.origin,
-  };
-
-  return toCreateEventAttributeAdded(newInternalCertifiedAttribute);
-}

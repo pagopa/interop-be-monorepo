@@ -17,6 +17,7 @@ import {
   TenantId,
   EServiceId,
   attributeKind,
+  AttributeReadmodel,
 } from "pagopa-interop-models";
 import { z } from "zod";
 import { Document, Filter, WithId } from "mongodb";
@@ -92,20 +93,15 @@ export const getTenants = async ({
 
 async function getAttribute(
   attributes: AttributeCollection,
-  filter: Filter<WithId<WithMetadata<Attribute>>>
-): Promise<WithMetadata<Attribute> | undefined> {
+  filter: Filter<WithId<WithMetadata<AttributeReadmodel>>>
+): Promise<Attribute | undefined> {
   const data = await attributes.findOne(filter, {
     projection: { data: true, metadata: true },
   });
   if (!data) {
     return undefined;
   } else {
-    const result = z
-      .object({
-        metadata: z.object({ version: z.number() }),
-        data: Attribute,
-      })
-      .safeParse(data);
+    const result = Attribute.safeParse(data);
     if (!result.success) {
       logger.error(
         `Unable to parse attribute item: result ${JSON.stringify(
@@ -114,10 +110,7 @@ async function getAttribute(
       );
       throw genericError("Unable to parse attribute item");
     }
-    return {
-      data: result.data.data,
-      metadata: { version: result.data.metadata.version },
-    };
+    return result.data;
   }
 }
 
@@ -217,17 +210,17 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
     },
 
     async getConsumers({
-      name,
+      consumerName,
       producerId,
       offset,
       limit,
     }: {
-      name: string | undefined;
-      producerId: TenantId;
+      consumerName: string | undefined;
+      producerId: string;
       offset: number;
       limit: number;
     }): Promise<ListResult<Tenant>> {
-      const query = listTenantsFilters(name);
+      const query = listTenantsFilters(consumerName);
 
       const aggregationPipeline = [
         { $match: query },
@@ -265,15 +258,15 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
     },
 
     async getProducers({
-      name,
+      producerName,
       offset,
       limit,
     }: {
-      name: string | undefined;
+      producerName: string | undefined;
       offset: number;
       limit: number;
     }): Promise<ListResult<Tenant>> {
-      const query = listTenantsFilters(name);
+      const query = listTenantsFilters(producerName);
       const aggregationPipeline = [
         { $match: query },
         {
@@ -299,10 +292,10 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
     },
     async getAttributesByExternalIds(
       externalIds: ExternalId[]
-    ): Promise<Array<WithMetadata<Attribute>>> {
+    ): Promise<Attribute[]> {
       const fetchAttributeByExternalId = async (
         externalId: ExternalId
-      ): Promise<WithMetadata<Attribute>> => {
+      ): Promise<Attribute> => {
         const data = await getAttribute(attributes, {
           "data.origin": externalId.origin,
           "data.code": externalId.value,
@@ -317,12 +310,10 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
       return Promise.all(attributesPromises);
     },
 
-    async getAttributesById(
-      attributeIds: AttributeId[]
-    ): Promise<Array<WithMetadata<Attribute>>> {
+    async getAttributesById(attributeIds: AttributeId[]): Promise<Attribute[]> {
       const fetchAttributeById = async (
         id: AttributeId
-      ): Promise<WithMetadata<Attribute>> => {
+      ): Promise<Attribute> => {
         const data = await getAttribute(attributes, { "data.id": id });
         if (!data) {
           throw attributeNotFound(id);
@@ -334,9 +325,7 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
       return Promise.all(attributePromises);
     },
 
-    async getEServiceById(
-      id: EServiceId
-    ): Promise<WithMetadata<EService> | undefined> {
+    async getEServiceById(id: EServiceId): Promise<EService | undefined> {
       const data = await eservices.findOne(
         { "data.id": id },
         { projection: { data: true, metadata: true } }
@@ -345,12 +334,7 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
       if (!data) {
         return undefined;
       } else {
-        const result = z
-          .object({
-            metadata: z.object({ version: z.number() }),
-            data: EService,
-          })
-          .safeParse(data);
+        const result = EService.safeParse(data);
 
         if (!result.success) {
           logger.error(
@@ -362,10 +346,7 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
           throw genericError("Unable to parse eservices item");
         }
 
-        return {
-          data: result.data.data,
-          metadata: { version: result.data.metadata.version },
-        };
+        return result.data;
       }
     },
 

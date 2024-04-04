@@ -64,7 +64,8 @@ export async function submitAgreementLogic(
   constractBuilder: ContractBuilder,
   eserviceQuery: EserviceQuery,
   agreementQuery: AgreementQuery,
-  tenantQuery: TenantQuery
+  tenantQuery: TenantQuery,
+  correlationId: string
 ): Promise<Array<CreateEvent<AgreementEvent>>> {
   logger.info(`Submitting agreement ${agreementId}`);
   const { authData } = getContext();
@@ -79,9 +80,9 @@ export async function submitAgreementLogic(
   assertSubmittableState(agreement.data.state, agreement.data.id);
   await verifySubmissionConflictingAgreements(agreement.data, agreementQuery);
 
-  const eservice = (
-    await eserviceQuery.getEServiceById(agreement.data.eserviceId)
-  )?.data;
+  const eservice = await eserviceQuery.getEServiceById(
+    agreement.data.eserviceId
+  );
   if (!eservice) {
     throw eServiceNotFound(agreement.data.eserviceId);
   }
@@ -91,8 +92,7 @@ export async function submitAgreementLogic(
     agreement.data.descriptorId
   );
 
-  const consumer = (await tenantQuery.getTenantById(agreement.data.consumerId))
-    ?.data;
+  const consumer = await tenantQuery.getTenantById(agreement.data.consumerId);
 
   if (!consumer) {
     throw tenantIdNotFound(agreement.data.consumerId);
@@ -106,7 +106,8 @@ export async function submitAgreementLogic(
     payload,
     agreementQuery,
     tenantQuery,
-    constractBuilder
+    constractBuilder,
+    correlationId
   );
 }
 
@@ -118,7 +119,8 @@ const submitAgreement = async (
   payload: ApiAgreementSubmissionPayload,
   agreementQuery: AgreementQuery,
   tenantQuery: TenantQuery,
-  constractBuilder: ContractBuilder
+  constractBuilder: ContractBuilder,
+  correlationId: string
 ): Promise<Array<CreateEvent<AgreementEvent>>> => {
   const agreement = agreementData.data;
   const { authData } = getContext();
@@ -155,7 +157,8 @@ const submitAgreement = async (
 
   const updatedAgreementEvent = toCreateEventAgreementUpdated(
     updatedAgreement,
-    agreementData.metadata.version
+    agreementData.metadata.version,
+    correlationId
   );
 
   const agreements = (
@@ -187,7 +190,8 @@ const submitAgreement = async (
                   ...agreement.data,
                   ...updateSeed,
                 },
-                agreement.metadata.version
+                agreement.metadata.version,
+                correlationId
               );
             }
           )
@@ -213,7 +217,8 @@ const submitAgreement = async (
             consumer,
             updateSeed,
             tenantQuery,
-            constractBuilder
+            constractBuilder,
+            correlationId
           ),
         ]
       : [];
@@ -232,11 +237,12 @@ const createContract = async (
   consumer: Tenant,
   seed: UpdateAgreementSeed,
   tenantQuery: TenantQuery,
-  constractBuilder: ContractBuilder
+  constractBuilder: ContractBuilder,
+  correlationId: string
 ): Promise<CreateEvent<AgreementEvent>> => {
   const producer = await tenantQuery.getTenantById(agreement.producerId);
 
-  if (!producer?.data) {
+  if (!producer) {
     throw tenantIdNotFound(agreement.producerId);
   }
 
@@ -248,7 +254,7 @@ const createContract = async (
     agreement,
     eservice,
     consumer,
-    producer.data,
+    producer,
     seed
   );
   const agreementdocumentSeed: AgreementDocument = {
@@ -260,7 +266,8 @@ const createContract = async (
   return addAgreementContractLogic(
     agreement.id,
     agreementdocumentSeed,
-    agreementVersionNumer
+    agreementVersionNumer,
+    correlationId
   );
 };
 
@@ -271,9 +278,7 @@ const validateConsumerEmail = async (
   const consumer = await tenantQuery.getTenantById(agreement.consumerId);
 
   if (
-    !consumer?.data.mails.find(
-      (mail) => mail.kind === tenantMailKind.ContactEmail
-    )
+    !consumer?.mails.find((mail) => mail.kind === tenantMailKind.ContactEmail)
   ) {
     throw consumerWithNotValidEmail(agreement.id, agreement.consumerId);
   }

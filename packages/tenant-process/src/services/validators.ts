@@ -53,7 +53,7 @@ export function assertOrganizationVerifierExist(
   tenantVerifier: TenantVerifier | undefined
 ): asserts tenantVerifier is NonNullable<TenantVerifier> {
   if (tenantVerifier === undefined) {
-    organizationNotFoundInVerifiers(verifierId, tenantId, attributeId);
+    throw organizationNotFoundInVerifiers(verifierId, tenantId, attributeId);
   }
 }
 
@@ -64,7 +64,7 @@ export function assertExpirationDateExist(
   expirationDate: Date | undefined
 ): asserts expirationDate is Date {
   if (expirationDate === undefined) {
-    expirationDateNotFoundInVerifier(verifierId, attributeId, tenantId);
+    throw expirationDateNotFoundInVerifier(verifierId, attributeId, tenantId);
   }
 }
 
@@ -127,12 +127,10 @@ export async function getTenantKindLoadingCertifiedAttributes(
     );
   }
 
-  const convertAttributes = (
-    attributes: Array<WithMetadata<Attribute>>
-  ): ExternalId[] =>
+  const convertAttributes = (attributes: Attribute[]): ExternalId[] =>
     attributes.flatMap((attr) => {
-      const origin = attr.data.origin;
-      const code = attr.data.code;
+      const origin = attr.origin;
+      const code = attr.code;
 
       if (origin !== undefined && code !== undefined) {
         return { origin, value: code } as ExternalId;

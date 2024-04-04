@@ -410,30 +410,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Problem'
-    post:
-      tags:
-        - tenant
-      operationId: updateTenant
-      description: Updates the tenant
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TenantDelta'
-      responses:
-        '200':
-          description: Tenant updated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ResourceId'
-        '404':
-          description: Tenant Not Found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Problem'
   /tenants/origin/{origin}/code/{code}:
     parameters:
       - $ref: '#/components/parameters/CorrelationIdHeader'

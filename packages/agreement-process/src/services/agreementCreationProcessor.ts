@@ -19,12 +19,14 @@ import { AgreementQuery } from "./readmodel/agreementQuery.js";
 import { EserviceQuery } from "./readmodel/eserviceQuery.js";
 import { TenantQuery } from "./readmodel/tenantQuery.js";
 
+// eslint-disable-next-line max-params
 export async function createAgreementLogic(
   agreement: ApiAgreementPayload,
   authData: AuthData,
   agreementQuery: AgreementQuery,
   eserviceQuery: EserviceQuery,
-  tenantQuery: TenantQuery
+  tenantQuery: TenantQuery,
+  correlationId: string
 ): Promise<CreateEvent<AgreementEvent>> {
   logger.info(
     `Creating agreement for EService ${agreement.eserviceId} and Descriptor ${agreement.descriptorId}`
@@ -33,7 +35,7 @@ export async function createAgreementLogic(
   assertEServiceExist(unsafeBrandId(agreement.eserviceId), eservice);
 
   const descriptor = validateCreationOnDescriptor(
-    eservice.data,
+    eservice,
     unsafeBrandId(agreement.descriptorId)
   );
 
@@ -45,15 +47,15 @@ export async function createAgreementLogic(
   const consumer = await tenantQuery.getTenantById(authData.organizationId);
   assertTenantExist(authData.organizationId, consumer);
 
-  if (eservice.data.producerId !== consumer.data.id) {
-    validateCertifiedAttributes(descriptor, consumer.data);
+  if (eservice.producerId !== consumer.id) {
+    validateCertifiedAttributes(descriptor, consumer);
   }
 
   const agreementSeed: Agreement = {
     id: generateId(),
     eserviceId: unsafeBrandId(agreement.eserviceId),
     descriptorId: unsafeBrandId(agreement.descriptorId),
-    producerId: eservice.data.producerId,
+    producerId: eservice.producerId,
     consumerId: authData.organizationId,
     state: agreementState.draft,
     verifiedAttributes: [],
@@ -64,5 +66,5 @@ export async function createAgreementLogic(
     stamps: {},
   };
 
-  return toCreateEventAgreementAdded(agreementSeed);
+  return toCreateEventAgreementAdded(agreementSeed, correlationId);
 }
