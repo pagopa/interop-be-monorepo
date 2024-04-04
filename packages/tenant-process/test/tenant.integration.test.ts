@@ -29,12 +29,16 @@ import {
   Tenant,
   TenantCreatedV1,
   TenantId,
+  TenantOnboardDetailsUpdatedV2,
   TenantUpdatedV1,
+  TenantVerifiedAttributeExpirationUpdatedV2,
+  TenantVerifiedAttributeExtensionUpdatedV2,
   descriptorState,
   generateId,
   operationForbidden,
   protobufDecoder,
   tenantKind,
+  toTenantV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { StartedTestContainer } from "testcontainers";
@@ -173,11 +177,12 @@ describe("Integration tests", () => {
         expect(writtenEvent).toMatchObject({
           stream_id: tenant.id,
           version: "1",
-          type: "TenantUpdated",
+          type: "TenantOnboardDetailsUpdated",
         });
-        const writtenPayload: TenantUpdatedV1 | undefined = protobufDecoder(
-          TenantUpdatedV1
-        ).parse(writtenEvent?.data);
+        const writtenPayload: TenantOnboardDetailsUpdatedV2 | undefined =
+          protobufDecoder(TenantOnboardDetailsUpdatedV2).parse(
+            writtenEvent?.data
+          );
 
         const updatedTenant: Tenant = {
           ...tenant,
@@ -186,7 +191,7 @@ describe("Integration tests", () => {
           updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
         };
 
-        expect(writtenPayload.tenant).toEqual(toTenantV1(updatedTenant));
+        expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
       });
       it("Should create a tenant by the upsert if it does not exist", async () => {
         const mockAuthData = getMockAuthData();
@@ -216,7 +221,7 @@ describe("Integration tests", () => {
         expect(writtenEvent).toMatchObject({
           stream_id: id,
           version: "0",
-          type: "TenantCreated",
+          type: "TenantOnboarded",
         });
         const writtenPayload: TenantCreatedV1 | undefined = protobufDecoder(
           TenantCreatedV1
@@ -320,155 +325,19 @@ describe("Integration tests", () => {
         expect(writtenEvent).toBeDefined();
         expect(writtenEvent.stream_id).toBe(tenant.id);
         expect(writtenEvent.version).toBe("1");
-        expect(writtenEvent.type).toBe("TenantUpdated");
-        const writtenPayload: TenantUpdatedV1 | undefined = protobufDecoder(
-          TenantUpdatedV1
+        expect(writtenEvent.type).toBe(
+          "TenantVerifiedAttributeExpirationUpdated"
+        );
+        const writtenPayload:
+          | TenantVerifiedAttributeExpirationUpdatedV2
+          | undefined = protobufDecoder(
+          TenantVerifiedAttributeExpirationUpdatedV2
         ).parse(writtenEvent.data);
 
         if (!writtenPayload) {
-          fail("impossible to decode TenantUpdatedV1 data");
-        }
-
-        const updatedTenant: Tenant = {
-          ...tenant,
-          updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
-        };
-
-        expect(writtenPayload.tenant).toEqual(toTenantV1(updatedTenant));
-      });
-      it("Should throw tenantNotFound when tenant doesn't exist", async () => {
-        expect(
-          tenantService.updateTenantVerifiedAttribute({
-            verifierId,
-            tenantId: tenant.id,
-            attributeId,
-            updateVerifiedTenantAttributeSeed,
-            correlationId,
-          })
-        ).rejects.toThrowError(tenantNotFound(tenant.id));
-      });
-
-      it("Should throw expirationDateCannotBeInThePast when expiration date is in the past", async () => {
-        const expirationDateinPast = new Date(
-          currentDate.setDate(currentDate.getDate() - 3)
-        );
-
-        const updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed =
-          {
-            expirationDate: expirationDateinPast.toISOString(),
-          };
-
-        await addOneTenant(tenant, postgresDB, tenants);
-        expect(
-          tenantService.updateTenantVerifiedAttribute({
-            verifierId,
-            tenantId: tenant.id,
-            attributeId,
-            updateVerifiedTenantAttributeSeed,
-            correlationId,
-          })
-        ).rejects.toThrowError(
-          expirationDateCannotBeInThePast(expirationDateinPast)
-        );
-      });
-      it("Should throw verifiedAttributeNotFoundInTenant when the attribute is not verified", async () => {
-        const updatedCertifiedTenant: Tenant = {
-          ...mockTenant,
-          attributes: [{ ...getMockCertifiedTenantAttribute() }],
-          updatedAt: currentDate,
-          name: "A updatedCertifiedTenant",
-        };
-        const attributeId = updatedCertifiedTenant.attributes.map(
-          (a) => a.id
-        )[0];
-        await addOneTenant(updatedCertifiedTenant, postgresDB, tenants);
-        expect(
-          tenantService.updateTenantVerifiedAttribute({
-            verifierId: generateId(),
-            tenantId: updatedCertifiedTenant.id,
-            attributeId,
-            updateVerifiedTenantAttributeSeed,
-            correlationId,
-          })
-        ).rejects.toThrowError(
-          verifiedAttributeNotFoundInTenant(
-            updatedCertifiedTenant.id,
-            attributeId
-          )
-        );
-      });
-      it("Should throw organizationNotFoundInVerifiers when the organization is not verified", async () => {
-        await addOneTenant(tenant, postgresDB, tenants);
-        const verifierId = generateId();
-        expect(
-          tenantService.updateTenantVerifiedAttribute({
-            verifierId,
-            tenantId: tenant.id,
-            attributeId,
-            updateVerifiedTenantAttributeSeed,
-            correlationId,
-          })
-        ).rejects.toThrowError(
-          organizationNotFoundInVerifiers(verifierId, tenant.id, attributeId)
-        );
-      });
-    });
-    describe("updateTenantVerifiedAttribute", async () => {
-      const expirationDate = new Date(
-        currentDate.setDate(currentDate.getDate() + 1)
-      );
-
-      const updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed =
-        {
-          expirationDate: expirationDate.toISOString(),
-        };
-
-      const tenant: Tenant = {
-        ...mockTenant,
-        attributes: [
-          {
-            ...mockVerifiedTenantAttribute,
-            verifiedBy: [
-              {
-                ...mockVerifiedBy,
-                expirationDate,
-              },
-            ],
-          },
-        ],
-        updatedAt: currentDate,
-        name: "A tenant",
-      };
-      const attributeId = tenant.attributes.map((a) => a.id)[0];
-      const verifierId = mockVerifiedBy.id;
-      it("Should update the expirationDate", async () => {
-        await addOneTenant(tenant, postgresDB, tenants);
-        await tenantService.updateTenantVerifiedAttribute({
-          verifierId,
-          tenantId: tenant.id,
-          attributeId,
-          updateVerifiedTenantAttributeSeed,
-          correlationId: generateId(),
-        });
-        const writtenEvent: StoredEvent | undefined =
-          await readLastEventByStreamId(
-            tenant.id,
-            eventStoreSchema.tenant,
-            postgresDB
+          fail(
+            "impossible to decode TenantVerifiedAttributeExpirationUpdatedV2 data"
           );
-        if (!writtenEvent) {
-          fail("Creation fails: tenant not found in event-store");
-        }
-        expect(writtenEvent).toBeDefined();
-        expect(writtenEvent.stream_id).toBe(tenant.id);
-        expect(writtenEvent.version).toBe("1");
-        expect(writtenEvent.type).toBe("TenantUpdated");
-        const writtenPayload: TenantUpdatedV1 | undefined = protobufDecoder(
-          TenantUpdatedV1
-        ).parse(writtenEvent.data);
-
-        if (!writtenPayload) {
-          fail("impossible to decode TenantUpdatedV1 data");
         }
 
         const updatedTenant: Tenant = {
@@ -476,7 +345,7 @@ describe("Integration tests", () => {
           updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
         };
 
-        expect(writtenPayload.tenant).toEqual(toTenantV1(updatedTenant));
+        expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
       });
       it("Should throw tenantNotFound when tenant doesn't exist", async () => {
         expect(
@@ -485,7 +354,7 @@ describe("Integration tests", () => {
             tenantId: tenant.id,
             attributeId,
             updateVerifiedTenantAttributeSeed,
-            correlationId: generateId(),
+            correlationId,
           })
         ).rejects.toThrowError(tenantNotFound(tenant.id));
       });
@@ -507,7 +376,7 @@ describe("Integration tests", () => {
             tenantId: tenant.id,
             attributeId,
             updateVerifiedTenantAttributeSeed,
-            correlationId: generateId(),
+            correlationId,
           })
         ).rejects.toThrowError(
           expirationDateCannotBeInThePast(expirationDateinPast)
@@ -530,7 +399,7 @@ describe("Integration tests", () => {
             tenantId: updatedCertifiedTenant.id,
             attributeId,
             updateVerifiedTenantAttributeSeed,
-            correlationId: generateId(),
+            correlationId,
           })
         ).rejects.toThrowError(
           verifiedAttributeNotFoundInTenant(
@@ -548,7 +417,7 @@ describe("Integration tests", () => {
             tenantId: tenant.id,
             attributeId,
             updateVerifiedTenantAttributeSeed,
-            correlationId: generateId(),
+            correlationId,
           })
         ).rejects.toThrowError(
           organizationNotFoundInVerifiers(verifierId, tenant.id, attributeId)
@@ -604,9 +473,13 @@ describe("Integration tests", () => {
         }
         expect(writtenEvent.stream_id).toBe(tenant.id);
         expect(writtenEvent.version).toBe("1");
-        expect(writtenEvent.type).toBe("TenantUpdated");
-        const writtenPayload: TenantUpdatedV1 | undefined = protobufDecoder(
-          TenantUpdatedV1
+        expect(writtenEvent.type).toBe(
+          "TenantVerifiedAttributeExtensionUpdated"
+        );
+        const writtenPayload:
+          | TenantVerifiedAttributeExtensionUpdatedV2
+          | undefined = protobufDecoder(
+          TenantVerifiedAttributeExtensionUpdatedV2
         ).parse(writtenEvent.data);
 
         const updatedTenant: Tenant = {
@@ -625,7 +498,7 @@ describe("Integration tests", () => {
           ],
           updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
         };
-        expect(writtenPayload.tenant).toEqual(toTenantV1(updatedTenant));
+        expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
       });
       it("Should throw tenantNotFound when tenant doesn't exist", async () => {
         const correlationId = generateId();
