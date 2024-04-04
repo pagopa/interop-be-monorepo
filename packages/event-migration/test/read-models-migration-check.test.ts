@@ -1,41 +1,37 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect } from "vitest";
 import type { Db } from "mongodb";
-import { buildEService } from "pagopa-interop-commons-test/dist/testUtils.js";
+import { z } from "zod";
 import {
   compareReadModelsCollection,
-  zipEServices,
+  zipDataById,
 } from "../src/read-models-migration-check.js";
 
 describe("read-models-migration-check", () => {
-  const mockEService1 = buildEService();
-  const mockEService2 = buildEService();
-  const mockEService3 = buildEService();
-
-  describe("zipIdentifiableData", () => {
+  describe("zipDataById", () => {
     it("should zip two arrays of Identifiable objects", () => {
-      const dataA = [mockEService1, mockEService2, mockEService3];
-      const dataB = [mockEService3, mockEService2, mockEService1];
+      const dataA = [{ id: "1" }, { id: "2" }, { id: "3" }];
+      const dataB = [{ id: "3" }, { id: "2" }, { id: "1" }];
 
-      const result = zipEServices(dataA, dataB);
+      const result = zipDataById(dataA, dataB);
 
       expect(result).toEqual([
-        [mockEService1, mockEService1],
-        [mockEService2, mockEService2],
-        [mockEService3, mockEService3],
+        [{ id: "1" }, { id: "1" }],
+        [{ id: "2" }, { id: "2" }],
+        [{ id: "3" }, { id: "3" }],
       ]);
     });
 
     it("should put undefined if one object with a specific id does not exist in one of the arrays", () => {
-      const dataA = [mockEService1, mockEService2, mockEService3];
-      const dataB = [mockEService3, mockEService2];
+      const dataA = [{ id: "1" }, { id: "2" }, { id: "3" }];
+      const dataB = [{ id: "3" }, { id: "2" }];
 
-      const result = zipEServices(dataA, dataB);
+      const result = zipDataById(dataA, dataB);
 
       expect(result).toEqual([
-        [mockEService1, undefined],
-        [mockEService2, mockEService2],
-        [mockEService3, mockEService3],
+        [{ id: "1" }, undefined],
+        [{ id: "2" }, { id: "2" }],
+        [{ id: "3" }, { id: "3" }],
       ]);
     });
   });
@@ -66,22 +62,28 @@ describe("read-models-migration-check", () => {
       }
     }
 
+    const TestSchema = z.object({
+      id: z.string(),
+      name: z.string(),
+    });
+
     it("should return an empty array if the data collections have no differences", async () => {
       const readModelA = MockMongoDb.mockDb([
-        mockEService1,
-        mockEService2,
-        mockEService3,
+        { id: "1", name: "test 1" },
+        { id: "2", name: "test 2" },
+        { id: "3", name: "test 3" },
       ]);
       const readModelB = MockMongoDb.mockDb([
-        mockEService3,
-        mockEService2,
-        mockEService1,
+        { id: "3", name: "test 3" },
+        { id: "2", name: "test 2" },
+        { id: "1", name: "test 1" },
       ]);
 
       const result = await compareReadModelsCollection(
         readModelA,
         readModelB,
-        "test"
+        "test",
+        TestSchema
       );
 
       expect(result).toEqual([]);
@@ -94,53 +96,59 @@ describe("read-models-migration-check", () => {
       const result = await compareReadModelsCollection(
         readModelA,
         readModelB,
-        "test"
+        "test",
+        TestSchema
       );
 
       expect(result).toEqual([]);
     });
 
     it("should return an array of differences if the data collections have differences", async () => {
-      const differentMockEService3 = {
-        ...mockEService3,
-        name: "different name",
-      };
-
       const readModelA = MockMongoDb.mockDb([
-        mockEService1,
-        mockEService2,
-        mockEService3,
+        { id: "1", name: "test 1" },
+        { id: "2", name: "test 2" },
+        { id: "3", name: "test 3" },
       ]);
       const readModelB = MockMongoDb.mockDb([
-        differentMockEService3,
-        mockEService2,
-        mockEService1,
+        { id: "3", nsame: "difference" },
+        { id: "2", name: "test 2" },
+        { id: "1", name: "test 1" },
       ]);
 
       const result = await compareReadModelsCollection(
         readModelA,
         readModelB,
-        "test"
+        "test",
+        TestSchema
       );
 
-      expect(result).toEqual([[mockEService3, differentMockEService3]]);
+      expect(result).toEqual([
+        [
+          { id: "3", name: "test 3" },
+          { id: "3", nsame: "difference" },
+        ],
+      ]);
     });
 
     it("should put undefined if an object with a given id does not exist in one of the readmodels", async () => {
       const readModelA = MockMongoDb.mockDb([
-        mockEService1,
-        mockEService2,
-        mockEService3,
+        { id: "1", name: "test 1" },
+        { id: "2", name: "test 2" },
+        { id: "3", name: "test 3" },
       ]);
-      const readModelB = MockMongoDb.mockDb([mockEService3, mockEService2]);
+      const readModelB = MockMongoDb.mockDb([
+        { id: "3", name: "test 3" },
+        { id: "2", name: "test 2" },
+      ]);
 
       const result = await compareReadModelsCollection(
         readModelA,
         readModelB,
-        "test"
+        "test",
+        TestSchema
       );
 
-      expect(result).toEqual([[mockEService1, undefined]]);
+      expect(result).toEqual([[{ id: "1", name: "test 1" }, undefined]]);
     });
   });
 });
