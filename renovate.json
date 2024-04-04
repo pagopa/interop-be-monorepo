@@ -17,6 +17,6 @@
   "labels": ["dependencies"],
   "branchPrefix": "renovate-action/",
   "prConcurrentLimit": 2,
-  "packageRules": [],
-  "autodiscover": true
+  "autodiscover": true,
+  "ignorePaths": ["docker/docker-compose.yml"]
 }
