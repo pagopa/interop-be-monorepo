@@ -22,30 +22,24 @@ async function processMessage({
   message,
   partition,
 }: EachMessagePayload): Promise<void> {
-  try {
-    const msg = decodeKafkaMessage(message, AgreementEvent);
+  const msg = decodeKafkaMessage(message, AgreementEvent);
 
-    const ctx = getContext();
-    ctx.messageData = {
-      eventType: msg.type,
-      eventVersion: msg.event_version,
-      streamId: msg.stream_id,
-    };
-    ctx.correlationId = msg.correlation_id;
+  const ctx = getContext();
+  ctx.messageData = {
+    eventType: msg.type,
+    eventVersion: msg.event_version,
+    streamId: msg.stream_id,
+  };
+  ctx.correlationId = msg.correlation_id;
 
-    await match(msg)
-      .with({ event_version: 1 }, (msg) => handleMessageV1(msg, agreements))
-      .with({ event_version: 2 }, (msg) => handleMessageV2(msg, agreements))
-      .exhaustive();
+  await match(msg)
+    .with({ event_version: 1 }, (msg) => handleMessageV1(msg, agreements))
+    .with({ event_version: 2 }, (msg) => handleMessageV2(msg, agreements))
+    .exhaustive();
 
-    logger.info(
-      `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
-    );
-  } catch (e) {
-    logger.error(
-      `Error during message handling. Partition number: ${partition}. Offset: ${message.offset}, ${e}`
-    );
-  }
+  logger.info(
+    `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
+  );
 }
 
-await runConsumer(config, [agreementTopic], processMessage).catch(logger.error);
+await runConsumer(config, [agreementTopic], processMessage);

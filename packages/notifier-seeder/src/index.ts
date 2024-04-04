@@ -13,15 +13,9 @@ async function processMessage({
   message,
   partition,
 }: EachMessagePayload): Promise<void> {
-  try {
-    logger.info("Message handled");
-  } catch (e) {
-    logger.error(
-      `Error during message handling. Partition number: ${partition}. Offset: ${message.offset}, ${e}`
-    );
-  }
+  logger.info(
+    `Message handled. Partition number: ${partition}. Offset: ${message.offset}`
+  );
 }
 
-await runConsumer(config, [topics.catalogTopic], processMessage).catch(
-  logger.error
-);
+await runConsumer(config, [topics.catalogTopic], processMessage);
