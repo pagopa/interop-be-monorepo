@@ -311,20 +311,19 @@ export function agreementServiceBuilder(
       agreementId: AgreementId,
       authData: AuthData,
       correlationId: string
-    ): Promise<AgreementId> {
+    ): Promise<Agreement> {
       logger.info(`Suspending agreement ${agreementId}`);
-      await repository.createEvent(
-        await suspendAgreementLogic({
-          agreementId,
-          authData,
-          agreementQuery,
-          tenantQuery,
-          eserviceQuery,
-          correlationId,
-        })
-      );
+      const [agreement, events] = await suspendAgreementLogic({
+        agreementId,
+        authData,
+        agreementQuery,
+        tenantQuery,
+        eserviceQuery,
+        correlationId,
+      });
+      await repository.createEvent(events);
 
-      return agreementId;
+      return agreement;
     },
     async getAgreementEServices(
       filters: AgreementEServicesQueryFilters,

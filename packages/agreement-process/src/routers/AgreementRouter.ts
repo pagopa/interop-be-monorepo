@@ -197,12 +197,12 @@ const agreementRouter = (
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
       try {
-        const id = await agreementService.suspendAgreement(
+        const agreement = await agreementService.suspendAgreement(
           unsafeBrandId(req.params.agreementId),
           req.ctx.authData,
           req.ctx.correlationId
         );
-        return res.status(200).json({ id }).send();
+        return res.status(200).json(agreementToApiAgreement(agreement)).send();
       } catch (error) {
         const errorRes = makeApiProblem(error, suspendAgreementErrorMapper);
         return res.status(errorRes.status).json(errorRes).end();

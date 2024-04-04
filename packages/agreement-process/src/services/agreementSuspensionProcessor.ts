@@ -47,7 +47,7 @@ export async function suspendAgreementLogic({
   tenantQuery: TenantQuery;
   eserviceQuery: EserviceQuery;
   correlationId: string;
-}): Promise<CreateEvent<AgreementEvent>> {
+}): Promise<[Agreement, CreateEvent<AgreementEvent>]> {
   const agreement = await agreementQuery.getAgreementById(agreementId);
   assertAgreementExist(agreementId, agreement);
 
@@ -124,17 +124,23 @@ export async function suspendAgreementLogic({
   };
 
   if (authData.organizationId === agreement.data.consumerId) {
-    return toCreateEventAgreementSuspendedByConsumer(
+    return [
       updatedAgreement,
-      agreement.metadata.version,
-      correlationId
-    );
+      toCreateEventAgreementSuspendedByConsumer(
+        updatedAgreement,
+        agreement.metadata.version,
+        correlationId
+      ),
+    ];
   } else if (authData.organizationId === agreement.data.producerId) {
-    return toCreateEventAgreementSuspendedByProducer(
+    return [
       updatedAgreement,
-      agreement.metadata.version,
-      correlationId
-    );
+      toCreateEventAgreementSuspendedByProducer(
+        updatedAgreement,
+        agreement.metadata.version,
+        correlationId
+      ),
+    ];
   } else {
     throw new Error("Unexpected state");
   }
