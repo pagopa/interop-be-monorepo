@@ -18,6 +18,5 @@
   "branchPrefix": "renovate-action/",
   "prConcurrentLimit": 2,
   "packageRules": [],
-  "platform": "github",
-  "repositories": ["pagopa/interop-be-monorepo"]
+  "autodiscover": true
 }
