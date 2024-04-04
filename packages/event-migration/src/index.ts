@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-console */
 import { ConnectionString } from "connection-string";
-import { EServiceEventV1 } from "pagopa-interop-models";
+import { AttributeEvent, EServiceEventV1 } from "pagopa-interop-models";
 import pgPromise, { IDatabase } from "pg-promise";
 import {
   IClient,
@@ -27,7 +28,16 @@ const Config = z
     TARGET_DB_HOST: z.string(),
     TARGET_DB_PORT: z.coerce.number(),
     TARGET_DB_NAME: z.string(),
-    TARGET_DB_SCHEMA: z.string(),
+    TARGET_DB_SCHEMA: z.enum([
+      "catalog",
+      "dev-refactor_catalog",
+      "uat-catalog",
+      "prod-catalog",
+      "attribute",
+      "dev-refactor_attribute_registry",
+      "uat-attribute_registry",
+      "prod-attribute_registry",
+    ]),
     TARGET_DB_USE_SSL: z
       .enum(["true", "false"])
       .transform((value) => value === "true"),
@@ -123,41 +133,97 @@ const originalEvents = await sourceConnection.many(
 
 const idVersionHashMap = new Map<string, number>();
 
+const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
+  .with(
+    "catalog",
+    "dev-refactor_catalog",
+    "uat-catalog",
+    "prod-catalog",
+    () => {
+      checkSchema(config.sourceDbSchema, "catalog");
+      const parseEventType = (event_ser_manifest: any) =>
+        match(
+          event_ser_manifest
+            .replace(
+              "it.pagopa.interop.catalogmanagement.model.persistence.",
+              ""
+            )
+            .split("|")[0]
+        )
+          .when(
+            (originalType) => (originalType as string).includes("CatalogItem"),
+            (originalType) =>
+              (originalType as string).replace("CatalogItem", "EService")
+          )
+          .otherwise((originalType) => originalType);
+
+      const decodeEvent = (eventType: string, event_payload: any) =>
+        EServiceEventV1.safeParse({
+          type: eventType,
+          event_version: 1,
+          data: event_payload,
+        });
+
+      const parseId = (anyPayload: any) =>
+        anyPayload.eservice ? anyPayload.eservice.id : anyPayload.eserviceId;
+
+      return { parseEventType, decodeEvent, parseId };
+    }
+  )
+  .with(
+    "attribute",
+    "dev-refactor_attribute_registry",
+    "uat-attribute_registry",
+    "prod-attribute_registry",
+    () => {
+      checkSchema(config.sourceDbSchema, "attribute");
+
+      const parseEventType = (event_ser_manifest: any) =>
+        match(
+          event_ser_manifest
+            .replace(
+              "it.pagopa.interop.attributeregistrymanagement.model.persistence.",
+              ""
+            )
+            .split("|")[0]
+        )
+          .with("AttributeDeleted", () => "MaintenanceAttributeDeleted")
+          .otherwise((originalType) => originalType);
+
+      const decodeEvent = (eventType: string, event_payload: any) =>
+        AttributeEvent.safeParse({
+          type: eventType,
+          event_version: 1,
+          data: event_payload,
+        });
+
+      const parseId = (anyPayload: any) =>
+        anyPayload.attribute ? anyPayload.attribute.id : anyPayload.id;
+
+      return { parseEventType, decodeEvent, parseId };
+    }
+  )
+  .exhaustive();
+
 for (const event of originalEvents) {
   console.log(event);
   const { event_ser_manifest, event_payload, write_timestamp } = event;
 
-  const eventType = match(
-    event_ser_manifest
-      .replace("it.pagopa.interop.catalogmanagement.model.persistence.", "")
-      .split("|")[0]
-  )
-    .when(
-      (originalType) => (originalType as string).includes("CatalogItem"),
-      (originalType) =>
-        (originalType as string).replace("CatalogItem", "EService")
-    )
-    .otherwise((originalType) => originalType);
+  const parsedEventType = parseEventType(event_ser_manifest);
 
-  const eventToDecode = EServiceEventV1.safeParse({
-    type: eventType,
-    event_version: 1,
-    data: event_payload,
-  });
+  const decodedEvent = decodeEvent(parsedEventType, event_payload);
 
-  if (!eventToDecode.success) {
+  if (!decodedEvent.success) {
     console.error(
-      `Error decoding event ${eventType} with payload ${event_payload}`
+      `Error decoding event ${parsedEventType} with payload ${event_payload}`
     );
     throw new Error("Error decoding event");
   }
 
-  console.log(eventToDecode.data);
+  console.log(decodedEvent.data);
 
-  const anyPayload = eventToDecode.data.data as any;
-  const id = anyPayload.eservice
-    ? anyPayload.eservice.id
-    : anyPayload.eserviceId;
+  const anyPayload = decodedEvent.data.data;
+  const id = parseId(anyPayload);
 
   let version = idVersionHashMap.get(id);
   if (version === undefined) {
@@ -177,7 +243,7 @@ for (const event of originalEvents) {
   } = {
     stream_id: id,
     version,
-    type: eventType,
+    type: parsedEventType,
     eventVersion: 1,
     data: event_payload,
     logDate: new Date(parseInt(write_timestamp, 10)),
@@ -196,4 +262,12 @@ for (const event of originalEvents) {
       newEvent.logDate,
     ]
   );
+}
+
+function checkSchema(sourceSchema: string, schemaKind: string) {
+  if (!sourceSchema.includes(schemaKind)) {
+    throw new Error(
+      "Source and target databases are incompatible, please double-check the config"
+    );
+  }
 }

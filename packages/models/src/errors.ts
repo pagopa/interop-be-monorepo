@@ -169,7 +169,7 @@ export function kafkaMessageProcessError(
 ): InternalError<CommonErrorCodes> {
   return new InternalError({
     code: "kafkaMessageProcessError",
-    detail: `Error while handling kafka message from topic : ${topic} - partition ${partition} - offest ${offset}. ${
+    detail: `Error while handling kafka message from topic : ${topic} - partition ${partition} - offset ${offset}. ${
       error ? parseErrorMessage(error) : ""
     }`,
   });
