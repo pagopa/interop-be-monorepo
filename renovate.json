@@ -18,6 +18,6 @@
   "branchPrefix": "renovate-action/",
   "prConcurrentLimit": 2,
   "packageRules": [],
-  "platform": "github",
-  "repositories": ["pagopa/interop-be-monorepo"]
+  "repositories": ["pagopa/interop-be-monorepo"],
+  "ignorePaths": ["docker/docker-compose.yml"]
 }
