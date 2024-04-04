@@ -30,6 +30,7 @@ import {
   TenantCreatedV1,
   TenantId,
   TenantOnboardDetailsUpdatedV2,
+  TenantOnboardedV2,
   TenantUpdatedV1,
   TenantVerifiedAttributeExpirationUpdatedV2,
   TenantVerifiedAttributeExtensionUpdatedV2,
@@ -223,8 +224,8 @@ describe("Integration tests", () => {
           version: "0",
           type: "TenantOnboarded",
         });
-        const writtenPayload: TenantCreatedV1 | undefined = protobufDecoder(
-          TenantCreatedV1
+        const writtenPayload: TenantOnboardedV2 | undefined = protobufDecoder(
+          TenantOnboardedV2
         ).parse(writtenEvent.data);
         const expectedTenant: Tenant = {
           ...mockTenant,
@@ -235,7 +236,7 @@ describe("Integration tests", () => {
           createdAt: new Date(Number(writtenPayload.tenant?.createdAt)),
         };
 
-        expect(writtenPayload.tenant).toEqual(toTenantV1(expectedTenant));
+        expect(writtenPayload.tenant).toEqual(toTenantV2(expectedTenant));
       });
       it("Should throw operation forbidden if role isn't internal", async () => {
         await addOneTenant(tenant, postgresDB, tenants);
