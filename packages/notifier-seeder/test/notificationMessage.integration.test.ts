@@ -1,6 +1,6 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
-import { StartedTestContainer, GenericContainer } from "testcontainers";
+import { StartedTestContainer } from "testcontainers";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import {
@@ -25,19 +25,7 @@ import { toCatalogItemEventNotification } from "../src/models/catalogItemEventNo
 import { buildCatalogMessage } from "../src/models/catalogItemEventNotificationMessage.js";
 
 import catalog_item_descriptor_updated from "./resources/catalogItemDescriptorUpdate.json" assert { type: "json" };
-
-export const TEST_ELASTIC_MQ_IMAGE = "softwaremill/elasticmq-native:latest";
-export const TEST_ELASTIC_MQ_PORT = 9324;
-
-export const elasticMQContainer = (): GenericContainer =>
-  new GenericContainer(TEST_ELASTIC_MQ_IMAGE)
-    .withCopyFilesToContainer([
-      {
-        source: "elasticmq.local.conf",
-        target: "/opt/elasticmq.conf",
-      },
-    ])
-    .withExposedPorts(TEST_ELASTIC_MQ_PORT);
+import { TEST_ELASTIC_MQ_PORT, elasticMQContainer } from "./utils.js";
 
 const getDescriptorMock = (descriptorId: string): EServiceDescriptorV2 =>
   toDescriptorV2({
