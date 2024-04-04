@@ -21,6 +21,7 @@ export const LoggerConfig = z
     logLevel: c.LOG_LEVEL,
   }));
 export type LoggerConfig = z.infer<typeof LoggerConfig>;
+export const loggerConfig = (): LoggerConfig => LoggerConfig.parse(process.env);
 
 export const HTTPServerConfig = z
   .object({

@@ -1,18 +1,17 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
+import { StartedTestContainer } from "testcontainers";
+import { v4 as uuidv4 } from "uuid";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   QueueManager,
   initQueueManager,
+} from "../src/queue-manager/queueManager.js";
+import {
   queueManagerReceiveError,
   queueManagerSendError,
-} from "pagopa-interop-commons";
-import { v4 as uuidv4 } from "uuid";
-import { StartedTestContainer } from "testcontainers";
-import {
-  TEST_ELASTIC_MQ_PORT,
-  elasticMQContainer,
-} from "../src/containerTestUtils.js";
+} from "../src/queue-manager/queueManagerErrors.js";
+import { TEST_ELASTIC_MQ_PORT, elasticMQContainer } from "./utils.js";
 
 describe("FileManager tests", async () => {
   process.env.AWS_CONFIG_FILE = "aws.config.local";
