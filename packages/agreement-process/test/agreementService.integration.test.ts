@@ -1887,6 +1887,8 @@ describe("Agreement service", () => {
           expect(result).toBeUndefined();
         });
       });
+
+      // TODO add a smoke test also for all the other readmodel service methods
     });
   });
 });
