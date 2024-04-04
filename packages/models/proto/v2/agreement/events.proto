@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+package agreement.v2;
+
+import "v2/agreement/agreement.proto";
+
+message AgreementAddedV2 {
+  AgreementV2 agreement = 1;
+}
+
+message AgreementDeletedV2 {
+  AgreementV2 agreement = 1;
+}
+
+message DraftAgreementUpdatedV2 {
+  AgreementV2 agreement = 1;
+}
+
+message AgreementSubmittedV2 {
+  AgreementV2 agreement = 1;
+}
+
+message AgreementActivatedV2 {
+  AgreementV2 agreement = 1;
+}
+
+message AgreementUnsuspendedByProducerV2 {
+  AgreementV2 agreement = 1;
+}
+
+message AgreementUnsuspendedByConsumerV2 {
+  AgreementV2 agreement = 1;
+}
+
+message AgreementUnsuspendedByPlatformV2 {
+  AgreementV2 agreement = 1;
+}
+
+message AgreementArchivedV2 {
+  AgreementV2 agreement = 1;
+}
+
+message AgreementSuspendedByProducerV2 {
+  AgreementV2 agreement = 1;
+}
+
+message AgreementSuspendedByConsumerV2 {
+  AgreementV2 agreement = 1;
+}
+
+message AgreementSuspendedByPlatformV2 {
+  AgreementV2 agreement = 1;
+}
+
+message AgreementRejectedV2 {
+  AgreementV2 agreement = 1;
+}
+
+message AgreementConsumerDocumentAddedV2 {
+  string documentId = 1;
+  AgreementV2 agreement = 2;
+}
+
+message AgreementConsumerDocumentRemovedV2 {
+  string documentId = 1;
+  AgreementV2 agreement = 2;
+}
+

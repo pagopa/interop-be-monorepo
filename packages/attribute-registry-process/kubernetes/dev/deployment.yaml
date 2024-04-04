@@ -115,3 +115,8 @@ spec:
                 secretKeyRef:
                   name: read-model
                   key: REFACTOR_USER_PASSWORD
+            - name: PRODUCER_ALLOWED_ORIGINS
+              valueFrom:
+                configMapKeyRef:
+                  name: interop-be-attribute-registry-process-refactor
+                  key: PRODUCER_ALLOWED_ORIGINS
