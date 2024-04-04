@@ -15,10 +15,11 @@ import {
   Tenant,
   AttributeId,
   TenantId,
+  AttributeReadmodel,
 } from "pagopa-interop-models";
 async function getAttribute(
   attributes: AttributeCollection,
-  filter: Filter<WithId<WithMetadata<Attribute>>>
+  filter: Filter<WithId<WithMetadata<AttributeReadmodel>>>
 ): Promise<WithMetadata<Attribute> | undefined> {
   const data = await attributes.findOne(filter, {
     projection: { data: true, metadata: true },
@@ -50,7 +51,7 @@ async function getAttribute(
 async function getTenant(
   tenants: TenantCollection,
   filter: Filter<WithId<WithMetadata<Tenant>>>
-): Promise<WithMetadata<Tenant> | undefined> {
+): Promise<Tenant | undefined> {
   const data = await tenants.findOne(filter, {
     projection: { data: true, metadata: true },
   });
@@ -58,12 +59,7 @@ async function getTenant(
   if (!data) {
     return undefined;
   } else {
-    const result = z
-      .object({
-        metadata: z.object({ version: z.number() }),
-        data: Tenant,
-      })
-      .safeParse(data);
+    const result = Tenant.safeParse(data.data);
 
     if (!result.success) {
       logger.error(
@@ -75,10 +71,7 @@ async function getTenant(
       throw genericError("Unable to parse tenant item");
     }
 
-    return {
-      data: result.data.data,
-      metadata: { version: result.data.metadata.version },
-    };
+    return result.data;
   }
 }
 
@@ -254,9 +247,7 @@ export function readModelServiceBuilder(
         },
       });
     },
-    async getTenantById(
-      tenantId: TenantId
-    ): Promise<WithMetadata<Tenant> | undefined> {
+    async getTenantById(tenantId: TenantId): Promise<Tenant | undefined> {
       return getTenant(tenants, { "data.id": tenantId });
     },
   };

@@ -31,12 +31,15 @@ import {
   postgreSQLContainer,
 } from "pagopa-interop-commons-test";
 import {
+  Agreement,
   AgreementAddedV1,
+  AgreementAttribute,
   AgreementId,
   AgreementV1,
   AttributeId,
   Descriptor,
   DescriptorId,
+  EService,
   EServiceAttribute,
   EServiceId,
   Tenant,
@@ -50,10 +53,19 @@ import {
 } from "pagopa-interop-models";
 import { IDatabase } from "pg-promise";
 import { StartedTestContainer } from "testcontainers";
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+} from "vitest";
 import { v4 as uuidv4 } from "uuid";
 import {
   agreementAlreadyExists,
+  agreementNotFound,
   descriptorNotInExpectedState,
   eServiceNotFound,
   missingCertifiedAttributesError,
@@ -80,145 +92,145 @@ import {
   readLastAgreementEvent,
 } from "./utils.js";
 
-describe("AgreementService Integration Test", async () => {
-  let agreements: AgreementCollection;
-  let eservices: EServiceCollection;
-  let tenants: TenantCollection;
-  let readModelService;
-  let agreementService: AgreementService;
-  let postgresDB: IDatabase<unknown>;
-  let startedPostgreSqlContainer: StartedTestContainer;
-  let startedMongodbContainer: StartedTestContainer;
-  let fileManager: FileManager;
+let agreements: AgreementCollection;
+let eservices: EServiceCollection;
+let tenants: TenantCollection;
+let readModelService;
+let agreementService: AgreementService;
+let postgresDB: IDatabase<unknown>;
+let startedPostgreSqlContainer: StartedTestContainer;
+let startedMongodbContainer: StartedTestContainer;
+let fileManager: FileManager;
 
-  /**
-   * Executes the generic agreement expectation for agreement creation process,
-   * and return the created AgreementV1 object to be used for further checks.
-   *
-   * @param agreementId - The ID of the agreement.
-   * @param expectedEserviceId - The expected e-service ID of the agreement.
-   * @param expectedDescriptorId - The expected descriptor ID of the agreement.
-   * @param expectedProducerId - The expected producer ID of the agreement.
-   * @param expectedConsumerId - The expected consumer ID of the agreement.
-   * @returns A Promise that resolves return the created AgreementV1 object.
-   */
-  const expectedAgreementCreation = async (
-    agreementId: AgreementId | undefined,
-    expectedEserviceId: EServiceId,
-    expectedDescriptorId: DescriptorId,
-    expectedProducerId: TenantId,
-    expectedConsumerId: TenantId
-  ): Promise<AgreementV1> => {
-    expect(agreementId).toBeDefined();
-    if (!agreementId) {
-      fail("Unhandled error: returned agreementId is undefined");
-    }
+/**
+ * Executes the generic agreement expectation for agreement creation process,
+ * and return the created AgreementV1 object to be used for further checks.
+ *
+ * @param agreementId - The ID of the agreement.
+ * @param expectedEserviceId - The expected e-service ID of the agreement.
+ * @param expectedDescriptorId - The expected descriptor ID of the agreement.
+ * @param expectedProducerId - The expected producer ID of the agreement.
+ * @param expectedConsumerId - The expected consumer ID of the agreement.
+ * @returns A Promise that resolves return the created AgreementV1 object.
+ */
+const expectedAgreementCreation = async (
+  agreementId: AgreementId | undefined,
+  expectedEserviceId: EServiceId,
+  expectedDescriptorId: DescriptorId,
+  expectedProducerId: TenantId,
+  expectedConsumerId: TenantId
+): Promise<AgreementV1> => {
+  expect(agreementId).toBeDefined();
+  if (!agreementId) {
+    fail("Unhandled error: returned agreementId is undefined");
+  }
 
-    const actualAgreementData: StoredEvent | undefined =
-      await readLastAgreementEvent(agreementId, postgresDB);
+  const actualAgreementData: StoredEvent | undefined =
+    await readLastAgreementEvent(agreementId, postgresDB);
 
-    if (!actualAgreementData) {
-      fail("Creation fails: agreement not found in event-store");
-    }
+  if (!actualAgreementData) {
+    fail("Creation fails: agreement not found in event-store");
+  }
 
-    expect(actualAgreementData).toBeDefined();
-    expect(actualAgreementData.type).toBe("AgreementAdded");
-    expect(actualAgreementData.event_version).toBe(1);
-    expect(actualAgreementData.version).toBe("0");
-    expect(actualAgreementData.stream_id).toEqual(agreementId);
-
-    const actualAgreement: AgreementV1 | undefined = protobufDecoder(
-      AgreementAddedV1
-    ).parse(actualAgreementData.data)?.agreement;
-
-    if (!actualAgreement) {
-      fail("impossible to decode AgreementAddedV1 data");
-    }
-
-    expect(actualAgreement).toBeDefined();
-    expect(actualAgreement.contract).toBeUndefined();
-    expect(actualAgreement).property("createdAt").satisfy(expectPastTimestamp);
-
-    expect(actualAgreement).toMatchObject({
-      id: agreementId,
-      eserviceId: expectedEserviceId,
-      descriptorId: expectedDescriptorId,
-      producerId: expectedProducerId,
-      consumerId: expectedConsumerId,
-      state: toAgreementStateV1(agreementState.draft),
-      verifiedAttributes: [],
-      certifiedAttributes: [],
-      declaredAttributes: [],
-      consumerDocuments: [],
-      stamps: {},
-      createdAt: expect.any(BigInt),
-    });
-
-    return actualAgreement;
-  };
-
-  beforeAll(async () => {
-    startedPostgreSqlContainer = await postgreSQLContainer(config).start();
-    startedMongodbContainer = await mongoDBContainer(config).start();
-
-    config.eventStoreDbPort = startedPostgreSqlContainer.getMappedPort(
-      TEST_POSTGRES_DB_PORT
-    );
-    config.readModelDbPort =
-      startedMongodbContainer.getMappedPort(TEST_MONGO_DB_PORT);
-
-    const readModelRepository = ReadModelRepository.init(config);
-    agreements = readModelRepository.agreements;
-    eservices = readModelRepository.eservices;
-    tenants = readModelRepository.tenants;
-
-    readModelService = readModelServiceBuilder(readModelRepository);
-    const eserviceQuery = eserviceQueryBuilder(readModelService);
-    const agreementQuery = agreementQueryBuilder(readModelService);
-    const tenantQuery = tenantQueryBuilder(readModelService);
-    const attributeQuery = attributeQueryBuilder(readModelService);
-
-    postgresDB = initDB({
-      username: config.eventStoreDbUsername,
-      password: config.eventStoreDbPassword,
-      host: config.eventStoreDbHost,
-      port: config.eventStoreDbPort,
-      database: config.eventStoreDbName,
-      schema: config.eventStoreDbSchema,
-      useSSL: config.eventStoreDbUseSSL,
-    });
-
-    if (!postgresDB) {
-      logger.error("postgresDB is undefined!!");
-    }
-
-    // TODO: Setup MinIO test container when testing functionalities that require file storage
-    fileManager = initFileManager(config);
-    agreementService = agreementServiceBuilder(
-      postgresDB,
-      agreementQuery,
-      tenantQuery,
-      eserviceQuery,
-      attributeQuery,
-      fileManager
-    );
+  expect(actualAgreementData).toMatchObject({
+    type: "AgreementAdded",
+    event_version: 1,
+    version: "0",
+    stream_id: agreementId,
   });
 
-  afterEach(async () => {
-    await agreements.deleteMany({});
-    await eservices.deleteMany({});
-    await tenants.deleteMany({});
+  const actualAgreement: AgreementV1 | undefined = protobufDecoder(
+    AgreementAddedV1
+  ).parse(actualAgreementData.data)?.agreement;
 
-    await postgresDB.none("TRUNCATE TABLE agreement.events RESTART IDENTITY");
-    await postgresDB.none("TRUNCATE TABLE catalog.events RESTART IDENTITY");
+  if (!actualAgreement) {
+    fail("impossible to decode AgreementAddedV1 data");
+  }
+
+  expect(actualAgreement.contract).toBeUndefined();
+  expect(actualAgreement).property("createdAt").satisfy(expectPastTimestamp);
+
+  expect(actualAgreement).toMatchObject({
+    id: agreementId,
+    eserviceId: expectedEserviceId,
+    descriptorId: expectedDescriptorId,
+    producerId: expectedProducerId,
+    consumerId: expectedConsumerId,
+    state: toAgreementStateV1(agreementState.draft),
+    verifiedAttributes: [],
+    certifiedAttributes: [],
+    declaredAttributes: [],
+    consumerDocuments: [],
+    stamps: {},
+    createdAt: expect.any(BigInt),
   });
 
-  afterAll(async () => {
-    await startedPostgreSqlContainer.stop();
-    await startedMongodbContainer.stop();
+  return actualAgreement;
+};
+
+beforeAll(async () => {
+  startedPostgreSqlContainer = await postgreSQLContainer(config).start();
+  startedMongodbContainer = await mongoDBContainer(config).start();
+
+  config.eventStoreDbPort = startedPostgreSqlContainer.getMappedPort(
+    TEST_POSTGRES_DB_PORT
+  );
+  config.readModelDbPort =
+    startedMongodbContainer.getMappedPort(TEST_MONGO_DB_PORT);
+
+  const readModelRepository = ReadModelRepository.init(config);
+  agreements = readModelRepository.agreements;
+  eservices = readModelRepository.eservices;
+  tenants = readModelRepository.tenants;
+
+  readModelService = readModelServiceBuilder(readModelRepository);
+  const eserviceQuery = eserviceQueryBuilder(readModelService);
+  const agreementQuery = agreementQueryBuilder(readModelService);
+  const tenantQuery = tenantQueryBuilder(readModelService);
+  const attributeQuery = attributeQueryBuilder(readModelService);
+
+  postgresDB = initDB({
+    username: config.eventStoreDbUsername,
+    password: config.eventStoreDbPassword,
+    host: config.eventStoreDbHost,
+    port: config.eventStoreDbPort,
+    database: config.eventStoreDbName,
+    schema: config.eventStoreDbSchema,
+    useSSL: config.eventStoreDbUseSSL,
   });
 
-  describe("createAgreement (success cases)", () => {
+  if (!postgresDB) {
+    logger.error("postgresDB is undefined!!");
+  }
+
+  // TODO: Setup MinIO test container when testing functionalities that require file storage
+  fileManager = initFileManager(config);
+  agreementService = agreementServiceBuilder(
+    postgresDB,
+    agreementQuery,
+    tenantQuery,
+    eserviceQuery,
+    attributeQuery,
+    fileManager
+  );
+});
+
+afterEach(async () => {
+  await agreements.deleteMany({});
+  await eservices.deleteMany({});
+  await tenants.deleteMany({});
+
+  await postgresDB.none("TRUNCATE TABLE agreement.events RESTART IDENTITY");
+  await postgresDB.none("TRUNCATE TABLE catalog.events RESTART IDENTITY");
+});
+
+afterAll(async () => {
+  await startedPostgreSqlContainer.stop();
+  await startedMongodbContainer.stop();
+});
+
+describe("Agreement service", () => {
+  describe("create agreement", () => {
     it("should succeed when EService Producer and Agreement Consumer are the same, even on unmet attributes", async () => {
       const authData = getRandomAuthData();
       const eserviceId = generateId<EServiceId>();
@@ -441,9 +453,7 @@ describe("AgreementService Integration Test", async () => {
         tenant.id
       );
     });
-  });
 
-  describe("createAgreement (failure cases)", () => {
     it("should throw an eServiceNotFound error when the EService does not exist", async () => {
       const authData = getRandomAuthData();
       const eserviceId = generateId<EServiceId>();
@@ -751,6 +761,488 @@ describe("AgreementService Integration Test", async () => {
       ).rejects.toThrowError(
         missingCertifiedAttributesError(descriptor.id, consumer.id)
       );
+    });
+  });
+  describe("get agreements", () => {
+    let tenant1: Tenant;
+    let tenant2: Tenant;
+    let tenant3: Tenant;
+    let descriptor1: Descriptor;
+    let descriptor2: Descriptor;
+    let descriptor3: Descriptor;
+    let descriptor4: Descriptor;
+    let descriptor5: Descriptor;
+    let eservice1: EService;
+    let eservice2: EService;
+    let eservice3: EService;
+    let attribute1: AgreementAttribute;
+    let attribute2: AgreementAttribute;
+    let attribute3: AgreementAttribute;
+    let attribute4: AgreementAttribute;
+    let agreement1: Agreement;
+    let agreement2: Agreement;
+    let agreement3: Agreement;
+    let agreement4: Agreement;
+    let agreement5: Agreement;
+    let agreement6: Agreement;
+
+    beforeEach(async () => {
+      tenant1 = buildTenant();
+      tenant2 = buildTenant();
+      tenant3 = buildTenant();
+
+      descriptor1 = {
+        ...buildDescriptorPublished(),
+        state: descriptorState.suspended,
+        publishedAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
+      };
+      descriptor2 = {
+        ...buildDescriptorPublished(),
+        publishedAt: new Date(),
+      };
+      descriptor3 = {
+        ...buildDescriptorPublished(),
+        publishedAt: new Date(Date.now()),
+      };
+      descriptor4 = {
+        ...buildDescriptorPublished(),
+        publishedAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
+      };
+      descriptor5 = {
+        ...buildDescriptorPublished(),
+      };
+      eservice1 = {
+        ...buildEService(generateId<EServiceId>(), tenant1.id, [
+          descriptor1,
+          descriptor2,
+          // descriptor2 is the latest - agreements for descriptor1 are upgradeable
+        ]),
+        name: "EService1", // Adding name because results are sorted by esevice name
+      };
+      eservice2 = {
+        ...buildEService(generateId<EServiceId>(), tenant2.id, [
+          descriptor3,
+          descriptor4,
+          // descriptor4 is not the latest - agreements for descriptor3 are not upgradeable
+        ]),
+        name: "EService2", // Adding name because results are sorted by esevice name
+      };
+      eservice3 = {
+        ...buildEService(generateId<EServiceId>(), tenant3.id, [descriptor5]),
+        name: "EService3", // Adding name because results are sorted by esevice name
+      };
+
+      await addOneTenant(tenant1, tenants);
+      await addOneTenant(tenant2, tenants);
+      await addOneTenant(tenant3, tenants);
+      await addOneEService(eservice1, eservices);
+      await addOneEService(eservice2, eservices);
+      await addOneEService(eservice3, eservices);
+
+      attribute1 = { id: generateId() };
+      attribute2 = { id: generateId() };
+      attribute3 = { id: generateId() };
+      attribute4 = { id: generateId() };
+      agreement1 = {
+        ...buildAgreement(eservice1.id, tenant1.id, agreementState.draft),
+        descriptorId: eservice1.descriptors[0].id,
+        producerId: eservice1.producerId,
+        certifiedAttributes: [attribute1, attribute2],
+        declaredAttributes: [attribute3],
+      };
+
+      agreement2 = {
+        ...buildAgreement(eservice1.id, tenant2.id, agreementState.active),
+        descriptorId: eservice1.descriptors[1].id,
+        producerId: eservice1.producerId,
+        declaredAttributes: [attribute3],
+        verifiedAttributes: [attribute4],
+      };
+
+      agreement3 = {
+        ...buildAgreement(eservice2.id, tenant1.id, agreementState.pending),
+        descriptorId: eservice2.descriptors[0].id,
+        producerId: eservice2.producerId,
+      };
+
+      agreement4 = {
+        ...buildAgreement(
+          eservice2.id,
+          tenant2.id,
+          agreementState.missingCertifiedAttributes
+        ),
+        // upgradeable agreement based on descriptors, but not in an upgradeable state
+        descriptorId: eservice2.descriptors[1].id,
+        producerId: eservice2.producerId,
+      };
+
+      agreement5 = {
+        ...buildAgreement(eservice3.id, tenant1.id, agreementState.archived),
+        descriptorId: eservice3.descriptors[0].id,
+        producerId: eservice3.producerId,
+      };
+
+      agreement6 = {
+        ...buildAgreement(eservice3.id, tenant3.id, agreementState.rejected),
+        descriptorId: eservice3.descriptors[0].id,
+        producerId: eservice3.producerId,
+      };
+
+      await addOneAgreement(agreement1, postgresDB, agreements);
+      await addOneAgreement(agreement2, postgresDB, agreements);
+      await addOneAgreement(agreement3, postgresDB, agreements);
+      await addOneAgreement(agreement4, postgresDB, agreements);
+      await addOneAgreement(agreement5, postgresDB, agreements);
+      await addOneAgreement(agreement6, postgresDB, agreements);
+    });
+
+    it("should get all agreements if no filters are provided", async () => {
+      const allAgreements = await agreementService.getAgreements({}, 10, 0);
+      expect(allAgreements).toEqual({
+        totalCount: 6,
+        results: expect.arrayContaining([
+          agreement1,
+          agreement2,
+          agreement3,
+          agreement4,
+          agreement5,
+          agreement6,
+        ]),
+      });
+    });
+
+    it("should get agreements with filters: producerId", async () => {
+      const agreements1 = await agreementService.getAgreements(
+        {
+          producerId: eservice1.producerId,
+        },
+        10,
+        0
+      );
+      expect(agreements1).toEqual({
+        totalCount: 2,
+        results: expect.arrayContaining([agreement1, agreement2]),
+      });
+
+      const agreements2 = await agreementService.getAgreements(
+        {
+          producerId: [eservice1.producerId, eservice2.producerId],
+        },
+        10,
+        0
+      );
+      expect(agreements2.totalCount).toEqual(4);
+      expect(agreements2.results).toEqual(
+        expect.arrayContaining([agreement1, agreement2, agreement3, agreement4])
+      );
+    });
+
+    it("should get agreements with filters: consumerId", async () => {
+      const agreements1 = await agreementService.getAgreements(
+        {
+          consumerId: tenant1.id,
+        },
+        10,
+        0
+      );
+      expect(agreements1).toEqual({
+        totalCount: 3,
+        results: expect.arrayContaining([agreement1, agreement3, agreement5]),
+      });
+
+      const agreements2 = await agreementService.getAgreements(
+        {
+          consumerId: [tenant1.id, tenant2.id],
+        },
+        10,
+        0
+      );
+      expect(agreements2).toEqual({
+        totalCount: 5,
+        results: expect.arrayContaining([
+          agreement1,
+          agreement2,
+          agreement3,
+          agreement4,
+          agreement5,
+        ]),
+      });
+    });
+
+    it("should get agreements with filters: eserviceId", async () => {
+      const agreements1 = await agreementService.getAgreements(
+        {
+          eserviceId: eservice1.id,
+        },
+        10,
+        0
+      );
+      expect(agreements1).toEqual({
+        totalCount: 2,
+        results: expect.arrayContaining([agreement1, agreement2]),
+      });
+
+      const agreements2 = await agreementService.getAgreements(
+        {
+          eserviceId: [eservice1.id, eservice2.id],
+        },
+        10,
+        0
+      );
+      expect(agreements2).toEqual({
+        totalCount: 4,
+        results: expect.arrayContaining([
+          agreement1,
+          agreement2,
+          agreement3,
+          agreement4,
+        ]),
+      });
+    });
+
+    it("should get agreements with filters: descriptorId", async () => {
+      const agreements1 = await agreementService.getAgreements(
+        {
+          descriptorId: descriptor1.id,
+        },
+        10,
+        0
+      );
+      expect(agreements1).toEqual({
+        totalCount: 1,
+        results: expect.arrayContaining([agreement1]),
+      });
+
+      const agreements2 = await agreementService.getAgreements(
+        {
+          descriptorId: [descriptor1.id, descriptor3.id, descriptor5.id],
+        },
+        10,
+        0
+      );
+      expect(agreements2).toEqual({
+        totalCount: 4,
+        results: expect.arrayContaining([
+          agreement1,
+          agreement3,
+          agreement5,
+          agreement6,
+        ]),
+      });
+    });
+
+    it("should get agreements with filters: attributeId", async () => {
+      const agreements1 = await agreementService.getAgreements(
+        {
+          attributeId: attribute2.id,
+        },
+        10,
+        0
+      );
+      expect(agreements1).toEqual({
+        totalCount: 1,
+        results: expect.arrayContaining([agreement1]),
+      });
+
+      const agreements2 = await agreementService.getAgreements(
+        {
+          attributeId: attribute3.id,
+        },
+        10,
+        0
+      );
+      expect(agreements2).toEqual({
+        totalCount: 2,
+        results: expect.arrayContaining([agreement1, agreement2]),
+      });
+
+      const agreements3 = await agreementService.getAgreements(
+        {
+          attributeId: [attribute1.id, attribute3.id, attribute4.id],
+        },
+        10,
+        0
+      );
+      expect(agreements3).toEqual({
+        totalCount: 2,
+        results: expect.arrayContaining([agreement1, agreement2]),
+      });
+    });
+    it("should get agreements with filters: state", async () => {
+      const agreements = await agreementService.getAgreements(
+        {
+          agreementStates: [agreementState.active, agreementState.pending],
+        },
+        10,
+        0
+      );
+      expect(agreements).toEqual({
+        totalCount: 2,
+        results: expect.arrayContaining([agreement2, agreement3]),
+      });
+    });
+    it("should get agreements with filters: showOnlyUpgradeable", async () => {
+      const agreements = await agreementService.getAgreements(
+        {
+          showOnlyUpgradeable: true,
+        },
+        10,
+        0
+      );
+      expect(agreements).toEqual({
+        totalCount: 1,
+        results: expect.arrayContaining([
+          agreement1,
+          // also agreement4 has a latest descriptor to upgrade to,
+          // but it is not in an upgradeable state
+        ]),
+      });
+    });
+
+    it("should get agreements with filters: producerId, consumerId, eserviceId", async () => {
+      const agreements = await agreementService.getAgreements(
+        {
+          producerId: [eservice1.producerId, eservice2.producerId],
+          consumerId: tenant1.id,
+          eserviceId: [eservice1.id, eservice2.id],
+        },
+        10,
+        0
+      );
+      expect(agreements).toEqual({
+        totalCount: 2,
+        results: expect.arrayContaining([agreement1, agreement3]),
+      });
+    });
+
+    it("should get agreements with filters: producerId, consumerId, eserviceId, descriptorId", async () => {
+      const agreements = await agreementService.getAgreements(
+        {
+          producerId: [eservice1.producerId, eservice2.producerId],
+          consumerId: tenant1.id,
+          eserviceId: [eservice1.id, eservice2.id],
+          descriptorId: [descriptor1.id],
+        },
+        10,
+        0
+      );
+      expect(agreements).toEqual({
+        totalCount: 1,
+        results: expect.arrayContaining([agreement1]),
+      });
+    });
+
+    it("should get agreements with filters: attributeId, state", async () => {
+      const agreements = await agreementService.getAgreements(
+        {
+          attributeId: attribute3.id,
+          agreementStates: [agreementState.active],
+        },
+        10,
+        0
+      );
+      expect(agreements).toEqual({
+        totalCount: 1,
+        results: expect.arrayContaining([agreement2]),
+      });
+    });
+
+    it("should get agreements with filters: showOnlyUpgradeable, state, descriptorId", async () => {
+      const agreements1 = await agreementService.getAgreements(
+        {
+          showOnlyUpgradeable: true,
+          agreementStates: [agreementState.draft],
+          descriptorId: descriptor1.id,
+        },
+        10,
+        0
+      );
+      expect(agreements1).toEqual({
+        totalCount: 1,
+        results: expect.arrayContaining([agreement1]),
+      });
+
+      const agreements2 = await agreementService.getAgreements(
+        {
+          showOnlyUpgradeable: true,
+          agreementStates: [agreementState.suspended],
+          descriptorId: descriptor1.id,
+        },
+        10,
+        0
+      );
+      expect(agreements2).toEqual({
+        totalCount: 0,
+        results: [],
+      });
+    });
+
+    it("should get agreements with limit", async () => {
+      const agreements = await agreementService.getAgreements(
+        {
+          eserviceId: eservice1.id,
+        },
+        1,
+        0
+      );
+      expect(agreements).toEqual({
+        totalCount: 2,
+        results: expect.arrayContaining([agreement1]),
+      });
+    });
+
+    it("should get agreements with offset and limit", async () => {
+      const agreements = await agreementService.getAgreements(
+        {
+          eserviceId: [eservice1.id, eservice2.id],
+        },
+        2,
+        1
+      );
+      expect(agreements).toEqual({
+        totalCount: 4,
+        results: expect.arrayContaining([agreement2, agreement3]),
+      });
+    });
+  });
+  describe("get agreement", () => {
+    it("should get an agreement", async () => {
+      const agreement: Agreement = buildAgreement(
+        generateId<EServiceId>(),
+        generateId<TenantId>(),
+        agreementState.draft
+      );
+      await addOneAgreement(agreement, postgresDB, agreements);
+      await addOneAgreement(
+        buildAgreement(
+          generateId<EServiceId>(),
+          generateId<TenantId>(),
+          agreementState.pending
+        ),
+        postgresDB,
+        agreements
+      );
+
+      const result = await agreementService.getAgreementById(agreement.id);
+      expect(result).toEqual(agreement);
+    });
+
+    it("should throw an agreementNotFound error when the agreement does not exist", async () => {
+      const agreementId = generateId<AgreementId>();
+
+      await addOneAgreement(
+        buildAgreement(
+          generateId<EServiceId>(),
+          generateId<TenantId>(),
+          agreementState.pending
+        ),
+        postgresDB,
+        agreements
+      );
+
+      await expect(
+        agreementService.getAgreementById(agreementId)
+      ).rejects.toThrowError(agreementNotFound(agreementId));
     });
   });
 });

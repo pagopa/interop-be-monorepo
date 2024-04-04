@@ -5,31 +5,34 @@ import {
   TenantCollection,
 } from "pagopa-interop-commons";
 import {
+  writeInEventstore,
+  writeInReadmodel,
+  StoredEvent,
+  readLastEventByStreamId,
+} from "pagopa-interop-commons-test/index.js";
+import {
   Agreement,
+  CertifiedTenantAttribute,
   Descriptor,
+  DescriptorId,
   EService,
+  EServiceId,
   Tenant,
   TenantEventV2,
+  TenantId,
+  TenantRevoker,
+  TenantVerifier,
+  VerifiedTenantAttribute,
   agreementState,
   descriptorState,
+  generateId,
   technology,
+  tenantAttributeType,
   tenantEventToBinaryDataV2,
+  toReadModelEService,
   toTenantV2,
 } from "pagopa-interop-models";
 import { IDatabase } from "pg-promise";
-import { v4 as uuidv4 } from "uuid";
-
-export const writeTenantInReadmodel = async (
-  tenant: Tenant,
-  tenants: TenantCollection
-): Promise<void> => {
-  await tenants.insertOne({
-    data: tenant,
-    metadata: {
-      version: 0,
-    },
-  });
-};
 
 export const writeTenantInEventstore = async (
   tenant: Tenant,
@@ -41,30 +44,23 @@ export const writeTenantInEventstore = async (
     data: { tenant: toTenantV2(tenant) },
   };
   const eventToWrite = {
-    stream_id: tenantEvent.data.tenant?.id,
-    version: 0,
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    stream_id: tenantEvent.data.tenant!.id,
+    version: "0",
     type: tenantEvent.type,
     event_version: tenantEvent.event_version,
     data: Buffer.from(tenantEventToBinaryDataV2(tenantEvent)),
   };
-  await postgresDB.none(
-    "INSERT INTO tenant.events(stream_id, version, type, event_version, data) VALUES ($1, $2, $3, $4, $5)",
-    [
-      eventToWrite.stream_id,
-      eventToWrite.version,
-      eventToWrite.type,
-      eventToWrite.event_version,
-      eventToWrite.data,
-    ]
-  );
+
+  await writeInEventstore(eventToWrite, "tenant", postgresDB);
 };
 
 export const getMockTenant = (): Tenant => ({
   name: "A tenant",
-  id: uuidv4(),
+  id: generateId(),
   createdAt: new Date(),
   attributes: [],
-  selfcareId: uuidv4(),
+  selfcareId: generateId(),
   externalId: {
     value: "123456",
     origin: "IPA",
@@ -73,9 +69,38 @@ export const getMockTenant = (): Tenant => ({
   mails: [],
 });
 
-export const getMockAuthData = (organizationId?: string): AuthData => ({
-  organizationId: organizationId || uuidv4(),
-  userId: uuidv4(),
+export const currentDate = new Date();
+
+export const getMockVerifiedBy = (): TenantVerifier => ({
+  id: generateId(),
+  verificationDate: currentDate,
+});
+
+export const getMockRevokedBy = (): TenantRevoker => ({
+  id: generateId(),
+  verificationDate: currentDate,
+  revocationDate: currentDate,
+});
+
+export const getMockVerifiedTenantAttribute = (): VerifiedTenantAttribute => ({
+  id: generateId(),
+  type: tenantAttributeType.VERIFIED,
+  assignmentTimestamp: new Date(),
+  verifiedBy: [getMockVerifiedBy()],
+  revokedBy: [getMockRevokedBy()],
+});
+
+export const getMockCertifiedTenantAttribute =
+  (): CertifiedTenantAttribute => ({
+    assignmentTimestamp: currentDate,
+    id: generateId(),
+    type: tenantAttributeType.CERTIFIED,
+    revocationTimestamp: currentDate,
+  });
+
+export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
+  organizationId: organizationId || generateId(),
+  userId: generateId(),
   userRoles: [],
   externalId: {
     value: "123456",
@@ -84,18 +109,20 @@ export const getMockAuthData = (organizationId?: string): AuthData => ({
 });
 
 export const getMockEService = (): EService => ({
-  id: uuidv4(),
+  id: generateId(),
   name: "eService name",
   description: "eService description",
   createdAt: new Date(),
-  producerId: uuidv4(),
+  producerId: generateId(),
   technology: technology.rest,
   descriptors: [],
   attributes: undefined,
+  riskAnalysis: [],
+  mode: "Deliver",
 });
 
 export const getMockDescriptor = (): Descriptor => ({
-  id: uuidv4(),
+  id: generateId(),
   version: "0",
   docs: [],
   state: descriptorState.draft,
@@ -114,19 +141,19 @@ export const getMockDescriptor = (): Descriptor => ({
 });
 
 export const getMockAgreement = ({
-  eServiceId,
+  eserviceId,
   descriptorId,
   producerId,
   consumerId,
 }: {
-  eServiceId: string;
-  descriptorId: string;
-  producerId: string;
-  consumerId: string;
+  eserviceId: EServiceId;
+  descriptorId: DescriptorId;
+  producerId: TenantId;
+  consumerId: TenantId;
 }): Agreement => ({
-  id: uuidv4(),
+  id: generateId(),
   createdAt: new Date(),
-  eserviceId: eServiceId,
+  eserviceId,
   descriptorId,
   producerId,
   consumerId,
@@ -146,44 +173,18 @@ export const getMockAgreement = ({
   },
 });
 
-export const writeAgreementInReadmodel = async (
-  agreement: Agreement,
-  agreements: AgreementCollection
-): Promise<void> => {
-  await agreements.insertOne({
-    data: agreement,
-    metadata: {
-      version: 0,
-    },
-  });
-};
-
-export const writeEServiceInReadmodel = async (
-  eService: EService,
-  eservices: EServiceCollection
-): Promise<void> => {
-  await eservices.insertOne({
-    data: eService,
-    metadata: {
-      version: 0,
-    },
-  });
-};
-
 export const addOneAgreement = async (
   agreement: Agreement,
   agreements: AgreementCollection
 ): Promise<void> => {
-  await writeAgreementInReadmodel(agreement, agreements);
+  await writeInReadmodel(agreement, agreements);
 };
 
 export const addOneEService = async (
-  eService: EService,
-  // postgresDB: IDatabase<unknown>,
+  eservice: EService,
   eservices: EServiceCollection
 ): Promise<void> => {
-  // await writeEServiceInEventstore(eService, postgresDB);
-  await writeEServiceInReadmodel(eService, eservices);
+  await writeInReadmodel(toReadModelEService(eservice), eservices);
 };
 
 export const addOneTenant = async (
@@ -192,5 +193,11 @@ export const addOneTenant = async (
   tenants: TenantCollection
 ): Promise<void> => {
   await writeTenantInEventstore(tenant, postgresDB);
-  await writeTenantInReadmodel(tenant, tenants);
+  await writeInReadmodel(tenant, tenants);
 };
+
+export const readLastTenantEvent = async (
+  tenantId: TenantId,
+  postgresDB: IDatabase<unknown>
+): Promise<StoredEvent> =>
+  await readLastEventByStreamId(tenantId, "tenant", postgresDB);

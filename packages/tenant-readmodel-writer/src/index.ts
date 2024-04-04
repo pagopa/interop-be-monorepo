@@ -1,9 +1,11 @@
+/* eslint-disable functional/immutable-data */
 import { EachMessagePayload } from "kafkajs";
 import {
   logger,
   readModelWriterConfig,
   tenantTopicConfig,
   decodeKafkaMessage,
+  getContext,
   ReadModelRepository,
 } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
@@ -13,17 +15,24 @@ import { handleMessageV2 } from "./tenantConsumerServiceV2.js";
 import { handleMessageV1 } from "./tenantConsumerServiceV1.js";
 
 const config = readModelWriterConfig();
+const { tenantTopic } = tenantTopicConfig();
 const { tenants } = ReadModelRepository.init(config);
 
 async function processMessage({
   message,
   partition,
 }: EachMessagePayload): Promise<void> {
-  try {
-    // await handleMessage(decodeKafkaMessage(message, TenantEventV1));
-    const decodedMesssage = decodeKafkaMessage(message, TenantEvent);
+  const decodedMessage = decodeKafkaMessage(message, TenantEvent);
+  const ctx = getContext();
+  ctx.messageData = {
+    eventType: decodedMessage.type,
+    eventVersion: decodedMessage.event_version,
+    streamId: decodedMessage.stream_id,
+  };
+  ctx.correlationId = decodedMessage.correlation_id;
 
-    await match(decodedMesssage)
+  try {
+    await match(decodedMessage)
       .with({ event_version: 1 }, (msg) => handleMessageV1(msg))
       .with({ event_version: 2 }, (msg) => handleMessageV2(msg, tenants))
       .exhaustive();
@@ -37,5 +46,4 @@ async function processMessage({
   }
 }
 
-const { tenantTopic } = tenantTopicConfig();
-await runConsumer(config, [tenantTopic], processMessage).catch(logger.error);
+await runConsumer(config, [tenantTopic], processMessage);
