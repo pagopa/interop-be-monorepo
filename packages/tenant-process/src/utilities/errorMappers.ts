@@ -52,6 +52,7 @@ export const updateVerifiedAttributeExtensionDateErrorMapper = (
     .with("expirationDateNotFoundInVerifier", () => 400)
     .with("tenantNotFound", () => 404)
     .otherwise(() => 500);
+
 export const selfcareUpsertTenantErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -64,12 +65,15 @@ export const addCertifiedAttributeErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("tenantNotFound", () => 404)
-    .with("tenantIsNotACertifier", () => 400)
-    .with("registryAttributeIdNotFound", () => 404)
-    .with("certifiedAttributeOriginIsNotCompliantWithCertifier", () => 400)
-    .with("certifiedAttributeNotFoundInTenant", () => 404)
-    .with("certifiedAttributeAlreadyAssigned", () => 400)
+    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("tenantIsNotACertifier", () => HTTP_STATUS_FORBIDDEN)
+    .with("registryAttributeIdNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "certifiedAttributeOriginIsNotCompliantWithCertifier",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with("certifiedAttributeNotFoundInTenant", () => HTTP_STATUS_NOT_FOUND)
+    .with("certifiedAttributeAlreadyAssigned", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getCertifiedAttributesErrorMapper = (
