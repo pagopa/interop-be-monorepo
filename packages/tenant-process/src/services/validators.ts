@@ -23,6 +23,7 @@ import {
   verifiedAttributeNotFoundInTenant,
   selfcareIdConflict,
   expirationDateNotFoundInVerifier,
+  tenantIsNotCertifier,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -185,4 +186,14 @@ export function evaluateNewSelfcareId({
       newSelfcareId,
     });
   }
+}
+
+export function getTenantCertifierId(tenant: Tenant): string {
+  const certifierFeature = tenant.features.find(
+    (f) => f.type === "PersistentCertifier"
+  );
+  if (!certifierFeature) {
+    throw tenantIsNotCertifier(tenant.id);
+  }
+  return certifierFeature.certifierId;
 }

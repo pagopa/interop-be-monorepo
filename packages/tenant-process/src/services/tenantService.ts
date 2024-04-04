@@ -1,7 +1,6 @@
 import { AuthData, DB, eventRepository, logger } from "pagopa-interop-commons";
 import {
   AttributeId,
-  ExternalId,
   ListResult,
   Tenant,
   TenantAttribute,
@@ -9,8 +8,12 @@ import {
   WithMetadata,
   generateId,
   tenantEventToBinaryData,
+  ExternalId,
 } from "pagopa-interop-models";
-import { UpdateVerifiedTenantAttributeSeed } from "../model/domain/models.js";
+import {
+  CertifiedAttributeQueryResult,
+  UpdateVerifiedTenantAttributeSeed,
+} from "../model/domain/models.js";
 import { ApiSelfcareTenantSeed } from "../model/types.js";
 import { tenantNotFound } from "../model/domain/errors.js";
 import {
@@ -29,6 +32,8 @@ import {
   getTenantKindLoadingCertifiedAttributes,
   assertOrganizationVerifierExist,
   assertExpirationDateExist,
+  getTenantCertifierId,
+  assertTenantExists,
 } from "./validators.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -254,6 +259,28 @@ export function tenantServiceBuilder(
         );
       }
     },
+
+    async getCertifiedAttributes({
+      organizationId,
+      offset,
+      limit,
+    }: {
+      organizationId: TenantId;
+      offset: number;
+      limit: number;
+    }): Promise<ListResult<CertifiedAttributeQueryResult>> {
+      const tenant = await readModelService.getTenantById(organizationId);
+      assertTenantExists(organizationId, tenant);
+
+      const certifierId = getTenantCertifierId(tenant.data);
+
+      return await readModelService.getCertifiedAttributes({
+        certifierId,
+        offset,
+        limit,
+      });
+    },
+
     async getProducers({
       producerName,
       offset,
