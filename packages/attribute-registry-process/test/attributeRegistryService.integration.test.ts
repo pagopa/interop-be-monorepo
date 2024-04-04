@@ -34,6 +34,7 @@ import {
   Tenant,
   attributeKind,
   generateId,
+  toAttributeV1,
 } from "pagopa-interop-models";
 import { config } from "../src/utilities/config.js";
 import {
