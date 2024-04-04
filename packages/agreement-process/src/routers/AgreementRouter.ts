@@ -131,14 +131,17 @@ const agreementRouter = (
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
       try {
-        const id = await agreementService.addConsumerDocument(
+        const document = await agreementService.addConsumerDocument(
           unsafeBrandId(req.params.agreementId),
           req.body,
           req.ctx.authData,
           req.ctx.correlationId
         );
 
-        return res.status(200).json({ id }).send();
+        return res
+          .status(200)
+          .json(agreementDocumentToApiAgreementDocument(document))
+          .send();
       } catch (error) {
         const errorRes = makeApiProblem(error, addConsumerDocumentErrorMapper);
         return res.status(errorRes.status).json(errorRes).end();

@@ -1,5 +1,6 @@
 import { AuthData, CreateEvent } from "pagopa-interop-commons";
 import {
+  AgreementDocument,
   AgreementDocumentId,
   AgreementEvent,
   AgreementId,
@@ -28,7 +29,7 @@ export async function addConsumerDocumentLogic(
   agreementQuery: AgreementQuery,
   authData: AuthData,
   correlationId: string
-): Promise<CreateEvent<AgreementEvent>> {
+): Promise<[AgreementDocument, CreateEvent<AgreementEvent>]> {
   const agreement = await agreementQuery.getAgreementById(agreementId);
 
   assertAgreementExist(agreementId, agreement);
@@ -49,12 +50,15 @@ export async function addConsumerDocumentLogic(
     consumerDocuments: [...agreement.data.consumerDocuments, newDocument],
   };
 
-  return toCreateEventAgreementConsumerDocumentAdded(
-    newDocument.id,
-    updatedAgreement,
-    agreement.metadata.version,
-    correlationId
-  );
+  return [
+    newDocument,
+    toCreateEventAgreementConsumerDocumentAdded(
+      newDocument.id,
+      updatedAgreement,
+      agreement.metadata.version,
+      correlationId
+    ),
+  ];
 }
 
 // eslint-disable-next-line max-params

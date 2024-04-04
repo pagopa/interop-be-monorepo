@@ -271,17 +271,19 @@ export function agreementServiceBuilder(
       documentSeed: ApiAgreementDocumentSeed,
       authData: AuthData,
       correlationId: string
-    ): Promise<string> {
+    ): Promise<AgreementDocument> {
       logger.info(`Adding a consumer document to agreement ${agreementId}`);
 
-      const addDocumentEvent = await addConsumerDocumentLogic(
+      const [document, addDocumentEvent] = await addConsumerDocumentLogic(
         agreementId,
         documentSeed,
         agreementQuery,
         authData,
         correlationId
       );
-      return await repository.createEvent(addDocumentEvent);
+      await repository.createEvent(addDocumentEvent);
+
+      return document;
     },
     async getAgreementConsumerDocument(
       agreementId: AgreementId,
