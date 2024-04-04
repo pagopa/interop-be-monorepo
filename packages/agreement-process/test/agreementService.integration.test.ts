@@ -5,6 +5,7 @@
 import { fail } from "assert";
 import {
   AgreementCollection,
+  AttributeCollection,
   EServiceCollection,
   FileManager,
   ReadModelRepository,
@@ -29,6 +30,7 @@ import {
   TEST_POSTGRES_DB_PORT,
   mongoDBContainer,
   postgreSQLContainer,
+  getMockAttribute,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -36,6 +38,7 @@ import {
   AgreementAttribute,
   AgreementId,
   AgreementV1,
+  Attribute,
   AttributeId,
   Descriptor,
   DescriptorId,
@@ -91,6 +94,7 @@ import {
 } from "../src/model/domain/models.js";
 import {
   addOneAgreement,
+  addOneAttribute,
   addOneEService,
   addOneTenant,
   readLastAgreementEvent,
@@ -99,7 +103,8 @@ import {
 let agreements: AgreementCollection;
 let eservices: EServiceCollection;
 let tenants: TenantCollection;
-let readModelService;
+let attributes: AttributeCollection;
+let readModelService: ReturnType<typeof readModelServiceBuilder>;
 let agreementService: AgreementService;
 let postgresDB: IDatabase<unknown>;
 let startedPostgreSqlContainer: StartedTestContainer;
@@ -186,6 +191,7 @@ beforeAll(async () => {
   agreements = readModelRepository.agreements;
   eservices = readModelRepository.eservices;
   tenants = readModelRepository.tenants;
+  attributes = readModelRepository.attributes;
 
   readModelService = readModelServiceBuilder(readModelRepository);
   const eserviceQuery = eserviceQueryBuilder(readModelService);
@@ -1748,6 +1754,138 @@ describe("Agreement service", () => {
       expect(eservices).toEqual({
         totalCount: 0,
         results: [],
+      });
+    });
+  });
+
+  describe("Agreement read model service", () => {
+    describe("Smoke-testing only methods not explicitly covered by the Agreement service tests above", () => {
+      let tenant1: Tenant;
+      let tenant2: Tenant;
+      let tenant3: Tenant;
+
+      let eservice1: EService;
+      let eservice2: EService;
+      let eservice3: EService;
+
+      let attribute1: Attribute;
+      let attribute2: Attribute;
+      let attribute3: Attribute;
+
+      let agreement1: Agreement;
+      let agreement2: Agreement;
+      let agreement3: Agreement;
+
+      beforeEach(async () => {
+        tenant1 = buildTenant();
+        tenant2 = buildTenant();
+        tenant3 = buildTenant();
+
+        await addOneTenant(tenant1, tenants);
+        await addOneTenant(tenant2, tenants);
+        await addOneTenant(tenant3, tenants);
+
+        eservice1 = buildEService(generateId<EServiceId>(), tenant1.id);
+        eservice2 = buildEService(generateId<EServiceId>(), tenant2.id);
+        eservice3 = buildEService(generateId<EServiceId>(), tenant3.id);
+
+        await addOneEService(eservice1, eservices);
+        await addOneEService(eservice2, eservices);
+        await addOneEService(eservice3, eservices);
+
+        agreement1 = {
+          ...buildAgreement(),
+          eserviceId: eservice1.id,
+          producerId: tenant1.id,
+          consumerId: tenant2.id,
+        };
+        agreement2 = {
+          ...buildAgreement(),
+          eserviceId: eservice2.id,
+          producerId: tenant1.id,
+          consumerId: tenant3.id,
+        };
+        agreement3 = {
+          ...buildAgreement(),
+          eserviceId: eservice3.id,
+          producerId: tenant2.id,
+          consumerId: tenant3.id,
+        };
+
+        await addOneAgreement(agreement1, postgresDB, agreements);
+        await addOneAgreement(agreement2, postgresDB, agreements);
+        await addOneAgreement(agreement3, postgresDB, agreements);
+
+        attribute1 = getMockAttribute();
+        attribute2 = getMockAttribute();
+        attribute3 = getMockAttribute();
+
+        await addOneAttribute(attribute1, attributes);
+        await addOneAttribute(attribute2, attributes);
+        await addOneAttribute(attribute3, attributes);
+      });
+
+      describe("get all agreements", () => {
+        it("should get all agreements", async () => {
+          const filters = {};
+          const allAgreements = await readModelService.getAllAgreements(
+            filters
+          );
+          expect(allAgreements.map((a) => a.data)).toEqual([
+            agreement1,
+            agreement2,
+            agreement3,
+          ]);
+        });
+        it("should filter agreements when some filters are provided (filters already thoroughly tested in get agreements tests)", async () => {
+          const filters = {
+            producerId: [agreement1.producerId, agreement2.producerId],
+            consumerId: [agreement1.consumerId, agreement3.consumerId],
+            state: [agreementState.draft],
+            eserviceId: [agreement1.eserviceId],
+          };
+          const agreements = await readModelService.getAllAgreements(filters);
+          expect(agreements.map((a) => a.data)).toEqual([agreement1]);
+        });
+      });
+
+      describe("get eservice by id", () => {
+        it("should get an eservice by id", async () => {
+          const result = await readModelService.getEServiceById(eservice1.id);
+          expect(result).toEqual(eservice1);
+        });
+        it("should return undefined the eservice does not exist", async () => {
+          const result = await readModelService.getEServiceById(
+            generateId<EServiceId>()
+          );
+          expect(result).toBeUndefined();
+        });
+      });
+
+      describe("get tenant by id", () => {
+        it("should get a tenant by id", async () => {
+          const result = await readModelService.getTenantById(tenant1.id);
+          expect(result).toEqual(tenant1);
+        });
+        it("should return undefined the tenant does not exist", async () => {
+          const result = await readModelService.getTenantById(
+            generateId<TenantId>()
+          );
+          expect(result).toBeUndefined();
+        });
+      });
+
+      describe("get attribute by id", () => {
+        it("should get an attribute by id", async () => {
+          const result = await readModelService.getAttributeById(attribute1.id);
+          expect(result).toEqual(attribute1);
+        });
+        it("should return undefined the attribute does not exist", async () => {
+          const result = await readModelService.getAttributeById(
+            generateId<AttributeId>()
+          );
+          expect(result).toBeUndefined();
+        });
       });
     });
   });

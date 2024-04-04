@@ -2,9 +2,11 @@ import {
   Agreement,
   AgreementEvent,
   AgreementId,
+  Attribute,
   EService,
   Tenant,
   agreementEventToBinaryData,
+  toReadModelAttribute,
   toReadModelEService,
 } from "pagopa-interop-models";
 import { IDatabase } from "pg-promise";
@@ -16,6 +18,7 @@ import {
 } from "pagopa-interop-commons-test/index.js";
 import {
   AgreementCollection,
+  AttributeCollection,
   EServiceCollection,
   TenantCollection,
 } from "pagopa-interop-commons";
@@ -63,6 +66,13 @@ export const addOneTenant = async (
   tenants: TenantCollection
 ): Promise<void> => {
   await writeInReadmodel(tenant, tenants);
+};
+
+export const addOneAttribute = async (
+  attribute: Attribute,
+  attributes: AttributeCollection
+): Promise<void> => {
+  await writeInReadmodel(toReadModelAttribute(attribute), attributes);
 };
 
 export const readLastAgreementEvent = async (
