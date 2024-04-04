@@ -18,7 +18,6 @@ export * from "./eservice/eserviceEvents.js";
 export * from "./eservice/eserviceReadModelAdapter.js";
 export * from "./eservice/protobufConverterFromV1.js";
 export * from "./eservice/protobufConverterFromV2.js";
-export * from "./eservice/protobufConverterToV1.js";
 export * from "./eservice/protobufConverterToV2.js";
 
 export * from "./institution/institution.js";

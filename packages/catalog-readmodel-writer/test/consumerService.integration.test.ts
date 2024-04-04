@@ -60,15 +60,17 @@ import {
   generateId,
   technology,
   toEServiceV2,
-  toDescriptorV1,
-  toDocumentV1,
-  toEServiceV1,
   toReadModelEService,
 } from "pagopa-interop-models";
 import { StartedTestContainer } from "testcontainers";
 import { format } from "date-fns";
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
+import {
+  toEServiceV1,
+  toDocumentV1,
+  toDescriptorV1,
+} from "./protobufConverterToV1.js";
 
 describe("database test", async () => {
   let eservices: EServiceCollection;

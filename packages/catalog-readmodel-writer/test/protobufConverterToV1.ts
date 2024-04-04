@@ -1,24 +1,24 @@
 import { P, match } from "ts-pattern";
 import {
-  EService,
-  Document,
-  Descriptor,
-  EServiceTechnologyV1,
-  EServiceAttributeV1,
-  EServiceAttribute,
-  EServiceDescriptorStateV1,
-  AgreementApprovalPolicyV1,
-  EServiceV1,
-  EServiceDocumentV1,
-  EServiceDescriptorV1,
   AgreementApprovalPolicy,
+  AgreementApprovalPolicyV1,
+  Descriptor,
   DescriptorState,
-  Technology,
+  Document,
+  EService,
+  EServiceAttribute,
+  EServiceAttributeV1,
+  EServiceDescriptorStateV1,
+  EServiceDescriptorV1,
+  EServiceDocumentV1,
   EServiceMode,
   EServiceModeV1,
-  RiskAnalysis,
   EServiceRiskAnalysisV1,
-} from "../index.js";
+  EServiceTechnologyV1,
+  EServiceV1,
+  RiskAnalysis,
+  Technology,
+} from "../../models/src/index.js";
 
 export const toAgreementApprovalPolicyV1 = (
   input: AgreementApprovalPolicy | undefined
