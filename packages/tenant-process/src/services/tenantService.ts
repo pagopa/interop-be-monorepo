@@ -282,7 +282,7 @@ export function tenantServiceBuilder(
         authData: AuthData;
         correlationId: string;
       }
-    ): Promise<string> {
+    ): Promise<Tenant> {
       logger.info(
         `Add certified attribute ${tenantSeed.id} to tenant ${tenantId}`
       );
@@ -294,32 +294,28 @@ export function tenantServiceBuilder(
 
       assertTenantExists(organizationId, requesterTenant);
 
-      const certifierId = requesterTenant?.data.features.find(
+      const certifier = requesterTenant?.data.features.find(
         (feature) => feature.certifierId
       );
 
-      assertCertifierExists(certifierId?.certifierId);
+      assertCertifierExists(certifier?.certifierId);
 
-      assertTenantIsACertifier(
-        certifierId.certifierId,
-        requesterTenant.data.id
-      );
+      assertTenantIsACertifier(certifier.certifierId, requesterTenant.data.id);
 
       const attribute = await readModelService.getAttributeById(
         unsafeBrandId<AttributeId>(tenantSeed.id)
       );
 
-      const origin = attribute.data.origin;
-      const attributeId = attribute.data.id;
-
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      assertAttributeIsCertified(origin, attribute.data.kind);
+      const origin = attribute.origin!;
+      const attributeId = attribute.id;
+
+      assertAttributeIsCertified(origin, attribute.kind);
 
       assertCertifiedAttributeOriginIsCompliantWithCertifier(
-        certifierId.certifierId,
+        certifier.certifierId,
         tenantId,
         organizationId,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         origin
       );
 
@@ -341,7 +337,7 @@ export function tenantServiceBuilder(
       );
 
       // eslint-disable-next-line functional/no-let
-      let tenant: Tenant = {
+      let updatedTenant: Tenant = {
         name: "",
         id: requesterTenant.data.id,
         createdAt: new Date(),
@@ -355,11 +351,11 @@ export function tenantServiceBuilder(
       };
 
       if (!isCertifiedAttributePresent) {
-        const updatedTenant = {
+        const newTenant = {
           ...targetTenant.data,
           attributes: [...targetTenant.data.attributes, certifiedAttribute],
         };
-        tenant = updatedTenant;
+        updatedTenant = newTenant;
       } else if (certifiedAttribute.revocationTimestamp === undefined) {
         throw certifiedAttributeAlreadyAssigned(attributeId, organizationId);
       } else {
@@ -373,40 +369,42 @@ export function tenantServiceBuilder(
           revocationTimestamp: undefined,
         };
 
-        const updatedTenant = {
+        const newTenant = {
           ...requesterTenant.data,
           attributes: [...requesterTenant.data.attributes, updatedAttribute],
           updatedAt: new Date(),
         };
-        tenant = updatedTenant;
+        updatedTenant = newTenant;
       }
 
       const tenantKind = await getTenantKindLoadingCertifiedAttributes(
         readModelService,
-        tenant.attributes,
-        tenant.externalId
+        updatedTenant.attributes,
+        updatedTenant.externalId
       );
 
-      if (tenant.kind !== tenantKind) {
+      if (updatedTenant.kind !== tenantKind) {
         await repository.createEvent(
           toTenantCertifiedAttributeAssigned(
             requesterTenant.data.id,
             requesterTenant.metadata.version,
-            tenant,
+            updatedTenant,
+            attributeId,
             correlationId
           )
         );
       }
 
-      return await repository.createEvent(
-        toCreateEventTenantUpdated(
-          requesterTenant.data.id,
-          requesterTenant.metadata.version,
-          tenant,
-          correlationId
-        )
+      const event = toCreateEventTenantOnboardDetailsUpdated(
+        requesterTenant.data.id,
+        requesterTenant.metadata.version,
+        updatedTenant,
+        correlationId
       );
+      await repository.createEvent(event);
+      return updatedTenant;
     },
+
     async getCertifiedAttributes({
       organizationId,
       offset,

@@ -376,12 +376,15 @@ const tenantsRouter = (
       async (req, res) => {
         try {
           const { tenantId } = req.params;
-          await tenantService.addCertifiedAttribute(unsafeBrandId(tenantId), {
-            tenantSeed: req.body,
-            authData: req.ctx.authData,
-            correlationId: req.ctx.correlationId,
-          });
-          return res.status(200).end();
+          const tenant = await tenantService.addCertifiedAttribute(
+            unsafeBrandId(tenantId),
+            {
+              tenantSeed: req.body,
+              authData: req.ctx.authData,
+              correlationId: req.ctx.correlationId,
+            }
+          );
+          return res.status(200).json(toApiTenant(tenant)).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
