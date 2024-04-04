@@ -121,7 +121,7 @@ services:
 
   # ElasticMQ is a local SQS-compatible queue system, to replace AWS SQS in local development
   elasticmq:
-    image: softwaremill/elasticmq-native
+    image: softwaremill/elasticmq-native:1.5.7
     ports:
       - 9324:9324
       - 9325:9325
