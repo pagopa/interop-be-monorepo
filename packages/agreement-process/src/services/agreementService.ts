@@ -379,12 +379,12 @@ export function agreementServiceBuilder(
       return agreementId;
     },
     async activateAgreement(
-      agreementId: Agreement["id"],
+      agreementId: AgreementId,
       authData: AuthData,
       correlationId: string
-    ): Promise<Agreement["id"]> {
+    ): Promise<Agreement> {
       logger.info(`Activating agreement ${agreementId}`);
-      const updatesEvents = await activateAgreementLogic(
+      const [agreement, updatesEvents] = await activateAgreementLogic(
         agreementId,
         agreementQuery,
         eserviceQuery,
@@ -398,7 +398,7 @@ export function agreementServiceBuilder(
       for (const event of updatesEvents) {
         await repository.createEvent(event);
       }
-      return agreementId;
+      return agreement;
     },
     async archiveAgreement(
       agreementId: AgreementId,
