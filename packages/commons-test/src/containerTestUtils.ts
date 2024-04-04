@@ -1,4 +1,3 @@
-import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import { EventStoreConfig, ReadModelDbConfig } from "pagopa-interop-commons";
 import { GenericContainer } from "testcontainers";
 
@@ -39,10 +38,12 @@ export const mongoDBContainer = (config: ReadModelDbConfig): GenericContainer =>
 export const postgreSQLContainer = (
   config: EventStoreConfig
 ): GenericContainer =>
-  new PostgreSqlContainer(TEST_POSTGRES_DB_IMAGE)
-    .withUsername(config.eventStoreDbUsername)
-    .withPassword(config.eventStoreDbPassword)
-    .withDatabase(config.eventStoreDbName)
+  new GenericContainer(TEST_POSTGRES_DB_IMAGE)
+    .withEnvironment({
+      POSTGRES_DB: config.eventStoreDbName,
+      POSTGRES_USER: config.eventStoreDbUsername,
+      POSTGRES_PASSWORD: config.eventStoreDbPassword,
+    })
     .withCopyFilesToContainer([
       {
         source: "../../docker/event-store-init.sql",
