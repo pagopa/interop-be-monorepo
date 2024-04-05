@@ -9,7 +9,8 @@ export * from "./agreement/protobufConverter.js";
 export * from "./attribute/attribute.js";
 export * from "./attribute/attributeReadModelAdapter.js";
 export * from "./attribute/attributeEvents.js";
-export * from "./attribute/protobufConverter.js";
+export * from "./attribute/protobufConverterFromV1.js";
+export * from "./attribute/protobufConverterToV1.js";
 
 export * from "./email/email.js";
 
