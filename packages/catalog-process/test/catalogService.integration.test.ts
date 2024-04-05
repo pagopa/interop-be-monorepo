@@ -3398,6 +3398,7 @@ describe("database test", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
+          serverUrls: [],
         };
         const eservice: EService = {
           ...mockEService,
@@ -3442,6 +3443,7 @@ describe("database test", async () => {
                   writtenPayload.eservice!.descriptors[0]!.interface!.uploadDate
                 ),
               },
+              serverUrls: [],
             },
           ],
         });
