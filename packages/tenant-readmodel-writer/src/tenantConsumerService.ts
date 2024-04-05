@@ -81,5 +81,39 @@ export async function handleMessage(
         }
       );
     })
+    .with({ type: "TenantMailAdded" }, async (msg) => {
+      await tenants.updateOne(
+        {
+          "data.id": msg.stream_id,
+        },
+        {
+          $set: {
+            data: msg.data.tenant ? fromTenantV1(msg.data.tenant) : undefined,
+            metadata: {
+              version: msg.version,
+            },
+          },
+        }
+      );
+    })
+    .with({ type: "TenantMailDeleted" }, async (msg) => {
+      await tenants.updateOne(
+        {
+          "data.id": msg.stream_id,
+        },
+        {
+          $pull: {
+            "data.mails": {
+              id: msg.data.mailId,
+            },
+          },
+          $set: {
+            metadata: {
+              version: msg.version,
+            },
+          },
+        }
+      );
+    })
     .exhaustive();
 }
