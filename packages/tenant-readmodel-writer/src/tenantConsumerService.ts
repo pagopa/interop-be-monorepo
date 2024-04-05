@@ -29,8 +29,11 @@ export async function handleMessage(
         { upsert: true }
       );
     })
-    .with({ type: "TenantDeleted" }, async (_msg) => {
-      logger.info("TODO");
+    .with({ type: "TenantDeleted" }, async (msg) => {
+      await tenants.deleteOne({
+        "data.id": msg.stream_id,
+        "metadata.version": { $lt: msg.version },
+      });
     })
     .with(
       { type: "TenantUpdated" },
@@ -50,11 +53,33 @@ export async function handleMessage(
           }
         )
     )
-    .with({ type: "SelfcareMappingCreated" }, async (_msg) => {
-      logger.info("TODO");
+    .with({ type: "SelfcareMappingCreated" }, async (msg) => {
+      await tenants.updateOne(
+        {
+          "data.id": msg.stream_id,
+          "metadata.version": { $lt: msg.version },
+        },
+        {
+          $set: {
+            "data.selfcareId": msg.data.selfcareId,
+            "metadata.version": msg.version,
+          },
+        }
+      );
     })
-    .with({ type: "SelfcareMappingDeleted" }, async (_msg) => {
-      logger.info("TODO");
+    .with({ type: "SelfcareMappingDeleted" }, async (msg) => {
+      await tenants.updateOne(
+        {
+          "data.id": msg.stream_id,
+          "metadata.version": { $lt: msg.version },
+        },
+        {
+          $set: {
+            "data.selfcareId": undefined,
+            "metadata.version": msg.version,
+          },
+        }
+      );
     })
     .exhaustive();
 }
