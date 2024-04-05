@@ -8,14 +8,14 @@ import {
   getContext,
 } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
-import { TenantEvent } from "pagopa-interop-models";
+import { TenantEventV1 } from "pagopa-interop-models";
 import { handleMessage } from "./tenantConsumerService.js";
 
 async function processMessage({
   message,
   partition,
 }: EachMessagePayload): Promise<void> {
-  const decodedMessage = decodeKafkaMessage(message, TenantEvent);
+  const decodedMessage = decodeKafkaMessage(message, TenantEventV1);
 
   const ctx = getContext();
   ctx.messageData = {
