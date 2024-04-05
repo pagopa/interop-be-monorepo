@@ -1,5 +1,6 @@
 import {
   AgreementCollection,
+  AttributeCollection,
   AuthData,
   EServiceCollection,
   TenantCollection,
@@ -12,6 +13,7 @@ import {
 } from "pagopa-interop-commons-test/index.js";
 import {
   Agreement,
+  Attribute,
   CertifiedTenantAttribute,
   Descriptor,
   DescriptorId,
@@ -29,6 +31,7 @@ import {
   technology,
   tenantAttributeType,
   tenantEventToBinaryDataV2,
+  toReadModelAttribute,
   toReadModelEService,
   toTenantV2,
 } from "pagopa-interop-models";
@@ -51,7 +54,6 @@ export const writeTenantInEventstore = async (
     event_version: tenantEvent.event_version,
     data: Buffer.from(tenantEventToBinaryDataV2(tenantEvent)),
   };
-
   await writeInEventstore(eventToWrite, "tenant", postgresDB);
 };
 
@@ -185,6 +187,13 @@ export const addOneEService = async (
   eservices: EServiceCollection
 ): Promise<void> => {
   await writeInReadmodel(toReadModelEService(eservice), eservices);
+};
+
+export const addOneAttribute = async (
+  attribute: Attribute,
+  attributes: AttributeCollection
+): Promise<void> => {
+  await writeInReadmodel(toReadModelAttribute(attribute), attributes);
 };
 
 export const addOneTenant = async (

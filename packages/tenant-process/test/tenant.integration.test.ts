@@ -8,6 +8,7 @@ import { fail } from "assert";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import {
   AgreementCollection,
+  AttributeCollection,
   EServiceCollection,
   ReadModelRepository,
   TenantCollection,
@@ -24,17 +25,19 @@ import {
 } from "pagopa-interop-commons-test";
 import { IDatabase } from "pg-promise";
 import {
+  Attribute,
+  CertifiedTenantAttribute,
   Descriptor,
   EService,
   Tenant,
-  TenantCreatedV1,
+  TenantCertifiedAttributeAssignedV2,
   TenantId,
   TenantOnboardDetailsUpdatedV2,
   TenantOnboardedV2,
-  TenantUpdatedV1,
   TenantVerifiedAttributeExpirationUpdatedV2,
   TenantVerifiedAttributeExtensionUpdatedV2,
   descriptorState,
+  fromTenantKindV2,
   generateId,
   operationForbidden,
   protobufDecoder,
@@ -52,7 +55,6 @@ import {
   TenantService,
   tenantServiceBuilder,
 } from "../src/services/tenantService.js";
-import { toTenantV1 } from "../src/model/domain/toEvent.js";
 import { UpdateVerifiedTenantAttributeSeed } from "../src/model/domain/models.js";
 import {
   expirationDateCannotBeInThePast,
@@ -62,10 +64,15 @@ import {
   verifiedAttributeNotFoundInTenant,
   expirationDateNotFoundInVerifier,
 } from "../src/model/domain/errors.js";
-import { ApiSelfcareTenantSeed } from "../src/model/types.js";
+import {
+  ApiSelfcareTenantSeed,
+  ApicertifiedTenantAttributeSeed,
+} from "../src/model/types.js";
 import { getTenantKind } from "../src/services/validators.js";
+import { bigIntReplacer } from "../../commons/src/logging/utils.js";
 import {
   addOneAgreement,
+  addOneAttribute,
   addOneEService,
   addOneTenant,
   currentDate,
@@ -83,6 +90,7 @@ describe("Integration tests", () => {
   let tenants: TenantCollection;
   let agreements: AgreementCollection;
   let eservices: EServiceCollection;
+  let attributes: AttributeCollection;
   let readModelService: ReadModelService;
   let tenantService: TenantService;
   let postgresDB: IDatabase<unknown>;
@@ -98,7 +106,8 @@ describe("Integration tests", () => {
     );
     config.readModelDbPort =
       startedMongodbContainer.getMappedPort(TEST_MONGO_DB_PORT);
-    ({ tenants, agreements, eservices } = ReadModelRepository.init(config));
+    ({ tenants, agreements, eservices, attributes } =
+      ReadModelRepository.init(config));
 
     readModelService = readModelServiceBuilder(config);
     postgresDB = initDB({
@@ -123,6 +132,7 @@ describe("Integration tests", () => {
     await tenants.deleteMany({});
     await agreements.deleteMany({});
     await eservices.deleteMany({});
+    await attributes.deleteMany({});
     await postgresDB.none("TRUNCATE TABLE tenant.events RESTART IDENTITY");
   });
 
@@ -583,6 +593,91 @@ describe("Integration tests", () => {
         ).rejects.toThrowError(
           organizationNotFoundInVerifiers(verifierId, tenant.id, attributeId)
         );
+      });
+    });
+    describe("addCertifiedAttribute", async () => {
+      const tenantAttributeSeed: ApicertifiedTenantAttributeSeed = {
+        id: generateId(),
+      };
+      const correlationId = generateId();
+      const requesterTenant: Tenant = {
+        ...mockTenant,
+        features: [
+          {
+            type: "PersistentCertifier",
+            certifierId: generateId(),
+          },
+        ],
+        updatedAt: currentDate,
+        name: "A requesterTenant",
+      };
+      const attribute: Attribute = {
+        name: "an Attribute",
+        id: unsafeBrandId(tenantAttributeSeed.id),
+        kind: "Certified",
+        description: "an attribute",
+        creationTime: new Date(),
+        code: "123456",
+        origin: requesterTenant.features[0].certifierId,
+      };
+
+      it("Should add the certified attribute", async () => {
+        const targetTenant: Tenant = { ...mockTenant, id: generateId() };
+        await addOneAttribute(attribute, attributes);
+        await addOneTenant(targetTenant, postgresDB, tenants);
+        await addOneTenant(requesterTenant, postgresDB, tenants);
+        const mockAuthData = getMockAuthData(requesterTenant.id);
+        await tenantService.addCertifiedAttribute(targetTenant.id, {
+          tenantAttributeSeed,
+          authData: mockAuthData,
+          correlationId,
+        });
+        const writtenEvent: StoredEvent | undefined =
+          await readLastEventByStreamId(
+            targetTenant.id,
+            eventStoreSchema.tenant,
+            postgresDB
+          );
+        if (!writtenEvent) {
+          fail("Update failed: tenant not found in event-store");
+        }
+        expect(writtenEvent).toMatchObject({
+          stream_id: targetTenant.id,
+          version: "1",
+          type: "TenantCertifiedAttributeAssigned",
+        });
+        const writtenPayload: TenantCertifiedAttributeAssignedV2 | undefined =
+          protobufDecoder(TenantCertifiedAttributeAssignedV2).parse(
+            writtenEvent?.data
+          );
+        const v = writtenPayload.tenant?.attributes[0]
+          .sealedValue as unknown as CertifiedTenantAttribute;
+        const updatedTenant: Tenant = {
+          ...targetTenant,
+          attributes: [
+            {
+              id: unsafeBrandId(tenantAttributeSeed.id),
+              type: "PersistentCertifiedAttribute",
+              assignmentTimestamp: v.assignmentTimestamp,
+            },
+          ],
+          kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
+          updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
+        };
+
+        // new Date(
+        //   Number(
+        //     (
+        //       writtenPayload.tenant?.attributes[0]
+        //         .sealedValue as CertifiedTenantAttribute
+        //     ).assignmentTimestamp
+        //   )
+        // ),
+
+        console.log(
+          JSON.stringify(writtenPayload.tenant?.attributes, bigIntReplacer)
+        );
+        expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
       });
     });
   });
