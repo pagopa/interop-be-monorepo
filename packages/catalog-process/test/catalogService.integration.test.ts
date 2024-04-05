@@ -386,6 +386,7 @@ describe("database test", async () => {
           descriptors: eservice.descriptors.map((d) => ({
             ...d,
             interface: undefined,
+            serverUrls: [],
           })),
         };
 
