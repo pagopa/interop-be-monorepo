@@ -379,7 +379,7 @@ const tenantsRouter = (
           const tenant = await tenantService.addCertifiedAttribute(
             unsafeBrandId(tenantId),
             {
-              tenantSeed: req.body,
+              tenantAttributeSeed: req.body,
               authData: req.ctx.authData,
               correlationId: req.ctx.correlationId,
             }
