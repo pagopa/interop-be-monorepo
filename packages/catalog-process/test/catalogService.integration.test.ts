@@ -3739,6 +3739,7 @@ describe("database test", async () => {
             {
               ...descriptor,
               interface: undefined,
+              serverUrls: [],
             },
           ],
         });
