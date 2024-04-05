@@ -47,6 +47,9 @@ jobs:
           - image_name: authorization-updater
             dockerfile_path: packages/authorization-updater
             k8s_path: packages/authorization-updater/kubernetes/dev
+          - image_name: notifier-seeder
+            dockerfile_path: packages/notifier-seeder
+            k8s_path: packages/notifier-seeder/kubernetes/dev
 
     steps:
       - name: Checkout repository
