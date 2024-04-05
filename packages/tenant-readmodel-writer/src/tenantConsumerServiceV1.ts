@@ -50,24 +50,6 @@ export async function handleMessageV1(
           }
         )
     )
-    .with(
-      { type: "TenantCertifiedAttributeAssigned" },
-      async (msg) =>
-        await tenants.updateOne(
-          {
-            "data.id": msg.stream_id,
-            "metadata.version": { $lt: msg.version },
-          },
-          {
-            $set: {
-              data: msg.data.tenant ? fromTenantV1(msg.data.tenant) : undefined,
-              metadata: {
-                version: msg.version,
-              },
-            },
-          }
-        )
-    )
     .with({ type: "SelfcareMappingCreated" }, async (_msg) => {
       logger.info("TODO");
     })

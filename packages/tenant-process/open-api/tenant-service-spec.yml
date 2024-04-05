@@ -755,13 +755,13 @@ paths:
         '403':
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: '#/components/schemas/Problem'
         '404':
           description: Tenant Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: '#/components/schemas/Problem'
   /status:
