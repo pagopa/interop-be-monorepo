@@ -1,6 +1,5 @@
 /* eslint-disable functional/no-let */
 /* eslint-disable functional/immutable-data */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { afterEach, afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
