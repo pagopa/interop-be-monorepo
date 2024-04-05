@@ -17,7 +17,7 @@
   "author": "",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@anatine/zod-mock": "3.13.1",
+    "@anatine/zod-mock": "3.13.4",
     "@pagopa/eslint-config": "3.0.0",
     "@protobuf-ts/runtime": "2.9.1",
     "@testcontainers/postgresql": "10.2.2",
