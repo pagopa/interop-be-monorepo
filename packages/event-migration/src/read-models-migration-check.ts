@@ -24,7 +24,8 @@ const readModelSchemas = {
 
 const Config = z
   .object({
-    READ_MODEL_COLLECTION: Collection,
+    NODE_COLLECTION_NAME: Collection,
+    SCALA_COLLECTION_NAME: z.string(),
     SCALA_READMODEL_DB_HOST: z.string(),
     SCALA_READMODEL_DB_NAME: z.string(),
     SCALA_READMODEL_DB_USERNAME: z.string(),
@@ -37,7 +38,8 @@ const Config = z
     NODE_READMODEL_DB_PORT: z.coerce.number().min(1001),
   })
   .transform((c) => ({
-    readModelCollection: c.READ_MODEL_COLLECTION,
+    nodeCollectionName: c.NODE_COLLECTION_NAME,
+    scalaCollectionName: c.SCALA_COLLECTION_NAME,
     scalaReadModelConfig: {
       readModelDbHost: c.SCALA_READMODEL_DB_HOST,
       readModelDbName: c.SCALA_READMODEL_DB_NAME,
@@ -64,14 +66,13 @@ async function main(): Promise<void> {
   const scalaReadModelDb = connectToReadModelDb(config.scalaReadModelConfig);
   const nodeReadModelDb = connectToReadModelDb(config.nodeReadModelConfig);
 
-  const collectionDataSchema = readModelSchemas[config.readModelCollection];
-
-  const differences = await compareReadModelsCollection(
-    scalaReadModelDb,
-    nodeReadModelDb,
-    config.readModelCollection,
-    collectionDataSchema
-  );
+  const differences = await compareReadModelsCollection({
+    readmodelA: scalaReadModelDb,
+    readmodelB: nodeReadModelDb,
+    collectionNameA: config.scalaCollectionName,
+    collectionNameB: config.nodeCollectionName,
+    schema: readModelSchemas[config.nodeCollectionName],
+  });
 
   differences.forEach(([scala, node]) => {
     if (scala && !node) {
@@ -111,20 +112,27 @@ function connectToReadModelDb({
 export async function compareReadModelsCollection<
   TSchema extends z.ZodSchema<any>, // eslint-disable-line @typescript-eslint/no-explicit-any
   TCollectionData extends z.infer<TSchema>
->(
-  readmodelA: Db,
-  readmodelB: Db,
-  collection: string,
-  schema: TSchema
-): Promise<Array<[TCollectionData | undefined, TCollectionData | undefined]>> {
+>({
+  readmodelA,
+  readmodelB,
+  collectionNameA,
+  collectionNameB,
+  schema,
+}: {
+  readmodelA: Db;
+  readmodelB: Db;
+  collectionNameA: string;
+  collectionNameB: string;
+  schema: TSchema;
+}): Promise<Array<[TCollectionData | undefined, TCollectionData | undefined]>> {
   const resultsA = await readmodelA
-    .collection(collection)
+    .collection(collectionNameA)
     .find()
     .map(({ data }) => schema.parse(data))
     .toArray();
 
   const resultsB = await readmodelB
-    .collection(collection)
+    .collection(collectionNameB)
     .find()
     .map(({ data }) => schema.parse(data))
     .toArray();

@@ -68,59 +68,62 @@ describe("read-models-migration-check", () => {
     });
 
     it("should return an empty array if the data collections have no differences", async () => {
-      const readModelA = MockMongoDb.mockDb([
+      const readmodelA = MockMongoDb.mockDb([
         { id: "1", name: "test 1" },
         { id: "2", name: "test 2" },
         { id: "3", name: "test 3" },
       ]);
-      const readModelB = MockMongoDb.mockDb([
+      const readmodelB = MockMongoDb.mockDb([
         { id: "3", name: "test 3" },
         { id: "2", name: "test 2" },
         { id: "1", name: "test 1" },
       ]);
 
-      const result = await compareReadModelsCollection(
-        readModelA,
-        readModelB,
-        "test",
-        TestSchema
-      );
+      const result = await compareReadModelsCollection({
+        readmodelA,
+        readmodelB,
+        collectionNameA: "test",
+        collectionNameB: "test",
+        schema: TestSchema,
+      });
 
       expect(result).toEqual([]);
     });
 
     it("should return an empty array if the data collections are empty", async () => {
-      const readModelA = MockMongoDb.mockDb([]);
-      const readModelB = MockMongoDb.mockDb([]);
+      const readmodelA = MockMongoDb.mockDb([]);
+      const readmodelB = MockMongoDb.mockDb([]);
 
-      const result = await compareReadModelsCollection(
-        readModelA,
-        readModelB,
-        "test",
-        TestSchema
-      );
+      const result = await compareReadModelsCollection({
+        readmodelA,
+        readmodelB,
+        collectionNameA: "test",
+        collectionNameB: "test",
+        schema: TestSchema,
+      });
 
       expect(result).toEqual([]);
     });
 
     it("should return an array of differences if the data collections have differences", async () => {
-      const readModelA = MockMongoDb.mockDb([
+      const readmodelA = MockMongoDb.mockDb([
         { id: "1", name: "test 1" },
         { id: "2", name: "test 2" },
         { id: "3", name: "test 3" },
       ]);
-      const readModelB = MockMongoDb.mockDb([
+      const readmodelB = MockMongoDb.mockDb([
         { id: "3", nsame: "difference" },
         { id: "2", name: "test 2" },
         { id: "1", name: "test 1" },
       ]);
 
-      const result = await compareReadModelsCollection(
-        readModelA,
-        readModelB,
-        "test",
-        TestSchema
-      );
+      const result = await compareReadModelsCollection({
+        readmodelA,
+        readmodelB,
+        collectionNameA: "test",
+        collectionNameB: "test",
+        schema: TestSchema,
+      });
 
       expect(result).toEqual([
         [
@@ -131,22 +134,23 @@ describe("read-models-migration-check", () => {
     });
 
     it("should put undefined if an object with a given id does not exist in one of the readmodels", async () => {
-      const readModelA = MockMongoDb.mockDb([
+      const readmodelA = MockMongoDb.mockDb([
         { id: "1", name: "test 1" },
         { id: "2", name: "test 2" },
         { id: "3", name: "test 3" },
       ]);
-      const readModelB = MockMongoDb.mockDb([
+      const readmodelB = MockMongoDb.mockDb([
         { id: "3", name: "test 3" },
         { id: "2", name: "test 2" },
       ]);
 
-      const result = await compareReadModelsCollection(
-        readModelA,
-        readModelB,
-        "test",
-        TestSchema
-      );
+      const result = await compareReadModelsCollection({
+        readmodelA,
+        readmodelB,
+        collectionNameA: "test",
+        collectionNameB: "test",
+        schema: TestSchema,
+      });
 
       expect(result).toEqual([[{ id: "1", name: "test 1" }, undefined]]);
     });
