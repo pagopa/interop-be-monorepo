@@ -3443,7 +3443,7 @@ describe("database test", async () => {
                   writtenPayload.eservice!.descriptors[0]!.interface!.uploadDate
                 ),
               },
-              serverUrls: [],
+              serverUrls: ["pagopa.it"],
             },
           ],
         });
