@@ -305,7 +305,7 @@ export function tenantServiceBuilder(
       }
 
       const attribute = await readModelService.getAttributeById(
-        unsafeBrandId<AttributeId>(tenantAttributeSeed.id)
+        unsafeBrandId(tenantAttributeSeed.id)
       );
 
       if (attribute === undefined) {
@@ -339,12 +339,15 @@ export function tenantServiceBuilder(
         ) as CertifiedTenantAttribute;
 
       // eslint-disable-next-line functional/no-let
-      let updatedTenant: Tenant;
+      let updatedTenant: Tenant = {
+        ...targetTenant.data,
+        updatedAt: new Date(),
+      };
 
       if (!certifiedTenantAttribute) {
         // assigning attribute for the first time
         updatedTenant = {
-          ...targetTenant.data,
+          ...updatedTenant,
           attributes: [
             ...targetTenant.data.attributes,
             {
@@ -360,7 +363,7 @@ export function tenantServiceBuilder(
       } else {
         // re-assigning attribute if it was revoked
         updatedTenant = {
-          ...targetTenant.data,
+          ...updatedTenant,
           attributes: targetTenant.data.attributes.map((a) =>
             a.id === attribute.id
               ? {
@@ -370,7 +373,6 @@ export function tenantServiceBuilder(
                 }
               : a
           ),
-          updatedAt: new Date(),
         };
       }
 

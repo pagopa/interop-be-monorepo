@@ -101,7 +101,7 @@ async function getAttribute(
   if (!data) {
     return undefined;
   } else {
-    const result = Attribute.safeParse(data);
+    const result = Attribute.safeParse(data.data);
     if (!result.success) {
       logger.error(
         `Unable to parse attribute item: result ${JSON.stringify(
@@ -121,7 +121,6 @@ async function getTenant(
   const data = await tenants.findOne(filter, {
     projection: { data: true, metadata: true },
   });
-
   if (!data) {
     return undefined;
   } else {
@@ -131,7 +130,6 @@ async function getTenant(
         data: Tenant,
       })
       .safeParse(data);
-
     if (!result.success) {
       logger.error(
         `Unable to parse tenant item: result ${JSON.stringify(
