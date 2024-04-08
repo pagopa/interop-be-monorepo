@@ -23,8 +23,8 @@ message TenantCertifiedAttributeRevokedV2 {
 }
 
 message TenantDeclaredAttributeAssignedV2 {
-  required string attributeId = 1;
-  required TenantV2 tenant = 2;
+  string attributeId = 1;
+  TenantV2 tenant = 2;
 }
 
 message TenantDeclaredAttributeRevokedV2 {
