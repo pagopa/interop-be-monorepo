@@ -20,7 +20,7 @@ const readModelSchemas = {
   attributes: Attribute,
   eservices: EService,
   tenants: Tenant,
-} as const;
+} as const satisfies Record<Collection, z.ZodSchema<unknown>>;
 
 const Config = z
   .object({
