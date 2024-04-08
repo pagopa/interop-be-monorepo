@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+  PurposeRiskAnalysisFormId,
   RiskAnalysisFormId,
   RiskAnalysisId,
   RiskAnalysisMultiAnswerId,
@@ -27,6 +28,15 @@ export const RiskAnalysisForm = z.object({
   multiAnswers: z.array(RiskAnalysisMultiAnswer),
 });
 export type RiskAnalysisForm = z.infer<typeof RiskAnalysisForm>;
+
+export const PurposeRiskAnalysisForm = z.object({
+  id: PurposeRiskAnalysisFormId,
+  riskAnalysisId: RiskAnalysisFormId.optional(),
+  version: z.string(),
+  singleAnswers: z.array(RiskAnalysisSingleAnswer),
+  multiAnswers: z.array(RiskAnalysisMultiAnswer),
+});
+export type PurposeRiskAnalysisForm = z.infer<typeof RiskAnalysisForm>;
 
 export const RiskAnalysis = z.object({
   id: RiskAnalysisId,

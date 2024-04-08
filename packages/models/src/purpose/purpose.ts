@@ -6,7 +6,7 @@ import {
   PurposeVersionId,
   TenantId,
 } from "../brandedIds.js";
-import { RiskAnalysisForm } from "../risk-analysis/riskAnalysis.js";
+import { PurposeRiskAnalysisForm } from "../risk-analysis/riskAnalysis.js";
 
 export const purposeVersionState = {
   draft: "Draft",
@@ -53,7 +53,7 @@ export const Purpose = z.object({
   suspendedByProducer: z.boolean().optional(),
   title: z.string(),
   description: z.string(),
-  riskAnalysisForm: RiskAnalysisForm.optional(),
+  riskAnalysisForm: PurposeRiskAnalysisForm.optional(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
   isFreeOfCharge: z.boolean(),
