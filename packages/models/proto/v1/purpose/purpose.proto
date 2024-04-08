@@ -13,7 +13,7 @@ message PurposeV1 {
   repeated PurposeVersionV1 versions = 7;
   required string title = 8;
   required string description = 9;
-  optional RiskAnalysisFormV1 riskAnalysisForm = 10;
+  optional PurposeRiskAnalysisFormV1 riskAnalysisForm = 10;
   required int64 createdAt = 11;
   optional int64 updatedAt = 12;
   optional bool isFreeOfCharge = 13;
