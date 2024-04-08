@@ -19,9 +19,9 @@ message TenantV2 {
 }
 
 enum TenantKindV2 {
-  PA = 1;
-  GSP = 2;
-  PRIVATE = 3;
+  PA = 0;
+  GSP = 1;
+  PRIVATE = 2;
 }
 
 message TenantMailV2 {
@@ -33,13 +33,13 @@ message TenantMailV2 {
 }
 
 enum TenantMailKindV2 {
-  CONTACT_EMAIL = 1;
-  DIGITAL_ADDRESS = 2;
+  CONTACT_EMAIL = 0;
+  DIGITAL_ADDRESS = 1;
 }
 
 enum TenantUnitTypeV2 {
-  AOO = 1;
-  UO = 2;
+  AOO = 0;
+  UO = 1;
 }
 
 message TenantFeatureV2 {
