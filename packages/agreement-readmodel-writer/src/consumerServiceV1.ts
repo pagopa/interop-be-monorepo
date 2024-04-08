@@ -1,5 +1,5 @@
 import { match } from "ts-pattern";
-import { logger, AgreementCollection } from "pagopa-interop-commons";
+import { AgreementCollection } from "pagopa-interop-commons";
 import {
   AgreementEventEnvelopeV1,
   fromAgreementDocumentV1,
@@ -10,7 +10,6 @@ export async function handleMessageV1(
   message: AgreementEventEnvelopeV1,
   agreements: AgreementCollection
 ): Promise<void> {
-  logger.info(message);
   await match(message)
     .with({ type: "AgreementAdded" }, async (msg) => {
       await agreements.updateOne(
