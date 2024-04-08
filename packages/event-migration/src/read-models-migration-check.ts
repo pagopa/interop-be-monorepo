@@ -63,16 +63,19 @@ const config: Config = {
 };
 
 async function main(): Promise<void> {
-  const scalaReadModelDb = connectToReadModelDb(config.scalaReadModelConfig);
-  const nodeReadModelDb = connectToReadModelDb(config.nodeReadModelConfig);
+  const scalaReadModel = connectToReadModel(config.scalaReadModelConfig);
+  const nodeReadModel = connectToReadModel(config.nodeReadModelConfig);
 
   const differences = await compareReadModelsCollection({
-    readmodelA: scalaReadModelDb,
-    readmodelB: nodeReadModelDb,
+    readmodelA: scalaReadModel.db(config.scalaReadModelConfig.readModelDbName),
+    readmodelB: nodeReadModel.db(config.nodeReadModelConfig.readModelDbName),
     collectionNameA: config.scalaCollectionName,
     collectionNameB: config.nodeCollectionName,
     schema: readModelSchemas[config.nodeCollectionName],
   });
+
+  await scalaReadModel.close();
+  await nodeReadModel.close();
 
   differences.forEach(([scala, node]) => {
     if (scala && !node) {
@@ -95,18 +98,16 @@ async function main(): Promise<void> {
   console.log("No differences found");
 }
 
-function connectToReadModelDb({
+function connectToReadModel({
   readModelDbHost: host,
   readModelDbPort: port,
   readModelDbUsername: username,
   readModelDbPassword: password,
-  readModelDbName: database,
-}: ReadModelDbConfig): Db {
+}: ReadModelDbConfig): MongoClient {
   const mongoDBConnectionURI = `mongodb://${username}:${password}@${host}:${port}`;
-  const client = new MongoClient(mongoDBConnectionURI, {
+  return new MongoClient(mongoDBConnectionURI, {
     retryWrites: false,
   });
-  return client.db(database);
 }
 
 export async function compareReadModelsCollection<
@@ -125,17 +126,18 @@ export async function compareReadModelsCollection<
   collectionNameB: string;
   schema: TSchema;
 }): Promise<Array<[TCollectionData | undefined, TCollectionData | undefined]>> {
-  const resultsA = await readmodelA
-    .collection(collectionNameA)
-    .find()
-    .map(({ data }) => schema.parse(data))
-    .toArray();
-
-  const resultsB = await readmodelB
-    .collection(collectionNameB)
-    .find()
-    .map(({ data }) => schema.parse(data))
-    .toArray();
+  const [resultsA, resultsB] = await Promise.all([
+    readmodelA
+      .collection(collectionNameA)
+      .find()
+      .map(({ data }) => schema.parse(data))
+      .toArray(),
+    readmodelB
+      .collection(collectionNameB)
+      .find()
+      .map(({ data }) => schema.parse(data))
+      .toArray(),
+  ]);
 
   return zipDataById(resultsA, resultsB).filter(([a, b]) => !isEqual(a, b));
 }
