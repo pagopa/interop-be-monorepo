@@ -30,6 +30,9 @@ export * from "./tenant/tenant.js";
 export * from "./tenant/tenantEvents.js";
 
 export * from "./purpose/purpose.js";
+export * from "./purpose/purposeEvents.js";
+export * from "./purpose/protobufConverterFromV1.js";
+export * from "./purpose/protobufConverterToV1.js";
 
 export * from "./user/user.js";
 
