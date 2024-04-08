@@ -9,7 +9,7 @@ import {
 } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
 import { TenantEventV1 } from "pagopa-interop-models";
-import { handleMessage } from "./tenantConsumerServiceV1.js";
+import { handleMessage } from "./tenantConsumerService.js";
 
 async function processMessage({
   message,
