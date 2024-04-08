@@ -31,7 +31,7 @@ export type RiskAnalysisForm = z.infer<typeof RiskAnalysisForm>;
 
 export const PurposeRiskAnalysisForm = z.object({
   id: PurposeRiskAnalysisFormId,
-  riskAnalysisId: RiskAnalysisId.optional(),
+  riskAnalysisId: z.string().optional(), // TO DO: it should be RiskAnalysis.Id.optional()
   version: z.string(),
   singleAnswers: z.array(RiskAnalysisSingleAnswer),
   multiAnswers: z.array(RiskAnalysisMultiAnswer),
