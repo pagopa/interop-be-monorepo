@@ -11,10 +11,9 @@ import {
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import {
-  Agreement,
+  TenantId,
   DescriptorId,
   EServiceId,
-  TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
@@ -215,13 +214,13 @@ const agreementRouter = (
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
       try {
-        const id = await agreementService.rejectAgreement(
+        const agreement = await agreementService.rejectAgreement(
           unsafeBrandId(req.params.agreementId),
           req.body.reason,
           req.ctx.authData,
           req.ctx.correlationId
         );
-        return res.status(200).json({ id }).send();
+        return res.status(200).json(agreementToApiAgreement(agreement)).send();
       } catch (error) {
         const errorRes = makeApiProblem(error, rejectAgreementErrorMapper);
         return res.status(errorRes.status).json(errorRes).end();
@@ -234,12 +233,12 @@ const agreementRouter = (
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
       try {
-        const agreementId = await agreementService.archiveAgreement(
+        const agreement = await agreementService.archiveAgreement(
           unsafeBrandId(req.params.agreementId),
           req.ctx.authData,
           req.ctx.correlationId
         );
-        return res.status(200).send({ id: agreementId });
+        return res.status(200).send(agreementToApiAgreement(agreement));
       } catch (error) {
         const errorRes = makeApiProblem(error, archiveAgreementErrorMapper);
         return res.status(errorRes.status).json(errorRes).end();
@@ -252,12 +251,12 @@ const agreementRouter = (
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
       try {
-        const id = await agreementService.createAgreement(
+        const agreement = await agreementService.createAgreement(
           req.body,
           req.ctx.authData,
           req.ctx.correlationId
         );
-        return res.status(200).json({ id }).send();
+        return res.status(200).json(agreementToApiAgreement(agreement)).send();
       } catch (error) {
         const errorRes = makeApiProblem(error, createAgreementErrorMapper);
         return res.status(errorRes.status).json(errorRes).end();
@@ -433,13 +432,13 @@ const agreementRouter = (
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
       try {
-        const id = await agreementService.upgradeAgreement(
+        const agreement = await agreementService.upgradeAgreement(
           unsafeBrandId(req.params.agreementId),
           req.ctx.authData,
           req.ctx.correlationId
         );
 
-        return res.status(200).json({ id }).send();
+        return res.status(200).json(agreementToApiAgreement(agreement)).send();
       } catch (error) {
         const errorRes = makeApiProblem(error, upgradeAgreementErrorMapper);
         return res.status(errorRes.status).json(errorRes).end();
@@ -452,13 +451,13 @@ const agreementRouter = (
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
       try {
-        const id = await agreementService.cloneAgreement(
+        const agreement = await agreementService.cloneAgreement(
           unsafeBrandId(req.params.agreementId),
           req.ctx.authData,
           req.ctx.correlationId
         );
 
-        return res.status(200).json({ id }).send();
+        return res.status(200).json(agreementToApiAgreement(agreement)).send();
       } catch (error) {
         const errorRes = makeApiProblem(error, cloneAgreementErrorMapper);
         return res.status(errorRes.status).json(errorRes).end();

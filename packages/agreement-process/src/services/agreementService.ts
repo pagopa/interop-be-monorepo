@@ -118,22 +118,24 @@ export function agreementServiceBuilder(
       return agreement.data;
     },
     async createAgreement(
-      agreement: ApiAgreementPayload,
+      agreementPayload: ApiAgreementPayload,
       authData: AuthData,
       correlationId: string
-    ): Promise<string> {
+    ): Promise<Agreement> {
       logger.info(
-        `Creating agreement for EService ${agreement.eserviceId} and Descriptor ${agreement.descriptorId}`
+        `Creating agreement for EService ${agreementPayload.eserviceId} and Descriptor ${agreementPayload.descriptorId}`
       );
-      const createAgreementEvent = await createAgreementLogic(
-        agreement,
+      const [agreement, createAgreementEvent] = await createAgreementLogic(
+        agreementPayload,
         authData,
         agreementQuery,
         eserviceQuery,
         tenantQuery,
         correlationId
       );
-      return await repository.createEvent(createAgreementEvent);
+      await repository.createEvent(createAgreementEvent);
+
+      return agreement;
     },
     async getAgreementProducers(
       producerName: string | undefined,
@@ -224,9 +226,9 @@ export function agreementServiceBuilder(
       agreementId: AgreementId,
       authData: AuthData,
       correlationId: string
-    ): Promise<string> {
+    ): Promise<Agreement> {
       logger.info(`Upgrading agreement ${agreementId}`);
-      const { streamId, events } = await upgradeAgreementLogic(
+      const [agreement, events] = await upgradeAgreementLogic(
         {
           agreementId,
           authData,
@@ -242,15 +244,15 @@ export function agreementServiceBuilder(
         await repository.createEvent(event);
       }
 
-      return streamId;
+      return agreement;
     },
     async cloneAgreement(
       agreementId: AgreementId,
       authData: AuthData,
       correlationId: string
-    ): Promise<string> {
+    ): Promise<Agreement> {
       logger.info(`Cloning agreement ${agreementId}`);
-      const event = await cloneAgreementLogic(
+      const [agreement, event] = await cloneAgreementLogic(
         {
           agreementId,
           authData,
@@ -264,7 +266,7 @@ export function agreementServiceBuilder(
 
       await repository.createEvent(event);
 
-      return event.streamId;
+      return agreement;
     },
     async addConsumerDocument(
       agreementId: AgreementId,
@@ -362,22 +364,21 @@ export function agreementServiceBuilder(
       rejectionReason: string,
       authData: AuthData,
       correlationId: string
-    ): Promise<string> {
+    ): Promise<Agreement> {
       logger.info(`Rejecting agreement ${agreementId}`);
-      await repository.createEvent(
-        await rejectAgreementLogic(
-          {
-            agreementId,
-            rejectionReason,
-            authData,
-            agreementQuery,
-            tenantQuery,
-            eserviceQuery,
-          },
-          correlationId
-        )
+      const [agreement, event] = await rejectAgreementLogic(
+        {
+          agreementId,
+          rejectionReason,
+          authData,
+          agreementQuery,
+          tenantQuery,
+          eserviceQuery,
+        },
+        correlationId
       );
-      return agreementId;
+      await repository.createEvent(event);
+      return agreement;
     },
     async activateAgreement(
       agreementId: AgreementId,
@@ -405,19 +406,18 @@ export function agreementServiceBuilder(
       agreementId: AgreementId,
       authData: AuthData,
       correlationId: string
-    ): Promise<Agreement["id"]> {
+    ): Promise<Agreement> {
       logger.info(`Archiving agreement ${agreementId}`);
 
-      await repository.createEvent(
-        await archiveAgreementLogic(
-          agreementId,
-          authData,
-          agreementQuery,
-          correlationId
-        )
+      const [agreement, event] = await archiveAgreementLogic(
+        agreementId,
+        authData,
+        agreementQuery,
+        correlationId
       );
+      await repository.createEvent(event);
 
-      return agreementId;
+      return agreement;
     },
   };
 }
@@ -554,7 +554,7 @@ export async function upgradeAgreementLogic(
     ) => Promise<string>;
   },
   correlationId: string
-): Promise<{ streamId: string; events: Array<CreateEvent<AgreementEvent>> }> {
+): Promise<[Agreement, Array<CreateEvent<AgreementEvent>>]> {
   const agreementToBeUpgraded = await agreementQuery.getAgreementById(
     agreementId
   );
@@ -644,9 +644,9 @@ export async function upgradeAgreementLogic(
       },
     };
 
-    return {
-      streamId: upgraded.id,
-      events: [
+    return [
+      upgraded,
+      [
         toCreateEventAgreementArchivedByUpgrade(
           archived,
           agreementToBeUpgraded.metadata.version,
@@ -654,7 +654,7 @@ export async function upgradeAgreementLogic(
         ),
         toCreateEventAgreementUpgraded(upgraded, correlationId),
       ],
-    };
+    ];
   } else {
     // createNewDraftAgreement
     await verifyConflictingAgreements(
@@ -690,10 +690,7 @@ export async function upgradeAgreementLogic(
       correlationId
     );
 
-    return {
-      streamId: createEvent.streamId,
-      events: [createEvent],
-    };
+    return [newAgreement, [createEvent]];
   }
 }
 
@@ -720,7 +717,7 @@ export async function cloneAgreementLogic(
     ) => Promise<string>;
   },
   correlationId: string
-): Promise<CreateEvent<AgreementEvent>> {
+): Promise<[Agreement, CreateEvent<AgreementEvent>]> {
   const agreementToBeCloned = await agreementQuery.getAgreementById(
     agreementId
   );
@@ -785,7 +782,10 @@ export async function cloneAgreementLogic(
     stamps: {},
   };
 
-  return toCreateEventAgreementAdded(newAgreement, correlationId);
+  return [
+    newAgreement,
+    toCreateEventAgreementAdded(newAgreement, correlationId),
+  ];
 }
 
 export async function rejectAgreementLogic(
@@ -805,7 +805,7 @@ export async function rejectAgreementLogic(
     eserviceQuery: EserviceQuery;
   },
   correlationId: string
-): Promise<CreateEvent<AgreementEvent>> {
+): Promise<[Agreement, CreateEvent<AgreementEvent>]> {
   const agreementToBeRejected = await agreementQuery.getAgreementById(
     agreementId
   );
@@ -859,11 +859,14 @@ export async function rejectAgreementLogic(
     },
   };
 
-  return toCreateEventAgreementRejected(
+  return [
     rejected,
-    agreementToBeRejected.metadata.version,
-    correlationId
-  );
+    toCreateEventAgreementRejected(
+      rejected,
+      agreementToBeRejected.metadata.version,
+      correlationId
+    ),
+  ];
 }
 
 export async function archiveAgreementLogic(
@@ -871,7 +874,7 @@ export async function archiveAgreementLogic(
   authData: AuthData,
   agreementQuery: AgreementQuery,
   correlationId: string
-): Promise<CreateEvent<AgreementEvent>> {
+): Promise<[Agreement, CreateEvent<AgreementEvent>]> {
   const agreement = await agreementQuery.getAgreementById(agreementId);
   assertAgreementExist(agreementId, agreement);
   assertRequesterIsConsumer(agreement.data, authData);
@@ -895,9 +898,12 @@ export async function archiveAgreementLogic(
     ...updateSeed,
   };
 
-  return toCreateEventAgreementArchived(
+  return [
     updatedAgreement,
-    agreement.metadata.version,
-    correlationId
-  );
+    toCreateEventAgreementArchived(
+      updatedAgreement,
+      agreement.metadata.version,
+      correlationId
+    ),
+  ];
 }
