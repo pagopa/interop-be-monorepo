@@ -29,6 +29,8 @@ export * from "./tenant/protobufConverter.js";
 export * from "./tenant/tenant.js";
 export * from "./tenant/tenantEvents.js";
 
+export * from "./purpose/purpose.js";
+
 export * from "./user/user.js";
 
 // Protobuf

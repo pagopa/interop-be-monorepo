@@ -2,6 +2,7 @@ import {
   Agreement,
   AttributeReadmodel,
   EServiceReadModel,
+  Purpose,
   Tenant,
   genericError,
 } from "pagopa-interop-models";
@@ -32,12 +33,14 @@ export type EServiceCollection = GenericCollection<EServiceReadModel>;
 export type AgreementCollection = GenericCollection<Agreement>;
 export type TenantCollection = GenericCollection<Tenant>;
 export type AttributeCollection = GenericCollection<AttributeReadmodel>;
+export type PurposeCollection = GenericCollection<Purpose>;
 
 export type Collections =
   | EServiceCollection
   | AgreementCollection
   | TenantCollection
-  | AttributeCollection;
+  | AttributeCollection
+  | PurposeCollection;
 
 type BuildQueryKey<TPrefix extends string, TKey> = `${TPrefix}.${TKey &
   string}`;

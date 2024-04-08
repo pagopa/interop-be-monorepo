@@ -47,6 +47,18 @@ export type RiskAnalysisFormId = z.infer<typeof RiskAnalysisFormId>;
 export const RiskAnalysisId = z.string().uuid().brand("RiskAnalysisId");
 export type RiskAnalysisId = z.infer<typeof RiskAnalysisId>;
 
+export const PurposeId = z.string().uuid().brand("PurposeId");
+export type PurposeId = z.infer<typeof PurposeId>;
+
+export const PurposeVersionId = z.string().uuid().brand("PurposeVersionId");
+export type PurposeVersionId = z.infer<typeof PurposeVersionId>;
+
+export const PurposeVersionDocumentId = z
+  .string()
+  .uuid()
+  .brand("PurposeVersionDocumentId");
+export type PurposeVersionDocumentId = z.infer<typeof PurposeVersionDocumentId>;
+
 type IDS =
   | EServiceId
   | EServiceDocumentId
@@ -58,7 +70,9 @@ type IDS =
   | RiskAnalysisSingleAnswerId
   | RiskAnalysisMultiAnswerId
   | RiskAnalysisFormId
-  | RiskAnalysisId;
+  | RiskAnalysisId
+  | PurposeId
+  | PurposeVersionDocumentId;
 
 // This function is used to generate a new ID for a new object
 // it infers the type of the ID based on how is used the result
