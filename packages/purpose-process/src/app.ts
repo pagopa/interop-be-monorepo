@@ -17,8 +17,6 @@ app.disable("x-powered-by");
 app.use(globalContextMiddleware);
 app.use(contextDataMiddleware);
 app.use(loggerMiddleware("purpose-process")());
-// NOTE(gabro): the order is relevant, authMiddleware must come *after* the routes
-// we want to be unauthenticated.
 app.use(healthRouter);
 app.use(authenticationMiddleware());
 app.use(purposeRouter(zodiosCtx));
