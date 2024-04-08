@@ -68,7 +68,9 @@ export const fromPurposeRiskAnalysisFormV1 = (
 ): PurposeRiskAnalysisForm => ({
   ...input,
   id: unsafeBrandId(input.id),
-  riskAnalysisId: undefined, // TO DO
+  riskAnalysisId: input.riskAnalysisId
+    ? unsafeBrandId(input.riskAnalysisId)
+    : undefined,
   singleAnswers: input.singleAnswers.map((a) => ({
     ...a,
     id: unsafeBrandId(a.id),
