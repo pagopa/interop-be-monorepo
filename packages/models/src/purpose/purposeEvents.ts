@@ -15,14 +15,34 @@ import {
   PurposeVersionWaitedForApprovalV1,
 } from "../gen/v1/purpose/events.js";
 import { protobufDecoder } from "../protobuf/protobuf.js";
+import {
+  PurposeAddedV2,
+  DraftPurposeUpdatedV2,
+  PurposeWaitingForApprovalV2,
+  PurposeActivatedV2,
+  DraftPurposeDeletedV2,
+  WaitingForApprovalPurposeDeletedV2,
+  NewPurposeVersionActivatedV2,
+  PurposeVersionActivatedV2,
+  PurposeVersionUnsuspenedByProducerV2,
+  PurposeVersionUnsuspenedByConsumerV2,
+  PurposeVersionSuspenedByProducerV2,
+  PurposeVersionSuspenedByConsumerV2,
+  NewPurposeVersionWaitingForApprovalV2,
+  PurposeVersionOverQuotaUnsuspendedV2,
+  PurposeArchivedV2,
+  WaitingForApprovalPurposeVersionDeletedV2,
+  PurposeVersionRejectedV2,
+} from "../gen/v2/purpose/events.js";
 
 export function purposeEventToBinaryData(event: PurposeEvent): Uint8Array {
   return match(event)
     .with({ event_version: 1 }, purposeEventToBinaryDataV1)
+    .with({ event_version: 2 }, purposeEventToBinaryDataV2)
     .exhaustive();
 }
 
-export function purposeEventToBinaryDataV1(event: PurposeEvent): Uint8Array {
+export function purposeEventToBinaryDataV1(event: PurposeEventV1): Uint8Array {
   return match(event)
     .with({ type: "PurposeCreated" }, ({ data }) =>
       PurposeCreatedV1.toBinary(data)
@@ -56,6 +76,60 @@ export function purposeEventToBinaryDataV1(event: PurposeEvent): Uint8Array {
     )
     .with({ type: "PurposeVersionDeleted" }, ({ data }) =>
       PurposeVersionDeletedV1.toBinary(data)
+    )
+    .exhaustive();
+}
+
+export function purposeEventToBinaryDataV2(event: PurposeEventV2): Uint8Array {
+  return match(event)
+    .with({ type: "PurposeAdded" }, ({ data }) => PurposeAddedV2.toBinary(data))
+    .with({ type: "DraftPurposeUpdated" }, ({ data }) =>
+      DraftPurposeUpdatedV2.toBinary(data)
+    )
+    .with({ type: "PurposeWaitingForApproval" }, ({ data }) =>
+      PurposeWaitingForApprovalV2.toBinary(data)
+    )
+    .with({ type: "PurposeActivated" }, ({ data }) =>
+      PurposeActivatedV2.toBinary(data)
+    )
+    .with({ type: "DraftPurposeDeleted" }, ({ data }) =>
+      DraftPurposeDeletedV2.toBinary(data)
+    )
+    .with({ type: "WaitingForApprovalPurposeDeleted" }, ({ data }) =>
+      WaitingForApprovalPurposeDeletedV2.toBinary(data)
+    )
+    .with({ type: "NewPurposeVersionActivated" }, ({ data }) =>
+      NewPurposeVersionActivatedV2.toBinary(data)
+    )
+    .with({ type: "PurposeVersionActivated" }, ({ data }) =>
+      PurposeVersionActivatedV2.toBinary(data)
+    )
+    .with({ type: "PurposeVersionUnsuspenedByProducer" }, ({ data }) =>
+      PurposeVersionUnsuspenedByProducerV2.toBinary(data)
+    )
+    .with({ type: "PurposeVersionUnsuspenedByConsumer" }, ({ data }) =>
+      PurposeVersionUnsuspenedByConsumerV2.toBinary(data)
+    )
+    .with({ type: "PurposeVersionSuspenedByProducer" }, ({ data }) =>
+      PurposeVersionSuspenedByProducerV2.toBinary(data)
+    )
+    .with({ type: "PurposeVersionSuspenedByConsumer" }, ({ data }) =>
+      PurposeVersionSuspenedByConsumerV2.toBinary(data)
+    )
+    .with({ type: "NewPurposeVersionWaitingForApproval" }, ({ data }) =>
+      NewPurposeVersionWaitingForApprovalV2.toBinary(data)
+    )
+    .with({ type: "PurposeVersionOverQuotaUnsuspended" }, ({ data }) =>
+      PurposeVersionOverQuotaUnsuspendedV2.toBinary(data)
+    )
+    .with({ type: "PurposeArchived" }, ({ data }) =>
+      PurposeArchivedV2.toBinary(data)
+    )
+    .with({ type: "WaitingForApprovalPurposeVersionDeleted" }, ({ data }) =>
+      WaitingForApprovalPurposeVersionDeletedV2.toBinary(data)
+    )
+    .with({ type: "PurposeVersionRejected" }, ({ data }) =>
+      PurposeVersionRejectedV2.toBinary(data)
     )
     .exhaustive();
 }
@@ -119,17 +193,113 @@ export const PurposeEventV1 = z.discriminatedUnion("type", [
 ]);
 export type PurposeEventV1 = z.infer<typeof PurposeEventV1>;
 
+export const PurposeEventV2 = z.discriminatedUnion("type", [
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("PurposeAdded"),
+    data: protobufDecoder(PurposeAddedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("DraftPurposeUpdated"),
+    data: protobufDecoder(DraftPurposeUpdatedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("PurposeWaitingForApproval"),
+    data: protobufDecoder(PurposeWaitingForApprovalV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("PurposeActivated"),
+    data: protobufDecoder(PurposeActivatedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("DraftPurposeDeleted"),
+    data: protobufDecoder(DraftPurposeDeletedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("WaitingForApprovalPurposeDeleted"),
+    data: protobufDecoder(WaitingForApprovalPurposeDeletedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("NewPurposeVersionActivated"),
+    data: protobufDecoder(NewPurposeVersionActivatedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("PurposeVersionActivated"),
+    data: protobufDecoder(PurposeVersionActivatedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("PurposeVersionUnsuspenedByProducer"),
+    data: protobufDecoder(PurposeVersionUnsuspenedByProducerV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("PurposeVersionUnsuspenedByConsumer"),
+    data: protobufDecoder(PurposeVersionUnsuspenedByConsumerV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("PurposeVersionSuspenedByProducer"),
+    data: protobufDecoder(PurposeVersionSuspenedByProducerV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("PurposeVersionSuspenedByConsumer"),
+    data: protobufDecoder(PurposeVersionSuspenedByConsumerV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("NewPurposeVersionWaitingForApproval"),
+    data: protobufDecoder(NewPurposeVersionWaitingForApprovalV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("PurposeVersionOverQuotaUnsuspended"),
+    data: protobufDecoder(PurposeVersionOverQuotaUnsuspendedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("PurposeArchived"),
+    data: protobufDecoder(PurposeArchivedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("WaitingForApprovalPurposeVersionDeleted"),
+    data: protobufDecoder(WaitingForApprovalPurposeVersionDeletedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("PurposeVersionRejected"),
+    data: protobufDecoder(PurposeVersionRejectedV2),
+  }),
+]);
+export type PurposeEventV2 = z.infer<typeof PurposeEventV2>;
+
 const eventV1 = z
   .object({
     event_version: z.literal(1),
   })
   .passthrough();
 
+const eventV2 = z
+  .object({
+    event_version: z.literal(2),
+  })
+  .passthrough();
+
 export const PurposeEvent = z
-  .discriminatedUnion("event_version", [eventV1])
+  .discriminatedUnion("event_version", [eventV1, eventV2])
   .transform((obj, ctx) => {
     const res = match(obj)
       .with({ event_version: 1 }, () => PurposeEventV1.safeParse(obj))
+      .with({ event_version: 2 }, () => PurposeEventV2.safeParse(obj))
       .exhaustive();
 
     if (!res.success) {
@@ -142,6 +312,9 @@ export type PurposeEvent = z.infer<typeof PurposeEvent>;
 
 export const PurposeEventEnvelopeV1 = EventEnvelope(PurposeEventV1);
 export type PurposeEventEnvelopeV1 = z.infer<typeof PurposeEventEnvelopeV1>;
+
+export const PurposeEventEnvelopeV2 = EventEnvelope(PurposeEventV2);
+export type PurposeEventEnvelopeV2 = z.infer<typeof PurposeEventEnvelopeV2>;
 
 export const PurposeEventEnvelope = EventEnvelope(PurposeEvent);
 export type PurposeEventEnvelope = z.infer<typeof PurposeEventEnvelope>;
