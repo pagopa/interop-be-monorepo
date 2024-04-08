@@ -10,16 +10,22 @@ import { ReadModelDbConfig } from "pagopa-interop-commons";
 import { MongoClient, Db } from "mongodb";
 import isEqual from "lodash.isequal";
 import { diff } from "json-diff";
-import { EService } from "pagopa-interop-models";
+import { Agreement, Attribute, EService, Tenant } from "pagopa-interop-models";
+
+const Collection = z.enum(["agreements", "attributes", "eservices", "tenants"]);
+type Collection = z.infer<typeof Collection>;
+
+const readModelSchemas = {
+  agreements: Agreement,
+  attributes: Attribute,
+  eservices: EService,
+  tenants: Tenant,
+} as const satisfies Record<Collection, z.ZodSchema<unknown>>;
 
 const Config = z
   .object({
-    READ_MODEL_COLLECTION: z.enum([
-      "agreements",
-      "attributes",
-      "eservices",
-      "tenants",
-    ]),
+    NODE_COLLECTION_NAME: Collection,
+    SCALA_COLLECTION_NAME: z.string(),
     SCALA_READMODEL_DB_HOST: z.string(),
     SCALA_READMODEL_DB_NAME: z.string(),
     SCALA_READMODEL_DB_USERNAME: z.string(),
@@ -32,7 +38,8 @@ const Config = z
     NODE_READMODEL_DB_PORT: z.coerce.number().min(1001),
   })
   .transform((c) => ({
-    readModelCollection: c.READ_MODEL_COLLECTION,
+    nodeCollectionName: c.NODE_COLLECTION_NAME,
+    scalaCollectionName: c.SCALA_COLLECTION_NAME,
     scalaReadModelConfig: {
       readModelDbHost: c.SCALA_READMODEL_DB_HOST,
       readModelDbName: c.SCALA_READMODEL_DB_NAME,
@@ -56,14 +63,19 @@ const config: Config = {
 };
 
 async function main(): Promise<void> {
-  const scalaReadModelDb = connectToReadModelDb(config.scalaReadModelConfig);
-  const nodeReadModelDb = connectToReadModelDb(config.nodeReadModelConfig);
+  const scalaReadModel = connectToReadModel(config.scalaReadModelConfig);
+  const nodeReadModel = connectToReadModel(config.nodeReadModelConfig);
 
-  const differences = await compareReadModelsCollection(
-    scalaReadModelDb,
-    nodeReadModelDb,
-    config.readModelCollection
-  );
+  const differences = await compareReadModelsCollection({
+    readmodelA: scalaReadModel.db(config.scalaReadModelConfig.readModelDbName),
+    readmodelB: nodeReadModel.db(config.nodeReadModelConfig.readModelDbName),
+    collectionNameA: config.scalaCollectionName,
+    collectionNameB: config.nodeCollectionName,
+    schema: readModelSchemas[config.nodeCollectionName],
+  });
+
+  await scalaReadModel.close();
+  await nodeReadModel.close();
 
   differences.forEach(([scala, node]) => {
     if (scala && !node) {
@@ -86,44 +98,54 @@ async function main(): Promise<void> {
   console.log("No differences found");
 }
 
-function connectToReadModelDb({
+function connectToReadModel({
   readModelDbHost: host,
   readModelDbPort: port,
   readModelDbUsername: username,
   readModelDbPassword: password,
-  readModelDbName: database,
-}: ReadModelDbConfig): Db {
+}: ReadModelDbConfig): MongoClient {
   const mongoDBConnectionURI = `mongodb://${username}:${password}@${host}:${port}`;
-  const client = new MongoClient(mongoDBConnectionURI, {
+  return new MongoClient(mongoDBConnectionURI, {
     retryWrites: false,
   });
-  return client.db(database);
 }
 
-export async function compareReadModelsCollection(
-  readmodelA: Db,
-  readmodelB: Db,
-  collection: string
-): Promise<Array<[EService | undefined, EService | undefined]>> {
-  const resultsA = await readmodelA
-    .collection(collection)
-    .find()
-    .map(({ data }) => EService.parse(data))
-    .toArray();
+export async function compareReadModelsCollection<
+  TSchema extends z.ZodSchema<any>, // eslint-disable-line @typescript-eslint/no-explicit-any
+  TCollectionData extends z.infer<TSchema>
+>({
+  readmodelA,
+  readmodelB,
+  collectionNameA,
+  collectionNameB,
+  schema,
+}: {
+  readmodelA: Db;
+  readmodelB: Db;
+  collectionNameA: string;
+  collectionNameB: string;
+  schema: TSchema;
+}): Promise<Array<[TCollectionData | undefined, TCollectionData | undefined]>> {
+  const [resultsA, resultsB] = await Promise.all([
+    readmodelA
+      .collection(collectionNameA)
+      .find()
+      .map(({ data }) => schema.parse(data))
+      .toArray(),
+    readmodelB
+      .collection(collectionNameB)
+      .find()
+      .map(({ data }) => schema.parse(data))
+      .toArray(),
+  ]);
 
-  const resultsB = await readmodelB
-    .collection(collection)
-    .find()
-    .map(({ data }) => EService.parse(data))
-    .toArray();
-
-  return zipEServices(resultsA, resultsB).filter(([a, b]) => !isEqual(a, b));
+  return zipDataById(resultsA, resultsB).filter(([a, b]) => !isEqual(a, b));
 }
 
-export function zipEServices(
-  dataA: EService[],
-  dataB: EService[]
-): Array<[EService | undefined, EService | undefined]> {
+export function zipDataById<T extends { id: string }>(
+  dataA: T[],
+  dataB: T[]
+): Array<[T | undefined, T | undefined]> {
   const allIds = new Set([...dataA, ...dataB].map((d) => d.id));
   return Array.from(allIds).map((id) => [
     dataA.find((d) => d.id === id),
