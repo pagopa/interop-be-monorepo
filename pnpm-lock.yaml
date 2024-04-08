@@ -736,8 +736,8 @@ importers:
   packages/models:
     dependencies:
       '@protobuf-ts/plugin':
-        specifier: 2.9.1
-        version: 2.9.1
+        specifier: 2.9.4
+        version: 2.9.4
       '@protobuf-ts/protoc':
         specifier: 2.9.4
         version: 2.9.4
@@ -782,8 +782,8 @@ importers:
         specifier: 3.529.1
         version: 3.529.1
       '@protobuf-ts/plugin':
-        specifier: 2.9.1
-        version: 2.9.1
+        specifier: 2.9.4
+        version: 2.9.4
       '@protobuf-ts/protoc':
         specifier: 2.9.4
         version: 2.9.4
@@ -3587,21 +3587,21 @@ packages:
       - typescript
     dev: true
 
-  /@protobuf-ts/plugin-framework@2.9.1:
-    resolution: {integrity: sha512-/4sHdsXjp6KKkbpcCLUHpMfdYsCaqqQHRAwoxVzHmltsotw06B/K9HglZtkQx0IpLO4eeF3vNr3n7qzjD3e2zA==}
+  /@protobuf-ts/plugin-framework@2.9.4:
+    resolution: {integrity: sha512-9nuX1kjdMliv+Pes8dQCKyVhjKgNNfwxVHg+tx3fLXSfZZRcUHMc1PMwB9/vTvc6gBKt9QGz5ERqSqZc0++E9A==}
     dependencies:
       '@protobuf-ts/runtime': 2.9.4
       typescript: 3.9.10
     dev: false
 
-  /@protobuf-ts/plugin@2.9.1:
-    resolution: {integrity: sha512-svkFSyFgTtaLdDFPGvd6cTu8qK5Nul5RizDCTcv0xWRzcPWtMiqbuCLKCv6E9gdpnAs3MPeQTnSABB2+NhfWBg==}
+  /@protobuf-ts/plugin@2.9.4:
+    resolution: {integrity: sha512-Db5Laq5T3mc6ERZvhIhkj1rn57/p8gbWiCKxQWbZBBl20wMuqKoHbRw4tuD7FyXi+IkwTToaNVXymv5CY3E8Rw==}
     hasBin: true
     dependencies:
-      '@protobuf-ts/plugin-framework': 2.9.1
+      '@protobuf-ts/plugin-framework': 2.9.4
       '@protobuf-ts/protoc': 2.9.4
       '@protobuf-ts/runtime': 2.9.4
-      '@protobuf-ts/runtime-rpc': 2.9.1
+      '@protobuf-ts/runtime-rpc': 2.9.4
       typescript: 3.9.10
     dev: false
 
@@ -3610,8 +3610,8 @@ packages:
     hasBin: true
     dev: false
 
-  /@protobuf-ts/runtime-rpc@2.9.1:
-    resolution: {integrity: sha512-pzO20J6s07LTWcj8hKAXh/dAacU5HIVir6SANKXXH8G0pn0VIIB4FFECq5Hbv25/8PQoOGZ7iApq/DMHaSjGhg==}
+  /@protobuf-ts/runtime-rpc@2.9.4:
+    resolution: {integrity: sha512-y9L9JgnZxXFqH5vD4d7j9duWvIJ7AShyBRoNKJGhu9Q27qIbchfzli66H9RvrQNIFk5ER7z1Twe059WZGqERcA==}
     dependencies:
       '@protobuf-ts/runtime': 2.9.4
     dev: false

@@ -37,7 +37,7 @@
     "vitest": "0.33.0"
   },
   "dependencies": {
-    "@protobuf-ts/plugin": "2.9.1",
+    "@protobuf-ts/plugin": "2.9.4",
     "@protobuf-ts/protoc": "2.9.4",
     "@protobuf-ts/runtime": "2.9.1",
     "@aws-sdk/client-sqs": "3.529.1",
