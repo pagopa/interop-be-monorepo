@@ -49,7 +49,7 @@ export const Purpose = z.object({
   eserviceId: EServiceId,
   consumerId: TenantId,
   versions: z.array(PurposeVersion),
-  suspendedByCondumer: z.boolean().optional(),
+  suspendedByConsumer: z.boolean().optional(),
   suspendedByProducer: z.boolean().optional(),
   title: z.string(),
   description: z.string(),
