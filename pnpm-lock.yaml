@@ -97,8 +97,8 @@ importers:
   packages/agreement-readmodel-writer:
     dependencies:
       '@protobuf-ts/runtime':
-        specifier: 2.9.1
-        version: 2.9.1
+        specifier: 2.9.4
+        version: 2.9.4
       connection-string:
         specifier: 4.3.6
         version: 4.3.6
@@ -213,8 +213,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(typescript@5.1.3)
       '@protobuf-ts/runtime':
-        specifier: 2.9.1
-        version: 2.9.1
+        specifier: 2.9.4
+        version: 2.9.4
       '@types/axios':
         specifier: 0.14.0
         version: 0.14.0
@@ -255,8 +255,8 @@ importers:
         specifier: 3.1.2
         version: 3.1.2
       '@protobuf-ts/runtime':
-        specifier: 2.9.1
-        version: 2.9.1
+        specifier: 2.9.4
+        version: 2.9.4
       connection-string:
         specifier: 4.3.6
         version: 4.3.6
@@ -313,8 +313,8 @@ importers:
   packages/authorization-updater:
     dependencies:
       '@protobuf-ts/runtime':
-        specifier: 2.9.1
-        version: 2.9.1
+        specifier: 2.9.4
+        version: 2.9.4
       '@zodios/core':
         specifier: 10.9.2
         version: 10.9.2(axios@1.4.0)(zod@3.21.4)
@@ -426,8 +426,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(typescript@5.1.3)
       '@protobuf-ts/runtime':
-        specifier: 2.9.1
-        version: 2.9.1
+        specifier: 2.9.4
+        version: 2.9.4
       '@types/axios':
         specifier: 0.14.0
         version: 0.14.0
@@ -617,8 +617,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(typescript@5.1.3)
       '@protobuf-ts/runtime':
-        specifier: 2.9.1
-        version: 2.9.1
+        specifier: 2.9.4
+        version: 2.9.4
       '@testcontainers/postgresql':
         specifier: 10.2.2
         version: 10.2.2
@@ -760,14 +760,14 @@ importers:
   packages/models:
     dependencies:
       '@protobuf-ts/plugin':
-        specifier: 2.9.1
-        version: 2.9.1
+        specifier: 2.9.4
+        version: 2.9.4
       '@protobuf-ts/protoc':
         specifier: 2.9.4
         version: 2.9.4
       '@protobuf-ts/runtime':
-        specifier: 2.9.1
-        version: 2.9.1
+        specifier: 2.9.4
+        version: 2.9.4
       '@types/node':
         specifier: 20.3.1
         version: 20.3.1
@@ -806,14 +806,14 @@ importers:
         specifier: 3.529.1
         version: 3.529.1
       '@protobuf-ts/plugin':
-        specifier: 2.9.1
-        version: 2.9.1
+        specifier: 2.9.4
+        version: 2.9.4
       '@protobuf-ts/protoc':
         specifier: 2.9.4
         version: 2.9.4
       '@protobuf-ts/runtime':
-        specifier: 2.9.1
-        version: 2.9.1
+        specifier: 2.9.4
+        version: 2.9.4
       dotenv-flow:
         specifier: 3.2.0
         version: 3.2.0
@@ -949,8 +949,8 @@ importers:
   packages/tenant-readmodel-writer:
     dependencies:
       '@protobuf-ts/runtime':
-        specifier: 2.9.1
-        version: 2.9.1
+        specifier: 2.9.4
+        version: 2.9.4
       connection-string:
         specifier: 4.3.6
         version: 4.3.6
@@ -3617,21 +3617,21 @@ packages:
       - typescript
     dev: true
 
-  /@protobuf-ts/plugin-framework@2.9.1:
-    resolution: {integrity: sha512-/4sHdsXjp6KKkbpcCLUHpMfdYsCaqqQHRAwoxVzHmltsotw06B/K9HglZtkQx0IpLO4eeF3vNr3n7qzjD3e2zA==}
+  /@protobuf-ts/plugin-framework@2.9.4:
+    resolution: {integrity: sha512-9nuX1kjdMliv+Pes8dQCKyVhjKgNNfwxVHg+tx3fLXSfZZRcUHMc1PMwB9/vTvc6gBKt9QGz5ERqSqZc0++E9A==}
     dependencies:
       '@protobuf-ts/runtime': 2.9.4
       typescript: 3.9.10
     dev: false
 
-  /@protobuf-ts/plugin@2.9.1:
-    resolution: {integrity: sha512-svkFSyFgTtaLdDFPGvd6cTu8qK5Nul5RizDCTcv0xWRzcPWtMiqbuCLKCv6E9gdpnAs3MPeQTnSABB2+NhfWBg==}
+  /@protobuf-ts/plugin@2.9.4:
+    resolution: {integrity: sha512-Db5Laq5T3mc6ERZvhIhkj1rn57/p8gbWiCKxQWbZBBl20wMuqKoHbRw4tuD7FyXi+IkwTToaNVXymv5CY3E8Rw==}
     hasBin: true
     dependencies:
-      '@protobuf-ts/plugin-framework': 2.9.1
+      '@protobuf-ts/plugin-framework': 2.9.4
       '@protobuf-ts/protoc': 2.9.4
       '@protobuf-ts/runtime': 2.9.4
-      '@protobuf-ts/runtime-rpc': 2.9.1
+      '@protobuf-ts/runtime-rpc': 2.9.4
       typescript: 3.9.10
     dev: false
 
@@ -3640,18 +3640,14 @@ packages:
     hasBin: true
     dev: false
 
-  /@protobuf-ts/runtime-rpc@2.9.1:
-    resolution: {integrity: sha512-pzO20J6s07LTWcj8hKAXh/dAacU5HIVir6SANKXXH8G0pn0VIIB4FFECq5Hbv25/8PQoOGZ7iApq/DMHaSjGhg==}
+  /@protobuf-ts/runtime-rpc@2.9.4:
+    resolution: {integrity: sha512-y9L9JgnZxXFqH5vD4d7j9duWvIJ7AShyBRoNKJGhu9Q27qIbchfzli66H9RvrQNIFk5ER7z1Twe059WZGqERcA==}
     dependencies:
       '@protobuf-ts/runtime': 2.9.4
     dev: false
 
-  /@protobuf-ts/runtime@2.9.1:
-    resolution: {integrity: sha512-ZTc8b+pQ6bwxZa3qg9/IO/M/brRkvr0tic9cSGgAsDByfPrtatT2300wTIRLDk8X9WTW1tT+FhyqmcrbMHTeww==}
-
   /@protobuf-ts/runtime@2.9.4:
     resolution: {integrity: sha512-vHRFWtJJB/SiogWDF0ypoKfRIZ41Kq+G9cEFj6Qm1eQaAhJ1LDFvgZ7Ja4tb3iLOQhz0PaoPnnOijF1qmEqTxg==}
-    dev: false
 
   /@sinclair/typebox@0.27.8:
     resolution: {integrity: sha512-+Fj43pSMwJs4KRrH/938Uf+uAELIgVBmQzg/q1YG10djyfA3TnrU8N8XzqCh/okZdszqBQTZf96idMfE5lnwTA==}
