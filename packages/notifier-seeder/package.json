@@ -32,7 +32,7 @@
     "kafkajs": "2.2.4",
     "@types/uuid": "9.0.2",
     "mkdirp": "3.0.1",
-    "tsc-esm-fix": "2.20.15",
+    "tsc-esm-fix": "2.20.26",
     "testcontainers": "10.2.2",
     "vitest": "0.33.0"
   },
