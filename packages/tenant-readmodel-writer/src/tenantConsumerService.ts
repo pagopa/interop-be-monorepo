@@ -85,6 +85,7 @@ export async function handleMessage(
       await tenants.updateOne(
         {
           "data.id": msg.stream_id,
+          "metadata.version": { $lt: msg.version },
         },
         {
           $set: {
@@ -100,6 +101,7 @@ export async function handleMessage(
       await tenants.updateOne(
         {
           "data.id": msg.stream_id,
+          "metadata.version": { $lt: msg.version },
         },
         {
           $pull: {
