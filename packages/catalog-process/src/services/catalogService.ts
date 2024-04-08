@@ -505,6 +505,7 @@ export function catalogServiceBuilder(
           ? eservice.data.descriptors.map((d) => ({
               ...d,
               interface: undefined,
+              serverUrls: [],
             }))
           : eservice.data.descriptors,
       };
@@ -584,7 +585,7 @@ export function catalogServiceBuilder(
                 ...d,
                 interface: isInterface ? newDocument : d.interface,
                 docs: isInterface ? d.docs : [...d.docs, newDocument],
-                serverUrls: document.serverUrls,
+                serverUrls: isInterface ? document.serverUrls : d.serverUrls,
               }
             : d
         ),
@@ -651,6 +652,7 @@ export function catalogServiceBuilder(
                 ...d,
                 interface:
                   d.interface?.id === documentId ? undefined : d.interface,
+                serverUrls: isInterface ? [] : d.serverUrls,
                 docs: d.docs.filter((doc) => doc.id !== documentId),
               }
             : d
