@@ -138,6 +138,8 @@ export class ReadModelRepository {
 
   public attributes: AttributeCollection;
 
+  public purposes: PurposeCollection;
+
   private client: MongoClient;
   private db: Db;
 
@@ -161,6 +163,7 @@ export class ReadModelRepository {
     this.attributes = this.db.collection("attributes", {
       ignoreUndefined: true,
     });
+    this.purposes = this.db.collection("purpose", { ignoreUndefined: true });
   }
 
   public static init(config: ReadModelDbConfig): ReadModelRepository {
