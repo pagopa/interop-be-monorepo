@@ -3728,6 +3728,10 @@ packages:
       '@protobuf-ts/runtime': 2.9.4
     dev: false
 
+  /@protobuf-ts/runtime@2.9.1:
+    resolution: {integrity: sha512-ZTc8b+pQ6bwxZa3qg9/IO/M/brRkvr0tic9cSGgAsDByfPrtatT2300wTIRLDk8X9WTW1tT+FhyqmcrbMHTeww==}
+    dev: true
+
   /@protobuf-ts/runtime@2.9.4:
     resolution: {integrity: sha512-vHRFWtJJB/SiogWDF0ypoKfRIZ41Kq+G9cEFj6Qm1eQaAhJ1LDFvgZ7Ja4tb3iLOQhz0PaoPnnOijF1qmEqTxg==}
 
