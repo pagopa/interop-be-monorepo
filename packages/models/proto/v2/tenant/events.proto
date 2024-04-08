@@ -1,25 +1,25 @@
-syntax = "proto2";
+syntax = "proto3";
 
 package tenant.v2;
 
 import "v2/tenant/tenant.proto";
 
 message TenantOnboardedV2 {
-  required TenantV2 tenant = 1;
+  TenantV2 tenant = 1;
 }
 
 message TenantOnboardDetailsUpdatedV2 {
-  required TenantV2 tenant = 1;
+  TenantV2 tenant = 1;
 }
 
 message TenantCertifiedAttributeAssignedV2 {
-  required string attributeId = 1;
-  required TenantV2 tenant = 2;
+  string attributeId = 1;
+  TenantV2 tenant = 2;
 }
 
 message TenantCertifiedAttributeRevokedV2 {
-  required string attributeId = 1;
-  required TenantV2 tenant = 2;
+  string attributeId = 1;
+  TenantV2 tenant = 2;
 }
 
 message TenantDeclaredAttributeAssignedV2 {
@@ -28,36 +28,36 @@ message TenantDeclaredAttributeAssignedV2 {
 }
 
 message TenantDeclaredAttributeRevokedV2 {
-  required string attributeId = 1;
-  required TenantV2 tenant = 2;
+  string attributeId = 1;
+  TenantV2 tenant = 2;
 }
 
 message TenantVerifiedAttributeAssignedV2 {
-  required string attributeId = 1;
-  required TenantV2 tenant = 2;
+  string attributeId = 1;
+  TenantV2 tenant = 2;
 }
 
 message TenantVerifiedAttributeRevokedV2 {
-  required string attributeId = 1;
-  required TenantV2 tenant = 2;
+  string attributeId = 1;
+  TenantV2 tenant = 2;
 }
 
 message TenantVerifiedAttributeExpirationUpdatedV2 {
-  required string attributeId = 1;
-  required TenantV2 tenant = 2;
+  string attributeId = 1;
+  TenantV2 tenant = 2;
 }
 
 message TenantVerifiedAttributeExtensionUpdatedV2 {
-  required string attributeId = 1;
-  required TenantV2 tenant = 2;
+  string attributeId = 1;
+  TenantV2 tenant = 2;
 }
 
 message MaintenanceTenantDeletedV2 {
-  required string tenantId = 1;
-  required TenantV2 tenant = 2;
+  string tenantId = 1;
+  TenantV2 tenant = 2;
 }
 
 message TenantMailAddedV2 {
-  required string mailId = 1;
-  required TenantV2 tenant = 2;
+  string mailId = 1;
+  TenantV2 tenant = 2;
 }
