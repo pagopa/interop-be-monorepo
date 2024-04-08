@@ -2,10 +2,9 @@ import { TenantKind } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { RiskAnalysisFormRules } from "./riskAnalysisFormRules.js";
 
-/*  We avoid using import for JSON files because
-they would require import assertions, an experimental
-feature that results in experimental warnings that
-trigger our alarms systems */
+/*  We avoid using import for JSON files because they would
+require import assertions, an experimental feature that results
+in experimental warnings that trigger our alarm systems */
 /* eslint-disable @typescript-eslint/no-var-requires */
 const pa1 = require("./PA/1.0.json");
 const pa2 = require("./PA/2.0.json");
