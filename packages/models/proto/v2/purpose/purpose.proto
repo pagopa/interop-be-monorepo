@@ -34,12 +34,12 @@ message PurposeVersionV2 {
 }
 
 enum PurposeStateV2 {
-  DRAFT = 1;
-  ACTIVE = 2;
-  SUSPENDED = 3;
-  WAITING_FOR_APPROVAL = 4;
-  ARCHIVED = 5;
-  REJECTED = 6;
+  DRAFT = 0;
+  ACTIVE = 1;
+  SUSPENDED = 2;
+  WAITING_FOR_APPROVAL = 3;
+  ARCHIVED = 4;
+  REJECTED = 5;
 }
 
 message PurposeVersionDocumentV2 {
