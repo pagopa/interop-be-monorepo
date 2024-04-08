@@ -62,3 +62,5 @@ export * from "./gen/v2/eservice/eservice.js";
 export * from "./gen/v2/eservice/events.js";
 export * from "./gen/v1/purpose/purpose.js";
 export * from "./gen/v1/purpose/events.js";
+export * from "./gen/v2/purpose/purpose.js";
+export * from "./gen/v2/purpose/events.js";
