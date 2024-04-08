@@ -34,7 +34,7 @@
     "eslint": "8.44.0",
     "mkdirp": "3.0.1",
     "prettier": "2.8.8",
-    "tsc-esm-fix": "2.20.15",
+    "tsc-esm-fix": "2.20.26",
     "typescript": "5.1.3"
   }
 }

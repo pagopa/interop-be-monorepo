@@ -28,7 +28,7 @@
     "eslint": "8.44.0",
     "prettier": "2.8.8",
     "ts-node": "10.9.2",
-    "tsc-esm-fix": "2.20.15",
+    "tsc-esm-fix": "2.20.26",
     "typescript": "5.1.3"
   }
 }
