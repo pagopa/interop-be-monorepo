@@ -5,7 +5,7 @@ export * from "./create-mechanism.js";
 export * from "./create-payload.js";
 export * from "./create-sasl-authentication-request.js";
 export * from "./create-sasl-authentication-response.js";
-import { Consumer, EachMessagePayload, Kafka } from "kafkajs";
+import { Consumer, EachMessagePayload, Kafka, logLevel } from "kafkajs";
 import { KafkaConsumerConfig, logger } from "pagopa-interop-commons";
 import { kafkaMessageProcessError } from "pagopa-interop-models";
 import { createMechanism } from "./create-mechanism.js";
@@ -111,7 +111,7 @@ const initConsumer = async (
         }),
       };
 
-  const kafka = new Kafka(kafkaConfig);
+  const kafka = new Kafka({ ...kafkaConfig, logLevel: logLevel.WARN });
 
   const consumer = kafka.consumer({
     groupId: config.kafkaGroupId,
