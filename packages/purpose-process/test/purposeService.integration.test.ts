@@ -23,7 +23,7 @@ import { config } from "../src/utilities/config.js";
 describe("database test", async () => {
   let purposes: PurposeCollection;
   // let readModelService: ReadModelService;
-  // let catalogService: CatalogService;
+  // let purposeService: PurposeService;
   let postgresDB: IDatabase<unknown>;
   let startedPostgreSqlContainer: StartedTestContainer;
   let startedMongodbContainer: StartedTestContainer;
