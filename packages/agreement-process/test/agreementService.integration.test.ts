@@ -2,6 +2,7 @@
 /* eslint-disable functional/immutable-data */
 
 import { fail } from "assert";
+import { generateMock } from "@anatine/zod-mock";
 import {
   AgreementCollection,
   EServiceCollection,
@@ -35,6 +36,8 @@ import {
   Agreement,
   AgreementAddedV1,
   AgreementAttribute,
+  AgreementDocument,
+  AgreementDocumentId,
   AgreementId,
   AgreementV1,
   AttributeId,
@@ -65,11 +68,13 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import {
   agreementAlreadyExists,
+  agreementDocumentNotFound,
   agreementNotFound,
   descriptorNotInExpectedState,
   eServiceNotFound,
   missingCertifiedAttributesError,
   notLatestEServiceDescriptor,
+  operationNotAllowed,
   tenantIdNotFound,
 } from "../src/model/domain/errors.js";
 import { toAgreementStateV1 } from "../src/model/domain/toEvent.js";
@@ -1764,7 +1769,76 @@ describe("Agreement service", () => {
       });
     });
   });
+  describe("get agreement consumer document", () => {
+    let agreement1: Agreement;
 
-  testUpdateAgreement();
+    beforeEach(async () => {
+      agreement1 = {
+        ...getMockAgreement(),
+        producerId: generateId<TenantId>(),
+        consumerId: generateId<TenantId>(),
+        consumerDocuments: [
+          generateMock(AgreementDocument),
+          generateMock(AgreementDocument),
+        ],
+      };
+
+      await addOneAgreement(agreement1, postgresDB, agreements);
+      await addOneAgreement(getMockAgreement(), postgresDB, agreements);
+    });
+
+    it("should get an agreement consumer document when the requester is the consumer or producer", async () => {
+      const authData = getRandomAuthData(
+        randomArrayItem([agreement1.consumerId, agreement1.producerId])
+      );
+      const result = await agreementService.getAgreementConsumerDocument(
+        agreement1.id,
+        agreement1.consumerDocuments[0].id,
+        authData
+      );
+
+      expect(result).toEqual(agreement1.consumerDocuments[0]);
+    });
+
+    it("should throw an agreementNotFound error when the agreement does not exist", async () => {
+      const agreementId = generateId<AgreementId>();
+      const authData = getRandomAuthData(agreement1.consumerId);
+
+      await expect(
+        agreementService.getAgreementConsumerDocument(
+          agreementId,
+          agreement1.consumerDocuments[0].id,
+          authData
+        )
+      ).rejects.toThrowError(agreementNotFound(agreementId));
+    });
+
+    it("should throw operationNotAllowed error when the requester is not the consumer or producer", async () => {
+      const authData = getRandomAuthData(generateId<TenantId>());
+
+      await expect(
+        agreementService.getAgreementConsumerDocument(
+          agreement1.id,
+          agreement1.consumerDocuments[0].id,
+          authData
+        )
+      ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+    });
+
+    it("should throw agreementDocumentNotFound error when the document does not exist", async () => {
+      const authData = getRandomAuthData(agreement1.consumerId);
+      const agreementDocumentId = generateId<AgreementDocumentId>();
+      await expect(
+        agreementService.getAgreementConsumerDocument(
+          agreement1.id,
+          agreementDocumentId,
+          authData
+        )
+      ).rejects.toThrowError(
+        agreementDocumentNotFound(agreementDocumentId, agreement1.id)
+      );
+    });
+  });
   testDeleteAgreement();
+  testUpdateAgreement();
 });
