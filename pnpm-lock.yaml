@@ -739,8 +739,8 @@ importers:
         specifier: 2.9.1
         version: 2.9.1
       '@protobuf-ts/protoc':
-        specifier: 2.9.1
-        version: 2.9.1
+        specifier: 2.9.4
+        version: 2.9.4
       '@protobuf-ts/runtime':
         specifier: 2.9.1
         version: 2.9.1
@@ -785,8 +785,8 @@ importers:
         specifier: 2.9.1
         version: 2.9.1
       '@protobuf-ts/protoc':
-        specifier: 2.9.1
-        version: 2.9.1
+        specifier: 2.9.4
+        version: 2.9.4
       '@protobuf-ts/runtime':
         specifier: 2.9.1
         version: 2.9.1
@@ -3599,14 +3599,14 @@ packages:
     hasBin: true
     dependencies:
       '@protobuf-ts/plugin-framework': 2.9.1
-      '@protobuf-ts/protoc': 2.9.1
+      '@protobuf-ts/protoc': 2.9.4
       '@protobuf-ts/runtime': 2.9.4
       '@protobuf-ts/runtime-rpc': 2.9.1
       typescript: 3.9.10
     dev: false
 
-  /@protobuf-ts/protoc@2.9.1:
-    resolution: {integrity: sha512-/q2iVDwVDijfZlFZnnm3W6ALbybNskNSww88TfYBaJH49PuQMqhcXUPRu28UouJr9sc/Lr5k6t0TB9Nff3UIsA==}
+  /@protobuf-ts/protoc@2.9.4:
+    resolution: {integrity: sha512-hQX+nOhFtrA+YdAXsXEDrLoGJqXHpgv4+BueYF0S9hy/Jq0VRTVlJS1Etmf4qlMt/WdigEes5LOd/LDzui4GIQ==}
     hasBin: true
     dev: false
 
