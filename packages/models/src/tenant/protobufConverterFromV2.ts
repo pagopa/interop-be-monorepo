@@ -58,9 +58,7 @@ export const fromTenantMailKindV2 = (
 
 export const fromTenantMailV2 = (input: TenantMailV2): TenantMail => ({
   ...input,
-  id: input.id
-    ? input.id
-    : createHash("sha256").update(input.address).digest("hex"),
+  id: input.id ?? createHash("sha256").update(input.address).digest("hex"),
   createdAt: new Date(Number(input.createdAt)),
   kind: fromTenantMailKindV2(input.kind),
 });
@@ -140,8 +138,8 @@ export const fromTenantAttributesV2 = (
         ),
         type: tenantAttributeType.DECLARED,
       };
-    case undefined:
-      throw genericError("Undefined attribute kind");
+    default:
+      throw genericError(`Invalid attribute kind: ${sealedValue.oneofKind}`);
   }
 };
 
