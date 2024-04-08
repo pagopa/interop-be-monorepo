@@ -39,6 +39,7 @@ describe("database test", async () => {
       startedMongodbContainer.getMappedPort(TEST_MONGO_DB_PORT);
 
     const readModelRepository = ReadModelRepository.init(config);
+    purposes = readModelRepository.purposes;
     // readModelService = readModelServiceBuilder(readModelRepository);
     postgresDB = initDB({
       username: config.eventStoreDbUsername,
