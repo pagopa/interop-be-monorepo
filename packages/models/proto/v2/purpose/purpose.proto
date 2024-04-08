@@ -1,0 +1,50 @@
+syntax = "proto2";
+
+package purpose.v2;
+
+import "v2/purpose/riskAnalysis.proto";
+
+message PurposeV2 {
+  required string id = 1;
+  required string eserviceId = 2;
+  required string consumerId = 3;
+  optional bool suspendedByConsumer = 5;
+  optional bool suspendedByProducer = 6;
+  repeated PurposeVersionV2 versions = 7;
+  required string title = 8;
+  required string description = 9;
+  optional PurposeRiskAnalysisFormV2 riskAnalysisForm = 10;
+  required int64 createdAt = 11;
+  optional int64 updatedAt = 12;
+  optional bool isFreeOfCharge = 13;
+  optional string freeOfChargeReason = 14;
+}
+
+message PurposeVersionV2 {
+  required string id = 1;
+  required PurposeStateV2 state = 2;
+  optional PurposeVersionDocumentV2 riskAnalysis = 3;
+  required int32 dailyCalls = 4;
+  required int64 createdAt = 5;
+  optional int64 updatedAt = 6;
+  optional int64 firstActivationAt = 7;
+  optional int64 expectedApprovalDate = 8;
+  optional int64 suspendedAt = 9;
+  optional string rejectionReason = 10;
+}
+
+enum PurposeStateV2 {
+  DRAFT = 1;
+  ACTIVE = 2;
+  SUSPENDED = 3;
+  WAITING_FOR_APPROVAL = 4;
+  ARCHIVED = 5;
+  REJECTED = 6;
+}
+
+message PurposeVersionDocumentV2 {
+  required string id = 1;
+  required string contentType = 2;
+  required string path = 3;
+  required int64 createdAt = 4;
+}
