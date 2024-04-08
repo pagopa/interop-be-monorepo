@@ -21,9 +21,9 @@
   "author": "",
   "license": "Apache-2.0",
   "dependencies": {
-    "@protobuf-ts/plugin": "2.9.1",
+    "@protobuf-ts/plugin": "2.9.4",
     "@protobuf-ts/protoc": "2.9.4",
-    "@protobuf-ts/runtime": "2.9.1",
+    "@protobuf-ts/runtime": "2.9.4",
     "@types/node": "20.3.1",
     "@types/uuid": "9.0.2",
     "ts-pattern": "5.0.6",
