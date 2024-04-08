@@ -8,12 +8,19 @@ import {
   TenantCollection,
   readModelWriterConfig,
 } from "pagopa-interop-commons";
-import { mongoDBContainer } from "pagopa-interop-commons-test";
+import {
+  mongoDBContainer,
+  writeInReadmodel,
+} from "pagopa-interop-commons-test";
 import { StartedTestContainer } from "testcontainers";
 import {
+  SelfcareMappingCreatedV1,
+  SelfcareMappingDeletedV1,
   Tenant,
   TenantCreatedV1,
+  TenantDeletedV1,
   TenantEventEnvelope,
+  TenantUpdatedV1,
   generateId,
 } from "pagopa-interop-models";
 import { handleMessage } from "../src/tenantConsumerService.js";
@@ -70,13 +77,132 @@ describe("database test", async () => {
       });
     });
 
-    it("TenantDeleted", () => {});
+    it("TenantDeleted", async () => {
+      await writeInReadmodel<Tenant>(mockTenant, tenants, 1);
 
-    it("TenantUpdated", () => {});
+      const payload: TenantDeletedV1 = {
+        tenantId: mockTenant.id,
+      };
+      const message: TenantEventEnvelope = {
+        sequence_num: 1,
+        stream_id: mockTenant.id,
+        version: 1,
+        type: "TenantDeleted",
+        event_version: 1,
+        data: payload,
+        log_date: new Date(),
+      };
+      await handleMessage(message, tenants);
 
-    it("SelfcareMappingCreated", () => {});
+      const retrievedTenant = await tenants.findOne({
+        "data.id": mockTenant.id,
+      });
 
-    it("SelfcareMappingDeleted", () => {});
+      expect(retrievedTenant?.data).toBeUndefined();
+    });
+
+    it("TenantUpdated", async () => {
+      await writeInReadmodel<Tenant>(mockTenant, tenants, 1);
+
+      const updatedTenant: Tenant = {
+        ...mockTenant,
+        name: "updated name",
+      };
+      const payload: TenantUpdatedV1 = {
+        tenant: toTenantV1(updatedTenant),
+      };
+      const message: TenantEventEnvelope = {
+        sequence_num: 1,
+        stream_id: mockTenant.id,
+        version: 2,
+        type: "TenantUpdated",
+        event_version: 1,
+        data: payload,
+        log_date: new Date(),
+      };
+      await handleMessage(message, tenants);
+
+      const retrievedTenant = await tenants.findOne({
+        "data.id": mockTenant.id,
+      });
+
+      expect(retrievedTenant).toMatchObject({
+        data: updatedTenant,
+        metadata: { version: 2 },
+      });
+    });
+
+    it("SelfcareMappingCreated", async () => {
+      await writeInReadmodel<Tenant>(mockTenant, tenants, 1);
+
+      const selfcareId = generateId();
+
+      const updatedTenant: Tenant = {
+        ...mockTenant,
+        selfcareId,
+      };
+      const payload: SelfcareMappingCreatedV1 = {
+        tenantId: mockTenant.id,
+        selfcareId,
+      };
+      const message: TenantEventEnvelope = {
+        sequence_num: 1,
+        stream_id: mockTenant.id,
+        version: 2,
+        type: "SelfcareMappingCreated",
+        event_version: 1,
+        data: payload,
+        log_date: new Date(),
+      };
+      await handleMessage(message, tenants);
+
+      const retrievedTenant = await tenants.findOne({
+        "data.id": mockTenant.id,
+      });
+
+      expect(retrievedTenant).toMatchObject({
+        data: updatedTenant,
+        metadata: { version: 2 },
+      });
+    });
+
+    it("SelfcareMappingDeleted", async () => {
+      const selfcareId = generateId();
+
+      const tenant: Tenant = {
+        ...mockTenant,
+        selfcareId,
+      };
+      await writeInReadmodel<Tenant>(tenant, tenants, 1);
+
+      const updatedTenant: Tenant = {
+        ...mockTenant,
+        selfcareId: undefined,
+      };
+
+      const payload: SelfcareMappingDeletedV1 = {
+        selfcareId,
+      };
+      const message: TenantEventEnvelope = {
+        sequence_num: 1,
+        stream_id: mockTenant.id,
+        version: 2,
+        type: "SelfcareMappingDeleted",
+        event_version: 1,
+        data: payload,
+        log_date: new Date(),
+      };
+      await handleMessage(message, tenants);
+
+      const retrievedTenant = await tenants.findOne({
+        "data.id": mockTenant.id,
+      });
+
+      expect(retrievedTenant).toMatchObject({
+        data: updatedTenant,
+        metadata: { version: 2 },
+      });
+    });
 
     it("TenantMailAdded", () => {});
 
@@ -89,7 +215,7 @@ export const getMockTenant = (): Tenant => ({
   id: generateId(),
   createdAt: new Date(),
   attributes: [],
-  selfcareId: generateId(),
+  selfcareId: undefined,
   externalId: {
     value: "123456",
     origin: "IPA",
