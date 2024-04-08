@@ -34,7 +34,7 @@ export const PurposeVersion = z.object({
   id: PurposeVersionId,
   state: PurposeVersionState,
   expectedApprovalDate: z.coerce.date().optional(),
-  riskAnalysys: PurposeVersionDocument.optional(),
+  riskAnalysis: PurposeVersionDocument.optional(),
   dailyCalls: z.number(),
   rejectionReason: z.string().optional(),
   createdAt: z.coerce.date(),
