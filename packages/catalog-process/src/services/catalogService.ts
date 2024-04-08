@@ -550,7 +550,11 @@ export function catalogServiceBuilder(
       correlationId: string
     ): Promise<EService> {
       logger.info(
-        `Creating EService Document ${document.documentId.toString()} of kind ${document.kind}, name ${document.fileName}, path ${document.filePath} for EService ${eserviceId} and Descriptor ${descriptorId}`
+        `Creating EService Document ${document.documentId.toString()} of kind ${
+          document.kind
+        }, name ${document.fileName}, path ${
+          document.filePath
+        } for EService ${eserviceId} and Descriptor ${descriptorId}`
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
