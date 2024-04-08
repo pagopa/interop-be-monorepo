@@ -1,11 +1,17 @@
 import { TenantKind } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import pa1 from "./PA/1.0.json" assert { type: "json" };
-import pa2 from "./PA/2.0.json" assert { type: "json" };
-import pa3 from "./PA/3.0.json" assert { type: "json" };
-import private1 from "./PRIVATE/1.0.json" assert { type: "json" };
-import private2 from "./PRIVATE/2.0.json" assert { type: "json" };
 import { RiskAnalysisFormRules } from "./riskAnalysisFormRules.js";
+
+/*  We avoid using import for JSON files because
+they would require import assertions, an experimental
+feature that results in experimental warnings that
+trigger our alarms systems */
+/* eslint-disable @typescript-eslint/no-var-requires */
+const pa1 = require("./PA/1.0.json");
+const pa2 = require("./PA/2.0.json");
+const pa3 = require("./PA/3.0.json");
+const private1 = require("./PRIVATE/1.0.json");
+const private2 = require("./PRIVATE/2.0.json");
 
 function getFormRules(
   ruleset: "pa1" | "pa2" | "pa3" | "private1" | "private2"
