@@ -80,6 +80,7 @@ type IDS =
   | RiskAnalysisFormId
   | RiskAnalysisId
   | PurposeId
+  | PurposeVersionId
   | PurposeVersionDocumentId
   | PurposeRiskAnalysisFormId;
 

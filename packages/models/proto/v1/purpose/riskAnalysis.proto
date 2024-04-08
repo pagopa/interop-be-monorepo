@@ -2,7 +2,7 @@ syntax = "proto2";
 
 package purpose;
 
-message RiskAnalysisFormV1 {
+message PurposeRiskAnalysisFormV1 {
   required string id = 1;
   required string version = 2;
   repeated RiskAnalysisSingleAnswerV1 singleAnswers = 3;
