@@ -97,7 +97,7 @@ describe("update agreement", () => {
   });
 
   it("should throw operationNotAllowed when the requester is not the Consumer", async () => {
-    const authData = getRandomAuthData();
+    const authData = getRandomAuthData(agreement2.consumerId);
     await expect(
       agreementService.updateAgreement(
         agreement1.id,
