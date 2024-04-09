@@ -23,8 +23,7 @@ import {
 } from "../src/queue-manager/queueManager.js";
 import { toCatalogItemEventNotification } from "../src/models/catalogItemEventNotificationConverter.js";
 import { buildCatalogMessage } from "../src/models/catalogItemEventNotificationMessage.js";
-
-import catalog_item_descriptor_updated from "./resources/catalogItemDescriptorUpdate.json" assert { type: "json" };
+import { catalogItemDescriptorUpdatedNotification } from "./resources/catalogItemDescriptorUpdate.js";
 import { TEST_ELASTIC_MQ_PORT, elasticMQContainer } from "./utils.js";
 
 const getDescriptorMock = (descriptorId: string): EServiceDescriptorV2 =>
@@ -134,7 +133,7 @@ describe("Notification tests", async () => {
       const receivedMessage = (await queueWriter.receiveLast())[0];
 
       expect(receivedMessage.payload).toEqual(
-        catalog_item_descriptor_updated.payload
+        catalogItemDescriptorUpdatedNotification.payload
       );
     });
   });
