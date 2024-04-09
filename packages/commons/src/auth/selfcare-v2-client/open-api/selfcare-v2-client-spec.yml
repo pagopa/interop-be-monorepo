@@ -21,14 +21,14 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/InstitutionResource'
+                  $ref: "#/components/schemas/InstitutionResource"
               example:
                 - address: string
                   aooParentCode: string
@@ -68,12 +68,12 @@ paths:
                     - string
                   zipCode: string
                   logo: string
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -83,12 +83,12 @@ paths:
                 status: 500
                 title: string
                 type: string
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -98,12 +98,12 @@ paths:
                 status: 500
                 title: string
                 type: string
-        '404':
+        "404":
           description: Not Found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -113,12 +113,12 @@ paths:
                 status: 500
                 title: string
                 type: string
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -128,7 +128,7 @@ paths:
                 status: 500
                 title: string
                 type: string
-  '/institutions/{institutionId}/users':
+  "/institutions/{institutionId}/users":
     get:
       tags:
         - institutions
@@ -161,14 +161,14 @@ paths:
             items:
               type: string
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/UserResource'
+                  $ref: "#/components/schemas/UserResource"
               example:
                 - email: string
                   id: string
@@ -177,12 +177,12 @@ paths:
                     - string
                   surname: string
                   fiscalCode: string
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -192,12 +192,12 @@ paths:
                 status: 500
                 title: string
                 type: string
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -207,12 +207,12 @@ paths:
                 status: 500
                 title: string
                 type: string
-        '404':
+        "404":
           description: Not Found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -222,12 +222,12 @@ paths:
                 status: 500
                 title: string
                 type: string
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -237,7 +237,7 @@ paths:
                 status: 500
                 title: string
                 type: string
-  '/institutions/{institutionId}/products':
+  "/institutions/{institutionId}/products":
     get:
       tags:
         - institutions
@@ -258,14 +258,14 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ProductResource'
+                  $ref: "#/components/schemas/ProductResource"
               example:
                 - contractTemplatePath: string
                   contractTemplateUpdatedAt: string
@@ -279,16 +279,16 @@ paths:
                   logoBgColor: string
                   parentId: string
                   roleManagementURL: string
-                  roleMappings: { }
+                  roleMappings: {}
                   title: string
                   urlBO: string
                   urlPublic: string
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -298,12 +298,12 @@ paths:
                 status: 500
                 title: string
                 type: string
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -313,12 +313,12 @@ paths:
                 status: 500
                 title: string
                 type: string
-        '404':
+        "404":
           description: Not Found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -328,12 +328,12 @@ paths:
                 status: 500
                 title: string
                 type: string
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -343,7 +343,7 @@ paths:
                 status: 500
                 title: string
                 type: string
-  '/institutions/{id}':
+  "/institutions/{id}":
     get:
       tags:
         - institutions
@@ -359,12 +359,12 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: successful operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Institution'
+                $ref: "#/components/schemas/Institution"
               example:
                 id: 97c0f418-bcb3-48d4-825a-fe8b29ae68e5
                 externalId: c_f205
@@ -372,7 +372,7 @@ paths:
                 description: AGENCY X
                 digitalAddress: email@pec.mail.org
                 address: via del campo
-                zipCode: '20100'
+                zipCode: "20100"
                 taxCode: string
                 origin: IPA
                 institutionType: GSP
@@ -394,7 +394,7 @@ paths:
                   - code: string
                     desc: string
                 rea: string
-                shareCapital: '10000'
+                shareCapital: "10000"
                 businessRegisterPlace: Rome
                 supportEmail: string
                 supportPhone: string
@@ -406,12 +406,12 @@ paths:
                 rootParent:
                   description: string
                   id: string
-        '400':
+        "400":
           description: Invalid id supplied
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -421,12 +421,12 @@ paths:
                 status: 500
                 title: string
                 type: string
-        '404':
+        "404":
           description: Not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -451,19 +451,19 @@ paths:
             type: string
         - name: page
           in: query
-          description: 'Format - int32. The page number to access (0 indexed, defaults to 0)'
+          description: "Format - int32. The page number to access (0 indexed, defaults to 0)"
           schema:
             type: integer
             format: int32
         - name: size
           in: query
-          description: 'Format - int32. Number of records per page (defaults to 20, max 2000)'
+          description: "Format - int32. Number of records per page (defaults to 20, max 2000)"
           schema:
             type: integer
             format: int32
         - name: sort
           in: query
-          description: 'Sorting criteria in the format: property(,asc|desc). Default sort order is ascending. Multiple sort criteria are supported.'
+          description: "Sorting criteria in the format: property(,asc|desc). Default sort order is ascending. Multiple sort criteria are supported."
           schema:
             type: array
             items:
@@ -476,19 +476,19 @@ paths:
             format: uuid
         - name: status
           in: query
-          description: 'If filter on status is present, it must be used with at least one of the other filters'
+          description: "If filter on status is present, it must be used with at least one of the other filters"
           schema:
             enum:
               - ACTIVE
               - SUSPENDED
             type: string
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PageOfUserGroupResource'
+                $ref: "#/components/schemas/PageOfUserGroupResource"
               example:
                 content:
                   - description: string
@@ -501,12 +501,12 @@ paths:
                 size: 0
                 totalElements: 0
                 totalPages: 0
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -516,12 +516,12 @@ paths:
                 status: 500
                 title: string
                 type: string
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -531,12 +531,12 @@ paths:
                 status: 500
                 title: string
                 type: string
-        '404':
+        "404":
           description: Not Found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -546,12 +546,12 @@ paths:
                 status: 500
                 title: string
                 type: string
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -583,12 +583,12 @@ paths:
               - AS
             type: string
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProductResource'
+                $ref: "#/components/schemas/ProductResource"
               example:
                 contractTemplatePath: string
                 contractTemplateUpdatedAt: string
@@ -602,16 +602,16 @@ paths:
                 logoBgColor: string
                 parentId: string
                 roleManagementURL: string
-                roleMappings: { }
+                roleMappings: {}
                 title: string
                 urlBO: string
                 urlPublic: string
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -621,12 +621,12 @@ paths:
                 status: 500
                 title: string
                 type: string
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -636,12 +636,12 @@ paths:
                 status: 500
                 title: string
                 type: string
-        '404':
+        "404":
           description: Not Found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -651,12 +651,12 @@ paths:
                 status: 500
                 title: string
                 type: string
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -696,14 +696,14 @@ paths:
               - exact
             type: string
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/InstitutionDetailResource'
+                  $ref: "#/components/schemas/InstitutionDetailResource"
               example:
                 - address: string
                   aooParentCode: string
@@ -728,12 +728,12 @@ paths:
                   supportPhone: string
                   taxCode: string
                   zipCode: string
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -743,12 +743,12 @@ paths:
                 status: 500
                 title: string
                 type: string
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -758,12 +758,12 @@ paths:
                 status: 500
                 title: string
                 type: string
-        '404':
+        "404":
           description: Not Found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -773,12 +773,12 @@ paths:
                 status: 500
                 title: string
                 type: string
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -788,7 +788,7 @@ paths:
                 status: 500
                 title: string
                 type: string
-  '/institutions/{institutionId}/geographicTaxonomy':
+  "/institutions/{institutionId}/geographicTaxonomy":
     get:
       tags:
         - institutions
@@ -809,23 +809,23 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/GeographicTaxonomyResource'
+                  $ref: "#/components/schemas/GeographicTaxonomyResource"
               example:
                 - code: string
                   desc: string
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -835,12 +835,12 @@ paths:
                 status: 500
                 title: string
                 type: string
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -850,12 +850,12 @@ paths:
                 status: 500
                 title: string
                 type: string
-        '404':
+        "404":
           description: Not Found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -865,12 +865,12 @@ paths:
                 status: 500
                 title: string
                 type: string
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -912,14 +912,14 @@ paths:
               - NORMAL
             type: string
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/DelegationResponse'
+                  $ref: "#/components/schemas/DelegationResponse"
               example:
                 - brokerId: string
                   brokerName: string
@@ -933,12 +933,12 @@ paths:
                   productId: string
                   taxCode: string
                   type: AOO
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -948,12 +948,12 @@ paths:
                 status: 500
                 title: string
                 type: string
-        '404':
+        "404":
           description: Not Found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -963,7 +963,7 @@ paths:
                 status: 500
                 title: string
                 type: string
-  '/message/{messageId}/status/{status}':
+  "/message/{messageId}/status/{status}":
     post:
       tags:
         - interceptor
@@ -990,18 +990,18 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AckPayloadRequest'
+              $ref: "#/components/schemas/AckPayloadRequest"
             example:
               message: string
       responses:
-        '200':
+        "200":
           description: OK
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -1011,12 +1011,12 @@ paths:
                 status: 500
                 title: string
                 type: string
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -1026,12 +1026,12 @@ paths:
                 status: 500
                 title: string
                 type: string
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -1052,16 +1052,16 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SearchUserDto'
+              $ref: "#/components/schemas/SearchUserDto"
             example:
               fiscalCode: string
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserInfoResource'
+                $ref: "#/components/schemas/UserInfoResource"
               example:
                 onboardedInstitutions:
                   - address: string
@@ -1083,12 +1083,12 @@ paths:
                     - string
                   surname: string
                   fiscalCode: string
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -1098,12 +1098,12 @@ paths:
                 status: 500
                 title: string
                 type: string
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -1113,12 +1113,12 @@ paths:
                 status: 500
                 title: string
                 type: string
-        '500':
+        "500":
           description: Internal Server Error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -1157,12 +1157,12 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/InstitutionsResponse'
+                $ref: "#/components/schemas/InstitutionsResponse"
               example:
                 institutions:
                   - address: string
@@ -1202,12 +1202,12 @@ paths:
                     supportPhone: string
                     taxCode: string
                     zipCode: string
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -1217,12 +1217,12 @@ paths:
                 status: 500
                 title: string
                 type: string
-        '404':
+        "404":
           description: Not Found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -1232,7 +1232,7 @@ paths:
                 status: 500
                 title: string
                 type: string
-  '/institutions/{institutionId}/onboardings':
+  "/institutions/{institutionId}/onboardings":
     get:
       tags:
         - institutions
@@ -1252,12 +1252,12 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OnboardingsResponse'
+                $ref: "#/components/schemas/OnboardingsResponse"
               example:
                 onboardings:
                   - billing:
@@ -1272,12 +1272,12 @@ paths:
                     status: ACTIVE
                     tokenId: string
                     updatedAt: string
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -1287,12 +1287,12 @@ paths:
                 status: 500
                 title: string
                 type: string
-        '404':
+        "404":
           description: Not Found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -1302,7 +1302,7 @@ paths:
                 status: 500
                 title: string
                 type: string
-  '/users/{id}':
+  "/users/{id}":
     get:
       tags:
         - users
@@ -1322,21 +1322,21 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                $ref: "#/components/schemas/UserResponse"
               examples:
                 default:
                   value:
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -1346,12 +1346,12 @@ paths:
                 status: 500
                 title: string
                 type: string
-        '404':
+        "404":
           description: Not Found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
               example:
                 detail: string
                 instance: string
@@ -1407,7 +1407,7 @@ components:
         geographicTaxonomies:
           type: array
           items:
-            $ref: '#/components/schemas/GeographicTaxonomyResource'
+            $ref: "#/components/schemas/GeographicTaxonomyResource"
           description: Institution's geographic taxonomy list
         id:
           type: string
@@ -1473,9 +1473,9 @@ components:
           type: string
           description: AOO unit parent institution Code
         assistanceContacts:
-          $ref: '#/components/schemas/AssistanceContactsResource'
+          $ref: "#/components/schemas/AssistanceContactsResource"
         companyInformations:
-          $ref: '#/components/schemas/CompanyInformationsResource'
+          $ref: "#/components/schemas/CompanyInformationsResource"
         description:
           type: string
           description: Institution's legal name
@@ -1483,7 +1483,7 @@ components:
           type: string
           description: Institution's digitalAddress
         dpoData:
-          $ref: '#/components/schemas/DpoDataResource'
+          $ref: "#/components/schemas/DpoDataResource"
         externalId:
           type: string
           description: Institution's unique external identifier
@@ -1510,9 +1510,9 @@ components:
           type: string
           description: Institution's details origin Id
         rootParent:
-          $ref: '#/components/schemas/RootParentResource'
+          $ref: "#/components/schemas/RootParentResource"
         pspData:
-          $ref: '#/components/schemas/PspDataResource'
+          $ref: "#/components/schemas/PspDataResource"
         recipientCode:
           type: string
           description: Billing recipient code
@@ -1568,7 +1568,7 @@ components:
         invalidParams:
           type: array
           items:
-            $ref: '#/components/schemas/InvalidParam'
+            $ref: "#/components/schemas/InvalidParam"
           description: A list of invalid parameters details.
         status:
           type: integer
@@ -1628,7 +1628,7 @@ components:
         roleMappings:
           type: object
           additionalProperties:
-            $ref: '#/components/schemas/ProductRoleInfoRes'
+            $ref: "#/components/schemas/ProductRoleInfoRes"
           description: Mappings between Party's and Product's role
         title:
           type: string
@@ -1723,7 +1723,7 @@ components:
         roles:
           type: array
           items:
-            $ref: '#/components/schemas/ProductRole'
+            $ref: "#/components/schemas/ProductRole"
           description: Available product roles
     ProductRole:
       title: ProductRole
@@ -1749,7 +1749,7 @@ components:
         content:
           type: array
           items:
-            $ref: '#/components/schemas/UserGroupResource'
+            $ref: "#/components/schemas/UserGroupResource"
           description: The page content
         number:
           type: integer
@@ -1855,7 +1855,7 @@ components:
           example: via del campo
         zipCode:
           type: string
-          example: '20100'
+          example: "20100"
         taxCode:
           type: string
           description: institution tax code
@@ -1875,22 +1875,22 @@ components:
             - AS
           type: string
         attributes:
-          $ref: '#/components/schemas/Attributes'
+          $ref: "#/components/schemas/Attributes"
         paymentServiceProvider:
-          $ref: '#/components/schemas/PaymentServiceProvider'
+          $ref: "#/components/schemas/PaymentServiceProvider"
         dataProtectionOfficer:
-          $ref: '#/components/schemas/DataProtectionOfficer'
+          $ref: "#/components/schemas/DataProtectionOfficer"
         geographicTaxonomies:
           type: array
           items:
-            $ref: '#/components/schemas/GeographicTaxonomy'
+            $ref: "#/components/schemas/GeographicTaxonomy"
         rea:
           type: string
           description: The institution REA
         shareCapital:
           type: string
           description: The institution share capital value
-          example: '10000'
+          example: "10000"
         businessRegisterPlace:
           type: string
           description: The business register place
@@ -1915,7 +1915,7 @@ components:
         aooParentCode:
           type: string
         rootParent:
-          $ref: '#/components/schemas/RootParentResource'
+          $ref: "#/components/schemas/RootParentResource"
       additionalProperties: false
     Attribute:
       type: object
@@ -1929,7 +1929,7 @@ components:
     Attributes:
       type: array
       items:
-        $ref: '#/components/schemas/Attribute'
+        $ref: "#/components/schemas/Attribute"
     PaymentServiceProvider:
       type: object
       properties:
@@ -2031,10 +2031,10 @@ components:
         onboardedInstitutions:
           type: array
           items:
-            $ref: '#/components/schemas/OnboardedInstitutionResource'
+            $ref: "#/components/schemas/OnboardedInstitutionResource"
           description: Object that includes all info about onboarded institutions linked to a user
         user:
-          $ref: '#/components/schemas/UserResource'
+          $ref: "#/components/schemas/UserResource"
     OnboardedInstitutionResource:
       title: OnboardedInstitutionResource
       type: object
@@ -2064,7 +2064,7 @@ components:
           type: string
           description: Institution's type
         productInfo:
-          $ref: '#/components/schemas/ProductInfo'
+          $ref: "#/components/schemas/ProductInfo"
         taxCode:
           type: string
           description: Institution's tax code
@@ -2089,7 +2089,7 @@ components:
         institutions:
           type: array
           items:
-            $ref: '#/components/schemas/InstitutionResponse'
+            $ref: "#/components/schemas/InstitutionResponse"
     InstitutionResponse:
       title: InstitutionResponse
       type: object
@@ -2101,11 +2101,11 @@ components:
         attributes:
           type: array
           items:
-            $ref: '#/components/schemas/AttributesResponse'
+            $ref: "#/components/schemas/AttributesResponse"
         businessRegisterPlace:
           type: string
         dataProtectionOfficer:
-          $ref: '#/components/schemas/DataProtectionOfficerResponse'
+          $ref: "#/components/schemas/DataProtectionOfficerResponse"
         description:
           type: string
         digitalAddress:
@@ -2115,7 +2115,7 @@ components:
         geographicTaxonomies:
           type: array
           items:
-            $ref: '#/components/schemas/GeoTaxonomies'
+            $ref: "#/components/schemas/GeoTaxonomies"
         id:
           type: string
         imported:
@@ -2138,7 +2138,7 @@ components:
         parentDescription:
           type: string
         paymentServiceProvider:
-          $ref: '#/components/schemas/PaymentServiceProviderResponse'
+          $ref: "#/components/schemas/PaymentServiceProviderResponse"
         rea:
           type: string
         shareCapital:
@@ -2226,13 +2226,13 @@ components:
         onboardings:
           type: array
           items:
-            $ref: '#/components/schemas/OnboardingResponse'
+            $ref: "#/components/schemas/OnboardingResponse"
     OnboardingResponse:
       title: OnboardingResponse
       type: object
       properties:
         billing:
-          $ref: '#/components/schemas/BillingResponse'
+          $ref: "#/components/schemas/BillingResponse"
         closedAt:
           type: string
           format: date-time
@@ -2279,8 +2279,8 @@ components:
       name: subscription-key
       in: query
 security:
-  - apiKeyHeader: [ ]
-  - apiKeyQuery: [ ]
+  - apiKeyHeader: []
+  - apiKeyQuery: []
 tags:
   - name: institutions
     description: Institution Controller
