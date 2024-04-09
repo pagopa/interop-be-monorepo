@@ -28,6 +28,8 @@ import {
   TEST_POSTGRES_DB_PORT,
   mongoDBContainer,
   postgreSQLContainer,
+  minioContainer,
+  TEST_MINIO_PORT,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -97,6 +99,7 @@ import {
   addOneTenant,
   readLastAgreementEvent,
 } from "./utils.js";
+import { testDeleteAgreement } from "./testDeleteAgreement.js";
 
 export let agreements: AgreementCollection;
 export let eservices: EServiceCollection;
@@ -106,6 +109,7 @@ export let agreementService: AgreementService;
 export let postgresDB: IDatabase<unknown>;
 export let startedPostgreSqlContainer: StartedTestContainer;
 export let startedMongodbContainer: StartedTestContainer;
+export let startedMinioContainer: StartedTestContainer;
 export let fileManager: FileManager;
 
 /**
@@ -177,12 +181,14 @@ const expectedAgreementCreation = async (
 beforeAll(async () => {
   startedPostgreSqlContainer = await postgreSQLContainer(config).start();
   startedMongodbContainer = await mongoDBContainer(config).start();
+  startedMinioContainer = await minioContainer(config).start();
 
   config.eventStoreDbPort = startedPostgreSqlContainer.getMappedPort(
     TEST_POSTGRES_DB_PORT
   );
   config.readModelDbPort =
     startedMongodbContainer.getMappedPort(TEST_MONGO_DB_PORT);
+  config.s3ServerPort = startedMinioContainer.getMappedPort(TEST_MINIO_PORT);
 
   const readModelRepository = ReadModelRepository.init(config);
   agreements = readModelRepository.agreements;
@@ -209,7 +215,6 @@ beforeAll(async () => {
     logger.error("postgresDB is undefined!!");
   }
 
-  // TODO: Setup MinIO test container when testing functionalities that require file storage
   fileManager = initFileManager(config);
   agreementService = agreementServiceBuilder(
     postgresDB,
@@ -233,6 +238,7 @@ afterEach(async () => {
 afterAll(async () => {
   await startedPostgreSqlContainer.stop();
   await startedMongodbContainer.stop();
+  await startedMinioContainer.stop();
 });
 
 describe("Agreement service", () => {
@@ -1756,4 +1762,5 @@ describe("Agreement service", () => {
   });
 
   testUpdateAgreement();
+  testDeleteAgreement();
 });
