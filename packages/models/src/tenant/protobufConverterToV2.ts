@@ -105,8 +105,8 @@ export function toAttributeV2(input: TenantAttribute): TenantAttributeV2 {
 
 export function toTenantMailV2(mail: TenantMail): TenantMailV2 {
   return {
+    ...mail,
     kind: toTenantMailKindV2(mail.kind),
-    address: mail.address,
     createdAt: BigInt(mail.createdAt.getTime()),
     description: mail.description ?? undefined,
   };
@@ -136,15 +136,14 @@ export function toTenantUnitTypeV2(input: TenantUnitType): TenantUnitTypeV2 {
 
 export const toTenantV2 = (tenant: Tenant): TenantV2 => ({
   ...tenant,
+  selfcareId: tenant.selfcareId || "default",
   features: tenant.features.map(toFeatureV2),
   attributes: tenant.attributes.map(toAttributeV2),
   createdAt: BigInt(tenant.createdAt.getTime()),
   updatedAt: tenant.updatedAt ? BigInt(tenant.updatedAt.getTime()) : undefined,
   mails: tenant.mails.map(toTenantMailV2),
   kind: tenant.kind ? toTenantKindV2(tenant.kind) : undefined,
-  onboardedAt: tenant.createdAt
-    ? BigInt(tenant.createdAt.getTime())
-    : undefined,
+  onboardedAt: BigInt(tenant.createdAt.getTime()),
   subUnitType: tenant.subUnitType
     ? toTenantUnitTypeV2(tenant.subUnitType)
     : undefined,
