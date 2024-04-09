@@ -1,4 +1,4 @@
-import { unsafeBrandId } from "../brandedIds.js";
+import { RiskAnalysisId, unsafeBrandId } from "../brandedIds.js";
 import {
   PurposeStateV2,
   PurposeVersionDocumentV2,
@@ -66,7 +66,7 @@ export const fromPurposeRiskAnalysisFormV2 = (
   ...input,
   id: unsafeBrandId(input.id),
   riskAnalysisId: input.riskAnalysisId
-    ? unsafeBrandId(input.riskAnalysisId)
+    ? unsafeBrandId<RiskAnalysisId>(input.riskAnalysisId)
     : undefined,
   singleAnswers: input.singleAnswers.map((a) => ({
     ...a,
