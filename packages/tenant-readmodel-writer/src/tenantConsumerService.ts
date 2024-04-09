@@ -11,7 +11,6 @@ const { tenants } = ReadModelRepository.init(readModelWriterConfig());
 export async function handleMessage(
   message: TenantEventEnvelope
 ): Promise<void> {
-  logger.info(message);
   await match(message)
     .with({ type: "TenantCreated" }, async (msg) => {
       await tenants.updateOne(
