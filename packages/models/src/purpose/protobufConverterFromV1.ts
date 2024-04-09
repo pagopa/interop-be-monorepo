@@ -4,7 +4,7 @@ import {
   PurposeVersionDocumentV1,
   PurposeVersionV1,
 } from "../gen/v1/purpose/purpose.js";
-import { unsafeBrandId } from "../brandedIds.js";
+import { RiskAnalysisId, unsafeBrandId } from "../brandedIds.js";
 import { PurposeRiskAnalysisForm } from "../risk-analysis/riskAnalysis.js";
 import { PurposeRiskAnalysisFormV1 } from "../gen/v1/purpose/riskAnalysis.js";
 import {
@@ -69,7 +69,7 @@ export const fromPurposeRiskAnalysisFormV1 = (
   ...input,
   id: unsafeBrandId(input.id),
   riskAnalysisId: input.riskAnalysisId
-    ? unsafeBrandId(input.riskAnalysisId)
+    ? unsafeBrandId<RiskAnalysisId>(input.riskAnalysisId)
     : undefined,
   singleAnswers: input.singleAnswers.map((a) => ({
     ...a,
