@@ -1771,20 +1771,23 @@ describe("Agreement service", () => {
   });
   describe("get agreement consumer document", () => {
     let agreement1: Agreement;
+    let agreement2: Agreement;
 
     beforeEach(async () => {
       agreement1 = {
-        ...getMockAgreement(),
-        producerId: generateId<TenantId>(),
-        consumerId: generateId<TenantId>(),
+        ...buildAgreement(),
         consumerDocuments: [
           generateMock(AgreementDocument),
           generateMock(AgreementDocument),
         ],
       };
 
+      agreement2 = {
+        ...buildAgreement(),
+        consumerDocuments: [],
+      };
       await addOneAgreement(agreement1, postgresDB, agreements);
-      await addOneAgreement(getMockAgreement(), postgresDB, agreements);
+      await addOneAgreement(agreement2, postgresDB, agreements);
     });
 
     it("should get an agreement consumer document when the requester is the consumer or producer", async () => {
@@ -1814,7 +1817,7 @@ describe("Agreement service", () => {
     });
 
     it("should throw operationNotAllowed error when the requester is not the consumer or producer", async () => {
-      const authData = getRandomAuthData(generateId<TenantId>());
+      const authData = getRandomAuthData(agreement2.consumerId);
 
       await expect(
         agreementService.getAgreementConsumerDocument(
