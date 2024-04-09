@@ -58,9 +58,11 @@ export const fromPurposeVersionV1 = (
     ? fromPurposeVersionDocumentV1(input.riskAnalysis)
     : undefined,
   createdAt: new Date(Number(input.createdAt)),
-  updatedAt: new Date(Number(input.updatedAt)),
+  updatedAt: input.updatedAt ? new Date(Number(input.updatedAt)) : undefined,
   firstActivationAt: new Date(Number(input.updatedAt)),
-  suspendedAt: new Date(Number(input.suspendedAt)),
+  suspendedAt: input.suspendedAt
+    ? new Date(Number(input.suspendedAt))
+    : undefined,
 });
 
 export const fromPurposeRiskAnalysisFormV1 = (
@@ -89,7 +91,7 @@ export const fromPurposeV1 = (input: PurposeV1): Purpose => ({
   versions: input.versions.map(fromPurposeVersionV1),
   isFreeOfCharge: input.isFreeOfCharge || true,
   createdAt: new Date(Number(input.createdAt)),
-  updatedAt: new Date(Number(input.updatedAt)),
+  updatedAt: input.updatedAt ? new Date(Number(input.updatedAt)) : undefined,
   riskAnalysisForm: input.riskAnalysisForm
     ? fromPurposeRiskAnalysisFormV1(input.riskAnalysisForm)
     : undefined,
