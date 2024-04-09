@@ -44,6 +44,9 @@ export type RiskAnalysisMultiAnswerId = z.infer<
 export const RiskAnalysisFormId = z.string().uuid().brand("RiskAnalysisFormId");
 export type RiskAnalysisFormId = z.infer<typeof RiskAnalysisFormId>;
 
+export const RiskAnalysisId = z.string().uuid().brand("RiskAnalysisId");
+export type RiskAnalysisId = z.infer<typeof RiskAnalysisId>;
+
 export const PurposeRiskAnalysisFormId = z
   .string()
   .uuid()
@@ -51,9 +54,6 @@ export const PurposeRiskAnalysisFormId = z
 export type PurposeRiskAnalysisFormId = z.infer<
   typeof PurposeRiskAnalysisFormId
 >;
-
-export const RiskAnalysisId = z.string().uuid().brand("RiskAnalysisId");
-export type RiskAnalysisId = z.infer<typeof RiskAnalysisId>;
 
 export const PurposeId = z.string().uuid().brand("PurposeId");
 export type PurposeId = z.infer<typeof PurposeId>;
