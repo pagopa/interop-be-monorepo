@@ -12,8 +12,8 @@ import { v4 } from "uuid";
 import { runConsumer } from "kafka-iam-auth";
 import { PurposeEvent } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { handleMessageV1 } from "./consumerServiceV1.js";
-import { handleMessageV2 } from "./consumerServiceV2.js";
+import { handleMessageV1 } from "./purposeConsumerServiceV1.js";
+import { handleMessageV2 } from "./purposeConsumerServiceV2.js";
 
 const config = readModelWriterConfig();
 const { purposeTopic } = purposeTopicConfig();
