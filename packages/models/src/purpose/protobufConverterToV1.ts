@@ -6,6 +6,7 @@ import {
   PurposeVersionV1,
 } from "../gen/v1/purpose/purpose.js";
 
+import { dateToBigIntOrUndefined } from "../utils.js";
 import {
   Purpose,
   PurposeVersion,
@@ -41,17 +42,11 @@ export const toPurposeVersionV1 = (
 ): PurposeVersionV1 => ({
   ...input,
   state: toPurposeVersionStateV1(input.state),
-  expectedApprovalDate: input.expectedApprovalDate
-    ? BigInt(input.expectedApprovalDate.getTime())
-    : undefined,
+  expectedApprovalDate: dateToBigIntOrUndefined(input.expectedApprovalDate),
   createdAt: BigInt(input.createdAt.getTime()),
-  updatedAt: input.updatedAt ? BigInt(input.updatedAt.getTime()) : undefined,
-  firstActivationAt: input.firstActivationAt
-    ? BigInt(input.firstActivationAt.getTime())
-    : undefined,
-  suspendedAt: input.suspendedAt
-    ? BigInt(input.suspendedAt.getTime())
-    : undefined,
+  updatedAt: dateToBigIntOrUndefined(input.updatedAt),
+  firstActivationAt: dateToBigIntOrUndefined(input.firstActivationAt),
+  suspendedAt: dateToBigIntOrUndefined(input.suspendedAt),
   riskAnalysis: input.riskAnalysis
     ? toPurposeVersionDocumentV1(input.riskAnalysis)
     : undefined,
@@ -61,5 +56,5 @@ export const toPurposeV1 = (input: Purpose): PurposeV1 => ({
   ...input,
   versions: input.versions.map(toPurposeVersionV1),
   createdAt: BigInt(input.createdAt.getTime()),
-  updatedAt: input.updatedAt ? BigInt(input.updatedAt.getTime()) : undefined,
+  updatedAt: dateToBigIntOrUndefined(input.updatedAt),
 });
