@@ -4,6 +4,7 @@ import {
   CommonConfig,
   ReadModelDbConfig,
   EventStoreConfig,
+  SelfCareConfig,
 } from "pagopa-interop-commons";
 
 const AgreementProcessConfig = CommonConfig.and(EventStoreConfig)
@@ -21,7 +22,8 @@ const AgreementProcessConfig = CommonConfig.and(EventStoreConfig)
         consumerDocumentsPath: c.CONSUMER_DOCUMENTS_PATH,
         agreementContractsPath: c.AGREEMENT_CONTRACTS_PATH,
       }))
-  );
+  )
+  .and(SelfCareConfig);
 export type AgreementProcessConfig = z.infer<typeof AgreementProcessConfig>;
 
 export const config: AgreementProcessConfig = {
