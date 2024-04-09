@@ -55,7 +55,7 @@ export const Purpose = z.object({
   description: z.string(),
   riskAnalysisForm: PurposeRiskAnalysisForm.optional(),
   createdAt: z.coerce.date(),
-  updatedAt: z.coerce.date(),
+  updatedAt: z.coerce.date().optional(),
   isFreeOfCharge: z.boolean(),
   freeOfChargeReason: z.string().optional(),
 });
