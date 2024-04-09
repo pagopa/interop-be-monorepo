@@ -5,7 +5,7 @@ export * from "./create-mechanism.js";
 export * from "./create-payload.js";
 export * from "./create-sasl-authentication-request.js";
 export * from "./create-sasl-authentication-response.js";
-import { Consumer, EachMessagePayload, Kafka, logLevel } from "kafkajs";
+import { Consumer, EachMessagePayload, Kafka } from "kafkajs";
 import { KafkaConsumerConfig, logger } from "pagopa-interop-commons";
 import { kafkaMessageProcessError } from "pagopa-interop-models";
 import { createMechanism } from "./create-mechanism.js";
@@ -99,11 +99,13 @@ const initConsumer = async (
     ? {
         clientId: config.kafkaClientId,
         brokers: [config.kafkaBrokers],
+        logLevel: config.kafkaLogLevel,
         ssl: false,
       }
     : {
         clientId: config.kafkaClientId,
         brokers: [config.kafkaBrokers],
+        logLevel: config.kafkaLogLevel,
         ssl: true,
         sasl: createMechanism({
           region: config.awsRegion,
@@ -111,7 +113,7 @@ const initConsumer = async (
         }),
       };
 
-  const kafka = new Kafka({ ...kafkaConfig, logLevel: logLevel.WARN });
+  const kafka = new Kafka(kafkaConfig);
 
   const consumer = kafka.consumer({
     groupId: config.kafkaGroupId,
