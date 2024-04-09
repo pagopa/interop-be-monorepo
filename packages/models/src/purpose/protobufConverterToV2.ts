@@ -60,5 +60,5 @@ export const toPurposeV2 = (input: Purpose): PurposeV2 => ({
   ...input,
   versions: input.versions.map(toPurposeVersionV2),
   createdAt: BigInt(input.createdAt.getTime()),
-  updatedAt: BigInt(input.updatedAt.getTime()),
+  updatedAt: input.updatedAt ? BigInt(input.updatedAt.getTime()) : undefined,
 });
