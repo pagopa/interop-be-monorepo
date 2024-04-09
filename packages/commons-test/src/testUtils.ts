@@ -11,6 +11,8 @@ import {
   EService,
   EServiceAttribute,
   EServiceId,
+  Purpose,
+  PurposeVersion,
   Tenant,
   TenantAttribute,
   TenantId,
@@ -143,4 +145,28 @@ export const getMockAttribute = (): Attribute => ({
   creationTime: new Date(),
   code: undefined,
   origin: undefined,
+});
+
+export const getMockPurpose = (): Purpose => ({
+  id: generateId(),
+  eserviceId: generateId(),
+  consumerId: generateId(),
+  versions: [],
+  title: "Purpose 1 - test",
+  description: "Test purpose - description",
+  createdAt: new Date(),
+  isFreeOfCharge: true,
+});
+
+export const getMockPurposeVersion = (): PurposeVersion => ({
+  id: generateId(),
+  state: "Draft",
+  riskAnalysis: {
+    id: generateId(),
+    contentType: "json",
+    path: "path",
+    createdAt: new Date(),
+  },
+  dailyCalls: 10,
+  createdAt: new Date(),
 });
