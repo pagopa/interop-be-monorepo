@@ -23,7 +23,7 @@
     "@testcontainers/postgresql": "10.2.2",
     "@types/jsonwebtoken": "9.0.6",
     "@types/uuid": "9.0.2",
-    "@zodios/core": "10.9.2",
+    "@zodios/core": "10.9.6",
     "jsonwebtoken": "9.0.2",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
