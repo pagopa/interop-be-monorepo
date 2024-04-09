@@ -2,7 +2,6 @@ import { match } from "ts-pattern";
 import {
   ReadModelRepository,
   readModelWriterConfig,
-  logger,
 } from "pagopa-interop-commons";
 import { TenantEventEnvelopeV1, fromTenantV1 } from "pagopa-interop-models";
 
