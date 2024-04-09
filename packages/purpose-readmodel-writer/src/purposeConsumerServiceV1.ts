@@ -10,7 +10,7 @@ export async function handleMessageV1(
   message: PurposeEventEnvelopeV1,
   purposes: PurposeCollection
 ): Promise<void> {
-  match(message)
+  await match(message)
     .with(
       { type: "PurposeCreated" },
       async (msg) =>
@@ -115,5 +115,6 @@ export async function handleMessageV1(
             },
           }
         )
-    );
+    )
+    .exhaustive();
 }
