@@ -22,7 +22,7 @@
     "@aws-sdk/client-kms": "3.515.0",
     "@aws-sdk/client-s3": "3.367.0",
     "@aws-sdk/client-sqs": "3.529.1",
-    "@zodios/core": "10.9.2",
+    "@zodios/core": "10.9.6",
     "@zodios/express": "10.6.1",
     "connection-string": "4.3.6",
     "express-winston": "4.2.0",
