@@ -136,7 +136,7 @@ export function toTenantUnitTypeV2(input: TenantUnitType): TenantUnitTypeV2 {
 
 export const toTenantV2 = (tenant: Tenant): TenantV2 => ({
   ...tenant,
-  selfcareId: tenant.selfcareId || "default",
+  selfcareId: tenant.selfcareId,
   features: tenant.features.map(toFeatureV2),
   attributes: tenant.attributes.map(toAttributeV2),
   createdAt: BigInt(tenant.createdAt.getTime()),
