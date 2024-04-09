@@ -16,7 +16,6 @@ import {
   TenantAttribute,
   TenantId,
   VerifiedTenantAttribute,
-  attributeKind,
   agreementState,
   attributeKind,
   descriptorState,
