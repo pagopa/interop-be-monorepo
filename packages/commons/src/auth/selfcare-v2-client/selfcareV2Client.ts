@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { genericError } from "pagopa-interop-models";
-import { createApiClient } from "./model/generated/api.js";
+import { createApiClient } from "../../model/generated/api.js";
 
 const SelfCareConfigSchema = z.object({
   SELFCARE_V2_URL: z.string(),

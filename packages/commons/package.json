@@ -15,7 +15,9 @@
     "format:write": "prettier --write src",
     "start": "node --watch --no-warnings --loader ts-node/esm ./src/index.ts",
     "build": "tsc && pnpm run copy-sql-files",
-    "copy-sql-files": "cp ./src/repositories/sql/*.sql dist/repositories/sql"
+    "copy-sql-files": "cp ./src/repositories/sql/*.sql dist/repositories/sql",
+    "generate-model": "mkdir -p ./src/model/generated && pnpm openapi-zod-client './src/auth/selfcare-v2-client/open-api/selfcare-v2-client-spec.yml' -o './src/model/generated/api.ts'",
+    "clean-generated": "pnpm exec rm ./src/model/generated/api.ts"
   },
   "license": "Apache-2.0",
   "dependencies": {
@@ -44,6 +46,7 @@
     "@types/uuid": "9.0.2",
     "eslint": "8.44.0",
     "prettier": "2.8.8",
+    "openapi-zod-client": "1.15.1",
     "typescript": "5.1.3"
   }
 }
