@@ -386,6 +386,7 @@ describe("database test", async () => {
           descriptors: eservice.descriptors.map((d) => ({
             ...d,
             interface: undefined,
+            serverUrls: [],
           })),
         };
 
@@ -3397,6 +3398,7 @@ describe("database test", async () => {
         const descriptor: Descriptor = {
           ...mockDescriptor,
           state: descriptorState.draft,
+          serverUrls: [],
         };
         const eservice: EService = {
           ...mockEService,
@@ -3441,6 +3443,7 @@ describe("database test", async () => {
                   writtenPayload.eservice!.descriptors[0]!.interface!.uploadDate
                 ),
               },
+              serverUrls: ["pagopa.it"],
             },
           ],
         });
@@ -3739,6 +3742,7 @@ describe("database test", async () => {
             {
               ...descriptor,
               interface: undefined,
+              serverUrls: [],
             },
           ],
         });
