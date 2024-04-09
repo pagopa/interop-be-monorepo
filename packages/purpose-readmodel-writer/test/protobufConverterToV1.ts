@@ -4,16 +4,14 @@ import {
   PurposeV1,
   PurposeVersionDocumentV1,
   PurposeVersionV1,
-} from "../gen/v1/purpose/purpose.js";
-
-import { dateToBigInt, dateToBigIntOrUndefined } from "../utils.js";
-import {
   Purpose,
   PurposeVersion,
   PurposeVersionDocument,
   PurposeVersionState,
   purposeVersionState,
-} from "./purpose.js";
+  dateToBigInt,
+  dateToBigIntOrUndefined,
+} from "pagopa-interop-models";
 
 export const toPurposeVersionStateV1 = (
   input: PurposeVersionState
