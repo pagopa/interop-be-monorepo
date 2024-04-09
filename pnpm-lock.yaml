@@ -888,6 +888,9 @@ importers:
         specifier: 3.21.4
         version: 3.21.4
     devDependencies:
+      '@types/node':
+        specifier: 20.3.1
+        version: 20.3.1
       openapi-zod-client:
         specifier: 1.15.1
         version: 1.15.1
