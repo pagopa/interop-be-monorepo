@@ -42,8 +42,8 @@ importers:
         specifier: 5.0.6
         version: 5.0.6
       uuid:
-        specifier: 9.0.0
-        version: 9.0.0
+        specifier: 9.0.1
+        version: 9.0.1
       zod:
         specifier: 3.21.4
         version: 3.21.4
@@ -64,8 +64,8 @@ importers:
         specifier: 20.3.1
         version: 20.3.1
       '@types/uuid':
-        specifier: 9.0.2
-        version: 9.0.2
+        specifier: 9.0.8
+        version: 9.0.8
       cpx2:
         specifier: 2.0.0
         version: 2.0.0
@@ -134,8 +134,8 @@ importers:
         specifier: 20.3.1
         version: 20.3.1
       '@types/uuid':
-        specifier: 9.0.2
-        version: 9.0.2
+        specifier: 9.0.8
+        version: 9.0.8
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -152,8 +152,8 @@ importers:
         specifier: 5.1.3
         version: 5.1.3
       uuid:
-        specifier: 9.0.0
-        version: 9.0.0
+        specifier: 9.0.1
+        version: 9.0.1
       vitest:
         specifier: 0.33.0
         version: 0.33.0
@@ -197,8 +197,8 @@ importers:
         specifier: 5.0.6
         version: 5.0.6
       uuid:
-        specifier: 9.0.0
-        version: 9.0.0
+        specifier: 9.0.1
+        version: 9.0.1
       zod:
         specifier: 3.21.4
         version: 3.21.4
@@ -228,8 +228,8 @@ importers:
         specifier: 20.3.1
         version: 20.3.1
       '@types/uuid':
-        specifier: 9.0.2
-        version: 9.0.2
+        specifier: 9.0.8
+        version: 9.0.8
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -343,8 +343,8 @@ importers:
         specifier: 5.0.6
         version: 5.0.6
       uuid:
-        specifier: 9.0.0
-        version: 9.0.0
+        specifier: 9.0.1
+        version: 9.0.1
       zod:
         specifier: 3.21.4
         version: 3.21.4
@@ -359,8 +359,8 @@ importers:
         specifier: 20.3.1
         version: 20.3.1
       '@types/uuid':
-        specifier: 9.0.2
-        version: 9.0.2
+        specifier: 9.0.8
+        version: 9.0.8
       openapi-zod-client:
         specifier: 1.15.1
         version: 1.15.1
@@ -410,8 +410,8 @@ importers:
         specifier: 5.0.6
         version: 5.0.6
       uuid:
-        specifier: 9.0.0
-        version: 9.0.0
+        specifier: 9.0.1
+        version: 9.0.1
       zod:
         specifier: 3.21.4
         version: 3.21.4
@@ -441,8 +441,8 @@ importers:
         specifier: 20.3.1
         version: 20.3.1
       '@types/uuid':
-        specifier: 9.0.2
-        version: 9.0.2
+        specifier: 9.0.8
+        version: 9.0.8
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -577,8 +577,8 @@ importers:
         specifier: 5.0.6
         version: 5.0.6
       uuid:
-        specifier: 9.0.0
-        version: 9.0.0
+        specifier: 9.0.1
+        version: 9.0.1
       winston:
         specifier: 3.9.0
         version: 3.9.0
@@ -596,8 +596,8 @@ importers:
         specifier: 20.3.1
         version: 20.3.1
       '@types/uuid':
-        specifier: 9.0.2
-        version: 9.0.2
+        specifier: 9.0.8
+        version: 9.0.8
       eslint:
         specifier: 8.44.0
         version: 8.44.0
@@ -626,8 +626,8 @@ importers:
         specifier: 9.0.6
         version: 9.0.6
       '@types/uuid':
-        specifier: 9.0.2
-        version: 9.0.2
+        specifier: 9.0.8
+        version: 9.0.8
       '@zodios/core':
         specifier: 10.9.6
         version: 10.9.6(axios@1.4.0)(zod@3.21.4)
@@ -653,8 +653,8 @@ importers:
         specifier: 5.1.3
         version: 5.1.3
       uuid:
-        specifier: 9.0.0
-        version: 9.0.0
+        specifier: 9.0.1
+        version: 9.0.1
       vitest:
         specifier: 0.33.0
         version: 0.33.0
@@ -772,14 +772,14 @@ importers:
         specifier: 20.3.1
         version: 20.3.1
       '@types/uuid':
-        specifier: 9.0.2
-        version: 9.0.2
+        specifier: 9.0.8
+        version: 9.0.8
       ts-pattern:
         specifier: 5.0.6
         version: 5.0.6
       uuid:
-        specifier: 9.0.0
-        version: 9.0.0
+        specifier: 9.0.1
+        version: 9.0.1
       zod:
         specifier: 3.21.4
         version: 3.21.4
@@ -830,8 +830,8 @@ importers:
         specifier: 5.0.6
         version: 5.0.6
       uuid:
-        specifier: 9.0.0
-        version: 9.0.0
+        specifier: 9.0.1
+        version: 9.0.1
       zod:
         specifier: 3.21.4
         version: 3.21.4
@@ -846,8 +846,8 @@ importers:
         specifier: 20.3.1
         version: 20.3.1
       '@types/uuid':
-        specifier: 9.0.2
-        version: 9.0.2
+        specifier: 9.0.8
+        version: 9.0.8
       kafkajs:
         specifier: 2.2.4
         version: 2.2.4
@@ -876,8 +876,8 @@ importers:
   packages/tenant-process:
     dependencies:
       '@types/uuid':
-        specifier: 9.0.2
-        version: 9.0.2
+        specifier: 9.0.8
+        version: 9.0.8
       '@zodios/core':
         specifier: 10.9.6
         version: 10.9.6(axios@1.4.0)(zod@3.21.4)
@@ -906,8 +906,8 @@ importers:
         specifier: 5.0.6
         version: 5.0.6
       uuid:
-        specifier: 9.0.0
-        version: 9.0.0
+        specifier: 9.0.1
+        version: 9.0.1
       zod:
         specifier: 3.21.4
         version: 3.21.4
@@ -4585,12 +4585,8 @@ packages:
     resolution: {integrity: sha512-txGIh+0eDFzKGC25zORnswy+br1Ha7hj5cMVwKIU7+s0U2AxxJru/jZSMU6OC9MJWP6+pc/hc6ZjyZShpsyY2g==}
     dev: false
 
-  /@types/uuid@9.0.2:
-    resolution: {integrity: sha512-kNnC1GFBLuhImSnV7w4njQkUiJi0ZXUycu1rUaouPqiKlXkh77JKgdRnTAp1x5eBwcIwbtI+3otwzuIDEuDoxQ==}
-
   /@types/uuid@9.0.8:
     resolution: {integrity: sha512-jg+97EGIcY9AGHJJRaaPVgetKDsrTgbRjQ5Msgjh/DQKEFl0DtyRr/VCOyD1T2R1MNeWPK/u7JoGhlDZnKBAfA==}
-    dev: true
 
   /@types/webidl-conversions@7.0.0:
     resolution: {integrity: sha512-xTE1E+YF4aWPJJeUzaZI5DRntlkY3+BCVJi0axFptnjGmAoWxkyREIh/XMrfxVLejwQxMCfDXdICo0VLxThrog==}
@@ -8517,14 +8513,9 @@ packages:
     hasBin: true
     dev: false
 
-  /uuid@9.0.0:
-    resolution: {integrity: sha512-MXcSTerfPa4uqyzStbRoTgt5XIe3x5+42+q1sDuy3R5MDk66URdLMOZe5aPX/SQd+kuYAh0FdP/pO28IkQyTeg==}
-    hasBin: true
-
   /uuid@9.0.1:
     resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
     hasBin: true
-    dev: true
 
   /v8-compile-cache-lib@3.0.1:
     resolution: {integrity: sha512-wa7YjyUGfNZngI/vtK0UHAN+lgDCxBPCylVXGp0zu59Fz5aiGtNXaq3DhIov063MorB+VfufLh3JlF2KdTK3xg==}
