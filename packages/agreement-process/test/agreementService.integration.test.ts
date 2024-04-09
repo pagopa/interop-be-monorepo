@@ -85,6 +85,7 @@ import { readModelServiceBuilder } from "../src/services/readmodel/readModelServ
 import { tenantQueryBuilder } from "../src/services/readmodel/tenantQuery.js";
 import { config } from "../src/utilities/config.js";
 import { agreementCreationConflictingStates } from "../src/model/domain/validators.js";
+import { CompactOrganization } from "../src/model/domain/models.js";
 import {
   addOneAgreement,
   addOneEService,
@@ -598,13 +599,8 @@ describe("Agreement service", () => {
         ...buildAgreement(
           eservice.id,
           consumer.id,
-          randomArrayItem(
-            Object.values(agreementState).filter(
-              (state) => !agreementCreationConflictingStates.includes(state)
-            )
-          )
+          randomArrayItem(agreementCreationConflictingStates)
         ),
-        state: randomArrayItem(agreementCreationConflictingStates),
       };
 
       await addOneTenant(consumer, tenants);
@@ -931,10 +927,16 @@ describe("Agreement service", () => {
         10,
         0
       );
-      expect(agreements2.totalCount).toEqual(4);
-      expect(agreements2.results).toEqual(
-        expect.arrayContaining([agreement1, agreement2, agreement3, agreement4])
-      );
+
+      expect(agreements2).toEqual({
+        totalCount: 4,
+        results: expect.arrayContaining([
+          agreement1,
+          agreement2,
+          agreement3,
+          agreement4,
+        ]),
+      });
     });
 
     it("should get agreements with filters: consumerId", async () => {
@@ -1207,21 +1209,9 @@ describe("Agreement service", () => {
   });
   describe("get agreement", () => {
     it("should get an agreement", async () => {
-      const agreement: Agreement = buildAgreement(
-        generateId<EServiceId>(),
-        generateId<TenantId>(),
-        agreementState.draft
-      );
+      const agreement: Agreement = buildAgreement();
       await addOneAgreement(agreement, postgresDB, agreements);
-      await addOneAgreement(
-        buildAgreement(
-          generateId<EServiceId>(),
-          generateId<TenantId>(),
-          agreementState.pending
-        ),
-        postgresDB,
-        agreements
-      );
+      await addOneAgreement(buildAgreement(), postgresDB, agreements);
 
       const result = await agreementService.getAgreementById(agreement.id);
       expect(result).toEqual(agreement);
@@ -1230,19 +1220,218 @@ describe("Agreement service", () => {
     it("should throw an agreementNotFound error when the agreement does not exist", async () => {
       const agreementId = generateId<AgreementId>();
 
-      await addOneAgreement(
-        buildAgreement(
-          generateId<EServiceId>(),
-          generateId<TenantId>(),
-          agreementState.pending
-        ),
-        postgresDB,
-        agreements
-      );
+      await addOneAgreement(buildAgreement(), postgresDB, agreements);
 
       await expect(
         agreementService.getAgreementById(agreementId)
       ).rejects.toThrowError(agreementNotFound(agreementId));
+    });
+  });
+  describe("get agreement consumers / producers", () => {
+    let tenant1: Tenant;
+    let tenant2: Tenant;
+    let tenant3: Tenant;
+    let tenant4: Tenant;
+    let tenant5: Tenant;
+    let tenant6: Tenant;
+
+    const toCompactOrganization = (tenant: Tenant): CompactOrganization => ({
+      id: tenant.id,
+      name: tenant.name,
+    });
+
+    beforeEach(async () => {
+      tenant1 = { ...buildTenant(), name: "Tenant 1 Foo" };
+      tenant2 = { ...buildTenant(), name: "Tenant 2 Bar" };
+      tenant3 = { ...buildTenant(), name: "Tenant 3 FooBar" };
+      tenant4 = { ...buildTenant(), name: "Tenant 4 Baz" };
+      tenant5 = { ...buildTenant(), name: "Tenant 5 BazBar" };
+      tenant6 = { ...buildTenant(), name: "Tenant 6 BazFoo" };
+
+      await addOneTenant(tenant1, tenants);
+      await addOneTenant(tenant2, tenants);
+      await addOneTenant(tenant3, tenants);
+      await addOneTenant(tenant4, tenants);
+      await addOneTenant(tenant5, tenants);
+      await addOneTenant(tenant6, tenants);
+
+      const agreement1 = {
+        ...buildAgreement(),
+        producerId: tenant1.id,
+        consumerId: tenant2.id,
+      };
+
+      const agreement2 = {
+        ...buildAgreement(),
+        producerId: tenant1.id,
+        consumerId: tenant3.id,
+      };
+
+      const agreement3 = {
+        ...buildAgreement(),
+        producerId: tenant2.id,
+        consumerId: tenant4.id,
+      };
+
+      const agreement4 = {
+        ...buildAgreement(),
+        producerId: tenant2.id,
+        consumerId: tenant5.id,
+      };
+
+      const agreement5 = {
+        ...buildAgreement(),
+        producerId: tenant3.id,
+        consumerId: tenant6.id,
+      };
+
+      await addOneAgreement(agreement1, postgresDB, agreements);
+      await addOneAgreement(agreement2, postgresDB, agreements);
+      await addOneAgreement(agreement3, postgresDB, agreements);
+      await addOneAgreement(agreement4, postgresDB, agreements);
+      await addOneAgreement(agreement5, postgresDB, agreements);
+    });
+    describe("get agreement consumers", () => {
+      it("should get all agreement consumers", async () => {
+        const consumers = await agreementService.getAgreementConsumers(
+          undefined,
+          10,
+          0
+        );
+
+        expect(consumers).toEqual({
+          totalCount: 5,
+          results: expect.arrayContaining(
+            [tenant2, tenant3, tenant4, tenant5, tenant6].map(
+              toCompactOrganization
+            )
+          ),
+        });
+      });
+      it("should get agreement consumers filtered by name", async () => {
+        const consumers = await agreementService.getAgreementConsumers(
+          "Foo",
+          10,
+          0
+        );
+
+        expect(consumers).toEqual({
+          totalCount: 2,
+          results: expect.arrayContaining(
+            [tenant3, tenant6].map(toCompactOrganization)
+          ),
+        });
+      });
+      it("should get agreeement consumers with limit", async () => {
+        const consumers = await agreementService.getAgreementConsumers(
+          undefined,
+          2,
+          0
+        );
+
+        expect(consumers).toEqual({
+          totalCount: 5,
+          results: expect.arrayContaining(
+            [tenant2, tenant3].map(toCompactOrganization)
+          ),
+        });
+      });
+      it("should get agreement consumers with offset and limit", async () => {
+        const consumers = await agreementService.getAgreementConsumers(
+          undefined,
+          2,
+          1
+        );
+
+        expect(consumers).toEqual({
+          totalCount: 5,
+          results: expect.arrayContaining(
+            [tenant3, tenant4].map(toCompactOrganization)
+          ),
+        });
+      });
+      it("should get agreement consumers with offset, limit, and name filter", async () => {
+        const consumers = await agreementService.getAgreementConsumers(
+          "Foo",
+          1,
+          1
+        );
+
+        expect(consumers).toEqual({
+          totalCount: 2,
+          results: expect.arrayContaining([tenant6].map(toCompactOrganization)),
+        });
+      });
+    });
+    describe("get agreement producers", () => {
+      it("should get all agreement producers", async () => {
+        const producers = await agreementService.getAgreementProducers(
+          undefined,
+          10,
+          0
+        );
+
+        expect(producers).toEqual({
+          totalCount: 3,
+          results: expect.arrayContaining(
+            [tenant1, tenant2, tenant3].map(toCompactOrganization)
+          ),
+        });
+      });
+      it("should get agreement producers filtered by name", async () => {
+        const producers = await agreementService.getAgreementProducers(
+          "Bar",
+          10,
+          0
+        );
+
+        expect(producers).toEqual({
+          totalCount: 2,
+          results: expect.arrayContaining(
+            [tenant2, tenant3].map(toCompactOrganization)
+          ),
+        });
+      });
+      it("should get agreeement producers with limit", async () => {
+        const producers = await agreementService.getAgreementProducers(
+          undefined,
+          2,
+          0
+        );
+
+        expect(producers).toEqual({
+          totalCount: 3,
+          results: expect.arrayContaining(
+            [tenant1, tenant2].map(toCompactOrganization)
+          ),
+        });
+      });
+      it("should get agreement producers with offset and limit", async () => {
+        const producers = await agreementService.getAgreementProducers(
+          undefined,
+          2,
+          1
+        );
+
+        expect(producers).toEqual({
+          totalCount: 3,
+          results: expect.arrayContaining(
+            [tenant2, tenant3].map(toCompactOrganization)
+          ),
+        });
+      });
+      it("should get agreement producers with offset, limit, and name filter", async () => {
+        const producers = await agreementService.getAgreementProducers(
+          "Bar",
+          1,
+          1
+        );
+
+        expect(producers).toEqual({
+          totalCount: 2,
+          results: expect.arrayContaining([tenant3].map(toCompactOrganization)),
+        });
+      });
     });
   });
 });
