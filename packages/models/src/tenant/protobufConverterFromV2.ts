@@ -38,8 +38,6 @@ export const fromTenantKindV2 = (input: TenantKindV2): TenantKind => {
       return tenantKind.PA;
     case TenantKindV2.PRIVATE:
       return tenantKind.PRIVATE;
-    case TenantKindV2.UNSPECIFIED$:
-      throw new Error("Unspecified tenant kind");
   }
 };
 
@@ -51,16 +49,12 @@ export const fromTenantMailKindV2 = (
       return tenantMailKind.ContactEmail;
     case TenantMailKindV2.DIGITAL_ADDRESS:
       return tenantMailKind.DigitalAddress;
-    case TenantMailKindV2.UNSPECIFIED$:
-      throw new Error("Unspecified tenant mail kind");
   }
 };
 
 export const fromTenantMailV2 = (input: TenantMailV2): TenantMail => ({
   ...input,
-  id: input.id
-    ? input.id
-    : createHash("sha256").update(input.address).digest("hex"),
+  id: input.id ?? createHash("sha256").update(input.address).digest("hex"),
   createdAt: new Date(Number(input.createdAt)),
   kind: fromTenantMailKindV2(input.kind),
 });
@@ -140,8 +134,8 @@ export const fromTenantAttributesV2 = (
         ),
         type: tenantAttributeType.DECLARED,
       };
-    case undefined:
-      throw genericError("Undefined attribute kind");
+    default:
+      throw genericError(`Invalid attribute kind: ${sealedValue.oneofKind}`);
   }
 };
 
@@ -153,8 +147,6 @@ export const fromTenantUnitTypeV2 = (
       return tenantUnitType.AOO;
     case TenantUnitTypeV2.UO:
       return tenantUnitType.UO;
-    case TenantUnitTypeV2.UNSPECIFIED$:
-      throw new Error("Unspecified tenant unit type");
   }
 };
 
