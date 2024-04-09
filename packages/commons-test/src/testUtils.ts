@@ -18,6 +18,7 @@ import {
   TenantId,
   VerifiedTenantAttribute,
   attributeKind,
+  agreementState,
   descriptorState,
   generateId,
   tenantAttributeType,
@@ -129,7 +130,7 @@ export const buildTenant = (
 export const buildAgreement = (
   eserviceId: EServiceId = generateId<EServiceId>(),
   consumerId: TenantId = generateId<TenantId>(),
-  state: AgreementState
+  state: AgreementState = agreementState.draft
 ): Agreement => ({
   ...generateMock(Agreement),
   eserviceId,
