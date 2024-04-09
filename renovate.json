@@ -17,7 +17,13 @@
   "labels": ["dependencies"],
   "branchPrefix": "renovate-action/",
   "prConcurrentLimit": 2,
-  "packageRules": [],
-  "repositories": ["pagopa/interop-be-monorepo"],
-  "ignorePaths": ["docker/docker-compose.yml"]
+  "autodiscover": true,
+  "autodiscoverFilter": ["pagopa/interop-be-monorepo"],
+  "ignorePaths": ["docker/docker-compose.yml"],
+  "packageRules": [
+    {
+      "matchPackagePatterns": ["@protobuf-ts"],
+      "groupName": "protobuf-ts monorepo"
+    }
+  ]
 }
