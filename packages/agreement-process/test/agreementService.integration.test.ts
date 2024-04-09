@@ -1,18 +1,6 @@
 /* eslint-disable functional/no-let */
-/* eslint-disable functional/immutable-data */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { fail } from "assert";
-import {
-  AgreementCollection,
-  EServiceCollection,
-  FileManager,
-  ReadModelRepository,
-  TenantCollection,
-  initDB,
-  initFileManager,
-  logger,
-} from "pagopa-interop-commons";
 import {
   getMockAgreement,
   getMockCertifiedTenantAttribute,
@@ -25,10 +13,6 @@ import {
   getRandomAuthData,
   randomArrayItem,
   StoredEvent,
-  TEST_MONGO_DB_PORT,
-  TEST_POSTGRES_DB_PORT,
-  mongoDBContainer,
-  postgreSQLContainer,
   decodeProtobufPayload,
 } from "pagopa-interop-commons-test";
 import {
@@ -36,7 +20,6 @@ import {
   AgreementAddedV1,
   AgreementAttribute,
   AgreementId,
-  AgreementUpdatedV1,
   AgreementV1,
   AttributeId,
   Descriptor,
@@ -50,20 +33,9 @@ import {
   agreementState,
   descriptorState,
   generateId,
-  protobufDecoder,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { IDatabase } from "pg-promise";
-import { StartedTestContainer } from "testcontainers";
-import {
-  afterAll,
-  afterEach,
-  beforeEach,
-  beforeAll,
-  describe,
-  expect,
-  it,
-} from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { v4 as uuidv4 } from "uuid";
 import {
   agreementAlreadyExists,
@@ -74,21 +46,8 @@ import {
   notLatestEServiceDescriptor,
   tenantIdNotFound,
 } from "../src/model/domain/errors.js";
-import {
-  toAgreementStateV1,
-  toAgreementV1,
-} from "../src/model/domain/toEvent.js";
+import { toAgreementStateV1 } from "../src/model/domain/toEvent.js";
 import { ApiAgreementPayload } from "../src/model/types.js";
-import {
-  AgreementService,
-  agreementServiceBuilder,
-} from "../src/services/agreementService.js";
-import { agreementQueryBuilder } from "../src/services/readmodel/agreementQuery.js";
-import { attributeQueryBuilder } from "../src/services/readmodel/attributeQuery.js";
-import { eserviceQueryBuilder } from "../src/services/readmodel/eserviceQuery.js";
-import { readModelServiceBuilder } from "../src/services/readmodel/readModelService.js";
-import { tenantQueryBuilder } from "../src/services/readmodel/tenantQuery.js";
-import { config } from "../src/utilities/config.js";
 import { agreementCreationConflictingStates } from "../src/model/domain/validators.js";
 import {
   CompactEService,
@@ -100,16 +59,13 @@ import {
   addOneTenant,
   readLastAgreementEvent,
 } from "./utils.js";
-
-let agreements: AgreementCollection;
-let eservices: EServiceCollection;
-let tenants: TenantCollection;
-let readModelService;
-let agreementService: AgreementService;
-let postgresDB: IDatabase<unknown>;
-let startedPostgreSqlContainer: StartedTestContainer;
-let startedMongodbContainer: StartedTestContainer;
-let fileManager: FileManager;
+import {
+  eservices,
+  tenants,
+  postgresDB,
+  agreementService,
+  agreements,
+} from "./agreementService.test.setup.js";
 
 /**
  * Executes the generic agreement expectation for agreement creation process,
@@ -179,67 +135,6 @@ const expectedAgreementCreation = async (
 
   return actualAgreement;
 };
-
-beforeAll(async () => {
-  startedPostgreSqlContainer = await postgreSQLContainer(config).start();
-  startedMongodbContainer = await mongoDBContainer(config).start();
-
-  config.eventStoreDbPort = startedPostgreSqlContainer.getMappedPort(
-    TEST_POSTGRES_DB_PORT
-  );
-  config.readModelDbPort =
-    startedMongodbContainer.getMappedPort(TEST_MONGO_DB_PORT);
-
-  const readModelRepository = ReadModelRepository.init(config);
-  agreements = readModelRepository.agreements;
-  eservices = readModelRepository.eservices;
-  tenants = readModelRepository.tenants;
-
-  readModelService = readModelServiceBuilder(readModelRepository);
-  const eserviceQuery = eserviceQueryBuilder(readModelService);
-  const agreementQuery = agreementQueryBuilder(readModelService);
-  const tenantQuery = tenantQueryBuilder(readModelService);
-  const attributeQuery = attributeQueryBuilder(readModelService);
-
-  postgresDB = initDB({
-    username: config.eventStoreDbUsername,
-    password: config.eventStoreDbPassword,
-    host: config.eventStoreDbHost,
-    port: config.eventStoreDbPort,
-    database: config.eventStoreDbName,
-    schema: config.eventStoreDbSchema,
-    useSSL: config.eventStoreDbUseSSL,
-  });
-
-  if (!postgresDB) {
-    logger.error("postgresDB is undefined!!");
-  }
-
-  // TODO: Setup MinIO test container when testing functionalities that require file storage
-  fileManager = initFileManager(config);
-  agreementService = agreementServiceBuilder(
-    postgresDB,
-    agreementQuery,
-    tenantQuery,
-    eserviceQuery,
-    attributeQuery,
-    fileManager
-  );
-});
-
-afterEach(async () => {
-  await agreements.deleteMany({});
-  await eservices.deleteMany({});
-  await tenants.deleteMany({});
-
-  await postgresDB.none("TRUNCATE TABLE agreement.events RESTART IDENTITY");
-  await postgresDB.none("TRUNCATE TABLE catalog.events RESTART IDENTITY");
-});
-
-afterAll(async () => {
-  await startedPostgreSqlContainer.stop();
-  await startedMongodbContainer.stop();
-});
 
 describe("Agreement service", () => {
   describe("create agreement", () => {
@@ -768,52 +663,6 @@ describe("Agreement service", () => {
       ).rejects.toThrowError(
         missingCertifiedAttributesError(descriptor.id, consumer.id)
       );
-    });
-  });
-
-  describe("update agreement", () => {
-    let agreement1: Agreement;
-
-    beforeEach(async () => {
-      agreement1 = {
-        ...getMockAgreement(),
-        state: agreementState.draft,
-      };
-
-      await addOneAgreement(agreement1, postgresDB, agreements);
-      await addOneAgreement(getMockAgreement(), postgresDB, agreements);
-    });
-
-    it("should succeed when requester is Consumer the Agreement is in an updatable state", async () => {
-      const authData = getRandomAuthData(agreement1.consumerId);
-      await agreementService.updateAgreement(
-        agreement1.id,
-        { consumerNotes: "Updated consumer notes" },
-        authData,
-        uuidv4()
-      );
-
-      const agreementEvent = await readLastAgreementEvent(
-        agreement1.id,
-        postgresDB
-      );
-
-      expect(agreementEvent).toMatchObject({
-        type: "AgreementUpdated",
-        event_version: 1,
-        version: "0",
-        stream_id: agreement1.id,
-      });
-
-      const actualAgreementUptaded = decodeProtobufPayload({
-        messageType: AgreementUpdatedV1,
-        payload: agreementEvent.data,
-      }).agreement;
-
-      expect(actualAgreementUptaded).toMatchObject({
-        ...toAgreementV1(agreement1),
-        consumerNotes: "Updated consumer notes",
-      });
     });
   });
 
