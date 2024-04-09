@@ -2,6 +2,7 @@ import { AuthData, DB, eventRepository, logger } from "pagopa-interop-commons";
 import {
   AttributeId,
   CertifiedTenantAttribute,
+  DeclaredTenantAttribute,
   ListResult,
   Tenant,
   TenantAttribute,
@@ -13,15 +14,20 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { ExternalId } from "pagopa-interop-models";
-import { toTenantCertifiedAttributeAssigned } from "../model/domain/toEvent.js";
+import {
+  toTenantCertifiedAttributeAssigned,
+  toTenantDeclaredAttributeAssigned,
+} from "../model/domain/toEvent.js";
 import {
   ApiSelfcareTenantSeed,
   ApicertifiedTenantAttributeSeed,
+  ApideclaredTenantAttributeSeed,
 } from "../model/types.js";
 import {
   attributeNotFound,
   certifiedAttributeAlreadyAssigned,
   certifiedAttributeOriginIsNotCompliantWithCertifier,
+  declaredAttributeNotFound,
   registryAttributeIdNotFound,
   tenantIsNotACertifier,
 } from "../model/domain/errors.js";
@@ -394,6 +400,81 @@ export function tenantServiceBuilder(
         targetTenant.metadata.version,
         updatedTenant,
         attributeId,
+        correlationId
+      );
+      await repository.createEvent(event);
+      return updatedTenant;
+    },
+
+    async addDeclaredAttribute(
+      tenantId: TenantId,
+      {
+        tenantAttributeSeed,
+        authData,
+        correlationId,
+      }: {
+        tenantAttributeSeed: ApideclaredTenantAttributeSeed;
+        authData: AuthData;
+        correlationId: string;
+      }
+    ): Promise<Tenant> {
+      logger.info(
+        `Add certified attribute ${tenantAttributeSeed.id} to tenant ${tenantId}`
+      );
+      const tenant = await retrieveTenant(tenantId, readModelService);
+
+      const declaredTenantAttribute = tenant.data.attributes
+        .filter((attr) => attr.type === tenantAttributeType.DECLARED)
+        .find(
+          (attr) => attr.id === tenantAttributeSeed.id
+        ) as DeclaredTenantAttribute;
+
+      const attribute = await readModelService.getAttributeById(
+        unsafeBrandId(declaredTenantAttribute.id)
+      );
+
+      // eslint-disable-next-line functional/no-let
+      let updatedTenant: Tenant = {
+        ...tenant.data,
+        updatedAt: new Date(),
+      };
+      if (!declaredTenantAttribute) {
+        // assigning attribute for the first time
+        updatedTenant = {
+          ...updatedTenant,
+          attributes: [
+            ...tenant.data.attributes,
+            {
+              id: attribute.id,
+              type: tenantAttributeType.DECLARED,
+              assignmentTimestamp: new Date(),
+              revocationTimestamp: undefined,
+            },
+          ],
+        };
+      } else if (
+        declaredTenantAttribute.type !== "PersistentDeclaredAttribute"
+      ) {
+        throw declaredAttributeNotFound(attribute.id, tenantId);
+      } else {
+        // re-assigning attribute if it was revoked
+        updatedTenant = {
+          ...updatedTenant,
+          attributes: tenant.data.attributes.map((a) =>
+            a.id === attribute.id
+              ? {
+                  ...a,
+                  assignmentTimestamp: new Date(),
+                }
+              : a
+          ),
+        };
+      }
+      const event = toTenantCertifiedAttributeAssigned(
+        tenant.data.id,
+        tenant.metadata.version,
+        updatedTenant,
+        attribute.id,
         correlationId
       );
       await repository.createEvent(event);
