@@ -134,9 +134,16 @@ export function toTenantUnitTypeV2(input: TenantUnitType): TenantUnitTypeV2 {
     .exhaustive();
 }
 
+function checkSelfcareId(selfcareId: string | undefined): string {
+  if (selfcareId === undefined) {
+    throw new Error("SelfcareId can't be undefined");
+  }
+  return selfcareId;
+}
+
 export const toTenantV2 = (tenant: Tenant): TenantV2 => ({
   ...tenant,
-  selfcareId: tenant.selfcareId,
+  selfcareId: checkSelfcareId(tenant.selfcareId),
   features: tenant.features.map(toFeatureV2),
   attributes: tenant.attributes.map(toAttributeV2),
   createdAt: BigInt(tenant.createdAt.getTime()),
