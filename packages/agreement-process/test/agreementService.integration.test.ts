@@ -111,6 +111,7 @@ export let startedPostgreSqlContainer: StartedTestContainer;
 export let startedMongodbContainer: StartedTestContainer;
 export let startedMinioContainer: StartedTestContainer;
 export let fileManager: FileManager;
+const s3OriginalBucket = config.s3Bucket;
 
 /**
  * Executes the generic agreement expectation for agreement creation process,
@@ -233,6 +234,9 @@ afterEach(async () => {
 
   await postgresDB.none("TRUNCATE TABLE agreement.events RESTART IDENTITY");
   await postgresDB.none("TRUNCATE TABLE catalog.events RESTART IDENTITY");
+
+  // Some tests change the bucket name, so we need to reset it
+  config.s3Bucket = s3OriginalBucket;
 });
 
 afterAll(async () => {
