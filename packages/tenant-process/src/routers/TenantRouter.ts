@@ -394,11 +394,30 @@ const tenantsRouter = (
         }
       }
     )
-    .post(
-      "/tenants/attributes/declared",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
-    )
+    // .post(
+    //   "/tenants/attributes/declared",
+    //   authorizationMiddleware([ADMIN_ROLE]),
+    //   async (req, res) => {
+    //     try {
+    //       const { tenantId } = req.params;
+    //       const tenant = await tenantService.addDeclaredAttribute(
+    //         unsafeBrandId(tenantId),
+    //         {
+    //           tenantAttributeSeed: req.body,
+    //           authData: req.ctx.authData,
+    //           correlationId: req.ctx.correlationId,
+    //         }
+    //       );
+    //       return res.status(200).json(toApiTenant(tenant)).end();
+    //     } catch (error) {
+    //       const errorRes = makeApiProblem(
+    //         error,
+    //         addCertifiedAttributeErrorMapper
+    //       );
+    //       return res.status(errorRes.status).json(errorRes).end();
+    //     }
+    //   }
+    // )
     .delete(
       "/internal/origin/:tOrigin/externalId/:tExternalId/attributes/origin/:aOrigin/externalId/:aExternalId",
       authorizationMiddleware([INTERNAL_ROLE]),
