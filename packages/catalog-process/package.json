@@ -21,7 +21,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@anatine/zod-mock": "3.13.4",
-    "@faker-js/faker": "8.0.2",
+    "@faker-js/faker": "8.4.1",
     "@pagopa/eslint-config": "3.0.0",
     "@protobuf-ts/runtime": "2.9.4",
     "@types/axios": "0.14.0",
