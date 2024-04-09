@@ -130,7 +130,7 @@ describe("Integration tests", async () => {
       const message: PurposeEventEnvelope = {
         sequence_num: 1,
         stream_id: mockPurpose.id,
-        version: 1,
+        version: 2,
         type: "PurposeUpdated",
         event_version: 1,
         data: payload,
@@ -144,7 +144,7 @@ describe("Integration tests", async () => {
 
       expect(retrievedPurpose).toMatchObject({
         data: updatedPurpose,
-        metadata: { version: 1 },
+        metadata: { version: 2 },
       });
     });
 
@@ -168,7 +168,7 @@ describe("Integration tests", async () => {
       const message: PurposeEventEnvelope = {
         sequence_num: 1,
         stream_id: mockPurpose.id,
-        version: 1,
+        version: 2,
         type: "PurposeVersionActivated",
         event_version: 1,
         data: payload,
@@ -182,7 +182,7 @@ describe("Integration tests", async () => {
 
       expect(retrievedPurpose).toMatchObject({
         data: updatedPurpose,
-        metadata: { version: 1 },
+        metadata: { version: 2 },
       });
     });
 
@@ -206,7 +206,7 @@ describe("Integration tests", async () => {
       const message: PurposeEventEnvelope = {
         sequence_num: 1,
         stream_id: mockPurpose.id,
-        version: 1,
+        version: 2,
         type: "PurposeVersionSuspended",
         event_version: 1,
         data: payload,
@@ -220,7 +220,7 @@ describe("Integration tests", async () => {
 
       expect(retrievedPurpose).toMatchObject({
         data: updatedPurpose,
-        metadata: { version: 1 },
+        metadata: { version: 2 },
       });
     });
 
@@ -244,7 +244,7 @@ describe("Integration tests", async () => {
       const message: PurposeEventEnvelope = {
         sequence_num: 1,
         stream_id: mockPurpose.id,
-        version: 1,
+        version: 2,
         type: "PurposeVersionArchived",
         event_version: 1,
         data: payload,
@@ -258,7 +258,7 @@ describe("Integration tests", async () => {
 
       expect(retrievedPurpose).toMatchObject({
         data: updatedPurpose,
-        metadata: { version: 1 },
+        metadata: { version: 2 },
       });
     });
 
@@ -285,7 +285,7 @@ describe("Integration tests", async () => {
       const message: PurposeEventEnvelope = {
         sequence_num: 1,
         stream_id: mockPurpose.id,
-        version: 1,
+        version: 2,
         type: "PurposeVersionWaitedForApproval",
         event_version: 1,
         data: payload,
@@ -299,7 +299,7 @@ describe("Integration tests", async () => {
 
       expect(retrievedPurpose).toMatchObject({
         data: updatedPurpose,
-        metadata: { version: 1 },
+        metadata: { version: 2 },
       });
     });
 
@@ -327,7 +327,7 @@ describe("Integration tests", async () => {
       const message: PurposeEventEnvelope = {
         sequence_num: 1,
         stream_id: mockPurpose.id,
-        version: 1,
+        version: 2,
         type: "PurposeVersionRejected",
         event_version: 1,
         data: payload,
@@ -341,7 +341,7 @@ describe("Integration tests", async () => {
 
       expect(retrievedPurpose).toMatchObject({
         data: updatedPurpose,
-        metadata: { version: 1 },
+        metadata: { version: 2 },
       });
     });
 
@@ -368,7 +368,7 @@ describe("Integration tests", async () => {
       const message: PurposeEventEnvelope = {
         sequence_num: 1,
         stream_id: mockPurpose.id,
-        version: 1,
+        version: 2,
         type: "PurposeVersionUpdated",
         event_version: 1,
         data: payload,
@@ -382,7 +382,7 @@ describe("Integration tests", async () => {
 
       expect(retrievedPurpose).toMatchObject({
         data: updatedPurpose,
-        metadata: { version: 1 },
+        metadata: { version: 2 },
       });
     });
 
@@ -401,7 +401,7 @@ describe("Integration tests", async () => {
       const message: PurposeEventEnvelope = {
         sequence_num: 1,
         stream_id: mockPurpose.id,
-        version: 1,
+        version: 2,
         type: "PurposeDeleted",
         event_version: 1,
         data: payload,
@@ -416,7 +416,7 @@ describe("Integration tests", async () => {
         "data.id": mockPurpose2.id,
       });
 
-      expect(retrievedPurpose).toBeUndefined();
+      expect(retrievedPurpose?.data).toBeUndefined();
       expect(retrievedPurpose2).toMatchObject({
         data: mockPurpose2,
         metadata: { version: 1 },
@@ -444,7 +444,7 @@ describe("Integration tests", async () => {
       const message: PurposeEventEnvelope = {
         sequence_num: 1,
         stream_id: mockPurpose.id,
-        version: 1,
+        version: 2,
         type: "PurposeVersionDeleted",
         event_version: 1,
         data: payload,
@@ -458,7 +458,7 @@ describe("Integration tests", async () => {
 
       expect(retrievedPurpose).toMatchObject({
         data: updatedPurpose,
-        metadata: { version: 1 },
+        metadata: { version: 2 },
       });
     });
   });
@@ -476,10 +476,9 @@ const getMockPurpose = (): Purpose => ({
   createdAt: new Date(),
   eserviceId: generateId(),
   consumerId: generateId(),
-  updatedAt: undefined,
   description: "Test purpose - description",
   versions: [],
-  isFreeOfCharge: false,
+  isFreeOfCharge: true,
 });
 
 const getMockPurposeVersion = (): PurposeVersion => ({
