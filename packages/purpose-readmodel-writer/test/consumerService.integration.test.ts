@@ -99,7 +99,7 @@ describe("Integration tests", async () => {
       const message: PurposeEventEnvelope = {
         sequence_num: 1,
         stream_id: mockPurpose.id,
-        version: 1,
+        version: 2,
         type: "PurposeVersionCreated",
         event_version: 1,
         data: payload,
@@ -113,7 +113,7 @@ describe("Integration tests", async () => {
 
       expect(retrievedPurpose).toMatchObject({
         data: updatedPurpose,
-        metadata: { version: 1 },
+        metadata: { version: 2 },
       });
     });
 
