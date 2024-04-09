@@ -472,12 +472,12 @@ describe("Integration tests", async () => {
 
 const getMockPurpose = (): Purpose => ({
   id: generateId(),
-  title: "Purpose 1 - test",
-  createdAt: new Date(),
   eserviceId: generateId(),
   consumerId: generateId(),
-  description: "Test purpose - description",
   versions: [],
+  title: "Purpose 1 - test",
+  description: "Test purpose - description",
+  createdAt: new Date(),
   isFreeOfCharge: true,
 });
 
