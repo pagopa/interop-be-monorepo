@@ -7,6 +7,8 @@ import {
   readModelWriterConfig,
 } from "pagopa-interop-commons";
 import {
+  getMockPurpose,
+  getMockPurposeVersion,
   mongoDBContainer,
   writeInReadmodel,
 } from "pagopa-interop-commons-test";
@@ -58,6 +60,7 @@ describe("Integration tests", async () => {
 
   describe("Events V1", () => {
     const mockPurpose = getMockPurpose();
+    const mockPurposeVersion = getMockPurposeVersion();
 
     it("PurposeCreated", async () => {
       const payload: PurposeCreatedV1 = {
@@ -87,7 +90,6 @@ describe("Integration tests", async () => {
     it("PurposeVersionCreated", async () => {
       await writeInReadmodel<Purpose>(mockPurpose, purposes, 1);
 
-      const mockPurposeVersion = getMockPurposeVersion();
       const updatedPurpose: Purpose = {
         ...mockPurpose,
         versions: [mockPurposeVersion],
@@ -149,7 +151,6 @@ describe("Integration tests", async () => {
     });
 
     it("PurposeVersionActivated", async () => {
-      const mockPurposeVersion = getMockPurposeVersion();
       const purpose = {
         ...mockPurpose,
         versions: [mockPurposeVersion],
@@ -187,7 +188,6 @@ describe("Integration tests", async () => {
     });
 
     it("PurposeVersionSuspended", async () => {
-      const mockPurposeVersion = getMockPurposeVersion();
       const purpose = {
         ...mockPurpose,
         versions: [mockPurposeVersion],
@@ -225,7 +225,6 @@ describe("Integration tests", async () => {
     });
 
     it("PurposeVersionArchived", async () => {
-      const mockPurposeVersion = getMockPurposeVersion();
       const purpose = {
         ...mockPurpose,
         versions: [mockPurposeVersion],
@@ -263,7 +262,6 @@ describe("Integration tests", async () => {
     });
 
     it("PurposeVersionWaitedForApproval", async () => {
-      const mockPurposeVersion = getMockPurposeVersion();
       const purpose = {
         ...mockPurpose,
         versions: [mockPurposeVersion],
@@ -304,7 +302,6 @@ describe("Integration tests", async () => {
     });
 
     it("PurposeVersionRejected", async () => {
-      const mockPurposeVersion = getMockPurposeVersion();
       const purpose = {
         ...mockPurpose,
         versions: [mockPurposeVersion],
@@ -346,7 +343,6 @@ describe("Integration tests", async () => {
     });
 
     it("PurposeVersionUpdated", async () => {
-      const mockPurposeVersion = getMockPurposeVersion();
       const purpose = {
         ...mockPurpose,
         versions: [mockPurposeVersion],
@@ -424,12 +420,11 @@ describe("Integration tests", async () => {
     });
 
     it("PurposeVersionDeleted", async () => {
-      const mockPurposeVersion1 = getMockPurposeVersion();
       const mockPurposeVersion2 = getMockPurposeVersion();
 
       const purpose = {
         ...mockPurpose,
-        versions: [mockPurposeVersion1, mockPurposeVersion2],
+        versions: [mockPurposeVersion, mockPurposeVersion2],
       };
       await writeInReadmodel<Purpose>(purpose, purposes, 1);
 
@@ -439,7 +434,7 @@ describe("Integration tests", async () => {
       };
       const payload: PurposeVersionDeletedV1 = {
         purposeId: purpose.id,
-        versionId: mockPurposeVersion1.id,
+        versionId: mockPurposeVersion.id,
       };
       const message: PurposeEventEnvelope = {
         sequence_num: 1,
@@ -468,28 +463,4 @@ describe("Integration tests", async () => {
       expect(2).toBe(2);
     });
   });
-});
-
-const getMockPurpose = (): Purpose => ({
-  id: generateId(),
-  eserviceId: generateId(),
-  consumerId: generateId(),
-  versions: [],
-  title: "Purpose 1 - test",
-  description: "Test purpose - description",
-  createdAt: new Date(),
-  isFreeOfCharge: true,
-});
-
-const getMockPurposeVersion = (): PurposeVersion => ({
-  id: generateId(),
-  state: "Draft",
-  riskAnalysis: {
-    id: generateId(),
-    contentType: "json",
-    path: "path",
-    createdAt: new Date(),
-  },
-  dailyCalls: 10,
-  createdAt: new Date(),
 });
