@@ -43,7 +43,7 @@ export const fromPurposeVersionDocumentV1 = (
 ): PurposeVersionDocument => ({
   ...input,
   id: unsafeBrandId(input.id),
-  createdAt: new Date(Number(input.createdAt)),
+  createdAt: bigIntToDate(input.createdAt),
 });
 
 export const fromPurposeVersionV1 = (
@@ -87,7 +87,7 @@ export const fromPurposeV1 = (input: PurposeV1): Purpose => ({
   consumerId: unsafeBrandId(input.consumerId),
   versions: input.versions.map(fromPurposeVersionV1),
   isFreeOfCharge: input.isFreeOfCharge || true,
-  createdAt: new Date(Number(input.createdAt)),
+  createdAt: bigIntToDate(input.createdAt),
   updatedAt: bigIntToDateOrUndefined(input.updatedAt),
   riskAnalysisForm: input.riskAnalysisForm
     ? fromPurposeRiskAnalysisFormV1(input.riskAnalysisForm)

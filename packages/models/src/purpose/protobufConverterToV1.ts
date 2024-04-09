@@ -6,7 +6,7 @@ import {
   PurposeVersionV1,
 } from "../gen/v1/purpose/purpose.js";
 
-import { dateToBigIntOrUndefined } from "../utils.js";
+import { dateToBigInt, dateToBigIntOrUndefined } from "../utils.js";
 import {
   Purpose,
   PurposeVersion,
@@ -34,7 +34,7 @@ export const toPurposeVersionDocumentV1 = (
   input: PurposeVersionDocument
 ): PurposeVersionDocumentV1 => ({
   ...input,
-  createdAt: BigInt(input.createdAt.getTime()),
+  createdAt: dateToBigInt(input.createdAt),
 });
 
 export const toPurposeVersionV1 = (
@@ -43,7 +43,7 @@ export const toPurposeVersionV1 = (
   ...input,
   state: toPurposeVersionStateV1(input.state),
   expectedApprovalDate: dateToBigIntOrUndefined(input.expectedApprovalDate),
-  createdAt: BigInt(input.createdAt.getTime()),
+  createdAt: dateToBigInt(input.createdAt),
   updatedAt: dateToBigIntOrUndefined(input.updatedAt),
   firstActivationAt: dateToBigIntOrUndefined(input.firstActivationAt),
   suspendedAt: dateToBigIntOrUndefined(input.suspendedAt),
@@ -55,6 +55,6 @@ export const toPurposeVersionV1 = (
 export const toPurposeV1 = (input: Purpose): PurposeV1 => ({
   ...input,
   versions: input.versions.map(toPurposeVersionV1),
-  createdAt: BigInt(input.createdAt.getTime()),
+  createdAt: dateToBigInt(input.createdAt),
   updatedAt: dateToBigIntOrUndefined(input.updatedAt),
 });
