@@ -50,6 +50,7 @@ import {
   descriptorState,
   generateId,
   unsafeBrandId,
+  toAgreementStateV2,
 } from "pagopa-interop-models";
 import { IDatabase } from "pg-promise";
 import { StartedTestContainer } from "testcontainers";
@@ -72,7 +73,6 @@ import {
   notLatestEServiceDescriptor,
   tenantIdNotFound,
 } from "../src/model/domain/errors.js";
-import { toAgreementStateV2 } from "../src/model/domain/toEvent.js";
 import { ApiAgreementPayload } from "../src/model/types.js";
 import {
   AgreementService,

@@ -7,6 +7,7 @@ import {
   EService,
   Tenant,
   generateId,
+  toAgreementV2,
   toReadModelEService,
 } from "pagopa-interop-models";
 import { IDatabase } from "pg-promise";
@@ -23,7 +24,6 @@ import {
   TenantCollection,
 } from "pagopa-interop-commons";
 import { config } from "../src/utilities/config.js";
-import { toAgreementV2 } from "../src/model/domain/toEvent.js";
 
 export const writeAgreementInEventstore = async (
   agreement: Agreement,
