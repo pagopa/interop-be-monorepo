@@ -1771,7 +1771,6 @@ describe("Agreement service", () => {
   });
   describe("get agreement consumer document", () => {
     let agreement1: Agreement;
-    let agreement2: Agreement;
 
     beforeEach(async () => {
       agreement1 = {
@@ -1782,12 +1781,8 @@ describe("Agreement service", () => {
         ],
       };
 
-      agreement2 = {
-        ...buildAgreement(),
-        consumerDocuments: [],
-      };
       await addOneAgreement(agreement1, postgresDB, agreements);
-      await addOneAgreement(agreement2, postgresDB, agreements);
+      await addOneAgreement(buildAgreement(), postgresDB, agreements);
     });
 
     it("should get an agreement consumer document when the requester is the consumer or producer", async () => {
@@ -1817,7 +1812,7 @@ describe("Agreement service", () => {
     });
 
     it("should throw operationNotAllowed error when the requester is not the consumer or producer", async () => {
-      const authData = getRandomAuthData(agreement2.consumerId);
+      const authData = getRandomAuthData(generateId<TenantId>());
 
       await expect(
         agreementService.getAgreementConsumerDocument(
