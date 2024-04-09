@@ -19,6 +19,9 @@
         "transforms.PartitionRouting.type": "io.debezium.transforms.partitions.PartitionRouting",
         "transforms.PartitionRouting.partition.topic.num": 3,
         "transforms.PartitionRouting.partition.payload.fields": "change.stream_id",
-        "message.key.columns": "(.*).events:stream_id"
+        "message.key.columns": "(.*).events:stream_id",
+        "snapshot.select.statement.overrides": "SCHEMA1.events,SCHEMA2.events,...",
+        "snapshot.select.statement.overrides.SCHEMA1.events": "SELECT * FROM \"SCHEMA1\".\"events\" ORDER BY sequence_num ASC",
+        "snapshot.select.statement.overrides.SCHEMA2.events": "SELECT * FROM \"SCHEMA2\".\"events\" ORDER BY sequence_num ASC"
     }
 }
