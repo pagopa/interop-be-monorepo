@@ -1,1 +1,1 @@
-export * from "./model/generated/api.js";
+export * from "./selfcare-v2-client.js";

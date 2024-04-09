@@ -13,17 +13,18 @@
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
-    "start": "node --watch --no-warnings --loader ts-node/esm -r 'dotenv-flow/config' ./src/index.ts",
+    "start": "node --watch --no-warnings --loader ts-node/esm ./src/index.ts",
     "build": "tsc",
-    "generate-model": "mkdir -p ./src/model/generated && pnpm openapi-zod-client './open-api/selfcare-v2-client-spec.yml' -o './src/model/generated/api.ts' --api-client-name selfcareV2Client",
+    "generate-model": "mkdir -p ./src/model/generated && pnpm openapi-zod-client './open-api/selfcare-v2-client-spec.yml' -o './src/model/generated/api.ts'",
     "clean-generated": "pnpm exec rm ./src/model/generated/api.ts"
   },
-  "keywords": [],
-  "author": "",
   "license": "Apache-2.0",
   "dependencies": {
     "@zodios/core": "10.9.2",
-    "openapi-zod-client": "1.15.1",
-    "zod": "^3.21.4"
+    "pagopa-interop-models": "workspace:*",
+    "zod": "3.21.4"
+  },
+  "devDependencies": {
+    "openapi-zod-client": "1.15.1"
   }
 }
