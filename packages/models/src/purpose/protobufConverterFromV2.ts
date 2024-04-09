@@ -7,6 +7,7 @@ import {
 } from "../gen/v2/purpose/purpose.js";
 import { PurposeRiskAnalysisFormV2 } from "../gen/v2/purpose/riskAnalysis.js";
 import { PurposeRiskAnalysisForm } from "../risk-analysis/riskAnalysis.js";
+import { bigIntToDate, bigIntToDateOrUndefined } from "../utils.js";
 import {
   Purpose,
   PurposeVersion,
@@ -39,7 +40,7 @@ export const fromPurposeVersionDocumentV2 = (
 ): PurposeVersionDocument => ({
   ...input,
   id: unsafeBrandId(input.id),
-  createdAt: new Date(Number(input.createdAt)),
+  createdAt: bigIntToDate(input.createdAt),
 });
 
 export const fromPurposeVersionV2 = (
@@ -54,10 +55,10 @@ export const fromPurposeVersionV2 = (
   riskAnalysis: input.riskAnalysis
     ? fromPurposeVersionDocumentV2(input.riskAnalysis)
     : undefined,
-  createdAt: new Date(Number(input.createdAt)),
-  updatedAt: new Date(Number(input.updatedAt)),
-  firstActivationAt: new Date(Number(input.updatedAt)),
-  suspendedAt: new Date(Number(input.suspendedAt)),
+  createdAt: bigIntToDate(input.createdAt),
+  updatedAt: bigIntToDateOrUndefined(input.updatedAt),
+  firstActivationAt: bigIntToDateOrUndefined(input.firstActivationAt),
+  suspendedAt: bigIntToDateOrUndefined(input.suspendedAt),
 });
 
 export const fromPurposeRiskAnalysisFormV2 = (
@@ -85,8 +86,8 @@ export const fromPurposeV2 = (input: PurposeV2): Purpose => ({
   consumerId: unsafeBrandId(input.consumerId),
   versions: input.versions.map(fromPurposeVersionV2),
   isFreeOfCharge: input.isFreeOfCharge || true,
-  createdAt: new Date(Number(input.createdAt)),
-  updatedAt: new Date(Number(input.updatedAt)),
+  createdAt: bigIntToDate(input.createdAt),
+  updatedAt: bigIntToDateOrUndefined(input.createdAt),
   riskAnalysisForm: input.riskAnalysisForm
     ? fromPurposeRiskAnalysisFormV2(input.riskAnalysisForm)
     : undefined,
