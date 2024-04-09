@@ -35,6 +35,7 @@ import {
   toCreateEventAgreementArchivedByUpgrade,
   toCreateEventAgreementDeleted,
   toCreateEventAgreementRejected,
+  toCreateEventAgreementUpgraded,
   toCreateEventDraftAgreementUpdated,
 } from "../model/domain/toEvent.js";
 import {
@@ -654,7 +655,7 @@ export async function upgradeAgreementLogic(
           agreementToBeUpgraded.metadata.version,
           correlationId
         ),
-        toCreateEventAgreementAdded(upgraded, correlationId),
+        toCreateEventAgreementUpgraded(upgraded, correlationId),
       ],
     };
   } else {

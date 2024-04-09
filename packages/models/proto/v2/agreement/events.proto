@@ -44,6 +44,10 @@ message AgreementArchivedByUpgradeV2 {
   AgreementV2 agreement = 1;
 }
 
+message AgreementUpgradedV2 {
+  AgreementV2 agreement = 1;
+}
+
 message AgreementSuspendedByProducerV2 {
   AgreementV2 agreement = 1;
 }

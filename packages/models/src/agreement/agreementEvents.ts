@@ -26,6 +26,7 @@ import {
   AgreementUnsuspendedByConsumerV2,
   AgreementUnsuspendedByPlatformV2,
   AgreementUnsuspendedByProducerV2,
+  AgreementUpgradedV2,
   DraftAgreementUpdatedV2,
 } from "../gen/v2/agreement/events.js";
 
@@ -94,6 +95,9 @@ export function agreementEventToBinaryDataV2(
     )
     .with({ type: "AgreementArchivedByUpgrade" }, ({ data }) =>
       AgreementArchivedByUpgradeV2.toBinary(data)
+    )
+    .with({ type: "AgreementUpgraded" }, ({ data }) =>
+      AgreementUpgradedV2.toBinary(data)
     )
     .with({ type: "AgreementSuspendedByProducer" }, ({ data }) =>
       AgreementSuspendedByProducerV2.toBinary(data)
@@ -200,6 +204,11 @@ export const AgreementEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("AgreementArchivedByUpgrade"),
     data: protobufDecoder(AgreementArchivedByUpgradeV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("AgreementUpgraded"),
+    data: protobufDecoder(AgreementUpgradedV2),
   }),
   z.object({
     event_version: z.literal(2),
