@@ -31,19 +31,13 @@ async function processMessage({
   };
   ctx.correlationId = decodedMessage.correlation_id;
 
-  try {
-    await match(decodedMessage)
-      .with({ event_version: 1 }, (msg) => handleMessageV1(msg))
-      .with({ event_version: 2 }, (msg) => handleMessageV2(msg, tenants))
-      .exhaustive();
-    logger.info(
-      `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
-    );
-  } catch (e) {
-    logger.error(
-      `Error during message handling. Partition number: ${partition}. Offset: ${message.offset}, ${e}`
-    );
-  }
+  await match(decodedMessage)
+    .with({ event_version: 1 }, (msg) => handleMessageV1(msg))
+    .with({ event_version: 2 }, (msg) => handleMessageV2(msg, tenants))
+    .exhaustive();
+  logger.info(
+    `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
+  );
 }
 
 await runConsumer(config, [tenantTopic], processMessage);
