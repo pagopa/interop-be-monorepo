@@ -58,7 +58,7 @@ export async function handleMessageV1(
         await purposes.updateOne(
           { "data.id": msg.stream_id },
           {
-            $setOnInsert: {
+            $set: {
               data: msg.data.purpose
                 ? fromPurposeV1(msg.data.purpose)
                 : undefined,
