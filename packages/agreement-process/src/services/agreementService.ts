@@ -32,6 +32,7 @@ import {
 import {
   toCreateEventAgreementAdded,
   toCreateEventAgreementArchived,
+  toCreateEventAgreementArchivedByUpgrade,
   toCreateEventAgreementDeleted,
   toCreateEventAgreementRejected,
   toCreateEventDraftAgreementUpdated,
@@ -648,7 +649,7 @@ export async function upgradeAgreementLogic(
     return {
       streamId: upgraded.id,
       events: [
-        toCreateEventAgreementArchived(
+        toCreateEventAgreementArchivedByUpgrade(
           archived,
           agreementToBeUpgraded.metadata.version,
           correlationId
