@@ -44,10 +44,10 @@ export function toTenantVerifierV2(verifier: TenantVerifier): TenantVerifierV2 {
     id: verifier.id,
     verificationDate: BigInt(verifier.verificationDate.getTime()),
     expirationDate: verifier.expirationDate
-      ? BigInt(verifier.expirationDate?.getTime())
+      ? BigInt(verifier.expirationDate.getTime())
       : undefined,
     extensionDate: verifier.extensionDate
-      ? BigInt(verifier.extensionDate?.getTime())
+      ? BigInt(verifier.extensionDate.getTime())
       : undefined,
   };
 }
@@ -57,10 +57,10 @@ export function toTenantRevokerV2(revoker: TenantRevoker): TenantRevokerV2 {
     id: revoker.id,
     verificationDate: BigInt(revoker.verificationDate.getTime()),
     expirationDate: revoker.expirationDate
-      ? BigInt(revoker.expirationDate?.getTime())
+      ? BigInt(revoker.expirationDate.getTime())
       : undefined,
     extensionDate: revoker.extensionDate
-      ? BigInt(revoker.extensionDate?.getTime())
+      ? BigInt(revoker.extensionDate.getTime())
       : undefined,
     revocationDate: BigInt(revoker.revocationDate.getTime()),
   };
