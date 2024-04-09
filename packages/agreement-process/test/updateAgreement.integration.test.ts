@@ -52,7 +52,7 @@ describe("update agreement", () => {
     await addOneAgreement(agreement2, postgresDB, agreements);
   });
 
-  it("should succeed when requester is Consumer the Agreement is in an updatable state", async () => {
+  it("should succeed when requester is Consumer and the Agreement is in an updatable state", async () => {
     const authData = getRandomAuthData(agreement1.consumerId);
     await agreementService.updateAgreement(
       agreement1.id,
