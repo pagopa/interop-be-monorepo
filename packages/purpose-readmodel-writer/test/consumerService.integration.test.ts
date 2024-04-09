@@ -484,7 +484,13 @@ const getMockPurpose = (): Purpose => ({
 
 const getMockPurposeVersion = (): PurposeVersion => ({
   id: generateId(),
-  createdAt: new Date(),
   state: "Draft",
+  riskAnalysis: {
+    id: generateId(),
+    contentType: "json",
+    path: "path",
+    createdAt: new Date(),
+  },
   dailyCalls: 10,
+  createdAt: new Date(),
 });
