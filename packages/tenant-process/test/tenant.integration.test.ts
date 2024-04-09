@@ -26,7 +26,6 @@ import {
 import { IDatabase } from "pg-promise";
 import {
   Attribute,
-  CertifiedTenantAttribute,
   Descriptor,
   EService,
   Tenant,
@@ -63,13 +62,17 @@ import {
   tenantNotFound,
   verifiedAttributeNotFoundInTenant,
   expirationDateNotFoundInVerifier,
+  attributeNotFound,
+  tenantIsNotACertifier,
+  registryAttributeIdNotFound,
+  certifiedAttributeOriginIsNotCompliantWithCertifier,
+  certifiedAttributeAlreadyAssigned,
 } from "../src/model/domain/errors.js";
 import {
   ApiSelfcareTenantSeed,
   ApicertifiedTenantAttributeSeed,
 } from "../src/model/types.js";
 import { getTenantKind } from "../src/services/validators.js";
-import { bigIntReplacer } from "../../commons/src/logging/utils.js";
 import {
   addOneAgreement,
   addOneAttribute,
@@ -621,12 +624,13 @@ describe("Integration tests", () => {
         origin: requesterTenant.features[0].certifierId,
       };
 
+      const targetTenant: Tenant = { ...mockTenant, id: generateId() };
+      const mockAuthData = getMockAuthData(requesterTenant.id);
+
       it("Should add the certified attribute", async () => {
-        const targetTenant: Tenant = { ...mockTenant, id: generateId() };
         await addOneAttribute(attribute, attributes);
         await addOneTenant(targetTenant, postgresDB, tenants);
         await addOneTenant(requesterTenant, postgresDB, tenants);
-        const mockAuthData = getMockAuthData(requesterTenant.id);
         await tenantService.addCertifiedAttribute(targetTenant.id, {
           tenantAttributeSeed,
           authData: mockAuthData,
@@ -646,38 +650,143 @@ describe("Integration tests", () => {
           version: "1",
           type: "TenantCertifiedAttributeAssigned",
         });
-        const writtenPayload: TenantCertifiedAttributeAssignedV2 | undefined =
-          protobufDecoder(TenantCertifiedAttributeAssignedV2).parse(
-            writtenEvent?.data
-          );
-        const v = writtenPayload.tenant?.attributes[0]
-          .sealedValue as unknown as CertifiedTenantAttribute;
+        const writtenPayload = protobufDecoder(
+          TenantCertifiedAttributeAssignedV2
+        ).parse(writtenEvent?.data);
+
+        if (
+          writtenPayload.tenant?.attributes[0].sealedValue.oneofKind !==
+          "certifiedAttribute"
+        ) {
+          fail("attribute in writtenPayload isn't a certifiedAttribute");
+        }
+
         const updatedTenant: Tenant = {
           ...targetTenant,
           attributes: [
             {
               id: unsafeBrandId(tenantAttributeSeed.id),
               type: "PersistentCertifiedAttribute",
-              assignmentTimestamp: v.assignmentTimestamp,
+              assignmentTimestamp: new Date(
+                Number(
+                  writtenPayload.tenant.attributes[0].sealedValue
+                    .certifiedAttribute.assignmentTimestamp
+                )
+              ),
             },
           ],
-          kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
+          kind: fromTenantKindV2(writtenPayload.tenant.kind!),
           updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
         };
-
-        // new Date(
-        //   Number(
-        //     (
-        //       writtenPayload.tenant?.attributes[0]
-        //         .sealedValue as CertifiedTenantAttribute
-        //     ).assignmentTimestamp
-        //   )
-        // ),
-
-        console.log(
-          JSON.stringify(writtenPayload.tenant?.attributes, bigIntReplacer)
-        );
         expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+      });
+      it("Should throw tenant not found", async () => {
+        await addOneAttribute(attribute, attributes);
+        expect(
+          tenantService.addCertifiedAttribute(targetTenant.id, {
+            tenantAttributeSeed,
+            authData: mockAuthData,
+            correlationId,
+          })
+        ).rejects.toThrowError(tenantNotFound(requesterTenant.id));
+      });
+      it("Should throw attribute not found", async () => {
+        await addOneTenant(targetTenant, postgresDB, tenants);
+        await addOneTenant(requesterTenant, postgresDB, tenants);
+
+        expect(
+          tenantService.addCertifiedAttribute(targetTenant.id, {
+            tenantAttributeSeed,
+            authData: mockAuthData,
+            correlationId,
+          })
+        ).rejects.toThrowError(attributeNotFound(attribute.id));
+      });
+      it("Should throw tenant is not a certifier", async () => {
+        const requesterTenant: Tenant = {
+          ...mockTenant,
+          updatedAt: currentDate,
+          name: "A requesterTenant",
+        };
+        await addOneAttribute(attribute, attributes);
+        await addOneTenant(targetTenant, postgresDB, tenants);
+        await addOneTenant(requesterTenant, postgresDB, tenants);
+
+        expect(
+          tenantService.addCertifiedAttribute(targetTenant.id, {
+            tenantAttributeSeed,
+            authData: mockAuthData,
+            correlationId,
+          })
+        ).rejects.toThrowError(tenantIsNotACertifier(requesterTenant.id));
+      });
+      it("Should throw registryAttributeIdNotFound", async () => {
+        const notCertifiedAttribute: Attribute = {
+          ...attribute,
+          kind: "Declared",
+        };
+        await addOneAttribute(notCertifiedAttribute, attributes);
+        await addOneTenant(targetTenant, postgresDB, tenants);
+        await addOneTenant(requesterTenant, postgresDB, tenants);
+
+        expect(
+          tenantService.addCertifiedAttribute(targetTenant.id, {
+            tenantAttributeSeed,
+            authData: mockAuthData,
+            correlationId,
+          })
+        ).rejects.toThrowError(
+          registryAttributeIdNotFound(notCertifiedAttribute.origin!)
+        );
+      });
+      it("Should throw certifiedAttributeOriginIsNotCompliantWithCertifier", async () => {
+        const notCompliantOriginAttribute: Attribute = {
+          ...attribute,
+          origin: generateId(),
+        };
+        await addOneAttribute(notCompliantOriginAttribute, attributes);
+        await addOneTenant(targetTenant, postgresDB, tenants);
+        await addOneTenant(requesterTenant, postgresDB, tenants);
+
+        expect(
+          tenantService.addCertifiedAttribute(targetTenant.id, {
+            tenantAttributeSeed,
+            authData: mockAuthData,
+            correlationId,
+          })
+        ).rejects.toThrowError(
+          certifiedAttributeOriginIsNotCompliantWithCertifier(
+            notCompliantOriginAttribute.origin!,
+            requesterTenant.id,
+            targetTenant.id,
+            requesterTenant.features[0].certifierId
+          )
+        );
+      });
+      it("Should throw certifiedAttributeAlreadyAssigned", async () => {
+        const tenantAlreadyAssigned: Tenant = {
+          ...targetTenant,
+          attributes: [
+            {
+              id: attribute.id,
+              type: "PersistentCertifiedAttribute",
+              assignmentTimestamp: new Date(),
+              revocationTimestamp: undefined,
+            },
+          ],
+        };
+        await addOneAttribute(attribute, attributes);
+        await addOneTenant(tenantAlreadyAssigned, postgresDB, tenants);
+        await addOneTenant(requesterTenant, postgresDB, tenants);
+        expect(
+          tenantService.addCertifiedAttribute(tenantAlreadyAssigned.id, {
+            tenantAttributeSeed,
+            authData: mockAuthData,
+            correlationId,
+          })
+        ).rejects.toThrowError(
+          certifiedAttributeAlreadyAssigned(attribute.id, requesterTenant.id)
+        );
       });
     });
   });
