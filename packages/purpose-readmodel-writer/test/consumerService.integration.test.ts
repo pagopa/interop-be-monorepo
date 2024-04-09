@@ -33,7 +33,37 @@ describe("Integration tests", async () => {
   });
 
   describe("Events V1", () => {
-    it("PurposeAdded", () => {
+    it("PurposeCreated", () => {
+      expect(1).toBe(1);
+    });
+    it("PurposeVersionCreated", () => {
+      expect(1).toBe(1);
+    });
+    it("PurposeUpdated", () => {
+      expect(1).toBe(1);
+    });
+    it("PurposeVersionActivated", () => {
+      expect(1).toBe(1);
+    });
+    it("PurposeVersionSuspended", () => {
+      expect(1).toBe(1);
+    });
+    it("PurposeVersionArchived", () => {
+      expect(1).toBe(1);
+    });
+    it("PurposeVersionWaitedForApproval", () => {
+      expect(1).toBe(1);
+    });
+    it("PurposeVersionRejected", () => {
+      expect(1).toBe(1);
+    });
+    it("PurposeVersionUpdated", () => {
+      expect(1).toBe(1);
+    });
+    it("PurposeDeleted", () => {
+      expect(1).toBe(1);
+    });
+    it("PurposeVersionDeleted", () => {
       expect(1).toBe(1);
     });
   });
