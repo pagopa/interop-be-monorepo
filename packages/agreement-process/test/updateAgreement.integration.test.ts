@@ -6,14 +6,12 @@ import {
   randomArrayItem,
 } from "pagopa-interop-commons-test";
 import {
-  Agreement,
   AgreementId,
   AgreementUpdatedV1,
-  TenantId,
   agreementState,
   generateId,
 } from "pagopa-interop-models";
-import { beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { v4 as uuidv4 } from "uuid";
 import { toAgreementV1 } from "../src/model/domain/toEvent.js";
 import {
@@ -30,39 +28,22 @@ import {
 } from "./agreementService.test.setup.js";
 
 describe("update agreement", () => {
-  let agreement1: Agreement;
-  let agreement2: Agreement;
-
-  beforeEach(async () => {
-    agreement1 = {
+  it("should succeed when requester is Consumer and the Agreement is in an updatable state", async () => {
+    const agreement = {
       ...getMockAgreement(),
       state: randomArrayItem(agreementUpdatableStates),
     };
-
-    agreement2 = {
-      ...getMockAgreement(),
-      state: randomArrayItem(
-        Object.values(agreementState).filter(
-          (s) => !agreementUpdatableStates.includes(s)
-        )
-      ),
-    };
-
-    await addOneAgreement(agreement1, postgresDB, agreements);
-    await addOneAgreement(agreement2, postgresDB, agreements);
-  });
-
-  it("should succeed when requester is Consumer and the Agreement is in an updatable state", async () => {
-    const authData = getRandomAuthData(agreement1.consumerId);
+    await addOneAgreement(agreement, postgresDB, agreements);
+    const authData = getRandomAuthData(agreement.consumerId);
     await agreementService.updateAgreement(
-      agreement1.id,
+      agreement.id,
       { consumerNotes: "Updated consumer notes" },
       authData,
       uuidv4()
     );
 
     const agreementEvent = await readLastAgreementEvent(
-      agreement1.id,
+      agreement.id,
       postgresDB
     );
 
@@ -70,7 +51,7 @@ describe("update agreement", () => {
       type: "AgreementUpdated",
       event_version: 1,
       version: "0",
-      stream_id: agreement1.id,
+      stream_id: agreement.id,
     });
 
     const actualAgreementUptaded = decodeProtobufPayload({
@@ -79,13 +60,13 @@ describe("update agreement", () => {
     }).agreement;
 
     expect(actualAgreementUptaded).toMatchObject({
-      ...toAgreementV1(agreement1),
+      ...toAgreementV1(agreement),
       consumerNotes: "Updated consumer notes",
     });
   });
 
   it("should throw an agreementNotFound error when the agreement does not exist", async () => {
-    const authData = getRandomAuthData(agreement1.consumerId);
+    const authData = getRandomAuthData();
     const agreementId = generateId<AgreementId>();
     await expect(
       agreementService.updateAgreement(
@@ -98,10 +79,12 @@ describe("update agreement", () => {
   });
 
   it("should throw operationNotAllowed when the requester is not the Consumer", async () => {
-    const authData = getRandomAuthData(generateId<TenantId>());
+    const authData = getRandomAuthData();
+    const agreement = getMockAgreement();
+    await addOneAgreement(agreement, postgresDB, agreements);
     await expect(
       agreementService.updateAgreement(
-        agreement1.id,
+        agreement.id,
         { consumerNotes: "Updated consumer notes" },
         authData,
         uuidv4()
@@ -110,16 +93,25 @@ describe("update agreement", () => {
   });
 
   it("should throw agreementNotInExpectedState when the agreement is not in an updatable state", async () => {
-    const authData = getRandomAuthData(agreement2.consumerId);
+    const agreement = {
+      ...getMockAgreement(),
+      state: randomArrayItem(
+        Object.values(agreementState).filter(
+          (s) => !agreementUpdatableStates.includes(s)
+        )
+      ),
+    };
+    await addOneAgreement(agreement, postgresDB, agreements);
+    const authData = getRandomAuthData(agreement.consumerId);
     await expect(
       agreementService.updateAgreement(
-        agreement2.id,
+        agreement.id,
         { consumerNotes: "Updated consumer notes" },
         authData,
         uuidv4()
       )
     ).rejects.toThrowError(
-      agreementNotInExpectedState(agreement2.id, agreement2.state)
+      agreementNotInExpectedState(agreement.id, agreement.state)
     );
   });
 });
