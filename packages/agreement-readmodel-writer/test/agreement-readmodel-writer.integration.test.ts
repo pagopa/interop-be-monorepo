@@ -70,7 +70,7 @@ describe("database test", async () => {
       await handleMessageV1(message, agreements);
 
       const agreement = await agreements.findOne({
-        "data.id": id.toString,
+        "data.id": id.toString(),
       });
 
       expect(agreement?.data).toMatchObject({
