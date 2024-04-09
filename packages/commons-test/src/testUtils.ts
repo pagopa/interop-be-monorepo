@@ -4,7 +4,6 @@ import {
   AgreementState,
   Attribute,
   AttributeId,
-  AttributeKind,
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
   Descriptor,
@@ -16,8 +15,8 @@ import {
   TenantAttribute,
   TenantId,
   VerifiedTenantAttribute,
-  agreementState,
   attributeKind,
+  agreementState,
   descriptorState,
   generateId,
   tenantAttributeType,
@@ -137,10 +136,12 @@ export const buildAgreement = (
   state,
 });
 
-export const getMockAttribute = (
-  kind: AttributeKind = attributeKind.certified
-): Attribute => ({
-  ...generateMock(Attribute),
+export const getMockAttribute = (): Attribute => ({
+  id: generateId(),
+  name: "attribute name",
+  kind: attributeKind.certified,
+  description: "attribute description",
   creationTime: new Date(),
-  kind,
+  code: undefined,
+  origin: undefined,
 });
