@@ -19,11 +19,11 @@
   "devDependencies": {
     "@anatine/zod-mock": "3.13.4",
     "@pagopa/eslint-config": "3.0.0",
-    "@protobuf-ts/runtime": "2.9.1",
+    "@protobuf-ts/runtime": "2.9.4",
     "@testcontainers/postgresql": "10.2.2",
     "@types/jsonwebtoken": "9.0.6",
     "@types/uuid": "9.0.2",
-    "@zodios/core": "10.9.2",
+    "@zodios/core": "10.9.6",
     "jsonwebtoken": "9.0.2",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
