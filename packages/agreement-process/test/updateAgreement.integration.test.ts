@@ -9,6 +9,7 @@ import {
   Agreement,
   AgreementId,
   AgreementUpdatedV1,
+  TenantId,
   agreementState,
   generateId,
 } from "pagopa-interop-models";
@@ -97,7 +98,7 @@ describe("update agreement", () => {
   });
 
   it("should throw operationNotAllowed when the requester is not the Consumer", async () => {
-    const authData = getRandomAuthData(agreement2.consumerId);
+    const authData = getRandomAuthData(generateId<TenantId>());
     await expect(
       agreementService.updateAgreement(
         agreement1.id,

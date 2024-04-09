@@ -38,6 +38,7 @@ export const getRandomAuthData = (
   organizationId: TenantId = generateId<TenantId>()
 ): AuthData => ({
   ...generateMock(AuthData),
+  userRoles: ["admin"],
   organizationId,
 });
 
