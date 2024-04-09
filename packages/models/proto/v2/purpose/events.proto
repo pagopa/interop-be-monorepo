@@ -37,22 +37,22 @@ message PurposeVersionActivatedV2 {
   PurposeV2 purpose = 1;
 }
 
-message PurposeVersionUnsuspenedByProducerV2 {
+message PurposeVersionUnsuspendedByProducerV2 {
   string versionId = 1;
   PurposeV2 purpose = 2;
 }
 
-message PurposeVersionUnsuspenedByConsumerV2 {
+message PurposeVersionUnsuspendedByConsumerV2 {
   string versionId = 1;
   PurposeV2 purpose = 2;
 }
 
-message PurposeVersionSuspenedByProducerV2 {
+message PurposeVersionSuspendedByProducerV2 {
   string versionId = 1;
   PurposeV2 purpose = 2;
 }
 
-message PurposeVersionSuspenedByConsumerV2 {
+message PurposeVersionSuspendedByConsumerV2 {
   string versionId = 1;
   PurposeV2 purpose = 2;
 }

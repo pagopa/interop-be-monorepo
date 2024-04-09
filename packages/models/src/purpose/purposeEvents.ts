@@ -24,10 +24,10 @@ import {
   WaitingForApprovalPurposeDeletedV2,
   NewPurposeVersionActivatedV2,
   PurposeVersionActivatedV2,
-  PurposeVersionUnsuspenedByProducerV2,
-  PurposeVersionUnsuspenedByConsumerV2,
-  PurposeVersionSuspenedByProducerV2,
-  PurposeVersionSuspenedByConsumerV2,
+  PurposeVersionUnsuspendedByProducerV2,
+  PurposeVersionUnsuspendedByConsumerV2,
+  PurposeVersionSuspendedByProducerV2,
+  PurposeVersionSuspendedByConsumerV2,
   NewPurposeVersionWaitingForApprovalV2,
   PurposeVersionOverQuotaUnsuspendedV2,
   PurposeArchivedV2,
@@ -104,17 +104,17 @@ export function purposeEventToBinaryDataV2(event: PurposeEventV2): Uint8Array {
     .with({ type: "PurposeVersionActivated" }, ({ data }) =>
       PurposeVersionActivatedV2.toBinary(data)
     )
-    .with({ type: "PurposeVersionUnsuspenedByProducer" }, ({ data }) =>
-      PurposeVersionUnsuspenedByProducerV2.toBinary(data)
+    .with({ type: "PurposeVersionUnsuspendedByProducer" }, ({ data }) =>
+      PurposeVersionUnsuspendedByProducerV2.toBinary(data)
     )
-    .with({ type: "PurposeVersionUnsuspenedByConsumer" }, ({ data }) =>
-      PurposeVersionUnsuspenedByConsumerV2.toBinary(data)
+    .with({ type: "PurposeVersionUnsuspendedByConsumer" }, ({ data }) =>
+      PurposeVersionUnsuspendedByConsumerV2.toBinary(data)
     )
-    .with({ type: "PurposeVersionSuspenedByProducer" }, ({ data }) =>
-      PurposeVersionSuspenedByProducerV2.toBinary(data)
+    .with({ type: "PurposeVersionSuspendedByProducer" }, ({ data }) =>
+      PurposeVersionSuspendedByProducerV2.toBinary(data)
     )
-    .with({ type: "PurposeVersionSuspenedByConsumer" }, ({ data }) =>
-      PurposeVersionSuspenedByConsumerV2.toBinary(data)
+    .with({ type: "PurposeVersionSuspendedByConsumer" }, ({ data }) =>
+      PurposeVersionSuspendedByConsumerV2.toBinary(data)
     )
     .with({ type: "NewPurposeVersionWaitingForApproval" }, ({ data }) =>
       NewPurposeVersionWaitingForApprovalV2.toBinary(data)
@@ -236,23 +236,23 @@ export const PurposeEventV2 = z.discriminatedUnion("type", [
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("PurposeVersionUnsuspenedByProducer"),
-    data: protobufDecoder(PurposeVersionUnsuspenedByProducerV2),
+    type: z.literal("PurposeVersionUnsuspendedByProducer"),
+    data: protobufDecoder(PurposeVersionUnsuspendedByProducerV2),
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("PurposeVersionUnsuspenedByConsumer"),
-    data: protobufDecoder(PurposeVersionUnsuspenedByConsumerV2),
+    type: z.literal("PurposeVersionUnsuspendedByConsumer"),
+    data: protobufDecoder(PurposeVersionUnsuspendedByConsumerV2),
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("PurposeVersionSuspenedByProducer"),
-    data: protobufDecoder(PurposeVersionSuspenedByProducerV2),
+    type: z.literal("PurposeVersionSuspendedByProducer"),
+    data: protobufDecoder(PurposeVersionSuspendedByProducerV2),
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("PurposeVersionSuspenedByConsumer"),
-    data: protobufDecoder(PurposeVersionSuspenedByConsumerV2),
+    type: z.literal("PurposeVersionSuspendedByConsumer"),
+    data: protobufDecoder(PurposeVersionSuspendedByConsumerV2),
   }),
   z.object({
     event_version: z.literal(2),
