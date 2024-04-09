@@ -229,6 +229,25 @@ export function toCreateEventAgreementArchived(
   };
 }
 
+export function toCreateEventAgreementArchivedByUpgrade(
+  agreement: Agreement,
+  version: number,
+  correlationId: string
+): CreateEvent<AgreementEventV2> {
+  return {
+    streamId: agreement.id,
+    version,
+    event: {
+      type: "AgreementArchivedByUpgrade",
+      event_version: 2,
+      data: {
+        agreement: toAgreementV2(agreement),
+      },
+    },
+    correlationId,
+  };
+}
+
 export function toCreateEventAgreementUpdated(
   agreement: Agreement,
   version: number,
