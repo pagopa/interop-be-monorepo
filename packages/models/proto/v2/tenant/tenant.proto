@@ -53,20 +53,18 @@ message CertifierV2 {
 }
 
 message TenantVerifierV2 {
-  reserved 3;
   string id = 1;
   int64 verificationDate = 2;
-  optional int64 expirationDate = 4;
-  optional int64 extensionDate = 5;
+  optional int64 expirationDate = 3;
+  optional int64 extensionDate = 4;
 }
 
 message TenantRevokerV2 {
-  reserved 3;
   string id = 1;
   int64 verificationDate = 2;
-  optional int64 expirationDate = 4;
-  optional int64 extensionDate = 5;
-  int64 revocationDate = 6;
+  optional int64 expirationDate = 3;
+  optional int64 extensionDate = 4;
+  int64 revocationDate = 5;
 }
 
 message ExternalIdV2 {
