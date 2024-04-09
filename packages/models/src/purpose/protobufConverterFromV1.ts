@@ -59,7 +59,9 @@ export const fromPurposeVersionV1 = (
     : undefined,
   createdAt: new Date(Number(input.createdAt)),
   updatedAt: input.updatedAt ? new Date(Number(input.updatedAt)) : undefined,
-  firstActivationAt: new Date(Number(input.updatedAt)),
+  firstActivationAt: input.firstActivationAt
+    ? new Date(Number(input.firstActivationAt))
+    : undefined,
   suspendedAt: input.suspendedAt
     ? new Date(Number(input.suspendedAt))
     : undefined,
