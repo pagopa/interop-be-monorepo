@@ -2,6 +2,7 @@ import { generateMock } from "@anatine/zod-mock";
 import {
   Agreement,
   AgreementState,
+  Attribute,
   AttributeId,
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
@@ -14,6 +15,7 @@ import {
   TenantAttribute,
   TenantId,
   VerifiedTenantAttribute,
+  attributeKind,
   descriptorState,
   generateId,
   tenantAttributeType,
@@ -131,4 +133,14 @@ export const buildAgreement = (
   eserviceId,
   consumerId,
   state,
+});
+
+export const getMockAttribute = (): Attribute => ({
+  id: generateId(),
+  name: "attribute name",
+  kind: attributeKind.certified,
+  description: "attribute description",
+  creationTime: new Date(),
+  code: undefined,
+  origin: undefined,
 });
