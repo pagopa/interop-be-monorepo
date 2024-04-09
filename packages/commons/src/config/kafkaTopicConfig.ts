@@ -44,10 +44,22 @@ export type AttributeTopicConfig = z.infer<typeof AttributeTopicConfig>;
 export const attributeTopicConfig: () => AttributeTopicConfig = () =>
   AttributeTopicConfig.parse(process.env);
 
+export const PurposeTopicConfig = z
+  .object({
+    PURPOSE_TOPIC: z.string(),
+  })
+  .transform((c) => ({
+    purposeTopic: c.PURPOSE_TOPIC,
+  }));
+export type PurposeTopicConfig = z.infer<typeof PurposeTopicConfig>;
+export const purposeTopicConfig: () => PurposeTopicConfig = () =>
+  PurposeTopicConfig.parse(process.env);
+
 export const KafkaTopicConfig = z.union([
   CatalogTopicConfig,
   AgreementTopicConfig,
   TenantTopicConfig,
   AttributeTopicConfig,
+  PurposeTopicConfig,
 ]);
 export type KafkaTopicConfig = z.infer<typeof KafkaTopicConfig>;
