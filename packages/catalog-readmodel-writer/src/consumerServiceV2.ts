@@ -1,4 +1,4 @@
-import { EServiceCollection, logger } from "pagopa-interop-commons";
+import { EServiceCollection } from "pagopa-interop-commons";
 import {
   EServiceEventEnvelopeV2,
   fromEServiceV2,
@@ -10,8 +10,6 @@ export async function handleMessageV2(
   message: EServiceEventEnvelopeV2,
   eservices: EServiceCollection
 ): Promise<void> {
-  logger.info(message);
-
   const eservice = message.data.eservice;
 
   await match(message)
