@@ -2,12 +2,12 @@ import { z } from "zod";
 import { genericError } from "pagopa-interop-models";
 import { createApiClient } from "../../model/generated/api.js";
 
-const SelfCareConfigSchema = z.object({
+const SelfCareConfig = z.object({
   SELFCARE_V2_URL: z.string(),
   SELFCARE_V2_API_KEY: z.string(),
 });
 
-const selfCareConfig = SelfCareConfigSchema.safeParse(process.env);
+const selfCareConfig = SelfCareConfig.safeParse(process.env);
 if (!selfCareConfig.success) {
   const invalidEnvVars = selfCareConfig.error.issues.flatMap(
     (issue) => issue.path
