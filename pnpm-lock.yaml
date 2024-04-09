@@ -4838,6 +4838,16 @@ packages:
       pretty-format: 29.6.1
     dev: true
 
+  /@zodios/core@10.9.2(axios@1.4.0)(zod@3.21.4):
+    resolution: {integrity: sha512-aY8FgE6Y+91oBaMfTnqibGoHO62OiKKHoiQAq76PYJbU7InFeWsSRhpnBwpibWopRjz45AlqojxKo3QeSAYC7w==}
+    peerDependencies:
+      axios: ^0.x || ^1.0.0
+      zod: ^3.x
+    dependencies:
+      axios: 1.4.0
+      zod: 3.21.4
+    dev: false
+
   /@zodios/core@10.9.6(axios@1.4.0)(zod@3.21.4):
     resolution: {integrity: sha512-aH4rOdb3AcezN7ws8vDgBfGboZMk2JGGzEq/DtW65MhnRxyTGRuLJRWVQ/2KxDgWvV2F5oTkAS+5pnjKbl0n+A==}
     peerDependencies:
@@ -4855,6 +4865,18 @@ packages:
     dependencies:
       axios: 1.6.5
       zod: 3.21.4
+
+  /@zodios/express@10.6.1(@zodios/core@10.9.2)(express@4.18.2)(zod@3.21.4):
+    resolution: {integrity: sha512-FNgOq8mvwvWP5B2howMKGm6EPp6i/0XFAsQnX5Ov3MLbanzD1oE4WJtBkTL3cmJYvD0nyykbWSeHOh51bCmhUA==}
+    peerDependencies:
+      '@zodios/core': '>=10.4.4 <11.0.0'
+      express: 4.x
+      zod: ^3.x
+    dependencies:
+      '@zodios/core': 10.9.2(axios@1.4.0)(zod@3.21.4)
+      express: 4.18.2
+      zod: 3.21.4
+    dev: false
 
   /@zodios/express@10.6.1(@zodios/core@10.9.6)(express@4.18.2)(zod@3.21.4):
     resolution: {integrity: sha512-FNgOq8mvwvWP5B2howMKGm6EPp6i/0XFAsQnX5Ov3MLbanzD1oE4WJtBkTL3cmJYvD0nyykbWSeHOh51bCmhUA==}
