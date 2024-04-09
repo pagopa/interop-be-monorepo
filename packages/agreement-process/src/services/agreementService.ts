@@ -56,6 +56,7 @@ import {
   agreementUpgradableStates,
   agreementCloningConflictingStates,
   agreementRejectableStates,
+  agreementArchivableStates,
 } from "../model/domain/validators.js";
 import {
   CompactEService,
@@ -892,6 +893,11 @@ export async function archiveAgreementLogic(
   const agreement = await agreementQuery.getAgreementById(agreementId);
   assertAgreementExist(agreementId, agreement);
   assertRequesterIsConsumer(agreement.data, authData);
+  assertExpectedState(
+    agreementId,
+    agreement.data.state,
+    agreementArchivableStates
+  );
 
   const updateSeed = {
     ...agreement.data,
