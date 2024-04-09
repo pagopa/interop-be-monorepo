@@ -4790,6 +4790,16 @@ packages:
       pretty-format: 29.6.1
     dev: true
 
+  /@zodios/core@10.9.2(axios@1.4.0)(zod@3.21.4):
+    resolution: {integrity: sha512-aY8FgE6Y+91oBaMfTnqibGoHO62OiKKHoiQAq76PYJbU7InFeWsSRhpnBwpibWopRjz45AlqojxKo3QeSAYC7w==}
+    peerDependencies:
+      axios: ^0.x || ^1.0.0
+      zod: ^3.x
+    dependencies:
+      axios: 1.4.0
+      zod: 3.21.4
+    dev: false
+
   /@zodios/core@10.9.6(axios@1.4.0)(zod@3.21.4):
     resolution: {integrity: sha512-aH4rOdb3AcezN7ws8vDgBfGboZMk2JGGzEq/DtW65MhnRxyTGRuLJRWVQ/2KxDgWvV2F5oTkAS+5pnjKbl0n+A==}
     peerDependencies:
