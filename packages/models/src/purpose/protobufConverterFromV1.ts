@@ -7,6 +7,7 @@ import {
 import { RiskAnalysisId, unsafeBrandId } from "../brandedIds.js";
 import { PurposeRiskAnalysisForm } from "../risk-analysis/riskAnalysis.js";
 import { PurposeRiskAnalysisFormV1 } from "../gen/v1/purpose/riskAnalysis.js";
+import { bigIntToDate, bigIntToDateOrUndefined } from "../utils.js";
 import {
   Purpose,
   PurposeVersion,
@@ -42,7 +43,7 @@ export const fromPurposeVersionDocumentV1 = (
 ): PurposeVersionDocument => ({
   ...input,
   id: unsafeBrandId(input.id),
-  createdAt: new Date(Number(input.createdAt)),
+  createdAt: bigIntToDate(input.createdAt),
 });
 
 export const fromPurposeVersionV1 = (
@@ -51,18 +52,14 @@ export const fromPurposeVersionV1 = (
   ...input,
   id: unsafeBrandId(input.id),
   state: fromPurposeVersionStateV1(input.state),
-  expectedApprovalDate: input.expectedApprovalDate
-    ? new Date(Number(input.expectedApprovalDate))
-    : undefined,
+  expectedApprovalDate: bigIntToDateOrUndefined(input.expectedApprovalDate),
   riskAnalysis: input.riskAnalysis
     ? fromPurposeVersionDocumentV1(input.riskAnalysis)
     : undefined,
-  createdAt: new Date(Number(input.createdAt)),
-  updatedAt: input.updatedAt ? new Date(Number(input.updatedAt)) : undefined,
-  firstActivationAt: new Date(Number(input.updatedAt)),
-  suspendedAt: input.suspendedAt
-    ? new Date(Number(input.suspendedAt))
-    : undefined,
+  createdAt: bigIntToDate(input.createdAt),
+  updatedAt: bigIntToDateOrUndefined(input.updatedAt),
+  firstActivationAt: bigIntToDateOrUndefined(input.firstActivationAt),
+  suspendedAt: bigIntToDateOrUndefined(input.suspendedAt),
 });
 
 export const fromPurposeRiskAnalysisFormV1 = (
@@ -90,8 +87,8 @@ export const fromPurposeV1 = (input: PurposeV1): Purpose => ({
   consumerId: unsafeBrandId(input.consumerId),
   versions: input.versions.map(fromPurposeVersionV1),
   isFreeOfCharge: input.isFreeOfCharge || true,
-  createdAt: new Date(Number(input.createdAt)),
-  updatedAt: input.updatedAt ? new Date(Number(input.updatedAt)) : undefined,
+  createdAt: bigIntToDate(input.createdAt),
+  updatedAt: bigIntToDateOrUndefined(input.updatedAt),
   riskAnalysisForm: input.riskAnalysisForm
     ? fromPurposeRiskAnalysisFormV1(input.riskAnalysisForm)
     : undefined,
