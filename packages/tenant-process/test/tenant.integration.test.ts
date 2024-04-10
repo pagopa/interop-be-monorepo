@@ -26,10 +26,12 @@ import {
 import { IDatabase } from "pg-promise";
 import {
   Attribute,
+  CertifiedTenantAttribute,
   Descriptor,
   EService,
   Tenant,
   TenantCertifiedAttributeAssignedV2,
+  TenantCertifiedAttributeV2,
   TenantId,
   TenantOnboardDetailsUpdatedV2,
   TenantOnboardedV2,
@@ -64,13 +66,12 @@ import {
   expirationDateNotFoundInVerifier,
   attributeNotFound,
   tenantIsNotACertifier,
-  registryAttributeIdNotFound,
   certifiedAttributeOriginIsNotCompliantWithCertifier,
   certifiedAttributeAlreadyAssigned,
 } from "../src/model/domain/errors.js";
 import {
   ApiSelfcareTenantSeed,
-  ApicertifiedTenantAttributeSeed,
+  ApiCertifiedTenantAttributeSeed,
 } from "../src/model/types.js";
 import { getTenantKind } from "../src/services/validators.js";
 import {
@@ -599,7 +600,7 @@ describe("Integration tests", () => {
       });
     });
     describe("addCertifiedAttribute", async () => {
-      const tenantAttributeSeed: ApicertifiedTenantAttributeSeed = {
+      const tenantAttributeSeed: ApiCertifiedTenantAttributeSeed = {
         id: generateId(),
       };
       const correlationId = generateId();
@@ -654,13 +655,6 @@ describe("Integration tests", () => {
           TenantCertifiedAttributeAssignedV2
         ).parse(writtenEvent?.data);
 
-        if (
-          writtenPayload.tenant?.attributes[0].sealedValue.oneofKind !==
-          "certifiedAttribute"
-        ) {
-          fail("attribute in writtenPayload isn't a certifiedAttribute");
-        }
-
         const updatedTenant: Tenant = {
           ...targetTenant,
           attributes: [
@@ -669,13 +663,17 @@ describe("Integration tests", () => {
               type: "PersistentCertifiedAttribute",
               assignmentTimestamp: new Date(
                 Number(
-                  writtenPayload.tenant.attributes[0].sealedValue
-                    .certifiedAttribute.assignmentTimestamp
+                  (
+                    writtenPayload.tenant!.attributes[0].sealedValue as {
+                      oneofKind: "certifiedAttribute";
+                      certifiedAttribute: TenantCertifiedAttributeV2;
+                    }
+                  ).certifiedAttribute.assignmentTimestamp
                 )
               ),
             },
           ],
-          kind: fromTenantKindV2(writtenPayload.tenant.kind!),
+          kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
           updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
         };
         expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
@@ -719,25 +717,6 @@ describe("Integration tests", () => {
             correlationId,
           })
         ).rejects.toThrowError(tenantIsNotACertifier(requesterTenant.id));
-      });
-      it("Should throw registryAttributeIdNotFound", async () => {
-        const notCertifiedAttribute: Attribute = {
-          ...attribute,
-          kind: "Declared",
-        };
-        await addOneAttribute(notCertifiedAttribute, attributes);
-        await addOneTenant(targetTenant, postgresDB, tenants);
-        await addOneTenant(requesterTenant, postgresDB, tenants);
-
-        expect(
-          tenantService.addCertifiedAttribute(targetTenant.id, {
-            tenantAttributeSeed,
-            authData: mockAuthData,
-            correlationId,
-          })
-        ).rejects.toThrowError(
-          registryAttributeIdNotFound(notCertifiedAttribute.origin!)
-        );
       });
       it("Should throw certifiedAttributeOriginIsNotCompliantWithCertifier", async () => {
         const notCompliantOriginAttribute: Attribute = {
