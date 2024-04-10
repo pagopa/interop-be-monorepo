@@ -57,6 +57,11 @@ const purposeRouter = (
       (_req, res) => res.status(501).send()
     )
     .post(
+      "/purposes/:purposeId/versions/:versionId/reject",
+      authorizationMiddleware([ADMIN_ROLE]),
+      (_req, res) => res.status(501).send()
+    )
+    .post(
       "/purposes/:purposeId/versions/:versionId/activate",
       authorizationMiddleware([ADMIN_ROLE]),
       (_req, res) => res.status(501).send()
