@@ -99,11 +99,13 @@ const initConsumer = async (
     ? {
         clientId: config.kafkaClientId,
         brokers: [config.kafkaBrokers],
+        logLevel: config.kafkaLogLevel,
         ssl: false,
       }
     : {
         clientId: config.kafkaClientId,
         brokers: [config.kafkaBrokers],
+        logLevel: config.kafkaLogLevel,
         ssl: true,
         sasl: createMechanism({
           region: config.awsRegion,
