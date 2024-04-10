@@ -805,6 +805,15 @@ paths:
             default: []
           explode: false
         - in: query
+          name: states
+          description: comma separated sequence of states
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/AgreementState"
+            default: []
+          explode: false
+        - in: query
           name: offset
           required: true
           schema:
