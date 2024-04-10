@@ -21,12 +21,10 @@ const errorCodes = {
   organizationNotFoundInVerifiers: "0011",
   expirationDateNotFoundInVerifier: "0012",
   tenantIsNotACertifier: "0013",
-  registryAttributeIdNotFound: "0014",
-  certifiedAttributeOriginIsNotCompliantWithCertifier: "0015",
-  certifiedAttributeNotFoundInTenant: "0016",
-  certifiedAttributeAlreadyAssigned: "0017",
-  certifierNotFound: "0018",
-  declaredAttributeNotFound: "0019",
+  certifiedAttributeOriginIsNotCompliantWithCertifier: "0014",
+  certifiedAttributeAlreadyAssigned: "0015",
+  certifierNotFound: "0016",
+  declaredAttributeNotFound: "0017",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -92,17 +90,6 @@ export function verifiedAttributeNotFoundInTenant(
     detail: `Verified attribute ${attributeId} not found in tenant ${tenantId}`,
     code: "verifiedAttributeNotFoundInTenant",
     title: "Verified attribute not found in tenant",
-  });
-}
-
-export function certifiedAttributeNotFoundInTenant(
-  tenantId: TenantId,
-  attributeId: AttributeId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Certified attribute ${attributeId} not found in tenant ${tenantId}`,
-    code: "certifiedAttributeNotFoundInTenant",
-    title: "Certified attribute not found in tenant",
   });
 }
 
@@ -180,16 +167,6 @@ export function certifierNotFound(certifierId: string): ApiError<ErrorCodes> {
     detail: `Certifier ${certifierId} not found`,
     code: "certifierNotFound",
     title: "Certifier Not Found",
-  });
-}
-
-export function registryAttributeIdNotFound(
-  origin: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Attribute ${origin} not found in registry`,
-    code: "registryAttributeIdNotFound",
-    title: "Registry AttributeId Not Found",
   });
 }
 
