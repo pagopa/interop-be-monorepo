@@ -87,7 +87,7 @@ export const fromPurposeV2 = (input: PurposeV2): Purpose => ({
   versions: input.versions.map(fromPurposeVersionV2),
   isFreeOfCharge: input.isFreeOfCharge,
   createdAt: bigIntToDate(input.createdAt),
-  updatedAt: bigIntToDateOrUndefined(input.createdAt),
+  updatedAt: bigIntToDateOrUndefined(input.updatedAt),
   riskAnalysisForm: input.riskAnalysisForm
     ? fromPurposeRiskAnalysisFormV2(input.riskAnalysisForm)
     : undefined,
