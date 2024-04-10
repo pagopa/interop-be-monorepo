@@ -1,9 +1,7 @@
 import { AuthData, DB, eventRepository, logger } from "pagopa-interop-commons";
 import {
-  Attribute,
   AttributeId,
   CertifiedTenantAttribute,
-  DeclaredTenantAttribute,
   ListResult,
   Tenant,
   TenantAttribute,
@@ -359,7 +357,11 @@ export function tenantServiceBuilder(
         throw certifiedAttributeAlreadyAssigned(attribute.id, organizationId);
       } else {
         // re-assigning attribute if it was revoked
-        reAssignAttribute({ updatedTenant, targetTenant, attribute });
+        reAssignAttribute({
+          updatedTenant,
+          targetTenant,
+          attributeId: attribute.id,
+        });
       }
 
       const tenantKind = await getTenantKindLoadingCertifiedAttributes(
@@ -403,14 +405,8 @@ export function tenantServiceBuilder(
         readModelService
       );
 
-      const declaredTenantAttribute = targetTenant.data.attributes.find(
-        (attr) =>
-          attr.type === tenantAttributeType.DECLARED &&
-          attr.id === tenantAttributeSeed.id
-      ) as DeclaredTenantAttribute;
-
-      const attribute = await readModelService.getAttributeById(
-        unsafeBrandId(declaredTenantAttribute.id)
+      const maybeDeclaredTenantAttribute = targetTenant.data.attributes.find(
+        (attr) => attr.id === tenantAttributeSeed.id
       );
 
       // eslint-disable-next-line functional/no-let
@@ -418,37 +414,41 @@ export function tenantServiceBuilder(
         ...targetTenant.data,
         updatedAt: new Date(),
       };
-      if (!declaredTenantAttribute) {
+      if (!maybeDeclaredTenantAttribute) {
         // assigning attribute for the first time
         updatedTenant = {
           ...updatedTenant,
           attributes: [
             ...targetTenant.data.attributes,
             {
-              id: attribute.id,
+              id: unsafeBrandId(tenantAttributeSeed.id),
               type: tenantAttributeType.DECLARED,
               assignmentTimestamp: new Date(),
               revocationTimestamp: undefined,
             },
           ],
         };
-      } else if (
-        declaredTenantAttribute.type !== "PersistentDeclaredAttribute"
-      ) {
-        throw declaredAttributeNotFound(attribute.id, authData.organizationId);
       } else {
+        if (
+          maybeDeclaredTenantAttribute.type !== "PersistentDeclaredAttribute"
+        ) {
+          throw declaredAttributeNotFound(
+            unsafeBrandId(tenantAttributeSeed.id),
+            authData.organizationId
+          );
+        }
         // re-assigning attribute if it was revoked
         updatedTenant = reAssignAttribute({
           updatedTenant,
           targetTenant,
-          attribute,
+          attributeId: unsafeBrandId(tenantAttributeSeed.id),
         });
       }
       const event = toTenantDeclaredAttributeAssigned(
         targetTenant.data.id,
         targetTenant.metadata.version,
         updatedTenant,
-        attribute.id,
+        unsafeBrandId(tenantAttributeSeed.id),
         correlationId
       );
       await repository.createEvent(event);
@@ -551,16 +551,16 @@ export function tenantServiceBuilder(
 export function reAssignAttribute({
   updatedTenant,
   targetTenant,
-  attribute,
+  attributeId,
 }: {
   updatedTenant: Tenant;
   targetTenant: WithMetadata<Tenant>;
-  attribute: Attribute;
+  attributeId: AttributeId;
 }): Tenant {
   return {
     ...updatedTenant,
     attributes: targetTenant.data.attributes.map((a) =>
-      a.id === attribute.id
+      a.id === attributeId
         ? {
             ...a,
             assignmentTimestamp: new Date(),
