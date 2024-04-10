@@ -27,11 +27,9 @@ import {
   Descriptor,
   EService,
   Tenant,
-  TenantCreatedV1,
   TenantId,
   TenantOnboardDetailsUpdatedV2,
   TenantOnboardedV2,
-  TenantUpdatedV1,
   TenantVerifiedAttributeExpirationUpdatedV2,
   TenantVerifiedAttributeExtensionUpdatedV2,
   descriptorState,
@@ -52,7 +50,6 @@ import {
   TenantService,
   tenantServiceBuilder,
 } from "../src/services/tenantService.js";
-import { toTenantV1 } from "../src/model/domain/toEvent.js";
 import { UpdateVerifiedTenantAttributeSeed } from "../src/model/domain/models.js";
 import {
   expirationDateCannotBeInThePast,
@@ -143,23 +140,20 @@ describe("Integration tests", () => {
         name: "A tenant",
         selfcareId: generateId(),
       };
-      const tenant: Tenant = {
-        ...mockTenant,
-        selfcareId: undefined,
-      };
+
       it("Should update the tenant if it exists", async () => {
-        await addOneTenant(tenant, postgresDB, tenants);
+        await addOneTenant(mockTenant, postgresDB, tenants);
         const kind = tenantKind.PA;
-        const selfcareId = generateId();
+        const selfcareId = mockTenant.selfcareId!;
         const tenantSeed: ApiSelfcareTenantSeed = {
           externalId: {
-            origin: tenant.externalId.origin,
-            value: tenant.externalId.value,
+            origin: mockTenant.externalId.origin,
+            value: mockTenant.externalId.value,
           },
           name: "A tenant",
           selfcareId,
         };
-        const mockAuthData = getMockAuthData(tenant.id);
+        const mockAuthData = getMockAuthData(mockTenant.id);
         await tenantService.selfcareUpsertTenant({
           tenantSeed,
           authData: mockAuthData,
@@ -168,7 +162,7 @@ describe("Integration tests", () => {
 
         const writtenEvent: StoredEvent | undefined =
           await readLastEventByStreamId(
-            tenant.id,
+            mockTenant.id,
             eventStoreSchema.tenant,
             postgresDB
           );
@@ -176,7 +170,7 @@ describe("Integration tests", () => {
           fail("Update failed: tenant not found in event-store");
         }
         expect(writtenEvent).toMatchObject({
-          stream_id: tenant.id,
+          stream_id: mockTenant.id,
           version: "1",
           type: "TenantOnboardDetailsUpdated",
         });
@@ -186,7 +180,7 @@ describe("Integration tests", () => {
           );
 
         const updatedTenant: Tenant = {
-          ...tenant,
+          ...mockTenant,
           selfcareId,
           kind,
           updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
@@ -239,7 +233,7 @@ describe("Integration tests", () => {
         expect(writtenPayload.tenant).toEqual(toTenantV2(expectedTenant));
       });
       it("Should throw operation forbidden if role isn't internal", async () => {
-        await addOneTenant(tenant, postgresDB, tenants);
+        await addOneTenant(mockTenant, postgresDB, tenants);
         const mockAuthData = getMockAuthData(generateId<TenantId>());
 
         expect(
