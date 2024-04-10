@@ -22,7 +22,7 @@ import {
 import {
   ApiCertifiedTenantAttributeSeed,
   ApiSelfcareTenantSeed,
-  ApideclaredTenantAttributeSeed,
+  ApiDeclaredTenantAttributeSeed,
 } from "../model/types.js";
 import {
   attributeNotFound,
@@ -391,7 +391,7 @@ export function tenantServiceBuilder(
       authData,
       correlationId,
     }: {
-      tenantAttributeSeed: ApideclaredTenantAttributeSeed;
+      tenantAttributeSeed: ApiDeclaredTenantAttributeSeed;
       authData: AuthData;
       correlationId: string;
     }): Promise<Tenant> {
@@ -403,11 +403,11 @@ export function tenantServiceBuilder(
         readModelService
       );
 
-      const declaredTenantAttribute = targetTenant.data.attributes
-        .filter((attr) => attr.type === tenantAttributeType.DECLARED)
-        .find(
-          (attr) => attr.id === tenantAttributeSeed.id
-        ) as DeclaredTenantAttribute;
+      const declaredTenantAttribute = targetTenant.data.attributes.find(
+        (attr) =>
+          attr.type === tenantAttributeType.DECLARED &&
+          attr.id === tenantAttributeSeed.id
+      ) as DeclaredTenantAttribute;
 
       const attribute = await readModelService.getAttributeById(
         unsafeBrandId(declaredTenantAttribute.id)
