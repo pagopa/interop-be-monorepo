@@ -70,7 +70,7 @@ import {
   eServiceNotFound,
   missingCertifiedAttributesError,
   notLatestEServiceDescriptor,
-  tenantIdNotFound,
+  tenantNotFound,
 } from "../src/model/domain/errors.js";
 import { toAgreementStateV1 } from "../src/model/domain/toEvent.js";
 import { ApiAgreementPayload } from "../src/model/types.js";
@@ -662,7 +662,7 @@ describe("Agreement service", () => {
           authData,
           uuidv4()
         )
-      ).rejects.toThrowError(tenantIdNotFound(consumer.id));
+      ).rejects.toThrowError(tenantNotFound(consumer.id));
     });
 
     it("should throw a missingCertifiedAttributesError error when the EService producer and Agreement consumer are different Tenants, and the consumer is missing a Descriptor certified Attribute", async () => {

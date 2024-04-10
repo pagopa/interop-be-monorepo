@@ -23,7 +23,7 @@ import {
   consumerWithNotValidEmail,
   contractAlreadyExists,
   eServiceNotFound,
-  tenantIdNotFound,
+  tenantNotFound,
 } from "../model/domain/errors.js";
 import { toCreateEventAgreementUpdated } from "../model/domain/toEvent.js";
 import {
@@ -95,7 +95,7 @@ export async function submitAgreementLogic(
   const consumer = await tenantQuery.getTenantById(agreement.data.consumerId);
 
   if (!consumer) {
-    throw tenantIdNotFound(agreement.data.consumerId);
+    throw tenantNotFound(agreement.data.consumerId);
   }
 
   return await submitAgreement(
@@ -243,7 +243,7 @@ const createContract = async (
   const producer = await tenantQuery.getTenantById(agreement.producerId);
 
   if (!producer) {
-    throw tenantIdNotFound(agreement.producerId);
+    throw tenantNotFound(agreement.producerId);
   }
 
   if (agreement.contract) {
