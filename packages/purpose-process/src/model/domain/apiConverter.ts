@@ -19,22 +19,24 @@ import {
 
 export const singleAnswersToApiSingleAnswers = (
   singleAnswers: RiskAnalysisSingleAnswer[]
-) => {
-  return singleAnswers.reduce<Record<string, string[]>>((acc, curr) => {
-    if (!curr.value) return acc;
+): Record<string, string[]> =>
+  singleAnswers.reduce<Record<string, string[]>>((acc, curr) => {
+    if (!curr.value) {
+      return acc;
+    }
+    // eslint-disable-next-line functional/immutable-data
     acc[curr.key] = [curr.value];
     return acc;
   }, {});
-};
 
 export const multiAnswersToApiMultiAnswers = (
   multiAnswers: RiskAnalysisMultiAnswer[]
-) => {
-  return multiAnswers.reduce<Record<string, string[]>>((acc, curr) => {
+): Record<string, string[]> =>
+  multiAnswers.reduce<Record<string, string[]>>((acc, curr) => {
+    // eslint-disable-next-line functional/immutable-data
     acc[curr.key] = curr.values;
     return acc;
   }, {});
-};
 
 export const riskAnalysisFormToApiRiskAnalysisForm = (
   riskAnalysisForm: PurposeRiskAnalysisForm
