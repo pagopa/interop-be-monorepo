@@ -6,7 +6,6 @@ export async function handleMessage(
   message: TenantEventEnvelopeV1,
   tenants: TenantCollection
 ): Promise<void> {
-  logger.info(message);
   await match(message)
     .with({ type: "TenantCreated" }, async (msg) => {
       await tenants.updateOne(

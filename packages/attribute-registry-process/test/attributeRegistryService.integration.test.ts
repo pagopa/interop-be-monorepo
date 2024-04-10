@@ -14,6 +14,7 @@ import {
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
   decodeProtobufPayload,
+  getMockAttribute,
   mongoDBContainer,
   postgreSQLContainer,
 } from "pagopa-interop-commons-test";
@@ -33,6 +34,7 @@ import {
   Tenant,
   attributeKind,
   generateId,
+  toAttributeV1,
 } from "pagopa-interop-models";
 import { config } from "../src/utilities/config.js";
 import {
@@ -50,11 +52,9 @@ import {
   originNotCompliant,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
-import { toAttributeV1 } from "../src/model/domain/toEvent.js";
 import {
   addOneAttribute,
   addOneTenant,
-  getMockAttribute,
   getMockTenant,
   getMockAuthData,
   readLastAttributeEvent,

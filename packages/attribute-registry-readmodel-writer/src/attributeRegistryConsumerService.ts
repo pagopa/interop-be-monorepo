@@ -1,5 +1,5 @@
 import { match } from "ts-pattern";
-import { logger, AttributeCollection } from "pagopa-interop-commons";
+import { AttributeCollection } from "pagopa-interop-commons";
 import {
   AttributeEventEnvelope,
   fromAttributeV1,
@@ -10,7 +10,6 @@ export async function handleMessage(
   message: AttributeEventEnvelope,
   attributes: AttributeCollection
 ): Promise<void> {
-  logger.info(message);
   await match(message)
     .with({ type: "AttributeAdded" }, async (msg) => {
       await attributes.updateOne(
