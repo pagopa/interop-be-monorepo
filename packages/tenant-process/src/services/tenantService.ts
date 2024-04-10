@@ -15,14 +15,13 @@ import {
 import { ExternalId } from "pagopa-interop-models";
 import { toTenantCertifiedAttributeAssigned } from "../model/domain/toEvent.js";
 import {
+  ApiCertifiedTenantAttributeSeed,
   ApiSelfcareTenantSeed,
-  ApicertifiedTenantAttributeSeed,
 } from "../model/types.js";
 import {
   attributeNotFound,
   certifiedAttributeAlreadyAssigned,
   certifiedAttributeOriginIsNotCompliantWithCertifier,
-  registryAttributeIdNotFound,
   tenantIsNotACertifier,
 } from "../model/domain/errors.js";
 import {
@@ -281,7 +280,7 @@ export function tenantServiceBuilder(
         authData,
         correlationId,
       }: {
-        tenantAttributeSeed: ApicertifiedTenantAttributeSeed;
+        tenantAttributeSeed: ApiCertifiedTenantAttributeSeed;
         authData: AuthData;
         correlationId: string;
       }
@@ -296,9 +295,9 @@ export function tenantServiceBuilder(
         readModelService
       );
 
-      const certifierId = requesterTenant.data.features
-        .filter((feature) => feature.type === "PersistentCertifier")
-        .find((feature) => feature.certifierId)?.certifierId;
+      const certifierId = requesterTenant.data.features.find(
+        (feature) => feature.type === "PersistentCertifier"
+      )?.certifierId;
 
       if (!certifierId) {
         throw tenantIsNotACertifier(organizationId);
@@ -318,7 +317,7 @@ export function tenantServiceBuilder(
 
       if (attribute.kind !== "Certified") {
         // Rinominare questo errore attributeIsNotCertified?
-        throw registryAttributeIdNotFound(origin);
+        throw attributeNotFound(origin);
       }
 
       if (origin !== certifierId) {
