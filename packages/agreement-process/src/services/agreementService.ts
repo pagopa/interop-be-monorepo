@@ -69,7 +69,10 @@ import {
 } from "../model/types.js";
 import { config } from "../utilities/config.js";
 import { AttributeQuery } from "./readmodel/attributeQuery.js";
-import { AgreementQueryFilters } from "./readmodel/readModelService.js";
+import {
+  AgreementEServicesQueryFilters,
+  AgreementQueryFilters,
+} from "./readmodel/readModelService.js";
 import { contractBuilder } from "./agreementContractBuilder.js";
 import { submitAgreementLogic } from "./agreementSubmissionProcessor.js";
 import { AgreementQuery } from "./readmodel/agreementQuery.js";
@@ -320,23 +323,15 @@ export function agreementServiceBuilder(
       return agreementId;
     },
     async getAgreementEServices(
-      eserviceName: string | undefined,
-      consumerIds: string[],
-      producerIds: string[],
+      filters: AgreementEServicesQueryFilters,
       limit: number,
       offset: number
     ): Promise<ListResult<CompactEService>> {
       logger.info(
-        `Retrieving EServices with consumers ${consumerIds}, producers ${producerIds}`
+        `Retrieving EServices with consumers ${filters.consumerIds}, producers ${filters.producerIds}, states ${filters.agreeementStates}, offset ${offset}, limit ${limit} and name matching ${filters.eserviceName}`
       );
 
-      return await agreementQuery.getEServices(
-        eserviceName,
-        consumerIds,
-        producerIds,
-        limit,
-        offset
-      );
+      return await agreementQuery.getEServices(filters, limit, offset);
     },
     async removeAgreementConsumerDocument(
       agreementId: AgreementId,
