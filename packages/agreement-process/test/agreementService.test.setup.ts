@@ -27,14 +27,17 @@ import {
 import { agreementQueryBuilder } from "../src/services/readmodel/agreementQuery.js";
 import { attributeQueryBuilder } from "../src/services/readmodel/attributeQuery.js";
 import { eserviceQueryBuilder } from "../src/services/readmodel/eserviceQuery.js";
-import { readModelServiceBuilder } from "../src/services/readmodel/readModelService.js";
+import {
+  ReadModelService,
+  readModelServiceBuilder,
+} from "../src/services/readmodel/readModelService.js";
 import { tenantQueryBuilder } from "../src/services/readmodel/tenantQuery.js";
 import { config } from "../src/utilities/config.js";
 
 export let agreements: AgreementCollection;
 export let eservices: EServiceCollection;
 export let tenants: TenantCollection;
-export let readModelService: ReturnType<typeof readModelServiceBuilder>;
+export let readModelService: ReadModelService;
 export let agreementService: AgreementService;
 export let postgresDB: IDatabase<unknown>;
 export let startedPostgreSqlContainer: StartedTestContainer;
