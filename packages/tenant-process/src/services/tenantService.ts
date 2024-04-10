@@ -307,22 +307,13 @@ export function tenantServiceBuilder(
         unsafeBrandId(tenantAttributeSeed.id)
       );
 
-      if (attribute === undefined) {
+      if (!attribute || attribute.kind !== "Certified") {
         throw attributeNotFound(tenantAttributeSeed.id);
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const origin = attribute.origin!;
-      const attributeId = attribute.id;
-
-      if (attribute.kind !== "Certified") {
-        // Rinominare questo errore attributeIsNotCertified?
-        throw attributeNotFound(origin);
-      }
-
-      if (origin !== certifierId) {
+      if (!attribute.origin || attribute.origin !== certifierId) {
         throw certifiedAttributeOriginIsNotCompliantWithCertifier(
-          origin,
+          attribute.origin || "",
           organizationId,
           tenantId,
           certifierId
@@ -331,11 +322,11 @@ export function tenantServiceBuilder(
 
       const targetTenant = await retrieveTenant(tenantId, readModelService);
 
-      const certifiedTenantAttribute = targetTenant.data.attributes
-        .filter((attr) => attr.type === tenantAttributeType.CERTIFIED)
-        .find(
-          (attr) => attr.id === tenantAttributeSeed.id
-        ) as CertifiedTenantAttribute;
+      const certifiedTenantAttribute = targetTenant.data.attributes.find(
+        (attr) =>
+          attr.type === tenantAttributeType.CERTIFIED &&
+          attr.id === tenantAttributeSeed.id
+      ) as CertifiedTenantAttribute;
 
       // eslint-disable-next-line functional/no-let
       let updatedTenant: Tenant = {
@@ -357,8 +348,8 @@ export function tenantServiceBuilder(
             },
           ],
         };
-      } else if (certifiedTenantAttribute.revocationTimestamp === undefined) {
-        throw certifiedAttributeAlreadyAssigned(attributeId, organizationId);
+      } else if (!certifiedTenantAttribute.revocationTimestamp) {
+        throw certifiedAttributeAlreadyAssigned(attribute.id, organizationId);
       } else {
         // re-assigning attribute if it was revoked
         updatedTenant = {
@@ -392,7 +383,7 @@ export function tenantServiceBuilder(
         targetTenant.data.id,
         targetTenant.metadata.version,
         updatedTenant,
-        attributeId,
+        attribute.id,
         correlationId
       );
       await repository.createEvent(event);
