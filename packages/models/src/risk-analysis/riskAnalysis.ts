@@ -28,6 +28,14 @@ export const RiskAnalysisForm = z.object({
 });
 export type RiskAnalysisForm = z.infer<typeof RiskAnalysisForm>;
 
+export const PurposeRiskAnalysisForm = RiskAnalysisForm.and(
+  z.object({
+    riskAnalysisId: RiskAnalysisId.optional(),
+  })
+);
+
+export type PurposeRiskAnalysisForm = z.infer<typeof PurposeRiskAnalysisForm>;
+
 export const RiskAnalysis = z.object({
   id: RiskAnalysisId,
   name: z.string(),
