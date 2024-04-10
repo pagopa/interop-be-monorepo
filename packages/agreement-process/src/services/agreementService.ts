@@ -908,13 +908,8 @@ export async function archiveAgreementLogic(
     },
   };
 
-  const updatedAgreement = {
-    ...agreement.data,
-    ...updateSeed,
-  };
-
   return toCreateEventAgreementUpdated(
-    updatedAgreement,
+    updateSeed,
     agreement.metadata.version,
     correlationId
   );
