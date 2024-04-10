@@ -446,6 +446,54 @@ paths:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/Problem'
+  /purposes/{purposeId}/versions/{versionId}/reject:
+    parameters:
+      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - name: purposeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: versionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      summary: Rejected Purpose Version
+      operationId: rejectPurposeVersion
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RejectPurposeVersionPayload'
+        required: true
+      responses:
+        '204':
+          description: Purpose Version Rejected
+        '400':
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Purpose not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      description: reject the purpose version by id
+      tags:
+        - purpose
   /purposes/{purposeId}/versions/{versionId}/activate:
     parameters:
       - $ref: '#/components/parameters/CorrelationIdHeader'
@@ -498,6 +546,12 @@ paths:
     post:
       summary: Clone Purpose
       operationId: clonePurpose
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurposeCloneSeed'
+        required: true
       responses:
         '200':
           description: Purpose Cloned
@@ -696,10 +750,12 @@ paths:
         required: true
         schema:
           type: string
-      - name: tenantKind
+      - name: eserviceId
         in: query
+        required: true
         schema:
-          $ref: '#/components/schemas/TenantKind'
+          type: string
+          format: uuid
     get:
       tags:
         - purpose
@@ -733,6 +789,16 @@ components:
       schema:
         type: string
   schemas:
+    RejectPurposeVersionPayload:
+      type: object
+      description: models the reject payload for this purpose version.
+      properties:
+        rejectionReason:
+          type: string
+          minimum: 10
+          maximum: 250
+      required:
+        - rejectionReason
     TenantKind:
       type: string
       description: Tenant Kind
@@ -1096,6 +1162,8 @@ components:
           minimum: 0
         riskAnalysis:
           $ref: '#/components/schemas/PurposeVersionDocument'
+        rejectionReason:
+          type: string
       required:
         - id
         - state
@@ -1111,6 +1179,7 @@ components:
         - SUSPENDED
         - WAITING_FOR_APPROVAL
         - ARCHIVED
+        - REJECTED
     PurposeVersionDocument:
       type: object
       required:
@@ -1129,6 +1198,14 @@ components:
         createdAt:
           type: string
           format: date-time
+    PurposeCloneSeed:
+      type: object
+      properties:
+        eserviceId:
+          type: string
+          format: uuid
+      required:
+        - eserviceId      
     EServicePurposeSeed:
       type: object
       description: contains the expected payload for purpose creation.
