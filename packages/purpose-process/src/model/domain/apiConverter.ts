@@ -1,7 +1,6 @@
 import { match } from "ts-pattern";
 import {
   Purpose,
-  PurposeRiskAnalysisForm,
   PurposeVersion,
   PurposeVersionDocument,
   PurposeVersionState,
@@ -12,24 +11,42 @@ import {
   ApiPurposeVersion,
   ApiPurposeVersionDocument,
   ApiPurposeVersionState,
-  ApiRiskAnalysisForm,
 } from "./models.js";
+
+/*
+export const singleAnswersToApiSingleAnswers = (
+  singleAnswers: RiskAnalysisSingleAnswer[]
+) => {
+  const m = singleAnswers.map((a) => [a.key, [a.value]]);
+  return m;
+};
+
+export const multiAnswersToApiMultiAnswers = (
+  multiAnswers: RiskAnalysisMultiAnswer[]
+) => {
+  const m = multiAnswers.map((a) => [a.key, a.values]);
+  return m;
+};
 
 export const riskAnalysisFormToApiRiskAnalysisForm = (
   riskAnalysisForm: PurposeRiskAnalysisForm
-): ApiRiskAnalysisForm => ({
-  version: riskAnalysisForm.version,
-  riskAnalysisId: riskAnalysisForm.riskAnalysisId,
-});
-
-export const purposeVersionDocumentToApiPurposeVersionDocument = (
-  document: PurposeVersionDocument
-): ApiPurposeVersionDocument => ({
-  id: document.id,
-  contentType: document.contentType,
-  path: document.path,
-  createdAt: document.createdAt.toJSON(),
-});
+): ApiRiskAnalysisForm => {
+  const apiSingleAnswersMap = singleAnswersToApiSingleAnswers(
+    riskAnalysisForm.singleAnswers
+  );
+  const apiMultiAnswersMap = multiAnswersToApiMultiAnswers(
+    riskAnalysisForm.multiAnswers
+  );
+  return {
+    version: riskAnalysisForm.version,
+    answers: new Map([
+      ...apiSingleAnswersMap.entries(),
+      ...apiMultiAnswersMap.entries(),
+    ]),
+    riskAnalysisId: riskAnalysisForm.riskAnalysisId,
+  };
+};
+*/
 
 export const purposeVersionStateToApiPurposeVersionState = (
   state: PurposeVersionState
@@ -42,6 +59,15 @@ export const purposeVersionStateToApiPurposeVersionState = (
     .with(purposeVersionState.suspended, () => "SUSPENDED")
     .with(purposeVersionState.waitingForApproval, () => "WAITING_FOR_APPROVAL")
     .exhaustive();
+
+export const purposeVersionDocumentToApiPurposeVersionDocument = (
+  document: PurposeVersionDocument
+): ApiPurposeVersionDocument => ({
+  id: document.id,
+  contentType: document.contentType,
+  path: document.path,
+  createdAt: document.createdAt.toJSON(),
+});
 
 export const purposeVersionToApiPurposeVersion = (
   version: PurposeVersion
@@ -71,9 +97,9 @@ export const purposeToApiPurpose = (
   suspendedByProducer: purpose.suspendedByProducer,
   title: purpose.title,
   description: purpose.description,
-  riskAnalysisForm: purpose.riskAnalysisForm
-    ? riskAnalysisFormToApiRiskAnalysisForm(purpose.riskAnalysisForm)
-    : undefined,
+  // riskAnalysisForm: purpose.riskAnalysisForm
+  //   ? riskAnalysisFormToApiRiskAnalysisForm(purpose.riskAnalysisForm)
+  //   : undefined,
   createdAt: purpose.createdAt?.toJSON(),
   updatedAt: purpose.updatedAt?.toJSON(),
   isRiskAnalysisValid,
