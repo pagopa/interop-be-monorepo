@@ -13,7 +13,7 @@
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
-    "start": "node --watch --no-warnings --loader ts-node/esm -r 'dotenv-flow/config' ./src/index.ts",
+    "start": "node --watch --loader ts-node/esm -r 'dotenv-flow/config' ./src/index.ts",
     "generate-model": "mkdir -p ./src/model/generated && pnpm openapi-zod-client './open-api/authorization-management.spec.yaml' -o './src/model/generated/api.ts'",
     "clean-generated": "pnpm exec rm ./src/model/generated/api.ts",
     "build": "tsc"
@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "@protobuf-ts/runtime": "2.9.4",
-    "@zodios/core": "10.9.2",
+    "@zodios/core": "10.9.6",
     "@zodios/plugins": "10.6.0",
     "connection-string": "4.3.6",
     "dotenv-flow": "3.2.0",
