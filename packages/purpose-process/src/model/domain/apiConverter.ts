@@ -1,9 +1,12 @@
 import { match } from "ts-pattern";
 import {
   Purpose,
+  PurposeRiskAnalysisForm,
   PurposeVersion,
   PurposeVersionDocument,
   PurposeVersionState,
+  RiskAnalysisMultiAnswer,
+  RiskAnalysisSingleAnswer,
   purposeVersionState,
 } from "pagopa-interop-models";
 import {
@@ -11,21 +14,26 @@ import {
   ApiPurposeVersion,
   ApiPurposeVersionDocument,
   ApiPurposeVersionState,
+  ApiRiskAnalysisForm,
 } from "./models.js";
 
-/*
 export const singleAnswersToApiSingleAnswers = (
   singleAnswers: RiskAnalysisSingleAnswer[]
 ) => {
-  const m = singleAnswers.map((a) => [a.key, [a.value]]);
-  return m;
+  return singleAnswers.reduce<Record<string, string[]>>((acc, curr) => {
+    if (!curr.value) return acc;
+    acc[curr.key] = [curr.value];
+    return acc;
+  }, {});
 };
 
 export const multiAnswersToApiMultiAnswers = (
   multiAnswers: RiskAnalysisMultiAnswer[]
 ) => {
-  const m = multiAnswers.map((a) => [a.key, a.values]);
-  return m;
+  return multiAnswers.reduce<Record<string, string[]>>((acc, curr) => {
+    acc[curr.key] = curr.values;
+    return acc;
+  }, {});
 };
 
 export const riskAnalysisFormToApiRiskAnalysisForm = (
@@ -39,14 +47,10 @@ export const riskAnalysisFormToApiRiskAnalysisForm = (
   );
   return {
     version: riskAnalysisForm.version,
-    answers: new Map([
-      ...apiSingleAnswersMap.entries(),
-      ...apiMultiAnswersMap.entries(),
-    ]),
+    answers: { ...apiSingleAnswersMap, ...apiMultiAnswersMap },
     riskAnalysisId: riskAnalysisForm.riskAnalysisId,
   };
 };
-*/
 
 export const purposeVersionStateToApiPurposeVersionState = (
   state: PurposeVersionState
@@ -97,9 +101,9 @@ export const purposeToApiPurpose = (
   suspendedByProducer: purpose.suspendedByProducer,
   title: purpose.title,
   description: purpose.description,
-  // riskAnalysisForm: purpose.riskAnalysisForm
-  //   ? riskAnalysisFormToApiRiskAnalysisForm(purpose.riskAnalysisForm)
-  //   : undefined,
+  riskAnalysisForm: purpose.riskAnalysisForm
+    ? riskAnalysisFormToApiRiskAnalysisForm(purpose.riskAnalysisForm)
+    : undefined,
   createdAt: purpose.createdAt?.toJSON(),
   updatedAt: purpose.updatedAt?.toJSON(),
   isRiskAnalysisValid,
