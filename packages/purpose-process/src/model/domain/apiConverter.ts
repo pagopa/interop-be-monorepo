@@ -38,7 +38,7 @@ export const purposeVersionStateToApiPurposeVersionState = (
     .with(purposeVersionState.active, () => "ACTIVE")
     .with(purposeVersionState.archived, () => "ARCHIVED")
     .with(purposeVersionState.draft, () => "DRAFT")
-    .with(purposeVersionState.rejected, () => "WAITING_FOR_APPROVAL") // TODO this should be "REJECTED" but it's not in the api spec yet
+    .with(purposeVersionState.rejected, () => "REJECTED")
     .with(purposeVersionState.suspended, () => "SUSPENDED")
     .with(purposeVersionState.waitingForApproval, () => "WAITING_FOR_APPROVAL")
     .exhaustive();
