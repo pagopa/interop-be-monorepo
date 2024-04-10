@@ -1,5 +1,6 @@
 import { AuthData, DB, eventRepository, logger } from "pagopa-interop-commons";
 import {
+  Attribute,
   AttributeId,
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
@@ -368,18 +369,7 @@ export function tenantServiceBuilder(
         throw certifiedAttributeAlreadyAssigned(attributeId, organizationId);
       } else {
         // re-assigning attribute if it was revoked
-        updatedTenant = {
-          ...updatedTenant,
-          attributes: targetTenant.data.attributes.map((a) =>
-            a.id === attribute.id
-              ? {
-                  ...a,
-                  assignmentTimestamp: new Date(),
-                  revocationTimestamp: undefined,
-                }
-              : a
-          ),
-        };
+        reAssignAttribute({ updatedTenant, targetTenant, attribute });
       }
 
       const tenantKind = await getTenantKindLoadingCertifiedAttributes(
@@ -406,24 +396,24 @@ export function tenantServiceBuilder(
       return updatedTenant;
     },
 
-    async addDeclaredAttribute(
-      tenantId: TenantId,
-      {
-        tenantAttributeSeed,
-        authData,
-        correlationId,
-      }: {
-        tenantAttributeSeed: ApideclaredTenantAttributeSeed;
-        authData: AuthData;
-        correlationId: string;
-      }
-    ): Promise<Tenant> {
+    async addDeclaredAttribute({
+      tenantAttributeSeed,
+      authData,
+      correlationId,
+    }: {
+      tenantAttributeSeed: ApideclaredTenantAttributeSeed;
+      authData: AuthData;
+      correlationId: string;
+    }): Promise<Tenant> {
       logger.info(
-        `Add certified attribute ${tenantAttributeSeed.id} to tenant ${tenantId}`
+        `Add certified attribute ${tenantAttributeSeed.id} to tenant ${authData.organizationId}`
       );
-      const tenant = await retrieveTenant(tenantId, readModelService);
+      const targetTenant = await retrieveTenant(
+        authData.organizationId,
+        readModelService
+      );
 
-      const declaredTenantAttribute = tenant.data.attributes
+      const declaredTenantAttribute = targetTenant.data.attributes
         .filter((attr) => attr.type === tenantAttributeType.DECLARED)
         .find(
           (attr) => attr.id === tenantAttributeSeed.id
@@ -435,7 +425,7 @@ export function tenantServiceBuilder(
 
       // eslint-disable-next-line functional/no-let
       let updatedTenant: Tenant = {
-        ...tenant.data,
+        ...targetTenant.data,
         updatedAt: new Date(),
       };
       if (!declaredTenantAttribute) {
@@ -443,7 +433,7 @@ export function tenantServiceBuilder(
         updatedTenant = {
           ...updatedTenant,
           attributes: [
-            ...tenant.data.attributes,
+            ...targetTenant.data.attributes,
             {
               id: attribute.id,
               type: tenantAttributeType.DECLARED,
@@ -455,24 +445,18 @@ export function tenantServiceBuilder(
       } else if (
         declaredTenantAttribute.type !== "PersistentDeclaredAttribute"
       ) {
-        throw declaredAttributeNotFound(attribute.id, tenantId);
+        throw declaredAttributeNotFound(attribute.id, authData.organizationId);
       } else {
         // re-assigning attribute if it was revoked
-        updatedTenant = {
-          ...updatedTenant,
-          attributes: tenant.data.attributes.map((a) =>
-            a.id === attribute.id
-              ? {
-                  ...a,
-                  assignmentTimestamp: new Date(),
-                }
-              : a
-          ),
-        };
+        updatedTenant = reAssignAttribute({
+          updatedTenant,
+          targetTenant,
+          attribute,
+        });
       }
-      const event = toTenantCertifiedAttributeAssigned(
-        tenant.data.id,
-        tenant.metadata.version,
+      const event = toTenantDeclaredAttributeAssigned(
+        targetTenant.data.id,
+        targetTenant.metadata.version,
         updatedTenant,
         attribute.id,
         correlationId
@@ -573,4 +557,28 @@ export function tenantServiceBuilder(
     },
   };
 }
+
+export function reAssignAttribute({
+  updatedTenant,
+  targetTenant,
+  attribute,
+}: {
+  updatedTenant: Tenant;
+  targetTenant: WithMetadata<Tenant>;
+  attribute: Attribute;
+}): Tenant {
+  return {
+    ...updatedTenant,
+    attributes: targetTenant.data.attributes.map((a) =>
+      a.id === attribute.id
+        ? {
+            ...a,
+            assignmentTimestamp: new Date(),
+            revocationTimestamp: undefined,
+          }
+        : a
+    ),
+  };
+}
+
 export type TenantService = ReturnType<typeof tenantServiceBuilder>;
