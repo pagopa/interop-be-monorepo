@@ -17,7 +17,6 @@ import {
   agreementEventToBinaryData,
   agreementState,
   descriptorState,
-  AgreementUpdateEvent,
   AgreementDocumentId,
   AgreementId,
 } from "pagopa-interop-models";
@@ -104,13 +103,12 @@ export function agreementServiceBuilder(
       logger.info("Retrieving agreements");
       return await agreementQuery.getAgreements(filters, limit, offset);
     },
-    async getAgreementById(
-      agreementId: AgreementId
-    ): Promise<Agreement | undefined> {
+    async getAgreementById(agreementId: AgreementId): Promise<Agreement> {
       logger.info(`Retrieving agreement by id ${agreementId}`);
 
       const agreement = await agreementQuery.getAgreementById(agreementId);
-      return agreement?.data;
+      assertAgreementExist(agreementId, agreement);
+      return agreement.data;
     },
     async createAgreement(
       agreement: ApiAgreementPayload,
@@ -587,7 +585,7 @@ export async function upgradeAgreementLogic(
   );
   assertEServiceExist(agreementToBeUpgraded.data.eserviceId, eservice);
 
-  const newDescriptor = eservice.data.descriptors.find(
+  const newDescriptor = eservice.descriptors.find(
     (d) => d.state === descriptorState.published
   );
   if (newDescriptor === undefined) {
@@ -597,15 +595,15 @@ export async function upgradeAgreementLogic(
     .preprocess((x) => Number(x), z.number())
     .safeParse(newDescriptor.version);
   if (!latestDescriptorVersion.success) {
-    throw unexpectedVersionFormat(eservice.data.id, newDescriptor.id);
+    throw unexpectedVersionFormat(eservice.id, newDescriptor.id);
   }
 
-  const currentDescriptor = eservice.data.descriptors.find(
+  const currentDescriptor = eservice.descriptors.find(
     (d) => d.id === agreementToBeUpgraded.data.descriptorId
   );
   if (currentDescriptor === undefined) {
     throw descriptorNotFound(
-      eservice.data.id,
+      eservice.id,
       agreementToBeUpgraded.data.descriptorId
     );
   }
@@ -614,24 +612,24 @@ export async function upgradeAgreementLogic(
     .preprocess((x) => Number(x), z.number())
     .safeParse(currentDescriptor.version);
   if (!currentVersion.success) {
-    throw unexpectedVersionFormat(eservice.data.id, currentDescriptor.id);
+    throw unexpectedVersionFormat(eservice.id, currentDescriptor.id);
   }
 
   if (latestDescriptorVersion.data <= currentVersion.data) {
-    throw noNewerDescriptor(eservice.data.id, currentDescriptor.id);
+    throw noNewerDescriptor(eservice.id, currentDescriptor.id);
   }
 
-  if (eservice.data.producerId !== authData.organizationId) {
-    validateCertifiedAttributes(newDescriptor, tenant.data);
+  if (eservice.producerId !== authData.organizationId) {
+    validateCertifiedAttributes(newDescriptor, tenant);
   }
 
   const verifiedValid = verifiedAttributesSatisfied(
     agreementToBeUpgraded.data.producerId,
     newDescriptor,
-    tenant.data
+    tenant
   );
 
-  const declaredValid = declaredAttributesSatisfied(newDescriptor, tenant.data);
+  const declaredValid = declaredAttributesSatisfied(newDescriptor, tenant);
 
   if (verifiedValid && declaredValid) {
     // upgradeAgreement
@@ -769,16 +767,16 @@ export async function cloneAgreementLogic(
   );
   assertTenantExist(agreementToBeCloned.data.consumerId, consumer);
 
-  const descriptor = eservice.data.descriptors.find(
+  const descriptor = eservice.descriptors.find(
     (d) => d.id === agreementToBeCloned.data.descriptorId
   );
   assertDescriptorExist(
-    eservice.data.id,
+    eservice.id,
     agreementToBeCloned.data.descriptorId,
     descriptor
   );
 
-  validateCertifiedAttributes(descriptor, consumer.data);
+  validateCertifiedAttributes(descriptor, consumer);
 
   const newAgreement: Agreement = {
     id: generateId(),
@@ -853,11 +851,11 @@ export async function rejectAgreementLogic(
   );
   assertTenantExist(agreementToBeRejected.data.consumerId, consumer);
 
-  const descriptor = eservice.data.descriptors.find(
+  const descriptor = eservice.descriptors.find(
     (d) => d.id === agreementToBeRejected.data.descriptorId
   );
   assertDescriptorExist(
-    eservice.data.id,
+    eservice.id,
     agreementToBeRejected.data.descriptorId,
     descriptor
   );
@@ -866,12 +864,12 @@ export async function rejectAgreementLogic(
   const rejected: Agreement = {
     ...agreementToBeRejected.data,
     state: agreementState.rejected,
-    certifiedAttributes: matchingCertifiedAttributes(descriptor, consumer.data),
-    declaredAttributes: matchingDeclaredAttributes(descriptor, consumer.data),
+    certifiedAttributes: matchingCertifiedAttributes(descriptor, consumer),
+    declaredAttributes: matchingDeclaredAttributes(descriptor, consumer),
     verifiedAttributes: matchingVerifiedAttributes(
-      eservice.data,
+      eservice,
       descriptor,
-      consumer.data
+      consumer
     ),
     rejectionReason,
     suspendedByConsumer: undefined,
@@ -895,7 +893,7 @@ export async function archiveAgreementLogic(
   authData: AuthData,
   agreementQuery: AgreementQuery,
   correlationId: string
-): Promise<CreateEvent<AgreementUpdateEvent>> {
+): Promise<CreateEvent<AgreementEvent>> {
   const agreement = await agreementQuery.getAgreementById(agreementId);
   assertAgreementExist(agreementId, agreement);
   assertRequesterIsConsumer(agreement.data, authData);

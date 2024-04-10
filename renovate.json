@@ -1,0 +1,29 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":automergeRequireAllStatusChecks",
+    ":automergeStableNonMajor",
+    ":automergeLinters",
+    ":automergeTesters",
+    ":automergeTypes",
+    ":enableVulnerabilityAlerts",
+    ":combinePatchMinorReleases",
+    ":ignoreUnstable",
+    ":maintainLockFilesWeekly",
+    ":pinAllExceptPeerDependencies",
+    ":rebaseStalePrs"
+  ],
+  "labels": ["dependencies"],
+  "branchPrefix": "renovate-action/",
+  "prConcurrentLimit": 2,
+  "autodiscover": true,
+  "autodiscoverFilter": ["pagopa/interop-be-monorepo"],
+  "ignorePaths": ["docker/docker-compose.yml"],
+  "packageRules": [
+    {
+      "matchPackagePatterns": ["@protobuf-ts"],
+      "groupName": "protobuf-ts monorepo"
+    }
+  ]
+}
