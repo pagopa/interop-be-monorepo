@@ -12,10 +12,26 @@ const purposeRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const purposeRouter = ctx.router(api.api);
-  const { ADMIN_ROLE } = userRoles;
+  const {
+    ADMIN_ROLE,
+    API_ROLE,
+    SECURITY_ROLE,
+    M2M_ROLE,
+    INTERNAL_ROLE,
+    SUPPORT_ROLE,
+  } = userRoles;
   purposeRouter
-    .get("/purposes", authorizationMiddleware([ADMIN_ROLE]), (_req, res) =>
-      res.status(501).send()
+    .get(
+      "/purposes",
+      authorizationMiddleware([
+        ADMIN_ROLE,
+        API_ROLE,
+        SECURITY_ROLE,
+        M2M_ROLE,
+        INTERNAL_ROLE,
+        SUPPORT_ROLE,
+      ]),
+      (_req, res) => res.status(501).send()
     )
     .post("/purposes", authorizationMiddleware([ADMIN_ROLE]), (_req, res) =>
       res.status(501).send()
@@ -30,8 +46,16 @@ const purposeRouter = (
       authorizationMiddleware([ADMIN_ROLE]),
       (_req, res) => res.status(501).send()
     )
-    .get("/purposes/:id", authorizationMiddleware([ADMIN_ROLE]), (_req, res) =>
-      res.status(501).send()
+    .get(
+      "/purposes/:id",
+      authorizationMiddleware([
+        ADMIN_ROLE,
+        API_ROLE,
+        SECURITY_ROLE,
+        M2M_ROLE,
+        SUPPORT_ROLE,
+      ]),
+      (_req, res) => res.status(501).send()
     )
     .post("/purposes/:id", authorizationMiddleware([ADMIN_ROLE]), (_req, res) =>
       res.status(501).send()
@@ -48,12 +72,12 @@ const purposeRouter = (
     )
     .delete(
       "/purposes/:purposeId/versions/:versionId",
-      authorizationMiddleware([ADMIN_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE, INTERNAL_ROLE]),
       (_req, res) => res.status(501).send()
     )
     .get(
       "/purposes/:purposeId/versions/:versionId/documents/:documentId",
-      authorizationMiddleware([ADMIN_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE, SUPPORT_ROLE]),
       (_req, res) => res.status(501).send()
     )
     .post(
@@ -78,7 +102,7 @@ const purposeRouter = (
     )
     .post(
       "/purposes/:purposeId/versions/:versionId/archive",
-      authorizationMiddleware([ADMIN_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE, INTERNAL_ROLE]),
       (_req, res) => res.status(501).send()
     )
     .post(
@@ -88,12 +112,12 @@ const purposeRouter = (
     )
     .get(
       "/purposes/riskAnalysis/latest",
-      authorizationMiddleware([ADMIN_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE, SUPPORT_ROLE]),
       (_req, res) => res.status(501).send()
     )
     .get(
       "/purposes/riskAnalysis/version/:riskAnalysisVersion",
-      authorizationMiddleware([ADMIN_ROLE]),
+      authorizationMiddleware([ADMIN_ROLE, SUPPORT_ROLE]),
       (_req, res) => res.status(501).send()
     );
 
