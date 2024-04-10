@@ -16,7 +16,7 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import { StartedTestContainer } from "testcontainers";
-import { handleMessage } from "../src/agreementConsumerService.js";
+import { handleMessageV1 } from "../src/consumerServiceV1.js";
 
 describe("database test", async () => {
   let agreements: AgreementCollection;
@@ -59,16 +59,18 @@ describe("database test", async () => {
         },
       };
       const message: AgreementEventEnvelope = {
+        event_version: 1,
         sequence_num: 1,
         stream_id: id,
         version: 1,
         type: "AgreementAdded",
         data: newAgreement,
+        log_date: new Date(),
       };
-      await handleMessage(message, agreements);
+      await handleMessageV1(message, agreements);
 
       const agreement = await agreements.findOne({
-        "data.id": id.toString,
+        "data.id": id.toString(),
       });
 
       expect(agreement?.data).toMatchObject({

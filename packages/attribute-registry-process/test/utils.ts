@@ -5,8 +5,9 @@ import {
   Tenant,
   TenantId,
   attributeEventToBinaryData,
-  attributeKind,
   generateId,
+  toAttributeV1,
+  toReadModelAttribute,
 } from "pagopa-interop-models";
 import { IDatabase } from "pg-promise";
 import {
@@ -21,17 +22,6 @@ import {
   writeInEventstore,
   writeInReadmodel,
 } from "pagopa-interop-commons-test/index.js";
-import { toAttributeV1 } from "../src/model/domain/toEvent.js";
-
-export const getMockAttribute = (): Attribute => ({
-  id: generateId(),
-  name: "attribute name",
-  kind: attributeKind.certified,
-  description: "attribute description",
-  creationTime: new Date(),
-  code: undefined,
-  origin: undefined,
-});
 
 export const getMockTenant = (): Tenant => ({
   name: "tenant_Name",
@@ -83,7 +73,7 @@ export const addOneAttribute = async (
   attributes: AttributeCollection
 ): Promise<void> => {
   await writeAttributeInEventstore(attribute, postgresDB);
-  await writeInReadmodel(attribute, attributes);
+  await writeInReadmodel(toReadModelAttribute(attribute), attributes);
 };
 
 export const addOneTenant = async (

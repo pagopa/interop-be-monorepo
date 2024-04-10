@@ -22,25 +22,24 @@ jobs:
         include:
           - image_name: catalog-process
             dockerfile_path: packages/catalog-process
-            k8s_path: packages/catalog-process/kubernetes/dev
           - image_name: catalog-readmodel-writer
             dockerfile_path: packages/catalog-readmodel-writer
-            k8s_path: packages/catalog-readmodel-writer/kubernetes/dev
           - image_name: agreement-process
             dockerfile_path: packages/agreement-process
-            k8s_path: packages/agreement-process/kubernetes/dev
           - image_name: agreement-readmodel-writer
             dockerfile_path: packages/agreement-readmodel-writer
-            k8s_path: packages/agreement-readmodel-writer/kubernetes/dev
+          - image_name: tenant-process
+            dockerfile_path: packages/tenant-process
+          - image_name: tenant-readmodel-writer
+            dockerfile_path: packages/tenant-readmodel-writer
           - image_name: attribute-registry-process
             dockerfile_path: packages/attribute-registry-process
-            k8s_path: packages/attribute-registry-process/kubernetes/dev
           - image_name: attribute-registry-readmodel-writer
-            dockerfile_path: packages/attribute-registry-readmodel-writer
-            k8s_path: packages/attribute-registry-readmodel-writer/kubernetes/dev
+            dockerfile_path: packages/attribute-registry-readmodel-writer        
           - image_name: authorization-updater
-            dockerfile_path: packages/authorization-updater
-            k8s_path: packages/authorization-updater/kubernetes/dev
+            dockerfile_path: packages/authorization-updater           
+          - image_name: notifier-seeder
+            dockerfile_path: packages/notifier-seeder          
 
     steps:
       - name: Checkout repository
@@ -57,8 +56,9 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
+      - name: (latest) Docker metadata
+        id: meta_latest
+        if: ${{ github.ref_type == 'branch' }}
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
           images: ${{ steps.login-ecr.outputs.registry }}/interop-be-${{ matrix.image_name }}
@@ -68,6 +68,18 @@ jobs:
             suffix=
           tags: |
             type=raw,value=2.x-latest
+
+      - name: (tag) Docker metadata
+        id: meta_tag
+        if: ${{ github.ref_type == 'tag' }}
+        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        with:
+          images: ${{ steps.login-ecr.outputs.registry }}/interop-be-${{ matrix.image_name }}
+          flavor: |
+            latest=false
+            prefix=
+            suffix=
+          tags: |
             type=ref,event=tag
 
       - name: Build and push Docker image
@@ -77,5 +89,6 @@ jobs:
           context: .
           file: ${{ matrix.dockerfile_path }}/Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ github.ref_type == 'branch' && steps.meta_latest.outputs.tags || steps.meta_tag.outputs.tags }}
+          labels: ${{ github.ref_type == 'branch' && steps.meta_latest.outputs.labels || steps.meta_tag.outputs.labels }}
+

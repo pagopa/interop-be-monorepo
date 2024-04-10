@@ -1,0 +1,20 @@
+name: Renovate
+on:
+  schedule:
+    # run every 30 min on monday after 1am and before 8am
+    # considering UTC+2 correction: Sunday at 23:00 to Monday at 6:00
+    - cron: "0/15 23 * * 0"
+    - cron: "0/15 0-5 * * 1"
+  workflow_dispatch:
+
+jobs:
+  renovate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.1.1
+      - name: Self-hosted Renovate
+        uses: renovatebot/github-action@v40.1.7
+        with:
+          configurationFile: renovate.json
+          token: ${{ secrets.RENOVATE_TOKEN }}
