@@ -1811,7 +1811,7 @@ describe("Agreement service", () => {
       ).rejects.toThrowError(agreementNotFound(agreementId));
     });
 
-    it("should throw operationNotAllowed error when the requester is not the consumer or producer", async () => {
+    it("should throw an operationNotAllowed error when the requester is not the consumer or producer", async () => {
       const authData = getRandomAuthData(generateId<TenantId>());
 
       await expect(
@@ -1823,7 +1823,7 @@ describe("Agreement service", () => {
       ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
     });
 
-    it("should throw agreementDocumentNotFound error when the document does not exist", async () => {
+    it("should throw an agreementDocumentNotFound error when the document does not exist", async () => {
       const authData = getRandomAuthData(agreement1.consumerId);
       const agreementDocumentId = generateId<AgreementDocumentId>();
       await expect(
