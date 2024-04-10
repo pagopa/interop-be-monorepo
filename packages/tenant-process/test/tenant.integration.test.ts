@@ -30,6 +30,7 @@ import {
   EService,
   Tenant,
   TenantCertifiedAttributeAssignedV2,
+  TenantCertifiedAttributeV2,
   TenantId,
   TenantOnboardDetailsUpdatedV2,
   TenantOnboardedV2,
@@ -64,13 +65,12 @@ import {
   expirationDateNotFoundInVerifier,
   attributeNotFound,
   tenantIsNotACertifier,
-  registryAttributeIdNotFound,
   certifiedAttributeOriginIsNotCompliantWithCertifier,
   certifiedAttributeAlreadyAssigned,
 } from "../src/model/domain/errors.js";
 import {
   ApiSelfcareTenantSeed,
-  ApicertifiedTenantAttributeSeed,
+  ApiCertifiedTenantAttributeSeed,
 } from "../src/model/types.js";
 import { getTenantKind } from "../src/services/validators.js";
 import {
@@ -156,23 +156,20 @@ describe("Integration tests", () => {
         name: "A tenant",
         selfcareId: generateId(),
       };
-      const tenant: Tenant = {
-        ...mockTenant,
-        selfcareId: undefined,
-      };
+
       it("Should update the tenant if it exists", async () => {
-        await addOneTenant(tenant, postgresDB, tenants);
+        await addOneTenant(mockTenant, postgresDB, tenants);
         const kind = tenantKind.PA;
-        const selfcareId = generateId();
+        const selfcareId = mockTenant.selfcareId!;
         const tenantSeed: ApiSelfcareTenantSeed = {
           externalId: {
-            origin: tenant.externalId.origin,
-            value: tenant.externalId.value,
+            origin: mockTenant.externalId.origin,
+            value: mockTenant.externalId.value,
           },
           name: "A tenant",
           selfcareId,
         };
-        const mockAuthData = getMockAuthData(tenant.id);
+        const mockAuthData = getMockAuthData(mockTenant.id);
         await tenantService.selfcareUpsertTenant({
           tenantSeed,
           authData: mockAuthData,
@@ -181,7 +178,7 @@ describe("Integration tests", () => {
 
         const writtenEvent: StoredEvent | undefined =
           await readLastEventByStreamId(
-            tenant.id,
+            mockTenant.id,
             eventStoreSchema.tenant,
             postgresDB
           );
@@ -189,7 +186,7 @@ describe("Integration tests", () => {
           fail("Update failed: tenant not found in event-store");
         }
         expect(writtenEvent).toMatchObject({
-          stream_id: tenant.id,
+          stream_id: mockTenant.id,
           version: "1",
           type: "TenantOnboardDetailsUpdated",
         });
@@ -199,7 +196,7 @@ describe("Integration tests", () => {
           );
 
         const updatedTenant: Tenant = {
-          ...tenant,
+          ...mockTenant,
           selfcareId,
           kind,
           updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
@@ -252,7 +249,7 @@ describe("Integration tests", () => {
         expect(writtenPayload.tenant).toEqual(toTenantV2(expectedTenant));
       });
       it("Should throw operation forbidden if role isn't internal", async () => {
-        await addOneTenant(tenant, postgresDB, tenants);
+        await addOneTenant(mockTenant, postgresDB, tenants);
         const mockAuthData = getMockAuthData(generateId<TenantId>());
 
         expect(
@@ -599,7 +596,7 @@ describe("Integration tests", () => {
       });
     });
     describe("addCertifiedAttribute", async () => {
-      const tenantAttributeSeed: ApicertifiedTenantAttributeSeed = {
+      const tenantAttributeSeed: ApiCertifiedTenantAttributeSeed = {
         id: generateId(),
       };
       const correlationId = generateId();
@@ -654,13 +651,6 @@ describe("Integration tests", () => {
           TenantCertifiedAttributeAssignedV2
         ).parse(writtenEvent?.data);
 
-        if (
-          writtenPayload.tenant?.attributes[0].sealedValue.oneofKind !==
-          "certifiedAttribute"
-        ) {
-          fail("attribute in writtenPayload isn't a certifiedAttribute");
-        }
-
         const updatedTenant: Tenant = {
           ...targetTenant,
           attributes: [
@@ -669,13 +659,17 @@ describe("Integration tests", () => {
               type: "PersistentCertifiedAttribute",
               assignmentTimestamp: new Date(
                 Number(
-                  writtenPayload.tenant.attributes[0].sealedValue
-                    .certifiedAttribute.assignmentTimestamp
+                  (
+                    writtenPayload.tenant!.attributes[0].sealedValue as {
+                      oneofKind: "certifiedAttribute";
+                      certifiedAttribute: TenantCertifiedAttributeV2;
+                    }
+                  ).certifiedAttribute.assignmentTimestamp
                 )
               ),
             },
           ],
-          kind: fromTenantKindV2(writtenPayload.tenant.kind!),
+          kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
           updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
         };
         expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
@@ -719,25 +713,6 @@ describe("Integration tests", () => {
             correlationId,
           })
         ).rejects.toThrowError(tenantIsNotACertifier(requesterTenant.id));
-      });
-      it("Should throw registryAttributeIdNotFound", async () => {
-        const notCertifiedAttribute: Attribute = {
-          ...attribute,
-          kind: "Declared",
-        };
-        await addOneAttribute(notCertifiedAttribute, attributes);
-        await addOneTenant(targetTenant, postgresDB, tenants);
-        await addOneTenant(requesterTenant, postgresDB, tenants);
-
-        expect(
-          tenantService.addCertifiedAttribute(targetTenant.id, {
-            tenantAttributeSeed,
-            authData: mockAuthData,
-            correlationId,
-          })
-        ).rejects.toThrowError(
-          registryAttributeIdNotFound(notCertifiedAttribute.origin!)
-        );
       });
       it("Should throw certifiedAttributeOriginIsNotCompliantWithCertifier", async () => {
         const notCompliantOriginAttribute: Attribute = {

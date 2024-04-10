@@ -67,13 +67,12 @@ export const addCertifiedAttributeErrorMapper = (
   match(error.code)
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("tenantIsNotACertifier", () => HTTP_STATUS_FORBIDDEN)
-    .with("registryAttributeIdNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("attributeNotFound", () => HTTP_STATUS_BAD_REQUEST)
     .with(
       "certifiedAttributeOriginIsNotCompliantWithCertifier",
       () => HTTP_STATUS_FORBIDDEN
     )
-    .with("certifiedAttributeNotFoundInTenant", () => HTTP_STATUS_NOT_FOUND)
-    .with("certifiedAttributeAlreadyAssigned", () => HTTP_STATUS_FORBIDDEN)
+    .with("certifiedAttributeAlreadyAssigned", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getCertifiedAttributesErrorMapper = (
