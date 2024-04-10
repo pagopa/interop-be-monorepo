@@ -9,12 +9,16 @@ export async function handleMessageV2(
   const purpose = message.data.purpose;
 
   await match(message)
-    .with({ type: "DraftPurposeDeleted" }, async (message) => {
-      await purposes.deleteOne({
-        "data.id": message.stream_id,
-        "metadata.version": { $lt: message.version },
-      });
-    })
+    .with(
+      { type: "DraftPurposeDeleted" },
+      { type: "WaitingForApprovalPurposeDeleted" },
+      async (message) => {
+        await purposes.deleteOne({
+          "data.id": message.stream_id,
+          "metadata.version": { $lt: message.version },
+        });
+      }
+    )
     .with(
       { type: "PurposeAdded" },
       { type: "DraftPurposeUpdated" },
@@ -29,7 +33,6 @@ export async function handleMessageV2(
       { type: "PurposeVersionUnsuspendedByConsumer" },
       { type: "PurposeVersionUnsuspendedByProducer" },
       { type: "PurposeWaitingForApproval" },
-      { type: "WaitingForApprovalPurposeDeleted" },
       { type: "WaitingForApprovalPurposeVersionDeleted" },
       { type: "PurposeVersionActivated" },
       async (message) =>
@@ -49,6 +52,5 @@ export async function handleMessageV2(
           { upsert: true }
         )
     )
-
     .exhaustive();
 }
