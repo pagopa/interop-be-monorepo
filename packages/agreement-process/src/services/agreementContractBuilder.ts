@@ -5,6 +5,7 @@ import {
   AgreementEvent,
   AgreementId,
   EService,
+  SelfcareId,
   Tenant,
 } from "pagopa-interop-models";
 import { toCreateEventAgreementContractAdded } from "../model/domain/toEvent.js";
@@ -15,6 +16,7 @@ import { AttributeQuery } from "./readmodel/attributeQuery.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export const contractBuilder = (
+  selfcareId: SelfcareId,
   attributeQuery: AttributeQuery,
   storeFile: FileManager["storeBytes"]
 ) => ({
@@ -26,6 +28,7 @@ export const contractBuilder = (
     seed: UpdateAgreementSeed
   ): Promise<ApiAgreementDocumentSeed> =>
     await pdfGenerator.createDocumentSeed(
+      selfcareId,
       agreement,
       eservice,
       consumer,

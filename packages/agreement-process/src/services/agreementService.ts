@@ -19,6 +19,7 @@ import {
   descriptorState,
   AgreementDocumentId,
   AgreementId,
+  SelfcareId,
 } from "pagopa-interop-models";
 import {
   agreementAlreadyExists,
@@ -194,13 +195,14 @@ export function agreementServiceBuilder(
     async submitAgreement(
       agreementId: AgreementId,
       payload: ApiAgreementSubmissionPayload,
+      selfcareId: SelfcareId,
       correlationId: string
     ): Promise<string> {
       logger.info(`Submitting agreement ${agreementId}`);
       const updatesEvents = await submitAgreementLogic(
         agreementId,
         payload,
-        contractBuilder(attributeQuery, fileManager.storeBytes),
+        contractBuilder(selfcareId, attributeQuery, fileManager.storeBytes),
         eserviceQuery,
         agreementQuery,
         tenantQuery,
