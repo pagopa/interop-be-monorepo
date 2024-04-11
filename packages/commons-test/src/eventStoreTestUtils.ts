@@ -22,6 +22,7 @@ export const eventStoreSchema = {
   attribute: "attribute",
   catalog: "catalog",
   tenant: "tenant",
+  purpose: "purpose",
 } as const;
 
 export const EventStoreSchema = z.enum([
