@@ -270,7 +270,7 @@ async function retrieveUser(
   });
 
   if (!user) {
-    throw userNotFound(id);
+    throw userNotFound(selfcareId, id);
   }
   return user;
 }

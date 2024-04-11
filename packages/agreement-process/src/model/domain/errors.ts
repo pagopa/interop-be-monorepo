@@ -10,6 +10,7 @@ import {
   TenantId,
   makeApiProblemBuilder,
   UserId,
+  SelfcareId,
 } from "pagopa-interop-models";
 
 const errorCodes = {
@@ -287,9 +288,12 @@ export function documentChangeNotAllowed(
   });
 }
 
-export function userNotFound(userId: UserId): ApiError<ErrorCodes> {
+export function userNotFound(
+  selfcareId: SelfcareId,
+  userId: UserId
+): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `User ${userId} not found `,
+    detail: `User ${userId} not found for selfcare institution ${selfcareId}`,
     code: "userNotFound",
     title: "User not found",
   });
