@@ -26,6 +26,7 @@ import {
   addCertifiedAttributeErrorMapper,
   getCertifiedAttributesErrorMapper,
   addDeclaredAttributeErrorMapper,
+  verifyVerifiedAttributeErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../utilities/config.js";
@@ -323,7 +324,26 @@ const tenantsRouter = (
     .post(
       "/tenants/:tenantId/attributes/verified",
       authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const { tenantId, offset, limit } = req.query;
+          const tenant = await tenantService.verifyVerifiedAttribute({
+            tenantId: unsafeBrandId(tenantId),
+            tenantAttributeSeed: req.body,
+            authData: req.ctx.authData,
+            limit,
+            offset,
+            correlationId: req.ctx.correlationId,
+          });
+          return res.status(200).json(toApiTenant(tenant)).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            verifyVerifiedAttributeErrorMapper
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/tenants/:tenantId/attributes/verified/:attributeId",

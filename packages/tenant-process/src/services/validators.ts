@@ -1,7 +1,9 @@
 import { AuthData, userRoles } from "pagopa-interop-commons";
 import {
+  AgreementState,
   Attribute,
   AttributeId,
+  EService,
   ExternalId,
   Tenant,
   TenantAttribute,
@@ -10,6 +12,7 @@ import {
   TenantVerifier,
   VerifiedTenantAttribute,
   WithMetadata,
+  agreementState,
   operationForbidden,
   tenantAttributeType,
   tenantKind,
@@ -24,6 +27,7 @@ import {
   selfcareIdConflict,
   expirationDateNotFoundInVerifier,
   tenantIsNotACertifier,
+  attributeVerificationNotAllowed,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -44,6 +48,98 @@ export function assertVerifiedAttributeExistsInTenant(
   if (!attribute || attribute.type !== tenantAttributeType.VERIFIED) {
     throw verifiedAttributeNotFoundInTenant(tenant.data.id, attributeId);
   }
+}
+
+export async function assertVerifiedAttributeOperationAllowed({
+  producerId,
+  consumerId,
+  attributeId,
+  agreementStates,
+  readModelService,
+  error,
+  limit,
+  offset,
+}: {
+  producerId: string;
+  consumerId: string;
+  attributeId: string;
+  agreementStates: AgreementState[];
+  readModelService: ReadModelService;
+  error: Error;
+  limit: number;
+  offset: number;
+}): Promise<void> {
+  // Get agreements
+  const agreements = await readModelService.getAgreements(
+    { producerId, consumerId, agreementStates },
+    limit,
+    offset
+  );
+
+  // Extract descriptor IDs
+  const descriptorIds = agreements.results.map(
+    (agreement) => agreement.descriptorId
+  );
+
+  // Get eServices concurrently
+  const eServices = (
+    await Promise.all(
+      agreements.results.map((agreement) =>
+        readModelService.getEServiceById(agreement.eserviceId)
+      )
+    )
+  ).filter((eService) => eService !== undefined) as EService[];
+
+  // Find verified attribute IDs
+  const attributeIds = eServices
+    .flatMap((eService) =>
+      eService.descriptors.filter((descriptor) =>
+        descriptorIds.includes(descriptor.id)
+      )
+    )
+    .flatMap((descriptor) =>
+      descriptor.attributes.verified.flatMap((attribute) =>
+        attribute.map((a) => a.id)
+      )
+    )
+    .reduce((acc, id) => acc.add(id), new Set<string>()); // Use Set for uniqueness
+
+  // Check if attribute is allowed
+  if (!attributeIds.has(attributeId)) {
+    throw error;
+  }
+}
+
+export async function assertAttributeVerificationAllowed({
+  producerId,
+  consumerId,
+  attributeId,
+  readModelService,
+  limit,
+  offset,
+}: {
+  producerId: TenantId;
+  consumerId: TenantId;
+  attributeId: AttributeId;
+  readModelService: ReadModelService;
+  limit: number;
+  offset: number;
+}): Promise<void> {
+  const allowedStatuses = [
+    agreementState.pending,
+    agreementState.active,
+    agreementState.suspended,
+  ];
+  await assertVerifiedAttributeOperationAllowed({
+    producerId,
+    consumerId,
+    attributeId,
+    agreementStates: allowedStatuses,
+    readModelService,
+    error: attributeVerificationNotAllowed(consumerId, attributeId),
+    limit,
+    offset,
+  });
 }
 
 export function assertOrganizationVerifierExist(

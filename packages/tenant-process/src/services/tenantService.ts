@@ -6,6 +6,7 @@ import {
   Tenant,
   TenantAttribute,
   TenantId,
+  VerifiedTenantAttribute,
   WithMetadata,
   generateId,
   tenantAttributeType,
@@ -16,11 +17,13 @@ import { ExternalId } from "pagopa-interop-models";
 import {
   toTenantCertifiedAttributeAssigned,
   toTenantDeclaredAttributeAssigned,
+  toTenantVerifiedAttributeAssigned,
 } from "../model/domain/toEvent.js";
 import {
   ApiCertifiedTenantAttributeSeed,
   ApiSelfcareTenantSeed,
   ApiDeclaredTenantAttributeSeed,
+  ApiVerifiedTenantAttributeSeed,
 } from "../model/types.js";
 import {
   attributeNotFound,
@@ -28,6 +31,7 @@ import {
   certifiedAttributeOriginIsNotCompliantWithCertifier,
   declaredAttributeNotFound,
   tenantIsNotACertifier,
+  verifiedAttributeSelfVerification,
 } from "../model/domain/errors.js";
 import {
   CertifiedAttributeQueryResult,
@@ -52,6 +56,7 @@ import {
   assertExpirationDateExist,
   assertTenantExists,
   getTenantCertifierId,
+  assertAttributeVerificationAllowed,
 } from "./validators.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -445,6 +450,112 @@ export function tenantServiceBuilder(
         });
       }
       const event = toTenantDeclaredAttributeAssigned(
+        targetTenant.data.id,
+        targetTenant.metadata.version,
+        updatedTenant,
+        unsafeBrandId(tenantAttributeSeed.id),
+        correlationId
+      );
+      await repository.createEvent(event);
+      return updatedTenant;
+    },
+
+    async verifyVerifiedAttribute({
+      tenantId,
+      tenantAttributeSeed,
+      authData,
+      limit,
+      offset,
+      correlationId,
+    }: {
+      tenantId: TenantId;
+      tenantAttributeSeed: ApiVerifiedTenantAttributeSeed;
+      authData: AuthData;
+      limit: number;
+      offset: number;
+      correlationId: string;
+    }): Promise<Tenant> {
+      logger.info(
+        `Verifying attribute ${tenantAttributeSeed.id} to tenant ${tenantId}`
+      );
+
+      const targetTenant = await retrieveTenant(tenantId, readModelService);
+
+      if (authData.organizationId === targetTenant.data.id) {
+        throw verifiedAttributeSelfVerification();
+      }
+
+      await assertAttributeVerificationAllowed({
+        producerId: authData.organizationId,
+        consumerId: targetTenant.data.id,
+        attributeId: unsafeBrandId(tenantAttributeSeed.id),
+        readModelService,
+        limit,
+        offset,
+      });
+
+      const verifiedTenantAttribute = targetTenant.data.attributes.find(
+        (attr) =>
+          attr.type === tenantAttributeType.VERIFIED &&
+          attr.id === tenantAttributeSeed.id
+      ) as VerifiedTenantAttribute;
+
+      // eslint-disable-next-line functional/no-let
+      let updatedTenant: Tenant = {
+        ...targetTenant.data,
+        updatedAt: new Date(),
+      };
+      if (!verifiedTenantAttribute) {
+        // assigning attribute for the first time
+        updatedTenant = {
+          ...updatedTenant,
+          attributes: [
+            {
+              id: unsafeBrandId(tenantAttributeSeed.id),
+              type: tenantAttributeType.VERIFIED,
+              assignmentTimestamp: new Date(),
+              verifiedBy: [
+                {
+                  id: authData.organizationId,
+                  verificationDate: new Date(),
+                  expirationDate: tenantAttributeSeed.expirationDate
+                    ? new Date(tenantAttributeSeed.expirationDate)
+                    : undefined,
+                  extensionDate: tenantAttributeSeed.expirationDate
+                    ? new Date(tenantAttributeSeed.expirationDate)
+                    : undefined,
+                },
+              ],
+              revokedBy: [],
+            },
+          ],
+        };
+      } else {
+        updatedTenant = {
+          ...updatedTenant,
+          attributes: [
+            ...targetTenant.data.attributes,
+            {
+              id: verifiedTenantAttribute.id,
+              type: tenantAttributeType.VERIFIED,
+              assignmentTimestamp: verifiedTenantAttribute.assignmentTimestamp,
+              verifiedBy: [
+                ...verifiedTenantAttribute.verifiedBy,
+                {
+                  id: authData.organizationId,
+                  verificationDate: new Date(),
+                  expirationDate: tenantAttributeSeed.expirationDate
+                    ? new Date(tenantAttributeSeed.expirationDate)
+                    : undefined,
+                  extensionDate: undefined,
+                },
+              ],
+              revokedBy: verifiedTenantAttribute.revokedBy,
+            },
+          ],
+        };
+      }
+      const event = toTenantVerifiedAttributeAssigned(
         targetTenant.data.id,
         targetTenant.metadata.version,
         updatedTenant,
