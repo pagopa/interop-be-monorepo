@@ -1,4 +1,8 @@
+/* eslint-disable sonarjs/cognitive-complexity */
+/* eslint-disable fp/no-delete */
+/* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
+
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   decodeProtobufPayload,
@@ -28,6 +32,7 @@ import {
 } from "pagopa-interop-models";
 import { agreementSuspendableStates } from "../src/model/domain/validators.js";
 import { toAgreementV1 } from "../src/model/domain/toEvent.js";
+import { createStamp } from "../src/services/agreementStampUtils.js";
 import {
   postgresDB,
   agreements,
@@ -373,6 +378,138 @@ export function testSuspendAgreement(): void {
             who: authData.userId,
             when: new Date(),
           },
+        },
+      };
+      expect(actualAgreementSuspended).toMatchObject(
+        toAgreementV1(expectedAgreementSuspended)
+      );
+    });
+
+    it("should preserve the suspension flags and the stamps that it does not update", async () => {
+      const producerId = generateId<TenantId>();
+
+      const tenantCertifiedAttribute: CertifiedTenantAttribute = {
+        ...getMockCertifiedTenantAttribute(),
+        revocationTimestamp: undefined,
+      };
+
+      const tenantDeclaredAttribute: DeclaredTenantAttribute = {
+        ...getMockDeclaredTenantAttribute(),
+        revocationTimestamp: undefined,
+      };
+
+      const tenantVerifiedAttribute: VerifiedTenantAttribute = {
+        ...getMockVerifiedTenantAttribute(),
+        verifiedBy: [
+          {
+            id: producerId,
+            verificationDate: new Date(),
+            extensionDate: new Date(new Date().getTime() + 3600 * 1000),
+          },
+        ],
+      };
+
+      const consumer = {
+        ...getMockTenant(),
+        attributes: [
+          tenantCertifiedAttribute,
+          tenantDeclaredAttribute,
+          tenantVerifiedAttribute,
+        ],
+      };
+      const descriptor: Descriptor = {
+        ...getMockDescriptorPublished(),
+        attributes: {
+          certified: [[getMockEServiceAttribute(tenantCertifiedAttribute.id)]],
+          declared: [[getMockEServiceAttribute(tenantDeclaredAttribute.id)]],
+          verified: [[getMockEServiceAttribute(tenantVerifiedAttribute.id)]],
+        },
+      };
+      const eservice: EService = {
+        ...getMockEService(),
+        producerId,
+        descriptors: [descriptor],
+      };
+
+      const requesterId = randomArrayItem([consumer.id, producerId]);
+
+      const authData = getRandomAuthData(requesterId);
+      const agreement: Agreement = {
+        ...getMockAgreement(),
+        consumerId: consumer.id,
+        eserviceId: eservice.id,
+        descriptorId: descriptor.id,
+        producerId: eservice.producerId,
+        state: agreementState.suspended,
+        suspendedByConsumer: Boolean(randomInt(0, 1)),
+        suspendedByProducer: Boolean(randomInt(0, 1)),
+        suspendedByPlatform: Boolean(randomInt(0, 1)),
+        stamps: {
+          activation: createStamp(authData),
+          archiving: createStamp(authData),
+          rejection: createStamp(authData),
+          submission: createStamp(authData),
+          upgrade: createStamp(authData),
+          suspensionByConsumer: createStamp(authData),
+          suspensionByProducer: createStamp(authData),
+        },
+      };
+
+      await addOneTenant(consumer, tenants);
+      await addOneEService(eservice, eservices);
+      await addOneAgreement(agreement, postgresDB, agreements);
+
+      await agreementService.suspendAgreement(agreement.id, authData, uuidv4());
+
+      const agreementEvent = await readLastAgreementEvent(
+        agreement.id,
+        postgresDB
+      );
+
+      expect(agreementEvent).toMatchObject({
+        type: "AgreementUpdated",
+        event_version: 1,
+        version: "0",
+        stream_id: agreement.id,
+      });
+
+      const actualAgreementSuspended = decodeProtobufPayload({
+        messageType: AgreementUpdatedV1,
+        payload: agreementEvent.data,
+      }).agreement;
+
+      const isConsumer = requesterId === agreement.consumerId;
+      const expectedStamps = {
+        suspensionByConsumer: isConsumer
+          ? {
+              who: authData.userId,
+              when: new Date(),
+            }
+          : agreement.stamps.suspensionByConsumer,
+        suspensionByProducer: !isConsumer
+          ? {
+              who: authData.userId,
+              when: new Date(),
+            }
+          : agreement.stamps.suspensionByProducer,
+      };
+      const expectedSuspensionFlags = {
+        suspendedByConsumer: isConsumer
+          ? true
+          : agreement.suspendedByConsumer ?? false,
+        suspendedByProducer: !isConsumer
+          ? true
+          : agreement.suspendedByProducer ?? false,
+        suspendedByPlatform: false,
+      };
+      const expectedAgreementSuspended: Agreement = {
+        ...agreement,
+        ...expectedSuspensionFlags,
+        state: agreementState.suspended,
+        suspendedAt: agreement.suspendedAt ?? new Date(),
+        stamps: {
+          ...agreement.stamps,
+          ...expectedStamps,
         },
       };
       expect(actualAgreementSuspended).toMatchObject(
