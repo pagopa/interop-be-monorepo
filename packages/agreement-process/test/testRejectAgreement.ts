@@ -55,7 +55,7 @@ import {
   eservices,
 } from "./agreementService.integration.test.js";
 
-export function testRejectAgreement(): void {
+export const testRejectAgreement = (): ReturnType<typeof describe> =>
   describe("reject agreement", () => {
     it("should succeed when requester is Producer and the Agreement is in a rejectable state", async () => {
       vi.useFakeTimers();
@@ -350,4 +350,3 @@ export function testRejectAgreement(): void {
       );
     });
   });
-}
