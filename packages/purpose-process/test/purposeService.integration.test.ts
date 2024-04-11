@@ -19,11 +19,19 @@ import {
 } from "pagopa-interop-commons-test";
 import { StartedTestContainer } from "testcontainers";
 import { config } from "../src/utilities/config.js";
+import {
+  PurposeService,
+  purposeServiceBuilder,
+} from "../src/services/purposeService.js";
+import {
+  ReadModelService,
+  readModelServiceBuilder,
+} from "../src/services/readModelService.js";
 
 describe("database test", async () => {
   let purposes: PurposeCollection;
-  // let readModelService: ReadModelService;
-  // let purposeService: PurposeService;
+  let readModelService: ReadModelService;
+  let purposeService: PurposeService;
   let postgresDB: IDatabase<unknown>;
   let startedPostgreSqlContainer: StartedTestContainer;
   let startedMongodbContainer: StartedTestContainer;
@@ -40,7 +48,7 @@ describe("database test", async () => {
 
     const readModelRepository = ReadModelRepository.init(config);
     purposes = readModelRepository.purposes;
-    // readModelService = readModelServiceBuilder(readModelRepository);
+    readModelService = readModelServiceBuilder(readModelRepository);
     postgresDB = initDB({
       username: config.eventStoreDbUsername,
       password: config.eventStoreDbPassword,
@@ -50,7 +58,7 @@ describe("database test", async () => {
       schema: config.eventStoreDbSchema,
       useSSL: config.eventStoreDbUseSSL,
     });
-    // purposeService = purposeServiceBuilder(postgresDB, readModelService);
+    purposeService = purposeServiceBuilder(postgresDB, readModelService);
   });
 
   afterEach(async () => {
@@ -65,7 +73,7 @@ describe("database test", async () => {
   });
 
   describe("Purpose service", () => {
-    describe("create purpose", () => {
+    describe("getPurposeById", () => {
       it("TO DO", () => {
         expect(1).toBe(1);
       });
