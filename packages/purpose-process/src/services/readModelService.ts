@@ -3,7 +3,6 @@ import {
   ReadModelRepository,
   EServiceCollection,
   TenantCollection,
-  AttributeCollection,
   PurposeCollection,
 } from "pagopa-interop-commons";
 import {
@@ -14,9 +13,6 @@ import {
   TenantId,
   Tenant,
   EServiceReadModel,
-  Attribute,
-  AttributeReadmodel,
-  AttributeId,
   Purpose,
   PurposeId,
 } from "pagopa-interop-models";
@@ -74,29 +70,6 @@ async function getEService(
   }
 }
 
-async function getAttribute(
-  attributes: AttributeCollection,
-  filter: Filter<WithId<WithMetadata<AttributeReadmodel>>>
-): Promise<Attribute | undefined> {
-  const data = await attributes.findOne(filter, {
-    projection: { data: true, metadata: true },
-  });
-  if (!data) {
-    return undefined;
-  } else {
-    const result = Attribute.safeParse(data);
-    if (!result.success) {
-      logger.error(
-        `Unable to parse eService item: result ${JSON.stringify(
-          result
-        )} - data ${JSON.stringify(data)} `
-      );
-      throw genericError("Unable to parse eService item");
-    }
-    return result.data;
-  }
-}
-
 async function getTenant(
   tenants: TenantCollection,
   filter: Filter<WithId<WithMetadata<Tenant>>>
@@ -124,14 +97,11 @@ async function getTenant(
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
 ) {
-  const { attributes, eservices, purposes, tenants } = readModelRepository;
+  const { eservices, purposes, tenants } = readModelRepository;
 
   return {
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
       return getEService(eservices, { "data.id": id });
-    },
-    async getAttributeById(id: AttributeId): Promise<Attribute | undefined> {
-      return getAttribute(attributes, { "data.id": id });
     },
     async getTenantById(id: TenantId): Promise<Tenant | undefined> {
       return getTenant(tenants, { "data.id": id });
