@@ -141,95 +141,39 @@ export function testSuspendAgreement(): void {
         payload: agreementEvent.data,
       }).agreement;
 
+      const isConsumer = requesterId === agreement.consumerId;
+      const expectedStamps = {
+        suspensionByConsumer: isConsumer
+          ? {
+              who: authData.userId,
+              when: new Date(),
+            }
+          : agreement.stamps.suspensionByConsumer,
+        suspensionByProducer: !isConsumer
+          ? {
+              who: authData.userId,
+              when: new Date(),
+            }
+          : agreement.stamps.suspensionByProducer,
+      };
+      const expectedSuspensionFlags = {
+        suspendedByConsumer: isConsumer
+          ? true
+          : agreement.suspendedByConsumer ?? false,
+        suspendedByProducer: !isConsumer
+          ? true
+          : agreement.suspendedByProducer ?? false,
+        suspendedByPlatform: false,
+      };
       const expectedAgreementSuspended: Agreement = {
         ...agreement,
+        ...expectedSuspensionFlags,
         state: agreementState.suspended,
-        suspendedByPlatform: false,
+        suspendedAt: agreement.suspendedAt ?? new Date(),
         stamps: {
           ...agreement.stamps,
-          [requesterId === agreement.consumerId
-            ? "suspensionByConsumer"
-            : "suspensionByProducer"]: {
-            who: authData.userId,
-            when: new Date(),
-          },
+          ...expectedStamps,
         },
-        [requesterId === agreement.consumerId
-          ? "suspendedByConsumer"
-          : "suspendedByProducer"]: true,
-      };
-      expect(actualAgreementSuspended).toMatchObject(
-        toAgreementV1(expectedAgreementSuspended)
-      );
-    });
-
-    it("should succeed when requester is Consumer or Producer, Agreement producer and consumer are the same, and the Agreement is in an suspendable state", async () => {
-      /* If the consumer and producer of the agreement are the same, there is no need to check the attributes.
-      the agreement will be suspended with suspendedByPlatform flag set to false
-      and suspendedByConsumer and suspendedByProducer flags both set to true */
-
-      const producerAndConsumerId = generateId<TenantId>();
-
-      const consumer = getMockTenant(producerAndConsumerId);
-      const descriptor: Descriptor = getMockDescriptorPublished();
-
-      const eservice: EService = {
-        ...getMockEService(),
-        producerId: producerAndConsumerId,
-        descriptors: [descriptor],
-      };
-
-      const agreement: Agreement = {
-        ...getMockAgreement(),
-        consumerId: consumer.id,
-        eserviceId: eservice.id,
-        descriptorId: descriptor.id,
-        producerId: eservice.producerId,
-        state: randomArrayItem(agreementSuspendableStates),
-      };
-
-      await addOneTenant(consumer, tenants);
-      await addOneEService(eservice, eservices);
-      await addOneAgreement(agreement, postgresDB, agreements);
-
-      const authData = getRandomAuthData(producerAndConsumerId);
-
-      await agreementService.suspendAgreement(agreement.id, authData, uuidv4());
-
-      const agreementEvent = await readLastAgreementEvent(
-        agreement.id,
-        postgresDB
-      );
-
-      expect(agreementEvent).toMatchObject({
-        type: "AgreementUpdated",
-        event_version: 1,
-        version: "0",
-        stream_id: agreement.id,
-      });
-
-      const actualAgreementSuspended = decodeProtobufPayload({
-        messageType: AgreementUpdatedV1,
-        payload: agreementEvent.data,
-      }).agreement;
-
-      const expectedAgreementSuspended: Agreement = {
-        ...agreement,
-        state: agreementState.suspended,
-        suspendedByPlatform: false,
-        stamps: {
-          ...agreement.stamps,
-          suspensionByConsumer: {
-            who: authData.userId,
-            when: new Date(),
-          },
-          suspensionByProducer: {
-            who: authData.userId,
-            when: new Date(),
-          },
-        },
-        suspendedByConsumer: true,
-        suspendedByProducer: true,
       };
       expect(actualAgreementSuspended).toMatchObject(
         toAgreementV1(expectedAgreementSuspended)
@@ -323,22 +267,113 @@ export function testSuspendAgreement(): void {
         payload: agreementEvent.data,
       }).agreement;
 
+      const isConsumer = requesterId === agreement.consumerId;
+      const expectedStamps = {
+        suspensionByConsumer: isConsumer
+          ? {
+              who: authData.userId,
+              when: new Date(),
+            }
+          : agreement.stamps.suspensionByConsumer,
+        suspensionByProducer: !isConsumer
+          ? {
+              who: authData.userId,
+              when: new Date(),
+            }
+          : agreement.stamps.suspensionByProducer,
+      };
+      const expectedSuspensionFlags = {
+        suspendedByConsumer: isConsumer
+          ? true
+          : agreement.suspendedByConsumer ?? false,
+        suspendedByProducer: !isConsumer
+          ? true
+          : agreement.suspendedByProducer ?? false,
+        suspendedByPlatform: true, // This is the difference with the previous test
+      };
       const expectedAgreementSuspended: Agreement = {
         ...agreement,
+        ...expectedSuspensionFlags,
         state: agreementState.suspended,
-        suspendedByPlatform: true,
+        suspendedAt: agreement.suspendedAt ?? new Date(),
         stamps: {
           ...agreement.stamps,
-          [requesterId === agreement.consumerId
-            ? "suspensionByConsumer"
-            : "suspensionByProducer"]: {
+          ...expectedStamps,
+        },
+      };
+      expect(actualAgreementSuspended).toMatchObject(
+        toAgreementV1(expectedAgreementSuspended)
+      );
+    });
+
+    it("should succeed when requester is Consumer or Producer, Agreement producer and consumer are the same, and the Agreement is in an suspendable state", async () => {
+      /* If the consumer and producer of the agreement are the same, there is no need to check the attributes.
+      the agreement will be suspended with suspendedByPlatform flag set to false
+      and suspendedByConsumer and suspendedByProducer flags both set to true */
+
+      const producerAndConsumerId = generateId<TenantId>();
+
+      const consumer = getMockTenant(producerAndConsumerId);
+      const descriptor: Descriptor = getMockDescriptorPublished();
+
+      const eservice: EService = {
+        ...getMockEService(),
+        producerId: producerAndConsumerId,
+        descriptors: [descriptor],
+      };
+
+      const agreement: Agreement = {
+        ...getMockAgreement(),
+        consumerId: consumer.id,
+        eserviceId: eservice.id,
+        descriptorId: descriptor.id,
+        producerId: eservice.producerId,
+        state: randomArrayItem(agreementSuspendableStates),
+      };
+
+      await addOneTenant(consumer, tenants);
+      await addOneEService(eservice, eservices);
+      await addOneAgreement(agreement, postgresDB, agreements);
+
+      const authData = getRandomAuthData(producerAndConsumerId);
+
+      await agreementService.suspendAgreement(agreement.id, authData, uuidv4());
+
+      const agreementEvent = await readLastAgreementEvent(
+        agreement.id,
+        postgresDB
+      );
+
+      expect(agreementEvent).toMatchObject({
+        type: "AgreementUpdated",
+        event_version: 1,
+        version: "0",
+        stream_id: agreement.id,
+      });
+
+      const actualAgreementSuspended = decodeProtobufPayload({
+        messageType: AgreementUpdatedV1,
+        payload: agreementEvent.data,
+      }).agreement;
+
+      const expectedAgreementSuspended: Agreement = {
+        ...agreement,
+        suspendedByConsumer: true,
+        suspendedByProducer: true,
+        suspendedByPlatform: false,
+        state: agreementState.suspended,
+        suspendedAt: agreement.suspendedAt ?? new Date(),
+        stamps: {
+          ...agreement.stamps,
+          suspensionByConsumer: {
+            who: authData.userId,
+            when: new Date(),
+          },
+          suspensionByProducer: {
             who: authData.userId,
             when: new Date(),
           },
         },
-        [requesterId === agreement.consumerId
-          ? "suspendedByConsumer"
-          : "suspendedByProducer"]: true,
       };
       expect(actualAgreementSuspended).toMatchObject(
         toAgreementV1(expectedAgreementSuspended)
