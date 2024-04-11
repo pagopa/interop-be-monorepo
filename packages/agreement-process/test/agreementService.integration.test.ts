@@ -98,6 +98,7 @@ import {
   addOneTenant,
   readLastAgreementEvent,
 } from "./utils.js";
+import { testArchiveAgreement } from "./testArchiveAgreement.js";
 
 export let agreements: AgreementCollection;
 export let eservices: EServiceCollection;
@@ -1760,4 +1761,5 @@ describe("Agreement service", () => {
   });
 
   testUpdateAgreement();
+  testArchiveAgreement();
 });
