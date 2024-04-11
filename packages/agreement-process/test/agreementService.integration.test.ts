@@ -1,6 +1,17 @@
+/* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
 
 import { fail } from "assert";
+import {
+  AgreementCollection,
+  EServiceCollection,
+  FileManager,
+  ReadModelRepository,
+  TenantCollection,
+  initDB,
+  initFileManager,
+  logger,
+} from "pagopa-interop-commons";
 import {
   getMockAgreement,
   getMockCertifiedTenantAttribute,
@@ -14,6 +25,10 @@ import {
   randomArrayItem,
   StoredEvent,
   decodeProtobufPayload,
+  TEST_MONGO_DB_PORT,
+  TEST_POSTGRES_DB_PORT,
+  mongoDBContainer,
+  postgreSQLContainer,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -35,7 +50,17 @@ import {
   generateId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { beforeEach, describe, expect, it } from "vitest";
+import { IDatabase } from "pg-promise";
+import { StartedTestContainer } from "testcontainers";
+import {
+  afterAll,
+  afterEach,
+  beforeEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+} from "vitest";
 import { v4 as uuidv4 } from "uuid";
 import {
   agreementAlreadyExists,
@@ -48,24 +73,41 @@ import {
 } from "../src/model/domain/errors.js";
 import { toAgreementStateV1 } from "../src/model/domain/toEvent.js";
 import { ApiAgreementPayload } from "../src/model/types.js";
+import {
+  AgreementService,
+  agreementServiceBuilder,
+} from "../src/services/agreementService.js";
+import { agreementQueryBuilder } from "../src/services/readmodel/agreementQuery.js";
+import { attributeQueryBuilder } from "../src/services/readmodel/attributeQuery.js";
+import { eserviceQueryBuilder } from "../src/services/readmodel/eserviceQuery.js";
+import {
+  ReadModelService,
+  readModelServiceBuilder,
+} from "../src/services/readmodel/readModelService.js";
+import { tenantQueryBuilder } from "../src/services/readmodel/tenantQuery.js";
+import { config } from "../src/utilities/config.js";
 import { agreementCreationConflictingStates } from "../src/model/domain/validators.js";
 import {
   CompactEService,
   CompactOrganization,
 } from "../src/model/domain/models.js";
+import { testUpdateAgreement } from "./testUpdateAgreement.js";
 import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
   readLastAgreementEvent,
 } from "./utils.js";
-import {
-  eservices,
-  tenants,
-  postgresDB,
-  agreementService,
-  agreements,
-} from "./agreementService.test.setup.js";
+
+export let agreements: AgreementCollection;
+export let eservices: EServiceCollection;
+export let tenants: TenantCollection;
+export let readModelService: ReadModelService;
+export let agreementService: AgreementService;
+export let postgresDB: IDatabase<unknown>;
+export let startedPostgreSqlContainer: StartedTestContainer;
+export let startedMongodbContainer: StartedTestContainer;
+export let fileManager: FileManager;
 
 /**
  * Executes the generic agreement expectation for agreement creation process,
@@ -135,6 +177,67 @@ const expectedAgreementCreation = async (
 
   return actualAgreement;
 };
+
+beforeAll(async () => {
+  startedPostgreSqlContainer = await postgreSQLContainer(config).start();
+  startedMongodbContainer = await mongoDBContainer(config).start();
+
+  config.eventStoreDbPort = startedPostgreSqlContainer.getMappedPort(
+    TEST_POSTGRES_DB_PORT
+  );
+  config.readModelDbPort =
+    startedMongodbContainer.getMappedPort(TEST_MONGO_DB_PORT);
+
+  const readModelRepository = ReadModelRepository.init(config);
+  agreements = readModelRepository.agreements;
+  eservices = readModelRepository.eservices;
+  tenants = readModelRepository.tenants;
+
+  readModelService = readModelServiceBuilder(readModelRepository);
+  const eserviceQuery = eserviceQueryBuilder(readModelService);
+  const agreementQuery = agreementQueryBuilder(readModelService);
+  const tenantQuery = tenantQueryBuilder(readModelService);
+  const attributeQuery = attributeQueryBuilder(readModelService);
+
+  postgresDB = initDB({
+    username: config.eventStoreDbUsername,
+    password: config.eventStoreDbPassword,
+    host: config.eventStoreDbHost,
+    port: config.eventStoreDbPort,
+    database: config.eventStoreDbName,
+    schema: config.eventStoreDbSchema,
+    useSSL: config.eventStoreDbUseSSL,
+  });
+
+  if (!postgresDB) {
+    logger.error("postgresDB is undefined!!");
+  }
+
+  // TODO: Setup MinIO test container when testing functionalities that require file storage
+  fileManager = initFileManager(config);
+  agreementService = agreementServiceBuilder(
+    postgresDB,
+    agreementQuery,
+    tenantQuery,
+    eserviceQuery,
+    attributeQuery,
+    fileManager
+  );
+});
+
+afterEach(async () => {
+  await agreements.deleteMany({});
+  await eservices.deleteMany({});
+  await tenants.deleteMany({});
+
+  await postgresDB.none("TRUNCATE TABLE agreement.events RESTART IDENTITY");
+  await postgresDB.none("TRUNCATE TABLE catalog.events RESTART IDENTITY");
+});
+
+afterAll(async () => {
+  await startedPostgreSqlContainer.stop();
+  await startedMongodbContainer.stop();
+});
 
 describe("Agreement service", () => {
   describe("create agreement", () => {
@@ -1655,4 +1758,6 @@ describe("Agreement service", () => {
       });
     });
   });
+
+  testUpdateAgreement();
 });
