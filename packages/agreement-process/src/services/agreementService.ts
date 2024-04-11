@@ -439,7 +439,7 @@ async function createAndCopyDocumentsForClonedAgreement(
   const docs = await Promise.all(
     clonedAgreement.consumerDocuments.map(async (d) => {
       const newId: AgreementDocumentId = generateId();
-      const documentDestinationPath = `${config.consumerDocumentsPath}/${clonedAgreement.id}`;
+      const documentDestinationPath = `${config.consumerDocumentsPath}/${newAgreementId}`;
 
       return {
         newId,

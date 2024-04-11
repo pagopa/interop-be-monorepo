@@ -492,7 +492,19 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         decodeAgreementDocumentV1FromEvent
       );
 
-      expect(actualAgreementDocumentAddedV1).toMatchObject({});
+      const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${actualCreatedAgreementV1.id}/${actualAgreementDocumentAddedV1.document?.id}/${documentPublishedDescriptor.name}`;
+      expect(actualAgreementDocumentAddedV1.document).toBeDefined();
+      if (!actualAgreementDocumentAddedV1.document) {
+        fail("Document not found in event");
+      }
+      expect(actualAgreementDocumentAddedV1.document).toMatchObject({
+        id: actualAgreementDocumentAddedV1.document.id,
+        name: documentPublishedDescriptor.name,
+        prettyName: documentPublishedDescriptor.prettyName,
+        contentType: documentPublishedDescriptor.contentType,
+        path: expectedUploadedDocumentPath,
+        createdAt: BigInt(TEST_EXECUTION_DATE.getTime()),
+      });
     });
 
     it("should succeed with invalid Declared attributes", async () => {
@@ -658,7 +670,19 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         decodeAgreementDocumentV1FromEvent
       );
 
-      expect(actualAgreementDocumentAddedV1).toMatchObject({});
+      const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${actualCreatedAgreementV1.id}/${actualAgreementDocumentAddedV1.document?.id}/${documentPublishedDescriptor.name}`;
+      expect(actualAgreementDocumentAddedV1.document).toBeDefined();
+      if (!actualAgreementDocumentAddedV1.document) {
+        fail("Document not found in event");
+      }
+      expect(actualAgreementDocumentAddedV1.document).toMatchObject({
+        id: actualAgreementDocumentAddedV1.document.id,
+        name: documentPublishedDescriptor.name,
+        prettyName: documentPublishedDescriptor.prettyName,
+        contentType: documentPublishedDescriptor.contentType,
+        path: expectedUploadedDocumentPath,
+        createdAt: BigInt(TEST_EXECUTION_DATE.getTime()),
+      });
     });
 
     it("should throw error tenant does not exist", async () => {
