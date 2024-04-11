@@ -133,7 +133,7 @@ import {
   getMockEServiceAttributes,
   buildRiskAnalysisSeed,
 } from "./utils.js";
-import { wrapperForCreateEService } from "./split.js";
+import { testCreateEService } from "./testCreateEService.js";
 
 export const mockEService = getMockEService();
 const mockDescriptor = getMockDescriptor();
@@ -211,7 +211,7 @@ describe("database test", async () => {
   });
 
   describe("Catalog service", () => {
-    wrapperForCreateEService();
+    testCreateEService();
 
     describe("update eService", () => {
       it("should write on event-store for the update of an eService (no technology change)", async () => {

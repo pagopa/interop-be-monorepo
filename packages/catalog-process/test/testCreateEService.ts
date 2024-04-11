@@ -20,7 +20,7 @@ import {
 } from "./utils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export const wrapperForCreateEService = () =>
+export const testCreateEService = () =>
   describe("create eservice", () => {
     it("should write on event-store for the creation of an eservice", async () => {
       const eservice = await catalogService.createEService(
