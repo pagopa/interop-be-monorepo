@@ -1,10 +1,33 @@
 import { PurposeCollection } from "pagopa-interop-commons";
 import {
   PurposeEventEnvelopeV1,
+  PurposeReadModel,
+  PurposeV1,
+  PurposeVersionReadModel,
+  PurposeVersionV1,
   fromPurposeV1,
   fromPurposeVersionV1,
+  toReadModelPurpose,
+  toReadModelPurposeVersion,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
+const adaptPurposeToReadModel = (
+  version: number,
+  purpose?: PurposeV1
+): { data: PurposeReadModel | undefined; metadata: { version: number } } => ({
+  data: purpose ? toReadModelPurpose(fromPurposeV1(purpose)) : undefined,
+  metadata: {
+    version,
+  },
+});
+
+const adaptPurposeVersionToReadModel = (
+  purposeVersion?: PurposeVersionV1
+): PurposeVersionReadModel | undefined =>
+  purposeVersion
+    ? toReadModelPurposeVersion(fromPurposeVersionV1(purposeVersion))
+    : undefined;
 
 export async function handleMessageV1(
   message: PurposeEventEnvelopeV1,
@@ -17,12 +40,10 @@ export async function handleMessageV1(
         await purposes.updateOne(
           { "data.id": msg.stream_id },
           {
-            $setOnInsert: {
-              data: msg.data.purpose
-                ? fromPurposeV1(msg.data.purpose)
-                : undefined,
-              metadata: { version: msg.version },
-            },
+            $setOnInsert: adaptPurposeToReadModel(
+              msg.version,
+              msg.data.purpose
+            ),
           },
           { upsert: true }
         )
@@ -40,9 +61,7 @@ export async function handleMessageV1(
               "metadata.version": msg.version,
             },
             $push: {
-              "data.versions": msg.data.version
-                ? fromPurposeVersionV1(msg.data.version)
-                : undefined,
+              "data.versions": adaptPurposeVersionToReadModel(msg.data.version),
             },
           }
         )
@@ -58,12 +77,7 @@ export async function handleMessageV1(
         await purposes.updateOne(
           { "data.id": msg.stream_id },
           {
-            $set: {
-              data: msg.data.purpose
-                ? fromPurposeV1(msg.data.purpose)
-                : undefined,
-              metadata: { version: msg.version },
-            },
+            $set: adaptPurposeToReadModel(msg.version, msg.data.purpose),
           }
         )
     )
@@ -76,9 +90,9 @@ export async function handleMessageV1(
         {
           $set: {
             "metadata.version": msg.version,
-            "data.versions.$[version]": msg.data.version
-              ? fromPurposeVersionV1(msg.data.version)
-              : undefined,
+            "data.versions.$[version]": adaptPurposeVersionToReadModel(
+              msg.data.version
+            ),
           },
         },
         {
