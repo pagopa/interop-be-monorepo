@@ -167,7 +167,7 @@ const getExternalId = (
 const getSelfcareId = (token: AuthToken): SelfcareId | undefined =>
   match(token)
     .with({ "user-roles": P.not(P.nullish) }, (t) =>
-      unsafeBrandId<SelfcareId>(t.uid)
+      unsafeBrandId<SelfcareId>(t.selfcareId)
     )
     .with({ role: "m2m" }, { role: "internal" }, () => undefined)
     .exhaustive();
