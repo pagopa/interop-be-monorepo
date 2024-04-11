@@ -57,7 +57,7 @@ import {
   readLastAgreementEvent,
 } from "./utils.js";
 
-export function testSuspendAgreement(): void {
+export const testSuspendAgreement = (): ReturnType<typeof describe> =>
   describe("suspend agreement", () => {
     beforeEach(async () => {
       vi.useFakeTimers();
@@ -615,4 +615,3 @@ export function testSuspendAgreement(): void {
       );
     });
   });
-}
