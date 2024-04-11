@@ -52,12 +52,12 @@ async function getEService(
   filter: Filter<WithId<WithMetadata<EServiceReadModel>>>
 ): Promise<EService | undefined> {
   const data = await eservices.findOne(filter, {
-    projection: { data: true, metadata: true },
+    projection: { data: true },
   });
   if (!data) {
     return undefined;
   } else {
-    const result = EService.safeParse(data);
+    const result = EService.safeParse(data.data);
     if (!result.success) {
       logger.error(
         `Unable to parse eService item: result ${JSON.stringify(
@@ -75,12 +75,12 @@ async function getTenant(
   filter: Filter<WithId<WithMetadata<Tenant>>>
 ): Promise<Tenant | undefined> {
   const data = await tenants.findOne(filter, {
-    projection: { data: true, metadata: true },
+    projection: { data: true },
   });
   if (!data) {
     return undefined;
   } else {
-    const result = Tenant.safeParse(data);
+    const result = Tenant.safeParse(data.data);
     if (!result.success) {
       logger.error(
         `Unable to parse eService item: result ${JSON.stringify(
