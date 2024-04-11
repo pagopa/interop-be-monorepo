@@ -1,4 +1,3 @@
-import { z } from "zod";
 import {
   AuthData,
   CreateEvent,
@@ -8,27 +7,32 @@ import {
   logger,
 } from "pagopa-interop-commons";
 import {
-  generateId,
   Agreement,
   AgreementDocument,
+  AgreementDocumentId,
   AgreementEvent,
+  AgreementId,
   ListResult,
   WithMetadata,
   agreementEventToBinaryData,
   agreementState,
   descriptorState,
-  AgreementDocumentId,
-  AgreementId,
+  generateId,
 } from "pagopa-interop-models";
+import { z } from "zod";
 import {
   agreementAlreadyExists,
+  agreementDocumentNotFound,
   descriptorNotFound,
   noNewerDescriptor,
-  unexpectedVersionFormat,
   publishedDescriptorNotFound,
-  agreementDocumentNotFound,
+  unexpectedVersionFormat,
 } from "../model/domain/errors.js";
 
+import {
+  CompactEService,
+  CompactOrganization,
+} from "../model/domain/models.js";
 import {
   toCreateEventAgreementAdded,
   toCreateEventAgreementConsumerDocumentAdded,
@@ -36,14 +40,20 @@ import {
   toCreateEventAgreementUpdated,
 } from "../model/domain/toEvent.js";
 import {
+  agreementArchivableStates,
+  agreementCloningConflictingStates,
+  agreementDeletableStates,
+  agreementRejectableStates,
+  agreementUpdatableStates,
+  agreementUpgradableStates,
   assertAgreementExist,
+  assertDescriptorExist,
   assertEServiceExist,
   assertExpectedState,
   assertRequesterIsConsumer,
   assertRequesterIsConsumerOrProducer,
   assertRequesterIsProducer,
   assertTenantExist,
-  assertDescriptorExist,
   declaredAttributesSatisfied,
   matchingCertifiedAttributes,
   matchingDeclaredAttributes,
@@ -51,42 +61,33 @@ import {
   validateCertifiedAttributes,
   verifiedAttributesSatisfied,
   verifyConflictingAgreements,
-  agreementDeletableStates,
-  agreementUpdatableStates,
-  agreementUpgradableStates,
-  agreementCloningConflictingStates,
-  agreementRejectableStates,
-  agreementArchivableStates,
 } from "../model/domain/validators.js";
 import {
-  CompactEService,
-  CompactOrganization,
-} from "../model/domain/models.js";
-import {
+  ApiAgreementDocumentSeed,
   ApiAgreementPayload,
   ApiAgreementSubmissionPayload,
   ApiAgreementUpdatePayload,
-  ApiAgreementDocumentSeed,
 } from "../model/types.js";
 import { config } from "../utilities/config.js";
+import { activateAgreementLogic } from "./agreementActivationProcessor.js";
+import {
+  addConsumerDocumentLogic,
+  removeAgreementConsumerDocumentLogic,
+} from "./agreementConsumerDocumentProcessor.js";
+import { contractBuilder } from "./agreementContractBuilder.js";
+import { createAgreementLogic } from "./agreementCreationProcessor.js";
+import { createStamp } from "./agreementStampUtils.js";
+import { submitAgreementLogic } from "./agreementSubmissionProcessor.js";
+import { suspendAgreementLogic } from "./agreementSuspensionProcessor.js";
+import { AgreementQuery } from "./readmodel/agreementQuery.js";
 import { AttributeQuery } from "./readmodel/attributeQuery.js";
 import {
   AgreementEServicesQueryFilters,
   AgreementQueryFilters,
 } from "./readmodel/readModelService.js";
-import { contractBuilder } from "./agreementContractBuilder.js";
-import { submitAgreementLogic } from "./agreementSubmissionProcessor.js";
-import { AgreementQuery } from "./readmodel/agreementQuery.js";
+
 import { EserviceQuery } from "./readmodel/eserviceQuery.js";
 import { TenantQuery } from "./readmodel/tenantQuery.js";
-import { suspendAgreementLogic } from "./agreementSuspensionProcessor.js";
-import { createStamp } from "./agreementStampUtils.js";
-import {
-  removeAgreementConsumerDocumentLogic,
-  addConsumerDocumentLogic,
-} from "./agreementConsumerDocumentProcessor.js";
-import { activateAgreementLogic } from "./agreementActivationProcessor.js";
-import { createAgreementLogic } from "./agreementCreationProcessor.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function agreementServiceBuilder(
@@ -438,12 +439,14 @@ async function createAndCopyDocumentsForClonedAgreement(
   const docs = await Promise.all(
     clonedAgreement.consumerDocuments.map(async (d) => {
       const newId: AgreementDocumentId = generateId();
+      const documentDestinationPath = `${config.consumerDocumentsPath}`;
+
       return {
         newId,
         newPath: await copyFile(
           config.s3Bucket,
-          `${config.consumerDocumentsPath}/${newAgreementId}`,
           d.path,
+          documentDestinationPath,
           newId,
           d.name
         ),
@@ -695,7 +698,7 @@ export async function upgradeAgreementLogic(
     const docEvents = await createAndCopyDocumentsForClonedAgreement(
       newAgreement.id,
       agreementToBeUpgraded.data,
-      1,
+      0,
       copyFile,
       correlationId
     );
