@@ -117,6 +117,26 @@ export async function readLastEventByStreamId<T extends EventStoreSchema>(
   );
 }
 
+export async function readEventByStreamIdAndVersion<T extends EventStoreSchema>(
+  streamId: T extends "agreement"
+    ? AgreementId
+    : T extends "attribute"
+    ? AttributeId
+    : T extends "catalog"
+    ? EServiceId
+    : T extends "tenant"
+    ? TenantId
+    : never,
+  version: number,
+  schema: T,
+  postgresDB: IDatabase<unknown>
+): Promise<StoredEvent> {
+  return postgresDB.one(
+    `SELECT * FROM ${schema}.events WHERE stream_id = $1 and version = $2 ORDER BY sequence_num DESC LIMIT 1`,
+    [streamId, version]
+  );
+}
+
 export function decodeProtobufPayload<I extends object>({
   messageType,
   payload,
