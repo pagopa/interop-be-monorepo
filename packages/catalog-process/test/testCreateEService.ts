@@ -19,8 +19,7 @@ import {
   readLastEserviceEvent,
 } from "./utils.js";
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export const testCreateEService = () =>
+export const testCreateEService = (): ReturnType<typeof describe> =>
   describe("create eservice", () => {
     it("should write on event-store for the creation of an eservice", async () => {
       const eservice = await catalogService.createEService(
