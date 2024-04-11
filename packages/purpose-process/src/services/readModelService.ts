@@ -18,6 +18,7 @@ import {
   AttributeReadmodel,
   AttributeId,
   Purpose,
+  PurposeId,
 } from "pagopa-interop-models";
 import { Filter, WithId } from "mongodb";
 import { z } from "zod";
@@ -136,7 +137,7 @@ export function readModelServiceBuilder(
       return getTenant(tenants, { "data.id": id });
     },
     async getPurposeById(
-      id: TenantId
+      id: PurposeId
     ): Promise<WithMetadata<Purpose> | undefined> {
       return getPurpose(purposes, { "data.id": id });
     },
