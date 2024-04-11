@@ -143,13 +143,10 @@ export let postgresDB: IDatabase<unknown>;
 export let eservices: EServiceCollection;
 
 describe("database test", async () => {
-  // let eservices: EServiceCollection;
   let agreements: AgreementCollection;
   let attributes: AttributeCollection;
   let tenants: TenantCollection;
   let readModelService: ReadModelService;
-  // let catalogService: CatalogService;
-  // let postgresDB: IDatabase<unknown>;
   let startedPostgreSqlContainer: StartedTestContainer;
   let startedMongodbContainer: StartedTestContainer;
   let startedMinioContainer: StartedTestContainer;
