@@ -53,7 +53,11 @@ export function testSuspendAgreement(): void {
       vi.useRealTimers();
     });
 
-    it("should succeed when requester is Consumer and the Agreement is in an suspendable state", async () => {
+    it("should succeed when requester is Consumer or Producer, Consumer has all attributes satisfied, and the Agreement is in an suspendable state", async () => {
+      /* If the consumer has all the attributes satisfied,
+      the agreement will be suspended with suspendedByPlatform flag set to false
+      and suspendedByConsumer or suspendedByProducer flag set
+      to true depending on the requester (consumer or producer) */
       const producerId = generateId<TenantId>();
 
       const tenantCertifiedAttribute: CertifiedTenantAttribute = {
@@ -95,6 +99,7 @@ export function testSuspendAgreement(): void {
       };
       const eservice: EService = {
         ...getMockEService(),
+        producerId,
         descriptors: [descriptor],
       };
 
@@ -111,7 +116,11 @@ export function testSuspendAgreement(): void {
       await addOneEService(eservice, eservices);
       await addOneAgreement(agreement, postgresDB, agreements);
 
-      const authData = getRandomAuthData(agreement.consumerId);
+      const requesterId = randomArrayItem([
+        agreement.consumerId,
+        agreement.producerId,
+      ]);
+      const authData = getRandomAuthData(requesterId);
 
       await agreementService.suspendAgreement(agreement.id, authData, uuidv4());
 
@@ -135,7 +144,6 @@ export function testSuspendAgreement(): void {
       const expectedAgreementSuspended: Agreement = {
         ...agreement,
         state: agreementState.suspended,
-        suspendedByConsumer: true,
         suspendedByPlatform: false,
         stamps: {
           ...agreement.stamps,
@@ -144,67 +152,9 @@ export function testSuspendAgreement(): void {
             when: new Date(),
           },
         },
-      };
-      expect(actualAgreementSuspended).toMatchObject(
-        toAgreementV1(expectedAgreementSuspended)
-      );
-    });
-
-    it("should succeed when requester is Producer and the Agreement is in an suspendable state", async () => {
-      const consumer = getMockTenant();
-      const descriptor = getMockDescriptorPublished();
-      const eservice: EService = {
-        ...getMockEService(),
-        descriptors: [descriptor],
-      };
-
-      // TODO maybe need to set attributes?
-      const agreement: Agreement = {
-        ...getMockAgreement(),
-        consumerId: consumer.id,
-        eserviceId: eservice.id,
-        descriptorId: descriptor.id,
-        producerId: eservice.producerId,
-        state: randomArrayItem(agreementSuspendableStates),
-      };
-
-      await addOneTenant(consumer, tenants);
-      await addOneEService(eservice, eservices);
-      await addOneAgreement(agreement, postgresDB, agreements);
-
-      const authData = getRandomAuthData(agreement.producerId);
-
-      await agreementService.suspendAgreement(agreement.id, authData, uuidv4());
-
-      const agreementEvent = await readLastAgreementEvent(
-        agreement.id,
-        postgresDB
-      );
-
-      expect(agreementEvent).toMatchObject({
-        type: "AgreementUpdated",
-        event_version: 1,
-        version: "0",
-        stream_id: agreement.id,
-      });
-
-      const actualAgreementSuspended = decodeProtobufPayload({
-        messageType: AgreementUpdatedV1,
-        payload: agreementEvent.data,
-      }).agreement;
-
-      const expectedAgreementSuspended: Agreement = {
-        ...agreement,
-        state: agreementState.suspended,
-        suspendedByProducer: true,
-        suspendedByPlatform: false,
-        stamps: {
-          ...agreement.stamps,
-          suspensionByProducer: {
-            who: authData.userId,
-            when: new Date(),
-          },
-        },
+        [requesterId === agreement.consumerId
+          ? "suspendedByConsumer"
+          : "suspendedByProducer"]: true,
       };
       expect(actualAgreementSuspended).toMatchObject(
         toAgreementV1(expectedAgreementSuspended)
