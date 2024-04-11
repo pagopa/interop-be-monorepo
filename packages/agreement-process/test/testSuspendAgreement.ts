@@ -21,6 +21,7 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import {
   Agreement,
+  AgreementId,
   AgreementUpdatedV1,
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
@@ -34,6 +35,14 @@ import {
 import { agreementSuspendableStates } from "../src/model/domain/validators.js";
 import { toAgreementV1 } from "../src/model/domain/toEvent.js";
 import { createStamp } from "../src/services/agreementStampUtils.js";
+import {
+  agreementNotFound,
+  agreementNotInExpectedState,
+  descriptorNotFound,
+  eServiceNotFound,
+  operationNotAllowed,
+  tenantNotFound,
+} from "../src/model/domain/errors.js";
 import {
   postgresDB,
   agreements,
@@ -515,6 +524,94 @@ export function testSuspendAgreement(): void {
       };
       expect(actualAgreementSuspended).toMatchObject(
         toAgreementV1(expectedAgreementSuspended)
+      );
+    });
+
+    it("should throw an agreementNotFound error when the agreement does not exist", async () => {
+      const authData = getRandomAuthData();
+      const agreementId = generateId<AgreementId>();
+      await expect(
+        agreementService.suspendAgreement(agreementId, authData, uuidv4())
+      ).rejects.toThrowError(agreementNotFound(agreementId));
+    });
+
+    it("should throw operationNotAllowed when the requester is not the Consumer or the Producer", async () => {
+      const authData = getRandomAuthData();
+      const agreement = getMockAgreement();
+      await addOneAgreement(agreement, postgresDB, agreements);
+      await expect(
+        agreementService.suspendAgreement(agreement.id, authData, uuidv4())
+      ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+    });
+
+    it("should throw agreementNotInExpectedState when the agreement is not in a rejectable state", async () => {
+      const agreement = {
+        ...getMockAgreement(),
+        state: randomArrayItem(
+          Object.values(agreementState).filter(
+            (s) => !agreementSuspendableStates.includes(s)
+          )
+        ),
+      };
+      await addOneAgreement(agreement, postgresDB, agreements);
+      const authData = getRandomAuthData(agreement.producerId);
+      await expect(
+        agreementService.suspendAgreement(agreement.id, authData, uuidv4())
+      ).rejects.toThrowError(
+        agreementNotInExpectedState(agreement.id, agreement.state)
+      );
+    });
+
+    it("should throw an eServiceNotFound error when the eService does not exist", async () => {
+      const agreement = {
+        ...getMockAgreement(),
+        state: randomArrayItem(agreementSuspendableStates),
+      };
+      await addOneAgreement(agreement, postgresDB, agreements);
+      const authData = getRandomAuthData(agreement.producerId);
+      await expect(
+        agreementService.suspendAgreement(agreement.id, authData, uuidv4())
+      ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
+    });
+
+    it("should throw a tenantNotFound error when the consumer does not exist", async () => {
+      const eservice = getMockEService();
+      const consumer = getMockTenant();
+      const agreement = {
+        ...getMockAgreement(),
+        state: randomArrayItem(agreementSuspendableStates),
+        eserviceId: eservice.id,
+        producerId: eservice.producerId,
+        consumerId: consumer.id,
+      };
+      await addOneAgreement(agreement, postgresDB, agreements);
+      await addOneEService(eservice, eservices);
+      const authData = getRandomAuthData(agreement.producerId);
+
+      await expect(
+        agreementService.suspendAgreement(agreement.id, authData, uuidv4())
+      ).rejects.toThrowError(tenantNotFound(agreement.consumerId));
+    });
+
+    it("should throw a descriptorNotFound error when the descriptor does not exist", async () => {
+      const eservice = getMockEService();
+      const consumer = getMockTenant();
+      const agreement = {
+        ...getMockAgreement(),
+        state: randomArrayItem(agreementSuspendableStates),
+        eserviceId: eservice.id,
+        producerId: eservice.producerId,
+        consumerId: consumer.id,
+      };
+      await addOneAgreement(agreement, postgresDB, agreements);
+      await addOneEService(eservice, eservices);
+      await addOneTenant(consumer, tenants);
+      const authData = getRandomAuthData(agreement.producerId);
+
+      await expect(
+        agreementService.suspendAgreement(agreement.id, authData, uuidv4())
+      ).rejects.toThrowError(
+        descriptorNotFound(eservice.id, agreement.descriptorId)
       );
     });
   });
