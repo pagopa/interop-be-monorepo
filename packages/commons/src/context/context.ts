@@ -57,6 +57,7 @@ export const contextDataMiddleware = (
       organizationId: headers.organizationId,
       userRoles: headers.userRoles,
       externalId: headers.externalId,
+      selfcareId: headers.selfcareId,
     };
 
     context.correlationId = headers?.correlationId;
