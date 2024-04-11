@@ -16,6 +16,7 @@ import {
   getMockVerifiedTenantAttribute,
   getRandomAuthData,
   randomArrayItem,
+  randomBoolean,
 } from "pagopa-interop-commons-test/index.js";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -441,9 +442,9 @@ export function testSuspendAgreement(): void {
         descriptorId: descriptor.id,
         producerId: eservice.producerId,
         state: agreementState.suspended,
-        suspendedByConsumer: Boolean(randomInt(0, 1)),
-        suspendedByProducer: Boolean(randomInt(0, 1)),
-        suspendedByPlatform: Boolean(randomInt(0, 1)),
+        suspendedByConsumer: randomBoolean(),
+        suspendedByProducer: randomBoolean(),
+        suspendedByPlatform: randomBoolean(),
         stamps: {
           activation: createStamp(authData),
           archiving: createStamp(authData),

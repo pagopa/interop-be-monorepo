@@ -33,6 +33,10 @@ export function randomArrayItem<T>(array: T[]): T {
   return array[Math.floor(Math.random() * array.length)];
 }
 
+export function randomBoolean(): boolean {
+  return Math.random() < 0.5;
+}
+
 export const getRandomAuthData = (
   organizationId: TenantId = generateId<TenantId>()
 ): AuthData => ({
