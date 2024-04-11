@@ -19,6 +19,7 @@ import { config } from "../utilities/config.js";
 import { purposeServiceBuilder } from "../services/purposeService.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
+  deletePurposeVersionErrorMapper,
   getPurposeErrorMapper,
   getRiskAnalysisDocumentErrorMapper,
 } from "../utilities/errorMappers.js";
@@ -120,7 +121,23 @@ const purposeRouter = (
     .delete(
       "/purposes/:purposeId/versions/:versionId",
       authorizationMiddleware([ADMIN_ROLE, INTERNAL_ROLE]),
-      (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          await purposeService.deletePurposeVersion({
+            purposeId: unsafeBrandId(req.params.purposeId),
+            versionId: unsafeBrandId(req.params.versionId),
+            authData: req.ctx.authData,
+            correlationId: req.ctx.correlationId,
+          });
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            deletePurposeVersionErrorMapper
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get(
       "/purposes/:purposeId/versions/:versionId/documents/:documentId",
