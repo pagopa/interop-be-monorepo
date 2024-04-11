@@ -1,7 +1,6 @@
 import {
   AuthData,
   DB,
-  eventRepository,
   logger,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   validateRiskAnalysis,
@@ -14,7 +13,6 @@ import {
   Tenant,
   Purpose,
   PurposeId,
-  purposeEventToBinaryData,
   TenantKind,
   purposeVersionState,
   RiskAnalysisForm,
@@ -61,11 +59,10 @@ const retrieveTenant = async (
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeServiceBuilder(
-  dbInstance: DB,
+  _dbInstance: DB,
   readModelService: ReadModelService
 ) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const repository = eventRepository(dbInstance, purposeEventToBinaryData);
+  // const repository = eventRepository(dbInstance, purposeEventToBinaryData);
 
   return {
     async getPurposeById(
