@@ -27,7 +27,7 @@ import {
   postgresDB,
 } from "./agreementService.integration.test.js";
 
-export function testUpdateAgreement(): void {
+export const testUpdateAgreement = (): ReturnType<typeof describe> =>
   describe("update agreement", () => {
     it("should succeed when requester is Consumer and the Agreement is in an updatable state", async () => {
       const agreement = {
@@ -116,4 +116,3 @@ export function testUpdateAgreement(): void {
       );
     });
   });
-}
