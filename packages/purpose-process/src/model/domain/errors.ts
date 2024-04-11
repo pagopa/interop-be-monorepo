@@ -17,9 +17,7 @@ export type ErrorCodes = keyof typeof errorCodes;
 
 export const makeApiProblem = makeApiProblemBuilder(logger, errorCodes);
 
-export function purposeNotFoundFound(
-  purposeId: PurposeId
-): ApiError<ErrorCodes> {
+export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Purpose ${purposeId} not found`,
     code: "purposeNotFound",
