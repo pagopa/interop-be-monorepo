@@ -256,7 +256,7 @@ paths:
         '404':
           description: Purpose Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: '#/components/schemas/Problem'
     post:
