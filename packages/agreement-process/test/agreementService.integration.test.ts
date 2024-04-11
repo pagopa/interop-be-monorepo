@@ -92,7 +92,6 @@ import {
   CompactEService,
   CompactOrganization,
 } from "../src/model/domain/models.js";
-import { testUpdateAgreement } from "./testUpdateAgreement.js";
 import {
   addOneAgreement,
   addOneEService,
@@ -101,6 +100,8 @@ import {
 } from "./utils.js";
 import { testDeleteAgreement } from "./testDeleteAgreement.js";
 import { testAgreementConsumerDocuments } from "./testAgreementConsumerDocuments.js";
+import { testRejectAgreement } from "./testRejectAgreement.js";
+import { testUpdateAgreement } from "./testUpdateAgreement.js";
 
 export let agreements: AgreementCollection;
 export let eservices: EServiceCollection;
@@ -1767,5 +1768,6 @@ describe("Agreement service", () => {
   });
   testAgreementConsumerDocuments();
   testDeleteAgreement();
+  testRejectAgreement();
   testUpdateAgreement();
 });
