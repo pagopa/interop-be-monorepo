@@ -42,7 +42,10 @@ import {
   ReadModelService,
   readModelServiceBuilder,
 } from "../src/services/readModelService.js";
-import { purposeNotFound } from "../src/model/domain/errors.js";
+import {
+  purposeNotFound,
+  tenantKindNotFound,
+} from "../src/model/domain/errors.js";
 import { addOnePurpose, getMockEService } from "./utils.js";
 
 describe("database test", async () => {
@@ -140,8 +143,30 @@ describe("database test", async () => {
       it("Should throw tenantNotFound if the tenant doesn't exist", () => {
         expect(1).toBe(1);
       });
-      it("Should throw tenantKindNotFound if the tenant doesn't exist", () => {
-        expect(1).toBe(1);
+      it("Should throw tenantKindNotFound if the tenant doesn't exist", async () => {
+        const mockEService = getMockEService();
+        const mockTenant = getMockTenant();
+
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          eserviceId: mockEService.id,
+        };
+        const mockPurpose2: Purpose = {
+          ...getMockPurpose(),
+          id: generateId(),
+          title: "another purpose",
+        };
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose2, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(mockEService), eservices);
+        await writeInReadmodel(mockTenant, tenants);
+
+        expect(
+          purposeService.getPurposeById(
+            mockPurpose1.id,
+            getMockAuthData(mockTenant.id)
+          )
+        ).rejects.toThrowError(tenantKindNotFound(mockTenant.id));
       });
     });
   });
