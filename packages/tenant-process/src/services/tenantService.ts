@@ -26,7 +26,6 @@ import {
   attributeNotFound,
   certifiedAttributeAlreadyAssigned,
   certifiedAttributeOriginIsNotCompliantWithCertifier,
-  declaredAttributeNotFound,
   tenantIsNotACertifier,
 } from "../model/domain/errors.js";
 import {
@@ -357,7 +356,7 @@ export function tenantServiceBuilder(
         throw certifiedAttributeAlreadyAssigned(attribute.id, organizationId);
       } else {
         // re-assigning attribute if it was revoked
-        reAssignAttribute({
+        updatedTenant = reAssignAttribute({
           updatedTenant,
           targetTenant,
           attributeId: attribute.id,
@@ -398,7 +397,7 @@ export function tenantServiceBuilder(
       correlationId: string;
     }): Promise<Tenant> {
       logger.info(
-        `Add certified attribute ${tenantAttributeSeed.id} to tenant ${authData.organizationId}`
+        `Add declared attribute ${tenantAttributeSeed.id} to requester tenant ${authData.organizationId}`
       );
       const targetTenant = await retrieveTenant(
         authData.organizationId,
@@ -432,10 +431,7 @@ export function tenantServiceBuilder(
         if (
           maybeDeclaredTenantAttribute.type !== "PersistentDeclaredAttribute"
         ) {
-          throw declaredAttributeNotFound(
-            unsafeBrandId(tenantAttributeSeed.id),
-            authData.organizationId
-          );
+          throw attributeNotFound(maybeDeclaredTenantAttribute.id);
         }
         // re-assigning attribute if it was revoked
         updatedTenant = reAssignAttribute({
@@ -548,7 +544,7 @@ export function tenantServiceBuilder(
   };
 }
 
-export function reAssignAttribute({
+function reAssignAttribute({
   updatedTenant,
   targetTenant,
   attributeId,
