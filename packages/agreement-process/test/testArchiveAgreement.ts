@@ -32,7 +32,7 @@ import {
   postgresDB,
 } from "./agreementService.integration.test.js";
 
-export function testArchiveAgreement(): void {
+export const testArchiveAgreement = (): ReturnType<typeof describe> =>
   describe("archive agreement", () => {
     it("should succeed when the requester is the consumer and the agreement is in an archivable state", async () => {
       vi.useFakeTimers();
@@ -144,7 +144,7 @@ export function testArchiveAgreement(): void {
       const authData = getRandomAuthData();
       const eserviceId = generateId<EServiceId>();
 
-      const state = randomArrayItem(
+      const notArchivableState = randomArrayItem(
         Object.values(agreementState).filter(
           (s) => !agreementArchivableStates.includes(s)
         )
@@ -152,14 +152,15 @@ export function testArchiveAgreement(): void {
       const agreement = getMockAgreement(
         eserviceId,
         authData.organizationId,
-        state
+        notArchivableState
       );
 
       await addOneAgreement(agreement, postgresDB, agreements);
 
       await expect(
         agreementService.archiveAgreement(agreement.id, authData, uuidv4())
-      ).rejects.toThrowError(agreementNotInExpectedState(agreement.id, state));
+      ).rejects.toThrowError(
+        agreementNotInExpectedState(agreement.id, notArchivableState)
+      );
     });
   });
-}
