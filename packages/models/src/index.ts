@@ -33,6 +33,8 @@ export * from "./purpose/purpose.js";
 export * from "./purpose/purposeEvents.js";
 export * from "./purpose/protobufConverterFromV1.js";
 export * from "./purpose/protobufConverterToV1.js";
+export * from "./purpose/protobufConverterFromV2.js";
+export * from "./purpose/protobufConverterToV2.js";
 
 export * from "./user/user.js";
 
