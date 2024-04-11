@@ -69,7 +69,6 @@ import {
   tenantIsNotACertifier,
   certifiedAttributeOriginIsNotCompliantWithCertifier,
   certifiedAttributeAlreadyAssigned,
-  declaredAttributeNotFound,
 } from "../src/model/domain/errors.js";
 import {
   ApiSelfcareTenantSeed,
@@ -845,7 +844,7 @@ describe("Integration tests", () => {
           })
         ).rejects.toThrowError(tenantNotFound(requesterTenant.id));
       });
-      it("Should throw declaredAttributeNotFound", async () => {
+      it("Should throw AttributeNotFound", async () => {
         const notDeclaredAttributeTenant: Tenant = {
           ...requesterTenant,
           attributes: [
@@ -866,10 +865,7 @@ describe("Integration tests", () => {
             correlationId,
           })
         ).rejects.toThrowError(
-          declaredAttributeNotFound(
-            unsafeBrandId(tenantAttributeSeed.id),
-            notDeclaredAttributeTenant.id
-          )
+          attributeNotFound(unsafeBrandId(tenantAttributeSeed.id))
         );
       });
     });
