@@ -25,6 +25,9 @@ export type DescriptorId = z.infer<typeof DescriptorId>;
 export const TenantId = z.string().uuid().brand("TenantId");
 export type TenantId = z.infer<typeof TenantId>;
 
+export const UserId = z.string().uuid().brand("UserId");
+export type UserId = z.infer<typeof UserId>;
+
 export const RiskAnalysisSingleAnswerId = z
   .string()
   .uuid()
@@ -58,7 +61,8 @@ type IDS =
   | RiskAnalysisSingleAnswerId
   | RiskAnalysisMultiAnswerId
   | RiskAnalysisFormId
-  | RiskAnalysisId;
+  | RiskAnalysisId
+  | UserId;
 
 // This function is used to generate a new ID for a new object
 // it infers the type of the ID based on how is used the result
