@@ -46,6 +46,7 @@ import {
 } from "../src/model/domain/toEvent.js";
 import { config } from "../src/utilities/config.js";
 import {
+  agreementAlreadyExists,
   agreementNotFound,
   agreementNotInExpectedState,
   descriptorNotFound,
@@ -71,7 +72,7 @@ import {
   agreementService,
   agreements,
   fileManager,
-} from "./agreementService.test.setup.js";
+} from "./agreementService.integration.test.js";
 
 export function testUpgradeAgreement(): void {
   describe("Upgrade Agreement", () => {
@@ -1141,6 +1142,133 @@ export function testUpgradeAgreement(): void {
           uuidv4()
         )
       ).rejects.toThrowError(FileManagerError);
+    });
+
+    it("should throw error when found a draft conflicting agreement with same consumer and e-service", async () => {
+      const authData = {
+        ...getRandomAuthData(),
+        userRoles: [userRoles.ADMIN_ROLE],
+      };
+      const tenantId = authData.organizationId.toString();
+      const descriptorId = generateId<DescriptorId>();
+
+      const agreementSubject = getMockAgreement(
+        generateId<EServiceId>(),
+        generateId<TenantId>(),
+        agreementState.active
+      );
+
+      const validVerifiedTenantAttribute = {
+        ...getMockVerifiedTenantAttribute(unsafeBrandId<AttributeId>(tenantId)),
+        verifiedBy: [
+          {
+            id: unsafeBrandId<TenantId>(tenantId),
+            verificationDate: new Date(TEST_EXECUTION_DATE.getFullYear() - 1),
+            expirationDate: new Date(TEST_EXECUTION_DATE.getFullYear() + 1),
+            extensionDate: undefined,
+          },
+        ],
+      };
+
+      const validVerifiedEserviceAttribute = getMockEServiceAttribute(
+        validVerifiedTenantAttribute.id
+      );
+
+      const invalidDeclaredTenantAttribute = {
+        ...getMockDeclaredTenantAttribute(unsafeBrandId<AttributeId>(tenantId)),
+        revocationTimestamp: new Date(TEST_EXECUTION_DATE.getFullYear() + 1),
+      };
+
+      const tenant = getMockTenant(unsafeBrandId<TenantId>(tenantId), [
+        validVerifiedTenantAttribute,
+        invalidDeclaredTenantAttribute,
+      ]);
+      await addOneTenant(tenant, tenants);
+
+      const deprecatedDescriptor = {
+        ...getMockDescriptorPublished(
+          descriptorId,
+          [],
+          [[getMockEServiceAttribute()]],
+          [[validVerifiedEserviceAttribute]]
+        ),
+        name: "deprecated-descriptor-doc",
+        state: descriptorState.deprecated,
+        version: "1",
+      };
+
+      const documentPublishedDescriptor = {
+        ...generateMock(Document),
+        name: "published-descriptor-doc",
+      };
+      const publishedDescriptor = {
+        ...getMockDescriptorPublished(
+          descriptorId,
+          [],
+          [[getMockEServiceAttribute()]],
+          [[validVerifiedEserviceAttribute]]
+        ),
+        interface: {
+          ...documentPublishedDescriptor,
+          name: documentPublishedDescriptor.name,
+          path: `${config.consumerDocumentsPath}/${descriptorId}/${documentPublishedDescriptor.name}`,
+        },
+        version: "2",
+      };
+
+      await uploadDocument(
+        "unreachable-path",
+        documentPublishedDescriptor.name
+      );
+
+      const agreementToBeUpgraded: Agreement = {
+        ...agreementSubject,
+        descriptorId,
+        producerId: unsafeBrandId<TenantId>(tenantId),
+        consumerId: unsafeBrandId<TenantId>(tenantId),
+        stamps: {},
+        createdAt: TEST_EXECUTION_DATE,
+        consumerDocuments: [
+          {
+            id: unsafeBrandId<AgreementDocumentId>(
+              publishedDescriptor.interface.id
+            ),
+            name: publishedDescriptor.interface.name,
+            prettyName: publishedDescriptor.interface.prettyName,
+            contentType: publishedDescriptor.interface.contentType,
+            path: publishedDescriptor.interface.path,
+            createdAt: publishedDescriptor.interface.uploadDate,
+          },
+        ],
+      };
+      const agreementAlreadyExist = {
+        ...agreementToBeUpgraded,
+        id: generateId<AgreementId>(),
+        state: agreementState.draft,
+      };
+
+      await addOneAgreement(agreementToBeUpgraded, postgresDB, agreements);
+      await addOneAgreement(agreementAlreadyExist, postgresDB, agreements);
+
+      const eservice: EService = getMockEService(
+        agreementToBeUpgraded.eserviceId,
+        generateId<TenantId>(),
+        [deprecatedDescriptor, publishedDescriptor]
+      );
+      await addOneEService(eservice, eservices);
+
+      await expect(
+        agreementService.upgradeAgreement(
+          agreementToBeUpgraded.id,
+          authData,
+          uuidv4()
+        )
+      ).rejects.toThrowError(
+        agreementAlreadyExists(
+          agreementToBeUpgraded.consumerId,
+          agreementToBeUpgraded.eserviceId
+        )
+      );
     });
   });
 }
