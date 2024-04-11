@@ -396,12 +396,15 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         interface: {
           ...documentPublishedDescriptor,
           name: documentPublishedDescriptor.name,
-          path: `${config.consumerDocumentsPath}/${descriptorId}/${documentPublishedDescriptor.name}`,
+          path: `${config.consumerDocumentsPath}/${agreementSubject.id}/${descriptorId}/${documentPublishedDescriptor.name}`,
         },
         version: "2",
       };
 
-      await uploadDocument(`${descriptorId}`, documentPublishedDescriptor.name);
+      await uploadDocument(
+        `${agreementSubject.id}/${descriptorId}`,
+        documentPublishedDescriptor.name
+      );
 
       const agreementToBeUpgraded: Agreement = {
         ...agreementSubject,
@@ -574,12 +577,15 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         interface: {
           ...documentPublishedDescriptor,
           name: documentPublishedDescriptor.name,
-          path: `${config.consumerDocumentsPath}/${descriptorId}/${documentPublishedDescriptor.name}`,
+          path: `${config.consumerDocumentsPath}/${agreementSubject.id}/${descriptorId}/${documentPublishedDescriptor.name}`,
         },
         version: "2",
       };
 
-      await uploadDocument(`${descriptorId}`, documentPublishedDescriptor.name);
+      await uploadDocument(
+        `${agreementSubject.id}/${descriptorId}`,
+        documentPublishedDescriptor.name
+      );
 
       const agreementToBeUpgraded: Agreement = {
         ...agreementSubject,
