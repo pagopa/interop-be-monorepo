@@ -20,6 +20,7 @@ import {
 import {
   eserviceNotFound,
   purposeNotFound,
+  tenantKindNotFound,
   tenantNotFound,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
@@ -82,7 +83,7 @@ export function purposeServiceBuilder(
       );
 
       if (tenant.kind === undefined) {
-        throw new Error();
+        throw tenantKindNotFound(tenant.id);
       }
 
       return authorizeRiskAnalysisForm({
