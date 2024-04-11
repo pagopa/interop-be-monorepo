@@ -4,16 +4,16 @@ package tenant.v2;
 
 message TenantV2 {
   string id = 1;
-  optional string selfcareId = 2;
+  string selfcareId = 2;
   ExternalIdV2 externalId = 3;
   repeated TenantFeatureV2 features = 4;
   repeated TenantAttributeV2 attributes = 5;
   int64 createdAt = 6;
   optional int64 updatedAt = 7;
   repeated TenantMailV2 mails = 8;
-  optional string name = 9;
+  string name = 9;
   optional TenantKindV2 kind = 10;
-  optional int64 onboardedAt = 11;
+  int64 onboardedAt = 11;
   optional TenantUnitTypeV2 subUnitType = 12;
 
 }
@@ -29,7 +29,7 @@ message TenantMailV2 {
   string address = 2;
   int64 createdAt = 3;
   optional string description = 4;
-  optional string id = 5;
+  string id = 5;
 }
 
 enum TenantMailKindV2 {
@@ -53,20 +53,18 @@ message CertifierV2 {
 }
 
 message TenantVerifierV2 {
-  reserved 3;
   string id = 1;
   int64 verificationDate = 2;
-  optional int64 expirationDate = 4;
-  optional int64 extensionDate = 5;
+  optional int64 expirationDate = 3;
+  optional int64 extensionDate = 4;
 }
 
 message TenantRevokerV2 {
-  reserved 3;
   string id = 1;
   int64 verificationDate = 2;
-  optional int64 expirationDate = 4;
-  optional int64 extensionDate = 5;
-  int64 revocationDate = 6;
+  optional int64 expirationDate = 3;
+  optional int64 extensionDate = 4;
+  int64 revocationDate = 5;
 }
 
 message ExternalIdV2 {
