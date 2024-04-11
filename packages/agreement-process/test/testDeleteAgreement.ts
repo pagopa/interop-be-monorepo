@@ -34,7 +34,7 @@ import {
   readLastAgreementEvent,
 } from "./utils.js";
 
-export function testDeleteAgreement(): void {
+export const testDeleteAgreement = (): ReturnType<typeof describe> =>
   describe("delete agreement", () => {
     it("should succeed when requester is Consumer and the Agreement is in a deletable state", async () => {
       vi.spyOn(fileManager, "delete");
@@ -174,4 +174,3 @@ export function testDeleteAgreement(): void {
       );
     });
   });
-}
