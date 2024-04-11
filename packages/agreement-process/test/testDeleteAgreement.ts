@@ -38,19 +38,21 @@ export const testDeleteAgreement = (): ReturnType<typeof describe> =>
   describe("delete agreement", () => {
     it("should succeed when requester is Consumer and the Agreement is in a deletable state", async () => {
       vi.spyOn(fileManager, "delete");
+      const agreementId = generateId<AgreementId>();
       const agreement = {
         ...getMockAgreement(),
+        id: agreementId,
         state: randomArrayItem(agreementDeletableStates),
         consumerDocuments: [
-          getMockConsumerDocument("doc1"),
-          getMockConsumerDocument("doc2"),
+          getMockConsumerDocument(agreementId, "doc1"),
+          getMockConsumerDocument(agreementId, "doc2"),
         ],
       };
       await addOneAgreement(agreement, postgresDB, agreements);
 
       await fileManager.storeBytes(
         config.s3Bucket,
-        config.consumerDocumentsPath,
+        `${config.consumerDocumentsPath}/${agreementId}`,
         agreement.consumerDocuments[0].id,
         agreement.consumerDocuments[0].name,
         Buffer.from("test content")
@@ -62,7 +64,7 @@ export const testDeleteAgreement = (): ReturnType<typeof describe> =>
 
       await fileManager.storeBytes(
         config.s3Bucket,
-        config.consumerDocumentsPath,
+        `${config.consumerDocumentsPath}/${agreementId}`,
         agreement.consumerDocuments[1].id,
         agreement.consumerDocuments[1].name,
         Buffer.from("test content")
@@ -153,10 +155,12 @@ export const testDeleteAgreement = (): ReturnType<typeof describe> =>
       // eslint-disable-next-line functional/immutable-data
       config.s3Bucket = "invalid-bucket"; // configure an invalid bucket to force a failure
 
+      const agreementId = generateId<AgreementId>();
       const agreement = {
         ...getMockAgreement(),
+        id: agreementId,
         state: randomArrayItem(agreementDeletableStates),
-        consumerDocuments: [getMockConsumerDocument("doc1")],
+        consumerDocuments: [getMockConsumerDocument(agreementId, "doc1")],
       };
       await addOneAgreement(agreement, postgresDB, agreements);
       await expect(

@@ -74,13 +74,14 @@ export const readLastAgreementEvent = async (
   await readLastEventByStreamId(agreementId, "agreement", postgresDB);
 
 export function getMockConsumerDocument(
+  agreementId: AgreementId,
   name: string = "mockDocument"
 ): AgreementDocument {
   const id = generateId<AgreementDocumentId>();
   return {
     id,
     name,
-    path: `${config.consumerDocumentsPath}/${id}/${name}`,
+    path: `${config.consumerDocumentsPath}/${agreementId}/${id}/${name}`,
     prettyName: "pretty name",
     contentType: "application/pdf",
     createdAt: new Date(),
