@@ -74,7 +74,7 @@ import {
   fileManager,
 } from "./agreementService.integration.test.js";
 
-export function testUpgradeAgreement(): void {
+export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
   describe("Upgrade Agreement", () => {
     const TEST_EXECUTION_DATE = new Date();
 
@@ -1271,4 +1271,3 @@ export function testUpgradeAgreement(): void {
       );
     });
   });
-}
