@@ -36,7 +36,6 @@ import {
   Document,
   DraftEServiceUpdatedV2,
   EService,
-  EServiceAddedV2,
   EServiceClonedV2,
   EServiceDeletedV1,
   EServiceDescriptorActivatedV2,
@@ -111,7 +110,6 @@ import {
   inconsistentDailyCalls,
   interfaceAlreadyExists,
   notValidDescriptor,
-  originNotCompliant,
   riskAnalysisNotValid,
   riskAnalysisValidationFailed,
   tenantKindNotFound,
@@ -135,19 +133,23 @@ import {
   getMockEServiceAttributes,
   buildRiskAnalysisSeed,
 } from "./utils.js";
+import { wrapperForCreateEService } from "./split.js";
 
-const mockEService = getMockEService();
+export const mockEService = getMockEService();
 const mockDescriptor = getMockDescriptor();
 const mockDocument = getMockDocument();
+export let catalogService: CatalogService;
+export let postgresDB: IDatabase<unknown>;
+export let eservices: EServiceCollection;
 
 describe("database test", async () => {
-  let eservices: EServiceCollection;
+  // let eservices: EServiceCollection;
   let agreements: AgreementCollection;
   let attributes: AttributeCollection;
   let tenants: TenantCollection;
   let readModelService: ReadModelService;
-  let catalogService: CatalogService;
-  let postgresDB: IDatabase<unknown>;
+  // let catalogService: CatalogService;
+  // let postgresDB: IDatabase<unknown>;
   let startedPostgreSqlContainer: StartedTestContainer;
   let startedMongodbContainer: StartedTestContainer;
   let startedMinioContainer: StartedTestContainer;
@@ -209,81 +211,7 @@ describe("database test", async () => {
   });
 
   describe("Catalog service", () => {
-    describe("create eservice", () => {
-      it("should write on event-store for the creation of an eservice", async () => {
-        const eservice = await catalogService.createEService(
-          {
-            name: mockEService.name,
-            description: mockEService.description,
-            technology: "REST",
-            mode: "DELIVER",
-          },
-          getMockAuthData(mockEService.producerId),
-          uuidv4()
-        );
-
-        expect(eservice).toBeDefined();
-        const writtenEvent = await readLastEserviceEvent(
-          eservice.id,
-          postgresDB
-        );
-        expect(writtenEvent).toMatchObject({
-          stream_id: eservice.id,
-          version: "0",
-          type: "EServiceAdded",
-          event_version: 2,
-        });
-        const writtenPayload = decodeProtobufPayload({
-          messageType: EServiceAddedV2,
-          payload: writtenEvent.data,
-        });
-
-        const expectedEservice: EService = {
-          ...mockEService,
-          createdAt: new Date(Number(writtenPayload.eservice!.createdAt)),
-          id: eservice.id,
-        };
-
-        expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
-      });
-
-      it("should throw eServiceDuplicate if an eservice with the same name already exists", async () => {
-        await addOneEService(mockEService, postgresDB, eservices);
-        expect(
-          catalogService.createEService(
-            {
-              name: mockEService.name,
-              description: mockEService.description,
-              technology: "REST",
-              mode: "DELIVER",
-            },
-            getMockAuthData(mockEService.producerId),
-            uuidv4()
-          )
-        ).rejects.toThrowError(eServiceDuplicate(mockEService.name));
-      });
-
-      it("should throw originNotCompliant if the requester externalId origin is not allowed", async () => {
-        expect(
-          catalogService.createEService(
-            {
-              name: mockEService.name,
-              description: mockEService.description,
-              technology: "REST",
-              mode: "DELIVER",
-            },
-            {
-              ...getMockAuthData(mockEService.producerId),
-              externalId: {
-                value: "123456",
-                origin: "not-allowed-origin",
-              },
-            },
-            uuidv4()
-          )
-        ).rejects.toThrowError(originNotCompliant("not-allowed-origin"));
-      });
-    });
+    wrapperForCreateEService();
 
     describe("update eService", () => {
       it("should write on event-store for the update of an eService (no technology change)", async () => {
