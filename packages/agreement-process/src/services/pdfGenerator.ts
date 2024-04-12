@@ -10,7 +10,7 @@ import path from "path";
 
 import {
   FileManager,
-  createApiClient,
+  createApiClient as createSelfcareApiClient,
   UserResponse,
 } from "pagopa-interop-commons";
 import {
@@ -100,7 +100,7 @@ const getAttributeInvolved = async (
 
 const getSubmissionInfo = async (
   selfcareId: SelfcareId,
-  selfcareV2Client: ReturnType<typeof createApiClient>,
+  selfcareV2Client: ReturnType<typeof createSelfcareApiClient>,
   seed: UpdateAgreementSeed
 ): Promise<[string, Date]> => {
   const submission = seed.stamps.submission;
@@ -122,7 +122,7 @@ const getSubmissionInfo = async (
 
 const getActivationInfo = async (
   selfcareId: SelfcareId,
-  selfcareV2Client: ReturnType<typeof createApiClient>,
+  selfcareV2Client: ReturnType<typeof createSelfcareApiClient>,
   seed: UpdateAgreementSeed
 ): Promise<[string, Date]> => {
   const activation = seed.stamps.activation;
@@ -153,7 +153,7 @@ const getPdfPayload = async (
   seed: UpdateAgreementSeed,
   attributeQuery: AttributeQuery
 ): Promise<PDFPayload> => {
-  const selfcareV2Client = createApiClient(config.selfcare_baseUrl, {
+  const selfcareV2Client = createSelfcareApiClient(config.selfcare_baseUrl, {
     axiosConfig: {
       headers: {
         "Ocp-Apim-Subscription-Key": config.selfcare_apiKey,
@@ -261,7 +261,7 @@ export const pdfGenerator = {
 };
 async function retrieveUser(
   selfcareId: SelfcareId,
-  selfcareV2Client: ReturnType<typeof createApiClient>,
+  selfcareV2Client: ReturnType<typeof createSelfcareApiClient>,
   id: UserId
 ): Promise<UserResponse> {
   const user = await selfcareV2Client.getUserInfoUsingGET({
