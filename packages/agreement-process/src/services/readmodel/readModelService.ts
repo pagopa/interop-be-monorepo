@@ -26,6 +26,7 @@ import {
   genericError,
   EServiceId,
   AttributeReadmodel,
+  TenantId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { z } from "zod";
@@ -36,8 +37,8 @@ import {
 } from "../../model/domain/models.js";
 
 export type AgreementQueryFilters = {
-  producerId?: string | string[];
-  consumerId?: string | string[];
+  producerId?: TenantId | TenantId[];
+  consumerId?: TenantId | TenantId[];
   eserviceId?: EServiceId | EServiceId[];
   descriptorId?: DescriptorId | DescriptorId[];
   agreementStates?: AgreementState[];
@@ -45,12 +46,19 @@ export type AgreementQueryFilters = {
   showOnlyUpgradeable?: boolean;
 };
 
+export type AgreementEServicesQueryFilters = {
+  eserviceName: string | undefined;
+  consumerIds: TenantId[];
+  producerIds: TenantId[];
+  agreeementStates: AgreementState[];
+};
+
 type AgreementDataFields = RemoveDataPrefix<MongoQueryKeys<Agreement>>;
 
 const makeFilter = (
   fieldName: Extract<
     AgreementDataFields,
-    "producerId" | "consumerId" | "eserviceId" | "descriptorId"
+    "producerId" | "consumerId" | "eserviceId" | "descriptorId" | "state"
   >,
   value: string | string[] | undefined
 ): ReadModelFilter<Agreement> | undefined =>
@@ -84,6 +92,19 @@ const makeAttributesFilter = (
             },
           }
     )
+    .exhaustive();
+
+const makeRegexFilter = (
+  fieldName: string,
+  value: string | undefined
+): ReadModelFilter<Agreement> | undefined =>
+  match(value)
+    .with(P.nullish, () => undefined)
+    .with(P.string, () => ({
+      [fieldName]: {
+        $regex: new RegExp(ReadModelRepository.escapeRegExp(value || ""), "i"),
+      },
+    }))
     .exhaustive();
 
 const getAgreementsFilters = (
@@ -127,12 +148,7 @@ const getAgreementsFilters = (
     ...makeFilter("consumerId", consumerId),
     ...makeFilter("eserviceId", eserviceId),
     ...makeFilter("descriptorId", descriptorId),
-    ...(agreementStatesFilters &&
-      agreementStatesFilters.length > 0 && {
-        "data.state": {
-          $in: agreementStatesFilters.map((s) => s.toString()),
-        },
-      }),
+    ...makeFilter("state", agreementStatesFilters),
     ...(attributeId && {
       $or: [
         makeAttributesFilter("certifiedAttributes", attributeId),
@@ -164,12 +180,7 @@ const getTenantsByNamePipeline = (
   },
   {
     $match: {
-      "tenants.data.name": {
-        $regex: new RegExp(
-          ReadModelRepository.escapeRegExp(tenantName || ""),
-          "i"
-        ),
-      },
+      ...makeRegexFilter("tenants.data.name", tenantName),
     },
   },
   {
@@ -495,16 +506,11 @@ export function readModelServiceBuilder(
     ): Promise<ListResult<CompactOrganization>> {
       return searchTenantsByName(agreements, name, "producerId", limit, offset);
     },
-    async listEServicesAgreements(
-      eserviceName: string | undefined,
-      consumerIds: string[],
-      producerIds: string[],
+    async listAgreementsEServices(
+      filters: AgreementEServicesQueryFilters,
       limit: number,
       offset: number
     ): Promise<ListResult<CompactEService>> {
-      const consumerFilter = makeFilter("consumerId", consumerIds);
-      const producerFilter = makeFilter("producerId", producerIds);
-
       const aggregationPipeline = [
         {
           $lookup: {
@@ -522,14 +528,10 @@ export function readModelServiceBuilder(
         },
         {
           $match: {
-            "eservices.data.name": {
-              $regex: new RegExp(
-                ReadModelRepository.escapeRegExp(eserviceName || ""),
-                "i"
-              ),
-            },
-            consumerFilter,
-            producerFilter,
+            ...makeFilter("consumerId", filters.consumerIds),
+            ...makeFilter("producerId", filters.producerIds),
+            ...makeFilter("state", filters.agreeementStates),
+            ...makeRegexFilter("eservices.data.name", filters.eserviceName),
           },
         },
         {
