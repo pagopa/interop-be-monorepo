@@ -1,29 +1,57 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended",
+    "github>pagopa/eng-renovate",
     ":automergeRequireAllStatusChecks",
     ":automergeStableNonMajor",
     ":automergeLinters",
     ":automergeTesters",
     ":automergeTypes",
-    ":enableVulnerabilityAlerts",
     ":combinePatchMinorReleases",
     ":ignoreUnstable",
-    ":maintainLockFilesWeekly",
-    ":pinAllExceptPeerDependencies",
     ":rebaseStalePrs"
   ],
   "labels": ["dependencies"],
   "branchPrefix": "renovate-action/",
-  "prConcurrentLimit": 2,
-  "autodiscover": true,
-  "autodiscoverFilter": ["pagopa/interop-be-monorepo"],
   "ignorePaths": ["docker/docker-compose.yml"],
   "packageRules": [
     {
       "matchPackagePatterns": ["@protobuf-ts"],
       "groupName": "protobuf-ts monorepo"
     }
-  ]
+  ],
+  "force": {
+      "major": {
+          "enabled": true
+      },
+      "minor": {
+          "enabled": true
+      },
+      "patch": {
+          "enabled": true
+      },
+      "digest": {
+          "enabled": true
+      },
+      "lockFileMaintenance": {
+          "enabled": true
+      },
+      "rollback": {
+          "enabled": true
+      },
+      "bump": {
+          "enabled": true
+      },
+      "replacement": {
+          "enabled": true
+      },
+      "packageRules": [
+          {
+          "enabled": true,
+          "matchDepTypes": [
+              "devDependencies"
+          ]
+          }
+      ]
+  }
 }
