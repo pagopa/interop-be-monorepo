@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: interop-be-purpose-process-refactor
+  namespace: dev-refactor
+data:
+  EVENTSTORE_DB_USE_SSL: "true"
+  EVENTSTORE_DB_SCHEMA: "purpose"
