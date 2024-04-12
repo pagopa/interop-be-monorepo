@@ -170,7 +170,7 @@ describe("database test", async () => {
       });
     });
 
-    describe("getRiskAnalysisDocumetn", () => {
+    describe("getRiskAnalysisDocument", () => {
       it("test", () => {
         expect(1).toBe(1);
       });
