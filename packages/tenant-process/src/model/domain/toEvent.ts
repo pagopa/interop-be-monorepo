@@ -77,7 +77,7 @@ export const toCreateEventTenantVerifiedAttributeExpirationUpdated = (
   correlationId,
 });
 
-export const toTenantCertifiedAttributeAssigned = (
+export const toCreateEventTenantCertifiedAttributeAssigned = (
   streamId: string,
   version: number,
   updatedTenant: Tenant,
