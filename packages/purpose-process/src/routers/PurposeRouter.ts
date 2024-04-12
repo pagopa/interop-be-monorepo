@@ -22,6 +22,7 @@ import {
   deletePurposeVersionErrorMapper,
   getPurposeErrorMapper,
   getRiskAnalysisDocumentErrorMapper,
+  rejectPurposeVersionErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
