@@ -36,13 +36,16 @@ import {
   TenantId,
   TenantOnboardDetailsUpdatedV2,
   TenantOnboardedV2,
+  TenantVerifiedAttributeAssignedV2,
   TenantVerifiedAttributeExpirationUpdatedV2,
   TenantVerifiedAttributeExtensionUpdatedV2,
+  TenantVerifiedAttributeV2,
   descriptorState,
   fromTenantKindV2,
   generateId,
   operationForbidden,
   protobufDecoder,
+  tenantAttributeType,
   tenantKind,
   toTenantV2,
   unsafeBrandId,
@@ -69,11 +72,14 @@ import {
   tenantIsNotACertifier,
   certifiedAttributeOriginIsNotCompliantWithCertifier,
   certifiedAttributeAlreadyAssigned,
+  attributeVerificationNotAllowed,
+  verifiedAttributeSelfVerification,
 } from "../src/model/domain/errors.js";
 import {
   ApiSelfcareTenantSeed,
   ApiCertifiedTenantAttributeSeed,
   ApiDeclaredTenantAttributeSeed,
+  ApiVerifiedTenantAttributeSeed,
 } from "../src/model/types.js";
 import { getTenantKind } from "../src/services/validators.js";
 import {
@@ -87,6 +93,7 @@ import {
   getMockCertifiedTenantAttribute,
   getMockDescriptor,
   getMockEService,
+  getMockRevokedBy,
   getMockTenant,
   getMockVerifiedBy,
   getMockVerifiedTenantAttribute,
@@ -132,6 +139,7 @@ describe("Integration tests", () => {
   const mockDescriptor = getMockDescriptor();
   const mockTenant = getMockTenant();
   const mockVerifiedBy = getMockVerifiedBy();
+  const mockRevokedBy = getMockRevokedBy();
   const mockVerifiedTenantAttribute = getMockVerifiedTenantAttribute();
 
   afterEach(async () => {
@@ -808,6 +816,7 @@ describe("Integration tests", () => {
           version: "1",
           type: "TenantDeclaredAttributeAssigned",
         });
+
         const writtenPayload = protobufDecoder(
           TenantDeclaredAttributeAssignedV2
         ).parse(writtenEvent?.data);
@@ -867,6 +876,309 @@ describe("Integration tests", () => {
         ).rejects.toThrowError(
           attributeNotFound(unsafeBrandId(tenantAttributeSeed.id))
         );
+      });
+    });
+    describe("verifyVerifiedAttribute", async () => {
+      const tenantAttributeSeed: ApiVerifiedTenantAttributeSeed = {
+        id: generateId(),
+      };
+      const correlationId = generateId();
+      const limit = 50;
+      const offset = 0;
+      const targetTenant: Tenant = { ...mockTenant, id: generateId() };
+
+      const requesterTenant: Tenant = {
+        ...mockTenant,
+        id: generateId(),
+        name: "A requesterTenant",
+      };
+
+      const descriptor1: Descriptor = {
+        ...mockDescriptor,
+        state: descriptorState.published,
+        attributes: {
+          verified: [
+            [
+              {
+                id: unsafeBrandId(tenantAttributeSeed.id),
+                explicitAttributeVerification: false,
+              },
+            ],
+          ],
+          declared: [],
+          certified: [],
+        },
+      };
+
+      const eService1: EService = {
+        ...mockEService,
+        producerId: requesterTenant.id,
+        id: generateId(),
+        name: "A",
+        descriptors: [descriptor1],
+      };
+
+      const agreementEservice1 = getMockAgreement({
+        eserviceId: eService1.id,
+        descriptorId: descriptor1.id,
+        producerId: eService1.producerId,
+        consumerId: targetTenant.id,
+      });
+
+      const mockAuthData = getMockAuthData(requesterTenant.id);
+
+      it("Should verify the VerifiedAttribute if verifiedTenantAttribute doesn't exist", async () => {
+        await addOneTenant(targetTenant, postgresDB, tenants);
+        await addOneTenant(requesterTenant, postgresDB, tenants);
+        await addOneEService(eService1, eservices);
+        await addOneAgreement(agreementEservice1, agreements);
+        await tenantService.verifyVerifiedAttribute({
+          tenantId: targetTenant.id,
+          tenantAttributeSeed,
+          authData: mockAuthData,
+          limit,
+          offset,
+          correlationId,
+        });
+
+        const writtenEvent: StoredEvent | undefined =
+          await readLastEventByStreamId(
+            targetTenant.id,
+            eventStoreSchema.tenant,
+            postgresDB
+          );
+        if (!writtenEvent) {
+          fail("Update failed: tenant not found in event-store");
+        }
+        expect(writtenEvent).toMatchObject({
+          stream_id: targetTenant.id,
+          version: "1",
+          type: "TenantVerifiedAttributeAssigned",
+        });
+        const writtenPayload = protobufDecoder(
+          TenantVerifiedAttributeAssignedV2
+        ).parse(writtenEvent?.data);
+
+        const updatedTenant: Tenant = {
+          ...targetTenant,
+          attributes: [
+            {
+              id: unsafeBrandId(tenantAttributeSeed.id),
+              type: tenantAttributeType.VERIFIED,
+              assignmentTimestamp: new Date(
+                Number(
+                  (
+                    writtenPayload.tenant!.attributes[0].sealedValue as {
+                      oneofKind: "verifiedAttribute";
+                      verifiedAttribute: TenantVerifiedAttributeV2;
+                    }
+                  ).verifiedAttribute.assignmentTimestamp
+                )
+              ),
+              verifiedBy: [
+                {
+                  id: mockAuthData.organizationId,
+                  verificationDate: new Date(
+                    Number(
+                      (
+                        writtenPayload.tenant!.attributes[0].sealedValue as {
+                          oneofKind: "verifiedAttribute";
+                          verifiedAttribute: TenantVerifiedAttributeV2;
+                        }
+                      ).verifiedAttribute.verifiedBy[0].verificationDate
+                    )
+                  ),
+                  expirationDate: tenantAttributeSeed.expirationDate
+                    ? new Date(tenantAttributeSeed.expirationDate)
+                    : undefined,
+                  extensionDate: tenantAttributeSeed.expirationDate
+                    ? new Date(tenantAttributeSeed.expirationDate)
+                    : undefined,
+                },
+              ],
+              revokedBy: [],
+            },
+          ],
+          updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
+        };
+        expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+      });
+      it("Should verify the VerifiedAttribute if verifiedTenantAttribute exist", async () => {
+        const tenantWithVerifiedAttribute: Tenant = {
+          ...targetTenant,
+          attributes: [
+            {
+              ...mockVerifiedTenantAttribute,
+              id: unsafeBrandId(tenantAttributeSeed.id),
+              verifiedBy: [
+                {
+                  ...mockVerifiedBy,
+                },
+              ],
+              revokedBy: [{ ...mockRevokedBy }],
+            },
+          ],
+        };
+
+        await addOneTenant(tenantWithVerifiedAttribute, postgresDB, tenants);
+        await addOneTenant(requesterTenant, postgresDB, tenants);
+        await addOneEService(eService1, eservices);
+        await addOneAgreement(agreementEservice1, agreements);
+
+        await tenantService.verifyVerifiedAttribute({
+          tenantId: tenantWithVerifiedAttribute.id,
+          tenantAttributeSeed,
+          authData: mockAuthData,
+          limit,
+          offset,
+          correlationId,
+        });
+
+        const writtenEvent: StoredEvent | undefined =
+          await readLastEventByStreamId(
+            tenantWithVerifiedAttribute.id,
+            eventStoreSchema.tenant,
+            postgresDB
+          );
+        if (!writtenEvent) {
+          fail("Update failed: tenant not found in event-store");
+        }
+        expect(writtenEvent).toMatchObject({
+          stream_id: tenantWithVerifiedAttribute.id,
+          version: "1",
+          type: "TenantVerifiedAttributeAssigned",
+        });
+        const writtenPayload = protobufDecoder(
+          TenantVerifiedAttributeAssignedV2
+        ).parse(writtenEvent?.data);
+
+        const updatedTenant: Tenant = {
+          ...tenantWithVerifiedAttribute,
+          attributes: [
+            ...tenantWithVerifiedAttribute.attributes,
+            {
+              id: unsafeBrandId(tenantAttributeSeed.id),
+              type: tenantAttributeType.VERIFIED,
+              assignmentTimestamp: new Date(
+                Number(
+                  (
+                    writtenPayload.tenant!.attributes[0].sealedValue as {
+                      oneofKind: "verifiedAttribute";
+                      verifiedAttribute: TenantVerifiedAttributeV2;
+                    }
+                  ).verifiedAttribute.assignmentTimestamp
+                )
+              ),
+              verifiedBy: [
+                {
+                  ...mockVerifiedBy,
+                },
+                {
+                  ...mockVerifiedBy,
+                  id: requesterTenant.id,
+                  verificationDate: new Date(
+                    Number(
+                      (
+                        writtenPayload.tenant!.attributes[1].sealedValue as {
+                          oneofKind: "verifiedAttribute";
+                          verifiedAttribute: TenantVerifiedAttributeV2;
+                        }
+                      ).verifiedAttribute.verifiedBy[1].verificationDate
+                    )
+                  ),
+                },
+              ],
+              revokedBy: [
+                {
+                  ...mockRevokedBy,
+                },
+              ],
+            },
+          ],
+          updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
+        };
+        expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+      });
+      it("Should throw tenant not found", async () => {
+        expect(
+          tenantService.verifyVerifiedAttribute({
+            tenantId: targetTenant.id,
+            tenantAttributeSeed,
+            authData: mockAuthData,
+            limit,
+            offset,
+            correlationId,
+          })
+        ).rejects.toThrowError(tenantNotFound(targetTenant.id));
+      });
+      it("Should throw attributeVerificationNotAllowed", async () => {
+        const descriptorAttributeVerificationNotAllowed: Descriptor = {
+          ...descriptor1,
+          attributes: {
+            verified: [
+              [
+                {
+                  id: generateId(),
+                  explicitAttributeVerification: false,
+                },
+              ],
+            ],
+            declared: [],
+            certified: [],
+          },
+        };
+
+        const eServiceWithNotAllowedDescriptor: EService = {
+          ...eService1,
+          descriptors: [descriptorAttributeVerificationNotAllowed],
+        };
+
+        const agreementEserviceWithNotAllowedDescriptor = getMockAgreement({
+          ...agreementEservice1,
+          eserviceId: eServiceWithNotAllowedDescriptor.id,
+          descriptorId: descriptorAttributeVerificationNotAllowed.id,
+        });
+
+        await addOneTenant(targetTenant, postgresDB, tenants);
+        await addOneTenant(requesterTenant, postgresDB, tenants);
+        await addOneEService(eServiceWithNotAllowedDescriptor, eservices);
+        await addOneAgreement(
+          agreementEserviceWithNotAllowedDescriptor,
+          agreements
+        );
+
+        expect(
+          tenantService.verifyVerifiedAttribute({
+            tenantId: targetTenant.id,
+            tenantAttributeSeed,
+            authData: mockAuthData,
+            limit,
+            offset,
+            correlationId,
+          })
+        ).rejects.toThrowError(
+          attributeVerificationNotAllowed(
+            targetTenant.id,
+            unsafeBrandId(tenantAttributeSeed.id)
+          )
+        );
+      });
+      it("Should throw verifiedAttributeSelfVerification", async () => {
+        await addOneTenant(targetTenant, postgresDB, tenants);
+        await addOneTenant(requesterTenant, postgresDB, tenants);
+        await addOneEService(eService1, eservices);
+        await addOneAgreement(agreementEservice1, agreements);
+
+        expect(
+          tenantService.verifyVerifiedAttribute({
+            tenantId: targetTenant.id,
+            tenantAttributeSeed,
+            authData: { ...mockAuthData, organizationId: targetTenant.id },
+            limit,
+            offset,
+            correlationId,
+          })
+        ).rejects.toThrowError(verifiedAttributeSelfVerification());
       });
     });
   });

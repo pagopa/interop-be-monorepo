@@ -15,9 +15,9 @@ import {
 } from "pagopa-interop-models";
 import { ExternalId } from "pagopa-interop-models";
 import {
+  toCreateEventTenantVerifiedAttributeAssigned,
   toTenantCertifiedAttributeAssigned,
   toTenantDeclaredAttributeAssigned,
-  toTenantVerifiedAttributeAssigned,
 } from "../model/domain/toEvent.js";
 import {
   ApiCertifiedTenantAttributeSeed,
@@ -551,7 +551,7 @@ export function tenantServiceBuilder(
           ],
         };
       }
-      const event = toTenantVerifiedAttributeAssigned(
+      const event = toCreateEventTenantVerifiedAttributeAssigned(
         targetTenant.data.id,
         targetTenant.metadata.version,
         updatedTenant,
