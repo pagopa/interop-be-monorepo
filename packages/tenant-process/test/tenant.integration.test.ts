@@ -787,7 +787,59 @@ describe("Integration tests", () => {
 
       const mockAuthData = getMockAuthData(requesterTenant.id);
 
-      it("Should add the declared attribute", async () => {
+      it("Should add the declared attribute if declared Tenant Attribute doesn't exist", async () => {
+        const tenantWithoutDeclaredAttribute: Tenant = {
+          ...requesterTenant,
+          attributes: [],
+        };
+        await addOneTenant(tenantWithoutDeclaredAttribute, postgresDB, tenants);
+        await tenantService.addDeclaredAttribute({
+          tenantAttributeSeed,
+          authData: mockAuthData,
+          correlationId,
+        });
+        const writtenEvent: StoredEvent | undefined =
+          await readLastEventByStreamId(
+            tenantWithoutDeclaredAttribute.id,
+            eventStoreSchema.tenant,
+            postgresDB
+          );
+        if (!writtenEvent) {
+          fail("Update failed: tenant not found in event-store");
+        }
+        expect(writtenEvent).toMatchObject({
+          stream_id: tenantWithoutDeclaredAttribute.id,
+          version: "1",
+          type: "TenantDeclaredAttributeAssigned",
+        });
+        const writtenPayload = protobufDecoder(
+          TenantDeclaredAttributeAssignedV2
+        ).parse(writtenEvent?.data);
+
+        const updatedTenant: Tenant = {
+          ...tenantWithoutDeclaredAttribute,
+          attributes: [
+            {
+              id: unsafeBrandId(tenantAttributeSeed.id),
+              type: "PersistentDeclaredAttribute",
+              assignmentTimestamp: new Date(
+                Number(
+                  (
+                    writtenPayload.tenant!.attributes[0].sealedValue as {
+                      oneofKind: "declaredAttribute";
+                      declaredAttribute: TenantDeclaredAttributeV2;
+                    }
+                  ).declaredAttribute.assignmentTimestamp
+                )
+              ),
+            },
+          ],
+          kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
+          updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
+        };
+        expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+      });
+      it("Should add the declared attribute if declared Tenant Attribute exist", async () => {
         await addOneTenant(requesterTenant, postgresDB, tenants);
         await tenantService.addDeclaredAttribute({
           tenantAttributeSeed,
