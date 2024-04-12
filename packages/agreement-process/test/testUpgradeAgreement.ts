@@ -222,11 +222,18 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         validDeclaredTenantAttribute.id
       );
 
+      const validCertifiedTenantAttribute = getMockCertifiedTenantAttribute(
+        unsafeBrandId<AttributeId>(tenantId)
+      );
+      const validCertifiedEserviceAttribute = getMockEServiceAttribute(
+        validCertifiedTenantAttribute.id
+      );
+
       const descriptorId = generateId<DescriptorId>();
       const deprecatedDescriptor = {
         ...getMockDescriptorPublished(
           descriptorId,
-          [],
+          [[validCertifiedEserviceAttribute]],
           [[validDeclaredEserviceAttribute]],
           [[validVerifiedEserviceAttribute]]
         ),
@@ -236,11 +243,14 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       };
 
       const publishedDescriptor: Descriptor = {
-        ...getMockDescriptorPublished(descriptorId),
+        ...getMockDescriptorPublished(descriptorId, [
+          [validCertifiedEserviceAttribute],
+        ]),
         version: "2",
       };
 
       const tenant = getMockTenant(unsafeBrandId<TenantId>(tenantId), [
+        validCertifiedTenantAttribute,
         validDeclaredTenantAttribute,
         validVerifiedTenantAttribute,
       ]);
@@ -354,6 +364,13 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         agreementState.active
       );
 
+      const validCertifiedTenantAttribute = getMockCertifiedTenantAttribute(
+        unsafeBrandId<AttributeId>(tenantId)
+      );
+      const validCertifiedEserviceAttribute = getMockEServiceAttribute(
+        validCertifiedTenantAttribute.id
+      );
+
       const invalidVerifiedTenantAttribute = {
         ...getMockVerifiedTenantAttribute(),
         verifiedBy: [
@@ -367,13 +384,14 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       };
       const tenant = getMockTenant(unsafeBrandId<TenantId>(tenantId), [
         invalidVerifiedTenantAttribute,
+        validCertifiedTenantAttribute,
       ]);
       await addOneTenant(tenant, tenants);
 
       const deprecatedDescriptor = {
         ...getMockDescriptorPublished(
           descriptorId,
-          [],
+          [[validCertifiedEserviceAttribute]],
           [],
           [[getMockEServiceAttribute()]]
         ),
@@ -389,7 +407,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       const publishedDescriptor = {
         ...getMockDescriptorPublished(
           descriptorId,
-          [],
+          [[validCertifiedEserviceAttribute]],
           [],
           [[getMockEServiceAttribute()]]
         ),
@@ -545,7 +563,15 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         revocationTimestamp: new Date(TEST_EXECUTION_DATE.getFullYear() + 1),
       };
 
+      const validCertifiedTenantAttribute = getMockCertifiedTenantAttribute(
+        unsafeBrandId<AttributeId>(tenantId)
+      );
+      const validCertifiedEserviceAttribute = getMockEServiceAttribute(
+        validCertifiedTenantAttribute.id
+      );
+
       const tenant = getMockTenant(unsafeBrandId<TenantId>(tenantId), [
+        validCertifiedTenantAttribute,
         validVerifiedTenantAttribute,
         invalidDeclaredTenantAttribute,
       ]);
@@ -554,7 +580,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       const deprecatedDescriptor = {
         ...getMockDescriptorPublished(
           descriptorId,
-          [],
+          [[validCertifiedEserviceAttribute]],
           [[getMockEServiceAttribute()]],
           [[validVerifiedEserviceAttribute]]
         ),
@@ -570,7 +596,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       const publishedDescriptor = {
         ...getMockDescriptorPublished(
           descriptorId,
-          [],
+          [[validCertifiedEserviceAttribute]],
           [[getMockEServiceAttribute()]],
           [[validVerifiedEserviceAttribute]]
         ),
