@@ -13,7 +13,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { ExternalId } from "pagopa-interop-models";
-import { toTenantCertifiedAttributeAssigned } from "../model/domain/toEvent.js";
+import { toCreateEventTenantCertifiedAttributeAssigned } from "../model/domain/toEvent.js";
 import {
   ApiCertifiedTenantAttributeSeed,
   ApiSelfcareTenantSeed,
@@ -379,7 +379,7 @@ export function tenantServiceBuilder(
         };
       }
 
-      const event = toTenantCertifiedAttributeAssigned(
+      const event = toCreateEventTenantCertifiedAttributeAssigned(
         targetTenant.data.id,
         targetTenant.metadata.version,
         updatedTenant,
