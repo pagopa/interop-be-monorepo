@@ -33,6 +33,9 @@ export const multiAnswersToApiMultiAnswers = (
   multiAnswers: RiskAnalysisMultiAnswer[]
 ): Record<string, string[]> =>
   multiAnswers.reduce<Record<string, string[]>>((acc, curr) => {
+    if (curr.values.length === 0) {
+      return acc;
+    }
     // eslint-disable-next-line functional/immutable-data
     acc[curr.key] = curr.values;
     return acc;
