@@ -37,3 +37,12 @@ export const deletePurposeVersionErrorMapper = (
     .with("organizationIsNotTheConsumer", () => HTTP_STATUS_FORBIDDEN)
     .with("purposeVersionCannotBeDeleted", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const rejectPurposeVersionErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("purposeVersionNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("organizationIsNotTheProducer", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
