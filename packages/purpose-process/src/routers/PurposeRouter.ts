@@ -166,7 +166,24 @@ const purposeRouter = (
     .post(
       "/purposes/:purposeId/versions/:versionId/reject",
       authorizationMiddleware([ADMIN_ROLE]),
-      (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          await purposeService.rejectPurposeVersion({
+            purposeId: unsafeBrandId(req.params.purposeId),
+            versionId: unsafeBrandId(req.params.versionId),
+            authData: req.ctx.authData,
+            rejectionReason: req.body.rejectionReason,
+            correlationId: req.ctx.correlationId,
+          });
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            rejectPurposeVersionErrorMapper
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/purposes/:purposeId/versions/:versionId/activate",

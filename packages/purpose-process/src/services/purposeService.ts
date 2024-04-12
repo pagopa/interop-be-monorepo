@@ -27,6 +27,7 @@ import {
 import {
   eserviceNotFound,
   organizationIsNotTheConsumer,
+  organizationIsNotTheProducer,
   organizationNotAllowed,
   purposeNotFound,
   purposeVersionCannotBeDeleted,
@@ -35,7 +36,10 @@ import {
   tenantKindNotFound,
   tenantNotFound,
 } from "../model/domain/errors.js";
-import { toCreateEventWaitingForApprovalPurposeVersionDeleted } from "../model/domain/toEvent.js";
+import {
+  toCreateEvenPurpsoeVersionRejected,
+  toCreateEventWaitingForApprovalPurposeVersionDeleted,
+} from "../model/domain/toEvent.js";
 import { ReadModelService } from "./readModelService.js";
 
 const retrievePurpose = async (
@@ -204,6 +208,49 @@ export function purposeServiceBuilder(
       });
       await repository.createEvent(event);
     },
+    async rejectPurposeVersion({
+      purposeId,
+      versionId,
+      rejectionReason,
+      authData,
+      correlationId,
+    }: {
+      purposeId: PurposeId;
+      versionId: PurposeVersionId;
+      rejectionReason: string;
+      authData: AuthData;
+      correlationId: string;
+    }): Promise<void> {
+      const purpose = await retrievePurpose(purposeId, readModelService);
+      const eservice = await retrieveEService(
+        purpose.data.eserviceId,
+        readModelService
+      );
+      if (authData.organizationId !== eservice.producerId) {
+        throw organizationIsNotTheProducer(authData.organizationId);
+      }
+
+      const purposeVersion = retrievePurposeVersion(versionId, purpose);
+
+      const updatedPurposeVersion: PurposeVersion = {
+        ...purposeVersion,
+        state: purposeVersionState.rejected,
+        rejectionReason,
+      };
+
+      const updatedPurpose = replacePurposeVersion(
+        purpose.data,
+        updatedPurposeVersion
+      );
+
+      const event = toCreateEvenPurpsoeVersionRejected({
+        purpose: updatedPurpose,
+        version: purpose.metadata.version,
+        versionId,
+        correlationId,
+      });
+      await repository.createEvent(event);
+    },
   };
 }
 
@@ -278,4 +325,18 @@ const getOrganizationRole = ({
   } else {
     throw organizationNotAllowed(organizationId);
   }
+};
+
+const replacePurposeVersion = (
+  purpose: Purpose,
+  newVersion: PurposeVersion
+): Purpose => {
+  const updatedVersions = purpose.versions.map((v: PurposeVersion) =>
+    v.id === newVersion.id ? newVersion : v
+  );
+
+  return {
+    ...purpose,
+    versions: updatedVersions,
+  };
 };
