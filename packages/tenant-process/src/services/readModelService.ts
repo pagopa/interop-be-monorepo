@@ -454,11 +454,10 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
         { "data.id": id },
         { projection: { data: true, metadata: true } }
       );
-
       if (!data) {
         return undefined;
       } else {
-        const result = EService.safeParse(data);
+        const result = EService.safeParse(data.data);
 
         if (!result.success) {
           logger.error(
