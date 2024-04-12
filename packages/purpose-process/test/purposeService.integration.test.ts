@@ -169,5 +169,11 @@ describe("database test", async () => {
         ).rejects.toThrowError(tenantKindNotFound(mockTenant.id));
       });
     });
+
+    describe("getRiskAnalysisDocumetn", () => {
+      it("test", () => {
+        expect(1).toBe(1);
+      });
+    });
   });
 });
