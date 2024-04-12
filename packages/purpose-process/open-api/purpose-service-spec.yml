@@ -476,19 +476,19 @@ paths:
         '400':
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: '#/components/schemas/Problem'
         '403':
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: '#/components/schemas/Problem'
         '404':
           description: Purpose not found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: '#/components/schemas/Problem'
       description: reject the purpose version by id
