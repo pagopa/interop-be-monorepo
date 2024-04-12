@@ -175,5 +175,11 @@ describe("database test", async () => {
         expect(1).toBe(1);
       });
     });
+
+    describe("deletePurposeVersion", () => {
+      it("test", () => {
+        expect(2).toBe(2);
+      });
+    });
   });
 });
