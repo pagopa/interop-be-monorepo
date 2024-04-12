@@ -181,5 +181,11 @@ describe("database test", async () => {
         expect(2).toBe(2);
       });
     });
+
+    describe("rejectPurposeVersion", () => {
+      it("test", () => {
+        expect(3).toBe(3);
+      });
+    });
   });
 });
