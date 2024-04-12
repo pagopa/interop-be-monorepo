@@ -238,6 +238,7 @@ export function purposeServiceBuilder(
         ...purposeVersion,
         state: purposeVersionState.rejected,
         rejectionReason,
+        updatedAt: new Date(),
       };
 
       const updatedPurpose = replacePurposeVersion(
