@@ -221,6 +221,8 @@ export function purposeServiceBuilder(
       authData: AuthData;
       correlationId: string;
     }): Promise<void> {
+      logger.info(`Rejecting Version ${versionId} in Purpose ${purposeId}`);
+
       const purpose = await retrievePurpose(purposeId, readModelService);
       const eservice = await retrieveEService(
         purpose.data.eserviceId,
