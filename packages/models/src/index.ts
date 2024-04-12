@@ -31,6 +31,8 @@ export * from "./tenant/protobufConverterFromV1.js";
 export * from "./tenant/protobufConverterFromV2.js";
 export * from "./tenant/protobufConverterToV2.js";
 
+export * from "./purpose/purpose.js";
+
 export * from "./user/user.js";
 
 // Protobuf

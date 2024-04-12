@@ -1,0 +1,6 @@
+{
+  "extends": ["../../../.eslintrc.cjs"],
+  "rules": {
+    "functional/immutable-data": "off"
+  }
+}
