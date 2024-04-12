@@ -204,7 +204,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
     it("should succeed with valid Verified and Declared attributes", async () => {
       const authData = {
         ...getRandomAuthData(),
-        userRoles: [userRoles.INTERNAL_ROLE],
+        userRoles: [userRoles.ADMIN_ROLE],
       };
       const tenantId = authData.organizationId.toString();
 
@@ -257,7 +257,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       const agreementToBeUpgraded: Agreement = {
         ...getMockAgreement(
           generateId<EServiceId>(),
-          generateId<TenantId>(),
+          unsafeBrandId<TenantId>(tenantId),
           agreementState.active
         ),
         descriptorId,
