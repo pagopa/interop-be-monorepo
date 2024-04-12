@@ -141,6 +141,7 @@ describe("Integration tests", () => {
   const mockVerifiedBy = getMockVerifiedBy();
   const mockRevokedBy = getMockRevokedBy();
   const mockVerifiedTenantAttribute = getMockVerifiedTenantAttribute();
+  const mockCertifiedTenantAttribute = getMockCertifiedTenantAttribute();
 
   afterEach(async () => {
     await tenants.deleteMany({});
@@ -635,7 +636,7 @@ describe("Integration tests", () => {
       const targetTenant: Tenant = { ...mockTenant, id: generateId() };
       const mockAuthData = getMockAuthData(requesterTenant.id);
 
-      it("Should add the certified attribute", async () => {
+      it("Should add the certified attribute if certifiedTenantAttribute doesn't exist", async () => {
         await addOneAttribute(attribute, attributes);
         await addOneTenant(targetTenant, postgresDB, tenants);
         await addOneTenant(requesterTenant, postgresDB, tenants);
@@ -664,6 +665,69 @@ describe("Integration tests", () => {
 
         const updatedTenant: Tenant = {
           ...targetTenant,
+          attributes: [
+            {
+              id: unsafeBrandId(tenantAttributeSeed.id),
+              type: "PersistentCertifiedAttribute",
+              assignmentTimestamp: new Date(
+                Number(
+                  (
+                    writtenPayload.tenant!.attributes[0].sealedValue as {
+                      oneofKind: "certifiedAttribute";
+                      certifiedAttribute: TenantCertifiedAttributeV2;
+                    }
+                  ).certifiedAttribute.assignmentTimestamp
+                )
+              ),
+            },
+          ],
+          kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
+          updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
+        };
+        expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+      });
+      it("Should add the certified attribute if certifiedTenantAttribute exist", async () => {
+        const tenantWithCertifiedAttribute: Tenant = {
+          ...targetTenant,
+          attributes: [
+            {
+              ...mockCertifiedTenantAttribute,
+              id: unsafeBrandId(tenantAttributeSeed.id),
+            },
+          ],
+        };
+
+        await addOneAttribute(attribute, attributes);
+        await addOneTenant(tenantWithCertifiedAttribute, postgresDB, tenants);
+        await addOneTenant(requesterTenant, postgresDB, tenants);
+        await tenantService.addCertifiedAttribute(
+          tenantWithCertifiedAttribute.id,
+          {
+            tenantAttributeSeed,
+            authData: mockAuthData,
+            correlationId,
+          }
+        );
+        const writtenEvent: StoredEvent | undefined =
+          await readLastEventByStreamId(
+            tenantWithCertifiedAttribute.id,
+            eventStoreSchema.tenant,
+            postgresDB
+          );
+        if (!writtenEvent) {
+          fail("Update failed: tenant not found in event-store");
+        }
+        expect(writtenEvent).toMatchObject({
+          stream_id: tenantWithCertifiedAttribute.id,
+          version: "1",
+          type: "TenantCertifiedAttributeAssigned",
+        });
+        const writtenPayload = protobufDecoder(
+          TenantCertifiedAttributeAssignedV2
+        ).parse(writtenEvent?.data);
+
+        const updatedTenant: Tenant = {
+          ...tenantWithCertifiedAttribute,
           attributes: [
             {
               id: unsafeBrandId(tenantAttributeSeed.id),
@@ -795,7 +859,59 @@ describe("Integration tests", () => {
 
       const mockAuthData = getMockAuthData(requesterTenant.id);
 
-      it("Should add the declared attribute", async () => {
+      it("Should add the declared attribute if declared Tenant Attribute doesn't exist", async () => {
+        const tenantWithoutDeclaredAttribute: Tenant = {
+          ...requesterTenant,
+          attributes: [],
+        };
+        await addOneTenant(tenantWithoutDeclaredAttribute, postgresDB, tenants);
+        await tenantService.addDeclaredAttribute({
+          tenantAttributeSeed,
+          authData: mockAuthData,
+          correlationId,
+        });
+        const writtenEvent: StoredEvent | undefined =
+          await readLastEventByStreamId(
+            tenantWithoutDeclaredAttribute.id,
+            eventStoreSchema.tenant,
+            postgresDB
+          );
+        if (!writtenEvent) {
+          fail("Update failed: tenant not found in event-store");
+        }
+        expect(writtenEvent).toMatchObject({
+          stream_id: tenantWithoutDeclaredAttribute.id,
+          version: "1",
+          type: "TenantDeclaredAttributeAssigned",
+        });
+        const writtenPayload = protobufDecoder(
+          TenantDeclaredAttributeAssignedV2
+        ).parse(writtenEvent?.data);
+
+        const updatedTenant: Tenant = {
+          ...tenantWithoutDeclaredAttribute,
+          attributes: [
+            {
+              id: unsafeBrandId(tenantAttributeSeed.id),
+              type: "PersistentDeclaredAttribute",
+              assignmentTimestamp: new Date(
+                Number(
+                  (
+                    writtenPayload.tenant!.attributes[0].sealedValue as {
+                      oneofKind: "declaredAttribute";
+                      declaredAttribute: TenantDeclaredAttributeV2;
+                    }
+                  ).declaredAttribute.assignmentTimestamp
+                )
+              ),
+            },
+          ],
+          kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
+          updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
+        };
+        expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+      });
+      it("Should add the declared attribute if declared Tenant Attribute exist", async () => {
         await addOneTenant(requesterTenant, postgresDB, tenants);
         await tenantService.addDeclaredAttribute({
           tenantAttributeSeed,

@@ -16,8 +16,8 @@ import {
 import { ExternalId } from "pagopa-interop-models";
 import {
   toCreateEventTenantVerifiedAttributeAssigned,
-  toTenantCertifiedAttributeAssigned,
-  toTenantDeclaredAttributeAssigned,
+  toCreateEventTenantCertifiedAttributeAssigned,
+  toCreateEventTenantDeclaredAttributeAssigned,
 } from "../model/domain/toEvent.js";
 import {
   ApiCertifiedTenantAttributeSeed,
@@ -381,7 +381,7 @@ export function tenantServiceBuilder(
         };
       }
 
-      const event = toTenantCertifiedAttributeAssigned(
+      const event = toCreateEventTenantCertifiedAttributeAssigned(
         targetTenant.data.id,
         targetTenant.metadata.version,
         updatedTenant,
@@ -445,7 +445,7 @@ export function tenantServiceBuilder(
           attributeId: unsafeBrandId(tenantAttributeSeed.id),
         });
       }
-      const event = toTenantDeclaredAttributeAssigned(
+      const event = toCreateEventTenantDeclaredAttributeAssigned(
         targetTenant.data.id,
         targetTenant.metadata.version,
         updatedTenant,
