@@ -503,7 +503,7 @@ describe("database test", async () => {
           purposeService.deletePurposeVersion({
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
-            authData: getMockAuthData(randomId),
+            authData: getMockAuthData(mockEService.producerId),
             correlationId: generateId(),
           })
         ).rejects.toThrowError(organizationIsNotTheConsumer(randomId));
