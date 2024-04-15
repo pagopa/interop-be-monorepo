@@ -392,16 +392,14 @@ describe("database test", async () => {
     describe("deletePurposeVersion", () => {
       it("Should write in event-store for the deletion of a purpose version", async () => {
         const mockEService = getMockEService();
-        const mockPurposeVersion = getMockPurposeVersion();
+        const mockPurposeVersion = {
+          ...getMockPurposeVersion(),
+          state: purposeVersionState.waitingForApproval,
+        };
         const mockPurpose1: Purpose = {
           ...mockPurpose,
           eserviceId: mockEService.id,
-          versions: [
-            {
-              ...mockPurposeVersion,
-              state: purposeVersionState.waitingForApproval,
-            },
-          ],
+          versions: [mockPurposeVersion],
         };
 
         await addOnePurpose(mockPurpose1, postgresDB, purposes);
@@ -513,13 +511,14 @@ describe("database test", async () => {
       });
       it("Should throw purposeVersionCannotBeDeleted if the purpose version is in draft state", async () => {
         const mockEService = getMockEService();
-        const mockPurposeVersion = getMockPurposeVersion();
+        const mockPurposeVersion = {
+          ...getMockPurposeVersion(),
+          state: purposeVersionState.draft,
+        };
         const mockPurpose1: Purpose = {
           ...mockPurpose,
           eserviceId: mockEService.id,
-          versions: [
-            { ...mockPurposeVersion, state: purposeVersionState.draft },
-          ],
+          versions: [mockPurposeVersion],
         };
 
         await addOnePurpose(mockPurpose1, postgresDB, purposes);
@@ -538,16 +537,14 @@ describe("database test", async () => {
       });
       it("Should throw purposeVersionCannotBeDeleted if the purpose version is in active state", async () => {
         const mockEService = getMockEService();
-        const mockPurposeVersion = getMockPurposeVersion();
+        const mockPurposeVersion = {
+          ...getMockPurposeVersion(),
+          state: purposeVersionState.active,
+        };
         const mockPurpose1: Purpose = {
           ...mockPurpose,
           eserviceId: mockEService.id,
-          versions: [
-            {
-              ...mockPurposeVersion,
-              state: purposeVersionState.active,
-            },
-          ],
+          versions: [mockPurposeVersion],
         };
 
         await addOnePurpose(mockPurpose1, postgresDB, purposes);
@@ -566,13 +563,14 @@ describe("database test", async () => {
       });
       it("Should throw purposeVersionCannotBeDeleted if the purpose version is in archived state", async () => {
         const mockEService = getMockEService();
-        const mockPurposeVersion = getMockPurposeVersion();
+        const mockPurposeVersion = {
+          ...getMockPurposeVersion(),
+          state: purposeVersionState.archived,
+        };
         const mockPurpose1: Purpose = {
           ...mockPurpose,
           eserviceId: mockEService.id,
-          versions: [
-            { ...mockPurposeVersion, state: purposeVersionState.archived },
-          ],
+          versions: [mockPurposeVersion],
         };
 
         await addOnePurpose(mockPurpose1, postgresDB, purposes);
@@ -591,13 +589,14 @@ describe("database test", async () => {
       });
       it("Should throw purposeVersionCannotBeDeleted if the purpose version is in suspended state", async () => {
         const mockEService = getMockEService();
-        const mockPurposeVersion = getMockPurposeVersion();
+        const mockPurposeVersion = {
+          ...getMockPurposeVersion(),
+          state: purposeVersionState.suspended,
+        };
         const mockPurpose1: Purpose = {
           ...mockPurpose,
           eserviceId: mockEService.id,
-          versions: [
-            { ...mockPurposeVersion, state: purposeVersionState.suspended },
-          ],
+          versions: [mockPurposeVersion],
         };
 
         await addOnePurpose(mockPurpose1, postgresDB, purposes);
