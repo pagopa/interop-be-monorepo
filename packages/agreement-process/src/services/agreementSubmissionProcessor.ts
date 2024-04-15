@@ -26,7 +26,7 @@ import {
   tenantIdNotFound,
 } from "../model/domain/errors.js";
 import {
-  toCreateEventAgreementArchived,
+  toCreateEventAgreementArchivedByUpgrade,
   toCreateEventAgreementSubmitted,
 } from "../model/domain/toEvent.js";
 import {
@@ -200,7 +200,7 @@ const submitAgreement = async (
                 },
               };
 
-              return toCreateEventAgreementArchived(
+              return toCreateEventAgreementArchivedByUpgrade(
                 {
                   ...agreement.data,
                   ...updateSeed,
