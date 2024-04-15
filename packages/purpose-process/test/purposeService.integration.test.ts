@@ -33,6 +33,7 @@ import {
   EServiceId,
   Purpose,
   PurposeId,
+  PurposeVersion,
   PurposeVersionDocumentId,
   PurposeVersionId,
   TenantId,
@@ -717,7 +718,7 @@ describe("database test", async () => {
       });
       it("Should throw notValidVersionState if the purpose version is in draft state", async () => {
         const mockEService = getMockEService();
-        const mockPurposeVersion = {
+        const mockPurposeVersion: PurposeVersion = {
           ...getMockPurposeVersion(),
           state: purposeVersionState.draft,
         };
@@ -744,7 +745,7 @@ describe("database test", async () => {
       });
       it("Should throw notValidVersionState if the purpose version is in active state", async () => {
         const mockEService = getMockEService();
-        const mockPurposeVersion = {
+        const mockPurposeVersion: PurposeVersion = {
           ...getMockPurposeVersion(),
           state: purposeVersionState.active,
         };
@@ -771,7 +772,7 @@ describe("database test", async () => {
       });
       it("Should throw notValidVersionState if the purpose version is in archived state", async () => {
         const mockEService = getMockEService();
-        const mockPurposeVersion = {
+        const mockPurposeVersion: PurposeVersion = {
           ...getMockPurposeVersion(),
           state: purposeVersionState.archived,
         };
@@ -798,7 +799,7 @@ describe("database test", async () => {
       });
       it("Should throw notValidVersionState if the purpose version is in rejected state", async () => {
         const mockEService = getMockEService();
-        const mockPurposeVersion = {
+        const mockPurposeVersion: PurposeVersion = {
           ...getMockPurposeVersion(),
           state: purposeVersionState.rejected,
         };
@@ -825,9 +826,10 @@ describe("database test", async () => {
       });
       it("Should throw notValidVersionState if the purpose version is in suspended state", async () => {
         const mockEService = getMockEService();
-        const mockPurposeVersion = {
+        const mockPurposeVersion: PurposeVersion = {
           ...getMockPurposeVersion(),
           state: purposeVersionState.suspended,
+          suspendedAt: new Date(),
         };
         const mockPurpose1: Purpose = {
           ...mockPurpose,
