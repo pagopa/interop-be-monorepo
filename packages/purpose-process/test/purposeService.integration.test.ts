@@ -3,7 +3,15 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import {
   EServiceCollection,
   PurposeCollection,
@@ -36,6 +44,7 @@ import {
   PurposeVersion,
   PurposeVersionDocumentId,
   PurposeVersionId,
+  PurposeVersionRejectedV2,
   TenantId,
   TenantKind,
   WaitingForApprovalPurposeVersionDeletedV2,
@@ -617,8 +626,64 @@ describe("database test", async () => {
     });
 
     describe("rejectPurposeVersion", () => {
-      it("Should write on event-store for the rejection of a purpose version", () => {
-        expect(3).toBe(3);
+      it("Should write on event-store for the rejection of a purpose version", async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date());
+
+        const mockEService = getMockEService();
+        const mockPurposeVersion = {
+          ...getMockPurposeVersion(),
+          state: purposeVersionState.waitingForApproval,
+        };
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          eserviceId: mockEService.id,
+          versions: [mockPurposeVersion],
+        };
+
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+        await purposeService.rejectPurposeVersion({
+          purposeId: mockPurpose1.id,
+          versionId: mockPurposeVersion.id,
+          rejectionReason: "test",
+          authData: getMockAuthData(mockEService.producerId),
+          correlationId: generateId(),
+        });
+
+        const writtenEvent = await readLastEventByStreamId(
+          mockPurpose1.id,
+          "purpose",
+          postgresDB
+        );
+
+        expect(writtenEvent).toMatchObject({
+          stream_id: mockPurpose1.id,
+          version: "1",
+          type: "PurposeVersionRejected",
+          event_version: 2,
+        });
+
+        const writtenPayload = decodeProtobufPayload({
+          messageType: PurposeVersionRejectedV2,
+          payload: writtenEvent.data,
+        });
+
+        const expectedPurposeVersion: PurposeVersion = {
+          ...mockPurposeVersion,
+          state: purposeVersionState.rejected,
+          rejectionReason: "test",
+          updatedAt: new Date(),
+        };
+        const expectedPurpose: Purpose = {
+          ...mockPurpose1,
+          versions: [expectedPurposeVersion],
+        };
+
+        expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+
+        vi.useRealTimers();
       });
       it("Should throw purposeNotFound if the purpose doesn't exist", async () => {
         const mockEService = getMockEService();
