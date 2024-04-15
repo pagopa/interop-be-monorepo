@@ -59,6 +59,9 @@ export const PurposeVersionDocumentId = z
   .brand("PurposeVersionDocumentId");
 export type PurposeVersionDocumentId = z.infer<typeof PurposeVersionDocumentId>;
 
+export const ClientId = z.string().uuid().brand("ClientId");
+export type ClientId = z.infer<typeof ClientId>;
+
 type IDS =
   | EServiceId
   | EServiceDocumentId
@@ -73,7 +76,8 @@ type IDS =
   | RiskAnalysisId
   | PurposeId
   | PurposeVersionId
-  | PurposeVersionDocumentId;
+  | PurposeVersionDocumentId
+  | ClientId;
 
 // This function is used to generate a new ID for a new object
 // it infers the type of the ID based on how is used the result
