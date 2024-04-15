@@ -4,8 +4,6 @@ import {
   DB,
   eventRepository,
   logger,
-  riskAnalysisValidatedFormToNewRiskAnalysisForm,
-  riskAnalysisFormToRiskAnalysisFormToValidate,
 } from "pagopa-interop-commons";
 import {
   EService,
@@ -46,7 +44,6 @@ import {
 import {
   PurposeUpdateContent,
   ReversePurposeUpdateContent,
-  RiskAnalysisFormSeed,
 } from "../model/domain/models.js";
 import { ReadModelService } from "./readModelService.js";
 import {
@@ -55,9 +52,10 @@ import {
   isFreeOfCharge,
   isRiskAnalysisFormValid,
   purposeIsDraft,
-  validateRiskAnalysisSchemaOrThrow,
   assertTenantKindExists,
   assertIsDraft,
+  reverseValidateAndTransformRiskAnalysis,
+  validateAndTransformRiskAnalysis,
 } from "./validators.js";
 
 const retrievePurpose = async (
@@ -391,46 +389,6 @@ const getInvolvedTenantByEServiceMode = async (
   } else {
     return retrieveTenant(eservice.producerId, readModelService);
   }
-};
-
-const validateAndTransformRiskAnalysis = (
-  riskAnalysisForm: RiskAnalysisFormSeed | undefined,
-  tenantKind: TenantKind
-): PurposeRiskAnalysisForm | undefined => {
-  if (!riskAnalysisForm) {
-    return undefined;
-  }
-
-  const validatedForm = validateRiskAnalysisSchemaOrThrow(
-    riskAnalysisForm,
-    tenantKind
-  );
-
-  return {
-    ...riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),
-    riskAnalysisId: undefined,
-  };
-};
-
-const reverseValidateAndTransformRiskAnalysis = (
-  riskAnalysisForm: PurposeRiskAnalysisForm | undefined,
-  tenantKind: TenantKind
-): PurposeRiskAnalysisForm | undefined => {
-  if (!riskAnalysisForm) {
-    return undefined;
-  }
-
-  const formToValidate =
-    riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm);
-  const validatedForm = validateRiskAnalysisSchemaOrThrow(
-    formToValidate,
-    tenantKind
-  );
-
-  return {
-    ...riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),
-    riskAnalysisId: riskAnalysisForm.riskAnalysisId,
-  };
 };
 
 const updatePurposeInternal = async (
