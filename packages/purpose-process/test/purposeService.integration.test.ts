@@ -227,7 +227,7 @@ describe("database test", async () => {
     });
 
     describe("getRiskAnalysisDocument", () => {
-      it("Should get the purpose version document", async () => {
+      it("should get the purpose version document", async () => {
         const mockEService = getMockEService();
         const mockPurposeVersion = getMockPurposeVersion();
         const mockDocument = getMockPurposeVersionDocument();
@@ -253,7 +253,7 @@ describe("database test", async () => {
         });
         expect(result).toEqual(mockDocument);
       });
-      it("Should throw purposeNotFound if the purpose doesn't exist", async () => {
+      it("should throw purposeNotFound if the purpose doesn't exist", async () => {
         const mockEService = getMockEService();
         const mockPurposeVersion = getMockPurposeVersion();
         const mockDocument = getMockPurposeVersionDocument();
@@ -279,7 +279,7 @@ describe("database test", async () => {
           })
         ).rejects.toThrowError(purposeNotFound(mockPurpose1.id));
       });
-      it("Should throw eserviceNotFound if the eservice doesn't exist", async () => {
+      it("should throw eserviceNotFound if the eservice doesn't exist", async () => {
         const mockEService = getMockEService();
         const mockPurposeVersion = getMockPurposeVersion();
         const mockDocument = getMockPurposeVersionDocument();
@@ -300,7 +300,7 @@ describe("database test", async () => {
           })
         ).rejects.toThrowError(eserviceNotFound(mockEService.id));
       });
-      it("Should throw purposeVersionNotFound if the purpose version doesn't exist", async () => {
+      it("should throw purposeVersionNotFound if the purpose version doesn't exist", async () => {
         const mockEService = getMockEService();
         const mockPurposeVersion = getMockPurposeVersion();
         const randomVersionId: PurposeVersionId = generateId();
@@ -326,7 +326,7 @@ describe("database test", async () => {
           purposeVersionNotFound(mockPurpose1.id, randomVersionId)
         );
       });
-      it("Should throw purposeVersionDocumentNotFound if the document doesn't exist", async () => {
+      it("should throw purposeVersionDocumentNotFound if the document doesn't exist", async () => {
         const mockEService = getMockEService();
         const mockPurposeVersion = getMockPurposeVersion();
         const mockDocument = getMockPurposeVersionDocument();
@@ -355,7 +355,7 @@ describe("database test", async () => {
           )
         );
       });
-      it("Should throw organizationNotAllowed if the requester is not the producer not the consumer", async () => {
+      it("should throw organizationNotAllowed if the requester is not the producer not the consumer", async () => {
         const randomId: TenantId = generateId();
         const mockEService = getMockEService();
         const mockPurposeVersion = getMockPurposeVersion();
