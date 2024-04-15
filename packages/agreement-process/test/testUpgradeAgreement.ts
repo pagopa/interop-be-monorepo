@@ -208,16 +208,24 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       };
       const tenantId = authData.organizationId.toString();
 
-      const validVerifiedTenantAttribute = getMockVerifiedTenantAttribute(
-        unsafeBrandId<AttributeId>(tenantId)
-      );
+      const validVerifiedTenantAttribute = {
+        ...getMockVerifiedTenantAttribute(unsafeBrandId<AttributeId>(tenantId)),
+        verifiedBy: [
+          {
+            id: unsafeBrandId<TenantId>(tenantId),
+            verificationDate: new Date(TEST_EXECUTION_DATE.getFullYear() - 1),
+            expirationDate: new Date(TEST_EXECUTION_DATE.getFullYear() + 1),
+            extensionDate: undefined,
+          },
+        ],
+      };
       const validVerifiedEserviceAttribute = getMockEServiceAttribute(
         validVerifiedTenantAttribute.id
       );
-
-      const validDeclaredTenantAttribute = getMockDeclaredTenantAttribute(
-        unsafeBrandId<AttributeId>(tenantId)
-      );
+      const validDeclaredTenantAttribute = {
+        ...getMockDeclaredTenantAttribute(unsafeBrandId<AttributeId>(tenantId)),
+        revocationTimestamp: undefined,
+      };
       const validDeclaredEserviceAttribute = getMockEServiceAttribute(
         validDeclaredTenantAttribute.id
       );
@@ -243,9 +251,11 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       };
 
       const publishedDescriptor: Descriptor = {
-        ...getMockDescriptorPublished(descriptorId, [
-          [validCertifiedEserviceAttribute],
-        ]),
+        ...getMockDescriptorPublished(
+          descriptorId,
+          [[validCertifiedEserviceAttribute]],
+          [[validDeclaredEserviceAttribute]]
+        ),
         version: "2",
       };
 
