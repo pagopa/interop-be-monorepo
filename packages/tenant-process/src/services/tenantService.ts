@@ -562,6 +562,97 @@ export function tenantServiceBuilder(
       return updatedTenant;
     },
 
+    async internalAssignCertifiedAttribute(
+      tenantOrigin: string,
+      tenantExternalId: string,
+      attributeOrigin: string,
+      attributeExternalId: string,
+      correlationId: string
+    ): Promise<void> {
+      logger.info(
+        `Assigning certified attribute (${attributeOrigin}/${attributeExternalId}) to tenant (${tenantOrigin}/${tenantExternalId})`
+      );
+
+      const tenantToModify = await this.getTenantByExternalId({
+        origin: tenantOrigin,
+        value: tenantExternalId,
+      });
+
+      assertTenantExists(unsafeBrandId(tenantOrigin), tenantToModify);
+
+      const attributeToAssign =
+        await readModelService.getAttributeByOriginAndCode({
+          origin: attributeOrigin,
+          code: attributeExternalId,
+        });
+
+      if (!attributeToAssign || attributeToAssign.kind !== "Certified") {
+        throw attributeNotFound(attributeOrigin);
+      }
+
+      const maybeAttribute = tenantToModify.data.attributes.find(
+        (attr) =>
+          attr.type === tenantAttributeType.CERTIFIED &&
+          attr.id === attributeToAssign.id
+      ) as CertifiedTenantAttribute;
+
+      // eslint-disable-next-line functional/no-let
+      let updatedTenant: Tenant = {
+        ...tenantToModify.data,
+        updatedAt: new Date(),
+      };
+
+      if (!maybeAttribute) {
+        // assigning attribute for the first time
+        updatedTenant = {
+          ...updatedTenant,
+          attributes: [
+            ...tenantToModify.data.attributes,
+            {
+              id: attributeToAssign.id,
+              type: tenantAttributeType.CERTIFIED,
+              assignmentTimestamp: new Date(),
+              revocationTimestamp: undefined,
+            },
+          ],
+        };
+      } else if (!maybeAttribute.revocationTimestamp) {
+        throw certifiedAttributeAlreadyAssigned(
+          attributeToAssign.id,
+          tenantToModify.data.id
+        );
+      } else {
+        // re-assigning attribute if it was revoked
+        updatedTenant = reAssignAttribute({
+          updatedTenant,
+          targetTenant: tenantToModify,
+          attributeId: attributeToAssign.id,
+        });
+      }
+
+      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+        readModelService,
+        updatedTenant.attributes,
+        updatedTenant.externalId
+      );
+
+      if (updatedTenant.kind !== tenantKind) {
+        updatedTenant = {
+          ...updatedTenant,
+          kind: tenantKind,
+        };
+      }
+
+      const event = toCreateEventTenantCertifiedAttributeAssigned(
+        tenantToModify.data.id,
+        tenantToModify.metadata.version,
+        updatedTenant,
+        attributeToAssign.id,
+        correlationId
+      );
+      await repository.createEvent(event);
+    },
+
     async getCertifiedAttributes({
       organizationId,
       offset,
