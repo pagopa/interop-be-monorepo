@@ -626,7 +626,7 @@ describe("database test", async () => {
     });
 
     describe("rejectPurposeVersion", () => {
-      it("Should write on event-store for the rejection of a purpose version", async () => {
+      it("should write on event-store for the rejection of a purpose version", async () => {
         vi.useFakeTimers();
         vi.setSystemTime(new Date());
 
@@ -685,7 +685,7 @@ describe("database test", async () => {
 
         vi.useRealTimers();
       });
-      it("Should throw purposeNotFound if the purpose doesn't exist", async () => {
+      it("should throw purposeNotFound if the purpose doesn't exist", async () => {
         const mockEService = getMockEService();
         const mockPurposeVersion = getMockPurposeVersion();
         const mockPurpose1: Purpose = {
@@ -732,7 +732,7 @@ describe("database test", async () => {
           })
         ).rejects.toThrowError(eserviceNotFound(mockEService.id));
       });
-      it("Should throw organizationIsNotTheProducer if the requester is not the producer", async () => {
+      it("should throw organizationIsNotTheProducer if the requester is not the producer", async () => {
         const mockEService = getMockEService();
         const mockPurposeVersion = getMockPurposeVersion();
         const mockPurpose1: Purpose = {
@@ -756,7 +756,7 @@ describe("database test", async () => {
           organizationIsNotTheProducer(mockPurpose.consumerId)
         );
       });
-      it("Should throw purposeVersionNotFound if the purpose version doesn't exist", async () => {
+      it("should throw purposeVersionNotFound if the purpose version doesn't exist", async () => {
         const mockEService = getMockEService();
         const mockPurposeVersion = getMockPurposeVersion();
         const randomVersionId: PurposeVersionId = generateId();
@@ -781,7 +781,7 @@ describe("database test", async () => {
           purposeVersionNotFound(mockPurpose1.id, randomVersionId)
         );
       });
-      it("Should throw notValidVersionState if the purpose version is in draft state", async () => {
+      it("should throw notValidVersionState if the purpose version is in draft state", async () => {
         const mockEService = getMockEService();
         const mockPurposeVersion: PurposeVersion = {
           ...getMockPurposeVersion(),
@@ -808,7 +808,7 @@ describe("database test", async () => {
           notValidVersionState(mockPurposeVersion.id, mockPurposeVersion.state)
         );
       });
-      it("Should throw notValidVersionState if the purpose version is in active state", async () => {
+      it("should throw notValidVersionState if the purpose version is in active state", async () => {
         const mockEService = getMockEService();
         const mockPurposeVersion: PurposeVersion = {
           ...getMockPurposeVersion(),
@@ -835,7 +835,7 @@ describe("database test", async () => {
           notValidVersionState(mockPurposeVersion.id, mockPurposeVersion.state)
         );
       });
-      it("Should throw notValidVersionState if the purpose version is in archived state", async () => {
+      it("should throw notValidVersionState if the purpose version is in archived state", async () => {
         const mockEService = getMockEService();
         const mockPurposeVersion: PurposeVersion = {
           ...getMockPurposeVersion(),
@@ -862,7 +862,7 @@ describe("database test", async () => {
           notValidVersionState(mockPurposeVersion.id, mockPurposeVersion.state)
         );
       });
-      it("Should throw notValidVersionState if the purpose version is in rejected state", async () => {
+      it("should throw notValidVersionState if the purpose version is in rejected state", async () => {
         const mockEService = getMockEService();
         const mockPurposeVersion: PurposeVersion = {
           ...getMockPurposeVersion(),
@@ -889,7 +889,7 @@ describe("database test", async () => {
           notValidVersionState(mockPurposeVersion.id, mockPurposeVersion.state)
         );
       });
-      it("Should throw notValidVersionState if the purpose version is in suspended state", async () => {
+      it("should throw notValidVersionState if the purpose version is in suspended state", async () => {
         const mockEService = getMockEService();
         const mockPurposeVersion: PurposeVersion = {
           ...getMockPurposeVersion(),
