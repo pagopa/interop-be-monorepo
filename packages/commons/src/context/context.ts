@@ -57,3 +57,10 @@ export const contextMiddleware = (
 
   globalStore.run(context, () => next());
 };
+
+export function runWithContext(
+  context: Partial<AppContext>,
+  fn: () => void
+): void {
+  globalStore.run({ ...defaultAppContext, ...context }, fn);
+}
