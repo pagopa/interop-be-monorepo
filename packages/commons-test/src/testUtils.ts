@@ -22,6 +22,7 @@ import {
   descriptorState,
   generateId,
   tenantAttributeType,
+  PurposeVersionDocument,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import { AuthData } from "pagopa-interop-commons";
@@ -193,4 +194,11 @@ export const getMockTenant = (): Tenant => ({
   },
   features: [],
   mails: [],
+});
+
+export const getMockPurposeVersionDocument = (): PurposeVersionDocument => ({
+  path: "path",
+  id: generateId(),
+  contentType: "json",
+  createdAt: new Date(),
 });
