@@ -1,9 +1,19 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { z } from "zod";
 import { EachMessagePayload, KafkaMessage } from "kafkajs";
-import { EServiceEvent, Message } from "pagopa-interop-models";
+import {
+  EServiceEvent,
+  EServiceEventEnvelope,
+  Message,
+  PurposeEvent,
+  PurposeEventEnvelope,
+} from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
-import { KafkaTopicConfig } from "../config/kafkaTopicConfig.js";
+import {
+  CatalogTopicConfig,
+  KafkaTopicConfig,
+  PurposeTopicConfig,
+} from "../config/kafkaTopicConfig.js";
 
 /**
  * Decodes a Kafka message using the provided event schema.
@@ -37,16 +47,29 @@ export function decodeKafkaMessage<TEvent extends z.ZodType>(
  * @returns {(message: KafkaMessage) => unknown} - The message decoder function.
  * @throws {Error} - If the topic is unknown and no decoder is available.
  */
-export const messageDecoderSupplier = (
+export function messageDecoderSupplier(
+  topicConfig: CatalogTopicConfig,
+  topic: EachMessagePayload["topic"]
+): (message: KafkaMessage) => EServiceEventEnvelope;
+export function messageDecoderSupplier(
+  topicConfig: PurposeTopicConfig,
+  topic: EachMessagePayload["topic"]
+): (message: KafkaMessage) => PurposeEventEnvelope;
+export function messageDecoderSupplier(
   topicConfig: KafkaTopicConfig,
   topic: EachMessagePayload["topic"]
-) =>
-  match(topicConfig)
+) {
+  return match(topicConfig)
     .with(
       { catalogTopic: P.string },
       () => (message: KafkaMessage) =>
         decodeKafkaMessage(message, EServiceEvent)
     )
+    .with(
+      { purposeTopic: P.string },
+      () => (message: KafkaMessage) => decodeKafkaMessage(message, PurposeEvent)
+    )
     .otherwise(() => {
       throw new Error(`Topic decoder not found for provided topic : ${topic}`);
     });
+}
