@@ -80,3 +80,9 @@ message PurposeVersionRejectedV2 {
   string versionId = 1;
   PurposeV2 purpose = 2;
 }
+
+message PurposeClonedV2 {
+  string sourcePurposeId = 1;
+  string sourceVersionId = 2;
+  PurposeV2 purpose = 3;
+}
