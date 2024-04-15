@@ -7,6 +7,7 @@ import {
   authorizationMiddleware,
   ReadModelRepository,
   initDB,
+  zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
@@ -46,7 +47,9 @@ const attributeRegistryService = attributeRegistryServiceBuilder(
 const attributeRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const attributeRouter = ctx.router(api.api);
+  const attributeRouter = ctx.router(api.api, {
+    validationErrorHandler: zodiosValidationErrorToApiProblem,
+  });
   const {
     ADMIN_ROLE,
     SECURITY_ROLE,

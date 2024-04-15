@@ -110,6 +110,7 @@ const errorCodes = {
   missingRSAKey: "9996",
   missingKafkaMessageData: "9997",
   kafkaMessageProcessError: "9998",
+  badRequestError: "9999",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -205,6 +206,14 @@ export function unauthorizedError(details: string): ApiError<CommonErrorCodes> {
     detail: details,
     code: "unauthorizedError",
     title: "Unauthorized",
+  });
+}
+
+export function badRequestError(details: string): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: details,
+    code: "badRequestError",
+    title: "Bad request",
   });
 }
 
