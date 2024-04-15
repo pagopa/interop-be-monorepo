@@ -68,5 +68,6 @@ export const updatePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
 export const deletePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("organizationIsNotTheConsumer", () => HTTP_STATUS_FORBIDDEN)
     .with("purposeCannotBeDeleted", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
