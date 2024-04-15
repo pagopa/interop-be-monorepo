@@ -16,6 +16,7 @@ import { IDatabase } from "pg-promise";
 import {
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
+  decodeProtobufPayload,
   getMockAuthData,
   getMockPurpose,
   getMockPurposeVersion,
@@ -23,6 +24,7 @@ import {
   getMockTenant,
   mongoDBContainer,
   postgreSQLContainer,
+  readLastEventByStreamId,
   writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import { StartedTestContainer } from "testcontainers";
@@ -35,9 +37,11 @@ import {
   PurposeVersionId,
   TenantId,
   TenantKind,
+  WaitingForApprovalPurposeVersionDeletedV2,
   generateId,
   purposeVersionState,
   tenantKind,
+  toPurposeV2,
   toReadModelEService,
 } from "pagopa-interop-models";
 import { config } from "../src/utilities/config.js";
@@ -408,11 +412,54 @@ describe("database test", async () => {
     });
 
     describe("deletePurposeVersion", () => {
-      it("Should write in event-store for the deletion of a purpose (purpose with no versions)", () => {
-        expect(2).toBe(2);
-      });
-      it("Should write in event-store for the deletion of a purpose (purpose with only a draft version)", () => {
-        expect(2).toBe(2);
+      it("Should write in event-store for the deletion of a purpose version", async () => {
+        const mockEService = getMockEService();
+        const mockPurposeVersion = getMockPurposeVersion();
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          eserviceId: mockEService.id,
+          versions: [
+            {
+              ...mockPurposeVersion,
+              state: purposeVersionState.waitingForApproval,
+            },
+          ],
+        };
+
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+        await purposeService.deletePurposeVersion({
+          purposeId: mockPurpose1.id,
+          versionId: mockPurposeVersion.id,
+          authData: getMockAuthData(mockPurpose1.consumerId),
+          correlationId: generateId(),
+        });
+
+        const writtenEvent = await readLastEventByStreamId(
+          mockPurpose1.id,
+          "purpose",
+          postgresDB
+        );
+
+        expect(writtenEvent).toMatchObject({
+          stream_id: mockPurpose1.id,
+          version: "1",
+          type: "WaitingForApprovalPurposeVersionDeleted",
+          event_version: 2,
+        });
+
+        const writtenPayload = decodeProtobufPayload({
+          messageType: WaitingForApprovalPurposeVersionDeletedV2,
+          payload: writtenEvent.data,
+        });
+
+        const expectedPurpose: Purpose = {
+          ...mockPurpose1,
+          versions: [],
+        };
+
+        expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
       });
       it("Should throw purposeNotFound if the purpose doesn't exist", async () => {
         const mockEService = getMockEService();
@@ -472,27 +519,20 @@ describe("database test", async () => {
       it("Should throw organizationIsNotTheConsumer if the requester is not the consumer", async () => {
         const mockEService = getMockEService();
         const mockPurposeVersion = getMockPurposeVersion();
-        const randomVersionId: PurposeVersionId = generateId();
         const randomId: TenantId = generateId();
         const mockPurpose1: Purpose = {
           ...mockPurpose,
           eserviceId: mockEService.id,
           versions: [mockPurposeVersion],
         };
-        const mockPurpose2: Purpose = {
-          ...getMockPurpose(),
-          id: generateId(),
-          title: "another purpose",
-        };
 
         await addOnePurpose(mockPurpose1, postgresDB, purposes);
-        await addOnePurpose(mockPurpose2, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         expect(
           purposeService.deletePurposeVersion({
             purposeId: mockPurpose1.id,
-            versionId: randomVersionId,
+            versionId: mockPurposeVersion.id,
             authData: getMockAuthData(randomId),
             correlationId: generateId(),
           })
@@ -508,14 +548,8 @@ describe("database test", async () => {
             { ...mockPurposeVersion, state: purposeVersionState.draft },
           ],
         };
-        const mockPurpose2: Purpose = {
-          ...getMockPurpose(),
-          id: generateId(),
-          title: "another purpose",
-        };
 
         await addOnePurpose(mockPurpose1, postgresDB, purposes);
-        await addOnePurpose(mockPurpose2, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         expect(
@@ -542,14 +576,8 @@ describe("database test", async () => {
             },
           ],
         };
-        const mockPurpose2: Purpose = {
-          ...getMockPurpose(),
-          id: generateId(),
-          title: "another purpose",
-        };
 
         await addOnePurpose(mockPurpose1, postgresDB, purposes);
-        await addOnePurpose(mockPurpose2, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         expect(
@@ -573,14 +601,8 @@ describe("database test", async () => {
             { ...mockPurposeVersion, state: purposeVersionState.archived },
           ],
         };
-        const mockPurpose2: Purpose = {
-          ...getMockPurpose(),
-          id: generateId(),
-          title: "another purpose",
-        };
 
         await addOnePurpose(mockPurpose1, postgresDB, purposes);
-        await addOnePurpose(mockPurpose2, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         expect(
@@ -604,14 +626,8 @@ describe("database test", async () => {
             { ...mockPurposeVersion, state: purposeVersionState.suspended },
           ],
         };
-        const mockPurpose2: Purpose = {
-          ...getMockPurpose(),
-          id: generateId(),
-          title: "another purpose",
-        };
 
         await addOnePurpose(mockPurpose1, postgresDB, purposes);
-        await addOnePurpose(mockPurpose2, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         expect(
