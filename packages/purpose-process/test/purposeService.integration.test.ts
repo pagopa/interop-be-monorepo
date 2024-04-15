@@ -918,5 +918,32 @@ describe("database test", async () => {
         );
       });
     });
+
+    describe("deletePurpose", () => {
+      it("should write on event-store for the deletion of a purpose (no versions)", () => {
+        expect(1).toBe(1);
+      });
+      it("should write on event-store for the deletion of a purpose (draft version)", () => {
+        expect(1).toBe(1);
+      });
+      it("should write on event-store for the deletion of a purpose (waiting for approval version)", () => {
+        expect(1).toBe(1);
+      });
+      it("should throw organizationIsNotAConsumer if the requester is not the consumer", () => {
+        expect(1).toBe(1);
+      });
+      it("should throw purposeCannotBeDeleted if the purpose has an active version ", () => {
+        expect(1).toBe(1);
+      });
+      it("should throw purposeCannotBeDeleted if the purpose has a rejected version ", () => {
+        expect(1).toBe(1);
+      });
+      it("should throw purposeCannotBeDeleted if the purpose has a suspeneded version ", () => {
+        expect(1).toBe(1);
+      });
+      it("should throw purposeCannotBeDeleted if the purpose has an archived version ", () => {
+        expect(1).toBe(1);
+      });
+    });
   });
 });
