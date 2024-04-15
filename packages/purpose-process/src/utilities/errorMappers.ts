@@ -26,4 +26,6 @@ export const getRiskAnalysisDocumentErrorMapper = (
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("eserviceNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("organizationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .with("purposeVersionNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("purposeVersionDocumentNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
