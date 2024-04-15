@@ -26,6 +26,7 @@ import {
 } from "pagopa-interop-models";
 import {
   eserviceNotFound,
+  notValidVersionState,
   organizationIsNotTheConsumer,
   organizationIsNotTheProducer,
   organizationNotAllowed,
@@ -234,6 +235,9 @@ export function purposeServiceBuilder(
 
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
 
+      if (purposeVersion.state !== purposeVersionState.waitingForApproval) {
+        throw notValidVersionState(purposeVersion.id, purposeVersion.state);
+      }
       const updatedPurposeVersion: PurposeVersion = {
         ...purposeVersion,
         state: purposeVersionState.rejected,
