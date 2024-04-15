@@ -1,11 +1,4 @@
-import {
-  AuthData,
-  DB,
-  eventRepository,
-  logger,
-  riskAnalysisFormToRiskAnalysisFormToValidate,
-  validateRiskAnalysis,
-} from "pagopa-interop-commons";
+import { AuthData, DB, eventRepository, logger } from "pagopa-interop-commons";
 import {
   EService,
   EServiceId,
@@ -16,7 +9,6 @@ import {
   PurposeId,
   TenantKind,
   purposeVersionState,
-  RiskAnalysisForm,
   PurposeVersionId,
   PurposeVersionDocumentId,
   PurposeVersion,
@@ -42,6 +34,7 @@ import {
   toCreateEventWaitingForApprovalPurposeVersionDeleted,
 } from "../model/domain/toEvent.js";
 import { ReadModelService } from "./readModelService.js";
+import { isRiskAnalysisFormValid, purposeIsDraft } from "./validators.js";
 
 const retrievePurpose = async (
   purposeId: PurposeId,
@@ -292,27 +285,6 @@ const authorizeRiskAnalysisForm = ({
     };
   }
 };
-
-const isRiskAnalysisFormValid = (
-  riskAnalysisForm: RiskAnalysisForm | undefined,
-  schemaOnlyValidation: boolean,
-  tenantKind: TenantKind
-): boolean => {
-  if (riskAnalysisForm === undefined) {
-    return false;
-  } else {
-    return (
-      validateRiskAnalysis(
-        riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
-        schemaOnlyValidation,
-        tenantKind
-      ).type === "valid"
-    );
-  }
-};
-
-const purposeIsDraft = (purpose: Purpose): boolean =>
-  !purpose.versions.some((v) => v.state !== purposeVersionState.draft);
 
 const getOrganizationRole = ({
   organizationId,
