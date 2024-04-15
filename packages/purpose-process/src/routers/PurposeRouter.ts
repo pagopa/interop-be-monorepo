@@ -125,8 +125,27 @@ const purposeRouter = (
         }
       }
     )
-    .post("/purposes/:id", authorizationMiddleware([ADMIN_ROLE]), (_req, res) =>
-      res.status(501).send()
+    .post(
+      "/purposes/:id",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (req, res) => {
+        try {
+          const { purpose, isRiskAnalysisValid } =
+            await purposeService.updateReversePurpose({
+              purposeId: unsafeBrandId(req.params.id),
+              reversePurposeUpdateContent: req.body,
+              organizationId: req.ctx.authData.organizationId,
+              correlationId: req.ctx.correlationId,
+            });
+          return res
+            .status(200)
+            .json(purposeToApiPurpose(purpose, isRiskAnalysisValid))
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, updatePurposeErrorMapper);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .delete(
       "/purposes/:id",
