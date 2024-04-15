@@ -27,6 +27,7 @@ export const errorCodes = {
   riskAnalysisValidationFailed: "0013",
   purposeNotInDraftState: "0014",
   notValidVersionState: "0015",
+  purposeCannotBeDeleted: "0016",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -167,6 +168,7 @@ export function purposeNotInDraftState(
     title: "Purpose not in draft state",
   });
 }
+
 export function notValidVersionState(
   purposeVersionId: PurposeVersionId,
   versionState: PurposeVersionState
@@ -175,5 +177,15 @@ export function notValidVersionState(
     detail: `Purpose version ${purposeVersionId} has a not valid state for this operation: ${versionState}`,
     code: "notValidVersionState",
     title: "Not valid purpose version state",
+  });
+}
+
+export function purposeCannotBeDeleted(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} cannot be deleted`,
+    code: "purposeCannotBeDeleted",
+    title: "Purpose canont be deleted",
   });
 }
