@@ -1,10 +1,11 @@
 import {
   AuthData,
+  CreateEvent,
   DB,
   eventRepository,
   logger,
+  riskAnalysisValidatedFormToNewRiskAnalysisForm,
   riskAnalysisFormToRiskAnalysisFormToValidate,
-  validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
   EService,
@@ -16,31 +17,47 @@ import {
   PurposeId,
   TenantKind,
   purposeVersionState,
-  RiskAnalysisForm,
   PurposeVersionId,
   PurposeVersionDocumentId,
   PurposeVersion,
   PurposeVersionDocument,
   ownership,
   purposeEventToBinaryData,
+  PurposeRiskAnalysisForm,
+  PurposeEvent,
+  EServiceMode,
 } from "pagopa-interop-models";
 import {
   eserviceNotFound,
-  organizationIsNotTheConsumer,
   organizationIsNotTheProducer,
   organizationNotAllowed,
   purposeNotFound,
   purposeVersionCannotBeDeleted,
   purposeVersionDocumentNotFound,
   purposeVersionNotFound,
-  tenantKindNotFound,
   tenantNotFound,
 } from "../model/domain/errors.js";
 import {
-  toCreateEvenPurpsoeVersionRejected,
+  toCreateEvenPurposeVersionRejected,
+  toCreateEventDraftPurposeUpdated,
   toCreateEventWaitingForApprovalPurposeVersionDeleted,
 } from "../model/domain/toEvent.js";
+import {
+  PurposeUpdateContent,
+  ReversePurposeUpdateContent,
+  RiskAnalysisFormSeed,
+} from "../model/domain/models.js";
 import { ReadModelService } from "./readModelService.js";
+import {
+  assertOrganizationIsAConsumer,
+  isEserviceMode,
+  isFreeOfCharge,
+  isRiskAnalysisFormValid,
+  purposeIsDraft,
+  validateRiskAnalysisSchemaOrThrow,
+  assertTenantKindExists,
+  assertIsDraft,
+} from "./validators.js";
 
 const retrievePurpose = async (
   purposeId: PurposeId,
@@ -132,9 +149,7 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      if (tenant.kind === undefined) {
-        throw tenantKindNotFound(tenant.id);
-      }
+      assertTenantKindExists(tenant);
 
       return authorizeRiskAnalysisForm({
         purpose: purpose.data,
@@ -183,9 +198,10 @@ export function purposeServiceBuilder(
 
       const purpose = await retrievePurpose(purposeId, readModelService);
 
-      if (authData.organizationId !== purpose.data.consumerId) {
-        throw organizationIsNotTheConsumer(authData.organizationId);
-      }
+      assertOrganizationIsAConsumer(
+        authData.organizationId,
+        purpose.data.consumerId
+      );
 
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
 
@@ -243,13 +259,51 @@ export function purposeServiceBuilder(
         updatedPurposeVersion
       );
 
-      const event = toCreateEvenPurpsoeVersionRejected({
+      const event = toCreateEvenPurposeVersionRejected({
         purpose: updatedPurpose,
         version: purpose.metadata.version,
         versionId,
         correlationId,
       });
       await repository.createEvent(event);
+    },
+    async updatePurpose({
+      purposeId,
+      purposeUpdateContent,
+      organizationId,
+      correlationId,
+    }: {
+      purposeId: PurposeId;
+      purposeUpdateContent: PurposeUpdateContent;
+      organizationId: TenantId;
+      correlationId: string;
+    }): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
+      return await updatePurposeInternal(
+        purposeId,
+        purposeUpdateContent,
+        organizationId,
+        "Deliver",
+        { readModelService, correlationId, repository }
+      );
+    },
+    async updateReversePurpose({
+      purposeId,
+      reversePurposeUpdateContent,
+      organizationId,
+      correlationId,
+    }: {
+      purposeId: PurposeId;
+      reversePurposeUpdateContent: ReversePurposeUpdateContent;
+      organizationId: TenantId;
+      correlationId: string;
+    }): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
+      return await updatePurposeInternal(
+        purposeId,
+        reversePurposeUpdateContent,
+        organizationId,
+        "Receive",
+        { readModelService, correlationId, repository }
+      );
     },
   };
 }
@@ -286,27 +340,6 @@ const authorizeRiskAnalysisForm = ({
   }
 };
 
-const isRiskAnalysisFormValid = (
-  riskAnalysisForm: RiskAnalysisForm | undefined,
-  schemaOnlyValidation: boolean,
-  tenantKind: TenantKind
-): boolean => {
-  if (riskAnalysisForm === undefined) {
-    return false;
-  } else {
-    return (
-      validateRiskAnalysis(
-        riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
-        schemaOnlyValidation,
-        tenantKind
-      ).type === "valid"
-    );
-  }
-};
-
-const purposeIsDraft = (purpose: Purpose): boolean =>
-  !purpose.versions.some((v) => v.state !== purposeVersionState.draft);
-
 const getOrganizationRole = ({
   organizationId,
   producerId,
@@ -338,5 +371,130 @@ const replacePurposeVersion = (
   return {
     ...purpose,
     versions: updatedVersions,
+  };
+};
+
+const getInvolvedTenantByEServiceMode = async (
+  eservice: EService,
+  consumerId: TenantId,
+  readModelService: ReadModelService
+): Promise<Tenant> => {
+  if (eservice.mode === "Deliver") {
+    return retrieveTenant(consumerId, readModelService);
+  } else {
+    return retrieveTenant(eservice.producerId, readModelService);
+  }
+};
+
+const validateAndTransformRiskAnalysis = (
+  riskAnalysisForm: RiskAnalysisFormSeed | undefined,
+  tenantKind: TenantKind
+): PurposeRiskAnalysisForm | undefined => {
+  if (!riskAnalysisForm) {
+    return undefined;
+  }
+
+  const validatedForm = validateRiskAnalysisSchemaOrThrow(
+    riskAnalysisForm,
+    tenantKind
+  );
+
+  return {
+    ...riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),
+    riskAnalysisId: undefined,
+  };
+};
+
+const reverseValidateAndTransformRiskAnalysis = (
+  riskAnalysisForm: PurposeRiskAnalysisForm | undefined,
+  tenantKind: TenantKind
+): PurposeRiskAnalysisForm | undefined => {
+  if (!riskAnalysisForm) {
+    return undefined;
+  }
+
+  const formToValidate =
+    riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm);
+  const validatedForm = validateRiskAnalysisSchemaOrThrow(
+    formToValidate,
+    tenantKind
+  );
+
+  return {
+    ...riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),
+    riskAnalysisId: riskAnalysisForm.riskAnalysisId,
+  };
+};
+
+const updatePurposeInternal = async (
+  purposeId: PurposeId,
+  updateContent: PurposeUpdateContent | ReversePurposeUpdateContent,
+  organizationId: TenantId,
+  eserviceMode: EServiceMode,
+  {
+    readModelService,
+    correlationId,
+    repository,
+  }: {
+    readModelService: ReadModelService;
+    correlationId: string;
+    repository: {
+      createEvent: (createEvent: CreateEvent<PurposeEvent>) => Promise<string>;
+    };
+  }
+): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> => {
+  const purpose = await retrievePurpose(purposeId, readModelService);
+  assertOrganizationIsAConsumer(organizationId, purpose.data.consumerId);
+  assertIsDraft(purpose.data);
+
+  const eservice = await retrieveEService(
+    purpose.data.eserviceId,
+    readModelService
+  );
+  isEserviceMode(eservice.id, eserviceMode);
+  isFreeOfCharge(
+    updateContent.isFreeOfCharge,
+    updateContent.freeOfChargeReason
+  );
+
+  const tenant = await getInvolvedTenantByEServiceMode(
+    eservice,
+    purpose.data.consumerId,
+    readModelService
+  );
+
+  assertTenantKindExists(tenant);
+
+  const newRiskAnalysis: PurposeRiskAnalysisForm | undefined =
+    eserviceMode === "Deliver"
+      ? validateAndTransformRiskAnalysis(
+          (updateContent as PurposeUpdateContent).riskAnalysisForm,
+          tenant.kind
+        )
+      : reverseValidateAndTransformRiskAnalysis(
+          purpose.data.riskAnalysisForm,
+          tenant.kind
+        );
+
+  const updatedPurpose: Purpose = {
+    ...purpose.data,
+    ...updateContent,
+    riskAnalysisForm: newRiskAnalysis,
+  };
+
+  const event = toCreateEventDraftPurposeUpdated({
+    purpose: updatedPurpose,
+    version: purpose.metadata.version,
+    correlationId,
+  });
+  await repository.createEvent(event);
+
+  return {
+    purpose: updatedPurpose,
+    isRiskAnalysisValid: isRiskAnalysisFormValid(
+      updatedPurpose.riskAnalysisForm,
+      false,
+      tenant.kind
+    ),
   };
 };
