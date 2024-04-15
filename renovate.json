@@ -10,47 +10,45 @@
     ":ignoreUnstable",
     ":rebaseStalePrs"
   ],
-  "labels": ["dependencies"],
-  "branchPrefix": "renovate-action/",
-  "ignorePaths": ["docker/docker-compose.yml"],
+  "labels": [
+    "dependencies"
+  ],
+  "ignorePaths": [
+    "docker/docker-compose.yml"
+  ],
   "packageRules": [
     {
-      "matchPackagePatterns": ["@protobuf-ts"],
+      "matchPackagePatterns": [
+        "@protobuf-ts"
+      ],
       "groupName": "protobuf-ts monorepo"
+    },
+    {
+      "enabled": true,
+      "matchDepTypes": [
+        "devDependencies"
+      ]
     }
   ],
-  "force": {
-      "major": {
-          "enabled": true
-      },
-      "minor": {
-          "enabled": true
-      },
-      "patch": {
-          "enabled": true
-      },
-      "digest": {
-          "enabled": true
-      },
-      "lockFileMaintenance": {
-          "enabled": true
-      },
-      "rollback": {
-          "enabled": true
-      },
-      "bump": {
-          "enabled": true
-      },
-      "replacement": {
-          "enabled": true
-      },
-      "packageRules": [
-          {
-          "enabled": true,
-          "matchDepTypes": [
-              "devDependencies"
-          ]
-          }
-      ]
+  "major": {
+    "enabled": true
+  },
+  "minor": {
+    "enabled": true
+  },
+  "patch": {
+    "enabled": true
+  },
+  "digest": {
+    "enabled": true
+  },
+  "lockFileMaintenance": {
+    "enabled": true
+  },
+  "rollback": {
+    "enabled": true
+  },
+  "replacement": {
+    "enabled": true
   }
 }
