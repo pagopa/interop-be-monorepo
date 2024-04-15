@@ -389,7 +389,7 @@ describe("database test", async () => {
     });
 
     describe("deletePurposeVersion", () => {
-      it("Should write in event-store for the deletion of a purpose version", async () => {
+      it("should write in event-store for the deletion of a purpose version", async () => {
         const mockEService = getMockEService();
         const mockPurposeVersion = {
           ...getMockPurposeVersion(),
@@ -436,7 +436,7 @@ describe("database test", async () => {
 
         expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
       });
-      it("Should throw purposeNotFound if the purpose doesn't exist", async () => {
+      it("should throw purposeNotFound if the purpose doesn't exist", async () => {
         const mockEService = getMockEService();
         const mockPurposeVersion = getMockPurposeVersion();
         const mockPurpose1: Purpose = {
@@ -461,7 +461,7 @@ describe("database test", async () => {
           })
         ).rejects.toThrowError(purposeNotFound(mockPurpose1.id));
       });
-      it("Should throw purposeVersionNotFound if the purpose version doesn't exist", async () => {
+      it("should throw purposeVersionNotFound if the purpose version doesn't exist", async () => {
         const mockEService = getMockEService();
         const mockPurposeVersion = getMockPurposeVersion();
         const randomVersionId: PurposeVersionId = generateId();
@@ -485,7 +485,7 @@ describe("database test", async () => {
           purposeVersionNotFound(mockPurpose1.id, randomVersionId)
         );
       });
-      it("Should throw organizationIsNotTheConsumer if the requester is not the consumer", async () => {
+      it("should throw organizationIsNotTheConsumer if the requester is not the consumer", async () => {
         const mockEService = getMockEService();
         const mockPurposeVersion = getMockPurposeVersion();
         const mockPurpose1: Purpose = {
@@ -508,7 +508,7 @@ describe("database test", async () => {
           organizationIsNotTheConsumer(mockEService.producerId)
         );
       });
-      it("Should throw purposeVersionCannotBeDeleted if the purpose version is in draft state", async () => {
+      it("should throw purposeVersionCannotBeDeleted if the purpose version is in draft state", async () => {
         const mockEService = getMockEService();
         const mockPurposeVersion: PurposeVersion = {
           ...getMockPurposeVersion(),
@@ -534,7 +534,7 @@ describe("database test", async () => {
           purposeVersionCannotBeDeleted(mockPurpose1.id, mockPurposeVersion.id)
         );
       });
-      it("Should throw purposeVersionCannotBeDeleted if the purpose version is in active state", async () => {
+      it("should throw purposeVersionCannotBeDeleted if the purpose version is in active state", async () => {
         const mockEService = getMockEService();
         const mockPurposeVersion: PurposeVersion = {
           ...getMockPurposeVersion(),
@@ -560,7 +560,7 @@ describe("database test", async () => {
           purposeVersionCannotBeDeleted(mockPurpose1.id, mockPurposeVersion.id)
         );
       });
-      it("Should throw purposeVersionCannotBeDeleted if the purpose version is in archived state", async () => {
+      it("should throw purposeVersionCannotBeDeleted if the purpose version is in archived state", async () => {
         const mockEService = getMockEService();
         const mockPurposeVersion: PurposeVersion = {
           ...getMockPurposeVersion(),
@@ -586,7 +586,7 @@ describe("database test", async () => {
           purposeVersionCannotBeDeleted(mockPurpose1.id, mockPurposeVersion.id)
         );
       });
-      it("Should throw purposeVersionCannotBeDeleted if the purpose version is in suspended state", async () => {
+      it("should throw purposeVersionCannotBeDeleted if the purpose version is in suspended state", async () => {
         const mockEService = getMockEService();
         const mockPurposeVersion: PurposeVersion = {
           ...getMockPurposeVersion(),
