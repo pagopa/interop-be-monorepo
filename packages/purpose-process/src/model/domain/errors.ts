@@ -110,7 +110,7 @@ export function purposeVersionCannotBeDeleted(
   return new ApiError({
     detail: `Version ${versionId} of Purpose ${purposeId} cannot be deleted`,
     code: "purposeVersionCannotBeDeleted",
-    title: "Organization not allowed",
+    title: "Purpose version canont be deleted",
   });
 }
 
