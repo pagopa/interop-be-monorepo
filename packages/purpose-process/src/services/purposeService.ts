@@ -38,7 +38,7 @@ import {
   tenantNotFound,
 } from "../model/domain/errors.js";
 import {
-  toCreateEvenPurpsoeVersionRejected,
+  toCreateEventPurposeVersionRejected,
   toCreateEventWaitingForApprovalPurposeVersionDeleted,
 } from "../model/domain/toEvent.js";
 import { ReadModelService } from "./readModelService.js";
@@ -250,7 +250,7 @@ export function purposeServiceBuilder(
         updatedPurposeVersion
       );
 
-      const event = toCreateEvenPurpsoeVersionRejected({
+      const event = toCreateEventPurposeVersionRejected({
         purpose: updatedPurpose,
         version: purpose.metadata.version,
         versionId,
