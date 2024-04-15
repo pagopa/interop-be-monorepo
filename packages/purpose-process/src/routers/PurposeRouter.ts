@@ -131,9 +131,9 @@ const purposeRouter = (
       async (req, res) => {
         try {
           const { purpose, isRiskAnalysisValid } =
-            await purposeService.updateReversePurpose({
+            await purposeService.updatePurpose({
               purposeId: unsafeBrandId(req.params.id),
-              reversePurposeUpdateContent: req.body,
+              purposeUpdateContent: req.body,
               organizationId: req.ctx.authData.organizationId,
               correlationId: req.ctx.correlationId,
             });
