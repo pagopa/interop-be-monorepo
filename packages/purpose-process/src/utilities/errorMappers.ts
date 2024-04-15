@@ -10,6 +10,7 @@ const {
   HTTP_STATUS_NOT_FOUND,
   HTTP_STATUS_FORBIDDEN,
   HTTP_STATUS_CONFLICT,
+  HTTP_STATUS_BAD_REQUEST,
 } = constants;
 
 export const getPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
@@ -45,4 +46,5 @@ export const rejectPurposeVersionErrorMapper = (
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("purposeVersionNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("organizationIsNotTheProducer", () => HTTP_STATUS_FORBIDDEN)
+    .with("notValidVersionState", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
