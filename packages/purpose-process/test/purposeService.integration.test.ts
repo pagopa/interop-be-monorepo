@@ -16,21 +16,32 @@ import { IDatabase } from "pg-promise";
 import {
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
+  decodeProtobufPayload,
   getMockAuthData,
   getMockPurpose,
+  getMockPurposeVersion,
+  getMockPurposeVersionDocument,
   getMockTenant,
   mongoDBContainer,
   postgreSQLContainer,
+  readLastEventByStreamId,
   writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import { StartedTestContainer } from "testcontainers";
 import {
   EService,
+  EServiceId,
   Purpose,
   PurposeId,
+  PurposeVersionDocumentId,
+  PurposeVersionId,
+  TenantId,
   TenantKind,
+  WaitingForApprovalPurposeVersionDeletedV2,
   generateId,
+  purposeVersionState,
   tenantKind,
+  toPurposeV2,
   toReadModelEService,
 } from "pagopa-interop-models";
 import { config } from "../src/utilities/config.js";
@@ -43,8 +54,15 @@ import {
   readModelServiceBuilder,
 } from "../src/services/readModelService.js";
 import {
+  eserviceNotFound,
+  organizationIsNotTheConsumer,
+  organizationNotAllowed,
   purposeNotFound,
+  purposeVersionCannotBeDeleted,
+  purposeVersionDocumentNotFound,
+  purposeVersionNotFound,
   tenantKindNotFound,
+  tenantNotFound,
 } from "../src/model/domain/errors.js";
 import { addOnePurpose, getMockEService } from "./utils.js";
 
@@ -137,11 +155,56 @@ describe("database test", async () => {
           purposeService.getPurposeById(notExistingId, getMockAuthData())
         ).rejects.toThrowError(purposeNotFound(notExistingId));
       });
-      it("Should throw eserviceNotFound if the eservice doesn't exist", () => {
-        expect(1).toBe(1);
+      it("Should throw eserviceNotFound if the eservice doesn't exist", async () => {
+        const notExistingId: EServiceId = generateId();
+        const mockTenant = {
+          ...getMockTenant(),
+          kind: tenantKind.PA,
+        };
+
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          eserviceId: notExistingId,
+        };
+        const mockPurpose2: Purpose = {
+          ...getMockPurpose(),
+          id: generateId(),
+          title: "another purpose",
+        };
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose2, postgresDB, purposes);
+        await writeInReadmodel(mockTenant, tenants);
+
+        expect(
+          purposeService.getPurposeById(
+            mockPurpose1.id,
+            getMockAuthData(mockTenant.id)
+          )
+        ).rejects.toThrowError(eserviceNotFound(notExistingId));
       });
-      it("Should throw tenantNotFound if the tenant doesn't exist", () => {
-        expect(1).toBe(1);
+      it("Should throw tenantNotFound if the tenant doesn't exist", async () => {
+        const mockEService = getMockEService();
+        const notExistingId: TenantId = generateId();
+
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          eserviceId: mockEService.id,
+        };
+        const mockPurpose2: Purpose = {
+          ...getMockPurpose(),
+          id: generateId(),
+          title: "another purpose",
+        };
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose2, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+        expect(
+          purposeService.getPurposeById(
+            mockPurpose1.id,
+            getMockAuthData(notExistingId)
+          )
+        ).rejects.toThrowError(tenantNotFound(notExistingId));
       });
       it("Should throw tenantKindNotFound if the tenant doesn't exist", async () => {
         const mockEService = getMockEService();
@@ -171,14 +234,412 @@ describe("database test", async () => {
     });
 
     describe("getRiskAnalysisDocument", () => {
-      it("test", () => {
-        expect(1).toBe(1);
+      it("Should get the purpose version document", async () => {
+        const mockEService = getMockEService();
+        const mockPurposeVersion = getMockPurposeVersion();
+        const mockDocument = getMockPurposeVersionDocument();
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          eserviceId: mockEService.id,
+          versions: [{ ...mockPurposeVersion, riskAnalysis: mockDocument }],
+        };
+        const mockPurpose2: Purpose = {
+          ...getMockPurpose(),
+          id: generateId(),
+          title: "another purpose",
+        };
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose2, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+        const result = await purposeService.getRiskAnalysisDocument({
+          purposeId: mockPurpose1.id,
+          versionId: mockPurposeVersion.id,
+          documentId: mockDocument.id,
+          authData: getMockAuthData(mockEService.producerId),
+        });
+        expect(result).toEqual(mockDocument);
+      });
+      it("Should throw purposeNotFound if the purpose doesn't exist", async () => {
+        const mockEService = getMockEService();
+        const mockPurposeVersion = getMockPurposeVersion();
+        const mockDocument = getMockPurposeVersionDocument();
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          eserviceId: mockEService.id,
+          versions: [{ ...mockPurposeVersion, riskAnalysis: mockDocument }],
+        };
+        const mockPurpose2: Purpose = {
+          ...getMockPurpose(),
+          id: generateId(),
+          title: "another purpose",
+        };
+        await addOnePurpose(mockPurpose2, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+        expect(
+          purposeService.getRiskAnalysisDocument({
+            purposeId: mockPurpose1.id,
+            versionId: mockPurposeVersion.id,
+            documentId: mockDocument.id,
+            authData: getMockAuthData(mockEService.producerId),
+          })
+        ).rejects.toThrowError(purposeNotFound(mockPurpose1.id));
+      });
+      it("Should throw eserviceNotFound if the eservice doesn't exist", async () => {
+        const mockEService = getMockEService();
+        const mockPurposeVersion = getMockPurposeVersion();
+        const mockDocument = getMockPurposeVersionDocument();
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          eserviceId: mockEService.id,
+          versions: [{ ...mockPurposeVersion, riskAnalysis: mockDocument }],
+        };
+        const mockPurpose2: Purpose = {
+          ...getMockPurpose(),
+          id: generateId(),
+          title: "another purpose",
+        };
+
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose2, postgresDB, purposes);
+
+        expect(
+          purposeService.getRiskAnalysisDocument({
+            purposeId: mockPurpose1.id,
+            versionId: mockPurposeVersion.id,
+            documentId: mockDocument.id,
+            authData: getMockAuthData(mockEService.producerId),
+          })
+        ).rejects.toThrowError(eserviceNotFound(mockEService.id));
+      });
+      it("Should throw purposeVersionNotFound if the purpose version doesn't exist", async () => {
+        const mockEService = getMockEService();
+        const mockPurposeVersion = getMockPurposeVersion();
+        const randomVersionId: PurposeVersionId = generateId();
+        const randomDocumentId: PurposeVersionDocumentId = generateId();
+        const mockDocument = getMockPurposeVersionDocument();
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          eserviceId: mockEService.id,
+          versions: [{ ...mockPurposeVersion, riskAnalysis: mockDocument }],
+        };
+        const mockPurpose2: Purpose = {
+          ...getMockPurpose(),
+          id: generateId(),
+          title: "another purpose",
+        };
+
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose2, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+        expect(
+          purposeService.getRiskAnalysisDocument({
+            purposeId: mockPurpose1.id,
+            versionId: randomVersionId,
+            documentId: randomDocumentId,
+            authData: getMockAuthData(mockEService.producerId),
+          })
+        ).rejects.toThrowError(
+          purposeVersionNotFound(mockPurpose1.id, randomVersionId)
+        );
+      });
+      it("Should throw purposeVersionDocumentNotFound if the document doesn't exist", async () => {
+        const mockEService = getMockEService();
+        const mockPurposeVersion = getMockPurposeVersion();
+        const mockDocument = getMockPurposeVersionDocument();
+        const randomDocumentId: PurposeVersionDocumentId = generateId();
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          eserviceId: mockEService.id,
+          versions: [{ ...mockPurposeVersion, riskAnalysis: mockDocument }],
+        };
+        const mockPurpose2: Purpose = {
+          ...getMockPurpose(),
+          id: generateId(),
+          title: "another purpose",
+        };
+
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose2, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+        expect(
+          purposeService.getRiskAnalysisDocument({
+            purposeId: mockPurpose1.id,
+            versionId: mockPurposeVersion.id,
+            documentId: randomDocumentId,
+            authData: getMockAuthData(mockEService.producerId),
+          })
+        ).rejects.toThrowError(
+          purposeVersionDocumentNotFound(
+            mockPurpose1.id,
+            mockPurposeVersion.id,
+            randomDocumentId
+          )
+        );
+      });
+      it("Should throw organizationNotAllowed if the requester is not the producer not the consumer", async () => {
+        const randomId: TenantId = generateId();
+        const mockEService = getMockEService();
+        const mockPurposeVersion = getMockPurposeVersion();
+        const mockDocument = getMockPurposeVersionDocument();
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          eserviceId: mockEService.id,
+          versions: [{ ...mockPurposeVersion, riskAnalysis: mockDocument }],
+        };
+        const mockPurpose2: Purpose = {
+          ...getMockPurpose(),
+          id: generateId(),
+          title: "another purpose",
+        };
+
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose2, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+        expect(
+          purposeService.getRiskAnalysisDocument({
+            purposeId: mockPurpose1.id,
+            versionId: mockPurposeVersion.id,
+            documentId: mockDocument.id,
+            authData: getMockAuthData(randomId),
+          })
+        ).rejects.toThrowError(organizationNotAllowed(randomId));
       });
     });
 
     describe("deletePurposeVersion", () => {
-      it("test", () => {
-        expect(2).toBe(2);
+      it("Should write in event-store for the deletion of a purpose version", async () => {
+        const mockEService = getMockEService();
+        const mockPurposeVersion = getMockPurposeVersion();
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          eserviceId: mockEService.id,
+          versions: [
+            {
+              ...mockPurposeVersion,
+              state: purposeVersionState.waitingForApproval,
+            },
+          ],
+        };
+
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+        await purposeService.deletePurposeVersion({
+          purposeId: mockPurpose1.id,
+          versionId: mockPurposeVersion.id,
+          authData: getMockAuthData(mockPurpose1.consumerId),
+          correlationId: generateId(),
+        });
+
+        const writtenEvent = await readLastEventByStreamId(
+          mockPurpose1.id,
+          "purpose",
+          postgresDB
+        );
+
+        expect(writtenEvent).toMatchObject({
+          stream_id: mockPurpose1.id,
+          version: "1",
+          type: "WaitingForApprovalPurposeVersionDeleted",
+          event_version: 2,
+        });
+
+        const writtenPayload = decodeProtobufPayload({
+          messageType: WaitingForApprovalPurposeVersionDeletedV2,
+          payload: writtenEvent.data,
+        });
+
+        const expectedPurpose: Purpose = {
+          ...mockPurpose1,
+          versions: [],
+        };
+
+        expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+      });
+      it("Should throw purposeNotFound if the purpose doesn't exist", async () => {
+        const mockEService = getMockEService();
+        const mockPurposeVersion = getMockPurposeVersion();
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          eserviceId: mockEService.id,
+          versions: [mockPurposeVersion],
+        };
+        const mockPurpose2: Purpose = {
+          ...getMockPurpose(),
+          id: generateId(),
+          title: "another purpose",
+        };
+        await addOnePurpose(mockPurpose2, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+        expect(
+          purposeService.deletePurposeVersion({
+            purposeId: mockPurpose1.id,
+            versionId: mockPurposeVersion.id,
+            authData: getMockAuthData(mockEService.producerId),
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(purposeNotFound(mockPurpose1.id));
+      });
+      it("Should throw purposeVersionNotFound if the purpose version doesn't exist", async () => {
+        const mockEService = getMockEService();
+        const mockPurposeVersion = getMockPurposeVersion();
+        const randomVersionId: PurposeVersionId = generateId();
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          eserviceId: mockEService.id,
+          versions: [mockPurposeVersion],
+        };
+        const mockPurpose2: Purpose = {
+          ...getMockPurpose(),
+          id: generateId(),
+          title: "another purpose",
+        };
+
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose2, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+        expect(
+          purposeService.deletePurposeVersion({
+            purposeId: mockPurpose1.id,
+            versionId: randomVersionId,
+            authData: getMockAuthData(mockPurpose1.consumerId),
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(
+          purposeVersionNotFound(mockPurpose1.id, randomVersionId)
+        );
+      });
+      it("Should throw organizationIsNotTheConsumer if the requester is not the consumer", async () => {
+        const mockEService = getMockEService();
+        const mockPurposeVersion = getMockPurposeVersion();
+        const randomId: TenantId = generateId();
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          eserviceId: mockEService.id,
+          versions: [mockPurposeVersion],
+        };
+
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+        expect(
+          purposeService.deletePurposeVersion({
+            purposeId: mockPurpose1.id,
+            versionId: mockPurposeVersion.id,
+            authData: getMockAuthData(randomId),
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(organizationIsNotTheConsumer(randomId));
+      });
+      it("Should throw purposeVersionCannotBeDeleted if the purpose version is in draft state", async () => {
+        const mockEService = getMockEService();
+        const mockPurposeVersion = getMockPurposeVersion();
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          eserviceId: mockEService.id,
+          versions: [
+            { ...mockPurposeVersion, state: purposeVersionState.draft },
+          ],
+        };
+
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+        expect(
+          purposeService.deletePurposeVersion({
+            purposeId: mockPurpose1.id,
+            versionId: mockPurposeVersion.id,
+            authData: getMockAuthData(mockPurpose1.consumerId),
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(
+          purposeVersionCannotBeDeleted(mockPurpose1.id, mockPurposeVersion.id)
+        );
+      });
+      it("Should throw purposeVersionCannotBeDeleted if the purpose version is in active state", async () => {
+        const mockEService = getMockEService();
+        const mockPurposeVersion = getMockPurposeVersion();
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          eserviceId: mockEService.id,
+          versions: [
+            {
+              ...mockPurposeVersion,
+              state: purposeVersionState.active,
+            },
+          ],
+        };
+
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+        expect(
+          purposeService.deletePurposeVersion({
+            purposeId: mockPurpose1.id,
+            versionId: mockPurposeVersion.id,
+            authData: getMockAuthData(mockPurpose1.consumerId),
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(
+          purposeVersionCannotBeDeleted(mockPurpose1.id, mockPurposeVersion.id)
+        );
+      });
+      it("Should throw purposeVersionCannotBeDeleted if the purpose version is in archived state", async () => {
+        const mockEService = getMockEService();
+        const mockPurposeVersion = getMockPurposeVersion();
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          eserviceId: mockEService.id,
+          versions: [
+            { ...mockPurposeVersion, state: purposeVersionState.archived },
+          ],
+        };
+
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+        expect(
+          purposeService.deletePurposeVersion({
+            purposeId: mockPurpose1.id,
+            versionId: mockPurposeVersion.id,
+            authData: getMockAuthData(mockPurpose1.consumerId),
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(
+          purposeVersionCannotBeDeleted(mockPurpose1.id, mockPurposeVersion.id)
+        );
+      });
+      it("Should throw purposeVersionCannotBeDeleted if the purpose version is in suspended state", async () => {
+        const mockEService = getMockEService();
+        const mockPurposeVersion = getMockPurposeVersion();
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          eserviceId: mockEService.id,
+          versions: [
+            { ...mockPurposeVersion, state: purposeVersionState.suspended },
+          ],
+        };
+
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+        expect(
+          purposeService.deletePurposeVersion({
+            purposeId: mockPurpose1.id,
+            versionId: mockPurposeVersion.id,
+            authData: getMockAuthData(mockPurpose1.consumerId),
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(
+          purposeVersionCannotBeDeleted(mockPurpose1.id, mockPurposeVersion.id)
+        );
       });
     });
 

@@ -76,7 +76,7 @@ const retrievePurposeVersionDocument = (
 ): PurposeVersionDocument => {
   const document = purposeVersion.riskAnalysis;
 
-  if (document === undefined) {
+  if (document === undefined || document.id !== documentId) {
     throw purposeVersionDocumentNotFound(
       purposeId,
       purposeVersion.id,
