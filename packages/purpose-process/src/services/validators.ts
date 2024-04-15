@@ -2,6 +2,7 @@ import {
   EServiceId,
   EServiceMode,
   Purpose,
+  PurposeRiskAnalysisForm,
   RiskAnalysisForm,
   Tenant,
   TenantId,
@@ -12,6 +13,7 @@ import {
   validateRiskAnalysis,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   RiskAnalysisValidatedForm,
+  riskAnalysisValidatedFormToNewRiskAnalysisForm,
 } from "pagopa-interop-commons";
 import {
   eServiceModeNotAllowed,
@@ -81,6 +83,46 @@ export function validateRiskAnalysisSchemaOrThrow(
   } else {
     return result.value;
   }
+}
+
+export function validateAndTransformRiskAnalysis(
+  riskAnalysisForm: RiskAnalysisFormSeed | undefined,
+  tenantKind: TenantKind
+): PurposeRiskAnalysisForm | undefined {
+  if (!riskAnalysisForm) {
+    return undefined;
+  }
+
+  const validatedForm = validateRiskAnalysisSchemaOrThrow(
+    riskAnalysisForm,
+    tenantKind
+  );
+
+  return {
+    ...riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),
+    riskAnalysisId: undefined,
+  };
+}
+
+export function reverseValidateAndTransformRiskAnalysis(
+  riskAnalysisForm: PurposeRiskAnalysisForm | undefined,
+  tenantKind: TenantKind
+): PurposeRiskAnalysisForm | undefined {
+  if (!riskAnalysisForm) {
+    return undefined;
+  }
+
+  const formToValidate =
+    riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm);
+  const validatedForm = validateRiskAnalysisSchemaOrThrow(
+    formToValidate,
+    tenantKind
+  );
+
+  return {
+    ...riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),
+    riskAnalysisId: riskAnalysisForm.riskAnalysisId,
+  };
 }
 
 export function assertTenantKindExists(
