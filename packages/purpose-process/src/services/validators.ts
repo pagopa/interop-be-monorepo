@@ -19,6 +19,7 @@ import {
   eServiceModeNotAllowed,
   missingFreeOfChargeReason,
   organizationIsNotTheConsumer,
+  purposeCannotBeDeleted,
   purposeNotInDraftState,
   riskAnalysisValidationFailed,
   tenantKindNotFound,
@@ -136,5 +137,17 @@ export function assertTenantKindExists(
 export function assertIsDraft(purpose: Purpose): void {
   if (!purposeIsDraft(purpose)) {
     throw purposeNotInDraftState(purpose.id);
+  }
+}
+
+export function assertPurposeIsDeletable(purpose: Purpose): void {
+  if (
+    purpose.versions.some(
+      (v) =>
+        v.state !== purposeVersionState.draft &&
+        v.state !== purposeVersionState.waitingForApproval
+    )
+  ) {
+    throw purposeCannotBeDeleted(purpose.id);
   }
 }
