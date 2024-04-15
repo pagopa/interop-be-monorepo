@@ -1,17 +1,17 @@
 openapi: 3.0.3
 info:
   title: Key management microservice
-  version: '{{version}}'
+  version: "{{version}}"
   contact:
     name: API Support
-    url: 'http://www.example.com/support'
+    url: "http://www.example.com/support"
     email: support@example.com
   description: Manages the persistence and retrieval of client keys.
-  termsOfService: 'http://swagger.io/terms/'
+  termsOfService: "http://swagger.io/terms/"
   x-api-id: an x-api-id
   x-summary: an x-summary
 servers:
-  - url: '/authorization-management/{{version}}'
+  - url: "/authorization-management/{{version}}"
     description: This contains key management routes
 tags:
   - name: key
@@ -25,7 +25,7 @@ tags:
   - name: health
     description: Operations about service status
 security:
-    - bearerAuth: [ ]
+  - bearerAuth: []
 paths:
   /status:
     get:
@@ -35,22 +35,22 @@ paths:
       description: Return ok
       operationId: getStatus
       responses:
-        '200':
+        "200":
           description: successful operation
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
-  
-  '/migrate/clients/{clientId}/keys/{keyId}':
+                $ref: "#/components/schemas/Problem"
+
+  "/migrate/clients/{clientId}/keys/{keyId}":
     parameters:
-      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - migrate
       summary: Migrate a Key Relationship to an User
-      description:  Migrate a Key Relationship to an User
-      operationId: migrateKeyRelationshipToUser  
+      description: Migrate a Key Relationship to an User
+      operationId: migrateKeyRelationshipToUser
       parameters:
         - name: clientId
           in: path
@@ -64,32 +64,32 @@ paths:
           description: the unique identifier of the key (kid)
           required: true
           schema:
-            type: string    
+            type: string
       responses:
-        '204':
+        "204":
           description: the corresponding key has been updated.
-        '404':
+        "404":
           description: Missing Required Information
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
       requestBody:
         required: true
         description: An User seed
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserSeed'              
-  '/clients/{clientId}/keys/{keyId}/bundle':
+              $ref: "#/components/schemas/UserSeed"
+  "/clients/{clientId}/keys/{keyId}/bundle":
     parameters:
-      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       security: []
       tags:
         - tokenGeneration
       summary: Returns a key and its client by client and key identifier (kid).
-      description: 'Given a client and key identifiers it returns the corresponding key and client, if any'
+      description: "Given a client and key identifiers it returns the corresponding key and client, if any"
       operationId: getKeyWithClientByKeyId
       parameters:
         - name: clientId
@@ -106,52 +106,52 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: returns the corresponding key
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/KeyWithClient'
-        '404':
+                $ref: "#/components/schemas/KeyWithClient"
+        "404":
           description: Key not found
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
-  '/clients':
+                $ref: "#/components/schemas/Problem"
+  "/clients":
     parameters:
-      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - client
       summary: Create Client
       operationId: createClient
       responses:
-        '200':
+        "200":
           description: Client created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Client'
-        '400':
+                $ref: "#/components/schemas/Client"
+        "400":
           description: Missing Required Information
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
-        '409':
+                $ref: "#/components/schemas/Problem"
+        "409":
           description: Client already exists
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
       requestBody:
         required: true
         description: A Client seed
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ClientSeed'
+              $ref: "#/components/schemas/ClientSeed"
       description: Creates a Client
     get:
       tags:
@@ -159,18 +159,18 @@ paths:
       summary: List Clients
       operationId: listClients
       responses:
-        '200':
+        "200":
           description: Client list retrieved
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Clients'
-        '400':
+                $ref: "#/components/schemas/Clients"
+        "400":
           description: Missing Required Information
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
       description: Lists Clients
       parameters:
         - name: offset
@@ -212,10 +212,10 @@ paths:
           in: query
           description: Type of clients to list
           schema:
-            $ref: '#/components/schemas/ClientKind'
+            $ref: "#/components/schemas/ClientKind"
   /clients/{clientId}:
     parameters:
-      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       description: Retrieves a Client
       tags:
@@ -231,18 +231,18 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: Client retrieved
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Client'
-        '404':
+                $ref: "#/components/schemas/Client"
+        "404":
           description: Client not found
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
     delete:
       description: Deletes a Client
       tags:
@@ -257,17 +257,17 @@ paths:
           schema:
             type: string
       responses:
-        '204':
+        "204":
           description: Client deleted
-        '404':
+        "404":
           description: Client not found
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
-  '/clients/{clientId}/users':
+                $ref: "#/components/schemas/Problem"
+  "/clients/{clientId}/users":
     parameters:
-      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - client
@@ -282,29 +282,29 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: User added
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Client'
-        '404':
+                $ref: "#/components/schemas/Client"
+        "404":
           description: Missing Required Information
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
       requestBody:
         required: true
         description: An User seed
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserSeed'
+              $ref: "#/components/schemas/UserSeed"
       description: Adds a User to a Client
-  '/clients/{clientId}/users/{userId}':
+  "/clients/{clientId}/users/{userId}":
     parameters:
-      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: "#/components/parameters/CorrelationIdHeader"
     delete:
       description: Removes a User from a Client
       tags:
@@ -327,48 +327,48 @@ paths:
             type: string
             format: uuid
       responses:
-        '204':
+        "204":
           description: User removed
-        '404':
+        "404":
           description: Client or User not found
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
-  '/clients/{clientId}/keys':
+                $ref: "#/components/schemas/Problem"
+  "/clients/{clientId}/keys":
     parameters:
-      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - key
       summary: Create Keys for the specific clientId.
       operationId: createKeys
       responses:
-        '200':
+        "200":
           description: Keys created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Keys'
-        '400':
+                $ref: "#/components/schemas/Keys"
+        "400":
           description: Missing Required Information
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
-        '404':
+                $ref: "#/components/schemas/Problem"
+        "404":
           description: Client id not found
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
       requestBody:
         required: true
         description: an array of base64 encoded PEM keys.
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/KeysSeed'
+              $ref: "#/components/schemas/KeysSeed"
       description: Creates one or more keys for the corresponding client.
       parameters:
         - name: clientId
@@ -382,7 +382,7 @@ paths:
       tags:
         - key
       summary: Returns a set of keys by client ID.
-      description: 'Given a client identifier it returns its corresponding set of keys, if any'
+      description: "Given a client identifier it returns its corresponding set of keys, if any"
       operationId: getClientKeys
       parameters:
         - name: clientId
@@ -393,26 +393,26 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: returns the corresponding array of keys
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Keys'
-        '404':
+                $ref: "#/components/schemas/Keys"
+        "404":
           description: Client id not found
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
-  '/clients/{clientId}/keys/{keyId}':
+                $ref: "#/components/schemas/Problem"
+  "/clients/{clientId}/keys/{keyId}":
     parameters:
-      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       tags:
         - key
       summary: Returns a key by client and key identifier (kid).
-      description: 'Given a client and key identifiers it returns the corresponding key, if any'
+      description: "Given a client and key identifiers it returns the corresponding key, if any"
       operationId: getClientKeyById
       parameters:
         - name: clientId
@@ -429,23 +429,23 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: returns the corresponding key
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Key'
-        '404':
+                $ref: "#/components/schemas/Key"
+        "404":
           description: Key not found
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
     delete:
       tags:
         - key
       summary: Deletes a key by client and key identifier (kid).
-      description: 'Given a client and key identifiers it deletes the corresponding key, if any'
+      description: "Given a client and key identifiers it deletes the corresponding key, if any"
       operationId: deleteClientKeyById
       parameters:
         - name: clientId
@@ -462,22 +462,22 @@ paths:
           schema:
             type: string
       responses:
-        '204':
+        "204":
           description: the corresponding key has been deleted.
-        '404':
+        "404":
           description: Key not found
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
-  '/clients/{clientId}/purposes':
+                $ref: "#/components/schemas/Problem"
+  "/clients/{clientId}/purposes":
     parameters:
-      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - purpose
       summary: Adds a purpose for the given client
-      description: 'Creates a purpose for the given client'
+      description: "Creates a purpose for the given client"
       operationId: addClientPurpose
       parameters:
         - name: clientId
@@ -492,23 +492,23 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PurposeSeed'
+              $ref: "#/components/schemas/PurposeSeed"
       responses:
-        '200':
+        "200":
           description: Purpose added
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Purpose'
-        '404':
+                $ref: "#/components/schemas/Purpose"
+        "404":
           description: Client not found
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
-  '/clients/{clientId}/purposes/{purposeId}':
+                $ref: "#/components/schemas/Problem"
+  "/clients/{clientId}/purposes/{purposeId}":
     parameters:
-      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       description: Retrieves a Client related to a purpose id
       tags:
@@ -531,23 +531,23 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: Client retrieved
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Client'
-        '404':
+                $ref: "#/components/schemas/Client"
+        "404":
           description: Client not found
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
     delete:
       tags:
         - purpose
       summary: Removed a purpose from the given client
-      description: 'Removed a purpose from the given client'
+      description: "Removed a purpose from the given client"
       operationId: removeClientPurpose
       parameters:
         - name: clientId
@@ -565,22 +565,22 @@ paths:
             type: string
             format: uuid
       responses:
-        '204':
+        "204":
           description: Purpose added
-        '404':
+        "404":
           description: Client not found
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
   /bulk/eservices/{eserviceId}/state:
     parameters:
-      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - purpose
       summary: Updates the EService state for all clients that contain it
-      description: 'Updates the EService state for all clients that contain it'
+      description: "Updates the EService state for all clients that contain it"
       operationId: updateEServiceState
       parameters:
         - name: eserviceId
@@ -595,24 +595,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ClientEServiceDetailsUpdate'
+              $ref: "#/components/schemas/ClientEServiceDetailsUpdate"
       responses:
-        '204':
+        "204":
           description: Clients updated
-        '400':
+        "400":
           description: Client not found
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
   /bulk/agreements/eserviceId/{eserviceId}/consumerId/{consumerId}/state:
     parameters:
-      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - purpose
       summary: Updates the Agreement state for all clients that contain it
-      description: 'Updates the Agreement state for all clients that contain it'
+      description: "Updates the Agreement state for all clients that contain it"
       operationId: updateAgreementState
       parameters:
         - name: eserviceId
@@ -634,24 +634,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ClientAgreementDetailsUpdate'
+              $ref: "#/components/schemas/ClientAgreementDetailsUpdate"
       responses:
-        '204':
+        "204":
           description: Clients updated
-        '400':
+        "400":
           description: Client not found
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
   /bulk/agreements/eservices/eserviceId/{eserviceId}/consumerId/{consumerId}/state:
     parameters:
-      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - purpose
       summary: Updates the Agreement and EServices states for all clients that contain it
-      description: 'Updates the Agreement and EServices states for all clients that contain it'
+      description: "Updates the Agreement and EServices states for all clients that contain it"
       operationId: updateAgreementAndEServiceStates
       parameters:
         - name: eserviceId
@@ -673,24 +673,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ClientAgreementAndEServiceDetailsUpdate'
+              $ref: "#/components/schemas/ClientAgreementAndEServiceDetailsUpdate"
       responses:
-        '204':
+        "204":
           description: Clients updated
-        '400':
+        "400":
           description: Client not found
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
   /bulk/purposes/{purposeId}/state:
     parameters:
-      - $ref: '#/components/parameters/CorrelationIdHeader'
+      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - purpose
       summary: Updates the Purpose state for all clients that contain it
-      description: 'Updates the Purpose state for all clients that contain it'
+      description: "Updates the Purpose state for all clients that contain it"
       operationId: updatePurposeState
       parameters:
         - name: purposeId
@@ -705,16 +705,16 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ClientPurposeDetailsUpdate'
+              $ref: "#/components/schemas/ClientPurposeDetailsUpdate"
       responses:
-        '204':
+        "204":
           description: Clients updated
-        '400':
+        "400":
           description: Client not found
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: "#/components/schemas/Problem"
 components:
   parameters:
     CorrelationIdHeader:
@@ -725,13 +725,13 @@ components:
         type: string
   schemas:
     Key:
-      description: 'Models the PersistentKey'
+      description: "Models the PersistentKey"
       type: object
       properties:
         userId:
           type: string
           format: uuid
-          description: 'Represents the identifier of the user whose platform security operator is uploading the key'
+          description: "Represents the identifier of the user whose platform security operator is uploading the key"
         kid:
           type: string
         name:
@@ -741,7 +741,7 @@ components:
         algorithm:
           type: string
         use:
-          $ref: '#/components/schemas/KeyUse'
+          $ref: "#/components/schemas/KeyUse"
         createdAt:
           type: string
           format: date-time
@@ -754,27 +754,27 @@ components:
         - use
         - createdAt
     KeySeed:
-      description: 'Models the seed for a public key to be persisted'
+      description: "Models the seed for a public key to be persisted"
       type: object
       properties:
         userId:
           type: string
           format: uuid
-          description: 'Represents the identifier of the user whose platform security operator is uploading the key'  
+          description: "Represents the identifier of the user whose platform security operator is uploading the key"
         key:
           type: string
-          description: 'Base64 UTF-8 encoding of a public key in PEM format'
+          description: "Base64 UTF-8 encoding of a public key in PEM format"
         createdAt:
           type: string
           format: date-time
         use:
-          $ref: '#/components/schemas/KeyUse'
+          $ref: "#/components/schemas/KeyUse"
         alg:
           type: string
-          description: 'The algorithm type of the key.'
+          description: "The algorithm type of the key."
         name:
           type: string
-          description: 'Descriptive name of this key.'
+          description: "Descriptive name of this key."
       required:
         - userId
         - key
@@ -785,28 +785,28 @@ components:
     KeysSeed:
       type: array
       items:
-        $ref: '#/components/schemas/KeySeed'
+        $ref: "#/components/schemas/KeySeed"
     Keys:
       type: object
       properties:
         keys:
           type: array
           items:
-            $ref: '#/components/schemas/Key'
+            $ref: "#/components/schemas/Key"
       required:
         - keys
     KeyWithClient:
       type: object
       properties:
         key:
-          $ref: '#/components/schemas/JWKKey'
+          $ref: "#/components/schemas/JWKKey"
         client:
-          $ref: '#/components/schemas/Client'
+          $ref: "#/components/schemas/Client"
       required:
         - key
         - client
     JWKKey:
-      description: 'Models a JWK'
+      description: "Models a JWK"
       type: object
       properties:
         kty:
@@ -826,7 +826,7 @@ components:
           minLength: 1
         x5t:
           type: string
-        'x5t#S256':
+        "x5t#S256":
           type: string
         x5c:
           type: array
@@ -836,13 +836,13 @@ components:
           type: string
         x:
           type: string
-        'y':
+        "y":
           type: string
         d:
           type: string
         k:
           type: string
-        'n':
+        "n":
           type: string
         e:
           type: string
@@ -861,7 +861,7 @@ components:
           minItems: 1
           type: array
           items:
-            $ref: '#/components/schemas/OtherPrimeInfo'
+            $ref: "#/components/schemas/OtherPrimeInfo"
       required:
         - kty
         - kid
@@ -894,7 +894,7 @@ components:
           type: string
           format: date-time
         kind:
-          $ref: '#/components/schemas/ClientKind'
+          $ref: "#/components/schemas/ClientKind"
         users:
           items:
             type: string
@@ -925,7 +925,7 @@ components:
         purposes:
           type: array
           items:
-            $ref: '#/components/schemas/Purpose'
+            $ref: "#/components/schemas/Purpose"
         users:
           type: array
           items:
@@ -933,7 +933,7 @@ components:
             format: uuid
           uniqueItems: true
         kind:
-          $ref: '#/components/schemas/ClientKind'
+          $ref: "#/components/schemas/ClientKind"
       required:
         - id
         - consumerId
@@ -945,7 +945,7 @@ components:
     Clients:
       type: array
       items:
-        $ref: '#/components/schemas/Client'
+        $ref: "#/components/schemas/Client"
     KeyUse:
       type: string
       description: Represents the Use field of key
@@ -965,14 +965,14 @@ components:
       type: object
       properties:
         states:
-          $ref: '#/components/schemas/ClientStatesChain'
+          $ref: "#/components/schemas/ClientStatesChain"
       required:
         - states
     PurposeSeed:
       type: object
       properties:
         states:
-          $ref: '#/components/schemas/ClientStatesChainSeed'
+          $ref: "#/components/schemas/ClientStatesChainSeed"
       required:
         - states
     ClientStatesChain:
@@ -982,11 +982,11 @@ components:
           type: string
           format: uuid
         eservice:
-          $ref: '#/components/schemas/ClientEServiceDetails'
+          $ref: "#/components/schemas/ClientEServiceDetails"
         agreement:
-          $ref: '#/components/schemas/ClientAgreementDetails'
+          $ref: "#/components/schemas/ClientAgreementDetails"
         purpose:
-          $ref: '#/components/schemas/ClientPurposeDetails'
+          $ref: "#/components/schemas/ClientPurposeDetails"
       required:
         - id
         - eservice
@@ -996,11 +996,11 @@ components:
       type: object
       properties:
         eservice:
-          $ref: '#/components/schemas/ClientEServiceDetailsSeed'
+          $ref: "#/components/schemas/ClientEServiceDetailsSeed"
         agreement:
-          $ref: '#/components/schemas/ClientAgreementDetailsSeed'
+          $ref: "#/components/schemas/ClientAgreementDetailsSeed"
         purpose:
-          $ref: '#/components/schemas/ClientPurposeDetailsSeed'
+          $ref: "#/components/schemas/ClientPurposeDetailsSeed"
       required:
         - eservice
         - agreement
@@ -1015,7 +1015,7 @@ components:
           type: string
           format: uuid
         state:
-          $ref: '#/components/schemas/ClientComponentState'
+          $ref: "#/components/schemas/ClientComponentState"
         audience:
           type: array
           items:
@@ -1039,7 +1039,7 @@ components:
           type: string
           format: uuid
         state:
-          $ref: '#/components/schemas/ClientComponentState'
+          $ref: "#/components/schemas/ClientComponentState"
         audience:
           type: array
           items:
@@ -1057,7 +1057,7 @@ components:
       type: object
       properties:
         state:
-          $ref: '#/components/schemas/ClientComponentState'
+          $ref: "#/components/schemas/ClientComponentState"
         descriptorId:
           type: string
           format: uuid
@@ -1086,7 +1086,7 @@ components:
           type: string
           format: uuid
         state:
-          $ref: '#/components/schemas/ClientComponentState'
+          $ref: "#/components/schemas/ClientComponentState"
       required:
         - eserviceId
         - consumerId
@@ -1105,7 +1105,7 @@ components:
           type: string
           format: uuid
         state:
-          $ref: '#/components/schemas/ClientComponentState'
+          $ref: "#/components/schemas/ClientComponentState"
       required:
         - eserviceId
         - consumerId
@@ -1121,7 +1121,7 @@ components:
           type: string
           format: uuid
         state:
-          $ref: '#/components/schemas/ClientComponentState'
+          $ref: "#/components/schemas/ClientComponentState"
       required:
         - purposeId
         - versionId
@@ -1133,7 +1133,7 @@ components:
           type: string
           format: uuid
         state:
-          $ref: '#/components/schemas/ClientComponentState'
+          $ref: "#/components/schemas/ClientComponentState"
       required:
         - agreementId
         - state
@@ -1144,7 +1144,7 @@ components:
           type: string
           format: uuid
         agreementState:
-          $ref: '#/components/schemas/ClientComponentState'
+          $ref: "#/components/schemas/ClientComponentState"
         descriptorId:
           type: string
           format: uuid
@@ -1156,7 +1156,7 @@ components:
           type: integer
           format: int32
         eserviceState:
-          $ref: '#/components/schemas/ClientComponentState'
+          $ref: "#/components/schemas/ClientComponentState"
       required:
         - agreementId
         - agreementState
@@ -1174,7 +1174,7 @@ components:
           type: string
           format: uuid
         state:
-          $ref: '#/components/schemas/ClientComponentState'
+          $ref: "#/components/schemas/ClientComponentState"
       required:
         - purposeId
         - versionId
@@ -1192,7 +1192,7 @@ components:
           type: string
           format: uuid
         state:
-          $ref: '#/components/schemas/ClientComponentState'
+          $ref: "#/components/schemas/ClientComponentState"
       required:
         - versionId
         - state
@@ -1219,24 +1219,24 @@ components:
           description: A short, summary of the problem type. Written in english and readable
           example: Service Unavailable
           maxLength: 64
-          pattern: '^[ -~]{0,64}$'
+          pattern: "^[ -~]{0,64}$"
           type: string
         correlationId:
           description: Unique identifier of the request
-          example: '53af4f2d-0c87-41ef-a645-b726a821852b'
+          example: "53af4f2d-0c87-41ef-a645-b726a821852b"
           maxLength: 64
           type: string
         detail:
           description: A human readable explanation of the problem.
           example: Request took too long to complete.
           maxLength: 4096
-          pattern: '^.{0,1024}$'
+          pattern: "^.{0,1024}$"
           type: string
         errors:
           type: array
           minItems: 1
           items:
-            $ref: '#/components/schemas/ProblemError'
+            $ref: "#/components/schemas/ProblemError"
       additionalProperties: false
       required:
         - type
@@ -1250,13 +1250,13 @@ components:
           example: 123-4567
           minLength: 8
           maxLength: 8
-          pattern: '^[0-9]{3}-[0-9]{4}$'
+          pattern: "^[0-9]{3}-[0-9]{4}$"
           type: string
         detail:
           description: A human readable explanation specific to this occurrence of the problem.
           example: Parameter not valid
           maxLength: 4096
-          pattern: '^.{0,1024}$'
+          pattern: "^.{0,1024}$"
           type: string
       required:
         - code
@@ -1264,6 +1264,6 @@ components:
   securitySchemes:
     bearerAuth:
       type: http
-      description: 'A bearer token in the format of a JWS and comformed to the specifications included in [RFC8725](https://tools.ietf.org/html/RFC8725).'
+      description: "A bearer token in the format of a JWS and comformed to the specifications included in [RFC8725](https://tools.ietf.org/html/RFC8725)."
       scheme: bearer
       bearerFormat: JWT
