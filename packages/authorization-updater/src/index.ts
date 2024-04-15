@@ -9,6 +9,11 @@ import {
   getContext,
   CatalogTopicConfig,
   catalogTopicConfig,
+  PurposeTopicConfig,
+  purposeTopicConfig,
+  readModelDbConfig,
+  ReadModelRepository,
+  ClientCollection,
 } from "pagopa-interop-commons";
 import {
   Descriptor,
@@ -18,12 +23,13 @@ import {
   kafkaMessageProcessError,
   EServiceId,
   EService,
+  ClientId,
+  fromPurposeV2,
 } from "pagopa-interop-models";
 import {
   AuthorizationService,
   authorizationServiceBuilder,
 } from "./authorizationService.js";
-import { ApiClientComponent } from "./model/models.js";
 
 const getDescriptorFromEvent = (
   msg: {
@@ -69,16 +75,29 @@ async function executeUpdate(
 }
 
 function processMessage(
-  topicConfig: CatalogTopicConfig,
-  authService: AuthorizationService
+  catalogTopicConfig: CatalogTopicConfig,
+  purposeTopicConfig: PurposeTopicConfig,
+  authService: AuthorizationService,
+  clients: ClientCollection
 ) {
   return async (messagePayload: EachMessagePayload): Promise<void> => {
     try {
-      const messageDecoder = messageDecoderSupplier(
-        topicConfig,
-        messagePayload.topic
-      );
-      const decodedMsg = messageDecoder(messagePayload.message);
+      const decodedMsg = match(messagePayload.topic)
+        .with(catalogTopicConfig.catalogTopic, () =>
+          messageDecoderSupplier(
+            catalogTopicConfig,
+            messagePayload.topic
+          )(messagePayload.message)
+        )
+        .with(purposeTopicConfig.purposeTopic, () =>
+          messageDecoderSupplier(
+            purposeTopicConfig,
+            messagePayload.topic
+          )(messagePayload.message)
+        )
+        .otherwise(() => {
+          throw new Error("");
+        });
 
       const ctx = getContext();
       ctx.messageData = {
@@ -88,7 +107,7 @@ function processMessage(
       };
       ctx.correlationId = decodedMsg.correlation_id;
 
-      const updateSeed = match(decodedMsg)
+      await match(decodedMsg)
         .with(
           {
             event_version: 2,
@@ -98,16 +117,17 @@ function processMessage(
             event_version: 2,
             type: "EServiceDescriptorActivated",
           },
-          (msg) => {
-            const data = getDescriptorFromEvent(msg, decodedMsg.type);
-            return {
-              state: "ACTIVE",
-              descriptorId: data.descriptor.id,
-              eserviceId: data.eserviceId,
-              audience: data.descriptor.audience,
-              voucherLifespan: data.descriptor.voucherLifespan,
-              eventType: decodedMsg.type,
-            };
+          async (msg) => {
+            const data = getDescriptorFromEvent(msg, msg.type);
+            await executeUpdate(msg.type, messagePayload, () =>
+              authService.updateEServiceState(
+                "ACTIVE",
+                data.descriptor.id,
+                data.eserviceId,
+                data.descriptor.audience,
+                data.descriptor.voucherLifespan
+              )
+            );
           }
         )
         .with(
@@ -119,31 +139,50 @@ function processMessage(
             event_version: 2,
             type: "EServiceDescriptorArchived",
           },
-          (msg) => {
-            const data = getDescriptorFromEvent(msg, decodedMsg.type);
-            return {
-              state: "INACTIVE",
-              descriptorId: data.descriptor.id,
-              eserviceId: data.eserviceId,
-              audience: data.descriptor.audience,
-              voucherLifespan: data.descriptor.voucherLifespan,
-              eventType: decodedMsg.type,
-            };
+          async (msg) => {
+            const data = getDescriptorFromEvent(msg, msg.type);
+            await executeUpdate(msg.type, messagePayload, () =>
+              authService.updateEServiceState(
+                "INACTIVE",
+                data.descriptor.id,
+                data.eserviceId,
+                data.descriptor.audience,
+                data.descriptor.voucherLifespan
+              )
+            );
+          }
+        )
+        .with(
+          {
+            event_version: 2,
+            type: "DraftPurposeDeleted",
+          },
+          {
+            event_version: 2,
+            type: "WaitingForApprovalPurposeDeleted",
+          },
+          async (msg): Promise<void> => {
+            if (!msg.data.purpose) {
+              throw missingKafkaMessageDataError("purpose", msg.type);
+            }
+
+            const purpose = fromPurposeV2(msg.data.purpose);
+
+            const purposeClients = await clients
+              .find({
+                "data.purposes.purpose.purposeId": purpose.id,
+              })
+              .map(({ data }) => ClientId.parse(data.id))
+              .toArray();
+
+            await Promise.all(
+              purposeClients.map((clientId) =>
+                authService.deletePurposeFromClient(purpose.id, clientId)
+              )
+            );
           }
         )
         .otherwise(() => undefined);
-
-      if (updateSeed) {
-        await executeUpdate(updateSeed.eventType, messagePayload, () =>
-          authService.updateEServiceState(
-            ApiClientComponent.parse(updateSeed.state),
-            updateSeed.descriptorId,
-            updateSeed.eserviceId,
-            updateSeed.audience,
-            updateSeed.voucherLifespan
-          )
-        );
-      }
     } catch (e) {
       throw kafkaMessageProcessError(
         messagePayload.topic,
@@ -158,11 +197,15 @@ function processMessage(
 try {
   const authService = await authorizationServiceBuilder();
   const config = kafkaConsumerConfig();
-  const topicConfig: CatalogTopicConfig = catalogTopicConfig();
+  const catalogTopicConf: CatalogTopicConfig = catalogTopicConfig();
+  const purposeTopicConf: PurposeTopicConfig = purposeTopicConfig();
+
+  const { clients } = ReadModelRepository.init(readModelDbConfig());
+
   await runConsumer(
     config,
-    [topicConfig.catalogTopic],
-    processMessage(topicConfig, authService)
+    [catalogTopicConf.catalogTopic, purposeTopicConf.purposeTopic],
+    processMessage(catalogTopicConf, purposeTopicConf, authService, clients)
   );
 } catch (e) {
   logger.error(`An error occurred during initialization:\n${e}`);

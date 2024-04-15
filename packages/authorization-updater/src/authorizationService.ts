@@ -7,7 +7,12 @@ import {
   logger,
 } from "pagopa-interop-commons";
 import { v4 } from "uuid";
-import { DescriptorId, EServiceId } from "pagopa-interop-models";
+import {
+  DescriptorId,
+  EServiceId,
+  ClientId,
+  PurposeId,
+} from "pagopa-interop-models";
 import { buildAuthMgmtClient } from "./authorizationManagementClient.js";
 import { ApiClientComponentState } from "./model/models.js";
 
@@ -18,6 +23,10 @@ export type AuthorizationService = {
     eserviceId: EServiceId,
     audience: string[],
     voucherLifespan: number
+  ) => Promise<void>;
+  deletePurposeFromClient: (
+    purposeId: PurposeId,
+    clientId: ClientId
   ) => Promise<void>;
 };
 
@@ -83,6 +92,14 @@ export const authorizationServiceBuilder =
         });
 
         logger.info(`Updating EService ${eserviceId} state for all clients`);
+      },
+      async deletePurposeFromClient(purposeId: PurposeId, clientId: ClientId) {
+        await authMgmtClient.removeClientPurpose(undefined, {
+          params: { purposeId, clientId },
+          withCredentials: true,
+          headers: getHeaders(),
+        });
+        logger.info(`Deleting purpose ${purposeId} from client ${clientId}`);
       },
     };
   };
