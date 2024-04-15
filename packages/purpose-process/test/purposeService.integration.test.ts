@@ -20,7 +20,6 @@ import {
   initDB,
 } from "pagopa-interop-commons";
 import { IDatabase } from "pg-promise";
-
 import {
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
@@ -30,13 +29,16 @@ import {
   getMockPurposeVersion,
   getMockPurposeVersionDocument,
   getMockTenant,
+  getMockValidRiskAnalysis,
   mongoDBContainer,
   postgreSQLContainer,
+  randomArrayItem,
   readLastEventByStreamId,
   writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import { StartedTestContainer } from "testcontainers";
 import {
+  DraftPurposeUpdatedV2,
   EService,
   EServiceId,
   Purpose,
@@ -45,14 +47,15 @@ import {
   PurposeVersionDocumentId,
   PurposeVersionId,
   PurposeVersionRejectedV2,
+  Tenant,
   TenantId,
-  TenantKind,
   WaitingForApprovalPurposeVersionDeletedV2,
   generateId,
   purposeVersionState,
   tenantKind,
   toPurposeV2,
   toReadModelEService,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { config } from "../src/utilities/config.js";
 import {
@@ -76,7 +79,15 @@ import {
   tenantKindNotFound,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
-import { addOnePurpose, getMockEService } from "./utils.js";
+import {
+  PurposeUpdateContent,
+  ReversePurposeUpdateContent,
+} from "../src/model/domain/models.js";
+import {
+  addOnePurpose,
+  buildRiskAnalysisSeed,
+  getMockEService,
+} from "./utils.js";
 
 describe("database test", async () => {
   let purposes: PurposeCollection;
@@ -918,6 +929,217 @@ describe("database test", async () => {
           notValidVersionState(mockPurposeVersion.id, mockPurposeVersion.state)
         );
       });
+    });
+  });
+  describe("updatePurpose and reverseUpdatePurpose", () => {
+    it("Should write on event store for the update of a purpose of an e-service in mode DELIVER", async () => {
+      const consumerTenantKind = randomArrayItem(Object.values(tenantKind));
+      const consumer: Tenant = {
+        ...getMockTenant(),
+        kind: consumerTenantKind,
+      };
+
+      const mockEservice: EService = { ...getMockEService(), mode: "Deliver" };
+      const mockPurpose: Purpose = {
+        ...getMockPurpose(),
+        eserviceId: mockEservice.id,
+        consumerId: consumer.id,
+        versions: [
+          {
+            ...getMockPurposeVersion(),
+            state: purposeVersionState.draft,
+          },
+        ],
+      };
+
+      await addOnePurpose(mockPurpose, postgresDB, purposes);
+      await writeInReadmodel(toReadModelEService(mockEservice), eservices);
+      await writeInReadmodel(consumer, tenants);
+
+      const mockValidRiskAnalysis =
+        getMockValidRiskAnalysis(consumerTenantKind);
+
+      const purposeUpdateContent: PurposeUpdateContent = {
+        title: "test",
+        dailyCalls: 10,
+        description: "test",
+        isFreeOfCharge: false,
+        riskAnalysisForm: buildRiskAnalysisSeed(mockValidRiskAnalysis),
+      };
+
+      await purposeService.updatePurpose({
+        purposeId: mockPurpose.id,
+        purposeUpdateContent,
+        organizationId: consumer.id,
+        correlationId: generateId(),
+      });
+
+      const writtenEvent = await readLastEventByStreamId(
+        mockPurpose.id,
+        "purpose",
+        postgresDB
+      );
+
+      expect(writtenEvent).toMatchObject({
+        stream_id: mockPurpose.id,
+        version: "1",
+        type: "DraftPurposeUpdated",
+        event_version: 2,
+      });
+
+      const writtenPayload = decodeProtobufPayload({
+        messageType: DraftPurposeUpdatedV2,
+        payload: writtenEvent.data,
+      });
+
+      const expectedPurpose: Purpose = {
+        ...mockPurpose,
+        title: purposeUpdateContent.title,
+        description: purposeUpdateContent.description,
+        isFreeOfCharge: purposeUpdateContent.isFreeOfCharge,
+        riskAnalysisForm: {
+          ...mockValidRiskAnalysis.riskAnalysisForm,
+          id: unsafeBrandId(writtenPayload.purpose!.riskAnalysisForm!.id),
+          singleAnswers:
+            mockValidRiskAnalysis.riskAnalysisForm.singleAnswers.map(
+              (singleAnswer) => ({
+                ...singleAnswer,
+                id: unsafeBrandId(
+                  writtenPayload.purpose!.riskAnalysisForm!.singleAnswers.find(
+                    (sa) => sa.key === singleAnswer.key
+                  )!.id
+                ),
+              })
+            ),
+          multiAnswers: mockValidRiskAnalysis.riskAnalysisForm.multiAnswers.map(
+            (multiAnswer) => ({
+              ...multiAnswer,
+              id: unsafeBrandId(
+                writtenPayload.purpose!.riskAnalysisForm!.multiAnswers.find(
+                  (ma) => ma.key === multiAnswer.key
+                )!.id
+              ),
+            })
+          ),
+        },
+      };
+
+      expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    });
+    it("Should write on event store for the update of a purpose of an e-service in mode RECEIVE", async () => {
+      const producerTenantKind = randomArrayItem(Object.values(tenantKind));
+      const producer: Tenant = {
+        ...getMockTenant(),
+        kind: producerTenantKind,
+      };
+
+      const mockEservice: EService = {
+        ...getMockEService(),
+        mode: "Receive",
+        producerId: producer.id,
+      };
+
+      const mockValidRiskAnalysis =
+        getMockValidRiskAnalysis(producerTenantKind);
+
+      const mockPurpose: Purpose = {
+        ...getMockPurpose(),
+        eserviceId: mockEservice.id,
+        consumerId: producer.id,
+        versions: [
+          {
+            ...getMockPurposeVersion(),
+            state: purposeVersionState.draft,
+          },
+        ],
+        riskAnalysisForm: {
+          ...mockValidRiskAnalysis.riskAnalysisForm,
+          id: generateId(),
+          singleAnswers:
+            mockValidRiskAnalysis.riskAnalysisForm.singleAnswers.map(
+              (singleAnswer) => ({
+                ...singleAnswer,
+                id: generateId(),
+              })
+            ),
+          multiAnswers: mockValidRiskAnalysis.riskAnalysisForm.multiAnswers.map(
+            (multiAnswer) => ({
+              ...multiAnswer,
+              id: generateId(),
+            })
+          ),
+        },
+      };
+
+      await addOnePurpose(mockPurpose, postgresDB, purposes);
+      await writeInReadmodel(toReadModelEService(mockEservice), eservices);
+      await writeInReadmodel(producer, tenants);
+
+      const reversePurposeUpdateContent: ReversePurposeUpdateContent = {
+        title: "test",
+        dailyCalls: 10,
+        description: "test",
+        isFreeOfCharge: false,
+      };
+
+      await purposeService.updateReversePurpose({
+        purposeId: mockPurpose.id,
+        reversePurposeUpdateContent,
+        organizationId: producer.id,
+        correlationId: generateId(),
+      });
+
+      const writtenEvent = await readLastEventByStreamId(
+        mockPurpose.id,
+        "purpose",
+        postgresDB
+      );
+
+      expect(writtenEvent).toMatchObject({
+        stream_id: mockPurpose.id,
+        version: "1",
+        type: "DraftPurposeUpdated",
+        event_version: 2,
+      });
+
+      const writtenPayload = decodeProtobufPayload({
+        messageType: DraftPurposeUpdatedV2,
+        payload: writtenEvent.data,
+      });
+
+      const expectedPurpose: Purpose = {
+        ...mockPurpose,
+        title: reversePurposeUpdateContent.title,
+        description: reversePurposeUpdateContent.description,
+        isFreeOfCharge: reversePurposeUpdateContent.isFreeOfCharge,
+        riskAnalysisForm: {
+          ...mockValidRiskAnalysis.riskAnalysisForm,
+          id: unsafeBrandId(writtenPayload.purpose!.riskAnalysisForm!.id),
+          singleAnswers:
+            mockValidRiskAnalysis.riskAnalysisForm.singleAnswers.map(
+              (singleAnswer) => ({
+                ...singleAnswer,
+                id: unsafeBrandId(
+                  writtenPayload.purpose!.riskAnalysisForm!.singleAnswers.find(
+                    (sa) => sa.key === singleAnswer.key
+                  )!.id
+                ),
+              })
+            ),
+          multiAnswers: mockValidRiskAnalysis.riskAnalysisForm.multiAnswers.map(
+            (multiAnswer) => ({
+              ...multiAnswer,
+              id: unsafeBrandId(
+                writtenPayload.purpose!.riskAnalysisForm!.multiAnswers.find(
+                  (ma) => ma.key === multiAnswer.key
+                )!.id
+              ),
+            })
+          ),
+        },
+      };
+
+      expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
     });
   });
 });
