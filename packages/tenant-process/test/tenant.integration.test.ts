@@ -607,6 +607,204 @@ describe("Integration tests", () => {
         );
       });
     });
+    describe("internalAssignCertifiedAttribute", async () => {
+      const correlationId = generateId();
+      const requesterTenant: Tenant = {
+        ...mockTenant,
+        features: [
+          {
+            type: "PersistentCertifier",
+            certifierId: generateId(),
+          },
+        ],
+        updatedAt: currentDate,
+        name: "A requesterTenant",
+        externalId: {
+          origin: generateId(),
+          value: "1234567",
+        },
+      };
+      const attribute: Attribute = {
+        name: "an Attribute",
+        id: unsafeBrandId(requesterTenant.id),
+        kind: "Certified",
+        description: "an attribute",
+        creationTime: new Date(),
+        code: "123456",
+        origin: requesterTenant.externalId.origin,
+      };
+
+      it("Should add the certified attribute if certifiedTenantAttribute doesn't exist", async () => {
+        await addOneAttribute(attribute, attributes);
+        await addOneTenant(requesterTenant, postgresDB, tenants);
+        await tenantService.internalAssignCertifiedAttribute(
+          requesterTenant.externalId.origin,
+          requesterTenant.externalId.value,
+          attribute.origin!,
+          attribute.code!,
+          correlationId
+        );
+        const writtenEvent: StoredEvent | undefined =
+          await readLastEventByStreamId(
+            requesterTenant.id,
+            eventStoreSchema.tenant,
+            postgresDB
+          );
+        if (!writtenEvent) {
+          fail("Update failed: tenant not found in event-store");
+        }
+        expect(writtenEvent).toMatchObject({
+          stream_id: requesterTenant.id,
+          version: "1",
+          type: "TenantCertifiedAttributeAssigned",
+        });
+        const writtenPayload = protobufDecoder(
+          TenantCertifiedAttributeAssignedV2
+        ).parse(writtenEvent?.data);
+
+        const updatedTenant: Tenant = {
+          ...requesterTenant,
+          attributes: [
+            {
+              id: unsafeBrandId(attribute.id),
+              type: "PersistentCertifiedAttribute",
+              assignmentTimestamp: new Date(
+                Number(
+                  (
+                    writtenPayload.tenant!.attributes[0].sealedValue as {
+                      oneofKind: "certifiedAttribute";
+                      certifiedAttribute: TenantCertifiedAttributeV2;
+                    }
+                  ).certifiedAttribute.assignmentTimestamp
+                )
+              ),
+            },
+          ],
+          kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
+          updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
+        };
+        expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+      });
+      it("Should add the certified attribute if certifiedTenantAttribute exist", async () => {
+        const tenantWithCertifiedAttribute: Tenant = {
+          ...requesterTenant,
+          attributes: [
+            {
+              ...mockCertifiedTenantAttribute,
+              id: unsafeBrandId(attribute.id),
+            },
+          ],
+        };
+
+        await addOneAttribute(attribute, attributes);
+        await addOneTenant(tenantWithCertifiedAttribute, postgresDB, tenants);
+        await tenantService.internalAssignCertifiedAttribute(
+          tenantWithCertifiedAttribute.externalId.origin,
+          tenantWithCertifiedAttribute.externalId.value,
+          attribute.origin!,
+          attribute.code!,
+          correlationId
+        );
+        const writtenEvent: StoredEvent | undefined =
+          await readLastEventByStreamId(
+            tenantWithCertifiedAttribute.id,
+            eventStoreSchema.tenant,
+            postgresDB
+          );
+        if (!writtenEvent) {
+          fail("Update failed: tenant not found in event-store");
+        }
+        expect(writtenEvent).toMatchObject({
+          stream_id: tenantWithCertifiedAttribute.id,
+          version: "1",
+          type: "TenantCertifiedAttributeAssigned",
+        });
+        const writtenPayload = protobufDecoder(
+          TenantCertifiedAttributeAssignedV2
+        ).parse(writtenEvent?.data);
+
+        const updatedTenant: Tenant = {
+          ...tenantWithCertifiedAttribute,
+          attributes: [
+            {
+              id: unsafeBrandId(attribute.id),
+              type: "PersistentCertifiedAttribute",
+              assignmentTimestamp: new Date(
+                Number(
+                  (
+                    writtenPayload.tenant!.attributes[0].sealedValue as {
+                      oneofKind: "certifiedAttribute";
+                      certifiedAttribute: TenantCertifiedAttributeV2;
+                    }
+                  ).certifiedAttribute.assignmentTimestamp
+                )
+              ),
+            },
+          ],
+          kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
+          updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
+        };
+        expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+      });
+      it("Should throw tenant not found", async () => {
+        await addOneAttribute(attribute, attributes);
+        expect(
+          tenantService.internalAssignCertifiedAttribute(
+            requesterTenant.externalId.origin,
+            requesterTenant.externalId.value,
+            attribute.origin!,
+            attribute.code!,
+            correlationId
+          )
+        ).rejects.toThrowError(
+          tenantNotFound(unsafeBrandId(requesterTenant.externalId.origin))
+        );
+      });
+      it("Should throw attribute not found", async () => {
+        await addOneTenant(requesterTenant, postgresDB, tenants);
+
+        expect(
+          tenantService.internalAssignCertifiedAttribute(
+            requesterTenant.externalId.origin,
+            requesterTenant.externalId.value,
+            attribute.origin!,
+            attribute.code!,
+            correlationId
+          )
+        ).rejects.toThrowError(
+          attributeNotFound(unsafeBrandId(attribute.origin!))
+        );
+      });
+      it("Should throw certifiedAttributeAlreadyAssigned", async () => {
+        const tenantAlreadyAssigned: Tenant = {
+          ...requesterTenant,
+          attributes: [
+            {
+              id: attribute.id,
+              type: "PersistentCertifiedAttribute",
+              assignmentTimestamp: new Date(),
+              revocationTimestamp: undefined,
+            },
+          ],
+        };
+        await addOneAttribute(attribute, attributes);
+        await addOneTenant(tenantAlreadyAssigned, postgresDB, tenants);
+        expect(
+          tenantService.internalAssignCertifiedAttribute(
+            tenantAlreadyAssigned.externalId.origin,
+            tenantAlreadyAssigned.externalId.value,
+            attribute.origin!,
+            attribute.code!,
+            correlationId
+          )
+        ).rejects.toThrowError(
+          certifiedAttributeAlreadyAssigned(
+            unsafeBrandId(attribute.id),
+            unsafeBrandId(tenantAlreadyAssigned.id)
+          )
+        );
+      });
+    });
     describe("addCertifiedAttribute", async () => {
       const tenantAttributeSeed: ApiCertifiedTenantAttributeSeed = {
         id: generateId(),
