@@ -29,6 +29,7 @@ import {
 } from "pagopa-interop-models";
 import {
   eserviceNotFound,
+  notValidVersionState,
   organizationIsNotTheProducer,
   organizationNotAllowed,
   purposeNotFound,
@@ -92,7 +93,7 @@ const retrievePurposeVersionDocument = (
 ): PurposeVersionDocument => {
   const document = purposeVersion.riskAnalysis;
 
-  if (document === undefined) {
+  if (document === undefined || document.id !== documentId) {
     throw purposeVersionDocumentNotFound(
       purposeId,
       purposeVersion.id,
@@ -237,6 +238,8 @@ export function purposeServiceBuilder(
       authData: AuthData;
       correlationId: string;
     }): Promise<void> {
+      logger.info(`Rejecting Version ${versionId} in Purpose ${purposeId}`);
+
       const purpose = await retrievePurpose(purposeId, readModelService);
       const eservice = await retrieveEService(
         purpose.data.eserviceId,
@@ -248,10 +251,14 @@ export function purposeServiceBuilder(
 
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
 
+      if (purposeVersion.state !== purposeVersionState.waitingForApproval) {
+        throw notValidVersionState(purposeVersion.id, purposeVersion.state);
+      }
       const updatedPurposeVersion: PurposeVersion = {
         ...purposeVersion,
         state: purposeVersionState.rejected,
         rejectionReason,
+        updatedAt: new Date(),
       };
 
       const updatedPurpose = replacePurposeVersion(

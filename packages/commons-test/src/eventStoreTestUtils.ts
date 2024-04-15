@@ -5,6 +5,7 @@ import {
   AgreementId,
   AttributeId,
   EServiceId,
+  PurposeId,
   TenantId,
   protobufDecoder,
 } from "pagopa-interop-models";
@@ -57,6 +58,8 @@ export async function readLastEventByStreamId<T extends EventStoreSchema>(
     ? EServiceId
     : T extends "tenant"
     ? TenantId
+    : T extends "purpose"
+    ? PurposeId
     : never,
   schema: T,
   postgresDB: IDatabase<unknown>
