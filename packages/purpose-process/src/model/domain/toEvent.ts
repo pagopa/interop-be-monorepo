@@ -68,3 +68,41 @@ export const toCreateEventDraftPurposeUpdated = ({
   },
   correlationId,
 });
+
+export const toCreateEventDraftPurposeDeleted = ({
+  purpose,
+  version,
+  correlationId,
+}: {
+  purpose: Purpose;
+  version: number;
+  correlationId: string;
+}): CreateEvent<PurposeEvent> => ({
+  streamId: purpose.id,
+  version,
+  event: {
+    type: "DraftPurposeDeleted",
+    event_version: 2,
+    data: { purpose: toPurposeV2(purpose) },
+  },
+  correlationId,
+});
+
+export const toCreateEventWaintingForApprovalPurposeDeleted = ({
+  purpose,
+  version,
+  correlationId,
+}: {
+  purpose: Purpose;
+  version: number;
+  correlationId: string;
+}): CreateEvent<PurposeEvent> => ({
+  streamId: purpose.id,
+  version,
+  event: {
+    type: "WaitingForApprovalPurposeDeleted",
+    event_version: 2,
+    data: { purpose: toPurposeV2(purpose) },
+  },
+  correlationId,
+});
