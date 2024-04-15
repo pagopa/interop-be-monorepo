@@ -21,7 +21,7 @@ export function zodiosValidationErrorToApiProblem(
     .join(", ")}`;
 
   res
-    .status(400)
+    .status(constants.HTTP_STATUS_BAD_REQUEST)
     .json(
       makeApiProblem(
         badRequestError(details),
