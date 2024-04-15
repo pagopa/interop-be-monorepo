@@ -110,7 +110,7 @@ describe("database test", async () => {
   describe("Purpose service", () => {
     const mockPurpose = getMockPurpose();
     describe("getPurposeById", () => {
-      it("Should get the purpose if it exists", async () => {
+      it("should get the purpose if it exists", async () => {
         const mockEService = getMockEService();
         const mockTenant = {
           ...getMockTenant(),
@@ -140,7 +140,7 @@ describe("database test", async () => {
           isRiskAnalysisValid: false,
         });
       });
-      it("Should throw purposeNotFound if the purpose doesn't exist", async () => {
+      it("should throw purposeNotFound if the purpose doesn't exist", async () => {
         const notExistingId: PurposeId = generateId();
         await addOnePurpose(mockPurpose, postgresDB, purposes);
 
@@ -148,7 +148,7 @@ describe("database test", async () => {
           purposeService.getPurposeById(notExistingId, getMockAuthData())
         ).rejects.toThrowError(purposeNotFound(notExistingId));
       });
-      it("Should throw eserviceNotFound if the eservice doesn't exist", async () => {
+      it("should throw eserviceNotFound if the eservice doesn't exist", async () => {
         const notExistingId: EServiceId = generateId();
         const mockTenant = {
           ...getMockTenant(),
@@ -175,7 +175,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(eserviceNotFound(notExistingId));
       });
-      it("Should throw tenantNotFound if the tenant doesn't exist", async () => {
+      it("should throw tenantNotFound if the tenant doesn't exist", async () => {
         const mockEService = getMockEService();
         const notExistingId: TenantId = generateId();
 
@@ -199,7 +199,7 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(tenantNotFound(notExistingId));
       });
-      it("Should throw tenantKindNotFound if the tenant doesn't exist", async () => {
+      it("should throw tenantKindNotFound if the tenant doesn't exist", async () => {
         const mockEService = getMockEService();
         const mockTenant = getMockTenant();
 
