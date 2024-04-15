@@ -491,7 +491,6 @@ describe("database test", async () => {
       it("Should throw organizationIsNotTheConsumer if the requester is not the consumer", async () => {
         const mockEService = getMockEService();
         const mockPurposeVersion = getMockPurposeVersion();
-        const randomId: TenantId = generateId();
         const mockPurpose1: Purpose = {
           ...mockPurpose,
           eserviceId: mockEService.id,
@@ -505,10 +504,12 @@ describe("database test", async () => {
           purposeService.deletePurposeVersion({
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
-            authData: getMockAuthData(randomId),
+            authData: getMockAuthData(mockEService.producerId),
             correlationId: generateId(),
           })
-        ).rejects.toThrowError(organizationIsNotTheConsumer(randomId));
+        ).rejects.toThrowError(
+          organizationIsNotTheConsumer(mockEService.producerId)
+        );
       });
       it("Should throw purposeVersionCannotBeDeleted if the purpose version is in draft state", async () => {
         const mockEService = getMockEService();
