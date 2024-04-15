@@ -279,11 +279,6 @@ const tenantsRouter = (
       }
     )
     .post(
-      "/internal/tenants",
-      authorizationMiddleware([INTERNAL_ROLE]),
-      async (_req, res) => res.status(501).send()
-    )
-    .post(
       "/internal/origin/:tOrigin/externalId/:tExternalId/attributes/origin/:aOrigin/externalId/:aExternalId",
       authorizationMiddleware([INTERNAL_ROLE]),
       async (_req, res) => res.status(501).send()

@@ -27,35 +27,6 @@ tags:
       description: Find out more
       url: 'http://swagger.io'
 paths:
-  /internal/tenants:
-    parameters:
-      - $ref: '#/components/parameters/CorrelationIdHeader'
-    post:
-      tags:
-        - tenant
-      operationId: internalUpsertTenant
-      description: |
-        Creates the Tenant if it does not exist. Otherwise, add missing attributes.
-        Used when the attribute origin is known
-      responses:
-        '200':
-          description: Tenant created or updated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Tenant'
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Problem'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/InternalTenantSeed'
-        required: true
   /internal/origin/{tOrigin}/externalId/{tExternalId}/attributes/origin/{aOrigin}/externalId/{aExternalId}:
     parameters:
       - $ref: '#/components/parameters/CorrelationIdHeader'
