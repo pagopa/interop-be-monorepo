@@ -74,7 +74,7 @@ export const UIAuthToken = SharedStandardJWTClaims.merge(
       name: z.string(),
       roles: z.array(
         z.object({
-          partyRole: z.string(),
+          partyRole: z.string().optional(),
           role: UIUserRole,
         })
       ),
@@ -85,9 +85,9 @@ export const UIAuthToken = SharedStandardJWTClaims.merge(
       origin: z.string(),
       value: z.string(),
     }),
-    name: z.string(),
-    family_name: z.string(),
-    email: z.string(),
+    name: z.string().optional(),
+    family_name: z.string().optional(),
+    email: z.string().optional(),
   })
 );
 
