@@ -10,6 +10,7 @@ const {
   HTTP_STATUS_NOT_FOUND,
   HTTP_STATUS_FORBIDDEN,
   HTTP_STATUS_CONFLICT,
+  HTTP_STATUS_BAD_REQUEST,
 } = constants;
 
 export const getPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
@@ -45,4 +46,17 @@ export const rejectPurposeVersionErrorMapper = (
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("purposeVersionNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("organizationIsNotTheProducer", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const updatePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with("eServiceModeNotAllowed", () => HTTP_STATUS_BAD_REQUEST)
+    .with("missingFreeOfChargeReason", () => HTTP_STATUS_BAD_REQUEST)
+    .with("tenantKindNotFound", () => HTTP_STATUS_BAD_REQUEST)
+    .with("riskAnalysisValidationFailed", () => HTTP_STATUS_BAD_REQUEST)
+    .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("organizationIsNotTheConsumer", () => HTTP_STATUS_FORBIDDEN)
+    .with("purposeNotInDraftState", () => HTTP_STATUS_FORBIDDEN)
+    .with("eserviceNotFound", () => HTTP_STATUS_BAD_REQUEST)
+    .with("tenantNotFound", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
