@@ -27,7 +27,7 @@ export const toCreateEventWaitingForApprovalPurposeVersionDeleted = ({
   correlationId,
 });
 
-export const toCreateEvenPurposeVersionRejected = ({
+export const toCreateEventPurposeVersionRejected = ({
   purpose,
   version,
   versionId,

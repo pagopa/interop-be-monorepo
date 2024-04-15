@@ -25,18 +25,6 @@ import {
 } from "../model/domain/errors.js";
 import { RiskAnalysisFormSeed } from "../model/domain/models.js";
 
-export const isEserviceMode = (
-  eserviceId: EServiceId,
-  mode: EServiceMode
-): void => {
-  if (mode !== mode) {
-    throw eServiceModeNotAllowed(eserviceId, mode);
-  }
-};
-
-export const purposeIsDraft = (purpose: Purpose): boolean =>
-  !purpose.versions.some((v) => v.state !== purposeVersionState.draft);
-
 export const isRiskAnalysisFormValid = (
   riskAnalysisForm: RiskAnalysisForm | undefined,
   schemaOnlyValidation: boolean,
@@ -52,6 +40,18 @@ export const isRiskAnalysisFormValid = (
         tenantKind
       ).type === "valid"
     );
+  }
+};
+
+export const purposeIsDraft = (purpose: Purpose): boolean =>
+  !purpose.versions.some((v) => v.state !== purposeVersionState.draft);
+
+export const isEserviceMode = (
+  eserviceId: EServiceId,
+  mode: EServiceMode
+): void => {
+  if (mode !== mode) {
+    throw eServiceModeNotAllowed(eserviceId, mode);
   }
 };
 

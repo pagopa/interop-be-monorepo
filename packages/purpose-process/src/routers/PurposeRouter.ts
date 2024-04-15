@@ -96,7 +96,8 @@ const purposeRouter = (
           const errorRes = makeApiProblem(error, updatePurposeErrorMapper);
           return res.status(errorRes.status).json(errorRes).end();
         }
-      }    )
+      }
+    )
     .get(
       "/purposes/:id",
       authorizationMiddleware([
