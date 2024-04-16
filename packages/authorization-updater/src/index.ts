@@ -25,6 +25,11 @@ import {
   EService,
   ClientId,
   fromPurposeV2,
+  PurposeV2,
+  Purpose,
+  PurposeVersion,
+  PurposeId,
+  purposeVersionState,
 } from "pagopa-interop-models";
 import {
   AuthorizationService,
@@ -59,10 +64,46 @@ const getDescriptorFromEvent = (
   return { eserviceId: eservice.id, descriptor };
 };
 
+const getPurposeFromEvent = (
+  msg: {
+    data: {
+      purpose?: PurposeV2;
+    };
+  },
+  eventType: string
+): Purpose => {
+  if (!msg.data.purpose) {
+    throw missingKafkaMessageDataError("purpose", eventType);
+  }
+
+  return fromPurposeV2(msg.data.purpose);
+};
+
+const getPurposeVersionFromEvent = (
+  msg: {
+    data: {
+      purpose?: PurposeV2;
+      versionId: string;
+    };
+  },
+  eventType: string
+): { purposeId: PurposeId; purposeVersion: PurposeVersion } => {
+  const purpose = getPurposeFromEvent(msg, eventType);
+  const purposeVersion = purpose.versions.find(
+    (v) => v.id === msg.data.versionId
+  );
+
+  if (!purposeVersion) {
+    throw missingKafkaMessageDataError("purposeVersion", eventType);
+  }
+
+  return { purposeId: purpose.id, purposeVersion };
+};
+
 async function executeUpdate(
   eventType: string,
   messagePayload: EachMessagePayload,
-  update: () => Promise<void>
+  update: () => Promise<unknown>
 ): Promise<void> {
   await update();
   logger.info(
@@ -82,22 +123,18 @@ function processMessage(
 ) {
   return async (messagePayload: EachMessagePayload): Promise<void> => {
     try {
-      const decodedMsg = match(messagePayload.topic)
+      const messageDecoder = match(messagePayload.topic)
         .with(catalogTopicConfig.catalogTopic, () =>
-          messageDecoderSupplier(
-            catalogTopicConfig,
-            messagePayload.topic
-          )(messagePayload.message)
+          messageDecoderSupplier(catalogTopicConfig, messagePayload.topic)
         )
         .with(purposeTopicConfig.purposeTopic, () =>
-          messageDecoderSupplier(
-            purposeTopicConfig,
-            messagePayload.topic
-          )(messagePayload.message)
+          messageDecoderSupplier(purposeTopicConfig, messagePayload.topic)
         )
         .otherwise(() => {
-          throw new Error("");
+          throw new Error(`Unknown topic: ${messagePayload.topic}`);
         });
+
+      const decodedMsg = messageDecoder(messagePayload.message);
 
       const ctx = getContext();
       ctx.messageData = {
@@ -162,11 +199,7 @@ function processMessage(
             type: "WaitingForApprovalPurposeDeleted",
           },
           async (msg): Promise<void> => {
-            if (!msg.data.purpose) {
-              throw missingKafkaMessageDataError("purpose", msg.type);
-            }
-
-            const purpose = fromPurposeV2(msg.data.purpose);
+            const purpose = getPurposeFromEvent(msg, msg.type);
 
             const purposeClients = await clients
               .find({
@@ -175,14 +208,80 @@ function processMessage(
               .map(({ data }) => ClientId.parse(data.id))
               .toArray();
 
-            await Promise.all(
-              purposeClients.map((clientId) =>
-                authService.deletePurposeFromClient(purpose.id, clientId)
+            await executeUpdate(msg.type, messagePayload, () =>
+              Promise.all(
+                purposeClients.map((clientId) =>
+                  authService.deletePurposeFromClient(purpose.id, clientId)
+                )
               )
             );
           }
         )
-        .otherwise(() => undefined);
+        .with(
+          {
+            event_version: 2,
+            type: "PurposeVersionSuspended",
+          },
+          {
+            event_version: 2,
+            type: "PurposeVersionSuspendedByConsumer",
+          },
+          {
+            event_version: 2,
+            type: "PurposeVersionSuspendedByProducer",
+          },
+          {
+            event_version: 2,
+            type: "PurposeVersionUnsuspendedByConsumer",
+          },
+          {
+            event_version: 2,
+            type: "PurposeVersionUnsuspendedByProducer",
+          },
+          {
+            event_version: 2,
+            type: "PurposeVersionOverQuotaUnsuspended",
+          },
+          {
+            event_version: 2,
+            type: "NewPurposeVersionActivated",
+          },
+          {
+            event_version: 2,
+            type: "NewPurposeVersionWaitingForApproval",
+          },
+          {
+            event_version: 2,
+            type: "PurposeVersionRejected",
+          },
+          // {
+          //   event_version: 2,
+          //   type: "PurposeActivated",
+          // },
+          // {
+          //   event_version: 2,
+          //   type: "PurposeArchived",
+          // },
+          async (msg): Promise<void> => {
+            const { purposeId, purposeVersion } = getPurposeVersionFromEvent(
+              msg,
+              msg.type
+            );
+
+            // Chiedere di aggiungere purposeVersionId a PurposeActivated, PurposeArchived
+
+            await executeUpdate(msg.type, messagePayload, () =>
+              authService.updatePurposeState(
+                purposeId,
+                purposeVersion.id,
+                purposeVersion.state === purposeVersionState.active
+                  ? "ACTIVE"
+                  : "INACTIVE"
+              )
+            );
+          }
+        )
+        .otherwise(() => void 0);
     } catch (e) {
       throw kafkaMessageProcessError(
         messagePayload.topic,
