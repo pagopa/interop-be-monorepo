@@ -39,6 +39,7 @@ import {
 import {
   toCreateEventDraftPurposeDeleted,
   toCreateEventDraftPurposeUpdated,
+  toCreateEventPurposeArchived,
   toCreateEventPurposeVersionRejected,
   toCreateEventWaitingForApprovalPurposeDeleted,
   toCreateEventWaitingForApprovalPurposeVersionDeleted,
@@ -341,6 +342,54 @@ export function purposeServiceBuilder(
           });
 
       await repository.createEvent(event);
+    },
+    async archivePurposeVersion({
+      purposeId,
+      versionId,
+      organizationId,
+      correlationId,
+    }: {
+      purposeId: PurposeId;
+      versionId: PurposeVersionId;
+      organizationId: TenantId;
+      correlationId: string;
+    }): Promise<PurposeVersion> {
+      const purpose = await retrievePurpose(purposeId, readModelService);
+
+      assertOrganizationIsAConsumer(organizationId, purpose.data.consumerId);
+      const purposeVersion = retrievePurposeVersion(versionId, purpose);
+
+      if (
+        purposeVersion.state !== purposeVersionState.active &&
+        purposeVersion.state !== purposeVersionState.suspended
+      ) {
+        throw notValidVersionState(versionId, purposeVersion.state);
+      }
+
+      const purposeWithoutWaiting: Purpose = {
+        ...purpose.data,
+        versions: purpose.data.versions.filter(
+          (v) => v.state !== purposeVersionState.waitingForApproval
+        ),
+      };
+      const archivedVersion: PurposeVersion = {
+        ...purposeVersion,
+        state: purposeVersionState.rejected,
+        updatedAt: new Date(),
+      };
+      const updatedPurpose = replacePurposeVersion(
+        purposeWithoutWaiting,
+        archivedVersion
+      );
+
+      const event = toCreateEventPurposeArchived({
+        purpose: updatedPurpose,
+        version: purpose.metadata.version,
+        correlationId,
+      });
+
+      await repository.createEvent(event);
+      return archivedVersion;
     },
   };
 }
