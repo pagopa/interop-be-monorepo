@@ -17,7 +17,6 @@ export function zodiosValidationErrorToApiProblem(
   _next: NextFunction
 ): void {
   const detail = `Incorrect value for ${zodError.context}`;
-
   const errors = zodError.error.map((e) => fromZodIssue(e));
 
   res
