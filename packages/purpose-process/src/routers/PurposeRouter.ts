@@ -26,6 +26,7 @@ import {
   getPurposeErrorMapper,
   getRiskAnalysisDocumentErrorMapper,
   rejectPurposeVersionErrorMapper,
+  suspendedPurposeVersionErrorMapper,
   updatePurposeErrorMapper,
 } from "../utilities/errorMappers.js";
 
@@ -251,7 +252,23 @@ const purposeRouter = (
     .post(
       "/purposes/:purposeId/versions/:versionId/suspend",
       authorizationMiddleware([ADMIN_ROLE]),
-      (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          await purposeService.suspendPurposeVersion({
+            purposeId: unsafeBrandId(req.params.purposeId),
+            versionId: unsafeBrandId(req.params.versionId),
+            organizationId: req.ctx.authData.organizationId,
+            correlationId: req.ctx.correlationId,
+          });
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            suspendedPurposeVersionErrorMapper
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/purposes/:purposeId/versions/:versionId/archive",
