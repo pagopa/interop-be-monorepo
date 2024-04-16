@@ -39,6 +39,7 @@ export async function handleMessageV2(
       { type: "PurposeWaitingForApproval" },
       { type: "WaitingForApprovalPurposeVersionDeleted" },
       { type: "PurposeVersionActivated" },
+      { type: "PurposeCloned" },
       async (message) =>
         await purposes.updateOne(
           {
