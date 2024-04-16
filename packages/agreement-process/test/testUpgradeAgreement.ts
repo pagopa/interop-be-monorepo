@@ -13,6 +13,7 @@ import {
   getMockTenant,
   getMockVerifiedTenantAttribute,
   getRandomAuthData,
+  randomArrayItem,
   StoredEvent,
 } from "pagopa-interop-commons-test";
 import {
@@ -73,6 +74,7 @@ import {
   agreements,
   fileManager,
 } from "./agreementService.integration.test.js";
+import { agreementUpgradableStates } from "../src/model/domain/validators.js";
 
 export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
   describe("Upgrade Agreement", () => {
@@ -268,7 +270,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         ...getMockAgreement(
           generateId<EServiceId>(),
           unsafeBrandId<TenantId>(tenantId),
-          agreementState.active
+          randomArrayItem(agreementUpgradableStates)
         ),
         descriptorId,
         producerId: unsafeBrandId<TenantId>(tenantId),
@@ -371,7 +373,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       const agreementSubject = getMockAgreement(
         generateId<EServiceId>(),
         generateId<TenantId>(),
-        agreementState.active
+        randomArrayItem(agreementUpgradableStates)
       );
 
       const validCertifiedTenantAttribute = getMockCertifiedTenantAttribute(
@@ -549,7 +551,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       const agreementSubject = getMockAgreement(
         generateId<EServiceId>(),
         generateId<TenantId>(),
-        agreementState.active
+        randomArrayItem(agreementUpgradableStates)
       );
 
       const validVerifiedTenantAttribute = {
@@ -763,7 +765,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         ...getMockAgreement(
           generateId<EServiceId>(),
           generateId<TenantId>(),
-          agreementState.active
+          randomArrayItem(agreementUpgradableStates)
         ),
         id: agreementId,
       };
@@ -789,7 +791,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         ...getMockAgreement(
           generateId<EServiceId>(),
           tenantId,
-          agreementState.active
+          randomArrayItem(agreementUpgradableStates)
         ),
         id: agreementId,
         state: agreementState.rejected,
@@ -818,10 +820,9 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         ...getMockAgreement(
           generateId<EServiceId>(),
           tenantId,
-          agreementState.active
+          randomArrayItem(agreementUpgradableStates)
         ),
         id: agreementId,
-        state: agreementState.active,
       };
 
       await addOneAgreement(agreement, postgresDB, agreements);
@@ -845,10 +846,9 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         ...getMockAgreement(
           generateId<EServiceId>(),
           tenantId,
-          agreementState.active
+          randomArrayItem(agreementUpgradableStates)
         ),
         id: agreementId,
-        state: agreementState.active,
       };
       await addOneAgreement(agreement, postgresDB, agreements);
 
@@ -881,10 +881,9 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         ...getMockAgreement(
           generateId<EServiceId>(),
           tenantId,
-          agreementState.active
+          randomArrayItem(agreementUpgradableStates)
         ),
         id: agreementId,
-        state: agreementState.active,
       };
       await addOneAgreement(agreement, postgresDB, agreements);
 
@@ -919,10 +918,9 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         ...getMockAgreement(
           generateId<EServiceId>(),
           tenantId,
-          agreementState.active
+          randomArrayItem(agreementUpgradableStates)
         ),
         id: agreementId,
-        state: agreementState.active,
       };
       await addOneAgreement(agreement, postgresDB, agreements);
 
@@ -969,10 +967,9 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         ...getMockAgreement(
           generateId<EServiceId>(),
           tenantId,
-          agreementState.active
+          randomArrayItem(agreementUpgradableStates)
         ),
         id: agreementId,
-        state: agreementState.active,
         descriptorId: deprecatedDescriptor.id,
       };
       await addOneAgreement(agreement, postgresDB, agreements);
@@ -1017,10 +1014,9 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         ...getMockAgreement(
           generateId<EServiceId>(),
           tenantId,
-          agreementState.active
+          randomArrayItem(agreementUpgradableStates)
         ),
         id: agreementId,
-        state: agreementState.active,
         descriptorId: publishedDescriptor.id,
       };
       await addOneAgreement(agreement, postgresDB, agreements);
@@ -1072,10 +1068,9 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         ...getMockAgreement(
           generateId<EServiceId>(),
           tenantId,
-          agreementState.active
+          randomArrayItem(agreementUpgradableStates)
         ),
         id: agreementId,
-        state: agreementState.active,
         descriptorId: deprecatedDescriptor.id,
       };
       await addOneAgreement(agreement, postgresDB, agreements);
@@ -1105,7 +1100,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       const agreementSubject = getMockAgreement(
         generateId<EServiceId>(),
         generateId<TenantId>(),
-        agreementState.active
+        randomArrayItem(agreementUpgradableStates)
       );
 
       const validVerifiedTenantAttribute = {
@@ -1221,7 +1216,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       const agreementSubject = getMockAgreement(
         generateId<EServiceId>(),
         generateId<TenantId>(),
-        agreementState.active
+        randomArrayItem(agreementUpgradableStates)
       );
 
       const validVerifiedTenantAttribute = {
