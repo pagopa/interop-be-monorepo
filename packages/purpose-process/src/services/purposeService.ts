@@ -422,6 +422,10 @@ export function purposeServiceBuilder(
 
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
 
+      if (purposeVersion.state !== purposeVersionState.active) {
+        throw notValidVersionState(purposeVersion.id, purposeVersion.state);
+      }
+
       const suspendedPurposeVersion: PurposeVersion = {
         ...purposeVersion,
         state: purposeVersionState.suspended,
