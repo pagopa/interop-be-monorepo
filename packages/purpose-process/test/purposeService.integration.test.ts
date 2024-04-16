@@ -1400,5 +1400,137 @@ describe("database test", async () => {
         ).rejects.toThrowError(purposeCannotBeDeleted(mockPurpose1.id));
       });
     });
+
+    describe("archivePurposeVersion", () => {
+      it("should write on event-store for the archiving of a purpose", () => {});
+      it("should throw purposeNotFound if the purpose doesn't exist", async () => {
+        const randomPurposeId: PurposeId = generateId();
+        const randomVersionId: PurposeVersionId = generateId();
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
+
+        expect(
+          purposeService.archivePurposeVersion({
+            purposeId: randomPurposeId,
+            versionId: randomVersionId,
+            organizationId: mockPurpose.consumerId,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(purposeNotFound(randomPurposeId));
+      });
+      it("should throw organizationIsNotTheConsumer if the requester is not the consumer", async () => {
+        const randomOrganizationId: TenantId = generateId();
+
+        const mockPurposeVersion: PurposeVersion = {
+          ...getMockPurposeVersion(),
+          state: purposeVersionState.active,
+        };
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          versions: [mockPurposeVersion],
+        };
+
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+
+        expect(
+          purposeService.archivePurposeVersion({
+            purposeId: mockPurpose1.id,
+            versionId: mockPurposeVersion.id,
+            organizationId: randomOrganizationId,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(
+          organizationIsNotTheConsumer(randomOrganizationId)
+        );
+      });
+      it("should throw purposeVersionNotFound if the purpose version doesn't exist", async () => {
+        const randomVersionId: PurposeVersionId = generateId();
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          versions: [],
+        };
+
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+
+        expect(
+          purposeService.archivePurposeVersion({
+            purposeId: mockPurpose1.id,
+            versionId: randomVersionId,
+            organizationId: mockPurpose.consumerId,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(
+          purposeVersionNotFound(mockPurpose1.id, randomVersionId)
+        );
+      });
+      it("should throw notValidVersionState if the purpose version is in draft state", async () => {
+        const mockPurposeVersion: PurposeVersion = {
+          ...getMockPurposeVersion(),
+          state: purposeVersionState.draft,
+        };
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          versions: [mockPurposeVersion],
+        };
+
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+
+        expect(
+          purposeService.archivePurposeVersion({
+            purposeId: mockPurpose1.id,
+            versionId: mockPurposeVersion.id,
+            organizationId: mockPurpose1.consumerId,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(
+          notValidVersionState(mockPurposeVersion.id, mockPurposeVersion.state)
+        );
+      });
+      it("should throw notValidVersionState if the purpose version is in waitingForApproval state", async () => {
+        const mockPurposeVersion: PurposeVersion = {
+          ...getMockPurposeVersion(),
+          state: purposeVersionState.waitingForApproval,
+        };
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          versions: [mockPurposeVersion],
+        };
+
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+
+        expect(
+          purposeService.archivePurposeVersion({
+            purposeId: mockPurpose1.id,
+            versionId: mockPurposeVersion.id,
+            organizationId: mockPurpose1.consumerId,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(
+          notValidVersionState(mockPurposeVersion.id, mockPurposeVersion.state)
+        );
+      });
+      it("should throw notValidVersionState if the purpose version is in rejected state", async () => {
+        const mockPurposeVersion: PurposeVersion = {
+          ...getMockPurposeVersion(),
+          state: purposeVersionState.rejected,
+        };
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          versions: [mockPurposeVersion],
+        };
+
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+
+        expect(
+          purposeService.archivePurposeVersion({
+            purposeId: mockPurpose1.id,
+            versionId: mockPurposeVersion.id,
+            organizationId: mockPurpose1.consumerId,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(
+          notValidVersionState(mockPurposeVersion.id, mockPurposeVersion.state)
+        );
+      });
+    });
   });
 });
