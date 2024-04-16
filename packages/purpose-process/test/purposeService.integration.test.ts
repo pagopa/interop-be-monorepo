@@ -109,9 +109,9 @@ describe("database test", async () => {
 
   describe("Purpose service", () => {
     const mockPurpose = getMockPurpose();
+    const mockEService = getMockEService();
     describe("getPurposeById", () => {
       it("should get the purpose if it exists", async () => {
-        const mockEService = getMockEService();
         const mockTenant = {
           ...getMockTenant(),
           kind: tenantKind.PA,
@@ -167,7 +167,6 @@ describe("database test", async () => {
         ).rejects.toThrowError(eserviceNotFound(notExistingId));
       });
       it("should throw tenantNotFound if the tenant doesn't exist", async () => {
-        const mockEService = getMockEService();
         const notExistingId: TenantId = generateId();
 
         const mockPurpose1: Purpose = {
@@ -182,7 +181,6 @@ describe("database test", async () => {
         ).rejects.toThrowError(tenantNotFound(notExistingId));
       });
       it("should throw tenantKindNotFound if the tenant doesn't exist", async () => {
-        const mockEService = getMockEService();
         const mockTenant = getMockTenant();
 
         const mockPurpose1: Purpose = {
