@@ -2,17 +2,33 @@ import { IDatabase } from "pg-promise";
 import { z } from "zod";
 import { MessageType } from "@protobuf-ts/runtime";
 import {
+  AgreementEvent,
   AgreementId,
+  AttributeEvent,
   AttributeId,
+  EServiceEvent,
   EServiceId,
+  TenantEvent,
   TenantId,
+  agreementEventToBinaryData,
+  attributeEventToBinaryData,
+  catalogEventToBinaryData,
   protobufDecoder,
+  tenantEventToBinaryData,
 } from "pagopa-interop-models";
+import { Event } from "pagopa-interop-commons";
+import { match } from "ts-pattern";
 
-export type StoredEvent = {
+export type StoredEvent<T extends Event> = {
+  stream_id: string;
+  version: number;
+  event: T;
+};
+
+export type ReadEvent<T extends Event> = {
   stream_id: string;
   version: string;
-  type: Event["type"];
+  type: T["type"];
   event_version: number;
   data: Uint8Array;
 };
@@ -30,9 +46,17 @@ export const EventStoreSchema = z.enum([
 ]);
 export type EventStoreSchema = z.infer<typeof EventStoreSchema>;
 
-export async function writeInEventstore(
-  event: StoredEvent,
-  schema: EventStoreSchema,
+export async function writeInEventstore<T extends EventStoreSchema>(
+  event: T extends "agreement"
+    ? StoredEvent<AgreementEvent>
+    : T extends "attribute"
+    ? StoredEvent<AttributeEvent>
+    : T extends "catalog"
+    ? StoredEvent<EServiceEvent>
+    : T extends "tenant"
+    ? StoredEvent<TenantEvent>
+    : never,
+  schema: T,
   postgresDB: IDatabase<unknown>
 ): Promise<void> {
   await postgresDB.none(
@@ -40,9 +64,22 @@ export async function writeInEventstore(
     [
       event.stream_id,
       event.version,
-      event.type,
-      event.event_version,
-      event.data,
+      event.event.type,
+      event.event.event_version,
+      match<EventStoreSchema>(schema)
+        .with("agreement", () =>
+          agreementEventToBinaryData(event.event as AgreementEvent)
+        )
+        .with("attribute", () =>
+          attributeEventToBinaryData(event.event as AttributeEvent)
+        )
+        .with("catalog", () =>
+          catalogEventToBinaryData(event.event as EServiceEvent)
+        )
+        .with("tenant", () =>
+          tenantEventToBinaryData(event.event as TenantEvent)
+        )
+        .exhaustive(),
     ]
   );
 }
@@ -59,7 +96,19 @@ export async function readLastEventByStreamId<T extends EventStoreSchema>(
     : never,
   schema: T,
   postgresDB: IDatabase<unknown>
-): Promise<StoredEvent> {
+): Promise<
+  ReadEvent<
+    T extends "agreement"
+      ? AgreementEvent
+      : T extends "attribute"
+      ? AttributeEvent
+      : T extends "catalog"
+      ? EServiceEvent
+      : T extends "tenant"
+      ? TenantEvent
+      : never
+  >
+> {
   return postgresDB.one(
     `SELECT * FROM ${schema}.events WHERE stream_id = $1 ORDER BY sequence_num DESC LIMIT 1`,
     [streamId]
