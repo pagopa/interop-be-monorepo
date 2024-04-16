@@ -98,6 +98,7 @@ describe("database test", async () => {
 
   afterEach(async () => {
     await purposes.deleteMany({});
+    await eservices.deleteMany({});
 
     await postgresDB.none("TRUNCATE TABLE purpose.events RESTART IDENTITY");
   });
@@ -110,6 +111,7 @@ describe("database test", async () => {
   describe("Purpose service", () => {
     const mockPurpose = getMockPurpose();
     const mockEService = getMockEService();
+    const mockPurposeVersion = getMockPurposeVersion();
     describe("getPurposeById", () => {
       it("should get the purpose if it exists", async () => {
         const mockTenant = {
@@ -199,8 +201,6 @@ describe("database test", async () => {
 
     describe("getRiskAnalysisDocument", () => {
       it("should get the purpose version document", async () => {
-        const mockEService = getMockEService();
-        const mockPurposeVersion = getMockPurposeVersion();
         const mockDocument = getMockPurposeVersionDocument();
         const mockPurpose1: Purpose = {
           ...mockPurpose,
@@ -225,8 +225,6 @@ describe("database test", async () => {
         expect(result).toEqual(mockDocument);
       });
       it("should throw purposeNotFound if the purpose doesn't exist", async () => {
-        const mockEService = getMockEService();
-        const mockPurposeVersion = getMockPurposeVersion();
         const mockDocument = getMockPurposeVersionDocument();
         const mockPurpose1: Purpose = {
           ...mockPurpose,
@@ -251,8 +249,6 @@ describe("database test", async () => {
         ).rejects.toThrowError(purposeNotFound(mockPurpose1.id));
       });
       it("should throw eserviceNotFound if the eservice doesn't exist", async () => {
-        const mockEService = getMockEService();
-        const mockPurposeVersion = getMockPurposeVersion();
         const mockDocument = getMockPurposeVersionDocument();
         const mockPurpose1: Purpose = {
           ...mockPurpose,
@@ -272,8 +268,6 @@ describe("database test", async () => {
         ).rejects.toThrowError(eserviceNotFound(mockEService.id));
       });
       it("should throw purposeVersionNotFound if the purpose version doesn't exist", async () => {
-        const mockEService = getMockEService();
-        const mockPurposeVersion = getMockPurposeVersion();
         const randomVersionId: PurposeVersionId = generateId();
         const randomDocumentId: PurposeVersionDocumentId = generateId();
         const mockDocument = getMockPurposeVersionDocument();
@@ -298,8 +292,6 @@ describe("database test", async () => {
         );
       });
       it("should throw purposeVersionDocumentNotFound if the document doesn't exist", async () => {
-        const mockEService = getMockEService();
-        const mockPurposeVersion = getMockPurposeVersion();
         const mockDocument = getMockPurposeVersionDocument();
         const randomDocumentId: PurposeVersionDocumentId = generateId();
         const mockPurpose1: Purpose = {
@@ -328,8 +320,6 @@ describe("database test", async () => {
       });
       it("should throw organizationNotAllowed if the requester is not the producer not the consumer", async () => {
         const randomId: TenantId = generateId();
-        const mockEService = getMockEService();
-        const mockPurposeVersion = getMockPurposeVersion();
         const mockDocument = getMockPurposeVersionDocument();
         const mockPurpose1: Purpose = {
           ...mockPurpose,
