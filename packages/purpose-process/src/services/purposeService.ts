@@ -1,4 +1,10 @@
-import { AuthData, DB, eventRepository, logger } from "pagopa-interop-commons";
+import {
+  DB,
+  eventRepository,
+  logger,
+  riskAnalysisFormToRiskAnalysisFormToValidate,
+  validateRiskAnalysis,
+} from "pagopa-interop-commons";
 import {
   EService,
   EServiceId,
@@ -113,7 +119,7 @@ export function purposeServiceBuilder(
   return {
     async getPurposeById(
       purposeId: PurposeId,
-      authData: AuthData
+      organizationId: TenantId
     ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(`Retrieving Purpose ${purposeId}`);
 
@@ -122,10 +128,7 @@ export function purposeServiceBuilder(
         purpose.data.eserviceId,
         readModelService
       );
-      const tenant = await retrieveTenant(
-        authData.organizationId,
-        readModelService
-      );
+      const tenant = await retrieveTenant(organizationId, readModelService);
 
       if (tenant.kind === undefined) {
         throw tenantKindNotFound(tenant.id);
@@ -134,7 +137,7 @@ export function purposeServiceBuilder(
       return authorizeRiskAnalysisForm({
         purpose: purpose.data,
         producerId: eservice.producerId,
-        organizationId: authData.organizationId,
+        organizationId,
         tenantKind: tenant.kind,
       });
     },
@@ -142,12 +145,12 @@ export function purposeServiceBuilder(
       purposeId,
       versionId,
       documentId,
-      authData,
+      organizationId,
     }: {
       purposeId: PurposeId;
       versionId: PurposeVersionId;
       documentId: PurposeVersionDocumentId;
-      authData: AuthData;
+      organizationId: TenantId;
     }): Promise<PurposeVersionDocument> {
       const purpose = await retrievePurpose(purposeId, readModelService);
       const eservice = await retrieveEService(
@@ -155,7 +158,7 @@ export function purposeServiceBuilder(
         readModelService
       );
       getOrganizationRole({
-        organizationId: authData.organizationId,
+        organizationId,
         producerId: eservice.producerId,
         consumerId: purpose.data.consumerId,
       });
@@ -166,20 +169,20 @@ export function purposeServiceBuilder(
     async deletePurposeVersion({
       purposeId,
       versionId,
-      authData,
+      organizationId,
       correlationId,
     }: {
       purposeId: PurposeId;
       versionId: PurposeVersionId;
-      authData: AuthData;
+      organizationId: TenantId;
       correlationId: string;
     }): Promise<void> {
       logger.info(`Deleting Version ${versionId} in Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
 
-      if (authData.organizationId !== purpose.data.consumerId) {
-        throw organizationIsNotTheConsumer(authData.organizationId);
+      if (organizationId !== purpose.data.consumerId) {
+        throw organizationIsNotTheConsumer(organizationId);
       }
 
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
