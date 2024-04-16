@@ -68,12 +68,14 @@ export const toCatalogItemModeV1 = (input: EServiceMode): string => {
 export const toCatalogAttributeValueV1 = (
   input: EServiceAttribute[][] | undefined
 ): CatalogAttributeValueV1[][] => {
-  const singleAttribute = (a: EServiceAttribute): CatalogAttributeValueV1 => ({
+  const toCatalogAttributeValue = (
+    a: EServiceAttribute
+  ): CatalogAttributeValueV1 => ({
     id: a.id,
     explicitAttributeVerification: a.explicitAttributeVerification,
   });
 
-  return input ? input.map((a) => a.map(singleAttribute)) : [];
+  return input ? input.map((a) => a.map(toCatalogAttributeValue)) : [];
 };
 
 export const toCatalogDocumentV1 = (
