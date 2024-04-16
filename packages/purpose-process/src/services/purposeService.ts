@@ -1,5 +1,4 @@
 import {
-  AuthData,
   DB,
   eventRepository,
   logger,
@@ -133,7 +132,7 @@ export function purposeServiceBuilder(
       return authorizeRiskAnalysisForm({
         purpose: purpose.data,
         producerId: eservice.producerId,
-        organizationId: authData.organizationId,
+        organizationId,
         tenantKind: tenant.kind,
       });
     },
