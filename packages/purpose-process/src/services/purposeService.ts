@@ -1,4 +1,9 @@
-import { CreateEvent, DB, eventRepository, logger } from "pagopa-interop-commons";
+import {
+  CreateEvent,
+  DB,
+  eventRepository,
+  logger,
+} from "pagopa-interop-commons";
 import {
   EService,
   EServiceId,
