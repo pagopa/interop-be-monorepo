@@ -38,10 +38,12 @@ import {
 } from "pagopa-interop-commons-test";
 import { StartedTestContainer } from "testcontainers";
 import {
+  DraftPurposeDeletedV2,
   DraftPurposeUpdatedV2,
   EService,
   EServiceId,
   Purpose,
+  PurposeArchivedV2,
   PurposeId,
   PurposeVersion,
   PurposeVersionDocumentId,
@@ -49,6 +51,7 @@ import {
   PurposeVersionRejectedV2,
   Tenant,
   TenantId,
+  WaitingForApprovalPurposeDeletedV2,
   WaitingForApprovalPurposeVersionDeletedV2,
   generateId,
   purposeVersionState,
@@ -72,6 +75,7 @@ import {
   organizationIsNotTheConsumer,
   organizationIsNotTheProducer,
   organizationNotAllowed,
+  purposeCannotBeDeleted,
   purposeNotFound,
   purposeVersionCannotBeDeleted,
   purposeVersionDocumentNotFound,
@@ -931,269 +935,718 @@ describe("database test", async () => {
       });
     });
 
+    describe("updatePurpose and reverseUpdatePurpose", () => {
+      it("Should write on event store for the update of a purpose of an e-service in mode DELIVER", async () => {
+        const consumerTenantKind = randomArrayItem(Object.values(tenantKind));
+        const consumer: Tenant = {
+          ...getMockTenant(),
+          kind: consumerTenantKind,
+        };
+
+        const mockEservice: EService = {
+          ...getMockEService(),
+          mode: "Deliver",
+        };
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
+          eserviceId: mockEservice.id,
+          consumerId: consumer.id,
+          versions: [
+            {
+              ...getMockPurposeVersion(),
+              state: purposeVersionState.draft,
+            },
+          ],
+        };
+
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(mockEservice), eservices);
+        await writeInReadmodel(consumer, tenants);
+
+        const mockValidRiskAnalysis =
+          getMockValidRiskAnalysis(consumerTenantKind);
+
+        const purposeUpdateContent: PurposeUpdateContent = {
+          title: "test",
+          dailyCalls: 10,
+          description: "test",
+          isFreeOfCharge: false,
+          riskAnalysisForm: buildRiskAnalysisSeed(mockValidRiskAnalysis),
+        };
+
+        await purposeService.updatePurpose({
+          purposeId: mockPurpose.id,
+          purposeUpdateContent,
+          organizationId: consumer.id,
+          correlationId: generateId(),
+        });
+
+        const writtenEvent = await readLastEventByStreamId(
+          mockPurpose.id,
+          "purpose",
+          postgresDB
+        );
+
+        expect(writtenEvent).toMatchObject({
+          stream_id: mockPurpose.id,
+          version: "1",
+          type: "DraftPurposeUpdated",
+          event_version: 2,
+        });
+
+        const writtenPayload = decodeProtobufPayload({
+          messageType: DraftPurposeUpdatedV2,
+          payload: writtenEvent.data,
+        });
+
+        const expectedPurpose: Purpose = {
+          ...mockPurpose,
+          title: purposeUpdateContent.title,
+          description: purposeUpdateContent.description,
+          isFreeOfCharge: purposeUpdateContent.isFreeOfCharge,
+          riskAnalysisForm: {
+            ...mockValidRiskAnalysis.riskAnalysisForm,
+            id: unsafeBrandId(writtenPayload.purpose!.riskAnalysisForm!.id),
+            singleAnswers:
+              mockValidRiskAnalysis.riskAnalysisForm.singleAnswers.map(
+                (singleAnswer) => ({
+                  ...singleAnswer,
+                  id: unsafeBrandId(
+                    writtenPayload.purpose!.riskAnalysisForm!.singleAnswers.find(
+                      (sa) => sa.key === singleAnswer.key
+                    )!.id
+                  ),
+                })
+              ),
+            multiAnswers:
+              mockValidRiskAnalysis.riskAnalysisForm.multiAnswers.map(
+                (multiAnswer) => ({
+                  ...multiAnswer,
+                  id: unsafeBrandId(
+                    writtenPayload.purpose!.riskAnalysisForm!.multiAnswers.find(
+                      (ma) => ma.key === multiAnswer.key
+                    )!.id
+                  ),
+                })
+              ),
+          },
+        };
+
+        expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+      });
+      it("Should write on event store for the update of a purpose of an e-service in mode RECEIVE", async () => {
+        const producerTenantKind = randomArrayItem(Object.values(tenantKind));
+        const producer: Tenant = {
+          ...getMockTenant(),
+          kind: producerTenantKind,
+        };
+
+        const mockEservice: EService = {
+          ...getMockEService(),
+          mode: "Receive",
+          producerId: producer.id,
+        };
+
+        const mockValidRiskAnalysis =
+          getMockValidRiskAnalysis(producerTenantKind);
+
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
+          eserviceId: mockEservice.id,
+          consumerId: producer.id,
+          versions: [
+            {
+              ...getMockPurposeVersion(),
+              state: purposeVersionState.draft,
+            },
+          ],
+          riskAnalysisForm: {
+            ...mockValidRiskAnalysis.riskAnalysisForm,
+            id: generateId(),
+            singleAnswers:
+              mockValidRiskAnalysis.riskAnalysisForm.singleAnswers.map(
+                (singleAnswer) => ({
+                  ...singleAnswer,
+                  id: generateId(),
+                })
+              ),
+            multiAnswers:
+              mockValidRiskAnalysis.riskAnalysisForm.multiAnswers.map(
+                (multiAnswer) => ({
+                  ...multiAnswer,
+                  id: generateId(),
+                })
+              ),
+          },
+        };
+
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(mockEservice), eservices);
+        await writeInReadmodel(producer, tenants);
+
+        const reversePurposeUpdateContent: ReversePurposeUpdateContent = {
+          title: "test",
+          dailyCalls: 10,
+          description: "test",
+          isFreeOfCharge: false,
+        };
+
+        await purposeService.updateReversePurpose({
+          purposeId: mockPurpose.id,
+          reversePurposeUpdateContent,
+          organizationId: producer.id,
+          correlationId: generateId(),
+        });
+
+        const writtenEvent = await readLastEventByStreamId(
+          mockPurpose.id,
+          "purpose",
+          postgresDB
+        );
+
+        expect(writtenEvent).toMatchObject({
+          stream_id: mockPurpose.id,
+          version: "1",
+          type: "DraftPurposeUpdated",
+          event_version: 2,
+        });
+
+        const writtenPayload = decodeProtobufPayload({
+          messageType: DraftPurposeUpdatedV2,
+          payload: writtenEvent.data,
+        });
+
+        const expectedPurpose: Purpose = {
+          ...mockPurpose,
+          title: reversePurposeUpdateContent.title,
+          description: reversePurposeUpdateContent.description,
+          isFreeOfCharge: reversePurposeUpdateContent.isFreeOfCharge,
+          riskAnalysisForm: {
+            ...mockValidRiskAnalysis.riskAnalysisForm,
+            id: unsafeBrandId(writtenPayload.purpose!.riskAnalysisForm!.id),
+            singleAnswers:
+              mockValidRiskAnalysis.riskAnalysisForm.singleAnswers.map(
+                (singleAnswer) => ({
+                  ...singleAnswer,
+                  id: unsafeBrandId(
+                    writtenPayload.purpose!.riskAnalysisForm!.singleAnswers.find(
+                      (sa) => sa.key === singleAnswer.key
+                    )!.id
+                  ),
+                })
+              ),
+            multiAnswers:
+              mockValidRiskAnalysis.riskAnalysisForm.multiAnswers.map(
+                (multiAnswer) => ({
+                  ...multiAnswer,
+                  id: unsafeBrandId(
+                    writtenPayload.purpose!.riskAnalysisForm!.multiAnswers.find(
+                      (ma) => ma.key === multiAnswer.key
+                    )!.id
+                  ),
+                })
+              ),
+          },
+        };
+
+        expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+      });
+    });
+
     describe("deletePurpose", () => {
-      it("should write on event-store for the deletion of a purpose (no versions)", () => {
-        expect(1).toBe(1);
-      });
-      it("should write on event-store for the deletion of a purpose (draft version)", () => {
-        expect(1).toBe(1);
-      });
-      it("should write on event-store for the deletion of a purpose (waiting for approval version)", () => {
-        expect(1).toBe(1);
-      });
-      it("should throw organizationIsNotAConsumer if the requester is not the consumer", () => {
-        expect(1).toBe(1);
-      });
-      it("should throw purposeCannotBeDeleted if the purpose has an active version ", () => {
-        expect(1).toBe(1);
-      });
-      it("should throw purposeCannotBeDeleted if the purpose has a rejected version ", () => {
-        expect(1).toBe(1);
-      });
-      it("should throw purposeCannotBeDeleted if the purpose has a suspeneded version ", () => {
-        expect(1).toBe(1);
-      });
-      it("should throw purposeCannotBeDeleted if the purpose has an archived version ", () => {
-        expect(1).toBe(1);
-      });
-    });
+      it("should write on event-store for the deletion of a purpose (no versions)", async () => {
+        const mockEService = getMockEService();
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          eserviceId: mockEService.id,
+          versions: [],
+        };
 
-    describe("archivePurpose", () => {
-      it("should write on event-store for the archiving of a purpose", () => {
-        expect(1).toBe(1);
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+        await purposeService.deletePurpose({
+          purposeId: mockPurpose1.id,
+          organizationId: mockPurpose.consumerId,
+          correlationId: generateId(),
+        });
+
+        const writtenEvent = await readLastEventByStreamId(
+          mockPurpose1.id,
+          "purpose",
+          postgresDB
+        );
+
+        expect(writtenEvent).toMatchObject({
+          stream_id: mockPurpose1.id,
+          version: "1",
+          type: "DraftPurposeDeleted",
+          event_version: 2,
+        });
+
+        const writtenPayload = decodeProtobufPayload({
+          messageType: DraftPurposeDeletedV2,
+          payload: writtenEvent.data,
+        });
+
+        expect(writtenPayload.purpose).toEqual(toPurposeV2(mockPurpose1));
+      });
+      it("should write on event-store for the deletion of a purpose (draft version)", async () => {
+        const mockEService = getMockEService();
+        const mockPurposeVersion = {
+          ...getMockPurposeVersion(),
+          state: purposeVersionState.draft,
+        };
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          eserviceId: mockEService.id,
+          versions: [mockPurposeVersion],
+        };
+
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+        await purposeService.deletePurpose({
+          purposeId: mockPurpose1.id,
+          organizationId: mockPurpose.consumerId,
+          correlationId: generateId(),
+        });
+
+        const writtenEvent = await readLastEventByStreamId(
+          mockPurpose1.id,
+          "purpose",
+          postgresDB
+        );
+
+        expect(writtenEvent).toMatchObject({
+          stream_id: mockPurpose1.id,
+          version: "1",
+          type: "DraftPurposeDeleted",
+          event_version: 2,
+        });
+
+        const writtenPayload = decodeProtobufPayload({
+          messageType: DraftPurposeDeletedV2,
+          payload: writtenEvent.data,
+        });
+
+        expect(writtenPayload.purpose).toEqual(toPurposeV2(mockPurpose1));
+      });
+      it("should write on event-store for the deletion of a purpose (waiting for approval version)", async () => {
+        const mockEService = getMockEService();
+        const mockPurposeVersion = {
+          ...getMockPurposeVersion(),
+          state: purposeVersionState.waitingForApproval,
+        };
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          eserviceId: mockEService.id,
+          versions: [mockPurposeVersion],
+        };
+
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+        await purposeService.deletePurpose({
+          purposeId: mockPurpose1.id,
+          organizationId: mockPurpose.consumerId,
+          correlationId: generateId(),
+        });
+
+        const writtenEvent = await readLastEventByStreamId(
+          mockPurpose1.id,
+          "purpose",
+          postgresDB
+        );
+
+        expect(writtenEvent).toMatchObject({
+          stream_id: mockPurpose1.id,
+          version: "1",
+          type: "WaitingForApprovalPurposeDeleted",
+          event_version: 2,
+        });
+
+        const writtenPayload = decodeProtobufPayload({
+          messageType: WaitingForApprovalPurposeDeletedV2,
+          payload: writtenEvent.data,
+        });
+
+        expect(writtenPayload.purpose).toEqual(toPurposeV2(mockPurpose1));
       });
       it("should throw purposeNotFound if the purpose doesn't exist", () => {
-        expect(1).toBe(1);
+        expect(
+          purposeService.deletePurpose({
+            purposeId: mockPurpose.id,
+            organizationId: mockPurpose.consumerId,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(purposeNotFound(mockPurpose.id));
       });
-      it("should throw purposeVersionNotFound if the purpose version doesn't exist", () => {
-        expect(1).toBe(1);
+      it("should throw organizationIsNotTheConsumer if the requester is not the consumer", async () => {
+        const mockEService = getMockEService();
+        const mockPurposeVersion: PurposeVersion = {
+          ...getMockPurposeVersion(),
+          state: purposeVersionState.draft,
+        };
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          eserviceId: mockEService.id,
+          versions: [mockPurposeVersion],
+        };
+
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+        expect(
+          purposeService.deletePurpose({
+            purposeId: mockPurpose1.id,
+            organizationId: mockEService.producerId,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(
+          organizationIsNotTheConsumer(mockEService.producerId)
+        );
       });
-      it("should throw organizationIsNotAConsumer if the requester is not the consumer", () => {
-        expect(1).toBe(1);
+      it("should throw purposeCannotBeDeleted if the purpose has an active version ", async () => {
+        const mockEService = getMockEService();
+        const mockPurposeVersion: PurposeVersion = {
+          ...getMockPurposeVersion(),
+          state: purposeVersionState.active,
+        };
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          eserviceId: mockEService.id,
+          versions: [mockPurposeVersion],
+        };
+
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+        expect(
+          purposeService.deletePurpose({
+            purposeId: mockPurpose1.id,
+            organizationId: mockPurpose1.consumerId,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(purposeCannotBeDeleted(mockPurpose1.id));
+      });
+      it("should throw purposeCannotBeDeleted if the purpose has a rejected version ", async () => {
+        const mockEService = getMockEService();
+        const mockPurposeVersion: PurposeVersion = {
+          ...getMockPurposeVersion(),
+          state: purposeVersionState.rejected,
+        };
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          eserviceId: mockEService.id,
+          versions: [mockPurposeVersion],
+        };
+
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+        expect(
+          purposeService.deletePurpose({
+            purposeId: mockPurpose1.id,
+            organizationId: mockPurpose1.consumerId,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(purposeCannotBeDeleted(mockPurpose1.id));
+      });
+      it("should throw purposeCannotBeDeleted if the purpose has a suspeneded version ", async () => {
+        const mockEService = getMockEService();
+        const mockPurposeVersion: PurposeVersion = {
+          ...getMockPurposeVersion(),
+          state: purposeVersionState.suspended,
+          suspendedAt: new Date(),
+        };
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          eserviceId: mockEService.id,
+          versions: [mockPurposeVersion],
+        };
+
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+        expect(
+          purposeService.deletePurpose({
+            purposeId: mockPurpose1.id,
+            organizationId: mockPurpose1.consumerId,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(purposeCannotBeDeleted(mockPurpose1.id));
+      });
+      it("should throw purposeCannotBeDeleted if the purpose has an archived version ", async () => {
+        const mockEService = getMockEService();
+        const mockPurposeVersion: PurposeVersion = {
+          ...getMockPurposeVersion(),
+          state: purposeVersionState.archived,
+        };
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          eserviceId: mockEService.id,
+          versions: [mockPurposeVersion],
+        };
+
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+        expect(
+          purposeService.deletePurpose({
+            purposeId: mockPurpose1.id,
+            organizationId: mockPurpose1.consumerId,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(purposeCannotBeDeleted(mockPurpose1.id));
       });
     });
 
-    describe("suspendPurposeVersion", () => {
-      it("should write on event-store for the suspension of a purpose", () => {
-        expect(1).toBe(1);
+    describe("archivePurposeVersion", () => {
+      it("should write on event-store for the archiving of a purpose version", async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date());
+
+        const mockEService = getMockEService();
+        const mockPurposeVersion: PurposeVersion = {
+          ...getMockPurposeVersion(),
+          state: purposeVersionState.active,
+        };
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          versions: [mockPurposeVersion],
+        };
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+        await purposeService.archivePurposeVersion({
+          purposeId: mockPurpose1.id,
+          versionId: mockPurposeVersion.id,
+          organizationId: mockPurpose.consumerId,
+          correlationId: generateId(),
+        });
+
+        const writtenEvent = await readLastEventByStreamId(
+          mockPurpose1.id,
+          "purpose",
+          postgresDB
+        );
+
+        expect(writtenEvent).toMatchObject({
+          stream_id: mockPurpose1.id,
+          version: "1",
+          type: "PurposeArchived",
+          event_version: 2,
+        });
+
+        const expectedPurpose: Purpose = {
+          ...mockPurpose1,
+          versions: [
+            {
+              ...mockPurposeVersion,
+              state: purposeVersionState.rejected,
+              updatedAt: new Date(),
+            },
+          ],
+        };
+
+        const writtenPayload = decodeProtobufPayload({
+          messageType: PurposeArchivedV2,
+          payload: writtenEvent.data,
+        });
+
+        expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+
+        vi.useRealTimers();
       });
-      it("should throw purposeNotFound if the purpose doesn't exist", () => {
-        expect(1).toBe(1);
+      it("should write on event-store for the archiving of a purpose version, and delete waitingForApprovalVersions", async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date());
+
+        const mockEService = getMockEService();
+        const mockPurposeVersion1: PurposeVersion = {
+          ...getMockPurposeVersion(),
+          state: purposeVersionState.active,
+        };
+        const mockPurposeVersion2: PurposeVersion = {
+          ...getMockPurposeVersion(),
+          state: purposeVersionState.waitingForApproval,
+        };
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          versions: [mockPurposeVersion1, mockPurposeVersion2],
+        };
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+        await purposeService.archivePurposeVersion({
+          purposeId: mockPurpose1.id,
+          versionId: mockPurposeVersion1.id,
+          organizationId: mockPurpose.consumerId,
+          correlationId: generateId(),
+        });
+
+        const writtenEvent = await readLastEventByStreamId(
+          mockPurpose1.id,
+          "purpose",
+          postgresDB
+        );
+
+        expect(writtenEvent).toMatchObject({
+          stream_id: mockPurpose1.id,
+          version: "1",
+          type: "PurposeArchived",
+          event_version: 2,
+        });
+
+        const expectedPurpose: Purpose = {
+          ...mockPurpose1,
+          versions: [
+            {
+              ...mockPurposeVersion1,
+              state: purposeVersionState.rejected,
+              updatedAt: new Date(),
+            },
+          ],
+        };
+
+        const writtenPayload = decodeProtobufPayload({
+          messageType: PurposeArchivedV2,
+          payload: writtenEvent.data,
+        });
+
+        expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+
+        vi.useRealTimers();
       });
-      it("should throw purposeVersionNotFound if the purpose version doesn't exist", () => {
-        expect(1).toBe(1);
+      it("should throw purposeNotFound if the purpose doesn't exist", async () => {
+        const randomPurposeId: PurposeId = generateId();
+        const randomVersionId: PurposeVersionId = generateId();
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
+
+        expect(
+          purposeService.archivePurposeVersion({
+            purposeId: randomPurposeId,
+            versionId: randomVersionId,
+            organizationId: mockPurpose.consumerId,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(purposeNotFound(randomPurposeId));
       });
-    });
-  });
-  describe("updatePurpose and reverseUpdatePurpose", () => {
-    it("Should write on event store for the update of a purpose of an e-service in mode DELIVER", async () => {
-      const consumerTenantKind = randomArrayItem(Object.values(tenantKind));
-      const consumer: Tenant = {
-        ...getMockTenant(),
-        kind: consumerTenantKind,
-      };
+      it("should throw organizationIsNotTheConsumer if the requester is not the consumer", async () => {
+        const randomOrganizationId: TenantId = generateId();
 
-      const mockEservice: EService = { ...getMockEService(), mode: "Deliver" };
-      const mockPurpose: Purpose = {
-        ...getMockPurpose(),
-        eserviceId: mockEservice.id,
-        consumerId: consumer.id,
-        versions: [
-          {
-            ...getMockPurposeVersion(),
-            state: purposeVersionState.draft,
-          },
-        ],
-      };
+        const mockPurposeVersion: PurposeVersion = {
+          ...getMockPurposeVersion(),
+          state: purposeVersionState.active,
+        };
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          versions: [mockPurposeVersion],
+        };
 
-      await addOnePurpose(mockPurpose, postgresDB, purposes);
-      await writeInReadmodel(toReadModelEService(mockEservice), eservices);
-      await writeInReadmodel(consumer, tenants);
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
 
-      const mockValidRiskAnalysis =
-        getMockValidRiskAnalysis(consumerTenantKind);
-
-      const purposeUpdateContent: PurposeUpdateContent = {
-        title: "test",
-        dailyCalls: 10,
-        description: "test",
-        isFreeOfCharge: false,
-        riskAnalysisForm: buildRiskAnalysisSeed(mockValidRiskAnalysis),
-      };
-
-      await purposeService.updatePurpose({
-        purposeId: mockPurpose.id,
-        purposeUpdateContent,
-        organizationId: consumer.id,
-        correlationId: generateId(),
+        expect(
+          purposeService.archivePurposeVersion({
+            purposeId: mockPurpose1.id,
+            versionId: mockPurposeVersion.id,
+            organizationId: randomOrganizationId,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(
+          organizationIsNotTheConsumer(randomOrganizationId)
+        );
       });
+      it("should throw purposeVersionNotFound if the purpose version doesn't exist", async () => {
+        const randomVersionId: PurposeVersionId = generateId();
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          versions: [],
+        };
 
-      const writtenEvent = await readLastEventByStreamId(
-        mockPurpose.id,
-        "purpose",
-        postgresDB
-      );
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
 
-      expect(writtenEvent).toMatchObject({
-        stream_id: mockPurpose.id,
-        version: "1",
-        type: "DraftPurposeUpdated",
-        event_version: 2,
+        expect(
+          purposeService.archivePurposeVersion({
+            purposeId: mockPurpose1.id,
+            versionId: randomVersionId,
+            organizationId: mockPurpose.consumerId,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(
+          purposeVersionNotFound(mockPurpose1.id, randomVersionId)
+        );
       });
+      it("should throw notValidVersionState if the purpose version is in draft state", async () => {
+        const mockPurposeVersion: PurposeVersion = {
+          ...getMockPurposeVersion(),
+          state: purposeVersionState.draft,
+        };
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          versions: [mockPurposeVersion],
+        };
 
-      const writtenPayload = decodeProtobufPayload({
-        messageType: DraftPurposeUpdatedV2,
-        payload: writtenEvent.data,
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+
+        expect(
+          purposeService.archivePurposeVersion({
+            purposeId: mockPurpose1.id,
+            versionId: mockPurposeVersion.id,
+            organizationId: mockPurpose1.consumerId,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(
+          notValidVersionState(mockPurposeVersion.id, mockPurposeVersion.state)
+        );
       });
+      it("should throw notValidVersionState if the purpose version is in waitingForApproval state", async () => {
+        const mockPurposeVersion: PurposeVersion = {
+          ...getMockPurposeVersion(),
+          state: purposeVersionState.waitingForApproval,
+        };
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          versions: [mockPurposeVersion],
+        };
 
-      const expectedPurpose: Purpose = {
-        ...mockPurpose,
-        title: purposeUpdateContent.title,
-        description: purposeUpdateContent.description,
-        isFreeOfCharge: purposeUpdateContent.isFreeOfCharge,
-        riskAnalysisForm: {
-          ...mockValidRiskAnalysis.riskAnalysisForm,
-          id: unsafeBrandId(writtenPayload.purpose!.riskAnalysisForm!.id),
-          singleAnswers:
-            mockValidRiskAnalysis.riskAnalysisForm.singleAnswers.map(
-              (singleAnswer) => ({
-                ...singleAnswer,
-                id: unsafeBrandId(
-                  writtenPayload.purpose!.riskAnalysisForm!.singleAnswers.find(
-                    (sa) => sa.key === singleAnswer.key
-                  )!.id
-                ),
-              })
-            ),
-          multiAnswers: mockValidRiskAnalysis.riskAnalysisForm.multiAnswers.map(
-            (multiAnswer) => ({
-              ...multiAnswer,
-              id: unsafeBrandId(
-                writtenPayload.purpose!.riskAnalysisForm!.multiAnswers.find(
-                  (ma) => ma.key === multiAnswer.key
-                )!.id
-              ),
-            })
-          ),
-        },
-      };
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
 
-      expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    });
-    it("Should write on event store for the update of a purpose of an e-service in mode RECEIVE", async () => {
-      const producerTenantKind = randomArrayItem(Object.values(tenantKind));
-      const producer: Tenant = {
-        ...getMockTenant(),
-        kind: producerTenantKind,
-      };
-
-      const mockEservice: EService = {
-        ...getMockEService(),
-        mode: "Receive",
-        producerId: producer.id,
-      };
-
-      const mockValidRiskAnalysis =
-        getMockValidRiskAnalysis(producerTenantKind);
-
-      const mockPurpose: Purpose = {
-        ...getMockPurpose(),
-        eserviceId: mockEservice.id,
-        consumerId: producer.id,
-        versions: [
-          {
-            ...getMockPurposeVersion(),
-            state: purposeVersionState.draft,
-          },
-        ],
-        riskAnalysisForm: {
-          ...mockValidRiskAnalysis.riskAnalysisForm,
-          id: generateId(),
-          singleAnswers:
-            mockValidRiskAnalysis.riskAnalysisForm.singleAnswers.map(
-              (singleAnswer) => ({
-                ...singleAnswer,
-                id: generateId(),
-              })
-            ),
-          multiAnswers: mockValidRiskAnalysis.riskAnalysisForm.multiAnswers.map(
-            (multiAnswer) => ({
-              ...multiAnswer,
-              id: generateId(),
-            })
-          ),
-        },
-      };
-
-      await addOnePurpose(mockPurpose, postgresDB, purposes);
-      await writeInReadmodel(toReadModelEService(mockEservice), eservices);
-      await writeInReadmodel(producer, tenants);
-
-      const reversePurposeUpdateContent: ReversePurposeUpdateContent = {
-        title: "test",
-        dailyCalls: 10,
-        description: "test",
-        isFreeOfCharge: false,
-      };
-
-      await purposeService.updateReversePurpose({
-        purposeId: mockPurpose.id,
-        reversePurposeUpdateContent,
-        organizationId: producer.id,
-        correlationId: generateId(),
+        expect(
+          purposeService.archivePurposeVersion({
+            purposeId: mockPurpose1.id,
+            versionId: mockPurposeVersion.id,
+            organizationId: mockPurpose1.consumerId,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(
+          notValidVersionState(mockPurposeVersion.id, mockPurposeVersion.state)
+        );
       });
+      it("should throw notValidVersionState if the purpose version is in rejected state", async () => {
+        const mockPurposeVersion: PurposeVersion = {
+          ...getMockPurposeVersion(),
+          state: purposeVersionState.rejected,
+        };
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          versions: [mockPurposeVersion],
+        };
 
-      const writtenEvent = await readLastEventByStreamId(
-        mockPurpose.id,
-        "purpose",
-        postgresDB
-      );
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
 
-      expect(writtenEvent).toMatchObject({
-        stream_id: mockPurpose.id,
-        version: "1",
-        type: "DraftPurposeUpdated",
-        event_version: 2,
+        expect(
+          purposeService.archivePurposeVersion({
+            purposeId: mockPurpose1.id,
+            versionId: mockPurposeVersion.id,
+            organizationId: mockPurpose1.consumerId,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(
+          notValidVersionState(mockPurposeVersion.id, mockPurposeVersion.state)
+        );
       });
-
-      const writtenPayload = decodeProtobufPayload({
-        messageType: DraftPurposeUpdatedV2,
-        payload: writtenEvent.data,
-      });
-
-      const expectedPurpose: Purpose = {
-        ...mockPurpose,
-        title: reversePurposeUpdateContent.title,
-        description: reversePurposeUpdateContent.description,
-        isFreeOfCharge: reversePurposeUpdateContent.isFreeOfCharge,
-        riskAnalysisForm: {
-          ...mockValidRiskAnalysis.riskAnalysisForm,
-          id: unsafeBrandId(writtenPayload.purpose!.riskAnalysisForm!.id),
-          singleAnswers:
-            mockValidRiskAnalysis.riskAnalysisForm.singleAnswers.map(
-              (singleAnswer) => ({
-                ...singleAnswer,
-                id: unsafeBrandId(
-                  writtenPayload.purpose!.riskAnalysisForm!.singleAnswers.find(
-                    (sa) => sa.key === singleAnswer.key
-                  )!.id
-                ),
-              })
-            ),
-          multiAnswers: mockValidRiskAnalysis.riskAnalysisForm.multiAnswers.map(
-            (multiAnswer) => ({
-              ...multiAnswer,
-              id: unsafeBrandId(
-                writtenPayload.purpose!.riskAnalysisForm!.multiAnswers.find(
-                  (ma) => ma.key === multiAnswer.key
-                )!.id
-              ),
-            })
-          ),
-        },
-      };
-
-      expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
     });
   });
 });
