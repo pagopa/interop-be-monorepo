@@ -4,13 +4,12 @@ import { EachMessagePayload } from "kafkajs";
 import {
   CatalogTopicConfig,
   catalogTopicConfig,
-  getContext,
   kafkaConsumerConfig,
   logger,
   loggerConfig,
   messageDecoderSupplier,
+  runWithContext,
 } from "pagopa-interop-commons";
-import { v4 as uuidv4 } from "uuid";
 import { toCatalogItemEventNotification } from "./models/catalogItemEventNotificationConverter.js";
 import { buildCatalogMessage } from "./models/catalogItemEventNotificationMessage.js";
 import { initQueueManager } from "./queue-manager/queueManager.js";
@@ -35,25 +34,31 @@ export function processMessage(topicConfig: CatalogTopicConfig) {
 
     const decodedMessage = messageDecoder(kafkaMessage.message);
 
-    const ctx = getContext();
-    ctx.messageData = {
-      eventType: decodedMessage.type,
-      eventVersion: decodedMessage.event_version,
-      streamId: decodedMessage.stream_id,
-    };
-    ctx.correlationId = decodedMessage.correlation_id || uuidv4();
+    runWithContext(
+      {
+        messageData: {
+          eventType: decodedMessage.type,
+          eventVersion: decodedMessage.event_version,
+          streamId: decodedMessage.stream_id,
+        },
+        correlationId: decodedMessage.correlation_id,
+      },
+      async () => {
+        if (decodedMessage.event_version !== 2) {
+          logger.info(
+            `Event with version ${decodedMessage.event_version} skipped`
+          );
+          return;
+        }
 
-    if (decodedMessage.event_version !== 2) {
-      logger.info(`Event with version ${decodedMessage.event_version} skipped`);
-      return;
-    }
+        const eserviceV1Event = toCatalogItemEventNotification(decodedMessage);
+        const message = buildCatalogMessage(decodedMessage, eserviceV1Event);
+        await queueManager.send(message);
 
-    const eserviceV1Event = toCatalogItemEventNotification(decodedMessage);
-    const message = buildCatalogMessage(decodedMessage, eserviceV1Event);
-    await queueManager.send(message);
-
-    logger.info(
-      `Notification message [${message.messageUUID}] sent to queue ${queueConfig.queueUrl} for event type "${decodedMessage.type}"`
+        logger.info(
+          `Notification message [${message.messageUUID}] sent to queue ${queueConfig.queueUrl} for event type "${decodedMessage.type}"`
+        );
+      }
     );
   };
 }
