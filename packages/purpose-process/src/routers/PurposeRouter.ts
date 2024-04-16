@@ -20,6 +20,7 @@ import { config } from "../utilities/config.js";
 import { purposeServiceBuilder } from "../services/purposeService.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
+  archivePurposeVersionErrorMapper,
   deletePurposeErrorMapper,
   deletePurposeVersionErrorMapper,
   getPurposeErrorMapper,
@@ -270,7 +271,7 @@ const purposeRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            rejectPurposeVersionErrorMapper
+            archivePurposeVersionErrorMapper
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
