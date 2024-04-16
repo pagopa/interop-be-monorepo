@@ -141,7 +141,7 @@ describe("database test", async () => {
 
         const result = await purposeService.getPurposeById(
           mockPurpose1.id,
-          getMockAuthData(mockTenant.id)
+          mockTenant.id
         );
         expect(result).toMatchObject({
           purpose: mockPurpose1,
@@ -153,7 +153,7 @@ describe("database test", async () => {
         await addOnePurpose(mockPurpose, postgresDB, purposes);
 
         expect(
-          purposeService.getPurposeById(notExistingId, getMockAuthData())
+          purposeService.getPurposeById(notExistingId, generateId())
         ).rejects.toThrowError(purposeNotFound(notExistingId));
       });
       it("should throw eserviceNotFound if the eservice doesn't exist", async () => {
@@ -177,10 +177,7 @@ describe("database test", async () => {
         await writeInReadmodel(mockTenant, tenants);
 
         expect(
-          purposeService.getPurposeById(
-            mockPurpose1.id,
-            getMockAuthData(mockTenant.id)
-          )
+          purposeService.getPurposeById(mockPurpose1.id, mockTenant.id)
         ).rejects.toThrowError(eserviceNotFound(notExistingId));
       });
       it("should throw tenantNotFound if the tenant doesn't exist", async () => {
@@ -201,10 +198,7 @@ describe("database test", async () => {
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         expect(
-          purposeService.getPurposeById(
-            mockPurpose1.id,
-            getMockAuthData(notExistingId)
-          )
+          purposeService.getPurposeById(mockPurpose1.id, notExistingId)
         ).rejects.toThrowError(tenantNotFound(notExistingId));
       });
       it("should throw tenantKindNotFound if the tenant doesn't exist", async () => {
@@ -226,10 +220,7 @@ describe("database test", async () => {
         await writeInReadmodel(mockTenant, tenants);
 
         expect(
-          purposeService.getPurposeById(
-            mockPurpose1.id,
-            getMockAuthData(mockTenant.id)
-          )
+          purposeService.getPurposeById(mockPurpose1.id, mockTenant.id)
         ).rejects.toThrowError(tenantKindNotFound(mockTenant.id));
       });
     });
@@ -257,7 +248,7 @@ describe("database test", async () => {
           purposeId: mockPurpose1.id,
           versionId: mockPurposeVersion.id,
           documentId: mockDocument.id,
-          authData: getMockAuthData(mockEService.producerId),
+          organizationId: mockEService.producerId,
         });
         expect(result).toEqual(mockDocument);
       });
@@ -283,7 +274,7 @@ describe("database test", async () => {
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
             documentId: mockDocument.id,
-            authData: getMockAuthData(mockEService.producerId),
+            organizationId: mockEService.producerId,
           })
         ).rejects.toThrowError(purposeNotFound(mockPurpose1.id));
       });
@@ -304,7 +295,7 @@ describe("database test", async () => {
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
             documentId: mockDocument.id,
-            authData: getMockAuthData(mockEService.producerId),
+            organizationId: mockEService.producerId,
           })
         ).rejects.toThrowError(eserviceNotFound(mockEService.id));
       });
@@ -328,7 +319,7 @@ describe("database test", async () => {
             purposeId: mockPurpose1.id,
             versionId: randomVersionId,
             documentId: randomDocumentId,
-            authData: getMockAuthData(mockEService.producerId),
+            organizationId: mockEService.producerId,
           })
         ).rejects.toThrowError(
           purposeVersionNotFound(mockPurpose1.id, randomVersionId)
@@ -353,7 +344,7 @@ describe("database test", async () => {
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
             documentId: randomDocumentId,
-            authData: getMockAuthData(mockEService.producerId),
+            organizationId: mockEService.producerId,
           })
         ).rejects.toThrowError(
           purposeVersionDocumentNotFound(
@@ -382,7 +373,7 @@ describe("database test", async () => {
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
             documentId: mockDocument.id,
-            authData: getMockAuthData(randomId),
+            organizationId: randomId,
           })
         ).rejects.toThrowError(organizationNotAllowed(randomId));
       });
