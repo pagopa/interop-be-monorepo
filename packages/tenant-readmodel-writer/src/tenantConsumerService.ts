@@ -3,13 +3,15 @@ import {
   ReadModelRepository,
   readModelWriterConfig,
   logger,
+  LoggerCtx,
 } from "pagopa-interop-commons";
 import { TenantEventEnvelope, fromTenantV1 } from "pagopa-interop-models";
 
 const { tenants } = ReadModelRepository.init(readModelWriterConfig());
 
 export async function handleMessage(
-  message: TenantEventEnvelope
+  message: TenantEventEnvelope,
+  loggerCtx: LoggerCtx
 ): Promise<void> {
   await match(message)
     .with({ type: "TenantCreated" }, async (msg) => {
@@ -29,7 +31,7 @@ export async function handleMessage(
       );
     })
     .with({ type: "TenantDeleted" }, async (_msg) => {
-      logger.info("TODO");
+      logger.info("TODO", loggerCtx);
     })
     .with(
       { type: "TenantUpdated" },
@@ -50,10 +52,10 @@ export async function handleMessage(
         )
     )
     .with({ type: "SelfcareMappingCreated" }, async (_msg) => {
-      logger.info("TODO");
+      logger.info("TODO", loggerCtx);
     })
     .with({ type: "SelfcareMappingDeleted" }, async (_msg) => {
-      logger.info("TODO");
+      logger.info("TODO", loggerCtx);
     })
     .exhaustive();
 }

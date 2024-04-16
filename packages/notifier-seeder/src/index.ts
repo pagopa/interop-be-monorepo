@@ -8,7 +8,6 @@ import {
   logger,
   loggerConfig,
   messageDecoderSupplier,
-  runWithContext,
 } from "pagopa-interop-commons";
 import { toCatalogItemEventNotification } from "./models/catalogItemEventNotificationConverter.js";
 import { buildCatalogMessage } from "./models/catalogItemEventNotificationMessage.js";
@@ -34,31 +33,28 @@ export function processMessage(topicConfig: CatalogTopicConfig) {
 
     const decodedMessage = messageDecoder(kafkaMessage.message);
 
-    runWithContext(
-      {
-        messageData: {
-          eventType: decodedMessage.type,
-          eventVersion: decodedMessage.event_version,
-          streamId: decodedMessage.stream_id,
-        },
-        correlationId: decodedMessage.correlation_id,
-      },
-      async () => {
-        if (decodedMessage.event_version !== 2) {
-          logger.info(
-            `Event with version ${decodedMessage.event_version} skipped`
-          );
-          return;
-        }
+    const loggerCtx = {
+      eventType: decodedMessage.type,
+      eventVersion: decodedMessage.event_version,
+      streamId: decodedMessage.stream_id,
+      correlationId: decodedMessage.correlation_id || "",
+    };
 
-        const eserviceV1Event = toCatalogItemEventNotification(decodedMessage);
-        const message = buildCatalogMessage(decodedMessage, eserviceV1Event);
-        await queueManager.send(message);
+    if (decodedMessage.event_version !== 2) {
+      logger.info(
+        `Event with version ${decodedMessage.event_version} skipped`,
+        loggerCtx
+      );
+      return;
+    }
 
-        logger.info(
-          `Notification message [${message.messageUUID}] sent to queue ${queueConfig.queueUrl} for event type "${decodedMessage.type}"`
-        );
-      }
+    const eserviceV1Event = toCatalogItemEventNotification(decodedMessage);
+    const message = buildCatalogMessage(decodedMessage, eserviceV1Event);
+    await queueManager.send(message, loggerCtx);
+
+    logger.info(
+      `Notification message [${message.messageUUID}] sent to queue ${queueConfig.queueUrl} for event type "${decodedMessage.type}"`,
+      loggerCtx
     );
   };
 }

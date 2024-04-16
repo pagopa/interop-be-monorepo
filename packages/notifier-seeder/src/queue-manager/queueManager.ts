@@ -3,7 +3,7 @@ import {
   SQSClient,
   SendMessageCommand,
 } from "@aws-sdk/client-sqs";
-import { LoggerConfig, logger } from "pagopa-interop-commons";
+import { LoggerConfig, LoggerCtx, logger } from "pagopa-interop-commons";
 import {
   queueManagerReceiveError,
   queueManagerSendError,
@@ -11,8 +11,11 @@ import {
 import { QueueMessage } from "./queueMessage.js";
 
 export type QueueManager = {
-  send: (message: QueueMessage) => Promise<string>;
-  receiveLast: (msgsToReceive?: number) => Promise<QueueMessage[]>;
+  send: (message: QueueMessage, loggerCtx: LoggerCtx) => Promise<string>;
+  receiveLast: (
+    loggerCtx: LoggerCtx,
+    msgsToReceive?: number
+  ) => Promise<QueueMessage[]>;
 };
 
 export function initQueueManager(
@@ -23,9 +26,13 @@ export function initQueueManager(
   });
 
   return {
-    send: async (message: QueueMessage): Promise<string> => {
+    send: async (
+      message: QueueMessage,
+      loggerCtx: LoggerCtx
+    ): Promise<string> => {
       logger.debug(
-        `Sending message ${message.messageUUID} to queue ${config.queueUrl}`
+        `Sending message ${message.messageUUID} to queue ${config.queueUrl}`,
+        loggerCtx
       );
       try {
         const response = await client.send(
@@ -46,9 +53,13 @@ export function initQueueManager(
         throw queueManagerSendError(config.queueUrl, error);
       }
     },
-    receiveLast: async (msgsToReceive: number = 1): Promise<QueueMessage[]> => {
+    receiveLast: async (
+      loggerCtx: LoggerCtx,
+      msgsToReceive: number = 1
+    ): Promise<QueueMessage[]> => {
       logger.debug(
-        `Receiving last ${msgsToReceive} messages from queue ${config.queueUrl}`
+        `Receiving last ${msgsToReceive} messages from queue ${config.queueUrl}`,
+        loggerCtx
       );
       try {
         const response = await client.send(

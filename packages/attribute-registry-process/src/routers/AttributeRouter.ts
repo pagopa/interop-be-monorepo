@@ -68,14 +68,24 @@ const attributeRouter = (
       async (req, res) => {
         try {
           const { limit, offset, kinds, name, origin } = req.query;
+
+          const loggerCtx = {
+            userId: req.ctx.authData.userId,
+            organizationId: req.ctx.authData.organizationId,
+            correlationId: req.ctx.correlationId,
+          };
+
           const attributes =
-            await attributeRegistryService.getAttributesByKindsNameOrigin({
-              kinds: kinds.map(toAttributeKind),
-              name,
-              origin,
-              offset,
-              limit,
-            });
+            await attributeRegistryService.getAttributesByKindsNameOrigin(
+              {
+                kinds: kinds.map(toAttributeKind),
+                name,
+                origin,
+                offset,
+                limit,
+              },
+              loggerCtx
+            );
 
           return res
             .status(200)
@@ -99,16 +109,24 @@ const attributeRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
+        const loggerCtx = {
+          userId: req.ctx.authData.userId,
+          organizationId: req.ctx.authData.organizationId,
+          correlationId: req.ctx.correlationId,
+        };
+
         try {
           const attribute = await attributeRegistryService.getAttributeByName(
-            req.params.name
+            req.params.name,
+            loggerCtx
           );
 
           return res.status(200).json(toApiAttribute(attribute.data)).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            getAttributesByNameErrorMapper
+            getAttributesByNameErrorMapper,
+            loggerCtx
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
@@ -124,19 +142,29 @@ const attributeRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
+        const { origin, code } = req.params;
+        const loggerCtx = {
+          userId: req.ctx.authData.userId,
+          organizationId: req.ctx.authData.organizationId,
+          correlationId: req.ctx.correlationId,
+        };
+
         try {
-          const { origin, code } = req.params;
           const attribute =
-            await attributeRegistryService.getAttributeByOriginAndCode({
-              origin,
-              code,
-            });
+            await attributeRegistryService.getAttributeByOriginAndCode(
+              {
+                origin,
+                code,
+              },
+              loggerCtx
+            );
 
           return res.status(200).json(toApiAttribute(attribute.data)).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            getAttributeByOriginAndCodeErrorMapper
+            getAttributeByOriginAndCodeErrorMapper,
+            loggerCtx
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
@@ -153,14 +181,25 @@ const attributeRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
+        const loggerCtx = {
+          userId: req.ctx.authData.userId,
+          organizationId: req.ctx.authData.organizationId,
+          correlationId: req.ctx.correlationId,
+        };
+
         try {
           const attribute = await attributeRegistryService.getAttributeById(
-            unsafeBrandId(req.params.attributeId)
+            unsafeBrandId(req.params.attributeId),
+            loggerCtx
           );
 
           return res.status(200).json(toApiAttribute(attribute.data)).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, getAttributeByIdErrorMapper);
+          const errorRes = makeApiProblem(
+            error,
+            getAttributeByIdErrorMapper,
+            loggerCtx
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -176,13 +215,21 @@ const attributeRouter = (
       ]),
       async (req, res) => {
         const { limit, offset } = req.query;
+        const loggerCtx = {
+          userId: req.ctx.authData.userId,
+          organizationId: req.ctx.authData.organizationId,
+          correlationId: req.ctx.correlationId,
+        };
 
         try {
-          const attributes = await attributeRegistryService.getAttributesByIds({
-            ids: req.body.map((a) => unsafeBrandId(a)),
-            offset,
-            limit,
-          });
+          const attributes = await attributeRegistryService.getAttributesByIds(
+            {
+              ids: req.body.map((a) => unsafeBrandId(a)),
+              offset,
+              limit,
+            },
+            loggerCtx
+          );
           return res
             .status(200)
             .json({
@@ -210,7 +257,12 @@ const attributeRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            createCertifiedAttributesErrorMapper
+            createCertifiedAttributesErrorMapper,
+            {
+              userId: req.ctx.authData.userId,
+              organizationId: req.ctx.authData.organizationId,
+              correlationId: req.ctx.correlationId,
+            }
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
@@ -231,7 +283,12 @@ const attributeRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            createDeclaredAttributesErrorMapper
+            createDeclaredAttributesErrorMapper,
+            {
+              userId: req.ctx.authData.userId,
+              organizationId: req.ctx.authData.organizationId,
+              correlationId: req.ctx.correlationId,
+            }
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
@@ -252,7 +309,12 @@ const attributeRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            createVerifiedAttributesErrorMapper
+            createVerifiedAttributesErrorMapper,
+            {
+              userId: req.ctx.authData.userId,
+              organizationId: req.ctx.authData.organizationId,
+              correlationId: req.ctx.correlationId,
+            }
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
@@ -266,13 +328,19 @@ const attributeRouter = (
           const attribute =
             await attributeRegistryService.createInternalCertifiedAttribute(
               req.body,
+              req.ctx.authData,
               req.ctx.correlationId
             );
           return res.status(200).json(toApiAttribute(attribute)).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            createInternalCertifiedAttributesErrorMapper
+            createInternalCertifiedAttributesErrorMapper,
+            {
+              userId: req.ctx.authData.userId,
+              organizationId: req.ctx.authData.organizationId,
+              correlationId: req.ctx.correlationId,
+            }
           );
           return res.status(errorRes.status).json(errorRes).end();
         }

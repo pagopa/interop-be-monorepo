@@ -6,7 +6,6 @@ import {
   decodeKafkaMessage,
   logger,
   readModelWriterConfig,
-  runWithContext,
 } from "pagopa-interop-commons";
 import { createMechanism } from "@jm18457/kafkajs-msk-iam-authentication-mechanism";
 import { AttributeEvent } from "pagopa-interop-models";
@@ -36,7 +35,7 @@ await consumer.connect();
 
 function exitGracefully(): void {
   consumer.disconnect().finally(() => {
-    logger.info("Consumer disconnected");
+    logger.info("Consumer disconnected", {});
     process.exit(0);
   });
 }
@@ -55,21 +54,17 @@ async function processMessage({
 }: EachMessagePayload): Promise<void> {
   const msg = decodeKafkaMessage(message, AttributeEvent);
 
-  runWithContext(
-    {
-      messageData: {
-        eventType: msg.type,
-        eventVersion: msg.event_version,
-        streamId: msg.stream_id,
-      },
-      correlationId: msg.correlation_id,
-    },
-    async () => {
-      await handleMessage(msg, attributes);
-      logger.info(
-        `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
-      );
-    }
+  const loggerCtx = {
+    eventType: msg.type,
+    eventVersion: msg.event_version,
+    streamId: msg.stream_id,
+    correlationId: msg.correlation_id || "",
+  };
+
+  await handleMessage(msg, attributes);
+  logger.info(
+    `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`,
+    loggerCtx
   );
 }
 await runConsumer(config, [attributeTopic], processMessage);

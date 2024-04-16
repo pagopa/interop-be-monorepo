@@ -1,9 +1,5 @@
-import { logger } from "pagopa-interop-commons";
-import {
-  ApiError,
-  TenantId,
-  makeApiProblemBuilder,
-} from "pagopa-interop-models";
+import { logger, makeApiProblemBuilder } from "pagopa-interop-commons";
+import { ApiError, TenantId } from "pagopa-interop-models";
 
 export const errorCodes = {
   attributeNotFound: "0001",
