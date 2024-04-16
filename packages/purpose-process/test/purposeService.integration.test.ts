@@ -640,7 +640,7 @@ describe("database test", async () => {
           purposeId: mockPurpose1.id,
           versionId: mockPurposeVersion.id,
           rejectionReason: "test",
-          authData: getMockAuthData(mockEService.producerId),
+          organizationId: mockEService.producerId,
           correlationId: generateId(),
         });
 
@@ -698,7 +698,7 @@ describe("database test", async () => {
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
             rejectionReason: "test",
-            authData: getMockAuthData(mockEService.producerId),
+            organizationId: mockEService.producerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(purposeNotFound(mockPurpose1.id));
@@ -719,7 +719,7 @@ describe("database test", async () => {
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
             rejectionReason: "test",
-            authData: getMockAuthData(mockPurpose1.consumerId),
+            organizationId: mockPurpose1.consumerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(eserviceNotFound(mockEService.id));
@@ -741,7 +741,7 @@ describe("database test", async () => {
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
             rejectionReason: "test",
-            authData: getMockAuthData(mockPurpose1.consumerId),
+            organizationId: mockPurpose1.consumerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(
@@ -766,7 +766,7 @@ describe("database test", async () => {
             purposeId: mockPurpose1.id,
             versionId: randomVersionId,
             rejectionReason: "test",
-            authData: getMockAuthData(mockEService.producerId),
+            organizationId: mockEService.producerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(
@@ -793,7 +793,7 @@ describe("database test", async () => {
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
             rejectionReason: "test",
-            authData: getMockAuthData(mockEService.producerId),
+            organizationId: mockEService.producerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(
@@ -820,7 +820,7 @@ describe("database test", async () => {
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
             rejectionReason: "test",
-            authData: getMockAuthData(mockEService.producerId),
+            organizationId: mockEService.producerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(
@@ -847,7 +847,7 @@ describe("database test", async () => {
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
             rejectionReason: "test",
-            authData: getMockAuthData(mockEService.producerId),
+            organizationId: mockEService.producerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(
@@ -874,7 +874,7 @@ describe("database test", async () => {
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
             rejectionReason: "test",
-            authData: getMockAuthData(mockEService.producerId),
+            organizationId: mockEService.producerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(
@@ -902,7 +902,7 @@ describe("database test", async () => {
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
             rejectionReason: "test",
-            authData: getMockAuthData(mockEService.producerId),
+            organizationId: mockEService.producerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(

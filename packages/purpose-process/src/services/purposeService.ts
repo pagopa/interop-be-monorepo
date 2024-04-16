@@ -1,10 +1,4 @@
-import {
-  DB,
-  eventRepository,
-  logger,
-  riskAnalysisFormToRiskAnalysisFormToValidate,
-  validateRiskAnalysis,
-} from "pagopa-interop-commons";
+import { DB, eventRepository, logger } from "pagopa-interop-commons";
 import {
   EService,
   EServiceId,
@@ -210,13 +204,13 @@ export function purposeServiceBuilder(
       purposeId,
       versionId,
       rejectionReason,
-      authData,
+      organizationId,
       correlationId,
     }: {
       purposeId: PurposeId;
       versionId: PurposeVersionId;
       rejectionReason: string;
-      authData: AuthData;
+      organizationId: TenantId;
       correlationId: string;
     }): Promise<void> {
       logger.info(`Rejecting Version ${versionId} in Purpose ${purposeId}`);
@@ -226,8 +220,8 @@ export function purposeServiceBuilder(
         purpose.data.eserviceId,
         readModelService
       );
-      if (authData.organizationId !== eservice.producerId) {
-        throw organizationIsNotTheProducer(authData.organizationId);
+      if (organizationId !== eservice.producerId) {
+        throw organizationIsNotTheProducer(organizationId);
       }
 
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
