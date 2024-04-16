@@ -38,6 +38,7 @@ import {
 } from "pagopa-interop-commons-test";
 import { StartedTestContainer } from "testcontainers";
 import {
+  DraftPurposeDeletedV2,
   DraftPurposeUpdatedV2,
   EService,
   EServiceId,
@@ -49,6 +50,7 @@ import {
   PurposeVersionRejectedV2,
   Tenant,
   TenantId,
+  WaitingForApprovalPurposeDeletedV2,
   WaitingForApprovalPurposeVersionDeletedV2,
   generateId,
   purposeVersionState,
@@ -1151,14 +1153,124 @@ describe("database test", async () => {
     });
 
     describe("deletePurpose", () => {
-      it("should write on event-store for the deletion of a purpose (no versions)", () => {
-        expect(1).toBe(1);
+      it("should write on event-store for the deletion of a purpose (no versions)", async () => {
+        const mockEService = getMockEService();
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          eserviceId: mockEService.id,
+          versions: [],
+        };
+
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+        await purposeService.deletePurpose({
+          purposeId: mockPurpose1.id,
+          organizationId: mockPurpose.consumerId,
+          correlationId: generateId(),
+        });
+
+        const writtenEvent = await readLastEventByStreamId(
+          mockPurpose1.id,
+          "purpose",
+          postgresDB
+        );
+
+        expect(writtenEvent).toMatchObject({
+          stream_id: mockPurpose1.id,
+          version: "1",
+          type: "DraftPurposeDeleted",
+          event_version: 2,
+        });
+
+        const writtenPayload = decodeProtobufPayload({
+          messageType: DraftPurposeDeletedV2,
+          payload: writtenEvent.data,
+        });
+
+        expect(writtenPayload.purpose).toEqual(toPurposeV2(mockPurpose1));
       });
-      it("should write on event-store for the deletion of a purpose (draft version)", () => {
-        expect(1).toBe(1);
+      it("should write on event-store for the deletion of a purpose (draft version)", async () => {
+        const mockEService = getMockEService();
+        const mockPurposeVersion = {
+          ...getMockPurposeVersion(),
+          state: purposeVersionState.draft,
+        };
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          eserviceId: mockEService.id,
+          versions: [mockPurposeVersion],
+        };
+
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+        await purposeService.deletePurpose({
+          purposeId: mockPurpose1.id,
+          organizationId: mockPurpose.consumerId,
+          correlationId: generateId(),
+        });
+
+        const writtenEvent = await readLastEventByStreamId(
+          mockPurpose1.id,
+          "purpose",
+          postgresDB
+        );
+
+        expect(writtenEvent).toMatchObject({
+          stream_id: mockPurpose1.id,
+          version: "1",
+          type: "DraftPurposeDeleted",
+          event_version: 2,
+        });
+
+        const writtenPayload = decodeProtobufPayload({
+          messageType: DraftPurposeDeletedV2,
+          payload: writtenEvent.data,
+        });
+
+        expect(writtenPayload.purpose).toEqual(toPurposeV2(mockPurpose1));
       });
-      it("should write on event-store for the deletion of a purpose (waiting for approval version)", () => {
-        expect(1).toBe(1);
+      it("should write on event-store for the deletion of a purpose (waiting for approval version)", async () => {
+        const mockEService = getMockEService();
+        const mockPurposeVersion = {
+          ...getMockPurposeVersion(),
+          state: purposeVersionState.waitingForApproval,
+        };
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          eserviceId: mockEService.id,
+          versions: [mockPurposeVersion],
+        };
+
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+        await purposeService.deletePurpose({
+          purposeId: mockPurpose1.id,
+          organizationId: mockPurpose.consumerId,
+          correlationId: generateId(),
+        });
+
+        const writtenEvent = await readLastEventByStreamId(
+          mockPurpose1.id,
+          "purpose",
+          postgresDB
+        );
+
+        expect(writtenEvent).toMatchObject({
+          stream_id: mockPurpose1.id,
+          version: "1",
+          type: "WaitingForApprovalPurposeDeleted",
+          event_version: 2,
+        });
+
+        const writtenPayload = decodeProtobufPayload({
+          messageType: WaitingForApprovalPurposeDeletedV2,
+          payload: writtenEvent.data,
+        });
+
+        expect(writtenPayload.purpose).toEqual(toPurposeV2(mockPurpose1));
       });
       it("should throw purposeNotFound if the purpose doesn't exist", () => {
         expect(
