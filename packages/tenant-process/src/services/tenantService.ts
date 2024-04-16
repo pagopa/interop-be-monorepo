@@ -390,6 +390,99 @@ export function tenantServiceBuilder(
       return updatedTenant;
     },
 
+    async revokeCertifiedAttributeById(
+      tenantId: TenantId,
+      attributeId: AttributeId,
+      authData: AuthData,
+      correlationId: string
+    ): Promise<Tenant> {
+      logger.info(
+        `Revoke certified attribute ${attributeId} to tenantId ${tenantId}`
+      );
+      const organizationId = authData.organizationId;
+
+      const requesterTenant = await retrieveTenant(
+        organizationId,
+        readModelService
+      );
+
+      const certifierId = requesterTenant.data.features.find(
+        (feature) => feature.type === "PersistentCertifier"
+      )?.certifierId;
+
+      if (!certifierId) {
+        throw tenantIsNotACertifier(organizationId);
+      }
+
+      const attribute = await readModelService.getAttributeById(attributeId);
+
+      if (!attribute.origin || attribute.origin !== certifierId) {
+        throw certifiedAttributeOriginIsNotCompliantWithCertifier(
+          attribute.origin || "",
+          organizationId,
+          tenantId,
+          certifierId
+        );
+      }
+
+      const targetTenant = await retrieveTenant(tenantId, readModelService);
+
+      const certifiedTenantAttribute = targetTenant.data.attributes.find(
+        (attr) =>
+          attr.type === tenantAttributeType.CERTIFIED && attr.id === attributeId
+      );
+
+      // eslint-disable-next-line functional/no-let
+      let updatedTenant: Tenant = {
+        ...targetTenant.data,
+        updatedAt: new Date(),
+      };
+
+      if (
+        !certifiedTenantAttribute ||
+        certifiedTenantAttribute.type !== "PersistentCertifiedAttribute"
+      ) {
+        throw attributeNotFound(attributeId);
+      }
+
+      if (certifiedTenantAttribute.revocationTimestamp) {
+        throw certifiedAttributeAlreadyRevoked(attribute.id, organizationId);
+      }
+
+      updatedTenant = reAssignAttribute(
+        {
+          updatedTenant,
+          targetTenant: requesterTenant,
+          attributeId,
+          revocationTimestamp: new Date(),
+        },
+        certifiedTenantAttribute.assignmentTimestamp
+      );
+
+      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+        readModelService,
+        updatedTenant.attributes,
+        updatedTenant.externalId
+      );
+
+      if (updatedTenant.kind !== tenantKind) {
+        updatedTenant = {
+          ...updatedTenant,
+          kind: tenantKind,
+        };
+      }
+
+      const event = toCreateEventTenantCertifiedAttributeRevoked(
+        targetTenant.data.id,
+        targetTenant.metadata.version,
+        updatedTenant,
+        attribute.id,
+        correlationId
+      );
+      await repository.createEvent(event);
+      return updatedTenant;
+    },
+
     async getCertifiedAttributes({
       organizationId,
       offset,
