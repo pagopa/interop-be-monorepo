@@ -167,13 +167,7 @@ describe("database test", async () => {
           ...mockPurpose,
           eserviceId: notExistingId,
         };
-        const mockPurpose2: Purpose = {
-          ...getMockPurpose(),
-          id: generateId(),
-          title: "another purpose",
-        };
         await addOnePurpose(mockPurpose1, postgresDB, purposes);
-        await addOnePurpose(mockPurpose2, postgresDB, purposes);
         await writeInReadmodel(mockTenant, tenants);
 
         expect(
@@ -188,13 +182,7 @@ describe("database test", async () => {
           ...mockPurpose,
           eserviceId: mockEService.id,
         };
-        const mockPurpose2: Purpose = {
-          ...getMockPurpose(),
-          id: generateId(),
-          title: "another purpose",
-        };
         await addOnePurpose(mockPurpose1, postgresDB, purposes);
-        await addOnePurpose(mockPurpose2, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         expect(
@@ -209,13 +197,7 @@ describe("database test", async () => {
           ...mockPurpose,
           eserviceId: mockEService.id,
         };
-        const mockPurpose2: Purpose = {
-          ...getMockPurpose(),
-          id: generateId(),
-          title: "another purpose",
-        };
         await addOnePurpose(mockPurpose1, postgresDB, purposes);
-        await addOnePurpose(mockPurpose2, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
         await writeInReadmodel(mockTenant, tenants);
 
