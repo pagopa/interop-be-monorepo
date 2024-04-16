@@ -91,19 +91,23 @@ export function makeApiProblemBuilder<T extends string>(
       })),
     });
 
+    const makeProblemLogString = (problem: Problem): string => {
+      const errorsString =
+        problem.errors.length > 0
+          ? problem.errors.map((e) => e.detail).join(" - ") + " - "
+          : "";
+      return `- ${problem.title} - ${problem.detail} - ${errorsString}orignal error: ${error}`;
+    };
+
     return match<unknown, Problem>(error)
       .with(P.instanceOf(ApiError<T | CommonErrorCodes>), (error) => {
         const problem = makeProblem(httpMapper(error), error);
-        logger.warn(
-          `- ${problem.title} - ${problem.detail} - orignal error: ${error}`
-        );
+        logger.warn(makeProblemLogString(problem));
         return problem;
       })
       .otherwise(() => {
         const problem = makeProblem(500, genericError("Unexpected error"));
-        logger.error(
-          `- ${problem.title} - ${problem.detail} - orignal error: ${error}`
-        );
+        logger.error(makeProblemLogString(problem));
         return problem;
       });
   };
