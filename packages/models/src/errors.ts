@@ -92,11 +92,8 @@ export function makeApiProblemBuilder<T extends string>(
     });
 
     const makeProblemLogString = (problem: Problem): string => {
-      const errorsString =
-        problem.errors.length > 0
-          ? problem.errors.map((e) => e.detail).join(" - ") + " - "
-          : "";
-      return `- ${problem.title} - ${problem.detail} - ${errorsString}orignal error: ${error}`;
+      const errorsString = problem.errors.map((e) => e.detail).join(" - ");
+      return `- title: ${problem.title} - detail: ${problem.detail} - errors: ${errorsString} - orignal error: ${error}`;
     };
 
     return match<unknown, Problem>(error)
