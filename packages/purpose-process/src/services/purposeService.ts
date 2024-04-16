@@ -40,7 +40,7 @@ import {
   toCreateEventDraftPurposeDeleted,
   toCreateEventDraftPurposeUpdated,
   toCreateEventPurposeVersionRejected,
-  toCreateEventWaintingForApprovalPurposeDeleted,
+  toCreateEventWaitingForApprovalPurposeDeleted,
   toCreateEventWaitingForApprovalPurposeVersionDeleted,
 } from "../model/domain/toEvent.js";
 import {
@@ -334,7 +334,7 @@ export function purposeServiceBuilder(
             version: purpose.metadata.version,
             correlationId,
           })
-        : toCreateEventWaintingForApprovalPurposeDeleted({
+        : toCreateEventWaitingForApprovalPurposeDeleted({
             purpose: purpose.data,
             version: purpose.metadata.version,
             correlationId,
