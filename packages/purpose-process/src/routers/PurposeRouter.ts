@@ -172,7 +172,7 @@ const purposeRouter = (
           await purposeService.rejectPurposeVersion({
             purposeId: unsafeBrandId(req.params.purposeId),
             versionId: unsafeBrandId(req.params.versionId),
-            authData: req.ctx.authData,
+            organizationId: req.ctx.authData.organizationId,
             rejectionReason: req.body.rejectionReason,
             correlationId: req.ctx.correlationId,
           });
