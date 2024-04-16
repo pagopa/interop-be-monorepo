@@ -131,7 +131,7 @@ const purposeRouter = (
             purposeId: unsafeBrandId(req.params.purposeId),
             versionId: unsafeBrandId(req.params.versionId),
             documentId: unsafeBrandId(req.params.documentId),
-            authData: req.ctx.authData,
+            organizationId: req.ctx.authData.organizationId,
           });
           return res
             .status(200)
