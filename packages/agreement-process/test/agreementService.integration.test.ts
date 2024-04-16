@@ -1801,7 +1801,7 @@ describe("Agreement service", () => {
     it("should throw an agreementNotFound error when the agreement does not exist", async () => {
       const agreementId = generateId<AgreementId>();
       const authData = getRandomAuthData(agreement1.consumerId);
-
+      await addOneAgreement(buildAgreement(), postgresDB, agreements);
       await expect(
         agreementService.getAgreementConsumerDocument(
           agreementId,
