@@ -7,7 +7,7 @@ import {
 } from "../gen/v2/purpose/purpose.js";
 import { PurposeRiskAnalysisFormV2 } from "../gen/v2/purpose/riskAnalysis.js";
 import { PurposeRiskAnalysisForm } from "../risk-analysis/riskAnalysis.js";
-import { bigIntToDate, bigIntToDateOrUndefined } from "../utils.js";
+import { bigIntToDate } from "../utils.js";
 import {
   Purpose,
   PurposeVersion,
@@ -56,9 +56,9 @@ export const fromPurposeVersionV2 = (
     ? fromPurposeVersionDocumentV2(input.riskAnalysis)
     : undefined,
   createdAt: bigIntToDate(input.createdAt),
-  updatedAt: bigIntToDateOrUndefined(input.updatedAt),
-  firstActivationAt: bigIntToDateOrUndefined(input.firstActivationAt),
-  suspendedAt: bigIntToDateOrUndefined(input.suspendedAt),
+  updatedAt: bigIntToDate(input.updatedAt),
+  firstActivationAt: bigIntToDate(input.firstActivationAt),
+  suspendedAt: bigIntToDate(input.suspendedAt),
 });
 
 export const fromPurposeRiskAnalysisFormV2 = (
@@ -87,7 +87,7 @@ export const fromPurposeV2 = (input: PurposeV2): Purpose => ({
   versions: input.versions.map(fromPurposeVersionV2),
   isFreeOfCharge: input.isFreeOfCharge,
   createdAt: bigIntToDate(input.createdAt),
-  updatedAt: bigIntToDateOrUndefined(input.updatedAt),
+  updatedAt: bigIntToDate(input.updatedAt),
   riskAnalysisForm: input.riskAnalysisForm
     ? fromPurposeRiskAnalysisFormV2(input.riskAnalysisForm)
     : undefined,
