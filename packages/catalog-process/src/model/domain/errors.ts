@@ -5,9 +5,12 @@ import {
   EServiceId,
   RiskAnalysisId,
   TenantId,
-  makeApiProblemBuilder,
 } from "pagopa-interop-models";
-import { RiskAnalysisValidationIssue, logger } from "pagopa-interop-commons";
+import {
+  RiskAnalysisValidationIssue,
+  logger,
+  makeApiProblemBuilder,
+} from "pagopa-interop-commons";
 
 export const errorCodes = {
   eServiceDescriptorNotFound: "0001",

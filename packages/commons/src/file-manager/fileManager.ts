@@ -1,3 +1,4 @@
+/* eslint-disable max-params */
 import {
   CopyObjectCommand,
   DeleteObjectCommand,
@@ -7,7 +8,7 @@ import {
   S3ClientConfig,
 } from "@aws-sdk/client-s3";
 import { FileManagerConfig } from "../config/fileManagerConfig.js";
-import { LoggerConfig, logger } from "../index.js";
+import { LoggerConfig, LoggerCtx, logger } from "../index.js";
 import {
   fileManagerCopyError,
   fileManagerDeleteError,
@@ -16,22 +17,24 @@ import {
 } from "./fileManagerErrors.js";
 
 export type FileManager = {
-  delete: (bucket: string, path: string) => Promise<void>;
+  delete: (bucket: string, path: string, loggerCtx: LoggerCtx) => Promise<void>;
   copy: (
     bucket: string,
     filePathToCopy: string,
     path: string,
     resourceId: string,
-    fileName: string
+    fileName: string,
+    loggerCtx: LoggerCtx
   ) => Promise<string>;
   storeBytes: (
     bucket: string,
     path: string,
     resourceId: string,
     fileName: string,
-    fileContent: Buffer
+    fileContent: Buffer,
+    loggerCtx: LoggerCtx
   ) => Promise<string>;
-  listFiles: (bucket: string) => Promise<string[]>;
+  listFiles: (bucket: string, loggerCtx: LoggerCtx) => Promise<string[]>;
 };
 
 export function initFileManager(
@@ -53,8 +56,12 @@ export function initFileManager(
   ): string => `${path}/${resourceId}/${fileName}`;
 
   return {
-    delete: async (bucket: string, path: string): Promise<void> => {
-      logger.info(`Deleting file ${path} from bucket ${bucket}`);
+    delete: async (
+      bucket: string,
+      path: string,
+      loggerCtx: LoggerCtx
+    ): Promise<void> => {
+      logger.info(`Deleting file ${path} from bucket ${bucket}`, loggerCtx);
       try {
         await client.send(
           new DeleteObjectCommand({
@@ -71,11 +78,13 @@ export function initFileManager(
       filePathToCopy: string,
       path: string,
       resourceId: string,
-      fileName: string
+      fileName: string,
+      loggerCtx: LoggerCtx
     ): Promise<string> => {
       const key = buildS3Key(path, resourceId, fileName);
       logger.info(
-        `Copying file ${filePathToCopy} to ${key} in bucket ${bucket}`
+        `Copying file ${filePathToCopy} to ${key} in bucket ${bucket}`,
+        loggerCtx
       );
       try {
         await client.send(
@@ -90,8 +99,11 @@ export function initFileManager(
         throw fileManagerCopyError(filePathToCopy, key, bucket, error);
       }
     },
-    listFiles: async (bucket: string): Promise<string[]> => {
-      logger.info(`Listing files in bucket ${bucket}`);
+    listFiles: async (
+      bucket: string,
+      loggerCtx: LoggerCtx
+    ): Promise<string[]> => {
+      logger.info(`Listing files in bucket ${bucket}`, loggerCtx);
       try {
         const response = await client.send(
           new ListObjectsCommand({
@@ -112,10 +124,11 @@ export function initFileManager(
       path: string,
       resourceId: string,
       fileName: string,
-      fileContent: Buffer
+      fileContent: Buffer,
+      loggerCtx: LoggerCtx
     ): Promise<string> => {
       const key = buildS3Key(path, resourceId, fileName);
-      logger.info(`Storing file ${key} in bucket ${bucket}`);
+      logger.info(`Storing file ${key} in bucket ${bucket}`, loggerCtx);
       try {
         await client.send(
           new PutObjectCommand({

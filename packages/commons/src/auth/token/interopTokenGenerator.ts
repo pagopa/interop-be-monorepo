@@ -74,7 +74,7 @@ export const buildInteropTokenGenerator = (): InteropTokenGenerator => {
     const serializedToken = `${encodedHeader}.${encodedPayload}`;
     const signature = await signerService.signWithRSA256(kid, serializedToken);
 
-    logger.info(`Interop internal Token generated`);
+    logger.info(`Interop internal Token generated`, {});
     return `${serializedToken}.${signature}`;
   };
 

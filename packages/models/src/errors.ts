@@ -1,6 +1,4 @@
 /* eslint-disable max-classes-per-file */
-import { P, match } from "ts-pattern";
-
 export class ApiError<T> extends Error {
   public code: T;
   public title: string;
@@ -52,48 +50,7 @@ export type Problem = {
   toString: () => string;
 };
 
-export function makeApiProblemBuilder<T extends string>(
-  logger: { error: (message: string) => void },
-  errors: {
-    [K in T]: string;
-  }
-): (
-  error: unknown,
-  httpMapper: (apiError: ApiError<T | CommonErrorCodes>) => number
-) => Problem {
-  const allErrors = { ...errorCodes, ...errors };
-  return (error, httpMapper) => {
-    const makeProblem = (
-      httpStatus: number,
-      { code, title, detail, correlationId }: ApiError<T | CommonErrorCodes>
-    ): Problem => ({
-      type: "about:blank",
-      title,
-      status: httpStatus,
-      detail,
-      correlationId,
-      errors: [
-        {
-          code: allErrors[code],
-          detail,
-        },
-      ],
-    });
-
-    const problem = match<unknown, Problem>(error)
-      .with(P.instanceOf(ApiError<T | CommonErrorCodes>), (error) =>
-        makeProblem(httpMapper(error), error)
-      )
-      .otherwise(() => makeProblem(500, genericError("Unexpected error")));
-
-    logger.error(
-      `- ${problem.title} - ${problem.detail} - orignal error: ${error}`
-    );
-    return problem;
-  };
-}
-
-const errorCodes = {
+export const errorCodes = {
   authenticationSaslFailed: "9000",
   operationForbidden: "9989",
   missingClaim: "9990",

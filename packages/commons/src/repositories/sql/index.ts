@@ -16,7 +16,7 @@ function sql(file: string): pgPromise.QueryFile {
   const query = new pgPromise.QueryFile(fullPath, options);
 
   if (query.error) {
-    logger.error(query.error);
+    logger.error(query.error, {});
   }
 
   return query;

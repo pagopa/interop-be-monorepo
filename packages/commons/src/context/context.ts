@@ -31,10 +31,10 @@ const defaultAppContext: AppContext = {
   authData: defaultAuthData,
 };
 
-export const getContext = (): AppContext => {
-  const context = globalStore.getStore();
-  return !context ? defaultAppContext : context;
-};
+// export const getContext = (): AppContext => {
+//   const context = globalStore.getStore();
+//   return !context ? defaultAppContext : context;
+// };
 
 export const contextMiddleware = (
   req: Request,

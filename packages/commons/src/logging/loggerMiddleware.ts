@@ -2,9 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import * as expressWinston from "express-winston";
 import * as winston from "winston";
-import { v4 } from "uuid";
 import { LoggerConfig } from "../config/commonConfig.js";
-import { getContext } from "../index.js";
 import { bigIntReplacer } from "./utils.js";
 
 export type SessionMetaData = {
@@ -23,25 +21,13 @@ const config: LoggerConfig = parsedLoggerConfig.success
       logLevel: "info",
     };
 
-const getLoggerMetadata = (): SessionMetaData => {
-  const appContext = getContext();
-  return !appContext
-    ? {
-        userId: undefined,
-        organizationId: undefined,
-        correlationId: v4(),
-        eventType: undefined,
-        eventVersion: undefined,
-        streamId: undefined,
-      }
-    : {
-        userId: appContext.authData?.userId,
-        organizationId: appContext.authData?.organizationId,
-        correlationId: appContext.correlationId,
-        eventType: appContext.messageData?.eventType,
-        eventVersion: appContext.messageData?.eventVersion,
-        streamId: appContext.messageData?.streamId,
-      };
+export type LoggerCtx = {
+  userId?: string;
+  organizationId?: string;
+  correlationId?: string;
+  eventType?: string;
+  eventVersion?: number;
+  streamId?: string;
 };
 
 const logFormat = (
@@ -52,19 +38,11 @@ const logFormat = (
     userId,
     organizationId,
     correlationId,
-    serviceName,
     eventType,
     eventVersion,
     streamId,
-  }: {
-    userId: string | undefined;
-    organizationId: string | undefined;
-    correlationId: string | undefined | null;
-    serviceName: string | undefined;
-    eventType: string | undefined;
-    eventVersion: number | undefined;
-    streamId: string | undefined;
-  }
+  }: LoggerCtx,
+  serviceName?: string
 ) => {
   const serviceLogPart = serviceName ? `[${serviceName}]` : undefined;
   const userLogPart = userId ? `[UID=${userId}]` : undefined;
@@ -97,8 +75,8 @@ const logFormat = (
 };
 
 export const customFormat = (serviceName?: string) =>
-  winston.format.printf(({ level, message, timestamp }) => {
-    const logMetadata = getLoggerMetadata();
+  winston.format.printf(({ level, message, timestamp, logCtx }) => {
+    const logMetadata = logCtx;
     const clearMessage =
       typeof message === "object"
         ? JSON.stringify(message, bigIntReplacer)
@@ -107,7 +85,7 @@ export const customFormat = (serviceName?: string) =>
       .toString()
       .split("\n")
       .map((line: string) =>
-        logFormat(line, timestamp, level, { ...logMetadata, serviceName })
+        logFormat(line, timestamp, level, logMetadata, serviceName)
       );
     return lines.join("\n");
   });
@@ -142,7 +120,23 @@ export const loggerMiddleware = (serviceName: string) => () =>
       `Request ${req.method} ${req.url} - Response ${res.statusCode} ${res.statusMessage}`,
   });
 
-export const logger = getLogger();
+const logger_internal = getLogger();
+
+export const logger = {
+  debug: (
+    msg: (typeof logger_internal.debug.arguments)[0],
+    logCtx: LoggerCtx
+  ) => logger_internal.debug(msg, { logCtx }),
+  info: (msg: (typeof logger_internal.info.arguments)[0], logCtx: LoggerCtx) =>
+    logger_internal.info(msg, { logCtx }),
+  warn: (msg: (typeof logger_internal.warn.arguments)[0], logCtx: LoggerCtx) =>
+    logger_internal.warn(msg, { logCtx }),
+  error: (
+    msg: (typeof logger_internal.error.arguments)[0],
+    logCtx: LoggerCtx
+  ) => logger_internal.error(msg, { logCtx }),
+};
+
 if (!parsedLoggerConfig.success) {
   // eslint-disable-next-line no-console
   console.log(

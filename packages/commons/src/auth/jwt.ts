@@ -11,13 +11,13 @@ export const readAuthDataFromJwtToken = (
     const token = AuthToken.safeParse(decoded);
 
     if (token.success === false) {
-      logger.error(`Error parsing token: ${JSON.stringify(token.error)}`);
+      logger.error(`Error parsing token: ${JSON.stringify(token.error)}`, {});
       return new Error(token.error.message);
     } else {
       return getAuthDataFromToken(token.data);
     }
   } catch (err) {
-    logger.error(`Unexpected error parsing token: ${err}`);
+    logger.error(`Unexpected error parsing token: ${err}`, {});
     return new Error(`Unexpected error parsing token: ${err}`);
   }
 };
@@ -33,7 +33,7 @@ const getKey =
     }))) {
       client.getSigningKey(header.kid, function (err, key) {
         if (err && last) {
-          logger.error(`Error getting signing key: ${err}`);
+          logger.error(`Error getting signing key: ${err}`, {});
           return callback(err, undefined);
         } else {
           return callback(null, key?.getPublicKey());
@@ -52,7 +52,7 @@ export const verifyJwtToken = (jwtToken: string): Promise<boolean> => {
   return new Promise((resolve, _reject) => {
     jwt.verify(jwtToken, getKey(clients), undefined, function (err, _decoded) {
       if (err) {
-        logger.error(`Error verifying token: ${err}`);
+        logger.error(`Error verifying token: ${err}`, {});
         return resolve(false);
       }
       return resolve(true);

@@ -64,7 +64,7 @@ export const buildSignerService = (): SignerService => {
           .replaceAll("/", "_");
       } catch (err) {
         const internalError = thirdPartyCallError("KMS", JSON.stringify(err));
-        logger.error(internalError);
+        logger.error(internalError, {});
         throw internalError;
       }
     },

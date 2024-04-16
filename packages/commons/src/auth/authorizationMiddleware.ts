@@ -6,7 +6,6 @@ import {
 import { Request } from "express";
 import {
   Problem,
-  makeApiProblemBuilder,
   genericError,
   ApiError,
   unauthorizedError,
@@ -15,7 +14,7 @@ import {
 import { P, match } from "ts-pattern";
 import { z } from "zod";
 import { Middleware } from "../types/middleware.js";
-import { UserRole, readHeaders } from "../index.js";
+import { UserRole, makeApiProblemBuilder, readHeaders } from "../index.js";
 import { logger } from "../logging/index.js";
 import { readAuthDataFromJwtToken } from "./jwt.js";
 
@@ -92,6 +91,13 @@ export const authorizationMiddleware =
       return next();
     } catch (err) {
       const headers = readHeaders(req as Request);
+
+      const loggerCtx = {
+        correlationId: headers?.correlationId,
+        userId: headers?.userId,
+        organizationId: headers?.organizationId,
+      };
+
       const problem = match<unknown, Problem>(err)
         .with(P.instanceOf(ApiError), (error) =>
           makeApiProblem(
@@ -99,7 +105,8 @@ export const authorizationMiddleware =
               ...error,
               correlationId: headers?.correlationId,
             }),
-            (error) => (error.code === "unauthorizedError" ? 403 : 500)
+            (error) => (error.code === "unauthorizedError" ? 403 : 500),
+            loggerCtx
           )
         )
         .otherwise(() =>
@@ -107,7 +114,8 @@ export const authorizationMiddleware =
             genericError(
               "An unexpected error occurred during authorization checks"
             ),
-            () => 500
+            () => 500,
+            loggerCtx
           )
         );
 
