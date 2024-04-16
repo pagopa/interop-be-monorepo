@@ -106,3 +106,22 @@ export const toCreateEventWaitingForApprovalPurposeDeleted = ({
   },
   correlationId,
 });
+
+export const toCreateEventPurposeArchived = ({
+  purpose,
+  version,
+  correlationId,
+}: {
+  purpose: Purpose;
+  version: number;
+  correlationId: string;
+}): CreateEvent<PurposeEvent> => ({
+  streamId: purpose.id,
+  version,
+  event: {
+    type: "PurposeArchived",
+    event_version: 2,
+    data: { purpose: toPurposeV2(purpose) },
+  },
+  correlationId,
+});
