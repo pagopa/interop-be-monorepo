@@ -22,6 +22,7 @@ import {
   PurposeVersion,
   PurposeVersionDocument,
   ownership,
+  Ownership,
   purposeEventToBinaryData,
 } from "pagopa-interop-models";
 import {
@@ -268,7 +269,7 @@ const getOrganizationRole = ({
   organizationId: TenantId;
   producerId: TenantId;
   consumerId: TenantId;
-}): string => {
+}): Ownership => {
   if (producerId === consumerId && organizationId === producerId) {
     return ownership.SELF_CONSUMER;
   } else if (producerId !== consumerId && organizationId === consumerId) {
