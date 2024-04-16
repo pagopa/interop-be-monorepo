@@ -240,7 +240,7 @@ describe("database test", async () => {
           purposeId: mockPurpose1.id,
           versionId: mockPurposeVersion.id,
           documentId: mockDocument.id,
-          authData: getMockAuthData(mockEService.producerId),
+          organizationId: mockEService.producerId,
         });
         expect(result).toEqual(mockDocument);
       });
@@ -266,7 +266,7 @@ describe("database test", async () => {
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
             documentId: mockDocument.id,
-            authData: getMockAuthData(mockEService.producerId),
+            organizationId: mockEService.producerId,
           })
         ).rejects.toThrowError(purposeNotFound(mockPurpose1.id));
       });
@@ -287,7 +287,7 @@ describe("database test", async () => {
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
             documentId: mockDocument.id,
-            authData: getMockAuthData(mockEService.producerId),
+            organizationId: mockEService.producerId,
           })
         ).rejects.toThrowError(eserviceNotFound(mockEService.id));
       });
@@ -311,7 +311,7 @@ describe("database test", async () => {
             purposeId: mockPurpose1.id,
             versionId: randomVersionId,
             documentId: randomDocumentId,
-            authData: getMockAuthData(mockEService.producerId),
+            organizationId: mockEService.producerId,
           })
         ).rejects.toThrowError(
           purposeVersionNotFound(mockPurpose1.id, randomVersionId)
@@ -336,7 +336,7 @@ describe("database test", async () => {
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
             documentId: randomDocumentId,
-            authData: getMockAuthData(mockEService.producerId),
+            organizationId: mockEService.producerId,
           })
         ).rejects.toThrowError(
           purposeVersionDocumentNotFound(
@@ -365,7 +365,7 @@ describe("database test", async () => {
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
             documentId: mockDocument.id,
-            authData: getMockAuthData(randomId),
+            organizationId: randomId,
           })
         ).rejects.toThrowError(organizationNotAllowed(randomId));
       });
