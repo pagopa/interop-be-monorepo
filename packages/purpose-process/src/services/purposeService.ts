@@ -283,6 +283,7 @@ export function purposeServiceBuilder(
       organizationId: TenantId;
       correlationId: string;
     }): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
+      logger.info(`Updating Purpose ${purposeId}`);
       return await updatePurposeInternal(
         purposeId,
         purposeUpdateContent,
@@ -302,6 +303,7 @@ export function purposeServiceBuilder(
       organizationId: TenantId;
       correlationId: string;
     }): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
+      logger.info(`Updating Reverse Purpose ${purposeId}`);
       return await updatePurposeInternal(
         purposeId,
         reversePurposeUpdateContent,
