@@ -8,7 +8,11 @@
 import fs from "fs";
 import path from "path";
 
-import { FileManager, selfcareServiceMock } from "pagopa-interop-commons";
+import {
+  FileManager,
+  Logger,
+  selfcareServiceMock,
+} from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementAttribute,
@@ -40,7 +44,8 @@ import { AttributeQuery } from "./readmodel/attributeQuery.js";
 const getAttributeInvolved = async (
   consumer: Tenant,
   seed: UpdateAgreementSeed,
-  attributeQuery: AttributeQuery
+  attributeQuery: AttributeQuery,
+  logger: Logger
 ): Promise<AgreementInvolvedAttributes> => {
   const getAgreementAttributeByType = async <
     T extends
@@ -62,7 +67,7 @@ const getAttributeInvolved = async (
 
     return Promise.all(
       attributes.map(async (attr) => {
-        const att = await attributeQuery.getAttributeById(attr.id);
+        const att = await attributeQuery.getAttributeById(attr.id, logger);
         if (!att) {
           throw genericError(`Attribute ${attr.id} not found`);
         }
@@ -136,12 +141,14 @@ const getPdfPayload = async (
   consumer: Tenant,
   producer: Tenant,
   seed: UpdateAgreementSeed,
-  attributeQuery: AttributeQuery
+  attributeQuery: AttributeQuery,
+  logger: Logger
 ): Promise<PDFPayload> => {
   const { certified, declared, verified } = await getAttributeInvolved(
     consumer,
     seed,
-    attributeQuery
+    attributeQuery,
+    logger
   );
   const [submitter, submissionTimestamp] = await getSubmissionInfo(seed);
   const [activator, activationTimestamp] = await getActivationInfo(seed);
@@ -191,7 +198,8 @@ export const pdfGenerator = {
     producer: Tenant,
     seed: UpdateAgreementSeed,
     attributeQuery: AttributeQuery,
-    storeFile: FileManager["storeBytes"]
+    storeFile: FileManager["storeBytes"],
+    logger: Logger
   ): Promise<ApiAgreementDocumentSeed> => {
     const documentId = uuidv4();
     const prettyName = "Richiesta di fruizione";
@@ -205,7 +213,8 @@ export const pdfGenerator = {
       consumer,
       producer,
       seed,
-      attributeQuery
+      attributeQuery,
+      logger
     );
     const document = await create(agreementTemplateMock, pdfPayload);
 
@@ -214,7 +223,8 @@ export const pdfGenerator = {
       `${config.agreementContractsPath}/${agreement.id}`,
       documentId,
       documentName,
-      Buffer.from(document)
+      Buffer.from(document),
+      logger
     );
 
     return {

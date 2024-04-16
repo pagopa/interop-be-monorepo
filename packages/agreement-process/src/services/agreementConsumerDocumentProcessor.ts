@@ -1,4 +1,5 @@
-import { AuthData, CreateEvent } from "pagopa-interop-commons";
+/* eslint-disable max-params */
+import { AuthData, CreateEvent, Logger } from "pagopa-interop-commons";
 import {
   AgreementDocumentId,
   AgreementEvent,
@@ -27,9 +28,10 @@ export async function addConsumerDocumentLogic(
   payload: ApiAgreementDocumentSeed,
   agreementQuery: AgreementQuery,
   authData: AuthData,
-  correlationId: string
+  correlationId: string,
+  logger: Logger
 ): Promise<CreateEvent<AgreementEvent>> {
-  const agreement = await agreementQuery.getAgreementById(agreementId);
+  const agreement = await agreementQuery.getAgreementById(agreementId, logger);
 
   assertAgreementExist(agreementId, agreement);
   assertRequesterIsConsumer(agreement.data, authData);
@@ -57,10 +59,11 @@ export async function removeAgreementConsumerDocumentLogic(
   documentId: AgreementDocumentId,
   agreementQuery: AgreementQuery,
   authData: AuthData,
-  fileRemove: (bucket: string, path: string) => Promise<void>,
-  correlationId: string
+  fileRemove: (bucket: string, path: string, logger: Logger) => Promise<void>,
+  correlationId: string,
+  logger: Logger
 ): Promise<CreateEvent<AgreementEvent>> {
-  const agreement = await agreementQuery.getAgreementById(agreementId);
+  const agreement = await agreementQuery.getAgreementById(agreementId, logger);
 
   assertAgreementExist(agreementId, agreement);
   assertRequesterIsConsumer(agreement.data, authData);
@@ -74,7 +77,7 @@ export async function removeAgreementConsumerDocumentLogic(
     throw agreementDocumentNotFound(documentId, agreementId);
   }
 
-  await fileRemove(config.s3Bucket, existentDocument.path);
+  await fileRemove(config.s3Bucket, existentDocument.path, logger);
 
   return toCreateEventAgreementConsumerDocumentRemoved(
     agreementId,

@@ -1,5 +1,5 @@
 /* eslint-disable max-params */
-import { CreateEvent, getContext, logger } from "pagopa-interop-commons";
+import { CreateEvent, Logger, getContext } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementDocument,
@@ -65,12 +65,13 @@ export async function submitAgreementLogic(
   eserviceQuery: EserviceQuery,
   agreementQuery: AgreementQuery,
   tenantQuery: TenantQuery,
-  correlationId: string
+  correlationId: string,
+  logger: Logger
 ): Promise<Array<CreateEvent<AgreementEvent>>> {
   logger.info(`Submitting agreement ${agreementId}`);
   const { authData } = getContext();
 
-  const agreement = await agreementQuery.getAgreementById(agreementId);
+  const agreement = await agreementQuery.getAgreementById(agreementId, logger);
 
   if (!agreement) {
     throw agreementNotFound(agreementId);
@@ -78,10 +79,15 @@ export async function submitAgreementLogic(
 
   assertRequesterIsConsumer(agreement.data, authData);
   assertSubmittableState(agreement.data.state, agreement.data.id);
-  await verifySubmissionConflictingAgreements(agreement.data, agreementQuery);
+  await verifySubmissionConflictingAgreements(
+    agreement.data,
+    agreementQuery,
+    logger
+  );
 
   const eservice = await eserviceQuery.getEServiceById(
-    agreement.data.eserviceId
+    agreement.data.eserviceId,
+    logger
   );
   if (!eservice) {
     throw eServiceNotFound(agreement.data.eserviceId);
@@ -92,7 +98,10 @@ export async function submitAgreementLogic(
     agreement.data.descriptorId
   );
 
-  const consumer = await tenantQuery.getTenantById(agreement.data.consumerId);
+  const consumer = await tenantQuery.getTenantById(
+    agreement.data.consumerId,
+    logger
+  );
 
   if (!consumer) {
     throw tenantIdNotFound(agreement.data.consumerId);
@@ -107,7 +116,8 @@ export async function submitAgreementLogic(
     agreementQuery,
     tenantQuery,
     constractBuilder,
-    correlationId
+    correlationId,
+    logger
   );
 }
 
@@ -120,7 +130,8 @@ const submitAgreement = async (
   agreementQuery: AgreementQuery,
   tenantQuery: TenantQuery,
   constractBuilder: ContractBuilder,
-  correlationId: string
+  correlationId: string,
+  logger: Logger
 ): Promise<Array<CreateEvent<AgreementEvent>>> => {
   const agreement = agreementData.data;
   const { authData } = getContext();
@@ -135,7 +146,7 @@ const submitAgreement = async (
   );
 
   if (agreement.state === agreementState.draft) {
-    await validateConsumerEmail(agreement, tenantQuery);
+    await validateConsumerEmail(agreement, tenantQuery, logger);
   }
   const stamp = createStamp(authData);
   const stamps = calculateStamps(agreement, newState, stamp);
@@ -162,12 +173,15 @@ const submitAgreement = async (
   );
 
   const agreements = (
-    await agreementQuery.getAllAgreements({
-      producerId: agreement.producerId,
-      consumerId: agreement.consumerId,
-      eserviceId: agreement.eserviceId,
-      agreementStates: [agreementState.active, agreementState.suspended],
-    })
+    await agreementQuery.getAllAgreements(
+      {
+        producerId: agreement.producerId,
+        consumerId: agreement.consumerId,
+        eserviceId: agreement.eserviceId,
+        agreementStates: [agreementState.active, agreementState.suspended],
+      },
+      logger
+    )
   ).filter((a: WithMetadata<Agreement>) => a.data.id !== agreement.id);
 
   const archivedAgreementsUpdates: Array<CreateEvent<AgreementEvent>> =
@@ -218,7 +232,8 @@ const submitAgreement = async (
             updateSeed,
             tenantQuery,
             constractBuilder,
-            correlationId
+            correlationId,
+            logger
           ),
         ]
       : [];
@@ -238,9 +253,13 @@ const createContract = async (
   seed: UpdateAgreementSeed,
   tenantQuery: TenantQuery,
   constractBuilder: ContractBuilder,
-  correlationId: string
+  correlationId: string,
+  logger: Logger
 ): Promise<CreateEvent<AgreementEvent>> => {
-  const producer = await tenantQuery.getTenantById(agreement.producerId);
+  const producer = await tenantQuery.getTenantById(
+    agreement.producerId,
+    logger
+  );
 
   if (!producer) {
     throw tenantIdNotFound(agreement.producerId);
@@ -267,15 +286,20 @@ const createContract = async (
     agreement.id,
     agreementdocumentSeed,
     agreementVersionNumer,
-    correlationId
+    correlationId,
+    logger
   );
 };
 
 const validateConsumerEmail = async (
   agreement: Agreement,
-  tenantQuery: TenantQuery
+  tenantQuery: TenantQuery,
+  logger: Logger
 ): Promise<void> => {
-  const consumer = await tenantQuery.getTenantById(agreement.consumerId);
+  const consumer = await tenantQuery.getTenantById(
+    agreement.consumerId,
+    logger
+  );
 
   if (
     !consumer?.mails.find((mail) => mail.kind === tenantMailKind.ContactEmail)

@@ -7,8 +7,8 @@ import {
   ReadModelRepository,
   RemoveDataPrefix,
   Metadata,
-  logger,
   AttributeCollection,
+  Logger,
 } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -203,7 +203,8 @@ const getTenantsByNamePipeline = (
 
 const getAllAgreements = async (
   agreements: AgreementCollection,
-  filters: AgreementQueryFilters
+  filters: AgreementQueryFilters,
+  logger: Logger
 ): Promise<Array<WithMetadata<Agreement>>> => {
   const data = await agreements
     .aggregate([getAgreementsFilters(filters)])
@@ -232,7 +233,8 @@ const getAllAgreements = async (
 
 async function getAttribute(
   attributes: AttributeCollection,
-  filter: Filter<{ data: AttributeReadmodel }>
+  filter: Filter<{ data: AttributeReadmodel }>,
+  logger: Logger
 ): Promise<Attribute | undefined> {
   const data = await attributes.findOne(filter, {
     projection: { data: true },
@@ -252,12 +254,14 @@ async function getAttribute(
   return undefined;
 }
 
+// eslint-disable-next-line max-params
 async function searchTenantsByName(
   agreements: AgreementCollection,
   tenantName: string | undefined,
   tenantIdField: "producerId" | "consumerId",
   limit: number,
-  offset: number
+  offset: number,
+  logger: Logger
 ): Promise<ListResult<CompactOrganization>> {
   const aggregationPipeline = getTenantsByNamePipeline(
     tenantName,
@@ -285,7 +289,9 @@ async function searchTenantsByName(
     results: result.data,
     totalCount: await ReadModelRepository.getTotalCount(
       agreements,
-      aggregationPipeline
+      aggregationPipeline,
+      false,
+      logger
     ),
   };
 }
@@ -302,7 +308,8 @@ export function readModelServiceBuilder(
     async getAgreements(
       filters: AgreementQueryFilters,
       limit: number,
-      offset: number
+      offset: number,
+      logger: Logger
     ): Promise<ListResult<Agreement>> {
       const aggregationPipeline = [
         getAgreementsFilters(filters),
@@ -406,12 +413,15 @@ export function readModelServiceBuilder(
         results: result.data,
         totalCount: await ReadModelRepository.getTotalCount(
           agreements,
-          aggregationPipeline
+          aggregationPipeline,
+          false,
+          logger
         ),
       };
     },
     async readAgreementById(
-      agreementId: AgreementId
+      agreementId: AgreementId,
+      logger: Logger
     ): Promise<WithMetadata<Agreement> | undefined> {
       const data = await agreements.findOne(
         { "data.id": agreementId },
@@ -438,11 +448,15 @@ export function readModelServiceBuilder(
       return undefined;
     },
     async getAllAgreements(
-      filters: AgreementQueryFilters
+      filters: AgreementQueryFilters,
+      logger: Logger
     ): Promise<Array<WithMetadata<Agreement>>> {
-      return getAllAgreements(agreements, filters);
+      return getAllAgreements(agreements, filters, logger);
     },
-    async getEServiceById(id: string): Promise<EService | undefined> {
+    async getEServiceById(
+      id: string,
+      logger: Logger
+    ): Promise<EService | undefined> {
       const data = await eservices.findOne(
         { "data.id": id },
         { projection: { data: true } }
@@ -466,7 +480,10 @@ export function readModelServiceBuilder(
 
       return undefined;
     },
-    async getTenantById(tenantId: string): Promise<Tenant | undefined> {
+    async getTenantById(
+      tenantId: string,
+      logger: Logger
+    ): Promise<Tenant | undefined> {
       const data = await tenants.findOne(
         { "data.id": tenantId },
         { projection: { data: true } }
@@ -489,27 +506,47 @@ export function readModelServiceBuilder(
       }
       return undefined;
     },
-    async getAttributeById(id: AttributeId): Promise<Attribute | undefined> {
-      return getAttribute(attributes, { "data.id": id });
+    async getAttributeById(
+      id: AttributeId,
+      logger: Logger
+    ): Promise<Attribute | undefined> {
+      return getAttribute(attributes, { "data.id": id }, logger);
     },
     async listConsumers(
       name: string | undefined,
       limit: number,
-      offset: number
+      offset: number,
+      logger: Logger
     ): Promise<ListResult<CompactOrganization>> {
-      return searchTenantsByName(agreements, name, "consumerId", limit, offset);
+      return searchTenantsByName(
+        agreements,
+        name,
+        "consumerId",
+        limit,
+        offset,
+        logger
+      );
     },
     async listProducers(
       name: string | undefined,
       limit: number,
-      offset: number
+      offset: number,
+      logger: Logger
     ): Promise<ListResult<CompactOrganization>> {
-      return searchTenantsByName(agreements, name, "producerId", limit, offset);
+      return searchTenantsByName(
+        agreements,
+        name,
+        "producerId",
+        limit,
+        offset,
+        logger
+      );
     },
     async listAgreementsEServices(
       filters: AgreementEServicesQueryFilters,
       limit: number,
-      offset: number
+      offset: number,
+      logger: Logger
     ): Promise<ListResult<CompactEService>> {
       const aggregationPipeline = [
         {
@@ -577,7 +614,9 @@ export function readModelServiceBuilder(
         results: result.data,
         totalCount: await ReadModelRepository.getTotalCount(
           agreements,
-          aggregationPipeline
+          aggregationPipeline,
+          false,
+          logger
         ),
       };
     },

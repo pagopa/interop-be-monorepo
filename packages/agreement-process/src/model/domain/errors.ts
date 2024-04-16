@@ -1,4 +1,3 @@
-import { logger } from "pagopa-interop-commons";
 import {
   AgreementDocumentId,
   AgreementId,
@@ -8,10 +7,9 @@ import {
   DescriptorState,
   EServiceId,
   TenantId,
-  makeApiProblemBuilder,
 } from "pagopa-interop-models";
 
-const errorCodes = {
+export const errorCodes = {
   missingCertifiedAttributesError: "0001",
   agreementSubmissionFailed: "0002",
   agreementNotInExpectedState: "0003",
@@ -40,8 +38,6 @@ const errorCodes = {
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
-
-export const makeApiProblem = makeApiProblemBuilder(logger, errorCodes);
 
 export function eServiceNotFound(eserviceId: EServiceId): ApiError<ErrorCodes> {
   return new ApiError({

@@ -1,5 +1,10 @@
 /* eslint-disable max-params */
-import { AuthData, CreateEvent, FileManager } from "pagopa-interop-commons";
+import {
+  AuthData,
+  CreateEvent,
+  FileManager,
+  Logger,
+} from "pagopa-interop-commons";
 import {
   Agreement,
   Descriptor,
@@ -52,9 +57,10 @@ export async function activateAgreementLogic(
   attributeQuery: AttributeQuery,
   authData: AuthData,
   storeFile: FileManager["storeBytes"],
-  correlationId: string
+  correlationId: string,
+  logger: Logger
 ): Promise<Array<CreateEvent<AgreementEvent>>> {
-  const agreement = await agreementQuery.getAgreementById(agreementId);
+  const agreement = await agreementQuery.getAgreementById(agreementId, logger);
   assertAgreementExist(agreementId, agreement);
 
   assertRequesterIsConsumerOrProducer(agreement.data, authData);
@@ -62,7 +68,8 @@ export async function activateAgreementLogic(
   assertActivableState(agreement.data);
 
   const eservice = await eserviceQuery.getEServiceById(
-    agreement.data.eserviceId
+    agreement.data.eserviceId,
+    logger
   );
   assertEServiceExist(agreement.data.eserviceId, eservice);
 
@@ -71,7 +78,10 @@ export async function activateAgreementLogic(
     agreement.data.descriptorId
   );
 
-  const tenant = await tenantQuery.getTenantById(agreement.data.consumerId);
+  const tenant = await tenantQuery.getTenantById(
+    agreement.data.consumerId,
+    logger
+  );
   assertTenantExist(agreement.data.consumerId, tenant);
 
   return activateAgreement(
@@ -84,7 +94,8 @@ export async function activateAgreementLogic(
     agreementQuery,
     attributeQuery,
     storeFile,
-    correlationId
+    correlationId,
+    logger
   );
 }
 
@@ -98,7 +109,8 @@ async function activateAgreement(
   agreementQuery: AgreementQuery,
   attributeQuery: AttributeQuery,
   storeFile: FileManager["storeBytes"],
-  correlationId: string
+  correlationId: string,
+  logger: Logger
 ): Promise<Array<CreateEvent<AgreementEvent>>> {
   const agreement = agreementData.data;
   const nextAttributesState = nextState(agreement, descriptor, consumer);
@@ -191,7 +203,8 @@ async function activateAgreement(
       consumer,
       attributeQuery,
       tenantQuery,
-      storeFile
+      storeFile,
+      logger
     );
   }
 
@@ -199,7 +212,8 @@ async function activateAgreement(
     agreement,
     authData,
     agreementQuery,
-    correlationId
+    correlationId,
+    logger
   );
 
   return [updateAgreementEvent, ...archiveEvents];
@@ -209,12 +223,16 @@ const archiveRelatedToAgreements = async (
   agreement: Agreement,
   authData: AuthData,
   agreementQuery: AgreementQuery,
-  correlationId: string
+  correlationId: string,
+  logger: Logger
 ): Promise<Array<CreateEvent<AgreementEvent>>> => {
-  const existingAgreements = await agreementQuery.getAllAgreements({
-    consumerId: agreement.consumerId,
-    eserviceId: agreement.eserviceId,
-  });
+  const existingAgreements = await agreementQuery.getAllAgreements(
+    {
+      consumerId: agreement.consumerId,
+      eserviceId: agreement.eserviceId,
+    },
+    logger
+  );
 
   const archivables = existingAgreements.filter(
     (a) =>
@@ -251,12 +269,16 @@ const createContract = async (
   consumer: Tenant,
   attributeQuery: AttributeQuery,
   tenantQuery: TenantQuery,
-  storeFile: FileManager["storeBytes"]
+  storeFile: FileManager["storeBytes"],
+  logger: Logger
 ): Promise<void> => {
-  const producer = await tenantQuery.getTenantById(agreement.producerId);
+  const producer = await tenantQuery.getTenantById(
+    agreement.producerId,
+    logger
+  );
   assertTenantExist(agreement.producerId, producer);
 
-  await contractBuilder(attributeQuery, storeFile).createContract(
+  await contractBuilder(attributeQuery, storeFile, logger).createContract(
     agreement,
     eservice,
     consumer,

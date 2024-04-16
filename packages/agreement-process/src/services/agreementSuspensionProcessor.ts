@@ -1,4 +1,4 @@
-import { AuthData, CreateEvent } from "pagopa-interop-commons";
+import { AuthData, CreateEvent, Logger } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementEvent,
@@ -31,22 +31,25 @@ import {
   suspendedByProducerStamp,
 } from "./agreementStampUtils.js";
 
-export async function suspendAgreementLogic({
-  agreementId,
-  authData,
-  agreementQuery,
-  tenantQuery,
-  eserviceQuery,
-  correlationId,
-}: {
-  agreementId: Agreement["id"];
-  authData: AuthData;
-  agreementQuery: AgreementQuery;
-  tenantQuery: TenantQuery;
-  eserviceQuery: EserviceQuery;
-  correlationId: string;
-}): Promise<CreateEvent<AgreementEvent>> {
-  const agreement = await agreementQuery.getAgreementById(agreementId);
+export async function suspendAgreementLogic(
+  {
+    agreementId,
+    authData,
+    agreementQuery,
+    tenantQuery,
+    eserviceQuery,
+    correlationId,
+  }: {
+    agreementId: Agreement["id"];
+    authData: AuthData;
+    agreementQuery: AgreementQuery;
+    tenantQuery: TenantQuery;
+    eserviceQuery: EserviceQuery;
+    correlationId: string;
+  },
+  logger: Logger
+): Promise<CreateEvent<AgreementEvent>> {
+  const agreement = await agreementQuery.getAgreementById(agreementId, logger);
   assertAgreementExist(agreementId, agreement);
 
   assertRequesterIsConsumerOrProducer(agreement.data, authData);
@@ -58,11 +61,15 @@ export async function suspendAgreementLogic({
   );
 
   const eservice = await eserviceQuery.getEServiceById(
-    agreement.data.eserviceId
+    agreement.data.eserviceId,
+    logger
   );
   assertEServiceExist(agreement.data.eserviceId, eservice);
 
-  const consumer = await tenantQuery.getTenantById(agreement.data.consumerId);
+  const consumer = await tenantQuery.getTenantById(
+    agreement.data.consumerId,
+    logger
+  );
   assertTenantExist(agreement.data.consumerId, consumer);
 
   const descriptor = eservice.descriptors.find(

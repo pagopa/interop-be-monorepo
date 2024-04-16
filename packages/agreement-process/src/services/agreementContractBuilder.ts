@@ -1,4 +1,4 @@
-import { CreateEvent, FileManager, logger } from "pagopa-interop-commons";
+import { CreateEvent, FileManager, Logger } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementDocument,
@@ -16,7 +16,8 @@ import { AttributeQuery } from "./readmodel/attributeQuery.js";
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export const contractBuilder = (
   attributeQuery: AttributeQuery,
-  storeFile: FileManager["storeBytes"]
+  storeFile: FileManager["storeBytes"],
+  logger: Logger
 ) => ({
   createContract: async (
     agreement: Agreement,
@@ -32,7 +33,8 @@ export const contractBuilder = (
       producer,
       seed,
       attributeQuery,
-      storeFile
+      storeFile,
+      logger
     ),
 });
 
@@ -42,7 +44,8 @@ export async function addAgreementContractLogic(
   agreementId: AgreementId,
   agreementDocument: AgreementDocument,
   version: number,
-  correlationId: string
+  correlationId: string,
+  logger: Logger
 ): Promise<CreateEvent<AgreementEvent>> {
   logger.info(
     `Adding contract ${agreementDocument.id} to Agreement ${agreementId}`
