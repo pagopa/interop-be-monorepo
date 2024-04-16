@@ -22,6 +22,7 @@ import {
   PurposeActivatedV2,
   PurposeAddedV2,
   PurposeArchivedV2,
+  PurposeClonedV2,
   PurposeCreatedV1,
   PurposeDeletedV1,
   PurposeEventEnvelope,
@@ -1148,6 +1149,46 @@ describe("Integration tests", async () => {
 
       expect(retrievedPurpose?.data).toEqual(updatedPurpose);
       expect(retrievedPurpose?.metadata).toEqual({ version: 2 });
+    });
+
+    it("PurposeCloned", async () => {
+      await writeInReadmodel(mockPurpose, purposes, 1);
+
+      const purposeVersion = getMockPurposeVersion();
+      const purpose: Purpose = {
+        ...mockPurpose,
+        versions: [purposeVersion],
+      };
+
+      const clonedPurpose: Purpose = {
+        ...purpose,
+        id: generateId(),
+        createdAt: new Date(),
+      };
+
+      const payload: PurposeClonedV2 = {
+        purpose: toPurposeV2(clonedPurpose),
+        sourcePurposeId: mockPurpose.id,
+        sourceVersionId: purposeVersion.id,
+      };
+
+      const message: PurposeEventEnvelope = {
+        sequence_num: 1,
+        stream_id: clonedPurpose.id,
+        version: 1,
+        type: "PurposeCloned",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+      await handleMessageV2(message, purposes);
+
+      const retrievedPurpose = await purposes.findOne({
+        "data.id": clonedPurpose.id,
+      });
+
+      expect(retrievedPurpose?.data).toEqual(clonedPurpose);
+      expect(retrievedPurpose?.metadata).toEqual({ version: 1 });
     });
   });
 });
