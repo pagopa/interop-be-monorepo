@@ -787,21 +787,26 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       await addOneTenant(tenant, tenants);
 
       const agreementId = generateId<AgreementId>();
+      const invalidAgreementState = randomArrayItem(
+        Object.values(agreementState).filter(
+          (s) => !agreementUpgradableStates.includes(s)
+        )
+      );
       const agreement = {
         ...getMockAgreement(
           generateId<EServiceId>(),
           tenantId,
-          randomArrayItem(agreementUpgradableStates)
+          invalidAgreementState
         ),
         id: agreementId,
-        state: agreementState.rejected,
+        state: invalidAgreementState,
       };
 
       await addOneAgreement(agreement, postgresDB, agreements);
       await expect(
         agreementService.upgradeAgreement(agreementId, authData, uuidv4())
       ).rejects.toThrowError(
-        agreementNotInExpectedState(agreementId, agreementState.rejected)
+        agreementNotInExpectedState(agreementId, invalidAgreementState)
       );
     });
 
