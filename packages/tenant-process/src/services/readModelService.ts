@@ -1,6 +1,6 @@
 import {
   AttributeCollection,
-  logger,
+  Logger,
   ReadModelRepository,
   TenantCollection,
 } from "pagopa-interop-commons";
@@ -49,19 +49,22 @@ function listTenantsFilters(
   };
 }
 
-export const getTenants = async ({
-  tenants,
-  aggregationPipeline,
-  offset,
-  limit,
-  allowDiskUse = false,
-}: {
-  tenants: TenantCollection;
-  aggregationPipeline: Array<Filter<Tenant>>;
-  offset: number;
-  limit: number;
-  allowDiskUse?: boolean;
-}): Promise<{
+export const getTenants = async (
+  {
+    tenants,
+    aggregationPipeline,
+    offset,
+    limit,
+    allowDiskUse = false,
+  }: {
+    tenants: TenantCollection;
+    aggregationPipeline: Array<Filter<Tenant>>;
+    offset: number;
+    limit: number;
+    allowDiskUse?: boolean;
+  },
+  logger: Logger
+): Promise<{
   results: Tenant[];
   totalCount: number;
 }> => {
@@ -86,14 +89,16 @@ export const getTenants = async ({
     totalCount: await ReadModelRepository.getTotalCount(
       tenants,
       aggregationPipeline,
-      allowDiskUse
+      allowDiskUse,
+      logger
     ),
   };
 };
 
 async function getAttribute(
   attributes: AttributeCollection,
-  filter: Filter<WithId<WithMetadata<AttributeReadmodel>>>
+  filter: Filter<WithId<WithMetadata<AttributeReadmodel>>>,
+  logger: Logger
 ): Promise<Attribute | undefined> {
   const data = await attributes.findOne(filter, {
     projection: { data: true, metadata: true },
@@ -116,7 +121,8 @@ async function getAttribute(
 
 async function getTenant(
   tenants: TenantCollection,
-  filter: Filter<WithId<WithMetadata<Tenant>>>
+  filter: Filter<WithId<WithMetadata<Tenant>>>,
+  logger: Logger
 ): Promise<WithMetadata<Tenant> | undefined> {
   const data = await tenants.findOne(filter, {
     projection: { data: true, metadata: true },
@@ -153,15 +159,18 @@ async function getTenant(
 export function readModelServiceBuilder(config: TenantProcessConfig) {
   const { attributes, eservices, tenants } = ReadModelRepository.init(config);
   return {
-    async getTenantsByName({
-      name,
-      offset,
-      limit,
-    }: {
-      name: string | undefined;
-      offset: number;
-      limit: number;
-    }): Promise<ListResult<Tenant>> {
+    async getTenantsByName(
+      {
+        name,
+        offset,
+        limit,
+      }: {
+        name: string | undefined;
+        offset: number;
+        limit: number;
+      },
+      logger: Logger
+    ): Promise<ListResult<Tenant>> {
       const query = listTenantsFilters(name);
       const aggregationPipeline = [
         { $match: query },
@@ -169,57 +178,75 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
         { $sort: { lowerName: 1 } },
       ];
 
-      return getTenants({
-        tenants,
-        aggregationPipeline,
-        offset,
-        limit,
-      });
+      return getTenants(
+        {
+          tenants,
+          aggregationPipeline,
+          offset,
+          limit,
+        },
+        logger
+      );
     },
 
     async getTenantById(
-      id: TenantId
+      id: TenantId,
+      logger: Logger
     ): Promise<WithMetadata<Tenant> | undefined> {
-      return getTenant(tenants, { "data.id": id });
+      return getTenant(tenants, { "data.id": id }, logger);
     },
 
     async getTenantByName(
-      name: string
+      name: string,
+      logger: Logger
     ): Promise<WithMetadata<Tenant> | undefined> {
-      return getTenant(tenants, {
-        "data.name": {
-          $regex: `^${ReadModelRepository.escapeRegExp(name)}$$`,
-          $options: "i",
+      return getTenant(
+        tenants,
+        {
+          "data.name": {
+            $regex: `^${ReadModelRepository.escapeRegExp(name)}$$`,
+            $options: "i",
+          },
         },
-      });
+        logger
+      );
     },
 
     async getTenantByExternalId(
-      externalId: ExternalId
+      externalId: ExternalId,
+      logger: Logger
     ): Promise<WithMetadata<Tenant> | undefined> {
-      return getTenant(tenants, {
-        "data.externalId.value": externalId.value,
-        "data.externalId.origin": externalId.origin,
-      });
+      return getTenant(
+        tenants,
+        {
+          "data.externalId.value": externalId.value,
+          "data.externalId.origin": externalId.origin,
+        },
+        logger
+      );
     },
 
     async getTenantBySelfcareId(
-      selfcareId: string
+      selfcareId: string,
+      logger: Logger
     ): Promise<WithMetadata<Tenant> | undefined> {
-      return getTenant(tenants, { "data.selfcareId": selfcareId });
+      return getTenant(tenants, { "data.selfcareId": selfcareId }, logger);
     },
 
-    async getConsumers({
-      consumerName,
-      producerId,
-      offset,
-      limit,
-    }: {
-      consumerName: string | undefined;
-      producerId: string;
-      offset: number;
-      limit: number;
-    }): Promise<ListResult<Tenant>> {
+    async getConsumers(
+      {
+        consumerName,
+        producerId,
+        offset,
+        limit,
+      }: {
+        consumerName: string | undefined;
+        producerId: string;
+        offset: number;
+        limit: number;
+      },
+      logger: Logger
+    ): Promise<ListResult<Tenant>> {
       const query = listTenantsFilters(consumerName);
 
       const aggregationPipeline = [
@@ -248,24 +275,30 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
         { $sort: { lowerName: 1 } },
       ];
 
-      return getTenants({
-        tenants,
-        aggregationPipeline,
-        offset,
-        limit,
-        allowDiskUse: true,
-      });
+      return getTenants(
+        {
+          tenants,
+          aggregationPipeline,
+          offset,
+          limit,
+          allowDiskUse: true,
+        },
+        logger
+      );
     },
 
-    async getProducers({
-      producerName,
-      offset,
-      limit,
-    }: {
-      producerName: string | undefined;
-      offset: number;
-      limit: number;
-    }): Promise<ListResult<Tenant>> {
+    async getProducers(
+      {
+        producerName,
+        offset,
+        limit,
+      }: {
+        producerName: string | undefined;
+        offset: number;
+        limit: number;
+      },
+      logger: Logger
+    ): Promise<ListResult<Tenant>> {
       const query = listTenantsFilters(producerName);
       const aggregationPipeline = [
         { $match: query },
@@ -282,24 +315,32 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
         { $sort: { lowerName: 1 } },
       ];
 
-      return getTenants({
-        tenants,
-        aggregationPipeline,
-        offset,
-        limit,
-        allowDiskUse: true,
-      });
+      return getTenants(
+        {
+          tenants,
+          aggregationPipeline,
+          offset,
+          limit,
+          allowDiskUse: true,
+        },
+        logger
+      );
     },
     async getAttributesByExternalIds(
-      externalIds: ExternalId[]
+      externalIds: ExternalId[],
+      logger: Logger
     ): Promise<Attribute[]> {
       const fetchAttributeByExternalId = async (
         externalId: ExternalId
       ): Promise<Attribute> => {
-        const data = await getAttribute(attributes, {
-          "data.origin": externalId.origin,
-          "data.code": externalId.value,
-        });
+        const data = await getAttribute(
+          attributes,
+          {
+            "data.origin": externalId.origin,
+            "data.code": externalId.value,
+          },
+          logger
+        );
         if (!data) {
           throw attributeNotFound(`${externalId.origin}/${externalId.value}`);
         }
@@ -310,11 +351,14 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
       return Promise.all(attributesPromises);
     },
 
-    async getAttributesById(attributeIds: AttributeId[]): Promise<Attribute[]> {
+    async getAttributesById(
+      attributeIds: AttributeId[],
+      logger: Logger
+    ): Promise<Attribute[]> {
       const fetchAttributeById = async (
         id: AttributeId
       ): Promise<Attribute> => {
-        const data = await getAttribute(attributes, { "data.id": id });
+        const data = await getAttribute(attributes, { "data.id": id }, logger);
         if (!data) {
           throw attributeNotFound(id);
         }
@@ -325,7 +369,10 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
       return Promise.all(attributePromises);
     },
 
-    async getEServiceById(id: EServiceId): Promise<EService | undefined> {
+    async getEServiceById(
+      id: EServiceId,
+      logger: Logger
+    ): Promise<EService | undefined> {
       const data = await eservices.findOne(
         { "data.id": id },
         { projection: { data: true, metadata: true } }
@@ -350,15 +397,18 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
       }
     },
 
-    async getCertifiedAttributes({
-      certifierId,
-      offset,
-      limit,
-    }: {
-      certifierId: string;
-      offset: number;
-      limit: number;
-    }): Promise<ListResult<CertifiedAttributeQueryResult>> {
+    async getCertifiedAttributes(
+      {
+        certifierId,
+        offset,
+        limit,
+      }: {
+        certifierId: string;
+        offset: number;
+        limit: number;
+      },
+      logger: Logger
+    ): Promise<ListResult<CertifiedAttributeQueryResult>> {
       const aggregationPipeline: Document[] = [
         {
           $match: {
@@ -437,7 +487,9 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
         results: result.data,
         totalCount: await ReadModelRepository.getTotalCount(
           attributes,
-          aggregationPipeline
+          aggregationPipeline,
+          false,
+          logger
         ),
       };
     },

@@ -189,7 +189,7 @@ export class ReadModelRepository {
   public static async getTotalCount(
     collection: Collections,
     aggregation: object[],
-    allowDiskUse: boolean = false,
+    allowDiskUse: boolean,
     logger: Logger
   ): Promise<number> {
     const query = collection.aggregate([...aggregation, { $count: "count" }], {

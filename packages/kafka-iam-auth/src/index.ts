@@ -101,21 +101,21 @@ const initConsumer = async (
 
   const kafkaConfig = config.kafkaDisableAwsIamAuth
     ? {
-      clientId: config.kafkaClientId,
-      brokers: [config.kafkaBrokers],
-      logLevel: config.kafkaLogLevel,
-      ssl: false,
-    }
+        clientId: config.kafkaClientId,
+        brokers: [config.kafkaBrokers],
+        logLevel: config.kafkaLogLevel,
+        ssl: false,
+      }
     : {
-      clientId: config.kafkaClientId,
-      brokers: [config.kafkaBrokers],
-      logLevel: config.kafkaLogLevel,
-      ssl: true,
-      sasl: createMechanism({
-        region: config.awsRegion,
-        ttl: DEFAULT_AUTHENTICATION_TIMEOUT.toString(),
-      }),
-    };
+        clientId: config.kafkaClientId,
+        brokers: [config.kafkaBrokers],
+        logLevel: config.kafkaLogLevel,
+        ssl: true,
+        sasl: createMechanism({
+          region: config.awsRegion,
+          ttl: DEFAULT_AUTHENTICATION_TIMEOUT.toString(),
+        }),
+      };
 
   const kafka = new Kafka(kafkaConfig);
 

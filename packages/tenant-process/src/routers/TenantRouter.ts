@@ -6,12 +6,13 @@ import {
   ZodiosContext,
   authorizationMiddleware,
   initDB,
+  logger,
 } from "pagopa-interop-commons";
-import { unsafeBrandId } from "pagopa-interop-models";
+import { makeApiProblemBuilder, unsafeBrandId } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
 import { toApiTenant } from "../model/domain/apiConverter.js";
 import {
-  makeApiProblem,
+  errorCodes,
   tenantBySelfcareIdNotFound,
   tenantFromExternalIdNotFound,
   tenantNotFound,
@@ -66,14 +67,23 @@ const tenantsRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
+        const loggerInstance = logger({
+          correlationId: req.ctx.correlationId,
+          userId: req.ctx.authData.userId,
+          organizationId: req.ctx.authData.organizationId,
+        });
+
         try {
           const { name, offset, limit } = req.query;
-          const consumers = await tenantService.getConsumers({
-            consumerName: name,
-            producerId: req.ctx.authData.organizationId,
-            offset,
-            limit,
-          });
+          const consumers = await tenantService.getConsumers(
+            {
+              consumerName: name,
+              producerId: req.ctx.authData.organizationId,
+              offset,
+              limit,
+            },
+            loggerInstance
+          );
 
           return res.status(200).json({
             results: consumers.results.map(toApiTenant),
@@ -93,13 +103,22 @@ const tenantsRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
+        const loggerInstance = logger({
+          correlationId: req.ctx.correlationId,
+          userId: req.ctx.authData.userId,
+          organizationId: req.ctx.authData.organizationId,
+        });
+
         try {
           const { name, offset, limit } = req.query;
-          const producers = await tenantService.getProducers({
-            producerName: name,
-            offset,
-            limit,
-          });
+          const producers = await tenantService.getProducers(
+            {
+              producerName: name,
+              offset,
+              limit,
+            },
+            loggerInstance
+          );
 
           return res.status(200).json({
             results: producers.results.map(toApiTenant),
@@ -119,13 +138,22 @@ const tenantsRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
+        const loggerInstance = logger({
+          correlationId: req.ctx.correlationId,
+          userId: req.ctx.authData.userId,
+          organizationId: req.ctx.authData.organizationId,
+        });
+
         try {
           const { name, offset, limit } = req.query;
-          const tenants = await tenantService.getTenantsByName({
-            name,
-            offset,
-            limit,
-          });
+          const tenants = await tenantService.getTenantsByName(
+            {
+              name,
+              offset,
+              limit,
+            },
+            loggerInstance
+          );
 
           return res.status(200).json({
             results: tenants.results.map(toApiTenant),
@@ -148,9 +176,20 @@ const tenantsRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
+        const loggerInstance = logger({
+          correlationId: req.ctx.correlationId,
+          userId: req.ctx.authData.userId,
+          organizationId: req.ctx.authData.organizationId,
+        });
+        const makeApiProblem = makeApiProblemBuilder(
+          loggerInstance,
+          errorCodes
+        );
+
         try {
           const tenant = await tenantService.getTenantById(
-            unsafeBrandId(req.params.id)
+            unsafeBrandId(req.params.id),
+            loggerInstance
           );
 
           if (tenant) {
@@ -182,13 +221,26 @@ const tenantsRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
+        const loggerInstance = logger({
+          correlationId: req.ctx.correlationId,
+          userId: req.ctx.authData.userId,
+          organizationId: req.ctx.authData.organizationId,
+        });
+        const makeApiProblem = makeApiProblemBuilder(
+          loggerInstance,
+          errorCodes
+        );
+
         try {
           const { origin, code } = req.params;
 
-          const tenant = await tenantService.getTenantByExternalId({
-            value: code,
-            origin,
-          });
+          const tenant = await tenantService.getTenantByExternalId(
+            {
+              value: code,
+              origin,
+            },
+            loggerInstance
+          );
           if (tenant) {
             return res.status(200).json(toApiTenant(tenant.data)).end();
           } else {
@@ -219,9 +271,20 @@ const tenantsRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
+        const loggerInstance = logger({
+          correlationId: req.ctx.correlationId,
+          userId: req.ctx.authData.userId,
+          organizationId: req.ctx.authData.organizationId,
+        });
+        const makeApiProblem = makeApiProblemBuilder(
+          loggerInstance,
+          errorCodes
+        );
+
         try {
           const tenant = await tenantService.getTenantBySelfcareId(
-            req.params.selfcareId
+            req.params.selfcareId,
+            loggerInstance
           );
 
           if (tenant) {
@@ -256,14 +319,27 @@ const tenantsRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
+        const loggerInstance = logger({
+          correlationId: req.ctx.correlationId,
+          userId: req.ctx.authData.userId,
+          organizationId: req.ctx.authData.organizationId,
+        });
+        const makeApiProblem = makeApiProblemBuilder(
+          loggerInstance,
+          errorCodes
+        );
+
         try {
           const { offset, limit } = req.query;
           const { results, totalCount } =
-            await tenantService.getCertifiedAttributes({
-              organizationId: req.ctx.authData.organizationId,
-              offset,
-              limit,
-            });
+            await tenantService.getCertifiedAttributes(
+              {
+                organizationId: req.ctx.authData.organizationId,
+                offset,
+                limit,
+              },
+              loggerInstance
+            );
 
           return res.status(200).json({
             results: results satisfies ApiCertifiedAttribute[],
@@ -302,12 +378,25 @@ const tenantsRouter = (
         INTERNAL_ROLE,
       ]),
       async (req, res) => {
+        const loggerInstance = logger({
+          correlationId: req.ctx.correlationId,
+          userId: req.ctx.authData.userId,
+          organizationId: req.ctx.authData.organizationId,
+        });
+        const makeApiProblem = makeApiProblemBuilder(
+          loggerInstance,
+          errorCodes
+        );
+
         try {
-          const id = await tenantService.selfcareUpsertTenant({
-            tenantSeed: req.body,
-            authData: req.ctx.authData,
-            correlationId: req.ctx.correlationId,
-          });
+          const id = await tenantService.selfcareUpsertTenant(
+            {
+              tenantSeed: req.body,
+              authData: req.ctx.authData,
+              correlationId: req.ctx.correlationId,
+            },
+            loggerInstance
+          );
           return res.status(200).json({ id }).send();
         } catch (error) {
           const errorRes = makeApiProblem(
@@ -327,15 +416,28 @@ const tenantsRouter = (
       "/tenants/:tenantId/attributes/verified/:attributeId",
       authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
+        const loggerInstance = logger({
+          correlationId: req.ctx.correlationId,
+          userId: req.ctx.authData.userId,
+          organizationId: req.ctx.authData.organizationId,
+        });
+        const makeApiProblem = makeApiProblemBuilder(
+          loggerInstance,
+          errorCodes
+        );
+
         try {
           const { tenantId, attributeId } = req.params;
-          const tenant = await tenantService.updateTenantVerifiedAttribute({
-            verifierId: req.ctx.authData.organizationId,
-            tenantId: unsafeBrandId(tenantId),
-            attributeId: unsafeBrandId(attributeId),
-            updateVerifiedTenantAttributeSeed: req.body,
-            correlationId: req.ctx.correlationId,
-          });
+          const tenant = await tenantService.updateTenantVerifiedAttribute(
+            {
+              verifierId: req.ctx.authData.organizationId,
+              tenantId: unsafeBrandId(tenantId),
+              attributeId: unsafeBrandId(attributeId),
+              updateVerifiedTenantAttributeSeed: req.body,
+              correlationId: req.ctx.correlationId,
+            },
+            loggerInstance
+          );
           return res.status(200).json(toApiTenant(tenant)).end();
         } catch (error) {
           const errorRes = makeApiProblem(
@@ -350,6 +452,16 @@ const tenantsRouter = (
       "/tenants/:tenantId/attributes/verified/:attributeId/verifier/:verifierId",
       authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
+        const loggerInstance = logger({
+          correlationId: req.ctx.correlationId,
+          userId: req.ctx.authData.userId,
+          organizationId: req.ctx.authData.organizationId,
+        });
+        const makeApiProblem = makeApiProblemBuilder(
+          loggerInstance,
+          errorCodes
+        );
+
         try {
           const { tenantId, attributeId, verifierId } = req.params;
           const tenant =
@@ -357,7 +469,8 @@ const tenantsRouter = (
               unsafeBrandId(tenantId),
               unsafeBrandId(attributeId),
               verifierId,
-              req.ctx.correlationId
+              req.ctx.correlationId,
+              loggerInstance
             );
           return res.status(200).json(toApiTenant(tenant)).end();
         } catch (error) {

@@ -1,4 +1,4 @@
-import { AuthData, DB, eventRepository, logger } from "pagopa-interop-commons";
+import { AuthData, DB, eventRepository, Logger } from "pagopa-interop-commons";
 import {
   AttributeId,
   ListResult,
@@ -37,9 +37,10 @@ import { ReadModelService } from "./readModelService.js";
 
 const retrieveTenant = async (
   tenantId: TenantId,
-  readModelService: ReadModelService
+  readModelService: ReadModelService,
+  logger: Logger
 ): Promise<WithMetadata<Tenant>> => {
-  const tenant = await readModelService.getTenantById(tenantId);
+  const tenant = await readModelService.getTenantById(tenantId, logger);
   if (tenant === undefined) {
     throw tenantNotFound(tenantId);
   }
@@ -57,12 +58,13 @@ export function tenantServiceBuilder(
       tenantId: TenantId,
       attributeId: AttributeId,
       verifierId: string,
-      correlationId: string
+      correlationId: string,
+      logger: Logger
     ): Promise<Tenant> {
       logger.info(
         `Update extension date of attribute ${attributeId} for tenant ${tenantId}`
       );
-      const tenant = await retrieveTenant(tenantId, readModelService);
+      const tenant = await retrieveTenant(tenantId, readModelService, logger);
 
       const attribute = tenant.data.attributes.find(
         (att) => att.id === attributeId
@@ -124,25 +126,28 @@ export function tenantServiceBuilder(
         updatedTenant,
         correlationId
       );
-      await repository.createEvent(event);
+      await repository.createEvent(event, logger);
       return updatedTenant;
     },
 
-    async updateTenantVerifiedAttribute({
-      verifierId,
-      tenantId,
-      attributeId,
-      updateVerifiedTenantAttributeSeed,
-      correlationId,
-    }: {
-      verifierId: string;
-      tenantId: TenantId;
-      attributeId: AttributeId;
-      updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed;
-      correlationId: string;
-    }): Promise<Tenant> {
+    async updateTenantVerifiedAttribute(
+      {
+        verifierId,
+        tenantId,
+        attributeId,
+        updateVerifiedTenantAttributeSeed,
+        correlationId,
+      }: {
+        verifierId: string;
+        tenantId: TenantId;
+        attributeId: AttributeId;
+        updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed;
+        correlationId: string;
+      },
+      logger: Logger
+    ): Promise<Tenant> {
       logger.info(`Update attribute ${attributeId} to tenant ${tenantId}`);
-      const tenant = await retrieveTenant(tenantId, readModelService);
+      const tenant = await retrieveTenant(tenantId, readModelService, logger);
 
       const expirationDate = updateVerifiedTenantAttributeSeed.expirationDate
         ? new Date(updateVerifiedTenantAttributeSeed.expirationDate)
@@ -183,24 +188,28 @@ export function tenantServiceBuilder(
         updatedTenant,
         correlationId
       );
-      await repository.createEvent(event);
+      await repository.createEvent(event, logger);
       return updatedTenant;
     },
 
-    async selfcareUpsertTenant({
-      tenantSeed,
-      authData,
-      correlationId,
-    }: {
-      tenantSeed: ApiSelfcareTenantSeed;
-      authData: AuthData;
-      correlationId: string;
-    }): Promise<string> {
+    async selfcareUpsertTenant(
+      {
+        tenantSeed,
+        authData,
+        correlationId,
+      }: {
+        tenantSeed: ApiSelfcareTenantSeed;
+        authData: AuthData;
+        correlationId: string;
+      },
+      logger: Logger
+    ): Promise<string> {
       logger.info(
         `Upsert tenant by selfcare with externalId: ${tenantSeed.externalId}`
       );
       const existingTenant = await readModelService.getTenantByExternalId(
-        tenantSeed.externalId
+        tenantSeed.externalId,
+        logger
       );
       if (existingTenant) {
         logger.info(
@@ -216,7 +225,8 @@ export function tenantServiceBuilder(
         const tenantKind = await getTenantKindLoadingCertifiedAttributes(
           readModelService,
           existingTenant.data.attributes,
-          existingTenant.data.externalId
+          existingTenant.data.externalId,
+          logger
         );
 
         const updatedTenant: Tenant = {
@@ -235,7 +245,8 @@ export function tenantServiceBuilder(
             existingTenant.metadata.version,
             updatedTenant,
             correlationId
-          )
+          ),
+          logger
         );
       } else {
         logger.info(
@@ -253,100 +264,128 @@ export function tenantServiceBuilder(
           createdAt: new Date(),
         };
         return await repository.createEvent(
-          toCreateEventTenantAdded(newTenant, correlationId)
+          toCreateEventTenantAdded(newTenant, correlationId),
+          logger
         );
       }
     },
 
-    async getCertifiedAttributes({
-      organizationId,
-      offset,
-      limit,
-    }: {
-      organizationId: TenantId;
-      offset: number;
-      limit: number;
-    }): Promise<ListResult<CertifiedAttributeQueryResult>> {
-      const tenant = await readModelService.getTenantById(organizationId);
+    async getCertifiedAttributes(
+      {
+        organizationId,
+        offset,
+        limit,
+      }: {
+        organizationId: TenantId;
+        offset: number;
+        limit: number;
+      },
+      logger: Logger
+    ): Promise<ListResult<CertifiedAttributeQueryResult>> {
+      const tenant = await readModelService.getTenantById(
+        organizationId,
+        logger
+      );
       assertTenantExists(organizationId, tenant);
 
       const certifierId = getTenantCertifierId(tenant.data);
 
-      return await readModelService.getCertifiedAttributes({
-        certifierId,
-        offset,
-        limit,
-      });
+      return await readModelService.getCertifiedAttributes(
+        {
+          certifierId,
+          offset,
+          limit,
+        },
+        logger
+      );
     },
 
-    async getProducers({
-      producerName,
-      offset,
-      limit,
-    }: {
-      producerName: string | undefined;
-      offset: number;
-      limit: number;
-    }): Promise<ListResult<Tenant>> {
+    async getProducers(
+      {
+        producerName,
+        offset,
+        limit,
+      }: {
+        producerName: string | undefined;
+        offset: number;
+        limit: number;
+      },
+      logger: Logger
+    ): Promise<ListResult<Tenant>> {
       logger.info(
         `Retrieving Producers with name = ${producerName}, limit = ${limit}, offset = ${offset}`
       );
-      return readModelService.getProducers({ producerName, offset, limit });
-    },
-    async getConsumers({
-      consumerName,
-      producerId,
-      offset,
-      limit,
-    }: {
-      consumerName: string | undefined;
-      producerId: TenantId;
-      offset: number;
-      limit: number;
-    }): Promise<ListResult<Tenant>> {
-      logger.info(
-        `Retrieving Consumers with name = ${consumerName}, limit = ${limit}, offset = ${offset}`
+      return readModelService.getProducers(
+        { producerName, offset, limit },
+        logger
       );
-      return readModelService.getConsumers({
+    },
+    async getConsumers(
+      {
         consumerName,
         producerId,
         offset,
         limit,
-      });
+      }: {
+        consumerName: string | undefined;
+        producerId: TenantId;
+        offset: number;
+        limit: number;
+      },
+      logger: Logger
+    ): Promise<ListResult<Tenant>> {
+      logger.info(
+        `Retrieving Consumers with name = ${consumerName}, limit = ${limit}, offset = ${offset}`
+      );
+      return readModelService.getConsumers(
+        {
+          consumerName,
+          producerId,
+          offset,
+          limit,
+        },
+        logger
+      );
     },
-    async getTenantsByName({
-      name,
-      offset,
-      limit,
-    }: {
-      name: string | undefined;
-      offset: number;
-      limit: number;
-    }): Promise<ListResult<Tenant>> {
+    async getTenantsByName(
+      {
+        name,
+        offset,
+        limit,
+      }: {
+        name: string | undefined;
+        offset: number;
+        limit: number;
+      },
+      logger: Logger
+    ): Promise<ListResult<Tenant>> {
       logger.info(
         `Retrieving Tenants with name = ${name}, limit = ${limit}, offset = ${offset}`
       );
-      return readModelService.getTenantsByName({ name, offset, limit });
+      return readModelService.getTenantsByName({ name, offset, limit }, logger);
     },
     async getTenantById(
-      id: TenantId
+      id: TenantId,
+      logger: Logger
     ): Promise<WithMetadata<Tenant> | undefined> {
       logger.info(`Retrieving tenant ${id}`);
-      return readModelService.getTenantById(id);
+      return readModelService.getTenantById(id, logger);
     },
     async getTenantByExternalId(
-      externalId: ExternalId
+      externalId: ExternalId,
+      logger: Logger
     ): Promise<WithMetadata<Tenant> | undefined> {
       logger.info(
         `Retrieving tenant with origin ${externalId.origin} and code ${externalId.value}`
       );
-      return readModelService.getTenantByExternalId(externalId);
+      return readModelService.getTenantByExternalId(externalId, logger);
     },
     async getTenantBySelfcareId(
-      selfcareId: string
+      selfcareId: string,
+      logger: Logger
     ): Promise<WithMetadata<Tenant> | undefined> {
       logger.info(`Retrieving Tenant with Selfcare Id ${selfcareId}`);
-      return readModelService.getTenantBySelfcareId(selfcareId);
+      return readModelService.getTenantBySelfcareId(selfcareId, logger);
     },
   };
 }
