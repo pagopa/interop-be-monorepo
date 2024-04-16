@@ -254,25 +254,52 @@ function processMessage(
             event_version: 2,
             type: "PurposeVersionRejected",
           },
-          // {
-          //   event_version: 2,
-          //   type: "PurposeActivated",
-          // },
-          // {
-          //   event_version: 2,
-          //   type: "PurposeArchived",
-          // },
+          {
+            event_version: 2,
+            type: "PurposeVersionActivated",
+          },
+          {
+            event_version: 2,
+            type: "PurposeArchived",
+          },
           async (msg): Promise<void> => {
             const { purposeId, purposeVersion } = getPurposeVersionFromEvent(
               msg,
               msg.type
             );
 
-            // Chiedere di aggiungere purposeVersionId a PurposeActivated, PurposeArchived
-
             await executeUpdate(msg.type, messagePayload, () =>
               authService.updatePurposeState(
                 purposeId,
+                purposeVersion.id,
+                purposeVersion.state === purposeVersionState.active
+                  ? "ACTIVE"
+                  : "INACTIVE"
+              )
+            );
+          }
+        )
+        .with(
+          {
+            event_version: 2,
+            type: "PurposeActivated",
+          },
+          {
+            event_version: 2,
+            type: "PurposeWaitingForApproval",
+          },
+          async (msg): Promise<void> => {
+            const purpose = getPurposeFromEvent(msg, msg.type);
+
+            const purposeVersion = purpose.versions[0];
+
+            if (!purposeVersion) {
+              throw missingKafkaMessageDataError("purposeVersion", msg.type);
+            }
+
+            await executeUpdate(msg.type, messagePayload, () =>
+              authService.updatePurposeState(
+                purpose.id,
                 purposeVersion.id,
                 purposeVersion.state === purposeVersionState.active
                   ? "ACTIVE"
