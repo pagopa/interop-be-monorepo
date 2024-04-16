@@ -1407,7 +1407,6 @@ describe("database test", async () => {
         vi.useFakeTimers();
         vi.setSystemTime(new Date());
 
-        const mockEService = getMockEService();
         const mockPurposeVersion: PurposeVersion = {
           ...getMockPurposeVersion(),
           state: purposeVersionState.active,
@@ -1417,7 +1416,6 @@ describe("database test", async () => {
           versions: [mockPurposeVersion],
         };
         await addOnePurpose(mockPurpose1, postgresDB, purposes);
-        await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         await purposeService.archivePurposeVersion({
           purposeId: mockPurpose1.id,
@@ -1463,7 +1461,6 @@ describe("database test", async () => {
         vi.useFakeTimers();
         vi.setSystemTime(new Date());
 
-        const mockEService = getMockEService();
         const mockPurposeVersion1: PurposeVersion = {
           ...getMockPurposeVersion(),
           state: purposeVersionState.active,
@@ -1477,7 +1474,6 @@ describe("database test", async () => {
           versions: [mockPurposeVersion1, mockPurposeVersion2],
         };
         await addOnePurpose(mockPurpose1, postgresDB, purposes);
-        await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         await purposeService.archivePurposeVersion({
           purposeId: mockPurpose1.id,
