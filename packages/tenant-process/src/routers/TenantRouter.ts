@@ -26,6 +26,7 @@ import {
   addCertifiedAttributeErrorMapper,
   getCertifiedAttributesErrorMapper,
   addDeclaredAttributeErrorMapper,
+  revokeDeclaredAttributeErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../utilities/config.js";
@@ -433,7 +434,22 @@ const tenantsRouter = (
     .delete(
       "/tenants/attributes/declared/:attributeId",
       authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const tenant = await tenantService.revokeDeclaredAttribute({
+            tenantAttributeSeed: req.body,
+            authData: req.ctx.authData,
+            correlationId: req.ctx.correlationId,
+          });
+          return res.status(200).json(toApiTenant(tenant)).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            revokeDeclaredAttributeErrorMapper
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     );
 
   return tenantsRouter;

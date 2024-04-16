@@ -16,6 +16,7 @@ import { ExternalId } from "pagopa-interop-models";
 import {
   toCreateEventTenantCertifiedAttributeAssigned,
   toCreateEventTenantDeclaredAttributeAssigned,
+  toCreateEventTenantDeclaredAttributeRevoked,
 } from "../model/domain/toEvent.js";
 import {
   ApiCertifiedTenantAttributeSeed,
@@ -276,7 +277,6 @@ export function tenantServiceBuilder(
         );
       }
     },
-
     async addCertifiedAttribute(
       tenantId: TenantId,
       {
@@ -386,7 +386,6 @@ export function tenantServiceBuilder(
       await repository.createEvent(event);
       return updatedTenant;
     },
-
     async addDeclaredAttribute({
       tenantAttributeSeed,
       authData,
@@ -440,9 +439,65 @@ export function tenantServiceBuilder(
           attributeId: unsafeBrandId(tenantAttributeSeed.id),
         });
       }
+
       const event = toCreateEventTenantDeclaredAttributeAssigned(
         targetTenant.data.id,
         targetTenant.metadata.version,
+        updatedTenant,
+        unsafeBrandId(tenantAttributeSeed.id),
+        correlationId
+      );
+      await repository.createEvent(event);
+      return updatedTenant;
+    },
+    async revokeDeclaredAttribute({
+      tenantAttributeSeed,
+      authData,
+      correlationId,
+    }: {
+      tenantAttributeSeed: ApiDeclaredTenantAttributeSeed;
+      authData: AuthData;
+      correlationId: string;
+    }): Promise<Tenant> {
+      logger.info(
+        `Revoking declared attribute ${tenantAttributeSeed.id} to ${authData.organizationId}`
+      );
+      const requesterTenant = await retrieveTenant(
+        authData.organizationId,
+        readModelService
+      );
+
+      // eslint-disable-next-line functional/no-let
+      let updatedTenant: Tenant = {
+        ...requesterTenant.data,
+        updatedAt: new Date(),
+      };
+
+      const maybeDeclaredTenantAttribute = requesterTenant.data.attributes.find(
+        (attr) => attr.id === tenantAttributeSeed.id
+      );
+
+      if (
+        !maybeDeclaredTenantAttribute ||
+        maybeDeclaredTenantAttribute.type !== "PersistentDeclaredAttribute"
+      ) {
+        throw attributeNotFound(tenantAttributeSeed.id);
+      }
+
+      // eslint-disable-next-line functional/no-let
+      updatedTenant = reAssignAttribute(
+        {
+          updatedTenant,
+          targetTenant: requesterTenant,
+          attributeId: unsafeBrandId(tenantAttributeSeed.id),
+          revocationTimestamp: new Date(),
+        },
+        maybeDeclaredTenantAttribute.assignmentTimestamp
+      );
+
+      const event = toCreateEventTenantDeclaredAttributeRevoked(
+        requesterTenant.data.id,
+        requesterTenant.metadata.version,
         updatedTenant,
         unsafeBrandId(tenantAttributeSeed.id),
         correlationId
@@ -471,7 +526,6 @@ export function tenantServiceBuilder(
         limit,
       });
     },
-
     async getProducers({
       producerName,
       offset,
@@ -544,23 +598,28 @@ export function tenantServiceBuilder(
   };
 }
 
-function reAssignAttribute({
-  updatedTenant,
-  targetTenant,
-  attributeId,
-}: {
-  updatedTenant: Tenant;
-  targetTenant: WithMetadata<Tenant>;
-  attributeId: AttributeId;
-}): Tenant {
+function reAssignAttribute(
+  {
+    updatedTenant,
+    targetTenant,
+    attributeId,
+    revocationTimestamp,
+  }: {
+    updatedTenant: Tenant;
+    targetTenant: WithMetadata<Tenant>;
+    attributeId: AttributeId;
+    revocationTimestamp?: Date | undefined;
+  },
+  assignmentTimestamp: Date = new Date()
+): Tenant {
   return {
     ...updatedTenant,
     attributes: targetTenant.data.attributes.map((a) =>
       a.id === attributeId
         ? {
             ...a,
-            assignmentTimestamp: new Date(),
-            revocationTimestamp: undefined,
+            assignmentTimestamp,
+            revocationTimestamp,
           }
         : a
     ),

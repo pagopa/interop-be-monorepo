@@ -32,6 +32,7 @@ import {
   TenantCertifiedAttributeAssignedV2,
   TenantCertifiedAttributeV2,
   TenantDeclaredAttributeAssignedV2,
+  TenantDeclaredAttributeRevokedV2,
   TenantDeclaredAttributeV2,
   TenantId,
   TenantOnboardDetailsUpdatedV2,
@@ -976,6 +977,120 @@ describe("Integration tests", () => {
 
         expect(
           tenantService.addDeclaredAttribute({
+            tenantAttributeSeed,
+            authData,
+            correlationId,
+          })
+        ).rejects.toThrowError(
+          attributeNotFound(unsafeBrandId(tenantAttributeSeed.id))
+        );
+      });
+    });
+    describe("revokeDeclaredAttribute", async () => {
+      const tenantAttributeSeed: ApiDeclaredTenantAttributeSeed = {
+        id: generateId(),
+      };
+      const correlationId = generateId();
+      const requesterTenant: Tenant = {
+        ...mockTenant,
+        attributes: [
+          {
+            id: unsafeBrandId(tenantAttributeSeed.id),
+            type: "PersistentDeclaredAttribute",
+            assignmentTimestamp: new Date(
+              currentDate.setDate(currentDate.getDate() - 3)
+            ),
+            revocationTimestamp: undefined,
+          },
+        ],
+        updatedAt: currentDate,
+        name: "A requesterTenant",
+      };
+
+      const mockAuthData = getMockAuthData(requesterTenant.id);
+
+      it("Should revoke the declared attribute", async () => {
+        await addOneTenant(requesterTenant, postgresDB, tenants);
+        await tenantService.revokeDeclaredAttribute({
+          tenantAttributeSeed,
+          authData: mockAuthData,
+          correlationId,
+        });
+        const writtenEvent: StoredEvent | undefined =
+          await readLastEventByStreamId(
+            requesterTenant.id,
+            eventStoreSchema.tenant,
+            postgresDB
+          );
+        if (!writtenEvent) {
+          fail("Update failed: tenant not found in event-store");
+        }
+        expect(writtenEvent).toMatchObject({
+          stream_id: requesterTenant.id,
+          version: "1",
+          type: "TenantDeclaredAttributeRevoked",
+        });
+        const writtenPayload = protobufDecoder(
+          TenantDeclaredAttributeRevokedV2
+        ).parse(writtenEvent?.data);
+
+        const updatedTenant: Tenant = {
+          ...requesterTenant,
+          attributes: [
+            {
+              id: unsafeBrandId(tenantAttributeSeed.id),
+              type: "PersistentDeclaredAttribute",
+              assignmentTimestamp: new Date(
+                Number(
+                  (
+                    writtenPayload.tenant!.attributes[0].sealedValue as {
+                      oneofKind: "declaredAttribute";
+                      declaredAttribute: TenantDeclaredAttributeV2;
+                    }
+                  ).declaredAttribute.assignmentTimestamp
+                )
+              ),
+              revocationTimestamp: new Date(
+                Number(
+                  (
+                    writtenPayload.tenant!.attributes[0].sealedValue as {
+                      oneofKind: "declaredAttribute";
+                      declaredAttribute: TenantDeclaredAttributeV2;
+                    }
+                  ).declaredAttribute.revocationTimestamp
+                )
+              ),
+            },
+          ],
+          updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
+        };
+        expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+      });
+      it("Should throw tenant not found", async () => {
+        expect(
+          tenantService.revokeDeclaredAttribute({
+            tenantAttributeSeed,
+            authData: mockAuthData,
+            correlationId,
+          })
+        ).rejects.toThrowError(tenantNotFound(requesterTenant.id));
+      });
+      it("Should throw AttributeNotFound", async () => {
+        const notDeclaredAttributeTenant: Tenant = {
+          ...requesterTenant,
+          attributes: [
+            {
+              id: unsafeBrandId(tenantAttributeSeed.id),
+              type: "PersistentCertifiedAttribute",
+              assignmentTimestamp: new Date(),
+            },
+          ],
+        };
+        await addOneTenant(notDeclaredAttributeTenant, postgresDB, tenants);
+        const authData = getMockAuthData(notDeclaredAttributeTenant.id);
+
+        expect(
+          tenantService.revokeDeclaredAttribute({
             tenantAttributeSeed,
             authData,
             correlationId,
