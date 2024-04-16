@@ -1,11 +1,4 @@
-import {
-  AuthData,
-  DB,
-  eventRepository,
-  logger,
-  riskAnalysisFormToRiskAnalysisFormToValidate,
-  validateRiskAnalysis,
-} from "pagopa-interop-commons";
+import { AuthData, DB, eventRepository, logger } from "pagopa-interop-commons";
 import {
   EService,
   EServiceId,
@@ -16,16 +9,17 @@ import {
   PurposeId,
   TenantKind,
   purposeVersionState,
-  RiskAnalysisForm,
   PurposeVersionId,
   PurposeVersionDocumentId,
   PurposeVersion,
   PurposeVersionDocument,
   ownership,
+  Ownership,
   purposeEventToBinaryData,
 } from "pagopa-interop-models";
 import {
   eserviceNotFound,
+  notValidVersionState,
   organizationIsNotTheConsumer,
   organizationIsNotTheProducer,
   organizationNotAllowed,
@@ -37,10 +31,11 @@ import {
   tenantNotFound,
 } from "../model/domain/errors.js";
 import {
-  toCreateEvenPurpsoeVersionRejected,
+  toCreateEventPurposeVersionRejected,
   toCreateEventWaitingForApprovalPurposeVersionDeleted,
 } from "../model/domain/toEvent.js";
 import { ReadModelService } from "./readModelService.js";
+import { isRiskAnalysisFormValid, purposeIsDraft } from "./validators.js";
 
 const retrievePurpose = async (
   purposeId: PurposeId,
@@ -75,7 +70,7 @@ const retrievePurposeVersionDocument = (
 ): PurposeVersionDocument => {
   const document = purposeVersion.riskAnalysis;
 
-  if (document === undefined) {
+  if (document === undefined || document.id !== documentId) {
     throw purposeVersionDocumentNotFound(
       purposeId,
       purposeVersion.id,
@@ -221,6 +216,8 @@ export function purposeServiceBuilder(
       authData: AuthData;
       correlationId: string;
     }): Promise<void> {
+      logger.info(`Rejecting Version ${versionId} in Purpose ${purposeId}`);
+
       const purpose = await retrievePurpose(purposeId, readModelService);
       const eservice = await retrieveEService(
         purpose.data.eserviceId,
@@ -232,10 +229,14 @@ export function purposeServiceBuilder(
 
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
 
+      if (purposeVersion.state !== purposeVersionState.waitingForApproval) {
+        throw notValidVersionState(purposeVersion.id, purposeVersion.state);
+      }
       const updatedPurposeVersion: PurposeVersion = {
         ...purposeVersion,
         state: purposeVersionState.rejected,
         rejectionReason,
+        updatedAt: new Date(),
       };
 
       const updatedPurpose = replacePurposeVersion(
@@ -243,7 +244,7 @@ export function purposeServiceBuilder(
         updatedPurposeVersion
       );
 
-      const event = toCreateEvenPurpsoeVersionRejected({
+      const event = toCreateEventPurposeVersionRejected({
         purpose: updatedPurpose,
         version: purpose.metadata.version,
         versionId,
@@ -286,27 +287,6 @@ const authorizeRiskAnalysisForm = ({
   }
 };
 
-const isRiskAnalysisFormValid = (
-  riskAnalysisForm: RiskAnalysisForm | undefined,
-  schemaOnlyValidation: boolean,
-  tenantKind: TenantKind
-): boolean => {
-  if (riskAnalysisForm === undefined) {
-    return false;
-  } else {
-    return (
-      validateRiskAnalysis(
-        riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
-        schemaOnlyValidation,
-        tenantKind
-      ).type === "valid"
-    );
-  }
-};
-
-const purposeIsDraft = (purpose: Purpose): boolean =>
-  !purpose.versions.some((v) => v.state !== purposeVersionState.draft);
-
 const getOrganizationRole = ({
   organizationId,
   producerId,
@@ -315,7 +295,7 @@ const getOrganizationRole = ({
   organizationId: TenantId;
   producerId: TenantId;
   consumerId: TenantId;
-}): string => {
+}): Ownership => {
   if (producerId === consumerId && organizationId === producerId) {
     return ownership.SELF_CONSUMER;
   } else if (producerId !== consumerId && organizationId === consumerId) {
