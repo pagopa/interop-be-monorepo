@@ -133,7 +133,7 @@ describe("database test", async () => {
 
         const result = await purposeService.getPurposeById(
           mockPurpose1.id,
-          getMockAuthData(mockTenant.id)
+          mockTenant.id
         );
         expect(result).toMatchObject({
           purpose: mockPurpose1,
@@ -145,7 +145,7 @@ describe("database test", async () => {
         await addOnePurpose(mockPurpose, postgresDB, purposes);
 
         expect(
-          purposeService.getPurposeById(notExistingId, getMockAuthData())
+          purposeService.getPurposeById(notExistingId, generateId())
         ).rejects.toThrowError(purposeNotFound(notExistingId));
       });
       it("should throw eserviceNotFound if the eservice doesn't exist", async () => {
@@ -169,10 +169,7 @@ describe("database test", async () => {
         await writeInReadmodel(mockTenant, tenants);
 
         expect(
-          purposeService.getPurposeById(
-            mockPurpose1.id,
-            getMockAuthData(mockTenant.id)
-          )
+          purposeService.getPurposeById(mockPurpose1.id, mockTenant.id)
         ).rejects.toThrowError(eserviceNotFound(notExistingId));
       });
       it("should throw tenantNotFound if the tenant doesn't exist", async () => {
@@ -193,10 +190,7 @@ describe("database test", async () => {
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         expect(
-          purposeService.getPurposeById(
-            mockPurpose1.id,
-            getMockAuthData(notExistingId)
-          )
+          purposeService.getPurposeById(mockPurpose1.id, notExistingId)
         ).rejects.toThrowError(tenantNotFound(notExistingId));
       });
       it("should throw tenantKindNotFound if the tenant doesn't exist", async () => {
@@ -218,10 +212,7 @@ describe("database test", async () => {
         await writeInReadmodel(mockTenant, tenants);
 
         expect(
-          purposeService.getPurposeById(
-            mockPurpose1.id,
-            getMockAuthData(mockTenant.id)
-          )
+          purposeService.getPurposeById(mockPurpose1.id, mockTenant.id)
         ).rejects.toThrowError(tenantKindNotFound(mockTenant.id));
       });
     });
