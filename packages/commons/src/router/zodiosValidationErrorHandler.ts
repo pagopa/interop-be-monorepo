@@ -16,15 +16,15 @@ export function zodiosValidationErrorToApiProblem(
   res: Response,
   _next: NextFunction
 ): void {
-  const details = `${zodError.context} = ${zodError.error
-    .map((e) => fromZodIssue(e))
-    .join(", ")}`;
+  const detail = `Incorrect value for ${zodError.context}`;
+
+  const errors = zodError.error.map((e) => fromZodIssue(e));
 
   res
     .status(constants.HTTP_STATUS_BAD_REQUEST)
     .json(
       makeApiProblem(
-        badRequestError(details),
+        badRequestError(detail, errors),
         () => constants.HTTP_STATUS_BAD_REQUEST
       )
     )
