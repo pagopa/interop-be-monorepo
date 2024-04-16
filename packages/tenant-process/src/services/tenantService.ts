@@ -13,7 +13,10 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { ExternalId } from "pagopa-interop-models";
-import { toCreateEventTenantCertifiedAttributeAssigned } from "../model/domain/toEvent.js";
+import {
+  toCreateEventTenantCertifiedAttributeAssigned,
+  toCreateEventTenantCertifiedAttributeRevoked,
+} from "../model/domain/toEvent.js";
 import {
   ApiCertifiedTenantAttributeSeed,
   ApiSelfcareTenantSeed,
@@ -21,6 +24,7 @@ import {
 import {
   attributeNotFound,
   certifiedAttributeAlreadyAssigned,
+  certifiedAttributeAlreadyRevoked,
   certifiedAttributeOriginIsNotCompliantWithCertifier,
   tenantIsNotACertifier,
 } from "../model/domain/errors.js";
@@ -395,7 +399,7 @@ export function tenantServiceBuilder(
       attributeId: AttributeId,
       authData: AuthData,
       correlationId: string
-    ): Promise<Tenant> {
+    ): Promise<void> {
       logger.info(
         `Revoke certified attribute ${attributeId} to tenantId ${tenantId}`
       );
@@ -446,13 +450,13 @@ export function tenantServiceBuilder(
       }
 
       if (certifiedTenantAttribute.revocationTimestamp) {
-        throw certifiedAttributeAlreadyRevoked(attribute.id, organizationId);
+        throw certifiedAttributeAlreadyRevoked(attributeId, organizationId);
       }
 
       updatedTenant = reAssignAttribute(
         {
           updatedTenant,
-          targetTenant: requesterTenant,
+          targetTenant,
           attributeId,
           revocationTimestamp: new Date(),
         },
@@ -476,11 +480,10 @@ export function tenantServiceBuilder(
         targetTenant.data.id,
         targetTenant.metadata.version,
         updatedTenant,
-        attribute.id,
+        attributeId,
         correlationId
       );
       await repository.createEvent(event);
-      return updatedTenant;
     },
 
     async getCertifiedAttributes({
@@ -575,4 +578,33 @@ export function tenantServiceBuilder(
     },
   };
 }
+
+function reAssignAttribute(
+  {
+    updatedTenant,
+    targetTenant,
+    attributeId,
+    revocationTimestamp,
+  }: {
+    updatedTenant: Tenant;
+    targetTenant: WithMetadata<Tenant>;
+    attributeId: AttributeId;
+    revocationTimestamp?: Date | undefined;
+  },
+  assignmentTimestamp: Date = new Date()
+): Tenant {
+  return {
+    ...updatedTenant,
+    attributes: targetTenant.data.attributes.map((a) =>
+      a.id === attributeId
+        ? {
+            ...a,
+            assignmentTimestamp,
+            revocationTimestamp,
+          }
+        : a
+    ),
+  };
+}
+
 export type TenantService = ReturnType<typeof tenantServiceBuilder>;

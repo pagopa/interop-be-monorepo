@@ -25,6 +25,7 @@ import {
   selfcareUpsertTenantErrorMapper,
   addCertifiedAttributeErrorMapper,
   getCertifiedAttributesErrorMapper,
+  revokeCertifiedAttributeErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../utilities/config.js";
@@ -420,19 +421,17 @@ const tenantsRouter = (
       async (req, res) => {
         try {
           const { tenantId, attributeId } = req.params;
-          const tenant = await tenantService.revokeCertifiedAttributeById(
+          await tenantService.revokeCertifiedAttributeById(
             unsafeBrandId(tenantId),
-            {
-              tenantAttributeSeed: req.body,
-              authData: req.ctx.authData,
-              correlationId: req.ctx.correlationId,
-            }
+            unsafeBrandId(attributeId),
+            req.ctx.authData,
+            req.ctx.correlationId
           );
-          return res.status(200).json(toApiTenant(tenant)).end();
+          return res.status(204).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            addCertifiedAttributeErrorMapper
+            revokeCertifiedAttributeErrorMapper
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
