@@ -18,7 +18,7 @@ import {
   EServiceV1,
   RiskAnalysis,
   Technology,
-} from "../../models/src/index.js";
+} from "pagopa-interop-models";
 
 export const toAgreementApprovalPolicyV1 = (
   input: AgreementApprovalPolicy | undefined

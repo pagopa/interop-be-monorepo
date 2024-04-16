@@ -10,8 +10,8 @@
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
-    "start:migrate": "node --no-warnings --loader ts-node/esm -r 'dotenv-flow/config' ./src/index.ts",
-    "start:verify": "node --no-warnings --loader ts-node/esm -r 'dotenv-flow/config' ./src/read-models-migration-check.ts",
+    "start:migrate": "node --loader ts-node/esm -r 'dotenv-flow/config' ./src/index.ts",
+    "start:verify": "node --loader ts-node/esm -r 'dotenv-flow/config' ./src/read-models-migration-check.ts",
     "build": "tsc"
   },
   "keywords": [],
