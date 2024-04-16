@@ -88,7 +88,7 @@ export const toCreateEventDraftPurposeDeleted = ({
   correlationId,
 });
 
-export const toCreateEventWaintingForApprovalPurposeDeleted = ({
+export const toCreateEventWaitingForApprovalPurposeDeleted = ({
   purpose,
   version,
   correlationId,
