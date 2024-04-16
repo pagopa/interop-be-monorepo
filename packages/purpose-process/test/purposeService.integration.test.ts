@@ -960,5 +960,17 @@ describe("database test", async () => {
         expect(1).toBe(1);
       });
     });
+
+    describe("suspendPurposeVersion", () => {
+      it("should write on event-store for the suspension of a purpose", () => {
+        expect(1).toBe(1);
+      });
+      it("should throw purposeNotFound if the purpose doesn't exist", () => {
+        expect(1).toBe(1);
+      });
+      it("should throw purposeVersionNotFound if the purpose version doesn't exist", () => {
+        expect(1).toBe(1);
+      });
+    });
   });
 });
