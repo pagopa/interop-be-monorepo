@@ -1174,8 +1174,6 @@ describe("Integration tests", async () => {
     });
 
     it("PurposeCloned", async () => {
-      await writeInReadmodel(mockPurpose, purposes, 1);
-
       const purposeVersion = getMockPurposeVersion();
       const purpose: Purpose = {
         ...mockPurpose,
@@ -1209,7 +1207,7 @@ describe("Integration tests", async () => {
         "data.id": clonedPurpose.id,
       });
 
-      expect(retrievedPurpose?.data).toEqual(clonedPurpose);
+      expect(retrievedPurpose?.data).toEqual(toReadModelPurpose(clonedPurpose));
       expect(retrievedPurpose?.metadata).toEqual({ version: 1 });
     });
   });
