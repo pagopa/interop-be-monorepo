@@ -136,12 +136,12 @@ export function purposeServiceBuilder(
       purposeId,
       versionId,
       documentId,
-      authData,
+      organizationId,
     }: {
       purposeId: PurposeId;
       versionId: PurposeVersionId;
       documentId: PurposeVersionDocumentId;
-      authData: AuthData;
+      organizationId: TenantId;
     }): Promise<PurposeVersionDocument> {
       const purpose = await retrievePurpose(purposeId, readModelService);
       const eservice = await retrieveEService(
@@ -149,7 +149,7 @@ export function purposeServiceBuilder(
         readModelService
       );
       getOrganizationRole({
-        organizationId: authData.organizationId,
+        organizationId,
         producerId: eservice.producerId,
         consumerId: purpose.data.consumerId,
       });
