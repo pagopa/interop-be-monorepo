@@ -26,8 +26,6 @@ type RoleValidation =
     }
   | { isValid: true };
 
-const makeApiProblem = makeApiProblemBuilder(logger, {});
-
 const hasValidRoles = (
   req: Request,
   admittedRoles: UserRole[]
@@ -92,6 +90,15 @@ export const authorizationMiddleware =
       return next();
     } catch (err) {
       const headers = readHeaders(req as Request);
+      const makeApiProblem = makeApiProblemBuilder(
+        logger({
+          userId: headers?.userId,
+          organizationId: headers?.organizationId,
+          correlationId: headers?.correlationId,
+        }),
+        {}
+      );
+
       const problem = match<unknown, Problem>(err)
         .with(P.instanceOf(ApiError), (error) =>
           makeApiProblem(

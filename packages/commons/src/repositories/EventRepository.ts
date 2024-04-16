@@ -1,4 +1,4 @@
-import { logger } from "../index.js";
+import { Logger } from "../logging/loggerMiddleware.js";
 import { DB } from "./db.js";
 import * as sql from "./sql/index.js";
 
@@ -17,8 +17,13 @@ export type CreateEvent<T extends Event> = {
 export const eventRepository = <T extends Event>(
   db: DB,
   toBinaryData: (event: T) => Uint8Array
-): { createEvent: (createEvent: CreateEvent<T>) => Promise<string> } => ({
-  async createEvent(createEvent: CreateEvent<T>): Promise<string> {
+): {
+  createEvent: (createEvent: CreateEvent<T>, logger: Logger) => Promise<string>;
+} => ({
+  async createEvent(
+    createEvent: CreateEvent<T>,
+    logger: Logger
+  ): Promise<string> {
     try {
       return await db.tx(async (t) => {
         const data = await t.oneOrNone(sql.checkEventVersionExists, {

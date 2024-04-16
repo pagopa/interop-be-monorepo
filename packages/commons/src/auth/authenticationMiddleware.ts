@@ -9,12 +9,10 @@ import {
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { ExpressContext } from "../index.js";
-import { logger } from "../logging/index.js";
+import { Logger, genericLogger, logger } from "../logging/index.js";
 import { AuthData } from "./authData.js";
 import { Headers } from "./headers.js";
 import { readAuthDataFromJwtToken, verifyJwtToken } from "./jwt.js";
-
-const makeApiProblem = makeApiProblemBuilder(logger, {});
 
 export const authenticationMiddleware: () => ZodiosRouterContextRequestHandler<ExpressContext> =
   () => {
@@ -23,7 +21,8 @@ export const authenticationMiddleware: () => ZodiosRouterContextRequestHandler<E
     > = async (req, res, next): Promise<unknown> => {
       const addCtxAuthData = async (
         authHeader: string,
-        correlationId: string
+        correlationId: string,
+        logger: Logger
       ): Promise<void> => {
         const authorizationHeader = authHeader.split(" ");
         if (
@@ -73,7 +72,10 @@ export const authenticationMiddleware: () => ZodiosRouterContextRequestHandler<E
             async (headers) =>
               await addCtxAuthData(
                 headers.authorization,
-                headers["x-correlation-id"]
+                headers["x-correlation-id"],
+                logger({
+                  correlationId: headers["x-correlation-id"],
+                })
               )
           )
           .with(
@@ -82,7 +84,7 @@ export const authenticationMiddleware: () => ZodiosRouterContextRequestHandler<E
               "x-correlation-id": P._,
             },
             () => {
-              logger.warn(
+              genericLogger.warn(
                 `No authentication has been provided for this call ${req.method} ${req.url}`
               );
 
@@ -102,6 +104,7 @@ export const authenticationMiddleware: () => ZodiosRouterContextRequestHandler<E
             throw missingHeader();
           });
       } catch (error) {
+        const makeApiProblem = makeApiProblemBuilder(genericLogger, {});
         const problem = makeApiProblem(error, (err) =>
           match(err.code)
             .with("unauthorizedError", () => 401)

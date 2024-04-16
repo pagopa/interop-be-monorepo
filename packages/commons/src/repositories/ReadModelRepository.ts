@@ -14,7 +14,7 @@ import {
   RootFilterOperators,
 } from "mongodb";
 import { z } from "zod";
-import { ReadModelDbConfig, logger } from "../index.js";
+import { Logger, ReadModelDbConfig } from "../index.js";
 
 export const Metadata = z.object({ version: z.number() });
 export type Metadata = z.infer<typeof Metadata>;
@@ -189,7 +189,8 @@ export class ReadModelRepository {
   public static async getTotalCount(
     collection: Collections,
     aggregation: object[],
-    allowDiskUse: boolean = false
+    allowDiskUse: boolean = false,
+    logger: Logger
   ): Promise<number> {
     const query = collection.aggregate([...aggregation, { $count: "count" }], {
       allowDiskUse,
