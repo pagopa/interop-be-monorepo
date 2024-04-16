@@ -1,10 +1,4 @@
-import {
-  AuthData,
-  CreateEvent,
-  DB,
-  eventRepository,
-  logger,
-} from "pagopa-interop-commons";
+import { CreateEvent, DB, eventRepository, logger } from "pagopa-interop-commons";
 import {
   EService,
   EServiceId,
@@ -20,6 +14,7 @@ import {
   PurposeVersion,
   PurposeVersionDocument,
   ownership,
+  Ownership,
   purposeEventToBinaryData,
   PurposeRiskAnalysisForm,
   PurposeEvent,
@@ -28,6 +23,7 @@ import {
 import {
   eserviceNotFound,
   notValidVersionState,
+  organizationIsNotTheConsumer,
   organizationIsNotTheProducer,
   organizationNotAllowed,
   purposeNotFound,
@@ -134,7 +130,7 @@ export function purposeServiceBuilder(
   return {
     async getPurposeById(
       purposeId: PurposeId,
-      authData: AuthData
+      organizationId: TenantId
     ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(`Retrieving Purpose ${purposeId}`);
 
@@ -143,17 +139,14 @@ export function purposeServiceBuilder(
         purpose.data.eserviceId,
         readModelService
       );
-      const tenant = await retrieveTenant(
-        authData.organizationId,
-        readModelService
-      );
+      const tenant = await retrieveTenant(organizationId, readModelService);
 
       assertTenantKindExists(tenant);
 
       return authorizeRiskAnalysisForm({
         purpose: purpose.data,
         producerId: eservice.producerId,
-        organizationId: authData.organizationId,
+        organizationId,
         tenantKind: tenant.kind,
       });
     },
@@ -161,12 +154,12 @@ export function purposeServiceBuilder(
       purposeId,
       versionId,
       documentId,
-      authData,
+      organizationId,
     }: {
       purposeId: PurposeId;
       versionId: PurposeVersionId;
       documentId: PurposeVersionDocumentId;
-      authData: AuthData;
+      organizationId: TenantId;
     }): Promise<PurposeVersionDocument> {
       const purpose = await retrievePurpose(purposeId, readModelService);
       const eservice = await retrieveEService(
@@ -174,7 +167,7 @@ export function purposeServiceBuilder(
         readModelService
       );
       getOrganizationRole({
-        organizationId: authData.organizationId,
+        organizationId,
         producerId: eservice.producerId,
         consumerId: purpose.data.consumerId,
       });
@@ -185,22 +178,21 @@ export function purposeServiceBuilder(
     async deletePurposeVersion({
       purposeId,
       versionId,
-      authData,
+      organizationId,
       correlationId,
     }: {
       purposeId: PurposeId;
       versionId: PurposeVersionId;
-      authData: AuthData;
+      organizationId: TenantId;
       correlationId: string;
     }): Promise<void> {
       logger.info(`Deleting Version ${versionId} in Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
 
-      assertOrganizationIsAConsumer(
-        authData.organizationId,
-        purpose.data.consumerId
-      );
+      if (organizationId !== purpose.data.consumerId) {
+        throw organizationIsNotTheConsumer(organizationId);
+      }
 
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
 
@@ -227,13 +219,13 @@ export function purposeServiceBuilder(
       purposeId,
       versionId,
       rejectionReason,
-      authData,
+      organizationId,
       correlationId,
     }: {
       purposeId: PurposeId;
       versionId: PurposeVersionId;
       rejectionReason: string;
-      authData: AuthData;
+      organizationId: TenantId;
       correlationId: string;
     }): Promise<void> {
       logger.info(`Rejecting Version ${versionId} in Purpose ${purposeId}`);
@@ -243,8 +235,8 @@ export function purposeServiceBuilder(
         purpose.data.eserviceId,
         readModelService
       );
-      if (authData.organizationId !== eservice.producerId) {
-        throw organizationIsNotTheProducer(authData.organizationId);
+      if (organizationId !== eservice.producerId) {
+        throw organizationIsNotTheProducer(organizationId);
       }
 
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
@@ -355,7 +347,7 @@ const getOrganizationRole = ({
   organizationId: TenantId;
   producerId: TenantId;
   consumerId: TenantId;
-}): string => {
+}): Ownership => {
   if (producerId === consumerId && organizationId === producerId) {
     return ownership.SELF_CONSUMER;
   } else if (producerId !== consumerId && organizationId === consumerId) {
