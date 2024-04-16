@@ -1,4 +1,7 @@
-import { PurposeCollection } from "pagopa-interop-commons";
+import {
+  PurposeCollection,
+  riskAnalysisFormToRiskAnalysisFormToValidate,
+} from "pagopa-interop-commons";
 import {
   writeInEventstore,
   writeInReadmodel,
@@ -7,12 +10,14 @@ import {
   EService,
   Purpose,
   PurposeEvent,
+  RiskAnalysis,
   generateId,
   purposeEventToBinaryData,
   technology,
   toPurposeV2,
 } from "pagopa-interop-models";
 import { IDatabase } from "pg-promise";
+import { RiskAnalysisFormSeed } from "../src/model/domain/models.js";
 
 export const addOnePurpose = async (
   purpose: Purpose,
@@ -56,3 +61,8 @@ export const getMockEService = (): EService => ({
   riskAnalysis: [],
   mode: "Deliver",
 });
+
+export const buildRiskAnalysisSeed = (
+  riskAnalysis: RiskAnalysis
+): RiskAnalysisFormSeed =>
+  riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysis.riskAnalysisForm);
