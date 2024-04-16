@@ -170,7 +170,9 @@ const purposeRouter = (
     .post(
       "/purposes/:purposeId/versions",
       authorizationMiddleware([ADMIN_ROLE]),
-      (_req, res) => res.status(501).send()
+      (_req, res) =>
+        // TODO
+        res.status(501).send()
     )
     .delete(
       "/purposes/:purposeId/versions/:versionId",
