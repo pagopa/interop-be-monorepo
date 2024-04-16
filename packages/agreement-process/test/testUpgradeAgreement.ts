@@ -727,7 +727,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       });
     });
 
-    it("should throw error tenant does not exist", async () => {
+    it("should throw an tenantIdNotFound error when the tenant does not exist", async () => {
       const authData = getRandomAuthData();
       const agreementId = generateId<AgreementId>();
       await expect(
@@ -735,7 +735,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       ).rejects.toThrowError(tenantIdNotFound(authData.organizationId));
     });
 
-    it("should throw error agreement does not exist", async () => {
+    it("should throw an agreementNotFound error when the agreement does not exist", async () => {
       const authData = getRandomAuthData();
       const agreementId = generateId<AgreementId>();
 
@@ -748,7 +748,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       ).rejects.toThrowError(agreementNotFound(agreementId));
     });
 
-    it("should throw error if requester is not consumer", async () => {
+    it("should throw an operationNotAllowed error when the requester is different from consumer", async () => {
       const authData = {
         ...getRandomAuthData(),
         userRoles: [userRoles.ADMIN_ROLE],
@@ -774,7 +774,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
     });
 
-    it("should throw error if agreement is not in upgradable states", async () => {
+    it("should throw an agreementNotInExpectedState error when the agreement doesn't have an upgradable states", async () => {
       const authData = {
         ...getRandomAuthData(),
         userRoles: [userRoles.ADMIN_ROLE],
@@ -803,7 +803,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       );
     });
 
-    it("should throw error if eservice not exists", async () => {
+    it("should throw an eServiceNotFound error when the eservice not exists", async () => {
       const authData = {
         ...getRandomAuthData(),
         userRoles: [userRoles.ADMIN_ROLE],
@@ -830,7 +830,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
     });
 
-    it("should throw error if published descriptor not exists", async () => {
+    it("should throw an publishedDescriptorNotFound error when published descriptor not exists", async () => {
       const authData = {
         ...getRandomAuthData(),
         userRoles: [userRoles.ADMIN_ROLE],
@@ -866,7 +866,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       ).rejects.toThrowError(publishedDescriptorNotFound(agreement.eserviceId));
     });
 
-    it("should throw error if published descriptor has unexpected version format", async () => {
+    it("should throw an unexpectedVersionFormat error when published descriptor has unexpected version format", async () => {
       const authData = {
         ...getRandomAuthData(),
         userRoles: [userRoles.ADMIN_ROLE],
@@ -904,7 +904,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       );
     });
 
-    it("should throw error if agreement descriptor not exists", async () => {
+    it("should throw an descriptorNotFound error when agreement descriptor not exists", async () => {
       const authData = {
         ...getRandomAuthData(),
         userRoles: [userRoles.ADMIN_ROLE],
@@ -942,7 +942,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       );
     });
 
-    it("should throw error if agreement descriptor has invalid format", async () => {
+    it("should throw an unexpectedVersionFormat error when agreement descriptor has invalid format", async () => {
       const authData = {
         ...getRandomAuthData(),
         userRoles: [userRoles.ADMIN_ROLE],
@@ -990,7 +990,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       );
     });
 
-    it("should throw error if latest pusblished descriptor have version number great than descriptor in agreement", async () => {
+    it("should throw an noNewerDescriptor error when the latest published descriptor have version number great than agreement's descriptor", async () => {
       const authData = {
         ...getRandomAuthData(),
         userRoles: [userRoles.ADMIN_ROLE],
@@ -1038,7 +1038,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       );
     });
 
-    it("should throw error if published descriptor with invalid certified attributes", async () => {
+    it("should throw an missingCertifiedAttributesError error when published descriptor has invalid certified attributes", async () => {
       const authData = {
         ...getRandomAuthData(),
         userRoles: [userRoles.ADMIN_ROLE],
@@ -1094,7 +1094,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       );
     });
 
-    it("should throw error when document copy fails", async () => {
+    it("should throw an FileManagerError type error when document copy fails", async () => {
       const authData = {
         ...getRandomAuthData(),
         userRoles: [userRoles.ADMIN_ROLE],
@@ -1210,7 +1210,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       ).rejects.toThrowError(FileManagerError);
     });
 
-    it("should throw error when found a draft conflicting agreement with same consumer and e-service", async () => {
+    it("should throw an agreementAlreadyExists error when found a draft conflicting agreement with same consumer and e-service", async () => {
       const authData = {
         ...getRandomAuthData(),
         userRoles: [userRoles.ADMIN_ROLE],
