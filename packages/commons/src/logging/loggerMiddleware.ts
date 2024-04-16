@@ -123,6 +123,7 @@ export const loggerMiddleware = (serviceName: string) => () =>
 const logger_internal = getLogger();
 
 export const logger = {
+  isDebugEnabled: () => logger_internal.isDebugEnabled,
   debug: (
     msg: (typeof logger_internal.debug.arguments)[0],
     logCtx: LoggerCtx
