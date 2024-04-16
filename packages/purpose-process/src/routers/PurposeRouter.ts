@@ -254,13 +254,16 @@ const purposeRouter = (
       authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
         try {
-          await purposeService.suspendPurposeVersion({
+          const suspendedVersion = await purposeService.suspendPurposeVersion({
             purposeId: unsafeBrandId(req.params.purposeId),
             versionId: unsafeBrandId(req.params.versionId),
             organizationId: req.ctx.authData.organizationId,
             correlationId: req.ctx.correlationId,
           });
-          return res.status(204).end();
+          return res
+            .status(200)
+            .json(purposeVersionToApiPurposeVersion(suspendedVersion))
+            .end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
