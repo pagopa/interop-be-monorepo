@@ -110,7 +110,7 @@ export function purposeServiceBuilder(
   return {
     async getPurposeById(
       purposeId: PurposeId,
-      authData: AuthData
+      organizationId: TenantId
     ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(`Retrieving Purpose ${purposeId}`);
 
@@ -119,10 +119,7 @@ export function purposeServiceBuilder(
         purpose.data.eserviceId,
         readModelService
       );
-      const tenant = await retrieveTenant(
-        authData.organizationId,
-        readModelService
-      );
+      const tenant = await retrieveTenant(organizationId, readModelService);
 
       if (tenant.kind === undefined) {
         throw tenantKindNotFound(tenant.id);
