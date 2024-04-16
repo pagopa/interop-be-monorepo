@@ -4,9 +4,9 @@ import {
   ReadModelRepository,
   attributeTopicConfig,
   decodeKafkaMessage,
-  getContext,
   logger,
   readModelWriterConfig,
+  runWithContext,
 } from "pagopa-interop-commons";
 import { createMechanism } from "@jm18457/kafkajs-msk-iam-authentication-mechanism";
 import { AttributeEvent } from "pagopa-interop-models";
@@ -53,19 +53,23 @@ async function processMessage({
   message,
   partition,
 }: EachMessagePayload): Promise<void> {
-  await handleMessage(decodeKafkaMessage(message, AttributeEvent), attributes);
   const msg = decodeKafkaMessage(message, AttributeEvent);
-  const ctx = getContext();
-  ctx.messageData = {
-    eventType: msg.type,
-    eventVersion: msg.event_version,
-    streamId: msg.stream_id,
-  };
-  ctx.correlationId = msg.correlation_id;
 
-  await handleMessage(msg, attributes);
-  logger.info(
-    `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
+  runWithContext(
+    {
+      messageData: {
+        eventType: msg.type,
+        eventVersion: msg.event_version,
+        streamId: msg.stream_id,
+      },
+      correlationId: msg.correlation_id,
+    },
+    async () => {
+      await handleMessage(msg, attributes);
+      logger.info(
+        `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
+      );
+    }
   );
 }
 await runConsumer(config, [attributeTopic], processMessage);
