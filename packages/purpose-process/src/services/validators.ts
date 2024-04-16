@@ -1,5 +1,5 @@
 import {
-  EServiceId,
+  EService,
   EServiceMode,
   Purpose,
   PurposeRiskAnalysisForm,
@@ -48,11 +48,11 @@ export const purposeIsDraft = (purpose: Purpose): boolean =>
   !purpose.versions.some((v) => v.state !== purposeVersionState.draft);
 
 export const isEserviceMode = (
-  eserviceId: EServiceId,
-  mode: EServiceMode
+  eservice: EService,
+  expectedMode: EServiceMode
 ): void => {
-  if (mode !== mode) {
-    throw eServiceModeNotAllowed(eserviceId, mode);
+  if (eservice.mode !== expectedMode) {
+    throw eServiceModeNotAllowed(eservice.id, expectedMode);
   }
 };
 
@@ -134,7 +134,7 @@ export function assertTenantKindExists(
   }
 }
 
-export function assertIsDraft(purpose: Purpose): void {
+export function assertPurposeIsDraft(purpose: Purpose): void {
   if (!purposeIsDraft(purpose)) {
     throw purposeNotInDraftState(purpose.id);
   }

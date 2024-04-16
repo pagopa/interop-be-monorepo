@@ -60,9 +60,9 @@ import {
   isRiskAnalysisFormValid,
   purposeIsDraft,
   assertTenantKindExists,
-  assertIsDraft,
   reverseValidateAndTransformRiskAnalysis,
   validateAndTransformRiskAnalysis,
+  assertPurposeIsDraft,
   assertPurposeIsDeletable,
 } from "./validators.js";
 
@@ -571,13 +571,13 @@ const updatePurposeInternal = async (
 ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> => {
   const purpose = await retrievePurpose(purposeId, readModelService);
   assertOrganizationIsAConsumer(organizationId, purpose.data.consumerId);
-  assertIsDraft(purpose.data);
+  assertPurposeIsDraft(purpose.data);
 
   const eservice = await retrieveEService(
     purpose.data.eserviceId,
     readModelService
   );
-  isEserviceMode(eservice.id, eserviceMode);
+  isEserviceMode(eservice, eserviceMode);
   isFreeOfCharge(
     updateContent.isFreeOfCharge,
     updateContent.freeOfChargeReason
