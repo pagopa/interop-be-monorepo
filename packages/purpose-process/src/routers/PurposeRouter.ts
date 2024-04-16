@@ -13,6 +13,7 @@ import { api } from "../model/generated/api.js";
 import {
   purposeToApiPurpose,
   purposeVersionDocumentToApiPurposeVersionDocument,
+  purposeVersionToApiPurposeVersion,
 } from "../model/domain/apiConverter.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../utilities/config.js";
@@ -254,7 +255,26 @@ const purposeRouter = (
     .post(
       "/purposes/:purposeId/versions/:versionId/archive",
       authorizationMiddleware([ADMIN_ROLE, INTERNAL_ROLE]),
-      (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const archivedVersion = await purposeService.archivePurposeVersion({
+            purposeId: unsafeBrandId(req.params.purposeId),
+            versionId: unsafeBrandId(req.params.versionId),
+            organizationId: req.ctx.authData.organizationId,
+            correlationId: req.ctx.correlationId,
+          });
+          return res
+            .status(200)
+            .json(purposeVersionToApiPurposeVersion(archivedVersion))
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            rejectPurposeVersionErrorMapper
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/purposes/:purposeId/versions/:versionId/update/waitingForApproval",
