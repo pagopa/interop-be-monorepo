@@ -2,9 +2,9 @@
 import { P, match } from "ts-pattern";
 
 export class ApiError<T> extends Error {
-  /* TODO consider refactoring of the code property is used:
-    From the API point of view, it is an information relating to the single error
-    in the errors array - not to the main Problem response.
+  /* TODO consider refactoring how the code property is used:
+    From the API point of view, it is an info present only in the single error
+    in the errors array - not in the main Problem response.
     However, at the moment we need it because it is used around the codebase to
     map ApiError to a specific HTTP status code.
     */
