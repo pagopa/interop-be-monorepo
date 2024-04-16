@@ -165,20 +165,20 @@ export function purposeServiceBuilder(
     async deletePurposeVersion({
       purposeId,
       versionId,
-      authData,
+      organizationId,
       correlationId,
     }: {
       purposeId: PurposeId;
       versionId: PurposeVersionId;
-      authData: AuthData;
+      organizationId: TenantId;
       correlationId: string;
     }): Promise<void> {
       logger.info(`Deleting Version ${versionId} in Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
 
-      if (authData.organizationId !== purpose.data.consumerId) {
-        throw organizationIsNotTheConsumer(authData.organizationId);
+      if (organizationId !== purpose.data.consumerId) {
+        throw organizationIsNotTheConsumer(organizationId);
       }
 
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
