@@ -398,7 +398,7 @@ describe("database test", async () => {
         await purposeService.deletePurposeVersion({
           purposeId: mockPurpose1.id,
           versionId: mockPurposeVersion.id,
-          authData: getMockAuthData(mockPurpose1.consumerId),
+          organizationId: mockPurpose1.consumerId,
           correlationId: generateId(),
         });
 
@@ -447,7 +447,7 @@ describe("database test", async () => {
           purposeService.deletePurposeVersion({
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
-            authData: getMockAuthData(mockEService.producerId),
+            organizationId: mockEService.producerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(purposeNotFound(mockPurpose1.id));
@@ -469,7 +469,7 @@ describe("database test", async () => {
           purposeService.deletePurposeVersion({
             purposeId: mockPurpose1.id,
             versionId: randomVersionId,
-            authData: getMockAuthData(mockPurpose1.consumerId),
+            organizationId: mockPurpose1.consumerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(
@@ -492,7 +492,7 @@ describe("database test", async () => {
           purposeService.deletePurposeVersion({
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
-            authData: getMockAuthData(mockEService.producerId),
+            organizationId: mockEService.producerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(
@@ -518,7 +518,7 @@ describe("database test", async () => {
           purposeService.deletePurposeVersion({
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
-            authData: getMockAuthData(mockPurpose1.consumerId),
+            organizationId: mockPurpose1.consumerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(
@@ -544,7 +544,7 @@ describe("database test", async () => {
           purposeService.deletePurposeVersion({
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
-            authData: getMockAuthData(mockPurpose1.consumerId),
+            organizationId: mockPurpose1.consumerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(
@@ -570,7 +570,7 @@ describe("database test", async () => {
           purposeService.deletePurposeVersion({
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
-            authData: getMockAuthData(mockPurpose1.consumerId),
+            organizationId: mockPurpose1.consumerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(
@@ -597,7 +597,7 @@ describe("database test", async () => {
           purposeService.deletePurposeVersion({
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
-            authData: getMockAuthData(mockPurpose1.consumerId),
+            organizationId: mockPurpose1.consumerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(

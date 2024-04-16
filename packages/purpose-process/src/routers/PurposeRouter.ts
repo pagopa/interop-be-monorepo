@@ -126,7 +126,7 @@ const purposeRouter = (
           await purposeService.deletePurposeVersion({
             purposeId: unsafeBrandId(req.params.purposeId),
             versionId: unsafeBrandId(req.params.versionId),
-            authData: req.ctx.authData,
+            organizationId: req.ctx.authData.organizationId,
             correlationId: req.ctx.correlationId,
           });
           return res.status(204).end();
