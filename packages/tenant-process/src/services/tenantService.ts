@@ -356,18 +356,11 @@ export function tenantServiceBuilder(
         throw certifiedAttributeAlreadyAssigned(attribute.id, organizationId);
       } else {
         // re-assigning attribute if it was revoked
-        updatedTenant = {
-          ...updatedTenant,
-          attributes: targetTenant.data.attributes.map((a) =>
-            a.id === attribute.id
-              ? {
-                  ...a,
-                  assignmentTimestamp: new Date(),
-                  revocationTimestamp: undefined,
-                }
-              : a
-          ),
-        };
+        updatedTenant = updateAttribute({
+          updatedTenant,
+          targetTenant,
+          attributeId: attribute.id,
+        });
       }
 
       const tenantKind = await getTenantKindLoadingCertifiedAttributes(
@@ -453,7 +446,7 @@ export function tenantServiceBuilder(
         throw certifiedAttributeAlreadyRevoked(attributeId, organizationId);
       }
 
-      updatedTenant = reAssignAttribute(
+      updatedTenant = updateAttribute(
         {
           updatedTenant,
           targetTenant,
@@ -579,7 +572,7 @@ export function tenantServiceBuilder(
   };
 }
 
-function reAssignAttribute(
+function updateAttribute(
   {
     updatedTenant,
     targetTenant,
