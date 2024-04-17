@@ -65,13 +65,11 @@ export async function handleMessageV1(
           { "data.id": msg.stream_id },
           {
             $set: {
-              $setOnInsert: {
-                data: msg.data.purpose
-                  ? toReadModelPurpose(fromPurposeV1(msg.data.purpose))
-                  : undefined,
-                metadata: {
-                  version: msg.version,
-                },
+              data: msg.data.purpose
+                ? toReadModelPurpose(fromPurposeV1(msg.data.purpose))
+                : undefined,
+              metadata: {
+                version: msg.version,
               },
             },
           }
