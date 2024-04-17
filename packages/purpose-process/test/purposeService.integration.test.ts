@@ -59,7 +59,7 @@ import {
 } from "../src/model/domain/errors.js";
 import { addOnePurpose, getMockEService } from "./utils.js";
 
-describe("database test", async () => {
+describe("Integration tests", async () => {
   let purposes: PurposeCollection;
   let eservices: EServiceCollection;
   let tenants: TenantCollection;
