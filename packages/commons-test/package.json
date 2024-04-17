@@ -22,7 +22,7 @@
     "@protobuf-ts/runtime": "2.9.4",
     "@testcontainers/postgresql": "10.2.2",
     "@types/jsonwebtoken": "9.0.6",
-    "@types/uuid": "9.0.2",
+    "@types/uuid": "9.0.8",
     "@zodios/core": "10.9.6",
     "jsonwebtoken": "9.0.2",
     "pagopa-interop-commons": "workspace:*",
@@ -31,7 +31,7 @@
     "testcontainers": "10.2.2",
     "ts-pattern": "5.0.6",
     "typescript": "5.1.3",
-    "uuid": "9.0.0",
+    "uuid": "9.0.1",
     "vitest": "0.33.0",
     "zod": "3.21.4"
   }
