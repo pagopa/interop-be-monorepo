@@ -27,6 +27,7 @@ import {
   getCertifiedAttributesErrorMapper,
   addDeclaredAttributeErrorMapper,
   verifyVerifiedAttributeErrorMapper,
+  revokeVerifiedAttributeErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../utilities/config.js";
@@ -445,7 +446,23 @@ const tenantsRouter = (
     .delete(
       "/tenants/:tenantId/attributes/verified/:attributeId",
       authorizationMiddleware([ADMIN_ROLE]),
-      async (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const tenant = await tenantService.revokeVerifiedAttribute({
+            tenantId: unsafeBrandId(req.params.tenantId),
+            attributeId: unsafeBrandId(req.params.attributeId),
+            organizationId: req.ctx.authData.organizationId,
+            correlationId: req.ctx.correlationId,
+          });
+          return res.status(200).json(toApiTenant(tenant)).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            revokeVerifiedAttributeErrorMapper
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .delete(
       "/tenants/attributes/declared/:attributeId",

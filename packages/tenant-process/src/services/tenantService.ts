@@ -18,6 +18,7 @@ import {
   toCreateEventTenantVerifiedAttributeAssigned,
   toCreateEventTenantCertifiedAttributeAssigned,
   toCreateEventTenantDeclaredAttributeAssigned,
+  toCreateEventTenantVerifiedAttributeRevoked,
 } from "../model/domain/toEvent.js";
 import {
   ApiCertifiedTenantAttributeSeed,
@@ -26,10 +27,13 @@ import {
   ApiVerifiedTenantAttributeSeed,
 } from "../model/types.js";
 import {
+  attributeAlreadyRevoked,
   attributeNotFound,
+  attributeRevocationNotAllowed,
   certifiedAttributeAlreadyAssigned,
   certifiedAttributeOriginIsNotCompliantWithCertifier,
   tenantIsNotACertifier,
+  verifiedAttributeSelfRevocation,
   verifiedAttributeSelfVerification,
 } from "../model/domain/errors.js";
 import {
@@ -56,6 +60,7 @@ import {
   assertTenantExists,
   getTenantCertifierId,
   assertAttributeVerificationAllowed,
+  assertAttributeRevocationAllowed,
 } from "./validators.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -559,28 +564,28 @@ export function tenantServiceBuilder(
     async revokeVerifiedAttribute({
       tenantId,
       attributeId,
-      authData,
+      organizationId,
       correlationId,
     }: {
       tenantId: TenantId;
       attributeId: AttributeId;
-      authData: AuthData;
+      organizationId: TenantId;
       correlationId: string;
     }): Promise<Tenant> {
       logger.info(`Revoking attribute ${attributeId} to tenant ${tenantId}`);
 
-      const targetTenant = await retrieveTenant(tenantId, readModelService);
-
-      if (authData.organizationId === targetTenant.data.id) {
-        throw verifiedAttributeSelfVerification();
+      if (organizationId === tenantId) {
+        throw verifiedAttributeSelfRevocation();
       }
 
-      await assertAttributeVerificationAllowed({
-        producerId: authData.organizationId,
-        consumerId: targetTenant.data.id,
+      await assertAttributeRevocationAllowed({
+        producerId: organizationId,
+        consumerId: tenantId,
         attributeId,
         readModelService,
       });
+
+      const targetTenant = await retrieveTenant(tenantId, readModelService);
 
       const verifiedTenantAttribute = targetTenant.data.attributes.find(
         (attr) =>
@@ -592,19 +597,19 @@ export function tenantServiceBuilder(
       }
 
       const verifier = verifiedTenantAttribute.verifiedBy.find(
-        (a) => a.id === authData.organizationId
+        (a) => a.id === organizationId
       );
 
       if (!verifier) {
-        throw attributeRevocationNotAllowed(targetTenantUuid, attributeUuid);
+        throw attributeRevocationNotAllowed(tenantId, attributeId);
       }
 
       const revoker = verifiedTenantAttribute.revokedBy.find(
-        (a) => a.id === authData.organizationId
+        (a) => a.id === organizationId
       );
 
       if (verifier && revoker) {
-        throw attributeAlreadyRevoked();
+        throw attributeAlreadyRevoked(tenantId, organizationId, attributeId);
       }
 
       // eslint-disable-next-line functional/no-let
