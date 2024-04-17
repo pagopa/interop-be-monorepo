@@ -136,10 +136,12 @@ describe("Integration tests", async () => {
       });
       it("should throw purposeNotFound if the purpose doesn't exist", async () => {
         const notExistingId: PurposeId = generateId();
+        const mockTenant = getMockTenant();
         await addOnePurpose(mockPurpose, postgresDB, purposes);
+        await writeInReadmodel(mockTenant, tenants);
 
         expect(
-          purposeService.getPurposeById(notExistingId, generateId())
+          purposeService.getPurposeById(notExistingId, mockTenant.id)
         ).rejects.toThrowError(purposeNotFound(notExistingId));
       });
       it("should throw eserviceNotFound if the eservice doesn't exist", async () => {
