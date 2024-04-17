@@ -40,5 +40,6 @@ export const HTTPServerConfig = z
   }));
 export type HTTPServerConfig = z.infer<typeof HTTPServerConfig>;
 
-export const CommonConfig = HTTPServerConfig.and(LoggerConfig).and(JWTConfig);
-export type CommonConfig = z.infer<typeof CommonConfig>;
+export const CommonHTTPServiceConfig =
+  HTTPServerConfig.and(LoggerConfig).and(JWTConfig);
+export type CommonHTTPServiceConfig = z.infer<typeof CommonHTTPServiceConfig>;
