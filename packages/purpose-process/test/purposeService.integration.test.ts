@@ -1342,14 +1342,17 @@ describe("database test", async () => {
 
         expect(writtenPayload.purpose).toEqual(toPurposeV2(mockPurpose1));
       });
-      it("should throw purposeNotFound if the purpose doesn't exist", () => {
+      it("should throw purposeNotFound if the purpose doesn't exist", async () => {
+        const randomId: PurposeId = generateId();
+
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
         expect(
           purposeService.deletePurpose({
-            purposeId: mockPurpose.id,
+            purposeId: randomId,
             organizationId: mockPurpose.consumerId,
             correlationId: generateId(),
           })
-        ).rejects.toThrowError(purposeNotFound(mockPurpose.id));
+        ).rejects.toThrowError(purposeNotFound(randomId));
       });
       it("should throw organizationIsNotTheConsumer if the requester is not the consumer", async () => {
         const mockEService = getMockEService();
