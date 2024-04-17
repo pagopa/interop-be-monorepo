@@ -18,6 +18,7 @@ import {
   ReadModelRepository,
   TenantCollection,
   initDB,
+  unexpectedRulesVersionError,
 } from "pagopa-interop-commons";
 import { IDatabase } from "pg-promise";
 import {
@@ -30,6 +31,7 @@ import {
   getMockPurposeVersionDocument,
   getMockTenant,
   getMockValidRiskAnalysis,
+  getMockValidRiskAnalysisForm,
   mongoDBContainer,
   postgreSQLContainer,
   randomArrayItem,
@@ -48,6 +50,7 @@ import {
   PurposeVersionDocumentId,
   PurposeVersionId,
   PurposeVersionRejectedV2,
+  RiskAnalysis,
   Tenant,
   TenantId,
   WaitingForApprovalPurposeDeletedV2,
@@ -69,16 +72,20 @@ import {
   readModelServiceBuilder,
 } from "../src/services/readModelService.js";
 import {
+  eServiceModeNotAllowed,
   eserviceNotFound,
+  missingFreeOfChargeReason,
   notValidVersionState,
   organizationIsNotTheConsumer,
   organizationIsNotTheProducer,
   organizationNotAllowed,
   purposeCannotBeDeleted,
   purposeNotFound,
+  purposeNotInDraftState,
   purposeVersionCannotBeDeleted,
   purposeVersionDocumentNotFound,
   purposeVersionNotFound,
+  riskAnalysisValidationFailed,
   tenantKindNotFound,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
@@ -89,6 +96,7 @@ import {
 import {
   addOnePurpose,
   buildRiskAnalysisSeed,
+  createUpdatedPurpose,
   getMockEService,
 } from "./utils.js";
 
@@ -131,7 +139,8 @@ describe("database test", async () => {
 
   afterEach(async () => {
     await purposes.deleteMany({});
-
+    await tenants.deleteMany({});
+    await eservices.deleteMany({});
     await postgresDB.none("TRUNCATE TABLE purpose.events RESTART IDENTITY");
   });
 
@@ -166,7 +175,7 @@ describe("database test", async () => {
 
         const result = await purposeService.getPurposeById(
           mockPurpose1.id,
-          getMockAuthData(mockTenant.id)
+          mockTenant.id
         );
         expect(result).toMatchObject({
           purpose: mockPurpose1,
@@ -178,7 +187,7 @@ describe("database test", async () => {
         await addOnePurpose(mockPurpose, postgresDB, purposes);
 
         expect(
-          purposeService.getPurposeById(notExistingId, getMockAuthData())
+          purposeService.getPurposeById(notExistingId, generateId())
         ).rejects.toThrowError(purposeNotFound(notExistingId));
       });
       it("should throw eserviceNotFound if the eservice doesn't exist", async () => {
@@ -192,20 +201,11 @@ describe("database test", async () => {
           ...mockPurpose,
           eserviceId: notExistingId,
         };
-        const mockPurpose2: Purpose = {
-          ...getMockPurpose(),
-          id: generateId(),
-          title: "another purpose",
-        };
         await addOnePurpose(mockPurpose1, postgresDB, purposes);
-        await addOnePurpose(mockPurpose2, postgresDB, purposes);
         await writeInReadmodel(mockTenant, tenants);
 
         expect(
-          purposeService.getPurposeById(
-            mockPurpose1.id,
-            getMockAuthData(mockTenant.id)
-          )
+          purposeService.getPurposeById(mockPurpose1.id, mockTenant.id)
         ).rejects.toThrowError(eserviceNotFound(notExistingId));
       });
       it("should throw tenantNotFound if the tenant doesn't exist", async () => {
@@ -216,20 +216,11 @@ describe("database test", async () => {
           ...mockPurpose,
           eserviceId: mockEService.id,
         };
-        const mockPurpose2: Purpose = {
-          ...getMockPurpose(),
-          id: generateId(),
-          title: "another purpose",
-        };
         await addOnePurpose(mockPurpose1, postgresDB, purposes);
-        await addOnePurpose(mockPurpose2, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         expect(
-          purposeService.getPurposeById(
-            mockPurpose1.id,
-            getMockAuthData(notExistingId)
-          )
+          purposeService.getPurposeById(mockPurpose1.id, notExistingId)
         ).rejects.toThrowError(tenantNotFound(notExistingId));
       });
       it("should throw tenantKindNotFound if the tenant doesn't exist", async () => {
@@ -240,21 +231,12 @@ describe("database test", async () => {
           ...mockPurpose,
           eserviceId: mockEService.id,
         };
-        const mockPurpose2: Purpose = {
-          ...getMockPurpose(),
-          id: generateId(),
-          title: "another purpose",
-        };
         await addOnePurpose(mockPurpose1, postgresDB, purposes);
-        await addOnePurpose(mockPurpose2, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
         await writeInReadmodel(mockTenant, tenants);
 
         expect(
-          purposeService.getPurposeById(
-            mockPurpose1.id,
-            getMockAuthData(mockTenant.id)
-          )
+          purposeService.getPurposeById(mockPurpose1.id, mockTenant.id)
         ).rejects.toThrowError(tenantKindNotFound(mockTenant.id));
       });
     });
@@ -282,7 +264,7 @@ describe("database test", async () => {
           purposeId: mockPurpose1.id,
           versionId: mockPurposeVersion.id,
           documentId: mockDocument.id,
-          authData: getMockAuthData(mockEService.producerId),
+          organizationId: mockEService.producerId,
         });
         expect(result).toEqual(mockDocument);
       });
@@ -308,7 +290,7 @@ describe("database test", async () => {
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
             documentId: mockDocument.id,
-            authData: getMockAuthData(mockEService.producerId),
+            organizationId: mockEService.producerId,
           })
         ).rejects.toThrowError(purposeNotFound(mockPurpose1.id));
       });
@@ -329,7 +311,7 @@ describe("database test", async () => {
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
             documentId: mockDocument.id,
-            authData: getMockAuthData(mockEService.producerId),
+            organizationId: mockEService.producerId,
           })
         ).rejects.toThrowError(eserviceNotFound(mockEService.id));
       });
@@ -353,7 +335,7 @@ describe("database test", async () => {
             purposeId: mockPurpose1.id,
             versionId: randomVersionId,
             documentId: randomDocumentId,
-            authData: getMockAuthData(mockEService.producerId),
+            organizationId: mockEService.producerId,
           })
         ).rejects.toThrowError(
           purposeVersionNotFound(mockPurpose1.id, randomVersionId)
@@ -378,7 +360,7 @@ describe("database test", async () => {
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
             documentId: randomDocumentId,
-            authData: getMockAuthData(mockEService.producerId),
+            organizationId: mockEService.producerId,
           })
         ).rejects.toThrowError(
           purposeVersionDocumentNotFound(
@@ -407,7 +389,7 @@ describe("database test", async () => {
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
             documentId: mockDocument.id,
-            authData: getMockAuthData(randomId),
+            organizationId: randomId,
           })
         ).rejects.toThrowError(organizationNotAllowed(randomId));
       });
@@ -432,7 +414,7 @@ describe("database test", async () => {
         await purposeService.deletePurposeVersion({
           purposeId: mockPurpose1.id,
           versionId: mockPurposeVersion.id,
-          authData: getMockAuthData(mockPurpose1.consumerId),
+          organizationId: mockPurpose1.consumerId,
           correlationId: generateId(),
         });
 
@@ -481,7 +463,7 @@ describe("database test", async () => {
           purposeService.deletePurposeVersion({
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
-            authData: getMockAuthData(mockEService.producerId),
+            organizationId: mockEService.producerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(purposeNotFound(mockPurpose1.id));
@@ -503,7 +485,7 @@ describe("database test", async () => {
           purposeService.deletePurposeVersion({
             purposeId: mockPurpose1.id,
             versionId: randomVersionId,
-            authData: getMockAuthData(mockPurpose1.consumerId),
+            organizationId: mockPurpose1.consumerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(
@@ -526,7 +508,7 @@ describe("database test", async () => {
           purposeService.deletePurposeVersion({
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
-            authData: getMockAuthData(mockEService.producerId),
+            organizationId: mockEService.producerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(
@@ -552,7 +534,7 @@ describe("database test", async () => {
           purposeService.deletePurposeVersion({
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
-            authData: getMockAuthData(mockPurpose1.consumerId),
+            organizationId: mockPurpose1.consumerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(
@@ -578,7 +560,7 @@ describe("database test", async () => {
           purposeService.deletePurposeVersion({
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
-            authData: getMockAuthData(mockPurpose1.consumerId),
+            organizationId: mockPurpose1.consumerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(
@@ -604,7 +586,7 @@ describe("database test", async () => {
           purposeService.deletePurposeVersion({
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
-            authData: getMockAuthData(mockPurpose1.consumerId),
+            organizationId: mockPurpose1.consumerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(
@@ -631,7 +613,7 @@ describe("database test", async () => {
           purposeService.deletePurposeVersion({
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
-            authData: getMockAuthData(mockPurpose1.consumerId),
+            organizationId: mockPurpose1.consumerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(
@@ -663,7 +645,7 @@ describe("database test", async () => {
           purposeId: mockPurpose1.id,
           versionId: mockPurposeVersion.id,
           rejectionReason: "test",
-          authData: getMockAuthData(mockEService.producerId),
+          organizationId: mockEService.producerId,
           correlationId: generateId(),
         });
 
@@ -721,7 +703,7 @@ describe("database test", async () => {
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
             rejectionReason: "test",
-            authData: getMockAuthData(mockEService.producerId),
+            organizationId: mockEService.producerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(purposeNotFound(mockPurpose1.id));
@@ -742,7 +724,7 @@ describe("database test", async () => {
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
             rejectionReason: "test",
-            authData: getMockAuthData(mockPurpose1.consumerId),
+            organizationId: mockPurpose1.consumerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(eserviceNotFound(mockEService.id));
@@ -764,7 +746,7 @@ describe("database test", async () => {
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
             rejectionReason: "test",
-            authData: getMockAuthData(mockPurpose1.consumerId),
+            organizationId: mockPurpose1.consumerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(
@@ -789,7 +771,7 @@ describe("database test", async () => {
             purposeId: mockPurpose1.id,
             versionId: randomVersionId,
             rejectionReason: "test",
-            authData: getMockAuthData(mockEService.producerId),
+            organizationId: mockEService.producerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(
@@ -816,7 +798,7 @@ describe("database test", async () => {
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
             rejectionReason: "test",
-            authData: getMockAuthData(mockEService.producerId),
+            organizationId: mockEService.producerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(
@@ -843,7 +825,7 @@ describe("database test", async () => {
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
             rejectionReason: "test",
-            authData: getMockAuthData(mockEService.producerId),
+            organizationId: mockEService.producerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(
@@ -870,7 +852,7 @@ describe("database test", async () => {
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
             rejectionReason: "test",
-            authData: getMockAuthData(mockEService.producerId),
+            organizationId: mockEService.producerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(
@@ -897,7 +879,7 @@ describe("database test", async () => {
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
             rejectionReason: "test",
-            authData: getMockAuthData(mockEService.producerId),
+            organizationId: mockEService.producerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(
@@ -925,7 +907,7 @@ describe("database test", async () => {
             purposeId: mockPurpose1.id,
             versionId: mockPurposeVersion.id,
             rejectionReason: "test",
-            authData: getMockAuthData(mockEService.producerId),
+            organizationId: mockEService.producerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(
@@ -935,59 +917,80 @@ describe("database test", async () => {
     });
 
     describe("updatePurpose and reverseUpdatePurpose", () => {
+      const tenantType = randomArrayItem(Object.values(tenantKind));
+      const tenant: Tenant = {
+        ...getMockTenant(),
+        kind: tenantType,
+      };
+
+      const eServiceDeliver: EService = {
+        ...getMockEService(),
+        mode: "Deliver",
+      };
+
+      const eServiceReceive: EService = {
+        ...getMockEService(),
+        mode: "Receive",
+        producerId: tenant.id,
+      };
+
+      const purposeForReceive: Purpose = {
+        ...getMockPurpose(),
+        eserviceId: eServiceReceive.id,
+        consumerId: tenant.id,
+        versions: [
+          { ...getMockPurposeVersion(), state: purposeVersionState.draft },
+        ],
+        riskAnalysisForm: {
+          ...getMockValidRiskAnalysisForm(tenantType),
+          id: generateId(),
+        },
+      };
+
+      const purposeForDeliver: Purpose = {
+        ...getMockPurpose(),
+        eserviceId: eServiceDeliver.id,
+        consumerId: tenant.id,
+        versions: [
+          { ...getMockPurposeVersion(), state: purposeVersionState.draft },
+        ],
+      };
+
+      const validRiskAnalysis = getMockValidRiskAnalysis(tenantType);
+
+      const purposeUpdateContent: PurposeUpdateContent = {
+        title: "test",
+        dailyCalls: 10,
+        description: "test",
+        isFreeOfCharge: true,
+        freeOfChargeReason: "reason",
+        riskAnalysisForm: buildRiskAnalysisSeed(validRiskAnalysis),
+      };
+
+      const reversePurposeUpdateContent: ReversePurposeUpdateContent = {
+        ...purposeUpdateContent,
+      };
+
       it("Should write on event store for the update of a purpose of an e-service in mode DELIVER", async () => {
-        const consumerTenantKind = randomArrayItem(Object.values(tenantKind));
-        const consumer: Tenant = {
-          ...getMockTenant(),
-          kind: consumerTenantKind,
-        };
-
-        const mockEservice: EService = {
-          ...getMockEService(),
-          mode: "Deliver",
-        };
-        const mockPurpose: Purpose = {
-          ...getMockPurpose(),
-          eserviceId: mockEservice.id,
-          consumerId: consumer.id,
-          versions: [
-            {
-              ...getMockPurposeVersion(),
-              state: purposeVersionState.draft,
-            },
-          ],
-        };
-
-        await addOnePurpose(mockPurpose, postgresDB, purposes);
-        await writeInReadmodel(toReadModelEService(mockEservice), eservices);
-        await writeInReadmodel(consumer, tenants);
-
-        const mockValidRiskAnalysis =
-          getMockValidRiskAnalysis(consumerTenantKind);
-
-        const purposeUpdateContent: PurposeUpdateContent = {
-          title: "test",
-          dailyCalls: 10,
-          description: "test",
-          isFreeOfCharge: false,
-          riskAnalysisForm: buildRiskAnalysisSeed(mockValidRiskAnalysis),
-        };
+        await addOnePurpose(purposeForDeliver, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
+        await writeInReadmodel(tenant, tenants);
 
         await purposeService.updatePurpose({
-          purposeId: mockPurpose.id,
+          purposeId: purposeForDeliver.id,
           purposeUpdateContent,
-          organizationId: consumer.id,
+          organizationId: tenant.id,
           correlationId: generateId(),
         });
 
         const writtenEvent = await readLastEventByStreamId(
-          mockPurpose.id,
+          purposeForDeliver.id,
           "purpose",
           postgresDB
         );
 
         expect(writtenEvent).toMatchObject({
-          stream_id: mockPurpose.id,
+          stream_id: purposeForDeliver.id,
           version: "1",
           type: "DraftPurposeUpdated",
           event_version: 2,
@@ -998,113 +1001,35 @@ describe("database test", async () => {
           payload: writtenEvent.data,
         });
 
-        const expectedPurpose: Purpose = {
-          ...mockPurpose,
-          title: purposeUpdateContent.title,
-          description: purposeUpdateContent.description,
-          isFreeOfCharge: purposeUpdateContent.isFreeOfCharge,
-          riskAnalysisForm: {
-            ...mockValidRiskAnalysis.riskAnalysisForm,
-            id: unsafeBrandId(writtenPayload.purpose!.riskAnalysisForm!.id),
-            singleAnswers:
-              mockValidRiskAnalysis.riskAnalysisForm.singleAnswers.map(
-                (singleAnswer) => ({
-                  ...singleAnswer,
-                  id: unsafeBrandId(
-                    writtenPayload.purpose!.riskAnalysisForm!.singleAnswers.find(
-                      (sa) => sa.key === singleAnswer.key
-                    )!.id
-                  ),
-                })
-              ),
-            multiAnswers:
-              mockValidRiskAnalysis.riskAnalysisForm.multiAnswers.map(
-                (multiAnswer) => ({
-                  ...multiAnswer,
-                  id: unsafeBrandId(
-                    writtenPayload.purpose!.riskAnalysisForm!.multiAnswers.find(
-                      (ma) => ma.key === multiAnswer.key
-                    )!.id
-                  ),
-                })
-              ),
-          },
-        };
+        const expectedPurpose: Purpose = createUpdatedPurpose(
+          purposeForDeliver,
+          purposeUpdateContent,
+          validRiskAnalysis,
+          writtenPayload
+        );
 
         expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
       });
       it("Should write on event store for the update of a purpose of an e-service in mode RECEIVE", async () => {
-        const producerTenantKind = randomArrayItem(Object.values(tenantKind));
-        const producer: Tenant = {
-          ...getMockTenant(),
-          kind: producerTenantKind,
-        };
-
-        const mockEservice: EService = {
-          ...getMockEService(),
-          mode: "Receive",
-          producerId: producer.id,
-        };
-
-        const mockValidRiskAnalysis =
-          getMockValidRiskAnalysis(producerTenantKind);
-
-        const mockPurpose: Purpose = {
-          ...getMockPurpose(),
-          eserviceId: mockEservice.id,
-          consumerId: producer.id,
-          versions: [
-            {
-              ...getMockPurposeVersion(),
-              state: purposeVersionState.draft,
-            },
-          ],
-          riskAnalysisForm: {
-            ...mockValidRiskAnalysis.riskAnalysisForm,
-            id: generateId(),
-            singleAnswers:
-              mockValidRiskAnalysis.riskAnalysisForm.singleAnswers.map(
-                (singleAnswer) => ({
-                  ...singleAnswer,
-                  id: generateId(),
-                })
-              ),
-            multiAnswers:
-              mockValidRiskAnalysis.riskAnalysisForm.multiAnswers.map(
-                (multiAnswer) => ({
-                  ...multiAnswer,
-                  id: generateId(),
-                })
-              ),
-          },
-        };
-
-        await addOnePurpose(mockPurpose, postgresDB, purposes);
-        await writeInReadmodel(toReadModelEService(mockEservice), eservices);
-        await writeInReadmodel(producer, tenants);
-
-        const reversePurposeUpdateContent: ReversePurposeUpdateContent = {
-          title: "test",
-          dailyCalls: 10,
-          description: "test",
-          isFreeOfCharge: false,
-        };
+        await addOnePurpose(purposeForReceive, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(eServiceReceive), eservices);
+        await writeInReadmodel(tenant, tenants);
 
         await purposeService.updateReversePurpose({
-          purposeId: mockPurpose.id,
+          purposeId: purposeForReceive.id,
           reversePurposeUpdateContent,
-          organizationId: producer.id,
+          organizationId: tenant.id,
           correlationId: generateId(),
         });
 
         const writtenEvent = await readLastEventByStreamId(
-          mockPurpose.id,
+          purposeForReceive.id,
           "purpose",
           postgresDB
         );
 
         expect(writtenEvent).toMatchObject({
-          stream_id: mockPurpose.id,
+          stream_id: purposeForReceive.id,
           version: "1",
           type: "DraftPurposeUpdated",
           event_version: 2,
@@ -1115,40 +1040,210 @@ describe("database test", async () => {
           payload: writtenEvent.data,
         });
 
-        const expectedPurpose: Purpose = {
-          ...mockPurpose,
-          title: reversePurposeUpdateContent.title,
-          description: reversePurposeUpdateContent.description,
-          isFreeOfCharge: reversePurposeUpdateContent.isFreeOfCharge,
+        const expectedPurpose: Purpose = createUpdatedPurpose(
+          purposeForReceive,
+          reversePurposeUpdateContent,
+          validRiskAnalysis,
+          writtenPayload
+        );
+
+        expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+      });
+      it("Should throw purposeNotFound if the purpose doesn't exist", async () => {
+        await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
+        await writeInReadmodel(tenant, tenants);
+
+        const purposeId: PurposeId = unsafeBrandId(generateId());
+
+        expect(
+          purposeService.updatePurpose({
+            purposeId,
+            purposeUpdateContent,
+            organizationId: tenant.id,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(purposeNotFound(purposeId));
+      });
+      it("Should throw organizationIsNotTheConsumer if the organization is not the consumer", async () => {
+        const mockPurpose: Purpose = {
+          ...purposeForDeliver,
+          consumerId: generateId(),
+        };
+
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
+        await writeInReadmodel(tenant, tenants);
+
+        const organizationId: TenantId = unsafeBrandId(generateId());
+
+        expect(
+          purposeService.updatePurpose({
+            purposeId: mockPurpose.id,
+            purposeUpdateContent,
+            organizationId,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(organizationIsNotTheConsumer(organizationId));
+      });
+      it("Should throw purposeNotInDraftState if the purpose is not in draft state", async () => {
+        const mockPurpose: Purpose = {
+          ...purposeForDeliver,
+          versions: [
+            { ...getMockPurposeVersion(), state: purposeVersionState.active },
+          ],
+        };
+
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
+        await writeInReadmodel(tenant, tenants);
+
+        expect(
+          purposeService.updatePurpose({
+            purposeId: mockPurpose.id,
+            purposeUpdateContent,
+            organizationId: tenant.id,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(purposeNotInDraftState(mockPurpose.id));
+      });
+      it("Should throw eserviceNotFound if the eservice doesn't exist", async () => {
+        const eserviceId: EServiceId = unsafeBrandId(generateId());
+        const mockPurpose: Purpose = {
+          ...purposeForDeliver,
+          eserviceId,
+        };
+
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
+        await writeInReadmodel(tenant, tenants);
+
+        expect(
+          purposeService.updatePurpose({
+            purposeId: mockPurpose.id,
+            purposeUpdateContent,
+            organizationId: tenant.id,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(eserviceNotFound(eserviceId));
+      });
+      it("should throw eServiceModeNotAllowed if the eService mode is incorrect", async () => {
+        await addOnePurpose(purposeForReceive, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(eServiceReceive), eservices);
+        await writeInReadmodel(tenant, tenants);
+
+        expect(
+          purposeService.updatePurpose({
+            purposeId: purposeForReceive.id,
+            purposeUpdateContent,
+            organizationId: tenant.id,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(
+          eServiceModeNotAllowed(eServiceReceive.id, "Deliver")
+        );
+
+        await addOnePurpose(purposeForDeliver, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
+
+        expect(
+          purposeService.updateReversePurpose({
+            purposeId: purposeForDeliver.id,
+            reversePurposeUpdateContent,
+            organizationId: tenant.id,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(
+          eServiceModeNotAllowed(eServiceDeliver.id, "Receive")
+        );
+      });
+      it("Should throw missingFreeOfChargeReason if the freeOfChargeReason is missing", async () => {
+        await addOnePurpose(purposeForDeliver, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
+        await writeInReadmodel(tenant, tenants);
+
+        expect(
+          purposeService.updatePurpose({
+            purposeId: purposeForDeliver.id,
+            purposeUpdateContent: {
+              ...purposeUpdateContent,
+              freeOfChargeReason: undefined,
+            },
+            organizationId: tenant.id,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(missingFreeOfChargeReason());
+      });
+      it("Should throw tenantNotFound if the tenant does not exist", async () => {
+        await addOnePurpose(purposeForDeliver, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
+
+        expect(
+          purposeService.updatePurpose({
+            purposeId: purposeForDeliver.id,
+            purposeUpdateContent,
+            organizationId: tenant.id,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(tenantNotFound(tenant.id));
+
+        await addOnePurpose(purposeForReceive, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(eServiceReceive), eservices);
+
+        expect(
+          purposeService.updateReversePurpose({
+            purposeId: purposeForReceive.id,
+            reversePurposeUpdateContent,
+            organizationId: tenant.id,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(tenantNotFound(tenant.id));
+      });
+      it("Should throw tenantKindNotFound if the tenant kind does not exist", async () => {
+        const mockTenant = {
+          ...tenant,
+          kind: undefined,
+        };
+
+        await addOnePurpose(purposeForDeliver, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
+        await writeInReadmodel(mockTenant, tenants);
+
+        expect(
+          purposeService.updatePurpose({
+            purposeId: purposeForDeliver.id,
+            purposeUpdateContent,
+            organizationId: mockTenant.id,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(tenantKindNotFound(mockTenant.id));
+      });
+      it("Should throw riskAnalysisValidationFailed if the risk analysis is not valid", async () => {
+        await addOnePurpose(purposeForDeliver, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
+        await writeInReadmodel(tenant, tenants);
+
+        const invalidRiskAnalysis: RiskAnalysis = {
+          ...validRiskAnalysis,
           riskAnalysisForm: {
-            ...mockValidRiskAnalysis.riskAnalysisForm,
-            id: unsafeBrandId(writtenPayload.purpose!.riskAnalysisForm!.id),
-            singleAnswers:
-              mockValidRiskAnalysis.riskAnalysisForm.singleAnswers.map(
-                (singleAnswer) => ({
-                  ...singleAnswer,
-                  id: unsafeBrandId(
-                    writtenPayload.purpose!.riskAnalysisForm!.singleAnswers.find(
-                      (sa) => sa.key === singleAnswer.key
-                    )!.id
-                  ),
-                })
-              ),
-            multiAnswers:
-              mockValidRiskAnalysis.riskAnalysisForm.multiAnswers.map(
-                (multiAnswer) => ({
-                  ...multiAnswer,
-                  id: unsafeBrandId(
-                    writtenPayload.purpose!.riskAnalysisForm!.multiAnswers.find(
-                      (ma) => ma.key === multiAnswer.key
-                    )!.id
-                  ),
-                })
-              ),
+            ...validRiskAnalysis.riskAnalysisForm,
+            version: "0",
           },
         };
 
-        expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+        const mockPurposeUpdateContent: PurposeUpdateContent = {
+          ...purposeUpdateContent,
+          riskAnalysisForm: buildRiskAnalysisSeed(invalidRiskAnalysis),
+        };
+
+        expect(
+          purposeService.updatePurpose({
+            purposeId: purposeForDeliver.id,
+            purposeUpdateContent: mockPurposeUpdateContent,
+            organizationId: tenant.id,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(
+          riskAnalysisValidationFailed([unexpectedRulesVersionError("0")])
+        );
       });
     });
 
