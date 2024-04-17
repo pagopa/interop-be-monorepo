@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
   PurposeCollection,
   riskAnalysisFormToRiskAnalysisFormToValidate,
@@ -20,9 +21,9 @@ import {
 } from "pagopa-interop-models";
 import { IDatabase } from "pg-promise";
 import {
-  PurposeUpdateContent,
-  ReversePurposeUpdateContent,
-  RiskAnalysisFormSeed,
+  ApiPurposeUpdateContent,
+  ApiReversePurposeUpdateContent,
+  ApiRiskAnalysisFormSeed,
 } from "../src/model/domain/models.js";
 
 export const addOnePurpose = async (
@@ -70,12 +71,14 @@ export const getMockEService = (): EService => ({
 
 export const buildRiskAnalysisSeed = (
   riskAnalysis: RiskAnalysis
-): RiskAnalysisFormSeed =>
+): ApiRiskAnalysisFormSeed =>
   riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysis.riskAnalysisForm);
 
 export const createUpdatedPurpose = (
   mockPurpose: Purpose,
-  purposeUpdateContent: PurposeUpdateContent | ReversePurposeUpdateContent,
+  purposeUpdateContent:
+    | ApiPurposeUpdateContent
+    | ApiReversePurposeUpdateContent,
   mockValidRiskAnalysis: RiskAnalysis,
   writtenPayload: DraftPurposeUpdatedV2
 ): Purpose => ({
@@ -84,6 +87,7 @@ export const createUpdatedPurpose = (
   description: purposeUpdateContent.description,
   isFreeOfCharge: purposeUpdateContent.isFreeOfCharge,
   freeOfChargeReason: purposeUpdateContent.freeOfChargeReason,
+  updatedAt: new Date(Number(writtenPayload.purpose?.updatedAt)),
   riskAnalysisForm: {
     ...mockValidRiskAnalysis.riskAnalysisForm,
     id: unsafeBrandId(writtenPayload.purpose!.riskAnalysisForm!.id),

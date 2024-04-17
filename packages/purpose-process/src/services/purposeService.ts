@@ -325,6 +325,8 @@ export function purposeServiceBuilder(
       organizationId: TenantId;
       correlationId: string;
     }): Promise<void> {
+      logger.info(`Deleting Purpose ${purposeId}`);
+
       const purpose = await retrievePurpose(purposeId, readModelService);
 
       assertOrganizationIsAConsumer(organizationId, purpose.data.consumerId);
@@ -356,6 +358,8 @@ export function purposeServiceBuilder(
       organizationId: TenantId;
       correlationId: string;
     }): Promise<PurposeVersion> {
+      logger.info(`Archiving Version ${versionId} in Purpose ${purposeId}`);
+
       const purpose = await retrievePurpose(purposeId, readModelService);
 
       assertOrganizationIsAConsumer(organizationId, purpose.data.consumerId);
@@ -613,6 +617,7 @@ const updatePurposeInternal = async (
   const updatedPurpose: Purpose = {
     ...purpose.data,
     ...updateContent,
+    updatedAt: new Date(),
     riskAnalysisForm: newRiskAnalysis,
   };
 
