@@ -7,7 +7,6 @@ import {
   genericLogger,
   logger,
   readModelWriterConfig,
-  runWithContext,
 } from "pagopa-interop-commons";
 import { createMechanism } from "@jm18457/kafkajs-msk-iam-authentication-mechanism";
 import { AttributeEvent } from "pagopa-interop-models";
@@ -20,16 +19,16 @@ const { attributeTopic } = attributeTopicConfig();
 
 const kafkaConfig = config.kafkaDisableAwsIamAuth
   ? {
-    clientId: config.kafkaClientId,
-    brokers: [config.kafkaBrokers],
-    ssl: false,
-  }
+      clientId: config.kafkaClientId,
+      brokers: [config.kafkaBrokers],
+      ssl: false,
+    }
   : {
-    clientId: config.kafkaClientId,
-    brokers: [config.kafkaBrokers],
-    ssl: true,
-    sasl: createMechanism({ region: config.awsRegion }),
-  };
+      clientId: config.kafkaClientId,
+      brokers: [config.kafkaBrokers],
+      ssl: true,
+      sasl: createMechanism({ region: config.awsRegion }),
+    };
 
 const kafka = new Kafka(kafkaConfig);
 const consumer = kafka.consumer({ groupId: config.kafkaGroupId });

@@ -1,10 +1,11 @@
+/* eslint-disable max-params */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { pluginToken } from "@zodios/plugins";
 import {
+  Logger,
   buildInteropTokenGenerator,
-  getContext,
+  genericLogger,
   jwtSeedConfig,
-  logger,
 } from "pagopa-interop-commons";
 import { v4 } from "uuid";
 import { DescriptorId, EServiceId } from "pagopa-interop-models";
@@ -17,7 +18,9 @@ export type AuthorizationService = {
     descriptorId: DescriptorId,
     eserviceId: EServiceId,
     audience: string[],
-    voucherLifespan: number
+    voucherLifespan: number,
+    logger: Logger,
+    correlationId: string | undefined | null
   ) => Promise<void>;
 };
 
@@ -44,7 +47,7 @@ export const authorizationServiceBuilder =
             automatically renews the token, and executes the request again.
             more details: https://github.com/ecyrbe/zodios-plugins/blob/main/src/plugins.test.ts#L69
           */
-          logger.info("Renewing token");
+          genericLogger.info("Renewing token");
 
           const newToken = await tokenGenerator.generateInternalToken(
             tokenPayloadSeed
@@ -54,12 +57,9 @@ export const authorizationServiceBuilder =
       })
     );
 
-    const getHeaders = () => {
-      const appContext = getContext();
-      return {
-        "X-Correlation-Id": appContext.correlationId || v4(),
-      };
-    };
+    const getHeaders = (correlationId: string) => ({
+      "X-Correlation-Id": correlationId,
+    });
 
     return {
       async updateEServiceState(
@@ -67,7 +67,9 @@ export const authorizationServiceBuilder =
         descriptorId: DescriptorId,
         eserviceId: EServiceId,
         audience: string[],
-        voucherLifespan: number
+        voucherLifespan: number,
+        logger: Logger,
+        correlationId: string | undefined | null
       ) {
         const clientEServiceDetailsUpdate = {
           state,
@@ -79,7 +81,7 @@ export const authorizationServiceBuilder =
         await authMgmtClient.updateEServiceState(clientEServiceDetailsUpdate, {
           params: { eserviceId },
           withCredentials: true,
-          headers: getHeaders(),
+          headers: getHeaders(correlationId || v4()),
         });
 
         logger.info(`Updating EService ${eserviceId} state for all clients`);

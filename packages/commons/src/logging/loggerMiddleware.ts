@@ -1,6 +1,5 @@
 /* eslint-disable max-params */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import * as expressWinston from "express-winston";
 import * as winston from "winston";
 import { LoggerConfig } from "../config/commonConfig.js";
 import { bigIntReplacer } from "./utils.js";
@@ -97,18 +96,18 @@ const getLogger = (serviceName?: string) =>
     silent: process.env.NODE_ENV === "test",
   });
 
-export const loggerMiddleware = (serviceName: string) => () =>
-  expressWinston.logger({
-    winstonInstance: getLogger(serviceName),
-    requestWhitelist:
-      config.logLevel === "info" ? ["body", "headers", "query"] : [],
-    ignoredRoutes: ["/status"],
-    responseWhitelist:
-      config.logLevel === "info" ? ["body", "statusCode", "statusMessage"] : [],
-    meta: false,
-    msg: (req, res) =>
-      `Request ${req.method} ${req.url} - Response ${res.statusCode} ${res.statusMessage}`,
-  });
+// export const loggerMiddleware = (serviceName: string) => () =>
+//   expressWinston.logger({
+//     winstonInstance: getLogger(serviceName),
+//     requestWhitelist:
+//       config.logLevel === "info" ? ["body", "headers", "query"] : [],
+//     ignoredRoutes: ["/status"],
+//     responseWhitelist:
+//       config.logLevel === "info" ? ["body", "statusCode", "statusMessage"] : [],
+//     meta: false,
+//     msg: (req, res) =>
+//       `Request ${req.method} ${req.url} - Response ${res.statusCode} ${res.statusMessage}`,
+//   });
 
 const internal_logger = getLogger();
 

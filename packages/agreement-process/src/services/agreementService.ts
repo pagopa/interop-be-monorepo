@@ -228,6 +228,7 @@ export function agreementServiceBuilder(
     async submitAgreement(
       agreementId: AgreementId,
       payload: ApiAgreementSubmissionPayload,
+      authData: AuthData,
       correlationId: string,
       logger: Logger
     ): Promise<string> {
@@ -239,6 +240,7 @@ export function agreementServiceBuilder(
         eserviceQuery,
         agreementQuery,
         tenantQuery,
+        authData,
         correlationId,
         logger
       );
