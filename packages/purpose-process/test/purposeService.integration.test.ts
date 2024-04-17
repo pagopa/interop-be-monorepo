@@ -25,7 +25,6 @@ import {
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
   decodeProtobufPayload,
-  getMockAuthData,
   getMockPurpose,
   getMockPurposeVersion,
   getMockPurposeVersionDocument,
@@ -87,8 +86,8 @@ import {
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 import {
-  PurposeUpdateContent,
-  ReversePurposeUpdateContent,
+  ApiPurposeUpdateContent,
+  ApiReversePurposeUpdateContent,
 } from "../src/model/domain/models.js";
 import {
   addOnePurpose,
@@ -148,9 +147,10 @@ describe("database test", async () => {
 
   describe("Purpose service", () => {
     const mockPurpose = getMockPurpose();
+    const mockEService = getMockEService();
+    const mockPurposeVersion = getMockPurposeVersion();
     describe("getPurposeById", () => {
       it("should get the purpose if it exists", async () => {
-        const mockEService = getMockEService();
         const mockTenant = {
           ...getMockTenant(),
           kind: tenantKind.PA,
@@ -206,7 +206,6 @@ describe("database test", async () => {
         ).rejects.toThrowError(eserviceNotFound(notExistingId));
       });
       it("should throw tenantNotFound if the tenant doesn't exist", async () => {
-        const mockEService = getMockEService();
         const notExistingId: TenantId = generateId();
 
         const mockPurpose1: Purpose = {
@@ -221,7 +220,6 @@ describe("database test", async () => {
         ).rejects.toThrowError(tenantNotFound(notExistingId));
       });
       it("should throw tenantKindNotFound if the tenant doesn't exist", async () => {
-        const mockEService = getMockEService();
         const mockTenant = getMockTenant();
 
         const mockPurpose1: Purpose = {
@@ -240,8 +238,6 @@ describe("database test", async () => {
 
     describe("getRiskAnalysisDocument", () => {
       it("should get the purpose version document", async () => {
-        const mockEService = getMockEService();
-        const mockPurposeVersion = getMockPurposeVersion();
         const mockDocument = getMockPurposeVersionDocument();
         const mockPurpose1: Purpose = {
           ...mockPurpose,
@@ -266,8 +262,6 @@ describe("database test", async () => {
         expect(result).toEqual(mockDocument);
       });
       it("should throw purposeNotFound if the purpose doesn't exist", async () => {
-        const mockEService = getMockEService();
-        const mockPurposeVersion = getMockPurposeVersion();
         const mockDocument = getMockPurposeVersionDocument();
         const mockPurpose1: Purpose = {
           ...mockPurpose,
@@ -292,8 +286,6 @@ describe("database test", async () => {
         ).rejects.toThrowError(purposeNotFound(mockPurpose1.id));
       });
       it("should throw eserviceNotFound if the eservice doesn't exist", async () => {
-        const mockEService = getMockEService();
-        const mockPurposeVersion = getMockPurposeVersion();
         const mockDocument = getMockPurposeVersionDocument();
         const mockPurpose1: Purpose = {
           ...mockPurpose,
@@ -313,8 +305,6 @@ describe("database test", async () => {
         ).rejects.toThrowError(eserviceNotFound(mockEService.id));
       });
       it("should throw purposeVersionNotFound if the purpose version doesn't exist", async () => {
-        const mockEService = getMockEService();
-        const mockPurposeVersion = getMockPurposeVersion();
         const randomVersionId: PurposeVersionId = generateId();
         const randomDocumentId: PurposeVersionDocumentId = generateId();
         const mockDocument = getMockPurposeVersionDocument();
@@ -339,8 +329,6 @@ describe("database test", async () => {
         );
       });
       it("should throw purposeVersionDocumentNotFound if the document doesn't exist", async () => {
-        const mockEService = getMockEService();
-        const mockPurposeVersion = getMockPurposeVersion();
         const mockDocument = getMockPurposeVersionDocument();
         const randomDocumentId: PurposeVersionDocumentId = generateId();
         const mockPurpose1: Purpose = {
@@ -369,8 +357,6 @@ describe("database test", async () => {
       });
       it("should throw organizationNotAllowed if the requester is not the producer not the consumer", async () => {
         const randomId: TenantId = generateId();
-        const mockEService = getMockEService();
-        const mockPurposeVersion = getMockPurposeVersion();
         const mockDocument = getMockPurposeVersionDocument();
         const mockPurpose1: Purpose = {
           ...mockPurpose,
@@ -394,7 +380,6 @@ describe("database test", async () => {
 
     describe("deletePurposeVersion", () => {
       it("should write in event-store for the deletion of a purpose version", async () => {
-        const mockEService = getMockEService();
         const mockPurposeVersion = {
           ...getMockPurposeVersion(),
           state: purposeVersionState.waitingForApproval,
@@ -441,8 +426,6 @@ describe("database test", async () => {
         expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
       });
       it("should throw purposeNotFound if the purpose doesn't exist", async () => {
-        const mockEService = getMockEService();
-        const mockPurposeVersion = getMockPurposeVersion();
         const mockPurpose1: Purpose = {
           ...mockPurpose,
           eserviceId: mockEService.id,
@@ -466,8 +449,6 @@ describe("database test", async () => {
         ).rejects.toThrowError(purposeNotFound(mockPurpose1.id));
       });
       it("should throw purposeVersionNotFound if the purpose version doesn't exist", async () => {
-        const mockEService = getMockEService();
-        const mockPurposeVersion = getMockPurposeVersion();
         const randomVersionId: PurposeVersionId = generateId();
         const mockPurpose1: Purpose = {
           ...mockPurpose,
@@ -490,8 +471,6 @@ describe("database test", async () => {
         );
       });
       it("should throw organizationIsNotTheConsumer if the requester is not the consumer", async () => {
-        const mockEService = getMockEService();
-        const mockPurposeVersion = getMockPurposeVersion();
         const mockPurpose1: Purpose = {
           ...mockPurpose,
           eserviceId: mockEService.id,
@@ -513,15 +492,14 @@ describe("database test", async () => {
         );
       });
       it("should throw purposeVersionCannotBeDeleted if the purpose version is in draft state", async () => {
-        const mockEService = getMockEService();
-        const mockPurposeVersion: PurposeVersion = {
-          ...getMockPurposeVersion(),
+        const mockPurposeVersion1: PurposeVersion = {
+          ...mockPurposeVersion,
           state: purposeVersionState.draft,
         };
         const mockPurpose1: Purpose = {
           ...mockPurpose,
           eserviceId: mockEService.id,
-          versions: [mockPurposeVersion],
+          versions: [mockPurposeVersion1],
         };
 
         await addOnePurpose(mockPurpose1, postgresDB, purposes);
@@ -530,24 +508,23 @@ describe("database test", async () => {
         expect(
           purposeService.deletePurposeVersion({
             purposeId: mockPurpose1.id,
-            versionId: mockPurposeVersion.id,
+            versionId: mockPurposeVersion1.id,
             organizationId: mockPurpose1.consumerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(
-          purposeVersionCannotBeDeleted(mockPurpose1.id, mockPurposeVersion.id)
+          purposeVersionCannotBeDeleted(mockPurpose1.id, mockPurposeVersion1.id)
         );
       });
       it("should throw purposeVersionCannotBeDeleted if the purpose version is in active state", async () => {
-        const mockEService = getMockEService();
-        const mockPurposeVersion: PurposeVersion = {
-          ...getMockPurposeVersion(),
+        const mockPurposeVersion1: PurposeVersion = {
+          ...mockPurposeVersion,
           state: purposeVersionState.active,
         };
         const mockPurpose1: Purpose = {
           ...mockPurpose,
           eserviceId: mockEService.id,
-          versions: [mockPurposeVersion],
+          versions: [mockPurposeVersion1],
         };
 
         await addOnePurpose(mockPurpose1, postgresDB, purposes);
@@ -556,24 +533,23 @@ describe("database test", async () => {
         expect(
           purposeService.deletePurposeVersion({
             purposeId: mockPurpose1.id,
-            versionId: mockPurposeVersion.id,
+            versionId: mockPurposeVersion1.id,
             organizationId: mockPurpose1.consumerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(
-          purposeVersionCannotBeDeleted(mockPurpose1.id, mockPurposeVersion.id)
+          purposeVersionCannotBeDeleted(mockPurpose1.id, mockPurposeVersion1.id)
         );
       });
       it("should throw purposeVersionCannotBeDeleted if the purpose version is in archived state", async () => {
-        const mockEService = getMockEService();
-        const mockPurposeVersion: PurposeVersion = {
-          ...getMockPurposeVersion(),
+        const mockPurposeVersion1: PurposeVersion = {
+          ...mockPurposeVersion,
           state: purposeVersionState.archived,
         };
         const mockPurpose1: Purpose = {
           ...mockPurpose,
           eserviceId: mockEService.id,
-          versions: [mockPurposeVersion],
+          versions: [mockPurposeVersion1],
         };
 
         await addOnePurpose(mockPurpose1, postgresDB, purposes);
@@ -582,25 +558,24 @@ describe("database test", async () => {
         expect(
           purposeService.deletePurposeVersion({
             purposeId: mockPurpose1.id,
-            versionId: mockPurposeVersion.id,
+            versionId: mockPurposeVersion1.id,
             organizationId: mockPurpose1.consumerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(
-          purposeVersionCannotBeDeleted(mockPurpose1.id, mockPurposeVersion.id)
+          purposeVersionCannotBeDeleted(mockPurpose1.id, mockPurposeVersion1.id)
         );
       });
       it("should throw purposeVersionCannotBeDeleted if the purpose version is in suspended state", async () => {
-        const mockEService = getMockEService();
-        const mockPurposeVersion: PurposeVersion = {
-          ...getMockPurposeVersion(),
+        const mockPurposeVersion1: PurposeVersion = {
+          ...mockPurposeVersion,
           state: purposeVersionState.suspended,
           suspendedAt: new Date(),
         };
         const mockPurpose1: Purpose = {
           ...mockPurpose,
           eserviceId: mockEService.id,
-          versions: [mockPurposeVersion],
+          versions: [mockPurposeVersion1],
         };
 
         await addOnePurpose(mockPurpose1, postgresDB, purposes);
@@ -609,12 +584,12 @@ describe("database test", async () => {
         expect(
           purposeService.deletePurposeVersion({
             purposeId: mockPurpose1.id,
-            versionId: mockPurposeVersion.id,
+            versionId: mockPurposeVersion1.id,
             organizationId: mockPurpose1.consumerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(
-          purposeVersionCannotBeDeleted(mockPurpose1.id, mockPurposeVersion.id)
+          purposeVersionCannotBeDeleted(mockPurpose1.id, mockPurposeVersion1.id)
         );
       });
     });
@@ -955,7 +930,7 @@ describe("database test", async () => {
 
       const validRiskAnalysis = getMockValidRiskAnalysis(tenantType);
 
-      const purposeUpdateContent: PurposeUpdateContent = {
+      const purposeUpdateContent: ApiPurposeUpdateContent = {
         title: "test",
         dailyCalls: 10,
         description: "test",
@@ -964,7 +939,7 @@ describe("database test", async () => {
         riskAnalysisForm: buildRiskAnalysisSeed(validRiskAnalysis),
       };
 
-      const reversePurposeUpdateContent: ReversePurposeUpdateContent = {
+      const reversePurposeUpdateContent: ApiReversePurposeUpdateContent = {
         ...purposeUpdateContent,
       };
 
@@ -1226,7 +1201,7 @@ describe("database test", async () => {
           },
         };
 
-        const mockPurposeUpdateContent: PurposeUpdateContent = {
+        const mockPurposeUpdateContent: ApiPurposeUpdateContent = {
           ...purposeUpdateContent,
           riskAnalysisForm: buildRiskAnalysisSeed(invalidRiskAnalysis),
         };
