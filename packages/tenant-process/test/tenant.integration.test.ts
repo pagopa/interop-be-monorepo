@@ -851,7 +851,7 @@ describe("Integration tests", () => {
 
       const mockAuthData = getMockAuthData(requesterTenant.id);
 
-      it("Should add the declared attribute if declared Tenant Attribute doesn't exist", async () => {
+      it("Should add the declared attribute if it doesn't already exist", async () => {
         const tenantWithoutDeclaredAttribute: Tenant = {
           ...requesterTenant,
           attributes: [],
