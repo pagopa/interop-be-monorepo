@@ -387,6 +387,7 @@ export function purposeServiceBuilder(
 
       const event = toCreateEventPurposeArchived({
         purpose: updatedPurpose,
+        purposeVersionId: archivedVersion.id,
         version: purpose.metadata.version,
         correlationId,
       });
