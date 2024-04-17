@@ -115,6 +115,7 @@ export function makeApiProblemBuilder<T extends string>(
 
 const errorCodes = {
   authenticationSaslFailed: "9000",
+  jwtParsingError: "9001",
   operationForbidden: "9989",
   missingClaim: "9990",
   genericError: "9991",
@@ -236,11 +237,19 @@ export function badRequestError(
   });
 }
 
-export function missingClaim(claimName: string): ApiError<CommonErrorCodes> {
+export function missingClaim(error: unknown): ApiError<CommonErrorCodes> {
   return new ApiError({
-    detail: `Claim ${claimName} has not been passed`,
+    detail: `Claim has not been passed ${parseErrorMessage(error)}`,
     code: "missingClaim",
     title: "Claim has not been passed",
+  });
+}
+
+export function jwtParsingError(error: unknown): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Unexpected error JWT token parsing: ${parseErrorMessage(error)}`,
+    code: "jwtParsingError",
+    title: "JWT parsing error",
   });
 }
 
