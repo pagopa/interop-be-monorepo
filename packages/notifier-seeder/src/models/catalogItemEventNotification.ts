@@ -1,4 +1,5 @@
 import {
+  CatalogAttributeValueV1,
   CatalogDescriptorV1,
   CatalogDocumentV1,
   CatalogItemDeletedV1,
@@ -65,6 +66,12 @@ export type CatalogDocumentV1Notification = Omit<
   uploadDate: string;
 };
 
+export type CatalogAttributesV1Notification = {
+  certified: CatalogAttributeValueV1[][];
+  verified: CatalogAttributeValueV1[][];
+  declared: CatalogAttributeValueV1[][];
+};
+
 export type CatalogDescriptorV1Notification = Omit<
   CatalogDescriptorV1,
   | "docs"
@@ -76,6 +83,7 @@ export type CatalogDescriptorV1Notification = Omit<
   | "deprecatedAt"
   | "archivedAt"
   | "agreementApprovalPolicy"
+  | "attributes"
 > & {
   docs: CatalogDocumentV1Notification[];
   state: string;
@@ -86,6 +94,7 @@ export type CatalogDescriptorV1Notification = Omit<
   deprecatedAt?: string;
   archivedAt?: string;
   agreementApprovalPolicy?: string;
+  attributes: CatalogAttributesV1Notification;
 };
 
 export type CatalogItemRiskAnalysisV1Notification = Omit<
@@ -97,11 +106,17 @@ export type CatalogItemRiskAnalysisV1Notification = Omit<
 
 export type CatalogItemV1Notification = Omit<
   CatalogItemV1,
-  "technology" | "descriptors" | "createdAt" | "riskAnalysis" | "mode"
+  | "technology"
+  | "descriptors"
+  | "createdAt"
+  | "riskAnalysis"
+  | "mode"
+  | "attributes"
 > & {
   technology: string;
   descriptors: CatalogDescriptorV1Notification[];
   createdAt: string;
   riskAnalysis: CatalogItemRiskAnalysisV1Notification[];
   mode: string;
+  attributes?: CatalogAttributesV1Notification;
 };

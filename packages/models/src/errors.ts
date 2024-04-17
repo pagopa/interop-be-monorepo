@@ -53,7 +53,7 @@ export type Problem = {
 };
 
 export function makeApiProblemBuilder<T extends string>(
-  logger: { error: (message: string) => void },
+  logger: { error: (message: string) => void; warn: (message: string) => void },
   errors: {
     [K in T]: string;
   }
@@ -80,16 +80,21 @@ export function makeApiProblemBuilder<T extends string>(
       ],
     });
 
-    const problem = match<unknown, Problem>(error)
-      .with(P.instanceOf(ApiError<T | CommonErrorCodes>), (error) =>
-        makeProblem(httpMapper(error), error)
-      )
-      .otherwise(() => makeProblem(500, genericError("Unexpected error")));
-
-    logger.error(
-      `- ${problem.title} - ${problem.detail} - orignal error: ${error}`
-    );
-    return problem;
+    return match<unknown, Problem>(error)
+      .with(P.instanceOf(ApiError<T | CommonErrorCodes>), (error) => {
+        const problem = makeProblem(httpMapper(error), error);
+        logger.warn(
+          `- ${problem.title} - ${problem.detail} - orignal error: ${error}`
+        );
+        return problem;
+      })
+      .otherwise(() => {
+        const problem = makeProblem(500, genericError("Unexpected error"));
+        logger.error(
+          `- ${problem.title} - ${problem.detail} - orignal error: ${error}`
+        );
+        return problem;
+      });
   };
 }
 

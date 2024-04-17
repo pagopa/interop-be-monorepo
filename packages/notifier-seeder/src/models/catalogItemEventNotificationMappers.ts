@@ -13,10 +13,7 @@ import {
   eserviceMode,
   technology,
 } from "pagopa-interop-models";
-import {
-  CatalogAttributeV1,
-  CatalogAttributeValueV1,
-} from "../gen/v1/events.js";
+import { CatalogAttributeValueV1 } from "../gen/v1/events.js";
 import {
   CatalogDescriptorV1Notification,
   CatalogDocumentV1Notification,
@@ -70,24 +67,15 @@ export const toCatalogItemModeV1 = (input: EServiceMode): string => {
 
 export const toCatalogAttributeValueV1 = (
   input: EServiceAttribute[][] | undefined
-): CatalogAttributeV1[] => {
-  const singleAttribute = (a: EServiceAttribute): CatalogAttributeValueV1 => ({
+): CatalogAttributeValueV1[][] => {
+  const toCatalogAttributeValue = (
+    a: EServiceAttribute
+  ): CatalogAttributeValueV1 => ({
     id: a.id,
     explicitAttributeVerification: a.explicitAttributeVerification,
   });
 
-  return input
-    ? input.map((a) =>
-        a.length === 1
-          ? {
-              single: singleAttribute(a[0]),
-              group: [],
-            }
-          : {
-              group: a.map(singleAttribute),
-            }
-      )
-    : [];
+  return input ? input.map((a) => a.map(toCatalogAttributeValue)) : [];
 };
 
 export const toCatalogDocumentV1 = (
@@ -156,15 +144,9 @@ export const toCatalogItemV1 = (
   description: event.description,
   technology: toCatalogItemTechnologyV1(event.technology),
   attributes: {
-    certified: event.attributes
-      ? toCatalogAttributeValueV1(event.attributes.certified)
-      : [],
-    declared: event.attributes
-      ? toCatalogAttributeValueV1(event.attributes.declared)
-      : [],
-    verified: event.attributes
-      ? toCatalogAttributeValueV1(event.attributes.verified)
-      : [],
+    certified: toCatalogAttributeValueV1(event?.attributes?.certified),
+    declared: toCatalogAttributeValueV1(event?.attributes?.declared),
+    verified: toCatalogAttributeValueV1(event?.attributes?.verified),
   },
   descriptors: toCatalogDescriptorV1(event.descriptors),
   createdAt: event.createdAt.toISOString(),
