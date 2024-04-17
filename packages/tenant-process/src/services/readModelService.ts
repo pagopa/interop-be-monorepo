@@ -1,4 +1,5 @@
 import {
+  AgreementCollection,
   AttributeCollection,
   logger,
   MongoQueryKeys,
@@ -24,7 +25,6 @@ import {
   Agreement,
   AgreementState,
   DescriptorId,
-  descriptorState,
 } from "pagopa-interop-models";
 import { z } from "zod";
 import { Document, Filter, WithId } from "mongodb";
@@ -140,6 +140,33 @@ const getAgreementsFilters = (
     }),
   };
   return { $match: queryFilters };
+};
+
+const getAllAgreements = async (
+  agreements: AgreementCollection,
+  filters: AgreementQueryFilters
+): Promise<Agreement[]> => {
+  const data = await agreements
+    .aggregate([getAgreementsFilters(filters)])
+    .toArray();
+
+  const result = z
+    .array(
+      z.object({
+        data: Agreement,
+      })
+    )
+    .safeParse(data);
+
+  if (!result.success) {
+    logger.error(
+      `Unable to parse agreements items: result ${JSON.stringify(
+        result
+      )} - data ${JSON.stringify(data)} `
+    );
+    throw genericError("Unable to parse agreements items");
+  }
+  return result.data.map((d) => d.data);
 };
 
 function listTenantsFilters(
@@ -465,7 +492,7 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
       const data = await eservices.findOne(
         { "data.id": id },
-        { projection: { data: true, metadata: true } }
+        { projection: { data: true } }
       );
       if (!data) {
         return undefined;
@@ -486,116 +513,10 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
       }
     },
 
-    async getAgreements(
-      filters: AgreementQueryFilters,
-      limit: number,
-      offset: number
-    ): Promise<ListResult<Agreement>> {
-      const aggregationPipeline = [
-        getAgreementsFilters(filters),
-        {
-          $lookup: {
-            from: "eservices",
-            localField: "data.eserviceId",
-            foreignField: "data.id",
-            as: "eservices",
-          },
-        },
-        {
-          $unwind: "$eservices",
-        },
-        ...(filters.showOnlyUpgradeable
-          ? [
-              {
-                $addFields: {
-                  currentDescriptor: {
-                    $filter: {
-                      input: "$eservices.data.descriptors",
-                      as: "descr",
-                      cond: {
-                        $eq: ["$$descr.id", "$data.descriptorId"],
-                      },
-                    },
-                  },
-                },
-              },
-              {
-                $unwind: "$currentDescriptor",
-              },
-              {
-                $addFields: {
-                  upgradableDescriptor: {
-                    $filter: {
-                      input: "$eservices.data.descriptors",
-                      as: "upgradable",
-                      cond: {
-                        $and: [
-                          {
-                            $gt: [
-                              "$$upgradable.publishedAt",
-                              "$currentDescriptor.publishedAt",
-                            ],
-                          },
-                          {
-                            $in: [
-                              "$$upgradable.state",
-                              [
-                                descriptorState.published,
-                                descriptorState.suspended,
-                              ],
-                            ],
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-              {
-                $match: {
-                  upgradableDescriptor: { $ne: [] },
-                },
-              },
-            ]
-          : []),
-        {
-          $project: {
-            data: 1,
-            eservices: 1,
-            lowerName: { $toLower: "$eservices.data.name" },
-          },
-        },
-        {
-          $sort: { lowerName: 1 },
-        },
-      ];
-
-      const data = await agreements
-        .aggregate([
-          ...aggregationPipeline,
-          { $skip: offset },
-          { $limit: limit },
-        ])
-        .toArray();
-
-      const result = z.array(Agreement).safeParse(data.map((d) => d.data));
-      if (!result.success) {
-        logger.error(
-          `Unable to parse agreements items: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
-        );
-
-        throw genericError("Unable to parse agreements items");
-      }
-
-      return {
-        results: result.data,
-        totalCount: await ReadModelRepository.getTotalCount(
-          agreements,
-          aggregationPipeline
-        ),
-      };
+    async getAllAgreements(
+      filters: AgreementQueryFilters
+    ): Promise<Agreement[]> {
+      return getAllAgreements(agreements, filters);
     },
 
     async getCertifiedAttributes({

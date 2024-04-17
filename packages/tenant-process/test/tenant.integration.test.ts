@@ -1197,8 +1197,6 @@ describe("Integration tests", () => {
         id: generateId(),
       };
       const correlationId = generateId();
-      const limit = 50;
-      const offset = 0;
       const targetTenant: Tenant = { ...mockTenant, id: generateId() };
 
       const requesterTenant: Tenant = {
@@ -1249,9 +1247,7 @@ describe("Integration tests", () => {
         await tenantService.verifyVerifiedAttribute({
           tenantId: targetTenant.id,
           tenantAttributeSeed,
-          authData: mockAuthData,
-          limit,
-          offset,
+          organizationId: mockAuthData.organizationId,
           correlationId,
         });
 
@@ -1340,14 +1336,11 @@ describe("Integration tests", () => {
         await addOneAgreement(agreementEservice1, agreements);
 
         await tenantService.verifyVerifiedAttribute({
-          tenantId: tenantWithVerifiedAttribute.id,
+          tenantId: targetTenant.id,
           tenantAttributeSeed,
-          authData: mockAuthData,
-          limit,
-          offset,
+          organizationId: mockAuthData.organizationId,
           correlationId,
         });
-
         const writtenEvent: StoredEvent | undefined =
           await readLastEventByStreamId(
             tenantWithVerifiedAttribute.id,
@@ -1414,13 +1407,13 @@ describe("Integration tests", () => {
         expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
       });
       it("Should throw tenant not found", async () => {
+        await addOneEService(eService1, eservices);
+        await addOneAgreement(agreementEservice1, agreements);
         expect(
           tenantService.verifyVerifiedAttribute({
             tenantId: targetTenant.id,
             tenantAttributeSeed,
-            authData: mockAuthData,
-            limit,
-            offset,
+            organizationId: mockAuthData.organizationId,
             correlationId,
           })
         ).rejects.toThrowError(tenantNotFound(targetTenant.id));
@@ -1465,9 +1458,7 @@ describe("Integration tests", () => {
           tenantService.verifyVerifiedAttribute({
             tenantId: targetTenant.id,
             tenantAttributeSeed,
-            authData: mockAuthData,
-            limit,
-            offset,
+            organizationId: mockAuthData.organizationId,
             correlationId,
           })
         ).rejects.toThrowError(
@@ -1487,9 +1478,7 @@ describe("Integration tests", () => {
           tenantService.verifyVerifiedAttribute({
             tenantId: targetTenant.id,
             tenantAttributeSeed,
-            authData: { ...mockAuthData, organizationId: targetTenant.id },
-            limit,
-            offset,
+            organizationId: targetTenant.id,
             correlationId,
           })
         ).rejects.toThrowError(verifiedAttributeSelfVerification());
