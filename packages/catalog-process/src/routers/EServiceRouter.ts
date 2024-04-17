@@ -8,12 +8,14 @@ import {
   ReadModelRepository,
   initDB,
   initFileManager,
+  logger,
 } from "pagopa-interop-commons";
 import {
   unsafeBrandId,
   EServiceId,
   TenantId,
   AttributeId,
+  makeApiProblemBuilder,
 } from "pagopa-interop-models";
 import {
   agreementStateToApiAgreementState,
@@ -29,7 +31,7 @@ import { api } from "../model/generated/api.js";
 import { config } from "../utilities/config.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { catalogServiceBuilder } from "../services/catalogService.js";
-import { makeApiProblem } from "../model/domain/errors.js";
+import { errorCodes } from "../model/domain/errors.js";
 import {
   activateDescriptorErrorMapper,
   archiveDescriptorErrorMapper,
@@ -106,6 +108,12 @@ const eservicesRouter = (
             limit,
           } = req.query;
 
+          const loggerInstance = logger({
+            correlationId: req.ctx.correlationId,
+            userId: req.ctx.authData.userId,
+            organizationId: req.ctx.authData.organizationId,
+          });
+
           const catalogs = await catalogService.getEServices(
             req.ctx.authData,
             {
@@ -120,7 +128,8 @@ const eservicesRouter = (
               mode: mode ? apiEServiceModeToEServiceMode(mode) : undefined,
             },
             offset,
-            limit
+            limit,
+            loggerInstance
           );
 
           return res
@@ -139,11 +148,22 @@ const eservicesRouter = (
       "/eservices",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
+        const loggerInstance = logger({
+          correlationId: req.ctx.correlationId,
+          userId: req.ctx.authData.userId,
+          organizationId: req.ctx.authData.organizationId,
+        });
+        const makeApiProblem = makeApiProblemBuilder(
+          loggerInstance,
+          errorCodes
+        );
+
         try {
           const eservice = await catalogService.createEService(
             req.body,
             req.ctx.authData,
-            req.ctx.correlationId
+            req.ctx.correlationId,
+            loggerInstance
           );
           return res.status(200).json(eServiceToApiEService(eservice)).end();
         } catch (error) {
@@ -163,10 +183,21 @@ const eservicesRouter = (
         INTERNAL_ROLE,
       ]),
       async (req, res) => {
+        const loggerInstance = logger({
+          correlationId: req.ctx.correlationId,
+          userId: req.ctx.authData.userId,
+          organizationId: req.ctx.authData.organizationId,
+        });
+        const makeApiProblem = makeApiProblemBuilder(
+          loggerInstance,
+          errorCodes
+        );
+
         try {
           const eservice = await catalogService.getEServiceById(
             unsafeBrandId(req.params.eServiceId),
-            req.ctx.authData
+            req.ctx.authData,
+            loggerInstance
           );
           return res.status(200).json(eServiceToApiEService(eservice)).end();
         } catch (error) {
@@ -179,12 +210,23 @@ const eservicesRouter = (
       "/eservices/:eServiceId",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
+        const loggerInstance = logger({
+          correlationId: req.ctx.correlationId,
+          userId: req.ctx.authData.userId,
+          organizationId: req.ctx.authData.organizationId,
+        });
+        const makeApiProblem = makeApiProblemBuilder(
+          loggerInstance,
+          errorCodes
+        );
+
         try {
           const updatedEService = await catalogService.updateEService(
             unsafeBrandId(req.params.eServiceId),
             req.body,
             req.ctx.authData,
-            req.ctx.correlationId
+            req.ctx.correlationId,
+            loggerInstance
           );
           return res
             .status(200)
@@ -200,11 +242,22 @@ const eservicesRouter = (
       "/eservices/:eServiceId",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
+        const loggerInstance = logger({
+          correlationId: req.ctx.correlationId,
+          userId: req.ctx.authData.userId,
+          organizationId: req.ctx.authData.organizationId,
+        });
+        const makeApiProblem = makeApiProblemBuilder(
+          loggerInstance,
+          errorCodes
+        );
+
         try {
           await catalogService.deleteEService(
             unsafeBrandId(req.params.eServiceId),
             req.ctx.authData,
-            req.ctx.correlationId
+            req.ctx.correlationId,
+            loggerInstance
           );
           return res.status(204).end();
         } catch (error) {
@@ -223,11 +276,22 @@ const eservicesRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
+        const loggerInstance = logger({
+          correlationId: req.ctx.correlationId,
+          userId: req.ctx.authData.userId,
+          organizationId: req.ctx.authData.organizationId,
+        });
+        const makeApiProblem = makeApiProblemBuilder(
+          loggerInstance,
+          errorCodes
+        );
+
         try {
           const consumers = await catalogService.getEServiceConsumers(
             unsafeBrandId(req.params.eServiceId),
             req.query.offset,
-            req.query.limit
+            req.query.limit,
+            loggerInstance
           );
 
           return res
@@ -263,15 +327,28 @@ const eservicesRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
+        const loggerInstance = logger({
+          correlationId: req.ctx.correlationId,
+          userId: req.ctx.authData.userId,
+          organizationId: req.ctx.authData.organizationId,
+        });
+        const makeApiProblem = makeApiProblemBuilder(
+          loggerInstance,
+          errorCodes
+        );
+
         try {
           const { eServiceId, descriptorId, documentId } = req.params;
 
-          const document = await catalogService.getDocumentById({
-            eserviceId: unsafeBrandId(eServiceId),
-            descriptorId: unsafeBrandId(descriptorId),
-            documentId: unsafeBrandId(documentId),
-            authData: req.ctx.authData,
-          });
+          const document = await catalogService.getDocumentById(
+            {
+              eserviceId: unsafeBrandId(eServiceId),
+              descriptorId: unsafeBrandId(descriptorId),
+              documentId: unsafeBrandId(documentId),
+              authData: req.ctx.authData,
+            },
+            loggerInstance
+          );
 
           return res.status(200).json(documentToApiDocument(document)).end();
         } catch (error) {
@@ -284,13 +361,24 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/documents",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
+        const loggerInstance = logger({
+          correlationId: req.ctx.correlationId,
+          userId: req.ctx.authData.userId,
+          organizationId: req.ctx.authData.organizationId,
+        });
+        const makeApiProblem = makeApiProblemBuilder(
+          loggerInstance,
+          errorCodes
+        );
+
         try {
           const updatedEService = await catalogService.uploadDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.body,
             req.ctx.authData,
-            req.ctx.correlationId
+            req.ctx.correlationId,
+            loggerInstance
           );
           return res
             .status(200)
@@ -306,13 +394,24 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
+        const loggerInstance = logger({
+          correlationId: req.ctx.correlationId,
+          userId: req.ctx.authData.userId,
+          organizationId: req.ctx.authData.organizationId,
+        });
+        const makeApiProblem = makeApiProblemBuilder(
+          loggerInstance,
+          errorCodes
+        );
+
         try {
           await catalogService.deleteDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             unsafeBrandId(req.params.documentId),
             req.ctx.authData,
-            req.ctx.correlationId
+            req.ctx.correlationId,
+            loggerInstance
           );
           return res.status(204).end();
         } catch (error) {
@@ -328,6 +427,16 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId/update",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
+        const loggerInstance = logger({
+          correlationId: req.ctx.correlationId,
+          userId: req.ctx.authData.userId,
+          organizationId: req.ctx.authData.organizationId,
+        });
+        const makeApiProblem = makeApiProblemBuilder(
+          loggerInstance,
+          errorCodes
+        );
+
         try {
           const updatedDocument = await catalogService.updateDocument(
             unsafeBrandId(req.params.eServiceId),
@@ -335,7 +444,8 @@ const eservicesRouter = (
             unsafeBrandId(req.params.documentId),
             req.body,
             req.ctx.authData,
-            req.ctx.correlationId
+            req.ctx.correlationId,
+            loggerInstance
           );
           return res
             .status(200)
@@ -354,12 +464,23 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
+        const loggerInstance = logger({
+          correlationId: req.ctx.correlationId,
+          userId: req.ctx.authData.userId,
+          organizationId: req.ctx.authData.organizationId,
+        });
+        const makeApiProblem = makeApiProblemBuilder(
+          loggerInstance,
+          errorCodes
+        );
+
         try {
           const descriptor = await catalogService.createDescriptor(
             unsafeBrandId(req.params.eServiceId),
             req.body,
             req.ctx.authData,
-            req.ctx.correlationId
+            req.ctx.correlationId,
+            loggerInstance
           );
           return res
             .status(200)
@@ -375,12 +496,23 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
+        const loggerInstance = logger({
+          correlationId: req.ctx.correlationId,
+          userId: req.ctx.authData.userId,
+          organizationId: req.ctx.authData.organizationId,
+        });
+        const makeApiProblem = makeApiProblemBuilder(
+          loggerInstance,
+          errorCodes
+        );
+
         try {
           await catalogService.deleteDraftDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.ctx.authData,
-            req.ctx.correlationId
+            req.ctx.correlationId,
+            loggerInstance
           );
           return res.status(204).end();
         } catch (error) {
@@ -396,13 +528,24 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
+        const loggerInstance = logger({
+          correlationId: req.ctx.correlationId,
+          userId: req.ctx.authData.userId,
+          organizationId: req.ctx.authData.organizationId,
+        });
+        const makeApiProblem = makeApiProblemBuilder(
+          loggerInstance,
+          errorCodes
+        );
+
         try {
           const updatedEService = await catalogService.updateDraftDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.body,
             req.ctx.authData,
-            req.ctx.correlationId
+            req.ctx.correlationId,
+            loggerInstance
           );
           return res
             .status(200)
@@ -421,12 +564,23 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/publish",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
+        const loggerInstance = logger({
+          correlationId: req.ctx.correlationId,
+          userId: req.ctx.authData.userId,
+          organizationId: req.ctx.authData.organizationId,
+        });
+        const makeApiProblem = makeApiProblemBuilder(
+          loggerInstance,
+          errorCodes
+        );
+
         try {
           await catalogService.publishDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.ctx.authData,
-            req.ctx.correlationId
+            req.ctx.correlationId,
+            loggerInstance
           );
           return res.status(204).end();
         } catch (error) {
@@ -439,12 +593,23 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/suspend",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
+        const loggerInstance = logger({
+          correlationId: req.ctx.correlationId,
+          userId: req.ctx.authData.userId,
+          organizationId: req.ctx.authData.organizationId,
+        });
+        const makeApiProblem = makeApiProblemBuilder(
+          loggerInstance,
+          errorCodes
+        );
+
         try {
           await catalogService.suspendDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.ctx.authData,
-            req.ctx.correlationId
+            req.ctx.correlationId,
+            loggerInstance
           );
           return res.status(204).end();
         } catch (error) {
@@ -457,12 +622,23 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/activate",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
+        const loggerInstance = logger({
+          correlationId: req.ctx.correlationId,
+          userId: req.ctx.authData.userId,
+          organizationId: req.ctx.authData.organizationId,
+        });
+        const makeApiProblem = makeApiProblemBuilder(
+          loggerInstance,
+          errorCodes
+        );
+
         try {
           await catalogService.activateDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.ctx.authData,
-            req.ctx.correlationId
+            req.ctx.correlationId,
+            loggerInstance
           );
           return res.status(204).end();
         } catch (error) {
@@ -475,13 +651,24 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/clone",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
+        const loggerInstance = logger({
+          correlationId: req.ctx.correlationId,
+          userId: req.ctx.authData.userId,
+          organizationId: req.ctx.authData.organizationId,
+        });
+        const makeApiProblem = makeApiProblemBuilder(
+          loggerInstance,
+          errorCodes
+        );
+
         try {
           const clonedEserviceByDescriptor =
             await catalogService.cloneDescriptor(
               unsafeBrandId(req.params.eServiceId),
               unsafeBrandId(req.params.descriptorId),
               req.ctx.authData,
-              req.ctx.correlationId
+              req.ctx.correlationId,
+              loggerInstance
             );
           return res
             .status(200)
@@ -500,12 +687,23 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/archive",
       authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
+        const loggerInstance = logger({
+          correlationId: req.ctx.correlationId,
+          userId: req.ctx.authData.userId,
+          organizationId: req.ctx.authData.organizationId,
+        });
+        const makeApiProblem = makeApiProblemBuilder(
+          loggerInstance,
+          errorCodes
+        );
+
         try {
           await catalogService.archiveDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.ctx.authData,
-            req.ctx.correlationId
+            req.ctx.correlationId,
+            loggerInstance
           );
           return res.status(204).end();
         } catch (error) {
@@ -518,13 +716,24 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/update",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
+        const loggerInstance = logger({
+          correlationId: req.ctx.correlationId,
+          userId: req.ctx.authData.userId,
+          organizationId: req.ctx.authData.organizationId,
+        });
+        const makeApiProblem = makeApiProblemBuilder(
+          loggerInstance,
+          errorCodes
+        );
+
         try {
           const updatedEService = await catalogService.updateDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.body,
             req.ctx.authData,
-            req.ctx.correlationId
+            req.ctx.correlationId,
+            loggerInstance
           );
           return res
             .status(200)
@@ -539,14 +748,24 @@ const eservicesRouter = (
     .post(
       "/eservices/:eServiceId/riskAnalysis",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
-
       async (req, res) => {
+        const loggerInstance = logger({
+          correlationId: req.ctx.correlationId,
+          userId: req.ctx.authData.userId,
+          organizationId: req.ctx.authData.organizationId,
+        });
+        const makeApiProblem = makeApiProblemBuilder(
+          loggerInstance,
+          errorCodes
+        );
+
         try {
           await catalogService.createRiskAnalysis(
             unsafeBrandId(req.params.eServiceId),
             req.body,
             req.ctx.authData,
-            req.ctx.correlationId
+            req.ctx.correlationId,
+            loggerInstance
           );
           return res.status(204).end();
         } catch (error) {
@@ -558,15 +777,25 @@ const eservicesRouter = (
     .post(
       "/eservices/:eServiceId/riskAnalysis/:riskAnalysisId",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
-
       async (req, res) => {
+        const loggerInstance = logger({
+          correlationId: req.ctx.correlationId,
+          userId: req.ctx.authData.userId,
+          organizationId: req.ctx.authData.organizationId,
+        });
+        const makeApiProblem = makeApiProblemBuilder(
+          loggerInstance,
+          errorCodes
+        );
+
         try {
           await catalogService.updateRiskAnalysis(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.riskAnalysisId),
             req.body,
             req.ctx.authData,
-            req.ctx.correlationId
+            req.ctx.correlationId,
+            loggerInstance
           );
           return res.status(204).end();
         } catch (error) {
@@ -578,14 +807,24 @@ const eservicesRouter = (
     .delete(
       "/eservices/:eServiceId/riskAnalysis/:riskAnalysisId",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
-
       async (req, res) => {
+        const loggerInstance = logger({
+          correlationId: req.ctx.correlationId,
+          userId: req.ctx.authData.userId,
+          organizationId: req.ctx.authData.organizationId,
+        });
+        const makeApiProblem = makeApiProblemBuilder(
+          loggerInstance,
+          errorCodes
+        );
+
         try {
           await catalogService.deleteRiskAnalysis(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.riskAnalysisId),
             req.ctx.authData,
-            req.ctx.correlationId
+            req.ctx.correlationId,
+            loggerInstance
           );
           return res.status(204).end();
         } catch (error) {

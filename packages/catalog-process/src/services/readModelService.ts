@@ -1,5 +1,4 @@
 import {
-  logger,
   ReadModelRepository,
   ReadModelFilter,
   EServiceCollection,
@@ -7,6 +6,7 @@ import {
   hasPermission,
   AuthData,
   TenantCollection,
+  Logger,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
@@ -36,7 +36,8 @@ import { ApiGetEServicesFilters } from "../model/types.js";
 
 async function getEService(
   eservices: EServiceCollection,
-  filter: Filter<WithId<WithMetadata<EServiceReadModel>>>
+  filter: Filter<WithId<WithMetadata<EServiceReadModel>>>,
+  logger: Logger
 ): Promise<WithMetadata<EService> | undefined> {
   const data = await eservices.findOne(filter, {
     projection: { data: true, metadata: true },
@@ -67,7 +68,8 @@ async function getEService(
 
 async function getTenant(
   tenants: TenantCollection,
-  filter: Filter<WithId<WithMetadata<Tenant>>>
+  filter: Filter<WithId<WithMetadata<Tenant>>>,
+  logger: Logger
 ): Promise<Tenant | undefined> {
   const data = await tenants.findOne(filter, {
     projection: { data: true, metadata: true },
@@ -105,7 +107,8 @@ export function readModelServiceBuilder(
       authData: AuthData,
       filters: ApiGetEServicesFilters,
       offset: number,
-      limit: number
+      limit: number,
+      logger: Logger
     ): Promise<ListResult<EService>> {
       const {
         eservicesIds,
@@ -120,12 +123,15 @@ export function readModelServiceBuilder(
         .with(0, () => eservicesIds)
         .otherwise(async () =>
           (
-            await this.listAgreements({
-              eservicesIds,
-              consumersIds: [authData.organizationId],
-              producersIds: [],
-              states: agreementStates,
-            })
+            await this.listAgreements(
+              {
+                eservicesIds,
+                consumersIds: [authData.organizationId],
+                producersIds: [],
+                states: agreementStates,
+              },
+              logger
+            )
           ).map((a) => a.eserviceId)
         );
 
@@ -271,34 +277,45 @@ export function readModelServiceBuilder(
         results: result.data,
         totalCount: await ReadModelRepository.getTotalCount(
           eservices,
-          aggregationPipeline
+          aggregationPipeline,
+          false,
+          logger
         ),
       };
     },
-    async getEServiceByNameAndProducerId({
-      name,
-      producerId,
-    }: {
-      name: string;
-      producerId: TenantId;
-    }): Promise<WithMetadata<EService> | undefined> {
-      return getEService(eservices, {
-        "data.name": {
-          $regex: `^${ReadModelRepository.escapeRegExp(name)}$$`,
-          $options: "i",
+    async getEServiceByNameAndProducerId(
+      {
+        name,
+        producerId,
+      }: {
+        name: string;
+        producerId: TenantId;
+      },
+      logger: Logger
+    ): Promise<WithMetadata<EService> | undefined> {
+      return getEService(
+        eservices,
+        {
+          "data.name": {
+            $regex: `^${ReadModelRepository.escapeRegExp(name)}$$`,
+            $options: "i",
+          },
+          "data.producerId": producerId,
         },
-        "data.producerId": producerId,
-      });
+        logger
+      );
     },
     async getEServiceById(
-      id: EServiceId
+      id: EServiceId,
+      logger: Logger
     ): Promise<WithMetadata<EService> | undefined> {
-      return getEService(eservices, { "data.id": id });
+      return getEService(eservices, { "data.id": id }, logger);
     },
     async getEServiceConsumers(
       eserviceId: EServiceId,
       offset: number,
-      limit: number
+      limit: number,
+      logger: Logger
     ): Promise<ListResult<Consumer>> {
       const aggregationPipeline = [
         {
@@ -403,35 +420,41 @@ export function readModelServiceBuilder(
         results: result.data,
         totalCount: await ReadModelRepository.getTotalCount(
           eservices,
-          aggregationPipeline
+          aggregationPipeline,
+          false,
+          logger
         ),
       };
     },
     async getDocumentById(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      documentId: EServiceDocumentId
+      documentId: EServiceDocumentId,
+      logger: Logger
     ): Promise<Document | undefined> {
-      const eservice = await this.getEServiceById(eserviceId);
+      const eservice = await this.getEServiceById(eserviceId, logger);
       return eservice?.data.descriptors
         .find((d) => d.id === descriptorId)
         ?.docs.find((d) => d.id === documentId);
     },
-    async listAgreements({
-      eservicesIds,
-      consumersIds,
-      producersIds,
-      states,
-      limit,
-      descriptorId,
-    }: {
-      eservicesIds: EServiceId[];
-      consumersIds: TenantId[];
-      producersIds: TenantId[];
-      states: AgreementState[];
-      limit?: number;
-      descriptorId?: DescriptorId;
-    }): Promise<Agreement[]> {
+    async listAgreements(
+      {
+        eservicesIds,
+        consumersIds,
+        producersIds,
+        states,
+        limit,
+        descriptorId,
+      }: {
+        eservicesIds: EServiceId[];
+        consumersIds: TenantId[];
+        producersIds: TenantId[];
+        states: AgreementState[];
+        limit?: number;
+        descriptorId?: DescriptorId;
+      },
+      logger: Logger
+    ): Promise<Agreement[]> {
       const descriptorFilter: ReadModelFilter<Agreement> = descriptorId
         ? { "data.descriptorId": { $eq: descriptorId } }
         : {};
@@ -481,7 +504,8 @@ export function readModelServiceBuilder(
     },
 
     async getAttributesByIds(
-      attributesIds: AttributeId[]
+      attributesIds: AttributeId[],
+      logger: Logger
     ): Promise<Attribute[]> {
       const data = await attributes
         .find({
@@ -503,8 +527,11 @@ export function readModelServiceBuilder(
       return result.data;
     },
 
-    async getTenantById(id: TenantId): Promise<Tenant | undefined> {
-      return getTenant(tenants, { "data.id": id });
+    async getTenantById(
+      id: TenantId,
+      logger: Logger
+    ): Promise<Tenant | undefined> {
+      return getTenant(tenants, { "data.id": id }, logger);
     },
   };
 }
