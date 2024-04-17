@@ -65,9 +65,12 @@ export type Problem = {
   toString: () => string;
 };
 
-const makeProblemLogString = (problem: Problem): string => {
+const makeProblemLogString = (
+  problem: Problem,
+  originalError: unknown
+): string => {
   const errorsString = problem.errors.map((e) => e.detail).join(" - ");
-  return `- title: ${problem.title} - detail: ${problem.detail} - errors: ${errorsString} - orignal error: ${error}`;
+  return `- title: ${problem.title} - detail: ${problem.detail} - errors: ${errorsString} - orignal error: ${originalError}`;
 };
 
 export function makeApiProblemBuilder<T extends string>(
@@ -99,12 +102,12 @@ export function makeApiProblemBuilder<T extends string>(
     return match<unknown, Problem>(error)
       .with(P.instanceOf(ApiError<T | CommonErrorCodes>), (error) => {
         const problem = makeProblem(httpMapper(error), error);
-        logger.warn(makeProblemLogString(problem));
+        logger.warn(makeProblemLogString(problem, error));
         return problem;
       })
-      .otherwise(() => {
+      .otherwise((error: unknown) => {
         const problem = makeProblem(500, genericError("Unexpected error"));
-        logger.error(makeProblemLogString(problem));
+        logger.error(makeProblemLogString(problem, error));
         return problem;
       });
   };
