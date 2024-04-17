@@ -1,16 +1,15 @@
 import { match } from "ts-pattern";
 import {
-  PurposeStateV1,
-  PurposeV1,
-  PurposeVersionDocumentV1,
-  PurposeVersionV1,
   Purpose,
   PurposeVersion,
   PurposeVersionDocument,
   PurposeVersionState,
   purposeVersionState,
   dateToBigInt,
-  dateToBigIntOrUndefined,
+  PurposeStateV1,
+  PurposeV1,
+  PurposeVersionDocumentV1,
+  PurposeVersionV1,
 } from "pagopa-interop-models";
 
 export const toPurposeVersionStateV1 = (
@@ -40,11 +39,11 @@ export const toPurposeVersionV1 = (
 ): PurposeVersionV1 => ({
   ...input,
   state: toPurposeVersionStateV1(input.state),
-  expectedApprovalDate: dateToBigIntOrUndefined(input.expectedApprovalDate),
+  expectedApprovalDate: dateToBigInt(input.expectedApprovalDate),
   createdAt: dateToBigInt(input.createdAt),
-  updatedAt: dateToBigIntOrUndefined(input.updatedAt),
-  firstActivationAt: dateToBigIntOrUndefined(input.firstActivationAt),
-  suspendedAt: dateToBigIntOrUndefined(input.suspendedAt),
+  updatedAt: dateToBigInt(input.updatedAt),
+  firstActivationAt: dateToBigInt(input.firstActivationAt),
+  suspendedAt: dateToBigInt(input.suspendedAt),
   riskAnalysis: input.riskAnalysis
     ? toPurposeVersionDocumentV1(input.riskAnalysis)
     : undefined,
@@ -54,5 +53,5 @@ export const toPurposeV1 = (input: Purpose): PurposeV1 => ({
   ...input,
   versions: input.versions.map(toPurposeVersionV1),
   createdAt: dateToBigInt(input.createdAt),
-  updatedAt: dateToBigIntOrUndefined(input.updatedAt),
+  updatedAt: dateToBigInt(input.updatedAt),
 });
