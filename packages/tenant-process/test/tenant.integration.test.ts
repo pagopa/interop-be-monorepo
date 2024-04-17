@@ -1000,7 +1000,6 @@ describe("Integration tests", () => {
             assignmentTimestamp: new Date(
               currentDate.setDate(currentDate.getDate() - 3)
             ),
-            revocationTimestamp: undefined,
           },
         ],
         updatedAt: currentDate,
