@@ -443,6 +443,7 @@ const updatePurposeInternal = async (
   const updatedPurpose: Purpose = {
     ...purpose.data,
     ...updateContent,
+    updatedAt: new Date(),
     riskAnalysisForm: newRiskAnalysis,
   };
 
