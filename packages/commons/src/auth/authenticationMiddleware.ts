@@ -3,7 +3,6 @@ import { ZodiosRouterContextRequestHandler } from "@zodios/express";
 import {
   makeApiProblemBuilder,
   missingBearer,
-  missingClaim,
   missingHeader,
   unauthorizedError,
 } from "pagopa-interop-models";
@@ -37,25 +36,17 @@ export const authenticationMiddleware: () => ZodiosRouterContextRequestHandler<E
         }
 
         const jwtToken = authorizationHeader[1];
-        const valid = await verifyJwtToken(jwtToken);
-        if (!valid) {
-          logger.warn(`The jwt token is not valid`);
-          throw unauthorizedError("The jwt token is not valid");
+        const validationResult = await verifyJwtToken(jwtToken);
+        if (!validationResult.valid) {
+          throw unauthorizedError("Invalid jwt token");
         }
-        const authData = readAuthDataFromJwtToken(jwtToken);
-        match(authData)
-          .with(P.instanceOf(Error), (err) => {
-            logger.warn(`Invalid authentication provided: ${err.message}`);
-            throw missingClaim(`Invalid claims: ${err.message}`);
-          })
-          .otherwise((claimsRes: AuthData) => {
-            // eslint-disable-next-line functional/immutable-data
-            req.ctx = {
-              authData: { ...claimsRes },
-              correlationId,
-            };
-            next();
-          });
+        const authData: AuthData = readAuthDataFromJwtToken(jwtToken);
+        // eslint-disable-next-line functional/immutable-data
+        req.ctx = {
+          authData: { ...authData },
+          correlationId,
+        };
+        next();
       };
 
       try {
