@@ -11,6 +11,7 @@ import {
   EServiceCollection,
   ReadModelRepository,
   TenantCollection,
+  genericLogger,
   initDB,
 } from "pagopa-interop-commons";
 import {
@@ -155,11 +156,14 @@ describe("Integration tests", () => {
           selfcareId,
         };
         const mockAuthData = getMockAuthData(tenant.id);
-        await tenantService.selfcareUpsertTenant({
-          tenantSeed,
-          authData: mockAuthData,
-          correlationId,
-        });
+        await tenantService.selfcareUpsertTenant(
+          {
+            tenantSeed,
+            authData: mockAuthData,
+            correlationId,
+          },
+          genericLogger
+        );
 
         const writtenEvent: StoredEvent | undefined =
           await readLastEventByStreamId(
@@ -198,15 +202,18 @@ describe("Integration tests", () => {
           name: "A tenant",
           selfcareId: generateId(),
         };
-        const id = await tenantService.selfcareUpsertTenant({
-          tenantSeed,
-          authData: mockAuthData,
-          correlationId,
-        });
+        const id = await tenantService.selfcareUpsertTenant(
+          {
+            tenantSeed,
+            authData: mockAuthData,
+            correlationId,
+          },
+          genericLogger
+        );
         expect(id).toBeDefined();
         const writtenEvent: StoredEvent | undefined =
           await readLastEventByStreamId(
-            id,
+            unsafeBrandId<TenantId>(id),
             eventStoreSchema.tenant,
             postgresDB
           );
@@ -237,11 +244,14 @@ describe("Integration tests", () => {
         const mockAuthData = getMockAuthData(generateId<TenantId>());
 
         expect(
-          tenantService.selfcareUpsertTenant({
-            tenantSeed,
-            authData: mockAuthData,
-            correlationId,
-          })
+          tenantService.selfcareUpsertTenant(
+            {
+              tenantSeed,
+              authData: mockAuthData,
+              correlationId,
+            },
+            genericLogger
+          )
         ).rejects.toThrowError(operationForbidden);
       });
       it("Should throw selfcareIdConflict error if the given and existing selfcareId differs", async () => {
@@ -256,11 +266,14 @@ describe("Integration tests", () => {
         };
         const mockAuthData = getMockAuthData(tenant.id);
         expect(
-          tenantService.selfcareUpsertTenant({
-            tenantSeed: newTenantSeed,
-            authData: mockAuthData,
-            correlationId,
-          })
+          tenantService.selfcareUpsertTenant(
+            {
+              tenantSeed: newTenantSeed,
+              authData: mockAuthData,
+              correlationId,
+            },
+            genericLogger
+          )
         ).rejects.toThrowError(
           selfcareIdConflict({
             tenantId: tenant.id,
@@ -301,13 +314,16 @@ describe("Integration tests", () => {
       const verifierId = mockVerifiedBy.id;
       it("Should update the expirationDate", async () => {
         await addOneTenant(tenant, postgresDB, tenants);
-        await tenantService.updateTenantVerifiedAttribute({
-          verifierId,
-          tenantId: tenant.id,
-          attributeId,
-          updateVerifiedTenantAttributeSeed,
-          correlationId,
-        });
+        await tenantService.updateTenantVerifiedAttribute(
+          {
+            verifierId,
+            tenantId: tenant.id,
+            attributeId,
+            updateVerifiedTenantAttributeSeed,
+            correlationId,
+          },
+          genericLogger
+        );
         const writtenEvent: StoredEvent | undefined =
           await readLastEventByStreamId(
             tenant.id,
@@ -338,13 +354,16 @@ describe("Integration tests", () => {
       });
       it("Should throw tenantNotFound when tenant doesn't exist", async () => {
         expect(
-          tenantService.updateTenantVerifiedAttribute({
-            verifierId,
-            tenantId: tenant.id,
-            attributeId,
-            updateVerifiedTenantAttributeSeed,
-            correlationId,
-          })
+          tenantService.updateTenantVerifiedAttribute(
+            {
+              verifierId,
+              tenantId: tenant.id,
+              attributeId,
+              updateVerifiedTenantAttributeSeed,
+              correlationId,
+            },
+            genericLogger
+          )
         ).rejects.toThrowError(tenantNotFound(tenant.id));
       });
 
@@ -360,13 +379,16 @@ describe("Integration tests", () => {
 
         await addOneTenant(tenant, postgresDB, tenants);
         expect(
-          tenantService.updateTenantVerifiedAttribute({
-            verifierId,
-            tenantId: tenant.id,
-            attributeId,
-            updateVerifiedTenantAttributeSeed,
-            correlationId,
-          })
+          tenantService.updateTenantVerifiedAttribute(
+            {
+              verifierId,
+              tenantId: tenant.id,
+              attributeId,
+              updateVerifiedTenantAttributeSeed,
+              correlationId,
+            },
+            genericLogger
+          )
         ).rejects.toThrowError(
           expirationDateCannotBeInThePast(expirationDateinPast)
         );
@@ -383,13 +405,16 @@ describe("Integration tests", () => {
         )[0];
         await addOneTenant(updatedCertifiedTenant, postgresDB, tenants);
         expect(
-          tenantService.updateTenantVerifiedAttribute({
-            verifierId: generateId(),
-            tenantId: updatedCertifiedTenant.id,
-            attributeId,
-            updateVerifiedTenantAttributeSeed,
-            correlationId,
-          })
+          tenantService.updateTenantVerifiedAttribute(
+            {
+              verifierId: generateId(),
+              tenantId: updatedCertifiedTenant.id,
+              attributeId,
+              updateVerifiedTenantAttributeSeed,
+              correlationId,
+            },
+            genericLogger
+          )
         ).rejects.toThrowError(
           verifiedAttributeNotFoundInTenant(
             updatedCertifiedTenant.id,
@@ -401,13 +426,16 @@ describe("Integration tests", () => {
         await addOneTenant(tenant, postgresDB, tenants);
         const verifierId = generateId();
         expect(
-          tenantService.updateTenantVerifiedAttribute({
-            verifierId,
-            tenantId: tenant.id,
-            attributeId,
-            updateVerifiedTenantAttributeSeed,
-            correlationId,
-          })
+          tenantService.updateTenantVerifiedAttribute(
+            {
+              verifierId,
+              tenantId: tenant.id,
+              attributeId,
+              updateVerifiedTenantAttributeSeed,
+              correlationId,
+            },
+            genericLogger
+          )
         ).rejects.toThrowError(
           organizationNotFoundInVerifiers(verifierId, tenant.id, attributeId)
         );
@@ -443,13 +471,16 @@ describe("Integration tests", () => {
       const verifierId = mockVerifiedBy.id;
       it("Should update the expirationDate", async () => {
         await addOneTenant(tenant, postgresDB, tenants);
-        await tenantService.updateTenantVerifiedAttribute({
-          verifierId,
-          tenantId: tenant.id,
-          attributeId,
-          updateVerifiedTenantAttributeSeed,
-          correlationId: generateId(),
-        });
+        await tenantService.updateTenantVerifiedAttribute(
+          {
+            verifierId,
+            tenantId: tenant.id,
+            attributeId,
+            updateVerifiedTenantAttributeSeed,
+            correlationId: generateId(),
+          },
+          genericLogger
+        );
         const writtenEvent: StoredEvent | undefined =
           await readLastEventByStreamId(
             tenant.id,
@@ -480,13 +511,16 @@ describe("Integration tests", () => {
       });
       it("Should throw tenantNotFound when tenant doesn't exist", async () => {
         expect(
-          tenantService.updateTenantVerifiedAttribute({
-            verifierId,
-            tenantId: tenant.id,
-            attributeId,
-            updateVerifiedTenantAttributeSeed,
-            correlationId: generateId(),
-          })
+          tenantService.updateTenantVerifiedAttribute(
+            {
+              verifierId,
+              tenantId: tenant.id,
+              attributeId,
+              updateVerifiedTenantAttributeSeed,
+              correlationId: generateId(),
+            },
+            genericLogger
+          )
         ).rejects.toThrowError(tenantNotFound(tenant.id));
       });
 
@@ -502,13 +536,16 @@ describe("Integration tests", () => {
 
         await addOneTenant(tenant, postgresDB, tenants);
         expect(
-          tenantService.updateTenantVerifiedAttribute({
-            verifierId,
-            tenantId: tenant.id,
-            attributeId,
-            updateVerifiedTenantAttributeSeed,
-            correlationId: generateId(),
-          })
+          tenantService.updateTenantVerifiedAttribute(
+            {
+              verifierId,
+              tenantId: tenant.id,
+              attributeId,
+              updateVerifiedTenantAttributeSeed,
+              correlationId: generateId(),
+            },
+            genericLogger
+          )
         ).rejects.toThrowError(
           expirationDateCannotBeInThePast(expirationDateinPast)
         );
@@ -525,13 +562,16 @@ describe("Integration tests", () => {
         )[0];
         await addOneTenant(updatedCertifiedTenant, postgresDB, tenants);
         expect(
-          tenantService.updateTenantVerifiedAttribute({
-            verifierId: generateId(),
-            tenantId: updatedCertifiedTenant.id,
-            attributeId,
-            updateVerifiedTenantAttributeSeed,
-            correlationId: generateId(),
-          })
+          tenantService.updateTenantVerifiedAttribute(
+            {
+              verifierId: generateId(),
+              tenantId: updatedCertifiedTenant.id,
+              attributeId,
+              updateVerifiedTenantAttributeSeed,
+              correlationId: generateId(),
+            },
+            genericLogger
+          )
         ).rejects.toThrowError(
           verifiedAttributeNotFoundInTenant(
             updatedCertifiedTenant.id,
@@ -543,13 +583,16 @@ describe("Integration tests", () => {
         await addOneTenant(tenant, postgresDB, tenants);
         const verifierId = generateId();
         expect(
-          tenantService.updateTenantVerifiedAttribute({
-            verifierId,
-            tenantId: tenant.id,
-            attributeId,
-            updateVerifiedTenantAttributeSeed,
-            correlationId: generateId(),
-          })
+          tenantService.updateTenantVerifiedAttribute(
+            {
+              verifierId,
+              tenantId: tenant.id,
+              attributeId,
+              updateVerifiedTenantAttributeSeed,
+              correlationId: generateId(),
+            },
+            genericLogger
+          )
         ).rejects.toThrowError(
           organizationNotFoundInVerifiers(verifierId, tenant.id, attributeId)
         );
@@ -591,7 +634,8 @@ describe("Integration tests", () => {
           tenant.id,
           attributeId,
           verifierId,
-          correlationId
+          correlationId,
+          genericLogger
         );
         const writtenEvent: StoredEvent | undefined =
           await readLastEventByStreamId(
@@ -634,7 +678,8 @@ describe("Integration tests", () => {
             tenant.id,
             attributeId,
             verifierId,
-            correlationId
+            correlationId,
+            genericLogger
           )
         ).rejects.toThrowError(tenantNotFound(tenant.id));
       });
@@ -671,7 +716,8 @@ describe("Integration tests", () => {
             updatedTenantWithoutExpirationDate.id,
             attributeId,
             verifierId,
-            correlationId
+            correlationId,
+            genericLogger
           )
         ).rejects.toThrowError(
           expirationDateNotFoundInVerifier(
@@ -689,7 +735,8 @@ describe("Integration tests", () => {
             tenant.id,
             attributeId,
             verifierId,
-            correlationId
+            correlationId,
+            genericLogger
           )
         ).rejects.toThrowError(
           verifiedAttributeNotFoundInTenant(mockTenant.id, attributeId)
@@ -704,7 +751,8 @@ describe("Integration tests", () => {
             tenant.id,
             attributeId,
             verifierId,
-            correlationId
+            correlationId,
+            genericLogger
           )
         ).rejects.toThrowError(
           organizationNotFoundInVerifiers(verifierId, tenant.id, attributeId)
@@ -811,12 +859,15 @@ describe("Integration tests", () => {
         });
         await addOneAgreement(agreementEservice3, agreements);
 
-        const consumers = await readModelService.getConsumers({
-          consumerName: undefined,
-          producerId: eService1.producerId,
-          offset: 0,
-          limit: 50,
-        });
+        const consumers = await readModelService.getConsumers(
+          {
+            consumerName: undefined,
+            producerId: eService1.producerId,
+            offset: 0,
+            limit: 50,
+          },
+          genericLogger
+        );
         expect(consumers.totalCount).toBe(3);
         expect(consumers.results).toEqual([tenant1, tenant2, tenant3]);
       });
@@ -892,12 +943,15 @@ describe("Integration tests", () => {
         });
         await addOneAgreement(agreementEservice3, agreements);
 
-        const consumers = await readModelService.getConsumers({
-          consumerName: tenant1.name,
-          producerId: eService1.producerId,
-          offset: 0,
-          limit: 50,
-        });
+        const consumers = await readModelService.getConsumers(
+          {
+            consumerName: tenant1.name,
+            producerId: eService1.producerId,
+            offset: 0,
+            limit: 50,
+          },
+          genericLogger
+        );
         expect(consumers.totalCount).toBe(1);
         expect(consumers.results).toEqual([tenant1]);
       });
@@ -949,12 +1003,15 @@ describe("Integration tests", () => {
         };
         await addOneEService(eService3, eservices);
 
-        const consumers = await readModelService.getConsumers({
-          consumerName: undefined,
-          producerId: eService1.producerId,
-          offset: 0,
-          limit: 50,
-        });
+        const consumers = await readModelService.getConsumers(
+          {
+            consumerName: undefined,
+            producerId: eService1.producerId,
+            offset: 0,
+            limit: 50,
+          },
+          genericLogger
+        );
         expect(consumers.totalCount).toBe(0);
         expect(consumers.results).toEqual([]);
       });
@@ -1006,12 +1063,15 @@ describe("Integration tests", () => {
         };
         await addOneEService(eService3, eservices);
 
-        const consumers = await readModelService.getConsumers({
-          consumerName: "A tenant4",
-          producerId: eService1.producerId,
-          offset: 0,
-          limit: 50,
-        });
+        const consumers = await readModelService.getConsumers(
+          {
+            consumerName: "A tenant4",
+            producerId: eService1.producerId,
+            offset: 0,
+            limit: 50,
+          },
+          genericLogger
+        );
         expect(consumers.totalCount).toBe(0);
         expect(consumers.results).toEqual([]);
       });
@@ -1087,12 +1147,15 @@ describe("Integration tests", () => {
         });
         await addOneAgreement(agreementEservice3, agreements);
 
-        const tenantsByName = await readModelService.getConsumers({
-          consumerName: undefined,
-          producerId: eService1.producerId,
-          offset: 0,
-          limit: 2,
-        });
+        const tenantsByName = await readModelService.getConsumers(
+          {
+            consumerName: undefined,
+            producerId: eService1.producerId,
+            offset: 0,
+            limit: 2,
+          },
+          genericLogger
+        );
         expect(tenantsByName.results.length).toBe(2);
       });
       it("Should get consumers (pagination: offset, limit)", async () => {
@@ -1167,12 +1230,15 @@ describe("Integration tests", () => {
         });
         await addOneAgreement(agreementEservice3, agreements);
 
-        const tenantsByName = await readModelService.getConsumers({
-          consumerName: undefined,
-          producerId: eService1.producerId,
-          offset: 2,
-          limit: 3,
-        });
+        const tenantsByName = await readModelService.getConsumers(
+          {
+            consumerName: undefined,
+            producerId: eService1.producerId,
+            offset: 2,
+            limit: 3,
+          },
+          genericLogger
+        );
         expect(tenantsByName.results.length).toBe(1);
       });
     });
@@ -1226,11 +1292,14 @@ describe("Integration tests", () => {
         };
         await addOneEService(eService3, eservices);
 
-        const producers = await readModelService.getProducers({
-          producerName: undefined,
-          offset: 0,
-          limit: 50,
-        });
+        const producers = await readModelService.getProducers(
+          {
+            producerName: undefined,
+            offset: 0,
+            limit: 50,
+          },
+          genericLogger
+        );
         expect(producers.totalCount).toBe(3);
         expect(producers.results).toEqual([tenant1, tenant2, tenant3]);
       });
@@ -1267,11 +1336,14 @@ describe("Integration tests", () => {
         };
         await addOneEService(eService2, eservices);
 
-        const producers = await readModelService.getProducers({
-          producerName: tenant1.name,
-          offset: 0,
-          limit: 50,
-        });
+        const producers = await readModelService.getProducers(
+          {
+            producerName: tenant1.name,
+            offset: 0,
+            limit: 50,
+          },
+          genericLogger
+        );
         expect(producers.totalCount).toBe(1);
         expect(producers.results).toEqual([tenant1]);
       });
@@ -1308,11 +1380,14 @@ describe("Integration tests", () => {
         };
         await addOneEService(eService2, eservices);
 
-        const producers = await readModelService.getProducers({
-          producerName: "A tenant6",
-          offset: 0,
-          limit: 50,
-        });
+        const producers = await readModelService.getProducers(
+          {
+            producerName: "A tenant6",
+            offset: 0,
+            limit: 50,
+          },
+          genericLogger
+        );
         expect(producers.totalCount).toBe(0);
         expect(producers.results).toEqual([]);
       });
@@ -1345,11 +1420,14 @@ describe("Integration tests", () => {
         };
         await addOneEService(eService2, eservices);
 
-        const producers = await readModelService.getProducers({
-          producerName: "A tenant",
-          offset: 0,
-          limit: 50,
-        });
+        const producers = await readModelService.getProducers(
+          {
+            producerName: "A tenant",
+            offset: 0,
+            limit: 50,
+          },
+          genericLogger
+        );
         expect(producers.totalCount).toBe(0);
         expect(producers.results).toEqual([]);
       });
@@ -1401,11 +1479,14 @@ describe("Integration tests", () => {
           producerId: tenant3.id,
         };
         await addOneEService(eService3, eservices);
-        const tenantsByName = await readModelService.getProducers({
-          producerName: undefined,
-          offset: 0,
-          limit: 3,
-        });
+        const tenantsByName = await readModelService.getProducers(
+          {
+            producerName: undefined,
+            offset: 0,
+            limit: 3,
+          },
+          genericLogger
+        );
         expect(tenantsByName.results.length).toBe(3);
       });
       it("Should get producers (pagination: offset, limit)", async () => {
@@ -1456,11 +1537,14 @@ describe("Integration tests", () => {
           producerId: tenant3.id,
         };
         await addOneEService(eService3, eservices);
-        const tenantsByName = await readModelService.getProducers({
-          producerName: undefined,
-          offset: 2,
-          limit: 3,
-        });
+        const tenantsByName = await readModelService.getProducers(
+          {
+            producerName: undefined,
+            offset: 2,
+            limit: 3,
+          },
+          genericLogger
+        );
         expect(tenantsByName.results.length).toBe(1);
       });
     });
@@ -1470,11 +1554,14 @@ describe("Integration tests", () => {
         await addOneTenant(tenant2, postgresDB, tenants);
         await addOneTenant(tenant3, postgresDB, tenants);
 
-        const tenantsByName = await readModelService.getTenantsByName({
-          name: undefined,
-          offset: 0,
-          limit: 50,
-        });
+        const tenantsByName = await readModelService.getTenantsByName(
+          {
+            name: undefined,
+            offset: 0,
+            limit: 50,
+          },
+          genericLogger
+        );
         expect(tenantsByName.totalCount).toBe(3);
         expect(tenantsByName.results).toEqual([tenant1, tenant2, tenant3]);
       });
@@ -1483,20 +1570,26 @@ describe("Integration tests", () => {
 
         await addOneTenant(tenant2, postgresDB, tenants);
 
-        const tenantsByName = await readModelService.getTenantsByName({
-          name: "A tenant1",
-          offset: 0,
-          limit: 50,
-        });
+        const tenantsByName = await readModelService.getTenantsByName(
+          {
+            name: "A tenant1",
+            offset: 0,
+            limit: 50,
+          },
+          genericLogger
+        );
         expect(tenantsByName.totalCount).toBe(1);
         expect(tenantsByName.results).toEqual([tenant1]);
       });
       it("should not get tenants if there are not any tenants", async () => {
-        const tenantsByName = await readModelService.getTenantsByName({
-          name: undefined,
-          offset: 0,
-          limit: 50,
-        });
+        const tenantsByName = await readModelService.getTenantsByName(
+          {
+            name: undefined,
+            offset: 0,
+            limit: 50,
+          },
+          genericLogger
+        );
         expect(tenantsByName.totalCount).toBe(0);
         expect(tenantsByName.results).toEqual([]);
       });
@@ -1505,11 +1598,14 @@ describe("Integration tests", () => {
 
         await addOneTenant(tenant2, postgresDB, tenants);
 
-        const tenantsByName = await readModelService.getTenantsByName({
-          name: "A tenant6",
-          offset: 0,
-          limit: 50,
-        });
+        const tenantsByName = await readModelService.getTenantsByName(
+          {
+            name: "A tenant6",
+            offset: 0,
+            limit: 50,
+          },
+          genericLogger
+        );
         expect(tenantsByName.totalCount).toBe(0);
         expect(tenantsByName.results).toEqual([]);
       });
@@ -1519,11 +1615,14 @@ describe("Integration tests", () => {
         await addOneTenant(tenant3, postgresDB, tenants);
         await addOneTenant(tenant4, postgresDB, tenants);
         await addOneTenant(tenant5, postgresDB, tenants);
-        const tenantsByName = await readModelService.getTenantsByName({
-          name: undefined,
-          offset: 0,
-          limit: 4,
-        });
+        const tenantsByName = await readModelService.getTenantsByName(
+          {
+            name: undefined,
+            offset: 0,
+            limit: 4,
+          },
+          genericLogger
+        );
         expect(tenantsByName.results.length).toBe(4);
       });
       it("Should get a maximun number of tenants based on a specified limit and offset", async () => {
@@ -1532,11 +1631,14 @@ describe("Integration tests", () => {
         await addOneTenant(tenant3, postgresDB, tenants);
         await addOneTenant(tenant4, postgresDB, tenants);
         await addOneTenant(tenant5, postgresDB, tenants);
-        const tenantsByName = await readModelService.getTenantsByName({
-          name: undefined,
-          offset: 2,
-          limit: 4,
-        });
+        const tenantsByName = await readModelService.getTenantsByName(
+          {
+            name: undefined,
+            offset: 2,
+            limit: 4,
+          },
+          genericLogger
+        );
         expect(tenantsByName.results.length).toBe(3);
       });
     });
@@ -1545,11 +1647,17 @@ describe("Integration tests", () => {
         await addOneTenant(tenant1, postgresDB, tenants);
         await addOneTenant(tenant2, postgresDB, tenants);
         await addOneTenant(tenant3, postgresDB, tenants);
-        const tenantById = await readModelService.getTenantById(tenant1.id);
+        const tenantById = await readModelService.getTenantById(
+          tenant1.id,
+          genericLogger
+        );
         expect(tenantById?.data).toEqual(tenant1);
       });
       it("should not get the tenant by ID if it isn't in DB", async () => {
-        const tenantById = await readModelService.getTenantById(tenant1.id);
+        const tenantById = await readModelService.getTenantById(
+          tenant1.id,
+          genericLogger
+        );
         expect(tenantById?.data.id).toBeUndefined();
       });
     });
@@ -1560,14 +1668,16 @@ describe("Integration tests", () => {
         await addOneTenant(tenant3, postgresDB, tenants);
         const tenantBySelfcareId = await readModelService.getTenantBySelfcareId(
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          tenant1.selfcareId!
+          tenant1.selfcareId!,
+          genericLogger
         );
         expect(tenantBySelfcareId?.data).toEqual(tenant1);
       });
       it("should not get the tenant by selfcareId if it isn't in DB", async () => {
         const tenantBySelfcareId = await readModelService.getTenantBySelfcareId(
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          tenant1.selfcareId!
+          tenant1.selfcareId!,
+          genericLogger
         );
         expect(tenantBySelfcareId?.data.selfcareId).toBeUndefined();
       });
@@ -1578,13 +1688,21 @@ describe("Integration tests", () => {
         await addOneTenant(tenant2, postgresDB, tenants);
         await addOneTenant(tenant3, postgresDB, tenants);
         const tenantByExternalId = await readModelService.getTenantByExternalId(
-          { value: tenant1.externalId.value, origin: tenant1.externalId.origin }
+          {
+            value: tenant1.externalId.value,
+            origin: tenant1.externalId.origin,
+          },
+          genericLogger
         );
         expect(tenantByExternalId?.data).toEqual(tenant1);
       });
       it("should not get the tenant by externalId if it isn't in DB", async () => {
         const tenantByExternalId = await readModelService.getTenantByExternalId(
-          { value: tenant1.externalId.value, origin: tenant1.externalId.origin }
+          {
+            value: tenant1.externalId.value,
+            origin: tenant1.externalId.origin,
+          },
+          genericLogger
         );
         expect(tenantByExternalId?.data.externalId).toBeUndefined();
       });

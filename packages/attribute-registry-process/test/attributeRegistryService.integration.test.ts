@@ -22,6 +22,7 @@ import {
   AttributeCollection,
   ReadModelRepository,
   TenantCollection,
+  genericLogger,
   initDB,
 } from "pagopa-interop-commons";
 import { StartedTestContainer } from "testcontainers";
@@ -124,7 +125,8 @@ describe("database test", () => {
               description: mockAttribute.description,
             },
             getMockAuthData(),
-            uuidv4()
+            uuidv4(),
+            genericLogger
           );
         expect(attribute).toBeDefined();
 
@@ -169,7 +171,8 @@ describe("database test", () => {
                 origin: "not-allowed-origin",
               },
             },
-            uuidv4()
+            uuidv4(),
+            genericLogger
           )
         ).rejects.toThrowError(originNotCompliant("not-allowed-origin"));
       });
@@ -186,7 +189,8 @@ describe("database test", () => {
               description: attribute.description,
             },
             getMockAuthData(),
-            uuidv4()
+            uuidv4(),
+            genericLogger
           )
         ).rejects.toThrowError(attributeDuplicate(attribute.name));
       });
@@ -200,7 +204,8 @@ describe("database test", () => {
               description: mockAttribute.description,
             },
             getMockAuthData(),
-            uuidv4()
+            uuidv4(),
+            genericLogger
           );
         expect(attribute).toBeDefined();
 
@@ -245,7 +250,8 @@ describe("database test", () => {
                 origin: "not-allowed-origin",
               },
             },
-            uuidv4()
+            uuidv4(),
+            genericLogger
           )
         ).rejects.toThrowError(originNotCompliant("not-allowed-origin"));
       });
@@ -262,7 +268,8 @@ describe("database test", () => {
               description: attribute.description,
             },
             getMockAuthData(),
-            uuidv4()
+            uuidv4(),
+            genericLogger
           )
         ).rejects.toThrowError(attributeDuplicate(attribute.name));
       });
@@ -289,7 +296,8 @@ describe("database test", () => {
               description: mockAttribute.description,
             },
             getMockAuthData(tenant.id),
-            uuidv4()
+            uuidv4(),
+            genericLogger
           );
         expect(attribute).toBeDefined();
 
@@ -347,7 +355,8 @@ describe("database test", () => {
               description: attribute.description,
             },
             getMockAuthData(tenant.id),
-            uuidv4()
+            uuidv4(),
+            genericLogger
           )
         ).rejects.toThrowError(attributeDuplicate(attribute.name));
       });
@@ -362,7 +371,8 @@ describe("database test", () => {
               description: mockAttribute.description,
             },
             getMockAuthData(mockTenant.id),
-            uuidv4()
+            uuidv4(),
+            genericLogger
           )
         ).rejects.toThrowError(OrganizationIsNotACertifier(mockTenant.id));
       });
@@ -376,7 +386,8 @@ describe("database test", () => {
               description: mockAttribute.description,
             },
             getMockAuthData(mockTenant.id),
-            uuidv4()
+            uuidv4(),
+            genericLogger
           )
         ).rejects.toThrowError(tenantNotFound(mockTenant.id));
       });
@@ -403,7 +414,8 @@ describe("database test", () => {
               origin: tenant.features[0].certifierId,
               description: mockAttribute.description,
             },
-            uuidv4()
+            uuidv4(),
+            genericLogger
           );
         expect(attribute).toBeDefined();
 
@@ -460,7 +472,8 @@ describe("database test", () => {
               origin: tenant.features[0].certifierId,
               description: attribute.description,
             },
-            uuidv4()
+            uuidv4(),
+            genericLogger
           )
         ).rejects.toThrowError(attributeDuplicate(attribute.name));
       });
@@ -541,81 +554,105 @@ describe("database test", () => {
 
       describe("getAttributesByIds", () => {
         it("should get the attributes if they exist", async () => {
-          const result = await readModelService.getAttributesByIds({
-            ids: [attribute1.id, attribute2.id, attribute3.id],
-            offset: 0,
-            limit: 50,
-          });
+          const result = await readModelService.getAttributesByIds(
+            {
+              ids: [attribute1.id, attribute2.id, attribute3.id],
+              offset: 0,
+              limit: 50,
+            },
+            genericLogger
+          );
 
           expect(result.totalCount).toBe(3);
           expect(result.results).toEqual([attribute1, attribute2, attribute3]);
         });
         it("should not get the attributes if they don't exist", async () => {
-          const result = await readModelService.getAttributesByIds({
-            ids: [generateId(), generateId()],
-            offset: 0,
-            limit: 50,
-          });
+          const result = await readModelService.getAttributesByIds(
+            {
+              ids: [generateId(), generateId()],
+              offset: 0,
+              limit: 50,
+            },
+            genericLogger
+          );
           expect(result.totalCount).toBe(0);
           expect(result.results).toEqual([]);
         });
         it("should not get any attributes if the requested ids list is empty", async () => {
-          const result = await readModelService.getAttributesByIds({
-            ids: [],
-            offset: 0,
-            limit: 50,
-          });
+          const result = await readModelService.getAttributesByIds(
+            {
+              ids: [],
+              offset: 0,
+              limit: 50,
+            },
+            genericLogger
+          );
           expect(result.totalCount).toBe(0);
           expect(result.results).toEqual([]);
         });
       });
       describe("getAttributesByKindsNameOrigin", () => {
         it("should get the attributes if they exist (parameters: kinds, name, origin)", async () => {
-          const result = await readModelService.getAttributesByKindsNameOrigin({
-            kinds: [attributeKind.certified],
-            name: "test",
-            origin: "IPA",
-            offset: 0,
-            limit: 50,
-          });
+          const result = await readModelService.getAttributesByKindsNameOrigin(
+            {
+              kinds: [attributeKind.certified],
+              name: "test",
+              origin: "IPA",
+              offset: 0,
+              limit: 50,
+            },
+            genericLogger
+          );
           expect(result.totalCount).toBe(3);
           expect(result.results).toEqual([attribute1, attribute2, attribute3]);
         });
         it("should get the attributes if they exist (parameters: kinds only)", async () => {
-          const result = await readModelService.getAttributesByKindsNameOrigin({
-            kinds: [attributeKind.declared],
-            offset: 0,
-            limit: 50,
-          });
+          const result = await readModelService.getAttributesByKindsNameOrigin(
+            {
+              kinds: [attributeKind.declared],
+              offset: 0,
+              limit: 50,
+            },
+            genericLogger
+          );
           expect(result.totalCount).toBe(2);
           expect(result.results).toEqual([attribute4, attribute5]);
         });
         it("should get the attributes if they exist (parameters: name only)", async () => {
-          const result = await readModelService.getAttributesByKindsNameOrigin({
-            kinds: [],
-            name: "test",
-            offset: 0,
-            limit: 50,
-          });
+          const result = await readModelService.getAttributesByKindsNameOrigin(
+            {
+              kinds: [],
+              name: "test",
+              offset: 0,
+              limit: 50,
+            },
+            genericLogger
+          );
           expect(result.totalCount).toBe(3);
           expect(result.results).toEqual([attribute1, attribute2, attribute3]);
         });
         it("should get the attributes if they exist (parameters: origin only)", async () => {
-          const result = await readModelService.getAttributesByKindsNameOrigin({
-            kinds: [],
-            origin: "IPA",
-            offset: 0,
-            limit: 50,
-          });
+          const result = await readModelService.getAttributesByKindsNameOrigin(
+            {
+              kinds: [],
+              origin: "IPA",
+              offset: 0,
+              limit: 50,
+            },
+            genericLogger
+          );
           expect(result.totalCount).toBe(3);
           expect(result.results).toEqual([attribute1, attribute2, attribute3]);
         });
         it("should get all the attributes if no parameter is passed", async () => {
-          const result = await readModelService.getAttributesByKindsNameOrigin({
-            kinds: [],
-            offset: 0,
-            limit: 50,
-          });
+          const result = await readModelService.getAttributesByKindsNameOrigin(
+            {
+              kinds: [],
+              offset: 0,
+              limit: 50,
+            },
+            genericLogger
+          );
           expect(result.totalCount).toBe(7);
           expect(result.results).toEqual([
             attribute1,
@@ -628,30 +665,39 @@ describe("database test", () => {
           ]);
         });
         it("should get the attributes if no parameter is passed (pagination: limit)", async () => {
-          const result = await readModelService.getAttributesByKindsNameOrigin({
-            kinds: [],
-            offset: 0,
-            limit: 5,
-          });
+          const result = await readModelService.getAttributesByKindsNameOrigin(
+            {
+              kinds: [],
+              offset: 0,
+              limit: 5,
+            },
+            genericLogger
+          );
           expect(result.totalCount).toBe(7);
           expect(result.results.length).toBe(5);
         });
         it("should get the attributes if no parameter is passed (pagination: offset, limit)", async () => {
-          const result = await readModelService.getAttributesByKindsNameOrigin({
-            kinds: [],
-            offset: 5,
-            limit: 5,
-          });
+          const result = await readModelService.getAttributesByKindsNameOrigin(
+            {
+              kinds: [],
+              offset: 5,
+              limit: 5,
+            },
+            genericLogger
+          );
           expect(result.totalCount).toBe(7);
           expect(result.results.length).toBe(2);
         });
         it("should not get the attributes if they don't exist", async () => {
-          const result = await readModelService.getAttributesByKindsNameOrigin({
-            kinds: [],
-            name: "latest attribute",
-            offset: 0,
-            limit: 50,
-          });
+          const result = await readModelService.getAttributesByKindsNameOrigin(
+            {
+              kinds: [],
+              name: "latest attribute",
+              offset: 0,
+              limit: 50,
+            },
+            genericLogger
+          );
           expect(result.totalCount).toBe(0);
           expect(result.results).toEqual([]);
         });
@@ -659,46 +705,54 @@ describe("database test", () => {
       describe("getAttributeById", () => {
         it("should get the attribute if it exists", async () => {
           const attribute = await attributeRegistryService.getAttributeById(
-            attribute1.id
+            attribute1.id,
+            genericLogger
           );
           expect(attribute?.data).toEqual(attribute1);
         });
         it("should throw attributeNotFound if the attribute doesn't exist", async () => {
           const id = generateId<AttributeId>();
           expect(
-            attributeRegistryService.getAttributeById(id)
+            attributeRegistryService.getAttributeById(id, genericLogger)
           ).rejects.toThrowError(attributeNotFound(id));
         });
       });
       describe("getAttributeByName", () => {
         it("should get the attribute if it exists", async () => {
           const attribute = await attributeRegistryService.getAttributeByName(
-            attribute1.name
+            attribute1.name,
+            genericLogger
           );
           expect(attribute?.data).toEqual(attribute1);
         });
         it("should throw attributeNotFound if the attribute doesn't exist", async () => {
           const name = "not-existing";
           expect(
-            attributeRegistryService.getAttributeByName(name)
+            attributeRegistryService.getAttributeByName(name, genericLogger)
           ).rejects.toThrowError(attributeNotFound(name));
         });
       });
       describe("getAttributeByOriginAndCode", () => {
         it("should get the attribute if it exists", async () => {
           const attribute =
-            await attributeRegistryService.getAttributeByOriginAndCode({
-              origin: "IPA",
-              code: "12345A",
-            });
+            await attributeRegistryService.getAttributeByOriginAndCode(
+              {
+                origin: "IPA",
+                code: "12345A",
+              },
+              genericLogger
+            );
           expect(attribute?.data).toEqual(attribute1);
         });
         it("should throw attributeNotFound if the attribute doesn't exist", async () => {
           expect(
-            attributeRegistryService.getAttributeByOriginAndCode({
-              origin: "IPA",
-              code: "12345D",
-            })
+            attributeRegistryService.getAttributeByOriginAndCode(
+              {
+                origin: "IPA",
+                code: "12345D",
+              },
+              genericLogger
+            )
           ).rejects.toThrowError(attributeNotFound("IPA/12345D"));
         });
       });

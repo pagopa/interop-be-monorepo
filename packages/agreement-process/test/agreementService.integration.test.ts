@@ -9,9 +9,9 @@ import {
   FileManager,
   ReadModelRepository,
   TenantCollection,
+  genericLogger,
   initDB,
   initFileManager,
-  logger,
 } from "pagopa-interop-commons";
 import {
   buildAgreement,
@@ -204,7 +204,7 @@ beforeAll(async () => {
   });
 
   if (!postgresDB) {
-    logger.error("postgresDB is undefined!!");
+    genericLogger.error("postgresDB is undefined!!");
   }
 
   // TODO: Setup MinIO test container when testing functionalities that require file storage
@@ -259,7 +259,8 @@ describe("Agreement service", () => {
       const createdAgreementId = await agreementService.createAgreement(
         agreementData,
         authData,
-        uuidv4()
+        uuidv4(),
+        genericLogger
       );
 
       await expectedAgreementCreation(
@@ -319,7 +320,8 @@ describe("Agreement service", () => {
       const createdAgreementId = await agreementService.createAgreement(
         apiAgreementPayload,
         authData,
-        uuidv4()
+        uuidv4(),
+        genericLogger
       );
 
       await expectedAgreementCreation(
@@ -357,7 +359,8 @@ describe("Agreement service", () => {
       const createdAgreementId = await agreementService.createAgreement(
         apiAgreementPayload,
         authData,
-        uuidv4()
+        uuidv4(),
+        genericLogger
       );
 
       await expectedAgreementCreation(
@@ -403,7 +406,8 @@ describe("Agreement service", () => {
       const createdAgreementId = await agreementService.createAgreement(
         apiAgreementPayload,
         authData,
-        uuidv4()
+        uuidv4(),
+        genericLogger
       );
 
       await expectedAgreementCreation(
@@ -446,7 +450,8 @@ describe("Agreement service", () => {
       const createdAgreementId = await agreementService.createAgreement(
         apiAgreementPayload,
         authData,
-        uuidv4()
+        uuidv4(),
+        genericLogger
       );
 
       await expectedAgreementCreation(
@@ -472,7 +477,8 @@ describe("Agreement service", () => {
         agreementService.createAgreement(
           apiAgreementPayload,
           authData,
-          uuidv4()
+          uuidv4(),
+          genericLogger
         )
       ).rejects.toThrowError(
         eServiceNotFound(unsafeBrandId(apiAgreementPayload.eserviceId))
@@ -496,7 +502,8 @@ describe("Agreement service", () => {
         agreementService.createAgreement(
           apiAgreementPayload,
           authData,
-          uuidv4()
+          uuidv4(),
+          genericLogger
         )
       ).rejects.toThrowError(
         notLatestEServiceDescriptor(
@@ -540,7 +547,8 @@ describe("Agreement service", () => {
         agreementService.createAgreement(
           apiAgreementPayload,
           authData,
-          uuidv4()
+          uuidv4(),
+          genericLogger
         )
       ).rejects.toThrowError(
         notLatestEServiceDescriptor(
@@ -581,7 +589,8 @@ describe("Agreement service", () => {
         agreementService.createAgreement(
           apiAgreementPayload,
           authData,
-          uuidv4()
+          uuidv4(),
+          genericLogger
         )
       ).rejects.toThrowError(
         descriptorNotInExpectedState(eservice.id, descriptor.id, [
@@ -620,7 +629,8 @@ describe("Agreement service", () => {
         agreementService.createAgreement(
           apiAgreementPayload,
           authData,
-          uuidv4()
+          uuidv4(),
+          genericLogger
         )
       ).rejects.toThrowError(agreementAlreadyExists(consumer.id, eservice.id));
     });
@@ -647,7 +657,8 @@ describe("Agreement service", () => {
         agreementService.createAgreement(
           apiAgreementPayload,
           authData,
-          uuidv4()
+          uuidv4(),
+          genericLogger
         )
       ).rejects.toThrowError(tenantIdNotFound(consumer.id));
     });
@@ -697,7 +708,8 @@ describe("Agreement service", () => {
         agreementService.createAgreement(
           apiAgreementPayload,
           authData,
-          uuidv4()
+          uuidv4(),
+          genericLogger
         )
       ).rejects.toThrowError(
         missingCertifiedAttributesError(descriptor.id, consumer.id)
@@ -755,7 +767,8 @@ describe("Agreement service", () => {
         agreementService.createAgreement(
           apiAgreementPayload,
           authData,
-          uuidv4()
+          uuidv4(),
+          genericLogger
         )
       ).rejects.toThrowError(
         missingCertifiedAttributesError(descriptor.id, consumer.id)
@@ -896,7 +909,12 @@ describe("Agreement service", () => {
     });
 
     it("should get all agreements if no filters are provided", async () => {
-      const allAgreements = await agreementService.getAgreements({}, 10, 0);
+      const allAgreements = await agreementService.getAgreements(
+        {},
+        10,
+        0,
+        genericLogger
+      );
       expect(allAgreements).toEqual({
         totalCount: 6,
         results: expect.arrayContaining([
@@ -916,7 +934,8 @@ describe("Agreement service", () => {
           producerId: eservice1.producerId,
         },
         10,
-        0
+        0,
+        genericLogger
       );
       expect(agreements1).toEqual({
         totalCount: 2,
@@ -928,7 +947,8 @@ describe("Agreement service", () => {
           producerId: [eservice1.producerId, eservice2.producerId],
         },
         10,
-        0
+        0,
+        genericLogger
       );
 
       expect(agreements2).toEqual({
@@ -948,7 +968,8 @@ describe("Agreement service", () => {
           consumerId: tenant1.id,
         },
         10,
-        0
+        0,
+        genericLogger
       );
       expect(agreements1).toEqual({
         totalCount: 3,
@@ -960,7 +981,8 @@ describe("Agreement service", () => {
           consumerId: [tenant1.id, tenant2.id],
         },
         10,
-        0
+        0,
+        genericLogger
       );
       expect(agreements2).toEqual({
         totalCount: 5,
@@ -980,7 +1002,8 @@ describe("Agreement service", () => {
           eserviceId: eservice1.id,
         },
         10,
-        0
+        0,
+        genericLogger
       );
       expect(agreements1).toEqual({
         totalCount: 2,
@@ -992,7 +1015,8 @@ describe("Agreement service", () => {
           eserviceId: [eservice1.id, eservice2.id],
         },
         10,
-        0
+        0,
+        genericLogger
       );
       expect(agreements2).toEqual({
         totalCount: 4,
@@ -1011,7 +1035,8 @@ describe("Agreement service", () => {
           descriptorId: descriptor1.id,
         },
         10,
-        0
+        0,
+        genericLogger
       );
       expect(agreements1).toEqual({
         totalCount: 1,
@@ -1023,7 +1048,8 @@ describe("Agreement service", () => {
           descriptorId: [descriptor1.id, descriptor3.id, descriptor5.id],
         },
         10,
-        0
+        0,
+        genericLogger
       );
       expect(agreements2).toEqual({
         totalCount: 4,
@@ -1042,7 +1068,8 @@ describe("Agreement service", () => {
           attributeId: attribute2.id,
         },
         10,
-        0
+        0,
+        genericLogger
       );
       expect(agreements1).toEqual({
         totalCount: 1,
@@ -1054,7 +1081,8 @@ describe("Agreement service", () => {
           attributeId: attribute3.id,
         },
         10,
-        0
+        0,
+        genericLogger
       );
       expect(agreements2).toEqual({
         totalCount: 2,
@@ -1066,7 +1094,8 @@ describe("Agreement service", () => {
           attributeId: [attribute1.id, attribute3.id, attribute4.id],
         },
         10,
-        0
+        0,
+        genericLogger
       );
       expect(agreements3).toEqual({
         totalCount: 2,
@@ -1079,7 +1108,8 @@ describe("Agreement service", () => {
           agreementStates: [agreementState.active, agreementState.pending],
         },
         10,
-        0
+        0,
+        genericLogger
       );
       expect(agreements).toEqual({
         totalCount: 2,
@@ -1092,7 +1122,8 @@ describe("Agreement service", () => {
           showOnlyUpgradeable: true,
         },
         10,
-        0
+        0,
+        genericLogger
       );
       expect(agreements).toEqual({
         totalCount: 1,
@@ -1112,7 +1143,8 @@ describe("Agreement service", () => {
           eserviceId: [eservice1.id, eservice2.id],
         },
         10,
-        0
+        0,
+        genericLogger
       );
       expect(agreements).toEqual({
         totalCount: 2,
@@ -1129,7 +1161,8 @@ describe("Agreement service", () => {
           descriptorId: [descriptor1.id],
         },
         10,
-        0
+        0,
+        genericLogger
       );
       expect(agreements).toEqual({
         totalCount: 1,
@@ -1144,7 +1177,8 @@ describe("Agreement service", () => {
           agreementStates: [agreementState.active],
         },
         10,
-        0
+        0,
+        genericLogger
       );
       expect(agreements).toEqual({
         totalCount: 1,
@@ -1160,7 +1194,8 @@ describe("Agreement service", () => {
           descriptorId: descriptor1.id,
         },
         10,
-        0
+        0,
+        genericLogger
       );
       expect(agreements1).toEqual({
         totalCount: 1,
@@ -1174,7 +1209,8 @@ describe("Agreement service", () => {
           descriptorId: descriptor1.id,
         },
         10,
-        0
+        0,
+        genericLogger
       );
       expect(agreements2).toEqual({
         totalCount: 0,
@@ -1188,7 +1224,8 @@ describe("Agreement service", () => {
           eserviceId: eservice1.id,
         },
         1,
-        0
+        0,
+        genericLogger
       );
       expect(agreements).toEqual({
         totalCount: 2,
@@ -1202,7 +1239,8 @@ describe("Agreement service", () => {
           eserviceId: [eservice1.id, eservice2.id],
         },
         2,
-        1
+        1,
+        genericLogger
       );
       expect(agreements).toEqual({
         totalCount: 4,
@@ -1215,7 +1253,8 @@ describe("Agreement service", () => {
           producerId: generateId<TenantId>(),
         },
         10,
-        0
+        0,
+        genericLogger
       );
 
       expect(agreements).toEqual({
@@ -1230,7 +1269,10 @@ describe("Agreement service", () => {
       await addOneAgreement(agreement, postgresDB, agreements);
       await addOneAgreement(buildAgreement(), postgresDB, agreements);
 
-      const result = await agreementService.getAgreementById(agreement.id);
+      const result = await agreementService.getAgreementById(
+        agreement.id,
+        genericLogger
+      );
       expect(result).toEqual(agreement);
     });
 
@@ -1240,7 +1282,7 @@ describe("Agreement service", () => {
       await addOneAgreement(buildAgreement(), postgresDB, agreements);
 
       await expect(
-        agreementService.getAgreementById(agreementId)
+        agreementService.getAgreementById(agreementId, genericLogger)
       ).rejects.toThrowError(agreementNotFound(agreementId));
     });
   });
@@ -1313,7 +1355,8 @@ describe("Agreement service", () => {
         const consumers = await agreementService.getAgreementConsumers(
           undefined,
           10,
-          0
+          0,
+          genericLogger
         );
 
         expect(consumers).toEqual({
@@ -1329,7 +1372,8 @@ describe("Agreement service", () => {
         const consumers = await agreementService.getAgreementConsumers(
           "Foo",
           10,
-          0
+          0,
+          genericLogger
         );
 
         expect(consumers).toEqual({
@@ -1343,7 +1387,8 @@ describe("Agreement service", () => {
         const consumers = await agreementService.getAgreementConsumers(
           undefined,
           2,
-          0
+          0,
+          genericLogger
         );
 
         expect(consumers).toEqual({
@@ -1357,7 +1402,8 @@ describe("Agreement service", () => {
         const consumers = await agreementService.getAgreementConsumers(
           undefined,
           2,
-          1
+          1,
+          genericLogger
         );
 
         expect(consumers).toEqual({
@@ -1371,7 +1417,8 @@ describe("Agreement service", () => {
         const consumers = await agreementService.getAgreementConsumers(
           "Foo",
           1,
-          1
+          1,
+          genericLogger
         );
 
         expect(consumers).toEqual({
@@ -1383,7 +1430,8 @@ describe("Agreement service", () => {
         const producers = await agreementService.getAgreementConsumers(
           "Not existing name",
           10,
-          0
+          0,
+          genericLogger
         );
 
         expect(producers).toEqual({
@@ -1397,7 +1445,8 @@ describe("Agreement service", () => {
         const producers = await agreementService.getAgreementProducers(
           undefined,
           10,
-          0
+          0,
+          genericLogger
         );
 
         expect(producers).toEqual({
@@ -1411,7 +1460,8 @@ describe("Agreement service", () => {
         const producers = await agreementService.getAgreementProducers(
           "Bar",
           10,
-          0
+          0,
+          genericLogger
         );
 
         expect(producers).toEqual({
@@ -1425,7 +1475,8 @@ describe("Agreement service", () => {
         const producers = await agreementService.getAgreementProducers(
           undefined,
           2,
-          0
+          0,
+          genericLogger
         );
 
         expect(producers).toEqual({
@@ -1439,7 +1490,8 @@ describe("Agreement service", () => {
         const producers = await agreementService.getAgreementProducers(
           undefined,
           2,
-          1
+          1,
+          genericLogger
         );
 
         expect(producers).toEqual({
@@ -1453,7 +1505,8 @@ describe("Agreement service", () => {
         const producers = await agreementService.getAgreementProducers(
           "Bar",
           1,
-          1
+          1,
+          genericLogger
         );
 
         expect(producers).toEqual({
@@ -1465,7 +1518,8 @@ describe("Agreement service", () => {
         const producers = await agreementService.getAgreementProducers(
           "Not existing name",
           10,
-          0
+          0,
+          genericLogger
         );
 
         expect(producers).toEqual({
@@ -1548,7 +1602,8 @@ describe("Agreement service", () => {
           agreeementStates: [],
         },
         10,
-        0
+        0,
+        genericLogger
       );
 
       expect(eservices).toEqual({
@@ -1568,7 +1623,8 @@ describe("Agreement service", () => {
           agreeementStates: [],
         },
         10,
-        0
+        0,
+        genericLogger
       );
 
       expect(eservices).toEqual({
@@ -1588,7 +1644,8 @@ describe("Agreement service", () => {
           agreeementStates: [],
         },
         10,
-        0
+        0,
+        genericLogger
       );
 
       expect(eservices).toEqual({
@@ -1608,7 +1665,8 @@ describe("Agreement service", () => {
           agreeementStates: [],
         },
         10,
-        0
+        0,
+        genericLogger
       );
 
       expect(eservices).toEqual({
@@ -1628,7 +1686,8 @@ describe("Agreement service", () => {
           agreeementStates: [agreementState.active, agreementState.pending],
         },
         10,
-        0
+        0,
+        genericLogger
       );
 
       expect(eservices).toEqual({
@@ -1648,7 +1707,8 @@ describe("Agreement service", () => {
           agreeementStates: [],
         },
         10,
-        0
+        0,
+        genericLogger
       );
 
       expect(eservices).toEqual({
@@ -1666,7 +1726,8 @@ describe("Agreement service", () => {
           agreeementStates: [agreementState.pending, agreementState.draft],
         },
         10,
-        0
+        0,
+        genericLogger
       );
 
       expect(eservices).toEqual({
@@ -1684,7 +1745,8 @@ describe("Agreement service", () => {
           agreeementStates: [agreementState.pending],
         },
         10,
-        0
+        0,
+        genericLogger
       );
 
       expect(eservices).toEqual({
@@ -1702,7 +1764,8 @@ describe("Agreement service", () => {
           agreeementStates: [],
         },
         2,
-        0
+        0,
+        genericLogger
       );
 
       expect(eservices).toEqual({
@@ -1722,7 +1785,8 @@ describe("Agreement service", () => {
           agreeementStates: [],
         },
         2,
-        1
+        1,
+        genericLogger
       );
 
       expect(eservices).toEqual({
@@ -1742,7 +1806,8 @@ describe("Agreement service", () => {
           agreeementStates: [],
         },
         10,
-        0
+        0,
+        genericLogger
       );
 
       expect(eservices).toEqual({
