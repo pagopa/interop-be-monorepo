@@ -11,14 +11,14 @@ export type ApiPurposeVersionDocument = z.infer<
   typeof api.schemas.PurposeVersionDocument
 >;
 
-export type PurposeUpdateContent = z.infer<
+export type ApiPurposeUpdateContent = z.infer<
   typeof api.schemas.PurposeUpdateContent
 >;
 
-export type RiskAnalysisFormSeed = z.infer<
+export type ApiRiskAnalysisFormSeed = z.infer<
   typeof api.schemas.RiskAnalysisFormSeed
 >;
 
-export type ReversePurposeUpdateContent = z.infer<
+export type ApiReversePurposeUpdateContent = z.infer<
   typeof api.schemas.ReversePurposeUpdateContent
 >;

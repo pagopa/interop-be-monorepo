@@ -43,14 +43,14 @@ import {
   toCreateEventWaitingForApprovalPurposeVersionDeleted,
 } from "../model/domain/toEvent.js";
 import {
-  PurposeUpdateContent,
-  ReversePurposeUpdateContent,
+  ApiPurposeUpdateContent,
+  ApiReversePurposeUpdateContent,
 } from "../model/domain/models.js";
 import { ReadModelService } from "./readModelService.js";
 import {
   assertOrganizationIsAConsumer,
-  isEserviceMode,
-  isFreeOfCharge,
+  assertEserviceHasSpecificMode,
+  assertConsistentFreeOfCharge,
   isRiskAnalysisFormValid,
   purposeIsDraft,
   assertTenantKindExists,
@@ -276,7 +276,7 @@ export function purposeServiceBuilder(
       correlationId,
     }: {
       purposeId: PurposeId;
-      purposeUpdateContent: PurposeUpdateContent;
+      purposeUpdateContent: ApiPurposeUpdateContent;
       organizationId: TenantId;
       correlationId: string;
     }): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
@@ -296,7 +296,7 @@ export function purposeServiceBuilder(
       correlationId,
     }: {
       purposeId: PurposeId;
-      reversePurposeUpdateContent: ReversePurposeUpdateContent;
+      reversePurposeUpdateContent: ApiReversePurposeUpdateContent;
       organizationId: TenantId;
       correlationId: string;
     }): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
@@ -392,7 +392,7 @@ const getInvolvedTenantByEServiceMode = async (
 
 const updatePurposeInternal = async (
   purposeId: PurposeId,
-  updateContent: PurposeUpdateContent | ReversePurposeUpdateContent,
+  updateContent: ApiPurposeUpdateContent | ApiReversePurposeUpdateContent,
   organizationId: TenantId,
   eserviceMode: EServiceMode,
   {
@@ -415,8 +415,8 @@ const updatePurposeInternal = async (
     purpose.data.eserviceId,
     readModelService
   );
-  isEserviceMode(eservice, eserviceMode);
-  isFreeOfCharge(
+  assertEserviceHasSpecificMode(eservice, eserviceMode);
+  assertConsistentFreeOfCharge(
     updateContent.isFreeOfCharge,
     updateContent.freeOfChargeReason
   );
@@ -432,7 +432,7 @@ const updatePurposeInternal = async (
   const newRiskAnalysis: PurposeRiskAnalysisForm | undefined =
     eserviceMode === "Deliver"
       ? validateAndTransformRiskAnalysis(
-          (updateContent as PurposeUpdateContent).riskAnalysisForm,
+          (updateContent as ApiPurposeUpdateContent).riskAnalysisForm,
           tenant.kind
         )
       : reverseValidateAndTransformRiskAnalysis(
