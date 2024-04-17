@@ -48,6 +48,7 @@ export const testCreateEService = (): ReturnType<typeof describe> =>
 
       const expectedEservice: EService = {
         ...mockEService,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         createdAt: new Date(Number(writtenPayload.eservice!.createdAt)),
         id: eservice.id,
       };
