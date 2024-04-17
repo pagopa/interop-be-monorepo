@@ -70,7 +70,7 @@ const purposeRouter = (
         INTERNAL_ROLE,
         SUPPORT_ROLE,
       ]),
-      (_req, res) => res.status(501).send()
+      (_req, res) => res.status(501).send() // TO DO
     )
     .post("/purposes", authorizationMiddleware([ADMIN_ROLE]), (_req, res) =>
       res.status(501).send()
