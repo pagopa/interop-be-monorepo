@@ -4,6 +4,7 @@ import {
   EServiceCollection,
   TenantCollection,
   PurposeCollection,
+  ReadModelFilter,
 } from "pagopa-interop-commons";
 import {
   EService,
@@ -15,9 +16,12 @@ import {
   EServiceReadModel,
   Purpose,
   PurposeId,
+  ListResult,
+  purposeVersionState,
 } from "pagopa-interop-models";
 import { Filter, WithId } from "mongodb";
 import { z } from "zod";
+import { ApiGetPurposesFilters } from "../model/domain/models.js";
 
 async function getPurpose(
   purposes: PurposeCollection,
@@ -110,6 +114,128 @@ export function readModelServiceBuilder(
       id: PurposeId
     ): Promise<WithMetadata<Purpose> | undefined> {
       return getPurpose(purposes, { "data.id": id });
+    },
+    async getPurposes(
+      filters: ApiGetPurposesFilters,
+      offset: number,
+      limit: number
+    ): Promise<ListResult<Purpose>> {
+      const {
+        name,
+        eservicesIds,
+        consumersIds,
+        producersIds,
+        states,
+        excludeDraft,
+      } = filters;
+
+      const nameFilter: ReadModelFilter<Purpose> = name
+        ? {
+            "data.title": {
+              $regex: ReadModelRepository.escapeRegExp(name),
+              $options: "i",
+            },
+          }
+        : {};
+
+      const eservicesIdsFilter: ReadModelFilter<Purpose> =
+        ReadModelRepository.arrayToFilter(eservicesIds, {
+          "data.eserviceId": { $in: eservicesIds },
+        });
+
+      const consumersIdsFilter: ReadModelFilter<Purpose> =
+        ReadModelRepository.arrayToFilter(consumersIds, {
+          "data.consumerId": { $in: consumersIds },
+        });
+
+      const versionStateFilter: ReadModelFilter<Purpose> =
+        ReadModelRepository.arrayToFilter(states, {
+          "data.versions.state": { $in: states },
+        });
+
+      const draftFilter: ReadModelFilter<Purpose> = excludeDraft
+        ? {
+            $nor: [
+              { "data.versions": { $size: 0 } },
+              {
+                $and: [
+                  { "data.versions": { $size: 1 } },
+                  {
+                    "data.descriptors.state": {
+                      $eq: purposeVersionState.draft,
+                    },
+                  },
+                ],
+              },
+            ],
+          }
+        : {};
+
+      const aggregationPipeline = [
+        {
+          $match: {
+            ...nameFilter,
+            ...eservicesIdsFilter,
+            ...consumersIdsFilter,
+            ...versionStateFilter,
+            ...draftFilter,
+          } satisfies ReadModelFilter<Purpose>,
+        },
+        producersIds.length > 0
+          ? [
+              {
+                $lookup: {
+                  from: "eservices",
+                  localField: "data.eserviceId",
+                  foreignField: "data.id",
+                  as: "eservices",
+                },
+              },
+              { $unwind: "$eservices" },
+              {
+                $match: {
+                  "data.producerId": { $in: producersIds },
+                },
+              },
+            ]
+          : [],
+        {
+          $project: {
+            data: 1,
+            computedColumn: { $toLower: ["$data.name"] },
+          },
+        },
+        {
+          $sort: { computedColumn: 1 },
+        },
+      ];
+
+      const data = await purposes
+        .aggregate([
+          ...aggregationPipeline,
+          { $skip: offset },
+          { $limit: limit },
+        ])
+        .toArray();
+
+      const result = z.array(Purpose).safeParse(data.map((d) => d.data));
+      if (!result.success) {
+        logger.error(
+          `Unable to parse purposes items: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+
+        throw genericError("Unable to parse purposes items");
+      }
+
+      return {
+        results: result.data,
+        totalCount: await ReadModelRepository.getTotalCount(
+          purposes,
+          aggregationPipeline
+        ),
+      };
     },
   };
 }
