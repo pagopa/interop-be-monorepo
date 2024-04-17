@@ -87,6 +87,7 @@ export const createUpdatedPurpose = (
   description: purposeUpdateContent.description,
   isFreeOfCharge: purposeUpdateContent.isFreeOfCharge,
   freeOfChargeReason: purposeUpdateContent.freeOfChargeReason,
+  updatedAt: new Date(Number(writtenPayload.purpose?.updatedAt)),
   riskAnalysisForm: {
     ...mockValidRiskAnalysis.riskAnalysisForm,
     id: unsafeBrandId(writtenPayload.purpose!.riskAnalysisForm!.id),
