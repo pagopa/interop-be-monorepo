@@ -6,7 +6,6 @@ import {
   messageDecoderSupplier,
   kafkaConsumerConfig,
   logger,
-  getContext,
   CatalogTopicConfig,
   catalogTopicConfig,
   PurposeTopicConfig,
@@ -14,6 +13,7 @@ import {
   readModelDbConfig,
   ReadModelRepository,
   ClientCollection,
+  runWithContext,
 } from "pagopa-interop-commons";
 import {
   Descriptor,
@@ -136,179 +136,184 @@ function processMessage(
 
       const decodedMsg = messageDecoder(messagePayload.message);
 
-      const ctx = getContext();
-      ctx.messageData = {
-        eventType: decodedMsg.type,
-        eventVersion: decodedMsg.event_version,
-        streamId: decodedMsg.stream_id,
-      };
-      ctx.correlationId = decodedMsg.correlation_id;
+      runWithContext(
+        {
+          messageData: {
+            eventType: decodedMsg.type,
+            eventVersion: decodedMsg.event_version,
+            streamId: decodedMsg.stream_id,
+          },
+          correlationId: decodedMsg.correlation_id,
+        },
+        async () => {
+          await match(decodedMsg)
+            .with(
+              {
+                event_version: 2,
+                type: "EServiceDescriptorPublished",
+              },
+              {
+                event_version: 2,
+                type: "EServiceDescriptorActivated",
+              },
+              async (msg) => {
+                const data = getDescriptorFromEvent(msg, msg.type);
+                await executeUpdate(msg.type, messagePayload, () =>
+                  authService.updateEServiceState(
+                    "ACTIVE",
+                    data.descriptor.id,
+                    data.eserviceId,
+                    data.descriptor.audience,
+                    data.descriptor.voucherLifespan
+                  )
+                );
+              }
+            )
+            .with(
+              {
+                event_version: 2,
+                type: "EServiceDescriptorSuspended",
+              },
+              {
+                event_version: 2,
+                type: "EServiceDescriptorArchived",
+              },
+              async (msg) => {
+                const data = getDescriptorFromEvent(msg, msg.type);
+                await executeUpdate(msg.type, messagePayload, () =>
+                  authService.updateEServiceState(
+                    "INACTIVE",
+                    data.descriptor.id,
+                    data.eserviceId,
+                    data.descriptor.audience,
+                    data.descriptor.voucherLifespan
+                  )
+                );
+              }
+            )
+            .with(
+              {
+                event_version: 2,
+                type: "DraftPurposeDeleted",
+              },
+              {
+                event_version: 2,
+                type: "WaitingForApprovalPurposeDeleted",
+              },
+              async (msg): Promise<void> => {
+                const purpose = getPurposeFromEvent(msg, msg.type);
 
-      await match(decodedMsg)
-        .with(
-          {
-            event_version: 2,
-            type: "EServiceDescriptorPublished",
-          },
-          {
-            event_version: 2,
-            type: "EServiceDescriptorActivated",
-          },
-          async (msg) => {
-            const data = getDescriptorFromEvent(msg, msg.type);
-            await executeUpdate(msg.type, messagePayload, () =>
-              authService.updateEServiceState(
-                "ACTIVE",
-                data.descriptor.id,
-                data.eserviceId,
-                data.descriptor.audience,
-                data.descriptor.voucherLifespan
-              )
-            );
-          }
-        )
-        .with(
-          {
-            event_version: 2,
-            type: "EServiceDescriptorSuspended",
-          },
-          {
-            event_version: 2,
-            type: "EServiceDescriptorArchived",
-          },
-          async (msg) => {
-            const data = getDescriptorFromEvent(msg, msg.type);
-            await executeUpdate(msg.type, messagePayload, () =>
-              authService.updateEServiceState(
-                "INACTIVE",
-                data.descriptor.id,
-                data.eserviceId,
-                data.descriptor.audience,
-                data.descriptor.voucherLifespan
-              )
-            );
-          }
-        )
-        .with(
-          {
-            event_version: 2,
-            type: "DraftPurposeDeleted",
-          },
-          {
-            event_version: 2,
-            type: "WaitingForApprovalPurposeDeleted",
-          },
-          async (msg): Promise<void> => {
-            const purpose = getPurposeFromEvent(msg, msg.type);
+                const purposeClients = await clients
+                  .find({
+                    "data.purposes.purpose.purposeId": purpose.id,
+                  })
+                  .map(({ data }) => ClientId.parse(data.id))
+                  .toArray();
 
-            const purposeClients = await clients
-              .find({
-                "data.purposes.purpose.purposeId": purpose.id,
-              })
-              .map(({ data }) => ClientId.parse(data.id))
-              .toArray();
+                await executeUpdate(msg.type, messagePayload, () =>
+                  Promise.all(
+                    purposeClients.map((clientId) =>
+                      authService.deletePurposeFromClient(purpose.id, clientId)
+                    )
+                  )
+                );
+              }
+            )
+            .with(
+              {
+                event_version: 2,
+                type: "PurposeVersionSuspended",
+              },
+              {
+                event_version: 2,
+                type: "PurposeVersionSuspendedByConsumer",
+              },
+              {
+                event_version: 2,
+                type: "PurposeVersionSuspendedByProducer",
+              },
+              {
+                event_version: 2,
+                type: "PurposeVersionUnsuspendedByConsumer",
+              },
+              {
+                event_version: 2,
+                type: "PurposeVersionUnsuspendedByProducer",
+              },
+              {
+                event_version: 2,
+                type: "PurposeVersionOverQuotaUnsuspended",
+              },
+              {
+                event_version: 2,
+                type: "NewPurposeVersionActivated",
+              },
+              {
+                event_version: 2,
+                type: "NewPurposeVersionWaitingForApproval",
+              },
+              {
+                event_version: 2,
+                type: "PurposeVersionRejected",
+              },
+              {
+                event_version: 2,
+                type: "PurposeVersionActivated",
+              },
+              {
+                event_version: 2,
+                type: "PurposeArchived",
+              },
+              async (msg): Promise<void> => {
+                const { purposeId, purposeVersion } =
+                  getPurposeVersionFromEvent(msg, msg.type);
 
-            await executeUpdate(msg.type, messagePayload, () =>
-              Promise.all(
-                purposeClients.map((clientId) =>
-                  authService.deletePurposeFromClient(purpose.id, clientId)
-                )
-              )
-            );
-          }
-        )
-        .with(
-          {
-            event_version: 2,
-            type: "PurposeVersionSuspended",
-          },
-          {
-            event_version: 2,
-            type: "PurposeVersionSuspendedByConsumer",
-          },
-          {
-            event_version: 2,
-            type: "PurposeVersionSuspendedByProducer",
-          },
-          {
-            event_version: 2,
-            type: "PurposeVersionUnsuspendedByConsumer",
-          },
-          {
-            event_version: 2,
-            type: "PurposeVersionUnsuspendedByProducer",
-          },
-          {
-            event_version: 2,
-            type: "PurposeVersionOverQuotaUnsuspended",
-          },
-          {
-            event_version: 2,
-            type: "NewPurposeVersionActivated",
-          },
-          {
-            event_version: 2,
-            type: "NewPurposeVersionWaitingForApproval",
-          },
-          {
-            event_version: 2,
-            type: "PurposeVersionRejected",
-          },
-          {
-            event_version: 2,
-            type: "PurposeVersionActivated",
-          },
-          {
-            event_version: 2,
-            type: "PurposeArchived",
-          },
-          async (msg): Promise<void> => {
-            const { purposeId, purposeVersion } = getPurposeVersionFromEvent(
-              msg,
-              msg.type
-            );
+                await executeUpdate(msg.type, messagePayload, () =>
+                  authService.updatePurposeState(
+                    purposeId,
+                    purposeVersion.id,
+                    purposeVersion.state === purposeVersionState.active
+                      ? "ACTIVE"
+                      : "INACTIVE"
+                  )
+                );
+              }
+            )
+            .with(
+              {
+                event_version: 2,
+                type: "PurposeActivated",
+              },
+              {
+                event_version: 2,
+                type: "PurposeWaitingForApproval",
+              },
+              async (msg): Promise<void> => {
+                const purpose = getPurposeFromEvent(msg, msg.type);
 
-            await executeUpdate(msg.type, messagePayload, () =>
-              authService.updatePurposeState(
-                purposeId,
-                purposeVersion.id,
-                purposeVersion.state === purposeVersionState.active
-                  ? "ACTIVE"
-                  : "INACTIVE"
-              )
-            );
-          }
-        )
-        .with(
-          {
-            event_version: 2,
-            type: "PurposeActivated",
-          },
-          {
-            event_version: 2,
-            type: "PurposeWaitingForApproval",
-          },
-          async (msg): Promise<void> => {
-            const purpose = getPurposeFromEvent(msg, msg.type);
+                const purposeVersion = purpose.versions[0];
 
-            const purposeVersion = purpose.versions[0];
+                if (!purposeVersion) {
+                  throw missingKafkaMessageDataError(
+                    "purposeVersion",
+                    msg.type
+                  );
+                }
 
-            if (!purposeVersion) {
-              throw missingKafkaMessageDataError("purposeVersion", msg.type);
-            }
-
-            await executeUpdate(msg.type, messagePayload, () =>
-              authService.updatePurposeState(
-                purpose.id,
-                purposeVersion.id,
-                purposeVersion.state === purposeVersionState.active
-                  ? "ACTIVE"
-                  : "INACTIVE"
-              )
-            );
-          }
-        )
-        .otherwise(() => void 0);
+                await executeUpdate(msg.type, messagePayload, () =>
+                  authService.updatePurposeState(
+                    purpose.id,
+                    purposeVersion.id,
+                    purposeVersion.state === purposeVersionState.active
+                      ? "ACTIVE"
+                      : "INACTIVE"
+                  )
+                );
+              }
+            )
+            .otherwise(() => void 0);
+        }
+      );
     } catch (e) {
       throw kafkaMessageProcessError(
         messagePayload.topic,

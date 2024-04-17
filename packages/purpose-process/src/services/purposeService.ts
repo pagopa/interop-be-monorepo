@@ -8,14 +8,14 @@ import {
   Purpose,
   PurposeId,
   TenantKind,
-  purposeVersionState,
-  PurposeVersionId,
-  PurposeVersionDocumentId,
+  Ownership,
   PurposeVersion,
   PurposeVersionDocument,
+  PurposeVersionDocumentId,
+  PurposeVersionId,
   ownership,
-  Ownership,
   purposeEventToBinaryData,
+  purposeVersionState,
 } from "pagopa-interop-models";
 import {
   eserviceNotFound,
@@ -146,6 +146,10 @@ export function purposeServiceBuilder(
       documentId: PurposeVersionDocumentId;
       organizationId: TenantId;
     }): Promise<PurposeVersionDocument> {
+      logger.info(
+        `Retrieving Risk Analysis document ${documentId} in version ${versionId} of Purpose ${purposeId}`
+      );
+
       const purpose = await retrievePurpose(purposeId, readModelService);
       const eservice = await retrieveEService(
         purpose.data.eserviceId,
@@ -190,6 +194,7 @@ export function purposeServiceBuilder(
         versions: purpose.data.versions.filter(
           (v) => v.id !== purposeVersion.id
         ),
+        updatedAt: new Date(),
       };
 
       const event = toCreateEventWaitingForApprovalPurposeVersionDeleted({
@@ -315,5 +320,6 @@ const replacePurposeVersion = (
   return {
     ...purpose,
     versions: updatedVersions,
+    updatedAt: newVersion.updatedAt,
   };
 };
