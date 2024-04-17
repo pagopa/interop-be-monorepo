@@ -618,12 +618,15 @@ export function tenantServiceBuilder(
         updatedAt: new Date(),
       };
 
-      updatedTenant = updateAttribute({
-        updatedTenant,
-        targetTenant,
-        attributeId,
-        revocationTimestamp: new Date(),
-      });
+      updatedTenant = updateAttribute(
+        {
+          updatedTenant,
+          targetTenant,
+          attributeId,
+          revocationTimestamp: new Date(),
+        },
+        verifiedTenantAttribute.assignmentTimestamp
+      );
 
       const event = toCreateEventTenantVerifiedAttributeRevoked(
         targetTenant.data.id,
