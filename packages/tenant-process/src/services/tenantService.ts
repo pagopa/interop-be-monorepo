@@ -562,6 +562,87 @@ export function tenantServiceBuilder(
       return updatedTenant;
     },
 
+    async revokeVerifiedAttribute({
+      tenantId,
+      attributeId,
+      authData,
+      limit,
+      offset,
+      correlationId,
+    }: {
+      tenantId: TenantId;
+      attributeId: AttributeId;
+      authData: AuthData;
+      limit: number;
+      offset: number;
+      correlationId: string;
+    }): Promise<Tenant> {
+      logger.info(`Revoking attribute ${attributeId} to tenant ${tenantId}`);
+
+      const targetTenant = await retrieveTenant(tenantId, readModelService);
+
+      if (authData.organizationId === targetTenant.data.id) {
+        throw verifiedAttributeSelfVerification();
+      }
+
+      await assertAttributeVerificationAllowed({
+        producerId: authData.organizationId,
+        consumerId: targetTenant.data.id,
+        attributeId,
+        readModelService,
+        limit,
+        offset,
+      });
+
+      const verifiedTenantAttribute = targetTenant.data.attributes.find(
+        (attr) =>
+          attr.type === tenantAttributeType.VERIFIED && attr.id === attributeId
+      ) as VerifiedTenantAttribute;
+
+      if (!verifiedTenantAttribute) {
+        attributeNotFound(attributeId);
+      }
+
+      const verifier = verifiedTenantAttribute.verifiedBy.find(
+        (a) => a.id === authData.organizationId
+      );
+
+      if (!verifier) {
+        throw attributeRevocationNotAllowed(targetTenantUuid, attributeUuid);
+      }
+
+      const revoker = verifiedTenantAttribute.revokedBy.find(
+        (a) => a.id === authData.organizationId
+      );
+
+      if (verifier && revoker) {
+        throw attributeAlreadyRevoked();
+      }
+
+      // eslint-disable-next-line functional/no-let
+      let updatedTenant: Tenant = {
+        ...targetTenant.data,
+        updatedAt: new Date(),
+      };
+
+      updatedTenant = reAssignAttribute({
+        updatedTenant,
+        targetTenant,
+        attributeId,
+        revocationTimestamp: new Date(),
+      });
+
+      const event = toCreateEventTenantVerifiedAttributeRevoked(
+        targetTenant.data.id,
+        targetTenant.metadata.version,
+        updatedTenant,
+        attributeId,
+        correlationId
+      );
+      await repository.createEvent(event);
+      return updatedTenant;
+    },
+
     async getCertifiedAttributes({
       organizationId,
       offset,
@@ -655,23 +736,28 @@ export function tenantServiceBuilder(
   };
 }
 
-function reAssignAttribute({
-  updatedTenant,
-  targetTenant,
-  attributeId,
-}: {
-  updatedTenant: Tenant;
-  targetTenant: WithMetadata<Tenant>;
-  attributeId: AttributeId;
-}): Tenant {
+function reAssignAttribute(
+  {
+    updatedTenant,
+    targetTenant,
+    attributeId,
+    revocationTimestamp,
+  }: {
+    updatedTenant: Tenant;
+    targetTenant: WithMetadata<Tenant>;
+    attributeId: AttributeId;
+    revocationTimestamp?: Date | undefined;
+  },
+  assignmentTimestamp: Date = new Date()
+): Tenant {
   return {
     ...updatedTenant,
     attributes: targetTenant.data.attributes.map((a) =>
       a.id === attributeId
         ? {
             ...a,
-            assignmentTimestamp: new Date(),
-            revocationTimestamp: undefined,
+            assignmentTimestamp,
+            revocationTimestamp,
           }
         : a
     ),

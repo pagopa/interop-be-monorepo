@@ -142,6 +142,38 @@ export async function assertAttributeVerificationAllowed({
   });
 }
 
+export async function assertAttributeRevocationAllowed({
+  producerId,
+  consumerId,
+  attributeId,
+  readModelService,
+  limit,
+  offset,
+}: {
+  producerId: TenantId;
+  consumerId: TenantId;
+  attributeId: AttributeId;
+  readModelService: ReadModelService;
+  limit: number;
+  offset: number;
+}): Promise<void> {
+  const allowedStatuses = [
+    agreementState.pending,
+    agreementState.active,
+    agreementState.suspended,
+  ];
+  await assertVerifiedAttributeOperationAllowed({
+    producerId,
+    consumerId,
+    attributeId,
+    agreementStates: allowedStatuses,
+    readModelService,
+    error: attributeRevocationNotAllowed(consumerId, attributeId),
+    limit,
+    offset,
+  });
+}
+
 export function assertOrganizationVerifierExist(
   verifierId: string,
   tenantId: TenantId,
