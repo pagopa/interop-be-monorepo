@@ -97,7 +97,7 @@ export const getMockCertifiedTenantAttribute =
     assignmentTimestamp: currentDate,
     id: generateId(),
     type: tenantAttributeType.CERTIFIED,
-    revocationTimestamp: currentDate,
+    revocationTimestamp: undefined,
   });
 
 export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
