@@ -78,7 +78,7 @@ import {
 } from "../src/model/domain/errors.js";
 import { addOnePurpose, getMockEService } from "./utils.js";
 
-describe("database test", async () => {
+describe("Integration tests", async () => {
   let purposes: PurposeCollection;
   let eservices: EServiceCollection;
   let tenants: TenantCollection;
@@ -244,28 +244,18 @@ describe("database test", async () => {
         expect(result).toEqual(mockDocument);
       });
       it("should throw purposeNotFound if the purpose doesn't exist", async () => {
-        const mockDocument = getMockPurposeVersionDocument();
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
-          eserviceId: mockEService.id,
-          versions: [{ ...mockPurposeVersion, riskAnalysis: mockDocument }],
-        };
-        const mockPurpose2: Purpose = {
-          ...getMockPurpose(),
-          id: generateId(),
-          title: "another purpose",
-        };
-        await addOnePurpose(mockPurpose2, postgresDB, purposes);
+        const notExistingId: PurposeId = generateId();
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         expect(
           purposeService.getRiskAnalysisDocument({
-            purposeId: mockPurpose1.id,
-            versionId: mockPurposeVersion.id,
-            documentId: mockDocument.id,
+            purposeId: notExistingId,
+            versionId: generateId(),
+            documentId: generateId(),
             organizationId: mockEService.producerId,
           })
-        ).rejects.toThrowError(purposeNotFound(mockPurpose1.id));
+        ).rejects.toThrowError(purposeNotFound(notExistingId));
       });
       it("should throw eserviceNotFound if the eservice doesn't exist", async () => {
         const mockDocument = getMockPurposeVersionDocument();
@@ -337,7 +327,7 @@ describe("database test", async () => {
           )
         );
       });
-      it("should throw organizationNotAllowed if the requester is not the producer not the consumer", async () => {
+      it("should throw organizationNotAllowed if the requester is not the producer nor the consumer", async () => {
         const randomId: TenantId = generateId();
         const mockDocument = getMockPurposeVersionDocument();
         const mockPurpose1: Purpose = {
@@ -362,6 +352,9 @@ describe("database test", async () => {
 
     describe("deletePurposeVersion", () => {
       it("should write in event-store for the deletion of a purpose version", async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date());
+
         const mockPurposeVersion = {
           ...getMockPurposeVersion(),
           state: purposeVersionState.waitingForApproval,
@@ -403,32 +396,32 @@ describe("database test", async () => {
         const expectedPurpose: Purpose = {
           ...mockPurpose1,
           versions: [],
+          updatedAt: new Date(),
         };
 
         expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+
+        vi.useRealTimers();
       });
       it("should throw purposeNotFound if the purpose doesn't exist", async () => {
+        const randomId: PurposeId = generateId();
         const mockPurpose1: Purpose = {
           ...mockPurpose,
           eserviceId: mockEService.id,
           versions: [mockPurposeVersion],
         };
-        const mockPurpose2: Purpose = {
-          ...getMockPurpose(),
-          id: generateId(),
-          title: "another purpose",
-        };
-        await addOnePurpose(mockPurpose2, postgresDB, purposes);
+
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         expect(
           purposeService.deletePurposeVersion({
-            purposeId: mockPurpose1.id,
+            purposeId: randomId,
             versionId: mockPurposeVersion.id,
             organizationId: mockEService.producerId,
             correlationId: generateId(),
           })
-        ).rejects.toThrowError(purposeNotFound(mockPurpose1.id));
+        ).rejects.toThrowError(purposeNotFound(randomId));
       });
       it("should throw purposeVersionNotFound if the purpose version doesn't exist", async () => {
         const randomVersionId: PurposeVersionId = generateId();
