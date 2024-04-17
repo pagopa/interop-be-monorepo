@@ -321,6 +321,8 @@ export function purposeServiceBuilder(
       organizationId: TenantId;
       correlationId: string;
     }): Promise<void> {
+      logger.info(`Deleting Purpose ${purposeId}`);
+
       const purpose = await retrievePurpose(purposeId, readModelService);
 
       assertOrganizationIsAConsumer(organizationId, purpose.data.consumerId);
