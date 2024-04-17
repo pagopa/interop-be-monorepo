@@ -318,7 +318,7 @@ describe("database test", async () => {
           )
         );
       });
-      it("should throw organizationNotAllowed if the requester is not the producer not the consumer", async () => {
+      it("should throw organizationNotAllowed if the requester is not the producer nor the consumer", async () => {
         const randomId: TenantId = generateId();
         const mockDocument = getMockPurposeVersionDocument();
         const mockPurpose1: Purpose = {
