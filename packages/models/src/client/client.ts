@@ -54,7 +54,7 @@ export const ClientPurposeDetails = z.object({
 export type ClientPurposeDetails = z.infer<typeof ClientPurposeDetails>;
 
 export const ClientStatesChain = z.object({
-  id: z.string().uuid(), // QUESTION: Should I make a ClientStatesChainId branded type?
+  id: z.string().uuid(),
   eService: ClientEServiceDetails,
   agreement: ClientAgreementDetails,
   purpose: ClientPurposeDetails,
@@ -67,8 +67,8 @@ export const Client = z.object({
   name: z.string(),
   purposes: z.array(ClientStatesChain),
   description: z.string().optional(),
-  relationships: z.set(z.string().uuid()), // QUESTION: are these TenantIds?
-  users: z.set(z.string().uuid()), // QUESTION: ^^^
+  relationships: z.set(z.string().uuid()),
+  users: z.set(z.string().uuid()),
   kind: ClientKind,
   createdAt: z.coerce.date(),
 });
