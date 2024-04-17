@@ -135,15 +135,11 @@ export async function assertAttributeRevocationAllowed({
   consumerId,
   attributeId,
   readModelService,
-  limit,
-  offset,
 }: {
   producerId: TenantId;
   consumerId: TenantId;
   attributeId: AttributeId;
   readModelService: ReadModelService;
-  limit: number;
-  offset: number;
 }): Promise<void> {
   const allowedStatuses = [
     agreementState.pending,
@@ -157,8 +153,6 @@ export async function assertAttributeRevocationAllowed({
     agreementStates: allowedStatuses,
     readModelService,
     error: attributeRevocationNotAllowed(consumerId, attributeId),
-    limit,
-    offset,
   });
 }
 
