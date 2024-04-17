@@ -24,7 +24,6 @@ import {
   PurposeRiskAnalysisForm,
   PurposeEvent,
   EServiceMode,
-  Ownership,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
