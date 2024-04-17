@@ -25,6 +25,7 @@ import {
   PurposeEvent,
   EServiceMode,
   Ownership,
+  ListResult,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -49,6 +50,7 @@ import {
   toCreateEventWaitingForApprovalPurposeVersionDeleted,
 } from "../model/domain/toEvent.js";
 import {
+  ApiGetPurposesFilters,
   PurposeUpdateContent,
   ReversePurposeUpdateContent,
 } from "../model/domain/models.js";
@@ -474,6 +476,36 @@ export function purposeServiceBuilder(
 
       await repository.createEvent(event);
       return suspendedPurposeVersion;
+    },
+    async getPurposes(
+      filters: ApiGetPurposesFilters,
+      offset: number,
+      limit: number
+    ): Promise<ListResult<Purpose>> {
+      logger.info("To DO");
+
+      const purposesList = await readModelService.getPurposes(
+        filters,
+        offset,
+        limit
+      );
+
+      const purposesToReturn: Purpose[] = purposesList.results.map(
+        (purpose) => ({
+          ...purpose,
+          versions: filters.excludeDraft
+            ? purpose.versions.filter(
+                (version) => version.state !== purposeVersionState.draft
+              )
+            : purpose.versions,
+          riskAnalysisForm: undefined,
+        })
+      );
+
+      return {
+        results: purposesToReturn,
+        totalCount: purposesList.totalCount,
+      };
     },
   };
 }
