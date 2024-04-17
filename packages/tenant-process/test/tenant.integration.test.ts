@@ -397,7 +397,7 @@ describe("Integration tests", () => {
       it("Should throw verifiedAttributeNotFoundInTenant when the attribute is not verified", async () => {
         const updatedCertifiedTenant: Tenant = {
           ...mockTenant,
-          attributes: [{ ...getMockCertifiedTenantAttribute() }],
+          attributes: [{ ...mockCertifiedTenantAttribute }],
           updatedAt: currentDate,
           name: "A updatedCertifiedTenant",
         };
@@ -682,6 +682,7 @@ describe("Integration tests", () => {
             {
               ...mockCertifiedTenantAttribute,
               id: unsafeBrandId(tenantAttributeSeed.id),
+              revocationTimestamp: new Date(),
             },
           ],
         };
