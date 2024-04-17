@@ -356,7 +356,7 @@ export function tenantServiceBuilder(
         throw certifiedAttributeAlreadyAssigned(attribute.id, organizationId);
       } else {
         // re-assigning attribute if it was revoked
-        updatedTenant = reAssignAttribute({
+        updatedTenant = updateAttribute({
           updatedTenant,
           targetTenant,
           attributeId: attribute.id,
@@ -433,7 +433,7 @@ export function tenantServiceBuilder(
           throw attributeNotFound(maybeDeclaredTenantAttribute.id);
         }
         // re-assigning attribute if it was revoked
-        updatedTenant = reAssignAttribute({
+        updatedTenant = updateAttribute({
           updatedTenant,
           targetTenant,
           attributeId: unsafeBrandId(tenantAttributeSeed.id),
@@ -485,7 +485,7 @@ export function tenantServiceBuilder(
       }
 
       // eslint-disable-next-line functional/no-let
-      updatedTenant = reAssignAttribute(
+      updatedTenant = updateAttribute(
         {
           updatedTenant,
           targetTenant: requesterTenant,
@@ -598,7 +598,7 @@ export function tenantServiceBuilder(
   };
 }
 
-function reAssignAttribute(
+function updateAttribute(
   {
     updatedTenant,
     targetTenant,
