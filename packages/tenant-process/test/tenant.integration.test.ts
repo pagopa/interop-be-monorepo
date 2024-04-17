@@ -22,6 +22,7 @@ import {
   mongoDBContainer,
   postgreSQLContainer,
   readLastEventByStreamId,
+  writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import { IDatabase } from "pg-promise";
 import {
@@ -64,7 +65,6 @@ import { ApiSelfcareTenantSeed } from "../src/model/types.js";
 import { getTenantKind } from "../src/services/validators.js";
 import {
   addOneAgreement,
-  addOneAttribute,
   addOneEService,
   addOneTenant,
   currentDate,
@@ -1620,8 +1620,9 @@ describe("Integration tests", () => {
           id: tenantCertifiedAttribute2.id,
           origin: tenant1.id,
         };
-        await addOneAttribute(readModelCertifiedAttribute1, attributes);
-        await addOneAttribute(readModelCertifiedAttribute2, attributes);
+
+        await writeInReadmodel(readModelCertifiedAttribute1, attributes);
+        await writeInReadmodel(readModelCertifiedAttribute2, attributes);
 
         const tenantWithCertifiedAttributes: Tenant = {
           ...tenant2,
@@ -1680,8 +1681,9 @@ describe("Integration tests", () => {
           id: revokedAttribute.id,
           origin: tenant1.id,
         };
-        await addOneAttribute(readModelCertifiedAttribute, attributes);
-        await addOneAttribute(readModelRevokedCertifiedAttribute, attributes);
+
+        await writeInReadmodel(readModelCertifiedAttribute, attributes);
+        await writeInReadmodel(readModelRevokedCertifiedAttribute, attributes);
 
         const tenantWithCertifiedAttributes: Tenant = {
           ...tenant2,
@@ -1727,8 +1729,9 @@ describe("Integration tests", () => {
           id: tenantCertifiedAttribute2.id,
           origin: tenant1.id,
         };
-        await addOneAttribute(readModelCertifiedAttribute1, attributes);
-        await addOneAttribute(readModelCertifiedAttribute2, attributes);
+
+        await writeInReadmodel(readModelCertifiedAttribute1, attributes);
+        await writeInReadmodel(readModelCertifiedAttribute2, attributes);
 
         const tenantWithCertifiedAttributes: Tenant = {
           ...tenant2,
