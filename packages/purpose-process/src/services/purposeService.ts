@@ -191,6 +191,7 @@ export function purposeServiceBuilder(
         versions: purpose.data.versions.filter(
           (v) => v.id !== purposeVersion.id
         ),
+        updatedAt: new Date(),
       };
 
       const event = toCreateEventWaitingForApprovalPurposeVersionDeleted({

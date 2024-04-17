@@ -3,7 +3,15 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import {
   EServiceCollection,
   PurposeCollection,
@@ -342,6 +350,9 @@ describe("database test", async () => {
 
     describe("deletePurposeVersion", () => {
       it("should write in event-store for the deletion of a purpose version", async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date());
+
         const mockPurposeVersion = {
           ...getMockPurposeVersion(),
           state: purposeVersionState.waitingForApproval,
@@ -383,9 +394,12 @@ describe("database test", async () => {
         const expectedPurpose: Purpose = {
           ...mockPurpose1,
           versions: [],
+          updatedAt: new Date(),
         };
 
         expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+
+        vi.useRealTimers();
       });
       it("should throw purposeNotFound if the purpose doesn't exist", async () => {
         const randomId: PurposeId = generateId();
