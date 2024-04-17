@@ -1,6 +1,5 @@
 import {
   AgreementCollection,
-  AttributeCollection,
   AuthData,
   EServiceCollection,
   TenantCollection,
