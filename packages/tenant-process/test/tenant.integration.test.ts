@@ -814,7 +814,6 @@ describe("Integration tests", () => {
               id: attribute.id,
               type: "PersistentCertifiedAttribute",
               assignmentTimestamp: new Date(),
-              revocationTimestamp: undefined,
             },
           ],
         };
