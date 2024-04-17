@@ -345,13 +345,10 @@ const tenantsRouter = (
       authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
         try {
-          const { tenantId, offset, limit } = req.query;
           const tenant = await tenantService.verifyVerifiedAttribute({
-            tenantId: unsafeBrandId(tenantId),
+            tenantId: unsafeBrandId(req.params.tenantId),
             tenantAttributeSeed: req.body,
-            authData: req.ctx.authData,
-            limit,
-            offset,
+            organizationId: req.ctx.authData.organizationId,
             correlationId: req.ctx.correlationId,
           });
           return res.status(200).json(toApiTenant(tenant)).end();
