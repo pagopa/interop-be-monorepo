@@ -692,6 +692,7 @@ describe("Integration tests", () => {
             {
               ...mockCertifiedTenantAttribute,
               id: unsafeBrandId(attribute.id),
+              revocationTimestamp: new Date(),
             },
           ],
         };
@@ -783,7 +784,6 @@ describe("Integration tests", () => {
               id: attribute.id,
               type: "PersistentCertifiedAttribute",
               assignmentTimestamp: new Date(),
-              revocationTimestamp: undefined,
             },
           ],
         };
