@@ -1,24 +1,30 @@
 import jwt, { JwtHeader, SigningKeyCallback } from "jsonwebtoken";
 import jwksClient from "jwks-rsa";
+import { jwtParsingError, missingClaim } from "pagopa-interop-models";
 import { JWTConfig, logger } from "../index.js";
 import { AuthData, AuthToken, getAuthDataFromToken } from "./authData.js";
 
-export const readAuthDataFromJwtToken = (
-  jwtToken: string
-): AuthData | Error => {
+export type JWTVerificationResult =
+  | {
+      valid: true;
+    }
+  | {
+      valid: false;
+      error: string;
+    };
+
+export const readAuthDataFromJwtToken = (jwtToken: string): AuthData => {
   try {
     const decoded = jwt.decode(jwtToken, { json: true });
     const token = AuthToken.safeParse(decoded);
 
     if (token.success === false) {
-      logger.error(`Error parsing token: ${JSON.stringify(token.error)}`);
-      return new Error(token.error.message);
+      throw missingClaim(token.error.message);
     } else {
       return getAuthDataFromToken(token.data);
     }
   } catch (err) {
-    logger.error(`Unexpected error parsing token: ${err}`);
-    return new Error(`Unexpected error parsing token: ${err}`);
+    throw jwtParsingError(err);
   }
 };
 
@@ -42,7 +48,9 @@ const getKey =
     }
   };
 
-export const verifyJwtToken = (jwtToken: string): Promise<boolean> => {
+export const verifyJwtToken = (
+  jwtToken: string
+): Promise<JWTVerificationResult> => {
   const config = JWTConfig.parse(process.env);
   const clients = config.wellKnownUrls.map((url) =>
     jwksClient({
@@ -58,10 +66,13 @@ export const verifyJwtToken = (jwtToken: string): Promise<boolean> => {
       },
       function (err, _decoded) {
         if (err) {
-          logger.warn(`Error verifying token: ${err}`);
-          return resolve(false);
+          logger.warn(`Token verification fails: ${err}`);
+          return resolve({
+            valid: false,
+            error: err.message,
+          });
         }
-        return resolve(true);
+        return resolve({ valid: true });
       }
     );
   });
