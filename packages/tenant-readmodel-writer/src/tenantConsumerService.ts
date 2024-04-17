@@ -1,6 +1,6 @@
 import { match } from "ts-pattern";
 import {
-    Logger,
+  Logger,
   ReadModelRepository,
   readModelWriterConfig,
 } from "pagopa-interop-commons";
