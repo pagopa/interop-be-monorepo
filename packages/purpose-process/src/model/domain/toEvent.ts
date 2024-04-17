@@ -109,10 +109,12 @@ export const toCreateEventWaitingForApprovalPurposeDeleted = ({
 
 export const toCreateEventPurposeArchived = ({
   purpose,
+  purposeVersionId,
   version,
   correlationId,
 }: {
   purpose: Purpose;
+  purposeVersionId: PurposeVersionId;
   version: number;
   correlationId: string;
 }): CreateEvent<PurposeEvent> => ({
@@ -121,7 +123,7 @@ export const toCreateEventPurposeArchived = ({
   event: {
     type: "PurposeArchived",
     event_version: 2,
-    data: { purpose: toPurposeV2(purpose) },
+    data: { purpose: toPurposeV2(purpose), versionId: purposeVersionId },
   },
   correlationId,
 });
