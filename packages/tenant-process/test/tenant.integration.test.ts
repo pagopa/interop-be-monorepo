@@ -866,7 +866,6 @@ describe("Integration tests", () => {
             {
               ...mockCertifiedTenantAttribute,
               id: attributeId,
-              revocationTimestamp: undefined,
             },
           ],
         };
