@@ -62,8 +62,6 @@ export function purposeServiceBuilder(
   _dbInstance: DB,
   readModelService: ReadModelService
 ) {
-  // const repository = eventRepository(dbInstance, purposeEventToBinaryData);
-
   return {
     async getPurposeById(
       purposeId: PurposeId,
