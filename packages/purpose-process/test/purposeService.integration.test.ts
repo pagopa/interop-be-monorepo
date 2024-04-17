@@ -16,7 +16,6 @@ import { IDatabase } from "pg-promise";
 import {
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
-  getMockAuthData,
   getMockPurpose,
   getMockPurposeVersion,
   getMockPurposeVersionDocument,
@@ -27,14 +26,12 @@ import {
 } from "pagopa-interop-commons-test";
 import { StartedTestContainer } from "testcontainers";
 import {
-  EService,
   EServiceId,
   Purpose,
   PurposeId,
   PurposeVersionDocumentId,
   PurposeVersionId,
   TenantId,
-  TenantKind,
   generateId,
   tenantKind,
   toReadModelEService,
@@ -109,9 +106,6 @@ describe("Integration tests", async () => {
   });
 
   describe("Purpose service", () => {
-    const mockPurpose = getMockPurpose();
-    const mockEService = getMockEService();
-    const mockPurposeVersion = getMockPurposeVersion();
     describe("getPurposeById", () => {
       it("should get the purpose if it exists", async () => {
         const mockTenant = {
@@ -119,8 +113,9 @@ describe("Integration tests", async () => {
           kind: tenantKind.PA,
         };
 
+        const mockEService = getMockEService();
         const mockPurpose1: Purpose = {
-          ...mockPurpose,
+          ...getMockPurpose(),
           eserviceId: mockEService.id,
         };
         const mockPurpose2: Purpose = {
@@ -144,10 +139,13 @@ describe("Integration tests", async () => {
       });
       it("should throw purposeNotFound if the purpose doesn't exist", async () => {
         const notExistingId: PurposeId = generateId();
+        const mockTenant = getMockTenant();
+        const mockPurpose = getMockPurpose();
         await addOnePurpose(mockPurpose, postgresDB, purposes);
+        await writeInReadmodel(mockTenant, tenants);
 
         expect(
-          purposeService.getPurposeById(notExistingId, generateId())
+          purposeService.getPurposeById(notExistingId, mockTenant.id)
         ).rejects.toThrowError(purposeNotFound(notExistingId));
       });
       it("should throw eserviceNotFound if the eservice doesn't exist", async () => {
@@ -157,44 +155,46 @@ describe("Integration tests", async () => {
           kind: tenantKind.PA,
         };
 
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           eserviceId: notExistingId,
         };
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
         await writeInReadmodel(mockTenant, tenants);
 
         expect(
-          purposeService.getPurposeById(mockPurpose1.id, mockTenant.id)
+          purposeService.getPurposeById(mockPurpose.id, mockTenant.id)
         ).rejects.toThrowError(eserviceNotFound(notExistingId));
       });
       it("should throw tenantNotFound if the tenant doesn't exist", async () => {
         const notExistingId: TenantId = generateId();
+        const mockEService = getMockEService();
 
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           eserviceId: mockEService.id,
         };
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         expect(
-          purposeService.getPurposeById(mockPurpose1.id, notExistingId)
+          purposeService.getPurposeById(mockPurpose.id, notExistingId)
         ).rejects.toThrowError(tenantNotFound(notExistingId));
       });
       it("should throw tenantKindNotFound if the tenant doesn't exist", async () => {
         const mockTenant = getMockTenant();
+        const mockEService = getMockEService();
 
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           eserviceId: mockEService.id,
         };
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
         await writeInReadmodel(mockTenant, tenants);
 
         expect(
-          purposeService.getPurposeById(mockPurpose1.id, mockTenant.id)
+          purposeService.getPurposeById(mockPurpose.id, mockTenant.id)
         ).rejects.toThrowError(tenantKindNotFound(mockTenant.id));
       });
     });
@@ -202,10 +202,15 @@ describe("Integration tests", async () => {
     describe("getRiskAnalysisDocument", () => {
       it("should get the purpose version document", async () => {
         const mockDocument = getMockPurposeVersionDocument();
+        const mockEService = getMockEService();
+        const mockPurposeVersion = {
+          ...getMockPurposeVersion(),
+          riskAnalysis: mockDocument,
+        };
         const mockPurpose1: Purpose = {
-          ...mockPurpose,
+          ...getMockPurpose(),
           eserviceId: mockEService.id,
-          versions: [{ ...mockPurposeVersion, riskAnalysis: mockDocument }],
+          versions: [mockPurposeVersion],
         };
         const mockPurpose2: Purpose = {
           ...getMockPurpose(),
@@ -226,31 +231,35 @@ describe("Integration tests", async () => {
       });
       it("should throw purposeNotFound if the purpose doesn't exist", async () => {
         const notExistingId: PurposeId = generateId();
-        await addOnePurpose(mockPurpose, postgresDB, purposes);
-        await writeInReadmodel(toReadModelEService(mockEService), eservices);
+        await addOnePurpose(getMockPurpose(), postgresDB, purposes);
 
         expect(
           purposeService.getRiskAnalysisDocument({
             purposeId: notExistingId,
             versionId: generateId(),
             documentId: generateId(),
-            organizationId: mockEService.producerId,
+            organizationId: generateId(),
           })
         ).rejects.toThrowError(purposeNotFound(notExistingId));
       });
       it("should throw eserviceNotFound if the eservice doesn't exist", async () => {
         const mockDocument = getMockPurposeVersionDocument();
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockEService = getMockEService();
+        const mockPurposeVersion = {
+          ...getMockPurposeVersion(),
+          riskAnalysis: mockDocument,
+        };
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           eserviceId: mockEService.id,
-          versions: [{ ...mockPurposeVersion, riskAnalysis: mockDocument }],
+          versions: [mockPurposeVersion],
         };
 
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
 
         expect(
           purposeService.getRiskAnalysisDocument({
-            purposeId: mockPurpose1.id,
+            purposeId: mockPurpose.id,
             versionId: mockPurposeVersion.id,
             documentId: mockDocument.id,
             organizationId: mockEService.producerId,
@@ -261,48 +270,58 @@ describe("Integration tests", async () => {
         const randomVersionId: PurposeVersionId = generateId();
         const randomDocumentId: PurposeVersionDocumentId = generateId();
         const mockDocument = getMockPurposeVersionDocument();
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockEService = getMockEService();
+        const mockPurposeVersion = {
+          ...getMockPurposeVersion(),
+          riskAnalysis: mockDocument,
+        };
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           eserviceId: mockEService.id,
-          versions: [{ ...mockPurposeVersion, riskAnalysis: mockDocument }],
+          versions: [mockPurposeVersion],
         };
 
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         expect(
           purposeService.getRiskAnalysisDocument({
-            purposeId: mockPurpose1.id,
+            purposeId: mockPurpose.id,
             versionId: randomVersionId,
             documentId: randomDocumentId,
             organizationId: mockEService.producerId,
           })
         ).rejects.toThrowError(
-          purposeVersionNotFound(mockPurpose1.id, randomVersionId)
+          purposeVersionNotFound(mockPurpose.id, randomVersionId)
         );
       });
       it("should throw purposeVersionDocumentNotFound if the document doesn't exist", async () => {
         const mockDocument = getMockPurposeVersionDocument();
         const randomDocumentId: PurposeVersionDocumentId = generateId();
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockEService = getMockEService();
+        const mockPurposeVersion = {
+          ...getMockPurposeVersion(),
+          riskAnalysis: mockDocument,
+        };
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           eserviceId: mockEService.id,
-          versions: [{ ...mockPurposeVersion, riskAnalysis: mockDocument }],
+          versions: [mockPurposeVersion],
         };
 
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         expect(
           purposeService.getRiskAnalysisDocument({
-            purposeId: mockPurpose1.id,
+            purposeId: mockPurpose.id,
             versionId: mockPurposeVersion.id,
             documentId: randomDocumentId,
             organizationId: mockEService.producerId,
           })
         ).rejects.toThrowError(
           purposeVersionDocumentNotFound(
-            mockPurpose1.id,
+            mockPurpose.id,
             mockPurposeVersion.id,
             randomDocumentId
           )
@@ -311,18 +330,23 @@ describe("Integration tests", async () => {
       it("should throw organizationNotAllowed if the requester is not the producer nor the consumer", async () => {
         const randomId: TenantId = generateId();
         const mockDocument = getMockPurposeVersionDocument();
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockEService = getMockEService();
+        const mockPurposeVersion = {
+          ...getMockPurposeVersion(),
+          riskAnalysis: mockDocument,
+        };
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           eserviceId: mockEService.id,
-          versions: [{ ...mockPurposeVersion, riskAnalysis: mockDocument }],
+          versions: [mockPurposeVersion],
         };
 
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         expect(
           purposeService.getRiskAnalysisDocument({
-            purposeId: mockPurpose1.id,
+            purposeId: mockPurpose.id,
             versionId: mockPurposeVersion.id,
             documentId: mockDocument.id,
             organizationId: randomId,
