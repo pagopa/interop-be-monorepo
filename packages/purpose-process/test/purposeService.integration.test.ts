@@ -639,28 +639,25 @@ describe("database test", async () => {
       it("should throw purposeNotFound if the purpose doesn't exist", async () => {
         const mockEService = getMockEService();
         const mockPurposeVersion = getMockPurposeVersion();
+        const randomId: PurposeId = generateId();
         const mockPurpose1: Purpose = {
           ...mockPurpose,
           eserviceId: mockEService.id,
           versions: [mockPurposeVersion],
         };
-        const mockPurpose2: Purpose = {
-          ...getMockPurpose(),
-          id: generateId(),
-          title: "another purpose",
-        };
-        await addOnePurpose(mockPurpose2, postgresDB, purposes);
+
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         expect(
           purposeService.rejectPurposeVersion({
-            purposeId: mockPurpose1.id,
+            purposeId: randomId,
             versionId: mockPurposeVersion.id,
             rejectionReason: "test",
             organizationId: mockEService.producerId,
             correlationId: generateId(),
           })
-        ).rejects.toThrowError(purposeNotFound(mockPurpose1.id));
+        ).rejects.toThrowError(purposeNotFound(randomId));
       });
       it("Should throw eserviceNotFound if the eservice doesn't exist", async () => {
         const mockEService = getMockEService();
