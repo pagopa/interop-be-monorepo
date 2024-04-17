@@ -50,12 +50,12 @@ const patch = [
     find: `{
         name: "kinds",
         type: "Query",
-        schema: z.array(AttributeKind).optional().default([]),
+        schema: z.array(AttributeKind),
       }`,
     replace: `{
         name: "kinds",
         type: "Query",
-        schema: z.string().optional().transform(v => v ? v.split(",") : undefined ).pipe(z.array(AttributeKind).optional().default([])),
+        schema: z.string().transform(v => v.split(",")).pipe(z.array(AttributeKind)),
       }`,
   },
 ];
