@@ -16,7 +16,6 @@ import { IDatabase } from "pg-promise";
 import {
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
-  getMockAuthData,
   getMockPurpose,
   getMockTenant,
   mongoDBContainer,
@@ -25,12 +24,10 @@ import {
 } from "pagopa-interop-commons-test";
 import { StartedTestContainer } from "testcontainers";
 import {
-  EService,
   EServiceId,
   Purpose,
   PurposeId,
   TenantId,
-  TenantKind,
   generateId,
   tenantKind,
   toReadModelEService,
@@ -102,8 +99,6 @@ describe("Integration tests", async () => {
   });
 
   describe("Purpose service", () => {
-    const mockPurpose = getMockPurpose();
-    const mockEService = getMockEService();
     describe("getPurposeById", () => {
       it("should get the purpose if it exists", async () => {
         const mockTenant = {
@@ -111,8 +106,9 @@ describe("Integration tests", async () => {
           kind: tenantKind.PA,
         };
 
+        const mockEService = getMockEService();
         const mockPurpose1: Purpose = {
-          ...mockPurpose,
+          ...getMockPurpose(),
           eserviceId: mockEService.id,
         };
         const mockPurpose2: Purpose = {
@@ -137,6 +133,7 @@ describe("Integration tests", async () => {
       it("should throw purposeNotFound if the purpose doesn't exist", async () => {
         const notExistingId: PurposeId = generateId();
         const mockTenant = getMockTenant();
+        const mockPurpose = getMockPurpose();
         await addOnePurpose(mockPurpose, postgresDB, purposes);
         await writeInReadmodel(mockTenant, tenants);
 
@@ -151,44 +148,46 @@ describe("Integration tests", async () => {
           kind: tenantKind.PA,
         };
 
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           eserviceId: notExistingId,
         };
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
         await writeInReadmodel(mockTenant, tenants);
 
         expect(
-          purposeService.getPurposeById(mockPurpose1.id, mockTenant.id)
+          purposeService.getPurposeById(mockPurpose.id, mockTenant.id)
         ).rejects.toThrowError(eserviceNotFound(notExistingId));
       });
       it("should throw tenantNotFound if the tenant doesn't exist", async () => {
         const notExistingId: TenantId = generateId();
+        const mockEService = getMockEService();
 
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           eserviceId: mockEService.id,
         };
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         expect(
-          purposeService.getPurposeById(mockPurpose1.id, notExistingId)
+          purposeService.getPurposeById(mockPurpose.id, notExistingId)
         ).rejects.toThrowError(tenantNotFound(notExistingId));
       });
       it("should throw tenantKindNotFound if the tenant doesn't exist", async () => {
         const mockTenant = getMockTenant();
+        const mockEService = getMockEService();
 
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           eserviceId: mockEService.id,
         };
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
         await writeInReadmodel(mockTenant, tenants);
 
         expect(
-          purposeService.getPurposeById(mockPurpose1.id, mockTenant.id)
+          purposeService.getPurposeById(mockPurpose.id, mockTenant.id)
         ).rejects.toThrowError(tenantKindNotFound(mockTenant.id));
       });
     });
