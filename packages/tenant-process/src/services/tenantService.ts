@@ -586,7 +586,7 @@ export function tenantServiceBuilder(
           code: attributeExternalId,
         });
 
-      if (!attributeToAssign || attributeToAssign.kind !== "Certified") {
+      if (!attributeToAssign) {
         throw attributeNotFound(attributeOrigin);
       }
 
