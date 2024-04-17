@@ -1873,8 +1873,55 @@ describe("Integration tests", async () => {
           })
         ).rejects.toThrowError(purposeNotFound(randomPurposeId));
       });
-      it("should throw purposeVersionNotFound if the purpose version doesn't exist", () => {});
-      it("should throw organizationNotAllowed if the requester is not the producer nor the consumer", () => {});
+      it("should throw purposeVersionNotFound if the purpose version doesn't exist", async () => {
+        const mockEService = getMockEService();
+        const randomVersionId: PurposeVersionId = generateId();
+
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          eserviceId: mockEService.id,
+          versions: [],
+        };
+
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+        expect(
+          purposeService.suspendPurposeVersion({
+            purposeId: mockPurpose1.id,
+            versionId: randomVersionId,
+            organizationId: mockPurpose1.consumerId,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(
+          purposeVersionNotFound(mockPurpose1.id, randomVersionId)
+        );
+      });
+      it("should throw organizationNotAllowed if the requester is not the producer nor the consumer", async () => {
+        const mockEService = getMockEService();
+        const randomId: TenantId = generateId();
+        const mockPurposeVersion: PurposeVersion = {
+          ...getMockPurposeVersion(),
+          state: purposeVersionState.active,
+        };
+        const mockPurpose1: Purpose = {
+          ...mockPurpose,
+          eserviceId: mockEService.id,
+          versions: [mockPurposeVersion],
+        };
+
+        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+        expect(
+          purposeService.suspendPurposeVersion({
+            purposeId: mockPurpose1.id,
+            versionId: mockPurposeVersion.id,
+            organizationId: randomId,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(organizationNotAllowed(randomId));
+      });
       it("should throw notValidVersionState if the purpose version is in draft state", async () => {
         const mockEService = getMockEService();
         const mockPurposeVersion: PurposeVersion = {
@@ -1953,11 +2000,11 @@ describe("Integration tests", async () => {
           notValidVersionState(mockPurposeVersion.id, mockPurposeVersion.state)
         );
       });
-      it("should throw notValidVersionState if the purpose version is in draft", async () => {
+      it("should throw notValidVersionState if the purpose version is in archived state", async () => {
         const mockEService = getMockEService();
         const mockPurposeVersion: PurposeVersion = {
           ...getMockPurposeVersion(),
-          state: purposeVersionState.draft,
+          state: purposeVersionState.archived,
         };
         const mockPurpose1: Purpose = {
           ...mockPurpose,
