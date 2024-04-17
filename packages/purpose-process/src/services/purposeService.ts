@@ -8,6 +8,14 @@ import {
   Purpose,
   PurposeId,
   TenantKind,
+  PurposeVersionId,
+  Ownership,
+  PurposeVersion,
+  PurposeVersionDocument,
+  PurposeVersionDocumentId,
+  ownership,
+  purposeEventToBinaryData,
+  purposeVersionState,
 } from "pagopa-interop-models";
 import {
   eserviceNotFound,
