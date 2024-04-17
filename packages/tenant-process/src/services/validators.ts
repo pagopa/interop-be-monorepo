@@ -28,6 +28,7 @@ import {
   expirationDateNotFoundInVerifier,
   tenantIsNotACertifier,
   attributeVerificationNotAllowed,
+  attributeRevocationNotAllowed,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
