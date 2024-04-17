@@ -75,7 +75,7 @@ import {
 } from "../src/model/domain/errors.js";
 import { addOnePurpose, getMockEService } from "./utils.js";
 
-describe("database test", async () => {
+describe("Integration tests", async () => {
   let purposes: PurposeCollection;
   let eservices: EServiceCollection;
   let tenants: TenantCollection;
@@ -241,7 +241,6 @@ describe("database test", async () => {
         expect(result).toEqual(mockDocument);
       });
       it("should throw purposeNotFound if the purpose doesn't exist", async () => {
-        const mockDocument = getMockPurposeVersionDocument();
         const notExistingId: PurposeId = generateId();
         await addOnePurpose(mockPurpose, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
@@ -249,8 +248,8 @@ describe("database test", async () => {
         expect(
           purposeService.getRiskAnalysisDocument({
             purposeId: notExistingId,
-            versionId: mockPurposeVersion.id,
-            documentId: mockDocument.id,
+            versionId: generateId(),
+            documentId: generateId(),
             organizationId: mockEService.producerId,
           })
         ).rejects.toThrowError(purposeNotFound(notExistingId));

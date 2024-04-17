@@ -147,6 +147,10 @@ export function purposeServiceBuilder(
       documentId: PurposeVersionDocumentId;
       organizationId: TenantId;
     }): Promise<PurposeVersionDocument> {
+      logger.info(
+        `Retrieving Risk Analysis document ${documentId} in version ${versionId} of Purpose ${purposeId}`
+      );
+
       const purpose = await retrievePurpose(purposeId, readModelService);
       const eservice = await retrieveEService(
         purpose.data.eserviceId,
