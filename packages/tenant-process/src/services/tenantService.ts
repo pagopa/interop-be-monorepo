@@ -623,7 +623,7 @@ export function tenantServiceBuilder(
         );
       } else {
         // re-assigning attribute if it was revoked
-        updatedTenant = reAssignAttribute({
+        updatedTenant = updateAttribute({
           updatedTenant,
           targetTenant: tenantToModify,
           attributeId: attributeToAssign.id,
