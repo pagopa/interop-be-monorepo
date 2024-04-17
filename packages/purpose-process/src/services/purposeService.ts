@@ -315,5 +315,6 @@ const replacePurposeVersion = (
   return {
     ...purpose,
     versions: updatedVersions,
+    updatedAt: new Date(),
   };
 };

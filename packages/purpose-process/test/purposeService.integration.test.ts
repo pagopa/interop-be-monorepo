@@ -630,6 +630,7 @@ describe("database test", async () => {
         const expectedPurpose: Purpose = {
           ...mockPurpose1,
           versions: [expectedPurposeVersion],
+          updatedAt: new Date(),
         };
 
         expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
