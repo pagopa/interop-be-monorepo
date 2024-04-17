@@ -406,6 +406,8 @@ export function purposeServiceBuilder(
       organizationId: TenantId;
       correlationId: string;
     }): Promise<PurposeVersion> {
+      logger.info(`Suspending Version ${versionId} in Purpose ${purposeId}`);
+
       const purpose = await retrievePurpose(purposeId, readModelService);
 
       const eservice = await retrieveEService(
