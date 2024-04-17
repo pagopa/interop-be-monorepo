@@ -23,7 +23,7 @@ import {
   riskAnalysisValidationFailed,
   tenantKindNotFound,
 } from "../model/domain/errors.js";
-import { RiskAnalysisFormSeed } from "../model/domain/models.js";
+import { ApiRiskAnalysisFormSeed } from "../model/domain/models.js";
 
 export const isRiskAnalysisFormValid = (
   riskAnalysisForm: RiskAnalysisForm | undefined,
@@ -46,7 +46,7 @@ export const isRiskAnalysisFormValid = (
 export const purposeIsDraft = (purpose: Purpose): boolean =>
   !purpose.versions.some((v) => v.state !== purposeVersionState.draft);
 
-export const isEserviceMode = (
+export const assertEserviceHasSpecificMode = (
   eservice: EService,
   expectedMode: EServiceMode
 ): void => {
@@ -55,7 +55,7 @@ export const isEserviceMode = (
   }
 };
 
-export const isFreeOfCharge = (
+export const assertConsistentFreeOfCharge = (
   isFreeOfCharge: boolean,
   freeOfChargeReason: string | undefined
 ): void => {
@@ -74,7 +74,7 @@ export const assertOrganizationIsAConsumer = (
 };
 
 export function validateRiskAnalysisSchemaOrThrow(
-  riskAnalysisForm: RiskAnalysisFormSeed,
+  riskAnalysisForm: ApiRiskAnalysisFormSeed,
   tenantKind: TenantKind
 ): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(riskAnalysisForm, true, tenantKind);
@@ -86,7 +86,7 @@ export function validateRiskAnalysisSchemaOrThrow(
 }
 
 export function validateAndTransformRiskAnalysis(
-  riskAnalysisForm: RiskAnalysisFormSeed | undefined,
+  riskAnalysisForm: ApiRiskAnalysisFormSeed | undefined,
   tenantKind: TenantKind
 ): PurposeRiskAnalysisForm | undefined {
   if (!riskAnalysisForm) {

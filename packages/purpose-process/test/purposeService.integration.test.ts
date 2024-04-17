@@ -912,339 +912,336 @@ describe("database test", async () => {
         );
       });
     });
-  });
-  describe("updatePurpose and reverseUpdatePurpose", () => {
-    const tenantType = randomArrayItem(Object.values(tenantKind));
-    const tenant: Tenant = {
-      ...getMockTenant(),
-      kind: tenantType,
-    };
 
-    const eServiceDeliver: EService = {
-      ...getMockEService(),
-      mode: "Deliver",
-    };
-
-    const eServiceReceive: EService = {
-      ...getMockEService(),
-      mode: "Receive",
-      producerId: tenant.id,
-    };
-
-    const purposeForReceive: Purpose = {
-      ...getMockPurpose(),
-      eserviceId: eServiceReceive.id,
-      consumerId: tenant.id,
-      versions: [
-        { ...getMockPurposeVersion(), state: purposeVersionState.draft },
-      ],
-      riskAnalysisForm: {
-        ...getMockValidRiskAnalysisForm(tenantType),
-        id: generateId(),
-      },
-    };
-
-    const purposeForDeliver: Purpose = {
-      ...getMockPurpose(),
-      eserviceId: eServiceDeliver.id,
-      consumerId: tenant.id,
-      versions: [
-        { ...getMockPurposeVersion(), state: purposeVersionState.draft },
-      ],
-    };
-
-    const validRiskAnalysis = getMockValidRiskAnalysis(tenantType);
-
-    const purposeUpdateContent: PurposeUpdateContent = {
-      title: "test",
-      dailyCalls: 10,
-      description: "test",
-      isFreeOfCharge: true,
-      freeOfChargeReason: "reason",
-      riskAnalysisForm: buildRiskAnalysisSeed(validRiskAnalysis),
-    };
-
-    const reversePurposeUpdateContent: ReversePurposeUpdateContent = {
-      title: "test",
-      dailyCalls: 10,
-      description: "test",
-      isFreeOfCharge: true,
-      freeOfChargeReason: "reason",
-    };
-
-    it("Should write on event store for the update of a purpose of an e-service in mode DELIVER", async () => {
-      await addOnePurpose(purposeForDeliver, postgresDB, purposes);
-      await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
-      await writeInReadmodel(tenant, tenants);
-
-      await purposeService.updatePurpose({
-        purposeId: purposeForDeliver.id,
-        purposeUpdateContent,
-        organizationId: tenant.id,
-        correlationId: generateId(),
-      });
-
-      const writtenEvent = await readLastEventByStreamId(
-        purposeForDeliver.id,
-        "purpose",
-        postgresDB
-      );
-
-      expect(writtenEvent).toMatchObject({
-        stream_id: purposeForDeliver.id,
-        version: "1",
-        type: "DraftPurposeUpdated",
-        event_version: 2,
-      });
-
-      const writtenPayload = decodeProtobufPayload({
-        messageType: DraftPurposeUpdatedV2,
-        payload: writtenEvent.data,
-      });
-
-      const expectedPurpose: Purpose = createUpdatedPurpose(
-        purposeForDeliver,
-        purposeUpdateContent,
-        validRiskAnalysis,
-        writtenPayload
-      );
-
-      expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    });
-    it("Should write on event store for the update of a purpose of an e-service in mode RECEIVE", async () => {
-      await addOnePurpose(purposeForReceive, postgresDB, purposes);
-      await writeInReadmodel(toReadModelEService(eServiceReceive), eservices);
-      await writeInReadmodel(tenant, tenants);
-
-      await purposeService.updateReversePurpose({
-        purposeId: purposeForReceive.id,
-        reversePurposeUpdateContent,
-        organizationId: tenant.id,
-        correlationId: generateId(),
-      });
-
-      const writtenEvent = await readLastEventByStreamId(
-        purposeForReceive.id,
-        "purpose",
-        postgresDB
-      );
-
-      expect(writtenEvent).toMatchObject({
-        stream_id: purposeForReceive.id,
-        version: "1",
-        type: "DraftPurposeUpdated",
-        event_version: 2,
-      });
-
-      const writtenPayload = decodeProtobufPayload({
-        messageType: DraftPurposeUpdatedV2,
-        payload: writtenEvent.data,
-      });
-
-      const expectedPurpose: Purpose = createUpdatedPurpose(
-        purposeForReceive,
-        reversePurposeUpdateContent,
-        validRiskAnalysis,
-        writtenPayload
-      );
-
-      expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    });
-    it("Should throw purposeNotFound if the purpose doesn't exist", async () => {
-      await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
-      await writeInReadmodel(tenant, tenants);
-
-      const purposeId: PurposeId = unsafeBrandId(generateId());
-
-      expect(
-        purposeService.updatePurpose({
-          purposeId,
-          purposeUpdateContent,
-          organizationId: tenant.id,
-          correlationId: generateId(),
-        })
-      ).rejects.toThrowError(purposeNotFound(purposeId));
-    });
-    it("Should throw organizationIsNotTheConsumer if the organization is not the consumer", async () => {
-      const mockPurpose: Purpose = {
-        ...purposeForDeliver,
-        consumerId: generateId(),
+    describe("updatePurpose and reverseUpdatePurpose", () => {
+      const tenantType = randomArrayItem(Object.values(tenantKind));
+      const tenant: Tenant = {
+        ...getMockTenant(),
+        kind: tenantType,
       };
 
-      await addOnePurpose(mockPurpose, postgresDB, purposes);
-      await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
-      await writeInReadmodel(tenant, tenants);
+      const eServiceDeliver: EService = {
+        ...getMockEService(),
+        mode: "Deliver",
+      };
 
-      const organizationId: TenantId = unsafeBrandId(generateId());
+      const eServiceReceive: EService = {
+        ...getMockEService(),
+        mode: "Receive",
+        producerId: tenant.id,
+      };
 
-      expect(
-        purposeService.updatePurpose({
-          purposeId: mockPurpose.id,
-          purposeUpdateContent,
-          organizationId,
-          correlationId: generateId(),
-        })
-      ).rejects.toThrowError(organizationIsNotTheConsumer(organizationId));
-    });
-    it("Should throw purposeNotInDraftState if the purpose is not in draft state", async () => {
-      const mockPurpose: Purpose = {
-        ...purposeForDeliver,
+      const purposeForReceive: Purpose = {
+        ...getMockPurpose(),
+        eserviceId: eServiceReceive.id,
+        consumerId: tenant.id,
         versions: [
-          { ...getMockPurposeVersion(), state: purposeVersionState.active },
+          { ...getMockPurposeVersion(), state: purposeVersionState.draft },
         ],
-      };
-
-      await addOnePurpose(mockPurpose, postgresDB, purposes);
-      await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
-      await writeInReadmodel(tenant, tenants);
-
-      expect(
-        purposeService.updatePurpose({
-          purposeId: mockPurpose.id,
-          purposeUpdateContent,
-          organizationId: tenant.id,
-          correlationId: generateId(),
-        })
-      ).rejects.toThrowError(purposeNotInDraftState(mockPurpose.id));
-    });
-    it("Should throw eserviceNotFound if the eservice doesn't exist", async () => {
-      const eserviceId: EServiceId = unsafeBrandId(generateId());
-      const mockPurpose: Purpose = {
-        ...purposeForDeliver,
-        eserviceId,
-      };
-
-      await addOnePurpose(mockPurpose, postgresDB, purposes);
-      await writeInReadmodel(tenant, tenants);
-
-      expect(
-        purposeService.updatePurpose({
-          purposeId: mockPurpose.id,
-          purposeUpdateContent,
-          organizationId: tenant.id,
-          correlationId: generateId(),
-        })
-      ).rejects.toThrowError(eserviceNotFound(eserviceId));
-    });
-    it("should throw eServiceModeNotAllowed if the eService mode is incorrect", async () => {
-      await addOnePurpose(purposeForReceive, postgresDB, purposes);
-      await writeInReadmodel(toReadModelEService(eServiceReceive), eservices);
-      await writeInReadmodel(tenant, tenants);
-
-      expect(
-        purposeService.updatePurpose({
-          purposeId: purposeForReceive.id,
-          purposeUpdateContent,
-          organizationId: tenant.id,
-          correlationId: generateId(),
-        })
-      ).rejects.toThrowError(
-        eServiceModeNotAllowed(eServiceReceive.id, "Deliver")
-      );
-
-      await addOnePurpose(purposeForDeliver, postgresDB, purposes);
-      await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
-
-      expect(
-        purposeService.updateReversePurpose({
-          purposeId: purposeForDeliver.id,
-          reversePurposeUpdateContent,
-          organizationId: tenant.id,
-          correlationId: generateId(),
-        })
-      ).rejects.toThrowError(
-        eServiceModeNotAllowed(eServiceDeliver.id, "Receive")
-      );
-    });
-    it("Should throw missingFreeOfChargeReason if the freeOfChargeReason is missing", async () => {
-      await addOnePurpose(purposeForDeliver, postgresDB, purposes);
-      await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
-      await writeInReadmodel(tenant, tenants);
-
-      expect(
-        purposeService.updatePurpose({
-          purposeId: purposeForDeliver.id,
-          purposeUpdateContent: {
-            ...purposeUpdateContent,
-            freeOfChargeReason: undefined,
-          },
-          organizationId: tenant.id,
-          correlationId: generateId(),
-        })
-      ).rejects.toThrowError(missingFreeOfChargeReason());
-    });
-    it("Should throw tenantNotFound if the tenant does not exist", async () => {
-      await addOnePurpose(purposeForDeliver, postgresDB, purposes);
-      await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
-
-      expect(
-        purposeService.updatePurpose({
-          purposeId: purposeForDeliver.id,
-          purposeUpdateContent,
-          organizationId: tenant.id,
-          correlationId: generateId(),
-        })
-      ).rejects.toThrowError(tenantNotFound(tenant.id));
-
-      await addOnePurpose(purposeForReceive, postgresDB, purposes);
-      await writeInReadmodel(toReadModelEService(eServiceReceive), eservices);
-
-      expect(
-        purposeService.updateReversePurpose({
-          purposeId: purposeForReceive.id,
-          reversePurposeUpdateContent,
-          organizationId: tenant.id,
-          correlationId: generateId(),
-        })
-      ).rejects.toThrowError(tenantNotFound(tenant.id));
-    });
-    it("Should throw tenantKindNotFound if the tenant kind does not exist", async () => {
-      const mockTenant = {
-        ...tenant,
-        kind: undefined,
-      };
-
-      await addOnePurpose(purposeForDeliver, postgresDB, purposes);
-      await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
-      await writeInReadmodel(mockTenant, tenants);
-
-      expect(
-        purposeService.updatePurpose({
-          purposeId: purposeForDeliver.id,
-          purposeUpdateContent,
-          organizationId: mockTenant.id,
-          correlationId: generateId(),
-        })
-      ).rejects.toThrowError(tenantKindNotFound(mockTenant.id));
-    });
-    it("Should throw riskAnalysisValidationFailed if the risk analysis is not valid", async () => {
-      await addOnePurpose(purposeForDeliver, postgresDB, purposes);
-      await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
-      await writeInReadmodel(tenant, tenants);
-
-      const invalidRiskAnalysis: RiskAnalysis = {
-        ...validRiskAnalysis,
         riskAnalysisForm: {
-          ...validRiskAnalysis.riskAnalysisForm,
-          version: "0",
+          ...getMockValidRiskAnalysisForm(tenantType),
+          id: generateId(),
         },
       };
 
-      const mockPurposeUpdateContent: PurposeUpdateContent = {
-        ...purposeUpdateContent,
-        riskAnalysisForm: buildRiskAnalysisSeed(invalidRiskAnalysis),
+      const purposeForDeliver: Purpose = {
+        ...getMockPurpose(),
+        eserviceId: eServiceDeliver.id,
+        consumerId: tenant.id,
+        versions: [
+          { ...getMockPurposeVersion(), state: purposeVersionState.draft },
+        ],
       };
 
-      expect(
-        purposeService.updatePurpose({
+      const validRiskAnalysis = getMockValidRiskAnalysis(tenantType);
+
+      const purposeUpdateContent: PurposeUpdateContent = {
+        title: "test",
+        dailyCalls: 10,
+        description: "test",
+        isFreeOfCharge: true,
+        freeOfChargeReason: "reason",
+        riskAnalysisForm: buildRiskAnalysisSeed(validRiskAnalysis),
+      };
+
+      const reversePurposeUpdateContent: ReversePurposeUpdateContent = {
+        ...purposeUpdateContent,
+      };
+
+      it("Should write on event store for the update of a purpose of an e-service in mode DELIVER", async () => {
+        await addOnePurpose(purposeForDeliver, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
+        await writeInReadmodel(tenant, tenants);
+
+        await purposeService.updatePurpose({
           purposeId: purposeForDeliver.id,
-          purposeUpdateContent: mockPurposeUpdateContent,
+          purposeUpdateContent,
           organizationId: tenant.id,
           correlationId: generateId(),
-        })
-      ).rejects.toThrowError(
-        riskAnalysisValidationFailed([unexpectedRulesVersionError("0")])
-      );
+        });
+
+        const writtenEvent = await readLastEventByStreamId(
+          purposeForDeliver.id,
+          "purpose",
+          postgresDB
+        );
+
+        expect(writtenEvent).toMatchObject({
+          stream_id: purposeForDeliver.id,
+          version: "1",
+          type: "DraftPurposeUpdated",
+          event_version: 2,
+        });
+
+        const writtenPayload = decodeProtobufPayload({
+          messageType: DraftPurposeUpdatedV2,
+          payload: writtenEvent.data,
+        });
+
+        const expectedPurpose: Purpose = createUpdatedPurpose(
+          purposeForDeliver,
+          purposeUpdateContent,
+          validRiskAnalysis,
+          writtenPayload
+        );
+
+        expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+      });
+      it("Should write on event store for the update of a purpose of an e-service in mode RECEIVE", async () => {
+        await addOnePurpose(purposeForReceive, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(eServiceReceive), eservices);
+        await writeInReadmodel(tenant, tenants);
+
+        await purposeService.updateReversePurpose({
+          purposeId: purposeForReceive.id,
+          reversePurposeUpdateContent,
+          organizationId: tenant.id,
+          correlationId: generateId(),
+        });
+
+        const writtenEvent = await readLastEventByStreamId(
+          purposeForReceive.id,
+          "purpose",
+          postgresDB
+        );
+
+        expect(writtenEvent).toMatchObject({
+          stream_id: purposeForReceive.id,
+          version: "1",
+          type: "DraftPurposeUpdated",
+          event_version: 2,
+        });
+
+        const writtenPayload = decodeProtobufPayload({
+          messageType: DraftPurposeUpdatedV2,
+          payload: writtenEvent.data,
+        });
+
+        const expectedPurpose: Purpose = createUpdatedPurpose(
+          purposeForReceive,
+          reversePurposeUpdateContent,
+          validRiskAnalysis,
+          writtenPayload
+        );
+
+        expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+      });
+      it("Should throw purposeNotFound if the purpose doesn't exist", async () => {
+        await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
+        await writeInReadmodel(tenant, tenants);
+
+        const purposeId: PurposeId = unsafeBrandId(generateId());
+
+        expect(
+          purposeService.updatePurpose({
+            purposeId,
+            purposeUpdateContent,
+            organizationId: tenant.id,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(purposeNotFound(purposeId));
+      });
+      it("Should throw organizationIsNotTheConsumer if the organization is not the consumer", async () => {
+        const mockPurpose: Purpose = {
+          ...purposeForDeliver,
+          consumerId: generateId(),
+        };
+
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
+        await writeInReadmodel(tenant, tenants);
+
+        const organizationId: TenantId = unsafeBrandId(generateId());
+
+        expect(
+          purposeService.updatePurpose({
+            purposeId: mockPurpose.id,
+            purposeUpdateContent,
+            organizationId,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(organizationIsNotTheConsumer(organizationId));
+      });
+      it("Should throw purposeNotInDraftState if the purpose is not in draft state", async () => {
+        const mockPurpose: Purpose = {
+          ...purposeForDeliver,
+          versions: [
+            { ...getMockPurposeVersion(), state: purposeVersionState.active },
+          ],
+        };
+
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
+        await writeInReadmodel(tenant, tenants);
+
+        expect(
+          purposeService.updatePurpose({
+            purposeId: mockPurpose.id,
+            purposeUpdateContent,
+            organizationId: tenant.id,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(purposeNotInDraftState(mockPurpose.id));
+      });
+      it("Should throw eserviceNotFound if the eservice doesn't exist", async () => {
+        const eserviceId: EServiceId = unsafeBrandId(generateId());
+        const mockPurpose: Purpose = {
+          ...purposeForDeliver,
+          eserviceId,
+        };
+
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
+        await writeInReadmodel(tenant, tenants);
+
+        expect(
+          purposeService.updatePurpose({
+            purposeId: mockPurpose.id,
+            purposeUpdateContent,
+            organizationId: tenant.id,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(eserviceNotFound(eserviceId));
+      });
+      it("should throw eServiceModeNotAllowed if the eService mode is incorrect", async () => {
+        await addOnePurpose(purposeForReceive, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(eServiceReceive), eservices);
+        await writeInReadmodel(tenant, tenants);
+
+        expect(
+          purposeService.updatePurpose({
+            purposeId: purposeForReceive.id,
+            purposeUpdateContent,
+            organizationId: tenant.id,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(
+          eServiceModeNotAllowed(eServiceReceive.id, "Deliver")
+        );
+
+        await addOnePurpose(purposeForDeliver, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
+
+        expect(
+          purposeService.updateReversePurpose({
+            purposeId: purposeForDeliver.id,
+            reversePurposeUpdateContent,
+            organizationId: tenant.id,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(
+          eServiceModeNotAllowed(eServiceDeliver.id, "Receive")
+        );
+      });
+      it("Should throw missingFreeOfChargeReason if the freeOfChargeReason is missing", async () => {
+        await addOnePurpose(purposeForDeliver, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
+        await writeInReadmodel(tenant, tenants);
+
+        expect(
+          purposeService.updatePurpose({
+            purposeId: purposeForDeliver.id,
+            purposeUpdateContent: {
+              ...purposeUpdateContent,
+              freeOfChargeReason: undefined,
+            },
+            organizationId: tenant.id,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(missingFreeOfChargeReason());
+      });
+      it("Should throw tenantNotFound if the tenant does not exist", async () => {
+        await addOnePurpose(purposeForDeliver, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
+
+        expect(
+          purposeService.updatePurpose({
+            purposeId: purposeForDeliver.id,
+            purposeUpdateContent,
+            organizationId: tenant.id,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(tenantNotFound(tenant.id));
+
+        await addOnePurpose(purposeForReceive, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(eServiceReceive), eservices);
+
+        expect(
+          purposeService.updateReversePurpose({
+            purposeId: purposeForReceive.id,
+            reversePurposeUpdateContent,
+            organizationId: tenant.id,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(tenantNotFound(tenant.id));
+      });
+      it("Should throw tenantKindNotFound if the tenant kind does not exist", async () => {
+        const mockTenant = {
+          ...tenant,
+          kind: undefined,
+        };
+
+        await addOnePurpose(purposeForDeliver, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
+        await writeInReadmodel(mockTenant, tenants);
+
+        expect(
+          purposeService.updatePurpose({
+            purposeId: purposeForDeliver.id,
+            purposeUpdateContent,
+            organizationId: mockTenant.id,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(tenantKindNotFound(mockTenant.id));
+      });
+      it("Should throw riskAnalysisValidationFailed if the risk analysis is not valid", async () => {
+        await addOnePurpose(purposeForDeliver, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
+        await writeInReadmodel(tenant, tenants);
+
+        const invalidRiskAnalysis: RiskAnalysis = {
+          ...validRiskAnalysis,
+          riskAnalysisForm: {
+            ...validRiskAnalysis.riskAnalysisForm,
+            version: "0",
+          },
+        };
+
+        const mockPurposeUpdateContent: PurposeUpdateContent = {
+          ...purposeUpdateContent,
+          riskAnalysisForm: buildRiskAnalysisSeed(invalidRiskAnalysis),
+        };
+
+        expect(
+          purposeService.updatePurpose({
+            purposeId: purposeForDeliver.id,
+            purposeUpdateContent: mockPurposeUpdateContent,
+            organizationId: tenant.id,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(
+          riskAnalysisValidationFailed([unexpectedRulesVersionError("0")])
+        );
+      });
     });
   });
 });
