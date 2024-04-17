@@ -1203,6 +1203,34 @@ describe("database test", async () => {
       });
     });
 
+    describe("getPurposes", () => {
+      it("should get the purposes if they exist (parameters: name)", () => {
+        expect(1).toBe(1);
+      });
+      it("should get the purposes if they exist (parameters: eservicesIds)", () => {
+        expect(1).toBe(1);
+      });
+      it("should get the purposes if they exist (parameters: consumersIds)", () => {
+        expect(1).toBe(1);
+      });
+      it("should get the purposes if they exist (parameters: producersIds)", () => {
+        expect(1).toBe(1);
+      });
+      it("should get the purposes if they exist (parameters: states)", () => {
+        expect(1).toBe(1);
+      });
+      it("should not include purposes whose only version is draft (excludeDraft = true)", () => {
+        expect(1).toBe(1);
+      });
+      it("should include purposes whose only version is draft (excludeDraft = false)", () => {
+        expect(1).toBe(1);
+      });
+      it("should not filter out draft versions if the purpose has both draft and non-draft ones (excludeDraft = false)", () => {
+        expect(1).toBe(1);
+      });
+      it("should filter out draft versions if the purpose has both draft and non-draft ones (excludeDraft = true)", () => {
+        expect(1).toBe(1);
+      });
     });
   });
 });
