@@ -70,4 +70,4 @@ export const Ownership = z.enum([
   Object.values(ownership)[0],
   ...Object.values(ownership).slice(1),
 ]);
-export type Ownership = z.infer<typeof PurposeVersionState>;
+export type Ownership = z.infer<typeof Ownership>;
