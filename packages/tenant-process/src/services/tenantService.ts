@@ -361,7 +361,7 @@ export function tenantServiceBuilder(
         throw certifiedAttributeAlreadyAssigned(attribute.id, organizationId);
       } else {
         // re-assigning attribute if it was revoked
-        updatedTenant = reAssignAttribute({
+        updatedTenant = updateAttribute({
           updatedTenant,
           targetTenant,
           attributeId: attribute.id,
@@ -439,7 +439,7 @@ export function tenantServiceBuilder(
           throw attributeNotFound(maybeDeclaredTenantAttribute.id);
         }
         // re-assigning attribute if it was revoked
-        updatedTenant = reAssignAttribute({
+        updatedTenant = updateAttribute({
           updatedTenant,
           targetTenant,
           attributeId: unsafeBrandId(tenantAttributeSeed.id),
@@ -655,23 +655,28 @@ export function tenantServiceBuilder(
   };
 }
 
-function reAssignAttribute({
-  updatedTenant,
-  targetTenant,
-  attributeId,
-}: {
-  updatedTenant: Tenant;
-  targetTenant: WithMetadata<Tenant>;
-  attributeId: AttributeId;
-}): Tenant {
+function updateAttribute(
+  {
+    updatedTenant,
+    targetTenant,
+    attributeId,
+    revocationTimestamp,
+  }: {
+    updatedTenant: Tenant;
+    targetTenant: WithMetadata<Tenant>;
+    attributeId: AttributeId;
+    revocationTimestamp?: Date | undefined;
+  },
+  assignmentTimestamp: Date = new Date()
+): Tenant {
   return {
     ...updatedTenant,
     attributes: targetTenant.data.attributes.map((a) =>
       a.id === attributeId
         ? {
             ...a,
-            assignmentTimestamp: new Date(),
-            revocationTimestamp: undefined,
+            assignmentTimestamp,
+            revocationTimestamp,
           }
         : a
     ),
