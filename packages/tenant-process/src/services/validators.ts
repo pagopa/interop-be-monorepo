@@ -57,8 +57,6 @@ export async function assertVerifiedAttributeOperationAllowed({
   agreementStates,
   readModelService,
   error,
-  limit,
-  offset,
 }: {
   producerId: string;
   consumerId: string;
@@ -66,29 +64,25 @@ export async function assertVerifiedAttributeOperationAllowed({
   agreementStates: AgreementState[];
   readModelService: ReadModelService;
   error: Error;
-  limit: number;
-  offset: number;
 }): Promise<void> {
   // Get agreements
-  const agreements = await readModelService.getAgreements(
-    { producerId, consumerId, agreementStates },
-    limit,
-    offset
-  );
+  const agreements = await readModelService.getAllAgreements({
+    producerId,
+    consumerId,
+    agreementStates,
+  });
 
   // Extract descriptor IDs
-  const descriptorIds = agreements.results.map(
-    (agreement) => agreement.descriptorId
-  );
+  const descriptorIds = agreements.map((agreement) => agreement.descriptorId);
 
   // Get eServices concurrently
   const eServices = (
     await Promise.all(
-      agreements.results.map((agreement) =>
+      agreements.map((agreement) =>
         readModelService.getEServiceById(agreement.eserviceId)
       )
     )
-  ).filter((eService) => eService !== undefined) as EService[];
+  ).filter((eService): eService is EService => eService !== undefined);
 
   // Find verified attribute IDs
   const attributeIds = eServices
@@ -115,15 +109,11 @@ export async function assertAttributeVerificationAllowed({
   consumerId,
   attributeId,
   readModelService,
-  limit,
-  offset,
 }: {
   producerId: TenantId;
   consumerId: TenantId;
   attributeId: AttributeId;
   readModelService: ReadModelService;
-  limit: number;
-  offset: number;
 }): Promise<void> {
   const allowedStatuses = [
     agreementState.pending,
@@ -137,8 +127,6 @@ export async function assertAttributeVerificationAllowed({
     agreementStates: allowedStatuses,
     readModelService,
     error: attributeVerificationNotAllowed(consumerId, attributeId),
-    limit,
-    offset,
   });
 }
 

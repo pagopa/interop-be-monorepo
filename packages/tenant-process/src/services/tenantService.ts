@@ -361,7 +361,7 @@ export function tenantServiceBuilder(
         throw certifiedAttributeAlreadyAssigned(attribute.id, organizationId);
       } else {
         // re-assigning attribute if it was revoked
-        updatedTenant = reAssignAttribute({
+        updatedTenant = updateAttribute({
           updatedTenant,
           targetTenant,
           attributeId: attribute.id,
@@ -439,7 +439,7 @@ export function tenantServiceBuilder(
           throw attributeNotFound(maybeDeclaredTenantAttribute.id);
         }
         // re-assigning attribute if it was revoked
-        updatedTenant = reAssignAttribute({
+        updatedTenant = updateAttribute({
           updatedTenant,
           targetTenant,
           attributeId: unsafeBrandId(tenantAttributeSeed.id),
@@ -459,36 +459,30 @@ export function tenantServiceBuilder(
     async verifyVerifiedAttribute({
       tenantId,
       tenantAttributeSeed,
-      authData,
-      limit,
-      offset,
+      organizationId,
       correlationId,
     }: {
       tenantId: TenantId;
       tenantAttributeSeed: ApiVerifiedTenantAttributeSeed;
-      authData: AuthData;
-      limit: number;
-      offset: number;
+      organizationId: TenantId;
       correlationId: string;
     }): Promise<Tenant> {
       logger.info(
         `Verifying attribute ${tenantAttributeSeed.id} to tenant ${tenantId}`
       );
 
-      const targetTenant = await retrieveTenant(tenantId, readModelService);
-
-      if (authData.organizationId === targetTenant.data.id) {
+      if (organizationId === tenantId) {
         throw verifiedAttributeSelfVerification();
       }
 
       await assertAttributeVerificationAllowed({
-        producerId: authData.organizationId,
-        consumerId: targetTenant.data.id,
+        producerId: organizationId,
+        consumerId: tenantId,
         attributeId: unsafeBrandId(tenantAttributeSeed.id),
         readModelService,
-        limit,
-        offset,
       });
+
+      const targetTenant = await retrieveTenant(tenantId, readModelService);
 
       const verifiedTenantAttribute = targetTenant.data.attributes.find(
         (attr) =>
@@ -512,7 +506,7 @@ export function tenantServiceBuilder(
               assignmentTimestamp: new Date(),
               verifiedBy: [
                 {
-                  id: authData.organizationId,
+                  id: organizationId,
                   verificationDate: new Date(),
                   expirationDate: tenantAttributeSeed.expirationDate
                     ? new Date(tenantAttributeSeed.expirationDate)
@@ -538,7 +532,7 @@ export function tenantServiceBuilder(
               verifiedBy: [
                 ...verifiedTenantAttribute.verifiedBy,
                 {
-                  id: authData.organizationId,
+                  id: organizationId,
                   verificationDate: new Date(),
                   expirationDate: tenantAttributeSeed.expirationDate
                     ? new Date(tenantAttributeSeed.expirationDate)
@@ -566,15 +560,11 @@ export function tenantServiceBuilder(
       tenantId,
       attributeId,
       authData,
-      limit,
-      offset,
       correlationId,
     }: {
       tenantId: TenantId;
       attributeId: AttributeId;
       authData: AuthData;
-      limit: number;
-      offset: number;
       correlationId: string;
     }): Promise<Tenant> {
       logger.info(`Revoking attribute ${attributeId} to tenant ${tenantId}`);
@@ -590,8 +580,6 @@ export function tenantServiceBuilder(
         consumerId: targetTenant.data.id,
         attributeId,
         readModelService,
-        limit,
-        offset,
       });
 
       const verifiedTenantAttribute = targetTenant.data.attributes.find(
@@ -625,7 +613,7 @@ export function tenantServiceBuilder(
         updatedAt: new Date(),
       };
 
-      updatedTenant = reAssignAttribute({
+      updatedTenant = updateAttribute({
         updatedTenant,
         targetTenant,
         attributeId,
@@ -736,7 +724,7 @@ export function tenantServiceBuilder(
   };
 }
 
-function reAssignAttribute(
+function updateAttribute(
   {
     updatedTenant,
     targetTenant,
