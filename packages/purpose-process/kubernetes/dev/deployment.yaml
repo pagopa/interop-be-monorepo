@@ -1,24 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: interop-be-catalog-process-refactor
+  name: interop-be-purpose-process-refactor
   namespace: dev-refactor
   labels:
-    app: interop-be-catalog-process-refactor
+    app: interop-be-purpose-process-refactor
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: interop-be-catalog-process-refactor
+      app: interop-be-purpose-process-refactor
   template:
     metadata:
       labels:
-        app: interop-be-catalog-process-refactor
+        app: interop-be-purpose-process-refactor
     spec:
-      serviceAccountName: interop-be-catalog-process-refactor
+      serviceAccountName: interop-be-purpose-process-refactor
       containers:
-        - name: interop-be-catalog-process-refactor
-          image: ghcr.io/pagopa/catalog-process@$IMAGE_DIGEST
+        - name: interop-be-purpose-process-refactor
+          image: ghcr.io/pagopa/purpose-process@$IMAGE_DIGEST
           imagePullPolicy: Always
           ports:
             - name: http
@@ -78,12 +78,12 @@ spec:
             - name: EVENTSTORE_DB_SCHEMA
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-catalog-process-refactor
+                  name: interop-be-purpose-process-refactor
                   key: EVENTSTORE_DB_SCHEMA
             - name: EVENTSTORE_DB_USE_SSL
               valueFrom:
                 configMapKeyRef:
-                  name: interop-be-catalog-process-refactor
+                  name: interop-be-purpose-process-refactor
                   key: EVENTSTORE_DB_USE_SSL
             - name: READMODEL_DB_HOST
               valueFrom:
@@ -115,18 +115,3 @@ spec:
                 secretKeyRef:
                   name: read-model
                   key: REFACTOR_USER_PASSWORD
-            - name: S3_BUCKET
-              valueFrom:
-                configMapKeyRef:
-                  name: interop-be-catalog-process-refactor
-                  key: S3_BUCKET
-            - name: ESERVICE_DOCUMENTS_PATH
-              valueFrom:
-                configMapKeyRef:
-                  name: interop-be-catalog-process-refactor
-                  key: ESERVICE_DOCUMENTS_PATH
-            - name: PRODUCER_ALLOWED_ORIGINS
-              valueFrom:
-                configMapKeyRef:
-                  name: interop-be-catalog-process-refactor
-                  key: PRODUCER_ALLOWED_ORIGINS
