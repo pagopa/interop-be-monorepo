@@ -65,6 +65,11 @@ export type Problem = {
   toString: () => string;
 };
 
+const makeProblemLogString = (problem: Problem): string => {
+  const errorsString = problem.errors.map((e) => e.detail).join(" - ");
+  return `- title: ${problem.title} - detail: ${problem.detail} - errors: ${errorsString} - orignal error: ${error}`;
+};
+
 export function makeApiProblemBuilder<T extends string>(
   logger: { error: (message: string) => void; warn: (message: string) => void },
   errors: {
@@ -90,11 +95,6 @@ export function makeApiProblemBuilder<T extends string>(
         detail,
       })),
     });
-
-    const makeProblemLogString = (problem: Problem): string => {
-      const errorsString = problem.errors.map((e) => e.detail).join(" - ");
-      return `- title: ${problem.title} - detail: ${problem.detail} - errors: ${errorsString} - orignal error: ${error}`;
-    };
 
     return match<unknown, Problem>(error)
       .with(P.instanceOf(ApiError<T | CommonErrorCodes>), (error) => {
