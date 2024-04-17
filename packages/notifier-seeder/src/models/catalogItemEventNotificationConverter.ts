@@ -173,7 +173,7 @@ export const toCatalogItemEventNotification = (
         }
 
         return {
-          eserviceId: e.data.eservice.id,
+          eServiceId: e.data.eservice.id,
           descriptorId: e.data.descriptorId,
           documentId: e.data.documentId,
         };
