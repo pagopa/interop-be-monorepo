@@ -18,6 +18,7 @@ import {
   toCreateEventTenantVerifiedAttributeAssigned,
   toCreateEventTenantCertifiedAttributeAssigned,
   toCreateEventTenantDeclaredAttributeAssigned,
+  toCreateEventTenantCertifiedAttributeRevoked,
 } from "../model/domain/toEvent.js";
 import {
   ApiCertifiedTenantAttributeSeed,
@@ -28,6 +29,7 @@ import {
 import {
   attributeNotFound,
   certifiedAttributeAlreadyAssigned,
+  certifiedAttributeAlreadyRevoked,
   certifiedAttributeOriginIsNotCompliantWithCertifier,
   tenantIsNotACertifier,
   verifiedAttributeSelfVerification,
@@ -642,6 +644,91 @@ export function tenantServiceBuilder(
         tenantToModify.metadata.version,
         updatedTenant,
         attributeToAssign.id,
+        correlationId
+      );
+      await repository.createEvent(event);
+    },
+
+    async internalRevokeCertifiedAttribute(
+      tenantOrigin: string,
+      tenantExternalId: string,
+      attributeOrigin: string,
+      attributeExternalId: string,
+      correlationId: string
+    ): Promise<void> {
+      logger.info(
+        `Revoking certified attribute (${attributeOrigin}/${attributeExternalId}) from tenant (${tenantOrigin}/${tenantExternalId})`
+      );
+
+      const tenantToModify = await this.getTenantByExternalId({
+        origin: tenantOrigin,
+        value: tenantExternalId,
+      });
+
+      assertTenantExists(unsafeBrandId(tenantOrigin), tenantToModify);
+
+      const attributeToRevoke =
+        await readModelService.getAttributeByOriginAndCode({
+          origin: attributeOrigin,
+          code: attributeExternalId,
+        });
+
+      // non c'è nella rotta ma secondo me serve
+      if (!attributeToRevoke) {
+        throw attributeNotFound(attributeOrigin);
+      }
+
+      const maybeAttribute = tenantToModify.data.attributes.find(
+        (attr) =>
+          attr.type === tenantAttributeType.CERTIFIED &&
+          attr.id === attributeToRevoke.id
+      ) as CertifiedTenantAttribute;
+
+      if (!maybeAttribute) {
+        throw attributeNotFound(attributeOrigin);
+      }
+
+      // eslint-disable-next-line functional/no-let
+      let updatedTenant: Tenant = {
+        ...tenantToModify.data,
+        updatedAt: new Date(),
+      };
+
+      if (maybeAttribute.revocationTimestamp) {
+        throw certifiedAttributeAlreadyRevoked(
+          attributeToRevoke.id,
+          tenantToModify.data.id
+        );
+      }
+      // re-assigning attribute if it was revoked
+      updatedTenant = updateAttribute(
+        {
+          updatedTenant,
+          targetTenant: tenantToModify,
+          attributeId: attributeToRevoke.id,
+          revocationTimestamp: new Date(),
+        },
+        maybeAttribute.assignmentTimestamp
+      );
+
+      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+        readModelService,
+        updatedTenant.attributes,
+        updatedTenant.externalId
+      );
+
+      if (updatedTenant.kind !== tenantKind) {
+        updatedTenant = {
+          ...updatedTenant,
+          kind: tenantKind,
+        };
+      }
+
+      const event = toCreateEventTenantCertifiedAttributeRevoked(
+        tenantToModify.data.id,
+        tenantToModify.metadata.version,
+        updatedTenant,
+        attributeToRevoke.id,
         correlationId
       );
       await repository.createEvent(event);

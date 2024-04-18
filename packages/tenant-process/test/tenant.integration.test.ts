@@ -30,6 +30,7 @@ import {
   EService,
   Tenant,
   TenantCertifiedAttributeAssignedV2,
+  TenantCertifiedAttributeRevokedV2,
   TenantCertifiedAttributeV2,
   TenantDeclaredAttributeAssignedV2,
   TenantDeclaredAttributeV2,
@@ -74,6 +75,7 @@ import {
   certifiedAttributeAlreadyAssigned,
   attributeVerificationNotAllowed,
   verifiedAttributeSelfVerification,
+  certifiedAttributeAlreadyRevoked,
 } from "../src/model/domain/errors.js";
 import {
   ApiSelfcareTenantSeed,
@@ -801,6 +803,162 @@ describe("Integration tests", () => {
           certifiedAttributeAlreadyAssigned(
             unsafeBrandId(attribute.id),
             unsafeBrandId(tenantAlreadyAssigned.id)
+          )
+        );
+      });
+    });
+    describe("internalRevokeCertifiedAttribute", async () => {
+      const correlationId = generateId();
+      const requesterTenant: Tenant = {
+        ...mockTenant,
+        features: [
+          {
+            type: "PersistentCertifier",
+            certifierId: generateId(),
+          },
+        ],
+        updatedAt: currentDate,
+        name: "A requesterTenant",
+        externalId: {
+          origin: generateId(),
+          value: "1234567",
+        },
+      };
+      const attribute: Attribute = {
+        name: "an Attribute",
+        id: unsafeBrandId(requesterTenant.id),
+        kind: "Certified",
+        description: "an attribute",
+        creationTime: new Date(),
+        code: "123456",
+        origin: requesterTenant.externalId.origin,
+      };
+      it("Should revoke the certified attribute ", async () => {
+        const tenantWithCertifiedAttribute: Tenant = {
+          ...requesterTenant,
+          attributes: [
+            {
+              ...mockCertifiedTenantAttribute,
+              id: unsafeBrandId(attribute.id),
+            },
+          ],
+        };
+
+        await addOneAttribute(attribute, attributes);
+        await addOneTenant(tenantWithCertifiedAttribute, postgresDB, tenants);
+        await tenantService.internalRevokeCertifiedAttribute(
+          tenantWithCertifiedAttribute.externalId.origin,
+          tenantWithCertifiedAttribute.externalId.value,
+          attribute.origin!,
+          attribute.code!,
+          correlationId
+        );
+        const writtenEvent: StoredEvent | undefined =
+          await readLastEventByStreamId(
+            tenantWithCertifiedAttribute.id,
+            eventStoreSchema.tenant,
+            postgresDB
+          );
+        if (!writtenEvent) {
+          fail("Update failed: tenant not found in event-store");
+        }
+        expect(writtenEvent).toMatchObject({
+          stream_id: tenantWithCertifiedAttribute.id,
+          version: "1",
+          type: "TenantCertifiedAttributeRevoked",
+        });
+        const writtenPayload = protobufDecoder(
+          TenantCertifiedAttributeRevokedV2
+        ).parse(writtenEvent?.data);
+
+        const updatedTenant: Tenant = {
+          ...tenantWithCertifiedAttribute,
+          attributes: [
+            {
+              id: unsafeBrandId(attribute.id),
+              type: "PersistentCertifiedAttribute",
+              assignmentTimestamp: new Date(
+                Number(
+                  (
+                    writtenPayload.tenant!.attributes[0].sealedValue as {
+                      oneofKind: "certifiedAttribute";
+                      certifiedAttribute: TenantCertifiedAttributeV2;
+                    }
+                  ).certifiedAttribute.assignmentTimestamp
+                )
+              ),
+              revocationTimestamp: new Date(
+                Number(
+                  (
+                    writtenPayload.tenant!.attributes[0].sealedValue as {
+                      oneofKind: "certifiedAttribute";
+                      certifiedAttribute: TenantCertifiedAttributeV2;
+                    }
+                  ).certifiedAttribute.revocationTimestamp
+                )
+              ),
+            },
+          ],
+          kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
+          updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
+        };
+        expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+      });
+      it("Should throw tenant not found", async () => {
+        await addOneAttribute(attribute, attributes);
+        expect(
+          tenantService.internalRevokeCertifiedAttribute(
+            requesterTenant.externalId.origin,
+            requesterTenant.externalId.value,
+            attribute.origin!,
+            attribute.code!,
+            correlationId
+          )
+        ).rejects.toThrowError(
+          tenantNotFound(unsafeBrandId(requesterTenant.externalId.origin))
+        );
+      });
+      it("Should throw attribute not found", async () => {
+        await addOneTenant(requesterTenant, postgresDB, tenants);
+
+        expect(
+          tenantService.internalRevokeCertifiedAttribute(
+            requesterTenant.externalId.origin,
+            requesterTenant.externalId.value,
+            attribute.origin!,
+            attribute.code!,
+            correlationId
+          )
+        ).rejects.toThrowError(
+          attributeNotFound(unsafeBrandId(attribute.origin!))
+        );
+      });
+      it("Should throw certifiedAttributeAlreadyRevoked", async () => {
+        const tenantAlreadyRevoked: Tenant = {
+          ...requesterTenant,
+          attributes: [
+            {
+              id: attribute.id,
+              type: "PersistentCertifiedAttribute",
+              assignmentTimestamp: new Date(),
+              revocationTimestamp: new Date(),
+            },
+          ],
+        };
+        await addOneAttribute(attribute, attributes);
+        await addOneTenant(tenantAlreadyRevoked, postgresDB, tenants);
+        expect(
+          tenantService.internalRevokeCertifiedAttribute(
+            tenantAlreadyRevoked.externalId.origin,
+            tenantAlreadyRevoked.externalId.value,
+            attribute.origin!,
+            attribute.code!,
+            correlationId
+          )
+        ).rejects.toThrowError(
+          certifiedAttributeAlreadyRevoked(
+            unsafeBrandId(attribute.id),
+            unsafeBrandId(tenantAlreadyRevoked.id)
           )
         );
       });
