@@ -26,6 +26,7 @@ import {
 import { IDatabase } from "pg-promise";
 import {
   Attribute,
+  AttributeId,
   Descriptor,
   EService,
   Tenant,
@@ -39,6 +40,7 @@ import {
   TenantVerifiedAttributeAssignedV2,
   TenantVerifiedAttributeExpirationUpdatedV2,
   TenantVerifiedAttributeExtensionUpdatedV2,
+  TenantVerifiedAttributeRevokedV2,
   TenantVerifiedAttributeV2,
   descriptorState,
   fromTenantKindV2,
@@ -74,6 +76,9 @@ import {
   certifiedAttributeAlreadyAssigned,
   attributeVerificationNotAllowed,
   verifiedAttributeSelfVerification,
+  attributeRevocationNotAllowed,
+  verifiedAttributeSelfRevocation,
+  attributeAlreadyRevoked,
 } from "../src/model/domain/errors.js";
 import {
   ApiSelfcareTenantSeed,
@@ -1284,6 +1289,262 @@ describe("Integration tests", () => {
             correlationId,
           })
         ).rejects.toThrowError(verifiedAttributeSelfVerification());
+      });
+    });
+    describe("revokeVerifiedAttribute", async () => {
+      const attributeId: AttributeId = generateId();
+      const targetTenant: Tenant = { ...mockTenant, id: generateId() };
+
+      const requesterTenant: Tenant = {
+        ...mockTenant,
+        id: generateId(),
+        name: "A requesterTenant",
+      };
+
+      const descriptor1: Descriptor = {
+        ...mockDescriptor,
+        state: descriptorState.published,
+        attributes: {
+          verified: [
+            [
+              {
+                id: attributeId,
+                explicitAttributeVerification: false,
+              },
+            ],
+          ],
+          declared: [],
+          certified: [],
+        },
+      };
+
+      const eService1: EService = {
+        ...mockEService,
+        producerId: requesterTenant.id,
+        id: generateId(),
+        name: "A",
+        descriptors: [descriptor1],
+      };
+
+      const agreementEservice1 = getMockAgreement({
+        eserviceId: eService1.id,
+        descriptorId: descriptor1.id,
+        producerId: eService1.producerId,
+        consumerId: targetTenant.id,
+      });
+
+      it("Should revoke the VerifiedAttribute", async () => {
+        const tenantWithVerifiedAttribute: Tenant = {
+          ...targetTenant,
+          attributes: [
+            {
+              ...mockVerifiedTenantAttribute,
+              id: unsafeBrandId(attributeId),
+              verifiedBy: [
+                {
+                  ...mockVerifiedBy,
+                  id: requesterTenant.id,
+                },
+              ],
+              revokedBy: [{ ...mockRevokedBy }],
+            },
+          ],
+        };
+
+        await addOneTenant(tenantWithVerifiedAttribute, postgresDB, tenants);
+        await addOneTenant(requesterTenant, postgresDB, tenants);
+        await addOneEService(eService1, eservices);
+        await addOneAgreement(agreementEservice1, agreements);
+
+        await tenantService.revokeVerifiedAttribute({
+          tenantId: tenantWithVerifiedAttribute.id,
+          attributeId,
+          organizationId: requesterTenant.id,
+          correlationId: generateId(),
+        });
+        const writtenEvent: StoredEvent | undefined =
+          await readLastEventByStreamId(
+            tenantWithVerifiedAttribute.id,
+            eventStoreSchema.tenant,
+            postgresDB
+          );
+        if (!writtenEvent) {
+          fail("Update failed: tenant not found in event-store");
+        }
+        expect(writtenEvent).toMatchObject({
+          stream_id: tenantWithVerifiedAttribute.id,
+          version: "1",
+          type: "TenantVerifiedAttributeRevoked",
+        });
+        const writtenPayload = protobufDecoder(
+          TenantVerifiedAttributeRevokedV2
+        ).parse(writtenEvent?.data);
+
+        const updatedTenant: Tenant = {
+          ...tenantWithVerifiedAttribute,
+          attributes: [
+            {
+              id: unsafeBrandId(attributeId),
+              type: tenantAttributeType.VERIFIED,
+              assignmentTimestamp: new Date(
+                Number(
+                  (
+                    writtenPayload.tenant!.attributes[0].sealedValue as {
+                      oneofKind: "verifiedAttribute";
+                      verifiedAttribute: TenantVerifiedAttributeV2;
+                    }
+                  ).verifiedAttribute.assignmentTimestamp
+                )
+              ),
+              verifiedBy: [
+                {
+                  ...mockVerifiedBy,
+                  id: requesterTenant.id,
+                },
+              ],
+              revokedBy: [
+                {
+                  ...mockRevokedBy,
+                },
+              ],
+            },
+          ],
+          updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
+        };
+        expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+      });
+      it("Should throw tenant not found", async () => {
+        await addOneEService(eService1, eservices);
+        await addOneAgreement(agreementEservice1, agreements);
+        expect(
+          tenantService.revokeVerifiedAttribute({
+            tenantId: targetTenant.id,
+            attributeId,
+            organizationId: requesterTenant.id,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(tenantNotFound(targetTenant.id));
+      });
+      it("Should throw attribute not found", async () => {
+        const tenantWithoutSameAttributeId: Tenant = {
+          ...targetTenant,
+          attributes: [
+            {
+              ...mockVerifiedTenantAttribute,
+              id: generateId(),
+              verifiedBy: [
+                {
+                  ...mockVerifiedBy,
+                  id: requesterTenant.id,
+                },
+              ],
+              revokedBy: [{ ...mockRevokedBy }],
+            },
+          ],
+        };
+
+        await addOneTenant(tenantWithoutSameAttributeId, postgresDB, tenants);
+        await addOneTenant(requesterTenant, postgresDB, tenants);
+        await addOneEService(eService1, eservices);
+        await addOneAgreement(agreementEservice1, agreements);
+        expect(
+          tenantService.revokeVerifiedAttribute({
+            tenantId: tenantWithoutSameAttributeId.id,
+            attributeId,
+            organizationId: requesterTenant.id,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(attributeNotFound(attributeId));
+      });
+      it("Should throw attributeRevocationNotAllowed", async () => {
+        const tenantWithVerifiedAttribute: Tenant = {
+          ...targetTenant,
+          attributes: [
+            {
+              ...mockVerifiedTenantAttribute,
+              id: unsafeBrandId(attributeId),
+              verifiedBy: [
+                {
+                  ...mockVerifiedBy,
+                  id: generateId(),
+                },
+              ],
+              revokedBy: [{ ...mockRevokedBy }],
+            },
+          ],
+        };
+
+        await addOneTenant(tenantWithVerifiedAttribute, postgresDB, tenants);
+        await addOneTenant(requesterTenant, postgresDB, tenants);
+        await addOneEService(eService1, eservices);
+        await addOneAgreement(agreementEservice1, agreements);
+
+        expect(
+          tenantService.revokeVerifiedAttribute({
+            tenantId: tenantWithVerifiedAttribute.id,
+            attributeId,
+            organizationId: requesterTenant.id,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(
+          attributeRevocationNotAllowed(
+            targetTenant.id,
+            unsafeBrandId(attributeId)
+          )
+        );
+      });
+      it("Should throw verifiedAttributeSelfRevocation", async () => {
+        await addOneTenant(targetTenant, postgresDB, tenants);
+        await addOneTenant(requesterTenant, postgresDB, tenants);
+        await addOneEService(eService1, eservices);
+        await addOneAgreement(agreementEservice1, agreements);
+
+        expect(
+          tenantService.revokeVerifiedAttribute({
+            tenantId: requesterTenant.id,
+            attributeId,
+            organizationId: requesterTenant.id,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(verifiedAttributeSelfRevocation());
+      });
+      it("Should throw attributeAlreadyRevoked", async () => {
+        const tenantWithVerifiedAttribute: Tenant = {
+          ...targetTenant,
+          attributes: [
+            {
+              ...mockVerifiedTenantAttribute,
+              id: unsafeBrandId(attributeId),
+              verifiedBy: [
+                {
+                  ...mockVerifiedBy,
+                  id: requesterTenant.id,
+                },
+              ],
+              revokedBy: [{ ...mockRevokedBy, id: requesterTenant.id }],
+            },
+          ],
+        };
+
+        await addOneTenant(tenantWithVerifiedAttribute, postgresDB, tenants);
+        await addOneTenant(requesterTenant, postgresDB, tenants);
+        await addOneEService(eService1, eservices);
+        await addOneAgreement(agreementEservice1, agreements);
+
+        expect(
+          tenantService.revokeVerifiedAttribute({
+            tenantId: tenantWithVerifiedAttribute.id,
+            attributeId,
+            organizationId: requesterTenant.id,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(
+          attributeAlreadyRevoked(
+            targetTenant.id,
+            requesterTenant.id,
+            unsafeBrandId(attributeId)
+          )
+        );
       });
     });
   });
