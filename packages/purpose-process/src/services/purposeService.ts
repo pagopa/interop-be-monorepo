@@ -479,8 +479,7 @@ export function purposeServiceBuilder(
     },
     async getPurposes(
       filters: ApiGetPurposesFilters,
-      offset: number,
-      limit: number
+      { offset, limit }: { offset: number; limit: number }
     ): Promise<ListResult<Purpose>> {
       logger.info("To DO");
 

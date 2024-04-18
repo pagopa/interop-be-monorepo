@@ -92,8 +92,7 @@ const purposeRouter = (
               states: states.map(apiPurposeVersionStateToPurposeVersionState),
               excludeDraft,
             },
-            offset,
-            limit
+            { offset, limit }
           );
           return res
             .status(200)
