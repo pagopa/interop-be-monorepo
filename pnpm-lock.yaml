@@ -949,6 +949,9 @@ importers:
         specifier: 3.21.4
         version: 3.21.4
     devDependencies:
+      '@types/node':
+        specifier: 20.3.1
+        version: 20.3.1
       eslint:
         specifier: 8.44.0
         version: 8.44.0
