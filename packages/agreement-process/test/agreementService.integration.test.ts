@@ -23,7 +23,6 @@ import {
   expectPastTimestamp,
   getRandomAuthData,
   randomArrayItem,
-  StoredEvent,
   decodeProtobufPayload,
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
@@ -132,10 +131,7 @@ const expectedAgreementCreation = async (
     fail("Unhandled error: returned agreementId is undefined");
   }
 
-  const writtenEvent: StoredEvent | undefined = await readLastAgreementEvent(
-    agreementId,
-    postgresDB
-  );
+  const writtenEvent = await readLastAgreementEvent(agreementId, postgresDB);
 
   if (!writtenEvent) {
     fail("Creation fails: agreement not found in event-store");
