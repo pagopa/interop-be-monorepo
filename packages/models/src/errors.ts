@@ -1,6 +1,7 @@
 /* eslint-disable max-classes-per-file */
 import { P, match } from "ts-pattern";
 import { ZodError } from "zod";
+import { fromZodIssue } from "zod-validation-error";
 
 export class ApiError<T> extends Error {
   /* TODO consider refactoring how the code property is used:
@@ -134,9 +135,7 @@ export type CommonErrorCodes = keyof typeof errorCodes;
 
 export function parseErrorMessage(error: unknown): string {
   if (error instanceof ZodError) {
-    return error.errors
-      .map((issue) => `"${issue.path}" : ${issue.message}`)
-      .join(" ; ");
+    return error.errors.map((e) => fromZodIssue(e).message).join(" ; ");
   }
 
   if (error instanceof Error) {
