@@ -89,7 +89,7 @@ export const testDeleteAgreement = (): ReturnType<typeof describe> =>
       expect(agreementEvent).toMatchObject({
         type: "AgreementDeleted",
         event_version: 1,
-        version: "0",
+        version: "1",
         stream_id: agreement.id,
       });
 
