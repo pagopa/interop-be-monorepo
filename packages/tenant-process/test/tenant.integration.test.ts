@@ -15,13 +15,10 @@ import {
   initDB,
 } from "pagopa-interop-commons";
 import {
-  StoredEvent,
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
-  eventStoreSchema,
   mongoDBContainer,
   postgreSQLContainer,
-  readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
 import { IDatabase } from "pg-promise";
 import {
@@ -73,6 +70,7 @@ import {
   getMockTenant,
   getMockVerifiedBy,
   getMockVerifiedTenantAttribute,
+  readLastTenantEvent,
 } from "./utils.js";
 
 describe("Integration tests", () => {
@@ -165,12 +163,7 @@ describe("Integration tests", () => {
           genericLogger
         );
 
-        const writtenEvent: StoredEvent | undefined =
-          await readLastEventByStreamId(
-            tenant.id,
-            eventStoreSchema.tenant,
-            postgresDB
-          );
+        const writtenEvent = await readLastTenantEvent(tenant.id, postgresDB);
         if (!writtenEvent) {
           fail("Update failed: tenant not found in event-store");
         }
@@ -211,12 +204,10 @@ describe("Integration tests", () => {
           genericLogger
         );
         expect(id).toBeDefined();
-        const writtenEvent: StoredEvent | undefined =
-          await readLastEventByStreamId(
-            unsafeBrandId<TenantId>(id),
-            eventStoreSchema.tenant,
-            postgresDB
-          );
+        const writtenEvent = await readLastTenantEvent(
+          unsafeBrandId(id),
+          postgresDB
+        );
         if (!writtenEvent) {
           fail("Creation failed: tenant not found in event-store");
         }
@@ -290,9 +281,9 @@ describe("Integration tests", () => {
       );
 
       const updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed =
-        {
-          expirationDate: expirationDate.toISOString(),
-        };
+      {
+        expirationDate: expirationDate.toISOString(),
+      };
 
       const tenant: Tenant = {
         ...mockTenant,
@@ -324,12 +315,7 @@ describe("Integration tests", () => {
           },
           genericLogger
         );
-        const writtenEvent: StoredEvent | undefined =
-          await readLastEventByStreamId(
-            tenant.id,
-            eventStoreSchema.tenant,
-            postgresDB
-          );
+        const writtenEvent = await readLastTenantEvent(tenant.id, postgresDB);
         if (!writtenEvent) {
           fail("Creation fails: tenant not found in event-store");
         }
@@ -373,9 +359,9 @@ describe("Integration tests", () => {
         );
 
         const updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed =
-          {
-            expirationDate: expirationDateinPast.toISOString(),
-          };
+        {
+          expirationDate: expirationDateinPast.toISOString(),
+        };
 
         await addOneTenant(tenant, postgresDB, tenants);
         expect(
@@ -447,9 +433,9 @@ describe("Integration tests", () => {
       );
 
       const updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed =
-        {
-          expirationDate: expirationDate.toISOString(),
-        };
+      {
+        expirationDate: expirationDate.toISOString(),
+      };
 
       const tenant: Tenant = {
         ...mockTenant,
@@ -481,12 +467,7 @@ describe("Integration tests", () => {
           },
           genericLogger
         );
-        const writtenEvent: StoredEvent | undefined =
-          await readLastEventByStreamId(
-            tenant.id,
-            eventStoreSchema.tenant,
-            postgresDB
-          );
+        const writtenEvent = await readLastTenantEvent(tenant.id, postgresDB);
         if (!writtenEvent) {
           fail("Creation fails: tenant not found in event-store");
         }
@@ -530,9 +511,9 @@ describe("Integration tests", () => {
         );
 
         const updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed =
-          {
-            expirationDate: expirationDateinPast.toISOString(),
-          };
+        {
+          expirationDate: expirationDateinPast.toISOString(),
+        };
 
         await addOneTenant(tenant, postgresDB, tenants);
         expect(
@@ -625,8 +606,8 @@ describe("Integration tests", () => {
       it("Should update the extensionDate", async () => {
         const extensionDate = new Date(
           currentDate.getTime() +
-            (expirationDate.getTime() -
-              mockVerifiedBy.verificationDate.getTime())
+          (expirationDate.getTime() -
+            mockVerifiedBy.verificationDate.getTime())
         );
 
         await addOneTenant(tenant, postgresDB, tenants);
@@ -637,12 +618,7 @@ describe("Integration tests", () => {
           correlationId,
           genericLogger
         );
-        const writtenEvent: StoredEvent | undefined =
-          await readLastEventByStreamId(
-            tenant.id,
-            eventStoreSchema.tenant,
-            postgresDB
-          );
+        const writtenEvent = await readLastTenantEvent(tenant.id, postgresDB);
         if (!writtenEvent) {
           fail("Creation fails: tenant not found in event-store");
         }
