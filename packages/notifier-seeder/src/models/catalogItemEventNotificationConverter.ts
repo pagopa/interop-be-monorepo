@@ -93,8 +93,8 @@ export const toCatalogItemEventNotification = (
       })
     )
     .with(
-      { type: "EServiceDescriptorAdded" }, // CatelogItemDescriptorItemAdded
-      { type: "EServiceDraftDescriptorUpdated" }, // CatalogItemDescriptorUpdatedV1
+      { type: "EServiceDescriptorAdded" }, // CatalogItemDescriptorAddedV1
+      { type: "EServiceDraftDescriptorUpdated" }, // CatalogItemDescriptorAddedV1
       { type: "EServiceDescriptorActivated" }, // CatalogItemDescriptorUpdatedV1
       { type: "EServiceDescriptorArchived" }, // CatalogItemDescriptorUpdatedV1
       { type: "EServiceDescriptorPublished" }, // CatalogItemDescriptorUpdatedV1
@@ -173,7 +173,7 @@ export const toCatalogItemEventNotification = (
         }
 
         return {
-          eserviceId: e.data.eservice.id,
+          eServiceId: e.data.eservice.id,
           descriptorId: e.data.descriptorId,
           documentId: e.data.documentId,
         };
