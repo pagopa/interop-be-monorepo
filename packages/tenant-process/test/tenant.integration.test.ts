@@ -758,7 +758,11 @@ describe("Integration tests", () => {
             correlationId
           )
         ).rejects.toThrowError(
-          tenantNotFound(unsafeBrandId(requesterTenant.externalId.origin))
+          tenantNotFound(
+            unsafeBrandId(
+              `${requesterTenant.externalId.origin}/${requesterTenant.externalId.value}`
+            )
+          )
         );
       });
       it("Should throw attribute not found", async () => {
@@ -773,7 +777,9 @@ describe("Integration tests", () => {
             correlationId
           )
         ).rejects.toThrowError(
-          attributeNotFound(unsafeBrandId(attribute.origin!))
+          attributeNotFound(
+            unsafeBrandId(`${attribute.origin}/${attribute.code}`)
+          )
         );
       });
       it("Should throw certifiedAttributeAlreadyAssigned", async () => {
