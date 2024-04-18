@@ -3,6 +3,7 @@ import { AsyncLocalStorage } from "async_hooks";
 import { NextFunction, Request, Response } from "express";
 import { zodiosContext } from "@zodios/express";
 import { z } from "zod";
+import { P, match } from "ts-pattern";
 import { AuthData, defaultAuthData } from "../auth/authData.js";
 import { readHeaders } from "../auth/headers.js";
 
@@ -35,32 +36,32 @@ export const getContext = (): AppContext => {
   return !context ? defaultAppContext : context;
 };
 
-export const globalContextMiddleware = (
-  _req: Request,
-  _res: Response,
-  next: NextFunction
-): void => {
-  globalStore.run(defaultAppContext, () => defaultAppContext);
-  next();
-};
-
-export const contextDataMiddleware = (
+export const contextMiddleware = (
   req: Request,
   _res: Response,
   next: NextFunction
 ): void => {
   const headers = readHeaders(req);
-  if (headers) {
-    const context = getContext();
-    context.authData = {
-      userId: headers.userId,
-      organizationId: headers.organizationId,
-      userRoles: headers.userRoles,
-      externalId: headers.externalId,
-      selfcareId: headers.selfcareId,
-    };
+  const context = match(headers)
+    .with(P.not(P.nullish), (headers) => ({
+      authData: {
+        userId: headers.userId,
+        organizationId: headers.organizationId,
+        userRoles: headers.userRoles,
+        externalId: headers.externalId,
+        selfcareId: headers.selfcareId,
+      },
+      correlationId: headers.correlationId,
+    }))
+    .with(P.nullish, () => defaultAppContext)
+    .exhaustive();
 
-    context.correlationId = headers?.correlationId;
-  }
-  next();
+  globalStore.run(context, () => next());
 };
+
+export function runWithContext(
+  context: Partial<AppContext>,
+  fn: () => void
+): void {
+  globalStore.run({ ...defaultAppContext, ...context }, fn);
+}

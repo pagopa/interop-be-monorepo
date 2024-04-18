@@ -29,6 +29,8 @@ export * from "./tenant/protobufConverter.js";
 export * from "./tenant/tenant.js";
 export * from "./tenant/tenantEvents.js";
 
+export * from "./purpose/purpose.js";
+
 export * from "./user/user.js";
 
 // Protobuf
@@ -38,6 +40,9 @@ export * from "./protobuf/protobuf.js";
 export * from "./read-models/attributeReadModel.js";
 export * from "./read-models/eserviceReadModel.js";
 export * from "./read-models/readModels.js";
+
+// Event store
+export * from "./event-store/dbSchema.js";
 
 // Utilities
 export * from "./brandedIds.js";

@@ -60,6 +60,32 @@ const mockInternalToken = {
   jti: "d0c42cfb-8a32-430f-95cf-085067b52695",
 };
 
+const mockSupportToken = {
+  iss: "refactor.dev.interop.pagopa.it",
+  externalId: {
+    origin: "IPA",
+    value: "5N2TR557",
+  },
+  "user-roles": "support",
+  selfcareId: "1962d21c-c701-4805-93f6-53a877898756",
+  organizationId: "69e2865e-65ab-4e48-a638-2037a9ee2ee7",
+  aud: "dev.interop.pagopa.it/ui,dev.interop.pagopa.it/fake",
+  uid: "f07ddb8f-17f9-47d4-b31e-35d1ac10e521",
+  nbf: 1710841859,
+  organization: {
+    roles: [
+      {
+        role: "support",
+      },
+    ],
+    id: "1962d21c-c701-4805-93f6-53a877898756",
+    name: "PagoPA S.p.A.",
+  },
+  exp: 1710928259,
+  iat: 1710841859,
+  jti: "e82bd774-9cac-4885-931b-015b2eb4e9a5",
+};
+
 const getMockSignedToken = (token: object): string =>
   jwt.sign(token, "test-secret");
 
@@ -203,6 +229,32 @@ describe("JWT tests", () => {
       expect(result).toBeInstanceOf(Error);
       expect(parseReadAuthDataFromJwtTokenErrorResult(result as Error)).toEqual(
         "Invalid discriminator value. Expected 'm2m' | 'internal' | "
+      );
+    });
+
+    it("should successfully read auth data from a Support token", async () => {
+      const token = getMockSignedToken(mockSupportToken);
+      expect(readAuthDataFromJwtToken(token)).toEqual({
+        externalId: {
+          origin: "IPA",
+          value: "5N2TR557",
+        },
+        organizationId: "69e2865e-65ab-4e48-a638-2037a9ee2ee7",
+        userId: "f07ddb8f-17f9-47d4-b31e-35d1ac10e521",
+        userRoles: ["support"],
+      });
+    });
+
+    it("should fail reading auth data from a Support token with invalid user roles", async () => {
+      const token = getMockSignedToken({
+        ...mockSupportToken,
+        "user-roles": "support,invalid-role",
+      });
+
+      const result = readAuthDataFromJwtToken(token);
+      expect(result).toBeInstanceOf(Error);
+      expect(parseReadAuthDataFromJwtTokenErrorResult(result as Error)).toEqual(
+        "Invalid enum value. Expected 'admin' | 'security' | 'api' | 'support', received 'invalid-role'"
       );
     });
   });

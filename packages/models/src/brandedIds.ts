@@ -50,6 +50,18 @@ export type RiskAnalysisFormId = z.infer<typeof RiskAnalysisFormId>;
 export const RiskAnalysisId = z.string().uuid().brand("RiskAnalysisId");
 export type RiskAnalysisId = z.infer<typeof RiskAnalysisId>;
 
+export const PurposeId = z.string().uuid().brand("PurposeId");
+export type PurposeId = z.infer<typeof PurposeId>;
+
+export const PurposeVersionId = z.string().uuid().brand("PurposeVersionId");
+export type PurposeVersionId = z.infer<typeof PurposeVersionId>;
+
+export const PurposeVersionDocumentId = z
+  .string()
+  .uuid()
+  .brand("PurposeVersionDocumentId");
+export type PurposeVersionDocumentId = z.infer<typeof PurposeVersionDocumentId>;
+
 export const SelfcareId = z.string().uuid().brand("SelfcareId");
 export type SelfcareId = z.infer<typeof SelfcareId>;
 
@@ -65,6 +77,9 @@ type IDS =
   | RiskAnalysisMultiAnswerId
   | RiskAnalysisFormId
   | RiskAnalysisId
+  | PurposeId
+  | PurposeVersionId
+  | PurposeVersionDocumentId
   | UserId
   | SelfcareId;
 
