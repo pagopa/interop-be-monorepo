@@ -374,7 +374,7 @@ export function purposeServiceBuilder(
         throw notValidVersionState(versionId, purposeVersion.state);
       }
 
-      const purposeWithoutWaiting: Purpose = {
+      const purposeWithoutWaitingForApproval: Purpose = {
         ...purpose.data,
         versions: purpose.data.versions.filter(
           (v) => v.state !== purposeVersionState.waitingForApproval
@@ -386,7 +386,7 @@ export function purposeServiceBuilder(
         updatedAt: new Date(),
       };
       const updatedPurpose = replacePurposeVersion(
-        purposeWithoutWaiting,
+        purposeWithoutWaitingForApproval,
         archivedVersion
       );
 
