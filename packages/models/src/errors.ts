@@ -134,7 +134,7 @@ export type CommonErrorCodes = keyof typeof errorCodes;
 
 export function parseErrorMessage(error: unknown): string {
   if (error instanceof ZodError) {
-    return error.issues
+    return error.errors
       .map((issue) => `"${issue.path}" : ${issue.message}`)
       .join(" ; ");
   }
