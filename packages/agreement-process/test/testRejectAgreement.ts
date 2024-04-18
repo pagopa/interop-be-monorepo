@@ -195,7 +195,7 @@ export const testRejectAgreement = (): ReturnType<typeof describe> =>
       expect(agreementEvent).toMatchObject({
         type: "AgreementUpdated",
         event_version: 1,
-        version: "0",
+        version: "1",
         stream_id: agreement.id,
       });
 
@@ -233,6 +233,7 @@ export const testRejectAgreement = (): ReturnType<typeof describe> =>
     });
 
     it("should throw an agreementNotFound error when the agreement does not exist", async () => {
+      await addOneAgreement(getMockAgreement(), postgresDB, agreements);
       const authData = getRandomAuthData();
       const agreementId = generateId<AgreementId>();
       await expect(
@@ -283,6 +284,7 @@ export const testRejectAgreement = (): ReturnType<typeof describe> =>
     });
 
     it("should throw an eServiceNotFound error when the eService does not exist", async () => {
+      await addOneEService(getMockEService(), eservices);
       const agreement = {
         ...getMockAgreement(),
         state: randomArrayItem(agreementRejectableStates),
@@ -300,6 +302,7 @@ export const testRejectAgreement = (): ReturnType<typeof describe> =>
     });
 
     it("should throw a tenantNotFound error when the consumer does not exist", async () => {
+      await addOneTenant(getMockTenant(), tenants);
       const eservice = getMockEService();
       const consumer = getMockTenant();
       const agreement = {
@@ -324,7 +327,10 @@ export const testRejectAgreement = (): ReturnType<typeof describe> =>
     });
 
     it("should throw a descriptorNotFound error when the descriptor does not exist", async () => {
-      const eservice = getMockEService();
+      const eservice: EService = {
+        ...getMockEService(),
+        descriptors: [getMockDescriptorPublished()],
+      };
       const consumer = getMockTenant();
       const agreement = {
         ...getMockAgreement(),
