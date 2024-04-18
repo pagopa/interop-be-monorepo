@@ -1,5 +1,4 @@
 import { IDatabase } from "pg-promise";
-import { z } from "zod";
 import { MessageType } from "@protobuf-ts/runtime";
 import {
   AgreementEvent,
@@ -8,6 +7,8 @@ import {
   AttributeId,
   EServiceEvent,
   EServiceId,
+  EventStoreSchema,
+  PurposeId,
   TenantEvent,
   TenantId,
   agreementEventToBinaryData,
@@ -32,19 +33,6 @@ export type ReadEvent<T extends Event> = {
   event_version: number;
   data: Uint8Array;
 };
-
-export const eventStoreSchema = {
-  agreement: "agreement",
-  attribute: "attribute",
-  catalog: "catalog",
-  tenant: "tenant",
-} as const;
-
-export const EventStoreSchema = z.enum([
-  Object.values(eventStoreSchema)[0],
-  ...Object.values(eventStoreSchema).slice(1),
-]);
-export type EventStoreSchema = z.infer<typeof EventStoreSchema>;
 
 export async function writeInEventstore<T extends EventStoreSchema>(
   event: T extends "agreement"
@@ -79,6 +67,9 @@ export async function writeInEventstore<T extends EventStoreSchema>(
         .with("tenant", () =>
           tenantEventToBinaryData(event.event as TenantEvent)
         )
+        .with("purpose", () => {
+          throw new Error("Purpose events not implemented yet");
+        })
         .exhaustive(),
     ]
   );
@@ -93,6 +84,8 @@ export async function readLastEventByStreamId<T extends EventStoreSchema>(
     ? EServiceId
     : T extends "tenant"
     ? TenantId
+    : T extends "purpose"
+    ? PurposeId
     : never,
   schema: T,
   postgresDB: IDatabase<unknown>
