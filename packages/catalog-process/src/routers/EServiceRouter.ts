@@ -8,14 +8,13 @@ import {
   ReadModelRepository,
   initDB,
   initFileManager,
-  logger,
+  loggerAndMakeApiProblemBuilder,
 } from "pagopa-interop-commons";
 import {
   unsafeBrandId,
   EServiceId,
   TenantId,
   AttributeId,
-  makeApiProblemBuilder,
 } from "pagopa-interop-models";
 import {
   agreementStateToApiAgreementState,
@@ -72,6 +71,8 @@ const catalogService = catalogServiceBuilder(
   initFileManager(config)
 );
 
+const serviceName = "catalog-process";
+
 const eservicesRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
@@ -95,6 +96,12 @@ const eservicesRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
+        const { logger } = loggerAndMakeApiProblemBuilder(
+          serviceName,
+          req.ctx,
+          errorCodes
+        );
+
         try {
           const {
             name,
@@ -107,12 +114,6 @@ const eservicesRouter = (
             offset,
             limit,
           } = req.query;
-
-          const loggerInstance = logger({
-            correlationId: req.ctx.correlationId,
-            userId: req.ctx.authData.userId,
-            organizationId: req.ctx.authData.organizationId,
-          });
 
           const catalogs = await catalogService.getEServices(
             req.ctx.authData,
@@ -129,7 +130,7 @@ const eservicesRouter = (
             },
             offset,
             limit,
-            loggerInstance
+            logger
           );
 
           return res
@@ -148,13 +149,9 @@ const eservicesRouter = (
       "/eservices",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const loggerInstance = logger({
-          correlationId: req.ctx.correlationId,
-          userId: req.ctx.authData.userId,
-          organizationId: req.ctx.authData.organizationId,
-        });
-        const makeApiProblem = makeApiProblemBuilder(
-          loggerInstance,
+        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+          serviceName,
+          req.ctx,
           errorCodes
         );
 
@@ -163,7 +160,7 @@ const eservicesRouter = (
             req.body,
             req.ctx.authData,
             req.ctx.correlationId,
-            loggerInstance
+            logger
           );
           return res.status(200).json(eServiceToApiEService(eservice)).end();
         } catch (error) {
@@ -183,13 +180,9 @@ const eservicesRouter = (
         INTERNAL_ROLE,
       ]),
       async (req, res) => {
-        const loggerInstance = logger({
-          correlationId: req.ctx.correlationId,
-          userId: req.ctx.authData.userId,
-          organizationId: req.ctx.authData.organizationId,
-        });
-        const makeApiProblem = makeApiProblemBuilder(
-          loggerInstance,
+        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+          serviceName,
+          req.ctx,
           errorCodes
         );
 
@@ -197,7 +190,7 @@ const eservicesRouter = (
           const eservice = await catalogService.getEServiceById(
             unsafeBrandId(req.params.eServiceId),
             req.ctx.authData,
-            loggerInstance
+            logger
           );
           return res.status(200).json(eServiceToApiEService(eservice)).end();
         } catch (error) {
@@ -210,13 +203,9 @@ const eservicesRouter = (
       "/eservices/:eServiceId",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const loggerInstance = logger({
-          correlationId: req.ctx.correlationId,
-          userId: req.ctx.authData.userId,
-          organizationId: req.ctx.authData.organizationId,
-        });
-        const makeApiProblem = makeApiProblemBuilder(
-          loggerInstance,
+        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+          serviceName,
+          req.ctx,
           errorCodes
         );
 
@@ -226,7 +215,7 @@ const eservicesRouter = (
             req.body,
             req.ctx.authData,
             req.ctx.correlationId,
-            loggerInstance
+            logger
           );
           return res
             .status(200)
@@ -242,13 +231,9 @@ const eservicesRouter = (
       "/eservices/:eServiceId",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const loggerInstance = logger({
-          correlationId: req.ctx.correlationId,
-          userId: req.ctx.authData.userId,
-          organizationId: req.ctx.authData.organizationId,
-        });
-        const makeApiProblem = makeApiProblemBuilder(
-          loggerInstance,
+        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+          serviceName,
+          req.ctx,
           errorCodes
         );
 
@@ -257,7 +242,7 @@ const eservicesRouter = (
             unsafeBrandId(req.params.eServiceId),
             req.ctx.authData,
             req.ctx.correlationId,
-            loggerInstance
+            logger
           );
           return res.status(204).end();
         } catch (error) {
@@ -276,13 +261,9 @@ const eservicesRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const loggerInstance = logger({
-          correlationId: req.ctx.correlationId,
-          userId: req.ctx.authData.userId,
-          organizationId: req.ctx.authData.organizationId,
-        });
-        const makeApiProblem = makeApiProblemBuilder(
-          loggerInstance,
+        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+          serviceName,
+          req.ctx,
           errorCodes
         );
 
@@ -291,7 +272,7 @@ const eservicesRouter = (
             unsafeBrandId(req.params.eServiceId),
             req.query.offset,
             req.query.limit,
-            loggerInstance
+            logger
           );
 
           return res
@@ -327,13 +308,9 @@ const eservicesRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const loggerInstance = logger({
-          correlationId: req.ctx.correlationId,
-          userId: req.ctx.authData.userId,
-          organizationId: req.ctx.authData.organizationId,
-        });
-        const makeApiProblem = makeApiProblemBuilder(
-          loggerInstance,
+        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+          serviceName,
+          req.ctx,
           errorCodes
         );
 
@@ -347,7 +324,7 @@ const eservicesRouter = (
               documentId: unsafeBrandId(documentId),
               authData: req.ctx.authData,
             },
-            loggerInstance
+            logger
           );
 
           return res.status(200).json(documentToApiDocument(document)).end();
@@ -361,13 +338,9 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/documents",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const loggerInstance = logger({
-          correlationId: req.ctx.correlationId,
-          userId: req.ctx.authData.userId,
-          organizationId: req.ctx.authData.organizationId,
-        });
-        const makeApiProblem = makeApiProblemBuilder(
-          loggerInstance,
+        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+          serviceName,
+          req.ctx,
           errorCodes
         );
 
@@ -378,7 +351,7 @@ const eservicesRouter = (
             req.body,
             req.ctx.authData,
             req.ctx.correlationId,
-            loggerInstance
+            logger
           );
           return res
             .status(200)
@@ -394,13 +367,9 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const loggerInstance = logger({
-          correlationId: req.ctx.correlationId,
-          userId: req.ctx.authData.userId,
-          organizationId: req.ctx.authData.organizationId,
-        });
-        const makeApiProblem = makeApiProblemBuilder(
-          loggerInstance,
+        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+          serviceName,
+          req.ctx,
           errorCodes
         );
 
@@ -411,7 +380,7 @@ const eservicesRouter = (
             unsafeBrandId(req.params.documentId),
             req.ctx.authData,
             req.ctx.correlationId,
-            loggerInstance
+            logger
           );
           return res.status(204).end();
         } catch (error) {
@@ -427,13 +396,9 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId/update",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const loggerInstance = logger({
-          correlationId: req.ctx.correlationId,
-          userId: req.ctx.authData.userId,
-          organizationId: req.ctx.authData.organizationId,
-        });
-        const makeApiProblem = makeApiProblemBuilder(
-          loggerInstance,
+        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+          serviceName,
+          req.ctx,
           errorCodes
         );
 
@@ -445,7 +410,7 @@ const eservicesRouter = (
             req.body,
             req.ctx.authData,
             req.ctx.correlationId,
-            loggerInstance
+            logger
           );
           return res
             .status(200)
@@ -464,13 +429,9 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const loggerInstance = logger({
-          correlationId: req.ctx.correlationId,
-          userId: req.ctx.authData.userId,
-          organizationId: req.ctx.authData.organizationId,
-        });
-        const makeApiProblem = makeApiProblemBuilder(
-          loggerInstance,
+        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+          serviceName,
+          req.ctx,
           errorCodes
         );
 
@@ -480,7 +441,7 @@ const eservicesRouter = (
             req.body,
             req.ctx.authData,
             req.ctx.correlationId,
-            loggerInstance
+            logger
           );
           return res
             .status(200)
@@ -496,13 +457,9 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const loggerInstance = logger({
-          correlationId: req.ctx.correlationId,
-          userId: req.ctx.authData.userId,
-          organizationId: req.ctx.authData.organizationId,
-        });
-        const makeApiProblem = makeApiProblemBuilder(
-          loggerInstance,
+        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+          serviceName,
+          req.ctx,
           errorCodes
         );
 
@@ -512,7 +469,7 @@ const eservicesRouter = (
             unsafeBrandId(req.params.descriptorId),
             req.ctx.authData,
             req.ctx.correlationId,
-            loggerInstance
+            logger
           );
           return res.status(204).end();
         } catch (error) {
@@ -528,13 +485,9 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const loggerInstance = logger({
-          correlationId: req.ctx.correlationId,
-          userId: req.ctx.authData.userId,
-          organizationId: req.ctx.authData.organizationId,
-        });
-        const makeApiProblem = makeApiProblemBuilder(
-          loggerInstance,
+        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+          serviceName,
+          req.ctx,
           errorCodes
         );
 
@@ -545,7 +498,7 @@ const eservicesRouter = (
             req.body,
             req.ctx.authData,
             req.ctx.correlationId,
-            loggerInstance
+            logger
           );
           return res
             .status(200)
@@ -564,13 +517,9 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/publish",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const loggerInstance = logger({
-          correlationId: req.ctx.correlationId,
-          userId: req.ctx.authData.userId,
-          organizationId: req.ctx.authData.organizationId,
-        });
-        const makeApiProblem = makeApiProblemBuilder(
-          loggerInstance,
+        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+          serviceName,
+          req.ctx,
           errorCodes
         );
 
@@ -580,7 +529,7 @@ const eservicesRouter = (
             unsafeBrandId(req.params.descriptorId),
             req.ctx.authData,
             req.ctx.correlationId,
-            loggerInstance
+            logger
           );
           return res.status(204).end();
         } catch (error) {
@@ -593,13 +542,9 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/suspend",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const loggerInstance = logger({
-          correlationId: req.ctx.correlationId,
-          userId: req.ctx.authData.userId,
-          organizationId: req.ctx.authData.organizationId,
-        });
-        const makeApiProblem = makeApiProblemBuilder(
-          loggerInstance,
+        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+          serviceName,
+          req.ctx,
           errorCodes
         );
 
@@ -609,7 +554,7 @@ const eservicesRouter = (
             unsafeBrandId(req.params.descriptorId),
             req.ctx.authData,
             req.ctx.correlationId,
-            loggerInstance
+            logger
           );
           return res.status(204).end();
         } catch (error) {
@@ -622,13 +567,9 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/activate",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const loggerInstance = logger({
-          correlationId: req.ctx.correlationId,
-          userId: req.ctx.authData.userId,
-          organizationId: req.ctx.authData.organizationId,
-        });
-        const makeApiProblem = makeApiProblemBuilder(
-          loggerInstance,
+        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+          serviceName,
+          req.ctx,
           errorCodes
         );
 
@@ -638,7 +579,7 @@ const eservicesRouter = (
             unsafeBrandId(req.params.descriptorId),
             req.ctx.authData,
             req.ctx.correlationId,
-            loggerInstance
+            logger
           );
           return res.status(204).end();
         } catch (error) {
@@ -651,13 +592,9 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/clone",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const loggerInstance = logger({
-          correlationId: req.ctx.correlationId,
-          userId: req.ctx.authData.userId,
-          organizationId: req.ctx.authData.organizationId,
-        });
-        const makeApiProblem = makeApiProblemBuilder(
-          loggerInstance,
+        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+          serviceName,
+          req.ctx,
           errorCodes
         );
 
@@ -668,7 +605,7 @@ const eservicesRouter = (
               unsafeBrandId(req.params.descriptorId),
               req.ctx.authData,
               req.ctx.correlationId,
-              loggerInstance
+              logger
             );
           return res
             .status(200)
@@ -687,13 +624,9 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/archive",
       authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
-        const loggerInstance = logger({
-          correlationId: req.ctx.correlationId,
-          userId: req.ctx.authData.userId,
-          organizationId: req.ctx.authData.organizationId,
-        });
-        const makeApiProblem = makeApiProblemBuilder(
-          loggerInstance,
+        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+          serviceName,
+          req.ctx,
           errorCodes
         );
 
@@ -703,7 +636,7 @@ const eservicesRouter = (
             unsafeBrandId(req.params.descriptorId),
             req.ctx.authData,
             req.ctx.correlationId,
-            loggerInstance
+            logger
           );
           return res.status(204).end();
         } catch (error) {
@@ -716,13 +649,9 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/update",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const loggerInstance = logger({
-          correlationId: req.ctx.correlationId,
-          userId: req.ctx.authData.userId,
-          organizationId: req.ctx.authData.organizationId,
-        });
-        const makeApiProblem = makeApiProblemBuilder(
-          loggerInstance,
+        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+          serviceName,
+          req.ctx,
           errorCodes
         );
 
@@ -733,7 +662,7 @@ const eservicesRouter = (
             req.body,
             req.ctx.authData,
             req.ctx.correlationId,
-            loggerInstance
+            logger
           );
           return res
             .status(200)
@@ -749,13 +678,9 @@ const eservicesRouter = (
       "/eservices/:eServiceId/riskAnalysis",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const loggerInstance = logger({
-          correlationId: req.ctx.correlationId,
-          userId: req.ctx.authData.userId,
-          organizationId: req.ctx.authData.organizationId,
-        });
-        const makeApiProblem = makeApiProblemBuilder(
-          loggerInstance,
+        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+          serviceName,
+          req.ctx,
           errorCodes
         );
 
@@ -765,7 +690,7 @@ const eservicesRouter = (
             req.body,
             req.ctx.authData,
             req.ctx.correlationId,
-            loggerInstance
+            logger
           );
           return res.status(204).end();
         } catch (error) {
@@ -778,13 +703,9 @@ const eservicesRouter = (
       "/eservices/:eServiceId/riskAnalysis/:riskAnalysisId",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const loggerInstance = logger({
-          correlationId: req.ctx.correlationId,
-          userId: req.ctx.authData.userId,
-          organizationId: req.ctx.authData.organizationId,
-        });
-        const makeApiProblem = makeApiProblemBuilder(
-          loggerInstance,
+        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+          serviceName,
+          req.ctx,
           errorCodes
         );
 
@@ -795,7 +716,7 @@ const eservicesRouter = (
             req.body,
             req.ctx.authData,
             req.ctx.correlationId,
-            loggerInstance
+            logger
           );
           return res.status(204).end();
         } catch (error) {
@@ -808,13 +729,9 @@ const eservicesRouter = (
       "/eservices/:eServiceId/riskAnalysis/:riskAnalysisId",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const loggerInstance = logger({
-          correlationId: req.ctx.correlationId,
-          userId: req.ctx.authData.userId,
-          organizationId: req.ctx.authData.organizationId,
-        });
-        const makeApiProblem = makeApiProblemBuilder(
-          loggerInstance,
+        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+          serviceName,
+          req.ctx,
           errorCodes
         );
 
@@ -824,7 +741,7 @@ const eservicesRouter = (
             unsafeBrandId(req.params.riskAnalysisId),
             req.ctx.authData,
             req.ctx.correlationId,
-            loggerInstance
+            logger
           );
           return res.status(204).end();
         } catch (error) {

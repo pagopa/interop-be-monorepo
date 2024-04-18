@@ -52,15 +52,17 @@ export type Problem = {
   toString: () => string;
 };
 
+export type MakeApiProblemFn<T extends string> = (
+  error: unknown,
+  httpMapper: (apiError: ApiError<T | CommonErrorCodes>) => number
+) => Problem;
+
 export function makeApiProblemBuilder<T extends string>(
   logger: { error: (message: string) => void; warn: (message: string) => void },
   errors: {
     [K in T]: string;
   }
-): (
-  error: unknown,
-  httpMapper: (apiError: ApiError<T | CommonErrorCodes>) => number
-) => Problem {
+): MakeApiProblemFn<T> {
   const allErrors = { ...errorCodes, ...errors };
   return (error, httpMapper) => {
     const makeProblem = (

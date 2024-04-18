@@ -24,6 +24,7 @@ async function processMessage({
   const decodedMessage = decodeKafkaMessage(message, EServiceEvent);
 
   const loggerInstance = logger({
+    serviceName: "catalog-readmodel-writer",
     eventType: decodedMessage.type,
     eventVersion: decodedMessage.event_version,
     streamId: decodedMessage.stream_id,

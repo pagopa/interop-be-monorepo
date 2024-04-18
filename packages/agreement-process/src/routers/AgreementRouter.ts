@@ -8,14 +8,13 @@ import {
   initDB,
   ReadModelRepository,
   initFileManager,
-  logger,
+  loggerAndMakeApiProblemBuilder,
 } from "pagopa-interop-commons";
 import {
   Agreement,
   DescriptorId,
   EServiceId,
   TenantId,
-  makeApiProblemBuilder,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
@@ -83,6 +82,8 @@ const {
   SUPPORT_ROLE,
 } = userRoles;
 
+const serviceName = "agreement-process";
+
 const agreementRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
@@ -92,12 +93,11 @@ const agreementRouter = (
     "/agreements/:agreementId/submit",
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
-      const loggerInstance = logger({
-        correlationId: req.ctx.correlationId,
-        userId: req.ctx.authData.userId,
-        organizationId: req.ctx.authData.organizationId,
-      });
-      const makeApiProblem = makeApiProblemBuilder(loggerInstance, errorCodes);
+      const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+        serviceName,
+        req.ctx,
+        errorCodes
+      );
 
       try {
         const id = await agreementService.submitAgreement(
@@ -105,7 +105,7 @@ const agreementRouter = (
           req.body,
           req.ctx.authData,
           req.ctx.correlationId,
-          loggerInstance
+          logger
         );
         return res.status(200).json({ id }).end();
       } catch (error) {
@@ -119,12 +119,11 @@ const agreementRouter = (
     "/agreements/:agreementId/activate",
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
-      const loggerInstance = logger({
-        correlationId: req.ctx.correlationId,
-        userId: req.ctx.authData.userId,
-        organizationId: req.ctx.authData.organizationId,
-      });
-      const makeApiProblem = makeApiProblemBuilder(loggerInstance, errorCodes);
+      const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+        serviceName,
+        req.ctx,
+        errorCodes
+      );
 
       try {
         const agreementId: Agreement["id"] =
@@ -132,7 +131,7 @@ const agreementRouter = (
             unsafeBrandId(req.params.agreementId),
             req.ctx.authData,
             req.ctx.correlationId,
-            loggerInstance
+            logger
           );
 
         return res.status(200).json({ id: agreementId }).end();
@@ -147,12 +146,11 @@ const agreementRouter = (
     "/agreements/:agreementId/consumer-documents",
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
-      const loggerInstance = logger({
-        correlationId: req.ctx.correlationId,
-        userId: req.ctx.authData.userId,
-        organizationId: req.ctx.authData.organizationId,
-      });
-      const makeApiProblem = makeApiProblemBuilder(loggerInstance, errorCodes);
+      const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+        serviceName,
+        req.ctx,
+        errorCodes
+      );
 
       try {
         const id = await agreementService.addConsumerDocument(
@@ -160,7 +158,7 @@ const agreementRouter = (
           req.body,
           req.ctx.authData,
           req.ctx.correlationId,
-          loggerInstance
+          logger
         );
 
         return res.status(200).json({ id }).send();
@@ -175,19 +173,18 @@ const agreementRouter = (
     "/agreements/:agreementId/consumer-documents/:documentId",
     authorizationMiddleware([ADMIN_ROLE, SUPPORT_ROLE]),
     async (req, res) => {
-      const loggerInstance = logger({
-        correlationId: req.ctx.correlationId,
-        userId: req.ctx.authData.userId,
-        organizationId: req.ctx.authData.organizationId,
-      });
-      const makeApiProblem = makeApiProblemBuilder(loggerInstance, errorCodes);
+      const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+        serviceName,
+        req.ctx,
+        errorCodes
+      );
 
       try {
         const document = await agreementService.getAgreementConsumerDocument(
           unsafeBrandId(req.params.agreementId),
           unsafeBrandId(req.params.documentId),
           req.ctx.authData,
-          loggerInstance
+          logger
         );
         return res
           .status(200)
@@ -204,12 +201,11 @@ const agreementRouter = (
     "/agreements/:agreementId/consumer-documents/:documentId",
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
-      const loggerInstance = logger({
-        correlationId: req.ctx.correlationId,
-        userId: req.ctx.authData.userId,
-        organizationId: req.ctx.authData.organizationId,
-      });
-      const makeApiProblem = makeApiProblemBuilder(loggerInstance, errorCodes);
+      const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+        serviceName,
+        req.ctx,
+        errorCodes
+      );
 
       try {
         await agreementService.removeAgreementConsumerDocument(
@@ -217,7 +213,7 @@ const agreementRouter = (
           unsafeBrandId(req.params.documentId),
           req.ctx.authData,
           req.ctx.correlationId,
-          loggerInstance
+          logger
         );
         return res.status(204).send();
       } catch (error) {
@@ -234,19 +230,18 @@ const agreementRouter = (
     "/agreements/:agreementId/suspend",
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
-      const loggerInstance = logger({
-        correlationId: req.ctx.correlationId,
-        userId: req.ctx.authData.userId,
-        organizationId: req.ctx.authData.organizationId,
-      });
-      const makeApiProblem = makeApiProblemBuilder(loggerInstance, errorCodes);
+      const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+        serviceName,
+        req.ctx,
+        errorCodes
+      );
 
       try {
         const id = await agreementService.suspendAgreement(
           unsafeBrandId(req.params.agreementId),
           req.ctx.authData,
           req.ctx.correlationId,
-          loggerInstance
+          logger
         );
         return res.status(200).json({ id }).send();
       } catch (error) {
@@ -260,12 +255,11 @@ const agreementRouter = (
     "/agreements/:agreementId/reject",
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
-      const loggerInstance = logger({
-        correlationId: req.ctx.correlationId,
-        userId: req.ctx.authData.userId,
-        organizationId: req.ctx.authData.organizationId,
-      });
-      const makeApiProblem = makeApiProblemBuilder(loggerInstance, errorCodes);
+      const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+        serviceName,
+        req.ctx,
+        errorCodes
+      );
 
       try {
         const id = await agreementService.rejectAgreement(
@@ -273,7 +267,7 @@ const agreementRouter = (
           req.body.reason,
           req.ctx.authData,
           req.ctx.correlationId,
-          loggerInstance
+          logger
         );
         return res.status(200).json({ id }).send();
       } catch (error) {
@@ -287,19 +281,18 @@ const agreementRouter = (
     "/agreements/:agreementId/archive",
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
-      const loggerInstance = logger({
-        correlationId: req.ctx.correlationId,
-        userId: req.ctx.authData.userId,
-        organizationId: req.ctx.authData.organizationId,
-      });
-      const makeApiProblem = makeApiProblemBuilder(loggerInstance, errorCodes);
+      const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+        serviceName,
+        req.ctx,
+        errorCodes
+      );
 
       try {
         const agreementId = await agreementService.archiveAgreement(
           unsafeBrandId(req.params.agreementId),
           req.ctx.authData,
           req.ctx.correlationId,
-          loggerInstance
+          logger
         );
         return res.status(200).send({ id: agreementId });
       } catch (error) {
@@ -313,19 +306,18 @@ const agreementRouter = (
     "/agreements",
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
-      const loggerInstance = logger({
-        correlationId: req.ctx.correlationId,
-        userId: req.ctx.authData.userId,
-        organizationId: req.ctx.authData.organizationId,
-      });
-      const makeApiProblem = makeApiProblemBuilder(loggerInstance, errorCodes);
+      const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+        serviceName,
+        req.ctx,
+        errorCodes
+      );
 
       try {
         const id = await agreementService.createAgreement(
           req.body,
           req.ctx.authData,
           req.ctx.correlationId,
-          loggerInstance
+          logger
         );
         return res.status(200).json({ id }).send();
       } catch (error) {
@@ -345,12 +337,11 @@ const agreementRouter = (
       SUPPORT_ROLE,
     ]),
     async (req, res) => {
-      const loggerInstance = logger({
-        correlationId: req.ctx.correlationId,
-        userId: req.ctx.authData.userId,
-        organizationId: req.ctx.authData.organizationId,
-      });
-      const makeApiProblem = makeApiProblemBuilder(loggerInstance, errorCodes);
+      const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+        serviceName,
+        req.ctx,
+        errorCodes
+      );
 
       try {
         const agreements = await agreementService.getAgreements(
@@ -368,7 +359,7 @@ const agreementRouter = (
           },
           req.query.limit,
           req.query.offset,
-          loggerInstance
+          logger
         );
 
         return res
@@ -394,19 +385,18 @@ const agreementRouter = (
       SUPPORT_ROLE,
     ]),
     async (req, res) => {
-      const loggerInstance = logger({
-        correlationId: req.ctx.correlationId,
-        userId: req.ctx.authData.userId,
-        organizationId: req.ctx.authData.organizationId,
-      });
-      const makeApiProblem = makeApiProblemBuilder(loggerInstance, errorCodes);
+      const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+        serviceName,
+        req.ctx,
+        errorCodes
+      );
 
       try {
         const producers = await agreementService.getAgreementProducers(
           req.query.producerName,
           req.query.limit,
           req.query.offset,
-          loggerInstance
+          logger
         );
 
         return res
@@ -432,19 +422,18 @@ const agreementRouter = (
       SUPPORT_ROLE,
     ]),
     async (req, res) => {
-      const loggerInstance = logger({
-        correlationId: req.ctx.correlationId,
-        userId: req.ctx.authData.userId,
-        organizationId: req.ctx.authData.organizationId,
-      });
-      const makeApiProblem = makeApiProblemBuilder(loggerInstance, errorCodes);
+      const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+        serviceName,
+        req.ctx,
+        errorCodes
+      );
 
       try {
         const consumers = await agreementService.getAgreementConsumers(
           req.query.consumerName,
           req.query.limit,
           req.query.offset,
-          loggerInstance
+          logger
         );
 
         return res
@@ -472,17 +461,16 @@ const agreementRouter = (
       SUPPORT_ROLE,
     ]),
     async (req, res) => {
-      const loggerInstance = logger({
-        correlationId: req.ctx.correlationId,
-        userId: req.ctx.authData.userId,
-        organizationId: req.ctx.authData.organizationId,
-      });
-      const makeApiProblem = makeApiProblemBuilder(loggerInstance, errorCodes);
+      const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+        serviceName,
+        req.ctx,
+        errorCodes
+      );
 
       try {
         const agreement = await agreementService.getAgreementById(
           unsafeBrandId(req.params.agreementId),
-          loggerInstance
+          logger
         );
         return res.status(200).json(agreementToApiAgreement(agreement)).send();
       } catch (error) {
@@ -496,19 +484,18 @@ const agreementRouter = (
     "/agreements/:agreementId",
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
-      const loggerInstance = logger({
-        correlationId: req.ctx.correlationId,
-        userId: req.ctx.authData.userId,
-        organizationId: req.ctx.authData.organizationId,
-      });
-      const makeApiProblem = makeApiProblemBuilder(loggerInstance, errorCodes);
+      const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+        serviceName,
+        req.ctx,
+        errorCodes
+      );
 
       try {
         await agreementService.deleteAgreementById(
           unsafeBrandId(req.params.agreementId),
           req.ctx.authData,
           req.ctx.correlationId,
-          loggerInstance
+          logger
         );
         return res.status(204).send();
       } catch (error) {
@@ -522,12 +509,11 @@ const agreementRouter = (
     "/agreements/:agreementId/update",
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
-      const loggerInstance = logger({
-        correlationId: req.ctx.correlationId,
-        userId: req.ctx.authData.userId,
-        organizationId: req.ctx.authData.organizationId,
-      });
-      const makeApiProblem = makeApiProblemBuilder(loggerInstance, errorCodes);
+      const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+        serviceName,
+        req.ctx,
+        errorCodes
+      );
 
       try {
         await agreementService.updateAgreement(
@@ -535,7 +521,7 @@ const agreementRouter = (
           req.body,
           req.ctx.authData,
           req.ctx.correlationId,
-          loggerInstance
+          logger
         );
 
         return res.status(200).send();
@@ -550,19 +536,18 @@ const agreementRouter = (
     "/agreements/:agreementId/upgrade",
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
-      const loggerInstance = logger({
-        correlationId: req.ctx.correlationId,
-        userId: req.ctx.authData.userId,
-        organizationId: req.ctx.authData.organizationId,
-      });
-      const makeApiProblem = makeApiProblemBuilder(loggerInstance, errorCodes);
+      const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+        serviceName,
+        req.ctx,
+        errorCodes
+      );
 
       try {
         const id = await agreementService.upgradeAgreement(
           unsafeBrandId(req.params.agreementId),
           req.ctx.authData,
           req.ctx.correlationId,
-          loggerInstance
+          logger
         );
 
         return res.status(200).json({ id }).send();
@@ -577,19 +562,18 @@ const agreementRouter = (
     "/agreements/:agreementId/clone",
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
-      const loggerInstance = logger({
-        correlationId: req.ctx.correlationId,
-        userId: req.ctx.authData.userId,
-        organizationId: req.ctx.authData.organizationId,
-      });
-      const makeApiProblem = makeApiProblemBuilder(loggerInstance, errorCodes);
+      const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+        serviceName,
+        req.ctx,
+        errorCodes
+      );
 
       try {
         const id = await agreementService.cloneAgreement(
           unsafeBrandId(req.params.agreementId),
           req.ctx.authData,
           req.ctx.correlationId,
-          loggerInstance
+          logger
         );
 
         return res.status(200).json({ id }).send();
@@ -613,12 +597,11 @@ const agreementRouter = (
       SUPPORT_ROLE,
     ]),
     async (req, res) => {
-      const loggerInstance = logger({
-        correlationId: req.ctx.correlationId,
-        userId: req.ctx.authData.userId,
-        organizationId: req.ctx.authData.organizationId,
-      });
-      const makeApiProblem = makeApiProblemBuilder(loggerInstance, errorCodes);
+      const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+        serviceName,
+        req.ctx,
+        errorCodes
+      );
 
       try {
         const eservices = await agreementService.getAgreementEServices(
@@ -632,7 +615,7 @@ const agreementRouter = (
           },
           req.query.limit,
           req.query.offset,
-          loggerInstance
+          logger
         );
 
         return res

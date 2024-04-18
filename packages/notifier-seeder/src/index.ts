@@ -34,6 +34,7 @@ export function processMessage(topicConfig: CatalogTopicConfig) {
     const decodedMessage = messageDecoder(kafkaMessage.message);
 
     const loggerInstance = logger({
+      serviceName: "notifier-seeder",
       eventType: decodedMessage.type,
       eventVersion: decodedMessage.event_version,
       streamId: decodedMessage.stream_id,

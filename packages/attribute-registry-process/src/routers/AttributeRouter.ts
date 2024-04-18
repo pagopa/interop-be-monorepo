@@ -7,9 +7,9 @@ import {
   authorizationMiddleware,
   ReadModelRepository,
   initDB,
-  logger,
+  loggerAndMakeApiProblemBuilder,
 } from "pagopa-interop-commons";
-import { makeApiProblemBuilder, unsafeBrandId } from "pagopa-interop-models";
+import { unsafeBrandId } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import {
@@ -44,6 +44,8 @@ const attributeRegistryService = attributeRegistryServiceBuilder(
   readModelService
 );
 
+const serviceName = "attribute-registry-process";
+
 const attributeRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
@@ -67,11 +69,11 @@ const attributeRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const loggerInstance = logger({
-          correlationId: req.ctx.correlationId,
-          userId: req.ctx.authData.userId,
-          organizationId: req.ctx.authData.organizationId,
-        });
+        const { logger } = loggerAndMakeApiProblemBuilder(
+          serviceName,
+          req.ctx,
+          errorCodes
+        );
 
         try {
           const { limit, offset, kinds, name, origin } = req.query;
@@ -84,7 +86,7 @@ const attributeRouter = (
                 offset,
                 limit,
               },
-              loggerInstance
+              logger
             );
 
           return res
@@ -109,20 +111,16 @@ const attributeRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const loggerInstance = logger({
-          correlationId: req.ctx.correlationId,
-          userId: req.ctx.authData.userId,
-          organizationId: req.ctx.authData.organizationId,
-        });
-        const makeApiProblem = makeApiProblemBuilder(
-          loggerInstance,
+        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+          serviceName,
+          req.ctx,
           errorCodes
         );
 
         try {
           const attribute = await attributeRegistryService.getAttributeByName(
             req.params.name,
-            loggerInstance
+            logger
           );
 
           return res.status(200).json(toApiAttribute(attribute.data)).end();
@@ -145,13 +143,9 @@ const attributeRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const loggerInstance = logger({
-          correlationId: req.ctx.correlationId,
-          userId: req.ctx.authData.userId,
-          organizationId: req.ctx.authData.organizationId,
-        });
-        const makeApiProblem = makeApiProblemBuilder(
-          loggerInstance,
+        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+          serviceName,
+          req.ctx,
           errorCodes
         );
 
@@ -163,7 +157,7 @@ const attributeRouter = (
                 origin,
                 code,
               },
-              loggerInstance
+              logger
             );
 
           return res.status(200).json(toApiAttribute(attribute.data)).end();
@@ -187,20 +181,16 @@ const attributeRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const loggerInstance = logger({
-          correlationId: req.ctx.correlationId,
-          userId: req.ctx.authData.userId,
-          organizationId: req.ctx.authData.organizationId,
-        });
-        const makeApiProblem = makeApiProblemBuilder(
-          loggerInstance,
+        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+          serviceName,
+          req.ctx,
           errorCodes
         );
 
         try {
           const attribute = await attributeRegistryService.getAttributeById(
             unsafeBrandId(req.params.attributeId),
-            loggerInstance
+            logger
           );
 
           return res.status(200).json(toApiAttribute(attribute.data)).end();
@@ -220,12 +210,11 @@ const attributeRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const loggerInstance = logger({
-          correlationId: req.ctx.correlationId,
-          userId: req.ctx.authData.userId,
-          organizationId: req.ctx.authData.organizationId,
-        });
-
+        const { logger } = loggerAndMakeApiProblemBuilder(
+          serviceName,
+          req.ctx,
+          errorCodes
+        );
         const { limit, offset } = req.query;
 
         try {
@@ -235,7 +224,7 @@ const attributeRouter = (
               offset,
               limit,
             },
-            loggerInstance
+            logger
           );
           return res
             .status(200)
@@ -253,13 +242,9 @@ const attributeRouter = (
       "/certifiedAttributes",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE, M2M_ROLE]),
       async (req, res) => {
-        const loggerInstance = logger({
-          correlationId: req.ctx.correlationId,
-          userId: req.ctx.authData.userId,
-          organizationId: req.ctx.authData.organizationId,
-        });
-        const makeApiProblem = makeApiProblemBuilder(
-          loggerInstance,
+        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+          serviceName,
+          req.ctx,
           errorCodes
         );
 
@@ -269,7 +254,7 @@ const attributeRouter = (
               req.body,
               req.ctx.authData,
               req.ctx.correlationId,
-              loggerInstance
+              logger
             );
           return res.status(200).json(toApiAttribute(attribute)).end();
         } catch (error) {
@@ -285,13 +270,9 @@ const attributeRouter = (
       "/declaredAttributes",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE, M2M_ROLE]),
       async (req, res) => {
-        const loggerInstance = logger({
-          correlationId: req.ctx.correlationId,
-          userId: req.ctx.authData.userId,
-          organizationId: req.ctx.authData.organizationId,
-        });
-        const makeApiProblem = makeApiProblemBuilder(
-          loggerInstance,
+        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+          serviceName,
+          req.ctx,
           errorCodes
         );
 
@@ -301,7 +282,7 @@ const attributeRouter = (
               req.body,
               req.ctx.authData,
               req.ctx.correlationId,
-              loggerInstance
+              logger
             );
           return res.status(200).json(toApiAttribute(attribute)).end();
         } catch (error) {
@@ -317,13 +298,9 @@ const attributeRouter = (
       "/verifiedAttributes",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE, M2M_ROLE]),
       async (req, res) => {
-        const loggerInstance = logger({
-          correlationId: req.ctx.correlationId,
-          userId: req.ctx.authData.userId,
-          organizationId: req.ctx.authData.organizationId,
-        });
-        const makeApiProblem = makeApiProblemBuilder(
-          loggerInstance,
+        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+          serviceName,
+          req.ctx,
           errorCodes
         );
 
@@ -333,7 +310,7 @@ const attributeRouter = (
               req.body,
               req.ctx.authData,
               req.ctx.correlationId,
-              loggerInstance
+              logger
             );
           return res.status(200).json(toApiAttribute(attribute)).end();
         } catch (error) {
@@ -349,13 +326,9 @@ const attributeRouter = (
       "/internal/certifiedAttributes",
       authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
-        const loggerInstance = logger({
-          correlationId: req.ctx.correlationId,
-          userId: req.ctx.authData.userId,
-          organizationId: req.ctx.authData.organizationId,
-        });
-        const makeApiProblem = makeApiProblemBuilder(
-          loggerInstance,
+        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
+          serviceName,
+          req.ctx,
           errorCodes
         );
 
@@ -364,7 +337,7 @@ const attributeRouter = (
             await attributeRegistryService.createInternalCertifiedAttribute(
               req.body,
               req.ctx.correlationId,
-              loggerInstance
+              logger
             );
           return res.status(200).json(toApiAttribute(attribute)).end();
         } catch (error) {

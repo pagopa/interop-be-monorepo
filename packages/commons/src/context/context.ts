@@ -1,7 +1,9 @@
 /* eslint-disable functional/immutable-data */
 import { zodiosContext } from "@zodios/express";
 import { z } from "zod";
+import { MakeApiProblemFn, makeApiProblemBuilder } from "pagopa-interop-models";
 import { AuthData } from "../auth/authData.js";
+import { Logger, logger } from "../logging/index.js";
 
 export type AppContext = {
   authData: AuthData;
@@ -21,3 +23,20 @@ export const ctx = z.object({
 });
 
 export const zodiosCtx = zodiosContext(z.object({ ctx }));
+
+export const loggerAndMakeApiProblemBuilder = <T extends string>(
+  serviceName: string,
+  appCtx: { authData: AuthData; correlationId?: string | null | undefined },
+  errorsCodes: {
+    [K in T]: string;
+  }
+): {
+  logger: Logger;
+  makeApiProblem: MakeApiProblemFn<T>;
+} => {
+  const loggerInstance = logger({ serviceName, ...appCtx });
+  return {
+    logger: loggerInstance,
+    makeApiProblem: makeApiProblemBuilder(loggerInstance, errorsCodes),
+  };
+};

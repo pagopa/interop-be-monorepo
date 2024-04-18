@@ -5,9 +5,10 @@ import { LoggerConfig } from "../config/commonConfig.js";
 import { bigIntReplacer } from "./utils.js";
 
 export type LoggerCtx = {
+  serviceName?: string;
   userId?: string;
   organizationId?: string;
-  correlationId?: string;
+  correlationId?: string | null;
   eventType?: string;
   eventVersion?: number;
   streamId?: string;

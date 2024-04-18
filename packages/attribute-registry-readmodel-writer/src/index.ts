@@ -56,6 +56,7 @@ async function processMessage({
   const msg = decodeKafkaMessage(message, AttributeEvent);
 
   const loggerInstance = logger({
+    serviceName: "attribute-registry-readmodel-writer",
     eventType: msg.type,
     eventVersion: msg.event_version,
     streamId: msg.stream_id,

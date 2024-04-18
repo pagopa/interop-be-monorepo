@@ -83,6 +83,7 @@ function processMessage(
       const decodedMsg = messageDecoder(messagePayload.message);
 
       const loggerInstance = logger({
+        serviceName: "authorization-updater",
         eventType: decodedMsg.type,
         eventVersion: decodedMsg.event_version,
         streamId: decodedMsg.stream_id,

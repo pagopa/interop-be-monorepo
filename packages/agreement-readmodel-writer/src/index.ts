@@ -24,6 +24,7 @@ async function processMessage({
   const msg = decodeKafkaMessage(message, AgreementEvent);
 
   const loggerInstance = logger({
+    serviceName: "agreement-readmodel-writer",
     eventType: msg.type,
     eventVersion: msg.event_version,
     streamId: msg.stream_id,
