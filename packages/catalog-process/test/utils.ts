@@ -7,7 +7,6 @@ import {
   riskAnalysisFormToRiskAnalysisFormToValidate,
 } from "pagopa-interop-commons";
 import { IDatabase } from "pg-promise";
-import { v4 as uuidv4 } from "uuid";
 import {
   Agreement,
   Attribute,
@@ -23,15 +22,17 @@ import {
   Tenant,
   TenantId,
   agreementState,
-  catalogEventToBinaryData,
   descriptorState,
   eserviceMode,
   generateId,
   technology,
   toEServiceV2,
+  toReadModelAttribute,
   toReadModelEService,
+  toReadModelAgreement,
 } from "pagopa-interop-models";
 import {
+  ReadEvent,
   StoredEvent,
   readLastEventByStreamId,
   writeInEventstore,
@@ -45,12 +46,13 @@ import { ApiEServiceDescriptorDocumentSeed } from "../src/model/types.js";
 
 export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
   organizationId: organizationId || generateId(),
-  userId: uuidv4(),
+  userId: generateId(),
   userRoles: [],
   externalId: {
     value: "123456",
     origin: "IPA",
   },
+  selfcareId: generateId(),
 });
 
 export const buildDescriptorSeed = (
@@ -197,13 +199,11 @@ export const writeEServiceInEventstore = async (
     event_version: 2,
     data: { eservice: toEServiceV2(eservice) },
   };
-  const eventToWrite = {
+  const eventToWrite: StoredEvent<EServiceEvent> = {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     stream_id: eserviceEvent.data.eservice!.id,
-    version: "0",
-    type: eserviceEvent.type,
-    event_version: eserviceEvent.event_version,
-    data: catalogEventToBinaryData(eserviceEvent),
+    version: 0,
+    event: eserviceEvent,
   };
 
   await writeInEventstore(eventToWrite, "catalog", postgresDB);
@@ -222,7 +222,7 @@ export const addOneAttribute = async (
   attribute: Attribute,
   attributes: AttributeCollection
 ): Promise<void> => {
-  await writeInReadmodel(attribute, attributes);
+  await writeInReadmodel(toReadModelAttribute(attribute), attributes);
 };
 
 export const addOneTenant = async (
@@ -236,11 +236,11 @@ export const addOneAgreement = async (
   agreement: Agreement,
   agreements: AgreementCollection
 ): Promise<void> => {
-  await writeInReadmodel(agreement, agreements);
+  await writeInReadmodel(toReadModelAgreement(agreement), agreements);
 };
 
 export const readLastEserviceEvent = async (
   eserviceId: EServiceId,
   postgresDB: IDatabase<unknown>
-): Promise<StoredEvent> =>
+): Promise<ReadEvent<EServiceEvent>> =>
   await readLastEventByStreamId(eserviceId, "catalog", postgresDB);

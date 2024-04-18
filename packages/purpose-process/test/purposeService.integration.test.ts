@@ -3,14 +3,16 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, describe } from "vitest";
 import {
+  AgreementCollection,
+  EServiceCollection,
   PurposeCollection,
   ReadModelRepository,
+  TenantCollection,
   initDB,
 } from "pagopa-interop-commons";
 import { IDatabase } from "pg-promise";
-
 import {
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
@@ -19,12 +21,34 @@ import {
 } from "pagopa-interop-commons-test";
 import { StartedTestContainer } from "testcontainers";
 import { config } from "../src/utilities/config.js";
+import {
+  PurposeService,
+  purposeServiceBuilder,
+} from "../src/services/purposeService.js";
+import {
+  ReadModelService,
+  readModelServiceBuilder,
+} from "../src/services/readModelService.js";
+import { testGetPurposeById } from "./testGetPurposeById.js";
+import { testGetRiskAnalysisDocument } from "./testGetRiskAnalysisDocument.js";
+import { testDeletePurposeVersion } from "./testDeletePurposeVersion.js";
+import { testRejectPurposeVersion } from "./testRejectPurposeVersion.js";
+import { testUpdatePurpose } from "./testUpdatePurpose.js";
+import { testDeletePurpose } from "./testDeletePurpose.js";
+import { testArchivePurposeVersion } from "./testArchivePurposeVersion.js";
+import { testSuspendPurposeVersion } from "./testSuspendPurposeVersion.js";
+import { testGetPurposes } from "./testGetPurposes.js";
+import { testCreatePurpose } from "./testCreatePurpose.js";
 
-describe("database test", async () => {
-  let purposes: PurposeCollection;
-  // let readModelService: ReadModelService;
-  // let purposeService: PurposeService;
-  let postgresDB: IDatabase<unknown>;
+export let purposes: PurposeCollection;
+export let eservices: EServiceCollection;
+export let tenants: TenantCollection;
+export let agreements: AgreementCollection;
+export let readModelService: ReadModelService;
+export let purposeService: PurposeService;
+export let postgresDB: IDatabase<unknown>;
+
+describe("Integration tests", async () => {
   let startedPostgreSqlContainer: StartedTestContainer;
   let startedMongodbContainer: StartedTestContainer;
 
@@ -40,7 +64,10 @@ describe("database test", async () => {
 
     const readModelRepository = ReadModelRepository.init(config);
     purposes = readModelRepository.purposes;
-    // readModelService = readModelServiceBuilder(readModelRepository);
+    eservices = readModelRepository.eservices;
+    tenants = readModelRepository.tenants;
+    agreements = readModelRepository.agreements;
+    readModelService = readModelServiceBuilder(readModelRepository);
     postgresDB = initDB({
       username: config.eventStoreDbUsername,
       password: config.eventStoreDbPassword,
@@ -50,12 +77,14 @@ describe("database test", async () => {
       schema: config.eventStoreDbSchema,
       useSSL: config.eventStoreDbUseSSL,
     });
-    // purposeService = purposeServiceBuilder(postgresDB, readModelService);
+    purposeService = purposeServiceBuilder(postgresDB, readModelService);
   });
 
   afterEach(async () => {
     await purposes.deleteMany({});
-
+    await tenants.deleteMany({});
+    await eservices.deleteMany({});
+    await agreements.deleteMany({});
     await postgresDB.none("TRUNCATE TABLE purpose.events RESTART IDENTITY");
   });
 
@@ -65,10 +94,15 @@ describe("database test", async () => {
   });
 
   describe("Purpose service", () => {
-    describe("create purpose", () => {
-      it("TO DO", () => {
-        expect(1).toBe(1);
-      });
-    });
+    testGetPurposeById();
+    testGetRiskAnalysisDocument();
+    testDeletePurposeVersion();
+    testRejectPurposeVersion();
+    testUpdatePurpose();
+    testDeletePurpose();
+    testArchivePurposeVersion();
+    testSuspendPurposeVersion();
+    testGetPurposes();
+    testCreatePurpose();
   });
 });

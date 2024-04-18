@@ -1,41 +1,27 @@
 /* eslint-disable functional/no-let */
 /* eslint-disable functional/immutable-data */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { fail } from "assert";
+import { genericLogger } from "pagopa-interop-commons";
 import {
-  AgreementCollection,
-  EServiceCollection,
-  FileManager,
-  ReadModelRepository,
-  TenantCollection,
-  initDB,
-  initFileManager,
-  logger,
-} from "pagopa-interop-commons";
-import {
-  buildAgreement,
-  buildCertifiedTenantAttribute,
-  buildDeclaredTenantAttribute,
-  buildDescriptorPublished,
-  buildEService,
-  buildEServiceAttribute,
-  buildTenant,
+  getMockAgreement,
+  getMockCertifiedTenantAttribute,
+  getMockDeclaredTenantAttribute,
+  getMockDescriptorPublished,
+  getMockEService,
+  getMockEServiceAttribute,
+  getMockTenant,
   expectPastTimestamp,
   getRandomAuthData,
   randomArrayItem,
-  StoredEvent,
-  TEST_MONGO_DB_PORT,
-  TEST_POSTGRES_DB_PORT,
-  mongoDBContainer,
-  postgreSQLContainer,
+  decodeProtobufPayload,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
-  AgreementAddedV1,
   AgreementAttribute,
+  AgreementAddedV2,
   AgreementId,
-  AgreementV1,
+  AgreementV2,
   AttributeId,
   Descriptor,
   DescriptorId,
@@ -48,21 +34,9 @@ import {
   agreementState,
   descriptorState,
   generateId,
-  protobufDecoder,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { IDatabase } from "pg-promise";
-import { StartedTestContainer } from "testcontainers";
-import {
-  afterAll,
-  afterEach,
-  beforeEach,
-  beforeAll,
-  describe,
-  expect,
-  it,
-} from "vitest";
-import { v4 as uuidv4 } from "uuid";
+import { beforeEach, describe, expect, it } from "vitest";
 import {
   agreementAlreadyExists,
   agreementNotFound,
@@ -70,41 +44,22 @@ import {
   eServiceNotFound,
   missingCertifiedAttributesError,
   notLatestEServiceDescriptor,
-  tenantIdNotFound,
+  tenantNotFound,
 } from "../src/model/domain/errors.js";
-import { toAgreementStateV1 } from "../src/model/domain/toEvent.js";
+import { toAgreementStateV2 } from "../src/model/domain/toEvent.js";
 import { ApiAgreementPayload } from "../src/model/types.js";
-import {
-  AgreementService,
-  agreementServiceBuilder,
-} from "../src/services/agreementService.js";
-import { agreementQueryBuilder } from "../src/services/readmodel/agreementQuery.js";
-import { attributeQueryBuilder } from "../src/services/readmodel/attributeQuery.js";
-import { eserviceQueryBuilder } from "../src/services/readmodel/eserviceQuery.js";
-import { readModelServiceBuilder } from "../src/services/readmodel/readModelService.js";
-import { tenantQueryBuilder } from "../src/services/readmodel/tenantQuery.js";
-import { config } from "../src/utilities/config.js";
 import { agreementCreationConflictingStates } from "../src/model/domain/validators.js";
 import {
   CompactEService,
   CompactOrganization,
 } from "../src/model/domain/models.js";
 import {
+  readLastAgreementEvent,
   addOneAgreement,
   addOneEService,
   addOneTenant,
-  readLastAgreementEvent,
+  agreementService,
 } from "./utils.js";
-
-let agreements: AgreementCollection;
-let eservices: EServiceCollection;
-let tenants: TenantCollection;
-let readModelService;
-let agreementService: AgreementService;
-let postgresDB: IDatabase<unknown>;
-let startedPostgreSqlContainer: StartedTestContainer;
-let startedMongodbContainer: StartedTestContainer;
-let fileManager: FileManager;
 
 /**
  * Executes the generic agreement expectation for agreement creation process,
@@ -123,29 +78,29 @@ const expectedAgreementCreation = async (
   expectedDescriptorId: DescriptorId,
   expectedProducerId: TenantId,
   expectedConsumerId: TenantId
-): Promise<AgreementV1> => {
+): Promise<AgreementV2> => {
   expect(agreementId).toBeDefined();
   if (!agreementId) {
     fail("Unhandled error: returned agreementId is undefined");
   }
 
-  const actualAgreementData: StoredEvent | undefined =
-    await readLastAgreementEvent(agreementId, postgresDB);
+  const writtenEvent = await readLastAgreementEvent(agreementId);
 
-  if (!actualAgreementData) {
+  if (!writtenEvent) {
     fail("Creation fails: agreement not found in event-store");
   }
 
-  expect(actualAgreementData).toMatchObject({
+  expect(writtenEvent).toMatchObject({
     type: "AgreementAdded",
-    event_version: 1,
+    event_version: 2,
     version: "0",
     stream_id: agreementId,
   });
 
-  const actualAgreement: AgreementV1 | undefined = protobufDecoder(
-    AgreementAddedV1
-  ).parse(actualAgreementData.data)?.agreement;
+  const actualAgreement: AgreementV2 | undefined = decodeProtobufPayload({
+    messageType: AgreementAddedV2,
+    payload: writtenEvent.data,
+  }).agreement;
 
   if (!actualAgreement) {
     fail("impossible to decode AgreementAddedV1 data");
@@ -160,7 +115,7 @@ const expectedAgreementCreation = async (
     descriptorId: expectedDescriptorId,
     producerId: expectedProducerId,
     consumerId: expectedConsumerId,
-    state: toAgreementStateV1(agreementState.draft),
+    state: toAgreementStateV2(agreementState.draft),
     verifiedAttributes: [],
     certifiedAttributes: [],
     declaredAttributes: [],
@@ -172,67 +127,6 @@ const expectedAgreementCreation = async (
   return actualAgreement;
 };
 
-beforeAll(async () => {
-  startedPostgreSqlContainer = await postgreSQLContainer(config).start();
-  startedMongodbContainer = await mongoDBContainer(config).start();
-
-  config.eventStoreDbPort = startedPostgreSqlContainer.getMappedPort(
-    TEST_POSTGRES_DB_PORT
-  );
-  config.readModelDbPort =
-    startedMongodbContainer.getMappedPort(TEST_MONGO_DB_PORT);
-
-  const readModelRepository = ReadModelRepository.init(config);
-  agreements = readModelRepository.agreements;
-  eservices = readModelRepository.eservices;
-  tenants = readModelRepository.tenants;
-
-  readModelService = readModelServiceBuilder(readModelRepository);
-  const eserviceQuery = eserviceQueryBuilder(readModelService);
-  const agreementQuery = agreementQueryBuilder(readModelService);
-  const tenantQuery = tenantQueryBuilder(readModelService);
-  const attributeQuery = attributeQueryBuilder(readModelService);
-
-  postgresDB = initDB({
-    username: config.eventStoreDbUsername,
-    password: config.eventStoreDbPassword,
-    host: config.eventStoreDbHost,
-    port: config.eventStoreDbPort,
-    database: config.eventStoreDbName,
-    schema: config.eventStoreDbSchema,
-    useSSL: config.eventStoreDbUseSSL,
-  });
-
-  if (!postgresDB) {
-    logger.error("postgresDB is undefined!!");
-  }
-
-  // TODO: Setup MinIO test container when testing functionalities that require file storage
-  fileManager = initFileManager(config);
-  agreementService = agreementServiceBuilder(
-    postgresDB,
-    agreementQuery,
-    tenantQuery,
-    eserviceQuery,
-    attributeQuery,
-    fileManager
-  );
-});
-
-afterEach(async () => {
-  await agreements.deleteMany({});
-  await eservices.deleteMany({});
-  await tenants.deleteMany({});
-
-  await postgresDB.none("TRUNCATE TABLE agreement.events RESTART IDENTITY");
-  await postgresDB.none("TRUNCATE TABLE catalog.events RESTART IDENTITY");
-});
-
-afterAll(async () => {
-  await startedPostgreSqlContainer.stop();
-  await startedMongodbContainer.stop();
-});
-
 describe("Agreement service", () => {
   describe("create agreement", () => {
     it("should succeed when EService Producer and Agreement Consumer are the same, even on unmet attributes", async () => {
@@ -241,16 +135,16 @@ describe("Agreement service", () => {
       const descriptorId = generateId<DescriptorId>();
       const attributeId = generateId<AttributeId>();
 
-      const descriptor = buildDescriptorPublished(descriptorId, [
-        [buildEServiceAttribute(attributeId)],
+      const descriptor = getMockDescriptorPublished(descriptorId, [
+        [getMockEServiceAttribute(attributeId)],
       ]);
-      const eservice = buildEService(eserviceId, authData.organizationId, [
+      const eservice = getMockEService(eserviceId, authData.organizationId, [
         descriptor,
       ]);
-      const tenant = buildTenant(authData.organizationId);
+      const tenant = getMockTenant(authData.organizationId);
 
-      await addOneEService(eservice, eservices);
-      await addOneTenant(tenant, tenants);
+      await addOneEService(eservice);
+      await addOneTenant(tenant);
 
       const agreementData: ApiAgreementPayload = {
         eserviceId,
@@ -258,8 +152,7 @@ describe("Agreement service", () => {
       };
       const createdAgreementId = await agreementService.createAgreement(
         agreementData,
-        authData,
-        uuidv4()
+        { authData, correlationId: "", serviceName: "", logger: genericLogger }
       );
 
       await expectedAgreementCreation(
@@ -273,43 +166,43 @@ describe("Agreement service", () => {
 
     it("should succeed when EService producer and Agreement consumer are different Tenants, and the consumer has all Descriptor certified Attributes not revoked", async () => {
       const authData = getRandomAuthData();
-      const eserviceProducer: Tenant = buildTenant();
+      const eserviceProducer: Tenant = getMockTenant();
 
       const certifiedDescriptorAttribute1: EServiceAttribute =
-        buildEServiceAttribute();
+        getMockEServiceAttribute();
       const certifiedDescriptorAttribute2: EServiceAttribute =
-        buildEServiceAttribute();
+        getMockEServiceAttribute();
 
-      const descriptor = buildDescriptorPublished(generateId<DescriptorId>(), [
-        [certifiedDescriptorAttribute1],
-        [certifiedDescriptorAttribute2],
-      ]);
+      const descriptor = getMockDescriptorPublished(
+        generateId<DescriptorId>(),
+        [[certifiedDescriptorAttribute1], [certifiedDescriptorAttribute2]]
+      );
 
       const certifiedTenantAttribute1: TenantAttribute = {
-        ...buildCertifiedTenantAttribute(certifiedDescriptorAttribute1.id),
+        ...getMockCertifiedTenantAttribute(certifiedDescriptorAttribute1.id),
         revocationTimestamp: undefined,
       };
 
       const certifiedTenantAttribute2: TenantAttribute = {
-        ...buildCertifiedTenantAttribute(certifiedDescriptorAttribute2.id),
+        ...getMockCertifiedTenantAttribute(certifiedDescriptorAttribute2.id),
         revocationTimestamp: undefined,
       };
 
-      const consumer = buildTenant(authData.organizationId, [
-        buildDeclaredTenantAttribute(),
+      const consumer = getMockTenant(authData.organizationId, [
+        getMockDeclaredTenantAttribute(),
         certifiedTenantAttribute1,
         certifiedTenantAttribute2,
       ]);
 
-      const eservice = buildEService(
+      const eservice = getMockEService(
         generateId<EServiceId>(),
         eserviceProducer.id,
         [descriptor]
       );
 
-      await addOneTenant(eserviceProducer, tenants);
-      await addOneTenant(consumer, tenants);
-      await addOneEService(eservice, eservices);
+      await addOneTenant(eserviceProducer);
+      await addOneTenant(consumer);
+      await addOneEService(eservice);
 
       const apiAgreementPayload: ApiAgreementPayload = {
         eserviceId: eservice.id,
@@ -318,8 +211,7 @@ describe("Agreement service", () => {
 
       const createdAgreementId = await agreementService.createAgreement(
         apiAgreementPayload,
-        authData,
-        uuidv4()
+        { authData, correlationId: "", serviceName: "", logger: genericLogger }
       );
 
       await expectedAgreementCreation(
@@ -332,21 +224,21 @@ describe("Agreement service", () => {
     });
 
     it("should succeed when EService producer and Agreement consumer are different Tenants, and the Descriptor has no certified Attributes", async () => {
-      const eserviceProducer: Tenant = buildTenant();
-      const consumer: Tenant = buildTenant();
+      const eserviceProducer: Tenant = getMockTenant();
+      const consumer: Tenant = getMockTenant();
 
       // Descriptor has no certified attributes - no requirements for the consumer
-      const descriptor = buildDescriptorPublished();
+      const descriptor = getMockDescriptorPublished();
 
-      const eservice = buildEService(
+      const eservice = getMockEService(
         generateId<EServiceId>(),
         eserviceProducer.id,
         [descriptor]
       );
 
-      await addOneTenant(eserviceProducer, tenants);
-      await addOneTenant(consumer, tenants);
-      await addOneEService(eservice, eservices);
+      await addOneTenant(eserviceProducer);
+      await addOneTenant(consumer);
+      await addOneEService(eservice);
 
       const authData = getRandomAuthData(consumer.id); // different from eserviceProducer
       const apiAgreementPayload: ApiAgreementPayload = {
@@ -356,8 +248,7 @@ describe("Agreement service", () => {
 
       const createdAgreementId = await agreementService.createAgreement(
         apiAgreementPayload,
-        authData,
-        uuidv4()
+        { authData, correlationId: "", serviceName: "", logger: genericLogger }
       );
 
       await expectedAgreementCreation(
@@ -370,29 +261,29 @@ describe("Agreement service", () => {
     });
 
     it("should succeed when EService's latest Descriptors are draft, and the latest non-draft Descriptor is published", async () => {
-      const tenant: Tenant = buildTenant();
+      const tenant: Tenant = getMockTenant();
 
-      const descriptor0: Descriptor = buildDescriptorPublished();
+      const descriptor0: Descriptor = getMockDescriptorPublished();
       const descriptor1: Descriptor = {
-        ...buildDescriptorPublished(),
+        ...getMockDescriptorPublished(),
         version: "1",
         state: descriptorState.draft,
       };
 
       const descriptor2: Descriptor = {
-        ...buildDescriptorPublished(),
+        ...getMockDescriptorPublished(),
         version: "2",
         state: descriptorState.draft,
       };
 
-      const eservice = buildEService(generateId<EServiceId>(), tenant.id, [
+      const eservice = getMockEService(generateId<EServiceId>(), tenant.id, [
         descriptor0,
         descriptor1,
         descriptor2,
       ]);
 
-      await addOneTenant(tenant, tenants);
-      await addOneEService(eservice, eservices);
+      await addOneTenant(tenant);
+      await addOneEService(eservice);
 
       const authData = getRandomAuthData(tenant.id);
       const apiAgreementPayload: ApiAgreementPayload = {
@@ -402,8 +293,7 @@ describe("Agreement service", () => {
 
       const createdAgreementId = await agreementService.createAgreement(
         apiAgreementPayload,
-        authData,
-        uuidv4()
+        { authData, correlationId: "", serviceName: "", logger: genericLogger }
       );
 
       await expectedAgreementCreation(
@@ -416,14 +306,14 @@ describe("Agreement service", () => {
     });
 
     it("should succeed when Agreements in non-conflicting states exist for the same EService and consumer", async () => {
-      const tenant: Tenant = buildTenant();
-      const descriptor: Descriptor = buildDescriptorPublished();
+      const tenant: Tenant = getMockTenant();
+      const descriptor: Descriptor = getMockDescriptorPublished();
 
-      const eservice = buildEService(generateId<EServiceId>(), tenant.id, [
+      const eservice = getMockEService(generateId<EServiceId>(), tenant.id, [
         descriptor,
       ]);
 
-      const otherAgreement = buildAgreement(
+      const otherAgreement = getMockAgreement(
         eservice.id,
         tenant.id,
         randomArrayItem(
@@ -433,9 +323,9 @@ describe("Agreement service", () => {
         )
       );
 
-      await addOneTenant(tenant, tenants);
-      await addOneEService(eservice, eservices);
-      await addOneAgreement(otherAgreement, postgresDB, agreements);
+      await addOneTenant(tenant);
+      await addOneEService(eservice);
+      await addOneAgreement(otherAgreement);
 
       const authData = getRandomAuthData(tenant.id);
       const apiAgreementPayload: ApiAgreementPayload = {
@@ -445,8 +335,7 @@ describe("Agreement service", () => {
 
       const createdAgreementId = await agreementService.createAgreement(
         apiAgreementPayload,
-        authData,
-        uuidv4()
+        { authData, correlationId: "", serviceName: "", logger: genericLogger }
       );
 
       await expectedAgreementCreation(
@@ -469,11 +358,12 @@ describe("Agreement service", () => {
       };
 
       await expect(
-        agreementService.createAgreement(
-          apiAgreementPayload,
+        agreementService.createAgreement(apiAgreementPayload, {
           authData,
-          uuidv4()
-        )
+          correlationId: "",
+          serviceName: "",
+          logger: genericLogger,
+        })
       ).rejects.toThrowError(
         eServiceNotFound(unsafeBrandId(apiAgreementPayload.eserviceId))
       );
@@ -483,9 +373,9 @@ describe("Agreement service", () => {
       const authData = getRandomAuthData();
       const eserviceId = generateId<EServiceId>();
 
-      const eservice = buildEService(eserviceId, authData.organizationId, []);
+      const eservice = getMockEService(eserviceId, authData.organizationId, []);
 
-      await addOneEService(eservice, eservices);
+      await addOneEService(eservice);
 
       const apiAgreementPayload: ApiAgreementPayload = {
         eserviceId,
@@ -493,11 +383,12 @@ describe("Agreement service", () => {
       };
 
       await expect(
-        agreementService.createAgreement(
-          apiAgreementPayload,
+        agreementService.createAgreement(apiAgreementPayload, {
           authData,
-          uuidv4()
-        )
+          correlationId: "",
+          serviceName: "",
+          logger: genericLogger,
+        })
       ).rejects.toThrowError(
         notLatestEServiceDescriptor(
           unsafeBrandId(apiAgreementPayload.descriptorId)
@@ -513,23 +404,23 @@ describe("Agreement service", () => {
       );
 
       const descriptor0: Descriptor = {
-        ...buildDescriptorPublished(),
+        ...getMockDescriptorPublished(),
         version: "0",
         state: randomArrayItem(notDraftDescriptorStates),
       };
       const descriptor1: Descriptor = {
-        ...buildDescriptorPublished(),
+        ...getMockDescriptorPublished(),
         version: "1",
         state: randomArrayItem(notDraftDescriptorStates),
       };
 
-      const eservice = buildEService(eserviceId, authData.organizationId, [
+      const eservice = getMockEService(eserviceId, authData.organizationId, [
         descriptor0,
         descriptor1,
       ]);
 
-      await addOneEService(eservice, eservices);
-      await addOneTenant(buildTenant(authData.organizationId), tenants);
+      await addOneEService(eservice);
+      await addOneTenant(getMockTenant(authData.organizationId));
 
       const apiAgreementPayload: ApiAgreementPayload = {
         eserviceId,
@@ -537,11 +428,12 @@ describe("Agreement service", () => {
       };
 
       await expect(
-        agreementService.createAgreement(
-          apiAgreementPayload,
+        agreementService.createAgreement(apiAgreementPayload, {
           authData,
-          uuidv4()
-        )
+          correlationId: "",
+          serviceName: "",
+          logger: genericLogger,
+        })
       ).rejects.toThrowError(
         notLatestEServiceDescriptor(
           unsafeBrandId(apiAgreementPayload.descriptorId)
@@ -554,7 +446,7 @@ describe("Agreement service", () => {
       const eserviceId = generateId<EServiceId>();
 
       const descriptor: Descriptor = {
-        ...buildDescriptorPublished(),
+        ...getMockDescriptorPublished(),
         version: "0",
         state: randomArrayItem(
           Object.values(descriptorState).filter(
@@ -565,12 +457,12 @@ describe("Agreement service", () => {
         ),
       };
 
-      const eservice = buildEService(eserviceId, authData.organizationId, [
+      const eservice = getMockEService(eserviceId, authData.organizationId, [
         descriptor,
       ]);
 
-      await addOneEService(eservice, eservices);
-      await addOneTenant(buildTenant(authData.organizationId), tenants);
+      await addOneEService(eservice);
+      await addOneTenant(getMockTenant(authData.organizationId));
 
       const apiAgreementPayload: ApiAgreementPayload = {
         eserviceId,
@@ -578,11 +470,12 @@ describe("Agreement service", () => {
       };
 
       await expect(
-        agreementService.createAgreement(
-          apiAgreementPayload,
+        agreementService.createAgreement(apiAgreementPayload, {
           authData,
-          uuidv4()
-        )
+          correlationId: "",
+          serviceName: "",
+          logger: genericLogger,
+        })
       ).rejects.toThrowError(
         descriptorNotInExpectedState(eservice.id, descriptor.id, [
           descriptorState.published,
@@ -591,24 +484,24 @@ describe("Agreement service", () => {
     });
 
     it("should throw an agreementAlreadyExists error when an Agreement in a conflicting state already exists for the same EService and consumer", async () => {
-      const consumer: Tenant = buildTenant();
-      const descriptor: Descriptor = buildDescriptorPublished();
+      const consumer: Tenant = getMockTenant();
+      const descriptor: Descriptor = getMockDescriptorPublished();
 
-      const eservice = buildEService(generateId<EServiceId>(), consumer.id, [
+      const eservice = getMockEService(generateId<EServiceId>(), consumer.id, [
         descriptor,
       ]);
 
       const conflictingAgreement = {
-        ...buildAgreement(
+        ...getMockAgreement(
           eservice.id,
           consumer.id,
           randomArrayItem(agreementCreationConflictingStates)
         ),
       };
 
-      await addOneTenant(consumer, tenants);
-      await addOneEService(eservice, eservices);
-      await addOneAgreement(conflictingAgreement, postgresDB, agreements);
+      await addOneTenant(consumer);
+      await addOneEService(eservice);
+      await addOneAgreement(conflictingAgreement);
 
       const authData = getRandomAuthData(consumer.id);
       const apiAgreementPayload: ApiAgreementPayload = {
@@ -617,25 +510,26 @@ describe("Agreement service", () => {
       };
 
       await expect(
-        agreementService.createAgreement(
-          apiAgreementPayload,
+        agreementService.createAgreement(apiAgreementPayload, {
           authData,
-          uuidv4()
-        )
+          correlationId: "",
+          serviceName: "",
+          logger: genericLogger,
+        })
       ).rejects.toThrowError(agreementAlreadyExists(consumer.id, eservice.id));
     });
 
-    it("should throw a tenantIdNotFound error when the consumer Tenant does not exist", async () => {
-      const consumer: Tenant = buildTenant();
-      const descriptor: Descriptor = buildDescriptorPublished();
+    it("should throw a tenantNotFound error when the consumer Tenant does not exist", async () => {
+      const consumer: Tenant = getMockTenant();
+      const descriptor: Descriptor = getMockDescriptorPublished();
 
-      const eservice = buildEService(
+      const eservice = getMockEService(
         generateId<EServiceId>(),
         generateId<TenantId>(),
         [descriptor]
       );
 
-      await addOneEService(eservice, eservices);
+      await addOneEService(eservice);
 
       const authData = getRandomAuthData(consumer.id);
       const apiAgreementPayload: ApiAgreementPayload = {
@@ -644,25 +538,26 @@ describe("Agreement service", () => {
       };
 
       await expect(() =>
-        agreementService.createAgreement(
-          apiAgreementPayload,
+        agreementService.createAgreement(apiAgreementPayload, {
           authData,
-          uuidv4()
-        )
-      ).rejects.toThrowError(tenantIdNotFound(consumer.id));
+          correlationId: "",
+          serviceName: "",
+          logger: genericLogger,
+        })
+      ).rejects.toThrowError(tenantNotFound(consumer.id));
     });
 
     it("should throw a missingCertifiedAttributesError error when the EService producer and Agreement consumer are different Tenants, and the consumer is missing a Descriptor certified Attribute", async () => {
-      const eserviceProducer: Tenant = buildTenant();
+      const eserviceProducer: Tenant = getMockTenant();
 
       // Descriptor has two certified attributes
       const certifiedDescriptorAttribute1: EServiceAttribute =
-        buildEServiceAttribute();
+        getMockEServiceAttribute();
       const certifiedDescriptorAttribute2: EServiceAttribute =
-        buildEServiceAttribute();
+        getMockEServiceAttribute();
 
       const descriptor = {
-        ...buildDescriptorPublished(generateId<DescriptorId>(), [
+        ...getMockDescriptorPublished(generateId<DescriptorId>(), [
           [certifiedDescriptorAttribute1],
           [certifiedDescriptorAttribute2],
         ]),
@@ -670,22 +565,22 @@ describe("Agreement service", () => {
 
       // In this case, the consumer is missing one of the two certified attributes
       const certifiedTenantAttribute1: TenantAttribute =
-        buildCertifiedTenantAttribute(certifiedDescriptorAttribute1.id);
+        getMockCertifiedTenantAttribute(certifiedDescriptorAttribute1.id);
 
       const consumer = {
-        ...buildTenant(),
+        ...getMockTenant(),
         attributes: [certifiedTenantAttribute1],
       };
 
-      const eservice = buildEService(
+      const eservice = getMockEService(
         generateId<EServiceId>(),
         eserviceProducer.id,
         [descriptor]
       );
 
-      await addOneTenant(eserviceProducer, tenants);
-      await addOneTenant(consumer, tenants);
-      await addOneEService(eservice, eservices);
+      await addOneTenant(eserviceProducer);
+      await addOneTenant(consumer);
+      await addOneEService(eservice);
 
       const authData = getRandomAuthData(consumer.id);
       const apiAgreementPayload: ApiAgreementPayload = {
@@ -694,31 +589,32 @@ describe("Agreement service", () => {
       };
 
       await expect(
-        agreementService.createAgreement(
-          apiAgreementPayload,
+        agreementService.createAgreement(apiAgreementPayload, {
           authData,
-          uuidv4()
-        )
+          correlationId: "",
+          serviceName: "",
+          logger: genericLogger,
+        })
       ).rejects.toThrowError(
         missingCertifiedAttributesError(descriptor.id, consumer.id)
       );
     });
 
     it("should throw a missingCertifiedAttributesError error when the EService producer and Agreement consumer are different Tenants, and the consumer has a Descriptor certified Attribute revoked", async () => {
-      const eserviceProducer: Tenant = buildTenant();
+      const eserviceProducer: Tenant = getMockTenant();
 
       // Descriptor has two certified attributes
       const certifiedDescriptorAttribute1: EServiceAttribute =
-        buildEServiceAttribute();
+        getMockEServiceAttribute();
       const certifiedDescriptorAttribute2: EServiceAttribute =
-        buildEServiceAttribute();
+        getMockEServiceAttribute();
 
-      const descriptor: Descriptor = buildDescriptorPublished(
+      const descriptor: Descriptor = getMockDescriptorPublished(
         generateId<DescriptorId>(),
         [[certifiedDescriptorAttribute1], [certifiedDescriptorAttribute2]]
       );
 
-      const eservice = buildEService(
+      const eservice = getMockEService(
         generateId<EServiceId>(),
         eserviceProducer.id,
         [descriptor]
@@ -726,24 +622,24 @@ describe("Agreement service", () => {
 
       // In this case, the consumer has one of the two certified attributes revoked
       const certifiedTenantAttribute1: TenantAttribute = {
-        ...buildCertifiedTenantAttribute(certifiedDescriptorAttribute1.id),
+        ...getMockCertifiedTenantAttribute(certifiedDescriptorAttribute1.id),
         revocationTimestamp: new Date(),
         assignmentTimestamp: new Date(),
       };
       const certifiedTenantAttribute2: TenantAttribute = {
-        ...buildCertifiedTenantAttribute(certifiedDescriptorAttribute2.id),
+        ...getMockCertifiedTenantAttribute(certifiedDescriptorAttribute2.id),
         revocationTimestamp: undefined,
         assignmentTimestamp: new Date(),
       };
 
       const consumer = {
-        ...buildTenant(),
+        ...getMockTenant(),
         attributes: [certifiedTenantAttribute1, certifiedTenantAttribute2],
       };
 
-      await addOneTenant(eserviceProducer, tenants);
-      await addOneTenant(consumer, tenants);
-      await addOneEService(eservice, eservices);
+      await addOneTenant(eserviceProducer);
+      await addOneTenant(consumer);
+      await addOneEService(eservice);
 
       const authData = getRandomAuthData(consumer.id);
       const apiAgreementPayload: ApiAgreementPayload = {
@@ -752,16 +648,18 @@ describe("Agreement service", () => {
       };
 
       await expect(
-        agreementService.createAgreement(
-          apiAgreementPayload,
+        agreementService.createAgreement(apiAgreementPayload, {
           authData,
-          uuidv4()
-        )
+          correlationId: "",
+          serviceName: "",
+          logger: genericLogger,
+        })
       ).rejects.toThrowError(
         missingCertifiedAttributesError(descriptor.id, consumer.id)
       );
     });
   });
+
   describe("get agreements", () => {
     let tenant1: Tenant;
     let tenant2: Tenant;
@@ -786,32 +684,32 @@ describe("Agreement service", () => {
     let agreement6: Agreement;
 
     beforeEach(async () => {
-      tenant1 = buildTenant();
-      tenant2 = buildTenant();
-      tenant3 = buildTenant();
+      tenant1 = getMockTenant();
+      tenant2 = getMockTenant();
+      tenant3 = getMockTenant();
 
       descriptor1 = {
-        ...buildDescriptorPublished(),
+        ...getMockDescriptorPublished(),
         state: descriptorState.suspended,
         publishedAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
       };
       descriptor2 = {
-        ...buildDescriptorPublished(),
+        ...getMockDescriptorPublished(),
         publishedAt: new Date(),
       };
       descriptor3 = {
-        ...buildDescriptorPublished(),
+        ...getMockDescriptorPublished(),
         publishedAt: new Date(Date.now()),
       };
       descriptor4 = {
-        ...buildDescriptorPublished(),
+        ...getMockDescriptorPublished(),
         publishedAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
       };
       descriptor5 = {
-        ...buildDescriptorPublished(),
+        ...getMockDescriptorPublished(),
       };
       eservice1 = {
-        ...buildEService(generateId<EServiceId>(), tenant1.id, [
+        ...getMockEService(generateId<EServiceId>(), tenant1.id, [
           descriptor1,
           descriptor2,
           // descriptor2 is the latest - agreements for descriptor1 are upgradeable
@@ -819,7 +717,7 @@ describe("Agreement service", () => {
         name: "EService1", // Adding name because results are sorted by esevice name
       };
       eservice2 = {
-        ...buildEService(generateId<EServiceId>(), tenant2.id, [
+        ...getMockEService(generateId<EServiceId>(), tenant2.id, [
           descriptor3,
           descriptor4,
           // descriptor4 is not the latest - agreements for descriptor3 are not upgradeable
@@ -827,23 +725,23 @@ describe("Agreement service", () => {
         name: "EService2", // Adding name because results are sorted by esevice name
       };
       eservice3 = {
-        ...buildEService(generateId<EServiceId>(), tenant3.id, [descriptor5]),
+        ...getMockEService(generateId<EServiceId>(), tenant3.id, [descriptor5]),
         name: "EService3", // Adding name because results are sorted by esevice name
       };
 
-      await addOneTenant(tenant1, tenants);
-      await addOneTenant(tenant2, tenants);
-      await addOneTenant(tenant3, tenants);
-      await addOneEService(eservice1, eservices);
-      await addOneEService(eservice2, eservices);
-      await addOneEService(eservice3, eservices);
+      await addOneTenant(tenant1);
+      await addOneTenant(tenant2);
+      await addOneTenant(tenant3);
+      await addOneEService(eservice1);
+      await addOneEService(eservice2);
+      await addOneEService(eservice3);
 
       attribute1 = { id: generateId() };
       attribute2 = { id: generateId() };
       attribute3 = { id: generateId() };
       attribute4 = { id: generateId() };
       agreement1 = {
-        ...buildAgreement(eservice1.id, tenant1.id, agreementState.draft),
+        ...getMockAgreement(eservice1.id, tenant1.id, agreementState.draft),
         descriptorId: eservice1.descriptors[0].id,
         producerId: eservice1.producerId,
         certifiedAttributes: [attribute1, attribute2],
@@ -851,7 +749,7 @@ describe("Agreement service", () => {
       };
 
       agreement2 = {
-        ...buildAgreement(eservice1.id, tenant2.id, agreementState.active),
+        ...getMockAgreement(eservice1.id, tenant2.id, agreementState.active),
         descriptorId: eservice1.descriptors[1].id,
         producerId: eservice1.producerId,
         declaredAttributes: [attribute3],
@@ -859,13 +757,13 @@ describe("Agreement service", () => {
       };
 
       agreement3 = {
-        ...buildAgreement(eservice2.id, tenant1.id, agreementState.pending),
+        ...getMockAgreement(eservice2.id, tenant1.id, agreementState.pending),
         descriptorId: eservice2.descriptors[0].id,
         producerId: eservice2.producerId,
       };
 
       agreement4 = {
-        ...buildAgreement(
+        ...getMockAgreement(
           eservice2.id,
           tenant2.id,
           agreementState.missingCertifiedAttributes
@@ -876,27 +774,32 @@ describe("Agreement service", () => {
       };
 
       agreement5 = {
-        ...buildAgreement(eservice3.id, tenant1.id, agreementState.archived),
+        ...getMockAgreement(eservice3.id, tenant1.id, agreementState.archived),
         descriptorId: eservice3.descriptors[0].id,
         producerId: eservice3.producerId,
       };
 
       agreement6 = {
-        ...buildAgreement(eservice3.id, tenant3.id, agreementState.rejected),
+        ...getMockAgreement(eservice3.id, tenant3.id, agreementState.rejected),
         descriptorId: eservice3.descriptors[0].id,
         producerId: eservice3.producerId,
       };
 
-      await addOneAgreement(agreement1, postgresDB, agreements);
-      await addOneAgreement(agreement2, postgresDB, agreements);
-      await addOneAgreement(agreement3, postgresDB, agreements);
-      await addOneAgreement(agreement4, postgresDB, agreements);
-      await addOneAgreement(agreement5, postgresDB, agreements);
-      await addOneAgreement(agreement6, postgresDB, agreements);
+      await addOneAgreement(agreement1);
+      await addOneAgreement(agreement2);
+      await addOneAgreement(agreement3);
+      await addOneAgreement(agreement4);
+      await addOneAgreement(agreement5);
+      await addOneAgreement(agreement6);
     });
 
     it("should get all agreements if no filters are provided", async () => {
-      const allAgreements = await agreementService.getAgreements({}, 10, 0);
+      const allAgreements = await agreementService.getAgreements(
+        {},
+        10,
+        0,
+        genericLogger
+      );
       expect(allAgreements).toEqual({
         totalCount: 6,
         results: expect.arrayContaining([
@@ -916,7 +819,8 @@ describe("Agreement service", () => {
           producerId: eservice1.producerId,
         },
         10,
-        0
+        0,
+        genericLogger
       );
       expect(agreements1).toEqual({
         totalCount: 2,
@@ -928,7 +832,8 @@ describe("Agreement service", () => {
           producerId: [eservice1.producerId, eservice2.producerId],
         },
         10,
-        0
+        0,
+        genericLogger
       );
 
       expect(agreements2).toEqual({
@@ -948,7 +853,8 @@ describe("Agreement service", () => {
           consumerId: tenant1.id,
         },
         10,
-        0
+        0,
+        genericLogger
       );
       expect(agreements1).toEqual({
         totalCount: 3,
@@ -960,7 +866,8 @@ describe("Agreement service", () => {
           consumerId: [tenant1.id, tenant2.id],
         },
         10,
-        0
+        0,
+        genericLogger
       );
       expect(agreements2).toEqual({
         totalCount: 5,
@@ -980,7 +887,8 @@ describe("Agreement service", () => {
           eserviceId: eservice1.id,
         },
         10,
-        0
+        0,
+        genericLogger
       );
       expect(agreements1).toEqual({
         totalCount: 2,
@@ -992,7 +900,8 @@ describe("Agreement service", () => {
           eserviceId: [eservice1.id, eservice2.id],
         },
         10,
-        0
+        0,
+        genericLogger
       );
       expect(agreements2).toEqual({
         totalCount: 4,
@@ -1011,7 +920,8 @@ describe("Agreement service", () => {
           descriptorId: descriptor1.id,
         },
         10,
-        0
+        0,
+        genericLogger
       );
       expect(agreements1).toEqual({
         totalCount: 1,
@@ -1023,7 +933,8 @@ describe("Agreement service", () => {
           descriptorId: [descriptor1.id, descriptor3.id, descriptor5.id],
         },
         10,
-        0
+        0,
+        genericLogger
       );
       expect(agreements2).toEqual({
         totalCount: 4,
@@ -1042,7 +953,8 @@ describe("Agreement service", () => {
           attributeId: attribute2.id,
         },
         10,
-        0
+        0,
+        genericLogger
       );
       expect(agreements1).toEqual({
         totalCount: 1,
@@ -1054,7 +966,8 @@ describe("Agreement service", () => {
           attributeId: attribute3.id,
         },
         10,
-        0
+        0,
+        genericLogger
       );
       expect(agreements2).toEqual({
         totalCount: 2,
@@ -1066,7 +979,8 @@ describe("Agreement service", () => {
           attributeId: [attribute1.id, attribute3.id, attribute4.id],
         },
         10,
-        0
+        0,
+        genericLogger
       );
       expect(agreements3).toEqual({
         totalCount: 2,
@@ -1079,7 +993,8 @@ describe("Agreement service", () => {
           agreementStates: [agreementState.active, agreementState.pending],
         },
         10,
-        0
+        0,
+        genericLogger
       );
       expect(agreements).toEqual({
         totalCount: 2,
@@ -1092,7 +1007,8 @@ describe("Agreement service", () => {
           showOnlyUpgradeable: true,
         },
         10,
-        0
+        0,
+        genericLogger
       );
       expect(agreements).toEqual({
         totalCount: 1,
@@ -1112,7 +1028,8 @@ describe("Agreement service", () => {
           eserviceId: [eservice1.id, eservice2.id],
         },
         10,
-        0
+        0,
+        genericLogger
       );
       expect(agreements).toEqual({
         totalCount: 2,
@@ -1129,7 +1046,8 @@ describe("Agreement service", () => {
           descriptorId: [descriptor1.id],
         },
         10,
-        0
+        0,
+        genericLogger
       );
       expect(agreements).toEqual({
         totalCount: 1,
@@ -1144,7 +1062,8 @@ describe("Agreement service", () => {
           agreementStates: [agreementState.active],
         },
         10,
-        0
+        0,
+        genericLogger
       );
       expect(agreements).toEqual({
         totalCount: 1,
@@ -1160,7 +1079,8 @@ describe("Agreement service", () => {
           descriptorId: descriptor1.id,
         },
         10,
-        0
+        0,
+        genericLogger
       );
       expect(agreements1).toEqual({
         totalCount: 1,
@@ -1174,7 +1094,8 @@ describe("Agreement service", () => {
           descriptorId: descriptor1.id,
         },
         10,
-        0
+        0,
+        genericLogger
       );
       expect(agreements2).toEqual({
         totalCount: 0,
@@ -1188,7 +1109,8 @@ describe("Agreement service", () => {
           eserviceId: eservice1.id,
         },
         1,
-        0
+        0,
+        genericLogger
       );
       expect(agreements).toEqual({
         totalCount: 2,
@@ -1202,7 +1124,8 @@ describe("Agreement service", () => {
           eserviceId: [eservice1.id, eservice2.id],
         },
         2,
-        1
+        1,
+        genericLogger
       );
       expect(agreements).toEqual({
         totalCount: 4,
@@ -1215,7 +1138,8 @@ describe("Agreement service", () => {
           producerId: generateId<TenantId>(),
         },
         10,
-        0
+        0,
+        genericLogger
       );
 
       expect(agreements).toEqual({
@@ -1226,21 +1150,24 @@ describe("Agreement service", () => {
   });
   describe("get agreement", () => {
     it("should get an agreement", async () => {
-      const agreement: Agreement = buildAgreement();
-      await addOneAgreement(agreement, postgresDB, agreements);
-      await addOneAgreement(buildAgreement(), postgresDB, agreements);
+      const agreement: Agreement = getMockAgreement();
+      await addOneAgreement(agreement);
+      await addOneAgreement(getMockAgreement());
 
-      const result = await agreementService.getAgreementById(agreement.id);
+      const result = await agreementService.getAgreementById(
+        agreement.id,
+        genericLogger
+      );
       expect(result).toEqual(agreement);
     });
 
     it("should throw an agreementNotFound error when the agreement does not exist", async () => {
       const agreementId = generateId<AgreementId>();
 
-      await addOneAgreement(buildAgreement(), postgresDB, agreements);
+      await addOneAgreement(getMockAgreement());
 
       await expect(
-        agreementService.getAgreementById(agreementId)
+        agreementService.getAgreementById(agreementId, genericLogger)
       ).rejects.toThrowError(agreementNotFound(agreementId));
     });
   });
@@ -1258,62 +1185,63 @@ describe("Agreement service", () => {
     });
 
     beforeEach(async () => {
-      tenant1 = { ...buildTenant(), name: "Tenant 1 Foo" };
-      tenant2 = { ...buildTenant(), name: "Tenant 2 Bar" };
-      tenant3 = { ...buildTenant(), name: "Tenant 3 FooBar" };
-      tenant4 = { ...buildTenant(), name: "Tenant 4 Baz" };
-      tenant5 = { ...buildTenant(), name: "Tenant 5 BazBar" };
-      tenant6 = { ...buildTenant(), name: "Tenant 6 BazFoo" };
+      tenant1 = { ...getMockTenant(), name: "Tenant 1 Foo" };
+      tenant2 = { ...getMockTenant(), name: "Tenant 2 Bar" };
+      tenant3 = { ...getMockTenant(), name: "Tenant 3 FooBar" };
+      tenant4 = { ...getMockTenant(), name: "Tenant 4 Baz" };
+      tenant5 = { ...getMockTenant(), name: "Tenant 5 BazBar" };
+      tenant6 = { ...getMockTenant(), name: "Tenant 6 BazFoo" };
 
-      await addOneTenant(tenant1, tenants);
-      await addOneTenant(tenant2, tenants);
-      await addOneTenant(tenant3, tenants);
-      await addOneTenant(tenant4, tenants);
-      await addOneTenant(tenant5, tenants);
-      await addOneTenant(tenant6, tenants);
+      await addOneTenant(tenant1);
+      await addOneTenant(tenant2);
+      await addOneTenant(tenant3);
+      await addOneTenant(tenant4);
+      await addOneTenant(tenant5);
+      await addOneTenant(tenant6);
 
       const agreement1 = {
-        ...buildAgreement(),
+        ...getMockAgreement(),
         producerId: tenant1.id,
         consumerId: tenant2.id,
       };
 
       const agreement2 = {
-        ...buildAgreement(),
+        ...getMockAgreement(),
         producerId: tenant1.id,
         consumerId: tenant3.id,
       };
 
       const agreement3 = {
-        ...buildAgreement(),
+        ...getMockAgreement(),
         producerId: tenant2.id,
         consumerId: tenant4.id,
       };
 
       const agreement4 = {
-        ...buildAgreement(),
+        ...getMockAgreement(),
         producerId: tenant2.id,
         consumerId: tenant5.id,
       };
 
       const agreement5 = {
-        ...buildAgreement(),
+        ...getMockAgreement(),
         producerId: tenant3.id,
         consumerId: tenant6.id,
       };
 
-      await addOneAgreement(agreement1, postgresDB, agreements);
-      await addOneAgreement(agreement2, postgresDB, agreements);
-      await addOneAgreement(agreement3, postgresDB, agreements);
-      await addOneAgreement(agreement4, postgresDB, agreements);
-      await addOneAgreement(agreement5, postgresDB, agreements);
+      await addOneAgreement(agreement1);
+      await addOneAgreement(agreement2);
+      await addOneAgreement(agreement3);
+      await addOneAgreement(agreement4);
+      await addOneAgreement(agreement5);
     });
     describe("get agreement consumers", () => {
       it("should get all agreement consumers", async () => {
         const consumers = await agreementService.getAgreementConsumers(
           undefined,
           10,
-          0
+          0,
+          genericLogger
         );
 
         expect(consumers).toEqual({
@@ -1329,7 +1257,8 @@ describe("Agreement service", () => {
         const consumers = await agreementService.getAgreementConsumers(
           "Foo",
           10,
-          0
+          0,
+          genericLogger
         );
 
         expect(consumers).toEqual({
@@ -1343,7 +1272,8 @@ describe("Agreement service", () => {
         const consumers = await agreementService.getAgreementConsumers(
           undefined,
           2,
-          0
+          0,
+          genericLogger
         );
 
         expect(consumers).toEqual({
@@ -1357,7 +1287,8 @@ describe("Agreement service", () => {
         const consumers = await agreementService.getAgreementConsumers(
           undefined,
           2,
-          1
+          1,
+          genericLogger
         );
 
         expect(consumers).toEqual({
@@ -1371,7 +1302,8 @@ describe("Agreement service", () => {
         const consumers = await agreementService.getAgreementConsumers(
           "Foo",
           1,
-          1
+          1,
+          genericLogger
         );
 
         expect(consumers).toEqual({
@@ -1383,7 +1315,8 @@ describe("Agreement service", () => {
         const producers = await agreementService.getAgreementConsumers(
           "Not existing name",
           10,
-          0
+          0,
+          genericLogger
         );
 
         expect(producers).toEqual({
@@ -1397,7 +1330,8 @@ describe("Agreement service", () => {
         const producers = await agreementService.getAgreementProducers(
           undefined,
           10,
-          0
+          0,
+          genericLogger
         );
 
         expect(producers).toEqual({
@@ -1411,7 +1345,8 @@ describe("Agreement service", () => {
         const producers = await agreementService.getAgreementProducers(
           "Bar",
           10,
-          0
+          0,
+          genericLogger
         );
 
         expect(producers).toEqual({
@@ -1425,7 +1360,8 @@ describe("Agreement service", () => {
         const producers = await agreementService.getAgreementProducers(
           undefined,
           2,
-          0
+          0,
+          genericLogger
         );
 
         expect(producers).toEqual({
@@ -1439,7 +1375,8 @@ describe("Agreement service", () => {
         const producers = await agreementService.getAgreementProducers(
           undefined,
           2,
-          1
+          1,
+          genericLogger
         );
 
         expect(producers).toEqual({
@@ -1453,7 +1390,8 @@ describe("Agreement service", () => {
         const producers = await agreementService.getAgreementProducers(
           "Bar",
           1,
-          1
+          1,
+          genericLogger
         );
 
         expect(producers).toEqual({
@@ -1465,7 +1403,8 @@ describe("Agreement service", () => {
         const producers = await agreementService.getAgreementProducers(
           "Not existing name",
           10,
-          0
+          0,
+          genericLogger
         );
 
         expect(producers).toEqual({
@@ -1490,53 +1429,53 @@ describe("Agreement service", () => {
     });
 
     beforeEach(async () => {
-      tenant1 = buildTenant();
-      tenant2 = buildTenant();
-      tenant3 = buildTenant();
+      tenant1 = getMockTenant();
+      tenant2 = getMockTenant();
+      tenant3 = getMockTenant();
 
       eservice1 = {
-        ...buildEService(generateId<EServiceId>(), tenant1.id),
+        ...getMockEService(generateId<EServiceId>(), tenant1.id),
         name: "EService 1 Foo",
       };
       eservice2 = {
-        ...buildEService(generateId<EServiceId>(), tenant2.id),
+        ...getMockEService(generateId<EServiceId>(), tenant2.id),
         name: "EService 2 Bar",
       };
       eservice3 = {
-        ...buildEService(generateId<EServiceId>(), tenant3.id),
+        ...getMockEService(generateId<EServiceId>(), tenant3.id),
         name: "EService 3 FooBar",
       };
 
-      await addOneTenant(tenant1, tenants);
-      await addOneTenant(tenant2, tenants);
-      await addOneTenant(tenant3, tenants);
-      await addOneEService(eservice1, eservices);
-      await addOneEService(eservice2, eservices);
-      await addOneEService(eservice3, eservices);
+      await addOneTenant(tenant1);
+      await addOneTenant(tenant2);
+      await addOneTenant(tenant3);
+      await addOneEService(eservice1);
+      await addOneEService(eservice2);
+      await addOneEService(eservice3);
 
       const agreement1 = {
-        ...buildAgreement(eservice1.id),
+        ...getMockAgreement(eservice1.id),
         producerId: eservice1.producerId,
         consumerId: tenant2.id,
         state: agreementState.draft,
       };
       const agreement2 = {
-        ...buildAgreement(eservice2.id),
+        ...getMockAgreement(eservice2.id),
         producerId: eservice2.producerId,
         consumerId: tenant3.id,
         state: agreementState.active,
       };
 
       const agreement3 = {
-        ...buildAgreement(eservice3.id),
+        ...getMockAgreement(eservice3.id),
         producerId: eservice3.producerId,
         consumerId: tenant1.id,
         state: agreementState.pending,
       };
 
-      await addOneAgreement(agreement1, postgresDB, agreements);
-      await addOneAgreement(agreement2, postgresDB, agreements);
-      await addOneAgreement(agreement3, postgresDB, agreements);
+      await addOneAgreement(agreement1);
+      await addOneAgreement(agreement2);
+      await addOneAgreement(agreement3);
     });
 
     it("should get all agreement eservices", async () => {
@@ -1548,7 +1487,8 @@ describe("Agreement service", () => {
           agreeementStates: [],
         },
         10,
-        0
+        0,
+        genericLogger
       );
 
       expect(eservices).toEqual({
@@ -1568,7 +1508,8 @@ describe("Agreement service", () => {
           agreeementStates: [],
         },
         10,
-        0
+        0,
+        genericLogger
       );
 
       expect(eservices).toEqual({
@@ -1588,7 +1529,8 @@ describe("Agreement service", () => {
           agreeementStates: [],
         },
         10,
-        0
+        0,
+        genericLogger
       );
 
       expect(eservices).toEqual({
@@ -1608,7 +1550,8 @@ describe("Agreement service", () => {
           agreeementStates: [],
         },
         10,
-        0
+        0,
+        genericLogger
       );
 
       expect(eservices).toEqual({
@@ -1628,7 +1571,8 @@ describe("Agreement service", () => {
           agreeementStates: [agreementState.active, agreementState.pending],
         },
         10,
-        0
+        0,
+        genericLogger
       );
 
       expect(eservices).toEqual({
@@ -1648,7 +1592,8 @@ describe("Agreement service", () => {
           agreeementStates: [],
         },
         10,
-        0
+        0,
+        genericLogger
       );
 
       expect(eservices).toEqual({
@@ -1666,7 +1611,8 @@ describe("Agreement service", () => {
           agreeementStates: [agreementState.pending, agreementState.draft],
         },
         10,
-        0
+        0,
+        genericLogger
       );
 
       expect(eservices).toEqual({
@@ -1684,7 +1630,8 @@ describe("Agreement service", () => {
           agreeementStates: [agreementState.pending],
         },
         10,
-        0
+        0,
+        genericLogger
       );
 
       expect(eservices).toEqual({
@@ -1702,7 +1649,8 @@ describe("Agreement service", () => {
           agreeementStates: [],
         },
         2,
-        0
+        0,
+        genericLogger
       );
 
       expect(eservices).toEqual({
@@ -1722,7 +1670,8 @@ describe("Agreement service", () => {
           agreeementStates: [],
         },
         2,
-        1
+        1,
+        genericLogger
       );
 
       expect(eservices).toEqual({
@@ -1742,7 +1691,8 @@ describe("Agreement service", () => {
           agreeementStates: [],
         },
         10,
-        0
+        0,
+        genericLogger
       );
 
       expect(eservices).toEqual({
