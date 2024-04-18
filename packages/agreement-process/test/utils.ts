@@ -1,14 +1,17 @@
 import {
   Agreement,
+  AgreementDocument,
+  AgreementDocumentId,
   AgreementEvent,
   AgreementId,
   EService,
   Tenant,
-  agreementEventToBinaryData,
+  generateId,
   toReadModelEService,
 } from "pagopa-interop-models";
 import { IDatabase } from "pg-promise";
 import {
+  ReadEvent,
   StoredEvent,
   readLastEventByStreamId,
   writeInEventstore,
@@ -20,26 +23,25 @@ import {
   TenantCollection,
 } from "pagopa-interop-commons";
 import { toAgreementV1 } from "../src/model/domain/toEvent.js";
+import { config } from "../src/utilities/config.js";
 
 export const writeAgreementInEventstore = async (
-  eservice: Agreement,
+  agreement: Agreement,
   postgresDB: IDatabase<unknown>
 ): Promise<void> => {
   const agreementEvent: AgreementEvent = {
     type: "AgreementAdded",
     event_version: 1,
-    data: { agreement: toAgreementV1(eservice) },
+    data: { agreement: toAgreementV1(agreement) },
   };
-  const eventToWrite = {
+  const eventToWrite: StoredEvent<AgreementEvent> = {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     stream_id: agreementEvent.data.agreement!.id,
-    version: "0",
-    type: agreementEvent.type,
-    event_version: agreementEvent.event_version,
-    data: agreementEventToBinaryData(agreementEvent),
+    version: 0,
+    event: agreementEvent,
   };
 
-  await writeInEventstore(eventToWrite, "catalog", postgresDB);
+  await writeInEventstore(eventToWrite, "agreement", postgresDB);
 };
 
 export const addOneAgreement = async (
@@ -68,5 +70,20 @@ export const addOneTenant = async (
 export const readLastAgreementEvent = async (
   agreementId: AgreementId,
   postgresDB: IDatabase<unknown>
-): Promise<StoredEvent> =>
+): Promise<ReadEvent<AgreementEvent>> =>
   await readLastEventByStreamId(agreementId, "agreement", postgresDB);
+
+export function getMockConsumerDocument(
+  agreementId: AgreementId,
+  name: string = "mockDocument"
+): AgreementDocument {
+  const id = generateId<AgreementDocumentId>();
+  return {
+    id,
+    name,
+    path: `${config.consumerDocumentsPath}/${agreementId}/${id}/${name}`,
+    prettyName: "pretty name",
+    contentType: "application/pdf",
+    createdAt: new Date(),
+  };
+}
