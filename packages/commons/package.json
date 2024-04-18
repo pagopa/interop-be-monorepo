@@ -25,7 +25,6 @@
     "@zodios/core": "10.9.6",
     "@zodios/express": "10.6.1",
     "connection-string": "4.3.6",
-    "express-winston": "4.2.0",
     "jsonwebtoken": "9.0.2",
     "jwks-rsa": "3.0.1",
     "kafkajs": "2.2.4",

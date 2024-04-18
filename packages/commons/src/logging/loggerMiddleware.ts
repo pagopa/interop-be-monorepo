@@ -97,19 +97,6 @@ const getLogger = (serviceName?: string) =>
     silent: process.env.NODE_ENV === "test",
   });
 
-// export const loggerMiddleware = (serviceName: string) => () =>
-//   expressWinston.logger({
-//     winstonInstance: getLogger(serviceName),
-//     requestWhitelist:
-//       config.logLevel === "info" ? ["body", "headers", "query"] : [],
-//     ignoredRoutes: ["/status"],
-//     responseWhitelist:
-//       config.logLevel === "info" ? ["body", "statusCode", "statusMessage"] : [],
-//     meta: false,
-//     msg: (req, res) =>
-//       `Request ${req.method} ${req.url} - Response ${res.statusCode} ${res.statusMessage}`,
-//   });
-
 const internal_logger = getLogger();
 
 export const logger = (loggerCtx: LoggerCtx) => ({

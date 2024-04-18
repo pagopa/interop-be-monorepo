@@ -552,9 +552,6 @@ importers:
       connection-string:
         specifier: 4.3.6
         version: 4.3.6
-      express-winston:
-        specifier: 4.2.0
-        version: 4.2.0(winston@3.9.0)
       jsonwebtoken:
         specifier: 9.0.2
         version: 9.0.2
@@ -6191,17 +6188,6 @@ packages:
   /eval-estree-expression@1.1.0:
     resolution: {integrity: sha512-6ZAHSb0wsqxutjk2lXZcW7btSc51I8BhlIetit0wIf5sOb5xDNBrIqe0g8RFyQ/EW6Xwn1szrtButztU7Vdj1Q==}
 
-  /express-winston@4.2.0(winston@3.9.0):
-    resolution: {integrity: sha512-EMD74g63nVHi7pFleQw7KHCxiA1pjF5uCwbCfzGqmFxs9KvlDPIVS3cMGpULm6MshExMT9TjC3SqmRGB9kb7yw==}
-    engines: {node: '>= 6'}
-    peerDependencies:
-      winston: '>=3.x <4'
-    dependencies:
-      chalk: 2.4.2
-      lodash: 4.17.21
-      winston: 3.9.0
-    dev: false
-
   /express@4.18.2:
     resolution: {integrity: sha512-5/PsL6iGPdfQ/lKM1UuielYgv3BUoJfz1aUwU9vHZ+J7gyvwdQXFEBIEIaxeGf0GIcreATNyBExtalisDbuMqQ==}
     engines: {node: '>= 0.10.0'}
@@ -7044,6 +7030,7 @@ packages:
 
   /lodash@4.17.21:
     resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
+    dev: true
 
   /logform@2.5.1:
     resolution: {integrity: sha512-9FyqAm9o9NKKfiAKfZoYo9bGXXuwMkxQiQttkT4YjjVtQVIQtK6LmVtlxmCaFswo6N4AfEkHqZTV0taDtPotNg==}
