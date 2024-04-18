@@ -572,7 +572,10 @@ export function tenantServiceBuilder(
         value: tenantExternalId,
       });
 
-      assertTenantExists(unsafeBrandId(tenantOrigin), tenantToModify);
+      assertTenantExists(
+        unsafeBrandId(`${tenantOrigin}/${tenantExternalId}`),
+        tenantToModify
+      );
 
       const attributeToAssign =
         await readModelService.getAttributeByOriginAndCode({
@@ -581,7 +584,7 @@ export function tenantServiceBuilder(
         });
 
       if (!attributeToAssign) {
-        throw attributeNotFound(attributeOrigin);
+        throw attributeNotFound(`${attributeOrigin}/${attributeExternalId}`);
       }
 
       const maybeAttribute = tenantToModify.data.attributes.find(
