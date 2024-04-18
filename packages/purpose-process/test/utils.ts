@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
   PurposeCollection,
   riskAnalysisFormToRiskAnalysisFormToValidate,
@@ -7,6 +8,7 @@ import {
   writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import {
+  DraftPurposeUpdatedV2,
   EService,
   Purpose,
   PurposeEvent,
@@ -15,9 +17,14 @@ import {
   purposeEventToBinaryData,
   technology,
   toPurposeV2,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { IDatabase } from "pg-promise";
-import { RiskAnalysisFormSeed } from "../src/model/domain/models.js";
+import {
+  ApiPurposeUpdateContent,
+  ApiReversePurposeUpdateContent,
+  ApiRiskAnalysisFormSeed,
+} from "../src/model/domain/models.js";
 
 export const addOnePurpose = async (
   purpose: Purpose,
@@ -64,5 +71,45 @@ export const getMockEService = (): EService => ({
 
 export const buildRiskAnalysisSeed = (
   riskAnalysis: RiskAnalysis
-): RiskAnalysisFormSeed =>
+): ApiRiskAnalysisFormSeed =>
   riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysis.riskAnalysisForm);
+
+export const createUpdatedPurpose = (
+  mockPurpose: Purpose,
+  purposeUpdateContent:
+    | ApiPurposeUpdateContent
+    | ApiReversePurposeUpdateContent,
+  mockValidRiskAnalysis: RiskAnalysis,
+  writtenPayload: DraftPurposeUpdatedV2
+): Purpose => ({
+  ...mockPurpose,
+  title: purposeUpdateContent.title,
+  description: purposeUpdateContent.description,
+  isFreeOfCharge: purposeUpdateContent.isFreeOfCharge,
+  freeOfChargeReason: purposeUpdateContent.freeOfChargeReason,
+  updatedAt: new Date(Number(writtenPayload.purpose?.updatedAt)),
+  riskAnalysisForm: {
+    ...mockValidRiskAnalysis.riskAnalysisForm,
+    id: unsafeBrandId(writtenPayload.purpose!.riskAnalysisForm!.id),
+    singleAnswers: mockValidRiskAnalysis.riskAnalysisForm.singleAnswers.map(
+      (singleAnswer) => ({
+        ...singleAnswer,
+        id: unsafeBrandId(
+          writtenPayload.purpose!.riskAnalysisForm!.singleAnswers.find(
+            (sa) => sa.key === singleAnswer.key
+          )!.id
+        ),
+      })
+    ),
+    multiAnswers: mockValidRiskAnalysis.riskAnalysisForm.multiAnswers.map(
+      (multiAnswer) => ({
+        ...multiAnswer,
+        id: unsafeBrandId(
+          writtenPayload.purpose!.riskAnalysisForm!.multiAnswers.find(
+            (ma) => ma.key === multiAnswer.key
+          )!.id
+        ),
+      })
+    ),
+  },
+});
