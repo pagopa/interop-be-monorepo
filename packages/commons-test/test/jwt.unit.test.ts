@@ -133,7 +133,7 @@ describe("JWT tests", () => {
 
       expect(() => readAuthDataFromJwtToken(token)).toThrowError(
         invalidClaim(
-          "\"user-roles,1\" : Invalid enum value. Expected 'admin' | 'security' | 'api' | 'support', received 'invalid-role'"
+          "Validation error: Invalid enum value. Expected 'admin' | 'security' | 'api' | 'support', received 'invalid-role' at \"user-roles[1]\""
         )
       );
     });
@@ -146,7 +146,7 @@ describe("JWT tests", () => {
 
       expect(() => readAuthDataFromJwtToken(token)).toThrowError(
         invalidClaim(
-          '"user-roles" : String must contain at least 1 character(s)'
+          'Validation error: String must contain at least 1 character(s) at "user-roles"'
         )
       );
     });
@@ -177,7 +177,9 @@ describe("JWT tests", () => {
       });
 
       expect(() => readAuthDataFromJwtToken(token)).toThrowError(
-        invalidClaim(`"jti" : Required ; "sub" : Required`)
+        invalidClaim(
+          `Validation error: Required at "jti" ; Validation error: Required at "sub"`
+        )
       );
     });
 
@@ -193,7 +195,9 @@ describe("JWT tests", () => {
       });
 
       expect(() => readAuthDataFromJwtToken(token)).toThrowError(
-        invalidClaim('"aud" : String must contain at least 1 character(s)')
+        invalidClaim(
+          'Validation error: String must contain at least 1 character(s) at "aud"'
+        )
       );
     });
 
@@ -217,7 +221,7 @@ describe("JWT tests", () => {
 
       expect(() => readAuthDataFromJwtToken(token)).toThrowError(
         invalidClaim(
-          "\"role\" : Invalid discriminator value. Expected 'm2m' | 'internal' | "
+          "Validation error: Invalid discriminator value. Expected 'm2m' | 'internal' |  at \"role\""
         )
       );
     });
@@ -243,7 +247,7 @@ describe("JWT tests", () => {
 
       expect(() => readAuthDataFromJwtToken(token)).toThrowError(
         invalidClaim(
-          "\"user-roles,1\" : Invalid enum value. Expected 'admin' | 'security' | 'api' | 'support', received 'invalid-role'"
+          "Validation error: Invalid enum value. Expected 'admin' | 'security' | 'api' | 'support', received 'invalid-role' at \"user-roles[1]\""
         )
       );
     });
