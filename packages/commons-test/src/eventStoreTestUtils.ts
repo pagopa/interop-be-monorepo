@@ -8,7 +8,6 @@ import {
   EServiceEvent,
   EServiceId,
   EventStoreSchema,
-  PurposeId,
   TenantEvent,
   TenantId,
   agreementEventToBinaryData,
