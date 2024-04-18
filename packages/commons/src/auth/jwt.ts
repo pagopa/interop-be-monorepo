@@ -1,8 +1,9 @@
-import jwt, { JwtHeader, SigningKeyCallback } from "jsonwebtoken";
+import jwt, { JwtHeader, JwtPayload, SigningKeyCallback } from "jsonwebtoken";
 import jwksClient from "jwks-rsa";
-import { jwtParsingError, missingClaim } from "pagopa-interop-models";
+import { invalidClaim, jwtParsingError } from "pagopa-interop-models";
 import { JWTConfig, logger } from "../index.js";
 import { AuthData, AuthToken, getAuthDataFromToken } from "./authData.js";
+import { P, match } from "ts-pattern";
 
 export type JWTVerificationResult =
   | {
@@ -13,18 +14,21 @@ export type JWTVerificationResult =
       error: string;
     };
 
-export const readAuthDataFromJwtToken = (jwtToken: string): AuthData => {
+const decodeJwtToken = (jwtToken: string): JwtPayload | null => {
   try {
-    const decoded = jwt.decode(jwtToken, { json: true });
-    const token = AuthToken.safeParse(decoded);
-
-    if (token.success === false) {
-      throw missingClaim(token.error.message);
-    } else {
-      return getAuthDataFromToken(token.data);
-    }
+    return jwt.decode(jwtToken, { json: true });
   } catch (err) {
     throw jwtParsingError(err);
+  }
+};
+
+export const readAuthDataFromJwtToken = (jwtToken: string): AuthData => {
+  const decoded = decodeJwtToken(jwtToken);
+  const token = AuthToken.safeParse(decoded);
+  if (token.success === false) {
+    throw invalidClaim(token.error);
+  } else {
+    return getAuthDataFromToken(token.data);
   }
 };
 
