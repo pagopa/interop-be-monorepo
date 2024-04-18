@@ -1225,29 +1225,29 @@ describe("database test", async () => {
     describe("deletePurpose", () => {
       it("should write on event-store for the deletion of a purpose (no versions)", async () => {
         const mockEService = getMockEService();
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           eserviceId: mockEService.id,
           versions: [],
         };
 
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         await purposeService.deletePurpose({
-          purposeId: mockPurpose1.id,
+          purposeId: mockPurpose.id,
           organizationId: mockPurpose.consumerId,
           correlationId: generateId(),
         });
 
         const writtenEvent = await readLastEventByStreamId(
-          mockPurpose1.id,
+          mockPurpose.id,
           "purpose",
           postgresDB
         );
 
         expect(writtenEvent).toMatchObject({
-          stream_id: mockPurpose1.id,
+          stream_id: mockPurpose.id,
           version: "1",
           type: "DraftPurposeDeleted",
           event_version: 2,
@@ -1258,7 +1258,7 @@ describe("database test", async () => {
           payload: writtenEvent.data,
         });
 
-        expect(writtenPayload.purpose).toEqual(toPurposeV2(mockPurpose1));
+        expect(writtenPayload.purpose).toEqual(toPurposeV2(mockPurpose));
       });
       it("should write on event-store for the deletion of a purpose (draft version)", async () => {
         const mockEService = getMockEService();
@@ -1266,29 +1266,29 @@ describe("database test", async () => {
           ...getMockPurposeVersion(),
           state: purposeVersionState.draft,
         };
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           eserviceId: mockEService.id,
           versions: [mockPurposeVersion],
         };
 
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         await purposeService.deletePurpose({
-          purposeId: mockPurpose1.id,
+          purposeId: mockPurpose.id,
           organizationId: mockPurpose.consumerId,
           correlationId: generateId(),
         });
 
         const writtenEvent = await readLastEventByStreamId(
-          mockPurpose1.id,
+          mockPurpose.id,
           "purpose",
           postgresDB
         );
 
         expect(writtenEvent).toMatchObject({
-          stream_id: mockPurpose1.id,
+          stream_id: mockPurpose.id,
           version: "1",
           type: "DraftPurposeDeleted",
           event_version: 2,
@@ -1299,7 +1299,7 @@ describe("database test", async () => {
           payload: writtenEvent.data,
         });
 
-        expect(writtenPayload.purpose).toEqual(toPurposeV2(mockPurpose1));
+        expect(writtenPayload.purpose).toEqual(toPurposeV2(mockPurpose));
       });
       it("should write on event-store for the deletion of a purpose (waiting for approval version)", async () => {
         const mockEService = getMockEService();
@@ -1307,29 +1307,29 @@ describe("database test", async () => {
           ...getMockPurposeVersion(),
           state: purposeVersionState.waitingForApproval,
         };
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           eserviceId: mockEService.id,
           versions: [mockPurposeVersion],
         };
 
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         await purposeService.deletePurpose({
-          purposeId: mockPurpose1.id,
+          purposeId: mockPurpose.id,
           organizationId: mockPurpose.consumerId,
           correlationId: generateId(),
         });
 
         const writtenEvent = await readLastEventByStreamId(
-          mockPurpose1.id,
+          mockPurpose.id,
           "purpose",
           postgresDB
         );
 
         expect(writtenEvent).toMatchObject({
-          stream_id: mockPurpose1.id,
+          stream_id: mockPurpose.id,
           version: "1",
           type: "WaitingForApprovalPurposeDeleted",
           event_version: 2,
@@ -1340,7 +1340,7 @@ describe("database test", async () => {
           payload: writtenEvent.data,
         });
 
-        expect(writtenPayload.purpose).toEqual(toPurposeV2(mockPurpose1));
+        expect(writtenPayload.purpose).toEqual(toPurposeV2(mockPurpose));
       });
       it("should throw purposeNotFound if the purpose doesn't exist", async () => {
         const randomId: PurposeId = generateId();
@@ -1360,18 +1360,18 @@ describe("database test", async () => {
           ...getMockPurposeVersion(),
           state: purposeVersionState.draft,
         };
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           eserviceId: mockEService.id,
           versions: [mockPurposeVersion],
         };
 
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         expect(
           purposeService.deletePurpose({
-            purposeId: mockPurpose1.id,
+            purposeId: mockPurpose.id,
             organizationId: mockEService.producerId,
             correlationId: generateId(),
           })
@@ -1385,22 +1385,22 @@ describe("database test", async () => {
           ...getMockPurposeVersion(),
           state: purposeVersionState.active,
         };
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           eserviceId: mockEService.id,
           versions: [mockPurposeVersion],
         };
 
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         expect(
           purposeService.deletePurpose({
-            purposeId: mockPurpose1.id,
-            organizationId: mockPurpose1.consumerId,
+            purposeId: mockPurpose.id,
+            organizationId: mockPurpose.consumerId,
             correlationId: generateId(),
           })
-        ).rejects.toThrowError(purposeCannotBeDeleted(mockPurpose1.id));
+        ).rejects.toThrowError(purposeCannotBeDeleted(mockPurpose.id));
       });
       it("should throw purposeCannotBeDeleted if the purpose has a rejected version ", async () => {
         const mockEService = getMockEService();
@@ -1408,22 +1408,22 @@ describe("database test", async () => {
           ...getMockPurposeVersion(),
           state: purposeVersionState.rejected,
         };
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           eserviceId: mockEService.id,
           versions: [mockPurposeVersion],
         };
 
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         expect(
           purposeService.deletePurpose({
-            purposeId: mockPurpose1.id,
-            organizationId: mockPurpose1.consumerId,
+            purposeId: mockPurpose.id,
+            organizationId: mockPurpose.consumerId,
             correlationId: generateId(),
           })
-        ).rejects.toThrowError(purposeCannotBeDeleted(mockPurpose1.id));
+        ).rejects.toThrowError(purposeCannotBeDeleted(mockPurpose.id));
       });
       it("should throw purposeCannotBeDeleted if the purpose has a suspeneded version ", async () => {
         const mockEService = getMockEService();
@@ -1432,22 +1432,22 @@ describe("database test", async () => {
           state: purposeVersionState.suspended,
           suspendedAt: new Date(),
         };
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           eserviceId: mockEService.id,
           versions: [mockPurposeVersion],
         };
 
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         expect(
           purposeService.deletePurpose({
-            purposeId: mockPurpose1.id,
-            organizationId: mockPurpose1.consumerId,
+            purposeId: mockPurpose.id,
+            organizationId: mockPurpose.consumerId,
             correlationId: generateId(),
           })
-        ).rejects.toThrowError(purposeCannotBeDeleted(mockPurpose1.id));
+        ).rejects.toThrowError(purposeCannotBeDeleted(mockPurpose.id));
       });
       it("should throw purposeCannotBeDeleted if the purpose has an archived version ", async () => {
         const mockEService = getMockEService();
@@ -1455,22 +1455,22 @@ describe("database test", async () => {
           ...getMockPurposeVersion(),
           state: purposeVersionState.archived,
         };
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           eserviceId: mockEService.id,
           versions: [mockPurposeVersion],
         };
 
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         expect(
           purposeService.deletePurpose({
-            purposeId: mockPurpose1.id,
-            organizationId: mockPurpose1.consumerId,
+            purposeId: mockPurpose.id,
+            organizationId: mockPurpose.consumerId,
             correlationId: generateId(),
           })
-        ).rejects.toThrowError(purposeCannotBeDeleted(mockPurpose1.id));
+        ).rejects.toThrowError(purposeCannotBeDeleted(mockPurpose.id));
       });
     });
   });
