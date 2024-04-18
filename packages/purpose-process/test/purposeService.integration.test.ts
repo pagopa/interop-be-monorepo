@@ -1484,34 +1484,34 @@ describe("database test", async () => {
           ...getMockPurposeVersion(),
           state: purposeVersionState.active,
         };
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           versions: [mockPurposeVersion],
         };
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
 
         await purposeService.archivePurposeVersion({
-          purposeId: mockPurpose1.id,
+          purposeId: mockPurpose.id,
           versionId: mockPurposeVersion.id,
           organizationId: mockPurpose.consumerId,
           correlationId: generateId(),
         });
 
         const writtenEvent = await readLastEventByStreamId(
-          mockPurpose1.id,
+          mockPurpose.id,
           "purpose",
           postgresDB
         );
 
         expect(writtenEvent).toMatchObject({
-          stream_id: mockPurpose1.id,
+          stream_id: mockPurpose.id,
           version: "1",
           type: "PurposeArchived",
           event_version: 2,
         });
 
         const expectedPurpose: Purpose = {
-          ...mockPurpose1,
+          ...mockPurpose,
           versions: [
             {
               ...mockPurposeVersion,
@@ -1542,34 +1542,34 @@ describe("database test", async () => {
           ...getMockPurposeVersion(),
           state: purposeVersionState.waitingForApproval,
         };
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           versions: [mockPurposeVersion1, mockPurposeVersion2],
         };
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
 
         await purposeService.archivePurposeVersion({
-          purposeId: mockPurpose1.id,
+          purposeId: mockPurpose.id,
           versionId: mockPurposeVersion1.id,
           organizationId: mockPurpose.consumerId,
           correlationId: generateId(),
         });
 
         const writtenEvent = await readLastEventByStreamId(
-          mockPurpose1.id,
+          mockPurpose.id,
           "purpose",
           postgresDB
         );
 
         expect(writtenEvent).toMatchObject({
-          stream_id: mockPurpose1.id,
+          stream_id: mockPurpose.id,
           version: "1",
           type: "PurposeArchived",
           event_version: 2,
         });
 
         const expectedPurpose: Purpose = {
-          ...mockPurpose1,
+          ...mockPurpose,
           versions: [
             {
               ...mockPurposeVersion1,
@@ -1591,6 +1591,7 @@ describe("database test", async () => {
       it("should throw purposeNotFound if the purpose doesn't exist", async () => {
         const randomPurposeId: PurposeId = generateId();
         const randomVersionId: PurposeVersionId = generateId();
+        const mockPurpose = getMockPurpose();
         await addOnePurpose(mockPurpose, postgresDB, purposes);
 
         expect(
@@ -1609,16 +1610,16 @@ describe("database test", async () => {
           ...getMockPurposeVersion(),
           state: purposeVersionState.active,
         };
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           versions: [mockPurposeVersion],
         };
 
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
 
         expect(
           purposeService.archivePurposeVersion({
-            purposeId: mockPurpose1.id,
+            purposeId: mockPurpose.id,
             versionId: mockPurposeVersion.id,
             organizationId: randomOrganizationId,
             correlationId: generateId(),
@@ -1629,22 +1630,22 @@ describe("database test", async () => {
       });
       it("should throw purposeVersionNotFound if the purpose version doesn't exist", async () => {
         const randomVersionId: PurposeVersionId = generateId();
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           versions: [],
         };
 
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
 
         expect(
           purposeService.archivePurposeVersion({
-            purposeId: mockPurpose1.id,
+            purposeId: mockPurpose.id,
             versionId: randomVersionId,
             organizationId: mockPurpose.consumerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(
-          purposeVersionNotFound(mockPurpose1.id, randomVersionId)
+          purposeVersionNotFound(mockPurpose.id, randomVersionId)
         );
       });
       it("should throw notValidVersionState if the purpose version is in draft state", async () => {
@@ -1652,18 +1653,18 @@ describe("database test", async () => {
           ...getMockPurposeVersion(),
           state: purposeVersionState.draft,
         };
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           versions: [mockPurposeVersion],
         };
 
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
 
         expect(
           purposeService.archivePurposeVersion({
-            purposeId: mockPurpose1.id,
+            purposeId: mockPurpose.id,
             versionId: mockPurposeVersion.id,
-            organizationId: mockPurpose1.consumerId,
+            organizationId: mockPurpose.consumerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(
@@ -1675,18 +1676,18 @@ describe("database test", async () => {
           ...getMockPurposeVersion(),
           state: purposeVersionState.waitingForApproval,
         };
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           versions: [mockPurposeVersion],
         };
 
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
 
         expect(
           purposeService.archivePurposeVersion({
-            purposeId: mockPurpose1.id,
+            purposeId: mockPurpose.id,
             versionId: mockPurposeVersion.id,
-            organizationId: mockPurpose1.consumerId,
+            organizationId: mockPurpose.consumerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(
@@ -1698,18 +1699,18 @@ describe("database test", async () => {
           ...getMockPurposeVersion(),
           state: purposeVersionState.rejected,
         };
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           versions: [mockPurposeVersion],
         };
 
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
 
         expect(
           purposeService.archivePurposeVersion({
-            purposeId: mockPurpose1.id,
+            purposeId: mockPurpose.id,
             versionId: mockPurposeVersion.id,
-            organizationId: mockPurpose1.consumerId,
+            organizationId: mockPurpose.consumerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(
