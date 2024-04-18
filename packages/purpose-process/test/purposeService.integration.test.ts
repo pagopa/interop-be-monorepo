@@ -613,17 +613,17 @@ describe("Integration tests", async () => {
           ...getMockPurposeVersion(),
           state: purposeVersionState.waitingForApproval,
         };
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           eserviceId: mockEService.id,
           versions: [mockPurposeVersion],
         };
 
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         await purposeService.rejectPurposeVersion({
-          purposeId: mockPurpose1.id,
+          purposeId: mockPurpose.id,
           versionId: mockPurposeVersion.id,
           rejectionReason: "test",
           organizationId: mockEService.producerId,
@@ -631,13 +631,13 @@ describe("Integration tests", async () => {
         });
 
         const writtenEvent = await readLastEventByStreamId(
-          mockPurpose1.id,
+          mockPurpose.id,
           "purpose",
           postgresDB
         );
 
         expect(writtenEvent).toMatchObject({
-          stream_id: mockPurpose1.id,
+          stream_id: mockPurpose.id,
           version: "1",
           type: "PurposeVersionRejected",
           event_version: 2,
@@ -655,7 +655,7 @@ describe("Integration tests", async () => {
           updatedAt: new Date(),
         };
         const expectedPurpose: Purpose = {
-          ...mockPurpose1,
+          ...mockPurpose,
           versions: [expectedPurposeVersion],
           updatedAt: new Date(),
         };
@@ -668,13 +668,13 @@ describe("Integration tests", async () => {
         const mockEService = getMockEService();
         const mockPurposeVersion = getMockPurposeVersion();
         const randomId: PurposeId = generateId();
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           eserviceId: mockEService.id,
           versions: [mockPurposeVersion],
         };
 
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         expect(
@@ -690,20 +690,20 @@ describe("Integration tests", async () => {
       it("Should throw eserviceNotFound if the eservice doesn't exist", async () => {
         const mockEService = getMockEService();
         const mockPurposeVersion = getMockPurposeVersion();
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           eserviceId: mockEService.id,
           versions: [mockPurposeVersion],
         };
 
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
 
         expect(
           purposeService.rejectPurposeVersion({
-            purposeId: mockPurpose1.id,
+            purposeId: mockPurpose.id,
             versionId: mockPurposeVersion.id,
             rejectionReason: "test",
-            organizationId: mockPurpose1.consumerId,
+            organizationId: mockPurpose.consumerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(eserviceNotFound(mockEService.id));
@@ -711,21 +711,21 @@ describe("Integration tests", async () => {
       it("should throw organizationIsNotTheProducer if the requester is not the producer", async () => {
         const mockEService = getMockEService();
         const mockPurposeVersion = getMockPurposeVersion();
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           eserviceId: mockEService.id,
           versions: [mockPurposeVersion],
         };
 
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         expect(
           purposeService.rejectPurposeVersion({
-            purposeId: mockPurpose1.id,
+            purposeId: mockPurpose.id,
             versionId: mockPurposeVersion.id,
             rejectionReason: "test",
-            organizationId: mockPurpose1.consumerId,
+            organizationId: mockPurpose.consumerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(
@@ -736,25 +736,25 @@ describe("Integration tests", async () => {
         const mockEService = getMockEService();
         const mockPurposeVersion = getMockPurposeVersion();
         const randomVersionId: PurposeVersionId = generateId();
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           eserviceId: mockEService.id,
           versions: [mockPurposeVersion],
         };
 
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         expect(
           purposeService.rejectPurposeVersion({
-            purposeId: mockPurpose1.id,
+            purposeId: mockPurpose.id,
             versionId: randomVersionId,
             rejectionReason: "test",
             organizationId: mockEService.producerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(
-          purposeVersionNotFound(mockPurpose1.id, randomVersionId)
+          purposeVersionNotFound(mockPurpose.id, randomVersionId)
         );
       });
       it("should throw notValidVersionState if the purpose version is in draft state", async () => {
@@ -763,18 +763,18 @@ describe("Integration tests", async () => {
           ...getMockPurposeVersion(),
           state: purposeVersionState.draft,
         };
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           eserviceId: mockEService.id,
           versions: [mockPurposeVersion],
         };
 
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         expect(
           purposeService.rejectPurposeVersion({
-            purposeId: mockPurpose1.id,
+            purposeId: mockPurpose.id,
             versionId: mockPurposeVersion.id,
             rejectionReason: "test",
             organizationId: mockEService.producerId,
@@ -790,18 +790,18 @@ describe("Integration tests", async () => {
           ...getMockPurposeVersion(),
           state: purposeVersionState.active,
         };
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           eserviceId: mockEService.id,
           versions: [mockPurposeVersion],
         };
 
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         expect(
           purposeService.rejectPurposeVersion({
-            purposeId: mockPurpose1.id,
+            purposeId: mockPurpose.id,
             versionId: mockPurposeVersion.id,
             rejectionReason: "test",
             organizationId: mockEService.producerId,
@@ -817,18 +817,18 @@ describe("Integration tests", async () => {
           ...getMockPurposeVersion(),
           state: purposeVersionState.archived,
         };
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           eserviceId: mockEService.id,
           versions: [mockPurposeVersion],
         };
 
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         expect(
           purposeService.rejectPurposeVersion({
-            purposeId: mockPurpose1.id,
+            purposeId: mockPurpose.id,
             versionId: mockPurposeVersion.id,
             rejectionReason: "test",
             organizationId: mockEService.producerId,
@@ -844,18 +844,18 @@ describe("Integration tests", async () => {
           ...getMockPurposeVersion(),
           state: purposeVersionState.rejected,
         };
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           eserviceId: mockEService.id,
           versions: [mockPurposeVersion],
         };
 
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         expect(
           purposeService.rejectPurposeVersion({
-            purposeId: mockPurpose1.id,
+            purposeId: mockPurpose.id,
             versionId: mockPurposeVersion.id,
             rejectionReason: "test",
             organizationId: mockEService.producerId,
@@ -872,18 +872,18 @@ describe("Integration tests", async () => {
           state: purposeVersionState.suspended,
           suspendedAt: new Date(),
         };
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           eserviceId: mockEService.id,
           versions: [mockPurposeVersion],
         };
 
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         expect(
           purposeService.rejectPurposeVersion({
-            purposeId: mockPurpose1.id,
+            purposeId: mockPurpose.id,
             versionId: mockPurposeVersion.id,
             rejectionReason: "test",
             organizationId: mockEService.producerId,
