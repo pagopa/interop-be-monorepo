@@ -572,7 +572,9 @@ export function tenantServiceBuilder(
       organizationId: TenantId;
       correlationId: string;
     }): Promise<Tenant> {
-      logger.info(`Revoking attribute ${attributeId} to tenant ${tenantId}`);
+      logger.info(
+        `Revoke verified attribute ${attributeId} to tenant ${tenantId}`
+      );
 
       if (organizationId === tenantId) {
         throw verifiedAttributeSelfRevocation();
@@ -593,7 +595,7 @@ export function tenantServiceBuilder(
       ) as VerifiedTenantAttribute;
 
       if (!verifiedTenantAttribute) {
-        attributeNotFound(attributeId);
+        throw attributeNotFound(attributeId);
       }
 
       const verifier = verifiedTenantAttribute.verifiedBy.find(
@@ -608,7 +610,7 @@ export function tenantServiceBuilder(
         (a) => a.id === organizationId
       );
 
-      if (verifier && revoker) {
+      if (revoker) {
         throw attributeAlreadyRevoked(tenantId, organizationId, attributeId);
       }
 
