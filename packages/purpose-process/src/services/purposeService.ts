@@ -495,7 +495,9 @@ export function purposeServiceBuilder(
       filters: ApiGetPurposesFilters,
       { offset, limit }: { offset: number; limit: number }
     ): Promise<ListResult<Purpose>> {
-      logger.info("To DO");
+      logger.info(
+        `Getting Purposes with name = ${filters.name}, eservicesIds = ${filters.eservicesIds}, consumers = ${filters.consumersIds}, producers = ${filters.producersIds}, states = ${filters.states}, excludeDraft = ${filters.excludeDraft}, limit = ${limit}, offset = ${offset}`
+      );
 
       const purposesList = await readModelService.getPurposes(
         filters,
