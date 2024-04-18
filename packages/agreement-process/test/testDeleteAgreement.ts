@@ -117,6 +117,7 @@ export const testDeleteAgreement = (): ReturnType<typeof describe> =>
     });
 
     it("should throw an agreementNotFound error when the agreement does not exist", async () => {
+      await addOneAgreement(getMockAgreement(), postgresDB, agreements);
       const authData = getRandomAuthData();
       const agreementId = generateId<AgreementId>();
       await expect(
