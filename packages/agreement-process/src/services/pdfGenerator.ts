@@ -7,12 +7,11 @@
 
 import fs from "fs";
 import path from "path";
-
 import {
-  FileManager,
-  createApiClient as createSelfcareApiClient,
+  selfcareV2Client,
   UserResponse,
-} from "pagopa-interop-commons";
+} from "pagopa-interop-selfcare-v2-client";
+import { FileManager } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementAttribute,
@@ -43,7 +42,6 @@ import {
 } from "../model/domain/models.js";
 import { config } from "../utilities/config.js";
 import { AttributeQuery } from "./readmodel/attributeQuery.js";
-
 const getAttributeInvolved = async (
   consumer: Tenant,
   seed: UpdateAgreementSeed,
@@ -100,18 +98,13 @@ const getAttributeInvolved = async (
 
 const getSubmissionInfo = async (
   selfcareId: SelfcareId,
-  selfcareV2Client: ReturnType<typeof createSelfcareApiClient>,
   seed: UpdateAgreementSeed
 ): Promise<[string, Date]> => {
   const submission = seed.stamps.submission;
   if (!submission) {
     throw agreementStampNotFound("submission");
   }
-  const user: UserResponse = await retrieveUser(
-    selfcareId,
-    selfcareV2Client,
-    submission.who
-  );
+  const user: UserResponse = await retrieveUser(selfcareId, submission.who);
 
   if (user.name && user.surname && user.taxCode) {
     return [`${user.name} ${user.surname} (${user.taxCode})`, submission.when];
@@ -122,7 +115,6 @@ const getSubmissionInfo = async (
 
 const getActivationInfo = async (
   selfcareId: SelfcareId,
-  selfcareV2Client: ReturnType<typeof createSelfcareApiClient>,
   seed: UpdateAgreementSeed
 ): Promise<[string, Date]> => {
   const activation = seed.stamps.activation;
@@ -131,11 +123,7 @@ const getActivationInfo = async (
     throw agreementStampNotFound("activation");
   }
 
-  const user: UserResponse = await retrieveUser(
-    selfcareId,
-    selfcareV2Client,
-    activation.who
-  );
+  const user: UserResponse = await retrieveUser(selfcareId, activation.who);
 
   if (user.name && user.surname && user.taxCode) {
     return [`${user.name} ${user.surname} (${user.taxCode})`, activation.when];
@@ -153,14 +141,6 @@ const getPdfPayload = async (
   seed: UpdateAgreementSeed,
   attributeQuery: AttributeQuery
 ): Promise<PDFPayload> => {
-  const selfcareV2Client = createSelfcareApiClient(config.selfcare_baseUrl, {
-    axiosConfig: {
-      headers: {
-        "Ocp-Apim-Subscription-Key": config.selfcare_apiKey,
-      },
-    },
-  });
-
   const { certified, declared, verified } = await getAttributeInvolved(
     consumer,
     seed,
@@ -168,12 +148,10 @@ const getPdfPayload = async (
   );
   const [submitter, submissionTimestamp] = await getSubmissionInfo(
     selfcareId,
-    selfcareV2Client,
     seed
   );
   const [activator, activationTimestamp] = await getActivationInfo(
     selfcareId,
-    selfcareV2Client,
     seed
   );
 
@@ -261,7 +239,6 @@ export const pdfGenerator = {
 };
 async function retrieveUser(
   selfcareId: SelfcareId,
-  selfcareV2Client: ReturnType<typeof createSelfcareApiClient>,
   id: UserId
 ): Promise<UserResponse> {
   const user = await selfcareV2Client.getUserInfoUsingGET({
