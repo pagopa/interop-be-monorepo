@@ -1295,7 +1295,7 @@ describe("Integration tests", async () => {
 
         expect(writtenPayload.purpose).toEqual(toPurposeV2(mockPurpose));
       });
-      it("should write on event-store for the deletion of a purpose (waiting for approval version)", async () => {
+      it("should write on event-store for the deletion of a purpose (waitingForApproval version)", async () => {
         const mockEService = getMockEService();
         const mockPurposeVersion = {
           ...getMockPurposeVersion(),
@@ -1524,7 +1524,7 @@ describe("Integration tests", async () => {
 
         vi.useRealTimers();
       });
-      it("should write on event-store for the archiving of a purpose version, and delete waitingForApprovalVersions", async () => {
+      it("should write on event-store for the archiving of a purpose version, and delete waitingForApproval versions", async () => {
         vi.useFakeTimers();
         vi.setSystemTime(new Date());
 
