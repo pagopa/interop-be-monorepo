@@ -1774,7 +1774,7 @@ describe("Agreement service", () => {
 
     beforeEach(async () => {
       agreement1 = {
-        ...buildAgreement(),
+        ...getMockAgreement(),
         consumerDocuments: [
           generateMock(AgreementDocument),
           generateMock(AgreementDocument),
@@ -1782,7 +1782,7 @@ describe("Agreement service", () => {
       };
 
       await addOneAgreement(agreement1, postgresDB, agreements);
-      await addOneAgreement(buildAgreement(), postgresDB, agreements);
+      await addOneAgreement(getMockAgreement(), postgresDB, agreements);
     });
 
     it("should get an agreement consumer document when the requester is the consumer or producer", async () => {
@@ -1801,7 +1801,7 @@ describe("Agreement service", () => {
     it("should throw an agreementNotFound error when the agreement does not exist", async () => {
       const agreementId = generateId<AgreementId>();
       const authData = getRandomAuthData(agreement1.consumerId);
-      await addOneAgreement(buildAgreement(), postgresDB, agreements);
+      await addOneAgreement(getMockAgreement(), postgresDB, agreements);
       await expect(
         agreementService.getAgreementConsumerDocument(
           agreementId,
