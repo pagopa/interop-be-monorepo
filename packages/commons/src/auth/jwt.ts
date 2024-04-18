@@ -3,7 +3,6 @@ import jwksClient from "jwks-rsa";
 import { invalidClaim, jwtParsingError } from "pagopa-interop-models";
 import { JWTConfig, logger } from "../index.js";
 import { AuthData, AuthToken, getAuthDataFromToken } from "./authData.js";
-import { P, match } from "ts-pattern";
 
 export type JWTVerificationResult =
   | {
