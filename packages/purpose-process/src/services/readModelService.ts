@@ -161,7 +161,7 @@ export function readModelServiceBuilder(
                 $and: [
                   { "data.versions": { $size: 1 } },
                   {
-                    "data.descriptors.state": {
+                    "data.versions.state": {
                       $eq: purposeVersionState.draft,
                     },
                   },
