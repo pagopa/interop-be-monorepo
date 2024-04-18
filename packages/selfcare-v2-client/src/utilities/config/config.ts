@@ -10,6 +10,4 @@ const SelfCareConfig = z
     selfcare_apiKey: c.SELFCARE_V2_API_KEY,
   }));
 
-// type SelfCareConfig = z.infer<typeof SelfCareConfig>;
-
 export const config = SelfCareConfig.parse(process.env);
