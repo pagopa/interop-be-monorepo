@@ -1,9 +1,12 @@
 import {
   Agreement,
+  AgreementDocument,
+  AgreementDocumentId,
   AgreementEvent,
   AgreementId,
   EService,
   Tenant,
+  generateId,
   toReadModelEService,
 } from "pagopa-interop-models";
 import { IDatabase } from "pg-promise";
@@ -20,6 +23,7 @@ import {
   TenantCollection,
 } from "pagopa-interop-commons";
 import { toAgreementV1 } from "../src/model/domain/toEvent.js";
+import { config } from "../src/utilities/config.js";
 
 export const writeAgreementInEventstore = async (
   agreement: Agreement,
@@ -68,3 +72,18 @@ export const readLastAgreementEvent = async (
   postgresDB: IDatabase<unknown>
 ): Promise<ReadEvent<AgreementEvent>> =>
   await readLastEventByStreamId(agreementId, "agreement", postgresDB);
+
+export function getMockConsumerDocument(
+  agreementId: AgreementId,
+  name: string = "mockDocument"
+): AgreementDocument {
+  const id = generateId<AgreementDocumentId>();
+  return {
+    id,
+    name,
+    path: `${config.consumerDocumentsPath}/${agreementId}/${id}/${name}`,
+    prettyName: "pretty name",
+    contentType: "application/pdf",
+    createdAt: new Date(),
+  };
+}
