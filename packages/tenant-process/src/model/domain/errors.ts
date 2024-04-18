@@ -26,7 +26,6 @@ const errorCodes = {
   certifierNotFound: "0016",
   attributeVerificationNotAllowed: "0017",
   verifiedAttributeSelfVerification: "0018",
-  certifiedAttributeAlreadyRevoked: "0019",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -213,16 +212,5 @@ export function certifiedAttributeAlreadyAssigned(
     detail: `Certified Attribute ${attributeId} already assigned to tenant ${organizationId}`,
     code: "certifiedAttributeAlreadyAssigned",
     title: "certified Attribute Already Assigned",
-  });
-}
-
-export function certifiedAttributeAlreadyRevoked(
-  attributeId: AttributeId,
-  organizationId: TenantId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Certified Attribute ${attributeId} already revoked to tenant ${organizationId}`,
-    code: "certifiedAttributeAlreadyRevoked",
-    title: "certified Attribute Already revoked",
   });
 }

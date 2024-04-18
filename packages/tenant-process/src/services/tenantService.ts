@@ -29,7 +29,6 @@ import {
 import {
   attributeNotFound,
   certifiedAttributeAlreadyAssigned,
-  certifiedAttributeAlreadyRevoked,
   certifiedAttributeOriginIsNotCompliantWithCertifier,
   tenantIsNotACertifier,
   verifiedAttributeSelfVerification,
@@ -665,7 +664,10 @@ export function tenantServiceBuilder(
         value: tenantExternalId,
       });
 
-      assertTenantExists(unsafeBrandId(tenantOrigin), tenantToModify);
+      assertTenantExists(
+        unsafeBrandId(`${tenantOrigin}/${tenantExternalId}`),
+        tenantToModify
+      );
 
       const attributeToRevoke =
         await readModelService.getAttributeByOriginAndCode({
@@ -673,9 +675,8 @@ export function tenantServiceBuilder(
           code: attributeExternalId,
         });
 
-      // non c'è nella rotta ma secondo me serve
       if (!attributeToRevoke) {
-        throw attributeNotFound(attributeOrigin);
+        throw attributeNotFound(`${attributeOrigin}/${attributeExternalId}`);
       }
 
       const maybeAttribute = tenantToModify.data.attributes.find(
@@ -685,7 +686,7 @@ export function tenantServiceBuilder(
       ) as CertifiedTenantAttribute;
 
       if (!maybeAttribute) {
-        throw attributeNotFound(attributeOrigin);
+        throw attributeNotFound(attributeToRevoke.id);
       }
 
       // eslint-disable-next-line functional/no-let
@@ -694,13 +695,6 @@ export function tenantServiceBuilder(
         updatedAt: new Date(),
       };
 
-      if (maybeAttribute.revocationTimestamp) {
-        throw certifiedAttributeAlreadyRevoked(
-          attributeToRevoke.id,
-          tenantToModify.data.id
-        );
-      }
-      // re-assigning attribute if it was revoked
       updatedTenant = updateAttribute(
         {
           updatedTenant,

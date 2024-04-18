@@ -915,7 +915,11 @@ describe("Integration tests", () => {
             correlationId
           )
         ).rejects.toThrowError(
-          tenantNotFound(unsafeBrandId(requesterTenant.externalId.origin))
+          tenantNotFound(
+            unsafeBrandId(
+              `${requesterTenant.externalId.origin}/${requesterTenant.externalId.value}`
+            )
+          )
         );
       });
       it("Should throw attribute not found", async () => {
@@ -930,35 +934,8 @@ describe("Integration tests", () => {
             correlationId
           )
         ).rejects.toThrowError(
-          attributeNotFound(unsafeBrandId(attribute.origin!))
-        );
-      });
-      it("Should throw certifiedAttributeAlreadyRevoked", async () => {
-        const tenantAlreadyRevoked: Tenant = {
-          ...requesterTenant,
-          attributes: [
-            {
-              id: attribute.id,
-              type: "PersistentCertifiedAttribute",
-              assignmentTimestamp: new Date(),
-              revocationTimestamp: new Date(),
-            },
-          ],
-        };
-        await addOneAttribute(attribute, attributes);
-        await addOneTenant(tenantAlreadyRevoked, postgresDB, tenants);
-        expect(
-          tenantService.internalRevokeCertifiedAttribute(
-            tenantAlreadyRevoked.externalId.origin,
-            tenantAlreadyRevoked.externalId.value,
-            attribute.origin!,
-            attribute.code!,
-            correlationId
-          )
-        ).rejects.toThrowError(
-          certifiedAttributeAlreadyRevoked(
-            unsafeBrandId(attribute.id),
-            unsafeBrandId(tenantAlreadyRevoked.id)
+          attributeNotFound(
+            unsafeBrandId(`${attribute.origin}/${attribute.code}`)
           )
         );
       });
