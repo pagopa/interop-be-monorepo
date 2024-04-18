@@ -916,7 +916,7 @@ describe("Integration tests", async () => {
       });
     });
 
-    describe("updatePurpose and reverseUpdatePurpose", () => {
+    describe("updatePurpose and updateReversePurpose", () => {
       const tenantType = randomArrayItem(Object.values(tenantKind));
       const tenant: Tenant = {
         ...getMockTenant(),
@@ -946,6 +946,8 @@ describe("Integration tests", async () => {
           id: generateId(),
         },
       };
+
+      purposeForReceive.riskAnalysisForm;
 
       const purposeForDeliver: Purpose = {
         ...getMockPurpose(),
@@ -1125,7 +1127,7 @@ describe("Integration tests", async () => {
           })
         ).rejects.toThrowError(eserviceNotFound(eserviceId));
       });
-      it("should throw eServiceModeNotAllowed if the eService mode is incorrect", async () => {
+      it("should throw eServiceModeNotAllowed if the eService mode is incorrect when expecting DELIVER", async () => {
         await addOnePurpose(purposeForReceive, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(eServiceReceive), eservices);
         await writeInReadmodel(tenant, tenants);
@@ -1140,9 +1142,11 @@ describe("Integration tests", async () => {
         ).rejects.toThrowError(
           eServiceModeNotAllowed(eServiceReceive.id, "Deliver")
         );
-
+      });
+      it("should throw eServiceModeNotAllowed if the eService mode is incorrect when expecting RECEIVE", async () => {
         await addOnePurpose(purposeForDeliver, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
+        await writeInReadmodel(tenant, tenants);
 
         expect(
           purposeService.updateReversePurpose({
@@ -1216,7 +1220,7 @@ describe("Integration tests", async () => {
           })
         ).rejects.toThrowError(tenantKindNotFound(mockTenant.id));
       });
-      it("Should throw riskAnalysisValidationFailed if the risk analysis is not valid", async () => {
+      it("Should throw riskAnalysisValidationFailed if the risk analysis is not valid in updatePurpose", async () => {
         await addOnePurpose(purposeForDeliver, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
         await writeInReadmodel(tenant, tenants);
@@ -1238,6 +1242,34 @@ describe("Integration tests", async () => {
           purposeService.updatePurpose({
             purposeId: purposeForDeliver.id,
             purposeUpdateContent: mockPurposeUpdateContent,
+            organizationId: tenant.id,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(
+          riskAnalysisValidationFailed([unexpectedRulesVersionError("0")])
+        );
+      });
+      it("Should throw riskAnalysisValidationFailed if the risk analysis is not valid in updateReversePurpose", async () => {
+        const purposeWithInvalidRiskAnalysis: Purpose = {
+          ...purposeForReceive,
+          riskAnalysisForm: {
+            ...purposeForReceive.riskAnalysisForm!,
+            version: "0",
+          },
+        };
+
+        await addOnePurpose(
+          purposeWithInvalidRiskAnalysis,
+          postgresDB,
+          purposes
+        );
+        await writeInReadmodel(toReadModelEService(eServiceReceive), eservices);
+        await writeInReadmodel(tenant, tenants);
+
+        expect(
+          purposeService.updateReversePurpose({
+            purposeId: purposeWithInvalidRiskAnalysis.id,
+            reversePurposeUpdateContent,
             organizationId: tenant.id,
             correlationId: generateId(),
           })
