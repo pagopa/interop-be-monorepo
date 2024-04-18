@@ -129,6 +129,7 @@ describe("database test", async () => {
 
   afterEach(async () => {
     await purposes.deleteMany({});
+    await eservices.deleteMany({});
 
     await postgresDB.none("TRUNCATE TABLE purpose.events RESTART IDENTITY");
   });
@@ -1308,6 +1309,19 @@ describe("database test", async () => {
         await addOnePurpose(mockPurpose5, postgresDB, purposes);
         await addOnePurpose(mockPurpose6, postgresDB, purposes);
         await addOnePurpose(mockPurpose7, postgresDB, purposes);
+
+        await writeInReadmodel(
+          toReadModelEService(mockEService1ByTenant1),
+          eservices
+        );
+        await writeInReadmodel(
+          toReadModelEService(mockEService2ByTenant1),
+          eservices
+        );
+        await writeInReadmodel(
+          toReadModelEService(mockEService3ByTenant2),
+          eservices
+        );
       });
 
       it("should get the purposes if they exist (parameters: name)", async () => {
@@ -1354,7 +1368,7 @@ describe("database test", async () => {
         expect(result.totalCount).toBe(2);
         expect(result.results).toEqual([mockPurpose5, mockPurpose6]);
       });
-      it.skip("should get the purposes if they exist (parameters: producersIds)", async () => {
+      it("should get the purposes if they exist (parameters: producersIds)", async () => {
         const result = await purposeService.getPurposes(
           {
             eservicesIds: [],
