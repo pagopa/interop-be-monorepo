@@ -43,6 +43,8 @@ export async function writeInEventstore<T extends EventStoreSchema>(
     ? StoredEvent<EServiceEvent>
     : T extends "tenant"
     ? StoredEvent<TenantEvent>
+    : T extends "purpose"
+    ? never // Purpose events not implemented yet
     : never,
   schema: T,
   postgresDB: IDatabase<unknown>
@@ -85,7 +87,7 @@ export async function readLastEventByStreamId<T extends EventStoreSchema>(
     : T extends "tenant"
     ? TenantId
     : T extends "purpose"
-    ? PurposeId
+    ? never // Purpose events not implemented yet
     : never,
   schema: T,
   postgresDB: IDatabase<unknown>
@@ -99,6 +101,8 @@ export async function readLastEventByStreamId<T extends EventStoreSchema>(
       ? EServiceEvent
       : T extends "tenant"
       ? TenantEvent
+      : T extends "purpose"
+      ? never // Purpose events not implemented yet
       : never
   >
 > {
