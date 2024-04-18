@@ -100,6 +100,7 @@ import {
   readLastAgreementEvent,
 } from "./utils.js";
 import { testDeleteAgreement } from "./testDeleteAgreement.js";
+import { testAgreementConsumerDocuments } from "./testAgreementConsumerDocuments.js";
 
 export let agreements: AgreementCollection;
 export let eservices: EServiceCollection;
@@ -1764,7 +1765,7 @@ describe("Agreement service", () => {
       });
     });
   });
-
-  testUpdateAgreement();
+  testAgreementConsumerDocuments();
   testDeleteAgreement();
+  testUpdateAgreement();
 });
