@@ -215,7 +215,7 @@ export const toCatalogItemEventNotification = (
         );
 
         return {
-          eserviceId: eserviceV1.id,
+          eServiceId: eserviceV1.id,
           descriptorId: descriptorV1.id,
           documentId: documentV1.id,
           updatedDocument: documentV1,
