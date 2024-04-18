@@ -281,9 +281,9 @@ describe("Integration tests", () => {
       );
 
       const updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed =
-      {
-        expirationDate: expirationDate.toISOString(),
-      };
+        {
+          expirationDate: expirationDate.toISOString(),
+        };
 
       const tenant: Tenant = {
         ...mockTenant,
@@ -359,9 +359,9 @@ describe("Integration tests", () => {
         );
 
         const updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed =
-        {
-          expirationDate: expirationDateinPast.toISOString(),
-        };
+          {
+            expirationDate: expirationDateinPast.toISOString(),
+          };
 
         await addOneTenant(tenant, postgresDB, tenants);
         expect(
@@ -433,9 +433,9 @@ describe("Integration tests", () => {
       );
 
       const updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed =
-      {
-        expirationDate: expirationDate.toISOString(),
-      };
+        {
+          expirationDate: expirationDate.toISOString(),
+        };
 
       const tenant: Tenant = {
         ...mockTenant,
@@ -511,9 +511,9 @@ describe("Integration tests", () => {
         );
 
         const updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed =
-        {
-          expirationDate: expirationDateinPast.toISOString(),
-        };
+          {
+            expirationDate: expirationDateinPast.toISOString(),
+          };
 
         await addOneTenant(tenant, postgresDB, tenants);
         expect(
@@ -606,8 +606,8 @@ describe("Integration tests", () => {
       it("Should update the extensionDate", async () => {
         const extensionDate = new Date(
           currentDate.getTime() +
-          (expirationDate.getTime() -
-            mockVerifiedBy.verificationDate.getTime())
+            (expirationDate.getTime() -
+              mockVerifiedBy.verificationDate.getTime())
         );
 
         await addOneTenant(tenant, postgresDB, tenants);
