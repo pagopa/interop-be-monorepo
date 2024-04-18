@@ -443,6 +443,7 @@ export function purposeServiceBuilder(
         ...purposeVersion,
         state: purposeVersionState.suspended,
         suspendedAt: new Date(),
+        updatedAt: new Date(),
       };
 
       const event = match(suspender)

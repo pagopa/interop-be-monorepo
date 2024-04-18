@@ -1512,6 +1512,7 @@ describe("Integration tests", async () => {
               updatedAt: new Date(),
             },
           ],
+          updatedAt: new Date(),
         };
 
         const writtenPayload = decodeProtobufPayload({
@@ -1570,6 +1571,7 @@ describe("Integration tests", async () => {
               updatedAt: new Date(),
             },
           ],
+          updatedAt: new Date(),
         };
 
         const writtenPayload = decodeProtobufPayload({
@@ -1722,43 +1724,45 @@ describe("Integration tests", async () => {
           ...getMockPurposeVersion(),
           state: purposeVersionState.active,
         };
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           eserviceId: mockEService.id,
           versions: [mockPurposeVersion1],
         };
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         await purposeService.suspendPurposeVersion({
-          purposeId: mockPurpose1.id,
+          purposeId: mockPurpose.id,
           versionId: mockPurposeVersion1.id,
           organizationId: mockPurpose.consumerId,
           correlationId: generateId(),
         });
 
         const writtenEvent = await readLastEventByStreamId(
-          mockPurpose1.id,
+          mockPurpose.id,
           "purpose",
           postgresDB
         );
 
         expect(writtenEvent).toMatchObject({
-          stream_id: mockPurpose1.id,
+          stream_id: mockPurpose.id,
           version: "1",
           type: "PurposeVersionSuspendedByConsumer",
           event_version: 2,
         });
 
         const expectedPurpose: Purpose = {
-          ...mockPurpose1,
+          ...mockPurpose,
           versions: [
             {
               ...mockPurposeVersion1,
               state: purposeVersionState.suspended,
               suspendedAt: new Date(),
+              updatedAt: new Date(),
             },
           ],
+          updatedAt: new Date(),
           suspendedByConsumer: true,
         };
 
@@ -1780,44 +1784,46 @@ describe("Integration tests", async () => {
           ...getMockPurposeVersion(),
           state: purposeVersionState.active,
         };
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           eserviceId: mockEService.id,
           versions: [mockPurposeVersion1],
         };
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         await purposeService.suspendPurposeVersion({
-          purposeId: mockPurpose1.id,
+          purposeId: mockPurpose.id,
           versionId: mockPurposeVersion1.id,
           organizationId: mockEService.producerId,
           correlationId: generateId(),
         });
 
         const writtenEvent = await readLastEventByStreamId(
-          mockPurpose1.id,
+          mockPurpose.id,
           "purpose",
           postgresDB
         );
 
         expect(writtenEvent).toMatchObject({
-          stream_id: mockPurpose1.id,
+          stream_id: mockPurpose.id,
           version: "1",
           type: "PurposeVersionSuspendedByProducer",
           event_version: 2,
         });
 
         const expectedPurpose: Purpose = {
-          ...mockPurpose1,
+          ...mockPurpose,
           versions: [
             {
               ...mockPurposeVersion1,
               state: purposeVersionState.suspended,
               suspendedAt: new Date(),
+              updatedAt: new Date(),
             },
           ],
           suspendedByProducer: true,
+          updatedAt: new Date(),
         };
 
         const writtenPayload = decodeProtobufPayload({
@@ -1832,6 +1838,7 @@ describe("Integration tests", async () => {
       it("should throw purposeNotFound if the purpose doesn't exist", async () => {
         const randomPurposeId: PurposeId = generateId();
         const randomVersionId: PurposeVersionId = generateId();
+        const mockPurpose = getMockPurpose();
         await addOnePurpose(mockPurpose, postgresDB, purposes);
 
         expect(
@@ -1847,24 +1854,24 @@ describe("Integration tests", async () => {
         const mockEService = getMockEService();
         const randomVersionId: PurposeVersionId = generateId();
 
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           eserviceId: mockEService.id,
           versions: [],
         };
 
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         expect(
           purposeService.suspendPurposeVersion({
-            purposeId: mockPurpose1.id,
+            purposeId: mockPurpose.id,
             versionId: randomVersionId,
-            organizationId: mockPurpose1.consumerId,
+            organizationId: mockPurpose.consumerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(
-          purposeVersionNotFound(mockPurpose1.id, randomVersionId)
+          purposeVersionNotFound(mockPurpose.id, randomVersionId)
         );
       });
       it("should throw organizationNotAllowed if the requester is not the producer nor the consumer", async () => {
@@ -1874,18 +1881,18 @@ describe("Integration tests", async () => {
           ...getMockPurposeVersion(),
           state: purposeVersionState.active,
         };
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           eserviceId: mockEService.id,
           versions: [mockPurposeVersion],
         };
 
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         expect(
           purposeService.suspendPurposeVersion({
-            purposeId: mockPurpose1.id,
+            purposeId: mockPurpose.id,
             versionId: mockPurposeVersion.id,
             organizationId: randomId,
             correlationId: generateId(),
@@ -1898,20 +1905,20 @@ describe("Integration tests", async () => {
           ...getMockPurposeVersion(),
           state: purposeVersionState.draft,
         };
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           eserviceId: mockEService.id,
           versions: [mockPurposeVersion],
         };
 
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         expect(
           purposeService.suspendPurposeVersion({
-            purposeId: mockPurpose1.id,
+            purposeId: mockPurpose.id,
             versionId: mockPurposeVersion.id,
-            organizationId: mockPurpose1.consumerId,
+            organizationId: mockPurpose.consumerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(
@@ -1924,20 +1931,20 @@ describe("Integration tests", async () => {
           ...getMockPurposeVersion(),
           state: purposeVersionState.waitingForApproval,
         };
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           eserviceId: mockEService.id,
           versions: [mockPurposeVersion],
         };
 
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         expect(
           purposeService.archivePurposeVersion({
-            purposeId: mockPurpose1.id,
+            purposeId: mockPurpose.id,
             versionId: mockPurposeVersion.id,
-            organizationId: mockPurpose1.consumerId,
+            organizationId: mockPurpose.consumerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(
@@ -1950,20 +1957,20 @@ describe("Integration tests", async () => {
           ...getMockPurposeVersion(),
           state: purposeVersionState.rejected,
         };
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           eserviceId: mockEService.id,
           versions: [mockPurposeVersion],
         };
 
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         expect(
           purposeService.suspendPurposeVersion({
-            purposeId: mockPurpose1.id,
+            purposeId: mockPurpose.id,
             versionId: mockPurposeVersion.id,
-            organizationId: mockPurpose1.consumerId,
+            organizationId: mockPurpose.consumerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(
@@ -1976,20 +1983,20 @@ describe("Integration tests", async () => {
           ...getMockPurposeVersion(),
           state: purposeVersionState.archived,
         };
-        const mockPurpose1: Purpose = {
-          ...mockPurpose,
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
           eserviceId: mockEService.id,
           versions: [mockPurposeVersion],
         };
 
-        await addOnePurpose(mockPurpose1, postgresDB, purposes);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
         await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
         expect(
           purposeService.suspendPurposeVersion({
-            purposeId: mockPurpose1.id,
+            purposeId: mockPurpose.id,
             versionId: mockPurposeVersion.id,
-            organizationId: mockPurpose1.consumerId,
+            organizationId: mockPurpose.consumerId,
             correlationId: generateId(),
           })
         ).rejects.toThrowError(
