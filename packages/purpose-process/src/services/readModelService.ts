@@ -41,11 +41,11 @@ async function getPurpose(
       .safeParse(data);
     if (!result.success) {
       logger.error(
-        `Unable to parse eService item: result ${JSON.stringify(
+        `Unable to parse purpose item: result ${JSON.stringify(
           result
         )} - data ${JSON.stringify(data)} `
       );
-      throw genericError("Unable to parse eService item");
+      throw genericError("Unable to parse purpose item");
     }
     return result.data;
   }
@@ -87,11 +87,11 @@ async function getTenant(
     const result = Tenant.safeParse(data.data);
     if (!result.success) {
       logger.error(
-        `Unable to parse eService item: result ${JSON.stringify(
+        `Unable to parse tenant item: result ${JSON.stringify(
           result
         )} - data ${JSON.stringify(data)} `
       );
-      throw genericError("Unable to parse eService item");
+      throw genericError("Unable to parse tenant item");
     }
     return result.data;
   }

@@ -153,7 +153,7 @@ const purposeRouter = (
           const { purpose, isRiskAnalysisValid } =
             await purposeService.getPurposeById(
               unsafeBrandId(req.params.id),
-              req.ctx.authData
+              req.ctx.authData.organizationId
             );
           return res
             .status(200)
@@ -219,7 +219,7 @@ const purposeRouter = (
           await purposeService.deletePurposeVersion({
             purposeId: unsafeBrandId(req.params.purposeId),
             versionId: unsafeBrandId(req.params.versionId),
-            authData: req.ctx.authData,
+            organizationId: req.ctx.authData.organizationId,
             correlationId: req.ctx.correlationId,
           });
           return res.status(204).end();
@@ -241,7 +241,7 @@ const purposeRouter = (
             purposeId: unsafeBrandId(req.params.purposeId),
             versionId: unsafeBrandId(req.params.versionId),
             documentId: unsafeBrandId(req.params.documentId),
-            authData: req.ctx.authData,
+            organizationId: req.ctx.authData.organizationId,
           });
           return res
             .status(200)
@@ -264,7 +264,7 @@ const purposeRouter = (
           await purposeService.rejectPurposeVersion({
             purposeId: unsafeBrandId(req.params.purposeId),
             versionId: unsafeBrandId(req.params.versionId),
-            authData: req.ctx.authData,
+            organizationId: req.ctx.authData.organizationId,
             rejectionReason: req.body.rejectionReason,
             correlationId: req.ctx.correlationId,
           });
@@ -293,13 +293,16 @@ const purposeRouter = (
       authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
         try {
-          await purposeService.suspendPurposeVersion({
+          const suspendedVersion = await purposeService.suspendPurposeVersion({
             purposeId: unsafeBrandId(req.params.purposeId),
             versionId: unsafeBrandId(req.params.versionId),
             organizationId: req.ctx.authData.organizationId,
             correlationId: req.ctx.correlationId,
           });
-          return res.status(204).end();
+          return res
+            .status(200)
+            .json(purposeVersionToApiPurposeVersion(suspendedVersion))
+            .end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
