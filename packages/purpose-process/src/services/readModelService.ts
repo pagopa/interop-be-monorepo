@@ -181,24 +181,24 @@ export function readModelServiceBuilder(
             ...draftFilter,
           } satisfies ReadModelFilter<Purpose>,
         },
-        producersIds.length > 0
-          ? [
-              {
-                $lookup: {
-                  from: "eservices",
-                  localField: "data.eserviceId",
-                  foreignField: "data.id",
-                  as: "eservices",
-                },
-              },
-              { $unwind: "$eservices" },
-              {
-                $match: {
-                  "data.producerId": { $in: producersIds },
-                },
-              },
-            ]
-          : [],
+        // producersIds.length > 0
+        //   ? [
+        //       {
+        //         $lookup: {
+        //           from: "eservices",
+        //           localField: "data.eserviceId",
+        //           foreignField: "data.id",
+        //           as: "eservices",
+        //         },
+        //       },
+        //       { $unwind: "$eservices" },
+        //       {
+        //         $match: {
+        //           "data.producerId": { $in: producersIds },
+        //         },
+        //       },
+        //     ]
+        //   : [],
         {
           $project: {
             data: 1,
