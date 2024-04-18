@@ -1,5 +1,6 @@
 /* eslint-disable max-classes-per-file */
 import { P, match } from "ts-pattern";
+import { ZodError } from "zod";
 
 export class ApiError<T> extends Error {
   /* TODO consider refactoring how the code property is used:
@@ -117,7 +118,7 @@ const errorCodes = {
   authenticationSaslFailed: "9000",
   jwtParsingError: "9001",
   operationForbidden: "9989",
-  missingClaim: "9990",
+  invalidClaim: "9990",
   genericError: "9991",
   thirdPartyCallError: "9992",
   unauthorizedError: "9993",
@@ -132,6 +133,12 @@ const errorCodes = {
 export type CommonErrorCodes = keyof typeof errorCodes;
 
 export function parseErrorMessage(error: unknown): string {
+  if (error instanceof ZodError) {
+    return error.issues
+      .map((issue) => `"${issue.path}" : ${issue.message}`)
+      .join(" ; ");
+  }
+
   if (error instanceof Error) {
     return error.message;
   }
@@ -237,11 +244,11 @@ export function badRequestError(
   });
 }
 
-export function missingClaim(error: unknown): ApiError<CommonErrorCodes> {
+export function invalidClaim(error: unknown): ApiError<CommonErrorCodes> {
   return new ApiError({
-    detail: `Claim has not been passed ${parseErrorMessage(error)}`,
-    code: "missingClaim",
-    title: "Claim has not been passed",
+    detail: `Claim not valid or missing ${parseErrorMessage(error)}`,
+    code: "invalidClaim",
+    title: "Claim not valid or missing",
   });
 }
 
