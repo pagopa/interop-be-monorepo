@@ -947,8 +947,6 @@ describe("Integration tests", async () => {
         },
       };
 
-      purposeForReceive.riskAnalysisForm;
-
       const purposeForDeliver: Purpose = {
         ...getMockPurpose(),
         eserviceId: eServiceDeliver.id,
