@@ -1510,6 +1510,7 @@ describe("Integration tests", async () => {
               updatedAt: new Date(),
             },
           ],
+          updatedAt: new Date(),
         };
 
         const writtenPayload = decodeProtobufPayload({
@@ -1568,6 +1569,7 @@ describe("Integration tests", async () => {
               updatedAt: new Date(),
             },
           ],
+          updatedAt: new Date(),
         };
 
         const writtenPayload = decodeProtobufPayload({
