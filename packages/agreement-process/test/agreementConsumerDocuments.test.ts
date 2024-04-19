@@ -19,8 +19,7 @@ import {
   operationNotAllowed,
   agreementDocumentNotFound,
 } from "../src/model/domain/errors.js";
-import { addOneAgreement } from "./utils.js";
-import { agreementService, agreements, postgresDB } from "./vitestSetup.js";
+import { addOneAgreement, agreementService } from "./vitestSetup.js";
 
 describe("get agreement consumer document", () => {
   let agreement1: Agreement;
@@ -34,8 +33,8 @@ describe("get agreement consumer document", () => {
       ],
     };
 
-    await addOneAgreement(agreement1, postgresDB, agreements);
-    await addOneAgreement(getMockAgreement(), postgresDB, agreements);
+    await addOneAgreement(agreement1);
+    await addOneAgreement(getMockAgreement());
   });
 
   it("should get an agreement consumer document when the requester is the consumer or producer", async () => {
@@ -54,7 +53,7 @@ describe("get agreement consumer document", () => {
   it("should throw an agreementNotFound error when the agreement does not exist", async () => {
     const agreementId = generateId<AgreementId>();
     const authData = getRandomAuthData(agreement1.consumerId);
-    await addOneAgreement(getMockAgreement(), postgresDB, agreements);
+    await addOneAgreement(getMockAgreement());
     await expect(
       agreementService.getAgreementConsumerDocument(
         agreementId,

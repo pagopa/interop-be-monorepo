@@ -20,8 +20,11 @@ import {
   operationNotAllowed,
 } from "../src/model/domain/errors.js";
 import { agreementUpdatableStates } from "../src/model/domain/validators.js";
-import { addOneAgreement, readLastAgreementEvent } from "./utils.js";
-import { agreementService, agreements, postgresDB } from "./vitestSetup.js";
+import {
+  agreementService,
+  addOneAgreement,
+  readLastAgreementEvent,
+} from "./vitestSetup.js";
 
 describe("update agreement", () => {
   it("should succeed when requester is Consumer and the Agreement is in an updatable state", async () => {
@@ -29,7 +32,7 @@ describe("update agreement", () => {
       ...getMockAgreement(),
       state: randomArrayItem(agreementUpdatableStates),
     };
-    await addOneAgreement(agreement, postgresDB, agreements);
+    await addOneAgreement(agreement);
     const authData = getRandomAuthData(agreement.consumerId);
     await agreementService.updateAgreement(
       agreement.id,
@@ -38,10 +41,7 @@ describe("update agreement", () => {
       uuidv4()
     );
 
-    const agreementEvent = await readLastAgreementEvent(
-      agreement.id,
-      postgresDB
-    );
+    const agreementEvent = await readLastAgreementEvent(agreement.id);
 
     expect(agreementEvent).toMatchObject({
       type: "AgreementUpdated",
@@ -62,7 +62,7 @@ describe("update agreement", () => {
   });
 
   it("should throw an agreementNotFound error when the agreement does not exist", async () => {
-    await addOneAgreement(getMockAgreement(), postgresDB, agreements);
+    await addOneAgreement(getMockAgreement());
     const authData = getRandomAuthData();
     const agreementId = generateId<AgreementId>();
     await expect(
@@ -78,7 +78,7 @@ describe("update agreement", () => {
   it("should throw operationNotAllowed when the requester is not the Consumer", async () => {
     const authData = getRandomAuthData();
     const agreement = getMockAgreement();
-    await addOneAgreement(agreement, postgresDB, agreements);
+    await addOneAgreement(agreement);
     await expect(
       agreementService.updateAgreement(
         agreement.id,
@@ -98,7 +98,7 @@ describe("update agreement", () => {
         )
       ),
     };
-    await addOneAgreement(agreement, postgresDB, agreements);
+    await addOneAgreement(agreement);
     const authData = getRandomAuthData(agreement.consumerId);
     await expect(
       agreementService.updateAgreement(

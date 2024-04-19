@@ -54,17 +54,11 @@ import {
   CompactOrganization,
 } from "../src/model/domain/models.js";
 import {
+  readLastAgreementEvent,
   addOneAgreement,
   addOneEService,
   addOneTenant,
-  readLastAgreementEvent,
-} from "./utils.js";
-import {
   agreementService,
-  agreements,
-  eservices,
-  postgresDB,
-  tenants,
 } from "./vitestSetup.js";
 
 /**
@@ -90,7 +84,7 @@ const expectedAgreementCreation = async (
     fail("Unhandled error: returned agreementId is undefined");
   }
 
-  const writtenEvent = await readLastAgreementEvent(agreementId, postgresDB);
+  const writtenEvent = await readLastAgreementEvent(agreementId);
 
   if (!writtenEvent) {
     fail("Creation fails: agreement not found in event-store");
@@ -149,8 +143,8 @@ describe("Agreement service", () => {
       ]);
       const tenant = getMockTenant(authData.organizationId);
 
-      await addOneEService(eservice, eservices);
-      await addOneTenant(tenant, tenants);
+      await addOneEService(eservice);
+      await addOneTenant(tenant);
 
       const agreementData: ApiAgreementPayload = {
         eserviceId,
@@ -207,9 +201,9 @@ describe("Agreement service", () => {
         [descriptor]
       );
 
-      await addOneTenant(eserviceProducer, tenants);
-      await addOneTenant(consumer, tenants);
-      await addOneEService(eservice, eservices);
+      await addOneTenant(eserviceProducer);
+      await addOneTenant(consumer);
+      await addOneEService(eservice);
 
       const apiAgreementPayload: ApiAgreementPayload = {
         eserviceId: eservice.id,
@@ -244,9 +238,9 @@ describe("Agreement service", () => {
         [descriptor]
       );
 
-      await addOneTenant(eserviceProducer, tenants);
-      await addOneTenant(consumer, tenants);
-      await addOneEService(eservice, eservices);
+      await addOneTenant(eserviceProducer);
+      await addOneTenant(consumer);
+      await addOneEService(eservice);
 
       const authData = getRandomAuthData(consumer.id); // different from eserviceProducer
       const apiAgreementPayload: ApiAgreementPayload = {
@@ -291,8 +285,8 @@ describe("Agreement service", () => {
         descriptor2,
       ]);
 
-      await addOneTenant(tenant, tenants);
-      await addOneEService(eservice, eservices);
+      await addOneTenant(tenant);
+      await addOneEService(eservice);
 
       const authData = getRandomAuthData(tenant.id);
       const apiAgreementPayload: ApiAgreementPayload = {
@@ -333,9 +327,9 @@ describe("Agreement service", () => {
         )
       );
 
-      await addOneTenant(tenant, tenants);
-      await addOneEService(eservice, eservices);
-      await addOneAgreement(otherAgreement, postgresDB, agreements);
+      await addOneTenant(tenant);
+      await addOneEService(eservice);
+      await addOneAgreement(otherAgreement);
 
       const authData = getRandomAuthData(tenant.id);
       const apiAgreementPayload: ApiAgreementPayload = {
@@ -385,7 +379,7 @@ describe("Agreement service", () => {
 
       const eservice = getMockEService(eserviceId, authData.organizationId, []);
 
-      await addOneEService(eservice, eservices);
+      await addOneEService(eservice);
 
       const apiAgreementPayload: ApiAgreementPayload = {
         eserviceId,
@@ -428,8 +422,8 @@ describe("Agreement service", () => {
         descriptor1,
       ]);
 
-      await addOneEService(eservice, eservices);
-      await addOneTenant(getMockTenant(authData.organizationId), tenants);
+      await addOneEService(eservice);
+      await addOneTenant(getMockTenant(authData.organizationId));
 
       const apiAgreementPayload: ApiAgreementPayload = {
         eserviceId,
@@ -469,8 +463,8 @@ describe("Agreement service", () => {
         descriptor,
       ]);
 
-      await addOneEService(eservice, eservices);
-      await addOneTenant(getMockTenant(authData.organizationId), tenants);
+      await addOneEService(eservice);
+      await addOneTenant(getMockTenant(authData.organizationId));
 
       const apiAgreementPayload: ApiAgreementPayload = {
         eserviceId,
@@ -506,9 +500,9 @@ describe("Agreement service", () => {
         ),
       };
 
-      await addOneTenant(consumer, tenants);
-      await addOneEService(eservice, eservices);
-      await addOneAgreement(conflictingAgreement, postgresDB, agreements);
+      await addOneTenant(consumer);
+      await addOneEService(eservice);
+      await addOneAgreement(conflictingAgreement);
 
       const authData = getRandomAuthData(consumer.id);
       const apiAgreementPayload: ApiAgreementPayload = {
@@ -535,7 +529,7 @@ describe("Agreement service", () => {
         [descriptor]
       );
 
-      await addOneEService(eservice, eservices);
+      await addOneEService(eservice);
 
       const authData = getRandomAuthData(consumer.id);
       const apiAgreementPayload: ApiAgreementPayload = {
@@ -583,9 +577,9 @@ describe("Agreement service", () => {
         [descriptor]
       );
 
-      await addOneTenant(eserviceProducer, tenants);
-      await addOneTenant(consumer, tenants);
-      await addOneEService(eservice, eservices);
+      await addOneTenant(eserviceProducer);
+      await addOneTenant(consumer);
+      await addOneEService(eservice);
 
       const authData = getRandomAuthData(consumer.id);
       const apiAgreementPayload: ApiAgreementPayload = {
@@ -641,9 +635,9 @@ describe("Agreement service", () => {
         attributes: [certifiedTenantAttribute1, certifiedTenantAttribute2],
       };
 
-      await addOneTenant(eserviceProducer, tenants);
-      await addOneTenant(consumer, tenants);
-      await addOneEService(eservice, eservices);
+      await addOneTenant(eserviceProducer);
+      await addOneTenant(consumer);
+      await addOneEService(eservice);
 
       const authData = getRandomAuthData(consumer.id);
       const apiAgreementPayload: ApiAgreementPayload = {
@@ -732,12 +726,12 @@ describe("Agreement service", () => {
         name: "EService3", // Adding name because results are sorted by esevice name
       };
 
-      await addOneTenant(tenant1, tenants);
-      await addOneTenant(tenant2, tenants);
-      await addOneTenant(tenant3, tenants);
-      await addOneEService(eservice1, eservices);
-      await addOneEService(eservice2, eservices);
-      await addOneEService(eservice3, eservices);
+      await addOneTenant(tenant1);
+      await addOneTenant(tenant2);
+      await addOneTenant(tenant3);
+      await addOneEService(eservice1);
+      await addOneEService(eservice2);
+      await addOneEService(eservice3);
 
       attribute1 = { id: generateId() };
       attribute2 = { id: generateId() };
@@ -788,12 +782,12 @@ describe("Agreement service", () => {
         producerId: eservice3.producerId,
       };
 
-      await addOneAgreement(agreement1, postgresDB, agreements);
-      await addOneAgreement(agreement2, postgresDB, agreements);
-      await addOneAgreement(agreement3, postgresDB, agreements);
-      await addOneAgreement(agreement4, postgresDB, agreements);
-      await addOneAgreement(agreement5, postgresDB, agreements);
-      await addOneAgreement(agreement6, postgresDB, agreements);
+      await addOneAgreement(agreement1);
+      await addOneAgreement(agreement2);
+      await addOneAgreement(agreement3);
+      await addOneAgreement(agreement4);
+      await addOneAgreement(agreement5);
+      await addOneAgreement(agreement6);
     });
 
     it("should get all agreements if no filters are provided", async () => {
@@ -1128,8 +1122,8 @@ describe("Agreement service", () => {
   describe("get agreement", () => {
     it("should get an agreement", async () => {
       const agreement: Agreement = getMockAgreement();
-      await addOneAgreement(agreement, postgresDB, agreements);
-      await addOneAgreement(getMockAgreement(), postgresDB, agreements);
+      await addOneAgreement(agreement);
+      await addOneAgreement(getMockAgreement());
 
       const result = await agreementService.getAgreementById(agreement.id);
       expect(result).toEqual(agreement);
@@ -1138,7 +1132,7 @@ describe("Agreement service", () => {
     it("should throw an agreementNotFound error when the agreement does not exist", async () => {
       const agreementId = generateId<AgreementId>();
 
-      await addOneAgreement(getMockAgreement(), postgresDB, agreements);
+      await addOneAgreement(getMockAgreement());
 
       await expect(
         agreementService.getAgreementById(agreementId)
@@ -1166,12 +1160,12 @@ describe("Agreement service", () => {
       tenant5 = { ...getMockTenant(), name: "Tenant 5 BazBar" };
       tenant6 = { ...getMockTenant(), name: "Tenant 6 BazFoo" };
 
-      await addOneTenant(tenant1, tenants);
-      await addOneTenant(tenant2, tenants);
-      await addOneTenant(tenant3, tenants);
-      await addOneTenant(tenant4, tenants);
-      await addOneTenant(tenant5, tenants);
-      await addOneTenant(tenant6, tenants);
+      await addOneTenant(tenant1);
+      await addOneTenant(tenant2);
+      await addOneTenant(tenant3);
+      await addOneTenant(tenant4);
+      await addOneTenant(tenant5);
+      await addOneTenant(tenant6);
 
       const agreement1 = {
         ...getMockAgreement(),
@@ -1203,11 +1197,11 @@ describe("Agreement service", () => {
         consumerId: tenant6.id,
       };
 
-      await addOneAgreement(agreement1, postgresDB, agreements);
-      await addOneAgreement(agreement2, postgresDB, agreements);
-      await addOneAgreement(agreement3, postgresDB, agreements);
-      await addOneAgreement(agreement4, postgresDB, agreements);
-      await addOneAgreement(agreement5, postgresDB, agreements);
+      await addOneAgreement(agreement1);
+      await addOneAgreement(agreement2);
+      await addOneAgreement(agreement3);
+      await addOneAgreement(agreement4);
+      await addOneAgreement(agreement5);
     });
     describe("get agreement consumers", () => {
       it("should get all agreement consumers", async () => {
@@ -1408,12 +1402,12 @@ describe("Agreement service", () => {
         name: "EService 3 FooBar",
       };
 
-      await addOneTenant(tenant1, tenants);
-      await addOneTenant(tenant2, tenants);
-      await addOneTenant(tenant3, tenants);
-      await addOneEService(eservice1, eservices);
-      await addOneEService(eservice2, eservices);
-      await addOneEService(eservice3, eservices);
+      await addOneTenant(tenant1);
+      await addOneTenant(tenant2);
+      await addOneTenant(tenant3);
+      await addOneEService(eservice1);
+      await addOneEService(eservice2);
+      await addOneEService(eservice3);
 
       const agreement1 = {
         ...getMockAgreement(eservice1.id),
@@ -1435,9 +1429,9 @@ describe("Agreement service", () => {
         state: agreementState.pending,
       };
 
-      await addOneAgreement(agreement1, postgresDB, agreements);
-      await addOneAgreement(agreement2, postgresDB, agreements);
-      await addOneAgreement(agreement3, postgresDB, agreements);
+      await addOneAgreement(agreement1);
+      await addOneAgreement(agreement2);
+      await addOneAgreement(agreement3);
     });
 
     it("should get all agreement eservices", async () => {

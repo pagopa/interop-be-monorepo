@@ -12,6 +12,13 @@ import {
   mongoDBContainer,
   postgreSQLContainer,
 } from "./containerTestUtils.js";
+import type {} from "vitest";
+
+declare module "vitest" {
+  export interface ProvidedContext {
+    config: TestContainersConfig;
+  }
+}
 
 export function setupTestContainersVitestGlobal() {
   dotenv();

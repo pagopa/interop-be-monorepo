@@ -1,97 +1,104 @@
-/* eslint-disable functional/no-let */
-/* eslint-disable functional/immutable-data */
-
 import {
-  ReadModelRepository,
-  initDB,
-  logger,
-  initFileManager,
-  AgreementCollection,
-  EServiceCollection,
-  FileManager,
-  TenantCollection,
-} from "pagopa-interop-commons";
-import { beforeAll, afterEach, inject } from "vitest";
-import { IDatabase } from "pg-promise";
-import { StartedTestContainer } from "testcontainers";
+  StoredEvent,
+  readLastEventByStreamId,
+  setupTestContainersVitest,
+  writeInEventstore,
+  writeInReadmodel,
+  ReadEvent,
+} from "pagopa-interop-commons-test";
+import { inject, afterEach } from "vitest";
 import {
-  AgreementService,
-  agreementServiceBuilder,
-} from "../src/services/agreementService.js";
+  Agreement,
+  AgreementDocument,
+  AgreementDocumentId,
+  AgreementEvent,
+  AgreementId,
+  EService,
+  Tenant,
+  generateId,
+  toReadModelEService,
+} from "pagopa-interop-models";
+import { agreementServiceBuilder } from "../src/services/agreementService.js";
 import { agreementQueryBuilder } from "../src/services/readmodel/agreementQuery.js";
 import { attributeQueryBuilder } from "../src/services/readmodel/attributeQuery.js";
 import { eserviceQueryBuilder } from "../src/services/readmodel/eserviceQuery.js";
-import {
-  ReadModelService,
-  readModelServiceBuilder,
-} from "../src/services/readmodel/readModelService.js";
+import { readModelServiceBuilder } from "../src/services/readmodel/readModelService.js";
 import { tenantQueryBuilder } from "../src/services/readmodel/tenantQuery.js";
-import type { AgreementProcessConfig } from "../src/utilities/config.js";
+import { toAgreementV1 } from "../src/model/domain/toEvent.js";
+import { config } from "../src/utilities/config.js";
 
-export let agreements: AgreementCollection;
-export let eservices: EServiceCollection;
-export let tenants: TenantCollection;
-export let readModelService: ReadModelService;
-export let agreementService: AgreementService;
-export let postgresDB: IDatabase<unknown>;
-export let startedPostgreSqlContainer: StartedTestContainer;
-export let startedMongodbContainer: StartedTestContainer;
-export let startedMinioContainer: StartedTestContainer;
-export let fileManager: FileManager;
+export const { readModelRepository, postgresDB, fileManager, cleanup } =
+  setupTestContainersVitest(inject("config"));
 
-declare module "vitest" {
-  export interface ProvidedContext {
-    config: AgreementProcessConfig;
-  }
+afterEach(cleanup);
+
+export const agreements = readModelRepository.agreements;
+export const eservices = readModelRepository.eservices;
+export const tenants = readModelRepository.tenants;
+
+export const readModelService = readModelServiceBuilder(readModelRepository);
+
+const eserviceQuery = eserviceQueryBuilder(readModelService);
+const agreementQuery = agreementQueryBuilder(readModelService);
+const tenantQuery = tenantQueryBuilder(readModelService);
+const attributeQuery = attributeQueryBuilder(readModelService);
+
+export const agreementService = agreementServiceBuilder(
+  postgresDB,
+  agreementQuery,
+  tenantQuery,
+  eserviceQuery,
+  attributeQuery,
+  fileManager
+);
+
+export const writeAgreementInEventstore = async (
+  agreement: Agreement
+): Promise<void> => {
+  const agreementEvent: AgreementEvent = {
+    type: "AgreementAdded",
+    event_version: 1,
+    data: { agreement: toAgreementV1(agreement) },
+  };
+  const eventToWrite: StoredEvent<AgreementEvent> = {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    stream_id: agreementEvent.data.agreement!.id,
+    version: 0,
+    event: agreementEvent,
+  };
+
+  await writeInEventstore(eventToWrite, "agreement", postgresDB);
+};
+
+export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
+  await writeAgreementInEventstore(agreement);
+  await writeInReadmodel(agreement, agreements);
+};
+
+export const addOneEService = async (eservice: EService): Promise<void> => {
+  await writeInReadmodel(toReadModelEService(eservice), eservices);
+};
+
+export const addOneTenant = async (tenant: Tenant): Promise<void> => {
+  await writeInReadmodel(tenant, tenants);
+};
+
+export const readLastAgreementEvent = async (
+  agreementId: AgreementId
+): Promise<ReadEvent<AgreementEvent>> =>
+  await readLastEventByStreamId(agreementId, "agreement", postgresDB);
+
+export function getMockConsumerDocument(
+  agreementId: AgreementId,
+  name: string = "mockDocument"
+): AgreementDocument {
+  const id = generateId<AgreementDocumentId>();
+  return {
+    id,
+    name,
+    path: `${config.consumerDocumentsPath}/${agreementId}/${id}/${name}`,
+    prettyName: "pretty name",
+    contentType: "application/pdf",
+    createdAt: new Date(),
+  };
 }
-const config = inject("config");
-const s3OriginalBucket = config.s3Bucket;
-
-beforeAll(async () => {
-  const readModelRepository = ReadModelRepository.init(config);
-  agreements = readModelRepository.agreements;
-  eservices = readModelRepository.eservices;
-  tenants = readModelRepository.tenants;
-
-  readModelService = readModelServiceBuilder(readModelRepository);
-  const eserviceQuery = eserviceQueryBuilder(readModelService);
-  const agreementQuery = agreementQueryBuilder(readModelService);
-  const tenantQuery = tenantQueryBuilder(readModelService);
-  const attributeQuery = attributeQueryBuilder(readModelService);
-
-  postgresDB = initDB({
-    username: config.eventStoreDbUsername,
-    password: config.eventStoreDbPassword,
-    host: config.eventStoreDbHost,
-    port: config.eventStoreDbPort,
-    database: config.eventStoreDbName,
-    schema: config.eventStoreDbSchema,
-    useSSL: config.eventStoreDbUseSSL,
-  });
-
-  if (!postgresDB) {
-    logger.error("postgresDB is undefined!!");
-  }
-
-  fileManager = initFileManager(config);
-  agreementService = agreementServiceBuilder(
-    postgresDB,
-    agreementQuery,
-    tenantQuery,
-    eserviceQuery,
-    attributeQuery,
-    fileManager
-  );
-});
-
-afterEach(async () => {
-  await agreements.deleteMany({});
-  await eservices.deleteMany({});
-  await tenants.deleteMany({});
-
-  await postgresDB.none("TRUNCATE TABLE agreement.events RESTART IDENTITY");
-  await postgresDB.none("TRUNCATE TABLE catalog.events RESTART IDENTITY");
-
-  // Some tests change the bucket name, so we need to reset it
-  config.s3Bucket = s3OriginalBucket;
-});

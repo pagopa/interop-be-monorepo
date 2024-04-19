@@ -26,12 +26,8 @@ import {
   addOneAgreement,
   getMockConsumerDocument,
   readLastAgreementEvent,
-} from "./utils.js";
-import {
   agreementService,
-  agreements,
   fileManager,
-  postgresDB,
 } from "./vitestSetup.js";
 
 describe("delete agreement", () => {
@@ -47,7 +43,7 @@ describe("delete agreement", () => {
         getMockConsumerDocument(agreementId, "doc2"),
       ],
     };
-    await addOneAgreement(agreement, postgresDB, agreements);
+    await addOneAgreement(agreement);
 
     await fileManager.storeBytes(
       config.s3Bucket,
@@ -80,10 +76,7 @@ describe("delete agreement", () => {
       uuidv4()
     );
 
-    const agreementEvent = await readLastAgreementEvent(
-      agreement.id,
-      postgresDB
-    );
+    const agreementEvent = await readLastAgreementEvent(agreement.id);
 
     expect(agreementEvent).toMatchObject({
       type: "AgreementDeleted",
@@ -116,7 +109,7 @@ describe("delete agreement", () => {
   });
 
   it("should throw an agreementNotFound error when the agreement does not exist", async () => {
-    await addOneAgreement(getMockAgreement(), postgresDB, agreements);
+    await addOneAgreement(getMockAgreement());
     const authData = getRandomAuthData();
     const agreementId = generateId<AgreementId>();
     await expect(
@@ -127,7 +120,7 @@ describe("delete agreement", () => {
   it("should throw operationNotAllowed when the requester is not the Consumer", async () => {
     const authData = getRandomAuthData();
     const agreement = getMockAgreement();
-    await addOneAgreement(agreement, postgresDB, agreements);
+    await addOneAgreement(agreement);
     await expect(
       agreementService.deleteAgreementById(agreement.id, authData, uuidv4())
     ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
@@ -142,7 +135,7 @@ describe("delete agreement", () => {
         )
       ),
     };
-    await addOneAgreement(agreement, postgresDB, agreements);
+    await addOneAgreement(agreement);
     const authData = getRandomAuthData(agreement.consumerId);
     await expect(
       agreementService.deleteAgreementById(agreement.id, authData, uuidv4())
@@ -162,7 +155,7 @@ describe("delete agreement", () => {
       state: randomArrayItem(agreementDeletableStates),
       consumerDocuments: [getMockConsumerDocument(agreementId, "doc1")],
     };
-    await addOneAgreement(agreement, postgresDB, agreements);
+    await addOneAgreement(agreement);
     await expect(
       agreementService.deleteAgreementById(
         agreement.id,
