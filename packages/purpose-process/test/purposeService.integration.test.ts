@@ -3,15 +3,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { afterAll, afterEach, beforeAll, describe } from "vitest";
 import {
   EServiceCollection,
   PurposeCollection,
@@ -24,32 +16,10 @@ import { IDatabase } from "pg-promise";
 import {
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
-  decodeProtobufPayload,
-  getMockPurpose,
-  getMockPurposeVersion,
-  getMockPurposeVersionDocument,
-  getMockTenant,
   mongoDBContainer,
   postgreSQLContainer,
-  readLastEventByStreamId,
-  writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import { StartedTestContainer } from "testcontainers";
-import {
-  EServiceId,
-  Purpose,
-  PurposeId,
-  PurposeVersion,
-  PurposeVersionDocumentId,
-  PurposeVersionId,
-  TenantId,
-  WaitingForApprovalPurposeVersionDeletedV2,
-  generateId,
-  purposeVersionState,
-  tenantKind,
-  toPurposeV2,
-  toReadModelEService,
-} from "pagopa-interop-models";
 import { config } from "../src/utilities/config.js";
 import {
   PurposeService,
@@ -59,18 +29,6 @@ import {
   ReadModelService,
   readModelServiceBuilder,
 } from "../src/services/readModelService.js";
-import {
-  eserviceNotFound,
-  organizationIsNotTheConsumer,
-  organizationNotAllowed,
-  purposeNotFound,
-  purposeVersionCannotBeDeleted,
-  purposeVersionDocumentNotFound,
-  purposeVersionNotFound,
-  tenantKindNotFound,
-  tenantNotFound,
-} from "../src/model/domain/errors.js";
-import { addOnePurpose, getMockEService } from "./utils.js";
 import { testGetPurposeById } from "./testGetPurposeById.js";
 import { testGetRiskAnalysisDocument } from "./testGetRiskAnalysisDocument.js";
 import { testDeletePurposeVersion } from "./testDeletePurposeVersion.js";
