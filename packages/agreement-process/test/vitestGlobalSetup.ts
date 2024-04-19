@@ -9,35 +9,24 @@ import {
   TEST_MONGO_DB_PORT,
   TEST_MINIO_PORT,
 } from "pagopa-interop-commons-test";
-import { config as dotenvConfig } from "dotenv-flow";
+import { config as dotenv } from "dotenv-flow";
 import {
-  CommonConfig,
   EventStoreConfig,
-  ReadModelDbConfig,
   FileManagerConfig,
+  ReadModelDbConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-dotenvConfig();
+dotenv();
 
-const AgreementProcessConfig = CommonConfig.and(EventStoreConfig)
-  .and(ReadModelDbConfig)
+const configSchema = ReadModelDbConfig.and(EventStoreConfig)
   .and(FileManagerConfig)
   .and(
     z
-      .object({
-        S3_BUCKET: z.string(),
-        CONSUMER_DOCUMENTS_PATH: z.string(),
-        AGREEMENT_CONTRACTS_PATH: z.string(),
-      })
-      .transform((c) => ({
-        s3Bucket: c.S3_BUCKET,
-        consumerDocumentsPath: c.CONSUMER_DOCUMENTS_PATH,
-        agreementContractsPath: c.AGREEMENT_CONTRACTS_PATH,
-      }))
+      .object({ S3_BUCKET: z.string() })
+      .transform((c) => ({ s3Bucket: c.S3_BUCKET }))
   );
-
-const config = AgreementProcessConfig.parse(process.env);
+const config = configSchema.parse(process.env);
 
 let teardown = false;
 
