@@ -162,14 +162,12 @@ export const testDeletePurposeVersion = (): ReturnType<typeof describe> =>
     )(
       "should throw purposeVersionCannotBeDeleted if the purpose version is in %s state",
       async (state) => {
-        const mockPurposeVersion: PurposeVersion = {
-          ...getMockPurposeVersion(state),
-        };
+        const mockPurposeVersion = getMockPurposeVersion(state);
         const mockEService = getMockEService();
         const mockPurpose: Purpose = {
           ...getMockPurpose(),
           eserviceId: mockEService.id,
-          versions: [mockPurposeVersion],
+          versions: [getMockPurposeVersion(state)],
         };
 
         await addOnePurpose(mockPurpose, postgresDB, purposes);
