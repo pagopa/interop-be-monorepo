@@ -42,7 +42,7 @@ export function purposeEventToBinaryData(event: PurposeEvent): Uint8Array {
     .exhaustive();
 }
 
-export function purposeEventToBinaryDataV1(event: PurposeEventV1): Uint8Array {
+export function purposeEventToBinaryDataV1(event: PurposeEvent): Uint8Array {
   return match(event)
     .with({ type: "PurposeCreated" }, ({ data }) =>
       PurposeCreatedV1.toBinary(data)
