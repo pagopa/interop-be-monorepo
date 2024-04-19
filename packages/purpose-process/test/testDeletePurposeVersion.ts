@@ -155,109 +155,36 @@ export const testDeletePurposeVersion = (): ReturnType<typeof describe> =>
         organizationIsNotTheConsumer(mockEService.producerId)
       );
     });
-    it("should throw purposeVersionCannotBeDeleted if the purpose version is in draft state", async () => {
-      const mockPurposeVersion: PurposeVersion = {
-        ...getMockPurposeVersion(),
-        state: purposeVersionState.draft,
-      };
-      const mockEService = getMockEService();
-      const mockPurpose: Purpose = {
-        ...getMockPurpose(),
-        eserviceId: mockEService.id,
-        versions: [mockPurposeVersion],
-      };
+    it.each(
+      Object.values(purposeVersionState).filter(
+        (state) => state !== purposeVersionState.waitingForApproval
+      )
+    )(
+      "should throw purposeVersionCannotBeDeleted if the purpose version is in %s state",
+      async (state) => {
+        const mockPurposeVersion: PurposeVersion = {
+          ...getMockPurposeVersion(state),
+        };
+        const mockEService = getMockEService();
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
+          eserviceId: mockEService.id,
+          versions: [mockPurposeVersion],
+        };
 
-      await addOnePurpose(mockPurpose, postgresDB, purposes);
-      await writeInReadmodel(toReadModelEService(mockEService), eservices);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
-      expect(
-        purposeService.deletePurposeVersion({
-          purposeId: mockPurpose.id,
-          versionId: mockPurposeVersion.id,
-          organizationId: mockPurpose.consumerId,
-          correlationId: generateId(),
-        })
-      ).rejects.toThrowError(
-        purposeVersionCannotBeDeleted(mockPurpose.id, mockPurposeVersion.id)
-      );
-    });
-    it("should throw purposeVersionCannotBeDeleted if the purpose version is in active state", async () => {
-      const mockPurposeVersion: PurposeVersion = {
-        ...getMockPurposeVersion(),
-        state: purposeVersionState.active,
-      };
-      const mockEService = getMockEService();
-      const mockPurpose: Purpose = {
-        ...getMockPurpose(),
-        eserviceId: mockEService.id,
-        versions: [mockPurposeVersion],
-      };
-
-      await addOnePurpose(mockPurpose, postgresDB, purposes);
-      await writeInReadmodel(toReadModelEService(mockEService), eservices);
-
-      expect(
-        purposeService.deletePurposeVersion({
-          purposeId: mockPurpose.id,
-          versionId: mockPurposeVersion.id,
-          organizationId: mockPurpose.consumerId,
-          correlationId: generateId(),
-        })
-      ).rejects.toThrowError(
-        purposeVersionCannotBeDeleted(mockPurpose.id, mockPurposeVersion.id)
-      );
-    });
-    it("should throw purposeVersionCannotBeDeleted if the purpose version is in archived state", async () => {
-      const mockPurposeVersion: PurposeVersion = {
-        ...getMockPurposeVersion(),
-        state: purposeVersionState.archived,
-      };
-      const mockEService = getMockEService();
-      const mockPurpose: Purpose = {
-        ...getMockPurpose(),
-        eserviceId: mockEService.id,
-        versions: [mockPurposeVersion],
-      };
-
-      await addOnePurpose(mockPurpose, postgresDB, purposes);
-      await writeInReadmodel(toReadModelEService(mockEService), eservices);
-
-      expect(
-        purposeService.deletePurposeVersion({
-          purposeId: mockPurpose.id,
-          versionId: mockPurposeVersion.id,
-          organizationId: mockPurpose.consumerId,
-          correlationId: generateId(),
-        })
-      ).rejects.toThrowError(
-        purposeVersionCannotBeDeleted(mockPurpose.id, mockPurposeVersion.id)
-      );
-    });
-    it("should throw purposeVersionCannotBeDeleted if the purpose version is in suspended state", async () => {
-      const mockPurposeVersion: PurposeVersion = {
-        ...getMockPurposeVersion(),
-        state: purposeVersionState.suspended,
-        suspendedAt: new Date(),
-      };
-      const mockEService = getMockEService();
-      const mockPurpose: Purpose = {
-        ...getMockPurpose(),
-        eserviceId: mockEService.id,
-        versions: [mockPurposeVersion],
-      };
-
-      await addOnePurpose(mockPurpose, postgresDB, purposes);
-      await writeInReadmodel(toReadModelEService(mockEService), eservices);
-
-      expect(
-        purposeService.deletePurposeVersion({
-          purposeId: mockPurpose.id,
-          versionId: mockPurposeVersion.id,
-          organizationId: mockPurpose.consumerId,
-          correlationId: generateId(),
-        })
-      ).rejects.toThrowError(
-        purposeVersionCannotBeDeleted(mockPurpose.id, mockPurposeVersion.id)
-      );
-    });
+        expect(
+          purposeService.deletePurposeVersion({
+            purposeId: mockPurpose.id,
+            versionId: mockPurposeVersion.id,
+            organizationId: mockPurpose.consumerId,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(
+          purposeVersionCannotBeDeleted(mockPurpose.id, mockPurposeVersion.id)
+        );
+      }
+    );
   });
