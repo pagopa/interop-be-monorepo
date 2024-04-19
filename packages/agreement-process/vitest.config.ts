@@ -6,6 +6,7 @@ export default defineConfig({
     globalSetup: ["./test/vitestGlobalSetup.ts"],
     testTimeout: 60000,
     hookTimeout: 60000,
-    fileParallelism: false
+    fileParallelism: false,
+    pool: "forks"
   },
 });
