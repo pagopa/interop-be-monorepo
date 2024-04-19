@@ -188,140 +188,38 @@ export const testRejectPurposeVersion = (): ReturnType<typeof describe> =>
         purposeVersionNotFound(mockPurpose.id, randomVersionId)
       );
     });
-    it("should throw notValidVersionState if the purpose version is in draft state", async () => {
-      const mockEService = getMockEService();
-      const mockPurposeVersion: PurposeVersion = {
-        ...getMockPurposeVersion(),
-        state: purposeVersionState.draft,
-      };
-      const mockPurpose: Purpose = {
-        ...getMockPurpose(),
-        eserviceId: mockEService.id,
-        versions: [mockPurposeVersion],
-      };
+    it.each(
+      Object.values(purposeVersionState).filter(
+        (state) => state !== purposeVersionState.waitingForApproval
+      )
+    )(
+      "should throw notValidVersionState if the purpose version is in %s state",
+      async (state) => {
+        const mockEService = getMockEService();
+        const mockPurposeVersion: PurposeVersion = {
+          ...getMockPurposeVersion(state),
+          state: purposeVersionState.draft,
+        };
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
+          eserviceId: mockEService.id,
+          versions: [mockPurposeVersion],
+        };
 
-      await addOnePurpose(mockPurpose, postgresDB, purposes);
-      await writeInReadmodel(toReadModelEService(mockEService), eservices);
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
-      expect(
-        purposeService.rejectPurposeVersion({
-          purposeId: mockPurpose.id,
-          versionId: mockPurposeVersion.id,
-          rejectionReason: "test",
-          organizationId: mockEService.producerId,
-          correlationId: generateId(),
-        })
-      ).rejects.toThrowError(
-        notValidVersionState(mockPurposeVersion.id, mockPurposeVersion.state)
-      );
-    });
-    it("should throw notValidVersionState if the purpose version is in active state", async () => {
-      const mockEService = getMockEService();
-      const mockPurposeVersion: PurposeVersion = {
-        ...getMockPurposeVersion(),
-        state: purposeVersionState.active,
-      };
-      const mockPurpose: Purpose = {
-        ...getMockPurpose(),
-        eserviceId: mockEService.id,
-        versions: [mockPurposeVersion],
-      };
-
-      await addOnePurpose(mockPurpose, postgresDB, purposes);
-      await writeInReadmodel(toReadModelEService(mockEService), eservices);
-
-      expect(
-        purposeService.rejectPurposeVersion({
-          purposeId: mockPurpose.id,
-          versionId: mockPurposeVersion.id,
-          rejectionReason: "test",
-          organizationId: mockEService.producerId,
-          correlationId: generateId(),
-        })
-      ).rejects.toThrowError(
-        notValidVersionState(mockPurposeVersion.id, mockPurposeVersion.state)
-      );
-    });
-    it("should throw notValidVersionState if the purpose version is in archived state", async () => {
-      const mockEService = getMockEService();
-      const mockPurposeVersion: PurposeVersion = {
-        ...getMockPurposeVersion(),
-        state: purposeVersionState.archived,
-      };
-      const mockPurpose: Purpose = {
-        ...getMockPurpose(),
-        eserviceId: mockEService.id,
-        versions: [mockPurposeVersion],
-      };
-
-      await addOnePurpose(mockPurpose, postgresDB, purposes);
-      await writeInReadmodel(toReadModelEService(mockEService), eservices);
-
-      expect(
-        purposeService.rejectPurposeVersion({
-          purposeId: mockPurpose.id,
-          versionId: mockPurposeVersion.id,
-          rejectionReason: "test",
-          organizationId: mockEService.producerId,
-          correlationId: generateId(),
-        })
-      ).rejects.toThrowError(
-        notValidVersionState(mockPurposeVersion.id, mockPurposeVersion.state)
-      );
-    });
-    it("should throw notValidVersionState if the purpose version is in rejected state", async () => {
-      const mockEService = getMockEService();
-      const mockPurposeVersion: PurposeVersion = {
-        ...getMockPurposeVersion(),
-        state: purposeVersionState.rejected,
-      };
-      const mockPurpose: Purpose = {
-        ...getMockPurpose(),
-        eserviceId: mockEService.id,
-        versions: [mockPurposeVersion],
-      };
-
-      await addOnePurpose(mockPurpose, postgresDB, purposes);
-      await writeInReadmodel(toReadModelEService(mockEService), eservices);
-
-      expect(
-        purposeService.rejectPurposeVersion({
-          purposeId: mockPurpose.id,
-          versionId: mockPurposeVersion.id,
-          rejectionReason: "test",
-          organizationId: mockEService.producerId,
-          correlationId: generateId(),
-        })
-      ).rejects.toThrowError(
-        notValidVersionState(mockPurposeVersion.id, mockPurposeVersion.state)
-      );
-    });
-    it("should throw notValidVersionState if the purpose version is in suspended state", async () => {
-      const mockEService = getMockEService();
-      const mockPurposeVersion: PurposeVersion = {
-        ...getMockPurposeVersion(),
-        state: purposeVersionState.suspended,
-        suspendedAt: new Date(),
-      };
-      const mockPurpose: Purpose = {
-        ...getMockPurpose(),
-        eserviceId: mockEService.id,
-        versions: [mockPurposeVersion],
-      };
-
-      await addOnePurpose(mockPurpose, postgresDB, purposes);
-      await writeInReadmodel(toReadModelEService(mockEService), eservices);
-
-      expect(
-        purposeService.rejectPurposeVersion({
-          purposeId: mockPurpose.id,
-          versionId: mockPurposeVersion.id,
-          rejectionReason: "test",
-          organizationId: mockEService.producerId,
-          correlationId: generateId(),
-        })
-      ).rejects.toThrowError(
-        notValidVersionState(mockPurposeVersion.id, mockPurposeVersion.state)
-      );
-    });
+        expect(
+          purposeService.rejectPurposeVersion({
+            purposeId: mockPurpose.id,
+            versionId: mockPurposeVersion.id,
+            rejectionReason: "test",
+            organizationId: mockEService.producerId,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(
+          notValidVersionState(mockPurposeVersion.id, mockPurposeVersion.state)
+        );
+      }
+    );
   });
