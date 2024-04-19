@@ -1085,27 +1085,35 @@ describe("Integration tests", async () => {
           })
         ).rejects.toThrowError(organizationIsNotTheConsumer(organizationId));
       });
-      it("Should throw purposeNotInDraftState if the purpose is not in draft state", async () => {
-        const mockPurpose: Purpose = {
-          ...purposeForDeliver,
-          versions: [
-            { ...getMockPurposeVersion(), state: purposeVersionState.active },
-          ],
-        };
+      it.each(
+        Object.values(purposeVersionState).filter(
+          (state) => state !== purposeVersionState.draft
+        )
+      )(
+        "Should throw purposeNotInDraftState if the purpose is in state %s",
+        async (state) => {
+          const mockPurpose: Purpose = {
+            ...purposeForDeliver,
+            versions: [{ ...getMockPurposeVersion(), state }],
+          };
 
-        await addOnePurpose(mockPurpose, postgresDB, purposes);
-        await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
-        await writeInReadmodel(tenant, tenants);
+          await addOnePurpose(mockPurpose, postgresDB, purposes);
+          await writeInReadmodel(
+            toReadModelEService(eServiceDeliver),
+            eservices
+          );
+          await writeInReadmodel(tenant, tenants);
 
-        expect(
-          purposeService.updatePurpose({
-            purposeId: mockPurpose.id,
-            purposeUpdateContent,
-            organizationId: tenant.id,
-            correlationId: generateId(),
-          })
-        ).rejects.toThrowError(purposeNotInDraftState(mockPurpose.id));
-      });
+          expect(
+            purposeService.updatePurpose({
+              purposeId: mockPurpose.id,
+              purposeUpdateContent,
+              organizationId: tenant.id,
+              correlationId: generateId(),
+            })
+          ).rejects.toThrowError(purposeNotInDraftState(mockPurpose.id));
+        }
+      );
       it("Should throw eserviceNotFound if the eservice doesn't exist", async () => {
         const eserviceId: EServiceId = unsafeBrandId(generateId());
         const mockPurpose: Purpose = {
