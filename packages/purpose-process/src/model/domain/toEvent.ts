@@ -229,7 +229,7 @@ export const toCreateEventPurposeVersionActivated = ({
   correlationId,
 });
 
-export const PurposeVersionUnsuspenedByProducer = ({
+export const toCreateEventPurposeVersionUnsuspenedByProducer = ({
   purpose,
   version,
   versionId,
@@ -250,7 +250,7 @@ export const PurposeVersionUnsuspenedByProducer = ({
   correlationId,
 });
 
-export const PurposeVersionUnsuspenedByConsumer = ({
+export const toCreateEventPurposeVersionUnsuspenedByConsumer = ({
   purpose,
   version,
   versionId,

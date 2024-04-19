@@ -1,5 +1,6 @@
 import {
   ApiError,
+  DescriptorId,
   EServiceId,
   EServiceMode,
   PurposeId,
@@ -29,6 +30,8 @@ export const errorCodes = {
   notValidVersionState: "0015",
   purposeCannotBeDeleted: "0016",
   unchangedDailyCalls: "0017",
+  agreementNotFound: "0018",
+  descriptorNotFound: "0019",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -87,6 +90,28 @@ export function purposeVersionDocumentNotFound(
     detail: `Document ${documentId} not found for version ${versionId} of purpose ${purposeId}`,
     code: "purposeVersionDocumentNotFound",
     title: "Purpose version document not found",
+  });
+}
+
+export function agreementNotFound(
+  eserviceId: EServiceId,
+  consumerId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Agreement not found for EService ${eserviceId} and consumer ${consumerId}`,
+    code: "agreementNotFound",
+    title: "Agreement not found",
+  });
+}
+
+export function descriptorNotFound(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} not found for eservice ${eserviceId}`,
+    code: "descriptorNotFound",
+    title: "Descriptor not found",
   });
 }
 

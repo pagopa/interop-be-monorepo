@@ -5,6 +5,7 @@ import {
   TenantCollection,
   PurposeCollection,
   ReadModelFilter,
+  AgreementCollection,
 } from "pagopa-interop-commons";
 import {
   EService,
@@ -18,6 +19,8 @@ import {
   PurposeId,
   ListResult,
   purposeVersionState,
+  AgreementState,
+  Agreement,
 } from "pagopa-interop-models";
 import { Filter, WithId } from "mongodb";
 import { z } from "zod";
@@ -97,13 +100,47 @@ async function getTenant(
   }
 }
 
+async function getAgreement(
+  agreements: AgreementCollection,
+  filter: Filter<WithId<WithMetadata<Agreement>>>
+): Promise<Agreement | undefined> {
+  const data = await agreements.findOne(filter, {
+    projection: { data: true },
+  });
+  if (!data) {
+    return undefined;
+  } else {
+    const result = Agreement.safeParse(data.data);
+    if (!result.success) {
+      logger.error(
+        `Unable to parse agreement item: result ${JSON.stringify(
+          result
+        )} - data ${JSON.stringify(data)} `
+      );
+      throw genericError("Unable to parse agreement item");
+    }
+    return result.data;
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
 ) {
-  const { eservices, purposes, tenants } = readModelRepository;
+  const { eservices, purposes, tenants, agreements } = readModelRepository;
 
   return {
+    async getAgreement(
+      eserviceId: EServiceId,
+      consumerId: TenantId,
+      states: AgreementState[]
+    ): Promise<Agreement | undefined> {
+      return getAgreement(agreements, {
+        "data.eserviceId": eserviceId,
+        "data.consumerId": consumerId,
+        "data.state": { $in: states },
+      });
+    },
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
       return getEService(eservices, { "data.id": id });
     },

@@ -25,10 +25,13 @@ import {
   PurposeEvent,
   EServiceMode,
   ListResult,
-  PurposeVersionState,
+  agreementState,
+  generateId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
+  agreementNotFound,
+  descriptorNotFound,
   eserviceNotFound,
   notValidVersionState,
   organizationIsNotTheConsumer,
@@ -43,11 +46,12 @@ import {
 import {
   toCreateEventDraftPurposeDeleted,
   toCreateEventDraftPurposeUpdated,
-  toCreateEventPurposeActivated,
   toCreateEventPurposeArchived,
   toCreateEventPurposeSuspendedByConsumer,
   toCreateEventPurposeSuspendedByProducer,
   toCreateEventPurposeVersionRejected,
+  toCreateEventPurposeVersionUnsuspenedByConsumer,
+  toCreateEventPurposeVersionUnsuspenedByProducer,
   toCreateEventWaitingForApprovalPurposeDeleted,
   toCreateEventWaitingForApprovalPurposeVersionDeleted,
 } from "../model/domain/toEvent.js";
@@ -530,10 +534,12 @@ export function purposeServiceBuilder(
       purposeId,
       seed,
       organizationId,
+      correlationId,
     }: {
       purposeId: PurposeId;
       seed: ApiPurposeVersionSeed;
       organizationId: TenantId;
+      correlationId: string;
     }): Promise<void> {
       const purpose = await retrievePurpose(purposeId, readModelService);
       assertOrganizationIsAConsumer(organizationId, purpose.data.consumerId);
@@ -548,6 +554,23 @@ export function purposeServiceBuilder(
         organizationId,
         producerId: eservice.producerId,
         consumerId: purpose.data.consumerId,
+      });
+
+      const newPurposeVersion: PurposeVersion = {
+        ...seed,
+        createdAt: new Date(),
+        state: purposeVersionState.draft,
+        id: generateId<PurposeVersionId>(),
+      };
+
+      await activateOrWaitingForApproval({
+        eservice,
+        purpose,
+        purposeVersion: newPurposeVersion,
+        organizationId,
+        ownership,
+        readModelService,
+        correlationId,
       });
     },
   };
@@ -706,47 +729,68 @@ const updatePurposeInternal = async (
   };
 };
 
-function firstVersionActivation({
-  purpose,
-  purposeVersion,
-  fromState,
-  eService,
-}: {
-  purpose: Purpose;
-  purposeVersion: PurposeVersion;
-  fromState: Extract<PurposeVersionState, "Draft" | "WaitingForApproval">;
-  eService: EService;
-}): void {}
-
-function activateOrWaitingForApproval({
-  eService,
+async function activateOrWaitingForApproval({
+  eservice,
   purpose,
   purposeVersion,
   organizationId,
   ownership,
   readModelService,
+  correlationId,
 }: {
-  eService: EService;
+  eservice: EService;
   purpose: WithMetadata<Purpose>;
   purposeVersion: PurposeVersion;
   organizationId: TenantId;
   ownership: Ownership;
   readModelService: ReadModelService;
-}): void {
-  const event = match({ state: purposeVersion.state, ownership })
+  correlationId: string;
+}): Promise<void> {
+  function activate(changedBy: "consumer" | "producer"): unknown {
+    const updatedPurposeVersion: PurposeVersion = {
+      ...purposeVersion,
+      state: purposeVersionState.active,
+      updatedAt: new Date(),
+      suspendedAt: undefined,
+    };
+
+    const updatedPurpose: Purpose = replacePurposeVersion(
+      purpose.data,
+      updatedPurposeVersion
+    );
+
+    if (changedBy === "producer") {
+      return toCreateEventPurposeVersionUnsuspenedByProducer({
+        purpose: { ...updatedPurpose, suspendedByProducer: false },
+        versionId: purposeVersion.id,
+        version: purpose.metadata.version,
+        correlationId,
+      });
+    }
+    return toCreateEventPurposeVersionUnsuspenedByConsumer({
+      purpose: { ...updatedPurpose, suspendedByConsumer: false },
+      versionId: purposeVersion.id,
+      version: purpose.metadata.version,
+      correlationId,
+    });
+  }
+
+  await match({ state: purposeVersion.state, ownership })
     .with(
       { state: purposeVersionState.draft, ownership: "CONSUMER" },
       { state: purposeVersionState.draft, ownership: "SELF_CONSUMER" },
       async () => {
         if (
           await isLoadAllowed(
-            eService,
+            eservice,
             purpose.data,
             purposeVersion,
             readModelService
           )
         ) {
+          // TODO firstVersionActivation
         }
+        // TODO changeToWaitForApproval
       }
     )
     .with({ state: purposeVersionState.draft, ownership: "PRODUCER" }, () => {
@@ -765,36 +809,50 @@ function activateOrWaitingForApproval({
         ownership: "SELF_CONSUMER",
       },
       () => {
-        // First version activation
+        // TODO firstVersionActivation
       }
     )
     .with(
       { state: purposeVersionState.suspended, ownership: "CONSUMER" },
-      () => purpose.suspendedByConsumer && purpose.suspendedByProducer,
-      () => {
-        // activate
-      }
+      () =>
+        purpose.data.suspendedByConsumer && purpose.data.suspendedByProducer,
+      () => activate("consumer")
     )
     .with(
       { state: purposeVersionState.suspended, ownership: "CONSUMER" },
-      () => purpose.suspendedByConsumer,
-      () => {
-        // activate
-        // create waiting for approval
+      () => purpose.data.suspendedByConsumer,
+      async () => {
+        if (
+          await isLoadAllowed(
+            eservice,
+            purpose.data,
+            purposeVersion,
+            readModelService
+          )
+        ) {
+          return activate("consumer");
+        }
+        // TODO changeToWaitForApproval
       }
     )
     .with(
       { state: purposeVersionState.suspended, ownership: "SELF_CONSUMER" },
-      () => {
-        // activate
-        // create waiting for approval
+      async () => {
+        if (
+          await isLoadAllowed(
+            eservice,
+            purpose.data,
+            purposeVersion,
+            readModelService
+          )
+        ) {
+          return activate("producer");
+        }
+        // TODO changeToWaitForApproval
       }
     )
-    .with(
-      { state: purposeVersionState.suspended, ownership: "PRODUCER" },
-      () => {
-        // activate
-      }
+    .with({ state: purposeVersionState.suspended, ownership: "PRODUCER" }, () =>
+      activate("producer")
     )
     .otherwise(() => {
       throw organizationNotAllowed(organizationId);
@@ -802,24 +860,73 @@ function activateOrWaitingForApproval({
 }
 
 async function isLoadAllowed(
-  eService: EService,
+  eservice: EService,
   purpose: Purpose,
   purposeVersion: PurposeVersion,
   readModelService: ReadModelService
-) {
-  // mock
-  const result = true;
+): Promise<boolean> {
+  const consumerPurposes = await readModelService.getPurposes(
+    {
+      eservicesIds: [eservice.id],
+      consumersIds: [purpose.consumerId],
+      states: [purposeVersionState.active],
+      producersIds: [],
+      excludeDraft: true,
+    },
+    0,
+    0
+  );
 
-  return {
-    then: (fn: () => void): void => {
-      if (result) {
-        fn();
-      }
+  const allPurposes = await readModelService.getPurposes(
+    {
+      eservicesIds: [eservice.id],
+      consumersIds: [],
+      producersIds: [],
+      states: [purposeVersionState.active],
+      excludeDraft: true,
     },
-    otherwise: (fn: () => void): void => {
-      if (!result) {
-        fn();
-      }
-    },
-  };
+    0,
+    0
+  );
+
+  const agreement = await readModelService.getAgreement(
+    eservice.id,
+    purpose.consumerId,
+    [agreementState.active]
+  );
+
+  if (!agreement) {
+    throw agreementNotFound(eservice.id, purpose.consumerId);
+  }
+
+  const getActiveVersions = (purposes: Purpose[]): PurposeVersion[] =>
+    purposes
+      .flatMap((p) => p.versions)
+      .filter((v) => v.state === purposeVersionState.active);
+
+  const consumerActiveVersions = getActiveVersions(consumerPurposes.results);
+  const allPurposesActiveVersions = getActiveVersions(allPurposes.results);
+
+  const aggregateDailyCalls = (versions: PurposeVersion[]): number =>
+    versions.reduce((acc, v) => acc + v.dailyCalls, 0);
+
+  const consumerLoadRequestsSum = aggregateDailyCalls(consumerActiveVersions);
+  const allPurposesRequestsSum = aggregateDailyCalls(allPurposesActiveVersions);
+
+  const currentDescriptor = eservice.descriptors.find(
+    (d) => d.id === agreement.descriptorId
+  );
+
+  if (!currentDescriptor) {
+    throw descriptorNotFound(eservice.id, agreement.descriptorId);
+  }
+
+  const maxDailyCallsPerConsumer = currentDescriptor.dailyCallsPerConsumer;
+  const maxDailyCallsTotal = currentDescriptor.dailyCallsTotal;
+
+  return (
+    consumerLoadRequestsSum + purposeVersion.dailyCalls <=
+      maxDailyCallsPerConsumer &&
+    allPurposesRequestsSum + purposeVersion.dailyCalls <= maxDailyCallsTotal
+  );
 }
