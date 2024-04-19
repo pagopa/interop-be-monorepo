@@ -72,6 +72,7 @@ import {
 } from "../src/model/domain/errors.js";
 import { addOnePurpose, getMockEService } from "./utils.js";
 import { testGetPurposeById } from "./testGetPurposeById.js";
+import { testGetRiskAnalysisDocument } from "./testGetRiskAnalysisDocument.js";
 import { testDeletePurposeVersion } from "./testDeletePurposeVersion.js";
 
 export let purposes: PurposeCollection;
@@ -126,6 +127,7 @@ describe("Integration tests", async () => {
 
   describe("Purpose service", () => {
     testGetPurposeById();
+    testGetRiskAnalysisDocument();
     testDeletePurposeVersion();
   });
 });
