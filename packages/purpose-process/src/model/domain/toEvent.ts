@@ -169,3 +169,104 @@ export const toCreateEventPurposeSuspendedByProducer = ({
   },
   correlationId,
 });
+
+export const toCreateEventPurposeActivated = ({
+  purpose,
+  version,
+  correlationId,
+}: {
+  purpose: Purpose;
+  version: number;
+  correlationId: string;
+}): CreateEvent<PurposeEvent> => ({
+  streamId: purpose.id,
+  version,
+  event: {
+    type: "PurposeActivated",
+    event_version: 2,
+    data: { purpose: toPurposeV2(purpose) },
+  },
+  correlationId,
+});
+
+export const toCreateEventPurposeWaitingForApproval = ({
+  purpose,
+  version,
+  correlationId,
+}: {
+  purpose: Purpose;
+  version: number;
+  correlationId: string;
+}): CreateEvent<PurposeEvent> => ({
+  streamId: purpose.id,
+  version,
+  event: {
+    type: "PurposeWaitingForApproval",
+    event_version: 2,
+    data: { purpose: toPurposeV2(purpose) },
+  },
+  correlationId,
+});
+
+export const toCreateEventPurposeVersionActivated = ({
+  purpose,
+  version,
+  versionId,
+  correlationId,
+}: {
+  purpose: Purpose;
+  version: number;
+  versionId: PurposeVersionId;
+  correlationId: string;
+}): CreateEvent<PurposeEvent> => ({
+  streamId: purpose.id,
+  version,
+  event: {
+    type: "PurposeVersionActivated",
+    event_version: 2,
+    data: { purpose: toPurposeV2(purpose), versionId },
+  },
+  correlationId,
+});
+
+export const PurposeVersionUnsuspenedByProducer = ({
+  purpose,
+  version,
+  versionId,
+  correlationId,
+}: {
+  purpose: Purpose;
+  version: number;
+  versionId: PurposeVersionId;
+  correlationId: string;
+}): CreateEvent<PurposeEvent> => ({
+  streamId: purpose.id,
+  version,
+  event: {
+    type: "PurposeVersionUnsuspendedByProducer",
+    event_version: 2,
+    data: { purpose: toPurposeV2(purpose), versionId },
+  },
+  correlationId,
+});
+
+export const PurposeVersionUnsuspenedByConsumer = ({
+  purpose,
+  version,
+  versionId,
+  correlationId,
+}: {
+  purpose: Purpose;
+  version: number;
+  versionId: PurposeVersionId;
+  correlationId: string;
+}): CreateEvent<PurposeEvent> => ({
+  streamId: purpose.id,
+  version,
+  event: {
+    type: "PurposeVersionUnsuspendedByConsumer",
+    event_version: 2,
+    data: { purpose: toPurposeV2(purpose), versionId },
+  },
+  correlationId,
+});

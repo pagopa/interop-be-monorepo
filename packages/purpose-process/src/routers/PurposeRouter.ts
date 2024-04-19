@@ -150,11 +150,11 @@ const purposeRouter = (
       ]),
       async (req, res) => {
         try {
-          const { purpose, isRiskAnalysisValid } =
-            await purposeService.getPurposeById(
-              unsafeBrandId(req.params.id),
-              req.ctx.authData.organizationId
-            );
+          const { purpose, isRiskAnalysisValid } = async;
+          await purposeService.getPurposeById(
+            unsafeBrandId(req.params.id),
+            req.ctx.authData.organizationId
+          );
           return res
             .status(200)
             .json(purposeToApiPurpose(purpose, isRiskAnalysisValid))
@@ -207,9 +207,23 @@ const purposeRouter = (
     .post(
       "/purposes/:purposeId/versions",
       authorizationMiddleware([ADMIN_ROLE]),
-      (_req, res) =>
-        // TODO
-        res.status(501).send()
+      async (req, res) => {
+        try {
+          await purposeService.deletePurposeVersion({
+            purposeId: unsafeBrandId(req.params.purposeId),
+            versionId: unsafeBrandId(req.params.versionId),
+            organizationId: req.ctx.authData.organizationId,
+            correlationId: req.ctx.correlationId,
+          });
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            deletePurposeVersionErrorMapper
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .delete(
       "/purposes/:purposeId/versions/:versionId",

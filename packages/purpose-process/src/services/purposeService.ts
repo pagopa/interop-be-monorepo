@@ -25,6 +25,7 @@ import {
   PurposeEvent,
   EServiceMode,
   ListResult,
+  PurposeVersionState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -42,6 +43,7 @@ import {
 import {
   toCreateEventDraftPurposeDeleted,
   toCreateEventDraftPurposeUpdated,
+  toCreateEventPurposeActivated,
   toCreateEventPurposeArchived,
   toCreateEventPurposeSuspendedByConsumer,
   toCreateEventPurposeSuspendedByProducer,
@@ -53,6 +55,7 @@ import {
   ApiPurposeUpdateContent,
   ApiReversePurposeUpdateContent,
   ApiGetPurposesFilters,
+  ApiPurposeVersionSeed,
 } from "../model/domain/models.js";
 import { ReadModelService } from "./readModelService.js";
 import {
@@ -66,6 +69,7 @@ import {
   validateAndTransformRiskAnalysis,
   assertPurposeIsDraft,
   assertPurposeIsDeletable,
+  assertDailyCallsIsDifferentThanBefore,
 } from "./validators.js";
 
 const retrievePurpose = async (
@@ -522,6 +526,30 @@ export function purposeServiceBuilder(
         totalCount: purposesList.totalCount,
       };
     },
+    async createPurposeVersion({
+      purposeId,
+      seed,
+      organizationId,
+    }: {
+      purposeId: PurposeId;
+      seed: ApiPurposeVersionSeed;
+      organizationId: TenantId;
+    }): Promise<void> {
+      const purpose = await retrievePurpose(purposeId, readModelService);
+      assertOrganizationIsAConsumer(organizationId, purpose.data.consumerId);
+      assertDailyCallsIsDifferentThanBefore(purpose.data, seed.dailyCalls);
+
+      const eservice = await retrieveEService(
+        purpose.data.eserviceId,
+        readModelService
+      );
+
+      const ownership = getOrganizationRole({
+        organizationId,
+        producerId: eservice.producerId,
+        consumerId: purpose.data.consumerId,
+      });
+    },
   };
 }
 
@@ -677,3 +705,121 @@ const updatePurposeInternal = async (
     ),
   };
 };
+
+function firstVersionActivation({
+  purpose,
+  purposeVersion,
+  fromState,
+  eService,
+}: {
+  purpose: Purpose;
+  purposeVersion: PurposeVersion;
+  fromState: Extract<PurposeVersionState, "Draft" | "WaitingForApproval">;
+  eService: EService;
+}): void {}
+
+function activateOrWaitingForApproval({
+  eService,
+  purpose,
+  purposeVersion,
+  organizationId,
+  ownership,
+  readModelService,
+}: {
+  eService: EService;
+  purpose: WithMetadata<Purpose>;
+  purposeVersion: PurposeVersion;
+  organizationId: TenantId;
+  ownership: Ownership;
+  readModelService: ReadModelService;
+}): void {
+  const event = match({ state: purposeVersion.state, ownership })
+    .with(
+      { state: purposeVersionState.draft, ownership: "CONSUMER" },
+      { state: purposeVersionState.draft, ownership: "SELF_CONSUMER" },
+      async () => {
+        if (
+          await isLoadAllowed(
+            eService,
+            purpose.data,
+            purposeVersion,
+            readModelService
+          )
+        ) {
+        }
+      }
+    )
+    .with({ state: purposeVersionState.draft, ownership: "PRODUCER" }, () => {
+      throw organizationIsNotTheConsumer(organizationId);
+    })
+    .with(
+      { state: purposeVersionState.waitingForApproval, ownership: "CONSUMER" },
+      () => {
+        throw organizationIsNotTheProducer(organizationId);
+      }
+    )
+    .with(
+      { state: purposeVersionState.waitingForApproval, ownership: "PRODUCER" },
+      {
+        state: purposeVersionState.waitingForApproval,
+        ownership: "SELF_CONSUMER",
+      },
+      () => {
+        // First version activation
+      }
+    )
+    .with(
+      { state: purposeVersionState.suspended, ownership: "CONSUMER" },
+      () => purpose.suspendedByConsumer && purpose.suspendedByProducer,
+      () => {
+        // activate
+      }
+    )
+    .with(
+      { state: purposeVersionState.suspended, ownership: "CONSUMER" },
+      () => purpose.suspendedByConsumer,
+      () => {
+        // activate
+        // create waiting for approval
+      }
+    )
+    .with(
+      { state: purposeVersionState.suspended, ownership: "SELF_CONSUMER" },
+      () => {
+        // activate
+        // create waiting for approval
+      }
+    )
+    .with(
+      { state: purposeVersionState.suspended, ownership: "PRODUCER" },
+      () => {
+        // activate
+      }
+    )
+    .otherwise(() => {
+      throw organizationNotAllowed(organizationId);
+    });
+}
+
+async function isLoadAllowed(
+  eService: EService,
+  purpose: Purpose,
+  purposeVersion: PurposeVersion,
+  readModelService: ReadModelService
+) {
+  // mock
+  const result = true;
+
+  return {
+    then: (fn: () => void): void => {
+      if (result) {
+        fn();
+      }
+    },
+    otherwise: (fn: () => void): void => {
+      if (!result) {
+        fn();
+      }
+    },
+  };
+}

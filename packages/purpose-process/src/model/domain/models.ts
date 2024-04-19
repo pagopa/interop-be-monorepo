@@ -36,3 +36,7 @@ export type ApiGetPurposesFilters = {
   states: PurposeVersionState[];
   excludeDraft: boolean | undefined;
 };
+
+export type ApiPurposeVersionSeed = z.infer<
+  typeof api.schemas.PurposeVersionSeed
+>;

@@ -28,6 +28,7 @@ export const errorCodes = {
   purposeNotInDraftState: "0014",
   notValidVersionState: "0015",
   purposeCannotBeDeleted: "0016",
+  unchangedDailyCalls: "0017",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -187,5 +188,15 @@ export function purposeCannotBeDeleted(
     detail: `Purpose ${purposeId} cannot be deleted`,
     code: "purposeCannotBeDeleted",
     title: "Purpose canont be deleted",
+  });
+}
+
+export function unchangedDailyCalls(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Creation of new version without changing daily calls for purpose ${purposeId}`,
+    code: "unchangedDailyCalls",
+    title: "Unchanged daily calls",
   });
 }

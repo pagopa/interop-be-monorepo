@@ -23,6 +23,7 @@ import {
   purposeNotInDraftState,
   riskAnalysisValidationFailed,
   tenantKindNotFound,
+  unchangedDailyCalls,
 } from "../model/domain/errors.js";
 import { ApiRiskAnalysisFormSeed } from "../model/domain/models.js";
 
@@ -149,5 +150,15 @@ export function assertPurposeIsDeletable(purpose: Purpose): void {
     )
   ) {
     throw purposeCannotBeDeleted(purpose.id);
+  }
+}
+
+export function assertDailyCallsIsDifferentThanBefore(
+  purpose: Purpose,
+  dailyCalls: number
+): void {
+  // TODO: Capire un attimo cosa vuole
+  if (purpose.versions[0].dailyCalls === dailyCalls) {
+    throw unchangedDailyCalls(purpose.id);
   }
 }
