@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, describe } from "vitest";
 import {
   EServiceCollection,
   PurposeCollection,
@@ -16,26 +16,10 @@ import { IDatabase } from "pg-promise";
 import {
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
-  getMockPurpose,
-  getMockPurposeVersion,
-  getMockPurposeVersionDocument,
-  getMockTenant,
   mongoDBContainer,
   postgreSQLContainer,
-  writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import { StartedTestContainer } from "testcontainers";
-import {
-  EServiceId,
-  Purpose,
-  PurposeId,
-  PurposeVersionDocumentId,
-  PurposeVersionId,
-  TenantId,
-  generateId,
-  tenantKind,
-  toReadModelEService,
-} from "pagopa-interop-models";
 import { config } from "../src/utilities/config.js";
 import {
   PurposeService,
@@ -45,16 +29,6 @@ import {
   ReadModelService,
   readModelServiceBuilder,
 } from "../src/services/readModelService.js";
-import {
-  eserviceNotFound,
-  organizationNotAllowed,
-  purposeNotFound,
-  purposeVersionDocumentNotFound,
-  purposeVersionNotFound,
-  tenantKindNotFound,
-  tenantNotFound,
-} from "../src/model/domain/errors.js";
-import { addOnePurpose, getMockEService } from "./utils.js";
 import { testGetPurposeById } from "./testGetPurposeById.js";
 import { testGetRiskAnalysisDocument } from "./testGetRiskAnalysisDocument.js";
 
