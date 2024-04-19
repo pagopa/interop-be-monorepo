@@ -196,10 +196,8 @@ export const testRejectPurposeVersion = (): ReturnType<typeof describe> =>
       "should throw notValidVersionState if the purpose version is in %s state",
       async (state) => {
         const mockEService = getMockEService();
-        const mockPurposeVersion: PurposeVersion = {
-          ...getMockPurposeVersion(state),
-          state: purposeVersionState.draft,
-        };
+        const mockPurposeVersion = getMockPurposeVersion(state);
+
         const mockPurpose: Purpose = {
           ...getMockPurpose(),
           eserviceId: mockEService.id,
