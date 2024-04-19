@@ -64,6 +64,7 @@ import {
   toPurposeV2,
   toReadModelEService,
   unsafeBrandId,
+  PurposeVersionState,
 } from "pagopa-interop-models";
 import { config } from "../src/utilities/config.js";
 import {
@@ -2033,6 +2034,7 @@ describe("Integration tests", async () => {
       const mockPurpose1: Purpose = {
         ...getMockPurpose(),
         title: "purpose 1 - test",
+        consumerId: consumerId1,
         eserviceId: mockEService1ByTenant1.id,
         versions: [mockPurposeVersion1],
       };
@@ -2091,14 +2093,15 @@ describe("Integration tests", async () => {
       };
       const mockPurpose6: Purpose = {
         ...getMockPurpose(),
-        title: "purpose 6",
+        title: "purpose 6 - test",
         consumerId: consumerId1,
+        eserviceId: mockEService3ByTenant2.id,
         versions: [mockPurposeVersion6_1, mockPurposeVersion6_2],
       };
 
       const mockPurpose7: Purpose = {
         ...getMockPurpose(),
-        title: "purpose 7",
+        title: "purpose 7 - test",
         versions: [],
       };
 
@@ -2137,8 +2140,12 @@ describe("Integration tests", async () => {
           },
           { offset: 0, limit: 50 }
         );
-        expect(result.totalCount).toBe(1);
-        expect(result.results).toEqual([mockPurpose1]);
+        expect(result.totalCount).toBe(3);
+        expect(result.results).toEqual([
+          mockPurpose1,
+          mockPurpose6,
+          mockPurpose7,
+        ]);
       });
       it("should get the purposes if they exist (parameters: eservicesIds)", async () => {
         const result = await purposeService.getPurposes(
@@ -2154,7 +2161,6 @@ describe("Integration tests", async () => {
         expect(result.totalCount).toBe(2);
         expect(result.results).toEqual([mockPurpose1, mockPurpose2]);
       });
-
       it("should get the purposes if they exist (parameters: consumersIds)", async () => {
         const result = await purposeService.getPurposes(
           {
@@ -2166,8 +2172,12 @@ describe("Integration tests", async () => {
           },
           { offset: 0, limit: 50 }
         );
-        expect(result.totalCount).toBe(2);
-        expect(result.results).toEqual([mockPurpose5, mockPurpose6]);
+        expect(result.totalCount).toBe(3);
+        expect(result.results).toEqual([
+          mockPurpose1,
+          mockPurpose5,
+          mockPurpose6,
+        ]);
       });
       it("should get the purposes if they exist (parameters: producersIds)", async () => {
         const result = await purposeService.getPurposes(
@@ -2180,8 +2190,8 @@ describe("Integration tests", async () => {
           },
           { offset: 0, limit: 50 }
         );
-        expect(result.totalCount).toBe(1);
-        expect(result.results).toEqual([mockPurpose4]);
+        expect(result.totalCount).toBe(2);
+        expect(result.results).toEqual([mockPurpose4, mockPurpose6]);
       });
       it("should get the purposes if they exist (parameters: states)", async () => {
         const result = await purposeService.getPurposes(
@@ -2274,6 +2284,52 @@ describe("Integration tests", async () => {
           mockPurpose2,
           mockPurpose3,
         ]);
+      });
+      it("should not get the purposes if they don't exist", async () => {
+        const result = await purposeService.getPurposes(
+          {
+            eservicesIds: [generateId()],
+            consumersIds: [],
+            producersIds: [generateId()],
+            states: [],
+            excludeDraft: undefined,
+          },
+          { offset: 0, limit: 50 }
+        );
+        expect(result.totalCount).toBe(0);
+        expect(result.results).toEqual([]);
+      });
+      it("should get the purposes if they exist (parameters: name, eservicesIds, consumersIds, producersIds, states; exlcudeDraft = true)", async () => {
+        const result = await purposeService.getPurposes(
+          {
+            name: "test",
+            eservicesIds: [mockEService3ByTenant2.id],
+            consumersIds: [consumerId1],
+            producersIds: [producerId2],
+            states: [purposeVersionState.archived],
+            excludeDraft: true,
+          },
+          { offset: 0, limit: 50 }
+        );
+        expect(result.totalCount).toBe(1);
+        expect(result.results).toEqual([
+          { ...mockPurpose6, versions: [mockPurposeVersion6_1] },
+        ]);
+      });
+      it("should get the purposes if they exist (parameters: name, eservicesIds, consumersIds, producersIds, states; exlcudeDraft = false)", async () => {
+        const result = await purposeService.getPurposes(
+          {
+            name: "test",
+            eservicesIds: [mockEService1ByTenant1.id],
+            consumersIds: [consumerId1],
+            producersIds: [producerId1],
+            states: [purposeVersionState.draft],
+            excludeDraft: false,
+          },
+          { offset: 0, limit: 50 }
+        );
+        expect(result.totalCount).toBe(1);
+        expect(result.results).toEqual([mockPurpose1]);
       });
     });
   });
