@@ -175,13 +175,15 @@ export const getMockPurposeVersion = (
   },
   dailyCalls: 10,
   createdAt: new Date(),
-  ...(state !== purposeVersionState.draft ? { updatedAt: new Date() } : {}),
-  firstActivationAt:
-    state !== purposeVersionState.draft ? new Date() : undefined,
+  ...(state !== purposeVersionState.draft
+    ? { updatedAt: new Date(), firstActivationAt: new Date() }
+    : {}),
   ...(state === purposeVersionState.suspended
     ? { suspendedAt: new Date() }
     : {}),
-  rejectionReason: state === purposeVersionState.rejected ? "test" : undefined,
+  ...(state === purposeVersionState.rejected
+    ? { rejectionReason: "test" }
+    : {}),
 });
 
 export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
