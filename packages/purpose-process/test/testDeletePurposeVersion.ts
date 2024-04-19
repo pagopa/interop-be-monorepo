@@ -16,7 +16,6 @@ import {
   toPurposeV2,
   PurposeId,
   PurposeVersionId,
-  PurposeVersion,
 } from "pagopa-interop-models";
 import {
   purposeNotFound,
@@ -167,7 +166,7 @@ export const testDeletePurposeVersion = (): ReturnType<typeof describe> =>
         const mockPurpose: Purpose = {
           ...getMockPurpose(),
           eserviceId: mockEService.id,
-          versions: [getMockPurposeVersion(state)],
+          versions: [mockPurposeVersion],
         };
 
         await addOnePurpose(mockPurpose, postgresDB, purposes);
