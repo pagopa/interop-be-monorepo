@@ -19,6 +19,7 @@ import {
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
   eventStoreSchema,
+  getMockAttribute,
   mongoDBContainer,
   postgreSQLContainer,
   readLastEventByStreamId,
@@ -26,7 +27,6 @@ import {
 import { IDatabase } from "pg-promise";
 import {
   Attribute,
-  AttributeId,
   Descriptor,
   EService,
   Tenant,
@@ -69,7 +69,7 @@ import {
   tenantIsNotACertifier,
   certifiedAttributeOriginIsNotCompliantWithCertifier,
   certifiedAttributeAlreadyAssigned,
-  certifiedAttributeAlreadyRevoked,
+  attributeAlreadyRevoked,
 } from "../src/model/domain/errors.js";
 import {
   ApiSelfcareTenantSeed,
@@ -131,6 +131,7 @@ describe("Integration tests", () => {
   const mockEService = getMockEService();
   const mockDescriptor = getMockDescriptor();
   const mockTenant = getMockTenant();
+  const mockAttribute = getMockAttribute();
   const mockVerifiedBy = getMockVerifiedBy();
   const mockVerifiedTenantAttribute = getMockVerifiedTenantAttribute();
   const mockCertifiedTenantAttribute = getMockCertifiedTenantAttribute();
@@ -833,8 +834,6 @@ describe("Integration tests", () => {
       });
     });
     describe("revokeCertifiedAttribute", async () => {
-      const attributeId: AttributeId = generateId();
-      const correlationId = generateId();
       const requesterTenant: Tenant = {
         ...mockTenant,
         features: [
@@ -843,16 +842,9 @@ describe("Integration tests", () => {
             certifierId: generateId(),
           },
         ],
-        updatedAt: currentDate,
-        name: "A requesterTenant",
       };
       const attribute: Attribute = {
-        name: "an Attribute",
-        id: attributeId,
-        kind: "Certified",
-        description: "an attribute",
-        creationTime: new Date(),
-        code: "123456",
+        ...mockAttribute,
         origin: requesterTenant.features[0].certifierId,
       };
 
@@ -865,7 +857,7 @@ describe("Integration tests", () => {
           attributes: [
             {
               ...mockCertifiedTenantAttribute,
-              id: attributeId,
+              id: attribute.id,
             },
           ],
         };
@@ -875,9 +867,9 @@ describe("Integration tests", () => {
         await addOneTenant(requesterTenant, postgresDB, tenants);
         await tenantService.revokeCertifiedAttributeById(
           tenantWithCertifiedAttribute.id,
-          attributeId,
-          mockAuthData,
-          correlationId
+          attribute.id,
+          mockAuthData.organizationId,
+          generateId()
         );
         const writtenEvent: StoredEvent | undefined =
           await readLastEventByStreamId(
@@ -902,7 +894,7 @@ describe("Integration tests", () => {
           ...tenantWithCertifiedAttribute,
           attributes: [
             {
-              id: attributeId,
+              id: attribute.id,
               type: "PersistentCertifiedAttribute",
               assignmentTimestamp: new Date(
                 Number(
@@ -936,9 +928,9 @@ describe("Integration tests", () => {
         expect(
           tenantService.revokeCertifiedAttributeById(
             targetTenant.id,
-            attributeId,
-            mockAuthData,
-            correlationId
+            attribute.id,
+            mockAuthData.organizationId,
+            generateId()
           )
         ).rejects.toThrowError(tenantNotFound(requesterTenant.id));
       });
@@ -949,17 +941,15 @@ describe("Integration tests", () => {
         expect(
           tenantService.revokeCertifiedAttributeById(
             targetTenant.id,
-            attributeId,
-            mockAuthData,
-            correlationId
+            attribute.id,
+            mockAuthData.organizationId,
+            generateId()
           )
         ).rejects.toThrowError(attributeNotFound(attribute.id));
       });
       it("Should throw tenant is not a certifier", async () => {
         const requesterTenant: Tenant = {
           ...mockTenant,
-          updatedAt: currentDate,
-          name: "A requesterTenant",
         };
         await addOneAttribute(attribute, attributes);
         await addOneTenant(targetTenant, postgresDB, tenants);
@@ -968,9 +958,9 @@ describe("Integration tests", () => {
         expect(
           tenantService.revokeCertifiedAttributeById(
             targetTenant.id,
-            attributeId,
-            mockAuthData,
-            correlationId
+            attribute.id,
+            mockAuthData.organizationId,
+            generateId()
           )
         ).rejects.toThrowError(tenantIsNotACertifier(requesterTenant.id));
       });
@@ -986,9 +976,9 @@ describe("Integration tests", () => {
         expect(
           tenantService.revokeCertifiedAttributeById(
             targetTenant.id,
-            attributeId,
-            mockAuthData,
-            correlationId
+            attribute.id,
+            mockAuthData.organizationId,
+            generateId()
           )
         ).rejects.toThrowError(
           certifiedAttributeOriginIsNotCompliantWithCertifier(
@@ -999,14 +989,13 @@ describe("Integration tests", () => {
           )
         );
       });
-      it("Should throw certifiedAttributeAlreadyRevoked", async () => {
+      it("Should throw attributeAlreadyRevoked", async () => {
         const tenantAlreadyRevoked: Tenant = {
           ...targetTenant,
           attributes: [
             {
+              ...mockCertifiedTenantAttribute,
               id: attribute.id,
-              type: "PersistentCertifiedAttribute",
-              assignmentTimestamp: new Date(),
               revocationTimestamp: new Date(),
             },
           ],
@@ -1017,12 +1006,16 @@ describe("Integration tests", () => {
         expect(
           tenantService.revokeCertifiedAttributeById(
             tenantAlreadyRevoked.id,
-            attributeId,
-            mockAuthData,
-            correlationId
+            attribute.id,
+            mockAuthData.organizationId,
+            generateId()
           )
         ).rejects.toThrowError(
-          certifiedAttributeAlreadyRevoked(attribute.id, requesterTenant.id)
+          attributeAlreadyRevoked(
+            tenantAlreadyRevoked.id,
+            requesterTenant.id,
+            attribute.id
+          )
         );
       });
     });

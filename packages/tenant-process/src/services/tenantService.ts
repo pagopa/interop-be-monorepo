@@ -22,9 +22,9 @@ import {
   ApiSelfcareTenantSeed,
 } from "../model/types.js";
 import {
+  attributeAlreadyRevoked,
   attributeNotFound,
   certifiedAttributeAlreadyAssigned,
-  certifiedAttributeAlreadyRevoked,
   certifiedAttributeOriginIsNotCompliantWithCertifier,
   tenantIsNotACertifier,
 } from "../model/domain/errors.js";
@@ -390,14 +390,12 @@ export function tenantServiceBuilder(
     async revokeCertifiedAttributeById(
       tenantId: TenantId,
       attributeId: AttributeId,
-      authData: AuthData,
+      organizationId: TenantId,
       correlationId: string
     ): Promise<void> {
       logger.info(
         `Revoke certified attribute ${attributeId} to tenantId ${tenantId}`
       );
-      const organizationId = authData.organizationId;
-
       const requesterTenant = await retrieveTenant(
         organizationId,
         readModelService
@@ -412,6 +410,10 @@ export function tenantServiceBuilder(
       }
 
       const attribute = await readModelService.getAttributeById(attributeId);
+
+      if (attribute.kind !== "Certified") {
+        throw attributeNotFound(attributeId);
+      }
 
       if (!attribute.origin || attribute.origin !== certifierId) {
         throw certifiedAttributeOriginIsNotCompliantWithCertifier(
@@ -429,12 +431,6 @@ export function tenantServiceBuilder(
           attr.type === tenantAttributeType.CERTIFIED && attr.id === attributeId
       );
 
-      // eslint-disable-next-line functional/no-let
-      let updatedTenant: Tenant = {
-        ...targetTenant.data,
-        updatedAt: new Date(),
-      };
-
       if (
         !certifiedTenantAttribute ||
         certifiedTenantAttribute.type !== "PersistentCertifiedAttribute"
@@ -443,8 +439,14 @@ export function tenantServiceBuilder(
       }
 
       if (certifiedTenantAttribute.revocationTimestamp) {
-        throw certifiedAttributeAlreadyRevoked(attributeId, organizationId);
+        throw attributeAlreadyRevoked(tenantId, organizationId, attributeId);
       }
+
+      // eslint-disable-next-line functional/no-let
+      let updatedTenant: Tenant = {
+        ...targetTenant.data,
+        updatedAt: new Date(),
+      };
 
       updatedTenant = updateAttribute(
         {

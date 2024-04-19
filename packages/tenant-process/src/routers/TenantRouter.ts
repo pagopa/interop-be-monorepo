@@ -424,7 +424,7 @@ const tenantsRouter = (
           await tenantService.revokeCertifiedAttributeById(
             unsafeBrandId(tenantId),
             unsafeBrandId(attributeId),
-            req.ctx.authData,
+            req.ctx.authData.organizationId,
             req.ctx.correlationId
           );
           return res.status(204).end();
