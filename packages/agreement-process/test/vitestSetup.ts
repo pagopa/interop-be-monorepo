@@ -11,15 +11,7 @@ import {
   FileManager,
   TenantCollection,
 } from "pagopa-interop-commons";
-import {
-  postgreSQLContainer,
-  mongoDBContainer,
-  minioContainer,
-  TEST_POSTGRES_DB_PORT,
-  TEST_MONGO_DB_PORT,
-  TEST_MINIO_PORT,
-} from "pagopa-interop-commons-test/index.js";
-import { beforeAll, afterEach, afterAll } from "vitest";
+import { beforeAll, afterEach, inject } from "vitest";
 import { IDatabase } from "pg-promise";
 import { StartedTestContainer } from "testcontainers";
 import {
@@ -34,7 +26,7 @@ import {
   readModelServiceBuilder,
 } from "../src/services/readmodel/readModelService.js";
 import { tenantQueryBuilder } from "../src/services/readmodel/tenantQuery.js";
-import { config } from "../src/utilities/config.js";
+import type { AgreementProcessConfig } from "../src/utilities/config.js";
 
 export let agreements: AgreementCollection;
 export let eservices: EServiceCollection;
@@ -46,20 +38,16 @@ export let startedPostgreSqlContainer: StartedTestContainer;
 export let startedMongodbContainer: StartedTestContainer;
 export let startedMinioContainer: StartedTestContainer;
 export let fileManager: FileManager;
+
+declare module "vitest" {
+  export interface ProvidedContext {
+    config: AgreementProcessConfig;
+  }
+}
+const config = inject("config");
 const s3OriginalBucket = config.s3Bucket;
 
 beforeAll(async () => {
-  startedPostgreSqlContainer = await postgreSQLContainer(config).start();
-  startedMongodbContainer = await mongoDBContainer(config).start();
-  startedMinioContainer = await minioContainer(config).start();
-
-  config.eventStoreDbPort = startedPostgreSqlContainer.getMappedPort(
-    TEST_POSTGRES_DB_PORT
-  );
-  config.readModelDbPort =
-    startedMongodbContainer.getMappedPort(TEST_MONGO_DB_PORT);
-  config.s3ServerPort = startedMinioContainer.getMappedPort(TEST_MINIO_PORT);
-
   const readModelRepository = ReadModelRepository.init(config);
   agreements = readModelRepository.agreements;
   eservices = readModelRepository.eservices;
@@ -106,10 +94,4 @@ afterEach(async () => {
 
   // Some tests change the bucket name, so we need to reset it
   config.s3Bucket = s3OriginalBucket;
-});
-
-afterAll(async () => {
-  await startedPostgreSqlContainer.stop();
-  await startedMongodbContainer.stop();
-  await startedMinioContainer.stop();
 });
