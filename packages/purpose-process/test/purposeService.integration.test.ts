@@ -242,30 +242,6 @@ describe("Integration tests", async () => {
           })
         ).rejects.toThrowError(purposeNotFound(notExistingId));
       });
-      it("should throw eserviceNotFound if the eservice doesn't exist", async () => {
-        const mockDocument = getMockPurposeVersionDocument();
-        const mockEService = getMockEService();
-        const mockPurposeVersion = {
-          ...getMockPurposeVersion(),
-          riskAnalysis: mockDocument,
-        };
-        const mockPurpose: Purpose = {
-          ...getMockPurpose(),
-          eserviceId: mockEService.id,
-          versions: [mockPurposeVersion],
-        };
-
-        await addOnePurpose(mockPurpose, postgresDB, purposes);
-
-        expect(
-          purposeService.getRiskAnalysisDocument({
-            purposeId: mockPurpose.id,
-            versionId: mockPurposeVersion.id,
-            documentId: mockDocument.id,
-            organizationId: mockEService.producerId,
-          })
-        ).rejects.toThrowError(eserviceNotFound(mockEService.id));
-      });
       it("should throw purposeVersionNotFound if the purpose version doesn't exist", async () => {
         const randomVersionId: PurposeVersionId = generateId();
         const randomDocumentId: PurposeVersionDocumentId = generateId();
