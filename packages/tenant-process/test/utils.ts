@@ -24,6 +24,7 @@ import {
   tenantAttributeType,
   tenantEventToBinaryData,
   toReadModelEService,
+  toReadModelTenant,
 } from "pagopa-interop-models";
 import { IDatabase } from "pg-promise";
 import {
@@ -193,7 +194,7 @@ export const addOneTenant = async (
   tenants: TenantCollection
 ): Promise<void> => {
   await writeTenantInEventstore(tenant, postgresDB);
-  await writeInReadmodel(tenant, tenants);
+  await writeInReadmodel(toReadModelTenant(tenant), tenants);
 };
 
 export const readLastTenantEvent = async (

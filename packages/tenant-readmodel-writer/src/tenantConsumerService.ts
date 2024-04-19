@@ -3,7 +3,11 @@ import {
   ReadModelRepository,
   readModelWriterConfig,
 } from "pagopa-interop-commons";
-import { TenantEventEnvelopeV1, fromTenantV1 } from "pagopa-interop-models";
+import {
+  TenantEventEnvelopeV1,
+  fromTenantV1,
+  toReadModelTenant,
+} from "pagopa-interop-models";
 
 const { tenants } = ReadModelRepository.init(readModelWriterConfig());
 
@@ -18,7 +22,9 @@ export async function handleMessage(
         },
         {
           $setOnInsert: {
-            data: msg.data.tenant ? fromTenantV1(msg.data.tenant) : undefined,
+            data: msg.data.tenant
+              ? toReadModelTenant(fromTenantV1(msg.data.tenant))
+              : undefined,
             metadata: {
               version: msg.version,
             },
@@ -43,7 +49,9 @@ export async function handleMessage(
           },
           {
             $set: {
-              data: msg.data.tenant ? fromTenantV1(msg.data.tenant) : undefined,
+              data: msg.data.tenant
+                ? toReadModelTenant(fromTenantV1(msg.data.tenant))
+                : undefined,
               metadata: {
                 version: msg.version,
               },
@@ -87,7 +95,9 @@ export async function handleMessage(
         },
         {
           $set: {
-            data: msg.data.tenant ? fromTenantV1(msg.data.tenant) : undefined,
+            data: msg.data.tenant
+              ? toReadModelTenant(fromTenantV1(msg.data.tenant))
+              : undefined,
             metadata: {
               version: msg.version,
             },

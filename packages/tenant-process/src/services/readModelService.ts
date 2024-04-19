@@ -18,6 +18,7 @@ import {
   EServiceId,
   attributeKind,
   AttributeReadmodel,
+  TenantReadModel,
 } from "pagopa-interop-models";
 import { z } from "zod";
 import { Document, Filter, WithId } from "mongodb";
@@ -27,7 +28,7 @@ import { CertifiedAttributeQueryResult } from "../model/domain/models.js";
 
 function listTenantsFilters(
   name: string | undefined
-): Filter<{ data: Tenant }> {
+): Filter<{ data: TenantReadModel }> {
   const nameFilter = name
     ? {
         "data.name": {
@@ -57,7 +58,7 @@ export const getTenants = async ({
   allowDiskUse = false,
 }: {
   tenants: TenantCollection;
-  aggregationPipeline: Array<Filter<Tenant>>;
+  aggregationPipeline: Array<Filter<TenantReadModel>>;
   offset: number;
   limit: number;
   allowDiskUse?: boolean;
@@ -116,7 +117,7 @@ async function getAttribute(
 
 async function getTenant(
   tenants: TenantCollection,
-  filter: Filter<WithId<WithMetadata<Tenant>>>
+  filter: Filter<WithId<WithMetadata<TenantReadModel>>>
 ): Promise<WithMetadata<Tenant> | undefined> {
   const data = await tenants.findOne(filter, {
     projection: { data: true, metadata: true },
