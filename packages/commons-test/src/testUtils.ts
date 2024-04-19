@@ -175,10 +175,12 @@ export const getMockPurposeVersion = (
   },
   dailyCalls: 10,
   createdAt: new Date(),
-  updatedAt: state !== purposeVersionState.draft ? new Date() : undefined,
+  ...(state !== purposeVersionState.draft ? { updatedAt: new Date() } : {}),
   firstActivationAt:
     state !== purposeVersionState.draft ? new Date() : undefined,
-  suspendedAt: state === purposeVersionState.suspended ? new Date() : undefined,
+  ...(state === purposeVersionState.suspended
+    ? { suspendedAt: new Date() }
+    : {}),
   rejectionReason: state === purposeVersionState.rejected ? "test" : undefined,
 });
 
