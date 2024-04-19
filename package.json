@@ -16,6 +16,7 @@
     "start:auth-updater": "turbo start --filter pagopa-interop-authorization-updater",
     "start:notifier-seeder": "turbo start --filter pagopa-interop-notifier-seeder",
     "start:purpose": "turbo start --filter pagopa-interop-purpose-process",
+    "start:purpose-readmodel-writer": "turbo start --filter pagopa-interop-purpose-readmodel-writer",
     "test": "turbo test",
     "build": "turbo build",
     "lint": "turbo lint",
