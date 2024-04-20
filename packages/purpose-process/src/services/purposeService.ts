@@ -25,10 +25,12 @@ import {
   PurposeEvent,
   EServiceMode,
   ListResult,
+  PurposeSeed,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
   eserviceNotFound,
+  missingFreeOfChargeReason,
   notValidVersionState,
   organizationIsNotTheConsumer,
   organizationIsNotTheProducer,
@@ -37,6 +39,7 @@ import {
   purposeVersionCannotBeDeleted,
   purposeVersionDocumentNotFound,
   purposeVersionNotFound,
+  tenantKindNotFound,
   tenantNotFound,
 } from "../model/domain/errors.js";
 import {
@@ -54,7 +57,7 @@ import {
   ApiReversePurposeUpdateContent,
   ApiGetPurposesFilters,
 } from "../model/domain/models.js";
-import { ReadModelService } from "./readModelService.js";
+import { AgreementQueryFilters, ReadModelService } from "./readModelService.js";
 import {
   assertOrganizationIsAConsumer,
   assertEserviceHasSpecificMode,
@@ -521,6 +524,33 @@ export function purposeServiceBuilder(
         results: purposesToReturn,
         totalCount: purposesList.totalCount,
       };
+    },
+    async createPurpose(
+      purposeSeed: PurposeSeed,
+      organizationId: TenantId
+    ): Promise<void> {
+      logger.info(
+        `Creating Purpose for EService ${purposeSeed.eserviceId} and Consumer ${purposeSeed.consumerId}`
+      );
+      assertOrganizationIsAConsumer(organizationId, purposeSeed.consumerId);
+
+      if (purposeSeed.isFreeOfCharge && !purposeSeed.freeOfChargeReason) {
+        throw missingFreeOfChargeReason();
+      }
+      const tenant = await retrieveTenant(organizationId, readModelService);
+
+      if (!tenant.kind) {
+        throw tenantKindNotFound(tenant.id);
+      }
+
+      const clientSeed;
+
+      const filters: AgreementQueryFilters;
+
+      const agreementsx = await readModelService.getAllAgreements(
+        agreements,
+        filters
+      );
     },
   };
 }
