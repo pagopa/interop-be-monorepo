@@ -13,7 +13,6 @@ import {
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import {
-  StoredEvent,
   getMockAgreement,
   getRandomAuthData,
   randomArrayItem,
