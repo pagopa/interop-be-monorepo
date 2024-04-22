@@ -33,6 +33,7 @@ import { testGetRiskAnalysisDocument } from "./testGetRiskAnalysisDocument.js";
 import { testDeletePurposeVersion } from "./testDeletePurposeVersion.js";
 import { testRejectPurposeVersion } from "./testRejectPurposeVersion.js";
 import { testUpdatePurpose } from "./testUpdatePurpose.js";
+import { testDeletePurpose } from "./testDeletePurpose.js";
 import { testArchivePurposeVersion } from "./testArchivePurposeVersion.js";
 
 export let purposes: PurposeCollection;
@@ -91,6 +92,7 @@ describe("Integration tests", async () => {
     testDeletePurposeVersion();
     testRejectPurposeVersion();
     testUpdatePurpose();
+    testDeletePurpose();
     testArchivePurposeVersion();
   });
 });
