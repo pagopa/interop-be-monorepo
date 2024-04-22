@@ -60,8 +60,10 @@ export const testArchiveAgreement = (): ReturnType<typeof describe> =>
         fail("Unhandled error: returned agreementId is undefined");
       }
 
-      const actualAgreementData: StoredEvent | undefined =
-        await readLastAgreementEvent(agreementId, postgresDB);
+      const actualAgreementData = await readLastAgreementEvent(
+        agreementId,
+        postgresDB
+      );
 
       if (!actualAgreementData) {
         fail("Creation fails: agreement not found in event-store");
@@ -70,7 +72,7 @@ export const testArchiveAgreement = (): ReturnType<typeof describe> =>
       expect(actualAgreementData).toMatchObject({
         type: "AgreementUpdated",
         event_version: 1,
-        version: "0",
+        version: "1",
         stream_id: agreementId,
       });
 
