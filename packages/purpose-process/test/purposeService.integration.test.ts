@@ -19,29 +19,6 @@ import {
   postgreSQLContainer,
 } from "pagopa-interop-commons-test";
 import { StartedTestContainer } from "testcontainers";
-import {
-  DraftPurposeDeletedV2,
-  DraftPurposeUpdatedV2,
-  EService,
-  EServiceId,
-  Purpose,
-  PurposeId,
-  PurposeVersion,
-  PurposeVersionDocumentId,
-  PurposeVersionId,
-  PurposeVersionRejectedV2,
-  RiskAnalysis,
-  Tenant,
-  TenantId,
-  WaitingForApprovalPurposeDeletedV2,
-  WaitingForApprovalPurposeVersionDeletedV2,
-  generateId,
-  purposeVersionState,
-  tenantKind,
-  toPurposeV2,
-  toReadModelEService,
-  unsafeBrandId,
-} from "pagopa-interop-models";
 import { config } from "../src/utilities/config.js";
 import {
   PurposeService,
@@ -56,6 +33,7 @@ import { testGetRiskAnalysisDocument } from "./testGetRiskAnalysisDocument.js";
 import { testDeletePurposeVersion } from "./testDeletePurposeVersion.js";
 import { testRejectPurposeVersion } from "./testRejectPurposeVersion.js";
 import { testUpdatePurpose } from "./testUpdatePurpose.js";
+import { testDeletePurpose } from "./testDeletePurpose.js";
 
 export let purposes: PurposeCollection;
 export let eservices: EServiceCollection;
@@ -113,5 +91,6 @@ describe("Integration tests", async () => {
     testDeletePurposeVersion();
     testRejectPurposeVersion();
     testUpdatePurpose();
+    testDeletePurpose();
   });
 });
