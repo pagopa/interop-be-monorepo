@@ -16,9 +16,12 @@ export const eventV2TypeMapper = (
     )
     .with("EServiceDeleted", () => "catalog_item_deleted")
     .with("EServiceCloned", () => "cloned_catalog_item_added")
-    .with("EServiceDescriptorAdded", () => "catalog_item_descriptor_added")
     .with(
-      "EServiceDraftDescriptorUpdated",
+      "EServiceDescriptorAdded",
+      "EServiceDraftDescriptorUpdated", // Avoid generating notification
+      () => "catalog_item_descriptor_added"
+    )
+    .with(
       "EServiceDescriptorQuotasUpdated",
       "EServiceDescriptorActivated",
       "EServiceDescriptorArchived",
