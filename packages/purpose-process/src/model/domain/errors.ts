@@ -28,6 +28,8 @@ export const errorCodes = {
   purposeNotInDraftState: "0014",
   notValidVersionState: "0015",
   purposeCannotBeDeleted: "0016",
+  agreementNotFound: "0017",
+  duplicatedPurposeName: "0018",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -177,6 +179,25 @@ export function notValidVersionState(
     detail: `Purpose version ${purposeVersionId} has a not valid state for this operation: ${versionState}`,
     code: "notValidVersionState",
     title: "Not valid purpose version state",
+  });
+}
+
+export function agreementNotFound(
+  eserviceId: EServiceId,
+  consumerId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No Agreement found for EService ${eserviceId} and Consumer ${consumerId}`,
+    code: "agreementNotFound",
+    title: "Agreement Not Found",
+  });
+}
+
+export function duplicatedPurposeName(title: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose with name: ${title} already in use`,
+    code: "duplicatedPurposeName",
+    title: "Duplicated Purpose Name",
   });
 }
 
