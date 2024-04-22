@@ -585,6 +585,9 @@ importers:
       zod:
         specifier: 3.21.4
         version: 3.21.4
+      zod-validation-error:
+        specifier: ^3.1.0
+        version: 3.1.0(zod@3.21.4)
     devDependencies:
       '@types/express':
         specifier: 4.17.17
@@ -8958,6 +8961,15 @@ packages:
       compress-commons: 4.1.2
       readable-stream: 3.6.2
     dev: true
+
+  /zod-validation-error@3.1.0(zod@3.21.4):
+    resolution: {integrity: sha512-zujS6HqJjMZCsvjfbnRs7WI3PXN39ovTcY1n8a+KTm4kOH0ZXYsNiJkH1odZf4xZKMkBDL7M2rmQ913FCS1p9w==}
+    engines: {node: '>=18.0.0'}
+    peerDependencies:
+      zod: ^3.18.0
+    dependencies:
+      zod: 3.21.4
+    dev: false
 
   /zod@3.21.4:
     resolution: {integrity: sha512-m46AKbrzKVzOzs/DZgVnG5H55N1sv1M8qZU3A8RIKbs3mrACDNeIOeilDymVb2HdmP8uwshOCF4uJ8uM9rCqJw==}
