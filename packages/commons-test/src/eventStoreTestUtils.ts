@@ -9,12 +9,14 @@ import {
   EServiceId,
   EventStoreSchema,
   PurposeEvent,
+  PurposeId,
   TenantEvent,
   TenantId,
   agreementEventToBinaryData,
   attributeEventToBinaryData,
   catalogEventToBinaryData,
   protobufDecoder,
+  purposeEventToBinaryData,
   tenantEventToBinaryData,
 } from "pagopa-interop-models";
 import { Event } from "pagopa-interop-commons";
@@ -69,9 +71,9 @@ export async function writeInEventstore<T extends EventStoreSchema>(
         .with("tenant", () =>
           tenantEventToBinaryData(event.event as TenantEvent)
         )
-        .with("purpose", () => {
-          throw new Error("Purpose events not implemented yet");
-        })
+        .with("purpose", () =>
+          purposeEventToBinaryData(event.event as PurposeEvent)
+        )
         .exhaustive(),
     ]
   );
@@ -87,7 +89,7 @@ export async function readLastEventByStreamId<T extends EventStoreSchema>(
     : T extends "tenant"
     ? TenantId
     : T extends "purpose"
-    ? never // Purpose events not implemented yet
+    ? PurposeId
     : never,
   schema: T,
   postgresDB: IDatabase<unknown>
@@ -102,7 +104,7 @@ export async function readLastEventByStreamId<T extends EventStoreSchema>(
       : T extends "tenant"
       ? TenantEvent
       : T extends "purpose"
-      ? never // Purpose events not implemented yet
+      ? PurposeEvent
       : never
   >
 > {
