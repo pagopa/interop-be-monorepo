@@ -52,13 +52,20 @@ export const verifyJwtToken = (jwtToken: string): Promise<boolean> => {
     })
   );
   return new Promise((resolve, _reject) => {
-    jwt.verify(jwtToken, getKey(clients), undefined, function (err, _decoded) {
-      if (err) {
-        genericLogger.warn(`Error verifying token: ${err}`);
-        return resolve(false);
+    jwt.verify(
+      jwtToken,
+      getKey(clients),
+      {
+        audience: config.acceptedAudiences,
+      },
+      function (err, _decoded) {
+        if (err) {
+          genericLogger.warn(`Error verifying token: ${err}`);
+          return resolve(false);
+        }
+        return resolve(true);
       }
-      return resolve(true);
-    });
+    );
   });
 };
 

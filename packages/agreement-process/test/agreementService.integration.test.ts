@@ -99,6 +99,7 @@ import {
   addOneTenant,
   readLastAgreementEvent,
 } from "./utils.js";
+import { testArchiveAgreement } from "./testArchiveAgreement.js";
 import { testDeleteAgreement } from "./testDeleteAgreement.js";
 import { testAgreementConsumerDocuments } from "./testAgreementConsumerDocuments.js";
 
@@ -1830,7 +1831,9 @@ describe("Agreement service", () => {
       });
     });
   });
+
   testAgreementConsumerDocuments();
   testDeleteAgreement();
   testUpdateAgreement();
+  testArchiveAgreement();
 });
