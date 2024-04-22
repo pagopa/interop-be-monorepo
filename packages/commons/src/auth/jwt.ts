@@ -62,7 +62,7 @@ export const verifyJwtToken = (jwtToken: string): Promise<void> => {
       },
       function (err, _decoded) {
         if (err) {
-          logger.warn(`Token verification fails: ${err}`);
+          logger.warn(`Token verification failed: ${err}`);
           reject(unauthorizedError("Invalid jwt token"));
         }
         return resolve();

@@ -253,7 +253,7 @@ export function invalidClaim(error: unknown): ApiError<CommonErrorCodes> {
 
 export function jwtParsingError(error: unknown): ApiError<CommonErrorCodes> {
   return new ApiError({
-    detail: `Unexpected error JWT token parsing: ${parseErrorMessage(error)}`,
+    detail: `Unexpected error on JWT parsing: ${parseErrorMessage(error)}`,
     code: "jwtParsingError",
     title: "JWT parsing error",
   });
