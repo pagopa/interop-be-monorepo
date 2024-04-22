@@ -90,3 +90,15 @@ export const suspendedPurposeVersionErrorMapper = (
     .with("organizationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .with("notValidVersionState", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const createPurposeVersionErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("unchangedDailyCalls", () => HTTP_STATUS_BAD_REQUEST)
+    .with("organizationIsNotTheConsumer", () => HTTP_STATUS_FORBIDDEN)
+    .with("organizationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("descriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
