@@ -11,6 +11,7 @@ import {
   ApiError,
   unauthorizedError,
   CommonErrorCodes,
+  missingBearer,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { z } from "zod";
@@ -34,7 +35,7 @@ const hasValidRoles = (
 ): RoleValidation => {
   const jwtToken = req.headers.authorization?.split(" ")[1];
   if (!jwtToken) {
-    throw unauthorizedError("The jwt token not found");
+    throw missingBearer;
   }
   const authData = readAuthDataFromJwtToken(jwtToken);
 
