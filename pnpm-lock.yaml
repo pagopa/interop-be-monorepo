@@ -940,6 +940,92 @@ importers:
         specifier: 0.33.0
         version: 0.33.0
 
+  packages/purpose-readmodel-writer:
+    dependencies:
+      '@protobuf-ts/runtime':
+        specifier: 2.9.4
+        version: 2.9.4
+      dotenv-flow:
+        specifier: 3.2.0
+        version: 3.2.0
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
+      kafkajs:
+        specifier: 2.2.4
+        version: 2.2.4
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      ts-pattern:
+        specifier: 5.0.1
+        version: 5.0.1
+      uuid:
+        specifier: 9.0.0
+        version: 9.0.0
+      zod:
+        specifier: 3.21.4
+        version: 3.21.4
+    devDependencies:
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(typescript@5.1.3)
+      '@types/dotenv-flow':
+        specifier: 3.2.0
+        version: 3.2.0
+      '@types/node':
+        specifier: 20.3.1
+        version: 20.3.1
+      '@types/uuid':
+        specifier: 9.0.2
+        version: 9.0.2
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      testcontainers:
+        specifier: 10.8.1
+        version: 10.8.1
+      ts-node:
+        specifier: 10.9.2
+        version: 10.9.2(@types/node@20.3.1)(typescript@5.1.3)
+      typescript:
+        specifier: 5.1.3
+        version: 5.1.3
+      vitest:
+        specifier: 0.33.0
+        version: 0.33.0
+
+  packages/selfcare-v2-client:
+    dependencies:
+      '@zodios/core':
+        specifier: 10.9.6
+        version: 10.9.6(axios@1.4.0)(zod@3.21.4)
+      zod:
+        specifier: 3.21.4
+        version: 3.21.4
+    devDependencies:
+      '@types/node':
+        specifier: 20.3.1
+        version: 20.3.1
+      eslint:
+        specifier: 8.44.0
+        version: 8.44.0
+      openapi-zod-client:
+        specifier: 1.15.1
+        version: 1.15.1
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      typescript:
+        specifier: 5.1.3
+        version: 5.1.3
+
   packages/tenant-process:
     dependencies:
       '@types/uuid':
@@ -4651,6 +4737,10 @@ packages:
   /@types/triple-beam@1.3.2:
     resolution: {integrity: sha512-txGIh+0eDFzKGC25zORnswy+br1Ha7hj5cMVwKIU7+s0U2AxxJru/jZSMU6OC9MJWP6+pc/hc6ZjyZShpsyY2g==}
     dev: false
+
+  /@types/uuid@9.0.2:
+    resolution: {integrity: sha512-kNnC1GFBLuhImSnV7w4njQkUiJi0ZXUycu1rUaouPqiKlXkh77JKgdRnTAp1x5eBwcIwbtI+3otwzuIDEuDoxQ==}
+    dev: true
 
   /@types/uuid@9.0.8:
     resolution: {integrity: sha512-jg+97EGIcY9AGHJJRaaPVgetKDsrTgbRjQ5Msgjh/DQKEFl0DtyRr/VCOyD1T2R1MNeWPK/u7JoGhlDZnKBAfA==}
@@ -8580,6 +8670,11 @@ packages:
 
   /uuid@8.3.2:
     resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
+    hasBin: true
+    dev: false
+
+  /uuid@9.0.0:
+    resolution: {integrity: sha512-MXcSTerfPa4uqyzStbRoTgt5XIe3x5+42+q1sDuy3R5MDk66URdLMOZe5aPX/SQd+kuYAh0FdP/pO28IkQyTeg==}
     hasBin: true
     dev: false
 
