@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/no-let */
 /* eslint-disable functional/immutable-data */
 
@@ -9,7 +10,6 @@ import {
 } from "pagopa-interop-commons";
 import { TestContainersConfig } from "./containerTestUtils.js";
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function setupTestContainersVitest(config: TestContainersConfig) {
   const s3OriginalBucket = config.s3Bucket;
 
@@ -43,7 +43,10 @@ export function setupTestContainersVitest(config: TestContainersConfig) {
       await readModelRepository.attributes.deleteMany({});
 
       await postgresDB.none("TRUNCATE TABLE agreement.events RESTART IDENTITY");
+      await postgresDB.none("TRUNCATE TABLE attribute.events RESTART IDENTITY");
       await postgresDB.none("TRUNCATE TABLE catalog.events RESTART IDENTITY");
+      await postgresDB.none("TRUNCATE TABLE tenant.events RESTART IDENTITY");
+      await postgresDB.none("TRUNCATE TABLE purpose.events RESTART IDENTITY");
 
       // Some tests change the bucket name, so we need to reset it
       config.s3Bucket = s3OriginalBucket;
