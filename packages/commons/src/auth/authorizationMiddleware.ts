@@ -1,10 +1,4 @@
 import {
-  ZodiosPathsByMethod,
-  ZodiosEndpointDefinition,
-  Method,
-} from "@zodios/core";
-import { Request } from "express";
-import {
   Problem,
   makeApiProblemBuilder,
   genericError,
@@ -13,9 +7,8 @@ import {
   CommonErrorCodes,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
-import { z } from "zod";
-import { Middleware } from "../types/middleware.js";
-import { UserRole, readHeaders } from "../index.js";
+import { ZodiosRouterContextRequestHandler } from "@zodios/express";
+import { ExpressContext, UserRole, readHeaders } from "../index.js";
 import { logger } from "../logging/index.js";
 import { readAuthDataFromJwtToken } from "./jwt.js";
 
@@ -26,17 +19,11 @@ type RoleValidation =
     }
   | { isValid: true };
 
-const makeApiProblem = makeApiProblemBuilder(logger, {});
-
 const hasValidRoles = (
-  req: Request,
+  token: string,
   admittedRoles: UserRole[]
 ): RoleValidation => {
-  const jwtToken = req.headers.authorization?.split(" ")[1];
-  if (!jwtToken) {
-    throw unauthorizedError("The jwt token not found");
-  }
-  const authData = readAuthDataFromJwtToken(jwtToken);
+  const authData = readAuthDataFromJwtToken(token);
 
   if (authData instanceof Error) {
     return {
@@ -72,26 +59,23 @@ const hasValidRoles = (
       };
 };
 
-export const authorizationMiddleware =
-  <
-    Api extends ZodiosEndpointDefinition[],
-    M extends Method,
-    Path extends ZodiosPathsByMethod<Api, M>,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Context extends z.ZodObject<any>
-  >(
-    admittedRoles: UserRole[]
-  ): Middleware<Api, M, Path, Context> =>
-  (req, res, next) => {
+export const authorizationMiddleware: (
+  admittedRoles: UserRole[]
+) => ZodiosRouterContextRequestHandler<ExpressContext> = (admittedRoles) => {
+  const authorizationMiddleware: ZodiosRouterContextRequestHandler<
+    ExpressContext
+  > = async (req, res, next): Promise<unknown> => {
+    const makeApiProblem = makeApiProblemBuilder(logger, {});
+    const { token, correlationId } = readHeaders(req); // after authenticationMiddleware, headers are guaranteed to be present
     try {
-      const validationResult = hasValidRoles(req as Request, admittedRoles);
+      const validationResult = hasValidRoles(token, admittedRoles);
       if (!validationResult.isValid) {
         throw validationResult.error;
       }
 
       return next();
     } catch (err) {
-      const headers = readHeaders(req as Request);
+      // TODO base this part on https://github.com/pagopa/interop-be-monorepo/pull/42
       const problem = match<unknown, Problem>(err)
         .with(P.instanceOf(ApiError), (error) =>
           makeApiProblem(
@@ -99,7 +83,7 @@ export const authorizationMiddleware =
               code: error.code,
               detail: error.detail,
               title: error.title,
-              correlationId: headers?.correlationId,
+              correlationId,
             }),
             (error) => (error.code === "unauthorizedError" ? 403 : 500)
           )
@@ -124,3 +108,6 @@ export const authorizationMiddleware =
       );
     }
   };
+
+  return authorizationMiddleware;
+};
