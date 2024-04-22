@@ -7,6 +7,7 @@ import {
   authorizationMiddleware,
   ReadModelRepository,
   initDB,
+  initFileManager,
 } from "pagopa-interop-commons";
 import { EServiceId, TenantId, unsafeBrandId } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
@@ -22,6 +23,7 @@ import { purposeServiceBuilder } from "../services/purposeService.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
   archivePurposeVersionErrorMapper,
+  createPurposeVersionErrorMapper,
   deletePurposeErrorMapper,
   deletePurposeVersionErrorMapper,
   getPurposeErrorMapper,
@@ -34,6 +36,7 @@ import {
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
 );
+const fileManager = initFileManager(config);
 
 const purposeService = purposeServiceBuilder(
   initDB({
@@ -45,7 +48,8 @@ const purposeService = purposeServiceBuilder(
     schema: config.eventStoreDbSchema,
     useSSL: config.eventStoreDbUseSSL,
   }),
-  readModelService
+  readModelService,
+  fileManager
 );
 
 const purposeRouter = (
@@ -150,11 +154,11 @@ const purposeRouter = (
       ]),
       async (req, res) => {
         try {
-          const { purpose, isRiskAnalysisValid } = async;
-          await purposeService.getPurposeById(
-            unsafeBrandId(req.params.id),
-            req.ctx.authData.organizationId
-          );
+          const { purpose, isRiskAnalysisValid } =
+            await purposeService.getPurposeById(
+              unsafeBrandId(req.params.id),
+              req.ctx.authData.organizationId
+            );
           return res
             .status(200)
             .json(purposeToApiPurpose(purpose, isRiskAnalysisValid))
@@ -208,21 +212,24 @@ const purposeRouter = (
       "/purposes/:purposeId/versions",
       authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
-        // try {
-        //   await purposeService.deletePurposeVersion({
-        //     purposeId: unsafeBrandId(req.params.purposeId),
-        //     versionId: unsafeBrandId(req.params.versionId),
-        //     organizationId: req.ctx.authData.organizationId,
-        //     correlationId: req.ctx.correlationId,
-        //   });
-        //   return res.status(204).end();
-        // } catch (error) {
-        //   const errorRes = makeApiProblem(
-        //     error,
-        //     deletePurposeVersionErrorMapper
-        //   );
-        //   return res.status(errorRes.status).json(errorRes).end();
-        // }
+        try {
+          const purposeVersion = await purposeService.createPurposeVersion({
+            purposeId: unsafeBrandId(req.params.purposeId),
+            seed: req.body,
+            organizationId: req.ctx.authData.organizationId,
+            correlationId: req.ctx.correlationId,
+          });
+          return res
+            .status(200)
+            .json(purposeVersionToApiPurposeVersion(purposeVersion))
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            createPurposeVersionErrorMapper
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
       }
     )
     .delete(

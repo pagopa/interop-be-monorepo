@@ -551,7 +551,7 @@ export function purposeServiceBuilder(
       seed: ApiPurposeVersionSeed;
       organizationId: TenantId;
       correlationId: string;
-    }): Promise<void> {
+    }): Promise<PurposeVersion> {
       const purpose = await retrievePurpose(purposeId, readModelService);
       assertOrganizationIsAConsumer(organizationId, purpose.data.consumerId);
       assertDailyCallsIsDifferentThanBefore(purpose.data, seed.dailyCalls);
@@ -574,15 +574,16 @@ export function purposeServiceBuilder(
         id: generateId<PurposeVersionId>(),
       };
 
-      await activateOrWaitingForApproval({
+      return await activateOrWaitingForApproval({
         eservice,
         purpose,
         purposeVersion: newPurposeVersion,
         organizationId,
         ownership,
-        readModelService,
         correlationId,
+        readModelService,
         storeFile: fileManager.storeBytes,
+        repository,
       });
     },
   };
@@ -750,6 +751,7 @@ async function activateOrWaitingForApproval({
   readModelService,
   correlationId,
   storeFile,
+  repository,
 }: {
   eservice: EService;
   purpose: WithMetadata<Purpose>;
@@ -759,8 +761,14 @@ async function activateOrWaitingForApproval({
   readModelService: ReadModelService;
   correlationId: string;
   storeFile: FileManager["storeBytes"];
-}): Promise<void> {
-  function changeToWaitForApproval(): unknown {
+  repository: {
+    createEvent: (createEvent: CreateEvent<PurposeEvent>) => Promise<string>;
+  };
+}): Promise<PurposeVersion> {
+  function changeToWaitForApproval(): {
+    event: CreateEvent<PurposeEvent>;
+    updatedPurposeVersion: PurposeVersion;
+  } {
     const updatedPurposeVersion: PurposeVersion = {
       ...purposeVersion,
       state: purposeVersionState.waitingForApproval,
@@ -772,14 +780,20 @@ async function activateOrWaitingForApproval({
       updatedPurposeVersion
     );
 
-    return toCreateEventPurposeWaitingForApproval({
-      purpose: updatedPurpose,
-      version: purpose.metadata.version,
-      correlationId,
-    });
+    return {
+      event: toCreateEventPurposeWaitingForApproval({
+        purpose: updatedPurpose,
+        version: purpose.metadata.version,
+        correlationId,
+      }),
+      updatedPurposeVersion,
+    };
   }
 
-  function createWaitForApproval(): unknown {
+  function createWaitForApproval(): {
+    event: CreateEvent<PurposeEvent>;
+    updatedPurposeVersion: PurposeVersion;
+  } {
     const newPurposeVersion: PurposeVersion = {
       ...purposeVersion,
       createdAt: new Date(),
@@ -793,15 +807,21 @@ async function activateOrWaitingForApproval({
       updatedAt: new Date(),
     };
 
-    return toCreateEventPurposeVersionOverQuotaUnsuspended({
-      purpose: updatedPurpose,
-      versionId: newPurposeVersion.id,
-      version: purpose.metadata.version,
-      correlationId,
-    });
+    return {
+      event: toCreateEventPurposeVersionOverQuotaUnsuspended({
+        purpose: updatedPurpose,
+        versionId: newPurposeVersion.id,
+        version: purpose.metadata.version,
+        correlationId,
+      }),
+      updatedPurposeVersion: newPurposeVersion,
+    };
   }
 
-  async function firstVersionActivation(): Promise<unknown> {
+  async function firstVersionActivation(): Promise<{
+    event: CreateEvent<PurposeEvent>;
+    updatedPurposeVersion: PurposeVersion;
+  }> {
     const documentId = generateId<PurposeVersionDocumentId>();
 
     async function getTenantById(tenantId: TenantId): Promise<Tenant> {
@@ -849,7 +869,7 @@ async function activateOrWaitingForApproval({
       storeFile
     );
 
-    const updatedVersion: PurposeVersion = {
+    const updatedPurposeVersion: PurposeVersion = {
       ...purposeVersion,
       state: purposeVersionState.active,
       riskAnalysis: riskAnalysisDocument,
@@ -859,19 +879,26 @@ async function activateOrWaitingForApproval({
 
     const updatedPurpose: Purpose = replacePurposeVersion(
       purpose.data,
-      updatedVersion
+      updatedPurposeVersion
     );
 
-    return toCreateEventPurposeActivated({
-      purpose: updatedPurpose,
-      version: purpose.metadata.version,
-      correlationId,
-    });
+    return {
+      event: toCreateEventPurposeActivated({
+        purpose: updatedPurpose,
+        version: purpose.metadata.version,
+        correlationId,
+      }),
+      updatedPurposeVersion,
+    };
   }
 
-  function activate(changedBy: "consumer" | "producer"): unknown {
+  function activate(changedBy: "consumer" | "producer"): {
+    event: CreateEvent<PurposeEvent>;
+    updatedPurposeVersion: PurposeVersion;
+  } {
     const updatedPurposeVersion: PurposeVersion = {
       ...purposeVersion,
+      // TODO Check this logic
       state: purposeVersionState.active,
       updatedAt: new Date(),
       suspendedAt: undefined,
@@ -883,22 +910,31 @@ async function activateOrWaitingForApproval({
     );
 
     if (changedBy === "producer") {
-      return toCreateEventPurposeVersionUnsuspenedByProducer({
-        purpose: { ...updatedPurpose, suspendedByProducer: false },
+      return {
+        event: toCreateEventPurposeVersionUnsuspenedByProducer({
+          purpose: { ...updatedPurpose, suspendedByProducer: false },
+          versionId: purposeVersion.id,
+          version: purpose.metadata.version,
+          correlationId,
+        }),
+        updatedPurposeVersion,
+      };
+    }
+    return {
+      event: toCreateEventPurposeVersionUnsuspenedByConsumer({
+        purpose: { ...updatedPurpose, suspendedByConsumer: false },
         versionId: purposeVersion.id,
         version: purpose.metadata.version,
         correlationId,
-      });
-    }
-    return toCreateEventPurposeVersionUnsuspenedByConsumer({
-      purpose: { ...updatedPurpose, suspendedByConsumer: false },
-      versionId: purposeVersion.id,
-      version: purpose.metadata.version,
-      correlationId,
-    });
+      }),
+      updatedPurposeVersion,
+    };
   }
 
-  await match({ state: purposeVersion.state, ownership })
+  const { event, updatedPurposeVersion } = await match({
+    state: purposeVersion.state,
+    ownership,
+  })
     .with(
       { state: purposeVersionState.draft, ownership: "CONSUMER" },
       { state: purposeVersionState.draft, ownership: "SELF_CONSUMER" },
@@ -978,6 +1014,9 @@ async function activateOrWaitingForApproval({
     .otherwise(() => {
       throw organizationNotAllowed(organizationId);
     });
+
+  await repository.createEvent(event);
+  return updatedPurposeVersion;
 }
 
 async function isLoadAllowed(
