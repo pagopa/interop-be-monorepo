@@ -222,7 +222,10 @@ export function purposeServiceBuilder(
 
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
 
-      if (purposeVersion.state !== purposeVersionState.waitingForApproval) {
+      if (
+        purposeVersion.state !== purposeVersionState.waitingForApproval ||
+        purpose.data.versions.length === 1
+      ) {
         throw purposeVersionCannotBeDeleted(purposeId, versionId);
       }
 
@@ -387,7 +390,7 @@ export function purposeServiceBuilder(
         throw notValidVersionState(versionId, purposeVersion.state);
       }
 
-      const purposeWithoutWaiting: Purpose = {
+      const purposeWithoutWaitingForApproval: Purpose = {
         ...purpose.data,
         versions: purpose.data.versions.filter(
           (v) => v.state !== purposeVersionState.waitingForApproval
@@ -399,7 +402,7 @@ export function purposeServiceBuilder(
         updatedAt: new Date(),
       };
       const updatedPurpose = replacePurposeVersion(
-        purposeWithoutWaiting,
+        purposeWithoutWaitingForApproval,
         archivedVersion
       );
 
