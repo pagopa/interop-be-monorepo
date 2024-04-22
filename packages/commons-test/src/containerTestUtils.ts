@@ -82,7 +82,7 @@ export const TestContainersConfig = LoggerConfig.and(ReadModelDbConfig)
   .and(FileManagerConfig)
   .and(
     z
-      .object({ S3_BUCKET: z.string() })
+      .object({ S3_BUCKET: z.string().optional() })
       .transform((c) => ({ s3Bucket: c.S3_BUCKET }))
   );
 

@@ -28,7 +28,7 @@ import { toAgreementV1 } from "../src/model/domain/toEvent.js";
 import { config } from "../src/utilities/config.js";
 
 export const { readModelRepository, postgresDB, fileManager, cleanup } =
-  setupTestContainersVitest(inject("config"));
+  setupTestContainersVitest(inject("config" as never));
 
 afterEach(cleanup);
 
