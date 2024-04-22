@@ -84,6 +84,7 @@ const purposeRouter = (
             limit,
           } = req.query;
           const purposes = await purposeService.getPurposes(
+            req.ctx.authData.organizationId,
             {
               name,
               eservicesIds: eservicesIds.map<EServiceId>(unsafeBrandId),
