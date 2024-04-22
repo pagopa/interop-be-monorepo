@@ -11,6 +11,7 @@ import {
   generateId,
   protobufDecoder,
 } from "pagopa-interop-models";
+import { genericLogger } from "pagopa-interop-commons";
 import { describe, expect, it, vi } from "vitest";
 import {
   getMockAgreement,
@@ -51,7 +52,8 @@ export const testArchiveAgreement = (): ReturnType<typeof describe> =>
       const agreementId = await agreementService.archiveAgreement(
         agreement.id,
         authData,
-        uuidv4()
+        uuidv4(),
+        genericLogger
       );
 
       expect(agreementId).toBeDefined();
@@ -119,7 +121,8 @@ export const testArchiveAgreement = (): ReturnType<typeof describe> =>
         agreementService.archiveAgreement(
           agreementToArchiveId,
           authData,
-          uuidv4()
+          uuidv4(),
+          genericLogger
         )
       ).rejects.toThrowError(agreementNotFound(agreementToArchiveId));
     });
@@ -137,7 +140,12 @@ export const testArchiveAgreement = (): ReturnType<typeof describe> =>
       await addOneAgreement(agreement, postgresDB, agreements);
 
       await expect(
-        agreementService.archiveAgreement(agreement.id, authData, uuidv4())
+        agreementService.archiveAgreement(
+          agreement.id,
+          authData,
+          uuidv4(),
+          genericLogger
+        )
       ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
     });
 
@@ -159,7 +167,12 @@ export const testArchiveAgreement = (): ReturnType<typeof describe> =>
       await addOneAgreement(agreement, postgresDB, agreements);
 
       await expect(
-        agreementService.archiveAgreement(agreement.id, authData, uuidv4())
+        agreementService.archiveAgreement(
+          agreement.id,
+          authData,
+          uuidv4(),
+          genericLogger
+        )
       ).rejects.toThrowError(
         agreementNotInExpectedState(agreement.id, notArchivableState)
       );
