@@ -182,7 +182,7 @@ export function purposeServiceBuilder(
 
       if (
         purposeVersion.state !== purposeVersionState.waitingForApproval ||
-        purpose.data.versions.length > 1
+        purpose.data.versions.length === 1
       ) {
         throw purposeVersionCannotBeDeleted(purposeId, versionId);
       }
