@@ -11,37 +11,32 @@ import { AuthData } from "./authData.js";
 import { readHeaders } from "./headers.js";
 import { readAuthDataFromJwtToken, verifyJwtToken } from "./jwt.js";
 
-export const authenticationMiddleware: () => ZodiosRouterContextRequestHandler<ExpressContext> =
-  () => {
-    const authMiddleware: ZodiosRouterContextRequestHandler<
-      ExpressContext
-    > = async (req, res, next): Promise<void> => {
-      const makeApiProblem = makeApiProblemBuilder(logger, {});
-      try {
-        const { token, correlationId } = readHeaders(req);
+export const authenticationMiddleware =
+  (): ZodiosRouterContextRequestHandler<ExpressContext> =>
+  async (req, res, next) => {
+    const makeApiProblem = makeApiProblemBuilder(logger, {});
+    try {
+      const { token, correlationId } = readHeaders(req);
 
-        const validationResult = await verifyJwtToken(token);
-        if (!validationResult.valid) {
-          throw unauthorizedError("Invalid jwt token");
-        }
-        const authData: AuthData = readAuthDataFromJwtToken(token);
-        // eslint-disable-next-line functional/immutable-data
-        req.ctx = {
-          authData: { ...authData },
-          correlationId,
-        };
-        next();
-      } catch (error) {
-        const problem = makeApiProblem(error, (err) =>
-          match(err.code)
-            .with("unauthorizedError", () => 401)
-            .with("operationForbidden", () => 403)
-            .with("missingHeader", () => 400)
-            .otherwise(() => 500)
-        );
-        res.status(problem.status).json(problem).end();
+      const validationResult = await verifyJwtToken(token);
+      if (!validationResult.valid) {
+        throw unauthorizedError("Invalid jwt token");
       }
-    };
-
-    return authMiddleware;
+      const authData: AuthData = readAuthDataFromJwtToken(token);
+      // eslint-disable-next-line functional/immutable-data
+      req.ctx = {
+        authData: { ...authData },
+        correlationId,
+      };
+      return next();
+    } catch (error) {
+      const problem = makeApiProblem(error, (err) =>
+        match(err.code)
+          .with("unauthorizedError", () => 401)
+          .with("operationForbidden", () => 403)
+          .with("missingHeader", () => 400)
+          .otherwise(() => 500)
+      );
+      return res.status(problem.status).json(problem).end();
+    }
   };

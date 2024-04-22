@@ -4,39 +4,30 @@ import {
   genericError,
   ApiError,
   unauthorizedError,
-  CommonErrorCodes,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
-import { ZodiosRouterContextRequestHandler } from "@zodios/express";
-import { ExpressContext, UserRole, readHeaders } from "../index.js";
+import {
+  ZodiosEndpointDefinition,
+  Method,
+  ZodiosPathsByMethod,
+} from "@zodios/core";
+import { z } from "zod";
+import { Request } from "express";
+import {
+  AuthData,
+  Middleware,
+  UserRole,
+  readAuthDataFromJwtToken,
+  readHeaders,
+} from "../index.js";
 import { logger } from "../logging/index.js";
-import { readAuthDataFromJwtToken } from "./jwt.js";
-
-type RoleValidation =
-  | {
-      isValid: false;
-      error: ApiError<CommonErrorCodes>;
-    }
-  | { isValid: true };
 
 const hasValidRoles = (
-  token: string,
+  authData: AuthData,
   admittedRoles: UserRole[]
-): RoleValidation => {
-  const authData = readAuthDataFromJwtToken(token);
-
-  if (authData instanceof Error) {
-    return {
-      isValid: false,
-      error: unauthorizedError(authData.message),
-    };
-  }
-
+): boolean => {
   if (!authData.userRoles || authData.userRoles.length === 0) {
-    return {
-      isValid: false,
-      error: unauthorizedError("No user roles found to execute this request"),
-    };
+    throw unauthorizedError("No user roles found to execute this request");
   }
 
   const admittedRolesStr = admittedRoles.map((role) =>
@@ -47,35 +38,34 @@ const hasValidRoles = (
     admittedRolesStr.includes(value)
   );
 
-  return intersection.length > 0
-    ? { isValid: true }
-    : {
-        isValid: false,
-        error: unauthorizedError(
-          `Invalid user roles (${authData.userRoles.join(
-            ","
-          )}) to execute this request`
-        ),
-      };
+  if (intersection.length > 0) {
+    return true;
+  }
+
+  const userRolesStr = authData.userRoles.join(",");
+  throw unauthorizedError(
+    `Invalid user roles (${userRolesStr}) to execute this request`
+  );
 };
 
-export const authorizationMiddleware: (
-  admittedRoles: UserRole[]
-) => ZodiosRouterContextRequestHandler<ExpressContext> = (admittedRoles) => {
-  const authorizationMiddleware: ZodiosRouterContextRequestHandler<
-    ExpressContext
-  > = async (req, res, next): Promise<unknown> => {
+export const authorizationMiddleware =
+  <
+    Api extends ZodiosEndpointDefinition[],
+    M extends Method,
+    Path extends ZodiosPathsByMethod<Api, M>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    Context extends z.ZodObject<any>
+  >(
+    admittedRoles: UserRole[]
+  ): Middleware<Api, M, Path, Context> =>
+  (req, res, next) => {
     const makeApiProblem = makeApiProblemBuilder(logger, {});
-    const { token, correlationId } = readHeaders(req); // after authenticationMiddleware, headers are guaranteed to be present
+    const { token, correlationId } = readHeaders(req as Request); // after authenticationMiddleware, headers are guaranteed to be present
+    const authData = readAuthDataFromJwtToken(token); // after authenticationMiddleware, token is guaranteed to be valid
     try {
-      const validationResult = hasValidRoles(token, admittedRoles);
-      if (!validationResult.isValid) {
-        throw validationResult.error;
-      }
-
+      hasValidRoles(authData, admittedRoles);
       return next();
     } catch (err) {
-      // TODO base this part on https://github.com/pagopa/interop-be-monorepo/pull/42
       const problem = match<unknown, Problem>(err)
         .with(P.instanceOf(ApiError), (error) =>
           makeApiProblem(
@@ -108,6 +98,3 @@ export const authorizationMiddleware: (
       );
     }
   };
-
-  return authorizationMiddleware;
-};
