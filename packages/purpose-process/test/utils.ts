@@ -4,6 +4,7 @@ import {
   riskAnalysisFormToRiskAnalysisFormToValidate,
 } from "pagopa-interop-commons";
 import {
+  StoredEvent,
   writeInEventstore,
   writeInReadmodel,
 } from "pagopa-interop-commons-test";
@@ -14,7 +15,6 @@ import {
   PurposeEvent,
   RiskAnalysis,
   generateId,
-  purposeEventToBinaryData,
   technology,
   toPurposeV2,
   unsafeBrandId,
@@ -44,13 +44,11 @@ export const writePurposeInEventstore = async (
     event_version: 2,
     data: { purpose: toPurposeV2(purpose) },
   };
-  const eventToWrite = {
+  const eventToWrite: StoredEvent<PurposeEvent> = {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     stream_id: purposeEvent.data.purpose!.id,
-    version: "0",
-    type: purposeEvent.type,
-    event_version: purposeEvent.event_version,
-    data: purposeEventToBinaryData(purposeEvent),
+    version: 0,
+    event: purposeEvent,
   };
 
   await writeInEventstore(eventToWrite, "purpose", postgresDB);

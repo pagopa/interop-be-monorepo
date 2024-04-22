@@ -212,7 +212,10 @@ export function purposeServiceBuilder(
 
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
 
-      if (purposeVersion.state !== purposeVersionState.waitingForApproval) {
+      if (
+        purposeVersion.state !== purposeVersionState.waitingForApproval ||
+        purpose.data.versions.length === 1
+      ) {
         throw purposeVersionCannotBeDeleted(purposeId, versionId);
       }
 
