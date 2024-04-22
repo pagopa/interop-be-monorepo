@@ -7,6 +7,8 @@ import {
   TenantId,
 } from "../brandedIds.js";
 import { PurposeRiskAnalysisForm } from "../risk-analysis/riskAnalysis.js";
+import { EServiceMode } from "../eservice/eservice.js";
+import { TenantKind } from "../tenant/tenant.js";
 
 export const purposeVersionState = {
   draft: "Draft",
@@ -71,3 +73,25 @@ export const Ownership = z.enum([
   ...Object.values(ownership).slice(1),
 ]);
 export type Ownership = z.infer<typeof Ownership>;
+
+export const EServiceInfo = z.object({
+  name: z.string(),
+  mode: EServiceMode,
+  producerName: z.string(),
+  producerOrigin: z.string(),
+  producerIPACode: z.string(),
+  consumerName: z.string(),
+  consumerOrigin: z.string(),
+  consumerIPACode: z.string(),
+});
+export type EServiceInfo = z.infer<typeof EServiceInfo>;
+
+export const RiskAnalysisPDFPayload = z.object({
+  riskAnalysisForm: PurposeRiskAnalysisForm,
+  dailyCalls: z.number(),
+  eserviceInfo: EServiceInfo,
+  isFreeOfCharge: z.boolean(),
+  freeOfChargeReason: z.string().optional(),
+  kind: TenantKind,
+});
+export type RiskAnalysisPDFPayload = z.infer<typeof RiskAnalysisPDFPayload>;

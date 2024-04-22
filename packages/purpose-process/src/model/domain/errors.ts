@@ -32,6 +32,7 @@ export const errorCodes = {
   unchangedDailyCalls: "0017",
   agreementNotFound: "0018",
   descriptorNotFound: "0019",
+  missingRiskAnalysis: "0020",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -182,6 +183,16 @@ export function riskAnalysisValidationFailed(
     detail: `Risk analysis validation failed. Reasons: ${reasons}`,
     code: "riskAnalysisValidationFailed",
     title: "Risk analysis validation failed",
+  });
+}
+
+export function missingRiskAnalysis(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} must contain a valid risk analysis`,
+    code: "missingRiskAnalysis",
+    title: "Missing risk analysis",
   });
 }
 

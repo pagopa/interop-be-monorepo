@@ -270,3 +270,24 @@ export const toCreateEventPurposeVersionUnsuspenedByConsumer = ({
   },
   correlationId,
 });
+
+export const toCreateEventPurposeVersionOverQuotaUnsuspended = ({
+  purpose,
+  version,
+  versionId,
+  correlationId,
+}: {
+  purpose: Purpose;
+  version: number;
+  versionId: PurposeVersionId;
+  correlationId: string;
+}): CreateEvent<PurposeEvent> => ({
+  streamId: purpose.id,
+  version,
+  event: {
+    type: "PurposeVersionOverQuotaUnsuspended",
+    event_version: 2,
+    data: { purpose: toPurposeV2(purpose), versionId },
+  },
+  correlationId,
+});

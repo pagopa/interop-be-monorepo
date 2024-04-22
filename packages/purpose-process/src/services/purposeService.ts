@@ -1,6 +1,7 @@
 import {
   CreateEvent,
   DB,
+  FileManager,
   eventRepository,
   logger,
 } from "pagopa-interop-commons";
@@ -27,6 +28,8 @@ import {
   ListResult,
   agreementState,
   generateId,
+  eserviceMode,
+  EServiceInfo,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -41,17 +44,21 @@ import {
   purposeVersionCannotBeDeleted,
   purposeVersionDocumentNotFound,
   purposeVersionNotFound,
+  tenantKindNotFound,
   tenantNotFound,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
   toCreateEventDraftPurposeUpdated,
+  toCreateEventPurposeActivated,
   toCreateEventPurposeArchived,
   toCreateEventPurposeSuspendedByConsumer,
   toCreateEventPurposeSuspendedByProducer,
+  toCreateEventPurposeVersionOverQuotaUnsuspended,
   toCreateEventPurposeVersionRejected,
   toCreateEventPurposeVersionUnsuspenedByConsumer,
   toCreateEventPurposeVersionUnsuspenedByProducer,
+  toCreateEventPurposeWaitingForApproval,
   toCreateEventWaitingForApprovalPurposeDeleted,
   toCreateEventWaitingForApprovalPurposeVersionDeleted,
 } from "../model/domain/toEvent.js";
@@ -75,6 +82,7 @@ import {
   assertPurposeIsDeletable,
   assertDailyCallsIsDifferentThanBefore,
 } from "./validators.js";
+import { pdfGenerator } from "./pdfGenerator.js";
 
 const retrievePurpose = async (
   purposeId: PurposeId,
@@ -145,10 +153,10 @@ const retrieveTenant = async (
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelService
+  readModelService: ReadModelService,
+  fileManager: FileManager
 ) {
   const repository = eventRepository(dbInstance, purposeEventToBinaryData);
-
   return {
     async getPurposeById(
       purposeId: PurposeId,
@@ -574,6 +582,7 @@ export function purposeServiceBuilder(
         ownership,
         readModelService,
         correlationId,
+        storeFile: fileManager.storeBytes,
       });
     },
   };
@@ -740,6 +749,7 @@ async function activateOrWaitingForApproval({
   ownership,
   readModelService,
   correlationId,
+  storeFile,
 }: {
   eservice: EService;
   purpose: WithMetadata<Purpose>;
@@ -748,7 +758,117 @@ async function activateOrWaitingForApproval({
   ownership: Ownership;
   readModelService: ReadModelService;
   correlationId: string;
+  storeFile: FileManager["storeBytes"];
 }): Promise<void> {
+  function changeToWaitForApproval(): unknown {
+    const updatedPurposeVersion: PurposeVersion = {
+      ...purposeVersion,
+      state: purposeVersionState.waitingForApproval,
+      updatedAt: new Date(),
+    };
+
+    const updatedPurpose: Purpose = replacePurposeVersion(
+      purpose.data,
+      updatedPurposeVersion
+    );
+
+    return toCreateEventPurposeWaitingForApproval({
+      purpose: updatedPurpose,
+      version: purpose.metadata.version,
+      correlationId,
+    });
+  }
+
+  function createWaitForApproval(): unknown {
+    const newPurposeVersion: PurposeVersion = {
+      ...purposeVersion,
+      createdAt: new Date(),
+      state: purposeVersionState.waitingForApproval,
+      id: generateId<PurposeVersionId>(),
+    };
+
+    const updatedPurpose: Purpose = {
+      ...purpose.data,
+      versions: [...purpose.data.versions, newPurposeVersion],
+      updatedAt: new Date(),
+    };
+
+    return toCreateEventPurposeVersionOverQuotaUnsuspended({
+      purpose: updatedPurpose,
+      versionId: newPurposeVersion.id,
+      version: purpose.metadata.version,
+      correlationId,
+    });
+  }
+
+  async function firstVersionActivation(): Promise<unknown> {
+    const documentId = generateId<PurposeVersionDocumentId>();
+
+    async function getTenantById(tenantId: TenantId): Promise<Tenant> {
+      const t = await readModelService.getTenantById(tenantId);
+      if (!t) {
+        throw tenantNotFound(tenantId);
+      }
+      return t;
+    }
+
+    const [producer, consumer] = await Promise.all([
+      getTenantById(eservice.producerId),
+      getTenantById(purpose.data.consumerId),
+    ]);
+
+    const eserviceInfo: EServiceInfo = {
+      name: eservice.name,
+      mode: eservice.mode,
+      producerName: producer.name,
+      producerOrigin: producer.externalId.origin,
+      producerIPACode: producer.externalId.value,
+      consumerName: consumer.name,
+      consumerOrigin: consumer.externalId.origin,
+      consumerIPACode: consumer.externalId.value,
+    };
+
+    function getTenantKind(tenant: Tenant): TenantKind {
+      if (!tenant.kind) {
+        throw tenantKindNotFound(tenant.id);
+      }
+      return tenant.kind;
+    }
+
+    const tenantKind = match(eservice.mode)
+      .with(eserviceMode.deliver, () => getTenantKind(consumer))
+      .with(eserviceMode.receive, () => getTenantKind(producer))
+      .exhaustive();
+
+    const riskAnalysisDocument = await pdfGenerator.createRiskAnalysisDocument(
+      documentId,
+      purpose.data,
+      purposeVersion,
+      eserviceInfo,
+      tenantKind,
+      storeFile
+    );
+
+    const updatedVersion: PurposeVersion = {
+      ...purposeVersion,
+      state: purposeVersionState.active,
+      riskAnalysis: riskAnalysisDocument,
+      updatedAt: new Date(),
+      firstActivationAt: new Date(),
+    };
+
+    const updatedPurpose: Purpose = replacePurposeVersion(
+      purpose.data,
+      updatedVersion
+    );
+
+    return toCreateEventPurposeActivated({
+      purpose: updatedPurpose,
+      version: purpose.metadata.version,
+      correlationId,
+    });
+  }
+
   function activate(changedBy: "consumer" | "producer"): unknown {
     const updatedPurposeVersion: PurposeVersion = {
       ...purposeVersion,
@@ -791,9 +911,9 @@ async function activateOrWaitingForApproval({
             readModelService
           )
         ) {
-          // TODO firstVersionActivation
+          return await firstVersionActivation();
         }
-        // TODO changeToWaitForApproval
+        return changeToWaitForApproval();
       }
     )
     .with({ state: purposeVersionState.draft, ownership: "PRODUCER" }, () => {
@@ -811,9 +931,7 @@ async function activateOrWaitingForApproval({
         state: purposeVersionState.waitingForApproval,
         ownership: "SELF_CONSUMER",
       },
-      () => {
-        // TODO firstVersionActivation
-      }
+      async () => await firstVersionActivation()
     )
     .with(
       { state: purposeVersionState.suspended, ownership: "CONSUMER" },
@@ -835,7 +953,7 @@ async function activateOrWaitingForApproval({
         ) {
           return activate("consumer");
         }
-        // TODO changeToWaitForApproval
+        return createWaitForApproval();
       }
     )
     .with(
@@ -851,7 +969,7 @@ async function activateOrWaitingForApproval({
         ) {
           return activate("producer");
         }
-        // TODO changeToWaitForApproval
+        return createWaitForApproval();
       }
     )
     .with({ state: purposeVersionState.suspended, ownership: "PRODUCER" }, () =>
