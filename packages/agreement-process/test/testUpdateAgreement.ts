@@ -51,7 +51,7 @@ export const testUpdateAgreement = (): ReturnType<typeof describe> =>
       expect(agreementEvent).toMatchObject({
         type: "AgreementUpdated",
         event_version: 1,
-        version: "0",
+        version: "1",
         stream_id: agreement.id,
       });
 
@@ -67,6 +67,8 @@ export const testUpdateAgreement = (): ReturnType<typeof describe> =>
     });
 
     it("should throw an agreementNotFound error when the agreement does not exist", async () => {
+      await addOneAgreement(getMockAgreement(), postgresDB, agreements);
+
       const authData = getRandomAuthData();
       const agreementId = generateId<AgreementId>();
       await expect(

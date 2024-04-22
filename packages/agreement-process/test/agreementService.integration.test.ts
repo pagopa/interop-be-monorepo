@@ -23,12 +23,13 @@ import {
   expectPastTimestamp,
   getRandomAuthData,
   randomArrayItem,
-  StoredEvent,
   decodeProtobufPayload,
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
   mongoDBContainer,
   postgreSQLContainer,
+  minioContainer,
+  TEST_MINIO_PORT,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -99,6 +100,8 @@ import {
   readLastAgreementEvent,
 } from "./utils.js";
 import { testArchiveAgreement } from "./testArchiveAgreement.js";
+import { testDeleteAgreement } from "./testDeleteAgreement.js";
+import { testAgreementConsumerDocuments } from "./testAgreementConsumerDocuments.js";
 
 export let agreements: AgreementCollection;
 export let eservices: EServiceCollection;
@@ -108,7 +111,9 @@ export let agreementService: AgreementService;
 export let postgresDB: IDatabase<unknown>;
 export let startedPostgreSqlContainer: StartedTestContainer;
 export let startedMongodbContainer: StartedTestContainer;
+export let startedMinioContainer: StartedTestContainer;
 export let fileManager: FileManager;
+const s3OriginalBucket = config.s3Bucket;
 
 /**
  * Executes the generic agreement expectation for agreement creation process,
@@ -133,10 +138,7 @@ const expectedAgreementCreation = async (
     fail("Unhandled error: returned agreementId is undefined");
   }
 
-  const writtenEvent: StoredEvent | undefined = await readLastAgreementEvent(
-    agreementId,
-    postgresDB
-  );
+  const writtenEvent = await readLastAgreementEvent(agreementId, postgresDB);
 
   if (!writtenEvent) {
     fail("Creation fails: agreement not found in event-store");
@@ -182,12 +184,14 @@ const expectedAgreementCreation = async (
 beforeAll(async () => {
   startedPostgreSqlContainer = await postgreSQLContainer(config).start();
   startedMongodbContainer = await mongoDBContainer(config).start();
+  startedMinioContainer = await minioContainer(config).start();
 
   config.eventStoreDbPort = startedPostgreSqlContainer.getMappedPort(
     TEST_POSTGRES_DB_PORT
   );
   config.readModelDbPort =
     startedMongodbContainer.getMappedPort(TEST_MONGO_DB_PORT);
+  config.s3ServerPort = startedMinioContainer.getMappedPort(TEST_MINIO_PORT);
 
   const readModelRepository = ReadModelRepository.init(config);
   agreements = readModelRepository.agreements;
@@ -214,7 +218,6 @@ beforeAll(async () => {
     logger.error("postgresDB is undefined!!");
   }
 
-  // TODO: Setup MinIO test container when testing functionalities that require file storage
   fileManager = initFileManager(config);
   agreementService = agreementServiceBuilder(
     postgresDB,
@@ -233,11 +236,15 @@ afterEach(async () => {
 
   await postgresDB.none("TRUNCATE TABLE agreement.events RESTART IDENTITY");
   await postgresDB.none("TRUNCATE TABLE catalog.events RESTART IDENTITY");
+
+  // Some tests change the bucket name, so we need to reset it
+  config.s3Bucket = s3OriginalBucket;
 });
 
 afterAll(async () => {
   await startedPostgreSqlContainer.stop();
   await startedMongodbContainer.stop();
+  await startedMinioContainer.stop();
 });
 
 describe("Agreement service", () => {
@@ -1760,6 +1767,8 @@ describe("Agreement service", () => {
     });
   });
 
+  testAgreementConsumerDocuments();
+  testDeleteAgreement();
   testUpdateAgreement();
   testArchiveAgreement();
 });
