@@ -77,9 +77,7 @@ export async function writeInEventstore<T extends EventStoreSchema>(
         .with("purpose", () => {
           throw new Error("Purpose events not implemented yet");
         })
-        .otherwise((v) => {
-          throw new Error(`${v} events not implemented`);
-        }),
+        .exhaustive(),
     ]
   );
 }
