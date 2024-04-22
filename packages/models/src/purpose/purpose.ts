@@ -61,17 +61,6 @@ export const Purpose = z.object({
 });
 export type Purpose = z.infer<typeof Purpose>;
 
-export const PurposeSeed = z.object({
-  eserviceId: EServiceId,
-  consumerId: TenantId,
-  riskAnalysisForm: PurposeRiskAnalysisForm.optional(),
-  title: z.string(),
-  description: z.string(),
-  isFreeOfCharge: z.boolean(),
-  freeOfChargeReason: z.string().optional(),
-});
-export type PurposeSeed = z.infer<typeof PurposeSeed>;
-
 export const ownership = {
   CONSUMER: "CONSUMER",
   PRODUCER: "PRODUCER",

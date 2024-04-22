@@ -22,6 +22,7 @@ import { purposeServiceBuilder } from "../services/purposeService.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
   archivePurposeVersionErrorMapper,
+  createPurposeErrorMapper,
   deletePurposeErrorMapper,
   deletePurposeVersionErrorMapper,
   getPurposeErrorMapper,
@@ -109,8 +110,26 @@ const purposeRouter = (
         }
       }
     )
-    .post("/purposes", authorizationMiddleware([ADMIN_ROLE]), (_req, res) =>
-      res.status(501).send()
+    .post(
+      "/purposes",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (req, res) => {
+        try {
+          const { purpose, isRiskAnalysisValid } =
+            await purposeService.createPurpose(
+              req.body,
+              req.ctx.authData.organizationId,
+              req.ctx.correlationId
+            );
+          return res
+            .status(200)
+            .json(purposeToApiPurpose(purpose, isRiskAnalysisValid))
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, createPurposeErrorMapper);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/reverse/purposes",

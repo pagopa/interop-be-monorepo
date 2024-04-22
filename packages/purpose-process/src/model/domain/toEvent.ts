@@ -69,6 +69,23 @@ export const toCreateEventDraftPurposeUpdated = ({
   correlationId,
 });
 
+export function toCreateEventPurposeAdded(
+  purpose: Purpose,
+  correlationId: string
+): CreateEvent<PurposeEvent> {
+  return {
+    streamId: purpose.id,
+    version: 0,
+    event: {
+      type: "PurposeAdded",
+      event_version: 2,
+      data: {
+        purpose: toPurposeV2(purpose),
+      },
+    },
+    correlationId,
+  };
+}
 export const toCreateEventDraftPurposeDeleted = ({
   purpose,
   version,

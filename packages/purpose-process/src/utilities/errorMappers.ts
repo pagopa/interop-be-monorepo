@@ -21,6 +21,17 @@ export const getPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with("tenantKindNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const createPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with("organizationIsNotTheConsumer", () => HTTP_STATUS_FORBIDDEN)
+    .with("missingFreeOfChargeReason", () => HTTP_STATUS_NOT_FOUND)
+    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("tenantKindNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("riskAnalysisValidationFailed", () => HTTP_STATUS_FORBIDDEN)
+    .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("duplicatedPurposeName", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const getRiskAnalysisDocumentErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>

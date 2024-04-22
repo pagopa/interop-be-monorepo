@@ -25,12 +25,14 @@ import {
   PurposeEvent,
   EServiceMode,
   ListResult,
-  PurposeSeed,
+  unsafeBrandId,
+  generateId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
+  agreementNotFound,
+  duplicatedPurposeName,
   eserviceNotFound,
-  missingFreeOfChargeReason,
   notValidVersionState,
   organizationIsNotTheConsumer,
   organizationIsNotTheProducer,
@@ -45,6 +47,7 @@ import {
 import {
   toCreateEventDraftPurposeDeleted,
   toCreateEventDraftPurposeUpdated,
+  toCreateEventPurposeAdded,
   toCreateEventPurposeArchived,
   toCreateEventPurposeSuspendedByConsumer,
   toCreateEventPurposeSuspendedByProducer,
@@ -56,8 +59,9 @@ import {
   ApiPurposeUpdateContent,
   ApiReversePurposeUpdateContent,
   ApiGetPurposesFilters,
+  ApiPurposeSeed,
 } from "../model/domain/models.js";
-import { AgreementQueryFilters, ReadModelService } from "./readModelService.js";
+import { ReadModelService } from "./readModelService.js";
 import {
   assertOrganizationIsAConsumer,
   assertEserviceHasSpecificMode,
@@ -526,31 +530,68 @@ export function purposeServiceBuilder(
       };
     },
     async createPurpose(
-      purposeSeed: PurposeSeed,
-      organizationId: TenantId
-    ): Promise<void> {
+      purposeSeed: ApiPurposeSeed,
+      organizationId: TenantId,
+      correlationId: string
+    ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(
         `Creating Purpose for EService ${purposeSeed.eserviceId} and Consumer ${purposeSeed.consumerId}`
       );
-      assertOrganizationIsAConsumer(organizationId, purposeSeed.consumerId);
+      const eserviceId = unsafeBrandId<EServiceId>(purposeSeed.eserviceId);
+      const consumerId = unsafeBrandId<TenantId>(purposeSeed.consumerId);
+      assertOrganizationIsAConsumer(organizationId, consumerId);
 
-      if (purposeSeed.isFreeOfCharge && !purposeSeed.freeOfChargeReason) {
-        throw missingFreeOfChargeReason();
-      }
+      assertConsistentFreeOfCharge(
+        purposeSeed.isFreeOfCharge,
+        purposeSeed.freeOfChargeReason
+      );
+
       const tenant = await retrieveTenant(organizationId, readModelService);
 
       if (!tenant.kind) {
         throw tenantKindNotFound(tenant.id);
       }
 
-      const clientSeed;
-
-      const filters: AgreementQueryFilters;
-
-      const agreementsx = await readModelService.getAllAgreements(
-        agreements,
-        filters
+      const validatedFormSeed = validateAndTransformRiskAnalysis(
+        purposeSeed.riskAnalysisForm,
+        tenant.kind
       );
+
+      const agreement = await readModelService.getActiveAgreement(
+        eserviceId,
+        consumerId
+      );
+
+      if (agreement === undefined) {
+        throw agreementNotFound(eserviceId, consumerId);
+      }
+
+      const purposeWithSameName = await readModelService.getSpecificPurpose(
+        eserviceId,
+        consumerId,
+        purposeSeed.title
+      );
+
+      if (purposeWithSameName) {
+        throw duplicatedPurposeName(purposeSeed.title);
+      }
+
+      const purpose: Purpose = {
+        title: purposeSeed.title,
+        id: generateId(),
+        createdAt: new Date(),
+        eserviceId,
+        consumerId,
+        description: purposeSeed.description,
+        versions: [],
+        isFreeOfCharge: purposeSeed.isFreeOfCharge,
+        freeOfChargeReason: purposeSeed.freeOfChargeReason,
+        riskAnalysisForm: validatedFormSeed,
+      };
+
+      const event = toCreateEventPurposeAdded(purpose, correlationId);
+      await repository.createEvent(event);
+      return { purpose, isRiskAnalysisValid: validatedFormSeed !== undefined };
     },
   };
 }
