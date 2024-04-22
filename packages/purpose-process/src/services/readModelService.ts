@@ -211,11 +211,10 @@ export function readModelServiceBuilder(
       ];
 
       const data = await purposes
-        .aggregate([
-          ...aggregationPipeline,
-          { $skip: offset },
-          { $limit: limit },
-        ])
+        .aggregate(
+          [...aggregationPipeline, { $skip: offset }, { $limit: limit }],
+          { allowDiskUse: true }
+        )
         .toArray();
 
       const result = z.array(Purpose).safeParse(data.map((d) => d.data));
