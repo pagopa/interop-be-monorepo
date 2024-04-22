@@ -38,14 +38,16 @@ export const testDeletePurposeVersion = (): ReturnType<typeof describe> =>
       vi.setSystemTime(new Date());
 
       const mockEService = getMockEService();
-      const mockPurposeVersion = {
-        ...getMockPurposeVersion(),
-        state: purposeVersionState.waitingForApproval,
-      };
+      const mockPurposeVersion1 = getMockPurposeVersion(
+        purposeVersionState.waitingForApproval
+      );
+      const mockPurposeVersion2 = getMockPurposeVersion(
+        purposeVersionState.draft
+      );
       const mockPurpose: Purpose = {
         ...getMockPurpose(),
         eserviceId: mockEService.id,
-        versions: [mockPurposeVersion],
+        versions: [mockPurposeVersion1, mockPurposeVersion2],
       };
 
       await addOnePurpose(mockPurpose, postgresDB, purposes);
@@ -53,7 +55,7 @@ export const testDeletePurposeVersion = (): ReturnType<typeof describe> =>
 
       await purposeService.deletePurposeVersion({
         purposeId: mockPurpose.id,
-        versionId: mockPurposeVersion.id,
+        versionId: mockPurposeVersion1.id,
         organizationId: mockPurpose.consumerId,
         correlationId: generateId(),
       });
@@ -78,7 +80,7 @@ export const testDeletePurposeVersion = (): ReturnType<typeof describe> =>
 
       const expectedPurpose: Purpose = {
         ...mockPurpose,
-        versions: [],
+        versions: [mockPurposeVersion2],
         updatedAt: new Date(),
       };
 
@@ -137,7 +139,10 @@ export const testDeletePurposeVersion = (): ReturnType<typeof describe> =>
       const mockPurpose: Purpose = {
         ...getMockPurpose(),
         eserviceId: mockEService.id,
-        versions: [mockPurposeVersion],
+        versions: [
+          mockPurposeVersion,
+          getMockPurposeVersion(purposeVersionState.draft),
+        ],
       };
 
       await addOnePurpose(mockPurpose, postgresDB, purposes);
@@ -166,39 +171,9 @@ export const testDeletePurposeVersion = (): ReturnType<typeof describe> =>
         const mockPurpose: Purpose = {
           ...getMockPurpose(),
           eserviceId: mockEService.id,
-          versions: [mockPurposeVersion],
-        };
-
-        await addOnePurpose(mockPurpose, postgresDB, purposes);
-        await writeInReadmodel(toReadModelEService(mockEService), eservices);
-
-        expect(
-          purposeService.deletePurposeVersion({
-            purposeId: mockPurpose.id,
-            versionId: mockPurposeVersion.id,
-            organizationId: mockPurpose.consumerId,
-            correlationId: generateId(),
-          })
-        ).rejects.toThrowError(
-          purposeVersionCannotBeDeleted(mockPurpose.id, mockPurposeVersion.id)
-        );
-      }
-    );
-    it.each(
-      Object.values(purposeVersionState).filter(
-        (state) => state !== purposeVersionState.waitingForApproval
-      )
-    )(
-      "should throw purposeVersionCannotBeDeleted if the purpose has also another version in %s state",
-      async (state) => {
-        const mockPurposeVersion = getMockPurposeVersion(state);
-        const mockEService = getMockEService();
-        const mockPurpose: Purpose = {
-          ...getMockPurpose(),
-          eserviceId: mockEService.id,
           versions: [
-            getMockPurposeVersion(purposeVersionState.waitingForApproval),
             mockPurposeVersion,
+            getMockPurposeVersion(purposeVersionState.draft),
           ],
         };
 
@@ -217,4 +192,29 @@ export const testDeletePurposeVersion = (): ReturnType<typeof describe> =>
         );
       }
     );
+    it("should throw purposeVersionCannotBeDeleted if the purpose has only that version", async () => {
+      const mockPurposeVersion = getMockPurposeVersion(
+        purposeVersionState.waitingForApproval
+      );
+      const mockEService = getMockEService();
+      const mockPurpose: Purpose = {
+        ...getMockPurpose(),
+        eserviceId: mockEService.id,
+        versions: [mockPurposeVersion],
+      };
+
+      await addOnePurpose(mockPurpose, postgresDB, purposes);
+      await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+      expect(
+        purposeService.deletePurposeVersion({
+          purposeId: mockPurpose.id,
+          versionId: mockPurposeVersion.id,
+          organizationId: mockPurpose.consumerId,
+          correlationId: generateId(),
+        })
+      ).rejects.toThrowError(
+        purposeVersionCannotBeDeleted(mockPurpose.id, mockPurposeVersion.id)
+      );
+    });
   });
