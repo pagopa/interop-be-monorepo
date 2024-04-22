@@ -12,7 +12,6 @@ import {
   initDB,
 } from "pagopa-interop-commons";
 import { IDatabase } from "pg-promise";
-
 import {
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
