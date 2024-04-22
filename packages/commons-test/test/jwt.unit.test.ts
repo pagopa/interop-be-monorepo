@@ -177,9 +177,7 @@ describe("JWT tests", () => {
       });
 
       expect(() => readAuthDataFromJwtToken(token)).toThrowError(
-        invalidClaim(
-          `Validation error: Required at "jti" ; Validation error: Required at "sub"`
-        )
+        invalidClaim(`Validation error: Required at "jti"; Required at "sub"`)
       );
     });
 
