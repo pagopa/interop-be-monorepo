@@ -184,4 +184,37 @@ export const testDeletePurposeVersion = (): ReturnType<typeof describe> =>
         );
       }
     );
+    it.each(
+      Object.values(purposeVersionState).filter(
+        (state) => state !== purposeVersionState.waitingForApproval
+      )
+    )(
+      "should throw purposeVersionCannotBeDeleted if the purpose has also another version in %s state",
+      async (state) => {
+        const mockPurposeVersion = getMockPurposeVersion(state);
+        const mockEService = getMockEService();
+        const mockPurpose: Purpose = {
+          ...getMockPurpose(),
+          eserviceId: mockEService.id,
+          versions: [
+            getMockPurposeVersion(purposeVersionState.waitingForApproval),
+            mockPurposeVersion,
+          ],
+        };
+
+        await addOnePurpose(mockPurpose, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+        expect(
+          purposeService.deletePurposeVersion({
+            purposeId: mockPurpose.id,
+            versionId: mockPurposeVersion.id,
+            organizationId: mockPurpose.consumerId,
+            correlationId: generateId(),
+          })
+        ).rejects.toThrowError(
+          purposeVersionCannotBeDeleted(mockPurpose.id, mockPurposeVersion.id)
+        );
+      }
+    );
   });
