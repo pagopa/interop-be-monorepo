@@ -6,9 +6,17 @@ import {
 import { match } from "ts-pattern";
 import { eventV1ConversionError } from "../notifierErrors.js";
 import {
+  CatalogDescriptorNotification,
   CatalogDescriptorV1Notification,
   CatalogDocumentV1Notification,
+  CatalogItemDescriptorDeletedNotification,
+  CatalogItemDocumentAddedNotification,
+  CatalogItemDocumentDeletedNotification,
+  CatalogItemDocumentUpdateNotification,
   CatalogItemEventNotification,
+  CatalogItemIdNotification,
+  CatalogItemNotification,
+  CatalogItemRiskAnalysisNotification,
   CatalogItemV1Notification,
 } from "./catalogItemEventNotification.js";
 import { toCatalogItemV1 } from "./catalogItemEventNotificationMappers.js";
@@ -82,25 +90,25 @@ export const toCatalogItemEventNotification = (
       { type: "EServiceAdded" }, // CatalogItemV1AddedV1
       { type: "EServiceCloned" }, // ClonedCatalogItemV1AddedV1
       { type: "DraftEServiceUpdated" }, // CatalogItemV1UpdatedV1
-      (e) => ({
+      (e): CatalogItemNotification => ({
         catalogItem: getCatalogItem(e),
       })
     )
     .with(
       { type: "EServiceDeleted" }, // CatalogItemDeletedV1
-      (e) => ({
+      (e): CatalogItemIdNotification => ({
         catalogItemId: e.data.eserviceId,
       })
     )
     .with(
-      { type: "EServiceDescriptorAdded" }, // CatelogItemDescriptorItemAdded
-      { type: "EServiceDraftDescriptorUpdated" }, // CatalogItemDescriptorUpdatedV1
+      { type: "EServiceDescriptorAdded" }, // CatalogItemDescriptorAddedV1
+      { type: "EServiceDraftDescriptorUpdated" }, // CatalogItemDescriptorAddedV1
       { type: "EServiceDescriptorActivated" }, // CatalogItemDescriptorUpdatedV1
       { type: "EServiceDescriptorArchived" }, // CatalogItemDescriptorUpdatedV1
       { type: "EServiceDescriptorPublished" }, // CatalogItemDescriptorUpdatedV1
       { type: "EServiceDescriptorSuspended" }, // CatalogItemDescriptorUpdatedV1
       { type: "EServiceDescriptorQuotasUpdated" },
-      (e) => {
+      (e): CatalogDescriptorNotification => {
         const catalogItem = getCatalogItem(e);
         const catalogItemDescriptor = getCatalogItemDescriptor(
           catalogItem,
@@ -115,14 +123,14 @@ export const toCatalogItemEventNotification = (
     )
     .with(
       { type: "EServiceDraftDescriptorDeleted" }, // CatalogItemWithDescriptorsDeletedV1
-      (e) => ({
+      (e): CatalogItemDescriptorDeletedNotification => ({
         catalogItem: getCatalogItem(e),
         descriptorId: e.data.descriptorId,
       })
     )
     .with(
       { type: "EServiceDescriptorDocumentAdded" }, // CatalogItemDocumentAddedV1
-      (e) => {
+      (e): CatalogItemDocumentAddedNotification => {
         const catalogItem = getCatalogItem(e);
         const catalogItemDescriptor = getCatalogItemDescriptor(
           catalogItem,
@@ -144,7 +152,7 @@ export const toCatalogItemEventNotification = (
     )
     .with(
       { type: "EServiceDescriptorInterfaceAdded" }, // CatalogItemDocumentAddedV1
-      (e) => {
+      (e): CatalogItemDocumentAddedNotification => {
         const catalogItem = getCatalogItem(e);
         const catalogItemDescriptor = getCatalogItemDescriptor(
           catalogItem,
@@ -167,13 +175,13 @@ export const toCatalogItemEventNotification = (
     .with(
       { type: "EServiceDescriptorDocumentDeleted" }, // CatalogItemDocumentDeletedV1
       { type: "EServiceDescriptorInterfaceDeleted" }, // CatalogItemDocumentDeletedV1
-      (e) => {
+      (e): CatalogItemDocumentDeletedNotification => {
         if (!e.data.eservice) {
           throw missingKafkaMessageDataError("eservice", e.type);
         }
 
         return {
-          eserviceId: e.data.eservice.id,
+          eServiceId: e.data.eservice.id,
           descriptorId: e.data.descriptorId,
           documentId: e.data.documentId,
         };
@@ -181,7 +189,7 @@ export const toCatalogItemEventNotification = (
     )
     .with(
       { type: "EServiceDescriptorInterfaceUpdated" }, // CatalogItemDocumentUpdatedV1
-      (e) => {
+      (e): CatalogItemDocumentUpdateNotification => {
         const eserviceV1 = getCatalogItem(e);
         const descriptorV1 = getCatalogItemDescriptor(
           eserviceV1,
@@ -203,7 +211,7 @@ export const toCatalogItemEventNotification = (
     )
     .with(
       { type: "EServiceDescriptorDocumentUpdated" }, // CatalogItemDocumentUpdatedV1
-      (e) => {
+      (e): CatalogItemDocumentUpdateNotification => {
         const eserviceV1 = getCatalogItem(e);
         const descriptorV1 = getCatalogItemDescriptor(
           eserviceV1,
@@ -215,7 +223,7 @@ export const toCatalogItemEventNotification = (
         );
 
         return {
-          eserviceId: eserviceV1.id,
+          eServiceId: eserviceV1.id,
           descriptorId: descriptorV1.id,
           documentId: documentV1.id,
           updatedDocument: documentV1,
@@ -227,7 +235,7 @@ export const toCatalogItemEventNotification = (
       { type: "EServiceRiskAnalysisAdded" }, // CatalogItemRiskAnalysisAddedV1
       { type: "EServiceRiskAnalysisDeleted" }, // CatalogItemRiskAnalysisDeletedV1
       { type: "EServiceRiskAnalysisUpdated" }, // CatalogItemRiskAnalysisUpdatedV1
-      (e) => ({
+      (e): CatalogItemRiskAnalysisNotification => ({
         catalogItem: getCatalogItem(e),
         catalogRiskAnalysisId: e.data.riskAnalysisId,
       })
