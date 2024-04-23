@@ -26,7 +26,8 @@ import {
   getMockTenant,
   readLastEventByStreamId,
   getMockPurpose,
-} from "pagopa-interop-commons-test/index.js";
+  getMockDescriptor,
+} from "pagopa-interop-commons-test";
 import { unexpectedRulesVersionError } from "pagopa-interop-commons";
 import {
   missingFreeOfChargeReason,
@@ -47,11 +48,8 @@ import {
   tenants,
 } from "./purposeService.integration.test.js";
 import {
-  addOneAgreement,
   addOnePurpose,
-  addOneTenant,
   buildRiskAnalysisFormSeed,
-  getMockDescriptor,
   getMockEService,
 } from "./utils.js";
 
@@ -76,7 +74,11 @@ export const testCreatePurpose = (): ReturnType<typeof describe> =>
       descriptors: [descriptor1],
     };
 
-    const agreementEservice1 = getMockAgreement(eService1.id, tenant.id);
+    const agreementEservice1 = getMockAgreement(
+      eService1.id,
+      tenant.id,
+      agreementState.active
+    );
 
     const mockValidRiskAnalysisForm = getMockValidRiskAnalysisForm(
       tenantKind.PA
@@ -95,8 +97,8 @@ export const testCreatePurpose = (): ReturnType<typeof describe> =>
     it("should write on event-store for the creation of a purpose", async () => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date());
-      await addOneTenant(tenant, tenants);
-      await addOneAgreement(agreementEservice1, agreements);
+      await writeInReadmodel(tenant, tenants);
+      await writeInReadmodel(agreementEservice1, agreements);
       await writeInReadmodel(toReadModelEService(eService1), eservices);
 
       const { purpose } = await purposeService.createPurpose(
@@ -196,8 +198,8 @@ export const testCreatePurpose = (): ReturnType<typeof describe> =>
         consumerId: agreementEservice.consumerId,
       };
 
-      await addOneTenant(tenantWithoutKind, tenants);
-      await addOneAgreement(agreementEservice, agreements);
+      await writeInReadmodel(tenantWithoutKind, tenants);
+      await writeInReadmodel(agreementEservice, agreements);
       await writeInReadmodel(toReadModelEService(eService), eservices);
 
       expect(
@@ -218,11 +220,6 @@ export const testCreatePurpose = (): ReturnType<typeof describe> =>
       ).rejects.toThrowError(tenantNotFound(tenant.id));
     });
     it("should throw agreementNotFound", async () => {
-      const tenantForDraftAgreement: Tenant = {
-        ...tenant,
-        id: generateId(),
-      };
-
       const descriptor: Descriptor = {
         ...descriptor1,
         id: generateId(),
@@ -230,17 +227,18 @@ export const testCreatePurpose = (): ReturnType<typeof describe> =>
 
       const eService: EService = {
         ...eService1,
-        producerId: tenantForDraftAgreement.id,
+        producerId: tenant.id,
         id: generateId(),
         descriptors: [descriptor],
       };
 
       const agreement: Agreement = {
         ...agreementEservice1,
+        id: generateId(),
         eserviceId: eService.id,
         descriptorId: descriptor.id,
         producerId: eService.producerId,
-        consumerId: tenantForDraftAgreement.id,
+        consumerId: tenant.id,
         state: agreementState.draft,
       };
 
@@ -250,8 +248,8 @@ export const testCreatePurpose = (): ReturnType<typeof describe> =>
         consumerId: agreement.consumerId,
       };
 
-      await addOneTenant(tenantForDraftAgreement, tenants);
-      await addOneAgreement(agreement, agreements);
+      await writeInReadmodel(tenant, tenants);
+      await writeInReadmodel(agreement, agreements);
       await writeInReadmodel(toReadModelEService(eService), eservices);
 
       expect(
@@ -260,13 +258,11 @@ export const testCreatePurpose = (): ReturnType<typeof describe> =>
           unsafeBrandId(seed.consumerId),
           generateId()
         )
-      ).rejects.toThrowError(
-        agreementNotFound(eService.id, tenantForDraftAgreement.id)
-      );
+      ).rejects.toThrowError(agreementNotFound(eService.id, tenant.id));
     });
     it("should throw organizationIsNotTheConsumer if the requester is not the consumer", async () => {
-      await addOneTenant(tenant, tenants);
-      await addOneAgreement(agreementEservice1, agreements);
+      await writeInReadmodel(tenant, tenants);
+      await writeInReadmodel(agreementEservice1, agreements);
       await writeInReadmodel(toReadModelEService(getMockEService()), eservices);
 
       const seed: ApiPurposeSeed = {
@@ -285,8 +281,8 @@ export const testCreatePurpose = (): ReturnType<typeof describe> =>
       );
     });
     it("should throw riskAnalysisValidationFailed if the purpose has an inactive risk analysis ", async () => {
-      await addOneTenant(tenant, tenants);
-      await addOneAgreement(agreementEservice1, agreements);
+      await writeInReadmodel(tenant, tenants);
+      await writeInReadmodel(agreementEservice1, agreements);
       await writeInReadmodel(toReadModelEService(eService1), eservices);
 
       const mockInvalidRiskAnalysisForm: RiskAnalysisForm = {
@@ -322,8 +318,8 @@ export const testCreatePurpose = (): ReturnType<typeof describe> =>
       };
 
       await addOnePurpose(existingPurpose, postgresDB, purposes);
-      await addOneTenant(tenant, tenants);
-      await addOneAgreement(agreementEservice1, agreements);
+      await writeInReadmodel(tenant, tenants);
+      await writeInReadmodel(agreementEservice1, agreements);
       await writeInReadmodel(toReadModelEService(eService1), eservices);
 
       expect(
