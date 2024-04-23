@@ -132,18 +132,28 @@ export function readModelServiceBuilder(
         },
       } satisfies ReadModelFilter<Purpose>);
     },
-    async checkActiveAgreement(
+    async getActiveAgreement(
       eserviceId: EServiceId,
       consumerId: TenantId
-    ): Promise<void> {
+    ): Promise<Agreement | undefined> {
       const data = await agreements.findOne({
         "data.eserviceId": eserviceId,
         "data.consumerId": consumerId,
         "data.state": agreementState.active,
       });
-      const result = Agreement.safeParse(data?.data);
-      if (!result.success) {
-        throw agreementNotFound(eserviceId, consumerId);
+      if (!data) {
+        return undefined;
+      } else {
+        const result = Agreement.safeParse(data.data);
+        if (!result.success) {
+          logger.error(
+            `Unable to parse agreement item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+          throw genericError("Unable to parse agreement item");
+        }
+        return result.data;
       }
     },
     async getPurposes(
