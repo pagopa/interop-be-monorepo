@@ -1,4 +1,3 @@
-import { EventStoreSchema } from "pagopa-interop-models";
 import { z } from "zod";
 
 export const EventStoreConfig = z
@@ -8,7 +7,7 @@ export const EventStoreConfig = z
     EVENTSTORE_DB_USERNAME: z.string(),
     EVENTSTORE_DB_PASSWORD: z.string(),
     EVENTSTORE_DB_PORT: z.coerce.number().min(1001),
-    EVENTSTORE_DB_SCHEMA: EventStoreSchema,
+    EVENTSTORE_DB_SCHEMA: z.string(),
     EVENTSTORE_DB_USE_SSL: z
       .enum(["true", "false"])
       .transform((value) => value === "true"),
