@@ -207,25 +207,6 @@ export function toCreateEventAgreementUpgraded(
   };
 }
 
-export function toCreateEventAgreementUpdated(
-  agreement: Agreement,
-  version: number,
-  correlationId: string
-): CreateEvent<AgreementEvent> {
-  return {
-    streamId: agreement.id,
-    version,
-    event: {
-      type: "AgreementUpdated",
-      event_version: 1,
-      data: {
-        agreement: toAgreementV1(agreement),
-      },
-    },
-    correlationId,
-  };
-}
-
 export function toCreateEventAgreementRejected(
   agreement: Agreement,
   version: number,
