@@ -38,3 +38,7 @@ export type ApiGetPurposesFilters = {
   states: PurposeVersionState[];
   excludeDraft: boolean | undefined;
 };
+
+export type ApiReversePurposeSeed = z.infer<
+  typeof api.schemas.EServicePurposeSeed
+>;
