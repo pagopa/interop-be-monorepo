@@ -365,6 +365,7 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
     it("should not include the riskAnalysisForm if the requester is not the producer nor the consumer", async () => {
       const mockPurpose8: Purpose = {
         ...getMockPurpose(),
+        title: "purpose 8",
         riskAnalysisForm: getMockValidRiskAnalysisForm(tenantKind.PA),
         eserviceId: mockEService4.id,
       };
@@ -400,6 +401,7 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
 
       const mockPurpose8: Purpose = {
         ...getMockPurpose(),
+        title: "purpose 8",
         riskAnalysisForm: getMockValidRiskAnalysisForm(tenantKind.PA),
         eserviceId: mockEService2ByTenant1.id,
       };
@@ -407,6 +409,7 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
 
       const mockPurpose9: Purpose = {
         ...getMockPurpose(),
+        title: "purpose 9",
         riskAnalysisForm: getMockValidRiskAnalysisForm(tenantKind.PA),
         eserviceId: mockEService4.id,
       };
