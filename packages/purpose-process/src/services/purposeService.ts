@@ -621,6 +621,9 @@ export function purposeServiceBuilder(
       seed: ApiReversePurposeSeed,
       correlationId: string
     ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
+      logger.info(
+        `Creating Purposes for EService ${seed.eServiceId}, Consumer ${seed.consumerId}`
+      );
       const eserviceId: EServiceId = unsafeBrandId(seed.eServiceId);
       const consumerId: TenantId = unsafeBrandId(seed.consumerId);
 
