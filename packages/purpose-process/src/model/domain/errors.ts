@@ -184,6 +184,16 @@ export function notValidVersionState(
   });
 }
 
+export function purposeCannotBeDeleted(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} cannot be deleted`,
+    code: "purposeCannotBeDeleted",
+    title: "Purpose canont be deleted",
+  });
+}
+
 export function agreementNotFound(
   eserviceId: EServiceId,
   consumerId: TenantId
