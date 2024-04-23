@@ -1,24 +1,24 @@
-import jwt, { JwtHeader, SigningKeyCallback } from "jsonwebtoken";
+import jwt, { JwtHeader, JwtPayload, SigningKeyCallback } from "jsonwebtoken";
 import jwksClient from "jwks-rsa";
+import { invalidClaim, jwtDecodingError } from "pagopa-interop-models";
 import { JWTConfig, logger } from "../index.js";
 import { AuthData, AuthToken, getAuthDataFromToken } from "./authData.js";
 
-export const readAuthDataFromJwtToken = (
-  jwtToken: string
-): AuthData | Error => {
+const decodeJwtToken = (jwtToken: string): JwtPayload | null => {
   try {
-    const decoded = jwt.decode(jwtToken, { json: true });
-    const token = AuthToken.safeParse(decoded);
-
-    if (token.success === false) {
-      logger.error(`Error parsing token: ${JSON.stringify(token.error)}`);
-      return new Error(token.error.message);
-    } else {
-      return getAuthDataFromToken(token.data);
-    }
+    return jwt.decode(jwtToken, { json: true });
   } catch (err) {
-    logger.error(`Unexpected error parsing token: ${err}`);
-    return new Error(`Unexpected error parsing token: ${err}`);
+    throw jwtDecodingError(err);
+  }
+};
+
+export const readAuthDataFromJwtToken = (jwtToken: string): AuthData => {
+  const decoded = decodeJwtToken(jwtToken);
+  const token = AuthToken.safeParse(decoded);
+  if (token.success === false) {
+    throw invalidClaim(token.error);
+  } else {
+    return getAuthDataFromToken(token.data);
   }
 };
 
@@ -50,13 +50,20 @@ export const verifyJwtToken = (jwtToken: string): Promise<boolean> => {
     })
   );
   return new Promise((resolve, _reject) => {
-    jwt.verify(jwtToken, getKey(clients), undefined, function (err, _decoded) {
-      if (err) {
-        logger.warn(`Error verifying token: ${err}`);
-        return resolve(false);
+    jwt.verify(
+      jwtToken,
+      getKey(clients),
+      {
+        audience: config.acceptedAudiences,
+      },
+      function (err, _decoded) {
+        if (err) {
+          logger.warn(`Token verification failed: ${err}`);
+          return resolve(false);
+        }
+        return resolve(true);
       }
-      return resolve(true);
-    });
+    );
   });
 };
 
