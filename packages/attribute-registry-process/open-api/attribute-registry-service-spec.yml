@@ -231,6 +231,7 @@ paths:
             type: array
             items:
               $ref: '#/components/schemas/AttributeKind'
+          explode: false
           required: true
       responses:
         '200':

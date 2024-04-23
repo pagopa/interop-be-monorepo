@@ -23,6 +23,8 @@ import {
   generateId,
   tenantAttributeType,
   PurposeVersionDocument,
+  PurposeVersionState,
+  purposeVersionState,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import { AuthData } from "pagopa-interop-commons";
@@ -41,10 +43,11 @@ export const getRandomAuthData = (
   organizationId: TenantId = generateId<TenantId>()
 ): AuthData => ({
   ...generateMock(AuthData),
+  userRoles: ["admin"],
   organizationId,
 });
 
-export const buildDescriptorPublished = (
+export const getMockDescriptorPublished = (
   descriptorId: DescriptorId = generateId<DescriptorId>(),
   certifiedAttributes: EServiceAttribute[][] = [],
   declaredAttributes: EServiceAttribute[][] = [],
@@ -60,17 +63,17 @@ export const buildDescriptorPublished = (
   },
 });
 
-export const buildEServiceAttribute = (
+export const getMockEServiceAttribute = (
   attributeId: AttributeId = generateId<AttributeId>()
 ): EServiceAttribute => ({
   ...generateMock(EServiceAttribute),
   id: attributeId,
 });
 
-export const buildEServiceAttributes = (num: number): EServiceAttribute[] =>
-  new Array(num).map(() => buildEServiceAttribute());
+export const getMockEServiceAttributes = (num: number): EServiceAttribute[] =>
+  new Array(num).map(() => getMockEServiceAttribute());
 
-export const buildEService = (
+export const getMockEService = (
   eserviceId: EServiceId = generateId<EServiceId>(),
   producerId: TenantId = generateId<TenantId>(),
   descriptors: Descriptor[] = []
@@ -81,17 +84,19 @@ export const buildEService = (
   descriptors,
 });
 
-export const buildVerifiedTenantAttribute = (
+export const getMockVerifiedTenantAttribute = (
   attributeId: AttributeId = generateId<AttributeId>()
 ): TenantAttribute => ({
   ...generateMock(VerifiedTenantAttribute),
   id: attributeId,
 });
 
-export const buildVerifiedTenantAttributes = (num: number): TenantAttribute[] =>
-  new Array(num).map(() => buildVerifiedTenantAttribute());
+export const getMockVerifiedTenantAttributes = (
+  num: number
+): TenantAttribute[] =>
+  new Array(num).map(() => getMockVerifiedTenantAttribute());
 
-export const buildCertifiedTenantAttribute = (
+export const getMockCertifiedTenantAttribute = (
   attributeId: AttributeId = generateId<AttributeId>()
 ): CertifiedTenantAttribute => ({
   ...generateMock(CertifiedTenantAttribute),
@@ -100,35 +105,40 @@ export const buildCertifiedTenantAttribute = (
   revocationTimestamp: undefined,
 });
 
-export const buildCertifiedTenantAttributes = (
+export const getMockCertifiedTenantAttributes = (
   num: number
 ): TenantAttribute[] =>
-  new Array(num).map(() => buildCertifiedTenantAttribute());
+  new Array(num).map(() => getMockCertifiedTenantAttribute());
 
-export const buildDeclaredTenantAttribute = (
+export const getMockDeclaredTenantAttribute = (
   attributeId: AttributeId = generateId<AttributeId>()
 ): TenantAttribute => ({
   ...generateMock(DeclaredTenantAttribute),
   id: attributeId,
 });
 
-export const buildDeclaredTenantAttributes = (num: number): TenantAttribute[] =>
-  new Array(num).map(() => buildDeclaredTenantAttribute());
+export const getMockDeclaredTenantAttributes = (
+  num: number
+): TenantAttribute[] =>
+  new Array(num).map(() => getMockDeclaredTenantAttribute());
 
-export const buildTenant = (
+export const getMockTenant = (
   tenantId: TenantId = generateId<TenantId>(),
   attributes: TenantAttribute[] = []
 ): Tenant => ({
-  ...generateMock(Tenant),
+  name: "A tenant",
   id: tenantId,
-  externalId: {
-    value: uuidv4(),
-    origin: "EXT",
-  },
+  createdAt: new Date(),
   attributes,
+  externalId: {
+    value: "123456",
+    origin: "IPA",
+  },
+  features: [],
+  mails: [],
 });
 
-export const buildAgreement = (
+export const getMockAgreement = (
   eserviceId: EServiceId = generateId<EServiceId>(),
   consumerId: TenantId = generateId<TenantId>(),
   state: AgreementState = agreementState.draft
@@ -160,9 +170,11 @@ export const getMockPurpose = (): Purpose => ({
   isFreeOfCharge: true,
 });
 
-export const getMockPurposeVersion = (): PurposeVersion => ({
+export const getMockPurposeVersion = (
+  state?: PurposeVersionState
+): PurposeVersion => ({
   id: generateId(),
-  state: "Draft",
+  state: state || purposeVersionState.draft,
   riskAnalysis: {
     id: generateId(),
     contentType: "json",
@@ -171,6 +183,15 @@ export const getMockPurposeVersion = (): PurposeVersion => ({
   },
   dailyCalls: 10,
   createdAt: new Date(),
+  ...(state !== purposeVersionState.draft
+    ? { updatedAt: new Date(), firstActivationAt: new Date() }
+    : {}),
+  ...(state === purposeVersionState.suspended
+    ? { suspendedAt: new Date() }
+    : {}),
+  ...(state === purposeVersionState.rejected
+    ? { rejectionReason: "test" }
+    : {}),
 });
 
 export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
@@ -181,19 +202,6 @@ export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
     value: "123456",
     origin: "IPA",
   },
-});
-
-export const getMockTenant = (): Tenant => ({
-  name: "A tenant",
-  id: generateId(),
-  createdAt: new Date(),
-  attributes: [],
-  externalId: {
-    value: "123456",
-    origin: "IPA",
-  },
-  features: [],
-  mails: [],
 });
 
 export const getMockPurposeVersionDocument = (): PurposeVersionDocument => ({
