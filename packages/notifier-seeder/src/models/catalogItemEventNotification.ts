@@ -82,12 +82,12 @@ export type CatalogItemV1Notification = Omit<
 
 // CatalogItemV1AddedV1 | ClonedCatalogItemV1AddedV1 | CatalogItemV1UpdatedV1 | MovedAttributesFromEserviceToDescriptorsV1
 export type CatalogItemNotification = {
-  catalogItem?: CatalogItemV1Notification;
+  catalogItem: CatalogItemV1Notification;
 };
 
 // CatalogItemWithDescriptorsDeletedV1
 export type CatalogItemDescriptorDeletedNotification = {
-  catalogItem?: CatalogItemV1Notification;
+  catalogItem: CatalogItemV1Notification;
   descriptorId: string;
 };
 
@@ -95,7 +95,7 @@ export type CatalogItemDocumentUpdateNotification = {
   eServiceId: string;
   descriptorId: string;
   documentId: string;
-  updatedDocument?: CatalogDocumentV1Notification;
+  updatedDocument: CatalogDocumentV1Notification;
   serverUrls: string[];
 };
 
@@ -103,7 +103,7 @@ export type CatalogItemDocumentUpdateNotification = {
 export type CatalogItemDocumentAddedNotification = {
   eServiceId: string;
   descriptorId: string;
-  document?: CatalogDocumentV1Notification;
+  document: CatalogDocumentV1Notification;
   isInterface: boolean;
   serverUrls: string[];
 };
@@ -111,12 +111,12 @@ export type CatalogItemDocumentAddedNotification = {
 // CatalogItemDescriptorAddedV1 | CatalogItemDescriptorUpdatedV1
 export type CatalogDescriptorNotification = {
   eServiceId: string;
-  catalogDescriptor?: CatalogDescriptorV1Notification;
+  catalogDescriptor: CatalogDescriptorV1Notification;
 };
 
 // CatalogItemRiskAnalysisAddedV1 | CatalogItemRiskAnalysisUpdatedV1 | CatalogItemRiskAnalysisDeletedV1;
 export type CatalogItemRiskAnalysisNotification = {
-  catalogItem?: CatalogItemV1Notification;
+  catalogItem: CatalogItemV1Notification;
   catalogRiskAnalysisId: string;
 };
 
