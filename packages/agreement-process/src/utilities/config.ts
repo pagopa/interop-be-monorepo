@@ -1,12 +1,12 @@
 import { z } from "zod";
 import {
   FileManagerConfig,
-  CommonConfig,
+  CommonHTTPServiceConfig,
   ReadModelDbConfig,
   EventStoreConfig,
 } from "pagopa-interop-commons";
 
-const AgreementProcessConfig = CommonConfig.and(EventStoreConfig)
+const AgreementProcessConfig = CommonHTTPServiceConfig.and(EventStoreConfig)
   .and(ReadModelDbConfig)
   .and(FileManagerConfig)
   .and(
