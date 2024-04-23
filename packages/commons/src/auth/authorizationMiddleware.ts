@@ -38,14 +38,6 @@ const hasValidRoles = (
     throw missingBearer;
   }
   const authData = readAuthDataFromJwtToken(jwtToken);
-
-  if (authData instanceof Error) {
-    return {
-      isValid: false,
-      error: unauthorizedError(authData.message),
-    };
-  }
-
   if (!authData.userRoles || authData.userRoles.length === 0) {
     return {
       isValid: false,
