@@ -9,6 +9,7 @@ import {
   ReadModelRepository,
   initFileManager,
   loggerAndMakeApiProblemBuilder,
+  zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -87,7 +88,9 @@ const serviceName = "agreement-process";
 const agreementRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const agreementRouter = ctx.router(api.api);
+  const agreementRouter = ctx.router(api.api, {
+    validationErrorHandler: zodiosValidationErrorToApiProblem,
+  });
 
   agreementRouter.post(
     "/agreements/:agreementId/submit",

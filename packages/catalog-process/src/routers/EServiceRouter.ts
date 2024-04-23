@@ -9,6 +9,7 @@ import {
   initDB,
   initFileManager,
   loggerAndMakeApiProblemBuilder,
+  zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import {
   unsafeBrandId,
@@ -76,7 +77,9 @@ const serviceName = "catalog-process";
 const eservicesRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const eservicesRouter = ctx.router(api.api);
+  const eservicesRouter = ctx.router(api.api, {
+    validationErrorHandler: zodiosValidationErrorToApiProblem,
+  });
   const {
     ADMIN_ROLE,
     SECURITY_ROLE,

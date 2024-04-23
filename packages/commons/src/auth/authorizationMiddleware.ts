@@ -103,7 +103,9 @@ export const authorizationMiddleware =
         .with(P.instanceOf(ApiError), (error) =>
           makeApiProblem(
             new ApiError({
-              ...error,
+              code: error.code,
+              detail: error.detail,
+              title: error.title,
               correlationId: headers?.correlationId,
             }),
             (error) => (error.code === "unauthorizedError" ? 403 : 500)

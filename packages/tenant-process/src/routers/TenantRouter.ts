@@ -7,6 +7,7 @@ import {
   authorizationMiddleware,
   initDB,
   loggerAndMakeApiProblemBuilder,
+  zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
@@ -50,7 +51,9 @@ const serviceName = "tenant-process";
 const tenantsRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const tenantsRouter = ctx.router(api.api);
+  const tenantsRouter = ctx.router(api.api, {
+    validationErrorHandler: zodiosValidationErrorToApiProblem,
+  });
   const {
     ADMIN_ROLE,
     SECURITY_ROLE,

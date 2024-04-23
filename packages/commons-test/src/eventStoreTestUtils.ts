@@ -18,6 +18,13 @@ import {
 import { Event } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
 
+type EventStoreSchema =
+  | "agreement"
+  | "attribute"
+  | "catalog"
+  | "tenant"
+  | "purpose";
+
 export type StoredEvent<T extends Event> = {
   stream_id: string;
   version: number;
@@ -32,13 +39,19 @@ export type ReadEvent<T extends Event> = {
   data: Uint8Array;
 };
 
-export async function writeInEventstore(
-  event:
-    | StoredEvent<AgreementEvent>
-    | StoredEvent<AttributeEvent>
-    | StoredEvent<EServiceEvent>
-    | StoredEvent<TenantEvent>,
-  schema: string,
+export async function writeInEventstore<T extends EventStoreSchema>(
+  event: T extends "agreement"
+    ? StoredEvent<AgreementEvent>
+    : T extends "attribute"
+    ? StoredEvent<AttributeEvent>
+    : T extends "catalog"
+    ? StoredEvent<EServiceEvent>
+    : T extends "tenant"
+    ? StoredEvent<TenantEvent>
+    : T extends "purpose"
+    ? never // Purpose events not implemented yet
+    : never,
+  schema: T,
   postgresDB: IDatabase<unknown>
 ): Promise<void> {
   await postgresDB.none(
@@ -48,7 +61,7 @@ export async function writeInEventstore(
       event.version,
       event.event.type,
       event.event.event_version,
-      match(schema)
+      match<EventStoreSchema>(schema)
         .with("agreement", () =>
           agreementEventToBinaryData(event.event as AgreementEvent)
         )
@@ -64,20 +77,40 @@ export async function writeInEventstore(
         .with("purpose", () => {
           throw new Error("Purpose events not implemented yet");
         })
-        .otherwise((v) => {
-          throw new Error(`${v} events not implemented`);
-        }),
+        .exhaustive(),
     ]
   );
 }
 
-export async function readLastEventByStreamId<
-  T extends AgreementId | AttributeId | EServiceId | TenantId
->(
-  streamId: T,
-  schema: string,
+export async function readLastEventByStreamId<T extends EventStoreSchema>(
+  streamId: T extends "agreement"
+    ? AgreementId
+    : T extends "attribute"
+    ? AttributeId
+    : T extends "catalog"
+    ? EServiceId
+    : T extends "tenant"
+    ? TenantId
+    : T extends "purpose"
+    ? never // Purpose events not implemented yet
+    : never,
+  schema: T,
   postgresDB: IDatabase<unknown>
-): Promise<ReadEvent<Event>> {
+): Promise<
+  ReadEvent<
+    T extends "agreement"
+      ? AgreementEvent
+      : T extends "attribute"
+      ? AttributeEvent
+      : T extends "catalog"
+      ? EServiceEvent
+      : T extends "tenant"
+      ? TenantEvent
+      : T extends "purpose"
+      ? never // Purpose events not implemented yet
+      : never
+  >
+> {
   return postgresDB.one(
     `SELECT * FROM ${schema}.events WHERE stream_id = $1 ORDER BY sequence_num DESC LIMIT 1`,
     [streamId]
