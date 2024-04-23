@@ -24,6 +24,7 @@ import {
 import { Filter, WithId } from "mongodb";
 import { z } from "zod";
 import { ApiGetPurposesFilters } from "../model/domain/models.js";
+import { agreementNotFound } from "../model/domain/errors.js";
 
 async function getPurpose(
   purposes: PurposeCollection,
@@ -131,27 +132,19 @@ export function readModelServiceBuilder(
         },
       } satisfies ReadModelFilter<Purpose>);
     },
-    async getActiveAgreement(
+    async checkActiveAgreement(
       eserviceId: EServiceId,
       consumerId: TenantId
-    ): Promise<Agreement> {
+    ): Promise<void> {
       const data = await agreements.findOne({
         "data.eserviceId": eserviceId,
         "data.consumerId": consumerId,
         "data.state": agreementState.active,
       });
-
-      const result = Agreement.safeParse(data);
+      const result = Agreement.safeParse(data?.data);
       if (!result.success) {
-        logger.error(
-          `Unable to parse agreements items: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
-        );
-
-        throw genericError("Unable to parse agreements items");
+        throw agreementNotFound(eserviceId, consumerId);
       }
-      return result.data;
     },
     async getPurposes(
       filters: ApiGetPurposesFilters,

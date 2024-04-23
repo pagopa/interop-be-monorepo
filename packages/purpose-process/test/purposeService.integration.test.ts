@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
+import { fail } from "assert";
 import {
   afterAll,
   afterEach,
@@ -14,18 +15,24 @@ import {
   vi,
 } from "vitest";
 import {
+  AgreementCollection,
   EServiceCollection,
   PurposeCollection,
   ReadModelRepository,
   TenantCollection,
   initDB,
+  unexpectedFieldError,
+  unexpectedFieldValueError,
   unexpectedRulesVersionError,
+  validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import { IDatabase } from "pg-promise";
 import {
+  StoredEvent,
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
   decodeProtobufPayload,
+  eventStoreSchema,
   getMockPurpose,
   getMockPurposeVersion,
   getMockPurposeVersionDocument,
@@ -64,7 +71,12 @@ import {
   toPurposeV2,
   toReadModelEService,
   unsafeBrandId,
-  PurposeVersionState,
+  descriptorState,
+  Descriptor,
+  PurposeAddedV2,
+  RiskAnalysisForm,
+  Agreement,
+  agreementState,
 } from "pagopa-interop-models";
 import { config } from "../src/utilities/config.js";
 import {
@@ -76,6 +88,8 @@ import {
   readModelServiceBuilder,
 } from "../src/services/readModelService.js";
 import {
+  agreementNotFound,
+  duplicatedPurposeName,
   eServiceModeNotAllowed,
   eserviceNotFound,
   missingFreeOfChargeReason,
@@ -94,13 +108,19 @@ import {
   tenantNotFound,
 } from "../src/model/domain/errors.js";
 import {
+  ApiPurposeSeed,
   ApiPurposeUpdateContent,
   ApiReversePurposeUpdateContent,
 } from "../src/model/domain/models.js";
 import {
+  addOneAgreement,
   addOnePurpose,
+  addOneTenant,
+  buildRiskAnalysisFormSeed,
   buildRiskAnalysisSeed,
   createUpdatedPurpose,
+  getMockAgreement,
+  getMockDescriptor,
   getMockEService,
 } from "./utils.js";
 
@@ -108,6 +128,7 @@ describe("Integration tests", async () => {
   let purposes: PurposeCollection;
   let eservices: EServiceCollection;
   let tenants: TenantCollection;
+  let agreements: AgreementCollection;
   let readModelService: ReadModelService;
   let purposeService: PurposeService;
   let postgresDB: IDatabase<unknown>;
@@ -128,6 +149,7 @@ describe("Integration tests", async () => {
     purposes = readModelRepository.purposes;
     eservices = readModelRepository.eservices;
     tenants = readModelRepository.tenants;
+    agreements = readModelRepository.agreements;
     readModelService = readModelServiceBuilder(readModelRepository);
     postgresDB = initDB({
       username: config.eventStoreDbUsername,
@@ -1215,6 +1237,294 @@ describe("Integration tests", async () => {
         ).rejects.toThrowError(
           riskAnalysisValidationFailed([unexpectedRulesVersionError("0")])
         );
+      });
+    });
+
+    describe("createPurpose", () => {
+      const tenant: Tenant = {
+        ...getMockTenant(),
+        kind: tenantKind.PA,
+      };
+
+      const descriptor1: Descriptor = {
+        ...getMockDescriptor(),
+        state: descriptorState.published,
+        version: "",
+      };
+
+      const eService1: EService = {
+        ...getMockEService(),
+        producerId: tenant.id,
+        id: generateId(),
+        name: "A",
+        descriptors: [descriptor1],
+      };
+
+      const agreementEservice1 = getMockAgreement({
+        eserviceId: eService1.id,
+        descriptorId: descriptor1.id,
+        producerId: eService1.producerId,
+        consumerId: tenant.id,
+      });
+
+      const mockValidRiskAnalysisForm = getMockValidRiskAnalysisForm(
+        tenantKind.PA
+      );
+
+      const purposeSeed: ApiPurposeSeed = {
+        eserviceId: eService1.id,
+        consumerId: agreementEservice1.consumerId,
+        title: "test",
+        dailyCalls: 10,
+        description: "test",
+        isFreeOfCharge: true,
+        freeOfChargeReason: "reason",
+        riskAnalysisForm: buildRiskAnalysisFormSeed(mockValidRiskAnalysisForm),
+      };
+      it("should write on event-store for the creation of a purpose", async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date());
+        await addOneTenant(tenant, tenants);
+        await addOneAgreement(agreementEservice1, agreements);
+        await writeInReadmodel(toReadModelEService(eService1), eservices);
+
+        const { purpose } = await purposeService.createPurpose(
+          purposeSeed,
+          unsafeBrandId(purposeSeed.consumerId),
+          generateId()
+        );
+
+        const writtenEvent: StoredEvent | undefined =
+          await readLastEventByStreamId(
+            purpose.id,
+            eventStoreSchema.purpose,
+            postgresDB
+          );
+
+        if (!writtenEvent) {
+          fail("Update failed: purpose not found in event-store");
+        }
+
+        expect(writtenEvent).toMatchObject({
+          stream_id: purpose.id,
+          version: "0",
+          type: "PurposeAdded",
+          event_version: 2,
+        });
+
+        const writtenPayload = decodeProtobufPayload({
+          messageType: PurposeAddedV2,
+          payload: writtenEvent.data,
+        });
+
+        const expectedRiskAnalysisForm: RiskAnalysisForm = {
+          ...mockValidRiskAnalysisForm,
+          id: unsafeBrandId(purpose.riskAnalysisForm!.id),
+          singleAnswers: mockValidRiskAnalysisForm.singleAnswers.map(
+            (answer, i) => ({
+              ...answer,
+              id: purpose.riskAnalysisForm!.singleAnswers[i].id,
+            })
+          ),
+          multiAnswers: mockValidRiskAnalysisForm.multiAnswers.map(
+            (answer, i) => ({
+              ...answer,
+              id: purpose.riskAnalysisForm!.multiAnswers[i].id,
+            })
+          ),
+        };
+
+        const expectedPurpose: Purpose = {
+          title: purposeSeed.title,
+          id: unsafeBrandId(purpose.id),
+          createdAt: new Date(),
+          eserviceId: unsafeBrandId(purposeSeed.eserviceId),
+          consumerId: unsafeBrandId(purposeSeed.consumerId),
+          description: purposeSeed.description,
+          versions: [],
+          isFreeOfCharge: true,
+          freeOfChargeReason: purposeSeed.freeOfChargeReason,
+          riskAnalysisForm: expectedRiskAnalysisForm,
+        };
+
+        expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+        vi.useRealTimers();
+      });
+      it("should throw missingFreeOfChargeReason if the freeOfChargeReason is empty", async () => {
+        const seed: ApiPurposeSeed = {
+          ...purposeSeed,
+          freeOfChargeReason: undefined,
+        };
+
+        expect(
+          purposeService.createPurpose(
+            seed,
+            unsafeBrandId(purposeSeed.consumerId),
+            generateId()
+          )
+        ).rejects.toThrowError(missingFreeOfChargeReason());
+      });
+      it("should throw tenantKindNotFound", async () => {
+        const tenantWithoutKind: Tenant = {
+          ...tenant,
+          kind: undefined,
+        };
+
+        const eService: EService = {
+          ...eService1,
+          producerId: tenantWithoutKind.id,
+        };
+
+        const agreementEservice = getMockAgreement({
+          eserviceId: eService.id,
+          descriptorId: descriptor1.id,
+          producerId: eService.producerId,
+          consumerId: tenantWithoutKind.id,
+        });
+
+        const seed: ApiPurposeSeed = {
+          ...purposeSeed,
+          eserviceId: eService.id,
+          consumerId: agreementEservice.consumerId,
+        };
+
+        await addOneTenant(tenantWithoutKind, tenants);
+        await addOneAgreement(agreementEservice, agreements);
+        await writeInReadmodel(toReadModelEService(eService), eservices);
+
+        expect(
+          purposeService.createPurpose(
+            seed,
+            unsafeBrandId(purposeSeed.consumerId),
+            generateId()
+          )
+        ).rejects.toThrowError(tenantKindNotFound(tenantWithoutKind.id));
+      });
+      it("should throw tenantNotFound", async () => {
+        expect(
+          purposeService.createPurpose(
+            purposeSeed,
+            unsafeBrandId(purposeSeed.consumerId),
+            generateId()
+          )
+        ).rejects.toThrowError(tenantNotFound(tenant.id));
+      });
+      it("should throw agreementNotFound", async () => {
+        const tenantForDraftAgreement: Tenant = {
+          ...tenant,
+          id: generateId(),
+        };
+
+        const descriptor: Descriptor = {
+          ...descriptor1,
+          id: generateId(),
+        };
+
+        const eService: EService = {
+          ...eService1,
+          producerId: tenantForDraftAgreement.id,
+          id: generateId(),
+          descriptors: [descriptor],
+        };
+
+        const agreement: Agreement = {
+          ...agreementEservice1,
+          eserviceId: eService.id,
+          descriptorId: descriptor.id,
+          producerId: eService.producerId,
+          consumerId: tenantForDraftAgreement.id,
+          state: agreementState.draft,
+        };
+
+        const seed: ApiPurposeSeed = {
+          ...purposeSeed,
+          eserviceId: eService.id,
+          consumerId: agreement.consumerId,
+        };
+
+        await addOneTenant(tenantForDraftAgreement, tenants);
+        await addOneAgreement(agreement, agreements);
+        await writeInReadmodel(toReadModelEService(eService), eservices);
+
+        expect(
+          purposeService.createPurpose(
+            seed,
+            unsafeBrandId(seed.consumerId),
+            generateId()
+          )
+        ).rejects.toThrowError(
+          agreementNotFound(eService.id, tenantForDraftAgreement.id)
+        );
+      });
+      it("should throw organizationIsNotTheConsumer if the requester is not the consumer", async () => {
+        await addOneTenant(tenant, tenants);
+        await addOneAgreement(agreementEservice1, agreements);
+        await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+        const seed: ApiPurposeSeed = {
+          ...purposeSeed,
+          consumerId: generateId(),
+        };
+
+        expect(
+          purposeService.createPurpose(
+            seed,
+            unsafeBrandId(purposeSeed.consumerId),
+            generateId()
+          )
+        ).rejects.toThrowError(
+          organizationIsNotTheConsumer(unsafeBrandId(purposeSeed.consumerId))
+        );
+      });
+      it("should throw riskAnalysisValidationFailed if the purpose has an inactive risk analysis ", async () => {
+        await addOneTenant(tenant, tenants);
+        await addOneAgreement(agreementEservice1, agreements);
+        await writeInReadmodel(toReadModelEService(eService1), eservices);
+
+        const mockInvalidRiskAnalysisForm: RiskAnalysisForm = {
+          ...mockValidRiskAnalysisForm,
+          version: "251",
+        };
+
+        const seed: ApiPurposeSeed = {
+          ...purposeSeed,
+          riskAnalysisForm: buildRiskAnalysisFormSeed(
+            mockInvalidRiskAnalysisForm
+          ),
+        };
+
+        expect(
+          purposeService.createPurpose(
+            seed,
+            unsafeBrandId(purposeSeed.consumerId),
+            generateId()
+          )
+        ).rejects.toThrowError(
+          riskAnalysisValidationFailed([
+            unexpectedRulesVersionError(mockInvalidRiskAnalysisForm.version),
+          ])
+        );
+      });
+      it("should throw duplicatedPurposeName if exist alreay a purpose with same name", async () => {
+        const existingPurpose: Purpose = {
+          ...mockPurpose,
+          eserviceId: unsafeBrandId(purposeSeed.eserviceId),
+          consumerId: unsafeBrandId(purposeSeed.consumerId),
+          title: purposeSeed.title,
+        };
+
+        await addOnePurpose(existingPurpose, postgresDB, purposes);
+        await addOneTenant(tenant, tenants);
+        await addOneAgreement(agreementEservice1, agreements);
+        await writeInReadmodel(toReadModelEService(eService1), eservices);
+
+        expect(
+          purposeService.createPurpose(
+            purposeSeed,
+            unsafeBrandId(purposeSeed.consumerId),
+            generateId()
+          )
+        ).rejects.toThrowError(duplicatedPurposeName(purposeSeed.title));
       });
     });
 
