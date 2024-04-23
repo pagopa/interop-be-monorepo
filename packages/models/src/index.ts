@@ -32,6 +32,9 @@ export * from "./tenant/protobufConverterFromV2.js";
 export * from "./tenant/protobufConverterToV2.js";
 
 export * from "./purpose/purpose.js";
+export * from "./purpose/purposeEvents.js";
+export * from "./purpose/protobufConverterFromV1.js";
+export * from "./purpose/protobufConverterToV1.js";
 
 export * from "./user/user.js";
 
@@ -42,6 +45,9 @@ export * from "./protobuf/protobuf.js";
 export * from "./read-models/attributeReadModel.js";
 export * from "./read-models/eserviceReadModel.js";
 export * from "./read-models/readModels.js";
+
+// Event store
+export * from "./event-store/dbSchema.js";
 
 // Utilities
 export * from "./brandedIds.js";
@@ -63,3 +69,7 @@ export * from "./gen/v1/tenant/events.js";
 export * from "./gen/v1/tenant/tenant.js";
 export * from "./gen/v2/eservice/eservice.js";
 export * from "./gen/v2/eservice/events.js";
+export * from "./gen/v1/purpose/purpose.js";
+export * from "./gen/v1/purpose/events.js";
+export * from "./gen/v2/purpose/purpose.js";
+export * from "./gen/v2/purpose/events.js";
