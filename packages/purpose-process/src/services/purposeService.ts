@@ -30,7 +30,6 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
-  agreementNotFound,
   duplicatedPurposeName,
   eserviceNotFound,
   notValidVersionState,
@@ -557,14 +556,7 @@ export function purposeServiceBuilder(
         tenant.kind
       );
 
-      const agreement = await readModelService.getActiveAgreement(
-        eserviceId,
-        consumerId
-      );
-
-      if (agreement === undefined) {
-        throw agreementNotFound(eserviceId, consumerId);
-      }
+      await readModelService.checkActiveAgreement(eserviceId, consumerId);
 
       const purposeWithSameName = await readModelService.getSpecificPurpose(
         eserviceId,
