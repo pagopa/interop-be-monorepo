@@ -48,7 +48,6 @@ import {
   purposeVersionDocumentNotFound,
   purposeVersionNotFound,
   riskAnalysisValidationFailed,
-  tenantKindNotFound,
   tenantNotFound,
 } from "../model/domain/errors.js";
 import {
@@ -667,12 +666,12 @@ export function purposeServiceBuilder(
         seed.freeOfChargeReason
       );
 
-      const tenant = await retrieveTenant(
+      const producer = await retrieveTenant(
         eservice.producerId,
         readModelService
       );
 
-      assertTenantKindExists(tenant);
+      assertTenantKindExists(producer);
 
       const agreement = await readModelService.getActiveAgreement(
         eserviceId,
@@ -698,7 +697,7 @@ export function purposeServiceBuilder(
           riskAnalysis.riskAnalysisForm
         ),
         false,
-        tenant.kind
+        producer.kind
       );
 
       if (validationResult.type === "invalid") {
