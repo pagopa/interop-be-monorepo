@@ -22,6 +22,7 @@ export const errorCodes = {
   purposeVersionCannotBeDeleted: "0009",
   organizationIsNotTheProducer: "0010",
   notValidVersionState: "0011",
+  missingRejectionReason: "0012",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -132,5 +133,13 @@ export function notValidVersionState(
     detail: `Purpose version ${purposeVersionId} has a not valid state for this operation: ${versionState}`,
     code: "notValidVersionState",
     title: "Not valid purpose version state",
+  });
+}
+
+export function missingRejectionReason(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Rejection reason is missing`,
+    code: "missingRejectionReason",
+    title: "Rejection reason can't be omitted",
   });
 }
