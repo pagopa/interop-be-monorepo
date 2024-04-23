@@ -1,10 +1,6 @@
 import jwt, { JwtHeader, JwtPayload, SigningKeyCallback } from "jsonwebtoken";
 import jwksClient from "jwks-rsa";
-import {
-  invalidClaim,
-  jwtParsingError,
-  unauthorizedError,
-} from "pagopa-interop-models";
+import { invalidClaim, jwtParsingError } from "pagopa-interop-models";
 import { JWTConfig, logger } from "../index.js";
 import { AuthData, AuthToken, getAuthDataFromToken } from "./authData.js";
 
@@ -46,14 +42,14 @@ const getKey =
     }
   };
 
-export const verifyJwtToken = (jwtToken: string): Promise<void> => {
+export const verifyJwtToken = (jwtToken: string): Promise<boolean> => {
   const config = JWTConfig.parse(process.env);
   const clients = config.wellKnownUrls.map((url) =>
     jwksClient({
       jwksUri: url,
     })
   );
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve, _reject) => {
     jwt.verify(
       jwtToken,
       getKey(clients),
@@ -63,9 +59,9 @@ export const verifyJwtToken = (jwtToken: string): Promise<void> => {
       function (err, _decoded) {
         if (err) {
           logger.warn(`Token verification failed: ${err}`);
-          reject(unauthorizedError("Invalid jwt token"));
+          return resolve(false);
         }
-        return resolve();
+        return resolve(true);
       }
     );
   });

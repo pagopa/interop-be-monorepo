@@ -4,6 +4,7 @@ import {
   makeApiProblemBuilder,
   missingBearer,
   missingHeader,
+  unauthorizedError,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { ExpressContext } from "../index.js";
@@ -35,7 +36,11 @@ export const authenticationMiddleware: () => ZodiosRouterContextRequestHandler<E
         }
 
         const jwtToken = authorizationHeader[1];
-        await verifyJwtToken(jwtToken);
+        const valid = await verifyJwtToken(jwtToken);
+        if (!valid) {
+          throw unauthorizedError("Invalid token");
+        }
+
         const authData: AuthData = readAuthDataFromJwtToken(jwtToken);
         // eslint-disable-next-line functional/immutable-data
         req.ctx = {
