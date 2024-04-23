@@ -117,7 +117,7 @@ export function makeApiProblemBuilder<T extends string>(
 
 const errorCodes = {
   authenticationSaslFailed: "9000",
-  jwtParsingError: "9001",
+  jwtDecodingError: "9001",
   operationForbidden: "9989",
   invalidClaim: "9990",
   genericError: "9991",
@@ -245,17 +245,17 @@ export function badRequestError(
 
 export function invalidClaim(error: unknown): ApiError<CommonErrorCodes> {
   return new ApiError({
-    detail: `Claim not valid or missing ${parseErrorMessage(error)}`,
+    detail: `Claim not valid or missing: ${parseErrorMessage(error)}`,
     code: "invalidClaim",
     title: "Claim not valid or missing",
   });
 }
 
-export function jwtParsingError(error: unknown): ApiError<CommonErrorCodes> {
+export function jwtDecodingError(error: unknown): ApiError<CommonErrorCodes> {
   return new ApiError({
-    detail: `Unexpected error on JWT parsing: ${parseErrorMessage(error)}`,
-    code: "jwtParsingError",
-    title: "JWT parsing error",
+    detail: `Unexpected error on JWT decoding: ${parseErrorMessage(error)}`,
+    code: "jwtDecodingError",
+    title: "JWT decoding error",
   });
 }
 

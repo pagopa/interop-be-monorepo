@@ -1,6 +1,6 @@
 import jwt, { JwtHeader, JwtPayload, SigningKeyCallback } from "jsonwebtoken";
 import jwksClient from "jwks-rsa";
-import { invalidClaim, jwtParsingError } from "pagopa-interop-models";
+import { invalidClaim, jwtDecodingError } from "pagopa-interop-models";
 import { JWTConfig, logger } from "../index.js";
 import { AuthData, AuthToken, getAuthDataFromToken } from "./authData.js";
 
@@ -8,7 +8,7 @@ const decodeJwtToken = (jwtToken: string): JwtPayload | null => {
   try {
     return jwt.decode(jwtToken, { json: true });
   } catch (err) {
-    throw jwtParsingError(err);
+    throw jwtDecodingError(err);
   }
 };
 
