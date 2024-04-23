@@ -786,6 +786,9 @@ importers:
       zod:
         specifier: 3.21.4
         version: 3.21.4
+      zod-validation-error:
+        specifier: ^3.1.0
+        version: 3.1.0(zod@3.21.4)
     devDependencies:
       eslint:
         specifier: 8.44.0
