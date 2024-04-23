@@ -29,10 +29,12 @@ import {
 } from "pagopa-interop-models";
 import { ApiReversePurposeSeed } from "../src/model/domain/models.js";
 import {
+  agreementNotFound,
   eServiceModeNotAllowed,
   eserviceRiskAnalysisNotFound,
   missingFreeOfChargeReason,
   organizationIsNotTheConsumer,
+  riskAnalysisValidationFailed,
   tenantKindNotFound,
 } from "../src/model/domain/errors.js";
 import { getMockEService } from "./utils.js";
@@ -392,10 +394,108 @@ export const testCreateReversePurpose = (): ReturnType<typeof describe> =>
         )
       ).rejects.toThrowError(tenantKindNotFound(producer.id));
     });
-    it("should throw agreementNotFound if the requester doesn't have an agreement for the selected eservice", () => {
-      expect(1).toBe(1);
+    it("should throw agreementNotFound if the requester doesn't have an agreement for the selected eservice", async () => {
+      const consumer = getMockTenant();
+      const producer: Tenant = { ...getMockTenant(), kind: tenantKind.PA };
+
+      const mockDescriptor: Descriptor = {
+        ...getMockDescriptor(),
+        state: descriptorState.published,
+        publishedAt: new Date(),
+        interface: getMockDocument(),
+      };
+
+      const mockRiskAnalysis = getMockValidRiskAnalysis(tenantKind.PA);
+      const mockEService: EService = {
+        ...getMockEService(),
+        producerId: producer.id,
+        riskAnalysis: [mockRiskAnalysis],
+        descriptors: [mockDescriptor],
+        mode: eserviceMode.receive,
+      };
+
+      const mockAgreement: Agreement = {
+        ...getMockAgreement(),
+        eserviceId: mockEService.id,
+        consumerId: consumer.id,
+        state: agreementState.active,
+      };
+
+      const reversePurposeSeed: ApiReversePurposeSeed = {
+        eServiceId: mockEService.id,
+        consumerId: consumer.id,
+        riskAnalysisId: mockRiskAnalysis.id,
+        title: "test purpose title",
+        description: "test purpose description",
+        isFreeOfCharge: true,
+        freeOfChargeReason: "test",
+        dailyCalls: 1,
+      };
+
+      await writeInReadmodel(toReadModelEService(mockEService), eservices);
+      await writeInReadmodel(producer, tenants);
+      await writeInReadmodel(consumer, tenants);
+
+      expect(
+        purposeService.createPurposeFromEService(
+          consumer.id,
+          reversePurposeSeed,
+          generateId()
+        )
+      ).rejects.toThrowError(agreementNotFound(mockEService.id, consumer.id));
     });
-    it("should throw riskAnalysisValidationFailed if the risk analysis is not valid", () => {
-      expect(2).toBe(2);
+    it("should throw riskAnalysisValidationFailed if the risk analysis is not valid", async () => {
+      const consumer = getMockTenant();
+      const producer: Tenant = { ...getMockTenant(), kind: tenantKind.PA };
+
+      const mockDescriptor: Descriptor = {
+        ...getMockDescriptor(),
+        state: descriptorState.published,
+        publishedAt: new Date(),
+        interface: getMockDocument(),
+      };
+
+      const mockRiskAnalysis = {
+        ...getMockValidRiskAnalysis(tenantKind.PA),
+        newField: "unrequested",
+      };
+      const mockEService: EService = {
+        ...getMockEService(),
+        producerId: producer.id,
+        riskAnalysis: [mockRiskAnalysis],
+        descriptors: [mockDescriptor],
+        mode: eserviceMode.receive,
+      };
+
+      const mockAgreement: Agreement = {
+        ...getMockAgreement(),
+        eserviceId: mockEService.id,
+        consumerId: consumer.id,
+        state: agreementState.active,
+      };
+
+      const reversePurposeSeed: ApiReversePurposeSeed = {
+        eServiceId: mockEService.id,
+        consumerId: consumer.id,
+        riskAnalysisId: mockRiskAnalysis.id,
+        title: "test purpose title",
+        description: "test purpose description",
+        isFreeOfCharge: true,
+        freeOfChargeReason: "test",
+        dailyCalls: 1,
+      };
+
+      await writeInReadmodel(toReadModelEService(mockEService), eservices);
+      await writeInReadmodel(producer, tenants);
+      await writeInReadmodel(consumer, tenants);
+      await writeInReadmodel(mockAgreement, agreements);
+
+      expect(
+        purposeService.createPurposeFromEService(
+          consumer.id,
+          reversePurposeSeed,
+          generateId()
+        )
+      ).rejects.toThrowError(riskAnalysisValidationFailed([]));
     });
   });
