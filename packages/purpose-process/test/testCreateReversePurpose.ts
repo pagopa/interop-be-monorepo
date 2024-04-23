@@ -16,6 +16,7 @@ import {
   EService,
   Purpose,
   PurposeAddedV2,
+  RiskAnalysis,
   RiskAnalysisId,
   Tenant,
   agreementState,
@@ -27,6 +28,7 @@ import {
   toReadModelEService,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import { unexpectedRulesVersionError } from "pagopa-interop-commons";
 import { ApiReversePurposeSeed } from "../src/model/domain/models.js";
 import {
   agreementNotFound,
@@ -47,7 +49,7 @@ import {
 } from "./purposeService.integration.test.js";
 
 export const testCreateReversePurpose = (): ReturnType<typeof describe> =>
-  describe("createReveresePurpose", () => {
+  describe("createReversePurpose", () => {
     it("should write in event-store for the creation of a reverse purpose", async () => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date());
@@ -414,13 +416,6 @@ export const testCreateReversePurpose = (): ReturnType<typeof describe> =>
         mode: eserviceMode.receive,
       };
 
-      const mockAgreement: Agreement = {
-        ...getMockAgreement(),
-        eserviceId: mockEService.id,
-        consumerId: consumer.id,
-        state: agreementState.active,
-      };
-
       const reversePurposeSeed: ApiReversePurposeSeed = {
         eServiceId: mockEService.id,
         consumerId: consumer.id,
@@ -455,9 +450,14 @@ export const testCreateReversePurpose = (): ReturnType<typeof describe> =>
         interface: getMockDocument(),
       };
 
-      const mockRiskAnalysis = {
-        ...getMockValidRiskAnalysis(tenantKind.PA),
-        newField: "unrequested",
+      const validRiskAnalysis = getMockValidRiskAnalysis(tenantKind.PA);
+
+      const mockRiskAnalysis: RiskAnalysis = {
+        ...validRiskAnalysis,
+        riskAnalysisForm: {
+          ...validRiskAnalysis.riskAnalysisForm,
+          version: "7",
+        },
       };
       const mockEService: EService = {
         ...getMockEService(),
@@ -496,6 +496,12 @@ export const testCreateReversePurpose = (): ReturnType<typeof describe> =>
           reversePurposeSeed,
           generateId()
         )
-      ).rejects.toThrowError(riskAnalysisValidationFailed([]));
+      ).rejects.toThrowError(
+        riskAnalysisValidationFailed([
+          unexpectedRulesVersionError(
+            mockRiskAnalysis.riskAnalysisForm.version
+          ),
+        ])
+      );
     });
   });
