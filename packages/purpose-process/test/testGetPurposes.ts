@@ -5,6 +5,7 @@ import {
   TenantId,
   generateId,
   purposeVersionState,
+  tenantKind,
   toReadModelEService,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it } from "vitest";
@@ -12,6 +13,7 @@ import {
   getMockPurposeVersion,
   getMockPurpose,
   writeInReadmodel,
+  getMockValidRiskAnalysisForm,
 } from "pagopa-interop-commons-test/index.js";
 import { addOnePurpose, getMockEService } from "./utils.js";
 import {
@@ -19,6 +21,7 @@ import {
   purposes,
   eservices,
   purposeService,
+  readModelService,
 } from "./purposeService.integration.test.js";
 
 export const testGetPurposes = (): ReturnType<typeof describe> =>
@@ -42,7 +45,7 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
       producerId: producerId2,
     };
 
-    const randomEService = getMockEService();
+    const mockEService4 = getMockEService();
 
     const mockPurposeVersion1: PurposeVersion = {
       ...getMockPurposeVersion(),
@@ -97,7 +100,7 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
       ...getMockPurpose(),
       title: "purpose 5",
       consumerId: consumerId1,
-      eserviceId: randomEService.id,
+      eserviceId: mockEService4.id,
       versions: [mockPurposeVersion5],
     };
 
@@ -121,7 +124,7 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
       ...getMockPurpose(),
       title: "purpose 7 - test",
       versions: [],
-      eserviceId: randomEService.id,
+      eserviceId: mockEService4.id,
     };
 
     beforeEach(async () => {
@@ -145,7 +148,7 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
         toReadModelEService(mockEService3ByTenant2),
         eservices
       );
-      await writeInReadmodel(toReadModelEService(randomEService), eservices);
+      await writeInReadmodel(toReadModelEService(mockEService4), eservices);
     });
 
     it("should get the purposes if they exist (parameters: name)", async () => {
@@ -360,7 +363,14 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
       expect(result.totalCount).toBe(1);
       expect(result.results).toEqual([mockPurpose1]);
     });
-    it("should not inlcude the riskAnalysisForm uf the requester is not the producer nor the consumer", async () => {
+    it("should not include the riskAnalysisForm if the requester is not the producer nor the consumer", async () => {
+      const mockPurpose8: Purpose = {
+        ...getMockPurpose(),
+        riskAnalysisForm: getMockValidRiskAnalysisForm(tenantKind.PA),
+        eserviceId: mockEService4.id,
+      };
+      await addOnePurpose(mockPurpose8, postgresDB, purposes);
+
       const result = await purposeService.getPurposes(
         generateId(),
         {
@@ -372,7 +382,7 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
         },
         { offset: 0, limit: 50 }
       );
-      expect(result.totalCount).toBe(7);
+      expect(result.totalCount).toBe(8);
       expect(result.results).toEqual(
         [
           mockPurpose1,
@@ -382,7 +392,42 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
           mockPurpose5,
           mockPurpose6,
           mockPurpose7,
+          mockPurpose8,
         ].map((p) => ({ ...p, riskAnalysisForm: undefined }))
       );
+    });
+    it("should only include the riskAnalysisForm for those purposes in which the requester is the producer or the consumer", async () => {
+      await purposes.deleteMany({});
+
+      const mockPurpose8: Purpose = {
+        ...getMockPurpose(),
+        riskAnalysisForm: getMockValidRiskAnalysisForm(tenantKind.PA),
+        eserviceId: mockEService2ByTenant1.id,
+      };
+      await addOnePurpose(mockPurpose8, postgresDB, purposes);
+
+      const mockPurpose9: Purpose = {
+        ...getMockPurpose(),
+        riskAnalysisForm: getMockValidRiskAnalysisForm(tenantKind.PA),
+        eserviceId: mockEService4.id,
+      };
+      await addOnePurpose(mockPurpose9, postgresDB, purposes);
+
+      const result = await purposeService.getPurposes(
+        producerId1,
+        {
+          eservicesIds: [],
+          consumersIds: [],
+          producersIds: [],
+          states: [],
+          excludeDraft: false,
+        },
+        { offset: 0, limit: 50 }
+      );
+      expect(result.totalCount).toBe(2);
+      expect(result.results).toEqual([
+        mockPurpose8,
+        { ...mockPurpose9, riskAnalysisForm: undefined },
+      ]);
     });
   });
