@@ -182,6 +182,16 @@ export function notValidVersionState(
   });
 }
 
+export function purposeCannotBeDeleted(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} cannot be deleted`,
+    code: "purposeCannotBeDeleted",
+    title: "Purpose canont be deleted",
+  });
+}
+
 export function agreementNotFound(
   eserviceId: EServiceId,
   consumerId: TenantId
@@ -198,15 +208,5 @@ export function duplicatedPurposeName(title: string): ApiError<ErrorCodes> {
     detail: `Purpose with name: ${title} already exists`,
     code: "duplicatedPurposeName",
     title: "Duplicated Purpose Name",
-  });
-}
-
-export function purposeCannotBeDeleted(
-  purposeId: PurposeId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Purpose ${purposeId} cannot be deleted`,
-    code: "purposeCannotBeDeleted",
-    title: "Purpose canont be deleted",
   });
 }

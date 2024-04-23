@@ -84,6 +84,7 @@ describe("Integration tests", async () => {
     await purposes.deleteMany({});
     await tenants.deleteMany({});
     await eservices.deleteMany({});
+    await agreements.deleteMany({});
     await postgresDB.none("TRUNCATE TABLE purpose.events RESTART IDENTITY");
   });
 
