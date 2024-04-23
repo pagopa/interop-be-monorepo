@@ -34,7 +34,7 @@ export function processMessage(topicConfig: CatalogTopicConfig) {
 
     const decodedMessage = messageDecoder(kafkaMessage.message);
 
-    runWithContext(
+    await runWithContext(
       {
         messageData: {
           eventType: decodedMessage.type,
