@@ -7,6 +7,7 @@ import { getMutableContext } from "../index.js";
 import { bigIntReplacer } from "./utils.js";
 
 export type SessionMetaData = {
+  serviceName: string | undefined;
   userId: string | undefined;
   organizationId: string | undefined;
   correlationId: string | undefined | null;
@@ -26,6 +27,7 @@ const getLoggerMetadata = (): SessionMetaData => {
   const appContext = getMutableContext();
   return !appContext
     ? {
+        serviceName: undefined,
         userId: undefined,
         organizationId: undefined,
         correlationId: undefined,
@@ -34,6 +36,7 @@ const getLoggerMetadata = (): SessionMetaData => {
         streamId: undefined,
       }
     : {
+        serviceName: appContext.serviceName,
         userId: appContext.authData?.userId,
         organizationId: appContext.authData?.organizationId,
         correlationId: appContext.correlationId,
@@ -95,7 +98,7 @@ const logFormat = (
   return `${firstPart} - ${secondPart} ${msg}`;
 };
 
-export const customFormat = (serviceName?: string) =>
+export const customFormat = () =>
   winston.format.printf(({ level, message, timestamp }) => {
     const logMetadata = getLoggerMetadata();
     const clearMessage =
@@ -105,13 +108,11 @@ export const customFormat = (serviceName?: string) =>
     const lines = clearMessage
       .toString()
       .split("\n")
-      .map((line: string) =>
-        logFormat(line, timestamp, level, { ...logMetadata, serviceName })
-      );
+      .map((line: string) => logFormat(line, timestamp, level, logMetadata));
     return lines.join("\n");
   });
 
-const getLogger = (serviceName?: string) =>
+const getLogger = () =>
   winston.createLogger({
     level: config.logLevel,
     transports: [
@@ -123,14 +124,14 @@ const getLogger = (serviceName?: string) =>
       winston.format.timestamp(),
       winston.format.json(),
       winston.format.errors({ stack: true }),
-      customFormat(serviceName)
+      customFormat()
     ),
     silent: process.env.NODE_ENV === "test",
   });
 
-export const loggerMiddleware = (serviceName: string) => () =>
+export const loggerMiddleware = () =>
   expressWinston.logger({
-    winstonInstance: getLogger(serviceName),
+    winstonInstance: getLogger(),
     requestWhitelist:
       config.logLevel === "info" ? ["body", "headers", "query"] : [],
     ignoredRoutes: ["/status"],

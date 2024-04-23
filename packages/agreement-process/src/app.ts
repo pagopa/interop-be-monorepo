@@ -13,12 +13,13 @@ const app = zodiosCtx.app();
 // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
 app.disable("x-powered-by");
 
-app.use(contextMiddleware);
-app.use(loggerMiddleware("agreement-process")());
+app.use(contextMiddleware("agreement-process"));
+app.use(loggerMiddleware());
 
-// NOTE(gabro): the order is relevant, authMiddleware must come *after* the routes
-// we want to be unauthenticated.
+// Unauthenticated routes
 app.use(healthRouter);
+
+// Authenticated routes
 app.use(authenticationMiddleware());
 app.use(agreementRouter(zodiosCtx));
 

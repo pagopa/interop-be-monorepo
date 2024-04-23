@@ -19,6 +19,7 @@ async function processMessage({
 
   await runWithContext(
     {
+      serviceName: "tenant-readmodel-writer",
       messageData: {
         eventType: decodedMessage.type,
         eventVersion: decodedMessage.event_version,

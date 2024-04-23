@@ -26,6 +26,7 @@ async function processMessage({
 
   await runWithContext(
     {
+      serviceName: "purpose-readmodel-writer",
       messageData: {
         eventType: decodedMessage.type,
         eventVersion: decodedMessage.event_version,

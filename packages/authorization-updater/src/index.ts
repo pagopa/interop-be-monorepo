@@ -82,6 +82,7 @@ function processMessage(
 
       await runWithContext(
         {
+          serviceName: "authorization-updater",
           messageData: {
             eventType: decodedMsg.type,
             eventVersion: decodedMsg.event_version,

@@ -57,6 +57,7 @@ async function processMessage({
 
   await runWithContext(
     {
+      serviceName: "attribute-registry-readmodel-writer",
       messageData: {
         eventType: msg.type,
         eventVersion: msg.event_version,

@@ -13,9 +13,13 @@ const app = zodiosCtx.app();
 // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
 app.disable("x-powered-by");
 
-app.use(contextMiddleware);
-app.use(loggerMiddleware("purpose-process")());
+app.use(contextMiddleware("purpose-process"));
+app.use(loggerMiddleware());
+
+// Unauthenticated routes
 app.use(healthRouter);
+
+// Authenticated routes
 app.use(authenticationMiddleware());
 app.use(purposeRouter(zodiosCtx));
 

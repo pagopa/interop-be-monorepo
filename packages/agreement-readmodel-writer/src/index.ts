@@ -26,6 +26,7 @@ async function processMessage({
 
   await runWithContext(
     {
+      serviceName: "agreement-readmodel-writer",
       messageData: {
         eventType: msg.type,
         eventVersion: msg.event_version,

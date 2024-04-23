@@ -8,6 +8,7 @@ import { AuthData } from "../auth/authData.js";
 import { readCorrelationIdHeader } from "../auth/headers.js";
 
 export type AppContext = {
+  serviceName: string;
   authData?: AuthData;
   messageData?: {
     eventType: string;
@@ -31,17 +32,16 @@ const globalStore = new AsyncLocalStorage<AppContext>();
 export const getMutableContext = (): AppContext | undefined =>
   globalStore.getStore();
 
-export const contextMiddleware = (
-  req: Request,
-  _res: Response,
-  next: NextFunction
-): void =>
-  globalStore.run(
-    {
-      correlationId: readCorrelationIdHeader(req) ?? uuidv4(),
-    },
-    () => next()
-  );
+export const contextMiddleware =
+  (serviceName: string) =>
+  (req: Request, _res: Response, next: NextFunction): void =>
+    globalStore.run(
+      {
+        serviceName,
+        correlationId: readCorrelationIdHeader(req) ?? uuidv4(),
+      },
+      () => next()
+    );
 
 export async function runWithContext(
   context: AppContext,

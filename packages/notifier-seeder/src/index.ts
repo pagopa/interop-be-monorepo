@@ -36,6 +36,7 @@ export function processMessage(topicConfig: CatalogTopicConfig) {
 
     await runWithContext(
       {
+        serviceName: "notifier-seeder",
         messageData: {
           eventType: decodedMessage.type,
           eventVersion: decodedMessage.event_version,
