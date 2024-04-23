@@ -36,6 +36,8 @@ export async function handleMessageV2(
       { type: "AgreementRejected" },
       { type: "AgreementConsumerDocumentAdded" },
       { type: "AgreementConsumerDocumentRemoved" },
+      { type: "AgreementArchivedByUpgrade" },
+      { type: "AgreementUpgraded" },
       async (message) =>
         await agreements.updateOne(
           {
