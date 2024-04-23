@@ -134,6 +134,7 @@ const purposeRouter = (
     .post(
       "/reverse/purposes",
       authorizationMiddleware([ADMIN_ROLE]),
+      // TO DO
       (_req, res) => res.status(501).send()
     )
     .post(
