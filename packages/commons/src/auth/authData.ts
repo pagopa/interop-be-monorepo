@@ -41,7 +41,7 @@ const SharedStandardJWTClaims = z.object({
   exp: z.number(),
   nbf: z.number(),
   iat: z.number(),
-  jti: z.string().uuid(),
+  jti: z.string(),
 });
 
 export const M2MAuthToken = SharedStandardJWTClaims.merge(
@@ -49,14 +49,14 @@ export const M2MAuthToken = SharedStandardJWTClaims.merge(
     role: z.literal("m2m"),
     organizationId: z.string().uuid(),
     client_id: z.string().uuid(),
-    sub: z.string().uuid(),
+    sub: z.string(),
   })
 );
 
 export const InternalAuthToken = SharedStandardJWTClaims.merge(
   z.object({
     role: z.literal("internal"),
-    sub: z.string().uuid(),
+    sub: z.string(),
   })
 );
 
@@ -74,20 +74,20 @@ export const UIAuthToken = SharedStandardJWTClaims.merge(
       name: z.string(),
       roles: z.array(
         z.object({
-          partyRole: z.string(),
+          partyRole: z.string().nullish(),
           role: UIUserRole,
         })
       ),
-      fiscal_code: z.string().optional(),
-      ipaCode: z.string().optional(),
+      fiscal_code: z.string().nullish(),
+      ipaCode: z.string().nullish(),
     }),
     externalId: z.object({
       origin: z.string(),
       value: z.string(),
     }),
-    name: z.string(),
-    family_name: z.string(),
-    email: z.string(),
+    name: z.string().nullish(),
+    family_name: z.string().nullish(),
+    email: z.string().nullish(),
   })
 );
 
