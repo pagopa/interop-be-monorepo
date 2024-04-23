@@ -134,24 +134,26 @@ export function readModelServiceBuilder(
     async getActiveAgreement(
       eserviceId: EServiceId,
       consumerId: TenantId
-    ): Promise<Agreement> {
+    ): Promise<Agreement | undefined> {
       const data = await agreements.findOne({
         "data.eserviceId": eserviceId,
         "data.consumerId": consumerId,
         "data.state": agreementState.active,
       });
-
-      const result = Agreement.safeParse(data);
-      if (!result.success) {
-        logger.error(
-          `Unable to parse agreements items: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
-        );
-
-        throw genericError("Unable to parse agreements items");
+      if (!data) {
+        return undefined;
+      } else {
+        const result = Agreement.safeParse(data.data);
+        if (!result.success) {
+          logger.error(
+            `Unable to parse agreement item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+          throw genericError("Unable to parse agreement item");
+        }
+        return result.data;
       }
-      return result.data;
     },
     async getPurposes(
       filters: ApiGetPurposesFilters,
