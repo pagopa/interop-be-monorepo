@@ -88,6 +88,7 @@ const purposeRouter = (
             limit,
           } = req.query;
           const purposes = await purposeService.getPurposes(
+            req.ctx.authData.organizationId,
             {
               name,
               eservicesIds: eservicesIds.map<EServiceId>(unsafeBrandId),
@@ -108,7 +109,7 @@ const purposeRouter = (
             })
             .end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, getPurposeErrorMapper);
+          const errorRes = makeApiProblem(error, () => 500);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }

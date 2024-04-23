@@ -5,6 +5,7 @@ import {
   TenantId,
   generateId,
   purposeVersionState,
+  tenantKind,
   toReadModelEService,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it } from "vitest";
@@ -12,6 +13,7 @@ import {
   getMockPurposeVersion,
   getMockPurpose,
   writeInReadmodel,
+  getMockValidRiskAnalysisForm,
 } from "pagopa-interop-commons-test/index.js";
 import { addOnePurpose, getMockEService } from "./utils.js";
 import {
@@ -41,6 +43,8 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
       ...getMockEService(),
       producerId: producerId2,
     };
+
+    const mockEService4 = getMockEService();
 
     const mockPurposeVersion1: PurposeVersion = {
       ...getMockPurposeVersion(),
@@ -95,6 +99,7 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
       ...getMockPurpose(),
       title: "purpose 5",
       consumerId: consumerId1,
+      eserviceId: mockEService4.id,
       versions: [mockPurposeVersion5],
     };
 
@@ -118,6 +123,7 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
       ...getMockPurpose(),
       title: "purpose 7 - test",
       versions: [],
+      eserviceId: mockEService4.id,
     };
 
     beforeEach(async () => {
@@ -141,10 +147,12 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
         toReadModelEService(mockEService3ByTenant2),
         eservices
       );
+      await writeInReadmodel(toReadModelEService(mockEService4), eservices);
     });
 
     it("should get the purposes if they exist (parameters: name)", async () => {
       const result = await purposeService.getPurposes(
+        producerId1,
         {
           name: "test",
           eservicesIds: [],
@@ -164,6 +172,7 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
     });
     it("should get the purposes if they exist (parameters: eservicesIds)", async () => {
       const result = await purposeService.getPurposes(
+        producerId1,
         {
           eservicesIds: [mockEService1ByTenant1.id],
           consumersIds: [],
@@ -178,6 +187,7 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
     });
     it("should get the purposes if they exist (parameters: consumersIds)", async () => {
       const result = await purposeService.getPurposes(
+        producerId1,
         {
           eservicesIds: [],
           consumersIds: [consumerId1],
@@ -196,6 +206,7 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
     });
     it("should get the purposes if they exist (parameters: producersIds)", async () => {
       const result = await purposeService.getPurposes(
+        producerId1,
         {
           eservicesIds: [],
           consumersIds: [],
@@ -210,6 +221,7 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
     });
     it("should get the purposes if they exist (parameters: states)", async () => {
       const result = await purposeService.getPurposes(
+        producerId1,
         {
           eservicesIds: [],
           consumersIds: [],
@@ -228,6 +240,7 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
     });
     it("should not include draft versions and purposes without versions (excludeDraft = true)", async () => {
       const result = await purposeService.getPurposes(
+        producerId1,
         {
           eservicesIds: [],
           consumersIds: [],
@@ -247,6 +260,7 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
     });
     it("should include draft versions and purposes without versions (excludeDraft = false)", async () => {
       const result = await purposeService.getPurposes(
+        producerId1,
         {
           eservicesIds: [],
           consumersIds: [],
@@ -269,6 +283,7 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
     });
     it("should get the purposes if they exist (pagination: offset)", async () => {
       const result = await purposeService.getPurposes(
+        producerId1,
         {
           eservicesIds: [],
           consumersIds: [],
@@ -282,6 +297,7 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
     });
     it("should get the purposes if they exist (pagination: limit)", async () => {
       const result = await purposeService.getPurposes(
+        producerId1,
         {
           eservicesIds: [],
           consumersIds: [],
@@ -299,6 +315,7 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
     });
     it("should not get the purposes if they don't exist", async () => {
       const result = await purposeService.getPurposes(
+        producerId1,
         {
           eservicesIds: [generateId()],
           consumersIds: [],
@@ -313,6 +330,7 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
     });
     it("should get the purposes if they exist (parameters: name, eservicesIds, consumersIds, producersIds, states; exlcudeDraft = true)", async () => {
       const result = await purposeService.getPurposes(
+        producerId1,
         {
           name: "test",
           eservicesIds: [mockEService3ByTenant2.id],
@@ -330,6 +348,7 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
     });
     it("should get the purposes if they exist (parameters: name, eservicesIds, consumersIds, producersIds, states; exlcudeDraft = false)", async () => {
       const result = await purposeService.getPurposes(
+        producerId1,
         {
           name: "test",
           eservicesIds: [mockEService1ByTenant1.id],
@@ -342,5 +361,72 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
       );
       expect(result.totalCount).toBe(1);
       expect(result.results).toEqual([mockPurpose1]);
+    });
+    it("should not include the riskAnalysisForm if the requester is not the producer nor the consumer", async () => {
+      const mockPurpose8: Purpose = {
+        ...getMockPurpose(),
+        riskAnalysisForm: getMockValidRiskAnalysisForm(tenantKind.PA),
+        eserviceId: mockEService4.id,
+      };
+      await addOnePurpose(mockPurpose8, postgresDB, purposes);
+
+      const result = await purposeService.getPurposes(
+        generateId(),
+        {
+          eservicesIds: [],
+          consumersIds: [],
+          producersIds: [],
+          states: [],
+          excludeDraft: false,
+        },
+        { offset: 0, limit: 50 }
+      );
+      expect(result.totalCount).toBe(8);
+      expect(result.results).toEqual(
+        [
+          mockPurpose1,
+          mockPurpose2,
+          mockPurpose3,
+          mockPurpose4,
+          mockPurpose5,
+          mockPurpose6,
+          mockPurpose7,
+          mockPurpose8,
+        ].map((p) => ({ ...p, riskAnalysisForm: undefined }))
+      );
+    });
+    it("should only include the riskAnalysisForm for those purposes in which the requester is the producer or the consumer", async () => {
+      await purposes.deleteMany({});
+
+      const mockPurpose8: Purpose = {
+        ...getMockPurpose(),
+        riskAnalysisForm: getMockValidRiskAnalysisForm(tenantKind.PA),
+        eserviceId: mockEService2ByTenant1.id,
+      };
+      await addOnePurpose(mockPurpose8, postgresDB, purposes);
+
+      const mockPurpose9: Purpose = {
+        ...getMockPurpose(),
+        riskAnalysisForm: getMockValidRiskAnalysisForm(tenantKind.PA),
+        eserviceId: mockEService4.id,
+      };
+      await addOnePurpose(mockPurpose9, postgresDB, purposes);
+
+      const result = await purposeService.getPurposes(
+        producerId1,
+        {
+          eservicesIds: [],
+          consumersIds: [],
+          producersIds: [],
+          states: [],
+          excludeDraft: false,
+        },
+        { offset: 0, limit: 50 }
+      );
+      expect(result.totalCount).toBe(2);
+      expect(result.results).toEqual([
+        mockPurpose8,
+        { ...mockPurpose9, riskAnalysisForm: undefined },
+      ]);
     });
   });
