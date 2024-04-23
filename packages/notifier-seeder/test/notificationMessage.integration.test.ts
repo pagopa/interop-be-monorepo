@@ -44,7 +44,32 @@ const getDescriptorMock = (descriptorId: string): EServiceDescriptorV2 =>
       uploadDate: new Date("2024-03-26T10:16:05.449Z"),
     },
     agreementApprovalPolicy: "Automatic",
-    attributes: { certified: [], declared: [], verified: [] },
+    attributes: {
+      certified: [
+        [
+          {
+            explicitAttributeVerification: true,
+            id: unsafeBrandId("cbddada9-ad22-42c9-bb1d-9a832e34179e"),
+          },
+        ],
+      ],
+      declared: [
+        [
+          {
+            explicitAttributeVerification: true,
+            id: unsafeBrandId("cbddada9-ad22-42c9-bb1d-9a832e34179e"),
+          },
+        ],
+      ],
+      verified: [
+        [
+          {
+            explicitAttributeVerification: true,
+            id: unsafeBrandId("cbddada9-ad22-42c9-bb1d-9a832e34179e"),
+          },
+        ],
+      ],
+    },
     audience: ["api/v1"],
     createdAt: new Date("2024-03-26T10:16:03.946Z"),
     dailyCallsPerConsumer: 10,
