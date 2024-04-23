@@ -213,16 +213,6 @@ export function duplicatedPurposeName(title: string): ApiError<ErrorCodes> {
   });
 }
 
-export function purposeCannotBeDeleted(
-  purposeId: PurposeId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Purpose ${purposeId} cannot be deleted`,
-    code: "purposeCannotBeDeleted",
-    title: "Purpose canont be deleted",
-  });
-}
-
 export function eserviceRiskAnalysisNotFound(
   eserviceId: EServiceId,
   riskAnalysisId: RiskAnalysisId
