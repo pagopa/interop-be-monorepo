@@ -21,7 +21,6 @@ import {
   purposes,
   eservices,
   purposeService,
-  readModelService,
 } from "./purposeService.integration.test.js";
 
 export const testGetPurposes = (): ReturnType<typeof describe> =>
