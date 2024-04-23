@@ -233,7 +233,7 @@ export function readModelServiceBuilder(
         {
           $project: {
             data: 1,
-            computedColumn: { $toLower: ["$data.name"] },
+            computedColumn: { $toLower: ["$data.title"] },
           },
         },
         {
@@ -242,11 +242,10 @@ export function readModelServiceBuilder(
       ];
 
       const data = await purposes
-        .aggregate([
-          ...aggregationPipeline,
-          { $skip: offset },
-          { $limit: limit },
-        ])
+        .aggregate(
+          [...aggregationPipeline, { $skip: offset }, { $limit: limit }],
+          { allowDiskUse: true }
+        )
         .toArray();
 
       const result = z.array(Purpose).safeParse(data.map((d) => d.data));
