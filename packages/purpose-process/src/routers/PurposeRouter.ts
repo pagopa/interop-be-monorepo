@@ -23,6 +23,7 @@ import { makeApiProblem } from "../model/domain/errors.js";
 import {
   archivePurposeVersionErrorMapper,
   createPurposeErrorMapper,
+  createPurposeFromEServiceErrorMapper,
   deletePurposeErrorMapper,
   deletePurposeVersionErrorMapper,
   getPurposeErrorMapper,
@@ -134,8 +135,26 @@ const purposeRouter = (
     .post(
       "/reverse/purposes",
       authorizationMiddleware([ADMIN_ROLE]),
-      // TO DO
-      (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const { purpose, isRiskAnalysisValid } =
+            await purposeService.createPurposeFromEService(
+              req.ctx.authData.organizationId,
+              req.body,
+              req.ctx.correlationId
+            );
+          return res
+            .status(200)
+            .json(purposeToApiPurpose(purpose, isRiskAnalysisValid))
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            createPurposeFromEServiceErrorMapper
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/reverse/purposes/:id",
