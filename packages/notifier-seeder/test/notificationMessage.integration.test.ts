@@ -23,8 +23,7 @@ import {
 } from "../src/queue-manager/queueManager.js";
 import { toCatalogItemEventNotification } from "../src/models/catalogItemEventNotificationConverter.js";
 import { buildCatalogMessage } from "../src/models/catalogItemEventNotificationMessage.js";
-
-import catalog_item_descriptor_updated from "./resources/catalogItemDescriptorUpdate.json" assert { type: "json" };
+import { catalogItemDescriptorUpdatedNotification } from "./resources/catalogItemDescriptorUpdate.js";
 import { TEST_ELASTIC_MQ_PORT, elasticMQContainer } from "./utils.js";
 
 const getDescriptorMock = (descriptorId: string): EServiceDescriptorV2 =>
@@ -45,7 +44,32 @@ const getDescriptorMock = (descriptorId: string): EServiceDescriptorV2 =>
       uploadDate: new Date("2024-03-26T10:16:05.449Z"),
     },
     agreementApprovalPolicy: "Automatic",
-    attributes: { certified: [], declared: [], verified: [] },
+    attributes: {
+      certified: [
+        [
+          {
+            explicitAttributeVerification: true,
+            id: unsafeBrandId("cbddada9-ad22-42c9-bb1d-9a832e34179e"),
+          },
+        ],
+      ],
+      declared: [
+        [
+          {
+            explicitAttributeVerification: true,
+            id: unsafeBrandId("cbddada9-ad22-42c9-bb1d-9a832e34179e"),
+          },
+        ],
+      ],
+      verified: [
+        [
+          {
+            explicitAttributeVerification: true,
+            id: unsafeBrandId("cbddada9-ad22-42c9-bb1d-9a832e34179e"),
+          },
+        ],
+      ],
+    },
     audience: ["api/v1"],
     createdAt: new Date("2024-03-26T10:16:03.946Z"),
     dailyCallsPerConsumer: 10,
@@ -134,7 +158,7 @@ describe("Notification tests", async () => {
       const receivedMessage = (await queueWriter.receiveLast())[0];
 
       expect(receivedMessage.payload).toEqual(
-        catalog_item_descriptor_updated.payload
+        catalogItemDescriptorUpdatedNotification.payload
       );
     });
   });

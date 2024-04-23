@@ -8,11 +8,13 @@ import {
   initDB,
   ReadModelRepository,
   initFileManager,
+  zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import {
   Agreement,
   DescriptorId,
   EServiceId,
+  TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
@@ -83,7 +85,9 @@ const {
 const agreementRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const agreementRouter = ctx.router(api.api);
+  const agreementRouter = ctx.router(api.api, {
+    validationErrorHandler: zodiosValidationErrorToApiProblem,
+  });
 
   agreementRouter.post(
     "/agreements/:agreementId/submit",
@@ -273,8 +277,8 @@ const agreementRouter = (
         const agreements = await agreementService.getAgreements(
           {
             eserviceId: req.query.eservicesIds.map(unsafeBrandId<EServiceId>),
-            consumerId: req.query.consumersIds,
-            producerId: req.query.producersIds,
+            consumerId: req.query.consumersIds.map(unsafeBrandId<TenantId>),
+            producerId: req.query.producersIds.map(unsafeBrandId<TenantId>),
             descriptorId: req.query.descriptorsIds.map(
               unsafeBrandId<DescriptorId>
             ),
@@ -475,9 +479,14 @@ const agreementRouter = (
     async (req, res) => {
       try {
         const eservices = await agreementService.getAgreementEServices(
-          req.query.eServiceName,
-          req.query.consumersIds,
-          req.query.producersIds,
+          {
+            eserviceName: req.query.eServiceName,
+            consumerIds: req.query.consumersIds.map(unsafeBrandId<TenantId>),
+            producerIds: req.query.producersIds.map(unsafeBrandId<TenantId>),
+            agreeementStates: req.query.states.map(
+              apiAgreementStateToAgreementState
+            ),
+          },
           req.query.limit,
           req.query.offset
         );

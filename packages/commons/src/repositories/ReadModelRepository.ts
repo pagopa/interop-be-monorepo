@@ -2,6 +2,7 @@ import {
   Agreement,
   AttributeReadmodel,
   EServiceReadModel,
+  Purpose,
   Tenant,
   genericError,
 } from "pagopa-interop-models";
@@ -32,12 +33,14 @@ export type EServiceCollection = GenericCollection<EServiceReadModel>;
 export type AgreementCollection = GenericCollection<Agreement>;
 export type TenantCollection = GenericCollection<Tenant>;
 export type AttributeCollection = GenericCollection<AttributeReadmodel>;
+export type PurposeCollection = GenericCollection<Purpose>;
 
 export type Collections =
   | EServiceCollection
   | AgreementCollection
   | TenantCollection
-  | AttributeCollection;
+  | AttributeCollection
+  | PurposeCollection;
 
 type BuildQueryKey<TPrefix extends string, TKey> = `${TPrefix}.${TKey &
   string}`;
@@ -135,6 +138,8 @@ export class ReadModelRepository {
 
   public attributes: AttributeCollection;
 
+  public purposes: PurposeCollection;
+
   private client: MongoClient;
   private db: Db;
 
@@ -158,6 +163,7 @@ export class ReadModelRepository {
     this.attributes = this.db.collection("attributes", {
       ignoreUndefined: true,
     });
+    this.purposes = this.db.collection("purpose", { ignoreUndefined: true });
   }
 
   public static init(config: ReadModelDbConfig): ReadModelRepository {
