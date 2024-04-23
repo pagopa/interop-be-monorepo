@@ -7,7 +7,7 @@ import {
   unauthorizedError,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
-import { ExpressContext } from "../index.js";
+import { ExpressContext, getMutableContext } from "../index.js";
 import { logger } from "../logging/index.js";
 import { AuthData } from "./authData.js";
 import { Headers } from "./headers.js";
@@ -42,6 +42,13 @@ export const authenticationMiddleware: () => ZodiosRouterContextRequestHandler<E
         }
 
         const authData: AuthData = readAuthDataFromJwtToken(jwtToken);
+        const context = getMutableContext();
+        if (context) {
+          // eslint-disable-next-line functional/immutable-data
+          context.authData = authData;
+        } else {
+          logger.warn("Cannot set authData in context - context not found.");
+        }
         // eslint-disable-next-line functional/immutable-data
         req.ctx = {
           authData: { ...authData },

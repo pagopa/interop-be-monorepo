@@ -3,12 +3,12 @@ import { AsyncLocalStorage } from "async_hooks";
 import { NextFunction, Request, Response } from "express";
 import { zodiosContext } from "@zodios/express";
 import { z } from "zod";
-import { P, match } from "ts-pattern";
-import { AuthData, defaultAuthData } from "../auth/authData.js";
-import { readHeaders } from "../auth/headers.js";
+import { v4 as uuidv4 } from "uuid";
+import { AuthData } from "../auth/authData.js";
+import { readCorrelationIdHeader } from "../auth/headers.js";
 
 export type AppContext = {
-  authData: AuthData;
+  authData?: AuthData;
   messageData?: {
     eventType: string;
     eventVersion: number;
@@ -27,40 +27,25 @@ export const ctx = z.object({
 export const zodiosCtx = zodiosContext(z.object({ ctx }));
 
 const globalStore = new AsyncLocalStorage<AppContext>();
-const defaultAppContext: AppContext = {
-  authData: defaultAuthData,
-};
 
-export const getContext = (): AppContext => {
-  const context = globalStore.getStore();
-  return !context ? defaultAppContext : context;
-};
+export const getMutableContext = (): AppContext | undefined =>
+  globalStore.getStore();
 
 export const contextMiddleware = (
   req: Request,
   _res: Response,
   next: NextFunction
-): void => {
-  const headers = readHeaders(req);
-  const context = match(headers)
-    .with(P.not(P.nullish), (headers) => ({
-      authData: {
-        userId: headers.userId,
-        organizationId: headers.organizationId,
-        userRoles: headers.userRoles,
-        externalId: headers.externalId,
-      },
-      correlationId: headers.correlationId,
-    }))
-    .with(P.nullish, () => defaultAppContext)
-    .exhaustive();
-
-  globalStore.run(context, () => next());
-};
+): void =>
+  globalStore.run(
+    {
+      correlationId: readCorrelationIdHeader(req) ?? uuidv4(),
+    },
+    () => next()
+  );
 
 export async function runWithContext(
-  context: Partial<AppContext>,
+  context: AppContext,
   fn: () => Promise<void>
 ): Promise<void> {
-  await globalStore.run({ ...defaultAppContext, ...context }, fn);
+  await globalStore.run(context, fn);
 }

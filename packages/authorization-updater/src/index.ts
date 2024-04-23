@@ -142,7 +142,8 @@ function processMessage(
                 updateSeed.descriptorId,
                 updateSeed.eserviceId,
                 updateSeed.audience,
-                updateSeed.voucherLifespan
+                updateSeed.voucherLifespan,
+                decodedMsg.correlation_id
               )
             );
           }

@@ -2,9 +2,8 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import * as expressWinston from "express-winston";
 import * as winston from "winston";
-import { v4 } from "uuid";
 import { LoggerConfig } from "../config/commonConfig.js";
-import { getContext } from "../index.js";
+import { getMutableContext } from "../index.js";
 import { bigIntReplacer } from "./utils.js";
 
 export type SessionMetaData = {
@@ -24,12 +23,12 @@ const config: LoggerConfig = parsedLoggerConfig.success
     };
 
 const getLoggerMetadata = (): SessionMetaData => {
-  const appContext = getContext();
+  const appContext = getMutableContext();
   return !appContext
     ? {
         userId: undefined,
         organizationId: undefined,
-        correlationId: v4(),
+        correlationId: undefined,
         eventType: undefined,
         eventVersion: undefined,
         streamId: undefined,
