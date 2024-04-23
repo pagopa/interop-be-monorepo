@@ -92,7 +92,7 @@ export const readAgreementEventByVersion = async (
   agreementId: AgreementId,
   version: number,
   postgresDB: IDatabase<unknown>
-): Promise<StoredEvent> =>
+): Promise<ReadEvent<AgreementEvent>> =>
   await readEventByStreamIdAndVersion(
     agreementId,
     version,
