@@ -81,7 +81,7 @@ export const archivePurposeVersionErrorMapper = (
     .with("notValidVersionState", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const suspendedPurposeVersionErrorMapper = (
+export const suspendPurposeVersionErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
