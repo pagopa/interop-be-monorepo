@@ -646,9 +646,7 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      if (tenant.kind === undefined) {
-        throw tenantKindNotFound(tenant.id);
-      }
+      assertTenantKindExists(tenant);
 
       const agreement = await readModelService.getActiveAgreement(
         eserviceId,
