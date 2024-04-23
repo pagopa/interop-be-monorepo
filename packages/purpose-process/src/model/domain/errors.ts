@@ -197,7 +197,7 @@ export function agreementNotFound(
 
 export function duplicatedPurposeName(title: string): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Purpose with name: ${title} already in use`,
+    detail: `Purpose with name: ${title} already exists`,
     code: "duplicatedPurposeName",
     title: "Duplicated Purpose Name",
   });

@@ -599,9 +599,7 @@ export function purposeServiceBuilder(
 
       const tenant = await retrieveTenant(organizationId, readModelService);
 
-      if (!tenant.kind) {
-        throw tenantKindNotFound(tenant.id);
-      }
+      assertTenantKindExists(tenant);
 
       const validatedFormSeed = validateAndTransformRiskAnalysis(
         purposeSeed.riskAnalysisForm,
