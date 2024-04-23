@@ -24,7 +24,6 @@ import {
 import { Filter, WithId } from "mongodb";
 import { z } from "zod";
 import { ApiGetPurposesFilters } from "../model/domain/models.js";
-import { agreementNotFound } from "../model/domain/errors.js";
 
 async function getPurpose(
   purposes: PurposeCollection,
