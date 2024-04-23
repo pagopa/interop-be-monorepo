@@ -3,6 +3,8 @@ import {
   DB,
   eventRepository,
   logger,
+  riskAnalysisFormToRiskAnalysisFormToValidate,
+  validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
   EService,
@@ -27,12 +29,16 @@ import {
   ListResult,
   unsafeBrandId,
   generateId,
+  eserviceMode,
+  RiskAnalysisId,
+  RiskAnalysis,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
   agreementNotFound,
   duplicatedPurposeName,
   eserviceNotFound,
+  eserviceRiskAnalysisNotFound,
   notValidVersionState,
   organizationIsNotTheConsumer,
   organizationIsNotTheProducer,
@@ -41,6 +47,7 @@ import {
   purposeVersionCannotBeDeleted,
   purposeVersionDocumentNotFound,
   purposeVersionNotFound,
+  riskAnalysisValidationFailed,
   tenantKindNotFound,
   tenantNotFound,
 } from "../model/domain/errors.js";
@@ -60,6 +67,7 @@ import {
   ApiReversePurposeUpdateContent,
   ApiGetPurposesFilters,
   ApiPurposeSeed,
+  ApiReversePurposeSeed,
 } from "../model/domain/models.js";
 import { ReadModelService } from "./readModelService.js";
 import {
@@ -139,6 +147,21 @@ const retrieveTenant = async (
     throw tenantNotFound(tenantId);
   }
   return tenant;
+};
+
+const retrieveRiskAnalysis = (
+  riskAnalysisId: RiskAnalysisId,
+  eservice: EService
+): RiskAnalysis => {
+  const riskAnalysis = eservice.riskAnalysis.find(
+    (ra: RiskAnalysis) => ra.id === riskAnalysisId
+  );
+
+  if (riskAnalysis === undefined) {
+    throw eserviceRiskAnalysisNotFound(eservice.id, riskAnalysisId);
+  }
+
+  return riskAnalysis;
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -592,6 +615,88 @@ export function purposeServiceBuilder(
       const event = toCreateEventPurposeAdded(purpose, correlationId);
       await repository.createEvent(event);
       return { purpose, isRiskAnalysisValid: validatedFormSeed !== undefined };
+    },
+    async createPurposeFromEService(
+      organizationId: TenantId,
+      seed: ApiReversePurposeSeed,
+      correlationId: string
+    ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
+      const eserviceId: EServiceId = unsafeBrandId(seed.eServiceId);
+      const consumerId: TenantId = unsafeBrandId(seed.consumerId);
+
+      assertOrganizationIsAConsumer(organizationId, consumerId);
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      assertEserviceHasSpecificMode(eservice, eserviceMode.receive);
+
+      const riskAnalysis = retrieveRiskAnalysis(
+        unsafeBrandId(seed.riskAnalysisId),
+        eservice
+      );
+
+      assertConsistentFreeOfCharge(
+        seed.isFreeOfCharge,
+        seed.freeOfChargeReason
+      );
+
+      const tenant = await retrieveTenant(
+        eservice.producerId,
+        readModelService
+      );
+
+      if (tenant.kind === undefined) {
+        throw tenantKindNotFound(tenant.id);
+      }
+
+      const agreement = await readModelService.getActiveAgreement(
+        eserviceId,
+        consumerId
+      );
+
+      if (agreement === undefined) {
+        throw agreementNotFound(eserviceId, consumerId);
+      }
+
+      const purposeWithSameName = await readModelService.getSpecificPurpose(
+        eserviceId,
+        consumerId,
+        seed.title
+      );
+
+      if (purposeWithSameName) {
+        throw duplicatedPurposeName(seed.title);
+      }
+
+      const validationResult = validateRiskAnalysis(
+        riskAnalysisFormToRiskAnalysisFormToValidate(
+          riskAnalysis.riskAnalysisForm
+        ),
+        false,
+        tenant.kind
+      );
+
+      if (validationResult.type === "invalid") {
+        throw riskAnalysisValidationFailed(validationResult.issues);
+      }
+
+      const purpose: Purpose = {
+        title: seed.title,
+        id: generateId(),
+        createdAt: new Date(),
+        eserviceId,
+        consumerId,
+        description: seed.description,
+        versions: [],
+        isFreeOfCharge: seed.isFreeOfCharge,
+        freeOfChargeReason: seed.freeOfChargeReason,
+        riskAnalysisForm: riskAnalysis.riskAnalysisForm,
+      };
+
+      const event = toCreateEventPurposeAdded(purpose, correlationId);
+      await repository.createEvent(event);
+      return {
+        purpose,
+        isRiskAnalysisValid: validationResult.type === "valid",
+      };
     },
   };
 }
