@@ -242,7 +242,7 @@ export function readModelServiceBuilder(
         {
           $project: {
             data: 1,
-            computedColumn: { $toLower: ["$data.name"] },
+            computedColumn: { $toLower: ["$data.title"] },
           },
         },
         {
