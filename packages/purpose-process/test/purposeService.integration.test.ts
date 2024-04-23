@@ -39,6 +39,7 @@ import { testArchivePurposeVersion } from "./testArchivePurposeVersion.js";
 import { testSuspendPurposeVersion } from "./testSuspendPurposeVersion.js";
 import { testGetPurposes } from "./testGetPurposes.js";
 import { testCreatePurpose } from "./testCreatePurpose.js";
+import { testCreateReversePurpose } from "./testCreateReversePurpose.js";
 
 export let purposes: PurposeCollection;
 export let eservices: EServiceCollection;
@@ -67,6 +68,7 @@ describe("Integration tests", async () => {
     eservices = readModelRepository.eservices;
     tenants = readModelRepository.tenants;
     agreements = readModelRepository.agreements;
+
     readModelService = readModelServiceBuilder(readModelRepository);
     postgresDB = initDB({
       username: config.eventStoreDbUsername,
@@ -84,6 +86,7 @@ describe("Integration tests", async () => {
     await purposes.deleteMany({});
     await tenants.deleteMany({});
     await eservices.deleteMany({});
+    await agreements.deleteMany({});
     await postgresDB.none("TRUNCATE TABLE purpose.events RESTART IDENTITY");
   });
 
@@ -103,5 +106,6 @@ describe("Integration tests", async () => {
     testSuspendPurposeVersion();
     testGetPurposes();
     testCreatePurpose();
+    testCreateReversePurpose();
   });
 });
