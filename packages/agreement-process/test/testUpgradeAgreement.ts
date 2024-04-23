@@ -3,6 +3,7 @@
 /* eslint-disable functional/immutable-data */
 import { fail } from "assert";
 import { generateMock } from "@anatine/zod-mock";
+import { FileManagerError, userRoles } from "pagopa-interop-commons";
 import {
   getMockAgreement,
   getMockCertifiedTenantAttribute,
@@ -14,38 +15,32 @@ import {
   getMockVerifiedTenantAttribute,
   getRandomAuthData,
   randomArrayItem,
-  StoredEvent,
+  ReadEvent,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
   AgreementAddedV1,
   AgreementConsumerDocumentAddedV1,
   AgreementDocumentId,
+  AgreementEvent,
   AgreementId,
+  agreementState,
   AgreementV1,
   AttributeId,
   Descriptor,
   DescriptorId,
+  descriptorState,
   Document,
   EService,
   EServiceId,
-  StampsV1,
-  TenantId,
-  agreementState,
-  descriptorState,
   generateId,
   protobufDecoder,
+  StampsV1,
+  TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { v4 as uuidv4 } from "uuid";
-import { FileManagerError, userRoles } from "pagopa-interop-commons";
-import {
-  toAgreementStateV1,
-  toAgreementV1,
-  toStampV1,
-} from "../src/model/domain/toEvent.js";
-import { config } from "../src/utilities/config.js";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   agreementAlreadyExists,
   agreementNotFound,
@@ -60,21 +55,27 @@ import {
   unexpectedVersionFormat,
 } from "../src/model/domain/errors.js";
 import {
+  toAgreementStateV1,
+  toAgreementV1,
+  toStampV1,
+} from "../src/model/domain/toEvent.js";
+import { agreementUpgradableStates } from "../src/model/domain/validators.js";
+import { config } from "../src/utilities/config.js";
+import {
+  agreements,
+  agreementService,
+  eservices,
+  fileManager,
+  postgresDB,
+  tenants,
+} from "./agreementService.integration.test.js";
+import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
   readAgreementEventByVersion,
   readLastAgreementEvent,
 } from "./utils.js";
-import {
-  eservices,
-  tenants,
-  postgresDB,
-  agreementService,
-  agreements,
-  fileManager,
-} from "./agreementService.integration.test.js";
-import { agreementUpgradableStates } from "../src/model/domain/validators.js";
 
 export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
   describe("Upgrade Agreement", () => {
@@ -90,8 +91,11 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
     });
 
     const decodeAgreementV1FromEvent = (
-      actualAgreementData: StoredEvent,
-      expectedStoreEvent: Omit<StoredEvent, "data" | "event_version">
+      actualAgreementData: ReadEvent<AgreementEvent>,
+      expectedStoreEvent: Omit<
+        ReadEvent<AgreementEvent>,
+        "data" | "event_version"
+      >
     ): AgreementV1 => {
       const actualAgreement: AgreementV1 | undefined = protobufDecoder(
         AgreementAddedV1
@@ -104,8 +108,11 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
     };
 
     const decodeAgreementDocumentV1FromEvent = (
-      actualAgreementData: StoredEvent,
-      expectedStoreEvent: Omit<StoredEvent, "data" | "event_version">
+      actualAgreementData: ReadEvent<AgreementEvent>,
+      expectedStoreEvent: Omit<
+        ReadEvent<AgreementEvent>,
+        "data" | "event_version"
+      >
     ): AgreementConsumerDocumentAddedV1 => {
       const actualAgreementDocument:
         | AgreementConsumerDocumentAddedV1
@@ -122,10 +129,16 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
     async function getExpectedAgreementEventV1<T>(
       agreementId: AgreementId | undefined,
       version: number | undefined,
-      expectedStoreEvent: Omit<StoredEvent, "data" | "event_version">,
+      expectedStoreEvent: Omit<
+        ReadEvent<AgreementEvent>,
+        "data" | "event_version"
+      >,
       decoderFunction: (
-        event: StoredEvent,
-        expectedStoreEvent: Omit<StoredEvent, "data" | "event_version">
+        event: ReadEvent<AgreementEvent>,
+        expectedStoreEvent: Omit<
+          ReadEvent<AgreementEvent>,
+          "data" | "event_version"
+        >
       ) => T
     ): Promise<T> {
       expect(agreementId).toBeDefined();
@@ -135,7 +148,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         );
       }
 
-      const actualAgreementData: StoredEvent | undefined =
+      const actualAgreementData: ReadEvent<AgreementEvent> | undefined =
         version !== undefined
           ? await readAgreementEventByVersion(agreementId, version, postgresDB)
           : await readLastAgreementEvent(agreementId, postgresDB);
@@ -298,11 +311,11 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
 
       const archivedAgreement = await getExpectedAgreementEventV1(
         agreementToBeUpgraded.id,
-        0,
+        1,
         {
           type: "AgreementUpdated",
           stream_id: agreementToBeUpgraded.id,
-          version: "0",
+          version: "1",
         },
         decodeAgreementV1FromEvent
       );
