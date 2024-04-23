@@ -614,7 +614,7 @@ export function purposeServiceBuilder(
       );
 
       if (agreement === undefined) {
-        throw agreementNotFound(eserviceId, consumerId);
+        agreementNotFound(eserviceId, consumerId);
       }
 
       const purposeWithSameName = await readModelService.getSpecificPurpose(
