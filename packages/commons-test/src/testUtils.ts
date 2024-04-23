@@ -64,16 +64,6 @@ export const getMockDescriptorPublished = (
   },
 });
 
-export const getMockDocument = (): Document => ({
-  name: "fileName",
-  path: "filePath",
-  id: generateId(),
-  prettyName: "prettyName",
-  contentType: "json",
-  checksum: "checksum",
-  uploadDate: new Date(),
-});
-
 export const getMockEServiceAttribute = (
   attributeId: AttributeId = generateId<AttributeId>()
 ): EServiceAttribute => ({
@@ -239,4 +229,14 @@ export const getMockDescriptor = (): Descriptor => ({
     verified: [],
     declared: [],
   },
+});
+
+export const getMockDocument = (): Document => ({
+  name: "fileName",
+  path: "filePath",
+  id: generateId(),
+  prettyName: "prettyName",
+  contentType: "json",
+  checksum: "checksum",
+  uploadDate: new Date(),
 });
