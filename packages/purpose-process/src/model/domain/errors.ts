@@ -193,8 +193,8 @@ export function purposeCannotBeDeleted(
   purposeId: PurposeId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Purpose ${purposeId} cannot be deleted`,
+    detail: `Versions in Purpose ${purposeId} do not allow deletion`,
     code: "purposeCannotBeDeleted",
-    title: "Purpose canont be deleted",
+    title: "Purpose cannot be deleted",
   });
 }
