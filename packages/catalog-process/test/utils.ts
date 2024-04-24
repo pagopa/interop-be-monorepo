@@ -23,15 +23,16 @@ import {
   Tenant,
   TenantId,
   agreementState,
-  catalogEventToBinaryData,
   descriptorState,
   eserviceMode,
   generateId,
   technology,
   toEServiceV2,
+  toReadModelAttribute,
   toReadModelEService,
 } from "pagopa-interop-models";
 import {
+  ReadEvent,
   StoredEvent,
   readLastEventByStreamId,
   writeInEventstore,
@@ -197,13 +198,11 @@ export const writeEServiceInEventstore = async (
     event_version: 2,
     data: { eservice: toEServiceV2(eservice) },
   };
-  const eventToWrite = {
+  const eventToWrite: StoredEvent<EServiceEvent> = {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     stream_id: eserviceEvent.data.eservice!.id,
-    version: "0",
-    type: eserviceEvent.type,
-    event_version: eserviceEvent.event_version,
-    data: catalogEventToBinaryData(eserviceEvent),
+    version: 0,
+    event: eserviceEvent,
   };
 
   await writeInEventstore(eventToWrite, "catalog", postgresDB);
@@ -222,7 +221,7 @@ export const addOneAttribute = async (
   attribute: Attribute,
   attributes: AttributeCollection
 ): Promise<void> => {
-  await writeInReadmodel(attribute, attributes);
+  await writeInReadmodel(toReadModelAttribute(attribute), attributes);
 };
 
 export const addOneTenant = async (
@@ -242,5 +241,5 @@ export const addOneAgreement = async (
 export const readLastEserviceEvent = async (
   eserviceId: EServiceId,
   postgresDB: IDatabase<unknown>
-): Promise<StoredEvent> =>
+): Promise<ReadEvent<EServiceEvent>> =>
   await readLastEventByStreamId(eserviceId, "catalog", postgresDB);
