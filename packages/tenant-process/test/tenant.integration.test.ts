@@ -854,12 +854,11 @@ describe("Integration tests", () => {
           authData: mockAuthData,
           correlationId,
         });
-        const writtenEvent: StoredEvent | undefined =
-          await readLastEventByStreamId(
-            tenantWithoutDeclaredAttribute.id,
-            eventStoreSchema.tenant,
-            postgresDB
-          );
+        const writtenEvent = await readLastEventByStreamId(
+          tenantWithoutDeclaredAttribute.id,
+          "tenant",
+          postgresDB
+        );
         if (!writtenEvent) {
           fail("Update failed: tenant not found in event-store");
         }
@@ -902,12 +901,11 @@ describe("Integration tests", () => {
           authData: mockAuthData,
           correlationId,
         });
-        const writtenEvent: StoredEvent | undefined =
-          await readLastEventByStreamId(
-            requesterTenant.id,
-            eventStoreSchema.tenant,
-            postgresDB
-          );
+        const writtenEvent = await readLastEventByStreamId(
+          requesterTenant.id,
+          "tenant",
+          postgresDB
+        );
         if (!writtenEvent) {
           fail("Update failed: tenant not found in event-store");
         }
@@ -1037,12 +1035,11 @@ describe("Integration tests", () => {
           correlationId,
         });
 
-        const writtenEvent: StoredEvent | undefined =
-          await readLastEventByStreamId(
-            targetTenant.id,
-            eventStoreSchema.tenant,
-            postgresDB
-          );
+        const writtenEvent = await readLastEventByStreamId(
+          targetTenant.id,
+          "tenant",
+          postgresDB
+        );
         if (!writtenEvent) {
           fail("Update failed: tenant not found in event-store");
         }
@@ -1122,17 +1119,16 @@ describe("Integration tests", () => {
         await addOneAgreement(agreementEservice1, agreements);
 
         await tenantService.verifyVerifiedAttribute({
-          tenantId: targetTenant.id,
+          tenantId: tenantWithVerifiedAttribute.id,
           tenantAttributeSeed,
           organizationId: mockAuthData.organizationId,
           correlationId,
         });
-        const writtenEvent: StoredEvent | undefined =
-          await readLastEventByStreamId(
-            tenantWithVerifiedAttribute.id,
-            eventStoreSchema.tenant,
-            postgresDB
-          );
+        const writtenEvent = await readLastEventByStreamId(
+          tenantWithVerifiedAttribute.id,
+          "tenant",
+          postgresDB
+        );
         if (!writtenEvent) {
           fail("Update failed: tenant not found in event-store");
         }
