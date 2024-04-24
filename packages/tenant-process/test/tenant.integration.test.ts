@@ -620,12 +620,11 @@ describe("Integration tests", () => {
           authData: mockAuthData,
           correlationId,
         });
-        const writtenEvent: StoredEvent | undefined =
-          await readLastEventByStreamId(
-            targetTenant.id,
-            eventStoreSchema.tenant,
-            postgresDB
-          );
+        const writtenEvent = await readLastEventByStreamId(
+          targetTenant.id,
+          "tenant",
+          postgresDB
+        );
         if (!writtenEvent) {
           fail("Update failed: tenant not found in event-store");
         }
@@ -684,12 +683,11 @@ describe("Integration tests", () => {
             correlationId,
           }
         );
-        const writtenEvent: StoredEvent | undefined =
-          await readLastEventByStreamId(
-            tenantWithCertifiedAttribute.id,
-            eventStoreSchema.tenant,
-            postgresDB
-          );
+        const writtenEvent = await readLastEventByStreamId(
+          tenantWithCertifiedAttribute.id,
+          "tenant",
+          postgresDB
+        );
         if (!writtenEvent) {
           fail("Update failed: tenant not found in event-store");
         }
