@@ -103,7 +103,177 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       );
     }
 
-    it("should succeed with valid Verified, Certified, and Declared attributes when consumer and producer are the same", async () => {
+    it("should succeed with valid Verified and Declared attributes when consumer and producer are the same", async () => {
+      const authData = getRandomAuthData();
+      const producerAndConsumerId = authData.organizationId;
+
+      const validVerifiedTenantAttribute = {
+        ...getMockVerifiedTenantAttribute(),
+        verifiedBy: [
+          {
+            id: producerAndConsumerId,
+            verificationDate: new Date(TEST_EXECUTION_DATE.getFullYear() - 1),
+            expirationDate: new Date(TEST_EXECUTION_DATE.getFullYear() + 1),
+            extensionDate: undefined,
+          },
+        ],
+      };
+
+      const validVerifiedEserviceAttribute = getMockEServiceAttribute(
+        validVerifiedTenantAttribute.id
+      );
+
+      const validDeclaredTenantAttribute = {
+        ...getMockDeclaredTenantAttribute(),
+        revocationTimestamp: undefined,
+      };
+      const validDeclaredEserviceAttribute = getMockEServiceAttribute(
+        validDeclaredTenantAttribute.id
+      );
+
+      // Certified attributes are not verified when producer and consumer are the same,
+      // so the test shall pass even with this invalid attribute
+      const invalidCertifiedTenantAttribute = {
+        ...getMockCertifiedTenantAttribute(),
+        revocationTimestamp: new Date(),
+      };
+      const invalidCertifiedEserviceAttribute = getMockEServiceAttribute(
+        invalidCertifiedTenantAttribute.id
+      );
+
+      const descriptorId = generateId<DescriptorId>();
+      const deprecatedDescriptor = {
+        ...getMockDescriptorPublished(
+          descriptorId,
+          [[invalidCertifiedEserviceAttribute]],
+          [[validDeclaredEserviceAttribute]],
+          [[validVerifiedEserviceAttribute]]
+        ),
+        path: "/deprecatedDescriptor/doc",
+        state: descriptorState.deprecated,
+        version: "1",
+      };
+
+      const publishedDescriptor: Descriptor = {
+        ...getMockDescriptorPublished(
+          descriptorId,
+          [[invalidCertifiedEserviceAttribute]],
+          [[validDeclaredEserviceAttribute]],
+          [[validVerifiedEserviceAttribute]]
+        ),
+        version: "2",
+      };
+
+      const producerAndConsumer = getMockTenant(producerAndConsumerId, [
+        invalidCertifiedTenantAttribute,
+        validDeclaredTenantAttribute,
+        validVerifiedTenantAttribute,
+      ]);
+      const agreementToBeUpgraded: Agreement = {
+        ...getMockAgreement(
+          generateId<EServiceId>(),
+          producerAndConsumer.id, // Consumer and producer are the same
+          randomArrayItem(agreementUpgradableStates)
+        ),
+        descriptorId,
+        producerId: producerAndConsumer.id,
+        createdAt: TEST_EXECUTION_DATE,
+      };
+
+      const eservice = getMockEService(
+        agreementToBeUpgraded.eserviceId,
+        producerAndConsumer.id,
+        [deprecatedDescriptor, publishedDescriptor]
+      );
+
+      await addOneEService(eservice, eservices);
+      await addOneTenant(producerAndConsumer, tenants);
+      await addOneAgreement(agreementToBeUpgraded, postgresDB, agreements);
+
+      const newAgreementId = unsafeBrandId<AgreementId>(
+        await agreementService.upgradeAgreement(
+          agreementToBeUpgraded.id,
+          authData,
+          uuidv4()
+        )
+      );
+
+      const actualAgreementArchivedEvent = await readAgreementEventByVersion(
+        agreementToBeUpgraded.id,
+        1,
+        postgresDB
+      );
+
+      expect(actualAgreementArchivedEvent).toMatchObject({
+        type: "AgreementUpdated",
+        event_version: 1,
+        version: "1",
+        stream_id: agreementToBeUpgraded.id,
+      });
+
+      const actualAgreementArchived = decodeProtobufPayload({
+        messageType: AgreementUpdatedV1,
+        payload: actualAgreementArchivedEvent.data,
+      }).agreement;
+
+      const expectedAgreementArchived: Agreement = {
+        ...agreementToBeUpgraded,
+        state: agreementState.archived,
+        stamps: {
+          ...agreementToBeUpgraded.stamps,
+          archiving: {
+            who: authData.userId,
+            when: TEST_EXECUTION_DATE,
+          },
+        },
+      };
+
+      expect(actualAgreementArchived).toMatchObject(
+        toAgreementV1(expectedAgreementArchived)
+      );
+
+      expect(newAgreementId).toBeDefined();
+
+      const actualAgreementCreatedEvent = await readLastAgreementEvent(
+        newAgreementId,
+        postgresDB
+      );
+
+      expect(actualAgreementCreatedEvent).toMatchObject({
+        type: "AgreementAdded",
+        event_version: 1,
+        version: "0",
+        stream_id: newAgreementId,
+      });
+
+      const actualAgreementCreated: AgreementV1 | undefined =
+        decodeProtobufPayload({
+          messageType: AgreementAddedV1,
+          payload: actualAgreementCreatedEvent.data,
+        }).agreement;
+
+      const expectedCreatedAgreement = toAgreementV1({
+        ...agreementToBeUpgraded,
+        id: newAgreementId,
+        descriptorId: publishedDescriptor.id,
+        createdAt: TEST_EXECUTION_DATE,
+        stamps: {
+          ...agreementToBeUpgraded.stamps,
+          upgrade: {
+            who: authData.userId,
+            when: TEST_EXECUTION_DATE,
+          },
+        },
+      });
+
+      // The method toAgreementV1 sets these to undefined,
+      // while when we read the event data they are not present
+      delete expectedCreatedAgreement.updatedAt;
+      delete expectedCreatedAgreement.rejectionReason;
+      expect(actualAgreementCreated).toMatchObject(expectedCreatedAgreement);
+    });
+
+    it("should succeed with valid Verified, Certified, and Declared attributes when consumer and producer are different", async () => {
       const authData = getRandomAuthData();
       const producerAndConsumerId = authData.organizationId;
 
@@ -180,7 +350,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
 
       const eservice = getMockEService(
         agreementToBeUpgraded.eserviceId,
-        producerAndConsumer.id,
+        generateId<TenantId>(),
         [deprecatedDescriptor, publishedDescriptor]
       );
 
