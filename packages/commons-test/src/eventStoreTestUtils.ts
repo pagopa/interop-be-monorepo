@@ -7,7 +7,6 @@ import {
   AttributeId,
   EServiceEvent,
   EServiceId,
-  EventStoreSchema,
   PurposeEvent,
   PurposeId,
   TenantEvent,
@@ -21,6 +20,13 @@ import {
 } from "pagopa-interop-models";
 import { Event } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
+
+type EventStoreSchema =
+  | "agreement"
+  | "attribute"
+  | "catalog"
+  | "tenant"
+  | "purpose";
 
 export type StoredEvent<T extends Event> = {
   stream_id: string;
