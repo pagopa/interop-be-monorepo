@@ -618,7 +618,7 @@ export async function upgradeAgreementLogic(
     throw noNewerDescriptor(eservice.id, currentDescriptor.id);
   }
 
-  if (eservice.producerId !== authData.organizationId) {
+  if (eservice.producerId !== agreementToBeUpgraded.data.consumerId) {
     validateCertifiedAttributes(newDescriptor, tenant);
   }
 
