@@ -119,9 +119,11 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
           },
         ],
       };
+
       const validVerifiedEserviceAttribute = getMockEServiceAttribute(
         validVerifiedTenantAttribute.id
       );
+
       const validDeclaredTenantAttribute = {
         ...getMockDeclaredTenantAttribute(unsafeBrandId<AttributeId>(tenantId)),
         revocationTimestamp: undefined,
@@ -130,9 +132,12 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         validDeclaredTenantAttribute.id
       );
 
-      const validCertifiedTenantAttribute = getMockCertifiedTenantAttribute(
-        unsafeBrandId<AttributeId>(tenantId)
-      );
+      const validCertifiedTenantAttribute = {
+        ...getMockCertifiedTenantAttribute(
+          unsafeBrandId<AttributeId>(tenantId)
+        ),
+        revocationTimestamp: undefined,
+      };
       const validCertifiedEserviceAttribute = getMockEServiceAttribute(
         validCertifiedTenantAttribute.id
       );
@@ -284,9 +289,12 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         consumerDocuments: [agreementConsumerDocument],
       };
 
-      const validCertifiedTenantAttribute = getMockCertifiedTenantAttribute(
-        unsafeBrandId<AttributeId>(tenantId)
-      );
+      const validCertifiedTenantAttribute = {
+        ...getMockCertifiedTenantAttribute(
+          unsafeBrandId<AttributeId>(tenantId)
+        ),
+        revocationTimestamp: undefined,
+      };
       const validCertifiedEserviceAttribute = getMockEServiceAttribute(
         validCertifiedTenantAttribute.id
       );
@@ -478,9 +486,12 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         revocationTimestamp: new Date(TEST_EXECUTION_DATE.getFullYear() + 1),
       };
 
-      const validCertifiedTenantAttribute = getMockCertifiedTenantAttribute(
-        unsafeBrandId<AttributeId>(tenantId)
-      );
+      const validCertifiedTenantAttribute = {
+        ...getMockCertifiedTenantAttribute(
+          unsafeBrandId<AttributeId>(tenantId)
+        ),
+        revocationTimestamp: undefined,
+      };
       const validCertifiedEserviceAttribute = getMockEServiceAttribute(
         validCertifiedTenantAttribute.id
       );
