@@ -26,6 +26,7 @@ import {
   TenantId,
   EServiceId,
   RiskAnalysis,
+  eserviceMode,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 import {
@@ -67,12 +68,12 @@ export const testUpdatePurpose = (): ReturnType<typeof describe> =>
 
     const eServiceDeliver: EService = {
       ...getMockEService(),
-      mode: "Deliver",
+      mode: eserviceMode.deliver,
     };
 
     const eServiceReceive: EService = {
       ...getMockEService(),
-      mode: "Receive",
+      mode: eserviceMode.receive,
       producerId: tenant.id,
     };
 
