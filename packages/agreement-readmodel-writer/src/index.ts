@@ -6,7 +6,7 @@ import {
   agreementTopicConfig,
   decodeKafkaMessage,
   logger,
-  runWithContext,
+  runWithLoggerContext,
 } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
 import { AgreementEvent } from "pagopa-interop-models";
@@ -24,7 +24,7 @@ async function processMessage({
 }: EachMessagePayload): Promise<void> {
   const msg = decodeKafkaMessage(message, AgreementEvent);
 
-  await runWithContext(
+  await runWithLoggerContext(
     {
       serviceName: "agreement-readmodel-writer",
       messageData: {

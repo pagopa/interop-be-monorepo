@@ -3,7 +3,7 @@
 import * as expressWinston from "express-winston";
 import * as winston from "winston";
 import { LoggerConfig } from "../config/commonConfig.js";
-import { getMutableContext } from "../index.js";
+import { getMutableLoggerContext } from "./loggerContext.js";
 import { bigIntReplacer } from "./utils.js";
 
 export type SessionMetaData = {
@@ -24,8 +24,8 @@ const config: LoggerConfig = parsedLoggerConfig.success
     };
 
 const getLoggerMetadata = (): SessionMetaData => {
-  const appContext = getMutableContext();
-  return !appContext
+  const loggerContext = getMutableLoggerContext();
+  return !loggerContext
     ? {
         serviceName: undefined,
         userId: undefined,
@@ -36,13 +36,13 @@ const getLoggerMetadata = (): SessionMetaData => {
         streamId: undefined,
       }
     : {
-        serviceName: appContext.serviceName,
-        userId: appContext.authData?.userId,
-        organizationId: appContext.authData?.organizationId,
-        correlationId: appContext.correlationId,
-        eventType: appContext.messageData?.eventType,
-        eventVersion: appContext.messageData?.eventVersion,
-        streamId: appContext.messageData?.streamId,
+        serviceName: loggerContext.serviceName,
+        userId: loggerContext.authData?.userId,
+        organizationId: loggerContext.authData?.organizationId,
+        correlationId: loggerContext.correlationId,
+        eventType: loggerContext.messageData?.eventType,
+        eventVersion: loggerContext.messageData?.eventVersion,
+        streamId: loggerContext.messageData?.streamId,
       };
 };
 

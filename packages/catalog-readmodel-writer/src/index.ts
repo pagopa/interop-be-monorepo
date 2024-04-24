@@ -6,7 +6,7 @@ import {
   readModelWriterConfig,
   catalogTopicConfig,
   decodeKafkaMessage,
-  runWithContext,
+  runWithLoggerContext,
 } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
 import { EServiceEvent } from "pagopa-interop-models";
@@ -24,7 +24,7 @@ async function processMessage({
 }: EachMessagePayload): Promise<void> {
   const decodedMessage = decodeKafkaMessage(message, EServiceEvent);
 
-  await runWithContext(
+  await runWithLoggerContext(
     {
       serviceName: "catalog-readmodel-writer",
       messageData: {

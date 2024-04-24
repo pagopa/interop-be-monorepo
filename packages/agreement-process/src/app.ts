@@ -1,6 +1,6 @@
 import {
   authenticationMiddleware,
-  contextMiddleware,
+  loggerContextMiddleware,
   loggerMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
@@ -13,7 +13,7 @@ const app = zodiosCtx.app();
 // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
 app.disable("x-powered-by");
 
-app.use(contextMiddleware("agreement-process"));
+app.use(loggerContextMiddleware("agreement-process"));
 app.use(loggerMiddleware());
 
 // Unauthenticated routes

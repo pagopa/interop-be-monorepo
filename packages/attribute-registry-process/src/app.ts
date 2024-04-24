@@ -1,5 +1,5 @@
 import {
-  contextMiddleware,
+  loggerContextMiddleware,
   loggerMiddleware,
   authenticationMiddleware,
   zodiosCtx,
@@ -13,7 +13,7 @@ const app = zodiosCtx.app();
 // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
 app.disable("x-powered-by");
 
-app.use(contextMiddleware("attribute-registry-process"));
+app.use(loggerContextMiddleware("attribute-registry-process"));
 app.use(loggerMiddleware());
 
 // Unauthenticated routes

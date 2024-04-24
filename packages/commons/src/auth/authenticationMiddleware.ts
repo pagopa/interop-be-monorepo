@@ -1,14 +1,15 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { ZodiosRouterContextRequestHandler } from "@zodios/express";
 import {
+  genericError,
   makeApiProblemBuilder,
   missingBearer,
   missingHeader,
   unauthorizedError,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
-import { ExpressContext, getMutableContext } from "../index.js";
-import { logger } from "../logging/index.js";
+import { ExpressContext } from "../index.js";
+import { getMutableLoggerContext, logger } from "../logging/index.js";
 import { AuthData } from "./authData.js";
 import { Headers } from "./headers.js";
 import { readAuthDataFromJwtToken, verifyJwtToken } from "./jwt.js";
@@ -42,13 +43,16 @@ export const authenticationMiddleware: () => ZodiosRouterContextRequestHandler<E
         }
 
         const authData: AuthData = readAuthDataFromJwtToken(jwtToken);
-        const context = getMutableContext();
+        const context = getMutableLoggerContext();
         if (context) {
           // eslint-disable-next-line functional/immutable-data
           context.authData = authData;
         } else {
-          logger.warn("Cannot set authData in context - context not found.");
+          throw genericError(
+            "Cannot set authData in context - context not found."
+          );
         }
+
         // eslint-disable-next-line functional/immutable-data
         req.ctx = {
           authData: { ...authData },

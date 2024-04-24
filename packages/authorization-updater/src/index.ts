@@ -8,7 +8,7 @@ import {
   logger,
   CatalogTopicConfig,
   catalogTopicConfig,
-  runWithContext,
+  runWithLoggerContext,
 } from "pagopa-interop-commons";
 import {
   Descriptor,
@@ -80,7 +80,7 @@ function processMessage(
       );
       const decodedMsg = messageDecoder(messagePayload.message);
 
-      await runWithContext(
+      await runWithLoggerContext(
         {
           serviceName: "authorization-updater",
           messageData: {
