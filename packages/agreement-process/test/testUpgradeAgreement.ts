@@ -445,19 +445,11 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
 
     it("should succeed with invalid Verified attributes", async () => {
       const authData = getRandomAuthData();
-      const tenantId = authData.organizationId;
+      const consumerId = authData.organizationId;
+      const producerId = generateId<TenantId>();
       const descriptorId = generateId<DescriptorId>();
       const agreementId = generateId<AgreementId>();
       const agreementConsumerDocument = getMockConsumerDocument(agreementId);
-      const agreementSubject = {
-        ...getMockAgreement(
-          generateId<EServiceId>(),
-          generateId<TenantId>(),
-          randomArrayItem(agreementUpgradableStates)
-        ),
-        id: agreementId,
-        consumerDocuments: [agreementConsumerDocument],
-      };
 
       const validCertifiedTenantAttribute = {
         ...getMockCertifiedTenantAttribute(),
@@ -471,14 +463,18 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         ...getMockVerifiedTenantAttribute(),
         verifiedBy: [
           {
-            id: tenantId,
+            id: producerId,
             verificationDate: new Date(TEST_EXECUTION_DATE.getFullYear() - 1),
             expirationDate: new Date(TEST_EXECUTION_DATE.getFullYear() + 1),
-            extensionDate: undefined,
+            extensionDate: new Date(TEST_EXECUTION_DATE.getFullYear() - 1), // invalid because of this
           },
         ],
       };
-      const tenant = getMockTenant(tenantId, [
+      const invalidVerifiedEserviceAttribute = getMockEServiceAttribute(
+        invalidVerifiedTenantAttribute.id
+      );
+
+      const tenant = getMockTenant(consumerId, [
         invalidVerifiedTenantAttribute,
         validCertifiedTenantAttribute,
       ]);
@@ -489,9 +485,8 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
           descriptorId,
           [[validCertifiedEserviceAttribute]],
           [],
-          [[getMockEServiceAttribute()]]
+          [[invalidVerifiedEserviceAttribute]]
         ),
-        name: "deprecated-descriptor-doc",
         state: descriptorState.deprecated,
         version: "1",
       };
@@ -501,22 +496,26 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
           descriptorId,
           [[validCertifiedEserviceAttribute]],
           [],
-          [[getMockEServiceAttribute()]]
+          [[invalidVerifiedEserviceAttribute]]
         ),
         version: "2",
       };
 
       await uploadDocument(
-        agreementSubject.id,
+        agreementId,
         agreementConsumerDocument.id,
         agreementConsumerDocument.name
       );
 
       const agreementToBeUpgraded: Agreement = {
-        ...agreementSubject,
+        ...getMockAgreement(
+          generateId<EServiceId>(),
+          consumerId,
+          randomArrayItem(agreementUpgradableStates)
+        ),
+        id: agreementId,
         descriptorId,
-        producerId: tenantId,
-        consumerId: tenantId,
+        producerId,
         stamps: {},
         createdAt: TEST_EXECUTION_DATE,
         consumerDocuments: [agreementConsumerDocument],
@@ -619,25 +618,17 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
 
     it("should succeed with invalid Declared attributes", async () => {
       const authData = getRandomAuthData();
-      const tenantId = authData.organizationId;
+      const consumerId = authData.organizationId;
+      const producerId = generateId<TenantId>();
       const descriptorId = generateId<DescriptorId>();
       const agreementId = generateId<AgreementId>();
       const agreementConsumerDocument = getMockConsumerDocument(agreementId);
-      const agreementSubject = {
-        ...getMockAgreement(
-          generateId<EServiceId>(),
-          generateId<TenantId>(),
-          randomArrayItem(agreementUpgradableStates)
-        ),
-        id: agreementId,
-        consumerDocuments: [agreementConsumerDocument],
-      };
 
       const validVerifiedTenantAttribute = {
         ...getMockVerifiedTenantAttribute(),
         verifiedBy: [
           {
-            id: tenantId,
+            id: producerId,
             verificationDate: new Date(TEST_EXECUTION_DATE.getFullYear() - 1),
             expirationDate: new Date(TEST_EXECUTION_DATE.getFullYear() + 1),
             extensionDate: undefined,
@@ -653,6 +644,9 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         ...getMockDeclaredTenantAttribute(),
         revocationTimestamp: new Date(TEST_EXECUTION_DATE.getFullYear() + 1),
       };
+      const invalidDecalredEserviceAttribute = getMockEServiceAttribute(
+        invalidDeclaredTenantAttribute.id
+      );
 
       const validCertifiedTenantAttribute = {
         ...getMockCertifiedTenantAttribute(),
@@ -662,7 +656,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         validCertifiedTenantAttribute.id
       );
 
-      const tenant = getMockTenant(tenantId, [
+      const tenant = getMockTenant(consumerId, [
         validCertifiedTenantAttribute,
         validVerifiedTenantAttribute,
         invalidDeclaredTenantAttribute,
@@ -673,7 +667,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         ...getMockDescriptorPublished(
           descriptorId,
           [[validCertifiedEserviceAttribute]],
-          [[getMockEServiceAttribute()]],
+          [[invalidDecalredEserviceAttribute]],
           [[validVerifiedEserviceAttribute]]
         ),
         name: "deprecated-descriptor-doc",
@@ -685,23 +679,27 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         ...getMockDescriptorPublished(
           descriptorId,
           [[validCertifiedEserviceAttribute]],
-          [[getMockEServiceAttribute()]],
+          [[invalidDecalredEserviceAttribute]],
           [[validVerifiedEserviceAttribute]]
         ),
         version: "2",
       };
 
       await uploadDocument(
-        agreementSubject.id,
+        agreementId,
         agreementConsumerDocument.id,
         agreementConsumerDocument.name
       );
 
       const agreementToBeUpgraded: Agreement = {
-        ...agreementSubject,
+        ...getMockAgreement(
+          generateId<EServiceId>(),
+          consumerId,
+          randomArrayItem(agreementUpgradableStates)
+        ),
+        id: agreementId,
         descriptorId,
-        producerId: tenantId,
-        consumerId: tenantId,
+        producerId,
         stamps: {},
         createdAt: TEST_EXECUTION_DATE,
         consumerDocuments: [agreementConsumerDocument],
@@ -1064,6 +1062,10 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         revocationTimestamp: new Date(),
       };
 
+      const invalidCertifiedEserviceAttribute = getMockEServiceAttribute(
+        invalidCertifiedTenantAttribute.id
+      );
+
       const tenant = {
         ...getMockTenant(tenantId),
         attributes: [invalidCertifiedTenantAttribute],
@@ -1072,7 +1074,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
 
       const publishedDescriptor = {
         ...getMockDescriptorPublished(generateId<DescriptorId>(), [
-          [getMockEServiceAttribute(invalidCertifiedTenantAttribute.id)],
+          [invalidCertifiedEserviceAttribute],
         ]),
         version: "2",
       };
@@ -1148,6 +1150,10 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         revocationTimestamp: new Date(TEST_EXECUTION_DATE.getFullYear() + 1),
       };
 
+      const invalidDeclaredEserviceAttribute = getMockEServiceAttribute(
+        invalidDeclaredTenantAttribute.id
+      );
+
       const tenant = getMockTenant(tenantId, [
         validVerifiedTenantAttribute,
         invalidDeclaredTenantAttribute,
@@ -1158,7 +1164,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         ...getMockDescriptorPublished(
           descriptorId,
           [],
-          [[getMockEServiceAttribute()]],
+          [[invalidDeclaredEserviceAttribute]],
           [[validVerifiedEserviceAttribute]]
         ),
         name: "deprecated-descriptor-doc",
@@ -1170,7 +1176,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         ...getMockDescriptorPublished(
           descriptorId,
           [],
-          [[getMockEServiceAttribute()]],
+          [[invalidDeclaredEserviceAttribute]],
           [[validVerifiedEserviceAttribute]]
         ),
         version: "2",
@@ -1237,6 +1243,10 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         revocationTimestamp: new Date(TEST_EXECUTION_DATE.getFullYear() + 1),
       };
 
+      const invalidDeclaredEserviceAttribute = getMockEServiceAttribute(
+        invalidDeclaredTenantAttribute.id
+      );
+
       const tenant = getMockTenant(tenantId, [
         validVerifiedTenantAttribute,
         invalidDeclaredTenantAttribute,
@@ -1247,7 +1257,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         ...getMockDescriptorPublished(
           descriptorId,
           [],
-          [[getMockEServiceAttribute()]],
+          [[invalidDeclaredEserviceAttribute]],
           [[validVerifiedEserviceAttribute]]
         ),
         name: "deprecated-descriptor-doc",
@@ -1259,7 +1269,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         ...getMockDescriptorPublished(
           descriptorId,
           [],
-          [[getMockEServiceAttribute()]],
+          [[invalidDeclaredEserviceAttribute]],
           [[validVerifiedEserviceAttribute]]
         ),
         version: "2",
