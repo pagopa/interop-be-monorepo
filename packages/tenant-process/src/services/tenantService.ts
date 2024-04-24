@@ -295,9 +295,7 @@ export function tenantServiceBuilder(
         readModelService
       );
 
-      const certifierId = requesterTenant.data.features.find(
-        (feature) => feature.type === "PersistentCertifier"
-      )?.certifierId;
+      const certifierId = getTenantCertifierId(requesterTenant.data);
 
       if (!certifierId) {
         throw tenantIsNotACertifier(organizationId);
