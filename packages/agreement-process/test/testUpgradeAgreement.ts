@@ -5,6 +5,7 @@ import { fail } from "assert";
 import { generateMock } from "@anatine/zod-mock";
 import { FileManagerError, userRoles } from "pagopa-interop-commons";
 import {
+  decodeProtobufPayload,
   getMockAgreement,
   getMockCertifiedTenantAttribute,
   getMockDeclaredTenantAttribute,
@@ -15,28 +16,25 @@ import {
   getMockVerifiedTenantAttribute,
   getRandomAuthData,
   randomArrayItem,
-  ReadEvent,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
   AgreementAddedV1,
   AgreementConsumerDocumentAddedV1,
   AgreementDocumentId,
-  AgreementEvent,
   AgreementId,
-  agreementState,
+  AgreementUpdatedV1,
   AgreementV1,
   AttributeId,
   Descriptor,
   DescriptorId,
-  descriptorState,
   Document,
   EService,
   EServiceId,
-  generateId,
-  protobufDecoder,
-  StampsV1,
   TenantId,
+  agreementState,
+  descriptorState,
+  generateId,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
@@ -55,15 +53,14 @@ import {
   unexpectedVersionFormat,
 } from "../src/model/domain/errors.js";
 import {
-  toAgreementStateV1,
+  toAgreementDocumentV1,
   toAgreementV1,
-  toStampV1,
 } from "../src/model/domain/toEvent.js";
 import { agreementUpgradableStates } from "../src/model/domain/validators.js";
 import { config } from "../src/utilities/config.js";
 import {
-  agreements,
   agreementService,
+  agreements,
   eservices,
   fileManager,
   postgresDB,
@@ -89,119 +86,6 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
     afterAll(() => {
       vi.useRealTimers();
     });
-
-    const decodeAgreementV1FromEvent = (
-      actualAgreementData: ReadEvent<AgreementEvent>,
-      expectedStoreEvent: Omit<
-        ReadEvent<AgreementEvent>,
-        "data" | "event_version"
-      >
-    ): AgreementV1 => {
-      const actualAgreement: AgreementV1 | undefined = protobufDecoder(
-        AgreementAddedV1
-      ).parse(actualAgreementData.data)?.agreement;
-
-      if (!actualAgreement) {
-        fail(`impossible to decode ${expectedStoreEvent.type} data`);
-      }
-      return actualAgreement;
-    };
-
-    const decodeAgreementDocumentV1FromEvent = (
-      actualAgreementData: ReadEvent<AgreementEvent>,
-      expectedStoreEvent: Omit<
-        ReadEvent<AgreementEvent>,
-        "data" | "event_version"
-      >
-    ): AgreementConsumerDocumentAddedV1 => {
-      const actualAgreementDocument:
-        | AgreementConsumerDocumentAddedV1
-        | undefined = protobufDecoder(AgreementConsumerDocumentAddedV1).parse(
-        actualAgreementData.data
-      );
-
-      if (!actualAgreementDocument) {
-        fail(`impossible to decode ${expectedStoreEvent.type} data`);
-      }
-      return actualAgreementDocument;
-    };
-
-    async function getExpectedAgreementEventV1<T>(
-      agreementId: AgreementId | undefined,
-      version: number | undefined,
-      expectedStoreEvent: Omit<
-        ReadEvent<AgreementEvent>,
-        "data" | "event_version"
-      >,
-      decoderFunction: (
-        event: ReadEvent<AgreementEvent>,
-        expectedStoreEvent: Omit<
-          ReadEvent<AgreementEvent>,
-          "data" | "event_version"
-        >
-      ) => T
-    ): Promise<T> {
-      expect(agreementId).toBeDefined();
-      if (!agreementId) {
-        fail(
-          `Unhandled error: returned agreementId is undefined for ${agreementId}`
-        );
-      }
-
-      const actualAgreementData: ReadEvent<AgreementEvent> | undefined =
-        version !== undefined
-          ? await readAgreementEventByVersion(agreementId, version, postgresDB)
-          : await readLastAgreementEvent(agreementId, postgresDB);
-
-      if (!actualAgreementData) {
-        fail("Creation fails: agreement not found in event-store");
-      }
-
-      expect(actualAgreementData).toMatchObject({
-        ...expectedStoreEvent,
-        event_version: 1,
-      });
-
-      return decoderFunction(actualAgreementData, expectedStoreEvent);
-    }
-
-    function toAgreementStampsV1(agreement: Agreement): StampsV1 {
-      const stamps: StampsV1 = {};
-
-      if (agreement.stamps.submission) {
-        stamps.submission = toStampV1(agreement.stamps.submission);
-      }
-
-      if (agreement.stamps.activation) {
-        stamps.activation = toStampV1(agreement.stamps.activation);
-      }
-
-      if (agreement.stamps.rejection) {
-        stamps.rejection = toStampV1(agreement.stamps.rejection);
-      }
-
-      if (agreement.stamps.suspensionByProducer) {
-        stamps.suspensionByProducer = toStampV1(
-          agreement.stamps.suspensionByProducer
-        );
-      }
-
-      if (agreement.stamps.suspensionByConsumer) {
-        stamps.suspensionByConsumer = toStampV1(
-          agreement.stamps.suspensionByConsumer
-        );
-      }
-
-      if (agreement.stamps.upgrade) {
-        stamps.upgrade = toStampV1(agreement.stamps.upgrade);
-      }
-
-      if (agreement.stamps.archiving) {
-        stamps.archiving = toStampV1(agreement.stamps.archiving);
-      }
-
-      return stamps;
-    }
 
     async function uploadDocument(path: string, name: string): Promise<void> {
       await fileManager.storeBytes(
@@ -287,7 +171,6 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         ),
         descriptorId,
         producerId: unsafeBrandId<TenantId>(tenantId),
-        stamps: {},
         createdAt: TEST_EXECUTION_DATE,
       };
 
@@ -309,70 +192,79 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         )
       );
 
-      const archivedAgreement = await getExpectedAgreementEventV1(
+      const actualAgreementArchivedEvent = await readAgreementEventByVersion(
         agreementToBeUpgraded.id,
         1,
-        {
-          type: "AgreementUpdated",
-          stream_id: agreementToBeUpgraded.id,
-          version: "1",
-        },
-        decodeAgreementV1FromEvent
+        postgresDB
       );
 
-      expect(archivedAgreement).toMatchObject({
-        ...toAgreementV1(agreementToBeUpgraded),
-        state: toAgreementStateV1(agreementState.archived),
-        stamps: {
-          ...toAgreementStampsV1(agreementToBeUpgraded),
-          archiving: {
-            who: authData.userId,
-            when: BigInt(TEST_EXECUTION_DATE.getTime()),
-          },
-        },
+      expect(actualAgreementArchivedEvent).toMatchObject({
+        type: "AgreementUpdated",
+        event_version: 1,
+        version: "1",
+        stream_id: agreementToBeUpgraded.id,
       });
 
-      expect(newAgreementId).toBeDefined();
-      const actualCreatedAgreementV1 = await getExpectedAgreementEventV1(
-        newAgreementId,
-        0,
-        {
-          type: "AgreementAdded",
-          stream_id: newAgreementId,
-          version: "0",
-        },
-        decodeAgreementV1FromEvent
-      );
+      const actualAgreementArchived = decodeProtobufPayload({
+        messageType: AgreementUpdatedV1,
+        payload: actualAgreementArchivedEvent.data,
+      }).agreement;
 
-      expect(actualCreatedAgreementV1)
-        .property("createdAt")
-        .satisfy(
-          (createdAt: Date) =>
-            new Date(Number(createdAt)) &&
-            new Date(Number(createdAt)) <= TEST_EXECUTION_DATE
-        );
-
-      const createdAgreement = toAgreementV1(agreementToBeUpgraded);
-      delete createdAgreement.updatedAt;
-      delete createdAgreement.rejectionReason;
-
-      const expectedCreatedAgreementV1 = {
-        ...createdAgreement,
-        id: newAgreementId,
-        descriptorId: actualCreatedAgreementV1.descriptorId,
-        createdAt: BigInt(TEST_EXECUTION_DATE.getTime()),
+      const expectedAgreementArchived: Agreement = {
+        ...agreementToBeUpgraded,
+        state: agreementState.archived,
         stamps: {
-          ...toAgreementStampsV1(agreementToBeUpgraded),
-          upgrade: {
+          ...agreementToBeUpgraded.stamps,
+          archiving: {
             who: authData.userId,
-            when: BigInt(TEST_EXECUTION_DATE.getTime()),
+            when: TEST_EXECUTION_DATE,
           },
         },
       };
 
-      expect(actualCreatedAgreementV1).toMatchObject(
-        expectedCreatedAgreementV1
+      expect(actualAgreementArchived).toMatchObject(
+        toAgreementV1(expectedAgreementArchived)
       );
+
+      expect(newAgreementId).toBeDefined();
+
+      const actualAgreementCreatedEvent = await readLastAgreementEvent(
+        newAgreementId,
+        postgresDB
+      );
+
+      expect(actualAgreementCreatedEvent).toMatchObject({
+        type: "AgreementAdded",
+        event_version: 1,
+        version: "0",
+        stream_id: newAgreementId,
+      });
+
+      const actualAgreementCreated: AgreementV1 | undefined =
+        decodeProtobufPayload({
+          messageType: AgreementAddedV1,
+          payload: actualAgreementCreatedEvent.data,
+        }).agreement;
+
+      const expectedCreatedAgreement = toAgreementV1({
+        ...agreementToBeUpgraded,
+        id: newAgreementId,
+        descriptorId: publishedDescriptor.id,
+        createdAt: TEST_EXECUTION_DATE,
+        stamps: {
+          ...agreementToBeUpgraded.stamps,
+          upgrade: {
+            who: authData.userId,
+            when: TEST_EXECUTION_DATE,
+          },
+        },
+      });
+
+      // The method toAgreementV1 sets these to undefined,
+      // while when we read the event data they are not present
+      delete expectedCreatedAgreement.updatedAt;
+      delete expectedCreatedAgreement.rejectionReason;
+      expect(actualAgreementCreated).toMatchObject(expectedCreatedAgreement);
     });
 
     it("should succeed with invalid Verified attributes", async () => {
@@ -488,27 +380,27 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       );
 
       expect(newAgreementId).toBeDefined();
-      const actualCreatedAgreementV1 = await getExpectedAgreementEventV1(
+
+      const actualAgreementCreatedEvent = await readAgreementEventByVersion(
         newAgreementId,
         0,
-        {
-          type: "AgreementAdded",
-          stream_id: newAgreementId,
-          version: "0",
-        },
-        decodeAgreementV1FromEvent
+        postgresDB
       );
 
-      expect(actualCreatedAgreementV1)
-        .property("createdAt")
-        .satisfy(
-          (createdAt: Date) =>
-            new Date(Number(createdAt)) &&
-            new Date(Number(createdAt)) <= TEST_EXECUTION_DATE
-        );
+      expect(actualAgreementCreatedEvent).toMatchObject({
+        type: "AgreementAdded",
+        event_version: 1,
+        version: "0",
+        stream_id: newAgreementId,
+      });
 
-      const expectedCreatedAgreementV1 = {
-        id: expect.any(String),
+      const actualCreatedAgreementV1 = decodeProtobufPayload({
+        messageType: AgreementAddedV1,
+        payload: actualAgreementCreatedEvent.data,
+      }).agreement;
+
+      const expectedCreatedAgreement = toAgreementV1({
+        id: newAgreementId,
         eserviceId: agreementToBeUpgraded.eserviceId,
         descriptorId,
         producerId: agreementToBeUpgraded.producerId,
@@ -517,40 +409,52 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         certifiedAttributes: agreementToBeUpgraded.certifiedAttributes,
         declaredAttributes: agreementToBeUpgraded.declaredAttributes,
         consumerNotes: agreementToBeUpgraded.consumerNotes,
-        state: toAgreementStateV1(agreementState.draft),
-        createdAt: BigInt(TEST_EXECUTION_DATE.getTime()),
+        state: agreementState.draft,
+        createdAt: TEST_EXECUTION_DATE,
         consumerDocuments: [],
         stamps: {},
-      };
+      });
 
-      expect(actualCreatedAgreementV1).toMatchObject(
-        expectedCreatedAgreementV1
-      );
+      expectedCreatedAgreement.stamps = {};
+      delete expectedCreatedAgreement.updatedAt;
+      delete expectedCreatedAgreement.suspendedAt;
+      delete expectedCreatedAgreement.contract;
+      expect(actualCreatedAgreementV1).toMatchObject(expectedCreatedAgreement);
 
-      const actualAgreementDocumentAddedV1 = await getExpectedAgreementEventV1(
+      const actualAgreementDocumentAddedEvent = await readLastAgreementEvent(
         newAgreementId,
-        1,
-        {
-          type: "AgreementConsumerDocumentAdded",
-          stream_id: newAgreementId,
-          version: "1",
-        },
-        decodeAgreementDocumentV1FromEvent
+        postgresDB
       );
 
-      const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${actualCreatedAgreementV1.id}/${actualAgreementDocumentAddedV1.document?.id}/${documentPublishedDescriptor.name}`;
-      expect(actualAgreementDocumentAddedV1.document).toBeDefined();
-      if (!actualAgreementDocumentAddedV1.document) {
+      expect(actualAgreementDocumentAddedEvent).toMatchObject({
+        type: "AgreementConsumerDocumentAdded",
+        event_version: 1,
+        version: "1",
+        stream_id: newAgreementId,
+      });
+
+      const actualAgreementDocumentAdded = decodeProtobufPayload({
+        messageType: AgreementConsumerDocumentAddedV1,
+        payload: actualAgreementDocumentAddedEvent.data,
+      }).document;
+
+      expect(actualAgreementDocumentAdded).toBeDefined();
+      if (!actualAgreementDocumentAdded) {
         fail("Document not found in event");
       }
-      expect(actualAgreementDocumentAddedV1.document).toMatchObject({
-        id: actualAgreementDocumentAddedV1.document.id,
+      const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${actualAgreementDocumentAdded.id}/${documentPublishedDescriptor.name}`;
+
+      const expectedCreatedDocument = {
+        id: unsafeBrandId<AgreementDocumentId>(actualAgreementDocumentAdded.id),
         name: documentPublishedDescriptor.name,
         prettyName: documentPublishedDescriptor.prettyName,
         contentType: documentPublishedDescriptor.contentType,
         path: expectedUploadedDocumentPath,
-        createdAt: BigInt(TEST_EXECUTION_DATE.getTime()),
-      });
+        createdAt: TEST_EXECUTION_DATE,
+      };
+      expect(actualAgreementDocumentAdded).toMatchObject(
+        toAgreementDocumentV1(expectedCreatedDocument)
+      );
     });
 
     it("should succeed with invalid Declared attributes", async () => {
@@ -677,27 +581,26 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       );
 
       expect(newAgreementId).toBeDefined();
-      const actualCreatedAgreementV1 = await getExpectedAgreementEventV1(
+      const actualAgreementCreatedEvent = await readAgreementEventByVersion(
         newAgreementId,
         0,
-        {
-          type: "AgreementAdded",
-          stream_id: newAgreementId,
-          version: "0",
-        },
-        decodeAgreementV1FromEvent
+        postgresDB
       );
 
-      expect(actualCreatedAgreementV1)
-        .property("createdAt")
-        .satisfy(
-          (createdAt: Date) =>
-            new Date(Number(createdAt)) &&
-            new Date(Number(createdAt)) <= TEST_EXECUTION_DATE
-        );
+      expect(actualAgreementCreatedEvent).toMatchObject({
+        type: "AgreementAdded",
+        event_version: 1,
+        version: "0",
+        stream_id: newAgreementId,
+      });
 
-      const expectedCreatedAgreementV1 = {
-        id: expect.any(String),
+      const actualCreatedAgreement = decodeProtobufPayload({
+        messageType: AgreementAddedV1,
+        payload: actualAgreementCreatedEvent.data,
+      }).agreement;
+
+      const expectedCreatedAgreement = toAgreementV1({
+        id: newAgreementId,
         eserviceId: agreementToBeUpgraded.eserviceId,
         descriptorId,
         producerId: agreementToBeUpgraded.producerId,
@@ -706,40 +609,53 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         certifiedAttributes: agreementToBeUpgraded.certifiedAttributes,
         declaredAttributes: agreementToBeUpgraded.declaredAttributes,
         consumerNotes: agreementToBeUpgraded.consumerNotes,
-        state: toAgreementStateV1(agreementState.draft),
-        createdAt: BigInt(TEST_EXECUTION_DATE.getTime()),
+        state: agreementState.draft,
+        createdAt: TEST_EXECUTION_DATE,
         consumerDocuments: [],
         stamps: {},
-      };
+      });
 
-      expect(actualCreatedAgreementV1).toMatchObject(
-        expectedCreatedAgreementV1
-      );
+      expectedCreatedAgreement.stamps = {};
+      delete expectedCreatedAgreement.updatedAt;
+      delete expectedCreatedAgreement.suspendedAt;
+      delete expectedCreatedAgreement.contract;
+      expect(actualCreatedAgreement).toMatchObject(expectedCreatedAgreement);
 
-      const actualAgreementDocumentAddedV1 = await getExpectedAgreementEventV1(
+      const actualAgreementDocumentAddedEvent = await readLastAgreementEvent(
         newAgreementId,
-        1,
-        {
-          type: "AgreementConsumerDocumentAdded",
-          stream_id: newAgreementId,
-          version: "1",
-        },
-        decodeAgreementDocumentV1FromEvent
+        postgresDB
       );
 
-      const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${actualCreatedAgreementV1.id}/${actualAgreementDocumentAddedV1.document?.id}/${documentPublishedDescriptor.name}`;
-      expect(actualAgreementDocumentAddedV1.document).toBeDefined();
-      if (!actualAgreementDocumentAddedV1.document) {
+      expect(actualAgreementDocumentAddedEvent).toMatchObject({
+        type: "AgreementConsumerDocumentAdded",
+        event_version: 1,
+        version: "1",
+        stream_id: newAgreementId,
+      });
+
+      const actualAgreementDocumentAdded = decodeProtobufPayload({
+        messageType: AgreementConsumerDocumentAddedV1,
+        payload: actualAgreementDocumentAddedEvent.data,
+      }).document;
+
+      expect(actualAgreementDocumentAdded).toBeDefined();
+      if (!actualAgreementDocumentAdded) {
         fail("Document not found in event");
       }
-      expect(actualAgreementDocumentAddedV1.document).toMatchObject({
-        id: actualAgreementDocumentAddedV1.document.id,
+      const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${actualAgreementDocumentAdded.id}/${documentPublishedDescriptor.name}`;
+
+      const expectedCreatedDocument = {
+        id: unsafeBrandId<AgreementDocumentId>(actualAgreementDocumentAdded.id),
         name: documentPublishedDescriptor.name,
         prettyName: documentPublishedDescriptor.prettyName,
         contentType: documentPublishedDescriptor.contentType,
         path: expectedUploadedDocumentPath,
-        createdAt: BigInt(TEST_EXECUTION_DATE.getTime()),
-      });
+        createdAt: TEST_EXECUTION_DATE,
+      };
+
+      expect(actualAgreementDocumentAdded).toMatchObject(
+        toAgreementDocumentV1(expectedCreatedDocument)
+      );
     });
 
     it("should throw an tenantIdNotFound error when the tenant does not exist", async () => {
