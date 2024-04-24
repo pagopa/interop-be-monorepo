@@ -80,7 +80,7 @@ function processMessage(
       );
       const decodedMsg = messageDecoder(messagePayload.message);
 
-      runWithContext(
+      await runWithContext(
         {
           messageData: {
             eventType: decodedMsg.type,
