@@ -24,7 +24,6 @@ import {
   AgreementId,
   AgreementUpdatedV1,
   AgreementV1,
-  AttributeId,
   Descriptor,
   DescriptorId,
   EService,
@@ -106,15 +105,13 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
 
     it("should succeed with valid Verified, Certified, and Declared attributes when consumer and producer are the same", async () => {
       const authData = getRandomAuthData();
-      const producerAndConsumerId = authData.organizationId.toString();
+      const producerAndConsumerId = authData.organizationId;
 
       const validVerifiedTenantAttribute = {
-        ...getMockVerifiedTenantAttribute(
-          unsafeBrandId<AttributeId>(producerAndConsumerId)
-        ),
+        ...getMockVerifiedTenantAttribute(),
         verifiedBy: [
           {
-            id: unsafeBrandId<TenantId>(producerAndConsumerId),
+            id: producerAndConsumerId,
             verificationDate: new Date(TEST_EXECUTION_DATE.getFullYear() - 1),
             expirationDate: new Date(TEST_EXECUTION_DATE.getFullYear() + 1),
             extensionDate: undefined,
@@ -127,9 +124,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       );
 
       const validDeclaredTenantAttribute = {
-        ...getMockDeclaredTenantAttribute(
-          unsafeBrandId<AttributeId>(producerAndConsumerId)
-        ),
+        ...getMockDeclaredTenantAttribute(),
         revocationTimestamp: undefined,
       };
       const validDeclaredEserviceAttribute = getMockEServiceAttribute(
@@ -137,9 +132,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       );
 
       const validCertifiedTenantAttribute = {
-        ...getMockCertifiedTenantAttribute(
-          unsafeBrandId<AttributeId>(producerAndConsumerId)
-        ),
+        ...getMockCertifiedTenantAttribute(),
         revocationTimestamp: undefined,
       };
       const validCertifiedEserviceAttribute = getMockEServiceAttribute(
@@ -169,14 +162,11 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         version: "2",
       };
 
-      const producerAndConsumer = getMockTenant(
-        unsafeBrandId<TenantId>(producerAndConsumerId),
-        [
-          validCertifiedTenantAttribute,
-          validDeclaredTenantAttribute,
-          validVerifiedTenantAttribute,
-        ]
-      );
+      const producerAndConsumer = getMockTenant(producerAndConsumerId, [
+        validCertifiedTenantAttribute,
+        validDeclaredTenantAttribute,
+        validVerifiedTenantAttribute,
+      ]);
       const agreementToBeUpgraded: Agreement = {
         ...getMockAgreement(
           generateId<EServiceId>(),
@@ -281,9 +271,10 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       expect(actualAgreementCreated).toMatchObject(expectedCreatedAgreement);
     });
 
+    
     it("should succeed with invalid Verified attributes", async () => {
       const authData = getRandomAuthData();
-      const tenantId = authData.organizationId.toString();
+      const tenantId = authData.organizationId;
       const descriptorId = generateId<DescriptorId>();
       const agreementId = generateId<AgreementId>();
       const agreementConsumerDocument = getMockConsumerDocument(agreementId);
@@ -298,9 +289,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       };
 
       const validCertifiedTenantAttribute = {
-        ...getMockCertifiedTenantAttribute(
-          unsafeBrandId<AttributeId>(tenantId)
-        ),
+        ...getMockCertifiedTenantAttribute(),
         revocationTimestamp: undefined,
       };
       const validCertifiedEserviceAttribute = getMockEServiceAttribute(
@@ -311,14 +300,14 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         ...getMockVerifiedTenantAttribute(),
         verifiedBy: [
           {
-            id: unsafeBrandId<TenantId>(tenantId),
+            id: tenantId,
             verificationDate: new Date(TEST_EXECUTION_DATE.getFullYear() - 1),
             expirationDate: new Date(TEST_EXECUTION_DATE.getFullYear() + 1),
             extensionDate: undefined,
           },
         ],
       };
-      const tenant = getMockTenant(unsafeBrandId<TenantId>(tenantId), [
+      const tenant = getMockTenant(tenantId, [
         invalidVerifiedTenantAttribute,
         validCertifiedTenantAttribute,
       ]);
@@ -355,8 +344,8 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       const agreementToBeUpgraded: Agreement = {
         ...agreementSubject,
         descriptorId,
-        producerId: unsafeBrandId<TenantId>(tenantId),
-        consumerId: unsafeBrandId<TenantId>(tenantId),
+        producerId: tenantId,
+        consumerId: tenantId,
         stamps: {},
         createdAt: TEST_EXECUTION_DATE,
         consumerDocuments: [agreementConsumerDocument],
@@ -459,7 +448,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
 
     it("should succeed with invalid Declared attributes", async () => {
       const authData = getRandomAuthData();
-      const tenantId = authData.organizationId.toString();
+      const tenantId = authData.organizationId;
       const descriptorId = generateId<DescriptorId>();
       const agreementId = generateId<AgreementId>();
       const agreementConsumerDocument = getMockConsumerDocument(agreementId);
@@ -474,10 +463,10 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       };
 
       const validVerifiedTenantAttribute = {
-        ...getMockVerifiedTenantAttribute(unsafeBrandId<AttributeId>(tenantId)),
+        ...getMockVerifiedTenantAttribute(),
         verifiedBy: [
           {
-            id: unsafeBrandId<TenantId>(tenantId),
+            id: tenantId,
             verificationDate: new Date(TEST_EXECUTION_DATE.getFullYear() - 1),
             expirationDate: new Date(TEST_EXECUTION_DATE.getFullYear() + 1),
             extensionDate: undefined,
@@ -490,21 +479,19 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       );
 
       const invalidDeclaredTenantAttribute = {
-        ...getMockDeclaredTenantAttribute(unsafeBrandId<AttributeId>(tenantId)),
+        ...getMockDeclaredTenantAttribute(),
         revocationTimestamp: new Date(TEST_EXECUTION_DATE.getFullYear() + 1),
       };
 
       const validCertifiedTenantAttribute = {
-        ...getMockCertifiedTenantAttribute(
-          unsafeBrandId<AttributeId>(tenantId)
-        ),
+        ...getMockCertifiedTenantAttribute(),
         revocationTimestamp: undefined,
       };
       const validCertifiedEserviceAttribute = getMockEServiceAttribute(
         validCertifiedTenantAttribute.id
       );
 
-      const tenant = getMockTenant(unsafeBrandId<TenantId>(tenantId), [
+      const tenant = getMockTenant(tenantId, [
         validCertifiedTenantAttribute,
         validVerifiedTenantAttribute,
         invalidDeclaredTenantAttribute,
@@ -542,8 +529,8 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       const agreementToBeUpgraded: Agreement = {
         ...agreementSubject,
         descriptorId,
-        producerId: unsafeBrandId<TenantId>(tenantId),
-        consumerId: unsafeBrandId<TenantId>(tenantId),
+        producerId: tenantId,
+        consumerId: tenantId,
         stamps: {},
         createdAt: TEST_EXECUTION_DATE,
         consumerDocuments: [agreementConsumerDocument],
@@ -656,8 +643,8 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       const authData = getRandomAuthData();
       const agreementId = generateId<AgreementId>();
 
-      const tenantId = authData.organizationId.toString();
-      const tenant = getMockTenant(unsafeBrandId<TenantId>(tenantId));
+      const tenantId = authData.organizationId;
+      const tenant = getMockTenant(tenantId);
 
       await addOneTenant(tenant, tenants);
       await expect(
@@ -667,7 +654,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
 
     it("should throw an operationNotAllowed error when the requester is different from consumer", async () => {
       const authData = getRandomAuthData();
-      const tenantId = unsafeBrandId<TenantId>(authData.organizationId);
+      const tenantId = authData.organizationId;
       const tenant = getMockTenant(tenantId);
       await addOneTenant(tenant, tenants);
 
@@ -685,7 +672,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
 
     it("should throw an agreementNotInExpectedState error when the agreement doesn't have an upgradable states", async () => {
       const authData = getRandomAuthData();
-      const tenantId = unsafeBrandId<TenantId>(authData.organizationId);
+      const tenantId = authData.organizationId;
       const tenant = getMockTenant(tenantId);
       await addOneTenant(tenant, tenants);
 
@@ -710,7 +697,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
 
     it("should throw an eServiceNotFound error when the eservice not exists", async () => {
       const authData = getRandomAuthData();
-      const tenantId = unsafeBrandId<TenantId>(authData.organizationId);
+      const tenantId = authData.organizationId;
       const tenant = getMockTenant(tenantId);
       await addOneTenant(tenant, tenants);
 
@@ -730,7 +717,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
 
     it("should throw a publishedDescriptorNotFound error when published descriptor not exists", async () => {
       const authData = getRandomAuthData();
-      const tenantId = unsafeBrandId<TenantId>(authData.organizationId);
+      const tenantId = authData.organizationId;
       const tenant = getMockTenant(tenantId);
       await addOneTenant(tenant, tenants);
 
@@ -757,7 +744,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
 
     it("should throw an unexpectedVersionFormat error when published descriptor has unexpected version format", async () => {
       const authData = getRandomAuthData();
-      const tenantId = unsafeBrandId<TenantId>(authData.organizationId);
+      const tenantId = authData.organizationId;
       const tenant = getMockTenant(tenantId);
       await addOneTenant(tenant, tenants);
 
@@ -788,7 +775,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
 
     it("should throw a descriptorNotFound error when agreement descriptor not exists", async () => {
       const authData = getRandomAuthData();
-      const tenantId = unsafeBrandId<TenantId>(authData.organizationId);
+      const tenantId = authData.organizationId;
       const tenant = getMockTenant(tenantId);
       await addOneTenant(tenant, tenants);
 
@@ -817,7 +804,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
 
     it("should throw an unexpectedVersionFormat error when agreement descriptor has invalid format", async () => {
       const authData = getRandomAuthData();
-      const tenantId = unsafeBrandId<TenantId>(authData.organizationId);
+      const tenantId = authData.organizationId;
       const tenant = getMockTenant(tenantId);
       await addOneTenant(tenant, tenants);
 
@@ -858,7 +845,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
 
     it("should throw a noNewerDescriptor error when the latest published descriptor have version number greater than agreement's descriptor", async () => {
       const authData = getRandomAuthData();
-      const tenantId = unsafeBrandId<TenantId>(authData.organizationId);
+      const tenantId = authData.organizationId;
       const tenant = getMockTenant(tenantId);
       await addOneTenant(tenant, tenants);
 
@@ -897,14 +884,12 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       );
     });
 
-    it("should throw a missingCertifiedAttributesError error when published descriptor has invalid certified attributes", async () => {
+    it("should throw a missingCertifiedAttributesError error when consumer and producer are different and published descriptor has invalid certified attributes", async () => {
       const authData = getRandomAuthData();
-      const tenantId = unsafeBrandId<TenantId>(authData.organizationId);
+      const tenantId = authData.organizationId;
       const tenant = {
         ...getMockTenant(tenantId),
-        attributes: [
-          getMockCertifiedTenantAttribute(unsafeBrandId<AttributeId>(tenantId)),
-        ],
+        attributes: [getMockCertifiedTenantAttribute()],
       };
       await addOneTenant(tenant, tenants);
 
@@ -922,6 +907,8 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         version: "1",
       };
 
+      // producer is different from consumer, so that certified attributes are checked
+      const producerId = generateId<TenantId>();
       const agreement = {
         ...getMockAgreement(
           generateId<EServiceId>(),
@@ -929,14 +916,14 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
           randomArrayItem(agreementUpgradableStates)
         ),
         descriptorId: deprecatedDescriptor.id,
+        producerId,
       };
       await addOneAgreement(agreement, postgresDB, agreements);
 
-      const eservice = getMockEService(
-        agreement.eserviceId,
-        generateId<TenantId>(),
-        [publishedDescriptor, deprecatedDescriptor]
-      );
+      const eservice = getMockEService(agreement.eserviceId, producerId, [
+        publishedDescriptor,
+        deprecatedDescriptor,
+      ]);
       await addOneEService(eservice, eservices);
 
       await expect(
@@ -948,7 +935,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
 
     it("should throw a FileManagerError error when document copy fails", async () => {
       const authData = getRandomAuthData();
-      const tenantId = authData.organizationId.toString();
+      const tenantId = authData.organizationId;
       const descriptorId = generateId<DescriptorId>();
 
       const agreementId = generateId<AgreementId>();
@@ -964,10 +951,10 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       };
 
       const validVerifiedTenantAttribute = {
-        ...getMockVerifiedTenantAttribute(unsafeBrandId<AttributeId>(tenantId)),
+        ...getMockVerifiedTenantAttribute(),
         verifiedBy: [
           {
-            id: unsafeBrandId<TenantId>(tenantId),
+            id: tenantId,
             verificationDate: new Date(TEST_EXECUTION_DATE.getFullYear() - 1),
             expirationDate: new Date(TEST_EXECUTION_DATE.getFullYear() + 1),
             extensionDate: undefined,
@@ -980,11 +967,11 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       );
 
       const invalidDeclaredTenantAttribute = {
-        ...getMockDeclaredTenantAttribute(unsafeBrandId<AttributeId>(tenantId)),
+        ...getMockDeclaredTenantAttribute(),
         revocationTimestamp: new Date(TEST_EXECUTION_DATE.getFullYear() + 1),
       };
 
-      const tenant = getMockTenant(unsafeBrandId<TenantId>(tenantId), [
+      const tenant = getMockTenant(tenantId, [
         validVerifiedTenantAttribute,
         invalidDeclaredTenantAttribute,
       ]);
@@ -1015,8 +1002,8 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       const agreementToBeUpgraded: Agreement = {
         ...agreementSubject,
         descriptorId,
-        producerId: unsafeBrandId<TenantId>(tenantId),
-        consumerId: unsafeBrandId<TenantId>(tenantId),
+        producerId: tenantId,
+        consumerId: tenantId,
         stamps: {},
         createdAt: TEST_EXECUTION_DATE,
         consumerDocuments: [agreementConsumerDocument],
@@ -1043,7 +1030,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
 
     it("should throw an agreementAlreadyExists error when found a draft conflicting agreement with same consumer and e-service", async () => {
       const authData = getRandomAuthData();
-      const tenantId = authData.organizationId.toString();
+      const tenantId = authData.organizationId;
       const descriptorId = generateId<DescriptorId>();
 
       const agreementSubject = getMockAgreement(
@@ -1053,10 +1040,10 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       );
 
       const validVerifiedTenantAttribute = {
-        ...getMockVerifiedTenantAttribute(unsafeBrandId<AttributeId>(tenantId)),
+        ...getMockVerifiedTenantAttribute(),
         verifiedBy: [
           {
-            id: unsafeBrandId<TenantId>(tenantId),
+            id: tenantId,
             verificationDate: new Date(TEST_EXECUTION_DATE.getFullYear() - 1),
             expirationDate: new Date(TEST_EXECUTION_DATE.getFullYear() + 1),
             extensionDate: undefined,
@@ -1069,11 +1056,11 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       );
 
       const invalidDeclaredTenantAttribute = {
-        ...getMockDeclaredTenantAttribute(unsafeBrandId<AttributeId>(tenantId)),
+        ...getMockDeclaredTenantAttribute(),
         revocationTimestamp: new Date(TEST_EXECUTION_DATE.getFullYear() + 1),
       };
 
-      const tenant = getMockTenant(unsafeBrandId<TenantId>(tenantId), [
+      const tenant = getMockTenant(tenantId, [
         validVerifiedTenantAttribute,
         invalidDeclaredTenantAttribute,
       ]);
@@ -1104,8 +1091,8 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       const agreementToBeUpgraded: Agreement = {
         ...agreementSubject,
         descriptorId,
-        producerId: unsafeBrandId<TenantId>(tenantId),
-        consumerId: unsafeBrandId<TenantId>(tenantId),
+        producerId: tenantId,
+        consumerId: tenantId,
         stamps: {},
         createdAt: TEST_EXECUTION_DATE,
       };
