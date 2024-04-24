@@ -75,8 +75,11 @@ export const archivePurposeVersionErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("purposeVersionNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "purposeNotFound",
+      "purposeVersionNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
     .with("organizationIsNotTheConsumer", () => HTTP_STATUS_FORBIDDEN)
     .with("notValidVersionState", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
