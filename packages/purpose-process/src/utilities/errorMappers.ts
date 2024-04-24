@@ -9,8 +9,11 @@ const { HTTP_STATUS_INTERNAL_SERVER_ERROR, HTTP_STATUS_NOT_FOUND } = constants;
 
 export const getPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
-    .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("eserviceNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("tenantKindNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "purposeNotFound",
+      "tenantNotFound",
+      "tenantKindNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with("eserviceNotFound", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

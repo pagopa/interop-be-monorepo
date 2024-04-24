@@ -5,6 +5,7 @@ import {
   userRoles,
   ZodiosContext,
   authorizationMiddleware,
+  zodiosValidationErrorToApiProblem,
   ReadModelRepository,
   initDB,
 } from "pagopa-interop-commons";
@@ -37,7 +38,9 @@ const purposeService = purposeServiceBuilder(
 const purposeRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const purposeRouter = ctx.router(api.api);
+  const purposeRouter = ctx.router(api.api, {
+    validationErrorHandler: zodiosValidationErrorToApiProblem,
+  });
   const {
     ADMIN_ROLE,
     API_ROLE,
