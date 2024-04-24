@@ -10,10 +10,10 @@ import {
   DraftAgreementUpdatedV2,
   agreementState,
   generateId,
+  toAgreementV2,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { v4 as uuidv4 } from "uuid";
-import { toAgreementV2 } from "../src/model/domain/toEvent.js";
 import {
   agreementNotFound,
   agreementNotInExpectedState,
