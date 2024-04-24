@@ -2,7 +2,6 @@
 /* eslint-disable fp/no-delete */
 /* eslint-disable functional/immutable-data */
 import { fail } from "assert";
-import { generateMock } from "@anatine/zod-mock";
 import { FileManagerError } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
@@ -28,7 +27,6 @@ import {
   AttributeId,
   Descriptor,
   DescriptorId,
-  Document,
   EService,
   EServiceId,
   TenantId,
@@ -70,6 +68,7 @@ import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
+  getMockConsumerDocument,
   readAgreementEventByVersion,
   readLastAgreementEvent,
 } from "./utils.js";
@@ -87,16 +86,21 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       vi.useRealTimers();
     });
 
-    async function uploadDocument(path: string, name: string): Promise<void> {
+    async function uploadDocument(
+      agreementId: AgreementId,
+      documentId: AgreementDocumentId,
+      name: string
+    ): Promise<void> {
+      const documentDestinationPath = `${config.consumerDocumentsPath}/${agreementId}`;
       await fileManager.storeBytes(
         config.s3Bucket,
-        config.consumerDocumentsPath,
-        path,
+        documentDestinationPath,
+        documentId,
         name,
         Buffer.from("large-document-file")
       );
       expect(await fileManager.listFiles(config.s3Bucket)).toContainEqual(
-        `${config.consumerDocumentsPath}/${path}/${name}`
+        `${config.consumerDocumentsPath}/${agreementId}/${documentId}/${name}`
       );
     }
 
@@ -268,12 +272,17 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       const authData = getRandomAuthData();
       const tenantId = authData.organizationId.toString();
       const descriptorId = generateId<DescriptorId>();
-
-      const agreementSubject = getMockAgreement(
-        generateId<EServiceId>(),
-        generateId<TenantId>(),
-        randomArrayItem(agreementUpgradableStates)
-      );
+      const agreementId = generateId<AgreementId>();
+      const agreementConsumerDocument = getMockConsumerDocument(agreementId);
+      const agreementSubject = {
+        ...getMockAgreement(
+          generateId<EServiceId>(),
+          generateId<TenantId>(),
+          randomArrayItem(agreementUpgradableStates)
+        ),
+        id: agreementId,
+        consumerDocuments: [agreementConsumerDocument],
+      };
 
       const validCertifiedTenantAttribute = getMockCertifiedTenantAttribute(
         unsafeBrandId<AttributeId>(tenantId)
@@ -311,10 +320,6 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         version: "1",
       };
 
-      const documentPublishedDescriptor = {
-        ...generateMock(Document),
-        name: "published-descriptor-doc",
-      };
       const publishedDescriptor = {
         ...getMockDescriptorPublished(
           descriptorId,
@@ -322,17 +327,13 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
           [],
           [[getMockEServiceAttribute()]]
         ),
-        interface: {
-          ...documentPublishedDescriptor,
-          name: documentPublishedDescriptor.name,
-          path: `${config.consumerDocumentsPath}/${agreementSubject.id}/${descriptorId}/${documentPublishedDescriptor.name}`,
-        },
         version: "2",
       };
 
       await uploadDocument(
-        `${agreementSubject.id}/${descriptorId}`,
-        documentPublishedDescriptor.name
+        agreementSubject.id,
+        agreementConsumerDocument.id,
+        agreementConsumerDocument.name
       );
 
       const agreementToBeUpgraded: Agreement = {
@@ -342,18 +343,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         consumerId: unsafeBrandId<TenantId>(tenantId),
         stamps: {},
         createdAt: TEST_EXECUTION_DATE,
-        consumerDocuments: [
-          {
-            id: unsafeBrandId<AgreementDocumentId>(
-              publishedDescriptor.interface.id
-            ),
-            name: publishedDescriptor.interface.name,
-            prettyName: publishedDescriptor.interface.prettyName,
-            contentType: publishedDescriptor.interface.contentType,
-            path: publishedDescriptor.interface.path,
-            createdAt: publishedDescriptor.interface.uploadDate,
-          },
-        ],
+        consumerDocuments: [agreementConsumerDocument],
       };
 
       await addOneAgreement(agreementToBeUpgraded, postgresDB, agreements);
@@ -436,13 +426,13 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       if (!actualAgreementDocumentAdded) {
         fail("Document not found in event");
       }
-      const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${actualAgreementDocumentAdded.id}/${documentPublishedDescriptor.name}`;
+      const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${actualAgreementDocumentAdded.id}/${agreementConsumerDocument.name}`;
 
       const expectedCreatedDocument = {
         id: unsafeBrandId<AgreementDocumentId>(actualAgreementDocumentAdded.id),
-        name: documentPublishedDescriptor.name,
-        prettyName: documentPublishedDescriptor.prettyName,
-        contentType: documentPublishedDescriptor.contentType,
+        name: agreementConsumerDocument.name,
+        prettyName: agreementConsumerDocument.prettyName,
+        contentType: agreementConsumerDocument.contentType,
         path: expectedUploadedDocumentPath,
         createdAt: TEST_EXECUTION_DATE,
       };
@@ -455,12 +445,17 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       const authData = getRandomAuthData();
       const tenantId = authData.organizationId.toString();
       const descriptorId = generateId<DescriptorId>();
-
-      const agreementSubject = getMockAgreement(
-        generateId<EServiceId>(),
-        generateId<TenantId>(),
-        randomArrayItem(agreementUpgradableStates)
-      );
+      const agreementId = generateId<AgreementId>();
+      const agreementConsumerDocument = getMockConsumerDocument(agreementId);
+      const agreementSubject = {
+        ...getMockAgreement(
+          generateId<EServiceId>(),
+          generateId<TenantId>(),
+          randomArrayItem(agreementUpgradableStates)
+        ),
+        id: agreementId,
+        consumerDocuments: [agreementConsumerDocument],
+      };
 
       const validVerifiedTenantAttribute = {
         ...getMockVerifiedTenantAttribute(unsafeBrandId<AttributeId>(tenantId)),
@@ -509,10 +504,6 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         version: "1",
       };
 
-      const documentPublishedDescriptor = {
-        ...generateMock(Document),
-        name: "published-descriptor-doc",
-      };
       const publishedDescriptor = {
         ...getMockDescriptorPublished(
           descriptorId,
@@ -520,17 +511,13 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
           [[getMockEServiceAttribute()]],
           [[validVerifiedEserviceAttribute]]
         ),
-        interface: {
-          ...documentPublishedDescriptor,
-          name: documentPublishedDescriptor.name,
-          path: `${config.consumerDocumentsPath}/${agreementSubject.id}/${descriptorId}/${documentPublishedDescriptor.name}`,
-        },
         version: "2",
       };
 
       await uploadDocument(
-        `${agreementSubject.id}/${descriptorId}`,
-        documentPublishedDescriptor.name
+        agreementSubject.id,
+        agreementConsumerDocument.id,
+        agreementConsumerDocument.name
       );
 
       const agreementToBeUpgraded: Agreement = {
@@ -540,18 +527,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         consumerId: unsafeBrandId<TenantId>(tenantId),
         stamps: {},
         createdAt: TEST_EXECUTION_DATE,
-        consumerDocuments: [
-          {
-            id: unsafeBrandId<AgreementDocumentId>(
-              publishedDescriptor.interface.id
-            ),
-            name: publishedDescriptor.interface.name,
-            prettyName: publishedDescriptor.interface.prettyName,
-            contentType: publishedDescriptor.interface.contentType,
-            path: publishedDescriptor.interface.path,
-            createdAt: publishedDescriptor.interface.uploadDate,
-          },
-        ],
+        consumerDocuments: [agreementConsumerDocument],
       };
 
       await addOneAgreement(agreementToBeUpgraded, postgresDB, agreements);
@@ -633,13 +609,13 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       if (!actualAgreementDocumentAdded) {
         fail("Document not found in event");
       }
-      const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${actualAgreementDocumentAdded.id}/${documentPublishedDescriptor.name}`;
+      const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${actualAgreementDocumentAdded.id}/${agreementConsumerDocument.name}`;
 
       const expectedCreatedDocument = {
         id: unsafeBrandId<AgreementDocumentId>(actualAgreementDocumentAdded.id),
-        name: documentPublishedDescriptor.name,
-        prettyName: documentPublishedDescriptor.prettyName,
-        contentType: documentPublishedDescriptor.contentType,
+        name: agreementConsumerDocument.name,
+        prettyName: agreementConsumerDocument.prettyName,
+        contentType: agreementConsumerDocument.contentType,
         path: expectedUploadedDocumentPath,
         createdAt: TEST_EXECUTION_DATE,
       };
@@ -951,16 +927,22 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       );
     });
 
-    it("should throw a FileManagerError type error when document copy fails", async () => {
+    it("should throw a FileManagerError error when document copy fails", async () => {
       const authData = getRandomAuthData();
       const tenantId = authData.organizationId.toString();
       const descriptorId = generateId<DescriptorId>();
 
-      const agreementSubject = getMockAgreement(
-        generateId<EServiceId>(),
-        generateId<TenantId>(),
-        randomArrayItem(agreementUpgradableStates)
-      );
+      const agreementId = generateId<AgreementId>();
+      const agreementConsumerDocument = getMockConsumerDocument(agreementId);
+      const agreementSubject = {
+        ...getMockAgreement(
+          generateId<EServiceId>(),
+          generateId<TenantId>(),
+          randomArrayItem(agreementUpgradableStates)
+        ),
+        id: agreementId,
+        consumerDocuments: [agreementConsumerDocument],
+      };
 
       const validVerifiedTenantAttribute = {
         ...getMockVerifiedTenantAttribute(unsafeBrandId<AttributeId>(tenantId)),
@@ -1001,10 +983,6 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         version: "1",
       };
 
-      const documentPublishedDescriptor = {
-        ...generateMock(Document),
-        name: "published-descriptor-doc",
-      };
       const publishedDescriptor = {
         ...getMockDescriptorPublished(
           descriptorId,
@@ -1012,18 +990,8 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
           [[getMockEServiceAttribute()]],
           [[validVerifiedEserviceAttribute]]
         ),
-        interface: {
-          ...documentPublishedDescriptor,
-          name: documentPublishedDescriptor.name,
-          path: `${config.consumerDocumentsPath}/${descriptorId}/${documentPublishedDescriptor.name}`,
-        },
         version: "2",
       };
-
-      await uploadDocument(
-        "unreachable-path",
-        documentPublishedDescriptor.name
-      );
 
       const agreementToBeUpgraded: Agreement = {
         ...agreementSubject,
@@ -1032,18 +1000,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         consumerId: unsafeBrandId<TenantId>(tenantId),
         stamps: {},
         createdAt: TEST_EXECUTION_DATE,
-        consumerDocuments: [
-          {
-            id: unsafeBrandId<AgreementDocumentId>(
-              publishedDescriptor.interface.id
-            ),
-            name: publishedDescriptor.interface.name,
-            prettyName: publishedDescriptor.interface.prettyName,
-            contentType: publishedDescriptor.interface.contentType,
-            path: publishedDescriptor.interface.path,
-            createdAt: publishedDescriptor.interface.uploadDate,
-          },
-        ],
+        consumerDocuments: [agreementConsumerDocument],
       };
 
       await addOneAgreement(agreementToBeUpgraded, postgresDB, agreements);
@@ -1055,6 +1012,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       );
       await addOneEService(eservice, eservices);
 
+      // trying to copy a document not present in the S3 bucket - no upload was performed
       await expect(
         agreementService.upgradeAgreement(
           agreementToBeUpgraded.id,
@@ -1114,10 +1072,6 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         version: "1",
       };
 
-      const documentPublishedDescriptor = {
-        ...generateMock(Document),
-        name: "published-descriptor-doc",
-      };
       const publishedDescriptor = {
         ...getMockDescriptorPublished(
           descriptorId,
@@ -1125,18 +1079,8 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
           [[getMockEServiceAttribute()]],
           [[validVerifiedEserviceAttribute]]
         ),
-        interface: {
-          ...documentPublishedDescriptor,
-          name: documentPublishedDescriptor.name,
-          path: `${config.consumerDocumentsPath}/${descriptorId}/${documentPublishedDescriptor.name}`,
-        },
         version: "2",
       };
-
-      await uploadDocument(
-        "unreachable-path",
-        documentPublishedDescriptor.name
-      );
 
       const agreementToBeUpgraded: Agreement = {
         ...agreementSubject,
@@ -1145,18 +1089,6 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         consumerId: unsafeBrandId<TenantId>(tenantId),
         stamps: {},
         createdAt: TEST_EXECUTION_DATE,
-        consumerDocuments: [
-          {
-            id: unsafeBrandId<AgreementDocumentId>(
-              publishedDescriptor.interface.id
-            ),
-            name: publishedDescriptor.interface.name,
-            prettyName: publishedDescriptor.interface.prettyName,
-            contentType: publishedDescriptor.interface.contentType,
-            path: publishedDescriptor.interface.path,
-            createdAt: publishedDescriptor.interface.uploadDate,
-          },
-        ],
       };
       const agreementAlreadyExist = {
         ...agreementToBeUpgraded,
