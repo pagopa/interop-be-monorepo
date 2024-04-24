@@ -2,8 +2,6 @@ import {
   CatalogAttributeValueV1,
   CatalogDescriptorV1,
   CatalogDocumentV1,
-  CatalogItemDeletedV1,
-  CatalogItemDocumentDeletedV1,
   CatalogItemRiskAnalysisV1,
   CatalogItemV1,
 } from "../gen/v1/events.js";
@@ -19,45 +17,6 @@ applies some conversion on a specific fields before sending to queue:
 NOTE: this implementation is temporary and will be removed when all old services 
 will be updated to digest a message with new format of V2 events.
 */
-export type CatalogItemEventNotification =
-  // CatalogItemV1AddedV1 | ClonedCatalogItemV1AddedV1 | CatalogItemV1UpdatedV1 | MovedAttributesFromEserviceToDescriptorsV1
-  | {
-      catalogItem?: CatalogItemV1Notification;
-    }
-  // CatalogItemWithDescriptorsDeletedV1
-  | {
-      catalogItem?: CatalogItemV1Notification;
-      descriptorId: string;
-    }
-  // CatalogItemDocumentUpdatedV1
-  | CatalogItemDeletedV1
-  | {
-      eServiceId: string;
-      descriptorId: string;
-      documentId: string;
-      updatedDocument?: CatalogDocumentV1Notification;
-      serverUrls: string[];
-    }
-  | CatalogItemDocumentDeletedV1
-  // CatalogItemDocumentAddedV1
-  | {
-      eServiceId: string;
-      descriptorId: string;
-      document?: CatalogDocumentV1Notification;
-      isInterface: boolean;
-      serverUrls: string[];
-    }
-  // | CatalogItemDescriptorAddedV1 | CatalogItemDescriptorUpdatedV1
-  | {
-      eServiceId: string;
-      catalogDescriptor?: CatalogDescriptorV1Notification;
-    }
-
-  // | CatalogItemRiskAnalysisAddedV1 | CatalogItemRiskAnalysisUpdatedV1 | CatalogItemRiskAnalysisDeletedV1;
-  | {
-      catalogItem?: CatalogItemV1Notification;
-      catalogRiskAnalysisId: string;
-    };
 
 export type CatalogDocumentV1Notification = Omit<
   CatalogDocumentV1,
@@ -120,3 +79,65 @@ export type CatalogItemV1Notification = Omit<
   mode: string;
   attributes?: CatalogAttributesV1Notification;
 };
+
+// CatalogItemV1AddedV1 | ClonedCatalogItemV1AddedV1 | CatalogItemV1UpdatedV1 | MovedAttributesFromEserviceToDescriptorsV1
+export type CatalogItemNotification = {
+  catalogItem: CatalogItemV1Notification;
+};
+
+// CatalogItemWithDescriptorsDeletedV1
+export type CatalogItemDescriptorDeletedNotification = {
+  catalogItem: CatalogItemV1Notification;
+  descriptorId: string;
+};
+
+export type CatalogItemDocumentUpdateNotification = {
+  eServiceId: string;
+  descriptorId: string;
+  documentId: string;
+  updatedDocument: CatalogDocumentV1Notification;
+  serverUrls: string[];
+};
+
+// CatalogItemDocumentAddedV1
+export type CatalogItemDocumentAddedNotification = {
+  eServiceId: string;
+  descriptorId: string;
+  document: CatalogDocumentV1Notification;
+  isInterface: boolean;
+  serverUrls: string[];
+};
+
+// CatalogItemDescriptorAddedV1 | CatalogItemDescriptorUpdatedV1
+export type CatalogDescriptorNotification = {
+  eServiceId: string;
+  catalogDescriptor: CatalogDescriptorV1Notification;
+};
+
+// CatalogItemRiskAnalysisAddedV1 | CatalogItemRiskAnalysisUpdatedV1 | CatalogItemRiskAnalysisDeletedV1;
+export type CatalogItemRiskAnalysisNotification = {
+  catalogItem: CatalogItemV1Notification;
+  catalogRiskAnalysisId: string;
+};
+
+// CatalogItemDeletedV1 | CatalogItemDocumentUpdatedV1
+export type CatalogItemIdNotification = {
+  catalogItemId: string;
+};
+
+// CatalogItemDocumentDeletedV1
+export type CatalogItemDocumentDeletedNotification = {
+  eServiceId: string;
+  descriptorId: string;
+  documentId: string;
+};
+
+export type CatalogItemEventNotification =
+  | CatalogItemNotification
+  | CatalogItemIdNotification
+  | CatalogItemDocumentDeletedNotification
+  | CatalogItemDocumentUpdateNotification
+  | CatalogItemDocumentAddedNotification
+  | CatalogDescriptorNotification
+  | CatalogItemDescriptorDeletedNotification
+  | CatalogItemRiskAnalysisNotification;
