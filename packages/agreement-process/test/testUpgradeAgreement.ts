@@ -275,13 +275,14 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
 
     it("should succeed with valid Verified, Certified, and Declared attributes when consumer and producer are different", async () => {
       const authData = getRandomAuthData();
-      const producerAndConsumerId = authData.organizationId;
+      const consumerId = authData.organizationId;
+      const producerId = generateId<TenantId>();
 
       const validVerifiedTenantAttribute = {
         ...getMockVerifiedTenantAttribute(),
         verifiedBy: [
           {
-            id: producerAndConsumerId,
+            id: producerId,
             verificationDate: new Date(TEST_EXECUTION_DATE.getFullYear() - 1),
             expirationDate: new Date(TEST_EXECUTION_DATE.getFullYear() + 1),
             extensionDate: undefined,
@@ -332,30 +333,31 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         version: "2",
       };
 
-      const producerAndConsumer = getMockTenant(producerAndConsumerId, [
+      const consumer = getMockTenant(consumerId, [
         validCertifiedTenantAttribute,
         validDeclaredTenantAttribute,
         validVerifiedTenantAttribute,
       ]);
+
       const agreementToBeUpgraded: Agreement = {
         ...getMockAgreement(
           generateId<EServiceId>(),
-          producerAndConsumer.id, // Consumer and producer are the same
+          consumer.id, // Consumer and producer are different
           randomArrayItem(agreementUpgradableStates)
         ),
         descriptorId,
-        producerId: producerAndConsumer.id,
+        producerId,
         createdAt: TEST_EXECUTION_DATE,
       };
 
       const eservice = getMockEService(
         agreementToBeUpgraded.eserviceId,
-        generateId<TenantId>(),
+        producerId,
         [deprecatedDescriptor, publishedDescriptor]
       );
 
       await addOneEService(eservice, eservices);
-      await addOneTenant(producerAndConsumer, tenants);
+      await addOneTenant(consumer, tenants);
       await addOneAgreement(agreementToBeUpgraded, postgresDB, agreements);
 
       const newAgreementId = unsafeBrandId<AgreementId>(
@@ -1056,15 +1058,21 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
     it("should throw a missingCertifiedAttributesError error when consumer and producer are different and published descriptor has invalid certified attributes", async () => {
       const authData = getRandomAuthData();
       const tenantId = authData.organizationId;
+
+      const invalidCertifiedTenantAttribute = {
+        ...getMockCertifiedTenantAttribute(),
+        revocationTimestamp: new Date(),
+      };
+
       const tenant = {
         ...getMockTenant(tenantId),
-        attributes: [getMockCertifiedTenantAttribute()],
+        attributes: [invalidCertifiedTenantAttribute],
       };
       await addOneTenant(tenant, tenants);
 
       const publishedDescriptor = {
         ...getMockDescriptorPublished(generateId<DescriptorId>(), [
-          [getMockEServiceAttribute()],
+          [getMockEServiceAttribute(invalidCertifiedTenantAttribute.id)],
         ]),
         version: "2",
       };
