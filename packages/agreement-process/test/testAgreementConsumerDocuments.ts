@@ -16,7 +16,7 @@ import {
   EServiceId,
   TenantId,
   agreementState,
-  generateId
+  generateId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it } from "vitest";
 import {
@@ -31,11 +31,14 @@ import {
   agreements,
   postgresDB,
 } from "./agreementService.integration.test.js";
-import { addOneAgreement, getMockConsumerDocument, readLastAgreementEvent } from "./utils.js";
+import {
+  addOneAgreement,
+  getMockConsumerDocument,
+  readLastAgreementEvent,
+} from "./utils.js";
 
 export const testAgreementConsumerDocuments = (): ReturnType<typeof describe> =>
   describe("agreement consumer document", () => {
-
     describe("get", () => {
       let agreement1: Agreement;
 
@@ -108,31 +111,55 @@ export const testAgreementConsumerDocuments = (): ReturnType<typeof describe> =>
     describe("add", () => {
       it("should succeed on happy path", async () => {
         const organizationId = generateId<TenantId>();
-        const authData: AuthData = { ...getRandomAuthData(organizationId), userRoles: ["admin"] };
-        const agreement = getMockAgreement(generateId<EServiceId>(), organizationId);
+        const authData: AuthData = {
+          ...getRandomAuthData(organizationId),
+          userRoles: ["admin"],
+        };
+        const agreement = getMockAgreement(
+          generateId<EServiceId>(),
+          organizationId
+        );
 
         const consumerDocument = getMockConsumerDocument(agreement.id);
         const correlationId = "9999";
 
         await addOneAgreement(agreement, postgresDB, agreements);
 
-        await agreementService.addConsumerDocument(agreement.id, consumerDocument, authData, correlationId);
-        const { data: payload } = await readLastAgreementEvent(agreement.id, postgresDB);
+        await agreementService.addConsumerDocument(
+          agreement.id,
+          consumerDocument,
+          authData,
+          correlationId
+        );
+        const { data: payload } = await readLastAgreementEvent(
+          agreement.id,
+          postgresDB
+        );
 
-        const actualConsumerDocument = decodeProtobufPayload({ messageType: AgreementConsumerDocumentAddedV1, payload });
+        const actualConsumerDocument = decodeProtobufPayload({
+          messageType: AgreementConsumerDocumentAddedV1,
+          payload,
+        });
 
         expect(actualConsumerDocument).toMatchObject({
           agreementId: agreement.id,
           document: {
-            ...consumerDocument, createdAt: actualConsumerDocument.document?.createdAt
+            ...consumerDocument,
+            createdAt: actualConsumerDocument.document?.createdAt,
           },
         });
       });
 
       it("should throw an agreementNotFound error when the agreement does not exist", async () => {
         const organizationId = generateId<TenantId>();
-        const authData: AuthData = { ...getRandomAuthData(organizationId), userRoles: ["admin"] };
-        const agreement = getMockAgreement(generateId<EServiceId>(), organizationId);
+        const authData: AuthData = {
+          ...getRandomAuthData(organizationId),
+          userRoles: ["admin"],
+        };
+        const agreement = getMockAgreement(
+          generateId<EServiceId>(),
+          organizationId
+        );
 
         const consumerDocument = getMockConsumerDocument(agreement.id);
         const correlationId = "9999";
@@ -140,14 +167,24 @@ export const testAgreementConsumerDocuments = (): ReturnType<typeof describe> =>
         await addOneAgreement(agreement, postgresDB, agreements);
 
         const wrongAgreementId = generateId<AgreementId>();
-        const actualConsumerDocument = agreementService.addConsumerDocument(wrongAgreementId, consumerDocument, authData, correlationId);
+        const actualConsumerDocument = agreementService.addConsumerDocument(
+          wrongAgreementId,
+          consumerDocument,
+          authData,
+          correlationId
+        );
 
-        expect(actualConsumerDocument).rejects.toThrowError(agreementNotFound(wrongAgreementId));
+        await expect(actualConsumerDocument).rejects.toThrowError(
+          agreementNotFound(wrongAgreementId)
+        );
       });
 
       it("should throw an operationNotAllowed if is not consumer", async () => {
         const organizationId = generateId<TenantId>();
-        const authData: AuthData = { ...getRandomAuthData(organizationId), userRoles: ["admin"] };
+        const authData: AuthData = {
+          ...getRandomAuthData(organizationId),
+          userRoles: ["admin"],
+        };
         const agreement = getMockAgreement();
 
         const consumerDocument = getMockConsumerDocument(agreement.id);
@@ -155,43 +192,74 @@ export const testAgreementConsumerDocuments = (): ReturnType<typeof describe> =>
 
         await addOneAgreement(agreement, postgresDB, agreements);
 
-        const actualConsumerDocument = agreementService.addConsumerDocument(agreement.id, consumerDocument, authData, correlationId);
+        const actualConsumerDocument = agreementService.addConsumerDocument(
+          agreement.id,
+          consumerDocument,
+          authData,
+          correlationId
+        );
 
-        expect(actualConsumerDocument).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+        await expect(actualConsumerDocument).rejects.toThrowError(
+          operationNotAllowed(authData.organizationId)
+        );
       });
 
       it("should throw a documentChangeNotAllowed if state not draft or pending", async () => {
         const organizationId = generateId<TenantId>();
-        const authData: AuthData = { ...getRandomAuthData(organizationId), userRoles: ["admin"] };
-        const agreement = getMockAgreement(generateId<EServiceId>(), organizationId, agreementState.active);
+        const authData: AuthData = {
+          ...getRandomAuthData(organizationId),
+          userRoles: ["admin"],
+        };
+        const agreement = getMockAgreement(
+          generateId<EServiceId>(),
+          organizationId,
+          agreementState.active
+        );
         const consumerDocument = getMockConsumerDocument(agreement.id);
         const correlationId = "9999";
 
         await addOneAgreement(agreement, postgresDB, agreements);
 
-        const actualConsumerDocument = agreementService.addConsumerDocument(agreement.id, consumerDocument, authData, correlationId);
+        const actualConsumerDocument = agreementService.addConsumerDocument(
+          agreement.id,
+          consumerDocument,
+          authData,
+          correlationId
+        );
 
-        expect(actualConsumerDocument).rejects.toThrowError(documentChangeNotAllowed(agreement.state));
+        await expect(actualConsumerDocument).rejects.toThrowError(
+          documentChangeNotAllowed(agreement.state)
+        );
       });
 
       it("should throw a agreementDocumentAlreadyExists if document already exists", async () => {
         const organizationId = generateId<TenantId>();
-        const authData: AuthData = { ...getRandomAuthData(organizationId), userRoles: ["admin"] };
-        let agreement = getMockAgreement(generateId<EServiceId>(), organizationId);
+        const authData: AuthData = {
+          ...getRandomAuthData(organizationId),
+          userRoles: ["admin"],
+        };
+        let agreement = getMockAgreement(
+          generateId<EServiceId>(),
+          organizationId
+        );
         const consumerDocument = getMockConsumerDocument(agreement.id);
         agreement = {
           ...agreement,
-          consumerDocuments: [consumerDocument]
+          consumerDocuments: [consumerDocument],
         };
         const correlationId = "9999";
 
         await addOneAgreement(agreement, postgresDB, agreements);
 
-        const actualConsumerDocument = agreementService.addConsumerDocument(agreement.id, consumerDocument, authData, correlationId);
-        expect(actualConsumerDocument).rejects.toThrowError(agreementDocumentAlreadyExists(agreement.id));
+        const actualConsumerDocument = agreementService.addConsumerDocument(
+          agreement.id,
+          consumerDocument,
+          authData,
+          correlationId
+        );
+        await expect(actualConsumerDocument).rejects.toThrowError(
+          agreementDocumentAlreadyExists(agreement.id)
+        );
       });
     });
-
-
   });
-
