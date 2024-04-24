@@ -24,6 +24,7 @@ import {
   PurposeRiskAnalysisForm,
   PurposeEvent,
   EServiceMode,
+  eserviceMode,
 } from "pagopa-interop-models";
 import {
   eserviceNotFound,
@@ -299,7 +300,7 @@ export function purposeServiceBuilder(
         purposeId,
         purposeUpdateContent,
         organizationId,
-        "Deliver",
+        eserviceMode.deliver,
         { readModelService, correlationId, repository }
       );
     },
@@ -398,7 +399,7 @@ const getInvolvedTenantByEServiceMode = async (
   consumerId: TenantId,
   readModelService: ReadModelService
 ): Promise<Tenant> => {
-  if (eservice.mode === "Deliver") {
+  if (eservice.mode === eserviceMode.deliver) {
     return retrieveTenant(consumerId, readModelService);
   } else {
     return retrieveTenant(eservice.producerId, readModelService);
@@ -409,7 +410,7 @@ const updatePurposeInternal = async (
   purposeId: PurposeId,
   updateContent: ApiPurposeUpdateContent | ApiReversePurposeUpdateContent,
   organizationId: TenantId,
-  eserviceMode: EServiceMode,
+  mode: EServiceMode,
   {
     readModelService,
     correlationId,
@@ -430,7 +431,7 @@ const updatePurposeInternal = async (
     purpose.data.eserviceId,
     readModelService
   );
-  assertEserviceHasSpecificMode(eservice, eserviceMode);
+  assertEserviceHasSpecificMode(eservice, mode);
   assertConsistentFreeOfCharge(
     updateContent.isFreeOfCharge,
     updateContent.freeOfChargeReason
@@ -445,7 +446,7 @@ const updatePurposeInternal = async (
   assertTenantKindExists(tenant);
 
   const newRiskAnalysis: PurposeRiskAnalysisForm | undefined =
-    eserviceMode === "Deliver"
+    mode === eserviceMode.deliver
       ? validateAndTransformRiskAnalysis(
           (updateContent as ApiPurposeUpdateContent).riskAnalysisForm,
           tenant.kind
