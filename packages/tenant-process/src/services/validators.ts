@@ -302,9 +302,10 @@ export function evaluateNewSelfcareId({
 export function getTenantCertifierId(tenant: Tenant): string {
   const certifierFeature = tenant.features.find(
     (f) => f.type === "PersistentCertifier"
-  );
+  )?.certifierId;
+
   if (!certifierFeature) {
     throw tenantIsNotACertifier(tenant.id);
   }
-  return certifierFeature.certifierId;
+  return certifierFeature;
 }

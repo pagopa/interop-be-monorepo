@@ -337,10 +337,10 @@ export function tenantServiceBuilder(
       const targetTenant = await retrieveTenant(tenantId, readModelService);
 
       const certifiedTenantAttribute = targetTenant.data.attributes.find(
-        (attr) =>
+        (attr): attr is CertifiedTenantAttribute =>
           attr.type === tenantAttributeType.CERTIFIED &&
           attr.id === tenantAttributeSeed.id
-      ) as CertifiedTenantAttribute;
+      );
 
       // eslint-disable-next-line functional/no-let
       let updatedTenant: Tenant = {
@@ -490,10 +490,10 @@ export function tenantServiceBuilder(
       const targetTenant = await retrieveTenant(tenantId, readModelService);
 
       const verifiedTenantAttribute = targetTenant.data.attributes.find(
-        (attr) =>
+        (attr): attr is VerifiedTenantAttribute =>
           attr.type === tenantAttributeType.VERIFIED &&
           attr.id === tenantAttributeSeed.id
-      ) as VerifiedTenantAttribute;
+      );
 
       // eslint-disable-next-line functional/no-let
       let updatedTenant: Tenant = {
