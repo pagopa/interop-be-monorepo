@@ -478,16 +478,9 @@ export function tenantServiceBuilder(
         throw attributeNotFound(attributeId);
       }
 
-      // eslint-disable-next-line functional/no-let
-      let updatedTenant: Tenant = {
-        ...requesterTenant.data,
-        updatedAt: new Date(),
-      };
-
-      // eslint-disable-next-line functional/no-let
-      updatedTenant = updateAttribute(
+      const updatedTenant = updateAttribute(
         {
-          updatedTenant,
+          updatedTenant: { ...requesterTenant.data, updatedAt: new Date() },
           targetTenant: requesterTenant,
           attributeId: unsafeBrandId(attributeId),
           revocationTimestamp: new Date(),
