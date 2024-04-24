@@ -6,9 +6,9 @@ import {
   messageDecoderSupplier,
   kafkaConsumerConfig,
   logger,
-  getContext,
   CatalogTopicConfig,
   catalogTopicConfig,
+  runWithContext,
 } from "pagopa-interop-commons";
 import {
   Descriptor,
@@ -80,70 +80,74 @@ function processMessage(
       );
       const decodedMsg = messageDecoder(messagePayload.message);
 
-      const ctx = getContext();
-      ctx.messageData = {
-        eventType: decodedMsg.type,
-        eventVersion: decodedMsg.event_version,
-        streamId: decodedMsg.stream_id,
-      };
-      ctx.correlationId = decodedMsg.correlation_id;
+      await runWithContext(
+        {
+          messageData: {
+            eventType: decodedMsg.type,
+            eventVersion: decodedMsg.event_version,
+            streamId: decodedMsg.stream_id,
+          },
+          correlationId: decodedMsg.correlation_id,
+        },
+        async () => {
+          const updateSeed = match(decodedMsg)
+            .with(
+              {
+                event_version: 2,
+                type: "EServiceDescriptorPublished",
+              },
+              {
+                event_version: 2,
+                type: "EServiceDescriptorActivated",
+              },
+              (msg) => {
+                const data = getDescriptorFromEvent(msg, decodedMsg.type);
+                return {
+                  state: "ACTIVE",
+                  descriptorId: data.descriptor.id,
+                  eserviceId: data.eserviceId,
+                  audience: data.descriptor.audience,
+                  voucherLifespan: data.descriptor.voucherLifespan,
+                  eventType: decodedMsg.type,
+                };
+              }
+            )
+            .with(
+              {
+                event_version: 2,
+                type: "EServiceDescriptorSuspended",
+              },
+              {
+                event_version: 2,
+                type: "EServiceDescriptorArchived",
+              },
+              (msg) => {
+                const data = getDescriptorFromEvent(msg, decodedMsg.type);
+                return {
+                  state: "INACTIVE",
+                  descriptorId: data.descriptor.id,
+                  eserviceId: data.eserviceId,
+                  audience: data.descriptor.audience,
+                  voucherLifespan: data.descriptor.voucherLifespan,
+                  eventType: decodedMsg.type,
+                };
+              }
+            )
+            .otherwise(() => undefined);
 
-      const updateSeed = match(decodedMsg)
-        .with(
-          {
-            event_version: 2,
-            type: "EServiceDescriptorPublished",
-          },
-          {
-            event_version: 2,
-            type: "EServiceDescriptorActivated",
-          },
-          (msg) => {
-            const data = getDescriptorFromEvent(msg, decodedMsg.type);
-            return {
-              state: "ACTIVE",
-              descriptorId: data.descriptor.id,
-              eserviceId: data.eserviceId,
-              audience: data.descriptor.audience,
-              voucherLifespan: data.descriptor.voucherLifespan,
-              eventType: decodedMsg.type,
-            };
+          if (updateSeed) {
+            await executeUpdate(updateSeed.eventType, messagePayload, () =>
+              authService.updateEServiceState(
+                ApiClientComponent.parse(updateSeed.state),
+                updateSeed.descriptorId,
+                updateSeed.eserviceId,
+                updateSeed.audience,
+                updateSeed.voucherLifespan
+              )
+            );
           }
-        )
-        .with(
-          {
-            event_version: 2,
-            type: "EServiceDescriptorSuspended",
-          },
-          {
-            event_version: 2,
-            type: "EServiceDescriptorArchived",
-          },
-          (msg) => {
-            const data = getDescriptorFromEvent(msg, decodedMsg.type);
-            return {
-              state: "INACTIVE",
-              descriptorId: data.descriptor.id,
-              eserviceId: data.eserviceId,
-              audience: data.descriptor.audience,
-              voucherLifespan: data.descriptor.voucherLifespan,
-              eventType: decodedMsg.type,
-            };
-          }
-        )
-        .otherwise(() => undefined);
-
-      if (updateSeed) {
-        await executeUpdate(updateSeed.eventType, messagePayload, () =>
-          authService.updateEServiceState(
-            ApiClientComponent.parse(updateSeed.state),
-            updateSeed.descriptorId,
-            updateSeed.eserviceId,
-            updateSeed.audience,
-            updateSeed.voucherLifespan
-          )
-        );
-      }
+        }
+      );
     } catch (e) {
       throw kafkaMessageProcessError(
         messagePayload.topic,
