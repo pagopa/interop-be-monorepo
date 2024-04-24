@@ -159,7 +159,8 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         ...getMockDescriptorPublished(
           descriptorId,
           [[validCertifiedEserviceAttribute]],
-          [[validDeclaredEserviceAttribute]]
+          [[validDeclaredEserviceAttribute]],
+          [[validVerifiedEserviceAttribute]]
         ),
         version: "2",
       };
