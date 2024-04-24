@@ -598,19 +598,15 @@ export function tenantServiceBuilder(
         throw attributeNotFound(attributeId);
       }
 
-      const verifier = verifiedTenantAttribute.verifiedBy.find(
-        (a) => a.id === organizationId
-      );
-
-      if (!verifier) {
+      if (
+        !verifiedTenantAttribute.verifiedBy.find((a) => a.id === organizationId)
+      ) {
         throw attributeRevocationNotAllowed(tenantId, attributeId);
       }
 
-      const revoker = verifiedTenantAttribute.revokedBy.find(
-        (a) => a.id === organizationId
-      );
-
-      if (revoker) {
+      if (
+        verifiedTenantAttribute.revokedBy.find((a) => a.id === organizationId)
+      ) {
         throw attributeAlreadyRevoked(tenantId, organizationId, attributeId);
       }
 

@@ -1342,12 +1342,11 @@ describe("Integration tests", () => {
           organizationId: requesterTenant.id,
           correlationId: generateId(),
         });
-        const writtenEvent: StoredEvent | undefined =
-          await readLastEventByStreamId(
-            tenantWithVerifiedAttribute.id,
-            eventStoreSchema.tenant,
-            postgresDB
-          );
+        const writtenEvent = await readLastEventByStreamId(
+          tenantWithVerifiedAttribute.id,
+          "tenant",
+          postgresDB
+        );
         if (!writtenEvent) {
           fail("Update failed: tenant not found in event-store");
         }
