@@ -49,7 +49,7 @@ export const authenticationMiddleware: () => ZodiosRouterContextRequestHandler<E
           context.authData = authData;
         } else {
           throw genericError(
-            "Cannot set authData in context - context not found."
+            "Cannot set authData in logger context - logger context not found."
           );
         }
 
