@@ -106,14 +106,20 @@ export const createPurposeFromEServiceErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("organizationIsNotTheConsumer", () => HTTP_STATUS_FORBIDDEN)
-    .with("eserviceNotFound", () => HTTP_STATUS_BAD_REQUEST)
-    .with("eServiceModeNotAllowed", () => HTTP_STATUS_BAD_REQUEST)
-    .with("eserviceRiskAnalysisNotFound", () => HTTP_STATUS_BAD_REQUEST)
-    .with("missingFreeOfChargeReason", () => HTTP_STATUS_BAD_REQUEST)
-    .with("tenantNotFound", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
-    .with("tenantKindNotFound", () => HTTP_STATUS_FORBIDDEN)
-    .with("agreementNotFound", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "organizationIsNotTheConsumer",
+      "tenantKindNotFound",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with(
+      "eserviceNotFound",
+      "eServiceModeNotAllowed",
+      "eserviceRiskAnalysisNotFound",
+      "missingFreeOfChargeReason",
+      "agreementNotFound",
+      "riskAnalysisValidationFailed",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
     .with("duplicatedPurposeName", () => HTTP_STATUS_CONFLICT)
-    .with("riskAnalysisValidationFailed", () => HTTP_STATUS_BAD_REQUEST)
+    .with("tenantNotFound", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
