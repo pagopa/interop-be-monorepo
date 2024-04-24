@@ -3,7 +3,7 @@
 /* eslint-disable functional/immutable-data */
 import { fail } from "assert";
 import { generateMock } from "@anatine/zod-mock";
-import { FileManagerError, userRoles } from "pagopa-interop-commons";
+import { FileManagerError } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockAgreement,
@@ -101,10 +101,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
     }
 
     it("should succeed with valid Verified and Declared attributes", async () => {
-      const authData = {
-        ...getRandomAuthData(),
-        userRoles: [userRoles.ADMIN_ROLE],
-      };
+      const authData = getRandomAuthData();
       const tenantId = authData.organizationId.toString();
 
       const validVerifiedTenantAttribute = {
@@ -268,10 +265,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
     });
 
     it("should succeed with invalid Verified attributes", async () => {
-      const authData = {
-        ...getRandomAuthData(),
-        userRoles: [userRoles.ADMIN_ROLE],
-      };
+      const authData = getRandomAuthData();
       const tenantId = authData.organizationId.toString();
       const descriptorId = generateId<DescriptorId>();
 
@@ -458,10 +452,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
     });
 
     it("should succeed with invalid Declared attributes", async () => {
-      const authData = {
-        ...getRandomAuthData(),
-        userRoles: [userRoles.ADMIN_ROLE],
-      };
+      const authData = getRandomAuthData();
       const tenantId = authData.organizationId.toString();
       const descriptorId = generateId<DescriptorId>();
 
@@ -680,11 +671,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
     });
 
     it("should throw an operationNotAllowed error when the requester is different from consumer", async () => {
-      const authData = {
-        ...getRandomAuthData(),
-        userRoles: [userRoles.ADMIN_ROLE],
-      };
-
+      const authData = getRandomAuthData();
       const tenantId = unsafeBrandId<TenantId>(authData.organizationId);
       const tenant = getMockTenant(tenantId);
       await addOneTenant(tenant, tenants);
@@ -702,11 +689,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
     });
 
     it("should throw an agreementNotInExpectedState error when the agreement doesn't have an upgradable states", async () => {
-      const authData = {
-        ...getRandomAuthData(),
-        userRoles: [userRoles.ADMIN_ROLE],
-      };
-
+      const authData = getRandomAuthData();
       const tenantId = unsafeBrandId<TenantId>(authData.organizationId);
       const tenant = getMockTenant(tenantId);
       await addOneTenant(tenant, tenants);
@@ -731,11 +714,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
     });
 
     it("should throw an eServiceNotFound error when the eservice not exists", async () => {
-      const authData = {
-        ...getRandomAuthData(),
-        userRoles: [userRoles.ADMIN_ROLE],
-      };
-
+      const authData = getRandomAuthData();
       const tenantId = unsafeBrandId<TenantId>(authData.organizationId);
       const tenant = getMockTenant(tenantId);
       await addOneTenant(tenant, tenants);
@@ -755,11 +734,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
     });
 
     it("should throw a publishedDescriptorNotFound error when published descriptor not exists", async () => {
-      const authData = {
-        ...getRandomAuthData(),
-        userRoles: [userRoles.ADMIN_ROLE],
-      };
-
+      const authData = getRandomAuthData();
       const tenantId = unsafeBrandId<TenantId>(authData.organizationId);
       const tenant = getMockTenant(tenantId);
       await addOneTenant(tenant, tenants);
@@ -786,11 +761,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
     });
 
     it("should throw an unexpectedVersionFormat error when published descriptor has unexpected version format", async () => {
-      const authData = {
-        ...getRandomAuthData(),
-        userRoles: [userRoles.ADMIN_ROLE],
-      };
-
+      const authData = getRandomAuthData();
       const tenantId = unsafeBrandId<TenantId>(authData.organizationId);
       const tenant = getMockTenant(tenantId);
       await addOneTenant(tenant, tenants);
@@ -821,11 +792,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
     });
 
     it("should throw a descriptorNotFound error when agreement descriptor not exists", async () => {
-      const authData = {
-        ...getRandomAuthData(),
-        userRoles: [userRoles.ADMIN_ROLE],
-      };
-
+      const authData = getRandomAuthData();
       const tenantId = unsafeBrandId<TenantId>(authData.organizationId);
       const tenant = getMockTenant(tenantId);
       await addOneTenant(tenant, tenants);
@@ -854,11 +821,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
     });
 
     it("should throw an unexpectedVersionFormat error when agreement descriptor has invalid format", async () => {
-      const authData = {
-        ...getRandomAuthData(),
-        userRoles: [userRoles.ADMIN_ROLE],
-      };
-
+      const authData = getRandomAuthData();
       const tenantId = unsafeBrandId<TenantId>(authData.organizationId);
       const tenant = getMockTenant(tenantId);
       await addOneTenant(tenant, tenants);
@@ -899,11 +862,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
     });
 
     it("should throw a noNewerDescriptor error when the latest published descriptor have version number greater than agreement's descriptor", async () => {
-      const authData = {
-        ...getRandomAuthData(),
-        userRoles: [userRoles.ADMIN_ROLE],
-      };
-
+      const authData = getRandomAuthData();
       const tenantId = unsafeBrandId<TenantId>(authData.organizationId);
       const tenant = getMockTenant(tenantId);
       await addOneTenant(tenant, tenants);
@@ -944,11 +903,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
     });
 
     it("should throw a missingCertifiedAttributesError error when published descriptor has invalid certified attributes", async () => {
-      const authData = {
-        ...getRandomAuthData(),
-        userRoles: [userRoles.ADMIN_ROLE],
-      };
-
+      const authData = getRandomAuthData();
       const tenantId = unsafeBrandId<TenantId>(authData.organizationId);
       const tenant = {
         ...getMockTenant(tenantId),
@@ -997,10 +952,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
     });
 
     it("should throw a FileManagerError type error when document copy fails", async () => {
-      const authData = {
-        ...getRandomAuthData(),
-        userRoles: [userRoles.ADMIN_ROLE],
-      };
+      const authData = getRandomAuthData();
       const tenantId = authData.organizationId.toString();
       const descriptorId = generateId<DescriptorId>();
 
@@ -1113,10 +1065,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
     });
 
     it("should throw an agreementAlreadyExists error when found a draft conflicting agreement with same consumer and e-service", async () => {
-      const authData = {
-        ...getRandomAuthData(),
-        userRoles: [userRoles.ADMIN_ROLE],
-      };
+      const authData = getRandomAuthData();
       const tenantId = authData.organizationId.toString();
       const descriptorId = generateId<DescriptorId>();
 
