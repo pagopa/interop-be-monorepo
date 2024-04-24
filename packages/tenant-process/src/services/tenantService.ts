@@ -590,9 +590,9 @@ export function tenantServiceBuilder(
       const targetTenant = await retrieveTenant(tenantId, readModelService);
 
       const verifiedTenantAttribute = targetTenant.data.attributes.find(
-        (attr) =>
+        (attr): attr is VerifiedTenantAttribute =>
           attr.type === tenantAttributeType.VERIFIED && attr.id === attributeId
-      ) as VerifiedTenantAttribute;
+      );
 
       if (!verifiedTenantAttribute) {
         throw attributeNotFound(attributeId);
@@ -610,15 +610,12 @@ export function tenantServiceBuilder(
         throw attributeAlreadyRevoked(tenantId, organizationId, attributeId);
       }
 
-      // eslint-disable-next-line functional/no-let
-      let updatedTenant: Tenant = {
-        ...targetTenant.data,
-        updatedAt: new Date(),
-      };
-
-      updatedTenant = updateAttribute(
+      const updatedTenant = updateAttribute(
         {
-          updatedTenant,
+          updatedTenant: {
+            ...targetTenant.data,
+            updatedAt: new Date(),
+          },
           targetTenant,
           attributeId,
           revocationTimestamp: new Date(),
