@@ -30,8 +30,9 @@ import {
   generateId,
   eserviceMode,
   EServiceInfo,
+  PurposeVersionState,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
+import { P, match } from "ts-pattern";
 import {
   agreementNotFound,
   descriptorNotFound,
@@ -319,7 +320,11 @@ export function purposeServiceBuilder(
         purposeUpdateContent,
         organizationId,
         "Deliver",
-        { readModelService, correlationId, repository }
+        {
+          readModelService,
+          correlationId,
+          repository,
+        }
       );
     },
     async updateReversePurpose({
@@ -339,7 +344,11 @@ export function purposeServiceBuilder(
         reversePurposeUpdateContent,
         organizationId,
         "Receive",
-        { readModelService, correlationId, repository }
+        {
+          readModelService,
+          correlationId,
+          repository,
+        }
       );
     },
     async deletePurpose({
@@ -790,6 +799,28 @@ async function activateOrWaitingForApproval({
     createEvent: (createEvent: CreateEvent<PurposeEvent>) => Promise<string>;
   };
 }): Promise<PurposeVersion> {
+  function archiveOldVersion(
+    purpose: Purpose,
+    newPurposeVersionId: PurposeVersionId
+  ): Purpose {
+    const versions = purpose.versions.map((v) =>
+      match(v.state)
+        .with(
+          P.union(purposeVersionState.active, purposeVersionState.suspended),
+          () => ({
+            ...v,
+            state:
+              v.id === newPurposeVersionId
+                ? v.state
+                : purposeVersionState.archived,
+          })
+        )
+        .otherwise(() => v)
+    );
+
+    return { ...purpose, versions };
+  }
+
   function changeToWaitForApproval(): {
     event: CreateEvent<PurposeEvent>;
     updatedPurposeVersion: PurposeVersion;
@@ -902,9 +933,9 @@ async function activateOrWaitingForApproval({
       firstActivationAt: new Date(),
     };
 
-    const updatedPurpose: Purpose = replacePurposeVersion(
-      purpose.data,
-      updatedPurposeVersion
+    const updatedPurpose: Purpose = archiveOldVersion(
+      replacePurposeVersion(purpose.data, updatedPurposeVersion),
+      updatedPurposeVersion.id
     );
 
     return {
@@ -917,24 +948,45 @@ async function activateOrWaitingForApproval({
     };
   }
 
-  function activate(changedBy: "consumer" | "producer"): {
+  function activateFromSuspended(): {
     event: CreateEvent<PurposeEvent>;
     updatedPurposeVersion: PurposeVersion;
   } {
+    function calcNewVersionState(state: {
+      suspendedByProducer?: boolean;
+      suspendedByConsumer?: boolean;
+    }): PurposeVersionState {
+      return match(state)
+        .with(
+          {
+            suspendedByConsumer: true,
+          },
+          () => purposeVersionState.suspended
+        )
+        .with(
+          {
+            suspendedByProducer: true,
+          },
+          () => purposeVersionState.suspended
+        )
+        .otherwise(() => purposeVersionState.active);
+    }
+
     const updatedPurposeVersion: PurposeVersion = {
       ...purposeVersion,
-      // TODO Check this logic
-      state: purposeVersionState.active,
       updatedAt: new Date(),
       suspendedAt: undefined,
     };
 
-    const updatedPurpose: Purpose = replacePurposeVersion(
-      purpose.data,
-      updatedPurposeVersion
-    );
+    if (ownership === "PRODUCER" || ownership === "SELF_CONSUMER") {
+      const updatedPurpose: Purpose = replacePurposeVersion(purpose.data, {
+        ...updatedPurposeVersion,
+        state: calcNewVersionState({
+          suspendedByProducer: false,
+          suspendedByConsumer: purpose.data.suspendedByConsumer,
+        }),
+      });
 
-    if (changedBy === "producer") {
       return {
         event: toCreateEventPurposeVersionUnsuspenedByProducer({
           purpose: { ...updatedPurpose, suspendedByProducer: false },
@@ -944,16 +996,24 @@ async function activateOrWaitingForApproval({
         }),
         updatedPurposeVersion,
       };
+    } else {
+      const updatedPurpose: Purpose = replacePurposeVersion(purpose.data, {
+        ...updatedPurposeVersion,
+        state: calcNewVersionState({
+          suspendedByProducer: purpose.data.suspendedByProducer,
+          suspendedByConsumer: false,
+        }),
+      });
+      return {
+        event: toCreateEventPurposeVersionUnsuspenedByConsumer({
+          purpose: { ...updatedPurpose, suspendedByConsumer: false },
+          versionId: purposeVersion.id,
+          version: purpose.metadata.version,
+          correlationId,
+        }),
+        updatedPurposeVersion,
+      };
     }
-    return {
-      event: toCreateEventPurposeVersionUnsuspenedByConsumer({
-        purpose: { ...updatedPurpose, suspendedByConsumer: false },
-        versionId: purposeVersion.id,
-        version: purpose.metadata.version,
-        correlationId,
-      }),
-      updatedPurposeVersion,
-    };
   }
 
   const { event, updatedPurposeVersion } = await match({
@@ -961,8 +1021,10 @@ async function activateOrWaitingForApproval({
     ownership,
   })
     .with(
-      { state: purposeVersionState.draft, ownership: "CONSUMER" },
-      { state: purposeVersionState.draft, ownership: "SELF_CONSUMER" },
+      {
+        state: purposeVersionState.draft,
+        ownership: P.union("CONSUMER", "SELF_CONSUMER"),
+      },
       async () => {
         if (
           await isLoadAllowed(
@@ -987,10 +1049,9 @@ async function activateOrWaitingForApproval({
       }
     )
     .with(
-      { state: purposeVersionState.waitingForApproval, ownership: "PRODUCER" },
       {
         state: purposeVersionState.waitingForApproval,
-        ownership: "SELF_CONSUMER",
+        ownership: P.union("PRODUCER", "SELF_CONSUMER"),
       },
       async () => await firstVersionActivation()
     )
@@ -998,10 +1059,13 @@ async function activateOrWaitingForApproval({
       { state: purposeVersionState.suspended, ownership: "CONSUMER" },
       () =>
         purpose.data.suspendedByConsumer && purpose.data.suspendedByProducer,
-      () => activate("consumer")
+      () => activateFromSuspended()
     )
     .with(
-      { state: purposeVersionState.suspended, ownership: "CONSUMER" },
+      {
+        state: purposeVersionState.suspended,
+        ownership: P.union("CONSUMER", "SELF_CONSUMER"),
+      },
       () => purpose.data.suspendedByConsumer,
       async () => {
         if (
@@ -1012,29 +1076,13 @@ async function activateOrWaitingForApproval({
             readModelService
           )
         ) {
-          return activate("consumer");
-        }
-        return createWaitForApproval();
-      }
-    )
-    .with(
-      { state: purposeVersionState.suspended, ownership: "SELF_CONSUMER" },
-      async () => {
-        if (
-          await isLoadAllowed(
-            eservice,
-            purpose.data,
-            purposeVersion,
-            readModelService
-          )
-        ) {
-          return activate("producer");
+          return activateFromSuspended();
         }
         return createWaitForApproval();
       }
     )
     .with({ state: purposeVersionState.suspended, ownership: "PRODUCER" }, () =>
-      activate("producer")
+      activateFromSuspended()
     )
     .otherwise(() => {
       throw organizationNotAllowed(organizationId);
@@ -1050,29 +1098,21 @@ async function isLoadAllowed(
   purposeVersion: PurposeVersion,
   readModelService: ReadModelService
 ): Promise<boolean> {
-  const consumerPurposes = await readModelService.getPurposes(
-    {
-      eservicesIds: [eservice.id],
-      consumersIds: [purpose.consumerId],
-      states: [purposeVersionState.active],
-      producersIds: [],
-      excludeDraft: true,
-    },
-    0,
-    0
-  );
+  const consumerPurposes = await readModelService.getAllPurposes({
+    eservicesIds: [eservice.id],
+    consumersIds: [purpose.consumerId],
+    states: [purposeVersionState.active],
+    producersIds: [],
+    excludeDraft: true,
+  });
 
-  const allPurposes = await readModelService.getPurposes(
-    {
-      eservicesIds: [eservice.id],
-      consumersIds: [],
-      producersIds: [],
-      states: [purposeVersionState.active],
-      excludeDraft: true,
-    },
-    0,
-    0
-  );
+  const allPurposes = await readModelService.getAllPurposes({
+    eservicesIds: [eservice.id],
+    consumersIds: [],
+    producersIds: [],
+    states: [purposeVersionState.active],
+    excludeDraft: true,
+  });
 
   const agreement = await readModelService.getAgreement(
     eservice.id,
@@ -1089,8 +1129,8 @@ async function isLoadAllowed(
       .flatMap((p) => p.versions)
       .filter((v) => v.state === purposeVersionState.active);
 
-  const consumerActiveVersions = getActiveVersions(consumerPurposes.results);
-  const allPurposesActiveVersions = getActiveVersions(allPurposes.results);
+  const consumerActiveVersions = getActiveVersions(consumerPurposes);
+  const allPurposesActiveVersions = getActiveVersions(allPurposes);
 
   const aggregateDailyCalls = (versions: PurposeVersion[]): number =>
     versions.reduce((acc, v) => acc + v.dailyCalls, 0);
