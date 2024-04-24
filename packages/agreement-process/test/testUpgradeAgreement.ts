@@ -658,7 +658,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       );
     });
 
-    it("should throw an tenantIdNotFound error when the tenant does not exist", async () => {
+    it("should throw a tenantIdNotFound error when the tenant does not exist", async () => {
       const authData = getRandomAuthData();
       const agreementId = generateId<AgreementId>();
       await expect(
@@ -754,7 +754,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
     });
 
-    it("should throw an publishedDescriptorNotFound error when published descriptor not exists", async () => {
+    it("should throw a publishedDescriptorNotFound error when published descriptor not exists", async () => {
       const authData = {
         ...getRandomAuthData(),
         userRoles: [userRoles.ADMIN_ROLE],
@@ -820,7 +820,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       );
     });
 
-    it("should throw an descriptorNotFound error when agreement descriptor not exists", async () => {
+    it("should throw a descriptorNotFound error when agreement descriptor not exists", async () => {
       const authData = {
         ...getRandomAuthData(),
         userRoles: [userRoles.ADMIN_ROLE],
@@ -898,7 +898,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       );
     });
 
-    it("should throw an noNewerDescriptor error when the latest published descriptor have version number great than agreement's descriptor", async () => {
+    it("should throw a noNewerDescriptor error when the latest published descriptor have version number greater than agreement's descriptor", async () => {
       const authData = {
         ...getRandomAuthData(),
         userRoles: [userRoles.ADMIN_ROLE],
@@ -943,7 +943,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       );
     });
 
-    it("should throw an missingCertifiedAttributesError error when published descriptor has invalid certified attributes", async () => {
+    it("should throw a missingCertifiedAttributesError error when published descriptor has invalid certified attributes", async () => {
       const authData = {
         ...getRandomAuthData(),
         userRoles: [userRoles.ADMIN_ROLE],
@@ -996,7 +996,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       );
     });
 
-    it("should throw an FileManagerError type error when document copy fails", async () => {
+    it("should throw a FileManagerError type error when document copy fails", async () => {
       const authData = {
         ...getRandomAuthData(),
         userRoles: [userRoles.ADMIN_ROLE],
