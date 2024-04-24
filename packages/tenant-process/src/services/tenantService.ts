@@ -626,14 +626,15 @@ export function tenantServiceBuilder(
         verifiedTenantAttribute.assignmentTimestamp
       );
 
-      const event = toCreateEventTenantVerifiedAttributeRevoked(
-        targetTenant.data.id,
-        targetTenant.metadata.version,
-        updatedTenant,
-        attributeId,
-        correlationId
+      await repository.createEvent(
+        toCreateEventTenantVerifiedAttributeRevoked(
+          targetTenant.data.id,
+          targetTenant.metadata.version,
+          updatedTenant,
+          attributeId,
+          correlationId
+        )
       );
-      await repository.createEvent(event);
       return updatedTenant;
     },
 
