@@ -15,10 +15,8 @@ import {
   initDB,
 } from "pagopa-interop-commons";
 import {
-  StoredEvent,
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
-  eventStoreSchema,
   mongoDBContainer,
   postgreSQLContainer,
   readLastEventByStreamId,
@@ -97,6 +95,7 @@ import {
   getMockTenant,
   getMockVerifiedBy,
   getMockVerifiedTenantAttribute,
+  readLastTenantEvent,
 } from "./utils.js";
 
 describe("Integration tests", () => {
@@ -188,12 +187,11 @@ describe("Integration tests", () => {
           correlationId,
         });
 
-        const writtenEvent: StoredEvent | undefined =
-          await readLastEventByStreamId(
-            mockTenant.id,
-            eventStoreSchema.tenant,
-            postgresDB
-          );
+        const writtenEvent = await readLastEventByStreamId(
+          mockTenant.id,
+          "tenant",
+          postgresDB
+        );
         if (!writtenEvent) {
           fail("Update failed: tenant not found in event-store");
         }
@@ -232,12 +230,10 @@ describe("Integration tests", () => {
           correlationId,
         });
         expect(id).toBeDefined();
-        const writtenEvent: StoredEvent | undefined =
-          await readLastEventByStreamId(
-            id,
-            eventStoreSchema.tenant,
-            postgresDB
-          );
+        const writtenEvent = await readLastTenantEvent(
+          unsafeBrandId(id),
+          postgresDB
+        );
         if (!writtenEvent) {
           fail("Creation failed: tenant not found in event-store");
         }
@@ -336,12 +332,7 @@ describe("Integration tests", () => {
           updateVerifiedTenantAttributeSeed,
           correlationId,
         });
-        const writtenEvent: StoredEvent | undefined =
-          await readLastEventByStreamId(
-            tenant.id,
-            eventStoreSchema.tenant,
-            postgresDB
-          );
+        const writtenEvent = await readLastTenantEvent(tenant.id, postgresDB);
         if (!writtenEvent) {
           fail("Creation fails: tenant not found in event-store");
         }
@@ -485,12 +476,7 @@ describe("Integration tests", () => {
           verifierId,
           correlationId
         );
-        const writtenEvent: StoredEvent | undefined =
-          await readLastEventByStreamId(
-            tenant.id,
-            eventStoreSchema.tenant,
-            postgresDB
-          );
+        const writtenEvent = await readLastTenantEvent(tenant.id, postgresDB);
         if (!writtenEvent) {
           fail("Creation fails: tenant not found in event-store");
         }
@@ -849,12 +835,11 @@ describe("Integration tests", () => {
           authData: mockAuthData,
           correlationId,
         });
-        const writtenEvent: StoredEvent | undefined =
-          await readLastEventByStreamId(
-            targetTenant.id,
-            eventStoreSchema.tenant,
-            postgresDB
-          );
+        const writtenEvent = await readLastEventByStreamId(
+          targetTenant.id,
+          "tenant",
+          postgresDB
+        );
         if (!writtenEvent) {
           fail("Update failed: tenant not found in event-store");
         }
@@ -913,12 +898,11 @@ describe("Integration tests", () => {
             correlationId,
           }
         );
-        const writtenEvent: StoredEvent | undefined =
-          await readLastEventByStreamId(
-            tenantWithCertifiedAttribute.id,
-            eventStoreSchema.tenant,
-            postgresDB
-          );
+        const writtenEvent = await readLastEventByStreamId(
+          tenantWithCertifiedAttribute.id,
+          "tenant",
+          postgresDB
+        );
         if (!writtenEvent) {
           fail("Update failed: tenant not found in event-store");
         }
@@ -1074,12 +1058,11 @@ describe("Integration tests", () => {
           authData: mockAuthData,
           correlationId,
         });
-        const writtenEvent: StoredEvent | undefined =
-          await readLastEventByStreamId(
-            tenantWithoutDeclaredAttribute.id,
-            eventStoreSchema.tenant,
-            postgresDB
-          );
+        const writtenEvent = await readLastEventByStreamId(
+          tenantWithoutDeclaredAttribute.id,
+          "tenant",
+          postgresDB
+        );
         if (!writtenEvent) {
           fail("Update failed: tenant not found in event-store");
         }
@@ -1122,12 +1105,11 @@ describe("Integration tests", () => {
           authData: mockAuthData,
           correlationId,
         });
-        const writtenEvent: StoredEvent | undefined =
-          await readLastEventByStreamId(
-            requesterTenant.id,
-            eventStoreSchema.tenant,
-            postgresDB
-          );
+        const writtenEvent = await readLastEventByStreamId(
+          requesterTenant.id,
+          "tenant",
+          postgresDB
+        );
         if (!writtenEvent) {
           fail("Update failed: tenant not found in event-store");
         }
@@ -1257,12 +1239,11 @@ describe("Integration tests", () => {
           correlationId,
         });
 
-        const writtenEvent: StoredEvent | undefined =
-          await readLastEventByStreamId(
-            targetTenant.id,
-            eventStoreSchema.tenant,
-            postgresDB
-          );
+        const writtenEvent = await readLastEventByStreamId(
+          targetTenant.id,
+          "tenant",
+          postgresDB
+        );
         if (!writtenEvent) {
           fail("Update failed: tenant not found in event-store");
         }
@@ -1342,17 +1323,16 @@ describe("Integration tests", () => {
         await addOneAgreement(agreementEservice1, agreements);
 
         await tenantService.verifyVerifiedAttribute({
-          tenantId: targetTenant.id,
+          tenantId: tenantWithVerifiedAttribute.id,
           tenantAttributeSeed,
           organizationId: mockAuthData.organizationId,
           correlationId,
         });
-        const writtenEvent: StoredEvent | undefined =
-          await readLastEventByStreamId(
-            tenantWithVerifiedAttribute.id,
-            eventStoreSchema.tenant,
-            postgresDB
-          );
+        const writtenEvent = await readLastEventByStreamId(
+          tenantWithVerifiedAttribute.id,
+          "tenant",
+          postgresDB
+        );
         if (!writtenEvent) {
           fail("Update failed: tenant not found in event-store");
         }
