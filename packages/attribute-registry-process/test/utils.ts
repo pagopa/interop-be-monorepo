@@ -7,6 +7,7 @@ import {
   generateId,
   toAttributeV1,
   toReadModelAttribute,
+  toReadModelTenant,
 } from "pagopa-interop-models";
 import { IDatabase } from "pg-promise";
 import {
@@ -78,7 +79,7 @@ export const addOneTenant = async (
   tenant: Tenant,
   tenants: TenantCollection
 ): Promise<void> => {
-  await writeInReadmodel(tenant, tenants);
+  await writeInReadmodel(toReadModelTenant(tenant), tenants);
 };
 
 export const readLastAttributeEvent = async (

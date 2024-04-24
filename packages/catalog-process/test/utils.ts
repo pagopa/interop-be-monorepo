@@ -30,6 +30,7 @@ import {
   toEServiceV2,
   toReadModelAttribute,
   toReadModelEService,
+  toReadModelTenant,
 } from "pagopa-interop-models";
 import {
   ReadEvent,
@@ -228,7 +229,7 @@ export const addOneTenant = async (
   tenant: Tenant,
   tenants: TenantCollection
 ): Promise<void> => {
-  await writeInReadmodel(tenant, tenants);
+  await writeInReadmodel(toReadModelTenant(tenant), tenants);
 };
 
 export const addOneAgreement = async (
