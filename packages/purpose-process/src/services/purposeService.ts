@@ -29,6 +29,7 @@ import {
 import { match } from "ts-pattern";
 import {
   eserviceNotFound,
+  missingRejectionReason,
   notValidVersionState,
   organizationIsNotTheConsumer,
   organizationIsNotTheProducer,
@@ -266,6 +267,11 @@ export function purposeServiceBuilder(
       if (purposeVersion.state !== purposeVersionState.waitingForApproval) {
         throw notValidVersionState(purposeVersion.id, purposeVersion.state);
       }
+
+      if (!rejectionReason) {
+        throw missingRejectionReason();
+      }
+
       const updatedPurposeVersion: PurposeVersion = {
         ...purposeVersion,
         state: purposeVersionState.rejected,
