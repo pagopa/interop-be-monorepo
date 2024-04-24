@@ -271,7 +271,6 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       expect(actualAgreementCreated).toMatchObject(expectedCreatedAgreement);
     });
 
-    
     it("should succeed with invalid Verified attributes", async () => {
       const authData = getRandomAuthData();
       const tenantId = authData.organizationId;
