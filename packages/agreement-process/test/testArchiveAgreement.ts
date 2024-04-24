@@ -48,19 +48,19 @@ export const testArchiveAgreement = (): ReturnType<typeof describe> =>
 
       await addOneAgreement(agreement, postgresDB, agreements);
 
-      const agreementId = await agreementService.archiveAgreement(
+      const agreementArchived = await agreementService.archiveAgreement(
         agreement.id,
         authData,
         uuidv4()
       );
 
-      expect(agreementId).toBeDefined();
-      if (!agreementId) {
+      expect(agreementArchived.id).toBeDefined();
+      if (!agreementArchived.id) {
         fail("Unhandled error: returned agreementId is undefined");
       }
 
       const actualAgreementData = await readLastAgreementEvent(
-        agreementId,
+        agreementArchived.id,
         postgresDB
       );
 
@@ -72,7 +72,7 @@ export const testArchiveAgreement = (): ReturnType<typeof describe> =>
         type: "AgreementArchived",
         event_version: 2,
         version: "1",
-        stream_id: agreementId,
+        stream_id: agreementArchived.id,
       });
 
       const actualAgreement: AgreementV2 | undefined = protobufDecoder(
