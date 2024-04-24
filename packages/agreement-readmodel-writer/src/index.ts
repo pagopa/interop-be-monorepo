@@ -6,7 +6,7 @@ import {
   agreementTopicConfig,
   decodeKafkaMessage,
   logger,
-  getContext,
+  runWithContext,
 } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
 import { AgreementEvent } from "pagopa-interop-models";
@@ -24,21 +24,25 @@ async function processMessage({
 }: EachMessagePayload): Promise<void> {
   const msg = decodeKafkaMessage(message, AgreementEvent);
 
-  const ctx = getContext();
-  ctx.messageData = {
-    eventType: msg.type,
-    eventVersion: msg.event_version,
-    streamId: msg.stream_id,
-  };
-  ctx.correlationId = msg.correlation_id;
+  await runWithContext(
+    {
+      messageData: {
+        eventType: msg.type,
+        eventVersion: msg.event_version,
+        streamId: msg.stream_id,
+      },
+      correlationId: msg.correlation_id,
+    },
+    async () => {
+      await match(msg)
+        .with({ event_version: 1 }, (msg) => handleMessageV1(msg, agreements))
+        .with({ event_version: 2 }, (msg) => handleMessageV2(msg, agreements))
+        .exhaustive();
 
-  await match(msg)
-    .with({ event_version: 1 }, (msg) => handleMessageV1(msg, agreements))
-    .with({ event_version: 2 }, (msg) => handleMessageV2(msg, agreements))
-    .exhaustive();
-
-  logger.info(
-    `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
+      logger.info(
+        `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
+      );
+    }
   );
 }
 

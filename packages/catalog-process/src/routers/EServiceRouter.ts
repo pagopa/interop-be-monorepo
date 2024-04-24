@@ -8,6 +8,7 @@ import {
   ReadModelRepository,
   initDB,
   initFileManager,
+  zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import {
   unsafeBrandId,
@@ -73,7 +74,9 @@ const catalogService = catalogServiceBuilder(
 const eservicesRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const eservicesRouter = ctx.router(api.api);
+  const eservicesRouter = ctx.router(api.api, {
+    validationErrorHandler: zodiosValidationErrorToApiProblem,
+  });
   const {
     ADMIN_ROLE,
     SECURITY_ROLE,
