@@ -6,12 +6,6 @@ import {
   TenantCollection,
 } from "pagopa-interop-commons";
 import {
-  writeInEventstore,
-  writeInReadmodel,
-  StoredEvent,
-  readLastEventByStreamId,
-} from "pagopa-interop-commons-test/index.js";
-import {
   Agreement,
   Attribute,
   CertifiedTenantAttribute,
@@ -20,6 +14,7 @@ import {
   EService,
   EServiceId,
   Tenant,
+  TenantEvent,
   TenantEventV2,
   TenantId,
   TenantRevoker,
@@ -30,12 +25,18 @@ import {
   generateId,
   technology,
   tenantAttributeType,
-  tenantEventToBinaryDataV2,
   toReadModelAttribute,
   toReadModelEService,
   toTenantV2,
 } from "pagopa-interop-models";
 import { IDatabase } from "pg-promise";
+import {
+  ReadEvent,
+  StoredEvent,
+  readLastEventByStreamId,
+  writeInEventstore,
+  writeInReadmodel,
+} from "pagopa-interop-commons-test";
 
 export const writeTenantInEventstore = async (
   tenant: Tenant,
@@ -46,13 +47,11 @@ export const writeTenantInEventstore = async (
     event_version: 2,
     data: { tenant: toTenantV2(tenant) },
   };
-  const eventToWrite = {
+  const eventToWrite: StoredEvent<TenantEvent> = {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     stream_id: tenantEvent.data.tenant!.id,
-    version: "0",
-    type: tenantEvent.type,
-    event_version: tenantEvent.event_version,
-    data: Buffer.from(tenantEventToBinaryDataV2(tenantEvent)),
+    version: 0,
+    event: tenantEvent,
   };
   await writeInEventstore(eventToWrite, "tenant", postgresDB);
 };
@@ -208,5 +207,5 @@ export const addOneTenant = async (
 export const readLastTenantEvent = async (
   tenantId: TenantId,
   postgresDB: IDatabase<unknown>
-): Promise<StoredEvent> =>
+): Promise<ReadEvent<TenantEvent>> =>
   await readLastEventByStreamId(tenantId, "tenant", postgresDB);
