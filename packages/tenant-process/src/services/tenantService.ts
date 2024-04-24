@@ -485,10 +485,10 @@ export function tenantServiceBuilder(
       const targetTenant = await retrieveTenant(tenantId, readModelService);
 
       const verifiedTenantAttribute = targetTenant.data.attributes.find(
-        (attr) =>
+        (attr): attr is VerifiedTenantAttribute =>
           attr.type === tenantAttributeType.VERIFIED &&
           attr.id === tenantAttributeSeed.id
-      ) as VerifiedTenantAttribute;
+      );
 
       // eslint-disable-next-line functional/no-let
       let updatedTenant: Tenant = {
