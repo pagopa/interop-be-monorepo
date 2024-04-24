@@ -43,10 +43,10 @@ export const authenticationMiddleware: () => ZodiosRouterContextRequestHandler<E
         }
 
         const authData: AuthData = readAuthDataFromJwtToken(jwtToken);
-        const context = getMutableLoggerContext();
-        if (context) {
+        const loggerContext = getMutableLoggerContext();
+        if (loggerContext) {
           // eslint-disable-next-line functional/immutable-data
-          context.authData = authData;
+          loggerContext.authData = authData;
         } else {
           throw genericError(
             "Cannot set authData in logger context - logger context not found."
