@@ -689,19 +689,15 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       const tenant = getMockTenant(tenantId);
       await addOneTenant(tenant, tenants);
 
-      const agreementId = generateId<AgreementId>();
-      const agreement = {
-        ...getMockAgreement(
-          generateId<EServiceId>(),
-          generateId<TenantId>(),
-          randomArrayItem(agreementUpgradableStates)
-        ),
-        id: agreementId,
-      };
+      const agreement = getMockAgreement(
+        generateId<EServiceId>(),
+        generateId<TenantId>(),
+        randomArrayItem(agreementUpgradableStates)
+      );
 
       await addOneAgreement(agreement, postgresDB, agreements);
       await expect(
-        agreementService.upgradeAgreement(agreementId, authData, uuidv4())
+        agreementService.upgradeAgreement(agreement.id, authData, uuidv4())
       ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
     });
 
@@ -715,27 +711,22 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       const tenant = getMockTenant(tenantId);
       await addOneTenant(tenant, tenants);
 
-      const agreementId = generateId<AgreementId>();
       const invalidAgreementState = randomArrayItem(
         Object.values(agreementState).filter(
           (s) => !agreementUpgradableStates.includes(s)
         )
       );
-      const agreement = {
-        ...getMockAgreement(
-          generateId<EServiceId>(),
-          tenantId,
-          invalidAgreementState
-        ),
-        id: agreementId,
-        state: invalidAgreementState,
-      };
+      const agreement = getMockAgreement(
+        generateId<EServiceId>(),
+        tenantId,
+        invalidAgreementState
+      );
 
       await addOneAgreement(agreement, postgresDB, agreements);
       await expect(
-        agreementService.upgradeAgreement(agreementId, authData, uuidv4())
+        agreementService.upgradeAgreement(agreement.id, authData, uuidv4())
       ).rejects.toThrowError(
-        agreementNotInExpectedState(agreementId, invalidAgreementState)
+        agreementNotInExpectedState(agreement.id, invalidAgreementState)
       );
     });
 
@@ -749,19 +740,17 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       const tenant = getMockTenant(tenantId);
       await addOneTenant(tenant, tenants);
 
-      const agreementId = generateId<AgreementId>();
       const agreement = {
         ...getMockAgreement(
           generateId<EServiceId>(),
           tenantId,
           randomArrayItem(agreementUpgradableStates)
         ),
-        id: agreementId,
       };
 
       await addOneAgreement(agreement, postgresDB, agreements);
       await expect(
-        agreementService.upgradeAgreement(agreementId, authData, uuidv4())
+        agreementService.upgradeAgreement(agreement.id, authData, uuidv4())
       ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
     });
 
@@ -775,15 +764,11 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       const tenant = getMockTenant(tenantId);
       await addOneTenant(tenant, tenants);
 
-      const agreementId = generateId<AgreementId>();
-      const agreement = {
-        ...getMockAgreement(
-          generateId<EServiceId>(),
-          tenantId,
-          randomArrayItem(agreementUpgradableStates)
-        ),
-        id: agreementId,
-      };
+      const agreement = getMockAgreement(
+        generateId<EServiceId>(),
+        tenantId,
+        randomArrayItem(agreementUpgradableStates)
+      );
       await addOneAgreement(agreement, postgresDB, agreements);
 
       const deprecated = {
@@ -796,7 +781,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       await addOneEService(eservice, eservices);
 
       await expect(
-        agreementService.upgradeAgreement(agreementId, authData, uuidv4())
+        agreementService.upgradeAgreement(agreement.id, authData, uuidv4())
       ).rejects.toThrowError(publishedDescriptorNotFound(agreement.eserviceId));
     });
 
@@ -810,14 +795,12 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       const tenant = getMockTenant(tenantId);
       await addOneTenant(tenant, tenants);
 
-      const agreementId = generateId<AgreementId>();
       const agreement = {
         ...getMockAgreement(
           generateId<EServiceId>(),
           tenantId,
           randomArrayItem(agreementUpgradableStates)
         ),
-        id: agreementId,
       };
       await addOneAgreement(agreement, postgresDB, agreements);
 
@@ -831,7 +814,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       await addOneEService(eservice, eservices);
 
       await expect(
-        agreementService.upgradeAgreement(agreementId, authData, uuidv4())
+        agreementService.upgradeAgreement(agreement.id, authData, uuidv4())
       ).rejects.toThrowError(
         unexpectedVersionFormat(agreement.eserviceId, publishedDescriptor.id)
       );
@@ -847,15 +830,11 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       const tenant = getMockTenant(tenantId);
       await addOneTenant(tenant, tenants);
 
-      const agreementId = generateId<AgreementId>();
-      const agreement = {
-        ...getMockAgreement(
-          generateId<EServiceId>(),
-          tenantId,
-          randomArrayItem(agreementUpgradableStates)
-        ),
-        id: agreementId,
-      };
+      const agreement = getMockAgreement(
+        generateId<EServiceId>(),
+        tenantId,
+        randomArrayItem(agreementUpgradableStates)
+      );
       await addOneAgreement(agreement, postgresDB, agreements);
 
       const publishedDescriptor = {
@@ -868,7 +847,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       await addOneEService(eservice, eservices);
 
       await expect(
-        agreementService.upgradeAgreement(agreementId, authData, uuidv4())
+        agreementService.upgradeAgreement(agreement.id, authData, uuidv4())
       ).rejects.toThrowError(
         descriptorNotFound(eservice.id, agreement.descriptorId)
       );
@@ -884,7 +863,6 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       const tenant = getMockTenant(tenantId);
       await addOneTenant(tenant, tenants);
 
-      const agreementId = generateId<AgreementId>();
       const publishedDescriptor = {
         ...getMockDescriptorPublished(),
         id: generateId<DescriptorId>(),
@@ -903,7 +881,6 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
           tenantId,
           randomArrayItem(agreementUpgradableStates)
         ),
-        id: agreementId,
         descriptorId: deprecatedDescriptor.id,
       };
       await addOneAgreement(agreement, postgresDB, agreements);
@@ -915,7 +892,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       await addOneEService(eservice, eservices);
 
       await expect(
-        agreementService.upgradeAgreement(agreementId, authData, uuidv4())
+        agreementService.upgradeAgreement(agreement.id, authData, uuidv4())
       ).rejects.toThrowError(
         unexpectedVersionFormat(eservice.id, agreement.descriptorId)
       );
@@ -931,7 +908,6 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       const tenant = getMockTenant(tenantId);
       await addOneTenant(tenant, tenants);
 
-      const agreementId = generateId<AgreementId>();
       const publishedDescriptor = {
         ...getMockDescriptorPublished(),
         id: generateId<DescriptorId>(),
@@ -950,7 +926,6 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
           tenantId,
           randomArrayItem(agreementUpgradableStates)
         ),
-        id: agreementId,
         descriptorId: publishedDescriptor.id,
       };
       await addOneAgreement(agreement, postgresDB, agreements);
@@ -962,7 +937,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       await addOneEService(eservice, eservices);
 
       await expect(
-        agreementService.upgradeAgreement(agreementId, authData, uuidv4())
+        agreementService.upgradeAgreement(agreement.id, authData, uuidv4())
       ).rejects.toThrowError(
         noNewerDescriptor(eservice.id, agreement.descriptorId)
       );
@@ -983,7 +958,6 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       };
       await addOneTenant(tenant, tenants);
 
-      const agreementId = generateId<AgreementId>();
       const publishedDescriptor = {
         ...getMockDescriptorPublished(generateId<DescriptorId>(), [
           [getMockEServiceAttribute()],
@@ -1004,7 +978,6 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
           tenantId,
           randomArrayItem(agreementUpgradableStates)
         ),
-        id: agreementId,
         descriptorId: deprecatedDescriptor.id,
       };
       await addOneAgreement(agreement, postgresDB, agreements);
@@ -1017,7 +990,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       await addOneEService(eservice, eservices);
 
       await expect(
-        agreementService.upgradeAgreement(agreementId, authData, uuidv4())
+        agreementService.upgradeAgreement(agreement.id, authData, uuidv4())
       ).rejects.toThrowError(
         missingCertifiedAttributesError(publishedDescriptor.id, tenantId)
       );
