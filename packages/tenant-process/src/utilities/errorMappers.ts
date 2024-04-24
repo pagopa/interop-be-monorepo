@@ -88,7 +88,7 @@ export const revokeDeclaredAttributeErrorMapper = (
 ): number =>
   match(error.code)
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("attributeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("attributeNotFound", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getCertifiedAttributesErrorMapper = (

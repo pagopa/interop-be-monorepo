@@ -440,8 +440,8 @@ const tenantsRouter = (
       async (req, res) => {
         try {
           const tenant = await tenantService.revokeDeclaredAttribute({
-            tenantAttributeSeed: req.body,
-            authData: req.ctx.authData,
+            attributeId: unsafeBrandId(req.params.attributeId),
+            organizationId: req.ctx.authData.organizationId,
             correlationId: req.ctx.correlationId,
           });
           return res.status(200).json(toApiTenant(tenant)).end();

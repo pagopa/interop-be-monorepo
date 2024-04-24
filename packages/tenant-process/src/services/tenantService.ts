@@ -451,21 +451,32 @@ export function tenantServiceBuilder(
       return updatedTenant;
     },
     async revokeDeclaredAttribute({
-      tenantAttributeSeed,
-      authData,
+      attributeId,
+      organizationId,
       correlationId,
     }: {
-      tenantAttributeSeed: ApiDeclaredTenantAttributeSeed;
-      authData: AuthData;
+      attributeId: AttributeId;
+      organizationId: TenantId;
       correlationId: string;
     }): Promise<Tenant> {
       logger.info(
-        `Revoking declared attribute ${tenantAttributeSeed.id} to ${authData.organizationId}`
+        `Revoking declared attribute ${attributeId} to ${organizationId}`
       );
       const requesterTenant = await retrieveTenant(
-        authData.organizationId,
+        organizationId,
         readModelService
       );
+
+      const maybeDeclaredTenantAttribute = requesterTenant.data.attributes.find(
+        (attr) => attr.id === attributeId
+      );
+
+      if (
+        !maybeDeclaredTenantAttribute ||
+        maybeDeclaredTenantAttribute.type !== "PersistentDeclaredAttribute"
+      ) {
+        throw attributeNotFound(attributeId);
+      }
 
       // eslint-disable-next-line functional/no-let
       let updatedTenant: Tenant = {
@@ -473,23 +484,12 @@ export function tenantServiceBuilder(
         updatedAt: new Date(),
       };
 
-      const maybeDeclaredTenantAttribute = requesterTenant.data.attributes.find(
-        (attr) => attr.id === tenantAttributeSeed.id
-      );
-
-      if (
-        !maybeDeclaredTenantAttribute ||
-        maybeDeclaredTenantAttribute.type !== "PersistentDeclaredAttribute"
-      ) {
-        throw attributeNotFound(tenantAttributeSeed.id);
-      }
-
       // eslint-disable-next-line functional/no-let
       updatedTenant = updateAttribute(
         {
           updatedTenant,
           targetTenant: requesterTenant,
-          attributeId: unsafeBrandId(tenantAttributeSeed.id),
+          attributeId: unsafeBrandId(attributeId),
           revocationTimestamp: new Date(),
         },
         maybeDeclaredTenantAttribute.assignmentTimestamp
@@ -499,7 +499,7 @@ export function tenantServiceBuilder(
         requesterTenant.data.id,
         requesterTenant.metadata.version,
         updatedTenant,
-        unsafeBrandId(tenantAttributeSeed.id),
+        unsafeBrandId(attributeId),
         correlationId
       );
       await repository.createEvent(event);
