@@ -123,3 +123,16 @@ export const createPurposeFromEServiceErrorMapper = (
     .with("duplicatedPurposeName", () => HTTP_STATUS_CONFLICT)
     .with("tenantNotFound", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const clonePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("tenantKindNotFound", () => HTTP_STATUS_FORBIDDEN)
+    .with("riskAnalysisValidationFailed", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "duplicatedPurposeName",
+      "purposeCannotBeCloned",
+      () => HTTP_STATUS_CONFLICT
+    )
+    .with("tenantNotFound", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
