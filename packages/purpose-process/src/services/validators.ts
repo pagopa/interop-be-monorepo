@@ -3,6 +3,7 @@ import {
   EServiceMode,
   Purpose,
   PurposeRiskAnalysisForm,
+  PurposeVersion,
   RiskAnalysisForm,
   Tenant,
   TenantId,
@@ -150,4 +151,11 @@ export function assertPurposeIsDeletable(purpose: Purpose): void {
   ) {
     throw purposeCannotBeDeleted(purpose.id);
   }
+}
+
+export function isArchivable(purposeVersion: PurposeVersion): boolean {
+  return (
+    purposeVersion.state === purposeVersionState.active ||
+    purposeVersion.state === purposeVersionState.suspended
+  );
 }
