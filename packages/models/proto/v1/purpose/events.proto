@@ -1,0 +1,53 @@
+syntax = "proto2";
+
+package purpose;
+
+import "v1/purpose/purpose.proto";
+
+message PurposeCreatedV1 {
+  required PurposeV1 purpose = 1;
+}
+
+message PurposeVersionCreatedV1 {
+  required string purposeId = 1;
+  required PurposeVersionV1 version = 2;
+}
+
+message PurposeUpdatedV1 {
+  required PurposeV1 purpose = 1;
+}
+
+message PurposeVersionUpdatedV1 {
+  required string purposeId = 1;
+  required PurposeVersionV1 version = 2;
+}
+
+message PurposeVersionActivatedV1 {
+  required PurposeV1 purpose = 1;
+}
+
+message PurposeVersionRejectedV1 {
+  required PurposeV1 purpose = 1;
+  required string versionId = 2;
+}
+
+message PurposeVersionSuspendedV1 {
+  required PurposeV1 purpose = 1;
+}
+
+message PurposeVersionArchivedV1 {
+  required PurposeV1 purpose = 1;
+}
+
+message PurposeVersionWaitedForApprovalV1 {
+  required PurposeV1 purpose = 1;
+}
+
+message PurposeDeletedV1 {
+  required string purposeId = 1;
+}
+
+message PurposeVersionDeletedV1 {
+  required string purposeId = 1;
+  required string versionId = 2;
+}

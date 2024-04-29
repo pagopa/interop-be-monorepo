@@ -55,7 +55,7 @@ async function processMessage({
 }: EachMessagePayload): Promise<void> {
   const msg = decodeKafkaMessage(message, AttributeEvent);
 
-  runWithContext(
+  await runWithContext(
     {
       messageData: {
         eventType: msg.type,

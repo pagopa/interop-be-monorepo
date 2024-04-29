@@ -1,0 +1,23 @@
+syntax = "proto2";
+
+package purpose;
+
+message PurposeRiskAnalysisFormV1 {
+  required string id = 1;
+  required string version = 2;
+  repeated RiskAnalysisSingleAnswerV1 singleAnswers = 3;
+  repeated RiskAnalysisMultiAnswerV1 multiAnswers = 4;
+  optional string riskAnalysisId = 5;
+}
+
+message RiskAnalysisSingleAnswerV1 {
+  required string id = 1;
+  required string key = 2;
+  optional string value = 3;
+}
+
+message RiskAnalysisMultiAnswerV1 {
+  required string id = 1;
+  required string key = 2;
+  repeated string values = 3;
+}
