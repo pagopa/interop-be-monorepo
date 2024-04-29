@@ -21,8 +21,8 @@ import {
 } from "../src/model/domain/errors.js";
 import { agreementUpdatableStates } from "../src/model/domain/validators.js";
 import {
-  agreementService,
   addOneAgreement,
+  agreementService,
   readLastAgreementEvent,
 } from "./vitestSetup.js";
 
@@ -63,6 +63,7 @@ describe("update agreement", () => {
 
   it("should throw an agreementNotFound error when the agreement does not exist", async () => {
     await addOneAgreement(getMockAgreement());
+
     const authData = getRandomAuthData();
     const agreementId = generateId<AgreementId>();
     await expect(
