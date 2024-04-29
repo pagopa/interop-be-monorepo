@@ -701,6 +701,13 @@ export function purposeServiceBuilder(
         throw riskAnalysisValidationFailed(validationResult.issues);
       }
 
+      const newVersion: PurposeVersion = {
+        id: generateId(),
+        createdAt: new Date(),
+        state: purposeVersionState.draft,
+        dailyCalls: seed.dailyCalls,
+      };
+
       const purpose: Purpose = {
         title: seed.title,
         id: generateId(),
@@ -708,7 +715,7 @@ export function purposeServiceBuilder(
         eserviceId,
         consumerId,
         description: seed.description,
-        versions: [],
+        versions: [newVersion],
         isFreeOfCharge: seed.isFreeOfCharge,
         freeOfChargeReason: seed.freeOfChargeReason,
         riskAnalysisForm: riskAnalysis.riskAnalysisForm,
