@@ -29,7 +29,8 @@ export const errorCodes = {
   riskAnalysisValidationFailed: "0015",
   purposeNotInDraftState: "0016",
   purposeCannotBeDeleted: "0017",
-  duplicatedPurposeName: "0018",
+  agreementNotFound: "0018",
+  duplicatedPurposeName: "0019",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -197,6 +198,17 @@ export function purposeCannotBeDeleted(
     detail: `Purpose ${purposeId} cannot be deleted`,
     code: "purposeCannotBeDeleted",
     title: "Purpose canont be deleted",
+  });
+}
+
+export function agreementNotFound(
+  eserviceId: EServiceId,
+  consumerId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No Agreement found for EService ${eserviceId} and Consumer ${consumerId}`,
+    code: "agreementNotFound",
+    title: "Agreement Not Found",
   });
 }
 

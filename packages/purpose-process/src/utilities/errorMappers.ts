@@ -98,6 +98,7 @@ export const createPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("organizationIsNotTheConsumer", () => HTTP_STATUS_FORBIDDEN)
     .with("missingFreeOfChargeReason", () => HTTP_STATUS_NOT_FOUND)
+    .with("agreementNotFound", () => HTTP_STATUS_BAD_REQUEST)
     .with("tenantNotFound", () => HTTP_STATUS_BAD_REQUEST)
     .with("tenantKindNotFound", () => HTTP_STATUS_BAD_REQUEST)
     .with("riskAnalysisValidationFailed", () => HTTP_STATUS_BAD_REQUEST)
