@@ -13,11 +13,6 @@ import {
   logger,
 } from "pagopa-interop-commons";
 import {
-  TEST_MINIO_PORT,
-  TEST_MONGO_DB_PORT,
-  TEST_POSTGRES_DB_PORT,
-  decodeProtobufPayload,
-  expectPastTimestamp,
   getMockAgreement,
   getMockCertifiedTenantAttribute,
   getMockDeclaredTenantAttribute,
@@ -25,11 +20,16 @@ import {
   getMockEService,
   getMockEServiceAttribute,
   getMockTenant,
+  expectPastTimestamp,
   getRandomAuthData,
-  minioContainer,
+  randomArrayItem,
+  decodeProtobufPayload,
+  TEST_MONGO_DB_PORT,
+  TEST_POSTGRES_DB_PORT,
   mongoDBContainer,
   postgreSQLContainer,
-  randomArrayItem,
+  minioContainer,
+  TEST_MINIO_PORT,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -53,16 +53,16 @@ import {
 } from "pagopa-interop-models";
 import { IDatabase } from "pg-promise";
 import { StartedTestContainer } from "testcontainers";
-import { v4 as uuidv4 } from "uuid";
 import {
   afterAll,
   afterEach,
-  beforeAll,
   beforeEach,
+  beforeAll,
   describe,
   expect,
   it,
 } from "vitest";
+import { v4 as uuidv4 } from "uuid";
 import {
   agreementAlreadyExists,
   agreementNotFound,
@@ -72,12 +72,7 @@ import {
   notLatestEServiceDescriptor,
   tenantIdNotFound,
 } from "../src/model/domain/errors.js";
-import {
-  CompactEService,
-  CompactOrganization,
-} from "../src/model/domain/models.js";
 import { toAgreementStateV1 } from "../src/model/domain/toEvent.js";
-import { agreementCreationConflictingStates } from "../src/model/domain/validators.js";
 import { ApiAgreementPayload } from "../src/model/types.js";
 import {
   AgreementService,
@@ -92,18 +87,23 @@ import {
 } from "../src/services/readmodel/readModelService.js";
 import { tenantQueryBuilder } from "../src/services/readmodel/tenantQuery.js";
 import { config } from "../src/utilities/config.js";
-import { testAgreementConsumerDocuments } from "./testAgreementConsumerDocuments.js";
-import { testArchiveAgreement } from "./testArchiveAgreement.js";
-import { testCloneAgreement } from "./testCloneAgreement.js";
-import { testDeleteAgreement } from "./testDeleteAgreement.js";
+import { agreementCreationConflictingStates } from "../src/model/domain/validators.js";
+import {
+  CompactEService,
+  CompactOrganization,
+} from "../src/model/domain/models.js";
 import { testUpdateAgreement } from "./testUpdateAgreement.js";
-import { testUpgradeAgreement } from "./testUpgradeAgreement.js";
 import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
   readLastAgreementEvent,
 } from "./utils.js";
+import { testArchiveAgreement } from "./testArchiveAgreement.js";
+import { testDeleteAgreement } from "./testDeleteAgreement.js";
+import { testAgreementConsumerDocuments } from "./testAgreementConsumerDocuments.js";
+import { testUpgradeAgreement } from "./testUpgradeAgreement.js";
+import { testCloneAgreement } from "./testCloneAgreement.js";
 
 export let agreements: AgreementCollection;
 export let eservices: EServiceCollection;
