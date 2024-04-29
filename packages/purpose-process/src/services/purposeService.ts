@@ -43,6 +43,7 @@ import {
   organizationIsNotTheConsumer,
   organizationIsNotTheProducer,
   organizationNotAllowed,
+  purposeCannotBeCloned,
   purposeNotFound,
   purposeVersionCannotBeDeleted,
   purposeVersionDocumentNotFound,
@@ -55,6 +56,7 @@ import {
   toCreateEventDraftPurposeUpdated,
   toCreateEventPurposeAdded,
   toCreateEventPurposeArchived,
+  toCreateEventPurposeCloned,
   toCreateEventPurposeSuspendedByConsumer,
   toCreateEventPurposeSuspendedByProducer,
   toCreateEventPurposeVersionRejected,
@@ -67,6 +69,7 @@ import {
   ApiGetPurposesFilters,
   ApiPurposeSeed,
   ApiReversePurposeSeed,
+  ApiPurposeCloneSeed,
 } from "../model/domain/models.js";
 import { ReadModelService } from "./readModelService.js";
 import {
@@ -724,6 +727,95 @@ export function purposeServiceBuilder(
         isRiskAnalysisValid: validationResult.type === "valid",
       };
     },
+    async clonePurpose({
+      purposeId,
+      organizationId,
+      seed,
+      correlationId,
+    }: {
+      purposeId: PurposeId;
+      organizationId: TenantId;
+      seed: ApiPurposeCloneSeed;
+      correlationId: string;
+    }): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
+      logger.info(`Cloning Purpose ${purposeId}`);
+
+      const tenant = await retrieveTenant(organizationId, readModelService);
+      const purposeToClone = await retrievePurpose(purposeId, readModelService);
+
+      if (purposeIsDraft(purposeToClone.data)) {
+        throw purposeCannotBeCloned(purposeId);
+      }
+
+      const dailyCalls = getDailyCallsFromPurposeToClone(purposeToClone.data);
+
+      const newPurposeVersion: PurposeVersion = {
+        id: generateId(),
+        createdAt: new Date(),
+        state: purposeVersionState.draft,
+        dailyCalls,
+      };
+
+      const riskAnalysisFormToClone = purposeToClone.data.riskAnalysisForm;
+
+      const clonedRiskAnalysisForm: PurposeRiskAnalysisForm | undefined =
+        riskAnalysisFormToClone
+          ? {
+              id: generateId(),
+              version: "1", // TO DO: "0"?
+              riskAnalysisId: riskAnalysisFormToClone.riskAnalysisId, // TO DO double-check
+              singleAnswers: riskAnalysisFormToClone.singleAnswers.map(
+                (answer) => ({
+                  ...answer,
+                  id: generateId(),
+                })
+              ),
+              multiAnswers: riskAnalysisFormToClone.multiAnswers.map(
+                (answer) => ({
+                  ...answer,
+                  id: generateId(),
+                })
+              ),
+            }
+          : undefined;
+
+      const clonedPurpose: Purpose = {
+        title: purposeToClone.data.title,
+        id: generateId(),
+        createdAt: new Date(),
+        eserviceId: unsafeBrandId(seed.eserviceId),
+        consumerId: organizationId,
+        description: purposeToClone.data.description,
+        versions: [newPurposeVersion],
+        isFreeOfCharge: purposeToClone.data.isFreeOfCharge,
+        freeOfChargeReason: purposeToClone.data.freeOfChargeReason,
+        riskAnalysisForm: clonedRiskAnalysisForm,
+      };
+
+      assertTenantKindExists(tenant);
+
+      const isRiskAnalysisValid = clonedRiskAnalysisForm
+        ? validateRiskAnalysis(
+            riskAnalysisFormToRiskAnalysisFormToValidate(
+              clonedRiskAnalysisForm
+            ),
+            false,
+            tenant.kind
+          ).type === "valid"
+        : false;
+
+      const event = toCreateEventPurposeCloned({
+        purpose: clonedPurpose,
+        sourcePurposeId: purposeToClone.data.id,
+        sourceVersionId: generateId(), // TO DO not sure where to take this, but the event definition requires it
+        correlationId,
+      });
+      await repository.createEvent(event);
+      return {
+        purpose: clonedPurpose,
+        isRiskAnalysisValid,
+      };
+    },
   };
 }
 
@@ -878,4 +970,29 @@ const updatePurposeInternal = async (
       tenant.kind
     ),
   };
+};
+
+const getDailyCallsFromPurposeToClone = (purposeToClone: Purpose): number => {
+  const nonWaitingVersions = purposeToClone.versions.filter(
+    (v) => v.state !== purposeVersionState.waitingForApproval
+  );
+
+  const versionsToSearch =
+    nonWaitingVersions.length > 0
+      ? nonWaitingVersions
+      : purposeToClone.versions;
+
+  const sortedVersions = versionsToSearch
+    .filter((v) => v.state !== purposeVersionState.waitingForApproval)
+    .sort((v1, v2) => {
+      if (v1.createdAt > v2.createdAt) {
+        return -1;
+      } else if (v1.createdAt < v2.createdAt) {
+        return 1;
+      } else {
+        return 0;
+      }
+    });
+
+  return sortedVersions.length > 0 ? sortedVersions[0].dailyCalls : 0;
 };
