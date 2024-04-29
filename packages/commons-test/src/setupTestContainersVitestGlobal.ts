@@ -4,6 +4,7 @@
 
 import { config as dotenv } from "dotenv-flow";
 import { StartedTestContainer } from "testcontainers";
+import type { ProvidedContext } from "vitest";
 import {
   TEST_MINIO_PORT,
   TEST_MONGO_DB_PORT,
@@ -13,13 +14,17 @@ import {
   mongoDBContainer,
   postgreSQLContainer,
 } from "./containerTestUtils.js";
-import type {} from "vitest";
 
 declare module "vitest" {
   export interface ProvidedContext {
     config: TestContainersConfig;
   }
 }
+
+type provide = <K extends keyof ProvidedContext>(
+  key: K,
+  value: ProvidedContext[K]
+) => void;
 
 export function setupTestContainersVitestGlobal() {
   dotenv();
@@ -29,7 +34,7 @@ export function setupTestContainersVitestGlobal() {
   return async function ({
     provide,
   }: {
-    provide: (...args: unknown[]) => void;
+    provide: provide;
   }): Promise<() => Promise<void>> {
     const startedPostgreSqlContainer = await postgreSQLContainer(
       config
