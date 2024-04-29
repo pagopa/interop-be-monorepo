@@ -1,3 +1,4 @@
+/* eslint-disable functional/no-let */
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable fp/no-delete */
 /* eslint-disable functional/immutable-data */
@@ -15,6 +16,7 @@ import {
   getMockVerifiedTenantAttribute,
   getRandomAuthData,
   randomArrayItem,
+  readEventByStreamIdAndVersion,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -798,6 +800,202 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       expect(actualAgreementDocumentAdded).toMatchObject(
         toAgreementDocumentV1(expectedCreatedDocument)
       );
+    });
+
+    it("should succeed with invalid Declared attributes with multiple documents", async () => {
+      const authData = getRandomAuthData();
+      const consumerId = authData.organizationId;
+      const producerId = generateId<TenantId>();
+      const descriptorId = generateId<DescriptorId>();
+      const agreementId = generateId<AgreementId>();
+      const documentNumber = Math.floor(Math.random() * 10) + 1;
+      const agreementConsumerDocuments = Array.from(
+        { length: documentNumber },
+        () => getMockConsumerDocument(agreementId)
+      );
+
+      const validVerifiedTenantAttribute = {
+        ...getMockVerifiedTenantAttribute(),
+        verifiedBy: [
+          {
+            id: producerId,
+            verificationDate: new Date(TEST_EXECUTION_DATE.getFullYear() - 1),
+            expirationDate: new Date(TEST_EXECUTION_DATE.getFullYear() + 1),
+            extensionDate: undefined,
+          },
+        ],
+      };
+
+      const validVerifiedEserviceAttribute = getMockEServiceAttribute(
+        validVerifiedTenantAttribute.id
+      );
+
+      const invalidDeclaredTenantAttribute = {
+        ...getMockDeclaredTenantAttribute(),
+        revocationTimestamp: new Date(TEST_EXECUTION_DATE.getFullYear() + 1),
+      };
+      const invalidDecalredEserviceAttribute = getMockEServiceAttribute(
+        invalidDeclaredTenantAttribute.id
+      );
+
+      const validCertifiedTenantAttribute = {
+        ...getMockCertifiedTenantAttribute(),
+        revocationTimestamp: undefined,
+      };
+      const validCertifiedEserviceAttribute = getMockEServiceAttribute(
+        validCertifiedTenantAttribute.id
+      );
+
+      const tenant = getMockTenant(consumerId, [
+        validCertifiedTenantAttribute,
+        validVerifiedTenantAttribute,
+        invalidDeclaredTenantAttribute,
+      ]);
+      await addOneTenant(tenant, tenants);
+
+      const deprecatedDescriptor = {
+        ...getMockDescriptorPublished(
+          descriptorId,
+          [[validCertifiedEserviceAttribute]],
+          [[invalidDecalredEserviceAttribute]],
+          [[validVerifiedEserviceAttribute]]
+        ),
+        name: "deprecated-descriptor-doc",
+        state: descriptorState.deprecated,
+        version: "1",
+      };
+
+      const publishedDescriptor = {
+        ...getMockDescriptorPublished(
+          descriptorId,
+          [[validCertifiedEserviceAttribute]],
+          [[invalidDecalredEserviceAttribute]],
+          [[validVerifiedEserviceAttribute]]
+        ),
+        version: "2",
+      };
+
+      for (const doc of agreementConsumerDocuments) {
+        await uploadDocument(agreementId, doc.id, doc.name);
+      }
+
+      const agreementToBeUpgraded: Agreement = {
+        ...getMockAgreement(
+          generateId<EServiceId>(),
+          consumerId,
+          randomArrayItem(agreementUpgradableStates)
+        ),
+        id: agreementId,
+        descriptorId,
+        producerId,
+        stamps: {},
+        createdAt: TEST_EXECUTION_DATE,
+        consumerDocuments: agreementConsumerDocuments,
+      };
+
+      await addOneAgreement(agreementToBeUpgraded, postgresDB, agreements);
+
+      const eservice: EService = getMockEService(
+        agreementToBeUpgraded.eserviceId,
+        tenant.id,
+        [deprecatedDescriptor, publishedDescriptor]
+      );
+      await addOneEService(eservice, eservices);
+
+      const newAgreementId = unsafeBrandId<AgreementId>(
+        await agreementService.upgradeAgreement(
+          agreementToBeUpgraded.id,
+          authData,
+          uuidv4()
+        )
+      );
+
+      expect(newAgreementId).toBeDefined();
+      const actualAgreementCreatedEvent = await readAgreementEventByVersion(
+        newAgreementId,
+        0,
+        postgresDB
+      );
+
+      expect(actualAgreementCreatedEvent).toMatchObject({
+        type: "AgreementAdded",
+        event_version: 1,
+        version: "0",
+        stream_id: newAgreementId,
+      });
+
+      const actualCreatedAgreement = decodeProtobufPayload({
+        messageType: AgreementAddedV1,
+        payload: actualAgreementCreatedEvent.data,
+      }).agreement;
+
+      const expectedCreatedAgreement = toAgreementV1({
+        id: newAgreementId,
+        eserviceId: agreementToBeUpgraded.eserviceId,
+        descriptorId,
+        producerId: agreementToBeUpgraded.producerId,
+        consumerId: agreementToBeUpgraded.consumerId,
+        verifiedAttributes: agreementToBeUpgraded.verifiedAttributes,
+        certifiedAttributes: agreementToBeUpgraded.certifiedAttributes,
+        declaredAttributes: agreementToBeUpgraded.declaredAttributes,
+        consumerNotes: agreementToBeUpgraded.consumerNotes,
+        state: agreementState.draft,
+        createdAt: TEST_EXECUTION_DATE,
+        consumerDocuments: [],
+        stamps: {},
+      });
+
+      expectedCreatedAgreement.stamps = {};
+      delete expectedCreatedAgreement.updatedAt;
+      delete expectedCreatedAgreement.suspendedAt;
+      delete expectedCreatedAgreement.contract;
+      expect(actualCreatedAgreement).toMatchObject(expectedCreatedAgreement);
+
+      // The following assertions verify the "AgreementConsumerDocumentAdded" event for each document
+      for (let index = 0; index < agreementConsumerDocuments.length; index++) {
+        const agreementConsumerDocument = agreementConsumerDocuments[index];
+        const currentVersion = index + 1;
+        const actualAgreementDocumentAddedEvent =
+          await readEventByStreamIdAndVersion(
+            newAgreementId,
+            currentVersion,
+            "agreement",
+            postgresDB
+          );
+
+        expect(actualAgreementDocumentAddedEvent).toMatchObject({
+          type: "AgreementConsumerDocumentAdded",
+          event_version: 1,
+          version: currentVersion.toString(),
+          stream_id: newAgreementId,
+        });
+
+        const actualAgreementDocumentAdded = decodeProtobufPayload({
+          messageType: AgreementConsumerDocumentAddedV1,
+          payload: actualAgreementDocumentAddedEvent.data,
+        }).document;
+
+        expect(actualAgreementDocumentAdded).toBeDefined();
+        if (!actualAgreementDocumentAdded) {
+          fail("Document not found in event");
+        }
+        const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${actualAgreementDocumentAdded.id}/${agreementConsumerDocument.name}`;
+
+        const expectedCreatedDocument = {
+          id: unsafeBrandId<AgreementDocumentId>(
+            actualAgreementDocumentAdded.id
+          ),
+          name: agreementConsumerDocument.name,
+          prettyName: agreementConsumerDocument.prettyName,
+          contentType: agreementConsumerDocument.contentType,
+          path: expectedUploadedDocumentPath,
+          createdAt: TEST_EXECUTION_DATE,
+        };
+
+        expect(actualAgreementDocumentAdded).toMatchObject(
+          toAgreementDocumentV1(expectedCreatedDocument)
+        );
+      }
     });
 
     it("should throw a tenantIdNotFound error when the tenant does not exist", async () => {
