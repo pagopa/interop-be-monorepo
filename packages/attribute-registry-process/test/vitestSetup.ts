@@ -23,7 +23,7 @@ import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { attributeRegistryServiceBuilder } from "../src/services/attributeRegistryService.js";
 
 export const { readModelRepository, postgresDB, fileManager, cleanup } =
-  setupTestContainersVitest(inject("config" as never));
+  setupTestContainersVitest(inject("config"));
 
 afterEach(cleanup);
 
