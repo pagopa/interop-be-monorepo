@@ -65,6 +65,7 @@ import {
   validateAndTransformRiskAnalysis,
   assertPurposeIsDraft,
   assertPurposeIsDeletable,
+  isArchivable,
 } from "./validators.js";
 
 const retrievePurpose = async (
@@ -379,10 +380,7 @@ export function purposeServiceBuilder(
       assertOrganizationIsAConsumer(organizationId, purpose.data.consumerId);
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
 
-      if (
-        purposeVersion.state !== purposeVersionState.active &&
-        purposeVersion.state !== purposeVersionState.suspended
-      ) {
+      if (!isArchivable(purposeVersion)) {
         throw notValidVersionState(versionId, purposeVersion.state);
       }
 
@@ -394,7 +392,7 @@ export function purposeServiceBuilder(
       };
       const archivedVersion: PurposeVersion = {
         ...purposeVersion,
-        state: purposeVersionState.rejected,
+        state: purposeVersionState.archived,
         updatedAt: new Date(),
       };
       const updatedPurpose = replacePurposeVersion(
