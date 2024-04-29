@@ -153,9 +153,6 @@ export function assertPurposeIsDeletable(purpose: Purpose): void {
   }
 }
 
-export function isArchivable(purposeVersion: PurposeVersion): boolean {
-  return (
-    purposeVersion.state === purposeVersionState.active ||
-    purposeVersion.state === purposeVersionState.suspended
-  );
-}
+export const isArchivable = (purposeVersion: PurposeVersion): boolean =>
+  purposeVersion.state === purposeVersionState.active ||
+  purposeVersion.state === purposeVersionState.suspended;
