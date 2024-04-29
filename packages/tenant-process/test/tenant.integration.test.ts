@@ -73,7 +73,6 @@ import {
   certifiedAttributeAlreadyAssigned,
   attributeVerificationNotAllowed,
   verifiedAttributeSelfVerification,
-  certifiedAttributeAlreadyRevoked,
 } from "../src/model/domain/errors.js";
 import {
   ApiSelfcareTenantSeed,
@@ -843,12 +842,11 @@ describe("Integration tests", () => {
           attribute.code!,
           correlationId
         );
-        const writtenEvent: StoredEvent | undefined =
-          await readLastEventByStreamId(
-            tenantWithCertifiedAttribute.id,
-            eventStoreSchema.tenant,
-            postgresDB
-          );
+        const writtenEvent = await readLastEventByStreamId(
+          tenantWithCertifiedAttribute.id,
+          "tenant",
+          postgresDB
+        );
         if (!writtenEvent) {
           fail("Update failed: tenant not found in event-store");
         }
