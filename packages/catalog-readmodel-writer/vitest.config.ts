@@ -1,8 +1,8 @@
 import { defineConfig } from "vitest/config";
+import "dotenv-flow"
 
 export default defineConfig({
   test: {
-    setupFiles: ["dotenv/config"],
     testTimeout: 60000,
     hookTimeout: 60000,
   },

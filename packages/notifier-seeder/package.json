@@ -34,7 +34,7 @@
     "mkdirp": "3.0.1",
     "tsc-esm-fix": "2.20.26",
     "testcontainers": "10.2.2",
-    "vitest": "0.33.0"
+    "vitest": "1.5.0"
   },
   "dependencies": {
     "@protobuf-ts/plugin": "2.9.4",
