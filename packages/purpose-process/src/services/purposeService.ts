@@ -66,6 +66,7 @@ import {
   assertPurposeIsDraft,
   assertPurposeIsDeletable,
   isArchivable,
+  isSuspendable,
 } from "./validators.js";
 
 const retrievePurpose = async (
@@ -439,10 +440,7 @@ export function purposeServiceBuilder(
 
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
 
-      if (
-        purposeVersion.state !== purposeVersionState.active &&
-        purposeVersion.state !== purposeVersionState.suspended
-      ) {
+      if (!isSuspendable(purposeVersion)) {
         throw notValidVersionState(purposeVersion.id, purposeVersion.state);
       }
 

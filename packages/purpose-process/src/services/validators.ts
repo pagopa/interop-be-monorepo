@@ -159,3 +159,11 @@ export function isArchivable(purposeVersion: PurposeVersion): boolean {
     purposeVersion.state === purposeVersionState.suspended
   );
 }
+
+// eslint-disable-next-line sonarjs/no-identical-functions
+export function isSuspendable(purposeVersion: PurposeVersion): boolean {
+  return (
+    purposeVersion.state === purposeVersionState.active ||
+    purposeVersion.state === purposeVersionState.suspended
+  );
+}
