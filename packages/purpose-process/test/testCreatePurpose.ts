@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { fail } from "assert";
 import {
-  Agreement,
   Descriptor,
   EService,
   Purpose,
@@ -33,7 +32,6 @@ import {
   missingFreeOfChargeReason,
   tenantKindNotFound,
   tenantNotFound,
-  agreementNotFound,
   organizationIsNotTheConsumer,
   riskAnalysisValidationFailed,
   duplicatedPurposeName,
@@ -69,8 +67,6 @@ export const testCreatePurpose = (): ReturnType<typeof describe> =>
     const eService1: EService = {
       ...getMockEService(),
       producerId: tenant.id,
-      id: generateId(),
-      name: "A",
       descriptors: [descriptor1],
     };
 
@@ -219,47 +215,6 @@ export const testCreatePurpose = (): ReturnType<typeof describe> =>
         )
       ).rejects.toThrowError(tenantNotFound(tenant.id));
     });
-    it("should throw agreementNotFound", async () => {
-      const descriptor: Descriptor = {
-        ...descriptor1,
-        id: generateId(),
-      };
-
-      const eService: EService = {
-        ...eService1,
-        producerId: tenant.id,
-        id: generateId(),
-        descriptors: [descriptor],
-      };
-
-      const agreement: Agreement = {
-        ...agreementEservice1,
-        id: generateId(),
-        eserviceId: eService.id,
-        descriptorId: descriptor.id,
-        producerId: eService.producerId,
-        consumerId: tenant.id,
-        state: agreementState.draft,
-      };
-
-      const seed: ApiPurposeSeed = {
-        ...purposeSeed,
-        eserviceId: eService.id,
-        consumerId: agreement.consumerId,
-      };
-
-      await writeInReadmodel(tenant, tenants);
-      await writeInReadmodel(agreement, agreements);
-      await writeInReadmodel(toReadModelEService(eService), eservices);
-
-      expect(
-        purposeService.createPurpose(
-          seed,
-          unsafeBrandId(seed.consumerId),
-          generateId()
-        )
-      ).rejects.toThrowError(agreementNotFound(eService.id, tenant.id));
-    });
     it("should throw organizationIsNotTheConsumer if the requester is not the consumer", async () => {
       await writeInReadmodel(tenant, tenants);
       await writeInReadmodel(agreementEservice1, agreements);
@@ -280,14 +235,14 @@ export const testCreatePurpose = (): ReturnType<typeof describe> =>
         organizationIsNotTheConsumer(unsafeBrandId(purposeSeed.consumerId))
       );
     });
-    it("should throw riskAnalysisValidationFailed if the purpose has an inactive risk analysis ", async () => {
+    it("should throw riskAnalysisValidationFailed if the purpose has a non valid risk analysis ", async () => {
       await writeInReadmodel(tenant, tenants);
       await writeInReadmodel(agreementEservice1, agreements);
       await writeInReadmodel(toReadModelEService(eService1), eservices);
 
       const mockInvalidRiskAnalysisForm: RiskAnalysisForm = {
         ...mockValidRiskAnalysisForm,
-        version: "251",
+        version: "0",
       };
 
       const seed: ApiPurposeSeed = {
@@ -309,7 +264,7 @@ export const testCreatePurpose = (): ReturnType<typeof describe> =>
         ])
       );
     });
-    it("should throw duplicatedPurposeName if exist alreay a purpose with same name", async () => {
+    it("should throw duplicatedPurposeName if a purpose with same name alreay exist", async () => {
       const existingPurpose: Purpose = {
         ...getMockPurpose(),
         eserviceId: unsafeBrandId(purposeSeed.eserviceId),
