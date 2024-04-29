@@ -85,11 +85,6 @@ export const getMockVerifiedTenantAttribute = (
   id: attributeId,
 });
 
-export const getMockVerifiedTenantAttributes = (
-  num: number
-): TenantAttribute[] =>
-  new Array(num).map(() => getMockVerifiedTenantAttribute());
-
 export const getMockCertifiedTenantAttribute = (
   attributeId: AttributeId = generateId<AttributeId>()
 ): CertifiedTenantAttribute => ({
@@ -97,22 +92,12 @@ export const getMockCertifiedTenantAttribute = (
   id: attributeId,
 });
 
-export const getMockCertifiedTenantAttributes = (
-  num: number
-): TenantAttribute[] =>
-  new Array(num).map(() => getMockCertifiedTenantAttribute());
-
 export const getMockDeclaredTenantAttribute = (
   attributeId: AttributeId = generateId<AttributeId>()
 ): TenantAttribute => ({
   ...generateMock(DeclaredTenantAttribute),
   id: attributeId,
 });
-
-export const getMockDeclaredTenantAttributes = (
-  num: number
-): TenantAttribute[] =>
-  new Array(num).map(() => getMockDeclaredTenantAttribute());
 
 export const getMockTenant = (
   tenantId: TenantId = generateId<TenantId>(),

@@ -71,6 +71,7 @@ import {
   getMockConsumerDocument,
   readAgreementEventByVersion,
   readLastAgreementEvent,
+  uploadDocument,
 } from "./utils.js";
 
 export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
@@ -85,24 +86,6 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
     afterAll(() => {
       vi.useRealTimers();
     });
-
-    async function uploadDocument(
-      agreementId: AgreementId,
-      documentId: AgreementDocumentId,
-      name: string
-    ): Promise<void> {
-      const documentDestinationPath = `${config.consumerDocumentsPath}/${agreementId}`;
-      await fileManager.storeBytes(
-        config.s3Bucket,
-        documentDestinationPath,
-        documentId,
-        name,
-        Buffer.from("large-document-file")
-      );
-      expect(await fileManager.listFiles(config.s3Bucket)).toContainEqual(
-        `${config.consumerDocumentsPath}/${agreementId}/${documentId}/${name}`
-      );
-    }
 
     it("should succeed with valid Verified and Declared attributes when consumer and producer are the same", async () => {
       const authData = getRandomAuthData();
@@ -591,7 +574,8 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       await uploadDocument(
         agreementId,
         agreementConsumerDocument.id,
-        agreementConsumerDocument.name
+        agreementConsumerDocument.name,
+        fileManager
       );
 
       const agreementToBeUpgraded: Agreement = {
@@ -779,7 +763,8 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       await uploadDocument(
         agreementId,
         agreementConsumerDocument.id,
-        agreementConsumerDocument.name
+        agreementConsumerDocument.name,
+        fileManager
       );
 
       const agreementToBeUpgraded: Agreement = {
@@ -969,7 +954,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       };
 
       for (const doc of agreementConsumerDocuments) {
-        await uploadDocument(agreementId, doc.id, doc.name);
+        await uploadDocument(agreementId, doc.id, doc.name, fileManager);
       }
 
       const agreementToBeUpgraded: Agreement = {

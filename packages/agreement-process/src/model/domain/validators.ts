@@ -79,6 +79,10 @@ export const agreementDeletableStates: AgreementState[] = [
   agreementState.missingCertifiedAttributes,
 ];
 
+export const agreementClonableStates: AgreementState[] = [
+  agreementState.rejected,
+];
+
 export const agreementActivationFailureStates: AgreementState[] = [
   agreementState.draft,
   agreementState.pending,
