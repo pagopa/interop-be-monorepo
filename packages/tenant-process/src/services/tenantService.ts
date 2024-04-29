@@ -9,6 +9,7 @@ import {
   generateId,
   tenantEventToBinaryData,
   ExternalId,
+  operationForbidden,
 } from "pagopa-interop-models";
 import {
   CertifiedAttributeQueryResult,
@@ -21,6 +22,7 @@ import {
   toCreateEventTenantVerifiedAttributeExtensionUpdated,
   toCreateEventTenantOnboardDetailsUpdated,
   toCreateEventTenantOnboarded,
+  toCreateEventTenantMailDeleted,
 } from "../model/domain/toEvent.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
@@ -279,6 +281,37 @@ export function tenantServiceBuilder(
         offset,
         limit,
       });
+    },
+
+    async deleteTenantMailById(
+      tenantId: TenantId,
+      mailId: string,
+      organizationId: TenantId,
+      correlationId: string
+    ): Promise<void> {
+      logger.info(`Deleting mail ${mailId} to Tenant ${tenantId}`);
+
+      const tenant = await retrieveTenant(tenantId, readModelService);
+
+      if (tenantId !== organizationId) {
+        throw operationForbidden;
+      }
+
+      const updatedTenant: Tenant = {
+        ...tenant.data,
+        mails: [...tenant.data.mails.filter((mail) => mail.id !== mailId)],
+        updatedAt: new Date(),
+      };
+
+      await repository.createEvent(
+        toCreateEventTenantMailDeleted(
+          tenantId,
+          tenant.metadata.version,
+          updatedTenant,
+          mailId,
+          correlationId
+        )
+      );
     },
 
     async getProducers({

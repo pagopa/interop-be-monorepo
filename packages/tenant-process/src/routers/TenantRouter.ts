@@ -25,6 +25,7 @@ import {
   updateTenantVerifiedAttributeErrorMapper,
   selfcareUpsertTenantErrorMapper,
   getCertifiedAttributesErrorMapper,
+  deleteTenantMailErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../utilities/config.js";
@@ -396,8 +397,26 @@ const tenantsRouter = (
       "/tenants/attributes/declared/:attributeId",
       authorizationMiddleware([ADMIN_ROLE]),
       async (_req, res) => res.status(501).send()
+    )
+    .delete(
+      "/tenants/:tenantId/mails/:mailId",
+      authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
+      async (req, res) => {
+        try {
+          const { tenantId, mailId } = req.params;
+          await tenantService.deleteTenantMailById(
+            unsafeBrandId(tenantId),
+            mailId,
+            req.ctx.authData.organizationId,
+            req.ctx.correlationId
+          );
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, deleteTenantMailErrorMapper);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     );
-
   return tenantsRouter;
 };
 export default tenantsRouter;

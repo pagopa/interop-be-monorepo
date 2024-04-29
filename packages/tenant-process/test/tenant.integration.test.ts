@@ -26,6 +26,7 @@ import {
   EService,
   Tenant,
   TenantId,
+  TenantMailDeletedV2,
   TenantOnboardDetailsUpdatedV2,
   TenantOnboardedV2,
   TenantVerifiedAttributeExpirationUpdatedV2,
@@ -563,6 +564,75 @@ describe("Integration tests", () => {
         ).rejects.toThrowError(
           organizationNotFoundInVerifiers(verifierId, tenant.id, attributeId)
         );
+      });
+    });
+
+    describe("deleteTenantMailById", async () => {
+      const mailId = generateId();
+      const notDeletedMailId = generateId();
+
+      const tenant: Tenant = {
+        ...mockTenant,
+        mails: [
+          {
+            id: mailId,
+            createdAt: new Date(),
+            kind: "CONTACT_EMAIL",
+            address: "testMail@test.it",
+          },
+          {
+            id: notDeletedMailId,
+            createdAt: new Date(),
+            kind: "CONTACT_EMAIL",
+            address: "testMail2@test.it",
+          },
+        ],
+      };
+      it("Should delete the mail with the required mailId ", async () => {
+        await addOneTenant(tenant, postgresDB, tenants);
+        await tenantService.deleteTenantMailById(
+          tenant.id,
+          mailId,
+          tenant.id,
+          generateId()
+        );
+        const writtenEvent = await readLastTenantEvent(tenant.id, postgresDB);
+        if (!writtenEvent) {
+          fail("Creation fails: tenant not found in event-store");
+        }
+        expect(writtenEvent.stream_id).toBe(tenant.id);
+        expect(writtenEvent.version).toBe("1");
+        expect(writtenEvent.type).toBe("TenantMailDeleted");
+        const writtenPayload: TenantMailDeletedV2 | undefined = protobufDecoder(
+          TenantMailDeletedV2
+        ).parse(writtenEvent.data);
+
+        const updatedTenant: Tenant = {
+          ...tenant,
+          mails: [
+            {
+              id: notDeletedMailId,
+              createdAt: new Date(
+                Number(writtenPayload.tenant?.mails.map((a) => a.createdAt))
+              ),
+              kind: "CONTACT_EMAIL",
+              address: "testMail2@test.it",
+            },
+          ],
+          updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
+        };
+        expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+      });
+      it("Should throw operationForbidden when tenantId is not the organizationId", async () => {
+        await addOneTenant(tenant, postgresDB, tenants);
+        expect(
+          tenantService.deleteTenantMailById(
+            tenant.id,
+            mailId,
+            generateId(),
+            generateId()
+          )
+        ).rejects.toThrowError(operationForbidden);
       });
     });
   });
