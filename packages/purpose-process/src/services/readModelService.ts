@@ -206,7 +206,7 @@ function getPurposesFilters(filters: ApiGetPurposesFilters): Document[] {
     {
       $project: {
         data: 1,
-        computedColumn: { $toLower: ["$data.name"] },
+        computedColumn: { $toLower: ["$data.title"] },
       },
     },
     {

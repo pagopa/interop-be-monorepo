@@ -29,7 +29,7 @@ import {
   getPurposeErrorMapper,
   getRiskAnalysisDocumentErrorMapper,
   rejectPurposeVersionErrorMapper,
-  suspendedPurposeVersionErrorMapper,
+  suspendPurposeVersionErrorMapper,
   updatePurposeErrorMapper,
 } from "../utilities/errorMappers.js";
 
@@ -328,7 +328,7 @@ const purposeRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            suspendedPurposeVersionErrorMapper
+            suspendPurposeVersionErrorMapper
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
