@@ -14,6 +14,7 @@ import {
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   AgreementAddedV1,
+  AgreementConsumerDocumentAddedV1,
   AgreementId,
   AgreementV1,
   DescriptorId,
@@ -33,12 +34,15 @@ import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
+  getMockConsumerDocument,
   readAgreementEventByVersion,
+  uploadDocument,
 } from "./utils.js";
 import {
   agreementService,
   agreements,
   eservices,
+  fileManager,
   postgresDB,
   tenants,
 } from "./agreementService.integration.test.js";
@@ -86,20 +90,31 @@ export const testCloneAgreement = (): ReturnType<typeof describe> =>
         [descriptor]
       );
 
+      const agreementId = generateId<AgreementId>();
+
+      const docsNumber = Math.floor(Math.random() * 10) + 1;
+      const agreementConsumerDocuments = Array.from(
+        { length: docsNumber },
+        () => getMockConsumerDocument(agreementId)
+      );
       const agreementToBeCloned = {
         ...getMockAgreement(
           eservice.id,
           consumerId,
           randomArrayItem(agreementClonableStates)
         ),
+        id: agreementId,
         producerId: eservice.producerId,
         descriptorId: descriptor.id,
-        consumerDocuments: [],
+        consumerDocuments: agreementConsumerDocuments,
       };
 
       await addOneTenant(consumer, tenants);
       await addOneEService(eservice, eservices);
       await addOneAgreement(agreementToBeCloned, postgresDB, agreements);
+      for (const doc of agreementConsumerDocuments) {
+        await uploadDocument(agreementId, doc.id, doc.name, fileManager);
+      }
 
       const anotherNonConflictingAgreement = {
         ...getMockAgreement(
@@ -168,5 +183,32 @@ export const testCloneAgreement = (): ReturnType<typeof describe> =>
       expect(agreementClonedEventPayload).toMatchObject({
         agreement: expectedAgreementCloned,
       });
+
+      agreementConsumerDocuments.forEach(async (doc, index) => {
+        const agreementDocumentAddedEvent = await readAgreementEventByVersion(
+          newAgreementId,
+          index,
+          postgresDB
+        );
+
+        expect(agreementDocumentAddedEvent).toMatchObject({
+          type: "AgreementConsumerDocumentAdded",
+          event_version: 1,
+          version: index.toString(),
+          stream_id: newAgreementId,
+        });
+
+        // const agreementDocumentAddedEventPayload = decodeProtobufPayload({
+        //   messageType: AgreementConsumerDocumentAddedV1,
+        //   payload: agreementDocumentAddedEvent.data,
+        // });
+
+        // expect(agreementDocumentAddedEventPayload).toMatchObject({
+        //   agreemendId: newAgreementId,
+        // });
+      });
+      // expect(await fileManager.listFiles(config.s3Bucket)).toContain(
+      //   expectedInterface.path
+      // );
     });
   });
