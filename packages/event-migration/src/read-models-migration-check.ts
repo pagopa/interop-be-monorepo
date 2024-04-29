@@ -57,7 +57,6 @@ const Config = z
   }));
 
 type Config = z.infer<typeof Config>;
-console.log("HELL2O");
 
 const config: Config = {
   ...Config.parse(process.env),
