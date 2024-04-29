@@ -464,25 +464,12 @@ export function purposeServiceBuilder(
             correlationId,
           });
         })
-        .with(ownership.PRODUCER, () => {
+        .with(ownership.PRODUCER, ownership.SELF_CONSUMER, () => {
           const updatedPurpose: Purpose = {
             ...replacePurposeVersion(purpose.data, suspendedPurposeVersion),
             suspendedByProducer: true,
           };
           return toCreateEventPurposeSuspendedByProducer({
-            purpose: updatedPurpose,
-            purposeVersionId: versionId,
-            version: purpose.metadata.version,
-            correlationId,
-          });
-        })
-        .with(ownership.SELF_CONSUMER, () => {
-          const updatedPurpose: Purpose = {
-            ...replacePurposeVersion(purpose.data, suspendedPurposeVersion),
-            suspendedByConsumer: true,
-            suspendedByProducer: true,
-          };
-          return toCreateEventPurposeSuspendedByConsumer({
             purpose: updatedPurpose,
             purposeVersionId: versionId,
             version: purpose.metadata.version,
