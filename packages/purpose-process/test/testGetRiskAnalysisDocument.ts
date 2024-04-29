@@ -43,11 +43,7 @@ export const testGetRiskAnalysisDocument = (): ReturnType<typeof describe> =>
         eserviceId: mockEService.id,
         versions: [mockPurposeVersion],
       };
-      const mockPurpose2: Purpose = {
-        ...getMockPurpose(),
-        id: generateId(),
-        title: "another purpose",
-      };
+      const mockPurpose2 = getMockPurpose();
       await addOnePurpose(mockPurpose1, postgresDB, purposes);
       await addOnePurpose(mockPurpose2, postgresDB, purposes);
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
