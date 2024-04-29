@@ -32,6 +32,7 @@ export const errorCodes = {
   agreementNotFound: "0017",
   duplicatedPurposeName: "0018",
   eserviceRiskAnalysisNotFound: "0019",
+  purposeCannotBeCloned: "0020",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -221,5 +222,15 @@ export function eserviceRiskAnalysisNotFound(
     detail: `Risk Analysis ${riskAnalysisId} not found for EService ${eserviceId}`,
     code: "eserviceRiskAnalysisNotFound",
     title: "Risk analysis not found",
+  });
+}
+
+export function purposeCannotBeCloned(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} cannot be cloned`,
+    code: "purposeCannotBeCloned",
+    title: "Purpose cannot be cloned",
   });
 }
