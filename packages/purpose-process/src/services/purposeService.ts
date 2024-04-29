@@ -35,9 +35,9 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
-  agreementNotFound,
   duplicatedPurposeName,
   eserviceNotFound,
+  missingRejectionReason,
   eserviceRiskAnalysisNotFound,
   notValidVersionState,
   organizationIsNotTheConsumer,
@@ -295,6 +295,11 @@ export function purposeServiceBuilder(
       if (purposeVersion.state !== purposeVersionState.waitingForApproval) {
         throw notValidVersionState(purposeVersion.id, purposeVersion.state);
       }
+
+      if (!rejectionReason) {
+        throw missingRejectionReason();
+      }
+
       const updatedPurposeVersion: PurposeVersion = {
         ...purposeVersion,
         state: purposeVersionState.rejected,
@@ -605,15 +610,6 @@ export function purposeServiceBuilder(
         tenant.kind
       );
 
-      const agreement = await readModelService.getActiveAgreement(
-        eserviceId,
-        consumerId
-      );
-
-      if (agreement === undefined) {
-        throw agreementNotFound(eserviceId, consumerId);
-      }
-
       const purposeWithSameName = await readModelService.getSpecificPurpose(
         eserviceId,
         consumerId,
@@ -637,8 +633,9 @@ export function purposeServiceBuilder(
         riskAnalysisForm: validatedFormSeed,
       };
 
-      const event = toCreateEventPurposeAdded(purpose, correlationId);
-      await repository.createEvent(event);
+      await repository.createEvent(
+        toCreateEventPurposeAdded(purpose, correlationId)
+      );
       return { purpose, isRiskAnalysisValid: validatedFormSeed !== undefined };
     },
     async createPurposeFromEService(

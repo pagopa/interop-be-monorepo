@@ -81,12 +81,15 @@ export const archivePurposeVersionErrorMapper = (
     .with("notValidVersionState", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const suspendedPurposeVersionErrorMapper = (
+export const suspendPurposeVersionErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("purposeVersionNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "purposeNotFound",
+      "purposeVersionNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
     .with("organizationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .with("notValidVersionState", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -95,11 +98,10 @@ export const createPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("organizationIsNotTheConsumer", () => HTTP_STATUS_FORBIDDEN)
     .with("missingFreeOfChargeReason", () => HTTP_STATUS_NOT_FOUND)
-    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("tenantKindNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("riskAnalysisValidationFailed", () => HTTP_STATUS_FORBIDDEN)
-    .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("duplicatedPurposeName", () => HTTP_STATUS_FORBIDDEN)
+    .with("tenantNotFound", () => HTTP_STATUS_BAD_REQUEST)
+    .with("tenantKindNotFound", () => HTTP_STATUS_BAD_REQUEST)
+    .with("riskAnalysisValidationFailed", () => HTTP_STATUS_BAD_REQUEST)
+    .with("duplicatedPurposeName", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const createPurposeFromEServiceErrorMapper = (

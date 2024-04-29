@@ -23,13 +23,13 @@ export const errorCodes = {
   organizationIsNotTheConsumer: "0008",
   purposeVersionCannotBeDeleted: "0009",
   organizationIsNotTheProducer: "0010",
-  eServiceModeNotAllowed: "0011",
-  missingFreeOfChargeReason: "0012",
-  riskAnalysisValidationFailed: "0013",
-  purposeNotInDraftState: "0014",
-  notValidVersionState: "0015",
-  purposeCannotBeDeleted: "0016",
-  agreementNotFound: "0017",
+  notValidVersionState: "0011",
+  missingRejectionReason: "0012",
+  eServiceModeNotAllowed: "0013",
+  missingFreeOfChargeReason: "0014",
+  riskAnalysisValidationFailed: "0015",
+  purposeNotInDraftState: "0016",
+  purposeCannotBeDeleted: "0017",
   duplicatedPurposeName: "0018",
   eserviceRiskAnalysisNotFound: "0019",
 };
@@ -184,6 +184,14 @@ export function notValidVersionState(
   });
 }
 
+export function missingRejectionReason(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Rejection reason is missing`,
+    code: "missingRejectionReason",
+    title: "Rejection reason can't be omitted",
+  });
+}
+
 export function purposeCannotBeDeleted(
   purposeId: PurposeId
 ): ApiError<ErrorCodes> {
@@ -191,17 +199,6 @@ export function purposeCannotBeDeleted(
     detail: `Purpose ${purposeId} cannot be deleted`,
     code: "purposeCannotBeDeleted",
     title: "Purpose canont be deleted",
-  });
-}
-
-export function agreementNotFound(
-  eserviceId: EServiceId,
-  consumerId: TenantId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `No Agreement found for EService ${eserviceId} and Consumer ${consumerId}`,
-    code: "agreementNotFound",
-    title: "Agreement Not Found",
   });
 }
 
