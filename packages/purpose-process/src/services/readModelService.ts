@@ -18,6 +18,8 @@ import {
   PurposeId,
   ListResult,
   purposeVersionState,
+  Agreement,
+  agreementState,
 } from "pagopa-interop-models";
 import { Filter, WithId } from "mongodb";
 import { z } from "zod";
@@ -101,7 +103,7 @@ async function getTenant(
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
 ) {
-  const { eservices, purposes, tenants } = readModelRepository;
+  const { eservices, purposes, tenants, agreements } = readModelRepository;
 
   return {
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
@@ -250,6 +252,30 @@ export function readModelServiceBuilder(
           aggregationPipeline
         ),
       };
+    },
+    async getActiveAgreement(
+      eserviceId: EServiceId,
+      consumerId: TenantId
+    ): Promise<Agreement | undefined> {
+      const data = await agreements.findOne({
+        "data.eserviceId": eserviceId,
+        "data.consumerId": consumerId,
+        "data.state": agreementState.active,
+      });
+      if (!data) {
+        return undefined;
+      } else {
+        const result = Agreement.safeParse(data.data);
+        if (!result.success) {
+          logger.error(
+            `Unable to parse agreement item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+          throw genericError("Unable to parse agreement item");
+        }
+        return result.data;
+      }
     },
   };
 }

@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { fail } from "assert";
 import {
+  Agreement,
   Descriptor,
   EService,
   Purpose,
@@ -11,6 +12,7 @@ import {
   agreementState,
   descriptorState,
   generateId,
+  purposeVersionState,
   tenantKind,
   toPurposeV2,
   toReadModelEService,
@@ -35,6 +37,7 @@ import {
   organizationIsNotTheConsumer,
   riskAnalysisValidationFailed,
   duplicatedPurposeName,
+  agreementNotFound,
 } from "../src/model/domain/errors.js";
 import { ApiPurposeSeed } from "../src/model/domain/models.js";
 import {
@@ -149,7 +152,14 @@ export const testCreatePurpose = (): ReturnType<typeof describe> =>
         eserviceId: unsafeBrandId(purposeSeed.eserviceId),
         consumerId: unsafeBrandId(purposeSeed.consumerId),
         description: purposeSeed.description,
-        versions: [],
+        versions: [
+          {
+            id: unsafeBrandId(writtenPayload.purpose!.versions[0].id),
+            state: purposeVersionState.draft,
+            dailyCalls: purposeSeed.dailyCalls,
+            createdAt: new Date(),
+          },
+        ],
         isFreeOfCharge: true,
         freeOfChargeReason: purposeSeed.freeOfChargeReason,
         riskAnalysisForm: expectedRiskAnalysisForm,
@@ -214,6 +224,47 @@ export const testCreatePurpose = (): ReturnType<typeof describe> =>
           generateId()
         )
       ).rejects.toThrowError(tenantNotFound(tenant.id));
+    });
+    it("should throw agreementNotFound", async () => {
+      const descriptor: Descriptor = {
+        ...descriptor1,
+        id: generateId(),
+      };
+
+      const eService: EService = {
+        ...eService1,
+        producerId: tenant.id,
+        id: generateId(),
+        descriptors: [descriptor],
+      };
+
+      const agreement: Agreement = {
+        ...agreementEservice1,
+        id: generateId(),
+        eserviceId: eService.id,
+        descriptorId: descriptor.id,
+        producerId: eService.producerId,
+        consumerId: tenant.id,
+        state: agreementState.draft,
+      };
+
+      const seed: ApiPurposeSeed = {
+        ...purposeSeed,
+        eserviceId: eService.id,
+        consumerId: agreement.consumerId,
+      };
+
+      await writeInReadmodel(tenant, tenants);
+      await writeInReadmodel(agreement, agreements);
+      await writeInReadmodel(toReadModelEService(eService), eservices);
+
+      expect(
+        purposeService.createPurpose(
+          seed,
+          unsafeBrandId(seed.consumerId),
+          generateId()
+        )
+      ).rejects.toThrowError(agreementNotFound(eService.id, tenant.id));
     });
     it("should throw organizationIsNotTheConsumer if the requester is not the consumer", async () => {
       await writeInReadmodel(tenant, tenants);

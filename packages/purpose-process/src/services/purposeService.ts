@@ -27,9 +27,11 @@ import {
   ListResult,
   unsafeBrandId,
   generateId,
+  Agreement,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
+  agreementNotFound,
   duplicatedPurposeName,
   eserviceNotFound,
   missingRejectionReason,
@@ -138,6 +140,21 @@ const retrieveTenant = async (
     throw tenantNotFound(tenantId);
   }
   return tenant;
+};
+
+const retrieveAgreement = async (
+  eserviceId: EServiceId,
+  consumerId: TenantId,
+  readModelService: ReadModelService
+): Promise<Agreement> => {
+  const activeAgreement = await readModelService.getActiveAgreement(
+    eserviceId,
+    consumerId
+  );
+  if (activeAgreement === undefined) {
+    throw agreementNotFound(eserviceId, consumerId);
+  }
+  return activeAgreement;
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -587,6 +604,8 @@ export function purposeServiceBuilder(
         tenant.kind
       );
 
+      await retrieveAgreement(eserviceId, consumerId, readModelService);
+
       const purposeWithSameName = await readModelService.getSpecificPurpose(
         eserviceId,
         consumerId,
@@ -598,15 +617,19 @@ export function purposeServiceBuilder(
       }
 
       const purpose: Purpose = {
-        title: purposeSeed.title,
+        ...purposeSeed,
         id: generateId(),
         createdAt: new Date(),
         eserviceId,
         consumerId,
-        description: purposeSeed.description,
-        versions: [],
-        isFreeOfCharge: purposeSeed.isFreeOfCharge,
-        freeOfChargeReason: purposeSeed.freeOfChargeReason,
+        versions: [
+          {
+            id: generateId(),
+            state: purposeVersionState.draft,
+            dailyCalls: purposeSeed.dailyCalls,
+            createdAt: new Date(),
+          },
+        ],
         riskAnalysisForm: validatedFormSeed,
       };
 
