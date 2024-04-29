@@ -17,6 +17,7 @@ import {
   Tenant,
   generateId,
   toReadModelEService,
+  toReadModelAgreement,
 } from "pagopa-interop-models";
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
 import { agreementQueryBuilder } from "../src/services/readmodel/agreementQuery.js";
@@ -51,7 +52,6 @@ export const agreementService = agreementServiceBuilder(
   attributeQuery,
   fileManager
 );
-
 export const writeAgreementInEventstore = async (
   agreement: Agreement
 ): Promise<void> => {
@@ -72,7 +72,7 @@ export const writeAgreementInEventstore = async (
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
   await writeAgreementInEventstore(agreement);
-  await writeInReadmodel(agreement, agreements);
+  await writeInReadmodel(toReadModelAgreement(agreement), agreements);
 };
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
