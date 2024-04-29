@@ -17,7 +17,7 @@ import {
   readLastEventByStreamId,
   decodeProtobufPayload,
   getMockPurposeVersion,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   purposeNotFound,
   organizationIsNotTheConsumer,
