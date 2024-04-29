@@ -4,7 +4,7 @@
 
 import { config as dotenv } from "dotenv-flow";
 import { StartedTestContainer } from "testcontainers";
-import type { ProvidedContext } from "vitest";
+import type { provide } from "vitest";
 import {
   TEST_MINIO_PORT,
   TEST_MONGO_DB_PORT,
@@ -19,12 +19,11 @@ declare module "vitest" {
   export interface ProvidedContext {
     config: TestContainersConfig;
   }
+  export type provide = <K extends keyof ProvidedContext>(
+    key: K,
+    value: ProvidedContext[K]
+  ) => void;
 }
-
-type provide = <K extends keyof ProvidedContext>(
-  key: K,
-  value: ProvidedContext[K]
-) => void;
 
 export function setupTestContainersVitestGlobal() {
   dotenv();
