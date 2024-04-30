@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable functional/no-let */
 /* eslint-disable functional/immutable-data */
 /* eslint-disable fp/no-delete */
 import {
@@ -15,6 +17,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   AgreementAddedV1,
   AgreementConsumerDocumentAddedV1,
+  AgreementDocumentId,
   AgreementId,
   AgreementV1,
   DescriptorId,
@@ -29,7 +32,11 @@ import {
   agreementClonableStates,
   agreementCloningConflictingStates,
 } from "../src/model/domain/validators.js";
-import { toAgreementV1 } from "../src/model/domain/toEvent.js";
+import {
+  toAgreementDocumentV1,
+  toAgreementV1,
+} from "../src/model/domain/toEvent.js";
+import { config } from "../src/utilities/config.js";
 import {
   addOneAgreement,
   addOneEService,
@@ -112,6 +119,7 @@ export const testCloneAgreement = (): ReturnType<typeof describe> =>
       await addOneTenant(consumer, tenants);
       await addOneEService(eservice, eservices);
       await addOneAgreement(agreementToBeCloned, postgresDB, agreements);
+
       for (const doc of agreementConsumerDocuments) {
         await uploadDocument(agreementId, doc.id, doc.name, fileManager);
       }
@@ -184,31 +192,52 @@ export const testCloneAgreement = (): ReturnType<typeof describe> =>
         agreement: expectedAgreementCloned,
       });
 
-      agreementConsumerDocuments.forEach(async (doc, index) => {
+      for (let index = 0; index < agreementConsumerDocuments.length; index++) {
+        const version = index + 1;
+        const agreementConsumerDocument = agreementConsumerDocuments[index];
         const agreementDocumentAddedEvent = await readAgreementEventByVersion(
           newAgreementId,
-          index,
+          version,
           postgresDB
         );
 
         expect(agreementDocumentAddedEvent).toMatchObject({
           type: "AgreementConsumerDocumentAdded",
           event_version: 1,
-          version: index.toString(),
+          version: version.toString(),
           stream_id: newAgreementId,
         });
 
-        // const agreementDocumentAddedEventPayload = decodeProtobufPayload({
-        //   messageType: AgreementConsumerDocumentAddedV1,
-        //   payload: agreementDocumentAddedEvent.data,
-        // });
+        const agreementDocumentAddedEventPayload = decodeProtobufPayload({
+          messageType: AgreementConsumerDocumentAddedV1,
+          payload: agreementDocumentAddedEvent.data,
+        });
 
-        // expect(agreementDocumentAddedEventPayload).toMatchObject({
-        //   agreemendId: newAgreementId,
-        // });
-      });
-      // expect(await fileManager.listFiles(config.s3Bucket)).toContain(
-      //   expectedInterface.path
-      // );
+        const expectedClonedDocumentPath = `${
+          config.consumerDocumentsPath
+        }/${newAgreementId}/${
+          agreementDocumentAddedEventPayload.document!.id
+        }/${agreementConsumerDocument.name}`;
+
+        const expectedClonedDocument = {
+          id: unsafeBrandId<AgreementDocumentId>(
+            agreementDocumentAddedEventPayload.document!.id
+          ),
+          name: agreementConsumerDocument.name,
+          prettyName: agreementConsumerDocument.prettyName,
+          contentType: agreementConsumerDocument.contentType,
+          path: expectedClonedDocumentPath,
+          createdAt: TEST_EXECUTION_DATE,
+        };
+
+        expect(agreementDocumentAddedEventPayload).toMatchObject({
+          agreementId: newAgreementId,
+          document: toAgreementDocumentV1(expectedClonedDocument),
+        });
+
+        expect(await fileManager.listFiles(config.s3Bucket)).toContain(
+          expectedClonedDocumentPath
+        );
+      }
     });
   });
