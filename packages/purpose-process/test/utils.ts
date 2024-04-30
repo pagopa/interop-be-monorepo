@@ -85,6 +85,13 @@ export const createUpdatedPurpose = (
   description: purposeUpdateContent.description,
   isFreeOfCharge: purposeUpdateContent.isFreeOfCharge,
   freeOfChargeReason: purposeUpdateContent.freeOfChargeReason,
+  versions: [
+    {
+      ...mockPurpose.versions[0],
+      dailyCalls: purposeUpdateContent.dailyCalls,
+      updatedAt: new Date(),
+    },
+  ],
   updatedAt: new Date(),
   riskAnalysisForm: {
     ...mockValidRiskAnalysis.riskAnalysisForm,

@@ -460,6 +460,13 @@ const updatePurposeInternal = async (
   const updatedPurpose: Purpose = {
     ...purpose.data,
     ...updateContent,
+    versions: [
+      {
+        ...purpose.data.versions[0],
+        dailyCalls: updateContent.dailyCalls,
+        updatedAt: new Date(),
+      },
+    ],
     updatedAt: new Date(),
     riskAnalysisForm: newRiskAnalysis,
   };
