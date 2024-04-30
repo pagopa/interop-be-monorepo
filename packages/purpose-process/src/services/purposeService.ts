@@ -59,6 +59,7 @@ import {
   reverseValidateAndTransformRiskAnalysis,
   validateAndTransformRiskAnalysis,
   assertPurposeIsDraft,
+  isRejectable,
 } from "./validators.js";
 
 const retrievePurpose = async (
@@ -245,6 +246,10 @@ export function purposeServiceBuilder(
     }): Promise<void> {
       logger.info(`Rejecting Version ${versionId} in Purpose ${purposeId}`);
 
+      if (!rejectionReason) {
+        throw missingRejectionReason();
+      }
+
       const purpose = await retrievePurpose(purposeId, readModelService);
       const eservice = await retrieveEService(
         purpose.data.eserviceId,
@@ -256,12 +261,8 @@ export function purposeServiceBuilder(
 
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
 
-      if (purposeVersion.state !== purposeVersionState.waitingForApproval) {
+      if (!isRejectable(purposeVersion)) {
         throw notValidVersionState(purposeVersion.id, purposeVersion.state);
-      }
-
-      if (!rejectionReason) {
-        throw missingRejectionReason();
       }
 
       const updatedPurposeVersion: PurposeVersion = {

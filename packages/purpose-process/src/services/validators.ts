@@ -2,6 +2,7 @@ import {
   EService,
   EServiceMode,
   Purpose,
+  PurposeVersion,
   PurposeRiskAnalysisForm,
   RiskAnalysisForm,
   Tenant,
@@ -45,6 +46,9 @@ export const isRiskAnalysisFormValid = (
 
 export const purposeIsDraft = (purpose: Purpose): boolean =>
   !purpose.versions.some((v) => v.state !== purposeVersionState.draft);
+
+export const isRejectable = (purposeVersion: PurposeVersion): boolean =>
+  purposeVersion.state === purposeVersionState.waitingForApproval;
 
 export const assertEserviceHasSpecificMode = (
   eservice: EService,

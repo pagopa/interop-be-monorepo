@@ -60,7 +60,11 @@ export const rejectPurposeVersionErrorMapper = (
       () => HTTP_STATUS_NOT_FOUND
     )
     .with("organizationIsNotTheProducer", () => HTTP_STATUS_FORBIDDEN)
-    .with("notValidVersionState", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "notValidVersionState",
+      "missingRejectionReason",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const updatePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
