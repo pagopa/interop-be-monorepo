@@ -98,10 +98,12 @@ import {
   addOneTenant,
   readLastAgreementEvent,
 } from "./utils.js";
+import { testArchiveAgreement } from "./testArchiveAgreement.js";
 import { testDeleteAgreement } from "./testDeleteAgreement.js";
 import { testAgreementConsumerDocuments } from "./testAgreementConsumerDocuments.js";
 import { testRejectAgreement } from "./testRejectAgreement.js";
 import { testUpdateAgreement } from "./testUpdateAgreement.js";
+import { testUpgradeAgreement } from "./testUpgradeAgreement.js";
 
 export let agreements: AgreementCollection;
 export let eservices: EServiceCollection;
@@ -1766,8 +1768,11 @@ describe("Agreement service", () => {
       });
     });
   });
+
   testAgreementConsumerDocuments();
+  testArchiveAgreement();
   testDeleteAgreement();
   testRejectAgreement();
   testUpdateAgreement();
+  testUpgradeAgreement();
 });
