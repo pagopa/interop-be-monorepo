@@ -38,6 +38,16 @@ import {
 } from "../src/model/domain/toEvent.js";
 import { config } from "../src/utilities/config.js";
 import {
+  agreementAlreadyExists,
+  agreementNotFound,
+  agreementNotInExpectedState,
+  descriptorNotFound,
+  eServiceNotFound,
+  missingCertifiedAttributesError,
+  operationNotAllowed,
+  tenantIdNotFound,
+} from "../src/model/domain/errors.js";
+import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
@@ -239,5 +249,198 @@ export const testCloneAgreement = (): ReturnType<typeof describe> =>
           expectedClonedDocumentPath
         );
       }
+    });
+
+    it("should throw an agreementNotFound error when the Agreement does not exist", async () => {
+      await addOneAgreement(getMockAgreement(), postgresDB, agreements);
+      const authData = getRandomAuthData();
+      const agreementId = generateId<AgreementId>();
+      await expect(
+        agreementService.cloneAgreement(agreementId, authData, uuidv4())
+      ).rejects.toThrowError(agreementNotFound(agreementId));
+    });
+
+    it("should throw an operationNotAllowed error when the requester is not the Consumer", async () => {
+      const authData = getRandomAuthData();
+      const agreement = getMockAgreement();
+      await addOneAgreement(agreement, postgresDB, agreements);
+      await expect(
+        agreementService.cloneAgreement(agreement.id, authData, uuidv4())
+      ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
+    });
+
+    it("should throw an agreementNotInExpectedState error when the Agreement is not in a clonable state", async () => {
+      const authData = getRandomAuthData();
+      const consumerId = authData.organizationId;
+      const agreement = getMockAgreement(
+        generateId<EServiceId>(),
+        consumerId,
+        randomArrayItem(
+          Object.values(agreementState).filter(
+            (s) => !agreementClonableStates.includes(s)
+          )
+        )
+      );
+
+      await addOneAgreement(agreement, postgresDB, agreements);
+      await expect(
+        agreementService.cloneAgreement(agreement.id, authData, uuidv4())
+      ).rejects.toThrowError(
+        agreementNotInExpectedState(agreement.id, agreement.state)
+      );
+    });
+
+    it("should throw an eserviceNotFound error when the EService does not exist", async () => {
+      const authData = getRandomAuthData();
+      const consumerId = authData.organizationId;
+      const agreement = getMockAgreement(
+        generateId<EServiceId>(),
+        consumerId,
+        randomArrayItem(agreementClonableStates)
+      );
+
+      await addOneAgreement(agreement, postgresDB, agreements);
+      await expect(
+        agreementService.cloneAgreement(agreement.id, authData, uuidv4())
+      ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
+    });
+
+    it("should throw an agreementAlreadyExists error when a conflicting Agreement already exists", async () => {
+      const authData = getRandomAuthData();
+      const consumerId = authData.organizationId;
+      const eservice = getMockEService();
+      const agreement = {
+        ...getMockAgreement(
+          eservice.id,
+          consumerId,
+          randomArrayItem(agreementClonableStates)
+        ),
+        producerId: eservice.producerId,
+      };
+
+      const conflictingAgreement = {
+        ...getMockAgreement(
+          eservice.id,
+          consumerId,
+          randomArrayItem(agreementCloningConflictingStates)
+        ),
+        producerId: eservice.producerId,
+      };
+
+      await addOneEService(eservice, eservices);
+      await addOneAgreement(agreement, postgresDB, agreements);
+      await addOneAgreement(conflictingAgreement, postgresDB, agreements);
+      await expect(
+        agreementService.cloneAgreement(agreement.id, authData, uuidv4())
+      ).rejects.toThrowError(agreementAlreadyExists(consumerId, eservice.id));
+    });
+
+    it("should throw a tenantIdNotFound error when the Consumer does not exist", async () => {
+      const authData = getRandomAuthData();
+      const consumerId = authData.organizationId;
+      const eservice = getMockEService();
+      const agreement = {
+        ...getMockAgreement(
+          eservice.id,
+          consumerId,
+          randomArrayItem(agreementClonableStates)
+        ),
+        producerId: eservice.producerId,
+      };
+
+      const conflictingAgreement = {
+        ...getMockAgreement(
+          eservice.id,
+          consumerId,
+          randomArrayItem(
+            Object.values(agreementState).filter(
+              (s) => !agreementCloningConflictingStates.includes(s)
+            )
+          )
+        ),
+        producerId: eservice.producerId,
+      };
+
+      await addOneEService(eservice, eservices);
+      await addOneAgreement(agreement, postgresDB, agreements);
+      await addOneAgreement(conflictingAgreement, postgresDB, agreements);
+      await expect(
+        agreementService.cloneAgreement(agreement.id, authData, uuidv4())
+      ).rejects.toThrowError(tenantIdNotFound(consumerId));
+    });
+
+    it("should throw a descriptorNotFound error when the Descriptor does not exist", async () => {
+      const authData = getRandomAuthData();
+      const consumerId = authData.organizationId;
+      const consumer = getMockTenant(consumerId);
+      const eservice = getMockEService();
+      const agreement = {
+        ...getMockAgreement(
+          eservice.id,
+          consumerId,
+          randomArrayItem(agreementClonableStates)
+        ),
+        producerId: eservice.producerId,
+      };
+
+      await addOneTenant(consumer, tenants);
+      await addOneEService(eservice, eservices);
+      await addOneAgreement(agreement, postgresDB, agreements);
+      await expect(
+        agreementService.cloneAgreement(agreement.id, authData, uuidv4())
+      ).rejects.toThrowError(
+        descriptorNotFound(eservice.id, agreement.descriptorId)
+      );
+    });
+
+    it("should throw a missingCertifiedAttributesError when the Consumer has invalid certified attributes", async () => {
+      const authData = getRandomAuthData();
+      const consumerId = authData.organizationId;
+
+      const invalidCertifiedTenantAttribute = {
+        ...getMockCertifiedTenantAttribute(),
+        revocationTimestamp: new Date(),
+      };
+
+      const invalidCertifiedEserviceAttribute = getMockEServiceAttribute(
+        invalidCertifiedTenantAttribute.id
+      );
+
+      const consumer = getMockTenant(consumerId, [
+        invalidCertifiedTenantAttribute,
+      ]);
+
+      const descriptor = getMockDescriptorPublished(
+        generateId<DescriptorId>(),
+        [[invalidCertifiedEserviceAttribute]]
+      );
+      const eservice = getMockEService(
+        generateId<EServiceId>(),
+        generateId<TenantId>(),
+        [descriptor]
+      );
+
+      const agreementId = generateId<AgreementId>();
+
+      const agreement = {
+        ...getMockAgreement(
+          eservice.id,
+          consumerId,
+          randomArrayItem(agreementClonableStates)
+        ),
+        id: agreementId,
+        producerId: eservice.producerId,
+        descriptorId: descriptor.id,
+      };
+
+      await addOneTenant(consumer, tenants);
+      await addOneEService(eservice, eservices);
+      await addOneAgreement(agreement, postgresDB, agreements);
+
+      await expect(
+        agreementService.cloneAgreement(agreement.id, authData, uuidv4())
+      ).rejects.toThrowError(
+        missingCertifiedAttributesError(descriptor.id, consumerId)
+      );
     });
   });

@@ -1080,6 +1080,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
     });
 
     it("should throw a tenantIdNotFound error when the tenant does not exist", async () => {
+      await addOneAgreement(getMockAgreement(), postgresDB, agreements);
       const authData = getRandomAuthData();
       const agreementId = generateId<AgreementId>();
       await expect(
