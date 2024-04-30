@@ -19,6 +19,7 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it } from "vitest";
+import { fileManagerDeleteError } from "pagopa-interop-commons";
 import {
   agreementDocumentAlreadyExists,
   agreementDocumentNotFound,
@@ -385,6 +386,28 @@ export const testAgreementConsumerDocuments = (): ReturnType<typeof describe> =>
           );
         await expect(removeAgreementConsumerDocument).rejects.toThrowError(
           agreementDocumentNotFound(notExistendDocumentId, agreement1.id)
+        );
+      });
+
+      it("should fail if the file deletion fails", async () => {
+        // eslint-disable-next-line functional/immutable-data
+        config.s3Bucket = "invalid-bucket"; // configure an invalid bucket to force a failure
+        const authData = getRandomAuthData(agreement1.consumerId);
+        const consumerDocument = agreement1.consumerDocuments[0];
+
+        await expect(
+          agreementService.removeAgreementConsumerDocument(
+            agreement1.id,
+            consumerDocument.id,
+            authData,
+            generateId()
+          )
+        ).rejects.toThrowError(
+          fileManagerDeleteError(
+            agreement1.consumerDocuments[0].path,
+            config.s3Bucket,
+            new Error("The specified bucket does not exist")
+          )
         );
       });
     });
