@@ -173,7 +173,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       };
 
       for (const doc of agreementConsumerDocuments) {
-        await uploadDocument(agreementId, doc.id, doc.name);
+        await uploadDocument(agreementId, doc.id, doc.name, fileManager);
       }
 
       const eservice = getMockEService(
@@ -402,7 +402,8 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       await uploadDocument(
         agreementToBeUpgraded.id,
         agreementConsumerDocument.id,
-        agreementConsumerDocument.name
+        agreementConsumerDocument.name,
+        fileManager
       );
 
       const eservice = getMockEService(
