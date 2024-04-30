@@ -19,10 +19,13 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.6.0)(zod@3.21.4)
+        version: 10.9.6(axios@1.6.8)(zod@3.21.4)
       '@zodios/express':
         specifier: 10.6.1
-        version: 10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.21.4)
+        version: 10.6.1(@zodios/core@10.9.6)(express@4.18.2)(zod@3.21.4)
+      axios:
+        specifier: 1.6.8
+        version: 1.6.8
       dotenv-flow:
         specifier: 3.2.0
         version: 3.2.0
@@ -162,13 +165,13 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.6.0)(zod@3.21.4)
+        version: 10.9.6(axios@1.6.8)(zod@3.21.4)
       '@zodios/express':
         specifier: 10.6.1
         version: 10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.21.4)
       axios:
-        specifier: 1.6.0
-        version: 1.6.0
+        specifier: 1.6.8
+        version: 1.6.8
       connection-string:
         specifier: 4.3.6
         version: 4.3.6
@@ -317,10 +320,13 @@ importers:
         version: 2.9.4
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.6.0)(zod@3.21.4)
+        version: 10.9.6(axios@1.6.8)(zod@3.21.4)
       '@zodios/plugins':
         specifier: 10.6.0
-        version: 10.6.0(@zodios/core@10.9.6)(axios@1.6.0)
+        version: 10.6.0(@zodios/core@10.9.6)(axios@1.6.8)
+      axios:
+        specifier: 1.6.8
+        version: 1.6.8
       connection-string:
         specifier: 4.3.6
         version: 4.3.6
@@ -378,13 +384,13 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.6.0)(zod@3.21.4)
+        version: 10.9.6(axios@1.6.8)(zod@3.21.4)
       '@zodios/express':
         specifier: 10.6.1
         version: 10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.21.4)
       axios:
-        specifier: 1.6.0
-        version: 1.6.0
+        specifier: 1.6.8
+        version: 1.6.8
       date-fns:
         specifier: 3.3.1
         version: 3.3.1
@@ -545,10 +551,13 @@ importers:
         version: 3.529.1
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.6.0)(zod@3.21.4)
+        version: 10.9.6(axios@1.6.8)(zod@3.21.4)
       '@zodios/express':
         specifier: 10.6.1
-        version: 10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.21.4)
+        version: 10.6.1(@zodios/core@10.9.6)(express@4.18.2)(zod@3.21.4)
+      axios:
+        specifier: 1.6.8
+        version: 1.6.8
       connection-string:
         specifier: 4.3.6
         version: 4.3.6
@@ -633,7 +642,10 @@ importers:
         version: 9.0.8
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.6.0)(zod@3.21.4)
+        version: 10.9.6(axios@1.6.8)(zod@3.21.4)
+      axios:
+        specifier: 1.6.8
+        version: 1.6.8
       jsonwebtoken:
         specifier: 9.0.2
         version: 9.0.2
@@ -883,10 +895,13 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 10.9.2
-        version: 10.9.2(axios@1.6.0)(zod@3.21.4)
+        version: 10.9.2(axios@1.6.8)(zod@3.21.4)
       '@zodios/express':
         specifier: 10.6.1
-        version: 10.6.1(@zodios/core@10.9.2)(express@4.19.2)(zod@3.21.4)
+        version: 10.6.1(@zodios/core@10.9.2)(express@4.18.2)(zod@3.21.4)
+      axios:
+        specifier: 1.6.8
+        version: 1.6.8
       dotenv-flow:
         specifier: 3.2.0
         version: 3.2.0
@@ -1011,7 +1026,10 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.6.0)(zod@3.21.4)
+        version: 10.9.6(axios@1.6.8)(zod@3.21.4)
+      axios:
+        specifier: 1.6.8
+        version: 1.6.8
       zod:
         specifier: 3.21.4
         version: 3.21.4
@@ -1039,10 +1057,13 @@ importers:
         version: 9.0.8
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.6.0)(zod@3.21.4)
+        version: 10.9.6(axios@1.6.8)(zod@3.21.4)
       '@zodios/express':
         specifier: 10.6.1
-        version: 10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.21.4)
+        version: 10.6.1(@zodios/core@10.9.6)(express@4.18.2)(zod@3.21.4)
+      axios:
+        specifier: 1.6.8
+        version: 1.6.8
       dotenv-flow:
         specifier: 3.2.0
         version: 3.2.0
@@ -4604,7 +4625,7 @@ packages:
     resolution: {integrity: sha512-KqQnQbdYE54D7oa/UmYVMZKq7CO4l8DEENzOKc4aBRwxCXSlJXGz83flFx5L7AWrOQnmuN3kVsRdt+GZPPjiVQ==}
     deprecated: This is a stub types definition for axios (https://github.com/mzabriskie/axios). axios provides its own type definitions, so you don't need @types/axios installed!
     dependencies:
-      axios: 1.6.0
+      axios: 1.6.8
     transitivePeerDependencies:
       - debug
     dev: true
@@ -4930,32 +4951,23 @@ packages:
       pretty-format: 29.6.1
     dev: true
 
-  /@zodios/core@10.9.2(axios@1.6.0)(zod@3.21.4):
+  /@zodios/core@10.9.2(axios@1.6.8)(zod@3.21.4):
     resolution: {integrity: sha512-aY8FgE6Y+91oBaMfTnqibGoHO62OiKKHoiQAq76PYJbU7InFeWsSRhpnBwpibWopRjz45AlqojxKo3QeSAYC7w==}
     peerDependencies:
       axios: ^0.x || ^1.0.0
       zod: ^3.x
     dependencies:
-      axios: 1.6.0
+      axios: 1.6.8
       zod: 3.21.4
     dev: false
 
-  /@zodios/core@10.9.6(axios@1.6.0)(zod@3.21.4):
+  /@zodios/core@10.9.6(axios@1.6.8)(zod@3.21.4):
     resolution: {integrity: sha512-aH4rOdb3AcezN7ws8vDgBfGboZMk2JGGzEq/DtW65MhnRxyTGRuLJRWVQ/2KxDgWvV2F5oTkAS+5pnjKbl0n+A==}
     peerDependencies:
       axios: ^0.x || ^1.0.0
       zod: ^3.x
     dependencies:
-      axios: 1.6.0
-      zod: 3.21.4
-
-  /@zodios/core@10.9.6(axios@1.6.5)(zod@3.21.4):
-    resolution: {integrity: sha512-aH4rOdb3AcezN7ws8vDgBfGboZMk2JGGzEq/DtW65MhnRxyTGRuLJRWVQ/2KxDgWvV2F5oTkAS+5pnjKbl0n+A==}
-    peerDependencies:
-      axios: ^0.x || ^1.0.0
-      zod: ^3.x
-    dependencies:
-      axios: 1.6.5
+      axios: 1.6.8
       zod: 3.21.4
 
   /@zodios/express@10.6.1(@zodios/core@10.9.2)(express@4.19.2)(zod@3.21.4):
@@ -4965,7 +4977,7 @@ packages:
       express: 4.x
       zod: ^3.x
     dependencies:
-      '@zodios/core': 10.9.2(axios@1.6.0)(zod@3.21.4)
+      '@zodios/core': 10.9.2(axios@1.6.8)(zod@3.21.4)
       express: 4.18.2
       zod: 3.21.4
     dev: false
@@ -4977,19 +4989,19 @@ packages:
       express: 4.x
       zod: ^3.x
     dependencies:
-      '@zodios/core': 10.9.6(axios@1.6.0)(zod@3.21.4)
+      '@zodios/core': 10.9.6(axios@1.6.8)(zod@3.21.4)
       express: 4.18.2
       zod: 3.21.4
     dev: false
 
-  /@zodios/plugins@10.6.0(@zodios/core@10.9.6)(axios@1.6.0):
+  /@zodios/plugins@10.6.0(@zodios/core@10.9.6)(axios@1.6.8):
     resolution: {integrity: sha512-0cQZcFfc2AVyIqOQCUYB3k3c4RNMM0gZW1did83QarbfJsnNQAY0W/GtWyzmLIyF0/RI41E1xg1VZ7Xndc4KlA==}
     peerDependencies:
       '@zodios/core': ^10.x
       axios: ^0.x || ^1.0.0
     dependencies:
-      '@zodios/core': 10.9.6(axios@1.6.0)(zod@3.21.4)
-      axios: 1.6.0
+      '@zodios/core': 10.9.6(axios@1.6.8)(zod@3.21.4)
+      axios: 1.6.8
       qs: 6.11.0
     dev: false
 
@@ -5226,19 +5238,10 @@ packages:
     engines: {node: '>= 0.4'}
     dev: true
 
-  /axios@1.6.0:
-    resolution: {integrity: sha512-EZ1DYihju9pwVB+jg67ogm+Tmqc6JmhamRN6I4Zt8DfZu5lbcQGw3ozH9lFejSJgs/ibaef3A9PMXPLeefFGJg==}
+  /axios@1.6.8:
+    resolution: {integrity: sha512-v/ZHtJDU39mDpyBoFVkETcd/uNdxrWRrg3bKpOKzXFA6Bvqopts6ALSMU3y6ijYxbw2B+wPrIv46egTzJXCLGQ==}
     dependencies:
-      follow-redirects: 1.15.5
-      form-data: 4.0.0
-      proxy-from-env: 1.1.0
-    transitivePeerDependencies:
-      - debug
-
-  /axios@1.6.5:
-    resolution: {integrity: sha512-Ii012v05KEVuUoFWmMW/UQv9aRIc3ZwkWDcM+h5Il8izZCtRVpDUfwpoFf7eOtajT3QiGR4yDUx7lPqHJULgbg==}
-    dependencies:
-      follow-redirects: 1.15.5
+      follow-redirects: 1.15.6
       form-data: 4.0.0
       proxy-from-env: 1.1.0
     transitivePeerDependencies:
@@ -6441,8 +6444,8 @@ packages:
     resolution: {integrity: sha512-GRnmB5gPyJpAhTQdSZTSp9uaPSvl09KoYcMQtsB9rQoOmzs9dH6ffeccH+Z+cv6P68Hu5bC6JjRh4Ah/mHSNRw==}
     dev: false
 
-  /follow-redirects@1.15.5:
-    resolution: {integrity: sha512-vSFWUON1B+yAw1VN4xMfxgn5fTUiaOzAJCKBwIIgT/+7CuGy9+r+5gITvP62j3RmaD5Ph65UaERdOSRGUzZtgw==}
+  /follow-redirects@1.15.6:
+    resolution: {integrity: sha512-wWN62YITEaOpSK584EZXJafH1AGpO8RVgElfkuXbTOrPX4fIfOyEpW/CsiNd8JdYrAoOvafRTOEnvsO++qCqFA==}
     engines: {node: '>=4.0'}
     peerDependencies:
       debug: '*'
@@ -7469,8 +7472,8 @@ packages:
     dependencies:
       '@apidevtools/swagger-parser': 10.1.0(openapi-types@12.1.3)
       '@liuli-util/fs-extra': 0.1.0
-      '@zodios/core': 10.9.6(axios@1.6.5)(zod@3.21.4)
-      axios: 1.6.5
+      '@zodios/core': 10.9.6(axios@1.6.8)(zod@3.21.4)
+      axios: 1.6.8
       cac: 6.7.14
       handlebars: 4.7.7
       openapi-types: 12.1.3
