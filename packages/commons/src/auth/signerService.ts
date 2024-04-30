@@ -8,7 +8,7 @@ import {
   thirdPartyCallError,
   genericInternalError,
 } from "pagopa-interop-models";
-import { genericLogger, signerConfig } from "../index.js";
+import { Logger, signerConfig } from "../index.js";
 
 /**
  * Service to sign data using AWS KMS
@@ -30,7 +30,7 @@ export type SignerService = {
   signWithRSA256: (keyId: string, data: string) => Promise<string>;
 };
 
-export const buildSignerService = (): SignerService => {
+export const buildSignerService = (logger: Logger): SignerService => {
   const config = signerConfig();
   const kmsClient = new KMSClient([
     {
@@ -64,7 +64,7 @@ export const buildSignerService = (): SignerService => {
           .replaceAll("/", "_");
       } catch (err) {
         const internalError = thirdPartyCallError("KMS", JSON.stringify(err));
-        genericLogger.error(internalError);
+        logger.error(internalError);
         throw internalError;
       }
     },

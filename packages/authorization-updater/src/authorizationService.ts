@@ -27,7 +27,7 @@ export type AuthorizationService = {
 export const authorizationServiceBuilder =
   async (): Promise<AuthorizationService> => {
     const authMgmtClient = buildAuthMgmtClient();
-    const tokenGenerator = buildInteropTokenGenerator();
+    const tokenGenerator = buildInteropTokenGenerator(genericLogger);
     const jwtConfig = jwtSeedConfig();
 
     const tokenPayloadSeed = {

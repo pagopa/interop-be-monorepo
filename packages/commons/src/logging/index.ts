@@ -98,7 +98,7 @@ const getLogger = (serviceName?: string) =>
 
 const internal_logger = getLogger();
 
-export const logger = (loggerMetadata: LoggerMetadata) => ({  
+export const logger = (loggerMetadata: LoggerMetadata) => ({
   isDebugEnabled: () => internal_logger.isDebugEnabled(),
   debug: (msg: (typeof internal_logger.debug.arguments)[0]) =>
     internal_logger.debug(msg, { loggerMetadata }),
@@ -110,9 +110,9 @@ export const logger = (loggerMetadata: LoggerMetadata) => ({
     internal_logger.error(msg, { loggerMetadata }),
 });
 
-export const genericLogger = logger({});
-
 export type Logger = ReturnType<typeof logger>;
+
+export const genericLogger = logger({});
 
 export * from "./loggerMiddleware.js";
 

@@ -21,6 +21,7 @@ export type ZodiosContext = NonNullable<typeof zodiosCtx>;
 export type ExpressContext = NonNullable<typeof zodiosCtx.context>;
 
 export const ctx = z.object({
+  serviceName: z.string(),
   authData: AuthData,
   correlationId: z.string(),
 });
@@ -30,18 +31,17 @@ export type ZodiosCtx = z.infer<typeof ctx>;
 
 export type WithLogger<T> = T & { logger: Logger };
 
-export function fromZodiosCtx(
-  serviceName: string,
-  ctx: ZodiosCtx
-): WithLogger<ZodiosCtx> {
-  return { ...ctx, logger: logger({ serviceName, ...ctx }) };
+export function fromZodiosCtx(ctx: ZodiosCtx): WithLogger<ZodiosCtx> {
+  return { ...ctx, logger: logger({ ...ctx }) };
 }
 
-export const contextMiddleware: ZodiosRouterContextRequestHandler<
-  ExpressContext
-> = (req, _res, next): void => {
-  // eslint-disable-next-line functional/immutable-data
-  req.ctx.correlationId = readCorrelationIdHeader(req) ?? uuidv4();
+export const contextMiddleware =
+  (serviceName: string): ZodiosRouterContextRequestHandler<ExpressContext> =>
+  (req, _res, next): void => {
+    // eslint-disable-next-line functional/immutable-data
+    req.ctx.serviceName = serviceName;
+    // eslint-disable-next-line functional/immutable-data
+    req.ctx.correlationId = readCorrelationIdHeader(req) ?? uuidv4();
 
-  next();
-};
+    next();
+  };

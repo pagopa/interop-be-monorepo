@@ -70,8 +70,10 @@ export async function submitAgreementLogic(
   eserviceQuery: EserviceQuery,
   agreementQuery: AgreementQuery,
   tenantQuery: TenantQuery,
-  { authData, correlationId, logger }: WithLogger<ZodiosCtx>
+  ctx: WithLogger<ZodiosCtx>
 ): Promise<Array<CreateEvent<AgreementEvent>>> {
+  const logger = ctx.logger;
+
   logger.info(`Submitting agreement ${agreementId}`);
 
   const agreement = await agreementQuery.getAgreementById(agreementId, logger);
@@ -80,7 +82,7 @@ export async function submitAgreementLogic(
     throw agreementNotFound(agreementId);
   }
 
-  assertRequesterIsConsumer(agreement.data, authData);
+  assertRequesterIsConsumer(agreement.data, ctx.authData);
   assertSubmittableState(agreement.data.state, agreement.data.id);
   await verifySubmissionConflictingAgreements(
     agreement.data,
@@ -119,7 +121,7 @@ export async function submitAgreementLogic(
     agreementQuery,
     tenantQuery,
     constractBuilder,
-    { authData, correlationId, logger }
+    ctx
   );
 }
 

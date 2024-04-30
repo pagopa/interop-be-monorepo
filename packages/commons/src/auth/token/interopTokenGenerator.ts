@@ -2,7 +2,7 @@
 import { Algorithm, JwtHeader, JwtPayload } from "jsonwebtoken";
 import { tokenGenerationError } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
-import { genericLogger, signerConfig } from "../../index.js";
+import { Logger, signerConfig } from "../../index.js";
 import { userRoles } from "../authData.js";
 import { buildSignerService } from "../signerService.js";
 import { InternalToken, TokenSeed, TokenPayloadSeed } from "./token.js";
@@ -36,9 +36,11 @@ const createInternalToken = (
   };
 };
 
-export const buildInteropTokenGenerator = (): InteropTokenGenerator => {
+export const buildInteropTokenGenerator = (
+  logger: Logger
+): InteropTokenGenerator => {
   // Hosting all the dependencies to collect all process env reading at one time
-  const signerService = buildSignerService();
+  const signerService = buildSignerService(logger);
   const { rsaKeysIdentifiers } = signerConfig();
 
   const createSignedJWT = async (
@@ -74,7 +76,7 @@ export const buildInteropTokenGenerator = (): InteropTokenGenerator => {
     const serializedToken = `${encodedHeader}.${encodedPayload}`;
     const signature = await signerService.signWithRSA256(kid, serializedToken);
 
-    genericLogger.info(`Interop internal Token generated`);
+    logger.info(`Interop internal Token generated`);
     return `${serializedToken}.${signature}`;
   };
 

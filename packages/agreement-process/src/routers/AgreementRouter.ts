@@ -83,8 +83,6 @@ const {
   SUPPORT_ROLE,
 } = userRoles;
 
-const serviceName = "agreement-process";
-
 const agreementRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
@@ -96,7 +94,7 @@ const agreementRouter = (
     "/agreements/:agreementId/submit",
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
-      const ctx = fromZodiosCtx(serviceName, req.ctx);
+      const ctx = fromZodiosCtx(req.ctx);
 
       try {
         const id = await agreementService.submitAgreement(
@@ -120,7 +118,7 @@ const agreementRouter = (
     "/agreements/:agreementId/activate",
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
-      const ctx = fromZodiosCtx(serviceName, req.ctx);
+      const ctx = fromZodiosCtx(req.ctx);
 
       try {
         const agreementId: Agreement["id"] =
@@ -145,7 +143,7 @@ const agreementRouter = (
     "/agreements/:agreementId/consumer-documents",
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
-      const ctx = fromZodiosCtx(serviceName, req.ctx);
+      const ctx = fromZodiosCtx(req.ctx);
 
       try {
         const id = await agreementService.addConsumerDocument(
@@ -170,7 +168,7 @@ const agreementRouter = (
     "/agreements/:agreementId/consumer-documents/:documentId",
     authorizationMiddleware([ADMIN_ROLE, SUPPORT_ROLE]),
     async (req, res) => {
-      const ctx = fromZodiosCtx(serviceName, req.ctx);
+      const ctx = fromZodiosCtx(req.ctx);
 
       try {
         const document = await agreementService.getAgreementConsumerDocument(
@@ -197,7 +195,7 @@ const agreementRouter = (
     "/agreements/:agreementId/consumer-documents/:documentId",
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
-      const ctx = fromZodiosCtx(serviceName, req.ctx);
+      const ctx = fromZodiosCtx(req.ctx);
 
       try {
         await agreementService.removeAgreementConsumerDocument(
@@ -221,7 +219,7 @@ const agreementRouter = (
     "/agreements/:agreementId/suspend",
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
-      const ctx = fromZodiosCtx(serviceName, req.ctx);
+      const ctx = fromZodiosCtx(req.ctx);
 
       try {
         const id = await agreementService.suspendAgreement(
@@ -244,7 +242,7 @@ const agreementRouter = (
     "/agreements/:agreementId/reject",
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
-      const ctx = fromZodiosCtx(serviceName, req.ctx);
+      const ctx = fromZodiosCtx(req.ctx);
 
       try {
         const id = await agreementService.rejectAgreement(
@@ -268,7 +266,7 @@ const agreementRouter = (
     "/agreements/:agreementId/archive",
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
-      const ctx = fromZodiosCtx(serviceName, req.ctx);
+      const ctx = fromZodiosCtx(req.ctx);
 
       try {
         const agreementId = await agreementService.archiveAgreement(
@@ -291,7 +289,7 @@ const agreementRouter = (
     "/agreements",
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
-      const ctx = fromZodiosCtx(serviceName, req.ctx);
+      const ctx = fromZodiosCtx(req.ctx);
 
       try {
         const id = await agreementService.createAgreement(req.body, ctx);
@@ -317,7 +315,7 @@ const agreementRouter = (
       SUPPORT_ROLE,
     ]),
     async (req, res) => {
-      const ctx = fromZodiosCtx(serviceName, req.ctx);
+      const ctx = fromZodiosCtx(req.ctx);
 
       try {
         const agreements = await agreementService.getAgreements(
@@ -361,7 +359,7 @@ const agreementRouter = (
       SUPPORT_ROLE,
     ]),
     async (req, res) => {
-      const ctx = fromZodiosCtx(serviceName, req.ctx);
+      const ctx = fromZodiosCtx(req.ctx);
 
       try {
         const producers = await agreementService.getAgreementProducers(
@@ -394,7 +392,7 @@ const agreementRouter = (
       SUPPORT_ROLE,
     ]),
     async (req, res) => {
-      const ctx = fromZodiosCtx(serviceName, req.ctx);
+      const ctx = fromZodiosCtx(req.ctx);
 
       try {
         const consumers = await agreementService.getAgreementConsumers(
@@ -429,7 +427,7 @@ const agreementRouter = (
       SUPPORT_ROLE,
     ]),
     async (req, res) => {
-      const ctx = fromZodiosCtx(serviceName, req.ctx);
+      const ctx = fromZodiosCtx(req.ctx);
 
       try {
         const agreement = await agreementService.getAgreementById(
@@ -452,7 +450,7 @@ const agreementRouter = (
     "/agreements/:agreementId",
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
-      const ctx = fromZodiosCtx(serviceName, req.ctx);
+      const ctx = fromZodiosCtx(req.ctx);
 
       try {
         await agreementService.deleteAgreementById(
@@ -475,7 +473,7 @@ const agreementRouter = (
     "/agreements/:agreementId/update",
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
-      const ctx = fromZodiosCtx(serviceName, req.ctx);
+      const ctx = fromZodiosCtx(req.ctx);
 
       try {
         await agreementService.updateAgreement(
@@ -500,7 +498,7 @@ const agreementRouter = (
     "/agreements/:agreementId/upgrade",
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
-      const ctx = fromZodiosCtx(serviceName, req.ctx);
+      const ctx = fromZodiosCtx(req.ctx);
 
       try {
         const id = await agreementService.upgradeAgreement(
@@ -524,7 +522,7 @@ const agreementRouter = (
     "/agreements/:agreementId/clone",
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
-      const ctx = fromZodiosCtx(serviceName, req.ctx);
+      const ctx = fromZodiosCtx(req.ctx);
 
       try {
         const id = await agreementService.cloneAgreement(
@@ -557,7 +555,7 @@ const agreementRouter = (
       SUPPORT_ROLE,
     ]),
     async (req, res) => {
-      const ctx = fromZodiosCtx(serviceName, req.ctx);
+      const ctx = fromZodiosCtx(req.ctx);
 
       try {
         const eservices = await agreementService.getAgreementEServices(

@@ -46,8 +46,6 @@ const tenantService = tenantServiceBuilder(
   readModelService
 );
 
-const serviceName = "tenant-process";
-
 const tenantsRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
@@ -72,7 +70,7 @@ const tenantsRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const { logger } = fromZodiosCtx(serviceName, req.ctx);
+        const { logger } = fromZodiosCtx(req.ctx);
 
         try {
           const { name, offset, limit } = req.query;
@@ -104,7 +102,7 @@ const tenantsRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const { logger } = fromZodiosCtx(serviceName, req.ctx);
+        const { logger } = fromZodiosCtx(req.ctx);
 
         try {
           const { name, offset, limit } = req.query;
@@ -135,7 +133,7 @@ const tenantsRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const { logger } = fromZodiosCtx(serviceName, req.ctx);
+        const { logger } = fromZodiosCtx(req.ctx);
 
         try {
           const { name, offset, limit } = req.query;
@@ -169,7 +167,7 @@ const tenantsRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(serviceName, req.ctx);
+        const ctx = fromZodiosCtx(req.ctx);
 
         try {
           const tenant = await tenantService.getTenantById(
@@ -211,7 +209,7 @@ const tenantsRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(serviceName, req.ctx);
+        const ctx = fromZodiosCtx(req.ctx);
 
         try {
           const { origin, code } = req.params;
@@ -254,7 +252,7 @@ const tenantsRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(serviceName, req.ctx);
+        const ctx = fromZodiosCtx(req.ctx);
 
         try {
           const tenant = await tenantService.getTenantBySelfcareId(
@@ -296,7 +294,7 @@ const tenantsRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(serviceName, req.ctx);
+        const ctx = fromZodiosCtx(req.ctx);
 
         try {
           const { offset, limit } = req.query;
@@ -348,7 +346,7 @@ const tenantsRouter = (
         INTERNAL_ROLE,
       ]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(serviceName, req.ctx);
+        const ctx = fromZodiosCtx(req.ctx);
 
         try {
           const id = await tenantService.selfcareUpsertTenant(req.body, ctx);
@@ -372,7 +370,7 @@ const tenantsRouter = (
       "/tenants/:tenantId/attributes/verified/:attributeId",
       authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(serviceName, req.ctx);
+        const ctx = fromZodiosCtx(req.ctx);
 
         try {
           const { tenantId, attributeId } = req.params;
@@ -400,7 +398,7 @@ const tenantsRouter = (
       "/tenants/:tenantId/attributes/verified/:attributeId/verifier/:verifierId",
       authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(serviceName, req.ctx);
+        const ctx = fromZodiosCtx(req.ctx);
 
         try {
           const { tenantId, attributeId, verifierId } = req.params;
