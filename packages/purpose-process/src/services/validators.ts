@@ -4,6 +4,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   Purpose,
+  PurposeVersion,
   RiskAnalysisForm,
   TenantKind,
   purposeVersionState,
@@ -29,3 +30,10 @@ export const isRiskAnalysisFormValid = (
 
 export const purposeIsDraft = (purpose: Purpose): boolean =>
   !purpose.versions.some((v) => v.state !== purposeVersionState.draft);
+
+export const isDeletableVersion = (
+  purposeVersion: PurposeVersion,
+  purpose: Purpose
+): boolean =>
+  purposeVersion.state === purposeVersionState.waitingForApproval &&
+  purpose.versions.length !== 1;
