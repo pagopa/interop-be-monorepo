@@ -45,7 +45,7 @@ export const isRiskAnalysisFormValid = (
 };
 
 export const purposeIsDraft = (purpose: Purpose): boolean =>
-  !purpose.versions.some((v) => v.state !== purposeVersionState.draft);
+  purpose.versions[0]?.state === purposeVersionState.draft;
 
 export const isRejectable = (purposeVersion: PurposeVersion): boolean =>
   purposeVersion.state === purposeVersionState.waitingForApproval;
