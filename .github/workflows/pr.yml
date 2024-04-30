@@ -31,6 +31,19 @@ jobs:
           run_install: true
       - run: pnpm lint
 
+  check:
+    name: Check 
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - uses: pnpm/action-setup@v2
+        with:
+          run_install: true
+      - run: pnpm check
+
   test:
     name: Test
     runs-on: ubuntu-latest
