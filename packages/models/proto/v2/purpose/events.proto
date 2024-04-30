@@ -34,7 +34,8 @@ message NewPurposeVersionActivatedV2 {
 }
 
 message PurposeVersionActivatedV2 {
-  PurposeV2 purpose = 1;
+  string versionId = 1;
+  PurposeV2 purpose = 2;
 }
 
 message PurposeVersionUnsuspendedByProducerV2 {
@@ -68,7 +69,8 @@ message PurposeVersionOverQuotaUnsuspendedV2 {
 }
 
 message PurposeArchivedV2 {
-  PurposeV2 purpose = 1;
+  string versionId = 1;
+  PurposeV2 purpose = 2;
 }
 
 message WaitingForApprovalPurposeVersionDeletedV2 {

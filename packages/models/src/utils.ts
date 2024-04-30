@@ -1,11 +1,11 @@
-export const bigIntToDateOrUndefined = (
-  input: bigint | undefined
-): Date | undefined => (input ? new Date(Number(input)) : undefined);
+export function bigIntToDate(input: bigint): Date;
+export function bigIntToDate(input: bigint | undefined): Date | undefined;
+export function bigIntToDate(input: bigint | undefined): Date | undefined {
+  return input ? new Date(Number(input)) : undefined;
+}
 
-export const bigIntToDate = (input: bigint): Date => new Date(Number(input));
-
-export const dateToBigIntOrUndefined = (
-  input: Date | undefined
-): bigint | undefined => (input ? BigInt(input.getTime()) : undefined);
-
-export const dateToBigInt = (input: Date): bigint => BigInt(input.getTime());
+export function dateToBigInt(input: Date): bigint;
+export function dateToBigInt(input: Date | undefined): bigint | undefined;
+export function dateToBigInt(input: Date | undefined): bigint | undefined {
+  return input ? BigInt(input.getTime()) : undefined;
+}
