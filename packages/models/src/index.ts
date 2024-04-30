@@ -46,9 +46,6 @@ export * from "./read-models/attributeReadModel.js";
 export * from "./read-models/eserviceReadModel.js";
 export * from "./read-models/readModels.js";
 
-// Event store
-export * from "./event-store/dbSchema.js";
-
 // Utilities
 export * from "./brandedIds.js";
 export * from "./errors.js";
