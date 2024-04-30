@@ -25,6 +25,7 @@ import {
   updateTenantVerifiedAttributeErrorMapper,
   selfcareUpsertTenantErrorMapper,
   getCertifiedAttributesErrorMapper,
+  maintenanceTenantDeletedErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../utilities/config.js";
@@ -58,6 +59,7 @@ const tenantsRouter = (
     M2M_ROLE,
     INTERNAL_ROLE,
     SUPPORT_ROLE,
+    MAINTENANCE_ROLE,
   } = userRoles;
   tenantsRouter
     .get(
@@ -396,6 +398,25 @@ const tenantsRouter = (
       "/tenants/attributes/declared/:attributeId",
       authorizationMiddleware([ADMIN_ROLE]),
       async (_req, res) => res.status(501).send()
+    )
+    .delete(
+      "/tenants/:tenantId",
+      authorizationMiddleware([MAINTENANCE_ROLE]),
+      async (req, res) => {
+        try {
+          await tenantService.maintenanceTenantDeleted(
+            unsafeBrandId(req.params.tenantId),
+            req.ctx.correlationId
+          );
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            maintenanceTenantDeletedErrorMapper
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     );
 
   return tenantsRouter;

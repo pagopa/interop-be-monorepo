@@ -24,6 +24,7 @@ import { IDatabase } from "pg-promise";
 import {
   Descriptor,
   EService,
+  MaintenanceTenantDeletedV2,
   Tenant,
   TenantId,
   TenantOnboardDetailsUpdatedV2,
@@ -563,6 +564,38 @@ describe("Integration tests", () => {
         ).rejects.toThrowError(
           organizationNotFoundInVerifiers(verifierId, tenant.id, attributeId)
         );
+      });
+    });
+
+    describe("maintenanceTenantDeleted", async () => {
+      it("should write on event-store for the deletion of a tenant", async () => {
+        await addOneTenant(mockTenant, postgresDB, tenants);
+        await tenantService.maintenanceTenantDeleted(
+          mockTenant.id,
+          generateId()
+        );
+        const writtenEvent = await readLastTenantEvent(
+          mockTenant.id,
+          postgresDB
+        );
+        if (!writtenEvent) {
+          fail("Creation failed: tenant not found in event-store");
+        }
+        expect(writtenEvent).toMatchObject({
+          stream_id: mockTenant.id,
+          version: "1",
+          type: "MaintenanceTenantDeleted",
+          event_version: 2,
+        });
+        const writtenPayload: MaintenanceTenantDeletedV2 | undefined =
+          protobufDecoder(MaintenanceTenantDeletedV2).parse(writtenEvent.data);
+
+        expect(writtenPayload.tenant).toEqual(toTenantV2(mockTenant));
+      });
+      it("Should throw operationForbidden when tenantId is not the organizationId", async () => {
+        expect(
+          tenantService.maintenanceTenantDeleted(mockTenant.id, generateId())
+        ).rejects.toThrowError(tenantNotFound(mockTenant.id));
       });
     });
   });

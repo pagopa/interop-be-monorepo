@@ -21,6 +21,7 @@ import {
   toCreateEventTenantVerifiedAttributeExtensionUpdated,
   toCreateEventTenantOnboardDetailsUpdated,
   toCreateEventTenantOnboarded,
+  toCreateEventMaintenanceTenantDeleted,
 } from "../model/domain/toEvent.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
@@ -279,6 +280,24 @@ export function tenantServiceBuilder(
         offset,
         limit,
       });
+    },
+
+    async maintenanceTenantDeleted(
+      tenantId: TenantId,
+      correlationId: string
+    ): Promise<void> {
+      logger.info(`Deleting Tenant ${tenantId}`);
+
+      const tenant = await retrieveTenant(tenantId, readModelService);
+
+      await repository.createEvent(
+        toCreateEventMaintenanceTenantDeleted(
+          tenantId,
+          tenant.metadata.version,
+          tenant.data,
+          correlationId
+        )
+      );
     },
 
     async getProducers({
