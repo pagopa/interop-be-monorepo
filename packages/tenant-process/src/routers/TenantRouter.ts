@@ -421,7 +421,7 @@ const tenantsRouter = (
       async (_req, res) => res.status(501).send()
     )
     .delete(
-      "/tenants/:tenantId",
+      "/maintenance/tenants/:tenantId",
       authorizationMiddleware([MAINTENANCE_ROLE]),
       async (req, res) => {
         try {
