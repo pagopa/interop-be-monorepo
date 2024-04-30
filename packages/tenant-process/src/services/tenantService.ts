@@ -9,10 +9,12 @@ import {
   generateId,
   tenantEventToBinaryData,
   ExternalId,
+  operationForbidden,
 } from "pagopa-interop-models";
 import {
   CertifiedAttributeQueryResult,
   UpdateVerifiedTenantAttributeSeed,
+  CertifierPromotionPayload,
 } from "../model/domain/models.js";
 import { ApiSelfcareTenantSeed } from "../model/types.js";
 import { tenantNotFound } from "../model/domain/errors.js";
@@ -22,6 +24,7 @@ import {
   toCreateEventTenantOnboardDetailsUpdated,
   toCreateEventTenantOnboarded,
   toCreateEventMaintenanceTenantDeleted,
+  toCreateEventMaintenanceTenantPromotedToCertifier,
 } from "../model/domain/toEvent.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
@@ -298,6 +301,49 @@ export function tenantServiceBuilder(
           correlationId
         )
       );
+    },
+
+    async addCertifierId(
+      tenantId: TenantId,
+      correlationId: string,
+      payload: CertifierPromotionPayload
+    ): Promise<Tenant> {
+      logger.info(`Adding certifierId to Tenant ${tenantId}`);
+
+      const tenant = await retrieveTenant(tenantId, readModelService);
+
+      const certifierFeatures = tenant.data.features.find(
+        (certifier) =>
+          certifier.type === "PersistentCertifier" &&
+          /* To add the certifierId the tenant should not already be a certifier for this the condition is !== */
+          certifier.certifierId !== payload.certifierId
+      );
+
+      // Maybe we can throw the error tenantNotMeetTheRequirements
+      if (!certifierFeatures) {
+        throw operationForbidden;
+      }
+
+      const updatedTenant: Tenant = {
+        ...tenant.data,
+        features: [
+          {
+            ...certifierFeatures,
+            certifierId: generateId(),
+          },
+        ],
+        updatedAt: new Date(),
+      };
+
+      await repository.createEvent(
+        toCreateEventMaintenanceTenantPromotedToCertifier(
+          tenantId,
+          tenant.metadata.version,
+          updatedTenant,
+          correlationId
+        )
+      );
+      return updatedTenant;
     },
 
     async getProducers({

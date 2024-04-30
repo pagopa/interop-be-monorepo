@@ -22,9 +22,11 @@ import {
 } from "pagopa-interop-commons-test";
 import { IDatabase } from "pg-promise";
 import {
+  CertifierV2,
   Descriptor,
   EService,
   MaintenanceTenantDeletedV2,
+  MaintenanceTenantPromotedToCertifierV2,
   Tenant,
   TenantId,
   TenantOnboardDetailsUpdatedV2,
@@ -49,7 +51,10 @@ import {
   TenantService,
   tenantServiceBuilder,
 } from "../src/services/tenantService.js";
-import { UpdateVerifiedTenantAttributeSeed } from "../src/model/domain/models.js";
+import {
+  CertifierPromotionPayload,
+  UpdateVerifiedTenantAttributeSeed,
+} from "../src/model/domain/models.js";
 import {
   expirationDateCannotBeInThePast,
   organizationNotFoundInVerifiers,
@@ -596,6 +601,82 @@ describe("Integration tests", () => {
         expect(
           tenantService.maintenanceTenantDeleted(mockTenant.id, generateId())
         ).rejects.toThrowError(tenantNotFound(mockTenant.id));
+      });
+    });
+
+    describe("addCertifierId", async () => {
+      const payload: CertifierPromotionPayload = {
+        certifierId: generateId(),
+      };
+      const notCertifierTenant: Tenant = {
+        ...mockTenant,
+        features: [
+          {
+            type: "PersistentCertifier",
+            certifierId: "",
+          },
+        ],
+      };
+      it("should write on event-store for the addition of the certifierId to the tenant", async () => {
+        await addOneTenant(notCertifierTenant, postgresDB, tenants);
+        await tenantService.addCertifierId(
+          notCertifierTenant.id,
+          generateId(),
+          payload
+        );
+        const writtenEvent = await readLastTenantEvent(
+          notCertifierTenant.id,
+          postgresDB
+        );
+        if (!writtenEvent) {
+          fail("Creation failed: tenant not found in event-store");
+        }
+        expect(writtenEvent).toMatchObject({
+          stream_id: mockTenant.id,
+          version: "1",
+          type: "MaintenanceTenantPromotedToCertifier",
+          event_version: 2,
+        });
+        const writtenPayload:
+          | MaintenanceTenantPromotedToCertifierV2
+          | undefined = protobufDecoder(
+          MaintenanceTenantPromotedToCertifierV2
+        ).parse(writtenEvent.data);
+
+        const certifierId = (
+          writtenPayload.tenant!.features[0].sealedValue as unknown as {
+            oneOfKind: "certifier";
+            certifier: CertifierV2;
+          }
+        ).certifier.certifierId;
+
+        const expectedTenant: Tenant = {
+          ...mockTenant,
+          features: [
+            {
+              type: "PersistentCertifier",
+              certifierId,
+            },
+          ],
+          updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
+        };
+
+        expect(writtenPayload.tenant).toEqual(toTenantV2(expectedTenant));
+      });
+      it("Should throw tenantNotFound when tenant doesn't exist", async () => {
+        expect(
+          tenantService.addCertifierId(
+            notCertifierTenant.id,
+            generateId(),
+            payload
+          )
+        ).rejects.toThrowError(tenantNotFound(notCertifierTenant.id));
+      });
+      it("Should throw operationForbidden", async () => {
+        await addOneTenant(mockTenant, postgresDB, tenants);
+        expect(
+          tenantService.addCertifierId(mockTenant.id, generateId(), payload)
+        ).rejects.toThrowError(operationForbidden);
       });
     });
   });

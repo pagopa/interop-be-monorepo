@@ -37,3 +37,7 @@ export type CertifiedAttributeQueryResult = z.infer<
 export type UpdateVerifiedTenantAttributeSeed = z.infer<
   typeof api.schemas.UpdateVerifiedTenantAttributeSeed
 >;
+
+export type CertifierPromotionPayload = z.infer<
+  typeof api.schemas.CertifierPromotionPayload
+>;

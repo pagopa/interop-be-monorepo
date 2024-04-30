@@ -26,6 +26,7 @@ import {
   selfcareUpsertTenantErrorMapper,
   getCertifiedAttributesErrorMapper,
   maintenanceTenantDeletedErrorMapper,
+  maintenanceTenantPromotedToCertifierErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../utilities/config.js";
@@ -378,6 +379,26 @@ const tenantsRouter = (
       "/tenants/attributes/declared",
       authorizationMiddleware([ADMIN_ROLE]),
       async (_req, res) => res.status(501).send()
+    )
+    .post(
+      "/maintenance/tenants/:tenantId/certifier",
+      authorizationMiddleware([MAINTENANCE_ROLE]),
+      async (req, res) => {
+        try {
+          const tenant = await tenantService.addCertifierId(
+            unsafeBrandId(req.params.tenantId),
+            req.ctx.correlationId,
+            req.body
+          );
+          return res.status(200).json(toApiTenant(tenant)).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            maintenanceTenantPromotedToCertifierErrorMapper
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .delete(
       "/internal/origin/:tOrigin/externalId/:tExternalId/attributes/origin/:aOrigin/externalId/:aExternalId",
