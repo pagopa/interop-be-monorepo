@@ -3,6 +3,7 @@ import {
   DB,
   FileManager,
   eventRepository,
+  formatDateAndTime,
   hasPermission,
   logger,
   riskAnalysisValidatedFormToNewRiskAnalysis,
@@ -91,7 +92,6 @@ import {
   tenantNotFound,
   eServiceRiskAnalysisNotFound,
 } from "../model/domain/errors.js";
-import { formatClonedEServiceDate } from "../utilities/date.js";
 import { ReadModelService } from "./readModelService.js";
 import {
   assertRequesterAllowed,
@@ -1158,7 +1158,7 @@ export function catalogServiceBuilder(
 
       const clonedEServiceName = `${
         eservice.data.name
-      } - clone - ${formatClonedEServiceDate(new Date())}`;
+      } - clone - ${formatDateAndTime(new Date())}`;
 
       if (
         await readModelService.getEServiceByNameAndProducerId({
