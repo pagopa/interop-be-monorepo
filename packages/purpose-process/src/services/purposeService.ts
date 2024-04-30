@@ -614,12 +614,19 @@ export function purposeServiceBuilder(
         id: generateId<PurposeVersionId>(),
       };
 
+      const updatedPurpose: Purpose = {
+        ...purpose.data,
+        versions: [...purpose.data.versions, newPurposeVersion],
+        updatedAt: new Date(),
+      };
+
       return await activateOrWaitingForApproval({
         eservice,
-        purpose,
+        purpose: updatedPurpose,
         purposeVersion: newPurposeVersion,
         organizationId,
         ownership,
+        version: purpose.metadata.version,
         correlationId,
         readModelService,
         storeFile: fileManager.storeBytes,
@@ -789,16 +796,18 @@ async function activateOrWaitingForApproval({
   organizationId,
   ownership,
   readModelService,
+  version,
   correlationId,
   storeFile,
   repository,
 }: {
   eservice: EService;
-  purpose: WithMetadata<Purpose>;
+  purpose: Purpose;
   purposeVersion: PurposeVersion;
   organizationId: TenantId;
   ownership: Ownership;
   readModelService: ReadModelService;
+  version: number;
   correlationId: string;
   storeFile: FileManager["storeBytes"];
   repository: {
@@ -838,14 +847,14 @@ async function activateOrWaitingForApproval({
     };
 
     const updatedPurpose: Purpose = replacePurposeVersion(
-      purpose.data,
+      purpose,
       updatedPurposeVersion
     );
 
     return {
       event: toCreateEventPurposeWaitingForApproval({
         purpose: updatedPurpose,
-        version: purpose.metadata.version,
+        version,
         correlationId,
       }),
       updatedPurposeVersion,
@@ -864,8 +873,8 @@ async function activateOrWaitingForApproval({
     };
 
     const updatedPurpose: Purpose = {
-      ...purpose.data,
-      versions: [...purpose.data.versions, newPurposeVersion],
+      ...purpose,
+      versions: [...purpose.versions, newPurposeVersion],
       updatedAt: new Date(),
     };
 
@@ -873,7 +882,7 @@ async function activateOrWaitingForApproval({
       event: toCreateEventPurposeVersionOverQuotaUnsuspended({
         purpose: updatedPurpose,
         versionId: newPurposeVersion.id,
-        version: purpose.metadata.version,
+        version,
         correlationId,
       }),
       updatedPurposeVersion: newPurposeVersion,
@@ -896,7 +905,7 @@ async function activateOrWaitingForApproval({
 
     const [producer, consumer] = await Promise.all([
       getTenantById(eservice.producerId),
-      getTenantById(purpose.data.consumerId),
+      getTenantById(purpose.consumerId),
     ]);
 
     const eserviceInfo: EServiceInfo = {
@@ -924,7 +933,7 @@ async function activateOrWaitingForApproval({
 
     const riskAnalysisDocument = await pdfGenerator.createRiskAnalysisDocument(
       documentId,
-      purpose.data,
+      purpose,
       purposeVersion,
       eserviceInfo,
       tenantKind,
@@ -940,14 +949,14 @@ async function activateOrWaitingForApproval({
     };
 
     const updatedPurpose: Purpose = archiveOldVersion(
-      replacePurposeVersion(purpose.data, updatedPurposeVersion),
+      replacePurposeVersion(purpose, updatedPurposeVersion),
       updatedPurposeVersion.id
     );
 
     return {
       event: toCreateEventPurposeActivated({
         purpose: updatedPurpose,
-        version: purpose.metadata.version,
+        version,
         correlationId,
       }),
       updatedPurposeVersion,
@@ -985,11 +994,11 @@ async function activateOrWaitingForApproval({
     };
 
     if (ownership === "PRODUCER" || ownership === "SELF_CONSUMER") {
-      const updatedPurpose: Purpose = replacePurposeVersion(purpose.data, {
+      const updatedPurpose: Purpose = replacePurposeVersion(purpose, {
         ...updatedPurposeVersion,
         state: calcNewVersionState({
           suspendedByProducer: false,
-          suspendedByConsumer: purpose.data.suspendedByConsumer,
+          suspendedByConsumer: purpose.suspendedByConsumer,
         }),
       });
 
@@ -997,16 +1006,16 @@ async function activateOrWaitingForApproval({
         event: toCreateEventPurposeVersionUnsuspenedByProducer({
           purpose: { ...updatedPurpose, suspendedByProducer: false },
           versionId: purposeVersion.id,
-          version: purpose.metadata.version,
+          version,
           correlationId,
         }),
         updatedPurposeVersion,
       };
     } else {
-      const updatedPurpose: Purpose = replacePurposeVersion(purpose.data, {
+      const updatedPurpose: Purpose = replacePurposeVersion(purpose, {
         ...updatedPurposeVersion,
         state: calcNewVersionState({
-          suspendedByProducer: purpose.data.suspendedByProducer,
+          suspendedByProducer: purpose.suspendedByProducer,
           suspendedByConsumer: false,
         }),
       });
@@ -1014,7 +1023,7 @@ async function activateOrWaitingForApproval({
         event: toCreateEventPurposeVersionUnsuspenedByConsumer({
           purpose: { ...updatedPurpose, suspendedByConsumer: false },
           versionId: purposeVersion.id,
-          version: purpose.metadata.version,
+          version,
           correlationId,
         }),
         updatedPurposeVersion,
@@ -1035,7 +1044,7 @@ async function activateOrWaitingForApproval({
         if (
           await isLoadAllowed(
             eservice,
-            purpose.data,
+            purpose,
             purposeVersion,
             readModelService
           )
@@ -1063,8 +1072,7 @@ async function activateOrWaitingForApproval({
     )
     .with(
       { state: purposeVersionState.suspended, ownership: "CONSUMER" },
-      () =>
-        purpose.data.suspendedByConsumer && purpose.data.suspendedByProducer,
+      () => purpose.suspendedByConsumer && purpose.suspendedByProducer,
       () => activateFromSuspended()
     )
     .with(
@@ -1072,12 +1080,12 @@ async function activateOrWaitingForApproval({
         state: purposeVersionState.suspended,
         ownership: P.union("CONSUMER", "SELF_CONSUMER"),
       },
-      () => purpose.data.suspendedByConsumer,
+      () => purpose.suspendedByConsumer,
       async () => {
         if (
           await isLoadAllowed(
             eservice,
-            purpose.data,
+            purpose,
             purposeVersion,
             readModelService
           )

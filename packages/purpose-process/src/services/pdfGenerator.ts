@@ -36,7 +36,7 @@ const riskAnalysisTemplateMock = fs
   .toString();
 
 const createRiskAnalysisDocumentName = (): string =>
-  `${new Date()}_${generateId()}_risk_analysis.pdf`;
+  `${new Date().toISOString()}_${generateId()}_risk_analysis.pdf`;
 
 export const pdfGenerator = {
   createRiskAnalysisDocument: async (
