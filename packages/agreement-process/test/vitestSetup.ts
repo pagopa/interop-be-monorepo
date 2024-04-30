@@ -9,13 +9,10 @@ import {
 import { inject, afterEach } from "vitest";
 import {
   Agreement,
-  AgreementDocument,
-  AgreementDocumentId,
   AgreementEvent,
   AgreementId,
   EService,
   Tenant,
-  generateId,
   toReadModelEService,
   toReadModelAgreement,
 } from "pagopa-interop-models";
@@ -26,7 +23,6 @@ import { eserviceQueryBuilder } from "../src/services/readmodel/eserviceQuery.js
 import { readModelServiceBuilder } from "../src/services/readmodel/readModelService.js";
 import { tenantQueryBuilder } from "../src/services/readmodel/tenantQuery.js";
 import { toAgreementV1 } from "../src/model/domain/toEvent.js";
-import { config } from "../src/utilities/config.js";
 
 export const { readModelRepository, postgresDB, fileManager, cleanup } =
   setupTestContainersVitest(inject("config"));
@@ -87,18 +83,3 @@ export const readLastAgreementEvent = async (
   agreementId: AgreementId
 ): Promise<ReadEvent<AgreementEvent>> =>
   await readLastEventByStreamId(agreementId, "agreement", postgresDB);
-
-export function getMockConsumerDocument(
-  agreementId: AgreementId,
-  name: string = "mockDocument"
-): AgreementDocument {
-  const id = generateId<AgreementDocumentId>();
-  return {
-    id,
-    name,
-    path: `${config.consumerDocumentsPath}/${agreementId}/${id}/${name}`,
-    prettyName: "pretty name",
-    contentType: "application/pdf",
-    createdAt: new Date(),
-  };
-}

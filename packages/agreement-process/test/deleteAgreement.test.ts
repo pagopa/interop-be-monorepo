@@ -24,11 +24,11 @@ import {
 } from "../src/model/domain/errors.js";
 import {
   addOneAgreement,
-  getMockConsumerDocument,
   readLastAgreementEvent,
   agreementService,
   fileManager,
 } from "./vitestSetup.js";
+import { getMockConsumerDocument } from "./mocks.js";
 
 describe("delete agreement", () => {
   it("should succeed when requester is Consumer and the Agreement is in a deletable state", async () => {

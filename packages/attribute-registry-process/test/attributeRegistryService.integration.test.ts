@@ -22,11 +22,10 @@ import {
 import {
   addOneAttribute,
   addOneTenant,
-  getMockTenant,
-  getMockAuthData,
   readLastAttributeEvent,
   attributeRegistryService,
 } from "./vitestSetup.js";
+import { getMockAuthData, getMockTenant } from "./mocks.js";
 
 const mockAttribute = getMockAttribute();
 const mockTenant = getMockTenant();

@@ -5,13 +5,9 @@ import {
   AttributeEvent,
   AttributeId,
   Tenant,
-  TenantId,
-  generateId,
   toAttributeV1,
   toReadModelAttribute,
 } from "pagopa-interop-models";
-import { AuthData } from "pagopa-interop-commons";
-import { v4 as uuidv4 } from "uuid";
 import {
   ReadEvent,
   StoredEvent,
@@ -37,29 +33,6 @@ export const attributeRegistryService = attributeRegistryServiceBuilder(
   postgresDB,
   readModelService
 );
-
-export const getMockTenant = (): Tenant => ({
-  name: "tenant_Name",
-  id: generateId(),
-  createdAt: new Date(),
-  attributes: [],
-  externalId: {
-    value: "1234",
-    origin: "IPA",
-  },
-  features: [],
-  mails: [],
-});
-
-export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
-  organizationId: organizationId || generateId(),
-  userId: uuidv4(),
-  userRoles: [],
-  externalId: {
-    value: "123456",
-    origin: "IPA",
-  },
-});
 
 export const writeAttributeInEventstore = async (
   attribute: Attribute
