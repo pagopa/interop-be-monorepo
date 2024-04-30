@@ -156,6 +156,7 @@ export const testUpdatePurpose = (): ReturnType<typeof describe> =>
       );
 
       expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+      vi.useRealTimers();
     });
     it("Should write on event store for the update of a purpose of an e-service in mode RECEIVE", async () => {
       vi.useFakeTimers();
@@ -198,6 +199,7 @@ export const testUpdatePurpose = (): ReturnType<typeof describe> =>
       );
 
       expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+      vi.useRealTimers();
     });
     it("Should throw purposeNotFound if the purpose doesn't exist", async () => {
       await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
