@@ -742,6 +742,8 @@ export function purposeServiceBuilder(
       logger.info(`Cloning Purpose ${purposeId}`);
 
       const tenant = await retrieveTenant(organizationId, readModelService);
+      assertTenantKindExists(tenant);
+
       const purposeToClone = await retrievePurpose(purposeId, readModelService);
 
       if (purposeIsDraft(purposeToClone.data)) {
@@ -807,8 +809,6 @@ export function purposeServiceBuilder(
         freeOfChargeReason: purposeToClone.data.freeOfChargeReason,
         riskAnalysisForm: clonedRiskAnalysisForm,
       };
-
-      assertTenantKindExists(tenant);
 
       const isRiskAnalysisValid = clonedRiskAnalysisForm
         ? validateRiskAnalysis(
