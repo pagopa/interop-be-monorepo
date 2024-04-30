@@ -566,7 +566,7 @@ export function tenantServiceBuilder(
         `Assigning certified attribute (${attributeOrigin}/${attributeExternalId}) to tenant (${tenantOrigin}/${tenantExternalId})`
       );
 
-      const tenantToModify = await this.getTenantByExternalId({
+      const tenantToModify = await readModelService.getTenantByExternalId({
         origin: tenantOrigin,
         value: tenantExternalId,
       });
@@ -660,7 +660,7 @@ export function tenantServiceBuilder(
         `Revoking certified attribute (${attributeOrigin}/${attributeExternalId}) from tenant (${tenantOrigin}/${tenantExternalId})`
       );
 
-      const tenantToModify = await this.getTenantByExternalId({
+      const tenantToModify = await readModelService.getTenantByExternalId({
         origin: tenantOrigin,
         value: tenantExternalId,
       });
@@ -690,15 +690,12 @@ export function tenantServiceBuilder(
         throw attributeNotFound(attributeToRevoke.id);
       }
 
-      // eslint-disable-next-line functional/no-let
-      let updatedTenant: Tenant = {
-        ...tenantToModify.data,
-        updatedAt: new Date(),
-      };
-
-      updatedTenant = updateAttribute(
+      const updatedTenant = updateAttribute(
         {
-          updatedTenant,
+          updatedTenant: {
+            ...tenantToModify.data,
+            updatedAt: new Date(),
+          },
           targetTenant: tenantToModify,
           attributeId: attributeToRevoke.id,
           revocationTimestamp: new Date(),
@@ -706,27 +703,26 @@ export function tenantServiceBuilder(
         maybeAttribute.assignmentTimestamp
       );
 
-      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+      const updatedKind = await getTenantKindLoadingCertifiedAttributes(
         readModelService,
         updatedTenant.attributes,
         updatedTenant.externalId
       );
 
-      if (updatedTenant.kind !== tenantKind) {
-        updatedTenant = {
-          ...updatedTenant,
-          kind: tenantKind,
-        };
-      }
+      const revisedTenant =
+        updatedTenant.kind === updatedKind
+          ? updatedTenant
+          : { ...updatedTenant, kind: updatedKind };
 
-      const event = toCreateEventTenantCertifiedAttributeRevoked(
-        tenantToModify.data.id,
-        tenantToModify.metadata.version,
-        updatedTenant,
-        attributeToRevoke.id,
-        correlationId
+      await repository.createEvent(
+        toCreateEventTenantCertifiedAttributeRevoked(
+          tenantToModify.data.id,
+          tenantToModify.metadata.version,
+          revisedTenant,
+          attributeToRevoke.id,
+          correlationId
+        )
       );
-      await repository.createEvent(event);
     },
 
     async getCertifiedAttributes({

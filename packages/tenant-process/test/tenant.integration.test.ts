@@ -5,7 +5,15 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
 import { fail } from "assert";
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import {
   AgreementCollection,
   AttributeCollection,
@@ -17,6 +25,7 @@ import {
 import {
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
+  getMockAttribute,
   mongoDBContainer,
   postgreSQLContainer,
   readLastEventByStreamId,
@@ -142,6 +151,7 @@ describe("Integration tests", () => {
   const mockRevokedBy = getMockRevokedBy();
   const mockVerifiedTenantAttribute = getMockVerifiedTenantAttribute();
   const mockCertifiedTenantAttribute = getMockCertifiedTenantAttribute();
+  const mockAttribute = getMockAttribute();
 
   afterEach(async () => {
     await tenants.deleteMany({});
@@ -813,33 +823,28 @@ describe("Integration tests", () => {
           value: "1234567",
         },
       };
-      const attribute: Attribute = {
-        name: "an Attribute",
-        id: unsafeBrandId(requesterTenant.id),
-        kind: "Certified",
-        description: "an attribute",
-        creationTime: new Date(),
-        code: "123456",
-        origin: requesterTenant.externalId.origin,
-      };
+
       it("Should revoke the certified attribute ", async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date());
         const tenantWithCertifiedAttribute: Tenant = {
           ...requesterTenant,
           attributes: [
             {
               ...mockCertifiedTenantAttribute,
-              id: unsafeBrandId(attribute.id),
+              id: unsafeBrandId(mockAttribute.id),
+              assignmentTimestamp: new Date(),
             },
           ],
         };
 
-        await addOneAttribute(attribute, attributes);
+        await addOneAttribute(mockAttribute, attributes);
         await addOneTenant(tenantWithCertifiedAttribute, postgresDB, tenants);
         await tenantService.internalRevokeCertifiedAttribute(
           tenantWithCertifiedAttribute.externalId.origin,
           tenantWithCertifiedAttribute.externalId.value,
-          attribute.origin!,
-          attribute.code!,
+          mockAttribute.origin!,
+          mockAttribute.code!,
           correlationId
         );
         const writtenEvent = await readLastEventByStreamId(
@@ -863,43 +868,26 @@ describe("Integration tests", () => {
           ...tenantWithCertifiedAttribute,
           attributes: [
             {
-              id: unsafeBrandId(attribute.id),
+              id: unsafeBrandId(mockAttribute.id),
               type: "PersistentCertifiedAttribute",
-              assignmentTimestamp: new Date(
-                Number(
-                  (
-                    writtenPayload.tenant!.attributes[0].sealedValue as {
-                      oneofKind: "certifiedAttribute";
-                      certifiedAttribute: TenantCertifiedAttributeV2;
-                    }
-                  ).certifiedAttribute.assignmentTimestamp
-                )
-              ),
-              revocationTimestamp: new Date(
-                Number(
-                  (
-                    writtenPayload.tenant!.attributes[0].sealedValue as {
-                      oneofKind: "certifiedAttribute";
-                      certifiedAttribute: TenantCertifiedAttributeV2;
-                    }
-                  ).certifiedAttribute.revocationTimestamp
-                )
-              ),
+              assignmentTimestamp: new Date(),
+              revocationTimestamp: new Date(),
             },
           ],
           kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
           updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
         };
         expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+        vi.useRealTimers();
       });
       it("Should throw tenant not found", async () => {
-        await addOneAttribute(attribute, attributes);
+        await addOneAttribute(mockAttribute, attributes);
         expect(
           tenantService.internalRevokeCertifiedAttribute(
             requesterTenant.externalId.origin,
             requesterTenant.externalId.value,
-            attribute.origin!,
-            attribute.code!,
+            mockAttribute.origin!,
+            mockAttribute.code!,
             correlationId
           )
         ).rejects.toThrowError(
@@ -917,13 +905,13 @@ describe("Integration tests", () => {
           tenantService.internalRevokeCertifiedAttribute(
             requesterTenant.externalId.origin,
             requesterTenant.externalId.value,
-            attribute.origin!,
-            attribute.code!,
+            mockAttribute.origin!,
+            mockAttribute.code!,
             correlationId
           )
         ).rejects.toThrowError(
           attributeNotFound(
-            unsafeBrandId(`${attribute.origin}/${attribute.code}`)
+            unsafeBrandId(`${mockAttribute.origin}/${mockAttribute.code}`)
           )
         );
       });
