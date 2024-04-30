@@ -14,6 +14,7 @@ import { IDatabase } from "pg-promise";
 import {
   ReadEvent,
   StoredEvent,
+  readEventByStreamIdAndVersion,
   readLastEventByStreamId,
   writeInEventstore,
   writeInReadmodel,
@@ -88,3 +89,14 @@ export function getMockConsumerDocument(
     createdAt: new Date(),
   };
 }
+export const readAgreementEventByVersion = async (
+  agreementId: AgreementId,
+  version: number,
+  postgresDB: IDatabase<unknown>
+): Promise<ReadEvent<AgreementEvent>> =>
+  await readEventByStreamIdAndVersion(
+    agreementId,
+    version,
+    "agreement",
+    postgresDB
+  );
