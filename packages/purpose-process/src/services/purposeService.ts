@@ -30,6 +30,7 @@ import {
   ListResult,
   unsafeBrandId,
   generateId,
+  Agreement,
   eserviceMode,
   RiskAnalysisId,
   RiskAnalysis,
@@ -39,6 +40,7 @@ import {
   agreementNotFound,
   duplicatedPurposeName,
   eserviceNotFound,
+  missingRejectionReason,
   eserviceRiskAnalysisNotFound,
   notValidVersionState,
   organizationIsNotTheConsumer,
@@ -150,6 +152,21 @@ const retrieveTenant = async (
     throw tenantNotFound(tenantId);
   }
   return tenant;
+};
+
+const retrieveAgreement = async (
+  eserviceId: EServiceId,
+  consumerId: TenantId,
+  readModelService: ReadModelService
+): Promise<Agreement> => {
+  const activeAgreement = await readModelService.getActiveAgreement(
+    eserviceId,
+    consumerId
+  );
+  if (activeAgreement === undefined) {
+    throw agreementNotFound(eserviceId, consumerId);
+  }
+  return activeAgreement;
 };
 
 const retrieveRiskAnalysis = (
@@ -299,6 +316,11 @@ export function purposeServiceBuilder(
       if (purposeVersion.state !== purposeVersionState.waitingForApproval) {
         throw notValidVersionState(purposeVersion.id, purposeVersion.state);
       }
+
+      if (!rejectionReason) {
+        throw missingRejectionReason();
+      }
+
       const updatedPurposeVersion: PurposeVersion = {
         ...purposeVersion,
         state: purposeVersionState.rejected,
@@ -609,14 +631,7 @@ export function purposeServiceBuilder(
         tenant.kind
       );
 
-      const agreement = await readModelService.getActiveAgreement(
-        eserviceId,
-        consumerId
-      );
-
-      if (agreement === undefined) {
-        throw agreementNotFound(eserviceId, consumerId);
-      }
+      await retrieveAgreement(eserviceId, consumerId, readModelService);
 
       const purposeWithSameName = await readModelService.getSpecificPurpose(
         eserviceId,
@@ -629,20 +644,25 @@ export function purposeServiceBuilder(
       }
 
       const purpose: Purpose = {
-        title: purposeSeed.title,
+        ...purposeSeed,
         id: generateId(),
         createdAt: new Date(),
         eserviceId,
         consumerId,
-        description: purposeSeed.description,
-        versions: [],
-        isFreeOfCharge: purposeSeed.isFreeOfCharge,
-        freeOfChargeReason: purposeSeed.freeOfChargeReason,
+        versions: [
+          {
+            id: generateId(),
+            state: purposeVersionState.draft,
+            dailyCalls: purposeSeed.dailyCalls,
+            createdAt: new Date(),
+          },
+        ],
         riskAnalysisForm: validatedFormSeed,
       };
 
-      const event = toCreateEventPurposeAdded(purpose, correlationId);
-      await repository.createEvent(event);
+      await repository.createEvent(
+        toCreateEventPurposeAdded(purpose, correlationId)
+      );
       return { purpose, isRiskAnalysisValid: validatedFormSeed !== undefined };
     },
     async createPurposeFromEService(
@@ -677,14 +697,7 @@ export function purposeServiceBuilder(
 
       assertTenantKindExists(producer);
 
-      const agreement = await readModelService.getActiveAgreement(
-        eserviceId,
-        consumerId
-      );
-
-      if (agreement === undefined) {
-        throw agreementNotFound(eserviceId, consumerId);
-      }
+      await retrieveAgreement(eserviceId, consumerId, readModelService);
 
       const purposeWithSameName = await readModelService.getSpecificPurpose(
         eserviceId,
@@ -708,6 +721,13 @@ export function purposeServiceBuilder(
         throw riskAnalysisValidationFailed(validationResult.issues);
       }
 
+      const newVersion: PurposeVersion = {
+        id: generateId(),
+        createdAt: new Date(),
+        state: purposeVersionState.draft,
+        dailyCalls: seed.dailyCalls,
+      };
+
       const purpose: Purpose = {
         title: seed.title,
         id: generateId(),
@@ -715,7 +735,7 @@ export function purposeServiceBuilder(
         eserviceId,
         consumerId,
         description: seed.description,
-        versions: [],
+        versions: [newVersion],
         isFreeOfCharge: seed.isFreeOfCharge,
         freeOfChargeReason: seed.freeOfChargeReason,
         riskAnalysisForm: riskAnalysis.riskAnalysisForm,

@@ -131,30 +131,7 @@ export function readModelServiceBuilder(
         },
       } satisfies ReadModelFilter<Purpose>);
     },
-    async getActiveAgreement(
-      eserviceId: EServiceId,
-      consumerId: TenantId
-    ): Promise<Agreement | undefined> {
-      const data = await agreements.findOne({
-        "data.eserviceId": eserviceId,
-        "data.consumerId": consumerId,
-        "data.state": agreementState.active,
-      });
-      if (!data) {
-        return undefined;
-      } else {
-        const result = Agreement.safeParse(data.data);
-        if (!result.success) {
-          logger.error(
-            `Unable to parse agreement item: result ${JSON.stringify(
-              result
-            )} - data ${JSON.stringify(data)} `
-          );
-          throw genericError("Unable to parse agreement item");
-        }
-        return result.data;
-      }
-    },
+
     async getPurposes(
       filters: ApiGetPurposesFilters,
       offset: number,
@@ -275,6 +252,30 @@ export function readModelServiceBuilder(
           aggregationPipeline
         ),
       };
+    },
+    async getActiveAgreement(
+      eserviceId: EServiceId,
+      consumerId: TenantId
+    ): Promise<Agreement | undefined> {
+      const data = await agreements.findOne({
+        "data.eserviceId": eserviceId,
+        "data.consumerId": consumerId,
+        "data.state": agreementState.active,
+      });
+      if (!data) {
+        return undefined;
+      } else {
+        const result = Agreement.safeParse(data.data);
+        if (!result.success) {
+          logger.error(
+            `Unable to parse agreement item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+          throw genericError("Unable to parse agreement item");
+        }
+        return result.data;
+      }
     },
   };
 }
