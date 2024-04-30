@@ -9,6 +9,7 @@ import {
 import {
   Agreement,
   AgreementConsumerDocumentAddedV1,
+  AgreementConsumerDocumentRemovedV1,
   AgreementDocument,
   AgreementDocumentId,
   AgreementId,
@@ -27,9 +28,11 @@ import {
 } from "../src/model/domain/errors.js";
 import { toAgreementDocumentV1 } from "../src/model/domain/toEvent.js";
 import { agreementConsumerDocumentChangeValidStates } from "../src/model/domain/validators.js";
+import { config } from "../src/utilities/config.js";
 import {
   agreementService,
   agreements,
+  fileManager,
   postgresDB,
 } from "./agreementService.integration.test.js";
 import {
@@ -246,6 +249,142 @@ export const testAgreementConsumerDocuments = (): ReturnType<typeof describe> =>
         );
         await expect(actualConsumerDocument).rejects.toThrowError(
           agreementDocumentAlreadyExists(agreement.id)
+        );
+      });
+    });
+
+    describe("remove", () => {
+      let agreement1: Agreement;
+      beforeEach(async () => {
+        const agreementId = generateId<AgreementId>();
+        agreement1 = {
+          ...getMockAgreement(),
+          id: agreementId,
+          consumerDocuments: [getMockConsumerDocument(agreementId, "doc1")],
+        };
+
+        await addOneAgreement(agreement1, postgresDB, agreements);
+      });
+
+      it("should succeed on happy path", async () => {
+        const authData = getRandomAuthData(agreement1.consumerId);
+        const consumerDocument = agreement1.consumerDocuments[0];
+
+        await fileManager.storeBytes(
+          config.s3Bucket,
+          `${config.consumerDocumentsPath}/${agreement1.id}`,
+          agreement1.consumerDocuments[0].id,
+          agreement1.consumerDocuments[0].name,
+          Buffer.from("test content")
+        );
+
+        // Check that the file is stored in the bucket before removing it
+        expect(await fileManager.listFiles(config.s3Bucket)).toContain(
+          agreement1.consumerDocuments[0].path
+        );
+
+        await agreementService.removeAgreementConsumerDocument(
+          agreement1.id,
+          consumerDocument.id,
+          authData,
+          generateId()
+        );
+
+        // Check that the file is removed from the bucket after removing it
+        expect(await fileManager.listFiles(config.s3Bucket)).toMatchObject([]);
+
+        const { data: payload } = await readLastAgreementEvent(
+          agreement1.id,
+          postgresDB
+        );
+
+        const actualConsumerDocument = decodeProtobufPayload({
+          messageType: AgreementConsumerDocumentRemovedV1,
+          payload,
+        });
+
+        expect(actualConsumerDocument).toMatchObject({
+          agreementId: agreement1.id,
+          documentId: consumerDocument.id,
+        });
+      });
+
+      it("should throw an agreementNotFound error when the agreement does not exist", async () => {
+        const authData = getRandomAuthData();
+        const notExistentAgreement = getMockAgreement();
+
+        const removeAgreementConsumerDocument =
+          agreementService.removeAgreementConsumerDocument(
+            notExistentAgreement.id,
+            getMockConsumerDocument(notExistentAgreement.id).id,
+            authData,
+            generateId()
+          );
+
+        await expect(removeAgreementConsumerDocument).rejects.toThrowError(
+          agreementNotFound(notExistentAgreement.id)
+        );
+      });
+
+      it("should throw an operationNotAllowed if is not consumer", async () => {
+        const authData = getRandomAuthData();
+
+        const removeAgreementConsumerDocument =
+          agreementService.removeAgreementConsumerDocument(
+            agreement1.id,
+            agreement1.consumerDocuments[0].id,
+            authData,
+            generateId()
+          );
+
+        await expect(removeAgreementConsumerDocument).rejects.toThrowError(
+          operationNotAllowed(authData.organizationId)
+        );
+      });
+
+      it("should throw a documentChangeNotAllowed if state not draft or pending", async () => {
+        const authData = getRandomAuthData(agreement1.consumerId);
+
+        const agreementConsumerDocumentChangeFailureState = randomArrayItem(
+          Object.values(agreementState).filter(
+            (state) =>
+              !agreementConsumerDocumentChangeValidStates.includes(state)
+          )
+        );
+        const agreement = {
+          ...agreement1,
+          id: generateId<AgreementId>(),
+          state: agreementConsumerDocumentChangeFailureState,
+        };
+
+        await addOneAgreement(agreement, postgresDB, agreements);
+
+        const removeAgreementConsumerDocument =
+          agreementService.removeAgreementConsumerDocument(
+            agreement.id,
+            agreement.consumerDocuments[0].id,
+            authData,
+            generateId()
+          );
+
+        await expect(removeAgreementConsumerDocument).rejects.toThrowError(
+          documentChangeNotAllowed(agreement.state)
+        );
+      });
+
+      it("should throw a agreementDocumentNotFound if document does not exist", async () => {
+        const authData = getRandomAuthData(agreement1.consumerId);
+        const notExistendDocumentId = generateId<AgreementDocumentId>();
+
+        const removeAgreementConsumerDocument =
+          agreementService.removeAgreementConsumerDocument(
+            agreement1.id,
+            notExistendDocumentId,
+            authData,
+            generateId()
+          );
+        await expect(removeAgreementConsumerDocument).rejects.toThrowError(
+          agreementDocumentNotFound(notExistendDocumentId, agreement1.id)
         );
       });
     });
