@@ -30,8 +30,8 @@ export const errorCodes = {
   riskAnalysisValidationFailed: "0015",
   purposeNotInDraftState: "0016",
   purposeCannotBeDeleted: "0017",
-  duplicatedPurposeName: "0018",
-  agreementNotFound: "0019",
+  agreementNotFound: "0018",
+  duplicatedPurposeName: "0019",
   eserviceRiskAnalysisNotFound: "0020",
   purposeCannotBeCloned: "0021",
 };
