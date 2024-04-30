@@ -4,6 +4,7 @@ export * from "./events/events.js";
 // Entities, events, converters
 export * from "./agreement/agreement.js";
 export * from "./agreement/agreementEvents.js";
+export * from "./agreement/agreementReadModelAdapter.js";
 export * from "./agreement/protobufConverter.js";
 
 export * from "./attribute/attribute.js";
@@ -42,6 +43,7 @@ export * from "./user/user.js";
 export * from "./protobuf/protobuf.js";
 
 // Read models
+export * from "./read-models/agreementReadModel.js";
 export * from "./read-models/attributeReadModel.js";
 export * from "./read-models/eserviceReadModel.js";
 export * from "./read-models/readModels.js";
