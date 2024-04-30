@@ -30,6 +30,7 @@ import {
   toEServiceV2,
   toReadModelAttribute,
   toReadModelEService,
+  toReadModelAgreement,
 } from "pagopa-interop-models";
 import {
   ReadEvent,
@@ -235,7 +236,7 @@ export const addOneAgreement = async (
   agreement: Agreement,
   agreements: AgreementCollection
 ): Promise<void> => {
-  await writeInReadmodel(agreement, agreements);
+  await writeInReadmodel(toReadModelAgreement(agreement), agreements);
 };
 
 export const readLastEserviceEvent = async (

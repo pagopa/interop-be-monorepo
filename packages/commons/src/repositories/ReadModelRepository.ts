@@ -1,5 +1,5 @@
 import {
-  Agreement,
+  AgreementReadModel,
   AttributeReadmodel,
   EServiceReadModel,
   Purpose,
@@ -30,7 +30,7 @@ export type GenericCollection<T> = Collection<{
   Tracked in https://pagopa.atlassian.net/browse/IMN-367
 */
 export type EServiceCollection = GenericCollection<EServiceReadModel>;
-export type AgreementCollection = GenericCollection<Agreement>;
+export type AgreementCollection = GenericCollection<AgreementReadModel>;
 export type TenantCollection = GenericCollection<Tenant>;
 export type AttributeCollection = GenericCollection<AttributeReadmodel>;
 export type PurposeCollection = GenericCollection<Purpose>;
