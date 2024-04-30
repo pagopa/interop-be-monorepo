@@ -64,7 +64,14 @@
         "dist"
       ]
     },
-    "lint:autofix": {},
+    "lint:autofix": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist"
+      ]
+    },
     "format:check": {},
     "format:write": {}
   },
