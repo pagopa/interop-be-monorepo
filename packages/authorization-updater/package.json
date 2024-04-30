@@ -16,7 +16,8 @@
     "start": "node --watch --loader ts-node/esm -r 'dotenv-flow/config' ./src/index.ts",
     "generate-model": "mkdir -p ./src/model/generated && pnpm openapi-zod-client './open-api/authorization-management.spec.yaml' -o './src/model/generated/api.ts'",
     "clean-generated": "pnpm exec rm ./src/model/generated/api.ts",
-    "build": "tsc"
+    "build": "tsc",
+    "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
   "author": "",
