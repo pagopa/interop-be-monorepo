@@ -16,7 +16,7 @@ import {
   UpdateVerifiedTenantAttributeSeed,
 } from "../model/domain/models.js";
 import { ApiSelfcareTenantSeed } from "../model/types.js";
-import { tenantNotFound } from "../model/domain/errors.js";
+import { mailNotFound, tenantNotFound } from "../model/domain/errors.js";
 import {
   toCreateEventTenantVerifiedAttributeExpirationUpdated,
   toCreateEventTenantVerifiedAttributeExtensionUpdated,
@@ -291,10 +291,14 @@ export function tenantServiceBuilder(
     ): Promise<void> {
       logger.info(`Deleting mail ${mailId} to Tenant ${tenantId}`);
 
-      const tenant = await retrieveTenant(tenantId, readModelService);
-
       if (tenantId !== organizationId) {
         throw operationForbidden;
+      }
+
+      const tenant = await retrieveTenant(tenantId, readModelService);
+
+      if (!tenant.data.mails.find((m) => m.id === mailId)) {
+        throw mailNotFound(mailId);
       }
 
       const updatedTenant: Tenant = {
