@@ -23,6 +23,7 @@ import {
   ReadModelRepository,
   TenantCollection,
   fileManagerDeleteError,
+  formatDateAndTime,
   initDB,
   initFileManager,
   unexpectedFieldError,
@@ -117,7 +118,6 @@ import {
   tenantKindNotFound,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
-import { formatClonedEServiceDate } from "../src/utilities/date.js";
 import {
   addOneAgreement,
   addOneEService,
@@ -2814,7 +2814,7 @@ describe("database test", async () => {
         const expectedEService: EService = {
           ...eservice,
           id: unsafeBrandId(writtenPayload.eservice!.id),
-          name: `${eservice.name} - clone - ${formatClonedEServiceDate(
+          name: `${eservice.name} - clone - ${formatDateAndTime(
             cloneTimestamp
           )}`,
           descriptors: [expectedDescriptor],
@@ -2892,7 +2892,7 @@ describe("database test", async () => {
         const cloneTimestamp = new Date();
         const conflictEServiceName = `${
           eservice1.name
-        } - clone - ${formatClonedEServiceDate(cloneTimestamp)}`;
+        } - clone - ${formatDateAndTime(cloneTimestamp)}`;
 
         const eservice2: EService = {
           ...mockEService,

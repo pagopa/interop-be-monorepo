@@ -1,5 +1,5 @@
 import { format } from "date-fns";
 
-export function formatClonedEServiceDate(date: Date): string {
+export function formatDateAndTime(date: Date): string {
   return format(date, "dd/MM/yyyy HH:mm:ss");
 }
