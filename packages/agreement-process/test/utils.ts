@@ -8,6 +8,7 @@ import {
   Tenant,
   generateId,
   toReadModelEService,
+  toReadModelAgreement,
 } from "pagopa-interop-models";
 import { IDatabase } from "pg-promise";
 import {
@@ -51,7 +52,7 @@ export const addOneAgreement = async (
   agreements: AgreementCollection
 ): Promise<void> => {
   await writeAgreementInEventstore(agreement, postgresDB);
-  await writeInReadmodel(agreement, agreements);
+  await writeInReadmodel(toReadModelAgreement(agreement), agreements);
 };
 
 export const addOneEService = async (
