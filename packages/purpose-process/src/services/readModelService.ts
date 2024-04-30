@@ -123,7 +123,10 @@ async function getAgreement(
   }
 }
 
-function getPurposesFilters(filters: ApiGetPurposesFilters): Document[] {
+async function getPurposesFilters(
+  filters: ApiGetPurposesFilters,
+  eservices: EServiceCollection
+): Promise<Document[]> {
   const {
     name,
     eservicesIds,
@@ -175,6 +178,21 @@ function getPurposesFilters(filters: ApiGetPurposesFilters): Document[] {
       }
     : {};
 
+  const eserviceIds =
+    producersIds.length > 0
+      ? await eservices
+          .find({ "data.producerId": { $in: producersIds } })
+          .toArray()
+          .then((results) =>
+            results.map((eservice) => eservice.data.id.toString())
+          )
+      : [];
+
+  const producerIdsFilter: ReadModelFilter<Purpose> =
+    ReadModelRepository.arrayToFilter(eserviceIds, {
+      "data.eserviceId": { $in: eserviceIds },
+    });
+
   return [
     {
       $match: {
@@ -183,26 +201,9 @@ function getPurposesFilters(filters: ApiGetPurposesFilters): Document[] {
         ...consumersIdsFilter,
         ...versionStateFilter,
         ...draftFilter,
+        ...producerIdsFilter,
       } satisfies ReadModelFilter<Purpose>,
     },
-    ...(producersIds.length > 0
-      ? [
-          {
-            $lookup: {
-              from: "eservices",
-              localField: "data.eserviceId",
-              foreignField: "data.id",
-              as: "eservices",
-            },
-          },
-          { $unwind: "$eservices" },
-          {
-            $match: {
-              "eservices.data.producerId": { $in: producersIds },
-            },
-          },
-        ]
-      : []),
     {
       $project: {
         data: 1,
@@ -249,7 +250,7 @@ export function readModelServiceBuilder(
       offset: number,
       limit: number
     ): Promise<ListResult<Purpose>> {
-      const aggregationPipeline = getPurposesFilters(filters);
+      const aggregationPipeline = await getPurposesFilters(filters, eservices);
       const data = await purposes
         .aggregate(
           [...aggregationPipeline, { $skip: offset }, { $limit: limit }],
@@ -278,8 +279,10 @@ export function readModelServiceBuilder(
     },
 
     async getAllPurposes(filters: ApiGetPurposesFilters): Promise<Purpose[]> {
+      const aggregationPipeline = await getPurposesFilters(filters, eservices);
+
       const data = await purposes
-        .aggregate(getPurposesFilters(filters), { allowDiskUse: true })
+        .aggregate(aggregationPipeline, { allowDiskUse: true })
         .toArray();
 
       const result = z.array(Purpose).safeParse(data.map((d) => d.data));
