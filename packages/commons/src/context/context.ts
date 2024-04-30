@@ -1,8 +1,12 @@
-/* eslint-disable functional/immutable-data */
-import { zodiosContext } from "@zodios/express";
+import {
+  ZodiosRouterContextRequestHandler,
+  zodiosContext,
+} from "@zodios/express";
+import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 import { AuthData } from "../auth/authData.js";
 import { Logger, logger } from "../logging/index.js";
+import { readCorrelationIdHeader } from "../auth/headers.js";
 
 export type AppContext = {
   authData: AuthData;
@@ -32,3 +36,12 @@ export function fromZodiosCtx(
 ): WithLogger<ZodiosCtx> {
   return { ...ctx, logger: logger({ serviceName, ...ctx }) };
 }
+
+export const contextMiddleware: ZodiosRouterContextRequestHandler<
+  ExpressContext
+> = (req, _res, next): void => {
+  // eslint-disable-next-line functional/immutable-data
+  req.ctx.correlationId = readCorrelationIdHeader(req) ?? uuidv4();
+
+  next();
+};

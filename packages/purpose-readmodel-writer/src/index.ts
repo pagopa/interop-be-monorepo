@@ -28,9 +28,8 @@ async function processMessage({
     eventType: decodedMessage.type,
     eventVersion: decodedMessage.event_version,
     streamId: decodedMessage.stream_id,
-    correlationId: decodedMessage.correlation_id || "",
+    correlationId: decodedMessage.correlation_id,
   });
-
   await match(decodedMessage)
     .with({ event_version: 1 }, (msg) => handleMessageV1(msg, purposes))
     .with({ event_version: 2 }, (msg) => handleMessageV2(msg, purposes))

@@ -21,7 +21,7 @@ async function processMessage({
     eventType: decodedMessage.type,
     eventVersion: decodedMessage.event_version,
     streamId: decodedMessage.stream_id,
-    correlationId: decodedMessage.correlation_id || "",
+    correlationId: decodedMessage.correlation_id,
   });
 
   await handleMessage(decodedMessage, loggerInstance);

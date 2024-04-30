@@ -28,7 +28,7 @@ async function processMessage({
     eventType: msg.type,
     eventVersion: msg.event_version,
     streamId: msg.stream_id,
-    correlationId: msg.correlation_id || "",
+    correlationId: msg.correlation_id,
   });
 
   await match(msg)

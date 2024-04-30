@@ -87,7 +87,7 @@ function processMessage(
         eventType: decodedMsg.type,
         eventVersion: decodedMsg.event_version,
         streamId: decodedMsg.stream_id,
-        correlationId: decodedMsg.correlation_id || "",
+        correlationId: decodedMsg.correlation_id,
       });
 
       const updateSeed = match(decodedMsg)

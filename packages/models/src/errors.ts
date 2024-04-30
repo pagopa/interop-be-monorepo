@@ -1,5 +1,7 @@
 /* eslint-disable max-classes-per-file */
 import { P, match } from "ts-pattern";
+import { ZodError } from "zod";
+import { fromZodError } from "zod-validation-error";
 
 export class ApiError<T> extends Error {
   /* TODO consider refactoring how the code property is used:
@@ -76,7 +78,7 @@ const makeProblemLogString = (
   originalError: unknown
 ): string => {
   const errorsString = problem.errors.map((e) => e.detail).join(" - ");
-  return `- title: ${problem.title} - detail: ${problem.detail} - errors: ${errorsString} - orignal error: ${originalError}`;
+  return `- title: ${problem.title} - detail: ${problem.detail} - errors: ${errorsString} - original error: ${originalError}`;
 };
 
 export function makeApiProblemBuilder<T extends string>(errors: {
@@ -115,8 +117,9 @@ export function makeApiProblemBuilder<T extends string>(errors: {
 
 const errorCodes = {
   authenticationSaslFailed: "9000",
+  jwtDecodingError: "9001",
   operationForbidden: "9989",
-  missingClaim: "9990",
+  invalidClaim: "9990",
   genericError: "9991",
   thirdPartyCallError: "9992",
   unauthorizedError: "9993",
@@ -131,6 +134,10 @@ const errorCodes = {
 export type CommonErrorCodes = keyof typeof errorCodes;
 
 export function parseErrorMessage(error: unknown): string {
+  if (error instanceof ZodError) {
+    return fromZodError(error).message;
+  }
+
   if (error instanceof Error) {
     return error.message;
   }
@@ -236,11 +243,19 @@ export function badRequestError(
   });
 }
 
-export function missingClaim(claimName: string): ApiError<CommonErrorCodes> {
+export function invalidClaim(error: unknown): ApiError<CommonErrorCodes> {
   return new ApiError({
-    detail: `Claim ${claimName} has not been passed`,
-    code: "missingClaim",
-    title: "Claim has not been passed",
+    detail: `Claim not valid or missing: ${parseErrorMessage(error)}`,
+    code: "invalidClaim",
+    title: "Claim not valid or missing",
+  });
+}
+
+export function jwtDecodingError(error: unknown): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Unexpected error on JWT decoding: ${parseErrorMessage(error)}`,
+    code: "jwtDecodingError",
+    title: "JWT decoding error",
   });
 }
 
