@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { unexpectedRulesVersionError } from "pagopa-interop-commons";
 import {
@@ -28,7 +29,7 @@ import {
   RiskAnalysis,
   eserviceMode,
 } from "pagopa-interop-models";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import {
   purposeNotFound,
   organizationIsNotTheConsumer,
@@ -115,6 +116,9 @@ export const testUpdatePurpose = (): ReturnType<typeof describe> =>
     };
 
     it("Should write on event store for the update of a purpose of an e-service in mode DELIVER", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date());
+
       await addOnePurpose(purposeForDeliver, postgresDB, purposes);
       await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
       await writeInReadmodel(tenant, tenants);
@@ -148,12 +152,15 @@ export const testUpdatePurpose = (): ReturnType<typeof describe> =>
         purposeForDeliver,
         purposeUpdateContent,
         validRiskAnalysis,
-        writtenPayload
+        writtenPayload.purpose!.riskAnalysisForm!
       );
 
       expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
     });
     it("Should write on event store for the update of a purpose of an e-service in mode RECEIVE", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date());
+
       await addOnePurpose(purposeForReceive, postgresDB, purposes);
       await writeInReadmodel(toReadModelEService(eServiceReceive), eservices);
       await writeInReadmodel(tenant, tenants);
@@ -187,7 +194,7 @@ export const testUpdatePurpose = (): ReturnType<typeof describe> =>
         purposeForReceive,
         reversePurposeUpdateContent,
         validRiskAnalysis,
-        writtenPayload
+        writtenPayload.purpose!.riskAnalysisForm!
       );
 
       expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
