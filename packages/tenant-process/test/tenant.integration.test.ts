@@ -5,7 +5,15 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
 import { fail } from "assert";
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import {
   AgreementCollection,
   EServiceCollection,
@@ -57,6 +65,7 @@ import {
   tenantNotFound,
   verifiedAttributeNotFoundInTenant,
   expirationDateNotFoundInVerifier,
+  mailNotFound,
 } from "../src/model/domain/errors.js";
 import { ApiSelfcareTenantSeed } from "../src/model/types.js";
 import { getTenantKind } from "../src/services/validators.js";
@@ -589,6 +598,8 @@ describe("Integration tests", () => {
         ],
       };
       it("Should delete the mail with the required mailId ", async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date());
         await addOneTenant(tenant, postgresDB, tenants);
         await tenantService.deleteTenantMailById(
           tenant.id,
@@ -600,9 +611,13 @@ describe("Integration tests", () => {
         if (!writtenEvent) {
           fail("Creation fails: tenant not found in event-store");
         }
-        expect(writtenEvent.stream_id).toBe(tenant.id);
-        expect(writtenEvent.version).toBe("1");
-        expect(writtenEvent.type).toBe("TenantMailDeleted");
+
+        expect(writtenEvent).toMatchObject({
+          stream_id: tenant.id,
+          version: "1",
+          type: "TenantMailDeleted",
+        });
+
         const writtenPayload: TenantMailDeletedV2 | undefined = protobufDecoder(
           TenantMailDeletedV2
         ).parse(writtenEvent.data);
@@ -619,9 +634,10 @@ describe("Integration tests", () => {
               address: "testMail2@test.it",
             },
           ],
-          updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
+          updatedAt: new Date(),
         };
         expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+        vi.useRealTimers();
       });
       it("Should throw operationForbidden when tenantId is not the organizationId", async () => {
         await addOneTenant(tenant, postgresDB, tenants);
@@ -633,6 +649,18 @@ describe("Integration tests", () => {
             generateId()
           )
         ).rejects.toThrowError(operationForbidden);
+      });
+      it("Should throw mailId not found if it doesn't exists in the tenant mail", async () => {
+        await addOneTenant(tenant, postgresDB, tenants);
+        const mailIdNotInTenant = generateId();
+        expect(
+          tenantService.deleteTenantMailById(
+            tenant.id,
+            mailIdNotInTenant,
+            tenant.id,
+            generateId()
+          )
+        ).rejects.toThrowError(mailNotFound(mailIdNotInTenant));
       });
     });
   });
