@@ -23,6 +23,7 @@ import {
   descriptorState,
   eserviceMode,
   generateId,
+  purposeVersionState,
   tenantKind,
   toPurposeV2,
   toReadModelEService,
@@ -121,7 +122,15 @@ export const testCreateReversePurpose = (): ReturnType<typeof describe> =>
       });
 
       const expectedPurpose: Purpose = {
-        versions: [],
+        versions: [
+          {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            id: unsafeBrandId(writtenPayload.purpose!.versions[0].id),
+            createdAt: new Date(),
+            state: purposeVersionState.draft,
+            dailyCalls: reversePurposeSeed.dailyCalls,
+          },
+        ],
         id: purpose.id,
         createdAt: new Date(),
         eserviceId: unsafeBrandId(reversePurposeSeed.eServiceId),

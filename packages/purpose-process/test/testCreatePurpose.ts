@@ -12,6 +12,7 @@ import {
   agreementState,
   descriptorState,
   generateId,
+  purposeVersionState,
   tenantKind,
   toPurposeV2,
   toReadModelEService,
@@ -33,10 +34,10 @@ import {
   missingFreeOfChargeReason,
   tenantKindNotFound,
   tenantNotFound,
-  agreementNotFound,
   organizationIsNotTheConsumer,
   riskAnalysisValidationFailed,
   duplicatedPurposeName,
+  agreementNotFound,
 } from "../src/model/domain/errors.js";
 import { ApiPurposeSeed } from "../src/model/domain/models.js";
 import {
@@ -69,8 +70,6 @@ export const testCreatePurpose = (): ReturnType<typeof describe> =>
     const eService1: EService = {
       ...getMockEService(),
       producerId: tenant.id,
-      id: generateId(),
-      name: "A",
       descriptors: [descriptor1],
     };
 
@@ -153,7 +152,14 @@ export const testCreatePurpose = (): ReturnType<typeof describe> =>
         eserviceId: unsafeBrandId(purposeSeed.eserviceId),
         consumerId: unsafeBrandId(purposeSeed.consumerId),
         description: purposeSeed.description,
-        versions: [],
+        versions: [
+          {
+            id: unsafeBrandId(writtenPayload.purpose!.versions[0].id),
+            state: purposeVersionState.draft,
+            dailyCalls: purposeSeed.dailyCalls,
+            createdAt: new Date(),
+          },
+        ],
         isFreeOfCharge: true,
         freeOfChargeReason: purposeSeed.freeOfChargeReason,
         riskAnalysisForm: expectedRiskAnalysisForm,
@@ -280,14 +286,14 @@ export const testCreatePurpose = (): ReturnType<typeof describe> =>
         organizationIsNotTheConsumer(unsafeBrandId(purposeSeed.consumerId))
       );
     });
-    it("should throw riskAnalysisValidationFailed if the purpose has an inactive risk analysis ", async () => {
+    it("should throw riskAnalysisValidationFailed if the purpose has a non valid risk analysis ", async () => {
       await writeInReadmodel(tenant, tenants);
       await writeInReadmodel(agreementEservice1, agreements);
       await writeInReadmodel(toReadModelEService(eService1), eservices);
 
       const mockInvalidRiskAnalysisForm: RiskAnalysisForm = {
         ...mockValidRiskAnalysisForm,
-        version: "251",
+        version: "0",
       };
 
       const seed: ApiPurposeSeed = {
@@ -309,7 +315,7 @@ export const testCreatePurpose = (): ReturnType<typeof describe> =>
         ])
       );
     });
-    it("should throw duplicatedPurposeName if exist alreay a purpose with same name", async () => {
+    it("should throw duplicatedPurposeName if a purpose with same name alreay exist", async () => {
       const existingPurpose: Purpose = {
         ...getMockPurpose(),
         eserviceId: unsafeBrandId(purposeSeed.eserviceId),
