@@ -24,6 +24,7 @@ import {
   technology,
   tenantAttributeType,
   toReadModelEService,
+  toReadModelAgreement,
   toTenantV2,
 } from "pagopa-interop-models";
 import { IDatabase } from "pg-promise";
@@ -176,7 +177,7 @@ export const addOneAgreement = async (
   agreement: Agreement,
   agreements: AgreementCollection
 ): Promise<void> => {
-  await writeInReadmodel(agreement, agreements);
+  await writeInReadmodel(toReadModelAgreement(agreement), agreements);
 };
 
 export const addOneEService = async (
