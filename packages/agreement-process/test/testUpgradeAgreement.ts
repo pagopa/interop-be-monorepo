@@ -108,6 +108,12 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
     it("should succeed with valid Verified and Declared attributes when consumer and producer are the same", async () => {
       const authData = getRandomAuthData();
       const producerAndConsumerId = authData.organizationId;
+      const agreementId = generateId<AgreementId>();
+      const documentNumber = Math.floor(Math.random() * 10) + 1;
+      const agreementConsumerDocuments = Array.from(
+        { length: documentNumber },
+        () => getMockConsumerDocument(agreementId)
+      );
 
       const validVerifiedTenantAttribute = {
         ...getMockVerifiedTenantAttribute(),
@@ -177,10 +183,16 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
           producerAndConsumer.id, // Consumer and producer are the same
           randomArrayItem(agreementUpgradableStates)
         ),
+        id: agreementId,
         descriptorId,
         producerId: producerAndConsumer.id,
         createdAt: TEST_EXECUTION_DATE,
+        consumerDocuments: agreementConsumerDocuments,
       };
+
+      for (const doc of agreementConsumerDocuments) {
+        await uploadDocument(agreementId, doc.id, doc.name);
+      }
 
       const eservice = getMockEService(
         agreementToBeUpgraded.eserviceId,
@@ -236,8 +248,9 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
 
       expect(newAgreementId).toBeDefined();
 
-      const actualAgreementCreatedEvent = await readLastAgreementEvent(
+      const actualAgreementCreatedEvent = await readAgreementEventByVersion(
         newAgreementId,
+        0,
         postgresDB
       );
 
@@ -273,12 +286,63 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       delete expectedCreatedAgreement.updatedAt;
       delete expectedCreatedAgreement.rejectionReason;
       expect(actualAgreementCreated).toMatchObject(expectedCreatedAgreement);
+
+      for (let index = 0; index < agreementConsumerDocuments.length; index++) {
+        const agreementConsumerDocument = agreementConsumerDocuments[index];
+        const currentVersion = index + 1;
+        const actualAgreementDocumentAddedEvent =
+          await readEventByStreamIdAndVersion(
+            newAgreementId,
+            currentVersion,
+            "agreement",
+            postgresDB
+          );
+
+        expect(actualAgreementDocumentAddedEvent).toMatchObject({
+          type: "AgreementConsumerDocumentAdded",
+          event_version: 1,
+          version: currentVersion.toString(),
+          stream_id: newAgreementId,
+        });
+
+        const actualAgreementDocumentAdded = decodeProtobufPayload({
+          messageType: AgreementConsumerDocumentAddedV1,
+          payload: actualAgreementDocumentAddedEvent.data,
+        }).document;
+
+        expect(actualAgreementDocumentAdded).toBeDefined();
+        if (!actualAgreementDocumentAdded) {
+          fail("Document not found in event");
+        }
+        const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${actualAgreementDocumentAdded.id}/${agreementConsumerDocument.name}`;
+
+        const expectedCreatedDocument = {
+          id: unsafeBrandId<AgreementDocumentId>(
+            actualAgreementDocumentAdded.id
+          ),
+          name: agreementConsumerDocument.name,
+          prettyName: agreementConsumerDocument.prettyName,
+          contentType: agreementConsumerDocument.contentType,
+          path: expectedUploadedDocumentPath,
+          createdAt: TEST_EXECUTION_DATE,
+        };
+
+        expect(actualAgreementDocumentAdded).toMatchObject(
+          toAgreementDocumentV1(expectedCreatedDocument)
+        );
+
+        expect(await fileManager.listFiles(config.s3Bucket)).toContainEqual(
+          expectedUploadedDocumentPath
+        );
+      }
     });
 
     it("should succeed with valid Verified, Certified, and Declared attributes when consumer and producer are different", async () => {
       const authData = getRandomAuthData();
       const consumerId = authData.organizationId;
       const producerId = generateId<TenantId>();
+      const agreementId = generateId<AgreementId>();
+      const agreementConsumerDocument = getMockConsumerDocument(agreementId);
 
       const validVerifiedTenantAttribute = {
         ...getMockVerifiedTenantAttribute(),
@@ -347,10 +411,18 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
           consumer.id, // Consumer and producer are different
           randomArrayItem(agreementUpgradableStates)
         ),
+        id: agreementId,
         descriptorId,
         producerId,
         createdAt: TEST_EXECUTION_DATE,
+        consumerDocuments: [agreementConsumerDocument],
       };
+
+      await uploadDocument(
+        agreementToBeUpgraded.id,
+        agreementConsumerDocument.id,
+        agreementConsumerDocument.name
+      );
 
       const eservice = getMockEService(
         agreementToBeUpgraded.eserviceId,
@@ -406,8 +478,9 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
 
       expect(newAgreementId).toBeDefined();
 
-      const actualAgreementCreatedEvent = await readLastAgreementEvent(
+      const actualAgreementCreatedEvent = await readAgreementEventByVersion(
         newAgreementId,
+        0,
         postgresDB
       );
 
@@ -443,6 +516,20 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       delete expectedCreatedAgreement.updatedAt;
       delete expectedCreatedAgreement.rejectionReason;
       expect(actualAgreementCreated).toMatchObject(expectedCreatedAgreement);
+
+      expect(await fileManager.listFiles(config.s3Bucket)).toContainEqual(
+        expectedCreatedAgreement.consumerDocuments[0].path
+      );
+
+      const actualAgreementConsumerDocumentEvent =
+        await readAgreementEventByVersion(newAgreementId, 1, postgresDB);
+
+      expect(actualAgreementConsumerDocumentEvent).toMatchObject({
+        type: "AgreementConsumerDocumentAdded",
+        event_version: 1,
+        version: "1",
+        stream_id: newAgreementId,
+      });
     });
 
     it("should succeed with invalid Verified attributes", async () => {

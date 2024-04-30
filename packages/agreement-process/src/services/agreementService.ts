@@ -654,6 +654,14 @@ export async function upgradeAgreementLogic(
       },
     };
 
+    const docEvents = await createAndCopyDocumentsForClonedAgreement(
+      upgraded.id,
+      agreementToBeUpgraded.data,
+      0,
+      copyFile,
+      correlationId
+    );
+
     return {
       streamId: upgraded.id,
       events: [
@@ -663,6 +671,7 @@ export async function upgradeAgreementLogic(
           correlationId
         ),
         toCreateEventAgreementAdded(upgraded, correlationId),
+        ...docEvents,
       ],
     };
   } else {
