@@ -616,6 +616,10 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       expect(actualAgreementDocumentAdded).toMatchObject(
         toAgreementDocumentV1(expectedCreatedDocument)
       );
+
+      expect(await fileManager.listFiles(config.s3Bucket)).toContainEqual(
+        expectedUploadedDocumentPath
+      );
     });
 
     it("should succeed with invalid Declared attributes", async () => {
@@ -799,6 +803,10 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
 
       expect(actualAgreementDocumentAdded).toMatchObject(
         toAgreementDocumentV1(expectedCreatedDocument)
+      );
+
+      expect(await fileManager.listFiles(config.s3Bucket)).toContainEqual(
+        expectedUploadedDocumentPath
       );
     });
 
@@ -994,6 +1002,10 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
 
         expect(actualAgreementDocumentAdded).toMatchObject(
           toAgreementDocumentV1(expectedCreatedDocument)
+        );
+
+        expect(await fileManager.listFiles(config.s3Bucket)).toContainEqual(
+          expectedUploadedDocumentPath
         );
       }
     });
