@@ -32,6 +32,8 @@
     },
     "check": {
       "dependsOn": [
+        "generate-model",
+        "generate-protobuf",
         "^build"
       ],
       "outputs": [
@@ -58,6 +60,8 @@
     },
     "lint": {
       "dependsOn": [
+        "generate-model",
+        "generate-protobuf",
         "^build"
       ],
       "outputs": [
@@ -66,6 +70,8 @@
     },
     "lint:autofix": {
       "dependsOn": [
+        "generate-model",
+        "generate-protobuf",
         "^build"
       ],
       "outputs": [
