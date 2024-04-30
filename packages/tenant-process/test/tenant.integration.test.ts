@@ -606,7 +606,7 @@ describe("Integration tests", () => {
 
         expect(writtenPayload.tenant).toEqual(toTenantV2(mockTenant));
       });
-      it("Should throw operationForbidden when tenantId is not the organizationId", async () => {
+      it("Should throw tenantNotFound when the tenant doesn't exists", async () => {
         expect(
           tenantService.maintenanceTenantDeleted(mockTenant.id, generateId())
         ).rejects.toThrowError(tenantNotFound(mockTenant.id));

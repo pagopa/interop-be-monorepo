@@ -723,7 +723,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /tenants/{tenantId}:
+  /maintenance/tenants/{tenantId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: tenantId
