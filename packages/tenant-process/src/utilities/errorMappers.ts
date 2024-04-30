@@ -80,5 +80,5 @@ export const maintenanceTenantPromotedToCertifierErrorMapper = (
 ): number =>
   match(error.code)
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with("tenatIsAlreadyACertifier", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

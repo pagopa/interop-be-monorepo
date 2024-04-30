@@ -21,6 +21,7 @@ const errorCodes = {
   organizationNotFoundInVerifiers: "0011",
   expirationDateNotFoundInVerifier: "0012",
   tenantIsNotCertifier: "0013",
+  tenatIsAlreadyACertifier: "0014",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -153,5 +154,15 @@ export function tenantIsNotCertifier(tenantId: TenantId): ApiError<ErrorCodes> {
     detail: `Organization ${tenantId} not a certifier`,
     code: "tenantIsNotCertifier",
     title: "Tenant is not a certifier",
+  });
+}
+
+export function tenatIsAlreadyACertifier(
+  tenantId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Organization ${tenantId} is already a certifier`,
+    code: "tenatIsAlreadyACertifier",
+    title: "Tenant is already a certifier",
   });
 }

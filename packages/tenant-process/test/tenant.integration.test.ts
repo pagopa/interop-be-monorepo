@@ -5,7 +5,15 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
 import { fail } from "assert";
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import {
   AgreementCollection,
   EServiceCollection,
@@ -62,6 +70,7 @@ import {
   tenantNotFound,
   verifiedAttributeNotFoundInTenant,
   expirationDateNotFoundInVerifier,
+  tenatIsAlreadyACertifier,
 } from "../src/model/domain/errors.js";
 import { ApiSelfcareTenantSeed } from "../src/model/types.js";
 import { getTenantKind } from "../src/services/validators.js";
@@ -608,24 +617,18 @@ describe("Integration tests", () => {
       const payload: CertifierPromotionPayload = {
         certifierId: generateId(),
       };
-      const notCertifierTenant: Tenant = {
-        ...mockTenant,
-        features: [
-          {
-            type: "PersistentCertifier",
-            certifierId: "",
-          },
-        ],
-      };
+
       it("should write on event-store for the addition of the certifierId to the tenant", async () => {
-        await addOneTenant(notCertifierTenant, postgresDB, tenants);
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date());
+        await addOneTenant(mockTenant, postgresDB, tenants);
         await tenantService.addCertifierId(
-          notCertifierTenant.id,
+          mockTenant.id,
           generateId(),
           payload
         );
         const writtenEvent = await readLastTenantEvent(
-          notCertifierTenant.id,
+          mockTenant.id,
           postgresDB
         );
         if (!writtenEvent) {
@@ -643,40 +646,44 @@ describe("Integration tests", () => {
           MaintenanceTenantPromotedToCertifierV2
         ).parse(writtenEvent.data);
 
-        const certifierId = (
-          writtenPayload.tenant!.features[0].sealedValue as unknown as {
-            oneOfKind: "certifier";
-            certifier: CertifierV2;
-          }
-        ).certifier.certifierId;
-
         const expectedTenant: Tenant = {
           ...mockTenant,
           features: [
             {
               type: "PersistentCertifier",
-              certifierId,
+              certifierId: payload.certifierId,
             },
           ],
-          updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
+          updatedAt: new Date(),
         };
 
         expect(writtenPayload.tenant).toEqual(toTenantV2(expectedTenant));
+        vi.useRealTimers();
       });
       it("Should throw tenantNotFound when tenant doesn't exist", async () => {
         expect(
+          tenantService.addCertifierId(mockTenant.id, generateId(), payload)
+        ).rejects.toThrowError(tenantNotFound(mockTenant.id));
+      });
+      it("Should throw tenantIsAlreadyACertifier", async () => {
+        const certifierTenant: Tenant = {
+          ...mockTenant,
+          features: [
+            {
+              type: "PersistentCertifier",
+              certifierId: generateId(),
+            },
+          ],
+        };
+
+        await addOneTenant(certifierTenant, postgresDB, tenants);
+        expect(
           tenantService.addCertifierId(
-            notCertifierTenant.id,
+            certifierTenant.id,
             generateId(),
             payload
           )
-        ).rejects.toThrowError(tenantNotFound(notCertifierTenant.id));
-      });
-      it("Should throw operationForbidden", async () => {
-        await addOneTenant(mockTenant, postgresDB, tenants);
-        expect(
-          tenantService.addCertifierId(mockTenant.id, generateId(), payload)
-        ).rejects.toThrowError(operationForbidden);
+        ).rejects.toThrowError(tenatIsAlreadyACertifier(certifierTenant.id));
       });
     });
   });
