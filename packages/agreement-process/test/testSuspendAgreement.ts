@@ -41,7 +41,7 @@ import {
   descriptorNotFound,
   eServiceNotFound,
   operationNotAllowed,
-  tenantNotFound,
+  tenantIdNotFound,
 } from "../src/model/domain/errors.js";
 import {
   postgresDB,
@@ -576,7 +576,7 @@ export const testSuspendAgreement = (): ReturnType<typeof describe> =>
       ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
     });
 
-    it("should throw a tenantNotFound error when the consumer does not exist", async () => {
+    it("should throw a tenantIdNotFound error when the consumer does not exist", async () => {
       await addOneTenant(getMockTenant(), tenants);
       const eservice = getMockEService();
       const consumer = getMockTenant();
@@ -593,7 +593,7 @@ export const testSuspendAgreement = (): ReturnType<typeof describe> =>
 
       await expect(
         agreementService.suspendAgreement(agreement.id, authData, uuidv4())
-      ).rejects.toThrowError(tenantNotFound(agreement.consumerId));
+      ).rejects.toThrowError(tenantIdNotFound(agreement.consumerId));
     });
 
     it("should throw a descriptorNotFound error when the descriptor does not exist", async () => {
