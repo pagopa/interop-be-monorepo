@@ -1,5 +1,11 @@
 /* eslint-disable max-params */
-import { AuthData, CreateEvent, Logger } from "pagopa-interop-commons";
+import {
+  AuthData,
+  CreateEvent,
+  Logger,
+  WithLogger,
+  ZodiosCtx,
+} from "pagopa-interop-commons";
 import {
   AgreementDocumentId,
   AgreementEvent,
@@ -27,9 +33,7 @@ export async function addConsumerDocumentLogic(
   agreementId: AgreementId,
   payload: ApiAgreementDocumentSeed,
   agreementQuery: AgreementQuery,
-  authData: AuthData,
-  correlationId: string,
-  logger: Logger
+  { authData, correlationId, logger }: WithLogger<ZodiosCtx>
 ): Promise<CreateEvent<AgreementEvent>> {
   const agreement = await agreementQuery.getAgreementById(agreementId, logger);
 

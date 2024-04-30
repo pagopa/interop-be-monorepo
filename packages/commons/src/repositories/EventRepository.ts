@@ -1,4 +1,4 @@
-import { Logger } from "../logging/loggerMiddleware.js";
+import { Logger } from "../logging/index.js";
 import { DB } from "./db.js";
 import * as sql from "./sql/index.js";
 

@@ -6,17 +6,17 @@ import {
   ZodiosContext,
   authorizationMiddleware,
   initDB,
-  loggerAndMakeApiProblemBuilder,
   zodiosValidationErrorToApiProblem,
+  fromZodiosCtx,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
 import { toApiTenant } from "../model/domain/apiConverter.js";
 import {
-  errorCodes,
   tenantBySelfcareIdNotFound,
   tenantFromExternalIdNotFound,
   tenantNotFound,
+  makeApiProblem,
 } from "../model/domain/errors.js";
 import {
   getTenantByExternalIdErrorMapper,
@@ -72,11 +72,7 @@ const tenantsRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const { logger } = loggerAndMakeApiProblemBuilder(
-          serviceName,
-          req.ctx,
-          errorCodes
-        );
+        const { logger } = fromZodiosCtx(serviceName, req.ctx);
 
         try {
           const { name, offset, limit } = req.query;
@@ -108,11 +104,7 @@ const tenantsRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const { logger } = loggerAndMakeApiProblemBuilder(
-          serviceName,
-          req.ctx,
-          errorCodes
-        );
+        const { logger } = fromZodiosCtx(serviceName, req.ctx);
 
         try {
           const { name, offset, limit } = req.query;
@@ -143,11 +135,7 @@ const tenantsRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const { logger } = loggerAndMakeApiProblemBuilder(
-          serviceName,
-          req.ctx,
-          errorCodes
-        );
+        const { logger } = fromZodiosCtx(serviceName, req.ctx);
 
         try {
           const { name, offset, limit } = req.query;
@@ -181,16 +169,12 @@ const tenantsRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-          serviceName,
-          req.ctx,
-          errorCodes
-        );
+        const ctx = fromZodiosCtx(serviceName, req.ctx);
 
         try {
           const tenant = await tenantService.getTenantById(
             unsafeBrandId(req.params.id),
-            logger
+            ctx.logger
           );
 
           if (tenant) {
@@ -201,13 +185,18 @@ const tenantsRouter = (
               .json(
                 makeApiProblem(
                   tenantNotFound(unsafeBrandId(req.params.id)),
-                  getTenantByIdErrorMapper
+                  getTenantByIdErrorMapper,
+                  ctx.logger
                 )
               )
               .end();
           }
         } catch (error) {
-          const errorRes = makeApiProblem(error, getTenantByIdErrorMapper);
+          const errorRes = makeApiProblem(
+            error,
+            getTenantByIdErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -222,11 +211,7 @@ const tenantsRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-          serviceName,
-          req.ctx,
-          errorCodes
-        );
+        const ctx = fromZodiosCtx(serviceName, req.ctx);
 
         try {
           const { origin, code } = req.params;
@@ -236,7 +221,7 @@ const tenantsRouter = (
               value: code,
               origin,
             },
-            logger
+            ctx.logger
           );
           if (tenant) {
             return res.status(200).json(toApiTenant(tenant.data)).end();
@@ -246,7 +231,8 @@ const tenantsRouter = (
               .json(
                 makeApiProblem(
                   tenantFromExternalIdNotFound(origin, code),
-                  getTenantByExternalIdErrorMapper
+                  getTenantByExternalIdErrorMapper,
+                  ctx.logger
                 )
               )
               .end();
@@ -268,16 +254,12 @@ const tenantsRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-          serviceName,
-          req.ctx,
-          errorCodes
-        );
+        const ctx = fromZodiosCtx(serviceName, req.ctx);
 
         try {
           const tenant = await tenantService.getTenantBySelfcareId(
             req.params.selfcareId,
-            logger
+            ctx.logger
           );
 
           if (tenant) {
@@ -288,7 +270,8 @@ const tenantsRouter = (
               .json(
                 makeApiProblem(
                   tenantBySelfcareIdNotFound(req.params.selfcareId),
-                  getTenantBySelfcareIdErrorMapper
+                  getTenantBySelfcareIdErrorMapper,
+                  ctx.logger
                 )
               )
               .end();
@@ -296,7 +279,8 @@ const tenantsRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            getTenantBySelfcareIdErrorMapper
+            getTenantBySelfcareIdErrorMapper,
+            ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
@@ -312,11 +296,7 @@ const tenantsRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-          serviceName,
-          req.ctx,
-          errorCodes
-        );
+        const ctx = fromZodiosCtx(serviceName, req.ctx);
 
         try {
           const { offset, limit } = req.query;
@@ -327,7 +307,7 @@ const tenantsRouter = (
                 offset,
                 limit,
               },
-              logger
+              ctx.logger
             );
 
           return res.status(200).json({
@@ -337,7 +317,8 @@ const tenantsRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            getCertifiedAttributesErrorMapper
+            getCertifiedAttributesErrorMapper,
+            ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
@@ -367,26 +348,16 @@ const tenantsRouter = (
         INTERNAL_ROLE,
       ]),
       async (req, res) => {
-        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-          serviceName,
-          req.ctx,
-          errorCodes
-        );
+        const ctx = fromZodiosCtx(serviceName, req.ctx);
 
         try {
-          const id = await tenantService.selfcareUpsertTenant(
-            {
-              tenantSeed: req.body,
-              authData: req.ctx.authData,
-              correlationId: req.ctx.correlationId,
-            },
-            logger
-          );
+          const id = await tenantService.selfcareUpsertTenant(req.body, ctx);
           return res.status(200).json({ id }).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            selfcareUpsertTenantErrorMapper
+            selfcareUpsertTenantErrorMapper,
+            ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
@@ -401,11 +372,7 @@ const tenantsRouter = (
       "/tenants/:tenantId/attributes/verified/:attributeId",
       authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
-        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-          serviceName,
-          req.ctx,
-          errorCodes
-        );
+        const ctx = fromZodiosCtx(serviceName, req.ctx);
 
         try {
           const { tenantId, attributeId } = req.params;
@@ -415,15 +382,15 @@ const tenantsRouter = (
               tenantId: unsafeBrandId(tenantId),
               attributeId: unsafeBrandId(attributeId),
               updateVerifiedTenantAttributeSeed: req.body,
-              correlationId: req.ctx.correlationId,
             },
-            logger
+            ctx
           );
           return res.status(200).json(toApiTenant(tenant)).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            updateTenantVerifiedAttributeErrorMapper
+            updateTenantVerifiedAttributeErrorMapper,
+            ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
@@ -433,11 +400,7 @@ const tenantsRouter = (
       "/tenants/:tenantId/attributes/verified/:attributeId/verifier/:verifierId",
       authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
-        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-          serviceName,
-          req.ctx,
-          errorCodes
-        );
+        const ctx = fromZodiosCtx(serviceName, req.ctx);
 
         try {
           const { tenantId, attributeId, verifierId } = req.params;
@@ -446,14 +409,14 @@ const tenantsRouter = (
               unsafeBrandId(tenantId),
               unsafeBrandId(attributeId),
               verifierId,
-              req.ctx.correlationId,
-              logger
+              ctx
             );
           return res.status(200).json(toApiTenant(tenant)).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            updateVerifiedAttributeExtensionDateErrorMapper
+            updateVerifiedAttributeExtensionDateErrorMapper,
+            ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
         }

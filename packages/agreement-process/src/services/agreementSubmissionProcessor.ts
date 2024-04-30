@@ -1,5 +1,10 @@
 /* eslint-disable max-params */
-import { AuthData, CreateEvent, Logger } from "pagopa-interop-commons";
+import {
+  CreateEvent,
+  Logger,
+  WithLogger,
+  ZodiosCtx,
+} from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementDocument,
@@ -65,9 +70,7 @@ export async function submitAgreementLogic(
   eserviceQuery: EserviceQuery,
   agreementQuery: AgreementQuery,
   tenantQuery: TenantQuery,
-  authData: AuthData,
-  correlationId: string,
-  logger: Logger
+  { authData, correlationId, logger }: WithLogger<ZodiosCtx>
 ): Promise<Array<CreateEvent<AgreementEvent>>> {
   logger.info(`Submitting agreement ${agreementId}`);
 
@@ -116,9 +119,7 @@ export async function submitAgreementLogic(
     agreementQuery,
     tenantQuery,
     constractBuilder,
-    authData,
-    correlationId,
-    logger
+    { authData, correlationId, logger }
   );
 }
 
@@ -131,9 +132,7 @@ const submitAgreement = async (
   agreementQuery: AgreementQuery,
   tenantQuery: TenantQuery,
   constractBuilder: ContractBuilder,
-  authData: AuthData,
-  correlationId: string,
-  logger: Logger
+  { authData, correlationId, logger }: WithLogger<ZodiosCtx>
 ): Promise<Array<CreateEvent<AgreementEvent>>> => {
   const agreement = agreementData.data;
   const nextStateByAttributes = nextState(agreement, descriptor, consumer);

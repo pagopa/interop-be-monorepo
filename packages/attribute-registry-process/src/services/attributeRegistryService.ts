@@ -1,4 +1,10 @@
-import { AuthData, DB, Logger, eventRepository } from "pagopa-interop-commons";
+import {
+  DB,
+  Logger,
+  WithLogger,
+  ZodiosCtx,
+  eventRepository,
+} from "pagopa-interop-commons";
 import {
   Attribute,
   WithMetadata,
@@ -135,9 +141,7 @@ export function attributeRegistryServiceBuilder(
 
     async createDeclaredAttribute(
       apiDeclaredAttributeSeed: ApiDeclaredAttributeSeed,
-      authData: AuthData,
-      correlationId: string,
-      logger: Logger
+      { authData, correlationId, logger }: WithLogger<ZodiosCtx>
     ): Promise<Attribute> {
       logger.info(
         `Creating declared attribute with name ${apiDeclaredAttributeSeed.name}}`
@@ -180,9 +184,7 @@ export function attributeRegistryServiceBuilder(
 
     async createVerifiedAttribute(
       apiVerifiedAttributeSeed: ApiVerifiedAttributeSeed,
-      authData: AuthData,
-      correlationId: string,
-      logger: Logger
+      { authData, correlationId, logger }: WithLogger<ZodiosCtx>
     ): Promise<Attribute> {
       logger.info(
         `Creating verified attribute with name ${apiVerifiedAttributeSeed.name}`
@@ -224,9 +226,7 @@ export function attributeRegistryServiceBuilder(
 
     async createCertifiedAttribute(
       apiCertifiedAttributeSeed: ApiCertifiedAttributeSeed,
-      authData: AuthData,
-      correlationId: string,
-      logger: Logger
+      { authData, correlationId, logger }: WithLogger<ZodiosCtx>
     ): Promise<Attribute> {
       logger.info(
         `Creating certified attribute with code ${apiCertifiedAttributeSeed.code}`
@@ -276,8 +276,7 @@ export function attributeRegistryServiceBuilder(
 
     async createInternalCertifiedAttribute(
       apiInternalCertifiedAttributeSeed: ApiInternalCertifiedAttributeSeed,
-      correlationId: string,
-      logger: Logger
+      { correlationId, logger }: WithLogger<ZodiosCtx>
     ): Promise<Attribute> {
       logger.info(
         `Creating certified attribute with origin ${apiInternalCertifiedAttributeSeed.origin} and code ${apiInternalCertifiedAttributeSeed.code} - Internal Request`

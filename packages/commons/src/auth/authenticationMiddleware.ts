@@ -14,6 +14,8 @@ import { AuthData } from "./authData.js";
 import { Headers } from "./headers.js";
 import { readAuthDataFromJwtToken, verifyJwtToken } from "./jwt.js";
 
+const makeApiProblem = makeApiProblemBuilder({});
+
 export const authenticationMiddleware: () => ZodiosRouterContextRequestHandler<ExpressContext> =
   () => {
     const authMiddleware: ZodiosRouterContextRequestHandler<
@@ -104,13 +106,15 @@ export const authenticationMiddleware: () => ZodiosRouterContextRequestHandler<E
             throw missingHeader();
           });
       } catch (error) {
-        const makeApiProblem = makeApiProblemBuilder(genericLogger, {});
-        const problem = makeApiProblem(error, (err) =>
-          match(err.code)
-            .with("unauthorizedError", () => 401)
-            .with("operationForbidden", () => 403)
-            .with("missingHeader", () => 400)
-            .otherwise(() => 500)
+        const problem = makeApiProblem(
+          error,
+          (err) =>
+            match(err.code)
+              .with("unauthorizedError", () => 401)
+              .with("operationForbidden", () => 403)
+              .with("missingHeader", () => 400)
+              .otherwise(() => 500),
+          genericLogger
         );
         return res.status(problem.status).json(problem).end();
       }

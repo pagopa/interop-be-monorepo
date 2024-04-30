@@ -3,9 +3,9 @@ import { Request, Response, NextFunction } from "express";
 import { badRequestError, makeApiProblemBuilder } from "pagopa-interop-models";
 import { z } from "zod";
 import { fromZodIssue } from "zod-validation-error";
-import { logger } from "../logging/index.js";
+import { genericLogger } from "../logging/index.js";
 
-const makeApiProblem = makeApiProblemBuilder(logger, {});
+const makeApiProblem = makeApiProblemBuilder({});
 
 export function zodiosValidationErrorToApiProblem(
   zodError: {
@@ -24,7 +24,8 @@ export function zodiosValidationErrorToApiProblem(
     .json(
       makeApiProblem(
         badRequestError(detail, errors),
-        () => constants.HTTP_STATUS_BAD_REQUEST
+        () => constants.HTTP_STATUS_BAD_REQUEST,
+        genericLogger
       )
     )
     .send();

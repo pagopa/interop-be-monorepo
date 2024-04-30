@@ -8,8 +8,8 @@ import {
   initDB,
   ReadModelRepository,
   initFileManager,
-  loggerAndMakeApiProblemBuilder,
   zodiosValidationErrorToApiProblem,
+  fromZodiosCtx,
 } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -47,7 +47,7 @@ import {
   archiveAgreementErrorMapper,
   getAgreementErrorMapper,
 } from "../utilities/errorMappers.js";
-import { errorCodes } from "../model/domain/errors.js";
+import { makeApiProblem } from "../model/domain/errors.js";
 
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
@@ -96,23 +96,21 @@ const agreementRouter = (
     "/agreements/:agreementId/submit",
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
-      const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-        serviceName,
-        req.ctx,
-        errorCodes
-      );
+      const ctx = fromZodiosCtx(serviceName, req.ctx);
 
       try {
         const id = await agreementService.submitAgreement(
           unsafeBrandId(req.params.agreementId),
           req.body,
-          req.ctx.authData,
-          req.ctx.correlationId,
-          logger
+          ctx
         );
         return res.status(200).json({ id }).end();
       } catch (error) {
-        const errorRes = makeApiProblem(error, submitAgreementErrorMapper);
+        const errorRes = makeApiProblem(
+          error,
+          submitAgreementErrorMapper,
+          ctx.logger
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     }
@@ -122,24 +120,22 @@ const agreementRouter = (
     "/agreements/:agreementId/activate",
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
-      const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-        serviceName,
-        req.ctx,
-        errorCodes
-      );
+      const ctx = fromZodiosCtx(serviceName, req.ctx);
 
       try {
         const agreementId: Agreement["id"] =
           await agreementService.activateAgreement(
             unsafeBrandId(req.params.agreementId),
-            req.ctx.authData,
-            req.ctx.correlationId,
-            logger
+            ctx
           );
 
         return res.status(200).json({ id: agreementId }).end();
       } catch (error) {
-        const errorRes = makeApiProblem(error, activateAgreementErrorMapper);
+        const errorRes = makeApiProblem(
+          error,
+          activateAgreementErrorMapper,
+          ctx.logger
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     }
@@ -149,24 +145,22 @@ const agreementRouter = (
     "/agreements/:agreementId/consumer-documents",
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
-      const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-        serviceName,
-        req.ctx,
-        errorCodes
-      );
+      const ctx = fromZodiosCtx(serviceName, req.ctx);
 
       try {
         const id = await agreementService.addConsumerDocument(
           unsafeBrandId(req.params.agreementId),
           req.body,
-          req.ctx.authData,
-          req.ctx.correlationId,
-          logger
+          ctx
         );
 
         return res.status(200).json({ id }).send();
       } catch (error) {
-        const errorRes = makeApiProblem(error, addConsumerDocumentErrorMapper);
+        const errorRes = makeApiProblem(
+          error,
+          addConsumerDocumentErrorMapper,
+          ctx.logger
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     }
@@ -176,25 +170,24 @@ const agreementRouter = (
     "/agreements/:agreementId/consumer-documents/:documentId",
     authorizationMiddleware([ADMIN_ROLE, SUPPORT_ROLE]),
     async (req, res) => {
-      const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-        serviceName,
-        req.ctx,
-        errorCodes
-      );
+      const ctx = fromZodiosCtx(serviceName, req.ctx);
 
       try {
         const document = await agreementService.getAgreementConsumerDocument(
           unsafeBrandId(req.params.agreementId),
           unsafeBrandId(req.params.documentId),
-          req.ctx.authData,
-          logger
+          ctx
         );
         return res
           .status(200)
           .json(agreementDocumentToApiAgreementDocument(document))
           .send();
       } catch (error) {
-        const errorRes = makeApiProblem(error, getConsumerDocumentErrorMapper);
+        const errorRes = makeApiProblem(
+          error,
+          getConsumerDocumentErrorMapper,
+          ctx.logger
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     }
@@ -204,25 +197,20 @@ const agreementRouter = (
     "/agreements/:agreementId/consumer-documents/:documentId",
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
-      const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-        serviceName,
-        req.ctx,
-        errorCodes
-      );
+      const ctx = fromZodiosCtx(serviceName, req.ctx);
 
       try {
         await agreementService.removeAgreementConsumerDocument(
           unsafeBrandId(req.params.agreementId),
           unsafeBrandId(req.params.documentId),
-          req.ctx.authData,
-          req.ctx.correlationId,
-          logger
+          ctx
         );
         return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          removeConsumerDocumentErrorMapper
+          removeConsumerDocumentErrorMapper,
+          ctx.logger
         );
         return res.status(errorRes.status).json(errorRes).end();
       }
@@ -233,22 +221,20 @@ const agreementRouter = (
     "/agreements/:agreementId/suspend",
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
-      const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-        serviceName,
-        req.ctx,
-        errorCodes
-      );
+      const ctx = fromZodiosCtx(serviceName, req.ctx);
 
       try {
         const id = await agreementService.suspendAgreement(
           unsafeBrandId(req.params.agreementId),
-          req.ctx.authData,
-          req.ctx.correlationId,
-          logger
+          ctx
         );
         return res.status(200).json({ id }).send();
       } catch (error) {
-        const errorRes = makeApiProblem(error, suspendAgreementErrorMapper);
+        const errorRes = makeApiProblem(
+          error,
+          suspendAgreementErrorMapper,
+          ctx.logger
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     }
@@ -258,23 +244,21 @@ const agreementRouter = (
     "/agreements/:agreementId/reject",
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
-      const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-        serviceName,
-        req.ctx,
-        errorCodes
-      );
+      const ctx = fromZodiosCtx(serviceName, req.ctx);
 
       try {
         const id = await agreementService.rejectAgreement(
           unsafeBrandId(req.params.agreementId),
           req.body.reason,
-          req.ctx.authData,
-          req.ctx.correlationId,
-          logger
+          ctx
         );
         return res.status(200).json({ id }).send();
       } catch (error) {
-        const errorRes = makeApiProblem(error, rejectAgreementErrorMapper);
+        const errorRes = makeApiProblem(
+          error,
+          rejectAgreementErrorMapper,
+          ctx.logger
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     }
@@ -284,22 +268,20 @@ const agreementRouter = (
     "/agreements/:agreementId/archive",
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
-      const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-        serviceName,
-        req.ctx,
-        errorCodes
-      );
+      const ctx = fromZodiosCtx(serviceName, req.ctx);
 
       try {
         const agreementId = await agreementService.archiveAgreement(
           unsafeBrandId(req.params.agreementId),
-          req.ctx.authData,
-          req.ctx.correlationId,
-          logger
+          ctx
         );
         return res.status(200).send({ id: agreementId });
       } catch (error) {
-        const errorRes = makeApiProblem(error, archiveAgreementErrorMapper);
+        const errorRes = makeApiProblem(
+          error,
+          archiveAgreementErrorMapper,
+          ctx.logger
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     }
@@ -309,22 +291,17 @@ const agreementRouter = (
     "/agreements",
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
-      const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-        serviceName,
-        req.ctx,
-        errorCodes
-      );
+      const ctx = fromZodiosCtx(serviceName, req.ctx);
 
       try {
-        const id = await agreementService.createAgreement(
-          req.body,
-          req.ctx.authData,
-          req.ctx.correlationId,
-          logger
-        );
+        const id = await agreementService.createAgreement(req.body, ctx);
         return res.status(200).json({ id }).send();
       } catch (error) {
-        const errorRes = makeApiProblem(error, createAgreementErrorMapper);
+        const errorRes = makeApiProblem(
+          error,
+          createAgreementErrorMapper,
+          ctx.logger
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     }
@@ -340,11 +317,7 @@ const agreementRouter = (
       SUPPORT_ROLE,
     ]),
     async (req, res) => {
-      const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-        serviceName,
-        req.ctx,
-        errorCodes
-      );
+      const ctx = fromZodiosCtx(serviceName, req.ctx);
 
       try {
         const agreements = await agreementService.getAgreements(
@@ -362,7 +335,7 @@ const agreementRouter = (
           },
           req.query.limit,
           req.query.offset,
-          logger
+          ctx.logger
         );
 
         return res
@@ -373,7 +346,7 @@ const agreementRouter = (
           })
           .end();
       } catch (error) {
-        const errorRes = makeApiProblem(error, () => 500);
+        const errorRes = makeApiProblem(error, () => 500, ctx.logger);
         return res.status(errorRes.status).json(errorRes).end();
       }
     }
@@ -388,18 +361,14 @@ const agreementRouter = (
       SUPPORT_ROLE,
     ]),
     async (req, res) => {
-      const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-        serviceName,
-        req.ctx,
-        errorCodes
-      );
+      const ctx = fromZodiosCtx(serviceName, req.ctx);
 
       try {
         const producers = await agreementService.getAgreementProducers(
           req.query.producerName,
           req.query.limit,
           req.query.offset,
-          logger
+          ctx.logger
         );
 
         return res
@@ -410,7 +379,7 @@ const agreementRouter = (
           })
           .end();
       } catch (error) {
-        const errorRes = makeApiProblem(error, () => 500);
+        const errorRes = makeApiProblem(error, () => 500, ctx.logger);
         return res.status(errorRes.status).json(errorRes).end();
       }
     }
@@ -425,18 +394,14 @@ const agreementRouter = (
       SUPPORT_ROLE,
     ]),
     async (req, res) => {
-      const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-        serviceName,
-        req.ctx,
-        errorCodes
-      );
+      const ctx = fromZodiosCtx(serviceName, req.ctx);
 
       try {
         const consumers = await agreementService.getAgreementConsumers(
           req.query.consumerName,
           req.query.limit,
           req.query.offset,
-          logger
+          ctx.logger
         );
 
         return res
@@ -447,7 +412,7 @@ const agreementRouter = (
           })
           .end();
       } catch (error) {
-        const errorRes = makeApiProblem(error, () => 500);
+        const errorRes = makeApiProblem(error, () => 500, ctx.logger);
         return res.status(errorRes.status).json(errorRes).end();
       }
     }
@@ -464,20 +429,20 @@ const agreementRouter = (
       SUPPORT_ROLE,
     ]),
     async (req, res) => {
-      const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-        serviceName,
-        req.ctx,
-        errorCodes
-      );
+      const ctx = fromZodiosCtx(serviceName, req.ctx);
 
       try {
         const agreement = await agreementService.getAgreementById(
           unsafeBrandId(req.params.agreementId),
-          logger
+          ctx.logger
         );
         return res.status(200).json(agreementToApiAgreement(agreement)).send();
       } catch (error) {
-        const errorRes = makeApiProblem(error, getAgreementErrorMapper);
+        const errorRes = makeApiProblem(
+          error,
+          getAgreementErrorMapper,
+          ctx.logger
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     }
@@ -487,22 +452,20 @@ const agreementRouter = (
     "/agreements/:agreementId",
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
-      const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-        serviceName,
-        req.ctx,
-        errorCodes
-      );
+      const ctx = fromZodiosCtx(serviceName, req.ctx);
 
       try {
         await agreementService.deleteAgreementById(
           unsafeBrandId(req.params.agreementId),
-          req.ctx.authData,
-          req.ctx.correlationId,
-          logger
+          ctx
         );
         return res.status(204).send();
       } catch (error) {
-        const errorRes = makeApiProblem(error, deleteAgreementErrorMapper);
+        const errorRes = makeApiProblem(
+          error,
+          deleteAgreementErrorMapper,
+          ctx.logger
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     }
@@ -512,24 +475,22 @@ const agreementRouter = (
     "/agreements/:agreementId/update",
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
-      const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-        serviceName,
-        req.ctx,
-        errorCodes
-      );
+      const ctx = fromZodiosCtx(serviceName, req.ctx);
 
       try {
         await agreementService.updateAgreement(
           unsafeBrandId(req.params.agreementId),
           req.body,
-          req.ctx.authData,
-          req.ctx.correlationId,
-          logger
+          ctx
         );
 
         return res.status(200).send();
       } catch (error) {
-        const errorRes = makeApiProblem(error, updateAgreementErrorMapper);
+        const errorRes = makeApiProblem(
+          error,
+          updateAgreementErrorMapper,
+          ctx.logger
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     }
@@ -539,23 +500,21 @@ const agreementRouter = (
     "/agreements/:agreementId/upgrade",
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
-      const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-        serviceName,
-        req.ctx,
-        errorCodes
-      );
+      const ctx = fromZodiosCtx(serviceName, req.ctx);
 
       try {
         const id = await agreementService.upgradeAgreement(
           unsafeBrandId(req.params.agreementId),
-          req.ctx.authData,
-          req.ctx.correlationId,
-          logger
+          ctx
         );
 
         return res.status(200).json({ id }).send();
       } catch (error) {
-        const errorRes = makeApiProblem(error, upgradeAgreementErrorMapper);
+        const errorRes = makeApiProblem(
+          error,
+          upgradeAgreementErrorMapper,
+          ctx.logger
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     }
@@ -565,23 +524,21 @@ const agreementRouter = (
     "/agreements/:agreementId/clone",
     authorizationMiddleware([ADMIN_ROLE]),
     async (req, res) => {
-      const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-        serviceName,
-        req.ctx,
-        errorCodes
-      );
+      const ctx = fromZodiosCtx(serviceName, req.ctx);
 
       try {
         const id = await agreementService.cloneAgreement(
           unsafeBrandId(req.params.agreementId),
-          req.ctx.authData,
-          req.ctx.correlationId,
-          logger
+          ctx
         );
 
         return res.status(200).json({ id }).send();
       } catch (error) {
-        const errorRes = makeApiProblem(error, cloneAgreementErrorMapper);
+        const errorRes = makeApiProblem(
+          error,
+          cloneAgreementErrorMapper,
+          ctx.logger
+        );
         return res.status(errorRes.status).json(errorRes).end();
       }
     }
@@ -600,11 +557,7 @@ const agreementRouter = (
       SUPPORT_ROLE,
     ]),
     async (req, res) => {
-      const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-        serviceName,
-        req.ctx,
-        errorCodes
-      );
+      const ctx = fromZodiosCtx(serviceName, req.ctx);
 
       try {
         const eservices = await agreementService.getAgreementEServices(
@@ -618,7 +571,7 @@ const agreementRouter = (
           },
           req.query.limit,
           req.query.offset,
-          logger
+          ctx.logger
         );
 
         return res
@@ -629,7 +582,7 @@ const agreementRouter = (
           })
           .end();
       } catch (error) {
-        const errorRes = makeApiProblem(error, () => 500);
+        const errorRes = makeApiProblem(error, () => 500, ctx.logger);
         return res.status(errorRes.status).json(errorRes).end();
       }
     }

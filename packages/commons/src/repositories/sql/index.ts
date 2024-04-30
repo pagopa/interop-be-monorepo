@@ -1,7 +1,7 @@
 import path from "path";
 import { fileURLToPath } from "url";
 import pgPromise from "pg-promise";
-import { genericLogger } from "../../logging/loggerMiddleware.js";
+import { genericLogger } from "../../logging/index.js";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);

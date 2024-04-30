@@ -67,7 +67,8 @@ export type Problem = {
 
 export type MakeApiProblemFn<T extends string> = (
   error: unknown,
-  httpMapper: (apiError: ApiError<T | CommonErrorCodes>) => number
+  httpMapper: (apiError: ApiError<T | CommonErrorCodes>) => number,
+  logger: { error: (message: string) => void; warn: (message: string) => void }
 ) => Problem;
 
 const makeProblemLogString = (
@@ -78,14 +79,11 @@ const makeProblemLogString = (
   return `- title: ${problem.title} - detail: ${problem.detail} - errors: ${errorsString} - orignal error: ${originalError}`;
 };
 
-export function makeApiProblemBuilder<T extends string>(
-  logger: { error: (message: string) => void; warn: (message: string) => void },
-  errors: {
-    [K in T]: string;
-  }
-): MakeApiProblemFn<T> {
+export function makeApiProblemBuilder<T extends string>(errors: {
+  [K in T]: string;
+}): MakeApiProblemFn<T> {
   const allErrors = { ...errorCodes, ...errors };
-  return (error, httpMapper) => {
+  return (error, httpMapper, logger) => {
     const makeProblem = (
       httpStatus: number,
       { title, detail, correlationId, errors }: ApiError<T | CommonErrorCodes>

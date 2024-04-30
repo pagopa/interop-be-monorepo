@@ -4,6 +4,8 @@ import {
   DB,
   FileManager,
   Logger,
+  WithLogger,
+  ZodiosCtx,
   eventRepository,
   hasPermission,
   riskAnalysisValidatedFormToNewRiskAnalysis,
@@ -337,8 +339,7 @@ export function catalogServiceBuilder(
   return {
     async getEServiceById(
       eserviceId: EServiceId,
-      authData: AuthData,
-      logger: Logger
+      { authData, logger }: WithLogger<ZodiosCtx>
     ): Promise<EService> {
       logger.info(`Retrieving EService ${eserviceId}`);
       const eservice = await retrieveEService(
@@ -398,14 +399,12 @@ export function catalogServiceBuilder(
         eserviceId,
         descriptorId,
         documentId,
-        authData,
       }: {
         eserviceId: EServiceId;
         descriptorId: DescriptorId;
         documentId: EServiceDocumentId;
-        authData: AuthData;
       },
-      logger: Logger
+      { authData, logger }: WithLogger<ZodiosCtx>
     ): Promise<Document> {
       logger.info(
         `Retrieving EService document ${documentId} for EService ${eserviceId} and descriptor ${descriptorId}`
@@ -429,9 +428,7 @@ export function catalogServiceBuilder(
 
     async createEService(
       apiEServicesSeed: ApiEServiceSeed,
-      authData: AuthData,
-      correlationId: string,
-      logger: Logger
+      { authData, correlationId, logger }: WithLogger<ZodiosCtx>
     ): Promise<EService> {
       logger.info(
         `Creating EService with service name ${apiEServicesSeed.name}`
@@ -475,9 +472,7 @@ export function catalogServiceBuilder(
     async updateEService(
       eserviceId: EServiceId,
       eserviceSeed: ApiEServiceSeed,
-      authData: AuthData,
-      correlationId: string,
-      logger: Logger
+      { authData, correlationId, logger }: WithLogger<ZodiosCtx>
     ): Promise<EService> {
       logger.info(`Updating EService ${eserviceId}`);
 
@@ -559,9 +554,7 @@ export function catalogServiceBuilder(
 
     async deleteEService(
       eserviceId: EServiceId,
-      authData: AuthData,
-      correlationId: string,
-      logger: Logger
+      { authData, correlationId, logger }: WithLogger<ZodiosCtx>
     ): Promise<void> {
       logger.info(`Deleting EService ${eserviceId}`);
 
@@ -587,9 +580,7 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       document: ApiEServiceDescriptorDocumentSeed,
-      authData: AuthData,
-      correlationId: string,
-      logger: Logger
+      { authData, correlationId, logger }: WithLogger<ZodiosCtx>
     ): Promise<EService> {
       logger.info(
         `Creating EService Document ${document.documentId.toString()} of kind ${
@@ -673,9 +664,7 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       documentId: EServiceDocumentId,
-      authData: AuthData,
-      correlationId: string,
-      logger: Logger
+      { authData, correlationId, logger }: WithLogger<ZodiosCtx>
     ): Promise<void> {
       logger.info(
         `Deleting Document ${documentId} of Descriptor ${descriptorId} for EService ${eserviceId}`
@@ -745,9 +734,7 @@ export function catalogServiceBuilder(
       descriptorId: DescriptorId,
       documentId: EServiceDocumentId,
       apiEServiceDescriptorDocumentUpdateSeed: ApiEServiceDescriptorDocumentUpdateSeed,
-      authData: AuthData,
-      correlationId: string,
-      logger: Logger
+      { authData, correlationId, logger }: WithLogger<ZodiosCtx>
     ): Promise<Document> {
       logger.info(
         `Updating Document ${documentId} of Descriptor ${descriptorId} for EService ${eserviceId}`
@@ -818,9 +805,7 @@ export function catalogServiceBuilder(
     async createDescriptor(
       eserviceId: EServiceId,
       eserviceDescriptorSeed: EServiceDescriptorSeed,
-      authData: AuthData,
-      correlationId: string,
-      logger: Logger
+      { authData, correlationId, logger }: WithLogger<ZodiosCtx>
     ): Promise<Descriptor> {
       logger.info(`Creating Descriptor for EService ${eserviceId}`);
 
@@ -893,9 +878,7 @@ export function catalogServiceBuilder(
     async deleteDraftDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      authData: AuthData,
-      correlationId: string,
-      logger: Logger
+      { authData, correlationId, logger }: WithLogger<ZodiosCtx>
     ): Promise<void> {
       logger.info(
         `Deleting draft Descriptor ${descriptorId} for EService ${eserviceId}`
@@ -951,9 +934,7 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       seed: UpdateEServiceDescriptorSeed,
-      authData: AuthData,
-      correlationId: string,
-      logger: Logger
+      { authData, correlationId, logger }: WithLogger<ZodiosCtx>
     ): Promise<EService> {
       logger.info(
         `Updating draft Descriptor ${descriptorId} for EService ${eserviceId}`
@@ -1017,9 +998,7 @@ export function catalogServiceBuilder(
     async publishDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      authData: AuthData,
-      correlationId: string,
-      logger: Logger
+      { authData, correlationId, logger }: WithLogger<ZodiosCtx>
     ): Promise<void> {
       logger.info(
         `Publishing Descriptor ${descriptorId} for EService ${eserviceId}`
@@ -1124,9 +1103,7 @@ export function catalogServiceBuilder(
     async suspendDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      authData: AuthData,
-      correlationId: string,
-      logger: Logger
+      { authData, correlationId, logger }: WithLogger<ZodiosCtx>
     ): Promise<void> {
       logger.info(
         `Suspending Descriptor ${descriptorId} for EService ${eserviceId}`
@@ -1167,9 +1144,7 @@ export function catalogServiceBuilder(
     async activateDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      authData: AuthData,
-      correlationId: string,
-      logger: Logger
+      { authData, correlationId, logger }: WithLogger<ZodiosCtx>
     ): Promise<void> {
       logger.info(
         `Activating descriptor ${descriptorId} for EService ${eserviceId}`
@@ -1241,9 +1216,7 @@ export function catalogServiceBuilder(
     async cloneDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      authData: AuthData,
-      correlationId: string,
-      logger: Logger
+      { authData, correlationId, logger }: WithLogger<ZodiosCtx>
     ): Promise<EService> {
       logger.info(
         `Cloning Descriptor ${descriptorId} for EService ${eserviceId}`
@@ -1365,9 +1338,7 @@ export function catalogServiceBuilder(
     async archiveDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      authData: AuthData,
-      correlationId: string,
-      logger: Logger
+      { authData, correlationId, logger }: WithLogger<ZodiosCtx>
     ): Promise<void> {
       logger.info(
         `Archiving Descriptor ${descriptorId} for EService ${eserviceId}`
@@ -1402,9 +1373,7 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       seed: UpdateEServiceDescriptorQuotasSeed,
-      authData: AuthData,
-      correlationId: string,
-      logger: Logger
+      { authData, correlationId, logger }: WithLogger<ZodiosCtx>
     ): Promise<EService> {
       logger.info(
         `Updating Descriptor ${descriptorId} for EService ${eserviceId}`
@@ -1457,9 +1426,7 @@ export function catalogServiceBuilder(
     async createRiskAnalysis(
       eserviceId: EServiceId,
       eserviceRiskAnalysisSeed: EServiceRiskAnalysisSeed,
-      authData: AuthData,
-      correlationId: string,
-      logger: Logger
+      { authData, correlationId, logger }: WithLogger<ZodiosCtx>
     ): Promise<void> {
       logger.info(`Creating Risk Analysis for EService ${eserviceId}`);
 
@@ -1510,9 +1477,7 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       riskAnalysisId: RiskAnalysis["id"],
       eserviceRiskAnalysisSeed: EServiceRiskAnalysisSeed,
-      authData: AuthData,
-      correlationId: string,
-      logger: Logger
+      { authData, correlationId, logger }: WithLogger<ZodiosCtx>
     ): Promise<void> {
       logger.info(
         `Updating Risk Analysis ${riskAnalysisId} for EService ${eserviceId}`
@@ -1571,9 +1536,7 @@ export function catalogServiceBuilder(
     async deleteRiskAnalysis(
       eserviceId: EServiceId,
       riskAnalysisId: RiskAnalysisId,
-      authData: AuthData,
-      correlationId: string,
-      logger: Logger
+      { authData, correlationId, logger }: WithLogger<ZodiosCtx>
     ): Promise<void> {
       logger.info(
         `Deleting Risk Analysis ${riskAnalysisId} for EService ${eserviceId}`

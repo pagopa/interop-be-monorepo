@@ -1,4 +1,10 @@
-import { AuthData, DB, eventRepository, Logger } from "pagopa-interop-commons";
+import {
+  DB,
+  eventRepository,
+  Logger,
+  WithLogger,
+  ZodiosCtx,
+} from "pagopa-interop-commons";
 import {
   AttributeId,
   ListResult,
@@ -58,8 +64,7 @@ export function tenantServiceBuilder(
       tenantId: TenantId,
       attributeId: AttributeId,
       verifierId: string,
-      correlationId: string,
-      logger: Logger
+      { correlationId, logger }: WithLogger<ZodiosCtx>
     ): Promise<Tenant> {
       logger.info(
         `Update extension date of attribute ${attributeId} for tenant ${tenantId}`
@@ -136,15 +141,13 @@ export function tenantServiceBuilder(
         tenantId,
         attributeId,
         updateVerifiedTenantAttributeSeed,
-        correlationId,
       }: {
         verifierId: string;
         tenantId: TenantId;
         attributeId: AttributeId;
         updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed;
-        correlationId: string;
       },
-      logger: Logger
+      { correlationId, logger }: WithLogger<ZodiosCtx>
     ): Promise<Tenant> {
       logger.info(`Update attribute ${attributeId} to tenant ${tenantId}`);
       const tenant = await retrieveTenant(tenantId, readModelService, logger);
@@ -193,16 +196,8 @@ export function tenantServiceBuilder(
     },
 
     async selfcareUpsertTenant(
-      {
-        tenantSeed,
-        authData,
-        correlationId,
-      }: {
-        tenantSeed: ApiSelfcareTenantSeed;
-        authData: AuthData;
-        correlationId: string;
-      },
-      logger: Logger
+      tenantSeed: ApiSelfcareTenantSeed,
+      { authData, correlationId, logger }: WithLogger<ZodiosCtx>
     ): Promise<string> {
       logger.info(
         `Upsert tenant by selfcare with externalId: ${tenantSeed.externalId}`

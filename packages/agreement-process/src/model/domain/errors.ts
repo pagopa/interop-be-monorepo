@@ -7,6 +7,7 @@ import {
   DescriptorState,
   EServiceId,
   TenantId,
+  makeApiProblemBuilder,
 } from "pagopa-interop-models";
 
 export const errorCodes = {
@@ -38,6 +39,8 @@ export const errorCodes = {
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
+
+export const makeApiProblem = makeApiProblemBuilder(errorCodes);
 
 export function eServiceNotFound(eserviceId: EServiceId): ApiError<ErrorCodes> {
   return new ApiError({

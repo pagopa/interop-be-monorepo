@@ -8,8 +8,8 @@ import {
   ReadModelRepository,
   initDB,
   initFileManager,
-  loggerAndMakeApiProblemBuilder,
   zodiosValidationErrorToApiProblem,
+  fromZodiosCtx,
 } from "pagopa-interop-commons";
 import {
   unsafeBrandId,
@@ -31,7 +31,7 @@ import { api } from "../model/generated/api.js";
 import { config } from "../utilities/config.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { catalogServiceBuilder } from "../services/catalogService.js";
-import { errorCodes } from "../model/domain/errors.js";
+import { makeApiProblem } from "../model/domain/errors.js";
 import {
   activateDescriptorErrorMapper,
   archiveDescriptorErrorMapper,
@@ -99,11 +99,7 @@ const eservicesRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const { logger } = loggerAndMakeApiProblemBuilder(
-          serviceName,
-          req.ctx,
-          errorCodes
-        );
+        const { logger } = fromZodiosCtx(serviceName, req.ctx);
 
         try {
           const {
@@ -152,22 +148,17 @@ const eservicesRouter = (
       "/eservices",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-          serviceName,
-          req.ctx,
-          errorCodes
-        );
+        const ctx = fromZodiosCtx(serviceName, req.ctx);
 
         try {
-          const eservice = await catalogService.createEService(
-            req.body,
-            req.ctx.authData,
-            req.ctx.correlationId,
-            logger
-          );
+          const eservice = await catalogService.createEService(req.body, ctx);
           return res.status(200).json(eServiceToApiEService(eservice)).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, createEServiceErrorMapper);
+          const errorRes = makeApiProblem(
+            error,
+            createEServiceErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -183,21 +174,20 @@ const eservicesRouter = (
         INTERNAL_ROLE,
       ]),
       async (req, res) => {
-        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-          serviceName,
-          req.ctx,
-          errorCodes
-        );
+        const ctx = fromZodiosCtx(serviceName, req.ctx);
 
         try {
           const eservice = await catalogService.getEServiceById(
             unsafeBrandId(req.params.eServiceId),
-            req.ctx.authData,
-            logger
+            ctx
           );
           return res.status(200).json(eServiceToApiEService(eservice)).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, getEServiceErrorMapper);
+          const errorRes = makeApiProblem(
+            error,
+            getEServiceErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -206,26 +196,24 @@ const eservicesRouter = (
       "/eservices/:eServiceId",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-          serviceName,
-          req.ctx,
-          errorCodes
-        );
+        const ctx = fromZodiosCtx(serviceName, req.ctx);
 
         try {
           const updatedEService = await catalogService.updateEService(
             unsafeBrandId(req.params.eServiceId),
             req.body,
-            req.ctx.authData,
-            req.ctx.correlationId,
-            logger
+            ctx
           );
           return res
             .status(200)
             .json(eServiceToApiEService(updatedEService))
             .end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, updateEServiceErrorMapper);
+          const errorRes = makeApiProblem(
+            error,
+            updateEServiceErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -234,22 +222,20 @@ const eservicesRouter = (
       "/eservices/:eServiceId",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-          serviceName,
-          req.ctx,
-          errorCodes
-        );
+        const ctx = fromZodiosCtx(serviceName, req.ctx);
 
         try {
           await catalogService.deleteEService(
             unsafeBrandId(req.params.eServiceId),
-            req.ctx.authData,
-            req.ctx.correlationId,
-            logger
+            ctx
           );
           return res.status(204).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, deleteEServiceErrorMapper);
+          const errorRes = makeApiProblem(
+            error,
+            deleteEServiceErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -264,18 +250,14 @@ const eservicesRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-          serviceName,
-          req.ctx,
-          errorCodes
-        );
+        const ctx = fromZodiosCtx(serviceName, req.ctx);
 
         try {
           const consumers = await catalogService.getEServiceConsumers(
             unsafeBrandId(req.params.eServiceId),
             req.query.offset,
             req.query.limit,
-            logger
+            ctx.logger
           );
 
           return res
@@ -296,7 +278,7 @@ const eservicesRouter = (
             })
             .end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, () => 500);
+          const errorRes = makeApiProblem(error, () => 500, ctx.logger);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -311,11 +293,7 @@ const eservicesRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-          serviceName,
-          req.ctx,
-          errorCodes
-        );
+        const ctx = fromZodiosCtx(serviceName, req.ctx);
 
         try {
           const { eServiceId, descriptorId, documentId } = req.params;
@@ -325,14 +303,17 @@ const eservicesRouter = (
               eserviceId: unsafeBrandId(eServiceId),
               descriptorId: unsafeBrandId(descriptorId),
               documentId: unsafeBrandId(documentId),
-              authData: req.ctx.authData,
             },
-            logger
+            ctx
           );
 
           return res.status(200).json(documentToApiDocument(document)).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, documentGetErrorMapper);
+          const errorRes = makeApiProblem(
+            error,
+            documentGetErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -341,27 +322,25 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/documents",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-          serviceName,
-          req.ctx,
-          errorCodes
-        );
+        const ctx = fromZodiosCtx(serviceName, req.ctx);
 
         try {
           const updatedEService = await catalogService.uploadDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.body,
-            req.ctx.authData,
-            req.ctx.correlationId,
-            logger
+            ctx
           );
           return res
             .status(200)
             .json(eServiceToApiEService(updatedEService))
             .end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, documentCreateErrorMapper);
+          const errorRes = makeApiProblem(
+            error,
+            documentCreateErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -370,26 +349,21 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-          serviceName,
-          req.ctx,
-          errorCodes
-        );
+        const ctx = fromZodiosCtx(serviceName, req.ctx);
 
         try {
           await catalogService.deleteDocument(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             unsafeBrandId(req.params.documentId),
-            req.ctx.authData,
-            req.ctx.correlationId,
-            logger
+            ctx
           );
           return res.status(204).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            documentUpdateDeleteErrorMapper
+            documentUpdateDeleteErrorMapper,
+            ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
@@ -399,11 +373,7 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId/update",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-          serviceName,
-          req.ctx,
-          errorCodes
-        );
+        const ctx = fromZodiosCtx(serviceName, req.ctx);
 
         try {
           const updatedDocument = await catalogService.updateDocument(
@@ -411,9 +381,7 @@ const eservicesRouter = (
             unsafeBrandId(req.params.descriptorId),
             unsafeBrandId(req.params.documentId),
             req.body,
-            req.ctx.authData,
-            req.ctx.correlationId,
-            logger
+            ctx
           );
           return res
             .status(200)
@@ -422,7 +390,8 @@ const eservicesRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            documentUpdateDeleteErrorMapper
+            documentUpdateDeleteErrorMapper,
+            ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
@@ -432,26 +401,24 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-          serviceName,
-          req.ctx,
-          errorCodes
-        );
+        const ctx = fromZodiosCtx(serviceName, req.ctx);
 
         try {
           const descriptor = await catalogService.createDescriptor(
             unsafeBrandId(req.params.eServiceId),
             req.body,
-            req.ctx.authData,
-            req.ctx.correlationId,
-            logger
+            ctx
           );
           return res
             .status(200)
             .json(descriptorToApiDescriptor(descriptor))
             .end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, createDescriptorErrorMapper);
+          const errorRes = makeApiProblem(
+            error,
+            createDescriptorErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -460,25 +427,20 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-          serviceName,
-          req.ctx,
-          errorCodes
-        );
+        const ctx = fromZodiosCtx(serviceName, req.ctx);
 
         try {
           await catalogService.deleteDraftDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
-            req.ctx.authData,
-            req.ctx.correlationId,
-            logger
+            ctx
           );
           return res.status(204).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            deleteDraftDescriptorErrorMapper
+            deleteDraftDescriptorErrorMapper,
+            ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
@@ -488,20 +450,14 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-          serviceName,
-          req.ctx,
-          errorCodes
-        );
+        const ctx = fromZodiosCtx(serviceName, req.ctx);
 
         try {
           const updatedEService = await catalogService.updateDraftDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.body,
-            req.ctx.authData,
-            req.ctx.correlationId,
-            logger
+            ctx
           );
           return res
             .status(200)
@@ -510,7 +466,8 @@ const eservicesRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            updateDraftDescriptorErrorMapper
+            updateDraftDescriptorErrorMapper,
+            ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
@@ -520,23 +477,21 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/publish",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-          serviceName,
-          req.ctx,
-          errorCodes
-        );
+        const ctx = fromZodiosCtx(serviceName, req.ctx);
 
         try {
           await catalogService.publishDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
-            req.ctx.authData,
-            req.ctx.correlationId,
-            logger
+            ctx
           );
           return res.status(204).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, publishDescriptorErrorMapper);
+          const errorRes = makeApiProblem(
+            error,
+            publishDescriptorErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -545,23 +500,21 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/suspend",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-          serviceName,
-          req.ctx,
-          errorCodes
-        );
+        const ctx = fromZodiosCtx(serviceName, req.ctx);
 
         try {
           await catalogService.suspendDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
-            req.ctx.authData,
-            req.ctx.correlationId,
-            logger
+            ctx
           );
           return res.status(204).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, suspendDescriptorErrorMapper);
+          const errorRes = makeApiProblem(
+            error,
+            suspendDescriptorErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -570,23 +523,21 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/activate",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-          serviceName,
-          req.ctx,
-          errorCodes
-        );
+        const ctx = fromZodiosCtx(serviceName, req.ctx);
 
         try {
           await catalogService.activateDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
-            req.ctx.authData,
-            req.ctx.correlationId,
-            logger
+            ctx
           );
           return res.status(204).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, activateDescriptorErrorMapper);
+          const errorRes = makeApiProblem(
+            error,
+            activateDescriptorErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -595,20 +546,14 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/clone",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-          serviceName,
-          req.ctx,
-          errorCodes
-        );
+        const ctx = fromZodiosCtx(serviceName, req.ctx);
 
         try {
           const clonedEserviceByDescriptor =
             await catalogService.cloneDescriptor(
               unsafeBrandId(req.params.eServiceId),
               unsafeBrandId(req.params.descriptorId),
-              req.ctx.authData,
-              req.ctx.correlationId,
-              logger
+              ctx
             );
           return res
             .status(200)
@@ -617,7 +562,8 @@ const eservicesRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            cloneEServiceByDescriptorErrorMapper
+            cloneEServiceByDescriptorErrorMapper,
+            ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
@@ -627,23 +573,21 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/archive",
       authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
-        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-          serviceName,
-          req.ctx,
-          errorCodes
-        );
+        const ctx = fromZodiosCtx(serviceName, req.ctx);
 
         try {
           await catalogService.archiveDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
-            req.ctx.authData,
-            req.ctx.correlationId,
-            logger
+            ctx
           );
           return res.status(204).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, archiveDescriptorErrorMapper);
+          const errorRes = makeApiProblem(
+            error,
+            archiveDescriptorErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -652,27 +596,25 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/update",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-          serviceName,
-          req.ctx,
-          errorCodes
-        );
+        const ctx = fromZodiosCtx(serviceName, req.ctx);
 
         try {
           const updatedEService = await catalogService.updateDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             req.body,
-            req.ctx.authData,
-            req.ctx.correlationId,
-            logger
+            ctx
           );
           return res
             .status(200)
             .json(eServiceToApiEService(updatedEService))
             .end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, updateDescriptorErrorMapper);
+          const errorRes = makeApiProblem(
+            error,
+            updateDescriptorErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -681,23 +623,21 @@ const eservicesRouter = (
       "/eservices/:eServiceId/riskAnalysis",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-          serviceName,
-          req.ctx,
-          errorCodes
-        );
+        const ctx = fromZodiosCtx(serviceName, req.ctx);
 
         try {
           await catalogService.createRiskAnalysis(
             unsafeBrandId(req.params.eServiceId),
             req.body,
-            req.ctx.authData,
-            req.ctx.correlationId,
-            logger
+            ctx
           );
           return res.status(204).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, createRiskAnalysisErrorMapper);
+          const errorRes = makeApiProblem(
+            error,
+            createRiskAnalysisErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -706,24 +646,22 @@ const eservicesRouter = (
       "/eservices/:eServiceId/riskAnalysis/:riskAnalysisId",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-          serviceName,
-          req.ctx,
-          errorCodes
-        );
+        const ctx = fromZodiosCtx(serviceName, req.ctx);
 
         try {
           await catalogService.updateRiskAnalysis(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.riskAnalysisId),
             req.body,
-            req.ctx.authData,
-            req.ctx.correlationId,
-            logger
+            ctx
           );
           return res.status(204).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, updateRiskAnalysisErrorMapper);
+          const errorRes = makeApiProblem(
+            error,
+            updateRiskAnalysisErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -732,23 +670,21 @@ const eservicesRouter = (
       "/eservices/:eServiceId/riskAnalysis/:riskAnalysisId",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const { logger, makeApiProblem } = loggerAndMakeApiProblemBuilder(
-          serviceName,
-          req.ctx,
-          errorCodes
-        );
+        const ctx = fromZodiosCtx(serviceName, req.ctx);
 
         try {
           await catalogService.deleteRiskAnalysis(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.riskAnalysisId),
-            req.ctx.authData,
-            req.ctx.correlationId,
-            logger
+            ctx
           );
           return res.status(204).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, deleteRiskAnalysisErrorMapper);
+          const errorRes = makeApiProblem(
+            error,
+            deleteRiskAnalysisErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }

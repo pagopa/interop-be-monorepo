@@ -3,6 +3,7 @@ import {
   AttributeId,
   EServiceId,
   TenantId,
+  makeApiProblemBuilder,
 } from "pagopa-interop-models";
 
 export const errorCodes = {
@@ -22,6 +23,8 @@ export const errorCodes = {
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
+
+export const makeApiProblem = makeApiProblemBuilder(errorCodes);
 
 export function attributeNotFound(identifier: string): ApiError<ErrorCodes> {
   return new ApiError({
