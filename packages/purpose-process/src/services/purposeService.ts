@@ -142,7 +142,7 @@ const retrieveTenant = async (
   return tenant;
 };
 
-const retrieveAgreement = async (
+const retrieveActiveAgreement = async (
   eserviceId: EServiceId,
   consumerId: TenantId,
   readModelService: ReadModelService
@@ -604,7 +604,7 @@ export function purposeServiceBuilder(
         tenant.kind
       );
 
-      await retrieveAgreement(eserviceId, consumerId, readModelService);
+      await retrieveActiveAgreement(eserviceId, consumerId, readModelService);
 
       const purposeWithSameName = await readModelService.getSpecificPurpose(
         eserviceId,
