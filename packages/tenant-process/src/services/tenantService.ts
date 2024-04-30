@@ -9,7 +9,6 @@ import {
   generateId,
   tenantEventToBinaryData,
   ExternalId,
-  operationForbidden,
 } from "pagopa-interop-models";
 import {
   CertifiedAttributeQueryResult,
@@ -17,7 +16,10 @@ import {
   CertifierPromotionPayload,
 } from "../model/domain/models.js";
 import { ApiSelfcareTenantSeed } from "../model/types.js";
-import { tenantNotFound } from "../model/domain/errors.js";
+import {
+  tenantNotFound,
+  tenatIsAlreadyACertifier,
+} from "../model/domain/errors.js";
 import {
   toCreateEventTenantVerifiedAttributeExpirationUpdated,
   toCreateEventTenantVerifiedAttributeExtensionUpdated,
@@ -312,24 +314,21 @@ export function tenantServiceBuilder(
 
       const tenant = await retrieveTenant(tenantId, readModelService);
 
-      const certifierFeatures = tenant.data.features.find(
-        (certifier) =>
-          certifier.type === "PersistentCertifier" &&
-          /* To add the certifierId the tenant should not already be a certifier for this the condition is !== */
-          certifier.certifierId !== payload.certifierId
-      );
-
-      // Maybe we can throw the error tenantNotMeetTheRequirements
-      if (!certifierFeatures) {
-        throw operationForbidden;
+      if (
+        tenant.data.features.find(
+          (certifier) => certifier.type === "PersistentCertifier"
+        )
+      ) {
+        throw tenatIsAlreadyACertifier(tenant.data.id); // TODO to check
       }
 
       const updatedTenant: Tenant = {
         ...tenant.data,
         features: [
+          ...tenant.data.features,
           {
-            ...certifierFeatures,
-            certifierId: generateId(),
+            type: "PersistentCertifier",
+            certifierId: payload.certifierId,
           },
         ],
         updatedAt: new Date(),
