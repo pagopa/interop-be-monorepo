@@ -75,7 +75,7 @@ import {
 } from "./utils.js";
 
 export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
-  describe("Upgrade Agreement", () => {
+  describe("upgrade Agreement", () => {
     const TEST_EXECUTION_DATE = new Date();
 
     beforeAll(() => {
