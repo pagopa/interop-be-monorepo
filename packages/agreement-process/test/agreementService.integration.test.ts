@@ -641,7 +641,7 @@ describe("Agreement service", () => {
       ).rejects.toThrowError(agreementAlreadyExists(consumer.id, eservice.id));
     });
 
-    it("should throw a tenantIdNotFound error when the consumer Tenant does not exist", async () => {
+    it("should throw a tenantNotFound error when the consumer Tenant does not exist", async () => {
       const consumer: Tenant = getMockTenant();
       const descriptor: Descriptor = getMockDescriptorPublished();
 
