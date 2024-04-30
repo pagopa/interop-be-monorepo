@@ -28,6 +28,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
+import { FileManagerError } from "pagopa-interop-commons";
 import {
   agreementClonableStates,
   agreementCloningConflictingStates,
@@ -442,5 +443,41 @@ export const testCloneAgreement = (): ReturnType<typeof describe> =>
       ).rejects.toThrowError(
         missingCertifiedAttributesError(descriptor.id, consumerId)
       );
+    });
+
+    it("should throw a FileManagerError error when document copy fails", async () => {
+      const authData = getRandomAuthData();
+      const consumerId = authData.organizationId;
+
+      const consumer = getMockTenant(consumerId);
+
+      const descriptor = getMockDescriptorPublished();
+      const eservice = getMockEService(
+        generateId<EServiceId>(),
+        generateId<TenantId>(),
+        [descriptor]
+      );
+
+      const agreementId = generateId<AgreementId>();
+
+      const agreement = {
+        ...getMockAgreement(
+          eservice.id,
+          consumerId,
+          randomArrayItem(agreementClonableStates)
+        ),
+        id: agreementId,
+        producerId: eservice.producerId,
+        descriptorId: descriptor.id,
+        consumerDocuments: [getMockConsumerDocument(agreementId)],
+      };
+
+      await addOneTenant(consumer, tenants);
+      await addOneEService(eservice, eservices);
+      await addOneAgreement(agreement, postgresDB, agreements);
+
+      await expect(
+        agreementService.cloneAgreement(agreement.id, authData, uuidv4())
+      ).rejects.toThrowError(FileManagerError);
     });
   });
