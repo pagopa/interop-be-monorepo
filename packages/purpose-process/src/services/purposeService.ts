@@ -2,6 +2,7 @@ import {
   CreateEvent,
   DB,
   eventRepository,
+  formatDateAndTime,
   logger,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   validateRiskAnalysis,
@@ -779,10 +780,25 @@ export function purposeServiceBuilder(
             }
           : undefined;
 
+      const currentDate = new Date();
+      const clonedPurposeName = `${
+        purposeToClone.data.title
+      } - clone - ${formatDateAndTime(currentDate)}`;
+
+      const purposeWithSameName = await readModelService.getSpecificPurpose(
+        unsafeBrandId(seed.eserviceId),
+        organizationId,
+        clonedPurposeName
+      );
+
+      if (purposeWithSameName) {
+        throw duplicatedPurposeName(clonedPurposeName);
+      }
+
       const clonedPurpose: Purpose = {
-        title: purposeToClone.data.title,
+        title: clonedPurposeName,
         id: generateId(),
-        createdAt: new Date(),
+        createdAt: currentDate,
         eserviceId: unsafeBrandId(seed.eserviceId),
         consumerId: organizationId,
         description: purposeToClone.data.description,
