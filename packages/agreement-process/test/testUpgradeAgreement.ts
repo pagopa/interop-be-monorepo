@@ -16,7 +16,6 @@ import {
   getMockVerifiedTenantAttribute,
   getRandomAuthData,
   randomArrayItem,
-  readEventByStreamIdAndVersion,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -291,10 +290,9 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         const agreementConsumerDocument = agreementConsumerDocuments[index];
         const currentVersion = index + 1;
         const actualAgreementDocumentAddedEvent =
-          await readEventByStreamIdAndVersion(
+          await readAgreementEventByVersion(
             newAgreementId,
             currentVersion,
-            "agreement",
             postgresDB
           );
 
@@ -1051,10 +1049,9 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         const agreementConsumerDocument = agreementConsumerDocuments[index];
         const currentVersion = index + 1;
         const actualAgreementDocumentAddedEvent =
-          await readEventByStreamIdAndVersion(
+          await readAgreementEventByVersion(
             newAgreementId,
             currentVersion,
-            "agreement",
             postgresDB
           );
 
