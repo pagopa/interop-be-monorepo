@@ -29,13 +29,7 @@ export async function createAgreementLogic(
   correlationId: string,
   logger: Logger
 ): Promise<CreateEvent<AgreementEvent>> {
-  logger.info(
-    `Creating agreement for EService ${agreement.eserviceId} and Descriptor ${agreement.descriptorId}`
-  );
-  const eservice = await eserviceQuery.getEServiceById(
-    agreement.eserviceId,
-    logger
-  );
+  const eservice = await eserviceQuery.getEServiceById(agreement.eserviceId, logger);
   assertEServiceExist(unsafeBrandId(agreement.eserviceId), eservice);
 
   const descriptor = validateCreationOnDescriptor(
