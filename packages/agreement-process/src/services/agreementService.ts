@@ -1,5 +1,4 @@
 /* eslint-disable max-params */
-import { z } from "zod";
 import {
   AuthData,
   CreateEvent,
@@ -705,7 +704,8 @@ export async function upgradeAgreementLogic(
       agreementToBeUpgraded.data,
       0,
       copyFile,
-      correlationId
+      correlationId,
+      logger
     );
 
     return {
