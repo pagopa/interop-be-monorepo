@@ -1,5 +1,5 @@
-import { IDatabase } from "pg-promise";
 import { MessageType } from "@protobuf-ts/runtime";
+import { Event } from "pagopa-interop-commons";
 import {
   AgreementEvent,
   AgreementId,
@@ -15,7 +15,7 @@ import {
   protobufDecoder,
   tenantEventToBinaryData,
 } from "pagopa-interop-models";
-import { Event } from "pagopa-interop-commons";
+import { IDatabase } from "pg-promise";
 import { match } from "ts-pattern";
 
 type EventStoreSchema =
@@ -114,6 +114,42 @@ export async function readLastEventByStreamId<T extends EventStoreSchema>(
   return postgresDB.one(
     `SELECT * FROM ${schema}.events WHERE stream_id = $1 ORDER BY sequence_num DESC LIMIT 1`,
     [streamId]
+  );
+}
+
+export async function readEventByStreamIdAndVersion<T extends EventStoreSchema>(
+  streamId: T extends "agreement"
+    ? AgreementId
+    : T extends "attribute"
+    ? AttributeId
+    : T extends "catalog"
+    ? EServiceId
+    : T extends "tenant"
+    ? TenantId
+    : T extends "purpose"
+    ? never // Purpose events not implemented yet
+    : never,
+  version: number,
+  schema: T,
+  postgresDB: IDatabase<unknown>
+): Promise<
+  ReadEvent<
+    T extends "agreement"
+      ? AgreementEvent
+      : T extends "attribute"
+      ? AttributeEvent
+      : T extends "catalog"
+      ? EServiceEvent
+      : T extends "tenant"
+      ? TenantEvent
+      : T extends "purpose"
+      ? never // Purpose events not implemented yet
+      : never
+  >
+> {
+  return postgresDB.one(
+    `SELECT * FROM ${schema}.events WHERE stream_id = $1 and version = $2 ORDER BY sequence_num DESC LIMIT 1`,
+    [streamId, version]
   );
 }
 
