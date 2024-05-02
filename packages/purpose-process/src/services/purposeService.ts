@@ -693,7 +693,7 @@ export function purposeServiceBuilder(
 
       assertTenantKindExists(producer);
 
-      await retrieveAgreement(eserviceId, consumerId, readModelService);
+      await retrieveActiveAgreement(eserviceId, consumerId, readModelService);
 
       const purposeWithSameName = await readModelService.getSpecificPurpose(
         eserviceId,
