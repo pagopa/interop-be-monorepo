@@ -21,7 +21,6 @@ import {
   agreementState,
   descriptorState,
   generateId,
-  tenantAttributeType,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import { AuthData } from "pagopa-interop-commons";
@@ -98,8 +97,6 @@ export const getMockCertifiedTenantAttribute = (
 ): CertifiedTenantAttribute => ({
   ...generateMock(CertifiedTenantAttribute),
   id: attributeId,
-  type: tenantAttributeType.CERTIFIED,
-  revocationTimestamp: undefined,
 });
 
 export const getMockCertifiedTenantAttributes = (
