@@ -66,7 +66,6 @@ import {
   assertPurposeIsDraft,
   isRejectable,
   isDeletable,
-  assertPurposeIsDeletable,
   isArchivable,
 } from "./validators.js";
 

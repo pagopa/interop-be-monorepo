@@ -4,7 +4,6 @@ import {
   Purpose,
   PurposeVersion,
   PurposeRiskAnalysisForm,
-  PurposeVersion,
   RiskAnalysisForm,
   Tenant,
   TenantId,
@@ -154,4 +153,3 @@ export const isDeletable = (purpose: Purpose): boolean =>
 export const isArchivable = (purposeVersion: PurposeVersion): boolean =>
   purposeVersion.state === purposeVersionState.active ||
   purposeVersion.state === purposeVersionState.suspended;
-
