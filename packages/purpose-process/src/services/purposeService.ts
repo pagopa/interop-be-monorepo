@@ -1022,7 +1022,7 @@ const getDailyCallsFromPurposeToClone = (purposeToClone: Purpose): number => {
       ? nonWaitingVersions
       : purposeToClone.versions;
 
-  const sortedVersions = versionsToSearch.toSorted((v1, v2) => {
+  const sortedVersions = versionsToSearch.slice().sort((v1, v2) => {
     if (v1.createdAt > v2.createdAt) {
       return -1;
     } else if (v1.createdAt < v2.createdAt) {
