@@ -22,7 +22,7 @@ import {
 import { describe, expect, it, vi } from "vitest";
 import { formatDateAndTime } from "pagopa-interop-commons";
 import {
-  duplicatedPurposeName,
+  duplicatedPurposeTitle,
   purposeCannotBeCloned,
   purposeNotFound,
   tenantKindNotFound,
@@ -263,7 +263,7 @@ export const testClonePurpose = (): ReturnType<typeof describe> =>
           correlationId: generateId(),
         })
       ).rejects.toThrowError(
-        duplicatedPurposeName(mockPurposeWithSameName.title)
+        duplicatedPurposeTitle(mockPurposeWithSameName.title)
       );
     });
     it("should throw tenantKindNotFound if the tenant kind doesn't exist", async () => {

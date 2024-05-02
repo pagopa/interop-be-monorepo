@@ -159,7 +159,7 @@ export const clonePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with("tenantKindNotFound", () => HTTP_STATUS_FORBIDDEN)
     .with("riskAnalysisValidationFailed", () => HTTP_STATUS_BAD_REQUEST)
     .with(
-      "duplicatedPurposeName",
+      "duplicatedPurposeTitle",
       "purposeCannotBeCloned",
       () => HTTP_STATUS_CONFLICT
     )
