@@ -13,16 +13,22 @@ import {
 } from "pagopa-interop-models";
 import {
   CertifiedAttributeQueryResult,
+  MailSeed,
   UpdateVerifiedTenantAttributeSeed,
 } from "../model/domain/models.js";
 import { ApiSelfcareTenantSeed } from "../model/types.js";
-import { mailNotFound, tenantNotFound } from "../model/domain/errors.js";
+import {
+  mailAlreadyExists,
+  mailNotFound,
+  tenantNotFound,
+} from "../model/domain/errors.js";
 import {
   toCreateEventTenantVerifiedAttributeExpirationUpdated,
   toCreateEventTenantVerifiedAttributeExtensionUpdated,
   toCreateEventTenantOnboardDetailsUpdated,
   toCreateEventTenantOnboarded,
   toCreateEventTenantMailDeleted,
+  toCreateEventTenantMailAdded,
 } from "../model/domain/toEvent.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
@@ -313,6 +319,54 @@ export function tenantServiceBuilder(
           tenant.metadata.version,
           updatedTenant,
           mailId,
+          correlationId
+        )
+      );
+    },
+
+    async addTenantMail({
+      tenantId,
+      mailSeed,
+      organizationId,
+      correlationId,
+    }: {
+      tenantId: TenantId;
+      mailSeed: MailSeed;
+      organizationId: TenantId;
+      correlationId: string;
+    }): Promise<void> {
+      logger.info(`Adding mail of kind ${mailSeed.kind} to Tenant ${tenantId}`);
+
+      if (tenantId !== organizationId) {
+        throw operationForbidden;
+      }
+
+      const tenant = await retrieveTenant(tenantId, readModelService);
+
+      if (tenant.data.mails.find((m) => m.address === mailSeed.address)) {
+        throw mailAlreadyExists(mailSeed.address);
+      }
+
+      const newMail = {
+        id: generateId(),
+        createdAt: new Date(),
+        kind: mailSeed.kind,
+        address: mailSeed.address,
+        description: mailSeed.description,
+      };
+
+      const updatedTenant: Tenant = {
+        ...tenant.data,
+        mails: [...tenant.data.mails, newMail],
+        updatedAt: new Date(),
+      };
+
+      await repository.createEvent(
+        toCreateEventTenantMailAdded(
+          tenantId,
+          tenant.metadata.version,
+          updatedTenant,
+          newMail.id,
           correlationId
         )
       );
