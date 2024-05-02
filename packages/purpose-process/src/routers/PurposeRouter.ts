@@ -5,6 +5,7 @@ import {
   userRoles,
   ZodiosContext,
   authorizationMiddleware,
+  zodiosValidationErrorToApiProblem,
   ReadModelRepository,
   initDB,
 } from "pagopa-interop-commons";
@@ -24,7 +25,7 @@ import {
   archivePurposeVersionErrorMapper,
   clonePurposeErrorMapper,
   createPurposeErrorMapper,
-  createPurposeFromEServiceErrorMapper,
+  createReversePurposeErrorMapper,
   deletePurposeErrorMapper,
   deletePurposeVersionErrorMapper,
   getPurposeErrorMapper,
@@ -54,7 +55,9 @@ const purposeService = purposeServiceBuilder(
 const purposeRouter = (
   ctx: ZodiosContext
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const purposeRouter = ctx.router(api.api);
+  const purposeRouter = ctx.router(api.api, {
+    validationErrorHandler: zodiosValidationErrorToApiProblem,
+  });
   const {
     ADMIN_ROLE,
     API_ROLE,
@@ -140,7 +143,7 @@ const purposeRouter = (
       async (req, res) => {
         try {
           const { purpose, isRiskAnalysisValid } =
-            await purposeService.createPurposeFromEService(
+            await purposeService.createReversePurpose(
               req.ctx.authData.organizationId,
               req.body,
               req.ctx.correlationId
@@ -152,7 +155,7 @@ const purposeRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            createPurposeFromEServiceErrorMapper
+            createReversePurposeErrorMapper
           );
           return res.status(errorRes.status).json(errorRes).end();
         }

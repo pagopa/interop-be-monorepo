@@ -27,6 +27,7 @@ import {
   PurposeRiskAnalysisForm,
   PurposeEvent,
   EServiceMode,
+  eserviceMode,
   ListResult,
   unsafeBrandId,
   generateId,
@@ -38,7 +39,7 @@ import {
 import { match } from "ts-pattern";
 import {
   agreementNotFound,
-  duplicatedPurposeName,
+  duplicatedPurposeTitle,
   eserviceNotFound,
   missingRejectionReason,
   eserviceRiskAnalysisNotFound,
@@ -46,6 +47,7 @@ import {
   organizationIsNotTheConsumer,
   organizationIsNotTheProducer,
   organizationNotAllowed,
+  purposeCannotBeDeleted,
   purposeCannotBeCloned,
   purposeNotFound,
   purposeVersionCannotBeDeleted,
@@ -85,7 +87,10 @@ import {
   reverseValidateAndTransformRiskAnalysis,
   validateAndTransformRiskAnalysis,
   assertPurposeIsDraft,
-  assertPurposeIsDeletable,
+  isRejectable,
+  isDeletable,
+  isArchivable,
+  isSuspendable,
 } from "./validators.js";
 
 const retrievePurpose = async (
@@ -154,7 +159,7 @@ const retrieveTenant = async (
   return tenant;
 };
 
-const retrieveAgreement = async (
+const retrieveActiveAgreement = async (
   eserviceId: EServiceId,
   consumerId: TenantId,
   readModelService: ReadModelService
@@ -302,6 +307,10 @@ export function purposeServiceBuilder(
     }): Promise<void> {
       logger.info(`Rejecting Version ${versionId} in Purpose ${purposeId}`);
 
+      if (!rejectionReason) {
+        throw missingRejectionReason();
+      }
+
       const purpose = await retrievePurpose(purposeId, readModelService);
       const eservice = await retrieveEService(
         purpose.data.eserviceId,
@@ -313,12 +322,8 @@ export function purposeServiceBuilder(
 
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
 
-      if (purposeVersion.state !== purposeVersionState.waitingForApproval) {
+      if (!isRejectable(purposeVersion)) {
         throw notValidVersionState(purposeVersion.id, purposeVersion.state);
-      }
-
-      if (!rejectionReason) {
-        throw missingRejectionReason();
       }
 
       const updatedPurposeVersion: PurposeVersion = {
@@ -357,7 +362,7 @@ export function purposeServiceBuilder(
         purposeId,
         purposeUpdateContent,
         organizationId,
-        "Deliver",
+        eserviceMode.deliver,
         { readModelService, correlationId, repository }
       );
     },
@@ -396,7 +401,9 @@ export function purposeServiceBuilder(
 
       assertOrganizationIsAConsumer(organizationId, purpose.data.consumerId);
 
-      assertPurposeIsDeletable(purpose.data);
+      if (!isDeletable(purpose.data)) {
+        throw purposeCannotBeDeleted(purpose.data.id);
+      }
 
       const event = purposeIsDraft(purpose.data)
         ? toCreateEventDraftPurposeDeleted({
@@ -430,10 +437,7 @@ export function purposeServiceBuilder(
       assertOrganizationIsAConsumer(organizationId, purpose.data.consumerId);
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
 
-      if (
-        purposeVersion.state !== purposeVersionState.active &&
-        purposeVersion.state !== purposeVersionState.suspended
-      ) {
+      if (!isArchivable(purposeVersion)) {
         throw notValidVersionState(versionId, purposeVersion.state);
       }
 
@@ -445,7 +449,7 @@ export function purposeServiceBuilder(
       };
       const archivedVersion: PurposeVersion = {
         ...purposeVersion,
-        state: purposeVersionState.rejected,
+        state: purposeVersionState.archived,
         updatedAt: new Date(),
       };
       const updatedPurpose = replacePurposeVersion(
@@ -492,10 +496,7 @@ export function purposeServiceBuilder(
 
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
 
-      if (
-        purposeVersion.state !== purposeVersionState.active &&
-        purposeVersion.state !== purposeVersionState.suspended
-      ) {
+      if (!isSuspendable(purposeVersion)) {
         throw notValidVersionState(purposeVersion.id, purposeVersion.state);
       }
 
@@ -519,25 +520,12 @@ export function purposeServiceBuilder(
             correlationId,
           });
         })
-        .with(ownership.PRODUCER, () => {
+        .with(ownership.PRODUCER, ownership.SELF_CONSUMER, () => {
           const updatedPurpose: Purpose = {
             ...replacePurposeVersion(purpose.data, suspendedPurposeVersion),
             suspendedByProducer: true,
           };
           return toCreateEventPurposeSuspendedByProducer({
-            purpose: updatedPurpose,
-            purposeVersionId: versionId,
-            version: purpose.metadata.version,
-            correlationId,
-          });
-        })
-        .with(ownership.SELF_CONSUMER, () => {
-          const updatedPurpose: Purpose = {
-            ...replacePurposeVersion(purpose.data, suspendedPurposeVersion),
-            suspendedByConsumer: true,
-            suspendedByProducer: true,
-          };
-          return toCreateEventPurposeSuspendedByConsumer({
             purpose: updatedPurpose,
             purposeVersionId: versionId,
             version: purpose.metadata.version,
@@ -631,7 +619,7 @@ export function purposeServiceBuilder(
         tenant.kind
       );
 
-      await retrieveAgreement(eserviceId, consumerId, readModelService);
+      await retrieveActiveAgreement(eserviceId, consumerId, readModelService);
 
       const purposeWithSameName = await readModelService.getSpecificPurpose(
         eserviceId,
@@ -640,7 +628,7 @@ export function purposeServiceBuilder(
       );
 
       if (purposeWithSameName) {
-        throw duplicatedPurposeName(purposeSeed.title);
+        throw duplicatedPurposeTitle(purposeSeed.title);
       }
 
       const purpose: Purpose = {
@@ -665,7 +653,7 @@ export function purposeServiceBuilder(
       );
       return { purpose, isRiskAnalysisValid: validatedFormSeed !== undefined };
     },
-    async createPurposeFromEService(
+    async createReversePurpose(
       organizationId: TenantId,
       seed: ApiReversePurposeSeed,
       correlationId: string
@@ -697,7 +685,7 @@ export function purposeServiceBuilder(
 
       assertTenantKindExists(producer);
 
-      await retrieveAgreement(eserviceId, consumerId, readModelService);
+      await retrieveActiveAgreement(eserviceId, consumerId, readModelService);
 
       const purposeWithSameName = await readModelService.getSpecificPurpose(
         eserviceId,
@@ -927,7 +915,7 @@ const getInvolvedTenantByEServiceMode = async (
   consumerId: TenantId,
   readModelService: ReadModelService
 ): Promise<Tenant> => {
-  if (eservice.mode === "Deliver") {
+  if (eservice.mode === eserviceMode.deliver) {
     return retrieveTenant(consumerId, readModelService);
   } else {
     return retrieveTenant(eservice.producerId, readModelService);
@@ -938,7 +926,7 @@ const updatePurposeInternal = async (
   purposeId: PurposeId,
   updateContent: ApiPurposeUpdateContent | ApiReversePurposeUpdateContent,
   organizationId: TenantId,
-  eserviceMode: EServiceMode,
+  mode: EServiceMode,
   {
     readModelService,
     correlationId,
@@ -955,11 +943,21 @@ const updatePurposeInternal = async (
   assertOrganizationIsAConsumer(organizationId, purpose.data.consumerId);
   assertPurposeIsDraft(purpose.data);
 
+  const purposeWithSameTitle = await readModelService.getSpecificPurpose(
+    purpose.data.eserviceId,
+    purpose.data.consumerId,
+    updateContent.title
+  );
+
+  if (purposeWithSameTitle) {
+    throw duplicatedPurposeTitle(updateContent.title);
+  }
+
   const eservice = await retrieveEService(
     purpose.data.eserviceId,
     readModelService
   );
-  assertEserviceHasSpecificMode(eservice, eserviceMode);
+  assertEserviceHasSpecificMode(eservice, mode);
   assertConsistentFreeOfCharge(
     updateContent.isFreeOfCharge,
     updateContent.freeOfChargeReason
@@ -974,7 +972,7 @@ const updatePurposeInternal = async (
   assertTenantKindExists(tenant);
 
   const newRiskAnalysis: PurposeRiskAnalysisForm | undefined =
-    eserviceMode === "Deliver"
+    mode === eserviceMode.deliver
       ? validateAndTransformRiskAnalysis(
           (updateContent as ApiPurposeUpdateContent).riskAnalysisForm,
           tenant.kind
@@ -987,6 +985,13 @@ const updatePurposeInternal = async (
   const updatedPurpose: Purpose = {
     ...purpose.data,
     ...updateContent,
+    versions: [
+      {
+        ...purpose.data.versions[0],
+        dailyCalls: updateContent.dailyCalls,
+        updatedAt: new Date(),
+      },
+    ],
     updatedAt: new Date(),
     riskAnalysisForm: newRiskAnalysis,
   };
