@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { unexpectedRulesVersionError } from "pagopa-interop-commons";
 import {
@@ -26,8 +27,9 @@ import {
   TenantId,
   EServiceId,
   RiskAnalysis,
+  eserviceMode,
 } from "pagopa-interop-models";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import {
   purposeNotFound,
   organizationIsNotTheConsumer,
@@ -38,6 +40,7 @@ import {
   tenantNotFound,
   tenantKindNotFound,
   riskAnalysisValidationFailed,
+  duplicatedPurposeTitle,
 } from "../src/model/domain/errors.js";
 import {
   ApiPurposeUpdateContent,
@@ -67,12 +70,12 @@ export const testUpdatePurpose = (): ReturnType<typeof describe> =>
 
     const eServiceDeliver: EService = {
       ...getMockEService(),
-      mode: "Deliver",
+      mode: eserviceMode.deliver,
     };
 
     const eServiceReceive: EService = {
       ...getMockEService(),
-      mode: "Receive",
+      mode: eserviceMode.receive,
       producerId: tenant.id,
     };
 
@@ -114,6 +117,9 @@ export const testUpdatePurpose = (): ReturnType<typeof describe> =>
     };
 
     it("Should write on event store for the update of a purpose of an e-service in mode DELIVER", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date());
+
       await addOnePurpose(purposeForDeliver, postgresDB, purposes);
       await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
       await writeInReadmodel(tenant, tenants);
@@ -147,12 +153,16 @@ export const testUpdatePurpose = (): ReturnType<typeof describe> =>
         purposeForDeliver,
         purposeUpdateContent,
         validRiskAnalysis,
-        writtenPayload
+        writtenPayload.purpose!.riskAnalysisForm!
       );
 
       expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+      vi.useRealTimers();
     });
     it("Should write on event store for the update of a purpose of an e-service in mode RECEIVE", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date());
+
       await addOnePurpose(purposeForReceive, postgresDB, purposes);
       await writeInReadmodel(toReadModelEService(eServiceReceive), eservices);
       await writeInReadmodel(tenant, tenants);
@@ -186,10 +196,11 @@ export const testUpdatePurpose = (): ReturnType<typeof describe> =>
         purposeForReceive,
         reversePurposeUpdateContent,
         validRiskAnalysis,
-        writtenPayload
+        writtenPayload.purpose!.riskAnalysisForm!
       );
 
       expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+      vi.useRealTimers();
     });
     it("Should throw purposeNotFound if the purpose doesn't exist", async () => {
       await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
@@ -253,6 +264,29 @@ export const testUpdatePurpose = (): ReturnType<typeof describe> =>
         ).rejects.toThrowError(purposeNotInDraftState(mockPurpose.id));
       }
     );
+    it("Should throw duplicatedPurposeTitle if the purpose title already exists", async () => {
+      const purposeWithDuplicatedTitle = {
+        ...purposeForDeliver,
+        id: unsafeBrandId<PurposeId>(generateId()),
+        title: "duplicated",
+      };
+      await addOnePurpose(purposeForDeliver, postgresDB, purposes);
+      await addOnePurpose(purposeWithDuplicatedTitle, postgresDB, purposes);
+
+      expect(
+        purposeService.updatePurpose({
+          purposeId: purposeForDeliver.id,
+          purposeUpdateContent: {
+            ...purposeUpdateContent,
+            title: purposeWithDuplicatedTitle.title,
+          },
+          organizationId: tenant.id,
+          correlationId: generateId(),
+        })
+      ).rejects.toThrowError(
+        duplicatedPurposeTitle(purposeWithDuplicatedTitle.title)
+      );
+    });
     it("Should throw eserviceNotFound if the eservice doesn't exist", async () => {
       const eserviceId: EServiceId = unsafeBrandId(generateId());
       const mockPurpose: Purpose = {
