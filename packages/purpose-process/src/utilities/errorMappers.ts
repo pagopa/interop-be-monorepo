@@ -149,7 +149,7 @@ export const createReversePurposeErrorMapper = (
       "riskAnalysisValidationFailed",
       () => HTTP_STATUS_BAD_REQUEST
     )
-    .with("duplicatedPurposeName", () => HTTP_STATUS_CONFLICT)
+    .with("duplicatedPurposeTitle", () => HTTP_STATUS_CONFLICT)
     .with("tenantNotFound", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
