@@ -1,5 +1,5 @@
 /* eslint-disable max-params */
-import { CreateEvent, getContext, logger } from "pagopa-interop-commons";
+import { AuthData, CreateEvent, logger } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementDocument,
@@ -65,10 +65,10 @@ export async function submitAgreementLogic(
   eserviceQuery: EserviceQuery,
   agreementQuery: AgreementQuery,
   tenantQuery: TenantQuery,
+  authData: AuthData,
   correlationId: string
 ): Promise<Array<CreateEvent<AgreementEvent>>> {
   logger.info(`Submitting agreement ${agreementId}`);
-  const { authData } = getContext();
 
   const agreement = await agreementQuery.getAgreementById(agreementId);
 
@@ -107,6 +107,7 @@ export async function submitAgreementLogic(
     agreementQuery,
     tenantQuery,
     constractBuilder,
+    authData,
     correlationId
   );
 }
@@ -120,10 +121,10 @@ const submitAgreement = async (
   agreementQuery: AgreementQuery,
   tenantQuery: TenantQuery,
   constractBuilder: ContractBuilder,
+  authData: AuthData,
   correlationId: string
 ): Promise<Array<CreateEvent<AgreementEvent>>> => {
   const agreement = agreementData.data;
-  const { authData } = getContext();
   const nextStateByAttributes = nextState(agreement, descriptor, consumer);
   const suspendedByPlatform = suspendedByPlatformFlag(nextStateByAttributes);
 
