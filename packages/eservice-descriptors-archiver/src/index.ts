@@ -1,23 +1,31 @@
 /* eslint-disable functional/immutable-data */
 import { EachMessagePayload } from "kafkajs";
 import {
-  agreementTopicConfig,
+  ReadModelRepository,
+  buildInteropTokenGenerator,
   decodeKafkaMessage,
   logger,
   runWithContext,
-  kafkaConsumerConfig,
-  jwtSeedConfig,
 } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
 import { AgreementEvent, fromAgreementV2 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { eserviceDescriptorArchiverBuilder } from "./eserviceDescriptorsArchiver.js";
+import { eserviceDescriptorArchiverBuilder } from "./services/eserviceDescriptorsArchiver.js";
+import { config } from "./utilities/config.js";
+import { readModelServiceBuilder } from "./services/readModelService.js";
+import { catalogProcessClientBuilder } from "./services/catalogProcessClient.js";
 
-const jwtConfig = jwtSeedConfig();
-const consumerConfig = kafkaConsumerConfig();
-const { agreementTopic } = agreementTopicConfig();
+const tokenGenerator = buildInteropTokenGenerator();
+const readModelService = readModelServiceBuilder(
+  ReadModelRepository.init(config)
+);
+const catalogProcessClient = catalogProcessClientBuilder(
+  config.catalogProcessUrl
+);
 const eserviceDescriptorArchiver = await eserviceDescriptorArchiverBuilder(
-  jwtConfig
+  tokenGenerator,
+  readModelService,
+  catalogProcessClient
 );
 
 async function processMessage({
@@ -63,4 +71,4 @@ async function processMessage({
   );
 }
 
-await runConsumer(consumerConfig, [agreementTopic], processMessage);
+await runConsumer(config, [config.agreementTopic], processMessage);
