@@ -36,8 +36,8 @@ import {
   tenantNotFound,
   organizationIsNotTheConsumer,
   riskAnalysisValidationFailed,
-  duplicatedPurposeName,
   agreementNotFound,
+  duplicatedPurposeTitle,
 } from "../src/model/domain/errors.js";
 import { ApiPurposeSeed } from "../src/model/domain/models.js";
 import {
@@ -182,7 +182,7 @@ export const testCreatePurpose = (): ReturnType<typeof describe> =>
         )
       ).rejects.toThrowError(missingFreeOfChargeReason());
     });
-    it("should throw tenantKindNotFound", async () => {
+    it("should throw tenantKindNotFound if the kind doesn't exists", async () => {
       const tenantWithoutKind: Tenant = {
         ...tenant,
         kind: undefined,
@@ -216,7 +216,7 @@ export const testCreatePurpose = (): ReturnType<typeof describe> =>
         )
       ).rejects.toThrowError(tenantKindNotFound(tenantWithoutKind.id));
     });
-    it("should throw tenantNotFound", async () => {
+    it("should throw tenantNotFound if the tenant doesn't exists", async () => {
       expect(
         purposeService.createPurpose(
           purposeSeed,
@@ -225,7 +225,7 @@ export const testCreatePurpose = (): ReturnType<typeof describe> =>
         )
       ).rejects.toThrowError(tenantNotFound(tenant.id));
     });
-    it("should throw agreementNotFound", async () => {
+    it("should throw agreementNotFound if the agreement doesn't exists ", async () => {
       const descriptor: Descriptor = {
         ...descriptor1,
         id: generateId(),
@@ -315,7 +315,7 @@ export const testCreatePurpose = (): ReturnType<typeof describe> =>
         ])
       );
     });
-    it("should throw duplicatedPurposeName if a purpose with same name alreay exist", async () => {
+    it("should throw duplicatedPurposeName if a purpose with same name alreay exists", async () => {
       const existingPurpose: Purpose = {
         ...getMockPurpose(),
         eserviceId: unsafeBrandId(purposeSeed.eserviceId),
@@ -334,6 +334,6 @@ export const testCreatePurpose = (): ReturnType<typeof describe> =>
           unsafeBrandId(purposeSeed.consumerId),
           generateId()
         )
-      ).rejects.toThrowError(duplicatedPurposeName(purposeSeed.title));
+      ).rejects.toThrowError(duplicatedPurposeTitle(purposeSeed.title));
     });
   });

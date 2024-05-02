@@ -11,4 +11,5 @@ export * from "./repositories/db.js";
 export * from "./types/index.js";
 export * from "./auth/token/index.js";
 export * from "./risk-analysis/index.js";
+export * from "./router/zodiosValidationErrorHandler.js";
 export * from "./utils/date.js";

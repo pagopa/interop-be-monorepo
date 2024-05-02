@@ -40,7 +40,7 @@ export type ApiGetPurposesFilters = {
 };
 
 export type ApiReversePurposeSeed = z.infer<
-  typeof api.schemas.EServicePurposeSeed
+  typeof api.schemas.ReversePurposeSeed
 >;
 
 export type ApiPurposeCloneSeed = z.infer<typeof api.schemas.PurposeCloneSeed>;

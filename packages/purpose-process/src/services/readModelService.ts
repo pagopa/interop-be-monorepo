@@ -131,7 +131,6 @@ export function readModelServiceBuilder(
         },
       } satisfies ReadModelFilter<Purpose>);
     },
-
     async getPurposes(
       filters: ApiGetPurposesFilters,
       offset: number,
@@ -188,6 +187,21 @@ export function readModelServiceBuilder(
           }
         : {};
 
+      const eserviceIds =
+        producersIds.length > 0
+          ? await eservices
+              .find({ "data.producerId": { $in: producersIds } })
+              .toArray()
+              .then((results) =>
+                results.map((eservice) => eservice.data.id.toString())
+              )
+          : [];
+
+      const producerIdsFilter: ReadModelFilter<Purpose> =
+        ReadModelRepository.arrayToFilter(eserviceIds, {
+          "data.eserviceId": { $in: eserviceIds },
+        });
+
       const aggregationPipeline = [
         {
           $match: {
@@ -196,26 +210,9 @@ export function readModelServiceBuilder(
             ...consumersIdsFilter,
             ...versionStateFilter,
             ...draftFilter,
+            ...producerIdsFilter,
           } satisfies ReadModelFilter<Purpose>,
         },
-        ...(producersIds.length > 0
-          ? [
-              {
-                $lookup: {
-                  from: "eservices",
-                  localField: "data.eserviceId",
-                  foreignField: "data.id",
-                  as: "eservices",
-                },
-              },
-              { $unwind: "$eservices" },
-              {
-                $match: {
-                  "eservices.data.producerId": { $in: producersIds },
-                },
-              },
-            ]
-          : []),
         {
           $project: {
             data: 1,

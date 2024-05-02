@@ -69,7 +69,6 @@ describe("Integration tests", async () => {
     eservices = readModelRepository.eservices;
     tenants = readModelRepository.tenants;
     agreements = readModelRepository.agreements;
-
     readModelService = readModelServiceBuilder(readModelRepository);
     postgresDB = initDB({
       username: config.eventStoreDbUsername,
