@@ -4,6 +4,7 @@ import {
   EServiceCollection,
   TenantCollection,
   PurposeCollection,
+  ReadModelFilter,
 } from "pagopa-interop-commons";
 import {
   EService,
@@ -110,6 +111,20 @@ export function readModelServiceBuilder(
       id: PurposeId
     ): Promise<WithMetadata<Purpose> | undefined> {
       return getPurpose(purposes, { "data.id": id });
+    },
+    async getSpecificPurpose(
+      eserviceId: EServiceId,
+      consumerId: TenantId,
+      title: string
+    ): Promise<WithMetadata<Purpose> | undefined> {
+      return getPurpose(purposes, {
+        "data.eserviceId": eserviceId,
+        "data.consumerId": consumerId,
+        "data.title": {
+          $regex: `^${ReadModelRepository.escapeRegExp(title)}$$`,
+          $options: "i",
+        },
+      } satisfies ReadModelFilter<Purpose>);
     },
   };
 }

@@ -1,7 +1,8 @@
 /* eslint-disable functional/immutable-data */
-import { readAuthDataFromJwtToken } from "pagopa-interop-commons";
-import { describe, expect, it } from "vitest";
 import jwt from "jsonwebtoken";
+import { readAuthDataFromJwtToken } from "pagopa-interop-commons";
+import { invalidClaim } from "pagopa-interop-models";
+import { describe, expect, it } from "vitest";
 import { randomArrayItem } from "../src/testUtils.js";
 
 const mockUiToken = {
@@ -89,9 +90,6 @@ const mockSupportToken = {
 const getMockSignedToken = (token: object): string =>
   jwt.sign(token, "test-secret");
 
-const parseReadAuthDataFromJwtTokenErrorResult = (result: Error): string =>
-  JSON.parse(result.message)[0].message;
-
 describe("JWT tests", () => {
   describe("readAuthDataFromJwtToken", () => {
     it("should successfully read auth data from a UI token with a single user role", async () => {
@@ -133,10 +131,10 @@ describe("JWT tests", () => {
         "user-roles": "api,invalid-role",
       });
 
-      const result = readAuthDataFromJwtToken(token);
-      expect(result).toBeInstanceOf(Error);
-      expect(parseReadAuthDataFromJwtTokenErrorResult(result as Error)).toEqual(
-        "Invalid enum value. Expected 'admin' | 'security' | 'api' | 'support', received 'invalid-role'"
+      expect(() => readAuthDataFromJwtToken(token)).toThrowError(
+        invalidClaim(
+          "Validation error: Invalid enum value. Expected 'admin' | 'security' | 'api' | 'support', received 'invalid-role' at \"user-roles[1]\""
+        )
       );
     });
 
@@ -146,10 +144,10 @@ describe("JWT tests", () => {
         "user-roles": "",
       });
 
-      const result = readAuthDataFromJwtToken(token);
-      expect(readAuthDataFromJwtToken(token)).toBeInstanceOf(Error);
-      expect(parseReadAuthDataFromJwtTokenErrorResult(result as Error)).toEqual(
-        "String must contain at least 1 character(s)"
+      expect(() => readAuthDataFromJwtToken(token)).toThrowError(
+        invalidClaim(
+          'Validation error: String must contain at least 1 character(s) at "user-roles"'
+        )
       );
     });
 
@@ -174,14 +172,12 @@ describe("JWT tests", () => {
       ]);
       const token = getMockSignedToken({
         ...mockToken,
-        sub: undefined,
+        iss: undefined,
         jti: undefined,
       });
 
-      const result = readAuthDataFromJwtToken(token);
-      expect(result).toBeInstanceOf(Error);
-      expect(parseReadAuthDataFromJwtTokenErrorResult(result as Error)).toEqual(
-        "Required"
+      expect(() => readAuthDataFromJwtToken(token)).toThrowError(
+        invalidClaim(`Validation error: Required at "iss"; Required at "jti"`)
       );
     });
 
@@ -196,10 +192,10 @@ describe("JWT tests", () => {
         aud: "",
       });
 
-      const result = readAuthDataFromJwtToken(token);
-      expect(result).toBeInstanceOf(Error);
-      expect(parseReadAuthDataFromJwtTokenErrorResult(result as Error)).toEqual(
-        "String must contain at least 1 character(s)"
+      expect(() => readAuthDataFromJwtToken(token)).toThrowError(
+        invalidClaim(
+          'Validation error: String must contain at least 1 character(s) at "aud"'
+        )
       );
     });
 
@@ -221,10 +217,10 @@ describe("JWT tests", () => {
         role: "invalid-role",
       });
 
-      const result = readAuthDataFromJwtToken(token);
-      expect(result).toBeInstanceOf(Error);
-      expect(parseReadAuthDataFromJwtTokenErrorResult(result as Error)).toEqual(
-        "Invalid discriminator value. Expected 'm2m' | 'internal' | "
+      expect(() => readAuthDataFromJwtToken(token)).toThrowError(
+        invalidClaim(
+          "Validation error: Invalid discriminator value. Expected 'm2m' | 'internal' |  at \"role\""
+        )
       );
     });
 
@@ -247,10 +243,10 @@ describe("JWT tests", () => {
         "user-roles": "support,invalid-role",
       });
 
-      const result = readAuthDataFromJwtToken(token);
-      expect(result).toBeInstanceOf(Error);
-      expect(parseReadAuthDataFromJwtTokenErrorResult(result as Error)).toEqual(
-        "Invalid enum value. Expected 'admin' | 'security' | 'api' | 'support', received 'invalid-role'"
+      expect(() => readAuthDataFromJwtToken(token)).toThrowError(
+        invalidClaim(
+          "Validation error: Invalid enum value. Expected 'admin' | 'security' | 'api' | 'support', received 'invalid-role' at \"user-roles[1]\""
+        )
       );
     });
   });
