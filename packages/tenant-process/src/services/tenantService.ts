@@ -1,5 +1,6 @@
 import { AuthData, DB, eventRepository, logger } from "pagopa-interop-commons";
 import {
+  Attribute,
   AttributeId,
   CertifiedTenantAttribute,
   ListResult,
@@ -60,6 +61,17 @@ const retrieveTenant = async (
   }
   return tenant;
 };
+
+export async function retriveAttribute(
+  attributeId: AttributeId,
+  readModelService: ReadModelService
+): Promise<Attribute> {
+  const attribute = await readModelService.getAttributeById(attributeId);
+  if (!attribute) {
+    throw attributeNotFound(attributeId);
+  }
+  return attribute;
+}
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantServiceBuilder(
@@ -319,6 +331,11 @@ export function tenantServiceBuilder(
       }
 
       const targetTenant = await retrieveTenant(tenantId, readModelService);
+
+      await retriveAttribute(
+        unsafeBrandId(tenantAttributeSeed.id),
+        readModelService
+      );
 
       const certifiedTenantAttribute = targetTenant.data.attributes.find(
         (attr): attr is CertifiedTenantAttribute =>
