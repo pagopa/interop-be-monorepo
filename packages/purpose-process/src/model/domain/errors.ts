@@ -195,7 +195,7 @@ export function duplicatedPurposeTitle(title: string): ApiError<ErrorCodes> {
     detail: `Purpose with title: ${title} already exists`,
     code: "duplicatedPurposeTitle",
     title: "Duplicated Purpose Title",
- });
+  });
 }
 
 export function purposeCannotBeDeleted(
