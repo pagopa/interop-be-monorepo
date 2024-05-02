@@ -24,6 +24,7 @@
     "@aws-sdk/client-sqs": "3.529.1",
     "@zodios/core": "10.9.6",
     "@zodios/express": "10.6.1",
+    "axios": "1.6.8",
     "connection-string": "4.3.6",
     "jsonwebtoken": "9.0.2",
     "jwks-rsa": "3.0.1",
