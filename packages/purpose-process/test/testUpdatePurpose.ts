@@ -40,6 +40,7 @@ import {
   tenantNotFound,
   tenantKindNotFound,
   riskAnalysisValidationFailed,
+  duplicatedPurposeTitle,
 } from "../src/model/domain/errors.js";
 import {
   ApiPurposeUpdateContent,
@@ -263,6 +264,29 @@ export const testUpdatePurpose = (): ReturnType<typeof describe> =>
         ).rejects.toThrowError(purposeNotInDraftState(mockPurpose.id));
       }
     );
+    it("Should throw duplicatedPurposeTitle if the purpose title already exists", async () => {
+      const purposeWithDuplicatedTitle = {
+        ...purposeForDeliver,
+        id: unsafeBrandId<PurposeId>(generateId()),
+        title: "duplicated",
+      };
+      await addOnePurpose(purposeForDeliver, postgresDB, purposes);
+      await addOnePurpose(purposeWithDuplicatedTitle, postgresDB, purposes);
+
+      expect(
+        purposeService.updatePurpose({
+          purposeId: purposeForDeliver.id,
+          purposeUpdateContent: {
+            ...purposeUpdateContent,
+            title: purposeWithDuplicatedTitle.title,
+          },
+          organizationId: tenant.id,
+          correlationId: generateId(),
+        })
+      ).rejects.toThrowError(
+        duplicatedPurposeTitle(purposeWithDuplicatedTitle.title)
+      );
+    });
     it("Should throw eserviceNotFound if the eservice doesn't exist", async () => {
       const eserviceId: EServiceId = unsafeBrandId(generateId());
       const mockPurpose: Purpose = {

@@ -69,13 +69,20 @@ export const rejectPurposeVersionErrorMapper = (
 
 export const updatePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
-    .with("eServiceModeNotAllowed", () => HTTP_STATUS_BAD_REQUEST)
-    .with("missingFreeOfChargeReason", () => HTTP_STATUS_BAD_REQUEST)
-    .with("tenantKindNotFound", () => HTTP_STATUS_BAD_REQUEST)
-    .with("riskAnalysisValidationFailed", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "eServiceModeNotAllowed",
+      "missingFreeOfChargeReason",
+      "tenantKindNotFound",
+      "riskAnalysisValidationFailed",
+      "eserviceNotFound",
+      "tenantNotFound",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with(
+      "organizationIsNotTheConsumer",
+      "purposeNotInDraftState",
+      () => HTTP_STATUS_FORBIDDEN
+    )
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("organizationIsNotTheConsumer", () => HTTP_STATUS_FORBIDDEN)
-    .with("purposeNotInDraftState", () => HTTP_STATUS_FORBIDDEN)
-    .with("eserviceNotFound", () => HTTP_STATUS_BAD_REQUEST)
-    .with("tenantNotFound", () => HTTP_STATUS_BAD_REQUEST)
+    .with("duplicatedPurposeTitle", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
