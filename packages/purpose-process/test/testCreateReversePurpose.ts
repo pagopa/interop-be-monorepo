@@ -5,6 +5,7 @@ import {
   getMockAgreement,
   getMockDescriptor,
   getMockDocument,
+  getMockPurpose,
   getMockTenant,
   getMockValidRiskAnalysis,
   readLastEventByStreamId,
@@ -33,6 +34,7 @@ import { unexpectedRulesVersionError } from "pagopa-interop-commons";
 import { ApiReversePurposeSeed } from "../src/model/domain/models.js";
 import {
   agreementNotFound,
+  duplicatedPurposeTitle,
   eServiceModeNotAllowed,
   eserviceRiskAnalysisNotFound,
   missingFreeOfChargeReason,
@@ -46,6 +48,7 @@ import {
   eservices,
   postgresDB,
   purposeService,
+  purposes,
   tenants,
 } from "./purposeService.integration.test.js";
 
@@ -447,6 +450,66 @@ export const testCreateReversePurpose = (): ReturnType<typeof describe> =>
           generateId()
         )
       ).rejects.toThrowError(agreementNotFound(mockEService.id, consumer.id));
+    });
+    it("should throw duplicatePurposeTitle if a purpose with the same name already exists", async () => {
+      const consumer = getMockTenant();
+      const producer: Tenant = { ...getMockTenant(), kind: tenantKind.PA };
+
+      const mockDescriptor: Descriptor = {
+        ...getMockDescriptor(),
+        state: descriptorState.published,
+        publishedAt: new Date(),
+        interface: getMockDocument(),
+      };
+
+      const mockRiskAnalysis = getMockValidRiskAnalysis(tenantKind.PA);
+      const mockEService: EService = {
+        ...getMockEService(),
+        producerId: producer.id,
+        riskAnalysis: [mockRiskAnalysis],
+        descriptors: [mockDescriptor],
+        mode: eserviceMode.receive,
+      };
+
+      const mockAgreement: Agreement = {
+        ...getMockAgreement(),
+        eserviceId: mockEService.id,
+        consumerId: consumer.id,
+        state: agreementState.active,
+      };
+
+      const purposeTitle = "test purpose title";
+      const mockPurpose: Purpose = {
+        ...getMockPurpose(),
+        title: purposeTitle,
+        eserviceId: mockEService.id,
+        consumerId: consumer.id,
+      };
+
+      const reversePurposeSeed: ApiReversePurposeSeed = {
+        eServiceId: mockEService.id,
+        consumerId: consumer.id,
+        riskAnalysisId: mockRiskAnalysis.id,
+        title: purposeTitle,
+        description: "test purpose description",
+        isFreeOfCharge: true,
+        freeOfChargeReason: "test",
+        dailyCalls: 1,
+      };
+
+      await writeInReadmodel(mockPurpose, purposes);
+      await writeInReadmodel(toReadModelEService(mockEService), eservices);
+      await writeInReadmodel(producer, tenants);
+      await writeInReadmodel(consumer, tenants);
+      await writeInReadmodel(mockAgreement, agreements);
+
+      expect(
+        purposeService.createReversePurpose(
+          consumer.id,
+          reversePurposeSeed,
+          generateId()
+        )
+      ).rejects.toThrowError(duplicatedPurposeTitle(purposeTitle));
     });
     it("should throw riskAnalysisValidationFailed if the risk analysis is not valid", async () => {
       const consumer = getMockTenant();
