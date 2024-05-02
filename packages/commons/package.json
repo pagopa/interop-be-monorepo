@@ -24,6 +24,7 @@
     "@aws-sdk/client-sqs": "3.529.1",
     "@zodios/core": "10.9.6",
     "@zodios/express": "10.6.1",
+    "axios": "1.6.8",
     "connection-string": "4.3.6",
     "express-winston": "4.2.0",
     "jsonwebtoken": "9.0.2",
@@ -35,7 +36,7 @@
     "ts-pattern": "5.0.6",
     "uuid": "9.0.1",
     "winston": "3.9.0",
-    "zod": "3.21.4",
+    "zod": "3.22.3",
     "zod-validation-error": "^3.1.0"
   },
   "devDependencies": {
