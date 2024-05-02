@@ -41,7 +41,7 @@ export const authenticationMiddleware: ZodiosRouterContextRequestHandler<
 
     const authData: AuthData = readAuthDataFromJwtToken(jwtToken);
     // eslint-disable-next-line functional/immutable-data
-    req.ctx.authData = { ...authData };
+    req.ctx.authData = authData;
     next();
   };
 

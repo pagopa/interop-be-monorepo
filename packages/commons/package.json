@@ -35,7 +35,7 @@
     "ts-pattern": "5.0.6",
     "uuid": "9.0.1",
     "winston": "3.9.0",
-    "zod": "3.21.4",
+    "zod": "3.22.3",
     "zod-validation-error": "^3.1.0"
   },
   "devDependencies": {

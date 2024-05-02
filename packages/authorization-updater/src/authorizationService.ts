@@ -7,7 +7,7 @@ import {
   genericLogger,
   jwtSeedConfig,
 } from "pagopa-interop-commons";
-import { v4 } from "uuid";
+import { v4 as uuidv4 } from "uuid";
 import { DescriptorId, EServiceId } from "pagopa-interop-models";
 import { buildAuthMgmtClient } from "./authorizationManagementClient.js";
 import { ApiClientComponentState } from "./model/models.js";
@@ -42,8 +42,8 @@ export const authorizationServiceBuilder =
       pluginToken({
         getToken: async () => token.serialized,
         renewToken: async () => {
-          /* 
-            This function is called when the service responds with a 401, 
+          /*
+            This function is called when the service responds with a 401,
             automatically renews the token, and executes the request again.
             more details: https://github.com/ecyrbe/zodios-plugins/blob/main/src/plugins.test.ts#L69
           */
@@ -57,11 +57,12 @@ export const authorizationServiceBuilder =
       })
     );
 
-    const getHeaders = (correlationId: string) => ({
-      "X-Correlation-Id": correlationId,
+    const getHeaders = (correlationId: string | undefined | null) => ({
+      "X-Correlation-Id": correlationId || uuidv4(),
     });
 
     return {
+      // eslint-disable-next-line max-params
       async updateEServiceState(
         state: ApiClientComponentState,
         descriptorId: DescriptorId,
@@ -81,7 +82,7 @@ export const authorizationServiceBuilder =
         await authMgmtClient.updateEServiceState(clientEServiceDetailsUpdate, {
           params: { eserviceId },
           withCredentials: true,
-          headers: getHeaders(correlationId || v4()),
+          headers: getHeaders(correlationId),
         });
 
         logger.info(`Updating EService ${eserviceId} state for all clients`);
