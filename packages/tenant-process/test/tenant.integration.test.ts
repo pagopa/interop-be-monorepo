@@ -639,6 +639,16 @@ describe("Integration tests", () => {
         expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
         vi.useRealTimers();
       });
+      it("Should throw tenantNotFound if the tenant doesn't exists", async () => {
+        expect(
+          tenantService.deleteTenantMailById(
+            tenant.id,
+            mailId,
+            tenant.id,
+            generateId()
+          )
+        ).rejects.toThrowError(tenantNotFound(tenant.id));
+      });
       it("Should throw operationForbidden when tenantId is not the organizationId", async () => {
         await addOneTenant(tenant, postgresDB, tenants);
         expect(
