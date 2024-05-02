@@ -31,7 +31,6 @@ import {
   unsafeBrandId,
   generateId,
   Agreement,
-  eserviceMode,
   RiskAnalysisId,
   RiskAnalysis,
 } from "pagopa-interop-models";
@@ -690,7 +689,7 @@ export function purposeServiceBuilder(
       );
 
       if (purposeWithSameName) {
-        throw duplicatedPurposeName(seed.title);
+        throw duplicatedPurposeTitle(seed.title);
       }
 
       const validationResult = validateRiskAnalysis(
