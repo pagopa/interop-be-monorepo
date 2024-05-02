@@ -156,7 +156,7 @@ paths:
         - $ref: "#/components/parameters/CorrelationIdHeader"
       tags:
         - purpose
-      operationId: createPurposeFromEService
+      operationId: createReversePurpose
       description: Create a Purpose for EService with Receive mode
       requestBody:
         content:

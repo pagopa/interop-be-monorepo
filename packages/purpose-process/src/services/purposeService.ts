@@ -661,7 +661,7 @@ export function purposeServiceBuilder(
       );
       return { purpose, isRiskAnalysisValid: validatedFormSeed !== undefined };
     },
-    async createPurposeFromEService(
+    async createReversePurpose(
       organizationId: TenantId,
       seed: ApiReversePurposeSeed,
       correlationId: string

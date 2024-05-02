@@ -23,7 +23,7 @@ import { makeApiProblem } from "../model/domain/errors.js";
 import {
   archivePurposeVersionErrorMapper,
   createPurposeErrorMapper,
-  createPurposeFromEServiceErrorMapper,
+  createReversePurposeErrorMapper,
   deletePurposeErrorMapper,
   deletePurposeVersionErrorMapper,
   getPurposeErrorMapper,
@@ -139,7 +139,7 @@ const purposeRouter = (
       async (req, res) => {
         try {
           const { purpose, isRiskAnalysisValid } =
-            await purposeService.createPurposeFromEService(
+            await purposeService.createReversePurpose(
               req.ctx.authData.organizationId,
               req.body,
               req.ctx.correlationId
@@ -151,7 +151,7 @@ const purposeRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            createPurposeFromEServiceErrorMapper
+            createReversePurposeErrorMapper
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
