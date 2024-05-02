@@ -69,10 +69,6 @@ export const testSuspendAgreement = (): ReturnType<typeof describe> =>
     });
 
     it("should succeed when requester is Consumer or Producer, Consumer has all attributes satisfied, and the Agreement is in an suspendable state", async () => {
-      /* If the consumer has all the attributes satisfied,
-      the agreement will be suspended with suspendedByPlatform flag set to false
-      and suspendedByConsumer or suspendedByProducer flag set
-      to true depending on the requester (consumer or producer) */
       const producerId = generateId<TenantId>();
 
       const tenantCertifiedAttribute: CertifiedTenantAttribute = {
@@ -156,6 +152,10 @@ export const testSuspendAgreement = (): ReturnType<typeof describe> =>
         payload: agreementEvent.data,
       }).agreement;
 
+      /* If the consumer has all the attributes satisfied,
+      the agreement will be suspended with suspendedByPlatform flag set to false
+      and suspendedByConsumer or suspendedByProducer flag set
+      to true depending on the requester (consumer or producer) */
       const isConsumer = requesterId === agreement.consumerId;
       const expectedStamps = {
         suspensionByConsumer: isConsumer
@@ -196,10 +196,6 @@ export const testSuspendAgreement = (): ReturnType<typeof describe> =>
     });
 
     it("should succeed when requester is Consumer or Producer, Consumer attributes are not satisfied, and the Agreement is in an suspendable state", async () => {
-      /* If the consumer DOES NOT have all the attributes satisfied,
-      the agreement will be suspended with suspendedByPlatform flag set to true
-      and suspendedByConsumer or suspendedByProducer flag set
-      to true depending on the requester (consumer or producer) */
       const producerId = generateId<TenantId>();
 
       const tenantCertifiedAttribute: CertifiedTenantAttribute = {
@@ -282,6 +278,10 @@ export const testSuspendAgreement = (): ReturnType<typeof describe> =>
         payload: agreementEvent.data,
       }).agreement;
 
+      /* If the consumer DOES NOT have all the attributes satisfied,
+      the agreement will be suspended with suspendedByPlatform flag set to true
+      and suspendedByConsumer or suspendedByProducer flag set
+      to true depending on the requester (consumer or producer) */
       const isConsumer = requesterId === agreement.consumerId;
       const expectedStamps = {
         suspensionByConsumer: isConsumer
@@ -322,10 +322,6 @@ export const testSuspendAgreement = (): ReturnType<typeof describe> =>
     });
 
     it("should succeed when requester is Consumer or Producer, Agreement producer and consumer are the same, and the Agreement is in an suspendable state", async () => {
-      /* If the consumer and producer of the agreement are the same, there is no need to check the attributes.
-      the agreement will be suspended with suspendedByPlatform flag set to false
-      and suspendedByConsumer and suspendedByProducer flags both set to true */
-
       const producerAndConsumerId = generateId<TenantId>();
 
       const consumer = getMockTenant(producerAndConsumerId);
@@ -371,6 +367,9 @@ export const testSuspendAgreement = (): ReturnType<typeof describe> =>
         payload: agreementEvent.data,
       }).agreement;
 
+      /* If the consumer and producer of the agreement are the same, there is no need to check the attributes.
+      the agreement will be suspended with suspendedByPlatform flag set to false
+      and suspendedByConsumer and suspendedByProducer flags both set to true */
       const expectedAgreementSuspended: Agreement = {
         ...agreement,
         suspendedByConsumer: true,
