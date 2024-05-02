@@ -1,0 +1,34 @@
+{
+  "name": "pagopa-interop-eservice-descriptors-archiver",
+  "private": true,
+  "version": "1.0.0",
+  "description": "PagoPA Interoperability descriptors archiver: a consumer service that archives descriptors on agreement archiviation events",
+  "main": "dist",
+  "type": "module",
+  "scripts": {
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:autofix": "eslint . --ext .ts,.tsx --fix",
+    "format:check": "prettier --check src",
+    "format:write": "prettier --write src",
+    "start": "node --watch --loader ts-node/esm -r 'dotenv-flow/config' ./src/index.ts",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@pagopa/eslint-config": "3.0.0",
+    "@types/dotenv-flow": "3.2.0",
+    "@types/node": "20.3.1",
+    "prettier": "2.8.8",
+    "ts-node": "10.9.2",
+    "typescript": "5.1.3"
+  },
+  "dependencies": {
+    "dotenv-flow": "3.2.0",
+    "kafka-iam-auth": "workspace:*",
+    "kafkajs": "2.2.4",
+    "pagopa-interop-commons": "workspace:*",
+    "pagopa-interop-models": "workspace:*"
+  }
+}
