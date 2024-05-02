@@ -20,7 +20,6 @@ import {
   eServiceModeNotAllowed,
   missingFreeOfChargeReason,
   organizationIsNotTheConsumer,
-  purposeCannotBeDeleted,
   purposeNotInDraftState,
   riskAnalysisValidationFailed,
   tenantKindNotFound,
@@ -144,14 +143,9 @@ export function assertPurposeIsDraft(purpose: Purpose): void {
   }
 }
 
-export function assertPurposeIsDeletable(purpose: Purpose): void {
-  if (
-    purpose.versions.some(
-      (v) =>
-        v.state !== purposeVersionState.draft &&
-        v.state !== purposeVersionState.waitingForApproval
-    )
-  ) {
-    throw purposeCannotBeDeleted(purpose.id);
-  }
-}
+export const isDeletable = (purpose: Purpose): boolean =>
+  purpose.versions.every(
+    (v) =>
+      v.state === purposeVersionState.draft ||
+      v.state === purposeVersionState.waitingForApproval
+  );

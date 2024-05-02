@@ -34,6 +34,7 @@ import {
   organizationIsNotTheConsumer,
   organizationIsNotTheProducer,
   organizationNotAllowed,
+  purposeCannotBeDeleted,
   purposeNotFound,
   purposeVersionCannotBeDeleted,
   purposeVersionDocumentNotFound,
@@ -63,7 +64,7 @@ import {
   validateAndTransformRiskAnalysis,
   assertPurposeIsDraft,
   isRejectable,
-  assertPurposeIsDeletable,
+  isDeletable,
 } from "./validators.js";
 
 const retrievePurpose = async (
@@ -344,7 +345,9 @@ export function purposeServiceBuilder(
 
       assertOrganizationIsAConsumer(organizationId, purpose.data.consumerId);
 
-      assertPurposeIsDeletable(purpose.data);
+      if (!isDeletable(purpose.data)) {
+        throw purposeCannotBeDeleted(purpose.data.id);
+      }
 
       const event = purposeIsDraft(purpose.data)
         ? toCreateEventDraftPurposeDeleted({
