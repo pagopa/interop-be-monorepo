@@ -2,12 +2,14 @@ import { AuthData, DB, eventRepository, logger } from "pagopa-interop-commons";
 import {
   Attribute,
   AttributeId,
+  AttributeKind,
   CertifiedTenantAttribute,
   ListResult,
   Tenant,
   TenantAttribute,
   TenantId,
   WithMetadata,
+  attributeKind,
   generateId,
   tenantAttributeType,
   tenantEventToBinaryData,
@@ -64,10 +66,11 @@ const retrieveTenant = async (
 
 export async function retrieveAttribute(
   attributeId: AttributeId,
-  readModelService: ReadModelService
+  readModelService: ReadModelService,
+  kind: AttributeKind
 ): Promise<Attribute> {
   const attribute = await readModelService.getAttributeById(attributeId);
-  if (!attribute) {
+  if (!attribute || attribute.kind !== kind) {
     throw attributeNotFound(attributeId);
   }
   return attribute;
@@ -313,13 +316,11 @@ export function tenantServiceBuilder(
         throw tenantIsNotACertifier(organizationId);
       }
 
-      const attribute = await readModelService.getAttributeById(
-        unsafeBrandId(tenantAttributeSeed.id)
+      const attribute = await retrieveAttribute(
+        unsafeBrandId(tenantAttributeSeed.id),
+        readModelService,
+        attributeKind.certified
       );
-
-      if (!attribute || attribute.kind !== "Certified") {
-        throw attributeNotFound(tenantAttributeSeed.id);
-      }
 
       if (!attribute.origin || attribute.origin !== certifierId) {
         throw certifiedAttributeOriginIsNotCompliantWithCertifier(
@@ -332,60 +333,19 @@ export function tenantServiceBuilder(
 
       const targetTenant = await retrieveTenant(tenantId, readModelService);
 
-      await retrieveAttribute(
-        unsafeBrandId(tenantAttributeSeed.id),
-        readModelService
-      );
-
       const certifiedTenantAttribute = targetTenant.data.attributes.find(
         (attr): attr is CertifiedTenantAttribute =>
           attr.type === tenantAttributeType.CERTIFIED &&
           attr.id === tenantAttributeSeed.id
       );
 
-      // eslint-disable-next-line functional/no-let
-      let updatedTenant: Tenant = {
-        ...targetTenant.data,
-        updatedAt: new Date(),
-      };
-
-      if (!certifiedTenantAttribute) {
-        // assigning attribute for the first time
-        updatedTenant = {
-          ...updatedTenant,
-          attributes: [
-            ...targetTenant.data.attributes,
-            {
-              id: attribute.id,
-              type: tenantAttributeType.CERTIFIED,
-              assignmentTimestamp: new Date(),
-              revocationTimestamp: undefined,
-            },
-          ],
-        };
-      } else if (!certifiedTenantAttribute.revocationTimestamp) {
-        throw certifiedAttributeAlreadyAssigned(attribute.id, organizationId);
-      } else {
-        // re-assigning attribute if it was revoked
-        updatedTenant = updateAttribute({
-          updatedTenant,
-          targetTenant,
-          attributeId: attribute.id,
-        });
-      }
-
-      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+      const updatedTenant = await assignCertifiedAttribute({
+        targetTenant: targetTenant.data,
+        certifiedTenantAttribute,
+        attribute,
+        organizationId,
         readModelService,
-        updatedTenant.attributes,
-        updatedTenant.externalId
-      );
-
-      if (updatedTenant.kind !== tenantKind) {
-        updatedTenant = {
-          ...updatedTenant,
-          kind: tenantKind,
-        };
-      }
+      });
 
       const event = toCreateEventTenantCertifiedAttributeAssigned(
         targetTenant.data.id,
@@ -491,32 +451,69 @@ export function tenantServiceBuilder(
   };
 }
 
-function updateAttribute(
-  {
-    updatedTenant,
-    targetTenant,
-    attributeId,
-    revocationTimestamp,
-  }: {
-    updatedTenant: Tenant;
-    targetTenant: WithMetadata<Tenant>;
-    attributeId: AttributeId;
-    revocationTimestamp?: Date | undefined;
-  },
-  assignmentTimestamp: Date = new Date()
-): Tenant {
-  return {
-    ...updatedTenant,
-    attributes: targetTenant.data.attributes.map((a) =>
-      a.id === attributeId
-        ? {
-            ...a,
-            assignmentTimestamp,
-            revocationTimestamp,
-          }
-        : a
-    ),
+async function assignCertifiedAttribute({
+  targetTenant,
+  certifiedTenantAttribute,
+  attribute,
+  organizationId,
+  readModelService,
+}: {
+  targetTenant: Tenant;
+  certifiedTenantAttribute: CertifiedTenantAttribute | undefined;
+  attribute: Attribute;
+  organizationId: TenantId;
+  readModelService: ReadModelService;
+}): Promise<Tenant> {
+  // eslint-disable-next-line functional/no-let
+  let updatedTenant: Tenant = {
+    ...targetTenant,
+    updatedAt: new Date(),
   };
+
+  if (!certifiedTenantAttribute) {
+    // assigning attribute for the first time
+    updatedTenant = {
+      ...updatedTenant,
+      attributes: [
+        ...targetTenant.attributes,
+        {
+          id: attribute.id,
+          type: tenantAttributeType.CERTIFIED,
+          assignmentTimestamp: new Date(),
+          revocationTimestamp: undefined,
+        },
+      ],
+    };
+  } else if (!certifiedTenantAttribute.revocationTimestamp) {
+    throw certifiedAttributeAlreadyAssigned(attribute.id, organizationId);
+  } else {
+    // re-assigning attribute if it was revoked
+    updatedTenant = {
+      ...updatedTenant,
+      attributes: targetTenant.attributes.map((a) =>
+        a.id === attribute.id
+          ? {
+              ...a,
+              assignmentTimestamp: new Date(),
+              revocationTimestamp: undefined,
+            }
+          : a
+      ),
+    };
+  }
+  const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+    readModelService,
+    updatedTenant.attributes,
+    updatedTenant.externalId
+  );
+
+  if (updatedTenant.kind !== tenantKind) {
+    updatedTenant = {
+      ...updatedTenant,
+      kind: tenantKind,
+    };
+  }
+  return updatedTenant;
 }
 
 export type TenantService = ReturnType<typeof tenantServiceBuilder>;
