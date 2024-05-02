@@ -801,7 +801,7 @@ export function purposeServiceBuilder(
       );
 
       if (purposeWithSameName) {
-        throw duplicatedPurposeName(clonedPurposeName);
+        throw duplicatedPurposeTitle(clonedPurposeName);
       }
 
       const clonedPurpose: Purpose = {
