@@ -8,9 +8,9 @@ import {
   FileManager,
   ReadModelRepository,
   TenantCollection,
-  genericLogger,
   initDB,
   initFileManager,
+  genericLogger,
 } from "pagopa-interop-commons";
 import {
   getMockAgreement,
@@ -62,7 +62,6 @@ import {
   expect,
   it,
 } from "vitest";
-import { v4 as uuidv4 } from "uuid";
 import {
   agreementAlreadyExists,
   agreementNotFound,
@@ -273,9 +272,7 @@ describe("Agreement service", () => {
       };
       const createdAgreementId = await agreementService.createAgreement(
         agreementData,
-        authData,
-        uuidv4(),
-        genericLogger
+        { authData, correlationId: "", serviceName: "", logger: genericLogger }
       );
 
       await expectedAgreementCreation(
@@ -334,9 +331,7 @@ describe("Agreement service", () => {
 
       const createdAgreementId = await agreementService.createAgreement(
         apiAgreementPayload,
-        authData,
-        uuidv4(),
-        genericLogger
+        { authData, correlationId: "", serviceName: "", logger: genericLogger }
       );
 
       await expectedAgreementCreation(
@@ -373,9 +368,7 @@ describe("Agreement service", () => {
 
       const createdAgreementId = await agreementService.createAgreement(
         apiAgreementPayload,
-        authData,
-        uuidv4(),
-        genericLogger
+        { authData, correlationId: "", serviceName: "", logger: genericLogger }
       );
 
       await expectedAgreementCreation(
@@ -420,9 +413,7 @@ describe("Agreement service", () => {
 
       const createdAgreementId = await agreementService.createAgreement(
         apiAgreementPayload,
-        authData,
-        uuidv4(),
-        genericLogger
+        { authData, correlationId: "", serviceName: "", logger: genericLogger }
       );
 
       await expectedAgreementCreation(
@@ -464,9 +455,7 @@ describe("Agreement service", () => {
 
       const createdAgreementId = await agreementService.createAgreement(
         apiAgreementPayload,
-        authData,
-        uuidv4(),
-        genericLogger
+        { authData, correlationId: "", serviceName: "", logger: genericLogger }
       );
 
       await expectedAgreementCreation(
@@ -489,12 +478,12 @@ describe("Agreement service", () => {
       };
 
       await expect(
-        agreementService.createAgreement(
-          apiAgreementPayload,
+        agreementService.createAgreement(apiAgreementPayload, {
           authData,
-          uuidv4(),
-          genericLogger
-        )
+          correlationId: "",
+          serviceName: "",
+          logger: genericLogger,
+        })
       ).rejects.toThrowError(
         eServiceNotFound(unsafeBrandId(apiAgreementPayload.eserviceId))
       );
@@ -514,12 +503,12 @@ describe("Agreement service", () => {
       };
 
       await expect(
-        agreementService.createAgreement(
-          apiAgreementPayload,
+        agreementService.createAgreement(apiAgreementPayload, {
           authData,
-          uuidv4(),
-          genericLogger
-        )
+          correlationId: "",
+          serviceName: "",
+          logger: genericLogger,
+        })
       ).rejects.toThrowError(
         notLatestEServiceDescriptor(
           unsafeBrandId(apiAgreementPayload.descriptorId)
@@ -559,12 +548,12 @@ describe("Agreement service", () => {
       };
 
       await expect(
-        agreementService.createAgreement(
-          apiAgreementPayload,
+        agreementService.createAgreement(apiAgreementPayload, {
           authData,
-          uuidv4(),
-          genericLogger
-        )
+          correlationId: "",
+          serviceName: "",
+          logger: genericLogger,
+        })
       ).rejects.toThrowError(
         notLatestEServiceDescriptor(
           unsafeBrandId(apiAgreementPayload.descriptorId)
@@ -601,12 +590,12 @@ describe("Agreement service", () => {
       };
 
       await expect(
-        agreementService.createAgreement(
-          apiAgreementPayload,
+        agreementService.createAgreement(apiAgreementPayload, {
           authData,
-          uuidv4(),
-          genericLogger
-        )
+          correlationId: "",
+          serviceName: "",
+          logger: genericLogger,
+        })
       ).rejects.toThrowError(
         descriptorNotInExpectedState(eservice.id, descriptor.id, [
           descriptorState.published,
@@ -641,12 +630,12 @@ describe("Agreement service", () => {
       };
 
       await expect(
-        agreementService.createAgreement(
-          apiAgreementPayload,
+        agreementService.createAgreement(apiAgreementPayload, {
           authData,
-          uuidv4(),
-          genericLogger
-        )
+          correlationId: "",
+          serviceName: "",
+          logger: genericLogger,
+        })
       ).rejects.toThrowError(agreementAlreadyExists(consumer.id, eservice.id));
     });
 
@@ -669,12 +658,12 @@ describe("Agreement service", () => {
       };
 
       await expect(() =>
-        agreementService.createAgreement(
-          apiAgreementPayload,
+        agreementService.createAgreement(apiAgreementPayload, {
           authData,
-          uuidv4(),
-          genericLogger
-        )
+          correlationId: "",
+          serviceName: "",
+          logger: genericLogger,
+        })
       ).rejects.toThrowError(tenantIdNotFound(consumer.id));
     });
 
@@ -720,12 +709,12 @@ describe("Agreement service", () => {
       };
 
       await expect(
-        agreementService.createAgreement(
-          apiAgreementPayload,
+        agreementService.createAgreement(apiAgreementPayload, {
           authData,
-          uuidv4(),
-          genericLogger
-        )
+          correlationId: "",
+          serviceName: "",
+          logger: genericLogger,
+        })
       ).rejects.toThrowError(
         missingCertifiedAttributesError(descriptor.id, consumer.id)
       );
@@ -779,12 +768,12 @@ describe("Agreement service", () => {
       };
 
       await expect(
-        agreementService.createAgreement(
-          apiAgreementPayload,
+        agreementService.createAgreement(apiAgreementPayload, {
           authData,
-          uuidv4(),
-          genericLogger
-        )
+          correlationId: "",
+          serviceName: "",
+          logger: genericLogger,
+        })
       ).rejects.toThrowError(
         missingCertifiedAttributesError(descriptor.id, consumer.id)
       );

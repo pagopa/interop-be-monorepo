@@ -13,7 +13,6 @@ import {
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import { describe, expect, it } from "vitest";
-import { v4 as uuidv4 } from "uuid";
 import { toAgreementV1 } from "../src/model/domain/toEvent.js";
 import {
   agreementNotFound,
@@ -40,9 +39,7 @@ export const testUpdateAgreement = (): ReturnType<typeof describe> =>
       await agreementService.updateAgreement(
         agreement.id,
         { consumerNotes: "Updated consumer notes" },
-        authData,
-        uuidv4(),
-        genericLogger
+        { authData, serviceName: "", correlationId: "", logger: genericLogger }
       );
 
       const agreementEvent = await readLastAgreementEvent(
@@ -77,9 +74,12 @@ export const testUpdateAgreement = (): ReturnType<typeof describe> =>
         agreementService.updateAgreement(
           agreementId,
           { consumerNotes: "Updated consumer notes" },
-          authData,
-          uuidv4(),
-          genericLogger
+          {
+            authData,
+            serviceName: "",
+            correlationId: "",
+            logger: genericLogger,
+          }
         )
       ).rejects.toThrowError(agreementNotFound(agreementId));
     });
@@ -92,9 +92,12 @@ export const testUpdateAgreement = (): ReturnType<typeof describe> =>
         agreementService.updateAgreement(
           agreement.id,
           { consumerNotes: "Updated consumer notes" },
-          authData,
-          uuidv4(),
-          genericLogger
+          {
+            authData,
+            serviceName: "",
+            correlationId: "",
+            logger: genericLogger,
+          }
         )
       ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
     });
@@ -114,9 +117,12 @@ export const testUpdateAgreement = (): ReturnType<typeof describe> =>
         agreementService.updateAgreement(
           agreement.id,
           { consumerNotes: "Updated consumer notes" },
-          authData,
-          uuidv4(),
-          genericLogger
+          {
+            authData,
+            serviceName: "",
+            correlationId: "",
+            logger: genericLogger,
+          }
         )
       ).rejects.toThrowError(
         agreementNotInExpectedState(agreement.id, agreement.state)

@@ -6,7 +6,6 @@ import {
   randomArrayItem,
 } from "pagopa-interop-commons-test/index.js";
 import { describe, expect, it, vi } from "vitest";
-import { v4 as uuidv4 } from "uuid";
 import {
   AgreementDeletedV1,
   AgreementId,
@@ -77,12 +76,12 @@ export const testDeleteAgreement = (): ReturnType<typeof describe> =>
       ).toContain(agreement.consumerDocuments[1].path);
 
       const authData = getRandomAuthData(agreement.consumerId);
-      await agreementService.deleteAgreementById(
-        agreement.id,
+      await agreementService.deleteAgreementById(agreement.id, {
         authData,
-        uuidv4(),
-        genericLogger
-      );
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      });
 
       const agreementEvent = await readLastAgreementEvent(
         agreement.id,
@@ -126,12 +125,12 @@ export const testDeleteAgreement = (): ReturnType<typeof describe> =>
       const authData = getRandomAuthData();
       const agreementId = generateId<AgreementId>();
       await expect(
-        agreementService.deleteAgreementById(
-          agreementId,
+        agreementService.deleteAgreementById(agreementId, {
           authData,
-          uuidv4(),
-          genericLogger
-        )
+          serviceName: "",
+          correlationId: "",
+          logger: genericLogger,
+        })
       ).rejects.toThrowError(agreementNotFound(agreementId));
     });
 
@@ -140,12 +139,12 @@ export const testDeleteAgreement = (): ReturnType<typeof describe> =>
       const agreement = getMockAgreement();
       await addOneAgreement(agreement, postgresDB, agreements);
       await expect(
-        agreementService.deleteAgreementById(
-          agreement.id,
+        agreementService.deleteAgreementById(agreement.id, {
           authData,
-          uuidv4(),
-          genericLogger
-        )
+          serviceName: "",
+          correlationId: "",
+          logger: genericLogger,
+        })
       ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
     });
 
@@ -161,12 +160,12 @@ export const testDeleteAgreement = (): ReturnType<typeof describe> =>
       await addOneAgreement(agreement, postgresDB, agreements);
       const authData = getRandomAuthData(agreement.consumerId);
       await expect(
-        agreementService.deleteAgreementById(
-          agreement.id,
+        agreementService.deleteAgreementById(agreement.id, {
           authData,
-          uuidv4(),
-          genericLogger
-        )
+          serviceName: "",
+          correlationId: "",
+          logger: genericLogger,
+        })
       ).rejects.toThrowError(
         agreementNotInExpectedState(agreement.id, agreement.state)
       );
@@ -185,12 +184,12 @@ export const testDeleteAgreement = (): ReturnType<typeof describe> =>
       };
       await addOneAgreement(agreement, postgresDB, agreements);
       await expect(
-        agreementService.deleteAgreementById(
-          agreement.id,
-          getRandomAuthData(agreement.consumerId),
-          uuidv4(),
-          genericLogger
-        )
+        agreementService.deleteAgreementById(agreement.id, {
+          authData: getRandomAuthData(agreement.consumerId),
+          serviceName: "",
+          correlationId: "",
+          logger: genericLogger,
+        })
       ).rejects.toThrowError(
         fileManagerDeleteError(
           agreement.consumerDocuments[0].path,

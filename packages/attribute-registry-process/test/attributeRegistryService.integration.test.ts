@@ -124,9 +124,12 @@ describe("database test", () => {
               name: mockAttribute.name,
               description: mockAttribute.description,
             },
-            getMockAuthData(),
-            uuidv4(),
-            genericLogger
+            {
+              authData: getMockAuthData(),
+              correlationId: "",
+              logger: genericLogger,
+              serviceName: "",
+            }
           );
         expect(attribute).toBeDefined();
 
@@ -165,14 +168,17 @@ describe("database test", () => {
               description: mockAttribute.description,
             },
             {
-              ...getMockAuthData(),
-              externalId: {
-                value: "123456",
-                origin: "not-allowed-origin",
+              authData: {
+                ...getMockAuthData(),
+                externalId: {
+                  value: "123456",
+                  origin: "not-allowed-origin",
+                },
               },
-            },
-            uuidv4(),
-            genericLogger
+              logger: genericLogger,
+              correlationId: "",
+              serviceName: "",
+            }
           )
         ).rejects.toThrowError(originNotCompliant("not-allowed-origin"));
       });
@@ -188,9 +194,12 @@ describe("database test", () => {
               name: attribute.name,
               description: attribute.description,
             },
-            getMockAuthData(),
-            uuidv4(),
-            genericLogger
+            {
+              authData: getMockAuthData(),
+              correlationId: "",
+              logger: genericLogger,
+              serviceName: "",
+            }
           )
         ).rejects.toThrowError(attributeDuplicate(attribute.name));
       });
@@ -203,9 +212,12 @@ describe("database test", () => {
               name: mockAttribute.name,
               description: mockAttribute.description,
             },
-            getMockAuthData(),
-            uuidv4(),
-            genericLogger
+            {
+              authData: getMockAuthData(),
+              logger: genericLogger,
+              correlationId: "",
+              serviceName: "",
+            }
           );
         expect(attribute).toBeDefined();
 
@@ -244,14 +256,17 @@ describe("database test", () => {
               description: mockAttribute.description,
             },
             {
-              ...getMockAuthData(),
-              externalId: {
-                value: "123456",
-                origin: "not-allowed-origin",
+              authData: {
+                ...getMockAuthData(),
+                externalId: {
+                  value: "123456",
+                  origin: "not-allowed-origin",
+                },
               },
-            },
-            uuidv4(),
-            genericLogger
+              logger: genericLogger,
+              correlationId: "",
+              serviceName: "",
+            }
           )
         ).rejects.toThrowError(originNotCompliant("not-allowed-origin"));
       });
@@ -267,9 +282,12 @@ describe("database test", () => {
               name: attribute.name,
               description: attribute.description,
             },
-            getMockAuthData(),
-            uuidv4(),
-            genericLogger
+            {
+              authData: getMockAuthData(),
+              logger: genericLogger,
+              correlationId: "",
+              serviceName: "",
+            }
           )
         ).rejects.toThrowError(attributeDuplicate(attribute.name));
       });
@@ -295,9 +313,12 @@ describe("database test", () => {
               code: "code",
               description: mockAttribute.description,
             },
-            getMockAuthData(tenant.id),
-            uuidv4(),
-            genericLogger
+            {
+              authData: getMockAuthData(tenant.id),
+              logger: genericLogger,
+              correlationId: "",
+              serviceName: "",
+            }
           );
         expect(attribute).toBeDefined();
 
@@ -354,9 +375,12 @@ describe("database test", () => {
               code: attribute.code,
               description: attribute.description,
             },
-            getMockAuthData(tenant.id),
-            uuidv4(),
-            genericLogger
+            {
+              authData: getMockAuthData(tenant.id),
+              logger: genericLogger,
+              correlationId: "",
+              serviceName: "",
+            }
           )
         ).rejects.toThrowError(attributeDuplicate(attribute.name));
       });
@@ -370,9 +394,12 @@ describe("database test", () => {
               code: "code",
               description: mockAttribute.description,
             },
-            getMockAuthData(mockTenant.id),
-            uuidv4(),
-            genericLogger
+            {
+              authData: getMockAuthData(mockTenant.id),
+              logger: genericLogger,
+              correlationId: "",
+              serviceName: "",
+            }
           )
         ).rejects.toThrowError(OrganizationIsNotACertifier(mockTenant.id));
       });
@@ -385,9 +412,12 @@ describe("database test", () => {
               code: "code",
               description: mockAttribute.description,
             },
-            getMockAuthData(mockTenant.id),
-            uuidv4(),
-            genericLogger
+            {
+              authData: getMockAuthData(mockTenant.id),
+              logger: genericLogger,
+              correlationId: "",
+              serviceName: "",
+            }
           )
         ).rejects.toThrowError(tenantNotFound(mockTenant.id));
       });
@@ -414,8 +444,12 @@ describe("database test", () => {
               origin: tenant.features[0].certifierId,
               description: mockAttribute.description,
             },
-            uuidv4(),
-            genericLogger
+            {
+              authData: getMockAuthData(),
+              logger: genericLogger,
+              correlationId: "",
+              serviceName: "",
+            }
           );
         expect(attribute).toBeDefined();
 
@@ -472,8 +506,12 @@ describe("database test", () => {
               origin: tenant.features[0].certifierId,
               description: attribute.description,
             },
-            uuidv4(),
-            genericLogger
+            {
+              authData: getMockAuthData(),
+              logger: genericLogger,
+              correlationId: "",
+              serviceName: "",
+            }
           )
         ).rejects.toThrowError(attributeDuplicate(attribute.name));
       });

@@ -1,5 +1,4 @@
 import { fail } from "assert";
-import { v4 as uuidv4 } from "uuid";
 import {
   Agreement,
   AgreementId,
@@ -51,9 +50,7 @@ export const testArchiveAgreement = (): ReturnType<typeof describe> =>
 
       const agreementId = await agreementService.archiveAgreement(
         agreement.id,
-        authData,
-        uuidv4(),
-        genericLogger
+        { authData, serviceName: "", correlationId: "", logger: genericLogger }
       );
 
       expect(agreementId).toBeDefined();
@@ -118,12 +115,12 @@ export const testArchiveAgreement = (): ReturnType<typeof describe> =>
       const agreementToArchiveId = generateId<AgreementId>();
 
       await expect(
-        agreementService.archiveAgreement(
-          agreementToArchiveId,
+        agreementService.archiveAgreement(agreementToArchiveId, {
           authData,
-          uuidv4(),
-          genericLogger
-        )
+          serviceName: "",
+          correlationId: "",
+          logger: genericLogger,
+        })
       ).rejects.toThrowError(agreementNotFound(agreementToArchiveId));
     });
 
@@ -140,12 +137,12 @@ export const testArchiveAgreement = (): ReturnType<typeof describe> =>
       await addOneAgreement(agreement, postgresDB, agreements);
 
       await expect(
-        agreementService.archiveAgreement(
-          agreement.id,
+        agreementService.archiveAgreement(agreement.id, {
           authData,
-          uuidv4(),
-          genericLogger
-        )
+          serviceName: "",
+          correlationId: "",
+          logger: genericLogger,
+        })
       ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
     });
 
@@ -167,12 +164,12 @@ export const testArchiveAgreement = (): ReturnType<typeof describe> =>
       await addOneAgreement(agreement, postgresDB, agreements);
 
       await expect(
-        agreementService.archiveAgreement(
-          agreement.id,
+        agreementService.archiveAgreement(agreement.id, {
           authData,
-          uuidv4(),
-          genericLogger
-        )
+          serviceName: "",
+          correlationId: "",
+          logger: genericLogger,
+        })
       ).rejects.toThrowError(
         agreementNotInExpectedState(agreement.id, notArchivableState)
       );

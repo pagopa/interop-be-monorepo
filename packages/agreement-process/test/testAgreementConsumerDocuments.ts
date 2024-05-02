@@ -51,8 +51,7 @@ export const testAgreementConsumerDocuments = (): ReturnType<typeof describe> =>
       const result = await agreementService.getAgreementConsumerDocument(
         agreement1.id,
         agreement1.consumerDocuments[0].id,
-        authData,
-        genericLogger
+        { authData, serviceName: "", correlationId: "", logger: genericLogger }
       );
 
       expect(result).toEqual(agreement1.consumerDocuments[0]);
@@ -66,8 +65,12 @@ export const testAgreementConsumerDocuments = (): ReturnType<typeof describe> =>
         agreementService.getAgreementConsumerDocument(
           agreementId,
           agreement1.consumerDocuments[0].id,
-          authData,
-          genericLogger
+          {
+            authData,
+            serviceName: "",
+            correlationId: "",
+            logger: genericLogger,
+          }
         )
       ).rejects.toThrowError(agreementNotFound(agreementId));
     });
@@ -79,8 +82,12 @@ export const testAgreementConsumerDocuments = (): ReturnType<typeof describe> =>
         agreementService.getAgreementConsumerDocument(
           agreement1.id,
           agreement1.consumerDocuments[0].id,
-          authData,
-          genericLogger
+          {
+            authData,
+            serviceName: "",
+            correlationId: "",
+            logger: genericLogger,
+          }
         )
       ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
     });
@@ -92,8 +99,12 @@ export const testAgreementConsumerDocuments = (): ReturnType<typeof describe> =>
         agreementService.getAgreementConsumerDocument(
           agreement1.id,
           agreementDocumentId,
-          authData,
-          genericLogger
+          {
+            authData,
+            serviceName: "",
+            correlationId: "",
+            logger: genericLogger,
+          }
         )
       ).rejects.toThrowError(
         agreementDocumentNotFound(agreementDocumentId, agreement1.id)
