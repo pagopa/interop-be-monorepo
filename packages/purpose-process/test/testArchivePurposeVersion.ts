@@ -71,7 +71,7 @@ export const testArchivePurposeVersion = (): ReturnType<typeof describe> =>
         versions: [
           {
             ...mockPurposeVersion,
-            state: purposeVersionState.rejected,
+            state: purposeVersionState.archived,
             updatedAt: new Date(),
           },
         ],
@@ -130,7 +130,7 @@ export const testArchivePurposeVersion = (): ReturnType<typeof describe> =>
         versions: [
           {
             ...mockPurposeVersion1,
-            state: purposeVersionState.rejected,
+            state: purposeVersionState.archived,
             updatedAt: new Date(),
           },
         ],

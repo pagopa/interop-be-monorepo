@@ -131,7 +131,6 @@ export function readModelServiceBuilder(
         },
       } satisfies ReadModelFilter<Purpose>);
     },
-
     async getPurposes(
       filters: ApiGetPurposesFilters,
       offset: number,

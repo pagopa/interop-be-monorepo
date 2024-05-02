@@ -9,7 +9,6 @@ import {
   writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import {
-  DraftPurposeUpdatedV2,
   EService,
   Purpose,
   PurposeEvent,
@@ -26,6 +25,7 @@ import {
   ApiReversePurposeUpdateContent,
   ApiRiskAnalysisFormSeed,
 } from "../src/model/domain/models.js";
+import { PurposeRiskAnalysisFormV2 } from "../../models/dist/gen/v2/purpose/riskAnalysis.js";
 
 export const addOnePurpose = async (
   purpose: Purpose,
@@ -84,22 +84,29 @@ export const createUpdatedPurpose = (
     | ApiPurposeUpdateContent
     | ApiReversePurposeUpdateContent,
   mockValidRiskAnalysis: RiskAnalysis,
-  writtenPayload: DraftPurposeUpdatedV2
+  writtenRiskAnalysisForm: PurposeRiskAnalysisFormV2
 ): Purpose => ({
   ...mockPurpose,
   title: purposeUpdateContent.title,
   description: purposeUpdateContent.description,
   isFreeOfCharge: purposeUpdateContent.isFreeOfCharge,
   freeOfChargeReason: purposeUpdateContent.freeOfChargeReason,
-  updatedAt: new Date(Number(writtenPayload.purpose?.updatedAt)),
+  versions: [
+    {
+      ...mockPurpose.versions[0],
+      dailyCalls: purposeUpdateContent.dailyCalls,
+      updatedAt: new Date(),
+    },
+  ],
+  updatedAt: new Date(),
   riskAnalysisForm: {
     ...mockValidRiskAnalysis.riskAnalysisForm,
-    id: unsafeBrandId(writtenPayload.purpose!.riskAnalysisForm!.id),
+    id: unsafeBrandId(writtenRiskAnalysisForm.id),
     singleAnswers: mockValidRiskAnalysis.riskAnalysisForm.singleAnswers.map(
       (singleAnswer) => ({
         ...singleAnswer,
         id: unsafeBrandId(
-          writtenPayload.purpose!.riskAnalysisForm!.singleAnswers.find(
+          writtenRiskAnalysisForm.singleAnswers.find(
             (sa) => sa.key === singleAnswer.key
           )!.id
         ),
@@ -109,7 +116,7 @@ export const createUpdatedPurpose = (
       (multiAnswer) => ({
         ...multiAnswer,
         id: unsafeBrandId(
-          writtenPayload.purpose!.riskAnalysisForm!.multiAnswers.find(
+          writtenRiskAnalysisForm.multiAnswers.find(
             (ma) => ma.key === multiAnswer.key
           )!.id
         ),
