@@ -128,5 +128,5 @@ export const createPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with("tenantNotFound", () => HTTP_STATUS_BAD_REQUEST)
     .with("tenantKindNotFound", () => HTTP_STATUS_BAD_REQUEST)
     .with("riskAnalysisValidationFailed", () => HTTP_STATUS_BAD_REQUEST)
-    .with("duplicatedPurposeName", () => HTTP_STATUS_CONFLICT)
+    .with("duplicatedPurposeTitle", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
