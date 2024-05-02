@@ -16,7 +16,6 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
-  attributeNotFound,
   expirationDateCannotBeInThePast,
   organizationNotFoundInVerifiers,
   tenantNotFound,
@@ -143,15 +142,6 @@ export async function getTenantKindLoadingCertifiedAttributes(
   const attrs = await readModelService.getAttributesById(attributesIds);
   const extIds = convertAttributes(attrs);
   return getTenantKind(extIds, externalId);
-}
-
-export function assertAttributeExists(
-  attributeId: AttributeId,
-  attributes: TenantAttribute[]
-): asserts attributes is NonNullable<TenantAttribute[]> {
-  if (!attributes.some((attr) => attr.id === attributeId)) {
-    throw attributeNotFound(attributeId);
-  }
 }
 
 export function assertValidExpirationDate(
