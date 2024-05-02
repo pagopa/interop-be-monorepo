@@ -59,6 +59,7 @@ export const eserviceDescriptorArchiverBuilder = async (
         descriptorId,
       },
       headers: {
+        // TODO ADAPT TO NEW WAY OF USING CONTEXT: https://github.com/pagopa/interop-be-monorepo/pull/449
         "X-Correlation-Id": getContext().correlationId ?? uuidv4(),
       },
     });
