@@ -1,16 +1,24 @@
 /* eslint-disable functional/immutable-data */
 import { EachMessagePayload } from "kafkajs";
 import {
-  readModelWriterConfig,
   agreementTopicConfig,
   decodeKafkaMessage,
   logger,
   runWithContext,
+  kafkaConsumerConfig,
+  jwtSeedConfig,
 } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
 import { AgreementEvent, fromAgreementV2 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { archiveEserviceDescriptors } from "./eserviceDescriptorsArchiver.js";
+import { eserviceDescriptorArchiverBuilder } from "./eserviceDescriptorsArchiver.js";
+
+const jwtConfig = jwtSeedConfig();
+const consumerConfig = kafkaConsumerConfig();
+const { agreementTopic } = agreementTopicConfig();
+const eserviceDescriptorArchiver = await eserviceDescriptorArchiverBuilder(
+  jwtConfig
+);
 
 async function processMessage({
   message,
@@ -43,7 +51,9 @@ async function processMessage({
               logger.info(
                 `Processing ${decodedMsg.type} message - Partition number: ${partition} - Offset: ${message.offset}`
               );
-              await archiveEserviceDescriptors(fromAgreementV2(agreement));
+              await eserviceDescriptorArchiver.archiveDescriptorsForArchivedAgreement(
+                fromAgreementV2(agreement)
+              );
             } else {
               logger.error(`Agreement not found in message ${decodedMsg.type}`);
             }
@@ -53,10 +63,4 @@ async function processMessage({
   );
 }
 
-try {
-  const config = readModelWriterConfig();
-  const { agreementTopic } = agreementTopicConfig();
-  await runConsumer(config, [agreementTopic], processMessage);
-} catch (e) {
-  logger.error(`An error occurred during initialization:\n${e}`);
-}
+await runConsumer(consumerConfig, [agreementTopic], processMessage);
