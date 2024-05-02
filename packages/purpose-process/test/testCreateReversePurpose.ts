@@ -97,7 +97,7 @@ export const testCreateReversePurpose = (): ReturnType<typeof describe> =>
       await writeInReadmodel(consumer, tenants);
       await writeInReadmodel(mockAgreement, agreements);
 
-      const { purpose } = await purposeService.createPurposeFromEService(
+      const { purpose } = await purposeService.createReversePurpose(
         consumer.id,
         reversePurposeSeed,
         generateId()
@@ -190,7 +190,7 @@ export const testCreateReversePurpose = (): ReturnType<typeof describe> =>
       await writeInReadmodel(mockAgreement, agreements);
 
       expect(
-        purposeService.createPurposeFromEService(
+        purposeService.createReversePurpose(
           producer.id,
           reversePurposeSeed,
           generateId()
@@ -241,7 +241,7 @@ export const testCreateReversePurpose = (): ReturnType<typeof describe> =>
       await writeInReadmodel(mockAgreement, agreements);
 
       expect(
-        purposeService.createPurposeFromEService(
+        purposeService.createReversePurpose(
           consumer.id,
           reversePurposeSeed,
           generateId()
@@ -294,7 +294,7 @@ export const testCreateReversePurpose = (): ReturnType<typeof describe> =>
       await writeInReadmodel(mockAgreement, agreements);
 
       expect(
-        purposeService.createPurposeFromEService(
+        purposeService.createReversePurpose(
           consumer.id,
           reversePurposeSeed,
           generateId()
@@ -347,7 +347,7 @@ export const testCreateReversePurpose = (): ReturnType<typeof describe> =>
       await writeInReadmodel(mockAgreement, agreements);
 
       expect(
-        purposeService.createPurposeFromEService(
+        purposeService.createReversePurpose(
           consumer.id,
           reversePurposeSeed,
           generateId()
@@ -398,7 +398,7 @@ export const testCreateReversePurpose = (): ReturnType<typeof describe> =>
       await writeInReadmodel(mockAgreement, agreements);
 
       expect(
-        purposeService.createPurposeFromEService(
+        purposeService.createReversePurpose(
           consumer.id,
           reversePurposeSeed,
           generateId()
@@ -441,7 +441,7 @@ export const testCreateReversePurpose = (): ReturnType<typeof describe> =>
       await writeInReadmodel(consumer, tenants);
 
       expect(
-        purposeService.createPurposeFromEService(
+        purposeService.createReversePurpose(
           consumer.id,
           reversePurposeSeed,
           generateId()
@@ -500,7 +500,7 @@ export const testCreateReversePurpose = (): ReturnType<typeof describe> =>
       await writeInReadmodel(mockAgreement, agreements);
 
       expect(
-        purposeService.createPurposeFromEService(
+        purposeService.createReversePurpose(
           consumer.id,
           reversePurposeSeed,
           generateId()

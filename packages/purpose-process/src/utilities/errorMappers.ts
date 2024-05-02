@@ -105,7 +105,7 @@ export const createPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with("duplicatedPurposeName", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const createPurposeFromEServiceErrorMapper = (
+export const createReversePurposeErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
