@@ -24,15 +24,18 @@ import {
   PurposeRiskAnalysisForm,
   PurposeEvent,
   EServiceMode,
+  eserviceMode,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
+  duplicatedPurposeTitle,
   eserviceNotFound,
   missingRejectionReason,
   notValidVersionState,
   organizationIsNotTheConsumer,
   organizationIsNotTheProducer,
   organizationNotAllowed,
+  purposeCannotBeDeleted,
   purposeNotFound,
   purposeVersionCannotBeDeleted,
   purposeVersionDocumentNotFound,
@@ -64,7 +67,8 @@ import {
   reverseValidateAndTransformRiskAnalysis,
   validateAndTransformRiskAnalysis,
   assertPurposeIsDraft,
-  assertPurposeIsDeletable,
+  isRejectable,
+  isDeletable,
   isArchivable,
   isSuspendable,
 } from "./validators.js";
@@ -253,6 +257,10 @@ export function purposeServiceBuilder(
     }): Promise<void> {
       logger.info(`Rejecting Version ${versionId} in Purpose ${purposeId}`);
 
+      if (!rejectionReason) {
+        throw missingRejectionReason();
+      }
+
       const purpose = await retrievePurpose(purposeId, readModelService);
       const eservice = await retrieveEService(
         purpose.data.eserviceId,
@@ -264,12 +272,8 @@ export function purposeServiceBuilder(
 
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
 
-      if (purposeVersion.state !== purposeVersionState.waitingForApproval) {
+      if (!isRejectable(purposeVersion)) {
         throw notValidVersionState(purposeVersion.id, purposeVersion.state);
-      }
-
-      if (!rejectionReason) {
-        throw missingRejectionReason();
       }
 
       const updatedPurposeVersion: PurposeVersion = {
@@ -308,7 +312,7 @@ export function purposeServiceBuilder(
         purposeId,
         purposeUpdateContent,
         organizationId,
-        "Deliver",
+        eserviceMode.deliver,
         { readModelService, correlationId, repository }
       );
     },
@@ -347,7 +351,9 @@ export function purposeServiceBuilder(
 
       assertOrganizationIsAConsumer(organizationId, purpose.data.consumerId);
 
-      assertPurposeIsDeletable(purpose.data);
+      if (!isDeletable(purpose.data)) {
+        throw purposeCannotBeDeleted(purpose.data.id);
+      }
 
       const event = purposeIsDraft(purpose.data)
         ? toCreateEventDraftPurposeDeleted({
@@ -556,7 +562,7 @@ const getInvolvedTenantByEServiceMode = async (
   consumerId: TenantId,
   readModelService: ReadModelService
 ): Promise<Tenant> => {
-  if (eservice.mode === "Deliver") {
+  if (eservice.mode === eserviceMode.deliver) {
     return retrieveTenant(consumerId, readModelService);
   } else {
     return retrieveTenant(eservice.producerId, readModelService);
@@ -567,7 +573,7 @@ const updatePurposeInternal = async (
   purposeId: PurposeId,
   updateContent: ApiPurposeUpdateContent | ApiReversePurposeUpdateContent,
   organizationId: TenantId,
-  eserviceMode: EServiceMode,
+  mode: EServiceMode,
   {
     readModelService,
     correlationId,
@@ -584,11 +590,21 @@ const updatePurposeInternal = async (
   assertOrganizationIsAConsumer(organizationId, purpose.data.consumerId);
   assertPurposeIsDraft(purpose.data);
 
+  const purposeWithSameTitle = await readModelService.getSpecificPurpose(
+    purpose.data.eserviceId,
+    purpose.data.consumerId,
+    updateContent.title
+  );
+
+  if (purposeWithSameTitle) {
+    throw duplicatedPurposeTitle(updateContent.title);
+  }
+
   const eservice = await retrieveEService(
     purpose.data.eserviceId,
     readModelService
   );
-  assertEserviceHasSpecificMode(eservice, eserviceMode);
+  assertEserviceHasSpecificMode(eservice, mode);
   assertConsistentFreeOfCharge(
     updateContent.isFreeOfCharge,
     updateContent.freeOfChargeReason
@@ -603,7 +619,7 @@ const updatePurposeInternal = async (
   assertTenantKindExists(tenant);
 
   const newRiskAnalysis: PurposeRiskAnalysisForm | undefined =
-    eserviceMode === "Deliver"
+    mode === eserviceMode.deliver
       ? validateAndTransformRiskAnalysis(
           (updateContent as ApiPurposeUpdateContent).riskAnalysisForm,
           tenant.kind
@@ -616,6 +632,13 @@ const updatePurposeInternal = async (
   const updatedPurpose: Purpose = {
     ...purpose.data,
     ...updateContent,
+    versions: [
+      {
+        ...purpose.data.versions[0],
+        dailyCalls: updateContent.dailyCalls,
+        updatedAt: new Date(),
+      },
+    ],
     updatedAt: new Date(),
     riskAnalysisForm: newRiskAnalysis,
   };
