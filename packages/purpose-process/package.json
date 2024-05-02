@@ -42,6 +42,6 @@
     "pagopa-interop-models": "workspace:*",
     "pg-promise": "11.5.0",
     "ts-pattern": "5.0.6",
-    "zod": "3.21.4"
+    "zod": "3.22.3"
   }
 }

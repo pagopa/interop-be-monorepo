@@ -21,7 +21,7 @@
   "dependencies": {
     "@zodios/core": "10.9.6",
     "axios": "1.6.8",
-    "zod": "3.21.4"
+    "zod": "3.22.3"
   },
   "devDependencies": {
     "eslint": "8.44.0",
