@@ -22,6 +22,7 @@ const errorCodes = {
   expirationDateNotFoundInVerifier: "0012",
   tenantIsNotCertifier: "0013",
   mailNotFound: "0014",
+  mailAlreadyExists: "0015",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -162,5 +163,13 @@ export function mailNotFound(mailId: string): ApiError<ErrorCodes> {
     detail: `mail ${mailId} not found`,
     code: "mailNotFound",
     title: "Mail not found",
+  });
+}
+
+export function mailAlreadyExists(address: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `mail with address ${address} already exists`,
+    code: "mailAlreadyExists",
+    title: "Mail already exists",
   });
 }
