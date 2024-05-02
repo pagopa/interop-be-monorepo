@@ -1,11 +1,7 @@
 import {
-  AgreementCollection,
   AttributeCollection,
   logger,
-  MongoQueryKeys,
-  ReadModelFilter,
   ReadModelRepository,
-  RemoveDataPrefix,
   TenantCollection,
 } from "pagopa-interop-commons";
 import {
@@ -24,150 +20,12 @@ import {
   AttributeReadmodel,
   Agreement,
   AgreementState,
-  DescriptorId,
 } from "pagopa-interop-models";
 import { z } from "zod";
 import { Document, Filter, WithId } from "mongodb";
-import { match, P } from "ts-pattern";
 import { attributeNotFound } from "../model/domain/errors.js";
 import { TenantProcessConfig } from "../utilities/config.js";
 import { CertifiedAttributeQueryResult } from "../model/domain/models.js";
-
-export type AgreementQueryFilters = {
-  producerId?: string | string[];
-  consumerId?: string | string[];
-  eserviceId?: EServiceId | EServiceId[];
-  descriptorId?: DescriptorId | DescriptorId[];
-  agreementStates?: AgreementState[];
-  attributeId?: AttributeId | AttributeId[];
-  showOnlyUpgradeable?: boolean;
-};
-
-type AgreementDataFields = RemoveDataPrefix<MongoQueryKeys<Agreement>>;
-
-const makeFilter = (
-  fieldName: Extract<
-    AgreementDataFields,
-    "producerId" | "consumerId" | "eserviceId" | "descriptorId"
-  >,
-  value: string | string[] | undefined
-): ReadModelFilter<Agreement> | undefined =>
-  match(value)
-    .with(P.nullish, () => undefined)
-    .with(P.string, () => ({
-      [`data.${fieldName}`]: value,
-    }))
-    .with(P.array(P.string), (a) =>
-      a.length === 0 ? undefined : { [`data.${fieldName}`]: { $in: value } }
-    )
-    .exhaustive();
-
-const makeAttributesFilter = (
-  fieldName: Extract<
-    AgreementDataFields,
-    "certifiedAttributes" | "declaredAttributes" | "verifiedAttributes"
-  >,
-  attributeIds: AttributeId | AttributeId[]
-): ReadModelFilter<Agreement> | undefined =>
-  match(attributeIds)
-    .with(P.string, (id) => ({
-      [`data.${fieldName}`]: { $elemMatch: { id } },
-    }))
-    .with(P.array(P.string), (ids) =>
-      ids.length === 0
-        ? undefined
-        : {
-            [`data.${fieldName}`]: {
-              $elemMatch: { id: { $in: ids } },
-            },
-          }
-    )
-    .exhaustive();
-
-const getAgreementsFilters = (
-  filters: AgreementQueryFilters
-): { $match: object } => {
-  const upgradeableStates = [
-    agreementState.draft,
-    agreementState.active,
-    agreementState.suspended,
-  ];
-
-  const {
-    attributeId,
-    producerId,
-    consumerId,
-    eserviceId,
-    descriptorId,
-    agreementStates,
-    showOnlyUpgradeable,
-  } = filters;
-
-  const agreementStatesFilters = match(agreementStates)
-    .with(P.nullish, () => (showOnlyUpgradeable ? upgradeableStates : []))
-    .with(
-      P.when(
-        (agreementStates) => agreementStates.length === 0 && showOnlyUpgradeable
-      ),
-      () => upgradeableStates
-    )
-    .with(
-      P.when(
-        (agreementStates) => agreementStates.length > 0 && showOnlyUpgradeable
-      ),
-      (agreementStates) =>
-        upgradeableStates.filter((s) => agreementStates.includes(s))
-    )
-    .otherwise((agreementStates) => agreementStates);
-
-  const queryFilters = {
-    ...makeFilter("producerId", producerId),
-    ...makeFilter("consumerId", consumerId),
-    ...makeFilter("eserviceId", eserviceId),
-    ...makeFilter("descriptorId", descriptorId),
-    ...(agreementStatesFilters &&
-      agreementStatesFilters.length > 0 && {
-        "data.state": {
-          $in: agreementStatesFilters.map((s) => s.toString()),
-        },
-      }),
-    ...(attributeId && {
-      $or: [
-        makeAttributesFilter("certifiedAttributes", attributeId),
-        makeAttributesFilter("verifiedAttributes", attributeId),
-        makeAttributesFilter("declaredAttributes", attributeId),
-      ],
-    }),
-  };
-  return { $match: queryFilters };
-};
-
-const getAllAgreements = async (
-  agreements: AgreementCollection,
-  filters: AgreementQueryFilters
-): Promise<Agreement[]> => {
-  const data = await agreements
-    .aggregate([getAgreementsFilters(filters)])
-    .toArray();
-
-  const result = z
-    .array(
-      z.object({
-        data: Agreement,
-      })
-    )
-    .safeParse(data);
-
-  if (!result.success) {
-    logger.error(
-      `Unable to parse agreements items: result ${JSON.stringify(
-        result
-      )} - data ${JSON.stringify(data)} `
-    );
-    throw genericError("Unable to parse agreements items");
-  }
-  return result.data.map((d) => d.data);
-};
 
 function listTenantsFilters(
   name: string | undefined
@@ -500,10 +358,38 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
       }
     },
 
-    async getAllAgreements(
-      filters: AgreementQueryFilters
-    ): Promise<Agreement[]> {
-      return getAllAgreements(agreements, filters);
+    async getAgreements({
+      consumerId,
+      producerId,
+      states,
+    }: {
+      consumerId: TenantId;
+      producerId: TenantId;
+      states: AgreementState[];
+    }): Promise<Agreement[]> {
+      const data = await agreements
+        .aggregate([
+          {
+            $match: {
+              "data.consumerId": consumerId,
+              "data.producerId": producerId,
+              "data.state": { $in: states },
+            },
+          },
+        ])
+        .toArray();
+
+      const result = z.array(Agreement).safeParse(data.map((d) => d.data));
+
+      if (!result.success) {
+        logger.error(
+          `Unable to parse agreements items: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+        throw genericError("Unable to parse agreements items");
+      }
+      return result.data;
     },
 
     async getCertifiedAttributes({

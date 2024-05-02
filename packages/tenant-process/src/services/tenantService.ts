@@ -8,6 +8,7 @@ import {
   TenantId,
   VerifiedTenantAttribute,
   WithMetadata,
+  agreementState,
   generateId,
   tenantAttributeType,
   tenantEventToBinaryData,
@@ -27,6 +28,7 @@ import {
 } from "../model/types.js";
 import {
   attributeNotFound,
+  attributeVerificationNotAllowed,
   certifiedAttributeAlreadyAssigned,
   certifiedAttributeOriginIsNotCompliantWithCertifier,
   tenantIsNotACertifier,
@@ -55,7 +57,7 @@ import {
   assertExpirationDateExist,
   assertTenantExists,
   getTenantCertifierId,
-  assertAttributeVerificationAllowed,
+  assertVerifiedAttributeOperationAllowed,
 } from "./validators.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -473,11 +475,21 @@ export function tenantServiceBuilder(
         throw verifiedAttributeSelfVerification();
       }
 
-      await assertAttributeVerificationAllowed({
+      const allowedStatuses = [
+        agreementState.pending,
+        agreementState.active,
+        agreementState.suspended,
+      ];
+      await assertVerifiedAttributeOperationAllowed({
         producerId: organizationId,
         consumerId: tenantId,
         attributeId: unsafeBrandId(tenantAttributeSeed.id),
+        agreementStates: allowedStatuses,
         readModelService,
+        error: attributeVerificationNotAllowed(
+          tenantId,
+          unsafeBrandId(tenantAttributeSeed.id)
+        ),
       });
 
       const targetTenant = await retrieveTenant(tenantId, readModelService);
