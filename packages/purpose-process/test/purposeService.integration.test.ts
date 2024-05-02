@@ -105,15 +105,15 @@ describe("Integration tests", async () => {
   });
 
   describe("Purpose service", () => {
-    // testGetPurposeById();
-    // testGetRiskAnalysisDocument();
-    // testDeletePurposeVersion();
-    // testRejectPurposeVersion();
-    // testUpdatePurpose();
-    // testDeletePurpose();
-    // testArchivePurposeVersion();
-    // testSuspendPurposeVersion();
-    // testGetPurposes();
+    testGetPurposeById();
+    testGetRiskAnalysisDocument();
+    testDeletePurposeVersion();
+    testRejectPurposeVersion();
+    testUpdatePurpose();
+    testDeletePurpose();
+    testArchivePurposeVersion();
+    testSuspendPurposeVersion();
+    testGetPurposes();
     testCreatePurposeVersion();
   });
 });
