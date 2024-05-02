@@ -148,8 +148,11 @@ export function assertDailyCallsIsDifferentThanBefore(
   purpose: Purpose,
   dailyCalls: number
 ): void {
-  // TODO: Capire un attimo cosa vuole
-  if (purpose.versions[0].dailyCalls === dailyCalls) {
+  const previousDailyCalls = purpose.versions.toSorted(
+    (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
+  )[0]?.dailyCalls;
+
+  if (previousDailyCalls === dailyCalls) {
     throw unchangedDailyCalls(purpose.id);
   }
 }
