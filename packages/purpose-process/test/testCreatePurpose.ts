@@ -36,8 +36,8 @@ import {
   tenantNotFound,
   organizationIsNotTheConsumer,
   riskAnalysisValidationFailed,
-  duplicatedPurposeName,
   agreementNotFound,
+  duplicatedPurposeTitle,
 } from "../src/model/domain/errors.js";
 import { ApiPurposeSeed } from "../src/model/domain/models.js";
 import {
@@ -334,6 +334,6 @@ export const testCreatePurpose = (): ReturnType<typeof describe> =>
           unsafeBrandId(purposeSeed.consumerId),
           generateId()
         )
-      ).rejects.toThrowError(duplicatedPurposeName(purposeSeed.title));
+      ).rejects.toThrowError(duplicatedPurposeTitle(purposeSeed.title));
     });
   });

@@ -2,6 +2,7 @@ import {
   EService,
   EServiceMode,
   Purpose,
+  PurposeVersion,
   PurposeRiskAnalysisForm,
   RiskAnalysisForm,
   Tenant,
@@ -19,7 +20,6 @@ import {
   eServiceModeNotAllowed,
   missingFreeOfChargeReason,
   organizationIsNotTheConsumer,
-  purposeCannotBeDeleted,
   purposeNotInDraftState,
   riskAnalysisValidationFailed,
   tenantKindNotFound,
@@ -46,6 +46,9 @@ export const isRiskAnalysisFormValid = (
 
 export const purposeIsDraft = (purpose: Purpose): boolean =>
   !purpose.versions.some((v) => v.state !== purposeVersionState.draft);
+
+export const isRejectable = (purposeVersion: PurposeVersion): boolean =>
+  purposeVersion.state === purposeVersionState.waitingForApproval;
 
 export const assertEserviceHasSpecificMode = (
   eservice: EService,
@@ -139,14 +142,17 @@ export function assertPurposeIsDraft(purpose: Purpose): void {
   }
 }
 
-export function assertPurposeIsDeletable(purpose: Purpose): void {
-  if (
-    purpose.versions.some(
-      (v) =>
-        v.state !== purposeVersionState.draft &&
-        v.state !== purposeVersionState.waitingForApproval
-    )
-  ) {
-    throw purposeCannotBeDeleted(purpose.id);
-  }
-}
+export const isDeletable = (purpose: Purpose): boolean =>
+  purpose.versions.every(
+    (v) =>
+      v.state === purposeVersionState.draft ||
+      v.state === purposeVersionState.waitingForApproval
+  );
+
+export const isArchivable = (purposeVersion: PurposeVersion): boolean =>
+  purposeVersion.state === purposeVersionState.active ||
+  purposeVersion.state === purposeVersionState.suspended;
+
+export const isSuspendable = (purposeVersion: PurposeVersion): boolean =>
+  purposeVersion.state === purposeVersionState.active ||
+  purposeVersion.state === purposeVersionState.suspended;
