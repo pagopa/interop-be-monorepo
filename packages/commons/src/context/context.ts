@@ -59,9 +59,9 @@ export const contextMiddleware = (
   globalStore.run(context, () => next());
 };
 
-export function runWithContext(
+export async function runWithContext(
   context: Partial<AppContext>,
-  fn: () => void
-): void {
-  globalStore.run({ ...defaultAppContext, ...context }, fn);
+  fn: () => Promise<void>
+): Promise<void> {
+  await globalStore.run({ ...defaultAppContext, ...context }, fn);
 }
