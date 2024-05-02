@@ -28,6 +28,7 @@ export const errorCodes = {
   missingFreeOfChargeReason: "0014",
   riskAnalysisValidationFailed: "0015",
   purposeNotInDraftState: "0016",
+  duplicatedPurposeTitle: "0017",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -184,5 +185,13 @@ export function missingRejectionReason(): ApiError<ErrorCodes> {
     detail: `Rejection reason is missing`,
     code: "missingRejectionReason",
     title: "Rejection reason can't be omitted",
+  });
+}
+
+export function duplicatedPurposeTitle(title: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose with title: ${title} already exists`,
+    code: "duplicatedPurposeTitle",
+    title: "Duplicated Purpose Title",
   });
 }

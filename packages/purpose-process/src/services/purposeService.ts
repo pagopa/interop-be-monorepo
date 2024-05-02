@@ -27,6 +27,7 @@ import {
   eserviceMode,
 } from "pagopa-interop-models";
 import {
+  duplicatedPurposeTitle,
   eserviceNotFound,
   missingRejectionReason,
   notValidVersionState,
@@ -427,6 +428,16 @@ const updatePurposeInternal = async (
   const purpose = await retrievePurpose(purposeId, readModelService);
   assertOrganizationIsAConsumer(organizationId, purpose.data.consumerId);
   assertPurposeIsDraft(purpose.data);
+
+  const purposeWithSameTitle = await readModelService.getSpecificPurpose(
+    purpose.data.eserviceId,
+    purpose.data.consumerId,
+    updateContent.title
+  );
+
+  if (purposeWithSameTitle) {
+    throw duplicatedPurposeTitle(updateContent.title);
+  }
 
   const eservice = await retrieveEService(
     purpose.data.eserviceId,
