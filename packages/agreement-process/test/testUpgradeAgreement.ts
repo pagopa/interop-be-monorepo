@@ -954,13 +954,15 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         consumerNotes: agreementToBeUpgraded.consumerNotes,
         state: agreementState.draft,
         createdAt: TEST_EXECUTION_DATE,
-        consumerDocuments: actualCreatedAgreement
-          ? agreementConsumerDocuments.map<AgreementDocument>((doc, i) => ({
-              ...doc,
-              id: unsafeBrandId(actualCreatedAgreement.consumerDocuments[i].id),
-              path: actualCreatedAgreement.consumerDocuments[i].path,
-            }))
-          : [],
+        consumerDocuments: agreementConsumerDocuments.map<AgreementDocument>(
+          (doc, i) => ({
+            ...doc,
+            id: unsafeBrandId(
+              actualCreatedAgreement?.consumerDocuments[i].id as string
+            ),
+            path: actualCreatedAgreement?.consumerDocuments[i].path as string,
+          })
+        ),
         stamps: {},
       });
 
@@ -970,11 +972,12 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       delete expectedCreatedAgreement.contract;
       expect(actualCreatedAgreement).toMatchObject(expectedCreatedAgreement);
 
-      for (const doc of expectedCreatedAgreement.consumerDocuments.map(
-        (doc, i) =>
-          `${config.consumerDocumentsPath}/${newAgreementId}/${actualCreatedAgreement?.consumerDocuments[i].id}/${doc.name}`
-      )) {
-        expect(await fileManager.listFiles(config.s3Bucket)).toContain(doc);
+      for (const agreementDoc of expectedCreatedAgreement.consumerDocuments) {
+        const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${agreementDoc.id}/${agreementDoc.name}`;
+
+        expect(await fileManager.listFiles(config.s3Bucket)).toContainEqual(
+          expectedUploadedDocumentPath
+        );
       }
     });
 
