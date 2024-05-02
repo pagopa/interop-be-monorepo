@@ -62,7 +62,7 @@ const retrieveTenant = async (
   return tenant;
 };
 
-export async function retriveAttribute(
+export async function retrieveAttribute(
   attributeId: AttributeId,
   readModelService: ReadModelService
 ): Promise<Attribute> {
@@ -332,7 +332,7 @@ export function tenantServiceBuilder(
 
       const targetTenant = await retrieveTenant(tenantId, readModelService);
 
-      await retriveAttribute(
+      await retrieveAttribute(
         unsafeBrandId(tenantAttributeSeed.id),
         readModelService
       );
