@@ -24,6 +24,7 @@
     "@types/jsonwebtoken": "9.0.6",
     "@types/uuid": "9.0.8",
     "@zodios/core": "10.9.6",
+    "axios": "1.6.8",
     "jsonwebtoken": "9.0.2",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
@@ -33,6 +34,6 @@
     "typescript": "5.1.3",
     "uuid": "9.0.1",
     "vitest": "0.33.0",
-    "zod": "3.21.4"
+    "zod": "3.22.3"
   }
 }
