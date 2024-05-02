@@ -156,6 +156,67 @@ export const testSuspendPurposeVersion = (): ReturnType<typeof describe> =>
 
       vi.useRealTimers();
     });
+    it("should write on event-store for the suspension of a purpose version by the producer (self consumer)", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date());
+
+      const mockEService = getMockEService();
+      const mockPurposeVersion1: PurposeVersion = {
+        ...getMockPurposeVersion(),
+        state: purposeVersionState.active,
+      };
+      const mockPurpose: Purpose = {
+        ...getMockPurpose(),
+        eserviceId: mockEService.id,
+        consumerId: mockEService.producerId,
+        versions: [mockPurposeVersion1],
+      };
+      await addOnePurpose(mockPurpose, postgresDB, purposes);
+      await writeInReadmodel(toReadModelEService(mockEService), eservices);
+
+      await purposeService.suspendPurposeVersion({
+        purposeId: mockPurpose.id,
+        versionId: mockPurposeVersion1.id,
+        organizationId: mockEService.producerId,
+        correlationId: generateId(),
+      });
+
+      const writtenEvent = await readLastEventByStreamId(
+        mockPurpose.id,
+        "purpose",
+        postgresDB
+      );
+
+      expect(writtenEvent).toMatchObject({
+        stream_id: mockPurpose.id,
+        version: "1",
+        type: "PurposeVersionSuspendedByProducer",
+        event_version: 2,
+      });
+
+      const expectedPurpose: Purpose = {
+        ...mockPurpose,
+        versions: [
+          {
+            ...mockPurposeVersion1,
+            state: purposeVersionState.suspended,
+            suspendedAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
+        suspendedByProducer: true,
+        updatedAt: new Date(),
+      };
+
+      const writtenPayload = decodeProtobufPayload({
+        messageType: PurposeVersionSuspendedByProducerV2,
+        payload: writtenEvent.data,
+      });
+
+      expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+
+      vi.useRealTimers();
+    });
     it("should throw purposeNotFound if the purpose doesn't exist", async () => {
       const randomPurposeId: PurposeId = generateId();
       const randomVersionId: PurposeVersionId = generateId();

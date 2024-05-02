@@ -28,9 +28,9 @@ export const errorCodes = {
   missingFreeOfChargeReason: "0014",
   riskAnalysisValidationFailed: "0015",
   purposeNotInDraftState: "0016",
-  purposeCannotBeDeleted: "0017",
-  agreementNotFound: "0018",
-  duplicatedPurposeName: "0019",
+  duplicatedPurposeTitle: "0017",
+  purposeCannotBeDeleted: "0018",
+  agreementNotFound: "0019",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -191,13 +191,21 @@ export function missingRejectionReason(): ApiError<ErrorCodes> {
   });
 }
 
+export function duplicatedPurposeTitle(title: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose with title: ${title} already exists`,
+    code: "duplicatedPurposeTitle",
+    title: "Duplicated Purpose Title",
+  });
+}
+
 export function purposeCannotBeDeleted(
   purposeId: PurposeId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Purpose ${purposeId} cannot be deleted`,
+    detail: `Versions in Purpose ${purposeId} do not allow deletion`,
     code: "purposeCannotBeDeleted",
-    title: "Purpose canont be deleted",
+    title: "Purpose cannot be deleted",
   });
 }
 
@@ -209,13 +217,5 @@ export function agreementNotFound(
     detail: `No Agreement found for EService ${eserviceId} and Consumer ${consumerId}`,
     code: "agreementNotFound",
     title: "Agreement Not Found",
-  });
-}
-
-export function duplicatedPurposeName(title: string): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Purpose with name: ${title} already exists`,
-    code: "duplicatedPurposeName",
-    title: "Duplicated Purpose Name",
   });
 }
