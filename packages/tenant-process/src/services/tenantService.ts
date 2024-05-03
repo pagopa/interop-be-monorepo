@@ -340,7 +340,6 @@ export function tenantServiceBuilder(
 
       const updatedTenant = await assignCertifiedAttribute({
         targetTenant: targetTenant.data,
-        attributeSeedId: unsafeBrandId(tenantAttributeSeed.id),
         attribute,
         organizationId,
         readModelService,
@@ -527,20 +526,18 @@ export function tenantServiceBuilder(
 
 async function assignCertifiedAttribute({
   targetTenant,
-  attributeSeedId,
   attribute,
   organizationId,
   readModelService,
 }: {
   targetTenant: Tenant;
-  attributeSeedId: AttributeId;
   attribute: Attribute;
   organizationId: TenantId;
   readModelService: ReadModelService;
 }): Promise<Tenant> {
   const certifiedTenantAttribute = targetTenant.attributes.find(
     (attr): attr is CertifiedTenantAttribute =>
-      attr.type === tenantAttributeType.CERTIFIED && attr.id === attributeSeedId
+      attr.type === tenantAttributeType.CERTIFIED && attr.id === attribute.id
   );
 
   // eslint-disable-next-line functional/no-let
