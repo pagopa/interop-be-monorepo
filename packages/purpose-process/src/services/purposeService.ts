@@ -720,8 +720,9 @@ export function purposeServiceBuilder(
         riskAnalysisForm: riskAnalysis.riskAnalysisForm,
       };
 
-      const event = toCreateEventPurposeAdded(purpose, correlationId);
-      await repository.createEvent(event);
+      await repository.createEvent(
+        toCreateEventPurposeAdded(purpose, correlationId)
+      );
       return {
         purpose,
         isRiskAnalysisValid: true,
