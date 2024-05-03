@@ -893,17 +893,9 @@ async function activateOrWaitingForApproval({
   }> {
     const documentId = generateId<PurposeVersionDocumentId>();
 
-    async function getTenantById(tenantId: TenantId): Promise<Tenant> {
-      const t = await readModelService.getTenantById(tenantId);
-      if (!t) {
-        throw tenantNotFound(tenantId);
-      }
-      return t;
-    }
-
     const [producer, consumer] = await Promise.all([
-      getTenantById(eservice.producerId),
-      getTenantById(purpose.consumerId),
+      retrieveTenant(eservice.producerId, readModelService),
+      retrieveTenant(eservice.producerId, readModelService),
     ]);
 
     const eserviceInfo: EServiceInfo = {
