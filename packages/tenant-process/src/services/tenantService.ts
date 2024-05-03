@@ -9,6 +9,7 @@ import {
   Tenant,
   TenantAttribute,
   TenantId,
+  TenantVerifier,
   VerifiedTenantAttribute,
   WithMetadata,
   agreementState,
@@ -477,10 +478,15 @@ export function tenantServiceBuilder(
 
       const targetTenant = await retrieveTenant(tenantId, readModelService);
 
+      const attribute = await retrieveAttribute(
+        unsafeBrandId(tenantAttributeSeed.id),
+        readModelService,
+        attributeKind.verified
+      );
+
       const verifiedTenantAttribute = targetTenant.data.attributes.find(
         (attr): attr is VerifiedTenantAttribute =>
-          attr.type === tenantAttributeType.VERIFIED &&
-          attr.id === tenantAttributeSeed.id
+          attr.type === tenantAttributeType.VERIFIED && attr.id === attribute.id
       );
 
       // eslint-disable-next-line functional/no-let
@@ -488,11 +494,13 @@ export function tenantServiceBuilder(
         ...targetTenant.data,
         updatedAt: new Date(),
       };
+
       if (!verifiedTenantAttribute) {
         // assigning attribute for the first time
         updatedTenant = {
           ...updatedTenant,
           attributes: [
+            ...targetTenant.data.attributes,
             {
               id: unsafeBrandId(tenantAttributeSeed.id),
               type: tenantAttributeType.VERIFIED,
@@ -516,36 +524,33 @@ export function tenantServiceBuilder(
       } else {
         updatedTenant = {
           ...updatedTenant,
-          attributes: [
-            ...targetTenant.data.attributes,
-            {
-              id: verifiedTenantAttribute.id,
-              type: tenantAttributeType.VERIFIED,
-              assignmentTimestamp: verifiedTenantAttribute.assignmentTimestamp,
-              verifiedBy: [
-                ...verifiedTenantAttribute.verifiedBy,
-                {
-                  id: organizationId,
-                  verificationDate: new Date(),
-                  expirationDate: tenantAttributeSeed.expirationDate
-                    ? new Date(tenantAttributeSeed.expirationDate)
-                    : undefined,
-                  extensionDate: undefined,
-                },
-              ],
-              revokedBy: verifiedTenantAttribute.revokedBy,
-            },
-          ],
+          attributes: targetTenant.data.attributes.map((attr) =>
+            attr.id === verifiedTenantAttribute.id
+              ? {
+                  ...attr,
+                  assignmentTimestamp:
+                    verifiedTenantAttribute.assignmentTimestamp,
+                  verifiedBy: buildVerifiedBy(
+                    verifiedTenantAttribute,
+                    organizationId,
+                    tenantAttributeSeed
+                  ),
+                  revokedBy: verifiedTenantAttribute.revokedBy,
+                }
+              : attr
+          ),
         };
       }
-      const event = toCreateEventTenantVerifiedAttributeAssigned(
-        targetTenant.data.id,
-        targetTenant.metadata.version,
-        updatedTenant,
-        unsafeBrandId(tenantAttributeSeed.id),
-        correlationId
+
+      await repository.createEvent(
+        toCreateEventTenantVerifiedAttributeAssigned(
+          targetTenant.data.id,
+          targetTenant.metadata.version,
+          updatedTenant,
+          unsafeBrandId(tenantAttributeSeed.id),
+          correlationId
+        )
       );
-      await repository.createEvent(event);
       return updatedTenant;
     },
 
@@ -710,6 +715,44 @@ async function assignCertifiedAttribute({
     };
   }
   return updatedTenant;
+}
+
+function buildVerifiedBy(
+  verifiedTenantAttribute: VerifiedTenantAttribute,
+  organizationId: TenantId,
+  tenantAttributeSeed: ApiVerifiedTenantAttributeSeed
+): TenantVerifier[] {
+  const hasPreviouslyVerified = verifiedTenantAttribute.verifiedBy.find(
+    (i) => i.id === organizationId
+  );
+  return hasPreviouslyVerified
+    ? verifiedTenantAttribute.verifiedBy.map((verification) =>
+        verification.id === organizationId
+          ? {
+              id: organizationId,
+              verificationDate: new Date(),
+              expirationDate: tenantAttributeSeed.expirationDate
+                ? new Date(tenantAttributeSeed.expirationDate)
+                : undefined,
+              extensionDate: tenantAttributeSeed.expirationDate
+                ? new Date(tenantAttributeSeed.expirationDate)
+                : undefined,
+            }
+          : verification
+      )
+    : [
+        ...verifiedTenantAttribute.verifiedBy,
+        {
+          id: organizationId,
+          verificationDate: new Date(),
+          expirationDate: tenantAttributeSeed.expirationDate
+            ? new Date(tenantAttributeSeed.expirationDate)
+            : undefined,
+          extensionDate: tenantAttributeSeed.expirationDate
+            ? new Date(tenantAttributeSeed.expirationDate)
+            : undefined,
+        },
+      ];
 }
 
 export type TenantService = ReturnType<typeof tenantServiceBuilder>;
