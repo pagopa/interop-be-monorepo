@@ -5,6 +5,7 @@ import {
   formatDateAndTime,
   logger,
   riskAnalysisFormToRiskAnalysisFormToValidate,
+  validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
   EService,
