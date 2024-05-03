@@ -26,7 +26,6 @@ import {
   PurposeEvent,
   EServiceMode,
   ListResult,
-  agreementState,
   generateId,
   eserviceMode,
   EServiceInfo,
@@ -34,8 +33,6 @@ import {
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import {
-  agreementNotFound,
-  descriptorNotFound,
   duplicatedPurposeTitle,
   eserviceNotFound,
   missingRejectionReason,
@@ -48,7 +45,6 @@ import {
   purposeVersionCannotBeDeleted,
   purposeVersionDocumentNotFound,
   purposeVersionNotFound,
-  tenantKindNotFound,
   tenantNotFound,
 } from "../model/domain/errors.js";
 import {
@@ -88,6 +84,7 @@ import {
   isDeletable,
   isArchivable,
   isSuspendable,
+  isLoadAllowed,
 } from "./validators.js";
 import { pdfGenerator } from "./pdfGenerator.js";
 
@@ -921,9 +918,7 @@ async function activateOrWaitingForApproval({
     };
 
     function getTenantKind(tenant: Tenant): TenantKind {
-      if (!tenant.kind) {
-        throw tenantKindNotFound(tenant.id);
-      }
+      assertTenantKindExists(tenant);
       return tenant.kind;
     }
 
@@ -1105,68 +1100,4 @@ async function activateOrWaitingForApproval({
 
   await repository.createEvent(event);
   return updatedPurposeVersion;
-}
-
-async function isLoadAllowed(
-  eservice: EService,
-  purpose: Purpose,
-  purposeVersion: PurposeVersion,
-  readModelService: ReadModelService
-): Promise<boolean> {
-  const consumerPurposes = await readModelService.getAllPurposes({
-    eservicesIds: [eservice.id],
-    consumersIds: [purpose.consumerId],
-    states: [purposeVersionState.active],
-    producersIds: [],
-    excludeDraft: true,
-  });
-
-  const allPurposes = await readModelService.getAllPurposes({
-    eservicesIds: [eservice.id],
-    consumersIds: [],
-    producersIds: [],
-    states: [purposeVersionState.active],
-    excludeDraft: true,
-  });
-
-  const agreement = await readModelService.getAgreement(
-    eservice.id,
-    purpose.consumerId,
-    [agreementState.active]
-  );
-
-  if (!agreement) {
-    throw agreementNotFound(eservice.id, purpose.consumerId);
-  }
-
-  const getActiveVersions = (purposes: Purpose[]): PurposeVersion[] =>
-    purposes
-      .flatMap((p) => p.versions)
-      .filter((v) => v.state === purposeVersionState.active);
-
-  const consumerActiveVersions = getActiveVersions(consumerPurposes);
-  const allPurposesActiveVersions = getActiveVersions(allPurposes);
-
-  const aggregateDailyCalls = (versions: PurposeVersion[]): number =>
-    versions.reduce((acc, v) => acc + v.dailyCalls, 0);
-
-  const consumerLoadRequestsSum = aggregateDailyCalls(consumerActiveVersions);
-  const allPurposesRequestsSum = aggregateDailyCalls(allPurposesActiveVersions);
-
-  const currentDescriptor = eservice.descriptors.find(
-    (d) => d.id === agreement.descriptorId
-  );
-
-  if (!currentDescriptor) {
-    throw descriptorNotFound(eservice.id, agreement.descriptorId);
-  }
-
-  const maxDailyCallsPerConsumer = currentDescriptor.dailyCallsPerConsumer;
-  const maxDailyCallsTotal = currentDescriptor.dailyCallsTotal;
-
-  return (
-    consumerLoadRequestsSum + purposeVersion.dailyCalls <=
-      maxDailyCallsPerConsumer &&
-    allPurposesRequestsSum + purposeVersion.dailyCalls <= maxDailyCallsTotal
-  );
 }

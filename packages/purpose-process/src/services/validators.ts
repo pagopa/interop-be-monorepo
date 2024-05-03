@@ -9,6 +9,7 @@ import {
   TenantId,
   TenantKind,
   purposeVersionState,
+  agreementState,
 } from "pagopa-interop-models";
 import {
   validateRiskAnalysis,
@@ -17,6 +18,8 @@ import {
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
 } from "pagopa-interop-commons";
 import {
+  agreementNotFound,
+  descriptorNotFound,
   eServiceModeNotAllowed,
   missingFreeOfChargeReason,
   organizationIsNotTheConsumer,
@@ -26,6 +29,7 @@ import {
   unchangedDailyCalls,
 } from "../model/domain/errors.js";
 import { ApiRiskAnalysisFormSeed } from "../model/domain/models.js";
+import { ReadModelService } from "./readModelService.js";
 
 export const isRiskAnalysisFormValid = (
   riskAnalysisForm: RiskAnalysisForm | undefined,
@@ -171,3 +175,67 @@ export const isArchivable = (purposeVersion: PurposeVersion): boolean =>
 export const isSuspendable = (purposeVersion: PurposeVersion): boolean =>
   purposeVersion.state === purposeVersionState.active ||
   purposeVersion.state === purposeVersionState.suspended;
+
+export async function isLoadAllowed(
+  eservice: EService,
+  purpose: Purpose,
+  purposeVersion: PurposeVersion,
+  readModelService: ReadModelService
+): Promise<boolean> {
+  const consumerPurposes = await readModelService.getAllPurposes({
+    eservicesIds: [eservice.id],
+    consumersIds: [purpose.consumerId],
+    states: [purposeVersionState.active],
+    producersIds: [],
+    excludeDraft: true,
+  });
+
+  const allPurposes = await readModelService.getAllPurposes({
+    eservicesIds: [eservice.id],
+    consumersIds: [],
+    producersIds: [],
+    states: [purposeVersionState.active],
+    excludeDraft: true,
+  });
+
+  const agreement = await readModelService.getAgreement(
+    eservice.id,
+    purpose.consumerId,
+    [agreementState.active]
+  );
+
+  if (!agreement) {
+    throw agreementNotFound(eservice.id, purpose.consumerId);
+  }
+
+  const getActiveVersions = (purposes: Purpose[]): PurposeVersion[] =>
+    purposes
+      .flatMap((p) => p.versions)
+      .filter((v) => v.state === purposeVersionState.active);
+
+  const consumerActiveVersions = getActiveVersions(consumerPurposes);
+  const allPurposesActiveVersions = getActiveVersions(allPurposes);
+
+  const aggregateDailyCalls = (versions: PurposeVersion[]): number =>
+    versions.reduce((acc, v) => acc + v.dailyCalls, 0);
+
+  const consumerLoadRequestsSum = aggregateDailyCalls(consumerActiveVersions);
+  const allPurposesRequestsSum = aggregateDailyCalls(allPurposesActiveVersions);
+
+  const currentDescriptor = eservice.descriptors.find(
+    (d) => d.id === agreement.descriptorId
+  );
+
+  if (!currentDescriptor) {
+    throw descriptorNotFound(eservice.id, agreement.descriptorId);
+  }
+
+  const maxDailyCallsPerConsumer = currentDescriptor.dailyCallsPerConsumer;
+  const maxDailyCallsTotal = currentDescriptor.dailyCallsTotal;
+
+  return (
+    consumerLoadRequestsSum + purposeVersion.dailyCalls <=
+      maxDailyCallsPerConsumer &&
+    allPurposesRequestsSum + purposeVersion.dailyCalls <= maxDailyCallsTotal
+  );
+}
