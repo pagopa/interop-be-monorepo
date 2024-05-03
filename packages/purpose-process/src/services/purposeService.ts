@@ -4,6 +4,7 @@ import {
   FileManager,
   eventRepository,
   logger,
+  riskAnalysisFormToRiskAnalysisFormToValidate,
 } from "pagopa-interop-commons";
 import {
   EService,
@@ -36,6 +37,7 @@ import {
   duplicatedPurposeTitle,
   eserviceNotFound,
   missingRejectionReason,
+  missingRiskAnalysis,
   notValidVersionState,
   organizationIsNotTheConsumer,
   organizationIsNotTheProducer,
@@ -85,6 +87,7 @@ import {
   isArchivable,
   isSuspendable,
   isLoadAllowed,
+  validateRiskAnalysisSchemaOrThrow,
 } from "./validators.js";
 import { pdfGenerator } from "./pdfGenerator.js";
 
@@ -605,6 +608,66 @@ export function purposeServiceBuilder(
         eservice,
         purpose: updatedPurpose,
         purposeVersion: newPurposeVersion,
+        organizationId,
+        ownership,
+        version: purpose.metadata.version,
+        correlationId,
+        readModelService,
+        storeFile: fileManager.storeBytes,
+        repository,
+      });
+    },
+
+    async activatePurposeVersion({
+      purposeId,
+      versionId,
+      organizationId,
+      correlationId,
+    }: {
+      purposeId: PurposeId;
+      versionId: PurposeVersionId;
+      organizationId: TenantId;
+      correlationId: string;
+    }): Promise<PurposeVersion> {
+      const purpose = await retrievePurpose(purposeId, readModelService);
+      const eservice = await retrieveEService(
+        purpose.data.eserviceId,
+        readModelService
+      );
+      const tenant = await retrieveTenant(
+        purpose.data.consumerId,
+        readModelService
+      );
+
+      assertTenantKindExists(tenant);
+
+      const tenantKind = tenant.kind;
+      const purposeVersion = retrievePurposeVersion(versionId, purpose);
+
+      const riskAnalysisForm = purpose.data.riskAnalysisForm;
+
+      if (!riskAnalysisForm) {
+        throw missingRiskAnalysis(purposeId);
+      }
+
+      if (purposeVersion.state === purposeVersionState.draft) {
+        validateRiskAnalysisSchemaOrThrow(
+          riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
+          false,
+          tenantKind
+        );
+      }
+
+      const ownership = getOrganizationRole({
+        organizationId,
+        producerId: eservice.producerId,
+        consumerId: purpose.data.consumerId,
+      });
+
+      return await activateOrWaitingForApproval({
+        eservice,
+        purpose: purpose.data,
+        purposeVersion,
         organizationId,
         ownership,
         version: purpose.metadata.version,
