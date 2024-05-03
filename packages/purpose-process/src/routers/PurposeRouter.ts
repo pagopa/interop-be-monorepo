@@ -408,7 +408,30 @@ const purposeRouter = (
     .get(
       "/purposes/riskAnalysis/version/:riskAnalysisVersion",
       authorizationMiddleware([ADMIN_ROLE, SUPPORT_ROLE]),
-      (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const riskAnalysisConfiguration =
+            await purposeService.retrieveRiskAnalysisConfigurationByVersion({
+              eserviceId: req.query.eserviceId,
+              riskAnalysisVersion: req.params.riskAnalysisVersion,
+              organizationId: req.ctx.authData.organizationId,
+            });
+          return res
+            .status(200)
+            .json(
+              riskAnalysisConfigurationToApiRiskAnalysisConfiguration(
+                riskAnalysisConfiguration
+              )
+            )
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getRiskAnalysisDocumentErrorMapper
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     );
 
   return purposeRouter;

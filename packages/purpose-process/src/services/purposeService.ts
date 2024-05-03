@@ -34,6 +34,7 @@ import {
   Agreement,
   RiskAnalysisId,
   RiskAnalysis,
+  RiskAnalysisFormConfig,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -836,6 +837,13 @@ export function purposeServiceBuilder(
         purpose: clonedPurpose,
         isRiskAnalysisValid,
       };
+    },
+    async retrieveRiskAnalysisConfigurationByVersion(
+      eserviceId: EServiceId,
+      riskAnalysisVersion: string,
+      correlationId: string
+    ): Promise<RiskAnalysisFormConfig> {
+      return any;
     },
   };
 }

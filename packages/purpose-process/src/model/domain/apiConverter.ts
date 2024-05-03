@@ -8,13 +8,26 @@ import {
   RiskAnalysisMultiAnswer,
   RiskAnalysisSingleAnswer,
   purposeVersionState,
+  RiskAnalysisFormConfig,
+  FormConfigQuestion,
+  LocalizedText,
+  dataType,
+  DataType,
+  Dependency,
+  HideOptionConfig,
 } from "pagopa-interop-models";
 import {
+  ApiDataType,
+  ApiDependency,
+  ApiFormConfigQuestion,
+  ApiHideOptionConfig,
+  ApiLocalizedText,
   ApiPurpose,
   ApiPurposeVersion,
   ApiPurposeVersionDocument,
   ApiPurposeVersionState,
   ApiRiskAnalysisForm,
+  ApiRiskAnalysisFormConfig,
 } from "./models.js";
 
 export const singleAnswersToApiSingleAnswers = (
@@ -126,4 +139,85 @@ export const purposeToApiPurpose = (
   isRiskAnalysisValid,
   isFreeOfCharge: purpose.isFreeOfCharge,
   freeOfChargeReason: purpose.freeOfChargeReason,
+});
+
+export const localizedTextToApiLocalizedText = (
+  localizedText: LocalizedText
+): ApiLocalizedText => ({
+  it: localizedText.it,
+  en: localizedText.en,
+});
+
+export const dataTypeToApiDataType = (type: DataType): ApiDataType =>
+  match<DataType, ApiDataType>(type)
+    .with(dataType.single, () => "SINGLE")
+    .with(dataType.multi, () => "MULTI")
+    .with(dataType.freetext, () => "FREETEXT")
+    .exhaustive();
+
+export const dependencyToApiDependency = (
+  dependency: Dependency
+): ApiDependency => ({
+  id: dependency.id,
+  value: dependency.value,
+});
+
+export const hideOptionConfigToApiHideOptionConfig = (
+  hideOptionConfig: HideOptionConfig
+): ApiHideOptionConfig => ({
+  id: hideOptionConfig.id,
+  value: hideOptionConfig.value,
+});
+export const mapHideOptionToApiMapHideOption = (
+  mapHideOptionConfig: Record<string, HideOptionConfig[]>
+): Record<string, ApiHideOptionConfig[]> =>
+  Object.fromEntries(
+    Object.entries(mapHideOptionConfig).map(([key, value]) => [
+      key,
+      value.map(hideOptionConfigToApiHideOptionConfig),
+    ])
+  );
+
+export const formConfigQuestiontoApiFormConfigQuestion = (
+  question: FormConfigQuestion
+): ApiFormConfigQuestion =>
+  match<FormConfigQuestion, ApiFormConfigQuestion>(question)
+    .with({ dataType: dataType.freetext }, (q) => ({
+      id: q.id,
+      label: localizedTextToApiLocalizedText(q.label),
+      infoLabel: q.infoLabel
+        ? localizedTextToApiLocalizedText(q.infoLabel)
+        : undefined,
+      dataType: dataTypeToApiDataType(q.dataType),
+      required: q.required,
+      dependencies: q.dependencies.map(dependencyToApiDependency),
+      visualType: q.type,
+      defaultValue: q.defaultValue,
+      hideOption: q.hideOption
+        ? mapHideOptionToApiMapHideOption(q.hideOption)
+        : undefined,
+    }))
+    .with({ dataType: dataType.single }, (q) => ({
+      id: q.id,
+      label: localizedTextToApiLocalizedText(q.label),
+      infoLabel: q.infoLabel
+        ? localizedTextToApiLocalizedText(q.infoLabel)
+        : undefined,
+      dataType: dataTypeToApiDataType(q.dataType),
+      required: q.required,
+      dependencies: q.dependencies.map(dependencyToApiDependency),
+      visualType: q.type,
+      defaultValue: q.defaultValue,
+      hideOption: q.hideOption
+        ? mapHideOptionToApiMapHideOption(q.hideOption)
+        : undefined,
+      options: q.options.map(),
+    }))
+    .with({ dataType: dataType.multi }, (q) => ({}))
+    .exhaustive();
+export const riskAnalysisFormConfigToApiRiskAnalysisFormConfig = (
+  configuration: RiskAnalysisFormConfig
+): ApiRiskAnalysisFormConfig => ({
+  version: configuration.version,
+  answers: configuration.answers.map(formConfigQuestiontoApiFormConfigQuestion),
 });
