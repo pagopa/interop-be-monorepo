@@ -404,11 +404,18 @@ export function tenantServiceBuilder(
           throw attributeNotFound(maybeDeclaredTenantAttribute.id);
         }
         // re-assigning attribute if it was revoked
-        updatedTenant = updateAttribute({
-          updatedTenant,
-          targetTenant,
-          attributeId: unsafeBrandId(tenantAttributeSeed.id),
-        });
+        updatedTenant = {
+          ...updatedTenant,
+          attributes: targetTenant.data.attributes.map((a) =>
+            a.id === tenantAttributeSeed.id
+              ? {
+                  ...a,
+                  assignmentTimestamp: new Date(),
+                  revocationTimestamp: undefined,
+                }
+              : a
+          ),
+        };
       }
       const event = toCreateEventTenantDeclaredAttributeAssigned(
         targetTenant.data.id,
