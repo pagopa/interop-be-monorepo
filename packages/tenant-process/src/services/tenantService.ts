@@ -4,6 +4,7 @@ import {
   AttributeId,
   AttributeKind,
   CertifiedTenantAttribute,
+  DeclaredTenantAttribute,
   ListResult,
   Tenant,
   TenantAttribute,
@@ -374,8 +375,15 @@ export function tenantServiceBuilder(
         readModelService
       );
 
+      const attribute = await retrieveAttribute(
+        unsafeBrandId(tenantAttributeSeed.id),
+        readModelService,
+        attributeKind.declared
+      );
+
       const maybeDeclaredTenantAttribute = targetTenant.data.attributes.find(
-        (attr) => attr.id === tenantAttributeSeed.id
+        (attr): attr is DeclaredTenantAttribute =>
+          attr.type === tenantAttributeType.DECLARED && attr.id === attribute.id
       );
 
       // eslint-disable-next-line functional/no-let
@@ -390,7 +398,7 @@ export function tenantServiceBuilder(
           attributes: [
             ...targetTenant.data.attributes,
             {
-              id: unsafeBrandId(tenantAttributeSeed.id),
+              id: unsafeBrandId(attribute.id),
               type: tenantAttributeType.DECLARED,
               assignmentTimestamp: new Date(),
               revocationTimestamp: undefined,
@@ -398,33 +406,29 @@ export function tenantServiceBuilder(
           ],
         };
       } else {
-        if (
-          maybeDeclaredTenantAttribute.type !== "PersistentDeclaredAttribute"
-        ) {
-          throw attributeNotFound(maybeDeclaredTenantAttribute.id);
-        }
-        // re-assigning attribute if it was revoked
         updatedTenant = {
           ...updatedTenant,
-          attributes: targetTenant.data.attributes.map((a) =>
-            a.id === tenantAttributeSeed.id
+          attributes: targetTenant.data.attributes.map((attr) =>
+            attr.id === attribute.id
               ? {
-                  ...a,
+                  ...attr,
                   assignmentTimestamp: new Date(),
                   revocationTimestamp: undefined,
                 }
-              : a
+              : attr
           ),
         };
       }
-      const event = toCreateEventTenantDeclaredAttributeAssigned(
-        targetTenant.data.id,
-        targetTenant.metadata.version,
-        updatedTenant,
-        unsafeBrandId(tenantAttributeSeed.id),
-        correlationId
+
+      await repository.createEvent(
+        toCreateEventTenantDeclaredAttributeAssigned(
+          targetTenant.data.id,
+          targetTenant.metadata.version,
+          updatedTenant,
+          unsafeBrandId(tenantAttributeSeed.id),
+          correlationId
+        )
       );
-      await repository.createEvent(event);
       return updatedTenant;
     },
 
