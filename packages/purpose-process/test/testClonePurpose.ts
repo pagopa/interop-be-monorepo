@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
   decodeProtobufPayload,
@@ -94,14 +95,12 @@ export const testClonePurpose = (): ReturnType<typeof describe> =>
 
       const expectedPurpose: Purpose = {
         ...mockPurpose,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         id: unsafeBrandId(writtenPayload.purpose!.id),
         title: `${mockPurpose.title} - clone - ${formatDateAndTime(
           new Date()
         )}`,
         versions: [
           {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             id: unsafeBrandId(writtenPayload.purpose!.versions[0].id),
             state: purposeVersionState.draft,
             createdAt: new Date(),
@@ -219,7 +218,7 @@ export const testClonePurpose = (): ReturnType<typeof describe> =>
         })
       ).rejects.toThrowError(purposeCannotBeCloned(mockPurpose.id));
     });
-    it("should throw duplicatedPurposeName if a purpose with the same name already exists", async () => {
+    it("should throw duplicatedPurposeTitle if a purpose with the same name already exists", async () => {
       const mockTenant = {
         ...getMockTenant(),
         kind: tenantKind.PA,
