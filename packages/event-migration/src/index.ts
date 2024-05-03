@@ -45,6 +45,10 @@ const Config = z
       "dev-refactor_purpose",
       "uat-purpose",
       "prod-purpose",
+      "tenant",
+      "dev-refactor_tenant",
+      "uat-tenant",
+      "prod-tenant",
     ]),
     TARGET_DB_USE_SSL: z
       .enum(["true", "false"])
@@ -236,6 +240,27 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
       return { parseEventType, decodeEvent, parseId };
     }
   )
+  .with("tenant", "dev-refactor_tenant", "uat-tenant", "prod-tenant", () => {
+    checkSchema(config.sourceDbSchema, "tenant");
+    const parseEventType = (event_ser_manifest: any) =>
+      event_ser_manifest
+        .replace("it.pagopa.interop.tenantmanagement.model.persistence.", "")
+        .split("|")[0];
+
+    const decodeEvent = (eventType: string, event_payload: any) =>
+      TenantEventV1.safeParse({
+        type: eventType,
+        event_version: 1,
+        data: event_payload,
+      });
+
+    const parseId = (anyPayload: any) =>
+      anyPayload.tenant
+        ? anyPayload.tenant.id
+        : anyPayload.tenantId || anyPayload.selfcareId;
+
+    return { parseEventType, decodeEvent, parseId };
+  })
   .exhaustive();
 
 for (const event of originalEvents) {
