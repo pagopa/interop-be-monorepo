@@ -131,3 +131,8 @@ export const createPurposeVersionErrorMapper = (
     .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("descriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const activatePurposeVersionErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code).otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

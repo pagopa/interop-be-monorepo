@@ -23,6 +23,7 @@ import { config } from "../utilities/config.js";
 import { purposeServiceBuilder } from "../services/purposeService.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
+  activatePurposeVersionErrorMapper,
   archivePurposeVersionErrorMapper,
   createPurposeVersionErrorMapper,
   deletePurposeErrorMapper,
@@ -306,7 +307,27 @@ const purposeRouter = (
     .post(
       "/purposes/:purposeId/versions/:versionId/activate",
       authorizationMiddleware([ADMIN_ROLE]),
-      (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const { purposeId, versionId } = req.params;
+          const purposeVersion = await purposeService.activatePurposeVersion({
+            purposeId: unsafeBrandId(purposeId),
+            versionId: unsafeBrandId(versionId),
+            organizationId: req.ctx.authData.organizationId,
+            correlationId: req.ctx.correlationId,
+          });
+          return res
+            .status(200)
+            .json(purposeVersionToApiPurposeVersion(purposeVersion))
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            activatePurposeVersionErrorMapper
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/purposes/:purposeId/clone",
