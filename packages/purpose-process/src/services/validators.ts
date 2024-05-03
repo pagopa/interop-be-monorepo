@@ -77,11 +77,16 @@ export const assertOrganizationIsAConsumer = (
   }
 };
 
-export function validateRiskAnalysisSchemaOrThrow(
+export function validateRiskAnalysisOrThrow(
   riskAnalysisForm: ApiRiskAnalysisFormSeed,
+  schemaOnlyValidation: boolean,
   tenantKind: TenantKind
 ): RiskAnalysisValidatedForm {
-  const result = validateRiskAnalysis(riskAnalysisForm, true, tenantKind);
+  const result = validateRiskAnalysis(
+    riskAnalysisForm,
+    schemaOnlyValidation,
+    tenantKind
+  );
   if (result.type === "invalid") {
     throw riskAnalysisValidationFailed(result.issues);
   } else {
@@ -91,13 +96,15 @@ export function validateRiskAnalysisSchemaOrThrow(
 
 export function validateAndTransformRiskAnalysis(
   riskAnalysisForm: ApiRiskAnalysisFormSeed | undefined,
+  schemaOnlyValidation: boolean,
   tenantKind: TenantKind
 ): PurposeRiskAnalysisForm | undefined {
   if (!riskAnalysisForm) {
     return undefined;
   }
-  const validatedForm = validateRiskAnalysisSchemaOrThrow(
+  const validatedForm = validateRiskAnalysisOrThrow(
     riskAnalysisForm,
+    schemaOnlyValidation,
     tenantKind
   );
 
@@ -109,6 +116,7 @@ export function validateAndTransformRiskAnalysis(
 
 export function reverseValidateAndTransformRiskAnalysis(
   riskAnalysisForm: PurposeRiskAnalysisForm | undefined,
+  schemaOnlyValidation: boolean,
   tenantKind: TenantKind
 ): PurposeRiskAnalysisForm | undefined {
   if (!riskAnalysisForm) {
@@ -117,8 +125,9 @@ export function reverseValidateAndTransformRiskAnalysis(
 
   const formToValidate =
     riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm);
-  const validatedForm = validateRiskAnalysisSchemaOrThrow(
+  const validatedForm = validateRiskAnalysisOrThrow(
     formToValidate,
+    schemaOnlyValidation,
     tenantKind
   );
 

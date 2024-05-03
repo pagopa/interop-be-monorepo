@@ -4,7 +4,6 @@ import {
   eventRepository,
   logger,
   riskAnalysisFormToRiskAnalysisFormToValidate,
-  validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
   EService,
@@ -50,7 +49,6 @@ import {
   purposeVersionCannotBeDeleted,
   purposeVersionDocumentNotFound,
   purposeVersionNotFound,
-  riskAnalysisValidationFailed,
   tenantNotFound,
 } from "../model/domain/errors.js";
 import {
@@ -86,6 +84,7 @@ import {
   isDeletable,
   isArchivable,
   isSuspendable,
+  validateRiskAnalysisOrThrow,
 } from "./validators.js";
 
 const retrievePurpose = async (
@@ -611,6 +610,7 @@ export function purposeServiceBuilder(
 
       const validatedFormSeed = validateAndTransformRiskAnalysis(
         purposeSeed.riskAnalysisForm,
+        false,
         tenant.kind
       );
 
@@ -692,17 +692,13 @@ export function purposeServiceBuilder(
         throw duplicatedPurposeTitle(seed.title);
       }
 
-      const validationResult = validateRiskAnalysis(
+      validateRiskAnalysisOrThrow(
         riskAnalysisFormToRiskAnalysisFormToValidate(
           riskAnalysis.riskAnalysisForm
         ),
         false,
         producer.kind
       );
-
-      if (validationResult.type === "invalid") {
-        throw riskAnalysisValidationFailed(validationResult.issues);
-      }
 
       const newVersion: PurposeVersion = {
         id: generateId(),
@@ -728,7 +724,7 @@ export function purposeServiceBuilder(
       await repository.createEvent(event);
       return {
         purpose,
-        isRiskAnalysisValid: validationResult.type === "valid",
+        isRiskAnalysisValid: true,
       };
     },
   };
@@ -866,10 +862,12 @@ const updatePurposeInternal = async (
     mode === eserviceMode.deliver
       ? validateAndTransformRiskAnalysis(
           (updateContent as ApiPurposeUpdateContent).riskAnalysisForm,
+          true,
           tenant.kind
         )
       : reverseValidateAndTransformRiskAnalysis(
           purpose.data.riskAnalysisForm,
+          true,
           tenant.kind
         );
 
