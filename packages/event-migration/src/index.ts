@@ -3,7 +3,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-console */
 import { ConnectionString } from "connection-string";
-import { AttributeEvent, EServiceEventV1 } from "pagopa-interop-models";
+import {
+  AttributeEvent,
+  EServiceEventV1,
+  PurposeEventV1,
+} from "pagopa-interop-models";
 import pgPromise, { IDatabase } from "pg-promise";
 import {
   IClient,
@@ -37,6 +41,10 @@ const Config = z
       "dev-refactor_attribute_registry",
       "uat-attribute_registry",
       "prod-attribute_registry",
+      "purpose",
+      "dev-refactor_purpose",
+      "uat-purpose",
+      "prod-purpose",
     ]),
     TARGET_DB_USE_SSL: z
       .enum(["true", "false"])
@@ -199,6 +207,31 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
 
       const parseId = (anyPayload: any) =>
         anyPayload.attribute ? anyPayload.attribute.id : anyPayload.id;
+
+      return { parseEventType, decodeEvent, parseId };
+    }
+  )
+  .with(
+    "purpose",
+    "dev-refactor_purpose",
+    "uat-purpose",
+    "prod-purpose",
+    () => {
+      checkSchema(config.sourceDbSchema, "purpose");
+      const parseEventType = (event_ser_manifest: any) =>
+        event_ser_manifest
+          .replace("it.pagopa.interop.purposemanagement.model.persistence.", "")
+          .split("|")[0];
+
+      const decodeEvent = (eventType: string, event_payload: any) =>
+        PurposeEventV1.safeParse({
+          type: eventType,
+          event_version: 1,
+          data: event_payload,
+        });
+
+      const parseId = (anyPayload: any) =>
+        anyPayload.purpose ? anyPayload.purpose.id : anyPayload.purposeId;
 
       return { parseEventType, decodeEvent, parseId };
     }
