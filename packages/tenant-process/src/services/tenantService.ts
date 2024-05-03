@@ -333,28 +333,23 @@ export function tenantServiceBuilder(
 
       const targetTenant = await retrieveTenant(tenantId, readModelService);
 
-      const certifiedTenantAttribute = targetTenant.data.attributes.find(
-        (attr): attr is CertifiedTenantAttribute =>
-          attr.type === tenantAttributeType.CERTIFIED &&
-          attr.id === tenantAttributeSeed.id
-      );
-
       const updatedTenant = await assignCertifiedAttribute({
         targetTenant: targetTenant.data,
-        certifiedTenantAttribute,
+        attributeSeedId: unsafeBrandId(tenantAttributeSeed.id),
         attribute,
         organizationId,
         readModelService,
       });
 
-      const event = toCreateEventTenantCertifiedAttributeAssigned(
-        targetTenant.data.id,
-        targetTenant.metadata.version,
-        updatedTenant,
-        attribute.id,
-        correlationId
+      await repository.createEvent(
+        toCreateEventTenantCertifiedAttributeAssigned(
+          targetTenant.data.id,
+          targetTenant.metadata.version,
+          updatedTenant,
+          attribute.id,
+          correlationId
+        )
       );
-      await repository.createEvent(event);
       return updatedTenant;
     },
 
@@ -453,17 +448,22 @@ export function tenantServiceBuilder(
 
 async function assignCertifiedAttribute({
   targetTenant,
-  certifiedTenantAttribute,
+  attributeSeedId,
   attribute,
   organizationId,
   readModelService,
 }: {
   targetTenant: Tenant;
-  certifiedTenantAttribute: CertifiedTenantAttribute | undefined;
+  attributeSeedId: AttributeId;
   attribute: Attribute;
   organizationId: TenantId;
   readModelService: ReadModelService;
 }): Promise<Tenant> {
+  const certifiedTenantAttribute = targetTenant.attributes.find(
+    (attr): attr is CertifiedTenantAttribute =>
+      attr.type === tenantAttributeType.CERTIFIED && attr.id === attributeSeedId
+  );
+
   // eslint-disable-next-line functional/no-let
   let updatedTenant: Tenant = {
     ...targetTenant,
