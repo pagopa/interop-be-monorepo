@@ -326,12 +326,10 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
       return Promise.all(attributePromises);
     },
 
-    async getAttributeById(attributeId: AttributeId): Promise<Attribute> {
-      const data = await getAttribute(attributes, { "data.id": attributeId });
-      if (!data) {
-        throw attributeNotFound(attributeId);
-      }
-      return data;
+    async getAttributeById(
+      attributeId: AttributeId
+    ): Promise<Attribute | undefined> {
+      return getAttribute(attributes, { "data.id": attributeId });
     },
 
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
