@@ -67,7 +67,7 @@ export const testAddCertifiedAttributes = (): ReturnType<typeof describe> =>
     const targetTenant: Tenant = { ...getMockTenant(), id: generateId() };
     const mockAuthData = getMockAuthData(requesterTenant.id);
 
-    it("Should add the certified attribute if certifiedTenantAttribute doesn't exist", async () => {
+    it("Should add the certified attribute if the tenant doesn't have that", async () => {
       await addOneAttribute(attribute, attributes);
       await addOneTenant(targetTenant, postgresDB, tenants);
       await addOneTenant(requesterTenant, postgresDB, tenants);
@@ -116,7 +116,7 @@ export const testAddCertifiedAttributes = (): ReturnType<typeof describe> =>
       };
       expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
     });
-    it("Should add the certified attribute if certifiedTenantAttribute exist", async () => {
+    it("Should re-assign the certified attribute if it was revoked", async () => {
       const tenantWithCertifiedAttribute: Tenant = {
         ...targetTenant,
         attributes: [
@@ -179,7 +179,34 @@ export const testAddCertifiedAttributes = (): ReturnType<typeof describe> =>
       };
       expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
     });
-    it("Should throw tenant not found", async () => {
+    it("Should throw certifiedAttributeAlreadyAssigned if the attribute was already assigned", async () => {
+      const tenantAlreadyAssigned: Tenant = {
+        ...targetTenant,
+        attributes: [
+          {
+            id: attribute.id,
+            type: "PersistentCertifiedAttribute",
+            assignmentTimestamp: new Date(),
+          },
+        ],
+      };
+      await addOneAttribute(attribute, attributes);
+      await addOneTenant(tenantAlreadyAssigned, postgresDB, tenants);
+      await addOneTenant(requesterTenant, postgresDB, tenants);
+      expect(
+        tenantService.addCertifiedAttribute(tenantAlreadyAssigned.id, {
+          tenantAttributeSeed,
+          authData: mockAuthData,
+          correlationId,
+        })
+      ).rejects.toThrowError(
+        certifiedAttributeAlreadyAssigned(
+          attribute.id,
+          tenantAlreadyAssigned.id
+        )
+      );
+    });
+    it("Should throw tenantNotFound if the tenant doesn't exist", async () => {
       await addOneAttribute(attribute, attributes);
       expect(
         tenantService.addCertifiedAttribute(targetTenant.id, {
@@ -189,7 +216,7 @@ export const testAddCertifiedAttributes = (): ReturnType<typeof describe> =>
         })
       ).rejects.toThrowError(tenantNotFound(requesterTenant.id));
     });
-    it("Should throw attribute not found", async () => {
+    it("Should throw attributeNotFound if the attribute doesn't exist", async () => {
       await addOneTenant(targetTenant, postgresDB, tenants);
       await addOneTenant(requesterTenant, postgresDB, tenants);
 
@@ -201,7 +228,7 @@ export const testAddCertifiedAttributes = (): ReturnType<typeof describe> =>
         })
       ).rejects.toThrowError(attributeNotFound(attribute.id));
     });
-    it("Should throw tenant is not a certifier", async () => {
+    it("Should throw tenantIsNotACertifier if the requester is not a certifier", async () => {
       const requesterTenant: Tenant = {
         ...getMockTenant(),
         updatedAt: currentDate,
@@ -219,7 +246,7 @@ export const testAddCertifiedAttributes = (): ReturnType<typeof describe> =>
         })
       ).rejects.toThrowError(tenantIsNotACertifier(requesterTenant.id));
     });
-    it("Should throw certifiedAttributeOriginIsNotCompliantWithCertifier", async () => {
+    it("Should throw certifiedAttributeOriginIsNotCompliantWithCertifier if attribute origin doesn't match the certifierId of the requester", async () => {
       const notCompliantOriginAttribute: Attribute = {
         ...attribute,
         origin: generateId(),
@@ -241,30 +268,6 @@ export const testAddCertifiedAttributes = (): ReturnType<typeof describe> =>
           targetTenant.id,
           requesterTenant.features[0].certifierId
         )
-      );
-    });
-    it("Should throw certifiedAttributeAlreadyAssigned", async () => {
-      const tenantAlreadyAssigned: Tenant = {
-        ...targetTenant,
-        attributes: [
-          {
-            id: attribute.id,
-            type: "PersistentCertifiedAttribute",
-            assignmentTimestamp: new Date(),
-          },
-        ],
-      };
-      await addOneAttribute(attribute, attributes);
-      await addOneTenant(tenantAlreadyAssigned, postgresDB, tenants);
-      await addOneTenant(requesterTenant, postgresDB, tenants);
-      expect(
-        tenantService.addCertifiedAttribute(tenantAlreadyAssigned.id, {
-          tenantAttributeSeed,
-          authData: mockAuthData,
-          correlationId,
-        })
-      ).rejects.toThrowError(
-        certifiedAttributeAlreadyAssigned(attribute.id, requesterTenant.id)
       );
     });
   });
