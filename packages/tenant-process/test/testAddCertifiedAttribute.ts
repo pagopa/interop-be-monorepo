@@ -264,7 +264,10 @@ export const testAddCertifiedAttributes = (): ReturnType<typeof describe> =>
           correlationId,
         })
       ).rejects.toThrowError(
-        certifiedAttributeAlreadyAssigned(attribute.id, requesterTenant.id)
+        certifiedAttributeAlreadyAssigned(
+          attribute.id,
+          tenantAlreadyAssigned.id
+        )
       );
     });
   });

@@ -349,7 +349,6 @@ export function tenantServiceBuilder(
       const updatedTenant = await assignCertifiedAttribute({
         targetTenant: targetTenant.data,
         attribute,
-        organizationId,
         readModelService,
       });
 
@@ -564,7 +563,7 @@ export function tenantServiceBuilder(
         `Assigning certified attribute (${attributeOrigin}/${attributeExternalId}) to tenant (${tenantOrigin}/${tenantExternalId})`
       );
 
-      const tenantToModify = await this.getTenantByExternalId({
+      const tenantToModify = await readModelService.getTenantByExternalId({
         origin: tenantOrigin,
         value: tenantExternalId,
       });
@@ -584,67 +583,21 @@ export function tenantServiceBuilder(
         throw attributeNotFound(`${attributeOrigin}/${attributeExternalId}`);
       }
 
-      const maybeAttribute = tenantToModify.data.attributes.find(
-        (attr) =>
-          attr.type === tenantAttributeType.CERTIFIED &&
-          attr.id === attributeToAssign.id
-      ) as CertifiedTenantAttribute;
-
-      // eslint-disable-next-line functional/no-let
-      let updatedTenant: Tenant = {
-        ...tenantToModify.data,
-        updatedAt: new Date(),
-      };
-
-      if (!maybeAttribute) {
-        // assigning attribute for the first time
-        updatedTenant = {
-          ...updatedTenant,
-          attributes: [
-            ...tenantToModify.data.attributes,
-            {
-              id: attributeToAssign.id,
-              type: tenantAttributeType.CERTIFIED,
-              assignmentTimestamp: new Date(),
-              revocationTimestamp: undefined,
-            },
-          ],
-        };
-      } else if (!maybeAttribute.revocationTimestamp) {
-        throw certifiedAttributeAlreadyAssigned(
-          attributeToAssign.id,
-          tenantToModify.data.id
-        );
-      } else {
-        // re-assigning attribute if it was revoked
-        updatedTenant = updateAttribute({
-          updatedTenant,
-          targetTenant: tenantToModify,
-          attributeId: attributeToAssign.id,
-        });
-      }
-
-      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+      const updatedTenant = await assignCertifiedAttribute({
+        targetTenant: tenantToModify.data,
+        attribute: attributeToAssign,
         readModelService,
-        updatedTenant.attributes,
-        updatedTenant.externalId
-      );
+      });
 
-      if (updatedTenant.kind !== tenantKind) {
-        updatedTenant = {
-          ...updatedTenant,
-          kind: tenantKind,
-        };
-      }
-
-      const event = toCreateEventTenantCertifiedAttributeAssigned(
-        tenantToModify.data.id,
-        tenantToModify.metadata.version,
-        updatedTenant,
-        attributeToAssign.id,
-        correlationId
+      await repository.createEvent(
+        toCreateEventTenantCertifiedAttributeAssigned(
+          tenantToModify.data.id,
+          tenantToModify.metadata.version,
+          updatedTenant,
+          attributeToAssign.id,
+          correlationId
+        )
       );
-      await repository.createEvent(event);
     },
 
     async getCertifiedAttributes({
@@ -743,12 +696,10 @@ export function tenantServiceBuilder(
 async function assignCertifiedAttribute({
   targetTenant,
   attribute,
-  organizationId,
   readModelService,
 }: {
   targetTenant: Tenant;
   attribute: Attribute;
-  organizationId: TenantId;
   readModelService: ReadModelService;
 }): Promise<Tenant> {
   const certifiedTenantAttribute = targetTenant.attributes.find(
@@ -777,7 +728,7 @@ async function assignCertifiedAttribute({
       ],
     };
   } else if (!certifiedTenantAttribute.revocationTimestamp) {
-    throw certifiedAttributeAlreadyAssigned(attribute.id, organizationId);
+    throw certifiedAttributeAlreadyAssigned(attribute.id, targetTenant.id);
   } else {
     // re-assigning attribute if it was revoked
     updatedTenant = {
