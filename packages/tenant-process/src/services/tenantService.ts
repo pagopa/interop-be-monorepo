@@ -341,7 +341,6 @@ export function tenantServiceBuilder(
       const updatedTenant = await assignCertifiedAttribute({
         targetTenant: targetTenant.data,
         attribute,
-        organizationId,
         readModelService,
       });
 
@@ -527,12 +526,10 @@ export function tenantServiceBuilder(
 async function assignCertifiedAttribute({
   targetTenant,
   attribute,
-  organizationId,
   readModelService,
 }: {
   targetTenant: Tenant;
   attribute: Attribute;
-  organizationId: TenantId;
   readModelService: ReadModelService;
 }): Promise<Tenant> {
   const certifiedTenantAttribute = targetTenant.attributes.find(
@@ -561,7 +558,7 @@ async function assignCertifiedAttribute({
       ],
     };
   } else if (!certifiedTenantAttribute.revocationTimestamp) {
-    throw certifiedAttributeAlreadyAssigned(attribute.id, organizationId);
+    throw certifiedAttributeAlreadyAssigned(attribute.id, targetTenant.id);
   } else {
     // re-assigning attribute if it was revoked
     updatedTenant = {
