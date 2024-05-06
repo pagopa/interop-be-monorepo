@@ -2,9 +2,9 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
 
-import { config as dotenv } from "dotenv-flow";
 import { StartedTestContainer } from "testcontainers";
-import type { provide } from "vitest";
+import type { GlobalSetupContext } from "vitest/node";
+import type {} from "vitest";
 import {
   TEST_MINIO_PORT,
   TEST_MONGO_DB_PORT,
@@ -19,25 +19,22 @@ declare module "vitest" {
   export interface ProvidedContext {
     config: TestContainersConfig;
   }
-  export type provide = <K extends keyof ProvidedContext>(
-    key: K,
-    value: ProvidedContext[K]
-  ) => void;
 }
 
 /**
  * This function is a global setup for vitest that starts and stops test containers for PostgreSQL, MongoDB and Minio.
  * It must be called in a file that is used as a global setup in the vitest configuration.
+ *
+ * It provides the `config` object to the tests, via the `provide` function.
+ *
+ * @see https://vitest.dev/config/#globalsetup).
  */
 export function setupTestContainersVitestGlobal() {
-  dotenv();
   const config = TestContainersConfig.parse(process.env);
 
   return async function ({
     provide,
-  }: {
-    provide: provide;
-  }): Promise<() => Promise<void>> {
+  }: GlobalSetupContext): Promise<() => Promise<void>> {
     const startedPostgreSqlContainer = await postgreSQLContainer(
       config
     ).start();

@@ -13,7 +13,20 @@ import { TestContainersConfig } from "./containerTestUtils.js";
  * This function is a setup for vitest that initializes the read model repository, the postgres
  * database and the file manager and returns their instances along with a cleanup function.
  * The cleanup function deletes all the data from the read model repository and the event store
- * database and must be called at the end of each test (`AfterEach`), to ensure that the tests are isolated.
+ * database and must be called at the end of each test (`afterEach`), to ensure that the tests are isolated.
+ *
+ * @param config The configuration object containing the connection parameters. It must be retrieved from the `config` object provided by the `setupTestContainersVitestGlobal` function with the vitest's `inject` function.
+ *
+ * @example
+ * ```typescript
+ * import { setupTestContainersVitest } from "pagopa-interop-commons-test";
+ * import { inject, afterEach } from "vitest";
+ *
+ * export const { readModelRepository, postgresDB, fileManager, cleanup } =
+ *   setupTestContainersVitest(inject("config"));
+ *
+ * afterEach(cleanup);
+ *
  */
 export function setupTestContainersVitest(config: TestContainersConfig) {
   const s3OriginalBucket = config.s3Bucket;
