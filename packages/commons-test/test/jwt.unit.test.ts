@@ -172,12 +172,12 @@ describe("JWT tests", () => {
       ]);
       const token = getMockSignedToken({
         ...mockToken,
-        iss: undefined,
+        aud: undefined,
         jti: undefined,
       });
 
       expect(() => readAuthDataFromJwtToken(token)).toThrowError(
-        invalidClaim(`Validation error: Required at "iss"; Required at "jti"`)
+        invalidClaim(`Validation error: Required at "aud"; Required at "jti"`)
       );
     });
 

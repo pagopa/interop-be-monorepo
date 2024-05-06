@@ -1,4 +1,3 @@
-import { z } from "zod";
 import {
   AuthData,
   CreateEvent,
@@ -8,42 +7,55 @@ import {
   logger,
 } from "pagopa-interop-commons";
 import {
-  generateId,
   Agreement,
   AgreementDocument,
+  AgreementDocumentId,
   AgreementEvent,
+  AgreementId,
   ListResult,
   WithMetadata,
   agreementEventToBinaryData,
   agreementState,
   descriptorState,
-  AgreementDocumentId,
-  AgreementId,
+  generateId,
 } from "pagopa-interop-models";
+import { z } from "zod";
 import {
   agreementAlreadyExists,
+  agreementDocumentNotFound,
   descriptorNotFound,
   noNewerDescriptor,
-  unexpectedVersionFormat,
   publishedDescriptorNotFound,
-  agreementDocumentNotFound,
+  unexpectedVersionFormat,
 } from "../model/domain/errors.js";
 
 import {
+  CompactEService,
+  CompactOrganization,
+} from "../model/domain/models.js";
+import {
   toCreateEventAgreementAdded,
-  toCreateEventAgreementConsumerDocumentAdded,
+  toCreateEventAgreementArchived,
+  toCreateEventAgreementArchivedByUpgrade,
   toCreateEventAgreementDeleted,
-  toCreateEventAgreementUpdated,
+  toCreateEventAgreementRejected,
+  toCreateEventDraftAgreementUpdated,
 } from "../model/domain/toEvent.js";
 import {
+  agreementArchivableStates,
+  agreementCloningConflictingStates,
+  agreementDeletableStates,
+  agreementRejectableStates,
+  agreementUpdatableStates,
+  agreementUpgradableStates,
   assertAgreementExist,
+  assertDescriptorExist,
   assertEServiceExist,
   assertExpectedState,
   assertRequesterIsConsumer,
   assertRequesterIsConsumerOrProducer,
   assertRequesterIsProducer,
   assertTenantExist,
-  assertDescriptorExist,
   declaredAttributesSatisfied,
   matchingCertifiedAttributes,
   matchingDeclaredAttributes,
@@ -51,42 +63,33 @@ import {
   validateCertifiedAttributes,
   verifiedAttributesSatisfied,
   verifyConflictingAgreements,
-  agreementDeletableStates,
-  agreementUpdatableStates,
-  agreementUpgradableStates,
-  agreementCloningConflictingStates,
-  agreementRejectableStates,
-  agreementArchivableStates,
 } from "../model/domain/validators.js";
 import {
-  CompactEService,
-  CompactOrganization,
-} from "../model/domain/models.js";
-import {
+  ApiAgreementDocumentSeed,
   ApiAgreementPayload,
   ApiAgreementSubmissionPayload,
   ApiAgreementUpdatePayload,
-  ApiAgreementDocumentSeed,
 } from "../model/types.js";
 import { config } from "../utilities/config.js";
+import { activateAgreementLogic } from "./agreementActivationProcessor.js";
+import {
+  addConsumerDocumentLogic,
+  removeAgreementConsumerDocumentLogic,
+} from "./agreementConsumerDocumentProcessor.js";
+import { contractBuilder } from "./agreementContractBuilder.js";
+import { createAgreementLogic } from "./agreementCreationProcessor.js";
+import { createStamp } from "./agreementStampUtils.js";
+import { submitAgreementLogic } from "./agreementSubmissionProcessor.js";
+import { suspendAgreementLogic } from "./agreementSuspensionProcessor.js";
+import { AgreementQuery } from "./readmodel/agreementQuery.js";
 import { AttributeQuery } from "./readmodel/attributeQuery.js";
 import {
   AgreementEServicesQueryFilters,
   AgreementQueryFilters,
 } from "./readmodel/readModelService.js";
-import { contractBuilder } from "./agreementContractBuilder.js";
-import { submitAgreementLogic } from "./agreementSubmissionProcessor.js";
-import { AgreementQuery } from "./readmodel/agreementQuery.js";
+
 import { EserviceQuery } from "./readmodel/eserviceQuery.js";
 import { TenantQuery } from "./readmodel/tenantQuery.js";
-import { suspendAgreementLogic } from "./agreementSuspensionProcessor.js";
-import { createStamp } from "./agreementStampUtils.js";
-import {
-  removeAgreementConsumerDocumentLogic,
-  addConsumerDocumentLogic,
-} from "./agreementConsumerDocumentProcessor.js";
-import { activateAgreementLogic } from "./agreementActivationProcessor.js";
-import { createAgreementLogic } from "./agreementCreationProcessor.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function agreementServiceBuilder(
@@ -198,6 +201,7 @@ export function agreementServiceBuilder(
     async submitAgreement(
       agreementId: AgreementId,
       payload: ApiAgreementSubmissionPayload,
+      authData: AuthData,
       correlationId: string
     ): Promise<string> {
       logger.info(`Submitting agreement ${agreementId}`);
@@ -208,6 +212,7 @@ export function agreementServiceBuilder(
         eserviceQuery,
         agreementQuery,
         tenantQuery,
+        authData,
         correlationId
       );
 
@@ -247,7 +252,7 @@ export function agreementServiceBuilder(
       correlationId: string
     ): Promise<string> {
       logger.info(`Cloning agreement ${agreementId}`);
-      const { streamId, events } = await cloneAgreementLogic(
+      const event = await cloneAgreementLogic(
         {
           agreementId,
           authData,
@@ -259,11 +264,9 @@ export function agreementServiceBuilder(
         correlationId
       );
 
-      for (const event of events) {
-        await repository.createEvent(event);
-      }
+      await repository.createEvent(event);
 
-      return streamId;
+      return event.streamId;
     },
     async addConsumerDocument(
       agreementId: AgreementId,
@@ -425,25 +428,25 @@ export type AgreementService = ReturnType<typeof agreementServiceBuilder>;
 async function createAndCopyDocumentsForClonedAgreement(
   newAgreementId: AgreementId,
   clonedAgreement: Agreement,
-  startingVersion: number,
   copyFile: (
     bucket: string,
     sourcePath: string,
     destinationPath: string,
     destinationFileName: string,
     docName: string
-  ) => Promise<string>,
-  correlationId: string
-): Promise<Array<CreateEvent<AgreementEvent>>> {
+  ) => Promise<string>
+): Promise<AgreementDocument[]> {
   const docs = await Promise.all(
     clonedAgreement.consumerDocuments.map(async (d) => {
       const newId: AgreementDocumentId = generateId();
+      const documentDestinationPath = `${config.consumerDocumentsPath}/${newAgreementId}`;
+
       return {
         newId,
         newPath: await copyFile(
           config.s3Bucket,
-          `${config.consumerDocumentsPath}/${newAgreementId}`,
           d.path,
+          documentDestinationPath,
           newId,
           d.name
         ),
@@ -451,21 +454,14 @@ async function createAndCopyDocumentsForClonedAgreement(
     })
   );
 
-  return docs.map((d, i) =>
-    toCreateEventAgreementConsumerDocumentAdded(
-      newAgreementId,
-      {
-        id: d.newId,
-        name: clonedAgreement.consumerDocuments[i].name,
-        prettyName: clonedAgreement.consumerDocuments[i].prettyName,
-        contentType: clonedAgreement.consumerDocuments[i].contentType,
-        path: d.newPath,
-        createdAt: new Date(),
-      },
-      startingVersion + i,
-      correlationId
-    )
-  );
+  return docs.map((d, i) => ({
+    id: d.newId,
+    name: clonedAgreement.consumerDocuments[i].name,
+    prettyName: clonedAgreement.consumerDocuments[i].prettyName,
+    contentType: clonedAgreement.consumerDocuments[i].contentType,
+    path: d.newPath,
+    createdAt: new Date(),
+  }));
 }
 
 export async function deleteAgreementLogic(
@@ -496,7 +492,7 @@ export async function deleteAgreementLogic(
   }
 
   return toCreateEventAgreementDeleted(
-    agreementId,
+    agreement.data,
     agreement.metadata.version,
     correlationId
   );
@@ -530,7 +526,7 @@ export async function updateAgreementLogic(
     consumerNotes: agreement.consumerNotes,
   };
 
-  return toCreateEventAgreementUpdated(
+  return toCreateEventDraftAgreementUpdated(
     agreementUpdated,
     agreementToBeUpdated.metadata.version,
     correlationId
@@ -615,7 +611,7 @@ export async function upgradeAgreementLogic(
     throw noNewerDescriptor(eservice.id, currentDescriptor.id);
   }
 
-  if (eservice.producerId !== authData.organizationId) {
+  if (eservice.producerId !== agreementToBeUpgraded.data.consumerId) {
     validateCertifiedAttributes(newDescriptor, tenant);
   }
 
@@ -638,9 +634,10 @@ export async function upgradeAgreementLogic(
         archiving: stamp,
       },
     };
+    const newAgreementId = generateId<AgreementId>();
     const upgraded: Agreement = {
       ...agreementToBeUpgraded.data,
-      id: generateId(),
+      id: newAgreementId,
       descriptorId: newDescriptor.id,
       createdAt: new Date(),
       updatedAt: undefined,
@@ -649,12 +646,17 @@ export async function upgradeAgreementLogic(
         ...agreementToBeUpgraded.data.stamps,
         upgrade: stamp,
       },
+      consumerDocuments: await createAndCopyDocumentsForClonedAgreement(
+        newAgreementId,
+        agreementToBeUpgraded.data,
+        copyFile
+      ),
     };
 
     return {
       streamId: upgraded.id,
       events: [
-        toCreateEventAgreementUpdated(
+        toCreateEventAgreementArchivedByUpgrade(
           archived,
           agreementToBeUpgraded.metadata.version,
           correlationId
@@ -671,8 +673,9 @@ export async function upgradeAgreementLogic(
       agreementQuery
     );
 
+    const id = generateId<AgreementId>();
     const newAgreement: Agreement = {
-      id: generateId(),
+      id,
       eserviceId: agreementToBeUpgraded.data.eserviceId,
       descriptorId: newDescriptor.id,
       producerId: agreementToBeUpgraded.data.producerId,
@@ -683,7 +686,11 @@ export async function upgradeAgreementLogic(
       consumerNotes: agreementToBeUpgraded.data.consumerNotes,
       state: agreementState.draft,
       createdAt: new Date(),
-      consumerDocuments: [],
+      consumerDocuments: await createAndCopyDocumentsForClonedAgreement(
+        id,
+        agreementToBeUpgraded.data,
+        copyFile
+      ),
       stamps: {},
     };
 
@@ -692,17 +699,9 @@ export async function upgradeAgreementLogic(
       correlationId
     );
 
-    const docEvents = await createAndCopyDocumentsForClonedAgreement(
-      newAgreement.id,
-      agreementToBeUpgraded.data,
-      1,
-      copyFile,
-      correlationId
-    );
-
     return {
       streamId: createEvent.streamId,
-      events: [createEvent, ...docEvents],
+      events: [createEvent],
     };
   }
 }
@@ -730,7 +729,7 @@ export async function cloneAgreementLogic(
     ) => Promise<string>;
   },
   correlationId: string
-): Promise<{ streamId: string; events: Array<CreateEvent<AgreementEvent>> }> {
+): Promise<CreateEvent<AgreementEvent>> {
   const agreementToBeCloned = await agreementQuery.getAgreementById(
     agreementId
   );
@@ -774,8 +773,9 @@ export async function cloneAgreementLogic(
 
   validateCertifiedAttributes(descriptor, consumer);
 
+  const id = generateId<AgreementId>();
   const newAgreement: Agreement = {
-    id: generateId(),
+    id,
     eserviceId: agreementToBeCloned.data.eserviceId,
     descriptorId: agreementToBeCloned.data.descriptorId,
     producerId: agreementToBeCloned.data.producerId,
@@ -786,24 +786,15 @@ export async function cloneAgreementLogic(
     declaredAttributes: [],
     state: agreementState.draft,
     createdAt: new Date(),
-    consumerDocuments: [],
+    consumerDocuments: await createAndCopyDocumentsForClonedAgreement(
+      id,
+      agreementToBeCloned.data,
+      copyFile
+    ),
     stamps: {},
   };
 
-  const createEvent = toCreateEventAgreementAdded(newAgreement, correlationId);
-
-  const docEvents = await createAndCopyDocumentsForClonedAgreement(
-    newAgreement.id,
-    agreementToBeCloned.data,
-    0,
-    copyFile,
-    correlationId
-  );
-
-  return {
-    streamId: createEvent.streamId,
-    events: [createEvent, ...docEvents],
-  };
+  return toCreateEventAgreementAdded(newAgreement, correlationId);
 }
 
 export async function rejectAgreementLogic(
@@ -877,7 +868,7 @@ export async function rejectAgreementLogic(
     },
   };
 
-  return toCreateEventAgreementUpdated(
+  return toCreateEventAgreementRejected(
     rejected,
     agreementToBeRejected.metadata.version,
     correlationId
@@ -908,8 +899,13 @@ export async function archiveAgreementLogic(
     },
   };
 
-  return toCreateEventAgreementUpdated(
-    updateSeed,
+  const updatedAgreement = {
+    ...agreement.data,
+    ...updateSeed,
+  };
+
+  return toCreateEventAgreementArchived(
+    updatedAgreement,
     agreement.metadata.version,
     correlationId
   );
