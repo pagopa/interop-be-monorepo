@@ -420,13 +420,11 @@ export function tenantServiceBuilder(
       );
 
       const maybeDeclaredTenantAttribute = requesterTenant.data.attributes.find(
-        (attr) => attr.id === attributeId
+        (attr) =>
+          attr.id === attributeId && attr.type === "PersistentDeclaredAttribute"
       );
 
-      if (
-        !maybeDeclaredTenantAttribute ||
-        maybeDeclaredTenantAttribute.type !== "PersistentDeclaredAttribute"
-      ) {
+      if (!maybeDeclaredTenantAttribute) {
         throw attributeNotFound(attributeId);
       }
 
