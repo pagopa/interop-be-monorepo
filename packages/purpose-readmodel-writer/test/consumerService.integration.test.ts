@@ -555,10 +555,10 @@ describe("Integration tests", async () => {
     });
 
     it("NewPurposeVersionActivated", async () => {
-      const purposeVersions = [
+      const purposeVersions: PurposeVersion[] = [
         { ...getMockPurposeVersion(), state: "Active" },
         { ...getMockPurposeVersion(), state: "WaitingForApproval" },
-      ] as const satisfies PurposeVersion[];
+      ];
 
       const purpose: Purpose = {
         ...mockPurpose,
@@ -735,10 +735,10 @@ describe("Integration tests", async () => {
     });
 
     it("PurposeVersionOverQuotaUnsuspended", async () => {
-      const purposeVersions = [
+      const purposeVersions: PurposeVersion[] = [
         { ...getMockPurposeVersion(), state: "Suspended" },
         { ...getMockPurposeVersion(), state: "WaitingForApproval" },
-      ] as const satisfies PurposeVersion[];
+      ];
 
       const purpose: Purpose = {
         ...mockPurpose,
@@ -1080,14 +1080,14 @@ describe("Integration tests", async () => {
     });
 
     it("WaitingForApprovalPurposeVersionDeleted", async () => {
-      const purposeVersions = [
+      const purposeVersions: PurposeVersion[] = [
         {
           ...getMockPurposeVersion(),
           state: "Active",
           firstActivationAt: new Date(),
         },
         { ...getMockPurposeVersion(), state: "WaitingForApproval" },
-      ] as const satisfies PurposeVersion[];
+      ];
 
       const purpose: Purpose = {
         ...mockPurpose,
