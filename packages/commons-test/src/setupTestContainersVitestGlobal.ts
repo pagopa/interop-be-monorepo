@@ -2,6 +2,7 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
 
+import { config as dotenv } from "dotenv-flow";
 import { StartedTestContainer } from "testcontainers";
 import type { GlobalSetupContext } from "vitest/node";
 import type {} from "vitest";
@@ -30,6 +31,7 @@ declare module "vitest" {
  * @see https://vitest.dev/config/#globalsetup).
  */
 export function setupTestContainersVitestGlobal() {
+  dotenv();
   const config = TestContainersConfig.parse(process.env);
 
   return async function ({
