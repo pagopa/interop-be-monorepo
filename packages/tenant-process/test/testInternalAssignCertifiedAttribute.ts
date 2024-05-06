@@ -5,12 +5,12 @@ import { readLastEventByStreamId } from "pagopa-interop-commons-test/index.js";
 import {
   generateId,
   Tenant,
+  Attribute,
   unsafeBrandId,
   protobufDecoder,
+  TenantCertifiedAttributeAssignedV2,
   fromTenantKindV2,
   toTenantV2,
-  Attribute,
-  TenantCertifiedAttributeAssignedV2,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi } from "vitest";
 import {
@@ -19,22 +19,22 @@ import {
   certifiedAttributeAlreadyAssigned,
 } from "../src/model/domain/errors.js";
 import {
+  addOneAttribute,
   addOneTenant,
   getMockTenant,
-  addOneAttribute,
   getMockAttribute,
 } from "./utils.js";
 import {
-  attributes,
   postgresDB,
+  attributes,
   tenants,
   tenantService,
 } from "./tenant.integration.test.js";
 
-export const testInternalAssignCertifiedAttribute = (): ReturnType<
+export const testInternalAssignCertifiedAttributes = (): ReturnType<
   typeof describe
 > =>
-  describe("internalAssignCertifiedAttribute", async () => {
+  describe("testInternalAssignCertifiedAttributes", async () => {
     const correlationId = generateId();
     const attribute: Attribute = {
       ...getMockAttribute(),
@@ -149,7 +149,7 @@ export const testInternalAssignCertifiedAttribute = (): ReturnType<
       expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
       vi.useRealTimers();
     });
-    it("Should throw certifiedAttributeAlreadyAssigned", async () => {
+    it("Should throw certifiedAttributeAlreadyAssigned if the attribute was already assigned", async () => {
       const tenantAlreadyAssigned: Tenant = {
         ...getMockTenant(),
         attributes: [
@@ -177,7 +177,7 @@ export const testInternalAssignCertifiedAttribute = (): ReturnType<
         )
       );
     });
-    it("Should throw tenant not found", async () => {
+    it("Should throw tenantNotFound if the tenant doesn't exist", async () => {
       await addOneAttribute(attribute, attributes);
       const targetTenant: Tenant = getMockTenant();
       expect(
@@ -196,7 +196,7 @@ export const testInternalAssignCertifiedAttribute = (): ReturnType<
         )
       );
     });
-    it("Should throw attribute not found", async () => {
+    it("Should throw attributeNotFound if the attribute doesn't exist", async () => {
       const targetTenant: Tenant = getMockTenant();
       await addOneTenant(targetTenant, postgresDB, tenants);
 
