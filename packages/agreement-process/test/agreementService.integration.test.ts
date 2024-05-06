@@ -33,10 +33,10 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
-  AgreementAddedV1,
   AgreementAttribute,
+  AgreementAddedV2,
   AgreementId,
-  AgreementV1,
+  AgreementV2,
   AttributeId,
   Descriptor,
   DescriptorId,
@@ -72,7 +72,7 @@ import {
   notLatestEServiceDescriptor,
   tenantIdNotFound,
 } from "../src/model/domain/errors.js";
-import { toAgreementStateV1 } from "../src/model/domain/toEvent.js";
+import { toAgreementStateV2 } from "../src/model/domain/toEvent.js";
 import { ApiAgreementPayload } from "../src/model/types.js";
 import {
   AgreementService,
@@ -102,6 +102,7 @@ import {
 import { testArchiveAgreement } from "./testArchiveAgreement.js";
 import { testDeleteAgreement } from "./testDeleteAgreement.js";
 import { testAgreementConsumerDocuments } from "./testAgreementConsumerDocuments.js";
+import { testUpgradeAgreement } from "./testUpgradeAgreement.js";
 
 export let agreements: AgreementCollection;
 export let eservices: EServiceCollection;
@@ -132,7 +133,7 @@ const expectedAgreementCreation = async (
   expectedDescriptorId: DescriptorId,
   expectedProducerId: TenantId,
   expectedConsumerId: TenantId
-): Promise<AgreementV1> => {
+): Promise<AgreementV2> => {
   expect(agreementId).toBeDefined();
   if (!agreementId) {
     fail("Unhandled error: returned agreementId is undefined");
@@ -146,13 +147,13 @@ const expectedAgreementCreation = async (
 
   expect(writtenEvent).toMatchObject({
     type: "AgreementAdded",
-    event_version: 1,
+    event_version: 2,
     version: "0",
     stream_id: agreementId,
   });
 
-  const actualAgreement: AgreementV1 | undefined = decodeProtobufPayload({
-    messageType: AgreementAddedV1,
+  const actualAgreement: AgreementV2 | undefined = decodeProtobufPayload({
+    messageType: AgreementAddedV2,
     payload: writtenEvent.data,
   }).agreement;
 
@@ -169,7 +170,7 @@ const expectedAgreementCreation = async (
     descriptorId: expectedDescriptorId,
     producerId: expectedProducerId,
     consumerId: expectedConsumerId,
-    state: toAgreementStateV1(agreementState.draft),
+    state: toAgreementStateV2(agreementState.draft),
     verifiedAttributes: [],
     certifiedAttributes: [],
     declaredAttributes: [],
@@ -1768,7 +1769,8 @@ describe("Agreement service", () => {
   });
 
   testAgreementConsumerDocuments();
+  testArchiveAgreement();
   testDeleteAgreement();
   testUpdateAgreement();
-  testArchiveAgreement();
+  testUpgradeAgreement();
 });
