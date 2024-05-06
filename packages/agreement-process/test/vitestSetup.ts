@@ -5,6 +5,7 @@ import {
   writeInEventstore,
   writeInReadmodel,
   ReadEvent,
+  readEventByStreamIdAndVersion,
 } from "pagopa-interop-commons-test";
 import { inject, afterEach } from "vitest";
 import {
@@ -83,3 +84,14 @@ export const readLastAgreementEvent = async (
   agreementId: AgreementId
 ): Promise<ReadEvent<AgreementEvent>> =>
   await readLastEventByStreamId(agreementId, "agreement", postgresDB);
+
+export const readAgreementEventByVersion = async (
+  agreementId: AgreementId,
+  version: number
+): Promise<ReadEvent<AgreementEvent>> =>
+  await readEventByStreamIdAndVersion(
+    agreementId,
+    version,
+    "agreement",
+    postgresDB
+  );

@@ -8,7 +8,7 @@ import {
 import { describe, expect, it, vi } from "vitest";
 import { v4 as uuidv4 } from "uuid";
 import {
-  AgreementDeletedV1,
+  AgreementDeletedV2,
   AgreementId,
   agreementState,
   generateId,
@@ -80,15 +80,15 @@ describe("delete agreement", () => {
 
     expect(agreementEvent).toMatchObject({
       type: "AgreementDeleted",
-      event_version: 1,
+      event_version: 2,
       version: "1",
       stream_id: agreement.id,
     });
 
     const agreementDeletedId = decodeProtobufPayload({
-      messageType: AgreementDeletedV1,
+      messageType: AgreementDeletedV2,
       payload: agreementEvent.data,
-    }).agreementId;
+    }).agreement?.id;
 
     expect(agreementDeletedId).toEqual(agreement.id);
 

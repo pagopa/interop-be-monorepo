@@ -7,19 +7,19 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   AgreementId,
-  AgreementUpdatedV1,
+  DraftAgreementUpdatedV2,
   agreementState,
   generateId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { v4 as uuidv4 } from "uuid";
-import { toAgreementV1 } from "../src/model/domain/toEvent.js";
 import {
   agreementNotFound,
   agreementNotInExpectedState,
   operationNotAllowed,
 } from "../src/model/domain/errors.js";
 import { agreementUpdatableStates } from "../src/model/domain/validators.js";
+import { toAgreementV2 } from "../src/model/domain/toEvent.js";
 import {
   addOneAgreement,
   agreementService,
@@ -44,19 +44,19 @@ describe("update agreement", () => {
     const agreementEvent = await readLastAgreementEvent(agreement.id);
 
     expect(agreementEvent).toMatchObject({
-      type: "AgreementUpdated",
-      event_version: 1,
+      type: "DraftAgreementUpdated",
+      event_version: 2,
       version: "1",
       stream_id: agreement.id,
     });
 
     const actualAgreementUptaded = decodeProtobufPayload({
-      messageType: AgreementUpdatedV1,
+      messageType: DraftAgreementUpdatedV2,
       payload: agreementEvent.data,
     }).agreement;
 
     expect(actualAgreementUptaded).toMatchObject({
-      ...toAgreementV1(agreement),
+      ...toAgreementV2(agreement),
       consumerNotes: "Updated consumer notes",
     });
   });
