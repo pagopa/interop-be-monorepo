@@ -16,10 +16,11 @@ import {
   purposeToApiPurpose,
   purposeVersionDocumentToApiPurposeVersionDocument,
   purposeVersionToApiPurposeVersion,
+  riskAnalysisFormConfigToApiRiskAnalysisFormConfig,
 } from "../model/domain/apiConverter.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../utilities/config.js";
-import { purposeServiceBuilder } from "../services/purposeService.js";
+import { purposeServiceBuilder } from "../services/purposeServiceBuilder.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
   archivePurposeVersionErrorMapper,
@@ -31,6 +32,7 @@ import {
   getPurposeErrorMapper,
   getRiskAnalysisDocumentErrorMapper,
   rejectPurposeVersionErrorMapper,
+  retrieveRiskAnalysisConfigurationByVersionErrorMapper,
   suspendPurposeVersionErrorMapper,
   updatePurposeErrorMapper,
 } from "../utilities/errorMappers.js";
@@ -412,14 +414,14 @@ const purposeRouter = (
         try {
           const riskAnalysisConfiguration =
             await purposeService.retrieveRiskAnalysisConfigurationByVersion({
-              eserviceId: req.query.eserviceId,
+              eserviceId: unsafeBrandId(req.query.eserviceId),
               riskAnalysisVersion: req.params.riskAnalysisVersion,
               organizationId: req.ctx.authData.organizationId,
             });
           return res
             .status(200)
             .json(
-              riskAnalysisConfigurationToApiRiskAnalysisConfiguration(
+              riskAnalysisFormConfigToApiRiskAnalysisFormConfig(
                 riskAnalysisConfiguration
               )
             )
@@ -427,7 +429,7 @@ const purposeRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            getRiskAnalysisDocumentErrorMapper
+            retrieveRiskAnalysisConfigurationByVersionErrorMapper
           );
           return res.status(errorRes.status).json(errorRes).end();
         }

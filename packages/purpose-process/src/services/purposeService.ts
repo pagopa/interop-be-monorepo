@@ -5,6 +5,7 @@ import {
   formatDateAndTime,
   logger,
   riskAnalysisFormToRiskAnalysisFormToValidate,
+  riskAnalysisFormsMap,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
@@ -54,6 +55,8 @@ import {
   purposeVersionDocumentNotFound,
   purposeVersionNotFound,
   tenantNotFound,
+  RiskAnalysisConfigVersionNotFound,
+  RiskAnalysisConfigForTenantKindNotFound,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -838,12 +841,44 @@ export function purposeServiceBuilder(
         isRiskAnalysisValid,
       };
     },
-    async retrieveRiskAnalysisConfigurationByVersion(
-      eserviceId: EServiceId,
-      riskAnalysisVersion: string,
-      correlationId: string
-    ): Promise<RiskAnalysisFormConfig> {
-      return any;
+    async retrieveRiskAnalysisConfigurationByVersion({
+      eserviceId,
+      riskAnalysisVersion,
+      organizationId,
+    }: {
+      eserviceId: EServiceId;
+      riskAnalysisVersion: string;
+      organizationId: TenantId;
+    }): Promise<RiskAnalysisFormConfig> {
+      logger.info(
+        `Retrieve version ${riskAnalysisVersion} of risk analysis configuration`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      const tenant = await getInvolvedTenantByEServiceMode(
+        eservice,
+        organizationId,
+        readModelService
+      );
+
+      assertTenantKindExists(tenant);
+
+      const kindConfig = riskAnalysisFormsMap[tenant.kind];
+
+      if (!kindConfig) {
+        throw RiskAnalysisConfigForTenantKindNotFound(tenant.id);
+      }
+
+      const riskAnalysisFormConfig = kindConfig[riskAnalysisVersion];
+
+      if (!riskAnalysisFormConfig) {
+        throw RiskAnalysisConfigVersionNotFound(
+          riskAnalysisVersion,
+          tenant.kind
+        );
+      }
+
+      return riskAnalysisFormConfig;
     },
   };
 }

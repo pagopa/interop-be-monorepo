@@ -63,3 +63,5 @@ export type ApiDependency = z.infer<typeof api.schemas.DependencyResponse>;
 export type ApiHideOptionConfig = z.infer<
   typeof api.schemas.HideOptionResponse
 >;
+
+export type ApiLabeledValue = z.infer<typeof api.schemas.LabeledValueResponse>;

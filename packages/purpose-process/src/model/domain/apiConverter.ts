@@ -15,12 +15,14 @@ import {
   DataType,
   Dependency,
   HideOptionConfig,
+  LabeledValue,
 } from "pagopa-interop-models";
 import {
   ApiDataType,
   ApiDependency,
   ApiFormConfigQuestion,
   ApiHideOptionConfig,
+  ApiLabeledValue,
   ApiLocalizedText,
   ApiPurpose,
   ApiPurposeVersion,
@@ -178,46 +180,46 @@ export const mapHideOptionToApiMapHideOption = (
     ])
   );
 
-export const formConfigQuestiontoApiFormConfigQuestion = (
+export const labeledValueToApiLabeledValue = (
+  labeledValue: LabeledValue
+): ApiLabeledValue => ({
+  label: localizedTextToApiLocalizedText(labeledValue.label),
+  value: labeledValue.value,
+});
+
+export const formConfigQuestionToApiFormConfigQuestion = (
   question: FormConfigQuestion
-): ApiFormConfigQuestion =>
-  match<FormConfigQuestion, ApiFormConfigQuestion>(question)
-    .with({ dataType: dataType.freetext }, (q) => ({
-      id: q.id,
-      label: localizedTextToApiLocalizedText(q.label),
-      infoLabel: q.infoLabel
-        ? localizedTextToApiLocalizedText(q.infoLabel)
-        : undefined,
-      dataType: dataTypeToApiDataType(q.dataType),
-      required: q.required,
-      dependencies: q.dependencies.map(dependencyToApiDependency),
-      visualType: q.type,
-      defaultValue: q.defaultValue,
-      hideOption: q.hideOption
-        ? mapHideOptionToApiMapHideOption(q.hideOption)
-        : undefined,
+): ApiFormConfigQuestion => {
+  const commonFields = {
+    id: question.id,
+    label: localizedTextToApiLocalizedText(question.label),
+    infoLabel: question.infoLabel
+      ? localizedTextToApiLocalizedText(question.infoLabel)
+      : undefined,
+    dataType: dataTypeToApiDataType(question.dataType),
+    required: question.required,
+    dependencies: question.dependencies.map(dependencyToApiDependency),
+    visualType: question.type,
+    defaultValue: question.defaultValue,
+    hideOption: question.hideOption
+      ? mapHideOptionToApiMapHideOption(question.hideOption)
+      : undefined,
+  };
+
+  return match<FormConfigQuestion, ApiFormConfigQuestion>(question)
+    .with({ dataType: dataType.freetext }, () => commonFields)
+    .with({ dataType: dataType.single }, { dataType: dataType.multi }, (q) => ({
+      ...commonFields,
+      options: q.options.map(labeledValueToApiLabeledValue),
     }))
-    .with({ dataType: dataType.single }, (q) => ({
-      id: q.id,
-      label: localizedTextToApiLocalizedText(q.label),
-      infoLabel: q.infoLabel
-        ? localizedTextToApiLocalizedText(q.infoLabel)
-        : undefined,
-      dataType: dataTypeToApiDataType(q.dataType),
-      required: q.required,
-      dependencies: q.dependencies.map(dependencyToApiDependency),
-      visualType: q.type,
-      defaultValue: q.defaultValue,
-      hideOption: q.hideOption
-        ? mapHideOptionToApiMapHideOption(q.hideOption)
-        : undefined,
-      options: q.options.map(),
-    }))
-    .with({ dataType: dataType.multi }, (q) => ({}))
     .exhaustive();
+};
+
 export const riskAnalysisFormConfigToApiRiskAnalysisFormConfig = (
   configuration: RiskAnalysisFormConfig
 ): ApiRiskAnalysisFormConfig => ({
   version: configuration.version,
-  answers: configuration.answers.map(formConfigQuestiontoApiFormConfigQuestion),
+  questions: configuration.questions.map(
+    formConfigQuestionToApiFormConfigQuestion
+  ),
 });

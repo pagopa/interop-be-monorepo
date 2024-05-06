@@ -168,3 +168,20 @@ export const clonePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
     )
     .with("tenantNotFound", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const retrieveRiskAnalysisConfigurationByVersionErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eserviceNotFound",
+      "riskAnalysisConfigVersionNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with(
+      "tenantNotFound",
+      "tenantKindNotFound",
+      "riskAnalysisConfigForTenantKindNotFound",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
