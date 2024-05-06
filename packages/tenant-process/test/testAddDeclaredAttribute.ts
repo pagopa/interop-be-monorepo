@@ -10,17 +10,15 @@ import {
   fromTenantKindV2,
   toTenantV2,
   TenantDeclaredAttributeAssignedV2,
-  TenantDeclaredAttributeV2,
   Attribute,
+  tenantAttributeType,
 } from "pagopa-interop-models";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import {
   tenantNotFound,
   attributeNotFound,
 } from "../src/model/domain/errors.js";
-import { ApiDeclaredTenantAttributeSeed } from "../src/model/types.js";
 import {
-  currentDate,
   getMockAuthData,
   addOneTenant,
   getMockTenant,
@@ -36,41 +34,25 @@ import {
 
 export const testAddDeclaredAttributes = (): ReturnType<typeof describe> =>
   describe("addDeclaredAttribute", async () => {
-    const tenantAttributeSeed: ApiDeclaredTenantAttributeSeed = {
-      id: generateId(),
-    };
     const correlationId = generateId();
-    const requesterTenant: Tenant = {
-      ...getMockTenant(),
-      attributes: [
-        {
-          id: unsafeBrandId(tenantAttributeSeed.id),
-          type: "PersistentDeclaredAttribute",
-          assignmentTimestamp: new Date(),
-        },
-      ],
-      updatedAt: currentDate,
-      name: "A requesterTenant",
-    };
-
     const declaredAttribute: Attribute = {
       ...getMockAttribute(),
-      id: unsafeBrandId(tenantAttributeSeed.id),
+      kind: "Declared",
     };
 
-    const mockAuthData = getMockAuthData(requesterTenant.id);
-
-    it("Should add the declared attribute if it doesn't already exist", async () => {
+    it("Should add the declared attribute if the tenant doesn't have that", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date());
       const tenantWithoutDeclaredAttribute: Tenant = {
-        ...requesterTenant,
+        ...getMockTenant(),
         attributes: [],
       };
 
       await addOneAttribute(declaredAttribute, attributes);
       await addOneTenant(tenantWithoutDeclaredAttribute, postgresDB, tenants);
       await tenantService.addDeclaredAttribute({
-        tenantAttributeSeed,
-        authData: mockAuthData,
+        tenantAttributeSeed: { id: declaredAttribute.id },
+        authData: getMockAuthData(tenantWithoutDeclaredAttribute.id),
         correlationId,
       });
       const writtenEvent = await readLastEventByStreamId(
@@ -94,35 +76,40 @@ export const testAddDeclaredAttributes = (): ReturnType<typeof describe> =>
         ...tenantWithoutDeclaredAttribute,
         attributes: [
           {
-            id: unsafeBrandId(tenantAttributeSeed.id),
+            id: declaredAttribute.id,
             type: "PersistentDeclaredAttribute",
-            assignmentTimestamp: new Date(
-              Number(
-                (
-                  writtenPayload.tenant!.attributes[0].sealedValue as {
-                    oneofKind: "declaredAttribute";
-                    declaredAttribute: TenantDeclaredAttributeV2;
-                  }
-                ).declaredAttribute.assignmentTimestamp
-              )
-            ),
+            assignmentTimestamp: new Date(),
           },
         ],
         kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
-        updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
+        updatedAt: new Date(),
       };
       expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+      vi.useRealTimers();
     });
-    it("Should add the declared attribute if declared Tenant Attribute exist", async () => {
+    it("Should re-assign the declared attribute if it was revoked", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date());
+      const tenantWithAttributeRevoked: Tenant = {
+        ...getMockTenant(),
+        attributes: [
+          {
+            id: declaredAttribute.id,
+            type: tenantAttributeType.DECLARED,
+            assignmentTimestamp: new Date(),
+            revocationTimestamp: new Date(),
+          },
+        ],
+      };
       await addOneAttribute(declaredAttribute, attributes);
-      await addOneTenant(requesterTenant, postgresDB, tenants);
+      await addOneTenant(tenantWithAttributeRevoked, postgresDB, tenants);
       await tenantService.addDeclaredAttribute({
-        tenantAttributeSeed,
-        authData: mockAuthData,
+        tenantAttributeSeed: { id: declaredAttribute.id },
+        authData: getMockAuthData(tenantWithAttributeRevoked.id),
         correlationId,
       });
       const writtenEvent = await readLastEventByStreamId(
-        requesterTenant.id,
+        tenantWithAttributeRevoked.id,
         "tenant",
         postgresDB
       );
@@ -130,7 +117,7 @@ export const testAddDeclaredAttributes = (): ReturnType<typeof describe> =>
         fail("Update failed: tenant not found in event-store");
       }
       expect(writtenEvent).toMatchObject({
-        stream_id: requesterTenant.id,
+        stream_id: tenantWithAttributeRevoked.id,
         version: "1",
         type: "TenantDeclaredAttributeAssigned",
       });
@@ -139,59 +126,43 @@ export const testAddDeclaredAttributes = (): ReturnType<typeof describe> =>
       ).parse(writtenEvent?.data);
 
       const updatedTenant: Tenant = {
-        ...requesterTenant,
+        ...tenantWithAttributeRevoked,
         attributes: [
           {
-            id: unsafeBrandId(tenantAttributeSeed.id),
+            id: declaredAttribute.id,
             type: "PersistentDeclaredAttribute",
-            assignmentTimestamp: new Date(
-              Number(
-                (
-                  writtenPayload.tenant!.attributes[0].sealedValue as {
-                    oneofKind: "declaredAttribute";
-                    declaredAttribute: TenantDeclaredAttributeV2;
-                  }
-                ).declaredAttribute.assignmentTimestamp
-              )
-            ),
-          },
-        ],
-        kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
-        updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
-      };
-      expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
-    });
-    it("Should throw tenant not found", async () => {
-      expect(
-        tenantService.addDeclaredAttribute({
-          tenantAttributeSeed,
-          authData: mockAuthData,
-          correlationId,
-        })
-      ).rejects.toThrowError(tenantNotFound(requesterTenant.id));
-    });
-    it("Should throw AttributeNotFound", async () => {
-      const notDeclaredAttributeTenant: Tenant = {
-        ...requesterTenant,
-        attributes: [
-          {
-            id: unsafeBrandId(tenantAttributeSeed.id),
-            type: "PersistentCertifiedAttribute",
             assignmentTimestamp: new Date(),
           },
         ],
+        kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
+        updatedAt: new Date(),
       };
-      await addOneTenant(notDeclaredAttributeTenant, postgresDB, tenants);
-      const authData = getMockAuthData(notDeclaredAttributeTenant.id);
+      expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+      vi.useRealTimers();
+    });
+    it("Should throw tenantNotFound if the tenant doesn't exist", async () => {
+      const tenant = getMockTenant();
+      addOneAttribute(declaredAttribute, attributes);
+      expect(
+        tenantService.addDeclaredAttribute({
+          tenantAttributeSeed: { id: declaredAttribute.id },
+          authData: getMockAuthData(tenant.id),
+          correlationId,
+        })
+      ).rejects.toThrowError(tenantNotFound(tenant.id));
+    });
+    it("Should throw attributeNotFound if the attribute doesn't exist", async () => {
+      const tenant: Tenant = getMockTenant();
+      await addOneTenant(tenant, postgresDB, tenants);
 
       expect(
         tenantService.addDeclaredAttribute({
-          tenantAttributeSeed,
-          authData,
+          tenantAttributeSeed: { id: declaredAttribute.id },
+          authData: getMockAuthData(tenant.id),
           correlationId,
         })
       ).rejects.toThrowError(
-        attributeNotFound(unsafeBrandId(tenantAttributeSeed.id))
+        attributeNotFound(unsafeBrandId(declaredAttribute.id))
       );
     });
   });
