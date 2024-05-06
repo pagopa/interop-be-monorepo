@@ -45,10 +45,10 @@ export type ApiReversePurposeSeed = z.infer<
 
 export type ApiPurposeCloneSeed = z.infer<typeof api.schemas.PurposeCloneSeed>;
 
-export type ApiFormConfigQuestion = z.infer<
+export type ApiFormQuestionRules = z.infer<
   typeof api.schemas.FormConfigQuestionResponse
 >;
-export type ApiRiskAnalysisFormConfig = z.infer<
+export type ApiRiskAnalysisFormRules = z.infer<
   typeof api.schemas.RiskAnalysisFormConfigResponse
 >;
 

@@ -8,19 +8,21 @@ import {
   RiskAnalysisMultiAnswer,
   RiskAnalysisSingleAnswer,
   purposeVersionState,
-  RiskAnalysisFormConfig,
-  FormConfigQuestion,
+} from "pagopa-interop-models";
+import {
   LocalizedText,
-  dataType,
   DataType,
+  dataType,
   Dependency,
   HideOptionConfig,
   LabeledValue,
-} from "pagopa-interop-models";
+  FormQuestionRules,
+  RiskAnalysisFormRules,
+} from "pagopa-interop-commons";
 import {
   ApiDataType,
   ApiDependency,
-  ApiFormConfigQuestion,
+  ApiFormQuestionRules,
   ApiHideOptionConfig,
   ApiLabeledValue,
   ApiLocalizedText,
@@ -29,7 +31,7 @@ import {
   ApiPurposeVersionDocument,
   ApiPurposeVersionState,
   ApiRiskAnalysisForm,
-  ApiRiskAnalysisFormConfig,
+  ApiRiskAnalysisFormRules,
 } from "./models.js";
 
 export const singleAnswersToApiSingleAnswers = (
@@ -154,7 +156,7 @@ export const dataTypeToApiDataType = (type: DataType): ApiDataType =>
   match<DataType, ApiDataType>(type)
     .with(dataType.single, () => "SINGLE")
     .with(dataType.multi, () => "MULTI")
-    .with(dataType.freetext, () => "FREETEXT")
+    .with(dataType.freeText, () => "FREETEXT")
     .exhaustive();
 
 export const dependencyToApiDependency = (
@@ -188,8 +190,8 @@ export const labeledValueToApiLabeledValue = (
 });
 
 export const formConfigQuestionToApiFormConfigQuestion = (
-  question: FormConfigQuestion
-): ApiFormConfigQuestion => {
+  question: FormQuestionRules
+): ApiFormQuestionRules => {
   const commonFields = {
     id: question.id,
     label: localizedTextToApiLocalizedText(question.label),
@@ -206,8 +208,8 @@ export const formConfigQuestionToApiFormConfigQuestion = (
       : undefined,
   };
 
-  return match<FormConfigQuestion, ApiFormConfigQuestion>(question)
-    .with({ dataType: dataType.freetext }, () => commonFields)
+  return match<FormQuestionRules, ApiFormQuestionRules>(question)
+    .with({ dataType: dataType.freeText }, () => commonFields)
     .with({ dataType: dataType.single }, { dataType: dataType.multi }, (q) => ({
       ...commonFields,
       options: q.options.map(labeledValueToApiLabeledValue),
@@ -216,8 +218,8 @@ export const formConfigQuestionToApiFormConfigQuestion = (
 };
 
 export const riskAnalysisFormConfigToApiRiskAnalysisFormConfig = (
-  configuration: RiskAnalysisFormConfig
-): ApiRiskAnalysisFormConfig => ({
+  configuration: RiskAnalysisFormRules
+): ApiRiskAnalysisFormRules => ({
   version: configuration.version,
   questions: configuration.questions.map(
     formConfigQuestionToApiFormConfigQuestion
