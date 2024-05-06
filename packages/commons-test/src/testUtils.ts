@@ -11,6 +11,8 @@ import {
   EService,
   EServiceAttribute,
   EServiceId,
+  Purpose,
+  PurposeVersion,
   Tenant,
   TenantAttribute,
   TenantId,
@@ -19,7 +21,6 @@ import {
   agreementState,
   descriptorState,
   generateId,
-  tenantAttributeType,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import { AuthData } from "pagopa-interop-commons";
@@ -96,8 +97,6 @@ export const getMockCertifiedTenantAttribute = (
 ): CertifiedTenantAttribute => ({
   ...generateMock(CertifiedTenantAttribute),
   id: attributeId,
-  type: tenantAttributeType.CERTIFIED,
-  revocationTimestamp: undefined,
 });
 
 export const getMockCertifiedTenantAttributes = (
@@ -149,4 +148,28 @@ export const getMockAttribute = (): Attribute => ({
   creationTime: new Date(),
   code: undefined,
   origin: undefined,
+});
+
+export const getMockPurpose = (): Purpose => ({
+  id: generateId(),
+  eserviceId: generateId(),
+  consumerId: generateId(),
+  versions: [],
+  title: "Purpose 1 - test",
+  description: "Test purpose - description",
+  createdAt: new Date(),
+  isFreeOfCharge: true,
+});
+
+export const getMockPurposeVersion = (): PurposeVersion => ({
+  id: generateId(),
+  state: "Draft",
+  riskAnalysis: {
+    id: generateId(),
+    contentType: "json",
+    path: "path",
+    createdAt: new Date(),
+  },
+  dailyCalls: 10,
+  createdAt: new Date(),
 });
