@@ -571,27 +571,28 @@ export function tenantServiceBuilder(
       }
 
       const maybeAttribute = tenantToModify.data.attributes.find(
-        (attr) =>
+        (attr): attr is CertifiedTenantAttribute =>
           attr.type === tenantAttributeType.CERTIFIED &&
           attr.id === attributeToRevoke.id
-      ) as CertifiedTenantAttribute;
+      );
 
       if (!maybeAttribute) {
         throw attributeNotFound(attributeToRevoke.id);
       }
 
-      const updatedTenant = updateAttribute(
-        {
-          updatedTenant: {
-            ...tenantToModify.data,
-            updatedAt: new Date(),
-          },
-          targetTenant: tenantToModify,
-          attributeId: attributeToRevoke.id,
-          revocationTimestamp: new Date(),
-        },
-        maybeAttribute.assignmentTimestamp
-      );
+      const updatedTenant = {
+        ...tenantToModify.data,
+        updatedAt: new Date(),
+        attributes: tenantToModify.data.attributes.map((a) =>
+          a.id === attributeToRevoke.id
+            ? {
+                ...a,
+                assignmentTimestamp: maybeAttribute.assignmentTimestamp,
+                revocationTimestamp: new Date(),
+              }
+            : a
+        ),
+      };
 
       const updatedKind = await getTenantKindLoadingCertifiedAttributes(
         readModelService,

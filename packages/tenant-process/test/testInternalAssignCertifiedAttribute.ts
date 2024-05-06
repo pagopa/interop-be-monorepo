@@ -31,10 +31,10 @@ import {
   tenantService,
 } from "./tenant.integration.test.js";
 
-export const testInternalAssignCertifiedAttribute = (): ReturnType<
+export const testInternalAssignCertifiedAttributes = (): ReturnType<
   typeof describe
 > =>
-  describe("internalAssignCertifiedAttribute", async () => {
+  describe("testInternalAssignCertifiedAttributes", async () => {
     const correlationId = generateId();
     const attribute: Attribute = {
       ...getMockAttribute(),
