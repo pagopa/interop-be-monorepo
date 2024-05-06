@@ -23,7 +23,6 @@ import {
   agreementState,
   descriptorState,
   generateId,
-  tenantAttributeType,
   purposeVersionState,
 } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
