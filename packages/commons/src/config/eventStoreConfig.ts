@@ -16,7 +16,7 @@ export const EventStoreConfig = z
     eventStoreDbHost: c.EVENTSTORE_DB_HOST,
     eventStoreDbName: c.EVENTSTORE_DB_NAME,
     eventStoreDbUsername: c.EVENTSTORE_DB_USERNAME,
-    eventStoreDbPassword: c.EVENTSTORE_DB_PASSWORD,
+    eventStoreDbPassword: encodeURIComponent(c.EVENTSTORE_DB_PASSWORD),
     eventStoreDbPort: c.EVENTSTORE_DB_PORT,
     eventStoreDbSchema: c.EVENTSTORE_DB_SCHEMA,
     eventStoreDbUseSSL: c.EVENTSTORE_DB_USE_SSL,

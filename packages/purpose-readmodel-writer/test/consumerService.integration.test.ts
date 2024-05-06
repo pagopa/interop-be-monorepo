@@ -709,6 +709,7 @@ describe("Integration tests", async () => {
 
       const payload: PurposeArchivedV2 = {
         purpose: toPurposeV2(updatedPurpose),
+        versionId: activeVersion.id,
       };
 
       const message: PurposeEventEnvelope = {
@@ -1130,6 +1131,7 @@ describe("Integration tests", async () => {
 
       const payload: PurposeVersionActivatedV2 = {
         purpose: toPurposeV2(updatedPurpose),
+        versionId: draftVersion.id,
       };
 
       const message: PurposeEventEnvelope = {
