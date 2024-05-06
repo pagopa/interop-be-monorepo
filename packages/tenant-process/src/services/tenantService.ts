@@ -377,11 +377,11 @@ export function tenantServiceBuilder(
         throw tenantIsNotACertifier(organizationId);
       }
 
-      const attribute = await readModelService.getAttributeById(attributeId);
-
-      if (attribute.kind !== "Certified") {
-        throw attributeNotFound(attributeId);
-      }
+      const attribute = await retrieveAttribute(
+        attributeId,
+        readModelService,
+        "Certified"
+      );
 
       if (!attribute.origin || attribute.origin !== certifierId) {
         throw certifiedAttributeOriginIsNotCompliantWithCertifier(
@@ -395,14 +395,11 @@ export function tenantServiceBuilder(
       const targetTenant = await retrieveTenant(tenantId, readModelService);
 
       const certifiedTenantAttribute = targetTenant.data.attributes.find(
-        (attr) =>
+        (attr): attr is CertifiedTenantAttribute =>
           attr.type === tenantAttributeType.CERTIFIED && attr.id === attributeId
       );
 
-      if (
-        !certifiedTenantAttribute ||
-        certifiedTenantAttribute.type !== "PersistentCertifiedAttribute"
-      ) {
+      if (!certifiedTenantAttribute) {
         throw attributeNotFound(attributeId);
       }
 
@@ -416,15 +413,19 @@ export function tenantServiceBuilder(
         updatedAt: new Date(),
       };
 
-      updatedTenant = updateAttribute(
-        {
-          updatedTenant,
-          targetTenant,
-          attributeId,
-          revocationTimestamp: new Date(),
-        },
-        certifiedTenantAttribute.assignmentTimestamp
-      );
+      updatedTenant = {
+        ...updatedTenant,
+        attributes: targetTenant.data.attributes.map((a) =>
+          a.id === attributeId
+            ? {
+                ...a,
+                assignmentTimestamp:
+                  certifiedTenantAttribute.assignmentTimestamp,
+                revocationTimestamp: new Date(),
+              }
+            : a
+        ),
+      };
 
       const tenantKind = await getTenantKindLoadingCertifiedAttributes(
         readModelService,
@@ -439,14 +440,15 @@ export function tenantServiceBuilder(
         };
       }
 
-      const event = toCreateEventTenantCertifiedAttributeRevoked(
-        targetTenant.data.id,
-        targetTenant.metadata.version,
-        updatedTenant,
-        attributeId,
-        correlationId
+      await repository.createEvent(
+        toCreateEventTenantCertifiedAttributeRevoked(
+          targetTenant.data.id,
+          targetTenant.metadata.version,
+          updatedTenant,
+          attributeId,
+          correlationId
+        )
       );
-      await repository.createEvent(event);
     },
 
     async getCertifiedAttributes({
