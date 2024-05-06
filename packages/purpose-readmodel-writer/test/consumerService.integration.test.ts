@@ -47,12 +47,11 @@ import {
   WaitingForApprovalPurposeVersionDeletedV2,
   generateId,
   purposeVersionState,
-  toPurposeV1,
   toPurposeV2,
-  toPurposeVersionV1,
 } from "pagopa-interop-models";
 import { handleMessageV1 } from "../src/purposeConsumerServiceV1.js";
 import { handleMessageV2 } from "../src/purposeConsumerServiceV2.js";
+import { toPurposeV1, toPurposeVersionV1 } from "./protobufConverterToV1.js";
 
 describe("Integration tests", async () => {
   let purposes: PurposeCollection;
