@@ -2,7 +2,6 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable fp/no-delete */
 /* eslint-disable functional/immutable-data */
-import { fail } from "assert";
 import { FileManagerError } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
@@ -19,12 +18,12 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
-  AgreementAddedV1,
-  AgreementConsumerDocumentAddedV1,
+  AgreementAddedV2,
+  AgreementArchivedByUpgradeV2,
+  AgreementDocument,
   AgreementDocumentId,
   AgreementId,
-  AgreementUpdatedV1,
-  AgreementV1,
+  AgreementV2,
   Descriptor,
   DescriptorId,
   EService,
@@ -50,10 +49,7 @@ import {
   tenantIdNotFound,
   unexpectedVersionFormat,
 } from "../src/model/domain/errors.js";
-import {
-  toAgreementDocumentV1,
-  toAgreementV1,
-} from "../src/model/domain/toEvent.js";
+import { toAgreementV2 } from "../src/model/domain/toEvent.js";
 import { agreementUpgradableStates } from "../src/model/domain/validators.js";
 import { config } from "../src/utilities/config.js";
 import {
@@ -70,7 +66,6 @@ import {
   addOneTenant,
   getMockConsumerDocument,
   readAgreementEventByVersion,
-  readLastAgreementEvent,
 } from "./utils.js";
 
 export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
@@ -218,14 +213,14 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       );
 
       expect(actualAgreementArchivedEvent).toMatchObject({
-        type: "AgreementUpdated",
-        event_version: 1,
+        type: "AgreementArchivedByUpgrade",
+        event_version: 2,
         version: "1",
         stream_id: agreementToBeUpgraded.id,
       });
 
       const actualAgreementArchived = decodeProtobufPayload({
-        messageType: AgreementUpdatedV1,
+        messageType: AgreementArchivedByUpgradeV2,
         payload: actualAgreementArchivedEvent.data,
       }).agreement;
 
@@ -242,7 +237,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       };
 
       expect(actualAgreementArchived).toMatchObject(
-        toAgreementV1(expectedAgreementArchived)
+        toAgreementV2(expectedAgreementArchived)
       );
 
       expect(newAgreementId).toBeDefined();
@@ -255,18 +250,18 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
 
       expect(actualAgreementCreatedEvent).toMatchObject({
         type: "AgreementAdded",
-        event_version: 1,
+        event_version: 2,
         version: "0",
         stream_id: newAgreementId,
       });
 
-      const actualAgreementCreated: AgreementV1 | undefined =
+      const actualAgreementCreated: AgreementV2 | undefined =
         decodeProtobufPayload({
-          messageType: AgreementAddedV1,
+          messageType: AgreementAddedV2,
           payload: actualAgreementCreatedEvent.data,
         }).agreement;
 
-      const expectedCreatedAgreement = toAgreementV1({
+      const expectedCreatedAgreement = toAgreementV2({
         ...agreementToBeUpgraded,
         id: newAgreementId,
         descriptorId: publishedDescriptor.id,
@@ -278,56 +273,23 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
             when: TEST_EXECUTION_DATE,
           },
         },
+        consumerDocuments: agreementConsumerDocuments.map((doc, i) => ({
+          ...doc,
+          id: unsafeBrandId<AgreementDocumentId>(
+            actualAgreementCreated?.consumerDocuments[i].id as string
+          ),
+          path: actualAgreementCreated?.consumerDocuments[i].path as string,
+        })),
       });
 
-      // The method toAgreementV1 sets these to undefined,
+      // The method toAgreementV2 sets these to undefined,
       // while when we read the event data they are not present
       delete expectedCreatedAgreement.updatedAt;
       delete expectedCreatedAgreement.rejectionReason;
       expect(actualAgreementCreated).toMatchObject(expectedCreatedAgreement);
 
-      for (let index = 0; index < agreementConsumerDocuments.length; index++) {
-        const agreementConsumerDocument = agreementConsumerDocuments[index];
-        const currentVersion = index + 1;
-        const actualAgreementDocumentAddedEvent =
-          await readAgreementEventByVersion(
-            newAgreementId,
-            currentVersion,
-            postgresDB
-          );
-
-        expect(actualAgreementDocumentAddedEvent).toMatchObject({
-          type: "AgreementConsumerDocumentAdded",
-          event_version: 1,
-          version: currentVersion.toString(),
-          stream_id: newAgreementId,
-        });
-
-        const actualAgreementDocumentAdded = decodeProtobufPayload({
-          messageType: AgreementConsumerDocumentAddedV1,
-          payload: actualAgreementDocumentAddedEvent.data,
-        }).document;
-
-        expect(actualAgreementDocumentAdded).toBeDefined();
-        if (!actualAgreementDocumentAdded) {
-          fail("Document not found in event");
-        }
-        const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${actualAgreementDocumentAdded.id}/${agreementConsumerDocument.name}`;
-
-        const expectedCreatedDocument = {
-          id: unsafeBrandId<AgreementDocumentId>(
-            actualAgreementDocumentAdded.id
-          ),
-          name: agreementConsumerDocument.name,
-          prettyName: agreementConsumerDocument.prettyName,
-          contentType: agreementConsumerDocument.contentType,
-          path: expectedUploadedDocumentPath,
-          createdAt: TEST_EXECUTION_DATE,
-        };
-
-        expect(actualAgreementDocumentAdded).toMatchObject(
-          toAgreementDocumentV1(expectedCreatedDocument)
-        );
+      for (const agreementDoc of expectedCreatedAgreement.consumerDocuments) {
+        const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${agreementDoc.id}/${agreementDoc.name}`;
 
         expect(await fileManager.listFiles(config.s3Bucket)).toContainEqual(
           expectedUploadedDocumentPath
@@ -447,14 +409,14 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       );
 
       expect(actualAgreementArchivedEvent).toMatchObject({
-        type: "AgreementUpdated",
-        event_version: 1,
+        type: "AgreementArchivedByUpgrade",
+        event_version: 2,
         version: "1",
         stream_id: agreementToBeUpgraded.id,
       });
 
       const actualAgreementArchived = decodeProtobufPayload({
-        messageType: AgreementUpdatedV1,
+        messageType: AgreementArchivedByUpgradeV2,
         payload: actualAgreementArchivedEvent.data,
       }).agreement;
 
@@ -471,7 +433,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       };
 
       expect(actualAgreementArchived).toMatchObject(
-        toAgreementV1(expectedAgreementArchived)
+        toAgreementV2(expectedAgreementArchived)
       );
 
       expect(newAgreementId).toBeDefined();
@@ -484,18 +446,18 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
 
       expect(actualAgreementCreatedEvent).toMatchObject({
         type: "AgreementAdded",
-        event_version: 1,
+        event_version: 2,
         version: "0",
         stream_id: newAgreementId,
       });
 
-      const actualAgreementCreated: AgreementV1 | undefined =
+      const actualAgreementCreated: AgreementV2 | undefined =
         decodeProtobufPayload({
-          messageType: AgreementAddedV1,
+          messageType: AgreementAddedV2,
           payload: actualAgreementCreatedEvent.data,
         }).agreement;
 
-      const expectedCreatedAgreement = toAgreementV1({
+      const expectedCreatedAgreement = toAgreementV2({
         ...agreementToBeUpgraded,
         id: newAgreementId,
         descriptorId: publishedDescriptor.id,
@@ -507,9 +469,18 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
             when: TEST_EXECUTION_DATE,
           },
         },
+        consumerDocuments: [
+          {
+            ...agreementConsumerDocument,
+            id: unsafeBrandId<AgreementDocumentId>(
+              actualAgreementCreated?.consumerDocuments[0].id as string
+            ),
+            path: actualAgreementCreated?.consumerDocuments[0].path as string,
+          },
+        ],
       });
 
-      // The method toAgreementV1 sets these to undefined,
+      // The method toAgreementV2 sets these to undefined,
       // while when we read the event data they are not present
       delete expectedCreatedAgreement.updatedAt;
       delete expectedCreatedAgreement.rejectionReason;
@@ -518,16 +489,6 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       expect(await fileManager.listFiles(config.s3Bucket)).toContainEqual(
         expectedCreatedAgreement.consumerDocuments[0].path
       );
-
-      const actualAgreementConsumerDocumentEvent =
-        await readAgreementEventByVersion(newAgreementId, 1, postgresDB);
-
-      expect(actualAgreementConsumerDocumentEvent).toMatchObject({
-        type: "AgreementConsumerDocumentAdded",
-        event_version: 1,
-        version: "1",
-        stream_id: newAgreementId,
-      });
     });
 
     it("should succeed with invalid Verified attributes", async () => {
@@ -635,17 +596,17 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
 
       expect(actualAgreementCreatedEvent).toMatchObject({
         type: "AgreementAdded",
-        event_version: 1,
+        event_version: 2,
         version: "0",
         stream_id: newAgreementId,
       });
 
-      const actualCreatedAgreementV1 = decodeProtobufPayload({
-        messageType: AgreementAddedV1,
+      const actualCreatedAgreementV2 = decodeProtobufPayload({
+        messageType: AgreementAddedV2,
         payload: actualAgreementCreatedEvent.data,
       }).agreement;
 
-      const expectedCreatedAgreement = toAgreementV1({
+      const expectedCreatedAgreement = toAgreementV2({
         id: newAgreementId,
         eserviceId: agreementToBeUpgraded.eserviceId,
         descriptorId,
@@ -657,7 +618,18 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         consumerNotes: agreementToBeUpgraded.consumerNotes,
         state: agreementState.draft,
         createdAt: TEST_EXECUTION_DATE,
-        consumerDocuments: [],
+        consumerDocuments: [
+          {
+            id: unsafeBrandId<AgreementDocumentId>(
+              actualCreatedAgreementV2?.consumerDocuments[0].id as string
+            ),
+            name: agreementConsumerDocument.name,
+            prettyName: agreementConsumerDocument.prettyName,
+            contentType: agreementConsumerDocument.contentType,
+            path: actualCreatedAgreementV2?.consumerDocuments[0].path as string,
+            createdAt: TEST_EXECUTION_DATE,
+          },
+        ],
         stamps: {},
       });
 
@@ -665,42 +637,13 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       delete expectedCreatedAgreement.updatedAt;
       delete expectedCreatedAgreement.suspendedAt;
       delete expectedCreatedAgreement.contract;
-      expect(actualCreatedAgreementV1).toMatchObject(expectedCreatedAgreement);
+      expect(actualCreatedAgreementV2).toMatchObject(expectedCreatedAgreement);
 
-      const actualAgreementDocumentAddedEvent = await readLastAgreementEvent(
-        newAgreementId,
-        postgresDB
-      );
-
-      expect(actualAgreementDocumentAddedEvent).toMatchObject({
-        type: "AgreementConsumerDocumentAdded",
-        event_version: 1,
-        version: "1",
-        stream_id: newAgreementId,
-      });
-
-      const actualAgreementDocumentAdded = decodeProtobufPayload({
-        messageType: AgreementConsumerDocumentAddedV1,
-        payload: actualAgreementDocumentAddedEvent.data,
-      }).document;
-
-      expect(actualAgreementDocumentAdded).toBeDefined();
-      if (!actualAgreementDocumentAdded) {
-        fail("Document not found in event");
-      }
-      const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${actualAgreementDocumentAdded.id}/${agreementConsumerDocument.name}`;
-
-      const expectedCreatedDocument = {
-        id: unsafeBrandId<AgreementDocumentId>(actualAgreementDocumentAdded.id),
-        name: agreementConsumerDocument.name,
-        prettyName: agreementConsumerDocument.prettyName,
-        contentType: agreementConsumerDocument.contentType,
-        path: expectedUploadedDocumentPath,
-        createdAt: TEST_EXECUTION_DATE,
-      };
-      expect(actualAgreementDocumentAdded).toMatchObject(
-        toAgreementDocumentV1(expectedCreatedDocument)
-      );
+      const expectedUploadedDocumentPath = `${
+        config.consumerDocumentsPath
+      }/${newAgreementId}/${
+        actualCreatedAgreementV2?.consumerDocuments[0].id as string
+      }/${agreementConsumerDocument.name}`;
 
       expect(await fileManager.listFiles(config.s3Bucket)).toContainEqual(
         expectedUploadedDocumentPath
@@ -822,17 +765,17 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
 
       expect(actualAgreementCreatedEvent).toMatchObject({
         type: "AgreementAdded",
-        event_version: 1,
+        event_version: 2,
         version: "0",
         stream_id: newAgreementId,
       });
 
       const actualCreatedAgreement = decodeProtobufPayload({
-        messageType: AgreementAddedV1,
+        messageType: AgreementAddedV2,
         payload: actualAgreementCreatedEvent.data,
       }).agreement;
 
-      const expectedCreatedAgreement = toAgreementV1({
+      const expectedCreatedAgreement = toAgreementV2({
         id: newAgreementId,
         eserviceId: agreementToBeUpgraded.eserviceId,
         descriptorId,
@@ -844,7 +787,18 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         consumerNotes: agreementToBeUpgraded.consumerNotes,
         state: agreementState.draft,
         createdAt: TEST_EXECUTION_DATE,
-        consumerDocuments: [],
+        consumerDocuments: [
+          {
+            id: unsafeBrandId<AgreementDocumentId>(
+              actualCreatedAgreement?.consumerDocuments[0].id as string
+            ),
+            name: agreementConsumerDocument.name,
+            prettyName: agreementConsumerDocument.prettyName,
+            contentType: agreementConsumerDocument.contentType,
+            path: actualCreatedAgreement?.consumerDocuments[0].path as string,
+            createdAt: TEST_EXECUTION_DATE,
+          },
+        ],
         stamps: {},
       });
 
@@ -854,41 +808,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       delete expectedCreatedAgreement.contract;
       expect(actualCreatedAgreement).toMatchObject(expectedCreatedAgreement);
 
-      const actualAgreementDocumentAddedEvent = await readLastAgreementEvent(
-        newAgreementId,
-        postgresDB
-      );
-
-      expect(actualAgreementDocumentAddedEvent).toMatchObject({
-        type: "AgreementConsumerDocumentAdded",
-        event_version: 1,
-        version: "1",
-        stream_id: newAgreementId,
-      });
-
-      const actualAgreementDocumentAdded = decodeProtobufPayload({
-        messageType: AgreementConsumerDocumentAddedV1,
-        payload: actualAgreementDocumentAddedEvent.data,
-      }).document;
-
-      expect(actualAgreementDocumentAdded).toBeDefined();
-      if (!actualAgreementDocumentAdded) {
-        fail("Document not found in event");
-      }
-      const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${actualAgreementDocumentAdded.id}/${agreementConsumerDocument.name}`;
-
-      const expectedCreatedDocument = {
-        id: unsafeBrandId<AgreementDocumentId>(actualAgreementDocumentAdded.id),
-        name: agreementConsumerDocument.name,
-        prettyName: agreementConsumerDocument.prettyName,
-        contentType: agreementConsumerDocument.contentType,
-        path: expectedUploadedDocumentPath,
-        createdAt: TEST_EXECUTION_DATE,
-      };
-
-      expect(actualAgreementDocumentAdded).toMatchObject(
-        toAgreementDocumentV1(expectedCreatedDocument)
-      );
+      const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${actualCreatedAgreement?.consumerDocuments[0].id}/${agreementConsumerDocument.name}`;
 
       expect(await fileManager.listFiles(config.s3Bucket)).toContainEqual(
         expectedUploadedDocumentPath
@@ -1012,17 +932,17 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
 
       expect(actualAgreementCreatedEvent).toMatchObject({
         type: "AgreementAdded",
-        event_version: 1,
+        event_version: 2,
         version: "0",
         stream_id: newAgreementId,
       });
 
       const actualCreatedAgreement = decodeProtobufPayload({
-        messageType: AgreementAddedV1,
+        messageType: AgreementAddedV2,
         payload: actualAgreementCreatedEvent.data,
       }).agreement;
 
-      const expectedCreatedAgreement = toAgreementV1({
+      const expectedCreatedAgreement = toAgreementV2({
         id: newAgreementId,
         eserviceId: agreementToBeUpgraded.eserviceId,
         descriptorId,
@@ -1034,7 +954,15 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
         consumerNotes: agreementToBeUpgraded.consumerNotes,
         state: agreementState.draft,
         createdAt: TEST_EXECUTION_DATE,
-        consumerDocuments: [],
+        consumerDocuments: agreementConsumerDocuments.map<AgreementDocument>(
+          (doc, i) => ({
+            ...doc,
+            id: unsafeBrandId(
+              actualCreatedAgreement?.consumerDocuments[i].id as string
+            ),
+            path: actualCreatedAgreement?.consumerDocuments[i].path as string,
+          })
+        ),
         stamps: {},
       });
 
@@ -1044,49 +972,8 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       delete expectedCreatedAgreement.contract;
       expect(actualCreatedAgreement).toMatchObject(expectedCreatedAgreement);
 
-      // The following assertions verify the "AgreementConsumerDocumentAdded" event for each document
-      for (let index = 0; index < agreementConsumerDocuments.length; index++) {
-        const agreementConsumerDocument = agreementConsumerDocuments[index];
-        const currentVersion = index + 1;
-        const actualAgreementDocumentAddedEvent =
-          await readAgreementEventByVersion(
-            newAgreementId,
-            currentVersion,
-            postgresDB
-          );
-
-        expect(actualAgreementDocumentAddedEvent).toMatchObject({
-          type: "AgreementConsumerDocumentAdded",
-          event_version: 1,
-          version: currentVersion.toString(),
-          stream_id: newAgreementId,
-        });
-
-        const actualAgreementDocumentAdded = decodeProtobufPayload({
-          messageType: AgreementConsumerDocumentAddedV1,
-          payload: actualAgreementDocumentAddedEvent.data,
-        }).document;
-
-        expect(actualAgreementDocumentAdded).toBeDefined();
-        if (!actualAgreementDocumentAdded) {
-          fail("Document not found in event");
-        }
-        const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${actualAgreementDocumentAdded.id}/${agreementConsumerDocument.name}`;
-
-        const expectedCreatedDocument = {
-          id: unsafeBrandId<AgreementDocumentId>(
-            actualAgreementDocumentAdded.id
-          ),
-          name: agreementConsumerDocument.name,
-          prettyName: agreementConsumerDocument.prettyName,
-          contentType: agreementConsumerDocument.contentType,
-          path: expectedUploadedDocumentPath,
-          createdAt: TEST_EXECUTION_DATE,
-        };
-
-        expect(actualAgreementDocumentAdded).toMatchObject(
-          toAgreementDocumentV1(expectedCreatedDocument)
-        );
+      for (const agreementDoc of expectedCreatedAgreement.consumerDocuments) {
+        const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${agreementDoc.id}/${agreementDoc.name}`;
 
         expect(await fileManager.listFiles(config.s3Bucket)).toContainEqual(
           expectedUploadedDocumentPath
