@@ -16,7 +16,8 @@
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
     "start": "node --watch --loader ts-node/esm -r 'dotenv-flow/config' ./src/index.ts",
-    "build": "tsc"
+    "build": "tsc",
+    "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
   "author": "",
@@ -47,6 +48,6 @@
     "pagopa-interop-models": "workspace:^",
     "ts-pattern": "5.0.6",
     "uuid": "9.0.1",
-    "zod": "3.21.4"
+    "zod": "3.22.3"
   }
 }

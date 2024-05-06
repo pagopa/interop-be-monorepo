@@ -47,13 +47,12 @@ import {
   WaitingForApprovalPurposeVersionDeletedV2,
   generateId,
   purposeVersionState,
-  toPurposeV1,
   toPurposeV2,
-  toPurposeVersionV1,
   toReadModelPurpose,
 } from "pagopa-interop-models";
 import { handleMessageV1 } from "../src/purposeConsumerServiceV1.js";
 import { handleMessageV2 } from "../src/purposeConsumerServiceV2.js";
+import { toPurposeV1, toPurposeVersionV1 } from "./protobufConverterToV1.js";
 
 describe("Integration tests", async () => {
   let purposes: PurposeCollection;
@@ -711,6 +710,7 @@ describe("Integration tests", async () => {
 
       const payload: PurposeArchivedV2 = {
         purpose: toPurposeV2(updatedPurpose),
+        versionId: activeVersion.id,
       };
 
       const message: PurposeEventEnvelope = {
@@ -1150,6 +1150,7 @@ describe("Integration tests", async () => {
 
       const payload: PurposeVersionActivatedV2 = {
         purpose: toPurposeV2(updatedPurpose),
+        versionId: draftVersion.id,
       };
 
       const message: PurposeEventEnvelope = {
