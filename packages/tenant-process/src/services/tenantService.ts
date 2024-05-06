@@ -384,39 +384,13 @@ export function tenantServiceBuilder(
           attr.type === tenantAttributeType.DECLARED && attr.id === attribute.id
       );
 
-      // eslint-disable-next-line functional/no-let
-      let updatedTenant: Tenant = {
+      const updatedTenant: Tenant = {
         ...targetTenant.data,
+        attributes: !maybeDeclaredTenantAttribute
+          ? assignDeclaredAttribute(targetTenant.data, attribute.id)
+          : reassignDeclaredAttribute(targetTenant.data, attribute.id),
         updatedAt: new Date(),
       };
-      if (!maybeDeclaredTenantAttribute) {
-        // assigning attribute for the first time
-        updatedTenant = {
-          ...updatedTenant,
-          attributes: [
-            ...targetTenant.data.attributes,
-            {
-              id: unsafeBrandId(attribute.id),
-              type: tenantAttributeType.DECLARED,
-              assignmentTimestamp: new Date(),
-              revocationTimestamp: undefined,
-            },
-          ],
-        };
-      } else {
-        updatedTenant = {
-          ...updatedTenant,
-          attributes: targetTenant.data.attributes.map((attr) =>
-            attr.id === attribute.id
-              ? {
-                  ...attr,
-                  assignmentTimestamp: new Date(),
-                  revocationTimestamp: undefined,
-                }
-              : attr
-          ),
-        };
-      }
 
       await repository.createEvent(
         toCreateEventTenantDeclaredAttributeAssigned(
@@ -587,6 +561,36 @@ async function assignCertifiedAttribute({
     };
   }
   return updatedTenant;
+}
+
+function assignDeclaredAttribute(
+  targetTenant: Tenant,
+  attributeId: AttributeId
+): TenantAttribute[] {
+  return [
+    ...targetTenant.attributes,
+    {
+      id: unsafeBrandId(attributeId),
+      type: tenantAttributeType.DECLARED,
+      assignmentTimestamp: new Date(),
+      revocationTimestamp: undefined,
+    },
+  ];
+}
+
+function reassignDeclaredAttribute(
+  targetTenant: Tenant,
+  attributeId: AttributeId
+): TenantAttribute[] {
+  return targetTenant.attributes.map((attr) =>
+    attr.id === attributeId
+      ? {
+          ...attr,
+          assignmentTimestamp: new Date(),
+          revocationTimestamp: undefined,
+        }
+      : attr
+  );
 }
 
 export type TenantService = ReturnType<typeof tenantServiceBuilder>;
