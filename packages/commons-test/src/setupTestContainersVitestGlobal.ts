@@ -28,7 +28,6 @@ declare module "vitest" {
 export function setupTestContainersVitestGlobal() {
   dotenv();
   const config = TestContainersConfig.parse(process.env);
-  let teardown = false;
 
   return async function ({
     provide,
@@ -59,11 +58,6 @@ export function setupTestContainersVitestGlobal() {
     provide("config", config);
 
     return async (): Promise<void> => {
-      if (teardown) {
-        throw new Error("teardown called twice");
-      }
-
-      teardown = true;
       await startedPostgreSqlContainer.stop();
       await startedMongodbContainer.stop();
       await startedMinioContainer?.stop();
