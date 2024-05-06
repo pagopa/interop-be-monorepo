@@ -5,7 +5,6 @@
 import {
   ReadModelRepository,
   initDB,
-  logger,
   initFileManager,
 } from "pagopa-interop-commons";
 import { TestContainersConfig } from "./containerTestUtils.js";
@@ -24,10 +23,6 @@ export function setupTestContainersVitest(config: TestContainersConfig) {
     schema: config.eventStoreDbSchema,
     useSSL: config.eventStoreDbUseSSL,
   });
-
-  if (!postgresDB) {
-    logger.error("postgresDB is undefined!!");
-  }
 
   const fileManager = initFileManager(config);
 
