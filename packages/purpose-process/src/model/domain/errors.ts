@@ -36,7 +36,6 @@ export const errorCodes = {
   eserviceRiskAnalysisNotFound: "0020",
   purposeCannotBeCloned: "0021",
   riskAnalysisConfigVersionNotFound: "0022",
-  riskAnalysisConfigForTenantKindNotFound: "0023",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -255,15 +254,5 @@ export function RiskAnalysisConfigVersionNotFound(
     detail: `Risk Analysis Configuration version ${version} for tenant kind ${tenantKind} not found`,
     code: "riskAnalysisConfigVersionNotFound",
     title: "Risk Analysis config version not found",
-  });
-}
-
-export function RiskAnalysisConfigForTenantKindNotFound(
-  tenantId: TenantId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Risk Analysis Configuration for tenant ${tenantId} not found`,
-    code: "riskAnalysisConfigForTenantKindNotFound",
-    title: "Risk Analysis config for tenant kind not found",
   });
 }

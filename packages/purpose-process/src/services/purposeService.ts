@@ -56,7 +56,6 @@ import {
   purposeVersionNotFound,
   tenantNotFound,
   RiskAnalysisConfigVersionNotFound,
-  RiskAnalysisConfigForTenantKindNotFound,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -863,13 +862,7 @@ export function purposeServiceBuilder(
 
       assertTenantKindExists(tenant);
 
-      const kindConfig = riskAnalysisFormRules[tenant.kind];
-
-      if (!kindConfig) {
-        throw RiskAnalysisConfigForTenantKindNotFound(tenant.id);
-      }
-
-      const riskAnalysisFormConfig = kindConfig.find(
+      const riskAnalysisFormConfig = riskAnalysisFormRules[tenant.kind].find(
         (config) => config.version === riskAnalysisVersion
       );
 

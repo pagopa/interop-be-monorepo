@@ -20,7 +20,6 @@ import {
 } from "../model/domain/apiConverter.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../utilities/config.js";
-import { purposeServiceBuilder } from "../services/purposeServiceBuilder.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
   archivePurposeVersionErrorMapper,
@@ -36,6 +35,7 @@ import {
   suspendPurposeVersionErrorMapper,
   updatePurposeErrorMapper,
 } from "../utilities/errorMappers.js";
+import { purposeServiceBuilder } from "../services/purposeService.js";
 
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
