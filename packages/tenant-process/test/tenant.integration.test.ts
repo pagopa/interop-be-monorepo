@@ -23,19 +23,15 @@ import {
 } from "pagopa-interop-commons-test";
 import { IDatabase } from "pg-promise";
 import {
-  Attribute,
   Descriptor,
   EService,
   Tenant,
-  TenantCertifiedAttributeAssignedV2,
-  TenantCertifiedAttributeV2,
   TenantId,
   TenantOnboardDetailsUpdatedV2,
   TenantOnboardedV2,
   TenantVerifiedAttributeExpirationUpdatedV2,
   TenantVerifiedAttributeExtensionUpdatedV2,
   descriptorState,
-  fromTenantKindV2,
   generateId,
   operationForbidden,
   protobufDecoder,
@@ -61,14 +57,11 @@ import {
   tenantNotFound,
   verifiedAttributeNotFoundInTenant,
   expirationDateNotFoundInVerifier,
-  certifiedAttributeAlreadyAssigned,
-  attributeNotFound,
 } from "../src/model/domain/errors.js";
 import { ApiSelfcareTenantSeed } from "../src/model/types.js";
 import { getTenantKind } from "../src/services/validators.js";
 import {
   addOneAgreement,
-  addOneAttribute,
   addOneEService,
   addOneTenant,
   currentDate,
@@ -77,7 +70,6 @@ import {
   getMockCertifiedTenantAttribute,
   getMockDescriptor,
   getMockEService,
-  getMockRevokedBy,
   getMockTenant,
   getMockVerifiedBy,
   getMockVerifiedTenantAttribute,
@@ -86,7 +78,7 @@ import {
 import { testAddCertifiedAttributes } from "./testAddCertifiedAttribute.js";
 import { testAddDeclaredAttributes } from "./testAddDeclaredAttribute.js";
 import { testVerifyVerifiedAttribute } from "./testVerifyVerifiedAttribute.js";
-import { testInternalAssignCertifiedAttribute } from "./testInternalAssignCertifiedAttribute.js";
+import { testInternalAssignCertifiedAttributes } from "./testInternalAssignCertifiedAttribute.js";
 
 export let tenants: TenantCollection;
 export let agreements: AgreementCollection;
@@ -585,7 +577,7 @@ describe("Integration tests", () => {
     testAddCertifiedAttributes();
     testAddDeclaredAttributes();
     testVerifyVerifiedAttribute();
-    testInternalAssignCertifiedAttribute();
+    testInternalAssignCertifiedAttributes();
   });
   describe("readModelService", () => {
     const tenant1: Tenant = {
