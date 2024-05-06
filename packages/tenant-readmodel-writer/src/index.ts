@@ -5,7 +5,7 @@ import {
   readModelWriterConfig,
   tenantTopicConfig,
   decodeKafkaMessage,
-  runWithContext,
+  runWithLoggerContext,
 } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
 import { TenantEvent } from "pagopa-interop-models";
@@ -17,8 +17,9 @@ async function processMessage({
 }: EachMessagePayload): Promise<void> {
   const decodedMessage = decodeKafkaMessage(message, TenantEvent);
 
-  await runWithContext(
+  await runWithLoggerContext(
     {
+      serviceName: "tenant-readmodel-writer",
       messageData: {
         eventType: decodedMessage.type,
         eventVersion: decodedMessage.event_version,

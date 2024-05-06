@@ -23,9 +23,8 @@
     "@faker-js/faker": "8.4.1",
     "@pagopa/eslint-config": "3.0.0",
     "@protobuf-ts/runtime": "2.9.4",
-    "@types/axios": "0.14.0",
     "@types/dotenv-flow": "3.2.0",
-    "@types/express": "4.17.17",
+    "@types/express": "4.17.21",
     "@types/node": "20.3.1",
     "@types/uuid": "9.0.8",
     "pagopa-interop-commons-test": "workspace:*",
@@ -38,10 +37,10 @@
   "dependencies": {
     "@zodios/core": "10.9.6",
     "@zodios/express": "10.6.1",
-    "axios": "1.4.0",
+    "axios": "1.6.8",
     "connection-string": "4.3.6",
     "dotenv-flow": "3.2.0",
-    "express": "4.18.2",
+    "express": "4.19.2",
     "mongodb": "5.6.0",
     "openapi-zod-client": "1.15.1",
     "pagopa-interop-commons": "workspace:*",
@@ -49,6 +48,6 @@
     "pg-promise": "11.5.0",
     "ts-pattern": "5.0.6",
     "uuid": "9.0.1",
-    "zod": "3.21.4"
+    "zod": "3.22.3"
   }
 }
