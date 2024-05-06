@@ -12,14 +12,13 @@ import {
   TenantVerifier,
   VerifiedTenantAttribute,
   WithMetadata,
-  agreementState,
   operationForbidden,
   tenantAttributeType,
   tenantKind,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
-  attributeNotFound,
   expirationDateCannotBeInThePast,
   organizationNotFoundInVerifiers,
   tenantNotFound,
@@ -27,7 +26,6 @@ import {
   selfcareIdConflict,
   expirationDateNotFoundInVerifier,
   tenantIsNotACertifier,
-  attributeVerificationNotAllowed,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -66,10 +64,10 @@ export async function assertVerifiedAttributeOperationAllowed({
   error: Error;
 }): Promise<void> {
   // Get agreements
-  const agreements = await readModelService.getAllAgreements({
-    producerId,
-    consumerId,
-    agreementStates,
+  const agreements = await readModelService.getAgreements({
+    consumerId: unsafeBrandId(consumerId),
+    producerId: unsafeBrandId(producerId),
+    states: agreementStates,
   });
 
   // Extract descriptor IDs
@@ -102,32 +100,6 @@ export async function assertVerifiedAttributeOperationAllowed({
   if (!attributeIds.has(attributeId)) {
     throw error;
   }
-}
-
-export async function assertAttributeVerificationAllowed({
-  producerId,
-  consumerId,
-  attributeId,
-  readModelService,
-}: {
-  producerId: TenantId;
-  consumerId: TenantId;
-  attributeId: AttributeId;
-  readModelService: ReadModelService;
-}): Promise<void> {
-  const allowedStatuses = [
-    agreementState.pending,
-    agreementState.active,
-    agreementState.suspended,
-  ];
-  await assertVerifiedAttributeOperationAllowed({
-    producerId,
-    consumerId,
-    attributeId,
-    agreementStates: allowedStatuses,
-    readModelService,
-    error: attributeVerificationNotAllowed(consumerId, attributeId),
-  });
 }
 
 export function assertOrganizationVerifierExist(
@@ -227,15 +199,6 @@ export async function getTenantKindLoadingCertifiedAttributes(
   const attrs = await readModelService.getAttributesById(attributesIds);
   const extIds = convertAttributes(attrs);
   return getTenantKind(extIds, externalId);
-}
-
-export function assertAttributeExists(
-  attributeId: AttributeId,
-  attributes: TenantAttribute[]
-): asserts attributes is NonNullable<TenantAttribute[]> {
-  if (!attributes.some((attr) => attr.id === attributeId)) {
-    throw attributeNotFound(attributeId);
-  }
 }
 
 export function assertValidExpirationDate(
