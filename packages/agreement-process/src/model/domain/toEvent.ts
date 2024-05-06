@@ -152,7 +152,7 @@ export function toCreateEventDraftAgreementUpdated(
   };
 }
 
-export function toCreateEventAgreementArchived(
+export function toCreateEventAgreementArchivedByConsumer(
   agreement: Agreement,
   version: number,
   correlationId: string
@@ -161,7 +161,7 @@ export function toCreateEventAgreementArchived(
     streamId: agreement.id,
     version,
     event: {
-      type: "AgreementArchived",
+      type: "AgreementArchivedByConsumer",
       event_version: 2,
       data: {
         agreement: toAgreementV2(agreement),

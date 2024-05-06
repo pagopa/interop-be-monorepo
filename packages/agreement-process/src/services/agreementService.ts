@@ -34,7 +34,7 @@ import {
 } from "../model/domain/models.js";
 import {
   toCreateEventAgreementAdded,
-  toCreateEventAgreementArchived,
+  toCreateEventAgreementArchivedByConsumer,
   toCreateEventAgreementArchivedByUpgrade,
   toCreateEventAgreementDeleted,
   toCreateEventAgreementRejected,
@@ -904,7 +904,7 @@ export async function archiveAgreementLogic(
     ...updateSeed,
   };
 
-  return toCreateEventAgreementArchived(
+  return toCreateEventAgreementArchivedByConsumer(
     updatedAgreement,
     agreement.metadata.version,
     correlationId
