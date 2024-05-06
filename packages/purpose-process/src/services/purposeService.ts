@@ -15,6 +15,7 @@ import {
   PurposeVersionId,
   ownership,
   purposeEventToBinaryData,
+  purposeVersionState,
 } from "pagopa-interop-models";
 import {
   eserviceNotFound,
