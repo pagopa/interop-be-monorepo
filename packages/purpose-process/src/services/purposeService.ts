@@ -1,6 +1,7 @@
 import {
   CreateEvent,
   DB,
+  RiskAnalysisFormRules,
   eventRepository,
   formatDateAndTime,
   logger,
@@ -35,7 +36,6 @@ import {
   Agreement,
   RiskAnalysisId,
   RiskAnalysis,
-  RiskAnalysisFormConfig,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -849,7 +849,7 @@ export function purposeServiceBuilder(
       eserviceId: EServiceId;
       riskAnalysisVersion: string;
       organizationId: TenantId;
-    }): Promise<RiskAnalysisFormConfig> {
+    }): Promise<RiskAnalysisFormRules> {
       logger.info(
         `Retrieve version ${riskAnalysisVersion} of risk analysis configuration`
       );
