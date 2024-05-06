@@ -18,11 +18,12 @@ export async function archiveDescriptorsForArchivedAgreement(
     eserviceId: EServiceId
   ) => Promise<void>
 ): Promise<void> {
-  const relatingAgreements =
+  const relatingAgreements = (
     await readModelService.getAgreementsByEserviceAndDescriptorId(
       archivedAgreement.eserviceId,
       archivedAgreement.descriptorId
-    );
+    )
+  ).filter((a) => a.id !== archivedAgreement.id);
 
   const allArchived = relatingAgreements.every(
     (a) => a.state === agreementState.archived

@@ -682,6 +682,9 @@ importers:
       '@zodios/plugins':
         specifier: 10.6.0
         version: 10.6.0(@zodios/core@10.9.6)(axios@1.6.8)
+      dotenv-flow:
+        specifier: 3.2.0
+        version: 3.2.0
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
