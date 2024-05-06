@@ -97,6 +97,7 @@ const agreementRouter = (
         const id = await agreementService.submitAgreement(
           unsafeBrandId(req.params.agreementId),
           req.body,
+          req.ctx.authData,
           req.ctx.correlationId
         );
         return res.status(200).json({ id }).end();
