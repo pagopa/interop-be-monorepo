@@ -27,7 +27,7 @@ import {
 } from "../model/domain/validators.js";
 import {
   toCreateEventAgreementActivated,
-  toCreateEventAgreementArchived,
+  toCreateEventAgreementArchivedByUpgrade,
   toCreateEventAgreementUnsuspendedByConsumer,
   toCreateEventAgreementUnsuspendedByProducer,
 } from "../model/domain/toEvent.js";
@@ -247,7 +247,7 @@ const archiveRelatedToAgreements = async (
   );
 
   return archivables.map((agreementData) =>
-    toCreateEventAgreementArchived(
+    toCreateEventAgreementArchivedByUpgrade(
       {
         ...agreementData.data,
         state: agreementState.archived,
