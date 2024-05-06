@@ -26,7 +26,7 @@ import { TestContainersConfig } from "./containerTestUtils.js";
  *   setupTestContainersVitest(inject("config"));
  *
  * afterEach(cleanup);
- *
+ * ```
  */
 export function setupTestContainersVitest(config: TestContainersConfig) {
   const s3OriginalBucket = config.s3Bucket;
