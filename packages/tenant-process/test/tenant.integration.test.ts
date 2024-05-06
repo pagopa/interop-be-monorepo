@@ -70,7 +70,6 @@ import {
   getMockCertifiedTenantAttribute,
   getMockDescriptor,
   getMockEService,
-  getMockRevokedBy,
   getMockTenant,
   getMockVerifiedBy,
   getMockVerifiedTenantAttribute,
@@ -78,7 +77,7 @@ import {
 } from "./utils.js";
 import { testAddCertifiedAttributes } from "./testAddCertifiedAttribute.js";
 import { testAddDeclaredAttributes } from "./testAddDeclaredAttribute.js";
-import { testVerifyVerifiedAttribute } from "./testVerifyVerifiedAttribute.js";
+import { testVerifyVerifiedAttributes } from "./testVerifyVerifiedAttribute.js";
 
 export let tenants: TenantCollection;
 export let agreements: AgreementCollection;
@@ -120,7 +119,6 @@ describe("Integration tests", () => {
   const mockDescriptor = getMockDescriptor();
   const mockTenant = getMockTenant();
   const mockVerifiedBy = getMockVerifiedBy();
-  const mockRevokedBy = getMockRevokedBy();
   const mockVerifiedTenantAttribute = getMockVerifiedTenantAttribute();
   const mockCertifiedTenantAttribute = getMockCertifiedTenantAttribute();
 
@@ -577,7 +575,7 @@ describe("Integration tests", () => {
     });
     testAddCertifiedAttributes();
     testAddDeclaredAttributes();
-    testVerifyVerifiedAttribute();
+    testVerifyVerifiedAttributes();
   });
   describe("readModelService", () => {
     const tenant1: Tenant = {
