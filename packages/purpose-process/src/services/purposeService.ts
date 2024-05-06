@@ -15,7 +15,6 @@ import {
   PurposeVersionId,
   ownership,
   purposeEventToBinaryData,
-  purposeVersionState,
 } from "pagopa-interop-models";
 import {
   eserviceNotFound,
@@ -39,6 +38,7 @@ import { ReadModelService } from "./readModelService.js";
 import {
   isRejectable,
   isRiskAnalysisFormValid,
+  isDeletableVersion,
   purposeIsDraft,
 } from "./validators.js";
 
@@ -190,10 +190,7 @@ export function purposeServiceBuilder(
 
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
 
-      if (
-        purposeVersion.state !== purposeVersionState.waitingForApproval ||
-        purpose.data.versions.length === 1
-      ) {
+      if (!isDeletableVersion(purposeVersion, purpose.data)) {
         throw purposeVersionCannotBeDeleted(purposeId, versionId);
       }
 
