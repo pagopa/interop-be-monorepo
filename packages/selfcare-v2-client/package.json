@@ -14,6 +14,7 @@
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
     "build": "tsc",
+    "check": "tsc --project tsconfig.check.json",
     "generate-model": "mkdir -p ./src/model/generated && pnpm openapi-zod-client './open-api/selfcare-v2-client-spec.yml' -o './src/model/generated/api.ts'",
     "clean-generated": "pnpm exec rm ./src/model/generated/api.ts"
   },
