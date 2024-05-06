@@ -25,6 +25,10 @@ declare module "vitest" {
   ) => void;
 }
 
+/**
+ * This function is a global setup for vitest that starts and stops test containers for PostgreSQL, MongoDB and Minio.
+ * It must be called in a file that is used as a global setup in the vitest configuration.
+ */
 export function setupTestContainersVitestGlobal() {
   dotenv();
   const config = TestContainersConfig.parse(process.env);
