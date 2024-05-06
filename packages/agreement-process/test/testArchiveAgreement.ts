@@ -1,9 +1,9 @@
 import { fail } from "assert";
 import {
   Agreement,
+  AgreementArchivedV2,
   AgreementId,
-  AgreementUpdatedV1,
-  AgreementV1,
+  AgreementV2,
   EServiceId,
   TenantId,
   agreementState,
@@ -17,7 +17,7 @@ import {
   getRandomAuthData,
   randomArrayItem,
 } from "pagopa-interop-commons-test/index.js";
-import { toAgreementV1 } from "../src/model/domain/toEvent.js";
+import { toAgreementV2 } from "../src/model/domain/toEvent.js";
 import {
   agreementNotFound,
   agreementNotInExpectedState,
@@ -68,18 +68,18 @@ export const testArchiveAgreement = (): ReturnType<typeof describe> =>
       }
 
       expect(actualAgreementData).toMatchObject({
-        type: "AgreementUpdated",
-        event_version: 1,
+        type: "AgreementArchived",
+        event_version: 2,
         version: "1",
         stream_id: agreementId,
       });
 
-      const actualAgreement: AgreementV1 | undefined = protobufDecoder(
-        AgreementUpdatedV1
+      const actualAgreement: AgreementV2 | undefined = protobufDecoder(
+        AgreementArchivedV2
       ).parse(actualAgreementData.data)?.agreement;
 
       if (!actualAgreement) {
-        fail("impossible to decode AgreementAddedV1 data");
+        fail("impossible to decode AgreementArchivedV2 data");
       }
 
       const expectedAgreemenentArchived: Agreement = {
@@ -94,7 +94,7 @@ export const testArchiveAgreement = (): ReturnType<typeof describe> =>
         },
       };
       expect(actualAgreement).toMatchObject(
-        toAgreementV1(expectedAgreemenentArchived)
+        toAgreementV2(expectedAgreemenentArchived)
       );
 
       vi.useRealTimers();

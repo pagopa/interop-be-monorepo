@@ -7,7 +7,7 @@ import {
 } from "pagopa-interop-commons-test/index.js";
 import { describe, expect, it, vi } from "vitest";
 import {
-  AgreementDeletedV1,
+  AgreementDeletedV2,
   AgreementId,
   agreementState,
   generateId,
@@ -90,15 +90,15 @@ export const testDeleteAgreement = (): ReturnType<typeof describe> =>
 
       expect(agreementEvent).toMatchObject({
         type: "AgreementDeleted",
-        event_version: 1,
+        event_version: 2,
         version: "1",
         stream_id: agreement.id,
       });
 
       const agreementDeletedId = decodeProtobufPayload({
-        messageType: AgreementDeletedV1,
+        messageType: AgreementDeletedV2,
         payload: agreementEvent.data,
-      }).agreementId;
+      }).agreement?.id;
 
       expect(agreementDeletedId).toEqual(agreement.id);
 

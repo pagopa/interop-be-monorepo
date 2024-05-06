@@ -48,10 +48,16 @@ export async function addConsumerDocumentLogic(
   if (existentDocument) {
     throw agreementDocumentAlreadyExists(agreementId);
   }
+  const newDocument = apiAgreementDocumentToAgreementDocument(payload);
+
+  const updatedAgreement = {
+    ...agreement.data,
+    consumerDocuments: [...agreement.data.consumerDocuments, newDocument],
+  };
 
   return toCreateEventAgreementConsumerDocumentAdded(
-    agreementId,
-    apiAgreementDocumentToAgreementDocument(payload),
+    newDocument.id,
+    updatedAgreement,
     agreement.metadata.version,
     correlationId
   );
@@ -83,9 +89,16 @@ export async function removeAgreementConsumerDocumentLogic(
 
   await fileRemove(config.s3Bucket, existentDocument.path, logger);
 
+  const updatedAgreement = {
+    ...agreement.data,
+    consumerDocuments: agreement.data.consumerDocuments.filter(
+      (d) => d.id !== documentId
+    ),
+  };
+
   return toCreateEventAgreementConsumerDocumentRemoved(
-    agreementId,
     documentId,
+    updatedAgreement,
     agreement.metadata.version,
     correlationId
   );

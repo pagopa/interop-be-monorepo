@@ -30,7 +30,10 @@ import {
   eServiceNotFound,
   tenantIdNotFound,
 } from "../model/domain/errors.js";
-import { toCreateEventAgreementUpdated } from "../model/domain/toEvent.js";
+import {
+  toCreateEventAgreementArchivedByUpgrade,
+  toCreateEventAgreementSubmitted,
+} from "../model/domain/toEvent.js";
 import {
   assertRequesterIsConsumer,
   assertSubmittableState,
@@ -49,10 +52,7 @@ import {
   suspendedByPlatformFlag,
 } from "./agreementStateProcessor.js";
 import { AgreementQuery } from "./readmodel/agreementQuery.js";
-import {
-  ContractBuilder,
-  addAgreementContractLogic,
-} from "./agreementContractBuilder.js";
+import { ContractBuilder } from "./agreementContractBuilder.js";
 import { EserviceQuery } from "./readmodel/eserviceQuery.js";
 import { TenantQuery } from "./readmodel/tenantQuery.js";
 import { createStamp } from "./agreementStampUtils.js";
@@ -163,17 +163,6 @@ const submitAgreement = async (
     suspendedByPlatform
   );
 
-  const updatedAgreement = {
-    ...agreement,
-    ...updateSeed,
-  };
-
-  const updatedAgreementEvent = toCreateEventAgreementUpdated(
-    updatedAgreement,
-    agreementData.metadata.version,
-    correlationId
-  );
-
   const agreements = (
     await agreementQuery.getAllAgreements(
       {
@@ -185,6 +174,33 @@ const submitAgreement = async (
       logger
     )
   ).filter((a: WithMetadata<Agreement>) => a.data.id !== agreement.id);
+
+  const newAgreement = {
+    ...agreement,
+    ...updateSeed,
+  };
+
+  const submittedAgreement =
+    newAgreement.state === agreementState.active && agreements.length === 0
+      ? {
+          ...newAgreement,
+          contract: await createContract(
+            newAgreement,
+            eservice,
+            consumer,
+            updateSeed,
+            tenantQuery,
+            constractBuilder,
+            logger
+          ),
+        }
+      : newAgreement;
+
+  const submittedAgreementEvent = toCreateEventAgreementSubmitted(
+    submittedAgreement,
+    agreementData.metadata.version,
+    correlationId
+  );
 
   const archivedAgreementsUpdates: Array<CreateEvent<AgreementEvent>> =
     isActiveOrSuspended(newState)
@@ -201,7 +217,7 @@ const submitAgreement = async (
                 },
               };
 
-              return toCreateEventAgreementUpdated(
+              return toCreateEventAgreementArchivedByUpgrade(
                 {
                   ...agreement.data,
                   ...updateSeed,
@@ -216,48 +232,18 @@ const submitAgreement = async (
 
   validateActiveOrPendingAgreement(agreement.id, newState);
 
-  /*
-    NOTE (@Viktor-K)
-    The 'createContractEvents' array contains events related to contract creation or updates to the same agreement (identified by the same stream ID)
-    as the previous events collected in 'updatedAgreementEvent.'
-    To ensure proper event versioning progression, we need to manually increment the version by '+1.'
-    This incrementation should reflect the next expected version at the moment when the 'create-contract-event' was processed, not when it was initially created."
-    */
-  const createContractEvents: Array<CreateEvent<AgreementEvent>> =
-    updatedAgreement.state === agreementState.active && agreements.length === 0
-      ? [
-          await createContract(
-            updatedAgreement,
-            updatedAgreementEvent.version + 1,
-            eservice,
-            consumer,
-            updateSeed,
-            tenantQuery,
-            constractBuilder,
-            correlationId,
-            logger
-          ),
-        ]
-      : [];
-
-  return [
-    updatedAgreementEvent,
-    ...archivedAgreementsUpdates,
-    ...createContractEvents,
-  ];
+  return [submittedAgreementEvent, ...archivedAgreementsUpdates];
 };
 
 const createContract = async (
   agreement: Agreement,
-  agreementVersionNumer: number,
   eservice: EService,
   consumer: Tenant,
   seed: UpdateAgreementSeed,
   tenantQuery: TenantQuery,
   constractBuilder: ContractBuilder,
-  correlationId: string,
   logger: Logger
-): Promise<CreateEvent<AgreementEvent>> => {
+): Promise<AgreementDocument> => {
   const producer = await tenantQuery.getTenantById(
     agreement.producerId,
     logger
@@ -284,13 +270,7 @@ const createContract = async (
     createdAt: new Date(),
   };
 
-  return addAgreementContractLogic(
-    agreement.id,
-    agreementdocumentSeed,
-    agreementVersionNumer,
-    correlationId,
-    logger
-  );
+  return agreementdocumentSeed;
 };
 
 const validateConsumerEmail = async (
