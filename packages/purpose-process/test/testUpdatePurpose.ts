@@ -116,7 +116,7 @@ export const testUpdatePurpose = (): ReturnType<typeof describe> =>
       ...purposeUpdateContent,
     };
 
-    it("Should write on event store for the update of a purpose of an e-service in mode DELIVER", async () => {
+    it("Should write on event store for the update of a purpose of an e-service in mode DELIVER (including title change)", async () => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date());
 
@@ -159,7 +159,56 @@ export const testUpdatePurpose = (): ReturnType<typeof describe> =>
       expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
       vi.useRealTimers();
     });
-    it("Should write on event store for the update of a purpose of an e-service in mode RECEIVE", async () => {
+
+    it("Should write on event store for the update of a purpose of an e-service in mode DELIVER (no title change)", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date());
+
+      await addOnePurpose(purposeForDeliver, postgresDB, purposes);
+      await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
+      await writeInReadmodel(tenant, tenants);
+
+      const updateContentWithoutTitle = {
+        ...purposeUpdateContent,
+        title: purposeForDeliver.title,
+      };
+
+      await purposeService.updatePurpose({
+        purposeId: purposeForDeliver.id,
+        purposeUpdateContent: updateContentWithoutTitle,
+        organizationId: tenant.id,
+        correlationId: generateId(),
+      });
+
+      const writtenEvent = await readLastEventByStreamId(
+        purposeForDeliver.id,
+        "purpose",
+        postgresDB
+      );
+
+      expect(writtenEvent).toMatchObject({
+        stream_id: purposeForDeliver.id,
+        version: "1",
+        type: "DraftPurposeUpdated",
+        event_version: 2,
+      });
+
+      const writtenPayload = decodeProtobufPayload({
+        messageType: DraftPurposeUpdatedV2,
+        payload: writtenEvent.data,
+      });
+
+      const expectedPurpose: Purpose = createUpdatedPurpose(
+        purposeForDeliver,
+        updateContentWithoutTitle,
+        validRiskAnalysis,
+        writtenPayload.purpose!.riskAnalysisForm!
+      );
+
+      expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+      vi.useRealTimers();
+    });
+    it("Should write on event store for the update of a purpose of an e-service in mode RECEIVE (including title change)", async () => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date());
 
