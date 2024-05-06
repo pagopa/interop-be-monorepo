@@ -55,6 +55,7 @@ import {
   assertEserviceHasSpecificMode,
   assertConsistentFreeOfCharge,
   isRiskAnalysisFormValid,
+  isDeletableVersion,
   purposeIsDraft,
   assertTenantKindExists,
   reverseValidateAndTransformRiskAnalysis,
@@ -209,10 +210,7 @@ export function purposeServiceBuilder(
 
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
 
-      if (
-        purposeVersion.state !== purposeVersionState.waitingForApproval ||
-        purpose.data.versions.length === 1
-      ) {
+      if (!isDeletableVersion(purposeVersion, purpose.data)) {
         throw purposeVersionCannotBeDeleted(purposeId, versionId);
       }
 
