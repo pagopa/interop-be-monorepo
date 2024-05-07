@@ -14,6 +14,7 @@ import {
   descriptorState,
   tenantAttributeType,
   Attribute,
+  attributeKind,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi } from "vitest";
 import {
@@ -47,7 +48,7 @@ import {
   attributes,
 } from "./tenant.integration.test.js";
 
-export const testVerifyVerifiedAttributes = (): ReturnType<typeof describe> =>
+export const testVerifyVerifiedAttribute = (): ReturnType<typeof describe> =>
   describe("verifyVerifiedAttribute", async () => {
     const tenantAttributeSeed: ApiVerifiedTenantAttributeSeed = {
       id: generateId(),
@@ -58,7 +59,7 @@ export const testVerifyVerifiedAttributes = (): ReturnType<typeof describe> =>
     const attribute: Attribute = {
       ...getMockAttribute(),
       id: unsafeBrandId(tenantAttributeSeed.id),
-      kind: "Verified",
+      kind: attributeKind.verified,
     };
 
     const descriptor1: Descriptor = {
@@ -81,8 +82,6 @@ export const testVerifyVerifiedAttributes = (): ReturnType<typeof describe> =>
     const eService1: EService = {
       ...getMockEService(),
       producerId: requesterTenant.id,
-      id: generateId(),
-      name: "A",
       descriptors: [descriptor1],
     };
 
