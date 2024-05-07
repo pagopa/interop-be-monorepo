@@ -3,20 +3,26 @@ import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import {
   CatalogTopicConfig,
+  PurposeTopicConfig,
   catalogTopicConfig,
   kafkaConsumerConfig,
   logger,
   loggerConfig,
   messageDecoderSupplier,
+  purposeTopicConfig,
   runWithContext,
 } from "pagopa-interop-commons";
+import { match } from "ts-pattern";
 import { toCatalogItemEventNotification } from "./models/catalogItemEventNotificationConverter.js";
 import { buildCatalogMessage } from "./models/catalogItemEventNotificationMessage.js";
 import { initQueueManager } from "./queue-manager/queueManager.js";
 import { notificationConfig } from "./config/notificationConfig.js";
+import { toPurposeEventNotification } from "./models/purposeEventNotificationConverter.js";
+import { buildPurposeMessage } from "./models/purposeEventNotificationMessage.js";
 
 const config = kafkaConsumerConfig();
-const topicsConfig = catalogTopicConfig();
+const catalogTopicConf = catalogTopicConfig();
+const purposeTopicConf = purposeTopicConfig();
 const logConfig = loggerConfig();
 const queueConfig = notificationConfig();
 const queueManager = initQueueManager({
@@ -25,12 +31,33 @@ const queueManager = initQueueManager({
   logLevel: logConfig.logLevel,
 });
 
-export function processMessage(topicConfig: CatalogTopicConfig) {
+export function processMessage(
+  catalogTopicConfig: CatalogTopicConfig,
+  purposeTopicConfig: PurposeTopicConfig
+) {
   return async (kafkaMessage: EachMessagePayload): Promise<void> => {
-    const messageDecoder = messageDecoderSupplier(
-      topicConfig,
+    const { messageDecoder, eventParser, messageBuilder } = match(
       kafkaMessage.topic
-    );
+    )
+      .with(catalogTopicConfig.catalogTopic, () => ({
+        messageDecoder: messageDecoderSupplier(
+          catalogTopicConfig,
+          kafkaMessage.topic
+        ),
+        eventParser: toCatalogItemEventNotification,
+        messageBuilder: buildCatalogMessage,
+      }))
+      .with(purposeTopicConfig.purposeTopic, () => ({
+        messageDecoder: messageDecoderSupplier(
+          purposeTopicConfig,
+          kafkaMessage.topic
+        ),
+        eventParser: toPurposeEventNotification,
+        messageBuilder: buildPurposeMessage,
+      }))
+      .otherwise(() => {
+        throw new Error(`Unknown topic: ${kafkaMessage.topic}`);
+      });
 
     const decodedMessage = messageDecoder(kafkaMessage.message);
 
@@ -51,8 +78,8 @@ export function processMessage(topicConfig: CatalogTopicConfig) {
           return;
         }
 
-        const eserviceV1Event = toCatalogItemEventNotification(decodedMessage);
-        const message = buildCatalogMessage(decodedMessage, eserviceV1Event);
+        const event = eventParser(decodedMessage);
+        const message = messageBuilder(decodedMessage, event);
         await queueManager.send(message);
 
         logger.info(
@@ -65,6 +92,6 @@ export function processMessage(topicConfig: CatalogTopicConfig) {
 
 await runConsumer(
   config,
-  [topicsConfig.catalogTopic],
-  processMessage(topicsConfig)
+  [catalogTopicConf.catalogTopic, purposeTopicConf.purposeTopic],
+  processMessage(catalogTopicConf, purposeTopicConf)
 );
