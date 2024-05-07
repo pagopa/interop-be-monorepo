@@ -477,7 +477,6 @@ export function tenantServiceBuilder(
 
       await repository.createEvent(
         toCreateEventTenantVerifiedAttributeAssigned(
-          targetTenant.data.id,
           targetTenant.metadata.version,
           updatedTenant,
           unsafeBrandId(tenantAttributeSeed.id),
