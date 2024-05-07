@@ -5,15 +5,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
 import { fail } from "assert";
-import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import {
   AgreementCollection,
   EServiceCollection,
@@ -34,7 +26,6 @@ import {
   EService,
   Tenant,
   TenantId,
-  TenantMailAddedV2,
   TenantOnboardDetailsUpdatedV2,
   TenantOnboardedV2,
   TenantVerifiedAttributeExpirationUpdatedV2,
@@ -57,10 +48,7 @@ import {
   TenantService,
   tenantServiceBuilder,
 } from "../src/services/tenantService.js";
-import {
-  MailSeed,
-  UpdateVerifiedTenantAttributeSeed,
-} from "../src/model/domain/models.js";
+import { UpdateVerifiedTenantAttributeSeed } from "../src/model/domain/models.js";
 import {
   expirationDateCannotBeInThePast,
   organizationNotFoundInVerifiers,
@@ -68,7 +56,6 @@ import {
   tenantNotFound,
   verifiedAttributeNotFoundInTenant,
   expirationDateNotFoundInVerifier,
-  mailAlreadyExists,
 } from "../src/model/domain/errors.js";
 import { ApiSelfcareTenantSeed } from "../src/model/types.js";
 import { getTenantKind } from "../src/services/validators.js";
@@ -88,6 +75,7 @@ import {
   readLastTenantEvent,
 } from "./utils.js";
 import { testDeleteTenantMailById } from "./testDeleteTenantMailById.js";
+import { testAddTenantMail } from "./testAddTenantMail.js";
 
 export let tenants: TenantCollection;
 export let agreements: AgreementCollection;
@@ -579,104 +567,8 @@ describe("Integration tests", () => {
         );
       });
     });
-    describe("addTenantMail", async () => {
-      const mailSeed: MailSeed = {
-        kind: "CONTACT_EMAIL",
-        address: "testMail@test.it",
-        description: "mail description",
-      };
-
-      it("Should correctly add the mail", async () => {
-        vi.useFakeTimers();
-        vi.setSystemTime(new Date());
-        await addOneTenant(mockTenant, postgresDB, tenants);
-        await tenantService.addTenantMail({
-          tenantId: mockTenant.id,
-          mailSeed,
-          organizationId: mockTenant.id,
-          correlationId: generateId(),
-        });
-        const writtenEvent = await readLastTenantEvent(
-          mockTenant.id,
-          postgresDB
-        );
-        if (!writtenEvent) {
-          fail("Creation fails: tenant not found in event-store");
-        }
-
-        expect(writtenEvent).toMatchObject({
-          stream_id: mockTenant.id,
-          version: "1",
-          type: "TenantMailAdded",
-        });
-
-        const writtenPayload: TenantMailAddedV2 | undefined = protobufDecoder(
-          TenantMailAddedV2
-        ).parse(writtenEvent.data);
-
-        const updatedTenant: Tenant = {
-          ...mockTenant,
-          mails: [
-            {
-              id: writtenPayload.mailId,
-              createdAt: new Date(),
-              kind: "CONTACT_EMAIL",
-              address: "testMail@test.it",
-              description: "mail description",
-            },
-          ],
-          updatedAt: new Date(),
-        };
-        expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
-        vi.useRealTimers();
-      });
-      it("Should throw tenantNotFound if the tenant doesn't exists", async () => {
-        expect(
-          tenantService.addTenantMail({
-            tenantId: mockTenant.id,
-            mailSeed,
-            organizationId: mockTenant.id,
-            correlationId: generateId(),
-          })
-        ).rejects.toThrowError(tenantNotFound(mockTenant.id));
-      });
-      it("Should throw operationForbidden when tenantId is not the organizationId", async () => {
-        await addOneTenant(mockTenant, postgresDB, tenants);
-        expect(
-          tenantService.addTenantMail({
-            tenantId: mockTenant.id,
-            mailSeed,
-            organizationId: generateId(),
-            correlationId: generateId(),
-          })
-        ).rejects.toThrowError(operationForbidden);
-      });
-      it("Should throw mailAlreadyExists if address already exists in the tenant mail", async () => {
-        const tenant: Tenant = {
-          ...mockTenant,
-          mails: [
-            {
-              id: generateId(),
-              createdAt: new Date(),
-              kind: "CONTACT_EMAIL",
-              address: "testMail@test.it",
-            },
-          ],
-        };
-
-        await addOneTenant(tenant, postgresDB, tenants);
-        expect(
-          tenantService.addTenantMail({
-            tenantId: tenant.id,
-            mailSeed,
-            organizationId: tenant.id,
-            correlationId: generateId(),
-          })
-        ).rejects.toThrowError(mailAlreadyExists(mailSeed.address));
-      });
-    });
-
     testDeleteTenantMailById();
+    testAddTenantMail();
   });
   describe("readModelService", () => {
     const tenant1: Tenant = {
