@@ -12,6 +12,7 @@ import {
   purposeTopicConfig,
   runWithContext,
 } from "pagopa-interop-commons";
+import { match } from "ts-pattern";
 import { toCatalogItemEventNotification } from "./models/catalogItemEventNotificationConverter.js";
 import { buildCatalogMessage } from "./models/catalogItemEventNotificationMessage.js";
 import { initQueueManager } from "./queue-manager/queueManager.js";
@@ -35,18 +36,31 @@ export function processMessage(
   purposeTopicConfig: PurposeTopicConfig
 ) {
   return async (kafkaMessage: EachMessagePayload): Promise<void> => {
-    const messageDecoder = messageDecoderSupplier(
-      catalogTopicConfig,
+    const { messageDecoder, eventParser, messageBuilder } = match(
       kafkaMessage.topic
-    );
-
-    const messageDecoderPurpose = messageDecoderSupplier(
-      purposeTopicConfig,
-      kafkaMessage.topic
-    );
+    )
+      .with(catalogTopicConfig.catalogTopic, () => ({
+        messageDecoder: messageDecoderSupplier(
+          catalogTopicConfig,
+          kafkaMessage.topic
+        ),
+        eventParser: toCatalogItemEventNotification,
+        messageBuilder: buildCatalogMessage,
+      }))
+      .with(purposeTopicConfig.purposeTopic, () => ({
+        messageDecoder: messageDecoderSupplier(
+          purposeTopicConfig,
+          kafkaMessage.topic
+        ),
+        eventParser: toPurposeEventNotification,
+        messageBuilder: buildPurposeMessage,
+      }))
+      .otherwise(() => {
+        throw new Error(`Unknown topic: ${kafkaMessage.topic}`);
+      });
 
     const decodedMessage = messageDecoder(kafkaMessage.message);
-    const decodedMessagePurpose = messageDecoderPurpose(kafkaMessage.message);
+
     await runWithContext(
       {
         messageData: {
@@ -64,17 +78,9 @@ export function processMessage(
           return;
         }
 
-        const eserviceV1Event = toCatalogItemEventNotification(decodedMessage);
-        const message = buildCatalogMessage(decodedMessage, eserviceV1Event);
-        const purposeV1Event = toPurposeEventNotification(
-          decodedMessagePurpose
-        );
-        const messagePurpose = buildPurposeMessage(
-          decodedMessagePurpose,
-          purposeV1Event
-        );
+        const event = eventParser(decodedMessage);
+        const message = messageBuilder(decodedMessage, event);
         await queueManager.send(message);
-        await queueManager.send(messagePurpose);
 
         logger.info(
           `Notification message [${message.messageUUID}] sent to queue ${queueConfig.queueUrl} for event type "${decodedMessage.type}"`
