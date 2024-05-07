@@ -405,38 +405,11 @@ export function tenantServiceBuilder(
         throw attributeAlreadyRevoked(tenantId, organizationId, attributeId);
       }
 
-      // eslint-disable-next-line functional/no-let
-      let updatedTenant: Tenant = {
-        ...targetTenant.data,
-        updatedAt: new Date(),
-      };
-
-      updatedTenant = {
-        ...updatedTenant,
-        attributes: targetTenant.data.attributes.map((certifiedAttribute) =>
-          certifiedAttribute.id === attributeId
-            ? {
-                ...certifiedAttribute,
-                assignmentTimestamp:
-                  certifiedTenantAttribute.assignmentTimestamp,
-                revocationTimestamp: new Date(),
-              }
-            : certifiedAttribute
-        ),
-      };
-
-      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+      const updatedTenant: Tenant = await revokeCertifiedAttribute(
+        targetTenant.data,
         readModelService,
-        updatedTenant.attributes,
-        updatedTenant.externalId
+        attributeId
       );
-
-      if (updatedTenant.kind !== tenantKind) {
-        updatedTenant = {
-          ...updatedTenant,
-          kind: tenantKind,
-        };
-      }
 
       await repository.createEvent(
         toCreateEventTenantCertifiedAttributeRevoked(
@@ -605,6 +578,35 @@ async function assignCertifiedAttribute({
     };
   }
   return updatedTenant;
+}
+
+async function revokeCertifiedAttribute(
+  tenant: Tenant,
+  readModelService: ReadModelService,
+  attributeId: AttributeId
+): Promise<Tenant> {
+  const updatedTenant: Tenant = {
+    ...tenant,
+    updatedAt: new Date(),
+    attributes: tenant.attributes.map((attr) =>
+      attr.id === attributeId
+        ? {
+            ...attr,
+            revocationTimestamp: new Date(),
+          }
+        : attr
+    ),
+  };
+
+  const updatedKind = await getTenantKindLoadingCertifiedAttributes(
+    readModelService,
+    updatedTenant.attributes,
+    updatedTenant.externalId
+  );
+
+  return updatedTenant.kind === updatedKind
+    ? updatedTenant
+    : { ...updatedTenant, kind: updatedKind };
 }
 
 export type TenantService = ReturnType<typeof tenantServiceBuilder>;
