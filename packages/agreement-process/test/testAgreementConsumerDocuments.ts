@@ -1,5 +1,6 @@
 /* eslint-disable functional/no-let */
 import { generateMock } from "@anatine/zod-mock";
+import { fileManagerDeleteError } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockAgreement,
@@ -8,8 +9,8 @@ import {
 } from "pagopa-interop-commons-test/index.js";
 import {
   Agreement,
-  AgreementConsumerDocumentAddedV1,
-  AgreementConsumerDocumentRemovedV1,
+  AgreementConsumerDocumentAddedV2,
+  AgreementConsumerDocumentRemovedV2,
   AgreementDocument,
   AgreementDocumentId,
   AgreementId,
@@ -19,7 +20,6 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it } from "vitest";
-import { fileManagerDeleteError } from "pagopa-interop-commons";
 import {
   agreementDocumentAlreadyExists,
   agreementDocumentNotFound,
@@ -27,9 +27,9 @@ import {
   documentChangeNotAllowed,
   operationNotAllowed,
 } from "../src/model/domain/errors.js";
-import { toAgreementDocumentV1 } from "../src/model/domain/toEvent.js";
 import { agreementConsumerDocumentChangeValidStates } from "../src/model/domain/validators.js";
 import { config } from "../src/utilities/config.js";
+import { toAgreementV2 } from "../src/model/domain/toEvent.js";
 import {
   agreementService,
   agreements,
@@ -138,20 +138,30 @@ export const testAgreementConsumerDocuments = (): ReturnType<typeof describe> =>
         );
 
         const actualConsumerDocument = decodeProtobufPayload({
-          messageType: AgreementConsumerDocumentAddedV1,
+          messageType: AgreementConsumerDocumentAddedV2,
           payload,
         });
 
         const expectedConsumerDocument: AgreementDocument = {
           ...consumerDocument,
           createdAt: new Date(
-            Number(actualConsumerDocument.document?.createdAt)
+            Number(
+              actualConsumerDocument.agreement?.consumerDocuments.at(-1)
+                ?.createdAt ?? 0
+            )
           ),
+        };
+        const expectedAgreement = {
+          ...agreement,
+          consumerDocuments: [
+            ...agreement.consumerDocuments,
+            expectedConsumerDocument,
+          ],
         };
 
         expect(actualConsumerDocument).toMatchObject({
-          agreementId: agreement.id,
-          document: toAgreementDocumentV1(expectedConsumerDocument),
+          agreement: toAgreementV2(expectedAgreement),
+          documentId: consumerDocument.id,
         });
       });
 
@@ -300,12 +310,14 @@ export const testAgreementConsumerDocuments = (): ReturnType<typeof describe> =>
         );
 
         const actualConsumerDocument = decodeProtobufPayload({
-          messageType: AgreementConsumerDocumentRemovedV1,
+          messageType: AgreementConsumerDocumentRemovedV2,
           payload,
         });
 
+        const expectedAgreement = { ...agreement1, consumerDocuments: [] };
+
         expect(actualConsumerDocument).toMatchObject({
-          agreementId: agreement1.id,
+          agreement: toAgreementV2(expectedAgreement),
           documentId: consumerDocument.id,
         });
       });
