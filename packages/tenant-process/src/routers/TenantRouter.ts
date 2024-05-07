@@ -420,7 +420,7 @@ const tenantsRouter = (
             unsafeBrandId(tenantId),
             {
               tenantAttributeSeed: req.body,
-              authData: req.ctx.authData,
+              organizationId: req.ctx.authData.organizationId,
               correlationId: req.ctx.correlationId,
             }
           );
@@ -441,7 +441,7 @@ const tenantsRouter = (
         try {
           const tenant = await tenantService.addDeclaredAttribute({
             tenantAttributeSeed: req.body,
-            authData: req.ctx.authData,
+            organizationId: req.ctx.authData.organizationId,
             correlationId: req.ctx.correlationId,
           });
           return res.status(200).json(toApiTenant(tenant)).end();

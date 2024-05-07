@@ -75,8 +75,8 @@ import {
   getMockVerifiedTenantAttribute,
   readLastTenantEvent,
 } from "./utils.js";
-import { testAddCertifiedAttributes } from "./testAddCertifiedAttribute.js";
-import { testAddDeclaredAttributes } from "./testAddDeclaredAttribute.js";
+import { testAddCertifiedAttribute } from "./testAddCertifiedAttribute.js";
+import { testAddDeclaredAttribute } from "./testAddDeclaredAttribute.js";
 import { testVerifyVerifiedAttribute } from "./testVerifyVerifiedAttribute.js";
 import { testInternalAssignCertifiedAttributes } from "./testInternalAssignCertifiedAttribute.js";
 
@@ -574,8 +574,8 @@ describe("Integration tests", () => {
         );
       });
     });
-    testAddCertifiedAttributes();
-    testAddDeclaredAttributes();
+    testAddCertifiedAttribute();
+    testAddDeclaredAttribute();
     testVerifyVerifiedAttribute();
     testInternalAssignCertifiedAttributes();
   });
