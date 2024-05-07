@@ -4,8 +4,8 @@ import {
   RiskAnalysisFormRules,
   eventRepository,
   formatDateAndTime,
+  getFormRulesByVersion,
   logger,
-  riskAnalysisFormRules,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
@@ -862,8 +862,9 @@ export function purposeServiceBuilder(
 
       assertTenantKindExists(tenant);
 
-      const riskAnalysisFormConfig = riskAnalysisFormRules[tenant.kind].find(
-        (config) => config.version === riskAnalysisVersion
+      const riskAnalysisFormConfig = getFormRulesByVersion(
+        tenant.kind,
+        riskAnalysisVersion
       );
 
       if (!riskAnalysisFormConfig) {
