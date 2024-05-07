@@ -895,7 +895,7 @@ async function activateOrWaitingForApproval({
 
     const [producer, consumer] = await Promise.all([
       retrieveTenant(eservice.producerId, readModelService),
-      retrieveTenant(eservice.producerId, readModelService),
+      retrieveTenant(purpose.consumerId, readModelService),
     ]);
 
     const eserviceInfo: EServiceInfo = {
