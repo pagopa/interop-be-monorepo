@@ -42,6 +42,7 @@ import {
   assertExpirationDateExist,
   getTenantCertifierId,
   assertTenantExists,
+  assertRequesterAllowed,
 } from "./validators.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -337,9 +338,7 @@ export function tenantServiceBuilder(
     }): Promise<void> {
       logger.info(`Adding mail of kind ${mailSeed.kind} to Tenant ${tenantId}`);
 
-      if (tenantId !== organizationId) {
-        throw operationForbidden;
-      }
+      await assertRequesterAllowed(tenantId, organizationId);
 
       const tenant = await retrieveTenant(tenantId, readModelService);
 
@@ -348,11 +347,9 @@ export function tenantServiceBuilder(
       }
 
       const newMail = {
+        ...mailSeed,
         id: generateId(),
         createdAt: new Date(),
-        kind: mailSeed.kind,
-        address: mailSeed.address,
-        description: mailSeed.description,
       };
 
       const updatedTenant: Tenant = {
