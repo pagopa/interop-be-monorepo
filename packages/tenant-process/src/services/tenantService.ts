@@ -575,36 +575,16 @@ export function tenantServiceBuilder(
         throw attributeNotFound(attributeToRevoke.id);
       }
 
-      const updatedTenant = {
-        ...tenantToModify.data,
-        updatedAt: new Date(),
-        attributes: tenantToModify.data.attributes.map((a) =>
-          a.id === attributeToRevoke.id
-            ? {
-                ...a,
-                assignmentTimestamp: maybeAttribute.assignmentTimestamp,
-                revocationTimestamp: new Date(),
-              }
-            : a
-        ),
-      };
-
-      const updatedKind = await getTenantKindLoadingCertifiedAttributes(
+      const updatedTenant = await revokeCertifiedAttribute(
+        tenantToModify.data,
         readModelService,
-        updatedTenant.attributes,
-        updatedTenant.externalId
+        attributeToRevoke.id
       );
-
-      const revisedTenant =
-        updatedTenant.kind === updatedKind
-          ? updatedTenant
-          : { ...updatedTenant, kind: updatedKind };
 
       await repository.createEvent(
         toCreateEventTenantCertifiedAttributeRevoked(
-          tenantToModify.data.id,
           tenantToModify.metadata.version,
-          revisedTenant,
+          updatedTenant,
           attributeToRevoke.id,
           correlationId
         )
@@ -885,6 +865,35 @@ function reassignVerifiedAttribute(
         }
       : attr
   );
+}
+
+async function revokeCertifiedAttribute(
+  tenant: Tenant,
+  readModelService: ReadModelService,
+  attributeId: AttributeId
+): Promise<Tenant> {
+  const updatedTenant: Tenant = {
+    ...tenant,
+    updatedAt: new Date(),
+    attributes: tenant.attributes.map((attr) =>
+      attr.id === attributeId
+        ? {
+            ...attr,
+            revocationTimestamp: new Date(),
+          }
+        : attr
+    ),
+  };
+
+  const updatedKind = await getTenantKindLoadingCertifiedAttributes(
+    readModelService,
+    updatedTenant.attributes,
+    updatedTenant.externalId
+  );
+
+  return updatedTenant.kind === updatedKind
+    ? updatedTenant
+    : { ...updatedTenant, kind: updatedKind };
 }
 
 export type TenantService = ReturnType<typeof tenantServiceBuilder>;

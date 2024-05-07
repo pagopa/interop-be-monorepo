@@ -5,15 +5,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
 import { fail } from "assert";
-import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import {
   AgreementCollection,
   AttributeCollection,
@@ -25,7 +17,6 @@ import {
 import {
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
-  getMockAttribute,
   mongoDBContainer,
   postgreSQLContainer,
   readLastEventByStreamId,
@@ -87,8 +78,8 @@ import {
 import { testAddCertifiedAttribute } from "./testAddCertifiedAttribute.js";
 import { testAddDeclaredAttribute } from "./testAddDeclaredAttribute.js";
 import { testVerifyVerifiedAttribute } from "./testVerifyVerifiedAttribute.js";
-import { testInternalAssignCertifiedAttributes } from "./testInternalAssignCertifiedAttribute.js";
-import { testInternalRevokeCertifiedAttributes } from "./testInternalRevokeCertifiedAttribute.js";
+import { testInternalAssignCertifiedAttribute } from "./testInternalAssignCertifiedAttribute.js";
+import { testInternalRevokeCertifiedAttribute } from "./testInternalRevokeCertifiedAttribute.js";
 
 export let tenants: TenantCollection;
 export let agreements: AgreementCollection;
@@ -132,7 +123,6 @@ describe("Integration tests", () => {
   const mockVerifiedBy = getMockVerifiedBy();
   const mockVerifiedTenantAttribute = getMockVerifiedTenantAttribute();
   const mockCertifiedTenantAttribute = getMockCertifiedTenantAttribute();
-  const mockAttribute = getMockAttribute();
 
   afterEach(async () => {
     await tenants.deleteMany({});
@@ -588,8 +578,8 @@ describe("Integration tests", () => {
     testAddCertifiedAttribute();
     testAddDeclaredAttribute();
     testVerifyVerifiedAttribute();
-    testInternalAssignCertifiedAttributes();
-    testInternalRevokeCertifiedAttributes();
+    testInternalAssignCertifiedAttribute();
+    testInternalRevokeCertifiedAttribute();
   });
   describe("readModelService", () => {
     const tenant1: Tenant = {
