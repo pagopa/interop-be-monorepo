@@ -6,7 +6,7 @@ import {
   decodeKafkaMessage,
   logger,
   readModelWriterConfig,
-  runWithContext,
+  runWithLoggerContext,
 } from "pagopa-interop-commons";
 import { createMechanism } from "@jm18457/kafkajs-msk-iam-authentication-mechanism";
 import { AttributeEvent } from "pagopa-interop-models";
@@ -55,8 +55,9 @@ async function processMessage({
 }: EachMessagePayload): Promise<void> {
   const msg = decodeKafkaMessage(message, AttributeEvent);
 
-  await runWithContext(
+  await runWithLoggerContext(
     {
+      serviceName: "attribute-registry-readmodel-writer",
       messageData: {
         eventType: msg.type,
         eventVersion: msg.event_version,
