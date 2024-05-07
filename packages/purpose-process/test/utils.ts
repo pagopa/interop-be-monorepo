@@ -5,18 +5,31 @@ import {
 } from "pagopa-interop-commons";
 import {
   StoredEvent,
+  getMockTenant,
   writeInEventstore,
   writeInReadmodel,
+  getMockDescriptorPublished,
+  getMockAgreement,
+  getMockPurposeVersion,
+  getMockPurpose,
+  getMockValidRiskAnalysisForm,
 } from "pagopa-interop-commons-test";
 import {
+  Agreement,
+  Descriptor,
   EService,
   Purpose,
   PurposeEvent,
+  PurposeVersion,
   RiskAnalysis,
+  Tenant,
+  agreementState,
   generateId,
+  purposeVersionState,
   technology,
   toPurposeV2,
   unsafeBrandId,
+  toReadModelEService,
 } from "pagopa-interop-models";
 import { IDatabase } from "pg-promise";
 import {
@@ -25,6 +38,13 @@ import {
   ApiRiskAnalysisFormSeed,
 } from "../src/model/domain/models.js";
 import { PurposeRiskAnalysisFormV2 } from "../../models/dist/gen/v2/purpose/riskAnalysis.js";
+import {
+  postgresDB,
+  purposes,
+  eservices,
+  agreements,
+  tenants,
+} from "./purposeService.integration.test.js";
 
 export const addOnePurpose = async (
   purpose: Purpose,
@@ -118,3 +138,82 @@ export const createUpdatedPurpose = (
     ),
   },
 });
+
+export async function prepareReadModelForPurposeTest(options?: {
+  consumer?: Partial<Tenant>;
+  producer?: Partial<Tenant>;
+  eservice?: Partial<EService>;
+  eserviceDescriptor?: Partial<Descriptor>;
+  agreement?: Partial<Agreement>;
+  purpose?: Partial<Purpose>;
+  purposeVersion?: Partial<PurposeVersion>;
+}): Promise<{
+  mockConsumer: Tenant;
+  mockProducer: Tenant;
+  mockEService: EService;
+  mockAgreement: Agreement;
+  mockPurpose: Purpose;
+  mockPurposeVersion: PurposeVersion;
+}> {
+  const mockConsumer: Tenant = {
+    ...getMockTenant(),
+    kind: "PA",
+    ...options?.consumer,
+  };
+
+  const mockProducer: Tenant = {
+    ...getMockTenant(),
+    kind: "PA",
+    ...options?.producer,
+  };
+
+  const mockEServiceDescriptor: Descriptor = {
+    ...getMockDescriptorPublished(),
+    ...options?.eserviceDescriptor,
+  };
+
+  const mockEService: EService = {
+    ...getMockEService(),
+    ...options?.eservice,
+    producerId: mockProducer.id,
+    descriptors: [mockEServiceDescriptor],
+  };
+
+  const mockAgreement: Agreement = {
+    ...getMockAgreement(),
+    eserviceId: mockEService.id,
+    consumerId: mockConsumer.id,
+    descriptorId: mockEService.descriptors[0].id,
+    state: agreementState.active,
+    ...options?.agreement,
+  };
+
+  const mockPurposeVersion: PurposeVersion = {
+    ...getMockPurposeVersion(),
+    state: purposeVersionState.active,
+    ...options?.purposeVersion,
+  };
+
+  const mockPurpose: Purpose = {
+    ...getMockPurpose(),
+    riskAnalysisForm: getMockValidRiskAnalysisForm("PA"),
+    consumerId: mockAgreement.consumerId,
+    eserviceId: mockEService.id,
+    versions: [mockPurposeVersion],
+  };
+
+  await addOnePurpose(mockPurpose, postgresDB, purposes);
+  await writeInReadmodel(toReadModelEService(mockEService), eservices);
+  await writeInReadmodel(mockAgreement, agreements);
+  await writeInReadmodel(mockConsumer, tenants);
+  await writeInReadmodel(mockProducer, tenants);
+
+  return {
+    mockConsumer,
+    mockProducer,
+    mockEService,
+    mockAgreement,
+    mockPurpose,
+    mockPurposeVersion,
+  };
+}
