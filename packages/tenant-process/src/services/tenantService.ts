@@ -360,7 +360,6 @@ export function tenantServiceBuilder(
 
       await repository.createEvent(
         toCreateEventTenantMailAdded(
-          tenantId,
           tenant.metadata.version,
           updatedTenant,
           newMail.id,
