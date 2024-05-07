@@ -5,15 +5,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
 import { fail } from "assert";
-import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import {
   AgreementCollection,
   EServiceCollection,
@@ -34,7 +26,6 @@ import {
   EService,
   Tenant,
   TenantId,
-  TenantMailDeletedV2,
   TenantOnboardDetailsUpdatedV2,
   TenantOnboardedV2,
   TenantVerifiedAttributeExpirationUpdatedV2,
@@ -65,7 +56,6 @@ import {
   tenantNotFound,
   verifiedAttributeNotFoundInTenant,
   expirationDateNotFoundInVerifier,
-  mailNotFound,
 } from "../src/model/domain/errors.js";
 import { ApiSelfcareTenantSeed } from "../src/model/types.js";
 import { getTenantKind } from "../src/services/validators.js";
