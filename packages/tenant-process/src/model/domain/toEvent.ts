@@ -98,13 +98,12 @@ export const toCreateEventTenantMailDeleted = (
 });
 
 export const toCreateEventTenantMailAdded = (
-  streamId: string,
   version: number,
   updatedTenant: Tenant,
   mailId: string,
   correlationId: string
 ): CreateEvent<TenantEvent> => ({
-  streamId,
+  streamId: updatedTenant.id,
   version,
   event: {
     event_version: 2,
