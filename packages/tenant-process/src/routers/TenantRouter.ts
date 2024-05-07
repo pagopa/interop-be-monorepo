@@ -384,7 +384,7 @@ const tenantsRouter = (
             unsafeBrandId(tenantId),
             {
               tenantAttributeSeed: req.body,
-              authData: req.ctx.authData,
+              organizationId: req.ctx.authData.organizationId,
               correlationId: req.ctx.correlationId,
             }
           );
