@@ -1,6 +1,7 @@
+import { fail } from "assert";
+import { attributeKind } from "pagopa-interop-models";
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { fail } from "assert";
 import { readLastEventByStreamId } from "pagopa-interop-commons-test/index.js";
 import {
   generateId,
@@ -32,12 +33,15 @@ import {
   tenantService,
 } from "./tenant.integration.test.js";
 
-export const testAddDeclaredAttributes = (): ReturnType<typeof describe> =>
+export const testAddDeclaredAttribute = (): ReturnType<typeof describe> =>
   describe("addDeclaredAttribute", async () => {
     const correlationId = generateId();
+    const tenant = getMockTenant();
+    const organizationId = getMockAuthData(tenant.id).organizationId;
+
     const declaredAttribute: Attribute = {
       ...getMockAttribute(),
-      kind: "Declared",
+      kind: attributeKind.declared,
     };
 
     it("Should add the declared attribute if the tenant doesn't have that", async () => {
@@ -52,7 +56,8 @@ export const testAddDeclaredAttributes = (): ReturnType<typeof describe> =>
       await addOneTenant(tenantWithoutDeclaredAttribute, postgresDB, tenants);
       await tenantService.addDeclaredAttribute({
         tenantAttributeSeed: { id: declaredAttribute.id },
-        authData: getMockAuthData(tenantWithoutDeclaredAttribute.id),
+        organizationId: getMockAuthData(tenantWithoutDeclaredAttribute.id)
+          .organizationId,
         correlationId,
       });
       const writtenEvent = await readLastEventByStreamId(
@@ -105,7 +110,8 @@ export const testAddDeclaredAttributes = (): ReturnType<typeof describe> =>
       await addOneTenant(tenantWithAttributeRevoked, postgresDB, tenants);
       await tenantService.addDeclaredAttribute({
         tenantAttributeSeed: { id: declaredAttribute.id },
-        authData: getMockAuthData(tenantWithAttributeRevoked.id),
+        organizationId: getMockAuthData(tenantWithAttributeRevoked.id)
+          .organizationId,
         correlationId,
       });
       const writtenEvent = await readLastEventByStreamId(
@@ -141,24 +147,22 @@ export const testAddDeclaredAttributes = (): ReturnType<typeof describe> =>
       vi.useRealTimers();
     });
     it("Should throw tenantNotFound if the tenant doesn't exist", async () => {
-      const tenant = getMockTenant();
       addOneAttribute(declaredAttribute, attributes);
       expect(
         tenantService.addDeclaredAttribute({
           tenantAttributeSeed: { id: declaredAttribute.id },
-          authData: getMockAuthData(tenant.id),
+          organizationId,
           correlationId,
         })
       ).rejects.toThrowError(tenantNotFound(tenant.id));
     });
     it("Should throw attributeNotFound if the attribute doesn't exist", async () => {
-      const tenant: Tenant = getMockTenant();
       await addOneTenant(tenant, postgresDB, tenants);
 
       expect(
         tenantService.addDeclaredAttribute({
           tenantAttributeSeed: { id: declaredAttribute.id },
-          authData: getMockAuthData(tenant.id),
+          organizationId,
           correlationId,
         })
       ).rejects.toThrowError(
