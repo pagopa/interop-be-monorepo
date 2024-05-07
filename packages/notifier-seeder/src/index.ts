@@ -36,28 +36,10 @@ export function processMessage(
   purposeTopicConfig: PurposeTopicConfig
 ) {
   return async (kafkaMessage: EachMessagePayload): Promise<void> => {
-    const { messageDecoder, eventParser, messageBuilder } = match(
+    const messageDecoder = messageDecoderSupplier(
+      catalogTopicConf,
       kafkaMessage.topic
-    )
-      .with(catalogTopicConfig.catalogTopic, () => ({
-        messageDecoder: messageDecoderSupplier(
-          catalogTopicConfig,
-          kafkaMessage.topic
-        ),
-        eventParser: toCatalogItemEventNotification,
-        messageBuilder: buildCatalogMessage,
-      }))
-      .with(purposeTopicConfig.purposeTopic, () => ({
-        messageDecoder: messageDecoderSupplier(
-          purposeTopicConfig,
-          kafkaMessage.topic
-        ),
-        eventParser: toPurposeEventNotification,
-        messageBuilder: buildPurposeMessage,
-      }))
-      .otherwise(() => {
-        throw new Error(`Unknown topic: ${kafkaMessage.topic}`);
-      });
+    );
 
     const decodedMessage = messageDecoder(kafkaMessage.message);
 
@@ -78,9 +60,8 @@ export function processMessage(
           return;
         }
 
-        const event = eventParser(decodedMessage);
-        const message = messageBuilder(decodedMessage, event);
-        await queueManager.send(message);
+        const eserviceV1Event = toCatalogItemEventNotification(decodedMessage);
+        const message = buildCatalogMessage(decodedMessage, eserviceV1Event);
 
         logger.info(
           `Notification message [${message.messageUUID}] sent to queue ${queueConfig.queueUrl} for event type "${decodedMessage.type}"`
