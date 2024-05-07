@@ -887,15 +887,12 @@ describe("Integration tests", () => {
         });
         await addOneAgreement(agreementEservice3, agreements);
 
-        const consumers = await readModelService.getConsumers(
-          {
-            consumerName: undefined,
-            producerId: eService1.producerId,
-            offset: 0,
-            limit: 50,
-          },
-          genericLogger
-        );
+        const consumers = await readModelService.getConsumers({
+          consumerName: undefined,
+          producerId: eService1.producerId,
+          offset: 0,
+          limit: 50,
+        });
         expect(consumers.totalCount).toBe(3);
         expect(consumers.results).toEqual([tenant1, tenant2, tenant3]);
       });
@@ -971,15 +968,12 @@ describe("Integration tests", () => {
         });
         await addOneAgreement(agreementEservice3, agreements);
 
-        const consumers = await readModelService.getConsumers(
-          {
-            consumerName: tenant1.name,
-            producerId: eService1.producerId,
-            offset: 0,
-            limit: 50,
-          },
-          genericLogger
-        );
+        const consumers = await readModelService.getConsumers({
+          consumerName: tenant1.name,
+          producerId: eService1.producerId,
+          offset: 0,
+          limit: 50,
+        });
         expect(consumers.totalCount).toBe(1);
         expect(consumers.results).toEqual([tenant1]);
       });
@@ -1031,15 +1025,12 @@ describe("Integration tests", () => {
         };
         await addOneEService(eService3, eservices);
 
-        const consumers = await readModelService.getConsumers(
-          {
-            consumerName: undefined,
-            producerId: eService1.producerId,
-            offset: 0,
-            limit: 50,
-          },
-          genericLogger
-        );
+        const consumers = await readModelService.getConsumers({
+          consumerName: undefined,
+          producerId: eService1.producerId,
+          offset: 0,
+          limit: 50,
+        });
         expect(consumers.totalCount).toBe(0);
         expect(consumers.results).toEqual([]);
       });
@@ -1091,15 +1082,12 @@ describe("Integration tests", () => {
         };
         await addOneEService(eService3, eservices);
 
-        const consumers = await readModelService.getConsumers(
-          {
-            consumerName: "A tenant4",
-            producerId: eService1.producerId,
-            offset: 0,
-            limit: 50,
-          },
-          genericLogger
-        );
+        const consumers = await readModelService.getConsumers({
+          consumerName: "A tenant4",
+          producerId: eService1.producerId,
+          offset: 0,
+          limit: 50,
+        });
         expect(consumers.totalCount).toBe(0);
         expect(consumers.results).toEqual([]);
       });
@@ -1175,15 +1163,12 @@ describe("Integration tests", () => {
         });
         await addOneAgreement(agreementEservice3, agreements);
 
-        const tenantsByName = await readModelService.getConsumers(
-          {
-            consumerName: undefined,
-            producerId: eService1.producerId,
-            offset: 0,
-            limit: 2,
-          },
-          genericLogger
-        );
+        const tenantsByName = await readModelService.getConsumers({
+          consumerName: undefined,
+          producerId: eService1.producerId,
+          offset: 0,
+          limit: 2,
+        });
         expect(tenantsByName.results.length).toBe(2);
       });
       it("Should get consumers (pagination: offset, limit)", async () => {
@@ -1258,15 +1243,12 @@ describe("Integration tests", () => {
         });
         await addOneAgreement(agreementEservice3, agreements);
 
-        const tenantsByName = await readModelService.getConsumers(
-          {
-            consumerName: undefined,
-            producerId: eService1.producerId,
-            offset: 2,
-            limit: 3,
-          },
-          genericLogger
-        );
+        const tenantsByName = await readModelService.getConsumers({
+          consumerName: undefined,
+          producerId: eService1.producerId,
+          offset: 2,
+          limit: 3,
+        });
         expect(tenantsByName.results.length).toBe(1);
       });
     });
@@ -1320,14 +1302,11 @@ describe("Integration tests", () => {
         };
         await addOneEService(eService3, eservices);
 
-        const producers = await readModelService.getProducers(
-          {
-            producerName: undefined,
-            offset: 0,
-            limit: 50,
-          },
-          genericLogger
-        );
+        const producers = await readModelService.getProducers({
+          producerName: undefined,
+          offset: 0,
+          limit: 50,
+        });
         expect(producers.totalCount).toBe(3);
         expect(producers.results).toEqual([tenant1, tenant2, tenant3]);
       });
@@ -1364,14 +1343,11 @@ describe("Integration tests", () => {
         };
         await addOneEService(eService2, eservices);
 
-        const producers = await readModelService.getProducers(
-          {
-            producerName: tenant1.name,
-            offset: 0,
-            limit: 50,
-          },
-          genericLogger
-        );
+        const producers = await readModelService.getProducers({
+          producerName: tenant1.name,
+          offset: 0,
+          limit: 50,
+        });
         expect(producers.totalCount).toBe(1);
         expect(producers.results).toEqual([tenant1]);
       });
@@ -1408,14 +1384,11 @@ describe("Integration tests", () => {
         };
         await addOneEService(eService2, eservices);
 
-        const producers = await readModelService.getProducers(
-          {
-            producerName: "A tenant6",
-            offset: 0,
-            limit: 50,
-          },
-          genericLogger
-        );
+        const producers = await readModelService.getProducers({
+          producerName: "A tenant6",
+          offset: 0,
+          limit: 50,
+        });
         expect(producers.totalCount).toBe(0);
         expect(producers.results).toEqual([]);
       });
@@ -1448,14 +1421,11 @@ describe("Integration tests", () => {
         };
         await addOneEService(eService2, eservices);
 
-        const producers = await readModelService.getProducers(
-          {
-            producerName: "A tenant",
-            offset: 0,
-            limit: 50,
-          },
-          genericLogger
-        );
+        const producers = await readModelService.getProducers({
+          producerName: "A tenant",
+          offset: 0,
+          limit: 50,
+        });
         expect(producers.totalCount).toBe(0);
         expect(producers.results).toEqual([]);
       });
@@ -1507,14 +1477,11 @@ describe("Integration tests", () => {
           producerId: tenant3.id,
         };
         await addOneEService(eService3, eservices);
-        const tenantsByName = await readModelService.getProducers(
-          {
-            producerName: undefined,
-            offset: 0,
-            limit: 3,
-          },
-          genericLogger
-        );
+        const tenantsByName = await readModelService.getProducers({
+          producerName: undefined,
+          offset: 0,
+          limit: 3,
+        });
         expect(tenantsByName.results.length).toBe(3);
       });
       it("Should get producers (pagination: offset, limit)", async () => {
@@ -1565,14 +1532,11 @@ describe("Integration tests", () => {
           producerId: tenant3.id,
         };
         await addOneEService(eService3, eservices);
-        const tenantsByName = await readModelService.getProducers(
-          {
-            producerName: undefined,
-            offset: 2,
-            limit: 3,
-          },
-          genericLogger
-        );
+        const tenantsByName = await readModelService.getProducers({
+          producerName: undefined,
+          offset: 2,
+          limit: 3,
+        });
         expect(tenantsByName.results.length).toBe(1);
       });
     });
@@ -1582,14 +1546,11 @@ describe("Integration tests", () => {
         await addOneTenant(tenant2, postgresDB, tenants);
         await addOneTenant(tenant3, postgresDB, tenants);
 
-        const tenantsByName = await readModelService.getTenantsByName(
-          {
-            name: undefined,
-            offset: 0,
-            limit: 50,
-          },
-          genericLogger
-        );
+        const tenantsByName = await readModelService.getTenantsByName({
+          name: undefined,
+          offset: 0,
+          limit: 50,
+        });
         expect(tenantsByName.totalCount).toBe(3);
         expect(tenantsByName.results).toEqual([tenant1, tenant2, tenant3]);
       });
@@ -1598,26 +1559,20 @@ describe("Integration tests", () => {
 
         await addOneTenant(tenant2, postgresDB, tenants);
 
-        const tenantsByName = await readModelService.getTenantsByName(
-          {
-            name: "A tenant1",
-            offset: 0,
-            limit: 50,
-          },
-          genericLogger
-        );
+        const tenantsByName = await readModelService.getTenantsByName({
+          name: "A tenant1",
+          offset: 0,
+          limit: 50,
+        });
         expect(tenantsByName.totalCount).toBe(1);
         expect(tenantsByName.results).toEqual([tenant1]);
       });
       it("should not get tenants if there are not any tenants", async () => {
-        const tenantsByName = await readModelService.getTenantsByName(
-          {
-            name: undefined,
-            offset: 0,
-            limit: 50,
-          },
-          genericLogger
-        );
+        const tenantsByName = await readModelService.getTenantsByName({
+          name: undefined,
+          offset: 0,
+          limit: 50,
+        });
         expect(tenantsByName.totalCount).toBe(0);
         expect(tenantsByName.results).toEqual([]);
       });
@@ -1626,14 +1581,11 @@ describe("Integration tests", () => {
 
         await addOneTenant(tenant2, postgresDB, tenants);
 
-        const tenantsByName = await readModelService.getTenantsByName(
-          {
-            name: "A tenant6",
-            offset: 0,
-            limit: 50,
-          },
-          genericLogger
-        );
+        const tenantsByName = await readModelService.getTenantsByName({
+          name: "A tenant6",
+          offset: 0,
+          limit: 50,
+        });
         expect(tenantsByName.totalCount).toBe(0);
         expect(tenantsByName.results).toEqual([]);
       });
@@ -1643,14 +1595,11 @@ describe("Integration tests", () => {
         await addOneTenant(tenant3, postgresDB, tenants);
         await addOneTenant(tenant4, postgresDB, tenants);
         await addOneTenant(tenant5, postgresDB, tenants);
-        const tenantsByName = await readModelService.getTenantsByName(
-          {
-            name: undefined,
-            offset: 0,
-            limit: 4,
-          },
-          genericLogger
-        );
+        const tenantsByName = await readModelService.getTenantsByName({
+          name: undefined,
+          offset: 0,
+          limit: 4,
+        });
         expect(tenantsByName.results.length).toBe(4);
       });
       it("Should get a maximun number of tenants based on a specified limit and offset", async () => {
@@ -1659,14 +1608,11 @@ describe("Integration tests", () => {
         await addOneTenant(tenant3, postgresDB, tenants);
         await addOneTenant(tenant4, postgresDB, tenants);
         await addOneTenant(tenant5, postgresDB, tenants);
-        const tenantsByName = await readModelService.getTenantsByName(
-          {
-            name: undefined,
-            offset: 2,
-            limit: 4,
-          },
-          genericLogger
-        );
+        const tenantsByName = await readModelService.getTenantsByName({
+          name: undefined,
+          offset: 2,
+          limit: 4,
+        });
         expect(tenantsByName.results.length).toBe(3);
       });
     });
@@ -1675,17 +1621,11 @@ describe("Integration tests", () => {
         await addOneTenant(tenant1, postgresDB, tenants);
         await addOneTenant(tenant2, postgresDB, tenants);
         await addOneTenant(tenant3, postgresDB, tenants);
-        const tenantById = await readModelService.getTenantById(
-          tenant1.id,
-          genericLogger
-        );
+        const tenantById = await readModelService.getTenantById(tenant1.id);
         expect(tenantById?.data).toEqual(tenant1);
       });
       it("should not get the tenant by ID if it isn't in DB", async () => {
-        const tenantById = await readModelService.getTenantById(
-          tenant1.id,
-          genericLogger
-        );
+        const tenantById = await readModelService.getTenantById(tenant1.id);
         expect(tenantById?.data.id).toBeUndefined();
       });
     });
@@ -1696,16 +1636,14 @@ describe("Integration tests", () => {
         await addOneTenant(tenant3, postgresDB, tenants);
         const tenantBySelfcareId = await readModelService.getTenantBySelfcareId(
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          tenant1.selfcareId!,
-          genericLogger
+          tenant1.selfcareId!
         );
         expect(tenantBySelfcareId?.data).toEqual(tenant1);
       });
       it("should not get the tenant by selfcareId if it isn't in DB", async () => {
         const tenantBySelfcareId = await readModelService.getTenantBySelfcareId(
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          tenant1.selfcareId!,
-          genericLogger
+          tenant1.selfcareId!
         );
         expect(tenantBySelfcareId?.data.selfcareId).toBeUndefined();
       });
@@ -1719,8 +1657,7 @@ describe("Integration tests", () => {
           {
             value: tenant1.externalId.value,
             origin: tenant1.externalId.origin,
-          },
-          genericLogger
+          }
         );
         expect(tenantByExternalId?.data).toEqual(tenant1);
       });
@@ -1729,8 +1666,7 @@ describe("Integration tests", () => {
           {
             value: tenant1.externalId.value,
             origin: tenant1.externalId.origin,
-          },
-          genericLogger
+          }
         );
         expect(tenantByExternalId?.data.externalId).toBeUndefined();
       });

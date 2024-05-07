@@ -592,105 +592,81 @@ describe("database test", () => {
 
       describe("getAttributesByIds", () => {
         it("should get the attributes if they exist", async () => {
-          const result = await readModelService.getAttributesByIds(
-            {
-              ids: [attribute1.id, attribute2.id, attribute3.id],
-              offset: 0,
-              limit: 50,
-            },
-            genericLogger
-          );
+          const result = await readModelService.getAttributesByIds({
+            ids: [attribute1.id, attribute2.id, attribute3.id],
+            offset: 0,
+            limit: 50,
+          });
 
           expect(result.totalCount).toBe(3);
           expect(result.results).toEqual([attribute1, attribute2, attribute3]);
         });
         it("should not get the attributes if they don't exist", async () => {
-          const result = await readModelService.getAttributesByIds(
-            {
-              ids: [generateId(), generateId()],
-              offset: 0,
-              limit: 50,
-            },
-            genericLogger
-          );
+          const result = await readModelService.getAttributesByIds({
+            ids: [generateId(), generateId()],
+            offset: 0,
+            limit: 50,
+          });
           expect(result.totalCount).toBe(0);
           expect(result.results).toEqual([]);
         });
         it("should not get any attributes if the requested ids list is empty", async () => {
-          const result = await readModelService.getAttributesByIds(
-            {
-              ids: [],
-              offset: 0,
-              limit: 50,
-            },
-            genericLogger
-          );
+          const result = await readModelService.getAttributesByIds({
+            ids: [],
+            offset: 0,
+            limit: 50,
+          });
           expect(result.totalCount).toBe(0);
           expect(result.results).toEqual([]);
         });
       });
       describe("getAttributesByKindsNameOrigin", () => {
         it("should get the attributes if they exist (parameters: kinds, name, origin)", async () => {
-          const result = await readModelService.getAttributesByKindsNameOrigin(
-            {
-              kinds: [attributeKind.certified],
-              name: "test",
-              origin: "IPA",
-              offset: 0,
-              limit: 50,
-            },
-            genericLogger
-          );
+          const result = await readModelService.getAttributesByKindsNameOrigin({
+            kinds: [attributeKind.certified],
+            name: "test",
+            origin: "IPA",
+            offset: 0,
+            limit: 50,
+          });
           expect(result.totalCount).toBe(3);
           expect(result.results).toEqual([attribute1, attribute2, attribute3]);
         });
         it("should get the attributes if they exist (parameters: kinds only)", async () => {
-          const result = await readModelService.getAttributesByKindsNameOrigin(
-            {
-              kinds: [attributeKind.declared],
-              offset: 0,
-              limit: 50,
-            },
-            genericLogger
-          );
+          const result = await readModelService.getAttributesByKindsNameOrigin({
+            kinds: [attributeKind.declared],
+            offset: 0,
+            limit: 50,
+          });
           expect(result.totalCount).toBe(2);
           expect(result.results).toEqual([attribute4, attribute5]);
         });
         it("should get the attributes if they exist (parameters: name only)", async () => {
-          const result = await readModelService.getAttributesByKindsNameOrigin(
-            {
-              kinds: [],
-              name: "test",
-              offset: 0,
-              limit: 50,
-            },
-            genericLogger
-          );
+          const result = await readModelService.getAttributesByKindsNameOrigin({
+            kinds: [],
+            name: "test",
+            offset: 0,
+            limit: 50,
+          });
           expect(result.totalCount).toBe(3);
           expect(result.results).toEqual([attribute1, attribute2, attribute3]);
         });
         it("should get the attributes if they exist (parameters: origin only)", async () => {
-          const result = await readModelService.getAttributesByKindsNameOrigin(
-            {
-              kinds: [],
-              origin: "IPA",
-              offset: 0,
-              limit: 50,
-            },
-            genericLogger
-          );
+          const result = await readModelService.getAttributesByKindsNameOrigin({
+            kinds: [],
+            origin: "IPA",
+            offset: 0,
+            limit: 50,
+          });
           expect(result.totalCount).toBe(3);
           expect(result.results).toEqual([attribute1, attribute2, attribute3]);
         });
         it("should get all the attributes if no parameter is passed", async () => {
-          const result = await readModelService.getAttributesByKindsNameOrigin(
-            {
-              kinds: [],
-              offset: 0,
-              limit: 50,
-            },
-            genericLogger
-          );
+          const result = await readModelService.getAttributesByKindsNameOrigin({
+            kinds: [],
+            offset: 0,
+            limit: 50,
+          });
           expect(result.totalCount).toBe(7);
           expect(result.results).toEqual([
             attribute1,
@@ -703,39 +679,30 @@ describe("database test", () => {
           ]);
         });
         it("should get the attributes if no parameter is passed (pagination: limit)", async () => {
-          const result = await readModelService.getAttributesByKindsNameOrigin(
-            {
-              kinds: [],
-              offset: 0,
-              limit: 5,
-            },
-            genericLogger
-          );
+          const result = await readModelService.getAttributesByKindsNameOrigin({
+            kinds: [],
+            offset: 0,
+            limit: 5,
+          });
           expect(result.totalCount).toBe(7);
           expect(result.results.length).toBe(5);
         });
         it("should get the attributes if no parameter is passed (pagination: offset, limit)", async () => {
-          const result = await readModelService.getAttributesByKindsNameOrigin(
-            {
-              kinds: [],
-              offset: 5,
-              limit: 5,
-            },
-            genericLogger
-          );
+          const result = await readModelService.getAttributesByKindsNameOrigin({
+            kinds: [],
+            offset: 5,
+            limit: 5,
+          });
           expect(result.totalCount).toBe(7);
           expect(result.results.length).toBe(2);
         });
         it("should not get the attributes if they don't exist", async () => {
-          const result = await readModelService.getAttributesByKindsNameOrigin(
-            {
-              kinds: [],
-              name: "latest attribute",
-              offset: 0,
-              limit: 50,
-            },
-            genericLogger
-          );
+          const result = await readModelService.getAttributesByKindsNameOrigin({
+            kinds: [],
+            name: "latest attribute",
+            offset: 0,
+            limit: 50,
+          });
           expect(result.totalCount).toBe(0);
           expect(result.results).toEqual([]);
         });
