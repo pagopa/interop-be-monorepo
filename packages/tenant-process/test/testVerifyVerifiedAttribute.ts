@@ -11,16 +11,17 @@ import {
   Descriptor,
   EService,
   TenantVerifiedAttributeAssignedV2,
-  TenantVerifiedAttributeV2,
   descriptorState,
   tenantAttributeType,
   Attribute,
+  attributeKind,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi } from "vitest";
 import {
   tenantNotFound,
   attributeVerificationNotAllowed,
   verifiedAttributeSelfVerification,
+  attributeNotFound,
 } from "../src/model/domain/errors.js";
 import { ApiVerifiedTenantAttributeSeed } from "../src/model/types.js";
 import {
@@ -53,12 +54,12 @@ export const testVerifyVerifiedAttribute = (): ReturnType<typeof describe> =>
       id: generateId(),
     };
     const correlationId = generateId();
-    const targetTenant: Tenant = { ...getMockTenant(), id: generateId() };
-    const requesterTenant: Tenant = { ...getMockTenant(), id: generateId() };
+    const targetTenant: Tenant = getMockTenant();
+    const requesterTenant: Tenant = getMockTenant();
     const attribute: Attribute = {
       ...getMockAttribute(),
       id: unsafeBrandId(tenantAttributeSeed.id),
-      kind: "Verified",
+      kind: attributeKind.verified,
     };
 
     const descriptor1: Descriptor = {
@@ -81,8 +82,6 @@ export const testVerifyVerifiedAttribute = (): ReturnType<typeof describe> =>
     const eService1: EService = {
       ...getMockEService(),
       producerId: requesterTenant.id,
-      id: generateId(),
-      name: "A",
       descriptors: [descriptor1],
     };
 
@@ -93,9 +92,11 @@ export const testVerifyVerifiedAttribute = (): ReturnType<typeof describe> =>
       consumerId: targetTenant.id,
     });
 
-    const mockAuthData = getMockAuthData(requesterTenant.id);
+    const organizationId = getMockAuthData(requesterTenant.id).organizationId;
 
     it("Should verify the VerifiedAttribute if verifiedTenantAttribute doesn't exist", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date());
       await addOneTenant(targetTenant, postgresDB, tenants);
       await addOneTenant(requesterTenant, postgresDB, tenants);
       await addOneAttribute(attribute, attributes);
@@ -104,7 +105,7 @@ export const testVerifyVerifiedAttribute = (): ReturnType<typeof describe> =>
       await tenantService.verifyVerifiedAttribute({
         tenantId: targetTenant.id,
         tenantAttributeSeed,
-        organizationId: mockAuthData.organizationId,
+        organizationId,
         correlationId,
       });
 
@@ -131,29 +132,11 @@ export const testVerifyVerifiedAttribute = (): ReturnType<typeof describe> =>
           {
             id: unsafeBrandId(tenantAttributeSeed.id),
             type: tenantAttributeType.VERIFIED,
-            assignmentTimestamp: new Date(
-              Number(
-                (
-                  writtenPayload.tenant!.attributes[0].sealedValue as {
-                    oneofKind: "verifiedAttribute";
-                    verifiedAttribute: TenantVerifiedAttributeV2;
-                  }
-                ).verifiedAttribute.assignmentTimestamp
-              )
-            ),
+            assignmentTimestamp: new Date(),
             verifiedBy: [
               {
-                id: mockAuthData.organizationId,
-                verificationDate: new Date(
-                  Number(
-                    (
-                      writtenPayload.tenant!.attributes[0].sealedValue as {
-                        oneofKind: "verifiedAttribute";
-                        verifiedAttribute: TenantVerifiedAttributeV2;
-                      }
-                    ).verifiedAttribute.verifiedBy[0].verificationDate
-                  )
-                ),
+                id: organizationId,
+                verificationDate: new Date(),
                 expirationDate: tenantAttributeSeed.expirationDate
                   ? new Date(tenantAttributeSeed.expirationDate)
                   : undefined,
@@ -165,9 +148,10 @@ export const testVerifyVerifiedAttribute = (): ReturnType<typeof describe> =>
             revokedBy: [],
           },
         ],
-        updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
+        updatedAt: new Date(),
       };
       expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+      vi.useRealTimers();
     });
     it("Should verify the VerifiedAttribute if verifiedTenantAttribute exist", async () => {
       vi.useFakeTimers();
@@ -200,7 +184,7 @@ export const testVerifyVerifiedAttribute = (): ReturnType<typeof describe> =>
       await tenantService.verifyVerifiedAttribute({
         tenantId: tenantWithVerifiedAttribute.id,
         tenantAttributeSeed,
-        organizationId: mockAuthData.organizationId,
+        organizationId,
         correlationId,
       });
       const writtenEvent = await readLastEventByStreamId(
@@ -231,7 +215,7 @@ export const testVerifyVerifiedAttribute = (): ReturnType<typeof describe> =>
               { ...mockVerifiedBy },
               {
                 ...mockVerifiedBy,
-                id: mockAuthData.organizationId,
+                id: organizationId,
                 verificationDate: new Date(),
               },
             ],
@@ -244,19 +228,33 @@ export const testVerifyVerifiedAttribute = (): ReturnType<typeof describe> =>
       expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
       vi.useRealTimers();
     });
-    it("Should throw tenant not found", async () => {
+    it("Should throw tenantNotFound if the tenant doesn't exist", async () => {
       await addOneEService(eService1, eservices);
       await addOneAgreement(agreementEservice1, agreements);
       expect(
         tenantService.verifyVerifiedAttribute({
           tenantId: targetTenant.id,
           tenantAttributeSeed,
-          organizationId: mockAuthData.organizationId,
+          organizationId,
           correlationId,
         })
       ).rejects.toThrowError(tenantNotFound(targetTenant.id));
     });
-    it("Should throw attributeVerificationNotAllowed", async () => {
+    it("Should throw attributeNotFound if the attribute doesn't exist", async () => {
+      await addOneTenant(targetTenant, postgresDB, tenants);
+      await addOneTenant(requesterTenant, postgresDB, tenants);
+      await addOneEService(eService1, eservices);
+      await addOneAgreement(agreementEservice1, agreements);
+      expect(
+        tenantService.verifyVerifiedAttribute({
+          tenantId: targetTenant.id,
+          tenantAttributeSeed,
+          organizationId,
+          correlationId,
+        })
+      ).rejects.toThrowError(attributeNotFound(attribute.id));
+    });
+    it("Should throw attributeVerificationNotAllowed if the organization is not allowed to verify the attribute", async () => {
       const descriptorAttributeVerificationNotAllowed: Descriptor = {
         ...descriptor1,
         attributes: {
@@ -296,7 +294,7 @@ export const testVerifyVerifiedAttribute = (): ReturnType<typeof describe> =>
         tenantService.verifyVerifiedAttribute({
           tenantId: targetTenant.id,
           tenantAttributeSeed,
-          organizationId: mockAuthData.organizationId,
+          organizationId,
           correlationId,
         })
       ).rejects.toThrowError(
@@ -306,7 +304,7 @@ export const testVerifyVerifiedAttribute = (): ReturnType<typeof describe> =>
         )
       );
     });
-    it("Should throw verifiedAttributeSelfVerification", async () => {
+    it("Should throw verifiedAttributeSelfVerification if the organizations are not allowed to revoke own attributes", async () => {
       await addOneTenant(targetTenant, postgresDB, tenants);
       await addOneTenant(requesterTenant, postgresDB, tenants);
       await addOneEService(eService1, eservices);
