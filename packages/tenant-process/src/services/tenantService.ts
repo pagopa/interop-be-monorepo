@@ -315,11 +315,11 @@ export function tenantServiceBuilder(
       const tenant = await retrieveTenant(tenantId, readModelService);
 
       if (
-        tenant.data.features.find(
-          (certifier) => certifier.type === "PersistentCertifier"
+        tenant.data.features.some(
+          (feature) => feature.certifierId === payload.certifierId
         )
       ) {
-        throw tenatIsAlreadyACertifier(tenant.data.id); // TODO to check
+        throw tenatIsAlreadyACertifier(tenant.data.id, payload.certifierId);
       }
 
       const updatedTenant: Tenant = {

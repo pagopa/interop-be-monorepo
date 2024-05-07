@@ -158,10 +158,11 @@ export function tenantIsNotCertifier(tenantId: TenantId): ApiError<ErrorCodes> {
 }
 
 export function tenatIsAlreadyACertifier(
-  tenantId: TenantId
+  tenantId: TenantId,
+  certifierId: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization ${tenantId} is already a certifier`,
+    detail: `Organization ${tenantId} is already a certifier with certifierId ${certifierId}`,
     code: "tenatIsAlreadyACertifier",
     title: "Tenant is already a certifier",
   });
