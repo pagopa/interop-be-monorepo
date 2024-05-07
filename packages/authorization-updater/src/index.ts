@@ -8,7 +8,7 @@ import {
   logger,
   CatalogTopicConfig,
   catalogTopicConfig,
-  runWithContext,
+  runWithLoggerContext,
 } from "pagopa-interop-commons";
 import {
   Descriptor,
@@ -80,8 +80,9 @@ function processMessage(
       );
       const decodedMsg = messageDecoder(messagePayload.message);
 
-      await runWithContext(
+      await runWithLoggerContext(
         {
+          serviceName: "authorization-updater",
           messageData: {
             eventType: decodedMsg.type,
             eventVersion: decodedMsg.event_version,
@@ -142,7 +143,8 @@ function processMessage(
                 updateSeed.descriptorId,
                 updateSeed.eserviceId,
                 updateSeed.audience,
-                updateSeed.voucherLifespan
+                updateSeed.voucherLifespan,
+                decodedMsg.correlation_id
               )
             );
           }
