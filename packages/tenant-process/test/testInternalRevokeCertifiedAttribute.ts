@@ -30,11 +30,10 @@ import {
   tenantService,
 } from "./tenant.integration.test.js";
 
-export const testInternalRevokeCertifiedAttributes = (): ReturnType<
+export const testInternalRevokeCertifiedAttribute = (): ReturnType<
   typeof describe
 > =>
-  describe("testInternalRevokeCertifiedAttributes", async () => {
-    const correlationId = generateId();
+  describe("testInternalRevokeCertifiedAttribute", async () => {
     const requesterTenant: Tenant = {
       ...getMockTenant(),
       features: [
@@ -58,7 +57,7 @@ export const testInternalRevokeCertifiedAttributes = (): ReturnType<
         attributes: [
           {
             ...getMockCertifiedTenantAttribute(),
-            id: unsafeBrandId(mockAttribute.id),
+            id: mockAttribute.id,
             assignmentTimestamp: new Date(),
           },
         ],
@@ -71,7 +70,7 @@ export const testInternalRevokeCertifiedAttributes = (): ReturnType<
         tenantWithCertifiedAttribute.externalId.value,
         mockAttribute.origin!,
         mockAttribute.code!,
-        correlationId
+        generateId()
       );
       const writtenEvent = await readLastEventByStreamId(
         tenantWithCertifiedAttribute.id,
@@ -101,7 +100,7 @@ export const testInternalRevokeCertifiedAttributes = (): ReturnType<
           },
         ],
         kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
-        updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
+        updatedAt: new Date(),
       };
       expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
       vi.useRealTimers();
@@ -115,7 +114,7 @@ export const testInternalRevokeCertifiedAttributes = (): ReturnType<
           requesterTenant.externalId.value,
           mockAttribute.origin!,
           mockAttribute.code!,
-          correlationId
+          generateId()
         )
       ).rejects.toThrowError(
         tenantNotFound(
@@ -135,7 +134,7 @@ export const testInternalRevokeCertifiedAttributes = (): ReturnType<
           requesterTenant.externalId.value,
           mockAttribute.origin!,
           mockAttribute.code!,
-          correlationId
+          generateId()
         )
       ).rejects.toThrowError(
         attributeNotFound(
