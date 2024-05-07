@@ -1,6 +1,7 @@
+import { fail } from "assert";
+import { attributeKind } from "pagopa-interop-models";
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { fail } from "assert";
 import { readLastEventByStreamId } from "pagopa-interop-commons-test/index.js";
 import {
   generateId,
@@ -31,14 +32,14 @@ import {
   tenantService,
 } from "./tenant.integration.test.js";
 
-export const testInternalAssignCertifiedAttributes = (): ReturnType<
+export const testInternalAssignCertifiedAttribute = (): ReturnType<
   typeof describe
 > =>
-  describe("testInternalAssignCertifiedAttributes", async () => {
+  describe("internalAssignCertifiedAttributes", async () => {
     const correlationId = generateId();
     const attribute: Attribute = {
       ...getMockAttribute(),
-      kind: "Certified",
+      kind: attributeKind.certified,
     };
 
     it("Should add the certified attribute if the Tenant doesn't have that", async () => {
