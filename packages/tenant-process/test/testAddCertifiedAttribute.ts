@@ -1,6 +1,7 @@
+import { fail } from "assert";
+import { attributeKind } from "pagopa-interop-models";
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { fail } from "assert";
 import { readLastEventByStreamId } from "pagopa-interop-commons-test/index.js";
 import {
   generateId,
@@ -9,11 +10,10 @@ import {
   unsafeBrandId,
   protobufDecoder,
   TenantCertifiedAttributeAssignedV2,
-  TenantCertifiedAttributeV2,
   fromTenantKindV2,
   toTenantV2,
 } from "pagopa-interop-models";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import {
   tenantNotFound,
   attributeNotFound,
@@ -37,7 +37,7 @@ import {
   tenantService,
 } from "./tenant.integration.test.js";
 
-export const testAddCertifiedAttributes = (): ReturnType<typeof describe> =>
+export const testAddCertifiedAttribute = (): ReturnType<typeof describe> =>
   describe("addCertifiedAttribute", async () => {
     const tenantAttributeSeed: ApiCertifiedTenantAttributeSeed = {
       id: generateId(),
@@ -52,28 +52,29 @@ export const testAddCertifiedAttributes = (): ReturnType<typeof describe> =>
         },
       ],
       updatedAt: currentDate,
-      name: "A requesterTenant",
     };
     const attribute: Attribute = {
       name: "an Attribute",
       id: unsafeBrandId(tenantAttributeSeed.id),
-      kind: "Certified",
+      kind: attributeKind.certified,
       description: "an attribute",
       creationTime: new Date(),
       code: "123456",
       origin: requesterTenant.features[0].certifierId,
     };
 
-    const targetTenant: Tenant = { ...getMockTenant(), id: generateId() };
-    const mockAuthData = getMockAuthData(requesterTenant.id);
+    const targetTenant: Tenant = getMockTenant();
+    const organizationId = getMockAuthData(requesterTenant.id).organizationId;
 
     it("Should add the certified attribute if the tenant doesn't have that", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date());
       await addOneAttribute(attribute, attributes);
       await addOneTenant(targetTenant, postgresDB, tenants);
       await addOneTenant(requesterTenant, postgresDB, tenants);
       await tenantService.addCertifiedAttribute(targetTenant.id, {
         tenantAttributeSeed,
-        authData: mockAuthData,
+        organizationId,
         correlationId,
       });
       const writtenEvent = await readLastEventByStreamId(
@@ -99,24 +100,18 @@ export const testAddCertifiedAttributes = (): ReturnType<typeof describe> =>
           {
             id: unsafeBrandId(tenantAttributeSeed.id),
             type: "PersistentCertifiedAttribute",
-            assignmentTimestamp: new Date(
-              Number(
-                (
-                  writtenPayload.tenant!.attributes[0].sealedValue as {
-                    oneofKind: "certifiedAttribute";
-                    certifiedAttribute: TenantCertifiedAttributeV2;
-                  }
-                ).certifiedAttribute.assignmentTimestamp
-              )
-            ),
+            assignmentTimestamp: new Date(),
           },
         ],
         kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
-        updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
+        updatedAt: new Date(),
       };
       expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+      vi.useRealTimers();
     });
     it("Should re-assign the certified attribute if it was revoked", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date());
       const tenantWithCertifiedAttribute: Tenant = {
         ...targetTenant,
         attributes: [
@@ -135,7 +130,7 @@ export const testAddCertifiedAttributes = (): ReturnType<typeof describe> =>
         tenantWithCertifiedAttribute.id,
         {
           tenantAttributeSeed,
-          authData: mockAuthData,
+          organizationId,
           correlationId,
         }
       );
@@ -162,22 +157,14 @@ export const testAddCertifiedAttributes = (): ReturnType<typeof describe> =>
           {
             id: unsafeBrandId(tenantAttributeSeed.id),
             type: "PersistentCertifiedAttribute",
-            assignmentTimestamp: new Date(
-              Number(
-                (
-                  writtenPayload.tenant!.attributes[0].sealedValue as {
-                    oneofKind: "certifiedAttribute";
-                    certifiedAttribute: TenantCertifiedAttributeV2;
-                  }
-                ).certifiedAttribute.assignmentTimestamp
-              )
-            ),
+            assignmentTimestamp: new Date(),
           },
         ],
         kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
-        updatedAt: new Date(Number(writtenPayload.tenant?.updatedAt)),
+        updatedAt: new Date(),
       };
       expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+      vi.useRealTimers();
     });
     it("Should throw certifiedAttributeAlreadyAssigned if the attribute was already assigned", async () => {
       const tenantAlreadyAssigned: Tenant = {
@@ -196,7 +183,7 @@ export const testAddCertifiedAttributes = (): ReturnType<typeof describe> =>
       expect(
         tenantService.addCertifiedAttribute(tenantAlreadyAssigned.id, {
           tenantAttributeSeed,
-          authData: mockAuthData,
+          organizationId,
           correlationId,
         })
       ).rejects.toThrowError(
@@ -211,7 +198,7 @@ export const testAddCertifiedAttributes = (): ReturnType<typeof describe> =>
       expect(
         tenantService.addCertifiedAttribute(targetTenant.id, {
           tenantAttributeSeed,
-          authData: mockAuthData,
+          organizationId,
           correlationId,
         })
       ).rejects.toThrowError(tenantNotFound(requesterTenant.id));
@@ -223,17 +210,13 @@ export const testAddCertifiedAttributes = (): ReturnType<typeof describe> =>
       expect(
         tenantService.addCertifiedAttribute(targetTenant.id, {
           tenantAttributeSeed,
-          authData: mockAuthData,
+          organizationId,
           correlationId,
         })
       ).rejects.toThrowError(attributeNotFound(attribute.id));
     });
     it("Should throw tenantIsNotACertifier if the requester is not a certifier", async () => {
-      const requesterTenant: Tenant = {
-        ...getMockTenant(),
-        updatedAt: currentDate,
-        name: "A requesterTenant",
-      };
+      const requesterTenant: Tenant = getMockTenant();
       await addOneAttribute(attribute, attributes);
       await addOneTenant(targetTenant, postgresDB, tenants);
       await addOneTenant(requesterTenant, postgresDB, tenants);
@@ -241,7 +224,7 @@ export const testAddCertifiedAttributes = (): ReturnType<typeof describe> =>
       expect(
         tenantService.addCertifiedAttribute(targetTenant.id, {
           tenantAttributeSeed,
-          authData: getMockAuthData(requesterTenant.id),
+          organizationId: getMockAuthData(requesterTenant.id).organizationId,
           correlationId,
         })
       ).rejects.toThrowError(tenantIsNotACertifier(requesterTenant.id));
@@ -258,7 +241,7 @@ export const testAddCertifiedAttributes = (): ReturnType<typeof describe> =>
       expect(
         tenantService.addCertifiedAttribute(targetTenant.id, {
           tenantAttributeSeed,
-          authData: mockAuthData,
+          organizationId,
           correlationId,
         })
       ).rejects.toThrowError(
