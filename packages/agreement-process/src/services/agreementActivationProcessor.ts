@@ -14,6 +14,7 @@ import {
   WithMetadata,
   AgreementEvent,
   AgreementId,
+  SelfcareId,
 } from "pagopa-interop-models";
 import {
   assertAgreementExist,
@@ -203,6 +204,7 @@ async function activateAgreement(
       consumer,
       attributeQuery,
       tenantQuery,
+      authData.selfcareId,
       storeFile,
       logger
     );
@@ -269,6 +271,7 @@ const createContract = async (
   consumer: Tenant,
   attributeQuery: AttributeQuery,
   tenantQuery: TenantQuery,
+  selfcareId: SelfcareId,
   storeFile: FileManager["storeBytes"],
   logger: Logger
 ): Promise<void> => {
@@ -278,11 +281,10 @@ const createContract = async (
   );
   assertTenantExist(agreement.producerId, producer);
 
-  await contractBuilder(attributeQuery, storeFile, logger).createContract(
-    agreement,
-    eservice,
-    consumer,
-    producer,
-    updateSeed
-  );
+  await contractBuilder(
+    selfcareId,
+    attributeQuery,
+    storeFile,
+    logger
+  ).createContract(agreement, eservice, consumer, producer, updateSeed);
 };
