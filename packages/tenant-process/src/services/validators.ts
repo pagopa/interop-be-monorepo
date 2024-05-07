@@ -149,7 +149,7 @@ export function getTenantKind(
     .otherwise(() => tenantKind.PRIVATE);
 }
 
-async function assertRequesterAllowed(
+export async function assertRequesterAllowed(
   resourceId: string,
   requesterId: string
 ): Promise<void> {
