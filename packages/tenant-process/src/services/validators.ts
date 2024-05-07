@@ -1,4 +1,4 @@
-import { AuthData, Logger, userRoles } from "pagopa-interop-commons";
+import { AuthData, userRoles } from "pagopa-interop-commons";
 import {
   Attribute,
   AttributeId,
@@ -117,8 +117,7 @@ export async function assertResourceAllowed(
 export async function getTenantKindLoadingCertifiedAttributes(
   readModelService: ReadModelService,
   attributes: TenantAttribute[],
-  externalId: ExternalId,
-  logger: Logger
+  externalId: ExternalId
 ): Promise<TenantKind> {
   function getCertifiedAttributesIds(
     attributes: TenantAttribute[]
@@ -141,7 +140,7 @@ export async function getTenantKindLoadingCertifiedAttributes(
     });
 
   const attributesIds = getCertifiedAttributesIds(attributes);
-  const attrs = await readModelService.getAttributesById(attributesIds, logger);
+  const attrs = await readModelService.getAttributesById(attributesIds);
   const extIds = convertAttributes(attrs);
   return getTenantKind(extIds, externalId);
 }

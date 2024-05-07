@@ -4,7 +4,6 @@ import {
   ListResult,
   WithMetadata,
 } from "pagopa-interop-models";
-import { Logger } from "pagopa-interop-commons";
 import { CompactOrganization } from "../../model/domain/models.js";
 import {
   AgreementEServicesQueryFilters,
@@ -16,43 +15,37 @@ import {
 export function agreementQueryBuilder(readModelService: ReadModelService) {
   return {
     getAgreementById: async (
-      id: AgreementId,
-      logger: Logger
+      id: AgreementId
     ): Promise<WithMetadata<Agreement> | undefined> =>
-      await readModelService.readAgreementById(id, logger),
+      await readModelService.readAgreementById(id),
     getAllAgreements: (
-      filters: AgreementQueryFilters,
-      logger: Logger
+      filters: AgreementQueryFilters
     ): Promise<Array<WithMetadata<Agreement>>> =>
-      readModelService.getAllAgreements(filters, logger),
+      readModelService.getAllAgreements(filters),
     getAgreements: (
       filters: AgreementQueryFilters,
       limit: number,
-      offset: number,
-      logger: Logger
+      offset: number
     ): Promise<ListResult<Agreement>> =>
-      readModelService.getAgreements(filters, limit, offset, logger),
+      readModelService.getAgreements(filters, limit, offset),
     getConsumers: (
       name: string | undefined,
       limit: number,
-      offset: number,
-      logger: Logger
+      offset: number
     ): Promise<ListResult<CompactOrganization>> =>
-      readModelService.listConsumers(name, limit, offset, logger),
+      readModelService.listConsumers(name, limit, offset),
     getProducers: (
       name: string | undefined,
       limit: number,
-      offset: number,
-      logger: Logger
+      offset: number
     ): Promise<ListResult<CompactOrganization>> =>
-      readModelService.listProducers(name, limit, offset, logger),
+      readModelService.listProducers(name, limit, offset),
     getEServices: (
       filters: AgreementEServicesQueryFilters,
       limit: number,
-      offset: number,
-      logger: Logger
+      offset: number
     ): Promise<ListResult<CompactOrganization>> =>
-      readModelService.listAgreementsEServices(filters, limit, offset, logger),
+      readModelService.listAgreementsEServices(filters, limit, offset),
   };
 }
 

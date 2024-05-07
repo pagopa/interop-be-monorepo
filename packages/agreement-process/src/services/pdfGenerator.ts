@@ -46,8 +46,7 @@ import { AttributeQuery } from "./readmodel/attributeQuery.js";
 const getAttributeInvolved = async (
   consumer: Tenant,
   seed: UpdateAgreementSeed,
-  attributeQuery: AttributeQuery,
-  logger: Logger
+  attributeQuery: AttributeQuery
 ): Promise<AgreementInvolvedAttributes> => {
   const getAgreementAttributeByType = async <
     T extends
@@ -69,7 +68,7 @@ const getAttributeInvolved = async (
 
     return Promise.all(
       attributes.map(async (attr) => {
-        const att = await attributeQuery.getAttributeById(attr.id, logger);
+        const att = await attributeQuery.getAttributeById(attr.id);
         if (!att) {
           throw genericError(`Attribute ${attr.id} not found`);
         }
@@ -141,14 +140,12 @@ const getPdfPayload = async (
   consumer: Tenant,
   producer: Tenant,
   seed: UpdateAgreementSeed,
-  attributeQuery: AttributeQuery,
-  logger: Logger
+  attributeQuery: AttributeQuery
 ): Promise<PDFPayload> => {
   const { certified, declared, verified } = await getAttributeInvolved(
     consumer,
     seed,
-    attributeQuery,
-    logger
+    attributeQuery
   );
   const [submitter, submissionTimestamp] = await getSubmissionInfo(
     selfcareId,
@@ -221,8 +218,7 @@ export const pdfGenerator = {
       consumer,
       producer,
       seed,
-      attributeQuery,
-      logger
+      attributeQuery
     );
     const document = await create(agreementTemplateMock, pdfPayload);
 

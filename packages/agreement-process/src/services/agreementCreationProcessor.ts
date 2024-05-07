@@ -1,4 +1,4 @@
-import { AuthData, CreateEvent, Logger } from "pagopa-interop-commons";
+import { AuthData, CreateEvent } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementEvent,
@@ -26,13 +26,9 @@ export async function createAgreementLogic(
   agreementQuery: AgreementQuery,
   eserviceQuery: EserviceQuery,
   tenantQuery: TenantQuery,
-  correlationId: string,
-  logger: Logger
+  correlationId: string
 ): Promise<CreateEvent<AgreementEvent>> {
-  const eservice = await eserviceQuery.getEServiceById(
-    agreement.eserviceId,
-    logger
-  );
+  const eservice = await eserviceQuery.getEServiceById(agreement.eserviceId);
   assertEServiceExist(unsafeBrandId(agreement.eserviceId), eservice);
 
   const descriptor = validateCreationOnDescriptor(
@@ -43,13 +39,9 @@ export async function createAgreementLogic(
   await verifyCreationConflictingAgreements(
     authData.organizationId,
     agreement,
-    agreementQuery,
-    logger
+    agreementQuery
   );
-  const consumer = await tenantQuery.getTenantById(
-    authData.organizationId,
-    logger
-  );
+  const consumer = await tenantQuery.getTenantById(authData.organizationId);
   assertTenantExist(authData.organizationId, consumer);
 
   if (eservice.producerId !== consumer.id) {

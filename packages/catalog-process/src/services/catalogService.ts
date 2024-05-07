@@ -108,10 +108,9 @@ import {
 
 const retrieveEService = async (
   eserviceId: EServiceId,
-  readModelService: ReadModelService,
-  logger: Logger
+  readModelService: ReadModelService
 ): Promise<WithMetadata<EService>> => {
-  const eservice = await readModelService.getEServiceById(eserviceId, logger);
+  const eservice = await readModelService.getEServiceById(eserviceId);
   if (eservice === undefined) {
     throw eServiceNotFound(eserviceId);
   }
@@ -149,10 +148,9 @@ const retrieveDocument = (
 
 const retrieveTenant = async (
   tenantId: TenantId,
-  readModelService: ReadModelService,
-  logger: Logger
+  readModelService: ReadModelService
 ): Promise<Tenant> => {
-  const tenant = await readModelService.getTenantById(tenantId, logger);
+  const tenant = await readModelService.getTenantById(tenantId);
   if (tenant === undefined) {
     throw tenantNotFound(tenantId);
   }
@@ -276,8 +274,7 @@ const replaceRiskAnalysis = (
 
 async function parseAndCheckAttributes(
   attributesSeed: EServiceAttributesSeed,
-  readModelService: ReadModelService,
-  logger: Logger
+  readModelService: ReadModelService
 ): Promise<EserviceAttributes> {
   const certifiedAttributes = attributesSeed.certified;
   const declaredAttributes = attributesSeed.declared;
@@ -294,8 +291,7 @@ async function parseAndCheckAttributes(
       unsafeBrandId(attr.id)
     );
     const attributes = await readModelService.getAttributesByIds(
-      attributesSeedsIds,
-      logger
+      attributesSeedsIds
     );
     const attributesIds = attributes.map((attr) => attr.id);
     for (const attributeSeedId of attributesSeedsIds) {
@@ -342,11 +338,7 @@ export function catalogServiceBuilder(
       { authData, logger }: WithLogger<AppContext>
     ): Promise<EService> {
       logger.info(`Retrieving EService ${eserviceId}`);
-      const eservice = await retrieveEService(
-        eserviceId,
-        readModelService,
-        logger
-      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
 
       return applyVisibilityToEService(eservice.data, authData);
     },
@@ -365,8 +357,7 @@ export function catalogServiceBuilder(
         authData,
         filters,
         offset,
-        limit,
-        logger
+        limit
       );
 
       const eservicesToReturn = eservicesList.results.map((eservice) =>
@@ -389,8 +380,7 @@ export function catalogServiceBuilder(
       return await readModelService.getEServiceConsumers(
         eserviceId,
         offset,
-        limit,
-        logger
+        limit
       );
     },
 
@@ -409,11 +399,7 @@ export function catalogServiceBuilder(
       logger.info(
         `Retrieving EService document ${documentId} for EService ${eserviceId} and descriptor ${descriptorId}`
       );
-      const eservice = await retrieveEService(
-        eserviceId,
-        readModelService,
-        logger
-      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
       const descriptor = retrieveDescriptor(descriptorId, eservice);
       const document = retrieveDocument(eserviceId, descriptor, documentId);
       const checkedEService = applyVisibilityToEService(
@@ -439,13 +425,10 @@ export function catalogServiceBuilder(
       }
 
       const eserviceWithSameName =
-        await readModelService.getEServiceByNameAndProducerId(
-          {
-            name: apiEServicesSeed.name,
-            producerId: authData.organizationId,
-          },
-          logger
-        );
+        await readModelService.getEServiceByNameAndProducerId({
+          name: apiEServicesSeed.name,
+          producerId: authData.organizationId,
+        });
       if (eserviceWithSameName) {
         throw eServiceDuplicate(apiEServicesSeed.name);
       }
@@ -476,24 +459,17 @@ export function catalogServiceBuilder(
     ): Promise<EService> {
       logger.info(`Updating EService ${eserviceId}`);
 
-      const eservice = await retrieveEService(
-        eserviceId,
-        readModelService,
-        logger
-      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
       assertRequesterAllowed(eservice.data.producerId, authData);
 
       assertIsDraftEservice(eservice.data);
 
       if (eserviceSeed.name !== eservice.data.name) {
         const eserviceWithSameName =
-          await readModelService.getEServiceByNameAndProducerId(
-            {
-              name: eserviceSeed.name,
-              producerId: authData.organizationId,
-            },
-            logger
-          );
+          await readModelService.getEServiceByNameAndProducerId({
+            name: eserviceSeed.name,
+            producerId: authData.organizationId,
+          });
         if (eserviceWithSameName !== undefined) {
           throw eServiceDuplicate(eserviceSeed.name);
         }
@@ -558,11 +534,7 @@ export function catalogServiceBuilder(
     ): Promise<void> {
       logger.info(`Deleting EService ${eserviceId}`);
 
-      const eservice = await retrieveEService(
-        eserviceId,
-        readModelService,
-        logger
-      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
       assertRequesterAllowed(eservice.data.producerId, authData);
 
       assertIsDraftEservice(eservice.data);
@@ -590,11 +562,7 @@ export function catalogServiceBuilder(
         } for EService ${eserviceId} and Descriptor ${descriptorId}`
       );
 
-      const eservice = await retrieveEService(
-        eserviceId,
-        readModelService,
-        logger
-      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
       assertRequesterAllowed(eservice.data.producerId, authData);
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
@@ -670,11 +638,7 @@ export function catalogServiceBuilder(
         `Deleting Document ${documentId} of Descriptor ${descriptorId} for EService ${eserviceId}`
       );
 
-      const eservice = await retrieveEService(
-        eserviceId,
-        readModelService,
-        logger
-      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
       assertRequesterAllowed(eservice.data.producerId, authData);
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
@@ -740,11 +704,7 @@ export function catalogServiceBuilder(
         `Updating Document ${documentId} of Descriptor ${descriptorId} for EService ${eserviceId}`
       );
 
-      const eservice = await retrieveEService(
-        eserviceId,
-        readModelService,
-        logger
-      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
       assertRequesterAllowed(eservice.data.producerId, authData);
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
@@ -809,11 +769,7 @@ export function catalogServiceBuilder(
     ): Promise<Descriptor> {
       logger.info(`Creating Descriptor for EService ${eserviceId}`);
 
-      const eservice = await retrieveEService(
-        eserviceId,
-        readModelService,
-        logger
-      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
       assertRequesterAllowed(eservice.data.producerId, authData);
       assertHasNoDraftDescriptor(eservice.data);
 
@@ -821,8 +777,7 @@ export function catalogServiceBuilder(
 
       const parsedAttributes = await parseAndCheckAttributes(
         eserviceDescriptorSeed.attributes,
-        readModelService,
-        logger
+        readModelService
       );
 
       if (
@@ -884,11 +839,7 @@ export function catalogServiceBuilder(
         `Deleting draft Descriptor ${descriptorId} for EService ${eserviceId}`
       );
 
-      const eservice = await retrieveEService(
-        eserviceId,
-        readModelService,
-        logger
-      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
       assertRequesterAllowed(eservice.data.producerId, authData);
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
@@ -940,11 +891,7 @@ export function catalogServiceBuilder(
         `Updating draft Descriptor ${descriptorId} for EService ${eserviceId}`
       );
 
-      const eservice = await retrieveEService(
-        eserviceId,
-        readModelService,
-        logger
-      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
       assertRequesterAllowed(eservice.data.producerId, authData);
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
@@ -959,8 +906,7 @@ export function catalogServiceBuilder(
 
       const parsedAttributes = await parseAndCheckAttributes(
         seed.attributes,
-        readModelService,
-        logger
+        readModelService
       );
 
       const updatedDescriptor: Descriptor = {
@@ -1004,11 +950,7 @@ export function catalogServiceBuilder(
         `Publishing Descriptor ${descriptorId} for EService ${eserviceId}`
       );
 
-      const eservice = await retrieveEService(
-        eserviceId,
-        readModelService,
-        logger
-      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
       assertRequesterAllowed(eservice.data.producerId, authData);
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
@@ -1023,8 +965,7 @@ export function catalogServiceBuilder(
       if (eservice.data.mode === eserviceMode.receive) {
         const tenant = await retrieveTenant(
           eservice.data.producerId,
-          readModelService,
-          logger
+          readModelService
         );
         assertTenantKindExists(tenant);
         assertRiskAnalysisIsValidForPublication(eservice.data, tenant.kind);
@@ -1047,17 +988,14 @@ export function catalogServiceBuilder(
       // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
       const event = async () => {
         if (currentActiveDescriptor !== undefined) {
-          const agreements = await readModelService.listAgreements(
-            {
-              eservicesIds: [eserviceId],
-              consumersIds: [],
-              producersIds: [],
-              states: [agreementState.active, agreementState.suspended],
-              limit: 1,
-              descriptorId: currentActiveDescriptor.id,
-            },
-            logger
-          );
+          const agreements = await readModelService.listAgreements({
+            eservicesIds: [eserviceId],
+            consumersIds: [],
+            producersIds: [],
+            states: [agreementState.active, agreementState.suspended],
+            limit: 1,
+            descriptorId: currentActiveDescriptor.id,
+          });
           if (agreements.length === 0) {
             const eserviceWithArchivedAndPublishedDescriptors =
               replaceDescriptor(
@@ -1109,11 +1047,7 @@ export function catalogServiceBuilder(
         `Suspending Descriptor ${descriptorId} for EService ${eserviceId}`
       );
 
-      const eservice = await retrieveEService(
-        eserviceId,
-        readModelService,
-        logger
-      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
       assertRequesterAllowed(eservice.data.producerId, authData);
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
@@ -1150,11 +1084,7 @@ export function catalogServiceBuilder(
         `Activating descriptor ${descriptorId} for EService ${eserviceId}`
       );
 
-      const eservice = await retrieveEService(
-        eserviceId,
-        readModelService,
-        logger
-      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
       assertRequesterAllowed(eservice.data.producerId, authData);
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
@@ -1222,11 +1152,7 @@ export function catalogServiceBuilder(
         `Cloning Descriptor ${descriptorId} for EService ${eserviceId}`
       );
 
-      const eservice = await retrieveEService(
-        eserviceId,
-        readModelService,
-        logger
-      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
 
       assertRequesterAllowed(eservice.data.producerId, authData);
 
@@ -1235,13 +1161,10 @@ export function catalogServiceBuilder(
       } - clone - ${formatClonedEServiceDate(new Date())}`;
 
       if (
-        await readModelService.getEServiceByNameAndProducerId(
-          {
-            name: clonedEServiceName,
-            producerId: authData.organizationId,
-          },
-          logger
-        )
+        await readModelService.getEServiceByNameAndProducerId({
+          name: clonedEServiceName,
+          producerId: authData.organizationId,
+        })
       ) {
         throw eServiceDuplicate(clonedEServiceName);
       }
@@ -1344,11 +1267,7 @@ export function catalogServiceBuilder(
         `Archiving Descriptor ${descriptorId} for EService ${eserviceId}`
       );
 
-      const eservice = await retrieveEService(
-        eserviceId,
-        readModelService,
-        logger
-      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
       assertRequesterAllowed(eservice.data.producerId, authData);
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
@@ -1379,11 +1298,7 @@ export function catalogServiceBuilder(
         `Updating Descriptor ${descriptorId} for EService ${eserviceId}`
       );
 
-      const eservice = await retrieveEService(
-        eserviceId,
-        readModelService,
-        logger
-      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
       assertRequesterAllowed(eservice.data.producerId, authData);
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
@@ -1430,11 +1345,7 @@ export function catalogServiceBuilder(
     ): Promise<void> {
       logger.info(`Creating Risk Analysis for EService ${eserviceId}`);
 
-      const eservice = await retrieveEService(
-        eserviceId,
-        readModelService,
-        logger
-      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
 
       assertRequesterAllowed(eservice.data.producerId, authData);
       assertIsDraftEservice(eservice.data);
@@ -1442,8 +1353,7 @@ export function catalogServiceBuilder(
 
       const tenant = await retrieveTenant(
         authData.organizationId,
-        readModelService,
-        logger
+        readModelService
       );
       assertTenantKindExists(tenant);
 
@@ -1483,11 +1393,7 @@ export function catalogServiceBuilder(
         `Updating Risk Analysis ${riskAnalysisId} for EService ${eserviceId}`
       );
 
-      const eservice = await retrieveEService(
-        eserviceId,
-        readModelService,
-        logger
-      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
 
       assertRequesterAllowed(eservice.data.producerId, authData);
       assertIsDraftEservice(eservice.data);
@@ -1495,8 +1401,7 @@ export function catalogServiceBuilder(
 
       const tenant = await retrieveTenant(
         authData.organizationId,
-        readModelService,
-        logger
+        readModelService
       );
       assertTenantKindExists(tenant);
 
@@ -1541,11 +1446,7 @@ export function catalogServiceBuilder(
       logger.info(
         `Deleting Risk Analysis ${riskAnalysisId} for EService ${eserviceId}`
       );
-      const eservice = await retrieveEService(
-        eserviceId,
-        readModelService,
-        logger
-      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
 
       assertRequesterAllowed(eservice.data.producerId, authData);
 

@@ -112,7 +112,7 @@ export function agreementServiceBuilder(
       logger: Logger
     ): Promise<ListResult<Agreement>> {
       logger.info("Retrieving agreements");
-      return await agreementQuery.getAgreements(filters, limit, offset, logger);
+      return await agreementQuery.getAgreements(filters, limit, offset);
     },
     async getAgreementById(
       agreementId: AgreementId,
@@ -120,10 +120,7 @@ export function agreementServiceBuilder(
     ): Promise<Agreement> {
       logger.info(`Retrieving agreement by id ${agreementId}`);
 
-      const agreement = await agreementQuery.getAgreementById(
-        agreementId,
-        logger
-      );
+      const agreement = await agreementQuery.getAgreementById(agreementId);
       assertAgreementExist(agreementId, agreement);
       return agreement.data;
     },
@@ -140,8 +137,7 @@ export function agreementServiceBuilder(
         agreementQuery,
         eserviceQuery,
         tenantQuery,
-        correlationId,
-        logger
+        correlationId
       );
       return await repository.createEvent(createAgreementEvent, logger);
     },
@@ -154,12 +150,7 @@ export function agreementServiceBuilder(
       logger.info(
         `Retrieving producers from agreements with producer name ${producerName}`
       );
-      return await agreementQuery.getProducers(
-        producerName,
-        limit,
-        offset,
-        logger
-      );
+      return await agreementQuery.getProducers(producerName, limit, offset);
     },
     async getAgreementConsumers(
       consumerName: string | undefined,
@@ -170,12 +161,7 @@ export function agreementServiceBuilder(
       logger.info(
         `Retrieving consumers from agreements with consumer name ${consumerName}`
       );
-      return await agreementQuery.getConsumers(
-        consumerName,
-        limit,
-        offset,
-        logger
-      );
+      return await agreementQuery.getConsumers(consumerName, limit, offset);
     },
     async updateAgreement(
       agreementId: AgreementId,
@@ -184,8 +170,7 @@ export function agreementServiceBuilder(
     ): Promise<void> {
       logger.info(`Updating agreement ${agreementId}`);
       const agreementToBeUpdated = await agreementQuery.getAgreementById(
-        agreementId,
-        logger
+        agreementId
       );
 
       await repository.createEvent(
@@ -206,10 +191,7 @@ export function agreementServiceBuilder(
       { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<void> {
       logger.info(`Deleting agreement ${agreementId}`);
-      const agreement = await agreementQuery.getAgreementById(
-        agreementId,
-        logger
-      );
+      const agreement = await agreementQuery.getAgreementById(agreementId);
 
       await repository.createEvent(
         await deleteAgreementLogic(
@@ -321,10 +303,7 @@ export function agreementServiceBuilder(
       logger.info(
         `Retrieving consumer document ${documentId} from agreement ${agreementId}`
       );
-      const agreement = await agreementQuery.getAgreementById(
-        agreementId,
-        logger
-      );
+      const agreement = await agreementQuery.getAgreementById(agreementId);
       assertAgreementExist(agreementId, agreement);
       assertRequesterIsConsumerOrProducer(agreement.data, authData);
 
@@ -344,17 +323,14 @@ export function agreementServiceBuilder(
     ): Promise<AgreementId> {
       logger.info(`Suspending agreement ${agreementId}`);
       await repository.createEvent(
-        await suspendAgreementLogic(
-          {
-            agreementId,
-            authData,
-            agreementQuery,
-            tenantQuery,
-            eserviceQuery,
-            correlationId,
-          },
-          logger
-        ),
+        await suspendAgreementLogic({
+          agreementId,
+          authData,
+          agreementQuery,
+          tenantQuery,
+          eserviceQuery,
+          correlationId,
+        }),
         logger
       );
 
@@ -370,7 +346,7 @@ export function agreementServiceBuilder(
         `Retrieving EServices with consumers ${filters.consumerIds}, producers ${filters.producerIds}, states ${filters.agreeementStates}, offset ${offset}, limit ${limit} and name matching ${filters.eserviceName}`
       );
 
-      return await agreementQuery.getEServices(filters, limit, offset, logger);
+      return await agreementQuery.getEServices(filters, limit, offset);
     },
     async removeAgreementConsumerDocument(
       agreementId: AgreementId,
@@ -409,8 +385,7 @@ export function agreementServiceBuilder(
             tenantQuery,
             eserviceQuery,
           },
-          correlationId,
-          logger
+          correlationId
         ),
         logger
       );
@@ -449,8 +424,7 @@ export function agreementServiceBuilder(
           agreementId,
           authData,
           agreementQuery,
-          correlationId,
-          logger
+          correlationId
         ),
         logger
       );
@@ -588,13 +562,9 @@ export async function upgradeAgreementLogic(
   logger: Logger
 ): Promise<{ streamId: string; events: Array<CreateEvent<AgreementEvent>> }> {
   const agreementToBeUpgraded = await agreementQuery.getAgreementById(
-    agreementId,
-    logger
+    agreementId
   );
-  const tenant = await tenantQuery.getTenantById(
-    authData.organizationId,
-    logger
-  );
+  const tenant = await tenantQuery.getTenantById(authData.organizationId);
   assertTenantExist(authData.organizationId, tenant);
   assertAgreementExist(agreementId, agreementToBeUpgraded);
   assertRequesterIsConsumer(agreementToBeUpgraded.data, authData);
@@ -606,8 +576,7 @@ export async function upgradeAgreementLogic(
   );
 
   const eservice = await eserviceQuery.getEServiceById(
-    agreementToBeUpgraded.data.eserviceId,
-    logger
+    agreementToBeUpgraded.data.eserviceId
   );
   assertEServiceExist(agreementToBeUpgraded.data.eserviceId, eservice);
 
@@ -705,8 +674,7 @@ export async function upgradeAgreementLogic(
       agreementToBeUpgraded.data.consumerId,
       agreementToBeUpgraded.data.eserviceId,
       [agreementState.draft],
-      agreementQuery,
-      logger
+      agreementQuery
     );
 
     const id = generateId<AgreementId>();
@@ -763,8 +731,7 @@ export async function cloneAgreementLogic(
   logger: Logger
 ): Promise<CreateEvent<AgreementEvent>> {
   const agreementToBeCloned = await agreementQuery.getAgreementById(
-    agreementId,
-    logger
+    agreementId
   );
   assertAgreementExist(agreementId, agreementToBeCloned);
   assertRequesterIsConsumer(agreementToBeCloned.data, authData);
@@ -774,19 +741,15 @@ export async function cloneAgreementLogic(
   ]);
 
   const eservice = await eserviceQuery.getEServiceById(
-    agreementToBeCloned.data.eserviceId,
-    logger
+    agreementToBeCloned.data.eserviceId
   );
   assertEServiceExist(agreementToBeCloned.data.eserviceId, eservice);
 
-  const activeAgreement = await agreementQuery.getAllAgreements(
-    {
-      consumerId: authData.organizationId,
-      eserviceId: agreementToBeCloned.data.eserviceId,
-      agreementStates: agreementCloningConflictingStates,
-    },
-    logger
-  );
+  const activeAgreement = await agreementQuery.getAllAgreements({
+    consumerId: authData.organizationId,
+    eserviceId: agreementToBeCloned.data.eserviceId,
+    agreementStates: agreementCloningConflictingStates,
+  });
   if (activeAgreement.length > 0) {
     throw agreementAlreadyExists(
       authData.organizationId,
@@ -795,8 +758,7 @@ export async function cloneAgreementLogic(
   }
 
   const consumer = await tenantQuery.getTenantById(
-    agreementToBeCloned.data.consumerId,
-    logger
+    agreementToBeCloned.data.consumerId
   );
   assertTenantExist(agreementToBeCloned.data.consumerId, consumer);
 
@@ -852,12 +814,10 @@ export async function rejectAgreementLogic(
     tenantQuery: TenantQuery;
     eserviceQuery: EserviceQuery;
   },
-  correlationId: string,
-  logger: Logger
+  correlationId: string
 ): Promise<CreateEvent<AgreementEvent>> {
   const agreementToBeRejected = await agreementQuery.getAgreementById(
-    agreementId,
-    logger
+    agreementId
   );
   assertAgreementExist(agreementId, agreementToBeRejected);
 
@@ -870,14 +830,12 @@ export async function rejectAgreementLogic(
   );
 
   const eservice = await eserviceQuery.getEServiceById(
-    agreementToBeRejected.data.eserviceId,
-    logger
+    agreementToBeRejected.data.eserviceId
   );
   assertEServiceExist(agreementToBeRejected.data.eserviceId, eservice);
 
   const consumer = await tenantQuery.getTenantById(
-    agreementToBeRejected.data.consumerId,
-    logger
+    agreementToBeRejected.data.consumerId
   );
   assertTenantExist(agreementToBeRejected.data.consumerId, consumer);
 
@@ -922,10 +880,9 @@ export async function archiveAgreementLogic(
   agreementId: Agreement["id"],
   authData: AuthData,
   agreementQuery: AgreementQuery,
-  correlationId: string,
-  logger: Logger
+  correlationId: string
 ): Promise<CreateEvent<AgreementEvent>> {
-  const agreement = await agreementQuery.getAgreementById(agreementId, logger);
+  const agreement = await agreementQuery.getAgreementById(agreementId);
   assertAgreementExist(agreementId, agreement);
   assertRequesterIsConsumer(agreement.data, authData);
   assertExpectedState(

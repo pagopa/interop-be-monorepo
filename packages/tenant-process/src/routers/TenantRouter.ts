@@ -299,14 +299,11 @@ const tenantsRouter = (
         try {
           const { offset, limit } = req.query;
           const { results, totalCount } =
-            await tenantService.getCertifiedAttributes(
-              {
-                organizationId: req.ctx.authData.organizationId,
-                offset,
-                limit,
-              },
-              ctx.logger
-            );
+            await tenantService.getCertifiedAttributes({
+              organizationId: req.ctx.authData.organizationId,
+              offset,
+              limit,
+            });
 
           return res.status(200).json({
             results: results satisfies ApiCertifiedAttribute[],

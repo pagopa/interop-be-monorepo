@@ -2,7 +2,6 @@ import { Filter, WithId } from "mongodb";
 import { z } from "zod";
 import {
   AttributeCollection,
-  Logger,
   ReadModelRepository,
   TenantCollection,
 } from "pagopa-interop-commons";
@@ -11,16 +10,16 @@ import {
   Attribute,
   WithMetadata,
   ListResult,
-  genericError,
   Tenant,
   AttributeId,
   TenantId,
   AttributeReadmodel,
+  genericInternalError,
 } from "pagopa-interop-models";
+
 async function getAttribute(
   attributes: AttributeCollection,
-  filter: Filter<WithId<WithMetadata<AttributeReadmodel>>>,
-  logger: Logger
+  filter: Filter<WithId<WithMetadata<AttributeReadmodel>>>
 ): Promise<WithMetadata<Attribute> | undefined> {
   const data = await attributes.findOne(filter, {
     projection: { data: true, metadata: true },
@@ -35,12 +34,11 @@ async function getAttribute(
       })
       .safeParse(data);
     if (!result.success) {
-      logger.error(
+      throw genericInternalError(
         `Unable to parse attribute item: result ${JSON.stringify(
           result
         )} - data ${JSON.stringify(data)} `
       );
-      throw genericError("Unable to parse attribute item");
     }
     return {
       data: result.data.data,
@@ -51,8 +49,7 @@ async function getAttribute(
 
 async function getTenant(
   tenants: TenantCollection,
-  filter: Filter<WithId<WithMetadata<Tenant>>>,
-  logger: Logger
+  filter: Filter<WithId<WithMetadata<Tenant>>>
 ): Promise<Tenant | undefined> {
   const data = await tenants.findOne(filter, {
     projection: { data: true, metadata: true },
@@ -64,52 +61,45 @@ async function getTenant(
     const result = Tenant.safeParse(data.data);
 
     if (!result.success) {
-      logger.error(
+      throw genericInternalError(
         `Unable to parse tenant item: result ${JSON.stringify(
           result
         )} - data ${JSON.stringify(data)} `
       );
-
-      throw genericError("Unable to parse tenant item");
     }
 
     return result.data;
   }
 }
 
-async function getAttributes(
-  {
-    attributes,
-    aggregationPipeline,
-    offset,
-    limit,
-  }: {
-    attributes: AttributeCollection;
-    aggregationPipeline: object[];
-    offset: number;
-    limit: number;
-  },
-  logger: Logger
-): Promise<ListResult<Attribute>> {
+async function getAttributes({
+  attributes,
+  aggregationPipeline,
+  offset,
+  limit,
+}: {
+  attributes: AttributeCollection;
+  aggregationPipeline: object[];
+  offset: number;
+  limit: number;
+}): Promise<ListResult<Attribute>> {
   const data = await attributes
     .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }])
     .toArray();
   const result = z.array(Attribute).safeParse(data.map((d) => d.data));
   if (!result.success) {
-    logger.error(
+    throw genericInternalError(
       `Unable to parse attributes items: result ${JSON.stringify(
         result
       )} - data ${JSON.stringify(data)} `
     );
-    throw genericError("Unable to parse attribute items");
   }
   return {
     results: result.data,
     totalCount: await ReadModelRepository.getTotalCount(
       attributes,
       aggregationPipeline,
-      false,
-      logger
+      false
     ),
   };
 }
@@ -121,62 +111,53 @@ export function readModelServiceBuilder(
   const { attributes, tenants } = readModelRepository;
 
   return {
-    async getAttributesByIds(
-      {
-        ids,
+    async getAttributesByIds({
+      ids,
+      offset,
+      limit,
+    }: {
+      ids: AttributeId[];
+      offset: number;
+      limit: number;
+    }): Promise<ListResult<Attribute>> {
+      return getAttributes({
+        attributes,
+        aggregationPipeline: [
+          {
+            $match: {
+              "data.id": {
+                $in: ids,
+              },
+            },
+          },
+          {
+            $project: {
+              data: 1,
+              computedColumn: { $toLower: ["$data.name"] },
+            },
+          },
+          {
+            $sort: { computedColumn: 1 },
+          },
+        ],
         offset,
         limit,
-      }: {
-        ids: AttributeId[];
-        offset: number;
-        limit: number;
-      },
-      logger: Logger
-    ): Promise<ListResult<Attribute>> {
-      return getAttributes(
-        {
-          attributes,
-          aggregationPipeline: [
-            {
-              $match: {
-                "data.id": {
-                  $in: ids,
-                },
-              },
-            },
-            {
-              $project: {
-                data: 1,
-                computedColumn: { $toLower: ["$data.name"] },
-              },
-            },
-            {
-              $sort: { computedColumn: 1 },
-            },
-          ],
-          offset,
-          limit,
-        },
-        logger
-      );
+      });
     },
 
-    async getAttributesByKindsNameOrigin(
-      {
-        kinds,
-        name,
-        origin,
-        offset,
-        limit,
-      }: {
-        kinds: AttributeKind[];
-        name?: string;
-        origin?: string;
-        offset: number;
-        limit: number;
-      },
-      logger: Logger
-    ): Promise<ListResult<Attribute>> {
+    async getAttributesByKindsNameOrigin({
+      kinds,
+      name,
+      origin,
+      offset,
+      limit,
+    }: {
+      kinds: AttributeKind[];
+      name?: string;
+      origin?: string;
+      offset: number;
+      limit: number;
+    }): Promise<ListResult<Attribute>> {
       const nameFilter = name
         ? {
             "data.name": {
@@ -210,85 +191,61 @@ export function readModelServiceBuilder(
           $sort: { computedColumn: 1 },
         },
       ];
-      return getAttributes(
-        {
-          attributes,
-          aggregationPipeline,
-          offset,
-          limit,
-        },
-        logger
-      );
+      return getAttributes({
+        attributes,
+        aggregationPipeline,
+        offset,
+        limit,
+      });
     },
 
     async getAttributeById(
-      id: AttributeId,
-      logger: Logger
+      id: AttributeId
     ): Promise<WithMetadata<Attribute> | undefined> {
-      return getAttribute(attributes, { "data.id": id }, logger);
+      return getAttribute(attributes, { "data.id": id });
     },
 
     async getAttributeByName(
-      name: string,
-      logger: Logger
+      name: string
     ): Promise<WithMetadata<Attribute> | undefined> {
-      return getAttribute(
-        attributes,
-        {
-          "data.name": {
-            $regex: `^${ReadModelRepository.escapeRegExp(name)}$$`,
-            $options: "i",
-          },
+      return getAttribute(attributes, {
+        "data.name": {
+          $regex: `^${ReadModelRepository.escapeRegExp(name)}$$`,
+          $options: "i",
         },
-        logger
-      );
+      });
     },
 
-    async getAttributeByOriginAndCode(
-      {
-        origin,
-        code,
-      }: {
-        origin: string;
-        code: string;
-      },
-      logger: Logger
-    ): Promise<WithMetadata<Attribute> | undefined> {
-      return getAttribute(
-        attributes,
-        {
-          "data.origin": origin,
-          "data.code": code,
-        },
-        logger
-      );
+    async getAttributeByOriginAndCode({
+      origin,
+      code,
+    }: {
+      origin: string;
+      code: string;
+    }): Promise<WithMetadata<Attribute> | undefined> {
+      return getAttribute(attributes, {
+        "data.origin": origin,
+        "data.code": code,
+      });
     },
 
     async getAttributeByCodeAndName(
       code: string,
-      name: string,
-      logger: Logger
+      name: string
     ): Promise<WithMetadata<Attribute> | undefined> {
-      return getAttribute(
-        attributes,
-        {
-          "data.code": {
-            $regex: `^${ReadModelRepository.escapeRegExp(code)}$$`,
-            $options: "i",
-          },
-          "data.name": {
-            $regex: `^${ReadModelRepository.escapeRegExp(name)}$$`,
-            $options: "i",
-          },
+      return getAttribute(attributes, {
+        "data.code": {
+          $regex: `^${ReadModelRepository.escapeRegExp(code)}$$`,
+          $options: "i",
         },
-        logger
-      );
+        "data.name": {
+          $regex: `^${ReadModelRepository.escapeRegExp(name)}$$`,
+          $options: "i",
+        },
+      });
     },
-    async getTenantById(
-      tenantId: TenantId,
-      logger: Logger
-    ): Promise<Tenant | undefined> {
-      return getTenant(tenants, { "data.id": tenantId }, logger);
+    async getTenantById(tenantId: TenantId): Promise<Tenant | undefined> {
+      return getTenant(tenants, { "data.id": tenantId });
     },
   };
 }

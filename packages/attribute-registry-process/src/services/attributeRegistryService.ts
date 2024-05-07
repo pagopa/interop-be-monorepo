@@ -60,16 +60,13 @@ export function attributeRegistryServiceBuilder(
       logger.info(
         `Getting attributes with name = ${name}, limit = ${limit}, offset = ${offset}, kinds = ${kinds}`
       );
-      return await readModelService.getAttributesByKindsNameOrigin(
-        {
-          kinds,
-          name,
-          origin,
-          offset,
-          limit,
-        },
-        logger
-      );
+      return await readModelService.getAttributesByKindsNameOrigin({
+        kinds,
+        name,
+        origin,
+        offset,
+        limit,
+      });
     },
 
     async getAttributeByName(
@@ -77,7 +74,7 @@ export function attributeRegistryServiceBuilder(
       logger: Logger
     ): Promise<WithMetadata<Attribute>> {
       logger.info(`Retrieving attribute with name ${name}`);
-      const attribute = await readModelService.getAttributeByName(name, logger);
+      const attribute = await readModelService.getAttributeByName(name);
       if (attribute === undefined) {
         throw attributeNotFound(name);
       }
@@ -95,13 +92,10 @@ export function attributeRegistryServiceBuilder(
       logger: Logger
     ): Promise<WithMetadata<Attribute>> {
       logger.info(`Retrieving attribute ${origin}/${code}`);
-      const attribute = await readModelService.getAttributeByOriginAndCode(
-        {
-          origin,
-          code,
-        },
-        logger
-      );
+      const attribute = await readModelService.getAttributeByOriginAndCode({
+        origin,
+        code,
+      });
       if (attribute === undefined) {
         throw attributeNotFound(`${origin}/${code}`);
       }
@@ -113,7 +107,7 @@ export function attributeRegistryServiceBuilder(
       logger: Logger
     ): Promise<WithMetadata<Attribute>> {
       logger.info(`Retrieving attribute with ID ${id}`);
-      const attribute = await readModelService.getAttributeById(id, logger);
+      const attribute = await readModelService.getAttributeById(id);
       if (attribute === undefined) {
         throw attributeNotFound(id);
       }
@@ -133,10 +127,7 @@ export function attributeRegistryServiceBuilder(
       logger: Logger
     ): Promise<ListResult<Attribute>> {
       logger.info(`Retrieving attributes in bulk by id in [${ids}]`);
-      return await readModelService.getAttributesByIds(
-        { ids, offset, limit },
-        logger
-      );
+      return await readModelService.getAttributesByIds({ ids, offset, limit });
     },
 
     async createDeclaredAttribute(
@@ -152,8 +143,7 @@ export function attributeRegistryServiceBuilder(
       }
 
       const attributeWithSameName = await readModelService.getAttributeByName(
-        apiDeclaredAttributeSeed.name,
-        logger
+        apiDeclaredAttributeSeed.name
       );
       if (attributeWithSameName) {
         throw attributeDuplicate(apiDeclaredAttributeSeed.name);
@@ -194,8 +184,7 @@ export function attributeRegistryServiceBuilder(
       }
 
       const attributeWithSameName = await readModelService.getAttributeByName(
-        apiVerifiedAttributeSeed.name,
-        logger
+        apiVerifiedAttributeSeed.name
       );
       if (attributeWithSameName) {
         throw attributeDuplicate(apiVerifiedAttributeSeed.name);
@@ -233,13 +222,11 @@ export function attributeRegistryServiceBuilder(
       );
       const certifierPromise = getCertifierId(
         authData.organizationId,
-        readModelService,
-        logger
+        readModelService
       );
       const attributePromise = readModelService.getAttributeByCodeAndName(
         apiCertifiedAttributeSeed.code,
-        apiCertifiedAttributeSeed.name,
-        logger
+        apiCertifiedAttributeSeed.name
       );
 
       const [certifier, attributeWithSameName] = await Promise.all([
@@ -285,8 +272,7 @@ export function attributeRegistryServiceBuilder(
       const attributeWithSameNameAndCode =
         await readModelService.getAttributeByCodeAndName(
           apiInternalCertifiedAttributeSeed.code,
-          apiInternalCertifiedAttributeSeed.name,
-          logger
+          apiInternalCertifiedAttributeSeed.name
         );
       if (attributeWithSameNameAndCode) {
         throw attributeDuplicate(apiInternalCertifiedAttributeSeed.name);
@@ -319,10 +305,9 @@ export function attributeRegistryServiceBuilder(
 
 async function getCertifierId(
   tenantId: TenantId,
-  readModelService: ReadModelService,
-  logger: Logger
+  readModelService: ReadModelService
 ): Promise<string> {
-  const tenant = await readModelService.getTenantById(tenantId, logger);
+  const tenant = await readModelService.getTenantById(tenantId);
   if (!tenant) {
     throw tenantNotFound(tenantId);
   }

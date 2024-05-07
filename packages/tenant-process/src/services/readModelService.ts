@@ -1,6 +1,5 @@
 import {
   AttributeCollection,
-  Logger,
   ReadModelRepository,
   TenantCollection,
 } from "pagopa-interop-commons";
@@ -10,7 +9,6 @@ import {
   Attribute,
   ExternalId,
   EService,
-  genericError,
   ListResult,
   agreementState,
   AttributeId,
@@ -18,6 +16,7 @@ import {
   EServiceId,
   attributeKind,
   AttributeReadmodel,
+  genericInternalError,
 } from "pagopa-interop-models";
 import { z } from "zod";
 import { Document, Filter, WithId } from "mongodb";
@@ -49,22 +48,19 @@ function listTenantsFilters(
   };
 }
 
-export const getTenants = async (
-  {
-    tenants,
-    aggregationPipeline,
-    offset,
-    limit,
-    allowDiskUse = false,
-  }: {
-    tenants: TenantCollection;
-    aggregationPipeline: Array<Filter<Tenant>>;
-    offset: number;
-    limit: number;
-    allowDiskUse?: boolean;
-  },
-  logger: Logger
-): Promise<{
+export const getTenants = async ({
+  tenants,
+  aggregationPipeline,
+  offset,
+  limit,
+  allowDiskUse = false,
+}: {
+  tenants: TenantCollection;
+  aggregationPipeline: Array<Filter<Tenant>>;
+  offset: number;
+  limit: number;
+  allowDiskUse?: boolean;
+}): Promise<{
   results: Tenant[];
   totalCount: number;
 }> => {
@@ -77,28 +73,25 @@ export const getTenants = async (
   const result = z.array(Tenant).safeParse(data.map((d) => d.data));
 
   if (!result.success) {
-    logger.error(
+    throw genericInternalError(
       `Unable to parse tenants items: result ${JSON.stringify(
         result
       )} - data ${JSON.stringify(data)} `
     );
-    throw genericError("Unable to parse tenants items");
   }
   return {
     results: result.data,
     totalCount: await ReadModelRepository.getTotalCount(
       tenants,
       aggregationPipeline,
-      allowDiskUse,
-      logger
+      allowDiskUse
     ),
   };
 };
 
 async function getAttribute(
   attributes: AttributeCollection,
-  filter: Filter<WithId<WithMetadata<AttributeReadmodel>>>,
-  logger: Logger
+  filter: Filter<WithId<WithMetadata<AttributeReadmodel>>>
 ): Promise<Attribute | undefined> {
   const data = await attributes.findOne(filter, {
     projection: { data: true, metadata: true },
@@ -108,12 +101,11 @@ async function getAttribute(
   } else {
     const result = Attribute.safeParse(data);
     if (!result.success) {
-      logger.error(
+      throw genericInternalError(
         `Unable to parse attribute item: result ${JSON.stringify(
           result
         )} - data ${JSON.stringify(data)} `
       );
-      throw genericError("Unable to parse attribute item");
     }
     return result.data;
   }
@@ -121,8 +113,7 @@ async function getAttribute(
 
 async function getTenant(
   tenants: TenantCollection,
-  filter: Filter<WithId<WithMetadata<Tenant>>>,
-  logger: Logger
+  filter: Filter<WithId<WithMetadata<Tenant>>>
 ): Promise<WithMetadata<Tenant> | undefined> {
   const data = await tenants.findOne(filter, {
     projection: { data: true, metadata: true },
@@ -139,13 +130,11 @@ async function getTenant(
       .safeParse(data);
 
     if (!result.success) {
-      logger.error(
+      throw genericInternalError(
         `Unable to parse tenant item: result ${JSON.stringify(
           result
         )} - data ${JSON.stringify(data)} `
       );
-
-      throw genericError("Unable to parse tenant item");
     }
 
     return {
@@ -159,18 +148,15 @@ async function getTenant(
 export function readModelServiceBuilder(config: TenantProcessConfig) {
   const { attributes, eservices, tenants } = ReadModelRepository.init(config);
   return {
-    async getTenantsByName(
-      {
-        name,
-        offset,
-        limit,
-      }: {
-        name: string | undefined;
-        offset: number;
-        limit: number;
-      },
-      logger: Logger
-    ): Promise<ListResult<Tenant>> {
+    async getTenantsByName({
+      name,
+      offset,
+      limit,
+    }: {
+      name: string | undefined;
+      offset: number;
+      limit: number;
+    }): Promise<ListResult<Tenant>> {
       const query = listTenantsFilters(name);
       const aggregationPipeline = [
         { $match: query },
@@ -178,75 +164,57 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
         { $sort: { lowerName: 1 } },
       ];
 
-      return getTenants(
-        {
-          tenants,
-          aggregationPipeline,
-          offset,
-          limit,
-        },
-        logger
-      );
+      return getTenants({
+        tenants,
+        aggregationPipeline,
+        offset,
+        limit,
+      });
     },
 
     async getTenantById(
-      id: TenantId,
-      logger: Logger
+      id: TenantId
     ): Promise<WithMetadata<Tenant> | undefined> {
-      return getTenant(tenants, { "data.id": id }, logger);
+      return getTenant(tenants, { "data.id": id });
     },
 
     async getTenantByName(
-      name: string,
-      logger: Logger
+      name: string
     ): Promise<WithMetadata<Tenant> | undefined> {
-      return getTenant(
-        tenants,
-        {
-          "data.name": {
-            $regex: `^${ReadModelRepository.escapeRegExp(name)}$$`,
-            $options: "i",
-          },
+      return getTenant(tenants, {
+        "data.name": {
+          $regex: `^${ReadModelRepository.escapeRegExp(name)}$$`,
+          $options: "i",
         },
-        logger
-      );
+      });
     },
 
     async getTenantByExternalId(
-      externalId: ExternalId,
-      logger: Logger
+      externalId: ExternalId
     ): Promise<WithMetadata<Tenant> | undefined> {
-      return getTenant(
-        tenants,
-        {
-          "data.externalId.value": externalId.value,
-          "data.externalId.origin": externalId.origin,
-        },
-        logger
-      );
+      return getTenant(tenants, {
+        "data.externalId.value": externalId.value,
+        "data.externalId.origin": externalId.origin,
+      });
     },
 
     async getTenantBySelfcareId(
-      selfcareId: string,
-      logger: Logger
+      selfcareId: string
     ): Promise<WithMetadata<Tenant> | undefined> {
-      return getTenant(tenants, { "data.selfcareId": selfcareId }, logger);
+      return getTenant(tenants, { "data.selfcareId": selfcareId });
     },
 
-    async getConsumers(
-      {
-        consumerName,
-        producerId,
-        offset,
-        limit,
-      }: {
-        consumerName: string | undefined;
-        producerId: string;
-        offset: number;
-        limit: number;
-      },
-      logger: Logger
-    ): Promise<ListResult<Tenant>> {
+    async getConsumers({
+      consumerName,
+      producerId,
+      offset,
+      limit,
+    }: {
+      consumerName: string | undefined;
+      producerId: string;
+      offset: number;
+      limit: number;
+    }): Promise<ListResult<Tenant>> {
       const query = listTenantsFilters(consumerName);
 
       const aggregationPipeline = [
@@ -275,30 +243,24 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
         { $sort: { lowerName: 1 } },
       ];
 
-      return getTenants(
-        {
-          tenants,
-          aggregationPipeline,
-          offset,
-          limit,
-          allowDiskUse: true,
-        },
-        logger
-      );
-    },
-
-    async getProducers(
-      {
-        producerName,
+      return getTenants({
+        tenants,
+        aggregationPipeline,
         offset,
         limit,
-      }: {
-        producerName: string | undefined;
-        offset: number;
-        limit: number;
-      },
-      logger: Logger
-    ): Promise<ListResult<Tenant>> {
+        allowDiskUse: true,
+      });
+    },
+
+    async getProducers({
+      producerName,
+      offset,
+      limit,
+    }: {
+      producerName: string | undefined;
+      offset: number;
+      limit: number;
+    }): Promise<ListResult<Tenant>> {
       const query = listTenantsFilters(producerName);
       const aggregationPipeline = [
         { $match: query },
@@ -315,32 +277,24 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
         { $sort: { lowerName: 1 } },
       ];
 
-      return getTenants(
-        {
-          tenants,
-          aggregationPipeline,
-          offset,
-          limit,
-          allowDiskUse: true,
-        },
-        logger
-      );
+      return getTenants({
+        tenants,
+        aggregationPipeline,
+        offset,
+        limit,
+        allowDiskUse: true,
+      });
     },
     async getAttributesByExternalIds(
-      externalIds: ExternalId[],
-      logger: Logger
+      externalIds: ExternalId[]
     ): Promise<Attribute[]> {
       const fetchAttributeByExternalId = async (
         externalId: ExternalId
       ): Promise<Attribute> => {
-        const data = await getAttribute(
-          attributes,
-          {
-            "data.origin": externalId.origin,
-            "data.code": externalId.value,
-          },
-          logger
-        );
+        const data = await getAttribute(attributes, {
+          "data.origin": externalId.origin,
+          "data.code": externalId.value,
+        });
         if (!data) {
           throw attributeNotFound(`${externalId.origin}/${externalId.value}`);
         }
@@ -351,14 +305,11 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
       return Promise.all(attributesPromises);
     },
 
-    async getAttributesById(
-      attributeIds: AttributeId[],
-      logger: Logger
-    ): Promise<Attribute[]> {
+    async getAttributesById(attributeIds: AttributeId[]): Promise<Attribute[]> {
       const fetchAttributeById = async (
         id: AttributeId
       ): Promise<Attribute> => {
-        const data = await getAttribute(attributes, { "data.id": id }, logger);
+        const data = await getAttribute(attributes, { "data.id": id });
         if (!data) {
           throw attributeNotFound(id);
         }
@@ -369,10 +320,7 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
       return Promise.all(attributePromises);
     },
 
-    async getEServiceById(
-      id: EServiceId,
-      logger: Logger
-    ): Promise<EService | undefined> {
+    async getEServiceById(id: EServiceId): Promise<EService | undefined> {
       const data = await eservices.findOne(
         { "data.id": id },
         { projection: { data: true, metadata: true } }
@@ -384,31 +332,26 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
         const result = EService.safeParse(data);
 
         if (!result.success) {
-          logger.error(
+          throw genericInternalError(
             `Unable to parse eservices item: result ${JSON.stringify(
               result
             )} - data ${JSON.stringify(data)} `
           );
-
-          throw genericError("Unable to parse eservices item");
         }
 
         return result.data;
       }
     },
 
-    async getCertifiedAttributes(
-      {
-        certifierId,
-        offset,
-        limit,
-      }: {
-        certifierId: string;
-        offset: number;
-        limit: number;
-      },
-      logger: Logger
-    ): Promise<ListResult<CertifiedAttributeQueryResult>> {
+    async getCertifiedAttributes({
+      certifierId,
+      offset,
+      limit,
+    }: {
+      certifierId: string;
+      offset: number;
+      limit: number;
+    }): Promise<ListResult<CertifiedAttributeQueryResult>> {
       const aggregationPipeline: Document[] = [
         {
           $match: {
@@ -474,13 +417,11 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
       const result = z.array(CertifiedAttributeQueryResult).safeParse(data);
 
       if (!result.success) {
-        logger.error(
+        throw genericInternalError(
           `Unable to parse attributes items: result ${JSON.stringify(
             result
           )} - data ${JSON.stringify(data)} `
         );
-
-        throw genericError("Unable to parse attributes items");
       }
 
       return {
@@ -488,8 +429,7 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
         totalCount: await ReadModelRepository.getTotalCount(
           attributes,
           aggregationPipeline,
-          false,
-          logger
+          false
         ),
       };
     },

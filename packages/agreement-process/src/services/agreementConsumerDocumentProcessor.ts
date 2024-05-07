@@ -34,9 +34,9 @@ export async function addConsumerDocumentLogic(
   agreementId: AgreementId,
   payload: ApiAgreementDocumentSeed,
   agreementQuery: AgreementQuery,
-  { authData, correlationId, logger }: WithLogger<AppContext>
+  { authData, correlationId }: WithLogger<AppContext>
 ): Promise<CreateEvent<AgreementEvent>> {
-  const agreement = await agreementQuery.getAgreementById(agreementId, logger);
+  const agreement = await agreementQuery.getAgreementById(agreementId);
 
   assertAgreementExist(agreementId, agreement);
   assertRequesterIsConsumer(agreement.data, authData);
@@ -74,7 +74,7 @@ export async function removeAgreementConsumerDocumentLogic(
   correlationId: string,
   logger: Logger
 ): Promise<CreateEvent<AgreementEvent>> {
-  const agreement = await agreementQuery.getAgreementById(agreementId, logger);
+  const agreement = await agreementQuery.getAgreementById(agreementId);
 
   assertAgreementExist(agreementId, agreement);
   assertRequesterIsConsumer(agreement.data, authData);

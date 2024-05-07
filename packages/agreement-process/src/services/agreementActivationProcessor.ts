@@ -61,7 +61,7 @@ export async function activateAgreementLogic(
   correlationId: string,
   logger: Logger
 ): Promise<Array<CreateEvent<AgreementEvent>>> {
-  const agreement = await agreementQuery.getAgreementById(agreementId, logger);
+  const agreement = await agreementQuery.getAgreementById(agreementId);
   assertAgreementExist(agreementId, agreement);
 
   assertRequesterIsConsumerOrProducer(agreement.data, authData);
@@ -69,8 +69,7 @@ export async function activateAgreementLogic(
   assertActivableState(agreement.data);
 
   const eservice = await eserviceQuery.getEServiceById(
-    agreement.data.eserviceId,
-    logger
+    agreement.data.eserviceId
   );
   assertEServiceExist(agreement.data.eserviceId, eservice);
 
@@ -79,10 +78,7 @@ export async function activateAgreementLogic(
     agreement.data.descriptorId
   );
 
-  const tenant = await tenantQuery.getTenantById(
-    agreement.data.consumerId,
-    logger
-  );
+  const tenant = await tenantQuery.getTenantById(agreement.data.consumerId);
   assertTenantExist(agreement.data.consumerId, tenant);
 
   return activateAgreement(
@@ -214,8 +210,7 @@ async function activateAgreement(
     agreement,
     authData,
     agreementQuery,
-    correlationId,
-    logger
+    correlationId
   );
 
   return [updateAgreementEvent, ...archiveEvents];
@@ -225,16 +220,12 @@ const archiveRelatedToAgreements = async (
   agreement: Agreement,
   authData: AuthData,
   agreementQuery: AgreementQuery,
-  correlationId: string,
-  logger: Logger
+  correlationId: string
 ): Promise<Array<CreateEvent<AgreementEvent>>> => {
-  const existingAgreements = await agreementQuery.getAllAgreements(
-    {
-      consumerId: agreement.consumerId,
-      eserviceId: agreement.eserviceId,
-    },
-    logger
-  );
+  const existingAgreements = await agreementQuery.getAllAgreements({
+    consumerId: agreement.consumerId,
+    eserviceId: agreement.eserviceId,
+  });
 
   const archivables = existingAgreements.filter(
     (a) =>
@@ -275,10 +266,7 @@ const createContract = async (
   storeFile: FileManager["storeBytes"],
   logger: Logger
 ): Promise<void> => {
-  const producer = await tenantQuery.getTenantById(
-    agreement.producerId,
-    logger
-  );
+  const producer = await tenantQuery.getTenantById(agreement.producerId);
   assertTenantExist(agreement.producerId, producer);
 
   await contractBuilder(

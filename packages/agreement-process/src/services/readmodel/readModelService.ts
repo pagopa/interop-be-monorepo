@@ -8,7 +8,6 @@ import {
   RemoveDataPrefix,
   Metadata,
   AttributeCollection,
-  Logger,
 } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -27,6 +26,7 @@ import {
   EServiceId,
   AttributeReadmodel,
   TenantId,
+  genericInternalError,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { z } from "zod";
@@ -203,8 +203,7 @@ const getTenantsByNamePipeline = (
 
 const getAllAgreements = async (
   agreements: AgreementCollection,
-  filters: AgreementQueryFilters,
-  logger: Logger
+  filters: AgreementQueryFilters
 ): Promise<Array<WithMetadata<Agreement>>> => {
   const data = await agreements
     .aggregate([getAgreementsFilters(filters)])
@@ -220,12 +219,11 @@ const getAllAgreements = async (
     .safeParse(data);
 
   if (!result.success) {
-    logger.error(
+    throw genericInternalError(
       `Unable to parse agreements items: result ${JSON.stringify(
         result
       )} - data ${JSON.stringify(data)} `
     );
-    throw genericError("Unable to parse agreements items");
   }
 
   return result.data;
@@ -233,8 +231,7 @@ const getAllAgreements = async (
 
 async function getAttribute(
   attributes: AttributeCollection,
-  filter: Filter<{ data: AttributeReadmodel }>,
-  logger: Logger
+  filter: Filter<{ data: AttributeReadmodel }>
 ): Promise<Attribute | undefined> {
   const data = await attributes.findOne(filter, {
     projection: { data: true },
@@ -242,12 +239,11 @@ async function getAttribute(
   if (data) {
     const result = Attribute.safeParse(data.data);
     if (!result.success) {
-      logger.error(
+      throw genericInternalError(
         `Unable to parse attribute item: result ${JSON.stringify(
           result
         )} - data ${JSON.stringify(data)} `
       );
-      throw genericError("Unable to parse attribute item");
     }
     return result.data;
   }
@@ -260,8 +256,7 @@ async function searchTenantsByName(
   tenantName: string | undefined,
   tenantIdField: "producerId" | "consumerId",
   limit: number,
-  offset: number,
-  logger: Logger
+  offset: number
 ): Promise<ListResult<CompactOrganization>> {
   const aggregationPipeline = getTenantsByNamePipeline(
     tenantName,
@@ -276,13 +271,11 @@ async function searchTenantsByName(
     .array(CompactOrganization)
     .safeParse(data.map((d) => d.data));
   if (!result.success) {
-    logger.error(
+    throw genericInternalError(
       `Unable to parse compact organization items: result ${JSON.stringify(
         result
       )} - data ${JSON.stringify(data)} `
     );
-
-    throw genericError("Unable to parse compact organization items");
   }
 
   return {
@@ -290,8 +283,7 @@ async function searchTenantsByName(
     totalCount: await ReadModelRepository.getTotalCount(
       agreements,
       aggregationPipeline,
-      false,
-      logger
+      false
     ),
   };
 }
@@ -308,8 +300,7 @@ export function readModelServiceBuilder(
     async getAgreements(
       filters: AgreementQueryFilters,
       limit: number,
-      offset: number,
-      logger: Logger
+      offset: number
     ): Promise<ListResult<Agreement>> {
       const aggregationPipeline = [
         getAgreementsFilters(filters),
@@ -400,13 +391,11 @@ export function readModelServiceBuilder(
 
       const result = z.array(Agreement).safeParse(data.map((d) => d.data));
       if (!result.success) {
-        logger.error(
+        throw genericInternalError(
           `Unable to parse agreements items: result ${JSON.stringify(
             result
           )} - data ${JSON.stringify(data)} `
         );
-
-        throw genericError("Unable to parse agreements items");
       }
 
       return {
@@ -414,14 +403,12 @@ export function readModelServiceBuilder(
         totalCount: await ReadModelRepository.getTotalCount(
           agreements,
           aggregationPipeline,
-          false,
-          logger
+          false
         ),
       };
     },
     async readAgreementById(
-      agreementId: AgreementId,
-      logger: Logger
+      agreementId: AgreementId
     ): Promise<WithMetadata<Agreement> | undefined> {
       const data = await agreements.findOne(
         { "data.id": agreementId },
@@ -436,8 +423,7 @@ export function readModelServiceBuilder(
           })
           .safeParse(data);
         if (!result.success) {
-          logger.error(`Agreement ${agreementId} not found`);
-          throw genericError(`Agreement ${agreementId} not found`);
+          throw genericInternalError(`Agreement ${agreementId} not found`);
         }
         return {
           data: result.data.data,
@@ -448,15 +434,11 @@ export function readModelServiceBuilder(
       return undefined;
     },
     async getAllAgreements(
-      filters: AgreementQueryFilters,
-      logger: Logger
+      filters: AgreementQueryFilters
     ): Promise<Array<WithMetadata<Agreement>>> {
-      return getAllAgreements(agreements, filters, logger);
+      return getAllAgreements(agreements, filters);
     },
-    async getEServiceById(
-      id: string,
-      logger: Logger
-    ): Promise<EService | undefined> {
+    async getEServiceById(id: string): Promise<EService | undefined> {
       const data = await eservices.findOne(
         { "data.id": id },
         { projection: { data: true } }
@@ -466,13 +448,11 @@ export function readModelServiceBuilder(
         const result = EService.safeParse(data.data);
 
         if (!result.success) {
-          logger.error(
+          throw genericError(
             `Unable to parse eservices item: result ${JSON.stringify(
               result
             )} - data ${JSON.stringify(data)} `
           );
-
-          throw genericError(`Unable to parse eservice ${id}`);
         }
 
         return result.data;
@@ -480,10 +460,7 @@ export function readModelServiceBuilder(
 
       return undefined;
     },
-    async getTenantById(
-      tenantId: string,
-      logger: Logger
-    ): Promise<Tenant | undefined> {
+    async getTenantById(tenantId: string): Promise<Tenant | undefined> {
       const data = await tenants.findOne(
         { "data.id": tenantId },
         { projection: { data: true } }
@@ -493,60 +470,38 @@ export function readModelServiceBuilder(
         const result = Tenant.safeParse(data.data);
 
         if (!result.success) {
-          logger.error(
+          throw genericInternalError(
             `Unable to parse tenant item: result ${JSON.stringify(
               result
             )} - data ${JSON.stringify(data)} `
           );
-
-          throw genericError(`Unable to parse tenant ${tenantId}`);
         }
 
         return result.data;
       }
       return undefined;
     },
-    async getAttributeById(
-      id: AttributeId,
-      logger: Logger
-    ): Promise<Attribute | undefined> {
-      return getAttribute(attributes, { "data.id": id }, logger);
+    async getAttributeById(id: AttributeId): Promise<Attribute | undefined> {
+      return getAttribute(attributes, { "data.id": id });
     },
     async listConsumers(
       name: string | undefined,
       limit: number,
-      offset: number,
-      logger: Logger
+      offset: number
     ): Promise<ListResult<CompactOrganization>> {
-      return searchTenantsByName(
-        agreements,
-        name,
-        "consumerId",
-        limit,
-        offset,
-        logger
-      );
+      return searchTenantsByName(agreements, name, "consumerId", limit, offset);
     },
     async listProducers(
       name: string | undefined,
       limit: number,
-      offset: number,
-      logger: Logger
+      offset: number
     ): Promise<ListResult<CompactOrganization>> {
-      return searchTenantsByName(
-        agreements,
-        name,
-        "producerId",
-        limit,
-        offset,
-        logger
-      );
+      return searchTenantsByName(agreements, name, "producerId", limit, offset);
     },
     async listAgreementsEServices(
       filters: AgreementEServicesQueryFilters,
       limit: number,
-      offset: number,
-      logger: Logger
+      offset: number
     ): Promise<ListResult<CompactEService>> {
       const aggregationPipeline = [
         {
@@ -601,13 +556,11 @@ export function readModelServiceBuilder(
         .array(CompactEService)
         .safeParse(data.map((d) => d.data));
       if (!result.success) {
-        logger.error(
+        throw genericInternalError(
           `Unable to parse compact eservice items: result ${JSON.stringify(
             result
           )} - data ${JSON.stringify(data)} `
         );
-
-        throw genericError("Unable to parse compact eseervice items");
       }
 
       return {
@@ -615,8 +568,7 @@ export function readModelServiceBuilder(
         totalCount: await ReadModelRepository.getTotalCount(
           agreements,
           aggregationPipeline,
-          false,
-          logger
+          false
         ),
       };
     },
