@@ -77,7 +77,7 @@ import {
 } from "./utils.js";
 import { testAddCertifiedAttribute } from "./testAddCertifiedAttribute.js";
 import { testAddDeclaredAttribute } from "./testAddDeclaredAttribute.js";
-import { testRevokeDeclaredAttributes } from "./testRevokeDeclaredAttribute.js";
+import { testRevokeDeclaredAttribute } from "./testRevokeDeclaredAttribute.js";
 
 export let tenants: TenantCollection;
 export let agreements: AgreementCollection;
@@ -575,7 +575,7 @@ describe("Integration tests", () => {
     });
     testAddCertifiedAttribute();
     testAddDeclaredAttribute();
-    testRevokeDeclaredAttributes();
+    testRevokeDeclaredAttribute();
   });
   describe("readModelService", () => {
     const tenant1: Tenant = {

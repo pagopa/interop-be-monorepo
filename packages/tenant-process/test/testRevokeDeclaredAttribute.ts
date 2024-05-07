@@ -27,7 +27,7 @@ import {
   tenantService,
 } from "./tenant.integration.test.js";
 
-export const testRevokeDeclaredAttributes = (): ReturnType<typeof describe> =>
+export const testRevokeDeclaredAttribute = (): ReturnType<typeof describe> =>
   describe("revokeDeclaredAttribute", async () => {
     const attributeId: AttributeId = generateId();
 
