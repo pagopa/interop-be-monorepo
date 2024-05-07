@@ -75,17 +75,18 @@ import {
   getMockVerifiedTenantAttribute,
   readLastTenantEvent,
 } from "./utils.js";
+import { testMaintenanceTenantDelete } from "./testMaintenanceTenantDelete.js";
+
+export let tenants: TenantCollection;
+export let agreements: AgreementCollection;
+export let eservices: EServiceCollection;
+export let readModelService: ReadModelService;
+export let tenantService: TenantService;
+export let postgresDB: IDatabase<unknown>;
+export let startedPostgreSqlContainer: StartedTestContainer;
+export let startedMongodbContainer: StartedTestContainer;
 
 describe("Integration tests", () => {
-  let tenants: TenantCollection;
-  let agreements: AgreementCollection;
-  let eservices: EServiceCollection;
-  let readModelService: ReadModelService;
-  let tenantService: TenantService;
-  let postgresDB: IDatabase<unknown>;
-  let startedPostgreSqlContainer: StartedTestContainer;
-  let startedMongodbContainer: StartedTestContainer;
-
   beforeAll(async () => {
     startedPostgreSqlContainer = await postgreSQLContainer(config).start();
     startedMongodbContainer = await mongoDBContainer(config).start();
@@ -566,38 +567,7 @@ describe("Integration tests", () => {
         );
       });
     });
-
-    describe("maintenanceTenantDeleted", async () => {
-      it("should write on event-store for the deletion of a tenant", async () => {
-        await addOneTenant(mockTenant, postgresDB, tenants);
-        await tenantService.maintenanceTenantDeleted(
-          mockTenant.id,
-          generateId()
-        );
-        const writtenEvent = await readLastTenantEvent(
-          mockTenant.id,
-          postgresDB
-        );
-        if (!writtenEvent) {
-          fail("Creation failed: tenant not found in event-store");
-        }
-        expect(writtenEvent).toMatchObject({
-          stream_id: mockTenant.id,
-          version: "1",
-          type: "MaintenanceTenantDeleted",
-          event_version: 2,
-        });
-        const writtenPayload: MaintenanceTenantDeletedV2 | undefined =
-          protobufDecoder(MaintenanceTenantDeletedV2).parse(writtenEvent.data);
-
-        expect(writtenPayload.tenant).toEqual(toTenantV2(mockTenant));
-      });
-      it("Should throw tenantNotFound when the tenant doesn't exists", async () => {
-        expect(
-          tenantService.maintenanceTenantDeleted(mockTenant.id, generateId())
-        ).rejects.toThrowError(tenantNotFound(mockTenant.id));
-      });
-    });
+    testMaintenanceTenantDelete();
   });
   describe("readModelService", () => {
     const tenant1: Tenant = {
