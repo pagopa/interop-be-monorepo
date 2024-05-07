@@ -14,7 +14,7 @@ import {
   toReadModelEService,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { pa1, private1 } from "pagopa-interop-commons";
+import { getFormRulesByVersion } from "pagopa-interop-commons";
 import {
   RiskAnalysisConfigVersionNotFound,
   eserviceNotFound,
@@ -40,16 +40,16 @@ export const testGetRiskAnalysisConfigurationByVersion = (): ReturnType<
       await writeInReadmodel(toReadModelEService(mockEservice), eservices);
       await writeInReadmodel(mockTenant, tenants);
 
+      const riskAnalysisVersion = "1.0";
+
       const result =
         await purposeService.retrieveRiskAnalysisConfigurationByVersion({
           eserviceId: mockEservice.id,
-          riskAnalysisVersion: "1.0",
+          riskAnalysisVersion,
           organizationId: mockTenant.id,
         });
 
-      const riskAnalysisFormConfig = kind === tenantKind.PA ? pa1 : private1;
-
-      expect(result).toEqual(riskAnalysisFormConfig);
+      expect(result).toEqual(getFormRulesByVersion(kind, riskAnalysisVersion));
     });
     it("should retrieve risk analysis configuration by version (Eservice mode: receive)", async () => {
       const mockEservice = { ...getMockEService(), mode: eserviceMode.receive };
@@ -61,16 +61,16 @@ export const testGetRiskAnalysisConfigurationByVersion = (): ReturnType<
       await writeInReadmodel(toReadModelEService(mockEservice), eservices);
       await writeInReadmodel(mockTenant, tenants);
 
+      const riskAnalysisVersion = "1.0";
+
       const result =
         await purposeService.retrieveRiskAnalysisConfigurationByVersion({
           eserviceId: mockEservice.id,
-          riskAnalysisVersion: "1.0",
+          riskAnalysisVersion,
           organizationId: mockTenant.id,
         });
 
-      const riskAnalysisFormConfig = kind === tenantKind.PA ? pa1 : private1;
-
-      expect(result).toEqual(riskAnalysisFormConfig);
+      expect(result).toEqual(getFormRulesByVersion(kind, riskAnalysisVersion));
     });
     it("should throw eserviceNotFound if the eservice doesn't exist", async () => {
       const mockTenant = getMockTenant();
