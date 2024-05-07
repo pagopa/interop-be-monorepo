@@ -8,6 +8,7 @@ import {
   logger,
   loggerConfig,
   messageDecoderSupplier,
+  runWithContext,
   runWithLoggerContext,
 } from "pagopa-interop-commons";
 import { toCatalogItemEventNotification } from "./models/catalogItemEventNotificationConverter.js";
@@ -34,9 +35,8 @@ export function processMessage(topicConfig: CatalogTopicConfig) {
 
     const decodedMessage = messageDecoder(kafkaMessage.message);
 
-    await runWithLoggerContext(
+    await runWithContext(
       {
-        serviceName: "notifier-seeder",
         messageData: {
           eventType: decodedMessage.type,
           eventVersion: decodedMessage.event_version,
