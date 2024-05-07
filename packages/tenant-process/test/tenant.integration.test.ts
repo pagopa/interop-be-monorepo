@@ -5,15 +5,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 
 import { fail } from "assert";
-import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import {
   AgreementCollection,
   EServiceCollection,
@@ -30,11 +22,8 @@ import {
 } from "pagopa-interop-commons-test";
 import { IDatabase } from "pg-promise";
 import {
-  CertifierV2,
   Descriptor,
   EService,
-  MaintenanceTenantDeletedV2,
-  MaintenanceTenantPromotedToCertifierV2,
   Tenant,
   TenantId,
   TenantOnboardDetailsUpdatedV2,
@@ -59,10 +48,7 @@ import {
   TenantService,
   tenantServiceBuilder,
 } from "../src/services/tenantService.js";
-import {
-  CertifierPromotionPayload,
-  UpdateVerifiedTenantAttributeSeed,
-} from "../src/model/domain/models.js";
+import { UpdateVerifiedTenantAttributeSeed } from "../src/model/domain/models.js";
 import {
   expirationDateCannotBeInThePast,
   organizationNotFoundInVerifiers,
@@ -70,7 +56,6 @@ import {
   tenantNotFound,
   verifiedAttributeNotFoundInTenant,
   expirationDateNotFoundInVerifier,
-  tenatIsAlreadyACertifier,
 } from "../src/model/domain/errors.js";
 import { ApiSelfcareTenantSeed } from "../src/model/types.js";
 import { getTenantKind } from "../src/services/validators.js";
@@ -90,6 +75,7 @@ import {
   readLastTenantEvent,
 } from "./utils.js";
 import { testMaintenanceTenantDelete } from "./testMaintenanceTenantDelete.js";
+import { testAddCertifierId } from "./testAddCertifierId.js";
 
 export let tenants: TenantCollection;
 export let agreements: AgreementCollection;
@@ -581,82 +567,8 @@ describe("Integration tests", () => {
         );
       });
     });
-    describe("addCertifierId", async () => {
-      const payload: CertifierPromotionPayload = {
-        certifierId: generateId(),
-      };
-
-      it("should write on event-store for the addition of the certifierId to the tenant", async () => {
-        vi.useFakeTimers();
-        vi.setSystemTime(new Date());
-        await addOneTenant(mockTenant, postgresDB, tenants);
-        await tenantService.addCertifierId(
-          mockTenant.id,
-          generateId(),
-          payload
-        );
-        const writtenEvent = await readLastTenantEvent(
-          mockTenant.id,
-          postgresDB
-        );
-        if (!writtenEvent) {
-          fail("Creation failed: tenant not found in event-store");
-        }
-        expect(writtenEvent).toMatchObject({
-          stream_id: mockTenant.id,
-          version: "1",
-          type: "MaintenanceTenantPromotedToCertifier",
-          event_version: 2,
-        });
-        const writtenPayload:
-          | MaintenanceTenantPromotedToCertifierV2
-          | undefined = protobufDecoder(
-          MaintenanceTenantPromotedToCertifierV2
-        ).parse(writtenEvent.data);
-
-        const expectedTenant: Tenant = {
-          ...mockTenant,
-          features: [
-            {
-              type: "PersistentCertifier",
-              certifierId: payload.certifierId,
-            },
-          ],
-          updatedAt: new Date(),
-        };
-
-        expect(writtenPayload.tenant).toEqual(toTenantV2(expectedTenant));
-        vi.useRealTimers();
-      });
-      it("Should throw tenantNotFound when tenant doesn't exist", async () => {
-        expect(
-          tenantService.addCertifierId(mockTenant.id, generateId(), payload)
-        ).rejects.toThrowError(tenantNotFound(mockTenant.id));
-      });
-      it("Should throw tenantIsAlreadyACertifier", async () => {
-        const certifierTenant: Tenant = {
-          ...mockTenant,
-          features: [
-            {
-              type: "PersistentCertifier",
-              certifierId: generateId(),
-            },
-          ],
-        };
-
-        await addOneTenant(certifierTenant, postgresDB, tenants);
-        expect(
-          tenantService.addCertifierId(
-            certifierTenant.id,
-            generateId(),
-            payload
-          )
-        ).rejects.toThrowError(
-          tenatIsAlreadyACertifier(certifierTenant.id, payload.certifierId)
-        );
-      });
-    });
     testMaintenanceTenantDelete();
+    testAddCertifierId();
   });
   describe("readModelService", () => {
     const tenant1: Tenant = {
