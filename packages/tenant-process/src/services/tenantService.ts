@@ -525,7 +525,6 @@ export function tenantServiceBuilder(
 
       await repository.createEvent(
         toCreateEventTenantCertifiedAttributeAssigned(
-          tenantToModify.data.id,
           tenantToModify.metadata.version,
           updatedTenant,
           attributeToAssign.id,
