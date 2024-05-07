@@ -78,7 +78,7 @@ import {
 import { testAddCertifiedAttribute } from "./testAddCertifiedAttribute.js";
 import { testAddDeclaredAttribute } from "./testAddDeclaredAttribute.js";
 import { testVerifyVerifiedAttribute } from "./testVerifyVerifiedAttribute.js";
-import { testRevokeVerifiedAttributes } from "./testRevokeVerifiedAttribute.js";
+import { testRevokeVerifiedAttribute } from "./testRevokeVerifiedAttribute.js";
 
 export let tenants: TenantCollection;
 export let agreements: AgreementCollection;
@@ -577,7 +577,7 @@ describe("Integration tests", () => {
     testAddCertifiedAttribute();
     testAddDeclaredAttribute();
     testVerifyVerifiedAttribute();
-    testRevokeVerifiedAttributes();
+    testRevokeVerifiedAttribute();
   });
   describe("readModelService", () => {
     const tenant1: Tenant = {
