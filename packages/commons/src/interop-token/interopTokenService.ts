@@ -1,8 +1,8 @@
 import crypto from "crypto";
 import { KMSClient, SignCommand, SignCommandInput } from "@aws-sdk/client-kms";
-import { InteropJwtHeader, InteropJwtPayload, InteropToken } from "./models.js";
-import { b64ByteUrlEncode, b64UrlEncode } from "./utils.js";
 import { TokenGenerationConfig } from "../config/tokenGenerationConfig.js";
+import { b64ByteUrlEncode, b64UrlEncode } from "./utils.js";
+import { InteropJwtHeader, InteropJwtPayload, InteropToken } from "./models.js";
 
 const JWT_HEADER_ALG = "RS256";
 const KMS_SIGNING_ALG = "RSASSA_PKCS1_V1_5_SHA_256";
