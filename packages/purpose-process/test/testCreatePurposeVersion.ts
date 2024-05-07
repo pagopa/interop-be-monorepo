@@ -32,6 +32,7 @@ import {
 import {
   agreementNotFound,
   eserviceNotFound,
+  missingRiskAnalysis,
   organizationIsNotTheConsumer,
   organizationNotAllowed,
   tenantKindNotFound,
@@ -400,6 +401,30 @@ export const testCreatePurposeVersion = (): ReturnType<typeof describe> =>
           correlationId: generateId(),
         });
       }).rejects.toThrowError(tenantKindNotFound(producer.id));
+    });
+
+    it("should throw an error if there is no risk-analysis version and the passed daily calls does not surpass the descriptor limits", async () => {
+      const purpose: Purpose = {
+        ...mockPurpose,
+        riskAnalysisForm: undefined,
+      };
+
+      await addOnePurpose(purpose, postgresDB, purposes);
+      await writeInReadmodel(toReadModelEService(mockEService), eservices);
+      await writeInReadmodel(mockAgreement, agreements);
+      await writeInReadmodel(mockConsumer, tenants);
+      await writeInReadmodel(mockProducer, tenants);
+
+      expect(async () => {
+        await purposeService.createPurposeVersion({
+          purposeId: mockPurpose.id,
+          seed: {
+            dailyCalls: 20,
+          },
+          organizationId: mockPurpose.consumerId,
+          correlationId: generateId(),
+        });
+      }).rejects.toThrowError(missingRiskAnalysis(purpose.id));
     });
 
     it("should create a new purpose waiting for approval version if the new version surpasses the e-service daily calls per consumer limit", async () => {
