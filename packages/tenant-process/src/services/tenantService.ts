@@ -309,7 +309,7 @@ export function tenantServiceBuilder(
 
       const updatedTenant: Tenant = {
         ...tenant.data,
-        mails: [...tenant.data.mails.filter((mail) => mail.id !== mailId)],
+        mails: tenant.data.mails.filter((mail) => mail.id !== mailId),
         updatedAt: new Date(),
       };
 
