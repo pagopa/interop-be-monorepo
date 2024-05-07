@@ -356,18 +356,18 @@ export function tenantServiceBuilder(
 
     async addDeclaredAttribute({
       tenantAttributeSeed,
-      authData,
+      organizationId,
       correlationId,
     }: {
       tenantAttributeSeed: ApiDeclaredTenantAttributeSeed;
-      authData: AuthData;
+      organizationId: TenantId;
       correlationId: string;
     }): Promise<Tenant> {
       logger.info(
-        `Add declared attribute ${tenantAttributeSeed.id} to requester tenant ${authData.organizationId}`
+        `Add declared attribute ${tenantAttributeSeed.id} to requester tenant ${organizationId}`
       );
       const targetTenant = await retrieveTenant(
-        authData.organizationId,
+        organizationId,
         readModelService
       );
 
@@ -392,7 +392,6 @@ export function tenantServiceBuilder(
 
       await repository.createEvent(
         toCreateEventTenantDeclaredAttributeAssigned(
-          targetTenant.data.id,
           targetTenant.metadata.version,
           updatedTenant,
           unsafeBrandId(tenantAttributeSeed.id),
