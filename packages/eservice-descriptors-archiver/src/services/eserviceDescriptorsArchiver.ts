@@ -20,28 +20,22 @@ export const eserviceDescriptorArchiverBuilder = async (
   readModelService: ReadModelService,
   catalogProcessClient: CatalogProcessClient
 ): Promise<EServiceDescriptorsArchiver> => {
-  const getHeaders = (
-    correlationId: string | undefined | null,
-    token: string
-  ) => ({
-    "X-Correlation-Id": correlationId || uuidv4(),
-    Authorization: `Bearer ${token}`,
-  });
-
   const archiveDescriptor = async (
     descriptorId: DescriptorId,
     eserviceId: EServiceId
   ): Promise<void> => {
     const { correlationId } = getContext();
     const token = (await refreshableToken.get()).serialized;
-    const headers = getHeaders(correlationId, token);
 
-    catalogProcessClient.archiveDescriptor(undefined, {
+    await catalogProcessClient.archiveDescriptor(undefined, {
       params: {
         eServiceId: eserviceId,
         descriptorId,
       },
-      headers,
+      headers: {
+        "X-Correlation-Id": correlationId || uuidv4(),
+        Authorization: `Bearer ${token}`,
+      },
     });
   };
 

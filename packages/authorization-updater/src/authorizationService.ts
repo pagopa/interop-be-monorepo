@@ -31,14 +31,6 @@ export const authorizationServiceBuilder =
     const refreshableToken = new RefreshableInteropToken(tokenGenerator);
     await refreshableToken.init();
 
-    const getHeaders = (
-      correlationId: string | undefined | null,
-      token: string
-    ) => ({
-      "X-Correlation-Id": correlationId || uuidv4(),
-      Authorization: `Bearer ${token}`,
-    });
-
     return {
       // eslint-disable-next-line max-params
       async updateEServiceState(
@@ -58,11 +50,14 @@ export const authorizationServiceBuilder =
         };
 
         const token = (await refreshableToken.get()).serialized;
-        const headers = getHeaders(correlationId, token);
+
         await authMgmtClient.updateEServiceState(clientEServiceDetailsUpdate, {
           params: { eserviceId },
           withCredentials: true,
-          headers,
+          headers: {
+            "X-Correlation-Id": correlationId || uuidv4(),
+            Authorization: `Bearer ${token}`,
+          },
         });
 
         logger.info(`Updating EService ${eserviceId} state for all clients`);
