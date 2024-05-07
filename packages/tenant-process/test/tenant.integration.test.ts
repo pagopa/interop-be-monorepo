@@ -17,27 +17,21 @@ import {
 import {
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
-  getMockAttribute,
   mongoDBContainer,
   postgreSQLContainer,
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
 import { IDatabase } from "pg-promise";
 import {
-  Attribute,
   Descriptor,
   EService,
   Tenant,
-  TenantCertifiedAttributeAssignedV2,
-  TenantCertifiedAttributeRevokedV2,
-  TenantCertifiedAttributeV2,
   TenantId,
   TenantOnboardDetailsUpdatedV2,
   TenantOnboardedV2,
   TenantVerifiedAttributeExpirationUpdatedV2,
   TenantVerifiedAttributeExtensionUpdatedV2,
   descriptorState,
-  fromTenantKindV2,
   generateId,
   operationForbidden,
   protobufDecoder,
@@ -63,16 +57,11 @@ import {
   tenantNotFound,
   verifiedAttributeNotFoundInTenant,
   expirationDateNotFoundInVerifier,
-  attributeNotFound,
-  tenantIsNotACertifier,
-  certifiedAttributeOriginIsNotCompliantWithCertifier,
-  attributeAlreadyRevoked,
 } from "../src/model/domain/errors.js";
 import { ApiSelfcareTenantSeed } from "../src/model/types.js";
 import { getTenantKind } from "../src/services/validators.js";
 import {
   addOneAgreement,
-  addOneAttribute,
   addOneEService,
   addOneTenant,
   currentDate,
@@ -87,7 +76,7 @@ import {
   readLastTenantEvent,
 } from "./utils.js";
 import { testAddCertifiedAttribute } from "./testAddCertifiedAttribute.js";
-import { testRevokeCertifiedAttributes } from "./testRevokeCertifiedAttribute.js";
+import { testRevokeCertifiedAttributeById } from "./testRevokeCertifiedAttributeById.js";
 
 export let tenants: TenantCollection;
 export let agreements: AgreementCollection;
@@ -128,7 +117,6 @@ describe("Integration tests", () => {
   const mockEService = getMockEService();
   const mockDescriptor = getMockDescriptor();
   const mockTenant = getMockTenant();
-  const mockAttribute = getMockAttribute();
   const mockVerifiedBy = getMockVerifiedBy();
   const mockVerifiedTenantAttribute = getMockVerifiedTenantAttribute();
   const mockCertifiedTenantAttribute = getMockCertifiedTenantAttribute();
@@ -585,7 +573,7 @@ describe("Integration tests", () => {
       });
     });
     testAddCertifiedAttribute();
-    testRevokeCertifiedAttributes();
+    testRevokeCertifiedAttributeById();
   });
   describe("readModelService", () => {
     const tenant1: Tenant = {
