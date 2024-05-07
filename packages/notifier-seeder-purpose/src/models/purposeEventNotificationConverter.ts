@@ -49,13 +49,11 @@ export const toPurposeEventNotification = (
       { type: "DraftPurposeDeleted" },
       { type: "WaitingForApprovalPurposeDeleted" },
       (event) => ({
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        purposeId: event.data.purpose!.id,
+        purposeId: getPurpose(event).id,
       })
     )
     .with({ type: "WaitingForApprovalPurposeVersionDeleted" }, (event) => ({
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      purposeId: event.data.purpose!.id,
+      purposeId: getPurpose(event).id,
       versionId: event.data.versionId,
     }))
     .exhaustive();
