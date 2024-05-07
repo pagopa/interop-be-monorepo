@@ -43,7 +43,7 @@ import {
   tenantService,
 } from "./tenant.integration.test.js";
 
-export const testRevokeVerifiedAttributes = (): ReturnType<typeof describe> =>
+export const testRevokeVerifiedAttribute = (): ReturnType<typeof describe> =>
   describe("revokeVerifiedAttribute", async () => {
     const attributeId: AttributeId = generateId();
     const targetTenant: Tenant = getMockTenant();
@@ -69,8 +69,6 @@ export const testRevokeVerifiedAttributes = (): ReturnType<typeof describe> =>
     const eService1: EService = {
       ...getMockEService(),
       producerId: requesterTenant.id,
-      id: generateId(),
-      name: "A",
       descriptors: [descriptor1],
     };
 

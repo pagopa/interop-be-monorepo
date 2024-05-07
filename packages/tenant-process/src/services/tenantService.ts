@@ -550,21 +550,20 @@ export function tenantServiceBuilder(
       const updatedTenant = {
         ...targetTenant.data,
         createdAt: new Date(),
-        attributes: targetTenant.data.attributes.map((a) =>
-          a.id === attributeId
+        attributes: targetTenant.data.attributes.map((verifiedAttribute) =>
+          verifiedAttribute.id === attributeId
             ? {
-                ...a,
+                ...verifiedAttribute,
                 assignmentTimestamp:
                   verifiedTenantAttribute.assignmentTimestamp,
                 revocationTimestamp: new Date(),
               }
-            : a
+            : verifiedAttribute
         ),
       };
 
       await repository.createEvent(
         toCreateEventTenantVerifiedAttributeRevoked(
-          targetTenant.data.id,
           targetTenant.metadata.version,
           updatedTenant,
           attributeId,
