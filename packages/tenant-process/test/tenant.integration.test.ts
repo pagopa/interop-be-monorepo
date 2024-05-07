@@ -75,7 +75,7 @@ import {
   getMockVerifiedTenantAttribute,
   readLastTenantEvent,
 } from "./utils.js";
-import { testAddCertifiedAttributes } from "./testAddCertifiedAttribute.js";
+import { testAddCertifiedAttribute } from "./testAddCertifiedAttribute.js";
 
 export let tenants: TenantCollection;
 export let agreements: AgreementCollection;
@@ -571,7 +571,7 @@ describe("Integration tests", () => {
         );
       });
     });
-    testAddCertifiedAttributes();
+    testAddCertifiedAttribute();
   });
   describe("readModelService", () => {
     const tenant1: Tenant = {
