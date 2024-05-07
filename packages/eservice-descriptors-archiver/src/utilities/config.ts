@@ -1,13 +1,13 @@
 import {
   AgreementTopicConfig,
-  JWTSeedConfig,
+  TokenGenerationConfig,
   KafkaConsumerConfig,
   ReadModelDbConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
 export const EserviceDescriptorsArchiverConfig = KafkaConsumerConfig.and(
-  JWTSeedConfig
+  TokenGenerationConfig
 )
   .and(ReadModelDbConfig)
   .and(AgreementTopicConfig)

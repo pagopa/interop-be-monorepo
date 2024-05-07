@@ -1,8 +1,9 @@
 /* eslint-disable functional/immutable-data */
 import { EachMessagePayload } from "kafkajs";
 import {
+  InteropTokenGenerator,
   ReadModelRepository,
-  buildInteropTokenGenerator,
+  RefreshableInteropToken,
   decodeKafkaMessage,
   logger,
   runWithContext,
@@ -15,15 +16,18 @@ import { config } from "./utilities/config.js";
 import { readModelServiceBuilder } from "./services/readModelService.js";
 import { catalogProcessClientBuilder } from "./services/catalogProcessClient.js";
 
-const tokenGenerator = buildInteropTokenGenerator();
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
 );
 const catalogProcessClient = catalogProcessClientBuilder(
   config.catalogProcessUrl
 );
+const tokenGenerator = new InteropTokenGenerator(config);
+const refreshableToken = new RefreshableInteropToken(tokenGenerator);
+await refreshableToken.init();
+
 const eserviceDescriptorArchiver = await eserviceDescriptorArchiverBuilder(
-  tokenGenerator,
+  refreshableToken,
   readModelService,
   catalogProcessClient
 );
