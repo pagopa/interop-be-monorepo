@@ -254,5 +254,22 @@ describe("JWT tests", () => {
         )
       );
     });
+
+    it("should also accept audience as a JSON array", async () => {
+      const token = getMockSignedToken({
+        ...mockUiToken,
+        aud: ["dev.interop.pagopa.it/ui", "dev.interop.pagopa.it/fake"],
+      });
+
+      expect(readAuthDataFromJwtToken(token)).toEqual({
+        externalId: {
+          origin: "IPA",
+          value: "5N2TR557",
+        },
+        organizationId: "69e2865e-65ab-4e48-a638-2037a9ee2ee7",
+        userId: "f07ddb8f-17f9-47d4-b31e-35d1ac10e521",
+        userRoles: ["security", "api"],
+      });
+    });
   });
 });
