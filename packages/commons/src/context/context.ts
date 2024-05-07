@@ -8,30 +8,20 @@ import { AuthData } from "../auth/authData.js";
 import { Logger, logger } from "../logging/index.js";
 import { readCorrelationIdHeader } from "../auth/headers.js";
 
-export type AppContext = {
-  authData: AuthData;
-  messageData?: {
-    eventType: string;
-    eventVersion: number;
-    streamId: string;
-  };
-  correlationId?: string | null | undefined;
-};
-export type ZodiosContext = NonNullable<typeof zodiosCtx>;
-export type ExpressContext = NonNullable<typeof zodiosCtx.context>;
-
-export const ctx = z.object({
+export const AppContext = z.object({
   serviceName: z.string(),
   authData: AuthData,
   correlationId: z.string(),
 });
+export type AppContext = z.infer<typeof AppContext>;
 
-export const zodiosCtx = zodiosContext(z.object({ ctx }));
-export type ZodiosCtx = z.infer<typeof ctx>;
+export const zodiosCtx = zodiosContext(z.object({ ctx: AppContext }));
+export type ZodiosContext = NonNullable<typeof zodiosCtx>;
+export type ExpressContext = NonNullable<typeof zodiosCtx.context>;
 
 export type WithLogger<T> = T & { logger: Logger };
 
-export function fromZodiosCtx(ctx: ZodiosCtx): WithLogger<ZodiosCtx> {
+export function fromAppContext(ctx: AppContext): WithLogger<AppContext> {
   return { ...ctx, logger: logger({ ...ctx }) };
 }
 

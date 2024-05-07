@@ -8,7 +8,7 @@ import {
   ReadModelRepository,
   initDB,
   zodiosValidationErrorToApiProblem,
-  fromZodiosCtx,
+  fromAppContext,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
@@ -70,7 +70,7 @@ const attributeRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const { logger } = fromZodiosCtx(req.ctx);
+        const { logger } = fromAppContext(req.ctx);
 
         try {
           const { limit, offset, kinds, name, origin } = req.query;
@@ -108,7 +108,7 @@ const attributeRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(req.ctx);
+        const ctx = fromAppContext(req.ctx);
 
         try {
           const attribute = await attributeRegistryService.getAttributeByName(
@@ -137,7 +137,7 @@ const attributeRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(req.ctx);
+        const ctx = fromAppContext(req.ctx);
 
         try {
           const { origin, code } = req.params;
@@ -172,7 +172,7 @@ const attributeRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(req.ctx);
+        const ctx = fromAppContext(req.ctx);
 
         try {
           const attribute = await attributeRegistryService.getAttributeById(
@@ -201,7 +201,7 @@ const attributeRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const { logger } = fromZodiosCtx(req.ctx);
+        const { logger } = fromAppContext(req.ctx);
         const { limit, offset } = req.query;
 
         try {
@@ -229,7 +229,7 @@ const attributeRouter = (
       "/certifiedAttributes",
       authorizationMiddleware([ADMIN_ROLE, M2M_ROLE]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(req.ctx);
+        const ctx = fromAppContext(req.ctx);
 
         try {
           const attribute =
@@ -252,7 +252,7 @@ const attributeRouter = (
       "/declaredAttributes",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE, M2M_ROLE]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(req.ctx);
+        const ctx = fromAppContext(req.ctx);
 
         try {
           const attribute =
@@ -275,7 +275,7 @@ const attributeRouter = (
       "/verifiedAttributes",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE, M2M_ROLE]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(req.ctx);
+        const ctx = fromAppContext(req.ctx);
 
         try {
           const attribute =
@@ -298,7 +298,7 @@ const attributeRouter = (
       "/internal/certifiedAttributes",
       authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(req.ctx);
+        const ctx = fromAppContext(req.ctx);
 
         try {
           const attribute =

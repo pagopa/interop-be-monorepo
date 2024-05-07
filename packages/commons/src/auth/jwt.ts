@@ -25,7 +25,7 @@ export const readAuthDataFromJwtToken = (jwtToken: string): AuthData => {
 const getKey =
   (
     clients: jwksClient.JwksClient[],
-    loggerInstance: Logger
+    logger: Logger
   ): ((header: JwtHeader, callback: SigningKeyCallback) => void) =>
   (header, callback) => {
     for (const { client, last } of clients.map((c, i) => ({
@@ -34,7 +34,7 @@ const getKey =
     }))) {
       client.getSigningKey(header.kid, function (err, key) {
         if (err && last) {
-          loggerInstance.error(`Error getting signing key: ${err}`);
+          logger.error(`Error getting signing key: ${err}`);
           return callback(err, undefined);
         } else {
           return callback(null, key?.getPublicKey());
@@ -45,7 +45,7 @@ const getKey =
 
 export const verifyJwtToken = (
   jwtToken: string,
-  loggerInstance: Logger
+  logger: Logger
 ): Promise<boolean> => {
   const config = JWTConfig.parse(process.env);
   const clients = config.wellKnownUrls.map((url) =>
@@ -56,13 +56,13 @@ export const verifyJwtToken = (
   return new Promise((resolve, _reject) => {
     jwt.verify(
       jwtToken,
-      getKey(clients, loggerInstance),
+      getKey(clients, logger),
       {
         audience: config.acceptedAudiences,
       },
       function (err, _decoded) {
         if (err) {
-          loggerInstance.warn(`Token verification failed: ${err}`);
+          logger.warn(`Token verification failed: ${err}`);
           return resolve(false);
         }
         return resolve(true);

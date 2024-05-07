@@ -1,8 +1,8 @@
 import {
+  AppContext,
   DB,
   Logger,
   WithLogger,
-  ZodiosCtx,
   eventRepository,
 } from "pagopa-interop-commons";
 import {
@@ -141,7 +141,7 @@ export function attributeRegistryServiceBuilder(
 
     async createDeclaredAttribute(
       apiDeclaredAttributeSeed: ApiDeclaredAttributeSeed,
-      { authData, correlationId, logger }: WithLogger<ZodiosCtx>
+      { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Attribute> {
       logger.info(
         `Creating declared attribute with name ${apiDeclaredAttributeSeed.name}}`
@@ -184,7 +184,7 @@ export function attributeRegistryServiceBuilder(
 
     async createVerifiedAttribute(
       apiVerifiedAttributeSeed: ApiVerifiedAttributeSeed,
-      { authData, correlationId, logger }: WithLogger<ZodiosCtx>
+      { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Attribute> {
       logger.info(
         `Creating verified attribute with name ${apiVerifiedAttributeSeed.name}`
@@ -226,7 +226,7 @@ export function attributeRegistryServiceBuilder(
 
     async createCertifiedAttribute(
       apiCertifiedAttributeSeed: ApiCertifiedAttributeSeed,
-      { authData, correlationId, logger }: WithLogger<ZodiosCtx>
+      { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Attribute> {
       logger.info(
         `Creating certified attribute with code ${apiCertifiedAttributeSeed.code}`
@@ -276,7 +276,7 @@ export function attributeRegistryServiceBuilder(
 
     async createInternalCertifiedAttribute(
       apiInternalCertifiedAttributeSeed: ApiInternalCertifiedAttributeSeed,
-      { correlationId, logger }: WithLogger<ZodiosCtx>
+      { correlationId, logger }: WithLogger<AppContext>
     ): Promise<Attribute> {
       logger.info(
         `Creating certified attribute with origin ${apiInternalCertifiedAttributeSeed.origin} and code ${apiInternalCertifiedAttributeSeed.code} - Internal Request`

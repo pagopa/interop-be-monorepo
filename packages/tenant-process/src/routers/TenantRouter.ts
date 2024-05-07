@@ -7,7 +7,7 @@ import {
   authorizationMiddleware,
   initDB,
   zodiosValidationErrorToApiProblem,
-  fromZodiosCtx,
+  fromAppContext,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
@@ -70,7 +70,7 @@ const tenantsRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const { logger } = fromZodiosCtx(req.ctx);
+        const { logger } = fromAppContext(req.ctx);
 
         try {
           const { name, offset, limit } = req.query;
@@ -102,7 +102,7 @@ const tenantsRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const { logger } = fromZodiosCtx(req.ctx);
+        const { logger } = fromAppContext(req.ctx);
 
         try {
           const { name, offset, limit } = req.query;
@@ -133,7 +133,7 @@ const tenantsRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const { logger } = fromZodiosCtx(req.ctx);
+        const { logger } = fromAppContext(req.ctx);
 
         try {
           const { name, offset, limit } = req.query;
@@ -167,7 +167,7 @@ const tenantsRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(req.ctx);
+        const ctx = fromAppContext(req.ctx);
 
         try {
           const tenant = await tenantService.getTenantById(
@@ -209,7 +209,7 @@ const tenantsRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(req.ctx);
+        const ctx = fromAppContext(req.ctx);
 
         try {
           const { origin, code } = req.params;
@@ -252,7 +252,7 @@ const tenantsRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(req.ctx);
+        const ctx = fromAppContext(req.ctx);
 
         try {
           const tenant = await tenantService.getTenantBySelfcareId(
@@ -294,7 +294,7 @@ const tenantsRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(req.ctx);
+        const ctx = fromAppContext(req.ctx);
 
         try {
           const { offset, limit } = req.query;
@@ -346,7 +346,7 @@ const tenantsRouter = (
         INTERNAL_ROLE,
       ]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(req.ctx);
+        const ctx = fromAppContext(req.ctx);
 
         try {
           const id = await tenantService.selfcareUpsertTenant(req.body, ctx);
@@ -370,7 +370,7 @@ const tenantsRouter = (
       "/tenants/:tenantId/attributes/verified/:attributeId",
       authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(req.ctx);
+        const ctx = fromAppContext(req.ctx);
 
         try {
           const { tenantId, attributeId } = req.params;
@@ -398,7 +398,7 @@ const tenantsRouter = (
       "/tenants/:tenantId/attributes/verified/:attributeId/verifier/:verifierId",
       authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(req.ctx);
+        const ctx = fromAppContext(req.ctx);
 
         try {
           const { tenantId, attributeId, verifierId } = req.params;

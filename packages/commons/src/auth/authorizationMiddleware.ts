@@ -86,7 +86,7 @@ export const authorizationMiddleware =
     } catch (err) {
       const headers = readHeaders(req as Request);
 
-      const logger_instance = logger({
+      const loggerInstance = logger({
         userId: headers?.userId,
         organizationId: headers?.organizationId,
         correlationId: headers?.correlationId,
@@ -102,7 +102,7 @@ export const authorizationMiddleware =
               correlationId: headers?.correlationId,
             }),
             (error) => (error.code === "unauthorizedError" ? 403 : 500),
-            logger_instance
+            loggerInstance
           )
         )
         .otherwise(() =>
@@ -111,7 +111,7 @@ export const authorizationMiddleware =
               "An unexpected error occurred during authorization checks"
             ),
             () => 500,
-            logger_instance
+            loggerInstance
           )
         );
 

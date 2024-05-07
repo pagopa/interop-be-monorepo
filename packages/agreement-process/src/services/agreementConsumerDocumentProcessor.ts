@@ -4,7 +4,8 @@ import {
   CreateEvent,
   Logger,
   WithLogger,
-  ZodiosCtx,
+  AppContext,
+  FileManager,
 } from "pagopa-interop-commons";
 import {
   AgreementDocumentId,
@@ -33,7 +34,7 @@ export async function addConsumerDocumentLogic(
   agreementId: AgreementId,
   payload: ApiAgreementDocumentSeed,
   agreementQuery: AgreementQuery,
-  { authData, correlationId, logger }: WithLogger<ZodiosCtx>
+  { authData, correlationId, logger }: WithLogger<AppContext>
 ): Promise<CreateEvent<AgreementEvent>> {
   const agreement = await agreementQuery.getAgreementById(agreementId, logger);
 
@@ -69,7 +70,7 @@ export async function removeAgreementConsumerDocumentLogic(
   documentId: AgreementDocumentId,
   agreementQuery: AgreementQuery,
   authData: AuthData,
-  fileRemove: (bucket: string, path: string, logger: Logger) => Promise<void>,
+  fileRemove: FileManager["delete"],
   correlationId: string,
   logger: Logger
 ): Promise<CreateEvent<AgreementEvent>> {

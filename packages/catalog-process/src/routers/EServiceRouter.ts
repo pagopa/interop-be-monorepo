@@ -9,7 +9,7 @@ import {
   initDB,
   initFileManager,
   zodiosValidationErrorToApiProblem,
-  fromZodiosCtx,
+  fromAppContext,
 } from "pagopa-interop-commons";
 import {
   unsafeBrandId,
@@ -97,7 +97,7 @@ const eservicesRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const { logger } = fromZodiosCtx(req.ctx);
+        const { logger } = fromAppContext(req.ctx);
 
         try {
           const {
@@ -146,7 +146,7 @@ const eservicesRouter = (
       "/eservices",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(req.ctx);
+        const ctx = fromAppContext(req.ctx);
 
         try {
           const eservice = await catalogService.createEService(req.body, ctx);
@@ -172,7 +172,7 @@ const eservicesRouter = (
         INTERNAL_ROLE,
       ]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(req.ctx);
+        const ctx = fromAppContext(req.ctx);
 
         try {
           const eservice = await catalogService.getEServiceById(
@@ -194,7 +194,7 @@ const eservicesRouter = (
       "/eservices/:eServiceId",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(req.ctx);
+        const ctx = fromAppContext(req.ctx);
 
         try {
           const updatedEService = await catalogService.updateEService(
@@ -220,7 +220,7 @@ const eservicesRouter = (
       "/eservices/:eServiceId",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(req.ctx);
+        const ctx = fromAppContext(req.ctx);
 
         try {
           await catalogService.deleteEService(
@@ -248,7 +248,7 @@ const eservicesRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(req.ctx);
+        const ctx = fromAppContext(req.ctx);
 
         try {
           const consumers = await catalogService.getEServiceConsumers(
@@ -291,7 +291,7 @@ const eservicesRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(req.ctx);
+        const ctx = fromAppContext(req.ctx);
 
         try {
           const { eServiceId, descriptorId, documentId } = req.params;
@@ -320,7 +320,7 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/documents",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(req.ctx);
+        const ctx = fromAppContext(req.ctx);
 
         try {
           const updatedEService = await catalogService.uploadDocument(
@@ -347,7 +347,7 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(req.ctx);
+        const ctx = fromAppContext(req.ctx);
 
         try {
           await catalogService.deleteDocument(
@@ -371,7 +371,7 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId/update",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(req.ctx);
+        const ctx = fromAppContext(req.ctx);
 
         try {
           const updatedDocument = await catalogService.updateDocument(
@@ -399,7 +399,7 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(req.ctx);
+        const ctx = fromAppContext(req.ctx);
 
         try {
           const descriptor = await catalogService.createDescriptor(
@@ -425,7 +425,7 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(req.ctx);
+        const ctx = fromAppContext(req.ctx);
 
         try {
           await catalogService.deleteDraftDescriptor(
@@ -448,7 +448,7 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(req.ctx);
+        const ctx = fromAppContext(req.ctx);
 
         try {
           const updatedEService = await catalogService.updateDraftDescriptor(
@@ -475,7 +475,7 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/publish",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(req.ctx);
+        const ctx = fromAppContext(req.ctx);
 
         try {
           await catalogService.publishDescriptor(
@@ -498,7 +498,7 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/suspend",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(req.ctx);
+        const ctx = fromAppContext(req.ctx);
 
         try {
           await catalogService.suspendDescriptor(
@@ -521,7 +521,7 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/activate",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(req.ctx);
+        const ctx = fromAppContext(req.ctx);
 
         try {
           await catalogService.activateDescriptor(
@@ -544,7 +544,7 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/clone",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(req.ctx);
+        const ctx = fromAppContext(req.ctx);
 
         try {
           const clonedEserviceByDescriptor =
@@ -571,7 +571,7 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/archive",
       authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(req.ctx);
+        const ctx = fromAppContext(req.ctx);
 
         try {
           await catalogService.archiveDescriptor(
@@ -594,7 +594,7 @@ const eservicesRouter = (
       "/eservices/:eServiceId/descriptors/:descriptorId/update",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(req.ctx);
+        const ctx = fromAppContext(req.ctx);
 
         try {
           const updatedEService = await catalogService.updateDescriptor(
@@ -621,7 +621,7 @@ const eservicesRouter = (
       "/eservices/:eServiceId/riskAnalysis",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(req.ctx);
+        const ctx = fromAppContext(req.ctx);
 
         try {
           await catalogService.createRiskAnalysis(
@@ -644,7 +644,7 @@ const eservicesRouter = (
       "/eservices/:eServiceId/riskAnalysis/:riskAnalysisId",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(req.ctx);
+        const ctx = fromAppContext(req.ctx);
 
         try {
           await catalogService.updateRiskAnalysis(
@@ -668,7 +668,7 @@ const eservicesRouter = (
       "/eservices/:eServiceId/riskAnalysis/:riskAnalysisId",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
-        const ctx = fromZodiosCtx(req.ctx);
+        const ctx = fromAppContext(req.ctx);
 
         try {
           await catalogService.deleteRiskAnalysis(

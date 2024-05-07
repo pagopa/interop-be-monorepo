@@ -6,7 +6,7 @@ import {
   FileManager,
   Logger,
   WithLogger,
-  ZodiosCtx,
+  AppContext,
   eventRepository,
 } from "pagopa-interop-commons";
 import {
@@ -129,7 +129,7 @@ export function agreementServiceBuilder(
     },
     async createAgreement(
       agreement: ApiAgreementPayload,
-      { authData, correlationId, logger }: WithLogger<ZodiosCtx>
+      { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<string> {
       logger.info(
         `Creating agreement for EService ${agreement.eserviceId} and Descriptor ${agreement.descriptorId}`
@@ -180,7 +180,7 @@ export function agreementServiceBuilder(
     async updateAgreement(
       agreementId: AgreementId,
       agreement: ApiAgreementUpdatePayload,
-      { authData, correlationId, logger }: WithLogger<ZodiosCtx>
+      { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<void> {
       logger.info(`Updating agreement ${agreementId}`);
       const agreementToBeUpdated = await agreementQuery.getAgreementById(
@@ -203,7 +203,7 @@ export function agreementServiceBuilder(
     },
     async deleteAgreementById(
       agreementId: AgreementId,
-      { authData, correlationId, logger }: WithLogger<ZodiosCtx>
+      { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<void> {
       logger.info(`Deleting agreement ${agreementId}`);
       const agreement = await agreementQuery.getAgreementById(
@@ -228,7 +228,7 @@ export function agreementServiceBuilder(
     async submitAgreement(
       agreementId: AgreementId,
       payload: ApiAgreementSubmissionPayload,
-      ctx: WithLogger<ZodiosCtx>
+      ctx: WithLogger<AppContext>
     ): Promise<string> {
       ctx.logger.info(`Submitting agreement ${agreementId}`);
       const updatesEvents = await submitAgreementLogic(
@@ -254,7 +254,7 @@ export function agreementServiceBuilder(
     },
     async upgradeAgreement(
       agreementId: AgreementId,
-      { authData, correlationId, logger }: WithLogger<ZodiosCtx>
+      { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<string> {
       logger.info(`Upgrading agreement ${agreementId}`);
       const { streamId, events } = await upgradeAgreementLogic(
@@ -278,7 +278,7 @@ export function agreementServiceBuilder(
     },
     async cloneAgreement(
       agreementId: AgreementId,
-      { authData, correlationId, logger }: WithLogger<ZodiosCtx>
+      { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<string> {
       logger.info(`Cloning agreement ${agreementId}`);
       const event = await cloneAgreementLogic(
@@ -301,7 +301,7 @@ export function agreementServiceBuilder(
     async addConsumerDocument(
       agreementId: AgreementId,
       documentSeed: ApiAgreementDocumentSeed,
-      ctx: WithLogger<ZodiosCtx>
+      ctx: WithLogger<AppContext>
     ): Promise<string> {
       ctx.logger.info(`Adding a consumer document to agreement ${agreementId}`);
 
@@ -316,7 +316,7 @@ export function agreementServiceBuilder(
     async getAgreementConsumerDocument(
       agreementId: AgreementId,
       documentId: AgreementDocumentId,
-      { authData, logger }: WithLogger<ZodiosCtx>
+      { authData, logger }: WithLogger<AppContext>
     ): Promise<AgreementDocument> {
       logger.info(
         `Retrieving consumer document ${documentId} from agreement ${agreementId}`
@@ -340,7 +340,7 @@ export function agreementServiceBuilder(
     },
     async suspendAgreement(
       agreementId: AgreementId,
-      { authData, correlationId, logger }: WithLogger<ZodiosCtx>
+      { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<AgreementId> {
       logger.info(`Suspending agreement ${agreementId}`);
       await repository.createEvent(
@@ -375,7 +375,7 @@ export function agreementServiceBuilder(
     async removeAgreementConsumerDocument(
       agreementId: AgreementId,
       documentId: AgreementDocumentId,
-      { authData, correlationId, logger }: WithLogger<ZodiosCtx>
+      { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<string> {
       logger.info(
         `Removing consumer document ${documentId} from agreement ${agreementId}`
@@ -396,7 +396,7 @@ export function agreementServiceBuilder(
     async rejectAgreement(
       agreementId: AgreementId,
       rejectionReason: string,
-      { authData, correlationId, logger }: WithLogger<ZodiosCtx>
+      { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<string> {
       logger.info(`Rejecting agreement ${agreementId}`);
       await repository.createEvent(
@@ -418,7 +418,7 @@ export function agreementServiceBuilder(
     },
     async activateAgreement(
       agreementId: Agreement["id"],
-      { authData, correlationId, logger }: WithLogger<ZodiosCtx>
+      { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Agreement["id"]> {
       logger.info(`Activating agreement ${agreementId}`);
       const updatesEvents = await activateAgreementLogic(
@@ -440,7 +440,7 @@ export function agreementServiceBuilder(
     },
     async archiveAgreement(
       agreementId: AgreementId,
-      { authData, correlationId, logger }: WithLogger<ZodiosCtx>
+      { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<Agreement["id"]> {
       logger.info(`Archiving agreement ${agreementId}`);
 
@@ -465,14 +465,7 @@ export type AgreementService = ReturnType<typeof agreementServiceBuilder>;
 async function createAndCopyDocumentsForClonedAgreement(
   newAgreementId: AgreementId,
   clonedAgreement: Agreement,
-  copyFile: (
-    bucket: string,
-    sourcePath: string,
-    destinationPath: string,
-    destinationFileName: string,
-    docName: string,
-    logger: Logger
-  ) => Promise<string>,
+  copyFile: FileManager["copy"],
   logger: Logger
 ): Promise<AgreementDocument[]> {
   const docs = await Promise.all(
@@ -513,7 +506,7 @@ export async function deleteAgreementLogic(
   }: {
     agreementId: AgreementId;
     authData: AuthData;
-    deleteFile: (bucket: string, path: string, logger: Logger) => Promise<void>;
+    deleteFile: FileManager["delete"];
     agreement: WithMetadata<Agreement> | undefined;
   },
   correlationId: string,
@@ -589,14 +582,7 @@ export async function upgradeAgreementLogic(
     agreementQuery: AgreementQuery;
     eserviceQuery: EserviceQuery;
     tenantQuery: TenantQuery;
-    copyFile: (
-      bucket: string,
-      sourcePath: string,
-      destinationPath: string,
-      destinationFileName: string,
-      docName: string,
-      logger: Logger
-    ) => Promise<string>;
+    copyFile: FileManager["copy"];
   },
   correlationId: string,
   logger: Logger
@@ -771,14 +757,7 @@ export async function cloneAgreementLogic(
     agreementQuery: AgreementQuery;
     tenantQuery: TenantQuery;
     eserviceQuery: EserviceQuery;
-    copyFile: (
-      bucket: string,
-      sourcePath: string,
-      destinationPath: string,
-      destinationFileName: string,
-      docName: string,
-      logger: Logger
-    ) => Promise<string>;
+    copyFile: FileManager["copy"];
   },
   correlationId: string,
   logger: Logger

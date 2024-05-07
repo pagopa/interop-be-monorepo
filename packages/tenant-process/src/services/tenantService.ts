@@ -3,7 +3,7 @@ import {
   eventRepository,
   Logger,
   WithLogger,
-  ZodiosCtx,
+  AppContext,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
@@ -64,7 +64,7 @@ export function tenantServiceBuilder(
       tenantId: TenantId,
       attributeId: AttributeId,
       verifierId: string,
-      { correlationId, logger }: WithLogger<ZodiosCtx>
+      { correlationId, logger }: WithLogger<AppContext>
     ): Promise<Tenant> {
       logger.info(
         `Update extension date of attribute ${attributeId} for tenant ${tenantId}`
@@ -147,7 +147,7 @@ export function tenantServiceBuilder(
         attributeId: AttributeId;
         updateVerifiedTenantAttributeSeed: UpdateVerifiedTenantAttributeSeed;
       },
-      { correlationId, logger }: WithLogger<ZodiosCtx>
+      { correlationId, logger }: WithLogger<AppContext>
     ): Promise<Tenant> {
       logger.info(`Update attribute ${attributeId} to tenant ${tenantId}`);
       const tenant = await retrieveTenant(tenantId, readModelService, logger);
@@ -197,7 +197,7 @@ export function tenantServiceBuilder(
 
     async selfcareUpsertTenant(
       tenantSeed: ApiSelfcareTenantSeed,
-      { authData, correlationId, logger }: WithLogger<ZodiosCtx>
+      { authData, correlationId, logger }: WithLogger<AppContext>
     ): Promise<string> {
       logger.info(
         `Upsert tenant by selfcare with externalId: ${tenantSeed.externalId}`

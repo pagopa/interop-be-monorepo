@@ -3,7 +3,7 @@ import {
   CreateEvent,
   Logger,
   WithLogger,
-  ZodiosCtx,
+  AppContext,
 } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -70,7 +70,7 @@ export async function submitAgreementLogic(
   eserviceQuery: EserviceQuery,
   agreementQuery: AgreementQuery,
   tenantQuery: TenantQuery,
-  ctx: WithLogger<ZodiosCtx>
+  ctx: WithLogger<AppContext>
 ): Promise<Array<CreateEvent<AgreementEvent>>> {
   const logger = ctx.logger;
 
@@ -134,7 +134,7 @@ const submitAgreement = async (
   agreementQuery: AgreementQuery,
   tenantQuery: TenantQuery,
   constractBuilder: ContractBuilder,
-  { authData, correlationId, logger }: WithLogger<ZodiosCtx>
+  { authData, correlationId, logger }: WithLogger<AppContext>
 ): Promise<Array<CreateEvent<AgreementEvent>>> => {
   const agreement = agreementData.data;
   const nextStateByAttributes = nextState(agreement, descriptor, consumer);

@@ -25,14 +25,14 @@ const logFormat = (
   timestamp: string,
   level: string,
   {
+    serviceName,
     userId,
     organizationId,
     correlationId,
     eventType,
     eventVersion,
     streamId,
-  }: LoggerMetadata,
-  serviceName?: string
+  }: LoggerMetadata
 ) => {
   const serviceLogPart = serviceName ? `[${serviceName}]` : undefined;
   const userLogPart = userId ? `[UID=${userId}]` : undefined;
@@ -64,7 +64,7 @@ const logFormat = (
   return `${firstPart} - ${secondPart} ${msg}`;
 };
 
-export const customFormat = (serviceName?: string) =>
+export const customFormat = () =>
   winston.format.printf(({ level, message, timestamp, loggerCtx }) => {
     const clearMessage =
       typeof message === "object"
@@ -73,13 +73,11 @@ export const customFormat = (serviceName?: string) =>
     const lines = clearMessage
       .toString()
       .split("\n")
-      .map((line: string) =>
-        logFormat(line, timestamp, level, loggerCtx, serviceName)
-      );
+      .map((line: string) => logFormat(line, timestamp, level, loggerCtx));
     return lines.join("\n");
   });
 
-const getLogger = (serviceName?: string) =>
+const getLogger = () =>
   winston.createLogger({
     level: config.logLevel,
     transports: [
@@ -91,23 +89,23 @@ const getLogger = (serviceName?: string) =>
       winston.format.timestamp(),
       winston.format.json(),
       winston.format.errors({ stack: true }),
-      customFormat(serviceName)
+      customFormat()
     ),
     silent: process.env.NODE_ENV === "test",
   });
 
-const internal_logger = getLogger();
+const internalLoggerInstance = getLogger();
 
 export const logger = (loggerMetadata: LoggerMetadata) => ({
-  isDebugEnabled: () => internal_logger.isDebugEnabled(),
-  debug: (msg: (typeof internal_logger.debug.arguments)[0]) =>
-    internal_logger.debug(msg, { loggerMetadata }),
-  info: (msg: (typeof internal_logger.info.arguments)[0]) =>
-    internal_logger.info(msg, { loggerMetadata }),
-  warn: (msg: (typeof internal_logger.warn.arguments)[0]) =>
-    internal_logger.warn(msg, { loggerMetadata }),
-  error: (msg: (typeof internal_logger.error.arguments)[0]) =>
-    internal_logger.error(msg, { loggerMetadata }),
+  isDebugEnabled: () => internalLoggerInstance.isDebugEnabled(),
+  debug: (msg: (typeof internalLoggerInstance.debug.arguments)[0]) =>
+    internalLoggerInstance.debug(msg, { loggerMetadata }),
+  info: (msg: (typeof internalLoggerInstance.info.arguments)[0]) =>
+    internalLoggerInstance.info(msg, { loggerMetadata }),
+  warn: (msg: (typeof internalLoggerInstance.warn.arguments)[0]) =>
+    internalLoggerInstance.warn(msg, { loggerMetadata }),
+  error: (msg: (typeof internalLoggerInstance.error.arguments)[0]) =>
+    internalLoggerInstance.error(msg, { loggerMetadata }),
 });
 
 export type Logger = ReturnType<typeof logger>;
