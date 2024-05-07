@@ -14,7 +14,6 @@ import {
   AuthData,
   TenantCollection,
 } from "pagopa-interop-commons";
-import { v4 as uuidv4 } from "uuid";
 import {
   ReadEvent,
   StoredEvent,
@@ -38,12 +37,13 @@ export const getMockTenant = (): Tenant => ({
 
 export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
   organizationId: organizationId || generateId(),
-  userId: uuidv4(),
+  userId: generateId(),
   userRoles: [],
   externalId: {
     value: "123456",
     origin: "IPA",
   },
+  selfcareId: generateId(),
 });
 
 export const writeAttributeInEventstore = async (
