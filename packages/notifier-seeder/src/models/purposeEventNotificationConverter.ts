@@ -5,7 +5,11 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
+  PurposeAndVersionIdNotification,
   PurposeEventNotification,
+  PurposeIdAndVersionIdNotification,
+  PurposeIdNotification,
+  PurposeNotification,
   PurposeV1Notification,
 } from "./purposeEventNotification.js";
 import { toPurposeV1Notification } from "./purposeEventNotificationMappers.js";
@@ -37,23 +41,29 @@ export const toPurposeEventNotification = (
       { type: "PurposeCloned" },
       { type: "NewPurposeVersionWaitingForApproval" },
       { type: "PurposeVersionOverQuotaUnsuspended" },
-      (event) => ({
+      (event): PurposeNotification => ({
         purpose: getPurpose(event),
       })
     )
-    .with({ type: "PurposeVersionRejected" }, (event) => ({
-      purpose: getPurpose(event),
-      versionId: event.data.versionId,
-    }))
+    .with(
+      { type: "PurposeVersionRejected" },
+      (event): PurposeAndVersionIdNotification => ({
+        purpose: getPurpose(event),
+        versionId: event.data.versionId,
+      })
+    )
     .with(
       { type: "DraftPurposeDeleted" },
       { type: "WaitingForApprovalPurposeDeleted" },
-      (event) => ({
+      (event): PurposeIdNotification => ({
         purposeId: getPurpose(event).id,
       })
     )
-    .with({ type: "WaitingForApprovalPurposeVersionDeleted" }, (event) => ({
-      purposeId: getPurpose(event).id,
-      versionId: event.data.versionId,
-    }))
+    .with(
+      { type: "WaitingForApprovalPurposeVersionDeleted" },
+      (event): PurposeIdAndVersionIdNotification => ({
+        purposeId: getPurpose(event).id,
+        versionId: event.data.versionId,
+      })
+    )
     .exhaustive();

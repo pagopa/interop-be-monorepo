@@ -45,7 +45,7 @@ export type PurposeV1Notification = Omit<
 // PurposeVersionSuspendedV1
 // PurposeVersionArchivedV1
 // PurposeVersionWaitedForApprovalV1
-export type PurposeCreatedNotification = {
+export type PurposeNotification = {
   purpose: PurposeV1Notification;
 };
 
@@ -77,7 +77,7 @@ export type PurposeIdAndVersionIdNotification = {
 };
 
 export type PurposeEventNotification =
-  | PurposeCreatedNotification
+  | PurposeNotification
   | PurposeAndVersionIdNotification
   | PurposeIdNotification
   | PurposeIdAndVersionIdNotification;

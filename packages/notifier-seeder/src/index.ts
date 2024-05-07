@@ -16,6 +16,8 @@ import { toCatalogItemEventNotification } from "./models/catalogItemEventNotific
 import { buildCatalogMessage } from "./models/catalogItemEventNotificationMessage.js";
 import { initQueueManager } from "./queue-manager/queueManager.js";
 import { notificationConfig } from "./config/notificationConfig.js";
+import { toPurposeEventNotification } from "./models/purposeEventNotificationConverter.js";
+import { buildPurposeMessage } from "./models/purposeEventNotificationMessage.js";
 
 const config = kafkaConsumerConfig();
 const catalogTopicConf = catalogTopicConfig();
@@ -30,7 +32,7 @@ const queueManager = initQueueManager({
 
 export function processMessage(
   catalogTopicConfig: CatalogTopicConfig,
-  _purposeTopicConfig: PurposeTopicConfig
+  purposeTopicConfig: PurposeTopicConfig
 ) {
   return async (kafkaMessage: EachMessagePayload): Promise<void> => {
     const messageDecoder = messageDecoderSupplier(
@@ -38,8 +40,13 @@ export function processMessage(
       kafkaMessage.topic
     );
 
-    const decodedMessage = messageDecoder(kafkaMessage.message);
+    const messageDecoderPurpose = messageDecoderSupplier(
+      purposeTopicConfig,
+      kafkaMessage.topic
+    );
 
+    const decodedMessage = messageDecoder(kafkaMessage.message);
+    const decodedMessagePurpose = messageDecoderPurpose(kafkaMessage.message);
     await runWithContext(
       {
         messageData: {
@@ -59,7 +66,15 @@ export function processMessage(
 
         const eserviceV1Event = toCatalogItemEventNotification(decodedMessage);
         const message = buildCatalogMessage(decodedMessage, eserviceV1Event);
+        const purposeV1Event = toPurposeEventNotification(
+          decodedMessagePurpose
+        );
+        const messagePurpose = buildPurposeMessage(
+          decodedMessagePurpose,
+          purposeV1Event
+        );
         await queueManager.send(message);
+        await queueManager.send(messagePurpose);
 
         logger.info(
           `Notification message [${message.messageUUID}] sent to queue ${queueConfig.queueUrl} for event type "${decodedMessage.type}"`

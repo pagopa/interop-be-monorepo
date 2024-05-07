@@ -47,6 +47,10 @@ export const messageDecoderSupplier = (
       () => (message: KafkaMessage) =>
         decodeKafkaMessage(message, EServiceEvent)
     )
+    .with(
+      { purposeTopic: P.string },
+      () => (message: KafkaMessage) => decodeKafkaMessage(message, PurposeEvent)
+    )
     .otherwise(() => {
       throw new Error(`Topic decoder not found for provided topic : ${topic}`);
     });
