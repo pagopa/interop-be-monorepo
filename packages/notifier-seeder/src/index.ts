@@ -12,13 +12,10 @@ import {
   purposeTopicConfig,
   runWithContext,
 } from "pagopa-interop-commons";
-import { match } from "ts-pattern";
 import { toCatalogItemEventNotification } from "./models/catalogItemEventNotificationConverter.js";
 import { buildCatalogMessage } from "./models/catalogItemEventNotificationMessage.js";
 import { initQueueManager } from "./queue-manager/queueManager.js";
 import { notificationConfig } from "./config/notificationConfig.js";
-import { toPurposeEventNotification } from "./models/purposeEventNotificationConverter.js";
-import { buildPurposeMessage } from "./models/purposeEventNotificationMessage.js";
 
 const config = kafkaConsumerConfig();
 const catalogTopicConf = catalogTopicConfig();
@@ -33,11 +30,11 @@ const queueManager = initQueueManager({
 
 export function processMessage(
   catalogTopicConfig: CatalogTopicConfig,
-  purposeTopicConfig: PurposeTopicConfig
+  _purposeTopicConfig: PurposeTopicConfig
 ) {
   return async (kafkaMessage: EachMessagePayload): Promise<void> => {
     const messageDecoder = messageDecoderSupplier(
-      catalogTopicConf,
+      catalogTopicConfig,
       kafkaMessage.topic
     );
 
@@ -62,6 +59,7 @@ export function processMessage(
 
         const eserviceV1Event = toCatalogItemEventNotification(decodedMessage);
         const message = buildCatalogMessage(decodedMessage, eserviceV1Event);
+        await queueManager.send(message);
 
         logger.info(
           `Notification message [${message.messageUUID}] sent to queue ${queueConfig.queueUrl} for event type "${decodedMessage.type}"`
