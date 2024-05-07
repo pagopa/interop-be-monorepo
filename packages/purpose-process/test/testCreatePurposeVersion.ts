@@ -31,6 +31,7 @@ export const testCreatePurposeVersion = (): ReturnType<typeof describe> =>
     afterAll(() => {
       vi.useRealTimers();
     });
+
     it("should write on event-store for the creation of a new purpose version", async () => {
       const { mockPurpose, mockPurposeVersion } =
         await prepareReadModelForPurposeTest();

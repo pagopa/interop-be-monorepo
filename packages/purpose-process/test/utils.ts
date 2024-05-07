@@ -197,6 +197,7 @@ export async function prepareReadModelForPurposeTest(options?: {
   const mockPurpose: Purpose = {
     ...getMockPurpose(),
     riskAnalysisForm: getMockValidRiskAnalysisForm("PA"),
+    ...options?.purpose,
     consumerId: mockAgreement.consumerId,
     eserviceId: mockEService.id,
     versions: [mockPurposeVersion],
