@@ -417,7 +417,7 @@ export function tenantServiceBuilder(
       );
 
       const maybeDeclaredTenantAttribute = requesterTenant.data.attributes.find(
-        (attr) =>
+        (attr): attr is DeclaredTenantAttribute =>
           attr.id === attributeId && attr.type === "PersistentDeclaredAttribute"
       );
 
@@ -428,21 +428,20 @@ export function tenantServiceBuilder(
       const updatedTenant: Tenant = {
         ...requesterTenant.data,
         updatedAt: new Date(),
-        attributes: requesterTenant.data.attributes.map((a) =>
-          a.id === attributeId
+        attributes: requesterTenant.data.attributes.map((declaredAttribute) =>
+          declaredAttribute.id === attributeId
             ? {
-                ...a,
+                ...declaredAttribute,
                 assignmentTimestamp:
                   maybeDeclaredTenantAttribute.assignmentTimestamp,
                 revocationTimestamp: new Date(),
               }
-            : a
+            : declaredAttribute
         ),
       };
 
       await repository.createEvent(
         toCreateEventTenantDeclaredAttributeRevoked(
-          requesterTenant.data.id,
           requesterTenant.metadata.version,
           updatedTenant,
           unsafeBrandId(attributeId),
