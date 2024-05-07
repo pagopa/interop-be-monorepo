@@ -3,20 +3,27 @@ import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import {
   CatalogTopicConfig,
+  PurposeTopicConfig,
   catalogTopicConfig,
+  decodeKafkaMessage,
   kafkaConsumerConfig,
   logger,
   loggerConfig,
-  messageDecoderSupplier,
+  purposeTopicConfig,
   runWithContext,
 } from "pagopa-interop-commons";
+import { match } from "ts-pattern";
+import { EServiceEvent, PurposeEventV2 } from "pagopa-interop-models";
 import { toCatalogItemEventNotification } from "./models/catalogItemEventNotificationConverter.js";
 import { buildCatalogMessage } from "./models/catalogItemEventNotificationMessage.js";
 import { initQueueManager } from "./queue-manager/queueManager.js";
 import { notificationConfig } from "./config/notificationConfig.js";
+import { toPurposeEventNotification } from "./models/purposeEventNotificationConverter.js";
+import { buildPurposeMessage } from "./models/purposeEventNotificationMessage.js";
 
 const config = kafkaConsumerConfig();
-const topicsConfig = catalogTopicConfig();
+const catalogTopicConf = catalogTopicConfig();
+const purposeTopicConf = purposeTopicConfig();
 const logConfig = loggerConfig();
 const queueConfig = notificationConfig();
 const queueManager = initQueueManager({
@@ -25,46 +32,87 @@ const queueManager = initQueueManager({
   logLevel: logConfig.logLevel,
 });
 
-export function processMessage(topicConfig: CatalogTopicConfig) {
+export function processMessage(
+  _catalogTopic: CatalogTopicConfig,
+  _purposeTopic: PurposeTopicConfig
+) {
   return async (kafkaMessage: EachMessagePayload): Promise<void> => {
-    const messageDecoder = messageDecoderSupplier(
-      topicConfig,
-      kafkaMessage.topic
-    );
-
-    const decodedMessage = messageDecoder(kafkaMessage.message);
-
-    await runWithContext(
-      {
-        messageData: {
-          eventType: decodedMessage.type,
-          eventVersion: decodedMessage.event_version,
-          streamId: decodedMessage.stream_id,
-        },
-        correlationId: decodedMessage.correlation_id,
-      },
-      async () => {
-        if (decodedMessage.event_version !== 2) {
-          logger.info(
-            `Event with version ${decodedMessage.event_version} skipped`
-          );
-          return;
-        }
-
-        const eserviceV1Event = toCatalogItemEventNotification(decodedMessage);
-        const message = buildCatalogMessage(decodedMessage, eserviceV1Event);
-        await queueManager.send(message);
-
-        logger.info(
-          `Notification message [${message.messageUUID}] sent to queue ${queueConfig.queueUrl} for event type "${decodedMessage.type}"`
+    match(kafkaMessage.topic)
+      .with("catalog", async () => {
+        const decodedMessage = decodeKafkaMessage(
+          kafkaMessage.message,
+          EServiceEvent
         );
-      }
-    );
+
+        await runWithContext(
+          {
+            messageData: {
+              eventType: decodedMessage.type,
+              eventVersion: decodedMessage.event_version,
+              streamId: decodedMessage.stream_id,
+            },
+            correlationId: decodedMessage.correlation_id,
+          },
+          async () => {
+            if (decodedMessage.event_version !== 2) {
+              logger.info(
+                `Event with version ${decodedMessage.event_version} skipped`
+              );
+              return;
+            }
+
+            const eserviceV1Event =
+              toCatalogItemEventNotification(decodedMessage);
+            const message = buildCatalogMessage(
+              decodedMessage,
+              eserviceV1Event
+            );
+            await queueManager.send(message);
+
+            logger.info(
+              `Notification message [${message.messageUUID}] sent to queue ${queueConfig.queueUrl} for event type "${decodedMessage.type}"`
+            );
+          }
+        );
+      })
+      .with("purpose", async () => {
+        const decodedMessage = decodeKafkaMessage(
+          kafkaMessage.message,
+          PurposeEventV2
+        );
+
+        await runWithContext(
+          {
+            messageData: {
+              eventType: decodedMessage.type,
+              eventVersion: decodedMessage.event_version,
+              streamId: decodedMessage.stream_id,
+            },
+            correlationId: decodedMessage.correlation_id,
+          },
+          async () => {
+            if (decodedMessage.event_version !== 2) {
+              logger.info(
+                `Event with version ${decodedMessage.event_version} skipped`
+              );
+              return;
+            }
+
+            const purposeV1Event = toPurposeEventNotification(decodedMessage);
+            const message = buildPurposeMessage(decodedMessage, purposeV1Event);
+            await queueManager.send(message);
+
+            logger.info(
+              `Notification message [${message.messageUUID}] sent to queue ${queueConfig.queueUrl} for event type "${decodedMessage.type}"`
+            );
+          }
+        );
+      });
   };
 }
 
 await runConsumer(
   config,
-  [topicsConfig.catalogTopic],
-  processMessage(topicsConfig)
+  [catalogTopicConf.catalogTopic, purposeTopicConf.purposeTopic],
+  processMessage(catalogTopicConf, purposeTopicConf)
 );
