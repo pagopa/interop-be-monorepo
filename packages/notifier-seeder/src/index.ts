@@ -63,6 +63,8 @@ export function processMessage(topicConfig: CatalogTopicConfig) {
   };
 }
 
+// to do: add purpose events
+
 await runConsumer(
   config,
   [topicsConfig.catalogTopic],
