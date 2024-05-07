@@ -413,15 +413,15 @@ export function tenantServiceBuilder(
 
       updatedTenant = {
         ...updatedTenant,
-        attributes: targetTenant.data.attributes.map((a) =>
-          a.id === attributeId
+        attributes: targetTenant.data.attributes.map((certifiedAttribute) =>
+          certifiedAttribute.id === attributeId
             ? {
-                ...a,
+                ...certifiedAttribute,
                 assignmentTimestamp:
                   certifiedTenantAttribute.assignmentTimestamp,
                 revocationTimestamp: new Date(),
               }
-            : a
+            : certifiedAttribute
         ),
       };
 
@@ -440,7 +440,6 @@ export function tenantServiceBuilder(
 
       await repository.createEvent(
         toCreateEventTenantCertifiedAttributeRevoked(
-          targetTenant.data.id,
           targetTenant.metadata.version,
           updatedTenant,
           attributeId,

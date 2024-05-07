@@ -1,6 +1,7 @@
+import { fail } from "assert";
+import { attributeKind } from "pagopa-interop-models";
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { fail } from "assert";
 import { readLastEventByStreamId } from "pagopa-interop-commons-test/index.js";
 import {
   generateId,
@@ -34,8 +35,10 @@ import {
   tenantService,
 } from "./tenant.integration.test.js";
 
-export const testRevokeCertifiedAttributes = (): ReturnType<typeof describe> =>
-  describe("revokeCertifiedAttribute", async () => {
+export const testRevokeCertifiedAttributeById = (): ReturnType<
+  typeof describe
+> =>
+  describe("revokeCertifiedAttributeById", async () => {
     const requesterTenant: Tenant = {
       ...getMockTenant(),
       features: [
@@ -48,11 +51,11 @@ export const testRevokeCertifiedAttributes = (): ReturnType<typeof describe> =>
 
     const attribute: Attribute = {
       ...getMockAttribute(),
-      kind: "Certified",
+      kind: attributeKind.certified,
       origin: requesterTenant.features[0].certifierId,
     };
 
-    const targetTenant: Tenant = { ...getMockTenant(), id: generateId() };
+    const targetTenant: Tenant = getMockTenant();
     const organizationId = getMockAuthData(requesterTenant.id).organizationId;
 
     it("Should revoke the certified attribute if it exist", async () => {
