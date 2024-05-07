@@ -9,7 +9,6 @@ import {
   loggerConfig,
   messageDecoderSupplier,
   runWithContext,
-  runWithLoggerContext,
 } from "pagopa-interop-commons";
 import { toCatalogItemEventNotification } from "./models/catalogItemEventNotificationConverter.js";
 import { buildCatalogMessage } from "./models/catalogItemEventNotificationMessage.js";
