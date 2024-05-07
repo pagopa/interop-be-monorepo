@@ -116,13 +116,12 @@ export const toCreateEventTenantDeclaredAttributeAssigned = (
 });
 
 export const toCreateEventTenantVerifiedAttributeAssigned = (
-  streamId: string,
   version: number,
   updatedTenant: Tenant,
   attributeId: AttributeId,
   correlationId: string
 ): CreateEvent<TenantEvent> => ({
-  streamId,
+  streamId: updatedTenant.id,
   version,
   event: {
     type: "TenantVerifiedAttributeAssigned",
