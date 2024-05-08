@@ -103,6 +103,7 @@ import { testAgreementConsumerDocuments } from "./testAgreementConsumerDocuments
 import { testRejectAgreement } from "./testRejectAgreement.js";
 import { testUpdateAgreement } from "./testUpdateAgreement.js";
 import { testUpgradeAgreement } from "./testUpgradeAgreement.js";
+import { testCloneAgreement } from "./testCloneAgreement.js";
 import { testSuspendAgreement } from "./testSuspendAgreement.js";
 
 export let agreements: AgreementCollection;
@@ -1826,6 +1827,7 @@ describe("Agreement service", () => {
 
   testAgreementConsumerDocuments();
   testArchiveAgreement();
+  testCloneAgreement();
   testDeleteAgreement();
   testRejectAgreement();
   testSuspendAgreement();
