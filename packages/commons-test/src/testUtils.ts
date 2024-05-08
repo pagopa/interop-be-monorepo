@@ -13,6 +13,8 @@ import {
   EServiceId,
   Purpose,
   PurposeVersion,
+  PurposeVersionDocument,
+  PurposeVersionState,
   Tenant,
   TenantAttribute,
   TenantId,
@@ -21,6 +23,7 @@ import {
   agreementState,
   descriptorState,
   generateId,
+  purposeVersionState,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 
@@ -163,9 +166,11 @@ export const getMockPurpose = (): Purpose => ({
   isFreeOfCharge: true,
 });
 
-export const getMockPurposeVersion = (): PurposeVersion => ({
+export const getMockPurposeVersion = (
+  state?: PurposeVersionState
+): PurposeVersion => ({
   id: generateId(),
-  state: "Draft",
+  state: state || purposeVersionState.draft,
   riskAnalysis: {
     id: generateId(),
     contentType: "json",
@@ -173,5 +178,21 @@ export const getMockPurposeVersion = (): PurposeVersion => ({
     createdAt: new Date(),
   },
   dailyCalls: 10,
+  createdAt: new Date(),
+  ...(state !== purposeVersionState.draft
+    ? { updatedAt: new Date(), firstActivationAt: new Date() }
+    : {}),
+  ...(state === purposeVersionState.suspended
+    ? { suspendedAt: new Date() }
+    : {}),
+  ...(state === purposeVersionState.rejected
+    ? { rejectionReason: "test" }
+    : {}),
+});
+
+export const getMockPurposeVersionDocument = (): PurposeVersionDocument => ({
+  path: "path",
+  id: generateId(),
+  contentType: "json",
   createdAt: new Date(),
 });
