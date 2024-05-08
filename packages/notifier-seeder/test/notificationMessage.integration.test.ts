@@ -164,12 +164,6 @@ describe("Notification tests", async () => {
       );
       await queueWriter.send(catalogMessage);
 
-      const receivedCatalogMessage = (await queueWriter.receiveLast())[0];
-
-      expect(receivedCatalogMessage.payload).toEqual(
-        catalogItemDescriptorUpdatedNotification.payload
-      );
-
       const mockPurpose = getMockPurpose();
 
       const purposeEventV2: PurposeAddedV2 = {
@@ -193,11 +187,17 @@ describe("Notification tests", async () => {
         purposeEventEnvelope,
         purposeEventNotification
       );
+
       await queueWriter.send(purposeMessage);
 
-      const receivedMessage = (await queueWriter.receiveLast())[0];
+      const receivedMessages = await queueWriter.receiveLast(2);
+      const receivedCatalogMessage = receivedMessages[0];
+      const receivedPurposeMessage = receivedMessages[1];
 
-      expect(receivedMessage.payload).toEqual({
+      expect(receivedCatalogMessage.payload).toEqual(
+        catalogItemDescriptorUpdatedNotification.payload
+      );
+      expect(receivedPurposeMessage.payload).toEqual({
         purpose: {
           ...mockPurpose,
           createdAt: new Date().toISOString(),
