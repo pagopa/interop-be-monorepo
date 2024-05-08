@@ -1,4 +1,4 @@
-import { DB, eventRepository, logger } from "pagopa-interop-commons";
+import { DB, Logger } from "pagopa-interop-commons";
 import {
   EService,
   EServiceId,
@@ -111,7 +111,8 @@ export function purposeServiceBuilder(
   return {
     async getPurposeById(
       purposeId: PurposeId,
-      organizationId: TenantId
+      organizationId: TenantId,
+      logger: Logger
     ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(`Retrieving Purpose ${purposeId}`);
 
@@ -138,11 +139,13 @@ export function purposeServiceBuilder(
       versionId,
       documentId,
       organizationId,
+      logger,
     }: {
       purposeId: PurposeId;
       versionId: PurposeVersionId;
       documentId: PurposeVersionDocumentId;
       organizationId: TenantId;
+      logger: Logger;
     }): Promise<PurposeVersionDocument> {
       logger.info(
         `Retrieving Risk Analysis document ${documentId} in version ${versionId} of Purpose ${purposeId}`
@@ -167,11 +170,13 @@ export function purposeServiceBuilder(
       versionId,
       organizationId,
       correlationId,
+      logger
     }: {
       purposeId: PurposeId;
       versionId: PurposeVersionId;
       organizationId: TenantId;
       correlationId: string;
+      logger: Logger;
     }): Promise<void> {
       logger.info(`Deleting Version ${versionId} in Purpose ${purposeId}`);
 
