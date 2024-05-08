@@ -1,8 +1,11 @@
-import { fail } from "assert";
-import { attributeKind } from "pagopa-interop-models";
+/* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { readLastEventByStreamId } from "pagopa-interop-commons-test/index.js";
+import { attributeKind } from "pagopa-interop-models";
+import {
+  getMockAttribute,
+  readLastEventByStreamId,
+} from "pagopa-interop-commons-test/index.js";
 import {
   generateId,
   Tenant,
@@ -12,7 +15,7 @@ import {
   toTenantV2,
   TenantCertifiedAttributeRevokedV2,
 } from "pagopa-interop-models";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import {
   tenantNotFound,
   attributeNotFound,
@@ -21,11 +24,9 @@ import {
   attributeAlreadyRevoked,
 } from "../src/model/domain/errors.js";
 import {
-  getMockAuthData,
   addOneAttribute,
   addOneTenant,
   getMockTenant,
-  getMockAttribute,
   getMockCertifiedTenantAttribute,
 } from "./utils.js";
 import {
@@ -39,28 +40,36 @@ export const testRevokeCertifiedAttributeById = (): ReturnType<
   typeof describe
 > =>
   describe("revokeCertifiedAttributeById", async () => {
-    const requesterTenant: Tenant = {
-      ...getMockTenant(),
-      features: [
-        {
-          type: "PersistentCertifier",
-          certifierId: generateId(),
-        },
-      ],
-    };
-
-    const attribute: Attribute = {
-      ...getMockAttribute(),
-      kind: attributeKind.certified,
-      origin: requesterTenant.features[0].certifierId,
-    };
-
     const targetTenant: Tenant = getMockTenant();
-    const organizationId = getMockAuthData(requesterTenant.id).organizationId;
+    let requesterTenant: Tenant;
+    let attribute: Attribute;
 
-    it("Should revoke the certified attribute if it exist", async () => {
+    beforeAll(async () => {
+      requesterTenant = {
+        ...getMockTenant(),
+        features: [
+          {
+            type: "PersistentCertifier",
+            certifierId: generateId(),
+          },
+        ],
+      };
+
+      attribute = {
+        ...getMockAttribute(),
+        kind: attributeKind.certified,
+        origin: requesterTenant.features[0].certifierId,
+      };
+
       vi.useFakeTimers();
       vi.setSystemTime(new Date());
+    });
+
+    afterAll(() => {
+      vi.useRealTimers();
+    });
+
+    it("Should revoke the certified attribute if it exist", async () => {
       const tenantWithCertifiedAttribute: Tenant = {
         ...targetTenant,
         attributes: [
@@ -78,7 +87,7 @@ export const testRevokeCertifiedAttributeById = (): ReturnType<
       await tenantService.revokeCertifiedAttributeById(
         tenantWithCertifiedAttribute.id,
         attribute.id,
-        organizationId,
+        requesterTenant.id,
         generateId()
       );
       const writtenEvent = await readLastEventByStreamId(
@@ -87,13 +96,11 @@ export const testRevokeCertifiedAttributeById = (): ReturnType<
         postgresDB
       );
 
-      if (!writtenEvent) {
-        fail("Update failed: tenant not found in event-store");
-      }
       expect(writtenEvent).toMatchObject({
         stream_id: tenantWithCertifiedAttribute.id,
         version: "1",
         type: "TenantCertifiedAttributeRevoked",
+        event_version: 2,
       });
       const writtenPayload = protobufDecoder(
         TenantCertifiedAttributeRevokedV2
@@ -113,7 +120,6 @@ export const testRevokeCertifiedAttributeById = (): ReturnType<
         updatedAt: new Date(),
       };
       expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
-      vi.useRealTimers();
     });
     it("Should throw tenantNotFound if the tenant doesn't exist", async () => {
       await addOneAttribute(attribute, attributes);
@@ -121,7 +127,7 @@ export const testRevokeCertifiedAttributeById = (): ReturnType<
         tenantService.revokeCertifiedAttributeById(
           targetTenant.id,
           attribute.id,
-          organizationId,
+          requesterTenant.id,
           generateId()
         )
       ).rejects.toThrowError(tenantNotFound(requesterTenant.id));
@@ -134,7 +140,7 @@ export const testRevokeCertifiedAttributeById = (): ReturnType<
         tenantService.revokeCertifiedAttributeById(
           targetTenant.id,
           attribute.id,
-          organizationId,
+          requesterTenant.id,
           generateId()
         )
       ).rejects.toThrowError(attributeNotFound(attribute.id));
@@ -143,9 +149,7 @@ export const testRevokeCertifiedAttributeById = (): ReturnType<
       const notCertifierTenant: Tenant = {
         ...getMockTenant(),
       };
-      const organizationId = getMockAuthData(
-        notCertifierTenant.id
-      ).organizationId;
+
       await addOneAttribute(attribute, attributes);
       await addOneTenant(targetTenant, postgresDB, tenants);
       await addOneTenant(notCertifierTenant, postgresDB, tenants);
@@ -154,7 +158,7 @@ export const testRevokeCertifiedAttributeById = (): ReturnType<
         tenantService.revokeCertifiedAttributeById(
           targetTenant.id,
           attribute.id,
-          organizationId,
+          notCertifierTenant.id,
           generateId()
         )
       ).rejects.toThrowError(tenantIsNotACertifier(notCertifierTenant.id));
@@ -172,7 +176,7 @@ export const testRevokeCertifiedAttributeById = (): ReturnType<
         tenantService.revokeCertifiedAttributeById(
           targetTenant.id,
           attribute.id,
-          organizationId,
+          requesterTenant.id,
           generateId()
         )
       ).rejects.toThrowError(
@@ -202,7 +206,7 @@ export const testRevokeCertifiedAttributeById = (): ReturnType<
         tenantService.revokeCertifiedAttributeById(
           tenantAlreadyRevoked.id,
           attribute.id,
-          organizationId,
+          requesterTenant.id,
           generateId()
         )
       ).rejects.toThrowError(
