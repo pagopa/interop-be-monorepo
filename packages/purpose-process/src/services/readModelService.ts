@@ -14,13 +14,14 @@ import {
   Purpose,
   PurposeId,
   genericInternalError,
+  PurposeReadModel,
 } from "pagopa-interop-models";
 import { Filter, WithId } from "mongodb";
 import { z } from "zod";
 
 async function getPurpose(
   purposes: PurposeCollection,
-  filter: Filter<WithId<WithMetadata<Purpose>>>
+  filter: Filter<WithId<WithMetadata<PurposeReadModel>>>
 ): Promise<WithMetadata<Purpose> | undefined> {
   const data = await purposes.findOne(filter, {
     projection: { data: true, metadata: true },
