@@ -1,8 +1,12 @@
-import { fail } from "assert";
-import { attributeKind } from "pagopa-interop-models";
+/* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { readLastEventByStreamId } from "pagopa-interop-commons-test/index.js";
+import { attributeKind } from "pagopa-interop-models";
+
+import {
+  getMockAttribute,
+  readLastEventByStreamId,
+} from "pagopa-interop-commons-test/index.js";
 import {
   generateId,
   Tenant,
@@ -13,18 +17,13 @@ import {
   fromTenantKindV2,
   toTenantV2,
 } from "pagopa-interop-models";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import {
   tenantNotFound,
   attributeNotFound,
   certifiedAttributeAlreadyAssigned,
 } from "../src/model/domain/errors.js";
-import {
-  addOneAttribute,
-  addOneTenant,
-  getMockTenant,
-  getMockAttribute,
-} from "./utils.js";
+import { addOneAttribute, addOneTenant, getMockTenant } from "./utils.js";
 import {
   postgresDB,
   attributes,
@@ -35,16 +34,24 @@ import {
 export const testInternalAssignCertifiedAttribute = (): ReturnType<
   typeof describe
 > =>
-  describe("internalAssignCertifiedAttribute", async () => {
-    const correlationId = generateId();
-    const attribute: Attribute = {
-      ...getMockAttribute(),
-      kind: attributeKind.certified,
-    };
+  describe("internalAssignCertifiedAttributes", async () => {
+    let attribute: Attribute;
 
-    it("Should add the certified attribute if the Tenant doesn't have that", async () => {
+    beforeAll(async () => {
+      attribute = {
+        ...getMockAttribute(),
+        kind: attributeKind.certified,
+      };
+
       vi.useFakeTimers();
       vi.setSystemTime(new Date());
+    });
+
+    afterAll(() => {
+      vi.useRealTimers();
+    });
+
+    it("Should add the certified attribute if the Tenant doesn't have that", async () => {
       const targetTenant: Tenant = {
         ...getMockTenant(),
         attributes: [],
@@ -60,21 +67,21 @@ export const testInternalAssignCertifiedAttribute = (): ReturnType<
         targetTenant.externalId.value,
         attribute.origin!,
         attribute.code!,
-        correlationId
+        generateId()
       );
       const writtenEvent = await readLastEventByStreamId(
         targetTenant.id,
         "tenant",
         postgresDB
       );
-      if (!writtenEvent) {
-        fail("Update failed: tenant not found in event-store");
-      }
+
       expect(writtenEvent).toMatchObject({
         stream_id: targetTenant.id,
         version: "1",
         type: "TenantCertifiedAttributeAssigned",
+        event_version: 2,
       });
+
       const writtenPayload = protobufDecoder(
         TenantCertifiedAttributeAssignedV2
       ).parse(writtenEvent?.data);
@@ -92,11 +99,8 @@ export const testInternalAssignCertifiedAttribute = (): ReturnType<
         updatedAt: new Date(),
       };
       expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
-      vi.useRealTimers();
     });
     it("Should re-assign the attribute if it was revoked", async () => {
-      vi.useFakeTimers();
-      vi.setSystemTime(new Date());
       const tenantWithCertifiedAttribute: Tenant = {
         ...getMockTenant(),
         attributes: [
@@ -116,21 +120,21 @@ export const testInternalAssignCertifiedAttribute = (): ReturnType<
         tenantWithCertifiedAttribute.externalId.value,
         attribute.origin!,
         attribute.code!,
-        correlationId
+        generateId()
       );
       const writtenEvent = await readLastEventByStreamId(
         tenantWithCertifiedAttribute.id,
         "tenant",
         postgresDB
       );
-      if (!writtenEvent) {
-        fail("Update failed: tenant not found in event-store");
-      }
+
       expect(writtenEvent).toMatchObject({
         stream_id: tenantWithCertifiedAttribute.id,
         version: "1",
         type: "TenantCertifiedAttributeAssigned",
+        event_version: 2,
       });
+
       const writtenPayload = protobufDecoder(
         TenantCertifiedAttributeAssignedV2
       ).parse(writtenEvent?.data);
@@ -148,7 +152,6 @@ export const testInternalAssignCertifiedAttribute = (): ReturnType<
         updatedAt: new Date(),
       };
       expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
-      vi.useRealTimers();
     });
     it("Should throw certifiedAttributeAlreadyAssigned if the attribute was already assigned", async () => {
       const tenantAlreadyAssigned: Tenant = {
@@ -169,7 +172,7 @@ export const testInternalAssignCertifiedAttribute = (): ReturnType<
           tenantAlreadyAssigned.externalId.value,
           attribute.origin!,
           attribute.code!,
-          correlationId
+          generateId()
         )
       ).rejects.toThrowError(
         certifiedAttributeAlreadyAssigned(
@@ -187,7 +190,7 @@ export const testInternalAssignCertifiedAttribute = (): ReturnType<
           targetTenant.externalId.value,
           attribute.origin!,
           attribute.code!,
-          correlationId
+          generateId()
         )
       ).rejects.toThrowError(
         tenantNotFound(
@@ -207,7 +210,7 @@ export const testInternalAssignCertifiedAttribute = (): ReturnType<
           targetTenant.externalId.value,
           attribute.origin!,
           attribute.code!,
-          correlationId
+          generateId()
         )
       ).rejects.toThrowError(
         attributeNotFound(
