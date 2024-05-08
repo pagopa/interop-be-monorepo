@@ -157,7 +157,7 @@ export const testCreatePurposeVersion = (): ReturnType<typeof describe> =>
       expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
     });
 
-    it("should throw an error if the new request daily calls are the same of the previous version", async () => {
+    it("should throw unchangedDailyCalls if the new request daily calls are the same of the previous version", async () => {
       await addOnePurpose(mockPurpose, postgresDB, purposes);
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
       await writeInReadmodel(mockAgreement, agreements);
@@ -177,7 +177,7 @@ export const testCreatePurposeVersion = (): ReturnType<typeof describe> =>
       ).rejects.toThrowError(unchangedDailyCalls(mockPurpose.id));
     });
 
-    it("should throw an error if the caller is not the consumer", async () => {
+    it("should throw organizationIsNotTheConsumer if the caller is not the consumer", async () => {
       await addOnePurpose(mockPurpose, postgresDB, purposes);
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
       await writeInReadmodel(mockAgreement, agreements);
@@ -198,7 +198,7 @@ export const testCreatePurposeVersion = (): ReturnType<typeof describe> =>
       );
     });
 
-    it("should throw an error if the e-service does not exists in the readmodel", async () => {
+    it("should throw eserviceNotFound if the e-service does not exists in the readmodel", async () => {
       await addOnePurpose(mockPurpose, postgresDB, purposes);
       // await writeInReadmodel(toReadModelEService(mockEService), eservices);
       await writeInReadmodel(mockAgreement, agreements);
@@ -217,7 +217,7 @@ export const testCreatePurposeVersion = (): ReturnType<typeof describe> =>
       }).rejects.toThrowError(eserviceNotFound(mockEService.id));
     });
 
-    it("should throw an error if the caller is neither the producer or the consumer of the purpose", async () => {
+    it("should throw organizationNotAllowed if the caller is neither the producer or the consumer of the purpose", async () => {
       const anotherTenant: Tenant = { ...getMockTenant(), kind: "PA" };
 
       await addOnePurpose(mockPurpose, postgresDB, purposes);
@@ -239,7 +239,7 @@ export const testCreatePurposeVersion = (): ReturnType<typeof describe> =>
       }).rejects.toThrowError(organizationNotAllowed(anotherTenant.id));
     });
 
-    it("should throw an error if the caller has no agreement associated with the purpose in the read model", async () => {
+    it("should throw agreementNotFound if the caller has no agreement associated with the purpose in the read model", async () => {
       await addOnePurpose(mockPurpose, postgresDB, purposes);
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
       // await writeInReadmodel(mockAgreement, agreements);
@@ -268,7 +268,7 @@ export const testCreatePurposeVersion = (): ReturnType<typeof describe> =>
       agreementState.rejected,
       agreementState.suspended,
     ])(
-      "should throw an error if the caller has the agreement with state %s associated with the purpose",
+      "should throw agreementNotFound if the caller has the agreement with state %s associated with the purpose",
       async (state) => {
         const agreement: Agreement = { ...mockAgreement, state };
 
@@ -293,7 +293,7 @@ export const testCreatePurposeVersion = (): ReturnType<typeof describe> =>
       }
     );
 
-    it("should throw an error if the purpose consumer is not found in the readmodel", async () => {
+    it("should throw tenantNotFound if the purpose consumer is not found in the readmodel", async () => {
       await addOnePurpose(mockPurpose, postgresDB, purposes);
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
       await writeInReadmodel(mockAgreement, agreements);
@@ -312,7 +312,7 @@ export const testCreatePurposeVersion = (): ReturnType<typeof describe> =>
       }).rejects.toThrowError(tenantNotFound(mockConsumer.id));
     });
 
-    it("should throw an error if the purpose producer is not found in the readmodel", async () => {
+    it("should throw tenantNotFound if the purpose producer is not found in the readmodel", async () => {
       await addOnePurpose(mockPurpose, postgresDB, purposes);
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
       await writeInReadmodel(mockAgreement, agreements);
@@ -331,7 +331,7 @@ export const testCreatePurposeVersion = (): ReturnType<typeof describe> =>
       }).rejects.toThrowError(tenantNotFound(mockProducer.id));
     });
 
-    it("should throw an error if e-service mode is DELIVER and the tenant consumer has no kind", async () => {
+    it("should throw tenantKindNotFound if e-service mode is DELIVER and the tenant consumer has no kind", async () => {
       const consumer: Tenant = { ...mockConsumer, kind: undefined };
       const eservice: EService = {
         ...mockEService,
@@ -356,7 +356,7 @@ export const testCreatePurposeVersion = (): ReturnType<typeof describe> =>
       }).rejects.toThrowError(tenantKindNotFound(consumer.id));
     });
 
-    it("should throw an error if e-service mode is RECEIVE and the tenant producer has no kind", async () => {
+    it("should throw tenantKindNotFound if e-service mode is RECEIVE and the tenant producer has no kind", async () => {
       const producer: Tenant = { ...mockProducer, kind: undefined };
       const eservice: EService = {
         ...mockEService,
@@ -381,7 +381,7 @@ export const testCreatePurposeVersion = (): ReturnType<typeof describe> =>
       }).rejects.toThrowError(tenantKindNotFound(producer.id));
     });
 
-    it("should throw an error if there is no risk-analysis version and the passed daily calls does not surpass the descriptor limits", async () => {
+    it("should throw missingRiskAnalysis if there is no risk-analysis version and the passed daily calls does not surpass the descriptor limits", async () => {
       const purpose: Purpose = {
         ...mockPurpose,
         riskAnalysisForm: undefined,
