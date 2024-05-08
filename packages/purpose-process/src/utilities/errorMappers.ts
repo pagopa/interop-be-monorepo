@@ -77,3 +77,5 @@ export const updatePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("duplicatedPurposeTitle", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const updateReversePurposeErrorMapper = updatePurposeErrorMapper;

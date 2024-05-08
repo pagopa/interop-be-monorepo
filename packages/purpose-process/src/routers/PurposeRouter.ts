@@ -26,6 +26,7 @@ import {
   getRiskAnalysisDocumentErrorMapper,
   rejectPurposeVersionErrorMapper,
   updatePurposeErrorMapper,
+  updateReversePurposeErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -101,7 +102,7 @@ const purposeRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            updatePurposeErrorMapper,
+            updateReversePurposeErrorMapper,
             ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
