@@ -4,20 +4,9 @@ import { StartedTestContainer } from "testcontainers";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import {
-  EServiceDescriptorSuspendedV2,
-  EServiceDescriptorV2,
-  EServiceEventEnvelopeV2,
-  EServiceV2,
   PurposeAddedV2,
   PurposeEventEnvelopeV2,
-  descriptorState,
-  eserviceMode,
-  generateId,
-  technology,
-  toDescriptorV2,
-  toEServiceV2,
   toPurposeV2,
-  unsafeBrandId,
 } from "pagopa-interop-models";
 import { v4 } from "uuid";
 import { getMockPurpose } from "pagopa-interop-commons-test";
@@ -25,13 +14,11 @@ import {
   QueueManager,
   initQueueManager,
 } from "../src/queue-manager/queueManager.js";
-import { toCatalogItemEventNotification } from "../src/models/catalog/catalogItemEventNotificationConverter.js";
-import { buildCatalogMessage } from "../src/models/catalog/catalogItemEventNotificationMessage.js";
 import { buildPurposeMessage } from "../src/models/purpose/purposeEventNotificationMessage.js";
 import { toPurposeEventNotification } from "../src/models/purpose/purposeEventNotificationConverter.js";
-import { catalogItemDescriptorUpdatedNotification } from "./resources/catalogItemDescriptorUpdate.js";
 import { TEST_ELASTIC_MQ_PORT, elasticMQContainer } from "./utils.js";
 
+/*
 const getDescriptorMock = (descriptorId: string): EServiceDescriptorV2 =>
   toDescriptorV2({
     id: unsafeBrandId(descriptorId),
@@ -101,6 +88,7 @@ const getMockEService = (id: string): EServiceV2 =>
     mode: eserviceMode.deliver,
     riskAnalysis: [],
   });
+*/
 
 describe("Notification tests", async () => {
   process.env.AWS_CONFIG_FILE = "aws.config.local";
@@ -178,7 +166,7 @@ describe("Notification tests", async () => {
   });
   */
   describe("Purpose Event Message", async () => {
-    it.only("should send a message to the queue", async () => {
+    it("should send a message to the queue", async () => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date());
 
