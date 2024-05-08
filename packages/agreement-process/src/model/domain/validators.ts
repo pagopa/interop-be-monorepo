@@ -106,6 +106,11 @@ export const agreementSubmissionConflictingStates: AgreementState[] = [
   agreementState.missingCertifiedAttributes,
 ];
 
+export const agreementConsumerDocumentChangeValidStates: AgreementState[] = [
+  agreementState.draft,
+  agreementState.pending,
+];
+
 /* ========= ASSERTIONS ========= */
 
 export function assertAgreementExist(
@@ -192,7 +197,7 @@ export function assertTenantExist(
 export const assertCanWorkOnConsumerDocuments = (
   state: AgreementState
 ): void => {
-  if (state !== agreementState.draft && state !== agreementState.pending) {
+  if (!agreementConsumerDocumentChangeValidStates.includes(state)) {
     throw documentChangeNotAllowed(state);
   }
 };

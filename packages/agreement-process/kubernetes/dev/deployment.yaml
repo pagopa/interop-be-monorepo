@@ -130,3 +130,13 @@ spec:
                 configMapKeyRef:
                   name: interop-be-agreement-process-refactor
                   key: AGREEMENT_CONTRACTS_PATH
+            - name: SELFCARE_V2_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: interop-be-common-refactor
+                  key: SELFCARE_V2_URL
+            - name: SELFCARE_V2_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: interop-be-common-refactor
+                  key: SELFCARE_V2_API_KEY
