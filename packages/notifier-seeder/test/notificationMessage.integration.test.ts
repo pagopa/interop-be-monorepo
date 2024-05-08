@@ -180,7 +180,7 @@ describe("Notification tests", async () => {
       };
 
       const eventEnvelope: PurposeEventEnvelopeV2 = {
-        sequence_num: 1,
+        sequence_num: 2,
         stream_id: mockPurpose.id,
         version: 1,
         correlation_id: v4(),
