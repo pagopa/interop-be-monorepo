@@ -48,6 +48,7 @@ import {
   organizationIsNotTheProducer,
   organizationIsNotTheConsumer,
   tenantNotFound,
+  agreementNotFound,
 } from "../src/model/domain/errors.js";
 import {
   agreements,
@@ -586,6 +587,68 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
       }).rejects.toThrowError(eserviceNotFound(mockEService.id));
     });
 
+    it("should throw agreementNotFound if the caller has no agreement associated with the purpose in the read model", async () => {
+      const purposeVersion: PurposeVersion = {
+        ...mockPurposeVersion,
+        state: purposeVersionState.draft,
+      };
+      const purpose: Purpose = { ...mockPurpose, versions: [purposeVersion] };
+
+      await addOnePurpose(purpose, postgresDB, purposes);
+      await writeInReadmodel(toReadModelEService(mockEService), eservices);
+      // await writeInReadmodel(mockAgreement, agreements);
+      await writeInReadmodel(mockConsumer, tenants);
+      await writeInReadmodel(mockProducer, tenants);
+
+      expect(async () => {
+        await purposeService.activatePurposeVersion({
+          purposeId: mockPurpose.id,
+          versionId: mockPurposeVersion.id,
+          organizationId: mockConsumer.id,
+          correlationId: generateId(),
+        });
+      }).rejects.toThrowError(
+        agreementNotFound(mockEService.id, mockConsumer.id)
+      );
+    });
+
+    it.each([
+      agreementState.archived,
+      agreementState.draft,
+      agreementState.missingCertifiedAttributes,
+      agreementState.pending,
+      agreementState.rejected,
+      agreementState.suspended,
+    ])(
+      "should throw agreementNotFound if the caller has the agreement with state %s associated with the purpose",
+      async (state) => {
+        const agreement: Agreement = { ...mockAgreement, state };
+
+        const purposeVersion: PurposeVersion = {
+          ...mockPurposeVersion,
+          state: purposeVersionState.draft,
+        };
+        const purpose: Purpose = { ...mockPurpose, versions: [purposeVersion] };
+
+        await addOnePurpose(purpose, postgresDB, purposes);
+        await writeInReadmodel(toReadModelEService(mockEService), eservices);
+        await writeInReadmodel(agreement, agreements);
+        await writeInReadmodel(mockConsumer, tenants);
+        await writeInReadmodel(mockProducer, tenants);
+
+        expect(async () => {
+          await purposeService.activatePurposeVersion({
+            purposeId: mockPurpose.id,
+            versionId: mockPurposeVersion.id,
+            organizationId: mockConsumer.id,
+            correlationId: generateId(),
+          });
+        }).rejects.toThrowError(
+          agreementNotFound(mockEService.id, mockConsumer.id)
+        );
+      }
+    );
+
     it("should throw organizationNotAllowed if the caller is neither the producer or the consumer of the purpose", async () => {
       const anotherTenant: Tenant = { ...getMockTenant(), kind: "PA" };
 
@@ -604,6 +667,33 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
           correlationId: generateId(),
         });
       }).rejects.toThrowError(organizationNotAllowed(anotherTenant.id));
+    });
+
+    it.only("should throw missingRiskAnalysis if the purpose is in draft and has no risk analysis", async () => {
+      const purposeVersion: PurposeVersion = {
+        ...mockPurposeVersion,
+        state: purposeVersionState.draft,
+      };
+      const purpose: Purpose = {
+        ...mockPurpose,
+        versions: [purposeVersion],
+        riskAnalysisForm: undefined,
+      };
+
+      await addOnePurpose(purpose, postgresDB, purposes);
+      await writeInReadmodel(toReadModelEService(mockEService), eservices);
+      await writeInReadmodel(mockAgreement, agreements);
+      await writeInReadmodel(mockConsumer, tenants);
+      await writeInReadmodel(mockProducer, tenants);
+
+      expect(async () => {
+        await purposeService.activatePurposeVersion({
+          purposeId: purpose.id,
+          versionId: mockPurposeVersion.id,
+          organizationId: mockConsumer.id,
+          correlationId: generateId(),
+        });
+      }).rejects.toThrowError(missingRiskAnalysis(purpose.id));
     });
 
     it("should throw riskAnalysisValidationFailed if the purpose is in draft and has an invalid risk analysis", async () => {
