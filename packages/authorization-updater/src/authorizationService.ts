@@ -1,9 +1,11 @@
+/* eslint-disable max-params */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { pluginToken } from "@zodios/plugins";
 import {
+  Logger,
   buildInteropTokenGenerator,
+  genericLogger,
   jwtSeedConfig,
-  logger,
 } from "pagopa-interop-commons";
 import { v4 as uuidv4 } from "uuid";
 import { DescriptorId, EServiceId } from "pagopa-interop-models";
@@ -17,6 +19,7 @@ export type AuthorizationService = {
     eserviceId: EServiceId,
     audience: string[],
     voucherLifespan: number,
+    logger: Logger,
     correlationId: string | undefined | null
   ) => Promise<void>;
 };
@@ -24,7 +27,7 @@ export type AuthorizationService = {
 export const authorizationServiceBuilder =
   async (): Promise<AuthorizationService> => {
     const authMgmtClient = buildAuthMgmtClient();
-    const tokenGenerator = buildInteropTokenGenerator();
+    const tokenGenerator = buildInteropTokenGenerator(genericLogger);
     const jwtConfig = jwtSeedConfig();
 
     const tokenPayloadSeed = {
@@ -44,7 +47,7 @@ export const authorizationServiceBuilder =
             automatically renews the token, and executes the request again.
             more details: https://github.com/ecyrbe/zodios-plugins/blob/main/src/plugins.test.ts#L69
           */
-          logger.info("Renewing token");
+          genericLogger.info("Renewing token");
 
           const newToken = await tokenGenerator.generateInternalToken(
             tokenPayloadSeed
@@ -66,6 +69,7 @@ export const authorizationServiceBuilder =
         eserviceId: EServiceId,
         audience: string[],
         voucherLifespan: number,
+        logger: Logger,
         correlationId: string | undefined | null
       ) {
         const clientEServiceDetailsUpdate = {

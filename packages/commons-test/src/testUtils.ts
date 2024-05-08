@@ -22,7 +22,6 @@ import {
   descriptorState,
   generateId,
 } from "pagopa-interop-models";
-import { v4 as uuidv4 } from "uuid";
 import { AuthData } from "pagopa-interop-commons";
 
 export function expectPastTimestamp(timestamp: bigint): boolean {
@@ -120,13 +119,16 @@ export const getMockTenant = (
   tenantId: TenantId = generateId<TenantId>(),
   attributes: TenantAttribute[] = []
 ): Tenant => ({
-  ...generateMock(Tenant),
+  name: "A tenant",
   id: tenantId,
-  externalId: {
-    value: uuidv4(),
-    origin: "EXT",
-  },
+  createdAt: new Date(),
   attributes,
+  externalId: {
+    value: "123456",
+    origin: "IPA",
+  },
+  features: [],
+  mails: [],
 });
 
 export const getMockAgreement = (
