@@ -37,7 +37,7 @@ import {
   missingCertifiedAttributesError,
   notLatestEServiceDescriptor,
   operationNotAllowed,
-  tenantIdNotFound,
+  tenantNotFound,
 } from "./errors.js";
 import {
   CertifiedAgreementAttribute,
@@ -104,6 +104,11 @@ export const agreementCreationConflictingStates: AgreementState[] = [
 export const agreementSubmissionConflictingStates: AgreementState[] = [
   agreementState.pending,
   agreementState.missingCertifiedAttributes,
+];
+
+export const agreementConsumerDocumentChangeValidStates: AgreementState[] = [
+  agreementState.draft,
+  agreementState.pending,
 ];
 
 /* ========= ASSERTIONS ========= */
@@ -185,14 +190,14 @@ export function assertTenantExist(
   tenant: Tenant | undefined
 ): asserts tenant is NonNullable<Tenant> {
   if (tenant === undefined) {
-    throw tenantIdNotFound(tenantId);
+    throw tenantNotFound(tenantId);
   }
 }
 
 export const assertCanWorkOnConsumerDocuments = (
   state: AgreementState
 ): void => {
-  if (state !== agreementState.draft && state !== agreementState.pending) {
+  if (!agreementConsumerDocumentChangeValidStates.includes(state)) {
     throw documentChangeNotAllowed(state);
   }
 };
