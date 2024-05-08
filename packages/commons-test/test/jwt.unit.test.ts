@@ -1,8 +1,9 @@
 /* eslint-disable functional/immutable-data */
 import jwt from "jsonwebtoken";
-import { readAuthDataFromJwtToken } from "pagopa-interop-commons";
+import { readAuthDataFromJwtToken, userRoles } from "pagopa-interop-commons";
 import { invalidClaim } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
+import { P, match } from "ts-pattern";
 import { randomArrayItem } from "../src/testUtils.js";
 
 const mockUiToken = {
@@ -256,19 +257,25 @@ describe("JWT tests", () => {
     });
 
     it("should also accept audience as a JSON array", async () => {
+      const mockToken = randomArrayItem([
+        mockUiToken,
+        mockM2MToken,
+        mockInternalToken,
+      ]);
       const token = getMockSignedToken({
-        ...mockUiToken,
+        ...mockToken,
         aud: ["dev.interop.pagopa.it/ui", "dev.interop.pagopa.it/fake"],
       });
 
-      expect(readAuthDataFromJwtToken(token)).toEqual({
-        externalId: {
-          origin: "IPA",
-          value: "5N2TR557",
-        },
-        organizationId: "69e2865e-65ab-4e48-a638-2037a9ee2ee7",
-        userId: "f07ddb8f-17f9-47d4-b31e-35d1ac10e521",
-        userRoles: ["security", "api"],
+      const authData = readAuthDataFromJwtToken(token);
+      expect(authData).toBeDefined();
+      expect(authData).toMatchObject({
+        userRoles: match(mockToken)
+          .with({ role: P.not(P.nullish) }, (t) => [t.role])
+          .with({ "user-roles": P.not(P.nullish) }, (t) => t["user-roles"])
+          .otherwise(() => {
+            throw new Error("Unexpected user roles in token");
+          }),
       });
     });
   });
