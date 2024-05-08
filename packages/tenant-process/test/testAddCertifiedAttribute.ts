@@ -2,7 +2,10 @@ import { attributeKind } from "pagopa-interop-models";
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { readLastEventByStreamId } from "pagopa-interop-commons-test/index.js";
+import {
+  getMockAttribute,
+  readLastEventByStreamId,
+} from "pagopa-interop-commons-test/index.js";
 import {
   generateId,
   Tenant,
@@ -23,12 +26,10 @@ import {
 } from "../src/model/domain/errors.js";
 import { ApiCertifiedTenantAttributeSeed } from "../src/model/types.js";
 import {
-  getMockAuthData,
   addOneAttribute,
   addOneTenant,
   getMockTenant,
   getMockCertifiedTenantAttribute,
-  getMockAttribute,
 } from "./utils.js";
 import {
   postgresDB,
@@ -80,7 +81,7 @@ export const testAddCertifiedAttribute = (): ReturnType<typeof describe> =>
       await addOneTenant(requesterTenant, postgresDB, tenants);
       await tenantService.addCertifiedAttribute(targetTenant.id, {
         tenantAttributeSeed,
-        organizationId: getMockAuthData(requesterTenant.id).organizationId,
+        organizationId: requesterTenant.id,
         correlationId: generateId(),
       });
       const writtenEvent = await readLastEventByStreamId(
@@ -132,7 +133,7 @@ export const testAddCertifiedAttribute = (): ReturnType<typeof describe> =>
         tenantWithCertifiedAttribute.id,
         {
           tenantAttributeSeed,
-          organizationId: getMockAuthData(requesterTenant.id).organizationId,
+          organizationId: requesterTenant.id,
           correlationId: generateId(),
         }
       );
@@ -183,7 +184,7 @@ export const testAddCertifiedAttribute = (): ReturnType<typeof describe> =>
       expect(
         tenantService.addCertifiedAttribute(tenantAlreadyAssigned.id, {
           tenantAttributeSeed,
-          organizationId: getMockAuthData(requesterTenant.id).organizationId,
+          organizationId: requesterTenant.id,
           correlationId: generateId(),
         })
       ).rejects.toThrowError(
@@ -198,7 +199,7 @@ export const testAddCertifiedAttribute = (): ReturnType<typeof describe> =>
       expect(
         tenantService.addCertifiedAttribute(targetTenant.id, {
           tenantAttributeSeed,
-          organizationId: getMockAuthData(requesterTenant.id).organizationId,
+          organizationId: requesterTenant.id,
           correlationId: generateId(),
         })
       ).rejects.toThrowError(tenantNotFound(requesterTenant.id));
@@ -210,7 +211,7 @@ export const testAddCertifiedAttribute = (): ReturnType<typeof describe> =>
       expect(
         tenantService.addCertifiedAttribute(targetTenant.id, {
           tenantAttributeSeed,
-          organizationId: getMockAuthData(requesterTenant.id).organizationId,
+          organizationId: requesterTenant.id,
           correlationId: generateId(),
         })
       ).rejects.toThrowError(attributeNotFound(attribute.id));
@@ -224,7 +225,7 @@ export const testAddCertifiedAttribute = (): ReturnType<typeof describe> =>
       expect(
         tenantService.addCertifiedAttribute(targetTenant.id, {
           tenantAttributeSeed,
-          organizationId: getMockAuthData(tenant.id).organizationId,
+          organizationId: tenant.id,
           correlationId: generateId(),
         })
       ).rejects.toThrowError(tenantIsNotACertifier(tenant.id));
@@ -241,7 +242,7 @@ export const testAddCertifiedAttribute = (): ReturnType<typeof describe> =>
       expect(
         tenantService.addCertifiedAttribute(targetTenant.id, {
           tenantAttributeSeed,
-          organizationId: getMockAuthData(requesterTenant.id).organizationId,
+          organizationId: requesterTenant.id,
           correlationId: generateId(),
         })
       ).rejects.toThrowError(

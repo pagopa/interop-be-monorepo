@@ -57,7 +57,7 @@ const retrieveTenant = async (
   readModelService: ReadModelService
 ): Promise<WithMetadata<Tenant>> => {
   const tenant = await readModelService.getTenantById(tenantId);
-  if (tenant === undefined) {
+  if (!tenant) {
     throw tenantNotFound(tenantId);
   }
   return tenant;
@@ -68,7 +68,7 @@ export async function retrieveAttribute(
   readModelService: ReadModelService
 ): Promise<Attribute> {
   const attribute = await readModelService.getAttributeById(attributeId);
-  if (attribute === undefined) {
+  if (!attribute) {
     throw attributeNotFound(attributeId);
   }
   return attribute;
