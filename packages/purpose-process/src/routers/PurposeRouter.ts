@@ -184,6 +184,7 @@ const purposeRouter = (
       "/purposes/:purposeId/versions/:versionId/reject",
       authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
         try {
           await purposeService.rejectPurposeVersion({
             purposeId: unsafeBrandId(req.params.purposeId),
@@ -191,12 +192,14 @@ const purposeRouter = (
             organizationId: req.ctx.authData.organizationId,
             rejectionReason: req.body.rejectionReason,
             correlationId: req.ctx.correlationId,
+            logger: ctx.logger,
           });
           return res.status(204).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            rejectPurposeVersionErrorMapper
+            rejectPurposeVersionErrorMapper,
+            ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
         }

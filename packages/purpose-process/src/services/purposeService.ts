@@ -222,12 +222,14 @@ export function purposeServiceBuilder(
       rejectionReason,
       organizationId,
       correlationId,
+      logger,
     }: {
       purposeId: PurposeId;
       versionId: PurposeVersionId;
       rejectionReason: string;
       organizationId: TenantId;
       correlationId: string;
+      logger: Logger;
     }): Promise<void> {
       logger.info(`Rejecting Version ${versionId} in Purpose ${purposeId}`);
 
