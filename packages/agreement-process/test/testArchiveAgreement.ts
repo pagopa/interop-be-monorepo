@@ -69,7 +69,7 @@ export const testArchiveAgreement = (): ReturnType<typeof describe> =>
       }
 
       expect(actualAgreementData).toMatchObject({
-        type: "AgreementArchived",
+        type: "AgreementArchivedByConsumer",
         event_version: 2,
         version: "1",
         stream_id: agreementId,
