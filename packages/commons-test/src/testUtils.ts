@@ -175,14 +175,3 @@ export const getMockPurposeVersion = (): PurposeVersion => ({
   dailyCalls: 10,
   createdAt: new Date(),
 });
-
-export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
-  organizationId: organizationId || generateId(),
-  userId: generateId(),
-  selfcareId: generateId(),
-  userRoles: [],
-  externalId: {
-    value: "123456",
-    origin: "IPA",
-  },
-});
