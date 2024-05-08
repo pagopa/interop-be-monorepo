@@ -24,6 +24,7 @@ import {
   EServiceCollection,
   FileManager,
   TenantCollection,
+  genericLogger,
 } from "pagopa-interop-commons";
 import { expect } from "vitest";
 import { toAgreementV1 } from "../src/model/domain/toEvent.js";
@@ -101,9 +102,12 @@ export async function uploadDocument(
     documentDestinationPath,
     documentId,
     name,
-    Buffer.from("large-document-file")
+    Buffer.from("large-document-file"),
+    genericLogger
   );
-  expect(await fileManager.listFiles(config.s3Bucket)).toContainEqual(
+  expect(
+    await fileManager.listFiles(config.s3Bucket, genericLogger)
+  ).toContainEqual(
     `${config.consumerDocumentsPath}/${agreementId}/${documentId}/${name}`
   );
 }
