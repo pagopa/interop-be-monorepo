@@ -320,7 +320,7 @@ export function purposeServiceBuilder(
         purposeId,
         reversePurposeUpdateContent,
         organizationId,
-        "Receive",
+        eserviceMode.receive,
         { readModelService, correlationId, repository }
       );
     },
