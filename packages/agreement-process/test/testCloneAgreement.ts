@@ -15,7 +15,7 @@ import {
 } from "pagopa-interop-commons-test/index.js";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
-  AgreementAddedV1,
+  AgreementAddedV2,
   AgreementDocument,
   AgreementId,
   AgreementV2,
@@ -171,7 +171,7 @@ export const testCloneAgreement = (): ReturnType<typeof describe> =>
       });
 
       const agreementClonedEventPayload = decodeProtobufPayload({
-        messageType: AgreementAddedV1,
+        messageType: AgreementAddedV2,
         payload: agreementClonedEvent.data,
       });
 

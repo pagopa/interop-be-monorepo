@@ -18,7 +18,7 @@ import {
 import {
   Agreement,
   AgreementId,
-  AgreementUpdatedV1,
+  AgreementRejectedV2,
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
   Descriptor,
@@ -204,7 +204,7 @@ export const testRejectAgreement = (): ReturnType<typeof describe> =>
       });
 
       const actualAgreementRejected = decodeProtobufPayload({
-        messageType: AgreementUpdatedV1,
+        messageType: AgreementRejectedV2,
         payload: agreementEvent.data,
       }).agreement;
 
