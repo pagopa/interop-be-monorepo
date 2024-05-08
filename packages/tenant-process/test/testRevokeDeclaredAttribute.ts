@@ -1,6 +1,6 @@
+/* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { fail } from "assert";
 import { readLastEventByStreamId } from "pagopa-interop-commons-test/index.js";
 import {
   generateId,
@@ -10,17 +10,12 @@ import {
   AttributeId,
   TenantDeclaredAttributeRevokedV2,
 } from "pagopa-interop-models";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
 import {
   tenantNotFound,
   attributeNotFound,
 } from "../src/model/domain/errors.js";
-import {
-  getMockAuthData,
-  addOneTenant,
-  getMockTenant,
-  currentDate,
-} from "./utils.js";
+import { addOneTenant, getMockTenant } from "./utils.js";
 import {
   postgresDB,
   tenants,
@@ -30,22 +25,30 @@ import {
 export const testRevokeDeclaredAttribute = (): ReturnType<typeof describe> =>
   describe("revokeDeclaredAttribute", async () => {
     const attributeId: AttributeId = generateId();
+    let tenant: Tenant;
 
-    const tenant: Tenant = {
-      ...getMockTenant(),
-      attributes: [
-        {
-          id: attributeId,
-          type: "PersistentDeclaredAttribute",
-          assignmentTimestamp: new Date(
-            currentDate.setDate(currentDate.getDate() - 3)
-          ),
-        },
-      ],
-      updatedAt: new Date(),
-    };
+    beforeAll(async () => {
+      tenant = {
+        ...getMockTenant(),
+        attributes: [
+          {
+            id: attributeId,
+            type: "PersistentDeclaredAttribute",
+            assignmentTimestamp: new Date(
+              new Date().setDate(new Date().getDate() - 3)
+            ),
+          },
+        ],
+        updatedAt: new Date(),
+      };
 
-    const organizationId = getMockAuthData(tenant.id).organizationId;
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date());
+    });
+
+    afterAll(() => {
+      vi.useRealTimers();
+    });
 
     it("Should revoke the declared attribute if it exist in tenant", async () => {
       vi.useFakeTimers();
@@ -53,7 +56,7 @@ export const testRevokeDeclaredAttribute = (): ReturnType<typeof describe> =>
       await addOneTenant(tenant, postgresDB, tenants);
       await tenantService.revokeDeclaredAttribute({
         attributeId,
-        organizationId,
+        organizationId: tenant.id,
         correlationId: generateId(),
       });
       const writtenEvent = await readLastEventByStreamId(
@@ -61,14 +64,14 @@ export const testRevokeDeclaredAttribute = (): ReturnType<typeof describe> =>
         "tenant",
         postgresDB
       );
-      if (!writtenEvent) {
-        fail("Update failed: tenant not found in event-store");
-      }
+
       expect(writtenEvent).toMatchObject({
         stream_id: tenant.id,
         version: "1",
         type: "TenantDeclaredAttributeRevoked",
+        event_version: 2,
       });
+
       const writtenPayload = protobufDecoder(
         TenantDeclaredAttributeRevokedV2
       ).parse(writtenEvent?.data);
@@ -91,7 +94,7 @@ export const testRevokeDeclaredAttribute = (): ReturnType<typeof describe> =>
       expect(
         tenantService.revokeDeclaredAttribute({
           attributeId,
-          organizationId,
+          organizationId: tenant.id,
           correlationId: generateId(),
         })
       ).rejects.toThrowError(tenantNotFound(tenant.id));
@@ -108,14 +111,10 @@ export const testRevokeDeclaredAttribute = (): ReturnType<typeof describe> =>
         ],
       };
       await addOneTenant(notDeclaredAttributeTenant, postgresDB, tenants);
-      const notDeclaredorganizationId = getMockAuthData(
-        notDeclaredAttributeTenant.id
-      ).organizationId;
-
       expect(
         tenantService.revokeDeclaredAttribute({
           attributeId,
-          organizationId: notDeclaredorganizationId,
+          organizationId: notDeclaredAttributeTenant.id,
           correlationId: generateId(),
         })
       ).rejects.toThrowError(attributeNotFound(attributeId));
