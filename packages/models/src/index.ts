@@ -34,7 +34,10 @@ export * from "./tenant/protobufConverterToV2.js";
 
 export * from "./purpose/purpose.js";
 export * from "./purpose/purposeEvents.js";
+export * from "./purpose/purposeReadModelAdapter.js";
 export * from "./purpose/protobufConverterFromV1.js";
+export * from "./purpose/protobufConverterFromV2.js";
+export * from "./purpose/protobufConverterToV2.js";
 
 export * from "./user/user.js";
 
@@ -45,6 +48,7 @@ export * from "./protobuf/protobuf.js";
 export * from "./read-models/agreementReadModel.js";
 export * from "./read-models/attributeReadModel.js";
 export * from "./read-models/eserviceReadModel.js";
+export * from "./read-models/purposeReadModel.js";
 export * from "./read-models/readModels.js";
 
 // Utilities

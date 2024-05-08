@@ -1,11 +1,12 @@
 import {
-  loggerContextMiddleware,
-  loggerMiddleware,
   authenticationMiddleware,
+  contextMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
 import purposeRouter from "./routers/PurposeRouter.js";
 import healthRouter from "./routers/HealthRouter.js";
+
+const serviceName = "purpose-process";
 
 const app = zodiosCtx.app();
 
@@ -13,14 +14,9 @@ const app = zodiosCtx.app();
 // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
 app.disable("x-powered-by");
 
-app.use(loggerContextMiddleware("purpose-process"));
-app.use(loggerMiddleware());
-
-// Unauthenticated routes
+app.use(contextMiddleware(serviceName));
 app.use(healthRouter);
-
-// Authenticated routes
-app.use(authenticationMiddleware());
+app.use(authenticationMiddleware);
 app.use(purposeRouter(zodiosCtx));
 
 export default app;
