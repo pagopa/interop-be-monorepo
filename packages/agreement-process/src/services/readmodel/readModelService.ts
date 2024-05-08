@@ -22,7 +22,6 @@ import {
   WithMetadata,
   agreementState,
   descriptorState,
-  genericError,
   EServiceId,
   AttributeReadmodel,
   TenantId,
@@ -448,7 +447,7 @@ export function readModelServiceBuilder(
         const result = EService.safeParse(data.data);
 
         if (!result.success) {
-          throw genericError(
+          throw genericInternalError(
             `Unable to parse eservices item: result ${JSON.stringify(
               result
             )} - data ${JSON.stringify(data)} `
