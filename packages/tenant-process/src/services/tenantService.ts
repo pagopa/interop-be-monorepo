@@ -292,7 +292,6 @@ export function tenantServiceBuilder(
 
       await repository.createEvent(
         toCreateEventMaintenanceTenantDeleted(
-          tenantId,
           tenant.metadata.version,
           tenant.data,
           correlationId
