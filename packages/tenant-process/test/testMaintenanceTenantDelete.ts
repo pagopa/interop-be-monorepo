@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { fail } from "assert";
 import {
   MaintenanceTenantDeletedV2,
   generateId,
@@ -23,9 +22,7 @@ export const testMaintenanceTenantDelete = (): ReturnType<typeof describe> =>
       await addOneTenant(mockTenant, postgresDB, tenants);
       await tenantService.maintenanceTenantDeleted(mockTenant.id, generateId());
       const writtenEvent = await readLastTenantEvent(mockTenant.id, postgresDB);
-      if (!writtenEvent) {
-        fail("Creation failed: tenant not found in event-store");
-      }
+
       expect(writtenEvent).toMatchObject({
         stream_id: mockTenant.id,
         version: "1",
