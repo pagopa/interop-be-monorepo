@@ -180,3 +180,10 @@ export const retrieveRiskAnalysisConfigurationByVersionErrorMapper = (
     )
     .with("tenantNotFound", "tenantKindNotFound", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const retrieveLatestRiskAnalysisConfigurationErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("tenantNotFound", "tenantKindNotFound", () => HTTP_STATUS_BAD_REQUEST)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

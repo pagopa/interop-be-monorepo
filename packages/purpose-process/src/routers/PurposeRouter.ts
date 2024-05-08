@@ -31,6 +31,7 @@ import {
   getPurposeErrorMapper,
   getRiskAnalysisDocumentErrorMapper,
   rejectPurposeVersionErrorMapper,
+  retrieveLatestRiskAnalysisConfigurationErrorMapper,
   retrieveRiskAnalysisConfigurationByVersionErrorMapper,
   suspendPurposeVersionErrorMapper,
   updatePurposeErrorMapper,
@@ -405,7 +406,29 @@ const purposeRouter = (
     .get(
       "/purposes/riskAnalysis/latest",
       authorizationMiddleware([ADMIN_ROLE, SUPPORT_ROLE]),
-      (_req, res) => res.status(501).send()
+      async (req, res) => {
+        try {
+          const riskAnalysisConfiguration =
+            await purposeService.retrieveLatestRiskAnalysisConfiguration({
+              tenantKind: req.query.tenantKind,
+              organizationId: req.ctx.authData.organizationId,
+            });
+          return res
+            .status(200)
+            .json(
+              riskAnalysisFormConfigToApiRiskAnalysisFormConfig(
+                riskAnalysisConfiguration
+              )
+            )
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            retrieveLatestRiskAnalysisConfigurationErrorMapper
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get(
       "/purposes/riskAnalysis/version/:riskAnalysisVersion",
