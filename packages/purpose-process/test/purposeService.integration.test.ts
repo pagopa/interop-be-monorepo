@@ -111,5 +111,6 @@ describe("Integration tests", async () => {
     testCreateReversePurpose();
     testClonePurpose();
     testGetRiskAnalysisConfigurationByVersion();
+    testGetLatestRiskAnalysisConfiguration();
   });
 });
