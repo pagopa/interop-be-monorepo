@@ -57,7 +57,7 @@ export const isDeletableVersion = (
 export const isRejectable = (purposeVersion: PurposeVersion): boolean =>
   purposeVersion.state === purposeVersionState.waitingForApproval;
 
-export const assertEserviceHasSpecificMode = (
+export const assertEserviceMode = (
   eservice: EService,
   expectedMode: EServiceMode
 ): void => {

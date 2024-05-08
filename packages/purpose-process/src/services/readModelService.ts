@@ -109,7 +109,7 @@ export function readModelServiceBuilder(
     ): Promise<WithMetadata<Purpose> | undefined> {
       return getPurpose(purposes, { "data.id": id });
     },
-    async getSpecificPurpose(
+    async getPurpose(
       eserviceId: EServiceId,
       consumerId: TenantId,
       title: string
