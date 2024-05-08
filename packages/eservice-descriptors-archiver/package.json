@@ -14,6 +14,7 @@
     "format:write": "prettier --write src",
     "start": "node --watch --loader ts-node/esm -r 'dotenv-flow/config' ./src/index.ts",
     "build": "tsc",
+    "check": "tsc --project tsconfig.check.json",
     "trim-open-api": "mkdir -p ./src/model/generated && openapi-endpoint-trimmer -i '../catalog-process/open-api/catalog-service-spec.yml' -o './src/model/generated/spec.yaml' -p '/eservices/{eServiceId}/descriptors/{descriptorId}/archive'",
     "generate-model": "pnpm trim-open-api && pnpm openapi-zod-client './src/model/generated/spec.yaml' -o './src/model/generated/api.ts'",
     "clean-generated": "pnpm exec rm ./src/model/generated/api.ts"
