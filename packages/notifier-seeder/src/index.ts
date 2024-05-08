@@ -33,12 +33,12 @@ const queueManager = initQueueManager({
 });
 
 export function processMessage(
-  _catalogTopic: CatalogTopicConfig,
-  _purposeTopic: PurposeTopicConfig
+  catalogTopic: CatalogTopicConfig,
+  purposeTopic: PurposeTopicConfig
 ) {
   return async (kafkaMessage: EachMessagePayload): Promise<void> => {
-    match(kafkaMessage.topic)
-      .with("catalog", async () => {
+    await match(kafkaMessage.topic)
+      .with(catalogTopic.catalogTopic, async () => {
         const decodedMessage = decodeKafkaMessage(
           kafkaMessage.message,
           EServiceEvent
@@ -75,7 +75,7 @@ export function processMessage(
           }
         );
       })
-      .with("purpose", async () => {
+      .with(purposeTopic.purposeTopic, async () => {
         const decodedMessage = decodeKafkaMessage(
           kafkaMessage.message,
           PurposeEventV2
@@ -107,6 +107,9 @@ export function processMessage(
             );
           }
         );
+      })
+      .otherwise(() => {
+        throw new Error(`Unknown topic: ${kafkaMessage.topic}`);
       });
   };
 }
