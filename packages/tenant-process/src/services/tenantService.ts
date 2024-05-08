@@ -2,7 +2,6 @@ import { AuthData, DB, eventRepository, logger } from "pagopa-interop-commons";
 import {
   Attribute,
   AttributeId,
-  AttributeKind,
   CertifiedTenantAttribute,
   ListResult,
   Tenant,
@@ -66,11 +65,10 @@ const retrieveTenant = async (
 
 export async function retrieveAttribute(
   attributeId: AttributeId,
-  readModelService: ReadModelService,
-  kind: AttributeKind
+  readModelService: ReadModelService
 ): Promise<Attribute> {
   const attribute = await readModelService.getAttributeById(attributeId);
-  if (!attribute || attribute.kind !== kind) {
+  if (attribute === undefined) {
     throw attributeNotFound(attributeId);
   }
   return attribute;
@@ -317,9 +315,12 @@ export function tenantServiceBuilder(
 
       const attribute = await retrieveAttribute(
         unsafeBrandId(tenantAttributeSeed.id),
-        readModelService,
-        attributeKind.certified
+        readModelService
       );
+
+      if (attribute.kind !== attributeKind.certified) {
+        throw attributeNotFound(attribute.id);
+      }
 
       if (!attribute.origin || attribute.origin !== certifierId) {
         throw certifiedAttributeOriginIsNotCompliantWithCertifier(
