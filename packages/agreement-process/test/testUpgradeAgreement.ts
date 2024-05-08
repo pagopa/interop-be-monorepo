@@ -45,7 +45,7 @@ import {
   noNewerDescriptor,
   operationNotAllowed,
   publishedDescriptorNotFound,
-  tenantIdNotFound,
+  tenantNotFound,
   unexpectedVersionFormat,
 } from "../src/model/domain/errors.js";
 import { toAgreementV2 } from "../src/model/domain/toEvent.js";
@@ -971,7 +971,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       }
     });
 
-    it("should throw a tenantIdNotFound error when the tenant does not exist", async () => {
+    it("should throw a tenantNotFound error when the tenant does not exist", async () => {
       await addOneAgreement(getMockAgreement(), postgresDB, agreements);
       const authData = getRandomAuthData();
       const agreementId = generateId<AgreementId>();
@@ -982,7 +982,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
           correlationId: "",
           logger: genericLogger,
         })
-      ).rejects.toThrowError(tenantIdNotFound(authData.organizationId));
+      ).rejects.toThrowError(tenantNotFound(authData.organizationId));
     });
 
     it("should throw an agreementNotFound error when the agreement does not exist", async () => {

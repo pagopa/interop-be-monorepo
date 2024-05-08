@@ -84,7 +84,7 @@ export const getMockEService = (
 
 export const getMockVerifiedTenantAttribute = (
   attributeId: AttributeId = generateId<AttributeId>()
-): TenantAttribute => ({
+): VerifiedTenantAttribute => ({
   ...generateMock(VerifiedTenantAttribute),
   id: attributeId,
 });
@@ -98,7 +98,7 @@ export const getMockCertifiedTenantAttribute = (
 
 export const getMockDeclaredTenantAttribute = (
   attributeId: AttributeId = generateId<AttributeId>()
-): TenantAttribute => ({
+): DeclaredTenantAttribute => ({
   ...generateMock(DeclaredTenantAttribute),
   id: attributeId,
 });

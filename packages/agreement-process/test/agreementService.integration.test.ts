@@ -69,7 +69,7 @@ import {
   eServiceNotFound,
   missingCertifiedAttributesError,
   notLatestEServiceDescriptor,
-  tenantIdNotFound,
+  tenantNotFound,
 } from "../src/model/domain/errors.js";
 import { toAgreementStateV2 } from "../src/model/domain/toEvent.js";
 import { ApiAgreementPayload } from "../src/model/types.js";
@@ -91,7 +91,6 @@ import {
   CompactEService,
   CompactOrganization,
 } from "../src/model/domain/models.js";
-import { testUpdateAgreement } from "./testUpdateAgreement.js";
 import {
   addOneAgreement,
   addOneEService,
@@ -101,6 +100,8 @@ import {
 import { testArchiveAgreement } from "./testArchiveAgreement.js";
 import { testDeleteAgreement } from "./testDeleteAgreement.js";
 import { testAgreementConsumerDocuments } from "./testAgreementConsumerDocuments.js";
+import { testRejectAgreement } from "./testRejectAgreement.js";
+import { testUpdateAgreement } from "./testUpdateAgreement.js";
 import { testUpgradeAgreement } from "./testUpgradeAgreement.js";
 import { testCloneAgreement } from "./testCloneAgreement.js";
 
@@ -640,7 +641,7 @@ describe("Agreement service", () => {
       ).rejects.toThrowError(agreementAlreadyExists(consumer.id, eservice.id));
     });
 
-    it("should throw a tenantIdNotFound error when the consumer Tenant does not exist", async () => {
+    it("should throw a tenantNotFound error when the consumer Tenant does not exist", async () => {
       const consumer: Tenant = getMockTenant();
       const descriptor: Descriptor = getMockDescriptorPublished();
 
@@ -665,7 +666,7 @@ describe("Agreement service", () => {
           serviceName: "",
           logger: genericLogger,
         })
-      ).rejects.toThrowError(tenantIdNotFound(consumer.id));
+      ).rejects.toThrowError(tenantNotFound(consumer.id));
     });
 
     it("should throw a missingCertifiedAttributesError error when the EService producer and Agreement consumer are different Tenants, and the consumer is missing a Descriptor certified Attribute", async () => {
@@ -1827,6 +1828,7 @@ describe("Agreement service", () => {
   testArchiveAgreement();
   testCloneAgreement();
   testDeleteAgreement();
+  testRejectAgreement();
   testUpdateAgreement();
   testUpgradeAgreement();
 });
