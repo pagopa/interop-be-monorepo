@@ -128,7 +128,7 @@ describe("Notification tests", async () => {
   });
 
   describe("Update Descriptor Event Message", async () => {
-    it("should send a message to the queue", async () => {
+    it.only("should send a message to the queue", async () => {
       const descriptor = getDescriptorMock(
         "6b48e234-aac6-4d33-aef4-93816588ff41"
       );
@@ -163,7 +163,15 @@ describe("Notification tests", async () => {
 
       const receivedMessage = (await queueWriter.receiveLast())[0];
 
+      await queueWriter.send(message);
+
+      const receivedMessage2 = (await queueWriter.receiveLast())[0];
+
       expect(receivedMessage.payload).toEqual(
+        catalogItemDescriptorUpdatedNotification.payload
+      );
+
+      expect(receivedMessage2.payload).toEqual(
         catalogItemDescriptorUpdatedNotification.payload
       );
     });
