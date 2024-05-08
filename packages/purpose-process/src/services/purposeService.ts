@@ -18,9 +18,9 @@ import {
 } from "pagopa-interop-models";
 import {
   eserviceNotFound,
-  organizationIsNotTheConsumer,
   organizationNotAllowed,
   purposeNotFound,
+  organizationIsNotTheConsumer,
   purposeVersionCannotBeDeleted,
   purposeVersionDocumentNotFound,
   purposeVersionNotFound,
