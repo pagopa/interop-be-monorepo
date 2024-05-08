@@ -176,7 +176,7 @@ describe("Notification tests", async () => {
         purpose: toPurposeV2(mockPurpose),
       };
 
-      const purpsoeEventEnvelope: PurposeEventEnvelopeV2 = {
+      const purposeEventEnvelope: PurposeEventEnvelopeV2 = {
         sequence_num: 2,
         stream_id: mockPurpose.id,
         version: 1,
@@ -187,10 +187,10 @@ describe("Notification tests", async () => {
         data: purposeEventV2,
       };
       const purposeEventNotification =
-        toPurposeEventNotification(purpsoeEventEnvelope);
+        toPurposeEventNotification(purposeEventEnvelope);
 
       const purposeMessage = buildPurposeMessage(
-        purpsoeEventEnvelope,
+        purposeEventEnvelope,
         purposeEventNotification
       );
       await queueWriter.send(purposeMessage);
