@@ -15,6 +15,7 @@
     "format:write": "prettier --write src",
     "start": "node --watch --loader ts-node/esm ./src/index.ts",
     "build": "tsc && pnpm run copy-sql-files",
+    "check": "tsc --project tsconfig.check.json",
     "copy-sql-files": "cp ./src/repositories/sql/*.sql dist/repositories/sql"
   },
   "license": "Apache-2.0",
@@ -26,7 +27,6 @@
     "@zodios/express": "10.6.1",
     "axios": "1.6.8",
     "connection-string": "4.3.6",
-    "express-winston": "4.2.0",
     "jsonwebtoken": "9.0.2",
     "jwks-rsa": "3.0.1",
     "kafkajs": "2.2.4",
