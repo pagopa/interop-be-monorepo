@@ -1,7 +1,10 @@
+/* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { fail } from "assert";
-import { readLastEventByStreamId } from "pagopa-interop-commons-test/index.js";
+import {
+  getMockAttribute,
+  readLastEventByStreamId,
+} from "pagopa-interop-commons-test/index.js";
 import {
   generateId,
   Tenant,
@@ -15,8 +18,9 @@ import {
   tenantAttributeType,
   Attribute,
   attributeKind,
+  Agreement,
 } from "pagopa-interop-models";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import {
   tenantNotFound,
   attributeVerificationNotAllowed,
@@ -25,7 +29,6 @@ import {
 } from "../src/model/domain/errors.js";
 import { ApiVerifiedTenantAttributeSeed } from "../src/model/types.js";
 import {
-  getMockAuthData,
   addOneTenant,
   addOneAgreement,
   addOneEService,
@@ -36,7 +39,6 @@ import {
   getMockVerifiedTenantAttribute,
   getMockVerifiedBy,
   getMockRevokedBy,
-  getMockAttribute,
   addOneAttribute,
 } from "./utils.js";
 import {
@@ -50,53 +52,64 @@ import {
 
 export const testVerifyVerifiedAttribute = (): ReturnType<typeof describe> =>
   describe("verifyVerifiedAttribute", async () => {
-    const tenantAttributeSeed: ApiVerifiedTenantAttributeSeed = {
-      id: generateId(),
-    };
-    const correlationId = generateId();
     const targetTenant: Tenant = getMockTenant();
     const requesterTenant: Tenant = getMockTenant();
-    const attribute: Attribute = {
-      ...getMockAttribute(),
-      id: unsafeBrandId(tenantAttributeSeed.id),
-      kind: attributeKind.verified,
-    };
+    let tenantAttributeSeed: ApiVerifiedTenantAttributeSeed;
+    let attribute: Attribute;
+    let descriptor1: Descriptor;
+    let eService1: EService;
+    let agreementEservice1: Agreement;
 
-    const descriptor1: Descriptor = {
-      ...getMockDescriptor(),
-      state: descriptorState.published,
-      attributes: {
-        verified: [
-          [
-            {
-              id: unsafeBrandId(tenantAttributeSeed.id),
-              explicitAttributeVerification: false,
-            },
+    beforeAll(async () => {
+      tenantAttributeSeed = {
+        id: generateId(),
+      };
+
+      attribute = {
+        ...getMockAttribute(),
+        id: unsafeBrandId(tenantAttributeSeed.id),
+        kind: attributeKind.verified,
+      };
+
+      descriptor1 = {
+        ...getMockDescriptor(),
+        state: descriptorState.published,
+        attributes: {
+          verified: [
+            [
+              {
+                id: unsafeBrandId(tenantAttributeSeed.id),
+                explicitAttributeVerification: false,
+              },
+            ],
           ],
-        ],
-        declared: [],
-        certified: [],
-      },
-    };
+          declared: [],
+          certified: [],
+        },
+      };
 
-    const eService1: EService = {
-      ...getMockEService(),
-      producerId: requesterTenant.id,
-      descriptors: [descriptor1],
-    };
+      eService1 = {
+        ...getMockEService(),
+        producerId: requesterTenant.id,
+        descriptors: [descriptor1],
+      };
 
-    const agreementEservice1 = getMockAgreement({
-      eserviceId: eService1.id,
-      descriptorId: descriptor1.id,
-      producerId: eService1.producerId,
-      consumerId: targetTenant.id,
-    });
+      agreementEservice1 = getMockAgreement({
+        eserviceId: eService1.id,
+        descriptorId: descriptor1.id,
+        producerId: eService1.producerId,
+        consumerId: targetTenant.id,
+      });
 
-    const organizationId = getMockAuthData(requesterTenant.id).organizationId;
-
-    it("Should verify the VerifiedAttribute if verifiedTenantAttribute doesn't exist", async () => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date());
+    });
+
+    afterAll(() => {
+      vi.useRealTimers();
+    });
+
+    it("Should verify the VerifiedAttribute if verifiedTenantAttribute doesn't exist", async () => {
       await addOneTenant(targetTenant, postgresDB, tenants);
       await addOneTenant(requesterTenant, postgresDB, tenants);
       await addOneAttribute(attribute, attributes);
@@ -105,8 +118,8 @@ export const testVerifyVerifiedAttribute = (): ReturnType<typeof describe> =>
       await tenantService.verifyVerifiedAttribute({
         tenantId: targetTenant.id,
         tenantAttributeSeed,
-        organizationId,
-        correlationId,
+        organizationId: requesterTenant.id,
+        correlationId: generateId(),
       });
 
       const writtenEvent = await readLastEventByStreamId(
@@ -114,13 +127,12 @@ export const testVerifyVerifiedAttribute = (): ReturnType<typeof describe> =>
         "tenant",
         postgresDB
       );
-      if (!writtenEvent) {
-        fail("Update failed: tenant not found in event-store");
-      }
+
       expect(writtenEvent).toMatchObject({
         stream_id: targetTenant.id,
         version: "1",
         type: "TenantVerifiedAttributeAssigned",
+        event_version: 2,
       });
       const writtenPayload = protobufDecoder(
         TenantVerifiedAttributeAssignedV2
@@ -135,7 +147,7 @@ export const testVerifyVerifiedAttribute = (): ReturnType<typeof describe> =>
             assignmentTimestamp: new Date(),
             verifiedBy: [
               {
-                id: organizationId,
+                id: requesterTenant.id,
                 verificationDate: new Date(),
                 expirationDate: tenantAttributeSeed.expirationDate
                   ? new Date(tenantAttributeSeed.expirationDate)
@@ -151,11 +163,8 @@ export const testVerifyVerifiedAttribute = (): ReturnType<typeof describe> =>
         updatedAt: new Date(),
       };
       expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
-      vi.useRealTimers();
     });
     it("Should verify the VerifiedAttribute if verifiedTenantAttribute exist", async () => {
-      vi.useFakeTimers();
-      vi.setSystemTime(new Date());
       const mockVerifiedBy = getMockVerifiedBy();
       const mockRevokedBy = getMockRevokedBy();
 
@@ -184,21 +193,20 @@ export const testVerifyVerifiedAttribute = (): ReturnType<typeof describe> =>
       await tenantService.verifyVerifiedAttribute({
         tenantId: tenantWithVerifiedAttribute.id,
         tenantAttributeSeed,
-        organizationId,
-        correlationId,
+        organizationId: requesterTenant.id,
+        correlationId: generateId(),
       });
       const writtenEvent = await readLastEventByStreamId(
         tenantWithVerifiedAttribute.id,
         "tenant",
         postgresDB
       );
-      if (!writtenEvent) {
-        fail("Update failed: tenant not found in event-store");
-      }
+
       expect(writtenEvent).toMatchObject({
         stream_id: tenantWithVerifiedAttribute.id,
         version: "1",
         type: "TenantVerifiedAttributeAssigned",
+        event_version: 2,
       });
       const writtenPayload = protobufDecoder(
         TenantVerifiedAttributeAssignedV2
@@ -215,7 +223,7 @@ export const testVerifyVerifiedAttribute = (): ReturnType<typeof describe> =>
               { ...mockVerifiedBy },
               {
                 ...mockVerifiedBy,
-                id: organizationId,
+                id: requesterTenant.id,
                 verificationDate: new Date(),
               },
             ],
@@ -226,7 +234,6 @@ export const testVerifyVerifiedAttribute = (): ReturnType<typeof describe> =>
       };
 
       expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
-      vi.useRealTimers();
     });
     it("Should throw tenantNotFound if the tenant doesn't exist", async () => {
       await addOneEService(eService1, eservices);
@@ -235,8 +242,8 @@ export const testVerifyVerifiedAttribute = (): ReturnType<typeof describe> =>
         tenantService.verifyVerifiedAttribute({
           tenantId: targetTenant.id,
           tenantAttributeSeed,
-          organizationId,
-          correlationId,
+          organizationId: requesterTenant.id,
+          correlationId: generateId(),
         })
       ).rejects.toThrowError(tenantNotFound(targetTenant.id));
     });
@@ -249,8 +256,8 @@ export const testVerifyVerifiedAttribute = (): ReturnType<typeof describe> =>
         tenantService.verifyVerifiedAttribute({
           tenantId: targetTenant.id,
           tenantAttributeSeed,
-          organizationId,
-          correlationId,
+          organizationId: requesterTenant.id,
+          correlationId: generateId(),
         })
       ).rejects.toThrowError(attributeNotFound(attribute.id));
     });
@@ -294,8 +301,8 @@ export const testVerifyVerifiedAttribute = (): ReturnType<typeof describe> =>
         tenantService.verifyVerifiedAttribute({
           tenantId: targetTenant.id,
           tenantAttributeSeed,
-          organizationId,
-          correlationId,
+          organizationId: requesterTenant.id,
+          correlationId: generateId(),
         })
       ).rejects.toThrowError(
         attributeVerificationNotAllowed(
@@ -315,7 +322,7 @@ export const testVerifyVerifiedAttribute = (): ReturnType<typeof describe> =>
           tenantId: targetTenant.id,
           tenantAttributeSeed,
           organizationId: targetTenant.id,
-          correlationId,
+          correlationId: generateId(),
         })
       ).rejects.toThrowError(verifiedAttributeSelfVerification());
     });
