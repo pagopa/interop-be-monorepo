@@ -18,7 +18,6 @@ import {
   randomArrayItem,
   randomBoolean,
 } from "pagopa-interop-commons-test/index.js";
-import { v4 as uuidv4 } from "uuid";
 import {
   Agreement,
   AgreementId,
@@ -32,6 +31,7 @@ import {
   agreementState,
   generateId,
 } from "pagopa-interop-models";
+import { genericLogger } from "pagopa-interop-commons";
 import { agreementSuspendableStates } from "../src/model/domain/validators.js";
 import { toAgreementV1 } from "../src/model/domain/toEvent.js";
 import { createStamp } from "../src/services/agreementStampUtils.js";
@@ -41,7 +41,7 @@ import {
   descriptorNotFound,
   eServiceNotFound,
   operationNotAllowed,
-  tenantIdNotFound,
+  tenantNotFound,
 } from "../src/model/domain/errors.js";
 import {
   postgresDB,
@@ -133,7 +133,12 @@ export const testSuspendAgreement = (): ReturnType<typeof describe> =>
       ]);
       const authData = getRandomAuthData(requesterId);
 
-      await agreementService.suspendAgreement(agreement.id, authData, uuidv4());
+      await agreementService.suspendAgreement(agreement.id, {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      });
 
       const agreementEvent = await readLastAgreementEvent(
         agreement.id,
@@ -259,7 +264,12 @@ export const testSuspendAgreement = (): ReturnType<typeof describe> =>
       ]);
       const authData = getRandomAuthData(requesterId);
 
-      await agreementService.suspendAgreement(agreement.id, authData, uuidv4());
+      await agreementService.suspendAgreement(agreement.id, {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      });
 
       const agreementEvent = await readLastAgreementEvent(
         agreement.id,
@@ -348,7 +358,12 @@ export const testSuspendAgreement = (): ReturnType<typeof describe> =>
 
       const authData = getRandomAuthData(producerAndConsumerId);
 
-      await agreementService.suspendAgreement(agreement.id, authData, uuidv4());
+      await agreementService.suspendAgreement(agreement.id, {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      });
 
       const agreementEvent = await readLastAgreementEvent(
         agreement.id,
@@ -468,7 +483,12 @@ export const testSuspendAgreement = (): ReturnType<typeof describe> =>
       await addOneEService(eservice, eservices);
       await addOneAgreement(agreement, postgresDB, agreements);
 
-      await agreementService.suspendAgreement(agreement.id, authData, uuidv4());
+      await agreementService.suspendAgreement(agreement.id, {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      });
 
       const agreementEvent = await readLastAgreementEvent(
         agreement.id,
@@ -531,7 +551,12 @@ export const testSuspendAgreement = (): ReturnType<typeof describe> =>
       const authData = getRandomAuthData();
       const agreementId = generateId<AgreementId>();
       await expect(
-        agreementService.suspendAgreement(agreementId, authData, uuidv4())
+        agreementService.suspendAgreement(agreementId, {
+          authData,
+          serviceName: "",
+          correlationId: "",
+          logger: genericLogger,
+        })
       ).rejects.toThrowError(agreementNotFound(agreementId));
     });
 
@@ -540,7 +565,12 @@ export const testSuspendAgreement = (): ReturnType<typeof describe> =>
       const agreement = getMockAgreement();
       await addOneAgreement(agreement, postgresDB, agreements);
       await expect(
-        agreementService.suspendAgreement(agreement.id, authData, uuidv4())
+        agreementService.suspendAgreement(agreement.id, {
+          authData,
+          serviceName: "",
+          correlationId: "",
+          logger: genericLogger,
+        })
       ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
     });
 
@@ -556,7 +586,12 @@ export const testSuspendAgreement = (): ReturnType<typeof describe> =>
       await addOneAgreement(agreement, postgresDB, agreements);
       const authData = getRandomAuthData(agreement.producerId);
       await expect(
-        agreementService.suspendAgreement(agreement.id, authData, uuidv4())
+        agreementService.suspendAgreement(agreement.id, {
+          authData,
+          serviceName: "",
+          correlationId: "",
+          logger: genericLogger,
+        })
       ).rejects.toThrowError(
         agreementNotInExpectedState(agreement.id, agreement.state)
       );
@@ -571,11 +606,16 @@ export const testSuspendAgreement = (): ReturnType<typeof describe> =>
       await addOneAgreement(agreement, postgresDB, agreements);
       const authData = getRandomAuthData(agreement.producerId);
       await expect(
-        agreementService.suspendAgreement(agreement.id, authData, uuidv4())
+        agreementService.suspendAgreement(agreement.id, {
+          authData,
+          serviceName: "",
+          correlationId: "",
+          logger: genericLogger,
+        })
       ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
     });
 
-    it("should throw a tenantIdNotFound error when the consumer does not exist", async () => {
+    it("should throw a tenantNotFound error when the consumer does not exist", async () => {
       await addOneTenant(getMockTenant(), tenants);
       const eservice = getMockEService();
       const consumer = getMockTenant();
@@ -591,8 +631,13 @@ export const testSuspendAgreement = (): ReturnType<typeof describe> =>
       const authData = getRandomAuthData(agreement.producerId);
 
       await expect(
-        agreementService.suspendAgreement(agreement.id, authData, uuidv4())
-      ).rejects.toThrowError(tenantIdNotFound(agreement.consumerId));
+        agreementService.suspendAgreement(agreement.id, {
+          authData,
+          serviceName: "",
+          correlationId: "",
+          logger: genericLogger,
+        })
+      ).rejects.toThrowError(tenantNotFound(agreement.consumerId));
     });
 
     it("should throw a descriptorNotFound error when the descriptor does not exist", async () => {
@@ -614,7 +659,12 @@ export const testSuspendAgreement = (): ReturnType<typeof describe> =>
       const authData = getRandomAuthData(agreement.producerId);
 
       await expect(
-        agreementService.suspendAgreement(agreement.id, authData, uuidv4())
+        agreementService.suspendAgreement(agreement.id, {
+          authData,
+          serviceName: "",
+          correlationId: "",
+          logger: genericLogger,
+        })
       ).rejects.toThrowError(
         descriptorNotFound(eservice.id, agreement.descriptorId)
       );
