@@ -1,4 +1,4 @@
-import { ReadModelRepository, logger } from "pagopa-interop-commons";
+import { ReadModelRepository } from "pagopa-interop-commons";
 import {
   Agreement,
   DescriptorId,
@@ -41,13 +41,11 @@ export function readModelServiceBuilder(
     const result = z.array(Agreement).safeParse(data.map((a) => a.data));
 
     if (!result.success) {
-      logger.error(
+      throw genericInternalError(
         `Unable to parse agreements: result ${JSON.stringify(
           result
         )} - data ${JSON.stringify(data)} `
       );
-
-      throw genericInternalError("Unable to parse agreements");
     }
 
     return result.data;
@@ -63,13 +61,11 @@ export function readModelServiceBuilder(
       const result = EService.safeParse(data.data);
 
       if (!result.success) {
-        logger.error(
+        throw genericInternalError(
           `Unable to parse eservices item: result ${JSON.stringify(
             result
           )} - data ${JSON.stringify(data)} `
         );
-
-        throw genericInternalError(`Unable to parse eservice ${id}`);
       }
 
       return result.data;

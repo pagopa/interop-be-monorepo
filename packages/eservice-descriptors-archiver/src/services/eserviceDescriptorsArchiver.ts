@@ -7,9 +7,9 @@ import { Agreement, DescriptorId, EServiceId } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import { CatalogProcessClient } from "./catalogProcessClient.js";
 import { ReadModelService } from "./readModelService.js";
-import { archiveDescriptorsForArchivedAgreement } from "./archiveDescriptorsForArchivedAgreement.js";
+import { archiveDescriptorForArchivedAgreement } from "./archiveDescriptorProcessor.js";
 
-type EServiceDescriptorsArchiver = {
+export type EServiceDescriptorsArchiver = {
   archiveDescriptorsForArchivedAgreement: (
     archivedAgreement: Agreement
   ) => Promise<void>;
@@ -50,15 +50,16 @@ export const eserviceDescriptorArchiverBuilder = async (
     archiveDescriptorsForArchivedAgreement: async (
       archivedAgreement: Agreement
     ): Promise<void> => {
-      logger.info(
-        `Archiving eservice descriptor for archived Agreement ${archivedAgreement.id} - Descriptor ${archivedAgreement.descriptorId} - EService ${archivedAgreement.eserviceId}`
-      );
-
-      await archiveDescriptorsForArchivedAgreement(
+      const archivedDescriptor = await archiveDescriptorForArchivedAgreement(
         archivedAgreement,
         readModelService,
         archiveDescriptor
       );
+      if (archivedDescriptor) {
+        logger.info(
+          `Sent Descriptor archive request for archived Agreement ${archivedAgreement.id} - Descriptor ${archivedAgreement.descriptorId} - EService ${archivedAgreement.eserviceId}`
+        );
+      }
     },
   };
 };

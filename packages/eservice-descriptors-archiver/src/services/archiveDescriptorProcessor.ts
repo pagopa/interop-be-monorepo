@@ -10,14 +10,14 @@ import {
 import { match } from "ts-pattern";
 import { ReadModelService } from "./readModelService.js";
 
-export async function archiveDescriptorsForArchivedAgreement(
+export async function archiveDescriptorForArchivedAgreement(
   archivedAgreement: Agreement,
   readModelService: ReadModelService,
   archiveDescriptor: (
     descriptorId: DescriptorId,
     eserviceId: EServiceId
   ) => Promise<void>
-): Promise<void> {
+): Promise<DescriptorId | undefined> {
   const relatingAgreements = (
     await readModelService.getAgreementsByEserviceAndDescriptorId(
       archivedAgreement.eserviceId,
@@ -25,7 +25,7 @@ export async function archiveDescriptorsForArchivedAgreement(
     )
   ).filter((a) => a.id !== archivedAgreement.id);
 
-  const allArchived = relatingAgreements.every(
+  const allArchived = [archivedAgreement, ...relatingAgreements].every(
     (a) => a.state === agreementState.archived
   );
 
@@ -56,13 +56,14 @@ export async function archiveDescriptorsForArchivedAgreement(
     );
   }
 
-  await match(descriptor)
-    .with({ state: descriptorState.deprecated }, async () =>
-      archiveDescriptor(
+  return await match(descriptor)
+    .with({ state: descriptorState.deprecated }, async () => {
+      await archiveDescriptor(
         archivedAgreement.descriptorId,
         archivedAgreement.eserviceId
-      )
-    )
+      );
+      return archivedAgreement.descriptorId;
+    })
     .with({ state: descriptorState.suspended }, async () => {
       const newerDescriptorExists = eservice.descriptors.some(
         (d) =>
@@ -75,15 +76,18 @@ export async function archiveDescriptorsForArchivedAgreement(
           archivedAgreement.descriptorId,
           archivedAgreement.eserviceId
         );
+        return archivedAgreement.descriptorId;
       } else {
         logger.info(
           `Skipping descriptor archiviation for Descriptor ${archivedAgreement.descriptorId} of EService ${archivedAgreement.eserviceId} - Descriptor suspended but no newer Descriptor found`
         );
+        return undefined;
       }
     })
-    .otherwise(() =>
+    .otherwise(() => {
       logger.info(
         `Skipping descriptor archiviation for Descriptor ${archivedAgreement.descriptorId} of EService ${archivedAgreement.eserviceId} - Descriptor state is not Deprecated or Suspended (state: ${descriptor.state})`
-      )
-    );
+      );
+      return undefined;
+    });
 }
