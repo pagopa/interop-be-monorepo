@@ -247,7 +247,7 @@ export function purposeCannotBeCloned(
   });
 }
 
-export function RiskAnalysisConfigVersionNotFound(
+export function riskAnalysisConfigVersionNotFound(
   version: string,
   tenantKind: TenantKind
 ): ApiError<ErrorCodes> {
