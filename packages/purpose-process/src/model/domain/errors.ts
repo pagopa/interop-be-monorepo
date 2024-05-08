@@ -8,7 +8,6 @@ import {
   TenantId,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
-import { logger } from "pagopa-interop-commons";
 
 export const errorCodes = {
   purposeNotFound: "0001",
@@ -27,7 +26,7 @@ export const errorCodes = {
 
 export type ErrorCodes = keyof typeof errorCodes;
 
-export const makeApiProblem = makeApiProblemBuilder(logger, errorCodes);
+export const makeApiProblem = makeApiProblemBuilder(errorCodes);
 
 export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
   return new ApiError({

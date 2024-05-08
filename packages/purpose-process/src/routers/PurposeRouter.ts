@@ -8,6 +8,7 @@ import {
   zodiosValidationErrorToApiProblem,
   ReadModelRepository,
   initDB,
+  fromAppContext,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
@@ -93,18 +94,24 @@ const purposeRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
         try {
           const { purpose, isRiskAnalysisValid } =
             await purposeService.getPurposeById(
               unsafeBrandId(req.params.id),
-              req.ctx.authData.organizationId
+              ctx.authData.organizationId,
+              ctx.logger
             );
           return res
             .status(200)
             .json(purposeToApiPurpose(purpose, isRiskAnalysisValid))
             .end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, getPurposeErrorMapper);
+          const errorRes = makeApiProblem(
+            error,
+            getPurposeErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -126,18 +133,21 @@ const purposeRouter = (
       "/purposes/:purposeId/versions/:versionId",
       authorizationMiddleware([ADMIN_ROLE, INTERNAL_ROLE]),
       async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
         try {
           await purposeService.deletePurposeVersion({
             purposeId: unsafeBrandId(req.params.purposeId),
             versionId: unsafeBrandId(req.params.versionId),
             organizationId: req.ctx.authData.organizationId,
             correlationId: req.ctx.correlationId,
+            logger: ctx.logger,
           });
           return res.status(204).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            deletePurposeVersionErrorMapper
+            deletePurposeVersionErrorMapper,
+            ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
@@ -147,12 +157,14 @@ const purposeRouter = (
       "/purposes/:purposeId/versions/:versionId/documents/:documentId",
       authorizationMiddleware([ADMIN_ROLE, SUPPORT_ROLE]),
       async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
         try {
           const document = await purposeService.getRiskAnalysisDocument({
             purposeId: unsafeBrandId(req.params.purposeId),
             versionId: unsafeBrandId(req.params.versionId),
             documentId: unsafeBrandId(req.params.documentId),
             organizationId: req.ctx.authData.organizationId,
+            logger: ctx.logger,
           });
           return res
             .status(200)
@@ -161,7 +173,8 @@ const purposeRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            getRiskAnalysisDocumentErrorMapper
+            getRiskAnalysisDocumentErrorMapper,
+            ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
