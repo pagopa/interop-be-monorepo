@@ -1,4 +1,4 @@
-import { DB, Logger } from "pagopa-interop-commons";
+import { DB, Logger, eventRepository } from "pagopa-interop-commons";
 import {
   EService,
   EServiceId,
@@ -170,7 +170,7 @@ export function purposeServiceBuilder(
       versionId,
       organizationId,
       correlationId,
-      logger
+      logger,
     }: {
       purposeId: PurposeId;
       versionId: PurposeVersionId;
