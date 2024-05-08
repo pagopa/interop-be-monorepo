@@ -22,7 +22,6 @@ import {
   descriptorState,
   generateId,
 } from "pagopa-interop-models";
-import { v4 as uuidv4 } from "uuid";
 import { AuthData } from "pagopa-interop-commons";
 
 export function expectPastTimestamp(timestamp: bigint): boolean {
@@ -179,7 +178,8 @@ export const getMockPurposeVersion = (): PurposeVersion => ({
 
 export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
   organizationId: organizationId || generateId(),
-  userId: uuidv4(),
+  userId: generateId(),
+  selfcareId: generateId(),
   userRoles: [],
   externalId: {
     value: "123456",
