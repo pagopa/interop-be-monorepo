@@ -1,4 +1,4 @@
-import { DB, Logger } from "pagopa-interop-commons";
+import { DB, Logger, eventRepository } from "pagopa-interop-commons";
 import {
   EService,
   EServiceId,
@@ -14,18 +14,26 @@ import {
   PurposeVersionDocumentId,
   PurposeVersionId,
   ownership,
+  purposeEventToBinaryData,
 } from "pagopa-interop-models";
 import {
   eserviceNotFound,
   organizationNotAllowed,
   purposeNotFound,
+  organizationIsNotTheConsumer,
+  purposeVersionCannotBeDeleted,
   purposeVersionDocumentNotFound,
   purposeVersionNotFound,
   tenantKindNotFound,
   tenantNotFound,
 } from "../model/domain/errors.js";
+import { toCreateEventWaitingForApprovalPurposeVersionDeleted } from "../model/domain/toEvent.js";
 import { ReadModelService } from "./readModelService.js";
-import { isRiskAnalysisFormValid, purposeIsDraft } from "./validators.js";
+import {
+  isRiskAnalysisFormValid,
+  isDeletableVersion,
+  purposeIsDraft,
+} from "./validators.js";
 
 const retrievePurpose = async (
   purposeId: PurposeId,
@@ -95,9 +103,11 @@ const retrieveTenant = async (
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeServiceBuilder(
-  _dbInstance: DB,
+  dbInstance: DB,
   readModelService: ReadModelService
 ) {
+  const repository = eventRepository(dbInstance, purposeEventToBinaryData);
+
   return {
     async getPurposeById(
       purposeId: PurposeId,
@@ -154,6 +164,49 @@ export function purposeServiceBuilder(
       const version = retrievePurposeVersion(versionId, purpose);
 
       return retrievePurposeVersionDocument(purposeId, version, documentId);
+    },
+    async deletePurposeVersion({
+      purposeId,
+      versionId,
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      purposeId: PurposeId;
+      versionId: PurposeVersionId;
+      organizationId: TenantId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<void> {
+      logger.info(`Deleting Version ${versionId} in Purpose ${purposeId}`);
+
+      const purpose = await retrievePurpose(purposeId, readModelService);
+
+      if (organizationId !== purpose.data.consumerId) {
+        throw organizationIsNotTheConsumer(organizationId);
+      }
+
+      const purposeVersion = retrievePurposeVersion(versionId, purpose);
+
+      if (!isDeletableVersion(purposeVersion, purpose.data)) {
+        throw purposeVersionCannotBeDeleted(purposeId, versionId);
+      }
+
+      const updatedPurpose: Purpose = {
+        ...purpose.data,
+        versions: purpose.data.versions.filter(
+          (v) => v.id !== purposeVersion.id
+        ),
+        updatedAt: new Date(),
+      };
+
+      const event = toCreateEventWaitingForApprovalPurposeVersionDeleted({
+        purpose: updatedPurpose,
+        version: purpose.metadata.version,
+        versionId,
+        correlationId,
+      });
+      await repository.createEvent(event);
     },
   };
 }
