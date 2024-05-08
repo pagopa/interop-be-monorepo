@@ -66,10 +66,7 @@ export const updatePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with(
       "eServiceModeNotAllowed",
       "missingFreeOfChargeReason",
-      "tenantKindNotFound",
       "riskAnalysisValidationFailed",
-      "eserviceNotFound",
-      "tenantNotFound",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
