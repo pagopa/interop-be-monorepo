@@ -201,14 +201,14 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       await addOneTenant(producerAndConsumer, tenants);
       await addOneAgreement(agreementToBeUpgraded, postgresDB, agreements);
 
-      const newAgreementId = unsafeBrandId<AgreementId>(
+      const newAgreementId = (
         await agreementService.upgradeAgreement(agreementToBeUpgraded.id, {
           authData,
           serviceName: "",
           correlationId: "",
           logger: genericLogger,
         })
-      );
+      ).id;
 
       const actualAgreementArchivedEvent = await readAgreementEventByVersion(
         agreementToBeUpgraded.id,
@@ -398,14 +398,14 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       await addOneTenant(consumer, tenants);
       await addOneAgreement(agreementToBeUpgraded, postgresDB, agreements);
 
-      const newAgreementId = unsafeBrandId<AgreementId>(
+      const newAgreementId = (
         await agreementService.upgradeAgreement(agreementToBeUpgraded.id, {
           authData,
           serviceName: "",
           correlationId: "",
           logger: genericLogger,
         })
-      );
+      ).id;
 
       const actualAgreementArchivedEvent = await readAgreementEventByVersion(
         agreementToBeUpgraded.id,
@@ -583,14 +583,14 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       );
       await addOneEService(eservice, eservices);
 
-      const newAgreementId = unsafeBrandId<AgreementId>(
+      const newAgreementId = (
         await agreementService.upgradeAgreement(agreementToBeUpgraded.id, {
           authData,
           serviceName: "",
           correlationId: "",
           logger: genericLogger,
         })
-      );
+      ).id;
 
       expect(newAgreementId).toBeDefined();
 
@@ -754,14 +754,14 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       );
       await addOneEService(eservice, eservices);
 
-      const newAgreementId = unsafeBrandId<AgreementId>(
+      const newAgreementId = (
         await agreementService.upgradeAgreement(agreementToBeUpgraded.id, {
           authData,
           serviceName: "",
           correlationId: "",
           logger: genericLogger,
         })
-      );
+      ).id;
 
       expect(newAgreementId).toBeDefined();
       const actualAgreementCreatedEvent = await readAgreementEventByVersion(
@@ -922,14 +922,14 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       );
       await addOneEService(eservice, eservices);
 
-      const newAgreementId = unsafeBrandId<AgreementId>(
+      const newAgreementId = (
         await agreementService.upgradeAgreement(agreementToBeUpgraded.id, {
           authData,
           serviceName: "",
           correlationId: "",
           logger: genericLogger,
         })
-      );
+      ).id;
 
       expect(newAgreementId).toBeDefined();
       const actualAgreementCreatedEvent = await readAgreementEventByVersion(
