@@ -7,11 +7,12 @@
 
 import fs from "fs";
 import path from "path";
+
+import { FileManager, Logger } from "pagopa-interop-commons";
 import {
   selfcareV2Client,
   UserResponse,
 } from "pagopa-interop-selfcare-v2-client";
-import { FileManager } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementAttribute,
@@ -201,7 +202,8 @@ export const pdfGenerator = {
     producer: Tenant,
     seed: UpdateAgreementSeed,
     attributeQuery: AttributeQuery,
-    storeFile: FileManager["storeBytes"]
+    storeFile: FileManager["storeBytes"],
+    logger: Logger
   ): Promise<ApiAgreementDocumentSeed> => {
     const documentId = uuidv4();
     const prettyName = "Richiesta di fruizione";
@@ -225,7 +227,8 @@ export const pdfGenerator = {
       `${config.agreementContractsPath}/${agreement.id}`,
       documentId,
       documentName,
-      Buffer.from(document)
+      Buffer.from(document),
+      logger
     );
 
     return {
