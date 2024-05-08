@@ -1,7 +1,10 @@
+/* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { fail } from "assert";
-import { readLastEventByStreamId } from "pagopa-interop-commons-test/index.js";
+import {
+  getMockAttribute,
+  readLastEventByStreamId,
+} from "pagopa-interop-commons-test/index.js";
 import {
   generateId,
   Tenant,
@@ -11,7 +14,7 @@ import {
   toTenantV2,
   TenantCertifiedAttributeRevokedV2,
 } from "pagopa-interop-models";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
 import {
   tenantNotFound,
   attributeNotFound,
@@ -20,7 +23,6 @@ import {
   addOneTenant,
   getMockTenant,
   addOneAttribute,
-  getMockAttribute,
   getMockCertifiedTenantAttribute,
 } from "./utils.js";
 import {
@@ -34,23 +36,32 @@ export const testInternalRevokeCertifiedAttribute = (): ReturnType<
   typeof describe
 > =>
   describe("testInternalRevokeCertifiedAttribute", async () => {
-    const requesterTenant: Tenant = {
-      ...getMockTenant(),
-      features: [
-        {
-          type: "PersistentCertifier",
-          certifierId: generateId(),
-        },
-      ],
-      externalId: {
-        origin: generateId(),
-        value: "1234567",
-      },
-    };
+    let requesterTenant: Tenant;
 
-    it("Should revoke the certified attribute if it exist", async () => {
+    beforeAll(async () => {
+      requesterTenant = {
+        ...getMockTenant(),
+        features: [
+          {
+            type: "PersistentCertifier",
+            certifierId: generateId(),
+          },
+        ],
+        externalId: {
+          origin: generateId(),
+          value: "1234567",
+        },
+      };
+
       vi.useFakeTimers();
       vi.setSystemTime(new Date());
+    });
+
+    afterAll(() => {
+      vi.useRealTimers();
+    });
+
+    it("Should revoke the certified attribute if it exist", async () => {
       const mockAttribute = getMockAttribute();
       const tenantWithCertifiedAttribute: Tenant = {
         ...requesterTenant,
@@ -77,13 +88,12 @@ export const testInternalRevokeCertifiedAttribute = (): ReturnType<
         "tenant",
         postgresDB
       );
-      if (!writtenEvent) {
-        fail("Update failed: tenant not found in event-store");
-      }
+
       expect(writtenEvent).toMatchObject({
         stream_id: tenantWithCertifiedAttribute.id,
         version: "1",
         type: "TenantCertifiedAttributeRevoked",
+        event_version: 2,
       });
       const writtenPayload = protobufDecoder(
         TenantCertifiedAttributeRevokedV2
@@ -103,7 +113,6 @@ export const testInternalRevokeCertifiedAttribute = (): ReturnType<
         updatedAt: new Date(),
       };
       expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
-      vi.useRealTimers();
     });
     it("Should throw tenantNotFound if the tenant doesn't exist", async () => {
       const mockAttribute = getMockAttribute();
