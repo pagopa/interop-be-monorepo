@@ -3,14 +3,15 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, describe } from "vitest";
 import {
+  EServiceCollection,
   PurposeCollection,
   ReadModelRepository,
+  TenantCollection,
   initDB,
 } from "pagopa-interop-commons";
 import { IDatabase } from "pg-promise";
-
 import {
   TEST_MONGO_DB_PORT,
   TEST_POSTGRES_DB_PORT,
@@ -19,12 +20,24 @@ import {
 } from "pagopa-interop-commons-test";
 import { StartedTestContainer } from "testcontainers";
 import { config } from "../src/utilities/config.js";
+import {
+  PurposeService,
+  purposeServiceBuilder,
+} from "../src/services/purposeService.js";
+import {
+  ReadModelService,
+  readModelServiceBuilder,
+} from "../src/services/readModelService.js";
+import { testGetPurposeById } from "./testGetPurposeById.js";
 
-describe("database test", async () => {
-  let purposes: PurposeCollection;
-  // let readModelService: ReadModelService;
-  // let purposeService: PurposeService;
-  let postgresDB: IDatabase<unknown>;
+export let purposes: PurposeCollection;
+export let eservices: EServiceCollection;
+export let tenants: TenantCollection;
+export let readModelService: ReadModelService;
+export let purposeService: PurposeService;
+export let postgresDB: IDatabase<unknown>;
+
+describe("Integration tests", async () => {
   let startedPostgreSqlContainer: StartedTestContainer;
   let startedMongodbContainer: StartedTestContainer;
 
@@ -40,7 +53,9 @@ describe("database test", async () => {
 
     const readModelRepository = ReadModelRepository.init(config);
     purposes = readModelRepository.purposes;
-    // readModelService = readModelServiceBuilder(readModelRepository);
+    eservices = readModelRepository.eservices;
+    tenants = readModelRepository.tenants;
+    readModelService = readModelServiceBuilder(readModelRepository);
     postgresDB = initDB({
       username: config.eventStoreDbUsername,
       password: config.eventStoreDbPassword,
@@ -50,11 +65,12 @@ describe("database test", async () => {
       schema: config.eventStoreDbSchema,
       useSSL: config.eventStoreDbUseSSL,
     });
-    // purposeService = purposeServiceBuilder(postgresDB, readModelService);
+    purposeService = purposeServiceBuilder(postgresDB, readModelService);
   });
 
   afterEach(async () => {
     await purposes.deleteMany({});
+    await eservices.deleteMany({});
 
     await postgresDB.none("TRUNCATE TABLE purpose.events RESTART IDENTITY");
   });
@@ -65,10 +81,6 @@ describe("database test", async () => {
   });
 
   describe("Purpose service", () => {
-    describe("create purpose", () => {
-      it("TO DO", () => {
-        expect(1).toBe(1);
-      });
-    });
+    testGetPurposeById();
   });
 });
