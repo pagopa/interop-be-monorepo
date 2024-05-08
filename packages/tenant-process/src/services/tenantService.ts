@@ -376,11 +376,11 @@ export function tenantServiceBuilder(
         throw tenantIsNotACertifier(organizationId);
       }
 
-      const attribute = await retrieveAttribute(
-        attributeId,
-        readModelService,
-        "Certified"
-      );
+      const attribute = await retrieveAttribute(attributeId, readModelService);
+
+      if (attribute.kind !== attributeKind.certified) {
+        throw attributeNotFound(attribute.id);
+      }
 
       if (!attribute.origin || attribute.origin !== certifierId) {
         throw certifiedAttributeOriginIsNotCompliantWithCertifier(

@@ -123,16 +123,6 @@ export const getMockEService = (): EService => ({
   mode: "Deliver",
 });
 
-export const getMockAttribute = (): Attribute => ({
-  name: "an Attribute",
-  id: generateId(),
-  kind: "Declared",
-  description: "an attribute",
-  creationTime: new Date(),
-  code: "123456",
-  origin: "IPA",
-});
-
 export const getMockDescriptor = (): Descriptor => ({
   id: generateId(),
   version: "0",
