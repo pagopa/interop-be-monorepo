@@ -1,8 +1,8 @@
 import {
   CreateEvent,
   DB,
+  Logger,
   eventRepository,
-  logger,
 } from "pagopa-interop-commons";
 import {
   EService,
@@ -140,7 +140,8 @@ export function purposeServiceBuilder(
   return {
     async getPurposeById(
       purposeId: PurposeId,
-      organizationId: TenantId
+      organizationId: TenantId,
+      logger: Logger
     ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(`Retrieving Purpose ${purposeId}`);
 
@@ -165,11 +166,13 @@ export function purposeServiceBuilder(
       versionId,
       documentId,
       organizationId,
+      logger,
     }: {
       purposeId: PurposeId;
       versionId: PurposeVersionId;
       documentId: PurposeVersionDocumentId;
       organizationId: TenantId;
+      logger: Logger;
     }): Promise<PurposeVersionDocument> {
       logger.info(
         `Retrieving Risk Analysis document ${documentId} in version ${versionId} of Purpose ${purposeId}`
@@ -194,11 +197,13 @@ export function purposeServiceBuilder(
       versionId,
       organizationId,
       correlationId,
+      logger,
     }: {
       purposeId: PurposeId;
       versionId: PurposeVersionId;
       organizationId: TenantId;
       correlationId: string;
+      logger: Logger;
     }): Promise<void> {
       logger.info(`Deleting Version ${versionId} in Purpose ${purposeId}`);
 
@@ -236,12 +241,14 @@ export function purposeServiceBuilder(
       rejectionReason,
       organizationId,
       correlationId,
+      logger,
     }: {
       purposeId: PurposeId;
       versionId: PurposeVersionId;
       rejectionReason: string;
       organizationId: TenantId;
       correlationId: string;
+      logger: Logger;
     }): Promise<void> {
       logger.info(`Rejecting Version ${versionId} in Purpose ${purposeId}`);
 
@@ -289,11 +296,13 @@ export function purposeServiceBuilder(
       purposeUpdateContent,
       organizationId,
       correlationId,
+      logger,
     }: {
       purposeId: PurposeId;
       purposeUpdateContent: ApiPurposeUpdateContent;
       organizationId: TenantId;
       correlationId: string;
+      logger: Logger;
     }): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(`Updating Purpose ${purposeId}`);
       return await updatePurposeInternal(
@@ -309,11 +318,13 @@ export function purposeServiceBuilder(
       reversePurposeUpdateContent,
       organizationId,
       correlationId,
+      logger,
     }: {
       purposeId: PurposeId;
       reversePurposeUpdateContent: ApiReversePurposeUpdateContent;
       organizationId: TenantId;
       correlationId: string;
+      logger: Logger;
     }): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(`Updating Reverse Purpose ${purposeId}`);
       return await updatePurposeInternal(
