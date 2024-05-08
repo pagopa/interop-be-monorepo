@@ -11,6 +11,7 @@ import {
   generateId,
   technology,
   toPurposeV2,
+  toReadModelPurpose,
 } from "pagopa-interop-models";
 import { IDatabase } from "pg-promise";
 
@@ -20,7 +21,7 @@ export const addOnePurpose = async (
   purposes: PurposeCollection
 ): Promise<void> => {
   await writePurposeInEventstore(purpose, postgresDB);
-  await writeInReadmodel(purpose, purposes);
+  await writeInReadmodel(toReadModelPurpose(purpose), purposes);
 };
 
 export const writePurposeInEventstore = async (
