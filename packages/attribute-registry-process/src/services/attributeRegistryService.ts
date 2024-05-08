@@ -167,7 +167,7 @@ export function attributeRegistryServiceBuilder(
         newDeclaredAttribute,
         correlationId
       );
-      await repository.createEvent(event, logger);
+      await repository.createEvent(event);
 
       return newDeclaredAttribute;
     },
@@ -208,7 +208,7 @@ export function attributeRegistryServiceBuilder(
         newVerifiedAttribute,
         correlationId
       );
-      await repository.createEvent(event, logger);
+      await repository.createEvent(event);
 
       return newVerifiedAttribute;
     },
@@ -256,7 +256,7 @@ export function attributeRegistryServiceBuilder(
         newCertifiedAttribute,
         correlationId
       );
-      await repository.createEvent(event, logger);
+      await repository.createEvent(event);
 
       return newCertifiedAttribute;
     },
@@ -296,7 +296,7 @@ export function attributeRegistryServiceBuilder(
         newInternalCertifiedAttribute,
         correlationId
       );
-      await repository.createEvent(event, logger);
+      await repository.createEvent(event);
 
       return newInternalCertifiedAttribute;
     },

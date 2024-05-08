@@ -447,7 +447,7 @@ export function catalogServiceBuilder(
       };
 
       const event = toCreateEventEServiceAdded(newEService, correlationId);
-      await repository.createEvent(event, logger);
+      await repository.createEvent(event);
 
       return newEService;
     },
@@ -523,7 +523,7 @@ export function catalogServiceBuilder(
         updatedEService,
         correlationId
       );
-      await repository.createEvent(event, logger);
+      await repository.createEvent(event);
 
       return updatedEService;
     },
@@ -545,7 +545,7 @@ export function catalogServiceBuilder(
         eservice.data,
         correlationId
       );
-      await repository.createEvent(event, logger);
+      await repository.createEvent(event);
     },
 
     async uploadDocument(
@@ -623,7 +623,7 @@ export function catalogServiceBuilder(
               correlationId
             );
 
-      await repository.createEvent(event, logger);
+      await repository.createEvent(event);
 
       return updatedEService;
     },
@@ -689,7 +689,7 @@ export function catalogServiceBuilder(
             correlationId
           );
 
-      await repository.createEvent(event, logger);
+      await repository.createEvent(event);
     },
 
     // eslint-disable-next-line max-params
@@ -758,7 +758,7 @@ export function catalogServiceBuilder(
             correlationId
           );
 
-      await repository.createEvent(event, logger);
+      await repository.createEvent(event);
       return updatedDocument;
     },
 
@@ -825,7 +825,7 @@ export function catalogServiceBuilder(
         newEservice,
         correlationId
       );
-      await repository.createEvent(event, logger);
+      await repository.createEvent(event);
 
       return newDescriptor;
     },
@@ -878,7 +878,7 @@ export function catalogServiceBuilder(
         correlationId
       );
 
-      await repository.createEvent(event, logger);
+      await repository.createEvent(event);
     },
 
     async updateDraftDescriptor(
@@ -936,7 +936,7 @@ export function catalogServiceBuilder(
         updatedEService,
         correlationId
       );
-      await repository.createEvent(event, logger);
+      await repository.createEvent(event);
 
       return updatedEService;
     },
@@ -1035,7 +1035,7 @@ export function catalogServiceBuilder(
           );
         }
       };
-      await repository.createEvent(await event(), logger);
+      await repository.createEvent(await event());
     },
 
     async suspendDescriptor(
@@ -1072,7 +1072,7 @@ export function catalogServiceBuilder(
         newEservice,
         correlationId
       );
-      await repository.createEvent(event, logger);
+      await repository.createEvent(event);
     },
 
     async activateDescriptor(
@@ -1140,7 +1140,7 @@ export function catalogServiceBuilder(
         }
       };
 
-      await repository.createEvent(event(), logger);
+      await repository.createEvent(event());
     },
 
     async cloneDescriptor(
@@ -1253,7 +1253,7 @@ export function catalogServiceBuilder(
         clonedEservice,
         correlationId
       );
-      await repository.createEvent(event, logger);
+      await repository.createEvent(event);
 
       return clonedEservice;
     },
@@ -1286,7 +1286,7 @@ export function catalogServiceBuilder(
         correlationId
       );
 
-      await repository.createEvent(event, logger);
+      await repository.createEvent(event);
     },
     async updateDescriptor(
       eserviceId: EServiceId,
@@ -1334,7 +1334,7 @@ export function catalogServiceBuilder(
         updatedEService,
         correlationId
       );
-      await repository.createEvent(event, logger);
+      await repository.createEvent(event);
 
       return updatedEService;
     },
@@ -1381,7 +1381,7 @@ export function catalogServiceBuilder(
         correlationId
       );
 
-      await repository.createEvent(event, logger);
+      await repository.createEvent(event);
     },
     async updateRiskAnalysis(
       eserviceId: EServiceId,
@@ -1436,7 +1436,7 @@ export function catalogServiceBuilder(
         correlationId
       );
 
-      await repository.createEvent(event, logger);
+      await repository.createEvent(event);
     },
     async deleteRiskAnalysis(
       eserviceId: EServiceId,
@@ -1469,7 +1469,7 @@ export function catalogServiceBuilder(
         correlationId
       );
 
-      await repository.createEvent(event, logger);
+      await repository.createEvent(event);
     },
   };
 }

@@ -139,7 +139,7 @@ export function agreementServiceBuilder(
         tenantQuery,
         correlationId
       );
-      return await repository.createEvent(createAgreementEvent, logger);
+      return await repository.createEvent(createAgreementEvent);
     },
     async getAgreementProducers(
       producerName: string | undefined,
@@ -182,8 +182,7 @@ export function agreementServiceBuilder(
             agreementToBeUpdated,
           },
           correlationId
-        ),
-        logger
+        )
       );
     },
     async deleteAgreementById(
@@ -203,8 +202,7 @@ export function agreementServiceBuilder(
           },
           correlationId,
           logger
-        ),
-        logger
+        )
       );
     },
     async submitAgreement(
@@ -229,7 +227,7 @@ export function agreementServiceBuilder(
       );
 
       for (const event of updatesEvents) {
-        await repository.createEvent(event, ctx.logger);
+        await repository.createEvent(event);
       }
 
       return agreementId;
@@ -253,7 +251,7 @@ export function agreementServiceBuilder(
       );
 
       for (const event of events) {
-        await repository.createEvent(event, logger);
+        await repository.createEvent(event);
       }
 
       return streamId;
@@ -276,7 +274,7 @@ export function agreementServiceBuilder(
         logger
       );
 
-      await repository.createEvent(event, logger);
+      await repository.createEvent(event);
 
       return event.streamId;
     },
@@ -293,7 +291,7 @@ export function agreementServiceBuilder(
         agreementQuery,
         ctx
       );
-      return await repository.createEvent(addDocumentEvent, ctx.logger);
+      return await repository.createEvent(addDocumentEvent);
     },
     async getAgreementConsumerDocument(
       agreementId: AgreementId,
@@ -330,8 +328,7 @@ export function agreementServiceBuilder(
           tenantQuery,
           eserviceQuery,
           correlationId,
-        }),
-        logger
+        })
       );
 
       return agreementId;
@@ -367,7 +364,7 @@ export function agreementServiceBuilder(
         logger
       );
 
-      return await repository.createEvent(removeDocumentEvent, logger);
+      return await repository.createEvent(removeDocumentEvent);
     },
     async rejectAgreement(
       agreementId: AgreementId,
@@ -386,8 +383,7 @@ export function agreementServiceBuilder(
             eserviceQuery,
           },
           correlationId
-        ),
-        logger
+        )
       );
       return agreementId;
     },
@@ -409,7 +405,7 @@ export function agreementServiceBuilder(
       );
 
       for (const event of updatesEvents) {
-        await repository.createEvent(event, logger);
+        await repository.createEvent(event);
       }
       return agreementId;
     },
@@ -425,8 +421,7 @@ export function agreementServiceBuilder(
           authData,
           agreementQuery,
           correlationId
-        ),
-        logger
+        )
       );
 
       return agreementId;

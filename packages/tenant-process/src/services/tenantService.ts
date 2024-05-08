@@ -130,7 +130,7 @@ export function tenantServiceBuilder(
         updatedTenant,
         correlationId
       );
-      await repository.createEvent(event, logger);
+      await repository.createEvent(event);
       return updatedTenant;
     },
 
@@ -190,7 +190,7 @@ export function tenantServiceBuilder(
         updatedTenant,
         correlationId
       );
-      await repository.createEvent(event, logger);
+      await repository.createEvent(event);
       return updatedTenant;
     },
 
@@ -237,8 +237,7 @@ export function tenantServiceBuilder(
             existingTenant.metadata.version,
             updatedTenant,
             correlationId
-          ),
-          logger
+          )
         );
       } else {
         logger.info(
@@ -256,8 +255,7 @@ export function tenantServiceBuilder(
           createdAt: new Date(),
         };
         return await repository.createEvent(
-          toCreateEventTenantAdded(newTenant, correlationId),
-          logger
+          toCreateEventTenantAdded(newTenant, correlationId)
         );
       }
     },
