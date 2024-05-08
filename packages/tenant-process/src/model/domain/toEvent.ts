@@ -96,18 +96,17 @@ export const toCreateEventMaintenanceTenantDeleted = (
 });
 
 export const toCreateEventMaintenanceTenantPromotedToCertifier = (
-  streamId: string,
   version: number,
   tenant: Tenant,
   correlationId: string
 ): CreateEvent<TenantEvent> => ({
-  streamId,
+  streamId: tenant.id,
   version,
   event: {
     event_version: 2,
     type: "MaintenanceTenantPromotedToCertifier",
     data: {
-      tenantId: streamId,
+      tenantId: tenant.id,
       tenant: toTenantV2(tenant),
     },
   },
