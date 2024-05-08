@@ -15,6 +15,7 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   purposeNotFound,
   purposeVersionNotFound,
@@ -53,6 +54,7 @@ export const testGetRiskAnalysisDocument = (): ReturnType<typeof describe> =>
         versionId: mockPurposeVersion.id,
         documentId: mockDocument.id,
         organizationId: mockEService.producerId,
+        logger: genericLogger,
       });
       expect(result).toEqual(mockDocument);
     });
@@ -66,6 +68,7 @@ export const testGetRiskAnalysisDocument = (): ReturnType<typeof describe> =>
           versionId: generateId(),
           documentId: generateId(),
           organizationId: generateId(),
+          logger: genericLogger,
         })
       ).rejects.toThrowError(purposeNotFound(notExistingId));
     });
@@ -93,6 +96,7 @@ export const testGetRiskAnalysisDocument = (): ReturnType<typeof describe> =>
           versionId: randomVersionId,
           documentId: randomDocumentId,
           organizationId: mockEService.producerId,
+          logger: genericLogger,
         })
       ).rejects.toThrowError(
         purposeVersionNotFound(mockPurpose.id, randomVersionId)
@@ -121,6 +125,7 @@ export const testGetRiskAnalysisDocument = (): ReturnType<typeof describe> =>
           versionId: mockPurposeVersion.id,
           documentId: randomDocumentId,
           organizationId: mockEService.producerId,
+          logger: genericLogger,
         })
       ).rejects.toThrowError(
         purposeVersionDocumentNotFound(
@@ -153,6 +158,7 @@ export const testGetRiskAnalysisDocument = (): ReturnType<typeof describe> =>
           versionId: mockPurposeVersion.id,
           documentId: mockDocument.id,
           organizationId: randomId,
+          logger: genericLogger,
         })
       ).rejects.toThrowError(organizationNotAllowed(randomId));
     });

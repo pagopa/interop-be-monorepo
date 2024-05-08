@@ -2,9 +2,9 @@ import {
   AgreementReadModel,
   AttributeReadmodel,
   EServiceReadModel,
-  Purpose,
+  PurposeReadModel,
   Tenant,
-  genericError,
+  genericInternalError,
 } from "pagopa-interop-models";
 import {
   Collection,
@@ -14,7 +14,7 @@ import {
   RootFilterOperators,
 } from "mongodb";
 import { z } from "zod";
-import { ReadModelDbConfig, logger } from "../index.js";
+import { ReadModelDbConfig } from "../index.js";
 
 export const Metadata = z.object({ version: z.number() });
 export type Metadata = z.infer<typeof Metadata>;
@@ -33,7 +33,7 @@ export type EServiceCollection = GenericCollection<EServiceReadModel>;
 export type AgreementCollection = GenericCollection<AgreementReadModel>;
 export type TenantCollection = GenericCollection<Tenant>;
 export type AttributeCollection = GenericCollection<AttributeReadmodel>;
-export type PurposeCollection = GenericCollection<Purpose>;
+export type PurposeCollection = GenericCollection<PurposeReadModel>;
 
 export type Collections =
   | EServiceCollection
@@ -189,7 +189,7 @@ export class ReadModelRepository {
   public static async getTotalCount(
     collection: Collections,
     aggregation: object[],
-    allowDiskUse: boolean = false
+    allowDiskUse: boolean
   ): Promise<number> {
     const query = collection.aggregate([...aggregation, { $count: "count" }], {
       allowDiskUse,
@@ -202,11 +202,10 @@ export class ReadModelRepository {
       return result.data.length > 0 ? result.data[0].count : 0;
     }
 
-    logger.error(
+    throw genericInternalError(
       `Unable to get total count from aggregation pipeline: result ${JSON.stringify(
         result
       )} - data ${JSON.stringify(data)} `
     );
-    throw genericError("Unable to get total count from aggregation pipeline");
   }
 }
