@@ -2,7 +2,6 @@ import { AuthData, DB, eventRepository, logger } from "pagopa-interop-commons";
 import {
   Attribute,
   AttributeId,
-  AttributeKind,
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
   ListResult,
@@ -75,7 +74,7 @@ const retrieveTenant = async (
   readModelService: ReadModelService
 ): Promise<WithMetadata<Tenant>> => {
   const tenant = await readModelService.getTenantById(tenantId);
-  if (tenant === undefined) {
+  if (!tenant) {
     throw tenantNotFound(tenantId);
   }
   return tenant;
@@ -83,11 +82,10 @@ const retrieveTenant = async (
 
 export async function retrieveAttribute(
   attributeId: AttributeId,
-  readModelService: ReadModelService,
-  kind: AttributeKind
+  readModelService: ReadModelService
 ): Promise<Attribute> {
   const attribute = await readModelService.getAttributeById(attributeId);
-  if (!attribute || attribute.kind !== kind) {
+  if (!attribute) {
     throw attributeNotFound(attributeId);
   }
   return attribute;
@@ -334,9 +332,12 @@ export function tenantServiceBuilder(
 
       const attribute = await retrieveAttribute(
         unsafeBrandId(tenantAttributeSeed.id),
-        readModelService,
-        attributeKind.certified
+        readModelService
       );
+
+      if (attribute.kind !== attributeKind.certified) {
+        throw attributeNotFound(attribute.id);
+      }
 
       if (!attribute.origin || attribute.origin !== certifierId) {
         throw certifiedAttributeOriginIsNotCompliantWithCertifier(
@@ -385,9 +386,12 @@ export function tenantServiceBuilder(
 
       const attribute = await retrieveAttribute(
         unsafeBrandId(tenantAttributeSeed.id),
-        readModelService,
-        attributeKind.declared
+        readModelService
       );
+
+      if (attribute.kind !== attributeKind.declared) {
+        throw attributeNotFound(attribute.id);
+      }
 
       const maybeDeclaredTenantAttribute = targetTenant.data.attributes.find(
         (attr): attr is DeclaredTenantAttribute =>
@@ -453,9 +457,12 @@ export function tenantServiceBuilder(
 
       const attribute = await retrieveAttribute(
         unsafeBrandId(tenantAttributeSeed.id),
-        readModelService,
-        attributeKind.verified
+        readModelService
       );
+
+      if (attribute.kind !== attributeKind.verified) {
+        throw attributeNotFound(attribute.id);
+      }
 
       const verifiedTenantAttribute = targetTenant.data.attributes.find(
         (attr): attr is VerifiedTenantAttribute =>
