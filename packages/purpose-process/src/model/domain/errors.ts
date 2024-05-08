@@ -7,7 +7,6 @@ import {
   TenantId,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
-import { logger } from "pagopa-interop-commons";
 
 export const errorCodes = {
   purposeNotFound: "0001",
