@@ -30,9 +30,9 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
-import { v4 as uuidv4 } from "uuid";
+import { genericLogger } from "pagopa-interop-commons";
 import { agreementRejectableStates } from "../src/model/domain/validators.js";
-import { toAgreementV1 } from "../src/model/domain/toEvent.js";
+import { toAgreementV2 } from "../src/model/domain/toEvent.js";
 import {
   agreementNotFound,
   agreementNotInExpectedState,
@@ -183,8 +183,12 @@ export const testRejectAgreement = (): ReturnType<typeof describe> =>
       await agreementService.rejectAgreement(
         agreement.id,
         "Rejected by producer due to test reasons",
-        authData,
-        uuidv4()
+        {
+          authData,
+          serviceName: "",
+          correlationId: "",
+          logger: genericLogger,
+        }
       );
 
       const agreementEvent = await readLastAgreementEvent(
@@ -193,8 +197,8 @@ export const testRejectAgreement = (): ReturnType<typeof describe> =>
       );
 
       expect(agreementEvent).toMatchObject({
-        type: "AgreementUpdated",
-        event_version: 1,
+        type: "AgreementRejected",
+        event_version: 2,
         version: "1",
         stream_id: agreement.id,
       });
@@ -227,7 +231,7 @@ export const testRejectAgreement = (): ReturnType<typeof describe> =>
         },
       };
       expect(actualAgreementRejected).toMatchObject(
-        toAgreementV1(expectedAgreemenentRejected)
+        toAgreementV2(expectedAgreemenentRejected)
       );
       vi.useRealTimers();
     });
@@ -240,8 +244,12 @@ export const testRejectAgreement = (): ReturnType<typeof describe> =>
         agreementService.rejectAgreement(
           agreementId,
           "Rejected by producer due to test reasons",
-          authData,
-          uuidv4()
+          {
+            authData,
+            serviceName: "",
+            correlationId: "",
+            logger: genericLogger,
+          }
         )
       ).rejects.toThrowError(agreementNotFound(agreementId));
     });
@@ -254,8 +262,12 @@ export const testRejectAgreement = (): ReturnType<typeof describe> =>
         agreementService.rejectAgreement(
           agreement.id,
           "Rejected by producer due to test reasons",
-          authData,
-          uuidv4()
+          {
+            authData,
+            serviceName: "",
+            correlationId: "",
+            logger: genericLogger,
+          }
         )
       ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
     });
@@ -275,8 +287,12 @@ export const testRejectAgreement = (): ReturnType<typeof describe> =>
         agreementService.rejectAgreement(
           agreement.id,
           "Rejected by producer due to test reasons",
-          authData,
-          uuidv4()
+          {
+            authData,
+            serviceName: "",
+            correlationId: "",
+            logger: genericLogger,
+          }
         )
       ).rejects.toThrowError(
         agreementNotInExpectedState(agreement.id, agreement.state)
@@ -295,8 +311,12 @@ export const testRejectAgreement = (): ReturnType<typeof describe> =>
         agreementService.rejectAgreement(
           agreement.id,
           "Rejected by producer due to test reasons",
-          authData,
-          uuidv4()
+          {
+            authData,
+            serviceName: "",
+            correlationId: "",
+            logger: genericLogger,
+          }
         )
       ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
     });
@@ -320,8 +340,12 @@ export const testRejectAgreement = (): ReturnType<typeof describe> =>
         agreementService.rejectAgreement(
           agreement.id,
           "Rejected by producer due to test reasons",
-          authData,
-          uuidv4()
+          {
+            authData,
+            serviceName: "",
+            correlationId: "",
+            logger: genericLogger,
+          }
         )
       ).rejects.toThrowError(tenantNotFound(agreement.consumerId));
     });
@@ -348,8 +372,12 @@ export const testRejectAgreement = (): ReturnType<typeof describe> =>
         agreementService.rejectAgreement(
           agreement.id,
           "Rejected by producer due to test reasons",
-          authData,
-          uuidv4()
+          {
+            authData,
+            serviceName: "",
+            correlationId: "",
+            logger: genericLogger,
+          }
         )
       ).rejects.toThrowError(
         descriptorNotFound(eservice.id, agreement.descriptorId)
