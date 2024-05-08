@@ -23,7 +23,6 @@ import {
   purposeVersionState,
   PurposeRiskAnalysisForm,
   PurposeEvent,
-  EServiceMode,
   eserviceMode,
 } from "pagopa-interop-models";
 import {
@@ -307,9 +306,11 @@ export function purposeServiceBuilder(
       logger.info(`Updating Purpose ${purposeId}`);
       return await performUpdatePurpose(
         purposeId,
-        purposeUpdateContent,
+        {
+          updateContent: purposeUpdateContent,
+          mode: eserviceMode.deliver,
+        },
         organizationId,
-        eserviceMode.deliver,
         readModelService,
         correlationId,
         repository
@@ -331,9 +332,11 @@ export function purposeServiceBuilder(
       logger.info(`Updating Reverse Purpose ${purposeId}`);
       return await performUpdatePurpose(
         purposeId,
-        reversePurposeUpdateContent,
+        {
+          updateContent: reversePurposeUpdateContent,
+          mode: eserviceMode.receive,
+        },
         organizationId,
-        eserviceMode.receive,
         readModelService,
         correlationId,
         repository
@@ -423,14 +426,19 @@ const getInvolvedTenantByEServiceMode = async (
 
 const performUpdatePurpose = async (
   purposeId: PurposeId,
-  updateContent: ApiPurposeUpdateContent | ApiReversePurposeUpdateContent,
+  {
+    mode,
+    updateContent,
+  }:
+    | { mode: "Deliver"; updateContent: ApiPurposeUpdateContent }
+    | { mode: "Receive"; updateContent: ApiReversePurposeUpdateContent },
   organizationId: TenantId,
-  mode: EServiceMode,
   readModelService: ReadModelService,
   correlationId: string,
   repository: {
     createEvent: (createEvent: CreateEvent<PurposeEvent>) => Promise<string>;
   }
+  // eslint-disable-next-line max-params
 ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> => {
   const purpose = await retrievePurpose(purposeId, readModelService);
   assertOrganizationIsAConsumer(organizationId, purpose.data.consumerId);
@@ -468,7 +476,7 @@ const performUpdatePurpose = async (
   const newRiskAnalysis: PurposeRiskAnalysisForm | undefined =
     mode === eserviceMode.deliver
       ? validateAndTransformRiskAnalysis(
-          (updateContent as ApiPurposeUpdateContent).riskAnalysisForm,
+          updateContent.riskAnalysisForm,
           tenant.kind
         )
       : reverseValidateAndTransformRiskAnalysis(
@@ -478,7 +486,10 @@ const performUpdatePurpose = async (
 
   const updatedPurpose: Purpose = {
     ...purpose.data,
-    ...updateContent,
+    title: updateContent.title,
+    description: updateContent.description,
+    isFreeOfCharge: updateContent.isFreeOfCharge,
+    freeOfChargeReason: updateContent.freeOfChargeReason,
     versions: [
       {
         ...purpose.data.versions[0],
