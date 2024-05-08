@@ -239,28 +239,6 @@ export const testCreatePurposeVersion = (): ReturnType<typeof describe> =>
       }).rejects.toThrowError(organizationNotAllowed(anotherTenant.id));
     });
 
-    it("should throw an error if the caller is neither the producer or the consumer of the purpose", async () => {
-      const anotherTenant: Tenant = { ...getMockTenant(), kind: "PA" };
-
-      await addOnePurpose(mockPurpose, postgresDB, purposes);
-      await writeInReadmodel(toReadModelEService(mockEService), eservices);
-      await writeInReadmodel(mockAgreement, agreements);
-      await writeInReadmodel(mockConsumer, tenants);
-      await writeInReadmodel(mockProducer, tenants);
-      await writeInReadmodel(anotherTenant, tenants);
-
-      expect(async () => {
-        await purposeService.createPurposeVersion({
-          purposeId: mockPurpose.id,
-          seed: {
-            dailyCalls: 20,
-          },
-          organizationId: anotherTenant.id,
-          correlationId: generateId(),
-        });
-      }).rejects.toThrowError(organizationNotAllowed(anotherTenant.id));
-    });
-
     it("should throw an error if the caller has no agreement associated with the purpose in the read model", async () => {
       await addOnePurpose(mockPurpose, postgresDB, purposes);
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
