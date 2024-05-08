@@ -104,6 +104,7 @@ import { testRejectAgreement } from "./testRejectAgreement.js";
 import { testUpdateAgreement } from "./testUpdateAgreement.js";
 import { testUpgradeAgreement } from "./testUpgradeAgreement.js";
 import { testCloneAgreement } from "./testCloneAgreement.js";
+import { testSuspendAgreement } from "./testSuspendAgreement.js";
 
 export let agreements: AgreementCollection;
 export let eservices: EServiceCollection;
@@ -1829,6 +1830,7 @@ describe("Agreement service", () => {
   testCloneAgreement();
   testDeleteAgreement();
   testRejectAgreement();
+  testSuspendAgreement();
   testUpdateAgreement();
   testUpgradeAgreement();
 });
