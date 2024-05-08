@@ -453,9 +453,12 @@ export function tenantServiceBuilder(
 
       const attribute = await retrieveAttribute(
         unsafeBrandId(tenantAttributeSeed.id),
-        readModelService,
-        attributeKind.verified
+        readModelService
       );
+
+      if (attribute.kind !== attributeKind.verified) {
+        throw attributeNotFound(attribute.id);
+      }
 
       const verifiedTenantAttribute = targetTenant.data.attributes.find(
         (attr): attr is VerifiedTenantAttribute =>
