@@ -37,7 +37,7 @@ import {
   missingCertifiedAttributesError,
   notLatestEServiceDescriptor,
   operationNotAllowed,
-  tenantIdNotFound,
+  tenantNotFound,
 } from "./errors.js";
 import {
   CertifiedAgreementAttribute,
@@ -190,7 +190,7 @@ export function assertTenantExist(
   tenant: Tenant | undefined
 ): asserts tenant is NonNullable<Tenant> {
   if (tenant === undefined) {
-    throw tenantIdNotFound(tenantId);
+    throw tenantNotFound(tenantId);
   }
 }
 
