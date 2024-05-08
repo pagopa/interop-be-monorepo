@@ -1038,21 +1038,24 @@ async function activateOrWaitingForApproval({
         .otherwise(() => purposeVersionState.active);
     }
 
-    const updatedPurposeVersion: PurposeVersion = {
-      ...purposeVersion,
-      updatedAt: new Date(),
-      suspendedAt: undefined,
-    };
-
     if (ownership === "PRODUCER" || ownership === "SELF_CONSUMER") {
-      const updatedPurpose: Purpose = replacePurposeVersion(purpose, {
-        ...updatedPurposeVersion,
-        state: calcNewVersionState({
-          suspendedByProducer: false,
-          suspendedByConsumer: purpose.suspendedByConsumer,
-        }),
+      const newState = calcNewVersionState({
+        suspendedByProducer: false,
+        suspendedByConsumer: purpose.suspendedByConsumer,
       });
-
+      const updatedPurposeVersion: PurposeVersion = {
+        ...purposeVersion,
+        updatedAt: new Date(),
+        suspendedAt:
+          newState !== purposeVersionState.suspended
+            ? undefined
+            : purposeVersion.suspendedAt,
+        state: newState,
+      };
+      const updatedPurpose: Purpose = replacePurposeVersion(
+        purpose,
+        updatedPurposeVersion
+      );
       return {
         event: toCreateEventPurposeVersionUnsuspenedByProducer({
           purpose: { ...updatedPurpose, suspendedByProducer: false },
@@ -1063,13 +1066,23 @@ async function activateOrWaitingForApproval({
         updatedPurposeVersion,
       };
     } else {
-      const updatedPurpose: Purpose = replacePurposeVersion(purpose, {
-        ...updatedPurposeVersion,
-        state: calcNewVersionState({
-          suspendedByProducer: purpose.suspendedByProducer,
-          suspendedByConsumer: false,
-        }),
+      const newState = calcNewVersionState({
+        suspendedByProducer: false,
+        suspendedByConsumer: purpose.suspendedByConsumer,
       });
+      const updatedPurposeVersion: PurposeVersion = {
+        ...purposeVersion,
+        updatedAt: new Date(),
+        suspendedAt:
+          newState !== purposeVersionState.suspended
+            ? undefined
+            : purposeVersion.suspendedAt,
+        state: newState,
+      };
+      const updatedPurpose: Purpose = replacePurposeVersion(
+        purpose,
+        updatedPurposeVersion
+      );
       return {
         event: toCreateEventPurposeVersionUnsuspenedByConsumer({
           purpose: { ...updatedPurpose, suspendedByConsumer: false },
