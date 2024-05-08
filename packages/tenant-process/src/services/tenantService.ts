@@ -374,9 +374,12 @@ export function tenantServiceBuilder(
 
       const attribute = await retrieveAttribute(
         unsafeBrandId(tenantAttributeSeed.id),
-        readModelService,
-        attributeKind.declared
+        readModelService
       );
+
+      if (attribute.kind !== attributeKind.declared) {
+        throw attributeNotFound(attribute.id);
+      }
 
       const maybeDeclaredTenantAttribute = targetTenant.data.attributes.find(
         (attr): attr is DeclaredTenantAttribute =>
