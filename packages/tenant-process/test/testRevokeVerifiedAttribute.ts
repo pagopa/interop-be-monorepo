@@ -1,6 +1,6 @@
+/* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { fail } from "assert";
 import { readLastEventByStreamId } from "pagopa-interop-commons-test/index.js";
 import {
   generateId,
@@ -14,8 +14,9 @@ import {
   tenantAttributeType,
   AttributeId,
   TenantVerifiedAttributeRevokedV2,
+  Agreement,
 } from "pagopa-interop-models";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
 import {
   tenantNotFound,
   attributeAlreadyRevoked,
@@ -45,43 +46,53 @@ import {
 
 export const testRevokeVerifiedAttribute = (): ReturnType<typeof describe> =>
   describe("revokeVerifiedAttribute", async () => {
-    const attributeId: AttributeId = generateId();
     const targetTenant: Tenant = getMockTenant();
     const requesterTenant: Tenant = getMockTenant();
+    const attributeId: AttributeId = generateId();
+    let descriptor1: Descriptor;
+    let eService1: EService;
+    let agreementEservice1: Agreement;
 
-    const descriptor1: Descriptor = {
-      ...getMockDescriptor(),
-      state: descriptorState.published,
-      attributes: {
-        verified: [
-          [
-            {
-              id: attributeId,
-              explicitAttributeVerification: false,
-            },
+    beforeAll(async () => {
+      descriptor1 = {
+        ...getMockDescriptor(),
+        state: descriptorState.published,
+        attributes: {
+          verified: [
+            [
+              {
+                id: attributeId,
+                explicitAttributeVerification: false,
+              },
+            ],
           ],
-        ],
-        declared: [],
-        certified: [],
-      },
-    };
+          declared: [],
+          certified: [],
+        },
+      };
 
-    const eService1: EService = {
-      ...getMockEService(),
-      producerId: requesterTenant.id,
-      descriptors: [descriptor1],
-    };
+      eService1 = {
+        ...getMockEService(),
+        producerId: requesterTenant.id,
+        descriptors: [descriptor1],
+      };
 
-    const agreementEservice1 = getMockAgreement({
-      eserviceId: eService1.id,
-      descriptorId: descriptor1.id,
-      producerId: eService1.producerId,
-      consumerId: targetTenant.id,
+      agreementEservice1 = getMockAgreement({
+        eserviceId: eService1.id,
+        descriptorId: descriptor1.id,
+        producerId: eService1.producerId,
+        consumerId: targetTenant.id,
+      });
+
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date());
+    });
+
+    afterAll(() => {
+      vi.useRealTimers();
     });
 
     it("Should revoke the VerifiedAttribute if it exist", async () => {
-      vi.useFakeTimers();
-      vi.setSystemTime(new Date());
       const mockVerifiedBy = getMockVerifiedBy();
       const mockRevokedBy = getMockRevokedBy();
       const tenantWithVerifiedAttribute: Tenant = {
@@ -119,14 +130,14 @@ export const testRevokeVerifiedAttribute = (): ReturnType<typeof describe> =>
         "tenant",
         postgresDB
       );
-      if (!writtenEvent) {
-        fail("Update failed: tenant not found in event-store");
-      }
+
       expect(writtenEvent).toMatchObject({
         stream_id: tenantWithVerifiedAttribute.id,
         version: "1",
         type: "TenantVerifiedAttributeRevoked",
+        event_version: 2,
       });
+
       const writtenPayload = protobufDecoder(
         TenantVerifiedAttributeRevokedV2
       ).parse(writtenEvent?.data);
@@ -154,7 +165,6 @@ export const testRevokeVerifiedAttribute = (): ReturnType<typeof describe> =>
         updatedAt: new Date(),
       };
       expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
-      vi.useRealTimers();
     });
     it("Should throw tenantNotFound if the tenant doesn't exist", async () => {
       await addOneEService(eService1, eservices);
