@@ -21,6 +21,7 @@ import {
   AgreementCollection,
   EServiceCollection,
   ReadModelRepository,
+  genericLogger,
 } from "pagopa-interop-commons";
 import {
   DescriptorId,
@@ -41,6 +42,7 @@ import { addOneAgreement, addOneEService } from "./utils.js";
 
 describe("EService Descripors Archiver", async () => {
   describe("archiveDescriptorsForArchivedAgreement", async () => {
+    const testCorrelationId = generateId();
     let startedMongodbContainer: StartedTestContainer;
     let readModelService: ReadModelService;
     let eservices: EServiceCollection;
@@ -123,13 +125,16 @@ describe("EService Descripors Archiver", async () => {
       const archivedDescriptor = await archiveDescriptorForArchivedAgreement(
         archivedAgreement,
         readModelService,
-        archiveDescriptor
+        archiveDescriptor,
+        genericLogger,
+        testCorrelationId
       );
 
       expect(archivedDescriptor).toBe(descriptor.id);
       expect(archiveDescriptor).toHaveBeenCalledWith(
         descriptor.id,
-        eservice.id
+        eservice.id,
+        testCorrelationId
       );
     });
 
@@ -190,13 +195,16 @@ describe("EService Descripors Archiver", async () => {
       const archivedDescriptor = await archiveDescriptorForArchivedAgreement(
         archivedAgreement,
         readModelService,
-        archiveDescriptor
+        archiveDescriptor,
+        genericLogger,
+        testCorrelationId
       );
 
       expect(archivedDescriptor).toBe(descriptor.id);
       expect(archiveDescriptor).toHaveBeenCalledWith(
         descriptor.id,
-        eservice.id
+        eservice.id,
+        testCorrelationId
       );
     });
 
@@ -248,7 +256,9 @@ describe("EService Descripors Archiver", async () => {
       const archivedDescriptor = await archiveDescriptorForArchivedAgreement(
         archivedAgreement,
         readModelService,
-        archiveDescriptor
+        archiveDescriptor,
+        genericLogger,
+        testCorrelationId
       );
 
       expect(archivedDescriptor).toBeUndefined();
@@ -306,7 +316,9 @@ describe("EService Descripors Archiver", async () => {
       const archivedDescriptor = await archiveDescriptorForArchivedAgreement(
         archivedAgreement,
         readModelService,
-        archiveDescriptor
+        archiveDescriptor,
+        genericLogger,
+        testCorrelationId
       );
 
       expect(archivedDescriptor).toBeUndefined();
@@ -365,7 +377,9 @@ describe("EService Descripors Archiver", async () => {
       const archivedDescriptor = await archiveDescriptorForArchivedAgreement(
         archivedAgreement,
         readModelService,
-        archiveDescriptor
+        archiveDescriptor,
+        genericLogger,
+        testCorrelationId
       );
 
       expect(archivedDescriptor).toBeUndefined();
@@ -383,7 +397,9 @@ describe("EService Descripors Archiver", async () => {
         archiveDescriptorForArchivedAgreement(
           archivedAgreement,
           readModelService,
-          archiveDescriptor
+          archiveDescriptor,
+          genericLogger,
+          testCorrelationId
         )
       ).rejects.toThrowError(
         genericInternalError(
@@ -413,7 +429,9 @@ describe("EService Descripors Archiver", async () => {
         archiveDescriptorForArchivedAgreement(
           archivedAgreement,
           readModelService,
-          archiveDescriptor
+          archiveDescriptor,
+          genericLogger,
+          testCorrelationId
         )
       ).rejects.toThrowError(
         genericInternalError(

@@ -675,7 +675,7 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.6.8)(zod@3.21.4)
+        version: 10.9.6(axios@1.6.8)(zod@3.22.3)
       dotenv-flow:
         specifier: 3.2.0
         version: 3.2.0
@@ -701,8 +701,8 @@ importers:
         specifier: 9.0.1
         version: 9.0.1
       zod:
-        specifier: 3.21.4
-        version: 3.21.4
+        specifier: 3.22.3
+        version: 3.22.3
     devDependencies:
       '@pagopa/eslint-config':
         specifier: 3.0.0
@@ -4314,16 +4314,6 @@ packages:
       loupe: 2.3.7
       pretty-format: 29.7.0
     dev: true
-
-  /@zodios/core@10.9.6(axios@1.6.8)(zod@3.21.4):
-    resolution: {integrity: sha512-aH4rOdb3AcezN7ws8vDgBfGboZMk2JGGzEq/DtW65MhnRxyTGRuLJRWVQ/2KxDgWvV2F5oTkAS+5pnjKbl0n+A==}
-    peerDependencies:
-      axios: ^0.x || ^1.0.0
-      zod: ^3.x
-    dependencies:
-      axios: 1.6.8
-      zod: 3.21.4
-    dev: false
 
   /@zodios/core@10.9.6(axios@1.6.8)(zod@3.21.4):
     resolution: {integrity: sha512-aH4rOdb3AcezN7ws8vDgBfGboZMk2JGGzEq/DtW65MhnRxyTGRuLJRWVQ/2KxDgWvV2F5oTkAS+5pnjKbl0n+A==}
@@ -8512,10 +8502,6 @@ packages:
       zod: ^3.18.0
     dependencies:
       zod: 3.22.3
-    dev: false
-
-  /zod@3.21.4:
-    resolution: {integrity: sha512-m46AKbrzKVzOzs/DZgVnG5H55N1sv1M8qZU3A8RIKbs3mrACDNeIOeilDymVb2HdmP8uwshOCF4uJ8uM9rCqJw==}
     dev: false
 
   /zod@3.22.3:

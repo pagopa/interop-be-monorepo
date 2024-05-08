@@ -1,8 +1,4 @@
-import {
-  RefreshableInteropToken,
-  getContext,
-  logger,
-} from "pagopa-interop-commons";
+import { Logger, RefreshableInteropToken } from "pagopa-interop-commons";
 import { Agreement, DescriptorId, EServiceId } from "pagopa-interop-models";
 import { v4 as uuidv4 } from "uuid";
 import { CatalogProcessClient } from "./catalogProcessClient.js";
@@ -11,7 +7,9 @@ import { archiveDescriptorForArchivedAgreement } from "./archiveDescriptorProces
 
 export type EServiceDescriptorsArchiver = {
   archiveDescriptorsForArchivedAgreement: (
-    archivedAgreement: Agreement
+    archivedAgreement: Agreement,
+    logger: Logger,
+    correlationId: string | undefined | null
   ) => Promise<void>;
 };
 
@@ -31,9 +29,9 @@ export const eserviceDescriptorArchiverBuilder = async (
 
   const archiveDescriptor = async (
     descriptorId: DescriptorId,
-    eserviceId: EServiceId
+    eserviceId: EServiceId,
+    correlationId: string | undefined | null
   ): Promise<void> => {
-    const { correlationId } = getContext();
     const token = (await refreshableToken.get()).serialized;
     const headers = getHeaders(correlationId, token);
 
@@ -48,12 +46,16 @@ export const eserviceDescriptorArchiverBuilder = async (
 
   return {
     archiveDescriptorsForArchivedAgreement: async (
-      archivedAgreement: Agreement
+      archivedAgreement: Agreement,
+      logger: Logger,
+      correlationId: string | undefined | null
     ): Promise<void> => {
       const archivedDescriptor = await archiveDescriptorForArchivedAgreement(
         archivedAgreement,
         readModelService,
-        archiveDescriptor
+        archiveDescriptor,
+        logger,
+        correlationId
       );
       if (archivedDescriptor) {
         logger.info(

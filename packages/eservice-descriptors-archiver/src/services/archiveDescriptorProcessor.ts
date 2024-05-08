@@ -1,4 +1,4 @@
-import { logger } from "pagopa-interop-commons";
+import { Logger } from "pagopa-interop-commons";
 import {
   Agreement,
   DescriptorId,
@@ -15,8 +15,11 @@ export async function archiveDescriptorForArchivedAgreement(
   readModelService: ReadModelService,
   archiveDescriptor: (
     descriptorId: DescriptorId,
-    eserviceId: EServiceId
-  ) => Promise<void>
+    eserviceId: EServiceId,
+    correlationId: string | undefined | null
+  ) => Promise<void>,
+  logger: Logger,
+  correlationId: string | undefined | null
 ): Promise<DescriptorId | undefined> {
   const relatingAgreements = (
     await readModelService.getAgreementsByEserviceAndDescriptorId(
@@ -60,7 +63,8 @@ export async function archiveDescriptorForArchivedAgreement(
     .with({ state: descriptorState.deprecated }, async () => {
       await archiveDescriptor(
         archivedAgreement.descriptorId,
-        archivedAgreement.eserviceId
+        archivedAgreement.eserviceId,
+        correlationId
       );
       return archivedAgreement.descriptorId;
     })
@@ -74,7 +78,8 @@ export async function archiveDescriptorForArchivedAgreement(
       if (newerDescriptorExists) {
         await archiveDescriptor(
           archivedAgreement.descriptorId,
-          archivedAgreement.eserviceId
+          archivedAgreement.eserviceId,
+          correlationId
         );
         return archivedAgreement.descriptorId;
       } else {
