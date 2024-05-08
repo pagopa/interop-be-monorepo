@@ -1,7 +1,7 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
 import { StartedTestContainer } from "testcontainers";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterAll, assert, beforeAll, describe, expect, it, vi } from "vitest";
 
 import {
   EServiceDescriptorSuspendedV2,
@@ -127,7 +127,7 @@ describe("Notification tests", async () => {
     await startedElasticMQContainer.stop();
   });
 
-  describe("Update Descriptor Event Message", async () => {
+  describe("Catalog and Purpose Event Message", async () => {
     it("should send a message to the queue", async () => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date());
@@ -191,6 +191,8 @@ describe("Notification tests", async () => {
       await queueWriter.send(purposeMessage);
 
       const receivedMessages = await queueWriter.receiveLast(2);
+      expect(receivedMessages.length).toBe(2);
+
       const receivedCatalogMessage = receivedMessages[0];
       const receivedPurposeMessage = receivedMessages[1];
 
