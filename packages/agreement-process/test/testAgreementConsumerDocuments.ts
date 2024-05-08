@@ -19,7 +19,7 @@ import {
   agreementState,
   generateId,
 } from "pagopa-interop-models";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   agreementDocumentAlreadyExists,
   agreementDocumentNotFound,
@@ -114,6 +114,12 @@ export const testAgreementConsumerDocuments = (): ReturnType<typeof describe> =>
     });
 
     describe("add", () => {
+      beforeEach(async () => {
+        const TEST_EXECUTION_DATE = new Date();
+        vi.useFakeTimers();
+        vi.setSystemTime(TEST_EXECUTION_DATE);
+      });
+
       it("should succeed on happy path", async () => {
         const authData = getRandomAuthData();
         const organizationId = authData.organizationId;
@@ -142,21 +148,9 @@ export const testAgreementConsumerDocuments = (): ReturnType<typeof describe> =>
           payload,
         });
 
-        const expectedConsumerDocument: AgreementDocument = {
-          ...consumerDocument,
-          createdAt: new Date(
-            Number(
-              actualConsumerDocument.agreement?.consumerDocuments.at(-1)
-                ?.createdAt ?? 0
-            )
-          ),
-        };
         const expectedAgreement = {
           ...agreement,
-          consumerDocuments: [
-            ...agreement.consumerDocuments,
-            expectedConsumerDocument,
-          ],
+          consumerDocuments: [...agreement.consumerDocuments, consumerDocument],
         };
 
         expect(actualConsumerDocument).toMatchObject({
