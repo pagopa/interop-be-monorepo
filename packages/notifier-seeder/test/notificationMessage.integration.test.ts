@@ -163,8 +163,6 @@ describe("Notification tests", async () => {
 
       const receivedMessage = (await queueWriter.receiveLast())[0];
 
-      await queueWriter.send(message);
-
       expect(receivedMessage.payload).toEqual(
         catalogItemDescriptorUpdatedNotification.payload
       );
