@@ -1,6 +1,6 @@
 /* eslint-disable functional/no-let */
 import { generateMock } from "@anatine/zod-mock";
-import { fileManagerDeleteError } from "pagopa-interop-commons";
+import { fileManagerDeleteError, genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockAgreement,
@@ -67,7 +67,12 @@ export const testAgreementConsumerDocuments = (): ReturnType<typeof describe> =>
         const result = await agreementService.getAgreementConsumerDocument(
           agreement1.id,
           agreement1.consumerDocuments[0].id,
-          authData
+          {
+            authData,
+            serviceName: "",
+            correlationId: "",
+            logger: genericLogger,
+          }
         );
 
         expect(result).toEqual(agreement1.consumerDocuments[0]);
@@ -81,7 +86,12 @@ export const testAgreementConsumerDocuments = (): ReturnType<typeof describe> =>
           agreementService.getAgreementConsumerDocument(
             agreementId,
             agreement1.consumerDocuments[0].id,
-            authData
+            {
+              authData,
+              serviceName: "",
+              correlationId: "",
+              logger: genericLogger,
+            }
           )
         ).rejects.toThrowError(agreementNotFound(agreementId));
       });
@@ -93,7 +103,12 @@ export const testAgreementConsumerDocuments = (): ReturnType<typeof describe> =>
           agreementService.getAgreementConsumerDocument(
             agreement1.id,
             agreement1.consumerDocuments[0].id,
-            authData
+            {
+              authData,
+              serviceName: "",
+              correlationId: "",
+              logger: genericLogger,
+            }
           )
         ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
       });
@@ -105,7 +120,12 @@ export const testAgreementConsumerDocuments = (): ReturnType<typeof describe> =>
           agreementService.getAgreementConsumerDocument(
             agreement1.id,
             agreementDocumentId,
-            authData
+            {
+              authData,
+              serviceName: "",
+              correlationId: "",
+              logger: genericLogger,
+            }
           )
         ).rejects.toThrowError(
           agreementDocumentNotFound(agreementDocumentId, agreement1.id)
@@ -135,8 +155,12 @@ export const testAgreementConsumerDocuments = (): ReturnType<typeof describe> =>
         await agreementService.addConsumerDocument(
           agreement.id,
           consumerDocument,
-          authData,
-          generateId()
+          {
+            authData,
+            serviceName: "",
+            correlationId: "",
+            logger: genericLogger,
+          }
         );
         const { data: payload } = await readLastAgreementEvent(
           agreement.id,
@@ -168,8 +192,12 @@ export const testAgreementConsumerDocuments = (): ReturnType<typeof describe> =>
         const actualConsumerDocument = agreementService.addConsumerDocument(
           wrongAgreementId,
           consumerDocument,
-          authData,
-          generateId()
+          {
+            authData,
+            serviceName: "",
+            correlationId: "",
+            logger: genericLogger,
+          }
         );
 
         await expect(actualConsumerDocument).rejects.toThrowError(
@@ -189,8 +217,12 @@ export const testAgreementConsumerDocuments = (): ReturnType<typeof describe> =>
         const actualConsumerDocument = agreementService.addConsumerDocument(
           agreement.id,
           consumerDocument,
-          authData,
-          generateId()
+          {
+            authData,
+            serviceName: "",
+            correlationId: "",
+            logger: genericLogger,
+          }
         );
 
         await expect(actualConsumerDocument).rejects.toThrowError(
@@ -222,8 +254,12 @@ export const testAgreementConsumerDocuments = (): ReturnType<typeof describe> =>
         const actualConsumerDocument = agreementService.addConsumerDocument(
           agreement.id,
           consumerDocument,
-          authData,
-          generateId()
+          {
+            authData,
+            serviceName: "",
+            correlationId: "",
+            logger: genericLogger,
+          }
         );
 
         await expect(actualConsumerDocument).rejects.toThrowError(
@@ -249,8 +285,12 @@ export const testAgreementConsumerDocuments = (): ReturnType<typeof describe> =>
         const actualConsumerDocument = agreementService.addConsumerDocument(
           agreement.id,
           consumerDocument,
-          authData,
-          generateId()
+          {
+            authData,
+            serviceName: "",
+            correlationId: "",
+            logger: genericLogger,
+          }
         );
         await expect(actualConsumerDocument).rejects.toThrowError(
           agreementDocumentAlreadyExists(agreement.id)
@@ -280,23 +320,30 @@ export const testAgreementConsumerDocuments = (): ReturnType<typeof describe> =>
           `${config.consumerDocumentsPath}/${agreement1.id}`,
           agreement1.consumerDocuments[0].id,
           agreement1.consumerDocuments[0].name,
-          Buffer.from("test content")
+          Buffer.from("test content"),
+          genericLogger
         );
 
         // Check that the file is stored in the bucket before removing it
-        expect(await fileManager.listFiles(config.s3Bucket)).toContain(
-          agreement1.consumerDocuments[0].path
-        );
+        expect(
+          await fileManager.listFiles(config.s3Bucket, genericLogger)
+        ).toContain(agreement1.consumerDocuments[0].path);
 
         await agreementService.removeAgreementConsumerDocument(
           agreement1.id,
           consumerDocument.id,
-          authData,
-          generateId()
+          {
+            authData,
+            serviceName: "",
+            correlationId: "",
+            logger: genericLogger,
+          }
         );
 
         // Check that the file is removed from the bucket after removing it
-        expect(await fileManager.listFiles(config.s3Bucket)).toMatchObject([]);
+        expect(
+          await fileManager.listFiles(config.s3Bucket, genericLogger)
+        ).toMatchObject([]);
 
         const { data: payload } = await readLastAgreementEvent(
           agreement1.id,
@@ -324,8 +371,12 @@ export const testAgreementConsumerDocuments = (): ReturnType<typeof describe> =>
           agreementService.removeAgreementConsumerDocument(
             notExistentAgreement.id,
             getMockConsumerDocument(notExistentAgreement.id).id,
-            authData,
-            generateId()
+            {
+              authData,
+              serviceName: "",
+              correlationId: "",
+              logger: genericLogger,
+            }
           );
 
         await expect(removeAgreementConsumerDocument).rejects.toThrowError(
@@ -340,8 +391,12 @@ export const testAgreementConsumerDocuments = (): ReturnType<typeof describe> =>
           agreementService.removeAgreementConsumerDocument(
             agreement1.id,
             agreement1.consumerDocuments[0].id,
-            authData,
-            generateId()
+            {
+              authData,
+              serviceName: "",
+              correlationId: "",
+              logger: genericLogger,
+            }
           );
 
         await expect(removeAgreementConsumerDocument).rejects.toThrowError(
@@ -370,8 +425,12 @@ export const testAgreementConsumerDocuments = (): ReturnType<typeof describe> =>
           agreementService.removeAgreementConsumerDocument(
             agreement.id,
             agreement.consumerDocuments[0].id,
-            authData,
-            generateId()
+            {
+              authData,
+              serviceName: "",
+              correlationId: "",
+              logger: genericLogger,
+            }
           );
 
         await expect(removeAgreementConsumerDocument).rejects.toThrowError(
@@ -387,8 +446,12 @@ export const testAgreementConsumerDocuments = (): ReturnType<typeof describe> =>
           agreementService.removeAgreementConsumerDocument(
             agreement1.id,
             notExistendDocumentId,
-            authData,
-            generateId()
+            {
+              authData,
+              serviceName: "",
+              correlationId: "",
+              logger: genericLogger,
+            }
           );
         await expect(removeAgreementConsumerDocument).rejects.toThrowError(
           agreementDocumentNotFound(notExistendDocumentId, agreement1.id)
@@ -405,8 +468,12 @@ export const testAgreementConsumerDocuments = (): ReturnType<typeof describe> =>
           agreementService.removeAgreementConsumerDocument(
             agreement1.id,
             consumerDocument.id,
-            authData,
-            generateId()
+            {
+              authData,
+              serviceName: "",
+              correlationId: "",
+              logger: genericLogger,
+            }
           )
         ).rejects.toThrowError(
           fileManagerDeleteError(
