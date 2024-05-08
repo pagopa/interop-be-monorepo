@@ -16,6 +16,8 @@ export const errorCodes = {
   purposeVersionNotFound: "0005",
   purposeVersionDocumentNotFound: "0006",
   organizationNotAllowed: "0007",
+  organizationIsNotTheConsumer: "0008",
+  purposeVersionCannotBeDeleted: "0009",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -84,5 +86,26 @@ export function organizationNotAllowed(
     detail: `Organization ${organizationId} is not allowed to perform the operation`,
     code: "organizationNotAllowed",
     title: "Organization not allowed",
+  });
+}
+
+export function organizationIsNotTheConsumer(
+  organizationId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Organization ${organizationId} is not allowed to perform the operation`,
+    code: "organizationIsNotTheConsumer",
+    title: "Organization not allowed",
+  });
+}
+
+export function purposeVersionCannotBeDeleted(
+  purposeId: PurposeId,
+  versionId: PurposeVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Version ${versionId} of Purpose ${purposeId} cannot be deleted`,
+    code: "purposeVersionCannotBeDeleted",
+    title: "Purpose version canont be deleted",
   });
 }
