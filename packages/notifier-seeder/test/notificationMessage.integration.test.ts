@@ -129,6 +129,9 @@ describe("Notification tests", async () => {
 
   describe("Update Descriptor Event Message", async () => {
     it("should send a message to the queue", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date());
+
       const descriptor = getDescriptorMock(
         "6b48e234-aac6-4d33-aef4-93816588ff41"
       );
@@ -137,12 +140,12 @@ describe("Notification tests", async () => {
         descriptors: [descriptor],
       };
 
-      const eventV2: EServiceDescriptorSuspendedV2 = {
+      const catalogEventV2: EServiceDescriptorSuspendedV2 = {
         descriptorId: "6b48e234-aac6-4d33-aef4-93816588ff41",
         eservice: mockEService,
       };
 
-      const eventEnvelope: EServiceEventEnvelopeV2 = {
+      const catalogEventEnvelope: EServiceEventEnvelopeV2 = {
         sequence_num: 1,
         stream_id: "d27f668f-630b-4889-a97f-2b7e39b24188",
         version: 1,
@@ -150,36 +153,30 @@ describe("Notification tests", async () => {
         log_date: new Date(),
         event_version: 2,
         type: "EServiceDescriptorSuspended",
-        data: eventV2,
+        data: catalogEventV2,
       };
       const CatalogItemEventNotification =
-        toCatalogItemEventNotification(eventEnvelope);
+        toCatalogItemEventNotification(catalogEventEnvelope);
 
-      const message = buildCatalogMessage(
-        eventEnvelope,
+      const catalogMessage = buildCatalogMessage(
+        catalogEventEnvelope,
         CatalogItemEventNotification
       );
-      await queueWriter.send(message);
+      await queueWriter.send(catalogMessage);
 
-      const receivedMessage = (await queueWriter.receiveLast())[0];
+      const receivedCatalogMessage = (await queueWriter.receiveLast())[0];
 
-      expect(receivedMessage.payload).toEqual(
+      expect(receivedCatalogMessage.payload).toEqual(
         catalogItemDescriptorUpdatedNotification.payload
       );
-    });
-  });
-  describe("Purpose Event Message", async () => {
-    it("should send a message to the queue", async () => {
-      vi.useFakeTimers();
-      vi.setSystemTime(new Date());
 
       const mockPurpose = getMockPurpose();
 
-      const eventV2: PurposeAddedV2 = {
+      const purposeEventV2: PurposeAddedV2 = {
         purpose: toPurposeV2(mockPurpose),
       };
 
-      const eventEnvelope: PurposeEventEnvelopeV2 = {
+      const purpsoeEventEnvelope: PurposeEventEnvelopeV2 = {
         sequence_num: 2,
         stream_id: mockPurpose.id,
         version: 1,
@@ -187,16 +184,16 @@ describe("Notification tests", async () => {
         log_date: new Date(),
         event_version: 2,
         type: "PurposeAdded",
-        data: eventV2,
+        data: purposeEventV2,
       };
       const purposeEventNotification =
-        toPurposeEventNotification(eventEnvelope);
+        toPurposeEventNotification(purpsoeEventEnvelope);
 
-      const message = buildPurposeMessage(
-        eventEnvelope,
+      const purposeMessage = buildPurposeMessage(
+        purpsoeEventEnvelope,
         purposeEventNotification
       );
-      await queueWriter.send(message);
+      await queueWriter.send(purposeMessage);
 
       const receivedMessage = (await queueWriter.receiveLast())[0];
 
