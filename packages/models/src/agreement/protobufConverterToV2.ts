@@ -12,18 +12,19 @@ import {
   AgreementStamp,
   AgreementStamps,
   AgreementState,
+  agreementState,
 } from "./agreement.js";
 
 export const toAgreementStateV2 = (state: AgreementState): AgreementStateV2 =>
   match(state)
-    .with("Draft", () => AgreementStateV2.DRAFT)
-    .with("Suspended", () => AgreementStateV2.SUSPENDED)
-    .with("Archived", () => AgreementStateV2.ARCHIVED)
-    .with("Pending", () => AgreementStateV2.PENDING)
-    .with("Active", () => AgreementStateV2.ACTIVE)
-    .with("Rejected", () => AgreementStateV2.REJECTED)
+    .with(agreementState.draft, () => AgreementStateV2.DRAFT)
+    .with(agreementState.suspended, () => AgreementStateV2.SUSPENDED)
+    .with(agreementState.archived, () => AgreementStateV2.ARCHIVED)
+    .with(agreementState.pending, () => AgreementStateV2.PENDING)
+    .with(agreementState.active, () => AgreementStateV2.ACTIVE)
+    .with(agreementState.rejected, () => AgreementStateV2.REJECTED)
     .with(
-      "MissingCertifiedAttributes",
+      agreementState.missingCertifiedAttributes,
       () => AgreementStateV2.MISSING_CERTIFIED_ATTRIBUTES
     )
     .exhaustive();

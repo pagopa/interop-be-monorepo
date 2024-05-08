@@ -1,7 +1,8 @@
-import { AgreementCollection, logger } from "pagopa-interop-commons";
+import { AgreementCollection } from "pagopa-interop-commons";
 import {
   AgreementEventEnvelopeV2,
   fromAgreementV2,
+  toReadModelAgreement,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -9,8 +10,6 @@ export async function handleMessageV2(
   message: AgreementEventEnvelopeV2,
   agreements: AgreementCollection
 ): Promise<void> {
-  logger.info(message);
-
   const agreement = message.data.agreement;
 
   await match(message)
@@ -28,7 +27,12 @@ export async function handleMessageV2(
       { type: "AgreementUnsuspendedByProducer" },
       { type: "AgreementUnsuspendedByConsumer" },
       { type: "AgreementUnsuspendedByPlatform" },
-      { type: "AgreementArchived" },
+      { type: "AgreementUpgraded" },
+      { type: "AgreementUnsuspendedByProducer" },
+      { type: "AgreementUnsuspendedByConsumer" },
+      { type: "AgreementUnsuspendedByPlatform" },
+      { type: "AgreementArchivedByUpgrade" },
+      { type: "AgreementArchivedByConsumer" },
       { type: "AgreementSuspendedByProducer" },
       { type: "AgreementSuspendedByConsumer" },
       { type: "AgreementSuspendedByPlatform" },
@@ -45,7 +49,9 @@ export async function handleMessageV2(
           },
           {
             $set: {
-              data: agreement ? fromAgreementV2(agreement) : undefined,
+              data: agreement
+                ? toReadModelAgreement(fromAgreementV2(agreement))
+                : undefined,
               metadata: {
                 version: message.version,
               },
