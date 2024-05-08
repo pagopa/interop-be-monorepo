@@ -1,28 +1,34 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
 import { StartedTestContainer } from "testcontainers";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import {
   EServiceDescriptorSuspendedV2,
   EServiceDescriptorV2,
   EServiceEventEnvelopeV2,
   EServiceV2,
+  PurposeAddedV2,
+  PurposeEventEnvelopeV2,
   descriptorState,
   eserviceMode,
   generateId,
   technology,
   toDescriptorV2,
   toEServiceV2,
+  toPurposeV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { v4 } from "uuid";
+import { getMockPurpose } from "pagopa-interop-commons-test";
 import {
   QueueManager,
   initQueueManager,
 } from "../src/queue-manager/queueManager.js";
-import { toCatalogItemEventNotification } from "../src/models/catalogItemEventNotificationConverter.js";
-import { buildCatalogMessage } from "../src/models/catalogItemEventNotificationMessage.js";
+import { toCatalogItemEventNotification } from "../src/models/catalog/catalogItemEventNotificationConverter.js";
+import { buildCatalogMessage } from "../src/models/catalog/catalogItemEventNotificationMessage.js";
+import { buildPurposeMessage } from "../src/models/purpose/purposeEventNotificationMessage.js";
+import { toPurposeEventNotification } from "../src/models/purpose/purposeEventNotificationConverter.js";
 import { catalogItemDescriptorUpdatedNotification } from "./resources/catalogItemDescriptorUpdate.js";
 import { TEST_ELASTIC_MQ_PORT, elasticMQContainer } from "./utils.js";
 
@@ -160,6 +166,48 @@ describe("Notification tests", async () => {
       expect(receivedMessage.payload).toEqual(
         catalogItemDescriptorUpdatedNotification.payload
       );
+    });
+  });
+  describe("Purpose Event Message", async () => {
+    it("should send a message to the queue", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date());
+
+      const mockPurpose = getMockPurpose();
+
+      const eventV2: PurposeAddedV2 = {
+        purpose: toPurposeV2(mockPurpose),
+      };
+
+      const eventEnvelope: PurposeEventEnvelopeV2 = {
+        sequence_num: 1,
+        stream_id: mockPurpose.id,
+        version: 1,
+        correlation_id: v4(),
+        log_date: new Date(),
+        event_version: 2,
+        type: "PurposeAdded",
+        data: eventV2,
+      };
+      const purposeEventNotification =
+        toPurposeEventNotification(eventEnvelope);
+
+      const message = buildPurposeMessage(
+        eventEnvelope,
+        purposeEventNotification
+      );
+      await queueWriter.send(message);
+
+      const receivedMessage = (await queueWriter.receiveLast())[0];
+
+      expect(receivedMessage.payload).toEqual({
+        purpose: {
+          ...mockPurpose,
+          createdAt: new Date().toISOString(),
+        },
+      });
+
+      vi.useRealTimers();
     });
   });
 });
