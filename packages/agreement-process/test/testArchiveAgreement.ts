@@ -1,5 +1,4 @@
 import { fail } from "assert";
-import { v4 as uuidv4 } from "uuid";
 import {
   Agreement,
   AgreementArchivedByConsumerV2,
@@ -10,6 +9,7 @@ import {
   agreementState,
   generateId,
 } from "pagopa-interop-models";
+import { genericLogger } from "pagopa-interop-commons";
 import { describe, expect, it, vi } from "vitest";
 import {
   decodeProtobufPayload,
@@ -50,8 +50,7 @@ export const testArchiveAgreement = (): ReturnType<typeof describe> =>
 
       const agreementId = await agreementService.archiveAgreement(
         agreement.id,
-        authData,
-        uuidv4()
+        { authData, serviceName: "", correlationId: "", logger: genericLogger }
       );
 
       expect(agreementId).toBeDefined();
@@ -117,11 +116,12 @@ export const testArchiveAgreement = (): ReturnType<typeof describe> =>
       const agreementToArchiveId = generateId<AgreementId>();
 
       await expect(
-        agreementService.archiveAgreement(
-          agreementToArchiveId,
+        agreementService.archiveAgreement(agreementToArchiveId, {
           authData,
-          uuidv4()
-        )
+          serviceName: "",
+          correlationId: "",
+          logger: genericLogger,
+        })
       ).rejects.toThrowError(agreementNotFound(agreementToArchiveId));
     });
 
@@ -138,7 +138,12 @@ export const testArchiveAgreement = (): ReturnType<typeof describe> =>
       await addOneAgreement(agreement, postgresDB, agreements);
 
       await expect(
-        agreementService.archiveAgreement(agreement.id, authData, uuidv4())
+        agreementService.archiveAgreement(agreement.id, {
+          authData,
+          serviceName: "",
+          correlationId: "",
+          logger: genericLogger,
+        })
       ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
     });
 
@@ -160,7 +165,12 @@ export const testArchiveAgreement = (): ReturnType<typeof describe> =>
       await addOneAgreement(agreement, postgresDB, agreements);
 
       await expect(
-        agreementService.archiveAgreement(agreement.id, authData, uuidv4())
+        agreementService.archiveAgreement(agreement.id, {
+          authData,
+          serviceName: "",
+          correlationId: "",
+          logger: genericLogger,
+        })
       ).rejects.toThrowError(
         agreementNotInExpectedState(agreement.id, notArchivableState)
       );
