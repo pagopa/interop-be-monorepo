@@ -8,10 +8,19 @@ import {
   Purpose,
   PurposeId,
   TenantKind,
+  Ownership,
+  PurposeVersion,
+  PurposeVersionDocument,
+  PurposeVersionDocumentId,
+  PurposeVersionId,
+  ownership,
 } from "pagopa-interop-models";
 import {
   eserviceNotFound,
+  organizationNotAllowed,
   purposeNotFound,
+  purposeVersionDocumentNotFound,
+  purposeVersionNotFound,
   tenantKindNotFound,
   tenantNotFound,
 } from "../model/domain/errors.js";
@@ -27,6 +36,39 @@ const retrievePurpose = async (
     throw purposeNotFound(purposeId);
   }
   return purpose;
+};
+
+const retrievePurposeVersion = (
+  versionId: PurposeVersionId,
+  purpose: WithMetadata<Purpose>
+): PurposeVersion => {
+  const version = purpose.data.versions.find(
+    (v: PurposeVersion) => v.id === versionId
+  );
+
+  if (version === undefined) {
+    throw purposeVersionNotFound(purpose.data.id, versionId);
+  }
+
+  return version;
+};
+
+const retrievePurposeVersionDocument = (
+  purposeId: PurposeId,
+  purposeVersion: PurposeVersion,
+  documentId: PurposeVersionDocumentId
+): PurposeVersionDocument => {
+  const document = purposeVersion.riskAnalysis;
+
+  if (document === undefined || document.id !== documentId) {
+    throw purposeVersionDocumentNotFound(
+      purposeId,
+      purposeVersion.id,
+      documentId
+    );
+  }
+
+  return document;
 };
 
 const retrieveEService = async (
@@ -82,6 +124,37 @@ export function purposeServiceBuilder(
         tenantKind: tenant.kind,
       });
     },
+    async getRiskAnalysisDocument({
+      purposeId,
+      versionId,
+      documentId,
+      organizationId,
+      logger,
+    }: {
+      purposeId: PurposeId;
+      versionId: PurposeVersionId;
+      documentId: PurposeVersionDocumentId;
+      organizationId: TenantId;
+      logger: Logger;
+    }): Promise<PurposeVersionDocument> {
+      logger.info(
+        `Retrieving Risk Analysis document ${documentId} in version ${versionId} of Purpose ${purposeId}`
+      );
+
+      const purpose = await retrievePurpose(purposeId, readModelService);
+      const eservice = await retrieveEService(
+        purpose.data.eserviceId,
+        readModelService
+      );
+      getOrganizationRole({
+        organizationId,
+        producerId: eservice.producerId,
+        consumerId: purpose.data.consumerId,
+      });
+      const version = retrievePurposeVersion(versionId, purpose);
+
+      return retrievePurposeVersionDocument(purposeId, version, documentId);
+    },
   };
 }
 
@@ -114,5 +187,25 @@ const authorizeRiskAnalysisForm = ({
       purpose: { ...purpose, riskAnalysisForm: undefined },
       isRiskAnalysisValid: false,
     };
+  }
+};
+
+const getOrganizationRole = ({
+  organizationId,
+  producerId,
+  consumerId,
+}: {
+  organizationId: TenantId;
+  producerId: TenantId;
+  consumerId: TenantId;
+}): Ownership => {
+  if (producerId === consumerId && organizationId === producerId) {
+    return ownership.SELF_CONSUMER;
+  } else if (producerId !== consumerId && organizationId === consumerId) {
+    return ownership.CONSUMER;
+  } else if (producerId !== consumerId && organizationId === producerId) {
+    return ownership.PRODUCER;
+  } else {
+    throw organizationNotAllowed(organizationId);
   }
 };

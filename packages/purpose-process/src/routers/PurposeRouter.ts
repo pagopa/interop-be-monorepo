@@ -12,12 +12,18 @@ import {
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
-import { purposeToApiPurpose } from "../model/domain/apiConverter.js";
+import {
+  purposeToApiPurpose,
+  purposeVersionDocumentToApiPurposeVersionDocument,
+} from "../model/domain/apiConverter.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../utilities/config.js";
 import { purposeServiceBuilder } from "../services/purposeService.js";
 import { makeApiProblem } from "../model/domain/errors.js";
-import { getPurposeErrorMapper } from "../utilities/errorMappers.js";
+import {
+  getPurposeErrorMapper,
+  getRiskAnalysisDocumentErrorMapper,
+} from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
@@ -129,7 +135,29 @@ const purposeRouter = (
     .get(
       "/purposes/:purposeId/versions/:versionId/documents/:documentId",
       authorizationMiddleware([ADMIN_ROLE, SUPPORT_ROLE]),
-      (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const document = await purposeService.getRiskAnalysisDocument({
+            purposeId: unsafeBrandId(req.params.purposeId),
+            versionId: unsafeBrandId(req.params.versionId),
+            documentId: unsafeBrandId(req.params.documentId),
+            organizationId: req.ctx.authData.organizationId,
+            logger: ctx.logger,
+          });
+          return res
+            .status(200)
+            .json(purposeVersionDocumentToApiPurposeVersionDocument(document))
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getRiskAnalysisDocumentErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/purposes/:purposeId/versions/:versionId/reject",

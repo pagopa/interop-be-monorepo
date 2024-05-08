@@ -29,6 +29,7 @@ import {
   readModelServiceBuilder,
 } from "../src/services/readModelService.js";
 import { testGetPurposeById } from "./testGetPurposeById.js";
+import { testGetRiskAnalysisDocument } from "./testGetRiskAnalysisDocument.js";
 
 export let purposes: PurposeCollection;
 export let eservices: EServiceCollection;
@@ -82,5 +83,6 @@ describe("Integration tests", async () => {
 
   describe("Purpose service", () => {
     testGetPurposeById();
+    testGetRiskAnalysisDocument();
   });
 });

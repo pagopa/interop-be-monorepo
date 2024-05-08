@@ -13,6 +13,7 @@ import {
   EServiceId,
   Purpose,
   PurposeVersion,
+  PurposeVersionDocument,
   Tenant,
   TenantAttribute,
   TenantId,
@@ -173,5 +174,12 @@ export const getMockPurposeVersion = (): PurposeVersion => ({
     createdAt: new Date(),
   },
   dailyCalls: 10,
+  createdAt: new Date(),
+});
+
+export const getMockPurposeVersionDocument = (): PurposeVersionDocument => ({
+  path: "path",
+  id: generateId(),
+  contentType: "json",
   createdAt: new Date(),
 });
