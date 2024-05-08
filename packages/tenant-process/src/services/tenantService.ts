@@ -9,7 +9,6 @@ import {
   generateId,
   tenantEventToBinaryData,
   ExternalId,
-  operationForbidden,
 } from "pagopa-interop-models";
 import {
   CertifiedAttributeQueryResult,
@@ -298,9 +297,7 @@ export function tenantServiceBuilder(
     ): Promise<void> {
       logger.info(`Deleting mail ${mailId} to Tenant ${tenantId}`);
 
-      if (tenantId !== organizationId) {
-        throw operationForbidden;
-      }
+      await assertRequesterAllowed(tenantId, organizationId);
 
       const tenant = await retrieveTenant(tenantId, readModelService);
 
@@ -316,7 +313,6 @@ export function tenantServiceBuilder(
 
       await repository.createEvent(
         toCreateEventTenantMailDeleted(
-          tenantId,
           tenant.metadata.version,
           updatedTenant,
           mailId,
