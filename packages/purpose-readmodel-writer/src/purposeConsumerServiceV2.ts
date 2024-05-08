@@ -1,5 +1,9 @@
 import { PurposeCollection } from "pagopa-interop-commons";
-import { PurposeEventEnvelopeV2, fromPurposeV2 } from "pagopa-interop-models";
+import {
+  PurposeEventEnvelopeV2,
+  fromPurposeV2,
+  toReadModelPurpose,
+} from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
 export async function handleMessageV2(
@@ -44,7 +48,9 @@ export async function handleMessageV2(
           },
           {
             $set: {
-              data: purpose ? fromPurposeV2(purpose) : undefined,
+              data: purpose
+                ? toReadModelPurpose(fromPurposeV2(purpose))
+                : undefined,
               metadata: {
                 version: message.version,
               },
