@@ -1,5 +1,5 @@
 /* eslint-disable max-params */
-import { CreateEvent, getContext, logger } from "pagopa-interop-commons";
+import { CreateEvent, WithLogger, AppContext } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementDocument,
@@ -65,10 +65,10 @@ export async function submitAgreementLogic(
   eserviceQuery: EserviceQuery,
   agreementQuery: AgreementQuery,
   tenantQuery: TenantQuery,
-  correlationId: string
+  ctx: WithLogger<AppContext>
 ): Promise<[Agreement, Array<CreateEvent<AgreementEvent>>]> {
+  const logger = ctx.logger;
   logger.info(`Submitting agreement ${agreementId}`);
-  const { authData } = getContext();
 
   const agreement = await agreementQuery.getAgreementById(agreementId);
 
@@ -76,7 +76,7 @@ export async function submitAgreementLogic(
     throw agreementNotFound(agreementId);
   }
 
-  assertRequesterIsConsumer(agreement.data, authData);
+  assertRequesterIsConsumer(agreement.data, ctx.authData);
   assertSubmittableState(agreement.data.state, agreement.data.id);
   await verifySubmissionConflictingAgreements(agreement.data, agreementQuery);
 
@@ -107,7 +107,7 @@ export async function submitAgreementLogic(
     agreementQuery,
     tenantQuery,
     constractBuilder,
-    correlationId
+    ctx
   );
 }
 
@@ -120,10 +120,9 @@ const submitAgreement = async (
   agreementQuery: AgreementQuery,
   tenantQuery: TenantQuery,
   constractBuilder: ContractBuilder,
-  correlationId: string
+  { authData, correlationId }: WithLogger<AppContext>
 ): Promise<[Agreement, Array<CreateEvent<AgreementEvent>>]> => {
   const agreement = agreementData.data;
-  const { authData } = getContext();
   const nextStateByAttributes = nextState(agreement, descriptor, consumer);
   const suspendedByPlatform = suspendedByPlatformFlag(nextStateByAttributes);
 

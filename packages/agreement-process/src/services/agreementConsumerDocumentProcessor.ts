@@ -1,4 +1,12 @@
-import { AuthData, CreateEvent } from "pagopa-interop-commons";
+/* eslint-disable max-params */
+import {
+  AuthData,
+  CreateEvent,
+  Logger,
+  WithLogger,
+  AppContext,
+  FileManager,
+} from "pagopa-interop-commons";
 import {
   AgreementDocument,
   AgreementDocumentId,
@@ -27,8 +35,7 @@ export async function addConsumerDocumentLogic(
   agreementId: AgreementId,
   payload: ApiAgreementDocumentSeed,
   agreementQuery: AgreementQuery,
-  authData: AuthData,
-  correlationId: string
+  { authData, correlationId }: WithLogger<AppContext>
 ): Promise<[AgreementDocument, CreateEvent<AgreementEvent>]> {
   const agreement = await agreementQuery.getAgreementById(agreementId);
 
@@ -67,8 +74,9 @@ export async function removeAgreementConsumerDocumentLogic(
   documentId: AgreementDocumentId,
   agreementQuery: AgreementQuery,
   authData: AuthData,
-  fileRemove: (bucket: string, path: string) => Promise<void>,
-  correlationId: string
+  fileRemove: FileManager["delete"],
+  correlationId: string,
+  logger: Logger
 ): Promise<CreateEvent<AgreementEvent>> {
   const agreement = await agreementQuery.getAgreementById(agreementId);
 
@@ -84,7 +92,7 @@ export async function removeAgreementConsumerDocumentLogic(
     throw agreementDocumentNotFound(documentId, agreementId);
   }
 
-  await fileRemove(config.s3Bucket, existentDocument.path);
+  await fileRemove(config.s3Bucket, existentDocument.path, logger);
 
   const updatedAgreement = {
     ...agreement.data,

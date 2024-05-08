@@ -12,19 +12,20 @@ import {
   AgreementStampV2,
   AgreementStampsV2,
   AgreementEventV2,
+  agreementState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
 export const toAgreementStateV2 = (state: AgreementState): AgreementStateV2 =>
   match(state)
-    .with("Draft", () => AgreementStateV2.DRAFT)
-    .with("Suspended", () => AgreementStateV2.SUSPENDED)
-    .with("Archived", () => AgreementStateV2.ARCHIVED)
-    .with("Pending", () => AgreementStateV2.PENDING)
-    .with("Active", () => AgreementStateV2.ACTIVE)
-    .with("Rejected", () => AgreementStateV2.REJECTED)
+    .with(agreementState.draft, () => AgreementStateV2.DRAFT)
+    .with(agreementState.suspended, () => AgreementStateV2.SUSPENDED)
+    .with(agreementState.archived, () => AgreementStateV2.ARCHIVED)
+    .with(agreementState.pending, () => AgreementStateV2.PENDING)
+    .with(agreementState.active, () => AgreementStateV2.ACTIVE)
+    .with(agreementState.rejected, () => AgreementStateV2.REJECTED)
     .with(
-      "MissingCertifiedAttributes",
+      agreementState.missingCertifiedAttributes,
       () => AgreementStateV2.MISSING_CERTIFIED_ATTRIBUTES
     )
     .exhaustive();
@@ -113,25 +114,6 @@ export function toCreateEventAgreementAdded(
   };
 }
 
-export function toCreateEventDraftAgreementUpdated(
-  agreement: Agreement,
-  version: number,
-  correlationId: string
-): CreateEvent<AgreementEventV2> {
-  return {
-    streamId: agreement.id,
-    version,
-    event: {
-      type: "DraftAgreementUpdated",
-      event_version: 2,
-      data: {
-        agreement: toAgreementV2(agreement),
-      },
-    },
-    correlationId,
-  };
-}
-
 export function toCreateEventAgreementSubmitted(
   agreement: Agreement,
   version: number,
@@ -151,7 +133,7 @@ export function toCreateEventAgreementSubmitted(
   };
 }
 
-export function toCreateEventAgreementArchived(
+export function toCreateEventDraftAgreementUpdated(
   agreement: Agreement,
   version: number,
   correlationId: string
@@ -160,7 +142,26 @@ export function toCreateEventAgreementArchived(
     streamId: agreement.id,
     version,
     event: {
-      type: "AgreementArchived",
+      type: "DraftAgreementUpdated",
+      event_version: 2,
+      data: {
+        agreement: toAgreementV2(agreement),
+      },
+    },
+    correlationId,
+  };
+}
+
+export function toCreateEventAgreementArchivedByConsumer(
+  agreement: Agreement,
+  version: number,
+  correlationId: string
+): CreateEvent<AgreementEventV2> {
+  return {
+    streamId: agreement.id,
+    version,
+    event: {
+      type: "AgreementArchivedByConsumer",
       event_version: 2,
       data: {
         agreement: toAgreementV2(agreement),

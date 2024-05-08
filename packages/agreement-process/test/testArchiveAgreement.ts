@@ -1,18 +1,18 @@
 import { fail } from "assert";
-import { v4 as uuidv4 } from "uuid";
 import {
   Agreement,
-  AgreementArchivedV2,
+  AgreementArchivedByConsumerV2,
   AgreementId,
   AgreementV2,
   EServiceId,
   TenantId,
   agreementState,
   generateId,
-  protobufDecoder,
 } from "pagopa-interop-models";
+import { genericLogger } from "pagopa-interop-commons";
 import { describe, expect, it, vi } from "vitest";
 import {
+  decodeProtobufPayload,
   getMockAgreement,
   getRandomAuthData,
   randomArrayItem,
@@ -50,8 +50,7 @@ export const testArchiveAgreement = (): ReturnType<typeof describe> =>
 
       const agreementArchived = await agreementService.archiveAgreement(
         agreement.id,
-        authData,
-        uuidv4()
+        { authData, serviceName: "", correlationId: "", logger: genericLogger }
       );
 
       expect(agreementArchived.id).toBeDefined();
@@ -69,15 +68,16 @@ export const testArchiveAgreement = (): ReturnType<typeof describe> =>
       }
 
       expect(actualAgreementData).toMatchObject({
-        type: "AgreementArchived",
+        type: "AgreementArchivedByConsumer",
         event_version: 2,
         version: "1",
         stream_id: agreementArchived.id,
       });
 
-      const actualAgreement: AgreementV2 | undefined = protobufDecoder(
-        AgreementArchivedV2
-      ).parse(actualAgreementData.data)?.agreement;
+      const actualAgreement: AgreementV2 | undefined = decodeProtobufPayload({
+        messageType: AgreementArchivedByConsumerV2,
+        payload: actualAgreementData.data,
+      }).agreement;
 
       if (!actualAgreement) {
         fail("impossible to decode AgreementArchivedV2 data");
@@ -116,11 +116,12 @@ export const testArchiveAgreement = (): ReturnType<typeof describe> =>
       const agreementToArchiveId = generateId<AgreementId>();
 
       await expect(
-        agreementService.archiveAgreement(
-          agreementToArchiveId,
+        agreementService.archiveAgreement(agreementToArchiveId, {
           authData,
-          uuidv4()
-        )
+          serviceName: "",
+          correlationId: "",
+          logger: genericLogger,
+        })
       ).rejects.toThrowError(agreementNotFound(agreementToArchiveId));
     });
 
@@ -137,7 +138,12 @@ export const testArchiveAgreement = (): ReturnType<typeof describe> =>
       await addOneAgreement(agreement, postgresDB, agreements);
 
       await expect(
-        agreementService.archiveAgreement(agreement.id, authData, uuidv4())
+        agreementService.archiveAgreement(agreement.id, {
+          authData,
+          serviceName: "",
+          correlationId: "",
+          logger: genericLogger,
+        })
       ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
     });
 
@@ -159,7 +165,12 @@ export const testArchiveAgreement = (): ReturnType<typeof describe> =>
       await addOneAgreement(agreement, postgresDB, agreements);
 
       await expect(
-        agreementService.archiveAgreement(agreement.id, authData, uuidv4())
+        agreementService.archiveAgreement(agreement.id, {
+          authData,
+          serviceName: "",
+          correlationId: "",
+          logger: genericLogger,
+        })
       ).rejects.toThrowError(
         agreementNotInExpectedState(agreement.id, notArchivableState)
       );

@@ -4,8 +4,9 @@ export * from "./events/events.js";
 // Entities, events, converters
 export * from "./agreement/agreement.js";
 export * from "./agreement/agreementEvents.js";
-export * from "./agreement/protobufConverterV1.js";
-export * from "./agreement/protobufConverterV2.js";
+export * from "./agreement/agreementReadModelAdapter.js";
+export * from "./agreement/protobufConverterFromV1.js";
+export * from "./agreement/protobufConverterFromV2.js";
 
 export * from "./attribute/attribute.js";
 export * from "./attribute/attributeReadModelAdapter.js";
@@ -33,7 +34,8 @@ export * from "./tenant/tenantEvents.js";
 export * from "./purpose/purpose.js";
 export * from "./purpose/purposeEvents.js";
 export * from "./purpose/protobufConverterFromV1.js";
-export * from "./purpose/protobufConverterToV1.js";
+export * from "./purpose/protobufConverterFromV2.js";
+export * from "./purpose/protobufConverterToV2.js";
 
 export * from "./user/user.js";
 
@@ -41,16 +43,15 @@ export * from "./user/user.js";
 export * from "./protobuf/protobuf.js";
 
 // Read models
+export * from "./read-models/agreementReadModel.js";
 export * from "./read-models/attributeReadModel.js";
 export * from "./read-models/eserviceReadModel.js";
 export * from "./read-models/readModels.js";
 
-// Event store
-export * from "./event-store/dbSchema.js";
-
 // Utilities
 export * from "./brandedIds.js";
 export * from "./errors.js";
+export * from "./utils.js";
 
 //  Generated models
 export * from "./gen/v1/agreement/agreement.js";
