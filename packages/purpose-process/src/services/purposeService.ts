@@ -1,4 +1,4 @@
-import { DB, logger } from "pagopa-interop-commons";
+import { DB, Logger } from "pagopa-interop-commons";
 import {
   EService,
   EServiceId,
@@ -59,7 +59,8 @@ export function purposeServiceBuilder(
   return {
     async getPurposeById(
       purposeId: PurposeId,
-      organizationId: TenantId
+      organizationId: TenantId,
+      logger: Logger
     ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(`Retrieving Purpose ${purposeId}`);
 

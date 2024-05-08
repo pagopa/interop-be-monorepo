@@ -8,6 +8,7 @@ import {
   zodiosValidationErrorToApiProblem,
   ReadModelRepository,
   initDB,
+  fromAppContext,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
@@ -85,18 +86,24 @@ const purposeRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
         try {
           const { purpose, isRiskAnalysisValid } =
             await purposeService.getPurposeById(
               unsafeBrandId(req.params.id),
-              req.ctx.authData.organizationId
+              ctx.authData.organizationId,
+              ctx.logger
             );
           return res
             .status(200)
             .json(purposeToApiPurpose(purpose, isRiskAnalysisValid))
             .end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, getPurposeErrorMapper);
+          const errorRes = makeApiProblem(
+            error,
+            getPurposeErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
