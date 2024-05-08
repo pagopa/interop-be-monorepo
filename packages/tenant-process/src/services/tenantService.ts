@@ -335,7 +335,6 @@ export function tenantServiceBuilder(
 
       await repository.createEvent(
         toCreateEventMaintenanceTenantPromotedToCertifier(
-          tenantId,
           tenant.metadata.version,
           updatedTenant,
           correlationId
