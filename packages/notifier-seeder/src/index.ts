@@ -14,12 +14,12 @@ import {
 } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
 import { EServiceEvent, PurposeEventV2 } from "pagopa-interop-models";
-import { toCatalogItemEventNotification } from "./models/catalogItemEventNotificationConverter.js";
-import { buildCatalogMessage } from "./models/catalogItemEventNotificationMessage.js";
+import { toCatalogItemEventNotification } from "./models/catalog/catalogItemEventNotificationConverter.js";
+import { buildCatalogMessage } from "./models/catalog/catalogItemEventNotificationMessage.js";
 import { initQueueManager } from "./queue-manager/queueManager.js";
 import { notificationConfig } from "./config/notificationConfig.js";
-import { toPurposeEventNotification } from "./models/purposeEventNotificationConverter.js";
-import { buildPurposeMessage } from "./models/purposeEventNotificationMessage.js";
+import { toPurposeEventNotification } from "./models/purpose/purposeEventNotificationConverter.js";
+import { buildPurposeMessage } from "./models/purpose/purposeEventNotificationMessage.js";
 
 const config = kafkaConsumerConfig();
 const catalogTopicConf = catalogTopicConfig();
