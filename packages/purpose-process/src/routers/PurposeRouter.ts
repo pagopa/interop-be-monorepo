@@ -6,8 +6,35 @@ import {
   ZodiosContext,
   authorizationMiddleware,
   zodiosValidationErrorToApiProblem,
+  ReadModelRepository,
+  initDB,
+  fromAppContext,
 } from "pagopa-interop-commons";
+import { unsafeBrandId } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
+import { purposeToApiPurpose } from "../model/domain/apiConverter.js";
+import { readModelServiceBuilder } from "../services/readModelService.js";
+import { config } from "../utilities/config.js";
+import { purposeServiceBuilder } from "../services/purposeService.js";
+import { makeApiProblem } from "../model/domain/errors.js";
+import { getPurposeErrorMapper } from "../utilities/errorMappers.js";
+
+const readModelService = readModelServiceBuilder(
+  ReadModelRepository.init(config)
+);
+
+const purposeService = purposeServiceBuilder(
+  initDB({
+    username: config.eventStoreDbUsername,
+    password: config.eventStoreDbPassword,
+    host: config.eventStoreDbHost,
+    port: config.eventStoreDbPort,
+    database: config.eventStoreDbName,
+    schema: config.eventStoreDbSchema,
+    useSSL: config.eventStoreDbUseSSL,
+  }),
+  readModelService
+);
 
 const purposeRouter = (
   ctx: ZodiosContext
@@ -58,7 +85,28 @@ const purposeRouter = (
         M2M_ROLE,
         SUPPORT_ROLE,
       ]),
-      (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const { purpose, isRiskAnalysisValid } =
+            await purposeService.getPurposeById(
+              unsafeBrandId(req.params.id),
+              ctx.authData.organizationId,
+              ctx.logger
+            );
+          return res
+            .status(200)
+            .json(purposeToApiPurpose(purpose, isRiskAnalysisValid))
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getPurposeErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post("/purposes/:id", authorizationMiddleware([ADMIN_ROLE]), (_req, res) =>
       res.status(501).send()
