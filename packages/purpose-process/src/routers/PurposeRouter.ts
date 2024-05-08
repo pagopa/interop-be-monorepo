@@ -132,18 +132,21 @@ const purposeRouter = (
       "/purposes/:purposeId/versions/:versionId",
       authorizationMiddleware([ADMIN_ROLE, INTERNAL_ROLE]),
       async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
         try {
           await purposeService.deletePurposeVersion({
             purposeId: unsafeBrandId(req.params.purposeId),
             versionId: unsafeBrandId(req.params.versionId),
             organizationId: req.ctx.authData.organizationId,
             correlationId: req.ctx.correlationId,
+            logger: ctx.logger,
           });
           return res.status(204).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            deletePurposeVersionErrorMapper
+            deletePurposeVersionErrorMapper,
+            ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
