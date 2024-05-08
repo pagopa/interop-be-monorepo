@@ -1,6 +1,10 @@
+/* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { unexpectedRulesVersionError } from "pagopa-interop-commons";
+import {
+  genericLogger,
+  unexpectedRulesVersionError,
+} from "pagopa-interop-commons";
 import {
   randomArrayItem,
   getMockTenant,
@@ -29,7 +33,7 @@ import {
   RiskAnalysis,
   eserviceMode,
 } from "pagopa-interop-models";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import {
   purposeNotFound,
   organizationIsNotTheConsumer,
@@ -63,63 +67,77 @@ import {
 export const testUpdatePurpose = (): ReturnType<typeof describe> =>
   describe("updatePurpose and updateReversePurpose", () => {
     const tenantType = randomArrayItem(Object.values(tenantKind));
-    const tenant: Tenant = {
-      ...getMockTenant(),
-      kind: tenantType,
-    };
+    let tenant: Tenant;
+    let eServiceDeliver: EService;
+    let eServiceReceive: EService;
+    let purposeForReceive: Purpose;
+    let purposeForDeliver: Purpose;
+    let validRiskAnalysis: RiskAnalysis;
+    let purposeUpdateContent: ApiPurposeUpdateContent;
+    let reversePurposeUpdateContent: ApiReversePurposeUpdateContent;
 
-    const eServiceDeliver: EService = {
-      ...getMockEService(),
-      mode: eserviceMode.deliver,
-    };
-
-    const eServiceReceive: EService = {
-      ...getMockEService(),
-      mode: eserviceMode.receive,
-      producerId: tenant.id,
-    };
-
-    const purposeForReceive: Purpose = {
-      ...getMockPurpose(),
-      eserviceId: eServiceReceive.id,
-      consumerId: tenant.id,
-      versions: [
-        { ...getMockPurposeVersion(), state: purposeVersionState.draft },
-      ],
-      riskAnalysisForm: {
-        ...getMockValidRiskAnalysisForm(tenantType),
-        id: generateId(),
-      },
-    };
-
-    const purposeForDeliver: Purpose = {
-      ...getMockPurpose(),
-      eserviceId: eServiceDeliver.id,
-      consumerId: tenant.id,
-      versions: [
-        { ...getMockPurposeVersion(), state: purposeVersionState.draft },
-      ],
-    };
-
-    const validRiskAnalysis = getMockValidRiskAnalysis(tenantType);
-
-    const purposeUpdateContent: ApiPurposeUpdateContent = {
-      title: "test",
-      dailyCalls: 10,
-      description: "test",
-      isFreeOfCharge: true,
-      freeOfChargeReason: "reason",
-      riskAnalysisForm: buildRiskAnalysisSeed(validRiskAnalysis),
-    };
-
-    const reversePurposeUpdateContent: ApiReversePurposeUpdateContent = {
-      ...purposeUpdateContent,
-    };
-
-    it("Should write on event store for the update of a purpose of an e-service in mode DELIVER (including title change)", async () => {
+    beforeAll(() => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date());
 
+      tenant = {
+        ...getMockTenant(),
+        kind: tenantType,
+      };
+
+      eServiceDeliver = {
+        ...getMockEService(),
+        mode: eserviceMode.deliver,
+      };
+
+      eServiceReceive = {
+        ...getMockEService(),
+        mode: eserviceMode.receive,
+        producerId: tenant.id,
+      };
+
+      purposeForReceive = {
+        ...getMockPurpose(),
+        eserviceId: eServiceReceive.id,
+        consumerId: tenant.id,
+        versions: [
+          { ...getMockPurposeVersion(), state: purposeVersionState.draft },
+        ],
+        riskAnalysisForm: {
+          ...getMockValidRiskAnalysisForm(tenantType),
+          id: generateId(),
+        },
+      };
+
+      purposeForDeliver = {
+        ...getMockPurpose(),
+        eserviceId: eServiceDeliver.id,
+        consumerId: tenant.id,
+        versions: [
+          { ...getMockPurposeVersion(), state: purposeVersionState.draft },
+        ],
+      };
+
+      validRiskAnalysis = getMockValidRiskAnalysis(tenantType);
+
+      purposeUpdateContent = {
+        title: "test",
+        dailyCalls: 10,
+        description: "test",
+        isFreeOfCharge: false,
+        riskAnalysisForm: buildRiskAnalysisSeed(validRiskAnalysis),
+      };
+
+      reversePurposeUpdateContent = {
+        ...purposeUpdateContent,
+      };
+    });
+
+    afterAll(() => {
+      vi.useRealTimers();
+    });
+
+    it("Should write on event store for the update of a purpose of an e-service in mode DELIVER (including title change)", async () => {
       await addOnePurpose(purposeForDeliver, postgresDB, purposes);
       await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
       await writeInReadmodel(tenant, tenants);
@@ -129,6 +147,7 @@ export const testUpdatePurpose = (): ReturnType<typeof describe> =>
         purposeUpdateContent,
         organizationId: tenant.id,
         correlationId: generateId(),
+        logger: genericLogger,
       });
 
       const writtenEvent = await readLastEventByStreamId(
@@ -157,13 +176,9 @@ export const testUpdatePurpose = (): ReturnType<typeof describe> =>
       );
 
       expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-      vi.useRealTimers();
     });
 
     it("Should write on event store for the update of a purpose of an e-service in mode DELIVER (no title change)", async () => {
-      vi.useFakeTimers();
-      vi.setSystemTime(new Date());
-
       await addOnePurpose(purposeForDeliver, postgresDB, purposes);
       await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
       await writeInReadmodel(tenant, tenants);
@@ -178,6 +193,7 @@ export const testUpdatePurpose = (): ReturnType<typeof describe> =>
         purposeUpdateContent: updateContentWithoutTitle,
         organizationId: tenant.id,
         correlationId: generateId(),
+        logger: genericLogger,
       });
 
       const writtenEvent = await readLastEventByStreamId(
@@ -206,12 +222,8 @@ export const testUpdatePurpose = (): ReturnType<typeof describe> =>
       );
 
       expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-      vi.useRealTimers();
     });
     it("Should write on event store for the update of a purpose of an e-service in mode RECEIVE (including title change)", async () => {
-      vi.useFakeTimers();
-      vi.setSystemTime(new Date());
-
       await addOnePurpose(purposeForReceive, postgresDB, purposes);
       await writeInReadmodel(toReadModelEService(eServiceReceive), eservices);
       await writeInReadmodel(tenant, tenants);
@@ -221,6 +233,7 @@ export const testUpdatePurpose = (): ReturnType<typeof describe> =>
         reversePurposeUpdateContent,
         organizationId: tenant.id,
         correlationId: generateId(),
+        logger: genericLogger,
       });
 
       const writtenEvent = await readLastEventByStreamId(
@@ -249,7 +262,6 @@ export const testUpdatePurpose = (): ReturnType<typeof describe> =>
       );
 
       expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-      vi.useRealTimers();
     });
     it("Should throw purposeNotFound if the purpose doesn't exist", async () => {
       await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
@@ -263,6 +275,7 @@ export const testUpdatePurpose = (): ReturnType<typeof describe> =>
           purposeUpdateContent,
           organizationId: tenant.id,
           correlationId: generateId(),
+          logger: genericLogger,
         })
       ).rejects.toThrowError(purposeNotFound(purposeId));
     });
@@ -284,6 +297,7 @@ export const testUpdatePurpose = (): ReturnType<typeof describe> =>
           purposeUpdateContent,
           organizationId,
           correlationId: generateId(),
+          logger: genericLogger,
         })
       ).rejects.toThrowError(organizationIsNotTheConsumer(organizationId));
     });
@@ -309,6 +323,7 @@ export const testUpdatePurpose = (): ReturnType<typeof describe> =>
             purposeUpdateContent,
             organizationId: tenant.id,
             correlationId: generateId(),
+            logger: genericLogger,
           })
         ).rejects.toThrowError(purposeNotInDraftState(mockPurpose.id));
       }
@@ -331,6 +346,7 @@ export const testUpdatePurpose = (): ReturnType<typeof describe> =>
           },
           organizationId: tenant.id,
           correlationId: generateId(),
+          logger: genericLogger,
         })
       ).rejects.toThrowError(
         duplicatedPurposeTitle(purposeWithDuplicatedTitle.title)
@@ -352,6 +368,7 @@ export const testUpdatePurpose = (): ReturnType<typeof describe> =>
           purposeUpdateContent,
           organizationId: tenant.id,
           correlationId: generateId(),
+          logger: genericLogger,
         })
       ).rejects.toThrowError(eserviceNotFound(eserviceId));
     });
@@ -366,6 +383,7 @@ export const testUpdatePurpose = (): ReturnType<typeof describe> =>
           purposeUpdateContent,
           organizationId: tenant.id,
           correlationId: generateId(),
+          logger: genericLogger,
         })
       ).rejects.toThrowError(
         eServiceModeNotAllowed(eServiceReceive.id, "Deliver")
@@ -382,12 +400,13 @@ export const testUpdatePurpose = (): ReturnType<typeof describe> =>
           reversePurposeUpdateContent,
           organizationId: tenant.id,
           correlationId: generateId(),
+          logger: genericLogger,
         })
       ).rejects.toThrowError(
         eServiceModeNotAllowed(eServiceDeliver.id, "Receive")
       );
     });
-    it("Should throw missingFreeOfChargeReason if the freeOfChargeReason is missing", async () => {
+    it("Should throw missingFreeOfChargeReason if isFreeOfCharge is true but freeOfChargeReason is missing", async () => {
       await addOnePurpose(purposeForDeliver, postgresDB, purposes);
       await writeInReadmodel(toReadModelEService(eServiceDeliver), eservices);
       await writeInReadmodel(tenant, tenants);
@@ -397,10 +416,11 @@ export const testUpdatePurpose = (): ReturnType<typeof describe> =>
           purposeId: purposeForDeliver.id,
           purposeUpdateContent: {
             ...purposeUpdateContent,
-            freeOfChargeReason: undefined,
+            isFreeOfCharge: true,
           },
           organizationId: tenant.id,
           correlationId: generateId(),
+          logger: genericLogger,
         })
       ).rejects.toThrowError(missingFreeOfChargeReason());
     });
@@ -414,6 +434,7 @@ export const testUpdatePurpose = (): ReturnType<typeof describe> =>
           purposeUpdateContent,
           organizationId: tenant.id,
           correlationId: generateId(),
+          logger: genericLogger,
         })
       ).rejects.toThrowError(tenantNotFound(tenant.id));
 
@@ -426,6 +447,7 @@ export const testUpdatePurpose = (): ReturnType<typeof describe> =>
           reversePurposeUpdateContent,
           organizationId: tenant.id,
           correlationId: generateId(),
+          logger: genericLogger,
         })
       ).rejects.toThrowError(tenantNotFound(tenant.id));
     });
@@ -445,6 +467,7 @@ export const testUpdatePurpose = (): ReturnType<typeof describe> =>
           purposeUpdateContent,
           organizationId: mockTenant.id,
           correlationId: generateId(),
+          logger: genericLogger,
         })
       ).rejects.toThrowError(tenantKindNotFound(mockTenant.id));
     });
@@ -472,6 +495,7 @@ export const testUpdatePurpose = (): ReturnType<typeof describe> =>
           purposeUpdateContent: mockPurposeUpdateContent,
           organizationId: tenant.id,
           correlationId: generateId(),
+          logger: genericLogger,
         })
       ).rejects.toThrowError(
         riskAnalysisValidationFailed([unexpectedRulesVersionError("0")])
@@ -497,6 +521,7 @@ export const testUpdatePurpose = (): ReturnType<typeof describe> =>
           reversePurposeUpdateContent,
           organizationId: tenant.id,
           correlationId: generateId(),
+          logger: genericLogger,
         })
       ).rejects.toThrowError(
         riskAnalysisValidationFailed([unexpectedRulesVersionError("0")])

@@ -52,7 +52,7 @@ import {
 import { ReadModelService } from "./readModelService.js";
 import {
   assertOrganizationIsAConsumer,
-  assertEserviceHasSpecificMode,
+  assertEserviceMode,
   assertConsistentFreeOfCharge,
   isRiskAnalysisFormValid,
   isDeletableVersion,
@@ -305,12 +305,14 @@ export function purposeServiceBuilder(
       logger: Logger;
     }): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(`Updating Purpose ${purposeId}`);
-      return await updatePurposeInternal(
+      return await performUpdatePurpose(
         purposeId,
         purposeUpdateContent,
         organizationId,
         eserviceMode.deliver,
-        { readModelService, correlationId, repository }
+        readModelService,
+        correlationId,
+        repository
       );
     },
     async updateReversePurpose({
@@ -327,12 +329,14 @@ export function purposeServiceBuilder(
       logger: Logger;
     }): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(`Updating Reverse Purpose ${purposeId}`);
-      return await updatePurposeInternal(
+      return await performUpdatePurpose(
         purposeId,
         reversePurposeUpdateContent,
         organizationId,
         eserviceMode.receive,
-        { readModelService, correlationId, repository }
+        readModelService,
+        correlationId,
+        repository
       );
     },
   };
@@ -417,21 +421,15 @@ const getInvolvedTenantByEServiceMode = async (
   }
 };
 
-const updatePurposeInternal = async (
+const performUpdatePurpose = async (
   purposeId: PurposeId,
   updateContent: ApiPurposeUpdateContent | ApiReversePurposeUpdateContent,
   organizationId: TenantId,
   mode: EServiceMode,
-  {
-    readModelService,
-    correlationId,
-    repository,
-  }: {
-    readModelService: ReadModelService;
-    correlationId: string;
-    repository: {
-      createEvent: (createEvent: CreateEvent<PurposeEvent>) => Promise<string>;
-    };
+  readModelService: ReadModelService,
+  correlationId: string,
+  repository: {
+    createEvent: (createEvent: CreateEvent<PurposeEvent>) => Promise<string>;
   }
 ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> => {
   const purpose = await retrievePurpose(purposeId, readModelService);
@@ -439,7 +437,7 @@ const updatePurposeInternal = async (
   assertPurposeIsDraft(purpose.data);
 
   if (updateContent.title !== purpose.data.title) {
-    const purposeWithSameTitle = await readModelService.getSpecificPurpose(
+    const purposeWithSameTitle = await readModelService.getPurpose(
       purpose.data.eserviceId,
       purpose.data.consumerId,
       updateContent.title
@@ -453,7 +451,7 @@ const updatePurposeInternal = async (
     purpose.data.eserviceId,
     readModelService
   );
-  assertEserviceHasSpecificMode(eservice, mode);
+  assertEserviceMode(eservice, mode);
   assertConsistentFreeOfCharge(
     updateContent.isFreeOfCharge,
     updateContent.freeOfChargeReason
