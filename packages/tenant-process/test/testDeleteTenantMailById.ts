@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { fail } from "assert";
 import {
   generateId,
   Tenant,
@@ -9,7 +9,7 @@ import {
   operationForbidden,
   TenantMailDeletedV2,
 } from "pagopa-interop-models";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, beforeAll, vi, afterAll } from "vitest";
 import { mailNotFound, tenantNotFound } from "../src/model/domain/errors.js";
 import {
   postgresDB,
@@ -20,29 +20,38 @@ import { addOneTenant, getMockTenant, readLastTenantEvent } from "./utils.js";
 
 export const testDeleteTenantMailById = (): ReturnType<typeof describe> =>
   describe("deleteTenantMailById", async () => {
+    let tenant: Tenant;
     const mailId = generateId();
     const notDeletedMailId = generateId();
 
-    const tenant: Tenant = {
-      ...getMockTenant(),
-      mails: [
-        {
-          id: mailId,
-          createdAt: new Date(),
-          kind: "CONTACT_EMAIL",
-          address: "testMail@test.it",
-        },
-        {
-          id: notDeletedMailId,
-          createdAt: new Date(),
-          kind: "CONTACT_EMAIL",
-          address: "testMail2@test.it",
-        },
-      ],
-    };
-    it("Should delete the mail with the required mailId if it exist ", async () => {
+    beforeAll(async () => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date());
+
+      tenant = {
+        ...getMockTenant(),
+        mails: [
+          {
+            id: mailId,
+            createdAt: new Date(),
+            kind: "CONTACT_EMAIL",
+            address: "testMail@test.it",
+          },
+          {
+            id: notDeletedMailId,
+            createdAt: new Date(),
+            kind: "CONTACT_EMAIL",
+            address: "testMail2@test.it",
+          },
+        ],
+      };
+    });
+
+    afterAll(() => {
+      vi.useRealTimers();
+    });
+
+    it("Should delete the mail with the required mailId if it exist ", async () => {
       await addOneTenant(tenant, postgresDB, tenants);
       await tenantService.deleteTenantMailById(
         tenant.id,
@@ -51,14 +60,12 @@ export const testDeleteTenantMailById = (): ReturnType<typeof describe> =>
         generateId()
       );
       const writtenEvent = await readLastTenantEvent(tenant.id, postgresDB);
-      if (!writtenEvent) {
-        fail("Creation fails: tenant not found in event-store");
-      }
 
       expect(writtenEvent).toMatchObject({
         stream_id: tenant.id,
         version: "1",
         type: "TenantMailDeleted",
+        event_version: 2,
       });
 
       const writtenPayload: TenantMailDeletedV2 | undefined = protobufDecoder(
@@ -70,9 +77,7 @@ export const testDeleteTenantMailById = (): ReturnType<typeof describe> =>
         mails: [
           {
             id: notDeletedMailId,
-            createdAt: new Date(
-              Number(writtenPayload.tenant?.mails.map((a) => a.createdAt))
-            ),
+            createdAt: new Date(),
             kind: "CONTACT_EMAIL",
             address: "testMail2@test.it",
           },
@@ -80,7 +85,6 @@ export const testDeleteTenantMailById = (): ReturnType<typeof describe> =>
         updatedAt: new Date(),
       };
       expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
-      vi.useRealTimers();
     });
     it("Should throw tenantNotFound if the tenant doesn't exists", async () => {
       expect(
