@@ -126,9 +126,9 @@ describe("Notification tests", async () => {
   afterAll(async () => {
     await startedElasticMQContainer.stop();
   });
-  /*
+
   describe("Update Descriptor Event Message", async () => {
-    it("should send a message to the queue", async () => {
+    it.only("should send a message to the queue", async () => {
       const descriptor = getDescriptorMock(
         "6b48e234-aac6-4d33-aef4-93816588ff41"
       );
@@ -176,9 +176,8 @@ describe("Notification tests", async () => {
       );
     });
   });
-  */
   describe("Purpose Event Message", async () => {
-    it.only("should send a message to the queue", async () => {
+    it("should send a message to the queue", async () => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date());
 
