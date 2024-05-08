@@ -13,13 +13,7 @@ const {
 
 export const getPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
-    .with(
-      "purposeNotFound",
-      "tenantNotFound",
-      "tenantKindNotFound",
-      () => HTTP_STATUS_NOT_FOUND
-    )
-    .with("eserviceNotFound", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
+    .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getRiskAnalysisDocumentErrorMapper = (
