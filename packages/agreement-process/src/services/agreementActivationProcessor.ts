@@ -1,5 +1,10 @@
 /* eslint-disable max-params */
-import { AuthData, CreateEvent, FileManager } from "pagopa-interop-commons";
+import {
+  AuthData,
+  CreateEvent,
+  FileManager,
+  Logger,
+} from "pagopa-interop-commons";
 import {
   Agreement,
   Descriptor,
@@ -53,7 +58,8 @@ export async function activateAgreementLogic(
   attributeQuery: AttributeQuery,
   authData: AuthData,
   storeFile: FileManager["storeBytes"],
-  correlationId: string
+  correlationId: string,
+  logger: Logger
 ): Promise<Array<CreateEvent<AgreementEvent>>> {
   const agreement = await agreementQuery.getAgreementById(agreementId);
   assertAgreementExist(agreementId, agreement);
@@ -85,7 +91,8 @@ export async function activateAgreementLogic(
     agreementQuery,
     attributeQuery,
     storeFile,
-    correlationId
+    correlationId,
+    logger
   );
 }
 
@@ -99,7 +106,8 @@ async function activateAgreement(
   agreementQuery: AgreementQuery,
   attributeQuery: AttributeQuery,
   storeFile: FileManager["storeBytes"],
-  correlationId: string
+  correlationId: string,
+  logger: Logger
 ): Promise<Array<CreateEvent<AgreementEvent>>> {
   const agreement = agreementData.data;
   const nextAttributesState = nextState(agreement, descriptor, consumer);
@@ -193,7 +201,8 @@ async function activateAgreement(
       attributeQuery,
       tenantQuery,
       authData.selfcareId,
-      storeFile
+      storeFile,
+      logger
     );
   }
 
@@ -254,16 +263,16 @@ const createContract = async (
   attributeQuery: AttributeQuery,
   tenantQuery: TenantQuery,
   selfcareId: SelfcareId,
-  storeFile: FileManager["storeBytes"]
+  storeFile: FileManager["storeBytes"],
+  logger: Logger
 ): Promise<void> => {
   const producer = await tenantQuery.getTenantById(agreement.producerId);
   assertTenantExist(agreement.producerId, producer);
 
-  await contractBuilder(selfcareId, attributeQuery, storeFile).createContract(
-    agreement,
-    eservice,
-    consumer,
-    producer,
-    updateSeed
-  );
+  await contractBuilder(
+    selfcareId,
+    attributeQuery,
+    storeFile,
+    logger
+  ).createContract(agreement, eservice, consumer, producer, updateSeed);
 };
