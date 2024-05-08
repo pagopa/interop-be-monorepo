@@ -69,6 +69,7 @@ import {
   tenantKind,
   unsafeBrandId,
   toEServiceV2,
+  RiskAnalysis,
 } from "pagopa-interop-models";
 import {
   TEST_MINIO_PORT,
@@ -112,6 +113,7 @@ import {
   interfaceAlreadyExists,
   notValidDescriptor,
   originNotCompliant,
+  riskAnalysisDuplicate,
   riskAnalysisNotValid,
   riskAnalysisValidationFailed,
   tenantKindNotFound,
@@ -4742,7 +4744,46 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(tenantKindNotFound(producer.id));
       });
+      it("should throw riskAnalysisDuplicate if risk analysis name is duplicated", async () => {
+        const producerTenantKind: TenantKind = TenantKind.Enum.PA;
+        const producer: Tenant = {
+          ...getMockTenant(),
+          kind: producerTenantKind,
+        };
 
+        await addOneTenant(producer, tenants);
+
+        const riskAnalysis = getMockValidRiskAnalysis(producerTenantKind);
+
+        const eservice: EService = {
+          ...mockEService,
+          producerId: producer.id,
+          mode: eserviceMode.receive,
+          descriptors: [
+            {
+              ...mockDescriptor,
+              state: descriptorState.draft,
+            },
+          ],
+          riskAnalysis: [riskAnalysis],
+        };
+        await addOneEService(eservice, postgresDB, eservices);
+        const newRiskAnalysis: RiskAnalysis = getMockValidRiskAnalysis(
+          producerTenantKind,
+          riskAnalysis.name
+        );
+
+        expect(
+          catalogService.createRiskAnalysis(
+            eservice.id,
+            buildRiskAnalysisSeed(newRiskAnalysis),
+            getMockAuthData(eservice.producerId),
+            uuidv4()
+          )
+        ).rejects.toThrowError(
+          riskAnalysisDuplicate(newRiskAnalysis.name, eservice.id)
+        );
+      });
       it("should throw riskAnalysisValidationFailed if the risk analysis is not valid", async () => {
         const producerTenantKind: TenantKind = randomArrayItem(
           Object.values(tenantKind)
@@ -5124,6 +5165,46 @@ describe("database test", async () => {
           )
         ).rejects.toThrowError(
           eServiceRiskAnalysisNotFound(eservice.id, riskAnalysisId)
+        );
+      });
+      it("should throw riskAnalysisDuplicate if risk analysis name is duplicated", async () => {
+        const producerTenantKind: TenantKind = randomArrayItem(
+          Object.values(tenantKind)
+        );
+        const producer: Tenant = {
+          ...getMockTenant(),
+          kind: producerTenantKind,
+        };
+
+        const riskAnalysis_1 = getMockValidRiskAnalysis(producerTenantKind);
+        const riskAnalysis_2 = getMockValidRiskAnalysis(producerTenantKind);
+
+        const eservice: EService = {
+          ...mockEService,
+          producerId: producer.id,
+          mode: eserviceMode.receive,
+          descriptors: [
+            {
+              ...mockDescriptor,
+              state: descriptorState.draft,
+            },
+          ],
+          riskAnalysis: [riskAnalysis_1, riskAnalysis_2],
+        };
+
+        await addOneTenant(producer, tenants);
+        await addOneEService(eservice, postgresDB, eservices);
+
+        expect(
+          catalogService.updateRiskAnalysis(
+            eservice.id,
+            riskAnalysis_1.id,
+            buildRiskAnalysisSeed(riskAnalysis_1, riskAnalysis_2.name),
+            getMockAuthData(producer.id),
+            uuidv4()
+          )
+        ).rejects.toThrowError(
+          riskAnalysisDuplicate(riskAnalysis_2.name, eservice.id)
         );
       });
       it("should throw riskAnalysisValidationFailed if the risk analysis is not valid", async () => {

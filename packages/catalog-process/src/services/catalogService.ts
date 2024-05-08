@@ -93,6 +93,7 @@ import {
   originNotCompliant,
   tenantNotFound,
   eServiceRiskAnalysisNotFound,
+  riskAnalysisDuplicate,
 } from "../model/domain/errors.js";
 import { formatClonedEServiceDate } from "../utilities/date.js";
 import { ReadModelService } from "./readModelService.js";
@@ -1357,6 +1358,18 @@ export function catalogServiceBuilder(
       );
       assertTenantKindExists(tenant);
 
+      const riskAnalysisWithSameName = eservice.data.riskAnalysis.find(
+        (ra: RiskAnalysis) =>
+          ra.name.toLowerCase === eserviceRiskAnalysisSeed.name.toLowerCase
+      );
+
+      if (riskAnalysisWithSameName !== undefined) {
+        throw riskAnalysisDuplicate(
+          eserviceRiskAnalysisSeed.name,
+          eservice.data.id
+        );
+      }
+
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
         eserviceRiskAnalysisSeed.riskAnalysisForm,
         tenant.kind
@@ -1409,6 +1422,20 @@ export function catalogServiceBuilder(
         riskAnalysisId,
         eservice
       );
+
+      const riskAnalysisWithSameName = eservice.data.riskAnalysis
+        .filter((ra: RiskAnalysis) => ra.id !== riskAnalysisId)
+        .find(
+          (ra: RiskAnalysis) =>
+            ra.name.toLowerCase === eserviceRiskAnalysisSeed.name.toLowerCase
+        );
+
+      if (riskAnalysisWithSameName !== undefined) {
+        throw riskAnalysisDuplicate(
+          eserviceRiskAnalysisSeed.name,
+          eservice.data.id
+        );
+      }
 
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
         eserviceRiskAnalysisSeed.riskAnalysisForm,

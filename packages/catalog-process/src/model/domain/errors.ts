@@ -29,6 +29,7 @@ export const errorCodes = {
   eServiceRiskAnalysisNotFound: "0017",
   eServiceRiskAnalysisIsRequired: "0018",
   riskAnalysisNotValid: "0019",
+  riskAnalysisDuplicate: "0020",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -48,6 +49,17 @@ export function eServiceDuplicate(eserviceName: string): ApiError<ErrorCodes> {
     detail: `An EService with name ${eserviceName} already exists`,
     code: "eServiceDuplicate",
     title: "Duplicated service name",
+  });
+}
+
+export function riskAnalysisDuplicate(
+  riskAnalysisName: string,
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `A Risk Analysis with name ${riskAnalysisName} already exists for EService ${eserviceId}`,
+    code: "riskAnalysisDuplicate",
+    title: "Duplicated risk analysis name",
   });
 }
 

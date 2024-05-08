@@ -72,9 +72,10 @@ export const buildDescriptorSeed = (
 });
 
 export const buildRiskAnalysisSeed = (
-  riskAnalysis: RiskAnalysis
+  riskAnalysis: RiskAnalysis,
+  name?: string
 ): EServiceRiskAnalysisSeed => ({
-  name: riskAnalysis.name,
+  name: name === undefined ? riskAnalysis.name : name,
   riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
     riskAnalysis.riskAnalysisForm
   ),
