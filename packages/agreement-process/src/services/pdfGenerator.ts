@@ -7,17 +7,22 @@
 
 import fs from "fs";
 import path from "path";
-
-import { FileManager, selfcareServiceMock } from "pagopa-interop-commons";
+import {
+  selfcareV2Client,
+  UserResponse,
+} from "pagopa-interop-selfcare-v2-client";
+import { FileManager } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementAttribute,
   AgreementInvolvedAttributes,
   EService,
   PDFPayload,
+  SelfcareId,
   Tenant,
   TenantAttributeType,
   TenantId,
+  UserId,
   genericError,
   tenantAttributeType,
 } from "pagopa-interop-models";
@@ -26,6 +31,7 @@ import { match } from "ts-pattern";
 import {
   agreementMissingUserInfo,
   agreementStampNotFound,
+  userNotFound,
 } from "../model/domain/errors.js";
 import { ApiAgreementDocumentSeed } from "../model/types.js";
 import {
@@ -36,7 +42,6 @@ import {
 } from "../model/domain/models.js";
 import { config } from "../utilities/config.js";
 import { AttributeQuery } from "./readmodel/attributeQuery.js";
-
 const getAttributeInvolved = async (
   consumer: Tenant,
   seed: UpdateAgreementSeed,
@@ -92,25 +97,24 @@ const getAttributeInvolved = async (
 };
 
 const getSubmissionInfo = async (
+  selfcareId: SelfcareId,
   seed: UpdateAgreementSeed
 ): Promise<[string, Date]> => {
   const submission = seed.stamps.submission;
   if (!submission) {
     throw agreementStampNotFound("submission");
   }
-  const user = await selfcareServiceMock.getUserById(submission.who);
+  const user: UserResponse = await retrieveUser(selfcareId, submission.who);
 
-  if (user?.name && user?.familyName && user?.fiscalCode) {
-    return [
-      `${user.name} ${user.familyName} (${user.fiscalCode})`,
-      submission.when,
-    ];
+  if (user.name && user.surname && user.taxCode) {
+    return [`${user.name} ${user.surname} (${user.taxCode})`, submission.when];
   }
 
   throw agreementMissingUserInfo(submission.who);
 };
 
 const getActivationInfo = async (
+  selfcareId: SelfcareId,
   seed: UpdateAgreementSeed
 ): Promise<[string, Date]> => {
   const activation = seed.stamps.activation;
@@ -119,18 +123,17 @@ const getActivationInfo = async (
     throw agreementStampNotFound("activation");
   }
 
-  const user = await selfcareServiceMock.getUserById(activation.who);
-  if (user?.name && user?.familyName && user?.fiscalCode) {
-    return [
-      `${user.name} ${user.familyName} (${user.fiscalCode})`,
-      activation.when,
-    ];
+  const user: UserResponse = await retrieveUser(selfcareId, activation.who);
+
+  if (user.name && user.surname && user.taxCode) {
+    return [`${user.name} ${user.surname} (${user.taxCode})`, activation.when];
   }
 
   throw agreementMissingUserInfo(activation.who);
 };
 
 const getPdfPayload = async (
+  selfcareId: SelfcareId,
   agreement: Agreement,
   eservice: EService,
   consumer: Tenant,
@@ -143,8 +146,14 @@ const getPdfPayload = async (
     seed,
     attributeQuery
   );
-  const [submitter, submissionTimestamp] = await getSubmissionInfo(seed);
-  const [activator, activationTimestamp] = await getActivationInfo(seed);
+  const [submitter, submissionTimestamp] = await getSubmissionInfo(
+    selfcareId,
+    seed
+  );
+  const [activator, activationTimestamp] = await getActivationInfo(
+    selfcareId,
+    seed
+  );
 
   return {
     today: new Date(),
@@ -185,6 +194,7 @@ const createAgreementDocumentName = (
 
 export const pdfGenerator = {
   createDocumentSeed: async (
+    selfcareId: SelfcareId,
     agreement: Agreement,
     eservice: EService,
     consumer: Tenant,
@@ -200,6 +210,7 @@ export const pdfGenerator = {
       agreement.producerId
     );
     const pdfPayload = await getPdfPayload(
+      selfcareId,
       agreement,
       eservice,
       consumer,
@@ -226,3 +237,17 @@ export const pdfGenerator = {
     };
   },
 };
+async function retrieveUser(
+  selfcareId: SelfcareId,
+  id: UserId
+): Promise<UserResponse> {
+  const user = await selfcareV2Client.getUserInfoUsingGET({
+    queries: { institutionId: selfcareId },
+    params: { id },
+  });
+
+  if (!user) {
+    throw userNotFound(selfcareId, id);
+  }
+  return user;
+}
