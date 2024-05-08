@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { describe, expect, it } from "vitest";
-import { v4 as uuidv4 } from "uuid";
 import { decodeProtobufPayload } from "pagopa-interop-commons-test";
 import { EService, EServiceAddedV2, toEServiceV2 } from "pagopa-interop-models";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   eServiceDuplicate,
   originNotCompliant,
@@ -29,8 +29,12 @@ export const testCreateEService = (): ReturnType<typeof describe> =>
           technology: "REST",
           mode: "DELIVER",
         },
-        getMockAuthData(mockEService.producerId),
-        uuidv4()
+        {
+          authData: getMockAuthData(mockEService.producerId),
+          correlationId: "",
+          serviceName: "",
+          logger: genericLogger,
+        }
       );
 
       expect(eservice).toBeDefined();
@@ -66,8 +70,12 @@ export const testCreateEService = (): ReturnType<typeof describe> =>
             technology: "REST",
             mode: "DELIVER",
           },
-          getMockAuthData(mockEService.producerId),
-          uuidv4()
+          {
+            authData: getMockAuthData(mockEService.producerId),
+            correlationId: "",
+            serviceName: "",
+            logger: genericLogger,
+          }
         )
       ).rejects.toThrowError(eServiceDuplicate(mockEService.name));
     });
@@ -82,13 +90,17 @@ export const testCreateEService = (): ReturnType<typeof describe> =>
             mode: "DELIVER",
           },
           {
-            ...getMockAuthData(mockEService.producerId),
-            externalId: {
-              value: "123456",
-              origin: "not-allowed-origin",
+            authData: {
+              ...getMockAuthData(mockEService.producerId),
+              externalId: {
+                value: "123456",
+                origin: "not-allowed-origin",
+              },
             },
-          },
-          uuidv4()
+            correlationId: "",
+            serviceName: "",
+            logger: genericLogger,
+          }
         )
       ).rejects.toThrowError(originNotCompliant("not-allowed-origin"));
     });
