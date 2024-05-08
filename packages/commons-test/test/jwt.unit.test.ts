@@ -1,6 +1,6 @@
 /* eslint-disable functional/immutable-data */
 import jwt from "jsonwebtoken";
-import { readAuthDataFromJwtToken, userRoles } from "pagopa-interop-commons";
+import { readAuthDataFromJwtToken } from "pagopa-interop-commons";
 import { invalidClaim } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { P, match } from "ts-pattern";
