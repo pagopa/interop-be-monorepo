@@ -208,7 +208,11 @@ export function agreementServiceBuilder(
       const updatesEvents = await submitAgreementLogic(
         agreementId,
         payload,
-        contractBuilder(attributeQuery, fileManager.storeBytes),
+        contractBuilder(
+          authData.selfcareId,
+          attributeQuery,
+          fileManager.storeBytes
+        ),
         eserviceQuery,
         agreementQuery,
         tenantQuery,

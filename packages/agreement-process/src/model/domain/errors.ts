@@ -9,6 +9,8 @@ import {
   EServiceId,
   TenantId,
   makeApiProblemBuilder,
+  UserId,
+  SelfcareId,
 } from "pagopa-interop-models";
 
 const errorCodes = {
@@ -37,6 +39,7 @@ const errorCodes = {
   invalidAttributeStructure: "0023",
   consumerWithNotValidEmail: "0024",
   agreementDocumentAlreadyExists: "0025",
+  userNotFound: "0026",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -282,5 +285,16 @@ export function documentChangeNotAllowed(
     detail: `The requested operation on consumer documents is not allowed on agreement with state ${state}`,
     code: "documentsChangeNotAllowed",
     title: "Document change not allowed",
+  });
+}
+
+export function userNotFound(
+  selfcareId: SelfcareId,
+  userId: UserId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `User ${userId} not found for selfcare institution ${selfcareId}`,
+    code: "userNotFound",
+    title: "User not found",
   });
 }
