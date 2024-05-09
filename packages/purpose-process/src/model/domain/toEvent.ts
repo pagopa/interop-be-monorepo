@@ -127,3 +127,45 @@ export const toCreateEventPurposeArchived = ({
   },
   correlationId,
 });
+
+export const toCreateEventPurposeSuspendedByConsumer = ({
+  purpose,
+  purposeVersionId,
+  version,
+  correlationId,
+}: {
+  purpose: Purpose;
+  purposeVersionId: PurposeVersionId;
+  version: number;
+  correlationId: string;
+}): CreateEvent<PurposeEventV2> => ({
+  streamId: purpose.id,
+  version,
+  event: {
+    type: "PurposeVersionSuspendedByConsumer",
+    event_version: 2,
+    data: { purpose: toPurposeV2(purpose), versionId: purposeVersionId },
+  },
+  correlationId,
+});
+
+export const toCreateEventPurposeSuspendedByProducer = ({
+  purpose,
+  purposeVersionId,
+  version,
+  correlationId,
+}: {
+  purpose: Purpose;
+  purposeVersionId: PurposeVersionId;
+  version: number;
+  correlationId: string;
+}): CreateEvent<PurposeEventV2> => ({
+  streamId: purpose.id,
+  version,
+  event: {
+    type: "PurposeVersionSuspendedByProducer",
+    event_version: 2,
+    data: { purpose: toPurposeV2(purpose), versionId: purposeVersionId },
+  },
+  correlationId,
+});
