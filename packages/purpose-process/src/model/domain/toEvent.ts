@@ -2,6 +2,7 @@ import { CreateEvent } from "pagopa-interop-commons";
 import {
   Purpose,
   PurposeEvent,
+  PurposeEventV2,
   PurposeVersionId,
   toPurposeV2,
 } from "pagopa-interop-models";
@@ -37,7 +38,7 @@ export const toCreateEventPurposeVersionRejected = ({
   version: number;
   versionId: PurposeVersionId;
   correlationId: string;
-}): CreateEvent<PurposeEvent> => ({
+}): CreateEvent<PurposeEventV2> => ({
   streamId: purpose.id,
   version,
   event: {
