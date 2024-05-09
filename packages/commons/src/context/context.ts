@@ -29,9 +29,10 @@ export const contextMiddleware =
   (serviceName: string): ZodiosRouterContextRequestHandler<ExpressContext> =>
   (req, _res, next): void => {
     // eslint-disable-next-line functional/immutable-data
-    req.ctx.serviceName = serviceName;
-    // eslint-disable-next-line functional/immutable-data
-    req.ctx.correlationId = readCorrelationIdHeader(req) ?? uuidv4();
+    req.ctx = {
+      serviceName,
+      correlationId: readCorrelationIdHeader(req) ?? uuidv4(),
+    } as AppContext;
 
     next();
   };
