@@ -16,6 +16,7 @@ import {
   AgreementId,
   SelfcareId,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import {
   assertAgreementExist,
   assertRequesterIsConsumerOrProducer,
@@ -30,13 +31,17 @@ import {
   assertEServiceExist,
   agreementArchivableStates,
 } from "../model/domain/validators.js";
-import { toCreateEventAgreementUpdated } from "../model/domain/toEvent.js";
+import {
+  toCreateEventAgreementActivated,
+  toCreateEventAgreementArchivedByUpgrade,
+  toCreateEventAgreementUnsuspendedByConsumer,
+  toCreateEventAgreementUnsuspendedByProducer,
+} from "../model/domain/toEvent.js";
 import { UpdateAgreementSeed } from "../model/domain/models.js";
 import {
   agreementStateByFlags,
   nextState,
   suspendedByConsumerFlag,
-  suspendedByPlatformFlag,
   suspendedByProducerFlag,
 } from "./agreementStateProcessor.js";
 import { contractBuilder } from "./agreementContractBuilder.js";
@@ -122,13 +127,11 @@ async function activateAgreement(
     authData.organizationId,
     agreementState.active
   );
-  const suspendedByPlatform = suspendedByPlatformFlag(nextAttributesState);
 
   const newState = agreementStateByFlags(
     nextAttributesState,
     suspendedByProducer,
-    suspendedByConsumer,
-    suspendedByPlatform
+    suspendedByConsumer
   );
 
   failOnActivationFailure(newState, agreement);
@@ -149,7 +152,6 @@ async function activateAgreement(
         ),
         suspendedByConsumer,
         suspendedByProducer,
-        suspendedByPlatform,
         stamps: {
           ...agreement.stamps,
           activation: createStamp(authData),
@@ -159,7 +161,6 @@ async function activateAgreement(
         state: newState,
         suspendedByConsumer,
         suspendedByProducer,
-        suspendedByPlatform,
         stamps: {
           ...agreement.stamps,
           suspensionByConsumer: suspendedByConsumerStamp(
@@ -186,25 +187,48 @@ async function activateAgreement(
     ...updatedAgreementSeed,
   };
 
-  const updateAgreementEvent = toCreateEventAgreementUpdated(
-    updatedAgreement,
-    agreementData.metadata.version,
-    correlationId
-  );
+  const activationEvent = await match(firstActivation)
+    .with(true, async () => {
+      const activatedAgreementEvent = toCreateEventAgreementActivated(
+        updatedAgreement,
+        agreementData.metadata.version,
+        correlationId
+      );
 
-  if (firstActivation) {
-    await createContract(
-      updatedAgreement,
-      updatedAgreementSeed,
-      eservice,
-      consumer,
-      attributeQuery,
-      tenantQuery,
-      authData.selfcareId,
-      storeFile,
-      logger
-    );
-  }
+      await createContract(
+        updatedAgreement,
+        updatedAgreementSeed,
+        eservice,
+        consumer,
+        attributeQuery,
+        tenantQuery,
+        authData.selfcareId,
+        storeFile,
+        logger
+      );
+
+      return activatedAgreementEvent;
+    })
+    .with(false, () => {
+      if (authData.organizationId === agreement.consumerId) {
+        return toCreateEventAgreementUnsuspendedByConsumer(
+          updatedAgreement,
+          agreementData.metadata.version,
+          correlationId
+        );
+      } else if (authData.organizationId === agreement.producerId) {
+        return toCreateEventAgreementUnsuspendedByProducer(
+          updatedAgreement,
+          agreementData.metadata.version,
+          correlationId
+        );
+      } else {
+        throw new Error(
+          `Unexpected organizationId ${authData.organizationId} in activateAgreement`
+        );
+      }
+    })
+    .exhaustive();
 
   const archiveEvents = await archiveRelatedToAgreements(
     agreement,
@@ -213,7 +237,7 @@ async function activateAgreement(
     correlationId
   );
 
-  return [updateAgreementEvent, ...archiveEvents];
+  return [activationEvent, ...archiveEvents];
 }
 
 const archiveRelatedToAgreements = async (
@@ -234,7 +258,7 @@ const archiveRelatedToAgreements = async (
   );
 
   return archivables.map((agreementData) =>
-    toCreateEventAgreementUpdated(
+    toCreateEventAgreementArchivedByUpgrade(
       {
         ...agreementData.data,
         state: agreementState.archived,

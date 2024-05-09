@@ -36,7 +36,7 @@ message AgreementUnsuspendedByPlatformV2 {
   AgreementV2 agreement = 1;
 }
 
-message AgreementArchivedV2 {
+message AgreementArchivedByConsumerV2 {
   AgreementV2 agreement = 1;
 }
 
