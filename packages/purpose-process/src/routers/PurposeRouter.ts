@@ -180,6 +180,7 @@ const purposeRouter = (
             purposeId: unsafeBrandId(req.params.id),
             organizationId: req.ctx.authData.organizationId,
             correlationId: req.ctx.correlationId,
+            logger: ctx.logger,
           });
           return res.status(204).end();
         } catch (error) {
