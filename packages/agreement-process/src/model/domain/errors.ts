@@ -1,4 +1,3 @@
-import { logger } from "pagopa-interop-commons";
 import {
   AgreementDocumentId,
   AgreementId,
@@ -13,7 +12,7 @@ import {
   SelfcareId,
 } from "pagopa-interop-models";
 
-const errorCodes = {
+export const errorCodes = {
   missingCertifiedAttributesError: "0001",
   agreementSubmissionFailed: "0002",
   agreementNotInExpectedState: "0003",
@@ -33,7 +32,7 @@ const errorCodes = {
   documentNotFound: "0017",
   documentsChangeNotAllowed: "0018",
   selfcareIdNotFound: "0019",
-  tenantIdNotFound: "0020",
+  tenantNotFound: "0020",
   notLatestEServiceDescriptor: "0021",
   attributeNotFound: "0022",
   invalidAttributeStructure: "0023",
@@ -44,7 +43,7 @@ const errorCodes = {
 
 export type ErrorCodes = keyof typeof errorCodes;
 
-export const makeApiProblem = makeApiProblemBuilder(logger, errorCodes);
+export const makeApiProblem = makeApiProblemBuilder(errorCodes);
 
 export function eServiceNotFound(eserviceId: EServiceId): ApiError<ErrorCodes> {
   return new ApiError({
@@ -171,10 +170,10 @@ export function agreementNotInExpectedState(
   });
 }
 
-export function tenantIdNotFound(tenantId: string): ApiError<ErrorCodes> {
+export function tenantNotFound(tenantId: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant ${tenantId} not found`,
-    code: "tenantIdNotFound",
+    code: "tenantNotFound",
     title: "Tenant not found",
   });
 }
