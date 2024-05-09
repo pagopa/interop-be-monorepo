@@ -45,6 +45,7 @@ import {
 } from "../model/domain/toEvent.js";
 import {
   agreementArchivableStates,
+  agreementClonableStates,
   agreementCloningConflictingStates,
   agreementDeletableStates,
   agreementRejectableStates,
@@ -728,9 +729,11 @@ export async function cloneAgreementLogic(
   assertAgreementExist(agreementId, agreementToBeCloned);
   assertRequesterIsConsumer(agreementToBeCloned.data, authData);
 
-  assertExpectedState(agreementId, agreementToBeCloned.data.state, [
-    agreementState.rejected,
-  ]);
+  assertExpectedState(
+    agreementId,
+    agreementToBeCloned.data.state,
+    agreementClonableStates
+  );
 
   const eservice = await eserviceQuery.getEServiceById(
     agreementToBeCloned.data.eserviceId

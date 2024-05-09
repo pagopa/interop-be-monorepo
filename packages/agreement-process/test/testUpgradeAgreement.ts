@@ -46,7 +46,7 @@ import {
   noNewerDescriptor,
   operationNotAllowed,
   publishedDescriptorNotFound,
-  tenantIdNotFound,
+  tenantNotFound,
   unexpectedVersionFormat,
 } from "../src/model/domain/errors.js";
 import { toAgreementV2 } from "../src/model/domain/toEvent.js";
@@ -66,10 +66,11 @@ import {
   addOneTenant,
   getMockConsumerDocument,
   readAgreementEventByVersion,
+  uploadDocument,
 } from "./utils.js";
 
 export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
-  describe("Upgrade Agreement", () => {
+  describe("upgrade Agreement", () => {
     const TEST_EXECUTION_DATE = new Date();
 
     beforeAll(() => {
@@ -80,27 +81,6 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
     afterAll(() => {
       vi.useRealTimers();
     });
-
-    async function uploadDocument(
-      agreementId: AgreementId,
-      documentId: AgreementDocumentId,
-      name: string
-    ): Promise<void> {
-      const documentDestinationPath = `${config.consumerDocumentsPath}/${agreementId}`;
-      await fileManager.storeBytes(
-        config.s3Bucket,
-        documentDestinationPath,
-        documentId,
-        name,
-        Buffer.from("large-document-file"),
-        genericLogger
-      );
-      expect(
-        await fileManager.listFiles(config.s3Bucket, genericLogger)
-      ).toContainEqual(
-        `${config.consumerDocumentsPath}/${agreementId}/${documentId}/${name}`
-      );
-    }
 
     it("should succeed with valid Verified and Declared attributes when consumer and producer are the same", async () => {
       const authData = getRandomAuthData();
@@ -188,7 +168,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       };
 
       for (const doc of agreementConsumerDocuments) {
-        await uploadDocument(agreementId, doc.id, doc.name);
+        await uploadDocument(agreementId, doc.id, doc.name, fileManager);
       }
 
       const eservice = getMockEService(
@@ -385,7 +365,8 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       await uploadDocument(
         agreementToBeUpgraded.id,
         agreementConsumerDocument.id,
-        agreementConsumerDocument.name
+        agreementConsumerDocument.name,
+        fileManager
       );
 
       const eservice = getMockEService(
@@ -557,7 +538,8 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       await uploadDocument(
         agreementId,
         agreementConsumerDocument.id,
-        agreementConsumerDocument.name
+        agreementConsumerDocument.name,
+        fileManager
       );
 
       const agreementToBeUpgraded: Agreement = {
@@ -728,7 +710,8 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       await uploadDocument(
         agreementId,
         agreementConsumerDocument.id,
-        agreementConsumerDocument.name
+        agreementConsumerDocument.name,
+        fileManager
       );
 
       const agreementToBeUpgraded: Agreement = {
@@ -896,7 +879,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       };
 
       for (const doc of agreementConsumerDocuments) {
-        await uploadDocument(agreementId, doc.id, doc.name);
+        await uploadDocument(agreementId, doc.id, doc.name, fileManager);
       }
 
       const agreementToBeUpgraded: Agreement = {
@@ -989,7 +972,8 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
       }
     });
 
-    it("should throw a tenantIdNotFound error when the tenant does not exist", async () => {
+    it("should throw a tenantNotFound error when the tenant does not exist", async () => {
+      await addOneAgreement(getMockAgreement(), postgresDB, agreements);
       const authData = getRandomAuthData();
       const agreementId = generateId<AgreementId>();
       await expect(
@@ -999,7 +983,7 @@ export const testUpgradeAgreement = (): ReturnType<typeof describe> =>
           correlationId: "",
           logger: genericLogger,
         })
-      ).rejects.toThrowError(tenantIdNotFound(authData.organizationId));
+      ).rejects.toThrowError(tenantNotFound(authData.organizationId));
     });
 
     it("should throw an agreementNotFound error when the agreement does not exist", async () => {
