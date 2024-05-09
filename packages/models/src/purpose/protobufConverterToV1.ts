@@ -42,7 +42,7 @@ export const toPurposeVersionV1 = (
 ): PurposeVersionV1 => ({
   ...input,
   state: toPurposeVersionStateV1(input.state),
-  expectedApprovalDate: dateToBigInt(input.expectedApprovalDate),
+  expectedApprovalDate: undefined,
   createdAt: dateToBigInt(input.createdAt),
   updatedAt: dateToBigInt(input.updatedAt),
   firstActivationAt: dateToBigInt(input.firstActivationAt),

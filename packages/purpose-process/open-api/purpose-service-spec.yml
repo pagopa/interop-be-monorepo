@@ -1152,9 +1152,6 @@ components:
         firstActivationAt:
           type: string
           format: date-time
-        expectedApprovalDate:
-          type: string
-          format: date-time
         dailyCalls:
           description: "maximum number of daily calls that this version can perform."
           type: integer
