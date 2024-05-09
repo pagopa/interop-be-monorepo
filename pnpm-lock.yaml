@@ -543,9 +543,6 @@ importers:
       '@aws-sdk/client-s3':
         specifier: 3.572.0
         version: 3.572.0
-      '@aws-sdk/client-sqs':
-        specifier: 3.572.0
-        version: 3.572.0
       '@zodios/core':
         specifier: 10.9.6
         version: 10.9.6(axios@1.6.8)(zod@3.22.3)
