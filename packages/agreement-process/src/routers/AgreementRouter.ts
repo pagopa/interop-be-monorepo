@@ -45,6 +45,7 @@ import {
   removeConsumerDocumentErrorMapper,
   archiveAgreementErrorMapper,
   getAgreementErrorMapper,
+  computeAgreementStateErrorMapper,
 } from "../utilities/errorMappers.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 
@@ -543,9 +544,26 @@ const agreementRouter = (
     }
   );
 
-  agreementRouter.post("/compute/agreementsState", async (_req, res) => {
-    res.status(501).send();
-  });
+  agreementRouter.post(
+    "/compute/agreementsState",
+    authorizationMiddleware([ADMIN_ROLE, INTERNAL_ROLE, M2M_ROLE]),
+    async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        await agreementService.computeAgreementState(req.body, ctx);
+
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          computeAgreementStateErrorMapper,
+          ctx.logger
+        );
+        return res.status(errorRes.status).json(errorRes).end();
+      }
+    }
+  );
 
   agreementRouter.get(
     "/agreements/filter/eservices",

@@ -769,6 +769,12 @@ paths:
       responses:
         "204":
           description: Bulk operation executed
+        "404":
+          description: Resource Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   "/agreements/filter/eservices":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"

@@ -72,6 +72,7 @@ import {
   ApiAgreementPayload,
   ApiAgreementSubmissionPayload,
   ApiAgreementUpdatePayload,
+  ApiComputeAgreementStatePayload,
 } from "../model/types.js";
 import { config } from "../utilities/config.js";
 import { activateAgreementLogic } from "./agreementActivationProcessor.js";
@@ -426,6 +427,15 @@ export function agreementServiceBuilder(
       await repository.createEvent(event);
 
       return agreement;
+    },
+    async computeAgreementState(
+      payload: ApiComputeAgreementStatePayload,
+      { logger }: WithLogger<AppContext>
+    ): Promise<void> {
+      logger.info(
+        `Recalculating agreements state for attribute ${payload.attributeId}`
+      );
+      // TODO implement the logic to recalculate the state of the agreements
     },
   };
 }
