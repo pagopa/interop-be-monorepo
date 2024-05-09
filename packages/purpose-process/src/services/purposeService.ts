@@ -634,7 +634,8 @@ export function purposeServiceBuilder(
         purpose.data.eserviceId,
         readModelService
       );
-      const tenant = await retrieveTenant(
+      const tenant = await getInvolvedTenantByEServiceMode(
+        eservice,
         purpose.data.consumerId,
         readModelService
       );
