@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   getMockPurposeVersion,
   getMockPurpose,
@@ -33,10 +33,14 @@ import {
 
 export const testDeletePurposeVersion = (): ReturnType<typeof describe> =>
   describe("deletePurposeVersion", () => {
-    it("should write in event-store for the deletion of a purpose version", async () => {
+    beforeAll(() => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date());
-
+    });
+    afterAll(() => {
+      vi.useRealTimers();
+    });
+    it("should write in event-store for the deletion of a purpose version", async () => {
       const mockEService = getMockEService();
       const mockPurposeVersion1 = getMockPurposeVersion(
         purposeVersionState.waitingForApproval
