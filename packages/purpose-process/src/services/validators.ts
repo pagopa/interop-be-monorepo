@@ -149,3 +149,10 @@ export function assertPurposeIsDraft(purpose: Purpose): void {
     throw purposeNotInDraftState(purpose.id);
   }
 }
+
+export const isDeletable = (purpose: Purpose): boolean =>
+  purpose.versions.every(
+    (v) =>
+      v.state === purposeVersionState.draft ||
+      v.state === purposeVersionState.waitingForApproval
+  );

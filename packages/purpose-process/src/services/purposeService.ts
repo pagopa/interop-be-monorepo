@@ -32,6 +32,7 @@ import {
   organizationIsNotTheConsumer,
   organizationIsNotTheProducer,
   organizationNotAllowed,
+  purposeCannotBeDeleted,
   purposeNotFound,
   purposeVersionCannotBeDeleted,
   purposeVersionDocumentNotFound,
@@ -39,8 +40,10 @@ import {
   tenantNotFound,
 } from "../model/domain/errors.js";
 import {
+  toCreateEventDraftPurposeDeleted,
   toCreateEventDraftPurposeUpdated,
   toCreateEventPurposeVersionRejected,
+  toCreateEventWaitingForApprovalPurposeDeleted,
   toCreateEventWaitingForApprovalPurposeVersionDeleted,
 } from "../model/domain/toEvent.js";
 import {
@@ -60,6 +63,7 @@ import {
   validateAndTransformRiskAnalysis,
   assertPurposeIsDraft,
   isRejectable,
+  isDeletable,
 } from "./validators.js";
 
 const retrievePurpose = async (
@@ -336,6 +340,41 @@ export function purposeServiceBuilder(
         correlationId,
         repository
       );
+    },
+    async deletePurpose({
+      purposeId,
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      purposeId: PurposeId;
+      organizationId: TenantId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<void> {
+      logger.info(`Deleting Purpose ${purposeId}`);
+
+      const purpose = await retrievePurpose(purposeId, readModelService);
+
+      assertOrganizationIsAConsumer(organizationId, purpose.data.consumerId);
+
+      if (!isDeletable(purpose.data)) {
+        throw purposeCannotBeDeleted(purpose.data.id);
+      }
+
+      const event = purposeIsDraft(purpose.data)
+        ? toCreateEventDraftPurposeDeleted({
+            purpose: purpose.data,
+            version: purpose.metadata.version,
+            correlationId,
+          })
+        : toCreateEventWaitingForApprovalPurposeDeleted({
+            purpose: purpose.data,
+            version: purpose.metadata.version,
+            correlationId,
+          });
+
+      await repository.createEvent(event);
     },
   };
 }

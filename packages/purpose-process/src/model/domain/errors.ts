@@ -28,6 +28,7 @@ export const errorCodes = {
   riskAnalysisValidationFailed: "0014",
   purposeNotInDraftState: "0015",
   duplicatedPurposeTitle: "0016",
+  purposeCannotBeDeleted: "0017",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -168,6 +169,7 @@ export function purposeNotInDraftState(
     title: "Purpose not in draft state",
   });
 }
+
 export function notValidVersionState(
   purposeVersionId: PurposeVersionId,
   versionState: PurposeVersionState
@@ -184,5 +186,15 @@ export function duplicatedPurposeTitle(title: string): ApiError<ErrorCodes> {
     detail: `Purpose with title: ${title} already exists`,
     code: "duplicatedPurposeTitle",
     title: "Duplicated Purpose Title",
+  });
+}
+
+export function purposeCannotBeDeleted(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Versions in Purpose ${purposeId} do not allow deletion`,
+    code: "purposeCannotBeDeleted",
+    title: "Purpose cannot be deleted",
   });
 }
