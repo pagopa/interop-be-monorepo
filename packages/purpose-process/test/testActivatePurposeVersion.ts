@@ -664,7 +664,7 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
       }).rejects.toThrowError(organizationNotAllowed(anotherTenant.id));
     });
 
-    it.only("should throw missingRiskAnalysis if the purpose is in draft and has no risk analysis", async () => {
+    it("should throw missingRiskAnalysis if the purpose is in draft and has no risk analysis", async () => {
       const purposeVersion: PurposeVersion = {
         ...mockPurposeVersion,
         state: purposeVersionState.draft,
