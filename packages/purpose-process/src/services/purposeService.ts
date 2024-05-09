@@ -432,7 +432,6 @@ export function purposeServiceBuilder(
       await repository.createEvent(event);
       return archivedVersion;
     },
-
     async suspendPurposeVersion({
       purposeId,
       versionId,
