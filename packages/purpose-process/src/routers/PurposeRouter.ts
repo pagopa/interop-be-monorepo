@@ -174,6 +174,7 @@ const purposeRouter = (
       "/purposes/:id",
       authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
         try {
           await purposeService.deletePurpose({
             purposeId: unsafeBrandId(req.params.id),
@@ -182,7 +183,11 @@ const purposeRouter = (
           });
           return res.status(204).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, deletePurposeErrorMapper);
+          const errorRes = makeApiProblem(
+            error,
+            deletePurposeErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }

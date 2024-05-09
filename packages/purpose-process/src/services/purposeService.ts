@@ -350,10 +350,12 @@ export function purposeServiceBuilder(
       purposeId,
       organizationId,
       correlationId,
+      logger,
     }: {
       purposeId: PurposeId;
       organizationId: TenantId;
       correlationId: string;
+      logger: Logger;
     }): Promise<void> {
       logger.info(`Deleting Purpose ${purposeId}`);
 
