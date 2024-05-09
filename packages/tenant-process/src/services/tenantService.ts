@@ -397,9 +397,13 @@ export function tenantServiceBuilder(
 
       const updatedTenant: Tenant = {
         ...targetTenant.data,
-        attributes: !maybeDeclaredTenantAttribute
-          ? assignDeclaredAttribute(targetTenant.data, attribute.id)
-          : reassignDeclaredAttribute(targetTenant.data, attribute.id),
+        attributes: maybeDeclaredTenantAttribute
+          ? reassignDeclaredAttribute(
+              targetTenant.data.attributes,
+              attribute.id
+            )
+          : assignDeclaredAttribute(targetTenant.data.attributes, attribute.id),
+
         updatedAt: new Date(),
       };
 
@@ -468,18 +472,19 @@ export function tenantServiceBuilder(
 
       const updatedTenant: Tenant = {
         ...targetTenant.data,
-        attributes: !verifiedTenantAttribute
-          ? assignVerifiedAttribute(
-              targetTenant.data,
-              organizationId,
-              tenantAttributeSeed
-            )
-          : reassignVerifiedAttribute(
-              targetTenant.data,
+        attributes: verifiedTenantAttribute
+          ? reassignVerifiedAttribute(
+              targetTenant.data.attributes,
               verifiedTenantAttribute,
               organizationId,
               tenantAttributeSeed
+            )
+          : assignVerifiedAttribute(
+              targetTenant.data.attributes,
+              organizationId,
+              tenantAttributeSeed
             ),
+
         updatedAt: new Date(),
       };
 
@@ -758,48 +763,40 @@ async function assignCertifiedAttribute({
 }
 
 function buildVerifiedBy(
-  verifiedTenantAttribute: VerifiedTenantAttribute,
+  verifiers: TenantVerifier[],
   organizationId: TenantId,
-  tenantAttributeSeed: ApiVerifiedTenantAttributeSeed
+  expirationDate: string | undefined
 ): TenantVerifier[] {
-  const hasPreviouslyVerified = verifiedTenantAttribute.verifiedBy.find(
-    (i) => i.id === organizationId
-  );
+  const hasPreviouslyVerified = verifiers.find((i) => i.id === organizationId);
   return hasPreviouslyVerified
-    ? verifiedTenantAttribute.verifiedBy.map((verification) =>
+    ? verifiers.map((verification) =>
         verification.id === organizationId
           ? {
               id: organizationId,
               verificationDate: new Date(),
-              expirationDate: tenantAttributeSeed.expirationDate
-                ? new Date(tenantAttributeSeed.expirationDate)
+              expirationDate: expirationDate
+                ? new Date(expirationDate)
                 : undefined,
-              extensionDate: tenantAttributeSeed.expirationDate
-                ? new Date(tenantAttributeSeed.expirationDate)
-                : undefined,
+              extensionDate: undefined,
             }
           : verification
       )
     : [
-        ...verifiedTenantAttribute.verifiedBy,
+        ...verifiers,
         {
           id: organizationId,
           verificationDate: new Date(),
-          expirationDate: tenantAttributeSeed.expirationDate
-            ? new Date(tenantAttributeSeed.expirationDate)
-            : undefined,
-          extensionDate: tenantAttributeSeed.expirationDate
-            ? new Date(tenantAttributeSeed.expirationDate)
-            : undefined,
+          expirationDate: expirationDate ? new Date(expirationDate) : undefined,
+          extensionDate: undefined,
         },
       ];
 }
 function assignDeclaredAttribute(
-  targetTenant: Tenant,
+  attributes: TenantAttribute[],
   attributeId: AttributeId
 ): TenantAttribute[] {
   return [
-    ...targetTenant.attributes,
+    ...attributes,
     {
       id: unsafeBrandId(attributeId),
       type: tenantAttributeType.DECLARED,
@@ -810,10 +807,10 @@ function assignDeclaredAttribute(
 }
 
 function reassignDeclaredAttribute(
-  targetTenant: Tenant,
+  attributes: TenantAttribute[],
   attributeId: AttributeId
 ): TenantAttribute[] {
-  return targetTenant.attributes.map((attr) =>
+  return attributes.map((attr) =>
     attr.id === attributeId
       ? {
           ...attr,
@@ -825,12 +822,12 @@ function reassignDeclaredAttribute(
 }
 
 function assignVerifiedAttribute(
-  targetTenant: Tenant,
+  attributes: TenantAttribute[],
   organizationId: TenantId,
   tenantAttributeSeed: ApiVerifiedTenantAttributeSeed
 ): TenantAttribute[] {
   return [
-    ...targetTenant.attributes,
+    ...attributes,
     {
       id: unsafeBrandId(tenantAttributeSeed.id),
       type: tenantAttributeType.VERIFIED,
@@ -853,22 +850,20 @@ function assignVerifiedAttribute(
 }
 
 function reassignVerifiedAttribute(
-  targetTenant: Tenant,
+  attributes: TenantAttribute[],
   verifiedTenantAttribute: VerifiedTenantAttribute,
   organizationId: TenantId,
   tenantAttributeSeed: ApiVerifiedTenantAttributeSeed
 ): TenantAttribute[] {
-  return targetTenant.attributes.map((attr) =>
+  return attributes.map((attr) =>
     attr.id === verifiedTenantAttribute.id
       ? {
           ...attr,
-          assignmentTimestamp: verifiedTenantAttribute.assignmentTimestamp,
           verifiedBy: buildVerifiedBy(
-            verifiedTenantAttribute,
+            verifiedTenantAttribute.verifiedBy,
             organizationId,
-            tenantAttributeSeed
+            tenantAttributeSeed.expirationDate
           ),
-          revokedBy: verifiedTenantAttribute.revokedBy,
         }
       : attr
   );
