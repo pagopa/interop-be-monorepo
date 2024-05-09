@@ -19,16 +19,19 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.4.0)(zod@3.21.4)
+        version: 10.9.6(axios@1.6.8)(zod@3.22.3)
       '@zodios/express':
         specifier: 10.6.1
-        version: 10.6.1(@zodios/core@10.9.6)(express@4.18.2)(zod@3.21.4)
+        version: 10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.22.3)
+      axios:
+        specifier: 1.6.8
+        version: 1.6.8
       dotenv-flow:
         specifier: 3.2.0
         version: 3.2.0
       express:
-        specifier: 4.18.2
-        version: 4.18.2
+        specifier: 4.19.2
+        version: 4.19.2
       mongodb:
         specifier: 5.6.0
         version: 5.6.0
@@ -38,6 +41,9 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      pagopa-interop-selfcare-v2-client:
+        specifier: workspace:*
+        version: link:../selfcare-v2-client
       ts-pattern:
         specifier: 5.0.6
         version: 5.0.6
@@ -45,12 +51,12 @@ importers:
         specifier: 9.0.1
         version: 9.0.1
       zod:
-        specifier: 3.21.4
-        version: 3.21.4
+        specifier: 3.22.3
+        version: 3.22.3
     devDependencies:
       '@anatine/zod-mock':
         specifier: 3.13.4
-        version: 3.13.4(@faker-js/faker@8.4.1)(zod@3.21.4)
+        version: 3.13.4(@faker-js/faker@8.4.1)(zod@3.22.3)
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(typescript@5.1.3)
@@ -58,8 +64,8 @@ importers:
         specifier: 3.2.0
         version: 3.2.0
       '@types/express':
-        specifier: 4.17.17
-        version: 4.17.17
+        specifier: 4.17.21
+        version: 4.17.21
       '@types/node':
         specifier: 20.3.1
         version: 20.3.1
@@ -121,8 +127,8 @@ importers:
         specifier: 5.0.6
         version: 5.0.6
       zod:
-        specifier: 3.21.4
-        version: 3.21.4
+        specifier: 3.22.3
+        version: 3.22.3
     devDependencies:
       '@pagopa/eslint-config':
         specifier: 3.0.0
@@ -162,13 +168,13 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.4.0)(zod@3.21.4)
+        version: 10.9.6(axios@1.6.8)(zod@3.22.3)
       '@zodios/express':
         specifier: 10.6.1
-        version: 10.6.1(@zodios/core@10.9.6)(express@4.18.2)(zod@3.21.4)
+        version: 10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.22.3)
       axios:
-        specifier: 1.4.0
-        version: 1.4.0
+        specifier: 1.6.8
+        version: 1.6.8
       connection-string:
         specifier: 4.3.6
         version: 4.3.6
@@ -176,8 +182,8 @@ importers:
         specifier: 3.2.0
         version: 3.2.0
       express:
-        specifier: 4.18.2
-        version: 4.18.2
+        specifier: 4.19.2
+        version: 4.19.2
       mongodb:
         specifier: 5.6.0
         version: 5.6.0
@@ -200,12 +206,12 @@ importers:
         specifier: 9.0.1
         version: 9.0.1
       zod:
-        specifier: 3.21.4
-        version: 3.21.4
+        specifier: 3.22.3
+        version: 3.22.3
     devDependencies:
       '@anatine/zod-mock':
         specifier: 3.13.4
-        version: 3.13.4(@faker-js/faker@8.4.1)(zod@3.21.4)
+        version: 3.13.4(@faker-js/faker@8.4.1)(zod@3.22.3)
       '@faker-js/faker':
         specifier: 8.4.1
         version: 8.4.1
@@ -215,15 +221,12 @@ importers:
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
-      '@types/axios':
-        specifier: 0.14.0
-        version: 0.14.0
       '@types/dotenv-flow':
         specifier: 3.2.0
         version: 3.2.0
       '@types/express':
-        specifier: 4.17.17
-        version: 4.17.17
+        specifier: 4.17.21
+        version: 4.17.21
       '@types/node':
         specifier: 20.3.1
         version: 20.3.1
@@ -279,8 +282,8 @@ importers:
         specifier: 5.0.6
         version: 5.0.6
       zod:
-        specifier: 3.21.4
-        version: 3.21.4
+        specifier: 3.22.3
+        version: 3.22.3
     devDependencies:
       '@pagopa/eslint-config':
         specifier: 3.0.0
@@ -317,10 +320,13 @@ importers:
         version: 2.9.4
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.4.0)(zod@3.21.4)
+        version: 10.9.6(axios@1.6.8)(zod@3.22.3)
       '@zodios/plugins':
         specifier: 10.6.0
-        version: 10.6.0(@zodios/core@10.9.6)(axios@1.4.0)
+        version: 10.6.0(@zodios/core@10.9.6)(axios@1.6.8)
+      axios:
+        specifier: 1.6.8
+        version: 1.6.8
       connection-string:
         specifier: 4.3.6
         version: 4.3.6
@@ -346,8 +352,8 @@ importers:
         specifier: 9.0.1
         version: 9.0.1
       zod:
-        specifier: 3.21.4
-        version: 3.21.4
+        specifier: 3.22.3
+        version: 3.22.3
     devDependencies:
       '@pagopa/eslint-config':
         specifier: 3.0.0
@@ -378,13 +384,13 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.4.0)(zod@3.21.4)
+        version: 10.9.6(axios@1.6.8)(zod@3.22.3)
       '@zodios/express':
         specifier: 10.6.1
-        version: 10.6.1(@zodios/core@10.9.6)(express@4.18.2)(zod@3.21.4)
+        version: 10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.22.3)
       axios:
-        specifier: 1.4.0
-        version: 1.4.0
+        specifier: 1.6.8
+        version: 1.6.8
       date-fns:
         specifier: 3.3.1
         version: 3.3.1
@@ -392,8 +398,8 @@ importers:
         specifier: 3.2.0
         version: 3.2.0
       express:
-        specifier: 4.18.2
-        version: 4.18.2
+        specifier: 4.19.2
+        version: 4.19.2
       mongodb:
         specifier: 5.6.0
         version: 5.6.0
@@ -413,12 +419,12 @@ importers:
         specifier: 9.0.1
         version: 9.0.1
       zod:
-        specifier: 3.21.4
-        version: 3.21.4
+        specifier: 3.22.3
+        version: 3.22.3
     devDependencies:
       '@anatine/zod-mock':
         specifier: 3.13.4
-        version: 3.13.4(@faker-js/faker@8.4.1)(zod@3.21.4)
+        version: 3.13.4(@faker-js/faker@8.4.1)(zod@3.22.3)
       '@faker-js/faker':
         specifier: 8.4.1
         version: 8.4.1
@@ -428,15 +434,12 @@ importers:
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
-      '@types/axios':
-        specifier: 0.14.0
-        version: 0.14.0
       '@types/dotenv-flow':
         specifier: 3.2.0
         version: 3.2.0
       '@types/express':
-        specifier: 4.17.17
-        version: 4.17.17
+        specifier: 4.17.21
+        version: 4.17.21
       '@types/node':
         specifier: 20.3.1
         version: 20.3.1
@@ -492,8 +495,8 @@ importers:
         specifier: 5.0.1
         version: 5.0.1
       zod:
-        specifier: 3.21.4
-        version: 3.21.4
+        specifier: 3.22.3
+        version: 3.22.3
     devDependencies:
       '@pagopa/eslint-config':
         specifier: 3.0.0
@@ -545,16 +548,16 @@ importers:
         version: 3.529.1
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.4.0)(zod@3.21.4)
+        version: 10.9.6(axios@1.6.8)(zod@3.22.3)
       '@zodios/express':
         specifier: 10.6.1
-        version: 10.6.1(@zodios/core@10.9.6)(express@4.18.2)(zod@3.21.4)
+        version: 10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.22.3)
+      axios:
+        specifier: 1.6.8
+        version: 1.6.8
       connection-string:
         specifier: 4.3.6
         version: 4.3.6
-      express-winston:
-        specifier: 4.2.0
-        version: 4.2.0(winston@3.9.0)
       jsonwebtoken:
         specifier: 9.0.2
         version: 9.0.2
@@ -583,15 +586,15 @@ importers:
         specifier: 3.9.0
         version: 3.9.0
       zod:
-        specifier: 3.21.4
-        version: 3.21.4
+        specifier: 3.22.3
+        version: 3.22.3
       zod-validation-error:
         specifier: ^3.1.0
-        version: 3.1.0(zod@3.21.4)
+        version: 3.1.0(zod@3.22.3)
     devDependencies:
       '@types/express':
-        specifier: 4.17.17
-        version: 4.17.17
+        specifier: 4.17.21
+        version: 4.17.21
       '@types/jsonwebtoken':
         specifier: 9.0.6
         version: 9.0.6
@@ -615,7 +618,7 @@ importers:
     devDependencies:
       '@anatine/zod-mock':
         specifier: 3.13.4
-        version: 3.13.4(@faker-js/faker@8.4.1)(zod@3.21.4)
+        version: 3.13.4(@faker-js/faker@8.4.1)(zod@3.22.3)
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(typescript@5.1.3)
@@ -633,7 +636,10 @@ importers:
         version: 9.0.8
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.4.0)(zod@3.21.4)
+        version: 10.9.6(axios@1.6.8)(zod@3.22.3)
+      axios:
+        specifier: 1.6.8
+        version: 1.6.8
       jsonwebtoken:
         specifier: 9.0.2
         version: 9.0.2
@@ -662,8 +668,8 @@ importers:
         specifier: 0.33.0
         version: 0.33.0
       zod:
-        specifier: 3.21.4
-        version: 3.21.4
+        specifier: 3.22.3
+        version: 3.22.3
 
   packages/event-migration:
     dependencies:
@@ -701,8 +707,8 @@ importers:
         specifier: 5.0.6
         version: 5.0.6
       zod:
-        specifier: 3.21.4
-        version: 3.21.4
+        specifier: 3.22.3
+        version: 3.22.3
     devDependencies:
       '@types/json-diff':
         specifier: 1.0.3
@@ -784,11 +790,11 @@ importers:
         specifier: 9.0.1
         version: 9.0.1
       zod:
-        specifier: 3.21.4
-        version: 3.21.4
+        specifier: 3.22.3
+        version: 3.22.3
       zod-validation-error:
         specifier: ^3.1.0
-        version: 3.1.0(zod@3.21.4)
+        version: 3.1.0(zod@3.22.3)
     devDependencies:
       eslint:
         specifier: 8.44.0
@@ -839,8 +845,8 @@ importers:
         specifier: 9.0.1
         version: 9.0.1
       zod:
-        specifier: 3.21.4
-        version: 3.21.4
+        specifier: 3.22.3
+        version: 3.22.3
     devDependencies:
       '@pagopa/eslint-config':
         specifier: 3.0.0
@@ -883,16 +889,19 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 10.9.2
-        version: 10.9.2(axios@1.4.0)(zod@3.21.4)
+        version: 10.9.2(axios@1.6.8)(zod@3.22.3)
       '@zodios/express':
         specifier: 10.6.1
-        version: 10.6.1(@zodios/core@10.9.2)(express@4.18.2)(zod@3.21.4)
+        version: 10.6.1(@zodios/core@10.9.2)(express@4.19.2)(zod@3.22.3)
+      axios:
+        specifier: 1.6.8
+        version: 1.6.8
       dotenv-flow:
         specifier: 3.2.0
         version: 3.2.0
       express:
-        specifier: 4.18.2
-        version: 4.18.2
+        specifier: 4.19.2
+        version: 4.19.2
       mongodb:
         specifier: 5.6.0
         version: 5.6.0
@@ -912,8 +921,8 @@ importers:
         specifier: 5.0.6
         version: 5.0.6
       zod:
-        specifier: 3.21.4
-        version: 3.21.4
+        specifier: 3.22.3
+        version: 3.22.3
     devDependencies:
       '@pagopa/eslint-config':
         specifier: 3.0.0
@@ -922,8 +931,8 @@ importers:
         specifier: 3.2.0
         version: 3.2.0
       '@types/express':
-        specifier: 4.17.17
-        version: 4.17.17
+        specifier: 4.17.21
+        version: 4.17.21
       '@types/node':
         specifier: 20.3.1
         version: 20.3.1
@@ -973,8 +982,8 @@ importers:
         specifier: 9.0.0
         version: 9.0.0
       zod:
-        specifier: 3.21.4
-        version: 3.21.4
+        specifier: 3.22.3
+        version: 3.22.3
     devDependencies:
       '@pagopa/eslint-config':
         specifier: 3.0.0
@@ -1011,10 +1020,13 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.4.0)(zod@3.21.4)
+        version: 10.9.6(axios@1.6.8)(zod@3.22.3)
+      axios:
+        specifier: 1.6.8
+        version: 1.6.8
       zod:
-        specifier: 3.21.4
-        version: 3.21.4
+        specifier: 3.22.3
+        version: 3.22.3
     devDependencies:
       '@types/node':
         specifier: 20.3.1
@@ -1039,16 +1051,19 @@ importers:
         version: 9.0.8
       '@zodios/core':
         specifier: 10.9.6
-        version: 10.9.6(axios@1.4.0)(zod@3.21.4)
+        version: 10.9.6(axios@1.6.8)(zod@3.22.3)
       '@zodios/express':
         specifier: 10.6.1
-        version: 10.6.1(@zodios/core@10.9.6)(express@4.18.2)(zod@3.21.4)
+        version: 10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.22.3)
+      axios:
+        specifier: 1.6.8
+        version: 1.6.8
       dotenv-flow:
         specifier: 3.2.0
         version: 3.2.0
       express:
-        specifier: 4.18.2
-        version: 4.18.2
+        specifier: 4.19.2
+        version: 4.19.2
       mongodb:
         specifier: 5.6.0
         version: 5.6.0
@@ -1068,8 +1083,8 @@ importers:
         specifier: 9.0.1
         version: 9.0.1
       zod:
-        specifier: 3.21.4
-        version: 3.21.4
+        specifier: 3.22.3
+        version: 3.22.3
     devDependencies:
       '@pagopa/eslint-config':
         specifier: 3.0.0
@@ -1078,8 +1093,8 @@ importers:
         specifier: 3.2.0
         version: 3.2.0
       '@types/express':
-        specifier: 4.17.17
-        version: 4.17.17
+        specifier: 4.17.21
+        version: 4.17.21
       '@types/node':
         specifier: 20.3.1
         version: 20.3.1
@@ -1132,8 +1147,8 @@ importers:
         specifier: 5.0.6
         version: 5.0.6
       zod:
-        specifier: 3.21.4
-        version: 3.21.4
+        specifier: 3.22.3
+        version: 3.22.3
     devDependencies:
       '@pagopa/eslint-config':
         specifier: 3.0.0
@@ -1168,7 +1183,7 @@ packages:
       '@jridgewell/gen-mapping': 0.3.3
       '@jridgewell/trace-mapping': 0.3.18
 
-  /@anatine/zod-mock@3.13.4(@faker-js/faker@8.4.1)(zod@3.21.4):
+  /@anatine/zod-mock@3.13.4(@faker-js/faker@8.4.1)(zod@3.22.3):
     resolution: {integrity: sha512-yO/KeuyYsEDCTcQ+7CiRuY3dnafMHIZUMok6Ci7aERRCTQ+/XmsiPk/RnMx5wlLmWBTmX9kw+PavbMsjM+sAJA==}
     peerDependencies:
       '@faker-js/faker': ^7.0.0 || ^8.0.0
@@ -1176,7 +1191,7 @@ packages:
     dependencies:
       '@faker-js/faker': 8.4.1
       randexp: 0.5.3
-      zod: 3.21.4
+      zod: 3.22.3
     dev: true
 
   /@apidevtools/json-schema-ref-parser@9.0.6:
@@ -4600,15 +4615,6 @@ packages:
     resolution: {integrity: sha512-vxhUy4J8lyeyinH7Azl1pdd43GJhZH/tP2weN8TntQblOY+A0XbT8DJk1/oCPuOOyg/Ja757rG0CgHcWC8OfMA==}
     dev: true
 
-  /@types/axios@0.14.0:
-    resolution: {integrity: sha512-KqQnQbdYE54D7oa/UmYVMZKq7CO4l8DEENzOKc4aBRwxCXSlJXGz83flFx5L7AWrOQnmuN3kVsRdt+GZPPjiVQ==}
-    deprecated: This is a stub types definition for axios (https://github.com/mzabriskie/axios). axios provides its own type definitions, so you don't need @types/axios installed!
-    dependencies:
-      axios: 1.4.0
-    transitivePeerDependencies:
-      - debug
-    dev: true
-
   /@types/body-parser@1.19.2:
     resolution: {integrity: sha512-ALYone6pm6QmwZoAgeyNksccT9Q4AWZQ6PvfwR37GT6r6FWUPguq6sUmNGSMV2Wr761oQoBxwGGa6DR5o1DC9g==}
     dependencies:
@@ -4656,8 +4662,8 @@ packages:
       '@types/range-parser': 1.2.4
       '@types/send': 0.17.1
 
-  /@types/express@4.17.17:
-    resolution: {integrity: sha512-Q4FmmuLGBG58btUnfS1c1r/NQdlp3DMfGDGig8WhfpA2YRUtEkxAjkZb0yvplJGYdF1fsQ81iMDcH24sSCNC/Q==}
+  /@types/express@4.17.21:
+    resolution: {integrity: sha512-ejlPM315qwLpaQlQDTjPdsUFSc6ZsP4AN6AlWnogPjQ7CVi7PYF3YVz+CY3jE2pwYf7E/7HlDAN0rV2GxTG0HQ==}
     dependencies:
       '@types/body-parser': 1.19.2
       '@types/express-serve-static-core': 4.17.35
@@ -4930,66 +4936,57 @@ packages:
       pretty-format: 29.6.1
     dev: true
 
-  /@zodios/core@10.9.2(axios@1.4.0)(zod@3.21.4):
+  /@zodios/core@10.9.2(axios@1.6.8)(zod@3.22.3):
     resolution: {integrity: sha512-aY8FgE6Y+91oBaMfTnqibGoHO62OiKKHoiQAq76PYJbU7InFeWsSRhpnBwpibWopRjz45AlqojxKo3QeSAYC7w==}
     peerDependencies:
       axios: ^0.x || ^1.0.0
       zod: ^3.x
     dependencies:
-      axios: 1.4.0
-      zod: 3.21.4
+      axios: 1.6.8
+      zod: 3.22.3
     dev: false
 
-  /@zodios/core@10.9.6(axios@1.4.0)(zod@3.21.4):
+  /@zodios/core@10.9.6(axios@1.6.8)(zod@3.22.3):
     resolution: {integrity: sha512-aH4rOdb3AcezN7ws8vDgBfGboZMk2JGGzEq/DtW65MhnRxyTGRuLJRWVQ/2KxDgWvV2F5oTkAS+5pnjKbl0n+A==}
     peerDependencies:
       axios: ^0.x || ^1.0.0
       zod: ^3.x
     dependencies:
-      axios: 1.4.0
-      zod: 3.21.4
+      axios: 1.6.8
+      zod: 3.22.3
 
-  /@zodios/core@10.9.6(axios@1.6.5)(zod@3.21.4):
-    resolution: {integrity: sha512-aH4rOdb3AcezN7ws8vDgBfGboZMk2JGGzEq/DtW65MhnRxyTGRuLJRWVQ/2KxDgWvV2F5oTkAS+5pnjKbl0n+A==}
-    peerDependencies:
-      axios: ^0.x || ^1.0.0
-      zod: ^3.x
-    dependencies:
-      axios: 1.6.5
-      zod: 3.21.4
-
-  /@zodios/express@10.6.1(@zodios/core@10.9.2)(express@4.18.2)(zod@3.21.4):
+  /@zodios/express@10.6.1(@zodios/core@10.9.2)(express@4.19.2)(zod@3.22.3):
     resolution: {integrity: sha512-FNgOq8mvwvWP5B2howMKGm6EPp6i/0XFAsQnX5Ov3MLbanzD1oE4WJtBkTL3cmJYvD0nyykbWSeHOh51bCmhUA==}
     peerDependencies:
       '@zodios/core': '>=10.4.4 <11.0.0'
       express: 4.x
       zod: ^3.x
     dependencies:
-      '@zodios/core': 10.9.2(axios@1.4.0)(zod@3.21.4)
-      express: 4.18.2
-      zod: 3.21.4
+      '@zodios/core': 10.9.2(axios@1.6.8)(zod@3.22.3)
+      express: 4.19.2
+      zod: 3.22.3
     dev: false
 
-  /@zodios/express@10.6.1(@zodios/core@10.9.6)(express@4.18.2)(zod@3.21.4):
+  /@zodios/express@10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.22.3):
     resolution: {integrity: sha512-FNgOq8mvwvWP5B2howMKGm6EPp6i/0XFAsQnX5Ov3MLbanzD1oE4WJtBkTL3cmJYvD0nyykbWSeHOh51bCmhUA==}
     peerDependencies:
       '@zodios/core': '>=10.4.4 <11.0.0'
       express: 4.x
       zod: ^3.x
     dependencies:
-      '@zodios/core': 10.9.6(axios@1.4.0)(zod@3.21.4)
-      express: 4.18.2
-      zod: 3.21.4
+      '@zodios/core': 10.9.6(axios@1.6.8)(zod@3.22.3)
+      express: 4.19.2
+      zod: 3.22.3
     dev: false
 
-  /@zodios/plugins@10.6.0(@zodios/core@10.9.6)(axios@1.4.0):
+  /@zodios/plugins@10.6.0(@zodios/core@10.9.6)(axios@1.6.8):
     resolution: {integrity: sha512-0cQZcFfc2AVyIqOQCUYB3k3c4RNMM0gZW1did83QarbfJsnNQAY0W/GtWyzmLIyF0/RI41E1xg1VZ7Xndc4KlA==}
     peerDependencies:
       '@zodios/core': ^10.x
       axios: ^0.x || ^1.0.0
     dependencies:
-      '@zodios/core': 10.9.6(axios@1.4.0)(zod@3.21.4)
-      axios: 1.4.0
+      '@zodios/core': 10.9.6(axios@1.6.8)(zod@3.22.3)
+      axios: 1.6.8
       qs: 6.11.0
     dev: false
 
@@ -5226,19 +5223,10 @@ packages:
     engines: {node: '>= 0.4'}
     dev: true
 
-  /axios@1.4.0:
-    resolution: {integrity: sha512-S4XCWMEmzvo64T9GfvQDOXgYRDJ/wsSZc7Jvdgx5u1sd0JwsuPLqb3SYmusag+edF6ziyMensPVqLTSc1PiSEA==}
+  /axios@1.6.8:
+    resolution: {integrity: sha512-v/ZHtJDU39mDpyBoFVkETcd/uNdxrWRrg3bKpOKzXFA6Bvqopts6ALSMU3y6ijYxbw2B+wPrIv46egTzJXCLGQ==}
     dependencies:
-      follow-redirects: 1.15.5
-      form-data: 4.0.0
-      proxy-from-env: 1.1.0
-    transitivePeerDependencies:
-      - debug
-
-  /axios@1.6.5:
-    resolution: {integrity: sha512-Ii012v05KEVuUoFWmMW/UQv9aRIc3ZwkWDcM+h5Il8izZCtRVpDUfwpoFf7eOtajT3QiGR4yDUx7lPqHJULgbg==}
-    dependencies:
-      follow-redirects: 1.15.5
+      follow-redirects: 1.15.6
       form-data: 4.0.0
       proxy-from-env: 1.1.0
     transitivePeerDependencies:
@@ -5301,8 +5289,8 @@ packages:
       readable-stream: 3.6.2
     dev: true
 
-  /body-parser@1.20.1:
-    resolution: {integrity: sha512-jWi7abTbYwajOytWCQc37VulmWiRae5RyTpaCyDcS5/lMdtwSz5lOpDE67srw/HYe35f1z3fDQw+3txg7gNtWw==}
+  /body-parser@1.20.2:
+    resolution: {integrity: sha512-ml9pReCu3M61kGlqoTm2umSXTlRTuGTx0bfYj+uIUKKYycG5NtSbeetV3faSU6R7ajOPw0g/J1PvK4qNy7s5bA==}
     engines: {node: '>= 0.8', npm: 1.2.8000 || >= 1.4.16}
     dependencies:
       bytes: 3.1.2
@@ -5314,7 +5302,7 @@ packages:
       iconv-lite: 0.4.24
       on-finished: 2.4.1
       qs: 6.11.0
-      raw-body: 2.5.1
+      raw-body: 2.5.2
       type-is: 1.6.18
       unpipe: 1.0.0
     transitivePeerDependencies:
@@ -5555,8 +5543,8 @@ packages:
     resolution: {integrity: sha512-QADzlaHc8icV8I7vbaJXJwod9HWYp8uCqf1xa4OfNu1T7JVxQIrUgOWtHdNDtPiywmFbiS12VjotIXLrKM3orQ==}
     dev: false
 
-  /cookie@0.5.0:
-    resolution: {integrity: sha512-YZ3GUyn/o8gfKJlnlX7g7xq4gyO6OSuhGPKaaGssGB2qgDUS0gPgtTvoyZLTt9Ab6dC4hfc9dV5arkvc/OCmrw==}
+  /cookie@0.6.0:
+    resolution: {integrity: sha512-U71cyTamuh1CRNCfpGY6to28lxvNwPG4Guz/EVjgf3Jmzv0vlDp1atT9eS5dDjMYHucpHbWns6Lwf3BKz6svdw==}
     engines: {node: '>= 0.6'}
     dev: false
 
@@ -6287,27 +6275,16 @@ packages:
   /eval-estree-expression@1.1.0:
     resolution: {integrity: sha512-6ZAHSb0wsqxutjk2lXZcW7btSc51I8BhlIetit0wIf5sOb5xDNBrIqe0g8RFyQ/EW6Xwn1szrtButztU7Vdj1Q==}
 
-  /express-winston@4.2.0(winston@3.9.0):
-    resolution: {integrity: sha512-EMD74g63nVHi7pFleQw7KHCxiA1pjF5uCwbCfzGqmFxs9KvlDPIVS3cMGpULm6MshExMT9TjC3SqmRGB9kb7yw==}
-    engines: {node: '>= 6'}
-    peerDependencies:
-      winston: '>=3.x <4'
-    dependencies:
-      chalk: 2.4.2
-      lodash: 4.17.21
-      winston: 3.9.0
-    dev: false
-
-  /express@4.18.2:
-    resolution: {integrity: sha512-5/PsL6iGPdfQ/lKM1UuielYgv3BUoJfz1aUwU9vHZ+J7gyvwdQXFEBIEIaxeGf0GIcreATNyBExtalisDbuMqQ==}
+  /express@4.19.2:
+    resolution: {integrity: sha512-5T6nhjsT+EOMzuck8JjBHARTHfMht0POzlA60WV2pMD3gyXw2LZnZ+ueGdNxG+0calOJcWKbpFcuzLZ91YWq9Q==}
     engines: {node: '>= 0.10.0'}
     dependencies:
       accepts: 1.3.8
       array-flatten: 1.1.1
-      body-parser: 1.20.1
+      body-parser: 1.20.2
       content-disposition: 0.5.4
       content-type: 1.0.5
-      cookie: 0.5.0
+      cookie: 0.6.0
       cookie-signature: 1.0.6
       debug: 2.6.9
       depd: 2.0.0
@@ -6441,8 +6418,8 @@ packages:
     resolution: {integrity: sha512-GRnmB5gPyJpAhTQdSZTSp9uaPSvl09KoYcMQtsB9rQoOmzs9dH6ffeccH+Z+cv6P68Hu5bC6JjRh4Ah/mHSNRw==}
     dev: false
 
-  /follow-redirects@1.15.5:
-    resolution: {integrity: sha512-vSFWUON1B+yAw1VN4xMfxgn5fTUiaOzAJCKBwIIgT/+7CuGy9+r+5gITvP62j3RmaD5Ph65UaERdOSRGUzZtgw==}
+  /follow-redirects@1.15.6:
+    resolution: {integrity: sha512-wWN62YITEaOpSK584EZXJafH1AGpO8RVgElfkuXbTOrPX4fIfOyEpW/CsiNd8JdYrAoOvafRTOEnvsO++qCqFA==}
     engines: {node: '>=4.0'}
     peerDependencies:
       debug: '*'
@@ -7026,7 +7003,7 @@ packages:
     resolution: {integrity: sha512-UUOZ0CVReK1QVU3rbi9bC7N5/le8ziUj0A2ef1Q0M7OPD2KvjEYizptqIxGIo6fSLYDkqBrazILS18tYuRc8gw==}
     engines: {node: '>=14'}
     dependencies:
-      '@types/express': 4.17.17
+      '@types/express': 4.17.21
       '@types/jsonwebtoken': 9.0.6
       debug: 4.3.4
       jose: 4.14.6
@@ -7140,6 +7117,7 @@ packages:
 
   /lodash@4.17.21:
     resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
+    dev: true
 
   /logform@2.5.1:
     resolution: {integrity: sha512-9FyqAm9o9NKKfiAKfZoYo9bGXXuwMkxQiQttkT4YjjVtQVIQtK6LmVtlxmCaFswo6N4AfEkHqZTV0taDtPotNg==}
@@ -7469,8 +7447,8 @@ packages:
     dependencies:
       '@apidevtools/swagger-parser': 10.1.0(openapi-types@12.1.3)
       '@liuli-util/fs-extra': 0.1.0
-      '@zodios/core': 10.9.6(axios@1.6.5)(zod@3.21.4)
-      axios: 1.6.5
+      '@zodios/core': 10.9.6(axios@1.6.8)(zod@3.22.3)
+      axios: 1.6.8
       cac: 6.7.14
       handlebars: 4.7.7
       openapi-types: 12.1.3
@@ -7480,7 +7458,7 @@ packages:
       tanu: 0.1.13
       ts-pattern: 5.0.6
       whence: 2.0.0
-      zod: 3.21.4
+      zod: 3.22.3
     transitivePeerDependencies:
       - debug
       - react
@@ -7819,8 +7797,8 @@ packages:
     engines: {node: '>= 0.6'}
     dev: false
 
-  /raw-body@2.5.1:
-    resolution: {integrity: sha512-qqJBtEyVgS0ZmPGdCFPWJ3FreoqvG4MVQln/kCgF7Olq95IbOp0/BWyMwbdtn4VTvkM8Y7khCQ2Xgk/tcrCXig==}
+  /raw-body@2.5.2:
+    resolution: {integrity: sha512-8zGqypfENjCIqGhgXToC8aB2r7YrBX+AQAfIPs/Mlk+BtPTztOvTS01NRW/3Eh60J+a48lt8qsCzirQ6loCVfA==}
     engines: {node: '>= 0.8'}
     dependencies:
       bytes: 3.1.2
@@ -8965,14 +8943,14 @@ packages:
       readable-stream: 3.6.2
     dev: true
 
-  /zod-validation-error@3.1.0(zod@3.21.4):
+  /zod-validation-error@3.1.0(zod@3.22.3):
     resolution: {integrity: sha512-zujS6HqJjMZCsvjfbnRs7WI3PXN39ovTcY1n8a+KTm4kOH0ZXYsNiJkH1odZf4xZKMkBDL7M2rmQ913FCS1p9w==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       zod: ^3.18.0
     dependencies:
-      zod: 3.21.4
+      zod: 3.22.3
     dev: false
 
-  /zod@3.21.4:
-    resolution: {integrity: sha512-m46AKbrzKVzOzs/DZgVnG5H55N1sv1M8qZU3A8RIKbs3mrACDNeIOeilDymVb2HdmP8uwshOCF4uJ8uM9rCqJw==}
+  /zod@3.22.3:
+    resolution: {integrity: sha512-EjIevzuJRiRPbVH4mGc8nApb/lVLKVpmUhAaR5R5doKGfAnGJ6Gr3CViAVjP+4FWSxCsybeWQdcgCtbX+7oZug==}
