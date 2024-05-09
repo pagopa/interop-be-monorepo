@@ -42,12 +42,19 @@ export function setupTestContainersVitestGlobal() {
     ).start();
     const startedMongodbContainer = await mongoDBContainer(config).start();
 
+    /**
+     * Since testcontainers exposes to the host on a random port, in order to avoid port
+     * collisions, we need to get the port through `getMappedPort` to connect to the databases.
+     *
+     * @see https://node.testcontainers.org/features/containers/#exposing-container-ports
+     */
     config.eventStoreDbPort = startedPostgreSqlContainer.getMappedPort(
       TEST_POSTGRES_DB_PORT
     );
     config.readModelDbPort =
       startedMongodbContainer.getMappedPort(TEST_MONGO_DB_PORT);
 
+    // Start Minio container if the S3 bucket is provided
     let startedMinioContainer: StartedTestContainer | undefined;
 
     if (config.s3Bucket) {
@@ -58,6 +65,12 @@ export function setupTestContainersVitestGlobal() {
         startedMinioContainer.getMappedPort(TEST_MINIO_PORT);
     }
 
+    /**
+     * Vitest global setup functions are executed in a separate process, vitest provides a way to
+     * pass serializable data to the tests via the `provide` function.
+     * In this case, we provide the `config` object to the tests, so that they can connect to the
+     * started containers.
+     */
     provide("config", config);
 
     return async (): Promise<void> => {
