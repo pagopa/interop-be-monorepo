@@ -736,7 +736,6 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
       await addOnePurpose(mockPurpose, postgresDB, purposes);
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
       await writeInReadmodel(mockAgreement, agreements);
-      // await writeInReadmodel(mockConsumer, tenants);
       await writeInReadmodel(mockProducer, tenants);
 
       expect(async () => {
