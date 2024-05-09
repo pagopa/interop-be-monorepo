@@ -240,7 +240,7 @@ export function readModelServiceBuilder(
         totalCount: await ReadModelRepository.getTotalCount(
           purposes,
           aggregationPipeline,
-          true
+          false
         ),
       };
     },
