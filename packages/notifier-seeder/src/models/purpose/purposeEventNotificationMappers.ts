@@ -36,7 +36,7 @@ export const toPurposeVersionV1Notification = (
 ): PurposeVersionV1Notification => ({
   ...input,
   state: toPurposeVersionStateV1Notification(input.state),
-  expectedApprovalDate: input.expectedApprovalDate?.toISOString(),
+  expectedApprovalDate: undefined,
   createdAt: input.createdAt.toISOString(),
   updatedAt: input.updatedAt?.toISOString(),
   firstActivationAt: input.firstActivationAt?.toISOString(),
