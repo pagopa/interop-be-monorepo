@@ -37,3 +37,6 @@ export const isDeletableVersion = (
 ): boolean =>
   purposeVersion.state === purposeVersionState.waitingForApproval &&
   purpose.versions.length !== 1;
+
+export const isRejectable = (purposeVersion: PurposeVersion): boolean =>
+  purposeVersion.state === purposeVersionState.waitingForApproval;
