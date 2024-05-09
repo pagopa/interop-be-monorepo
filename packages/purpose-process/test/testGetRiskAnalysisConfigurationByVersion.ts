@@ -16,7 +16,7 @@ import {
 import { describe, expect, it } from "vitest";
 import { getFormRulesByVersion } from "pagopa-interop-commons";
 import {
-  riskAnalysisConfigVersionNotFound,
+  RiskAnalysisConfigVersionNotFound,
   eserviceNotFound,
   tenantKindNotFound,
   tenantNotFound,
@@ -133,7 +133,7 @@ export const testGetRiskAnalysisConfigurationByVersion = (): ReturnType<
           organizationId: mockTenant.id,
         })
       ).rejects.toThrowError(
-        riskAnalysisConfigVersionNotFound(
+        RiskAnalysisConfigVersionNotFound(
           wrongRiskAnalysisVersion,
           mockTenant.kind
         )
