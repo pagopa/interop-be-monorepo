@@ -1,38 +1,61 @@
 import {
+  StoredEvent,
+  readLastEventByStreamId,
+  setupTestContainersVitest,
+  writeInEventstore,
+  writeInReadmodel,
+  ReadEvent,
+  readEventByStreamIdAndVersion,
+} from "pagopa-interop-commons-test";
+import { inject, afterEach, expect } from "vitest";
+import {
   Agreement,
-  AgreementDocument,
-  AgreementDocumentId,
   AgreementEvent,
   AgreementId,
   EService,
   Tenant,
-  generateId,
   toReadModelEService,
   toReadModelAgreement,
+  AgreementDocumentId,
+  generateId,
+  AgreementDocument,
 } from "pagopa-interop-models";
-import { IDatabase } from "pg-promise";
-import {
-  ReadEvent,
-  StoredEvent,
-  readEventByStreamIdAndVersion,
-  readLastEventByStreamId,
-  writeInEventstore,
-  writeInReadmodel,
-} from "pagopa-interop-commons-test/index.js";
-import {
-  AgreementCollection,
-  EServiceCollection,
-  FileManager,
-  TenantCollection,
-  genericLogger,
-} from "pagopa-interop-commons";
-import { expect } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
+import { agreementServiceBuilder } from "../src/services/agreementService.js";
+import { agreementQueryBuilder } from "../src/services/readmodel/agreementQuery.js";
+import { attributeQueryBuilder } from "../src/services/readmodel/attributeQuery.js";
+import { eserviceQueryBuilder } from "../src/services/readmodel/eserviceQuery.js";
+import { readModelServiceBuilder } from "../src/services/readmodel/readModelService.js";
+import { tenantQueryBuilder } from "../src/services/readmodel/tenantQuery.js";
 import { toAgreementV1 } from "../src/model/domain/toEvent.js";
 import { config } from "../src/utilities/config.js";
 
+export const { readModelRepository, postgresDB, fileManager, cleanup } =
+  setupTestContainersVitest(inject("config"));
+
+afterEach(cleanup);
+
+export const agreements = readModelRepository.agreements;
+export const eservices = readModelRepository.eservices;
+export const tenants = readModelRepository.tenants;
+
+export const readModelService = readModelServiceBuilder(readModelRepository);
+
+const eserviceQuery = eserviceQueryBuilder(readModelService);
+const agreementQuery = agreementQueryBuilder(readModelService);
+const tenantQuery = tenantQueryBuilder(readModelService);
+const attributeQuery = attributeQueryBuilder(readModelService);
+
+export const agreementService = agreementServiceBuilder(
+  postgresDB,
+  agreementQuery,
+  tenantQuery,
+  eserviceQuery,
+  attributeQuery,
+  fileManager
+);
 export const writeAgreementInEventstore = async (
-  agreement: Agreement,
-  postgresDB: IDatabase<unknown>
+  agreement: Agreement
 ): Promise<void> => {
   const agreementEvent: AgreementEvent = {
     type: "AgreementAdded",
@@ -49,39 +72,27 @@ export const writeAgreementInEventstore = async (
   await writeInEventstore(eventToWrite, "agreement", postgresDB);
 };
 
-export const addOneAgreement = async (
-  agreement: Agreement,
-  postgresDB: IDatabase<unknown>,
-  agreements: AgreementCollection
-): Promise<void> => {
-  await writeAgreementInEventstore(agreement, postgresDB);
+export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
+  await writeAgreementInEventstore(agreement);
   await writeInReadmodel(toReadModelAgreement(agreement), agreements);
 };
 
-export const addOneEService = async (
-  eservice: EService,
-  eservices: EServiceCollection
-): Promise<void> => {
+export const addOneEService = async (eservice: EService): Promise<void> => {
   await writeInReadmodel(toReadModelEService(eservice), eservices);
 };
 
-export const addOneTenant = async (
-  tenant: Tenant,
-  tenants: TenantCollection
-): Promise<void> => {
+export const addOneTenant = async (tenant: Tenant): Promise<void> => {
   await writeInReadmodel(tenant, tenants);
 };
 
 export const readLastAgreementEvent = async (
-  agreementId: AgreementId,
-  postgresDB: IDatabase<unknown>
+  agreementId: AgreementId
 ): Promise<ReadEvent<AgreementEvent>> =>
   await readLastEventByStreamId(agreementId, "agreement", postgresDB);
 
 export const readAgreementEventByVersion = async (
   agreementId: AgreementId,
-  version: number,
-  postgresDB: IDatabase<unknown>
+  version: number
 ): Promise<ReadEvent<AgreementEvent>> =>
   await readEventByStreamIdAndVersion(
     agreementId,
@@ -93,8 +104,7 @@ export const readAgreementEventByVersion = async (
 export async function uploadDocument(
   agreementId: AgreementId,
   documentId: AgreementDocumentId,
-  name: string,
-  fileManager: FileManager
+  name: string
 ): Promise<void> {
   const documentDestinationPath = `${config.consumerDocumentsPath}/${agreementId}`;
   await fileManager.storeBytes(
