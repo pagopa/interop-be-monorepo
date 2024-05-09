@@ -47,3 +47,24 @@ export const toCreateEventPurposeVersionRejected = ({
   },
   correlationId,
 });
+
+export const toCreateEventDraftPurposeUpdated = ({
+  purpose,
+  version,
+  correlationId,
+}: {
+  purpose: Purpose;
+  version: number;
+  correlationId: string;
+}): CreateEvent<PurposeEventV2> => ({
+  streamId: purpose.id,
+  version,
+  event: {
+    type: "DraftPurposeUpdated",
+    event_version: 2,
+    data: {
+      purpose: toPurposeV2(purpose),
+    },
+  },
+  correlationId,
+});
