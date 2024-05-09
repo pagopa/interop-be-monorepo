@@ -1,6 +1,7 @@
 import {
   ApiError,
   EServiceId,
+  EServiceMode,
   PurposeId,
   PurposeVersionDocumentId,
   PurposeVersionId,
@@ -8,6 +9,7 @@ import {
   TenantId,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
+import { RiskAnalysisValidationIssue } from "pagopa-interop-commons";
 
 export const errorCodes = {
   purposeNotFound: "0001",
@@ -21,6 +23,12 @@ export const errorCodes = {
   purposeVersionCannotBeDeleted: "0009",
   organizationIsNotTheProducer: "0010",
   notValidVersionState: "0011",
+  eServiceModeNotAllowed: "0012",
+  missingFreeOfChargeReason: "0013",
+  riskAnalysisValidationFailed: "0014",
+  purposeNotInDraftState: "0015",
+  duplicatedPurposeTitle: "0016",
+  purposeCannotBeDeleted: "0017",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -123,6 +131,45 @@ export function organizationIsNotTheProducer(
   });
 }
 
+export function eServiceModeNotAllowed(
+  eserviceId: EServiceId,
+  mode: EServiceMode
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} has not ${mode} mode`,
+    code: "eServiceModeNotAllowed",
+    title: "EService mode not allowed",
+  });
+}
+
+export function missingFreeOfChargeReason(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: "Missing free of charge reason",
+    code: "missingFreeOfChargeReason",
+    title: "Missing free of charge reason",
+  });
+}
+
+export function riskAnalysisValidationFailed(
+  reasons: RiskAnalysisValidationIssue[]
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk analysis validation failed. Reasons: ${reasons}`,
+    code: "riskAnalysisValidationFailed",
+    title: "Risk analysis validation failed",
+  });
+}
+
+export function purposeNotInDraftState(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} is not in draft state`,
+    code: "purposeNotInDraftState",
+    title: "Purpose not in draft state",
+  });
+}
+
 export function notValidVersionState(
   purposeVersionId: PurposeVersionId,
   versionState: PurposeVersionState
@@ -131,5 +178,23 @@ export function notValidVersionState(
     detail: `Purpose version ${purposeVersionId} has a not valid state for this operation: ${versionState}`,
     code: "notValidVersionState",
     title: "Not valid purpose version state",
+  });
+}
+
+export function duplicatedPurposeTitle(title: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose with title: ${title} already exists`,
+    code: "duplicatedPurposeTitle",
+    title: "Duplicated Purpose Title",
+  });
+}
+
+export function purposeCannotBeDeleted(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Versions in Purpose ${purposeId} do not allow deletion`,
+    code: "purposeCannotBeDeleted",
+    title: "Purpose cannot be deleted",
   });
 }
