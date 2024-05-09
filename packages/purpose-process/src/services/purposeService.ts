@@ -55,9 +55,8 @@ import {
 import {
   ApiPurposeUpdateContent,
   ApiReversePurposeUpdateContent,
-  ApiGetPurposesFilters,
 } from "../model/domain/models.js";
-import { ReadModelService } from "./readModelService.js";
+import { GetPurposesFilters, ReadModelService } from "./readModelService.js";
 import {
   assertOrganizationIsAConsumer,
   assertEserviceMode,
@@ -512,7 +511,7 @@ export function purposeServiceBuilder(
     },
     async getPurposes(
       organizationId: TenantId,
-      filters: ApiGetPurposesFilters,
+      filters: GetPurposesFilters,
       { offset, limit }: { offset: number; limit: number },
       logger: Logger
     ): Promise<ListResult<Purpose>> {
@@ -520,11 +519,10 @@ export function purposeServiceBuilder(
         `Getting Purposes with name = ${filters.name}, eservicesIds = ${filters.eservicesIds}, consumers = ${filters.consumersIds}, producers = ${filters.producersIds}, states = ${filters.states}, excludeDraft = ${filters.excludeDraft}, limit = ${limit}, offset = ${offset}`
       );
 
-      const purposesList = await readModelService.getPurposes(
-        filters,
+      const purposesList = await readModelService.getPurposes(filters, {
         offset,
-        limit
-      );
+        limit,
+      });
 
       const mappingPurposeEservice = await Promise.all(
         purposesList.results.map(async (purpose) => {
