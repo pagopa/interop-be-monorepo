@@ -12,7 +12,7 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { v4 as uuidv4 } from "uuid";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   agreementNotFound,
   agreementNotInExpectedState,
@@ -37,8 +37,7 @@ describe("update agreement", () => {
     await agreementService.updateAgreement(
       agreement.id,
       { consumerNotes: "Updated consumer notes" },
-      authData,
-      uuidv4()
+      { authData, serviceName: "", correlationId: "", logger: genericLogger }
     );
 
     const agreementEvent = await readLastAgreementEvent(agreement.id);
@@ -70,8 +69,12 @@ describe("update agreement", () => {
       agreementService.updateAgreement(
         agreementId,
         { consumerNotes: "Updated consumer notes" },
-        authData,
-        uuidv4()
+        {
+          authData,
+          serviceName: "",
+          correlationId: "",
+          logger: genericLogger,
+        }
       )
     ).rejects.toThrowError(agreementNotFound(agreementId));
   });
@@ -84,8 +87,12 @@ describe("update agreement", () => {
       agreementService.updateAgreement(
         agreement.id,
         { consumerNotes: "Updated consumer notes" },
-        authData,
-        uuidv4()
+        {
+          authData,
+          serviceName: "",
+          correlationId: "",
+          logger: genericLogger,
+        }
       )
     ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
   });
@@ -105,8 +112,12 @@ describe("update agreement", () => {
       agreementService.updateAgreement(
         agreement.id,
         { consumerNotes: "Updated consumer notes" },
-        authData,
-        uuidv4()
+        {
+          authData,
+          serviceName: "",
+          correlationId: "",
+          logger: genericLogger,
+        }
       )
     ).rejects.toThrowError(
       agreementNotInExpectedState(agreement.id, agreement.state)

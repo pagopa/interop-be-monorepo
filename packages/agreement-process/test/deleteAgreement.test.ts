@@ -6,14 +6,13 @@ import {
   randomArrayItem,
 } from "pagopa-interop-commons-test/index.js";
 import { describe, expect, it, vi } from "vitest";
-import { v4 as uuidv4 } from "uuid";
 import {
   AgreementDeletedV2,
   AgreementId,
   agreementState,
   generateId,
 } from "pagopa-interop-models";
-import { fileManagerDeleteError } from "pagopa-interop-commons";
+import { fileManagerDeleteError, genericLogger } from "pagopa-interop-commons";
 import { agreementDeletableStates } from "../src/model/domain/validators.js";
 
 import { config } from "../src/utilities/config.js";
@@ -27,6 +26,7 @@ import {
   readLastAgreementEvent,
   agreementService,
   fileManager,
+  uploadDocument,
 } from "./vitestSetup.js";
 import { getMockConsumerDocument } from "./mocks.js";
 
@@ -45,36 +45,25 @@ describe("delete agreement", () => {
     };
     await addOneAgreement(agreement);
 
-    await fileManager.storeBytes(
-      config.s3Bucket,
-      `${config.consumerDocumentsPath}/${agreementId}`,
+    await uploadDocument(
+      agreementId,
       agreement.consumerDocuments[0].id,
-      agreement.consumerDocuments[0].name,
-      Buffer.from("test content")
+      agreement.consumerDocuments[0].name
     );
 
-    expect(await fileManager.listFiles(config.s3Bucket)).toContain(
-      agreement.consumerDocuments[0].path
-    );
-
-    await fileManager.storeBytes(
-      config.s3Bucket,
-      `${config.consumerDocumentsPath}/${agreementId}`,
+    await uploadDocument(
+      agreementId,
       agreement.consumerDocuments[1].id,
-      agreement.consumerDocuments[1].name,
-      Buffer.from("test content")
-    );
-
-    expect(await fileManager.listFiles(config.s3Bucket)).toContain(
-      agreement.consumerDocuments[1].path
+      agreement.consumerDocuments[1].name
     );
 
     const authData = getRandomAuthData(agreement.consumerId);
-    await agreementService.deleteAgreementById(
-      agreement.id,
+    await agreementService.deleteAgreementById(agreement.id, {
       authData,
-      uuidv4()
-    );
+      serviceName: "",
+      correlationId: "",
+      logger: genericLogger,
+    });
 
     const agreementEvent = await readLastAgreementEvent(agreement.id);
 
@@ -94,18 +83,20 @@ describe("delete agreement", () => {
 
     expect(fileManager.delete).toHaveBeenCalledWith(
       config.s3Bucket,
-      agreement.consumerDocuments[0].path
+      agreement.consumerDocuments[0].path,
+      genericLogger
     );
     expect(fileManager.delete).toHaveBeenCalledWith(
       config.s3Bucket,
-      agreement.consumerDocuments[1].path
+      agreement.consumerDocuments[1].path,
+      genericLogger
     );
-    expect(await fileManager.listFiles(config.s3Bucket)).not.toContain(
-      agreement.consumerDocuments[0].path
-    );
-    expect(await fileManager.listFiles(config.s3Bucket)).not.toContain(
-      agreement.consumerDocuments[1].path
-    );
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).not.toContain(agreement.consumerDocuments[0].path);
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).not.toContain(agreement.consumerDocuments[1].path);
   });
 
   it("should throw an agreementNotFound error when the agreement does not exist", async () => {
@@ -113,7 +104,12 @@ describe("delete agreement", () => {
     const authData = getRandomAuthData();
     const agreementId = generateId<AgreementId>();
     await expect(
-      agreementService.deleteAgreementById(agreementId, authData, uuidv4())
+      agreementService.deleteAgreementById(agreementId, {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(agreementNotFound(agreementId));
   });
 
@@ -122,7 +118,12 @@ describe("delete agreement", () => {
     const agreement = getMockAgreement();
     await addOneAgreement(agreement);
     await expect(
-      agreementService.deleteAgreementById(agreement.id, authData, uuidv4())
+      agreementService.deleteAgreementById(agreement.id, {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
   });
 
@@ -138,7 +139,12 @@ describe("delete agreement", () => {
     await addOneAgreement(agreement);
     const authData = getRandomAuthData(agreement.consumerId);
     await expect(
-      agreementService.deleteAgreementById(agreement.id, authData, uuidv4())
+      agreementService.deleteAgreementById(agreement.id, {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(
       agreementNotInExpectedState(agreement.id, agreement.state)
     );
@@ -157,11 +163,12 @@ describe("delete agreement", () => {
     };
     await addOneAgreement(agreement);
     await expect(
-      agreementService.deleteAgreementById(
-        agreement.id,
-        getRandomAuthData(agreement.consumerId),
-        uuidv4()
-      )
+      agreementService.deleteAgreementById(agreement.id, {
+        authData: getRandomAuthData(agreement.consumerId),
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(
       fileManagerDeleteError(
         agreement.consumerDocuments[0].path,

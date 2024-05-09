@@ -1,5 +1,4 @@
 import { fail } from "assert";
-import { v4 as uuidv4 } from "uuid";
 import {
   Agreement,
   AgreementArchivedV2,
@@ -17,6 +16,7 @@ import {
   getRandomAuthData,
   randomArrayItem,
 } from "pagopa-interop-commons-test/index.js";
+import { genericLogger } from "pagopa-interop-commons";
 import { toAgreementV2 } from "../src/model/domain/toEvent.js";
 import {
   agreementNotFound,
@@ -46,11 +46,12 @@ describe("archive agreement", () => {
 
     await addOneAgreement(agreement);
 
-    const agreementId = await agreementService.archiveAgreement(
-      agreement.id,
+    const agreementId = await agreementService.archiveAgreement(agreement.id, {
       authData,
-      uuidv4()
-    );
+      serviceName: "",
+      correlationId: "",
+      logger: genericLogger,
+    });
 
     expect(agreementId).toBeDefined();
     if (!agreementId) {
@@ -111,11 +112,12 @@ describe("archive agreement", () => {
     const agreementToArchiveId = generateId<AgreementId>();
 
     await expect(
-      agreementService.archiveAgreement(
-        agreementToArchiveId,
+      agreementService.archiveAgreement(agreementToArchiveId, {
         authData,
-        uuidv4()
-      )
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(agreementNotFound(agreementToArchiveId));
   });
 
@@ -132,7 +134,12 @@ describe("archive agreement", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      agreementService.archiveAgreement(agreement.id, authData, uuidv4())
+      agreementService.archiveAgreement(agreement.id, {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
   });
 
@@ -154,7 +161,12 @@ describe("archive agreement", () => {
     await addOneAgreement(agreement);
 
     await expect(
-      agreementService.archiveAgreement(agreement.id, authData, uuidv4())
+      agreementService.archiveAgreement(agreement.id, {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(
       agreementNotInExpectedState(agreement.id, notArchivableState)
     );

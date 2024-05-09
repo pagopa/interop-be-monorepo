@@ -9,6 +9,7 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import { getMockAttribute } from "pagopa-interop-commons-test/index.js";
+import { genericLogger } from "pagopa-interop-commons";
 import { attributeNotFound } from "../src/model/domain/errors.js";
 import {
   addOneAttribute,
@@ -211,46 +212,54 @@ describe("readModelService", () => {
   describe("getAttributeById", () => {
     it("should get the attribute if it exists", async () => {
       const attribute = await attributeRegistryService.getAttributeById(
-        attribute1.id
+        attribute1.id,
+        genericLogger
       );
       expect(attribute?.data).toEqual(attribute1);
     });
     it("should throw attributeNotFound if the attribute doesn't exist", async () => {
       const id = generateId<AttributeId>();
       expect(
-        attributeRegistryService.getAttributeById(id)
+        attributeRegistryService.getAttributeById(id, genericLogger)
       ).rejects.toThrowError(attributeNotFound(id));
     });
   });
   describe("getAttributeByName", () => {
     it("should get the attribute if it exists", async () => {
       const attribute = await attributeRegistryService.getAttributeByName(
-        attribute1.name
+        attribute1.name,
+        genericLogger
       );
       expect(attribute?.data).toEqual(attribute1);
     });
     it("should throw attributeNotFound if the attribute doesn't exist", async () => {
       const name = "not-existing";
       expect(
-        attributeRegistryService.getAttributeByName(name)
+        attributeRegistryService.getAttributeByName(name, genericLogger)
       ).rejects.toThrowError(attributeNotFound(name));
     });
   });
   describe("getAttributeByOriginAndCode", () => {
     it("should get the attribute if it exists", async () => {
       const attribute =
-        await attributeRegistryService.getAttributeByOriginAndCode({
-          origin: "IPA",
-          code: "12345A",
-        });
+        await attributeRegistryService.getAttributeByOriginAndCode(
+          {
+            origin: "IPA",
+            code: "12345A",
+          },
+          genericLogger
+        );
       expect(attribute?.data).toEqual(attribute1);
     });
     it("should throw attributeNotFound if the attribute doesn't exist", async () => {
       expect(
-        attributeRegistryService.getAttributeByOriginAndCode({
-          origin: "IPA",
-          code: "12345D",
-        })
+        attributeRegistryService.getAttributeByOriginAndCode(
+          {
+            origin: "IPA",
+            code: "12345D",
+          },
+          genericLogger
+        )
       ).rejects.toThrowError(attributeNotFound("IPA/12345D"));
     });
   });

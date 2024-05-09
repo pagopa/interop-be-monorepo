@@ -7,7 +7,7 @@ import {
   ReadEvent,
   readEventByStreamIdAndVersion,
 } from "pagopa-interop-commons-test";
-import { inject, afterEach } from "vitest";
+import { inject, afterEach, expect } from "vitest";
 import {
   Agreement,
   AgreementEvent,
@@ -16,7 +16,9 @@ import {
   Tenant,
   toReadModelEService,
   toReadModelAgreement,
+  AgreementDocumentId,
 } from "pagopa-interop-models";
+import { genericLogger } from "pagopa-interop-commons";
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
 import { agreementQueryBuilder } from "../src/services/readmodel/agreementQuery.js";
 import { attributeQueryBuilder } from "../src/services/readmodel/attributeQuery.js";
@@ -24,6 +26,7 @@ import { eserviceQueryBuilder } from "../src/services/readmodel/eserviceQuery.js
 import { readModelServiceBuilder } from "../src/services/readmodel/readModelService.js";
 import { tenantQueryBuilder } from "../src/services/readmodel/tenantQuery.js";
 import { toAgreementV1 } from "../src/model/domain/toEvent.js";
+import { config } from "../src/utilities/config.js";
 
 export const { readModelRepository, postgresDB, fileManager, cleanup } =
   setupTestContainersVitest(inject("config"));
@@ -95,3 +98,24 @@ export const readAgreementEventByVersion = async (
     "agreement",
     postgresDB
   );
+
+export async function uploadDocument(
+  agreementId: AgreementId,
+  documentId: AgreementDocumentId,
+  name: string
+): Promise<void> {
+  const documentDestinationPath = `${config.consumerDocumentsPath}/${agreementId}`;
+  await fileManager.storeBytes(
+    config.s3Bucket,
+    documentDestinationPath,
+    documentId,
+    name,
+    Buffer.from("large-document-file"),
+    genericLogger
+  );
+  expect(
+    await fileManager.listFiles(config.s3Bucket, genericLogger)
+  ).toContainEqual(
+    `${config.consumerDocumentsPath}/${agreementId}/${documentId}/${name}`
+  );
+}

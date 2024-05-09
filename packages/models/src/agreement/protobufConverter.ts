@@ -28,7 +28,7 @@ export const fromAgreementStamp = (
 ): AgreementStamp | undefined =>
   input
     ? {
-        ...input,
+        who: unsafeBrandId(input.who),
         when: new Date(Number(input.when)),
       }
     : undefined;

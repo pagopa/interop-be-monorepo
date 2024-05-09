@@ -2,7 +2,7 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable fp/no-delete */
 /* eslint-disable functional/immutable-data */
-import { FileManagerError } from "pagopa-interop-commons";
+import { FileManagerError, genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockAgreement,
@@ -34,7 +34,6 @@ import {
   generateId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { v4 as uuidv4 } from "uuid";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   agreementAlreadyExists,
@@ -46,7 +45,7 @@ import {
   noNewerDescriptor,
   operationNotAllowed,
   publishedDescriptorNotFound,
-  tenantIdNotFound,
+  tenantNotFound,
   unexpectedVersionFormat,
 } from "../src/model/domain/errors.js";
 import { toAgreementV2 } from "../src/model/domain/toEvent.js";
@@ -59,10 +58,11 @@ import {
   agreementService,
   fileManager,
   readAgreementEventByVersion,
+  uploadDocument,
 } from "./vitestSetup.js";
 import { getMockConsumerDocument } from "./mocks.js";
 
-describe("Upgrade Agreement", () => {
+describe("upgrade Agreement", () => {
   const TEST_EXECUTION_DATE = new Date();
 
   beforeAll(() => {
@@ -73,24 +73,6 @@ describe("Upgrade Agreement", () => {
   afterAll(() => {
     vi.useRealTimers();
   });
-
-  async function uploadDocument(
-    agreementId: AgreementId,
-    documentId: AgreementDocumentId,
-    name: string
-  ): Promise<void> {
-    const documentDestinationPath = `${config.consumerDocumentsPath}/${agreementId}`;
-    await fileManager.storeBytes(
-      config.s3Bucket,
-      documentDestinationPath,
-      documentId,
-      name,
-      Buffer.from("large-document-file")
-    );
-    expect(await fileManager.listFiles(config.s3Bucket)).toContainEqual(
-      `${config.consumerDocumentsPath}/${agreementId}/${documentId}/${name}`
-    );
-  }
 
   it("should succeed with valid Verified and Declared attributes when consumer and producer are the same", async () => {
     const authData = getRandomAuthData();
@@ -192,11 +174,12 @@ describe("Upgrade Agreement", () => {
     await addOneAgreement(agreementToBeUpgraded);
 
     const newAgreementId = unsafeBrandId<AgreementId>(
-      await agreementService.upgradeAgreement(
-        agreementToBeUpgraded.id,
+      await agreementService.upgradeAgreement(agreementToBeUpgraded.id, {
         authData,
-        uuidv4()
-      )
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      })
     );
 
     const actualAgreementArchivedEvent = await readAgreementEventByVersion(
@@ -282,9 +265,9 @@ describe("Upgrade Agreement", () => {
     for (const agreementDoc of expectedCreatedAgreement.consumerDocuments) {
       const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${agreementDoc.id}/${agreementDoc.name}`;
 
-      expect(await fileManager.listFiles(config.s3Bucket)).toContainEqual(
-        expectedUploadedDocumentPath
-      );
+      expect(
+        await fileManager.listFiles(config.s3Bucket, genericLogger)
+      ).toContainEqual(expectedUploadedDocumentPath);
     }
   });
 
@@ -386,11 +369,12 @@ describe("Upgrade Agreement", () => {
     await addOneAgreement(agreementToBeUpgraded);
 
     const newAgreementId = unsafeBrandId<AgreementId>(
-      await agreementService.upgradeAgreement(
-        agreementToBeUpgraded.id,
+      await agreementService.upgradeAgreement(agreementToBeUpgraded.id, {
         authData,
-        uuidv4()
-      )
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      })
     );
 
     const actualAgreementArchivedEvent = await readAgreementEventByVersion(
@@ -475,9 +459,9 @@ describe("Upgrade Agreement", () => {
     delete expectedCreatedAgreement.rejectionReason;
     expect(actualAgreementCreated).toMatchObject(expectedCreatedAgreement);
 
-    expect(await fileManager.listFiles(config.s3Bucket)).toContainEqual(
-      expectedCreatedAgreement.consumerDocuments[0].path
-    );
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContainEqual(expectedCreatedAgreement.consumerDocuments[0].path);
   });
 
   it("should succeed with invalid Verified attributes", async () => {
@@ -568,11 +552,12 @@ describe("Upgrade Agreement", () => {
     await addOneEService(eservice);
 
     const newAgreementId = unsafeBrandId<AgreementId>(
-      await agreementService.upgradeAgreement(
-        agreementToBeUpgraded.id,
+      await agreementService.upgradeAgreement(agreementToBeUpgraded.id, {
         authData,
-        uuidv4()
-      )
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      })
     );
 
     expect(newAgreementId).toBeDefined();
@@ -633,9 +618,9 @@ describe("Upgrade Agreement", () => {
       actualCreatedAgreementV2?.consumerDocuments[0].id as string
     }/${agreementConsumerDocument.name}`;
 
-    expect(await fileManager.listFiles(config.s3Bucket)).toContainEqual(
-      expectedUploadedDocumentPath
-    );
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContainEqual(expectedUploadedDocumentPath);
   });
 
   it("should succeed with invalid Declared attributes", async () => {
@@ -737,11 +722,12 @@ describe("Upgrade Agreement", () => {
     await addOneEService(eservice);
 
     const newAgreementId = unsafeBrandId<AgreementId>(
-      await agreementService.upgradeAgreement(
-        agreementToBeUpgraded.id,
+      await agreementService.upgradeAgreement(agreementToBeUpgraded.id, {
         authData,
-        uuidv4()
-      )
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      })
     );
 
     expect(newAgreementId).toBeDefined();
@@ -797,9 +783,9 @@ describe("Upgrade Agreement", () => {
 
     const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${actualCreatedAgreement?.consumerDocuments[0].id}/${agreementConsumerDocument.name}`;
 
-    expect(await fileManager.listFiles(config.s3Bucket)).toContainEqual(
-      expectedUploadedDocumentPath
-    );
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContainEqual(expectedUploadedDocumentPath);
   });
 
   it("should succeed with invalid Declared attributes with multiple documents", async () => {
@@ -903,11 +889,12 @@ describe("Upgrade Agreement", () => {
     await addOneEService(eservice);
 
     const newAgreementId = unsafeBrandId<AgreementId>(
-      await agreementService.upgradeAgreement(
-        agreementToBeUpgraded.id,
+      await agreementService.upgradeAgreement(agreementToBeUpgraded.id, {
         authData,
-        uuidv4()
-      )
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      })
     );
 
     expect(newAgreementId).toBeDefined();
@@ -961,18 +948,24 @@ describe("Upgrade Agreement", () => {
     for (const agreementDoc of expectedCreatedAgreement.consumerDocuments) {
       const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${agreementDoc.id}/${agreementDoc.name}`;
 
-      expect(await fileManager.listFiles(config.s3Bucket)).toContainEqual(
-        expectedUploadedDocumentPath
-      );
+      expect(
+        await fileManager.listFiles(config.s3Bucket, genericLogger)
+      ).toContainEqual(expectedUploadedDocumentPath);
     }
   });
 
-  it("should throw a tenantIdNotFound error when the tenant does not exist", async () => {
+  it("should throw a tenantNotFound error when the tenant does not exist", async () => {
+    await addOneAgreement(getMockAgreement());
     const authData = getRandomAuthData();
     const agreementId = generateId<AgreementId>();
     await expect(
-      agreementService.upgradeAgreement(agreementId, authData, uuidv4())
-    ).rejects.toThrowError(tenantIdNotFound(authData.organizationId));
+      agreementService.upgradeAgreement(agreementId, {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      })
+    ).rejects.toThrowError(tenantNotFound(authData.organizationId));
   });
 
   it("should throw an agreementNotFound error when the agreement does not exist", async () => {
@@ -984,7 +977,12 @@ describe("Upgrade Agreement", () => {
 
     await addOneTenant(tenant);
     await expect(
-      agreementService.upgradeAgreement(agreementId, authData, uuidv4())
+      agreementService.upgradeAgreement(agreementId, {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(agreementNotFound(agreementId));
   });
 
@@ -1002,7 +1000,12 @@ describe("Upgrade Agreement", () => {
 
     await addOneAgreement(agreement);
     await expect(
-      agreementService.upgradeAgreement(agreement.id, authData, uuidv4())
+      agreementService.upgradeAgreement(agreement.id, {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(operationNotAllowed(authData.organizationId));
   });
 
@@ -1025,7 +1028,12 @@ describe("Upgrade Agreement", () => {
 
     await addOneAgreement(agreement);
     await expect(
-      agreementService.upgradeAgreement(agreement.id, authData, uuidv4())
+      agreementService.upgradeAgreement(agreement.id, {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(
       agreementNotInExpectedState(agreement.id, invalidAgreementState)
     );
@@ -1047,7 +1055,12 @@ describe("Upgrade Agreement", () => {
 
     await addOneAgreement(agreement);
     await expect(
-      agreementService.upgradeAgreement(agreement.id, authData, uuidv4())
+      agreementService.upgradeAgreement(agreement.id, {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
   });
 
@@ -1074,7 +1087,12 @@ describe("Upgrade Agreement", () => {
     await addOneEService(eservice);
 
     await expect(
-      agreementService.upgradeAgreement(agreement.id, authData, uuidv4())
+      agreementService.upgradeAgreement(agreement.id, {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(publishedDescriptorNotFound(agreement.eserviceId));
   });
 
@@ -1103,7 +1121,12 @@ describe("Upgrade Agreement", () => {
     await addOneEService(eservice);
 
     await expect(
-      agreementService.upgradeAgreement(agreement.id, authData, uuidv4())
+      agreementService.upgradeAgreement(agreement.id, {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(
       unexpectedVersionFormat(agreement.eserviceId, publishedDescriptor.id)
     );
@@ -1132,7 +1155,12 @@ describe("Upgrade Agreement", () => {
     await addOneEService(eservice);
 
     await expect(
-      agreementService.upgradeAgreement(agreement.id, authData, uuidv4())
+      agreementService.upgradeAgreement(agreement.id, {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(
       descriptorNotFound(eservice.id, agreement.descriptorId)
     );
@@ -1173,7 +1201,12 @@ describe("Upgrade Agreement", () => {
     await addOneEService(eservice);
 
     await expect(
-      agreementService.upgradeAgreement(agreement.id, authData, uuidv4())
+      agreementService.upgradeAgreement(agreement.id, {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(
       unexpectedVersionFormat(eservice.id, agreement.descriptorId)
     );
@@ -1214,7 +1247,12 @@ describe("Upgrade Agreement", () => {
     await addOneEService(eservice);
 
     await expect(
-      agreementService.upgradeAgreement(agreement.id, authData, uuidv4())
+      agreementService.upgradeAgreement(agreement.id, {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(
       noNewerDescriptor(eservice.id, agreement.descriptorId)
     );
@@ -1273,7 +1311,12 @@ describe("Upgrade Agreement", () => {
     await addOneEService(eservice);
 
     await expect(
-      agreementService.upgradeAgreement(agreement.id, authData, uuidv4())
+      agreementService.upgradeAgreement(agreement.id, {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(
       missingCertifiedAttributesError(publishedDescriptor.id, tenantId)
     );
@@ -1370,11 +1413,12 @@ describe("Upgrade Agreement", () => {
 
     // trying to copy a document not present in the S3 bucket - no upload was performed
     await expect(
-      agreementService.upgradeAgreement(
-        agreementToBeUpgraded.id,
+      agreementService.upgradeAgreement(agreementToBeUpgraded.id, {
         authData,
-        uuidv4()
-      )
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(FileManagerError);
   });
 
@@ -1467,11 +1511,12 @@ describe("Upgrade Agreement", () => {
     await addOneEService(eservice);
 
     await expect(
-      agreementService.upgradeAgreement(
-        agreementToBeUpgraded.id,
+      agreementService.upgradeAgreement(agreementToBeUpgraded.id, {
         authData,
-        uuidv4()
-      )
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      })
     ).rejects.toThrowError(
       agreementAlreadyExists(
         agreementToBeUpgraded.consumerId,

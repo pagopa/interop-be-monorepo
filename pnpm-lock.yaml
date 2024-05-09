@@ -41,6 +41,9 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      pagopa-interop-selfcare-v2-client:
+        specifier: workspace:*
+        version: link:../selfcare-v2-client
       ts-pattern:
         specifier: 5.0.6
         version: 5.0.6
@@ -555,9 +558,6 @@ importers:
       connection-string:
         specifier: 4.3.6
         version: 4.3.6
-      express-winston:
-        specifier: 4.2.0
-        version: 4.2.0(winston@3.9.0)
       jsonwebtoken:
         specifier: 9.0.2
         version: 9.0.2
@@ -894,11 +894,11 @@ importers:
   packages/purpose-process:
     dependencies:
       '@zodios/core':
-        specifier: 10.9.2
-        version: 10.9.2(axios@1.6.8)(zod@3.22.3)
+        specifier: 10.9.6
+        version: 10.9.6(axios@1.6.8)(zod@3.22.3)
       '@zodios/express':
         specifier: 10.6.1
-        version: 10.6.1(@zodios/core@10.9.2)(express@4.19.2)(zod@3.22.3)
+        version: 10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.22.3)
       axios:
         specifier: 1.6.8
         version: 1.6.8
@@ -5074,16 +5074,6 @@ packages:
       pretty-format: 29.7.0
     dev: true
 
-  /@zodios/core@10.9.2(axios@1.6.8)(zod@3.22.3):
-    resolution: {integrity: sha512-aY8FgE6Y+91oBaMfTnqibGoHO62OiKKHoiQAq76PYJbU7InFeWsSRhpnBwpibWopRjz45AlqojxKo3QeSAYC7w==}
-    peerDependencies:
-      axios: ^0.x || ^1.0.0
-      zod: ^3.x
-    dependencies:
-      axios: 1.6.8
-      zod: 3.22.3
-    dev: false
-
   /@zodios/core@10.9.6(axios@1.6.8)(zod@3.22.3):
     resolution: {integrity: sha512-aH4rOdb3AcezN7ws8vDgBfGboZMk2JGGzEq/DtW65MhnRxyTGRuLJRWVQ/2KxDgWvV2F5oTkAS+5pnjKbl0n+A==}
     peerDependencies:
@@ -5092,18 +5082,6 @@ packages:
     dependencies:
       axios: 1.6.8
       zod: 3.22.3
-
-  /@zodios/express@10.6.1(@zodios/core@10.9.2)(express@4.19.2)(zod@3.22.3):
-    resolution: {integrity: sha512-FNgOq8mvwvWP5B2howMKGm6EPp6i/0XFAsQnX5Ov3MLbanzD1oE4WJtBkTL3cmJYvD0nyykbWSeHOh51bCmhUA==}
-    peerDependencies:
-      '@zodios/core': '>=10.4.4 <11.0.0'
-      express: 4.x
-      zod: ^3.x
-    dependencies:
-      '@zodios/core': 10.9.2(axios@1.6.8)(zod@3.22.3)
-      express: 4.19.2
-      zod: 3.22.3
-    dev: false
 
   /@zodios/express@10.6.1(@zodios/core@10.9.6)(express@4.19.2)(zod@3.22.3):
     resolution: {integrity: sha512-FNgOq8mvwvWP5B2howMKGm6EPp6i/0XFAsQnX5Ov3MLbanzD1oE4WJtBkTL3cmJYvD0nyykbWSeHOh51bCmhUA==}
@@ -6446,17 +6424,6 @@ packages:
       strip-final-newline: 3.0.0
     dev: true
 
-  /express-winston@4.2.0(winston@3.9.0):
-    resolution: {integrity: sha512-EMD74g63nVHi7pFleQw7KHCxiA1pjF5uCwbCfzGqmFxs9KvlDPIVS3cMGpULm6MshExMT9TjC3SqmRGB9kb7yw==}
-    engines: {node: '>= 6'}
-    peerDependencies:
-      winston: '>=3.x <4'
-    dependencies:
-      chalk: 2.4.2
-      lodash: 4.17.21
-      winston: 3.9.0
-    dev: false
-
   /express@4.19.2:
     resolution: {integrity: sha512-5T6nhjsT+EOMzuck8JjBHARTHfMht0POzlA60WV2pMD3gyXw2LZnZ+ueGdNxG+0calOJcWKbpFcuzLZ91YWq9Q==}
     engines: {node: '>= 0.10.0'}
@@ -7321,6 +7288,7 @@ packages:
 
   /lodash@4.17.21:
     resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
+    dev: true
 
   /logform@2.5.1:
     resolution: {integrity: sha512-9FyqAm9o9NKKfiAKfZoYo9bGXXuwMkxQiQttkT4YjjVtQVIQtK6LmVtlxmCaFswo6N4AfEkHqZTV0taDtPotNg==}

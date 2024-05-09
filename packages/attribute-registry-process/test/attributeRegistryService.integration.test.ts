@@ -5,6 +5,7 @@ import {
   decodeProtobufPayload,
   getMockAttribute,
 } from "pagopa-interop-commons-test";
+import { genericLogger } from "pagopa-interop-commons";
 import { v4 as uuidv4 } from "uuid";
 import {
   Attribute,
@@ -40,8 +41,12 @@ describe("database test", () => {
               name: mockAttribute.name,
               description: mockAttribute.description,
             },
-            getMockAuthData(),
-            uuidv4()
+            {
+              authData: getMockAuthData(),
+              correlationId: "",
+              logger: genericLogger,
+              serviceName: "",
+            }
           );
         expect(attribute).toBeDefined();
 
@@ -77,13 +82,17 @@ describe("database test", () => {
               description: mockAttribute.description,
             },
             {
-              ...getMockAuthData(),
-              externalId: {
-                value: "123456",
-                origin: "not-allowed-origin",
+              authData: {
+                ...getMockAuthData(),
+                externalId: {
+                  value: "123456",
+                  origin: "not-allowed-origin",
+                },
               },
-            },
-            uuidv4()
+              logger: genericLogger,
+              correlationId: "",
+              serviceName: "",
+            }
           )
         ).rejects.toThrowError(originNotCompliant("not-allowed-origin"));
       });
@@ -99,8 +108,12 @@ describe("database test", () => {
               name: attribute.name,
               description: attribute.description,
             },
-            getMockAuthData(),
-            uuidv4()
+            {
+              authData: getMockAuthData(),
+              correlationId: "",
+              logger: genericLogger,
+              serviceName: "",
+            }
           )
         ).rejects.toThrowError(attributeDuplicate(attribute.name));
       });
@@ -113,8 +126,12 @@ describe("database test", () => {
               name: mockAttribute.name,
               description: mockAttribute.description,
             },
-            getMockAuthData(),
-            uuidv4()
+            {
+              authData: getMockAuthData(),
+              logger: genericLogger,
+              correlationId: "",
+              serviceName: "",
+            }
           );
         expect(attribute).toBeDefined();
 
@@ -150,13 +167,17 @@ describe("database test", () => {
               description: mockAttribute.description,
             },
             {
-              ...getMockAuthData(),
-              externalId: {
-                value: "123456",
-                origin: "not-allowed-origin",
+              authData: {
+                ...getMockAuthData(),
+                externalId: {
+                  value: "123456",
+                  origin: "not-allowed-origin",
+                },
               },
-            },
-            uuidv4()
+              logger: genericLogger,
+              correlationId: "",
+              serviceName: "",
+            }
           )
         ).rejects.toThrowError(originNotCompliant("not-allowed-origin"));
       });
@@ -172,8 +193,12 @@ describe("database test", () => {
               name: attribute.name,
               description: attribute.description,
             },
-            getMockAuthData(),
-            uuidv4()
+            {
+              authData: getMockAuthData(),
+              logger: genericLogger,
+              correlationId: "",
+              serviceName: "",
+            }
           )
         ).rejects.toThrowError(attributeDuplicate(attribute.name));
       });
@@ -199,8 +224,12 @@ describe("database test", () => {
               code: "code",
               description: mockAttribute.description,
             },
-            getMockAuthData(tenant.id),
-            uuidv4()
+            {
+              authData: getMockAuthData(tenant.id),
+              logger: genericLogger,
+              correlationId: "",
+              serviceName: "",
+            }
           );
         expect(attribute).toBeDefined();
 
@@ -254,8 +283,12 @@ describe("database test", () => {
               code: attribute.code,
               description: attribute.description,
             },
-            getMockAuthData(tenant.id),
-            uuidv4()
+            {
+              authData: getMockAuthData(tenant.id),
+              logger: genericLogger,
+              correlationId: "",
+              serviceName: "",
+            }
           )
         ).rejects.toThrowError(attributeDuplicate(attribute.name));
       });
@@ -269,8 +302,12 @@ describe("database test", () => {
               code: "code",
               description: mockAttribute.description,
             },
-            getMockAuthData(mockTenant.id),
-            uuidv4()
+            {
+              authData: getMockAuthData(mockTenant.id),
+              logger: genericLogger,
+              correlationId: "",
+              serviceName: "",
+            }
           )
         ).rejects.toThrowError(OrganizationIsNotACertifier(mockTenant.id));
       });
@@ -283,8 +320,12 @@ describe("database test", () => {
               code: "code",
               description: mockAttribute.description,
             },
-            getMockAuthData(mockTenant.id),
-            uuidv4()
+            {
+              authData: getMockAuthData(mockTenant.id),
+              logger: genericLogger,
+              correlationId: "",
+              serviceName: "",
+            }
           )
         ).rejects.toThrowError(tenantNotFound(mockTenant.id));
       });
@@ -311,7 +352,12 @@ describe("database test", () => {
               origin: tenant.features[0].certifierId,
               description: mockAttribute.description,
             },
-            uuidv4()
+            {
+              authData: getMockAuthData(),
+              logger: genericLogger,
+              correlationId: "",
+              serviceName: "",
+            }
           );
         expect(attribute).toBeDefined();
 
@@ -365,7 +411,12 @@ describe("database test", () => {
               origin: tenant.features[0].certifierId,
               description: attribute.description,
             },
-            uuidv4()
+            {
+              authData: getMockAuthData(),
+              logger: genericLogger,
+              correlationId: "",
+              serviceName: "",
+            }
           )
         ).rejects.toThrowError(attributeDuplicate(attribute.name));
       });
