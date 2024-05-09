@@ -30,7 +30,6 @@ import { match } from "ts-pattern";
 import {
   duplicatedPurposeTitle,
   eserviceNotFound,
-  missingRejectionReason,
   notValidVersionState,
   organizationIsNotTheConsumer,
   organizationIsNotTheProducer,
@@ -262,10 +261,6 @@ export function purposeServiceBuilder(
     }): Promise<void> {
       logger.info(`Rejecting Version ${versionId} in Purpose ${purposeId}`);
 
-      if (!rejectionReason) {
-        throw missingRejectionReason();
-      }
-
       const purpose = await retrievePurpose(purposeId, readModelService);
       const eservice = await retrieveEService(
         purpose.data.eserviceId,
@@ -438,7 +433,6 @@ export function purposeServiceBuilder(
       await repository.createEvent(event);
       return archivedVersion;
     },
-
     async suspendPurposeVersion({
       purposeId,
       versionId,
