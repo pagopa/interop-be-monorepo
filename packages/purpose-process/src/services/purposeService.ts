@@ -454,6 +454,11 @@ export function purposeServiceBuilder(
       logger.info(`Suspending Version ${versionId} in Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
+      const purposeVersion = retrievePurposeVersion(versionId, purpose);
+
+      if (!isSuspendable(purposeVersion)) {
+        throw notValidVersionState(purposeVersion.id, purposeVersion.state);
+      }
 
       const eservice = await retrieveEService(
         purpose.data.eserviceId,
@@ -465,12 +470,6 @@ export function purposeServiceBuilder(
         producerId: eservice.producerId,
         consumerId: purpose.data.consumerId,
       });
-
-      const purposeVersion = retrievePurposeVersion(versionId, purpose);
-
-      if (!isSuspendable(purposeVersion)) {
-        throw notValidVersionState(purposeVersion.id, purposeVersion.state);
-      }
 
       const suspendedPurposeVersion: PurposeVersion = {
         ...purposeVersion,
