@@ -136,6 +136,8 @@ export async function suspendAgreementLogic({
       correlationId
     );
   } else {
-    throw new Error("Unexpected state");
+    throw new Error(
+      "Unexpected organizationId: Agreement can be suspended only by consumer or producer"
+    );
   }
 }
