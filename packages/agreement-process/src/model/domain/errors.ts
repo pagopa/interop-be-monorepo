@@ -32,7 +32,7 @@ export const errorCodes = {
   documentNotFound: "0017",
   documentsChangeNotAllowed: "0018",
   selfcareIdNotFound: "0019",
-  tenantIdNotFound: "0020",
+  tenantNotFound: "0020",
   notLatestEServiceDescriptor: "0021",
   attributeNotFound: "0022",
   invalidAttributeStructure: "0023",
@@ -170,10 +170,10 @@ export function agreementNotInExpectedState(
   });
 }
 
-export function tenantIdNotFound(tenantId: string): ApiError<ErrorCodes> {
+export function tenantNotFound(tenantId: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant ${tenantId} not found`,
-    code: "tenantIdNotFound",
+    code: "tenantNotFound",
     title: "Tenant not found",
   });
 }
