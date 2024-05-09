@@ -117,25 +117,12 @@ export const nextState = (
 export const agreementStateByFlags = (
   stateByAttribute: AgreementState,
   suspendedByProducer: boolean | undefined,
-  suspendedByConsumer: boolean | undefined,
-  suspendedByPlatform: boolean | undefined
+  suspendedByConsumer: boolean | undefined
 ): AgreementState =>
-  match([
-    stateByAttribute,
-    suspendedByProducer,
-    suspendedByConsumer,
-    suspendedByPlatform,
-  ])
+  match([stateByAttribute, suspendedByProducer, suspendedByConsumer])
     .with(
-      [agreementState.active, true, P.any, P.any],
-      () => agreementState.suspended
-    )
-    .with(
-      [agreementState.active, P.any, true, P.any],
-      () => agreementState.suspended
-    )
-    .with(
-      [agreementState.active, P.any, P.any, true],
+      [agreementState.active, true, P.any],
+      [agreementState.active, P.any, true],
       () => agreementState.suspended
     )
     .otherwise(() => stateByAttribute);

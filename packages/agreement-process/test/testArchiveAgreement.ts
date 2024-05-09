@@ -1,18 +1,18 @@
 import { fail } from "assert";
 import {
   Agreement,
-  AgreementArchivedV2,
+  AgreementArchivedByConsumerV2,
   AgreementId,
   AgreementV2,
   EServiceId,
   TenantId,
   agreementState,
   generateId,
-  protobufDecoder,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import { describe, expect, it, vi } from "vitest";
 import {
+  decodeProtobufPayload,
   getMockAgreement,
   getRandomAuthData,
   randomArrayItem,
@@ -68,15 +68,16 @@ export const testArchiveAgreement = (): ReturnType<typeof describe> =>
       }
 
       expect(actualAgreementData).toMatchObject({
-        type: "AgreementArchived",
+        type: "AgreementArchivedByConsumer",
         event_version: 2,
         version: "1",
         stream_id: agreementId,
       });
 
-      const actualAgreement: AgreementV2 | undefined = protobufDecoder(
-        AgreementArchivedV2
-      ).parse(actualAgreementData.data)?.agreement;
+      const actualAgreement: AgreementV2 | undefined = decodeProtobufPayload({
+        messageType: AgreementArchivedByConsumerV2,
+        payload: actualAgreementData.data,
+      }).agreement;
 
       if (!actualAgreement) {
         fail("impossible to decode AgreementArchivedV2 data");

@@ -30,17 +30,17 @@ import {
   publishedDescriptorNotFound,
   unexpectedVersionFormat,
 } from "../model/domain/errors.js";
-
 import {
   CompactEService,
   CompactOrganization,
 } from "../model/domain/models.js";
 import {
   toCreateEventAgreementAdded,
-  toCreateEventAgreementArchived,
+  toCreateEventAgreementArchivedByConsumer,
   toCreateEventAgreementArchivedByUpgrade,
   toCreateEventAgreementDeleted,
   toCreateEventAgreementRejected,
+  toCreateEventAgreementUpgraded,
   toCreateEventDraftAgreementUpdated,
 } from "../model/domain/toEvent.js";
 import {
@@ -660,7 +660,7 @@ export async function upgradeAgreementLogic(
           agreementToBeUpgraded.metadata.version,
           correlationId
         ),
-        toCreateEventAgreementAdded(upgraded, correlationId),
+        toCreateEventAgreementUpgraded(upgraded, correlationId),
       ],
     };
   } else {
@@ -902,7 +902,7 @@ export async function archiveAgreementLogic(
     ...updateSeed,
   };
 
-  return toCreateEventAgreementArchived(
+  return toCreateEventAgreementArchivedByConsumer(
     updatedAgreement,
     agreement.metadata.version,
     correlationId
