@@ -5,6 +5,8 @@ import {
   AttributeEvent,
   AttributeId,
   Tenant,
+  TenantId,
+  generateId,
   toAttributeV1,
   toReadModelAttribute,
 } from "pagopa-interop-models";
@@ -15,6 +17,7 @@ import {
   writeInEventstore,
   writeInReadmodel,
 } from "pagopa-interop-commons-test/index.js";
+import { AuthData } from "pagopa-interop-commons";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { attributeRegistryServiceBuilder } from "../src/services/attributeRegistryService.js";
 
@@ -65,3 +68,27 @@ export const readLastAttributeEvent = async (
   attributeId: AttributeId
 ): Promise<ReadEvent<AttributeEvent>> =>
   await readLastEventByStreamId(attributeId, "attribute", postgresDB);
+
+export const getMockTenant = (): Tenant => ({
+  name: "tenant_Name",
+  id: generateId(),
+  createdAt: new Date(),
+  attributes: [],
+  externalId: {
+    value: "1234",
+    origin: "IPA",
+  },
+  features: [],
+  mails: [],
+});
+
+export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
+  organizationId: organizationId || generateId(),
+  userId: generateId(),
+  userRoles: [],
+  externalId: {
+    value: "123456",
+    origin: "IPA",
+  },
+  selfcareId: generateId(),
+});

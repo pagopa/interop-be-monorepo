@@ -28,7 +28,7 @@ import {
   addOneAgreement,
   agreementService,
   readLastAgreementEvent,
-} from "./vitestSetup.js";
+} from "./utils.js";
 
 describe("archive agreement", () => {
   it("should succeed when the requester is the consumer and the agreement is in an archivable state", async () => {

@@ -15,7 +15,7 @@ import {
   addOneAttribute,
   attributeRegistryService,
   readModelService,
-} from "./vitestSetup.js";
+} from "./utils.js";
 
 const mockAttribute = getMockAttribute();
 

@@ -59,7 +59,7 @@ import {
   addOneEService,
   addOneTenant,
   agreementService,
-} from "./vitestSetup.js";
+} from "./utils.js";
 
 /**
  * Executes the generic agreement expectation for agreement creation process,

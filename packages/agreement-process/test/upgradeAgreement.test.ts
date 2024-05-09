@@ -59,8 +59,8 @@ import {
   fileManager,
   readAgreementEventByVersion,
   uploadDocument,
-} from "./vitestSetup.js";
-import { getMockConsumerDocument } from "./mocks.js";
+  getMockConsumerDocument,
+} from "./utils.js";
 
 describe("upgrade Agreement", () => {
   const TEST_EXECUTION_DATE = new Date();

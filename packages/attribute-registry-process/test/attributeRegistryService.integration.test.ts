@@ -25,8 +25,9 @@ import {
   addOneTenant,
   readLastAttributeEvent,
   attributeRegistryService,
-} from "./vitestSetup.js";
-import { getMockAuthData, getMockTenant } from "./mocks.js";
+  getMockAuthData,
+  getMockTenant,
+} from "./utils.js";
 
 const mockAttribute = getMockAttribute();
 const mockTenant = getMockTenant();

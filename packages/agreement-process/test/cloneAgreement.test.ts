@@ -43,7 +43,6 @@ import {
   operationNotAllowed,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
-import { getMockConsumerDocument } from "./mocks.js";
 import {
   addOneAgreement,
   addOneEService,
@@ -52,7 +51,8 @@ import {
   fileManager,
   readAgreementEventByVersion,
   uploadDocument,
-} from "./vitestSetup.js";
+  getMockConsumerDocument,
+} from "./utils.js";
 
 describe("clone agreement", () => {
   const TEST_EXECUTION_DATE = new Date();

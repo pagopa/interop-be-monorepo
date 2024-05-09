@@ -49,7 +49,7 @@ import {
   addOneAgreement,
   agreementService,
   readLastAgreementEvent,
-} from "./vitestSetup.js";
+} from "./utils.js";
 
 describe("suspend agreement", () => {
   beforeEach(async () => {

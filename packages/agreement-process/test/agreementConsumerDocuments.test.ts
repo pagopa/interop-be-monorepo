@@ -30,13 +30,13 @@ import {
 import { config } from "../src/utilities/config.js";
 import { agreementConsumerDocumentChangeValidStates } from "../src/model/domain/validators.js";
 import { toAgreementV2 } from "../src/model/domain/toEvent.js";
-import { getMockConsumerDocument } from "./mocks.js";
 import {
   addOneAgreement,
   agreementService,
   fileManager,
   readLastAgreementEvent,
-} from "./vitestSetup.js";
+  getMockConsumerDocument,
+} from "./utils.js";
 
 describe("agreement consumer document", () => {
   describe("get", () => {

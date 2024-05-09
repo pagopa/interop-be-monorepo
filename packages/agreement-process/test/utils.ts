@@ -17,6 +17,8 @@ import {
   toReadModelEService,
   toReadModelAgreement,
   AgreementDocumentId,
+  generateId,
+  AgreementDocument,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
@@ -118,4 +120,19 @@ export async function uploadDocument(
   ).toContainEqual(
     `${config.consumerDocumentsPath}/${agreementId}/${documentId}/${name}`
   );
+}
+
+export function getMockConsumerDocument(
+  agreementId: AgreementId,
+  name: string = "mockDocument"
+): AgreementDocument {
+  const id = generateId<AgreementDocumentId>();
+  return {
+    id,
+    name,
+    path: `${config.consumerDocumentsPath}/${agreementId}/${id}/${name}`,
+    prettyName: "pretty name",
+    contentType: "application/pdf",
+    createdAt: new Date(),
+  };
 }

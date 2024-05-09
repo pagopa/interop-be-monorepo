@@ -27,8 +27,8 @@ import {
   agreementService,
   fileManager,
   uploadDocument,
-} from "./vitestSetup.js";
-import { getMockConsumerDocument } from "./mocks.js";
+  getMockConsumerDocument,
+} from "./utils.js";
 
 describe("delete agreement", () => {
   it("should succeed when requester is Consumer and the Agreement is in a deletable state", async () => {

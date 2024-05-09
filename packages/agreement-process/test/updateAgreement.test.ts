@@ -24,7 +24,7 @@ import {
   addOneAgreement,
   agreementService,
   readLastAgreementEvent,
-} from "./vitestSetup.js";
+} from "./utils.js";
 
 describe("update agreement", () => {
   it("should succeed when requester is Consumer and the Agreement is in an updatable state", async () => {

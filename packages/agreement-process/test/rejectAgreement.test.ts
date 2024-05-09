@@ -47,7 +47,7 @@ import {
   addOneAgreement,
   agreementService,
   readLastAgreementEvent,
-} from "./vitestSetup.js";
+} from "./utils.js";
 
 describe("reject agreement", () => {
   it("should succeed when requester is Producer and the Agreement is in a rejectable state", async () => {
