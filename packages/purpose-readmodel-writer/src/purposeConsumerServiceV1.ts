@@ -3,6 +3,8 @@ import {
   PurposeEventEnvelopeV1,
   fromPurposeV1,
   fromPurposeVersionV1,
+  toReadModelPurpose,
+  toReadModelPurposeVersion,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -19,9 +21,11 @@ export async function handleMessageV1(
           {
             $setOnInsert: {
               data: msg.data.purpose
-                ? fromPurposeV1(msg.data.purpose)
+                ? toReadModelPurpose(fromPurposeV1(msg.data.purpose))
                 : undefined,
-              metadata: { version: msg.version },
+              metadata: {
+                version: msg.version,
+              },
             },
           },
           { upsert: true }
@@ -41,7 +45,9 @@ export async function handleMessageV1(
             },
             $push: {
               "data.versions": msg.data.version
-                ? fromPurposeVersionV1(msg.data.version)
+                ? toReadModelPurposeVersion(
+                    fromPurposeVersionV1(msg.data.version)
+                  )
                 : undefined,
             },
           }
@@ -60,9 +66,11 @@ export async function handleMessageV1(
           {
             $set: {
               data: msg.data.purpose
-                ? fromPurposeV1(msg.data.purpose)
+                ? toReadModelPurpose(fromPurposeV1(msg.data.purpose))
                 : undefined,
-              metadata: { version: msg.version },
+              metadata: {
+                version: msg.version,
+              },
             },
           }
         )
@@ -77,7 +85,9 @@ export async function handleMessageV1(
           $set: {
             "metadata.version": msg.version,
             "data.versions.$[version]": msg.data.version
-              ? fromPurposeVersionV1(msg.data.version)
+              ? toReadModelPurposeVersion(
+                  fromPurposeVersionV1(msg.data.version)
+                )
               : undefined,
           },
         },

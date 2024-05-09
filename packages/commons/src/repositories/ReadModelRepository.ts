@@ -2,7 +2,7 @@ import {
   AgreementReadModel,
   AttributeReadmodel,
   EServiceReadModel,
-  Purpose,
+  PurposeReadModel,
   Tenant,
   genericInternalError,
 } from "pagopa-interop-models";
@@ -33,7 +33,7 @@ export type EServiceCollection = GenericCollection<EServiceReadModel>;
 export type AgreementCollection = GenericCollection<AgreementReadModel>;
 export type TenantCollection = GenericCollection<Tenant>;
 export type AttributeCollection = GenericCollection<AttributeReadmodel>;
-export type PurposeCollection = GenericCollection<Purpose>;
+export type PurposeCollection = GenericCollection<PurposeReadModel>;
 
 export type Collections =
   | EServiceCollection
