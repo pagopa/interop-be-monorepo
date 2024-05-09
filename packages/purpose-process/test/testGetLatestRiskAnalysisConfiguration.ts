@@ -63,7 +63,7 @@ export const testGetLatestRiskAnalysisConfiguration = (): ReturnType<
         })
       ).rejects.toThrowError(tenantKindNotFound(mockTenant.id));
     });
-    it("should throw riskAnalysisConfigLatestVersionNotFound if a config with that kind doesn't exist", async () => {
+    it("should throw riskAnalysisConfigLatestVersionNotFound if a config with that version doesn't exist", async () => {
       const mockTenant = {
         ...getMockTenant(),
         kind: tenantKind.PA,
