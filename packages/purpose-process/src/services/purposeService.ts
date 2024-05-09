@@ -56,9 +56,9 @@ import {
   purposeVersionDocumentNotFound,
   purposeVersionNotFound,
   tenantNotFound,
-  riskAnalysisConfigVersionNotFound,
-  riskAnalysisConfigLatestVersionNotFound,
+  RiskAnalysisConfigVersionNotFound,
   tenantKindNotFound,
+  riskAnalysisConfigLatestVersionNotFound,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -871,7 +871,7 @@ export function purposeServiceBuilder(
       );
 
       if (!riskAnalysisFormConfig) {
-        throw riskAnalysisConfigVersionNotFound(
+        throw RiskAnalysisConfigVersionNotFound(
           riskAnalysisVersion,
           tenant.kind
         );
