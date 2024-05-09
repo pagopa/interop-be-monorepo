@@ -753,7 +753,6 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
       await writeInReadmodel(mockAgreement, agreements);
       await writeInReadmodel(mockConsumer, tenants);
-      // await writeInReadmodel(mockProducer, tenants);
 
       expect(async () => {
         await purposeService.activatePurposeVersion({
