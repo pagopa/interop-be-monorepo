@@ -30,7 +30,8 @@
     "ts-node": "10.9.2",
     "typescript": "5.1.3",
     "uuid": "9.0.1",
-    "vitest": "0.33.0"
+    "vitest": "0.33.0",
+    "@anatine/zod-mock": "3.13.4"
   },
   "dependencies": {
     "@protobuf-ts/runtime": "2.9.4",
