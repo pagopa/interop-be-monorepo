@@ -156,3 +156,7 @@ export const isDeletable = (purpose: Purpose): boolean =>
       v.state === purposeVersionState.draft ||
       v.state === purposeVersionState.waitingForApproval
   );
+
+export const isArchivable = (purposeVersion: PurposeVersion): boolean =>
+  purposeVersion.state === purposeVersionState.active ||
+  purposeVersion.state === purposeVersionState.suspended;

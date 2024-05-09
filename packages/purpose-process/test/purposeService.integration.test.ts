@@ -34,6 +34,7 @@ import { testDeletePurposeVersion } from "./testDeletePurposeVersion.js";
 import { testRejectPurposeVersion } from "./testRejectPurposeVersion.js";
 import { testUpdatePurpose } from "./testUpdatePurpose.js";
 import { testDeletePurpose } from "./testDeletePurpose.js";
+import { testArchivePurposeVersion } from "./testArchivePurposeVersion.js";
 
 export let purposes: PurposeCollection;
 export let eservices: EServiceCollection;
@@ -92,5 +93,6 @@ describe("Integration tests", async () => {
     testRejectPurposeVersion();
     testUpdatePurpose();
     testDeletePurpose();
+    testArchivePurposeVersion();
   });
 });
