@@ -4,6 +4,7 @@
 
 import {
   ReadModelRepository,
+  genericLogger,
   initDB,
   initFileManager,
 } from "pagopa-interop-commons";
@@ -62,8 +63,17 @@ export function setupTestContainersVitest(config: TestContainersConfig) {
       await postgresDB.none("TRUNCATE TABLE tenant.events RESTART IDENTITY");
       await postgresDB.none("TRUNCATE TABLE purpose.events RESTART IDENTITY");
 
-      // Some tests change the bucket name, so we need to reset it
       if (s3OriginalBucket) {
+        const files = await fileManager.listFiles(
+          s3OriginalBucket,
+          genericLogger
+        );
+        await Promise.all(
+          files.map((file) =>
+            fileManager.delete(s3OriginalBucket, file, genericLogger)
+          )
+        );
+        // Some tests change the bucket name, so we need to reset it
         config.s3Bucket = s3OriginalBucket;
       }
     },
