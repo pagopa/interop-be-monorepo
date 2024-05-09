@@ -106,6 +106,7 @@ export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
     value: "123456",
     origin: "IPA",
   },
+  selfcareId: generateId(),
 });
 
 export const getMockEService = (): EService => ({
