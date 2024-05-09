@@ -32,6 +32,10 @@ import { testGetPurposeById } from "./testGetPurposeById.js";
 import { testGetRiskAnalysisDocument } from "./testGetRiskAnalysisDocument.js";
 import { testDeletePurposeVersion } from "./testDeletePurposeVersion.js";
 import { testRejectPurposeVersion } from "./testRejectPurposeVersion.js";
+import { testUpdatePurpose } from "./testUpdatePurpose.js";
+import { testDeletePurpose } from "./testDeletePurpose.js";
+import { testArchivePurposeVersion } from "./testArchivePurposeVersion.js";
+import { testSuspendPurposeVersion } from "./testSuspendPurposeVersion.js";
 
 export let purposes: PurposeCollection;
 export let eservices: EServiceCollection;
@@ -73,8 +77,8 @@ describe("Integration tests", async () => {
 
   afterEach(async () => {
     await purposes.deleteMany({});
+    await tenants.deleteMany({});
     await eservices.deleteMany({});
-
     await postgresDB.none("TRUNCATE TABLE purpose.events RESTART IDENTITY");
   });
 
@@ -88,5 +92,9 @@ describe("Integration tests", async () => {
     testGetRiskAnalysisDocument();
     testDeletePurposeVersion();
     testRejectPurposeVersion();
+    testUpdatePurpose();
+    testDeletePurpose();
+    testArchivePurposeVersion();
+    testSuspendPurposeVersion();
   });
 });
