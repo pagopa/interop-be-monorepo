@@ -51,14 +51,10 @@ export const testInternalAssignCertifiedAttribute = (): ReturnType<
       vi.useRealTimers();
     });
 
-    it("Should add the certified attribute if the Tenant doesn't have that", async () => {
+    it("Should add the certified attribute if the Tenant doesn't have it", async () => {
       const targetTenant: Tenant = {
         ...getMockTenant(),
         attributes: [],
-        externalId: {
-          origin: generateId(),
-          value: "123456",
-        },
       };
       await addOneAttribute(attribute, attributes);
       await addOneTenant(targetTenant, postgresDB, tenants);
