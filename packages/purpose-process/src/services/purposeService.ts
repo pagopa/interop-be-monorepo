@@ -25,6 +25,7 @@ import {
   PurposeEvent,
   eserviceMode,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import {
   duplicatedPurposeTitle,
   eserviceNotFound,
@@ -43,6 +44,8 @@ import {
   toCreateEventDraftPurposeDeleted,
   toCreateEventDraftPurposeUpdated,
   toCreateEventPurposeArchived,
+  toCreateEventPurposeSuspendedByConsumer,
+  toCreateEventPurposeSuspendedByProducer,
   toCreateEventPurposeVersionRejected,
   toCreateEventWaitingForApprovalPurposeDeleted,
   toCreateEventWaitingForApprovalPurposeVersionDeleted,
@@ -66,6 +69,7 @@ import {
   isRejectable,
   isDeletable,
   isArchivable,
+  isSuspendable,
 } from "./validators.js";
 
 const retrievePurpose = async (
@@ -427,6 +431,76 @@ export function purposeServiceBuilder(
 
       await repository.createEvent(event);
       return archivedVersion;
+    },
+    async suspendPurposeVersion({
+      purposeId,
+      versionId,
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      purposeId: PurposeId;
+      versionId: PurposeVersionId;
+      organizationId: TenantId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<PurposeVersion> {
+      logger.info(`Suspending Version ${versionId} in Purpose ${purposeId}`);
+
+      const purpose = await retrievePurpose(purposeId, readModelService);
+      const purposeVersion = retrievePurposeVersion(versionId, purpose);
+
+      if (!isSuspendable(purposeVersion)) {
+        throw notValidVersionState(purposeVersion.id, purposeVersion.state);
+      }
+
+      const eservice = await retrieveEService(
+        purpose.data.eserviceId,
+        readModelService
+      );
+
+      const suspender = getOrganizationRole({
+        organizationId,
+        producerId: eservice.producerId,
+        consumerId: purpose.data.consumerId,
+      });
+
+      const suspendedPurposeVersion: PurposeVersion = {
+        ...purposeVersion,
+        state: purposeVersionState.suspended,
+        suspendedAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      const event = match(suspender)
+        .with(ownership.CONSUMER, () => {
+          const updatedPurpose: Purpose = {
+            ...replacePurposeVersion(purpose.data, suspendedPurposeVersion),
+            suspendedByConsumer: true,
+          };
+          return toCreateEventPurposeSuspendedByConsumer({
+            purpose: updatedPurpose,
+            purposeVersionId: versionId,
+            version: purpose.metadata.version,
+            correlationId,
+          });
+        })
+        .with(ownership.PRODUCER, ownership.SELF_CONSUMER, () => {
+          const updatedPurpose: Purpose = {
+            ...replacePurposeVersion(purpose.data, suspendedPurposeVersion),
+            suspendedByProducer: true,
+          };
+          return toCreateEventPurposeSuspendedByProducer({
+            purpose: updatedPurpose,
+            purposeVersionId: versionId,
+            version: purpose.metadata.version,
+            correlationId,
+          });
+        })
+        .exhaustive();
+
+      await repository.createEvent(event);
+      return suspendedPurposeVersion;
     },
   };
 }

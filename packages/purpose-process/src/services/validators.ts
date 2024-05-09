@@ -160,3 +160,7 @@ export const isDeletable = (purpose: Purpose): boolean =>
 export const isArchivable = (purposeVersion: PurposeVersion): boolean =>
   purposeVersion.state === purposeVersionState.active ||
   purposeVersion.state === purposeVersionState.suspended;
+
+export const isSuspendable = (purposeVersion: PurposeVersion): boolean =>
+  purposeVersion.state === purposeVersionState.active ||
+  purposeVersion.state === purposeVersionState.suspended;
