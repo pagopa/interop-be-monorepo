@@ -291,12 +291,14 @@ const purposeRouter = (
       "/purposes/:purposeId/versions/:versionId/suspend",
       authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
         try {
           const suspendedVersion = await purposeService.suspendPurposeVersion({
             purposeId: unsafeBrandId(req.params.purposeId),
             versionId: unsafeBrandId(req.params.versionId),
             organizationId: req.ctx.authData.organizationId,
             correlationId: req.ctx.correlationId,
+            logger: ctx.logger,
           });
           return res
             .status(200)
@@ -305,7 +307,8 @@ const purposeRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            suspendPurposeVersionErrorMapper
+            suspendPurposeVersionErrorMapper,
+            ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
