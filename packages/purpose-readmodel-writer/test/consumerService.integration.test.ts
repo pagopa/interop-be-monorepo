@@ -48,6 +48,7 @@ import {
   generateId,
   purposeVersionState,
   toPurposeV2,
+  toReadModelPurpose,
 } from "pagopa-interop-models";
 import { handleMessageV1 } from "../src/purposeConsumerServiceV1.js";
 import { handleMessageV2 } from "../src/purposeConsumerServiceV2.js";
@@ -99,14 +100,12 @@ describe("Integration tests", async () => {
         "data.id": mockPurpose.id,
       });
 
-      expect(retrievedPurpose).toMatchObject({
-        data: mockPurpose,
-        metadata: { version: 1 },
-      });
+      expect(retrievedPurpose?.data).toEqual(toReadModelPurpose(mockPurpose));
+      expect(retrievedPurpose?.metadata).toEqual({ version: 1 });
     });
 
     it("PurposeVersionCreated", async () => {
-      await writeInReadmodel<Purpose>(mockPurpose, purposes, 1);
+      await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes, 1);
 
       const updatedPurpose: Purpose = {
         ...mockPurpose,
@@ -131,14 +130,14 @@ describe("Integration tests", async () => {
         "data.id": mockPurpose.id,
       });
 
-      expect(retrievedPurpose).toMatchObject({
-        data: updatedPurpose,
-        metadata: { version: 2 },
-      });
+      expect(retrievedPurpose?.data).toEqual(
+        toReadModelPurpose(updatedPurpose)
+      );
+      expect(retrievedPurpose?.metadata).toEqual({ version: 2 });
     });
 
     it("PurposeUpdated", async () => {
-      await writeInReadmodel<Purpose>(mockPurpose, purposes, 1);
+      await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes, 1);
 
       const updatedPurpose = {
         ...mockPurpose,
@@ -162,10 +161,10 @@ describe("Integration tests", async () => {
         "data.id": mockPurpose.id,
       });
 
-      expect(retrievedPurpose).toMatchObject({
-        data: updatedPurpose,
-        metadata: { version: 2 },
-      });
+      expect(retrievedPurpose?.data).toEqual(
+        toReadModelPurpose(updatedPurpose)
+      );
+      expect(retrievedPurpose?.metadata).toEqual({ version: 2 });
     });
 
     it("PurposeVersionActivated", async () => {
@@ -173,7 +172,7 @@ describe("Integration tests", async () => {
         ...mockPurpose,
         versions: [mockPurposeVersion],
       };
-      await writeInReadmodel<Purpose>(purpose, purposes, 1);
+      await writeInReadmodel(toReadModelPurpose(purpose), purposes, 1);
 
       const updatedPurpose: Purpose = {
         ...mockPurpose,
@@ -199,10 +198,10 @@ describe("Integration tests", async () => {
         "data.id": mockPurpose.id,
       });
 
-      expect(retrievedPurpose).toMatchObject({
-        data: updatedPurpose,
-        metadata: { version: 2 },
-      });
+      expect(retrievedPurpose?.data).toEqual(
+        toReadModelPurpose(updatedPurpose)
+      );
+      expect(retrievedPurpose?.metadata).toEqual({ version: 2 });
     });
 
     it("PurposeVersionSuspended", async () => {
@@ -210,7 +209,7 @@ describe("Integration tests", async () => {
         ...mockPurpose,
         versions: [mockPurposeVersion],
       };
-      await writeInReadmodel<Purpose>(purpose, purposes, 1);
+      await writeInReadmodel(toReadModelPurpose(purpose), purposes, 1);
 
       const updatedPurpose: Purpose = {
         ...mockPurpose,
@@ -236,10 +235,10 @@ describe("Integration tests", async () => {
         "data.id": mockPurpose.id,
       });
 
-      expect(retrievedPurpose).toMatchObject({
-        data: updatedPurpose,
-        metadata: { version: 2 },
-      });
+      expect(retrievedPurpose?.data).toEqual(
+        toReadModelPurpose(updatedPurpose)
+      );
+      expect(retrievedPurpose?.metadata).toEqual({ version: 2 });
     });
 
     it("PurposeVersionArchived", async () => {
@@ -247,7 +246,7 @@ describe("Integration tests", async () => {
         ...mockPurpose,
         versions: [mockPurposeVersion],
       };
-      await writeInReadmodel<Purpose>(purpose, purposes, 1);
+      await writeInReadmodel(toReadModelPurpose(purpose), purposes, 1);
 
       const updatedPurpose: Purpose = {
         ...mockPurpose,
@@ -273,10 +272,10 @@ describe("Integration tests", async () => {
         "data.id": mockPurpose.id,
       });
 
-      expect(retrievedPurpose).toMatchObject({
-        data: updatedPurpose,
-        metadata: { version: 2 },
-      });
+      expect(retrievedPurpose?.data).toEqual(
+        toReadModelPurpose(updatedPurpose)
+      );
+      expect(retrievedPurpose?.metadata).toEqual({ version: 2 });
     });
 
     it("PurposeVersionWaitedForApproval", async () => {
@@ -284,7 +283,7 @@ describe("Integration tests", async () => {
         ...mockPurpose,
         versions: [mockPurposeVersion],
       };
-      await writeInReadmodel<Purpose>(purpose, purposes, 1);
+      await writeInReadmodel(toReadModelPurpose(purpose), purposes, 1);
 
       const updatedPurpose: Purpose = {
         ...mockPurpose,
@@ -313,10 +312,10 @@ describe("Integration tests", async () => {
         "data.id": mockPurpose.id,
       });
 
-      expect(retrievedPurpose).toMatchObject({
-        data: updatedPurpose,
-        metadata: { version: 2 },
-      });
+      expect(retrievedPurpose?.data).toEqual(
+        toReadModelPurpose(updatedPurpose)
+      );
+      expect(retrievedPurpose?.metadata).toEqual({ version: 2 });
     });
 
     it("PurposeVersionRejected", async () => {
@@ -324,7 +323,7 @@ describe("Integration tests", async () => {
         ...mockPurpose,
         versions: [mockPurposeVersion],
       };
-      await writeInReadmodel<Purpose>(purpose, purposes, 1);
+      await writeInReadmodel(toReadModelPurpose(purpose), purposes, 1);
 
       const updatedPurpose: Purpose = {
         ...mockPurpose,
@@ -354,10 +353,10 @@ describe("Integration tests", async () => {
         "data.id": mockPurpose.id,
       });
 
-      expect(retrievedPurpose).toMatchObject({
-        data: updatedPurpose,
-        metadata: { version: 2 },
-      });
+      expect(retrievedPurpose?.data).toEqual(
+        toReadModelPurpose(updatedPurpose)
+      );
+      expect(retrievedPurpose?.metadata).toEqual({ version: 2 });
     });
 
     it("PurposeVersionUpdated", async () => {
@@ -365,7 +364,7 @@ describe("Integration tests", async () => {
         ...mockPurpose,
         versions: [mockPurposeVersion],
       };
-      await writeInReadmodel<Purpose>(purpose, purposes, 1);
+      await writeInReadmodel(toReadModelPurpose(purpose), purposes, 1);
 
       const updatedPurposeVersion: PurposeVersion = {
         ...mockPurposeVersion,
@@ -394,10 +393,10 @@ describe("Integration tests", async () => {
         "data.id": mockPurpose.id,
       });
 
-      expect(retrievedPurpose).toMatchObject({
-        data: updatedPurpose,
-        metadata: { version: 2 },
-      });
+      expect(retrievedPurpose?.data).toEqual(
+        toReadModelPurpose(updatedPurpose)
+      );
+      expect(retrievedPurpose?.metadata).toEqual({ version: 2 });
     });
 
     it("PurposeDeleted", async () => {
@@ -406,8 +405,8 @@ describe("Integration tests", async () => {
         id: generateId(),
         title: "Purpose 2 - test",
       };
-      await writeInReadmodel<Purpose>(mockPurpose, purposes, 1);
-      await writeInReadmodel<Purpose>(mockPurpose2, purposes, 1);
+      await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes, 1);
+      await writeInReadmodel(toReadModelPurpose(mockPurpose2), purposes, 1);
 
       const payload: PurposeDeletedV1 = {
         purposeId: mockPurpose.id,
@@ -431,10 +430,9 @@ describe("Integration tests", async () => {
       });
 
       expect(retrievedPurpose?.data).toBeUndefined();
-      expect(retrievedPurpose2).toMatchObject({
-        data: mockPurpose2,
-        metadata: { version: 1 },
-      });
+
+      expect(retrievedPurpose2?.data).toEqual(toReadModelPurpose(mockPurpose2));
+      expect(retrievedPurpose2?.metadata).toEqual({ version: 1 });
     });
 
     it("PurposeVersionDeleted", async () => {
@@ -444,7 +442,7 @@ describe("Integration tests", async () => {
         ...mockPurpose,
         versions: [mockPurposeVersion, mockPurposeVersion2],
       };
-      await writeInReadmodel<Purpose>(purpose, purposes, 1);
+      await writeInReadmodel(toReadModelPurpose(purpose), purposes, 1);
 
       const updatedPurpose: Purpose = {
         ...mockPurpose,
@@ -469,17 +467,17 @@ describe("Integration tests", async () => {
         "data.id": mockPurpose.id,
       });
 
-      expect(retrievedPurpose).toMatchObject({
-        data: updatedPurpose,
-        metadata: { version: 2 },
-      });
+      expect(retrievedPurpose?.data).toEqual(
+        toReadModelPurpose(updatedPurpose)
+      );
+      expect(retrievedPurpose?.metadata).toEqual({ version: 2 });
     });
   });
 
   describe("Events V2", async () => {
     const mockPurpose = getMockPurpose();
     it("DraftPurposeDeleted", async () => {
-      await writeInReadmodel(mockPurpose, purposes, 1);
+      await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes, 1);
 
       const payload: DraftPurposeDeletedV2 = {
         purpose: toPurposeV2(mockPurpose),
@@ -521,14 +519,12 @@ describe("Integration tests", async () => {
         "data.id": mockPurpose.id,
       });
 
-      expect(retrievedPurpose).toMatchObject({
-        data: mockPurpose,
-        metadata: { version: 1 },
-      });
+      expect(retrievedPurpose?.data).toEqual(toReadModelPurpose(mockPurpose));
+      expect(retrievedPurpose?.metadata).toEqual({ version: 1 });
     });
 
     it("DraftPurposeUpdated", async () => {
-      await writeInReadmodel(mockPurpose, purposes, 1);
+      await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes, 1);
 
       const updatedPurpose: Purpose = {
         ...mockPurpose,
@@ -552,10 +548,10 @@ describe("Integration tests", async () => {
         "data.id": mockPurpose.id,
       });
 
-      expect(retrievedPurpose).toMatchObject({
-        data: updatedPurpose,
-        metadata: { version: 2 },
-      });
+      expect(retrievedPurpose?.data).toEqual(
+        toReadModelPurpose(updatedPurpose)
+      );
+      expect(retrievedPurpose?.metadata).toEqual({ version: 2 });
     });
 
     it("NewPurposeVersionActivated", async () => {
@@ -569,7 +565,7 @@ describe("Integration tests", async () => {
         versions: purposeVersions,
       };
 
-      await writeInReadmodel(purpose, purposes, 1);
+      await writeInReadmodel(toReadModelPurpose(purpose), purposes, 1);
 
       const date = new Date();
       const updatedPurpose: Purpose = {
@@ -605,7 +601,9 @@ describe("Integration tests", async () => {
         "data.id": updatedPurpose.id,
       });
 
-      expect(retrievedPurpose?.data).toEqual(updatedPurpose);
+      expect(retrievedPurpose?.data).toEqual(
+        toReadModelPurpose(updatedPurpose)
+      );
       expect(retrievedPurpose?.metadata).toEqual({ version: 2 });
     });
 
@@ -615,7 +613,7 @@ describe("Integration tests", async () => {
         versions: [{ ...getMockPurposeVersion(), state: "Active" }],
       };
 
-      await writeInReadmodel(purpose, purposes, 1);
+      await writeInReadmodel(toReadModelPurpose(purpose), purposes, 1);
 
       const waitingForApprovalVersion: PurposeVersion = {
         ...getMockPurposeVersion(),
@@ -647,7 +645,9 @@ describe("Integration tests", async () => {
         "data.id": updatedPurpose.id,
       });
 
-      expect(retrievedPurpose?.data).toEqual(updatedPurpose);
+      expect(retrievedPurpose?.data).toEqual(
+        toReadModelPurpose(updatedPurpose)
+      );
       expect(retrievedPurpose?.metadata).toEqual({ version: 2 });
     });
 
@@ -659,7 +659,7 @@ describe("Integration tests", async () => {
         versions: [draftVersion],
       };
 
-      await writeInReadmodel(purpose, purposes, 1);
+      await writeInReadmodel(toReadModelPurpose(purpose), purposes, 1);
 
       const date = new Date();
       const updatedPurpose: Purpose = {
@@ -686,7 +686,9 @@ describe("Integration tests", async () => {
         "data.id": updatedPurpose.id,
       });
 
-      expect(retrievedPurpose?.data).toEqual(updatedPurpose);
+      expect(retrievedPurpose?.data).toEqual(
+        toReadModelPurpose(updatedPurpose)
+      );
       expect(retrievedPurpose?.metadata).toEqual({ version: 2 });
     });
 
@@ -698,7 +700,7 @@ describe("Integration tests", async () => {
         versions: [activeVersion],
       };
 
-      await writeInReadmodel(purpose, purposes, 1);
+      await writeInReadmodel(toReadModelPurpose(purpose), purposes, 1);
 
       const date = new Date();
       const updatedPurpose: Purpose = {
@@ -726,7 +728,9 @@ describe("Integration tests", async () => {
         "data.id": updatedPurpose.id,
       });
 
-      expect(retrievedPurpose?.data).toEqual(updatedPurpose);
+      expect(retrievedPurpose?.data).toEqual(
+        toReadModelPurpose(updatedPurpose)
+      );
       expect(retrievedPurpose?.metadata).toEqual({ version: 2 });
     });
 
@@ -741,7 +745,7 @@ describe("Integration tests", async () => {
         versions: purposeVersions,
       };
 
-      await writeInReadmodel(purpose, purposes, 1);
+      await writeInReadmodel(toReadModelPurpose(purpose), purposes, 1);
 
       const date = new Date();
       const updatedPurpose: Purpose = {
@@ -772,7 +776,9 @@ describe("Integration tests", async () => {
         "data.id": updatedPurpose.id,
       });
 
-      expect(retrievedPurpose?.data).toEqual(updatedPurpose);
+      expect(retrievedPurpose?.data).toEqual(
+        toReadModelPurpose(updatedPurpose)
+      );
       expect(retrievedPurpose?.metadata).toEqual({ version: 2 });
     });
 
@@ -787,7 +793,7 @@ describe("Integration tests", async () => {
         versions: [waitingForApprovalVersion],
       };
 
-      await writeInReadmodel(purpose, purposes, 1);
+      await writeInReadmodel(toReadModelPurpose(purpose), purposes, 1);
 
       const updatedPurpose: Purpose = {
         ...purpose,
@@ -814,7 +820,9 @@ describe("Integration tests", async () => {
         "data.id": updatedPurpose.id,
       });
 
-      expect(retrievedPurpose?.data).toEqual(updatedPurpose);
+      expect(retrievedPurpose?.data).toEqual(
+        toReadModelPurpose(updatedPurpose)
+      );
       expect(retrievedPurpose?.metadata).toEqual({ version: 2 });
     });
 
@@ -829,7 +837,7 @@ describe("Integration tests", async () => {
         versions: [activeVersion],
       };
 
-      await writeInReadmodel(purpose, purposes, 1);
+      await writeInReadmodel(toReadModelPurpose(purpose), purposes, 1);
 
       const updatedPurpose: Purpose = {
         ...purpose,
@@ -860,7 +868,9 @@ describe("Integration tests", async () => {
         "data.id": updatedPurpose.id,
       });
 
-      expect(retrievedPurpose?.data).toEqual(updatedPurpose);
+      expect(retrievedPurpose?.data).toEqual(
+        toReadModelPurpose(updatedPurpose)
+      );
       expect(retrievedPurpose?.metadata).toEqual({ version: 2 });
     });
 
@@ -875,7 +885,7 @@ describe("Integration tests", async () => {
         versions: [activeVersion],
       };
 
-      await writeInReadmodel(purpose, purposes, 1);
+      await writeInReadmodel(toReadModelPurpose(purpose), purposes, 1);
 
       const updatedPurpose: Purpose = {
         ...purpose,
@@ -906,7 +916,9 @@ describe("Integration tests", async () => {
         "data.id": updatedPurpose.id,
       });
 
-      expect(retrievedPurpose?.data).toEqual(updatedPurpose);
+      expect(retrievedPurpose?.data).toEqual(
+        toReadModelPurpose(updatedPurpose)
+      );
       expect(retrievedPurpose?.metadata).toEqual({ version: 2 });
     });
 
@@ -924,7 +936,7 @@ describe("Integration tests", async () => {
         suspendedByProducer: false,
       };
 
-      await writeInReadmodel(purpose, purposes, 1);
+      await writeInReadmodel(toReadModelPurpose(purpose), purposes, 1);
 
       const updatedPurpose: Purpose = {
         ...purpose,
@@ -960,7 +972,9 @@ describe("Integration tests", async () => {
         "data.id": updatedPurpose.id,
       });
 
-      expect(retrievedPurpose?.data).toEqual(updatedPurpose);
+      expect(retrievedPurpose?.data).toEqual(
+        toReadModelPurpose(updatedPurpose)
+      );
       expect(retrievedPurpose?.metadata).toEqual({ version: 2 });
     });
 
@@ -978,7 +992,7 @@ describe("Integration tests", async () => {
         suspendedByProducer: true,
       };
 
-      await writeInReadmodel(purpose, purposes, 1);
+      await writeInReadmodel(toReadModelPurpose(purpose), purposes, 1);
 
       const updatedPurpose: Purpose = {
         ...purpose,
@@ -1014,7 +1028,9 @@ describe("Integration tests", async () => {
         "data.id": updatedPurpose.id,
       });
 
-      expect(retrievedPurpose?.data).toEqual(updatedPurpose);
+      expect(retrievedPurpose?.data).toEqual(
+        toReadModelPurpose(updatedPurpose)
+      );
       expect(retrievedPurpose?.metadata).toEqual({ version: 2 });
     });
 
@@ -1025,7 +1041,7 @@ describe("Integration tests", async () => {
         versions: [draftVersion],
       };
 
-      await writeInReadmodel(purpose, purposes, 1);
+      await writeInReadmodel(toReadModelPurpose(purpose), purposes, 1);
 
       const updatedPurpose: Purpose = {
         ...purpose,
@@ -1057,7 +1073,9 @@ describe("Integration tests", async () => {
         "data.id": updatedPurpose.id,
       });
 
-      expect(retrievedPurpose?.data).toEqual(updatedPurpose);
+      expect(retrievedPurpose?.data).toEqual(
+        toReadModelPurpose(updatedPurpose)
+      );
       expect(retrievedPurpose?.metadata).toEqual({ version: 2 });
     });
 
@@ -1076,7 +1094,7 @@ describe("Integration tests", async () => {
         versions: purposeVersions,
       };
 
-      await writeInReadmodel(purpose, purposes, 1);
+      await writeInReadmodel(toReadModelPurpose(purpose), purposes, 1);
 
       const updatedPurpose: Purpose = {
         ...purpose,
@@ -1103,7 +1121,9 @@ describe("Integration tests", async () => {
         "data.id": updatedPurpose.id,
       });
 
-      expect(retrievedPurpose?.data).toEqual(updatedPurpose);
+      expect(retrievedPurpose?.data).toEqual(
+        toReadModelPurpose(updatedPurpose)
+      );
       expect(retrievedPurpose?.metadata).toEqual({ version: 2 });
     });
 
@@ -1114,7 +1134,7 @@ describe("Integration tests", async () => {
         versions: [draftVersion],
       };
 
-      await writeInReadmodel(purpose, purposes, 1);
+      await writeInReadmodel(toReadModelPurpose(purpose), purposes, 1);
 
       const updatedPurpose: Purpose = {
         ...purpose,
@@ -1148,13 +1168,13 @@ describe("Integration tests", async () => {
         "data.id": updatedPurpose.id,
       });
 
-      expect(retrievedPurpose?.data).toEqual(updatedPurpose);
+      expect(retrievedPurpose?.data).toEqual(
+        toReadModelPurpose(updatedPurpose)
+      );
       expect(retrievedPurpose?.metadata).toEqual({ version: 2 });
     });
 
     it("PurposeCloned", async () => {
-      await writeInReadmodel(mockPurpose, purposes, 1);
-
       const purposeVersion = getMockPurposeVersion();
       const purpose: Purpose = {
         ...mockPurpose,
@@ -1188,7 +1208,7 @@ describe("Integration tests", async () => {
         "data.id": clonedPurpose.id,
       });
 
-      expect(retrievedPurpose?.data).toEqual(clonedPurpose);
+      expect(retrievedPurpose?.data).toEqual(toReadModelPurpose(clonedPurpose));
       expect(retrievedPurpose?.metadata).toEqual({ version: 1 });
     });
   });
