@@ -4,6 +4,7 @@ import {
   PurposeId,
   PurposeVersionDocumentId,
   PurposeVersionId,
+  PurposeVersionState,
   TenantId,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
@@ -18,6 +19,8 @@ export const errorCodes = {
   organizationNotAllowed: "0007",
   organizationIsNotTheConsumer: "0008",
   purposeVersionCannotBeDeleted: "0009",
+  organizationIsNotTheProducer: "0010",
+  notValidVersionState: "0011",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -107,5 +110,26 @@ export function purposeVersionCannotBeDeleted(
     detail: `Version ${versionId} of Purpose ${purposeId} cannot be deleted`,
     code: "purposeVersionCannotBeDeleted",
     title: "Purpose version canont be deleted",
+  });
+}
+
+export function organizationIsNotTheProducer(
+  organizationId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Organization ${organizationId} is not allowed to perform the operation`,
+    code: "organizationIsNotTheProducer",
+    title: "Organization not allowed",
+  });
+}
+
+export function notValidVersionState(
+  purposeVersionId: PurposeVersionId,
+  versionState: PurposeVersionState
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose version ${purposeVersionId} has a not valid state for this operation: ${versionState}`,
+    code: "notValidVersionState",
+    title: "Not valid purpose version state",
   });
 }
