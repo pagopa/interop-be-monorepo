@@ -295,12 +295,14 @@ const purposeRouter = (
       "/purposes/:purposeId/versions/:versionId/archive",
       authorizationMiddleware([ADMIN_ROLE, INTERNAL_ROLE]),
       async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
         try {
           const archivedVersion = await purposeService.archivePurposeVersion({
             purposeId: unsafeBrandId(req.params.purposeId),
             versionId: unsafeBrandId(req.params.versionId),
             organizationId: req.ctx.authData.organizationId,
             correlationId: req.ctx.correlationId,
+            logger: ctx.logger,
           });
           return res
             .status(200)
@@ -309,7 +311,8 @@ const purposeRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            archivePurposeVersionErrorMapper
+            archivePurposeVersionErrorMapper,
+            ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
