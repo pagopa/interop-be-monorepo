@@ -15,13 +15,7 @@ const {
 
 export const getPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
-    .with(
-      "purposeNotFound",
-      "tenantNotFound",
-      "tenantKindNotFound",
-      () => HTTP_STATUS_NOT_FOUND
-    )
-    .with("eserviceNotFound", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
+    .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getRiskAnalysisDocumentErrorMapper = (
@@ -72,10 +66,7 @@ export const updatePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with(
       "eServiceModeNotAllowed",
       "missingFreeOfChargeReason",
-      "tenantKindNotFound",
       "riskAnalysisValidationFailed",
-      "eserviceNotFound",
-      "tenantNotFound",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
@@ -86,6 +77,8 @@ export const updatePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("duplicatedPurposeTitle", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const updateReversePurposeErrorMapper = updatePurposeErrorMapper;
 
 export const deletePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
