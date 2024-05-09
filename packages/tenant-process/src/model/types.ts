@@ -8,8 +8,3 @@ export type ApiSelfcareTenantSeed = ZodiosBodyByPath<
   "/selfcare/tenants"
 >;
 export type ApiM2MTenantSeed = ZodiosBodyByPath<Api, "post", "/m2m/tenants">;
-export type ApiInternalTenantSeed = ZodiosBodyByPath<
-  Api,
-  "post",
-  "/internal/tenants"
->;
