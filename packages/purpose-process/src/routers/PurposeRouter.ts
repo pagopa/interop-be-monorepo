@@ -24,6 +24,7 @@ import {
   deletePurposeVersionErrorMapper,
   getPurposeErrorMapper,
   getRiskAnalysisDocumentErrorMapper,
+  rejectPurposeVersionErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -182,7 +183,27 @@ const purposeRouter = (
     .post(
       "/purposes/:purposeId/versions/:versionId/reject",
       authorizationMiddleware([ADMIN_ROLE]),
-      (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          await purposeService.rejectPurposeVersion({
+            purposeId: unsafeBrandId(req.params.purposeId),
+            versionId: unsafeBrandId(req.params.versionId),
+            organizationId: req.ctx.authData.organizationId,
+            rejectionReason: req.body.rejectionReason,
+            correlationId: req.ctx.correlationId,
+            logger: ctx.logger,
+          });
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            rejectPurposeVersionErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/purposes/:purposeId/versions/:versionId/activate",

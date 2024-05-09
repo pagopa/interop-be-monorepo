@@ -38,6 +38,8 @@ import {
   toCreateEventAgreementUnsuspendedByProducer,
 } from "../model/domain/toEvent.js";
 import { UpdateAgreementSeed } from "../model/domain/models.js";
+import { ApiAgreementDocumentSeed } from "../model/types.js";
+import { apiAgreementDocumentToAgreementDocument } from "../model/domain/apiConverter.js";
 import {
   agreementStateByFlags,
   nextState,
@@ -189,25 +191,25 @@ async function activateAgreement(
 
   const activationEvent = await match(firstActivation)
     .with(true, async () => {
-      const activatedAgreementEvent = toCreateEventAgreementActivated(
-        updatedAgreement,
+      const contract = apiAgreementDocumentToAgreementDocument(
+        await createContract(
+          updatedAgreement,
+          updatedAgreementSeed,
+          eservice,
+          consumer,
+          attributeQuery,
+          tenantQuery,
+          authData.selfcareId,
+          storeFile,
+          logger
+        )
+      );
+
+      return toCreateEventAgreementActivated(
+        { ...updatedAgreement, contract },
         agreementData.metadata.version,
         correlationId
       );
-
-      await createContract(
-        updatedAgreement,
-        updatedAgreementSeed,
-        eservice,
-        consumer,
-        attributeQuery,
-        tenantQuery,
-        authData.selfcareId,
-        storeFile,
-        logger
-      );
-
-      return activatedAgreementEvent;
     })
     .with(false, () => {
       if (authData.organizationId === agreement.consumerId) {
@@ -289,11 +291,11 @@ const createContract = async (
   selfcareId: SelfcareId,
   storeFile: FileManager["storeBytes"],
   logger: Logger
-): Promise<void> => {
+): Promise<ApiAgreementDocumentSeed> => {
   const producer = await tenantQuery.getTenantById(agreement.producerId);
   assertTenantExist(agreement.producerId, producer);
 
-  await contractBuilder(
+  return await contractBuilder(
     selfcareId,
     attributeQuery,
     storeFile,
