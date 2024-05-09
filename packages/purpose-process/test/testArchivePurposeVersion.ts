@@ -17,6 +17,7 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   purposeNotFound,
   organizationIsNotTheConsumer,
@@ -51,6 +52,7 @@ export const testArchivePurposeVersion = (): ReturnType<typeof describe> =>
         versionId: mockPurposeVersion.id,
         organizationId: mockPurpose.consumerId,
         correlationId: generateId(),
+        logger: genericLogger,
       });
 
       const writtenEvent = await readLastEventByStreamId(
@@ -110,6 +112,7 @@ export const testArchivePurposeVersion = (): ReturnType<typeof describe> =>
         versionId: mockPurposeVersion1.id,
         organizationId: mockPurpose.consumerId,
         correlationId: generateId(),
+        logger: genericLogger,
       });
 
       const writtenEvent = await readLastEventByStreamId(
@@ -158,6 +161,7 @@ export const testArchivePurposeVersion = (): ReturnType<typeof describe> =>
           versionId: randomVersionId,
           organizationId: mockPurpose.consumerId,
           correlationId: generateId(),
+          logger: genericLogger,
         })
       ).rejects.toThrowError(purposeNotFound(randomPurposeId));
     });
@@ -181,6 +185,7 @@ export const testArchivePurposeVersion = (): ReturnType<typeof describe> =>
           versionId: mockPurposeVersion.id,
           organizationId: randomOrganizationId,
           correlationId: generateId(),
+          logger: genericLogger,
         })
       ).rejects.toThrowError(
         organizationIsNotTheConsumer(randomOrganizationId)
@@ -201,6 +206,7 @@ export const testArchivePurposeVersion = (): ReturnType<typeof describe> =>
           versionId: randomVersionId,
           organizationId: mockPurpose.consumerId,
           correlationId: generateId(),
+          logger: genericLogger,
         })
       ).rejects.toThrowError(
         purposeVersionNotFound(mockPurpose.id, randomVersionId)
@@ -230,6 +236,7 @@ export const testArchivePurposeVersion = (): ReturnType<typeof describe> =>
             versionId: mockPurposeVersion.id,
             organizationId: mockPurpose.consumerId,
             correlationId: generateId(),
+            logger: genericLogger,
           })
         ).rejects.toThrowError(
           notValidVersionState(mockPurposeVersion.id, mockPurposeVersion.state)

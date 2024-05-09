@@ -2,6 +2,7 @@ import { CreateEvent } from "pagopa-interop-commons";
 import {
   Purpose,
   PurposeEvent,
+  PurposeEventV2,
   PurposeVersionId,
   toPurposeV2,
 } from "pagopa-interop-models";
@@ -77,7 +78,7 @@ export const toCreateEventDraftPurposeDeleted = ({
   purpose: Purpose;
   version: number;
   correlationId: string;
-}): CreateEvent<PurposeEvent> => ({
+}): CreateEvent<PurposeEventV2> => ({
   streamId: purpose.id,
   version,
   event: {
@@ -96,7 +97,7 @@ export const toCreateEventWaitingForApprovalPurposeDeleted = ({
   purpose: Purpose;
   version: number;
   correlationId: string;
-}): CreateEvent<PurposeEvent> => ({
+}): CreateEvent<PurposeEventV2> => ({
   streamId: purpose.id,
   version,
   event: {
@@ -117,7 +118,7 @@ export const toCreateEventPurposeArchived = ({
   purposeVersionId: PurposeVersionId;
   version: number;
   correlationId: string;
-}): CreateEvent<PurposeEvent> => ({
+}): CreateEvent<PurposeEventV2> => ({
   streamId: purpose.id,
   version,
   event: {
@@ -138,7 +139,7 @@ export const toCreateEventPurposeSuspendedByConsumer = ({
   purposeVersionId: PurposeVersionId;
   version: number;
   correlationId: string;
-}): CreateEvent<PurposeEvent> => ({
+}): CreateEvent<PurposeEventV2> => ({
   streamId: purpose.id,
   version,
   event: {
@@ -159,7 +160,7 @@ export const toCreateEventPurposeSuspendedByProducer = ({
   purposeVersionId: PurposeVersionId;
   version: number;
   correlationId: string;
-}): CreateEvent<PurposeEvent> => ({
+}): CreateEvent<PurposeEventV2> => ({
   streamId: purpose.id,
   version,
   event: {

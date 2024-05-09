@@ -1,5 +1,4 @@
 import {
-  logger,
   ReadModelRepository,
   EServiceCollection,
   TenantCollection,
@@ -8,7 +7,6 @@ import {
 } from "pagopa-interop-commons";
 import {
   EService,
-  genericError,
   WithMetadata,
   EServiceId,
   TenantId,
@@ -16,6 +14,8 @@ import {
   EServiceReadModel,
   Purpose,
   PurposeId,
+  genericInternalError,
+  PurposeReadModel,
   ListResult,
   purposeVersionState,
 } from "pagopa-interop-models";
@@ -25,7 +25,7 @@ import { ApiGetPurposesFilters } from "../model/domain/models.js";
 
 async function getPurpose(
   purposes: PurposeCollection,
-  filter: Filter<WithId<WithMetadata<Purpose>>>
+  filter: Filter<WithId<WithMetadata<PurposeReadModel>>>
 ): Promise<WithMetadata<Purpose> | undefined> {
   const data = await purposes.findOne(filter, {
     projection: { data: true, metadata: true },
@@ -40,12 +40,11 @@ async function getPurpose(
       })
       .safeParse(data);
     if (!result.success) {
-      logger.error(
+      throw genericInternalError(
         `Unable to parse purpose item: result ${JSON.stringify(
           result
         )} - data ${JSON.stringify(data)} `
       );
-      throw genericError("Unable to parse purpose item");
     }
     return result.data;
   }
@@ -63,12 +62,11 @@ async function getEService(
   } else {
     const result = EService.safeParse(data.data);
     if (!result.success) {
-      logger.error(
+      throw genericInternalError(
         `Unable to parse eService item: result ${JSON.stringify(
           result
         )} - data ${JSON.stringify(data)} `
       );
-      throw genericError("Unable to parse eService item");
     }
     return result.data;
   }
@@ -86,12 +84,11 @@ async function getTenant(
   } else {
     const result = Tenant.safeParse(data.data);
     if (!result.success) {
-      logger.error(
+      throw genericInternalError(
         `Unable to parse tenant item: result ${JSON.stringify(
           result
         )} - data ${JSON.stringify(data)} `
       );
-      throw genericError("Unable to parse tenant item");
     }
     return result.data;
   }
@@ -115,7 +112,7 @@ export function readModelServiceBuilder(
     ): Promise<WithMetadata<Purpose> | undefined> {
       return getPurpose(purposes, { "data.id": id });
     },
-    async getSpecificPurpose(
+    async getPurpose(
       eserviceId: EServiceId,
       consumerId: TenantId,
       title: string
@@ -231,20 +228,19 @@ export function readModelServiceBuilder(
 
       const result = z.array(Purpose).safeParse(data.map((d) => d.data));
       if (!result.success) {
-        logger.error(
+        throw genericInternalError(
           `Unable to parse purposes items: result ${JSON.stringify(
             result
           )} - data ${JSON.stringify(data)} `
         );
-
-        throw genericError("Unable to parse purposes items");
       }
 
       return {
         results: result.data,
         totalCount: await ReadModelRepository.getTotalCount(
           purposes,
-          aggregationPipeline
+          aggregationPipeline,
+          true
         ),
       };
     },
