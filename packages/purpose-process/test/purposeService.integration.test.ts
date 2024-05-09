@@ -31,6 +31,7 @@ import {
 import { testGetPurposeById } from "./testGetPurposeById.js";
 import { testGetRiskAnalysisDocument } from "./testGetRiskAnalysisDocument.js";
 import { testDeletePurposeVersion } from "./testDeletePurposeVersion.js";
+import { testRejectPurposeVersion } from "./testRejectPurposeVersion.js";
 
 export let purposes: PurposeCollection;
 export let eservices: EServiceCollection;
@@ -86,5 +87,6 @@ describe("Integration tests", async () => {
     testGetPurposeById();
     testGetRiskAnalysisDocument();
     testDeletePurposeVersion();
+    testRejectPurposeVersion();
   });
 });
