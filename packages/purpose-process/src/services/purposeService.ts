@@ -513,7 +513,8 @@ export function purposeServiceBuilder(
     async getPurposes(
       organizationId: TenantId,
       filters: ApiGetPurposesFilters,
-      { offset, limit }: { offset: number; limit: number }
+      { offset, limit }: { offset: number; limit: number },
+      logger: Logger
     ): Promise<ListResult<Purpose>> {
       logger.info(
         `Getting Purposes with name = ${filters.name}, eservicesIds = ${filters.eservicesIds}, consumers = ${filters.consumersIds}, producers = ${filters.producersIds}, states = ${filters.states}, excludeDraft = ${filters.excludeDraft}, limit = ${limit}, offset = ${offset}`
