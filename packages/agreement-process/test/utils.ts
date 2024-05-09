@@ -8,11 +8,13 @@ import {
   Tenant,
   generateId,
   toReadModelEService,
+  toReadModelAgreement,
 } from "pagopa-interop-models";
 import { IDatabase } from "pg-promise";
 import {
   ReadEvent,
   StoredEvent,
+  readEventByStreamIdAndVersion,
   readLastEventByStreamId,
   writeInEventstore,
   writeInReadmodel,
@@ -50,7 +52,7 @@ export const addOneAgreement = async (
   agreements: AgreementCollection
 ): Promise<void> => {
   await writeAgreementInEventstore(agreement, postgresDB);
-  await writeInReadmodel(agreement, agreements);
+  await writeInReadmodel(toReadModelAgreement(agreement), agreements);
 };
 
 export const addOneEService = async (
@@ -87,3 +89,14 @@ export function getMockConsumerDocument(
     createdAt: new Date(),
   };
 }
+export const readAgreementEventByVersion = async (
+  agreementId: AgreementId,
+  version: number,
+  postgresDB: IDatabase<unknown>
+): Promise<ReadEvent<AgreementEvent>> =>
+  await readEventByStreamIdAndVersion(
+    agreementId,
+    version,
+    "agreement",
+    postgresDB
+  );
