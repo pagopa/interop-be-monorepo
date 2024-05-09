@@ -612,14 +612,11 @@ export const testActivatePurposeVersion = (): ReturnType<typeof describe> =>
       );
     });
 
-    it.each([
-      agreementState.archived,
-      agreementState.draft,
-      agreementState.missingCertifiedAttributes,
-      agreementState.pending,
-      agreementState.rejected,
-      agreementState.suspended,
-    ])(
+    it.each(
+      Object.values(agreementState).filter(
+        (state) => state !== agreementState.active
+      )
+    )(
       "should throw agreementNotFound if the caller has the agreement with state %s associated with the purpose",
       async (state) => {
         const agreement: Agreement = { ...mockAgreement, state };
