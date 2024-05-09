@@ -15,21 +15,28 @@ import {
   PurposeVersionId,
   ownership,
   purposeEventToBinaryData,
+  purposeVersionState,
 } from "pagopa-interop-models";
 import {
   eserviceNotFound,
+  notValidVersionState,
+  organizationIsNotTheConsumer,
+  organizationIsNotTheProducer,
   organizationNotAllowed,
   purposeNotFound,
-  organizationIsNotTheConsumer,
   purposeVersionCannotBeDeleted,
   purposeVersionDocumentNotFound,
   purposeVersionNotFound,
   tenantKindNotFound,
   tenantNotFound,
 } from "../model/domain/errors.js";
-import { toCreateEventWaitingForApprovalPurposeVersionDeleted } from "../model/domain/toEvent.js";
+import {
+  toCreateEventPurposeVersionRejected,
+  toCreateEventWaitingForApprovalPurposeVersionDeleted,
+} from "../model/domain/toEvent.js";
 import { ReadModelService } from "./readModelService.js";
 import {
+  isRejectable,
   isRiskAnalysisFormValid,
   isDeletableVersion,
   purposeIsDraft,
@@ -208,6 +215,58 @@ export function purposeServiceBuilder(
       });
       await repository.createEvent(event);
     },
+    async rejectPurposeVersion({
+      purposeId,
+      versionId,
+      rejectionReason,
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      purposeId: PurposeId;
+      versionId: PurposeVersionId;
+      rejectionReason: string;
+      organizationId: TenantId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<void> {
+      logger.info(`Rejecting Version ${versionId} in Purpose ${purposeId}`);
+
+      const purpose = await retrievePurpose(purposeId, readModelService);
+      const eservice = await retrieveEService(
+        purpose.data.eserviceId,
+        readModelService
+      );
+      if (organizationId !== eservice.producerId) {
+        throw organizationIsNotTheProducer(organizationId);
+      }
+
+      const purposeVersion = retrievePurposeVersion(versionId, purpose);
+
+      if (!isRejectable(purposeVersion)) {
+        throw notValidVersionState(purposeVersion.id, purposeVersion.state);
+      }
+
+      const updatedPurposeVersion: PurposeVersion = {
+        ...purposeVersion,
+        state: purposeVersionState.rejected,
+        rejectionReason,
+        updatedAt: new Date(),
+      };
+
+      const updatedPurpose = replacePurposeVersion(
+        purpose.data,
+        updatedPurposeVersion
+      );
+
+      const event = toCreateEventPurposeVersionRejected({
+        purpose: updatedPurpose,
+        version: purpose.metadata.version,
+        versionId,
+        correlationId,
+      });
+      await repository.createEvent(event);
+    },
   };
 }
 
@@ -261,4 +320,19 @@ const getOrganizationRole = ({
   } else {
     throw organizationNotAllowed(organizationId);
   }
+};
+
+const replacePurposeVersion = (
+  purpose: Purpose,
+  newVersion: PurposeVersion
+): Purpose => {
+  const updatedVersions = purpose.versions.map((v: PurposeVersion) =>
+    v.id === newVersion.id ? newVersion : v
+  );
+
+  return {
+    ...purpose,
+    versions: updatedVersions,
+    updatedAt: newVersion.updatedAt,
+  };
 };
