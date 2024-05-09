@@ -1,4 +1,3 @@
-import { logger } from "pagopa-interop-commons";
 import {
   ApiError,
   AttributeId,
@@ -7,7 +6,7 @@ import {
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 
-const errorCodes = {
+export const errorCodes = {
   attributeNotFound: "0001",
   invalidAttributeStructure: "0002",
   tenantDuplicate: "0003",
@@ -25,7 +24,7 @@ const errorCodes = {
 
 export type ErrorCodes = keyof typeof errorCodes;
 
-export const makeApiProblem = makeApiProblemBuilder(logger, errorCodes);
+export const makeApiProblem = makeApiProblemBuilder(errorCodes);
 
 export function attributeNotFound(identifier: string): ApiError<ErrorCodes> {
   return new ApiError({

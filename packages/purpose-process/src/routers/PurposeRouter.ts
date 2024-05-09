@@ -8,6 +8,7 @@ import {
   zodiosValidationErrorToApiProblem,
   ReadModelRepository,
   initDB,
+  fromAppContext,
 } from "pagopa-interop-commons";
 import { EServiceId, TenantId, unsafeBrandId } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
@@ -31,6 +32,7 @@ import {
   rejectPurposeVersionErrorMapper,
   suspendPurposeVersionErrorMapper,
   updatePurposeErrorMapper,
+  updateReversePurposeErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -76,6 +78,7 @@ const purposeRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
         try {
           const {
             name,
@@ -91,13 +94,14 @@ const purposeRouter = (
             req.ctx.authData.organizationId,
             {
               name,
-              eservicesIds: eservicesIds.map<EServiceId>(unsafeBrandId),
-              consumersIds: consumersIds.map<TenantId>(unsafeBrandId),
-              producersIds: producersIds.map<TenantId>(unsafeBrandId),
-              states: states.map(apiPurposeVersionStateToPurposeVersionState),
+              eservicesIds: eservicesIds?.map(unsafeBrandId<EServiceId>),
+              consumersIds: consumersIds?.map(unsafeBrandId<TenantId>),
+              producersIds: producersIds?.map(unsafeBrandId<TenantId>),
+              states: states?.map(apiPurposeVersionStateToPurposeVersionState),
               excludeDraft,
             },
-            { offset, limit }
+            { offset, limit },
+            ctx.logger
           );
           return res
             .status(200)
@@ -109,7 +113,7 @@ const purposeRouter = (
             })
             .end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, () => 500);
+          const errorRes = makeApiProblem(error, () => 500, ctx.logger);
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -144,6 +148,7 @@ const purposeRouter = (
       "/reverse/purposes/:id",
       authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
         try {
           const { purpose, isRiskAnalysisValid } =
             await purposeService.updateReversePurpose({
@@ -151,13 +156,18 @@ const purposeRouter = (
               reversePurposeUpdateContent: req.body,
               organizationId: req.ctx.authData.organizationId,
               correlationId: req.ctx.correlationId,
+              logger: ctx.logger,
             });
           return res
             .status(200)
             .json(purposeToApiPurpose(purpose, isRiskAnalysisValid))
             .end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, updatePurposeErrorMapper);
+          const errorRes = makeApiProblem(
+            error,
+            updateReversePurposeErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -172,18 +182,24 @@ const purposeRouter = (
         SUPPORT_ROLE,
       ]),
       async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
         try {
           const { purpose, isRiskAnalysisValid } =
             await purposeService.getPurposeById(
               unsafeBrandId(req.params.id),
-              req.ctx.authData.organizationId
+              ctx.authData.organizationId,
+              ctx.logger
             );
           return res
             .status(200)
             .json(purposeToApiPurpose(purpose, isRiskAnalysisValid))
             .end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, getPurposeErrorMapper);
+          const errorRes = makeApiProblem(
+            error,
+            getPurposeErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -192,6 +208,7 @@ const purposeRouter = (
       "/purposes/:id",
       authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
         try {
           const { purpose, isRiskAnalysisValid } =
             await purposeService.updatePurpose({
@@ -199,13 +216,18 @@ const purposeRouter = (
               purposeUpdateContent: req.body,
               organizationId: req.ctx.authData.organizationId,
               correlationId: req.ctx.correlationId,
+              logger: ctx.logger,
             });
           return res
             .status(200)
             .json(purposeToApiPurpose(purpose, isRiskAnalysisValid))
             .end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, updatePurposeErrorMapper);
+          const errorRes = makeApiProblem(
+            error,
+            updatePurposeErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -214,15 +236,21 @@ const purposeRouter = (
       "/purposes/:id",
       authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
         try {
           await purposeService.deletePurpose({
             purposeId: unsafeBrandId(req.params.id),
             organizationId: req.ctx.authData.organizationId,
             correlationId: req.ctx.correlationId,
+            logger: ctx.logger,
           });
           return res.status(204).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, deletePurposeErrorMapper);
+          const errorRes = makeApiProblem(
+            error,
+            deletePurposeErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
@@ -236,18 +264,21 @@ const purposeRouter = (
       "/purposes/:purposeId/versions/:versionId",
       authorizationMiddleware([ADMIN_ROLE, INTERNAL_ROLE]),
       async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
         try {
           await purposeService.deletePurposeVersion({
             purposeId: unsafeBrandId(req.params.purposeId),
             versionId: unsafeBrandId(req.params.versionId),
             organizationId: req.ctx.authData.organizationId,
             correlationId: req.ctx.correlationId,
+            logger: ctx.logger,
           });
           return res.status(204).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            deletePurposeVersionErrorMapper
+            deletePurposeVersionErrorMapper,
+            ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
@@ -257,12 +288,14 @@ const purposeRouter = (
       "/purposes/:purposeId/versions/:versionId/documents/:documentId",
       authorizationMiddleware([ADMIN_ROLE, SUPPORT_ROLE]),
       async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
         try {
           const document = await purposeService.getRiskAnalysisDocument({
             purposeId: unsafeBrandId(req.params.purposeId),
             versionId: unsafeBrandId(req.params.versionId),
             documentId: unsafeBrandId(req.params.documentId),
             organizationId: req.ctx.authData.organizationId,
+            logger: ctx.logger,
           });
           return res
             .status(200)
@@ -271,7 +304,8 @@ const purposeRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            getRiskAnalysisDocumentErrorMapper
+            getRiskAnalysisDocumentErrorMapper,
+            ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
@@ -281,6 +315,7 @@ const purposeRouter = (
       "/purposes/:purposeId/versions/:versionId/reject",
       authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
         try {
           await purposeService.rejectPurposeVersion({
             purposeId: unsafeBrandId(req.params.purposeId),
@@ -288,12 +323,14 @@ const purposeRouter = (
             organizationId: req.ctx.authData.organizationId,
             rejectionReason: req.body.rejectionReason,
             correlationId: req.ctx.correlationId,
+            logger: ctx.logger,
           });
           return res.status(204).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            rejectPurposeVersionErrorMapper
+            rejectPurposeVersionErrorMapper,
+            ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
@@ -313,12 +350,14 @@ const purposeRouter = (
       "/purposes/:purposeId/versions/:versionId/suspend",
       authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
         try {
           const suspendedVersion = await purposeService.suspendPurposeVersion({
             purposeId: unsafeBrandId(req.params.purposeId),
             versionId: unsafeBrandId(req.params.versionId),
             organizationId: req.ctx.authData.organizationId,
             correlationId: req.ctx.correlationId,
+            logger: ctx.logger,
           });
           return res
             .status(200)
@@ -327,7 +366,8 @@ const purposeRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            suspendPurposeVersionErrorMapper
+            suspendPurposeVersionErrorMapper,
+            ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
@@ -337,12 +377,14 @@ const purposeRouter = (
       "/purposes/:purposeId/versions/:versionId/archive",
       authorizationMiddleware([ADMIN_ROLE, INTERNAL_ROLE]),
       async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
         try {
           const archivedVersion = await purposeService.archivePurposeVersion({
             purposeId: unsafeBrandId(req.params.purposeId),
             versionId: unsafeBrandId(req.params.versionId),
             organizationId: req.ctx.authData.organizationId,
             correlationId: req.ctx.correlationId,
+            logger: ctx.logger,
           });
           return res
             .status(200)
@@ -351,7 +393,8 @@ const purposeRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            archivePurposeVersionErrorMapper
+            archivePurposeVersionErrorMapper,
+            ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
