@@ -31,6 +31,7 @@ import {
   addOneAgreement,
   getMockConsumerDocument,
   readLastAgreementEvent,
+  uploadDocument,
 } from "./utils.js";
 
 export const testDeleteAgreement = (): ReturnType<typeof describe> =>
@@ -49,31 +50,19 @@ export const testDeleteAgreement = (): ReturnType<typeof describe> =>
       };
       await addOneAgreement(agreement, postgresDB, agreements);
 
-      await fileManager.storeBytes(
-        config.s3Bucket,
-        `${config.consumerDocumentsPath}/${agreementId}`,
+      await uploadDocument(
+        agreementId,
         agreement.consumerDocuments[0].id,
         agreement.consumerDocuments[0].name,
-        Buffer.from("test content"),
-        genericLogger
+        fileManager
       );
 
-      expect(
-        await fileManager.listFiles(config.s3Bucket, genericLogger)
-      ).toContain(agreement.consumerDocuments[0].path);
-
-      await fileManager.storeBytes(
-        config.s3Bucket,
-        `${config.consumerDocumentsPath}/${agreementId}`,
+      await uploadDocument(
+        agreementId,
         agreement.consumerDocuments[1].id,
         agreement.consumerDocuments[1].name,
-        Buffer.from("test content"),
-        genericLogger
+        fileManager
       );
-
-      expect(
-        await fileManager.listFiles(config.s3Bucket, genericLogger)
-      ).toContain(agreement.consumerDocuments[1].path);
 
       const authData = getRandomAuthData(agreement.consumerId);
       await agreementService.deleteAgreementById(agreement.id, {
