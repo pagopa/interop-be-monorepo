@@ -2,6 +2,7 @@ import { CreateEvent } from "pagopa-interop-commons";
 import {
   Purpose,
   PurposeEvent,
+  PurposeEventV2,
   PurposeId,
   PurposeVersionId,
   toPurposeV2,
@@ -174,7 +175,7 @@ export const toCreateEventPurposeSuspendedByProducer = ({
 export function toCreateEventPurposeAdded(
   purpose: Purpose,
   correlationId: string
-): CreateEvent<PurposeEvent> {
+): CreateEvent<PurposeEventV2> {
   return {
     streamId: purpose.id,
     version: 0,
@@ -199,7 +200,7 @@ export const toCreateEventPurposeCloned = ({
   sourcePurposeId: PurposeId;
   sourceVersionId: PurposeId;
   correlationId: string;
-}): CreateEvent<PurposeEvent> => ({
+}): CreateEvent<PurposeEventV2> => ({
   streamId: purpose.id,
   version: 0,
   event: {
