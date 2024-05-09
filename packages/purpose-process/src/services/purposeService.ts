@@ -42,6 +42,7 @@ import {
 import {
   toCreateEventDraftPurposeDeleted,
   toCreateEventDraftPurposeUpdated,
+  toCreateEventPurposeArchived,
   toCreateEventPurposeVersionRejected,
   toCreateEventWaitingForApprovalPurposeDeleted,
   toCreateEventWaitingForApprovalPurposeVersionDeleted,
@@ -64,6 +65,7 @@ import {
   assertPurposeIsDraft,
   isRejectable,
   isDeletable,
+  isArchivable,
 } from "./validators.js";
 
 const retrievePurpose = async (
@@ -375,6 +377,56 @@ export function purposeServiceBuilder(
           });
 
       await repository.createEvent(event);
+    },
+    async archivePurposeVersion({
+      purposeId,
+      versionId,
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      purposeId: PurposeId;
+      versionId: PurposeVersionId;
+      organizationId: TenantId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<PurposeVersion> {
+      logger.info(`Archiving Version ${versionId} in Purpose ${purposeId}`);
+
+      const purpose = await retrievePurpose(purposeId, readModelService);
+
+      assertOrganizationIsAConsumer(organizationId, purpose.data.consumerId);
+      const purposeVersion = retrievePurposeVersion(versionId, purpose);
+
+      if (!isArchivable(purposeVersion)) {
+        throw notValidVersionState(versionId, purposeVersion.state);
+      }
+
+      const purposeWithoutWaitingForApproval: Purpose = {
+        ...purpose.data,
+        versions: purpose.data.versions.filter(
+          (v) => v.state !== purposeVersionState.waitingForApproval
+        ),
+      };
+      const archivedVersion: PurposeVersion = {
+        ...purposeVersion,
+        state: purposeVersionState.archived,
+        updatedAt: new Date(),
+      };
+      const updatedPurpose = replacePurposeVersion(
+        purposeWithoutWaitingForApproval,
+        archivedVersion
+      );
+
+      const event = toCreateEventPurposeArchived({
+        purpose: updatedPurpose,
+        purposeVersionId: archivedVersion.id,
+        version: purpose.metadata.version,
+        correlationId,
+      });
+
+      await repository.createEvent(event);
+      return archivedVersion;
     },
   };
 }
