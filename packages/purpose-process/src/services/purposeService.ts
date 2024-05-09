@@ -1,8 +1,8 @@
 import {
   CreateEvent,
   DB,
+  Logger,
   eventRepository,
-  logger,
 } from "pagopa-interop-commons";
 import {
   EService,
@@ -23,7 +23,6 @@ import {
   purposeVersionState,
   PurposeRiskAnalysisForm,
   PurposeEvent,
-  EServiceMode,
   eserviceMode,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -59,9 +58,10 @@ import {
 import { ReadModelService } from "./readModelService.js";
 import {
   assertOrganizationIsAConsumer,
-  assertEserviceHasSpecificMode,
+  assertEserviceMode,
   assertConsistentFreeOfCharge,
   isRiskAnalysisFormValid,
+  isDeletableVersion,
   purposeIsDraft,
   assertTenantKindExists,
   reverseValidateAndTransformRiskAnalysis,
@@ -149,7 +149,8 @@ export function purposeServiceBuilder(
   return {
     async getPurposeById(
       purposeId: PurposeId,
-      organizationId: TenantId
+      organizationId: TenantId,
+      logger: Logger
     ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(`Retrieving Purpose ${purposeId}`);
 
@@ -174,11 +175,13 @@ export function purposeServiceBuilder(
       versionId,
       documentId,
       organizationId,
+      logger,
     }: {
       purposeId: PurposeId;
       versionId: PurposeVersionId;
       documentId: PurposeVersionDocumentId;
       organizationId: TenantId;
+      logger: Logger;
     }): Promise<PurposeVersionDocument> {
       logger.info(
         `Retrieving Risk Analysis document ${documentId} in version ${versionId} of Purpose ${purposeId}`
@@ -203,11 +206,13 @@ export function purposeServiceBuilder(
       versionId,
       organizationId,
       correlationId,
+      logger,
     }: {
       purposeId: PurposeId;
       versionId: PurposeVersionId;
       organizationId: TenantId;
       correlationId: string;
+      logger: Logger;
     }): Promise<void> {
       logger.info(`Deleting Version ${versionId} in Purpose ${purposeId}`);
 
@@ -219,10 +224,7 @@ export function purposeServiceBuilder(
 
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
 
-      if (
-        purposeVersion.state !== purposeVersionState.waitingForApproval ||
-        purpose.data.versions.length === 1
-      ) {
+      if (!isDeletableVersion(purposeVersion, purpose.data)) {
         throw purposeVersionCannotBeDeleted(purposeId, versionId);
       }
 
@@ -248,12 +250,14 @@ export function purposeServiceBuilder(
       rejectionReason,
       organizationId,
       correlationId,
+      logger,
     }: {
       purposeId: PurposeId;
       versionId: PurposeVersionId;
       rejectionReason: string;
       organizationId: TenantId;
       correlationId: string;
+      logger: Logger;
     }): Promise<void> {
       logger.info(`Rejecting Version ${versionId} in Purpose ${purposeId}`);
 
@@ -301,19 +305,25 @@ export function purposeServiceBuilder(
       purposeUpdateContent,
       organizationId,
       correlationId,
+      logger,
     }: {
       purposeId: PurposeId;
       purposeUpdateContent: ApiPurposeUpdateContent;
       organizationId: TenantId;
       correlationId: string;
+      logger: Logger;
     }): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(`Updating Purpose ${purposeId}`);
-      return await updatePurposeInternal(
+      return await performUpdatePurpose(
         purposeId,
-        purposeUpdateContent,
+        {
+          updateContent: purposeUpdateContent,
+          mode: eserviceMode.deliver,
+        },
         organizationId,
-        eserviceMode.deliver,
-        { readModelService, correlationId, repository }
+        readModelService,
+        correlationId,
+        repository
       );
     },
     async updateReversePurpose({
@@ -321,29 +331,37 @@ export function purposeServiceBuilder(
       reversePurposeUpdateContent,
       organizationId,
       correlationId,
+      logger,
     }: {
       purposeId: PurposeId;
       reversePurposeUpdateContent: ApiReversePurposeUpdateContent;
       organizationId: TenantId;
       correlationId: string;
+      logger: Logger;
     }): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(`Updating Reverse Purpose ${purposeId}`);
-      return await updatePurposeInternal(
+      return await performUpdatePurpose(
         purposeId,
-        reversePurposeUpdateContent,
+        {
+          updateContent: reversePurposeUpdateContent,
+          mode: eserviceMode.receive,
+        },
         organizationId,
-        "Receive",
-        { readModelService, correlationId, repository }
+        readModelService,
+        correlationId,
+        repository
       );
     },
     async deletePurpose({
       purposeId,
       organizationId,
       correlationId,
+      logger,
     }: {
       purposeId: PurposeId;
       organizationId: TenantId;
       correlationId: string;
+      logger: Logger;
     }): Promise<void> {
       logger.info(`Deleting Purpose ${purposeId}`);
 
@@ -374,11 +392,13 @@ export function purposeServiceBuilder(
       versionId,
       organizationId,
       correlationId,
+      logger,
     }: {
       purposeId: PurposeId;
       versionId: PurposeVersionId;
       organizationId: TenantId;
       correlationId: string;
+      logger: Logger;
     }): Promise<PurposeVersion> {
       logger.info(`Archiving Version ${versionId} in Purpose ${purposeId}`);
 
@@ -569,42 +589,42 @@ const getInvolvedTenantByEServiceMode = async (
   }
 };
 
-const updatePurposeInternal = async (
+const performUpdatePurpose = async (
   purposeId: PurposeId,
-  updateContent: ApiPurposeUpdateContent | ApiReversePurposeUpdateContent,
-  organizationId: TenantId,
-  mode: EServiceMode,
   {
-    readModelService,
-    correlationId,
-    repository,
-  }: {
-    readModelService: ReadModelService;
-    correlationId: string;
-    repository: {
-      createEvent: (createEvent: CreateEvent<PurposeEvent>) => Promise<string>;
-    };
+    mode,
+    updateContent,
+  }:
+    | { mode: "Deliver"; updateContent: ApiPurposeUpdateContent }
+    | { mode: "Receive"; updateContent: ApiReversePurposeUpdateContent },
+  organizationId: TenantId,
+  readModelService: ReadModelService,
+  correlationId: string,
+  repository: {
+    createEvent: (createEvent: CreateEvent<PurposeEvent>) => Promise<string>;
   }
+  // eslint-disable-next-line max-params
 ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> => {
   const purpose = await retrievePurpose(purposeId, readModelService);
   assertOrganizationIsAConsumer(organizationId, purpose.data.consumerId);
   assertPurposeIsDraft(purpose.data);
 
-  const purposeWithSameTitle = await readModelService.getSpecificPurpose(
-    purpose.data.eserviceId,
-    purpose.data.consumerId,
-    updateContent.title
-  );
+  if (updateContent.title !== purpose.data.title) {
+    const purposeWithSameTitle = await readModelService.getPurpose(
+      purpose.data.eserviceId,
+      purpose.data.consumerId,
+      updateContent.title
+    );
 
-  if (purposeWithSameTitle) {
-    throw duplicatedPurposeTitle(updateContent.title);
+    if (purposeWithSameTitle) {
+      throw duplicatedPurposeTitle(updateContent.title);
+    }
   }
-
   const eservice = await retrieveEService(
     purpose.data.eserviceId,
     readModelService
   );
-  assertEserviceHasSpecificMode(eservice, mode);
+  assertEserviceMode(eservice, mode);
   assertConsistentFreeOfCharge(
     updateContent.isFreeOfCharge,
     updateContent.freeOfChargeReason
@@ -621,7 +641,7 @@ const updatePurposeInternal = async (
   const newRiskAnalysis: PurposeRiskAnalysisForm | undefined =
     mode === eserviceMode.deliver
       ? validateAndTransformRiskAnalysis(
-          (updateContent as ApiPurposeUpdateContent).riskAnalysisForm,
+          updateContent.riskAnalysisForm,
           tenant.kind
         )
       : reverseValidateAndTransformRiskAnalysis(
@@ -631,7 +651,10 @@ const updatePurposeInternal = async (
 
   const updatedPurpose: Purpose = {
     ...purpose.data,
-    ...updateContent,
+    title: updateContent.title,
+    description: updateContent.description,
+    isFreeOfCharge: updateContent.isFreeOfCharge,
+    freeOfChargeReason: updateContent.freeOfChargeReason,
     versions: [
       {
         ...purpose.data.versions[0],
