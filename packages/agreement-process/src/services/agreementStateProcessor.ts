@@ -117,15 +117,26 @@ export const nextState = (
 export const agreementStateByFlags = (
   stateByAttribute: AgreementState,
   suspendedByProducer: boolean | undefined,
-  suspendedByConsumer: boolean | undefined
+  suspendedByConsumer: boolean | undefined,
+  suspendedByPlatform: boolean | undefined
 ): AgreementState =>
-  match([stateByAttribute, suspendedByProducer, suspendedByConsumer])
+  match([
+    stateByAttribute,
+    suspendedByProducer,
+    suspendedByConsumer,
+    suspendedByPlatform,
+  ])
     .with(
-      [agreementState.active, true, P.any],
-      [agreementState.active, P.any, true],
+      [agreementState.active, true, P.any, P.any],
+      [agreementState.active, P.any, true, P.any],
+      [agreementState.active, P.any, P.any, true],
       () => agreementState.suspended
     )
     .otherwise(() => stateByAttribute);
+
+export const suspendedByPlatformFlag = (fsmState: AgreementState): boolean =>
+  fsmState === agreementState.suspended ||
+  fsmState === agreementState.missingCertifiedAttributes;
 
 export const suspendedByConsumerFlag = (
   agreement: Agreement,

@@ -133,7 +133,8 @@ async function activateAgreement(
   const newState = agreementStateByFlags(
     nextAttributesState,
     suspendedByProducer,
-    suspendedByConsumer
+    suspendedByConsumer,
+    undefined
   );
 
   failOnActivationFailure(newState, agreement);

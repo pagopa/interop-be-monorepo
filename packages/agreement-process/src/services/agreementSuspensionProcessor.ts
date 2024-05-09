@@ -84,10 +84,12 @@ export async function suspendAgreementLogic({
     authData.organizationId,
     agreementState.suspended
   );
+
   const newState = agreementStateByFlags(
     nextStateByAttributes,
     suspendedByProducer,
-    suspendedByConsumer
+    suspendedByConsumer,
+    undefined
   );
 
   const stamp = createStamp(authData);

@@ -124,6 +124,7 @@ const submitAgreement = async (
   const newState = agreementStateByFlags(
     nextStateByAttributes,
     undefined,
+    undefined,
     undefined
   );
 
@@ -139,8 +140,7 @@ const submitAgreement = async (
     agreement,
     payload,
     stamps,
-    newState,
-    false
+    newState
   );
 
   const agreements = (
@@ -268,8 +268,7 @@ const getUpdateSeed = (
   agreement: Agreement,
   payload: ApiAgreementSubmissionPayload,
   stamps: AgreementStamps,
-  newState: AgreementState,
-  suspendedByPlatform: boolean
+  newState: AgreementState
 ): UpdateAgreementSeed =>
   newState === agreementState.active
     ? {
@@ -283,7 +282,6 @@ const getUpdateSeed = (
         ),
         suspendedByConsumer: agreement.suspendedByConsumer,
         suspendedByProducer: agreement.suspendedByProducer,
-        suspendedByPlatform,
         consumerNotes: payload.consumerNotes,
         stamps,
       }
@@ -294,7 +292,6 @@ const getUpdateSeed = (
         verifiedAttributes: [],
         suspendedByConsumer: undefined,
         suspendedByProducer: undefined,
-        suspendedByPlatform,
         consumerNotes: payload.consumerNotes,
         stamps,
       };
