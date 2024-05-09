@@ -388,11 +388,13 @@ export function purposeServiceBuilder(
       versionId,
       organizationId,
       correlationId,
+      logger,
     }: {
       purposeId: PurposeId;
       versionId: PurposeVersionId;
       organizationId: TenantId;
       correlationId: string;
+      logger: Logger;
     }): Promise<PurposeVersion> {
       logger.info(`Archiving Version ${versionId} in Purpose ${purposeId}`);
 
