@@ -5,7 +5,6 @@ import {
   eventRepository,
   formatDateAndTime,
   getFormRulesByVersion,
-  getLatestVersionFormRules,
   logger,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   validateRiskAnalysis,
@@ -57,8 +56,6 @@ import {
   purposeVersionNotFound,
   tenantNotFound,
   RiskAnalysisConfigVersionNotFound,
-  tenantKindNotFound,
-  riskAnalysisConfigLatestVersionNotFound,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -875,29 +872,6 @@ export function purposeServiceBuilder(
           riskAnalysisVersion,
           tenant.kind
         );
-      }
-
-      return riskAnalysisFormConfig;
-    },
-    async retrieveLatestRiskAnalysisConfiguration({
-      tenantKind,
-      organizationId,
-    }: {
-      tenantKind: TenantKind | undefined;
-      organizationId: TenantId;
-    }): Promise<RiskAnalysisFormRules> {
-      logger.info(`Retrieve latest risk analysis configuration`);
-
-      const tenant = await retrieveTenant(organizationId, readModelService);
-      const kind = tenantKind || tenant.kind;
-
-      if (!kind) {
-        throw tenantKindNotFound(tenant.id);
-      }
-
-      const riskAnalysisFormConfig = getLatestVersionFormRules(kind);
-      if (!riskAnalysisFormConfig) {
-        throw riskAnalysisConfigLatestVersionNotFound(kind);
       }
 
       return riskAnalysisFormConfig;
