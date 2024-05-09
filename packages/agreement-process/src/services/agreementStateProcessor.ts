@@ -120,8 +120,11 @@ export const agreementStateByFlags = (
   suspendedByConsumer: boolean | undefined
 ): AgreementState =>
   match([stateByAttribute, suspendedByProducer, suspendedByConsumer])
-    .with([agreementState.active, true, P.any], () => agreementState.suspended)
-    .with([agreementState.active, P.any, true], () => agreementState.suspended)
+    .with(
+      [agreementState.active, true, P.any],
+      [agreementState.active, P.any, true],
+      () => agreementState.suspended
+    )
     .otherwise(() => stateByAttribute);
 
 export const suspendedByPlatformFlag = (fsmState: AgreementState): boolean =>
