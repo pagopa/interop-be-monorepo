@@ -1,5 +1,10 @@
 /* eslint-disable max-params */
-import { AuthData, CreateEvent, FileManager } from "pagopa-interop-commons";
+import {
+  AuthData,
+  CreateEvent,
+  FileManager,
+  Logger,
+} from "pagopa-interop-commons";
 import {
   Agreement,
   Descriptor,
@@ -9,6 +14,7 @@ import {
   WithMetadata,
   AgreementEvent,
   AgreementId,
+  SelfcareId,
 } from "pagopa-interop-models";
 import {
   assertAgreementExist,
@@ -52,7 +58,8 @@ export async function activateAgreementLogic(
   attributeQuery: AttributeQuery,
   authData: AuthData,
   storeFile: FileManager["storeBytes"],
-  correlationId: string
+  correlationId: string,
+  logger: Logger
 ): Promise<Array<CreateEvent<AgreementEvent>>> {
   const agreement = await agreementQuery.getAgreementById(agreementId);
   assertAgreementExist(agreementId, agreement);
@@ -84,7 +91,8 @@ export async function activateAgreementLogic(
     agreementQuery,
     attributeQuery,
     storeFile,
-    correlationId
+    correlationId,
+    logger
   );
 }
 
@@ -98,7 +106,8 @@ async function activateAgreement(
   agreementQuery: AgreementQuery,
   attributeQuery: AttributeQuery,
   storeFile: FileManager["storeBytes"],
-  correlationId: string
+  correlationId: string,
+  logger: Logger
 ): Promise<Array<CreateEvent<AgreementEvent>>> {
   const agreement = agreementData.data;
   const nextAttributesState = nextState(agreement, descriptor, consumer);
@@ -191,7 +200,9 @@ async function activateAgreement(
       consumer,
       attributeQuery,
       tenantQuery,
-      storeFile
+      authData.selfcareId,
+      storeFile,
+      logger
     );
   }
 
@@ -251,16 +262,17 @@ const createContract = async (
   consumer: Tenant,
   attributeQuery: AttributeQuery,
   tenantQuery: TenantQuery,
-  storeFile: FileManager["storeBytes"]
+  selfcareId: SelfcareId,
+  storeFile: FileManager["storeBytes"],
+  logger: Logger
 ): Promise<void> => {
   const producer = await tenantQuery.getTenantById(agreement.producerId);
   assertTenantExist(agreement.producerId, producer);
 
-  await contractBuilder(attributeQuery, storeFile).createContract(
-    agreement,
-    eservice,
-    consumer,
-    producer,
-    updateSeed
-  );
+  await contractBuilder(
+    selfcareId,
+    attributeQuery,
+    storeFile,
+    logger
+  ).createContract(agreement, eservice, consumer, producer, updateSeed);
 };

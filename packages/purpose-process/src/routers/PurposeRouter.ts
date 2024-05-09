@@ -6,8 +6,42 @@ import {
   ZodiosContext,
   authorizationMiddleware,
   zodiosValidationErrorToApiProblem,
+  ReadModelRepository,
+  initDB,
+  fromAppContext,
 } from "pagopa-interop-commons";
+import { unsafeBrandId } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
+import {
+  purposeToApiPurpose,
+  purposeVersionDocumentToApiPurposeVersionDocument,
+} from "../model/domain/apiConverter.js";
+import { readModelServiceBuilder } from "../services/readModelService.js";
+import { config } from "../utilities/config.js";
+import { purposeServiceBuilder } from "../services/purposeService.js";
+import { makeApiProblem } from "../model/domain/errors.js";
+import {
+  deletePurposeVersionErrorMapper,
+  getPurposeErrorMapper,
+  getRiskAnalysisDocumentErrorMapper,
+} from "../utilities/errorMappers.js";
+
+const readModelService = readModelServiceBuilder(
+  ReadModelRepository.init(config)
+);
+
+const purposeService = purposeServiceBuilder(
+  initDB({
+    username: config.eventStoreDbUsername,
+    password: config.eventStoreDbPassword,
+    host: config.eventStoreDbHost,
+    port: config.eventStoreDbPort,
+    database: config.eventStoreDbName,
+    schema: config.eventStoreDbSchema,
+    useSSL: config.eventStoreDbUseSSL,
+  }),
+  readModelService
+);
 
 const purposeRouter = (
   ctx: ZodiosContext
@@ -58,7 +92,28 @@ const purposeRouter = (
         M2M_ROLE,
         SUPPORT_ROLE,
       ]),
-      (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const { purpose, isRiskAnalysisValid } =
+            await purposeService.getPurposeById(
+              unsafeBrandId(req.params.id),
+              ctx.authData.organizationId,
+              ctx.logger
+            );
+          return res
+            .status(200)
+            .json(purposeToApiPurpose(purpose, isRiskAnalysisValid))
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getPurposeErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post("/purposes/:id", authorizationMiddleware([ADMIN_ROLE]), (_req, res) =>
       res.status(501).send()
@@ -76,12 +131,53 @@ const purposeRouter = (
     .delete(
       "/purposes/:purposeId/versions/:versionId",
       authorizationMiddleware([ADMIN_ROLE, INTERNAL_ROLE]),
-      (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          await purposeService.deletePurposeVersion({
+            purposeId: unsafeBrandId(req.params.purposeId),
+            versionId: unsafeBrandId(req.params.versionId),
+            organizationId: req.ctx.authData.organizationId,
+            correlationId: req.ctx.correlationId,
+            logger: ctx.logger,
+          });
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            deletePurposeVersionErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get(
       "/purposes/:purposeId/versions/:versionId/documents/:documentId",
       authorizationMiddleware([ADMIN_ROLE, SUPPORT_ROLE]),
-      (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const document = await purposeService.getRiskAnalysisDocument({
+            purposeId: unsafeBrandId(req.params.purposeId),
+            versionId: unsafeBrandId(req.params.versionId),
+            documentId: unsafeBrandId(req.params.documentId),
+            organizationId: req.ctx.authData.organizationId,
+            logger: ctx.logger,
+          });
+          return res
+            .status(200)
+            .json(purposeVersionDocumentToApiPurposeVersionDocument(document))
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getRiskAnalysisDocumentErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/purposes/:purposeId/versions/:versionId/reject",
