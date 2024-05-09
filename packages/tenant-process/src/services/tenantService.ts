@@ -387,9 +387,13 @@ export function tenantServiceBuilder(
 
       const updatedTenant: Tenant = {
         ...targetTenant.data,
-        attributes: !maybeDeclaredTenantAttribute
-          ? assignDeclaredAttribute(targetTenant.data, attribute.id)
-          : reassignDeclaredAttribute(targetTenant.data, attribute.id),
+        attributes: maybeDeclaredTenantAttribute
+          ? reassignDeclaredAttribute(
+              targetTenant.data.attributes,
+              attribute.id
+            )
+          : assignDeclaredAttribute(targetTenant.data.attributes, attribute.id),
+
         updatedAt: new Date(),
       };
 
@@ -614,11 +618,11 @@ async function assignCertifiedAttribute({
 }
 
 function assignDeclaredAttribute(
-  targetTenant: Tenant,
+  attributes: TenantAttribute[],
   attributeId: AttributeId
 ): TenantAttribute[] {
   return [
-    ...targetTenant.attributes,
+    ...attributes,
     {
       id: unsafeBrandId(attributeId),
       type: tenantAttributeType.DECLARED,
@@ -629,10 +633,10 @@ function assignDeclaredAttribute(
 }
 
 function reassignDeclaredAttribute(
-  targetTenant: Tenant,
+  attributes: TenantAttribute[],
   attributeId: AttributeId
 ): TenantAttribute[] {
-  return targetTenant.attributes.map((attr) =>
+  return attributes.map((attr) =>
     attr.id === attributeId
       ? {
           ...attr,
