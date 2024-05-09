@@ -18,6 +18,7 @@ import {
   decodeProtobufPayload,
   getMockPurposeVersion,
 } from "pagopa-interop-commons-test";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   purposeNotFound,
   organizationIsNotTheConsumer,
@@ -48,6 +49,7 @@ export const testDeletePurpose = (): ReturnType<typeof describe> =>
         purposeId: mockPurpose.id,
         organizationId: mockPurpose.consumerId,
         correlationId: generateId(),
+        logger: genericLogger,
       });
 
       const writtenEvent = await readLastEventByStreamId(
@@ -88,6 +90,7 @@ export const testDeletePurpose = (): ReturnType<typeof describe> =>
         purposeId: mockPurpose.id,
         organizationId: mockPurpose.consumerId,
         correlationId: generateId(),
+        logger: genericLogger,
       });
 
       const writtenEvent = await readLastEventByStreamId(
@@ -128,6 +131,7 @@ export const testDeletePurpose = (): ReturnType<typeof describe> =>
         purposeId: mockPurpose.id,
         organizationId: mockPurpose.consumerId,
         correlationId: generateId(),
+        logger: genericLogger,
       });
 
       const writtenEvent = await readLastEventByStreamId(
@@ -160,6 +164,7 @@ export const testDeletePurpose = (): ReturnType<typeof describe> =>
           purposeId: randomId,
           organizationId: mockPurpose.consumerId,
           correlationId: generateId(),
+          logger: genericLogger,
         })
       ).rejects.toThrowError(purposeNotFound(randomId));
     });
@@ -182,6 +187,7 @@ export const testDeletePurpose = (): ReturnType<typeof describe> =>
           purposeId: mockPurpose.id,
           organizationId: mockEService.producerId,
           correlationId: generateId(),
+          logger: genericLogger,
         })
       ).rejects.toThrowError(
         organizationIsNotTheConsumer(mockEService.producerId)
@@ -213,6 +219,7 @@ export const testDeletePurpose = (): ReturnType<typeof describe> =>
             purposeId: mockPurpose.id,
             organizationId: mockPurpose.consumerId,
             correlationId: generateId(),
+            logger: genericLogger,
           })
         ).rejects.toThrowError(purposeCannotBeDeleted(mockPurpose.id));
       }
