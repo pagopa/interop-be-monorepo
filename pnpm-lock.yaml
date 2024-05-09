@@ -130,6 +130,9 @@ importers:
         specifier: 3.22.3
         version: 3.22.3
     devDependencies:
+      '@anatine/zod-mock':
+        specifier: 3.13.4
+        version: 3.13.4(@faker-js/faker@8.4.1)(zod@3.22.3)
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(typescript@5.1.3)
