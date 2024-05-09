@@ -122,19 +122,25 @@ const purposeRouter = (
       "/purposes",
       authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
         try {
           const { purpose, isRiskAnalysisValid } =
             await purposeService.createPurpose(
               req.body,
               req.ctx.authData.organizationId,
-              req.ctx.correlationId
+              req.ctx.correlationId,
+              ctx.logger
             );
           return res
             .status(200)
             .json(purposeToApiPurpose(purpose, isRiskAnalysisValid))
             .end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, createPurposeErrorMapper);
+          const errorRes = makeApiProblem(
+            error,
+            createPurposeErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
