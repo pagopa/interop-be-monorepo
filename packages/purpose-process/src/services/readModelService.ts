@@ -1,5 +1,4 @@
 import {
-  logger,
   ReadModelRepository,
   EServiceCollection,
   TenantCollection,
@@ -7,7 +6,6 @@ import {
 } from "pagopa-interop-commons";
 import {
   EService,
-  genericError,
   WithMetadata,
   EServiceId,
   TenantId,
@@ -15,13 +13,15 @@ import {
   EServiceReadModel,
   Purpose,
   PurposeId,
+  genericInternalError,
+  PurposeReadModel,
 } from "pagopa-interop-models";
 import { Filter, WithId } from "mongodb";
 import { z } from "zod";
 
 async function getPurpose(
   purposes: PurposeCollection,
-  filter: Filter<WithId<WithMetadata<Purpose>>>
+  filter: Filter<WithId<WithMetadata<PurposeReadModel>>>
 ): Promise<WithMetadata<Purpose> | undefined> {
   const data = await purposes.findOne(filter, {
     projection: { data: true, metadata: true },
@@ -36,12 +36,11 @@ async function getPurpose(
       })
       .safeParse(data);
     if (!result.success) {
-      logger.error(
+      throw genericInternalError(
         `Unable to parse purpose item: result ${JSON.stringify(
           result
         )} - data ${JSON.stringify(data)} `
       );
-      throw genericError("Unable to parse purpose item");
     }
     return result.data;
   }
@@ -59,12 +58,11 @@ async function getEService(
   } else {
     const result = EService.safeParse(data.data);
     if (!result.success) {
-      logger.error(
+      throw genericInternalError(
         `Unable to parse eService item: result ${JSON.stringify(
           result
         )} - data ${JSON.stringify(data)} `
       );
-      throw genericError("Unable to parse eService item");
     }
     return result.data;
   }
@@ -82,12 +80,11 @@ async function getTenant(
   } else {
     const result = Tenant.safeParse(data.data);
     if (!result.success) {
-      logger.error(
+      throw genericInternalError(
         `Unable to parse tenant item: result ${JSON.stringify(
           result
         )} - data ${JSON.stringify(data)} `
       );
-      throw genericError("Unable to parse tenant item");
     }
     return result.data;
   }

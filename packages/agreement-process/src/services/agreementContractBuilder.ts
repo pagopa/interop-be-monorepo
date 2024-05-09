@@ -1,4 +1,4 @@
-import { FileManager } from "pagopa-interop-commons";
+import { FileManager, Logger } from "pagopa-interop-commons";
 import { Agreement, EService, SelfcareId, Tenant } from "pagopa-interop-models";
 import { ApiAgreementDocumentSeed } from "../model/types.js";
 import { UpdateAgreementSeed } from "../model/domain/models.js";
@@ -9,7 +9,8 @@ import { AttributeQuery } from "./readmodel/attributeQuery.js";
 export const contractBuilder = (
   selfcareId: SelfcareId,
   attributeQuery: AttributeQuery,
-  storeFile: FileManager["storeBytes"]
+  storeFile: FileManager["storeBytes"],
+  logger: Logger
 ) => ({
   createContract: async (
     agreement: Agreement,
@@ -26,7 +27,8 @@ export const contractBuilder = (
       producer,
       seed,
       attributeQuery,
-      storeFile
+      storeFile,
+      logger
     ),
 });
 
