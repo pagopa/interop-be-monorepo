@@ -136,12 +136,21 @@ export const activatePurposeVersionErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("missingRiskAnalysis", () => HTTP_STATUS_BAD_REQUEST)
-    .with("agreementNotFound", () => HTTP_STATUS_BAD_REQUEST)
-    .with("riskAnalysisValidationFailed", () => HTTP_STATUS_BAD_REQUEST)
-    .with("organizationIsNotTheConsumer", () => HTTP_STATUS_FORBIDDEN)
-    .with("organizationIsNotTheProducer", () => HTTP_STATUS_FORBIDDEN)
-    .with("organizationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
-    .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("purposeVersionNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "missingRiskAnalysis",
+      "agreementNotFound",
+      "riskAnalysisValidationFailed",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with(
+      "organizationIsNotTheConsumer",
+      "organizationIsNotTheProducer",
+      "organizationNotAllowed",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with(
+      "purposeNotFound",
+      "purposeVersionNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
