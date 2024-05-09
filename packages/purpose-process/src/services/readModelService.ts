@@ -18,10 +18,19 @@ import {
   PurposeReadModel,
   ListResult,
   purposeVersionState,
+  PurposeVersionState,
 } from "pagopa-interop-models";
 import { Filter, WithId } from "mongodb";
 import { z } from "zod";
-import { ApiGetPurposesFilters } from "../model/domain/models.js";
+
+export type GetPurposesFilters = {
+  name?: string;
+  eservicesIds: EServiceId[];
+  consumersIds: TenantId[];
+  producersIds: TenantId[];
+  states: PurposeVersionState[];
+  excludeDraft: boolean | undefined;
+};
 
 async function getPurpose(
   purposes: PurposeCollection,
@@ -127,9 +136,8 @@ export function readModelServiceBuilder(
       } satisfies ReadModelFilter<Purpose>);
     },
     async getPurposes(
-      filters: ApiGetPurposesFilters,
-      offset: number,
-      limit: number
+      filters: GetPurposesFilters,
+      { offset, limit }: { offset: number; limit: number }
     ): Promise<ListResult<Purpose>> {
       const {
         name,
