@@ -1,0 +1,86 @@
+import { AgreementDocumentV1, AgreementV1 } from "pagopa-interop-models";
+
+export type AgreementDocumentV1Notification = Omit<
+  AgreementDocumentV1,
+  "createdAt"
+> & {
+  createdAt: string;
+};
+
+export type AgreementStampsV1Notification = Omit<
+  AgreementDocumentV1,
+  | "submission"
+  | "activation"
+  | "rejection"
+  | "suspensionByProducer"
+  | "upgrade"
+  | "archiving"
+  | "suspensionByConsumer"
+> & {
+  submission?: string;
+  activation?: string;
+  rejection?: string;
+  suspensionByProducer?: string;
+  upgrade?: string;
+  archiving?: string;
+  suspensionByConsumer?: string;
+};
+
+export type AgreementV1Notification = Omit<
+  AgreementV1,
+  | "state"
+  | "createdAt"
+  | "updatedAt"
+  | "consumerDocuments"
+  | "contract"
+  | "stamps"
+  | "suspendedAt"
+> & {
+  state: string;
+  createdAt: string;
+  updatedAt?: string;
+  consumerDocuments: AgreementDocumentV1Notification[];
+  contract?: AgreementDocumentV1Notification[];
+  stamps?: AgreementStampsV1Notification;
+  suspendedAt?: string;
+};
+
+// AgreementAddedV1
+// AgreementActivatedV1
+// AgreementSuspendedV1
+// AgreementDeactivatedV1
+// AgreementUpdatedV1
+// VerifiedAttributeUpdatedV1
+export type AgreementNotification = {
+  agreement: AgreementV1Notification;
+};
+
+// AgreementDeletedV1
+export type AgreementIdNotification = {
+  agreementId: string;
+};
+
+// AgreementConsumerDocumentAddedV1
+export type AgreementIdAndDocumentNotification = {
+  agreementId: string;
+  document: AgreementDocumentV1Notification;
+};
+
+// AgreementConsumerDocumentRemovedV1
+export type AgreementIdAndDocumentIdNotification = {
+  agreementId: string;
+  documentId: string;
+};
+
+// AgreementContractAddedV1
+export type AgreementIdAndContractNotification = {
+  agreementId: string;
+  contract: AgreementDocumentV1Notification;
+};
+
+export type AgreementEventNotification =
+  | AgreementNotification
+  | AgreementIdNotification
+  | AgreementIdAndDocumentNotification
+  | AgreementIdAndDocumentIdNotification
+  | AgreementIdAndContractNotification;
