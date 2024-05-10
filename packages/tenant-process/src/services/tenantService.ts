@@ -510,11 +510,20 @@ export function tenantServiceBuilder(
     },
 
     async internalAssignCertifiedAttribute(
-      tenantOrigin: string,
-      tenantExternalId: string,
-      attributeOrigin: string,
-      attributeExternalId: string,
-      correlationId: string
+      {
+        tenantOrigin,
+        tenantExternalId,
+        attributeOrigin,
+        attributeExternalId,
+        correlationId,
+      }: {
+        tenantOrigin: string;
+        tenantExternalId: string;
+        attributeOrigin: string;
+        attributeExternalId: string;
+        correlationId: string;
+      },
+      logger: Logger
     ): Promise<void> {
       logger.info(
         `Assigning certified attribute (${attributeOrigin}/${attributeExternalId}) to tenant (${tenantOrigin}/${tenantExternalId})`
