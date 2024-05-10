@@ -1,4 +1,9 @@
-import { TenantId, unsafeBrandId } from "pagopa-interop-models";
+import {
+  TenantId,
+  UserId,
+  unsafeBrandId,
+  SelfcareId,
+} from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { z } from "zod";
 
@@ -61,7 +66,7 @@ export const InternalAuthToken = SharedStandardJWTClaims.merge(
   })
 );
 
-export const maintenanceAuthToken = SharedStandardJWTClaims.merge(
+export const MaintenanceAuthToken = SharedStandardJWTClaims.merge(
   z.object({
     role: z.literal("maintenance"),
     sub: z.string(),
@@ -102,7 +107,7 @@ export const UIAuthToken = SharedStandardJWTClaims.merge(
 export const AuthToken = z.discriminatedUnion("role", [
   M2MAuthToken,
   InternalAuthToken,
-  maintenanceAuthToken,
+  MaintenanceAuthToken,
   UIAuthToken,
 ]);
 export type AuthToken = z.infer<typeof AuthToken>;
@@ -120,8 +125,9 @@ export type AuthToken = z.infer<typeof AuthToken>;
 */
 export const AuthData = z.object({
   organizationId: TenantId,
-  userId: z.string().uuid(),
+  userId: UserId,
   userRoles: z.array(UserRole),
+  selfcareId: SelfcareId,
   externalId: z.object({
     value: z.string(),
     origin: z.string(),
@@ -130,7 +136,8 @@ export const AuthData = z.object({
 export type AuthData = z.infer<typeof AuthData>;
 export const defaultAuthData: AuthData = {
   organizationId: unsafeBrandId<TenantId>(""),
-  userId: "",
+  userId: unsafeBrandId<UserId>(""),
+  selfcareId: unsafeBrandId<SelfcareId>(""),
   userRoles: [],
   externalId: { value: "", origin: "" },
 };
@@ -151,9 +158,11 @@ const getOrganizationId = (token: AuthToken): TenantId | undefined =>
     .with({ role: "internal" }, { role: "maintenance" }, () => undefined)
     .exhaustive();
 
-const getUserId = (token: AuthToken): string | undefined =>
+const getUserId = (token: AuthToken): UserId | undefined =>
   match(token)
-    .with({ "user-roles": P.not(P.nullish) }, (t) => t.uid)
+    .with({ "user-roles": P.not(P.nullish) }, (t) =>
+      unsafeBrandId<UserId>(t.uid)
+    )
     .with(
       { role: "m2m" },
       { role: "internal" },
@@ -175,9 +184,23 @@ const getExternalId = (
     )
     .exhaustive();
 
+const getSelfcareId = (token: AuthToken): SelfcareId | undefined =>
+  match(token)
+    .with({ "user-roles": P.not(P.nullish) }, (t) =>
+      unsafeBrandId<SelfcareId>(t.selfcareId)
+    )
+    .with(
+      { role: "m2m" },
+      { role: "internal" },
+      { role: "maintenance" },
+      () => undefined
+    )
+    .exhaustive();
+
 export const getAuthDataFromToken = (token: AuthToken): AuthData => ({
   organizationId: getOrganizationId(token) ?? defaultAuthData.organizationId,
   userId: getUserId(token) ?? defaultAuthData.userId,
   userRoles: getUserRoles(token),
   externalId: getExternalId(token) ?? defaultAuthData.externalId,
+  selfcareId: getSelfcareId(token) ?? defaultAuthData.selfcareId,
 });
