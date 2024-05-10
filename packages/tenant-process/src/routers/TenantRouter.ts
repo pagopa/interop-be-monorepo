@@ -429,17 +429,20 @@ const tenantsRouter = (
       "/maintenance/tenants/:tenantId/certifier",
       authorizationMiddleware([MAINTENANCE_ROLE]),
       async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
         try {
           const tenant = await tenantService.addCertifierId(
             unsafeBrandId(req.params.tenantId),
             req.ctx.correlationId,
-            req.body
+            req.body,
+            ctx.logger
           );
           return res.status(200).json(toApiTenant(tenant)).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            maintenanceTenantPromotedToCertifierErrorMapper
+            maintenanceTenantPromotedToCertifierErrorMapper,
+            ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
