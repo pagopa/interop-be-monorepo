@@ -22,6 +22,7 @@ import {
   AttributeCollection,
   ReadModelRepository,
   TenantCollection,
+  genericLogger,
   initDB,
 } from "pagopa-interop-commons";
 import { StartedTestContainer } from "testcontainers";
@@ -123,8 +124,12 @@ describe("database test", () => {
               name: mockAttribute.name,
               description: mockAttribute.description,
             },
-            getMockAuthData(),
-            uuidv4()
+            {
+              authData: getMockAuthData(),
+              correlationId: "",
+              logger: genericLogger,
+              serviceName: "",
+            }
           );
         expect(attribute).toBeDefined();
 
@@ -163,13 +168,17 @@ describe("database test", () => {
               description: mockAttribute.description,
             },
             {
-              ...getMockAuthData(),
-              externalId: {
-                value: "123456",
-                origin: "not-allowed-origin",
+              authData: {
+                ...getMockAuthData(),
+                externalId: {
+                  value: "123456",
+                  origin: "not-allowed-origin",
+                },
               },
-            },
-            uuidv4()
+              logger: genericLogger,
+              correlationId: "",
+              serviceName: "",
+            }
           )
         ).rejects.toThrowError(originNotCompliant("not-allowed-origin"));
       });
@@ -185,8 +194,12 @@ describe("database test", () => {
               name: attribute.name,
               description: attribute.description,
             },
-            getMockAuthData(),
-            uuidv4()
+            {
+              authData: getMockAuthData(),
+              correlationId: "",
+              logger: genericLogger,
+              serviceName: "",
+            }
           )
         ).rejects.toThrowError(attributeDuplicate(attribute.name));
       });
@@ -199,8 +212,12 @@ describe("database test", () => {
               name: mockAttribute.name,
               description: mockAttribute.description,
             },
-            getMockAuthData(),
-            uuidv4()
+            {
+              authData: getMockAuthData(),
+              logger: genericLogger,
+              correlationId: "",
+              serviceName: "",
+            }
           );
         expect(attribute).toBeDefined();
 
@@ -239,13 +256,17 @@ describe("database test", () => {
               description: mockAttribute.description,
             },
             {
-              ...getMockAuthData(),
-              externalId: {
-                value: "123456",
-                origin: "not-allowed-origin",
+              authData: {
+                ...getMockAuthData(),
+                externalId: {
+                  value: "123456",
+                  origin: "not-allowed-origin",
+                },
               },
-            },
-            uuidv4()
+              logger: genericLogger,
+              correlationId: "",
+              serviceName: "",
+            }
           )
         ).rejects.toThrowError(originNotCompliant("not-allowed-origin"));
       });
@@ -261,8 +282,12 @@ describe("database test", () => {
               name: attribute.name,
               description: attribute.description,
             },
-            getMockAuthData(),
-            uuidv4()
+            {
+              authData: getMockAuthData(),
+              logger: genericLogger,
+              correlationId: "",
+              serviceName: "",
+            }
           )
         ).rejects.toThrowError(attributeDuplicate(attribute.name));
       });
@@ -288,8 +313,12 @@ describe("database test", () => {
               code: "code",
               description: mockAttribute.description,
             },
-            getMockAuthData(tenant.id),
-            uuidv4()
+            {
+              authData: getMockAuthData(tenant.id),
+              logger: genericLogger,
+              correlationId: "",
+              serviceName: "",
+            }
           );
         expect(attribute).toBeDefined();
 
@@ -346,8 +375,12 @@ describe("database test", () => {
               code: attribute.code,
               description: attribute.description,
             },
-            getMockAuthData(tenant.id),
-            uuidv4()
+            {
+              authData: getMockAuthData(tenant.id),
+              logger: genericLogger,
+              correlationId: "",
+              serviceName: "",
+            }
           )
         ).rejects.toThrowError(attributeDuplicate(attribute.name));
       });
@@ -361,8 +394,12 @@ describe("database test", () => {
               code: "code",
               description: mockAttribute.description,
             },
-            getMockAuthData(mockTenant.id),
-            uuidv4()
+            {
+              authData: getMockAuthData(mockTenant.id),
+              logger: genericLogger,
+              correlationId: "",
+              serviceName: "",
+            }
           )
         ).rejects.toThrowError(OrganizationIsNotACertifier(mockTenant.id));
       });
@@ -375,8 +412,12 @@ describe("database test", () => {
               code: "code",
               description: mockAttribute.description,
             },
-            getMockAuthData(mockTenant.id),
-            uuidv4()
+            {
+              authData: getMockAuthData(mockTenant.id),
+              logger: genericLogger,
+              correlationId: "",
+              serviceName: "",
+            }
           )
         ).rejects.toThrowError(tenantNotFound(mockTenant.id));
       });
@@ -403,7 +444,12 @@ describe("database test", () => {
               origin: tenant.features[0].certifierId,
               description: mockAttribute.description,
             },
-            uuidv4()
+            {
+              authData: getMockAuthData(),
+              logger: genericLogger,
+              correlationId: "",
+              serviceName: "",
+            }
           );
         expect(attribute).toBeDefined();
 
@@ -460,7 +506,12 @@ describe("database test", () => {
               origin: tenant.features[0].certifierId,
               description: attribute.description,
             },
-            uuidv4()
+            {
+              authData: getMockAuthData(),
+              logger: genericLogger,
+              correlationId: "",
+              serviceName: "",
+            }
           )
         ).rejects.toThrowError(attributeDuplicate(attribute.name));
       });
@@ -659,46 +710,54 @@ describe("database test", () => {
       describe("getAttributeById", () => {
         it("should get the attribute if it exists", async () => {
           const attribute = await attributeRegistryService.getAttributeById(
-            attribute1.id
+            attribute1.id,
+            genericLogger
           );
           expect(attribute?.data).toEqual(attribute1);
         });
         it("should throw attributeNotFound if the attribute doesn't exist", async () => {
           const id = generateId<AttributeId>();
           expect(
-            attributeRegistryService.getAttributeById(id)
+            attributeRegistryService.getAttributeById(id, genericLogger)
           ).rejects.toThrowError(attributeNotFound(id));
         });
       });
       describe("getAttributeByName", () => {
         it("should get the attribute if it exists", async () => {
           const attribute = await attributeRegistryService.getAttributeByName(
-            attribute1.name
+            attribute1.name,
+            genericLogger
           );
           expect(attribute?.data).toEqual(attribute1);
         });
         it("should throw attributeNotFound if the attribute doesn't exist", async () => {
           const name = "not-existing";
           expect(
-            attributeRegistryService.getAttributeByName(name)
+            attributeRegistryService.getAttributeByName(name, genericLogger)
           ).rejects.toThrowError(attributeNotFound(name));
         });
       });
       describe("getAttributeByOriginAndCode", () => {
         it("should get the attribute if it exists", async () => {
           const attribute =
-            await attributeRegistryService.getAttributeByOriginAndCode({
-              origin: "IPA",
-              code: "12345A",
-            });
+            await attributeRegistryService.getAttributeByOriginAndCode(
+              {
+                origin: "IPA",
+                code: "12345A",
+              },
+              genericLogger
+            );
           expect(attribute?.data).toEqual(attribute1);
         });
         it("should throw attributeNotFound if the attribute doesn't exist", async () => {
           expect(
-            attributeRegistryService.getAttributeByOriginAndCode({
-              origin: "IPA",
-              code: "12345D",
-            })
+            attributeRegistryService.getAttributeByOriginAndCode(
+              {
+                origin: "IPA",
+                code: "12345D",
+              },
+              genericLogger
+            )
           ).rejects.toThrowError(attributeNotFound("IPA/12345D"));
         });
       });
