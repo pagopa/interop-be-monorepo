@@ -3,7 +3,6 @@ import {
   DB,
   Logger,
   eventRepository,
-  logger,
   riskAnalysisFormToRiskAnalysisFormToValidate,
 } from "pagopa-interop-commons";
 import {
@@ -684,7 +683,7 @@ export function purposeServiceBuilder(
 
       assertOrganizationIsAConsumer(organizationId, consumerId);
       const eservice = await retrieveEService(eserviceId, readModelService);
-      assertEserviceHasSpecificMode(eservice, eserviceMode.receive);
+      assertEserviceMode(eservice, eserviceMode.receive);
 
       const riskAnalysis = retrieveRiskAnalysis(
         unsafeBrandId(seed.riskAnalysisId),
@@ -705,7 +704,7 @@ export function purposeServiceBuilder(
 
       await retrieveActiveAgreement(eserviceId, consumerId, readModelService);
 
-      const purposeWithSameName = await readModelService.getSpecificPurpose(
+      const purposeWithSameName = await readModelService.getPurpose(
         eserviceId,
         consumerId,
         seed.title
@@ -886,6 +885,7 @@ const performUpdatePurpose = async (
     mode === eserviceMode.deliver
       ? validateAndTransformRiskAnalysis(
           updateContent.riskAnalysisForm,
+          true,
           tenant.kind
         )
       : reverseValidateAndTransformRiskAnalysis(
