@@ -448,16 +448,19 @@ const tenantsRouter = (
       "/maintenance/tenants/:tenantId",
       authorizationMiddleware([MAINTENANCE_ROLE]),
       async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
         try {
           await tenantService.maintenanceTenantDeleted(
             unsafeBrandId(req.params.tenantId),
-            req.ctx.correlationId
+            req.ctx.correlationId,
+            ctx.logger
           );
           return res.status(204).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            maintenanceTenantDeletedErrorMapper
+            maintenanceTenantDeletedErrorMapper,
+            ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
         }

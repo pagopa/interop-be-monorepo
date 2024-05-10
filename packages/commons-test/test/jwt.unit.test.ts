@@ -237,6 +237,7 @@ describe("JWT tests", () => {
           value: "",
         },
         organizationId: "",
+        selfcareId: "",
         userId: "",
         userRoles: ["maintenance"],
       });
