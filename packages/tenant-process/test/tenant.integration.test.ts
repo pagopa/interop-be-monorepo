@@ -76,6 +76,7 @@ import {
   readLastTenantEvent,
 } from "./utils.js";
 import { testDeleteTenantMailById } from "./testDeleteTenantMailById.js";
+import { testAddTenantMail } from "./testAddTenantMail.js";
 
 export let tenants: TenantCollection;
 export let agreements: AgreementCollection;
@@ -631,8 +632,8 @@ describe("Integration tests", () => {
         );
       });
     });
-
     testDeleteTenantMailById();
+    testAddTenantMail();
   });
   describe("readModelService", () => {
     const tenant1: Tenant = {

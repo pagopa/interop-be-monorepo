@@ -18,16 +18,22 @@ import {
 } from "pagopa-interop-models";
 import {
   CertifiedAttributeQueryResult,
+  MailSeed,
   UpdateVerifiedTenantAttributeSeed,
 } from "../model/domain/models.js";
 import { ApiSelfcareTenantSeed } from "../model/types.js";
-import { mailNotFound, tenantNotFound } from "../model/domain/errors.js";
+import {
+  mailAlreadyExists,
+  mailNotFound,
+  tenantNotFound,
+} from "../model/domain/errors.js";
 import {
   toCreateEventTenantVerifiedAttributeExpirationUpdated,
   toCreateEventTenantVerifiedAttributeExtensionUpdated,
   toCreateEventTenantOnboardDetailsUpdated,
   toCreateEventTenantOnboarded,
   toCreateEventTenantMailDeleted,
+  toCreateEventTenantMailAdded,
 } from "../model/domain/toEvent.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
@@ -315,6 +321,52 @@ export function tenantServiceBuilder(
           tenant.metadata.version,
           updatedTenant,
           mailId,
+          correlationId
+        )
+      );
+    },
+
+    async addTenantMail(
+      {
+        tenantId,
+        mailSeed,
+        organizationId,
+        correlationId,
+      }: {
+        tenantId: TenantId;
+        mailSeed: MailSeed;
+        organizationId: TenantId;
+        correlationId: string;
+      },
+      logger: Logger
+    ): Promise<void> {
+      logger.info(`Adding mail of kind ${mailSeed.kind} to Tenant ${tenantId}`);
+
+      await assertRequesterAllowed(tenantId, organizationId);
+
+      const tenant = await retrieveTenant(tenantId, readModelService);
+
+      if (tenant.data.mails.find((m) => m.address === mailSeed.address)) {
+        throw mailAlreadyExists(mailSeed.address);
+      }
+
+      const newMail = {
+        ...mailSeed,
+        id: generateId(),
+        createdAt: new Date(),
+      };
+
+      const updatedTenant: Tenant = {
+        ...tenant.data,
+        mails: [...tenant.data.mails, newMail],
+        updatedAt: new Date(),
+      };
+
+      await repository.createEvent(
+        toCreateEventTenantMailAdded(
+          tenant.metadata.version,
+          updatedTenant,
+          newMail.id,
           correlationId
         )
       );
