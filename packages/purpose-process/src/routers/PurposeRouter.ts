@@ -150,12 +150,14 @@ const purposeRouter = (
       "/reverse/purposes",
       authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
         try {
           const { purpose, isRiskAnalysisValid } =
             await purposeService.createReversePurpose(
               req.ctx.authData.organizationId,
               req.body,
-              req.ctx.correlationId
+              ctx.correlationId,
+              ctx.logger
             );
           return res
             .status(200)
@@ -164,7 +166,8 @@ const purposeRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            createReversePurposeErrorMapper
+            createReversePurposeErrorMapper,
+            ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
