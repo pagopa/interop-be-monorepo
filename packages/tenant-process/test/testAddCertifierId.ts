@@ -9,6 +9,7 @@ import {
   toTenantV2,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   tenantNotFound,
   tenatIsAlreadyACertifier,
@@ -41,7 +42,12 @@ export const testAddCertifierId = (): ReturnType<typeof describe> =>
     it("should write on event-store for the addition of the certifierId to the tenant", async () => {
       const mockTenant = getMockTenant();
       await addOneTenant(mockTenant, postgresDB, tenants);
-      await tenantService.addCertifierId(mockTenant.id, generateId(), payload);
+      await tenantService.addCertifierId(
+        mockTenant.id,
+        generateId(),
+        payload,
+        genericLogger
+      );
       const writtenEvent = await readLastTenantEvent(mockTenant.id, postgresDB);
 
       expect(writtenEvent).toMatchObject({
@@ -73,7 +79,12 @@ export const testAddCertifierId = (): ReturnType<typeof describe> =>
       const mockTenant = getMockTenant();
 
       expect(
-        tenantService.addCertifierId(mockTenant.id, generateId(), payload)
+        tenantService.addCertifierId(
+          mockTenant.id,
+          generateId(),
+          payload,
+          genericLogger
+        )
       ).rejects.toThrowError(tenantNotFound(mockTenant.id));
     });
     it("Should throw tenantIsAlreadyACertifier if the organization is a certifier", async () => {
@@ -94,7 +105,12 @@ export const testAddCertifierId = (): ReturnType<typeof describe> =>
 
       await addOneTenant(certifierTenant, postgresDB, tenants);
       expect(
-        tenantService.addCertifierId(certifierTenant.id, generateId(), payload)
+        tenantService.addCertifierId(
+          certifierTenant.id,
+          generateId(),
+          payload,
+          genericLogger
+        )
       ).rejects.toThrowError(
         tenatIsAlreadyACertifier(certifierTenant.id, payload.certifierId)
       );
