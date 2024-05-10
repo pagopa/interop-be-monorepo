@@ -6,7 +6,7 @@ import {
   writeInReadmodel,
   readLastEventByStreamId,
   decodeProtobufPayload,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   purposeVersionState,
   Purpose,
@@ -17,6 +17,7 @@ import {
   PurposeId,
   PurposeVersionId,
 } from "pagopa-interop-models";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   purposeNotFound,
   purposeVersionNotFound,
@@ -58,6 +59,7 @@ export const testDeletePurposeVersion = (): ReturnType<typeof describe> =>
         versionId: mockPurposeVersion1.id,
         organizationId: mockPurpose.consumerId,
         correlationId: generateId(),
+        logger: genericLogger,
       });
 
       const writtenEvent = await readLastEventByStreamId(
@@ -107,6 +109,7 @@ export const testDeletePurposeVersion = (): ReturnType<typeof describe> =>
           versionId: mockPurposeVersion.id,
           organizationId: mockEService.producerId,
           correlationId: generateId(),
+          logger: genericLogger,
         })
       ).rejects.toThrowError(purposeNotFound(randomId));
     });
@@ -128,6 +131,7 @@ export const testDeletePurposeVersion = (): ReturnType<typeof describe> =>
           versionId: randomVersionId,
           organizationId: mockPurpose.consumerId,
           correlationId: generateId(),
+          logger: genericLogger,
         })
       ).rejects.toThrowError(
         purposeVersionNotFound(mockPurpose.id, randomVersionId)
@@ -154,6 +158,7 @@ export const testDeletePurposeVersion = (): ReturnType<typeof describe> =>
           versionId: mockPurposeVersion.id,
           organizationId: mockEService.producerId,
           correlationId: generateId(),
+          logger: genericLogger,
         })
       ).rejects.toThrowError(
         organizationIsNotTheConsumer(mockEService.producerId)
@@ -186,6 +191,7 @@ export const testDeletePurposeVersion = (): ReturnType<typeof describe> =>
             versionId: mockPurposeVersion.id,
             organizationId: mockPurpose.consumerId,
             correlationId: generateId(),
+            logger: genericLogger,
           })
         ).rejects.toThrowError(
           purposeVersionCannotBeDeleted(mockPurpose.id, mockPurposeVersion.id)
@@ -212,6 +218,7 @@ export const testDeletePurposeVersion = (): ReturnType<typeof describe> =>
           versionId: mockPurposeVersion.id,
           organizationId: mockPurpose.consumerId,
           correlationId: generateId(),
+          logger: genericLogger,
         })
       ).rejects.toThrowError(
         purposeVersionCannotBeDeleted(mockPurpose.id, mockPurposeVersion.id)

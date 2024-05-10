@@ -3,7 +3,7 @@ import {
   getMockTenant,
   getMockPurpose,
   writeInReadmodel,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   tenantKind,
   Purpose,
@@ -14,6 +14,7 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   purposeNotFound,
   eserviceNotFound,
@@ -54,7 +55,8 @@ export const testGetPurposeById = (): ReturnType<typeof describe> =>
 
       const result = await purposeService.getPurposeById(
         mockPurpose1.id,
-        mockTenant.id
+        mockTenant.id,
+        genericLogger
       );
       expect(result).toMatchObject({
         purpose: mockPurpose1,
@@ -69,7 +71,11 @@ export const testGetPurposeById = (): ReturnType<typeof describe> =>
       await writeInReadmodel(mockTenant, tenants);
 
       expect(
-        purposeService.getPurposeById(notExistingId, mockTenant.id)
+        purposeService.getPurposeById(
+          notExistingId,
+          mockTenant.id,
+          genericLogger
+        )
       ).rejects.toThrowError(purposeNotFound(notExistingId));
     });
     it("should throw eserviceNotFound if the eservice doesn't exist", async () => {
@@ -87,7 +93,11 @@ export const testGetPurposeById = (): ReturnType<typeof describe> =>
       await writeInReadmodel(mockTenant, tenants);
 
       expect(
-        purposeService.getPurposeById(mockPurpose.id, mockTenant.id)
+        purposeService.getPurposeById(
+          mockPurpose.id,
+          mockTenant.id,
+          genericLogger
+        )
       ).rejects.toThrowError(eserviceNotFound(notExistingId));
     });
     it("should throw tenantNotFound if the tenant doesn't exist", async () => {
@@ -102,7 +112,11 @@ export const testGetPurposeById = (): ReturnType<typeof describe> =>
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
 
       expect(
-        purposeService.getPurposeById(mockPurpose.id, notExistingId)
+        purposeService.getPurposeById(
+          mockPurpose.id,
+          notExistingId,
+          genericLogger
+        )
       ).rejects.toThrowError(tenantNotFound(notExistingId));
     });
     it("should throw tenantKindNotFound if the tenant doesn't exist", async () => {
@@ -118,7 +132,11 @@ export const testGetPurposeById = (): ReturnType<typeof describe> =>
       await writeInReadmodel(mockTenant, tenants);
 
       expect(
-        purposeService.getPurposeById(mockPurpose.id, mockTenant.id)
+        purposeService.getPurposeById(
+          mockPurpose.id,
+          mockTenant.id,
+          genericLogger
+        )
       ).rejects.toThrowError(tenantKindNotFound(mockTenant.id));
     });
   });

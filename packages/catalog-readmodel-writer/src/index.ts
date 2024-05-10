@@ -6,7 +6,6 @@ import {
   readModelWriterConfig,
   catalogTopicConfig,
   decodeKafkaMessage,
-  runWithContext,
 } from "pagopa-interop-commons";
 import { runConsumer } from "kafka-iam-auth";
 import { EServiceEvent } from "pagopa-interop-models";
@@ -24,25 +23,21 @@ async function processMessage({
 }: EachMessagePayload): Promise<void> {
   const decodedMessage = decodeKafkaMessage(message, EServiceEvent);
 
-  runWithContext(
-    {
-      messageData: {
-        eventType: decodedMessage.type,
-        eventVersion: decodedMessage.event_version,
-        streamId: decodedMessage.stream_id,
-      },
-      correlationId: decodedMessage.correlation_id,
-    },
-    async () => {
-      await match(decodedMessage)
-        .with({ event_version: 1 }, (msg) => handleMessageV1(msg, eservices))
-        .with({ event_version: 2 }, (msg) => handleMessageV2(msg, eservices))
-        .exhaustive();
+  const loggerInstance = logger({
+    serviceName: "catalog-readmodel-writer",
+    eventType: decodedMessage.type,
+    eventVersion: decodedMessage.event_version,
+    streamId: decodedMessage.stream_id,
+    correlationId: decodedMessage.correlation_id,
+  });
 
-      logger.info(
-        `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
-      );
-    }
+  await match(decodedMessage)
+    .with({ event_version: 1 }, (msg) => handleMessageV1(msg, eservices))
+    .with({ event_version: 2 }, (msg) => handleMessageV2(msg, eservices))
+    .exhaustive();
+
+  loggerInstance.info(
+    `Read model was updated. Partition number: ${partition}. Offset: ${message.offset}`
   );
 }
 

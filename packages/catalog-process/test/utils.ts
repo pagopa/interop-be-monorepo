@@ -7,7 +7,6 @@ import {
   riskAnalysisFormToRiskAnalysisFormToValidate,
 } from "pagopa-interop-commons";
 import { IDatabase } from "pg-promise";
-import { v4 as uuidv4 } from "uuid";
 import {
   Agreement,
   Attribute,
@@ -30,6 +29,7 @@ import {
   toEServiceV2,
   toReadModelAttribute,
   toReadModelEService,
+  toReadModelAgreement,
 } from "pagopa-interop-models";
 import {
   ReadEvent,
@@ -46,12 +46,13 @@ import { ApiEServiceDescriptorDocumentSeed } from "../src/model/types.js";
 
 export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
   organizationId: organizationId || generateId(),
-  userId: uuidv4(),
+  userId: generateId(),
   userRoles: [],
   externalId: {
     value: "123456",
     origin: "IPA",
   },
+  selfcareId: generateId(),
 });
 
 export const buildDescriptorSeed = (
@@ -235,7 +236,7 @@ export const addOneAgreement = async (
   agreement: Agreement,
   agreements: AgreementCollection
 ): Promise<void> => {
-  await writeInReadmodel(agreement, agreements);
+  await writeInReadmodel(toReadModelAgreement(agreement), agreements);
 };
 
 export const readLastEserviceEvent = async (
