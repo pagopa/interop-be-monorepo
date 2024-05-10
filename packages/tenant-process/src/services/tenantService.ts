@@ -291,7 +291,8 @@ export function tenantServiceBuilder(
       tenantId: TenantId,
       mailId: string,
       organizationId: TenantId,
-      correlationId: string
+      correlationId: string,
+      logger: Logger
     ): Promise<void> {
       logger.info(`Deleting mail ${mailId} to Tenant ${tenantId}`);
 

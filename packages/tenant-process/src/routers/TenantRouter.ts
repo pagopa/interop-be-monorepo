@@ -447,17 +447,23 @@ const tenantsRouter = (
       "/tenants/:tenantId/mails/:mailId",
       authorizationMiddleware([ADMIN_ROLE, API_ROLE]),
       async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
         try {
           const { tenantId, mailId } = req.params;
           await tenantService.deleteTenantMailById(
             unsafeBrandId(tenantId),
             mailId,
             req.ctx.authData.organizationId,
-            req.ctx.correlationId
+            req.ctx.correlationId,
+            ctx.logger
           );
           return res.status(204).end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, deleteTenantMailErrorMapper);
+          const errorRes = makeApiProblem(
+            error,
+            deleteTenantMailErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
