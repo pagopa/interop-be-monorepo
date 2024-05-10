@@ -110,7 +110,7 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
     };
     const mockPurposeVersion6_2: PurposeVersion = {
       ...getMockPurposeVersion(),
-      state: purposeVersionState.draft,
+      state: purposeVersionState.active,
     };
     const mockPurpose6: Purpose = {
       ...getMockPurpose(),
@@ -155,7 +155,7 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
       const result = await purposeService.getPurposes(
         producerId1,
         {
-          name: "test",
+          title: "test",
           eservicesIds: [],
           consumersIds: [],
           producersIds: [],
@@ -244,7 +244,7 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
         mockPurpose6,
       ]);
     });
-    it("should not include draft versions and purposes without versions (excludeDraft = true)", async () => {
+    it("should not include purpose without versions or with one draft version (excludeDraft = true)", async () => {
       const result = await purposeService.getPurposes(
         producerId1,
         {
@@ -262,10 +262,10 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
         mockPurpose3,
         mockPurpose4,
         mockPurpose5,
-        { ...mockPurpose6, versions: [mockPurposeVersion6_1] },
+        mockPurpose6,
       ]);
     });
-    it("should include draft versions and purposes without versions (excludeDraft = false)", async () => {
+    it("should include purpose without versions or with one draft version (excludeDraft = false)", async () => {
       const result = await purposeService.getPurposes(
         producerId1,
         {
@@ -343,7 +343,7 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
       const result = await purposeService.getPurposes(
         producerId1,
         {
-          name: "test",
+          title: "test",
           eservicesIds: [mockEService3ByTenant2.id],
           consumersIds: [consumerId1],
           producersIds: [producerId2],
@@ -354,15 +354,13 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
         genericLogger
       );
       expect(result.totalCount).toBe(1);
-      expect(result.results).toEqual([
-        { ...mockPurpose6, versions: [mockPurposeVersion6_1] },
-      ]);
+      expect(result.results).toEqual([mockPurpose6]);
     });
     it("should get the purposes if they exist (parameters: name, eservicesIds, consumersIds, producersIds, states; exlcudeDraft = false)", async () => {
       const result = await purposeService.getPurposes(
         producerId1,
         {
-          name: "test",
+          title: "test",
           eservicesIds: [mockEService1ByTenant1.id],
           consumersIds: [consumerId1],
           producersIds: [producerId1],
