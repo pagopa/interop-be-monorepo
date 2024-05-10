@@ -10,6 +10,7 @@ import {
   TenantMailDeletedV2,
 } from "pagopa-interop-models";
 import { describe, it, expect, beforeAll, vi, afterAll } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import { mailNotFound, tenantNotFound } from "../src/model/domain/errors.js";
 import {
   postgresDB,
@@ -57,7 +58,8 @@ export const testDeleteTenantMailById = (): ReturnType<typeof describe> =>
         tenant.id,
         mailId,
         tenant.id,
-        generateId()
+        generateId(),
+        genericLogger
       );
       const writtenEvent = await readLastTenantEvent(tenant.id, postgresDB);
 
@@ -92,7 +94,8 @@ export const testDeleteTenantMailById = (): ReturnType<typeof describe> =>
           tenant.id,
           mailId,
           tenant.id,
-          generateId()
+          generateId(),
+          genericLogger
         )
       ).rejects.toThrowError(tenantNotFound(tenant.id));
     });
@@ -103,7 +106,8 @@ export const testDeleteTenantMailById = (): ReturnType<typeof describe> =>
           tenant.id,
           mailId,
           generateId(),
-          generateId()
+          generateId(),
+          genericLogger
         )
       ).rejects.toThrowError(operationForbidden);
     });
@@ -115,7 +119,8 @@ export const testDeleteTenantMailById = (): ReturnType<typeof describe> =>
           tenant.id,
           mailIdNotInTenant,
           tenant.id,
-          generateId()
+          generateId(),
+          genericLogger
         )
       ).rejects.toThrowError(mailNotFound(mailIdNotInTenant));
     });

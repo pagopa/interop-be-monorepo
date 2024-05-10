@@ -1,4 +1,4 @@
-import { AuthData, CreateEvent, logger } from "pagopa-interop-commons";
+import { AuthData, CreateEvent } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementEvent,
@@ -28,9 +28,6 @@ export async function createAgreementLogic(
   tenantQuery: TenantQuery,
   correlationId: string
 ): Promise<CreateEvent<AgreementEvent>> {
-  logger.info(
-    `Creating agreement for EService ${agreement.eserviceId} and Descriptor ${agreement.descriptorId}`
-  );
   const eservice = await eserviceQuery.getEServiceById(agreement.eserviceId);
   assertEServiceExist(unsafeBrandId(agreement.eserviceId), eservice);
 
