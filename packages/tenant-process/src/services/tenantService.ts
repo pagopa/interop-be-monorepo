@@ -25,6 +25,7 @@ import { ExternalId } from "pagopa-interop-models";
 import {
   toCreateEventTenantCertifiedAttributeAssigned,
   toCreateEventTenantDeclaredAttributeAssigned,
+  toCreateEventTenantDeclaredAttributeRevoked,
 } from "../model/domain/toEvent.js";
 import {
   ApiCertifiedTenantAttributeSeed,
@@ -294,7 +295,6 @@ export function tenantServiceBuilder(
         );
       }
     },
-
     async addCertifiedAttribute(
       tenantId: TenantId,
       logger: Logger,
@@ -411,6 +411,60 @@ export function tenantServiceBuilder(
           targetTenant.metadata.version,
           updatedTenant,
           unsafeBrandId(tenantAttributeSeed.id),
+          correlationId
+        )
+      );
+      return updatedTenant;
+    },
+    async revokeDeclaredAttribute(
+      {
+        attributeId,
+        organizationId,
+        correlationId,
+      }: {
+        attributeId: AttributeId;
+        organizationId: TenantId;
+        correlationId: string;
+      },
+      logger: Logger
+    ): Promise<Tenant> {
+      logger.info(
+        `Revoking declared attribute ${attributeId} to ${organizationId}`
+      );
+      const requesterTenant = await retrieveTenant(
+        organizationId,
+        readModelService
+      );
+
+      const maybeDeclaredTenantAttribute = requesterTenant.data.attributes.find(
+        (attr): attr is DeclaredTenantAttribute =>
+          attr.id === attributeId && attr.type === "PersistentDeclaredAttribute"
+      );
+
+      if (!maybeDeclaredTenantAttribute) {
+        throw attributeNotFound(attributeId);
+      }
+
+      const updatedTenant: Tenant = {
+        ...requesterTenant.data,
+        updatedAt: new Date(),
+        attributes: requesterTenant.data.attributes.map((declaredAttribute) =>
+          declaredAttribute.id === attributeId
+            ? {
+                ...declaredAttribute,
+                assignmentTimestamp:
+                  maybeDeclaredTenantAttribute.assignmentTimestamp,
+                revocationTimestamp: new Date(),
+              }
+            : declaredAttribute
+        ),
+      };
+
+      await repository.createEvent(
+        toCreateEventTenantDeclaredAttributeRevoked(
+          requesterTenant.metadata.version,
+          updatedTenant,
+          unsafeBrandId(attributeId),
           correlationId
         )
       );
