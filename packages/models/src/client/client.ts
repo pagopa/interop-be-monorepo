@@ -7,6 +7,7 @@ import {
   PurposeId,
   PurposeVersionId,
   TenantId,
+  UserId,
 } from "../brandedIds.js";
 
 export const clientComponentState = {
@@ -67,8 +68,8 @@ export const Client = z.object({
   name: z.string(),
   purposes: z.array(ClientStatesChain),
   description: z.string().optional(),
-  relationships: z.set(z.string().uuid()),
-  users: z.set(z.string().uuid()),
+  relationships: z.set(UserId),
+  users: z.set(UserId),
   kind: ClientKind,
   createdAt: z.coerce.date(),
 });
