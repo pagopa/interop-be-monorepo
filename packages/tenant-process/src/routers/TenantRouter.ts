@@ -8,7 +8,6 @@ import {
   initDB,
   zodiosValidationErrorToApiProblem,
   fromAppContext,
-  genericLogger,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
@@ -459,7 +458,7 @@ const tenantsRouter = (
               organizationId: req.ctx.authData.organizationId,
               correlationId: req.ctx.correlationId,
             },
-            genericLogger
+            ctx.logger
           );
           return res.status(200).json(toApiTenant(tenant)).end();
         } catch (error) {
