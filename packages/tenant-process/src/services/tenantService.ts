@@ -509,6 +509,62 @@ export function tenantServiceBuilder(
       return updatedTenant;
     },
 
+    async internalAssignCertifiedAttribute(
+      {
+        tenantOrigin,
+        tenantExternalId,
+        attributeOrigin,
+        attributeExternalId,
+        correlationId,
+      }: {
+        tenantOrigin: string;
+        tenantExternalId: string;
+        attributeOrigin: string;
+        attributeExternalId: string;
+        correlationId: string;
+      },
+      logger: Logger
+    ): Promise<void> {
+      logger.info(
+        `Assigning certified attribute (${attributeOrigin}/${attributeExternalId}) to tenant (${tenantOrigin}/${tenantExternalId})`
+      );
+
+      const tenantToModify = await readModelService.getTenantByExternalId({
+        origin: tenantOrigin,
+        value: tenantExternalId,
+      });
+
+      assertTenantExists(
+        unsafeBrandId(`${tenantOrigin}/${tenantExternalId}`),
+        tenantToModify
+      );
+
+      const attributeToAssign =
+        await readModelService.getAttributeByOriginAndCode({
+          origin: attributeOrigin,
+          code: attributeExternalId,
+        });
+
+      if (!attributeToAssign) {
+        throw attributeNotFound(`${attributeOrigin}/${attributeExternalId}`);
+      }
+
+      const updatedTenant = await assignCertifiedAttribute({
+        targetTenant: tenantToModify.data,
+        attribute: attributeToAssign,
+        readModelService,
+      });
+
+      await repository.createEvent(
+        toCreateEventTenantCertifiedAttributeAssigned(
+          tenantToModify.metadata.version,
+          updatedTenant,
+          attributeToAssign.id,
+          correlationId
+        )
+      );
+    },
+
     async getCertifiedAttributes({
       organizationId,
       offset,
