@@ -20,7 +20,7 @@ import {
   toPurposeV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { formatDateAndTime } from "pagopa-interop-commons";
 import {
   duplicatedPurposeTitle,
@@ -39,6 +39,13 @@ import {
 
 export const testClonePurpose = (): ReturnType<typeof describe> =>
   describe("clonePurpose", async () => {
+    beforeAll(() => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date());
+    });
+    afterAll(() => {
+      vi.useRealTimers();
+    });
     it("should write on event-store for the cloning of a purpose", async () => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date());
