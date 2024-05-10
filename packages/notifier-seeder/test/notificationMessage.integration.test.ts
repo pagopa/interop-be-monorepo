@@ -1,7 +1,7 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
 import { StartedTestContainer } from "testcontainers";
-import { afterAll, assert, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import {
   EServiceDescriptorSuspendedV2,
