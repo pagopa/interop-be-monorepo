@@ -15,6 +15,7 @@ import {
   TenantCertifiedAttributeRevokedV2,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   tenantNotFound,
   attributeNotFound,
@@ -77,11 +78,14 @@ export const testInternalRevokeCertifiedAttribute = (): ReturnType<
       await addOneAttribute(mockAttribute, attributes);
       await addOneTenant(tenantWithCertifiedAttribute, postgresDB, tenants);
       await tenantService.internalRevokeCertifiedAttribute(
-        tenantWithCertifiedAttribute.externalId.origin,
-        tenantWithCertifiedAttribute.externalId.value,
-        mockAttribute.origin!,
-        mockAttribute.code!,
-        generateId()
+        {
+          tenantOrigin: tenantWithCertifiedAttribute.externalId.origin,
+          tenantExternalId: tenantWithCertifiedAttribute.externalId.value,
+          attributeOrigin: mockAttribute.origin!,
+          attributeExternalId: mockAttribute.code!,
+          correlationId: generateId(),
+        },
+        genericLogger
       );
       const writtenEvent = await readLastEventByStreamId(
         tenantWithCertifiedAttribute.id,
@@ -119,11 +123,14 @@ export const testInternalRevokeCertifiedAttribute = (): ReturnType<
       await addOneAttribute(mockAttribute, attributes);
       expect(
         tenantService.internalRevokeCertifiedAttribute(
-          requesterTenant.externalId.origin,
-          requesterTenant.externalId.value,
-          mockAttribute.origin!,
-          mockAttribute.code!,
-          generateId()
+          {
+            tenantOrigin: requesterTenant.externalId.origin,
+            tenantExternalId: requesterTenant.externalId.value,
+            attributeOrigin: mockAttribute.origin!,
+            attributeExternalId: mockAttribute.code!,
+            correlationId: generateId(),
+          },
+          genericLogger
         )
       ).rejects.toThrowError(
         tenantNotFound(
@@ -139,11 +146,14 @@ export const testInternalRevokeCertifiedAttribute = (): ReturnType<
 
       expect(
         tenantService.internalRevokeCertifiedAttribute(
-          requesterTenant.externalId.origin,
-          requesterTenant.externalId.value,
-          mockAttribute.origin!,
-          mockAttribute.code!,
-          generateId()
+          {
+            tenantOrigin: requesterTenant.externalId.origin,
+            tenantExternalId: requesterTenant.externalId.value,
+            attributeOrigin: mockAttribute.origin!,
+            attributeExternalId: mockAttribute.code!,
+            correlationId: generateId(),
+          },
+          genericLogger
         )
       ).rejects.toThrowError(
         attributeNotFound(
