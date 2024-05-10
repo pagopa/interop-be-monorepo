@@ -1,4 +1,9 @@
-import { AgreementDocumentV1, AgreementV1 } from "pagopa-interop-models";
+import {
+  AgreementDocumentV1,
+  AgreementV1,
+  StampV1,
+  StampsV1,
+} from "pagopa-interop-models";
 
 export type AgreementDocumentV1Notification = Omit<
   AgreementDocumentV1,
@@ -7,8 +12,12 @@ export type AgreementDocumentV1Notification = Omit<
   createdAt: string;
 };
 
+export type AgreementStampV1Notification = Omit<StampV1, "when"> & {
+  when: string;
+};
+
 export type AgreementStampsV1Notification = Omit<
-  AgreementDocumentV1,
+  StampsV1,
   | "submission"
   | "activation"
   | "rejection"
@@ -17,13 +26,13 @@ export type AgreementStampsV1Notification = Omit<
   | "archiving"
   | "suspensionByConsumer"
 > & {
-  submission?: string;
-  activation?: string;
-  rejection?: string;
-  suspensionByProducer?: string;
-  upgrade?: string;
-  archiving?: string;
-  suspensionByConsumer?: string;
+  submission?: AgreementStampV1Notification;
+  activation?: AgreementStampV1Notification;
+  rejection?: AgreementStampV1Notification;
+  suspensionByProducer?: AgreementStampV1Notification;
+  upgrade?: AgreementStampV1Notification;
+  archiving?: AgreementStampV1Notification;
+  suspensionByConsumer?: AgreementStampV1Notification;
 };
 
 export type AgreementV1Notification = Omit<
@@ -40,7 +49,7 @@ export type AgreementV1Notification = Omit<
   createdAt: string;
   updatedAt?: string;
   consumerDocuments: AgreementDocumentV1Notification[];
-  contract?: AgreementDocumentV1Notification[];
+  contract?: AgreementDocumentV1Notification;
   stamps?: AgreementStampsV1Notification;
   suspendedAt?: string;
 };
