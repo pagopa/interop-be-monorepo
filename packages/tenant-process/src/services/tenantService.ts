@@ -567,11 +567,20 @@ export function tenantServiceBuilder(
     },
 
     async internalRevokeCertifiedAttribute(
-      tenantOrigin: string,
-      tenantExternalId: string,
-      attributeOrigin: string,
-      attributeExternalId: string,
-      correlationId: string
+      {
+        tenantOrigin,
+        tenantExternalId,
+        attributeOrigin,
+        attributeExternalId,
+        correlationId,
+      }: {
+        tenantOrigin: string;
+        tenantExternalId: string;
+        attributeOrigin: string;
+        attributeExternalId: string;
+        correlationId: string;
+      },
+      logger: Logger
     ): Promise<void> {
       logger.info(
         `Revoking certified attribute (${attributeOrigin}/${attributeExternalId}) from tenant (${tenantOrigin}/${tenantExternalId})`

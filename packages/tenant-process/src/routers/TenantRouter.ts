@@ -522,20 +522,25 @@ const tenantsRouter = (
       "/internal/origin/:tOrigin/externalId/:tExternalId/attributes/origin/:aOrigin/externalId/:aExternalId",
       authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
         try {
           const { tOrigin, tExternalId, aOrigin, aExternalId } = req.params;
           await tenantService.internalRevokeCertifiedAttribute(
-            tOrigin,
-            tExternalId,
-            aOrigin,
-            aExternalId,
-            req.ctx.correlationId
+            {
+              tenantOrigin: tOrigin,
+              tenantExternalId: tExternalId,
+              attributeOrigin: aOrigin,
+              attributeExternalId: aExternalId,
+              correlationId: req.ctx.correlationId,
+            },
+            ctx.logger
           );
           return res.status(204).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            internalRevokeCertifiedAttributeErrorMapper
+            internalRevokeCertifiedAttributeErrorMapper,
+            ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
