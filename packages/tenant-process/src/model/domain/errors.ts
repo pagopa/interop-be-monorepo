@@ -19,7 +19,10 @@ export const errorCodes = {
   expirationDateCannotBeInThePast: "0010",
   organizationNotFoundInVerifiers: "0011",
   expirationDateNotFoundInVerifier: "0012",
-  tenantIsNotCertifier: "0013",
+  tenantIsNotACertifier: "0013",
+  certifiedAttributeOriginIsNotCompliantWithCertifier: "0014",
+  certifiedAttributeAlreadyAssigned: "0015",
+  certifierNotFound: "0016",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -147,10 +150,44 @@ export function selfcareIdConflict({
   });
 }
 
-export function tenantIsNotCertifier(tenantId: TenantId): ApiError<ErrorCodes> {
+export function tenantIsNotACertifier(
+  organizationId: TenantId
+): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization ${tenantId} not a certifier`,
-    code: "tenantIsNotCertifier",
-    title: "Tenant is not a certifier",
+    detail: `Organization ${organizationId} not allowed to assign attributes`,
+    code: "tenantIsNotACertifier",
+    title: "Tenant Is Not A Certifier",
+  });
+}
+
+export function certifierNotFound(certifierId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Certifier ${certifierId} not found`,
+    code: "certifierNotFound",
+    title: "Certifier Not Found",
+  });
+}
+
+export function certifiedAttributeOriginIsNotCompliantWithCertifier(
+  origin: string,
+  organizationId: TenantId,
+  tenantId: TenantId,
+  certifierId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Organization ${organizationId} not allowed to assign certified attributes to tenant ${tenantId} -> origin ${origin} , certifier ${certifierId}`,
+    code: "certifiedAttributeOriginIsNotCompliantWithCertifier",
+    title: "certified Attribute Origin Is Not Compliant With Certifier",
+  });
+}
+
+export function certifiedAttributeAlreadyAssigned(
+  attributeId: AttributeId,
+  organizationId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Certified Attribute ${attributeId} already assigned to tenant ${organizationId}`,
+    code: "certifiedAttributeAlreadyAssigned",
+    title: "certified Attribute Already Assigned",
   });
 }

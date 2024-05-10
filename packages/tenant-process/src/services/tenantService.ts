@@ -6,21 +6,36 @@ import {
   AppContext,
 } from "pagopa-interop-commons";
 import {
+  Attribute,
   AttributeId,
+  CertifiedTenantAttribute,
   ListResult,
   Tenant,
   TenantAttribute,
   TenantId,
   WithMetadata,
+  attributeKind,
   generateId,
+  tenantAttributeType,
   tenantEventToBinaryData,
-  ExternalId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
+import { ExternalId } from "pagopa-interop-models";
+import { toCreateEventTenantCertifiedAttributeAssigned } from "../model/domain/toEvent.js";
+import {
+  ApiCertifiedTenantAttributeSeed,
+  ApiSelfcareTenantSeed,
+} from "../model/types.js";
+import {
+  attributeNotFound,
+  certifiedAttributeAlreadyAssigned,
+  certifiedAttributeOriginIsNotCompliantWithCertifier,
+  tenantIsNotACertifier,
+} from "../model/domain/errors.js";
 import {
   CertifiedAttributeQueryResult,
   UpdateVerifiedTenantAttributeSeed,
 } from "../model/domain/models.js";
-import { ApiSelfcareTenantSeed } from "../model/types.js";
 import { tenantNotFound } from "../model/domain/errors.js";
 import {
   toCreateEventTenantVerifiedAttributeExpirationUpdated,
@@ -38,8 +53,8 @@ import {
   getTenantKindLoadingCertifiedAttributes,
   assertOrganizationVerifierExist,
   assertExpirationDateExist,
-  getTenantCertifierId,
   assertTenantExists,
+  getTenantCertifierId,
 } from "./validators.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -48,11 +63,22 @@ const retrieveTenant = async (
   readModelService: ReadModelService
 ): Promise<WithMetadata<Tenant>> => {
   const tenant = await readModelService.getTenantById(tenantId);
-  if (tenant === undefined) {
+  if (!tenant) {
     throw tenantNotFound(tenantId);
   }
   return tenant;
 };
+
+export async function retrieveAttribute(
+  attributeId: AttributeId,
+  readModelService: ReadModelService
+): Promise<Attribute> {
+  const attribute = await readModelService.getAttributeById(attributeId);
+  if (!attribute) {
+    throw attributeNotFound(attributeId);
+  }
+  return attribute;
+}
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantServiceBuilder(
@@ -264,6 +290,71 @@ export function tenantServiceBuilder(
       }
     },
 
+    async addCertifiedAttribute(
+      tenantId: TenantId,
+      logger: Logger,
+      {
+        tenantAttributeSeed,
+        organizationId,
+        correlationId,
+      }: {
+        tenantAttributeSeed: ApiCertifiedTenantAttributeSeed;
+        organizationId: TenantId;
+        correlationId: string;
+      }
+    ): Promise<Tenant> {
+      logger.info(
+        `Add certified attribute ${tenantAttributeSeed.id} to tenant ${tenantId}`
+      );
+
+      const requesterTenant = await retrieveTenant(
+        organizationId,
+        readModelService
+      );
+
+      const certifierId = getTenantCertifierId(requesterTenant.data);
+
+      if (!certifierId) {
+        throw tenantIsNotACertifier(organizationId);
+      }
+
+      const attribute = await retrieveAttribute(
+        unsafeBrandId(tenantAttributeSeed.id),
+        readModelService
+      );
+
+      if (attribute.kind !== attributeKind.certified) {
+        throw attributeNotFound(attribute.id);
+      }
+
+      if (!attribute.origin || attribute.origin !== certifierId) {
+        throw certifiedAttributeOriginIsNotCompliantWithCertifier(
+          attribute.origin || "",
+          organizationId,
+          tenantId,
+          certifierId
+        );
+      }
+
+      const targetTenant = await retrieveTenant(tenantId, readModelService);
+
+      const updatedTenant = await assignCertifiedAttribute({
+        targetTenant: targetTenant.data,
+        attribute,
+        readModelService,
+      });
+
+      await repository.createEvent(
+        toCreateEventTenantCertifiedAttributeAssigned(
+          targetTenant.metadata.version,
+          updatedTenant,
+          attribute.id,
+          correlationId
+        )
+      );
+      return updatedTenant;
+    },
+
     async getCertifiedAttributes({
       organizationId,
       offset,
@@ -368,4 +459,71 @@ export function tenantServiceBuilder(
     },
   };
 }
+
+async function assignCertifiedAttribute({
+  targetTenant,
+  attribute,
+  readModelService,
+}: {
+  targetTenant: Tenant;
+  attribute: Attribute;
+  readModelService: ReadModelService;
+}): Promise<Tenant> {
+  const certifiedTenantAttribute = targetTenant.attributes.find(
+    (attr): attr is CertifiedTenantAttribute =>
+      attr.type === tenantAttributeType.CERTIFIED && attr.id === attribute.id
+  );
+
+  // eslint-disable-next-line functional/no-let
+  let updatedTenant: Tenant = {
+    ...targetTenant,
+    updatedAt: new Date(),
+  };
+
+  if (!certifiedTenantAttribute) {
+    // assigning attribute for the first time
+    updatedTenant = {
+      ...updatedTenant,
+      attributes: [
+        ...targetTenant.attributes,
+        {
+          id: attribute.id,
+          type: tenantAttributeType.CERTIFIED,
+          assignmentTimestamp: new Date(),
+          revocationTimestamp: undefined,
+        },
+      ],
+    };
+  } else if (!certifiedTenantAttribute.revocationTimestamp) {
+    throw certifiedAttributeAlreadyAssigned(attribute.id, targetTenant.id);
+  } else {
+    // re-assigning attribute if it was revoked
+    updatedTenant = {
+      ...updatedTenant,
+      attributes: targetTenant.attributes.map((a) =>
+        a.id === attribute.id
+          ? {
+              ...a,
+              assignmentTimestamp: new Date(),
+              revocationTimestamp: undefined,
+            }
+          : a
+      ),
+    };
+  }
+  const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+    readModelService,
+    updatedTenant.attributes,
+    updatedTenant.externalId
+  );
+
+  if (updatedTenant.kind !== tenantKind) {
+    updatedTenant = {
+      ...updatedTenant,
+      kind: tenantKind,
+    };
+  }
+  return updatedTenant;
+}
+
 export type TenantService = ReturnType<typeof tenantServiceBuilder>;

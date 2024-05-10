@@ -8,6 +8,7 @@ import { fail } from "assert";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import {
   AgreementCollection,
+  AttributeCollection,
   EServiceCollection,
   ReadModelRepository,
   TenantCollection,
@@ -75,17 +76,19 @@ import {
   getMockVerifiedTenantAttribute,
   readLastTenantEvent,
 } from "./utils.js";
+import { testAddCertifiedAttribute } from "./testAddCertifiedAttribute.js";
+
+export let tenants: TenantCollection;
+export let agreements: AgreementCollection;
+export let eservices: EServiceCollection;
+export let attributes: AttributeCollection;
+export let readModelService: ReadModelService;
+export let tenantService: TenantService;
+export let postgresDB: IDatabase<unknown>;
+export let startedPostgreSqlContainer: StartedTestContainer;
+export let startedMongodbContainer: StartedTestContainer;
 
 describe("Integration tests", () => {
-  let tenants: TenantCollection;
-  let agreements: AgreementCollection;
-  let eservices: EServiceCollection;
-  let readModelService: ReadModelService;
-  let tenantService: TenantService;
-  let postgresDB: IDatabase<unknown>;
-  let startedPostgreSqlContainer: StartedTestContainer;
-  let startedMongodbContainer: StartedTestContainer;
-
   beforeAll(async () => {
     startedPostgreSqlContainer = await postgreSQLContainer(config).start();
     startedMongodbContainer = await mongoDBContainer(config).start();
@@ -95,7 +98,8 @@ describe("Integration tests", () => {
     );
     config.readModelDbPort =
       startedMongodbContainer.getMappedPort(TEST_MONGO_DB_PORT);
-    ({ tenants, agreements, eservices } = ReadModelRepository.init(config));
+    ({ tenants, agreements, eservices, attributes } =
+      ReadModelRepository.init(config));
 
     readModelService = readModelServiceBuilder(config);
     postgresDB = initDB({
@@ -115,11 +119,13 @@ describe("Integration tests", () => {
   const mockTenant = getMockTenant();
   const mockVerifiedBy = getMockVerifiedBy();
   const mockVerifiedTenantAttribute = getMockVerifiedTenantAttribute();
+  const mockCertifiedTenantAttribute = getMockCertifiedTenantAttribute();
 
   afterEach(async () => {
     await tenants.deleteMany({});
     await agreements.deleteMany({});
     await eservices.deleteMany({});
+    await attributes.deleteMany({});
     await postgresDB.none("TRUNCATE TABLE tenant.events RESTART IDENTITY");
   });
 
@@ -397,7 +403,7 @@ describe("Integration tests", () => {
       it("Should throw verifiedAttributeNotFoundInTenant when the attribute is not verified", async () => {
         const updatedCertifiedTenant: Tenant = {
           ...mockTenant,
-          attributes: [{ ...getMockCertifiedTenantAttribute() }],
+          attributes: [{ ...mockCertifiedTenantAttribute }],
           updatedAt: currentDate,
           name: "A updatedCertifiedTenant",
         };
@@ -630,6 +636,7 @@ describe("Integration tests", () => {
         );
       });
     });
+    testAddCertifiedAttribute();
   });
   describe("readModelService", () => {
     const tenant1: Tenant = {

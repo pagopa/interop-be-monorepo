@@ -1,11 +1,13 @@
 import {
   AgreementCollection,
+  AttributeCollection,
   AuthData,
   EServiceCollection,
   TenantCollection,
 } from "pagopa-interop-commons";
 import {
   Agreement,
+  Attribute,
   CertifiedTenantAttribute,
   Descriptor,
   DescriptorId,
@@ -23,6 +25,7 @@ import {
   generateId,
   technology,
   tenantAttributeType,
+  toReadModelAttribute,
   toReadModelEService,
   toReadModelAgreement,
   toTenantV2,
@@ -51,7 +54,6 @@ export const writeTenantInEventstore = async (
     version: 0,
     event: tenantEvent,
   };
-
   await writeInEventstore(eventToWrite, "tenant", postgresDB);
 };
 
@@ -95,7 +97,7 @@ export const getMockCertifiedTenantAttribute =
     assignmentTimestamp: currentDate,
     id: generateId(),
     type: tenantAttributeType.CERTIFIED,
-    revocationTimestamp: currentDate,
+    revocationTimestamp: undefined,
   });
 
 export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
@@ -186,6 +188,13 @@ export const addOneEService = async (
   eservices: EServiceCollection
 ): Promise<void> => {
   await writeInReadmodel(toReadModelEService(eservice), eservices);
+};
+
+export const addOneAttribute = async (
+  attribute: Attribute,
+  attributes: AttributeCollection
+): Promise<void> => {
+  await writeInReadmodel(toReadModelAttribute(attribute), attributes);
 };
 
 export const addOneTenant = async (
