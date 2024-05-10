@@ -23,11 +23,21 @@ export const errorCodes = {
   certifiedAttributeOriginIsNotCompliantWithCertifier: "0014",
   certifiedAttributeAlreadyAssigned: "0015",
   certifierNotFound: "0016",
+  attributeVerificationNotAllowed: "0017",
+  verifiedAttributeSelfVerification: "0018",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
 
 export const makeApiProblem = makeApiProblemBuilder(errorCodes);
+
+export function verifiedAttributeSelfVerification(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Organizations are not allowed to verify own attributes`,
+    code: "verifiedAttributeSelfVerification",
+    title: "verified Attribute Self Verification",
+  });
+}
 
 export function attributeNotFound(identifier: string): ApiError<ErrorCodes> {
   return new ApiError({
@@ -98,6 +108,18 @@ export function expirationDateCannotBeInThePast(
     detail: `Expiration date ${date} cannot be in the past`,
     code: "expirationDateCannotBeInThePast",
     title: "Expiration date cannot be in the past",
+  });
+}
+
+export function attributeVerificationNotAllowed(
+  consumerId: string,
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Organization is not allowed to verify attribute ${attributeId} 
+    for tenant ${consumerId}`,
+    code: "attributeVerificationNotAllowed",
+    title: "attribute Verification is Not Allowed",
   });
 }
 

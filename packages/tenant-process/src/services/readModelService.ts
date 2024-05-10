@@ -16,6 +16,8 @@ import {
   EServiceId,
   attributeKind,
   AttributeReadmodel,
+  Agreement,
+  AgreementState,
   genericInternalError,
 } from "pagopa-interop-models";
 import { z } from "zod";
@@ -144,7 +146,8 @@ async function getTenant(
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(config: TenantProcessConfig) {
-  const { attributes, eservices, tenants } = ReadModelRepository.init(config);
+  const { attributes, eservices, tenants, agreements } =
+    ReadModelRepository.init(config);
   return {
     async getTenantsByName({
       name,
@@ -327,13 +330,12 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
       const data = await eservices.findOne(
         { "data.id": id },
-        { projection: { data: true, metadata: true } }
+        { projection: { data: true } }
       );
-
       if (!data) {
         return undefined;
       } else {
-        const result = EService.safeParse(data);
+        const result = EService.safeParse(data.data);
 
         if (!result.success) {
           throw genericInternalError(
@@ -345,6 +347,39 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
 
         return result.data;
       }
+    },
+
+    async getAgreements({
+      consumerId,
+      producerId,
+      states,
+    }: {
+      consumerId: TenantId;
+      producerId: TenantId;
+      states: AgreementState[];
+    }): Promise<Agreement[]> {
+      const data = await agreements
+        .aggregate([
+          {
+            $match: {
+              "data.consumerId": consumerId,
+              "data.producerId": producerId,
+              "data.state": { $in: states },
+            },
+          },
+        ])
+        .toArray();
+
+      const result = z.array(Agreement).safeParse(data.map((d) => d.data));
+
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse agreements item: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+      return result.data;
     },
 
     async getCertifiedAttributes({

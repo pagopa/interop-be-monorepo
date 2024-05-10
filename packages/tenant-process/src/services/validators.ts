@@ -1,7 +1,9 @@
 import { AuthData, userRoles } from "pagopa-interop-commons";
 import {
+  AgreementState,
   Attribute,
   AttributeId,
+  EService,
   ExternalId,
   Tenant,
   TenantAttribute,
@@ -13,6 +15,7 @@ import {
   operationForbidden,
   tenantAttributeType,
   tenantKind,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -42,6 +45,60 @@ export function assertVerifiedAttributeExistsInTenant(
 ): asserts attribute is NonNullable<VerifiedTenantAttribute> {
   if (!attribute || attribute.type !== tenantAttributeType.VERIFIED) {
     throw verifiedAttributeNotFoundInTenant(tenant.data.id, attributeId);
+  }
+}
+
+export async function assertVerifiedAttributeOperationAllowed({
+  producerId,
+  consumerId,
+  attributeId,
+  agreementStates,
+  readModelService,
+  error,
+}: {
+  producerId: string;
+  consumerId: string;
+  attributeId: string;
+  agreementStates: AgreementState[];
+  readModelService: ReadModelService;
+  error: Error;
+}): Promise<void> {
+  // Get agreements
+  const agreements = await readModelService.getAgreements({
+    consumerId: unsafeBrandId(consumerId),
+    producerId: unsafeBrandId(producerId),
+    states: agreementStates,
+  });
+
+  // Extract descriptor IDs
+  const descriptorIds = agreements.map((agreement) => agreement.descriptorId);
+
+  // Get eServices concurrently
+  const eServices = (
+    await Promise.all(
+      agreements.map((agreement) =>
+        readModelService.getEServiceById(agreement.eserviceId)
+      )
+    )
+  ).filter((eService): eService is EService => eService !== undefined);
+
+  // Find verified attribute IDs
+  const attributeIds = eServices
+    .flatMap((eService) =>
+      eService.descriptors.filter((descriptor) =>
+        descriptorIds.includes(descriptor.id)
+      )
+    )
+    .flatMap((descriptor) =>
+      descriptor.attributes.verified.flatMap((attribute) =>
+        attribute.map((a) => a.id)
+      )
+    )
+    .reduce((acc, id) => acc.add(id), new Set<string>()); // Use Set for uniqueness
+
+  // Check if attribute is allowed
+  if (!attributeIds.has(attributeId)) {
+    throw error;
   }
 }
 
