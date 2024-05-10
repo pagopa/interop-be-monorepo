@@ -7,6 +7,7 @@ import {
   toTenantV2,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import { tenantNotFound } from "../src/model/domain/errors.js";
 import { addOneTenant, getMockTenant, readLastTenantEvent } from "./utils.js";
 import {
@@ -20,7 +21,11 @@ export const testMaintenanceTenantDelete = (): ReturnType<typeof describe> =>
     it("should write on event-store for the deletion of a tenant", async () => {
       const mockTenant = getMockTenant();
       await addOneTenant(mockTenant, postgresDB, tenants);
-      await tenantService.maintenanceTenantDeleted(mockTenant.id, generateId());
+      await tenantService.maintenanceTenantDeleted(
+        mockTenant.id,
+        generateId(),
+        genericLogger
+      );
       const writtenEvent = await readLastTenantEvent(mockTenant.id, postgresDB);
 
       expect(writtenEvent).toMatchObject({
@@ -38,7 +43,11 @@ export const testMaintenanceTenantDelete = (): ReturnType<typeof describe> =>
       const mockTenant = getMockTenant();
 
       expect(
-        tenantService.maintenanceTenantDeleted(mockTenant.id, generateId())
+        tenantService.maintenanceTenantDeleted(
+          mockTenant.id,
+          generateId(),
+          genericLogger
+        )
       ).rejects.toThrowError(tenantNotFound(mockTenant.id));
     });
   });

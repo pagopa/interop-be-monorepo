@@ -16,6 +16,7 @@ import {
   toEServiceV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import { genericLogger } from "pagopa-interop-commons";
 import { v4 } from "uuid";
 import {
   QueueManager,
@@ -153,9 +154,9 @@ describe("Notification tests", async () => {
         eventEnvelope,
         CatalogItemEventNotification
       );
-      await queueWriter.send(message);
+      await queueWriter.send(message, genericLogger);
 
-      const receivedMessage = (await queueWriter.receiveLast())[0];
+      const receivedMessage = (await queueWriter.receiveLast(genericLogger))[0];
 
       expect(receivedMessage.payload).toEqual(
         catalogItemDescriptorUpdatedNotification.payload
