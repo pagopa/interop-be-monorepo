@@ -17,6 +17,7 @@ import {
   Agreement,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   tenantNotFound,
   attributeAlreadyRevoked,
@@ -119,12 +120,15 @@ export const testRevokeVerifiedAttribute = (): ReturnType<typeof describe> =>
       await addOneEService(eService1, eservices);
       await addOneAgreement(agreementEservice1, agreements);
 
-      await tenantService.revokeVerifiedAttribute({
-        tenantId: tenantWithVerifiedAttribute.id,
-        attributeId,
-        organizationId: requesterTenant.id,
-        correlationId: generateId(),
-      });
+      await tenantService.revokeVerifiedAttribute(
+        {
+          tenantId: tenantWithVerifiedAttribute.id,
+          attributeId,
+          organizationId: requesterTenant.id,
+          correlationId: generateId(),
+        },
+        genericLogger
+      );
       const writtenEvent = await readLastEventByStreamId(
         tenantWithVerifiedAttribute.id,
         "tenant",
@@ -170,12 +174,15 @@ export const testRevokeVerifiedAttribute = (): ReturnType<typeof describe> =>
       await addOneEService(eService1, eservices);
       await addOneAgreement(agreementEservice1, agreements);
       expect(
-        tenantService.revokeVerifiedAttribute({
-          tenantId: targetTenant.id,
-          attributeId,
-          organizationId: requesterTenant.id,
-          correlationId: generateId(),
-        })
+        tenantService.revokeVerifiedAttribute(
+          {
+            tenantId: targetTenant.id,
+            attributeId,
+            organizationId: requesterTenant.id,
+            correlationId: generateId(),
+          },
+          genericLogger
+        )
       ).rejects.toThrowError(tenantNotFound(targetTenant.id));
     });
     it("Should throw attributeNotFound if the attribute doesn't exist", async () => {
@@ -201,12 +208,15 @@ export const testRevokeVerifiedAttribute = (): ReturnType<typeof describe> =>
       await addOneEService(eService1, eservices);
       await addOneAgreement(agreementEservice1, agreements);
       expect(
-        tenantService.revokeVerifiedAttribute({
-          tenantId: tenantWithoutSameAttributeId.id,
-          attributeId,
-          organizationId: requesterTenant.id,
-          correlationId: generateId(),
-        })
+        tenantService.revokeVerifiedAttribute(
+          {
+            tenantId: tenantWithoutSameAttributeId.id,
+            attributeId,
+            organizationId: requesterTenant.id,
+            correlationId: generateId(),
+          },
+          genericLogger
+        )
       ).rejects.toThrowError(attributeNotFound(attributeId));
     });
     it("Should throw attributeRevocationNotAllowed if the organization is not allowed to revoke the attribute", async () => {
@@ -233,12 +243,15 @@ export const testRevokeVerifiedAttribute = (): ReturnType<typeof describe> =>
       await addOneAgreement(agreementEservice1, agreements);
 
       expect(
-        tenantService.revokeVerifiedAttribute({
-          tenantId: tenantWithVerifiedAttribute.id,
-          attributeId,
-          organizationId: requesterTenant.id,
-          correlationId: generateId(),
-        })
+        tenantService.revokeVerifiedAttribute(
+          {
+            tenantId: tenantWithVerifiedAttribute.id,
+            attributeId,
+            organizationId: requesterTenant.id,
+            correlationId: generateId(),
+          },
+          genericLogger
+        )
       ).rejects.toThrowError(
         attributeRevocationNotAllowed(
           targetTenant.id,
@@ -253,12 +266,15 @@ export const testRevokeVerifiedAttribute = (): ReturnType<typeof describe> =>
       await addOneAgreement(agreementEservice1, agreements);
 
       expect(
-        tenantService.revokeVerifiedAttribute({
-          tenantId: requesterTenant.id,
-          attributeId,
-          organizationId: requesterTenant.id,
-          correlationId: generateId(),
-        })
+        tenantService.revokeVerifiedAttribute(
+          {
+            tenantId: requesterTenant.id,
+            attributeId,
+            organizationId: requesterTenant.id,
+            correlationId: generateId(),
+          },
+          genericLogger
+        )
       ).rejects.toThrowError(verifiedAttributeSelfRevocation());
     });
     it("Should throw attributeAlreadyRevoked if the attribute is already revoked", async () => {
@@ -285,12 +301,15 @@ export const testRevokeVerifiedAttribute = (): ReturnType<typeof describe> =>
       await addOneAgreement(agreementEservice1, agreements);
 
       expect(
-        tenantService.revokeVerifiedAttribute({
-          tenantId: tenantWithVerifiedAttribute.id,
-          attributeId,
-          organizationId: requesterTenant.id,
-          correlationId: generateId(),
-        })
+        tenantService.revokeVerifiedAttribute(
+          {
+            tenantId: tenantWithVerifiedAttribute.id,
+            attributeId,
+            organizationId: requesterTenant.id,
+            correlationId: generateId(),
+          },
+          genericLogger
+        )
       ).rejects.toThrowError(
         attributeAlreadyRevoked(
           targetTenant.id,
