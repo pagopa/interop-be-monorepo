@@ -8,6 +8,7 @@ import {
   initDB,
   zodiosValidationErrorToApiProblem,
   fromAppContext,
+  genericLogger,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
@@ -450,17 +451,22 @@ const tenantsRouter = (
       "/tenants/attributes/declared",
       authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
         try {
-          const tenant = await tenantService.addDeclaredAttribute({
-            tenantAttributeSeed: req.body,
-            organizationId: req.ctx.authData.organizationId,
-            correlationId: req.ctx.correlationId,
-          });
+          const tenant = await tenantService.addDeclaredAttribute(
+            {
+              tenantAttributeSeed: req.body,
+              organizationId: req.ctx.authData.organizationId,
+              correlationId: req.ctx.correlationId,
+            },
+            genericLogger
+          );
           return res.status(200).json(toApiTenant(tenant)).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            addDeclaredAttributeErrorMapper
+            addDeclaredAttributeErrorMapper,
+            ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
