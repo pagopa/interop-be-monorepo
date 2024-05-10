@@ -15,6 +15,7 @@
     "format:write": "prettier --write src",
     "start": "node --watch --loader ts-node/esm ./src/index.ts",
     "build": "tsc",
+    "check": "tsc --project tsconfig.check.json",
     "generate-protobuf": "mkdirp ./src/gen && npx protoc --ts_opt=eslint_disable --ts_out ./src/gen --proto_path ./proto ./proto/**/**/*.proto && tsc-esm-fix --src='src/gen/' --ext='.js'"
   },
   "keywords": [],
@@ -28,7 +29,7 @@
     "@types/uuid": "9.0.8",
     "ts-pattern": "5.0.6",
     "uuid": "9.0.1",
-    "zod": "3.21.4",
+    "zod": "3.22.3",
     "zod-validation-error": "^3.1.0"
   },
   "devDependencies": {
