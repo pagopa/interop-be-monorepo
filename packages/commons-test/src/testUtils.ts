@@ -37,6 +37,10 @@ export function randomArrayItem<T>(array: T[]): T {
   return array[Math.floor(Math.random() * array.length)];
 }
 
+export function randomBoolean(): boolean {
+  return Math.random() < 0.5;
+}
+
 export const getRandomAuthData = (
   organizationId: TenantId = generateId<TenantId>()
 ): AuthData => ({
@@ -84,15 +88,10 @@ export const getMockEService = (
 
 export const getMockVerifiedTenantAttribute = (
   attributeId: AttributeId = generateId<AttributeId>()
-): TenantAttribute => ({
+): VerifiedTenantAttribute => ({
   ...generateMock(VerifiedTenantAttribute),
   id: attributeId,
 });
-
-export const getMockVerifiedTenantAttributes = (
-  num: number
-): TenantAttribute[] =>
-  new Array(num).map(() => getMockVerifiedTenantAttribute());
 
 export const getMockCertifiedTenantAttribute = (
   attributeId: AttributeId = generateId<AttributeId>()
@@ -101,22 +100,12 @@ export const getMockCertifiedTenantAttribute = (
   id: attributeId,
 });
 
-export const getMockCertifiedTenantAttributes = (
-  num: number
-): TenantAttribute[] =>
-  new Array(num).map(() => getMockCertifiedTenantAttribute());
-
 export const getMockDeclaredTenantAttribute = (
   attributeId: AttributeId = generateId<AttributeId>()
-): TenantAttribute => ({
+): DeclaredTenantAttribute => ({
   ...generateMock(DeclaredTenantAttribute),
   id: attributeId,
 });
-
-export const getMockDeclaredTenantAttributes = (
-  num: number
-): TenantAttribute[] =>
-  new Array(num).map(() => getMockDeclaredTenantAttribute());
 
 export const getMockTenant = (
   tenantId: TenantId = generateId<TenantId>(),

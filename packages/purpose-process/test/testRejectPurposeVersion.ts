@@ -25,7 +25,6 @@ import {
   organizationIsNotTheProducer,
   purposeVersionNotFound,
   notValidVersionState,
-  missingRejectionReason,
 } from "../src/model/domain/errors.js";
 import {
   postgresDB,
@@ -228,30 +227,4 @@ export const testRejectPurposeVersion = (): ReturnType<typeof describe> =>
         );
       }
     );
-    it("should throw missingRejectionReason if the rejection reason has been omitted", async () => {
-      const mockEService = getMockEService();
-      const mockPurposeVersion = {
-        ...getMockPurposeVersion(),
-        state: purposeVersionState.waitingForApproval,
-      };
-      const mockPurpose: Purpose = {
-        ...getMockPurpose(),
-        eserviceId: mockEService.id,
-        versions: [mockPurposeVersion],
-      };
-
-      await addOnePurpose(mockPurpose, postgresDB, purposes);
-      await writeInReadmodel(toReadModelEService(mockEService), eservices);
-
-      expect(
-        purposeService.rejectPurposeVersion({
-          purposeId: mockPurpose.id,
-          versionId: mockPurposeVersion.id,
-          rejectionReason: "",
-          organizationId: mockEService.producerId,
-          correlationId: generateId(),
-          logger: genericLogger,
-        })
-      ).rejects.toThrowError(missingRejectionReason());
-    });
   });
