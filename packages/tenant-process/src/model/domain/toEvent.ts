@@ -76,3 +76,21 @@ export const toCreateEventTenantVerifiedAttributeExpirationUpdated = (
   },
   correlationId,
 });
+
+export const toCreateEventMaintenanceTenantDeleted = (
+  version: number,
+  tenant: Tenant,
+  correlationId: string
+): CreateEvent<TenantEvent> => ({
+  streamId: tenant.id,
+  version,
+  event: {
+    event_version: 2,
+    type: "MaintenanceTenantDeleted",
+    data: {
+      tenantId: tenant.id,
+      tenant: toTenantV2(tenant),
+    },
+  },
+  correlationId,
+});
