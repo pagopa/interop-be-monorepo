@@ -65,7 +65,7 @@ const logFormat = (
 };
 
 export const customFormat = () =>
-  winston.format.printf(({ level, message, timestamp, loggerCtx }) => {
+  winston.format.printf(({ level, message, timestamp, ...meta }) => {
     const clearMessage =
       typeof message === "object"
         ? JSON.stringify(message, bigIntReplacer)
@@ -73,7 +73,9 @@ export const customFormat = () =>
     const lines = clearMessage
       .toString()
       .split("\n")
-      .map((line: string) => logFormat(line, timestamp, level, loggerCtx));
+      .map((line: string) =>
+        logFormat(line, timestamp, level, meta.loggerMetadata)
+      );
     return lines.join("\n");
   });
 
