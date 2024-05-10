@@ -26,5 +26,5 @@ export type ApiReversePurposeUpdateContent = z.infer<
 >;
 
 export type ApiReversePurposeSeed = z.infer<
-  typeof api.schemas.ReversePurposeSeed
+  typeof api.schemas.EServicePurposeSeed
 >;
