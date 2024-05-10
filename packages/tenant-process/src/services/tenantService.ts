@@ -326,17 +326,20 @@ export function tenantServiceBuilder(
       );
     },
 
-    async addTenantMail({
-      tenantId,
-      mailSeed,
-      organizationId,
-      correlationId,
-    }: {
-      tenantId: TenantId;
-      mailSeed: MailSeed;
-      organizationId: TenantId;
-      correlationId: string;
-    }): Promise<void> {
+    async addTenantMail(
+      {
+        tenantId,
+        mailSeed,
+        organizationId,
+        correlationId,
+      }: {
+        tenantId: TenantId;
+        mailSeed: MailSeed;
+        organizationId: TenantId;
+        correlationId: string;
+      },
+      logger: Logger
+    ): Promise<void> {
       logger.info(`Adding mail of kind ${mailSeed.kind} to Tenant ${tenantId}`);
 
       await assertRequesterAllowed(tenantId, organizationId);
