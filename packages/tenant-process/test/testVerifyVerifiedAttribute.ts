@@ -21,6 +21,7 @@ import {
   Agreement,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   tenantNotFound,
   attributeVerificationNotAllowed,
@@ -115,12 +116,15 @@ export const testVerifyVerifiedAttribute = (): ReturnType<typeof describe> =>
       await addOneAttribute(attribute, attributes);
       await addOneEService(eService1, eservices);
       await addOneAgreement(agreementEservice1, agreements);
-      await tenantService.verifyVerifiedAttribute({
-        tenantId: targetTenant.id,
-        tenantAttributeSeed,
-        organizationId: requesterTenant.id,
-        correlationId: generateId(),
-      });
+      await tenantService.verifyVerifiedAttribute(
+        {
+          tenantId: targetTenant.id,
+          tenantAttributeSeed,
+          organizationId: requesterTenant.id,
+          correlationId: generateId(),
+        },
+        genericLogger
+      );
 
       const writtenEvent = await readLastEventByStreamId(
         targetTenant.id,
@@ -190,12 +194,15 @@ export const testVerifyVerifiedAttribute = (): ReturnType<typeof describe> =>
       await addOneEService(eService1, eservices);
       await addOneAgreement(agreementEservice1, agreements);
 
-      await tenantService.verifyVerifiedAttribute({
-        tenantId: tenantWithVerifiedAttribute.id,
-        tenantAttributeSeed,
-        organizationId: requesterTenant.id,
-        correlationId: generateId(),
-      });
+      await tenantService.verifyVerifiedAttribute(
+        {
+          tenantId: tenantWithVerifiedAttribute.id,
+          tenantAttributeSeed,
+          organizationId: requesterTenant.id,
+          correlationId: generateId(),
+        },
+        genericLogger
+      );
       const writtenEvent = await readLastEventByStreamId(
         tenantWithVerifiedAttribute.id,
         "tenant",
@@ -239,12 +246,15 @@ export const testVerifyVerifiedAttribute = (): ReturnType<typeof describe> =>
       await addOneEService(eService1, eservices);
       await addOneAgreement(agreementEservice1, agreements);
       expect(
-        tenantService.verifyVerifiedAttribute({
-          tenantId: targetTenant.id,
-          tenantAttributeSeed,
-          organizationId: requesterTenant.id,
-          correlationId: generateId(),
-        })
+        tenantService.verifyVerifiedAttribute(
+          {
+            tenantId: targetTenant.id,
+            tenantAttributeSeed,
+            organizationId: requesterTenant.id,
+            correlationId: generateId(),
+          },
+          genericLogger
+        )
       ).rejects.toThrowError(tenantNotFound(targetTenant.id));
     });
     it("Should throw attributeNotFound if the attribute doesn't exist", async () => {
@@ -253,12 +263,15 @@ export const testVerifyVerifiedAttribute = (): ReturnType<typeof describe> =>
       await addOneEService(eService1, eservices);
       await addOneAgreement(agreementEservice1, agreements);
       expect(
-        tenantService.verifyVerifiedAttribute({
-          tenantId: targetTenant.id,
-          tenantAttributeSeed,
-          organizationId: requesterTenant.id,
-          correlationId: generateId(),
-        })
+        tenantService.verifyVerifiedAttribute(
+          {
+            tenantId: targetTenant.id,
+            tenantAttributeSeed,
+            organizationId: requesterTenant.id,
+            correlationId: generateId(),
+          },
+          genericLogger
+        )
       ).rejects.toThrowError(attributeNotFound(attribute.id));
     });
     it("Should throw attributeVerificationNotAllowed if the organization is not allowed to verify the attribute", async () => {
@@ -298,12 +311,15 @@ export const testVerifyVerifiedAttribute = (): ReturnType<typeof describe> =>
       );
 
       expect(
-        tenantService.verifyVerifiedAttribute({
-          tenantId: targetTenant.id,
-          tenantAttributeSeed,
-          organizationId: requesterTenant.id,
-          correlationId: generateId(),
-        })
+        tenantService.verifyVerifiedAttribute(
+          {
+            tenantId: targetTenant.id,
+            tenantAttributeSeed,
+            organizationId: requesterTenant.id,
+            correlationId: generateId(),
+          },
+          genericLogger
+        )
       ).rejects.toThrowError(
         attributeVerificationNotAllowed(
           targetTenant.id,
@@ -318,12 +334,15 @@ export const testVerifyVerifiedAttribute = (): ReturnType<typeof describe> =>
       await addOneAgreement(agreementEservice1, agreements);
 
       expect(
-        tenantService.verifyVerifiedAttribute({
-          tenantId: targetTenant.id,
-          tenantAttributeSeed,
-          organizationId: targetTenant.id,
-          correlationId: generateId(),
-        })
+        tenantService.verifyVerifiedAttribute(
+          {
+            tenantId: targetTenant.id,
+            tenantAttributeSeed,
+            organizationId: targetTenant.id,
+            correlationId: generateId(),
+          },
+          genericLogger
+        )
       ).rejects.toThrowError(verifiedAttributeSelfVerification());
     });
   });

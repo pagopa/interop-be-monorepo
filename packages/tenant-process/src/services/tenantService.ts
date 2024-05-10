@@ -425,17 +425,20 @@ export function tenantServiceBuilder(
       return updatedTenant;
     },
 
-    async verifyVerifiedAttribute({
-      tenantId,
-      tenantAttributeSeed,
-      organizationId,
-      correlationId,
-    }: {
-      tenantId: TenantId;
-      tenantAttributeSeed: ApiVerifiedTenantAttributeSeed;
-      organizationId: TenantId;
-      correlationId: string;
-    }): Promise<Tenant> {
+    async verifyVerifiedAttribute(
+      {
+        tenantId,
+        tenantAttributeSeed,
+        organizationId,
+        correlationId,
+      }: {
+        tenantId: TenantId;
+        tenantAttributeSeed: ApiVerifiedTenantAttributeSeed;
+        organizationId: TenantId;
+        correlationId: string;
+      },
+      logger: Logger
+    ): Promise<Tenant> {
       logger.info(
         `Verifying attribute ${tenantAttributeSeed.id} to tenant ${tenantId}`
       );
