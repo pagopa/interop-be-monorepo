@@ -34,6 +34,10 @@ jobs:
             dockerfile_path: packages/tenant-process
           - image_name: tenant-readmodel-writer
             dockerfile_path: packages/tenant-readmodel-writer
+          - image_name: purpose-process
+            dockerfile_path: packages/purpose-process
+          - image_name: purpose-readmodel-writer
+            dockerfile_path: packages/purpose-readmodel-writer
           - image_name: attribute-registry-process
             dockerfile_path: packages/attribute-registry-process
           - image_name: attribute-registry-readmodel-writer
