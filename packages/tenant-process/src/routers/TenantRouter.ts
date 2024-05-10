@@ -422,10 +422,12 @@ const tenantsRouter = (
       "/tenants/:tenantId/attributes/certified",
       authorizationMiddleware([ADMIN_ROLE, M2M_ROLE]),
       async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
         try {
           const { tenantId } = req.params;
           const tenant = await tenantService.addCertifiedAttribute(
             unsafeBrandId(tenantId),
+            ctx.logger,
             {
               tenantAttributeSeed: req.body,
               organizationId: req.ctx.authData.organizationId,
@@ -436,7 +438,8 @@ const tenantsRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            addCertifiedAttributeErrorMapper
+            addCertifiedAttributeErrorMapper,
+            ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
