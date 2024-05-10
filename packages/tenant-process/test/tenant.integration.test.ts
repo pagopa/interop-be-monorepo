@@ -25,7 +25,6 @@ import { IDatabase } from "pg-promise";
 import {
   Descriptor,
   EService,
-  MaintenanceTenantDeletedV2,
   Tenant,
   TenantId,
   TenantOnboardDetailsUpdatedV2,
