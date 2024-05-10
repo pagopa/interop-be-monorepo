@@ -8,9 +8,6 @@
   "exports": {
     ".": "./dist/index.js"
   },
-  "config":  { 
-    "protocVersion": "26.1"
-  },
   "scripts": {
     "lint": "eslint . --ext .ts,.tsx",
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
