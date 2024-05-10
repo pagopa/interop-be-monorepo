@@ -18,6 +18,7 @@ import {
   toTenantV2,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   tenantNotFound,
   attributeNotFound,
@@ -59,11 +60,14 @@ export const testInternalAssignCertifiedAttribute = (): ReturnType<
       await addOneAttribute(attribute, attributes);
       await addOneTenant(targetTenant, postgresDB, tenants);
       await tenantService.internalAssignCertifiedAttribute(
-        targetTenant.externalId.origin,
-        targetTenant.externalId.value,
-        attribute.origin!,
-        attribute.code!,
-        generateId()
+        {
+          tenantOrigin: targetTenant.externalId.origin,
+          tenantExternalId: targetTenant.externalId.value,
+          attributeOrigin: attribute.origin!,
+          attributeExternalId: attribute.code!,
+          correlationId: generateId(),
+        },
+        genericLogger
       );
       const writtenEvent = await readLastEventByStreamId(
         targetTenant.id,
@@ -112,11 +116,14 @@ export const testInternalAssignCertifiedAttribute = (): ReturnType<
       await addOneAttribute(attribute, attributes);
       await addOneTenant(tenantWithCertifiedAttribute, postgresDB, tenants);
       await tenantService.internalAssignCertifiedAttribute(
-        tenantWithCertifiedAttribute.externalId.origin,
-        tenantWithCertifiedAttribute.externalId.value,
-        attribute.origin!,
-        attribute.code!,
-        generateId()
+        {
+          tenantOrigin: tenantWithCertifiedAttribute.externalId.origin,
+          tenantExternalId: tenantWithCertifiedAttribute.externalId.value,
+          attributeOrigin: attribute.origin!,
+          attributeExternalId: attribute.code!,
+          correlationId: generateId(),
+        },
+        genericLogger
       );
       const writtenEvent = await readLastEventByStreamId(
         tenantWithCertifiedAttribute.id,
@@ -164,11 +171,14 @@ export const testInternalAssignCertifiedAttribute = (): ReturnType<
       await addOneTenant(tenantAlreadyAssigned, postgresDB, tenants);
       expect(
         tenantService.internalAssignCertifiedAttribute(
-          tenantAlreadyAssigned.externalId.origin,
-          tenantAlreadyAssigned.externalId.value,
-          attribute.origin!,
-          attribute.code!,
-          generateId()
+          {
+            tenantOrigin: tenantAlreadyAssigned.externalId.origin,
+            tenantExternalId: tenantAlreadyAssigned.externalId.value,
+            attributeOrigin: attribute.origin!,
+            attributeExternalId: attribute.code!,
+            correlationId: generateId(),
+          },
+          genericLogger
         )
       ).rejects.toThrowError(
         certifiedAttributeAlreadyAssigned(
@@ -182,11 +192,14 @@ export const testInternalAssignCertifiedAttribute = (): ReturnType<
       const targetTenant: Tenant = getMockTenant();
       expect(
         tenantService.internalAssignCertifiedAttribute(
-          targetTenant.externalId.origin,
-          targetTenant.externalId.value,
-          attribute.origin!,
-          attribute.code!,
-          generateId()
+          {
+            tenantOrigin: targetTenant.externalId.origin,
+            tenantExternalId: targetTenant.externalId.value,
+            attributeOrigin: attribute.origin!,
+            attributeExternalId: attribute.code!,
+            correlationId: generateId(),
+          },
+          genericLogger
         )
       ).rejects.toThrowError(
         tenantNotFound(
@@ -202,11 +215,14 @@ export const testInternalAssignCertifiedAttribute = (): ReturnType<
 
       expect(
         tenantService.internalAssignCertifiedAttribute(
-          targetTenant.externalId.origin,
-          targetTenant.externalId.value,
-          attribute.origin!,
-          attribute.code!,
-          generateId()
+          {
+            tenantOrigin: targetTenant.externalId.origin,
+            tenantExternalId: targetTenant.externalId.value,
+            attributeOrigin: attribute.origin!,
+            attributeExternalId: attribute.code!,
+            correlationId: generateId(),
+          },
+          genericLogger
         )
       ).rejects.toThrowError(
         attributeNotFound(
