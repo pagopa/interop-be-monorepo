@@ -1,6 +1,5 @@
 import {
   AttributeCollection,
-  logger,
   ReadModelRepository,
   TenantCollection,
 } from "pagopa-interop-commons";
@@ -10,7 +9,6 @@ import {
   Attribute,
   ExternalId,
   EService,
-  genericError,
   ListResult,
   agreementState,
   AttributeId,
@@ -20,6 +18,7 @@ import {
   AttributeReadmodel,
   Agreement,
   AgreementState,
+  genericInternalError,
 } from "pagopa-interop-models";
 import { z } from "zod";
 import { Document, Filter, WithId } from "mongodb";
@@ -76,12 +75,11 @@ export const getTenants = async ({
   const result = z.array(Tenant).safeParse(data.map((d) => d.data));
 
   if (!result.success) {
-    logger.error(
+    throw genericInternalError(
       `Unable to parse tenants items: result ${JSON.stringify(
         result
       )} - data ${JSON.stringify(data)} `
     );
-    throw genericError("Unable to parse tenants items");
   }
   return {
     results: result.data,
@@ -105,12 +103,11 @@ async function getAttribute(
   } else {
     const result = Attribute.safeParse(data.data);
     if (!result.success) {
-      logger.error(
+      throw genericInternalError(
         `Unable to parse attribute item: result ${JSON.stringify(
           result
         )} - data ${JSON.stringify(data)} `
       );
-      throw genericError("Unable to parse attribute item");
     }
     return result.data;
   }
@@ -133,13 +130,11 @@ async function getTenant(
       })
       .safeParse(data);
     if (!result.success) {
-      logger.error(
+      throw genericInternalError(
         `Unable to parse tenant item: result ${JSON.stringify(
           result
         )} - data ${JSON.stringify(data)} `
       );
-
-      throw genericError("Unable to parse tenant item");
     }
 
     return {
@@ -356,13 +351,11 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
         const result = EService.safeParse(data.data);
 
         if (!result.success) {
-          logger.error(
+          throw genericInternalError(
             `Unable to parse eservices item: result ${JSON.stringify(
               result
             )} - data ${JSON.stringify(data)} `
           );
-
-          throw genericError("Unable to parse eservices item");
         }
 
         return result.data;
@@ -393,12 +386,11 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
       const result = z.array(Agreement).safeParse(data.map((d) => d.data));
 
       if (!result.success) {
-        logger.error(
-          `Unable to parse agreements items: result ${JSON.stringify(
+        throw genericInternalError(
+          `Unable to parse agreements item: result ${JSON.stringify(
             result
           )} - data ${JSON.stringify(data)} `
         );
-        throw genericError("Unable to parse agreements items");
       }
       return result.data;
     },
@@ -477,20 +469,19 @@ export function readModelServiceBuilder(config: TenantProcessConfig) {
       const result = z.array(CertifiedAttributeQueryResult).safeParse(data);
 
       if (!result.success) {
-        logger.error(
+        throw genericInternalError(
           `Unable to parse attributes items: result ${JSON.stringify(
             result
           )} - data ${JSON.stringify(data)} `
         );
-
-        throw genericError("Unable to parse attributes items");
       }
 
       return {
         results: result.data,
         totalCount: await ReadModelRepository.getTotalCount(
           attributes,
-          aggregationPipeline
+          aggregationPipeline,
+          false
         ),
       };
     },

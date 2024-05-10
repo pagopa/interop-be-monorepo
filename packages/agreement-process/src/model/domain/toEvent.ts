@@ -8,11 +8,17 @@ import {
   AgreementState,
   AgreementStateV1,
   AgreementV1,
+  AgreementV2,
   StampV1,
   StampsV1,
-  AgreementId,
   AgreementDocumentId,
   AgreementEvent,
+  AgreementStateV2,
+  AgreementDocumentV2,
+  AgreementStampV2,
+  AgreementStampsV2,
+  AgreementEventV2,
+  agreementState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -69,19 +75,80 @@ export const toAgreementV1 = (input: Agreement): AgreementV1 => ({
   stamps: toStampsV1(input.stamps),
 });
 
+export const toAgreementStateV2 = (state: AgreementState): AgreementStateV2 =>
+  match(state)
+    .with(agreementState.draft, () => AgreementStateV2.DRAFT)
+    .with(agreementState.suspended, () => AgreementStateV2.SUSPENDED)
+    .with(agreementState.archived, () => AgreementStateV2.ARCHIVED)
+    .with(agreementState.pending, () => AgreementStateV2.PENDING)
+    .with(agreementState.active, () => AgreementStateV2.ACTIVE)
+    .with(agreementState.rejected, () => AgreementStateV2.REJECTED)
+    .with(
+      agreementState.missingCertifiedAttributes,
+      () => AgreementStateV2.MISSING_CERTIFIED_ATTRIBUTES
+    )
+    .exhaustive();
+
+export const toAgreementDocumentV2 = (
+  input: AgreementDocument
+): AgreementDocumentV2 => ({
+  ...input,
+  createdAt: BigInt(input.createdAt.getTime()),
+});
+
+export const toAgreementStampV2 = (
+  input: AgreementStamp
+): AgreementStampV2 => ({
+  ...input,
+  when: BigInt(input.when.getTime()),
+});
+
+export const toAgreementStampsV2 = (
+  input: AgreementStamps
+): AgreementStampsV2 => ({
+  submission: input.submission
+    ? toAgreementStampV2(input.submission)
+    : undefined,
+  activation: input.activation
+    ? toAgreementStampV2(input.activation)
+    : undefined,
+  rejection: input.rejection ? toAgreementStampV2(input.rejection) : undefined,
+  suspensionByProducer: input.suspensionByProducer
+    ? toAgreementStampV2(input.suspensionByProducer)
+    : undefined,
+  upgrade: input.upgrade ? toAgreementStampV2(input.upgrade) : undefined,
+  archiving: input.archiving ? toAgreementStampV2(input.archiving) : undefined,
+  suspensionByConsumer: input.suspensionByConsumer
+    ? toAgreementStampV2(input.suspensionByConsumer)
+    : undefined,
+});
+
+export const toAgreementV2 = (input: Agreement): AgreementV2 => ({
+  ...input,
+  state: toAgreementStateV2(input.state),
+  createdAt: BigInt(input.createdAt.getTime()),
+  updatedAt: input.updatedAt ? BigInt(input.updatedAt.getTime()) : undefined,
+  suspendedAt: input.suspendedAt
+    ? BigInt(input.suspendedAt.getTime())
+    : undefined,
+  consumerDocuments: input.consumerDocuments.map(toAgreementDocumentV2),
+  contract: input.contract ? toAgreementDocumentV2(input.contract) : undefined,
+  stamps: toAgreementStampsV2(input.stamps),
+});
+
 export function toCreateEventAgreementDeleted(
-  streamId: string,
+  agreement: Agreement,
   version: number,
   correlationId: string
-): CreateEvent<AgreementEvent> {
+): CreateEvent<AgreementEventV2> {
   return {
-    streamId,
+    streamId: agreement.id,
     version,
     event: {
       type: "AgreementDeleted",
-      event_version: 1,
+      event_version: 2,
       data: {
-        agreementId: streamId,
+        agreement: toAgreementV2(agreement),
       },
     },
     correlationId,
@@ -91,15 +158,109 @@ export function toCreateEventAgreementDeleted(
 export function toCreateEventAgreementAdded(
   agreement: Agreement,
   correlationId: string
-): CreateEvent<AgreementEvent> {
+): CreateEvent<AgreementEventV2> {
   return {
     streamId: agreement.id,
     version: 0,
     event: {
       type: "AgreementAdded",
-      event_version: 1,
+      event_version: 2,
       data: {
-        agreement: toAgreementV1(agreement),
+        agreement: toAgreementV2(agreement),
+      },
+    },
+    correlationId,
+  };
+}
+
+export function toCreateEventDraftAgreementUpdated(
+  agreement: Agreement,
+  version: number,
+  correlationId: string
+): CreateEvent<AgreementEventV2> {
+  return {
+    streamId: agreement.id,
+    version,
+    event: {
+      type: "DraftAgreementUpdated",
+      event_version: 2,
+      data: {
+        agreement: toAgreementV2(agreement),
+      },
+    },
+    correlationId,
+  };
+}
+
+export function toCreateEventAgreementSubmitted(
+  agreement: Agreement,
+  version: number,
+  correlationId: string
+): CreateEvent<AgreementEventV2> {
+  return {
+    streamId: agreement.id,
+    version,
+    event: {
+      type: "AgreementSubmitted",
+      event_version: 2,
+      data: {
+        agreement: toAgreementV2(agreement),
+      },
+    },
+    correlationId,
+  };
+}
+
+export function toCreateEventAgreementArchived(
+  agreement: Agreement,
+  version: number,
+  correlationId: string
+): CreateEvent<AgreementEventV2> {
+  return {
+    streamId: agreement.id,
+    version,
+    event: {
+      type: "AgreementArchived",
+      event_version: 2,
+      data: {
+        agreement: toAgreementV2(agreement),
+      },
+    },
+    correlationId,
+  };
+}
+
+export function toCreateEventAgreementArchivedByUpgrade(
+  agreement: Agreement,
+  version: number,
+  correlationId: string
+): CreateEvent<AgreementEventV2> {
+  return {
+    streamId: agreement.id,
+    version,
+    event: {
+      type: "AgreementArchivedByUpgrade",
+      event_version: 2,
+      data: {
+        agreement: toAgreementV2(agreement),
+      },
+    },
+    correlationId,
+  };
+}
+
+export function toCreateEventAgreementUpgraded(
+  agreement: Agreement,
+  correlationId: string
+): CreateEvent<AgreementEventV2> {
+  return {
+    streamId: agreement.id,
+    version: 0,
+    event: {
+      type: "AgreementUpgraded",
+      event_version: 2,
+      data: {
+        agreement: toAgreementV2(agreement),
       },
     },
     correlationId,
@@ -125,21 +286,19 @@ export function toCreateEventAgreementUpdated(
   };
 }
 
-export function toCreateEventAgreementContractAdded(
-  agreementId: AgreementId,
-  agreementDocument: AgreementDocument,
+export function toCreateEventAgreementRejected(
+  agreement: Agreement,
   version: number,
   correlationId: string
-): CreateEvent<AgreementEvent> {
+): CreateEvent<AgreementEventV2> {
   return {
-    streamId: agreementId,
+    streamId: agreement.id,
     version,
     event: {
-      type: "AgreementContractAdded",
-      event_version: 1,
+      type: "AgreementRejected",
+      event_version: 2,
       data: {
-        agreementId,
-        contract: toAgreementDocumentV1(agreementDocument),
+        agreement: toAgreementV2(agreement),
       },
     },
     correlationId,
@@ -147,20 +306,20 @@ export function toCreateEventAgreementContractAdded(
 }
 
 export function toCreateEventAgreementConsumerDocumentAdded(
-  agreementId: AgreementId,
-  agreementDocument: AgreementDocument,
+  documentId: AgreementDocumentId,
+  agreement: Agreement,
   version: number,
   correlationId: string
-): CreateEvent<AgreementEvent> {
+): CreateEvent<AgreementEventV2> {
   return {
-    streamId: agreementId,
+    streamId: agreement.id,
     version,
     event: {
       type: "AgreementConsumerDocumentAdded",
-      event_version: 1,
+      event_version: 2,
       data: {
-        agreementId,
-        document: toAgreementDocumentV1(agreementDocument),
+        documentId,
+        agreement: toAgreementV2(agreement),
       },
     },
     correlationId,
@@ -168,20 +327,20 @@ export function toCreateEventAgreementConsumerDocumentAdded(
 }
 
 export function toCreateEventAgreementConsumerDocumentRemoved(
-  agreementId: AgreementId,
   documentId: AgreementDocumentId,
+  agreement: Agreement,
   version: number,
   correlationId: string
-): CreateEvent<AgreementEvent> {
+): CreateEvent<AgreementEventV2> {
   return {
-    streamId: agreementId,
+    streamId: agreement.id,
     version,
     event: {
       type: "AgreementConsumerDocumentRemoved",
-      event_version: 1,
+      event_version: 2,
       data: {
-        agreementId,
         documentId,
+        agreement: toAgreementV2(agreement),
       },
     },
     correlationId,

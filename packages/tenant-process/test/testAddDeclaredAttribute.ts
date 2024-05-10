@@ -18,6 +18,7 @@ import {
   tenantAttributeType,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   tenantNotFound,
   attributeNotFound,
@@ -58,11 +59,14 @@ export const testAddDeclaredAttribute = (): ReturnType<typeof describe> =>
 
       await addOneAttribute(declaredAttribute, attributes);
       await addOneTenant(tenantWithoutDeclaredAttribute, postgresDB, tenants);
-      await tenantService.addDeclaredAttribute({
-        tenantAttributeSeed: { id: declaredAttribute.id },
-        organizationId: tenantWithoutDeclaredAttribute.id,
-        correlationId: generateId(),
-      });
+      await tenantService.addDeclaredAttribute(
+        {
+          tenantAttributeSeed: { id: declaredAttribute.id },
+          organizationId: tenantWithoutDeclaredAttribute.id,
+          correlationId: generateId(),
+        },
+        genericLogger
+      );
       const writtenEvent = await readLastEventByStreamId(
         tenantWithoutDeclaredAttribute.id,
         "tenant",
@@ -107,11 +111,14 @@ export const testAddDeclaredAttribute = (): ReturnType<typeof describe> =>
       };
       await addOneAttribute(declaredAttribute, attributes);
       await addOneTenant(tenantWithAttributeRevoked, postgresDB, tenants);
-      await tenantService.addDeclaredAttribute({
-        tenantAttributeSeed: { id: declaredAttribute.id },
-        organizationId: tenantWithAttributeRevoked.id,
-        correlationId: generateId(),
-      });
+      await tenantService.addDeclaredAttribute(
+        {
+          tenantAttributeSeed: { id: declaredAttribute.id },
+          organizationId: tenantWithAttributeRevoked.id,
+          correlationId: generateId(),
+        },
+        genericLogger
+      );
       const writtenEvent = await readLastEventByStreamId(
         tenantWithAttributeRevoked.id,
         "tenant",
@@ -145,22 +152,28 @@ export const testAddDeclaredAttribute = (): ReturnType<typeof describe> =>
     it("Should throw tenantNotFound if the tenant doesn't exist", async () => {
       addOneAttribute(declaredAttribute, attributes);
       expect(
-        tenantService.addDeclaredAttribute({
-          tenantAttributeSeed: { id: declaredAttribute.id },
-          organizationId: tenant.id,
-          correlationId: generateId(),
-        })
+        tenantService.addDeclaredAttribute(
+          {
+            tenantAttributeSeed: { id: declaredAttribute.id },
+            organizationId: tenant.id,
+            correlationId: generateId(),
+          },
+          genericLogger
+        )
       ).rejects.toThrowError(tenantNotFound(tenant.id));
     });
     it("Should throw attributeNotFound if the attribute doesn't exist", async () => {
       await addOneTenant(tenant, postgresDB, tenants);
 
       expect(
-        tenantService.addDeclaredAttribute({
-          tenantAttributeSeed: { id: declaredAttribute.id },
-          organizationId: tenant.id,
-          correlationId: generateId(),
-        })
+        tenantService.addDeclaredAttribute(
+          {
+            tenantAttributeSeed: { id: declaredAttribute.id },
+            organizationId: tenant.id,
+            correlationId: generateId(),
+          },
+          genericLogger
+        )
       ).rejects.toThrowError(
         attributeNotFound(unsafeBrandId(declaredAttribute.id))
       );
