@@ -360,15 +360,18 @@ export function tenantServiceBuilder(
       return updatedTenant;
     },
 
-    async addDeclaredAttribute({
-      tenantAttributeSeed,
-      organizationId,
-      correlationId,
-    }: {
-      tenantAttributeSeed: ApiDeclaredTenantAttributeSeed;
-      organizationId: TenantId;
-      correlationId: string;
-    }): Promise<Tenant> {
+    async addDeclaredAttribute(
+      {
+        tenantAttributeSeed,
+        organizationId,
+        correlationId,
+      }: {
+        tenantAttributeSeed: ApiDeclaredTenantAttributeSeed;
+        organizationId: TenantId;
+        correlationId: string;
+      },
+      logger: Logger
+    ): Promise<Tenant> {
       logger.info(
         `Add declared attribute ${tenantAttributeSeed.id} to requester tenant ${organizationId}`
       );
