@@ -513,17 +513,20 @@ export function tenantServiceBuilder(
       return updatedTenant;
     },
 
-    async revokeVerifiedAttribute({
-      tenantId,
-      attributeId,
-      organizationId,
-      correlationId,
-    }: {
-      tenantId: TenantId;
-      attributeId: AttributeId;
-      organizationId: TenantId;
-      correlationId: string;
-    }): Promise<Tenant> {
+    async revokeVerifiedAttribute(
+      {
+        tenantId,
+        attributeId,
+        organizationId,
+        correlationId,
+      }: {
+        tenantId: TenantId;
+        attributeId: AttributeId;
+        organizationId: TenantId;
+        correlationId: string;
+      },
+      logger: Logger
+    ): Promise<Tenant> {
       logger.info(
         `Revoke verified attribute ${attributeId} to tenant ${tenantId}`
       );
