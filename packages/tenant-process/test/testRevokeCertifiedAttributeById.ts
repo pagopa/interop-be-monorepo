@@ -16,6 +16,7 @@ import {
   TenantCertifiedAttributeRevokedV2,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   tenantNotFound,
   attributeNotFound,
@@ -88,7 +89,8 @@ export const testRevokeCertifiedAttributeById = (): ReturnType<
         tenantWithCertifiedAttribute.id,
         attribute.id,
         requesterTenant.id,
-        generateId()
+        generateId(),
+        genericLogger
       );
       const writtenEvent = await readLastEventByStreamId(
         tenantWithCertifiedAttribute.id,
@@ -128,7 +130,8 @@ export const testRevokeCertifiedAttributeById = (): ReturnType<
           targetTenant.id,
           attribute.id,
           requesterTenant.id,
-          generateId()
+          generateId(),
+          genericLogger
         )
       ).rejects.toThrowError(tenantNotFound(requesterTenant.id));
     });
@@ -141,7 +144,8 @@ export const testRevokeCertifiedAttributeById = (): ReturnType<
           targetTenant.id,
           attribute.id,
           requesterTenant.id,
-          generateId()
+          generateId(),
+          genericLogger
         )
       ).rejects.toThrowError(attributeNotFound(attribute.id));
     });
@@ -159,7 +163,8 @@ export const testRevokeCertifiedAttributeById = (): ReturnType<
           targetTenant.id,
           attribute.id,
           notCertifierTenant.id,
-          generateId()
+          generateId(),
+          genericLogger
         )
       ).rejects.toThrowError(tenantIsNotACertifier(notCertifierTenant.id));
     });
@@ -177,7 +182,8 @@ export const testRevokeCertifiedAttributeById = (): ReturnType<
           targetTenant.id,
           attribute.id,
           requesterTenant.id,
-          generateId()
+          generateId(),
+          genericLogger
         )
       ).rejects.toThrowError(
         certifiedAttributeOriginIsNotCompliantWithCertifier(
@@ -207,7 +213,8 @@ export const testRevokeCertifiedAttributeById = (): ReturnType<
           tenantAlreadyRevoked.id,
           attribute.id,
           requesterTenant.id,
-          generateId()
+          generateId(),
+          genericLogger
         )
       ).rejects.toThrowError(
         attributeAlreadyRevoked(

@@ -470,19 +470,22 @@ const tenantsRouter = (
       "/tenants/:tenantId/attributes/certified/:attributeId",
       authorizationMiddleware([ADMIN_ROLE, M2M_ROLE]),
       async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
         try {
           const { tenantId, attributeId } = req.params;
           await tenantService.revokeCertifiedAttributeById(
             unsafeBrandId(tenantId),
             unsafeBrandId(attributeId),
             req.ctx.authData.organizationId,
-            req.ctx.correlationId
+            req.ctx.correlationId,
+            ctx.logger
           );
           return res.status(204).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            revokeCertifiedAttributeErrorMapper
+            revokeCertifiedAttributeErrorMapper,
+            ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
         }

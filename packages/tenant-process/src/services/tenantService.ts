@@ -363,7 +363,8 @@ export function tenantServiceBuilder(
       tenantId: TenantId,
       attributeId: AttributeId,
       organizationId: TenantId,
-      correlationId: string
+      correlationId: string,
+      logger: Logger
     ): Promise<void> {
       logger.info(
         `Revoke certified attribute ${attributeId} to tenantId ${tenantId}`
