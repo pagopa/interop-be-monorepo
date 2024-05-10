@@ -24,7 +24,7 @@ import { Filter, WithId } from "mongodb";
 import { z } from "zod";
 
 export type GetPurposesFilters = {
-  name?: string;
+  title?: string;
   eservicesIds: EServiceId[];
   consumersIds: TenantId[];
   producersIds: TenantId[];
@@ -140,7 +140,7 @@ export function readModelServiceBuilder(
       { offset, limit }: { offset: number; limit: number }
     ): Promise<ListResult<Purpose>> {
       const {
-        name,
+        title,
         eservicesIds,
         consumersIds,
         producersIds,
@@ -148,10 +148,10 @@ export function readModelServiceBuilder(
         excludeDraft,
       } = filters;
 
-      const nameFilter: ReadModelFilter<Purpose> = name
+      const titleFilter: ReadModelFilter<Purpose> = title
         ? {
             "data.title": {
-              $regex: ReadModelRepository.escapeRegExp(name),
+              $regex: ReadModelRepository.escapeRegExp(title),
               $options: "i",
             },
           }
@@ -208,7 +208,7 @@ export function readModelServiceBuilder(
       const aggregationPipeline = [
         {
           $match: {
-            ...nameFilter,
+            ...titleFilter,
             ...eservicesIdsFilter,
             ...consumersIdsFilter,
             ...versionStateFilter,
