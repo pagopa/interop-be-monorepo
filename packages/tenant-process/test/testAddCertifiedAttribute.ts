@@ -17,6 +17,7 @@ import {
   toTenantV2,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   tenantNotFound,
   attributeNotFound,
@@ -79,11 +80,15 @@ export const testAddCertifiedAttribute = (): ReturnType<typeof describe> =>
       await addOneAttribute(attribute, attributes);
       await addOneTenant(targetTenant, postgresDB, tenants);
       await addOneTenant(requesterTenant, postgresDB, tenants);
-      await tenantService.addCertifiedAttribute(targetTenant.id, {
-        tenantAttributeSeed,
-        organizationId: requesterTenant.id,
-        correlationId: generateId(),
-      });
+      await tenantService.addCertifiedAttribute(
+        targetTenant.id,
+        genericLogger,
+        {
+          tenantAttributeSeed,
+          organizationId: requesterTenant.id,
+          correlationId: generateId(),
+        }
+      );
       const writtenEvent = await readLastEventByStreamId(
         targetTenant.id,
         "tenant",
@@ -131,6 +136,7 @@ export const testAddCertifiedAttribute = (): ReturnType<typeof describe> =>
       await addOneTenant(requesterTenant, postgresDB, tenants);
       await tenantService.addCertifiedAttribute(
         tenantWithCertifiedAttribute.id,
+        genericLogger,
         {
           tenantAttributeSeed,
           organizationId: requesterTenant.id,
@@ -182,11 +188,15 @@ export const testAddCertifiedAttribute = (): ReturnType<typeof describe> =>
       await addOneTenant(tenantAlreadyAssigned, postgresDB, tenants);
       await addOneTenant(requesterTenant, postgresDB, tenants);
       expect(
-        tenantService.addCertifiedAttribute(tenantAlreadyAssigned.id, {
-          tenantAttributeSeed,
-          organizationId: requesterTenant.id,
-          correlationId: generateId(),
-        })
+        tenantService.addCertifiedAttribute(
+          tenantAlreadyAssigned.id,
+          genericLogger,
+          {
+            tenantAttributeSeed,
+            organizationId: requesterTenant.id,
+            correlationId: generateId(),
+          }
+        )
       ).rejects.toThrowError(
         certifiedAttributeAlreadyAssigned(
           attribute.id,
@@ -197,7 +207,7 @@ export const testAddCertifiedAttribute = (): ReturnType<typeof describe> =>
     it("Should throw tenantNotFound if the tenant doesn't exist", async () => {
       await addOneAttribute(attribute, attributes);
       expect(
-        tenantService.addCertifiedAttribute(targetTenant.id, {
+        tenantService.addCertifiedAttribute(targetTenant.id, genericLogger, {
           tenantAttributeSeed,
           organizationId: requesterTenant.id,
           correlationId: generateId(),
@@ -209,7 +219,7 @@ export const testAddCertifiedAttribute = (): ReturnType<typeof describe> =>
       await addOneTenant(requesterTenant, postgresDB, tenants);
 
       expect(
-        tenantService.addCertifiedAttribute(targetTenant.id, {
+        tenantService.addCertifiedAttribute(targetTenant.id, genericLogger, {
           tenantAttributeSeed,
           organizationId: requesterTenant.id,
           correlationId: generateId(),
@@ -223,7 +233,7 @@ export const testAddCertifiedAttribute = (): ReturnType<typeof describe> =>
       await addOneTenant(tenant, postgresDB, tenants);
 
       expect(
-        tenantService.addCertifiedAttribute(targetTenant.id, {
+        tenantService.addCertifiedAttribute(targetTenant.id, genericLogger, {
           tenantAttributeSeed,
           organizationId: tenant.id,
           correlationId: generateId(),
@@ -240,7 +250,7 @@ export const testAddCertifiedAttribute = (): ReturnType<typeof describe> =>
       await addOneTenant(requesterTenant, postgresDB, tenants);
 
       expect(
-        tenantService.addCertifiedAttribute(targetTenant.id, {
+        tenantService.addCertifiedAttribute(targetTenant.id, genericLogger, {
           tenantAttributeSeed,
           organizationId: requesterTenant.id,
           correlationId: generateId(),
