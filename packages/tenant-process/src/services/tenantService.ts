@@ -19,15 +19,20 @@ import {
 import {
   CertifiedAttributeQueryResult,
   UpdateVerifiedTenantAttributeSeed,
+  CertifierPromotionPayload,
 } from "../model/domain/models.js";
 import { ApiSelfcareTenantSeed } from "../model/types.js";
-import { tenantNotFound } from "../model/domain/errors.js";
+import {
+  tenantNotFound,
+  tenatIsAlreadyACertifier,
+} from "../model/domain/errors.js";
 import {
   toCreateEventTenantVerifiedAttributeExpirationUpdated,
   toCreateEventTenantVerifiedAttributeExtensionUpdated,
   toCreateEventTenantOnboardDetailsUpdated,
   toCreateEventTenantOnboarded,
   toCreateEventMaintenanceTenantDeleted,
+  toCreateEventMaintenanceTenantPromotedToCertifier,
 } from "../model/domain/toEvent.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
@@ -302,6 +307,46 @@ export function tenantServiceBuilder(
           correlationId
         )
       );
+    },
+
+    async addCertifierId(
+      tenantId: TenantId,
+      correlationId: string,
+      payload: CertifierPromotionPayload,
+      logger: Logger
+    ): Promise<Tenant> {
+      logger.info(`Adding certifierId to Tenant ${tenantId}`);
+
+      const tenant = await retrieveTenant(tenantId, readModelService);
+
+      if (
+        tenant.data.features.some(
+          (feature) => feature.certifierId === payload.certifierId
+        )
+      ) {
+        throw tenatIsAlreadyACertifier(tenant.data.id, payload.certifierId);
+      }
+
+      const updatedTenant: Tenant = {
+        ...tenant.data,
+        features: [
+          ...tenant.data.features,
+          {
+            type: "PersistentCertifier",
+            certifierId: payload.certifierId,
+          },
+        ],
+        updatedAt: new Date(),
+      };
+
+      await repository.createEvent(
+        toCreateEventMaintenanceTenantPromotedToCertifier(
+          tenant.metadata.version,
+          updatedTenant,
+          correlationId
+        )
+      );
+      return updatedTenant;
     },
 
     async getProducers(

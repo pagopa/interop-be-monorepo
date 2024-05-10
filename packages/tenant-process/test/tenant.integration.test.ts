@@ -76,6 +76,7 @@ import {
   readLastTenantEvent,
 } from "./utils.js";
 import { testMaintenanceTenantDelete } from "./testMaintenanceTenantDelete.js";
+import { testAddCertifierId } from "./testAddCertifierId.js";
 
 export let tenants: TenantCollection;
 export let agreements: AgreementCollection;
@@ -632,6 +633,7 @@ describe("Integration tests", () => {
       });
     });
     testMaintenanceTenantDelete();
+    testAddCertifierId();
   });
   describe("readModelService", () => {
     const tenant1: Tenant = {

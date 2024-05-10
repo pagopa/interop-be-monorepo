@@ -747,6 +747,40 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /maintenance/tenants/{tenantId}/certifier:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: tenantId
+        in: path
+        description: the tenant id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - tenant
+      operationId: addCerifierId
+      description: Add a certifierId to the requesting Tenant
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CertifierPromotionPayload"
+        required: true
+      responses:
+        "200":
+          description: Updated Tenant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tenant"
+        "404":
+          description: Tenant not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /status:
     get:
       security: []
@@ -1151,6 +1185,15 @@ components:
         id:
           type: string
           format: uuid
+    CertifierPromotionPayload:
+      description: Certifier promotion payload
+      type: object
+      properties:
+        certifierId:
+          type: string
+      required:
+        - certifierId
+
     Problem:
       properties:
         type:
