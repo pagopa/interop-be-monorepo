@@ -29,8 +29,7 @@ export const errorCodes = {
   purposeNotInDraftState: "0015",
   duplicatedPurposeTitle: "0016",
   purposeCannotBeDeleted: "0017",
-  missingRejectionReason: "0018",
-  agreementNotFound: "0019",
+  agreementNotFound: "0018",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
