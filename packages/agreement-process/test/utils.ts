@@ -14,6 +14,7 @@ import { IDatabase } from "pg-promise";
 import {
   ReadEvent,
   StoredEvent,
+  readEventByStreamIdAndVersion,
   readLastEventByStreamId,
   writeInEventstore,
   writeInReadmodel,
@@ -21,8 +22,11 @@ import {
 import {
   AgreementCollection,
   EServiceCollection,
+  FileManager,
   TenantCollection,
+  genericLogger,
 } from "pagopa-interop-commons";
+import { expect } from "vitest";
 import { toAgreementV1 } from "../src/model/domain/toEvent.js";
 import { config } from "../src/utilities/config.js";
 
@@ -73,6 +77,40 @@ export const readLastAgreementEvent = async (
   postgresDB: IDatabase<unknown>
 ): Promise<ReadEvent<AgreementEvent>> =>
   await readLastEventByStreamId(agreementId, "agreement", postgresDB);
+
+export const readAgreementEventByVersion = async (
+  agreementId: AgreementId,
+  version: number,
+  postgresDB: IDatabase<unknown>
+): Promise<ReadEvent<AgreementEvent>> =>
+  await readEventByStreamIdAndVersion(
+    agreementId,
+    version,
+    "agreement",
+    postgresDB
+  );
+
+export async function uploadDocument(
+  agreementId: AgreementId,
+  documentId: AgreementDocumentId,
+  name: string,
+  fileManager: FileManager
+): Promise<void> {
+  const documentDestinationPath = `${config.consumerDocumentsPath}/${agreementId}`;
+  await fileManager.storeBytes(
+    config.s3Bucket,
+    documentDestinationPath,
+    documentId,
+    name,
+    Buffer.from("large-document-file"),
+    genericLogger
+  );
+  expect(
+    await fileManager.listFiles(config.s3Bucket, genericLogger)
+  ).toContainEqual(
+    `${config.consumerDocumentsPath}/${agreementId}/${documentId}/${name}`
+  );
+}
 
 export function getMockConsumerDocument(
   agreementId: AgreementId,
