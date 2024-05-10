@@ -416,15 +416,18 @@ export function tenantServiceBuilder(
       );
       return updatedTenant;
     },
-    async revokeDeclaredAttribute({
-      attributeId,
-      organizationId,
-      correlationId,
-    }: {
-      attributeId: AttributeId;
-      organizationId: TenantId;
-      correlationId: string;
-    }): Promise<Tenant> {
+    async revokeDeclaredAttribute(
+      {
+        attributeId,
+        organizationId,
+        correlationId,
+      }: {
+        attributeId: AttributeId;
+        organizationId: TenantId;
+        correlationId: string;
+      },
+      logger: Logger
+    ): Promise<Tenant> {
       logger.info(
         `Revoking declared attribute ${attributeId} to ${organizationId}`
       );
