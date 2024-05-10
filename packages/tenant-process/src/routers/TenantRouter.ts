@@ -8,7 +8,6 @@ import {
   initDB,
   zodiosValidationErrorToApiProblem,
   fromAppContext,
-  genericLogger,
 } from "pagopa-interop-commons";
 import { unsafeBrandId } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
@@ -333,20 +332,25 @@ const tenantsRouter = (
       "/internal/origin/:tOrigin/externalId/:tExternalId/attributes/origin/:aOrigin/externalId/:aExternalId",
       authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
         try {
           const { tOrigin, tExternalId, aOrigin, aExternalId } = req.params;
           await tenantService.internalAssignCertifiedAttribute(
-            tOrigin,
-            tExternalId,
-            aOrigin,
-            aExternalId,
-            req.ctx.correlationId
+            {
+              tenantOrigin: tOrigin,
+              tenantExternalId: tExternalId,
+              attributeOrigin: aOrigin,
+              attributeExternalId: aExternalId,
+              correlationId: req.ctx.correlationId,
+            },
+            ctx.logger
           );
           return res.status(204).end();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            internalAddCertifiedAttributeErrorMapper
+            internalAddCertifiedAttributeErrorMapper,
+            ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
         }
@@ -500,7 +504,7 @@ const tenantsRouter = (
               organizationId: req.ctx.authData.organizationId,
               correlationId: req.ctx.correlationId,
             },
-            genericLogger
+            ctx.logger
           );
           return res.status(200).json(toApiTenant(tenant)).end();
         } catch (error) {
