@@ -542,11 +542,6 @@ export function purposeServiceBuilder(
 
           return {
             ...purpose,
-            versions: filters.excludeDraft
-              ? purpose.versions.filter(
-                  (version) => version.state !== purposeVersionState.draft
-                )
-              : purpose.versions,
             riskAnalysisForm: isProducerOrConsumer
               ? purpose.riskAnalysisForm
               : undefined,
