@@ -18,6 +18,14 @@ export const ParsedHeaders = z
   .and(AuthData);
 export type ParsedHeaders = z.infer<typeof ParsedHeaders>;
 
+export const readCorrelationIdHeader = (req: Request): string | undefined =>
+  match(req.headers)
+    .with(
+      { "x-correlation-id": P.string },
+      (headers) => headers["x-correlation-id"]
+    )
+    .otherwise(() => undefined);
+
 export const readHeaders = (req: Request): ParsedHeaders | undefined => {
   try {
     const headers = Headers.parse(req.headers);
