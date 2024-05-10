@@ -10,6 +10,7 @@ import {
   TenantMailAddedV2,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   mailAlreadyExists,
   tenantNotFound,
@@ -44,12 +45,15 @@ export const testAddTenantMail = (): ReturnType<typeof describe> =>
 
     it("Should correctly add the mail", async () => {
       await addOneTenant(mockTenant, postgresDB, tenants);
-      await tenantService.addTenantMail({
-        tenantId: mockTenant.id,
-        mailSeed,
-        organizationId: mockTenant.id,
-        correlationId: generateId(),
-      });
+      await tenantService.addTenantMail(
+        {
+          tenantId: mockTenant.id,
+          mailSeed,
+          organizationId: mockTenant.id,
+          correlationId: generateId(),
+        },
+        genericLogger
+      );
       const writtenEvent = await readLastTenantEvent(mockTenant.id, postgresDB);
 
       expect(writtenEvent).toMatchObject({
@@ -78,23 +82,29 @@ export const testAddTenantMail = (): ReturnType<typeof describe> =>
     });
     it("Should throw tenantNotFound if the tenant doesn't exists", async () => {
       expect(
-        tenantService.addTenantMail({
-          tenantId: mockTenant.id,
-          mailSeed,
-          organizationId: mockTenant.id,
-          correlationId: generateId(),
-        })
+        tenantService.addTenantMail(
+          {
+            tenantId: mockTenant.id,
+            mailSeed,
+            organizationId: mockTenant.id,
+            correlationId: generateId(),
+          },
+          genericLogger
+        )
       ).rejects.toThrowError(tenantNotFound(mockTenant.id));
     });
     it("Should throw operationForbidden when tenantId is not the organizationId", async () => {
       await addOneTenant(mockTenant, postgresDB, tenants);
       expect(
-        tenantService.addTenantMail({
-          tenantId: mockTenant.id,
-          mailSeed,
-          organizationId: generateId(),
-          correlationId: generateId(),
-        })
+        tenantService.addTenantMail(
+          {
+            tenantId: mockTenant.id,
+            mailSeed,
+            organizationId: generateId(),
+            correlationId: generateId(),
+          },
+          genericLogger
+        )
       ).rejects.toThrowError(operationForbidden);
     });
     it("Should throw mailAlreadyExists if address already exists in the tenant mail", async () => {
@@ -111,12 +121,15 @@ export const testAddTenantMail = (): ReturnType<typeof describe> =>
 
       await addOneTenant(tenant, postgresDB, tenants);
       expect(
-        tenantService.addTenantMail({
-          tenantId: tenant.id,
-          mailSeed,
-          organizationId: tenant.id,
-          correlationId: generateId(),
-        })
+        tenantService.addTenantMail(
+          {
+            tenantId: tenant.id,
+            mailSeed,
+            organizationId: tenant.id,
+            correlationId: generateId(),
+          },
+          genericLogger
+        )
       ).rejects.toThrowError(mailAlreadyExists(mailSeed.address));
     });
   });
