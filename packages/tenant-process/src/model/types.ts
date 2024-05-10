@@ -18,3 +18,9 @@ export type ApiCertifiedTenantAttributeSeed = ZodiosBodyByPath<
   "post",
   "/tenants/:tenantId/attributes/certified"
 >;
+
+export type ApiDeclaredTenantAttributeSeed = ZodiosBodyByPath<
+  Api,
+  "post",
+  "/tenants/attributes/declared"
+>;
