@@ -25,6 +25,9 @@ export const errorCodes = {
   certifierNotFound: "0016",
   attributeVerificationNotAllowed: "0017",
   verifiedAttributeSelfVerification: "0018",
+  attributeRevocationNotAllowed: "0019",
+  attributeAlreadyRevoked: "0020",
+  verifiedAttributeSelfRevocation: "0021",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -36,6 +39,14 @@ export function verifiedAttributeSelfVerification(): ApiError<ErrorCodes> {
     detail: `Organizations are not allowed to verify own attributes`,
     code: "verifiedAttributeSelfVerification",
     title: "verified Attribute Self Verification",
+  });
+}
+
+export function verifiedAttributeSelfRevocation(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Organizations are not allowed to revoke own attributes`,
+    code: "verifiedAttributeSelfRevocation",
+    title: "verified Attribute Self Revocation",
   });
 }
 
@@ -120,6 +131,18 @@ export function attributeVerificationNotAllowed(
     for tenant ${consumerId}`,
     code: "attributeVerificationNotAllowed",
     title: "attribute Verification is Not Allowed",
+  });
+}
+
+export function attributeRevocationNotAllowed(
+  consumerId: string,
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Organization is not allowed to revoke attribute ${attributeId} 
+    for tenant ${consumerId}`,
+    code: "attributeRevocationNotAllowed",
+    title: "attribute Revocation is Not Allowed",
   });
 }
 
@@ -211,5 +234,17 @@ export function certifiedAttributeAlreadyAssigned(
     detail: `Certified Attribute ${attributeId} already assigned to tenant ${organizationId}`,
     code: "certifiedAttributeAlreadyAssigned",
     title: "certified Attribute Already Assigned",
+  });
+}
+
+export function attributeAlreadyRevoked(
+  tenantId: TenantId,
+  organizationId: TenantId,
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attribute ${attributeId} has been already revoked for ${tenantId} by ${organizationId}`,
+    code: "attributeAlreadyRevoked",
+    title: "attribute is Already Revoked",
   });
 }
