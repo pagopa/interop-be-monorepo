@@ -11,6 +11,7 @@ import {
   TenantDeclaredAttributeRevokedV2,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   tenantNotFound,
   attributeNotFound,
@@ -54,11 +55,14 @@ export const testRevokeDeclaredAttribute = (): ReturnType<typeof describe> =>
       vi.useFakeTimers();
       vi.setSystemTime(new Date());
       await addOneTenant(tenant, postgresDB, tenants);
-      await tenantService.revokeDeclaredAttribute({
-        attributeId,
-        organizationId: tenant.id,
-        correlationId: generateId(),
-      });
+      await tenantService.revokeDeclaredAttribute(
+        {
+          attributeId,
+          organizationId: tenant.id,
+          correlationId: generateId(),
+        },
+        genericLogger
+      );
       const writtenEvent = await readLastEventByStreamId(
         tenant.id,
         "tenant",
@@ -92,11 +96,14 @@ export const testRevokeDeclaredAttribute = (): ReturnType<typeof describe> =>
     });
     it("Should throw tenantNotFound if the tenant doesn't exist", async () => {
       expect(
-        tenantService.revokeDeclaredAttribute({
-          attributeId,
-          organizationId: tenant.id,
-          correlationId: generateId(),
-        })
+        tenantService.revokeDeclaredAttribute(
+          {
+            attributeId,
+            organizationId: tenant.id,
+            correlationId: generateId(),
+          },
+          genericLogger
+        )
       ).rejects.toThrowError(tenantNotFound(tenant.id));
     });
     it("Should throw attributeNotFound if the attribute doesn't exist", async () => {
@@ -112,11 +119,14 @@ export const testRevokeDeclaredAttribute = (): ReturnType<typeof describe> =>
       };
       await addOneTenant(notDeclaredAttributeTenant, postgresDB, tenants);
       expect(
-        tenantService.revokeDeclaredAttribute({
-          attributeId,
-          organizationId: notDeclaredAttributeTenant.id,
-          correlationId: generateId(),
-        })
+        tenantService.revokeDeclaredAttribute(
+          {
+            attributeId,
+            organizationId: notDeclaredAttributeTenant.id,
+            correlationId: generateId(),
+          },
+          genericLogger
+        )
       ).rejects.toThrowError(attributeNotFound(attributeId));
     });
   });
