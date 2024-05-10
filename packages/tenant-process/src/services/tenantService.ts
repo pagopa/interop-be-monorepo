@@ -288,7 +288,8 @@ export function tenantServiceBuilder(
 
     async maintenanceTenantDeleted(
       tenantId: TenantId,
-      correlationId: string
+      correlationId: string,
+      logger: Logger
     ): Promise<void> {
       logger.info(`Deleting Tenant ${tenantId}`);
 
