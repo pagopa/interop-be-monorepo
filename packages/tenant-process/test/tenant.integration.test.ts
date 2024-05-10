@@ -12,6 +12,7 @@ import {
   EServiceCollection,
   ReadModelRepository,
   TenantCollection,
+  genericLogger,
   initDB,
 } from "pagopa-interop-commons";
 import {
@@ -159,10 +160,11 @@ describe("Integration tests", () => {
           selfcareId,
         };
         const mockAuthData = getMockAuthData(mockTenant.id);
-        await tenantService.selfcareUpsertTenant({
-          tenantSeed,
+        await tenantService.selfcareUpsertTenant(tenantSeed, {
           authData: mockAuthData,
           correlationId,
+          serviceName: "",
+          logger: genericLogger,
         });
 
         const writtenEvent = await readLastEventByStreamId(
@@ -202,10 +204,11 @@ describe("Integration tests", () => {
           name: "A tenant",
           selfcareId: generateId(),
         };
-        const id = await tenantService.selfcareUpsertTenant({
-          tenantSeed,
+        const id = await tenantService.selfcareUpsertTenant(tenantSeed, {
           authData: mockAuthData,
           correlationId,
+          serviceName: "",
+          logger: genericLogger,
         });
         expect(id).toBeDefined();
         const writtenEvent = await readLastTenantEvent(
@@ -239,10 +242,11 @@ describe("Integration tests", () => {
         const mockAuthData = getMockAuthData(generateId<TenantId>());
 
         expect(
-          tenantService.selfcareUpsertTenant({
-            tenantSeed,
+          tenantService.selfcareUpsertTenant(tenantSeed, {
             authData: mockAuthData,
             correlationId,
+            serviceName: "",
+            logger: genericLogger,
           })
         ).rejects.toThrowError(operationForbidden);
       });
@@ -258,10 +262,11 @@ describe("Integration tests", () => {
         };
         const mockAuthData = getMockAuthData(tenant.id);
         expect(
-          tenantService.selfcareUpsertTenant({
-            tenantSeed: newTenantSeed,
+          tenantService.selfcareUpsertTenant(newTenantSeed, {
             authData: mockAuthData,
             correlationId,
+            serviceName: "",
+            logger: genericLogger,
           })
         ).rejects.toThrowError(
           selfcareIdConflict({
@@ -303,13 +308,20 @@ describe("Integration tests", () => {
       const verifierId = mockVerifiedBy.id;
       it("Should update the expirationDate", async () => {
         await addOneTenant(tenant, postgresDB, tenants);
-        await tenantService.updateTenantVerifiedAttribute({
-          verifierId,
-          tenantId: tenant.id,
-          attributeId,
-          updateVerifiedTenantAttributeSeed,
-          correlationId,
-        });
+        await tenantService.updateTenantVerifiedAttribute(
+          {
+            verifierId,
+            tenantId: tenant.id,
+            attributeId,
+            updateVerifiedTenantAttributeSeed,
+          },
+          {
+            correlationId,
+            logger: genericLogger,
+            serviceName: "",
+            authData: getMockAuthData(),
+          }
+        );
         const writtenEvent = await readLastTenantEvent(tenant.id, postgresDB);
         if (!writtenEvent) {
           fail("Creation fails: tenant not found in event-store");
@@ -341,13 +353,20 @@ describe("Integration tests", () => {
       });
       it("Should throw tenantNotFound when tenant doesn't exist", async () => {
         expect(
-          tenantService.updateTenantVerifiedAttribute({
-            verifierId,
-            tenantId: tenant.id,
-            attributeId,
-            updateVerifiedTenantAttributeSeed,
-            correlationId,
-          })
+          tenantService.updateTenantVerifiedAttribute(
+            {
+              verifierId,
+              tenantId: tenant.id,
+              attributeId,
+              updateVerifiedTenantAttributeSeed,
+            },
+            {
+              correlationId,
+              logger: genericLogger,
+              serviceName: "",
+              authData: getMockAuthData(),
+            }
+          )
         ).rejects.toThrowError(tenantNotFound(tenant.id));
       });
 
@@ -363,13 +382,20 @@ describe("Integration tests", () => {
 
         await addOneTenant(tenant, postgresDB, tenants);
         expect(
-          tenantService.updateTenantVerifiedAttribute({
-            verifierId,
-            tenantId: tenant.id,
-            attributeId,
-            updateVerifiedTenantAttributeSeed,
-            correlationId,
-          })
+          tenantService.updateTenantVerifiedAttribute(
+            {
+              verifierId,
+              tenantId: tenant.id,
+              attributeId,
+              updateVerifiedTenantAttributeSeed,
+            },
+            {
+              correlationId,
+              logger: genericLogger,
+              serviceName: "",
+              authData: getMockAuthData(),
+            }
+          )
         ).rejects.toThrowError(
           expirationDateCannotBeInThePast(expirationDateinPast)
         );
@@ -386,13 +412,20 @@ describe("Integration tests", () => {
         )[0];
         await addOneTenant(updatedCertifiedTenant, postgresDB, tenants);
         expect(
-          tenantService.updateTenantVerifiedAttribute({
-            verifierId: generateId(),
-            tenantId: updatedCertifiedTenant.id,
-            attributeId,
-            updateVerifiedTenantAttributeSeed,
-            correlationId,
-          })
+          tenantService.updateTenantVerifiedAttribute(
+            {
+              verifierId: generateId(),
+              tenantId: updatedCertifiedTenant.id,
+              attributeId,
+              updateVerifiedTenantAttributeSeed,
+            },
+            {
+              correlationId,
+              logger: genericLogger,
+              serviceName: "",
+              authData: getMockAuthData(),
+            }
+          )
         ).rejects.toThrowError(
           verifiedAttributeNotFoundInTenant(
             updatedCertifiedTenant.id,
@@ -404,13 +437,20 @@ describe("Integration tests", () => {
         await addOneTenant(tenant, postgresDB, tenants);
         const verifierId = generateId();
         expect(
-          tenantService.updateTenantVerifiedAttribute({
-            verifierId,
-            tenantId: tenant.id,
-            attributeId,
-            updateVerifiedTenantAttributeSeed,
-            correlationId,
-          })
+          tenantService.updateTenantVerifiedAttribute(
+            {
+              verifierId,
+              tenantId: tenant.id,
+              attributeId,
+              updateVerifiedTenantAttributeSeed,
+            },
+            {
+              correlationId,
+              logger: genericLogger,
+              serviceName: "",
+              authData: getMockAuthData(),
+            }
+          )
         ).rejects.toThrowError(
           organizationNotFoundInVerifiers(verifierId, tenant.id, attributeId)
         );
@@ -452,7 +492,12 @@ describe("Integration tests", () => {
           tenant.id,
           attributeId,
           verifierId,
-          correlationId
+          {
+            correlationId,
+            logger: genericLogger,
+            serviceName: "",
+            authData: getMockAuthData(),
+          }
         );
         const writtenEvent = await readLastTenantEvent(tenant.id, postgresDB);
         if (!writtenEvent) {
@@ -494,7 +539,12 @@ describe("Integration tests", () => {
             tenant.id,
             attributeId,
             verifierId,
-            correlationId
+            {
+              correlationId,
+              logger: genericLogger,
+              serviceName: "",
+              authData: getMockAuthData(),
+            }
           )
         ).rejects.toThrowError(tenantNotFound(tenant.id));
       });
@@ -531,7 +581,12 @@ describe("Integration tests", () => {
             updatedTenantWithoutExpirationDate.id,
             attributeId,
             verifierId,
-            correlationId
+            {
+              correlationId,
+              logger: genericLogger,
+              serviceName: "",
+              authData: getMockAuthData(),
+            }
           )
         ).rejects.toThrowError(
           expirationDateNotFoundInVerifier(
@@ -549,7 +604,12 @@ describe("Integration tests", () => {
             tenant.id,
             attributeId,
             verifierId,
-            correlationId
+            {
+              correlationId,
+              logger: genericLogger,
+              serviceName: "",
+              authData: getMockAuthData(),
+            }
           )
         ).rejects.toThrowError(
           verifiedAttributeNotFoundInTenant(mockTenant.id, attributeId)
@@ -564,7 +624,12 @@ describe("Integration tests", () => {
             tenant.id,
             attributeId,
             verifierId,
-            correlationId
+            {
+              correlationId,
+              logger: genericLogger,
+              serviceName: "",
+              authData: getMockAuthData(),
+            }
           )
         ).rejects.toThrowError(
           organizationNotFoundInVerifiers(verifierId, tenant.id, attributeId)
@@ -1439,13 +1504,19 @@ describe("Integration tests", () => {
         await addOneTenant(tenant2, postgresDB, tenants);
         await addOneTenant(tenant3, postgresDB, tenants);
         const tenantByExternalId = await readModelService.getTenantByExternalId(
-          { value: tenant1.externalId.value, origin: tenant1.externalId.origin }
+          {
+            value: tenant1.externalId.value,
+            origin: tenant1.externalId.origin,
+          }
         );
         expect(tenantByExternalId?.data).toEqual(tenant1);
       });
       it("should not get the tenant by externalId if it isn't in DB", async () => {
         const tenantByExternalId = await readModelService.getTenantByExternalId(
-          { value: tenant1.externalId.value, origin: tenant1.externalId.origin }
+          {
+            value: tenant1.externalId.value,
+            origin: tenant1.externalId.origin,
+          }
         );
         expect(tenantByExternalId?.data.externalId).toBeUndefined();
       });

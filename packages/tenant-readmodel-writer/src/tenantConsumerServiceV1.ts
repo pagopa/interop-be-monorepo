@@ -2,7 +2,6 @@ import { match } from "ts-pattern";
 import {
   ReadModelRepository,
   readModelWriterConfig,
-  logger,
 } from "pagopa-interop-commons";
 import { TenantEventEnvelopeV1, fromTenantV1 } from "pagopa-interop-models";
 
@@ -28,9 +27,8 @@ export async function handleMessageV1(
         { upsert: true }
       );
     })
-    .with({ type: "TenantDeleted" }, async (_msg) => {
-      logger.info("TODO");
-    })
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    .with({ type: "TenantDeleted" }, async (_msg) => {})
     .with(
       { type: "TenantUpdated" },
       async (msg) =>
@@ -49,11 +47,9 @@ export async function handleMessageV1(
           }
         )
     )
-    .with({ type: "SelfcareMappingCreated" }, async (_msg) => {
-      logger.info("TODO");
-    })
-    .with({ type: "SelfcareMappingDeleted" }, async (_msg) => {
-      logger.info("TODO");
-    })
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    .with({ type: "SelfcareMappingCreated" }, async (_msg) => {})
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    .with({ type: "SelfcareMappingDeleted" }, async (_msg) => {})
     .exhaustive();
 }
