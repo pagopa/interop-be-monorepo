@@ -20,6 +20,7 @@ export const errorCodes = {
   organizationNotFoundInVerifiers: "0011",
   expirationDateNotFoundInVerifier: "0012",
   tenantIsNotCertifier: "0013",
+  mailNotFound: "0014",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -152,5 +153,13 @@ export function tenantIsNotCertifier(tenantId: TenantId): ApiError<ErrorCodes> {
     detail: `Organization ${tenantId} not a certifier`,
     code: "tenantIsNotCertifier",
     title: "Tenant is not a certifier",
+  });
+}
+
+export function mailNotFound(mailId: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `mail ${mailId} not found`,
+    code: "mailNotFound",
+    title: "Mail not found",
   });
 }

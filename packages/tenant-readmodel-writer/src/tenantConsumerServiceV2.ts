@@ -27,6 +27,7 @@ export async function handleMessageV2(
       { type: "TenantVerifiedAttributeExpirationUpdated" },
       { type: "TenantVerifiedAttributeExtensionUpdated" },
       { type: "TenantMailAdded" },
+      { type: "TenantMailDeleted" },
       async (message) =>
         await tenants.updateOne(
           {

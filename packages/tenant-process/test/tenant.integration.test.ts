@@ -75,17 +75,18 @@ import {
   getMockVerifiedTenantAttribute,
   readLastTenantEvent,
 } from "./utils.js";
+import { testDeleteTenantMailById } from "./testDeleteTenantMailById.js";
+
+export let tenants: TenantCollection;
+export let agreements: AgreementCollection;
+export let eservices: EServiceCollection;
+export let readModelService: ReadModelService;
+export let tenantService: TenantService;
+export let postgresDB: IDatabase<unknown>;
+export let startedPostgreSqlContainer: StartedTestContainer;
+export let startedMongodbContainer: StartedTestContainer;
 
 describe("Integration tests", () => {
-  let tenants: TenantCollection;
-  let agreements: AgreementCollection;
-  let eservices: EServiceCollection;
-  let readModelService: ReadModelService;
-  let tenantService: TenantService;
-  let postgresDB: IDatabase<unknown>;
-  let startedPostgreSqlContainer: StartedTestContainer;
-  let startedMongodbContainer: StartedTestContainer;
-
   beforeAll(async () => {
     startedPostgreSqlContainer = await postgreSQLContainer(config).start();
     startedMongodbContainer = await mongoDBContainer(config).start();
@@ -630,6 +631,8 @@ describe("Integration tests", () => {
         );
       });
     });
+
+    testDeleteTenantMailById();
   });
   describe("readModelService", () => {
     const tenant1: Tenant = {

@@ -21,12 +21,13 @@ import {
   UpdateVerifiedTenantAttributeSeed,
 } from "../model/domain/models.js";
 import { ApiSelfcareTenantSeed } from "../model/types.js";
-import { tenantNotFound } from "../model/domain/errors.js";
+import { mailNotFound, tenantNotFound } from "../model/domain/errors.js";
 import {
   toCreateEventTenantVerifiedAttributeExpirationUpdated,
   toCreateEventTenantVerifiedAttributeExtensionUpdated,
   toCreateEventTenantOnboardDetailsUpdated,
   toCreateEventTenantOnboarded,
+  toCreateEventTenantMailDeleted,
 } from "../model/domain/toEvent.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
@@ -40,6 +41,7 @@ import {
   assertExpirationDateExist,
   getTenantCertifierId,
   assertTenantExists,
+  assertRequesterAllowed,
 } from "./validators.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -283,6 +285,39 @@ export function tenantServiceBuilder(
         offset,
         limit,
       });
+    },
+
+    async deleteTenantMailById(
+      tenantId: TenantId,
+      mailId: string,
+      organizationId: TenantId,
+      correlationId: string,
+      logger: Logger
+    ): Promise<void> {
+      logger.info(`Deleting mail ${mailId} to Tenant ${tenantId}`);
+
+      await assertRequesterAllowed(tenantId, organizationId);
+
+      const tenant = await retrieveTenant(tenantId, readModelService);
+
+      if (!tenant.data.mails.find((m) => m.id === mailId)) {
+        throw mailNotFound(mailId);
+      }
+
+      const updatedTenant: Tenant = {
+        ...tenant.data,
+        mails: tenant.data.mails.filter((mail) => mail.id !== mailId),
+        updatedAt: new Date(),
+      };
+
+      await repository.createEvent(
+        toCreateEventTenantMailDeleted(
+          tenant.metadata.version,
+          updatedTenant,
+          mailId,
+          correlationId
+        )
+      );
     },
 
     async getProducers(
