@@ -212,14 +212,14 @@ async function activateAgreement(
       );
     })
     .with(false, () => {
-      if (authData.organizationId === agreement.consumerId) {
-        return toCreateEventAgreementUnsuspendedByConsumer(
+      if (authData.organizationId === agreement.producerId) {
+        return toCreateEventAgreementUnsuspendedByProducer(
           updatedAgreement,
           agreementData.metadata.version,
           correlationId
         );
-      } else if (authData.organizationId === agreement.producerId) {
-        return toCreateEventAgreementUnsuspendedByProducer(
+      } else if (authData.organizationId === agreement.consumerId) {
+        return toCreateEventAgreementUnsuspendedByConsumer(
           updatedAgreement,
           agreementData.metadata.version,
           correlationId

@@ -123,19 +123,19 @@ export async function suspendAgreementLogic({
     ...updateSeed,
   };
 
-  if (authData.organizationId === agreement.data.consumerId) {
+  if (authData.organizationId === agreement.data.producerId) {
     return [
       updatedAgreement,
-      toCreateEventAgreementSuspendedByConsumer(
+      toCreateEventAgreementSuspendedByProducer(
         updatedAgreement,
         agreement.metadata.version,
         correlationId
       ),
     ];
-  } else if (authData.organizationId === agreement.data.producerId) {
+  } else if (authData.organizationId === agreement.data.consumerId) {
     return [
       updatedAgreement,
-      toCreateEventAgreementSuspendedByProducer(
+      toCreateEventAgreementSuspendedByConsumer(
         updatedAgreement,
         agreement.metadata.version,
         correlationId

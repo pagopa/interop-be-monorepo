@@ -367,14 +367,14 @@ describe("suspend agreement", () => {
     const agreementEvent = await readLastAgreementEvent(agreement.id);
 
     expect(agreementEvent).toMatchObject({
-      type: "AgreementSuspendedByConsumer",
+      type: "AgreementSuspendedByProducer",
       event_version: 2,
       version: "1",
       stream_id: agreement.id,
     });
 
     const actualAgreementSuspended = decodeProtobufPayload({
-      messageType: AgreementSuspendedByConsumerV2,
+      messageType: AgreementSuspendedByProducerV2,
       payload: agreementEvent.data,
     }).agreement;
 
