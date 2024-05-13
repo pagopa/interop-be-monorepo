@@ -1,16 +1,19 @@
 import {
   Agreement,
+  AgreementEvent,
   AgreementState,
   Descriptor,
   Tenant,
   agreementState,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
+import { CreateEvent } from "pagopa-interop-commons";
 import {
   certifiedAttributesSatisfied,
   declaredAttributesSatisfied,
   verifiedAttributesSatisfied,
 } from "../model/domain/validators.js";
+import { ApiComputeAgreementStatePayload } from "../model/types.js";
 
 const {
   draft,
@@ -155,3 +158,7 @@ export const suspendedByProducerFlag = (
   requesterOrgId === agreement.producerId
     ? destinationState === agreementState.suspended
     : agreement.suspendedByProducer;
+
+export async function computeAgreementStateLogic(
+  payload: ApiComputeAgreementStatePayload
+): Promise<CreateEvent<AgreementEvent>> {}

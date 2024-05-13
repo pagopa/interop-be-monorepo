@@ -22,6 +22,7 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
+import { match } from "ts-pattern";
 import { AgreementQuery } from "../../services/readmodel/agreementQuery.js";
 import { ApiAgreementPayload } from "../types.js";
 import {
@@ -114,6 +115,24 @@ export const agreementConsumerDocumentChangeValidStates: AgreementState[] = [
   agreementState.draft,
   agreementState.pending,
 ];
+
+export const computeAgreementStateAllowedTransitions = (
+  state: AgreementState
+): AgreementState[] =>
+  match<AgreementState, AgreementState[]>(state)
+    .with(agreementState.draft, agreementState.pending, () => [
+      agreementState.missingCertifiedAttributes,
+    ])
+    .with(agreementState.missingCertifiedAttributes, () => [
+      agreementState.draft,
+    ])
+    .with(agreementState.active, () => [agreementState.suspended])
+    .with(agreementState.suspended, () => [
+      agreementState.active,
+      agreementState.suspended,
+    ])
+    .with(agreementState.archived, agreementState.rejected, () => [])
+    .exhaustive();
 
 /* ========= ASSERTIONS ========= */
 

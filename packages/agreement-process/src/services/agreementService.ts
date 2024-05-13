@@ -94,6 +94,7 @@ import {
 
 import { EserviceQuery } from "./readmodel/eserviceQuery.js";
 import { TenantQuery } from "./readmodel/tenantQuery.js";
+import { computeAgreementStateLogic } from "./agreementStateProcessor.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function agreementServiceBuilder(
@@ -435,7 +436,8 @@ export function agreementServiceBuilder(
       logger.info(
         `Recalculating agreements state for attribute ${payload.attributeId}`
       );
-      // TODO implement the logic to recalculate the state of the agreements
+
+      await repository.createEvent(await computeAgreementStateLogic(payload));
     },
   };
 }
