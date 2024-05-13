@@ -14,7 +14,7 @@ import {
   toReadModelEService,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { getFormRulesByVersion } from "pagopa-interop-commons";
+import { genericLogger, getFormRulesByVersion } from "pagopa-interop-commons";
 import {
   riskAnalysisConfigVersionNotFound,
   eserviceNotFound,
@@ -47,6 +47,7 @@ export const testGetRiskAnalysisConfigurationByVersion = (): ReturnType<
           eserviceId: mockEservice.id,
           riskAnalysisVersion,
           organizationId: mockTenant.id,
+          logger: genericLogger,
         });
 
       expect(result).toEqual(getFormRulesByVersion(kind, riskAnalysisVersion));
@@ -68,6 +69,7 @@ export const testGetRiskAnalysisConfigurationByVersion = (): ReturnType<
           eserviceId: mockEservice.id,
           riskAnalysisVersion,
           organizationId: mockTenant.id,
+          logger: genericLogger,
         });
 
       expect(result).toEqual(getFormRulesByVersion(kind, riskAnalysisVersion));
@@ -82,6 +84,7 @@ export const testGetRiskAnalysisConfigurationByVersion = (): ReturnType<
           eserviceId: randomId,
           riskAnalysisVersion: "1.0",
           organizationId: mockTenant.id,
+          logger: genericLogger,
         })
       ).rejects.toThrowError(eserviceNotFound(randomId));
     });
@@ -95,6 +98,7 @@ export const testGetRiskAnalysisConfigurationByVersion = (): ReturnType<
           eserviceId: mockEservice.id,
           riskAnalysisVersion: "1.0",
           organizationId: randomId,
+          logger: genericLogger,
         })
       ).rejects.toThrowError(tenantNotFound(randomId));
     });
@@ -112,6 +116,7 @@ export const testGetRiskAnalysisConfigurationByVersion = (): ReturnType<
           eserviceId: mockEservice.id,
           riskAnalysisVersion: "1.0",
           organizationId: mockTenant.id,
+          logger: genericLogger,
         })
       ).rejects.toThrowError(tenantKindNotFound(mockTenant.id));
     });
@@ -131,6 +136,7 @@ export const testGetRiskAnalysisConfigurationByVersion = (): ReturnType<
           eserviceId: mockEservice.id,
           riskAnalysisVersion: wrongRiskAnalysisVersion,
           organizationId: mockTenant.id,
+          logger: genericLogger,
         })
       ).rejects.toThrowError(
         riskAnalysisConfigVersionNotFound(
