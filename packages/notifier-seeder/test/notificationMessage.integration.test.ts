@@ -34,9 +34,9 @@ import { buildAgreementMessage } from "../src/models/agreement/agreementEventNot
 import { buildCatalogMessage } from "../src/models/catalog/catalogItemEventNotificationMessage.js";
 import { buildPurposeMessage } from "../src/models/purpose/purposeEventNotificationMessage.js";
 import { toPurposeEventNotification } from "../src/models/purpose/purposeEventNotificationConverter.js";
+import { toAgreementEventNotification } from "../src/models/agreement/agreementEventNotificationConverter.js";
 import { catalogItemDescriptorUpdatedNotification } from "./resources/catalogItemDescriptorUpdate.js";
 import { TEST_ELASTIC_MQ_PORT, elasticMQContainer } from "./utils.js";
-import { toAgreementEventNotification } from "../src/models/agreement/agreementEventNotificationConverter.js";
 
 const getDescriptorMock = (descriptorId: string): EServiceDescriptorV2 =>
   toDescriptorV2({
