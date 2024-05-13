@@ -175,12 +175,14 @@ describe("upgrade Agreement", () => {
     await addOneAgreement(agreementToBeUpgraded);
 
     const newAgreementId = unsafeBrandId<AgreementId>(
-      await agreementService.upgradeAgreement(agreementToBeUpgraded.id, {
-        authData,
-        serviceName: "",
-        correlationId: "",
-        logger: genericLogger,
-      })
+      (
+        await agreementService.upgradeAgreement(agreementToBeUpgraded.id, {
+          authData,
+          serviceName: "",
+          correlationId: "",
+          logger: genericLogger,
+        })
+      ).id
     );
 
     const actualAgreementArchivedEvent = await readAgreementEventByVersion(
@@ -370,12 +372,14 @@ describe("upgrade Agreement", () => {
     await addOneAgreement(agreementToBeUpgraded);
 
     const newAgreementId = unsafeBrandId<AgreementId>(
-      await agreementService.upgradeAgreement(agreementToBeUpgraded.id, {
-        authData,
-        serviceName: "",
-        correlationId: "",
-        logger: genericLogger,
-      })
+      (
+        await agreementService.upgradeAgreement(agreementToBeUpgraded.id, {
+          authData,
+          serviceName: "",
+          correlationId: "",
+          logger: genericLogger,
+        })
+      ).id
     );
 
     const actualAgreementArchivedEvent = await readAgreementEventByVersion(
@@ -553,12 +557,14 @@ describe("upgrade Agreement", () => {
     await addOneEService(eservice);
 
     const newAgreementId = unsafeBrandId<AgreementId>(
-      await agreementService.upgradeAgreement(agreementToBeUpgraded.id, {
-        authData,
-        serviceName: "",
-        correlationId: "",
-        logger: genericLogger,
-      })
+      (
+        await agreementService.upgradeAgreement(agreementToBeUpgraded.id, {
+          authData,
+          serviceName: "",
+          correlationId: "",
+          logger: genericLogger,
+        })
+      ).id
     );
 
     expect(newAgreementId).toBeDefined();
@@ -723,12 +729,14 @@ describe("upgrade Agreement", () => {
     await addOneEService(eservice);
 
     const newAgreementId = unsafeBrandId<AgreementId>(
-      await agreementService.upgradeAgreement(agreementToBeUpgraded.id, {
-        authData,
-        serviceName: "",
-        correlationId: "",
-        logger: genericLogger,
-      })
+      (
+        await agreementService.upgradeAgreement(agreementToBeUpgraded.id, {
+          authData,
+          serviceName: "",
+          correlationId: "",
+          logger: genericLogger,
+        })
+      ).id
     );
 
     expect(newAgreementId).toBeDefined();
@@ -890,12 +898,14 @@ describe("upgrade Agreement", () => {
     await addOneEService(eservice);
 
     const newAgreementId = unsafeBrandId<AgreementId>(
-      await agreementService.upgradeAgreement(agreementToBeUpgraded.id, {
-        authData,
-        serviceName: "",
-        correlationId: "",
-        logger: genericLogger,
-      })
+      (
+        await agreementService.upgradeAgreement(agreementToBeUpgraded.id, {
+          authData,
+          serviceName: "",
+          correlationId: "",
+          logger: genericLogger,
+        })
+      ).id
     );
 
     expect(newAgreementId).toBeDefined();

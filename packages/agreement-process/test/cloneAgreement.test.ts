@@ -135,12 +135,14 @@ describe("clone agreement", () => {
     await addOneAgreement(anotherNonConflictingAgreement);
 
     const newAgreementId = unsafeBrandId<AgreementId>(
-      await agreementService.cloneAgreement(agreementToBeCloned.id, {
-        authData,
-        serviceName: "",
-        correlationId: "",
-        logger: genericLogger,
-      })
+      (
+        await agreementService.cloneAgreement(agreementToBeCloned.id, {
+          authData,
+          serviceName: "",
+          correlationId: "",
+          logger: genericLogger,
+        })
+      ).id
     );
 
     const agreementClonedEvent = await readAgreementEventByVersion(
