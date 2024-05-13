@@ -48,7 +48,7 @@ export const testGetLatestRiskAnalysisConfiguration = (): ReturnType<
 
       expect(
         purposeService.retrieveLatestRiskAnalysisConfiguration({
-          tenantKind: tenantKind.PA,
+          tenantKind: undefined,
           organizationId: randomId,
           logger: genericLogger,
         })
