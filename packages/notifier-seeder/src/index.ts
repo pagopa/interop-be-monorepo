@@ -11,7 +11,6 @@ import {
   logger,
   loggerConfig,
   purposeTopicConfig,
-  runWithContext,
 } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
 import { EServiceEventV2, PurposeEventV2 } from "pagopa-interop-models";
@@ -77,7 +76,7 @@ export function processMessage(
       return;
     }
 
-    await queueManager.send(message);
+    await queueManager.send(message, loggerInstance);
 
     loggerInstance.info(
       `Notification message [${message.messageUUID}] sent to queue ${queueConfig.queueUrl} for event type "${decodedMessage.type}"`
