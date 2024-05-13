@@ -41,10 +41,7 @@ import {
 } from "../model/domain/validators.js";
 import { ApiAgreementSubmissionPayload } from "../model/types.js";
 import { UpdateAgreementSeed } from "../model/domain/models.js";
-import {
-  agreementStateByFlags,
-  nextState,
-} from "./agreementStateProcessor.js";
+import { agreementStateByFlags, nextState } from "./agreementStateProcessor.js";
 import { AgreementQuery } from "./readmodel/agreementQuery.js";
 import { ContractBuilder } from "./agreementContractBuilder.js";
 import { EserviceQuery } from "./readmodel/eserviceQuery.js";
