@@ -5,6 +5,7 @@
 
 import { afterAll, afterEach, beforeAll, describe } from "vitest";
 import {
+  AgreementCollection,
   EServiceCollection,
   PurposeCollection,
   ReadModelRepository,
@@ -36,10 +37,13 @@ import { testUpdatePurpose } from "./testUpdatePurpose.js";
 import { testDeletePurpose } from "./testDeletePurpose.js";
 import { testArchivePurposeVersion } from "./testArchivePurposeVersion.js";
 import { testSuspendPurposeVersion } from "./testSuspendPurposeVersion.js";
+import { testGetPurposes } from "./testGetPurposes.js";
+import { testCreatePurpose } from "./testCreatePurpose.js";
 
 export let purposes: PurposeCollection;
 export let eservices: EServiceCollection;
 export let tenants: TenantCollection;
+export let agreements: AgreementCollection;
 export let readModelService: ReadModelService;
 export let purposeService: PurposeService;
 export let postgresDB: IDatabase<unknown>;
@@ -62,6 +66,7 @@ describe("Integration tests", async () => {
     purposes = readModelRepository.purposes;
     eservices = readModelRepository.eservices;
     tenants = readModelRepository.tenants;
+    agreements = readModelRepository.agreements;
     readModelService = readModelServiceBuilder(readModelRepository);
     postgresDB = initDB({
       username: config.eventStoreDbUsername,
@@ -79,6 +84,7 @@ describe("Integration tests", async () => {
     await purposes.deleteMany({});
     await tenants.deleteMany({});
     await eservices.deleteMany({});
+    await agreements.deleteMany({});
     await postgresDB.none("TRUNCATE TABLE purpose.events RESTART IDENTITY");
   });
 
@@ -96,5 +102,7 @@ describe("Integration tests", async () => {
     testDeletePurpose();
     testArchivePurposeVersion();
     testSuspendPurposeVersion();
+    testGetPurposes();
+    testCreatePurpose();
   });
 });

@@ -103,7 +103,6 @@ export function validateAndTransformRiskAnalysis(
   if (!riskAnalysisForm) {
     return undefined;
   }
-
   const validatedForm = validateRiskAnalysisSchemaOrThrow(
     riskAnalysisForm,
     tenantKind
