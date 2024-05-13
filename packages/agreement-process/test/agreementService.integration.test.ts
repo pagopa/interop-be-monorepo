@@ -35,6 +35,7 @@ import {
   descriptorState,
   generateId,
   unsafeBrandId,
+  toAgreementStateV2,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it } from "vitest";
 import {
@@ -46,7 +47,6 @@ import {
   notLatestEServiceDescriptor,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
-import { toAgreementStateV2 } from "../src/model/domain/toEvent.js";
 import { ApiAgreementPayload } from "../src/model/types.js";
 import { agreementCreationConflictingStates } from "../src/model/domain/validators.js";
 import {
