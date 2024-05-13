@@ -167,9 +167,24 @@ export function readModelServiceBuilder(
           "data.consumerId": { $in: consumersIds },
         });
 
+      const notArchivedStates = Object.values(
+        PurposeVersionState.Values
+      ).filter((state) => state !== purposeVersionState.archived);
+
       const versionStateFilter: ReadModelFilter<Purpose> =
         ReadModelRepository.arrayToFilter(states, {
-          "data.versions.state": { $in: states },
+          $or: states.map((state) =>
+            state === purposeVersionState.archived
+              ? {
+                  $and: [
+                    { "data.versions.state": { $eq: state } },
+                    ...notArchivedStates.map((otherState) => ({
+                      "data.versions.state": { $ne: otherState },
+                    })),
+                  ],
+                }
+              : { "data.versions.state": { $eq: state } }
+          ),
         });
 
       const draftFilter: ReadModelFilter<Purpose> = excludeDraft
