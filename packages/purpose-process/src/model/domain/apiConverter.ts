@@ -69,6 +69,18 @@ export const purposeVersionStateToApiPurposeVersionState = (
     .with(purposeVersionState.waitingForApproval, () => "WAITING_FOR_APPROVAL")
     .exhaustive();
 
+export const apiPurposeVersionStateToPurposeVersionState = (
+  state: ApiPurposeVersionState
+): PurposeVersionState =>
+  match<ApiPurposeVersionState, PurposeVersionState>(state)
+    .with("ACTIVE", () => purposeVersionState.active)
+    .with("ARCHIVED", () => purposeVersionState.archived)
+    .with("DRAFT", () => purposeVersionState.draft)
+    .with("REJECTED", () => purposeVersionState.rejected)
+    .with("SUSPENDED", () => purposeVersionState.suspended)
+    .with("WAITING_FOR_APPROVAL", () => purposeVersionState.waitingForApproval)
+    .exhaustive();
+
 export const purposeVersionDocumentToApiPurposeVersionDocument = (
   document: PurposeVersionDocument
 ): ApiPurposeVersionDocument => ({

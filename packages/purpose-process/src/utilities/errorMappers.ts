@@ -108,3 +108,12 @@ export const suspendPurposeVersionErrorMapper = (
     .with("organizationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .with("notValidVersionState", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const createPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with("organizationIsNotTheConsumer", () => HTTP_STATUS_FORBIDDEN)
+    .with("missingFreeOfChargeReason", () => HTTP_STATUS_BAD_REQUEST)
+    .with("agreementNotFound", () => HTTP_STATUS_BAD_REQUEST)
+    .with("riskAnalysisValidationFailed", () => HTTP_STATUS_BAD_REQUEST)
+    .with("duplicatedPurposeTitle", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
