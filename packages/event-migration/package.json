@@ -20,7 +20,7 @@
   "dependencies": {
     "@types/node": "20.3.1",
     "connection-string": "4.3.6",
-    "dotenv-flow": "3.2.0",
+    "dotenv-flow": "3.3.0",
     "json-diff": "1.0.6",
     "lodash.isequal": "4.5.0",
     "mongodb": "5.6.0",
