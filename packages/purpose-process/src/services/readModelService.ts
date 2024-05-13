@@ -1,5 +1,4 @@
 import {
-  logger,
   ReadModelRepository,
   EServiceCollection,
   TenantCollection,
@@ -17,18 +16,32 @@ import {
   EServiceReadModel,
   Purpose,
   PurposeId,
+  genericInternalError,
+  PurposeReadModel,
   ListResult,
   purposeVersionState,
-  AgreementState,
   Agreement,
+  agreementState,
+  genericError,
+  PurposeVersionState,
+  AgreementState,
 } from "pagopa-interop-models";
 import { Document, Filter, WithId } from "mongodb";
 import { z } from "zod";
 import { ApiGetPurposesFilters } from "../model/domain/models.js";
 
+export type GetPurposesFilters = {
+  title?: string;
+  eservicesIds: EServiceId[];
+  consumersIds: TenantId[];
+  producersIds: TenantId[];
+  states: PurposeVersionState[];
+  excludeDraft: boolean | undefined;
+};
+
 async function getPurpose(
   purposes: PurposeCollection,
-  filter: Filter<WithId<WithMetadata<Purpose>>>
+  filter: Filter<WithId<WithMetadata<PurposeReadModel>>>
 ): Promise<WithMetadata<Purpose> | undefined> {
   const data = await purposes.findOne(filter, {
     projection: { data: true, metadata: true },
@@ -43,12 +56,11 @@ async function getPurpose(
       })
       .safeParse(data);
     if (!result.success) {
-      logger.error(
+      throw genericInternalError(
         `Unable to parse purpose item: result ${JSON.stringify(
           result
         )} - data ${JSON.stringify(data)} `
       );
-      throw genericError("Unable to parse purpose item");
     }
     return result.data;
   }
@@ -66,12 +78,11 @@ async function getEService(
   } else {
     const result = EService.safeParse(data.data);
     if (!result.success) {
-      logger.error(
+      throw genericInternalError(
         `Unable to parse eService item: result ${JSON.stringify(
           result
         )} - data ${JSON.stringify(data)} `
       );
-      throw genericError("Unable to parse eService item");
     }
     return result.data;
   }
@@ -89,12 +100,11 @@ async function getTenant(
   } else {
     const result = Tenant.safeParse(data.data);
     if (!result.success) {
-      logger.error(
+      throw genericInternalError(
         `Unable to parse tenant item: result ${JSON.stringify(
           result
         )} - data ${JSON.stringify(data)} `
       );
-      throw genericError("Unable to parse tenant item");
     }
     return result.data;
   }
@@ -112,12 +122,11 @@ async function getAgreement(
   } else {
     const result = Agreement.safeParse(data.data);
     if (!result.success) {
-      logger.error(
+      throw genericInternalError(
         `Unable to parse agreement item: result ${JSON.stringify(
           result
         )} - data ${JSON.stringify(data)} `
       );
-      throw genericError("Unable to parse agreement item");
     }
     return result.data;
   }
@@ -245,7 +254,7 @@ export function readModelServiceBuilder(
     ): Promise<WithMetadata<Purpose> | undefined> {
       return getPurpose(purposes, { "data.id": id });
     },
-    async getSpecificPurpose(
+    async getPurpose(
       eserviceId: EServiceId,
       consumerId: TenantId,
       title: string
@@ -274,43 +283,40 @@ export function readModelServiceBuilder(
 
       const result = z.array(Purpose).safeParse(data.map((d) => d.data));
       if (!result.success) {
-        logger.error(
+        throw genericInternalError(
           `Unable to parse purposes items: result ${JSON.stringify(
             result
           )} - data ${JSON.stringify(data)} `
         );
-
-        throw genericError("Unable to parse purposes items");
       }
 
       return {
         results: result.data,
         totalCount: await ReadModelRepository.getTotalCount(
           purposes,
-          aggregationPipeline
+          aggregationPipeline,
+          false
         ),
       };
     },
-
-    async getAllPurposes(filters: ApiGetPurposesFilters): Promise<Purpose[]> {
-      const aggregationPipeline = await getPurposesFilters(filters, eservices);
-
-      const data = await purposes
-        .aggregate(aggregationPipeline, { allowDiskUse: true })
-        .toArray();
-
-      const result = z.array(Purpose).safeParse(data.map((d) => d.data));
-      if (!result.success) {
-        logger.error(
-          `Unable to parse purposes items: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
-        );
-
-        throw genericError("Unable to parse purposes items");
+    async getActiveAgreement(
+      eserviceId: EServiceId,
+      consumerId: TenantId
+    ): Promise<Agreement | undefined> {
+      const data = await agreements.findOne({
+        "data.eserviceId": eserviceId,
+        "data.consumerId": consumerId,
+        "data.state": agreementState.active,
+      });
+      if (!data) {
+        return undefined;
+      } else {
+        const result = Agreement.safeParse(data.data);
+        if (!result.success) {
+          throw genericError("Unable to parse agreement item");
+        }
+        return result.data;
       }
-
-      return result.data;
     },
   };
 }

@@ -52,10 +52,17 @@ export const isRiskAnalysisFormValid = (
 export const purposeIsDraft = (purpose: Purpose): boolean =>
   !purpose.versions.some((v) => v.state !== purposeVersionState.draft);
 
+export const isDeletableVersion = (
+  purposeVersion: PurposeVersion,
+  purpose: Purpose
+): boolean =>
+  purposeVersion.state === purposeVersionState.waitingForApproval &&
+  purpose.versions.length !== 1;
+
 export const isRejectable = (purposeVersion: PurposeVersion): boolean =>
   purposeVersion.state === purposeVersionState.waitingForApproval;
 
-export const assertEserviceHasSpecificMode = (
+export const assertEserviceMode = (
   eservice: EService,
   expectedMode: EServiceMode
 ): void => {
