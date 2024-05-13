@@ -10,9 +10,10 @@ import {
   initDB,
   fromAppContext,
 } from "pagopa-interop-commons";
-import { unsafeBrandId } from "pagopa-interop-models";
+import { EServiceId, TenantId, unsafeBrandId } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
 import {
+  apiPurposeVersionStateToPurposeVersionState,
   purposeToApiPurpose,
   purposeVersionDocumentToApiPurposeVersionDocument,
   purposeVersionToApiPurposeVersion,
@@ -75,7 +76,46 @@ const purposeRouter = (
         INTERNAL_ROLE,
         SUPPORT_ROLE,
       ]),
-      (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const {
+            name,
+            eservicesIds,
+            consumersIds,
+            producersIds,
+            states,
+            excludeDraft,
+            offset,
+            limit,
+          } = req.query;
+          const purposes = await purposeService.getPurposes(
+            req.ctx.authData.organizationId,
+            {
+              title: name,
+              eservicesIds: eservicesIds?.map(unsafeBrandId<EServiceId>),
+              consumersIds: consumersIds?.map(unsafeBrandId<TenantId>),
+              producersIds: producersIds?.map(unsafeBrandId<TenantId>),
+              states: states?.map(apiPurposeVersionStateToPurposeVersionState),
+              excludeDraft,
+            },
+            { offset, limit },
+            ctx.logger
+          );
+          return res
+            .status(200)
+            .json({
+              results: purposes.results.map((purpose) =>
+                purposeToApiPurpose(purpose, false)
+              ),
+              totalCount: purposes.totalCount,
+            })
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, () => 500, ctx.logger);
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post("/purposes", authorizationMiddleware([ADMIN_ROLE]), (_req, res) =>
       res.status(501).send()
