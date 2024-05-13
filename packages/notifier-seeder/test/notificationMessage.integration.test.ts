@@ -19,6 +19,7 @@ import {
   toPurposeV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import { genericLogger } from "pagopa-interop-commons";
 import { v4 } from "uuid";
 import { getMockPurpose } from "pagopa-interop-commons-test";
 import {

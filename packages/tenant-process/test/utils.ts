@@ -23,6 +23,7 @@ import {
   technology,
   tenantAttributeType,
   toReadModelEService,
+  toReadModelAgreement,
 } from "pagopa-interop-models";
 import { IDatabase } from "pg-promise";
 import {
@@ -104,6 +105,7 @@ export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
     value: "123456",
     origin: "IPA",
   },
+  selfcareId: generateId(),
 });
 
 export const getMockEService = (): EService => ({
@@ -175,7 +177,7 @@ export const addOneAgreement = async (
   agreement: Agreement,
   agreements: AgreementCollection
 ): Promise<void> => {
-  await writeInReadmodel(agreement, agreements);
+  await writeInReadmodel(toReadModelAgreement(agreement), agreements);
 };
 
 export const addOneEService = async (

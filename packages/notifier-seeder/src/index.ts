@@ -63,29 +63,24 @@ export function processMessage(
         throw new Error(`Unknown topic: ${kafkaMessage.topic}`);
       });
 
-    await runWithContext(
-      {
-        messageData: {
-          eventType: decodedMessage.type,
-          eventVersion: decodedMessage.event_version,
-          streamId: decodedMessage.stream_id,
-        },
-        correlationId: decodedMessage.correlation_id,
-      },
-      async () => {
-        if (decodedMessage.event_version !== 2) {
-          logger.info(
-            `Event with version ${decodedMessage.event_version} skipped`
-          );
-          return;
-        }
+    const loggerInstance = logger({
+      serviceName: "notifier-seeder",
+      eventType: decodedMessage.type,
+      eventVersion: decodedMessage.event_version,
+      streamId: decodedMessage.stream_id,
+      correlationId: decodedMessage.correlation_id,
+    });
+    if (decodedMessage.event_version !== 2) {
+      loggerInstance.info(
+        `Event with version ${decodedMessage.event_version} skipped`
+      );
+      return;
+    }
 
-        await queueManager.send(message);
+    await queueManager.send(message);
 
-        logger.info(
-          `Notification message [${message.messageUUID}] sent to queue ${queueConfig.queueUrl} for event type "${decodedMessage.type}"`
-        );
-      }
+    loggerInstance.info(
+      `Notification message [${message.messageUUID}] sent to queue ${queueConfig.queueUrl} for event type "${decodedMessage.type}"`
     );
   };
 }
