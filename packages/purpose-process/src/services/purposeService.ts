@@ -24,6 +24,7 @@ import {
   PurposeRiskAnalysisForm,
   PurposeEvent,
   eserviceMode,
+  ListResult,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -54,7 +55,7 @@ import {
   ApiPurposeUpdateContent,
   ApiReversePurposeUpdateContent,
 } from "../model/domain/models.js";
-import { ReadModelService } from "./readModelService.js";
+import { GetPurposesFilters, ReadModelService } from "./readModelService.js";
 import {
   assertOrganizationIsAConsumer,
   assertEserviceMode,
@@ -501,6 +502,57 @@ export function purposeServiceBuilder(
 
       await repository.createEvent(event);
       return suspendedPurposeVersion;
+    },
+    async getPurposes(
+      organizationId: TenantId,
+      filters: GetPurposesFilters,
+      { offset, limit }: { offset: number; limit: number },
+      logger: Logger
+    ): Promise<ListResult<Purpose>> {
+      logger.info(
+        `Getting Purposes with name = ${filters.title}, eservicesIds = ${filters.eservicesIds}, consumers = ${filters.consumersIds}, producers = ${filters.producersIds}, states = ${filters.states}, excludeDraft = ${filters.excludeDraft}, limit = ${limit}, offset = ${offset}`
+      );
+
+      const purposesList = await readModelService.getPurposes(filters, {
+        offset,
+        limit,
+      });
+
+      const mappingPurposeEservice = await Promise.all(
+        purposesList.results.map(async (purpose) => {
+          const eservice = await retrieveEService(
+            purpose.eserviceId,
+            readModelService
+          );
+          if (eservice === undefined) {
+            throw eserviceNotFound(purpose.eserviceId);
+          }
+          return {
+            purpose,
+            eservice,
+          };
+        })
+      );
+
+      const purposesToReturn = mappingPurposeEservice.map(
+        ({ purpose, eservice }) => {
+          const isProducerOrConsumer =
+            organizationId === purpose.consumerId ||
+            organizationId === eservice.producerId;
+
+          return {
+            ...purpose,
+            riskAnalysisForm: isProducerOrConsumer
+              ? purpose.riskAnalysisForm
+              : undefined,
+          };
+        }
+      );
+
+      return {
+        results: purposesToReturn,
+        totalCount: purposesList.totalCount,
+      };
     },
   };
 }
