@@ -20,17 +20,14 @@ export const eventV2TypeMapper = (
       "PurposeActivated",
       "NewPurposeVersionActivated",
       "PurposeVersionActivated",
+      "PurposeVersionUnsuspendedByProducer",
+      "PurposeVersionUnsuspendedByConsumer",
       () => "purpose_version_activated"
     )
     .with(
       "DraftPurposeDeleted",
       "WaitingForApprovalPurposeDeleted",
       () => "purpose_deleted"
-    )
-    .with(
-      "PurposeVersionUnsuspendedByProducer",
-      "PurposeVersionUnsuspendedByConsumer",
-      () => "purpose_version_activated"
     )
     .with(
       "PurposeVersionSuspendedByProducer",

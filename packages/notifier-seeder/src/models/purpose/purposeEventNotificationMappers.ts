@@ -20,7 +20,7 @@ export const toPurposeVersionStateV1Notification = (
     .with(purposeVersionState.active, () => "Active")
     .with(purposeVersionState.suspended, () => "Suspended")
     .with(purposeVersionState.archived, () => "Archived")
-    .with(purposeVersionState.waitingForApproval, () => "Waiting for approval")
+    .with(purposeVersionState.waitingForApproval, () => "WaitingForApproval")
     .with(purposeVersionState.rejected, () => "Rejected")
     .exhaustive();
 
