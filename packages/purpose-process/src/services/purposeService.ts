@@ -547,10 +547,11 @@ export function purposeServiceBuilder(
         `Getting Purposes with name = ${filters.title}, eservicesIds = ${filters.eservicesIds}, consumers = ${filters.consumersIds}, producers = ${filters.producersIds}, states = ${filters.states}, excludeDraft = ${filters.excludeDraft}, limit = ${limit}, offset = ${offset}`
       );
 
-      const purposesList = await readModelService.getPurposes(filters, {
+      const purposesList = await readModelService.getPurposes(
+        filters,
         offset,
-        limit,
-      });
+        limit
+      );
 
       const mappingPurposeEservice = await Promise.all(
         purposesList.results.map(async (purpose) => {
@@ -593,12 +594,16 @@ export function purposeServiceBuilder(
       seed,
       organizationId,
       correlationId,
+      logger,
     }: {
       purposeId: PurposeId;
       seed: ApiPurposeVersionSeed;
       organizationId: TenantId;
       correlationId: string;
+      logger: Logger;
     }): Promise<PurposeVersion> {
+      logger.info(`Creating Version for Purpose ${purposeId}`);
+
       const purpose = await retrievePurpose(purposeId, readModelService);
       assertOrganizationIsAConsumer(organizationId, purpose.data.consumerId);
       assertDailyCallsIsDifferentThanBefore(purpose.data, seed.dailyCalls);
@@ -638,6 +643,7 @@ export function purposeServiceBuilder(
         readModelService,
         storeFile: fileManager.storeBytes,
         repository,
+        logger,
       });
     },
     async createPurpose(
@@ -888,6 +894,7 @@ async function activateOrWaitingForApproval({
   correlationId,
   storeFile,
   repository,
+  logger,
 }: {
   eservice: EService;
   purpose: Purpose;
@@ -901,6 +908,7 @@ async function activateOrWaitingForApproval({
   repository: {
     createEvent: (createEvent: CreateEvent<PurposeEvent>) => Promise<string>;
   };
+  logger: Logger;
 }): Promise<PurposeVersion> {
   function archiveOldVersion(
     purpose: Purpose,
@@ -1015,7 +1023,8 @@ async function activateOrWaitingForApproval({
       purposeVersion,
       eserviceInfo,
       tenantKind,
-      storeFile
+      storeFile,
+      logger
     );
 
     const updatedPurposeVersion: PurposeVersion = {

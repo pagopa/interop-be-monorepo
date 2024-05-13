@@ -22,9 +22,9 @@ import {
   purposeVersionState,
   Agreement,
   agreementState,
-  genericError,
   PurposeVersionState,
   AgreementState,
+  AgreementReadModel,
 } from "pagopa-interop-models";
 import { Document, Filter, WithId } from "mongodb";
 import { z } from "zod";
@@ -112,7 +112,7 @@ async function getTenant(
 
 async function getAgreement(
   agreements: AgreementCollection,
-  filter: Filter<WithId<WithMetadata<Agreement>>>
+  filter: Filter<WithId<WithMetadata<AgreementReadModel>>>
 ): Promise<Agreement | undefined> {
   const data = await agreements.findOne(filter, {
     projection: { data: true },
@@ -317,6 +317,24 @@ export function readModelServiceBuilder(
         }
         return result.data;
       }
+    },
+    async getAllPurposes(filters: ApiGetPurposesFilters): Promise<Purpose[]> {
+      const aggregationPipeline = await getPurposesFilters(filters, eservices);
+
+      const data = await purposes
+        .aggregate(aggregationPipeline, { allowDiskUse: true })
+        .toArray();
+
+      const result = z.array(Purpose).safeParse(data.map((d) => d.data));
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse purposes items: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+
+      return result.data;
     },
   };
 }
