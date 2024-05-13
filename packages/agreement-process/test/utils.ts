@@ -14,6 +14,7 @@ import {
   AgreementId,
   EService,
   Tenant,
+  toAgreementV2,
   toReadModelEService,
   toReadModelAgreement,
   AgreementDocumentId,
@@ -28,7 +29,6 @@ import { eserviceQueryBuilder } from "../src/services/readmodel/eserviceQuery.js
 import { readModelServiceBuilder } from "../src/services/readmodel/readModelService.js";
 import { tenantQueryBuilder } from "../src/services/readmodel/tenantQuery.js";
 import { config } from "../src/utilities/config.js";
-import { toAgreementV2 } from "../src/model/domain/toEvent.js";
 
 export const { readModelRepository, postgresDB, fileManager, cleanup } =
   setupTestContainersVitest(inject("config"));
