@@ -880,7 +880,7 @@ export function purposeServiceBuilder(
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      const tenantKind = await getInvolvedTenantKindByEServiceMode(
+      const tenantKind = await retrieveKindOfInvolvedTenantByEServiceMode(
         eservice,
         organizationId,
         readModelService
@@ -992,7 +992,7 @@ const replacePurposeVersion = (
   };
 };
 
-const getInvolvedTenantKindByEServiceMode = async (
+const retrieveKindOfInvolvedTenantByEServiceMode = async (
   eservice: EService,
   consumerId: TenantId,
   readModelService: ReadModelService
@@ -1045,7 +1045,7 @@ const performUpdatePurpose = async (
     updateContent.freeOfChargeReason
   );
 
-  const tenantKind = await getInvolvedTenantKindByEServiceMode(
+  const tenantKind = await retrieveKindOfInvolvedTenantByEServiceMode(
     eservice,
     purpose.data.consumerId,
     readModelService
