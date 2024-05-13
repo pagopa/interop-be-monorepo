@@ -47,77 +47,52 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
 
     const mockEService4 = getMockEService();
 
-    const mockPurposeVersion1: PurposeVersion = {
-      ...getMockPurposeVersion(),
-      state: purposeVersionState.draft,
-    };
     const mockPurpose1: Purpose = {
       ...getMockPurpose(),
       title: "purpose 1 - test",
       consumerId: consumerId1,
       eserviceId: mockEService1ByTenant1.id,
-      versions: [mockPurposeVersion1],
+      versions: [getMockPurposeVersion(purposeVersionState.draft)],
     };
 
-    const mockPurposeVersion2: PurposeVersion = {
-      ...getMockPurposeVersion(),
-      state: purposeVersionState.draft,
-    };
     const mockPurpose2: Purpose = {
       ...getMockPurpose(),
       title: "purpose 2",
       eserviceId: mockEService1ByTenant1.id,
-      versions: [mockPurposeVersion2],
+      versions: [getMockPurposeVersion(purposeVersionState.draft)],
     };
 
-    const mockPurposeVersion3: PurposeVersion = {
-      ...getMockPurposeVersion(),
-      state: purposeVersionState.active,
-    };
     const mockPurpose3: Purpose = {
       ...getMockPurpose(),
       title: "purpose 3",
       eserviceId: mockEService2ByTenant1.id,
-      versions: [mockPurposeVersion3],
+      versions: [getMockPurposeVersion(purposeVersionState.active)],
     };
 
-    const mockPurposeVersion4: PurposeVersion = {
-      ...getMockPurposeVersion(),
-      state: purposeVersionState.rejected,
-    };
     const mockPurpose4: Purpose = {
       ...getMockPurpose(),
       title: "purpose 4",
       eserviceId: mockEService3ByTenant2.id,
-      versions: [mockPurposeVersion4],
+      versions: [getMockPurposeVersion(purposeVersionState.rejected)],
     };
 
-    const mockPurposeVersion5: PurposeVersion = {
-      ...getMockPurposeVersion(),
-      state: purposeVersionState.rejected,
-    };
     const mockPurpose5: Purpose = {
       ...getMockPurpose(),
       title: "purpose 5",
       consumerId: consumerId1,
       eserviceId: mockEService4.id,
-      versions: [mockPurposeVersion5],
+      versions: [getMockPurposeVersion(purposeVersionState.rejected)],
     };
 
-    const mockPurposeVersion6_1: PurposeVersion = {
-      ...getMockPurposeVersion(),
-      state: purposeVersionState.archived,
-    };
-    const mockPurposeVersion6_2: PurposeVersion = {
-      ...getMockPurposeVersion(),
-      state: purposeVersionState.active,
-    };
     const mockPurpose6: Purpose = {
       ...getMockPurpose(),
       title: "purpose 6 - test",
       consumerId: consumerId1,
       eserviceId: mockEService3ByTenant2.id,
-      versions: [mockPurposeVersion6_1, mockPurposeVersion6_2],
+      versions: [
+        getMockPurposeVersion(purposeVersionState.archived),
+        getMockPurposeVersion(purposeVersionState.active),
+      ],
     };
 
     const mockPurpose7: Purpose = {
@@ -245,18 +220,52 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
         mockPurpose6,
       ]);
     });
+    it("should get the purposes if they exist (parameters: states, archived and non-archived)", async () => {
+      const result = await purposeService.getPurposes(
+        producerId1,
+        {
+          eservicesIds: [],
+          consumersIds: [],
+          producersIds: [],
+          states: [
+            purposeVersionState.archived,
+            purposeVersionState.active,
+            purposeVersionState.rejected,
+          ],
+          excludeDraft: undefined,
+        },
+        { offset: 0, limit: 50 },
+        genericLogger
+      );
+      expect(result.totalCount).toBe(4);
+      expect(result.results).toEqual([
+        mockPurpose3,
+        mockPurpose4,
+        mockPurpose5,
+        mockPurpose6,
+      ]);
+    });
     it("should get the purposes with only archived versions (and exclude the ones with both archived and non-archived versions)", async () => {
-      const mockArchivedVersion: PurposeVersion = {
-        ...getMockPurposeVersion(),
-        state: purposeVersionState.archived,
-      };
       const mockArchivedPurpose: Purpose = {
         ...getMockPurpose(),
         title: "archived purpose",
         eserviceId: mockEService1ByTenant1.id,
-        versions: [mockArchivedVersion],
+        versions: [getMockPurposeVersion(purposeVersionState.archived)],
       };
+
+      const mockArchivedAndActivePurpose: Purpose = {
+        ...getMockPurpose(),
+        title: "archived and active purpose",
+        eserviceId: mockEService1ByTenant1.id,
+        versions: [
+          getMockPurposeVersion(purposeVersionState.archived),
+          getMockPurposeVersion(purposeVersionState.active),
+        ],
+      };
+
       await addOnePurpose(mockArchivedPurpose, postgresDB, purposes);
+      await addOnePurpose(mockArchivedAndActivePurpose, postgresDB, purposes);
+
       const result = await purposeService.getPurposes(
         producerId1,
         {
