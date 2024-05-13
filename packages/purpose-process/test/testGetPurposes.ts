@@ -1,7 +1,6 @@
 import {
   EService,
   Purpose,
-  PurposeVersion,
   TenantId,
   generateId,
   purposeVersionState,
