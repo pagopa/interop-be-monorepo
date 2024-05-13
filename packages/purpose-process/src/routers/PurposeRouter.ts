@@ -93,7 +93,7 @@ const purposeRouter = (
           const purposes = await purposeService.getPurposes(
             req.ctx.authData.organizationId,
             {
-              name,
+              title: name,
               eservicesIds: eservicesIds?.map(unsafeBrandId<EServiceId>),
               consumersIds: consumersIds?.map(unsafeBrandId<TenantId>),
               producersIds: producersIds?.map(unsafeBrandId<TenantId>),
