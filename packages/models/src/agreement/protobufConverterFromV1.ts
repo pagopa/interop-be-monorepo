@@ -33,7 +33,7 @@ export const fromAgreementStampV1 = (
       }
     : undefined;
 
-export const fromAgreementStamps = (
+export const fromAgreementStampsV1 = (
   input: StampsV1 | undefined
 ): AgreementStamps => ({
   ...input,
@@ -110,5 +110,5 @@ export const fromAgreementV1 = (input: AgreementV1): Agreement => ({
   contract: input.contract
     ? fromAgreementDocumentV1(input.contract)
     : undefined,
-  stamps: fromAgreementStamps(input.stamps),
+  stamps: fromAgreementStampsV1(input.stamps),
 });
