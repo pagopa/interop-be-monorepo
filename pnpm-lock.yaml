@@ -106,8 +106,8 @@ importers:
         specifier: 2.9.4
         version: 2.9.4
       connection-string:
-        specifier: 4.3.6
-        version: 4.3.6
+        specifier: 4.4.0
+        version: 4.4.0
       dotenv-flow:
         specifier: 3.3.0
         version: 3.3.0
@@ -176,8 +176,8 @@ importers:
         specifier: 1.6.8
         version: 1.6.8
       connection-string:
-        specifier: 4.3.6
-        version: 4.3.6
+        specifier: 4.4.0
+        version: 4.4.0
       dotenv-flow:
         specifier: 3.3.0
         version: 3.3.0
@@ -261,8 +261,8 @@ importers:
         specifier: 2.9.4
         version: 2.9.4
       connection-string:
-        specifier: 4.3.6
-        version: 4.3.6
+        specifier: 4.4.0
+        version: 4.4.0
       dotenv-flow:
         specifier: 3.3.0
         version: 3.3.0
@@ -328,8 +328,8 @@ importers:
         specifier: 1.6.8
         version: 1.6.8
       connection-string:
-        specifier: 4.3.6
-        version: 4.3.6
+        specifier: 4.4.0
+        version: 4.4.0
       dotenv-flow:
         specifier: 3.3.0
         version: 3.3.0
@@ -474,8 +474,8 @@ importers:
         specifier: 2.9.4
         version: 2.9.4
       connection-string:
-        specifier: 4.3.6
-        version: 4.3.6
+        specifier: 4.4.0
+        version: 4.4.0
       dotenv-flow:
         specifier: 3.3.0
         version: 3.3.0
@@ -553,8 +553,8 @@ importers:
         specifier: 1.6.8
         version: 1.6.8
       connection-string:
-        specifier: 4.3.6
-        version: 4.3.6
+        specifier: 4.4.0
+        version: 4.4.0
       jsonwebtoken:
         specifier: 9.0.2
         version: 9.0.2
@@ -680,8 +680,8 @@ importers:
         specifier: 20.3.1
         version: 20.3.1
       connection-string:
-        specifier: 4.3.6
-        version: 4.3.6
+        specifier: 4.4.0
+        version: 4.4.0
       dotenv-flow:
         specifier: 3.3.0
         version: 3.3.0
@@ -1123,8 +1123,8 @@ importers:
         specifier: 2.9.4
         version: 2.9.4
       connection-string:
-        specifier: 4.3.6
-        version: 4.3.6
+        specifier: 4.4.0
+        version: 4.4.0
       dotenv-flow:
         specifier: 3.3.0
         version: 3.3.0
@@ -4812,9 +4812,9 @@ packages:
     resolution: {integrity: sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==}
     dev: true
 
-  /connection-string@4.3.6:
-    resolution: {integrity: sha512-dwaq4BMeiIIWry/oQxjstPB7Xp0K1nGjaY8p6PHQB+J9ZJuIvNp7ux3Noupq0hMd/dqEHXkfdmmGFOKTbGKWmw==}
-    engines: {node: '>=12', npm: '>=6'}
+  /connection-string@4.4.0:
+    resolution: {integrity: sha512-D4xsUjSoE8m/B5yMOvCIHY+2ME6FIZhCq0NzBBT57Q8BuL7ArFhBK04osOfReoW4KFr5ztzFwWRdmnv9rCvu2w==}
+    engines: {node: '>=14'}
     dev: false
 
   /console-assert@1.0.0:
