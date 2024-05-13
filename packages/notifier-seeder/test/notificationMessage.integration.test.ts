@@ -199,6 +199,7 @@ describe("Notification tests", async () => {
 
       const mockAgreement: Agreement = {
         ...getMockAgreement(),
+        consumerDocuments: [],
         stamps: {},
         contract: undefined,
         suspendedAt: undefined,
@@ -250,10 +251,6 @@ describe("Notification tests", async () => {
           ...mockAgreement,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-          consumerDocuments: mockAgreement.consumerDocuments.map((doc) => ({
-            ...doc,
-            createdAt: new Date().toISOString(),
-          })),
         },
       });
 
