@@ -20,6 +20,7 @@ import {
   PurposeVersionId,
   TenantId,
 } from "pagopa-interop-models";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   purposeNotFound,
   purposeVersionNotFound,
@@ -58,6 +59,7 @@ export const testSuspendPurposeVersion = (): ReturnType<typeof describe> =>
         versionId: mockPurposeVersion1.id,
         organizationId: mockPurpose.consumerId,
         correlationId: generateId(),
+        logger: genericLogger,
       });
 
       const writtenEvent = await readLastEventByStreamId(
@@ -118,6 +120,7 @@ export const testSuspendPurposeVersion = (): ReturnType<typeof describe> =>
         versionId: mockPurposeVersion1.id,
         organizationId: mockEService.producerId,
         correlationId: generateId(),
+        logger: genericLogger,
       });
 
       const writtenEvent = await readLastEventByStreamId(
@@ -179,6 +182,7 @@ export const testSuspendPurposeVersion = (): ReturnType<typeof describe> =>
         versionId: mockPurposeVersion1.id,
         organizationId: mockEService.producerId,
         correlationId: generateId(),
+        logger: genericLogger,
       });
 
       const writtenEvent = await readLastEventByStreamId(
@@ -229,6 +233,7 @@ export const testSuspendPurposeVersion = (): ReturnType<typeof describe> =>
           versionId: randomVersionId,
           organizationId: generateId(),
           correlationId: generateId(),
+          logger: genericLogger,
         })
       ).rejects.toThrowError(purposeNotFound(randomPurposeId));
     });
@@ -251,6 +256,7 @@ export const testSuspendPurposeVersion = (): ReturnType<typeof describe> =>
           versionId: randomVersionId,
           organizationId: mockPurpose.consumerId,
           correlationId: generateId(),
+          logger: genericLogger,
         })
       ).rejects.toThrowError(
         purposeVersionNotFound(mockPurpose.id, randomVersionId)
@@ -278,6 +284,7 @@ export const testSuspendPurposeVersion = (): ReturnType<typeof describe> =>
           versionId: mockPurposeVersion.id,
           organizationId: randomId,
           correlationId: generateId(),
+          logger: genericLogger,
         })
       ).rejects.toThrowError(organizationNotAllowed(randomId));
     });
@@ -308,6 +315,7 @@ export const testSuspendPurposeVersion = (): ReturnType<typeof describe> =>
             versionId: mockPurposeVersion.id,
             organizationId: mockPurpose.consumerId,
             correlationId: generateId(),
+            logger: genericLogger,
           })
         ).rejects.toThrowError(
           notValidVersionState(mockPurposeVersion.id, mockPurposeVersion.state)

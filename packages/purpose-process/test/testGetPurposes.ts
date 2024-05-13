@@ -15,6 +15,7 @@ import {
   writeInReadmodel,
   getMockValidRiskAnalysisForm,
 } from "pagopa-interop-commons-test/index.js";
+import { genericLogger } from "pagopa-interop-commons";
 import { addOnePurpose, getMockEService } from "./utils.js";
 import {
   postgresDB,
@@ -161,7 +162,8 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
           states: [],
           excludeDraft: undefined,
         },
-        { offset: 0, limit: 50 }
+        { offset: 0, limit: 50 },
+        genericLogger
       );
       expect(result.totalCount).toBe(3);
       expect(result.results).toEqual([
@@ -180,7 +182,8 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
           states: [],
           excludeDraft: undefined,
         },
-        { offset: 0, limit: 50 }
+        { offset: 0, limit: 50 },
+        genericLogger
       );
       expect(result.totalCount).toBe(2);
       expect(result.results).toEqual([mockPurpose1, mockPurpose2]);
@@ -195,7 +198,8 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
           states: [],
           excludeDraft: undefined,
         },
-        { offset: 0, limit: 50 }
+        { offset: 0, limit: 50 },
+        genericLogger
       );
       expect(result.totalCount).toBe(3);
       expect(result.results).toEqual([
@@ -214,7 +218,8 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
           states: [],
           excludeDraft: undefined,
         },
-        { offset: 0, limit: 50 }
+        { offset: 0, limit: 50 },
+        genericLogger
       );
       expect(result.totalCount).toBe(2);
       expect(result.results).toEqual([mockPurpose4, mockPurpose6]);
@@ -229,7 +234,8 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
           states: [purposeVersionState.rejected, purposeVersionState.archived],
           excludeDraft: undefined,
         },
-        { offset: 0, limit: 50 }
+        { offset: 0, limit: 50 },
+        genericLogger
       );
       expect(result.totalCount).toBe(3);
       expect(result.results).toEqual([
@@ -248,7 +254,8 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
           states: [],
           excludeDraft: true,
         },
-        { offset: 0, limit: 50 }
+        { offset: 0, limit: 50 },
+        genericLogger
       );
       expect(result.totalCount).toBe(4);
       expect(result.results).toEqual([
@@ -268,7 +275,8 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
           states: [],
           excludeDraft: false,
         },
-        { offset: 0, limit: 50 }
+        { offset: 0, limit: 50 },
+        genericLogger
       );
       expect(result.totalCount).toBe(7);
       expect(result.results).toEqual([
@@ -291,7 +299,8 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
           states: [],
           excludeDraft: undefined,
         },
-        { offset: 5, limit: 50 }
+        { offset: 5, limit: 50 },
+        genericLogger
       );
       expect(result.results).toEqual([mockPurpose6, mockPurpose7]);
     });
@@ -305,7 +314,8 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
           states: [],
           excludeDraft: undefined,
         },
-        { offset: 0, limit: 3 }
+        { offset: 0, limit: 3 },
+        genericLogger
       );
       expect(result.results).toEqual([
         mockPurpose1,
@@ -323,7 +333,8 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
           states: [],
           excludeDraft: undefined,
         },
-        { offset: 0, limit: 50 }
+        { offset: 0, limit: 50 },
+        genericLogger
       );
       expect(result.totalCount).toBe(0);
       expect(result.results).toEqual([]);
@@ -339,7 +350,8 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
           states: [purposeVersionState.archived],
           excludeDraft: true,
         },
-        { offset: 0, limit: 50 }
+        { offset: 0, limit: 50 },
+        genericLogger
       );
       expect(result.totalCount).toBe(1);
       expect(result.results).toEqual([
@@ -357,7 +369,8 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
           states: [purposeVersionState.draft],
           excludeDraft: false,
         },
-        { offset: 0, limit: 50 }
+        { offset: 0, limit: 50 },
+        genericLogger
       );
       expect(result.totalCount).toBe(1);
       expect(result.results).toEqual([mockPurpose1]);
@@ -380,7 +393,8 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
           states: [],
           excludeDraft: false,
         },
-        { offset: 0, limit: 50 }
+        { offset: 0, limit: 50 },
+        genericLogger
       );
       expect(result.totalCount).toBe(8);
       expect(result.results).toEqual(
@@ -424,7 +438,8 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
           states: [],
           excludeDraft: false,
         },
-        { offset: 0, limit: 50 }
+        { offset: 0, limit: 50 },
+        genericLogger
       );
       expect(result.totalCount).toBe(2);
       expect(result.results).toEqual([
