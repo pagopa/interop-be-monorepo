@@ -8,7 +8,7 @@ import { GenericContainer } from "testcontainers";
 import { z } from "zod";
 
 export const TEST_MONGO_DB_PORT = 27017;
-export const TEST_MONGO_DB_IMAGE = "mongo:4";
+export const TEST_MONGO_DB_IMAGE = "mongo:4.0";
 
 export const TEST_POSTGRES_DB_PORT = 5432;
 export const TEST_POSTGRES_DB_IMAGE = "postgres:14";
