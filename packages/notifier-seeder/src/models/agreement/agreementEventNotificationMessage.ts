@@ -33,7 +33,6 @@ export const eventV2TypeMapper = (
       "AgreementConsumerDocumentRemoved",
       () => "agreement_consumer_document_removed"
     )
-    .with("AgreementArchived", () => "To Do")
     .exhaustive();
 
 export const buildAgreementMessage = (
