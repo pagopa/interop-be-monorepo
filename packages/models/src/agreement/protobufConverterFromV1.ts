@@ -35,19 +35,28 @@ export const fromAgreementStampV1 = (
 
 export const fromAgreementStampsV1 = (
   input: StampsV1 | undefined
-): AgreementStamps | undefined =>
-  input
-    ? {
-        ...input,
-        submission: fromAgreementStampV1(input.submission),
-        activation: fromAgreementStampV1(input.activation),
-        rejection: fromAgreementStampV1(input.rejection),
-        suspensionByProducer: fromAgreementStampV1(input.suspensionByProducer),
-        suspensionByConsumer: fromAgreementStampV1(input.suspensionByConsumer),
-        upgrade: fromAgreementStampV1(input.upgrade),
-        archiving: fromAgreementStampV1(input.archiving),
-      }
-    : undefined;
+): AgreementStamps => ({
+  ...input,
+  submission: input?.submission
+    ? fromAgreementStampV1(input.submission)
+    : undefined,
+  activation: input?.activation
+    ? fromAgreementStampV1(input.activation)
+    : undefined,
+  rejection: input?.rejection
+    ? fromAgreementStampV1(input.rejection)
+    : undefined,
+  suspensionByProducer: input?.suspensionByProducer
+    ? fromAgreementStampV1(input.suspensionByProducer)
+    : undefined,
+  suspensionByConsumer: input?.suspensionByConsumer
+    ? fromAgreementStampV1(input.suspensionByConsumer)
+    : undefined,
+  upgrade: input?.upgrade ? fromAgreementStampV1(input.upgrade) : undefined,
+  archiving: input?.archiving
+    ? fromAgreementStampV1(input.archiving)
+    : undefined,
+});
 
 export const fromAgreementStateV1 = (
   input: AgreementStateV1
@@ -101,5 +110,5 @@ export const fromAgreementV1 = (input: AgreementV1): Agreement => ({
   contract: input.contract
     ? fromAgreementDocumentV1(input.contract)
     : undefined,
-  stamps: { ...fromAgreementStampsV1(input.stamps) },
+  stamps: fromAgreementStampsV1(input.stamps),
 });
