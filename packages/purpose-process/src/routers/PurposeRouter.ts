@@ -465,11 +465,13 @@ const purposeRouter = (
       "/purposes/riskAnalysis/latest",
       authorizationMiddleware([ADMIN_ROLE, SUPPORT_ROLE]),
       async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
         try {
           const riskAnalysisConfiguration =
             await purposeService.retrieveLatestRiskAnalysisConfiguration({
               tenantKind: req.query.tenantKind,
               organizationId: req.ctx.authData.organizationId,
+              logger: ctx.logger,
             });
           return res
             .status(200)
@@ -482,7 +484,8 @@ const purposeRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            retrieveLatestRiskAnalysisConfigurationErrorMapper
+            retrieveLatestRiskAnalysisConfigurationErrorMapper,
+            ctx.logger
           );
           return res.status(errorRes.status).json(errorRes).end();
         }

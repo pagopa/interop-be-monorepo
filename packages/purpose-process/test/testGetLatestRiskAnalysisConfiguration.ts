@@ -10,7 +10,10 @@ import {
   tenantKind,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { getLatestVersionFormRules } from "pagopa-interop-commons";
+import {
+  genericLogger,
+  getLatestVersionFormRules,
+} from "pagopa-interop-commons";
 import {
   tenantKindNotFound,
   tenantNotFound,
@@ -34,6 +37,7 @@ export const testGetLatestRiskAnalysisConfiguration = (): ReturnType<
           await purposeService.retrieveLatestRiskAnalysisConfiguration({
             tenantKind: kind,
             organizationId: mockTenant.id,
+            logger: genericLogger,
           });
 
         expect(result).toEqual(getLatestVersionFormRules(kind));
@@ -46,6 +50,7 @@ export const testGetLatestRiskAnalysisConfiguration = (): ReturnType<
         purposeService.retrieveLatestRiskAnalysisConfiguration({
           tenantKind: tenantKind.PA,
           organizationId: randomId,
+          logger: genericLogger,
         })
       ).rejects.toThrowError(tenantNotFound(randomId));
     });
@@ -60,6 +65,7 @@ export const testGetLatestRiskAnalysisConfiguration = (): ReturnType<
         purposeService.retrieveLatestRiskAnalysisConfiguration({
           tenantKind: undefined,
           organizationId: mockTenant.id,
+          logger: genericLogger,
         })
       ).rejects.toThrowError(tenantKindNotFound(mockTenant.id));
     });
@@ -76,6 +82,7 @@ export const testGetLatestRiskAnalysisConfiguration = (): ReturnType<
         purposeService.retrieveLatestRiskAnalysisConfiguration({
           tenantKind: kind,
           organizationId: mockTenant.id,
+          logger: genericLogger,
         })
       ).rejects.toThrowError(riskAnalysisConfigLatestVersionNotFound(kind));
     });
