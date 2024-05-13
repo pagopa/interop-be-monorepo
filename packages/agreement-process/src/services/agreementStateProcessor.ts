@@ -127,10 +127,6 @@ export const agreementStateByFlags = (
     )
     .otherwise(() => stateByAttribute);
 
-export const suspendedByPlatformFlag = (fsmState: AgreementState): boolean =>
-  fsmState === agreementState.suspended ||
-  fsmState === agreementState.missingCertifiedAttributes;
-
 export const suspendedByConsumerFlag = (
   agreement: Agreement,
   requesterOrgId: Tenant["id"],

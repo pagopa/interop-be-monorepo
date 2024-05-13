@@ -15,16 +15,22 @@ import { api } from "../model/generated/api.js";
 import {
   purposeToApiPurpose,
   purposeVersionDocumentToApiPurposeVersionDocument,
+  purposeVersionToApiPurposeVersion,
 } from "../model/domain/apiConverter.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../utilities/config.js";
 import { purposeServiceBuilder } from "../services/purposeService.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
+  archivePurposeVersionErrorMapper,
+  deletePurposeErrorMapper,
   deletePurposeVersionErrorMapper,
   getPurposeErrorMapper,
   getRiskAnalysisDocumentErrorMapper,
   rejectPurposeVersionErrorMapper,
+  suspendPurposeVersionErrorMapper,
+  updatePurposeErrorMapper,
+  updateReversePurposeErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const readModelService = readModelServiceBuilder(
@@ -82,7 +88,30 @@ const purposeRouter = (
     .post(
       "/reverse/purposes/:id",
       authorizationMiddleware([ADMIN_ROLE]),
-      (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const { purpose, isRiskAnalysisValid } =
+            await purposeService.updateReversePurpose({
+              purposeId: unsafeBrandId(req.params.id),
+              reversePurposeUpdateContent: req.body,
+              organizationId: req.ctx.authData.organizationId,
+              correlationId: req.ctx.correlationId,
+              logger: ctx.logger,
+            });
+          return res
+            .status(200)
+            .json(purposeToApiPurpose(purpose, isRiskAnalysisValid))
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateReversePurposeErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .get(
       "/purposes/:id",
@@ -116,13 +145,56 @@ const purposeRouter = (
         }
       }
     )
-    .post("/purposes/:id", authorizationMiddleware([ADMIN_ROLE]), (_req, res) =>
-      res.status(501).send()
+    .post(
+      "/purposes/:id",
+      authorizationMiddleware([ADMIN_ROLE]),
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const { purpose, isRiskAnalysisValid } =
+            await purposeService.updatePurpose({
+              purposeId: unsafeBrandId(req.params.id),
+              purposeUpdateContent: req.body,
+              organizationId: req.ctx.authData.organizationId,
+              correlationId: req.ctx.correlationId,
+              logger: ctx.logger,
+            });
+          return res
+            .status(200)
+            .json(purposeToApiPurpose(purpose, isRiskAnalysisValid))
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updatePurposeErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .delete(
       "/purposes/:id",
       authorizationMiddleware([ADMIN_ROLE]),
-      (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          await purposeService.deletePurpose({
+            purposeId: unsafeBrandId(req.params.id),
+            organizationId: req.ctx.authData.organizationId,
+            correlationId: req.ctx.correlationId,
+            logger: ctx.logger,
+          });
+          return res.status(204).end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            deletePurposeErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/purposes/:purposeId/versions",
@@ -218,12 +290,56 @@ const purposeRouter = (
     .post(
       "/purposes/:purposeId/versions/:versionId/suspend",
       authorizationMiddleware([ADMIN_ROLE]),
-      (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const suspendedVersion = await purposeService.suspendPurposeVersion({
+            purposeId: unsafeBrandId(req.params.purposeId),
+            versionId: unsafeBrandId(req.params.versionId),
+            organizationId: req.ctx.authData.organizationId,
+            correlationId: req.ctx.correlationId,
+            logger: ctx.logger,
+          });
+          return res
+            .status(200)
+            .json(purposeVersionToApiPurposeVersion(suspendedVersion))
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            suspendPurposeVersionErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/purposes/:purposeId/versions/:versionId/archive",
       authorizationMiddleware([ADMIN_ROLE, INTERNAL_ROLE]),
-      (_req, res) => res.status(501).send()
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          const archivedVersion = await purposeService.archivePurposeVersion({
+            purposeId: unsafeBrandId(req.params.purposeId),
+            versionId: unsafeBrandId(req.params.versionId),
+            organizationId: req.ctx.authData.organizationId,
+            correlationId: req.ctx.correlationId,
+            logger: ctx.logger,
+          });
+          return res
+            .status(200)
+            .json(purposeVersionToApiPurposeVersion(archivedVersion))
+            .end();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            archivePurposeVersionErrorMapper,
+            ctx.logger
+          );
+          return res.status(errorRes.status).json(errorRes).end();
+        }
+      }
     )
     .post(
       "/purposes/:purposeId/versions/:versionId/update/waitingForApproval",
