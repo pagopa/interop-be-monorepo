@@ -14,6 +14,7 @@ import {
   AgreementDocumentId,
   AgreementEvent,
   AgreementId,
+  AttributeId,
   ListResult,
   WithMetadata,
   agreementEventToBinaryData,
@@ -33,6 +34,7 @@ import {
 import {
   CompactEService,
   CompactOrganization,
+  CompactTenant,
 } from "../model/domain/models.js";
 import {
   toCreateEventAgreementAdded,
@@ -72,7 +74,6 @@ import {
   ApiAgreementPayload,
   ApiAgreementSubmissionPayload,
   ApiAgreementUpdatePayload,
-  ApiComputeAgreementStatePayload,
 } from "../model/types.js";
 import { config } from "../utilities/config.js";
 import { activateAgreementLogic } from "./agreementActivationProcessor.js";
@@ -94,7 +95,7 @@ import {
 
 import { EserviceQuery } from "./readmodel/eserviceQuery.js";
 import { TenantQuery } from "./readmodel/tenantQuery.js";
-import { computeAgreementStateLogic } from "./agreementStateProcessor.js";
+import { computeAgreementStateByAttribute } from "./agreementStateProcessor.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function agreementServiceBuilder(
@@ -430,14 +431,23 @@ export function agreementServiceBuilder(
       return agreement;
     },
     async computeAgreementState(
-      payload: ApiComputeAgreementStatePayload,
-      { logger }: WithLogger<AppContext>
+      attributeId: AttributeId,
+      consumer: CompactTenant,
+      { logger, correlationId }: WithLogger<AppContext>
     ): Promise<void> {
       logger.info(
-        `Recalculating agreements state for attribute ${payload.attributeId}`
+        `Recalculating agreements state for attribute ${attributeId}`
       );
 
-      await repository.createEvent(await computeAgreementStateLogic(payload));
+      const events = await computeAgreementStateByAttribute(
+        attributeId,
+        consumer,
+        agreementQuery,
+        eserviceQuery,
+        correlationId
+      );
+
+      await Promise.all(events.map(repository.createEvent));
     },
   };
 }

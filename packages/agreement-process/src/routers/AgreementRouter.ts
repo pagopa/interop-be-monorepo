@@ -15,6 +15,8 @@ import {
   TenantId,
   DescriptorId,
   EServiceId,
+  TenantAttribute,
+  TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
@@ -551,7 +553,14 @@ const agreementRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        await agreementService.computeAgreementState(req.body, ctx);
+        await agreementService.computeAgreementState(
+          unsafeBrandId(req.body.attributeId),
+          {
+            id: unsafeBrandId(req.body.consumer.id),
+            attributes: req.body.consumer.attributes as TenantAttribute[], // TODO map & unsafeBrand?
+          },
+          ctx
+        );
 
         return res.status(204).send();
       } catch (error) {

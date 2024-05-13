@@ -22,7 +22,6 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
-import { match } from "ts-pattern";
 import { AgreementQuery } from "../../services/readmodel/agreementQuery.js";
 import { ApiAgreementPayload } from "../types.js";
 import {
@@ -42,6 +41,7 @@ import {
 } from "./errors.js";
 import {
   CertifiedAgreementAttribute,
+  CompactTenant,
   DeclaredAgreementAttribute,
   VerifiedAgreementAttribute,
 } from "./models.js";
@@ -115,24 +115,6 @@ export const agreementConsumerDocumentChangeValidStates: AgreementState[] = [
   agreementState.draft,
   agreementState.pending,
 ];
-
-export const computeAgreementStateAllowedTransitions = (
-  state: AgreementState
-): AgreementState[] =>
-  match<AgreementState, AgreementState[]>(state)
-    .with(agreementState.draft, agreementState.pending, () => [
-      agreementState.missingCertifiedAttributes,
-    ])
-    .with(agreementState.missingCertifiedAttributes, () => [
-      agreementState.draft,
-    ])
-    .with(agreementState.active, () => [agreementState.suspended])
-    .with(agreementState.suspended, () => [
-      agreementState.active,
-      agreementState.suspended,
-    ])
-    .with(agreementState.archived, agreementState.rejected, () => [])
-    .exhaustive();
 
 /* ========= ASSERTIONS ========= */
 
@@ -356,7 +338,7 @@ const attributesSatisfied = (
 
 export const certifiedAttributesSatisfied = (
   descriptor: Descriptor,
-  tenant: Tenant
+  tenant: Tenant | CompactTenant
 ): boolean => {
   const certifiedAttributes = filterCertifiedAttributes(tenant).map(
     (a) => a.id
@@ -370,7 +352,7 @@ export const certifiedAttributesSatisfied = (
 
 export const declaredAttributesSatisfied = (
   descriptor: Descriptor,
-  tenant: Tenant
+  tenant: Tenant | CompactTenant
 ): boolean => {
   const declaredAttributes = filterDeclaredAttributes(tenant).map((a) => a.id);
 
@@ -383,7 +365,7 @@ export const declaredAttributesSatisfied = (
 export const verifiedAttributesSatisfied = (
   producerId: TenantId,
   descriptor: Descriptor,
-  tenant: Tenant
+  tenant: Tenant | CompactTenant
 ): boolean => {
   const verifiedAttributes = filterVerifiedAttributes(producerId, tenant).map(
     (a) => a.id
@@ -517,7 +499,7 @@ export const matchingVerifiedAttributes = (
 
 export const filterVerifiedAttributes = (
   producerId: TenantId,
-  tenant: Tenant
+  tenant: Tenant | CompactTenant
 ): VerifiedTenantAttribute[] =>
   tenant.attributes.filter(
     (att) =>
@@ -530,7 +512,7 @@ export const filterVerifiedAttributes = (
   ) as VerifiedTenantAttribute[];
 
 export const filterCertifiedAttributes = (
-  tenant: Tenant
+  tenant: Tenant | CompactTenant
 ): CertifiedTenantAttribute[] =>
   tenant.attributes.filter(
     (att) =>
@@ -538,7 +520,7 @@ export const filterCertifiedAttributes = (
   ) as CertifiedTenantAttribute[];
 
 export const filterDeclaredAttributes = (
-  tenant: Tenant
+  tenant: Tenant | CompactTenant
 ): DeclaredTenantAttribute[] =>
   tenant.attributes.filter(
     (att) =>

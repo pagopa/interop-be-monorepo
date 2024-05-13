@@ -42,7 +42,7 @@ import { ApiAgreementDocumentSeed } from "../model/types.js";
 import { apiAgreementDocumentToAgreementDocument } from "../model/domain/apiConverter.js";
 import {
   agreementStateByFlags,
-  nextState,
+  nextStateByAttributes,
   suspendedByConsumerFlag,
   suspendedByProducerFlag,
 } from "./agreementStateProcessor.js";
@@ -117,7 +117,11 @@ async function activateAgreement(
   logger: Logger
 ): Promise<[Agreement, Array<CreateEvent<AgreementEvent>>]> {
   const agreement = agreementData.data;
-  const nextAttributesState = nextState(agreement, descriptor, consumer);
+  const nextAttributesState = nextStateByAttributes(
+    agreement,
+    descriptor,
+    consumer
+  );
 
   const suspendedByConsumer = suspendedByConsumerFlag(
     agreement,

@@ -23,7 +23,7 @@ import { TenantQuery } from "./readmodel/tenantQuery.js";
 import { EserviceQuery } from "./readmodel/eserviceQuery.js";
 import {
   agreementStateByFlags,
-  nextState,
+  nextStateByAttributes,
   suspendedByConsumerFlag,
   suspendedByProducerFlag,
 } from "./agreementStateProcessor.js";
@@ -72,7 +72,11 @@ export async function suspendAgreementLogic({
   );
   assertDescriptorExist(eservice.id, agreement.data.descriptorId, descriptor);
 
-  const nextStateByAttributes = nextState(agreement.data, descriptor, consumer);
+  const nextStateByAttributes = nextStateByAttributes(
+    agreement.data,
+    descriptor,
+    consumer
+  );
 
   const suspendedByConsumer = suspendedByConsumerFlag(
     agreement.data,

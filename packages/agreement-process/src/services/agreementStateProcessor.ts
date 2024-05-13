@@ -2,7 +2,9 @@ import {
   Agreement,
   AgreementEvent,
   AgreementState,
+  AttributeId,
   Descriptor,
+  EService,
   Tenant,
   WithMetadata,
   agreementState,
@@ -10,17 +12,19 @@ import {
 import { P, match } from "ts-pattern";
 import { CreateEvent } from "pagopa-interop-commons";
 import {
+  assertDescriptorExist,
+  assertEServiceExist,
   certifiedAttributesSatisfied,
-  computeAgreementStateAllowedTransitions,
   declaredAttributesSatisfied,
   verifiedAttributesSatisfied,
 } from "../model/domain/validators.js";
-import { ApiComputeAgreementStatePayload } from "../model/types.js";
-import { UpdateAgreementSeed } from "../model/domain/models.js";
 import {
   toCreateEventAgreementSuspendedByPlatform,
   toCreateEventAgreementUnsuspendedByPlatform,
 } from "../model/domain/toEvent.js";
+import { CompactTenant } from "../model/domain/models.js";
+import { AgreementQuery } from "./readmodel/agreementQuery.js";
+import { EserviceQuery } from "./readmodel/eserviceQuery.js";
 
 const {
   draft,
@@ -35,7 +39,7 @@ const {
 const nextStateFromDraft = (
   agreement: Agreement,
   descriptor: Descriptor,
-  tenant: Tenant
+  tenant: Tenant | CompactTenant
 ): AgreementState => {
   if (agreement.consumerId === agreement.producerId) {
     return active;
@@ -60,7 +64,7 @@ const nextStateFromDraft = (
 const nextStateFromPending = (
   agreement: Agreement,
   descriptor: Descriptor,
-  tenant: Tenant
+  tenant: Tenant | CompactTenant
 ): AgreementState => {
   if (!certifiedAttributesSatisfied(descriptor, tenant)) {
     return missingCertifiedAttributes;
@@ -77,7 +81,7 @@ const nextStateFromPending = (
 const nextStateFromActiveOrSuspended = (
   agreement: Agreement,
   descriptor: Descriptor,
-  tenant: Tenant
+  tenant: Tenant | CompactTenant
 ): AgreementState => {
   if (agreement.consumerId === agreement.producerId) {
     return active;
@@ -94,7 +98,7 @@ const nextStateFromActiveOrSuspended = (
 
 const nextStateFromMissingCertifiedAttributes = (
   descriptor: Descriptor,
-  tenant: Tenant
+  tenant: Tenant | CompactTenant
 ): AgreementState => {
   if (certifiedAttributesSatisfied(descriptor, tenant)) {
     return draft;
@@ -102,10 +106,10 @@ const nextStateFromMissingCertifiedAttributes = (
   return missingCertifiedAttributes;
 };
 
-export const nextState = (
+export const nextStateByAttributes = (
   agreement: Agreement,
   descriptor: Descriptor,
-  tenant: Tenant
+  tenant: Tenant | CompactTenant
 ): AgreementState =>
   match(agreement.state)
     .with(agreementState.draft, () =>
@@ -166,6 +170,26 @@ export const suspendedByProducerFlag = (
     ? destinationState === agreementState.suspended
     : agreement.suspendedByProducer;
 
+const allowedStateTransitions = (state: AgreementState): AgreementState[] =>
+  match<AgreementState, AgreementState[]>(state)
+    .with(agreementState.draft, agreementState.pending, () => [
+      agreementState.missingCertifiedAttributes,
+    ])
+    .with(agreementState.missingCertifiedAttributes, () => [
+      agreementState.draft,
+    ])
+    .with(agreementState.active, () => [agreementState.suspended])
+    .with(agreementState.suspended, () => [
+      agreementState.active,
+      agreementState.suspended,
+    ])
+    .with(agreementState.archived, agreementState.rejected, () => [])
+    .exhaustive();
+
+const updatableStates = Object.values(agreementState).filter(
+  (state) => allowedStateTransitions(state).length > 0
+);
+
 async function updateAgreementState(
   agreement: WithMetadata<Agreement>,
   state: AgreementState,
@@ -188,9 +212,7 @@ async function updateAgreementState(
 
   if (
     newSuspendedByPlatform !== agreement.data.suspendedByPlatform &&
-    computeAgreementStateAllowedTransitions(agreement.data.state).includes(
-      finalState
-    )
+    allowedStateTransitions(agreement.data.state).includes(finalState)
   ) {
     if (newSuspendedByPlatform === true) {
       return toCreateEventAgreementSuspendedByPlatform(
@@ -208,9 +230,95 @@ async function updateAgreementState(
   }
 }
 
-export async function computeAgreementStateLogic(
-  payload: ApiComputeAgreementStatePayload
-): Promise<CreateEvent<AgreementEvent>> {
-  // TODO implement, call updateAgreementState defined above etc.
-  // TODO consider moving all in this function
+// TODO needed?
+async function updateAgreementStates(
+  agreement: WithMetadata<Agreement>,
+  consumer: CompactTenant,
+  eservices: EService[], // TODO needed?
+  correlationId: string
+): Promise<CreateEvent<AgreementEvent> | void> {
+  const descriptor = eservices
+    .find((eservice) => eservice.id === agreement.data.eserviceId)
+    ?.descriptors.find(
+      (descriptor) => descriptor.id === agreement.data.descriptorId
+    );
+
+  assertDescriptorExist(
+    agreement.data.eserviceId,
+    agreement.data.descriptorId,
+    descriptor
+  );
+
+  const nextState = nextStateByAttributes(agreement.data, descriptor, consumer);
+
+  return updateAgreementState(agreement, nextState, correlationId);
+}
+
+function eserviceContainsAttribute(
+  attributeId: AttributeId,
+  eservice: EService
+): boolean {
+  const certified = eservice.descriptors.flatMap(
+    (descriptor) => descriptor.attributes.certified
+  );
+  const declared = eservice.descriptors.flatMap(
+    (descriptor) => descriptor.attributes.declared
+  );
+  const verified = eservice.descriptors.flatMap(
+    (descriptor) => descriptor.attributes.verified
+  );
+
+  const allIds = [...certified, ...declared, ...verified].flatMap((attr) =>
+    attr.map((a) => a.id)
+  );
+
+  return allIds.includes(attributeId);
+}
+
+export async function computeAgreementStateByAttribute(
+  attributeId: AttributeId,
+  consumer: CompactTenant,
+  agreementQuery: AgreementQuery,
+  eserviceQuery: EserviceQuery,
+  correlationId: string
+): Promise<Array<CreateEvent<AgreementEvent>>> {
+  const agreements = await agreementQuery.getAllAgreements({
+    consumerId: consumer.id,
+    agreementStates: updatableStates,
+  });
+
+  const eservices = await Promise.all(
+    agreements
+      .map((agreement) => agreement.data.eserviceId)
+      .map(async (eserviceId) => {
+        const eservice = await eserviceQuery.getEServiceById(eserviceId);
+        assertEServiceExist(eserviceId, eservice);
+        return eservice;
+      })
+  );
+
+  const eservicesWithAttribute = eservices.filter((eservice) =>
+    eserviceContainsAttribute(attributeId, eservice)
+  );
+
+  const agreementsToUpdate = agreements.filter((agreement) =>
+    eservicesWithAttribute.some(
+      (eservice) => eservice.id === agreement.data.eserviceId
+    )
+  );
+
+  return Promise.all(
+    agreementsToUpdate.map((agreement) =>
+      updateAgreementStates(
+        agreement,
+        consumer,
+        eservicesWithAttribute,
+        correlationId
+      )
+    )
+  ).then((events) =>
+    events.filter(
+      (event): event is CreateEvent<AgreementEvent> => event !== undefined
+    )
+  );
 }
