@@ -19,11 +19,11 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@types/node": "20.3.1",
-    "connection-string": "4.3.6",
-    "dotenv-flow": "3.2.0",
+    "connection-string": "4.4.0",
+    "dotenv-flow": "3.3.0",
     "json-diff": "1.0.6",
     "lodash.isequal": "4.5.0",
-    "mongodb": "5.6.0",
+    "mongodb": "5.8.0",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-commons-test": "workspace:*",
     "pagopa-interop-models": "workspace:*",
@@ -34,7 +34,7 @@
   "devDependencies": {
     "@types/json-diff": "1.0.3",
     "@types/lodash.isequal": "4.5.8",
-    "eslint": "8.44.0",
+    "eslint": "8.57.0",
     "prettier": "2.8.8",
     "ts-node": "10.9.2",
     "typescript": "5.1.3",
