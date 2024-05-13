@@ -18,10 +18,11 @@ import {
   purposeVersionState,
   tenantKind,
   toPurposeV2,
+  toReadModelAgreement,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { formatDateAndTime } from "pagopa-interop-commons";
+import { formatDateAndTime, genericLogger } from "pagopa-interop-commons";
 import {
   duplicatedPurposeTitle,
   purposeCannotBeCloned,
@@ -71,7 +72,7 @@ export const testClonePurpose = (): ReturnType<typeof describe> =>
 
       await addOnePurpose(mockPurpose, postgresDB, purposes);
       await writeInReadmodel(mockTenant, tenants);
-      await writeInReadmodel(mockAgreement, agreements);
+      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
       const { purpose } = await purposeService.clonePurpose({
         purposeId: mockPurpose.id,
@@ -80,6 +81,7 @@ export const testClonePurpose = (): ReturnType<typeof describe> =>
           eserviceId: mockEService.id,
         },
         correlationId: generateId(),
+        logger: genericLogger,
       });
 
       const writtenEvent = await readLastEventByStreamId(
@@ -142,7 +144,7 @@ export const testClonePurpose = (): ReturnType<typeof describe> =>
       };
 
       await writeInReadmodel(mockTenant, tenants);
-      await writeInReadmodel(mockAgreement, agreements);
+      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
       expect(
         purposeService.clonePurpose({
@@ -152,6 +154,7 @@ export const testClonePurpose = (): ReturnType<typeof describe> =>
             eserviceId: mockEService.id,
           },
           correlationId: generateId(),
+          logger: genericLogger,
         })
       ).rejects.toThrowError(purposeNotFound(mockPurpose.id));
     });
@@ -177,7 +180,7 @@ export const testClonePurpose = (): ReturnType<typeof describe> =>
 
       await addOnePurpose(mockPurpose, postgresDB, purposes);
       await writeInReadmodel(mockTenant, tenants);
-      await writeInReadmodel(mockAgreement, agreements);
+      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
       expect(
         purposeService.clonePurpose({
@@ -187,6 +190,7 @@ export const testClonePurpose = (): ReturnType<typeof describe> =>
             eserviceId: mockEService.id,
           },
           correlationId: generateId(),
+          logger: genericLogger,
         })
       ).rejects.toThrowError(purposeCannotBeCloned(mockPurpose.id));
     });
@@ -212,7 +216,7 @@ export const testClonePurpose = (): ReturnType<typeof describe> =>
 
       await addOnePurpose(mockPurpose, postgresDB, purposes);
       await writeInReadmodel(mockTenant, tenants);
-      await writeInReadmodel(mockAgreement, agreements);
+      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
       expect(
         purposeService.clonePurpose({
@@ -222,6 +226,7 @@ export const testClonePurpose = (): ReturnType<typeof describe> =>
             eserviceId: mockEService.id,
           },
           correlationId: generateId(),
+          logger: genericLogger,
         })
       ).rejects.toThrowError(purposeCannotBeCloned(mockPurpose.id));
     });
@@ -257,7 +262,7 @@ export const testClonePurpose = (): ReturnType<typeof describe> =>
       await addOnePurpose(mockPurposeToClone, postgresDB, purposes);
       await addOnePurpose(mockPurposeWithSameName, postgresDB, purposes);
       await writeInReadmodel(mockTenant, tenants);
-      await writeInReadmodel(mockAgreement, agreements);
+      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
       expect(
         purposeService.clonePurpose({
@@ -267,6 +272,7 @@ export const testClonePurpose = (): ReturnType<typeof describe> =>
             eserviceId: mockEService.id,
           },
           correlationId: generateId(),
+          logger: genericLogger,
         })
       ).rejects.toThrowError(
         duplicatedPurposeTitle(mockPurposeWithSameName.title)
@@ -294,7 +300,7 @@ export const testClonePurpose = (): ReturnType<typeof describe> =>
 
       await addOnePurpose(mockPurpose, postgresDB, purposes);
       await writeInReadmodel(mockTenant, tenants);
-      await writeInReadmodel(mockAgreement, agreements);
+      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
       expect(
         purposeService.clonePurpose({
@@ -304,6 +310,7 @@ export const testClonePurpose = (): ReturnType<typeof describe> =>
             eserviceId: mockEService.id,
           },
           correlationId: generateId(),
+          logger: genericLogger,
         })
       ).rejects.toThrowError(tenantKindNotFound(mockTenant.id));
     });
