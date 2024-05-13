@@ -102,6 +102,7 @@ describe("JWT tests", () => {
           origin: "IPA",
           value: "5N2TR557",
         },
+        selfcareId: "1962d21c-c701-4805-93f6-53a877898756",
         organizationId: "69e2865e-65ab-4e48-a638-2037a9ee2ee7",
         userId: "f07ddb8f-17f9-47d4-b31e-35d1ac10e521",
         userRoles: ["admin"],
@@ -119,6 +120,7 @@ describe("JWT tests", () => {
           origin: "IPA",
           value: "5N2TR557",
         },
+        selfcareId: "1962d21c-c701-4805-93f6-53a877898756",
         organizationId: "69e2865e-65ab-4e48-a638-2037a9ee2ee7",
         userId: "f07ddb8f-17f9-47d4-b31e-35d1ac10e521",
         userRoles: ["security", "api"],
@@ -159,6 +161,7 @@ describe("JWT tests", () => {
           value: "",
         },
         organizationId: "89804b2c-f62e-4867-87a4-3a82f2b03485",
+        selfcareId: "",
         userId: "",
         userRoles: ["m2m"],
       });
@@ -172,12 +175,12 @@ describe("JWT tests", () => {
       ]);
       const token = getMockSignedToken({
         ...mockToken,
-        sub: undefined,
+        aud: undefined,
         jti: undefined,
       });
 
       expect(() => readAuthDataFromJwtToken(token)).toThrowError(
-        invalidClaim(`Validation error: Required at "jti"; Required at "sub"`)
+        invalidClaim(`Validation error: Required at "aud"; Required at "jti"`)
       );
     });
 
@@ -207,6 +210,7 @@ describe("JWT tests", () => {
           value: "",
         },
         organizationId: "",
+        selfcareId: "",
         userId: "",
         userRoles: ["internal"],
       });
@@ -232,6 +236,7 @@ describe("JWT tests", () => {
           value: "5N2TR557",
         },
         organizationId: "69e2865e-65ab-4e48-a638-2037a9ee2ee7",
+        selfcareId: "1962d21c-c701-4805-93f6-53a877898756",
         userId: "f07ddb8f-17f9-47d4-b31e-35d1ac10e521",
         userRoles: ["support"],
       });
