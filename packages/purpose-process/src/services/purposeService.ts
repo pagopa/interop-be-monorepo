@@ -1,4 +1,9 @@
-import { DB, Logger, eventRepository } from "pagopa-interop-commons";
+import {
+  CreateEvent,
+  DB,
+  Logger,
+  eventRepository,
+} from "pagopa-interop-commons";
 import {
   EService,
   EServiceId,
@@ -15,24 +20,56 @@ import {
   PurposeVersionId,
   ownership,
   purposeEventToBinaryData,
+  purposeVersionState,
+  PurposeRiskAnalysisForm,
+  PurposeEvent,
+  eserviceMode,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import {
+  duplicatedPurposeTitle,
   eserviceNotFound,
-  organizationNotAllowed,
-  purposeNotFound,
+  notValidVersionState,
   organizationIsNotTheConsumer,
+  organizationIsNotTheProducer,
+  organizationNotAllowed,
+  purposeCannotBeDeleted,
+  purposeNotFound,
   purposeVersionCannotBeDeleted,
   purposeVersionDocumentNotFound,
   purposeVersionNotFound,
-  tenantKindNotFound,
   tenantNotFound,
 } from "../model/domain/errors.js";
-import { toCreateEventWaitingForApprovalPurposeVersionDeleted } from "../model/domain/toEvent.js";
+import {
+  toCreateEventDraftPurposeDeleted,
+  toCreateEventDraftPurposeUpdated,
+  toCreateEventPurposeArchived,
+  toCreateEventPurposeSuspendedByConsumer,
+  toCreateEventPurposeSuspendedByProducer,
+  toCreateEventPurposeVersionRejected,
+  toCreateEventWaitingForApprovalPurposeDeleted,
+  toCreateEventWaitingForApprovalPurposeVersionDeleted,
+} from "../model/domain/toEvent.js";
+import {
+  ApiPurposeUpdateContent,
+  ApiReversePurposeUpdateContent,
+} from "../model/domain/models.js";
 import { ReadModelService } from "./readModelService.js";
 import {
+  assertOrganizationIsAConsumer,
+  assertEserviceMode,
+  assertConsistentFreeOfCharge,
   isRiskAnalysisFormValid,
   isDeletableVersion,
   purposeIsDraft,
+  assertTenantKindExists,
+  reverseValidateAndTransformRiskAnalysis,
+  validateAndTransformRiskAnalysis,
+  assertPurposeIsDraft,
+  isRejectable,
+  isDeletable,
+  isArchivable,
+  isSuspendable,
 } from "./validators.js";
 
 const retrievePurpose = async (
@@ -123,9 +160,7 @@ export function purposeServiceBuilder(
       );
       const tenant = await retrieveTenant(organizationId, readModelService);
 
-      if (tenant.kind === undefined) {
-        throw tenantKindNotFound(tenant.id);
-      }
+      assertTenantKindExists(tenant);
 
       return authorizeRiskAnalysisForm({
         purpose: purpose.data,
@@ -208,6 +243,265 @@ export function purposeServiceBuilder(
       });
       await repository.createEvent(event);
     },
+    async rejectPurposeVersion({
+      purposeId,
+      versionId,
+      rejectionReason,
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      purposeId: PurposeId;
+      versionId: PurposeVersionId;
+      rejectionReason: string;
+      organizationId: TenantId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<void> {
+      logger.info(`Rejecting Version ${versionId} in Purpose ${purposeId}`);
+
+      const purpose = await retrievePurpose(purposeId, readModelService);
+      const eservice = await retrieveEService(
+        purpose.data.eserviceId,
+        readModelService
+      );
+      if (organizationId !== eservice.producerId) {
+        throw organizationIsNotTheProducer(organizationId);
+      }
+
+      const purposeVersion = retrievePurposeVersion(versionId, purpose);
+
+      if (!isRejectable(purposeVersion)) {
+        throw notValidVersionState(purposeVersion.id, purposeVersion.state);
+      }
+
+      const updatedPurposeVersion: PurposeVersion = {
+        ...purposeVersion,
+        state: purposeVersionState.rejected,
+        rejectionReason,
+        updatedAt: new Date(),
+      };
+
+      const updatedPurpose = replacePurposeVersion(
+        purpose.data,
+        updatedPurposeVersion
+      );
+
+      const event = toCreateEventPurposeVersionRejected({
+        purpose: updatedPurpose,
+        version: purpose.metadata.version,
+        versionId,
+        correlationId,
+      });
+      await repository.createEvent(event);
+    },
+    async updatePurpose({
+      purposeId,
+      purposeUpdateContent,
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      purposeId: PurposeId;
+      purposeUpdateContent: ApiPurposeUpdateContent;
+      organizationId: TenantId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
+      logger.info(`Updating Purpose ${purposeId}`);
+      return await performUpdatePurpose(
+        purposeId,
+        {
+          updateContent: purposeUpdateContent,
+          mode: eserviceMode.deliver,
+        },
+        organizationId,
+        readModelService,
+        correlationId,
+        repository
+      );
+    },
+    async updateReversePurpose({
+      purposeId,
+      reversePurposeUpdateContent,
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      purposeId: PurposeId;
+      reversePurposeUpdateContent: ApiReversePurposeUpdateContent;
+      organizationId: TenantId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
+      logger.info(`Updating Reverse Purpose ${purposeId}`);
+      return await performUpdatePurpose(
+        purposeId,
+        {
+          updateContent: reversePurposeUpdateContent,
+          mode: eserviceMode.receive,
+        },
+        organizationId,
+        readModelService,
+        correlationId,
+        repository
+      );
+    },
+    async deletePurpose({
+      purposeId,
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      purposeId: PurposeId;
+      organizationId: TenantId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<void> {
+      logger.info(`Deleting Purpose ${purposeId}`);
+
+      const purpose = await retrievePurpose(purposeId, readModelService);
+
+      assertOrganizationIsAConsumer(organizationId, purpose.data.consumerId);
+
+      if (!isDeletable(purpose.data)) {
+        throw purposeCannotBeDeleted(purpose.data.id);
+      }
+
+      const event = purposeIsDraft(purpose.data)
+        ? toCreateEventDraftPurposeDeleted({
+            purpose: purpose.data,
+            version: purpose.metadata.version,
+            correlationId,
+          })
+        : toCreateEventWaitingForApprovalPurposeDeleted({
+            purpose: purpose.data,
+            version: purpose.metadata.version,
+            correlationId,
+          });
+
+      await repository.createEvent(event);
+    },
+    async archivePurposeVersion({
+      purposeId,
+      versionId,
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      purposeId: PurposeId;
+      versionId: PurposeVersionId;
+      organizationId: TenantId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<PurposeVersion> {
+      logger.info(`Archiving Version ${versionId} in Purpose ${purposeId}`);
+
+      const purpose = await retrievePurpose(purposeId, readModelService);
+
+      assertOrganizationIsAConsumer(organizationId, purpose.data.consumerId);
+      const purposeVersion = retrievePurposeVersion(versionId, purpose);
+
+      if (!isArchivable(purposeVersion)) {
+        throw notValidVersionState(versionId, purposeVersion.state);
+      }
+
+      const purposeWithoutWaitingForApproval: Purpose = {
+        ...purpose.data,
+        versions: purpose.data.versions.filter(
+          (v) => v.state !== purposeVersionState.waitingForApproval
+        ),
+      };
+      const archivedVersion: PurposeVersion = {
+        ...purposeVersion,
+        state: purposeVersionState.archived,
+        updatedAt: new Date(),
+      };
+      const updatedPurpose = replacePurposeVersion(
+        purposeWithoutWaitingForApproval,
+        archivedVersion
+      );
+
+      const event = toCreateEventPurposeArchived({
+        purpose: updatedPurpose,
+        purposeVersionId: archivedVersion.id,
+        version: purpose.metadata.version,
+        correlationId,
+      });
+
+      await repository.createEvent(event);
+      return archivedVersion;
+    },
+    async suspendPurposeVersion({
+      purposeId,
+      versionId,
+      organizationId,
+      correlationId,
+      logger,
+    }: {
+      purposeId: PurposeId;
+      versionId: PurposeVersionId;
+      organizationId: TenantId;
+      correlationId: string;
+      logger: Logger;
+    }): Promise<PurposeVersion> {
+      logger.info(`Suspending Version ${versionId} in Purpose ${purposeId}`);
+
+      const purpose = await retrievePurpose(purposeId, readModelService);
+      const purposeVersion = retrievePurposeVersion(versionId, purpose);
+
+      if (!isSuspendable(purposeVersion)) {
+        throw notValidVersionState(purposeVersion.id, purposeVersion.state);
+      }
+
+      const eservice = await retrieveEService(
+        purpose.data.eserviceId,
+        readModelService
+      );
+
+      const suspender = getOrganizationRole({
+        organizationId,
+        producerId: eservice.producerId,
+        consumerId: purpose.data.consumerId,
+      });
+
+      const suspendedPurposeVersion: PurposeVersion = {
+        ...purposeVersion,
+        state: purposeVersionState.suspended,
+        suspendedAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      const event = match(suspender)
+        .with(ownership.CONSUMER, () => {
+          const updatedPurpose: Purpose = {
+            ...replacePurposeVersion(purpose.data, suspendedPurposeVersion),
+            suspendedByConsumer: true,
+          };
+          return toCreateEventPurposeSuspendedByConsumer({
+            purpose: updatedPurpose,
+            purposeVersionId: versionId,
+            version: purpose.metadata.version,
+            correlationId,
+          });
+        })
+        .with(ownership.PRODUCER, ownership.SELF_CONSUMER, () => {
+          const updatedPurpose: Purpose = {
+            ...replacePurposeVersion(purpose.data, suspendedPurposeVersion),
+            suspendedByProducer: true,
+          };
+          return toCreateEventPurposeSuspendedByProducer({
+            purpose: updatedPurpose,
+            purposeVersionId: versionId,
+            version: purpose.metadata.version,
+            correlationId,
+          });
+        })
+        .exhaustive();
+
+      await repository.createEvent(event);
+      return suspendedPurposeVersion;
+    },
   };
 }
 
@@ -261,4 +555,125 @@ const getOrganizationRole = ({
   } else {
     throw organizationNotAllowed(organizationId);
   }
+};
+
+const replacePurposeVersion = (
+  purpose: Purpose,
+  newVersion: PurposeVersion
+): Purpose => {
+  const updatedVersions = purpose.versions.map((v: PurposeVersion) =>
+    v.id === newVersion.id ? newVersion : v
+  );
+
+  return {
+    ...purpose,
+    versions: updatedVersions,
+    updatedAt: newVersion.updatedAt,
+  };
+};
+
+const getInvolvedTenantByEServiceMode = async (
+  eservice: EService,
+  consumerId: TenantId,
+  readModelService: ReadModelService
+): Promise<Tenant> => {
+  if (eservice.mode === eserviceMode.deliver) {
+    return retrieveTenant(consumerId, readModelService);
+  } else {
+    return retrieveTenant(eservice.producerId, readModelService);
+  }
+};
+
+const performUpdatePurpose = async (
+  purposeId: PurposeId,
+  {
+    mode,
+    updateContent,
+  }:
+    | { mode: "Deliver"; updateContent: ApiPurposeUpdateContent }
+    | { mode: "Receive"; updateContent: ApiReversePurposeUpdateContent },
+  organizationId: TenantId,
+  readModelService: ReadModelService,
+  correlationId: string,
+  repository: {
+    createEvent: (createEvent: CreateEvent<PurposeEvent>) => Promise<string>;
+  }
+  // eslint-disable-next-line max-params
+): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> => {
+  const purpose = await retrievePurpose(purposeId, readModelService);
+  assertOrganizationIsAConsumer(organizationId, purpose.data.consumerId);
+  assertPurposeIsDraft(purpose.data);
+
+  if (updateContent.title !== purpose.data.title) {
+    const purposeWithSameTitle = await readModelService.getPurpose(
+      purpose.data.eserviceId,
+      purpose.data.consumerId,
+      updateContent.title
+    );
+
+    if (purposeWithSameTitle) {
+      throw duplicatedPurposeTitle(updateContent.title);
+    }
+  }
+  const eservice = await retrieveEService(
+    purpose.data.eserviceId,
+    readModelService
+  );
+  assertEserviceMode(eservice, mode);
+  assertConsistentFreeOfCharge(
+    updateContent.isFreeOfCharge,
+    updateContent.freeOfChargeReason
+  );
+
+  const tenant = await getInvolvedTenantByEServiceMode(
+    eservice,
+    purpose.data.consumerId,
+    readModelService
+  );
+
+  assertTenantKindExists(tenant);
+
+  const newRiskAnalysis: PurposeRiskAnalysisForm | undefined =
+    mode === eserviceMode.deliver
+      ? validateAndTransformRiskAnalysis(
+          updateContent.riskAnalysisForm,
+          tenant.kind
+        )
+      : reverseValidateAndTransformRiskAnalysis(
+          purpose.data.riskAnalysisForm,
+          tenant.kind
+        );
+
+  const updatedPurpose: Purpose = {
+    ...purpose.data,
+    title: updateContent.title,
+    description: updateContent.description,
+    isFreeOfCharge: updateContent.isFreeOfCharge,
+    freeOfChargeReason: updateContent.freeOfChargeReason,
+    versions: [
+      {
+        ...purpose.data.versions[0],
+        dailyCalls: updateContent.dailyCalls,
+        updatedAt: new Date(),
+      },
+    ],
+    updatedAt: new Date(),
+    riskAnalysisForm: newRiskAnalysis,
+  };
+
+  const event = toCreateEventDraftPurposeUpdated({
+    purpose: updatedPurpose,
+    version: purpose.metadata.version,
+    correlationId,
+  });
+  await repository.createEvent(event);
+
+  return {
+    purpose: updatedPurpose,
+    isRiskAnalysisValid: isRiskAnalysisFormValid(
+      updatedPurpose.riskAnalysisForm,
+      false,
+      tenant.kind
+    ),
+  };
 };
