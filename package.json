@@ -16,6 +16,7 @@
     "start:auth-updater": "turbo start --filter pagopa-interop-authorization-updater",
     "start:notifier-seeder": "turbo start --filter pagopa-interop-notifier-seeder",
     "start:purpose": "turbo start --filter pagopa-interop-purpose-process",
+    "start:purpose-readmodel-writer": "turbo start --filter pagopa-interop-purpose-readmodel-writer",
     "test": "turbo test",
     "build": "turbo build",
     "check": "turbo check",
@@ -35,7 +36,7 @@
     "turbo": "1.10.7"
   },
   "config":  { 
-   "protocVersion": "26.1"
-  },
+    "protocVersion": "26.1"
+   },
   "packageManager": "pnpm@8.6.3"
 }
