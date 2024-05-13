@@ -23,6 +23,7 @@ import {
   AgreementDocument,
   AgreementDocumentId,
   AgreementId,
+  AgreementUpgradedV2,
   AgreementV2,
   Descriptor,
   DescriptorId,
@@ -57,9 +58,9 @@ import {
   addOneTenant,
   agreementService,
   fileManager,
+  getMockConsumerDocument,
   readAgreementEventByVersion,
   uploadDocument,
-  getMockConsumerDocument,
 } from "./utils.js";
 
 describe("upgrade Agreement", () => {
@@ -217,25 +218,25 @@ describe("upgrade Agreement", () => {
 
     expect(newAgreementId).toBeDefined();
 
-    const actualAgreementCreatedEvent = await readAgreementEventByVersion(
+    const actualAgreementUpgradedEvent = await readAgreementEventByVersion(
       newAgreementId,
       0
     );
 
-    expect(actualAgreementCreatedEvent).toMatchObject({
-      type: "AgreementAdded",
+    expect(actualAgreementUpgradedEvent).toMatchObject({
+      type: "AgreementUpgraded",
       event_version: 2,
       version: "0",
       stream_id: newAgreementId,
     });
 
-    const actualAgreementCreated: AgreementV2 | undefined =
+    const actualAgreementUpgraded: AgreementV2 | undefined =
       decodeProtobufPayload({
-        messageType: AgreementAddedV2,
-        payload: actualAgreementCreatedEvent.data,
+        messageType: AgreementUpgradedV2,
+        payload: actualAgreementUpgradedEvent.data,
       }).agreement;
 
-    const expectedCreatedAgreement = toAgreementV2({
+    const expectedUpgradedAgreement = toAgreementV2({
       ...agreementToBeUpgraded,
       id: newAgreementId,
       descriptorId: publishedDescriptor.id,
@@ -250,19 +251,19 @@ describe("upgrade Agreement", () => {
       consumerDocuments: agreementConsumerDocuments.map((doc, i) => ({
         ...doc,
         id: unsafeBrandId<AgreementDocumentId>(
-          actualAgreementCreated?.consumerDocuments[i].id as string
+          actualAgreementUpgraded?.consumerDocuments[i].id as string
         ),
-        path: actualAgreementCreated?.consumerDocuments[i].path as string,
+        path: actualAgreementUpgraded?.consumerDocuments[i].path as string,
       })),
     });
 
     // The method toAgreementV2 sets these to undefined,
     // while when we read the event data they are not present
-    delete expectedCreatedAgreement.updatedAt;
-    delete expectedCreatedAgreement.rejectionReason;
-    expect(actualAgreementCreated).toMatchObject(expectedCreatedAgreement);
+    delete expectedUpgradedAgreement.updatedAt;
+    delete expectedUpgradedAgreement.rejectionReason;
+    expect(actualAgreementUpgraded).toMatchObject(expectedUpgradedAgreement);
 
-    for (const agreementDoc of expectedCreatedAgreement.consumerDocuments) {
+    for (const agreementDoc of expectedUpgradedAgreement.consumerDocuments) {
       const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${agreementDoc.id}/${agreementDoc.name}`;
 
       expect(
@@ -412,25 +413,25 @@ describe("upgrade Agreement", () => {
 
     expect(newAgreementId).toBeDefined();
 
-    const actualAgreementCreatedEvent = await readAgreementEventByVersion(
+    const actualAgreementUpgradedEvent = await readAgreementEventByVersion(
       newAgreementId,
       0
     );
 
-    expect(actualAgreementCreatedEvent).toMatchObject({
-      type: "AgreementAdded",
+    expect(actualAgreementUpgradedEvent).toMatchObject({
+      type: "AgreementUpgraded",
       event_version: 2,
       version: "0",
       stream_id: newAgreementId,
     });
 
-    const actualAgreementCreated: AgreementV2 | undefined =
+    const actualAgreementUpgraded: AgreementV2 | undefined =
       decodeProtobufPayload({
-        messageType: AgreementAddedV2,
-        payload: actualAgreementCreatedEvent.data,
+        messageType: AgreementUpgradedV2,
+        payload: actualAgreementUpgradedEvent.data,
       }).agreement;
 
-    const expectedCreatedAgreement = toAgreementV2({
+    const expectedUpgradedAgreement = toAgreementV2({
       ...agreementToBeUpgraded,
       id: newAgreementId,
       descriptorId: publishedDescriptor.id,
@@ -446,22 +447,22 @@ describe("upgrade Agreement", () => {
         {
           ...agreementConsumerDocument,
           id: unsafeBrandId<AgreementDocumentId>(
-            actualAgreementCreated?.consumerDocuments[0].id as string
+            actualAgreementUpgraded?.consumerDocuments[0].id as string
           ),
-          path: actualAgreementCreated?.consumerDocuments[0].path as string,
+          path: actualAgreementUpgraded?.consumerDocuments[0].path as string,
         },
       ],
     });
 
     // The method toAgreementV2 sets these to undefined,
     // while when we read the event data they are not present
-    delete expectedCreatedAgreement.updatedAt;
-    delete expectedCreatedAgreement.rejectionReason;
-    expect(actualAgreementCreated).toMatchObject(expectedCreatedAgreement);
+    delete expectedUpgradedAgreement.updatedAt;
+    delete expectedUpgradedAgreement.rejectionReason;
+    expect(actualAgreementUpgraded).toMatchObject(expectedUpgradedAgreement);
 
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
-    ).toContainEqual(expectedCreatedAgreement.consumerDocuments[0].path);
+    ).toContainEqual(expectedUpgradedAgreement.consumerDocuments[0].path);
   });
 
   it("should succeed with invalid Verified attributes", async () => {
