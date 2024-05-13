@@ -25,9 +25,13 @@ import {
   PurposeEvent,
   eserviceMode,
   ListResult,
+  unsafeBrandId,
+  generateId,
+  Agreement,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
+  agreementNotFound,
   duplicatedPurposeTitle,
   eserviceNotFound,
   notValidVersionState,
@@ -44,6 +48,7 @@ import {
 import {
   toCreateEventDraftPurposeDeleted,
   toCreateEventDraftPurposeUpdated,
+  toCreateEventPurposeAdded,
   toCreateEventPurposeArchived,
   toCreateEventPurposeSuspendedByConsumer,
   toCreateEventPurposeSuspendedByProducer,
@@ -54,6 +59,7 @@ import {
 import {
   ApiPurposeUpdateContent,
   ApiReversePurposeUpdateContent,
+  ApiPurposeSeed,
 } from "../model/domain/models.js";
 import { GetPurposesFilters, ReadModelService } from "./readModelService.js";
 import {
@@ -137,6 +143,21 @@ const retrieveTenant = async (
     throw tenantNotFound(tenantId);
   }
   return tenant;
+};
+
+const retrieveActiveAgreement = async (
+  eserviceId: EServiceId,
+  consumerId: TenantId,
+  readModelService: ReadModelService
+): Promise<Agreement> => {
+  const activeAgreement = await readModelService.getActiveAgreement(
+    eserviceId,
+    consumerId
+  );
+  if (activeAgreement === undefined) {
+    throw agreementNotFound(eserviceId, consumerId);
+  }
+  return activeAgreement;
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -553,6 +574,67 @@ export function purposeServiceBuilder(
         results: purposesToReturn,
         totalCount: purposesList.totalCount,
       };
+    },
+    async createPurpose(
+      purposeSeed: ApiPurposeSeed,
+      organizationId: TenantId,
+      correlationId: string,
+      logger: Logger
+    ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
+      logger.info(
+        `Creating Purpose for EService ${purposeSeed.eserviceId} and Consumer ${purposeSeed.consumerId}`
+      );
+      const eserviceId = unsafeBrandId<EServiceId>(purposeSeed.eserviceId);
+      const consumerId = unsafeBrandId<TenantId>(purposeSeed.consumerId);
+      assertOrganizationIsAConsumer(organizationId, consumerId);
+
+      assertConsistentFreeOfCharge(
+        purposeSeed.isFreeOfCharge,
+        purposeSeed.freeOfChargeReason
+      );
+
+      const tenant = await retrieveTenant(organizationId, readModelService);
+
+      assertTenantKindExists(tenant);
+
+      const validatedFormSeed = validateAndTransformRiskAnalysis(
+        purposeSeed.riskAnalysisForm,
+        tenant.kind
+      );
+
+      await retrieveActiveAgreement(eserviceId, consumerId, readModelService);
+
+      const purposeWithSameName = await readModelService.getPurpose(
+        eserviceId,
+        consumerId,
+        purposeSeed.title
+      );
+
+      if (purposeWithSameName) {
+        throw duplicatedPurposeTitle(purposeSeed.title);
+      }
+
+      const purpose: Purpose = {
+        ...purposeSeed,
+        id: generateId(),
+        createdAt: new Date(),
+        eserviceId,
+        consumerId,
+        versions: [
+          {
+            id: generateId(),
+            state: purposeVersionState.draft,
+            dailyCalls: purposeSeed.dailyCalls,
+            createdAt: new Date(),
+          },
+        ],
+        riskAnalysisForm: validatedFormSeed,
+      };
+
+      await repository.createEvent(
+        toCreateEventPurposeAdded(purpose, correlationId)
+      );
+      return { purpose, isRiskAnalysisValid: validatedFormSeed !== undefined };
     },
   };
 }

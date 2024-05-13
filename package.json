@@ -36,7 +36,7 @@
     "turbo": "1.10.7"
   },
   "config":  { 
-   "protocVersion": "26.1"
-  },
+    "protocVersion": "26.1"
+   },
   "packageManager": "pnpm@8.6.3"
 }

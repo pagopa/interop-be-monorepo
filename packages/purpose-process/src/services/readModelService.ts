@@ -18,6 +18,9 @@ import {
   PurposeReadModel,
   ListResult,
   purposeVersionState,
+  Agreement,
+  agreementState,
+  genericError,
   PurposeVersionState,
 } from "pagopa-interop-models";
 import { Filter, WithId } from "mongodb";
@@ -107,7 +110,7 @@ async function getTenant(
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
 ) {
-  const { eservices, purposes, tenants } = readModelRepository;
+  const { eservices, purposes, tenants, agreements } = readModelRepository;
 
   return {
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
@@ -266,6 +269,25 @@ export function readModelServiceBuilder(
           false
         ),
       };
+    },
+    async getActiveAgreement(
+      eserviceId: EServiceId,
+      consumerId: TenantId
+    ): Promise<Agreement | undefined> {
+      const data = await agreements.findOne({
+        "data.eserviceId": eserviceId,
+        "data.consumerId": consumerId,
+        "data.state": agreementState.active,
+      });
+      if (!data) {
+        return undefined;
+      } else {
+        const result = Agreement.safeParse(data.data);
+        if (!result.success) {
+          throw genericError("Unable to parse agreement item");
+        }
+        return result.data;
+      }
     },
   };
 }
