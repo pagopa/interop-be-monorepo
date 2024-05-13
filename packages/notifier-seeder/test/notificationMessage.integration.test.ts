@@ -252,7 +252,6 @@ describe("Notification tests", async () => {
         agreement: {
           ...mockAgreement,
           createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
         },
       });
 
