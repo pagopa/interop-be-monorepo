@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import * as express from "express";
 import { LoggerMetadata, logger } from "./index.js";
 
