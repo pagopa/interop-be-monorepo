@@ -231,18 +231,46 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
           eservicesIds: [],
           consumersIds: [],
           producersIds: [],
-          states: [purposeVersionState.rejected, purposeVersionState.archived],
+          states: [purposeVersionState.rejected, purposeVersionState.active],
           excludeDraft: undefined,
         },
         { offset: 0, limit: 50 },
         genericLogger
       );
-      expect(result.totalCount).toBe(3);
+      expect(result.totalCount).toBe(4);
       expect(result.results).toEqual([
+        mockPurpose3,
         mockPurpose4,
         mockPurpose5,
         mockPurpose6,
       ]);
+    });
+    it("should get the purposes with only archived versions (and exclude the ones with both archived and non-archived versions)", async () => {
+      const mockArchivedVersion: PurposeVersion = {
+        ...getMockPurposeVersion(),
+        state: purposeVersionState.archived,
+      };
+      const mockArchivedPurpose: Purpose = {
+        ...getMockPurpose(),
+        title: "archived purpose",
+        eserviceId: mockEService1ByTenant1.id,
+        versions: [mockArchivedVersion],
+      };
+      await addOnePurpose(mockArchivedPurpose, postgresDB, purposes);
+      const result = await purposeService.getPurposes(
+        producerId1,
+        {
+          eservicesIds: [],
+          consumersIds: [],
+          producersIds: [],
+          states: [purposeVersionState.archived],
+          excludeDraft: undefined,
+        },
+        { offset: 0, limit: 50 },
+        genericLogger
+      );
+      expect(result.totalCount).toBe(1);
+      expect(result.results).toEqual([mockArchivedPurpose]);
     });
     it("should not include purpose without versions or with one draft version (excludeDraft = true)", async () => {
       const result = await purposeService.getPurposes(
@@ -347,7 +375,7 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
           eservicesIds: [mockEService3ByTenant2.id],
           consumersIds: [consumerId1],
           producersIds: [producerId2],
-          states: [purposeVersionState.archived],
+          states: [purposeVersionState.active],
           excludeDraft: true,
         },
         { offset: 0, limit: 50 },
