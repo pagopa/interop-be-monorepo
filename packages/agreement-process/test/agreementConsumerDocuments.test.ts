@@ -17,6 +17,7 @@ import {
   AgreementConsumerDocumentAddedV2,
   agreementState,
   AgreementConsumerDocumentRemovedV2,
+  toAgreementV2,
 } from "pagopa-interop-models";
 import { describe, beforeEach, it, expect, vi } from "vitest";
 import { fileManagerDeleteError, genericLogger } from "pagopa-interop-commons";
@@ -29,7 +30,6 @@ import {
 } from "../src/model/domain/errors.js";
 import { config } from "../src/utilities/config.js";
 import { agreementConsumerDocumentChangeValidStates } from "../src/model/domain/validators.js";
-import { toAgreementV2 } from "../src/model/domain/toEvent.js";
 import {
   addOneAgreement,
   agreementService,
