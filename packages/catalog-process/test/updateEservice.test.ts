@@ -22,7 +22,6 @@ import {
   eserviceNotInDraftState,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/utilities/config.js";
-import { mockEService } from "./catalogService.integration.test.js";
 import {
   fileManager,
   addOneEService,
@@ -31,9 +30,11 @@ import {
   readLastEserviceEvent,
   getMockDocument,
   getMockDescriptor,
+  getMockEService,
 } from "./utils.js";
 
 describe("update eService", () => {
+  const mockEService = getMockEService();
   it("should write on event-store for the update of an eService (no technology change)", async () => {
     vi.spyOn(fileManager, "delete");
 
