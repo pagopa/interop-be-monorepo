@@ -4,16 +4,23 @@ import {
   AgreementState,
   Descriptor,
   Tenant,
+  WithMetadata,
   agreementState,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { CreateEvent } from "pagopa-interop-commons";
 import {
   certifiedAttributesSatisfied,
+  computeAgreementStateAllowedTransitions,
   declaredAttributesSatisfied,
   verifiedAttributesSatisfied,
 } from "../model/domain/validators.js";
 import { ApiComputeAgreementStatePayload } from "../model/types.js";
+import { UpdateAgreementSeed } from "../model/domain/models.js";
+import {
+  toCreateEventAgreementSuspendedByPlatform,
+  toCreateEventAgreementUnsuspendedByPlatform,
+} from "../model/domain/toEvent.js";
 
 const {
   draft,
@@ -159,6 +166,51 @@ export const suspendedByProducerFlag = (
     ? destinationState === agreementState.suspended
     : agreement.suspendedByProducer;
 
+async function updateAgreementState(
+  agreement: WithMetadata<Agreement>,
+  state: AgreementState,
+  correlationId: string
+): Promise<CreateEvent<AgreementEvent> | void> {
+  const newSuspendedByPlatform = suspendedByPlatformFlag(state);
+
+  const finalState = agreementStateByFlags(
+    state,
+    agreement.data.suspendedByProducer,
+    agreement.data.suspendedByConsumer,
+    newSuspendedByPlatform
+  );
+
+  const updatedAgreement: Agreement = {
+    ...agreement.data,
+    state: finalState,
+    suspendedByPlatform: newSuspendedByPlatform,
+  };
+
+  if (
+    newSuspendedByPlatform !== agreement.data.suspendedByPlatform &&
+    computeAgreementStateAllowedTransitions(agreement.data.state).includes(
+      finalState
+    )
+  ) {
+    if (newSuspendedByPlatform === true) {
+      return toCreateEventAgreementSuspendedByPlatform(
+        updatedAgreement,
+        agreement.metadata.version,
+        correlationId
+      );
+    } else {
+      return toCreateEventAgreementUnsuspendedByPlatform(
+        updatedAgreement,
+        agreement.metadata.version,
+        correlationId
+      );
+    }
+  }
+}
+
 export async function computeAgreementStateLogic(
   payload: ApiComputeAgreementStatePayload
-): Promise<CreateEvent<AgreementEvent>> {}
+): Promise<CreateEvent<AgreementEvent>> {
+  // TODO implement, call updateAgreementState defined above etc.
+  // TODO consider moving all in this function
+}
