@@ -4,6 +4,7 @@ import { StartedTestContainer } from "testcontainers";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import {
+  Agreement,
   AgreementAddedV2,
   AgreementEventEnvelopeV2,
   EServiceDescriptorSuspendedV2,
@@ -196,7 +197,12 @@ describe("Notification tests", async () => {
 
       await queueWriter.send(purposeMessage, genericLogger);
 
-      const mockAgreement = getMockAgreement();
+      const mockAgreement: Agreement = {
+        ...getMockAgreement(),
+        stamps: {},
+        contract: undefined,
+        suspendedAt: undefined,
+      };
 
       const agreementEventV2: AgreementAddedV2 = {
         agreement: toAgreementV2(mockAgreement),
@@ -243,6 +249,11 @@ describe("Notification tests", async () => {
         agreement: {
           ...mockAgreement,
           createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          consumerDocuments: mockAgreement.consumerDocuments.map((doc) => ({
+            ...doc,
+            createdAt: new Date().toISOString(),
+          })),
         },
       });
 
