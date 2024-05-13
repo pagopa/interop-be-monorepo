@@ -8,9 +8,6 @@
   "exports": {
     ".": "./dist/index.js"
   },
-  "config":  { 
-    "protocVersion": "26.1"
-  },
   "scripts": {
     "lint": "eslint . --ext .ts,.tsx",
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
@@ -39,7 +36,7 @@
     "eslint": "8.44.0",
     "mkdirp": "3.0.1",
     "prettier": "2.8.8",
-    "tsc-esm-fix": "2.20.26",
+    "tsc-esm-fix": "2.20.27",
     "typescript": "5.1.3"
   }
 }

@@ -24,15 +24,14 @@ export const errorCodes = {
   purposeVersionCannotBeDeleted: "0009",
   organizationIsNotTheProducer: "0010",
   notValidVersionState: "0011",
-  missingRejectionReason: "0012",
-  eServiceModeNotAllowed: "0013",
-  missingFreeOfChargeReason: "0014",
-  riskAnalysisValidationFailed: "0015",
-  purposeNotInDraftState: "0016",
-  duplicatedPurposeTitle: "0017",
-  purposeCannotBeDeleted: "0018",
-  agreementNotFound: "0019",
-  eserviceRiskAnalysisNotFound: "0020",
+  eServiceModeNotAllowed: "0012",
+  missingFreeOfChargeReason: "0013",
+  riskAnalysisValidationFailed: "0014",
+  purposeNotInDraftState: "0015",
+  duplicatedPurposeTitle: "0016",
+  purposeCannotBeDeleted: "0017",
+  agreementNotFound: "0018",
+  eserviceRiskAnalysisNotFound: "0019",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -182,14 +181,6 @@ export function notValidVersionState(
     detail: `Purpose version ${purposeVersionId} has a not valid state for this operation: ${versionState}`,
     code: "notValidVersionState",
     title: "Not valid purpose version state",
-  });
-}
-
-export function missingRejectionReason(): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Rejection reason is missing`,
-    code: "missingRejectionReason",
-    title: "Rejection reason can't be omitted",
   });
 }
 
