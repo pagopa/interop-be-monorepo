@@ -199,6 +199,8 @@ describe("Notification tests", async () => {
 
       const mockAgreement: Agreement = {
         ...getMockAgreement(),
+        createdAt: new Date(),
+        updatedAt: undefined,
         consumerDocuments: [],
         stamps: {},
         contract: undefined,
