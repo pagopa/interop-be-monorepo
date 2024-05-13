@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@protobuf-ts/runtime": "2.9.4",
-    "connection-string": "4.3.6",
+    "connection-string": "4.4.0",
     "dotenv-flow": "3.3.0",
     "kafkajs": "2.2.4",
     "pagopa-interop-commons": "workspace:*",
