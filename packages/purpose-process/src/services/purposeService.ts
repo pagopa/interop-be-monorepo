@@ -4,7 +4,6 @@ import {
   Logger,
   eventRepository,
   formatDateAndTime,
-  logger,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
@@ -755,11 +754,13 @@ export function purposeServiceBuilder(
       organizationId,
       seed,
       correlationId,
+      logger,
     }: {
       purposeId: PurposeId;
       organizationId: TenantId;
       seed: ApiPurposeCloneSeed;
       correlationId: string;
+      logger: Logger;
     }): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(`Cloning Purpose ${purposeId}`);
 
@@ -809,7 +810,7 @@ export function purposeServiceBuilder(
         purposeToClone.data.title
       } - clone - ${formatDateAndTime(currentDate)}`;
 
-      const purposeWithSameName = await readModelService.getSpecificPurpose(
+      const purposeWithSameName = await readModelService.getPurpose(
         unsafeBrandId(seed.eserviceId),
         organizationId,
         clonedPurposeName

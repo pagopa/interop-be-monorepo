@@ -375,6 +375,7 @@ const purposeRouter = (
       "/purposes/:purposeId/clone",
       authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
         try {
           const { purpose, isRiskAnalysisValid } =
             await purposeService.clonePurpose({
@@ -382,13 +383,18 @@ const purposeRouter = (
               organizationId: req.ctx.authData.organizationId,
               seed: req.body,
               correlationId: req.ctx.correlationId,
+              logger: ctx.logger,
             });
           return res
             .status(200)
             .json(purposeToApiPurpose(purpose, isRiskAnalysisValid))
             .end();
         } catch (error) {
-          const errorRes = makeApiProblem(error, clonePurposeErrorMapper);
+          const errorRes = makeApiProblem(
+            error,
+            clonePurposeErrorMapper,
+            ctx.logger
+          );
           return res.status(errorRes.status).json(errorRes).end();
         }
       }
