@@ -810,7 +810,6 @@ export function agreementServiceBuilder(
           correlationId
         )
       );
-      await repository.createEvent(event);
 
       return updatedAgreement;
     },
