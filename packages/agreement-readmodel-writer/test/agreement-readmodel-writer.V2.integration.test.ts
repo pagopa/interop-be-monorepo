@@ -104,6 +104,23 @@ describe("events V2", async () => {
 
       await handleMessageV2(message, agreements);
 
+      const actualAgreement = await agreements.findOne({
+        "data.id": agreement.id.toString(),
+      });
+
+      expect(actualAgreement?.data).toMatchObject({
+        id: agreement.id,
+        eserviceId: agreement.eserviceId,
+        descriptorId: agreement.descriptorId,
+        producerId: agreement.producerId,
+        consumerId: agreement.consumerId,
+        state: "Active",
+        certifiedAttributes: [],
+        declaredAttributes: [],
+        verifiedAttributes: [],
+        consumerDocuments: [],
+      });
+
       expect(spyUpdate).toHaveBeenCalled();
       expect(spyDelete).not.toHaveBeenCalled();
     }
@@ -150,6 +167,23 @@ describe("events V2", async () => {
 
       await handleMessageV2(message, agreements);
 
+      const actualAgreement = await agreements.findOne({
+        "data.id": agreement.id.toString(),
+      });
+
+      expect(actualAgreement?.data).toMatchObject({
+        id: agreement.id,
+        eserviceId: agreement.eserviceId,
+        descriptorId: agreement.descriptorId,
+        producerId: agreement.producerId,
+        consumerId: agreement.consumerId,
+        state: "Active",
+        certifiedAttributes: [],
+        declaredAttributes: [],
+        verifiedAttributes: [],
+        consumerDocuments: [],
+      });
+
       expect(spyUpdate).toHaveBeenCalled();
       expect(spyDelete).not.toHaveBeenCalled();
     }
@@ -190,6 +224,12 @@ describe("events V2", async () => {
     };
 
     await handleMessageV2(message, agreements);
+
+    const actualAgreement = await agreements.findOne({
+      "data.id": agreement.id.toString(),
+    });
+
+    expect(actualAgreement).toBeNull();
 
     expect(spyUpdate).not.toHaveBeenCalled();
     expect(spyDelete).toHaveBeenCalled();
