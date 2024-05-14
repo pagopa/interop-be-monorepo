@@ -133,7 +133,7 @@ export const toTenantV1 = (tenant: Tenant): TenantV1 => ({
   updatedAt: dateToBigInt(tenant.updatedAt),
   mails: tenant.mails.map(toTenantMailV1),
   kind: tenant.kind ? toTenantKindV1(tenant.kind) : undefined,
-  onboardedAt: dateToBigInt(tenant.createdAt),
+  onboardedAt: dateToBigInt(tenant.onboardedAt),
   subUnitType: tenant.subUnitType
     ? toTenantUnitTypeV1(tenant.subUnitType)
     : undefined,
