@@ -122,14 +122,10 @@ const submitAgreement = async (
   { authData, correlationId }: WithLogger<AppContext>
 ): Promise<[Agreement, Array<CreateEvent<AgreementEvent>>]> => {
   const agreement = agreementData.data;
-  const nextStateByAttributes = nextStateByAttributes(
-    agreement,
-    descriptor,
-    consumer
-  );
+  const nextState = nextStateByAttributes(agreement, descriptor, consumer);
 
   const newState = agreementStateByFlags(
-    nextStateByAttributes,
+    nextState,
     undefined,
     undefined,
     undefined

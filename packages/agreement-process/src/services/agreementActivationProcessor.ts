@@ -117,11 +117,7 @@ async function activateAgreement(
   logger: Logger
 ): Promise<[Agreement, Array<CreateEvent<AgreementEvent>>]> {
   const agreement = agreementData.data;
-  const nextAttributesState = nextStateByAttributes(
-    agreement,
-    descriptor,
-    consumer
-  );
+  const nextState = nextStateByAttributes(agreement, descriptor, consumer);
 
   const suspendedByConsumer = suspendedByConsumerFlag(
     agreement,
@@ -135,7 +131,7 @@ async function activateAgreement(
   );
 
   const newState = agreementStateByFlags(
-    nextAttributesState,
+    nextState,
     suspendedByProducer,
     suspendedByConsumer,
     undefined

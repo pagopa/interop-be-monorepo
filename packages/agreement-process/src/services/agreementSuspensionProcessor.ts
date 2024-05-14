@@ -72,11 +72,7 @@ export async function suspendAgreementLogic({
   );
   assertDescriptorExist(eservice.id, agreement.data.descriptorId, descriptor);
 
-  const nextStateByAttributes = nextStateByAttributes(
-    agreement.data,
-    descriptor,
-    consumer
-  );
+  const nextState = nextStateByAttributes(agreement.data, descriptor, consumer);
 
   const suspendedByConsumer = suspendedByConsumerFlag(
     agreement.data,
@@ -90,7 +86,7 @@ export async function suspendAgreementLogic({
   );
 
   const newState = agreementStateByFlags(
-    nextStateByAttributes,
+    nextState,
     suspendedByProducer,
     suspendedByConsumer,
     undefined
