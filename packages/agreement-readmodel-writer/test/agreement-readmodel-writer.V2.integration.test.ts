@@ -12,15 +12,19 @@ import {
   mongoDBContainer,
 } from "pagopa-interop-commons-test";
 import {
+  AgreementDeletedV2,
   AgreementEventEnvelopeV2,
   AgreementStateV2,
   generateId,
+  toAgreementV2,
+  toReadModelAgreement,
 } from "pagopa-interop-models";
 import { StartedTestContainer } from "testcontainers";
 import {
   afterAll,
   afterEach,
   beforeAll,
+  beforeEach,
   describe,
   expect,
   it,
@@ -40,6 +44,11 @@ describe("events V2", async () => {
 
     const readModelRepository = ReadModelRepository.init(config);
     agreements = readModelRepository.agreements;
+  });
+
+  beforeEach(async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
   });
 
   afterEach(async () => {
@@ -65,33 +74,19 @@ describe("events V2", async () => {
       "AgreementUnsuspendedByProducer",
       "AgreementUnsuspendedByConsumer",
       "AgreementUnsuspendedByPlatform",
-      "AgreementArchivedByUpgrade",
       "AgreementArchivedByConsumer",
       "AgreementSuspendedByProducer",
       "AgreementSuspendedByConsumer",
       "AgreementSuspendedByPlatform",
       "AgreementRejected",
       "AgreementArchivedByUpgrade",
-      "AgreementUpgraded",
     ] as const;
 
-    for (const eventType of eventTypes) {
-      const event = {
-        agreement: {
-          id: agreement.id,
-          eserviceId: agreement.eserviceId,
-          descriptorId: agreement.descriptorId,
-          producerId: agreement.producerId,
-          consumerId: agreement.consumerId,
-          state: AgreementStateV2.ACTIVE,
-          certifiedAttributes: [],
-          declaredAttributes: [],
-          verifiedAttributes: [],
-          createdAt: BigInt(new Date().getTime()),
-          consumerDocuments: [],
-        },
-      };
+    const event = {
+      agreement: toAgreementV2(agreement),
+    };
 
+    for (const eventType of eventTypes) {
       const message: AgreementEventEnvelopeV2 = {
         event_version: 2,
         sequence_num: 1,
@@ -108,18 +103,9 @@ describe("events V2", async () => {
         "data.id": agreement.id.toString(),
       });
 
-      expect(actualAgreement?.data).toMatchObject({
-        id: agreement.id,
-        eserviceId: agreement.eserviceId,
-        descriptorId: agreement.descriptorId,
-        producerId: agreement.producerId,
-        consumerId: agreement.consumerId,
-        state: "Active",
-        certifiedAttributes: [],
-        declaredAttributes: [],
-        verifiedAttributes: [],
-        consumerDocuments: [],
-      });
+      const expectedAgreement = toReadModelAgreement(agreement);
+
+      expect(actualAgreement?.data).toMatchObject(expectedAgreement);
 
       expect(spyUpdate).toHaveBeenCalled();
       expect(spyDelete).not.toHaveBeenCalled();
@@ -139,19 +125,7 @@ describe("events V2", async () => {
 
     for (const eventType of eventTypesConsumerDocument) {
       const event = {
-        agreement: {
-          id: agreement.id,
-          eserviceId: agreement.eserviceId,
-          descriptorId: agreement.descriptorId,
-          producerId: agreement.producerId,
-          consumerId: agreement.consumerId,
-          state: AgreementStateV2.ACTIVE,
-          certifiedAttributes: [],
-          declaredAttributes: [],
-          verifiedAttributes: [],
-          createdAt: BigInt(new Date().getTime()),
-          consumerDocuments: [],
-        },
+        agreement: toAgreementV2(agreement),
         documentId: generateId(),
       };
 
@@ -171,18 +145,9 @@ describe("events V2", async () => {
         "data.id": agreement.id.toString(),
       });
 
-      expect(actualAgreement?.data).toMatchObject({
-        id: agreement.id,
-        eserviceId: agreement.eserviceId,
-        descriptorId: agreement.descriptorId,
-        producerId: agreement.producerId,
-        consumerId: agreement.consumerId,
-        state: "Active",
-        certifiedAttributes: [],
-        declaredAttributes: [],
-        verifiedAttributes: [],
-        consumerDocuments: [],
-      });
+      const expectedAgreement = toReadModelAgreement(agreement);
+
+      expect(actualAgreement?.data).toMatchObject(expectedAgreement);
 
       expect(spyUpdate).toHaveBeenCalled();
       expect(spyDelete).not.toHaveBeenCalled();
@@ -197,20 +162,7 @@ describe("events V2", async () => {
 
     const eventType = "AgreementDeleted";
     const event = {
-      agreement: {
-        id: agreement.id,
-        eserviceId: agreement.eserviceId,
-        descriptorId: agreement.descriptorId,
-        producerId: agreement.producerId,
-        consumerId: agreement.consumerId,
-        state: AgreementStateV2.ACTIVE,
-        certifiedAttributes: [],
-        declaredAttributes: [],
-        verifiedAttributes: [],
-        createdAt: BigInt(new Date().getTime()),
-        consumerDocuments: [],
-      },
-      documentId: generateId(),
+      agreement: toAgreementV2(agreement),
     };
 
     const message: AgreementEventEnvelopeV2 = {
