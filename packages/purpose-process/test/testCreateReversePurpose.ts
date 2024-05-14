@@ -27,10 +27,15 @@ import {
   purposeVersionState,
   tenantKind,
   toPurposeV2,
+  toReadModelAgreement,
   toReadModelEService,
+  toReadModelPurpose,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { unexpectedRulesVersionError } from "pagopa-interop-commons";
+import {
+  genericLogger,
+  unexpectedRulesVersionError,
+} from "pagopa-interop-commons";
 import { ApiReversePurposeSeed } from "../src/model/domain/models.js";
 import {
   agreementNotFound,
@@ -98,12 +103,13 @@ export const testCreateReversePurpose = (): ReturnType<typeof describe> =>
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
       await writeInReadmodel(producer, tenants);
       await writeInReadmodel(consumer, tenants);
-      await writeInReadmodel(mockAgreement, agreements);
+      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
       const { purpose } = await purposeService.createReversePurpose(
         consumer.id,
         reversePurposeSeed,
-        generateId()
+        generateId(),
+        genericLogger
       );
 
       const writtenEvent = await readLastEventByStreamId(
@@ -190,13 +196,14 @@ export const testCreateReversePurpose = (): ReturnType<typeof describe> =>
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
       await writeInReadmodel(producer, tenants);
       await writeInReadmodel(consumer, tenants);
-      await writeInReadmodel(mockAgreement, agreements);
+      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
       expect(
         purposeService.createReversePurpose(
           producer.id,
           reversePurposeSeed,
-          generateId()
+          generateId(),
+          genericLogger
         )
       ).rejects.toThrowError(organizationIsNotTheConsumer(producer.id));
     });
@@ -241,13 +248,14 @@ export const testCreateReversePurpose = (): ReturnType<typeof describe> =>
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
       await writeInReadmodel(producer, tenants);
       await writeInReadmodel(consumer, tenants);
-      await writeInReadmodel(mockAgreement, agreements);
+      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
       expect(
         purposeService.createReversePurpose(
           consumer.id,
           reversePurposeSeed,
-          generateId()
+          generateId(),
+          genericLogger
         )
       ).rejects.toThrowError(
         eServiceModeNotAllowed(mockEService.id, eserviceMode.receive)
@@ -294,13 +302,14 @@ export const testCreateReversePurpose = (): ReturnType<typeof describe> =>
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
       await writeInReadmodel(producer, tenants);
       await writeInReadmodel(consumer, tenants);
-      await writeInReadmodel(mockAgreement, agreements);
+      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
       expect(
         purposeService.createReversePurpose(
           consumer.id,
           reversePurposeSeed,
-          generateId()
+          generateId(),
+          genericLogger
         )
       ).rejects.toThrowError(
         eserviceRiskAnalysisNotFound(mockEService.id, randomRiskAnalysisId)
@@ -347,13 +356,14 @@ export const testCreateReversePurpose = (): ReturnType<typeof describe> =>
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
       await writeInReadmodel(producer, tenants);
       await writeInReadmodel(consumer, tenants);
-      await writeInReadmodel(mockAgreement, agreements);
+      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
       expect(
         purposeService.createReversePurpose(
           consumer.id,
           reversePurposeSeed,
-          generateId()
+          generateId(),
+          genericLogger
         )
       ).rejects.toThrowError(missingFreeOfChargeReason());
     });
@@ -398,13 +408,14 @@ export const testCreateReversePurpose = (): ReturnType<typeof describe> =>
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
       await writeInReadmodel(producer, tenants);
       await writeInReadmodel(consumer, tenants);
-      await writeInReadmodel(mockAgreement, agreements);
+      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
       expect(
         purposeService.createReversePurpose(
           consumer.id,
           reversePurposeSeed,
-          generateId()
+          generateId(),
+          genericLogger
         )
       ).rejects.toThrowError(tenantKindNotFound(producer.id));
     });
@@ -447,7 +458,8 @@ export const testCreateReversePurpose = (): ReturnType<typeof describe> =>
         purposeService.createReversePurpose(
           consumer.id,
           reversePurposeSeed,
-          generateId()
+          generateId(),
+          genericLogger
         )
       ).rejects.toThrowError(agreementNotFound(mockEService.id, consumer.id));
     });
@@ -497,17 +509,18 @@ export const testCreateReversePurpose = (): ReturnType<typeof describe> =>
         dailyCalls: 1,
       };
 
-      await writeInReadmodel(mockPurpose, purposes);
+      await writeInReadmodel(toReadModelPurpose(mockPurpose), purposes);
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
       await writeInReadmodel(producer, tenants);
       await writeInReadmodel(consumer, tenants);
-      await writeInReadmodel(mockAgreement, agreements);
+      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
       expect(
         purposeService.createReversePurpose(
           consumer.id,
           reversePurposeSeed,
-          generateId()
+          generateId(),
+          genericLogger
         )
       ).rejects.toThrowError(duplicatedPurposeTitle(purposeTitle));
     });
@@ -560,13 +573,14 @@ export const testCreateReversePurpose = (): ReturnType<typeof describe> =>
       await writeInReadmodel(toReadModelEService(mockEService), eservices);
       await writeInReadmodel(producer, tenants);
       await writeInReadmodel(consumer, tenants);
-      await writeInReadmodel(mockAgreement, agreements);
+      await writeInReadmodel(toReadModelAgreement(mockAgreement), agreements);
 
       expect(
         purposeService.createReversePurpose(
           consumer.id,
           reversePurposeSeed,
-          generateId()
+          generateId(),
+          genericLogger
         )
       ).rejects.toThrowError(
         riskAnalysisValidationFailed([

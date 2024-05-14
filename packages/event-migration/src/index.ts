@@ -35,20 +35,20 @@ const Config = z
     TARGET_DB_SCHEMA: z.enum([
       "catalog",
       "dev-refactor_catalog",
-      "uat-catalog",
-      "prod-catalog",
+      "test_catalog",
+      "prod_catalog",
       "attribute",
       "dev-refactor_attribute_registry",
-      "uat-attribute_registry",
-      "prod-attribute_registry",
+      "test_attribute_registry",
+      "prod_attribute_registry",
       "purpose",
       "dev-refactor_purpose",
-      "uat-purpose",
-      "prod-purpose",
+      "test_purpose",
+      "prod_purpose",
       "tenant",
       "dev-refactor_tenant",
-      "uat-tenant",
-      "prod-tenant",
+      "test_tenant",
+      "prod_tenant",
     ]),
     TARGET_DB_USE_SSL: z
       .enum(["true", "false"])
@@ -149,8 +149,8 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
   .with(
     "catalog",
     "dev-refactor_catalog",
-    "uat-catalog",
-    "prod-catalog",
+    "test_catalog",
+    "prod_catalog",
     () => {
       checkSchema(config.sourceDbSchema, "catalog");
       const parseEventType = (event_ser_manifest: any) =>
@@ -185,8 +185,8 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
   .with(
     "attribute",
     "dev-refactor_attribute_registry",
-    "uat-attribute_registry",
-    "prod-attribute_registry",
+    "test_attribute_registry",
+    "prod_attribute_registry",
     () => {
       checkSchema(config.sourceDbSchema, "attribute");
 
@@ -218,8 +218,8 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
   .with(
     "purpose",
     "dev-refactor_purpose",
-    "uat-purpose",
-    "prod-purpose",
+    "test_purpose",
+    "prod_purpose",
     () => {
       checkSchema(config.sourceDbSchema, "purpose");
       const parseEventType = (event_ser_manifest: any) =>

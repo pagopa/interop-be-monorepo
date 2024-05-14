@@ -23,33 +23,44 @@ export const fromAgreementDocumentV1 = (
   createdAt: new Date(Number(input.createdAt)),
 });
 
-export const fromAgreementStamp = (
+export const fromAgreementStampV1 = (
   input: StampV1 | undefined
 ): AgreementStamp | undefined =>
   input
     ? {
-        ...input,
+        who: unsafeBrandId(input.who),
         when: new Date(Number(input.when)),
       }
     : undefined;
 
-export const fromAgreementStamps = (
+export const fromAgreementStampsV1 = (
   input: StampsV1 | undefined
-): AgreementStamps | undefined =>
-  input
-    ? {
-        ...input,
-        submission: fromAgreementStamp(input.submission),
-        activation: fromAgreementStamp(input.activation),
-        rejection: fromAgreementStamp(input.rejection),
-        suspensionByProducer: fromAgreementStamp(input.suspensionByProducer),
-        suspensionByConsumer: fromAgreementStamp(input.suspensionByConsumer),
-        upgrade: fromAgreementStamp(input.upgrade),
-        archiving: fromAgreementStamp(input.archiving),
-      }
-    : undefined;
+): AgreementStamps => ({
+  ...input,
+  submission: input?.submission
+    ? fromAgreementStampV1(input.submission)
+    : undefined,
+  activation: input?.activation
+    ? fromAgreementStampV1(input.activation)
+    : undefined,
+  rejection: input?.rejection
+    ? fromAgreementStampV1(input.rejection)
+    : undefined,
+  suspensionByProducer: input?.suspensionByProducer
+    ? fromAgreementStampV1(input.suspensionByProducer)
+    : undefined,
+  suspensionByConsumer: input?.suspensionByConsumer
+    ? fromAgreementStampV1(input.suspensionByConsumer)
+    : undefined,
+  upgrade: input?.upgrade ? fromAgreementStampV1(input.upgrade) : undefined,
+  archiving: input?.archiving
+    ? fromAgreementStampV1(input.archiving)
+    : undefined,
+});
 
-export const fromAgreementState = (input: AgreementStateV1): AgreementState => {
+export const fromAgreementStateV1 = (
+  input: AgreementStateV1
+): AgreementState => {
   switch (input) {
     case AgreementStateV1.ACTIVE:
       return agreementState.active;
@@ -89,7 +100,7 @@ export const fromAgreementV1 = (input: AgreementV1): Agreement => ({
     ...a,
     id: unsafeBrandId(a.id),
   })),
-  state: fromAgreementState(input.state),
+  state: fromAgreementStateV1(input.state),
   createdAt: new Date(Number(input.createdAt)),
   updatedAt: input.updatedAt ? new Date(Number(input.updatedAt)) : undefined,
   suspendedAt: input.suspendedAt
@@ -99,5 +110,5 @@ export const fromAgreementV1 = (input: AgreementV1): Agreement => ({
   contract: input.contract
     ? fromAgreementDocumentV1(input.contract)
     : undefined,
-  stamps: { ...fromAgreementStamps(input.stamps) },
+  stamps: fromAgreementStampsV1(input.stamps),
 });
