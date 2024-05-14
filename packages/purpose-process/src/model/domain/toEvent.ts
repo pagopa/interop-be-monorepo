@@ -1,7 +1,7 @@
 import { CreateEvent } from "pagopa-interop-commons";
 import {
   Purpose,
-  PurposeEvent,
+  PurposeEventV2,
   PurposeId,
   PurposeVersionId,
   toPurposeV2,
@@ -17,7 +17,7 @@ export const toCreateEventWaitingForApprovalPurposeVersionDeleted = ({
   version: number;
   versionId: PurposeVersionId;
   correlationId: string;
-}): CreateEvent<PurposeEvent> => ({
+}): CreateEvent<PurposeEventV2> => ({
   streamId: purpose.id,
   version,
   event: {
@@ -38,7 +38,7 @@ export const toCreateEventPurposeVersionRejected = ({
   version: number;
   versionId: PurposeVersionId;
   correlationId: string;
-}): CreateEvent<PurposeEvent> => ({
+}): CreateEvent<PurposeEventV2> => ({
   streamId: purpose.id,
   version,
   event: {
@@ -57,7 +57,7 @@ export const toCreateEventDraftPurposeUpdated = ({
   purpose: Purpose;
   version: number;
   correlationId: string;
-}): CreateEvent<PurposeEvent> => ({
+}): CreateEvent<PurposeEventV2> => ({
   streamId: purpose.id,
   version,
   event: {
@@ -78,7 +78,7 @@ export const toCreateEventDraftPurposeDeleted = ({
   purpose: Purpose;
   version: number;
   correlationId: string;
-}): CreateEvent<PurposeEvent> => ({
+}): CreateEvent<PurposeEventV2> => ({
   streamId: purpose.id,
   version,
   event: {
@@ -97,7 +97,7 @@ export const toCreateEventWaitingForApprovalPurposeDeleted = ({
   purpose: Purpose;
   version: number;
   correlationId: string;
-}): CreateEvent<PurposeEvent> => ({
+}): CreateEvent<PurposeEventV2> => ({
   streamId: purpose.id,
   version,
   event: {
@@ -118,7 +118,7 @@ export const toCreateEventPurposeArchived = ({
   purposeVersionId: PurposeVersionId;
   version: number;
   correlationId: string;
-}): CreateEvent<PurposeEvent> => ({
+}): CreateEvent<PurposeEventV2> => ({
   streamId: purpose.id,
   version,
   event: {
@@ -139,7 +139,7 @@ export const toCreateEventPurposeSuspendedByConsumer = ({
   purposeVersionId: PurposeVersionId;
   version: number;
   correlationId: string;
-}): CreateEvent<PurposeEvent> => ({
+}): CreateEvent<PurposeEventV2> => ({
   streamId: purpose.id,
   version,
   event: {
@@ -160,7 +160,7 @@ export const toCreateEventPurposeSuspendedByProducer = ({
   purposeVersionId: PurposeVersionId;
   version: number;
   correlationId: string;
-}): CreateEvent<PurposeEvent> => ({
+}): CreateEvent<PurposeEventV2> => ({
   streamId: purpose.id,
   version,
   event: {
@@ -174,7 +174,7 @@ export const toCreateEventPurposeSuspendedByProducer = ({
 export function toCreateEventPurposeAdded(
   purpose: Purpose,
   correlationId: string
-): CreateEvent<PurposeEvent> {
+): CreateEvent<PurposeEventV2> {
   return {
     streamId: purpose.id,
     version: 0,
@@ -199,7 +199,7 @@ export const toCreateEventPurposeCloned = ({
   sourcePurposeId: PurposeId;
   sourceVersionId: PurposeId;
   correlationId: string;
-}): CreateEvent<PurposeEvent> => ({
+}): CreateEvent<PurposeEventV2> => ({
   streamId: purpose.id,
   version: 0,
   event: {
