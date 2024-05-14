@@ -150,13 +150,13 @@ describe("Agreement service", () => {
         eserviceId,
         descriptorId,
       };
-      const createdAgreementId = await agreementService.createAgreement(
+      const createdAgreement = await agreementService.createAgreement(
         agreementData,
         { authData, correlationId: "", serviceName: "", logger: genericLogger }
       );
 
       await expectedAgreementCreation(
-        unsafeBrandId<AgreementId>(createdAgreementId),
+        unsafeBrandId<AgreementId>(createdAgreement.id),
         eserviceId,
         descriptorId,
         authData.organizationId,
@@ -209,13 +209,13 @@ describe("Agreement service", () => {
         descriptorId: eservice.descriptors[0].id,
       };
 
-      const createdAgreementId = await agreementService.createAgreement(
+      const createdAgreement = await agreementService.createAgreement(
         apiAgreementPayload,
         { authData, correlationId: "", serviceName: "", logger: genericLogger }
       );
 
       await expectedAgreementCreation(
-        unsafeBrandId<AgreementId>(createdAgreementId),
+        unsafeBrandId<AgreementId>(createdAgreement.id),
         eservice.id,
         descriptor.id,
         eserviceProducer.id,
@@ -246,13 +246,13 @@ describe("Agreement service", () => {
         descriptorId: eservice.descriptors[0].id,
       };
 
-      const createdAgreementId = await agreementService.createAgreement(
+      const createdAgreement = await agreementService.createAgreement(
         apiAgreementPayload,
         { authData, correlationId: "", serviceName: "", logger: genericLogger }
       );
 
       await expectedAgreementCreation(
-        unsafeBrandId<AgreementId>(createdAgreementId),
+        unsafeBrandId<AgreementId>(createdAgreement.id),
         eservice.id,
         descriptor.id,
         eserviceProducer.id,
@@ -291,13 +291,13 @@ describe("Agreement service", () => {
         descriptorId: descriptor0.id,
       };
 
-      const createdAgreementId = await agreementService.createAgreement(
+      const createdAgreement = await agreementService.createAgreement(
         apiAgreementPayload,
         { authData, correlationId: "", serviceName: "", logger: genericLogger }
       );
 
       await expectedAgreementCreation(
-        unsafeBrandId<AgreementId>(createdAgreementId),
+        unsafeBrandId<AgreementId>(createdAgreement.id),
         eservice.id,
         descriptor0.id,
         tenant.id,
@@ -333,13 +333,13 @@ describe("Agreement service", () => {
         descriptorId: descriptor.id,
       };
 
-      const createdAgreementId = await agreementService.createAgreement(
+      const createdAgreement = await agreementService.createAgreement(
         apiAgreementPayload,
         { authData, correlationId: "", serviceName: "", logger: genericLogger }
       );
 
       await expectedAgreementCreation(
-        unsafeBrandId<AgreementId>(createdAgreementId),
+        unsafeBrandId<AgreementId>(createdAgreement.id),
         eservice.id,
         descriptor.id,
         tenant.id,
