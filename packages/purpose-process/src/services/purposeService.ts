@@ -557,7 +557,7 @@ export function purposeServiceBuilder(
       logger: Logger
     ): Promise<ListResult<Purpose>> {
       logger.info(
-        `Getting Purposes with name = ${filters.name}, eservicesIds = ${filters.eservicesIds}, consumers = ${filters.consumersIds}, producers = ${filters.producersIds}, states = ${filters.states}, excludeDraft = ${filters.excludeDraft}, limit = ${limit}, offset = ${offset}`
+        `Getting Purposes with name = ${filters.title}, eservicesIds = ${filters.eservicesIds}, consumers = ${filters.consumersIds}, producers = ${filters.producersIds}, states = ${filters.states}, excludeDraft = ${filters.excludeDraft}, limit = ${limit}, offset = ${offset}`
       );
 
       const purposesList = await readModelService.getPurposes(filters, {
@@ -589,11 +589,6 @@ export function purposeServiceBuilder(
 
           return {
             ...purpose,
-            versions: filters.excludeDraft
-              ? purpose.versions.filter(
-                  (version) => version.state !== purposeVersionState.draft
-                )
-              : purpose.versions,
             riskAnalysisForm: isProducerOrConsumer
               ? purpose.riskAnalysisForm
               : undefined,
