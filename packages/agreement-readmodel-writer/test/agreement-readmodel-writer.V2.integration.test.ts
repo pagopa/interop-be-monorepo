@@ -50,7 +50,7 @@ describe("events V2", async () => {
     await startedMongoDBContainer.stop();
   });
 
-  it("should test all agreement events", async () => {
+  it("should test upsert agreement events", async () => {
     const spyUpdate = vi.spyOn(agreements, "updateOne");
     const spyDelete = vi.spyOn(agreements, "deleteOne");
 
