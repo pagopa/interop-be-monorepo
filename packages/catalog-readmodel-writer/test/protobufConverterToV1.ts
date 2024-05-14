@@ -81,7 +81,7 @@ export const toDescriptorV1 = (input: Descriptor): EServiceDescriptorV1 => ({
   publishedAt: dateToBigInt(input.publishedAt),
   suspendedAt: dateToBigInt(input.suspendedAt),
   deprecatedAt: dateToBigInt(input.deprecatedAt),
-  archivedAt: dateToBigInt(input.deprecatedAt),
+  archivedAt: dateToBigInt(input.archivedAt),
 });
 
 export const toEServiceModeV1 = (input: EServiceMode): EServiceModeV1 =>
