@@ -8,19 +8,16 @@ import {
   originNotCompliant,
 } from "../src/model/domain/errors.js";
 import {
-  catalogService,
-  eservices,
-  mockEService,
-  postgresDB,
-} from "./catalogService.integration.test.js";
-import {
   addOneEService,
+  catalogService,
   getMockAuthData,
+  getMockEService,
   readLastEserviceEvent,
 } from "./utils.js";
 
 export const testCreateEService = (): ReturnType<typeof describe> =>
   describe("create eservice", () => {
+    const mockEService = getMockEService();
     it("should write on event-store for the creation of an eservice", async () => {
       const eservice = await catalogService.createEService(
         {
@@ -38,7 +35,7 @@ export const testCreateEService = (): ReturnType<typeof describe> =>
       );
 
       expect(eservice).toBeDefined();
-      const writtenEvent = await readLastEserviceEvent(eservice.id, postgresDB);
+      const writtenEvent = await readLastEserviceEvent(eservice.id);
       expect(writtenEvent).toMatchObject({
         stream_id: eservice.id,
         version: "0",
@@ -61,7 +58,7 @@ export const testCreateEService = (): ReturnType<typeof describe> =>
     });
 
     it("should throw eServiceDuplicate if an eservice with the same name already exists", async () => {
-      await addOneEService(mockEService, postgresDB, eservices);
+      await addOneEService(mockEService);
       expect(
         catalogService.createEService(
           {

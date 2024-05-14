@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-
 import { genericLogger, fileManagerDeleteError } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
@@ -35,13 +34,14 @@ import {
 
 describe("update eService", () => {
   const mockEService = getMockEService();
+  const mockDocument = getMockDocument();
   it("should write on event-store for the update of an eService (no technology change)", async () => {
     vi.spyOn(fileManager, "delete");
 
     const descriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.draft,
-      interface: getMockDocument(),
+      interface: mockDocument,
     };
     const eservice: EService = {
       ...mockEService,
@@ -86,8 +86,6 @@ describe("update eService", () => {
 
   it("should write on event-store for the update of an eService (technology change: interface has to be deleted)", async () => {
     vi.spyOn(fileManager, "delete");
-
-    const mockDocument = getMockDocument();
 
     const interfaceDocument = {
       ...mockDocument,
@@ -173,7 +171,6 @@ describe("update eService", () => {
 
   it("should fail if the file deletion fails when interface file has to be deleted on technology change", async () => {
     config.s3Bucket = "invalid-bucket"; // configure an invalid bucket to force a failure
-    const mockDocument = getMockDocument();
     const descriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.draft,
@@ -375,7 +372,7 @@ describe("update eService", () => {
   it("should throw eserviceNotInDraftState if the eservice descriptor is in published state", async () => {
     const descriptor: Descriptor = {
       ...getMockDescriptor(),
-      interface: getMockDocument(),
+      interface: mockDocument,
       state: descriptorState.published,
     };
     const eservice: EService = {
@@ -405,7 +402,7 @@ describe("update eService", () => {
   it("should throw eserviceNotInDraftState if the eservice descriptor is in archived state", async () => {
     const descriptor: Descriptor = {
       ...getMockDescriptor(),
-      interface: getMockDocument(),
+      interface: mockDocument,
       state: descriptorState.archived,
     };
     const eservice: EService = {
@@ -435,7 +432,7 @@ describe("update eService", () => {
   it("should throw eserviceNotInDraftState if the eservice descriptor is in suspended state", async () => {
     const descriptor: Descriptor = {
       ...getMockDescriptor(),
-      interface: getMockDocument(),
+      interface: mockDocument,
       state: descriptorState.suspended,
     };
     const eservice: EService = {
@@ -465,7 +462,7 @@ describe("update eService", () => {
   it("should throw eserviceNotInDraftState if the eservice descriptor is in deprecated state", async () => {
     const descriptor: Descriptor = {
       ...getMockDescriptor(),
-      interface: getMockDocument(),
+      interface: mockDocument,
       state: descriptorState.deprecated,
     };
     const eservice: EService = {
