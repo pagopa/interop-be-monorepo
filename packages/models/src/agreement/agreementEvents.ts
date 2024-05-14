@@ -14,7 +14,7 @@ import {
   AgreementActivatedV2,
   AgreementAddedV2,
   AgreementArchivedByUpgradeV2,
-  AgreementArchivedV2,
+  AgreementArchivedByConsumerV2,
   AgreementConsumerDocumentAddedV2,
   AgreementConsumerDocumentRemovedV2,
   AgreementDeletedV2,
@@ -90,8 +90,8 @@ export function agreementEventToBinaryDataV2(
     .with({ type: "AgreementUnsuspendedByPlatform" }, ({ data }) =>
       AgreementUnsuspendedByPlatformV2.toBinary(data)
     )
-    .with({ type: "AgreementArchived" }, ({ data }) =>
-      AgreementArchivedV2.toBinary(data)
+    .with({ type: "AgreementArchivedByConsumer" }, ({ data }) =>
+      AgreementArchivedByConsumerV2.toBinary(data)
     )
     .with({ type: "AgreementArchivedByUpgrade" }, ({ data }) =>
       AgreementArchivedByUpgradeV2.toBinary(data)
@@ -197,8 +197,8 @@ export const AgreementEventV2 = z.discriminatedUnion("type", [
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("AgreementArchived"),
-    data: protobufDecoder(AgreementArchivedV2),
+    type: z.literal("AgreementArchivedByConsumer"),
+    data: protobufDecoder(AgreementArchivedByConsumerV2),
   }),
   z.object({
     event_version: z.literal(2),
