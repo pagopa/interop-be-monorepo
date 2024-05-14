@@ -67,7 +67,7 @@ export async function activateAgreementLogic(
   storeFile: FileManager["storeBytes"],
   correlationId: string,
   logger: Logger
-): Promise<Array<CreateEvent<AgreementEvent>>> {
+): Promise<[Agreement, Array<CreateEvent<AgreementEvent>>]> {
   const agreement = await agreementQuery.getAgreementById(agreementId);
   assertAgreementExist(agreementId, agreement);
 
@@ -115,7 +115,7 @@ async function activateAgreement(
   storeFile: FileManager["storeBytes"],
   correlationId: string,
   logger: Logger
-): Promise<Array<CreateEvent<AgreementEvent>>> {
+): Promise<[Agreement, Array<CreateEvent<AgreementEvent>>]> {
   const agreement = agreementData.data;
   const nextAttributesState = nextState(agreement, descriptor, consumer);
 
@@ -239,7 +239,7 @@ async function activateAgreement(
     correlationId
   );
 
-  return [activationEvent, ...archiveEvents];
+  return [updatedAgreement, [activationEvent, ...archiveEvents]];
 }
 
 const archiveRelatedToAgreements = async (
