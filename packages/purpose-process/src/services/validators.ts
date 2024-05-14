@@ -9,6 +9,7 @@ import {
   TenantId,
   TenantKind,
   purposeVersionState,
+  EServiceId,
 } from "pagopa-interop-models";
 import {
   validateRiskAnalysis,
@@ -18,6 +19,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   descriptorNotFound,
+  duplicatedPurposeTitle,
   eServiceModeNotAllowed,
   missingFreeOfChargeReason,
   organizationIsNotTheConsumer,
@@ -88,11 +90,20 @@ export const assertOrganizationIsAConsumer = (
   }
 };
 
-export function validateRiskAnalysisSchemaOrThrow(
-  riskAnalysisForm: ApiRiskAnalysisFormSeed,
-  tenantKind: TenantKind
-): RiskAnalysisValidatedForm {
-  const result = validateRiskAnalysis(riskAnalysisForm, true, tenantKind);
+export function validateRiskAnalysisOrThrow({
+  riskAnalysisForm,
+  schemaOnlyValidation,
+  tenantKind,
+}: {
+  riskAnalysisForm: ApiRiskAnalysisFormSeed;
+  schemaOnlyValidation: boolean;
+  tenantKind: TenantKind;
+}): RiskAnalysisValidatedForm {
+  const result = validateRiskAnalysis(
+    riskAnalysisForm,
+    schemaOnlyValidation,
+    tenantKind
+  );
   if (result.type === "invalid") {
     throw riskAnalysisValidationFailed(result.issues);
   } else {
@@ -102,16 +113,17 @@ export function validateRiskAnalysisSchemaOrThrow(
 
 export function validateAndTransformRiskAnalysis(
   riskAnalysisForm: ApiRiskAnalysisFormSeed | undefined,
+  schemaOnlyValidation: boolean,
   tenantKind: TenantKind
 ): PurposeRiskAnalysisForm | undefined {
   if (!riskAnalysisForm) {
     return undefined;
   }
-
-  const validatedForm = validateRiskAnalysisSchemaOrThrow(
+  const validatedForm = validateRiskAnalysisOrThrow({
     riskAnalysisForm,
-    tenantKind
-  );
+    schemaOnlyValidation,
+    tenantKind,
+  });
 
   return {
     ...riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),
@@ -121,6 +133,7 @@ export function validateAndTransformRiskAnalysis(
 
 export function reverseValidateAndTransformRiskAnalysis(
   riskAnalysisForm: PurposeRiskAnalysisForm | undefined,
+  schemaOnlyValidation: boolean,
   tenantKind: TenantKind
 ): PurposeRiskAnalysisForm | undefined {
   if (!riskAnalysisForm) {
@@ -129,10 +142,11 @@ export function reverseValidateAndTransformRiskAnalysis(
 
   const formToValidate =
     riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm);
-  const validatedForm = validateRiskAnalysisSchemaOrThrow(
-    formToValidate,
-    tenantKind
-  );
+  const validatedForm = validateRiskAnalysisOrThrow({
+    riskAnalysisForm: formToValidate,
+    schemaOnlyValidation,
+    tenantKind,
+  });
 
   return {
     ...riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),
@@ -181,6 +195,28 @@ export const isArchivable = (purposeVersion: PurposeVersion): boolean =>
 export const isSuspendable = (purposeVersion: PurposeVersion): boolean =>
   purposeVersion.state === purposeVersionState.active ||
   purposeVersion.state === purposeVersionState.suspended;
+
+export const assertPurposeTitleIsNotDuplicated = async ({
+  readModelService,
+  eserviceId,
+  consumerId,
+  title,
+}: {
+  readModelService: ReadModelService;
+  eserviceId: EServiceId;
+  consumerId: TenantId;
+  title: string;
+}): Promise<void> => {
+  const purposeWithSameName = await readModelService.getPurpose(
+    eserviceId,
+    consumerId,
+    title
+  );
+
+  if (purposeWithSameName) {
+    throw duplicatedPurposeTitle(title);
+  }
+};
 
 export async function isLoadAllowed(
   eservice: EService,
