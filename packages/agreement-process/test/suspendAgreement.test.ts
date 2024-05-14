@@ -27,6 +27,7 @@ import {
   DeclaredTenantAttribute,
   Descriptor,
   EService,
+  EServiceId,
   TenantId,
   VerifiedTenantAttribute,
   agreementState,
@@ -614,7 +615,12 @@ describe("suspend agreement", () => {
 
   it("should throw a tenantNotFound error when the consumer does not exist", async () => {
     await addOneTenant(getMockTenant());
-    const eservice = getMockEService();
+    const descriptor = getMockDescriptorPublished();
+    const eservice = getMockEService(
+      generateId<EServiceId>(),
+      generateId<TenantId>(),
+      [descriptor]
+    );
     const consumer = getMockTenant();
     const agreement = {
       ...getMockAgreement(),
@@ -622,6 +628,7 @@ describe("suspend agreement", () => {
       eserviceId: eservice.id,
       producerId: eservice.producerId,
       consumerId: consumer.id,
+      descriptorId: descriptor.id,
     };
     await addOneAgreement(agreement);
     await addOneEService(eservice);

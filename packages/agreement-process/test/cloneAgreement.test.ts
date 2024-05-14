@@ -317,7 +317,13 @@ describe("clone agreement", () => {
   it("should throw a tenantNotFound error when the Consumer does not exist", async () => {
     const authData = getRandomAuthData();
     const consumerId = authData.organizationId;
-    const eservice = getMockEService();
+
+    const descriptor = getMockDescriptorPublished();
+    const eservice = getMockEService(
+      generateId<EServiceId>(),
+      generateId<TenantId>(),
+      [descriptor]
+    );
     const agreement = {
       ...getMockAgreement(
         eservice.id,
@@ -325,6 +331,7 @@ describe("clone agreement", () => {
         randomArrayItem(agreementClonableStates)
       ),
       producerId: eservice.producerId,
+      descriptorId: descriptor.id,
     };
 
     const conflictingAgreement = {

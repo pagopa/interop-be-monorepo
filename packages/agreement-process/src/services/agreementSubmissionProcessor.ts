@@ -47,16 +47,25 @@ export type AgremeentSubmissionResults = {
   version: number;
 };
 
-export const processSubmitAgreement = async (
-  agreementData: WithMetadata<Agreement>,
-  eservice: EService,
-  payload: ApiAgreementSubmissionPayload,
-  agreementQuery: AgreementQuery,
-  tenantQuery: TenantQuery,
-  constractBuilder: ContractBuilder,
-  authData: AuthData,
-  correlationId: string
-): Promise<[Agreement, Array<CreateEvent<AgreementEvent>>]> => {
+export const processSubmitAgreement = async ({
+  agreementData,
+  eservice,
+  payload,
+  agreementQuery,
+  tenantQuery,
+  constractBuilder,
+  authData,
+  correlationId,
+}: {
+  agreementData: WithMetadata<Agreement>;
+  eservice: EService;
+  payload: ApiAgreementSubmissionPayload;
+  agreementQuery: AgreementQuery;
+  tenantQuery: TenantQuery;
+  constractBuilder: ContractBuilder;
+  authData: AuthData;
+  correlationId: string;
+}): Promise<[Agreement, Array<CreateEvent<AgreementEvent>>]> => {
   const agreement = agreementData.data;
 
   const consumer = await retrieveTenant(agreement.consumerId, tenantQuery);

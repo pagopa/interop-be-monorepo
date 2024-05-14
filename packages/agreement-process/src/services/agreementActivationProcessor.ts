@@ -49,17 +49,27 @@ import {
 import { AttributeQuery } from "./readmodel/attributeQuery.js";
 import { retrieveTenant } from "./agreementService.js";
 
-export async function processActivateAgreement(
-  agreementData: WithMetadata<Agreement>,
-  eservice: EService,
-  authData: AuthData,
-  tenantQuery: TenantQuery,
-  agreementQuery: AgreementQuery,
-  attributeQuery: AttributeQuery,
-  storeFile: FileManager["storeBytes"],
-  correlationId: string,
-  logger: Logger
-): Promise<[Agreement, Array<CreateEvent<AgreementEvent>>]> {
+export async function processActivateAgreement({
+  agreementData,
+  eservice,
+  authData,
+  tenantQuery,
+  agreementQuery,
+  attributeQuery,
+  storeFile,
+  correlationId,
+  logger,
+}: {
+  agreementData: WithMetadata<Agreement>;
+  eservice: EService;
+  authData: AuthData;
+  tenantQuery: TenantQuery;
+  agreementQuery: AgreementQuery;
+  attributeQuery: AttributeQuery;
+  storeFile: FileManager["storeBytes"];
+  correlationId: string;
+  logger: Logger;
+}): Promise<[Agreement, Array<CreateEvent<AgreementEvent>>]> {
   const agreement = agreementData.data;
 
   const consumer = await retrieveTenant(agreement.consumerId, tenantQuery);

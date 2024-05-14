@@ -264,10 +264,13 @@ export const verifySubmissionConflictingAgreements = async (
   );
 };
 
-export const validateCertifiedAttributes = (
-  descriptor: Descriptor,
-  consumer: Tenant
-): void => {
+export const validateCertifiedAttributes = ({
+  descriptor,
+  consumer,
+}: {
+  descriptor: Descriptor;
+  consumer: Tenant;
+}): void => {
   if (!certifiedAttributesSatisfied(descriptor, consumer)) {
     throw missingCertifiedAttributesError(descriptor.id, consumer.id);
   }

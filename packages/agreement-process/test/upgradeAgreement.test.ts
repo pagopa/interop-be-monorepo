@@ -966,9 +966,81 @@ describe("upgrade Agreement", () => {
   });
 
   it("should throw a tenantNotFound error when the tenant does not exist", async () => {
-    await addOneAgreement(getMockAgreement());
-    const authData = getRandomAuthData();
     const agreementId = generateId<AgreementId>();
+    const producerId = generateId<TenantId>();
+
+    const validVerifiedTenantAttribute = {
+      ...getMockVerifiedTenantAttribute(),
+      verifiedBy: [
+        {
+          id: producerId,
+          verificationDate: new Date(TEST_EXECUTION_DATE.getFullYear() - 1),
+          expirationDate: new Date(TEST_EXECUTION_DATE.getFullYear() + 1),
+          extensionDate: undefined,
+        },
+      ],
+    };
+
+    const validVerifiedEserviceAttribute = getMockEServiceAttribute(
+      validVerifiedTenantAttribute.id
+    );
+
+    const validDeclaredTenantAttribute = {
+      ...getMockDeclaredTenantAttribute(),
+      revocationTimestamp: undefined,
+    };
+    const validDeclaredEserviceAttribute = getMockEServiceAttribute(
+      validDeclaredTenantAttribute.id
+    );
+
+    // Certified attributes are not verified when producer and consumer are the same,
+    // so the test shall pass even with this invalid attribute
+    const invalidCertifiedTenantAttribute = {
+      ...getMockCertifiedTenantAttribute(),
+      revocationTimestamp: new Date(),
+    };
+    const invalidCertifiedEserviceAttribute = getMockEServiceAttribute(
+      invalidCertifiedTenantAttribute.id
+    );
+
+    const descriptorId = generateId<DescriptorId>();
+    const deprecatedDescriptor = {
+      ...getMockDescriptorPublished(
+        descriptorId,
+        [[invalidCertifiedEserviceAttribute]],
+        [[validDeclaredEserviceAttribute]],
+        [[validVerifiedEserviceAttribute]]
+      ),
+      path: "/deprecatedDescriptor/doc",
+      state: descriptorState.deprecated,
+      version: "1",
+    };
+
+    const publishedDescriptor: Descriptor = {
+      ...getMockDescriptorPublished(
+        descriptorId,
+        [[invalidCertifiedEserviceAttribute]],
+        [[validDeclaredEserviceAttribute]],
+        [[validVerifiedEserviceAttribute]]
+      ),
+      version: "2",
+    };
+
+    const agreement = {
+      ...getMockAgreement(),
+      id: agreementId,
+      descriptorId,
+      producerId,
+    };
+
+    const eservice = getMockEService(agreement.eserviceId, producerId, [
+      deprecatedDescriptor,
+      publishedDescriptor,
+    ]);
+
+    await addOneEService(eservice);
+    await addOneAgreement(agreement);
+    const authData = getRandomAuthData();
     await expect(
       agreementService.upgradeAgreement(agreementId, {
         authData,

@@ -194,7 +194,7 @@ export function agreementServiceBuilder(
         tenantQuery
       );
       if (eservice.producerId !== consumer.id) {
-        validateCertifiedAttributes(descriptor, consumer);
+        validateCertifiedAttributes({ descriptor, consumer });
       }
 
       const agreementSeed: Agreement = {
@@ -316,21 +316,24 @@ export function agreementServiceBuilder(
       );
 
       const [agreementdocumentSeed, updatesEvents] =
-        await processSubmitAgreement(
-          agreement,
-          await retrieveEService(agreement.data.eserviceId, eserviceQuery),
+        await processSubmitAgreement({
+          agreementData: agreement,
+          eservice: await retrieveEService(
+            agreement.data.eserviceId,
+            eserviceQuery
+          ),
           payload,
           agreementQuery,
           tenantQuery,
-          contractBuilder(
+          constractBuilder: contractBuilder(
             authData.selfcareId,
             attributeQuery,
             fileManager.storeBytes,
             logger
           ),
           authData,
-          correlationId
-        );
+          correlationId,
+        });
 
       for (const event of updatesEvents) {
         await repository.createEvent(event);
@@ -396,19 +399,28 @@ export function agreementServiceBuilder(
         throw noNewerDescriptor(eservice.id, currentDescriptor.id);
       }
 
-      const tenant = await retrieveTenant(authData.organizationId, tenantQuery);
+      const consumer = await retrieveTenant(
+        authData.organizationId,
+        tenantQuery
+      );
 
       if (eservice.producerId !== agreementToBeUpgraded.data.consumerId) {
-        validateCertifiedAttributes(newDescriptor, tenant);
+        validateCertifiedAttributes({
+          descriptor: newDescriptor,
+          consumer,
+        });
       }
 
       const verifiedValid = verifiedAttributesSatisfied(
         agreementToBeUpgraded.data.producerId,
         newDescriptor,
-        tenant
+        consumer
       );
 
-      const declaredValid = declaredAttributesSatisfied(newDescriptor, tenant);
+      const declaredValid = declaredAttributesSatisfied(
+        newDescriptor,
+        consumer
+      );
 
       const [agreement, events] = await createUpgradeOrNewDraft({
         agreement: agreementToBeUpgraded,
@@ -471,10 +483,13 @@ export function agreementServiceBuilder(
         descriptor
       );
 
-      validateCertifiedAttributes(
+      validateCertifiedAttributes({
         descriptor,
-        await retrieveTenant(agreementToBeCloned.data.consumerId, tenantQuery)
-      );
+        consumer: await retrieveTenant(
+          agreementToBeCloned.data.consumerId,
+          tenantQuery
+        ),
+      });
 
       const id = generateId<AgreementId>();
       const newAgreement: Agreement = {
@@ -745,17 +760,20 @@ export function agreementServiceBuilder(
       verifyConsumerDoesNotActivatePending(agreement.data, authData);
       assertActivableState(agreement.data);
 
-      const [updatedAgreement, updatesEvents] = await processActivateAgreement(
-        agreement,
-        await retrieveEService(agreement.data.eserviceId, eserviceQuery),
+      const [updatedAgreement, updatesEvents] = await processActivateAgreement({
+        agreementData: agreement,
+        eservice: await retrieveEService(
+          agreement.data.eserviceId,
+          eserviceQuery
+        ),
         authData,
         tenantQuery,
         agreementQuery,
         attributeQuery,
-        fileManager.storeBytes,
+        storeFile: fileManager.storeBytes,
         correlationId,
-        logger
-      );
+        logger,
+      });
 
       for (const event of updatesEvents) {
         await repository.createEvent(event);
