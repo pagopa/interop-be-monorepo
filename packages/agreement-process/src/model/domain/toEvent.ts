@@ -330,3 +330,39 @@ export function toCreateEventAgreementConsumerDocumentRemoved(
     correlationId,
   };
 }
+
+export function toCreateEventAgreementPutInDraftByPlatform(
+  agreement: Agreement,
+  correlationId: string
+): CreateEvent<AgreementEventV2> {
+  return {
+    streamId: agreement.id,
+    version: 0,
+    event: {
+      type: "AgreementPutInDraftByPlatform",
+      event_version: 2,
+      data: {
+        agreement: toAgreementV2(agreement),
+      },
+    },
+    correlationId,
+  };
+}
+
+export function toCreateEventAgreementPutInMissingCertifiedAttributesByPlatform(
+  agreement: Agreement,
+  correlationId: string
+): CreateEvent<AgreementEventV2> {
+  return {
+    streamId: agreement.id,
+    version: 0,
+    event: {
+      type: "AgreementPutInMissingCertifiedAttributesByPlatform",
+      event_version: 2,
+      data: {
+        agreement: toAgreementV2(agreement),
+      },
+    },
+    correlationId,
+  };
+}

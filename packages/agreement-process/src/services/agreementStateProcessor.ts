@@ -12,8 +12,6 @@ import {
 import { P, match } from "ts-pattern";
 import { CreateEvent, Logger } from "pagopa-interop-commons";
 import {
-  assertDescriptorExist,
-  assertEServiceExist,
   certifiedAttributesSatisfied,
   declaredAttributesSatisfied,
   verifiedAttributesSatisfied,
@@ -252,10 +250,18 @@ async function updateAgreementState(
         )
       )
       .with([agreementState.missingCertifiedAttributes, P.any], () => {
-        // TODO new event
+        toCreateEventAgreementSuspendedByPlatform(
+          updatedAgreement,
+          agreement.metadata.version,
+          correlationId
+        );
       })
       .with([agreementState.draft, P.any], () => {
-        // TODO new event
+        toCreateEventAgreementUnsuspendedByPlatform(
+          updatedAgreement,
+          agreement.metadata.version,
+          correlationId
+        );
       })
       .otherwise(() =>
         logger.error(
