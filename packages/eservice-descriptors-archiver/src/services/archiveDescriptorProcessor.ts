@@ -3,7 +3,6 @@ import {
   Agreement,
   DescriptorId,
   EServiceId,
-  agreementState,
   descriptorState,
   genericInternalError,
 } from "pagopa-interop-models";
@@ -21,16 +20,14 @@ export async function archiveDescriptorForArchivedAgreement(
   logger: Logger,
   correlationId: string
 ): Promise<DescriptorId | undefined> {
-  const relatingAgreements = (
-    await readModelService.getAgreementsByEserviceAndDescriptorId(
+  const relatingNonArchivedAgreements = (
+    await readModelService.getNonArchivedAgreementsByEserviceAndDescriptorId(
       archivedAgreement.eserviceId,
       archivedAgreement.descriptorId
     )
   ).filter((a) => a.id !== archivedAgreement.id);
 
-  const allArchived = [archivedAgreement, ...relatingAgreements].every(
-    (a) => a.state === agreementState.archived
-  );
+  const allArchived = relatingNonArchivedAgreements.length === 0;
 
   if (!allArchived) {
     logger.info(

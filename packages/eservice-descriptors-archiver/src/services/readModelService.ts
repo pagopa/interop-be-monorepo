@@ -4,12 +4,13 @@ import {
   DescriptorId,
   EService,
   EServiceId,
+  agreementState,
   genericInternalError,
 } from "pagopa-interop-models";
 import { z } from "zod";
 
 export type ReadModelService = {
-  getAgreementsByEserviceAndDescriptorId: (
+  getNonArchivedAgreementsByEserviceAndDescriptorId: (
     eserviceId: EServiceId,
     descriptorId: DescriptorId
   ) => Promise<Agreement[]>;
@@ -23,7 +24,7 @@ export function readModelServiceBuilder(
   const agreements = readModelRepository.agreements;
   const eservices = readModelRepository.eservices;
 
-  async function getAgreementsByEserviceAndDescriptorId(
+  async function getNonArchivedAgreementsByEserviceAndDescriptorId(
     eserviceId: EServiceId,
     descriptorId: DescriptorId
   ): Promise<Agreement[]> {
@@ -33,6 +34,7 @@ export function readModelServiceBuilder(
           $match: {
             "data.eserviceId": eserviceId,
             "data.descriptorId": descriptorId,
+            "data.state": { $ne: agreementState.archived },
           },
         },
       ])
@@ -75,7 +77,7 @@ export function readModelServiceBuilder(
   }
 
   return {
-    getAgreementsByEserviceAndDescriptorId,
+    getNonArchivedAgreementsByEserviceAndDescriptorId,
     getEServiceById,
   };
 }
