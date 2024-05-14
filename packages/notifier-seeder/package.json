@@ -39,7 +39,7 @@
     "@protobuf-ts/plugin": "2.9.4",
     "@protobuf-ts/protoc": "2.9.4",
     "@protobuf-ts/runtime": "2.9.4",
-    "@aws-sdk/client-sqs": "3.572.0",
+    "@aws-sdk/client-sqs": "3.575.0",
     "dotenv-flow": "3.3.0",
     "kafka-iam-auth": "workspace:*",
     "pagopa-interop-commons": "workspace:*",

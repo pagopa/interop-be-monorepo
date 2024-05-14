@@ -12,10 +12,9 @@ import {
   fromAppContext,
 } from "pagopa-interop-commons";
 import {
-  Agreement,
+  TenantId,
   DescriptorId,
   EServiceId,
-  TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { api } from "../model/generated/api.js";
@@ -97,12 +96,12 @@ const agreementRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const id = await agreementService.submitAgreement(
+        const agreement = await agreementService.submitAgreement(
           unsafeBrandId(req.params.agreementId),
           req.body,
           ctx
         );
-        return res.status(200).json({ id }).end();
+        return res.status(200).json(agreementToApiAgreement(agreement)).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -121,13 +120,12 @@ const agreementRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const agreementId: Agreement["id"] =
-          await agreementService.activateAgreement(
-            unsafeBrandId(req.params.agreementId),
-            ctx
-          );
+        const agreement = await agreementService.activateAgreement(
+          unsafeBrandId(req.params.agreementId),
+          ctx
+        );
 
-        return res.status(200).json({ id: agreementId }).end();
+        return res.status(200).json(agreementToApiAgreement(agreement)).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -146,13 +144,16 @@ const agreementRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const id = await agreementService.addConsumerDocument(
+        const document = await agreementService.addConsumerDocument(
           unsafeBrandId(req.params.agreementId),
           req.body,
           ctx
         );
 
-        return res.status(200).json({ id }).send();
+        return res
+          .status(200)
+          .json(agreementDocumentToApiAgreementDocument(document))
+          .send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -222,11 +223,11 @@ const agreementRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const id = await agreementService.suspendAgreement(
+        const agreement = await agreementService.suspendAgreement(
           unsafeBrandId(req.params.agreementId),
           ctx
         );
-        return res.status(200).json({ id }).send();
+        return res.status(200).json(agreementToApiAgreement(agreement)).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -245,12 +246,12 @@ const agreementRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const id = await agreementService.rejectAgreement(
+        const agreement = await agreementService.rejectAgreement(
           unsafeBrandId(req.params.agreementId),
           req.body.reason,
           ctx
         );
-        return res.status(200).json({ id }).send();
+        return res.status(200).json(agreementToApiAgreement(agreement)).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -269,11 +270,11 @@ const agreementRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const agreementId = await agreementService.archiveAgreement(
+        const agreement = await agreementService.archiveAgreement(
           unsafeBrandId(req.params.agreementId),
           ctx
         );
-        return res.status(200).send({ id: agreementId });
+        return res.status(200).send(agreementToApiAgreement(agreement));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -292,8 +293,8 @@ const agreementRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const id = await agreementService.createAgreement(req.body, ctx);
-        return res.status(200).json({ id }).send();
+        const agreement = await agreementService.createAgreement(req.body, ctx);
+        return res.status(200).json(agreementToApiAgreement(agreement)).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -501,12 +502,12 @@ const agreementRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const id = await agreementService.upgradeAgreement(
+        const agreement = await agreementService.upgradeAgreement(
           unsafeBrandId(req.params.agreementId),
           ctx
         );
 
-        return res.status(200).json({ id }).send();
+        return res.status(200).json(agreementToApiAgreement(agreement)).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -525,12 +526,12 @@ const agreementRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        const id = await agreementService.cloneAgreement(
+        const agreement = await agreementService.cloneAgreement(
           unsafeBrandId(req.params.agreementId),
           ctx
         );
 
-        return res.status(200).json({ id }).send();
+        return res.status(200).json(agreementToApiAgreement(agreement)).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
