@@ -32,6 +32,7 @@ import {
   VerifiedTenantAttribute,
   agreementState,
   generateId,
+  toAgreementV2,
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import { agreementSuspendableStates } from "../src/model/domain/validators.js";
@@ -44,7 +45,6 @@ import {
   operationNotAllowed,
   tenantNotFound,
 } from "../src/model/domain/errors.js";
-import { toAgreementV2 } from "../src/model/domain/toEvent.js";
 import {
   addOneAgreement,
   addOneEService,

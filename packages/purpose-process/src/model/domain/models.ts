@@ -24,3 +24,7 @@ export type ApiRiskAnalysisFormSeed = z.infer<
 export type ApiReversePurposeUpdateContent = z.infer<
   typeof api.schemas.ReversePurposeUpdateContent
 >;
+
+export type ApiReversePurposeSeed = z.infer<
+  typeof api.schemas.EServicePurposeSeed
+>;

@@ -28,11 +28,11 @@ import {
   VerifiedTenantAttribute,
   agreementState,
   generateId,
+  toAgreementV2,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import { agreementRejectableStates } from "../src/model/domain/validators.js";
-import { toAgreementV2 } from "../src/model/domain/toEvent.js";
 import {
   agreementNotFound,
   agreementNotInExpectedState,
