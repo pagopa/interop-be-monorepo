@@ -122,11 +122,7 @@ export const createReversePurposeErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with(
-      "organizationIsNotTheConsumer",
-      "tenantKindNotFound",
-      () => HTTP_STATUS_FORBIDDEN
-    )
+    .with("organizationIsNotTheConsumer", () => HTTP_STATUS_FORBIDDEN)
     .with(
       "eserviceNotFound",
       "eServiceModeNotAllowed",
@@ -134,7 +130,6 @@ export const createReversePurposeErrorMapper = (
       "missingFreeOfChargeReason",
       "agreementNotFound",
       "riskAnalysisValidationFailed",
-      "tenantNotFound",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("duplicatedPurposeTitle", () => HTTP_STATUS_CONFLICT)

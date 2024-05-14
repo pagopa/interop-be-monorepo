@@ -37,7 +37,6 @@ import {
 import { match } from "ts-pattern";
 import {
   agreementNotFound,
-  duplicatedPurposeTitle,
   eserviceNotFound,
   eserviceRiskAnalysisNotFound,
   notValidVersionState,
@@ -88,6 +87,7 @@ import {
   isArchivable,
   isSuspendable,
   validateRiskAnalysisOrThrow,
+  assertPurposeTitleIsNotDuplicated,
 } from "./validators.js";
 
 const retrievePurpose = async (
@@ -631,15 +631,12 @@ export function purposeServiceBuilder(
 
       await retrieveActiveAgreement(eserviceId, consumerId, readModelService);
 
-      const purposeWithSameName = await readModelService.getPurpose(
+      await assertPurposeTitleIsNotDuplicated({
+        readModelService,
         eserviceId,
         consumerId,
-        purposeSeed.title
-      );
-
-      if (purposeWithSameName) {
-        throw duplicatedPurposeTitle(purposeSeed.title);
-      }
+        title: purposeSeed.title,
+      });
 
       const purpose: Purpose = {
         ...purposeSeed,
@@ -698,23 +695,20 @@ export function purposeServiceBuilder(
 
       await retrieveActiveAgreement(eserviceId, consumerId, readModelService);
 
-      const purposeWithSameName = await readModelService.getPurpose(
+      await assertPurposeTitleIsNotDuplicated({
+        readModelService,
         eserviceId,
         consumerId,
-        seed.title
-      );
+        title: seed.title,
+      });
 
-      if (purposeWithSameName) {
-        throw duplicatedPurposeTitle(seed.title);
-      }
-
-      validateRiskAnalysisOrThrow(
-        riskAnalysisFormToRiskAnalysisFormToValidate(
+      validateRiskAnalysisOrThrow({
+        riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
           riskAnalysis.riskAnalysisForm
         ),
-        false,
-        producer.kind
-      );
+        schemaOnlyValidation: false,
+        tenantKind: producer.kind,
+      });
 
       const newVersion: PurposeVersion = {
         id: generateId(),
@@ -953,15 +947,12 @@ const performUpdatePurpose = async (
   assertPurposeIsDraft(purpose.data);
 
   if (updateContent.title !== purpose.data.title) {
-    const purposeWithSameTitle = await readModelService.getPurpose(
-      purpose.data.eserviceId,
-      purpose.data.consumerId,
-      updateContent.title
-    );
-
-    if (purposeWithSameTitle) {
-      throw duplicatedPurposeTitle(updateContent.title);
-    }
+    await assertPurposeTitleIsNotDuplicated({
+      readModelService,
+      eserviceId: purpose.data.eserviceId,
+      consumerId: purpose.data.consumerId,
+      title: updateContent.title,
+    });
   }
   const eservice = await retrieveEService(
     purpose.data.eserviceId,
