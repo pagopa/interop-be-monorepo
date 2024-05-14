@@ -268,11 +268,12 @@ describe("JWT tests", () => {
       });
 
       const authData = readAuthDataFromJwtToken(token);
-      expect(authData).toBeDefined();
       expect(authData).toMatchObject({
         userRoles: match(mockToken)
           .with({ role: P.not(P.nullish) }, (t) => [t.role])
-          .with({ "user-roles": P.not(P.nullish) }, (t) => t["user-roles"])
+          .with({ "user-roles": P.not(P.nullish) }, (t) =>
+            t["user-roles"].split(",")
+          )
           .otherwise(() => {
             throw new Error("Unexpected user roles in token");
           }),
