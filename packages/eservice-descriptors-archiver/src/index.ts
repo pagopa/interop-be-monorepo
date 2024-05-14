@@ -12,9 +12,9 @@ import { AgreementEvent, fromAgreementV2 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { v4 as uuidv4 } from "uuid";
 import { catalogProcessClientBuilder } from "./services/catalogProcessClient.js";
-import { eserviceDescriptorArchiverBuilder } from "./services/eserviceDescriptorsArchiver.js";
 import { readModelServiceBuilder } from "./services/readModelService.js";
 import { config } from "./utilities/config.js";
+import { archiveDescriptorForArchivedAgreement } from "./services/archiveDescriptorProcessor.js";
 
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
@@ -25,12 +25,6 @@ const catalogProcessClient = catalogProcessClientBuilder(
 const tokenGenerator = new InteropTokenGenerator(config);
 const refreshableToken = new RefreshableInteropToken(tokenGenerator);
 await refreshableToken.init();
-
-const eserviceDescriptorArchiver = await eserviceDescriptorArchiverBuilder(
-  refreshableToken,
-  readModelService,
-  catalogProcessClient
-);
 
 async function processMessage({
   message,
@@ -62,8 +56,11 @@ async function processMessage({
           loggerInstance.info(
             `Processing ${decodedMsg.type} message - Partition number: ${partition} - Offset: ${message.offset}`
           );
-          await eserviceDescriptorArchiver.archiveDescriptorsForArchivedAgreement(
+          await archiveDescriptorForArchivedAgreement(
             fromAgreementV2(agreement),
+            refreshableToken,
+            readModelService,
+            catalogProcessClient,
             loggerInstance,
             correlationId
           );

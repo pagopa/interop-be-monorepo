@@ -1,25 +1,22 @@
-import { Logger } from "pagopa-interop-commons";
+import { Logger, RefreshableInteropToken } from "pagopa-interop-commons";
 import {
   Agreement,
-  DescriptorId,
-  EServiceId,
   descriptorState,
   genericInternalError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { ReadModelService } from "./readModelService.js";
+import { CatalogProcessClient } from "./catalogProcessClient.js";
 
+// eslint-disable-next-line max-params
 export async function archiveDescriptorForArchivedAgreement(
   archivedAgreement: Agreement,
+  refreshableToken: RefreshableInteropToken,
   readModelService: ReadModelService,
-  archiveDescriptor: (
-    descriptorId: DescriptorId,
-    eserviceId: EServiceId,
-    correlationId: string
-  ) => Promise<void>,
+  catalogProcessClient: CatalogProcessClient,
   logger: Logger,
   correlationId: string
-): Promise<DescriptorId | undefined> {
+): Promise<void> {
   const relatingNonArchivedAgreements = (
     await readModelService.getNonArchivedAgreementsByEserviceAndDescriptorId(
       archivedAgreement.eserviceId,
@@ -56,14 +53,27 @@ export async function archiveDescriptorForArchivedAgreement(
     );
   }
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const getHeaders = (correlationId: string, token: string) => ({
+    "X-Correlation-Id": correlationId,
+    Authorization: `Bearer ${token}`,
+  });
+
   return await match(descriptor)
     .with({ state: descriptorState.deprecated }, async () => {
-      await archiveDescriptor(
-        archivedAgreement.descriptorId,
-        archivedAgreement.eserviceId,
-        correlationId
+      const token = (await refreshableToken.get()).serialized;
+      const headers = getHeaders(correlationId, token);
+      await catalogProcessClient.archiveDescriptor(undefined, {
+        params: {
+          eServiceId: archivedAgreement.eserviceId,
+          descriptorId: archivedAgreement.descriptorId,
+        },
+        headers,
+      });
+
+      logger.info(
+        `Descriptor archived for archived Agreement ${archivedAgreement.id} - Descriptor ${archivedAgreement.descriptorId} - EService ${archivedAgreement.eserviceId}`
       );
-      return archivedAgreement.descriptorId;
     })
     .with({ state: descriptorState.suspended }, async () => {
       const newerDescriptorExists = eservice.descriptors.some(
@@ -73,23 +83,27 @@ export async function archiveDescriptorForArchivedAgreement(
           Number(d.version) > Number(descriptor.version)
       );
       if (newerDescriptorExists) {
-        await archiveDescriptor(
-          archivedAgreement.descriptorId,
-          archivedAgreement.eserviceId,
-          correlationId
+        const token = (await refreshableToken.get()).serialized;
+        const headers = getHeaders(correlationId, token);
+        await catalogProcessClient.archiveDescriptor(undefined, {
+          params: {
+            eServiceId: archivedAgreement.eserviceId,
+            descriptorId: archivedAgreement.descriptorId,
+          },
+          headers,
+        });
+        logger.info(
+          `Descriptor archived for archived Agreement ${archivedAgreement.id} - Descriptor ${archivedAgreement.descriptorId} - EService ${archivedAgreement.eserviceId}`
         );
-        return archivedAgreement.descriptorId;
       } else {
         logger.info(
           `Skipping descriptor archiviation for Descriptor ${archivedAgreement.descriptorId} of EService ${archivedAgreement.eserviceId} - Descriptor suspended but no newer Descriptor found`
         );
-        return undefined;
       }
     })
     .otherwise(() => {
       logger.info(
         `Skipping descriptor archiviation for Descriptor ${archivedAgreement.descriptorId} of EService ${archivedAgreement.eserviceId} - Descriptor state is not Deprecated or Suspended (state: ${descriptor.state})`
       );
-      return undefined;
     });
 }

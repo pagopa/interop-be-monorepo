@@ -21,10 +21,10 @@ import {
   AgreementCollection,
   EServiceCollection,
   ReadModelRepository,
+  RefreshableInteropToken,
   genericLogger,
 } from "pagopa-interop-commons";
 import {
-  DescriptorId,
   EServiceId,
   TenantId,
   agreementState,
@@ -33,25 +33,32 @@ import {
   genericInternalError,
 } from "pagopa-interop-models";
 import { config } from "../src/utilities/config.js";
-import { archiveDescriptorForArchivedAgreement } from "../src/services/archiveDescriptorProcessor.js";
 import {
   ReadModelService,
   readModelServiceBuilder,
 } from "../src/services/readModelService.js";
+import {
+  CatalogProcessClient,
+  catalogProcessClientBuilder,
+} from "../src/services/catalogProcessClient.js";
+import { archiveDescriptorForArchivedAgreement } from "../src/services/archiveDescriptorProcessor.js";
 import { addOneAgreement, addOneEService } from "./utils.js";
 
 describe("EService Descripors Archiver", async () => {
   describe("archiveDescriptorsForArchivedAgreement", async () => {
     const testCorrelationId = generateId();
+    const testToken = "mockToken";
+    const testHeaders = {
+      "X-Correlation-Id": testCorrelationId,
+      Authorization: `Bearer ${testToken}`,
+    };
+
     let startedMongodbContainer: StartedTestContainer;
     let readModelService: ReadModelService;
     let eservices: EServiceCollection;
     let agreements: AgreementCollection;
-
-    let archiveDescriptor: (
-      descriptorId: DescriptorId,
-      eserviceId: EServiceId
-    ) => Promise<void>;
+    let catalogProcessClient: CatalogProcessClient;
+    let mockRefreshableToken: RefreshableInteropToken;
 
     beforeAll(async () => {
       startedMongodbContainer = await mongoDBContainer(config).start();
@@ -63,10 +70,16 @@ describe("EService Descripors Archiver", async () => {
       eservices = readModelRepository.eservices;
       agreements = readModelRepository.agreements;
       readModelService = readModelServiceBuilder(readModelRepository);
+
+      mockRefreshableToken = {
+        get: () => Promise.resolve({ serialized: testToken }),
+      } as RefreshableInteropToken;
+
+      catalogProcessClient = catalogProcessClientBuilder("mockUrl");
     });
 
     beforeEach(async () => {
-      archiveDescriptor = vi.fn();
+      catalogProcessClient.archiveDescriptor = vi.fn();
     });
 
     afterEach(async () => {
@@ -74,7 +87,6 @@ describe("EService Descripors Archiver", async () => {
     });
 
     it("should call archive Descriptor when all Agreements are Archived and the Descriptor is deprecated", async () => {
-      vi.clearAllMocks();
       const producerId: TenantId = generateId();
       const descriptor = {
         ...getMockDescriptorPublished(),
@@ -122,19 +134,24 @@ describe("EService Descripors Archiver", async () => {
       await addOneAgreement(otherAgreement1, agreements);
       await addOneAgreement(otherAgreement2, agreements);
 
-      const archivedDescriptor = await archiveDescriptorForArchivedAgreement(
+      await archiveDescriptorForArchivedAgreement(
         archivedAgreement,
+        mockRefreshableToken,
         readModelService,
-        archiveDescriptor,
+        catalogProcessClient,
         genericLogger,
         testCorrelationId
       );
 
-      expect(archivedDescriptor).toBe(descriptor.id);
-      expect(archiveDescriptor).toHaveBeenCalledWith(
-        descriptor.id,
-        eservice.id,
-        testCorrelationId
+      expect(catalogProcessClient.archiveDescriptor).toHaveBeenCalledWith(
+        undefined,
+        {
+          params: {
+            eServiceId: eservice.id,
+            descriptorId: descriptor.id,
+          },
+          headers: testHeaders,
+        }
       );
     });
 
@@ -192,19 +209,24 @@ describe("EService Descripors Archiver", async () => {
       await addOneAgreement(otherAgreement1, agreements);
       await addOneAgreement(otherAgreement2, agreements);
 
-      const archivedDescriptor = await archiveDescriptorForArchivedAgreement(
+      await archiveDescriptorForArchivedAgreement(
         archivedAgreement,
+        mockRefreshableToken,
         readModelService,
-        archiveDescriptor,
+        catalogProcessClient,
         genericLogger,
         testCorrelationId
       );
 
-      expect(archivedDescriptor).toBe(descriptor.id);
-      expect(archiveDescriptor).toHaveBeenCalledWith(
-        descriptor.id,
-        eservice.id,
-        testCorrelationId
+      expect(catalogProcessClient.archiveDescriptor).toHaveBeenCalledWith(
+        undefined,
+        {
+          params: {
+            eServiceId: eservice.id,
+            descriptorId: descriptor.id,
+          },
+          headers: testHeaders,
+        }
       );
     });
 
@@ -253,16 +275,16 @@ describe("EService Descripors Archiver", async () => {
       await addOneAgreement(otherAgreement1, agreements);
       await addOneAgreement(otherAgreement2, agreements);
 
-      const archivedDescriptor = await archiveDescriptorForArchivedAgreement(
+      await archiveDescriptorForArchivedAgreement(
         archivedAgreement,
+        mockRefreshableToken,
         readModelService,
-        archiveDescriptor,
+        catalogProcessClient,
         genericLogger,
         testCorrelationId
       );
 
-      expect(archivedDescriptor).toBeUndefined();
-      expect(archiveDescriptor).not.toHaveBeenCalled();
+      expect(catalogProcessClient.archiveDescriptor).not.toHaveBeenCalled();
     });
 
     it("should not call archive Descriptor when the Descriptor not deprecated or suspended", async () => {
@@ -313,16 +335,16 @@ describe("EService Descripors Archiver", async () => {
       await addOneAgreement(otherAgreement1, agreements);
       await addOneAgreement(otherAgreement2, agreements);
 
-      const archivedDescriptor = await archiveDescriptorForArchivedAgreement(
+      await archiveDescriptorForArchivedAgreement(
         archivedAgreement,
+        mockRefreshableToken,
         readModelService,
-        archiveDescriptor,
+        catalogProcessClient,
         genericLogger,
         testCorrelationId
       );
 
-      expect(archivedDescriptor).toBeUndefined();
-      expect(archiveDescriptor).not.toHaveBeenCalled();
+      expect(catalogProcessClient.archiveDescriptor).not.toHaveBeenCalled();
     });
 
     it("should not call archive Descriptor when the Descriptor is suspended but no newer Descriptor exists", async () => {
@@ -374,16 +396,16 @@ describe("EService Descripors Archiver", async () => {
       await addOneAgreement(otherAgreement1, agreements);
       await addOneAgreement(otherAgreement2, agreements);
 
-      const archivedDescriptor = await archiveDescriptorForArchivedAgreement(
+      await archiveDescriptorForArchivedAgreement(
         archivedAgreement,
+        mockRefreshableToken,
         readModelService,
-        archiveDescriptor,
+        catalogProcessClient,
         genericLogger,
         testCorrelationId
       );
 
-      expect(archivedDescriptor).toBeUndefined();
-      expect(archiveDescriptor).not.toHaveBeenCalled();
+      expect(catalogProcessClient.archiveDescriptor).not.toHaveBeenCalled();
     });
 
     it("should throw an error when the EService is not found", async () => {
@@ -396,8 +418,9 @@ describe("EService Descripors Archiver", async () => {
       await expect(
         archiveDescriptorForArchivedAgreement(
           archivedAgreement,
+          mockRefreshableToken,
           readModelService,
-          archiveDescriptor,
+          catalogProcessClient,
           genericLogger,
           testCorrelationId
         )
@@ -428,8 +451,9 @@ describe("EService Descripors Archiver", async () => {
       await expect(
         archiveDescriptorForArchivedAgreement(
           archivedAgreement,
+          mockRefreshableToken,
           readModelService,
-          archiveDescriptor,
+          catalogProcessClient,
           genericLogger,
           testCorrelationId
         )
