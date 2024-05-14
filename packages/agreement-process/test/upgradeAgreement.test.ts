@@ -966,14 +966,14 @@ describe("upgrade Agreement", () => {
   });
 
   it("should throw a tenantNotFound error when the tenant does not exist", async () => {
+    const authData = getRandomAuthData();
     const agreementId = generateId<AgreementId>();
-    const producerId = generateId<TenantId>();
 
     const validVerifiedTenantAttribute = {
       ...getMockVerifiedTenantAttribute(),
       verifiedBy: [
         {
-          id: producerId,
+          id: authData.organizationId,
           verificationDate: new Date(TEST_EXECUTION_DATE.getFullYear() - 1),
           expirationDate: new Date(TEST_EXECUTION_DATE.getFullYear() + 1),
           extensionDate: undefined,
@@ -1030,17 +1030,17 @@ describe("upgrade Agreement", () => {
       ...getMockAgreement(),
       id: agreementId,
       descriptorId,
-      producerId,
+      producerId: authData.organizationId,
     };
 
-    const eservice = getMockEService(agreement.eserviceId, producerId, [
-      deprecatedDescriptor,
-      publishedDescriptor,
-    ]);
+    const eservice = getMockEService(
+      agreement.eserviceId,
+      authData.organizationId,
+      [deprecatedDescriptor, publishedDescriptor]
+    );
 
     await addOneEService(eservice);
     await addOneAgreement(agreement);
-    const authData = getRandomAuthData();
     await expect(
       agreementService.upgradeAgreement(agreementId, {
         authData,
