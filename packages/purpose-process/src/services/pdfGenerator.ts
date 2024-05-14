@@ -8,7 +8,7 @@
 import fs from "fs";
 import path from "path";
 
-import { FileManager } from "pagopa-interop-commons";
+import { FileManager, Logger } from "pagopa-interop-commons";
 import {
   EServiceInfo,
   Purpose,
@@ -45,7 +45,8 @@ export const pdfGenerator = {
     purposeVersion: PurposeVersion,
     eserviceInfo: EServiceInfo,
     kind: TenantKind,
-    storeFile: FileManager["storeBytes"]
+    storeFile: FileManager["storeBytes"],
+    logger: Logger
   ): Promise<PurposeVersionDocument> => {
     if (!purpose.riskAnalysisForm) {
       throw missingRiskAnalysis(purpose.id);
@@ -72,7 +73,8 @@ export const pdfGenerator = {
       config.riskAnalysisDocumentsPath,
       documentId,
       documentName,
-      Buffer.from(document)
+      Buffer.from(document),
+      logger
     );
 
     return {

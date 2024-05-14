@@ -9,7 +9,7 @@ import {
   TenantId,
   TenantKind,
   purposeVersionState,
-  agreementState,
+  EServiceId,
 } from "pagopa-interop-models";
 import {
   validateRiskAnalysis,
@@ -18,8 +18,8 @@ import {
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
 } from "pagopa-interop-commons";
 import {
-  agreementNotFound,
   descriptorNotFound,
+  duplicatedPurposeTitle,
   eServiceModeNotAllowed,
   missingFreeOfChargeReason,
   organizationIsNotTheConsumer,
@@ -30,6 +30,7 @@ import {
 } from "../model/domain/errors.js";
 import { ApiRiskAnalysisFormSeed } from "../model/domain/models.js";
 import { ReadModelService } from "./readModelService.js";
+import { retrieveActiveAgreement } from "./purposeService.js";
 
 export const isRiskAnalysisFormValid = (
   riskAnalysisForm: RiskAnalysisForm | undefined,
@@ -52,10 +53,17 @@ export const isRiskAnalysisFormValid = (
 export const purposeIsDraft = (purpose: Purpose): boolean =>
   !purpose.versions.some((v) => v.state !== purposeVersionState.draft);
 
+export const isDeletableVersion = (
+  purposeVersion: PurposeVersion,
+  purpose: Purpose
+): boolean =>
+  purposeVersion.state === purposeVersionState.waitingForApproval &&
+  purpose.versions.length !== 1;
+
 export const isRejectable = (purposeVersion: PurposeVersion): boolean =>
   purposeVersion.state === purposeVersionState.waitingForApproval;
 
-export const assertEserviceHasSpecificMode = (
+export const assertEserviceMode = (
   eservice: EService,
   expectedMode: EServiceMode
 ): void => {
@@ -82,11 +90,15 @@ export const assertOrganizationIsAConsumer = (
   }
 };
 
-export function validateRiskAnalysisSchemaOrThrow(
-  riskAnalysisForm: ApiRiskAnalysisFormSeed,
-  schemaOnlyValidation: boolean,
-  tenantKind: TenantKind
-): RiskAnalysisValidatedForm {
+export function validateRiskAnalysisOrThrow({
+  riskAnalysisForm,
+  schemaOnlyValidation,
+  tenantKind,
+}: {
+  riskAnalysisForm: ApiRiskAnalysisFormSeed;
+  schemaOnlyValidation: boolean;
+  tenantKind: TenantKind;
+}): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(
     riskAnalysisForm,
     schemaOnlyValidation,
@@ -101,17 +113,17 @@ export function validateRiskAnalysisSchemaOrThrow(
 
 export function validateAndTransformRiskAnalysis(
   riskAnalysisForm: ApiRiskAnalysisFormSeed | undefined,
+  schemaOnlyValidation: boolean,
   tenantKind: TenantKind
 ): PurposeRiskAnalysisForm | undefined {
   if (!riskAnalysisForm) {
     return undefined;
   }
-
-  const validatedForm = validateRiskAnalysisSchemaOrThrow(
+  const validatedForm = validateRiskAnalysisOrThrow({
     riskAnalysisForm,
-    true,
-    tenantKind
-  );
+    schemaOnlyValidation,
+    tenantKind,
+  });
 
   return {
     ...riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),
@@ -121,6 +133,7 @@ export function validateAndTransformRiskAnalysis(
 
 export function reverseValidateAndTransformRiskAnalysis(
   riskAnalysisForm: PurposeRiskAnalysisForm | undefined,
+  schemaOnlyValidation: boolean,
   tenantKind: TenantKind
 ): PurposeRiskAnalysisForm | undefined {
   if (!riskAnalysisForm) {
@@ -129,11 +142,11 @@ export function reverseValidateAndTransformRiskAnalysis(
 
   const formToValidate =
     riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm);
-  const validatedForm = validateRiskAnalysisSchemaOrThrow(
-    formToValidate,
-    true,
-    tenantKind
-  );
+  const validatedForm = validateRiskAnalysisOrThrow({
+    riskAnalysisForm: formToValidate,
+    schemaOnlyValidation,
+    tenantKind,
+  });
 
   return {
     ...riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),
@@ -183,6 +196,28 @@ export const isSuspendable = (purposeVersion: PurposeVersion): boolean =>
   purposeVersion.state === purposeVersionState.active ||
   purposeVersion.state === purposeVersionState.suspended;
 
+export const assertPurposeTitleIsNotDuplicated = async ({
+  readModelService,
+  eserviceId,
+  consumerId,
+  title,
+}: {
+  readModelService: ReadModelService;
+  eserviceId: EServiceId;
+  consumerId: TenantId;
+  title: string;
+}): Promise<void> => {
+  const purposeWithSameName = await readModelService.getPurpose(
+    eserviceId,
+    consumerId,
+    title
+  );
+
+  if (purposeWithSameName) {
+    throw duplicatedPurposeTitle(title);
+  }
+};
+
 export async function isLoadAllowed(
   eservice: EService,
   purpose: Purpose,
@@ -205,15 +240,11 @@ export async function isLoadAllowed(
     excludeDraft: true,
   });
 
-  const agreement = await readModelService.getAgreement(
+  const agreement = await retrieveActiveAgreement(
     eservice.id,
     purpose.consumerId,
-    [agreementState.active]
+    readModelService
   );
-
-  if (!agreement) {
-    throw agreementNotFound(eservice.id, purpose.consumerId);
-  }
 
   const getActiveVersions = (purposes: Purpose[]): PurposeVersion[] =>
     purposes

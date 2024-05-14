@@ -13,10 +13,12 @@ import {
   Purpose,
   PurposeEvent,
   RiskAnalysis,
+  RiskAnalysisForm,
   generateId,
   technology,
   toPurposeV2,
   unsafeBrandId,
+  toReadModelPurpose,
 } from "pagopa-interop-models";
 import { IDatabase } from "pg-promise";
 import {
@@ -32,7 +34,7 @@ export const addOnePurpose = async (
   purposes: PurposeCollection
 ): Promise<void> => {
   await writePurposeInEventstore(purpose, postgresDB);
-  await writeInReadmodel(purpose, purposes);
+  await writeInReadmodel(toReadModelPurpose(purpose), purposes);
 };
 
 export const writePurposeInEventstore = async (
@@ -71,6 +73,11 @@ export const buildRiskAnalysisSeed = (
   riskAnalysis: RiskAnalysis
 ): ApiRiskAnalysisFormSeed =>
   riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysis.riskAnalysisForm);
+
+export const buildRiskAnalysisFormSeed = (
+  riskAnalysisForm: RiskAnalysisForm
+): ApiRiskAnalysisFormSeed =>
+  riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm);
 
 export const createUpdatedPurpose = (
   mockPurpose: Purpose,

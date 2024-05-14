@@ -18,13 +18,13 @@ import {
   PurposeVersionId,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   purposeNotFound,
   eserviceNotFound,
   organizationIsNotTheProducer,
   purposeVersionNotFound,
   notValidVersionState,
-  missingRejectionReason,
 } from "../src/model/domain/errors.js";
 import {
   postgresDB,
@@ -60,6 +60,7 @@ export const testRejectPurposeVersion = (): ReturnType<typeof describe> =>
         rejectionReason: "test",
         organizationId: mockEService.producerId,
         correlationId: generateId(),
+        logger: genericLogger,
       });
 
       const writtenEvent = await readLastEventByStreamId(
@@ -116,6 +117,7 @@ export const testRejectPurposeVersion = (): ReturnType<typeof describe> =>
           rejectionReason: "test",
           organizationId: mockEService.producerId,
           correlationId: generateId(),
+          logger: genericLogger,
         })
       ).rejects.toThrowError(purposeNotFound(randomId));
     });
@@ -137,6 +139,7 @@ export const testRejectPurposeVersion = (): ReturnType<typeof describe> =>
           rejectionReason: "test",
           organizationId: mockPurpose.consumerId,
           correlationId: generateId(),
+          logger: genericLogger,
         })
       ).rejects.toThrowError(eserviceNotFound(mockEService.id));
     });
@@ -159,6 +162,7 @@ export const testRejectPurposeVersion = (): ReturnType<typeof describe> =>
           rejectionReason: "test",
           organizationId: mockPurpose.consumerId,
           correlationId: generateId(),
+          logger: genericLogger,
         })
       ).rejects.toThrowError(
         organizationIsNotTheProducer(mockPurpose.consumerId)
@@ -184,6 +188,7 @@ export const testRejectPurposeVersion = (): ReturnType<typeof describe> =>
           rejectionReason: "test",
           organizationId: mockEService.producerId,
           correlationId: generateId(),
+          logger: genericLogger,
         })
       ).rejects.toThrowError(
         purposeVersionNotFound(mockPurpose.id, randomVersionId)
@@ -215,35 +220,11 @@ export const testRejectPurposeVersion = (): ReturnType<typeof describe> =>
             rejectionReason: "test",
             organizationId: mockEService.producerId,
             correlationId: generateId(),
+            logger: genericLogger,
           })
         ).rejects.toThrowError(
           notValidVersionState(mockPurposeVersion.id, mockPurposeVersion.state)
         );
       }
     );
-    it("should throw missingRejectionReason if the rejection reason has been omitted", async () => {
-      const mockEService = getMockEService();
-      const mockPurposeVersion = {
-        ...getMockPurposeVersion(),
-        state: purposeVersionState.waitingForApproval,
-      };
-      const mockPurpose: Purpose = {
-        ...getMockPurpose(),
-        eserviceId: mockEService.id,
-        versions: [mockPurposeVersion],
-      };
-
-      await addOnePurpose(mockPurpose, postgresDB, purposes);
-      await writeInReadmodel(toReadModelEService(mockEService), eservices);
-
-      expect(
-        purposeService.rejectPurposeVersion({
-          purposeId: mockPurpose.id,
-          versionId: mockPurposeVersion.id,
-          rejectionReason: "",
-          organizationId: mockEService.producerId,
-          correlationId: generateId(),
-        })
-      ).rejects.toThrowError(missingRejectionReason());
-    });
   });

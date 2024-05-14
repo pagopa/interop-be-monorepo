@@ -1,3 +1,5 @@
+import { setupTestContainersVitest } from "pagopa-interop-commons-test/index.js";
+import { afterEach, inject } from "vitest";
 import {
   Attribute,
   AttributeEvent,
@@ -8,13 +10,6 @@ import {
   toAttributeV1,
   toReadModelAttribute,
 } from "pagopa-interop-models";
-import { IDatabase } from "pg-promise";
-import {
-  AttributeCollection,
-  AuthData,
-  TenantCollection,
-} from "pagopa-interop-commons";
-import { v4 as uuidv4 } from "uuid";
 import {
   ReadEvent,
   StoredEvent,
@@ -22,33 +17,28 @@ import {
   writeInEventstore,
   writeInReadmodel,
 } from "pagopa-interop-commons-test/index.js";
+import { AuthData } from "pagopa-interop-commons";
+import { readModelServiceBuilder } from "../src/services/readModelService.js";
+import { attributeRegistryServiceBuilder } from "../src/services/attributeRegistryService.js";
 
-export const getMockTenant = (): Tenant => ({
-  name: "tenant_Name",
-  id: generateId(),
-  createdAt: new Date(),
-  attributes: [],
-  externalId: {
-    value: "1234",
-    origin: "IPA",
-  },
-  features: [],
-  mails: [],
-});
+export const { readModelRepository, postgresDB, fileManager, cleanup } =
+  setupTestContainersVitest(inject("config"));
 
-export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
-  organizationId: organizationId || generateId(),
-  userId: uuidv4(),
-  userRoles: [],
-  externalId: {
-    value: "123456",
-    origin: "IPA",
-  },
-});
+afterEach(cleanup);
+
+export const agreements = readModelRepository.agreements;
+export const eservices = readModelRepository.eservices;
+export const tenants = readModelRepository.tenants;
+export const attributes = readModelRepository.attributes;
+
+export const readModelService = readModelServiceBuilder(readModelRepository);
+export const attributeRegistryService = attributeRegistryServiceBuilder(
+  postgresDB,
+  readModelService
+);
 
 export const writeAttributeInEventstore = async (
-  attribute: Attribute,
-  postgresDB: IDatabase<unknown>
+  attribute: Attribute
 ): Promise<void> => {
   const attributeEvent: AttributeEvent = {
     type: "AttributeAdded",
@@ -65,24 +55,40 @@ export const writeAttributeInEventstore = async (
   await writeInEventstore(eventToWrite, "attribute", postgresDB);
 };
 
-export const addOneAttribute = async (
-  attribute: Attribute,
-  postgresDB: IDatabase<unknown>,
-  attributes: AttributeCollection
-): Promise<void> => {
-  await writeAttributeInEventstore(attribute, postgresDB);
+export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
+  await writeAttributeInEventstore(attribute);
   await writeInReadmodel(toReadModelAttribute(attribute), attributes);
 };
 
-export const addOneTenant = async (
-  tenant: Tenant,
-  tenants: TenantCollection
-): Promise<void> => {
+export const addOneTenant = async (tenant: Tenant): Promise<void> => {
   await writeInReadmodel(tenant, tenants);
 };
 
 export const readLastAttributeEvent = async (
-  attributeId: AttributeId,
-  postgresDB: IDatabase<unknown>
+  attributeId: AttributeId
 ): Promise<ReadEvent<AttributeEvent>> =>
   await readLastEventByStreamId(attributeId, "attribute", postgresDB);
+
+export const getMockTenant = (): Tenant => ({
+  name: "tenant_Name",
+  id: generateId(),
+  createdAt: new Date(),
+  attributes: [],
+  externalId: {
+    value: "1234",
+    origin: "IPA",
+  },
+  features: [],
+  mails: [],
+});
+
+export const getMockAuthData = (organizationId?: TenantId): AuthData => ({
+  organizationId: organizationId || generateId(),
+  userId: generateId(),
+  userRoles: [],
+  externalId: {
+    value: "123456",
+    origin: "IPA",
+  },
+  selfcareId: generateId(),
+});

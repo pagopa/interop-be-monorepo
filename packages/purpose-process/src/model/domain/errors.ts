@@ -7,10 +7,11 @@ import {
   PurposeVersionDocumentId,
   PurposeVersionId,
   PurposeVersionState,
+  RiskAnalysisId,
   TenantId,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
-import { RiskAnalysisValidationIssue, logger } from "pagopa-interop-commons";
+import { RiskAnalysisValidationIssue } from "pagopa-interop-commons";
 
 export const errorCodes = {
   purposeNotFound: "0001",
@@ -24,22 +25,22 @@ export const errorCodes = {
   purposeVersionCannotBeDeleted: "0009",
   organizationIsNotTheProducer: "0010",
   notValidVersionState: "0011",
-  missingRejectionReason: "0012",
-  eServiceModeNotAllowed: "0013",
-  missingFreeOfChargeReason: "0014",
-  riskAnalysisValidationFailed: "0015",
-  purposeNotInDraftState: "0016",
+  eServiceModeNotAllowed: "0012",
+  missingFreeOfChargeReason: "0013",
+  riskAnalysisValidationFailed: "0014",
+  purposeNotInDraftState: "0015",
+  duplicatedPurposeTitle: "0016",
   purposeCannotBeDeleted: "0017",
-  unchangedDailyCalls: "0018",
-  agreementNotFound: "0019",
+  agreementNotFound: "0018",
+  eserviceRiskAnalysisNotFound: "0019",
   descriptorNotFound: "0020",
-  missingRiskAnalysis: "0021",
-  duplicatedPurposeTitle: "0022",
+  unchangedDailyCalls: "0021",
+  missingRiskAnalysis: "0022",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
 
-export const makeApiProblem = makeApiProblemBuilder(logger, errorCodes);
+export const makeApiProblem = makeApiProblemBuilder(errorCodes);
 
 export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
   return new ApiError({
@@ -93,28 +94,6 @@ export function purposeVersionDocumentNotFound(
     detail: `Document ${documentId} not found for version ${versionId} of purpose ${purposeId}`,
     code: "purposeVersionDocumentNotFound",
     title: "Purpose version document not found",
-  });
-}
-
-export function agreementNotFound(
-  eserviceId: EServiceId,
-  consumerId: TenantId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Agreement not found for EService ${eserviceId} and consumer ${consumerId}`,
-    code: "agreementNotFound",
-    title: "Agreement not found",
-  });
-}
-
-export function descriptorNotFound(
-  eserviceId: EServiceId,
-  descriptorId: DescriptorId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Descriptor ${descriptorId} not found for eservice ${eserviceId}`,
-    code: "descriptorNotFound",
-    title: "Descriptor not found",
   });
 }
 
@@ -188,16 +167,6 @@ export function riskAnalysisValidationFailed(
   });
 }
 
-export function missingRiskAnalysis(
-  purposeId: PurposeId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Purpose ${purposeId} must contain a valid risk analysis`,
-    code: "missingRiskAnalysis",
-    title: "Missing risk analysis",
-  });
-}
-
 export function purposeNotInDraftState(
   purposeId: PurposeId
 ): ApiError<ErrorCodes> {
@@ -219,14 +188,6 @@ export function notValidVersionState(
   });
 }
 
-export function missingRejectionReason(): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Rejection reason is missing`,
-    code: "missingRejectionReason",
-    title: "Rejection reason can't be omitted",
-  });
-}
-
 export function duplicatedPurposeTitle(title: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Purpose with title: ${title} already exists`,
@@ -242,6 +203,49 @@ export function purposeCannotBeDeleted(
     detail: `Versions in Purpose ${purposeId} do not allow deletion`,
     code: "purposeCannotBeDeleted",
     title: "Purpose cannot be deleted",
+  });
+}
+
+export function agreementNotFound(
+  eserviceId: EServiceId,
+  consumerId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No Agreement found for EService ${eserviceId} and Consumer ${consumerId}`,
+    code: "agreementNotFound",
+    title: "Agreement Not Found",
+  });
+}
+
+export function eserviceRiskAnalysisNotFound(
+  eserviceId: EServiceId,
+  riskAnalysisId: RiskAnalysisId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk Analysis ${riskAnalysisId} not found for EService ${eserviceId}`,
+    code: "eserviceRiskAnalysisNotFound",
+    title: "Risk analysis not found",
+  });
+}
+
+export function descriptorNotFound(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} not found for eservice ${eserviceId}`,
+    code: "descriptorNotFound",
+    title: "Descriptor not found",
+  });
+}
+
+export function missingRiskAnalysis(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} must contain a valid risk analysis`,
+    code: "missingRiskAnalysis",
+    title: "Missing risk analysis",
   });
 }
 
