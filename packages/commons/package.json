@@ -27,7 +27,7 @@
     "axios": "1.6.8",
     "connection-string": "4.4.0",
     "jsonwebtoken": "9.0.2",
-    "jwks-rsa": "3.0.1",
+    "jwks-rsa": "3.1.0",
     "kafkajs": "2.2.4",
     "mongodb": "5.8.0",
     "pagopa-interop-models": "workspace:*",
