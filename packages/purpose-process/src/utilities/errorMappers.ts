@@ -138,15 +138,10 @@ export const createReversePurposeErrorMapper = (
 export const clonePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with(
-      "tenantKindNotFound",
-      "riskAnalysisValidationFailed",
-      () => HTTP_STATUS_BAD_REQUEST
-    )
+    .with("riskAnalysisValidationFailed", () => HTTP_STATUS_BAD_REQUEST)
     .with(
       "duplicatedPurposeTitle",
       "purposeCannotBeCloned",
       () => HTTP_STATUS_CONFLICT
     )
-    .with("tenantNotFound", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

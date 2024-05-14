@@ -799,15 +799,12 @@ export function purposeServiceBuilder(
         purposeToClone.data.title
       } - clone - ${formatDateAndTime(currentDate)}`;
 
-      const purposeWithSameName = await readModelService.getPurpose(
-        unsafeBrandId(seed.eserviceId),
-        organizationId,
-        clonedPurposeName
-      );
-
-      if (purposeWithSameName) {
-        throw duplicatedPurposeTitle(clonedPurposeName);
-      }
+      await assertPurposeTitleIsNotDuplicated({
+        readModelService,
+        eserviceId: unsafeBrandId(seed.eserviceId),
+        consumerId: organizationId,
+        title: clonedPurposeName,
+      });
 
       const clonedPurpose: Purpose = {
         title: clonedPurposeName,
