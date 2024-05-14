@@ -12,9 +12,7 @@ import {
   mongoDBContainer,
 } from "pagopa-interop-commons-test";
 import {
-  AgreementDeletedV2,
   AgreementEventEnvelopeV2,
-  AgreementStateV2,
   generateId,
   toAgreementV2,
   toReadModelAgreement,
