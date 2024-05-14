@@ -13,6 +13,7 @@ import {
   Purpose,
   PurposeEvent,
   RiskAnalysis,
+  RiskAnalysisForm,
   generateId,
   technology,
   toPurposeV2,
@@ -72,6 +73,11 @@ export const buildRiskAnalysisSeed = (
   riskAnalysis: RiskAnalysis
 ): ApiRiskAnalysisFormSeed =>
   riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysis.riskAnalysisForm);
+
+export const buildRiskAnalysisFormSeed = (
+  riskAnalysisForm: RiskAnalysisForm
+): ApiRiskAnalysisFormSeed =>
+  riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm);
 
 export const createUpdatedPurpose = (
   mockPurpose: Purpose,
