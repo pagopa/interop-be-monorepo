@@ -10,7 +10,7 @@ import {
   agreementState,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
-import { CreateEvent } from "pagopa-interop-commons";
+import { CreateEvent, Logger } from "pagopa-interop-commons";
 import {
   assertDescriptorExist,
   assertEServiceExist,
@@ -171,7 +171,7 @@ export const suspendedByProducerFlag = (
     : agreement.suspendedByProducer;
 
 const allowedStateTransitions = (state: AgreementState): AgreementState[] =>
-  match<AgreementState, AgreementState[]>(state)
+  match(state)
     .with(agreementState.draft, agreementState.pending, () => [
       agreementState.missingCertifiedAttributes,
     ])
@@ -192,13 +192,30 @@ const updatableStates = Object.values(agreementState).filter(
 
 async function updateAgreementState(
   agreement: WithMetadata<Agreement>,
-  state: AgreementState,
-  correlationId: string
+  consumer: CompactTenant,
+  eservices: EService[],
+  correlationId: string,
+  logger: Logger
 ): Promise<CreateEvent<AgreementEvent> | void> {
-  const newSuspendedByPlatform = suspendedByPlatformFlag(state);
+  const descriptor = eservices
+    .find((eservice) => eservice.id === agreement.data.eserviceId)
+    ?.descriptors.find(
+      (descriptor) => descriptor.id === agreement.data.descriptorId
+    );
+
+  if (!descriptor) {
+    logger.error(
+      `Descriptor ${agreement.data.descriptorId} not found for Agreement ${agreement.data.id} - EService ${agreement.data.eserviceId}`
+    );
+    return;
+  }
+
+  const nextState = nextStateByAttributes(agreement.data, descriptor, consumer);
+
+  const newSuspendedByPlatform = suspendedByPlatformFlag(nextState);
 
   const finalState = agreementStateByFlags(
-    state,
+    nextState,
     agreement.data.suspendedByProducer,
     agreement.data.suspendedByConsumer,
     newSuspendedByPlatform
@@ -210,48 +227,46 @@ async function updateAgreementState(
     suspendedByPlatform: newSuspendedByPlatform,
   };
 
-  if (
-    newSuspendedByPlatform !== agreement.data.suspendedByPlatform &&
-    allowedStateTransitions(agreement.data.state).includes(finalState)
-  ) {
-    if (newSuspendedByPlatform === true) {
-      return toCreateEventAgreementSuspendedByPlatform(
-        updatedAgreement,
-        agreement.metadata.version,
-        correlationId
+  if (allowedStateTransitions(agreement.data.state).includes(finalState)) {
+    match([finalState, newSuspendedByPlatform])
+      .with(
+        [
+          agreementState.suspended,
+          P.when(
+            (newSuspendedByPlatform) =>
+              newSuspendedByPlatform !== agreement.data.suspendedByPlatform
+          ),
+        ],
+        () =>
+          toCreateEventAgreementSuspendedByPlatform(
+            updatedAgreement,
+            agreement.metadata.version,
+            correlationId
+          )
+      )
+      .with([agreementState.active, false], () =>
+        toCreateEventAgreementUnsuspendedByPlatform(
+          updatedAgreement,
+          agreement.metadata.version,
+          correlationId
+        )
+      )
+      .with([agreementState.missingCertifiedAttributes, P.any], () => {
+        // TODO new event
+      })
+      .with([agreementState.draft, P.any], () => {
+        // TODO new event
+      })
+      .otherwise(() =>
+        logger.error(
+          `Agreement state transition not allowed from ${agreement.data.state} to ${finalState}`
+        )
       );
-    } else {
-      return toCreateEventAgreementUnsuspendedByPlatform(
-        updatedAgreement,
-        agreement.metadata.version,
-        correlationId
-      );
-    }
-  }
-}
-
-// TODO needed?
-async function updateAgreementStates(
-  agreement: WithMetadata<Agreement>,
-  consumer: CompactTenant,
-  eservices: EService[], // TODO needed?
-  correlationId: string
-): Promise<CreateEvent<AgreementEvent> | void> {
-  const descriptor = eservices
-    .find((eservice) => eservice.id === agreement.data.eserviceId)
-    ?.descriptors.find(
-      (descriptor) => descriptor.id === agreement.data.descriptorId
+  } else {
+    logger.error(
+      `Agreement state transition not allowed from ${agreement.data.state} to ${finalState}`
     );
-
-  assertDescriptorExist(
-    agreement.data.eserviceId,
-    agreement.data.descriptorId,
-    descriptor
-  );
-
-  const nextState = nextStateByAttributes(agreement.data, descriptor, consumer);
-
-  return updateAgreementState(agreement, nextState, correlationId);
+  }
 }
 
 function eserviceContainsAttribute(
@@ -275,26 +290,28 @@ function eserviceContainsAttribute(
   return allIds.includes(attributeId);
 }
 
-export async function computeAgreementStateByAttribute(
+// eslint-disable-next-line max-params
+export async function computeAgreementsStateByAttribute(
   attributeId: AttributeId,
   consumer: CompactTenant,
   agreementQuery: AgreementQuery,
   eserviceQuery: EserviceQuery,
-  correlationId: string
+  correlationId: string,
+  logger: Logger
 ): Promise<Array<CreateEvent<AgreementEvent>>> {
   const agreements = await agreementQuery.getAllAgreements({
     consumerId: consumer.id,
     agreementStates: updatableStates,
   });
 
-  const eservices = await Promise.all(
-    agreements
-      .map((agreement) => agreement.data.eserviceId)
-      .map(async (eserviceId) => {
-        const eservice = await eserviceQuery.getEServiceById(eserviceId);
-        assertEServiceExist(eserviceId, eservice);
-        return eservice;
-      })
+  const eservices: EService[] = (
+    await Promise.all(
+      agreements
+        .map((agreement) => agreement.data.eserviceId)
+        .map(eserviceQuery.getEServiceById)
+    )
+  ).filter(
+    (eservice): eservice is NonNullable<EService> => eservice !== undefined
   );
 
   const eservicesWithAttribute = eservices.filter((eservice) =>
@@ -309,16 +326,18 @@ export async function computeAgreementStateByAttribute(
 
   return Promise.all(
     agreementsToUpdate.map((agreement) =>
-      updateAgreementStates(
+      updateAgreementState(
         agreement,
         consumer,
         eservicesWithAttribute,
-        correlationId
+        correlationId,
+        logger
       )
     )
   ).then((events) =>
     events.filter(
-      (event): event is CreateEvent<AgreementEvent> => event !== undefined
+      (event): event is NonNullable<CreateEvent<AgreementEvent>> =>
+        event !== undefined
     )
   );
 }
