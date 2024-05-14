@@ -30,7 +30,6 @@ import {
   unsafeBrandId,
   generateId,
   Agreement,
-  PurposeVersionState,
   EServiceInfo,
   RiskAnalysisId,
   RiskAnalysis,
@@ -1149,44 +1148,40 @@ async function activateOrWaitingForApproval({
     event: CreateEvent<PurposeEvent>;
     updatedPurposeVersion: PurposeVersion;
   } {
-    function calcNewVersionState(state: {
-      suspendedByProducer?: boolean;
-      suspendedByConsumer?: boolean;
-    }): PurposeVersionState {
-      return match(state)
-        .with(
-          {
-            suspendedByConsumer: true,
-          },
-          () => purposeVersionState.suspended
-        )
-        .with(
-          {
-            suspendedByProducer: true,
-          },
-          () => purposeVersionState.suspended
-        )
-        .otherwise(() => purposeVersionState.active);
-    }
+    const newState = match({
+      suspendedByProducer: purpose.suspendedByProducer,
+      suspendedByConsumer: purpose.suspendedByConsumer,
+      ownership,
+    })
+      .with(
+        {
+          suspendedByConsumer: true,
+          ownership: "PRODUCER",
+        },
+        {
+          suspendedByProducer: true,
+          ownership: "CONSUMER",
+        },
+        () => purposeVersionState.suspended
+      )
+      .otherwise(() => purposeVersionState.active);
+
+    const updatedPurposeVersion: PurposeVersion = {
+      ...purposeVersion,
+      updatedAt: new Date(),
+      suspendedAt:
+        newState !== purposeVersionState.suspended
+          ? undefined
+          : purposeVersion.suspendedAt,
+      state: newState,
+    };
+
+    const updatedPurpose: Purpose = replacePurposeVersion(
+      purpose,
+      updatedPurposeVersion
+    );
 
     if (ownership === "PRODUCER" || ownership === "SELF_CONSUMER") {
-      const newState = calcNewVersionState({
-        suspendedByProducer: false,
-        suspendedByConsumer: purpose.suspendedByConsumer,
-      });
-      const updatedPurposeVersion: PurposeVersion = {
-        ...purposeVersion,
-        updatedAt: new Date(),
-        suspendedAt:
-          newState !== purposeVersionState.suspended
-            ? undefined
-            : purposeVersion.suspendedAt,
-        state: newState,
-      };
-      const updatedPurpose: Purpose = replacePurposeVersion(
-        purpose,
-        updatedPurposeVersion
-      );
       return {
         event: toCreateEventPurposeVersionUnsuspenedByProducer({
           purpose: { ...updatedPurpose, suspendedByProducer: false },
@@ -1197,23 +1192,6 @@ async function activateOrWaitingForApproval({
         updatedPurposeVersion,
       };
     } else {
-      const newState = calcNewVersionState({
-        suspendedByProducer: false,
-        suspendedByConsumer: purpose.suspendedByConsumer,
-      });
-      const updatedPurposeVersion: PurposeVersion = {
-        ...purposeVersion,
-        updatedAt: new Date(),
-        suspendedAt:
-          newState !== purposeVersionState.suspended
-            ? undefined
-            : purposeVersion.suspendedAt,
-        state: newState,
-      };
-      const updatedPurpose: Purpose = replacePurposeVersion(
-        purpose,
-        updatedPurposeVersion
-      );
       return {
         event: toCreateEventPurposeVersionUnsuspenedByConsumer({
           purpose: { ...updatedPurpose, suspendedByConsumer: false },
