@@ -967,13 +967,14 @@ describe("upgrade Agreement", () => {
 
   it("should throw a tenantNotFound error when the tenant does not exist", async () => {
     const authData = getRandomAuthData();
+    const producerAndConsumerId = authData.organizationId;
     const agreementId = generateId<AgreementId>();
 
     const validVerifiedTenantAttribute = {
       ...getMockVerifiedTenantAttribute(),
       verifiedBy: [
         {
-          id: authData.organizationId,
+          id: producerAndConsumerId,
           verificationDate: new Date(TEST_EXECUTION_DATE.getFullYear() - 1),
           expirationDate: new Date(TEST_EXECUTION_DATE.getFullYear() + 1),
           extensionDate: undefined,
@@ -1027,15 +1028,19 @@ describe("upgrade Agreement", () => {
     };
 
     const agreement = {
-      ...getMockAgreement(),
+      ...getMockAgreement(
+        generateId<EServiceId>(),
+        producerAndConsumerId, // Consumer and producer are the same
+        randomArrayItem(agreementUpgradableStates)
+      ),
       id: agreementId,
       descriptorId,
-      producerId: authData.organizationId,
+      producerId: producerAndConsumerId,
     };
 
     const eservice = getMockEService(
       agreement.eserviceId,
-      authData.organizationId,
+      producerAndConsumerId,
       [deprecatedDescriptor, publishedDescriptor]
     );
 
@@ -1048,7 +1053,7 @@ describe("upgrade Agreement", () => {
         correlationId: "",
         logger: genericLogger,
       })
-    ).rejects.toThrowError(tenantNotFound(authData.organizationId));
+    ).rejects.toThrowError(tenantNotFound(producerAndConsumerId));
   });
 
   it("should throw an agreementNotFound error when the agreement does not exist", async () => {
