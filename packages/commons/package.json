@@ -29,7 +29,7 @@
     "jsonwebtoken": "9.0.2",
     "jwks-rsa": "3.1.0",
     "kafkajs": "2.2.4",
-    "mongodb": "5.8.0",
+    "mongodb": "5.9.2",
     "pagopa-interop-models": "workspace:*",
     "pg-promise": "11.5.0",
     "ts-pattern": "5.0.6",
