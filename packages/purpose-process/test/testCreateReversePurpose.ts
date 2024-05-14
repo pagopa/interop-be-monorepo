@@ -463,7 +463,7 @@ export const testCreateReversePurpose = (): ReturnType<typeof describe> =>
         )
       ).rejects.toThrowError(agreementNotFound(mockEService.id, consumer.id));
     });
-    it("should throw duplicatePurposeTitle if a purpose with the same name already exists", async () => {
+    it("should throw duplicatedPurposeTitle if a purpose with the same name already exists", async () => {
       const consumer = getMockTenant();
       const producer: Tenant = { ...getMockTenant(), kind: tenantKind.PA };
 
