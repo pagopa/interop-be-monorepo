@@ -17,7 +17,6 @@ import {
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
 } from "pagopa-interop-commons";
 import {
-  agreementNotFound,
   descriptorNotFound,
   eServiceModeNotAllowed,
   missingFreeOfChargeReason,
