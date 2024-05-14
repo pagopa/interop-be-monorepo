@@ -7,28 +7,20 @@ import {
 } from "pagopa-interop-commons";
 import {
   Agreement,
-  Descriptor,
   EService,
   Tenant,
   agreementState,
   WithMetadata,
   AgreementEvent,
-  AgreementId,
   SelfcareId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
-  assertAgreementExist,
-  assertRequesterIsConsumerOrProducer,
-  assertTenantExist,
   failOnActivationFailure,
   matchingCertifiedAttributes,
   matchingDeclaredAttributes,
   matchingVerifiedAttributes,
   validateActivationOnDescriptor,
-  assertActivableState,
-  verifyConsumerDoesNotActivatePending,
-  assertEServiceExist,
   agreementArchivableStates,
 } from "../model/domain/validators.js";
 import {
@@ -48,7 +40,6 @@ import {
 } from "./agreementStateProcessor.js";
 import { contractBuilder } from "./agreementContractBuilder.js";
 import { AgreementQuery } from "./readmodel/agreementQuery.js";
-import { EserviceQuery } from "./readmodel/eserviceQuery.js";
 import { TenantQuery } from "./readmodel/tenantQuery.js";
 import {
   createStamp,
@@ -56,58 +47,11 @@ import {
   suspendedByProducerStamp,
 } from "./agreementStampUtils.js";
 import { AttributeQuery } from "./readmodel/attributeQuery.js";
+import { retrieveTenant } from "./agreementService.js";
 
-export async function activateAgreementLogic(
-  agreementId: AgreementId,
-  agreementQuery: AgreementQuery,
-  eserviceQuery: EserviceQuery,
-  tenantQuery: TenantQuery,
-  attributeQuery: AttributeQuery,
-  authData: AuthData,
-  storeFile: FileManager["storeBytes"],
-  correlationId: string,
-  logger: Logger
-): Promise<[Agreement, Array<CreateEvent<AgreementEvent>>]> {
-  const agreement = await agreementQuery.getAgreementById(agreementId);
-  assertAgreementExist(agreementId, agreement);
-
-  assertRequesterIsConsumerOrProducer(agreement.data, authData);
-  verifyConsumerDoesNotActivatePending(agreement.data, authData);
-  assertActivableState(agreement.data);
-
-  const eservice = await eserviceQuery.getEServiceById(
-    agreement.data.eserviceId
-  );
-  assertEServiceExist(agreement.data.eserviceId, eservice);
-
-  const descriptor = validateActivationOnDescriptor(
-    eservice,
-    agreement.data.descriptorId
-  );
-
-  const tenant = await tenantQuery.getTenantById(agreement.data.consumerId);
-  assertTenantExist(agreement.data.consumerId, tenant);
-
-  return activateAgreement(
-    agreement,
-    eservice,
-    descriptor,
-    tenant,
-    authData,
-    tenantQuery,
-    agreementQuery,
-    attributeQuery,
-    storeFile,
-    correlationId,
-    logger
-  );
-}
-
-async function activateAgreement(
+export async function processActivateAgreement(
   agreementData: WithMetadata<Agreement>,
   eservice: EService,
-  descriptor: Descriptor,
-  consumer: Tenant,
   authData: AuthData,
   tenantQuery: TenantQuery,
   agreementQuery: AgreementQuery,
@@ -117,6 +61,12 @@ async function activateAgreement(
   logger: Logger
 ): Promise<[Agreement, Array<CreateEvent<AgreementEvent>>]> {
   const agreement = agreementData.data;
+
+  const consumer = await retrieveTenant(agreement.consumerId, tenantQuery);
+  const descriptor = validateActivationOnDescriptor(
+    eservice,
+    agreement.descriptorId
+  );
   const nextAttributesState = nextState(agreement, descriptor, consumer);
 
   const suspendedByConsumer = suspendedByConsumerFlag(
@@ -292,8 +242,7 @@ const createContract = async (
   storeFile: FileManager["storeBytes"],
   logger: Logger
 ): Promise<ApiAgreementDocumentSeed> => {
-  const producer = await tenantQuery.getTenantById(agreement.producerId);
-  assertTenantExist(agreement.producerId, producer);
+  const producer = await retrieveTenant(agreement.producerId, tenantQuery);
 
   return await contractBuilder(
     selfcareId,

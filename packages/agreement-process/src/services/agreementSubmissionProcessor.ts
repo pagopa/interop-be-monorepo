@@ -1,10 +1,9 @@
 /* eslint-disable max-params */
-import { CreateEvent, WithLogger, AppContext } from "pagopa-interop-commons";
+import { CreateEvent, AuthData } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementDocument,
   AgreementEvent,
-  AgreementId,
   AgreementStamp,
   AgreementStamps,
   AgreementState,
@@ -18,35 +17,29 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
-  agreementNotFound,
   agreementNotInExpectedState,
   consumerWithNotValidEmail,
   contractAlreadyExists,
-  eServiceNotFound,
-  tenantNotFound,
 } from "../model/domain/errors.js";
 import {
   toCreateEventAgreementArchivedByUpgrade,
   toCreateEventAgreementSubmitted,
 } from "../model/domain/toEvent.js";
 import {
-  assertRequesterIsConsumer,
-  assertSubmittableState,
   matchingCertifiedAttributes,
   matchingDeclaredAttributes,
   matchingVerifiedAttributes,
   validateActiveOrPendingAgreement,
   validateSubmitOnDescriptor,
-  verifySubmissionConflictingAgreements,
 } from "../model/domain/validators.js";
 import { ApiAgreementSubmissionPayload } from "../model/types.js";
 import { UpdateAgreementSeed } from "../model/domain/models.js";
 import { agreementStateByFlags, nextState } from "./agreementStateProcessor.js";
 import { AgreementQuery } from "./readmodel/agreementQuery.js";
 import { ContractBuilder } from "./agreementContractBuilder.js";
-import { EserviceQuery } from "./readmodel/eserviceQuery.js";
 import { TenantQuery } from "./readmodel/tenantQuery.js";
 import { createStamp } from "./agreementStampUtils.js";
+import { retrieveTenant } from "./agreementService.js";
 
 export type AgremeentSubmissionResults = {
   events: Array<CreateEvent<AgreementEvent>>;
@@ -54,71 +47,24 @@ export type AgremeentSubmissionResults = {
   version: number;
 };
 
-export async function submitAgreementLogic(
-  agreementId: AgreementId,
+export const processSubmitAgreement = async (
+  agreementData: WithMetadata<Agreement>,
+  eservice: EService,
   payload: ApiAgreementSubmissionPayload,
-  constractBuilder: ContractBuilder,
-  eserviceQuery: EserviceQuery,
   agreementQuery: AgreementQuery,
   tenantQuery: TenantQuery,
-  ctx: WithLogger<AppContext>
-): Promise<[Agreement, Array<CreateEvent<AgreementEvent>>]> {
-  const logger = ctx.logger;
-  logger.info(`Submitting agreement ${agreementId}`);
+  constractBuilder: ContractBuilder,
+  authData: AuthData,
+  correlationId: string
+): Promise<[Agreement, Array<CreateEvent<AgreementEvent>>]> => {
+  const agreement = agreementData.data;
 
-  const agreement = await agreementQuery.getAgreementById(agreementId);
-
-  if (!agreement) {
-    throw agreementNotFound(agreementId);
-  }
-
-  assertRequesterIsConsumer(agreement.data, ctx.authData);
-  assertSubmittableState(agreement.data.state, agreement.data.id);
-  await verifySubmissionConflictingAgreements(agreement.data, agreementQuery);
-
-  const eservice = await eserviceQuery.getEServiceById(
-    agreement.data.eserviceId
-  );
-  if (!eservice) {
-    throw eServiceNotFound(agreement.data.eserviceId);
-  }
+  const consumer = await retrieveTenant(agreement.consumerId, tenantQuery);
 
   const descriptor = await validateSubmitOnDescriptor(
     eservice,
-    agreement.data.descriptorId
+    agreement.descriptorId
   );
-
-  const consumer = await tenantQuery.getTenantById(agreement.data.consumerId);
-
-  if (!consumer) {
-    throw tenantNotFound(agreement.data.consumerId);
-  }
-
-  return await submitAgreement(
-    agreement,
-    eservice,
-    descriptor,
-    consumer,
-    payload,
-    agreementQuery,
-    tenantQuery,
-    constractBuilder,
-    ctx
-  );
-}
-
-const submitAgreement = async (
-  agreementData: WithMetadata<Agreement>,
-  eservice: EService,
-  descriptor: Descriptor,
-  consumer: Tenant,
-  payload: ApiAgreementSubmissionPayload,
-  agreementQuery: AgreementQuery,
-  tenantQuery: TenantQuery,
-  constractBuilder: ContractBuilder,
-  { authData, correlationId }: WithLogger<AppContext>
-): Promise<[Agreement, Array<CreateEvent<AgreementEvent>>]> => {
-  const agreement = agreementData.data;
   const nextStateByAttributes = nextState(agreement, descriptor, consumer);
 
   const newState = agreementStateByFlags(
@@ -222,11 +168,7 @@ const createContract = async (
   tenantQuery: TenantQuery,
   constractBuilder: ContractBuilder
 ): Promise<AgreementDocument> => {
-  const producer = await tenantQuery.getTenantById(agreement.producerId);
-
-  if (!producer) {
-    throw tenantNotFound(agreement.producerId);
-  }
+  const producer = await retrieveTenant(agreement.producerId, tenantQuery);
 
   if (agreement.contract) {
     throw contractAlreadyExists(agreement.id);
@@ -252,10 +194,10 @@ const validateConsumerEmail = async (
   agreement: Agreement,
   tenantQuery: TenantQuery
 ): Promise<void> => {
-  const consumer = await tenantQuery.getTenantById(agreement.consumerId);
+  const consumer = await retrieveTenant(agreement.consumerId, tenantQuery);
 
   if (
-    !consumer?.mails.find((mail) => mail.kind === tenantMailKind.ContactEmail)
+    !consumer.mails.find((mail) => mail.kind === tenantMailKind.ContactEmail)
   ) {
     throw consumerWithNotValidEmail(agreement.id, agreement.consumerId);
   }

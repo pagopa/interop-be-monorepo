@@ -10,7 +10,6 @@ import {
   EServiceAttribute,
   Tenant,
   VerifiedTenantAttribute,
-  WithMetadata,
   agreementState,
   descriptorState,
   tenantAttributeType,
@@ -27,17 +26,14 @@ import { ApiAgreementPayload } from "../types.js";
 import {
   agreementActivationFailed,
   agreementAlreadyExists,
-  agreementNotFound,
   agreementNotInExpectedState,
   agreementSubmissionFailed,
   descriptorNotFound,
   descriptorNotInExpectedState,
   documentChangeNotAllowed,
-  eServiceNotFound,
   missingCertifiedAttributesError,
   notLatestEServiceDescriptor,
   operationNotAllowed,
-  tenantNotFound,
 } from "./errors.js";
 import {
   CertifiedAgreementAttribute,
@@ -117,24 +113,6 @@ export const agreementConsumerDocumentChangeValidStates: AgreementState[] = [
 
 /* ========= ASSERTIONS ========= */
 
-export function assertAgreementExist(
-  agreementId: AgreementId,
-  agreement: WithMetadata<Agreement> | undefined
-): asserts agreement is NonNullable<WithMetadata<Agreement>> {
-  if (agreement === undefined) {
-    throw agreementNotFound(agreementId);
-  }
-}
-
-export function assertEServiceExist(
-  eserviceId: EServiceId,
-  eservice: EService | undefined
-): asserts eservice is NonNullable<EService> {
-  if (eservice === undefined) {
-    throw eServiceNotFound(eserviceId);
-  }
-}
-
 export const assertRequesterIsConsumer = (
   agreement: Agreement,
   authData: AuthData
@@ -188,15 +166,6 @@ export const assertExpectedState = (
     throw agreementNotInExpectedState(agreementId, agreementState);
   }
 };
-
-export function assertTenantExist(
-  tenantId: string,
-  tenant: Tenant | undefined
-): asserts tenant is NonNullable<Tenant> {
-  if (tenant === undefined) {
-    throw tenantNotFound(tenantId);
-  }
-}
 
 export const assertCanWorkOnConsumerDocuments = (
   state: AgreementState

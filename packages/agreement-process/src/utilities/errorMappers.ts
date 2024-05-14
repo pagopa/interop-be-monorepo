@@ -56,6 +56,7 @@ export const submitAgreementErrorMapper = (
       "agreementSubmissionFailed",
       "missingCertifiedAttributesError",
       "descriptorNotInExpectedState",
+      "tenantNotFound",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
