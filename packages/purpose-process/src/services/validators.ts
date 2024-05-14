@@ -84,11 +84,15 @@ export const assertOrganizationIsAConsumer = (
   }
 };
 
-export function validateRiskAnalysisOrThrow(
-  riskAnalysisForm: ApiRiskAnalysisFormSeed,
-  schemaOnlyValidation: boolean,
-  tenantKind: TenantKind
-): RiskAnalysisValidatedForm {
+export function validateRiskAnalysisOrThrow({
+  riskAnalysisForm,
+  schemaOnlyValidation,
+  tenantKind,
+}: {
+  riskAnalysisForm: ApiRiskAnalysisFormSeed;
+  schemaOnlyValidation: boolean;
+  tenantKind: TenantKind;
+}): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(
     riskAnalysisForm,
     schemaOnlyValidation,
@@ -109,11 +113,11 @@ export function validateAndTransformRiskAnalysis(
   if (!riskAnalysisForm) {
     return undefined;
   }
-  const validatedForm = validateRiskAnalysisOrThrow(
+  const validatedForm = validateRiskAnalysisOrThrow({
     riskAnalysisForm,
     schemaOnlyValidation,
-    tenantKind
-  );
+    tenantKind,
+  });
 
   return {
     ...riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),
@@ -132,11 +136,11 @@ export function reverseValidateAndTransformRiskAnalysis(
 
   const formToValidate =
     riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm);
-  const validatedForm = validateRiskAnalysisOrThrow(
-    formToValidate,
+  const validatedForm = validateRiskAnalysisOrThrow({
+    riskAnalysisForm: formToValidate,
     schemaOnlyValidation,
-    tenantKind
-  );
+    tenantKind,
+  });
 
   return {
     ...riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),

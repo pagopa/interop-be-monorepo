@@ -703,13 +703,13 @@ export function purposeServiceBuilder(
         throw duplicatedPurposeTitle(seed.title);
       }
 
-      validateRiskAnalysisOrThrow(
-        riskAnalysisFormToRiskAnalysisFormToValidate(
+      validateRiskAnalysisOrThrow({
+        riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
           riskAnalysis.riskAnalysisForm
         ),
-        false,
-        producer.kind
-      );
+        schemaOnlyValidation: false,
+        tenantKind: producer.kind,
+      });
 
       const newVersion: PurposeVersion = {
         id: generateId(),
