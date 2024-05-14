@@ -7,6 +7,7 @@ import {
   AttributeEvent,
   EServiceEventV1,
   PurposeEventV1,
+  TenantEventV1,
 } from "pagopa-interop-models";
 import pgPromise, { IDatabase } from "pg-promise";
 import {
@@ -240,7 +241,7 @@ const { parseEventType, decodeEvent, parseId } = match(config.targetDbSchema)
       return { parseEventType, decodeEvent, parseId };
     }
   )
-  .with("tenant", "dev-refactor_tenant", "uat-tenant", "prod-tenant", () => {
+  .with("tenant", "dev-refactor_tenant", "test_tenant", "prod_tenant", () => {
     checkSchema(config.sourceDbSchema, "tenant");
     const parseEventType = (event_ser_manifest: any) =>
       event_ser_manifest
