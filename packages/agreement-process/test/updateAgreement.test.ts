@@ -10,6 +10,7 @@ import {
   DraftAgreementUpdatedV2,
   agreementState,
   generateId,
+  toAgreementV2,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
@@ -19,7 +20,6 @@ import {
   operationNotAllowed,
 } from "../src/model/domain/errors.js";
 import { agreementUpdatableStates } from "../src/model/domain/validators.js";
-import { toAgreementV2 } from "../src/model/domain/toEvent.js";
 import {
   addOneAgreement,
   agreementService,
