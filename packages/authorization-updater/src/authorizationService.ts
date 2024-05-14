@@ -6,7 +6,6 @@ import {
   tokenGenerationConfig,
   Logger,
 } from "pagopa-interop-commons";
-import { v4 as uuidv4 } from "uuid";
 import { DescriptorId, EServiceId } from "pagopa-interop-models";
 import { buildAuthMgmtClient } from "./authorizationManagementClient.js";
 import { ApiClientComponentState } from "./model/models.js";
@@ -19,7 +18,7 @@ export type AuthorizationService = {
     audience: string[],
     voucherLifespan: number,
     logger: Logger,
-    correlationId: string | undefined | null
+    correlationId: string
   ) => Promise<void>;
 };
 
@@ -31,11 +30,8 @@ export const authorizationServiceBuilder =
     const refreshableToken = new RefreshableInteropToken(tokenGenerator);
     await refreshableToken.init();
 
-    const getHeaders = (
-      correlationId: string | undefined | null,
-      token: string
-    ) => ({
-      "X-Correlation-Id": correlationId || uuidv4(),
+    const getHeaders = (correlationId: string, token: string) => ({
+      "X-Correlation-Id": correlationId,
       Authorization: `Bearer ${token}`,
     });
 
@@ -48,7 +44,7 @@ export const authorizationServiceBuilder =
         audience: string[],
         voucherLifespan: number,
         logger: Logger,
-        correlationId: string | undefined | null
+        correlationId: string
       ) {
         const clientEServiceDetailsUpdate = {
           state,

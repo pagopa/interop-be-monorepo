@@ -1,4 +1,5 @@
 /* eslint-disable functional/immutable-data */
+import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import {
   InteropTokenGenerator,
@@ -7,13 +8,13 @@ import {
   decodeKafkaMessage,
   logger,
 } from "pagopa-interop-commons";
-import { runConsumer } from "kafka-iam-auth";
 import { AgreementEvent, fromAgreementV2 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { eserviceDescriptorArchiverBuilder } from "./services/eserviceDescriptorsArchiver.js";
-import { config } from "./utilities/config.js";
-import { readModelServiceBuilder } from "./services/readModelService.js";
+import { v4 as uuidv4 } from "uuid";
 import { catalogProcessClientBuilder } from "./services/catalogProcessClient.js";
+import { eserviceDescriptorArchiverBuilder } from "./services/eserviceDescriptorsArchiver.js";
+import { readModelServiceBuilder } from "./services/readModelService.js";
+import { config } from "./utilities/config.js";
 
 const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
@@ -36,13 +37,14 @@ async function processMessage({
   partition,
 }: EachMessagePayload): Promise<void> {
   const decodedMsg = decodeKafkaMessage(message, AgreementEvent);
+  const correlationId = decodedMsg.correlation_id || uuidv4();
 
   const loggerInstance = logger({
     serviceName: "eservice-descriptors-archiver",
     eventType: decodedMsg.type,
     eventVersion: decodedMsg.event_version,
     streamId: decodedMsg.stream_id,
-    correlationId: decodedMsg.correlation_id,
+    correlationId,
   });
 
   await match(decodedMsg)
@@ -63,7 +65,7 @@ async function processMessage({
           await eserviceDescriptorArchiver.archiveDescriptorsForArchivedAgreement(
             fromAgreementV2(agreement),
             loggerInstance,
-            decodedMsg.correlation_id
+            correlationId
           );
         } else {
           loggerInstance.error(

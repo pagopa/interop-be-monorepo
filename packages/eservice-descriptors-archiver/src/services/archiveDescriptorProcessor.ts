@@ -16,10 +16,10 @@ export async function archiveDescriptorForArchivedAgreement(
   archiveDescriptor: (
     descriptorId: DescriptorId,
     eserviceId: EServiceId,
-    correlationId: string | undefined | null
+    correlationId: string
   ) => Promise<void>,
   logger: Logger,
-  correlationId: string | undefined | null
+  correlationId: string
 ): Promise<DescriptorId | undefined> {
   const relatingAgreements = (
     await readModelService.getAgreementsByEserviceAndDescriptorId(
