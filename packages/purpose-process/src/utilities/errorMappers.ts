@@ -117,3 +117,20 @@ export const createPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with("riskAnalysisValidationFailed", () => HTTP_STATUS_BAD_REQUEST)
     .with("duplicatedPurposeTitle", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const createReversePurposeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("organizationIsNotTheConsumer", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "eserviceNotFound",
+      "eServiceModeNotAllowed",
+      "eserviceRiskAnalysisNotFound",
+      "missingFreeOfChargeReason",
+      "agreementNotFound",
+      "riskAnalysisValidationFailed",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with("duplicatedPurposeTitle", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
