@@ -9,6 +9,7 @@ import {
   TenantId,
   TenantKind,
   purposeVersionState,
+  EServiceId,
 } from "pagopa-interop-models";
 import {
   validateRiskAnalysis,
@@ -17,6 +18,7 @@ import {
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
 } from "pagopa-interop-commons";
 import {
+  duplicatedPurposeTitle,
   eServiceModeNotAllowed,
   missingFreeOfChargeReason,
   organizationIsNotTheConsumer,
@@ -25,6 +27,7 @@ import {
   tenantKindNotFound,
 } from "../model/domain/errors.js";
 import { ApiRiskAnalysisFormSeed } from "../model/domain/models.js";
+import { ReadModelService } from "./readModelService.js";
 
 export const isRiskAnalysisFormValid = (
   riskAnalysisForm: RiskAnalysisForm | undefined,
@@ -176,3 +179,25 @@ export const isArchivable = (purposeVersion: PurposeVersion): boolean =>
 export const isSuspendable = (purposeVersion: PurposeVersion): boolean =>
   purposeVersion.state === purposeVersionState.active ||
   purposeVersion.state === purposeVersionState.suspended;
+
+export const assertPurposeTitleIsNotDuplicated = async ({
+  readModelService,
+  eserviceId,
+  consumerId,
+  title,
+}: {
+  readModelService: ReadModelService;
+  eserviceId: EServiceId;
+  consumerId: TenantId;
+  title: string;
+}): Promise<void> => {
+  const purposeWithSameName = await readModelService.getPurpose(
+    eserviceId,
+    consumerId,
+    title
+  );
+
+  if (purposeWithSameName) {
+    throw duplicatedPurposeTitle(title);
+  }
+};
