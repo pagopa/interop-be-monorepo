@@ -456,12 +456,10 @@ export function agreementServiceBuilder(
             )
           : [];
 
-      for (const event of [
+      await repository.createEvents([
         submittedAgreementEvent,
         ...archivedAgreementsUpdates,
-      ]) {
-        await repository.createEvent(event);
-      }
+      ]);
 
       return submittedAgreement.data;
     },
@@ -552,9 +550,7 @@ export function agreementServiceBuilder(
         logger,
       });
 
-      for (const event of events) {
-        await repository.createEvent(event);
-      }
+      await repository.createEvents(events);
 
       return agreement;
     },
@@ -939,9 +935,8 @@ export function agreementServiceBuilder(
         correlationId
       );
 
-      for (const event of [activationEvent, ...archiveEvents]) {
-        await repository.createEvent(event);
-      }
+      await repository.createEvents([activationEvent, ...archiveEvents]);
+
       return updatedAgreement;
     },
     async archiveAgreement(
