@@ -19,6 +19,7 @@ import {
   toPurposeV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import { genericLogger } from "pagopa-interop-commons";
 import { v4 } from "uuid";
 import { getMockPurpose } from "pagopa-interop-commons-test";
 import {
@@ -162,7 +163,7 @@ describe("Notification tests", async () => {
         catalogEventEnvelope,
         CatalogItemEventNotification
       );
-      await queueWriter.send(catalogMessage);
+      await queueWriter.send(catalogMessage, genericLogger);
 
       const mockPurpose = getMockPurpose();
 
@@ -188,9 +189,9 @@ describe("Notification tests", async () => {
         purposeEventNotification
       );
 
-      await queueWriter.send(purposeMessage);
+      await queueWriter.send(purposeMessage, genericLogger);
 
-      const receivedMessages = await queueWriter.receiveLast(2);
+      const receivedMessages = await queueWriter.receiveLast(genericLogger, 2);
       expect(receivedMessages.length).toBe(2);
 
       const receivedCatalogMessage = receivedMessages[0];

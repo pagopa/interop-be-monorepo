@@ -156,13 +156,13 @@ paths:
         - $ref: "#/components/parameters/CorrelationIdHeader"
       tags:
         - purpose
-      operationId: createReversePurpose
+      operationId: createPurposeFromEService
       description: Create a Purpose for EService with Receive mode
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ReversePurposeSeed"
+              $ref: "#/components/schemas/EServicePurposeSeed"
         required: true
       responses:
         "200":
@@ -1142,7 +1142,7 @@ components:
           format: uuid
       required:
         - eserviceId
-    ReversePurposeSeed:
+    EServicePurposeSeed:
       type: object
       description: contains the expected payload for purpose creation.
       properties:

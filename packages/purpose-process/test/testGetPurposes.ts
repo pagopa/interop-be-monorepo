@@ -1,7 +1,6 @@
 import {
   EService,
   Purpose,
-  PurposeVersion,
   TenantId,
   generateId,
   purposeVersionState,
@@ -15,6 +14,7 @@ import {
   writeInReadmodel,
   getMockValidRiskAnalysisForm,
 } from "pagopa-interop-commons-test/index.js";
+import { genericLogger } from "pagopa-interop-commons";
 import { addOnePurpose, getMockEService } from "./utils.js";
 import {
   postgresDB,
@@ -46,77 +46,52 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
 
     const mockEService4 = getMockEService();
 
-    const mockPurposeVersion1: PurposeVersion = {
-      ...getMockPurposeVersion(),
-      state: purposeVersionState.draft,
-    };
     const mockPurpose1: Purpose = {
       ...getMockPurpose(),
       title: "purpose 1 - test",
       consumerId: consumerId1,
       eserviceId: mockEService1ByTenant1.id,
-      versions: [mockPurposeVersion1],
+      versions: [getMockPurposeVersion(purposeVersionState.draft)],
     };
 
-    const mockPurposeVersion2: PurposeVersion = {
-      ...getMockPurposeVersion(),
-      state: purposeVersionState.draft,
-    };
     const mockPurpose2: Purpose = {
       ...getMockPurpose(),
       title: "purpose 2",
       eserviceId: mockEService1ByTenant1.id,
-      versions: [mockPurposeVersion2],
+      versions: [getMockPurposeVersion(purposeVersionState.draft)],
     };
 
-    const mockPurposeVersion3: PurposeVersion = {
-      ...getMockPurposeVersion(),
-      state: purposeVersionState.active,
-    };
     const mockPurpose3: Purpose = {
       ...getMockPurpose(),
       title: "purpose 3",
       eserviceId: mockEService2ByTenant1.id,
-      versions: [mockPurposeVersion3],
+      versions: [getMockPurposeVersion(purposeVersionState.active)],
     };
 
-    const mockPurposeVersion4: PurposeVersion = {
-      ...getMockPurposeVersion(),
-      state: purposeVersionState.rejected,
-    };
     const mockPurpose4: Purpose = {
       ...getMockPurpose(),
       title: "purpose 4",
       eserviceId: mockEService3ByTenant2.id,
-      versions: [mockPurposeVersion4],
+      versions: [getMockPurposeVersion(purposeVersionState.rejected)],
     };
 
-    const mockPurposeVersion5: PurposeVersion = {
-      ...getMockPurposeVersion(),
-      state: purposeVersionState.rejected,
-    };
     const mockPurpose5: Purpose = {
       ...getMockPurpose(),
       title: "purpose 5",
       consumerId: consumerId1,
       eserviceId: mockEService4.id,
-      versions: [mockPurposeVersion5],
+      versions: [getMockPurposeVersion(purposeVersionState.rejected)],
     };
 
-    const mockPurposeVersion6_1: PurposeVersion = {
-      ...getMockPurposeVersion(),
-      state: purposeVersionState.archived,
-    };
-    const mockPurposeVersion6_2: PurposeVersion = {
-      ...getMockPurposeVersion(),
-      state: purposeVersionState.draft,
-    };
     const mockPurpose6: Purpose = {
       ...getMockPurpose(),
       title: "purpose 6 - test",
       consumerId: consumerId1,
       eserviceId: mockEService3ByTenant2.id,
-      versions: [mockPurposeVersion6_1, mockPurposeVersion6_2],
+      versions: [
+        getMockPurposeVersion(purposeVersionState.archived),
+        getMockPurposeVersion(purposeVersionState.active),
+      ],
     };
 
     const mockPurpose7: Purpose = {
@@ -154,14 +129,15 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
       const result = await purposeService.getPurposes(
         producerId1,
         {
-          name: "test",
+          title: "test",
           eservicesIds: [],
           consumersIds: [],
           producersIds: [],
           states: [],
           excludeDraft: undefined,
         },
-        { offset: 0, limit: 50 }
+        { offset: 0, limit: 50 },
+        genericLogger
       );
       expect(result.totalCount).toBe(3);
       expect(result.results).toEqual([
@@ -180,7 +156,8 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
           states: [],
           excludeDraft: undefined,
         },
-        { offset: 0, limit: 50 }
+        { offset: 0, limit: 50 },
+        genericLogger
       );
       expect(result.totalCount).toBe(2);
       expect(result.results).toEqual([mockPurpose1, mockPurpose2]);
@@ -195,7 +172,8 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
           states: [],
           excludeDraft: undefined,
         },
-        { offset: 0, limit: 50 }
+        { offset: 0, limit: 50 },
+        genericLogger
       );
       expect(result.totalCount).toBe(3);
       expect(result.results).toEqual([
@@ -214,7 +192,8 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
           states: [],
           excludeDraft: undefined,
         },
-        { offset: 0, limit: 50 }
+        { offset: 0, limit: 50 },
+        genericLogger
       );
       expect(result.totalCount).toBe(2);
       expect(result.results).toEqual([mockPurpose4, mockPurpose6]);
@@ -226,19 +205,82 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
           eservicesIds: [],
           consumersIds: [],
           producersIds: [],
-          states: [purposeVersionState.rejected, purposeVersionState.archived],
+          states: [purposeVersionState.rejected, purposeVersionState.active],
           excludeDraft: undefined,
         },
-        { offset: 0, limit: 50 }
+        { offset: 0, limit: 50 },
+        genericLogger
       );
-      expect(result.totalCount).toBe(3);
+      expect(result.totalCount).toBe(4);
       expect(result.results).toEqual([
+        mockPurpose3,
         mockPurpose4,
         mockPurpose5,
         mockPurpose6,
       ]);
     });
-    it("should not include draft versions and purposes without versions (excludeDraft = true)", async () => {
+    it("should get the purposes if they exist (parameters: states, archived and non-archived)", async () => {
+      const result = await purposeService.getPurposes(
+        producerId1,
+        {
+          eservicesIds: [],
+          consumersIds: [],
+          producersIds: [],
+          states: [
+            purposeVersionState.archived,
+            purposeVersionState.active,
+            purposeVersionState.rejected,
+          ],
+          excludeDraft: undefined,
+        },
+        { offset: 0, limit: 50 },
+        genericLogger
+      );
+      expect(result.totalCount).toBe(4);
+      expect(result.results).toEqual([
+        mockPurpose3,
+        mockPurpose4,
+        mockPurpose5,
+        mockPurpose6,
+      ]);
+    });
+    it("should get the purposes with only archived versions (and exclude the ones with both archived and non-archived versions)", async () => {
+      const mockArchivedPurpose: Purpose = {
+        ...getMockPurpose(),
+        title: "archived purpose",
+        eserviceId: mockEService1ByTenant1.id,
+        versions: [getMockPurposeVersion(purposeVersionState.archived)],
+      };
+
+      const mockArchivedAndActivePurpose: Purpose = {
+        ...getMockPurpose(),
+        title: "archived and active purpose",
+        eserviceId: mockEService1ByTenant1.id,
+        versions: [
+          getMockPurposeVersion(purposeVersionState.archived),
+          getMockPurposeVersion(purposeVersionState.active),
+        ],
+      };
+
+      await addOnePurpose(mockArchivedPurpose, postgresDB, purposes);
+      await addOnePurpose(mockArchivedAndActivePurpose, postgresDB, purposes);
+
+      const result = await purposeService.getPurposes(
+        producerId1,
+        {
+          eservicesIds: [],
+          consumersIds: [],
+          producersIds: [],
+          states: [purposeVersionState.archived],
+          excludeDraft: undefined,
+        },
+        { offset: 0, limit: 50 },
+        genericLogger
+      );
+      expect(result.totalCount).toBe(1);
+      expect(result.results).toEqual([mockArchivedPurpose]);
+    });
+    it("should not include purpose without versions or with one draft version (excludeDraft = true)", async () => {
       const result = await purposeService.getPurposes(
         producerId1,
         {
@@ -248,17 +290,18 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
           states: [],
           excludeDraft: true,
         },
-        { offset: 0, limit: 50 }
+        { offset: 0, limit: 50 },
+        genericLogger
       );
       expect(result.totalCount).toBe(4);
       expect(result.results).toEqual([
         mockPurpose3,
         mockPurpose4,
         mockPurpose5,
-        { ...mockPurpose6, versions: [mockPurposeVersion6_1] },
+        mockPurpose6,
       ]);
     });
-    it("should include draft versions and purposes without versions (excludeDraft = false)", async () => {
+    it("should include purpose without versions or with one draft version (excludeDraft = false)", async () => {
       const result = await purposeService.getPurposes(
         producerId1,
         {
@@ -268,7 +311,8 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
           states: [],
           excludeDraft: false,
         },
-        { offset: 0, limit: 50 }
+        { offset: 0, limit: 50 },
+        genericLogger
       );
       expect(result.totalCount).toBe(7);
       expect(result.results).toEqual([
@@ -291,7 +335,8 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
           states: [],
           excludeDraft: undefined,
         },
-        { offset: 5, limit: 50 }
+        { offset: 5, limit: 50 },
+        genericLogger
       );
       expect(result.results).toEqual([mockPurpose6, mockPurpose7]);
     });
@@ -305,7 +350,8 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
           states: [],
           excludeDraft: undefined,
         },
-        { offset: 0, limit: 3 }
+        { offset: 0, limit: 3 },
+        genericLogger
       );
       expect(result.results).toEqual([
         mockPurpose1,
@@ -323,7 +369,8 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
           states: [],
           excludeDraft: undefined,
         },
-        { offset: 0, limit: 50 }
+        { offset: 0, limit: 50 },
+        genericLogger
       );
       expect(result.totalCount).toBe(0);
       expect(result.results).toEqual([]);
@@ -332,32 +379,32 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
       const result = await purposeService.getPurposes(
         producerId1,
         {
-          name: "test",
+          title: "test",
           eservicesIds: [mockEService3ByTenant2.id],
           consumersIds: [consumerId1],
           producersIds: [producerId2],
-          states: [purposeVersionState.archived],
+          states: [purposeVersionState.active],
           excludeDraft: true,
         },
-        { offset: 0, limit: 50 }
+        { offset: 0, limit: 50 },
+        genericLogger
       );
       expect(result.totalCount).toBe(1);
-      expect(result.results).toEqual([
-        { ...mockPurpose6, versions: [mockPurposeVersion6_1] },
-      ]);
+      expect(result.results).toEqual([mockPurpose6]);
     });
     it("should get the purposes if they exist (parameters: name, eservicesIds, consumersIds, producersIds, states; exlcudeDraft = false)", async () => {
       const result = await purposeService.getPurposes(
         producerId1,
         {
-          name: "test",
+          title: "test",
           eservicesIds: [mockEService1ByTenant1.id],
           consumersIds: [consumerId1],
           producersIds: [producerId1],
           states: [purposeVersionState.draft],
           excludeDraft: false,
         },
-        { offset: 0, limit: 50 }
+        { offset: 0, limit: 50 },
+        genericLogger
       );
       expect(result.totalCount).toBe(1);
       expect(result.results).toEqual([mockPurpose1]);
@@ -380,7 +427,8 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
           states: [],
           excludeDraft: false,
         },
-        { offset: 0, limit: 50 }
+        { offset: 0, limit: 50 },
+        genericLogger
       );
       expect(result.totalCount).toBe(8);
       expect(result.results).toEqual(
@@ -424,7 +472,8 @@ export const testGetPurposes = (): ReturnType<typeof describe> =>
           states: [],
           excludeDraft: false,
         },
-        { offset: 0, limit: 50 }
+        { offset: 0, limit: 50 },
+        genericLogger
       );
       expect(result.totalCount).toBe(2);
       expect(result.results).toEqual([
