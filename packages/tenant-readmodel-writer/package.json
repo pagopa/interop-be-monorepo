@@ -11,14 +11,15 @@
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
     "start": "node --watch --loader ts-node/esm -r 'dotenv-flow/config' ./src/index.ts",
-    "build": "tsc"
+    "build": "tsc",
+    "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
   "author": "",
   "license": "Apache-2.0",
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
-    "@types/dotenv-flow": "3.2.0",
+    "@types/dotenv-flow": "3.3.3",
     "@types/node": "20.3.1",
     "prettier": "2.8.8",
     "ts-node": "10.9.2",
@@ -26,8 +27,8 @@
   },
   "dependencies": {
     "@protobuf-ts/runtime": "2.9.4",
-    "connection-string": "4.3.6",
-    "dotenv-flow": "3.2.0",
+    "connection-string": "4.4.0",
+    "dotenv-flow": "3.3.0",
     "kafkajs": "2.2.4",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",

@@ -1,5 +1,14 @@
-import { AuthData, CreateEvent } from "pagopa-interop-commons";
+/* eslint-disable max-params */
 import {
+  AuthData,
+  CreateEvent,
+  Logger,
+  WithLogger,
+  AppContext,
+  FileManager,
+} from "pagopa-interop-commons";
+import {
+  AgreementDocument,
   AgreementDocumentId,
   AgreementEvent,
   AgreementId,
@@ -26,9 +35,8 @@ export async function addConsumerDocumentLogic(
   agreementId: AgreementId,
   payload: ApiAgreementDocumentSeed,
   agreementQuery: AgreementQuery,
-  authData: AuthData,
-  correlationId: string
-): Promise<CreateEvent<AgreementEvent>> {
+  { authData, correlationId }: WithLogger<AppContext>
+): Promise<[AgreementDocument, CreateEvent<AgreementEvent>]> {
   const agreement = await agreementQuery.getAgreementById(agreementId);
 
   assertAgreementExist(agreementId, agreement);
@@ -49,12 +57,15 @@ export async function addConsumerDocumentLogic(
     consumerDocuments: [...agreement.data.consumerDocuments, newDocument],
   };
 
-  return toCreateEventAgreementConsumerDocumentAdded(
-    newDocument.id,
-    updatedAgreement,
-    agreement.metadata.version,
-    correlationId
-  );
+  return [
+    newDocument,
+    toCreateEventAgreementConsumerDocumentAdded(
+      newDocument.id,
+      updatedAgreement,
+      agreement.metadata.version,
+      correlationId
+    ),
+  ];
 }
 
 // eslint-disable-next-line max-params
@@ -63,8 +74,9 @@ export async function removeAgreementConsumerDocumentLogic(
   documentId: AgreementDocumentId,
   agreementQuery: AgreementQuery,
   authData: AuthData,
-  fileRemove: (bucket: string, path: string) => Promise<void>,
-  correlationId: string
+  fileRemove: FileManager["delete"],
+  correlationId: string,
+  logger: Logger
 ): Promise<CreateEvent<AgreementEvent>> {
   const agreement = await agreementQuery.getAgreementById(agreementId);
 
@@ -80,7 +92,7 @@ export async function removeAgreementConsumerDocumentLogic(
     throw agreementDocumentNotFound(documentId, agreementId);
   }
 
-  await fileRemove(config.s3Bucket, existentDocument.path);
+  await fileRemove(config.s3Bucket, existentDocument.path, logger);
 
   const updatedAgreement = {
     ...agreement.data,
