@@ -43,7 +43,7 @@
     "axios": "1.6.8",
     "dotenv-flow": "3.3.0",
     "express": "4.19.2",
-    "mongodb": "5.8.0",
+    "mongodb": "5.9.2",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "pagopa-interop-selfcare-v2-client": "workspace:*",
