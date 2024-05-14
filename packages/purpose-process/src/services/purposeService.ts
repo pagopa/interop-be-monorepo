@@ -3,6 +3,7 @@ import {
   DB,
   Logger,
   eventRepository,
+  riskAnalysisFormToRiskAnalysisFormToValidate,
 } from "pagopa-interop-commons";
 import {
   EService,
@@ -28,12 +29,14 @@ import {
   unsafeBrandId,
   generateId,
   Agreement,
+  RiskAnalysisId,
+  RiskAnalysis,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
   agreementNotFound,
-  duplicatedPurposeTitle,
   eserviceNotFound,
+  eserviceRiskAnalysisNotFound,
   notValidVersionState,
   organizationIsNotTheConsumer,
   organizationIsNotTheProducer,
@@ -60,6 +63,7 @@ import {
   ApiPurposeUpdateContent,
   ApiReversePurposeUpdateContent,
   ApiPurposeSeed,
+  ApiReversePurposeSeed,
 } from "../model/domain/models.js";
 import { GetPurposesFilters, ReadModelService } from "./readModelService.js";
 import {
@@ -77,6 +81,8 @@ import {
   isDeletable,
   isArchivable,
   isSuspendable,
+  validateRiskAnalysisOrThrow,
+  assertPurposeTitleIsNotDuplicated,
 } from "./validators.js";
 
 const retrievePurpose = async (
@@ -158,6 +164,21 @@ const retrieveActiveAgreement = async (
     throw agreementNotFound(eserviceId, consumerId);
   }
   return activeAgreement;
+};
+
+const retrieveRiskAnalysis = (
+  riskAnalysisId: RiskAnalysisId,
+  eservice: EService
+): RiskAnalysis => {
+  const riskAnalysis = eservice.riskAnalysis.find(
+    (ra: RiskAnalysis) => ra.id === riskAnalysisId
+  );
+
+  if (riskAnalysis === undefined) {
+    throw eserviceRiskAnalysisNotFound(eservice.id, riskAnalysisId);
+  }
+
+  return riskAnalysis;
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -599,20 +620,18 @@ export function purposeServiceBuilder(
 
       const validatedFormSeed = validateAndTransformRiskAnalysis(
         purposeSeed.riskAnalysisForm,
+        false,
         tenant.kind
       );
 
       await retrieveActiveAgreement(eserviceId, consumerId, readModelService);
 
-      const purposeWithSameName = await readModelService.getPurpose(
+      await assertPurposeTitleIsNotDuplicated({
+        readModelService,
         eserviceId,
         consumerId,
-        purposeSeed.title
-      );
-
-      if (purposeWithSameName) {
-        throw duplicatedPurposeTitle(purposeSeed.title);
-      }
+        title: purposeSeed.title,
+      });
 
       const purpose: Purpose = {
         ...purposeSeed,
@@ -635,6 +654,84 @@ export function purposeServiceBuilder(
         toCreateEventPurposeAdded(purpose, correlationId)
       );
       return { purpose, isRiskAnalysisValid: validatedFormSeed !== undefined };
+    },
+    async createReversePurpose(
+      organizationId: TenantId,
+      seed: ApiReversePurposeSeed,
+      correlationId: string,
+      logger: Logger
+    ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
+      logger.info(
+        `Creating Purpose for EService ${seed.eServiceId}, Consumer ${seed.consumerId}`
+      );
+      const eserviceId: EServiceId = unsafeBrandId(seed.eServiceId);
+      const consumerId: TenantId = unsafeBrandId(seed.consumerId);
+
+      assertOrganizationIsAConsumer(organizationId, consumerId);
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      assertEserviceMode(eservice, eserviceMode.receive);
+
+      const riskAnalysis = retrieveRiskAnalysis(
+        unsafeBrandId(seed.riskAnalysisId),
+        eservice
+      );
+
+      assertConsistentFreeOfCharge(
+        seed.isFreeOfCharge,
+        seed.freeOfChargeReason
+      );
+
+      const producer = await retrieveTenant(
+        eservice.producerId,
+        readModelService
+      );
+
+      assertTenantKindExists(producer);
+
+      await retrieveActiveAgreement(eserviceId, consumerId, readModelService);
+
+      await assertPurposeTitleIsNotDuplicated({
+        readModelService,
+        eserviceId,
+        consumerId,
+        title: seed.title,
+      });
+
+      validateRiskAnalysisOrThrow({
+        riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
+          riskAnalysis.riskAnalysisForm
+        ),
+        schemaOnlyValidation: false,
+        tenantKind: producer.kind,
+      });
+
+      const newVersion: PurposeVersion = {
+        id: generateId(),
+        createdAt: new Date(),
+        state: purposeVersionState.draft,
+        dailyCalls: seed.dailyCalls,
+      };
+
+      const purpose: Purpose = {
+        title: seed.title,
+        id: generateId(),
+        createdAt: new Date(),
+        eserviceId,
+        consumerId,
+        description: seed.description,
+        versions: [newVersion],
+        isFreeOfCharge: seed.isFreeOfCharge,
+        freeOfChargeReason: seed.freeOfChargeReason,
+        riskAnalysisForm: riskAnalysis.riskAnalysisForm,
+      };
+
+      await repository.createEvent(
+        toCreateEventPurposeAdded(purpose, correlationId)
+      );
+      return {
+        purpose,
+        isRiskAnalysisValid: true,
+      };
     },
   };
 }
@@ -739,15 +836,12 @@ const performUpdatePurpose = async (
   assertPurposeIsDraft(purpose.data);
 
   if (updateContent.title !== purpose.data.title) {
-    const purposeWithSameTitle = await readModelService.getPurpose(
-      purpose.data.eserviceId,
-      purpose.data.consumerId,
-      updateContent.title
-    );
-
-    if (purposeWithSameTitle) {
-      throw duplicatedPurposeTitle(updateContent.title);
-    }
+    await assertPurposeTitleIsNotDuplicated({
+      readModelService,
+      eserviceId: purpose.data.eserviceId,
+      consumerId: purpose.data.consumerId,
+      title: updateContent.title,
+    });
   }
   const eservice = await retrieveEService(
     purpose.data.eserviceId,
@@ -771,10 +865,12 @@ const performUpdatePurpose = async (
     mode === eserviceMode.deliver
       ? validateAndTransformRiskAnalysis(
           updateContent.riskAnalysisForm,
+          true,
           tenant.kind
         )
       : reverseValidateAndTransformRiskAnalysis(
           purpose.data.riskAnalysisForm,
+          true,
           tenant.kind
         );
 

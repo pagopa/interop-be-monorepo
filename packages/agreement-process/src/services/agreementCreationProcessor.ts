@@ -27,7 +27,7 @@ export async function createAgreementLogic(
   eserviceQuery: EserviceQuery,
   tenantQuery: TenantQuery,
   correlationId: string
-): Promise<CreateEvent<AgreementEvent>> {
+): Promise<[Agreement, CreateEvent<AgreementEvent>]> {
   const eservice = await eserviceQuery.getEServiceById(agreement.eserviceId);
   assertEServiceExist(unsafeBrandId(agreement.eserviceId), eservice);
 
@@ -63,5 +63,8 @@ export async function createAgreementLogic(
     stamps: {},
   };
 
-  return toCreateEventAgreementAdded(agreementSeed, correlationId);
+  return [
+    agreementSeed,
+    toCreateEventAgreementAdded(agreementSeed, correlationId),
+  ];
 }
