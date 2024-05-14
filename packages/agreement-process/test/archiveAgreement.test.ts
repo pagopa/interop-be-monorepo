@@ -46,12 +46,14 @@ describe("archive agreement", () => {
 
     await addOneAgreement(agreement);
 
-    const agreementId = await agreementService.archiveAgreement(agreement.id, {
-      authData,
-      serviceName: "",
-      correlationId: "",
-      logger: genericLogger,
-    });
+    const agreementId = (
+      await agreementService.archiveAgreement(agreement.id, {
+        authData,
+        serviceName: "",
+        correlationId: "",
+        logger: genericLogger,
+      })
+    ).id;
 
     expect(agreementId).toBeDefined();
     if (!agreementId) {
