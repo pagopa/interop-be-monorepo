@@ -29,15 +29,11 @@ export function readModelServiceBuilder(
     descriptorId: DescriptorId
   ): Promise<Agreement[]> {
     const data = await agreements
-      .aggregate([
-        {
-          $match: {
-            "data.eserviceId": eserviceId,
-            "data.descriptorId": descriptorId,
-            "data.state": { $ne: agreementState.archived },
-          },
-        },
-      ])
+      .find({
+        "data.eserviceId": eserviceId,
+        "data.descriptorId": descriptorId,
+        "data.state": { $ne: agreementState.archived },
+      })
       .toArray();
 
     const result = z.array(Agreement).safeParse(data.map((a) => a.data));
