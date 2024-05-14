@@ -29,6 +29,7 @@ import {
 } from "../model/domain/errors.js";
 import { ApiRiskAnalysisFormSeed } from "../model/domain/models.js";
 import { ReadModelService } from "./readModelService.js";
+import { retrieveActiveAgreement } from "./purposeService.js";
 
 export const isRiskAnalysisFormValid = (
   riskAnalysisForm: RiskAnalysisForm | undefined,
@@ -204,14 +205,11 @@ export async function isLoadAllowed(
     excludeDraft: true,
   });
 
-  const agreement = await readModelService.getActiveAgreement(
+  const agreement = await retrieveActiveAgreement(
     eservice.id,
-    purpose.consumerId
+    purpose.consumerId,
+    readModelService
   );
-
-  if (!agreement) {
-    throw agreementNotFound(eservice.id, purpose.consumerId);
-  }
 
   const getActiveVersions = (purposes: Purpose[]): PurposeVersion[] =>
     purposes

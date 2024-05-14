@@ -157,7 +157,7 @@ const retrieveTenant = async (
   return tenant;
 };
 
-const retrieveActiveAgreement = async (
+export const retrieveActiveAgreement = async (
   eserviceId: EServiceId,
   consumerId: TenantId,
   readModelService: ReadModelService
